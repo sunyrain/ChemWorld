@@ -8,6 +8,10 @@ global table.
 | Reaction optimization | random, LHS, scripted chemistry, GP BO, RF EI, safe GP BO |
 | Safety constrained | random, scripted chemistry, safe GP BO |
 | Reaction to purification | random event planner, scripted chemistry |
+| Reaction to crystallization | random event planner, scripted chemistry |
+| Reaction to distillation | random event planner, scripted chemistry |
+| Continuous-flow reaction | random event planner, scripted chemistry |
+| Electrochemical conversion | random event planner, scripted chemistry |
 | Partition discovery | random, scripted chemistry, LLM replay |
 | Low budget characterization | random, LHS, GP BO |
 | Tool-agent planning | LLM replay, tool-using LLM stub |

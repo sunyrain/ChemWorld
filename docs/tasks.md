@@ -39,6 +39,10 @@ chemworld suite --task reaction-optimization-standard --agent gp_bo
 | `reaction-mechanism-explanation` | `public-test` | campaign | 36 | reaction | score, mechanism explanation, failure analysis |
 | `reaction-to-assay` | `public-dev` | single experiment | 18 | reaction | final-assay score, trajectory validity |
 | `reaction-to-purification` | `public-test` | single experiment | 90 | reaction + separation | score, purity, recovery, mass balance |
+| `reaction-to-crystallization` | `public-test` | single experiment | 72 | reaction + crystallization | score, crystal yield, crystal purity, crystal size |
+| `reaction-to-distillation` | `public-test` | single experiment | 72 | reaction + distillation | score, distillate purity, distillate recovery, solvent loss |
+| `flow-reaction-optimization` | `public-test` | campaign | 60 | reaction + continuous flow | score, flow conversion, yield, safety risk |
+| `electrochemical-conversion` | `public-test` | campaign | 48 | reaction + electrochemistry | score, selectivity, energy efficiency, safety risk |
 | `partition-discovery` | `public-test` | campaign | 48 | phase/partition | phase ratio, product partition |
 | `purity-yield-tradeoff` | `public-test` | campaign | 90 | reaction + separation | yield, purity, recovery, cost |
 | `public-private-generalization` | `private-eval` | campaign | 72 | reaction | score, public/private gap |

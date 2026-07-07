@@ -14,8 +14,39 @@ class ScriptedChemistryAgent(BaseAgent):
 
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
         step = len(history)
-        budget = int(self.task_info.get("budget", 30))
-        purification_enabled = "separate_phase" in set(self.task_info.get("allowed_operations", []))
+        allowed_operations = set(self.task_info.get("allowed_operations", []))
+        purification_enabled = "separate_phase" in allowed_operations
+        crystallization_enabled = "cool_crystallize" in allowed_operations
+        distillation_enabled = "distill" in allowed_operations
+        flow_enabled = "run_flow" in allowed_operations
+        electrochemistry_enabled = "electrolyze" in allowed_operations
+        if flow_enabled:
+            flow_sequence: list[dict[str, Any]] = [
+                {"operation": "add_solvent", "volume_L": 0.026, "solvent": 2},
+                {"operation": "add_reagent", "amount_mol": 0.010},
+                {"operation": "add_catalyst", "catalyst_amount_mol": 0.00022, "catalyst": 1},
+                {
+                    "operation": "set_flow_rate",
+                    "flow_rate_mL_min": 1.2,
+                    "residence_time_s": 900.0,
+                },
+                {"operation": "run_flow", "target_temperature_K": 382.0, "duration_s": 1800.0},
+                {"operation": "measure", "instrument": "uvvis"},
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
+            return self._sequence_action(flow_sequence, step)
+        if electrochemistry_enabled:
+            electrochemistry_sequence: list[dict[str, Any]] = [
+                {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+                {"operation": "add_reagent", "amount_mol": 0.010},
+                {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0},
+                {"operation": "electrolyze", "duration_s": 1800.0},
+                {"operation": "measure", "instrument": "uvvis"},
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
+            return self._sequence_action(electrochemistry_sequence, step)
         sequence: list[dict[str, Any]] = [
             {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
             {"operation": "add_reagent", "amount_mol": 0.010},
@@ -47,14 +78,48 @@ class ScriptedChemistryAgent(BaseAgent):
                     {"operation": "measure", "instrument": "hplc"},
                 ]
             )
+        if crystallization_enabled:
+            sequence.extend(
+                [
+                    {"operation": "seed_crystals", "seed_mass_g": 0.006},
+                    {
+                        "operation": "cool_crystallize",
+                        "target_temperature_K": 278.15,
+                        "duration_s": 1800.0,
+                    },
+                    {"operation": "filter_crystals"},
+                    {"operation": "measure", "instrument": "hplc"},
+                ]
+            )
+        if distillation_enabled:
+            sequence.extend(
+                [
+                    {
+                        "operation": "evaporate",
+                        "target_temperature_K": 335.0,
+                        "duration_s": 600.0,
+                    },
+                    {
+                        "operation": "distill",
+                        "target_temperature_K": 360.0,
+                        "duration_s": 1500.0,
+                        "reflux_ratio": 2.0,
+                    },
+                    {"operation": "collect_fraction", "transfer_fraction": 0.92},
+                    {"operation": "measure", "instrument": "gc"},
+                ]
+            )
         sequence.extend(
             [
                 {"operation": "terminate"},
                 {"operation": "measure", "instrument": "final_assay"},
             ]
         )
-        if step < len(sequence):
-            return sequence[step]
-        if step >= budget - 1:
-            return {"operation": "measure", "instrument": "final_assay"}
-        return {"operation": "wait", "duration_s": 300.0}
+        return self._sequence_action(sequence, step)
+
+    @staticmethod
+    def _sequence_action(
+        sequence: list[dict[str, Any]],
+        step: int,
+    ) -> dict[str, Any]:
+        return sequence[step % len(sequence)]

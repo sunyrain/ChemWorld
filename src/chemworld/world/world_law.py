@@ -9,6 +9,10 @@ from chemworld.core.batch_reactor import (
     batch_reactor_substances,
 )
 from chemworld.foundation import WorldLawSpec
+from chemworld.world.continuous_flow import ContinuousFlowModuleSpec
+from chemworld.world.crystallization import CrystallizationModuleSpec
+from chemworld.world.distillation import DistillationModuleSpec
+from chemworld.world.electrochemistry import ElectrochemistryModuleSpec
 from chemworld.world.instruments import instrument_contracts
 from chemworld.world.observation_kernel import ObservationModuleSpec
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
@@ -22,6 +26,10 @@ MODULE_VERSIONS = {
     "thermal": ThermalModuleSpec().version,
     "phase_partition": PhaseModuleSpec().version,
     "separation": SeparationModuleSpec().version,
+    "crystallization": CrystallizationModuleSpec().version,
+    "distillation": DistillationModuleSpec().version,
+    "continuous_flow": ContinuousFlowModuleSpec().version,
+    "electrochemistry": ElectrochemistryModuleSpec().version,
     "observation": ObservationModuleSpec().version,
 }
 
@@ -62,6 +70,10 @@ def world_law_spec() -> WorldLawSpec:
                 ThermalModuleSpec().to_dict(),
                 PhaseModuleSpec().to_dict(),
                 SeparationModuleSpec().to_dict(),
+                CrystallizationModuleSpec().to_dict(),
+                DistillationModuleSpec().to_dict(),
+                ContinuousFlowModuleSpec().to_dict(),
+                ElectrochemistryModuleSpec().to_dict(),
                 ObservationModuleSpec().to_dict(),
             ],
         },
@@ -72,6 +84,10 @@ def world_law_spec() -> WorldLawSpec:
             "thermal_energy_balance",
             "phase_partition",
             "separation",
+            "crystallization",
+            "distillation",
+            "continuous_flow",
+            "electrochemistry",
             "instrument_cost",
         ),
         observation_kernel_registry=("instrument_observation",),

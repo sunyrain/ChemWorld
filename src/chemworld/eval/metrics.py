@@ -32,6 +32,13 @@ class EvaluationResult:
     mean_purity: float
     mean_recovery: float
     purification_score: float
+    mean_crystal_yield: float
+    mean_crystal_purity: float
+    mean_distillate_purity: float
+    mean_distillate_recovery: float
+    mean_flow_conversion: float
+    mean_electrochemical_selectivity: float
+    mean_energy_efficiency: float
     phase_mass_balance_violations: int
     process_mass_balance_violation_count: int
     instrument_policy_violation_count: int
@@ -108,6 +115,41 @@ def evaluate_records(
     recoveries = [
         _obs_float(obs, "recovery") for obs in observations if obs.get("recovery") is not None
     ]
+    crystal_yields = [
+        _obs_float(obs, "crystal_yield")
+        for obs in observations
+        if obs.get("crystal_yield") is not None
+    ]
+    crystal_purities = [
+        _obs_float(obs, "crystal_purity")
+        for obs in observations
+        if obs.get("crystal_purity") is not None
+    ]
+    distillate_purities = [
+        _obs_float(obs, "distillate_purity")
+        for obs in observations
+        if obs.get("distillate_purity") is not None
+    ]
+    distillate_recoveries = [
+        _obs_float(obs, "distillate_recovery")
+        for obs in observations
+        if obs.get("distillate_recovery") is not None
+    ]
+    flow_conversions = [
+        _obs_float(obs, "flow_conversion")
+        for obs in observations
+        if obs.get("flow_conversion") is not None
+    ]
+    electrochemical_selectivities = [
+        _obs_float(obs, "electrochemical_selectivity")
+        for obs in observations
+        if obs.get("electrochemical_selectivity") is not None
+    ]
+    energy_efficiencies = [
+        _obs_float(obs, "energy_efficiency")
+        for obs in observations
+        if obs.get("energy_efficiency") is not None
+    ]
     mass_balance_errors = [
         _obs_float(obs, "process_mass_balance_error")
         for obs in observations
@@ -127,6 +169,19 @@ def evaluate_records(
     mean_risk = float(fmean(risks))
     mean_purity = float(fmean(purities)) if purities else 0.0
     mean_recovery = float(fmean(recoveries)) if recoveries else 0.0
+    mean_crystal_yield = float(fmean(crystal_yields)) if crystal_yields else 0.0
+    mean_crystal_purity = float(fmean(crystal_purities)) if crystal_purities else 0.0
+    mean_distillate_purity = (
+        float(fmean(distillate_purities)) if distillate_purities else 0.0
+    )
+    mean_distillate_recovery = (
+        float(fmean(distillate_recoveries)) if distillate_recoveries else 0.0
+    )
+    mean_flow_conversion = float(fmean(flow_conversions)) if flow_conversions else 0.0
+    mean_electrochemical_selectivity = (
+        float(fmean(electrochemical_selectivities)) if electrochemical_selectivities else 0.0
+    )
+    mean_energy_efficiency = float(fmean(energy_efficiencies)) if energy_efficiencies else 0.0
     mean_mass_balance_error = float(fmean(mass_balance_errors)) if mass_balance_errors else 0.0
     purification_score = float(
         np.clip(
@@ -188,6 +243,13 @@ def evaluate_records(
         mean_purity=mean_purity,
         mean_recovery=mean_recovery,
         purification_score=purification_score,
+        mean_crystal_yield=mean_crystal_yield,
+        mean_crystal_purity=mean_crystal_purity,
+        mean_distillate_purity=mean_distillate_purity,
+        mean_distillate_recovery=mean_distillate_recovery,
+        mean_flow_conversion=mean_flow_conversion,
+        mean_electrochemical_selectivity=mean_electrochemical_selectivity,
+        mean_energy_efficiency=mean_energy_efficiency,
         phase_mass_balance_violations=int(np.sum(phase_mass_balance_failures)),
         process_mass_balance_violation_count=process_mass_balance_violation_count,
         instrument_policy_violation_count=int(np.sum(instrument_policy_violations)),

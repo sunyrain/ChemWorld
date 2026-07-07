@@ -1,5 +1,9 @@
 """Professional world-law layer for the unified ChemWorld environment."""
 
+from chemworld.world.continuous_flow import ContinuousFlowModuleSpec
+from chemworld.world.crystallization import CrystallizationModuleSpec
+from chemworld.world.distillation import DistillationModuleSpec
+from chemworld.world.electrochemistry import ElectrochemistryModuleSpec
 from chemworld.world.instruments import InstrumentContract, instrument_contracts
 from chemworld.world.parameters import (
     SUPPORTED_SPLITS,
@@ -28,6 +32,10 @@ __all__ = [
     "SUPPORTED_SPLITS",
     "WORLD_FAMILY_VERSION",
     "ChemWorldParameters",
+    "ContinuousFlowModuleSpec",
+    "CrystallizationModuleSpec",
+    "DistillationModuleSpec",
+    "ElectrochemistryModuleSpec",
     "InstrumentContract",
     "ScenarioFamilySpec",
     "ScenarioGenerator",

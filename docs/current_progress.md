@@ -12,7 +12,8 @@ The repository currently provides:
 - one Gymnasium environment, `ChemWorld`;
 - a unified task registry over one shared world law;
 - an event-driven reaction transition model;
-- a phase partition and downstream separation module;
+- phase partition, downstream separation, crystallization, distillation,
+  continuous-flow, and electrochemistry process modules;
 - executable physical constitution checks;
 - noisy, partial instrument observations with explicit `observed_mask` fields;
 - standard trajectory logging, replay verification, metrics, and leaderboard
@@ -47,6 +48,17 @@ Downstream processing tracks aqueous/organic phase volume, product
 partitioning, impurity carryover, phase settling, separation loss, washing,
 drying, concentration, transfer loss, purity, recovery, solvent loss, and
 process mass-balance error.
+
+Year 2 process modules extend the same shared world law with:
+
+- crystallization: seeding, cooling crystallization, filtration, crystal yield,
+  crystal purity, and crystal-size proxy;
+- distillation: evaporation, distillation, fraction collection, distillate
+  purity, distillate recovery, solvent loss, energy cost, and thermal risk;
+- continuous flow: flow-rate setup, residence-time control, flow conversion,
+  and safety-aware flow reaction projection;
+- electrochemistry: potential/current setup, electrolysis, selectivity, energy
+  efficiency, and electrical risk proxy.
 
 ## Foundation Layer
 
@@ -102,6 +114,16 @@ Supported operations are:
 - `dry`;
 - `concentrate`;
 - `transfer`;
+- `seed_crystals`;
+- `cool_crystallize`;
+- `filter_crystals`;
+- `evaporate`;
+- `distill`;
+- `collect_fraction`;
+- `set_flow_rate`;
+- `run_flow`;
+- `set_potential`;
+- `electrolyze`;
 - `terminate`;
 - `measure`.
 
@@ -143,9 +165,10 @@ derived from those signals, and agents maintain a belief state from the observed
 trajectory.
 
 Failed action preconditions now return empty, non-informative observations and
-explicit `error_message` fields. Final assay is treated as a terminal scoring
-event: it requires a terminated reaction, ends the episode, and cannot be used
-to create repeated leaderboard scores.
+explicit `error_message` fields. Final assay is treated as the official scoring
+event: in single-experiment tasks it ends the episode, while in campaign tasks
+it closes the current experiment and lets the campaign continue with a fresh
+experiment until the global budget is exhausted.
 
 ## Baselines
 
@@ -181,7 +204,7 @@ grades from research use, and removal of identifiable text before release.
 
 ## Current Validation
 
-The current codebase passes:
+The current codebase is expected to pass:
 
 ```text
 ruff check .
@@ -190,7 +213,7 @@ pytest
 mkdocs build --strict
 ```
 
-At the time of this document, the local test suite contains 44 tests covering
+At the time of this document, the local test suite contains more than 60 tests covering
 the environment, foundation checks, baselines, CLI, replay verification,
 metrics, reproducibility, validation, anonymization, and suite/leaderboard
 flows.
@@ -203,10 +226,10 @@ model is qualitative and benchmark-oriented. It aims to be physically
 plausible enough for closed-loop decision research and teaching, not to model
 one named real chemical system.
 
-The current release has one shared world law with reaction and
-phase/separation modules. Future work should add more physical modules under
-`ChemWorld` only after the benchmark protocol, private evaluation workflow,
-and baseline reporting are stable.
+The current release has one shared world law with reaction, phase/separation,
+crystallization, distillation, continuous-flow, and electrochemistry modules.
+Future work should improve physical fidelity and baseline calibration without
+splitting these processes into separate mini-game environments.
 
 ## Recommended Next Steps
 

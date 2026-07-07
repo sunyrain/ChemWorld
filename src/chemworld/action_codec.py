@@ -34,6 +34,12 @@ GYM_ACTION_KEYS = (
     "extractant",
     "wash_volume_L",
     "transfer_fraction",
+    "seed_mass_g",
+    "reflux_ratio",
+    "flow_rate_mL_min",
+    "residence_time_s",
+    "potential_V",
+    "current_mA",
 )
 
 
@@ -88,6 +94,12 @@ class ActionCodec:
             self._float(action, "extractant", 0.0),
             self._float(action, "wash_volume_L", 0.0),
             self._float(action, "transfer_fraction", 1.0),
+            self._float(action, "seed_mass_g", 0.0),
+            self._float(action, "reflux_ratio", 1.5),
+            self._float(action, "flow_rate_mL_min", 1.0),
+            self._float(action, "residence_time_s", 600.0),
+            self._float(action, "potential_V", 1.2),
+            self._float(action, "current_mA", 50.0),
         ]
         return np.asarray(values, dtype=np.float32)
 
@@ -120,6 +132,12 @@ class ActionCodec:
             "extractant": int(np.clip(round(array[13]), 0, 3)),
             "wash_volume_L": float(array[14]),
             "transfer_fraction": float(array[15]),
+            "seed_mass_g": float(array[16]),
+            "reflux_ratio": float(array[17]),
+            "flow_rate_mL_min": float(array[18]),
+            "residence_time_s": float(array[19]),
+            "potential_V": float(array[20]),
+            "current_mA": float(array[21]),
         }
 
     def phase_name(self, value: Any) -> str:

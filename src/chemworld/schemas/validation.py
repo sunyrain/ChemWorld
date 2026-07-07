@@ -195,6 +195,12 @@ def validate_action_schema(action: object) -> SchemaValidationResult:
         "sample_volume_L",
         "wash_volume_L",
         "transfer_fraction",
+        "seed_mass_g",
+        "reflux_ratio",
+        "flow_rate_mL_min",
+        "residence_time_s",
+        "potential_V",
+        "current_mA",
     ):
         if key in action and not _is_number(action[key]):
             errors.append(f"{key} must be numeric")

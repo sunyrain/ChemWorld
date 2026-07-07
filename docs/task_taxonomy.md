@@ -26,6 +26,14 @@ processing:
 - `purity-yield-tradeoff`
 - `tool-agent-planning`
 
+Year 2 process tasks extend the same world law with additional physical
+modules:
+
+- `reaction-to-crystallization`
+- `reaction-to-distillation`
+- `flow-reaction-optimization`
+- `electrochemical-conversion`
+
 Partition tasks isolate phase behavior so agents can learn solvent/product
 distribution rules:
 

@@ -36,9 +36,22 @@ def test_world_law_contains_professional_contracts() -> None:
     assert spec["law_version"] == "chemworld-physical-chemistry"
     assert "reaction" in spec["module_versions"]
     assert "thermal_energy_balance" in spec["transition_kernel_registry"]
+    assert "crystallization" in spec["transition_kernel_registry"]
+    assert "distillation" in spec["transition_kernel_registry"]
+    assert "continuous_flow" in spec["transition_kernel_registry"]
+    assert "electrochemistry" in spec["transition_kernel_registry"]
     assert "hplc" in spec["instrument_registry"]
     assert "material_conservation" in spec["constitution_rules"]
     assert spec["backend"]["backend_id"] == "semi_mechanistic"
+    module_ids = {
+        module["module_id"] for module in spec["ontology_registry"]["modules"]
+    }
+    assert {
+        "crystallization",
+        "distillation",
+        "continuous_flow",
+        "electrochemistry",
+    } <= module_ids
 
 
 def test_scenarios_are_first_class_and_share_world_law() -> None:
@@ -50,6 +63,9 @@ def test_scenarios_are_first_class_and_share_world_law() -> None:
     card = get_scenario_card("reaction-to-purification")
     assert card["family"] == "reaction_separation"
     assert "separation" in card["allowed_module_tags"]
+    crystallization_card = get_scenario_card("reaction-to-crystallization")
+    assert crystallization_card["family"] == "reaction_crystallization"
+    assert "crystallization" in crystallization_card["allowed_module_tags"]
     assert {task.world_law_id for task in list_tasks()} == {"chemworld-physical-chemistry"}
 
 

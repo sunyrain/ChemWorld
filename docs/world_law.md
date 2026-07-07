@@ -13,8 +13,9 @@ benchmark task is a constrained slice of the same law.
 - physical constitution: executable constraints for units, non-negativity,
   material conservation, safety, measurement cost, and action preconditions;
 - operation registry: the common experimental language;
-- transition kernel registry: reaction ODEs, phase partitioning, separation
-  operations, and instrument-cost updates;
+- transition kernel registry: reaction ODEs, phase partitioning, separation,
+  crystallization, distillation, continuous-flow, electrochemistry, and
+  instrument-cost updates;
 - observation kernel registry: partial, noisy instrument observations.
 
 Current law id:
@@ -32,6 +33,11 @@ energy balance.
 Phase and separation behavior includes aqueous/organic phase ledgers, product
 partitioning, impurity carryover, settling, phase separation, washing, drying,
 concentration, transfer loss, purity, recovery, and process mass-balance error.
+
+Year 2 process behavior adds crystallization, distillation, continuous-flow,
+and electrochemistry modules. These modules expose new operations and metrics,
+but still share the same ontology, physical constitution, action validation,
+instrument observation layer, and trajectory schema.
 
 Observation behavior includes HPLC, GC, UV-vis, and final assay instruments.
 Agents receive measured estimates, raw signal summaries, uncertainty metadata,

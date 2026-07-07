@@ -5,13 +5,38 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from chemworld.core.batch_reactor import INSTRUMENTS, OPERATION_TYPES, REACTION_OPERATIONS
+from chemworld.core.batch_reactor import (
+    CRYSTALLIZATION_OPERATIONS,
+    DISTILLATION_OPERATIONS,
+    ELECTROCHEMISTRY_OPERATIONS,
+    FLOW_OPERATIONS,
+    INSTRUMENTS,
+    OPERATION_TYPES,
+    REACTION_OPERATIONS,
+)
 from chemworld.registration import ENV_ID
 from chemworld.world.scenario import get_scenario_card
 
 WORLD_LAW_ID = "chemworld-physical-chemistry"
 REACTION_ALLOWED = REACTION_OPERATIONS
 REACTION_SEPARATION_ALLOWED = OPERATION_TYPES
+REACTION_CRYSTALLIZATION_ALLOWED = (*REACTION_OPERATIONS, *CRYSTALLIZATION_OPERATIONS)
+REACTION_DISTILLATION_ALLOWED = (*REACTION_OPERATIONS, *DISTILLATION_OPERATIONS)
+FLOW_REACTION_ALLOWED = (
+    "add_solvent",
+    "add_reagent",
+    "add_catalyst",
+    *FLOW_OPERATIONS,
+    "measure",
+    "terminate",
+)
+ELECTROCHEMISTRY_ALLOWED = (
+    "add_solvent",
+    "add_reagent",
+    *ELECTROCHEMISTRY_OPERATIONS,
+    "measure",
+    "terminate",
+)
 PARTITION_ALLOWED = (
     "add_solvent",
     "add_reagent",
@@ -268,6 +293,63 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         success_metrics=("score", "purity", "recovery", "process_mass_balance_error"),
         description="Closed-loop reaction, extraction, phase separation, purification, and assay.",
         tags=("reaction", "separation", "purification"),
+    ),
+    "reaction-to-crystallization": _task(
+        "reaction-to-crystallization",
+        scenario_id="reaction-to-crystallization",
+        world_split="public-test",
+        budget=72,
+        seeds=(0, 1, 2),
+        threshold=0.66,
+        episode_mode="single_experiment",
+        allowed_operations=REACTION_CRYSTALLIZATION_ALLOWED,
+        success_metrics=("score", "crystal_yield", "crystal_purity", "crystal_size"),
+        description="Run a reaction and isolate product through seeded cooling crystallization.",
+        tags=("reaction", "crystallization", "purification", "year2"),
+    ),
+    "reaction-to-distillation": _task(
+        "reaction-to-distillation",
+        scenario_id="reaction-to-distillation",
+        world_split="public-test",
+        budget=72,
+        seeds=(0, 1, 2),
+        threshold=0.64,
+        episode_mode="single_experiment",
+        allowed_operations=REACTION_DISTILLATION_ALLOWED,
+        success_metrics=("score", "distillate_purity", "distillate_recovery", "solvent_loss"),
+        description="Run a reaction and evaluate volatile-product recovery through distillation.",
+        tags=("reaction", "distillation", "purification", "year2"),
+    ),
+    "flow-reaction-optimization": _task(
+        "flow-reaction-optimization",
+        scenario_id="flow-reaction-optimization",
+        world_split="public-test",
+        budget=60,
+        seeds=(0, 1, 2),
+        threshold=0.64,
+        episode_mode="campaign",
+        allowed_operations=FLOW_REACTION_ALLOWED,
+        success_metrics=("score", "flow_conversion", "yield", "safety_risk"),
+        description="Optimize a continuous-flow projection of the shared reaction law.",
+        tags=("reaction", "continuous-flow", "optimization", "year2"),
+    ),
+    "electrochemical-conversion": _task(
+        "electrochemical-conversion",
+        scenario_id="electrochemical-conversion",
+        world_split="public-test",
+        budget=48,
+        seeds=(0, 1, 2),
+        threshold=0.58,
+        episode_mode="campaign",
+        allowed_operations=ELECTROCHEMISTRY_ALLOWED,
+        success_metrics=(
+            "score",
+            "electrochemical_selectivity",
+            "energy_efficiency",
+            "safety_risk",
+        ),
+        description="Probe potential/current choices for a virtual electrochemical conversion.",
+        tags=("reaction", "electrochemistry", "optimization", "year2"),
     ),
     "partition-discovery": _task(
         "partition-discovery",

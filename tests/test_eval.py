@@ -65,3 +65,38 @@ def test_evaluation_uses_final_assay_leaderboard_score() -> None:
     assert result.final_best_score == 0.20
     assert result.best_valid_score == 0.20
 
+
+def test_evaluation_aggregates_year2_process_metrics() -> None:
+    record = {
+        "agent_metadata": {"agent_name": "process_probe"},
+        "env_id": "ChemWorld",
+        "world_split": "public-test",
+        "seed": 0,
+        "episode_mode": "single_experiment",
+        "constraint_flags": {"unsafe": False, "high_cost": False},
+        "leaderboard_score": 0.42,
+        "observation": {
+            "yield": 0.30,
+            "cost": 0.10,
+            "safety_risk": 0.12,
+            "score": 0.42,
+            "crystal_yield": 0.44,
+            "crystal_purity": 0.82,
+            "distillate_purity": 0.76,
+            "distillate_recovery": 0.58,
+            "flow_conversion": 0.67,
+            "electrochemical_selectivity": 0.71,
+            "energy_efficiency": 0.64,
+        },
+    }
+
+    result = evaluate_records([record])
+
+    assert result.mean_crystal_yield == 0.44
+    assert result.mean_crystal_purity == 0.82
+    assert result.mean_distillate_purity == 0.76
+    assert result.mean_distillate_recovery == 0.58
+    assert result.mean_flow_conversion == 0.67
+    assert result.mean_electrochemical_selectivity == 0.71
+    assert result.mean_energy_efficiency == 0.64
+

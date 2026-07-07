@@ -53,7 +53,23 @@ SEPARATION_OPERATIONS = (
     "concentrate",
     "transfer",
 )
-OPERATION_TYPES = (*REACTION_OPERATIONS[:-2], *SEPARATION_OPERATIONS, "terminate", "measure")
+CRYSTALLIZATION_OPERATIONS = ("seed_crystals", "cool_crystallize", "filter_crystals")
+DISTILLATION_OPERATIONS = ("evaporate", "distill", "collect_fraction")
+FLOW_OPERATIONS = ("set_flow_rate", "run_flow")
+ELECTROCHEMISTRY_OPERATIONS = ("set_potential", "electrolyze")
+PROCESS_OPERATIONS = (
+    *CRYSTALLIZATION_OPERATIONS,
+    *DISTILLATION_OPERATIONS,
+    *FLOW_OPERATIONS,
+    *ELECTROCHEMISTRY_OPERATIONS,
+)
+OPERATION_TYPES = (
+    *REACTION_OPERATIONS[:-2],
+    *SEPARATION_OPERATIONS,
+    *PROCESS_OPERATIONS,
+    "terminate",
+    "measure",
+)
 INSTRUMENTS = ("hplc", "gc", "uvvis", "final_assay")
 DOWNSTREAM_OBSERVATION_KEYS = (
     "purity",
@@ -64,6 +80,14 @@ DOWNSTREAM_OBSERVATION_KEYS = (
     "impurity_signal",
     "solvent_loss",
     "process_mass_balance_error",
+    "crystal_yield",
+    "crystal_purity",
+    "crystal_size",
+    "distillate_purity",
+    "distillate_recovery",
+    "flow_conversion",
+    "electrochemical_selectivity",
+    "energy_efficiency",
 )
 
 
@@ -164,7 +188,15 @@ def batch_reactor_instruments() -> dict[str, Instrument]:
         "hplc": Instrument(
             "hplc",
             "HPLC",
-            ("yield", "selectivity", "byproduct_signal", "purity", "impurity_signal"),
+            (
+                "yield",
+                "selectivity",
+                "byproduct_signal",
+                "purity",
+                "impurity_signal",
+                "crystal_purity",
+                "distillate_purity",
+            ),
             cost=0.08,
             sample_volume_L=0.00020,
             noise_std={
@@ -173,23 +205,35 @@ def batch_reactor_instruments() -> dict[str, Instrument]:
                 "byproduct_signal": 0.012,
                 "purity": 0.015,
                 "impurity_signal": 0.015,
+                "crystal_purity": 0.018,
+                "distillate_purity": 0.014,
             },
         ),
         "gc": Instrument(
             "gc",
             "GC",
-            ("byproduct_signal", "degradation_warning"),
+            ("byproduct_signal", "degradation_warning", "distillate_purity"),
             cost=0.06,
             sample_volume_L=0.00015,
-            noise_std={"byproduct_signal": 0.018, "degradation_warning": 0.018},
+            noise_std={
+                "byproduct_signal": 0.018,
+                "degradation_warning": 0.018,
+                "distillate_purity": 0.020,
+            },
         ),
         "uvvis": Instrument(
             "uvvis",
             "UV-vis",
-            ("yield", "conversion", "phase_ratio"),
+            ("yield", "conversion", "phase_ratio", "flow_conversion", "energy_efficiency"),
             cost=0.025,
             sample_volume_L=0.00005,
-            noise_std={"yield": 0.045, "conversion": 0.035, "phase_ratio": 0.040},
+            noise_std={
+                "yield": 0.045,
+                "conversion": 0.035,
+                "phase_ratio": 0.040,
+                "flow_conversion": 0.040,
+                "energy_efficiency": 0.045,
+            },
         ),
         "final_assay": Instrument(
             "final_assay",
@@ -208,6 +252,14 @@ def batch_reactor_instruments() -> dict[str, Instrument]:
                 "impurity_signal",
                 "solvent_loss",
                 "process_mass_balance_error",
+                "crystal_yield",
+                "crystal_purity",
+                "crystal_size",
+                "distillate_purity",
+                "distillate_recovery",
+                "flow_conversion",
+                "electrochemical_selectivity",
+                "energy_efficiency",
             ),
             cost=0.16,
             sample_volume_L=0.00030,
@@ -225,6 +277,14 @@ def batch_reactor_instruments() -> dict[str, Instrument]:
                 "impurity_signal": 0.008,
                 "solvent_loss": 0.012,
                 "process_mass_balance_error": 0.004,
+                "crystal_yield": 0.010,
+                "crystal_purity": 0.010,
+                "crystal_size": 0.025,
+                "distillate_purity": 0.010,
+                "distillate_recovery": 0.012,
+                "flow_conversion": 0.012,
+                "electrochemical_selectivity": 0.012,
+                "energy_efficiency": 0.016,
             },
             requires_terminated=True,
         ),
@@ -350,6 +410,61 @@ def batch_reactor_operations() -> tuple[Operation, ...]:
         Operation(
             "transfer", "Transfer product phase", ("transfer_fraction",), ("has_phase_system",)
         ),
+        Operation("seed_crystals", "Seed crystallization", ("seed_mass_g",), ("has_volume",)),
+        Operation(
+            "cool_crystallize",
+            "Cool crystallization",
+            ("target_temperature_K", "duration_s"),
+            ("has_volume", "has_material"),
+        ),
+        Operation(
+            "filter_crystals",
+            "Filter crystals",
+            (),
+            ("has_material", "filter_requires_crystallization"),
+        ),
+        Operation(
+            "evaporate",
+            "Evaporate solvent",
+            ("target_temperature_K", "duration_s"),
+            ("has_volume",),
+        ),
+        Operation(
+            "distill",
+            "Distill volatile fraction",
+            ("target_temperature_K", "duration_s", "reflux_ratio"),
+            ("has_volume", "has_material"),
+        ),
+        Operation(
+            "collect_fraction",
+            "Collect distillation fraction",
+            ("transfer_fraction",),
+            ("collect_fraction_requires_distillation",),
+        ),
+        Operation(
+            "set_flow_rate",
+            "Configure continuous-flow residence time",
+            ("flow_rate_mL_min", "residence_time_s"),
+            ("not_terminated",),
+        ),
+        Operation(
+            "run_flow",
+            "Run continuous-flow reaction",
+            ("target_temperature_K", "duration_s"),
+            ("has_volume", "has_material", "run_flow_requires_flow_setup"),
+        ),
+        Operation(
+            "set_potential",
+            "Configure electrochemical cell",
+            ("potential_V", "current_mA"),
+            ("has_volume", "has_material"),
+        ),
+        Operation(
+            "electrolyze",
+            "Run electrolysis",
+            ("duration_s",),
+            ("has_volume", "has_material", "electrolyze_requires_potential"),
+        ),
         Operation("terminate", "Terminate", (), ("has_material",)),
         Operation("measure", "Measure", ("instrument",), ("has_volume", "instrument_specific")),
     )
@@ -369,6 +484,10 @@ def batch_reactor_state_variables() -> tuple[StateVariable, ...]:
         StateVariable("metadata.purity", "dimensionless", hidden=True),
         StateVariable("metadata.recovery", "dimensionless", hidden=True),
         StateVariable("metadata.process_mass_balance_error", "dimensionless", hidden=True),
+        StateVariable("metadata.crystal_yield", "dimensionless", hidden=True),
+        StateVariable("metadata.distillate_purity", "dimensionless", hidden=True),
+        StateVariable("metadata.flow_conversion", "dimensionless", hidden=True),
+        StateVariable("metadata.electrochemical_selectivity", "dimensionless", hidden=True),
     )
 
 
@@ -506,6 +625,26 @@ class ChemWorldTransitionKernel(TransitionKernel):
             next_state = self._concentrate_phase(state, action)
         elif operation == "transfer":
             next_state = self._transfer_phase(state, action)
+        elif operation == "seed_crystals":
+            next_state = self._seed_crystals(state, action)
+        elif operation == "cool_crystallize":
+            next_state = self._cool_crystallize(state, action)
+        elif operation == "filter_crystals":
+            next_state = self._filter_crystals(state)
+        elif operation == "evaporate":
+            next_state = self._evaporate(state, action)
+        elif operation == "distill":
+            next_state = self._distill(state, action)
+        elif operation == "collect_fraction":
+            next_state = self._collect_fraction(state, action)
+        elif operation == "set_flow_rate":
+            next_state = self._set_flow_rate(state, action)
+        elif operation == "run_flow":
+            next_state = self._run_flow(state, action)
+        elif operation == "set_potential":
+            next_state = self._set_potential(state, action)
+        elif operation == "electrolyze":
+            next_state = self._electrolyze(state, action)
         elif operation == "terminate":
             next_state = state.replace(terminated=True)
         elif operation == "measure":
@@ -859,6 +998,281 @@ class ChemWorldTransitionKernel(TransitionKernel):
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.01)
         return state.replace(volume_L=phase["volume_L"], ledger=ledger, metadata=metadata)
 
+    def _seed_crystals(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        seed_mass = float(np.clip(_action_float(action, "seed_mass_g", 0.005), 0.0, 0.050))
+        metadata = state.metadata.copy()
+        metadata["crystal_seeded"] = seed_mass > 0.0
+        metadata["crystal_seed_mass_g"] = seed_mass
+        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.012 + 0.20 * seed_mass)
+        return state.replace(ledger=ledger, metadata=metadata)
+
+    def _cool_crystallize(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        duration = float(np.clip(_action_float(action, "duration_s", 1200.0), 0.0, 14_400.0))
+        target_temperature = float(
+            np.clip(_action_float(action, "target_temperature_K", 278.15), 250.0, 330.0)
+        )
+        cooling_depth = float(np.clip((state.temperature_K - target_temperature) / 55.0, 0.0, 1.0))
+        time_factor = float(np.clip(1.0 - np.exp(-duration / 1800.0), 0.0, 1.0))
+        seed_factor = 1.08 if bool(state.metadata.get("crystal_seeded", False)) else 0.92
+        p_mol = state.species_amounts.get("P", 0.0)
+        impurity_mol = (
+            state.species_amounts.get("B", 0.0)
+            + state.species_amounts.get("D", 0.0)
+            + state.species_amounts.get("E", 0.0)
+        )
+        crystallized = float(np.clip(p_mol * cooling_depth * time_factor * seed_factor, 0.0, p_mol))
+        occluded_impurity = float(
+            np.clip(impurity_mol * (0.035 + 0.080 * cooling_depth) * time_factor, 0.0, impurity_mol)
+        )
+        crystal_purity = crystallized / max(crystallized + occluded_impurity, 1.0e-12)
+        initial_p = max(
+            float(state.metadata.get("pre_separation_product_mol", p_mol)),
+            p_mol,
+            1.0e-12,
+        )
+        metadata = state.metadata.copy()
+        metadata.update(
+            {
+                "crystallization_active": True,
+                "crystal_product_mol": crystallized,
+                "crystal_impurity_mol": occluded_impurity,
+                "crystal_yield": float(np.clip(crystallized / initial_p, 0.0, 1.0)),
+                "crystal_purity": float(np.clip(crystal_purity, 0.0, 1.0)),
+                "crystal_size": float(np.clip(0.25 + 0.65 * time_factor * seed_factor, 0.0, 1.0)),
+            }
+        )
+        ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + duration,
+            cost=state.ledger.cost + 0.018 + duration / 3600.0 * 0.018,
+            risk=max(0.0, state.ledger.risk - 0.02 * cooling_depth),
+        )
+        return state.replace(temperature_K=target_temperature, ledger=ledger, metadata=metadata)
+
+    def _filter_crystals(self, state: WorldState) -> WorldState:
+        metadata = state.metadata.copy()
+        product = float(metadata.get("crystal_product_mol", 0.0)) * 0.96
+        impurity = float(metadata.get("crystal_impurity_mol", 0.0)) * 0.92
+        purity = product / max(product + impurity, 1.0e-12)
+        initial_p = max(
+            float(
+                state.metadata.get(
+                    "pre_separation_product_mol",
+                    state.species_amounts.get("P", 0.0),
+                )
+            ),
+            state.species_amounts.get("P", 0.0),
+            1.0e-12,
+        )
+        metadata.update(
+            {
+                "selected_phase": "solid",
+                "crystals_filtered": True,
+                "crystal_product_mol": product,
+                "crystal_impurity_mol": impurity,
+                "crystal_yield": float(np.clip(product / initial_p, 0.0, 1.0)),
+                "crystal_purity": float(np.clip(purity, 0.0, 1.0)),
+                "recovery": float(np.clip(product / initial_p, 0.0, 1.0)),
+                "purity": float(np.clip(purity, 0.0, 1.0)),
+                "solvent_loss": min(1.0, float(metadata.get("solvent_loss", 0.0)) + 0.04),
+            }
+        )
+        ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + 480.0,
+            cost=state.ledger.cost + 0.026,
+        )
+        return state.replace(ledger=ledger, metadata=metadata)
+
+    def _evaporate(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        duration = float(np.clip(_action_float(action, "duration_s", 600.0), 0.0, 14_400.0))
+        target_temperature = float(
+            np.clip(_action_float(action, "target_temperature_K", 328.15), 298.15, 390.0)
+        )
+        removal = float(
+            np.clip(
+                0.08 + duration / 7200.0 + (target_temperature - 298.15) / 420.0,
+                0.0,
+                0.70,
+            )
+        )
+        metadata = state.metadata.copy()
+        metadata["solvent_loss"] = min(1.0, float(metadata.get("solvent_loss", 0.0)) + removal)
+        ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + duration,
+            cost=state.ledger.cost + duration / 3600.0 * 0.040,
+            risk=min(1.0, state.ledger.risk + 0.04 * removal),
+            energy_jacket_J=state.ledger.energy_jacket_J + 45.0 * duration,
+        )
+        return state.replace(
+            volume_L=state.volume_L * (1.0 - 0.55 * removal),
+            temperature_K=target_temperature,
+            ledger=ledger,
+            metadata=metadata,
+        )
+
+    def _distill(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        duration = float(np.clip(_action_float(action, "duration_s", 1200.0), 0.0, 14_400.0))
+        target_temperature = float(
+            np.clip(_action_float(action, "target_temperature_K", 345.15), 298.15, 430.0)
+        )
+        reflux = float(np.clip(_action_float(action, "reflux_ratio", 1.5), 0.0, 10.0))
+        p_mol = state.species_amounts.get("P", 0.0)
+        impurity_mol = (
+            state.species_amounts.get("B", 0.0)
+            + state.species_amounts.get("D", 0.0)
+            + state.species_amounts.get("E", 0.0)
+        )
+        time_factor = float(np.clip(1.0 - np.exp(-duration / 1500.0), 0.0, 1.0))
+        reflux_quality = reflux / (1.0 + reflux)
+        distillate_product = p_mol * np.clip(0.35 + 0.42 * time_factor, 0.0, 0.90)
+        distillate_impurity = impurity_mol * np.clip(0.26 - 0.18 * reflux_quality, 0.04, 0.30)
+        distillate_purity = distillate_product / max(
+            distillate_product + distillate_impurity,
+            1.0e-12,
+        )
+        initial_p = max(
+            float(state.metadata.get("pre_separation_product_mol", p_mol)),
+            p_mol,
+            1.0e-12,
+        )
+        metadata = state.metadata.copy()
+        metadata.update(
+            {
+                "distillation_active": True,
+                "distillate_product_mol": float(distillate_product),
+                "distillate_impurity_mol": float(distillate_impurity),
+                "distillate_purity": float(np.clip(distillate_purity, 0.0, 1.0)),
+                "distillate_recovery": float(np.clip(distillate_product / initial_p, 0.0, 1.0)),
+            }
+        )
+        risk = min(1.0, state.ledger.risk + 0.035 + 0.06 * ((target_temperature - 298.15) / 132.0))
+        ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + duration,
+            cost=state.ledger.cost + 0.045 + duration / 3600.0 * (0.065 + 0.012 * reflux),
+            risk=risk,
+            energy_jacket_J=state.ledger.energy_jacket_J + (70.0 + 8.0 * reflux) * duration,
+        )
+        return state.replace(
+            volume_L=max(state.volume_L * 0.62, 0.001),
+            temperature_K=target_temperature,
+            ledger=ledger,
+            metadata=metadata,
+        )
+
+    def _collect_fraction(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        fraction = float(np.clip(_action_float(action, "transfer_fraction", 0.90), 0.0, 1.0))
+        product = float(state.metadata.get("distillate_product_mol", 0.0)) * fraction
+        impurity = float(state.metadata.get("distillate_impurity_mol", 0.0)) * fraction
+        purity = product / max(product + impurity, 1.0e-12)
+        initial_p = max(
+            float(
+                state.metadata.get(
+                    "pre_separation_product_mol",
+                    state.species_amounts.get("P", 0.0),
+                )
+            ),
+            state.species_amounts.get("P", 0.0),
+            1.0e-12,
+        )
+        metadata = state.metadata.copy()
+        metadata.update(
+            {
+                "selected_phase": "distillate",
+                "fraction_collected": True,
+                "distillate_product_mol": product,
+                "distillate_impurity_mol": impurity,
+                "distillate_purity": float(np.clip(purity, 0.0, 1.0)),
+                "distillate_recovery": float(np.clip(product / initial_p, 0.0, 1.0)),
+                "purity": float(np.clip(purity, 0.0, 1.0)),
+                "recovery": float(np.clip(product / initial_p, 0.0, 1.0)),
+            }
+        )
+        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.018)
+        return state.replace(volume_L=state.volume_L * fraction, ledger=ledger, metadata=metadata)
+
+    def _set_flow_rate(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        flow_rate = float(np.clip(_action_float(action, "flow_rate_mL_min", 1.0), 0.01, 20.0))
+        residence = float(np.clip(_action_float(action, "residence_time_s", 600.0), 1.0, 7200.0))
+        metadata = state.metadata.copy()
+        metadata["flow_rate_mL_min"] = flow_rate
+        metadata["residence_time_s"] = residence
+        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.012)
+        return state.replace(ledger=ledger, metadata=metadata)
+
+    def _run_flow(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        residence = float(
+            state.metadata.get(
+                "residence_time_s",
+                _action_float(action, "duration_s", 600.0),
+            )
+        )
+        duration = float(
+            np.clip(_action_float(action, "duration_s", residence), residence, 14_400.0)
+        )
+        target_temperature = float(
+            np.clip(_action_float(action, "target_temperature_K", 348.15), 298.15, 430.0)
+        )
+        effective_action = {
+            "duration_s": residence,
+            "target_temperature_K": target_temperature,
+            "stirring_speed_rpm": 900.0,
+        }
+        reacted_state = self._integrate(state, effective_action, heat=True)
+        initial_a = max(float(state.metadata.get("initial_A_mol", 0.0)), 1.0e-12)
+        conversion = float(
+            np.clip((initial_a - reacted_state.species_amounts.get("A", 0.0)) / initial_a, 0.0, 1.0)
+        )
+        metadata = reacted_state.metadata.copy()
+        metadata["flow_conversion"] = conversion
+        metadata["flow_campaign_time_s"] = duration
+        ledger = reacted_state.ledger.with_updates(
+            time_s=state.ledger.time_s + duration,
+            cost=reacted_state.ledger.cost + duration / 3600.0 * 0.030,
+            risk=min(1.0, reacted_state.ledger.risk + 0.015 * (target_temperature > 390.0)),
+        )
+        return reacted_state.replace(ledger=ledger, metadata=metadata)
+
+    def _set_potential(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        potential = float(np.clip(_action_float(action, "potential_V", 1.20), -3.0, 3.0))
+        current = float(np.clip(_action_float(action, "current_mA", 50.0), 0.0, 500.0))
+        metadata = state.metadata.copy()
+        metadata["potential_V"] = potential
+        metadata["current_mA"] = current
+        risk = min(1.0, state.ledger.risk + 0.02 * max(abs(potential) - 1.5, 0.0))
+        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.010, risk=risk)
+        return state.replace(ledger=ledger, metadata=metadata)
+
+    def _electrolyze(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        duration = float(np.clip(_action_float(action, "duration_s", 900.0), 0.0, 14_400.0))
+        potential = float(state.metadata.get("potential_V", 1.20))
+        current = float(state.metadata.get("current_mA", 50.0))
+        species = state.species_amounts.copy()
+        a_mol = species.get("A", 0.0)
+        charge_factor = float(np.clip(current * duration / 1_800_000.0, 0.0, 0.85))
+        selectivity = float(
+            np.clip(
+                0.78 - 0.18 * abs(potential - 1.20) + 0.08 * (potential > 0.8),
+                0.20,
+                0.92,
+            )
+        )
+        converted = min(a_mol, a_mol * charge_factor)
+        species["A"] = a_mol - converted
+        species["P"] += converted * selectivity
+        species["B"] += converted * (1.0 - selectivity)
+        energy_j = abs(potential) * current / 1000.0 * duration
+        metadata = state.metadata.copy()
+        metadata["electrochemical_selectivity"] = selectivity
+        metadata["energy_efficiency"] = float(
+            np.clip(selectivity * (1.0 - energy_j / 75_000.0), 0.0, 1.0)
+        )
+        ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + duration,
+            cost=state.ledger.cost + 0.018 + energy_j / 250_000.0,
+            risk=min(1.0, state.ledger.risk + 0.02 + 0.03 * abs(potential)),
+            energy_jacket_J=state.ledger.energy_jacket_J + energy_j,
+        )
+        return state.replace(species_amounts=species, ledger=ledger, metadata=metadata)
+
     def _apply_measurement_cost(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         instrument_id = instrument_name(action.get("instrument", "hplc"))
         instrument = self.constitution.instruments[instrument_id]
@@ -1116,6 +1530,26 @@ def _downstream_truth_values(
         "impurity_signal": float(np.clip(selected_impurity / initial_p, 0.0, 1.0)),
         "solvent_loss": float(np.clip(solvent_loss, 0.0, 1.0)),
         "process_mass_balance_error": float(np.clip(mass_balance_error, 0.0, 1.0)),
+        "crystal_yield": float(np.clip(float(state.metadata.get("crystal_yield", 0.0)), 0.0, 1.0)),
+        "crystal_purity": float(
+            np.clip(float(state.metadata.get("crystal_purity", 0.0)), 0.0, 1.0)
+        ),
+        "crystal_size": float(np.clip(float(state.metadata.get("crystal_size", 0.0)), 0.0, 1.0)),
+        "distillate_purity": float(
+            np.clip(float(state.metadata.get("distillate_purity", 0.0)), 0.0, 1.0)
+        ),
+        "distillate_recovery": float(
+            np.clip(float(state.metadata.get("distillate_recovery", 0.0)), 0.0, 1.0)
+        ),
+        "flow_conversion": float(
+            np.clip(float(state.metadata.get("flow_conversion", 0.0)), 0.0, 1.0)
+        ),
+        "electrochemical_selectivity": float(
+            np.clip(float(state.metadata.get("electrochemical_selectivity", 0.0)), 0.0, 1.0)
+        ),
+        "energy_efficiency": float(
+            np.clip(float(state.metadata.get("energy_efficiency", 0.0)), 0.0, 1.0)
+        ),
     }
 
 
@@ -1235,14 +1669,17 @@ class ChemWorldObservationKernel:
             yield_value = observed("yield")
             conversion = observed("conversion")
             phase_ratio = observed("phase_ratio")
+            flow_conversion = observed("flow_conversion")
+            energy_efficiency = observed("energy_efficiency")
             return {
                 "kind": "uvvis_spectrum",
-                "wavelength_nm": [360, 420, 510, 620],
+                "wavelength_nm": [360, 420, 510, 620, 710],
                 "absorbance": [
                     round(0.08 + 0.25 * conversion, 6),
                     round(0.05 + 0.35 * yield_value, 6),
                     round(0.04 + 0.15 * max(conversion - yield_value, 0.0), 6),
                     round(0.03 + 0.10 * phase_ratio, 6),
+                    round(0.03 + 0.15 * max(flow_conversion, energy_efficiency), 6),
                 ],
             }
         if instrument_id == "hplc":
@@ -1250,6 +1687,8 @@ class ChemWorldObservationKernel:
             byproduct = observed("byproduct_signal")
             purity = observed("purity")
             impurity = observed("impurity_signal")
+            crystal_purity = observed("crystal_purity")
+            distillate_purity = observed("distillate_purity")
             return {
                 "kind": "hplc_chromatogram",
                 "peaks": [
@@ -1260,7 +1699,10 @@ class ChemWorldObservationKernel:
                     },
                     {
                         "retention_time_min": 2.74,
-                        "peak_area": round(1200.0 * max(yield_value, purity), 6),
+                        "peak_area": round(
+                            1200.0 * max(yield_value, purity, crystal_purity, distillate_purity),
+                            6,
+                        ),
                         "assignment": "P_proxy",
                     },
                     {
@@ -1273,6 +1715,7 @@ class ChemWorldObservationKernel:
         if instrument_id == "gc":
             byproduct = observed("byproduct_signal")
             degradation = observed("degradation_warning")
+            distillate_purity = observed("distillate_purity")
             return {
                 "kind": "gc_chromatogram",
                 "peaks": [
@@ -1286,6 +1729,11 @@ class ChemWorldObservationKernel:
                         "peak_area": round(800.0 * degradation, 6),
                         "assignment": "degradation_proxy",
                     },
+                    {
+                        "retention_time_min": 2.18,
+                        "peak_area": round(1000.0 * distillate_purity, 6),
+                        "assignment": "distillate_product_proxy",
+                    },
                 ],
             }
         if instrument_id == "final_assay":
@@ -1298,6 +1746,10 @@ class ChemWorldObservationKernel:
                     "calibrated_mass_balance",
                     "phase_partition",
                     "purification_accounting",
+                    "crystallization_accounting",
+                    "distillation_accounting",
+                    "flow_reactor_summary",
+                    "electrochemical_summary",
                 ],
             }
         return {}

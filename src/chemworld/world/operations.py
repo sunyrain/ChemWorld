@@ -6,7 +6,11 @@ from dataclasses import dataclass
 from typing import Any
 
 from chemworld.core.batch_reactor import (
+    CRYSTALLIZATION_OPERATIONS,
+    DISTILLATION_OPERATIONS,
     DOWNSTREAM_OBSERVATION_KEYS,
+    ELECTROCHEMISTRY_OPERATIONS,
+    FLOW_OPERATIONS,
     INSTRUMENTS,
     OPERATION_TYPES,
     REACTION_OPERATIONS,
@@ -35,10 +39,22 @@ class OperationContract:
 def operation_contracts() -> dict[str, OperationContract]:
     reaction = set(REACTION_OPERATIONS)
     separation = set(SEPARATION_OPERATIONS)
+    crystallization = set(CRYSTALLIZATION_OPERATIONS)
+    distillation = set(DISTILLATION_OPERATIONS)
+    flow = set(FLOW_OPERATIONS)
+    electrochemistry = set(ELECTROCHEMISTRY_OPERATIONS)
     contracts: dict[str, OperationContract] = {}
     for operation in batch_reactor_operations():
         if operation.id in separation:
             module = "separation"
+        elif operation.id in crystallization:
+            module = "crystallization"
+        elif operation.id in distillation:
+            module = "distillation"
+        elif operation.id in flow:
+            module = "continuous_flow"
+        elif operation.id in electrochemistry:
+            module = "electrochemistry"
         elif operation.id in reaction:
             module = "reaction"
         else:
@@ -53,7 +69,11 @@ def operation_contracts() -> dict[str, OperationContract]:
 
 
 __all__ = [
+    "CRYSTALLIZATION_OPERATIONS",
+    "DISTILLATION_OPERATIONS",
     "DOWNSTREAM_OBSERVATION_KEYS",
+    "ELECTROCHEMISTRY_OPERATIONS",
+    "FLOW_OPERATIONS",
     "INSTRUMENTS",
     "OPERATION_TYPES",
     "REACTION_OPERATIONS",

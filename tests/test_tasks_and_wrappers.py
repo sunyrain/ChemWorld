@@ -5,6 +5,8 @@ import numpy as np
 
 import chemworld  # noqa: F401
 from chemworld.action_codec import ActionCodec
+from chemworld.agents.base import HistoryRecord
+from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.core.batch_reactor import initial_chemworld_state, make_chemworld_constitution
 from chemworld.operation_validator import OperationValidator
 from chemworld.tasks import get_task, get_task_card, list_tasks
@@ -24,6 +26,10 @@ def test_builtin_tasks_are_instantiable() -> None:
         "reaction-safety-constrained",
         "public-private-generalization",
         "reaction-mechanism-explanation",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "flow-reaction-optimization",
+        "electrochemical-conversion",
     } <= task_ids
     task = get_task("reaction-optimization-standard")
     assert task.env_id == "ChemWorld"
@@ -49,6 +55,8 @@ def test_all_tasks_share_one_world_law() -> None:
     assert "reaction-to-purification" in {task.task_id for task in tasks}
     assert "partition-discovery" in {task.task_id for task in tasks}
     assert "purity-yield-tradeoff" in {task.task_id for task in tasks}
+    assert "reaction-to-crystallization" in {task.task_id for task in tasks}
+    assert "flow-reaction-optimization" in {task.task_id for task in tasks}
 
 
 def test_action_mask_wrapper_reports_valid_operations() -> None:
@@ -87,6 +95,17 @@ def test_action_codec_roundtrip_vector() -> None:
     assert decoded["instrument"] == "hplc"
     assert decoded["target_temperature_K"] == 386.0
     assert decoded["duration_s"] == 900.0
+    process_vector = codec.encode_vector(
+        {
+            "operation": "distill",
+            "target_temperature_K": 360.0,
+            "duration_s": 900.0,
+            "reflux_ratio": 2.5,
+        }
+    )
+    process_decoded = codec.decode_vector(process_vector)
+    assert process_decoded["operation"] == "distill"
+    assert process_decoded["reflux_ratio"] == 2.5
 
 
 def test_action_mask_is_task_aware() -> None:
@@ -177,6 +196,27 @@ def test_operation_validator_enforces_instrument_policy() -> None:
     assert "instrument_allowed_by_task" in blocked.invalid_reasons
 
 
+def test_process_preconditions_are_stateful() -> None:
+    env = ActionMaskWrapper(gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0))
+    try:
+        _, info = env.reset(seed=0)
+        assert "filter_crystals" not in info["valid_operations"]
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "seed_crystals", "seed_mass_g": 0.006},
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 278.15,
+                "duration_s": 1200.0,
+            },
+        ):
+            _, _, _, _, info = env.step(action)
+        assert "filter_crystals" in info["valid_operations"]
+    finally:
+        env.close()
+
+
 def test_nan_observation_wrapper_returns_vector_with_mask() -> None:
     env = NaNObservationWrapper(gym.make("ChemWorld", task_id="reaction-to-assay", seed=0))
     try:
@@ -228,4 +268,63 @@ def test_purification_task_reaches_downstream_assay() -> None:
         assert final_info["processed_estimate"]["process_mass_balance_error"] >= 0.0
     finally:
         env.close()
+
+
+def _run_scripted_task(task_id: str) -> tuple[dict[str, np.ndarray], dict[str, object]]:
+    task = get_task(task_id)
+    env = gym.make("ChemWorld", task_id=task_id, seed=0)
+    try:
+        observation, info = env.reset(seed=0)
+        agent = ScriptedChemistryAgent()
+        agent.reset(info, seed=0)
+        history: list[HistoryRecord] = []
+        step_info: dict[str, object] = {}
+        assay_observation: dict[str, np.ndarray] | None = None
+        assay_info: dict[str, object] | None = None
+        for _ in range(task.budget):
+            action = agent.act(history)
+            observation, reward, terminated, truncated, step_info = env.step(action)
+            if action.get("operation") == "measure" and action.get("instrument") == "final_assay":
+                assay_observation = observation
+                assay_info = step_info
+            history.append(
+                HistoryRecord(
+                    step=len(history) + 1,
+                    action=action,
+                    observation=observation,
+                    reward=reward,
+                    info=step_info,
+                )
+            )
+            if terminated or truncated:
+                break
+        assert not any(
+            record.info.get("constraint_flags", {}).get("precondition_failed", False)
+            for record in history
+        )
+        return assay_observation or observation, assay_info or step_info
+    finally:
+        env.close()
+
+
+def test_year2_process_tasks_reach_assay_with_scripted_agent() -> None:
+    crystallization_obs, crystallization_info = _run_scripted_task(
+        "reaction-to-crystallization"
+    )
+    assert crystallization_info["leaderboard_score"] is not None
+    assert float(crystallization_obs["crystal_yield"][0]) >= 0.0
+    assert float(crystallization_obs["crystal_purity"][0]) >= 0.0
+
+    distillation_obs, distillation_info = _run_scripted_task("reaction-to-distillation")
+    assert distillation_info["leaderboard_score"] is not None
+    assert float(distillation_obs["distillate_purity"][0]) >= 0.0
+    assert float(distillation_obs["distillate_recovery"][0]) >= 0.0
+
+
+def test_flow_and_electrochemistry_campaigns_produce_process_assays() -> None:
+    flow_obs, _ = _run_scripted_task("flow-reaction-optimization")
+    electro_obs, _ = _run_scripted_task("electrochemical-conversion")
+    assert float(flow_obs["flow_conversion"][0]) >= 0.0
+    assert float(electro_obs["electrochemical_selectivity"][0]) >= 0.0
+    assert float(electro_obs["energy_efficiency"][0]) >= 0.0
 

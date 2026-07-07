@@ -30,10 +30,20 @@ def semi_mechanistic_backend_spec() -> BackendSpec:
     return BackendSpec(
         backend_id="semi_mechanistic",
         fidelity="qualitative-semi-mechanistic",
-        transition_modules=("reaction_ode", "phase_partition", "separation", "instrument_cost"),
+        transition_modules=(
+            "reaction_ode",
+            "phase_partition",
+            "separation",
+            "crystallization",
+            "distillation",
+            "continuous_flow",
+            "electrochemistry",
+            "instrument_cost",
+        ),
         supported_world_laws=("chemworld-physical-chemistry",),
         description=(
             "Default ChemWorld backend using Arrhenius reaction ODEs, simplified "
-            "energy balance, phase partition heuristics, and instrument-cost ledgers."
+            "energy balance, phase partition heuristics, downstream process "
+            "modules, and instrument-cost ledgers."
         ),
     )

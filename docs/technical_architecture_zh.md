@@ -105,6 +105,10 @@ Task 只定义评测切片：
 - `reaction-mechanism-explanation`
 - `reaction-to-assay`
 - `reaction-to-purification`
+- `reaction-to-crystallization`
+- `reaction-to-distillation`
+- `flow-reaction-optimization`
+- `electrochemical-conversion`
 - `partition-discovery`
 - `purity-yield-tradeoff`
 - `public-private-generalization`
@@ -253,6 +257,7 @@ Dataset card 包含：
 - task-aware wrappers；
 - BO 默认 `n_initial=4`；
 - reaction + separation 任务族；
+- crystallization、distillation、continuous-flow、electrochemistry Year 2 过程模块基础版；
 - 本地教师端/学生端评测框架；
 - 12 天中文 notebook 教程。
 
@@ -262,7 +267,7 @@ Dataset card 包含：
 - 为每个 task 冻结官方 reference baseline table；
 - 增加 signed private-eval artifact；
 - 增加 Minari 风格 dataset metadata；
-- 扩展 crystallization、distillation、continuous flow 等物理模块。
+- 继续提高 crystallization、distillation、continuous flow、electrochemistry 的物理保真度与 baseline 标定。
 
 ## 12. 验收命令
 

@@ -173,6 +173,15 @@ class OperationValidator:
             "wash": ("wash_volume_L",),
             "concentrate": ("duration_s",),
             "transfer": ("transfer_fraction",),
+            "seed_crystals": ("seed_mass_g",),
+            "cool_crystallize": ("target_temperature_K", "duration_s"),
+            "evaporate": ("target_temperature_K", "duration_s"),
+            "distill": ("target_temperature_K", "duration_s", "reflux_ratio"),
+            "collect_fraction": ("transfer_fraction",),
+            "set_flow_rate": ("flow_rate_mL_min", "residence_time_s"),
+            "run_flow": ("target_temperature_K", "duration_s"),
+            "set_potential": ("potential_V", "current_mA"),
+            "electrolyze": ("duration_s",),
             "measure": ("instrument",),
         }.get(operation_type, ())
         for field in required_fields:
@@ -207,7 +216,10 @@ class OperationValidator:
                 0.0,
                 0.005,
             )
-        if operation_type == "heat" and "target_temperature_K" in payload:
+        if (
+            operation_type in {"heat", "cool_crystallize", "evaporate", "distill", "run_flow"}
+            and "target_temperature_K" in payload
+        ):
             checks["payload_bounds:target_temperature_K"] = self._in_range(
                 payload,
                 "target_temperature_K",
@@ -215,7 +227,19 @@ class OperationValidator:
                 self.constitution.vessel.max_temperature_K,
             )
         if (
-            operation_type in {"heat", "wait", "mix", "settle", "concentrate"}
+            operation_type
+            in {
+                "heat",
+                "wait",
+                "mix",
+                "settle",
+                "concentrate",
+                "cool_crystallize",
+                "evaporate",
+                "distill",
+                "run_flow",
+                "electrolyze",
+            }
             and "duration_s" in payload
         ):
             checks["payload_bounds:duration_s"] = self._in_range(
@@ -254,6 +278,64 @@ class OperationValidator:
                 1.0,
                 inclusive_low=True,
             )
+        if operation_type == "collect_fraction" and "transfer_fraction" in payload:
+            checks["payload_bounds:transfer_fraction"] = self._in_range(
+                payload,
+                "transfer_fraction",
+                0.0,
+                1.0,
+                inclusive_low=True,
+            )
+        if operation_type == "seed_crystals" and "seed_mass_g" in payload:
+            checks["payload_bounds:seed_mass_g"] = self._in_range(
+                payload,
+                "seed_mass_g",
+                0.0,
+                1.0,
+                inclusive_low=True,
+            )
+        if operation_type == "distill" and "reflux_ratio" in payload:
+            checks["payload_bounds:reflux_ratio"] = self._in_range(
+                payload,
+                "reflux_ratio",
+                0.0,
+                10.0,
+                inclusive_low=True,
+            )
+        if operation_type == "set_flow_rate":
+            if "flow_rate_mL_min" in payload:
+                checks["payload_bounds:flow_rate_mL_min"] = self._in_range(
+                    payload,
+                    "flow_rate_mL_min",
+                    0.01,
+                    20.0,
+                    inclusive_low=True,
+                )
+            if "residence_time_s" in payload:
+                checks["payload_bounds:residence_time_s"] = self._in_range(
+                    payload,
+                    "residence_time_s",
+                    1.0,
+                    7200.0,
+                    inclusive_low=True,
+                )
+        if operation_type == "set_potential":
+            if "potential_V" in payload:
+                checks["payload_bounds:potential_V"] = self._in_range(
+                    payload,
+                    "potential_V",
+                    -3.0,
+                    3.0,
+                    inclusive_low=True,
+                )
+            if "current_mA" in payload:
+                checks["payload_bounds:current_mA"] = self._in_range(
+                    payload,
+                    "current_mA",
+                    0.0,
+                    500.0,
+                    inclusive_low=True,
+                )
         return checks
 
     @staticmethod

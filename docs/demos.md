@@ -29,6 +29,18 @@ scripted chemistry baseline:
 chemworld run --task reaction-to-purification --agent scripted_chemistry
 ```
 
+Year 2 process modules can be exercised with the same environment and agent:
+
+```bash
+chemworld run --task reaction-to-crystallization --agent scripted_chemistry
+chemworld run --task reaction-to-distillation --agent scripted_chemistry
+chemworld run --task flow-reaction-optimization --agent scripted_chemistry
+chemworld run --task electrochemical-conversion --agent scripted_chemistry
+```
+
+These are not separate mini-games. They are task slices over the same
+`ChemWorld` law with different allowed operations and success metrics.
+
 ## Baseline Comparison
 
 ```bash
@@ -113,8 +125,14 @@ progressive short course:
 - Day 11: private-world generalization and overfitting diagnosis;
 - Day 12: Demo Day artifact with performance, mechanism, and reproducibility
   scores.
+- Day 13 extension: Year 2 crystallization, distillation, continuous-flow, and
+  electrochemistry process modules.
 - Project blueprint: shared-world leaderboard design, project tracks, submission
   bundle shape, and visible multi-board scoring.
+
+The current codebase also supports optional Year 2 extensions after Day 12:
+crystallization, distillation, continuous-flow optimization, and
+electrochemistry tasks. See [Year 2 Process Modules](year2_process_modules.md).
 
 Start with `notebooks/tutorials/README.md`, then open the notebooks in order
 with the `Python (ChemWorld)` kernel.

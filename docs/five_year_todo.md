@@ -14,12 +14,12 @@
 
 ## Year 2：同一世界下扩展物理过程
 
-- 增加 crystallization module：成核、生长、溶解、粒径 proxy、纯度/收率权衡。
-- 增加 evaporation/distillation module：挥发度、能耗、分离效率、热风险。
-- 增加 continuous-flow module：停留时间分布、流速、温度、堵塞风险。
-- 增加 electrochemistry module：电位、电流、传质、选择性、副反应。
+- 已完成 crystallization module 基础版：晶种、冷却结晶、过滤、晶体纯度/收率/粒径 proxy；后续增强成核/生长/溶解模型。
+- 已完成 evaporation/distillation module 基础版：蒸发、蒸馏、收馏分、馏分纯度/回收/能耗 proxy；后续增强挥发度与分离效率模型。
+- 已完成 continuous-flow module 基础版：流速、停留时间、流动反应投影、flow conversion；后续增强停留时间分布与堵塞风险。
+- 已完成 electrochemistry module 基础版：电位、电流、电解、选择性和能效 proxy；后续增强传质与副反应。
 - 所有新过程必须共享 ontology、constitution、operation registry、instrument registry。
-- 新增 cross-process tasks：reaction → purification → crystallization，reaction → distillation → assay。
+- 已新增 cross-process tasks：`reaction-to-crystallization`、`reaction-to-distillation`、`flow-reaction-optimization`、`electrochemical-conversion`；后续继续增加 reaction → purification → crystallization 复合任务。
 - 引入 property-based tests，检查守恒、非负性、边界条件、seed reproducibility。
 
 ## Year 3：数据与 Agent 生态

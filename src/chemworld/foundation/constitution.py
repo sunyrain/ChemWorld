@@ -146,6 +146,10 @@ class PhysicalConstitution:
         is_final_assay = operation_type == "measure" and instrument_id == "final_assay"
         phase_system = bool(state.metadata.get("phase_system", False))
         phase_settled = bool(state.metadata.get("phase_settled", False))
+        crystallized = bool(state.metadata.get("crystallization_active", False))
+        distillate_ready = bool(state.metadata.get("distillation_active", False))
+        flow_ready = "flow_rate_mL_min" in state.metadata
+        potential_ready = "potential_V" in state.metadata
         phase_operations = {
             "add_extractant",
             "mix",
@@ -170,6 +174,15 @@ class PhysicalConstitution:
             "dry",
             "concentrate",
             "transfer",
+            "seed_crystals",
+            "cool_crystallize",
+            "filter_crystals",
+            "evaporate",
+            "distill",
+            "collect_fraction",
+            "set_potential",
+            "run_flow",
+            "electrolyze",
         }
         needs_material = operation_type in {
             "heat",
@@ -183,6 +196,13 @@ class PhysicalConstitution:
             "dry",
             "concentrate",
             "transfer",
+            "cool_crystallize",
+            "filter_crystals",
+            "distill",
+            "collect_fraction",
+            "set_potential",
+            "run_flow",
+            "electrolyze",
         }
         needs_not_terminated = operation_type in {
             "add_reagent",
@@ -201,6 +221,16 @@ class PhysicalConstitution:
             "dry",
             "concentrate",
             "transfer",
+            "seed_crystals",
+            "cool_crystallize",
+            "filter_crystals",
+            "evaporate",
+            "distill",
+            "collect_fraction",
+            "set_flow_rate",
+            "run_flow",
+            "set_potential",
+            "electrolyze",
         }
         return {
             "instrument_available": operation_type != "measure" or instrument is not None,
@@ -214,6 +244,13 @@ class PhysicalConstitution:
             or is_terminated,
             "measure_final_not_repeated": not is_final_assay or not final_assay_done,
             "terminate_requires_material": operation_type != "terminate" or has_material,
+            "filter_requires_crystallization": operation_type != "filter_crystals"
+            or crystallized,
+            "collect_fraction_requires_distillation": operation_type != "collect_fraction"
+            or distillate_ready,
+            "run_flow_requires_flow_setup": operation_type != "run_flow" or flow_ready,
+            "electrolyze_requires_potential": operation_type != "electrolyze"
+            or potential_ready,
         }
 
     def check_material_conservation(
