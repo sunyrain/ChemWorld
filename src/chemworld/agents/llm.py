@@ -14,6 +14,7 @@ from typing import Any
 from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.recipe_sequence import RecipeSequenceMixin
 from chemworld.core.actions import canonicalize_action
+from chemworld.world.recipes import compile_recipe
 
 DEFAULT_PROMPT_TEMPLATE = """You are planning the next virtual ChemWorld reaction experiment.
 Task info:
@@ -110,6 +111,69 @@ class ReplayLLMAgent(LLMPlannerAgent):
             {
                 "requires_online_model": False,
                 "replay_path": str(self.replay_path),
+            }
+        )
+        return manifest
+
+
+class ToolUsingLLMStubAgent(BaseAgent):
+    """Deterministic tool-using LLM stub for offline benchmark plumbing."""
+
+    name = "tool_using_llm_stub"
+
+    def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
+        purification_enabled = "separate_phase" in set(self.task_info.get("allowed_operations", []))
+        steps: list[dict[str, Any]] = [
+            {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
+            {
+                "operation": "heat",
+                "target_temperature_K": 382.0,
+                "duration_s": 1350.0,
+                "stirring_speed_rpm": 720.0,
+            },
+            {"operation": "quench"},
+        ]
+        recipe: dict[str, Any] = {
+            "steps": steps,
+            "metadata": {
+                "planner": "tool_using_llm_stub",
+                "uses": ["recipe_compiler", "operation_validator"],
+            },
+        }
+        if purification_enabled:
+            steps.extend(
+                [
+                    {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012},
+                    {"operation": "add_extractant", "extractant": "organic", "volume_L": 0.018},
+                    {"operation": "mix", "duration_s": 240.0, "stirring_speed_rpm": 850.0},
+                    {"operation": "settle", "duration_s": 420.0},
+                    {"operation": "separate_phase", "target_phase": "organic"},
+                    {"operation": "wash", "wash_volume_L": 0.006},
+                    {"operation": "dry"},
+                    {"operation": "concentrate", "duration_s": 450.0},
+                ]
+            )
+        steps.extend(
+            [
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
+        )
+        steps = compile_recipe(recipe)
+        index = len(history)
+        if index < len(steps):
+            return steps[index]
+        return {"operation": "wait", "duration_s": 300.0}
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update(
+            {
+                "requires_online_model": False,
+                "uses_recipe_compiler": True,
+                "llm_role": "offline_tool_agent_stub",
             }
         )
         return manifest

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from typing import Any
 
@@ -37,6 +38,11 @@ class WorldState:
     units: dict[str, str] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "species_amounts", deepcopy(self.species_amounts))
+        object.__setattr__(self, "units", deepcopy(self.units))
+        object.__setattr__(self, "metadata", deepcopy(self.metadata))
+
     def to_dict(self, *, include_hidden: bool = True) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "volume_L": self.volume_L,
@@ -47,11 +53,11 @@ class WorldState:
             "terminated": self.terminated,
             "quenched": self.quenched,
             "ledger": self.ledger.to_dict(),
-            "units": self.units,
-            "metadata": self.metadata,
+            "units": deepcopy(self.units),
+            "metadata": deepcopy(self.metadata),
         }
         if include_hidden:
-            payload["species_amounts"] = self.species_amounts.copy()
+            payload["species_amounts"] = deepcopy(self.species_amounts)
         return payload
 
     def replace(self, **updates: Any) -> WorldState:

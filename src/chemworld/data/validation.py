@@ -5,44 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from chemworld.data.schema import TRAJECTORY_SCHEMA_VERSION
+from chemworld.schemas.validation import TRAJECTORY_REQUIRED_KEYS
 
-REQUIRED_RECORD_KEYS = {
-    "schema_version",
-    "env_version",
-    "world_family_version",
-    "task_id",
-    "env_id",
-    "world_split",
-    "objective",
-    "world_id",
-    "seed",
-    "step",
-    "action",
-    "observation",
-    "reward",
-    "terminated",
-    "truncated",
-    "constraint_flags",
-    "constitution_checks",
-    "agent_metadata",
-    "instrument",
-    "instrument_source",
-    "measurement_cost",
-    "observed_keys",
-    "observed_mask",
-    "raw_signal",
-    "processed_estimate",
-    "uncertainty",
-    "observed_reward",
-    "operation_type",
-    "preconditions",
-    "leaderboard_score",
-    "reward_source",
-    "sample_consumed",
-    "state_delta_summary",
-    "timestamp",
-    "explanation",
-}
+REQUIRED_RECORD_KEYS = TRAJECTORY_REQUIRED_KEYS
 
 EVENT_ACTION_KEYS = {"operation"}
 

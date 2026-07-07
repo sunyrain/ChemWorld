@@ -14,6 +14,7 @@ import gymnasium as gym
 
 import chemworld  # noqa: F401
 from chemworld import ENV_ID
+from chemworld.data.datasets import dataset_card, export_dataset
 from chemworld.data.logging import load_jsonl
 from chemworld.data.submission import (
     init_submission_bundle,
@@ -28,6 +29,9 @@ from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.suite import run_suite
 from chemworld.eval.verify import verify_records
 from chemworld.tasks import get_task, get_task_card, list_tasks
+from chemworld.world.recipes import compile_recipe, validate_recipe
+from chemworld.world.scenario import get_scenario_card, list_scenarios
+from chemworld.wrappers import validate_event_action
 
 
 def _resolve_run_args(args: argparse.Namespace) -> dict[str, Any]:
@@ -228,6 +232,83 @@ def _tasks_card(args: argparse.Namespace) -> None:
     print(json.dumps(get_task_card(args.task_id), indent=2, sort_keys=True))
 
 
+def _scenarios_list(args: argparse.Namespace) -> None:
+    del args
+    payload = [scenario.to_dict() for scenario in list_scenarios()]
+    print(json.dumps(payload, indent=2, sort_keys=True))
+
+
+def _scenarios_show(args: argparse.Namespace) -> None:
+    print(
+        json.dumps(
+            get_scenario_card(args.scenario_id, split=args.split),
+            indent=2,
+            sort_keys=True,
+        )
+    )
+
+
+def _load_json_file(path: str | Path) -> dict[str, Any]:
+    with Path(path).open("r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+    if not isinstance(payload, dict):
+        raise SystemExit(f"{path} must contain a JSON object")
+    return payload
+
+
+def _validate_action(args: argparse.Namespace) -> None:
+    task = get_task(args.task)
+    action = _load_json_file(args.action)
+    env = gym.make(task.env_id, task_id=task.task_id, seed=args.seed)
+    try:
+        env.reset(seed=args.seed)
+        result = validate_event_action(action, env)
+        print(json.dumps(result, indent=2, sort_keys=True))
+        if not result["valid"]:
+            raise SystemExit(1)
+    finally:
+        env.close()
+
+
+def _validate_recipe(args: argparse.Namespace) -> None:
+    task = get_task(args.task)
+    recipe = _load_json_file(args.recipe)
+    result = validate_recipe(recipe).to_dict()
+    result["task_id"] = task.task_id
+    if result["valid"]:
+        result["compiled_steps"] = compile_recipe(recipe)
+        result["compiled_step_count"] = len(result["compiled_steps"])
+    print(json.dumps(result, indent=2, sort_keys=True))
+    if not result["valid"]:
+        raise SystemExit(1)
+
+
+def _datasets_export(args: argparse.Namespace) -> None:
+    output = args.output
+    if output is None:
+        suffix = "jsonl" if args.format == "jsonl" else "parquet"
+        output = str(Path("datasets") / f"chemworld_dataset.{suffix}")
+    result = export_dataset(args.submission, output=output, format=args.format).to_dict()
+    print(json.dumps(result, indent=2, sort_keys=True))
+
+
+def _datasets_card(args: argparse.Namespace) -> None:
+    print(json.dumps(dataset_card(args.dataset), indent=2, sort_keys=True))
+
+
+def _render(args: argparse.Namespace) -> None:
+    env = gym.make("ChemWorld", task_id=args.task, seed=args.seed, render_mode="ansi")
+    try:
+        env.reset(seed=args.seed)
+        for action_path in args.actions:
+            action = _load_json_file(action_path)
+            env.step(action)
+        rendered: Any = env.render()
+        print(rendered)
+    finally:
+        env.close()
+
+
 def _submission_init(args: argparse.Namespace) -> None:
     manifest = init_submission_bundle(
         args.path,
@@ -329,6 +410,58 @@ def build_parser() -> argparse.ArgumentParser:
     tasks_card_parser = tasks_subparsers.add_parser("card", help="Show one task card.")
     tasks_card_parser.add_argument("task_id")
     tasks_card_parser.set_defaults(func=_tasks_card)
+
+    scenarios_parser = subparsers.add_parser("scenarios", help="Inspect scenario specs.")
+    scenarios_subparsers = scenarios_parser.add_subparsers(
+        dest="scenarios_command",
+        required=True,
+    )
+    scenarios_list_parser = scenarios_subparsers.add_parser("list", help="List scenarios.")
+    scenarios_list_parser.set_defaults(func=_scenarios_list)
+    scenarios_show_parser = scenarios_subparsers.add_parser("show", help="Show one scenario.")
+    scenarios_show_parser.add_argument("scenario_id")
+    scenarios_show_parser.add_argument("--split")
+    scenarios_show_parser.set_defaults(func=_scenarios_show)
+
+    validate_action_parser = subparsers.add_parser(
+        "validate-action",
+        help="Validate one event action against a task's initial state.",
+    )
+    validate_action_parser.add_argument("--task", required=True)
+    validate_action_parser.add_argument("--action", required=True)
+    validate_action_parser.add_argument("--seed", type=int, default=0)
+    validate_action_parser.set_defaults(func=_validate_action)
+
+    validate_recipe_parser = subparsers.add_parser(
+        "validate-recipe",
+        help="Validate and compile a recipe JSON file.",
+    )
+    validate_recipe_parser.add_argument("--task", required=True)
+    validate_recipe_parser.add_argument("--recipe", required=True)
+    validate_recipe_parser.set_defaults(func=_validate_recipe)
+
+    datasets_parser = subparsers.add_parser("datasets", help="Export trajectory datasets.")
+    datasets_subparsers = datasets_parser.add_subparsers(
+        dest="datasets_command",
+        required=True,
+    )
+    datasets_export_parser = datasets_subparsers.add_parser(
+        "export",
+        help="Export a submission or trajectory to dataset format.",
+    )
+    datasets_export_parser.add_argument("--submission", required=True)
+    datasets_export_parser.add_argument("--format", choices=["jsonl", "parquet"], required=True)
+    datasets_export_parser.add_argument("--output")
+    datasets_export_parser.set_defaults(func=_datasets_export)
+    datasets_card_parser = datasets_subparsers.add_parser("card", help="Summarize a dataset.")
+    datasets_card_parser.add_argument("--dataset", required=True)
+    datasets_card_parser.set_defaults(func=_datasets_card)
+
+    render_parser = subparsers.add_parser("render", help="Render an ANSI environment summary.")
+    render_parser.add_argument("--task", required=True)
+    render_parser.add_argument("--seed", type=int, default=0)
+    render_parser.add_argument("--actions", nargs="*", default=[])
+    render_parser.set_defaults(func=_render)
 
     submission_parser = subparsers.add_parser("submission", help="Manage submission bundles.")
     submission_subparsers = submission_parser.add_subparsers(

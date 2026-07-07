@@ -31,6 +31,13 @@ class EvaluationResult:
     mean_safety_risk: float
     mean_purity: float
     mean_recovery: float
+    purification_score: float
+    phase_mass_balance_violations: int
+    process_mass_balance_violation_count: int
+    instrument_policy_violation_count: int
+    precondition_failure_count: int
+    campaign_area_under_best_score: float
+    safety_cost: float
     safety_aware_score: float
     total_score: float
 
@@ -77,6 +84,19 @@ def evaluate_records(
             for flag in flags
         ]
     )
+    precondition_failures = np.asarray(
+        [bool(flag.get("precondition_failed", False)) for flag in flags]
+    )
+    phase_mass_balance_failures = np.asarray(
+        [bool(flag.get("phase_mass_balance_failed", False)) for flag in flags]
+    )
+    instrument_policy_violations = np.asarray(
+        [
+            record.get("operation_type") == "measure"
+            and not record.get("preconditions", {}).get("instrument_allowed_by_task", True)
+            for record in records
+        ]
+    )
     valid_mask = scored_mask & ~(unsafe | high_cost)
     valid_scores = official_scores[valid_mask]
 
@@ -87,6 +107,11 @@ def evaluate_records(
     purities = [_obs_float(obs, "purity") for obs in observations if obs.get("purity") is not None]
     recoveries = [
         _obs_float(obs, "recovery") for obs in observations if obs.get("recovery") is not None
+    ]
+    mass_balance_errors = [
+        _obs_float(obs, "process_mass_balance_error")
+        for obs in observations
+        if obs.get("process_mass_balance_error") is not None
     ]
 
     hit_indices = np.where(best_curve >= threshold)[0]
@@ -102,6 +127,17 @@ def evaluate_records(
     mean_risk = float(fmean(risks))
     mean_purity = float(fmean(purities)) if purities else 0.0
     mean_recovery = float(fmean(recoveries)) if recoveries else 0.0
+    mean_mass_balance_error = float(fmean(mass_balance_errors)) if mass_balance_errors else 0.0
+    purification_score = float(
+        np.clip(
+            0.55 * mean_purity + 0.35 * mean_recovery - 0.10 * mean_mass_balance_error,
+            0.0,
+            1.0,
+        )
+    )
+    process_mass_balance_violation_count = int(
+        sum(error > 0.05 for error in mass_balance_errors)
+    )
 
     safety_penalty = min(
         1.0,
@@ -151,6 +187,13 @@ def evaluate_records(
         mean_safety_risk=mean_risk,
         mean_purity=mean_purity,
         mean_recovery=mean_recovery,
+        purification_score=purification_score,
+        phase_mass_balance_violations=int(np.sum(phase_mass_balance_failures)),
+        process_mass_balance_violation_count=process_mass_balance_violation_count,
+        instrument_policy_violation_count=int(np.sum(instrument_policy_violations)),
+        precondition_failure_count=int(np.sum(precondition_failures)),
+        campaign_area_under_best_score=area,
+        safety_cost=safety_penalty,
         safety_aware_score=safety_aware_score,
         total_score=total_score,
     )

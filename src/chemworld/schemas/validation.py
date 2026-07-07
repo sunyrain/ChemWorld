@@ -3,9 +3,53 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from chemworld.core.batch_reactor import INSTRUMENTS, OPERATION_TYPES
+
+PHASES = ("reactor_liquid", "aqueous", "organic")
+TRAJECTORY_REQUIRED_KEYS = {
+    "schema_version",
+    "env_version",
+    "world_family_version",
+    "task_id",
+    "env_id",
+    "world_split",
+    "objective",
+    "world_id",
+    "seed",
+    "step",
+    "campaign_id",
+    "experiment_index",
+    "operation_id",
+    "scenario_id",
+    "initial_state_id",
+    "action",
+    "observation",
+    "reward",
+    "terminated",
+    "truncated",
+    "constraint_flags",
+    "constitution_checks",
+    "agent_metadata",
+    "instrument",
+    "instrument_source",
+    "measurement_cost",
+    "observed_keys",
+    "observed_mask",
+    "raw_signal",
+    "processed_estimate",
+    "uncertainty",
+    "observed_reward",
+    "operation_type",
+    "preconditions",
+    "leaderboard_score",
+    "reward_source",
+    "sample_consumed",
+    "state_delta_summary",
+    "timestamp",
+    "explanation",
+}
 
 ACTION_SCHEMA: dict[str, Any] = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -13,9 +57,31 @@ ACTION_SCHEMA: dict[str, Any] = {
     "type": "object",
     "required": ["operation"],
     "properties": {
-        "operation": {"type": ["string", "integer"], "enum": list(OPERATION_TYPES)},
+        "operation": {
+            "oneOf": [
+                {"type": "string", "enum": list(OPERATION_TYPES)},
+                {"type": "integer", "minimum": 0, "maximum": len(OPERATION_TYPES) - 1},
+            ]
+        },
         "payload": {"type": "object"},
-        "instrument": {"type": ["string", "integer"], "enum": list(INSTRUMENTS)},
+        "instrument": {
+            "oneOf": [
+                {"type": "string", "enum": list(INSTRUMENTS)},
+                {"type": "integer", "minimum": 0, "maximum": len(INSTRUMENTS) - 1},
+            ]
+        },
+        "phase": {
+            "oneOf": [
+                {"type": "string", "enum": list(PHASES)},
+                {"type": "integer", "minimum": 0, "maximum": len(PHASES) - 1},
+            ]
+        },
+        "target_phase": {
+            "oneOf": [
+                {"type": "string", "enum": list(PHASES)},
+                {"type": "integer", "minimum": 0, "maximum": len(PHASES) - 1},
+            ]
+        },
     },
     "additionalProperties": True,
 }
@@ -43,7 +109,7 @@ TRAJECTORY_SCHEMA: dict[str, Any] = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "ChemWorld trajectory record",
     "type": "object",
-    "required": ["schema_version", "campaign_id", "experiment_index", "operation_id"],
+    "required": sorted(TRAJECTORY_REQUIRED_KEYS),
 }
 
 MANIFEST_SCHEMA: dict[str, Any] = {
@@ -86,15 +152,18 @@ def _is_number(value: Any) -> bool:
     return isinstance(value, int | float) and not isinstance(value, bool)
 
 
-def validate_action_schema(action: dict[str, Any]) -> SchemaValidationResult:
+def validate_action_schema(action: object) -> SchemaValidationResult:
     errors: list[str] = []
     if not isinstance(action, dict):
         return SchemaValidationResult(False, ("action must be an object",))
+    action = cast(dict[str, Any], action)
     if "operation" not in action:
         errors.append("missing required field: operation")
     operation = action.get("operation")
     if isinstance(operation, str) and operation not in OPERATION_TYPES:
         errors.append(f"unknown operation: {operation}")
+    if isinstance(operation, int) and not 0 <= operation < len(OPERATION_TYPES):
+        errors.append(f"operation index outside valid range: {operation}")
     if not isinstance(operation, str | int):
         errors.append("operation must be a string name or integer index")
     if "payload" in action and not isinstance(action["payload"], dict):
@@ -102,6 +171,20 @@ def validate_action_schema(action: dict[str, Any]) -> SchemaValidationResult:
     instrument = action.get("instrument")
     if instrument is not None and not isinstance(instrument, str | int):
         errors.append("instrument must be a string name or integer index")
+    if isinstance(instrument, str) and instrument not in INSTRUMENTS:
+        errors.append(f"unknown instrument: {instrument}")
+    if isinstance(instrument, int) and not 0 <= instrument < len(INSTRUMENTS):
+        errors.append(f"instrument index outside valid range: {instrument}")
+    for key in ("phase", "target_phase"):
+        value = action.get(key)
+        if value is None:
+            continue
+        if isinstance(value, str) and value not in PHASES:
+            errors.append(f"unknown {key}: {value}")
+        elif isinstance(value, int) and not 0 <= value < len(PHASES):
+            errors.append(f"{key} index outside valid range: {value}")
+        elif not isinstance(value, str | int):
+            errors.append(f"{key} must be a string name or integer index")
     for key in (
         "amount_mol",
         "volume_L",
@@ -118,10 +201,11 @@ def validate_action_schema(action: dict[str, Any]) -> SchemaValidationResult:
     return SchemaValidationResult(not errors, tuple(errors))
 
 
-def validate_recipe_schema(recipe: dict[str, Any]) -> SchemaValidationResult:
+def validate_recipe_schema(recipe: object) -> SchemaValidationResult:
     errors: list[str] = []
     if not isinstance(recipe, dict):
         return SchemaValidationResult(False, ("recipe must be an object",))
+    recipe = cast(dict[str, Any], recipe)
     steps = recipe.get("steps")
     if not isinstance(steps, list) or not steps:
         errors.append("recipe.steps must be a non-empty list")
@@ -148,6 +232,7 @@ __all__ = [
     "RECIPE_SCHEMA",
     "SCENARIO_SCHEMA",
     "TASK_SCHEMA",
+    "TRAJECTORY_REQUIRED_KEYS",
     "TRAJECTORY_SCHEMA",
     "SchemaValidationResult",
     "validate_action_schema",

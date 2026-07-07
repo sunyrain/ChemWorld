@@ -17,6 +17,7 @@ from chemworld.agents import (
     RandomForestEIAgent,
     SafetyConstrainedBOAgent,
     ScriptedChemistryAgent,
+    ToolUsingLLMStubAgent,
 )
 from chemworld.agents.base import Agent, HistoryRecord
 from chemworld.data.logging import TrajectoryLogger, observation_to_json
@@ -32,7 +33,10 @@ AGENT_REGISTRY: dict[str, Callable[[], Agent]] = {
     "rf_ei": RandomForestEIAgent,
     "safe_gp_bo": SafetyConstrainedBOAgent,
     "scripted_chemistry": ScriptedChemistryAgent,
+    "scripted_reaction_to_purification": ScriptedChemistryAgent,
+    "partition_discovery_heuristic": ScriptedChemistryAgent,
     "heuristic": ScriptedChemistryAgent,
+    "tool_using_llm_stub": ToolUsingLLMStubAgent,
 }
 
 

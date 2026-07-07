@@ -24,6 +24,11 @@ class TrajectoryRecordPayload:
     world_id: str
     seed: int
     step: int
+    campaign_id: str
+    experiment_index: int
+    operation_id: int
+    scenario_id: str | None
+    initial_state_id: str | None
     action: dict[str, Any]
     observation: dict[str, float | None]
     reward: float

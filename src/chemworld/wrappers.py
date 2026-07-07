@@ -6,8 +6,10 @@ from typing import Any
 
 import gymnasium as gym
 import numpy as np
+from gymnasium.utils import RecordConstructorArgs
 
 from chemworld.core.batch_reactor import OPERATION_TYPES
+from chemworld.world.scoring import safety_cost_from_flags
 
 
 def _base_env(env: gym.Env[Any, Any]) -> Any:
@@ -33,8 +35,12 @@ def validate_event_action(action: dict[str, Any], env: gym.Env[Any, Any]) -> dic
     return base.operation_validator.validate(action, base._state).to_dict()
 
 
-class ActionMaskWrapper(gym.Wrapper[Any, Any, Any, Any]):
+class ActionMaskWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):
     """Add operation validity signals to reset/step info."""
+
+    def __init__(self, env: gym.Env[Any, Any]) -> None:
+        RecordConstructorArgs.__init__(self)
+        super().__init__(env)
 
     def reset(self, **kwargs: Any) -> tuple[Any, dict[str, Any]]:
         observation, info = self.env.reset(**kwargs)
@@ -64,10 +70,11 @@ class ActionMaskWrapper(gym.Wrapper[Any, Any, Any, Any]):
         return payload
 
 
-class SafetyCostWrapper(gym.Wrapper[Any, Any, Any, Any]):
+class SafetyCostWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):
     """Expose safe-RL style cost signals without changing Gymnasium returns."""
 
     def __init__(self, env: gym.Env[Any, Any], *, constraint_budget: float = 1.0) -> None:
+        RecordConstructorArgs.__init__(self, constraint_budget=constraint_budget)
         super().__init__(env)
         self.constraint_budget = float(constraint_budget)
         self._spent = 0.0
@@ -84,14 +91,14 @@ class SafetyCostWrapper(gym.Wrapper[Any, Any, Any, Any]):
 
     def _with_cost(self, info: dict[str, Any]) -> dict[str, Any]:
         payload = dict(info)
+        if "cost" in payload and "cost_components" in payload:
+            cost_signal = float(payload["cost"])
+            self._spent += cost_signal
+            payload["cost_signal"] = cost_signal
+            payload["constraint_budget_remaining"] = max(self.constraint_budget - self._spent, 0.0)
+            return payload
         flags = payload.get("constraint_flags", {})
-        components = {
-            "safety_risk": float(flags.get("unsafe", False)),
-            "high_cost": float(flags.get("high_cost", False)),
-            "precondition_failure": float(flags.get("precondition_failed", False)),
-            "constitution_failure": float(flags.get("constitution_failed", False)),
-        }
-        cost_signal = min(1.0, sum(components.values()))
+        cost_signal, components = safety_cost_from_flags(flags)
         self._spent += cost_signal
         payload["cost_signal"] = cost_signal
         payload["cost_components"] = components
@@ -99,7 +106,7 @@ class SafetyCostWrapper(gym.Wrapper[Any, Any, Any, Any]):
         return payload
 
 
-class NaNObservationWrapper(gym.ObservationWrapper[Any, Any, Any]):
+class NaNObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordConstructorArgs):
     """Convert dict observations with NaN values into RL-friendly vectors."""
 
     def __init__(
@@ -109,6 +116,11 @@ class NaNObservationWrapper(gym.ObservationWrapper[Any, Any, Any]):
         sentinel: float = -1.0,
         include_mask: bool = True,
     ) -> None:
+        RecordConstructorArgs.__init__(
+            self,
+            sentinel=sentinel,
+            include_mask=include_mask,
+        )
         super().__init__(env)
         observation_space = env.observation_space
         if not isinstance(observation_space, gym.spaces.Dict):

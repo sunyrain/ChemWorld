@@ -261,11 +261,45 @@ def chemworld_world_law_spec() -> WorldLawSpec:
         operation_registry=OPERATION_TYPES,
         transition_kernel_registry=(
             "reaction_ode",
+            "thermal_energy_balance",
             "phase_partition",
             "separation",
             "instrument_cost",
         ),
         observation_kernel_registry=("instrument_observation",),
+        instrument_registry={
+            key: {
+                "instrument_id": instrument.id,
+                "observable_keys": list(instrument.observable_keys),
+                "cost": instrument.cost,
+                "sample_consumption_L": instrument.sample_volume_L,
+                "requires_terminated": instrument.requires_terminated,
+                "noise_model": instrument.noise_std,
+            }
+            for key, instrument in batch_reactor_instruments().items()
+        },
+        module_versions={
+            "reaction": "0.2",
+            "thermal": "0.2",
+            "phase_partition": "0.2",
+            "separation": "0.2",
+            "observation": "0.2",
+        },
+        backend={"backend_id": "semi_mechanistic", "fidelity": "qualitative"},
+        constitution_rules=(
+            "material_conservation",
+            "nonnegative_state",
+            "unit_consistency",
+            "yield_upper_bound",
+            "energy_balance",
+            "phase_mass_balance",
+            "observation_non_omniscient",
+            "measurement_has_cost",
+            "action_preconditions",
+            "safety_constraints",
+            "public_private_reproducibility",
+        ),
+        scenario_generators=("chemworld.scenario.default",),
     )
 
 

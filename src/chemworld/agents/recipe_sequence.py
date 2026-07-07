@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from chemworld.agents.base import BaseAgent, HistoryRecord
-from chemworld.core.batch_reactor import recipe_to_event_sequence
+from chemworld.world.recipes import compile_recipe
 
 DEFAULT_RECIPE_EVENT_COUNT = 6
 
@@ -26,10 +26,10 @@ class RecipeSequenceMixin(BaseAgent):
 
     def _start_recipe(self, recipe: dict[str, Any]) -> dict[str, Any]:
         self._active_recipe = dict(recipe)
-        self._pending_events = recipe_to_event_sequence(recipe)
+        self._pending_events = compile_recipe(recipe)
         event = self._pop_pending_event()
         if event is None:
-            raise RuntimeError("recipe_to_event_sequence returned no executable events")
+            raise RuntimeError("compile_recipe returned no executable events")
         return event
 
     def update(

@@ -2,7 +2,10 @@
 
 from dataclasses import dataclass
 
-from chemworld.core.batch_reactor import ChemWorldObservationKernel, DOWNSTREAM_OBSERVATION_KEYS
+from chemworld.core.batch_reactor import (
+    DOWNSTREAM_OBSERVATION_KEYS,
+    ChemWorldObservationKernel,
+)
 
 
 @dataclass(frozen=True)

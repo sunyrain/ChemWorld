@@ -7,6 +7,7 @@ from typing import Any
 
 from chemworld.core.batch_reactor import INSTRUMENTS, OPERATION_TYPES, REACTION_OPERATIONS
 from chemworld.registration import ENV_ID
+from chemworld.world.scenario import get_scenario_card
 
 WORLD_LAW_ID = "chemworld-physical-chemistry"
 REACTION_ALLOWED = REACTION_OPERATIONS
@@ -109,6 +110,9 @@ class TaskSpec:
             else "maintainer-controlled",
             "private_seeds": "maintainer-controlled",
             "baseline_reference_scores": dict.fromkeys(REFERENCE_BASELINES),
+            "reference_baselines": list(REFERENCE_BASELINES),
+            "recommended_agent_families": self._recommended_agent_families(),
+            "scenario_card": get_scenario_card(self.scenario_id, split=self.world_split),
             "failure_modes": self._failure_modes(),
             "recommended_use": self._recommended_use(),
             "safety_limit": self.safety_limit,
@@ -135,6 +139,16 @@ class TaskSpec:
         if "optimization" in self.tags or "sample-efficiency" in self.tags:
             use.extend(["BO", "RL"])
         return sorted(set(use))
+
+    def _recommended_agent_families(self) -> list[str]:
+        families = ["random", "scripted"]
+        if "optimization" in self.tags or "sample-efficiency" in self.tags:
+            families.extend(["lhs", "gp_bo", "safe_gp_bo"])
+        if "separation" in self.tags or "purification" in self.tags:
+            families.append("scripted_reaction_to_purification")
+        if "llm-agent" in self.tags or "explanation" in self.tags:
+            families.extend(["llm_replay", "tool_using_llm_stub"])
+        return sorted(set(families))
 
 
 def _task(

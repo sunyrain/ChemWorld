@@ -9,7 +9,7 @@ from chemworld.agents.bo import (
 from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.agents.greedy import GreedyLocalAgent
 from chemworld.agents.lhs import LatinHypercubeAgent
-from chemworld.agents.llm import LLMPlannerAgent, ReplayLLMAgent
+from chemworld.agents.llm import LLMPlannerAgent, ReplayLLMAgent, ToolUsingLLMStubAgent
 from chemworld.agents.random import RandomAgent
 
 __all__ = [
@@ -24,4 +24,5 @@ __all__ = [
     "ReplayLLMAgent",
     "SafetyConstrainedBOAgent",
     "ScriptedChemistryAgent",
+    "ToolUsingLLMStubAgent",
 ]

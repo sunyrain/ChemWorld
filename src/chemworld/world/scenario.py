@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from hashlib import sha256
+from random import Random
 from typing import Protocol
 
 from chemworld.foundation import WorldState
@@ -85,12 +87,46 @@ class DefaultScenarioGenerator:
     def generate(self, spec: ScenarioSpec, seed: int) -> ScenarioInstance:
         from chemworld.core.batch_reactor import initial_chemworld_state
 
-        parameters = load_chemworld_parameters(spec.split, seed + spec.hidden_parameter_seed)
+        profile_offset = _profile_offset(spec.parameter_profile)
+        parameter_seed = seed + spec.hidden_parameter_seed + profile_offset
+        initial_seed = seed + spec.initial_state_seed + profile_offset
+        parameters = load_chemworld_parameters(spec.split, parameter_seed)
+        initial_state = initial_chemworld_state()
+        metadata = initial_state.metadata.copy()
+        metadata.update(
+            {
+                "scenario_id": spec.scenario_id,
+                "parameter_profile": spec.parameter_profile,
+                "initial_state_seed": spec.initial_state_seed,
+            }
+        )
+        if spec.initial_state_seed:
+            rng = Random(initial_seed)
+            initial_state = initial_state.replace(
+                temperature_K=298.15 + rng.uniform(-1.5, 1.5),
+                pressure_Pa=101_325.0 + rng.uniform(-250.0, 250.0),
+                metadata={
+                    **metadata,
+                    "initial_condition_jitter": {
+                        "temperature_K": True,
+                        "pressure_Pa": True,
+                    },
+                },
+            )
+        else:
+            initial_state = initial_state.replace(metadata=metadata)
         return ScenarioInstance(
             spec=spec,
             parameters=parameters,
-            initial_state=initial_chemworld_state(),
+            initial_state=initial_state,
         )
+
+
+def _profile_offset(parameter_profile: str) -> int:
+    if parameter_profile == "teaching_assay":
+        return 0
+    digest = sha256(parameter_profile.encode()).digest()
+    return int.from_bytes(digest[:2], "little")
 
 
 SCENARIO_FAMILIES: dict[str, ScenarioFamilySpec] = {
@@ -113,7 +149,9 @@ SCENARIO_FAMILIES: dict[str, ScenarioFamilySpec] = {
         world_law_id=WORLD_LAW_ID,
         description="Phase partition and downstream characterization under sparse observations.",
         module_tags=("phase_partition", "separation", "observation"),
-        split_policy="same partition-law family across public/private splits; distinct hidden seeds",
+        split_policy=(
+            "same partition-law family across public/private splits; distinct hidden seeds"
+        ),
     ),
 }
 
@@ -143,7 +181,7 @@ SCENARIO_REGISTRY: dict[str, ScenarioSpec] = {
         split="public-test",
         difficulty="hard",
         hidden_parameter_seed=11,
-        initial_state_seed=0,
+        initial_state_seed=3,
         initial_state_id="reaction-safety:default",
         parameter_profile="high_safety_sensitivity",
         allowed_module_tags=("reaction", "thermal", "observation"),
@@ -159,7 +197,7 @@ SCENARIO_REGISTRY: dict[str, ScenarioSpec] = {
         split="public-test",
         difficulty="standard",
         hidden_parameter_seed=17,
-        initial_state_seed=0,
+        initial_state_seed=5,
         initial_state_id="reaction-mechanism:default",
         parameter_profile="mechanism_probe",
         allowed_module_tags=("reaction", "thermal", "observation"),
@@ -188,7 +226,7 @@ SCENARIO_REGISTRY: dict[str, ScenarioSpec] = {
         split="public-test",
         difficulty="hard",
         hidden_parameter_seed=23,
-        initial_state_seed=0,
+        initial_state_seed=7,
         initial_state_id="reaction-to-purification:default",
         parameter_profile="downstream_processing",
         allowed_module_tags=("reaction", "thermal", "phase_partition", "separation", "observation"),
@@ -205,7 +243,7 @@ SCENARIO_REGISTRY: dict[str, ScenarioSpec] = {
         split="public-test",
         difficulty="standard",
         hidden_parameter_seed=31,
-        initial_state_seed=0,
+        initial_state_seed=11,
         initial_state_id="partition-discovery:default",
         parameter_profile="unknown_partition_coefficients",
         allowed_module_tags=("phase_partition", "separation", "observation"),
@@ -221,7 +259,7 @@ SCENARIO_REGISTRY: dict[str, ScenarioSpec] = {
         split="public-test",
         difficulty="hard",
         hidden_parameter_seed=37,
-        initial_state_seed=0,
+        initial_state_seed=13,
         initial_state_id="purity-yield-tradeoff:default",
         parameter_profile="purity_recovery_tradeoff",
         allowed_module_tags=("reaction", "thermal", "phase_partition", "separation", "observation"),
@@ -237,7 +275,7 @@ SCENARIO_REGISTRY: dict[str, ScenarioSpec] = {
         split="private-eval",
         difficulty="hard",
         hidden_parameter_seed=101,
-        initial_state_seed=0,
+        initial_state_seed=17,
         initial_state_id="generalization:default",
         parameter_profile="private_shifted_hidden_kinetics",
         allowed_module_tags=("reaction", "thermal", "observation"),
@@ -250,7 +288,7 @@ SCENARIO_REGISTRY: dict[str, ScenarioSpec] = {
         split="public-test",
         difficulty="hard",
         hidden_parameter_seed=43,
-        initial_state_seed=0,
+        initial_state_seed=19,
         initial_state_id="low-budget-characterization:default",
         parameter_profile="sparse_measurement",
         allowed_module_tags=("reaction", "thermal", "observation"),
@@ -263,7 +301,7 @@ SCENARIO_REGISTRY: dict[str, ScenarioSpec] = {
         split="public-dev",
         difficulty="standard",
         hidden_parameter_seed=47,
-        initial_state_seed=0,
+        initial_state_seed=23,
         initial_state_id="tool-agent-planning:default",
         parameter_profile="operation_language_planning",
         allowed_module_tags=("reaction", "thermal", "phase_partition", "separation", "observation"),
@@ -310,9 +348,9 @@ def get_scenario_card(scenario_id: str, *, split: str | None = None) -> dict[str
 
 
 __all__ = [
-    "DefaultScenarioGenerator",
     "SCENARIO_FAMILIES",
     "SCENARIO_REGISTRY",
+    "DefaultScenarioGenerator",
     "ScenarioFamilySpec",
     "ScenarioGenerator",
     "ScenarioInstance",
