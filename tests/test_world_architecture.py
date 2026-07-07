@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import gymnasium as gym
 
@@ -27,8 +28,13 @@ from chemworld.world import (
     get_scenario_card,
     instrument_contracts,
     list_scenarios,
+    load_chemworld_parameters,
     world_law_spec,
 )
+from chemworld.world.phase_kernel import partition_split
+from chemworld.world.reaction_kernel import integrate_reaction_ode
+from chemworld.world.state_factory import initial_chemworld_state
+from chemworld.world.thermal_kernel import pressure_and_risk
 
 
 def test_world_law_contains_professional_contracts() -> None:
@@ -52,6 +58,71 @@ def test_world_law_contains_professional_contracts() -> None:
         "continuous_flow",
         "electrochemistry",
     } <= module_ids
+    assert spec["module_versions"]["reaction"] == "0.3"
+    assert spec["module_versions"]["observation"] == "0.3"
+
+
+def test_world_layer_does_not_import_batch_core() -> None:
+    world_dir = Path("src/chemworld/world")
+    offenders = [
+        path
+        for path in world_dir.glob("*.py")
+        if "chemworld.core.batch_reactor" in path.read_text(encoding="utf-8")
+    ]
+    assert offenders == []
+
+
+def test_world_kernels_are_executable_not_metadata_only() -> None:
+    world = load_chemworld_parameters("public-dev", seed=1)
+    state = initial_chemworld_state().replace(
+        species_amounts={
+            "A": 0.01,
+            "P": 0.0,
+            "B": 0.0,
+            "D": 0.0,
+            "E": 0.0,
+            "Cat_active": 0.0002,
+            "Cat_dead": 0.0,
+        },
+        volume_L=0.025,
+        metadata={
+            **initial_chemworld_state().metadata,
+            "initial_A_mol": 0.01,
+            "solvent": 1,
+            "catalyst": 1,
+        },
+    )
+    result = integrate_reaction_ode(
+        state=state,
+        world=world,
+        duration_s=900.0,
+        target_temperature_K=380.0,
+        heat=True,
+        stirring_speed_rpm=700.0,
+    )
+    assert result is not None
+    assert result.species_amounts["A"] < state.species_amounts["A"]
+    assert result.species_amounts["P"] >= 0.0
+    pressure, risk = pressure_and_risk(
+        state=state.replace(
+            species_amounts=result.species_amounts,
+            temperature_K=result.temperature_K,
+        ),
+        solvent_risks=world.solvent_risks,
+    )
+    assert pressure > 0.0
+    assert 0.0 <= risk <= 1.0
+    split = partition_split(
+        product_mol=0.005,
+        impurity_mol=0.001,
+        solvent=1,
+        temperature_K=298.15,
+        duration_s=180.0,
+        stirring_speed_rpm=700.0,
+        organic_volume_L=0.015,
+        aqueous_volume_L=0.025,
+    )
+    assert split["organic_product_mol"] + split["aqueous_product_mol"] == 0.005
 
 
 def test_scenarios_are_first_class_and_share_world_law() -> None:

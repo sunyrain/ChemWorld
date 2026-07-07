@@ -7,11 +7,10 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.core.batch_reactor import (
-    CATALYSTS,
+from chemworld.core.actions import CATALYSTS, SOLVENTS
+from chemworld.world.operations import (
     INSTRUMENTS,
     OPERATION_TYPES,
-    SOLVENTS,
     instrument_name,
     operation_name,
 )

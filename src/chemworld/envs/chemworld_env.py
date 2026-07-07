@@ -14,14 +14,14 @@ from chemworld.action_codec import ActionCodec
 from chemworld.backends import semi_mechanistic_backend_spec
 from chemworld.core.actions import CATALYSTS, SOLVENTS
 from chemworld.core.batch_reactor import (
-    initial_chemworld_state,
+    ChemWorldObservationKernel,
+    ChemWorldTransitionKernel,
     make_chemworld_constitution,
 )
 from chemworld.foundation.state import OperationRecord, WorldState
 from chemworld.operation_validator import OperationValidator
 from chemworld.tasks import get_task
 from chemworld.world.instruments import instrument_contracts
-from chemworld.world.observation_kernel import ChemWorldObservationKernel
 from chemworld.world.operations import (
     DOWNSTREAM_OBSERVATION_KEYS,
     INSTRUMENTS,
@@ -32,9 +32,10 @@ from chemworld.world.operations import (
     operation_contracts,
 )
 from chemworld.world.parameters import load_chemworld_parameters
-from chemworld.world.reaction_kernel import ChemWorldTransitionKernel, batch_reactor_reactions
+from chemworld.world.reaction_kernel import reaction_network
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 from chemworld.world.scoring import safety_cost_from_flags
+from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.world.world_law import world_law_spec
 
 OBSERVATION_KEYS = (
@@ -346,7 +347,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "instruments": {
                 key: contract.to_dict() for key, contract in instrument_contracts().items()
             },
-            "reactions": [reaction.to_dict() for reaction in batch_reactor_reactions()],
+            "reactions": [reaction.to_dict() for reaction in reaction_network()],
             "operations": [operation.to_dict() for operation in batch_reactor_operations()],
             "operation_contracts": {
                 key: contract.to_dict() for key, contract in operation_contracts().items()

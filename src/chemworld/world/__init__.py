@@ -21,6 +21,7 @@ from chemworld.world.scenario import (
     get_scenario_card,
     list_scenarios,
 )
+from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.world.world_law import (
     MODULE_VERSIONS,
     constitution_rules,
@@ -45,6 +46,7 @@ __all__ = [
     "constitution_rules",
     "get_scenario",
     "get_scenario_card",
+    "initial_chemworld_state",
     "instrument_contracts",
     "list_scenarios",
     "load_chemworld_parameters",

@@ -85,7 +85,7 @@ class DefaultScenarioGenerator:
     """Generate ChemWorld scenarios from split, seed, and initial-state policy."""
 
     def generate(self, spec: ScenarioSpec, seed: int) -> ScenarioInstance:
-        from chemworld.core.batch_reactor import initial_chemworld_state
+        from chemworld.world.state_factory import initial_chemworld_state
 
         profile_offset = _profile_offset(spec.parameter_profile)
         parameter_seed = seed + spec.hidden_parameter_seed + profile_offset

@@ -86,7 +86,7 @@
 
 这些内容属于正式发布前的全量运行、Year 2 后半段或 Year 3，不应在当前版本中过度宣称：
 
-- `core/batch_reactor.py` 的数值实现已通过 `chemworld.world` 暴露模块化 contracts，但还没有完全物理拆分到独立 kernel 文件。
+- `chemworld.world` 已接管 ontology、parameter generation、instrument registry、operation registry、recipe compiler、reaction ODE、thermal risk、phase partition、downstream truth、observation helper 和 scoring helper；`core/batch_reactor.py` 当前只保留事件调度、ledger 写入和少量过程 proxy 编排。
 - Crystallization、distillation、flow、电化学仍是定性半机理 proxy，不是真实单元操作模拟器。
 - private eval 当前是本机 hidden salt + signed artifact 模式，不是远端托管评测服务。
 - official baseline table 生成器已经完成；正式 release 前需要用完整 task/agent/seed 矩阵重新运行并冻结结果。

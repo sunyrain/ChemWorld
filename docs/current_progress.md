@@ -11,7 +11,11 @@ The repository currently provides:
 - a Python package installable with `python -m pip install -e ".[dev]"`;
 - one Gymnasium environment, `ChemWorld`;
 - a unified task registry over one shared world law;
-- an event-driven reaction transition model;
+- world-law modules owning ontology, parameter generation, instruments,
+  operations, recipe compilation, numerical reaction ODEs, thermal risk,
+  phase partitioning, observation helpers, and scoring helpers;
+- an event-driven transition orchestrator that calls those shared world
+  kernels and records state-ledger updates;
 - phase partition, downstream separation, crystallization, distillation,
   continuous-flow, and electrochemistry process modules;
 - executable physical constitution checks;

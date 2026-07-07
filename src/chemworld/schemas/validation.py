@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, cast
 
-from chemworld.core.batch_reactor import INSTRUMENTS, OPERATION_TYPES
+from chemworld.world.operations import INSTRUMENTS, OPERATION_TYPES
 
 PHASES = ("reactor_liquid", "aqueous", "organic")
 TRAJECTORY_REQUIRED_KEYS = {

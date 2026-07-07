@@ -3,11 +3,6 @@
 from __future__ import annotations
 
 from chemworld.backends import semi_mechanistic_backend_spec
-from chemworld.core.batch_reactor import (
-    INSTRUMENTS,
-    OPERATION_TYPES,
-    batch_reactor_substances,
-)
 from chemworld.foundation import WorldLawSpec
 from chemworld.world.continuous_flow import ContinuousFlowModuleSpec
 from chemworld.world.crystallization import CrystallizationModuleSpec
@@ -15,6 +10,8 @@ from chemworld.world.distillation import DistillationModuleSpec
 from chemworld.world.electrochemistry import ElectrochemistryModuleSpec
 from chemworld.world.instruments import instrument_contracts
 from chemworld.world.observation_kernel import ObservationModuleSpec
+from chemworld.world.ontology import chemworld_substances
+from chemworld.world.operations import INSTRUMENTS, OPERATION_TYPES
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.phase_kernel import PhaseModuleSpec
 from chemworld.world.reaction_kernel import ReactionModuleSpec
@@ -61,7 +58,7 @@ def world_law_spec() -> WorldLawSpec:
     return WorldLawSpec(
         law_version=WORLD_FAMILY_VERSION,
         ontology_registry={
-            "substances": sorted(batch_reactor_substances()),
+            "substances": sorted(chemworld_substances()),
             "phases": ["reactor_liquid", "aqueous", "organic", "solid"],
             "vessels": ["batch_reactor", "separator", "assay_vial"],
             "instruments": list(INSTRUMENTS),

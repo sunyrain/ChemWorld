@@ -8,7 +8,7 @@ import gymnasium as gym
 import numpy as np
 from gymnasium.utils import RecordConstructorArgs
 
-from chemworld.core.batch_reactor import OPERATION_TYPES
+from chemworld.world.operations import OPERATION_TYPES
 from chemworld.world.scoring import safety_cost_from_flags
 
 

@@ -26,8 +26,8 @@ obs, reward, terminated, truncated, info = env.step(action)
 ```text
 chemworld
 ├── foundation          # ontology、constitution、state、ledger、units、world law
-├── world               # 专业 world-law 层：scenario、instrument、kernel module、schema-facing recipe
-├── core                # 已验证的半机理数值实现，后续继续内移拆分
+├── world               # 专业 world-law 层：ontology、scenario、instrument、operation、recipe、kernel、scoring
+├── core                # 事件调度层：调用 world kernel，维护 state ledger 和 operation record
 ├── envs                # ChemWorld Gymnasium 环境
 ├── tasks               # task registry 和 task card
 ├── schemas             # action、recipe、trajectory、manifest、task、scenario schema
@@ -266,7 +266,7 @@ Dataset card 包含：
 
 仍需继续推进：
 
-- 将 `core/batch_reactor.py` 的数值实现进一步内移到 `world/reaction_kernel.py`、`world/phase_kernel.py`、`world/separation_kernel.py`；
+- 继续把 crystallization、distillation、continuous-flow、electrochemistry 的过程 proxy 拆成更独立的 world kernel，并提升物理 fidelity；
 - 用完整 task/agent/seed 矩阵重新运行并冻结官方 reference baseline table；
 - 将本机 signed private-eval artifact 升级为远端 maintainer-side registry；
 - 增加 Minari 风格 dataset metadata；

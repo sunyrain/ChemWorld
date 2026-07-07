@@ -5,7 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from chemworld.core.batch_reactor import (
+from chemworld.registration import ENV_ID
+from chemworld.world.operations import (
     CRYSTALLIZATION_OPERATIONS,
     DISTILLATION_OPERATIONS,
     ELECTROCHEMISTRY_OPERATIONS,
@@ -14,7 +15,6 @@ from chemworld.core.batch_reactor import (
     OPERATION_TYPES,
     REACTION_OPERATIONS,
 )
-from chemworld.registration import ENV_ID
 from chemworld.world.scenario import get_scenario_card
 
 WORLD_LAW_ID = "chemworld-physical-chemistry"

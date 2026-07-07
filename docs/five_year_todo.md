@@ -4,7 +4,7 @@
 
 ## Year 1：Benchmark 底座冻结
 
-- 完成 `core/batch_reactor.py` 拆分，把 ODE、热量、相分配、分离、观测、评分逐步迁入 `chemworld.world`。
+- 保持 `chemworld.world` 作为 ontology、参数、仪器、动作、recipe、ODE、热量、相分配、观测和评分的单一来源；后续只继续拆细过程 proxy 和提升物理 fidelity。
 - 冻结 `WorldLawSpec`、`ScenarioSpec`、`TaskSpec`、trajectory schema、submission bundle schema。
 - 为每个 task 生成 task card、scenario card、instrument card、baseline card。
 - 已建立 official baseline report 生成器：`chemworld baselines report` 可按 task/agent/seed 输出 results、leaderboard 和 report metadata；正式发布前需用全量矩阵冻结结果。

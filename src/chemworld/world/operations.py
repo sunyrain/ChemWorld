@@ -5,18 +5,68 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from chemworld.core.batch_reactor import (
-    CRYSTALLIZATION_OPERATIONS,
-    DISTILLATION_OPERATIONS,
-    DOWNSTREAM_OBSERVATION_KEYS,
-    ELECTROCHEMISTRY_OPERATIONS,
-    FLOW_OPERATIONS,
-    INSTRUMENTS,
-    OPERATION_TYPES,
-    REACTION_OPERATIONS,
-    SEPARATION_OPERATIONS,
-    batch_reactor_operations,
-    batch_reactor_state_variables,
+import numpy as np
+
+from chemworld.foundation import Operation
+from chemworld.world.ontology import chemworld_state_variables
+
+REACTION_OPERATIONS = (
+    "add_reagent",
+    "add_solvent",
+    "add_catalyst",
+    "heat",
+    "wait",
+    "sample",
+    "quench",
+    "terminate",
+    "measure",
+)
+SEPARATION_OPERATIONS = (
+    "add_phase",
+    "add_extractant",
+    "mix",
+    "settle",
+    "separate_phase",
+    "wash",
+    "dry",
+    "concentrate",
+    "transfer",
+)
+CRYSTALLIZATION_OPERATIONS = ("seed_crystals", "cool_crystallize", "filter_crystals")
+DISTILLATION_OPERATIONS = ("evaporate", "distill", "collect_fraction")
+FLOW_OPERATIONS = ("set_flow_rate", "run_flow")
+ELECTROCHEMISTRY_OPERATIONS = ("set_potential", "electrolyze")
+PROCESS_OPERATIONS = (
+    *CRYSTALLIZATION_OPERATIONS,
+    *DISTILLATION_OPERATIONS,
+    *FLOW_OPERATIONS,
+    *ELECTROCHEMISTRY_OPERATIONS,
+)
+OPERATION_TYPES = (
+    *REACTION_OPERATIONS[:-2],
+    *SEPARATION_OPERATIONS,
+    *PROCESS_OPERATIONS,
+    "terminate",
+    "measure",
+)
+INSTRUMENTS = ("hplc", "gc", "uvvis", "final_assay")
+DOWNSTREAM_OBSERVATION_KEYS = (
+    "purity",
+    "recovery",
+    "phase_ratio",
+    "product_in_organic",
+    "product_in_aqueous",
+    "impurity_signal",
+    "solvent_loss",
+    "process_mass_balance_error",
+    "crystal_yield",
+    "crystal_purity",
+    "crystal_size",
+    "distillate_purity",
+    "distillate_recovery",
+    "flow_conversion",
+    "electrochemical_selectivity",
+    "energy_efficiency",
 )
 
 
@@ -34,6 +84,119 @@ class OperationContract:
             "required_fields": list(self.required_fields),
             "preconditions": list(self.preconditions),
         }
+
+
+def batch_reactor_operations() -> tuple[Operation, ...]:
+    """Return operation contracts for the shared event language."""
+
+    return (
+        Operation("add_reagent", "Add reagent", ("amount_mol",), ("not_terminated",)),
+        Operation("add_solvent", "Add solvent", ("volume_L", "solvent"), ("not_terminated",)),
+        Operation(
+            "add_catalyst",
+            "Add catalyst",
+            ("catalyst_amount_mol", "catalyst"),
+            ("not_terminated",),
+        ),
+        Operation(
+            "heat",
+            "Heat",
+            ("target_temperature_K", "duration_s", "stirring_speed_rpm"),
+            ("has_volume", "has_material"),
+        ),
+        Operation(
+            "wait",
+            "Wait",
+            ("duration_s", "stirring_speed_rpm"),
+            ("has_volume", "has_material"),
+        ),
+        Operation("sample", "Sample", ("sample_volume_L",), ("has_volume",)),
+        Operation("quench", "Quench", (), ("has_volume",)),
+        Operation("add_phase", "Add phase", ("phase", "volume_L"), ("not_terminated",)),
+        Operation(
+            "add_extractant",
+            "Add extractant",
+            ("extractant", "volume_L"),
+            ("has_volume", "has_material", "not_terminated"),
+        ),
+        Operation("mix", "Mix phases", ("duration_s", "stirring_speed_rpm"), ("has_phase_system",)),
+        Operation("settle", "Settle phases", ("duration_s",), ("has_phase_system",)),
+        Operation(
+            "separate_phase",
+            "Separate phase",
+            ("target_phase",),
+            ("has_phase_system", "phase_settled"),
+        ),
+        Operation("wash", "Wash product phase", ("wash_volume_L",), ("has_phase_system",)),
+        Operation("dry", "Dry product phase", (), ("has_phase_system",)),
+        Operation(
+            "concentrate", "Concentrate product phase", ("duration_s",), ("has_phase_system",)
+        ),
+        Operation(
+            "transfer", "Transfer product phase", ("transfer_fraction",), ("has_phase_system",)
+        ),
+        Operation("seed_crystals", "Seed crystallization", ("seed_mass_g",), ("has_volume",)),
+        Operation(
+            "cool_crystallize",
+            "Cool crystallization",
+            ("target_temperature_K", "duration_s"),
+            ("has_volume", "has_material"),
+        ),
+        Operation(
+            "filter_crystals",
+            "Filter crystals",
+            (),
+            ("has_material", "filter_requires_crystallization"),
+        ),
+        Operation(
+            "evaporate",
+            "Evaporate solvent",
+            ("target_temperature_K", "duration_s"),
+            ("has_volume",),
+        ),
+        Operation(
+            "distill",
+            "Distill volatile fraction",
+            ("target_temperature_K", "duration_s", "reflux_ratio"),
+            ("has_volume", "has_material"),
+        ),
+        Operation(
+            "collect_fraction",
+            "Collect distillation fraction",
+            ("transfer_fraction",),
+            ("collect_fraction_requires_distillation",),
+        ),
+        Operation(
+            "set_flow_rate",
+            "Configure continuous-flow residence time",
+            ("flow_rate_mL_min", "residence_time_s"),
+            ("not_terminated",),
+        ),
+        Operation(
+            "run_flow",
+            "Run continuous-flow reaction",
+            ("target_temperature_K", "duration_s"),
+            ("has_volume", "has_material", "run_flow_requires_flow_setup"),
+        ),
+        Operation(
+            "set_potential",
+            "Configure electrochemical cell",
+            ("potential_V", "current_mA"),
+            ("has_volume", "has_material"),
+        ),
+        Operation(
+            "electrolyze",
+            "Run electrolysis",
+            ("duration_s",),
+            ("has_volume", "has_material", "electrolyze_requires_potential"),
+        ),
+        Operation("terminate", "Terminate", (), ("has_material",)),
+        Operation("measure", "Measure", ("instrument",), ("has_volume", "instrument_specific")),
+    )
+
+
+def batch_reactor_state_variables() -> tuple[Any, ...]:
+    return chemworld_state_variables()
 
 
 def operation_contracts() -> dict[str, OperationContract]:
@@ -68,6 +231,24 @@ def operation_contracts() -> dict[str, OperationContract]:
     return contracts
 
 
+def operation_name(value: Any) -> str:
+    if isinstance(value, str):
+        if value not in OPERATION_TYPES:
+            raise ValueError(f"Unsupported operation: {value}")
+        return value
+    index = int(np.asarray(value).reshape(-1)[0])
+    return OPERATION_TYPES[int(np.clip(index, 0, len(OPERATION_TYPES) - 1))]
+
+
+def instrument_name(value: Any) -> str:
+    if isinstance(value, str):
+        if value not in INSTRUMENTS:
+            raise ValueError(f"Unsupported instrument: {value}")
+        return value
+    index = int(np.asarray(value).reshape(-1)[0])
+    return INSTRUMENTS[int(np.clip(index, 0, len(INSTRUMENTS) - 1))]
+
+
 __all__ = [
     "CRYSTALLIZATION_OPERATIONS",
     "DISTILLATION_OPERATIONS",
@@ -76,10 +257,13 @@ __all__ = [
     "FLOW_OPERATIONS",
     "INSTRUMENTS",
     "OPERATION_TYPES",
+    "PROCESS_OPERATIONS",
     "REACTION_OPERATIONS",
     "SEPARATION_OPERATIONS",
     "OperationContract",
     "batch_reactor_operations",
     "batch_reactor_state_variables",
+    "instrument_name",
     "operation_contracts",
+    "operation_name",
 ]

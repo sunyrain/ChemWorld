@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from typing import Any
 
 from chemworld.action_codec import ActionCodec
-from chemworld.core.batch_reactor import OPERATION_TYPES
 from chemworld.foundation import PhysicalConstitution, WorldState
 from chemworld.schemas import validate_action_schema
+from chemworld.world.operations import OPERATION_TYPES
 
 
 @dataclass(frozen=True)

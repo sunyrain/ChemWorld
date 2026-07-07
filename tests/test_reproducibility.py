@@ -3,7 +3,7 @@ from __future__ import annotations
 import gymnasium as gym
 
 import chemworld  # noqa: F401
-from chemworld.core.batch_reactor import recipe_to_event_sequence
+from chemworld.world.recipes import recipe_to_event_sequence
 
 
 def _run_once(seed: int) -> list[float]:

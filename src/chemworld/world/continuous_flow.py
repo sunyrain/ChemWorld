@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from chemworld.core.batch_reactor import FLOW_OPERATIONS
+from chemworld.world.operations import FLOW_OPERATIONS
 
 
 @dataclass(frozen=True)

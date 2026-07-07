@@ -5,9 +5,9 @@ import pytest
 
 import chemworld  # noqa: F401
 from chemworld.core.batch_reactor import (
-    initial_chemworld_state,
     make_chemworld_constitution,
 )
+from chemworld.world.state_factory import initial_chemworld_state
 
 
 def _run_recipe(target_temperature_K: float, duration_s: float) -> tuple[float, dict[str, float]]:
