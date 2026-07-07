@@ -1,0 +1,140 @@
+from __future__ import annotations
+
+import gymnasium as gym
+import pytest
+
+import chemworld  # noqa: F401
+from chemworld.core.batch_reactor import (
+    initial_batch_reactor_state,
+    make_batch_reactor_constitution,
+)
+
+
+def _run_recipe(target_temperature_K: float, duration_s: float) -> tuple[float, dict[str, float]]:
+    env = gym.make("BatchReactorWorld", budget=8, seed=4, debug_truth=True)
+    env.reset(seed=4)
+    actions = [
+        {"operation": "add_solvent", "volume_L": 0.03, "solvent": 2},
+        {"operation": "add_reagent", "amount_mol": 0.01},
+        {"operation": "add_catalyst", "catalyst_amount_mol": 0.0002, "catalyst": 1},
+        {
+            "operation": "heat",
+            "target_temperature_K": target_temperature_K,
+            "duration_s": duration_s,
+            "stirring_speed_rpm": 700.0,
+        },
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"},
+    ]
+    reward = 0.0
+    observation: dict[str, float] = {}
+    for action in actions:
+        obs, reward, _, _, info = env.step(action)
+        observation = {key: float(value[0]) for key, value in obs.items()}
+        assert not info["constraint_flags"]["precondition_failed"]
+    env.close()
+    return reward, observation
+
+
+def test_registers_and_event_sequence_measures() -> None:
+    reward, observation = _run_recipe(385.0, 1200.0)
+    assert reward > 0.0
+    assert observation["conversion"] > 0.0
+    assert observation["cost"] > 0.0
+
+
+def test_temperature_and_time_have_qualitative_effects() -> None:
+    _, cold_short = _run_recipe(330.0, 300.0)
+    _, warm = _run_recipe(390.0, 1800.0)
+    _, hot_long = _run_recipe(445.0, 5000.0)
+
+    assert warm["conversion"] >= cold_short["conversion"]
+    assert hot_long["degradation_warning"] >= warm["degradation_warning"]
+    assert hot_long["safety_risk"] >= warm["safety_risk"]
+
+
+def test_missing_operation_is_rejected() -> None:
+    env = gym.make("BatchReactorWorld", budget=2, seed=7)
+    env.reset(seed=7)
+    try:
+        try:
+            env.step({"temperature": 120.0})
+        except ValueError as exc:
+            assert "operation" in str(exc)
+        else:
+            raise AssertionError("missing operation should fail")
+    finally:
+        env.close()
+
+
+def test_failed_final_assay_does_not_leak_observation() -> None:
+    env = gym.make("BatchReactorWorld", budget=2, seed=7)
+    try:
+        obs, _ = env.reset(seed=7)
+        del obs
+        observation, reward, terminated, truncated, info = env.step(
+            {"operation": "measure", "instrument": "final_assay"}
+        )
+
+        assert reward == 0.0
+        assert not terminated
+        assert not truncated
+        assert info["instrument"] == "final_assay"
+        assert info["instrument_source"] is None
+        assert info["observed_keys"] == []
+        assert info["leaderboard_score"] is None
+        assert info["measurement_cost"] == 0.0
+        assert info["sample_consumed"] == 0.0
+        assert info["constraint_flags"]["precondition_failed"]
+        assert "measure_final_requires_terminated" in info["error_message"]
+        assert all(not observed for observed in info["observed_mask"].values())
+        assert all(value[0] != value[0] for value in observation.values())
+    finally:
+        env.close()
+
+
+def test_successful_final_assay_terminates_episode() -> None:
+    env = gym.make("BatchReactorWorld", budget=8, seed=4)
+    try:
+        env.reset(seed=4)
+        actions = [
+            {"operation": "add_solvent", "volume_L": 0.03, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.01},
+            {"operation": "add_catalyst", "catalyst_amount_mol": 0.0002, "catalyst": 1},
+            {
+                "operation": "heat",
+                "target_temperature_K": 385.0,
+                "duration_s": 1200.0,
+                "stirring_speed_rpm": 700.0,
+            },
+            {"operation": "terminate"},
+            {"operation": "measure", "instrument": "final_assay"},
+        ]
+        for action in actions[:-1]:
+            env.step(action)
+        _, _, terminated, truncated, info = env.step(actions[-1])
+
+        assert terminated
+        assert not truncated
+        assert info["leaderboard_score"] is not None
+        with pytest.raises(RuntimeError):
+            env.step({"operation": "measure", "instrument": "final_assay"})
+    finally:
+        env.close()
+
+
+def test_constitution_rejects_repeated_final_assay() -> None:
+    constitution = make_batch_reactor_constitution()
+    state = initial_batch_reactor_state().replace(
+        volume_L=0.02,
+        terminated=True,
+        metadata={"final_assay_done": True},
+    )
+
+    preconditions = constitution.check_preconditions(
+        "measure",
+        state,
+        {"instrument": "final_assay"},
+    )
+
+    assert not preconditions["measure_final_not_repeated"]

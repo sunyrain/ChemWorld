@@ -1,0 +1,894 @@
+"""Foundation-backed event-driven batch reactor world."""
+
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+from hashlib import sha256
+from typing import Any
+
+import numpy as np
+from scipy.integrate import solve_ivp
+
+from chemworld.core.actions import CATALYSTS, SOLVENTS, canonicalize_action
+from chemworld.core.objectives import score_observation
+from chemworld.foundation import (
+    Instrument,
+    Observation,
+    Operation,
+    OperationRecord,
+    PhysicalConstitution,
+    Reaction,
+    StateVariable,
+    Substance,
+    TransitionKernel,
+    Vessel,
+    WorldState,
+)
+
+R_GAS = 8.31446261815324
+WORLD_FAMILY_VERSION = "batch-reactor-foundation"
+SUPPORTED_SPLITS = ("public-dev", "public-test", "private-eval")
+SPECIES = ("A", "P", "B", "D", "E", "Cat_active", "Cat_dead")
+OPERATION_TYPES = (
+    "add_reagent",
+    "add_solvent",
+    "add_catalyst",
+    "heat",
+    "wait",
+    "sample",
+    "quench",
+    "terminate",
+    "measure",
+)
+INSTRUMENTS = ("hplc", "gc", "uvvis", "final_assay")
+
+
+@dataclass(frozen=True)
+class BatchReactorWorldParameters:
+    world_id: str
+    split: str
+    provider: str
+    family_version: str
+    pre_exponential: np.ndarray
+    activation_energy: np.ndarray
+    catalyst_effects: np.ndarray
+    solvent_effects: np.ndarray
+    solvent_risks: np.ndarray
+    solvent_costs: np.ndarray
+    catalyst_costs: np.ndarray
+    delta_h_J_per_mol: np.ndarray
+    ua_W_per_K: float
+    rho_cp_J_per_L_K: float
+    environment_temperature_K: float
+
+
+def _stable_seed(split: str, seed: int, private_salt: str = "") -> int:
+    digest = sha256(f"{WORLD_FAMILY_VERSION}:{split}:{seed}:{private_salt}".encode()).digest()
+    return int.from_bytes(digest[:8], "little") % (2**32)
+
+
+def load_batch_reactor_world_parameters(
+    split: str = "public-dev",
+    seed: int = 0,
+) -> BatchReactorWorldParameters:
+    if split not in SUPPORTED_SPLITS:
+        allowed = ", ".join(SUPPORTED_SPLITS)
+        raise ValueError(f"Unsupported world_split={split!r}. Allowed: {allowed}")
+
+    private_salt = ""
+    provider = "public-registry"
+    if split == "private-eval":
+        private_salt = os.environ.get("CHEMWORLD_PRIVATE_EVAL_SALT", "")
+        provider = "external-private-registry" if private_salt else "public-placeholder-private"
+
+    rng = np.random.default_rng(_stable_seed(split, seed, private_salt))
+    split_shift = {"public-dev": 0.0, "public-test": 0.06, "private-eval": -0.05}[split]
+    pre_exponential = np.array([90.0, 190.0, 520.0, 65.0, 30.0])
+    pre_exponential *= rng.lognormal(mean=split_shift, sigma=[0.10, 0.15, 0.18, 0.18, 0.14])
+    activation_energy = np.array([31_000.0, 38_500.0, 45_000.0, 42_000.0, 36_000.0])
+    activation_energy *= rng.lognormal(mean=0.0, sigma=[0.03, 0.05, 0.06, 0.06, 0.05])
+
+    catalyst_effects = rng.lognormal(mean=0.0, sigma=0.22, size=(len(CATALYSTS), 5))
+    catalyst_effects[:, 0] *= np.array([1.00, 1.30, 0.82, 1.10])
+    catalyst_effects[:, 1] *= np.array([1.05, 0.92, 1.32, 0.86])
+    catalyst_effects[:, 2] *= np.array([0.92, 1.15, 0.90, 1.22])
+    catalyst_effects[:, 3] *= np.array([0.95, 1.08, 1.18, 0.90])
+    catalyst_effects[:, 4] *= np.array([0.88, 1.10, 0.94, 1.20])
+
+    solvent_effects = rng.lognormal(mean=0.0, sigma=0.20, size=(len(SOLVENTS), 5))
+    solvent_effects[:, 0] *= np.array([0.75, 0.96, 1.20, 1.05])
+    solvent_effects[:, 1] *= np.array([0.72, 1.02, 0.98, 1.34])
+    solvent_effects[:, 2] *= np.array([0.68, 1.00, 1.12, 1.28])
+    solvent_effects[:, 3] *= np.array([0.70, 0.95, 1.15, 1.25])
+    solvent_effects[:, 4] *= np.array([0.65, 1.05, 0.98, 1.18])
+
+    provider_label = "external" if provider == "external-private-registry" else "public"
+    world_id = f"BatchReactorWorld:{split}:{provider_label}:seed-{seed}"
+    return BatchReactorWorldParameters(
+        world_id=world_id,
+        split=split,
+        provider=provider,
+        family_version=WORLD_FAMILY_VERSION,
+        pre_exponential=pre_exponential,
+        activation_energy=activation_energy,
+        catalyst_effects=catalyst_effects,
+        solvent_effects=solvent_effects,
+        solvent_risks=np.array([0.05, 0.18, 0.28, 0.35]),
+        solvent_costs=np.array([0.03, 0.08, 0.16, 0.11]),
+        catalyst_costs=np.array([0.08, 0.18, 0.12, 0.22]),
+        delta_h_J_per_mol=np.array([-42_000.0, -25_000.0, -18_000.0, -35_000.0, -5_000.0]),
+        ua_W_per_K=float(rng.uniform(0.05, 0.12)),
+        rho_cp_J_per_L_K=float(rng.uniform(3800.0, 4300.0)),
+        environment_temperature_K=298.15,
+    )
+
+
+def batch_reactor_substances() -> dict[str, Substance]:
+    return {
+        "A": Substance("A", "reactant A", {"C": 1}),
+        "P": Substance("P", "target product P", {"C": 1}),
+        "B": Substance("B", "byproduct B", {"C": 1}),
+        "D": Substance("D", "degradation product D", {"C": 1}),
+        "E": Substance("E", "coupled impurity E", {"C": 2}),
+        "Cat_active": Substance("Cat_active", "active catalyst", {"Cat": 1}, role="catalyst"),
+        "Cat_dead": Substance("Cat_dead", "deactivated catalyst", {"Cat": 1}, role="catalyst"),
+    }
+
+
+def batch_reactor_instruments() -> dict[str, Instrument]:
+    return {
+        "hplc": Instrument(
+            "hplc",
+            "HPLC",
+            ("yield", "selectivity", "byproduct_signal"),
+            cost=0.08,
+            sample_volume_L=0.00020,
+            noise_std={"yield": 0.012, "selectivity": 0.018, "byproduct_signal": 0.012},
+        ),
+        "gc": Instrument(
+            "gc",
+            "GC",
+            ("byproduct_signal", "degradation_warning"),
+            cost=0.06,
+            sample_volume_L=0.00015,
+            noise_std={"byproduct_signal": 0.018, "degradation_warning": 0.018},
+        ),
+        "uvvis": Instrument(
+            "uvvis",
+            "UV-vis",
+            ("yield", "conversion"),
+            cost=0.025,
+            sample_volume_L=0.00005,
+            noise_std={"yield": 0.045, "conversion": 0.035},
+        ),
+        "final_assay": Instrument(
+            "final_assay",
+            "Final assay",
+            ("yield", "selectivity", "conversion", "byproduct_signal", "degradation_warning"),
+            cost=0.16,
+            sample_volume_L=0.00030,
+            noise_std={
+                "yield": 0.006,
+                "selectivity": 0.010,
+                "conversion": 0.008,
+                "byproduct_signal": 0.008,
+                "degradation_warning": 0.008,
+            },
+            requires_terminated=True,
+        ),
+    }
+
+
+def batch_reactor_reactions() -> tuple[Reaction, ...]:
+    return (
+        Reaction("r1", "A -> P", {"A": -1.0, "P": 1.0}, -42_000.0),
+        Reaction("r2", "A -> B", {"A": -1.0, "B": 1.0}, -25_000.0),
+        Reaction("r3", "P -> D", {"P": -1.0, "D": 1.0}, -18_000.0),
+        Reaction("r4", "A + P -> E", {"A": -1.0, "P": -1.0, "E": 1.0}, -35_000.0),
+        Reaction(
+            "r5",
+            "Cat_active -> Cat_dead",
+            {"Cat_active": -1.0, "Cat_dead": 1.0},
+            -5_000.0,
+        ),
+    )
+
+
+def batch_reactor_operations() -> tuple[Operation, ...]:
+    return (
+        Operation("add_reagent", "Add reagent", ("amount_mol",), ("not_terminated",)),
+        Operation("add_solvent", "Add solvent", ("volume_L", "solvent"), ("not_terminated",)),
+        Operation(
+            "add_catalyst",
+            "Add catalyst",
+            ("catalyst_amount_mol", "catalyst"),
+            ("not_terminated",),
+        ),
+        Operation(
+            "heat",
+            "Heat",
+            ("target_temperature_K", "duration_s", "stirring_speed_rpm"),
+            ("has_volume", "has_material"),
+        ),
+        Operation(
+            "wait",
+            "Wait",
+            ("duration_s", "stirring_speed_rpm"),
+            ("has_volume", "has_material"),
+        ),
+        Operation("sample", "Sample", ("sample_volume_L",), ("has_volume",)),
+        Operation("quench", "Quench", (), ("has_volume",)),
+        Operation("terminate", "Terminate", (), ("has_material",)),
+        Operation("measure", "Measure", ("instrument",), ("has_volume", "instrument_specific")),
+    )
+
+
+def batch_reactor_state_variables() -> tuple[StateVariable, ...]:
+    return (
+        StateVariable("species_amounts", "mol", hidden=True),
+        StateVariable("volume_L", "L", hidden=True),
+        StateVariable("temperature_K", "K", hidden=True),
+        StateVariable("pressure_Pa", "Pa", hidden=True),
+        StateVariable("metadata.stirring_speed_rpm", "rpm", hidden=True),
+        StateVariable("ledger.cost", "currency", hidden=False),
+        StateVariable("ledger.risk", "risk", hidden=False),
+        StateVariable("ledger.time_s", "s", hidden=False),
+    )
+
+
+def make_batch_reactor_constitution() -> PhysicalConstitution:
+    return PhysicalConstitution(
+        substances=batch_reactor_substances(),
+        vessel=Vessel(
+            "batch_reactor",
+            "Virtual 100 mL jacketed batch reactor",
+            max_volume_L=0.10,
+            max_temperature_K=470.0,
+            max_pressure_Pa=550_000.0,
+        ),
+        instruments=batch_reactor_instruments(),
+        max_yield=1.0,
+        tolerance=5.0e-7,
+    )
+
+
+def initial_batch_reactor_state() -> WorldState:
+    return WorldState(
+        species_amounts=dict.fromkeys(SPECIES, 0.0),
+        volume_L=0.0,
+        temperature_K=298.15,
+        pressure_Pa=101_325.0,
+        phase="liquid",
+        vessel_id="batch_reactor",
+        units={
+            "amount": "mol",
+            "volume": "L",
+            "temperature": "K",
+            "pressure": "Pa",
+            "time": "s",
+            "cost": "currency",
+            "risk": "risk",
+        },
+    ).replace(
+        metadata={
+            "initial_A_mol": 0.0,
+            "solvent": 0,
+            "catalyst": 0,
+            "stirring_speed_rpm": 600.0,
+            "last_observation": {},
+        }
+    )
+
+
+def operation_name(value: Any) -> str:
+    if isinstance(value, str):
+        if value not in OPERATION_TYPES:
+            raise ValueError(f"Unsupported operation: {value}")
+        return value
+    index = int(np.asarray(value).reshape(-1)[0])
+    return OPERATION_TYPES[int(np.clip(index, 0, len(OPERATION_TYPES) - 1))]
+
+
+def instrument_name(value: Any) -> str:
+    if isinstance(value, str):
+        if value not in INSTRUMENTS:
+            raise ValueError(f"Unsupported instrument: {value}")
+        return value
+    index = int(np.asarray(value).reshape(-1)[0])
+    return INSTRUMENTS[int(np.clip(index, 0, len(INSTRUMENTS) - 1))]
+
+
+def _action_float(action: dict[str, Any], key: str, default: float) -> float:
+    value = action.get(key, default)
+    return float(np.asarray(value).reshape(-1)[0])
+
+
+def _action_index(action: dict[str, Any], key: str, default: int, count: int) -> int:
+    return int(np.clip(int(_action_float(action, key, float(default))), 0, count - 1))
+
+
+class BatchReactorTransitionKernel(TransitionKernel):
+    def __init__(
+        self,
+        world: BatchReactorWorldParameters,
+        constitution: PhysicalConstitution,
+    ) -> None:
+        self.world = world
+        self.constitution = constitution
+
+    def transition(
+        self,
+        state: WorldState,
+        action: dict[str, Any],
+        rng: np.random.Generator,
+    ) -> tuple[WorldState, OperationRecord]:
+        del rng
+        operation = operation_name(action["operation"])
+        before = state
+        preconditions = self.constitution.check_preconditions(operation, state, action)
+        if not all(preconditions.values()):
+            next_state = self._penalize_invalid(state)
+            return next_state, self._record(operation, before, next_state, preconditions, action)
+
+        if operation == "add_reagent":
+            next_state = self._add_reagent(state, action)
+        elif operation == "add_solvent":
+            next_state = self._add_solvent(state, action)
+        elif operation == "add_catalyst":
+            next_state = self._add_catalyst(state, action)
+        elif operation == "heat":
+            next_state = self._integrate(state, action, heat=True)
+        elif operation == "wait":
+            next_state = self._integrate(state, action, heat=False)
+        elif operation == "sample":
+            next_state = self._sample(state, action)
+        elif operation == "quench":
+            next_state = self._quench(state)
+        elif operation == "terminate":
+            next_state = state.replace(terminated=True)
+        elif operation == "measure":
+            next_state = self._apply_measurement_cost(state, action)
+        else:
+            raise ValueError(f"Unsupported operation: {operation}")
+
+        next_state = self._with_risk_and_pressure(next_state)
+        return next_state, self._record(operation, before, next_state, preconditions, action)
+
+    def _add_reagent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        amount = float(np.clip(_action_float(action, "amount_mol", 0.003), 0.0, 0.040))
+        species = state.species_amounts.copy()
+        species["A"] += amount
+        metadata = state.metadata.copy()
+        metadata["initial_A_mol"] = float(metadata.get("initial_A_mol", 0.0)) + amount
+        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.03 * amount / 0.01)
+        return state.replace(species_amounts=species, ledger=ledger, metadata=metadata)
+
+    def _add_solvent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        volume = float(np.clip(_action_float(action, "volume_L", 0.025), 0.0, 0.080))
+        solvent = _action_index(action, "solvent", 0, len(SOLVENTS))
+        metadata = state.metadata.copy()
+        metadata["solvent"] = solvent
+        ledger = state.ledger.with_updates(
+            cost=state.ledger.cost + volume * 8.0 * float(self.world.solvent_costs[solvent])
+        )
+        return state.replace(volume_L=state.volume_L + volume, ledger=ledger, metadata=metadata)
+
+    def _add_catalyst(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        amount = float(
+            np.clip(_action_float(action, "catalyst_amount_mol", 0.00020), 0.0, 0.005)
+        )
+        catalyst = _action_index(action, "catalyst", 0, len(CATALYSTS))
+        species = state.species_amounts.copy()
+        species["Cat_active"] += amount
+        metadata = state.metadata.copy()
+        metadata["catalyst"] = catalyst
+        ledger = state.ledger.with_updates(
+            cost=state.ledger.cost
+            + 4.0 * amount / 0.001 * float(self.world.catalyst_costs[catalyst])
+        )
+        return state.replace(species_amounts=species, ledger=ledger, metadata=metadata)
+
+    def _sample(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        volume = float(np.clip(_action_float(action, "sample_volume_L", 0.0001), 0.0, 0.002))
+        volume = min(volume, max(state.volume_L, 0.0))
+        fraction = 0.0 if state.volume_L <= 0 else volume / state.volume_L
+        species = {key: value * (1.0 - fraction) for key, value in state.species_amounts.items()}
+        ledger = state.ledger.with_updates(
+            sample_consumed_L=state.ledger.sample_consumed_L + volume,
+            cost=state.ledger.cost + 0.01,
+        )
+        return state.replace(
+            species_amounts=species,
+            volume_L=state.volume_L - volume,
+            ledger=ledger,
+        )
+
+    def _quench(self, state: WorldState) -> WorldState:
+        target = max(298.15, state.temperature_K - 45.0)
+        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.03)
+        return state.replace(temperature_K=target, quenched=True, ledger=ledger)
+
+    def _apply_measurement_cost(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        instrument_id = instrument_name(action.get("instrument", "hplc"))
+        instrument = self.constitution.instruments[instrument_id]
+        volume = min(instrument.sample_volume_L, max(state.volume_L, 0.0))
+        fraction = 0.0 if state.volume_L <= 0 else volume / state.volume_L
+        species = {key: value * (1.0 - fraction) for key, value in state.species_amounts.items()}
+        ledger = state.ledger.with_updates(
+            cost=state.ledger.cost + instrument.cost,
+            sample_consumed_L=state.ledger.sample_consumed_L + volume,
+        )
+        metadata = state.metadata.copy()
+        if instrument_id == "final_assay":
+            metadata["final_assay_done"] = True
+            metadata["final_assay_time_s"] = state.ledger.time_s
+        return state.replace(
+            species_amounts=species,
+            volume_L=state.volume_L - volume,
+            ledger=ledger,
+            metadata=metadata,
+        )
+
+    def _penalize_invalid(self, state: WorldState) -> WorldState:
+        ledger = state.ledger.with_updates(
+            cost=state.ledger.cost + 0.01,
+            risk=min(1.0, state.ledger.risk + 0.08),
+        )
+        return state.replace(ledger=ledger)
+
+    def _integrate(self, state: WorldState, action: dict[str, Any], *, heat: bool) -> WorldState:
+        duration = float(np.clip(_action_float(action, "duration_s", 600.0), 0.0, 14_400.0))
+        if duration <= 0.0 or state.volume_L <= 0.0:
+            return state
+
+        target_temperature = _action_float(action, "target_temperature_K", state.temperature_K)
+        target_temperature = float(np.clip(target_temperature, 250.0, 520.0))
+        stirring_speed = _action_float(
+            action,
+            "stirring_speed_rpm",
+            float(state.metadata.get("stirring_speed_rpm", 600.0)),
+        )
+        stirring_speed = float(np.clip(stirring_speed, 100.0, 1200.0))
+        y0 = np.array(
+            [state.species_amounts[key] for key in SPECIES]
+            + [state.temperature_K, 0.0, 0.0, 0.0]
+        )
+        result = solve_ivp(
+            lambda _t, y: self._ode_rhs(y, state, target_temperature, heat, stirring_speed),
+            (0.0, duration),
+            y0,
+            method="RK45",
+            rtol=1.0e-6,
+            atol=1.0e-10,
+        )
+        y = np.maximum(result.y[:, -1], 0.0)
+        species = {key: float(y[index]) for index, key in enumerate(SPECIES)}
+        temperature = float(np.clip(y[7], 250.0, 520.0))
+        ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + duration,
+            cost=state.ledger.cost + duration / 3600.0 * (0.03 if heat else 0.01),
+            energy_jacket_J=state.ledger.energy_jacket_J + float(y[8]),
+            heat_reaction_J=state.ledger.heat_reaction_J + float(y[9]),
+            heat_loss_J=state.ledger.heat_loss_J + float(y[10]),
+        )
+        metadata = state.metadata.copy()
+        metadata["stirring_speed_rpm"] = stirring_speed
+        return state.replace(
+            species_amounts=species,
+            temperature_K=temperature,
+            ledger=ledger,
+            metadata=metadata,
+        )
+
+    def _ode_rhs(
+        self,
+        y: np.ndarray,
+        state: WorldState,
+        target_temperature: float,
+        heat: bool,
+        stirring_speed_rpm: float,
+    ) -> np.ndarray:
+        amounts = np.maximum(y[:7], 0.0)
+        temperature = float(np.clip(y[7], 250.0, 520.0))
+        volume = max(state.volume_L, 1.0e-6)
+        catalyst = int(state.metadata.get("catalyst", 0))
+        solvent = int(state.metadata.get("solvent", 0))
+        concentrations = amounts / volume
+        cat_total = max(amounts[5] + amounts[6], 1.0e-12)
+        eta_cat = amounts[5] / cat_total
+
+        k = self.world.pre_exponential * np.exp(
+            -self.world.activation_energy / (R_GAS * temperature)
+        )
+        k *= self.world.catalyst_effects[catalyst] * self.world.solvent_effects[solvent]
+        stir_factor = 0.70 + 0.30 * (1.0 - np.exp(-stirring_speed_rpm / 420.0))
+        low_mixing_side_penalty = 1.0 + 0.15 * (
+            1.0 / (1.0 + np.exp((stirring_speed_rpm - 360.0) / 90.0))
+        )
+        rates = np.array(
+            [
+                k[0] * concentrations[0] * eta_cat * volume * stir_factor,
+                k[1] * concentrations[0] * volume * low_mixing_side_penalty,
+                k[2] * concentrations[1] * volume,
+                k[3]
+                * concentrations[0]
+                * concentrations[1]
+                * volume
+                * low_mixing_side_penalty,
+                k[4] * amounts[5],
+            ]
+        )
+        derivatives = np.zeros(11)
+        derivatives[0] = -rates[0] - rates[1] - rates[3]
+        derivatives[1] = rates[0] - rates[2] - rates[3]
+        derivatives[2] = rates[1]
+        derivatives[3] = rates[2]
+        derivatives[4] = rates[3]
+        derivatives[5] = -rates[4]
+        derivatives[6] = rates[4]
+
+        q_jacket = 0.0
+        if heat:
+            q_jacket = float(np.clip((target_temperature - temperature) * 4.0, -70.0, 90.0))
+        heat_loss = self.world.ua_W_per_K * (temperature - self.world.environment_temperature_K)
+        heat_reaction = float(np.dot(self.world.delta_h_J_per_mol, rates))
+        heat_capacity = max(self.world.rho_cp_J_per_L_K * volume, 1.0e-6)
+        derivatives[7] = (q_jacket - heat_loss - heat_reaction) / heat_capacity
+        derivatives[8] = q_jacket
+        derivatives[9] = heat_reaction
+        derivatives[10] = heat_loss
+        return derivatives
+
+    def _with_risk_and_pressure(self, state: WorldState) -> WorldState:
+        solvent = int(state.metadata.get("solvent", 0))
+        total_amount = sum(
+            value for key, value in state.species_amounts.items() if not key.startswith("Cat")
+        )
+        concentration = 0.0 if state.volume_L <= 0 else total_amount / state.volume_L
+        pressure = 101_325.0 * (state.temperature_K / 298.15) * (1.0 + 0.025 * concentration)
+        exotherm_risk = min(1.0, abs(state.ledger.heat_reaction_J) / 2500.0)
+        temperature_risk = 1.0 / (1.0 + np.exp(-(state.temperature_K - 405.0) / 13.0))
+        concentration_risk = 1.0 / (1.0 + np.exp(-(concentration - 0.8) / 0.22))
+        risk = float(
+            np.clip(
+                0.30 * temperature_risk
+                + 0.20 * concentration_risk
+                + 0.20 * exotherm_risk
+                + 0.18 * self.world.solvent_risks[solvent]
+                + 0.12 * (pressure / 550_000.0),
+                0.0,
+                1.0,
+            )
+        )
+        return state.replace(pressure_Pa=pressure, ledger=state.ledger.with_updates(risk=risk))
+
+    def _record(
+        self,
+        operation: str,
+        before: WorldState,
+        after: WorldState,
+        preconditions: dict[str, bool],
+        action: dict[str, Any] | None = None,
+    ) -> OperationRecord:
+        action = action or {}
+        report = self.constitution.check_state(after)
+        material_check = self.constitution.check_material_conservation(before, after)
+        if operation in {"add_reagent", "add_catalyst", "add_solvent", "sample", "measure"}:
+            material_check = material_check.__class__(
+                "material_conservation",
+                True,
+                "material delta allowed for add/sample/measure operation",
+                value=0.0,
+                tolerance=self.constitution.tolerance,
+            )
+        checks = [*report.checks, material_check]
+        measurement_cost = 0.0
+        sample_consumed = 0.0
+        instrument = None
+        preconditions_passed = all(preconditions.values())
+        if operation == "measure":
+            instrument = instrument_name(action.get("instrument", "hplc"))
+            if preconditions_passed:
+                measurement_cost = self.constitution.instruments[instrument].cost
+                sample_consumed = self.constitution.instruments[instrument].sample_volume_L
+        return OperationRecord(
+            operation_type=operation,
+            preconditions=preconditions,
+            state_delta_summary={
+                "delta_time_s": after.ledger.time_s - before.ledger.time_s,
+                "delta_cost": after.ledger.cost - before.ledger.cost,
+                "delta_risk": after.ledger.risk - before.ledger.risk,
+                "delta_temperature_K": after.temperature_K - before.temperature_K,
+                "delta_volume_L": after.volume_L - before.volume_L,
+            },
+            constitution_checks=[check.to_dict() for check in checks],
+            instrument=instrument,
+            measurement_cost=measurement_cost,
+            sample_consumed_L=sample_consumed,
+        )
+
+
+class BatchReactorObservationKernel:
+    def __init__(self, constitution: PhysicalConstitution, objective: str) -> None:
+        self.constitution = constitution
+        self.objective = objective
+
+    def observe(
+        self,
+        state: WorldState,
+        action: dict[str, Any],
+        rng: np.random.Generator,
+    ) -> Observation:
+        operation = operation_name(action["operation"])
+        if operation != "measure":
+            last = dict(state.metadata.get("last_observation", {}))
+            last_mask = dict(state.metadata.get("last_observed_mask", {}))
+            values = self._base_public_values(state)
+            observed_mask = self._base_observed_mask()
+            values.update(last)
+            observed_mask.update({str(key): bool(value) for key, value in last_mask.items()})
+            values["cost"] = min(1.0, state.ledger.cost)
+            values["safety_risk"] = state.ledger.risk
+            observed_mask["cost"] = True
+            observed_mask["safety_risk"] = True
+            values["score"] = self._score(values)
+            observed_mask["score"] = True
+            return Observation(
+                values=values,
+                units=self._observation_units(),
+                observed_mask=observed_mask,
+                processed_estimate=self._processed_estimate(values, observed_mask),
+            )
+
+        instrument_id = instrument_name(action.get("instrument", "hplc"))
+        instrument = self.constitution.instruments[instrument_id]
+        truth_values = self._truth_values(state)
+        noisy = self._base_public_values(state)
+        observed_mask = self._base_observed_mask()
+        for key in instrument.observable_keys:
+            std = instrument.noise_std.get(key, 0.0)
+            noisy[key] = float(
+                np.clip(truth_values[key] + rng.normal(0.0, std), 0.0, 1.0)
+            )
+            observed_mask[key] = True
+
+        if observed_mask["byproduct_signal"] and observed_mask["degradation_warning"]:
+            byproduct_signal = self._observed_value(noisy, "byproduct_signal")
+            degradation_warning = self._observed_value(noisy, "degradation_warning")
+            noisy["virtual_spectrum_summary"] = float(
+                np.clip(
+                    0.55 * byproduct_signal + 0.45 * degradation_warning,
+                    0.0,
+                    1.0,
+                )
+            )
+            observed_mask["virtual_spectrum_summary"] = True
+        noisy["cost"] = min(1.0, state.ledger.cost)
+        noisy["safety_risk"] = state.ledger.risk
+        observed_mask["cost"] = True
+        observed_mask["safety_risk"] = True
+        noisy["score"] = self._score(noisy)
+        observed_mask["score"] = True
+        return Observation(
+            values=noisy,
+            units=self._observation_units(),
+            observed_mask=observed_mask,
+            raw_signal=self._raw_signal(instrument_id, noisy),
+            processed_estimate=self._processed_estimate(noisy, observed_mask),
+            uncertainty={
+                f"{key}_std": float(std)
+                for key, std in instrument.noise_std.items()
+                if observed_mask.get(key, False)
+            },
+            instrument_id=instrument_id,
+            cost=instrument.cost,
+            sample_consumed_L=instrument.sample_volume_L,
+        )
+
+    def failed_observation(self) -> Observation:
+        """Return a non-informative observation for failed action preconditions."""
+
+        units = self._observation_units()
+        return Observation(
+            values=dict.fromkeys(units, None),
+            units=units,
+            observed_mask=dict.fromkeys(units, False),
+            raw_signal={},
+            processed_estimate={},
+            uncertainty={},
+            instrument_id=None,
+            cost=0.0,
+            sample_consumed_L=0.0,
+        )
+
+    @staticmethod
+    def _processed_estimate(
+        values: dict[str, float | None],
+        observed_mask: dict[str, bool],
+    ) -> dict[str, float | None]:
+        estimate_keys = (
+            "yield",
+            "selectivity",
+            "conversion",
+            "byproduct_signal",
+            "degradation_warning",
+        )
+        return {
+            key: values.get(key)
+            for key in estimate_keys
+            if observed_mask.get(key, False)
+        }
+
+    @staticmethod
+    def _raw_signal(instrument_id: str, values: dict[str, float | None]) -> dict[str, Any]:
+        def observed(key: str) -> float:
+            value = values.get(key)
+            return 0.0 if value is None else float(value)
+
+        if instrument_id == "uvvis":
+            yield_value = observed("yield")
+            conversion = observed("conversion")
+            return {
+                "kind": "uvvis_spectrum",
+                "wavelength_nm": [360, 420, 510, 620],
+                "absorbance": [
+                    round(0.08 + 0.25 * conversion, 6),
+                    round(0.05 + 0.35 * yield_value, 6),
+                    round(0.04 + 0.15 * max(conversion - yield_value, 0.0), 6),
+                    0.03,
+                ],
+            }
+        if instrument_id == "hplc":
+            yield_value = observed("yield")
+            byproduct = observed("byproduct_signal")
+            return {
+                "kind": "hplc_chromatogram",
+                "peaks": [
+                    {
+                        "retention_time_min": 1.18,
+                        "peak_area": round(900.0 * max(1.0 - yield_value, 0.0), 6),
+                        "assignment": "A_proxy",
+                    },
+                    {
+                        "retention_time_min": 2.74,
+                        "peak_area": round(1200.0 * yield_value, 6),
+                        "assignment": "P_proxy",
+                    },
+                    {
+                        "retention_time_min": 3.52,
+                        "peak_area": round(900.0 * byproduct, 6),
+                        "assignment": "byproduct_proxy",
+                    },
+                ],
+            }
+        if instrument_id == "gc":
+            byproduct = observed("byproduct_signal")
+            degradation = observed("degradation_warning")
+            return {
+                "kind": "gc_chromatogram",
+                "peaks": [
+                    {
+                        "retention_time_min": 0.82,
+                        "peak_area": round(800.0 * byproduct, 6),
+                        "assignment": "volatile_byproduct_proxy",
+                    },
+                    {
+                        "retention_time_min": 1.65,
+                        "peak_area": round(800.0 * degradation, 6),
+                        "assignment": "degradation_proxy",
+                    },
+                ],
+            }
+        if instrument_id == "final_assay":
+            return {
+                "kind": "final_assay_packet",
+                "quality": "high",
+                "channels": ["hplc", "gc", "calibrated_mass_balance"],
+            }
+        return {}
+
+    @staticmethod
+    def _observation_units() -> dict[str, str]:
+        return {
+            "yield": "dimensionless",
+            "selectivity": "dimensionless",
+            "conversion": "dimensionless",
+            "byproduct_signal": "dimensionless",
+            "degradation_warning": "dimensionless",
+            "virtual_spectrum_summary": "dimensionless",
+            "cost": "currency",
+            "safety_risk": "risk",
+            "score": "dimensionless",
+        }
+
+    @staticmethod
+    def _base_public_values(state: WorldState) -> dict[str, float | None]:
+        return {
+            "yield": None,
+            "selectivity": None,
+            "conversion": None,
+            "byproduct_signal": None,
+            "degradation_warning": None,
+            "virtual_spectrum_summary": None,
+            "cost": min(1.0, state.ledger.cost),
+            "safety_risk": state.ledger.risk,
+            "score": 0.0,
+        }
+
+    @staticmethod
+    def _base_observed_mask() -> dict[str, bool]:
+        return {
+            "yield": False,
+            "selectivity": False,
+            "conversion": False,
+            "byproduct_signal": False,
+            "degradation_warning": False,
+            "virtual_spectrum_summary": False,
+            "cost": True,
+            "safety_risk": True,
+            "score": True,
+        }
+
+    @staticmethod
+    def _observed_value(values: dict[str, float | None], key: str) -> float:
+        value = values.get(key)
+        return 0.0 if value is None else float(value)
+
+    def _score(self, values: dict[str, float | None]) -> float:
+        return score_observation(
+            objective=self.objective,
+            product_yield=self._observed_value(values, "yield"),
+            selectivity=self._observed_value(values, "selectivity"),
+            conversion=self._observed_value(values, "conversion"),
+            cost=self._observed_value(values, "cost"),
+            safety_risk=self._observed_value(values, "safety_risk"),
+        )
+
+    @staticmethod
+    def _truth_values(state: WorldState) -> dict[str, float]:
+        initial_a = max(float(state.metadata.get("initial_A_mol", 0.0)), 1.0e-12)
+        amounts = state.species_amounts
+        consumed = max(initial_a - amounts.get("A", 0.0), 1.0e-12)
+        yield_value = float(np.clip(amounts.get("P", 0.0) / initial_a, 0.0, 1.0))
+        selectivity = float(np.clip(amounts.get("P", 0.0) / consumed, 0.0, 1.0))
+        conversion = float(np.clip(consumed / initial_a, 0.0, 1.0))
+        byproduct = float(
+            np.clip((amounts.get("B", 0.0) + amounts.get("E", 0.0)) / initial_a, 0.0, 1.0)
+        )
+        degradation = float(np.clip(amounts.get("D", 0.0) / initial_a, 0.0, 1.0))
+        return {
+            "yield": yield_value,
+            "selectivity": selectivity,
+            "conversion": conversion,
+            "byproduct_signal": byproduct,
+            "degradation_warning": degradation,
+        }
+
+
+def recipe_to_event_sequence(action: dict[str, Any]) -> list[dict[str, Any]]:
+    """Expand terminal recipe parameters into executable reactor operations."""
+
+    normalized = canonicalize_action(action)
+    concentration = float(normalized["initial_concentration"])
+    volume = 0.025
+    amount = float(np.clip(concentration * volume, 0.0005, 0.040))
+    target_temperature = float(normalized["temperature"]) + 273.15
+    duration = float(normalized["time"]) * 3600.0
+    return [
+        {"operation": "add_solvent", "volume_L": volume, "solvent": int(normalized["solvent"])},
+        {"operation": "add_reagent", "amount_mol": amount},
+        {
+            "operation": "add_catalyst",
+            "catalyst_amount_mol": 0.00020,
+            "catalyst": int(normalized["catalyst"]),
+        },
+        {
+            "operation": "heat",
+            "target_temperature_K": target_temperature,
+            "duration_s": duration,
+            "stirring_speed_rpm": float(normalized["stirring_speed"]),
+        },
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"},
+    ]
