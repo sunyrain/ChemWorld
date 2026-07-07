@@ -1,4 +1,4 @@
-# ChemWorld-Bench 十二天教程
+# ChemWorld-Bench 十二天核心教程与 Year 2 扩展
 
 请按顺序打开 notebook，并选择 `Python (ChemWorld)` 内核。
 
@@ -18,7 +18,7 @@ python -m ipykernel install --user --name chemworld --display-name "Python (Chem
 - 如何比较 random、LHS、BO、safe BO、GPT-style planner 和 human-in-loop 策略；
 - 如何形成可复现 submission bundle 和 leaderboard 结果。
 
-## 十二天安排
+## 十二天核心安排与扩展
 
 | 天数 | Notebook | 重点 |
 | --- | --- | --- |
