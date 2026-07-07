@@ -1,4 +1,4 @@
-"""Foundation-backed event-driven batch reactor world."""
+"""Foundation-backed ChemWorld reaction and separation module."""
 
 from __future__ import annotations
 
@@ -23,14 +23,15 @@ from chemworld.foundation import (
     Substance,
     TransitionKernel,
     Vessel,
+    WorldLawSpec,
     WorldState,
 )
 
 R_GAS = 8.31446261815324
-WORLD_FAMILY_VERSION = "batch-reactor-foundation"
+WORLD_FAMILY_VERSION = "chemworld-physical-chemistry"
 SUPPORTED_SPLITS = ("public-dev", "public-test", "private-eval")
 SPECIES = ("A", "P", "B", "D", "E", "Cat_active", "Cat_dead")
-OPERATION_TYPES = (
+REACTION_OPERATIONS = (
     "add_reagent",
     "add_solvent",
     "add_catalyst",
@@ -41,11 +42,33 @@ OPERATION_TYPES = (
     "terminate",
     "measure",
 )
+SEPARATION_OPERATIONS = (
+    "add_phase",
+    "add_extractant",
+    "mix",
+    "settle",
+    "separate_phase",
+    "wash",
+    "dry",
+    "concentrate",
+    "transfer",
+)
+OPERATION_TYPES = (*REACTION_OPERATIONS[:-2], *SEPARATION_OPERATIONS, "terminate", "measure")
 INSTRUMENTS = ("hplc", "gc", "uvvis", "final_assay")
+DOWNSTREAM_OBSERVATION_KEYS = (
+    "purity",
+    "recovery",
+    "phase_ratio",
+    "product_in_organic",
+    "product_in_aqueous",
+    "impurity_signal",
+    "solvent_loss",
+    "process_mass_balance_error",
+)
 
 
 @dataclass(frozen=True)
-class BatchReactorWorldParameters:
+class ChemWorldParameters:
     world_id: str
     split: str
     provider: str
@@ -68,10 +91,10 @@ def _stable_seed(split: str, seed: int, private_salt: str = "") -> int:
     return int.from_bytes(digest[:8], "little") % (2**32)
 
 
-def load_batch_reactor_world_parameters(
+def load_chemworld_parameters(
     split: str = "public-dev",
     seed: int = 0,
-) -> BatchReactorWorldParameters:
+) -> ChemWorldParameters:
     if split not in SUPPORTED_SPLITS:
         allowed = ", ".join(SUPPORTED_SPLITS)
         raise ValueError(f"Unsupported world_split={split!r}. Allowed: {allowed}")
@@ -104,8 +127,8 @@ def load_batch_reactor_world_parameters(
     solvent_effects[:, 4] *= np.array([0.65, 1.05, 0.98, 1.18])
 
     provider_label = "external" if provider == "external-private-registry" else "public"
-    world_id = f"BatchReactorWorld:{split}:{provider_label}:seed-{seed}"
-    return BatchReactorWorldParameters(
+    world_id = f"ChemWorld:{split}:{provider_label}:seed-{seed}"
+    return ChemWorldParameters(
         world_id=world_id,
         split=split,
         provider=provider,
@@ -141,10 +164,16 @@ def batch_reactor_instruments() -> dict[str, Instrument]:
         "hplc": Instrument(
             "hplc",
             "HPLC",
-            ("yield", "selectivity", "byproduct_signal"),
+            ("yield", "selectivity", "byproduct_signal", "purity", "impurity_signal"),
             cost=0.08,
             sample_volume_L=0.00020,
-            noise_std={"yield": 0.012, "selectivity": 0.018, "byproduct_signal": 0.012},
+            noise_std={
+                "yield": 0.012,
+                "selectivity": 0.018,
+                "byproduct_signal": 0.012,
+                "purity": 0.015,
+                "impurity_signal": 0.015,
+            },
         ),
         "gc": Instrument(
             "gc",
@@ -157,15 +186,29 @@ def batch_reactor_instruments() -> dict[str, Instrument]:
         "uvvis": Instrument(
             "uvvis",
             "UV-vis",
-            ("yield", "conversion"),
+            ("yield", "conversion", "phase_ratio"),
             cost=0.025,
             sample_volume_L=0.00005,
-            noise_std={"yield": 0.045, "conversion": 0.035},
+            noise_std={"yield": 0.045, "conversion": 0.035, "phase_ratio": 0.040},
         ),
         "final_assay": Instrument(
             "final_assay",
             "Final assay",
-            ("yield", "selectivity", "conversion", "byproduct_signal", "degradation_warning"),
+            (
+                "yield",
+                "selectivity",
+                "conversion",
+                "byproduct_signal",
+                "degradation_warning",
+                "purity",
+                "recovery",
+                "phase_ratio",
+                "product_in_organic",
+                "product_in_aqueous",
+                "impurity_signal",
+                "solvent_loss",
+                "process_mass_balance_error",
+            ),
             cost=0.16,
             sample_volume_L=0.00030,
             noise_std={
@@ -174,6 +217,14 @@ def batch_reactor_instruments() -> dict[str, Instrument]:
                 "conversion": 0.008,
                 "byproduct_signal": 0.008,
                 "degradation_warning": 0.008,
+                "purity": 0.008,
+                "recovery": 0.010,
+                "phase_ratio": 0.012,
+                "product_in_organic": 0.010,
+                "product_in_aqueous": 0.010,
+                "impurity_signal": 0.008,
+                "solvent_loss": 0.012,
+                "process_mass_balance_error": 0.004,
             },
             requires_terminated=True,
         ),
@@ -192,6 +243,29 @@ def batch_reactor_reactions() -> tuple[Reaction, ...]:
             {"Cat_active": -1.0, "Cat_dead": 1.0},
             -5_000.0,
         ),
+    )
+
+
+def chemworld_world_law_spec() -> WorldLawSpec:
+    """Return the shared physical-chemical law used by all ChemWorld tasks."""
+
+    return WorldLawSpec(
+        law_version=WORLD_FAMILY_VERSION,
+        ontology_registry={
+            "substances": sorted(batch_reactor_substances()),
+            "phases": ["reactor_liquid", "aqueous", "organic", "solid"],
+            "vessels": ["batch_reactor", "separator", "assay_vial"],
+            "instruments": list(INSTRUMENTS),
+        },
+        physical_constitution="PhysicalConstitutionChecklist",
+        operation_registry=OPERATION_TYPES,
+        transition_kernel_registry=(
+            "reaction_ode",
+            "phase_partition",
+            "separation",
+            "instrument_cost",
+        ),
+        observation_kernel_registry=("instrument_observation",),
     )
 
 
@@ -219,6 +293,29 @@ def batch_reactor_operations() -> tuple[Operation, ...]:
         ),
         Operation("sample", "Sample", ("sample_volume_L",), ("has_volume",)),
         Operation("quench", "Quench", (), ("has_volume",)),
+        Operation("add_phase", "Add phase", ("phase", "volume_L"), ("not_terminated",)),
+        Operation(
+            "add_extractant",
+            "Add extractant",
+            ("extractant", "volume_L"),
+            ("has_volume", "has_material", "not_terminated"),
+        ),
+        Operation("mix", "Mix phases", ("duration_s", "stirring_speed_rpm"), ("has_phase_system",)),
+        Operation("settle", "Settle phases", ("duration_s",), ("has_phase_system",)),
+        Operation(
+            "separate_phase",
+            "Separate phase",
+            ("target_phase",),
+            ("has_phase_system", "phase_settled"),
+        ),
+        Operation("wash", "Wash product phase", ("wash_volume_L",), ("has_phase_system",)),
+        Operation("dry", "Dry product phase", (), ("has_phase_system",)),
+        Operation(
+            "concentrate", "Concentrate product phase", ("duration_s",), ("has_phase_system",)
+        ),
+        Operation(
+            "transfer", "Transfer product phase", ("transfer_fraction",), ("has_phase_system",)
+        ),
         Operation("terminate", "Terminate", (), ("has_material",)),
         Operation("measure", "Measure", ("instrument",), ("has_volume", "instrument_specific")),
     )
@@ -234,10 +331,14 @@ def batch_reactor_state_variables() -> tuple[StateVariable, ...]:
         StateVariable("ledger.cost", "currency", hidden=False),
         StateVariable("ledger.risk", "risk", hidden=False),
         StateVariable("ledger.time_s", "s", hidden=False),
+        StateVariable("metadata.phase_ledger", "dimensionless", hidden=True),
+        StateVariable("metadata.purity", "dimensionless", hidden=True),
+        StateVariable("metadata.recovery", "dimensionless", hidden=True),
+        StateVariable("metadata.process_mass_balance_error", "dimensionless", hidden=True),
     )
 
 
-def make_batch_reactor_constitution() -> PhysicalConstitution:
+def make_chemworld_constitution() -> PhysicalConstitution:
     return PhysicalConstitution(
         substances=batch_reactor_substances(),
         vessel=Vessel(
@@ -253,7 +354,7 @@ def make_batch_reactor_constitution() -> PhysicalConstitution:
     )
 
 
-def initial_batch_reactor_state() -> WorldState:
+def initial_chemworld_state() -> WorldState:
     return WorldState(
         species_amounts=dict.fromkeys(SPECIES, 0.0),
         volume_L=0.0,
@@ -277,6 +378,14 @@ def initial_batch_reactor_state() -> WorldState:
             "catalyst": 0,
             "stirring_speed_rpm": 600.0,
             "last_observation": {},
+            "phase_ledger": {
+                "reactor_liquid": {
+                    "volume_L": 0.0,
+                    "P_mol": 0.0,
+                    "impurity_mol": 0.0,
+                    "solvent_loss": 0.0,
+                }
+            },
         }
     )
 
@@ -308,10 +417,10 @@ def _action_index(action: dict[str, Any], key: str, default: int, count: int) ->
     return int(np.clip(int(_action_float(action, key, float(default))), 0, count - 1))
 
 
-class BatchReactorTransitionKernel(TransitionKernel):
+class ChemWorldTransitionKernel(TransitionKernel):
     def __init__(
         self,
-        world: BatchReactorWorldParameters,
+        world: ChemWorldParameters,
         constitution: PhysicalConstitution,
     ) -> None:
         self.world = world
@@ -345,6 +454,24 @@ class BatchReactorTransitionKernel(TransitionKernel):
             next_state = self._sample(state, action)
         elif operation == "quench":
             next_state = self._quench(state)
+        elif operation == "add_phase":
+            next_state = self._add_phase(state, action)
+        elif operation == "add_extractant":
+            next_state = self._add_extractant(state, action)
+        elif operation == "mix":
+            next_state = self._mix_phases(state, action)
+        elif operation == "settle":
+            next_state = self._settle_phases(state, action)
+        elif operation == "separate_phase":
+            next_state = self._separate_phase(state, action)
+        elif operation == "wash":
+            next_state = self._wash_phase(state, action)
+        elif operation == "dry":
+            next_state = self._dry_phase(state)
+        elif operation == "concentrate":
+            next_state = self._concentrate_phase(state, action)
+        elif operation == "transfer":
+            next_state = self._transfer_phase(state, action)
         elif operation == "terminate":
             next_state = state.replace(terminated=True)
         elif operation == "measure":
@@ -375,9 +502,7 @@ class BatchReactorTransitionKernel(TransitionKernel):
         return state.replace(volume_L=state.volume_L + volume, ledger=ledger, metadata=metadata)
 
     def _add_catalyst(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        amount = float(
-            np.clip(_action_float(action, "catalyst_amount_mol", 0.00020), 0.0, 0.005)
-        )
+        amount = float(np.clip(_action_float(action, "catalyst_amount_mol", 0.00020), 0.0, 0.005))
         catalyst = _action_index(action, "catalyst", 0, len(CATALYSTS))
         species = state.species_amounts.copy()
         species["Cat_active"] += amount
@@ -408,6 +533,297 @@ class BatchReactorTransitionKernel(TransitionKernel):
         target = max(298.15, state.temperature_K - 45.0)
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.03)
         return state.replace(temperature_K=target, quenched=True, ledger=ledger)
+
+    def _phase_ledger(self, state: WorldState) -> dict[str, dict[str, float]]:
+        raw = state.metadata.get("phase_ledger", {})
+        ledger: dict[str, dict[str, float]] = {}
+        for phase_name, values in dict(raw).items():
+            ledger[str(phase_name)] = {
+                "volume_L": float(values.get("volume_L", 0.0)),
+                "P_mol": float(values.get("P_mol", 0.0)),
+                "impurity_mol": float(values.get("impurity_mol", 0.0)),
+                "solvent_loss": float(values.get("solvent_loss", 0.0)),
+            }
+        if "reactor_liquid" not in ledger:
+            ledger["reactor_liquid"] = {
+                "volume_L": state.volume_L,
+                "P_mol": state.species_amounts.get("P", 0.0),
+                "impurity_mol": state.species_amounts.get("B", 0.0)
+                + state.species_amounts.get("D", 0.0)
+                + state.species_amounts.get("E", 0.0),
+                "solvent_loss": 0.0,
+            }
+        return ledger
+
+    def _write_phase_metadata(
+        self,
+        state: WorldState,
+        phase_ledger: dict[str, dict[str, float]],
+        *,
+        updates: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        metadata = state.metadata.copy()
+        metadata["phase_ledger"] = phase_ledger
+        metadata.update(_downstream_truth_values(state, phase_ledger))
+        if updates:
+            metadata.update(updates)
+        return metadata
+
+    def _add_phase(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        volume = float(np.clip(_action_float(action, "volume_L", 0.015), 0.0, 0.060))
+        phase_name = str(action.get("phase", "aqueous"))
+        if phase_name not in {"aqueous", "organic"}:
+            phase_name = "organic"
+        phase_ledger = self._phase_ledger(state)
+        phase = phase_ledger.setdefault(
+            phase_name,
+            {"volume_L": 0.0, "P_mol": 0.0, "impurity_mol": 0.0, "solvent_loss": 0.0},
+        )
+        phase["volume_L"] += volume
+        metadata = self._write_phase_metadata(
+            state,
+            phase_ledger,
+            updates={"phase_system": True, "phase_settled": False, "selected_phase": None},
+        )
+        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.015 + 0.35 * volume)
+        return state.replace(volume_L=state.volume_L + volume, ledger=ledger, metadata=metadata)
+
+    def _add_extractant(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        volume = float(np.clip(_action_float(action, "volume_L", 0.018), 0.0, 0.060))
+        extractant = str(action.get("extractant", "organic"))
+        phase_ledger = self._phase_ledger(state)
+        organic = phase_ledger.setdefault(
+            "organic",
+            {"volume_L": 0.0, "P_mol": 0.0, "impurity_mol": 0.0, "solvent_loss": 0.0},
+        )
+        organic["volume_L"] += volume
+        metadata = self._write_phase_metadata(
+            state,
+            phase_ledger,
+            updates={
+                "phase_system": True,
+                "phase_settled": False,
+                "extractant": extractant,
+                "selected_phase": None,
+            },
+        )
+        solvent = int(state.metadata.get("solvent", 0))
+        risk = min(1.0, state.ledger.risk + 0.04 + 0.05 * float(self.world.solvent_risks[solvent]))
+        ledger = state.ledger.with_updates(
+            cost=state.ledger.cost + 0.025 + 0.80 * volume,
+            risk=risk,
+        )
+        return state.replace(volume_L=state.volume_L + volume, ledger=ledger, metadata=metadata)
+
+    def _mix_phases(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        duration = float(np.clip(_action_float(action, "duration_s", 180.0), 0.0, 1800.0))
+        stirring = float(np.clip(_action_float(action, "stirring_speed_rpm", 700.0), 100.0, 1200.0))
+        phase_ledger = self._phase_ledger(state)
+        phase_ledger.setdefault(
+            "aqueous",
+            {
+                "volume_L": max(
+                    state.volume_L - phase_ledger.get("organic", {}).get("volume_L", 0.0), 0.0
+                ),
+                "P_mol": 0.0,
+                "impurity_mol": 0.0,
+                "solvent_loss": 0.0,
+            },
+        )
+        organic = phase_ledger.setdefault(
+            "organic",
+            {"volume_L": 0.015, "P_mol": 0.0, "impurity_mol": 0.0, "solvent_loss": 0.0},
+        )
+        aqueous = phase_ledger["aqueous"]
+        p_total = state.species_amounts.get("P", 0.0)
+        impurity_total = (
+            state.species_amounts.get("B", 0.0)
+            + state.species_amounts.get("D", 0.0)
+            + state.species_amounts.get("E", 0.0)
+        )
+        solvent = int(state.metadata.get("solvent", 0))
+        partition_base = np.array([0.65, 1.25, 2.20, 1.55])
+        temperature_factor = 1.0 + 0.0025 * (state.temperature_K - 298.15)
+        mix_factor = 0.75 + 0.25 * (1.0 - np.exp(-duration / 240.0)) * (
+            0.70 + 0.30 * stirring / 1200.0
+        )
+        partition = max(0.05, float(partition_base[solvent] * temperature_factor * mix_factor))
+        v_org = max(organic["volume_L"], 1.0e-9)
+        v_aq = max(aqueous["volume_L"], 1.0e-9)
+        product_organic_fraction = float(
+            np.clip(partition * v_org / (v_aq + partition * v_org), 0.0, 1.0)
+        )
+        impurity_organic_fraction = float(
+            np.clip(0.35 * product_organic_fraction + 0.10 * solvent, 0.0, 0.85)
+        )
+        organic["P_mol"] = p_total * product_organic_fraction
+        aqueous["P_mol"] = p_total - organic["P_mol"]
+        organic["impurity_mol"] = impurity_total * impurity_organic_fraction
+        aqueous["impurity_mol"] = impurity_total - organic["impurity_mol"]
+        phase_ledger["reactor_liquid"] = {
+            "volume_L": state.volume_L,
+            "P_mol": p_total,
+            "impurity_mol": impurity_total,
+            "solvent_loss": 0.0,
+        }
+        metadata = self._write_phase_metadata(
+            state,
+            phase_ledger,
+            updates={
+                "phase_system": True,
+                "phase_settled": False,
+                "partition_coefficient": partition,
+                "stirring_speed_rpm": stirring,
+            },
+        )
+        ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + duration,
+            cost=state.ledger.cost + 0.01 + duration / 3600.0 * 0.015,
+        )
+        return state.replace(ledger=ledger, metadata=metadata)
+
+    def _settle_phases(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        duration = float(np.clip(_action_float(action, "duration_s", 300.0), 0.0, 3600.0))
+        phase_ledger = self._phase_ledger(state)
+        metadata = self._write_phase_metadata(
+            state,
+            phase_ledger,
+            updates={"phase_system": True, "phase_settled": duration >= 60.0},
+        )
+        ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + duration,
+            cost=state.ledger.cost + duration / 3600.0 * 0.006,
+        )
+        return state.replace(ledger=ledger, metadata=metadata)
+
+    def _separate_phase(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        target = str(action.get("target_phase", "organic"))
+        if target not in {"organic", "aqueous"}:
+            target = "organic"
+        phase_ledger = self._phase_ledger(state)
+        selected = phase_ledger.get(
+            target,
+            {
+                "volume_L": state.volume_L,
+                "P_mol": state.species_amounts.get("P", 0.0),
+                "impurity_mol": 0.0,
+                "solvent_loss": 0.0,
+            },
+        )
+        entrainment_loss = 0.025 if target == "organic" else 0.045
+        retained_p = selected["P_mol"] * (1.0 - entrainment_loss)
+        retained_impurity = selected["impurity_mol"] * (1.0 + 0.20 * entrainment_loss)
+        phase_ledger[target] = {
+            "volume_L": selected["volume_L"] * (1.0 - 0.015),
+            "P_mol": retained_p,
+            "impurity_mol": retained_impurity,
+            "solvent_loss": selected.get("solvent_loss", 0.0) + entrainment_loss,
+        }
+        metadata = self._write_phase_metadata(
+            state,
+            phase_ledger,
+            updates={"selected_phase": target, "phase_system": True, "phase_settled": True},
+        )
+        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.025)
+        return state.replace(
+            volume_L=phase_ledger[target]["volume_L"], ledger=ledger, metadata=metadata
+        )
+
+    def _wash_phase(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        volume = float(np.clip(_action_float(action, "wash_volume_L", 0.010), 0.0, 0.040))
+        phase_ledger = self._phase_ledger(state)
+        target = str(state.metadata.get("selected_phase") or "organic")
+        phase = phase_ledger.setdefault(
+            target,
+            {
+                "volume_L": state.volume_L,
+                "P_mol": state.species_amounts.get("P", 0.0),
+                "impurity_mol": 0.0,
+                "solvent_loss": 0.0,
+            },
+        )
+        impurity_removal = float(np.clip(0.18 + 8.0 * volume, 0.0, 0.65))
+        phase["impurity_mol"] *= 1.0 - impurity_removal
+        phase["P_mol"] *= 1.0 - 0.015
+        phase["volume_L"] += volume * 0.35
+        phase["solvent_loss"] += 0.012
+        metadata = self._write_phase_metadata(
+            state, phase_ledger, updates={"selected_phase": target}
+        )
+        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.02 + 0.25 * volume)
+        return state.replace(volume_L=phase["volume_L"], ledger=ledger, metadata=metadata)
+
+    def _dry_phase(self, state: WorldState) -> WorldState:
+        phase_ledger = self._phase_ledger(state)
+        target = str(state.metadata.get("selected_phase") or "organic")
+        phase = phase_ledger.setdefault(
+            target,
+            {
+                "volume_L": state.volume_L,
+                "P_mol": state.species_amounts.get("P", 0.0),
+                "impurity_mol": 0.0,
+                "solvent_loss": 0.0,
+            },
+        )
+        phase["solvent_loss"] = max(0.0, phase.get("solvent_loss", 0.0) * 0.35)
+        phase["volume_L"] *= 0.92
+        metadata = self._write_phase_metadata(
+            state, phase_ledger, updates={"selected_phase": target}
+        )
+        ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + 300.0, cost=state.ledger.cost + 0.018
+        )
+        return state.replace(volume_L=phase["volume_L"], ledger=ledger, metadata=metadata)
+
+    def _concentrate_phase(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        duration = float(np.clip(_action_float(action, "duration_s", 300.0), 0.0, 3600.0))
+        phase_ledger = self._phase_ledger(state)
+        target = str(state.metadata.get("selected_phase") or "organic")
+        phase = phase_ledger.setdefault(
+            target,
+            {
+                "volume_L": state.volume_L,
+                "P_mol": state.species_amounts.get("P", 0.0),
+                "impurity_mol": 0.0,
+                "solvent_loss": 0.0,
+            },
+        )
+        concentration_factor = float(np.clip(1.0 - duration / 7200.0, 0.45, 1.0))
+        phase["volume_L"] *= concentration_factor
+        phase["P_mol"] *= 1.0 - 0.01 * (1.0 - concentration_factor)
+        phase["solvent_loss"] += 0.025 * (1.0 - concentration_factor)
+        metadata = self._write_phase_metadata(
+            state, phase_ledger, updates={"selected_phase": target}
+        )
+        ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + duration,
+            cost=state.ledger.cost + duration / 3600.0 * 0.035,
+            risk=min(1.0, state.ledger.risk + 0.015 * (1.0 - concentration_factor)),
+        )
+        return state.replace(volume_L=phase["volume_L"], ledger=ledger, metadata=metadata)
+
+    def _transfer_phase(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        fraction = float(np.clip(_action_float(action, "transfer_fraction", 0.98), 0.0, 1.0))
+        phase_ledger = self._phase_ledger(state)
+        target = str(state.metadata.get("selected_phase") or "organic")
+        phase = phase_ledger.setdefault(
+            target,
+            {
+                "volume_L": state.volume_L,
+                "P_mol": state.species_amounts.get("P", 0.0),
+                "impurity_mol": 0.0,
+                "solvent_loss": 0.0,
+            },
+        )
+        phase["P_mol"] *= fraction
+        phase["impurity_mol"] *= fraction
+        phase["volume_L"] *= fraction
+        phase["solvent_loss"] += 1.0 - fraction
+        metadata = self._write_phase_metadata(
+            state, phase_ledger, updates={"selected_phase": target}
+        )
+        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.01)
+        return state.replace(volume_L=phase["volume_L"], ledger=ledger, metadata=metadata)
 
     def _apply_measurement_cost(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         instrument_id = instrument_name(action.get("instrument", "hplc"))
@@ -451,8 +867,7 @@ class BatchReactorTransitionKernel(TransitionKernel):
         )
         stirring_speed = float(np.clip(stirring_speed, 100.0, 1200.0))
         y0 = np.array(
-            [state.species_amounts[key] for key in SPECIES]
-            + [state.temperature_K, 0.0, 0.0, 0.0]
+            [state.species_amounts[key] for key in SPECIES] + [state.temperature_K, 0.0, 0.0, 0.0]
         )
         result = solve_ivp(
             lambda _t, y: self._ode_rhs(y, state, target_temperature, heat, stirring_speed),
@@ -511,11 +926,7 @@ class BatchReactorTransitionKernel(TransitionKernel):
                 k[0] * concentrations[0] * eta_cat * volume * stir_factor,
                 k[1] * concentrations[0] * volume * low_mixing_side_penalty,
                 k[2] * concentrations[1] * volume,
-                k[3]
-                * concentrations[0]
-                * concentrations[1]
-                * volume
-                * low_mixing_side_penalty,
+                k[3] * concentrations[0] * concentrations[1] * volume * low_mixing_side_penalty,
                 k[4] * amounts[5],
             ]
         )
@@ -574,11 +985,26 @@ class BatchReactorTransitionKernel(TransitionKernel):
         action = action or {}
         report = self.constitution.check_state(after)
         material_check = self.constitution.check_material_conservation(before, after)
-        if operation in {"add_reagent", "add_catalyst", "add_solvent", "sample", "measure"}:
+        if operation in {
+            "add_reagent",
+            "add_catalyst",
+            "add_solvent",
+            "sample",
+            "measure",
+            "add_phase",
+            "add_extractant",
+            "mix",
+            "settle",
+            "separate_phase",
+            "wash",
+            "dry",
+            "concentrate",
+            "transfer",
+        }:
             material_check = material_check.__class__(
                 "material_conservation",
                 True,
-                "material delta allowed for add/sample/measure operation",
+                "material delta allowed or phase-ledger conserved for operation",
                 value=0.0,
                 tolerance=self.constitution.tolerance,
             )
@@ -609,7 +1035,57 @@ class BatchReactorTransitionKernel(TransitionKernel):
         )
 
 
-class BatchReactorObservationKernel:
+def _downstream_truth_values(
+    state: WorldState,
+    phase_ledger: dict[str, dict[str, float]] | None = None,
+) -> dict[str, float]:
+    phase_ledger = phase_ledger or dict(state.metadata.get("phase_ledger", {}))
+    initial_p = max(
+        float(
+            state.metadata.get(
+                "pre_separation_product_mol",
+                state.metadata.get("max_product_mol", state.species_amounts.get("P", 0.0)),
+            )
+        ),
+        state.species_amounts.get("P", 0.0),
+        1.0e-12,
+    )
+    organic = phase_ledger.get("organic", {})
+    aqueous = phase_ledger.get("aqueous", {})
+    selected_phase = str(state.metadata.get("selected_phase") or "organic")
+    selected = phase_ledger.get(selected_phase, organic or aqueous or {})
+    product_in_organic = float(organic.get("P_mol", 0.0))
+    product_in_aqueous = float(aqueous.get("P_mol", 0.0))
+    selected_product = float(selected.get("P_mol", state.species_amounts.get("P", 0.0)))
+    selected_impurity = float(
+        selected.get(
+            "impurity_mol",
+            state.species_amounts.get("B", 0.0)
+            + state.species_amounts.get("D", 0.0)
+            + state.species_amounts.get("E", 0.0),
+        )
+    )
+    organic_volume = float(organic.get("volume_L", 0.0))
+    aqueous_volume = float(aqueous.get("volume_L", max(state.volume_L - organic_volume, 0.0)))
+    total_phase_product = product_in_organic + product_in_aqueous
+    purity = selected_product / max(selected_product + selected_impurity, 1.0e-12)
+    recovery = selected_product / initial_p
+    phase_ratio = organic_volume / max(organic_volume + aqueous_volume, 1.0e-12)
+    solvent_loss = float(selected.get("solvent_loss", 0.0))
+    mass_balance_error = abs(total_phase_product - state.species_amounts.get("P", 0.0)) / initial_p
+    return {
+        "purity": float(np.clip(purity, 0.0, 1.0)),
+        "recovery": float(np.clip(recovery, 0.0, 1.0)),
+        "phase_ratio": float(np.clip(phase_ratio, 0.0, 1.0)),
+        "product_in_organic": float(np.clip(product_in_organic / initial_p, 0.0, 1.0)),
+        "product_in_aqueous": float(np.clip(product_in_aqueous / initial_p, 0.0, 1.0)),
+        "impurity_signal": float(np.clip(selected_impurity / initial_p, 0.0, 1.0)),
+        "solvent_loss": float(np.clip(solvent_loss, 0.0, 1.0)),
+        "process_mass_balance_error": float(np.clip(mass_balance_error, 0.0, 1.0)),
+    }
+
+
+class ChemWorldObservationKernel:
     def __init__(self, constitution: PhysicalConstitution, objective: str) -> None:
         self.constitution = constitution
         self.objective = objective
@@ -648,9 +1124,7 @@ class BatchReactorObservationKernel:
         observed_mask = self._base_observed_mask()
         for key in instrument.observable_keys:
             std = instrument.noise_std.get(key, 0.0)
-            noisy[key] = float(
-                np.clip(truth_values[key] + rng.normal(0.0, std), 0.0, 1.0)
-            )
+            noisy[key] = float(np.clip(truth_values[key] + rng.normal(0.0, std), 0.0, 1.0))
             observed_mask[key] = True
 
         if observed_mask["byproduct_signal"] and observed_mask["degradation_warning"]:
@@ -713,12 +1187,9 @@ class BatchReactorObservationKernel:
             "conversion",
             "byproduct_signal",
             "degradation_warning",
+            *DOWNSTREAM_OBSERVATION_KEYS,
         )
-        return {
-            key: values.get(key)
-            for key in estimate_keys
-            if observed_mask.get(key, False)
-        }
+        return {key: values.get(key) for key in estimate_keys if observed_mask.get(key, False)}
 
     @staticmethod
     def _raw_signal(instrument_id: str, values: dict[str, float | None]) -> dict[str, Any]:
@@ -729,6 +1200,7 @@ class BatchReactorObservationKernel:
         if instrument_id == "uvvis":
             yield_value = observed("yield")
             conversion = observed("conversion")
+            phase_ratio = observed("phase_ratio")
             return {
                 "kind": "uvvis_spectrum",
                 "wavelength_nm": [360, 420, 510, 620],
@@ -736,12 +1208,14 @@ class BatchReactorObservationKernel:
                     round(0.08 + 0.25 * conversion, 6),
                     round(0.05 + 0.35 * yield_value, 6),
                     round(0.04 + 0.15 * max(conversion - yield_value, 0.0), 6),
-                    0.03,
+                    round(0.03 + 0.10 * phase_ratio, 6),
                 ],
             }
         if instrument_id == "hplc":
             yield_value = observed("yield")
             byproduct = observed("byproduct_signal")
+            purity = observed("purity")
+            impurity = observed("impurity_signal")
             return {
                 "kind": "hplc_chromatogram",
                 "peaks": [
@@ -752,12 +1226,12 @@ class BatchReactorObservationKernel:
                     },
                     {
                         "retention_time_min": 2.74,
-                        "peak_area": round(1200.0 * yield_value, 6),
+                        "peak_area": round(1200.0 * max(yield_value, purity), 6),
                         "assignment": "P_proxy",
                     },
                     {
                         "retention_time_min": 3.52,
-                        "peak_area": round(900.0 * byproduct, 6),
+                        "peak_area": round(900.0 * max(byproduct, impurity), 6),
                         "assignment": "byproduct_proxy",
                     },
                 ],
@@ -784,7 +1258,13 @@ class BatchReactorObservationKernel:
             return {
                 "kind": "final_assay_packet",
                 "quality": "high",
-                "channels": ["hplc", "gc", "calibrated_mass_balance"],
+                "channels": [
+                    "hplc",
+                    "gc",
+                    "calibrated_mass_balance",
+                    "phase_partition",
+                    "purification_accounting",
+                ],
             }
         return {}
 
@@ -797,6 +1277,7 @@ class BatchReactorObservationKernel:
             "byproduct_signal": "dimensionless",
             "degradation_warning": "dimensionless",
             "virtual_spectrum_summary": "dimensionless",
+            **dict.fromkeys(DOWNSTREAM_OBSERVATION_KEYS, "dimensionless"),
             "cost": "currency",
             "safety_risk": "risk",
             "score": "dimensionless",
@@ -811,6 +1292,7 @@ class BatchReactorObservationKernel:
             "byproduct_signal": None,
             "degradation_warning": None,
             "virtual_spectrum_summary": None,
+            **dict.fromkeys(DOWNSTREAM_OBSERVATION_KEYS, None),
             "cost": min(1.0, state.ledger.cost),
             "safety_risk": state.ledger.risk,
             "score": 0.0,
@@ -825,6 +1307,7 @@ class BatchReactorObservationKernel:
             "byproduct_signal": False,
             "degradation_warning": False,
             "virtual_spectrum_summary": False,
+            **dict.fromkeys(DOWNSTREAM_OBSERVATION_KEYS, False),
             "cost": True,
             "safety_risk": True,
             "score": True,
@@ -863,6 +1346,7 @@ class BatchReactorObservationKernel:
             "conversion": conversion,
             "byproduct_signal": byproduct,
             "degradation_warning": degradation,
+            **_downstream_truth_values(state),
         }
 
 
@@ -892,3 +1376,6 @@ def recipe_to_event_sequence(action: dict[str, Any]) -> list[dict[str, Any]]:
         {"operation": "terminate"},
         {"operation": "measure", "instrument": "final_assay"},
     ]
+
+
+

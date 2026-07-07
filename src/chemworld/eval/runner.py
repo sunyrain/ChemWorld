@@ -51,6 +51,7 @@ def run_agent(
     budget: int,
     objective: str,
     seed: int,
+    task_id: str | None = None,
     output_path: str | Path | None = None,
 ) -> list[HistoryRecord]:
     """Run one benchmark episode and optionally write a JSONL trajectory."""
@@ -61,6 +62,8 @@ def run_agent(
         "objective": objective,
         "seed": seed,
     }
+    if task_id is not None:
+        env_kwargs["task_id"] = task_id
     env = gym.make(
         env_id,
         **env_kwargs,

@@ -12,7 +12,7 @@ def test_cli_run_verify_and_inspect(tmp_path, capsys) -> None:
         [
             "run",
             "--env",
-            "BatchReactorWorld",
+            "ChemWorld",
             "--agent",
             "random",
             "--budget",
@@ -26,7 +26,7 @@ def test_cli_run_verify_and_inspect(tmp_path, capsys) -> None:
         ]
     )
     main(["verify", "--constitution", "--submission", str(trajectory)])
-    main(["inspect-constitution", "--env", "BatchReactorWorld"])
+    main(["inspect-constitution", "--env", "ChemWorld"])
     output = capsys.readouterr().out
     assert "PhysicalConstitutionChecklist" in output
 
@@ -43,7 +43,7 @@ def test_cli_run_verify_and_inspect(tmp_path, capsys) -> None:
     assert measure_records[-1]["measurement_cost"] > 0
     assert measure_records[-1]["sample_consumed"] > 0
     notes = json.loads(manifest.read_text(encoding="utf-8"))["notes"]
-    assert notes["env_id"] == "BatchReactorWorld"
+    assert notes["env_id"] == "ChemWorld"
 
 
 def test_suite_scripted_agent(tmp_path) -> None:
@@ -51,7 +51,7 @@ def test_suite_scripted_agent(tmp_path) -> None:
         [
             "suite",
             "--env",
-            "BatchReactorWorld",
+            "ChemWorld",
             "--agent",
             "scripted_chemistry",
             "--world-splits",
@@ -65,3 +65,4 @@ def test_suite_scripted_agent(tmp_path) -> None:
         ]
     )
     assert (tmp_path / "suite_results.json").exists()
+

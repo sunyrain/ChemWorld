@@ -27,3 +27,4 @@ def test_combined_artifact_score_is_bounded() -> None:
         mechanism_score=0.5,
         reproducibility=1.0,
     ) == pytest.approx(0.85)
+

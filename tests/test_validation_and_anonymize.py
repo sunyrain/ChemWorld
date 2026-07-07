@@ -13,7 +13,7 @@ from chemworld.eval.runner import make_agent, run_agent
 def test_validate_records_rejects_missing_schema(tmp_path) -> None:
     path = tmp_path / "run.jsonl"
     run_agent(
-        env_id="BatchReactorWorld",
+        env_id="ChemWorld",
         agent=make_agent("random"),
         world_split="public-dev",
         budget=2,
@@ -31,7 +31,7 @@ def test_validate_records_rejects_missing_schema(tmp_path) -> None:
 def test_trajectory_records_include_instrument_signal_layers(tmp_path) -> None:
     path = tmp_path / "run.jsonl"
     run_agent(
-        env_id="BatchReactorWorld",
+        env_id="ChemWorld",
         agent=make_agent("random"),
         world_split="public-dev",
         budget=8,
@@ -73,3 +73,4 @@ def test_anonymize_helpers_redact_personal_identifiers(tmp_path) -> None:
     assert "email" not in payload
     assert payload["participant_id"] != "alice"
     assert "[REDACTED_EMAIL]" in payload["explanation"]["note"]
+

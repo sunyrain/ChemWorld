@@ -59,7 +59,7 @@ def run_events(
     debug_truth: bool = False,
 ) -> pd.DataFrame:
     env = gym.make(
-        "BatchReactorWorld",
+        "ChemWorld",
         world_split=split,
         budget=len(events),
         objective=objective,
@@ -143,7 +143,7 @@ def write_events_trajectory(
     """Run explicit events and write a standard benchmark JSONL trajectory."""
 
     env = gym.make(
-        "BatchReactorWorld",
+        "ChemWorld",
         world_split=split,
         budget=len(events),
         objective=objective,
@@ -389,7 +389,7 @@ def reaction_network_svg() -> SVG:
         "viewBox='0 0 760 270'>",
         "<rect width='760' height='270' fill='#ffffff'/>",
         "<text x='24' y='32' font-size='18' font-family='Arial' "
-        "font-weight='700' fill='#0f172a'>BatchReactorWorld reaction network</text>",
+        "font-weight='700' fill='#0f172a'>ChemWorld reaction network</text>",
     ]
     for source, target, label, color in arrows:
         x1, y1 = nodes[source]
@@ -707,3 +707,4 @@ def display_learning_goal(day: int, title: str, goals: list[str]) -> None:
             f"<ul>{items}</ul></div>"
         )
     )
+

@@ -21,6 +21,8 @@ def run_suite(
     budget: int,
     objective: str,
     output_dir: str | Path,
+    threshold: float = 0.75,
+    task_id: str | None = None,
 ) -> list[dict[str, Any]]:
     """Run an agent across a matrix of splits and seeds, then evaluate runs."""
 
@@ -44,11 +46,12 @@ def run_suite(
                 budget=budget,
                 objective=objective,
                 seed=seed,
+                task_id=task_id,
                 output_path=trajectory_path,
             )
             records = load_jsonl(trajectory_path)
             validate_records(records)
-            result = evaluate_records(records).to_dict()
+            result = evaluate_records(records, threshold=threshold).to_dict()
             result["trajectory_path"] = str(trajectory_path)
             result_path = result_dir / (trajectory_path.stem + ".json")
             with result_path.open("w", encoding="utf-8") as handle:

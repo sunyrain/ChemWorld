@@ -8,7 +8,7 @@ from chemworld.eval.runner import make_agent, run_agent
 def test_evaluation_from_jsonl(tmp_path) -> None:
     output = tmp_path / "run.jsonl"
     run_agent(
-        env_id="BatchReactorWorld",
+        env_id="ChemWorld",
         agent=make_agent("lhs"),
         world_split="public-dev",
         budget=5,
@@ -26,7 +26,7 @@ def test_evaluation_from_jsonl(tmp_path) -> None:
 def test_evaluation_uses_final_assay_leaderboard_score() -> None:
     base_record = {
         "agent_metadata": {"agent_name": "probe"},
-        "env_id": "BatchReactorWorld",
+        "env_id": "ChemWorld",
         "world_split": "public-test",
         "seed": 0,
         "constraint_flags": {"unsafe": False, "high_cost": False},
@@ -64,3 +64,4 @@ def test_evaluation_uses_final_assay_leaderboard_score() -> None:
 
     assert result.final_best_score == 0.20
     assert result.best_valid_score == 0.20
+

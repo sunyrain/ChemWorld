@@ -18,7 +18,7 @@ def main() -> None:
         results.extend(
             run_suite(
                 agent_name=agent,
-                env_id="BatchReactorWorld",
+                env_id="ChemWorld",
                 world_splits=["public-test", "private-eval"],
                 seeds=[0, 1],
                 budget=12,
@@ -32,3 +32,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

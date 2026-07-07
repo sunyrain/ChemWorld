@@ -16,7 +16,7 @@ def test_surrogate_baselines_smoke(tmp_path) -> None:
     ]
     for index, agent in enumerate(agents):
         history = run_agent(
-            env_id="BatchReactorWorld",
+            env_id="ChemWorld",
             agent=agent,
             world_split="public-dev",
             budget=12,
@@ -27,3 +27,4 @@ def test_surrogate_baselines_smoke(tmp_path) -> None:
         assert 1 <= len(history) <= 12
         assert history[-1].action == {"operation": "measure", "instrument": "final_assay"}
         assert max(record.reward for record in history) >= 0.0
+

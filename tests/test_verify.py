@@ -10,7 +10,7 @@ from chemworld.eval.verify import verify_records
 def test_verify_records_accepts_valid_trajectory(tmp_path) -> None:
     path = tmp_path / "run.jsonl"
     run_agent(
-        env_id="BatchReactorWorld",
+        env_id="ChemWorld",
         agent=make_agent("random"),
         world_split="public-dev",
         budget=3,
@@ -26,7 +26,7 @@ def test_verify_records_accepts_valid_trajectory(tmp_path) -> None:
 def test_verify_records_rejects_tampered_trajectory(tmp_path) -> None:
     path = tmp_path / "run.jsonl"
     run_agent(
-        env_id="BatchReactorWorld",
+        env_id="ChemWorld",
         agent=make_agent("random"),
         world_split="public-dev",
         budget=3,
@@ -44,3 +44,4 @@ def test_verify_records_rejects_tampered_trajectory(tmp_path) -> None:
 def test_verify_records_rejects_invalid_schema() -> None:
     with pytest.raises(ValueError, match="Trajectory is empty"):
         verify_records([])
+

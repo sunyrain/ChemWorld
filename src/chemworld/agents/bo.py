@@ -50,7 +50,7 @@ class CandidateSurrogateMixin:
 class GaussianProcessBOAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgent):
     name = "gp_bo"
 
-    def __init__(self, n_initial: int = 8, n_candidates: int = 512) -> None:
+    def __init__(self, n_initial: int = 4, n_candidates: int = 512) -> None:
         self.n_initial = n_initial
         self.n_candidates = n_candidates
 
@@ -92,7 +92,7 @@ class RandomForestEIAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgen
 
     def __init__(
         self,
-        n_initial: int = 8,
+        n_initial: int = 4,
         n_candidates: int = 512,
         n_estimators: int = 128,
     ) -> None:
@@ -138,7 +138,7 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
 
     def __init__(
         self,
-        n_initial: int = 10,
+        n_initial: int = 4,
         n_candidates: int = 768,
         risk_threshold: float = 0.65,
     ) -> None:

@@ -15,7 +15,7 @@ from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.recipe_sequence import RecipeSequenceMixin
 from chemworld.core.actions import canonicalize_action
 
-DEFAULT_PROMPT_TEMPLATE = """You are planning the next virtual batch reactor experiment.
+DEFAULT_PROMPT_TEMPLATE = """You are planning the next virtual ChemWorld reaction experiment.
 Task info:
 {task_info}
 
@@ -113,3 +113,4 @@ class ReplayLLMAgent(LLMPlannerAgent):
             }
         )
         return manifest
+

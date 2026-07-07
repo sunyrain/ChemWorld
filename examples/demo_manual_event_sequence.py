@@ -1,4 +1,4 @@
-"""Run one explicit event-sequence experiment in BatchReactorWorld."""
+"""Run one explicit event-sequence experiment in ChemWorld."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import chemworld  # noqa: F401
 
 
 def main() -> None:
-    env = gym.make("BatchReactorWorld", world_split="public-dev", budget=8, seed=7)
+    env = gym.make("ChemWorld", world_split="public-dev", budget=8, seed=7)
     try:
         observation, task_info = env.reset(seed=7)
         print(json.dumps({"task": task_info["world_id"], "initial": _flat(observation)}))
@@ -60,3 +60,4 @@ def _flat(observation: dict[str, object]) -> dict[str, float]:
 
 if __name__ == "__main__":
     main()
+

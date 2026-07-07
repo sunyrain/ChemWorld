@@ -6,7 +6,7 @@ from chemworld.eval.runner import make_agent, run_agent
 def test_baseline_runner_smoke(tmp_path) -> None:
     output = tmp_path / "random.jsonl"
     history = run_agent(
-        env_id="BatchReactorWorld",
+        env_id="ChemWorld",
         agent=make_agent("random"),
         world_split="public-dev",
         budget=4,
@@ -22,7 +22,7 @@ def test_baseline_runner_smoke(tmp_path) -> None:
 def test_greedy_runner_smoke(tmp_path) -> None:
     output = tmp_path / "greedy.jsonl"
     history = run_agent(
-        env_id="BatchReactorWorld",
+        env_id="ChemWorld",
         agent=make_agent("greedy"),
         world_split="public-dev",
         budget=4,
@@ -31,4 +31,5 @@ def test_greedy_runner_smoke(tmp_path) -> None:
         output_path=output,
     )
     assert len(history) == 4
+
 

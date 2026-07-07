@@ -1,4 +1,9 @@
-"""Learnable local world-model interfaces."""
+"""Learnable local world-model interfaces.
+
+These interfaces describe an agent-side belief or surrogate, not the hidden
+physical world itself. Keeping them outside `chemworld.foundation` preserves the
+boundary between world law and learned local world models.
+"""
 
 from __future__ import annotations
 

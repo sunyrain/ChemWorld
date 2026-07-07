@@ -26,7 +26,7 @@ def test_replay_llm_agent_executes_event_sequence(tmp_path) -> None:
     )
 
     history = run_agent(
-        env_id="BatchReactorWorld",
+        env_id="ChemWorld",
         agent=ReplayLLMAgent(replay_path),
         world_split="public-dev",
         budget=6,
@@ -37,3 +37,4 @@ def test_replay_llm_agent_executes_event_sequence(tmp_path) -> None:
     assert len(history) == 6
     assert history[0].action["operation"] == "add_solvent"
     assert history[-1].action == {"operation": "measure", "instrument": "final_assay"}
+

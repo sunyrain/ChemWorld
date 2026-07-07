@@ -1,44 +1,35 @@
 # Roadmap
 
-## Month 1
+ChemWorld-Bench now prioritizes benchmark hardening before adding more
+physical modules under the shared `ChemWorld` law.
 
-- Python package skeleton.
-- Gymnasium API.
-- `BatchReactorWorld` semi-mechanistic model.
-- Core tests.
+## P0: Benchmark Contract
 
-## Month 2
+- Maintain the task registry and task cards.
+- Keep wrappers optional and Gymnasium-compatible.
+- Validate submission bundles locally.
+- Preserve deterministic replay verification.
+- Keep docs buildable with `mkdocs build --strict`.
 
-- Public/private split registry.
-- Trajectory logging.
-- CLI.
-- Random, Latin hypercube, and greedy baselines.
-- Foundation: ontology, physical constitution, event operations, ODE kernel,
-  and instrument observations.
+## P1: Release Infrastructure
 
-## Month 3
+- Publish official baseline results for built-in tasks.
+- Add dataset cards and JSONL-to-columnar exports.
+- Add signed private-eval result artifacts.
+- Calibrate task difficulty and thresholds.
+- Expand safety-cost reporting.
 
-- Bayesian optimization baselines.
-- Safety-aware metrics.
-- Leaderboard aggregation.
-- Reproducibility checks.
+## P2: Research Breadth
 
-## Month 4
+- Add the next physical module under `ChemWorld`, not a standalone world.
+- Add RL library adapters for standard baselines.
+- Add offline world-model and imitation baselines.
+- Add richer mechanism explanation examples and rubrics.
 
-- LLM adapter and replay protocol.
-- Explanation fields.
-- Human-data anonymization helpers.
-- Research documentation.
+## P3: Scale And Interaction
 
-## Month 5
+- Add vectorized batch execution.
+- Explore accelerated kernels only if CPU ODE becomes a bottleneck.
+- Consider PettingZoo-style human/LLM/team environments.
+- Add a hosted leaderboard only after the local benchmark contract is stable.
 
-- Pilot experiments.
-- Difficulty calibration.
-- Baseline comparison tables.
-
-## Month 6
-
-- API freeze for the first public benchmark release.
-- Public-test release.
-- Benchmark paper artifact.
-- Teaching extension notes.

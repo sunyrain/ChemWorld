@@ -2,15 +2,17 @@
 
 This document summarizes the current implementation state of ChemWorld-Bench.
 The platform is now organized around one public environment,
-`BatchReactorWorld`, backed by the Chemical World Model foundation layer.
+`ChemWorld`, backed by the Chemical World Model foundation layer.
 
 ## What Exists
 
 The repository currently provides:
 
 - a Python package installable with `python -m pip install -e ".[dev]"`;
-- one Gymnasium environment, `BatchReactorWorld`;
-- an event-driven batch reactor transition model;
+- one Gymnasium environment, `ChemWorld`;
+- a unified task registry over one shared world law;
+- an event-driven reaction transition model;
+- a phase partition and downstream separation module;
 - executable physical constitution checks;
 - noisy, partial instrument observations with explicit `observed_mask` fields;
 - standard trajectory logging, replay verification, metrics, and leaderboard
@@ -22,9 +24,10 @@ The repository currently provides:
 
 ## Scientific Model
 
-`BatchReactorWorld` models a virtual 100 mL jacketed batch reactor. The hidden
-state includes species amounts, active/dead catalyst, volume, temperature,
-pressure proxy, elapsed time, cost, risk, and sample consumption.
+`ChemWorld` currently models a virtual 100 mL jacketed reaction and separation
+workflow. The hidden state includes species amounts, active/dead catalyst,
+phase ledgers, volume, temperature, pressure proxy, elapsed time, cost, risk,
+and sample consumption.
 
 The reaction network is:
 
@@ -40,6 +43,11 @@ solvent, catalyst activity, concentration, and stirring speed. Temperature is
 updated through a simplified energy balance with jacket heat, heat loss, and
 reaction heat.
 
+Downstream processing tracks aqueous/organic phase volume, product
+partitioning, impurity carryover, phase settling, separation loss, washing,
+drying, concentration, transfer loss, purity, recovery, solvent loss, and
+process mass-balance error.
+
 ## Foundation Layer
 
 `chemworld.foundation` contains the reusable base layer:
@@ -51,8 +59,11 @@ reaction heat.
 - `PhysicalConstitution` checks for non-negativity, unit validity, vessel
   bounds, risk range, material conservation, observation non-omniscience,
   measurement cost, and action preconditions;
-- transition and observation kernel protocols;
-- surrogate and belief-state interfaces for local world-model learning.
+- transition and observation kernel protocols.
+
+Learned local world-model interfaces now live in `chemworld.models`, not in the
+foundation layer. This keeps the hidden physical world separate from the
+student or agent belief state inferred from trajectories.
 
 ## Public Interface
 
@@ -63,10 +74,8 @@ import gymnasium as gym
 import chemworld
 
 env = gym.make(
-    "BatchReactorWorld",
-    world_split="public-dev",
-    budget=30,
-    objective="balanced",
+    "ChemWorld",
+    task_id="reaction-optimization-standard",
     seed=42,
 )
 obs, info = env.reset()
@@ -84,6 +93,15 @@ Supported operations are:
 - `wait`;
 - `sample`;
 - `quench`;
+- `add_phase`;
+- `add_extractant`;
+- `mix`;
+- `settle`;
+- `separate_phase`;
+- `wash`;
+- `dry`;
+- `concentrate`;
+- `transfer`;
 - `terminate`;
 - `measure`.
 
@@ -172,7 +190,7 @@ pytest
 mkdocs build --strict
 ```
 
-At the time of this document, the local test suite contains 31 tests covering
+At the time of this document, the local test suite contains 44 tests covering
 the environment, foundation checks, baselines, CLI, replay verification,
 metrics, reproducibility, validation, anonymization, and suite/leaderboard
 flows.
@@ -185,8 +203,9 @@ model is qualitative and benchmark-oriented. It aims to be physically
 plausible enough for closed-loop decision research and teaching, not to model
 one named real chemical system.
 
-The current release has one environment family. Future work should add more
-world families only after the benchmark protocol, private evaluation workflow,
+The current release has one shared world law with reaction and
+phase/separation modules. Future work should add more physical modules under
+`ChemWorld` only after the benchmark protocol, private evaluation workflow,
 and baseline reporting are stable.
 
 ## Recommended Next Steps
@@ -205,3 +224,5 @@ Near-term research work:
 - study public-test to private-eval generalization;
 - analyze safety-aware exploration behavior;
 - analyze whether mechanism explanations correlate with optimization quality.
+
+

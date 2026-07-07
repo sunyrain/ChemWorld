@@ -5,13 +5,13 @@ import pytest
 
 import chemworld  # noqa: F401
 from chemworld.core.batch_reactor import (
-    initial_batch_reactor_state,
-    make_batch_reactor_constitution,
+    initial_chemworld_state,
+    make_chemworld_constitution,
 )
 
 
 def _run_recipe(target_temperature_K: float, duration_s: float) -> tuple[float, dict[str, float]]:
-    env = gym.make("BatchReactorWorld", budget=8, seed=4, debug_truth=True)
+    env = gym.make("ChemWorld", budget=8, seed=4, debug_truth=True)
     env.reset(seed=4)
     actions = [
         {"operation": "add_solvent", "volume_L": 0.03, "solvent": 2},
@@ -54,7 +54,7 @@ def test_temperature_and_time_have_qualitative_effects() -> None:
 
 
 def test_missing_operation_is_rejected() -> None:
-    env = gym.make("BatchReactorWorld", budget=2, seed=7)
+    env = gym.make("ChemWorld", budget=2, seed=7)
     env.reset(seed=7)
     try:
         try:
@@ -68,7 +68,7 @@ def test_missing_operation_is_rejected() -> None:
 
 
 def test_failed_final_assay_does_not_leak_observation() -> None:
-    env = gym.make("BatchReactorWorld", budget=2, seed=7)
+    env = gym.make("ChemWorld", budget=2, seed=7)
     try:
         obs, _ = env.reset(seed=7)
         del obs
@@ -94,7 +94,7 @@ def test_failed_final_assay_does_not_leak_observation() -> None:
 
 
 def test_successful_final_assay_terminates_episode() -> None:
-    env = gym.make("BatchReactorWorld", budget=8, seed=4)
+    env = gym.make("ChemWorld", budget=8, seed=4)
     try:
         env.reset(seed=4)
         actions = [
@@ -124,8 +124,8 @@ def test_successful_final_assay_terminates_episode() -> None:
 
 
 def test_constitution_rejects_repeated_final_assay() -> None:
-    constitution = make_batch_reactor_constitution()
-    state = initial_batch_reactor_state().replace(
+    constitution = make_chemworld_constitution()
+    state = initial_chemworld_state().replace(
         volume_L=0.02,
         terminated=True,
         metadata={"final_assay_done": True},
@@ -138,3 +138,4 @@ def test_constitution_rejects_repeated_final_assay() -> None:
     )
 
     assert not preconditions["measure_final_not_repeated"]
+

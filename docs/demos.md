@@ -22,6 +22,13 @@ This runs one explicit reactor workflow:
 
 It prints the public observation after each operation plus constraint flags.
 
+For the downstream workflow, run the `reaction-to-purification` task with the
+scripted chemistry baseline:
+
+```bash
+chemworld run --task reaction-to-purification --agent scripted_chemistry
+```
+
 ## Baseline Comparison
 
 ```bash
@@ -46,11 +53,16 @@ and prints the active physical constitution rules. It writes the trajectory to
 ## CLI Equivalents
 
 ```bash
-chemworld inspect-constitution --env BatchReactorWorld
-chemworld run --env BatchReactorWorld --agent random --budget 8 --seed 11
-chemworld verify --constitution --submission runs/random_BatchReactorWorld_public-dev_balanced_seed11.jsonl
-chemworld suite --env BatchReactorWorld --agent scripted_chemistry --world-splits public-test private-eval --seeds 0 --budget 12
+chemworld tasks list
+chemworld inspect-constitution --env ChemWorld
+chemworld run --task reaction-to-assay --agent random
+chemworld verify --constitution --submission runs/random_ChemWorld_public-dev_balanced_seed0.jsonl
+chemworld suite --task reaction-optimization-standard --agent scripted_chemistry
+chemworld submission init runs/submissions/example --task-id reaction-optimization-standard
 ```
+
+The submission example creates a skeleton. Add trajectories and result JSON
+files before running `chemworld submission validate`.
 
 ## Notebook Walkthrough
 
@@ -90,3 +102,4 @@ progressive short course:
 
 Start with `notebooks/tutorials/README.md`, then open the notebooks in order
 with the `Python (ChemWorld)` kernel.
+

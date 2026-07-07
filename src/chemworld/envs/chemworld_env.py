@@ -1,4 +1,4 @@
-"""Foundation-backed Gymnasium environment for BatchReactorWorld."""
+"""Foundation-backed Gymnasium environment for the unified ChemWorld."""
 
 from __future__ import annotations
 
@@ -10,24 +10,29 @@ import numpy as np
 from gymnasium import spaces
 
 from chemworld import __version__
+from chemworld.action_codec import ActionCodec
+from chemworld.backends import semi_mechanistic_backend_spec
 from chemworld.core.batch_reactor import (
     CATALYSTS,
+    DOWNSTREAM_OBSERVATION_KEYS,
     INSTRUMENTS,
     OPERATION_TYPES,
+    REACTION_OPERATIONS,
     SOLVENTS,
-    BatchReactorObservationKernel,
-    BatchReactorTransitionKernel,
+    ChemWorldObservationKernel,
+    ChemWorldTransitionKernel,
     batch_reactor_instruments,
     batch_reactor_operations,
     batch_reactor_reactions,
     batch_reactor_state_variables,
-    initial_batch_reactor_state,
-    instrument_name,
-    load_batch_reactor_world_parameters,
-    make_batch_reactor_constitution,
-    operation_name,
+    chemworld_world_law_spec,
+    initial_chemworld_state,
+    load_chemworld_parameters,
+    make_chemworld_constitution,
 )
 from chemworld.foundation.state import OperationRecord
+from chemworld.operation_validator import OperationValidator
+from chemworld.tasks import get_task
 
 OBSERVATION_KEYS = (
     "yield",
@@ -39,6 +44,7 @@ OBSERVATION_KEYS = (
     "byproduct_signal",
     "degradation_warning",
     "virtual_spectrum_summary",
+    *DOWNSTREAM_OBSERVATION_KEYS,
 )
 
 
@@ -56,13 +62,12 @@ class NullableScalarBox(spaces.Box):
         if not np.any(finite):
             return True
         return bool(
-            np.all(array[finite] >= self.low[finite])
-            and np.all(array[finite] <= self.high[finite])
+            np.all(array[finite] >= self.low[finite]) and np.all(array[finite] <= self.high[finite])
         )
 
 
-class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
-    """Event-driven virtual batch reactor with ODE transition kernel."""
+class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
+    """Unified physical-chemical world sliced into benchmark tasks."""
 
     metadata: dict[str, list[str]] = {"render_modes": []}  # noqa: RUF012
 
@@ -73,9 +78,16 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         budget: int = 30,
         objective: str = "balanced",
         seed: int = 0,
+        task_id: str | None = None,
         debug_truth: bool = False,
     ) -> None:
         super().__init__()
+        self.task_id = task_id
+        self.task_spec = get_task(task_id) if task_id else None
+        if self.task_spec is not None:
+            world_split = self.task_spec.world_split
+            budget = self.task_spec.budget
+            objective = self.task_spec.objective
         if budget <= 0:
             raise ValueError("budget must be positive")
 
@@ -84,14 +96,25 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.objective = objective
         self.seed = seed
         self.debug_truth = debug_truth
-        self.world = load_batch_reactor_world_parameters(world_split, seed)
-        self.constitution = make_batch_reactor_constitution()
-        self.transition_kernel = BatchReactorTransitionKernel(self.world, self.constitution)
-        self.observation_kernel = BatchReactorObservationKernel(self.constitution, objective)
+        self.allowed_operations = (
+            set(self.task_spec.allowed_operations)
+            if self.task_spec is not None
+            else set(REACTION_OPERATIONS)
+        )
+        self.action_codec = ActionCodec()
+        self.world = load_chemworld_parameters(world_split, seed)
+        self.constitution = make_chemworld_constitution()
+        self.operation_validator = OperationValidator(
+            constitution=self.constitution,
+            allowed_operations=self.allowed_operations,
+            action_codec=self.action_codec,
+        )
+        self.transition_kernel = ChemWorldTransitionKernel(self.world, self.constitution)
+        self.observation_kernel = ChemWorldObservationKernel(self.constitution, objective)
         self._rng = np.random.default_rng(seed)
         self._step_count = 0
         self._done = False
-        self._state = initial_batch_reactor_state()
+        self._state = initial_chemworld_state()
         self._last_observation = self._empty_observation()
 
         self.action_space = spaces.Dict(
@@ -107,6 +130,11 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 "instrument": spaces.Discrete(len(INSTRUMENTS)),
                 "catalyst": spaces.Discrete(len(CATALYSTS)),
                 "solvent": spaces.Discrete(len(SOLVENTS)),
+                "phase": spaces.Discrete(3),
+                "target_phase": spaces.Discrete(3),
+                "extractant": spaces.Discrete(4),
+                "wash_volume_L": spaces.Box(0.0, 0.040, shape=(1,), dtype=np.float32),
+                "transfer_fraction": spaces.Box(0.0, 1.0, shape=(1,), dtype=np.float32),
             }
         )
         self.observation_space = spaces.Dict(
@@ -126,12 +154,12 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         super().reset(seed=seed)
         if seed is not None:
             self.seed = seed
-            self.world = load_batch_reactor_world_parameters(self.world_split, seed)
-            self.transition_kernel = BatchReactorTransitionKernel(self.world, self.constitution)
+            self.world = load_chemworld_parameters(self.world_split, seed)
+            self.transition_kernel = ChemWorldTransitionKernel(self.world, self.constitution)
             self._rng = np.random.default_rng(seed)
         self._step_count = 0
         self._done = False
-        self._state = initial_batch_reactor_state()
+        self._state = initial_chemworld_state()
         self._last_observation = self._empty_observation()
         return self._last_observation, self.task_info()
 
@@ -142,13 +170,25 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         if self._done:
             raise RuntimeError("Episode is done. Call reset() before step().")
 
-        action = self._canonical_event_action(action)
+        action = self.action_codec.canonicalize(action)
         previous_state = self._state
-        self._state, operation_record = self.transition_kernel.transition(
-            self._state,
-            action,
-            self._rng,
-        )
+        validation = self.operation_validator.validate(action, self._state)
+        if validation.is_valid:
+            self._state, operation_record = self.transition_kernel.transition(
+                self._state,
+                action,
+                self._rng,
+            )
+        else:
+            penalized = self.transition_kernel._penalize_invalid(self._state)
+            operation_record = self.transition_kernel._record(
+                action["operation"],
+                self._state,
+                penalized,
+                validation.preconditions,
+                action,
+            )
+            self._state = penalized
         preconditions_passed = all(operation_record.preconditions.values())
         if preconditions_passed:
             observation = self.observation_kernel.observe(self._state, action, self._rng)
@@ -199,7 +239,13 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
 
     def task_info(self) -> dict[str, Any]:
         return {
-            "env_id": "BatchReactorWorld",
+            "env_id": "ChemWorld",
+            "task_id": self.task_id,
+            "world_law_id": self.world.family_version,
+            "scenario_id": None if self.task_spec is None else self.task_spec.scenario_id,
+            "initial_state_id": (
+                None if self.task_spec is None else self.task_spec.initial_state_id
+            ),
             "world_split": self.world_split,
             "world_provider": self.world.provider,
             "objective": self.objective,
@@ -209,6 +255,7 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "env_version": __version__,
             "world_family_version": self.world.family_version,
             "operation_types": list(OPERATION_TYPES),
+            "allowed_operations": sorted(self.allowed_operations),
             "instruments": {
                 key: item.to_dict() for key, item in batch_reactor_instruments().items()
             },
@@ -216,6 +263,8 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "operations": [operation.to_dict() for operation in batch_reactor_operations()],
             "state_variables": [variable.to_dict() for variable in batch_reactor_state_variables()],
             "constitution": self.constitution_summary(),
+            "world_law": chemworld_world_law_spec().to_dict(),
+            "backend": semi_mechanistic_backend_spec().to_dict(),
             "observation_keys": list(OBSERVATION_KEYS),
         }
 
@@ -231,6 +280,7 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 "unit_consistency",
                 "yield_upper_bound",
                 "energy_balance",
+                "phase_mass_balance",
                 "observation_non_omniscient",
                 "measurement_has_cost",
                 "action_preconditions",
@@ -239,24 +289,12 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             ],
         }
 
-    @staticmethod
-    def _canonical_event_action(action: dict[str, Any]) -> dict[str, Any]:
-        if "operation" not in action:
-            raise ValueError("Event actions must include an operation field")
-        canonical = dict(action)
-        canonical["operation"] = operation_name(canonical["operation"])
-        if "instrument" in canonical:
-            canonical["instrument"] = instrument_name(canonical["instrument"])
-        return canonical
-
     def _info(self, operation_record: OperationRecord, observation: Any) -> dict[str, Any]:
         values = observation.values
         checks = operation_record.constitution_checks
         constitution_failed = any(not bool(check.get("passed", False)) for check in checks)
         precondition_failed = not all(operation_record.preconditions.values())
-        observed_keys = [
-            key for key, observed in observation.observed_mask.items() if observed
-        ]
+        observed_keys = [key for key, observed in observation.observed_mask.items() if observed]
         if precondition_failed:
             reward_source = "failed_precondition"
         elif operation_record.operation_type == "measure":
@@ -274,10 +312,13 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "budget": self.budget,
             "remaining_budget": max(self.budget - self._step_count, 0),
             "world_id": self.world.world_id,
+            "task_id": self.task_id,
+            "world_law_id": self.world.family_version,
             "world_split": self.world_split,
             "world_provider": self.world.provider,
             "objective": self.objective,
             "operation_type": operation_record.operation_type,
+            "operation_allowed_by_task": operation_record.operation_type in self.allowed_operations,
             "preconditions": operation_record.preconditions,
             "state_delta_summary": operation_record.state_delta_summary,
             "constitution_checks": checks,
@@ -311,6 +352,10 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 ),
                 "constitution_failed": constitution_failed,
                 "precondition_failed": precondition_failed,
+                "phase_mass_balance_failed": any(
+                    check.get("name") == "phase_mass_balance" and not check.get("passed", False)
+                    for check in checks
+                ),
             },
             "env_version": __version__,
             "world_family_version": self.world.family_version,
@@ -344,3 +389,5 @@ class BatchReactorEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             )
             for key in OBSERVATION_KEYS
         }
+
+

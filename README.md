@@ -1,12 +1,12 @@
 # ChemWorld-Bench
 
 ChemWorld-Bench is a research-grade benchmark for closed-loop virtual chemical
-experimentation. The first environment, `BatchReactorWorld`, asks agents to
-optimize a hidden semi-mechanistic batch reactor under a finite experiment
-budget, noisy observations, cost, and safety constraints. It is built on a
-Chemical World Model foundation: event-driven operations, ODE dynamics,
-instrument measurements, state ledgers, and executable physical constitution
-checks.
+experimentation. The official environment, `ChemWorld`, asks agents to operate
+inside one shared physical-chemical world law: reaction kinetics, phase
+partition, downstream separation, noisy instruments, cost, safety, and
+finite-budget decision making. It is built on a Chemical World Model foundation:
+event-driven operations, transition kernels, instrument measurements, state
+ledgers, and executable physical constitution checks.
 
 The project is intentionally not a real reaction predictor and not a robot lab
 controller. It studies local world-model learning and experimental decision
@@ -28,10 +28,8 @@ import gymnasium as gym
 import chemworld
 
 env = gym.make(
-    "BatchReactorWorld",
-    world_split="public-dev",
-    budget=30,
-    objective="balanced",
+    "ChemWorld",
+    task_id="reaction-optimization-standard",
     seed=42,
 )
 
@@ -43,15 +41,16 @@ obs, reward, terminated, truncated, info = env.step(action)
 Run an official baseline:
 
 ```bash
-chemworld run --env BatchReactorWorld --agent random --budget 30 --seed 42
-chemworld verify --submission runs/random_BatchReactorWorld_public-dev_balanced_seed42.jsonl
-chemworld evaluate --submission runs/random_BatchReactorWorld_public-dev_balanced_seed42.jsonl
+chemworld run --env ChemWorld --agent random --budget 30 --seed 42
+chemworld verify --submission runs/random_ChemWorld_public-dev_balanced_seed42.jsonl
+chemworld evaluate --submission runs/random_ChemWorld_public-dev_balanced_seed42.jsonl
 chemworld leaderboard --results results/*.json
 chemworld suite --agent gp_bo --world-splits public-test private-eval --seeds 0 1 2
 
-chemworld inspect-constitution --env BatchReactorWorld
-chemworld run --env BatchReactorWorld --agent random --budget 12
-chemworld verify --constitution --submission runs/random_BatchReactorWorld_public-dev_balanced_seed42.jsonl
+chemworld inspect-constitution --env ChemWorld
+chemworld run --task reaction-to-assay --agent random
+chemworld run --task reaction-to-purification --agent scripted_chemistry
+chemworld verify --constitution --submission runs/random_ChemWorld_public-dev_balanced_seed42.jsonl
 ```
 
 `chemworld run` writes both a trajectory JSONL file and a submission manifest
@@ -61,10 +60,11 @@ manifest also records the current commit hash.
 
 ## Architecture
 
-- `chemworld.core`: semi-mechanistic reactor worlds, objectives, action specs.
+- `chemworld.core`: reaction, phase/separation, objectives, action specs.
 - `chemworld.foundation`: ontology, units, state ledger, constitution checks,
   transition/observation kernel protocols, surrogate interfaces.
 - `chemworld.envs`: Gymnasium environments and registration.
+- `chemworld.tasks`: task contracts over the shared world law.
 - `chemworld.agents`: baseline agents and LLM adapter interfaces.
 - `chemworld.eval`: runners, metrics, leaderboard aggregation.
 - `chemworld.data`: trajectory schema, logging, anonymization utilities.
@@ -97,3 +97,4 @@ jupyter notebook notebooks/tutorials/day_01_enter_virtual_lab.ipynb
 
 See `docs/current_progress.md` for the current platform status and
 `docs/demos.md` for demo details.
+

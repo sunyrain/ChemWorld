@@ -15,7 +15,18 @@ changing the public environment interface.
 
 ## Submission
 
-A valid submission contains:
+A task-based run is preferred for public benchmark claims:
+
+```bash
+chemworld run --task reaction-optimization-standard --agent scripted_chemistry
+chemworld suite --task reaction-optimization-standard --agent gp_bo
+```
+
+The task fixes the environment, world law, scenario, split, objective, budget,
+seeds, threshold, allowed operations, allowed instruments, observation policy,
+termination policy, success metrics, and safety limit.
+
+A valid single-run submission contains:
 
 - trajectory JSONL;
 - agent manifest;
@@ -28,6 +39,17 @@ A valid submission contains:
 versions, platform information, source digest, agent metadata, and the exact
 command used for the local run. If git metadata are available, it also records
 the current commit hash.
+
+For release-oriented submissions, use a submission bundle:
+
+```bash
+chemworld submission init my_submission --task-id reaction-optimization-standard
+chemworld submission validate my_submission
+chemworld submission summarize my_submission
+```
+
+A bundle contains `manifest.json`, `trajectories/*.jsonl`, `results/*.json`,
+and optional `explanations/*.json`.
 
 Every trajectory is validated before scoring. A single JSONL file must contain
 exactly one task, contiguous step numbers, required action keys, required
@@ -59,6 +81,10 @@ Each trajectory records event-level world-model fields:
 - `observed_reward`;
 - `leaderboard_score`;
 - `reward_source`.
+- downstream observation fields such as `purity`, `recovery`, `phase_ratio`,
+  `product_in_organic`, `product_in_aqueous`, `impurity_signal`,
+  `solvent_loss`, and `process_mass_balance_error` when a task and instrument
+  make them observable.
 
 Observation records are partial-observation records, not truth dumps. Fields that
 were not measured by the current or carried-forward instrument are stored as
@@ -86,8 +112,9 @@ performance metrics.
 state and can only be scored once; repeated final assays are rejected by the
 physical constitution and cannot create additional leaderboard scores.
 
-Use `chemworld inspect-constitution --env BatchReactorWorld` to inspect the
-declared rules for the environment.
+Use `chemworld inspect-constitution --env ChemWorld` to inspect the declared
+rules for the environment. Use `chemworld tasks show <task_id>` to inspect the
+task slice over the shared world law.
 
 ## Metrics
 
@@ -122,3 +149,4 @@ For research comparisons, run the same agent over multiple seeds and at least
 `public_private_gap` when both splits are available for an agent. It also
 reports standard deviation, standard error, and a 95% confidence interval for
 mean total score.
+

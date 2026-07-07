@@ -49,6 +49,7 @@ class PhysicalConstitution:
 
     hidden_state_keys: ClassVar[set[str]] = {
         "species_amounts",
+        "phase_ledger",
         "rate_constants",
         "theta",
         "temperature_internal",
@@ -143,8 +144,46 @@ class PhysicalConstitution:
         )
         final_assay_done = bool(state.metadata.get("final_assay_done", False))
         is_final_assay = operation_type == "measure" and instrument_id == "final_assay"
-        needs_volume = operation_type in {"heat", "wait", "sample", "quench", "measure"}
-        needs_material = operation_type in {"heat", "wait", "terminate"}
+        phase_system = bool(state.metadata.get("phase_system", False))
+        phase_settled = bool(state.metadata.get("phase_settled", False))
+        phase_operations = {
+            "add_extractant",
+            "mix",
+            "settle",
+            "separate_phase",
+            "wash",
+            "dry",
+            "concentrate",
+            "transfer",
+        }
+        needs_volume = operation_type in {
+            "heat",
+            "wait",
+            "sample",
+            "quench",
+            "measure",
+            "add_extractant",
+            "mix",
+            "settle",
+            "separate_phase",
+            "wash",
+            "dry",
+            "concentrate",
+            "transfer",
+        }
+        needs_material = operation_type in {
+            "heat",
+            "wait",
+            "terminate",
+            "add_extractant",
+            "mix",
+            "settle",
+            "separate_phase",
+            "wash",
+            "dry",
+            "concentrate",
+            "transfer",
+        }
         needs_not_terminated = operation_type in {
             "add_reagent",
             "add_solvent",
@@ -153,12 +192,23 @@ class PhysicalConstitution:
             "wait",
             "sample",
             "quench",
+            "add_phase",
+            "add_extractant",
+            "mix",
+            "settle",
+            "separate_phase",
+            "wash",
+            "dry",
+            "concentrate",
+            "transfer",
         }
         return {
             "instrument_available": operation_type != "measure" or instrument is not None,
             "has_volume": not needs_volume or has_volume,
             "has_material": not needs_material or has_material,
             "not_terminated": not needs_not_terminated or not state.terminated,
+            "has_phase_system": operation_type not in phase_operations or phase_system,
+            "phase_settled": operation_type != "separate_phase" or phase_settled,
             "measure_final_requires_terminated": operation_type != "measure"
             or not requires_terminated
             or is_terminated,

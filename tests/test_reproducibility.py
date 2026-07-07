@@ -17,7 +17,7 @@ def _run_once(seed: int) -> list[float]:
             "solvent": 2,
         }
     )
-    env = gym.make("BatchReactorWorld", world_split="public-test", budget=len(actions), seed=seed)
+    env = gym.make("ChemWorld", world_split="public-test", budget=len(actions), seed=seed)
     env.reset(seed=seed)
     rewards: list[float] = []
     for action in actions:
@@ -32,8 +32,8 @@ def test_fixed_seed_is_reproducible() -> None:
 
 
 def test_split_changes_world() -> None:
-    env_a = gym.make("BatchReactorWorld", world_split="public-test", seed=5)
-    env_b = gym.make("BatchReactorWorld", world_split="private-eval", seed=5)
+    env_a = gym.make("ChemWorld", world_split="public-test", seed=5)
+    env_b = gym.make("ChemWorld", world_split="private-eval", seed=5)
     env_a.reset(seed=5)
     env_b.reset(seed=5)
     assert env_a.unwrapped.task_info()["world_id"] != env_b.unwrapped.task_info()["world_id"]
@@ -42,13 +42,13 @@ def test_split_changes_world() -> None:
 
 
 def test_private_eval_can_use_external_salt(monkeypatch) -> None:
-    env_placeholder = gym.make("BatchReactorWorld", world_split="private-eval", seed=6)
+    env_placeholder = gym.make("ChemWorld", world_split="private-eval", seed=6)
     env_placeholder.reset(seed=6)
     placeholder_info = env_placeholder.unwrapped.task_info()
     env_placeholder.close()
 
     monkeypatch.setenv("CHEMWORLD_PRIVATE_EVAL_SALT", "secret-suite")
-    env_private = gym.make("BatchReactorWorld", world_split="private-eval", seed=6)
+    env_private = gym.make("ChemWorld", world_split="private-eval", seed=6)
     env_private.reset(seed=6)
     private_info = env_private.unwrapped.task_info()
     env_private.close()
@@ -57,3 +57,4 @@ def test_private_eval_can_use_external_salt(monkeypatch) -> None:
     assert private_info["world_provider"] == "external-private-registry"
     assert placeholder_info["world_id"] != private_info["world_id"]
     assert "secret-suite" not in private_info["world_id"]
+

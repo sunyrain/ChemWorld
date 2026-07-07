@@ -1,5 +1,5 @@
 """Gymnasium environments."""
 
-from chemworld.envs.batch_reactor import BatchReactorEnv
+from chemworld.envs.chemworld_env import ChemWorldEnv
 
-__all__ = ["BatchReactorEnv"]
+__all__ = ["ChemWorldEnv"]
