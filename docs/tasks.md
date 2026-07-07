@@ -32,21 +32,32 @@ chemworld suite --task reaction-optimization-standard --agent gp_bo
 
 ## Built-In Tasks
 
-| Task | Split | Budget | Operation Slice | Main Metrics |
-| --- | --- | --- | --- | --- |
-| `reaction-optimization-standard` | `public-test` | 72 | reaction | score, yield, selectivity, sample efficiency |
-| `reaction-safety-constrained` | `public-test` | 72 | reaction | score, safety risk, constraint violations |
-| `reaction-mechanism-explanation` | `public-test` | 36 | reaction | score, mechanism explanation, failure analysis |
-| `reaction-to-assay` | `public-dev` | 18 | reaction | final-assay score, trajectory validity |
-| `reaction-to-purification` | `public-test` | 90 | reaction + separation | score, purity, recovery, mass balance |
-| `partition-discovery` | `public-test` | 48 | phase/partition | phase ratio, product partition |
-| `purity-yield-tradeoff` | `public-test` | 90 | reaction + separation | yield, purity, recovery, cost |
-| `public-private-generalization` | `private-eval` | 72 | reaction | score, public/private gap |
-| `low-budget-characterization` | `public-test` | 18 | reaction | sample efficiency, uncertainty, local model quality |
-| `tool-agent-planning` | `public-dev` | 48 | reaction + separation | trajectory validity, validator use, score |
+| Task | Split | Mode | Budget | Operation Slice | Main Metrics |
+| --- | --- | --- | --- | --- | --- |
+| `reaction-optimization-standard` | `public-test` | campaign | 72 | reaction | score, yield, selectivity, sample efficiency |
+| `reaction-safety-constrained` | `public-test` | campaign | 72 | reaction | score, safety risk, constraint violations |
+| `reaction-mechanism-explanation` | `public-test` | campaign | 36 | reaction | score, mechanism explanation, failure analysis |
+| `reaction-to-assay` | `public-dev` | single experiment | 18 | reaction | final-assay score, trajectory validity |
+| `reaction-to-purification` | `public-test` | single experiment | 90 | reaction + separation | score, purity, recovery, mass balance |
+| `partition-discovery` | `public-test` | campaign | 48 | phase/partition | phase ratio, product partition |
+| `purity-yield-tradeoff` | `public-test` | campaign | 90 | reaction + separation | yield, purity, recovery, cost |
+| `public-private-generalization` | `private-eval` | campaign | 72 | reaction | score, public/private gap |
+| `low-budget-characterization` | `public-test` | campaign | 18 | reaction | sample efficiency, uncertainty, local model quality |
+| `tool-agent-planning` | `public-dev` | single experiment | 48 | reaction + separation | trajectory validity, validator use, score |
 
 Task-based evaluation is preferred for public results because it removes
 ambiguity about budget, split, objective, and seed selection.
+
+## Episode Modes
+
+`single_experiment` tasks are one experimental workflow. A successful
+`final_assay` terminates the episode.
+
+`campaign` tasks are finite-budget experimental campaigns. A successful
+`final_assay` scores and closes the current experiment, then the reactor state
+is reset for the next independent experiment. The episode ends only when the
+campaign budget is exhausted. Optimizer baselines such as LHS, greedy search,
+GP-BO, RF-EI, and safe BO should be evaluated on campaign tasks.
 
 ## World, Scenario, Task
 

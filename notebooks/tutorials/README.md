@@ -23,6 +23,7 @@ python -m ipykernel install --user --name chemworld --display-name "Python (Chem
 | 10 | `day_10_public_leaderboard_challenge.ipynb` | Public-test submission rehearsal with verified JSONL trajectories |
 | 11 | `day_11_private_generalization.ipynb` | Public/private transfer, gaps, and overfitting diagnosis |
 | 12 | `day_12_demo_day_artifact.ipynb` | Demo Day artifact with performance, mechanism, and reproducibility scores |
+| Project | `project_leaderboard_blueprint.ipynb` | Shared World Challenge design, visible leaderboard boards, project tracks, and submission contract |
 
 The notebooks use executable SVG diagrams and plots generated from the current
 environment. No external image files or online services are required.
@@ -36,3 +37,5 @@ environment. No external image files or online services are required.
 - Day 7 uses the same split and seed for candidate selection and official replay.
 - Day 8-12 extend the course from tool use to GPT-assisted planning,
   optimization, public/private evaluation, and final research artifacts.
+- `project_leaderboard_blueprint.ipynb` turns the sequence into a course or
+  workshop leaderboard without turning tasks into separate mini-games.

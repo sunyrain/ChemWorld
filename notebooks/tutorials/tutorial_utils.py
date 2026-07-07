@@ -571,6 +571,8 @@ def heatmap_svg(
         )
         for col_index, col in enumerate(cols):
             value = float(matrix.loc[row, col])
+            if not math.isfinite(value):
+                value = low
             ratio = 0.0 if high == low else (value - low) / (high - low)
             red = int(240 - 130 * ratio)
             green = int(249 - 100 * ratio)
@@ -707,4 +709,296 @@ def display_learning_goal(day: int, title: str, goals: list[str]) -> None:
             f"<ul>{items}</ul></div>"
         )
     )
+
+
+def display_notebook_style() -> None:
+    """Install lightweight visual polish for tutorial notebooks."""
+
+    display(
+        HTML(
+            """
+<style>
+.cw-hero {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin: 10px 0 16px 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #eef6ff 54%, #f0fdf4 100%);
+  color: #0f172a;
+}
+.cw-hero h1 {
+  font-size: 26px;
+  margin: 0 0 6px 0;
+  letter-spacing: 0;
+}
+.cw-hero .subtitle {
+  font-size: 14px;
+  color: #334155;
+  margin-bottom: 12px;
+}
+.cw-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+.cw-card {
+  background: rgba(255,255,255,0.88);
+  border: 1px solid #dbe3ef;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.cw-card strong {
+  display: block;
+  margin-bottom: 5px;
+}
+.cw-card ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.cw-kicker {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #0369a1;
+  margin-bottom: 6px;
+}
+.cw-note {
+  border-left: 5px solid #7c3aed;
+  background: #f5f3ff;
+  padding: 12px 16px;
+  margin: 12px 0;
+}
+.cw-reflect {
+  border-left: 5px solid #ea580c;
+  background: #fff7ed;
+  padding: 12px 16px;
+  margin: 12px 0;
+}
+.cw-timeline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  gap: 6px;
+  margin: 10px 0 14px 0;
+}
+.cw-day {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 6px;
+  background: #ffffff;
+  text-align: center;
+  font-size: 12px;
+}
+.cw-day.active {
+  background: #dbeafe;
+  border-color: #2563eb;
+  font-weight: 700;
+}
+</style>
+            """
+        )
+    )
+
+
+def display_tutorial_header(
+    *,
+    day: int,
+    title: str,
+    subtitle: str,
+    focus: list[str],
+    deliverables: list[str],
+    project_link: str,
+) -> None:
+    """Render a consistent opening card for one tutorial notebook."""
+
+    display_notebook_style()
+    focus_items = "".join(f"<li>{html.escape(item)}</li>" for item in focus)
+    deliverable_items = "".join(
+        f"<li>{html.escape(item)}</li>" for item in deliverables
+    )
+    display(
+        HTML(
+            "<div class='cw-hero'>"
+            f"<div class='cw-kicker'>ChemWorld tutorial - Day {day}</div>"
+            f"<h1>{html.escape(title)}</h1>"
+            f"<div class='subtitle'>{html.escape(subtitle)}</div>"
+            "<div class='cw-grid'>"
+            "<div class='cw-card'><strong>Today you will learn</strong>"
+            f"<ul>{focus_items}</ul></div>"
+            "<div class='cw-card'><strong>Evidence to produce</strong>"
+            f"<ul>{deliverable_items}</ul></div>"
+            "<div class='cw-card'><strong>How it connects to the benchmark</strong>"
+            f"<p>{html.escape(project_link)}</p></div>"
+            "</div></div>"
+        )
+    )
+
+
+def display_course_map(active_day: int) -> None:
+    """Show where the current notebook sits in the twelve-day sequence."""
+
+    labels = [
+        "Lab",
+        "Laws",
+        "Observe",
+        "Scan",
+        "Model",
+        "Score",
+        "Artifact",
+        "GPT",
+        "BO",
+        "Public",
+        "Private",
+        "Demo",
+    ]
+    cells = []
+    for index, label in enumerate(labels, start=1):
+        cls = "cw-day active" if index == active_day else "cw-day"
+        cells.append(f"<div class='{cls}'>D{index}<br>{html.escape(label)}</div>")
+    display(HTML("<div class='cw-timeline'>" + "".join(cells) + "</div>"))
+
+
+def display_reflection_box(questions: list[str]) -> None:
+    items = "".join(f"<li>{html.escape(question)}</li>" for question in questions)
+    display(
+        HTML(
+            "<div class='cw-reflect'><strong>Exit ticket</strong>"
+            f"<ul>{items}</ul></div>"
+        )
+    )
+
+
+def display_project_canvas(
+    *,
+    title: str,
+    problem: str,
+    strategy: str,
+    artifact: str,
+    risks: str,
+) -> None:
+    display_notebook_style()
+    display(
+        HTML(
+            "<div class='cw-hero'>"
+            f"<div class='cw-kicker'>Project canvas</div><h1>{html.escape(title)}</h1>"
+            "<div class='cw-grid'>"
+            "<div class='cw-card'><strong>Scientific question</strong>"
+            f"<p>{html.escape(problem)}</p></div>"
+            f"<div class='cw-card'><strong>Strategy</strong><p>{html.escape(strategy)}</p></div>"
+            f"<div class='cw-card'><strong>Artifact</strong><p>{html.escape(artifact)}</p></div>"
+            f"<div class='cw-card'><strong>Known risks</strong><p>{html.escape(risks)}</p></div>"
+            "</div></div>"
+        )
+    )
+
+
+def world_law_svg() -> SVG:
+    width = 860
+    height = 300
+    rows = [
+        ("Ontology", "substances, phases, vessels, instruments"),
+        ("Constitution", "units, conservation, safety, preconditions"),
+        ("Transition", "reaction ODE + partition + separation"),
+        ("Observation", "noisy instruments + masks + cost"),
+        ("Tasks", "different goals over the same world law"),
+    ]
+    parts = [
+        f"<svg xmlns='http://www.w3.org/2000/svg' width='{width}' height='{height}' "
+        f"viewBox='0 0 {width} {height}'>",
+        "<rect width='100%' height='100%' fill='#ffffff'/>",
+        "<text x='24' y='32' font-size='18' font-family='Arial' "
+        "font-weight='700' fill='#0f172a'>One physical-chemical world, many tasks</text>",
+    ]
+    x = 44
+    box_w = 150
+    y = 90
+    for index, (title, desc) in enumerate(rows):
+        bx = x + index * 158
+        parts.append(
+            f"<rect x='{bx}' y='{y}' width='{box_w}' height='96' rx='8' "
+            "fill='#f8fafc' stroke='#64748b'/>"
+        )
+        parts.append(
+            f"<text x='{bx + box_w / 2}' y='{y + 32}' text-anchor='middle' "
+            "font-size='14' font-family='Arial' font-weight='700' fill='#0f172a'>"
+            f"{_svg_text(title)}</text>"
+        )
+        parts.append(
+            f"<foreignObject x='{bx + 12}' y='{y + 44}' width='{box_w - 24}' height='42'>"
+            "<div xmlns='http://www.w3.org/1999/xhtml' "
+            "style='font-family:Arial;font-size:11px;color:#475569;text-align:center'>"
+            f"{_svg_text(desc)}</div></foreignObject>"
+        )
+        if index < len(rows) - 1:
+            ax = bx + box_w + 6
+            parts.append(
+                f"<path d='M {ax} {y + 48} L {ax + 28} {y + 48}' "
+                "stroke='#2563eb' stroke-width='2'/>"
+            )
+            parts.append(
+                f"<path d='M {ax + 28} {y + 48} l -7 -5 l 0 10 z' "
+                "fill='#2563eb'/>"
+            )
+    parts.append(
+        "<text x='44' y='238' font-size='13' font-family='Arial' fill='#334155'>"
+        "A task changes budget, allowed operations, instruments, metrics, and split. "
+        "It does not create a separate physics game.</text>"
+    )
+    parts.append("</svg>")
+    return SVG("".join(parts))
+
+
+def leaderboard_blueprint_svg() -> SVG:
+    width = 860
+    height = 360
+    tracks = [
+        ("Performance", "final assay score", "#2563eb"),
+        ("Safety", "risk and violations", "#16a34a"),
+        ("Efficiency", "best score per budget", "#f97316"),
+        ("Generalization", "public-private gap", "#7c3aed"),
+        ("Understanding", "mechanism explanation", "#0f766e"),
+    ]
+    parts = [
+        f"<svg xmlns='http://www.w3.org/2000/svg' width='{width}' height='{height}' "
+        f"viewBox='0 0 {width} {height}'>",
+        "<rect width='100%' height='100%' fill='#ffffff'/>",
+        "<text x='24' y='34' font-size='18' font-family='Arial' "
+        "font-weight='700' fill='#0f172a'>ChemWorld Shared World Challenge</text>",
+        "<text x='24' y='58' font-size='12' font-family='Arial' fill='#475569'>"
+        "A leaderboard should reward scientific decision quality, not only one high score.</text>",
+    ]
+    for index, (name, metric, color) in enumerate(tracks):
+        y = 92 + index * 48
+        parts.append(
+            f"<rect x='52' y='{y}' width='190' height='34' rx='7' "
+            f"fill='{color}' opacity='0.16' stroke='{color}'/>"
+        )
+        parts.append(
+            f"<text x='66' y='{y + 22}' font-size='13' font-family='Arial' "
+            f"font-weight='700' fill='#0f172a'>{_svg_text(name)}</text>"
+        )
+        parts.append(
+            f"<text x='268' y='{y + 22}' font-size='12' font-family='Arial' "
+            f"fill='#334155'>{_svg_text(metric)}</text>"
+        )
+        parts.append(
+            f"<path d='M 470 {y + 17} L 590 {y + 17}' stroke='{color}' stroke-width='3'/>"
+        )
+    parts.append(
+        "<rect x='620' y='100' width='190' height='146' rx='8' fill='#f8fafc' "
+        "stroke='#64748b'/>"
+    )
+    parts.append(
+        "<text x='715' y='130' text-anchor='middle' font-size='14' font-family='Arial' "
+        "font-weight='700' fill='#0f172a'>Composite report</text>"
+    )
+    parts.append(
+        "<foreignObject x='642' y='148' width='146' height='82'>"
+        "<div xmlns='http://www.w3.org/1999/xhtml' "
+        "style='font-family:Arial;font-size:12px;color:#334155;text-align:center'>"
+        "rank table + trajectory replay + explanation card + failure analysis"
+        "</div></foreignObject>"
+    )
+    parts.append("</svg>")
+    return SVG("".join(parts))
 

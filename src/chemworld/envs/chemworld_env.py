@@ -101,18 +101,29 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             if self.task_spec is not None
             else set(REACTION_OPERATIONS)
         )
+        self.allowed_instruments = (
+            set(self.task_spec.allowed_instruments)
+            if self.task_spec is not None
+            else set(INSTRUMENTS)
+        )
+        self.episode_mode = (
+            self.task_spec.episode_mode if self.task_spec is not None else "single_experiment"
+        )
+        self.safety_limit = self.task_spec.safety_limit if self.task_spec is not None else 0.65
         self.action_codec = ActionCodec()
         self.world = load_chemworld_parameters(world_split, seed)
         self.constitution = make_chemworld_constitution()
         self.operation_validator = OperationValidator(
             constitution=self.constitution,
             allowed_operations=self.allowed_operations,
+            allowed_instruments=self.allowed_instruments,
             action_codec=self.action_codec,
         )
         self.transition_kernel = ChemWorldTransitionKernel(self.world, self.constitution)
         self.observation_kernel = ChemWorldObservationKernel(self.constitution, objective)
         self._rng = np.random.default_rng(seed)
         self._step_count = 0
+        self._experiment_index = 0
         self._done = False
         self._state = initial_chemworld_state()
         self._last_observation = self._empty_observation()
@@ -158,6 +169,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.transition_kernel = ChemWorldTransitionKernel(self.world, self.constitution)
             self._rng = np.random.default_rng(seed)
         self._step_count = 0
+        self._experiment_index = 0
         self._done = False
         self._state = initial_chemworld_state()
         self._last_observation = self._empty_observation()
@@ -227,7 +239,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             and operation_record.instrument == "final_assay"
         )
         truncated = self._step_count >= self.budget
-        terminated = successful_final_assay
+        campaign_final_assay = successful_final_assay and self.episode_mode == "campaign"
+        terminated = successful_final_assay and not campaign_final_assay
         self._done = terminated or truncated
         observation_dict = self._to_observation(observation_values)
         self._last_observation = observation_dict
@@ -235,6 +248,14 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         info = self._info(operation_record, observation)
         if self.debug_truth:
             info["truth"] = self._state.to_dict(include_hidden=True)
+        if campaign_final_assay:
+            info["experiment_ended"] = True
+            self._experiment_index += 1
+            if not truncated:
+                self._state = initial_chemworld_state()
+                info["next_experiment_ready"] = True
+            else:
+                info["next_experiment_ready"] = False
         return observation_dict, reward, terminated, truncated, info
 
     def task_info(self) -> dict[str, Any]:
@@ -250,12 +271,15 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "world_provider": self.world.provider,
             "objective": self.objective,
             "budget": self.budget,
+            "episode_mode": self.episode_mode,
+            "safety_limit": self.safety_limit,
             "seed": self.seed,
             "world_id": self.world.world_id,
             "env_version": __version__,
             "world_family_version": self.world.family_version,
             "operation_types": list(OPERATION_TYPES),
             "allowed_operations": sorted(self.allowed_operations),
+            "allowed_instruments": sorted(self.allowed_instruments),
             "instruments": {
                 key: item.to_dict() for key, item in batch_reactor_instruments().items()
             },
@@ -311,14 +335,22 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "step": self._step_count,
             "budget": self.budget,
             "remaining_budget": max(self.budget - self._step_count, 0),
+            "episode_mode": self.episode_mode,
+            "experiment_index": self._experiment_index,
+            "experiment_ended": False,
             "world_id": self.world.world_id,
             "task_id": self.task_id,
             "world_law_id": self.world.family_version,
             "world_split": self.world_split,
             "world_provider": self.world.provider,
             "objective": self.objective,
+            "safety_limit": self.safety_limit,
             "operation_type": operation_record.operation_type,
             "operation_allowed_by_task": operation_record.operation_type in self.allowed_operations,
+            "instrument_allowed_by_task": (
+                operation_record.operation_type != "measure"
+                or operation_record.instrument in self.allowed_instruments
+            ),
             "preconditions": operation_record.preconditions,
             "state_delta_summary": operation_record.state_delta_summary,
             "constitution_checks": checks,
@@ -344,7 +376,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 else f"Action precondition failed: {', '.join(failed_preconditions)}"
             ),
             "constraint_flags": {
-                "unsafe": self._value_or_default(values, "safety_risk") >= 0.65,
+                "unsafe": self._value_or_default(values, "safety_risk") >= self.safety_limit,
+                "unsafe_by_task_limit": (
+                    self._value_or_default(values, "safety_risk") >= self.safety_limit
+                ),
                 "high_cost": self._value_or_default(values, "cost") >= 0.75,
                 "low_selectivity": self._value_or_default(values, "selectivity") <= 0.35,
                 "degradation_detected": (

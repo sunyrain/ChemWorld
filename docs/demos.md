@@ -64,6 +64,20 @@ chemworld submission init runs/submissions/example --task-id reaction-optimizati
 The submission example creates a skeleton. Add trajectories and result JSON
 files before running `chemworld submission validate`.
 
+## Local Eval Machine
+
+```bash
+python local_eval_server/teacher_side/eval_machine.py \
+  --workspace runs/local_eval_machine \
+  demo \
+  --tasks reaction-to-assay \
+  --seeds 0
+```
+
+This simulates a teacher-side evaluator and a student-side submission process on
+the same host. The teacher process owns `ChemWorld`; the student process only
+receives observations and returns actions. See [Local Eval Machine](local_eval_machine.md).
+
 ## Notebook Walkthrough
 
 ```bash
@@ -99,6 +113,8 @@ progressive short course:
 - Day 11: private-world generalization and overfitting diagnosis;
 - Day 12: Demo Day artifact with performance, mechanism, and reproducibility
   scores.
+- Project blueprint: shared-world leaderboard design, project tracks, submission
+  bundle shape, and visible multi-board scoring.
 
 Start with `notebooks/tutorials/README.md`, then open the notebooks in order
 with the `Python (ChemWorld)` kernel.

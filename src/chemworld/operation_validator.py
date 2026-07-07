@@ -42,11 +42,13 @@ class OperationValidator:
         *,
         constitution: PhysicalConstitution,
         allowed_operations: set[str],
+        allowed_instruments: set[str] | None = None,
         operation_types: tuple[str, ...] = OPERATION_TYPES,
         action_codec: ActionCodec | None = None,
     ) -> None:
         self.constitution = constitution
         self.allowed_operations = allowed_operations
+        self.allowed_instruments = allowed_instruments
         self.operation_types = operation_types
         self.action_codec = action_codec or ActionCodec()
 
@@ -93,13 +95,25 @@ class OperationValidator:
     ) -> dict[str, bool]:
         preconditions = self.constitution.check_preconditions(operation_type, state, payload)
         preconditions["operation_allowed_by_task"] = operation_type in self.allowed_operations
+        if operation_type == "measure" and self.allowed_instruments is not None:
+            preconditions["instrument_allowed_by_task"] = (
+                str(payload.get("instrument", "hplc")) in self.allowed_instruments
+            )
         return preconditions
 
-    @staticmethod
-    def _default_payload(operation_type: str) -> dict[str, Any]:
+    def _default_payload(self, operation_type: str) -> dict[str, Any]:
         payload: dict[str, Any] = {"operation": operation_type}
         if operation_type == "measure":
-            payload["instrument"] = "hplc"
+            instrument_priority = ("hplc", "uvvis", "gc", "final_assay")
+            payload["instrument"] = next(
+                (
+                    instrument
+                    for instrument in instrument_priority
+                    if self.allowed_instruments is None
+                    or instrument in self.allowed_instruments
+                ),
+                "hplc",
+            )
         if operation_type == "add_phase":
             payload["phase"] = "aqueous"
         if operation_type == "separate_phase":

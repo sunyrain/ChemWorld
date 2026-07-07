@@ -5,6 +5,8 @@ import numpy as np
 
 import chemworld  # noqa: F401
 from chemworld.action_codec import ActionCodec
+from chemworld.core.batch_reactor import initial_chemworld_state, make_chemworld_constitution
+from chemworld.operation_validator import OperationValidator
 from chemworld.tasks import get_task, get_task_card, list_tasks
 from chemworld.wrappers import (
     ActionMaskWrapper,
@@ -26,6 +28,8 @@ def test_builtin_tasks_are_instantiable() -> None:
     task = get_task("reaction-optimization-standard")
     assert task.env_id == "ChemWorld"
     assert task.world_law_id == "chemworld-physical-chemistry"
+    assert task.episode_mode == "campaign"
+    assert task.termination_policy == "budget"
     assert task.env_kwargs(seed=7)["seed"] == 7
     assert "hplc" in task.allowed_instruments
     card = get_task_card("reaction-optimization-standard")
@@ -33,6 +37,9 @@ def test_builtin_tasks_are_instantiable() -> None:
     assert card["world_law_id"] == "chemworld-physical-chemistry"
     assert "baseline_reference_scores" in card
     assert "failure_modes" in card
+    assay_task = get_task("reaction-to-assay")
+    assert assay_task.episode_mode == "single_experiment"
+    assert assay_task.termination_policy == "final-assay-or-budget"
 
 
 def test_all_tasks_share_one_world_law() -> None:
@@ -126,6 +133,48 @@ def test_safety_cost_wrapper_preserves_gym_return_shape() -> None:
         assert step_info["constraint_budget_remaining"] <= 1.0
     finally:
         env.close()
+
+
+def test_task_safety_limit_reaches_constraint_flags() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-safety-constrained", seed=0)
+    try:
+        _, info = env.reset(seed=0)
+        assert info["safety_limit"] == 0.35
+        actions = [
+            {"operation": "add_solvent", "volume_L": 0.028, "solvent": 0},
+            {"operation": "add_reagent", "amount_mol": 0.030},
+            {"operation": "add_catalyst", "catalyst_amount_mol": 0.0003, "catalyst": 1},
+            {
+                "operation": "heat",
+                "target_temperature_K": 500.0,
+                "duration_s": 2400.0,
+                "stirring_speed_rpm": 1100.0,
+            },
+        ]
+        step_info = {}
+        for action in actions:
+            _, _, _, _, step_info = env.step(action)
+        assert step_info["safety_limit"] == 0.35
+        assert (
+            step_info["constraint_flags"]["unsafe"]
+            == step_info["constraint_flags"]["unsafe_by_task_limit"]
+        )
+    finally:
+        env.close()
+
+
+def test_operation_validator_enforces_instrument_policy() -> None:
+    validator = OperationValidator(
+        constitution=make_chemworld_constitution(),
+        allowed_operations={"measure"},
+        allowed_instruments={"uvvis"},
+    )
+    state = initial_chemworld_state().replace(volume_L=0.02)
+    allowed = validator.validate({"operation": "measure", "instrument": "uvvis"}, state)
+    blocked = validator.validate({"operation": "measure", "instrument": "hplc"}, state)
+    assert allowed.preconditions["instrument_allowed_by_task"]
+    assert not blocked.preconditions["instrument_allowed_by_task"]
+    assert "instrument_allowed_by_task" in blocked.invalid_reasons
 
 
 def test_nan_observation_wrapper_returns_vector_with_mask() -> None:

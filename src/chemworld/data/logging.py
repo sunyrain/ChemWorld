@@ -88,9 +88,13 @@ class TrajectoryLogger:
                 f"{task_info['objective']}:seed-{task_info['seed']}"
             ),
             "env_id": task_info["env_id"],
+            "benchmark_task_id": task_info.get("task_id"),
             "world_split": task_info["world_split"],
             "world_provider": task_info.get("world_provider"),
             "objective": task_info["objective"],
+            "budget": int(task_info["budget"]),
+            "episode_mode": task_info.get("episode_mode", "single_experiment"),
+            "safety_limit": float(task_info.get("safety_limit", 0.65)),
             "world_id": task_info["world_id"],
             "seed": int(task_info["seed"]),
             "step": step,

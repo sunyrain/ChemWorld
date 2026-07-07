@@ -242,8 +242,9 @@ principle: it broadens tasks without registering a separate extraction world.
 
 ### P0: Benchmark Hardening
 
-Current P0 hardening has started with task specs, wrappers, and submission
-bundles. Remaining P0 work before adding new chemistry:
+Current P0 hardening has started with task specs, wrappers, submission bundles,
+and explicit `single_experiment` versus `campaign` task semantics. Remaining
+P0 work before adding new chemistry:
 
 1. Add Gymnasium environment checker tests.
 2. Add task cards with baseline reference scores.

@@ -23,8 +23,8 @@ chemworld suite --task reaction-optimization-standard --agent gp_bo
 ```
 
 The task fixes the environment, world law, scenario, split, objective, budget,
-seeds, threshold, allowed operations, allowed instruments, observation policy,
-termination policy, success metrics, and safety limit.
+seeds, threshold, episode mode, allowed operations, allowed instruments,
+observation policy, termination policy, success metrics, and safety limit.
 
 A valid single-run submission contains:
 
@@ -32,7 +32,7 @@ A valid single-run submission contains:
 - agent manifest;
 - environment version;
 - world family version;
-- seed and budget;
+- seed, budget, and benchmark task id;
 - reproducible command.
 
 `chemworld run` writes a `*.manifest.json` sidecar containing dependency
@@ -108,9 +108,20 @@ quantities and public ledger state. `leaderboard_score` is only populated for
 official final-assay scoring events and is the value used for benchmark
 performance metrics.
 
-`final_assay` is terminal for the Gym episode. It requires a terminated reaction
-state and can only be scored once; repeated final assays are rejected by the
-physical constitution and cannot create additional leaderboard scores.
+ChemWorld separates two episode semantics:
+
+- `single_experiment`: `final_assay` terminates the Gym episode. This is used
+  for short teaching workflows such as `reaction-to-assay`.
+- `campaign`: `final_assay` ends one experiment inside the campaign, records a
+  `leaderboard_score`, resets the public reactor state for the next independent
+  experiment, and the Gym episode continues until the campaign budget is
+  exhausted. This is the correct mode for BO, LHS, greedy search, and public
+  leaderboard optimization tasks.
+
+In both modes, `final_assay` requires a terminated reaction state. Repeated
+final assays inside the same single experiment are rejected by the physical
+constitution. Campaign tasks permit multiple final assays because each one
+belongs to a new experiment within the same finite-budget campaign.
 
 Use `chemworld inspect-constitution --env ChemWorld` to inspect the declared
 rules for the environment. Use `chemworld tasks show <task_id>` to inspect the
@@ -127,8 +138,11 @@ leaderboard performance. It reports:
 - best valid yield;
 - area under the best-score curve;
 - threshold sample efficiency;
+- final assay count;
 - safety violations;
+- invalid action count;
 - mean cost and mean risk;
+- purification fields such as mean purity and recovery when observable;
 - safety-aware score;
 - weighted total score.
 

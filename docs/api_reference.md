@@ -29,9 +29,13 @@ task = get_task("reaction-optimization-standard")
 print(task.to_dict())
 ```
 
-Each task records `world_law_id`, scenario id, initial-state id, allowed
-operations, allowed instruments, observation policy, termination policy, and
-success metrics.
+Each task records `world_law_id`, scenario id, initial-state id, `episode_mode`,
+allowed operations, allowed instruments, observation policy, termination policy,
+success metrics, and safety limit.
+
+`single_experiment` tasks end the Gym episode after a valid final assay.
+`campaign` tasks continue after final assay by resetting the reactor state for
+the next independent experiment inside the same budget.
 
 ## Wrappers
 

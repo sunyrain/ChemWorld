@@ -54,12 +54,19 @@ def verify_records(
 
     validate_records(records)
     first = records[0]
-    env_kwargs: dict[str, Any] = {
-        "world_split": first["world_split"],
-        "budget": len(records),
-        "objective": _objective_from_record(first),
-        "seed": int(first["seed"]),
-    }
+    benchmark_task_id = first.get("benchmark_task_id")
+    if benchmark_task_id:
+        env_kwargs: dict[str, Any] = {
+            "task_id": str(benchmark_task_id),
+            "seed": int(first["seed"]),
+        }
+    else:
+        env_kwargs = {
+            "world_split": first["world_split"],
+            "budget": int(first.get("budget", len(records))),
+            "objective": _objective_from_record(first),
+            "seed": int(first["seed"]),
+        }
     env = gym.make(
         first["env_id"],
         **env_kwargs,

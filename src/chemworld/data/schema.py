@@ -15,8 +15,12 @@ class TrajectoryRecordPayload:
     world_family_version: str
     task_id: str
     env_id: str
+    benchmark_task_id: str | None
     world_split: str
     objective: str
+    budget: int
+    episode_mode: str
+    safety_limit: float
     world_id: str
     seed: int
     step: int

@@ -43,6 +43,7 @@ class TaskSpec:
     budget: int
     seeds: tuple[int, ...]
     threshold: float
+    episode_mode: str
     allowed_operations: tuple[str, ...]
     allowed_instruments: tuple[str, ...]
     observation_policy: str
@@ -65,6 +66,7 @@ class TaskSpec:
             "budget": self.budget,
             "seeds": list(self.seeds),
             "threshold": self.threshold,
+            "episode_mode": self.episode_mode,
             "allowed_operations": list(self.allowed_operations),
             "allowed_instruments": list(self.allowed_instruments),
             "observation_policy": self.observation_policy,
@@ -94,6 +96,7 @@ class TaskSpec:
             "allowed_operations": list(self.allowed_operations),
             "allowed_instruments": list(self.allowed_instruments),
             "budget": self.budget,
+            "episode_mode": self.episode_mode,
             "reward_leaderboard_metric": {
                 "online_reward": "observed score from instrument-visible estimates",
                 "leaderboard_score": "final-assay score only",
@@ -143,6 +146,7 @@ def _task(
     budget: int,
     seeds: tuple[int, ...],
     threshold: float,
+    episode_mode: str = "single_experiment",
     allowed_operations: tuple[str, ...],
     success_metrics: tuple[str, ...],
     safety_limit: float = 0.65,
@@ -151,8 +155,13 @@ def _task(
     tags: tuple[str, ...],
     instruments: tuple[str, ...] = INSTRUMENTS,
     observation_policy: str = "partial-instrument-observation",
-    termination_policy: str = "final-assay-or-budget",
+    termination_policy: str | None = None,
 ) -> TaskSpec:
+    resolved_termination_policy = (
+        termination_policy
+        if termination_policy is not None
+        else ("budget" if episode_mode == "campaign" else "final-assay-or-budget")
+    )
     return TaskSpec(
         task_id=task_id,
         env_id=ENV_ID,
@@ -164,10 +173,11 @@ def _task(
         budget=budget,
         seeds=seeds,
         threshold=threshold,
+        episode_mode=episode_mode,
         allowed_operations=allowed_operations,
         allowed_instruments=instruments,
         observation_policy=observation_policy,
-        termination_policy=termination_policy,
+        termination_policy=resolved_termination_policy,
         success_metrics=success_metrics,
         safety_limit=safety_limit,
         difficulty=difficulty,
@@ -184,6 +194,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         budget=72,
         seeds=(0, 1, 2, 3, 4),
         threshold=0.75,
+        episode_mode="campaign",
         allowed_operations=REACTION_ALLOWED,
         success_metrics=("score", "yield", "selectivity", "sample_efficiency"),
         description="Primary reaction optimization task in the shared ChemWorld law.",
@@ -197,6 +208,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         budget=72,
         seeds=(0, 1, 2, 3, 4),
         threshold=0.70,
+        episode_mode="campaign",
         allowed_operations=REACTION_ALLOWED,
         success_metrics=("score", "safety_risk", "constraint_violations"),
         safety_limit=0.35,
@@ -210,6 +222,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         budget=36,
         seeds=(0, 1, 2),
         threshold=0.68,
+        episode_mode="campaign",
         allowed_operations=REACTION_ALLOWED,
         success_metrics=("score", "mechanism_explanation", "failure_analysis"),
         description="Optimize while producing structured hypotheses about hidden kinetics.",
@@ -222,6 +235,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         budget=18,
         seeds=(0,),
         threshold=0.55,
+        episode_mode="single_experiment",
         allowed_operations=REACTION_ALLOWED,
         success_metrics=("final_assay_score", "trajectory_validity"),
         difficulty="smoke",
@@ -235,6 +249,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         budget=90,
         seeds=(0, 1, 2, 3, 4),
         threshold=0.70,
+        episode_mode="single_experiment",
         allowed_operations=REACTION_SEPARATION_ALLOWED,
         success_metrics=("score", "purity", "recovery", "process_mass_balance_error"),
         description="Closed-loop reaction, extraction, phase separation, purification, and assay.",
@@ -247,6 +262,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         budget=48,
         seeds=(0, 1, 2),
         threshold=0.60,
+        episode_mode="campaign",
         allowed_operations=PARTITION_ALLOWED,
         success_metrics=("phase_ratio", "product_in_organic", "product_in_aqueous"),
         description="Learn unknown solvent/product partition behavior through instruments.",
@@ -259,6 +275,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         budget=90,
         seeds=(0, 1, 2, 3, 4),
         threshold=0.70,
+        episode_mode="campaign",
         allowed_operations=REACTION_SEPARATION_ALLOWED,
         success_metrics=("yield", "purity", "recovery", "cost"),
         description="Optimize the downstream tradeoff between product purity, recovery, and cost.",
@@ -271,6 +288,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         budget=72,
         seeds=(0, 1, 2, 3, 4),
         threshold=0.72,
+        episode_mode="campaign",
         allowed_operations=REACTION_ALLOWED,
         success_metrics=("score", "public_private_gap", "rank_confidence"),
         description="Private-split task for evaluating overfitting to public worlds.",
@@ -283,6 +301,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         budget=18,
         seeds=(0, 1, 2),
         threshold=0.55,
+        episode_mode="campaign",
         allowed_operations=REACTION_ALLOWED,
         success_metrics=("sample_efficiency", "uncertainty", "local_model_quality"),
         difficulty="hard",
@@ -296,6 +315,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         budget=48,
         seeds=(0, 1),
         threshold=0.62,
+        episode_mode="single_experiment",
         allowed_operations=REACTION_SEPARATION_ALLOWED,
         success_metrics=("trajectory_validity", "validator_use", "score", "explanation"),
         description=(

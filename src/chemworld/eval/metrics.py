@@ -13,9 +13,12 @@ import numpy as np
 class EvaluationResult:
     agent_name: str
     env_id: str
+    benchmark_task_id: str | None
     world_split: str
     seed: int
+    episode_mode: str
     steps: int
+    final_assay_count: int
     final_best_score: float
     best_valid_score: float
     best_valid_yield: float
@@ -23,8 +26,11 @@ class EvaluationResult:
     sample_efficiency_step: int | None
     safety_violations: int
     high_cost_violations: int
+    invalid_action_count: int
     mean_cost: float
     mean_safety_risk: float
+    mean_purity: float
+    mean_recovery: float
     safety_aware_score: float
     total_score: float
 
@@ -64,6 +70,13 @@ def evaluate_records(
 
     unsafe = np.asarray([bool(flag.get("unsafe", False)) for flag in flags])
     high_cost = np.asarray([bool(flag.get("high_cost", False)) for flag in flags])
+    invalid_actions = np.asarray(
+        [
+            bool(flag.get("precondition_failed", False))
+            or bool(flag.get("constitution_failed", False))
+            for flag in flags
+        ]
+    )
     valid_mask = scored_mask & ~(unsafe | high_cost)
     valid_scores = official_scores[valid_mask]
 
@@ -71,6 +84,10 @@ def evaluate_records(
     valid_yields = yields[valid_mask]
     costs = [_obs_float(obs, "cost") for obs in observations]
     risks = [_obs_float(obs, "safety_risk") for obs in observations]
+    purities = [_obs_float(obs, "purity") for obs in observations if obs.get("purity") is not None]
+    recoveries = [
+        _obs_float(obs, "recovery") for obs in observations if obs.get("recovery") is not None
+    ]
 
     hit_indices = np.where(best_curve >= threshold)[0]
     sample_efficiency_step = int(hit_indices[0] + 1) if hit_indices.size else None
@@ -80,12 +97,18 @@ def evaluate_records(
     area = float(np.mean(best_curve))
     safety_violations = int(np.sum(unsafe))
     high_cost_violations = int(np.sum(high_cost))
+    invalid_action_count = int(np.sum(invalid_actions))
     mean_cost = float(fmean(costs))
     mean_risk = float(fmean(risks))
+    mean_purity = float(fmean(purities)) if purities else 0.0
+    mean_recovery = float(fmean(recoveries)) if recoveries else 0.0
 
     safety_penalty = min(
         1.0,
-        0.08 * safety_violations + 0.04 * high_cost_violations + 0.20 * mean_risk,
+        0.08 * safety_violations
+        + 0.04 * high_cost_violations
+        + 0.05 * invalid_action_count
+        + 0.20 * mean_risk,
     )
     safety_aware_score = float(np.clip(best_valid_score - safety_penalty, 0.0, 1.0))
     efficiency_score = area
@@ -110,9 +133,12 @@ def evaluate_records(
     return EvaluationResult(
         agent_name=_agent_name(records),
         env_id=str(first["env_id"]),
+        benchmark_task_id=first.get("benchmark_task_id"),
         world_split=str(first["world_split"]),
         seed=int(first["seed"]),
+        episode_mode=str(first.get("episode_mode", "single_experiment")),
         steps=len(records),
+        final_assay_count=int(np.sum(scored_mask)),
         final_best_score=final_best_score,
         best_valid_score=best_valid_score,
         best_valid_yield=best_valid_yield,
@@ -120,8 +146,11 @@ def evaluate_records(
         sample_efficiency_step=sample_efficiency_step,
         safety_violations=safety_violations,
         high_cost_violations=high_cost_violations,
+        invalid_action_count=invalid_action_count,
         mean_cost=mean_cost,
         mean_safety_risk=mean_risk,
+        mean_purity=mean_purity,
+        mean_recovery=mean_recovery,
         safety_aware_score=safety_aware_score,
         total_score=total_score,
     )
