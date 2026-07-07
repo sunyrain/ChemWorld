@@ -505,7 +505,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     artifact_create_parser = artifact_subparsers.add_parser(
         "create",
-        help="Create a v0.2-style benchmark paper artifact.",
+        help="Create a benchmark release artifact.",
     )
     artifact_create_parser.add_argument("--output-dir", default="artifact")
     artifact_create_parser.add_argument(

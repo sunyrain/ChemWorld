@@ -21,6 +21,14 @@ from chemworld.world.scenario import (
     get_scenario_card,
     list_scenarios,
 )
+from chemworld.world.spectra import (
+    final_assay_spectra,
+    gc_chromatogram,
+    hplc_chromatogram,
+    ir_spectrum,
+    nmr_spectrum,
+    uvvis_spectrum,
+)
 from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.world.world_law import (
     MODULE_VERSIONS,
@@ -44,12 +52,18 @@ __all__ = [
     "ScenarioSpec",
     "compile_recipe",
     "constitution_rules",
+    "final_assay_spectra",
+    "gc_chromatogram",
     "get_scenario",
     "get_scenario_card",
+    "hplc_chromatogram",
     "initial_chemworld_state",
     "instrument_contracts",
+    "ir_spectrum",
     "list_scenarios",
     "load_chemworld_parameters",
+    "nmr_spectrum",
+    "uvvis_spectrum",
     "validate_recipe",
     "world_law_spec",
 ]

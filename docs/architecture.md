@@ -121,7 +121,8 @@ changing the Gymnasium five-tuple API.
 Instrument observations are represented as:
 
 - `raw_signal`: teaching- and research-facing instrument signal packets such as
-  UV-vis spectra, HPLC peaks, GC peaks, or a final-assay packet;
+  UV-vis spectra, HPLC/GC chromatograms, IR/NMR proxy spectra, or a final-assay
+  multi-instrument packet;
 - `processed_estimate`: derived estimates such as yield, selectivity,
   conversion, byproduct signal, degradation warning, purity, recovery, or phase
   partition metrics;

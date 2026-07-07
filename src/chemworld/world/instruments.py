@@ -6,9 +6,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from chemworld.foundation import Instrument
+from chemworld.world.spectra import raw_signal_schema
 
 
-def batch_reactor_instruments() -> dict[str, Instrument]:
+def chemworld_instruments() -> dict[str, Instrument]:
     """Return instrument definitions used by the shared observation law."""
 
     return {
@@ -166,7 +167,7 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
         "final_assay": "leaderboard_grade_calibration",
     }
     contracts: dict[str, InstrumentContract] = {}
-    for instrument_id, instrument in batch_reactor_instruments().items():
+    for instrument_id, instrument in chemworld_instruments().items():
         processed_schema = {
             key: {"type": "number", "minimum": 0.0, "maximum": 1.0}
             for key in instrument.observable_keys
@@ -174,10 +175,7 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
         contracts[instrument_id] = InstrumentContract(
             instrument_id=instrument_id,
             observable_keys=instrument.observable_keys,
-            raw_signal_schema={
-                "type": "object",
-                "additionalProperties": {"type": ["number", "string", "boolean"]},
-            },
+            raw_signal_schema=raw_signal_schema(instrument_id),
             processed_estimate_schema={
                 "type": "object",
                 "properties": processed_schema,
@@ -195,4 +193,4 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
     return contracts
 
 
-__all__ = ["InstrumentContract", "batch_reactor_instruments", "instrument_contracts"]
+__all__ = ["InstrumentContract", "chemworld_instruments", "instrument_contracts"]

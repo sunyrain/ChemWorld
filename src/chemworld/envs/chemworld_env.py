@@ -27,8 +27,8 @@ from chemworld.world.operations import (
     INSTRUMENTS,
     OPERATION_TYPES,
     REACTION_OPERATIONS,
-    batch_reactor_operations,
-    batch_reactor_state_variables,
+    chemworld_operations,
+    chemworld_state_variable_contracts,
     operation_contracts,
 )
 from chemworld.world.parameters import load_chemworld_parameters
@@ -348,11 +348,13 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 key: contract.to_dict() for key, contract in instrument_contracts().items()
             },
             "reactions": [reaction.to_dict() for reaction in reaction_network()],
-            "operations": [operation.to_dict() for operation in batch_reactor_operations()],
+            "operations": [operation.to_dict() for operation in chemworld_operations()],
             "operation_contracts": {
                 key: contract.to_dict() for key, contract in operation_contracts().items()
             },
-            "state_variables": [variable.to_dict() for variable in batch_reactor_state_variables()],
+            "state_variables": [
+                variable.to_dict() for variable in chemworld_state_variable_contracts()
+            ],
             "constitution": self.constitution_summary(),
             "world_law": world_law_spec().to_dict(),
             "backend": semi_mechanistic_backend_spec().to_dict(),

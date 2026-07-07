@@ -15,7 +15,7 @@ from chemworld.foundation import (
     Vessel,
     WorldState,
 )
-from chemworld.world.instruments import batch_reactor_instruments
+from chemworld.world.instruments import chemworld_instruments
 from chemworld.world.observation_kernel import (
     base_observed_mask,
     base_public_values,
@@ -43,7 +43,7 @@ def make_chemworld_constitution() -> PhysicalConstitution:
             max_temperature_K=470.0,
             max_pressure_Pa=550_000.0,
         ),
-        instruments=batch_reactor_instruments(),
+        instruments=chemworld_instruments(),
         max_yield=1.0,
         tolerance=5.0e-7,
     )

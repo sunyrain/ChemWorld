@@ -6,7 +6,7 @@ Generate a local artifact with:
 
 ```bash
 chemworld artifact create \
-  --output-dir artifact/v0.2 \
+  --output-dir artifact/release \
   --tasks reaction-to-assay \
   --agents scripted_chemistry \
   --seeds 0
@@ -45,7 +45,7 @@ Minimum commands:
 ```bash
 chemworld tasks list
 chemworld baselines report --tasks reaction-optimization-standard --agents random
-chemworld artifact create --output-dir artifact/v0.2
+chemworld artifact create --output-dir artifact/release
 chemworld submission validate submissions/example
 ```
 

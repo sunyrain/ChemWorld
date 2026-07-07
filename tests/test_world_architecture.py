@@ -31,6 +31,7 @@ from chemworld.world import (
     load_chemworld_parameters,
     world_law_spec,
 )
+from chemworld.world.observation_kernel import raw_signal
 from chemworld.world.phase_kernel import partition_split
 from chemworld.world.reaction_kernel import integrate_reaction_ode
 from chemworld.world.state_factory import initial_chemworld_state
@@ -59,7 +60,7 @@ def test_world_law_contains_professional_contracts() -> None:
         "electrochemistry",
     } <= module_ids
     assert spec["module_versions"]["reaction"] == "0.3"
-    assert spec["module_versions"]["observation"] == "0.3"
+    assert spec["module_versions"]["observation"] == "0.4"
 
 
 def test_world_layer_does_not_import_batch_core() -> None:
@@ -146,7 +147,40 @@ def test_instrument_contracts_expose_observation_layers() -> None:
     assert final_assay["requires_terminated"]
     assert final_assay["destructive"]
     assert "processed_estimate_schema" in final_assay
+    assert "spectra" in final_assay["raw_signal_schema"]["properties"]
     assert "yield" in final_assay["observable_keys"]
+
+
+def test_virtual_instrument_signals_are_plot_ready() -> None:
+    values = {
+        "yield": 0.62,
+        "selectivity": 0.82,
+        "conversion": 0.76,
+        "byproduct_signal": 0.12,
+        "degradation_warning": 0.06,
+        "purity": 0.88,
+        "recovery": 0.70,
+        "phase_ratio": 0.55,
+        "impurity_signal": 0.08,
+        "solvent_loss": 0.04,
+        "process_mass_balance_error": 0.02,
+        "distillate_purity": 0.91,
+        "flow_conversion": 0.0,
+        "energy_efficiency": 0.0,
+    }
+
+    hplc = raw_signal("hplc", values)
+    assert hplc["kind"] == "hplc_chromatogram"
+    assert len(hplc["time_min"]) == len(hplc["intensity"]) >= 100
+    assert hplc["peaks"][1]["assignment"] == "P_proxy"
+
+    uvvis = raw_signal("uvvis", values)
+    assert uvvis["kind"] == "uvvis_spectrum"
+    assert len(uvvis["wavelength_nm"]) == len(uvvis["absorbance"]) >= 100
+
+    final_packet = raw_signal("final_assay", values)
+    assert final_packet["kind"] == "final_assay_packet"
+    assert {"hplc", "gc", "uvvis", "ir", "nmr"} <= set(final_packet["spectra"])
 
 
 def test_action_and_recipe_public_validation() -> None:

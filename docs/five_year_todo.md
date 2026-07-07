@@ -10,7 +10,7 @@
 - 已建立 official baseline report 生成器：`chemworld baselines report` 可按 task/agent/seed 输出 results、leaderboard 和 report metadata；正式发布前需用全量矩阵冻结结果。
 - 已建立 signed private-eval artifact：`chemworld private-eval sign` 使用 hidden salt 生成 salt hash、运行日志、commit hash 和 HMAC 结果签名。
 - 完成本机教师端/学生端评测机：submission inbox、verify、evaluate、leaderboard export。
-- 已建立 v0.2 preprint artifact 生成器：`chemworld artifact create` 输出 task cards、schema snapshots、baseline tables、dataset examples 和复现实验脚本。
+- 已建立 release artifact 生成器：`chemworld artifact create` 输出 task cards、schema snapshots、baseline tables、dataset examples 和复现实验脚本。
 
 ## Year 2：同一世界下扩展物理过程
 

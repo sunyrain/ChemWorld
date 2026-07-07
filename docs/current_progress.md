@@ -20,6 +20,8 @@ The repository currently provides:
   continuous-flow, and electrochemistry process modules;
 - executable physical constitution checks;
 - noisy, partial instrument observations with explicit `observed_mask` fields;
+- plot-ready virtual HPLC, GC, UV-vis, IR, and NMR signal packets in
+  `raw_signal`;
 - standard trajectory logging, replay verification, metrics, and leaderboard
   aggregation;
 - official baseline agents;
@@ -170,6 +172,10 @@ Instrument observations also carry `raw_signal`, `processed_estimate`, and
 instrument workflow: instruments produce signals, processed estimates are
 derived from those signals, and agents maintain a belief state from the observed
 trajectory.
+HPLC and GC records include retention-time traces; UV-vis records include
+wavelength/absorbance traces; final assay records include a multi-instrument
+packet with chromatography, UV-vis, IR, NMR, and calibrated mass-balance
+summaries.
 
 Failed action preconditions now return empty, non-informative observations and
 explicit `error_message` fields. Final assay is treated as the official scoring

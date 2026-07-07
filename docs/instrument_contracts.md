@@ -23,4 +23,16 @@ Current instruments:
 - `hplc`: chromatography-style yield, selectivity, byproduct, and purity signal.
 - `final_assay`: leaderboard-grade terminal measurement.
 
+Raw signals are plot-ready JSON packets:
+
+- HPLC and GC expose `time_min`, `intensity`, `peaks`, baseline, and
+  normalization metadata.
+- UV-vis exposes `wavelength_nm`, `absorbance`, and broad proxy bands.
+- Final assay exposes a multi-instrument packet with HPLC, GC, UV-vis, IR, NMR,
+  and calibrated mass-balance summaries.
+
+The raw signal is for analysis, teaching, and agent tool use. Gym observations
+remain scalar and stable; richer spectra live in trajectory `raw_signal` and
+`info["raw_signal"]`.
+
 Final assay is the official source for `leaderboard_score`.

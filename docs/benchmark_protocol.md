@@ -198,6 +198,6 @@ chemworld private-eval verify \
 For a paper or preprint bundle:
 
 ```bash
-chemworld artifact create --output-dir artifact/v0.2
+chemworld artifact create --output-dir artifact/release
 ```
 

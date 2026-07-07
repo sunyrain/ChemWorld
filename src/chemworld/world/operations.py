@@ -86,7 +86,7 @@ class OperationContract:
         }
 
 
-def batch_reactor_operations() -> tuple[Operation, ...]:
+def chemworld_operations() -> tuple[Operation, ...]:
     """Return operation contracts for the shared event language."""
 
     return (
@@ -195,7 +195,7 @@ def batch_reactor_operations() -> tuple[Operation, ...]:
     )
 
 
-def batch_reactor_state_variables() -> tuple[Any, ...]:
+def chemworld_state_variable_contracts() -> tuple[Any, ...]:
     return chemworld_state_variables()
 
 
@@ -207,7 +207,7 @@ def operation_contracts() -> dict[str, OperationContract]:
     flow = set(FLOW_OPERATIONS)
     electrochemistry = set(ELECTROCHEMISTRY_OPERATIONS)
     contracts: dict[str, OperationContract] = {}
-    for operation in batch_reactor_operations():
+    for operation in chemworld_operations():
         if operation.id in separation:
             module = "separation"
         elif operation.id in crystallization:
@@ -261,8 +261,8 @@ __all__ = [
     "REACTION_OPERATIONS",
     "SEPARATION_OPERATIONS",
     "OperationContract",
-    "batch_reactor_operations",
-    "batch_reactor_state_variables",
+    "chemworld_operations",
+    "chemworld_state_variable_contracts",
     "instrument_name",
     "operation_contracts",
     "operation_name",

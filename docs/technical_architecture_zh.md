@@ -260,7 +260,7 @@ Dataset card 包含：
 - crystallization、distillation、continuous-flow、electrochemistry Year 2 过程模块基础版；
 - `chemworld baselines report` 官方基线报告生成器；
 - `chemworld private-eval sign` 本机私有评测签名 artifact；
-- `chemworld artifact create` v0.2 paper artifact 目录生成器；
+- `chemworld artifact create` release artifact 目录生成器；
 - 本地教师端/学生端评测框架；
 - 12 天中文 notebook 教程。
 
