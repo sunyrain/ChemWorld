@@ -4,6 +4,8 @@
 
 本文记录 ChemWorld 当前已经完成的 Year 1-2 能力边界。这里的“完成”指代码、测试、文档入口和最小可运行演示已经闭环；不等于真实化学预测软件，也不等于最终 1.0 版本。
 
+要求-证据级验收见 [Year 1-2 验收审计](year1_year2_acceptance_audit.md)。
+
 ## Year 1：Benchmark 底座冻结
 
 当前已经具备以下科研 benchmark 底座：

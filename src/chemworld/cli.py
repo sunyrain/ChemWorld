@@ -296,7 +296,7 @@ def _scenarios_show(args: argparse.Namespace) -> None:
 
 
 def _load_json_file(path: str | Path) -> dict[str, Any]:
-    with Path(path).open("r", encoding="utf-8") as handle:
+    with Path(path).open("r", encoding="utf-8-sig") as handle:
         payload = json.load(handle)
     if not isinstance(payload, dict):
         raise SystemExit(f"{path} must contain a JSON object")

@@ -248,7 +248,7 @@ def test_cli_scenarios_validation_render_and_dataset(tmp_path, capsys) -> None:
     action_path = tmp_path / "action.json"
     action_path.write_text(
         json.dumps({"operation": "add_solvent", "volume_L": 0.02, "solvent": 1}),
-        encoding="utf-8",
+        encoding="utf-8-sig",
     )
     recipe_path = tmp_path / "recipe.json"
     recipe_path.write_text(
