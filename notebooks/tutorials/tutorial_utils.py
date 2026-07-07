@@ -1,3 +1,4 @@
+# ruff: noqa: RUF001
 """Shared helpers for ChemWorld twelve-day tutorial notebooks."""
 
 from __future__ import annotations
@@ -327,7 +328,7 @@ def _scale(values: list[float], low_px: float, high_px: float) -> list[float]:
 
 
 def workflow_svg() -> SVG:
-    labels = ["Hypothesis", "Action", "Experiment", "Observation", "Model", "Decision"]
+    labels = ["提出假设", "设计动作", "执行实验", "读取观测", "建立模型", "下一轮决策"]
     width = 880
     height = 180
     gap = 16
@@ -338,7 +339,7 @@ def workflow_svg() -> SVG:
         "viewBox='0 0 880 180'>",
         "<rect width='880' height='180' fill='#f8fafc'/>",
         "<text x='24' y='32' font-size='18' font-family='Arial' "
-        "font-weight='700' fill='#0f172a'>Closed-loop experiment cycle</text>",
+        "font-weight='700' fill='#0f172a'>闭环实验决策流程</text>",
     ]
     for index, label in enumerate(labels):
         x = 24 + index * (box_w + gap)
@@ -374,22 +375,22 @@ def reaction_network_svg() -> SVG:
         "B": (285, 52),
         "D": (480, 126),
         "E": (480, 52),
-        "Cat active": (285, 206),
-        "Cat dead": (480, 206),
+        "活性催化剂": (285, 206),
+        "失活催化剂": (480, 206),
     }
     arrows = [
-        ("A", "P", "target", "#16a34a"),
-        ("A", "B", "byproduct", "#dc2626"),
-        ("P", "D", "degradation", "#f97316"),
-        ("P", "E", "coupled impurity", "#9333ea"),
-        ("Cat active", "Cat dead", "deactivation", "#475569"),
+        ("A", "P", "目标反应", "#16a34a"),
+        ("A", "B", "副产物", "#dc2626"),
+        ("P", "D", "产物降解", "#f97316"),
+        ("P", "E", "偶联杂质", "#9333ea"),
+        ("活性催化剂", "失活催化剂", "催化剂失活", "#475569"),
     ]
     parts = [
         f"<svg xmlns='http://www.w3.org/2000/svg' width='{width}' height='{height}' "
         "viewBox='0 0 760 270'>",
         "<rect width='760' height='270' fill='#ffffff'/>",
         "<text x='24' y='32' font-size='18' font-family='Arial' "
-        "font-weight='700' fill='#0f172a'>ChemWorld reaction network</text>",
+        "font-weight='700' fill='#0f172a'>ChemWorld 反应网络</text>",
     ]
     for source, target, label, color in arrows:
         x1, y1 = nodes[source]
@@ -655,14 +656,14 @@ def display_api_card() -> None:
         HTML(
             "<div style='border:1px solid #cbd5e1;border-radius:8px;padding:12px;"
             "background:#f8fafc;margin:10px 0'>"
-            "<strong>Notebook API card</strong>"
+            "<strong>Notebook API 速查卡</strong>"
             "<ul>"
-            "<li><code>tu.run_recipe(recipe, seed)</code>: execute one recipe and return "
-            "the final-assay row.</li>"
-            "<li><code>tu.run_events(events, seed)</code>: execute explicit event actions "
-            "and return the public trajectory table.</li>"
-            "<li><code>tu.line_svg / bar_svg / heatmap_svg</code>: render dependency-free "
-            "notebook figures.</li>"
+            "<li><code>tu.run_recipe(recipe, seed)</code>：执行一组 recipe，"
+            "并返回最终检测行。</li>"
+            "<li><code>tu.run_events(events, seed)</code>：执行显式事件动作，"
+            "并返回公开轨迹表。</li>"
+            "<li><code>tu.line_svg / bar_svg / heatmap_svg</code>：生成无需额外依赖的 "
+            "notebook 图。</li>"
             "</ul>"
             "</div>"
         )
@@ -674,27 +675,13 @@ def display_score_terms() -> None:
         HTML(
             "<div style='border:1px solid #cbd5e1;border-radius:8px;padding:12px;"
             "background:#fff7ed;margin:10px 0'>"
-            "<strong>Score terminology</strong>"
+            "<strong>评分术语</strong>"
             "<ul>"
-            "<li><code>observed_score</code>/<code>reward</code>: online feedback computed "
-            "from currently observed or carried-forward estimates.</li>"
-            "<li><code>leaderboard_score</code>: official final-assay score used by the "
-            "benchmark metrics.</li>"
-            "<li><code>hidden_true_score</code>: internal truth for developers only; it is "
-            "not exposed in student trajectories.</li>"
+            "<li><code>observed_score</code>/<code>reward</code>：由当前可见观测或延续估计计算的在线反馈。</li>"
+            "<li><code>leaderboard_score</code>：正式 benchmark 指标使用的 final assay 得分。</li>"
+            "<li><code>hidden_true_score</code>：仅供开发者调试的隐藏真实分数，不出现在学生轨迹中。</li>"
             "</ul>"
             "</div>"
-        )
-    )
-
-
-def display_student_checkpoint(day: int, deliverables: list[str]) -> None:
-    items = "".join(f"<li>{html.escape(item)}</li>" for item in deliverables)
-    display(
-        HTML(
-            "<div style='border-left:5px solid #0f766e;padding:12px 16px;"
-            "background:#ecfdf5;margin:12px 0'>"
-            f"<strong>Day {day} checkpoint</strong><ul>{items}</ul></div>"
         )
     )
 
@@ -705,7 +692,7 @@ def display_learning_goal(day: int, title: str, goals: list[str]) -> None:
         HTML(
             "<div style='border-left:5px solid #2563eb;padding:12px 16px;"
             "background:#eff6ff;margin:10px 0'>"
-            f"<div style='font-weight:700'>Day {day}: {html.escape(title)}</div>"
+            f"<div style='font-weight:700'>第 {day} 天：{html.escape(title)}</div>"
             f"<ul>{items}</ul></div>"
         )
     )
@@ -819,15 +806,15 @@ def display_tutorial_header(
     display(
         HTML(
             "<div class='cw-hero'>"
-            f"<div class='cw-kicker'>ChemWorld tutorial - Day {day}</div>"
+            f"<div class='cw-kicker'>ChemWorld 教程 - 第 {day} 天</div>"
             f"<h1>{html.escape(title)}</h1>"
             f"<div class='subtitle'>{html.escape(subtitle)}</div>"
             "<div class='cw-grid'>"
-            "<div class='cw-card'><strong>Today you will learn</strong>"
+            "<div class='cw-card'><strong>今天你将学习</strong>"
             f"<ul>{focus_items}</ul></div>"
-            "<div class='cw-card'><strong>Evidence to produce</strong>"
+            "<div class='cw-card'><strong>需要产出的证据</strong>"
             f"<ul>{deliverable_items}</ul></div>"
-            "<div class='cw-card'><strong>How it connects to the benchmark</strong>"
+            "<div class='cw-card'><strong>它如何连接到 benchmark</strong>"
             f"<p>{html.escape(project_link)}</p></div>"
             "</div></div>"
         )
@@ -838,23 +825,23 @@ def display_course_map(active_day: int) -> None:
     """Show where the current notebook sits in the twelve-day sequence."""
 
     labels = [
-        "Lab",
-        "Laws",
-        "Observe",
-        "Scan",
-        "Model",
-        "Score",
-        "Artifact",
+        "实验室",
+        "世界规则",
+        "观测",
+        "扫描",
+        "建模",
+        "评分",
+        "成果包",
         "GPT",
         "BO",
-        "Public",
-        "Private",
-        "Demo",
+        "公开榜",
+        "私有泛化",
+        "展示",
     ]
     cells = []
     for index, label in enumerate(labels, start=1):
         cls = "cw-day active" if index == active_day else "cw-day"
-        cells.append(f"<div class='{cls}'>D{index}<br>{html.escape(label)}</div>")
+        cells.append(f"<div class='{cls}'>第{index}天<br>{html.escape(label)}</div>")
     display(HTML("<div class='cw-timeline'>" + "".join(cells) + "</div>"))
 
 
@@ -862,7 +849,7 @@ def display_reflection_box(questions: list[str]) -> None:
     items = "".join(f"<li>{html.escape(question)}</li>" for question in questions)
     display(
         HTML(
-            "<div class='cw-reflect'><strong>Exit ticket</strong>"
+            "<div class='cw-reflect'><strong>课后反思</strong>"
             f"<ul>{items}</ul></div>"
         )
     )
@@ -880,13 +867,13 @@ def display_project_canvas(
     display(
         HTML(
             "<div class='cw-hero'>"
-            f"<div class='cw-kicker'>Project canvas</div><h1>{html.escape(title)}</h1>"
+            f"<div class='cw-kicker'>项目画布</div><h1>{html.escape(title)}</h1>"
             "<div class='cw-grid'>"
-            "<div class='cw-card'><strong>Scientific question</strong>"
+            "<div class='cw-card'><strong>科学问题</strong>"
             f"<p>{html.escape(problem)}</p></div>"
-            f"<div class='cw-card'><strong>Strategy</strong><p>{html.escape(strategy)}</p></div>"
-            f"<div class='cw-card'><strong>Artifact</strong><p>{html.escape(artifact)}</p></div>"
-            f"<div class='cw-card'><strong>Known risks</strong><p>{html.escape(risks)}</p></div>"
+            f"<div class='cw-card'><strong>策略</strong><p>{html.escape(strategy)}</p></div>"
+            f"<div class='cw-card'><strong>成果物</strong><p>{html.escape(artifact)}</p></div>"
+            f"<div class='cw-card'><strong>已知风险</strong><p>{html.escape(risks)}</p></div>"
             "</div></div>"
         )
     )
@@ -896,18 +883,18 @@ def world_law_svg() -> SVG:
     width = 860
     height = 300
     rows = [
-        ("Ontology", "substances, phases, vessels, instruments"),
-        ("Constitution", "units, conservation, safety, preconditions"),
-        ("Transition", "reaction ODE + partition + separation"),
-        ("Observation", "noisy instruments + masks + cost"),
-        ("Tasks", "different goals over the same world law"),
+        ("本体", "物质、相、容器、仪器"),
+        ("世界宪法", "单位、守恒、安全、前置条件"),
+        ("状态转移", "反应 ODE、分配、分离"),
+        ("观测", "有噪声的仪器、mask、成本"),
+        ("任务", "同一世界规律上的不同目标切片"),
     ]
     parts = [
         f"<svg xmlns='http://www.w3.org/2000/svg' width='{width}' height='{height}' "
         f"viewBox='0 0 {width} {height}'>",
         "<rect width='100%' height='100%' fill='#ffffff'/>",
         "<text x='24' y='32' font-size='18' font-family='Arial' "
-        "font-weight='700' fill='#0f172a'>One physical-chemical world, many tasks</text>",
+        "font-weight='700' fill='#0f172a'>一个物理化学世界，多种任务切片</text>",
     ]
     x = 44
     box_w = 150
@@ -941,8 +928,7 @@ def world_law_svg() -> SVG:
             )
     parts.append(
         "<text x='44' y='238' font-size='13' font-family='Arial' fill='#334155'>"
-        "A task changes budget, allowed operations, instruments, metrics, and split. "
-        "It does not create a separate physics game.</text>"
+        "任务只改变预算、可用操作、仪器、指标和 split；不会创建一套新的物理小游戏。</text>"
     )
     parts.append("</svg>")
     return SVG("".join(parts))
@@ -952,20 +938,20 @@ def leaderboard_blueprint_svg() -> SVG:
     width = 860
     height = 360
     tracks = [
-        ("Performance", "final assay score", "#2563eb"),
-        ("Safety", "risk and violations", "#16a34a"),
-        ("Efficiency", "best score per budget", "#f97316"),
-        ("Generalization", "public-private gap", "#7c3aed"),
-        ("Understanding", "mechanism explanation", "#0f766e"),
+        ("性能", "最终检测得分", "#2563eb"),
+        ("安全", "风险与违规次数", "#16a34a"),
+        ("效率", "单位预算下的最优得分", "#f97316"),
+        ("泛化", "public-private 差距", "#7c3aed"),
+        ("理解", "机制解释质量", "#0f766e"),
     ]
     parts = [
         f"<svg xmlns='http://www.w3.org/2000/svg' width='{width}' height='{height}' "
         f"viewBox='0 0 {width} {height}'>",
         "<rect width='100%' height='100%' fill='#ffffff'/>",
         "<text x='24' y='34' font-size='18' font-family='Arial' "
-        "font-weight='700' fill='#0f172a'>ChemWorld Shared World Challenge</text>",
+        "font-weight='700' fill='#0f172a'>ChemWorld 共享世界挑战</text>",
         "<text x='24' y='58' font-size='12' font-family='Arial' fill='#475569'>"
-        "A leaderboard should reward scientific decision quality, not only one high score.</text>",
+        "Leaderboard 应奖励科学决策质量，而不只是一次高分。</text>",
     ]
     for index, (name, metric, color) in enumerate(tracks):
         y = 92 + index * 48
@@ -990,13 +976,13 @@ def leaderboard_blueprint_svg() -> SVG:
     )
     parts.append(
         "<text x='715' y='130' text-anchor='middle' font-size='14' font-family='Arial' "
-        "font-weight='700' fill='#0f172a'>Composite report</text>"
+        "font-weight='700' fill='#0f172a'>综合报告</text>"
     )
     parts.append(
         "<foreignObject x='642' y='148' width='146' height='82'>"
         "<div xmlns='http://www.w3.org/1999/xhtml' "
         "style='font-family:Arial;font-size:12px;color:#334155;text-align:center'>"
-        "rank table + trajectory replay + explanation card + failure analysis"
+        "排名表 + 轨迹回放 + 解释卡 + 失败分析"
         "</div></foreignObject>"
     )
     parts.append("</svg>")

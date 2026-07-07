@@ -1,0 +1,323 @@
+"""Scenario specifications and generation for the shared ChemWorld law."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Protocol
+
+from chemworld.foundation import WorldState
+from chemworld.world.parameters import ChemWorldParameters, load_chemworld_parameters
+
+WORLD_LAW_ID = "chemworld-physical-chemistry"
+
+
+@dataclass(frozen=True)
+class ScenarioSpec:
+    scenario_id: str
+    world_law_id: str
+    family: str
+    split: str
+    difficulty: str
+    hidden_parameter_seed: int
+    initial_state_seed: int
+    initial_state_id: str
+    parameter_profile: str
+    allowed_module_tags: tuple[str, ...]
+    expected_qualitative_behavior: tuple[str, ...]
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "scenario_id": self.scenario_id,
+            "world_law_id": self.world_law_id,
+            "family": self.family,
+            "split": self.split,
+            "difficulty": self.difficulty,
+            "hidden_parameter_seed": self.hidden_parameter_seed,
+            "initial_state_seed": self.initial_state_seed,
+            "initial_state_id": self.initial_state_id,
+            "parameter_profile": self.parameter_profile,
+            "allowed_module_tags": list(self.allowed_module_tags),
+            "expected_qualitative_behavior": list(self.expected_qualitative_behavior),
+        }
+
+
+@dataclass(frozen=True)
+class ScenarioFamilySpec:
+    family_id: str
+    world_law_id: str
+    description: str
+    module_tags: tuple[str, ...]
+    split_policy: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "family_id": self.family_id,
+            "world_law_id": self.world_law_id,
+            "description": self.description,
+            "module_tags": list(self.module_tags),
+            "split_policy": self.split_policy,
+        }
+
+
+@dataclass(frozen=True)
+class ScenarioInstance:
+    spec: ScenarioSpec
+    parameters: ChemWorldParameters
+    initial_state: WorldState
+
+    def to_card(self) -> dict[str, object]:
+        return {
+            **self.spec.to_dict(),
+            "world_id": self.parameters.world_id,
+            "world_provider": self.parameters.provider,
+            "world_family_version": self.parameters.family_version,
+        }
+
+
+class ScenarioGenerator(Protocol):
+    def generate(self, spec: ScenarioSpec, seed: int) -> ScenarioInstance:
+        """Generate a reproducible scenario instance."""
+
+
+class DefaultScenarioGenerator:
+    """Generate ChemWorld scenarios from split, seed, and initial-state policy."""
+
+    def generate(self, spec: ScenarioSpec, seed: int) -> ScenarioInstance:
+        from chemworld.core.batch_reactor import initial_chemworld_state
+
+        parameters = load_chemworld_parameters(spec.split, seed + spec.hidden_parameter_seed)
+        return ScenarioInstance(
+            spec=spec,
+            parameters=parameters,
+            initial_state=initial_chemworld_state(),
+        )
+
+
+SCENARIO_FAMILIES: dict[str, ScenarioFamilySpec] = {
+    "reaction": ScenarioFamilySpec(
+        family_id="reaction",
+        world_law_id=WORLD_LAW_ID,
+        description="Semi-mechanistic batch reaction with hidden kinetics and safety tradeoffs.",
+        module_tags=("reaction", "thermal", "observation"),
+        split_policy="same mechanism family across public/private splits; distinct hidden seeds",
+    ),
+    "reaction_separation": ScenarioFamilySpec(
+        family_id="reaction_separation",
+        world_law_id=WORLD_LAW_ID,
+        description="Reaction followed by phase partition, separation, and purification.",
+        module_tags=("reaction", "thermal", "phase_partition", "separation", "observation"),
+        split_policy="same mechanism family across public/private splits; distinct hidden seeds",
+    ),
+    "partition": ScenarioFamilySpec(
+        family_id="partition",
+        world_law_id=WORLD_LAW_ID,
+        description="Phase partition and downstream characterization under sparse observations.",
+        module_tags=("phase_partition", "separation", "observation"),
+        split_policy="same partition-law family across public/private splits; distinct hidden seeds",
+    ),
+}
+
+
+SCENARIO_REGISTRY: dict[str, ScenarioSpec] = {
+    "reaction-optimization": ScenarioSpec(
+        scenario_id="reaction-optimization",
+        world_law_id=WORLD_LAW_ID,
+        family="reaction",
+        split="public-test",
+        difficulty="standard",
+        hidden_parameter_seed=0,
+        initial_state_seed=0,
+        initial_state_id="reaction-optimization:default",
+        parameter_profile="balanced_hidden_kinetics",
+        allowed_module_tags=("reaction", "thermal", "observation"),
+        expected_qualitative_behavior=(
+            "temperature accelerates desired and undesired reactions",
+            "long residence time can degrade product",
+            "catalyst and solvent interact nonlinearly",
+        ),
+    ),
+    "reaction-safety": ScenarioSpec(
+        scenario_id="reaction-safety",
+        world_law_id=WORLD_LAW_ID,
+        family="reaction",
+        split="public-test",
+        difficulty="hard",
+        hidden_parameter_seed=11,
+        initial_state_seed=0,
+        initial_state_id="reaction-safety:default",
+        parameter_profile="high_safety_sensitivity",
+        allowed_module_tags=("reaction", "thermal", "observation"),
+        expected_qualitative_behavior=(
+            "high temperature and concentration quickly increase risk",
+            "safe optimum is separated from maximum-yield region",
+        ),
+    ),
+    "reaction-mechanism": ScenarioSpec(
+        scenario_id="reaction-mechanism",
+        world_law_id=WORLD_LAW_ID,
+        family="reaction",
+        split="public-test",
+        difficulty="standard",
+        hidden_parameter_seed=17,
+        initial_state_seed=0,
+        initial_state_id="reaction-mechanism:default",
+        parameter_profile="mechanism_probe",
+        allowed_module_tags=("reaction", "thermal", "observation"),
+        expected_qualitative_behavior=(
+            "solvent changes selectivity",
+            "degradation signal grows after product peak",
+        ),
+    ),
+    "reaction-to-assay": ScenarioSpec(
+        scenario_id="reaction-to-assay",
+        world_law_id=WORLD_LAW_ID,
+        family="reaction",
+        split="public-dev",
+        difficulty="intro",
+        hidden_parameter_seed=0,
+        initial_state_seed=0,
+        initial_state_id="reaction-to-assay:default",
+        parameter_profile="teaching_assay",
+        allowed_module_tags=("reaction", "thermal", "observation"),
+        expected_qualitative_behavior=("valid final assay requires termination",),
+    ),
+    "reaction-to-purification": ScenarioSpec(
+        scenario_id="reaction-to-purification",
+        world_law_id=WORLD_LAW_ID,
+        family="reaction_separation",
+        split="public-test",
+        difficulty="hard",
+        hidden_parameter_seed=23,
+        initial_state_seed=0,
+        initial_state_id="reaction-to-purification:default",
+        parameter_profile="downstream_processing",
+        allowed_module_tags=("reaction", "thermal", "phase_partition", "separation", "observation"),
+        expected_qualitative_behavior=(
+            "reaction quality constrains purification ceiling",
+            "phase split trades purity against recovery",
+            "wash and concentration can improve purity but increase loss and cost",
+        ),
+    ),
+    "partition-discovery": ScenarioSpec(
+        scenario_id="partition-discovery",
+        world_law_id=WORLD_LAW_ID,
+        family="partition",
+        split="public-test",
+        difficulty="standard",
+        hidden_parameter_seed=31,
+        initial_state_seed=0,
+        initial_state_id="partition-discovery:default",
+        parameter_profile="unknown_partition_coefficients",
+        allowed_module_tags=("phase_partition", "separation", "observation"),
+        expected_qualitative_behavior=(
+            "extractant and solvent choices control product partition",
+            "settling and entrainment affect mass balance",
+        ),
+    ),
+    "purity-yield-tradeoff": ScenarioSpec(
+        scenario_id="purity-yield-tradeoff",
+        world_law_id=WORLD_LAW_ID,
+        family="reaction_separation",
+        split="public-test",
+        difficulty="hard",
+        hidden_parameter_seed=37,
+        initial_state_seed=0,
+        initial_state_id="purity-yield-tradeoff:default",
+        parameter_profile="purity_recovery_tradeoff",
+        allowed_module_tags=("reaction", "thermal", "phase_partition", "separation", "observation"),
+        expected_qualitative_behavior=(
+            "highest conversion does not imply highest isolated-purity score",
+            "aggressive separation can sacrifice recovery",
+        ),
+    ),
+    "generalization": ScenarioSpec(
+        scenario_id="generalization",
+        world_law_id=WORLD_LAW_ID,
+        family="reaction",
+        split="private-eval",
+        difficulty="hard",
+        hidden_parameter_seed=101,
+        initial_state_seed=0,
+        initial_state_id="generalization:default",
+        parameter_profile="private_shifted_hidden_kinetics",
+        allowed_module_tags=("reaction", "thermal", "observation"),
+        expected_qualitative_behavior=("public optimum may not transfer exactly to hidden world",),
+    ),
+    "low-budget-characterization": ScenarioSpec(
+        scenario_id="low-budget-characterization",
+        world_law_id=WORLD_LAW_ID,
+        family="reaction",
+        split="public-test",
+        difficulty="hard",
+        hidden_parameter_seed=43,
+        initial_state_seed=0,
+        initial_state_id="low-budget-characterization:default",
+        parameter_profile="sparse_measurement",
+        allowed_module_tags=("reaction", "thermal", "observation"),
+        expected_qualitative_behavior=("instrument choice matters under tight budget",),
+    ),
+    "tool-agent-planning": ScenarioSpec(
+        scenario_id="tool-agent-planning",
+        world_law_id=WORLD_LAW_ID,
+        family="reaction_separation",
+        split="public-dev",
+        difficulty="standard",
+        hidden_parameter_seed=47,
+        initial_state_seed=0,
+        initial_state_id="tool-agent-planning:default",
+        parameter_profile="operation_language_planning",
+        allowed_module_tags=("reaction", "thermal", "phase_partition", "separation", "observation"),
+        expected_qualitative_behavior=("valid operation sequencing is part of the task",),
+    ),
+}
+
+
+def list_scenarios() -> list[ScenarioSpec]:
+    return [SCENARIO_REGISTRY[key] for key in sorted(SCENARIO_REGISTRY)]
+
+
+def get_scenario(scenario_id: str, *, split: str | None = None) -> ScenarioSpec:
+    try:
+        spec = SCENARIO_REGISTRY[scenario_id]
+    except KeyError as exc:
+        available = ", ".join(sorted(SCENARIO_REGISTRY))
+        raise KeyError(f"Unknown scenario_id={scenario_id!r}. Available: {available}") from exc
+    if split is None or split == spec.split:
+        return spec
+    return ScenarioSpec(
+        scenario_id=spec.scenario_id,
+        world_law_id=spec.world_law_id,
+        family=spec.family,
+        split=split,
+        difficulty=spec.difficulty,
+        hidden_parameter_seed=spec.hidden_parameter_seed,
+        initial_state_seed=spec.initial_state_seed,
+        initial_state_id=spec.initial_state_id,
+        parameter_profile=spec.parameter_profile,
+        allowed_module_tags=spec.allowed_module_tags,
+        expected_qualitative_behavior=spec.expected_qualitative_behavior,
+    )
+
+
+def get_scenario_card(scenario_id: str, *, split: str | None = None) -> dict[str, object]:
+    spec = get_scenario(scenario_id, split=split)
+    family = SCENARIO_FAMILIES[spec.family]
+    return {
+        **spec.to_dict(),
+        "family_card": family.to_dict(),
+        "generator": "DefaultScenarioGenerator",
+    }
+
+
+__all__ = [
+    "DefaultScenarioGenerator",
+    "SCENARIO_FAMILIES",
+    "SCENARIO_REGISTRY",
+    "ScenarioFamilySpec",
+    "ScenarioGenerator",
+    "ScenarioInstance",
+    "ScenarioSpec",
+    "get_scenario",
+    "get_scenario_card",
+    "list_scenarios",
+]

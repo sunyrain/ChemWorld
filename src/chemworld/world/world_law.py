@@ -1,0 +1,86 @@
+"""Shared physical-chemical law registry for ChemWorld."""
+
+from __future__ import annotations
+
+from chemworld.backends import semi_mechanistic_backend_spec
+from chemworld.core.batch_reactor import (
+    INSTRUMENTS,
+    OPERATION_TYPES,
+    batch_reactor_substances,
+)
+from chemworld.foundation import WorldLawSpec
+from chemworld.world.instruments import instrument_contracts
+from chemworld.world.observation_kernel import ObservationModuleSpec
+from chemworld.world.parameters import WORLD_FAMILY_VERSION
+from chemworld.world.phase_kernel import PhaseModuleSpec
+from chemworld.world.reaction_kernel import ReactionModuleSpec
+from chemworld.world.separation_kernel import SeparationModuleSpec
+from chemworld.world.thermal_kernel import ThermalModuleSpec
+
+MODULE_VERSIONS = {
+    "reaction": ReactionModuleSpec().version,
+    "thermal": ThermalModuleSpec().version,
+    "phase_partition": PhaseModuleSpec().version,
+    "separation": SeparationModuleSpec().version,
+    "observation": ObservationModuleSpec().version,
+}
+
+
+def constitution_rules() -> tuple[str, ...]:
+    return (
+        "material_conservation",
+        "nonnegative_state",
+        "unit_consistency",
+        "yield_upper_bound",
+        "energy_balance",
+        "phase_mass_balance",
+        "observation_non_omniscient",
+        "measurement_has_cost",
+        "action_preconditions",
+        "safety_constraints",
+        "public_private_reproducibility",
+    )
+
+
+def world_law_spec() -> WorldLawSpec:
+    """Return the formal shared world law used by every ChemWorld task."""
+
+    contracts = {
+        instrument_id: contract.to_dict()
+        for instrument_id, contract in instrument_contracts().items()
+    }
+    backend = semi_mechanistic_backend_spec().to_dict()
+    return WorldLawSpec(
+        law_version=WORLD_FAMILY_VERSION,
+        ontology_registry={
+            "substances": sorted(batch_reactor_substances()),
+            "phases": ["reactor_liquid", "aqueous", "organic", "solid"],
+            "vessels": ["batch_reactor", "separator", "assay_vial"],
+            "instruments": list(INSTRUMENTS),
+            "modules": [
+                ReactionModuleSpec().to_dict(),
+                ThermalModuleSpec().to_dict(),
+                PhaseModuleSpec().to_dict(),
+                SeparationModuleSpec().to_dict(),
+                ObservationModuleSpec().to_dict(),
+            ],
+        },
+        physical_constitution="PhysicalConstitutionChecklist",
+        operation_registry=OPERATION_TYPES,
+        transition_kernel_registry=(
+            "reaction_ode",
+            "thermal_energy_balance",
+            "phase_partition",
+            "separation",
+            "instrument_cost",
+        ),
+        observation_kernel_registry=("instrument_observation",),
+        instrument_registry=contracts,
+        module_versions=MODULE_VERSIONS,
+        backend=backend,
+        constitution_rules=constitution_rules(),
+        scenario_generators=("chemworld.scenario.default",),
+    )
+
+
+__all__ = ["MODULE_VERSIONS", "constitution_rules", "world_law_spec"]
