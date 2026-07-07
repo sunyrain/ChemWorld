@@ -7,10 +7,10 @@
 - 完成 `core/batch_reactor.py` 拆分，把 ODE、热量、相分配、分离、观测、评分逐步迁入 `chemworld.world`。
 - 冻结 `WorldLawSpec`、`ScenarioSpec`、`TaskSpec`、trajectory schema、submission bundle schema。
 - 为每个 task 生成 task card、scenario card、instrument card、baseline card。
-- 建立 official baseline report：random、LHS、scripted、GP BO、safe GP BO、tool-using LLM stub。
-- 建立 signed private-eval artifact：hidden salt、运行日志、commit hash、结果签名。
+- 已建立 official baseline report 生成器：`chemworld baselines report` 可按 task/agent/seed 输出 results、leaderboard 和 report metadata；正式发布前需用全量矩阵冻结结果。
+- 已建立 signed private-eval artifact：`chemworld private-eval sign` 使用 hidden salt 生成 salt hash、运行日志、commit hash 和 HMAC 结果签名。
 - 完成本机教师端/学生端评测机：submission inbox、verify、evaluate、leaderboard export。
-- 发布 v0.2 preprint artifact：代码、public-test seeds、baseline tables、dataset examples、复现实验脚本。
+- 已建立 v0.2 preprint artifact 生成器：`chemworld artifact create` 输出 task cards、schema snapshots、baseline tables、dataset examples 和复现实验脚本。
 
 ## Year 2：同一世界下扩展物理过程
 

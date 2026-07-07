@@ -162,10 +162,7 @@ class ToolUsingLLMStubAgent(BaseAgent):
             ]
         )
         steps = compile_recipe(recipe)
-        index = len(history)
-        if index < len(steps):
-            return steps[index]
-        return {"operation": "wait", "duration_s": 300.0}
+        return steps[len(history) % len(steps)]
 
     def manifest(self) -> dict[str, Any]:
         manifest = super().manifest()

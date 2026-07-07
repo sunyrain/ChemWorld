@@ -18,8 +18,11 @@
 - 仪器合同：HPLC、GC、UV-vis、FinalAssay 都有 observable keys、noise、cost、sample consumption 和 raw signal。
 - safety/cost channel：`info["cost"]`、`info["cost_components"]`、`constraint_budget_remaining` 进入评测信息。
 - dataset layer：支持 JSONL/Parquet 导出和 dataset card。
+- baseline report：`chemworld baselines report` 可以按 task/agent/seed 生成基线结果、leaderboard 和元数据。
+- signed private-eval artifact：`chemworld private-eval sign` 用 maintainer salt 对结果签名，只发布 salt hash 和 HMAC。
+- paper artifact：`chemworld artifact create` 生成 task cards、scenario cards、schema snapshot、baseline report、dataset example 和复现实验脚本。
 - 本机评测机：教师端/学生端模拟、submission inbox、validate、verify、evaluate、leaderboard export 已有结构。
-- 教程体系：12 天 notebook + project leaderboard blueprint 已形成课程路径。
+- 教程体系：12 天 notebook + Day 13 Year 2 process modules + project leaderboard blueprint 已形成课程路径。
 
 ## Year 2：同一世界下的物理过程扩展
 
@@ -79,15 +82,15 @@
 - evaluation metrics 聚合 crystal、distillate、flow 和 electrochemical 指标。
 - 静态 JSON schema 与运行时 schema 保持一致。
 
-## 当前仍未完成
+## 当前边界
 
-这些内容属于 Year 2 后半段或 Year 3，不应在当前版本中过度宣称：
+这些内容属于正式发布前的全量运行、Year 2 后半段或 Year 3，不应在当前版本中过度宣称：
 
-- `core/batch_reactor.py` 的数值实现还没有完全拆到独立 kernel 文件。
+- `core/batch_reactor.py` 的数值实现已通过 `chemworld.world` 暴露模块化 contracts，但还没有完全物理拆分到独立 kernel 文件。
 - Crystallization、distillation、flow、电化学仍是定性半机理 proxy，不是真实单元操作模拟器。
-- private eval 仍是本机 hidden salt 模式，不是远端签名评测服务。
-- official baseline table 还需要按 task 冻结多 seed 参考结果。
-- notebook 尚未全面扩展到 Year 2 process modules 的逐日课程。
+- private eval 当前是本机 hidden salt + signed artifact 模式，不是远端托管评测服务。
+- official baseline table 生成器已经完成；正式 release 前需要用完整 task/agent/seed 矩阵重新运行并冻结结果。
+- Year 2 教程已有 Day 13 总览；正式课程版仍可继续拆成 3-5 个更细 notebook。
 
 ## 快速验收命令
 

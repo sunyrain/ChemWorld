@@ -26,3 +26,23 @@ enter acquisition instead of spending the whole episode on initialization.
 
 Reference tables should include mean, standard error, safety violations,
 public/private gap when available, and the exact platform version and command.
+
+Generate a task-based baseline report with:
+
+```bash
+chemworld baselines report \
+  --tasks reaction-optimization-standard reaction-to-crystallization \
+  --agents random scripted_chemistry gp_bo safe_gp_bo \
+  --seeds 0 1 2 \
+  --output-dir runs/baseline_report
+```
+
+The command writes:
+
+- `baseline_results.json`: run-level metrics;
+- `baseline_leaderboard.json`: task-specific leaderboard rows;
+- `baseline_report.json`: metadata, platform version, commit hash, tasks,
+  agents, seeds, and leaderboard rows.
+
+Rows are grouped per task. Do not merge reaction, purification, crystallization,
+distillation, flow, and electrochemistry tasks into one global table.

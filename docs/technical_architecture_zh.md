@@ -258,14 +258,17 @@ Dataset card 包含：
 - BO 默认 `n_initial=4`；
 - reaction + separation 任务族；
 - crystallization、distillation、continuous-flow、electrochemistry Year 2 过程模块基础版；
+- `chemworld baselines report` 官方基线报告生成器；
+- `chemworld private-eval sign` 本机私有评测签名 artifact；
+- `chemworld artifact create` v0.2 paper artifact 目录生成器；
 - 本地教师端/学生端评测框架；
 - 12 天中文 notebook 教程。
 
 仍需继续推进：
 
 - 将 `core/batch_reactor.py` 的数值实现进一步内移到 `world/reaction_kernel.py`、`world/phase_kernel.py`、`world/separation_kernel.py`；
-- 为每个 task 冻结官方 reference baseline table；
-- 增加 signed private-eval artifact；
+- 用完整 task/agent/seed 矩阵重新运行并冻结官方 reference baseline table；
+- 将本机 signed private-eval artifact 升级为远端 maintainer-side registry；
 - 增加 Minari 风格 dataset metadata；
 - 继续提高 crystallization、distillation、continuous flow、electrochemistry 的物理保真度与 baseline 标定。
 

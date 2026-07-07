@@ -19,6 +19,9 @@ The repository currently provides:
 - standard trajectory logging, replay verification, metrics, and leaderboard
   aggregation;
 - official baseline agents;
+- task-based baseline report generation;
+- signed private-eval artifacts;
+- local paper/preprint artifact generation;
 - local CLI workflows;
 - documentation, runnable example scripts, and executed notebooks.
 - a twelve-day executed tutorial sequence under `notebooks/tutorials/`.
@@ -235,10 +238,8 @@ splitting these processes into separate mini-game environments.
 
 Near-term engineering work:
 
-- add signed private-eval result manifests;
-- add stronger baseline calibration tables;
+- run and freeze stronger baseline calibration tables from the artifact tools;
 - add richer explanation schemas and scoring rubrics;
-- add paper-artifact scripts for reproducible tables;
 - calibrate the mechanism-explanation rubric with expert examples.
 
 Near-term research work:

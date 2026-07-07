@@ -23,8 +23,14 @@ from chemworld.data.submission import (
     write_submission_manifest,
 )
 from chemworld.data.validation import validate_records
+from chemworld.eval.baseline_report import generate_baseline_report
 from chemworld.eval.leaderboard import aggregate_leaderboard, load_results
 from chemworld.eval.metrics import evaluate_records
+from chemworld.eval.paper_artifact import create_paper_artifact
+from chemworld.eval.private_artifact import (
+    sign_private_eval_results,
+    verify_private_eval_artifact,
+)
 from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.suite import run_suite
 from chemworld.eval.verify import verify_records
@@ -219,6 +225,47 @@ def _suite(args: argparse.Namespace) -> None:
     )
 
 
+def _baselines_report(args: argparse.Namespace) -> None:
+    report = generate_baseline_report(
+        task_ids=args.tasks,
+        agents=args.agents,
+        seeds=args.seeds,
+        output_dir=args.output_dir,
+    )
+    print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+
+
+def _private_eval_sign(args: argparse.Namespace) -> None:
+    run_log = {
+        "command": args.command_line,
+        "notes": args.notes,
+    }
+    artifact = sign_private_eval_results(
+        result_paths=args.results,
+        output_path=args.output,
+        salt=args.salt,
+        run_log=run_log,
+    )
+    print(json.dumps(artifact.to_dict(), indent=2, sort_keys=True))
+
+
+def _private_eval_verify(args: argparse.Namespace) -> None:
+    valid = verify_private_eval_artifact(args.artifact, salt=args.salt)
+    print(json.dumps({"artifact": args.artifact, "signature_valid": valid}, indent=2))
+    if not valid:
+        raise SystemExit(1)
+
+
+def _artifact_create(args: argparse.Namespace) -> None:
+    summary = create_paper_artifact(
+        output_dir=args.output_dir,
+        task_ids=args.tasks,
+        agents=args.agents,
+        seeds=args.seeds,
+    )
+    print(json.dumps(summary, indent=2, sort_keys=True))
+
+
 def _tasks_list(args: argparse.Namespace) -> None:
     del args
     print(json.dumps([task.to_dict() for task in list_tasks()], indent=2, sort_keys=True))
@@ -399,6 +446,80 @@ def build_parser() -> argparse.ArgumentParser:
     suite_parser.add_argument("--threshold", type=float, default=0.75)
     suite_parser.add_argument("--output-dir", default="runs/suite")
     suite_parser.set_defaults(func=_suite)
+
+    baselines_parser = subparsers.add_parser("baselines", help="Generate baseline reports.")
+    baselines_subparsers = baselines_parser.add_subparsers(
+        dest="baselines_command",
+        required=True,
+    )
+    baselines_report_parser = baselines_subparsers.add_parser(
+        "report",
+        help="Run official baselines and write a task-based report.",
+    )
+    baselines_report_parser.add_argument(
+        "--tasks",
+        nargs="+",
+        default=["reaction-optimization-standard"],
+    )
+    baselines_report_parser.add_argument(
+        "--agents",
+        nargs="+",
+        default=["random", "scripted_chemistry"],
+    )
+    baselines_report_parser.add_argument("--seeds", nargs="+", type=int, default=[0])
+    baselines_report_parser.add_argument("--output-dir", default="runs/baseline_report")
+    baselines_report_parser.set_defaults(func=_baselines_report)
+
+    private_eval_parser = subparsers.add_parser(
+        "private-eval",
+        help="Create and verify signed private-eval artifacts.",
+    )
+    private_eval_subparsers = private_eval_parser.add_subparsers(
+        dest="private_eval_command",
+        required=True,
+    )
+    private_sign_parser = private_eval_subparsers.add_parser(
+        "sign",
+        help="Sign private-eval result JSON files with CHEMWORLD_PRIVATE_EVAL_SALT.",
+    )
+    private_sign_parser.add_argument("--results", nargs="+", required=True)
+    private_sign_parser.add_argument("--output", required=True)
+    private_sign_parser.add_argument("--salt")
+    private_sign_parser.add_argument("--notes", default="")
+    private_sign_parser.set_defaults(func=_private_eval_sign)
+    private_verify_parser = private_eval_subparsers.add_parser(
+        "verify",
+        help="Verify a signed private-eval artifact with a maintainer salt.",
+    )
+    private_verify_parser.add_argument("--artifact", required=True)
+    private_verify_parser.add_argument("--salt", required=True)
+    private_verify_parser.set_defaults(func=_private_eval_verify)
+
+    artifact_parser = subparsers.add_parser(
+        "artifact",
+        help="Generate local paper/preprint artifact folders.",
+    )
+    artifact_subparsers = artifact_parser.add_subparsers(
+        dest="artifact_command",
+        required=True,
+    )
+    artifact_create_parser = artifact_subparsers.add_parser(
+        "create",
+        help="Create a v0.2-style benchmark paper artifact.",
+    )
+    artifact_create_parser.add_argument("--output-dir", default="artifact")
+    artifact_create_parser.add_argument(
+        "--tasks",
+        nargs="+",
+        default=["reaction-to-assay"],
+    )
+    artifact_create_parser.add_argument(
+        "--agents",
+        nargs="+",
+        default=["scripted_chemistry"],
+    )
+    artifact_create_parser.add_argument("--seeds", nargs="+", type=int, default=[0])
+    artifact_create_parser.set_defaults(func=_artifact_create)
 
     tasks_parser = subparsers.add_parser("tasks", help="Inspect benchmark task specs.")
     tasks_subparsers = tasks_parser.add_subparsers(dest="tasks_command", required=True)

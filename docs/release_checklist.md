@@ -13,7 +13,10 @@ Use this checklist before a public benchmark release.
 
 - Built-in tasks are listed and documented.
 - Official baselines run on public tasks.
+- `chemworld baselines report` has generated task-specific baseline tables.
 - Public/private world split behavior is documented.
+- Private-eval results, if reported, have a signed artifact from
+  `chemworld private-eval sign`.
 - Submission bundle validation succeeds on sample artifacts.
 - Replay verification succeeds on all official trajectories.
 
@@ -26,6 +29,8 @@ Use this checklist before a public benchmark release.
 ## Paper Artifact
 
 - README includes install, run, evaluate, and verify commands.
+- `chemworld artifact create` has produced `artifact_summary.json`, task cards,
+  schema snapshots, baseline tables, dataset examples, and reproduction scripts.
 - Results include platform version, commit hash, seeds, and dependency file.
 - Figures and tables can be regenerated from local artifacts.
 

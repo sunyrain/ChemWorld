@@ -164,3 +164,40 @@ For research comparisons, run the same agent over multiple seeds and at least
 reports standard deviation, standard error, and a 95% confidence interval for
 mean total score.
 
+## Release Artifacts
+
+Official baseline reports are generated per task:
+
+```bash
+chemworld baselines report \
+  --tasks reaction-optimization-standard \
+  --agents random scripted_chemistry gp_bo safe_gp_bo \
+  --seeds 0 1 2 3 4 \
+  --output-dir runs/baseline_report
+```
+
+Maintainer-side private-eval results can be signed without publishing the
+secret salt:
+
+```bash
+chemworld private-eval sign \
+  --results runs/private_eval/results/*.json \
+  --output runs/private_eval/signed_private_eval.json
+```
+
+The signer reads `CHEMWORLD_PRIVATE_EVAL_SALT`, stores only a salt hash, and
+creates an HMAC signature over the result payload and run log. The signature can
+be checked by a maintainer with:
+
+```bash
+chemworld private-eval verify \
+  --artifact runs/private_eval/signed_private_eval.json \
+  --salt <maintainer-secret>
+```
+
+For a paper or preprint bundle:
+
+```bash
+chemworld artifact create --output-dir artifact/v0.2
+```
+
