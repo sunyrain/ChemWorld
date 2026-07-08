@@ -44,7 +44,8 @@ The repository currently provides:
   detailed-balance reverse rates, local kinetic sensitivity reports, dynamic
   batch heat-release/sampling, CSTR multiplicity, shortcut distillation,
   fixed-TP Gibbs minimization, UV-vis calibration, chromatography retention,
-  and PR/SRK residual EOS properties.
+  PR/SRK residual EOS properties, volume-translated cubic-EOS reports, and
+  root-governance diagnostics.
 
 ## Scientific Model
 

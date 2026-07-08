@@ -420,8 +420,27 @@ property slice:
   `CHEMWORLD_RUN_REFERENCE_TESTS=1`; the residual-property comparison uses
   `rtol=5e-5` to document small independent-implementation convention
   differences in `thermo` cubic EOS routines.
-- This is not a complete EOS/flash package. Volume translation, phase
-  envelopes, saturation solvers, mixture flash derivatives, and critical-region
+
+DEEP-D3A is now implemented for volume-translated cubic EOS diagnostics and
+root governance:
+
+- `VolumeTranslationSpec` carries component Peneloux-style shifts in `m^3/mol`
+  with source metadata and optional temperature ranges.
+- `translated_cubic_compressibility_roots()` evaluates translated PR/SRK cubic
+  roots with `C = c_mix P/(R T)` and admissibility `Z > B - C`.
+- `evaluate_volume_translated_cubic_eos()` reports base and translated `Z`,
+  base and translated molar volume, mixture-shift contributions, translated
+  roots, and root-governance evidence.
+- `cubic_root_governance_report()` ranks roots with explicit score basis and
+  selected-root evidence instead of hiding the root policy inside a solver
+  side effect.
+- `BinaryInteractionProvenance` and
+  `validate_binary_interaction_provenance()` make scenario-level `k_ij`
+  sources auditable and optionally mandatory.
+- Tests cover liquid translation, vapor-root warnings, stable-root ranking,
+  translated-volume failure, and provenance round trips. This is still not a
+  complete EOS/flash package: phase envelopes, saturation solvers, mixture
+  flash derivatives, translated fugacity derivatives, and critical-region
   handling remain on the later professional TODO track.
 
 PRO-P8A is now implemented for the first reference-validated heat-transfer and

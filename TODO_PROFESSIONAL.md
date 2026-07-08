@@ -312,7 +312,7 @@ Reference targets: `CoolProp`, `thermo`, `teqp`, `thermopack`.
 - [ ] Refactor cubic EOS into a professional API:
   - [x] pure-parameter generation;
   - [x] binary interaction matrix;
-  - [ ] volume translation hook;
+  - [x] volume translation hook;
   - [x] liquid/vapor/stable root policy;
   - [x] fugacity coefficients;
   - [x] residual enthalpy;
@@ -924,6 +924,22 @@ Acceptance:
 - [x] Optional validation tests skip cleanly without external packages.
 - [x] Running validation locally produces JSON-friendly comparison summaries.
 - [ ] Model-limit divergences are documented rather than hidden.
+
+Reference-reading note for DEEP-D3A:
+
+- `reference_repos/phasepy/phasepy/cubic/vtcubicpure.py` and
+  `reference_repos/phasepy/phasepy/cubic/vtcubicmix.py` expose translated
+  cubic-root equations with the reduced volume-translation parameter
+  `C = c_mix P/(R T)` and an admissibility boundary `Z > B - C`.
+- `reference_repos/thermopack/src/volume_shift.f90` implements Peneloux-style
+  component volume shifts, applies the shift to the compressibility factor, and
+  keeps component `c_i` data separate from the base EOS.
+- `reference_repos/thermopack/src/cubic.f90` documents root-selection flags for
+  smallest, largest, and minimum-Gibbs root policies.
+- `reference_repos/thermo/thermo/eos_mix_methods.py` separates translated
+  `b0`, `b`, and `c` terms for translated PR/SRK fugacity paths; ChemWorld
+  localizes only the volume/root-governance slice and leaves full translated
+  fugacity derivatives to later flash work.
 
 Reference-reading note for PRO-P12B:
 

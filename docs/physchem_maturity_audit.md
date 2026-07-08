@@ -22,7 +22,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Property correlations | Lite with reference-validated curated and vapor-pressure-report slices | vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against `chemicals`; Antoine/Wagner/DIPPR vapor-pressure reports with analytic derivative checks | broader component coverage, liquid/solid Cp, latent heat, EOS saturation, and CoolProp checks |
 | Reaction networks | Lite with reference-validated ODE, NASA7 thermochemistry, thermochemical detailed-balance, and local sensitivity slices | YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check, NASA7 Cp/H/S/G, reaction Delta H/G, K_eq, concentration-standard correction, thermochemical reverse-rate tests, and finite-difference first-order sensitivity tests | falloff, pressure dependence, adjoint/global sensitivities, and broader reactor-network validation |
 | Reactor models | Lite with reference-validated CSTR multiplicity and dynamic batch heat-release slices | batch, dynamic batch, semi-batch, CSTR, PFR tests; analytical exothermic CSTR three-root ignition/extinction case with stability classification; NASA7 heat-release dynamic batch, jacket, and sampling-ledger tests | broader Cantera/IDAES reactor-network validation, pressure modes, wall thermal inertia, and phase-change variants |
-| EOS | Lite with a reference-validated PR/SRK residual slice | ideal gas, PR/SRK roots, fugacity coefficients, explicit root policy, residual H/S/G tests, optional `thermo.eos` comparisons for methane/ethane/CO2 | volume translation, phase envelopes, flash derivatives, and broader CoolProp/teqp/thermopack validation |
+| EOS | Lite with reference-validated PR/SRK residuals and a professional-candidate volume/root-governance slice | ideal gas, PR/SRK roots, fugacity coefficients, explicit root policy, residual H/S/G tests, optional `thermo.eos` comparisons for methane/ethane/CO2, volume-translation reports, translated roots, root-governance diagnostics, binary-interaction provenance | phase envelopes, saturation solvers, translated fugacity derivatives, flash derivatives, and broader CoolProp/teqp/thermopack validation |
 | Phase equilibrium | Lite with a reference-validated Wilson/NRTL gamma slice | ideal VLE, Wilson/NRTL gamma checks against `thermo`, LLE split tests | UNIQUAC, phase stability, nonideal VLE/LLE task cases |
 | Separations | Proxy/lite with a reference-validated VLE distillation shortcut slice | material-conserving extraction, VLE flash, VLE/Fenske shortcut distillation, crystallization, filtration, drying tests | rigorous MESH columns, thermodynamic extraction, crystallization kinetics, and broader equipment validation |
 | Transport and heat transfer | Lite with reference-validated pipe-flow and heat-transfer slices | dimensionless numbers, explicit friction methods, `fluids` Haaland and single-phase pipe-pressure-drop optional checks; Nusselt branch metadata; counterflow exchanger duty-balance tests; optional `fluids.core.Nusselt` check | two-phase correlations, boiling/condensation, shell-side correction factors, fouling dynamics, equipment safety cards, and broader validity maps |
@@ -142,6 +142,13 @@ copying the reference implementations.
   residual entropy, residual Gibbs energy, model-card metadata, default EOS
   tests, and optional `thermo.eos` reference checks for methane, ethane, and
   carbon dioxide with a documented cubic-residual tolerance profile.
+- DEEP-D3A is implemented for volume-translated cubic-EOS diagnostics:
+  Peneloux-style component shifts, translated cubic roots, translated
+  molar-volume reports, root-governance candidate ranking, vapor-root
+  convention warnings, and binary-interaction provenance checks are now covered
+  by tests and an EOS model card. This does not yet claim phase envelopes,
+  saturation solvers, translated fugacity derivatives, or broad EOS backend
+  validation.
 - PRO-P8A is implemented for the first heat-transfer and exchanger-duty slice:
   Nusselt branch metadata, Dittus-Boelter and Gnielinski validity warnings,
   strict validity failure mode, `h = Nu k / D` reference round-trip, counterflow

@@ -639,6 +639,9 @@ local thermodynamic backend for gas and dense-fluid calculations:
 | Phase root selection | vapor, liquid, and residual-Gibbs-style stable root selector |
 | Fugacity | component fugacity coefficients for PR and SRK mixtures |
 | Residual properties | PR/SRK molar residual enthalpy, entropy, Gibbs energy, and departure-log metadata |
+| Volume translation | Peneloux-style component shifts, translated cubic roots, translated molar-volume reports |
+| Root governance | per-root diagnostic reports with phase hints, residual-Gibbs scores, ranks, and selected-root evidence |
+| Parameter provenance | binary-interaction provenance records and optional hard-fail checks for missing or mismatched `k_ij` sources |
 
 The EOS layer is JSON-friendly through `EOSComponentSpec`, `CubicEOSSpec`,
 `EOSMixtureParameters`, and `EOSState`. It is designed to support future VLE,
@@ -652,9 +655,19 @@ records `da_mix_dT`, and `EOSState` now carries explicit root-selection policy,
 documents the PR/SRK departure equations, inspected `thermo`, `phasepy`,
 `thermopack`, and `teqp` reference surfaces, default unit tests, and optional
 `thermo.eos` reference comparisons for methane, ethane, and carbon dioxide.
-This remains a compact cubic-EOS slice, not a full EOS/flash package with
-volume translation, phase envelopes, critical-region treatment, or mixture
-flash derivative hooks.
+DEEP-D3A adds the first volume-translation and root-governance slice. The EOS
+module now exposes `VolumeTranslationSpec`, `BinaryInteractionProvenance`,
+`translated_cubic_compressibility_roots()`,
+`cubic_root_governance_report()`, and
+`evaluate_volume_translated_cubic_eos()`. The implementation follows the local
+reference-reading pattern from `phasepy` translated cubic roots,
+`thermopack` Peneloux volume-shift hooks, and `thermo` translated PR/SRK design
+surfaces, but keeps a smaller ChemWorld API with explicit SI units and JSON
+reports. Tests cover pure-liquid translation, vapor warnings, negative
+translated-volume failure, stable-root ranking, and binary-interaction
+provenance round trips. This remains a compact cubic-EOS slice, not a full
+EOS/flash package with phase envelopes, critical-region treatment, saturation
+solvers, or translated fugacity derivatives.
 
 ## Phase-Equilibrium Core
 
