@@ -78,6 +78,7 @@ finished, update its status and push immediately.
 | PRO-RUNTIME-A compiled mechanism required across runtime services | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | env/runtime/eval now have no `LEGACY_*` species defaults and runtime/domain/observation services require compiled mechanisms; golden scores updated after removing duplicated `initial_A_mol` counting | this commit |
 | PRO-RUNTIME-A mechanism role validation at compile time | whilesunny | Done | `src/chemworld/runtime/mechanisms.py`, mechanism tests/docs | compile-time validation now separates base mechanism-library checks from stricter runtime scenario role contracts for target, impurity, initial species, and observable mappings | this commit |
 | PRO-RUNTIME-B transaction record consistency | whilesunny | Done | `src/chemworld/runtime/kernels.py`, `src/chemworld/runtime/transactions.py`, tests/docs | rollback transactions now append explicit rollback patches and rebuild operation records from the committed rollback state | this commit |
+| PRO-RUNTIME-C operation taxonomy and macro compiler | whilesunny | Active | `src/chemworld/world/operations.py`, `src/chemworld/world/recipes.py`, tests/docs | classify primitive/domain/macro/terminal operations and make recipe compilation expand macro operations without bypassing schema validation | claim commit |
 
 Status values:
 
