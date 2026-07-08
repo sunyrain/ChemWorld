@@ -24,6 +24,7 @@ finished, update its status and push immediately.
 | P6 phase-equilibrium core | whilesunny | Done | `src/chemworld/physchem/equilibrium.py`, `tests/`, `docs/physchem_core_design.md` | next: replace extraction and evaporation task proxies with phase-equilibrium kernels, then start P7 separations | this commit |
 | P7 separation and unit operations | whilesunny | Done | `src/chemworld/physchem/separations.py`, `tests/`, `docs/physchem_core_design.md` | next: implement fluid mechanics and heat-transfer utilities in P8, then wire separations into world tasks | this commit |
 | P8 fluid mechanics and heat transfer | whilesunny | Done | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `docs/physchem_core_design.md` | next: implement equilibrium chemistry in P9, then connect transport signals into world tasks and scoring | this commit |
+| P9 equilibrium chemistry | whilesunny | Active | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/`, `docs/physchem_core_design.md` | read Reaktoro/Cantera/thermo equilibrium references, then implement reaction extents, equilibrium constants, acid-base, precipitation, charge balance, and ionic-strength proxies | pending |
 
 Status values:
 
