@@ -149,6 +149,12 @@ Recommended follow-up:
 - continue shrinking the legacy fallback surface by letting reaction,
   separation, spectroscopy, and score specs carry all species bindings.
 
+Current hardening also adds a golden-characterization test layer for the active
+Runtime v2 path. Each formal task now has a scripted final-assay trajectory that
+locks the mechanism id, final-assay score snapshot, campaign versus
+single-experiment termination semantics, operation-kernel metadata, transaction
+status, world-event payload, and affected-ledger signals.
+
 ### Low Priority: Facade Exports Are Large But Useful
 
 `src/chemworld/physchem/__init__.py` is a large facade. It is not a correctness
@@ -195,6 +201,10 @@ Recommended follow-up:
   scoring toward compiled-mechanism role mappings.
 - Added regression tests using the `electrochemical_conversion` mechanism to
   verify non-`A/P/B/D/E` species can drive runtime services and observations.
+- Added Runtime v2 golden-characterization tests covering all formal tasks with
+  scripted final-assay trajectories, campaign/single-experiment semantics,
+  operation-kernel metadata, transaction status, world events, affected ledgers,
+  and final-assay score snapshots.
 - Extracted `ChemWorldObservationKernel` into
   `runtime/observation_services.py`, keeping noisy observations, raw signal
   assembly, processed estimates, uncertainty metadata, and observation scoring

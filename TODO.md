@@ -58,7 +58,7 @@ finished, update its status and push immediately.
 | Reaction-network specs split | whilesunny | Done | `src/chemworld/physchem/`, tests/docs | species/rate-law/reaction specs, reaction-equation parsing, and mechanism dict helpers now live in `reaction_network_specs.py` | this commit |
 | Reaction-network rate-law split | whilesunny | Done | `src/chemworld/physchem/`, tests/docs | rate-law constants, parameter validation, mass-action/Arrhenius/reversible-rate helpers, and reaction lookup now live in `reaction_rate_laws.py` | this commit |
 | Reaction-network reference-case split | whilesunny | Done | `src/chemworld/physchem/`, tests/docs | analytical ODE reference cases, Cantera-comparable fixtures, and reference-case evaluation now live in `reaction_reference_cases.py` | this commit |
-| Runtime v2 golden characterization | whilesunny | Active | `tests/`, runtime/env docs | lock scripted smoke trajectories across formal tasks, including final-assay semantics, runtime metadata, and transaction signals | this commit |
+| Runtime v2 golden characterization | whilesunny | Done | `tests/`, runtime/env docs | scripted golden final-assay trajectories now cover all formal tasks, including campaign/single-experiment semantics and runtime transaction metadata | this commit |
 
 Status values:
 
