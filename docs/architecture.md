@@ -49,13 +49,16 @@ The runtime is organized around:
 - `OperationKernelRegistry`, which maps allowed operation types to typed kernels
   for the current profile rather than requiring every known ChemWorld operation
   globally;
-- `ChemWorldDomainServices`, which owns state-changing reaction, thermal,
-  phase, separation, process, electrochemical, and instrument-cost calculations
-  used by operation kernels;
+- `ChemWorldDomainServices`, which owns the remaining compact state-changing
+  calculations that have not yet been split into narrower services;
 - `ChemWorldReactionThermalServices`, implemented in
   `runtime/reaction_thermal_services.py`, which owns reaction ODE advancement,
   heat/wait integration, stirring metadata, energy-ledger updates, and
   pressure/risk projection;
+- `ChemWorldPhaseSeparationServices`, implemented in
+  `runtime/phase_separation_services.py`, which owns phase-ledger normalization,
+  liquid-liquid partitioning, extraction, settling, phase selection, washing,
+  drying, concentrating, transfer, and downstream truth metadata;
 - `ChemWorldObservationKernel`, implemented in
   `runtime/observation_services.py`, which owns observation truth extraction,
   noisy instrument signals, processed estimates, uncertainty metadata, and
@@ -76,11 +79,12 @@ manager commits those patches to typed ledgers only after validation. This keeps
 material ledgers auditable: invalid actions can add process penalties without
 silently changing hidden material state.
 
-Reaction/thermal advancement and operation-record assembly are separated from
-the remaining state-changing domain services. This makes the runtime easier to
-audit: reaction/thermal services advance continuous dynamics, the transaction
-manager commits or rolls back patches, and the recorder turns the accepted
-pre/post state pair into the replayable operation record.
+Reaction/thermal advancement, phase/extraction workflows, and operation-record
+assembly are separated from the remaining state-changing domain services. This
+makes the runtime easier to audit: focused services advance each physical
+process, the transaction manager commits or rolls back patches, and the
+recorder turns the accepted pre/post state pair into the replayable operation
+record.
 
 The active backend remains `semi_mechanistic`, but it is now a runtime service
 implementation rather than the conceptual center of the package. Backend

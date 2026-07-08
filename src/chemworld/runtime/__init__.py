@@ -10,6 +10,7 @@ from typing import Any
 __all__ = [
     "ChemWorldObservationKernel",
     "ChemWorldOperationRecorder",
+    "ChemWorldPhaseSeparationServices",
     "ChemWorldReactionThermalServices",
     "ChemWorldRuntime",
     "CompiledMechanism",
@@ -61,6 +62,10 @@ def __getattr__(name: str) -> Any:
         from chemworld.runtime import record_services
 
         return getattr(record_services, name)
+    if name == "ChemWorldPhaseSeparationServices":
+        from chemworld.runtime import phase_separation_services
+
+        return getattr(phase_separation_services, name)
     if name == "ChemWorldReactionThermalServices":
         from chemworld.runtime import reaction_thermal_services
 
