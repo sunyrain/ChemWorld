@@ -382,6 +382,11 @@ Recommended follow-up:
   vapor-pressure-backed `T -> Psat`, bracketed `P -> Tsat`, normal boiling
   point, critical guards, residual diagnostics, and reference-reading metadata
   outside the larger EOS module while exposing public property-package wrappers.
+- Added a mixture VLE diagnostic slice. `equilibrium.py` now exposes
+  bubble/dew-temperature reports backed by pure saturation reports, Raoult
+  K-values, bracketed pressure-residual solves, and Rachford-Rice phase-status
+  diagnostics, while keeping gamma-phi EOS flash and azeotrope detection as
+  future professional work.
 
 ## Verification
 

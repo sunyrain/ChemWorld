@@ -3,14 +3,19 @@ from __future__ import annotations
 import pytest
 
 from chemworld.physchem import (
+    STANDARD_PRESSURE_PA,
     ActivityModelSpec,
     MaturityLevel,
     activity_coefficients,
     activity_model_cards,
     bubble_pressure_pa,
+    bubble_temperature_report,
+    curated_property_package,
     dew_pressure_pa,
+    dew_temperature_report,
     flash_isothermal,
     liquid_liquid_split,
+    rachford_rice_diagnostic_report,
     rachford_rice_vapor_fraction,
     raoult_k_values,
     validate_model_card,
@@ -124,6 +129,7 @@ def test_activity_model_cards_are_auditable() -> None:
     assert {card.model_id for card in cards} == {
         "wilson_activity_coefficients",
         "nrtl_activity_coefficients",
+        "ideal_gamma_vle_temperature_reports",
     }
     for card in cards:
         assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
@@ -142,6 +148,33 @@ def test_rachford_rice_flash_balances_two_phase_split() -> None:
     assert flash.vapor_composition["light"] > flash.liquid_composition["light"]
     assert sum(flash.liquid_composition.values()) == pytest.approx(1.0)
     assert sum(flash.vapor_composition.values()) == pytest.approx(1.0)
+
+
+def test_rachford_rice_diagnostic_report_classifies_phase_regions() -> None:
+    z = {"light": 0.5, "heavy": 0.5}
+    two_phase = rachford_rice_diagnostic_report(
+        z,
+        {"light": 2.0, "heavy": 0.5},
+    )
+    liquid = rachford_rice_diagnostic_report(
+        z,
+        {"light": 0.8, "heavy": 0.3},
+    )
+    vapor = rachford_rice_diagnostic_report(
+        z,
+        {"light": 2.0, "heavy": 1.5},
+    )
+
+    assert two_phase.phase_status == "two_phase"
+    assert two_phase.vapor_fraction == pytest.approx(0.5)
+    assert abs(two_phase.residual) < 1e-10
+    assert two_phase.to_dict()["phase_status"] == "two_phase"
+    assert liquid.phase_status == "all_liquid"
+    assert liquid.vapor_fraction == pytest.approx(0.0)
+    assert liquid.warnings
+    assert vapor.phase_status == "all_vapor"
+    assert vapor.vapor_fraction == pytest.approx(1.0)
+    assert vapor.warnings
 
 
 def test_raoult_k_values_bubble_and_dew_pressure() -> None:
@@ -173,6 +206,73 @@ def test_raoult_k_values_bubble_and_dew_pressure() -> None:
     assert 20_000.0 < bubble < 100_000.0
     assert 20_000.0 < dew < 100_000.0
     assert sum(liquid[key] * k_values[key] for key in liquid) == pytest.approx(1.0)
+
+
+def test_curated_binary_bubble_and_dew_temperature_reports_close() -> None:
+    components = ("ethanol", "water")
+    model = ActivityModelSpec("ideal_ethanol_water", components, "ideal")
+    correlations = {
+        component_id: curated_property_package(component_id).by_property(
+            "vapor_pressure"
+        )[0]
+        for component_id in components
+    }
+
+    bubble = bubble_temperature_report(
+        {"ethanol": 0.5, "water": 0.5},
+        vapor_pressure_correlations=correlations,
+        activity_model=model,
+        pressure_Pa=STANDARD_PRESSURE_PA,
+    )
+    dew = dew_temperature_report(
+        {"ethanol": 0.5, "water": 0.5},
+        vapor_pressure_correlations=correlations,
+        activity_model=model,
+        pressure_Pa=STANDARD_PRESSURE_PA,
+    )
+
+    assert bubble.converged
+    assert dew.converged
+    assert bubble.temperature_K < dew.temperature_K
+    assert abs(bubble.residual) < 1e-8
+    assert abs(dew.residual) < 1e-8
+    assert bubble.vapor_composition["ethanol"] > bubble.liquid_composition["ethanol"]
+    assert dew.liquid_composition["ethanol"] < dew.vapor_composition["ethanol"]
+    assert sum(
+        bubble.liquid_composition[key] * bubble.k_values[key]
+        for key in components
+    ) == pytest.approx(1.0, rel=1e-8)
+    assert sum(dew.vapor_composition[key] / dew.k_values[key] for key in components) == (
+        pytest.approx(1.0, rel=1e-8)
+    )
+    assert set(bubble.saturation_reports) == set(components)
+    assert bubble.to_dict()["saturation_reports"]["ethanol"]["converged"] is True
+
+
+def test_vle_temperature_report_validation_failures_are_explicit() -> None:
+    components = ("ethanol", "water")
+    model = ActivityModelSpec("ideal_ethanol_water", components, "ideal")
+    correlations = {
+        component_id: curated_property_package(component_id).by_property(
+            "vapor_pressure"
+        )[0]
+        for component_id in components
+    }
+    with pytest.raises(ValueError, match="missing"):
+        bubble_temperature_report(
+            {"ethanol": 0.5, "water": 0.5},
+            vapor_pressure_correlations={"ethanol": correlations["ethanol"]},
+            activity_model=model,
+            pressure_Pa=STANDARD_PRESSURE_PA,
+        )
+    with pytest.raises(ValueError, match="outside the temperature bracket"):
+        dew_temperature_report(
+            {"ethanol": 0.5, "water": 0.5},
+            vapor_pressure_correlations=correlations,
+            activity_model=model,
+            pressure_Pa=STANDARD_PRESSURE_PA,
+            temperature_bounds_K=(280.0, 300.0),
+        )
 
 
 def test_lle_split_preserves_material_and_extractant_volume_improves_recovery() -> None:

@@ -154,6 +154,17 @@ convenience wrapper at standard pressure. This slice is a replayable benchmark
 contract for pure-fluid saturation points; it is not a full EOS phase envelope,
 mixture bubble/dew solver, IAPWS water backend, or CoolProp replacement.
 
+DEEP-D3C adds the first mixture VLE temperature-report layer. The public
+`bubble_temperature_report()` and `dew_temperature_report()` APIs combine
+component vapor-pressure `PureSaturationReport` objects, activity coefficients,
+and Raoult-style K-values into bracketed mixture phase-boundary solves. The
+reports include pressure, temperature, feed/liquid/vapor compositions, K-values,
+per-component saturation reports, residuals, brackets, iteration counts,
+warnings, and reference-reading provenance. `rachford_rice_diagnostic_report()`
+adds vapor-fraction, phase-status, endpoint objective, and residual diagnostics
+for TP flash tasks. This is an auditable benchmark VLE slice; it is not yet a
+gamma-phi EOS flash, azeotrope detector, or rigorous phase-stability solver.
+
 DEEP-D2B hardens the heat-capacity and enthalpy path. The public API now
 separates three concepts that were previously easy to blur:
 
@@ -694,6 +705,8 @@ property correlations, and downstream separation tasks:
 | Raoult K-values | activity-corrected `K_i = gamma_i Psat_i / phi_i P` |
 | Flash | Rachford-Rice vapor fraction and liquid/vapor compositions |
 | Bubble/dew pressure | iterative estimates with activity coefficients |
+| Bubble/dew temperature reports | bracketed pressure-residual solves using pure saturation reports, K-values, and residual metadata |
+| Rachford-Rice diagnostics | vapor fraction, endpoint objectives, phase-status classification, and residual reports |
 | LLE stage | material-conserving extraction split with partition coefficients, phase volumes, stage efficiency, and entrainment |
 
 PRO-P4A hardens the nonideal activity path. Wilson and NRTL now use explicit
@@ -706,6 +719,13 @@ Wilson/NRTL interactions fail during `ActivityModelSpec` construction, so a
 nonideal model cannot silently fall back to ideal behavior. Optional reference
 tests compare the implemented gamma equations against `thermo.wilson` and
 `thermo.nrtl`.
+
+DEEP-D3C hardens the ideal/activity VLE flash diagnostics. Mixture
+bubble/dew-temperature APIs now use the same curated vapor-pressure reporting
+surface as pure saturation, so separation tasks can show which component Psat
+correlation and K-value produced a phase-boundary decision. Invalid correlation
+keys, nonpositive pressures, bad brackets, and missing vapor-pressure data fail
+before a downstream unit operation can silently extrapolate.
 
 This is still compact, but it is enough to make future extraction, evaporation,
 distillation, solvent-screening, and purity/recovery tasks depend on shared

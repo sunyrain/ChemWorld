@@ -163,6 +163,94 @@ def activity_model_cards() -> tuple[ModelCard, ...]:
                 "Future solvent-selection and liquid-phase separation tasks.",
             ),
         ),
+        ModelCard(
+            model_id="ideal_gamma_vle_temperature_reports",
+            module_id="phase_equilibrium",
+            title="Raoult-Law Bubble/Dew Temperature Reports",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Auditable mixture bubble-temperature, dew-temperature, "
+                "K-value, and Rachford-Rice diagnostic reports built from "
+                "component vapor-pressure reports and activity coefficients."
+            ),
+            equations=(
+                "K_i = gamma_i P_sat,i(T) / (phi_i P)",
+                "bubble point: sum_i x_i K_i = 1",
+                "dew point: sum_i y_i / K_i = 1",
+                "Rachford-Rice: sum_i z_i (K_i - 1) / "
+                "(1 + beta (K_i - 1)) = 0",
+            ),
+            assumptions=(
+                "Default vapor fugacity coefficients are one.",
+                "Temperature solves use bracketed log-pressure residuals.",
+                "Component vapor pressures come from explicit "
+                "PropertyCorrelation records and pure saturation reports.",
+                "Liquid nonideality is supplied by the selected "
+                "ActivityModelSpec; no EOS liquid-volume correction is applied.",
+            ),
+            validity_limits=(
+                "Requires all components to have vapor-pressure correlations "
+                "with overlapping temperature validity ranges.",
+                "Pressure must be inside the requested bubble/dew bracket.",
+                "Validated on curated ideal ethanol/water style regression "
+                "cases and Rachford-Rice closure tests.",
+            ),
+            failure_modes=(
+                "Missing vapor-pressure correlations fail before solving.",
+                "Nonpositive pressure, K-values, or vapor pressures fail.",
+                "No sign change in the requested temperature bracket raises a "
+                "diagnostic error rather than silently extrapolating.",
+            ),
+            units={
+                "temperature": "K",
+                "pressure": "Pa",
+                "composition": "mole fraction",
+                "K_value": "dimensionless",
+                "Rachford-Rice beta": "dimensionless vapor fraction",
+            },
+            reference_reading=(
+                "reference_repos/thermo/thermo/flash/flash_base.py: ideal "
+                "bubble/dew/flash workflow notes",
+                "reference_repos/chemicals/chemicals/rachford_rice.py: "
+                "Rachford-Rice objective conventions",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="curated-ideal-binary-bubble-dew-temperature",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks curated vapor-pressure based ideal binary "
+                        "bubble/dew ordering, residual closure, and K-value "
+                        "sums."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_phase_equilibrium.py",
+                    tolerance="log-pressure residual <= 1e-8",
+                ),
+                ValidationEvidence(
+                    evidence_id="rachford-rice-diagnostic-closure",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks two-phase vapor fraction, single-phase "
+                        "classification, and objective residual diagnostics."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_phase_equilibrium.py",
+                    tolerance="absolute objective residual <= 1e-10",
+                ),
+            ),
+            model_limit_notes=(
+                "This is a transparent benchmark VLE diagnostic layer, not a "
+                "replacement for a full EOS/GE flash package or a parameter "
+                "database.",
+            ),
+            intended_use=(
+                "Distillation, evaporation, and volatility benchmark tasks "
+                "that need auditable phase-boundary diagnostics.",
+                "Teaching notebooks where students inspect K-values and "
+                "Rachford-Rice phase status.",
+            ),
+        ),
     )
 
 
