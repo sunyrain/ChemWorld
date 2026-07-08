@@ -65,6 +65,7 @@ Every professional module must ship:
 | PRO-P0 maturity metadata and model-card templates | whilesunny | Done | IDAES, thermo, Cantera, Gymnasium-style metadata | `src/chemworld/physchem/maturity.py`, `src/chemworld/tasks.py`, `docs/physchem_maturity_audit.md`, tests | next: claim PRO-P12A or PRO-P2A for reference-validated numerical hardening | this commit |
 | PRO-P12A fluids friction factor and pressure-drop validation | whilesunny | Done | `fluids.friction`, `fluids.core`, Haaland and Darcy-Weisbach references | `src/chemworld/physchem/transport.py`, `src/chemworld/physchem/reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend pressure-drop validation to heat-transfer correlations or claim PRO-P2A | this commit |
 | PRO-P2A curated vapor-pressure and enthalpy property cases | whilesunny | Done | `chemicals.vapor_pressure`, `chemicals.heat_capacity`, `chemicals.dippr`, `thermo.heat_capacity` | `src/chemworld/physchem/curated_properties.py`, `src/chemworld/physchem/properties.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend the curated registry toward critical properties, liquid Cp, latent heat, and CoolProp checks | this commit |
+| PRO-P4A Wilson and full binary NRTL activity models | whilesunny | Claimed | `thermo.activity`, `thermo.nrtl`, `phasepy`, `thermopack` | `src/chemworld/physchem/equilibrium.py`, reference tests, model cards, docs | read local activity-model APIs, then replace NRTL-lite with explicit Wilson/NRTL parameter contracts and reference checks | pending push |
 
 ## P0: Governance And Model Maturity
 
@@ -522,6 +523,7 @@ Acceptance:
 3. `PRO-P2A`: Replace placeholder vapor-pressure/enthalpy examples with
    curated reference-checked compounds. Done.
 4. `PRO-P4A`: Implement Wilson and full binary NRTL with reference comparisons.
+   Claimed by whilesunny.
 5. `PRO-P5A`: Add Cantera-comparable irreversible and reversible reaction ODE
    cases.
 6. `PRO-P6A`: Add CSTR multiple-steady-state professional example.
