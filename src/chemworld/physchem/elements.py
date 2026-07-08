@@ -52,6 +52,7 @@ ELEMENTS: dict[str, ElementSpec] = {
     "Zn": ElementSpec("Zn", 30, 65.38),
     "Br": ElementSpec("Br", 35, 79.904),
     "I": ElementSpec("I", 53, 126.90447),
+    "Pt": ElementSpec("Pt", 78, 195.084),
 }
 
 _TOKEN_RE = re.compile(r"([A-Z][a-z]?|\(|\)|\d+(?:\.\d*)?|\.\d+)")

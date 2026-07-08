@@ -15,6 +15,9 @@ Current scope:
 - local property evaluators for vapor pressure, heat capacity, enthalpy,
   phase-change enthalpy, density, viscosity, surface tension, mixture rules,
   and safety proxies.
+- general reaction-network specs for species, reactions, stoichiometric
+  matrices, element-balance checks, YAML/JSON mechanism loading, rate-law
+  evaluation, and deterministic batch ODE integration.
 
 Design rules:
 
@@ -22,6 +25,8 @@ Design rules:
 - fail early on unknown elements, invalid phases, invalid units, or invalid
   fractions;
 - keep property correlations separate from component identity;
+- keep mechanism definitions separate from reactor and task logic;
 - declare property units and validity ranges on every correlation;
+- reject unbalanced reaction networks before simulation;
 - add optional reference-backend comparisons only as skipped tests or adapters;
 - do not copy source code from `reference_repos/`.

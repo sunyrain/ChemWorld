@@ -19,6 +19,17 @@ from chemworld.physchem.properties import (
     thermal_hazard_proxy,
     volatility_risk_from_psat,
 )
+from chemworld.physchem.reaction_network import (
+    BatchIntegrationResult,
+    RateLawSpec,
+    ReactionNetworkSpec,
+    ReactionSpec,
+    SpeciesSpec,
+    evaluate_rate_law,
+    load_mechanism,
+    parse_reaction_equation,
+    perturb_network_parameters,
+)
 from chemworld.physchem.specs import (
     ComponentSpec,
     MixtureSpec,
@@ -28,16 +39,23 @@ from chemworld.physchem.specs import (
 )
 
 __all__ = [
+    "BatchIntegrationResult",
     "ComponentPropertyPackage",
     "ComponentSpec",
     "ElementSpec",
     "MixtureSpec",
     "PropertyCorrelation",
     "PropertyEvaluation",
+    "RateLawSpec",
+    "ReactionNetworkSpec",
+    "ReactionSpec",
+    "SpeciesSpec",
     "atom_fractions",
     "element_matrix",
     "evaluate_correlation",
+    "evaluate_rate_law",
     "hill_formula",
+    "load_mechanism",
     "mass_fractions_from_formula",
     "mass_fractions_from_mole_fractions",
     "mixture_density",
@@ -45,6 +63,8 @@ __all__ = [
     "mole_fractions_from_mass_fractions",
     "molecular_weight",
     "parse_formula",
+    "parse_reaction_equation",
+    "perturb_network_parameters",
     "sensible_enthalpy_change",
     "thermal_hazard_proxy",
     "volatility_risk_from_psat",
