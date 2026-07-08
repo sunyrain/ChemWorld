@@ -239,10 +239,13 @@ def test_runtime_v2_golden_scripted_final_assay(
         assert final_info["state_patches_summary"][0]["patch_type"] == "replace_state"
         assert "process" in final_info["affected_ledgers"]
         assert "observation" in final_info["affected_ledgers"]
+        assert "equipment" in final_info["affected_ledgers"]
         assert {
             "phase_system",
             "phase_settled",
             "selected_phase",
+            "final_assay_done",
+            "final_assay_time_s",
         }.isdisjoint(env.unwrapped._state.metadata)
 
         if task.episode_mode == "campaign":

@@ -4,7 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from chemworld.foundation import PhysicalConstitution, WorldState, scale_phase_ledger
+from chemworld.foundation import (
+    PhysicalConstitution,
+    WorldState,
+    equipment_settings,
+    instrument_equipment_id,
+    scale_phase_ledger,
+    upsert_equipment_record,
+)
 from chemworld.world.operations import instrument_name
 
 
@@ -24,10 +31,23 @@ class ChemWorldInstrumentCostServices:
             cost=state.ledger.cost + instrument.cost,
             sample_consumed_L=state.ledger.sample_consumed_L + volume,
         )
-        metadata = state.metadata.copy()
-        if instrument_id == "final_assay":
-            metadata["final_assay_done"] = True
-            metadata["final_assay_time_s"] = state.ledger.time_s
+        equipment_id = instrument_equipment_id(instrument_id)
+        previous_settings = equipment_settings(state.equipment, equipment_id)
+        use_count = int(previous_settings.get("use_count", 0)) + 1
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id=equipment_id,
+            equipment_type="instrument",
+            attached_vessel_id=state.vessel_id,
+            status="completed" if instrument_id == "final_assay" else "used",
+            settings={
+                "instrument_id": instrument_id,
+                "last_time_s": state.ledger.time_s,
+                "last_cost": instrument.cost,
+                "last_sample_consumed_L": volume,
+                "use_count": use_count,
+            },
+        )
         return state.replace(
             species_amounts=species,
             phases=scale_phase_ledger(
@@ -37,7 +57,7 @@ class ChemWorldInstrumentCostServices:
             ),
             volume_L=state.volume_L - volume,
             ledger=ledger,
-            metadata=metadata,
+            equipment=equipment,
         )
 
 

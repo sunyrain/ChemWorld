@@ -81,7 +81,7 @@ The runtime is organized around:
   updates;
 - `ChemWorldInstrumentCostServices`, implemented in
   `runtime/instrument_cost_services.py`, which owns measurement cost,
-  destructive sample consumption, and final-assay state markers;
+  destructive sample consumption, and typed instrument equipment status;
 - `ChemWorldObservationKernel`, implemented in
   `runtime/observation_services.py`, which owns observation truth extraction,
   noisy instrument signals, processed estimates, uncertainty metadata, and

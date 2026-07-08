@@ -12,6 +12,7 @@ from chemworld.foundation.state import (
     WorldState,
     equipment_settings,
     has_phase_system,
+    instrument_completed,
     phases_are_settled,
 )
 from chemworld.foundation.units import canonical_unit
@@ -74,6 +75,11 @@ class PhysicalConstitution:
         "phase_system",
         "phase_settled",
         "selected_phase",
+    }
+
+    primary_instrument_metadata_keys: ClassVar[set[str]] = {
+        "final_assay_done",
+        "final_assay_time_s",
     }
 
     required_state_units: ClassVar[dict[str, str]] = {
@@ -161,7 +167,7 @@ class PhysicalConstitution:
         requires_terminated = (
             bool(instrument.requires_terminated) if instrument is not None else False
         )
-        final_assay_done = bool(state.metadata.get("final_assay_done", False))
+        final_assay_done = instrument_completed(state.equipment, "final_assay")
         is_final_assay = operation_type == "measure" and instrument_id == "final_assay"
         phase_system = has_phase_system(state.phases)
         phase_settled = phases_are_settled(state.phases)
@@ -394,6 +400,11 @@ class PhysicalConstitution:
                 self.primary_phase_metadata_keys.isdisjoint(state.metadata),
                 "Phase-system readiness, settled status, and selection must "
                 "live in typed PhaseLedger.",
+            ),
+            CheckResult(
+                "metadata_no_primary_instrument_status",
+                self.primary_instrument_metadata_keys.isdisjoint(state.metadata),
+                "Instrument completion state must live in typed EquipmentLedger.",
             )
         ]
         if state.phases is not None:

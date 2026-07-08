@@ -4,6 +4,7 @@ import gymnasium as gym
 import pytest
 
 import chemworld  # noqa: F401
+from chemworld.foundation import instrument_equipment_id, upsert_equipment_record
 from chemworld.runtime import (
     make_chemworld_constitution,
 )
@@ -128,7 +129,14 @@ def test_constitution_rejects_repeated_final_assay() -> None:
     state = initial_chemworld_state().replace(
         volume_L=0.02,
         terminated=True,
-        metadata={"final_assay_done": True},
+        equipment=upsert_equipment_record(
+            initial_chemworld_state().equipment,
+            equipment_id=instrument_equipment_id("final_assay"),
+            equipment_type="instrument",
+            attached_vessel_id="batch_reactor",
+            status="completed",
+            settings={"instrument_id": "final_assay", "last_time_s": 0.0},
+        ),
     )
 
     preconditions = constitution.check_preconditions(

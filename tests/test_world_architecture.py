@@ -10,7 +10,13 @@ import chemworld  # noqa: F401
 from chemworld.cli import main
 from chemworld.data.datasets import dataset_card, export_dataset
 from chemworld.data.logging import load_jsonl
-from chemworld.foundation.state import WorldState, equipment_settings, upsert_equipment_record
+from chemworld.foundation.state import (
+    WorldState,
+    equipment_settings,
+    instrument_completed,
+    instrument_equipment_id,
+    upsert_equipment_record,
+)
 from chemworld.runtime.domain_services import (
     ChemWorldDomainServices,
     make_chemworld_constitution,
@@ -195,7 +201,8 @@ def test_runtime_instrument_cost_service_is_separate_from_domain_services() -> N
     assert "final_assay_done" not in domain_services
     assert "class ChemWorldInstrumentCostServices" in instrument_cost_services
     assert "instrument_name" in instrument_cost_services
-    assert "final_assay_done" in instrument_cost_services
+    assert "upsert_equipment_record" in instrument_cost_services
+    assert "instrument_equipment_id" in instrument_cost_services
     assert "sample_consumed_L=state.ledger.sample_consumed_L + volume" in instrument_cost_services
 
 
@@ -612,6 +619,23 @@ def test_constitution_rejects_primary_phase_status_metadata() -> None:
     assert any(check.name == "metadata_no_primary_phase_status" for check in report.failures())
 
 
+def test_constitution_rejects_primary_instrument_status_metadata() -> None:
+    state = initial_chemworld_state().replace(
+        metadata={
+            **initial_chemworld_state().metadata,
+            "final_assay_done": True,
+            "final_assay_time_s": 0.0,
+        }
+    )
+    report = make_chemworld_constitution().check_state(state)
+
+    assert not report.passed
+    assert any(
+        check.name == "metadata_no_primary_instrument_status"
+        for check in report.failures()
+    )
+
+
 def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> None:
     flow_env = gym.make("ChemWorld", task_id="flow-reaction-optimization", seed=0)
     electro_env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
@@ -697,6 +721,39 @@ def test_runtime_reactor_settings_use_typed_equipment_ledger() -> None:
         assert mixer_settings["stirring_speed_rpm"] == pytest.approx(850.0)
         assert "stirring_speed_rpm" not in state.metadata
         assert env.unwrapped.constitution.check_state(state).passed
+    finally:
+        env.close()
+
+
+def test_runtime_final_assay_status_uses_typed_instrument_equipment() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
+    try:
+        env.reset(seed=0)
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "terminate"},
+        ):
+            env.step(action)
+        _, _, _, _, info = env.step({"operation": "measure", "instrument": "final_assay"})
+        state = env.unwrapped._state
+        instrument_id = instrument_equipment_id("final_assay")
+        settings = equipment_settings(state.equipment, instrument_id)
+
+        assert info["transaction_status"] == "committed"
+        assert "equipment" in info["affected_ledgers"]
+        assert instrument_completed(state.equipment, "final_assay")
+        assert settings["instrument_id"] == "final_assay"
+        assert settings["use_count"] == 1
+        assert "final_assay_done" not in state.metadata
+        assert "final_assay_time_s" not in state.metadata
+
+        preconditions = env.unwrapped.constitution.check_preconditions(
+            "measure",
+            state,
+            {"instrument": "final_assay"},
+        )
+        assert not preconditions["measure_final_not_repeated"]
     finally:
         env.close()
 

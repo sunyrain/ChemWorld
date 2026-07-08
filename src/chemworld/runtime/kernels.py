@@ -326,6 +326,7 @@ def _affected_ledgers(operation_type: str) -> tuple[str, ...]:
         "set_potential",
         "electrolyze",
         "distill",
+        "measure",
     }:
         affected.append("equipment")
     if operation_type == "measure":

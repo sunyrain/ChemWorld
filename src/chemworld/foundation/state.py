@@ -219,6 +219,32 @@ def equipment_settings(
     return deepcopy(equipment.equipment[equipment_id].settings)
 
 
+def equipment_status(
+    equipment: EquipmentLedger | None,
+    equipment_id: str,
+) -> str | None:
+    """Return a typed equipment record status, if present."""
+
+    if equipment is None or equipment_id not in equipment.equipment:
+        return None
+    return equipment.equipment[equipment_id].status
+
+
+def instrument_equipment_id(instrument_id: str) -> str:
+    """Return the canonical typed-equipment id for an instrument."""
+
+    return f"instrument:{instrument_id}"
+
+
+def instrument_completed(
+    equipment: EquipmentLedger | None,
+    instrument_id: str,
+) -> bool:
+    """Return whether an instrument record is marked completed."""
+
+    return equipment_status(equipment, instrument_equipment_id(instrument_id)) == "completed"
+
+
 def upsert_equipment_record(
     equipment: EquipmentLedger | None,
     *,

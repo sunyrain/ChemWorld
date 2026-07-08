@@ -29,7 +29,7 @@ Largest current source files after this cleanup:
 | `src/chemworld/runtime/distillation_services.py` | shortcut VLE distillation, distillate purity/recovery metadata, heat-duty/cost/risk ledgers, and fraction collection | keep separate from mixed operation services and later bind VLE/component properties more directly to mechanism cards |
 | `src/chemworld/runtime/electrochemical_services.py` | potential/current setup, Nernst/Butler-Volmer electrolysis calls, faradaic conversion, electrical work, and electrochemical metadata | keep separate from mixed operation services and later bind electrode/reaction specs more directly to mechanism cards |
 | `src/chemworld/runtime/flow_services.py` | flow-rate setup, residence-time reaction advancement, flow conversion metadata, and flow campaign ledger updates | keep separate from mixed operation services and later bind reactor geometry/residence-time distributions more directly to mechanism cards |
-| `src/chemworld/runtime/instrument_cost_services.py` | measurement cost, destructive sample consumption, and final-assay state markers | keep separate from observation generation and operation-record logging |
+| `src/chemworld/runtime/instrument_cost_services.py` | measurement cost, destructive sample consumption, and typed instrument equipment status | keep separate from observation generation and operation-record logging |
 | `src/chemworld/runtime/reaction_thermal_services.py` | reaction ODE advancement, heat/wait integration, energy ledgers, and pressure/risk projection | keep separate from mixed operation services and later bind integration choices more directly to mechanism cards |
 | `src/chemworld/runtime/phase_separation_services.py` | phase-ledger normalization, liquid-liquid partitioning, extraction, settling, washing, drying, concentrating, transfer, and downstream truth metadata | keep separate from crystallization/distillation and later migrate primary phase state from metadata into typed ledgers |
 | `src/chemworld/runtime/primitive_services.py` | reagent, solvent, and catalyst addition, sampling, quench, evaporation, and invalid-action penalty updates | keep separate from composition and later bind primitive material additions more directly to typed ledgers |
@@ -255,8 +255,12 @@ Recommended follow-up:
   module.
 - Extracted `ChemWorldInstrumentCostServices` into
   `runtime/instrument_cost_services.py`, keeping measurement cost, destructive
-  sample consumption, and final-assay state markers outside the mixed
+  sample consumption, and typed instrument equipment status outside the mixed
   domain-service module.
+- Promoted final-assay completion and timing out of runtime metadata into typed
+  `instrument:final_assay` equipment status. Constitution preconditions now use
+  typed instrument completion to block repeated final assays, and golden
+  trajectories assert the old metadata keys do not reappear.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration
