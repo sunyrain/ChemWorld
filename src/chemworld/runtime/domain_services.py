@@ -1,8 +1,8 @@
-"""Domain services for ChemWorld runtime v2.
+"""Operation composition services for ChemWorld runtime v2.
 
-This module owns the remaining compact state-changing calculations that have
-not yet been split into narrower Runtime v2 services. It is intentionally
-called by operation kernels rather than by ``ChemWorldEnv`` directly.
+This module wires primitive reagent/sample helpers to focused Runtime v2
+services. It is intentionally called by operation kernels rather than by
+``ChemWorldEnv`` directly.
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ from chemworld.foundation import (
 from chemworld.runtime.crystallization_services import ChemWorldCrystallizationServices
 from chemworld.runtime.distillation_services import ChemWorldDistillationServices
 from chemworld.runtime.electrochemical_services import ChemWorldElectrochemicalServices
+from chemworld.runtime.flow_services import ChemWorldFlowServices
 from chemworld.runtime.instrument_cost_services import ChemWorldInstrumentCostServices
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.phase_separation_services import ChemWorldPhaseSeparationServices
@@ -80,6 +81,7 @@ class ChemWorldDomainServices:
         self.phase_separation = ChemWorldPhaseSeparationServices(world, self.species_view)
         self.crystallization = ChemWorldCrystallizationServices(self.species_view)
         self.distillation = ChemWorldDistillationServices(self.species_view)
+        self.flow = ChemWorldFlowServices(self.species_view, self.reaction_thermal)
         self.electrochemical = ChemWorldElectrochemicalServices(world, self.species_view)
         self.instrument_cost = ChemWorldInstrumentCostServices(constitution)
 
@@ -145,8 +147,8 @@ class ChemWorldDomainServices:
             "evaporate": self._evaporate,
             "distill": self.distillation.distill,
             "collect_fraction": self.distillation.collect_fraction,
-            "set_flow_rate": self._set_flow_rate,
-            "run_flow": self._run_flow,
+            "set_flow_rate": self.flow.set_flow_rate,
+            "run_flow": self.flow.run_flow,
             "set_potential": self.electrochemical.set_potential,
             "electrolyze": self.electrochemical.electrolyze,
             "terminate": lambda state, _action: state.replace(terminated=True),
@@ -250,52 +252,6 @@ class ChemWorldDomainServices:
             ledger=ledger,
             metadata=metadata,
         )
-
-    def _set_flow_rate(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        flow_rate = float(np.clip(_action_float(action, "flow_rate_mL_min", 1.0), 0.01, 20.0))
-        residence = float(np.clip(_action_float(action, "residence_time_s", 600.0), 1.0, 7200.0))
-        metadata = state.metadata.copy()
-        metadata["flow_rate_mL_min"] = flow_rate
-        metadata["residence_time_s"] = residence
-        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.012)
-        return state.replace(ledger=ledger, metadata=metadata)
-
-    def _run_flow(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        residence = float(
-            state.metadata.get(
-                "residence_time_s",
-                _action_float(action, "duration_s", 600.0),
-            )
-        )
-        duration = float(
-            np.clip(_action_float(action, "duration_s", residence), residence, 14_400.0)
-        )
-        target_temperature = float(
-            np.clip(_action_float(action, "target_temperature_K", 348.15), 298.15, 430.0)
-        )
-        effective_action = {
-            "duration_s": residence,
-            "target_temperature_K": target_temperature,
-            "stirring_speed_rpm": 900.0,
-        }
-        reacted_state = self.reaction_thermal.integrate(state, effective_action, heat=True)
-        initial_a = max(self.species_view.initial_reactant_amount(state), 1.0e-12)
-        conversion = float(
-            np.clip(
-                (initial_a - self.species_view.reactant_amount(reacted_state)) / initial_a,
-                0.0,
-                1.0,
-            )
-        )
-        metadata = reacted_state.metadata.copy()
-        metadata["flow_conversion"] = conversion
-        metadata["flow_campaign_time_s"] = duration
-        ledger = reacted_state.ledger.with_updates(
-            time_s=state.ledger.time_s + duration,
-            cost=reacted_state.ledger.cost + duration / 3600.0 * 0.030,
-            risk=min(1.0, reacted_state.ledger.risk + 0.015 * (target_temperature > 390.0)),
-        )
-        return reacted_state.replace(ledger=ledger, metadata=metadata)
 
     def _penalize_invalid(self, state: WorldState) -> WorldState:
         ledger = state.ledger.with_updates(

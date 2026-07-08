@@ -215,6 +215,26 @@ def test_runtime_distillation_service_is_separate_from_domain_services() -> None
     assert "distillate_product_mol" in distillation_services
 
 
+def test_runtime_flow_service_is_separate_from_domain_services() -> None:
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+        encoding="utf-8"
+    )
+    flow_services = Path("src/chemworld/runtime/flow_services.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "def _set_flow_rate" not in domain_services
+    assert "def _run_flow" not in domain_services
+    assert "flow_rate_mL_min" not in domain_services
+    assert "flow_conversion" not in domain_services
+    assert "class ChemWorldFlowServices" in flow_services
+    assert "def set_flow_rate" in flow_services
+    assert "def run_flow" in flow_services
+    assert "flow_rate_mL_min" in flow_services
+    assert "flow_conversion" in flow_services
+    assert "reaction_thermal.integrate" in flow_services
+
+
 def test_runtime_profile_requires_current_task_kernels_only() -> None:
     task = get_task("reaction-to-assay")
     profile = TaskRuntimeProfile.from_task(task)

@@ -11,6 +11,7 @@ __all__ = [
     "ChemWorldCrystallizationServices",
     "ChemWorldDistillationServices",
     "ChemWorldElectrochemicalServices",
+    "ChemWorldFlowServices",
     "ChemWorldInstrumentCostServices",
     "ChemWorldObservationKernel",
     "ChemWorldOperationRecorder",
@@ -78,6 +79,10 @@ def __getattr__(name: str) -> Any:
         from chemworld.runtime import electrochemical_services
 
         return getattr(electrochemical_services, name)
+    if name == "ChemWorldFlowServices":
+        from chemworld.runtime import flow_services
+
+        return getattr(flow_services, name)
     if name == "ChemWorldInstrumentCostServices":
         from chemworld.runtime import instrument_cost_services
 

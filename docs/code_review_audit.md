@@ -21,10 +21,11 @@ Largest current source files after this cleanup:
 | `src/chemworld/physchem/equilibrium_chemistry.py` | mass-action equilibrium, acid-base, precipitation, Gibbs minimization | split into mass-action, electrolyte/acid-base, precipitation, and Gibbs minimization helpers |
 | `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, and provenance |
 | `src/chemworld/physchem/spectroscopy.py` | calibration, chromatography, signal synthesis, feature heuristics | split into calibration, chromatography, signal synthesis, and feature libraries |
-| `src/chemworld/runtime/domain_services.py` | remaining semi-mechanistic state-changing domain services used by Runtime v2 | split flow responsibilities into a narrower service module |
+| `src/chemworld/runtime/domain_services.py` | lightweight operation composition surface with primitive reagent/sample helpers, service delegation, constitution, and invalid-action penalty | keep thin and consider moving primitive add/sample helpers into a primitive service after runtime APIs settle |
 | `src/chemworld/runtime/crystallization_services.py` | seed addition, cooling crystallization, crystal purity/recovery metadata, and crystal filtration ledger updates | keep separate from mixed operation services and later bind solubility/crystal-size models more directly to mechanism cards |
 | `src/chemworld/runtime/distillation_services.py` | shortcut VLE distillation, distillate purity/recovery metadata, heat-duty/cost/risk ledgers, and fraction collection | keep separate from mixed operation services and later bind VLE/component properties more directly to mechanism cards |
 | `src/chemworld/runtime/electrochemical_services.py` | potential/current setup, Nernst/Butler-Volmer electrolysis calls, faradaic conversion, electrical work, and electrochemical metadata | keep separate from mixed operation services and later bind electrode/reaction specs more directly to mechanism cards |
+| `src/chemworld/runtime/flow_services.py` | flow-rate setup, residence-time reaction advancement, flow conversion metadata, and flow campaign ledger updates | keep separate from mixed operation services and later bind reactor geometry/residence-time distributions more directly to mechanism cards |
 | `src/chemworld/runtime/instrument_cost_services.py` | measurement cost, destructive sample consumption, and final-assay state markers | keep separate from observation generation and operation-record logging |
 | `src/chemworld/runtime/reaction_thermal_services.py` | reaction ODE advancement, heat/wait integration, energy ledgers, and pressure/risk projection | keep separate from mixed operation services and later bind integration choices more directly to mechanism cards |
 | `src/chemworld/runtime/phase_separation_services.py` | phase-ledger normalization, liquid-liquid partitioning, extraction, settling, washing, drying, concentrating, transfer, and downstream truth metadata | keep separate from crystallization/distillation and later migrate primary phase state from metadata into typed ledgers |
@@ -119,21 +120,16 @@ The active runtime path contains `ChemWorldRuntime`,
 `chemworld.core.batch_reactor` runtime center has been removed from the running
 path.
 
-The broad file is now `src/chemworld/runtime/domain_services.py`. This is a
-better boundary than a batch-reactor-centered runtime. Observation/scoring has
-been extracted to `src/chemworld/runtime/observation_services.py`,
+`src/chemworld/runtime/domain_services.py` is now a lightweight composition
+surface rather than the physical runtime center. Observation/scoring has been
+extracted to `src/chemworld/runtime/observation_services.py`,
 operation-record assembly has been extracted to
 `src/chemworld/runtime/record_services.py`, and reaction/thermal advancement
 has been extracted to `src/chemworld/runtime/reaction_thermal_services.py`.
-Phase-ledger and extraction-style separation operations have now been extracted
-to `src/chemworld/runtime/phase_separation_services.py`. Crystallization state
-updates have been extracted to
-`src/chemworld/runtime/crystallization_services.py`. The remaining broad
-service file still contains flow.
-Electrochemical operation logic has been extracted to
-`src/chemworld/runtime/electrochemical_services.py`, and measurement cost /
-destructive sampling has been extracted to
-`src/chemworld/runtime/instrument_cost_services.py`.
+Phase-ledger and extraction-style separation operations have been extracted to
+`src/chemworld/runtime/phase_separation_services.py`; crystallization,
+distillation, flow, electrochemical operation logic, and measurement cost /
+destructive sampling have been extracted to focused service modules.
 
 Current hardening added a mechanism-aware species-role boundary. Runtime
 services now resolve reactants, targets, impurities, catalyst species,
@@ -144,7 +140,8 @@ older benchmark mechanisms and tests.
 
 Recommended follow-up:
 
-- split `domain_services.py` into a flow service;
+- keep `domain_services.py` thin and consider moving primitive add/sample
+  helpers into a primitive service after runtime APIs settle;
 - keep operation kernels as small command handlers;
 - continue moving mechanism-specific scoring and observation mapping into
   compiled mechanism cards;
@@ -187,13 +184,15 @@ Recommended follow-up:
 - Introduced Runtime v2 with operation kernel registry, task runtime profiles,
   transaction manager, mechanism compiler, typed ledgers, and mechanism-hash
   trajectory metadata.
-- Moved the former batch-reactor runtime implementation out of `core` and into
-  `runtime/domain_services.py` as the current semi-mechanistic service backend.
+- Moved the former batch-reactor runtime implementation out of `core` and then
+  split major state-changing process responsibilities into focused runtime
+  services.
 - Added `runtime/species.py` as the single species-role adapter between
   compiled mechanisms and the current semi-mechanistic domain services.
 - Migrated reagent addition, catalyst addition, phase bookkeeping,
-  electrochemical conversion, downstream truth values, flow conversion, and
-  observation truth scoring toward compiled-mechanism role mappings.
+  electrochemical conversion, downstream truth values, flow conversion,
+  distillation summaries, crystallization summaries, and observation truth
+  scoring toward compiled-mechanism role mappings.
 - Added regression tests using the `electrochemical_conversion` mechanism to
   verify non-`A/P/B/D/E` species can drive runtime services and observations.
 - Extracted `ChemWorldObservationKernel` into
@@ -230,6 +229,10 @@ Recommended follow-up:
   `runtime/distillation_services.py`, keeping shortcut VLE distillation,
   distillate purity/recovery metadata, heat-duty/cost/risk ledgers, and
   fraction collection outside the mixed domain-service module.
+- Extracted `ChemWorldFlowServices` into `runtime/flow_services.py`, keeping
+  flow-rate setup, residence-time reaction advancement, flow conversion
+  metadata, and flow campaign ledger updates outside the mixed domain-service
+  module.
 
 ## Verification
 
@@ -248,6 +251,6 @@ Run these after every cleanup slice:
    sensitivities, loaders, and reference cases.
 2. Split `eos.py`, `spectroscopy.py`, and `equilibrium_chemistry.py` by
    algorithm family.
-3. Continue splitting `runtime/domain_services.py` into narrower
-   state-changing domain-service modules and reducing legacy scalar-state
-   adapter responsibilities.
+3. Keep `runtime/domain_services.py` thin while reducing legacy scalar-state
+   adapter responsibilities and, if useful, extracting primitive reagent/sample
+   helpers into a small primitive-operation service.
