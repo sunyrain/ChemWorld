@@ -6,16 +6,15 @@ from chemworld.physchem.curated_properties import (
     curated_property_case_map,
     curated_property_cases,
     curated_property_correlations,
-    curated_property_model_cards,
     curated_property_package,
     list_curated_property_packages,
 )
+from chemworld.physchem.curated_property_cards import curated_property_model_cards
 from chemworld.physchem.electrochemistry import (
     FARADAY_C_PER_MOL,
     ElectrodeReactionSpec,
     ElectrolysisResult,
     butler_volmer_current,
-    electrochemistry_model_cards,
     equilibrium_potential_from_delta_g,
     faradaic_extent_mol,
     nernst_potential,
@@ -23,6 +22,7 @@ from chemworld.physchem.electrochemistry import (
     reaction_quotient_log_from_activities,
     run_electrolysis,
 )
+from chemworld.physchem.electrochemistry_cards import electrochemistry_model_cards
 from chemworld.physchem.elements import (
     ElementSpec,
     atom_fractions,
@@ -54,7 +54,6 @@ from chemworld.physchem.eos import (
     cubic_residual_properties,
     cubic_root_governance_report,
     cubic_root_selection_policy,
-    eos_model_cards,
     evaluate_cubic_eos,
     evaluate_volume_translated_cubic_eos,
     ideal_gas_molar_volume,
@@ -65,12 +64,12 @@ from chemworld.physchem.eos import (
     translated_cubic_compressibility_roots,
     validate_binary_interaction_provenance,
 )
+from chemworld.physchem.eos_cards import eos_model_cards
 from chemworld.physchem.equilibrium import (
     ActivityModelSpec,
     FlashResult,
     LLEStageResult,
     activity_coefficients,
-    activity_model_cards,
     bubble_pressure_pa,
     dew_pressure_pa,
     flash_isothermal,
@@ -78,6 +77,7 @@ from chemworld.physchem.equilibrium import (
     rachford_rice_vapor_fraction,
     raoult_k_values,
 )
+from chemworld.physchem.equilibrium_cards import activity_model_cards
 from chemworld.physchem.equilibrium_chemistry import (
     AcidBaseResult,
     ChargeBalanceResult,
@@ -90,7 +90,6 @@ from chemworld.physchem.equilibrium_chemistry import (
     PrecipitationResult,
     SolubilityProductSpec,
     balance_charge_by_adjusting_ion,
-    equilibrium_chemistry_model_cards,
     equilibrium_constant_vant_hoff,
     ionic_strength,
     ionic_strength_from_amounts,
@@ -106,6 +105,7 @@ from chemworld.physchem.equilibrium_chemistry import (
     solve_reaction_extent,
     water_ion_product,
 )
+from chemworld.physchem.equilibrium_chemistry_cards import equilibrium_chemistry_model_cards
 from chemworld.physchem.maturity import (
     MaturityLevel,
     ModelCard,
@@ -159,7 +159,6 @@ from chemworld.physchem.properties import (
     phase_path_enthalpy_report,
     phase_sensible_enthalpy_report,
     phase_transition_enthalpy,
-    property_correlation_model_cards,
     second_virial_coefficient_report,
     sensible_enthalpy_change,
     thermal_diffusivity_report,
@@ -171,6 +170,7 @@ from chemworld.physchem.properties import (
     volatility_risk_from_psat,
     wilke_gas_mixture_viscosity_ledger,
 )
+from chemworld.physchem.property_cards import property_correlation_model_cards
 from chemworld.physchem.reaction_network import (
     R_J_PER_MOL_K,
     BatchIntegrationResult,
@@ -192,11 +192,12 @@ from chemworld.physchem.reaction_network import (
     load_mechanism,
     parse_reaction_equation,
     perturb_network_parameters,
-    reaction_kinetics_model_cards,
     reverse_rate_constant_from_equilibrium,
     thermochemical_concentration_equilibrium_constant,
     thermochemical_detailed_balance,
 )
+from chemworld.physchem.reaction_network_cards import reaction_kinetics_model_cards
+from chemworld.physchem.reactor_cards import reactor_model_cards
 from chemworld.physchem.reactors import (
     BatchReactorModel,
     CSTRModel,
@@ -214,7 +215,6 @@ from chemworld.physchem.reactors import (
     SemiBatchFeedSpec,
     SemiBatchReactorModel,
     cstr_multiple_steady_state_reference_case,
-    reactor_model_cards,
     solve_cstr_multiple_steady_states,
 )
 from chemworld.physchem.reference_validation import (
@@ -295,10 +295,10 @@ from chemworld.physchem.spectroscopy import (
     fit_beer_lambert_calibration,
     fit_chromatography_calibration,
     generate_beer_lambert_calibration,
-    spectroscopy_model_cards,
     synthesize_signal,
     synthesize_signal_from_card,
 )
+from chemworld.physchem.spectroscopy_cards import spectroscopy_model_cards
 from chemworld.physchem.thermochemistry import (
     NASA7SpeciesThermo,
     NASA7TemperatureSegment,
@@ -306,8 +306,8 @@ from chemworld.physchem.thermochemistry import (
     SpeciesThermoState,
     equilibrium_constant_from_delta_g,
     reaction_thermochemistry,
-    thermochemistry_model_cards,
 )
+from chemworld.physchem.thermochemistry_cards import thermochemistry_model_cards
 from chemworld.physchem.transport import (
     FlowResult,
     FluidState,
@@ -336,8 +336,8 @@ from chemworld.physchem.transport import (
     prandtl_number,
     pump_work,
     reynolds_number,
-    transport_model_cards,
 )
+from chemworld.physchem.transport_cards import transport_model_cards
 
 __all__ = [
     "FARADAY_C_PER_MOL",

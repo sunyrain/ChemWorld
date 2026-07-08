@@ -17,11 +17,12 @@ Largest current source files after this cleanup:
 
 | File | Approximate role | Follow-up split target |
 | --- | --- | --- |
-| `src/chemworld/physchem/properties.py` | property reports, vapor pressure, enthalpy, volume, transport, hazard helpers, model cards | split into property specs/reports, vapor pressure, enthalpy, volume/density, transport-property reports, hazard helpers, and `property_cards.py` |
-| `src/chemworld/physchem/reactors.py` | reactor specs, batch, dynamic batch, semi-batch, CSTR, PFR, CSTR multiplicity, model cards | split into reactor specs, batch/dynamic batch, CSTR, PFR, numerical solver helpers, and `reactor_cards.py` |
-| `src/chemworld/physchem/reaction_network.py` | species/reaction specs, ODE cases, detailed balance, sensitivities, mechanism loading, model cards | split into mechanism specs, rate laws, integration/reference cases, thermochemical coupling, sensitivity, loaders, and `reaction_network_cards.py` |
-| `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance, model cards | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, provenance, and `eos_cards.py` |
-| `src/chemworld/physchem/spectroscopy.py` | calibration, chromatography, signal synthesis, feature heuristics, model cards | split into calibration, chromatography, signal synthesis, feature libraries, and `spectroscopy_cards.py` |
+| `src/chemworld/physchem/properties.py` | property reports, vapor pressure, enthalpy, volume, transport-property ledgers, hazard helpers | split into property specs/reports, vapor pressure, enthalpy, volume/density, transport-property reports, and hazard helpers |
+| `src/chemworld/physchem/reactors.py` | reactor specs, batch, dynamic batch, semi-batch, CSTR, PFR, CSTR multiplicity | split into reactor specs, batch/dynamic batch, CSTR, PFR, and numerical solver helpers |
+| `src/chemworld/physchem/reaction_network.py` | species/reaction specs, ODE cases, detailed balance, sensitivities, mechanism loading | split into mechanism specs, rate laws, integration/reference cases, thermochemical coupling, sensitivity, and loaders |
+| `src/chemworld/physchem/equilibrium_chemistry.py` | mass-action equilibrium, acid-base, precipitation, Gibbs minimization | split into mass-action, electrolyte/acid-base, precipitation, and Gibbs minimization helpers |
+| `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, and provenance |
+| `src/chemworld/physchem/spectroscopy.py` | calibration, chromatography, signal synthesis, feature heuristics | split into calibration, chromatography, signal synthesis, and feature libraries |
 | `src/chemworld/core/batch_reactor.py` | task runtime, constitution factory, hidden world parameter/state transitions | migrate foundation/world-law pieces out of `core` and keep runtime orchestration small |
 
 ### Medium Priority: Model Cards Are Better As Metadata Modules
@@ -32,23 +33,34 @@ noisy whenever docs/provenance changes.
 
 Action completed in this pass:
 
-- moved separation model cards into
-  `src/chemworld/physchem/separation_cards.py`;
-- kept `separation_model_cards()` public through both `chemworld.physchem` and
-  `chemworld.physchem.separations`;
-- did not change separation numerical behavior.
+- moved all remaining PhysChem `*_model_cards()` functions into dedicated
+  `*_cards.py` modules;
+- moved card-only provenance constants with their card modules where needed;
+- kept the public facade `chemworld.physchem` exporting the same model-card
+  functions;
+- kept numerical kernels focused on calculations, reports, and runtime data
+  structures;
+- did not change numerical behavior.
 
-Recommended next mechanical cleanups:
+The new card modules are:
 
-1. Move `property_correlation_model_cards()` to `property_cards.py`.
-2. Move `reactor_model_cards()` to `reactor_cards.py`.
-3. Move `reaction_kinetics_model_cards()` to `reaction_network_cards.py`.
-4. Move `eos_model_cards()` to `eos_cards.py`.
-5. Move `spectroscopy_model_cards()` to `spectroscopy_cards.py`.
-6. Move `transport_model_cards()` to `transport_cards.py`.
+- `curated_property_cards.py`
+- `electrochemistry_cards.py`
+- `eos_cards.py`
+- `equilibrium_cards.py`
+- `equilibrium_chemistry_cards.py`
+- `property_cards.py`
+- `reaction_network_cards.py`
+- `reactor_cards.py`
+- `separation_cards.py`
+- `spectroscopy_cards.py`
+- `thermochemistry_cards.py`
+- `transport_cards.py`
 
-Each move should keep the old public import path re-exported until a deliberate
-public API cleanup pass.
+Recommended next mechanical cleanup:
+
+1. Split `properties.py` by physical property family while preserving public
+   imports through a thin aggregation module.
 
 ### Medium Priority: Runtime Still Depends On `core.batch_reactor`
 
@@ -80,11 +92,15 @@ Recommended follow-up:
 ## Cleanup Completed
 
 - Extracted separation model-card metadata from the separation numerical kernel.
-- Added `chemworld.physchem.separation_cards`.
-- Updated `chemworld.physchem.__init__` to import separation cards directly.
-- Preserved the existing `chemworld.physchem.separations.separation_model_cards`
-  public path through re-export.
-- Verified separation and maturity tests after the split.
+- Extracted the remaining PhysChem model-card metadata from numerical kernels.
+- Added dedicated `*_cards.py` modules for property correlations, reactors,
+  reaction networks, EOS, spectroscopy, transport, equilibrium, equilibrium
+  chemistry, thermochemistry, electrochemistry, curated properties, and
+  separations.
+- Updated `chemworld.physchem.__init__` to import model-card functions directly
+  from card modules.
+- Preserved module-level model-card re-exports from the numerical kernels.
+- Verified facade imports and model-card validation after the split.
 
 ## Verification
 
@@ -99,10 +115,11 @@ Run these after every cleanup slice:
 
 ## Next Cleanup Order
 
-1. Extract all remaining model-card functions into `*_cards.py` modules.
-2. Split `properties.py` by physical property family.
-3. Split `reactors.py` by reactor family and solver helpers.
-4. Split `reaction_network.py` into specs, rate laws, thermochemistry coupling,
+1. Split `properties.py` by physical property family.
+2. Split `reactors.py` by reactor family and solver helpers.
+3. Split `reaction_network.py` into specs, rate laws, thermochemistry coupling,
    sensitivities, loaders, and reference cases.
+4. Split `eos.py`, `spectroscopy.py`, and `equilibrium_chemistry.py` by
+   algorithm family.
 5. Move `core.batch_reactor` responsibilities into `world` and `foundation`
    modules.
