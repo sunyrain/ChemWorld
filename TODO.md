@@ -71,6 +71,7 @@ finished, update its status and push immediately.
 | Runtime v2 typed crystallization output phases | whilesunny | Done | `src/chemworld/foundation/constitution.py`, `src/chemworld/runtime/crystallization_services.py`, `src/chemworld/world/separation_kernel.py`, tests/docs | crystallized product and impurity amounts now live in typed solid/mother-liquor phase records, with filter preconditions and constitution checks using typed phases | this commit |
 | Runtime v2 typed distillation output phases | whilesunny | Done | `src/chemworld/foundation/constitution.py`, `src/chemworld/runtime/distillation_services.py`, tests/docs | distillate product and impurity amounts now live in typed distillate/bottoms phase records; collect-fraction preconditions and constitution checks read typed phases | this commit |
 | Runtime v2 final audit and legacy fallback boundary | whilesunny | Done | runtime/env/eval scans, tests/docs/TODO_PROFESSIONAL | removed batch-runtime imports and legacy species fallback boundaries are enforced; mechanism-owned initial-state removal is tracked as PRO-RUNTIME-A | this commit |
+| PRO-RUNTIME-A mechanism-owned initial-state generator | whilesunny | Active | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/world/scenario.py`, `src/chemworld/world/state_factory.py`, `src/chemworld/runtime/species.py`, tests/docs | generate initial `WorldState` species ledgers from compiled mechanism/scenario specs before removing runtime fallback constants | pending |
 
 Status values:
 
