@@ -66,6 +66,7 @@ Every professional module must ship:
 | PRO-P12A fluids friction factor and pressure-drop validation | whilesunny | Done | `fluids.friction`, `fluids.core`, Haaland and Darcy-Weisbach references | `src/chemworld/physchem/transport.py`, `src/chemworld/physchem/reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend pressure-drop validation to heat-transfer correlations or claim PRO-P2A | this commit |
 | PRO-P2A curated vapor-pressure and enthalpy property cases | whilesunny | Done | `chemicals.vapor_pressure`, `chemicals.heat_capacity`, `chemicals.dippr`, `thermo.heat_capacity` | `src/chemworld/physchem/curated_properties.py`, `src/chemworld/physchem/properties.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend the curated registry toward critical properties, liquid Cp, latent heat, and CoolProp checks | this commit |
 | PRO-P4A Wilson and full binary NRTL activity models | whilesunny | Done | `thermo.activity`, `thermo.wilson`, `thermo.nrtl`, `phasepy.actmodels` | `src/chemworld/physchem/equilibrium.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add nonideal VLE task cases and Wilson/NRTL parameter-library governance | this commit |
+| PRO-P5A Cantera-comparable irreversible/reversible reaction ODE cases | whilesunny | Claimed | `cantera` reactor examples, `cantera` reaction-rate APIs, `rmg-py` mechanism schema | `src/chemworld/physchem/reaction_network.py`, optional reference tests, model cards, docs | read local Cantera/RMG reaction APIs, then add analytical and optional-Cantera ODE validation cases | pending push |
 
 ## P0: Governance And Model Maturity
 
@@ -545,7 +546,7 @@ Acceptance:
 4. `PRO-P4A`: Implement Wilson and full binary NRTL with reference comparisons.
    Done.
 5. `PRO-P5A`: Add Cantera-comparable irreversible and reversible reaction ODE
-   cases.
+   cases. Claimed by whilesunny.
 6. `PRO-P6A`: Add CSTR multiple-steady-state professional example.
 7. `PRO-P7A`: Replace simple distillation proxy with VLE-coupled shortcut
    distillation.
