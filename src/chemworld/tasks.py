@@ -5,6 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from chemworld.physchem.maturity import (
+    MaturityLevel,
+    ModuleMaturity,
+    TaskMaturitySpec,
+    validate_task_maturity_policy,
+)
 from chemworld.registration import ENV_ID
 from chemworld.world.operations import (
     CRYSTALLIZATION_OPERATIONS,
@@ -79,6 +85,7 @@ class TaskSpec:
     difficulty: str
     description: str
     tags: tuple[str, ...]
+    kernel_maturity: TaskMaturitySpec
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -102,7 +109,17 @@ class TaskSpec:
             "difficulty": self.difficulty,
             "description": self.description,
             "tags": list(self.tags),
+            "kernel_maturity": self.kernel_maturity.to_dict(),
+            "physics_maturity": self.kernel_maturity.lowest_level.value,
+            "proxy_allowed": self.kernel_maturity.proxy_allowed,
         }
+
+    def __post_init__(self) -> None:
+        validate_task_maturity_policy(
+            task_id=self.task_id,
+            tags=self.tags,
+            maturity=self.kernel_maturity,
+        )
 
     def env_kwargs(self, *, seed: int | None = None) -> dict[str, Any]:
         return {
@@ -138,6 +155,9 @@ class TaskSpec:
             "reference_baselines": list(REFERENCE_BASELINES),
             "recommended_agent_families": self._recommended_agent_families(),
             "scenario_card": get_scenario_card(self.scenario_id, split=self.world_split),
+            "kernel_maturity": self.kernel_maturity.to_dict(),
+            "physics_maturity": self.kernel_maturity.lowest_level.value,
+            "proxy_allowed": self.kernel_maturity.proxy_allowed,
             "failure_modes": self._failure_modes(),
             "recommended_use": self._recommended_use(),
             "safety_limit": self.safety_limit,
@@ -195,12 +215,22 @@ def _task(
     instruments: tuple[str, ...] = INSTRUMENTS,
     observation_policy: str = "partial-instrument-observation",
     termination_policy: str | None = None,
+    kernel_maturity: TaskMaturitySpec | None = None,
 ) -> TaskSpec:
     resolved_termination_policy = (
         termination_policy
         if termination_policy is not None
         else ("budget" if episode_mode == "campaign" else "final-assay-or-budget")
     )
+    resolved_kernel_maturity = kernel_maturity or default_kernel_maturity(
+        allowed_operations
+    )
+    resolved_tags = ("chemworld", *tags)
+    if (
+        resolved_kernel_maturity.contains_proxy
+        and not set(resolved_tags).intersection({"teaching", "smoke", "exploratory"})
+    ):
+        resolved_tags = (*resolved_tags, "exploratory")
     return TaskSpec(
         task_id=task_id,
         env_id=ENV_ID,
@@ -221,7 +251,101 @@ def _task(
         safety_limit=safety_limit,
         difficulty=difficulty,
         description=description,
-        tags=("chemworld", *tags),
+        tags=resolved_tags,
+        kernel_maturity=resolved_kernel_maturity,
+    )
+
+
+def default_kernel_maturity(
+    allowed_operations: tuple[str, ...],
+) -> TaskMaturitySpec:
+    operations = set(allowed_operations)
+    modules = [
+        ModuleMaturity(
+            "reaction_kinetics",
+            MaturityLevel.LITE,
+            model_ids=("chemworld_reaction_network_lite",),
+            notes=(
+                "Local stoichiometric reaction-network and rate-law engine; "
+                "not yet Cantera-comparable.",
+            ),
+        ),
+        ModuleMaturity(
+            "reactors",
+            MaturityLevel.LITE,
+            model_ids=("chemworld_reactor_lite",),
+            notes=("Batch/CSTR/PFR kernels are benchmark ODE models.",),
+        ),
+        ModuleMaturity(
+            "spectroscopy_instruments",
+            MaturityLevel.LITE,
+            model_ids=("chemworld_synthetic_instruments",),
+            notes=("State-coupled synthetic observations, not empirical spectral prediction.",),
+        ),
+    ]
+    if operations.intersection({"add_phase", "add_extractant", "mix", "settle"}):
+        modules.append(
+            ModuleMaturity(
+                "phase_equilibrium",
+                MaturityLevel.LITE,
+                model_ids=("chemworld_phase_equilibrium_lite",),
+                notes=("Raoult/Rachford-Rice/LLE-lite models with partial validation.",),
+            )
+        )
+    if operations.intersection(CRYSTALLIZATION_OPERATIONS):
+        modules.append(
+            ModuleMaturity(
+                "crystallization",
+                MaturityLevel.PROXY,
+                model_ids=("chemworld_crystallization_proxy",),
+                notes=("Crystallization is a material-conserving benchmark proxy.",),
+            )
+        )
+    if operations.intersection(DISTILLATION_OPERATIONS):
+        modules.append(
+            ModuleMaturity(
+                "distillation",
+                MaturityLevel.PROXY,
+                model_ids=("chemworld_distillation_proxy",),
+                notes=("Distillation is not yet a VLE-coupled professional unit model.",),
+            )
+        )
+    if operations.intersection(FLOW_OPERATIONS):
+        modules.append(
+            ModuleMaturity(
+                "continuous_flow",
+                MaturityLevel.PROXY,
+                model_ids=("chemworld_continuous_flow_proxy",),
+                notes=("Continuous-flow behavior is a projection of the shared reaction law.",),
+            )
+        )
+    if operations.intersection(ELECTROCHEMISTRY_OPERATIONS):
+        modules.append(
+            ModuleMaturity(
+                "electrochemistry",
+                MaturityLevel.PROXY,
+                model_ids=("chemworld_electrochemistry_proxy",),
+                notes=("Electrochemistry lacks Butler-Volmer and charge accounting.",),
+            )
+        )
+    if operations.intersection({"separate_phase", "wash", "dry", "concentrate"}):
+        modules.append(
+            ModuleMaturity(
+                "separations",
+                MaturityLevel.PROXY,
+                model_ids=("chemworld_separation_proxy",),
+                notes=("Downstream purification uses material-conserving proxy units.",),
+            )
+        )
+    proxy_allowed = any(module.level is MaturityLevel.PROXY for module in modules)
+    notes = (
+        "Current task maturity is alpha/lite; professional hardening is tracked in "
+        "TODO_PROFESSIONAL.md.",
+    )
+    return TaskMaturitySpec(
+        modules=tuple(modules),
+        proxy_allowed=proxy_allowed,
+        notes=notes,
     )
 
 

@@ -62,30 +62,41 @@ Every professional module must ship:
 | Item | Owner | Status | Reference Targets | Code Areas | Next Step | Last Push |
 | --- | --- | --- | --- | --- | --- | --- |
 | Professional TODO bootstrap | whilesunny | Done | all reference repos | `TODO_PROFESSIONAL.md`, `docs/professional_todo.md`, `docs/physchem_maturity_audit.md` | claim the first professional implementation item before coding | this commit |
-| PRO-P0 maturity metadata and model-card templates | whilesunny | Claimed | IDAES, thermo, Cantera, Gymnasium-style metadata | `src/chemworld/physchem/maturity.py`, `src/chemworld/tasks.py`, `docs/physchem_maturity_audit.md`, tests | read reference metadata patterns, then implement maturity enum, model-card templates, and task maturity fields | this commit |
+| PRO-P0 maturity metadata and model-card templates | whilesunny | Done | IDAES, thermo, Cantera, Gymnasium-style metadata | `src/chemworld/physchem/maturity.py`, `src/chemworld/tasks.py`, `docs/physchem_maturity_audit.md`, tests | next: claim PRO-P12A or PRO-P2A for reference-validated numerical hardening | this commit |
 
 ## P0: Governance And Model Maturity
 
-- [ ] Define a machine-readable maturity enum:
-  - [ ] `proxy`;
-  - [ ] `lite`;
-  - [ ] `reference_validated`;
-  - [ ] `professional_candidate`;
-  - [ ] `professional`.
-- [ ] Add model-card templates for:
-  - [ ] properties;
-  - [ ] EOS;
-  - [ ] phase equilibrium;
-  - [ ] reaction kinetics;
-  - [ ] reactors;
-  - [ ] separations;
-  - [ ] transport;
-  - [ ] spectroscopy/instruments.
-- [ ] Add CI checks that docs cannot call a module professional unless the
+- [x] Define a machine-readable maturity enum:
+  - [x] `proxy`;
+  - [x] `lite`;
+  - [x] `reference_validated`;
+  - [x] `professional_candidate`;
+  - [x] `professional`.
+- [x] Add model-card templates for:
+  - [x] properties;
+  - [x] EOS;
+  - [x] phase equilibrium;
+  - [x] reaction kinetics;
+  - [x] reactors;
+  - [x] separations;
+  - [x] transport;
+  - [x] spectroscopy/instruments.
+- [x] Add CI checks that docs cannot call a module professional unless the
       model card and validation evidence exist.
-- [ ] Add a `proxy_allowed` flag only for educational or exploratory tasks.
-- [ ] Add task metadata showing whether each task uses proxy, lite, or
+- [x] Add a `proxy_allowed` flag only for educational or exploratory tasks.
+- [x] Add task metadata showing whether each task uses proxy, lite, or
       professional kernels.
+
+Reference-reading note for PRO-P0:
+
+- `thermo.activity.GibbsExcess` separates model parameters from state and
+  exposes JSON-friendly serialization/hash behavior.
+- `thermo.property_package.PropertyPackage` exposes explicit flash tolerances
+  and fixed validity bounds.
+- Cantera YAML files expose description, generator, input files, unit systems,
+  phase models, species thermo models, and transport model declarations.
+- IDAES component/property blocks use explicit configuration declarations and
+  property-package metadata.
 
 ## P1: Component Data, Units, And Property Registry
 

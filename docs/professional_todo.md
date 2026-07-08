@@ -36,7 +36,7 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
 
 ## First Professional Queue
 
-1. Add maturity metadata and model-card templates.
+1. Add maturity metadata and model-card templates. Done in PRO-P0.
 2. Expand `fluids` validation to friction factor and pressure drop.
 3. Replace placeholder property examples with curated reference-checked
    compounds.
@@ -57,3 +57,15 @@ A professional item is done only when these are all true:
 - local tests cover invariants and edge cases;
 - optional reference validation exists where practical;
 - benchmark task integration reports the model maturity level.
+
+## Current Implementation
+
+PRO-P0 is now implemented in `chemworld.physchem.maturity` and task metadata:
+
+- `MaturityLevel` defines proxy, lite, reference-validated,
+  professional-candidate, and professional states.
+- `ModelCardTemplate` defines required sections for each physical module family.
+- `ModelCard` and `ValidationEvidence` make professional claims auditable.
+- `TaskMaturitySpec` appears in task cards and environment `task_info`.
+- Proxy tasks must be explicitly marked as proxy-allowed and exploratory,
+  teaching, smoke, or education.

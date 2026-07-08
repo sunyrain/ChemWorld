@@ -52,6 +52,22 @@ chemworld suite --task reaction-optimization-standard --agent gp_bo
 Task-based evaluation is preferred for public results because it removes
 ambiguity about budget, split, objective, and seed selection.
 
+## Physics Maturity
+
+Each task card now exposes machine-readable physics maturity metadata:
+
+- `kernel_maturity`: module-level maturity records such as reaction kinetics,
+  reactors, separations, phase equilibrium, distillation, electrochemistry, and
+  instruments.
+- `physics_maturity`: the lowest maturity level among the modules used by the
+  task.
+- `proxy_allowed`: whether the task explicitly permits proxy kernels.
+
+The allowed maturity levels are `proxy`, `lite`, `reference_validated`,
+`professional_candidate`, and `professional`. If a task uses a proxy kernel,
+it must be tagged as teaching, smoke, exploratory, or education. This prevents
+professional benchmark claims from silently relying on proxy unit operations.
+
 ## Episode Modes
 
 `single_experiment` tasks are one experimental workflow. A successful

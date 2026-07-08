@@ -20,7 +20,7 @@ from chemworld.core.batch_reactor import (
 )
 from chemworld.foundation.state import OperationRecord, WorldState
 from chemworld.operation_validator import OperationValidator
-from chemworld.tasks import get_task
+from chemworld.tasks import default_kernel_maturity, get_task
 from chemworld.world.instruments import instrument_contracts
 from chemworld.world.operations import (
     DOWNSTREAM_OBSERVATION_KEYS,
@@ -113,6 +113,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             set(self.task_spec.allowed_instruments)
             if self.task_spec is not None
             else set(INSTRUMENTS)
+        )
+        self.kernel_maturity = (
+            self.task_spec.kernel_maturity
+            if self.task_spec is not None
+            else default_kernel_maturity(tuple(sorted(self.allowed_operations)))
         )
         self.episode_mode = (
             self.task_spec.episode_mode if self.task_spec is not None else "single_experiment"
@@ -344,6 +349,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "operation_types": list(OPERATION_TYPES),
             "allowed_operations": sorted(self.allowed_operations),
             "allowed_instruments": sorted(self.allowed_instruments),
+            "kernel_maturity": self.kernel_maturity.to_dict(),
+            "physics_maturity": self.kernel_maturity.lowest_level.value,
+            "proxy_allowed": self.kernel_maturity.proxy_allowed,
             "instruments": {
                 key: contract.to_dict() for key, contract in instrument_contracts().items()
             },
@@ -551,5 +559,3 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             )
             for key in OBSERVATION_KEYS
         }
-
-

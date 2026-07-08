@@ -43,6 +43,53 @@ project does not confuse proxy/lite kernels with validated scientific models.
   document what was inspected, identify the outdated assumption, and implement a
   clearer local alternative.
 
+## Machine-Readable Metadata
+
+PRO-P0 adds the first code-level contract for these rules in
+`chemworld.physchem.maturity`.
+
+Public objects:
+
+- `MaturityLevel`: `proxy`, `lite`, `reference_validated`,
+  `professional_candidate`, and `professional`.
+- `ModelCardTemplate`: required model-card sections for properties, EOS, phase
+  equilibrium, reaction kinetics, reactors, separations, transport, and
+  spectroscopy/instruments.
+- `ModelCard`: JSON-friendly model-card record with equations, assumptions,
+  validity limits, failure modes, units, reference-reading notes, validation
+  evidence, model-limit notes, and intended use.
+- `ValidationEvidence`: optional reference-test or documented analytical
+  evidence.
+- `ModuleMaturity` and `TaskMaturitySpec`: task-level declarations of which
+  modules are proxy, lite, reference-validated, or professional.
+
+Current task cards and `env.reset()` task info now expose:
+
+- `kernel_maturity`;
+- `physics_maturity`;
+- `proxy_allowed`.
+
+If a task uses a proxy kernel, `proxy_allowed` must be true and the task must be
+tagged as teaching, smoke, exploratory, or education. This makes proxy use
+visible to students, agents, leaderboard tooling, and paper artifacts.
+
+## Reference-Reading Notes
+
+The first maturity implementation was designed after inspecting local reference
+repositories:
+
+- `thermo` separates model parameters from state and exposes JSON-friendly
+  serialization for activity models.
+- `thermo` property packages define flash tolerances and fixed temperature and
+  pressure bounds.
+- Cantera YAML files keep description, generator, source files, units, phase
+  models, species models, and transport models explicit.
+- IDAES declares component and property capabilities through structured config
+  blocks and property-package metadata.
+
+ChemWorld localizes those ideas into small dataclasses rather than importing or
+copying the reference implementations.
+
 ## Immediate Corrections
 
 - `TODO.md` now describes the current P1-P12 batch as foundation/lite work.
@@ -50,3 +97,5 @@ project does not confuse proxy/lite kernels with validated scientific models.
 - Docs should describe the current physical layer as compact and auditable, not
   as parity with Cantera, CoolProp, thermo, phasepy, Reaktoro, pycalphad, or
   IDAES.
+- PRO-P0 is implemented: maturity enum, model-card templates, task maturity
+  metadata, proxy policy checks, and tests are now in the codebase.
