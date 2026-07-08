@@ -27,6 +27,7 @@ finished, update its status and push immediately.
 | P9 equilibrium chemistry | whilesunny | Done | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/test_equilibrium_chemistry.py`, `docs/physchem_core_design.md` | next: expand mechanism and scenario library in P10 using the generalized physchem kernels | this commit |
 | P10 mechanism and scenario library | whilesunny | Done | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/physchem/mechanism_library.py`, `tests/`, `docs/physchem_core_design.md` | next: start P11 instrument and spectroscopy coupling using mechanism targets and impurity species | this commit |
 | P11 instrument and spectroscopy coupling | whilesunny | Done | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `tests/`, `docs/physchem_core_design.md` | next: start P12 optional reference-backend validation after choosing the first comparison targets | this commit |
+| P12 optional reference-backend validation | whilesunny | Active | `tests/reference/`, `docs/physchem_core_design.md`, `TODO.md` | read reference projects' validation patterns, then add optional import-skip comparison tests, documented tolerances, and model-limit notes without making references core dependencies | pending |
 
 Status values:
 
