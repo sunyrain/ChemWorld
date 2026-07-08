@@ -1,0 +1,71 @@
+name: PhysChem Core Feature
+description: Track a scoped physical-chemistry or process-modeling feature.
+title: "[PhysChem] "
+labels: ["area:physchem-core", "kind:implementation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for work derived from `TODO.md`.
+        Keep the issue small enough to merge in one or two PRs.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What capability is missing and why does it matter?
+      placeholder: "ChemWorld needs a generic stoichiometric matrix builder so tasks are not limited to a fixed reaction network."
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What modules, files, or public APIs should change?
+      placeholder: "src/chemworld/physchem/reaction_network.py; mechanism schema; tests."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Concrete conditions for done.
+      placeholder: |
+        - Parses irreversible and reversible reaction equations.
+        - Builds S matrix for arbitrary species/reactions.
+        - Fails element-imbalanced mechanisms.
+        - Includes tests for at least five mechanisms.
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Test Plan
+      description: Unit, integration, benchmark, and docs checks.
+      placeholder: |
+        - python -m pytest tests/test_physchem_reaction_network.py
+        - python -m mypy src/chemworld
+        - mkdocs build --strict
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Textbooks, equations, public data, or reference repos. Do not paste third-party code.
+      placeholder: "TODO.md P3; docs/reference_repos.md; original equation source."
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-Goals
+      description: What should explicitly not be included in this issue?
+      placeholder: "No Cantera adapter; no automatic mechanism generation."
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - priority:P0
+        - priority:P1
+        - priority:P2
+    validations:
+      required: true
