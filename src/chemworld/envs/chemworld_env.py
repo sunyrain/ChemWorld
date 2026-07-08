@@ -352,6 +352,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "mechanism_id": compiled_mechanism.mechanism_id,
             "mechanism_hash": compiled_mechanism.mechanism_hash,
             "mechanism_version": compiled_mechanism.mechanism_version,
+            "mechanism_manifest": compiled_mechanism.manifest.to_dict(),
             "env_version": __version__,
             "world_family_version": self.world.family_version,
             "runtime": self.runtime.to_dict(),

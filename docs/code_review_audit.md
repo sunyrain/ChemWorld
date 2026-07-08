@@ -373,6 +373,11 @@ Recommended follow-up:
 - Extracted `reaction_reference_cases.py` from `reaction_network.py`, keeping
   analytical first-order ODE cases, Cantera-comparable fixtures, and
   reference-case evaluation outside the network integration engine.
+- Added a schema-versioned mechanism contract and replay manifest. Mechanism
+  YAML now validates against `chemworld_mechanism_v1`, rate laws are restricted
+  to local enum families, executable/eval-style rate laws are rejected, each
+  compiled mechanism exports a deterministic hash-backed manifest, and
+  `task_info()` exposes `mechanism_manifest` for replay and submission audits.
 
 ## Verification
 

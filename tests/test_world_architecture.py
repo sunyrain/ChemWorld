@@ -694,6 +694,8 @@ def test_env_runtime_v2_info_contains_kernel_transaction_and_mechanism() -> None
 
         assert reset_info["mechanism_id"] == "simple_batch_reaction"
         assert reset_info["mechanism_hash"]
+        assert reset_info["mechanism_manifest"]["mechanism_id"] == "simple_batch_reaction"
+        assert reset_info["mechanism_manifest"]["validation_report"]["passed"]
         assert step_info["kernel_id"] == "chemworld.operation.add_solvent"
         assert step_info["transaction_status"] == "committed"
         assert step_info["rollback_reason"] is None

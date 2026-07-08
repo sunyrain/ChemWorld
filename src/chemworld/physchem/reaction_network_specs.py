@@ -10,6 +10,16 @@ from typing import Any, Literal
 from chemworld.physchem.elements import parse_formula
 
 Arrow = Literal["=>", "<=>"]
+SUPPORTED_RATE_LAW_EQUATION_IDS = (
+    "mass_action",
+    "arrhenius",
+    "modified_arrhenius",
+    "reversible_arrhenius",
+    "catalytic_activity",
+    "catalyst_deactivation",
+    "langmuir_hinshelwood",
+    "michaelis_menten",
+)
 
 
 @dataclass(frozen=True)
@@ -54,16 +64,7 @@ class RateLawSpec:
     def __post_init__(self) -> None:
         if not self.rate_law_id:
             raise ValueError("rate_law_id cannot be empty")
-        if self.equation_id not in {
-            "mass_action",
-            "arrhenius",
-            "modified_arrhenius",
-            "reversible_arrhenius",
-            "catalytic_activity",
-            "catalyst_deactivation",
-            "langmuir_hinshelwood",
-            "michaelis_menten",
-        }:
+        if self.equation_id not in SUPPORTED_RATE_LAW_EQUATION_IDS:
             raise ValueError(f"Unsupported rate law: {self.equation_id}")
 
     def to_dict(self) -> dict[str, object]:
@@ -241,6 +242,7 @@ def _parse_species_term(token: str) -> tuple[float, str]:
 
 
 __all__ = [
+    "SUPPORTED_RATE_LAW_EQUATION_IDS",
     "Arrow",
     "RateLawSpec",
     "ReactionSpec",

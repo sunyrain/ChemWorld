@@ -25,7 +25,9 @@ __all__ = [
     "DomainServiceRegistry",
     "KernelPlan",
     "KernelResult",
+    "MechanismManifest",
     "MechanismSpeciesView",
+    "MechanismValidationReport",
     "OperationKernel",
     "OperationKernelRegistry",
     "RuntimeContext",
@@ -42,15 +44,19 @@ __all__ = [
     "make_chemworld_constitution",
     "mechanism_hash",
     "mechanism_id_for_scenario",
+    "validate_mechanism_file",
 ]
 
 _MECHANISM_EXPORTS = {
     "CompiledMechanism",
+    "MechanismManifest",
+    "MechanismValidationReport",
     "ScoreSpec",
     "compile_mechanism",
     "compile_mechanism_for_scenario",
     "mechanism_hash",
     "mechanism_id_for_scenario",
+    "validate_mechanism_file",
 }
 
 

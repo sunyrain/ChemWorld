@@ -17,8 +17,11 @@ from chemworld.physchem.mechanism_library import (
     load_library_mechanism,
 )
 from chemworld.physchem.reaction_network import ReactionNetworkSpec
-
-MECHANISM_SCHEMA_VERSION = "chemworld_mechanism_v1"
+from chemworld.schemas import (
+    MECHANISM_SCHEMA_VERSION,
+    SchemaValidationResult,
+    validate_mechanism_schema,
+)
 
 SCENARIO_MECHANISM_DEFAULTS = {
     "reaction-optimization": "simple_batch_reaction",
@@ -61,6 +64,106 @@ class ScoreSpec:
 
 
 @dataclass(frozen=True)
+class MechanismValidationReport:
+    mechanism_id: str
+    schema_version: str
+    mechanism_hash: str
+    source_path: str
+    passed: bool
+    errors: tuple[str, ...]
+    warnings: tuple[str, ...]
+    species_count: int
+    reaction_count: int
+    rate_law_equation_ids: tuple[str, ...]
+
+    @classmethod
+    def from_schema_result(
+        cls,
+        *,
+        mechanism_id: str,
+        schema_version: str,
+        mechanism_hash: str,
+        source_path: str,
+        schema_result: SchemaValidationResult,
+        payload: dict[str, Any],
+    ) -> MechanismValidationReport:
+        reactions = payload.get("reactions", ())
+        species = payload.get("species", ())
+        rate_laws: set[str] = set()
+        if isinstance(reactions, list):
+            for reaction in reactions:
+                if not isinstance(reaction, dict):
+                    continue
+                rate_law = reaction.get("rate_law", {})
+                if isinstance(rate_law, dict):
+                    equation_id = rate_law.get("equation_id", "")
+                    if equation_id:
+                        rate_laws.add(str(equation_id))
+        return cls(
+            mechanism_id=mechanism_id,
+            schema_version=schema_version,
+            mechanism_hash=mechanism_hash,
+            source_path=source_path,
+            passed=schema_result.valid,
+            errors=schema_result.errors,
+            warnings=schema_result.warnings,
+            species_count=len(species) if isinstance(species, list) else 0,
+            reaction_count=len(reactions) if isinstance(reactions, list) else 0,
+            rate_law_equation_ids=tuple(sorted(rate_laws)),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "mechanism_id": self.mechanism_id,
+            "schema_version": self.schema_version,
+            "mechanism_hash": self.mechanism_hash,
+            "source_path": self.source_path,
+            "passed": self.passed,
+            "errors": list(self.errors),
+            "warnings": list(self.warnings),
+            "species_count": self.species_count,
+            "reaction_count": self.reaction_count,
+            "rate_law_equation_ids": list(self.rate_law_equation_ids),
+        }
+
+
+@dataclass(frozen=True)
+class MechanismManifest:
+    mechanism_id: str
+    mechanism_version: str
+    mechanism_hash: str
+    source_path: str
+    species_count: int
+    reaction_count: int
+    rate_law_equation_ids: tuple[str, ...]
+    species_roles: dict[str, tuple[str, ...]]
+    observable_mapping: dict[str, tuple[str, ...]]
+    score_spec: ScoreSpec
+    initial_amount_policy: dict[str, float]
+    validation_report: MechanismValidationReport
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "mechanism_id": self.mechanism_id,
+            "mechanism_version": self.mechanism_version,
+            "mechanism_hash": self.mechanism_hash,
+            "source_path": self.source_path,
+            "species_count": self.species_count,
+            "reaction_count": self.reaction_count,
+            "rate_law_equation_ids": list(self.rate_law_equation_ids),
+            "species_roles": {
+                species_id: list(roles) for species_id, roles in self.species_roles.items()
+            },
+            "observable_mapping": {
+                role: list(species) for role, species in self.observable_mapping.items()
+            },
+            "score_spec": self.score_spec.to_dict(),
+            "initial_amount_policy": dict(self.initial_amount_policy),
+            "validation_report": self.validation_report.to_dict(),
+        }
+
+
+@dataclass(frozen=True)
 class CompiledMechanism:
     mechanism_id: str
     mechanism_version: str
@@ -73,6 +176,7 @@ class CompiledMechanism:
     observable_mapping: dict[str, tuple[str, ...]]
     score_spec: ScoreSpec
     initial_amount_policy: dict[str, float]
+    manifest: MechanismManifest
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -90,6 +194,7 @@ class CompiledMechanism:
             },
             "score_spec": self.score_spec.to_dict(),
             "initial_amount_policy": dict(self.initial_amount_policy),
+            "manifest": self.manifest.to_dict(),
         }
 
 
@@ -117,7 +222,7 @@ def compile_mechanism(
         if isinstance(card_or_mechanism_id, MechanismScenarioCard)
         else get_mechanism_card(card_or_mechanism_id)
     )
-    _validate_raw_mechanism_schema(card.resolved_mechanism_path)
+    validation_report = validate_mechanism_file(card.resolved_mechanism_path)
     network = load_library_mechanism(card)
     species_roles = {
         species.species_id: tuple(species.observable_aliases)
@@ -136,10 +241,29 @@ def compile_mechanism(
             else require_runtime_roles
         ),
     )
+    score_spec = ScoreSpec(
+        target_species=card.target_species,
+        impurity_species=card.impurity_species,
+        initial_limiting_species=initial_limiting_species,
+    )
+    manifest = MechanismManifest(
+        mechanism_id=network.network_id,
+        mechanism_version=MECHANISM_SCHEMA_VERSION,
+        mechanism_hash=validation_report.mechanism_hash,
+        source_path=validation_report.source_path,
+        species_count=len(network.species),
+        reaction_count=len(network.reactions),
+        rate_law_equation_ids=validation_report.rate_law_equation_ids,
+        species_roles=species_roles,
+        observable_mapping=observable_mapping,
+        score_spec=score_spec,
+        initial_amount_policy=dict(card.initial_amounts_mol),
+        validation_report=validation_report,
+    )
     return CompiledMechanism(
         mechanism_id=network.network_id,
         mechanism_version=MECHANISM_SCHEMA_VERSION,
-        mechanism_hash=mechanism_hash(card.resolved_mechanism_path),
+        mechanism_hash=validation_report.mechanism_hash,
         network=network,
         species_index=network.species_index,
         stoichiometric_matrix=network.stoichiometric_matrix(),
@@ -149,12 +273,9 @@ def compile_mechanism(
         },
         species_roles=species_roles,
         observable_mapping=observable_mapping,
-        score_spec=ScoreSpec(
-            target_species=card.target_species,
-            impurity_species=card.impurity_species,
-            initial_limiting_species=initial_limiting_species,
-        ),
+        score_spec=score_spec,
         initial_amount_policy=dict(card.initial_amounts_mol),
+        manifest=manifest,
     )
 
 
@@ -164,14 +285,24 @@ def mechanism_hash(path: str | Path) -> str:
     return sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _validate_raw_mechanism_schema(path: Path) -> None:
+def validate_mechanism_file(path: str | Path) -> MechanismValidationReport:
+    path = Path(path)
     payload = _raw_mechanism_payload(path)
-    schema_version = str(payload.get("schema_version", ""))
-    if schema_version != MECHANISM_SCHEMA_VERSION:
+    schema_result = validate_mechanism_schema(payload)
+    report = MechanismValidationReport.from_schema_result(
+        mechanism_id=str(payload.get("network_id", "")),
+        schema_version=str(payload.get("schema_version", "")),
+        mechanism_hash=mechanism_hash(path),
+        source_path=path.as_posix(),
+        schema_result=schema_result,
+        payload=payload,
+    )
+    if not report.passed:
         raise ValueError(
-            f"Unsupported mechanism schema_version={schema_version!r}; "
-            f"expected {MECHANISM_SCHEMA_VERSION!r}"
+            f"Mechanism {path} does not satisfy schema contract: "
+            + "; ".join(report.errors)
         )
+    return report
 
 
 def _raw_mechanism_payload(path: Path) -> dict[str, Any]:
@@ -272,9 +403,12 @@ __all__ = [
     "MECHANISM_SCHEMA_VERSION",
     "SCENARIO_MECHANISM_DEFAULTS",
     "CompiledMechanism",
+    "MechanismManifest",
+    "MechanismValidationReport",
     "ScoreSpec",
     "compile_mechanism",
     "compile_mechanism_for_scenario",
     "mechanism_hash",
     "mechanism_id_for_scenario",
+    "validate_mechanism_file",
 ]

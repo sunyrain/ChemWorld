@@ -9,6 +9,7 @@ from typing import Any
 SCHEMA_FILE_NAMES = {
     "action": "action_schema.json",
     "manifest": "manifest_schema.json",
+    "mechanism": "mechanism_schema.json",
     "observation": "observation_schema.json",
     "recipe": "recipe_schema.json",
     "scenario": "scenario_schema.json",

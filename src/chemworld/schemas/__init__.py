@@ -4,6 +4,8 @@ from chemworld.schemas.files import SCHEMA_FILE_NAMES, load_schema_file
 from chemworld.schemas.validation import (
     ACTION_SCHEMA,
     MANIFEST_SCHEMA,
+    MECHANISM_SCHEMA,
+    MECHANISM_SCHEMA_VERSION,
     OBSERVATION_SCHEMA,
     RECIPE_SCHEMA,
     SCENARIO_SCHEMA,
@@ -12,12 +14,15 @@ from chemworld.schemas.validation import (
     SchemaValidationResult,
     validate_action_schema,
     validate_manifest_schema,
+    validate_mechanism_schema,
     validate_recipe_schema,
 )
 
 __all__ = [
     "ACTION_SCHEMA",
     "MANIFEST_SCHEMA",
+    "MECHANISM_SCHEMA",
+    "MECHANISM_SCHEMA_VERSION",
     "OBSERVATION_SCHEMA",
     "RECIPE_SCHEMA",
     "SCENARIO_SCHEMA",
@@ -28,5 +33,6 @@ __all__ = [
     "load_schema_file",
     "validate_action_schema",
     "validate_manifest_schema",
+    "validate_mechanism_schema",
     "validate_recipe_schema",
 ]

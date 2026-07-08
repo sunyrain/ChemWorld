@@ -10,6 +10,13 @@ from chemworld.physchem import (
     load_library_mechanism,
     validate_mechanism_library,
 )
+from chemworld.runtime import compile_mechanism, validate_mechanism_file
+from chemworld.schemas import (
+    MECHANISM_SCHEMA,
+    MECHANISM_SCHEMA_VERSION,
+    load_schema_file,
+    validate_mechanism_schema,
+)
 
 EXPECTED_MECHANISMS = {
     "autocatalytic_reaction",
@@ -35,6 +42,97 @@ def test_curated_mechanism_library_is_complete_and_valid() -> None:
     assert report.passed, report.to_dict()
     assert report.cards_checked == len(EXPECTED_MECHANISMS)
     assert report.mechanisms_checked == len(EXPECTED_MECHANISMS)
+
+
+def test_mechanism_schema_contract_is_loadable_and_matches_runtime_constant() -> None:
+    schema = load_schema_file("mechanism")
+
+    assert schema["title"] == MECHANISM_SCHEMA["title"]
+    assert schema["properties"]["schema_version"]["const"] == MECHANISM_SCHEMA_VERSION
+    assert schema["properties"]["reactions"]["items"]["properties"]["rate_law"][
+        "properties"
+    ]["equation_id"]["enum"] == MECHANISM_SCHEMA["properties"]["reactions"]["items"][
+        "properties"
+    ]["rate_law"]["properties"]["equation_id"]["enum"]
+
+
+@pytest.mark.parametrize("card", list_mechanism_cards())
+def test_every_mechanism_exports_a_replay_manifest(card: MechanismScenarioCard) -> None:
+    report = validate_mechanism_file(card.resolved_mechanism_path)
+    compiled = compile_mechanism(card)
+    manifest = compiled.manifest.to_dict()
+
+    assert report.passed
+    assert manifest["mechanism_id"] == card.mechanism_id
+    assert manifest["mechanism_hash"] == compiled.mechanism_hash
+    assert manifest["species_count"] == len(compiled.network.species)
+    assert manifest["reaction_count"] == len(compiled.network.reactions)
+    assert manifest["validation_report"]["passed"]
+    assert manifest["score_spec"] == compiled.score_spec.to_dict()
+    assert manifest["initial_amount_policy"] == card.initial_amounts_mol
+
+
+def test_mechanism_schema_rejects_executable_or_unknown_rate_laws() -> None:
+    payload = {
+        "schema_version": MECHANISM_SCHEMA_VERSION,
+        "network_id": "bad_runtime_mechanism",
+        "species": [
+            {"species_id": "A", "formula": "H2"},
+            {"species_id": "B", "formula": "H2"},
+        ],
+        "reactions": [
+            {
+                "reaction_id": "dangerous",
+                "equation": "A => B",
+                "rate_law": {
+                    "rate_law_id": "dangerous_python",
+                    "equation_id": "eval",
+                    "parameters": {"code": "__import__('os').system('echo no')"},
+                },
+            }
+        ],
+    }
+    result = validate_mechanism_schema(payload)
+
+    assert not result.valid
+    assert any("unsupported" in error for error in result.errors)
+    assert any("cannot execute code" in error for error in result.errors)
+
+
+def test_mechanism_schema_rejects_duplicate_species_and_reactions() -> None:
+    payload = {
+        "schema_version": MECHANISM_SCHEMA_VERSION,
+        "network_id": "duplicate_mechanism",
+        "species": [
+            {"species_id": "A", "formula": "H2"},
+            {"species_id": "A", "formula": "H2"},
+        ],
+        "reactions": [
+            {
+                "reaction_id": "r1",
+                "equation": "A => A",
+                "rate_law": {
+                    "rate_law_id": "k1",
+                    "equation_id": "mass_action",
+                    "parameters": {"k": 1.0},
+                },
+            },
+            {
+                "reaction_id": "r1",
+                "equation": "A => A",
+                "rate_law": {
+                    "rate_law_id": "k2",
+                    "equation_id": "mass_action",
+                    "parameters": {"k": 1.0},
+                },
+            },
+        ],
+    }
+    result = validate_mechanism_schema(payload)
+
+    assert not result.valid
+    assert "duplicate species_id values: ['A']" in result.errors
+    assert "duplicate reaction_id values: ['r1']" in result.errors
 
 
 @pytest.mark.parametrize("card", list_mechanism_cards())

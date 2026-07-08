@@ -5,9 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, cast
 
+from chemworld.physchem.reaction_network_specs import SUPPORTED_RATE_LAW_EQUATION_IDS
 from chemworld.world.operations import INSTRUMENTS, OPERATION_TYPES
 
 PHASES = ("reactor_liquid", "aqueous", "organic")
+MECHANISM_SCHEMA_VERSION = "chemworld_mechanism_v1"
 TRAJECTORY_REQUIRED_KEYS = {
     "schema_version",
     "env_version",
@@ -149,6 +151,65 @@ SCENARIO_SCHEMA: dict[str, Any] = {
     "required": ["scenario_id", "world_law_id", "family", "split"],
 }
 
+MECHANISM_SCHEMA: dict[str, Any] = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "ChemWorld mechanism",
+    "type": "object",
+    "required": ["schema_version", "network_id", "species", "reactions"],
+    "properties": {
+        "schema_version": {"type": "string", "const": MECHANISM_SCHEMA_VERSION},
+        "network_id": {"type": "string"},
+        "metadata": {"type": "object"},
+        "species": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": ["species_id", "formula"],
+                "properties": {
+                    "species_id": {"type": "string"},
+                    "formula": {"type": "string"},
+                    "phase": {"type": "string"},
+                    "charge": {"type": "integer"},
+                    "catalyst": {"type": "boolean"},
+                    "observable_aliases": {"type": "array", "items": {"type": "string"}},
+                    "metadata": {"type": "object"},
+                },
+            },
+        },
+        "reactions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": ["reaction_id", "rate_law"],
+                "properties": {
+                    "reaction_id": {"type": "string"},
+                    "equation": {"type": "string"},
+                    "stoichiometry": {"type": "object"},
+                    "reversible": {"type": "boolean"},
+                    "delta_h_J_per_mol": {"type": "number"},
+                    "equilibrium_model_id": {"type": "string"},
+                    "rate_law": {
+                        "type": "object",
+                        "required": ["rate_law_id", "equation_id"],
+                        "properties": {
+                            "rate_law_id": {"type": "string"},
+                            "equation_id": {
+                                "type": "string",
+                                "enum": list(SUPPORTED_RATE_LAW_EQUATION_IDS),
+                            },
+                            "parameters": {"type": "object"},
+                        },
+                    },
+                    "metadata": {"type": "object"},
+                },
+            },
+        },
+    },
+    "additionalProperties": True,
+}
+
 
 @dataclass(frozen=True)
 class SchemaValidationResult:
@@ -247,9 +308,111 @@ def validate_manifest_schema(manifest: dict[str, Any]) -> SchemaValidationResult
     return SchemaValidationResult(not errors, tuple(errors))
 
 
+def validate_mechanism_schema(mechanism: object) -> SchemaValidationResult:
+    errors: list[str] = []
+    warnings: list[str] = []
+    if not isinstance(mechanism, dict):
+        return SchemaValidationResult(False, ("mechanism must be an object",))
+    payload = cast(dict[str, Any], mechanism)
+    for key in MECHANISM_SCHEMA["required"]:
+        if key not in payload:
+            errors.append(f"missing required field: {key}")
+    schema_version = str(payload.get("schema_version", ""))
+    if schema_version and schema_version != MECHANISM_SCHEMA_VERSION:
+        errors.append(
+            f"unsupported schema_version: {schema_version}; expected {MECHANISM_SCHEMA_VERSION}"
+        )
+    network_id = payload.get("network_id")
+    if network_id is not None and not str(network_id):
+        errors.append("network_id cannot be empty")
+
+    species_payload = payload.get("species")
+    species_ids: list[str] = []
+    if not isinstance(species_payload, list) or not species_payload:
+        errors.append("species must be a non-empty list")
+    else:
+        for index, species in enumerate(species_payload):
+            if not isinstance(species, dict):
+                errors.append(f"species[{index}] must be an object")
+                continue
+            species_id = species.get("species_id")
+            formula = species.get("formula")
+            if not isinstance(species_id, str) or not species_id:
+                errors.append(f"species[{index}].species_id must be a non-empty string")
+            else:
+                species_ids.append(species_id)
+            if not isinstance(formula, str) or not formula:
+                errors.append(f"species[{index}].formula must be a non-empty string")
+            aliases = species.get("observable_aliases", ())
+            if aliases is not None and not isinstance(aliases, list):
+                errors.append(f"species[{index}].observable_aliases must be a list")
+        duplicate_species = _duplicates(species_ids)
+        if duplicate_species:
+            errors.append(f"duplicate species_id values: {duplicate_species}")
+
+    reactions_payload = payload.get("reactions")
+    reaction_ids: list[str] = []
+    if not isinstance(reactions_payload, list) or not reactions_payload:
+        errors.append("reactions must be a non-empty list")
+    else:
+        for index, reaction in enumerate(reactions_payload):
+            if not isinstance(reaction, dict):
+                errors.append(f"reactions[{index}] must be an object")
+                continue
+            reaction_id = reaction.get("reaction_id")
+            if not isinstance(reaction_id, str) or not reaction_id:
+                errors.append(f"reactions[{index}].reaction_id must be a non-empty string")
+            else:
+                reaction_ids.append(reaction_id)
+            if "equation" not in reaction and "stoichiometry" not in reaction:
+                errors.append(
+                    f"reactions[{index}] must declare either equation or stoichiometry"
+                )
+            rate_law = reaction.get("rate_law")
+            if not isinstance(rate_law, dict):
+                errors.append(f"reactions[{index}].rate_law must be an object")
+                continue
+            equation_id = rate_law.get("equation_id")
+            rate_law_id = rate_law.get("rate_law_id")
+            if not isinstance(rate_law_id, str) or not rate_law_id:
+                errors.append(
+                    f"reactions[{index}].rate_law.rate_law_id must be a non-empty string"
+                )
+            if equation_id not in SUPPORTED_RATE_LAW_EQUATION_IDS:
+                errors.append(
+                    f"reactions[{index}].rate_law.equation_id is unsupported: {equation_id!r}"
+                )
+            if isinstance(equation_id, str) and equation_id.lower() in {"eval", "python"}:
+                errors.append(
+                    f"reactions[{index}].rate_law.equation_id cannot execute code"
+                )
+            parameters = rate_law.get("parameters", {})
+            if parameters is not None and not isinstance(parameters, dict):
+                errors.append(f"reactions[{index}].rate_law.parameters must be an object")
+        duplicate_reactions = _duplicates(reaction_ids)
+        if duplicate_reactions:
+            errors.append(f"duplicate reaction_id values: {duplicate_reactions}")
+
+    if payload.get("metadata") is None:
+        warnings.append("metadata is absent; mechanism provenance will be sparse")
+    return SchemaValidationResult(not errors, tuple(errors), tuple(warnings))
+
+
+def _duplicates(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    duplicates: set[str] = set()
+    for value in values:
+        if value in seen:
+            duplicates.add(value)
+        seen.add(value)
+    return sorted(duplicates)
+
+
 __all__ = [
     "ACTION_SCHEMA",
     "MANIFEST_SCHEMA",
+    "MECHANISM_SCHEMA",
+    "MECHANISM_SCHEMA_VERSION",
     "OBSERVATION_SCHEMA",
     "RECIPE_SCHEMA",
     "SCENARIO_SCHEMA",
@@ -259,5 +422,6 @@ __all__ = [
     "SchemaValidationResult",
     "validate_action_schema",
     "validate_manifest_schema",
+    "validate_mechanism_schema",
     "validate_recipe_schema",
 ]
