@@ -1,14 +1,16 @@
 # ChemWorld Professional Deepening TODO
 
-This file is the next professional roadmap after the first twelve items in
-`TODO_PROFESSIONAL.md` are complete. It is intentionally more detailed than a
-normal backlog. ChemWorld should mature by implementing narrowly scoped,
+This file is the next professional roadmap after the first twelve implementation
+queue slices in `TODO_PROFESSIONAL.md` are complete. It does not mean the broad
+P1-P12 professional modules are complete. Those module-level unchecked boxes are
+the reason this deepening roadmap exists. It is intentionally more detailed than
+a normal backlog: ChemWorld should mature by implementing narrowly scoped,
 auditable physical-chemistry modules one slice at a time, not by filling the
 world with proxies.
 
-Status: planned. Do not mark this roadmap active until the first twelve
-professional implementation slices in `TODO_PROFESSIONAL.md` are done and
-pushed.
+Status: active. The first twelve professional implementation queue slices in
+`TODO_PROFESSIONAL.md` are done and pushed; broad module-level unchecked boxes
+remain open and must be handled here as concrete deepening slices.
 
 ## Deepening Contract
 
@@ -51,7 +53,7 @@ Last push:
 | ID | Owner | Status | Reference targets | Equations or algorithms | Data/provenance requirement | Validation cases | Failure modes | Code areas | Benchmark/task integration | Exit criteria | Last push |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | DEEP-D6A | whilesunny | Done | Cantera constant-volume/constant-pressure reactor energy equations, IDAES control-volume energy-balance docs, existing ChemWorld reactor and thermochemistry kernels | dynamic batch material balance, reaction enthalpy heat release, jacket heat transfer, variable-volume sampling loss, event-driven campaign reset policy | reuse local NASA7 species thermochemistry and model-card provenance; no copied reference code | adiabatic temperature rise, cooled reactor energy ledger, sampling mass loss, replay-safe event handling | negative volume/amount, impossible heat capacity, missing thermochemistry, solver nonconvergence, unsafe temperature runaway | `src/chemworld/physchem/reactors.py`, `src/chemworld/physchem/thermochemistry.py`, `tests/test_reactor_models.py`, docs | dynamic batch task kernels expose heat-release/jacket/sampling terms without proxy labels through public reactor API and model cards | code, tests, model card, docs, reference-reading note, validation examples, task-facing public API | this commit |
-| DEEP-D5D | whilesunny | Claimed | Cantera reactor sensitivity interfaces, Cantera finite-difference Jacobian/adjoint notes, RMG/Arkane perturbation sensitivity reports, existing ChemWorld reaction-network perturbation API | finite-difference kinetic parameter sensitivities, normalized local response coefficients, uncertainty propagation summary, explanation-task ranking hooks | deterministic local perturbations only; no copied reference code; report parameter units and perturbation basis | irreversible first-order analytical sensitivity, reversible equilibrium response sanity check, zero-baseline handling, ranked explanation report | invalid perturbation size, missing parameter, nonpositive baseline observable, solver failure, unsupported parameter type | `src/chemworld/physchem/reaction_network.py`, `tests/test_reaction_network.py`, docs | explanation and mechanism-learning tasks can expose ranked sensitive reactions without proxy labels | claim pushed before implementation; code, tests, model card/docs, reference-reading note, validation examples | pending push |
+| DEEP-D5D | whilesunny | Done | Cantera reactor sensitivity interfaces, Cantera finite-difference Jacobian/adjoint notes, RMG/Arkane perturbation sensitivity reports, existing ChemWorld reaction-network perturbation API | finite-difference kinetic parameter sensitivities, normalized local response coefficients, uncertainty propagation summary, explanation-task ranking hooks | deterministic local perturbations only; no copied reference code; report parameter units and perturbation basis | irreversible first-order analytical sensitivity, reversible equilibrium response sanity check, zero-baseline handling, ranked explanation report | invalid perturbation size, missing parameter, nonpositive baseline observable, solver failure, unsupported parameter type | `src/chemworld/physchem/reaction_network.py`, `tests/test_reaction_network.py`, docs | explanation and mechanism-learning tasks can expose ranked sensitive reactions without proxy labels through public `ReactionSensitivityReport` API | code, tests, model card/docs, reference-reading note, validation examples | this commit |
 
 ## Module Deepening Map
 
@@ -123,7 +125,7 @@ Last push:
 - [ ] `DEEP-D5C` mechanism schema:
   species, reactions, stoichiometry, rate laws, thermochemistry, and JSON
   manifests for benchmark scenarios.
-- [ ] `DEEP-D5D` sensitivity analysis:
+- [x] `DEEP-D5D` sensitivity analysis:
   local kinetic sensitivities, uncertainty propagation, and explanation-task
   scoring hooks.
 
@@ -223,7 +225,10 @@ Last push:
 
 ## Activation Checklist
 
-- [x] The first twelve items in `TODO_PROFESSIONAL.md` are complete and pushed.
+- [x] The first twelve implementation queue slices in `TODO_PROFESSIONAL.md`
+      are complete and pushed.
+- [x] Broad P1-P12 module checklists still contain open items; those open items
+      are intentionally tracked as the deepening roadmap below.
 - [x] `docs/professional_deepening_todo.md` is updated from this file.
 - [x] `TODO_PROFESSIONAL.md` points active developers here.
 - [x] The first deepening slice is claimed and pushed before implementation.

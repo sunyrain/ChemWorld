@@ -32,6 +32,8 @@ Current scope:
 - thermochemistry-coupled reversible Arrhenius rates with explicit
   dimensionless-to-concentration equilibrium conversion and
   `k_reverse = k_forward / K_c` detailed balance.
+- finite-difference kinetic sensitivity reports with normalized local response
+  coefficients, uncertainty propagation summaries, and explanation rankings.
 - a curated mechanism/scenario library with balanced mechanism files, task
   cards, default initial states, operating windows, qualitative behavior
   metadata, and a programmatic validation report.

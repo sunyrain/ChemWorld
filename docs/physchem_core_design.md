@@ -239,8 +239,28 @@ concentration-standard correction explicit because its local mass-action rates
 use `mol/L` concentration powers. The completed tests cover zero net rate at
 the thermochemical equilibrium composition, ODE relaxation to the NASA7
 equilibrium ratio, missing-thermo failure, and a non-equal-molecularity
-standard-concentration correction. This still does not wire reaction enthalpy
-into reactor energy balances.
+standard-concentration correction. DEEP-D6A wires reaction enthalpy into the
+constant-density dynamic batch energy-balance slice.
+
+DEEP-D5D adds local kinetic sensitivity reports for explanation and mechanism
+learning tasks. The public API is
+`finite_difference_reaction_sensitivities()`, which computes central finite
+differences in log-parameter space for positive multiplier-like kinetic
+parameters. For an observable species final amount `y`, ChemWorld reports:
+
+```text
+S = (1/y) d y / d ln(p)
+sigma_y ~= |d y / d ln(p)| sigma_ln_p
+```
+
+This follows the same local response concept used by Cantera reactor
+sensitivities while staying dependency-light and JSON-friendly. Reports expose
+per-parameter derivatives, normalized sensitivities, local uncertainty
+contributions, ranked entries, and short explanation summaries. Tests compare
+the first-order irreversible product sensitivity against the analytical
+`k t exp(-kt)/(1-exp(-kt))` expression and cover zero-baseline behavior and
+explicit failure modes. This is not an adjoint solver, global sensitivity
+analysis, or pressure-dependent kinetics sensitivity package.
 
 ## Mechanism and Scenario Library
 

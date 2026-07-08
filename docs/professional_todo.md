@@ -203,6 +203,23 @@ PRO-P5C is now implemented for thermochemistry-coupled reversible kinetics:
   pressure-dependent reactor model. DEEP-D6A wires reaction enthalpy into a
   constant-density dynamic batch energy-balance slice.
 
+DEEP-D5D is now implemented for local kinetic sensitivity analysis:
+
+- `finite_difference_reaction_sensitivities()` reruns a
+  `ReactionNetworkSpec` under central log-parameter perturbations.
+- `kinetic_sensitivity_parameter_candidates()` scans positive multiplier-like
+  kinetic parameters including `k`, `A`, `A_reverse`, `K_eq`, `vmax`, and
+  `Km`.
+- `ReactionSensitivityReport` records baseline observable value,
+  per-parameter `d y / d ln(p)`, normalized `S = (1/y) d y / d ln(p)`,
+  local uncertainty contributions, ranked entries, and explanation summaries.
+- Tests compare the first-order irreversible product sensitivity against the
+  analytical `k t exp(-kt)/(1-exp(-kt))` expression and cover zero-baseline
+  normalization and explicit failure modes.
+- This is a local finite-difference benchmark/explanation hook, not a global
+  Sobol analysis, adjoint sensitivity solver, or pressure-dependent kinetics
+  package.
+
 PRO-P6A is now implemented for the first reference-validated reactor
 multiplicity slice:
 

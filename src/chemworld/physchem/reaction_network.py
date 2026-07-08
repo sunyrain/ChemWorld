@@ -556,6 +556,148 @@ class ThermochemicalDetailedBalanceResult:
         }
 
 
+@dataclass(frozen=True)
+class ReactionSensitivityEntry:
+    """Finite-difference sensitivity for one kinetic parameter."""
+
+    reaction_id: str
+    parameter_name: str
+    observable: str
+    baseline_parameter_value: float
+    perturbation_log_step: float
+    baseline_observable_value: float
+    plus_observable_value: float
+    minus_observable_value: float
+    derivative_dobservable_dln_parameter: float
+    normalized_sensitivity: float | None
+    local_observable_std: float
+    local_normalized_std: float | None
+
+    @property
+    def parameter_id(self) -> str:
+        return f"{self.reaction_id}.{self.parameter_name}"
+
+    @property
+    def direction(self) -> Literal["positive", "negative", "near_zero"]:
+        if abs(self.derivative_dobservable_dln_parameter) < 1e-15:
+            return "near_zero"
+        if self.derivative_dobservable_dln_parameter > 0:
+            return "positive"
+        return "negative"
+
+    @property
+    def rank_score(self) -> float:
+        if self.normalized_sensitivity is not None:
+            return abs(self.normalized_sensitivity)
+        return abs(self.derivative_dobservable_dln_parameter)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "parameter_id": self.parameter_id,
+            "reaction_id": self.reaction_id,
+            "parameter_name": self.parameter_name,
+            "observable": self.observable,
+            "baseline_parameter_value": self.baseline_parameter_value,
+            "perturbation_log_step": self.perturbation_log_step,
+            "baseline_observable_value": self.baseline_observable_value,
+            "plus_observable_value": self.plus_observable_value,
+            "minus_observable_value": self.minus_observable_value,
+            "derivative_dobservable_dln_parameter": (
+                self.derivative_dobservable_dln_parameter
+            ),
+            "normalized_sensitivity": self.normalized_sensitivity,
+            "local_observable_std": self.local_observable_std,
+            "local_normalized_std": self.local_normalized_std,
+            "direction": self.direction,
+            "rank_score": self.rank_score,
+        }
+
+
+@dataclass(frozen=True)
+class ReactionSensitivityReport:
+    """JSON-friendly local kinetic sensitivity report."""
+
+    network_id: str
+    observable: str
+    observable_species_id: str
+    baseline_observable_value: float
+    volume_L: float
+    temperature_K: float
+    duration_s: float
+    perturbation_log_step: float
+    relative_parameter_uncertainty: float
+    entries: tuple[ReactionSensitivityEntry, ...]
+    method: str = "central_finite_difference_log_parameter"
+
+    @property
+    def uncertainty_summary(self) -> dict[str, float | None]:
+        variance = sum(entry.local_observable_std**2 for entry in self.entries)
+        observable_std = float(np.sqrt(variance))
+        normalized_variance = sum(
+            entry.local_normalized_std**2
+            for entry in self.entries
+            if entry.local_normalized_std is not None
+        )
+        normalized_std: float | None
+        if abs(self.baseline_observable_value) > 1e-15:
+            normalized_std = float(np.sqrt(normalized_variance))
+        else:
+            normalized_std = None
+        return {
+            "relative_parameter_uncertainty": self.relative_parameter_uncertainty,
+            "observable_std_estimate": observable_std,
+            "normalized_std_estimate": normalized_std,
+        }
+
+    def ranked_entries(self, limit: int | None = None) -> tuple[ReactionSensitivityEntry, ...]:
+        ranked = tuple(
+            sorted(
+                self.entries,
+                key=lambda entry: entry.rank_score,
+                reverse=True,
+            )
+        )
+        if limit is None:
+            return ranked
+        if limit < 0:
+            raise ValueError("limit cannot be negative")
+        return ranked[:limit]
+
+    def explanation_ranking(self, limit: int = 3) -> tuple[dict[str, object], ...]:
+        return tuple(
+            {
+                "rank": index + 1,
+                "parameter_id": entry.parameter_id,
+                "reaction_id": entry.reaction_id,
+                "parameter_name": entry.parameter_name,
+                "direction": entry.direction,
+                "normalized_sensitivity": entry.normalized_sensitivity,
+                "interpretation": (
+                    f"{entry.parameter_id} has a {entry.direction} local effect "
+                    f"on {self.observable}."
+                ),
+            }
+            for index, entry in enumerate(self.ranked_entries(limit))
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "network_id": self.network_id,
+            "observable": self.observable,
+            "observable_species_id": self.observable_species_id,
+            "baseline_observable_value": self.baseline_observable_value,
+            "volume_L": self.volume_L,
+            "temperature_K": self.temperature_K,
+            "duration_s": self.duration_s,
+            "perturbation_log_step": self.perturbation_log_step,
+            "relative_parameter_uncertainty": self.relative_parameter_uncertainty,
+            "method": self.method,
+            "entries": [entry.to_dict() for entry in self.entries],
+            "uncertainty_summary": self.uncertainty_summary,
+            "explanation_ranking": list(self.explanation_ranking()),
+        }
+
+
 def cantera_comparable_reaction_cases() -> tuple[ReactionODEReferenceCase, ...]:
     """Return ChemWorld-owned constant-volume ODE reference cases.
 
@@ -796,6 +938,147 @@ def reverse_rate_constant_from_equilibrium(
     return forward_rate_constant / concentration_equilibrium_constant
 
 
+def finite_difference_reaction_sensitivities(
+    network: ReactionNetworkSpec,
+    initial_amounts_mol: Mapping[str, float],
+    *,
+    volume_L: float,
+    temperature_K: float,
+    duration_s: float,
+    observable_species_id: str,
+    parameters: Sequence[tuple[str, str]] | None = None,
+    perturbation_log_step: float = 1e-4,
+    relative_parameter_uncertainty: float = 0.10,
+    species_thermo: Mapping[str, Any] | None = None,
+) -> ReactionSensitivityReport:
+    """Return local finite-difference kinetic sensitivities.
+
+    Sensitivities use Cantera-style normalized response coefficients:
+
+    ``S = (1/y) d y / d ln(p)``
+
+    for positive rate multiplier-like parameters. The implementation is a
+    deterministic ChemWorld-local central finite difference and is intended for
+    benchmark explanation/model-learning hooks, not for replacing adjoint
+    sensitivity solvers.
+    """
+
+    if observable_species_id not in network.species_ids:
+        raise ValueError(f"Unknown observable species: {observable_species_id}")
+    if perturbation_log_step <= 0 or not isfinite(perturbation_log_step):
+        raise ValueError("perturbation_log_step must be finite and positive")
+    if perturbation_log_step > 0.1:
+        raise ValueError("perturbation_log_step is too large for local sensitivity")
+    if relative_parameter_uncertainty < 0 or not isfinite(relative_parameter_uncertainty):
+        raise ValueError("relative_parameter_uncertainty must be finite and nonnegative")
+    candidates = (
+        tuple(parameters)
+        if parameters is not None
+        else kinetic_sensitivity_parameter_candidates(network)
+    )
+    if not candidates:
+        raise ValueError("No positive kinetic sensitivity parameters were found")
+
+    baseline = network.integrate_batch(
+        initial_amounts_mol,
+        volume_L=volume_L,
+        temperature_K=temperature_K,
+        duration_s=duration_s,
+        species_thermo=species_thermo,
+    )
+    baseline_value = baseline.final_amounts_mol[observable_species_id]
+    entries: list[ReactionSensitivityEntry] = []
+    factor = exp(perturbation_log_step)
+    for reaction_id, parameter_name in candidates:
+        baseline_parameter = _positive_reaction_parameter(
+            network,
+            reaction_id,
+            parameter_name,
+        )
+        plus_network = _with_reaction_parameter(
+            network,
+            reaction_id,
+            parameter_name,
+            baseline_parameter * factor,
+        )
+        minus_network = _with_reaction_parameter(
+            network,
+            reaction_id,
+            parameter_name,
+            baseline_parameter / factor,
+        )
+        plus = plus_network.integrate_batch(
+            initial_amounts_mol,
+            volume_L=volume_L,
+            temperature_K=temperature_K,
+            duration_s=duration_s,
+            species_thermo=species_thermo,
+        )
+        minus = minus_network.integrate_batch(
+            initial_amounts_mol,
+            volume_L=volume_L,
+            temperature_K=temperature_K,
+            duration_s=duration_s,
+            species_thermo=species_thermo,
+        )
+        plus_value = plus.final_amounts_mol[observable_species_id]
+        minus_value = minus.final_amounts_mol[observable_species_id]
+        derivative = (plus_value - minus_value) / (2.0 * perturbation_log_step)
+        normalized: float | None = None
+        local_normalized_std: float | None = None
+        if abs(baseline_value) > 1e-15:
+            normalized = derivative / baseline_value
+            local_normalized_std = abs(normalized) * relative_parameter_uncertainty
+        entries.append(
+            ReactionSensitivityEntry(
+                reaction_id=reaction_id,
+                parameter_name=parameter_name,
+                observable=f"final_amount:{observable_species_id}",
+                baseline_parameter_value=baseline_parameter,
+                perturbation_log_step=perturbation_log_step,
+                baseline_observable_value=baseline_value,
+                plus_observable_value=plus_value,
+                minus_observable_value=minus_value,
+                derivative_dobservable_dln_parameter=derivative,
+                normalized_sensitivity=normalized,
+                local_observable_std=abs(derivative) * relative_parameter_uncertainty,
+                local_normalized_std=local_normalized_std,
+            )
+        )
+    return ReactionSensitivityReport(
+        network_id=network.network_id,
+        observable=f"final_amount:{observable_species_id}",
+        observable_species_id=observable_species_id,
+        baseline_observable_value=baseline_value,
+        volume_L=volume_L,
+        temperature_K=temperature_K,
+        duration_s=duration_s,
+        perturbation_log_step=perturbation_log_step,
+        relative_parameter_uncertainty=relative_parameter_uncertainty,
+        entries=tuple(entries),
+    )
+
+
+def kinetic_sensitivity_parameter_candidates(
+    network: ReactionNetworkSpec,
+    *,
+    parameter_names: Sequence[str] = ("k", "A", "A_reverse", "K_eq", "vmax", "Km"),
+) -> tuple[tuple[str, str], ...]:
+    """Return positive multiplier-like kinetic parameters for sensitivities."""
+
+    allowed = set(parameter_names)
+    candidates: list[tuple[str, str]] = []
+    for reaction in network.reactions:
+        for parameter_name, value in reaction.rate_law.parameters.items():
+            if parameter_name not in allowed:
+                continue
+            if isinstance(value, int | float | str):
+                numeric = float(value)
+                if numeric > 0 and isfinite(numeric):
+                    candidates.append((reaction.reaction_id, parameter_name))
+    return tuple(candidates)
+
+
 def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
     return (
         ModelCard(
@@ -822,6 +1105,7 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     "K_c(T) = exp(-Delta G_rxn^0/RT) * C0^(sum nu_i) "
                     "for the NASA7 detailed-balance slice"
                 ),
+                "S = (1/y) d y / d ln(p) for finite-difference sensitivity reports",
             ),
             assumptions=(
                 "well-mixed homogeneous phase",
@@ -874,6 +1158,16 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     "RMG-Py: reference_repos/rmg-py/rmgpy/reaction.py "
                     "covers reverse rates from k_forward/K_eq."
                 ),
+                (
+                    "Cantera: reference_repos/cantera/include/cantera/zeroD/"
+                    "ReactorNet.h defines normalized sensitivity coefficients "
+                    "S=(1/y)dy/dp for registered reaction multipliers."
+                ),
+                (
+                    "RMG/Arkane: reference_repos/rmg-py/arkane/"
+                    "sensitivity.py perturbs kinetic/energy parameters, reruns "
+                    "the job, and reports finite-difference sensitivity coefficients."
+                ),
             ),
             validation_evidence=(
                 ValidationEvidence(
@@ -911,6 +1205,18 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     command_or_path="tests/test_reaction_network.py",
                     tolerance="equilibrium ratio checked at 5e-3 relative tolerance",
                 ),
+                ValidationEvidence(
+                    evidence_id="kinetic-finite-difference-sensitivity-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "Finite-difference sensitivity of an irreversible "
+                        "first-order batch product amount matches the analytical "
+                        "d ln(y) / d ln(k) expression and emits a ranked explanation report."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reaction_network.py",
+                    tolerance="relative local sensitivity checked at 5e-4",
+                ),
             ),
             model_limit_notes=(
                 (
@@ -919,7 +1225,7 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                 ),
                 (
                     "Future tasks must add falloff, pressure dependence, and "
-                    "heat-release-coupled reactor checks."
+                    "adjoint/global sensitivity checks."
                 ),
             ),
             intended_use=(
@@ -1234,6 +1540,66 @@ def _reverse_params(params: Mapping[str, object]) -> dict[str, object]:
             "Ea_J_per_mol": params.get("Ea_J_per_mol", params.get("Ea", 0.0)),
         }
     raise ValueError("reversible_arrhenius requires A_reverse or K_eq")
+
+
+def _positive_reaction_parameter(
+    network: ReactionNetworkSpec,
+    reaction_id: str,
+    parameter_name: str,
+) -> float:
+    reaction = _reaction_by_id(network, reaction_id)
+    if parameter_name not in reaction.rate_law.parameters:
+        raise ValueError(f"Reaction {reaction_id!r} has no parameter {parameter_name!r}")
+    value = reaction.rate_law.parameters[parameter_name]
+    if not isinstance(value, int | float | str):
+        raise ValueError(
+            f"Reaction parameter {reaction_id}.{parameter_name} must be numeric"
+        )
+    numeric = float(value)
+    if numeric <= 0 or not isfinite(numeric):
+        raise ValueError(
+            f"Reaction parameter {reaction_id}.{parameter_name} must be finite and positive"
+        )
+    return numeric
+
+
+def _with_reaction_parameter(
+    network: ReactionNetworkSpec,
+    reaction_id: str,
+    parameter_name: str,
+    value: float,
+) -> ReactionNetworkSpec:
+    if value <= 0 or not isfinite(value):
+        raise ValueError("perturbed reaction parameter must be finite and positive")
+    reactions: list[ReactionSpec] = []
+    found = False
+    for reaction in network.reactions:
+        if reaction.reaction_id != reaction_id:
+            reactions.append(reaction)
+            continue
+        found = True
+        if parameter_name not in reaction.rate_law.parameters:
+            raise ValueError(
+                f"Reaction {reaction_id!r} has no parameter {parameter_name!r}"
+            )
+        params = dict(reaction.rate_law.parameters)
+        params[parameter_name] = value
+        reactions.append(
+            replace(
+                reaction,
+                rate_law=replace(reaction.rate_law, parameters=params),
+            )
+        )
+    if not found:
+        raise ValueError(f"Unknown reaction id: {reaction_id}")
+    return replace(network, reactions=tuple(reactions))
+
+
+def _reaction_by_id(network: ReactionNetworkSpec, reaction_id: str) -> ReactionSpec:
+    for reaction in network.reactions:
+        if reaction.reaction_id == reaction_id:
+            return reaction
+    raise ValueError(f"Unknown reaction id: {reaction_id}")
 
 
 def _float_param(

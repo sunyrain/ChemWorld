@@ -20,7 +20,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | --- | --- | --- | --- |
 | Component specs and units | Lite | `chemworld.physchem.specs`, local unit tests | broader curated component database and schema governance |
 | Property correlations | Lite with a reference-validated curated slice | vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against `chemicals` | broader component coverage, liquid/solid Cp, latent heat, derivatives, and CoolProp checks |
-| Reaction networks | Lite with reference-validated ODE, NASA7 thermochemistry, and thermochemical detailed-balance slices | YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check, NASA7 Cp/H/S/G, reaction Delta H/G, K_eq, concentration-standard correction, and thermochemical reverse-rate tests | falloff, pressure dependence, and heat-release-coupled reactor validation |
+| Reaction networks | Lite with reference-validated ODE, NASA7 thermochemistry, thermochemical detailed-balance, and local sensitivity slices | YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check, NASA7 Cp/H/S/G, reaction Delta H/G, K_eq, concentration-standard correction, thermochemical reverse-rate tests, and finite-difference first-order sensitivity tests | falloff, pressure dependence, adjoint/global sensitivities, and broader reactor-network validation |
 | Reactor models | Lite with reference-validated CSTR multiplicity and dynamic batch heat-release slices | batch, dynamic batch, semi-batch, CSTR, PFR tests; analytical exothermic CSTR three-root ignition/extinction case with stability classification; NASA7 heat-release dynamic batch, jacket, and sampling-ledger tests | broader Cantera/IDAES reactor-network validation, pressure modes, wall thermal inertia, and phase-change variants |
 | EOS | Lite with a reference-validated PR/SRK residual slice | ideal gas, PR/SRK roots, fugacity coefficients, explicit root policy, residual H/S/G tests, optional `thermo.eos` comparisons for methane/ethane/CO2 | volume translation, phase envelopes, flash derivatives, and broader CoolProp/teqp/thermopack validation |
 | Phase equilibrium | Lite with a reference-validated Wilson/NRTL gamma slice | ideal VLE, Wilson/NRTL gamma checks against `thermo`, LLE split tests | UNIQUAC, phase stability, nonideal VLE/LLE task cases |
@@ -186,3 +186,9 @@ copying the reference implementations.
   heat-loss terms, and treats destructive sampling as a material-out and volume
   event. This closes a constant-density batch slice; pressure dynamics,
   gas-phase work, wall thermal inertia, and phase change remain open.
+- DEEP-D5D is implemented for local kinetic sensitivity analysis:
+  positive multiplier-like kinetic parameters are perturbed in log space,
+  reports expose `d y / d ln(p)`, normalized sensitivities, uncertainty
+  contributions, and explanation rankings, and tests compare the first-order
+  product sensitivity against the analytical expression. This is not an
+  adjoint/global sensitivity package.

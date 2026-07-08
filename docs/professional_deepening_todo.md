@@ -1,8 +1,10 @@
 # Professional Deepening TODO
 
 This page mirrors `TODO_PROFESSIONAL_DEEPENING.md`. It is the next roadmap after
-the first twelve professional implementation slices in `TODO_PROFESSIONAL.md`
-are complete.
+the first twelve professional implementation queue slices in
+`TODO_PROFESSIONAL.md` are complete. That milestone does not mean the broad
+P1-P12 professional modules are complete; the unchecked module items are the
+work this roadmap decomposes.
 
 The purpose is deliberately narrow: ChemWorld should mature by implementing
 auditable, module-by-module physical chemistry kernels. It should not fill gaps
@@ -29,7 +31,7 @@ with proxies and then call them professional.
 | ID | Owner | Status | Scope |
 | --- | --- | --- | --- |
 | `DEEP-D6A` | whilesunny | Done | Dynamic batch reactor with NASA7 reaction heat release, jacket control, variable-volume destructive sampling losses, material/energy ledgers, tests, model card, docs, and public reactor API integration. |
-| `DEEP-D5D` | whilesunny | Claimed | Finite-difference kinetic parameter sensitivity reports with normalized response coefficients, uncertainty propagation summaries, explanation-task ranking hooks, tests, model card, and docs. |
+| `DEEP-D5D` | whilesunny | Done | Finite-difference kinetic parameter sensitivity reports with normalized response coefficients, uncertainty propagation summaries, explanation-task ranking hooks, tests, model card, and docs. |
 
 ## Module Families
 

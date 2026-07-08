@@ -15,6 +15,8 @@ from chemworld.physchem import (
     cantera_comparable_reaction_cases,
     evaluate_rate_law,
     evaluate_reaction_ode_reference_case,
+    finite_difference_reaction_sensitivities,
+    kinetic_sensitivity_parameter_candidates,
     load_mechanism,
     parse_reaction_equation,
     perturb_network_parameters,
@@ -350,6 +352,126 @@ def test_reaction_kinetics_model_cards_are_auditable() -> None:
     assert validate_model_card(card) == []
     assert any("Cantera" in note for note in card.reference_reading)
     assert any("RMG" in note for note in card.reference_reading)
+    assert any(
+        evidence.evidence_id == "kinetic-finite-difference-sensitivity-test"
+        for evidence in card.validation_evidence
+    )
+
+
+def test_finite_difference_reaction_sensitivity_matches_first_order_analytic() -> None:
+    k = 0.04
+    duration = 25.0
+    network = ReactionNetworkSpec(
+        network_id="sensitivity_first_order",
+        species=(
+            SpeciesSpec("A", "C2H4O2"),
+            SpeciesSpec("P", "C2H4O2"),
+        ),
+        reactions=(
+            ReactionSpec.from_equation(
+                reaction_id="r1",
+                equation="A => P",
+                rate_law=RateLawSpec("r1_rate", "mass_action", {"k": k}),
+            ),
+        ),
+    )
+
+    report = finite_difference_reaction_sensitivities(
+        network,
+        {"A": 1.0},
+        volume_L=1.0,
+        temperature_K=350.0,
+        duration_s=duration,
+        observable_species_id="P",
+        perturbation_log_step=1e-5,
+        relative_parameter_uncertainty=0.2,
+    )
+
+    expected_product = 1.0 - math.exp(-k * duration)
+    expected_sensitivity = k * duration * math.exp(-k * duration) / expected_product
+    entry = report.ranked_entries()[0]
+    assert report.baseline_observable_value == pytest.approx(expected_product)
+    assert entry.parameter_id == "r1.k"
+    assert entry.normalized_sensitivity == pytest.approx(expected_sensitivity, rel=5e-4)
+    assert report.uncertainty_summary["normalized_std_estimate"] == pytest.approx(
+        abs(expected_sensitivity) * 0.2,
+        rel=5e-4,
+    )
+    assert report.explanation_ranking()[0]["parameter_id"] == "r1.k"
+    assert report.to_dict()["entries"][0]["direction"] == "positive"
+
+
+def test_reaction_sensitivity_handles_zero_baseline_observable() -> None:
+    network = ReactionNetworkSpec(
+        network_id="sensitivity_zero_baseline",
+        species=(
+            SpeciesSpec("A", "C2H4O2"),
+            SpeciesSpec("P", "C2H4O2"),
+        ),
+        reactions=(
+            ReactionSpec.from_equation(
+                reaction_id="r1",
+                equation="A => P",
+                rate_law=RateLawSpec("r1_rate", "mass_action", {"k": 0.04}),
+            ),
+        ),
+    )
+
+    report = finite_difference_reaction_sensitivities(
+        network,
+        {"A": 1.0},
+        volume_L=1.0,
+        temperature_K=350.0,
+        duration_s=0.0,
+        observable_species_id="P",
+    )
+
+    assert report.baseline_observable_value == pytest.approx(0.0)
+    assert report.entries[0].normalized_sensitivity is None
+    assert report.uncertainty_summary["normalized_std_estimate"] is None
+
+
+def test_kinetic_sensitivity_candidates_and_failures_are_explicit() -> None:
+    network = ReactionNetworkSpec(
+        network_id="sensitivity_candidates",
+        species=(
+            SpeciesSpec("A", "C2H4O2"),
+            SpeciesSpec("P", "C2H4O2"),
+        ),
+        reactions=(
+            ReactionSpec.from_equation(
+                reaction_id="r1",
+                equation="A => P",
+                rate_law=RateLawSpec(
+                    "r1_rate",
+                    "arrhenius",
+                    {"A": 1.2, "Ea_J_per_mol": 10_000.0},
+                ),
+            ),
+        ),
+    )
+
+    assert kinetic_sensitivity_parameter_candidates(network) == (("r1", "A"),)
+    with pytest.raises(ValueError, match="Unknown reaction id"):
+        finite_difference_reaction_sensitivities(
+            network,
+            {"A": 1.0},
+            volume_L=1.0,
+            temperature_K=350.0,
+            duration_s=10.0,
+            observable_species_id="P",
+            parameters=(("missing", "A"),),
+        )
+    with pytest.raises(ValueError, match="too large"):
+        finite_difference_reaction_sensitivities(
+            network,
+            {"A": 1.0},
+            volume_L=1.0,
+            temperature_K=350.0,
+            duration_s=10.0,
+            observable_species_id="P",
+            perturbation_log_step=0.5,
+        )
 
 
 def test_parameter_perturbation_is_deterministic() -> None:

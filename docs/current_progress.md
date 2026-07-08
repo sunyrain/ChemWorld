@@ -35,10 +35,10 @@ The repository currently provides:
   friction/pipe pressure drop, internal-flow heat transfer, counterflow
   exchanger duty balance, Wilson/NRTL activity coefficients, reaction ODE
   cases, NASA7 thermochemistry and reaction Gibbs energies, thermochemical
-  detailed-balance reverse rates, dynamic batch heat-release/sampling,
-  CSTR multiplicity, shortcut distillation, fixed-TP Gibbs minimization,
-  UV-vis calibration, chromatography retention, and PR/SRK residual EOS
-  properties.
+  detailed-balance reverse rates, local kinetic sensitivity reports, dynamic
+  batch heat-release/sampling, CSTR multiplicity, shortcut distillation,
+  fixed-TP Gibbs minimization, UV-vis calibration, chromatography retention,
+  and PR/SRK residual EOS properties.
 
 ## Scientific Model
 

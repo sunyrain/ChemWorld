@@ -302,9 +302,9 @@ Reference targets: `Cantera`, `RMG-Py`, `thermo`.
   - [ ] pressure-dependent hooks;
   - [ ] heterogeneous catalytic rate template;
   - [x] Butler-Volmer electrochemical rate.
-- [ ] Sensitivity hooks:
-  - [ ] finite-difference sensitivities;
-  - [ ] local parameter perturbation reports.
+- [x] Sensitivity hooks:
+  - [x] finite-difference sensitivities;
+  - [x] local parameter perturbation reports.
 
 Acceptance:
 
@@ -381,6 +381,23 @@ Reference-reading note for DEEP-D6A:
   closes the constant-volume dynamic batch heat-release/sampling slice, not
   constant-pressure, pressure dynamics, vapor-liquid expansion, or full
   process-control behavior.
+
+Reference-reading note for DEEP-D5D:
+
+- `cantera/include/cantera/zeroD/ReactorNet.h` and
+  `cantera/interfaces/cython/cantera/reactor.pyx` define normalized
+  sensitivity coefficients as `S = (1/y) dy/dp` for registered reaction
+  multiplier parameters. ChemWorld localizes this as central finite
+  differences in `ln(parameter)` for positive kinetic parameters.
+- `rmg-py/arkane/sensitivity.py` perturbs kinetic/energy parameters, reruns the
+  job, and reports finite-difference sensitivity coefficients. ChemWorld uses
+  the same perturb-and-recompute idea but keeps a smaller JSON-friendly report.
+- `finite_difference_reaction_sensitivities()` now scans multiplier-like
+  positive kinetic parameters (`k`, `A`, `A_reverse`, `K_eq`, `vmax`, `Km`),
+  computes `d y / d ln(p)`, normalized local sensitivity, uncertainty
+  contribution estimates, and ranked explanation summaries. This is a local
+  benchmark/explanation hook, not an adjoint, global Sobol, or pressure-dependent
+  sensitivity solver.
 
 Acceptance:
 
@@ -826,6 +843,12 @@ Reference-reading note for PRO-P12B:
 
 ## First Professional Implementation Queue
 
+This queue records the first twelve narrow implementation slices used to move
+ChemWorld out of the proxy/lite phase. Completing this queue does not mean the
+broad P1-P12 professional modules above are complete. Any unchecked boxes in the
+module sections remain open professional work and should be claimed as concrete
+deepening slices in `TODO_PROFESSIONAL_DEEPENING.md`.
+
 1. `PRO-P0`: Add maturity metadata and model-card template to code/docs.
 2. `PRO-P12A`: Expand reference validation for `fluids` friction factor and
    pressure drop. Done.
@@ -850,10 +873,10 @@ Reference-reading note for PRO-P12B:
 12. `PRO-P1A`: Harden the component registry with provenance, aliases,
     uncertainty fields, and conflict-resolution policy. Done.
 
-After item 12 is completed, open `TODO_PROFESSIONAL_DEEPENING.md` as the active
-professional roadmap. Do not use the deepening roadmap to mark broad modules
-complete without concrete equations, reference readings, validation cases,
-model cards, and task integration tests.
+After queue item 12 is completed, open `TODO_PROFESSIONAL_DEEPENING.md` as the
+active professional roadmap. Do not use the deepening roadmap to mark broad
+modules complete without concrete equations, reference readings, validation
+cases, model cards, and task integration tests.
 
 ## Explicit Non-Goals
 
