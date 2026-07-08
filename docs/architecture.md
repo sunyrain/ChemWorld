@@ -63,6 +63,10 @@ The runtime is organized around:
   `runtime/crystallization_services.py`, which owns seeding, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration
   ledger updates;
+- `ChemWorldDistillationServices`, implemented in
+  `runtime/distillation_services.py`, which owns shortcut VLE distillation,
+  distillate purity/recovery metadata, heat-duty/cost/risk ledger updates, and
+  fraction collection;
 - `ChemWorldElectrochemicalServices`, implemented in
   `runtime/electrochemical_services.py`, which owns potential/current setup,
   electrochemical mechanism binding, Nernst/Butler-Volmer electrolysis calls,
@@ -91,8 +95,8 @@ material ledgers auditable: invalid actions can add process penalties without
 silently changing hidden material state.
 
 Reaction/thermal advancement, phase/extraction workflows, crystallization,
-electrochemical conversion, measurement cost/sample consumption, and
-operation-record assembly are separated from the remaining state-changing
+distillation, electrochemical conversion, measurement cost/sample consumption,
+and operation-record assembly are separated from the remaining state-changing
 domain services. This makes the runtime easier to audit: focused services
 advance each physical process, the transaction manager commits or rolls back
 patches, and the recorder turns the accepted pre/post state pair into the

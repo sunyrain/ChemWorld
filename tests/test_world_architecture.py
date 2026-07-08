@@ -196,6 +196,25 @@ def test_runtime_crystallization_service_is_separate_from_domain_services() -> N
     assert "crystal_product_mol" in crystallization_services
 
 
+def test_runtime_distillation_service_is_separate_from_domain_services() -> None:
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+        encoding="utf-8"
+    )
+    distillation_services = Path(
+        "src/chemworld/runtime/distillation_services.py"
+    ).read_text(encoding="utf-8")
+
+    assert "def _distill" not in domain_services
+    assert "def _collect_fraction" not in domain_services
+    assert "vle_shortcut_distillation" not in domain_services
+    assert "distillate_product_mol" not in domain_services
+    assert "class ChemWorldDistillationServices" in distillation_services
+    assert "def distill" in distillation_services
+    assert "def collect_fraction" in distillation_services
+    assert "vle_shortcut_distillation" in distillation_services
+    assert "distillate_product_mol" in distillation_services
+
+
 def test_runtime_profile_requires_current_task_kernels_only() -> None:
     task = get_task("reaction-to-assay")
     profile = TaskRuntimeProfile.from_task(task)

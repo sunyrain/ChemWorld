@@ -21,8 +21,9 @@ Largest current source files after this cleanup:
 | `src/chemworld/physchem/equilibrium_chemistry.py` | mass-action equilibrium, acid-base, precipitation, Gibbs minimization | split into mass-action, electrolyte/acid-base, precipitation, and Gibbs minimization helpers |
 | `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, and provenance |
 | `src/chemworld/physchem/spectroscopy.py` | calibration, chromatography, signal synthesis, feature heuristics | split into calibration, chromatography, signal synthesis, and feature libraries |
-| `src/chemworld/runtime/domain_services.py` | remaining semi-mechanistic state-changing domain services used by Runtime v2 | split distillation and flow responsibilities into narrower service modules |
+| `src/chemworld/runtime/domain_services.py` | remaining semi-mechanistic state-changing domain services used by Runtime v2 | split flow responsibilities into a narrower service module |
 | `src/chemworld/runtime/crystallization_services.py` | seed addition, cooling crystallization, crystal purity/recovery metadata, and crystal filtration ledger updates | keep separate from mixed operation services and later bind solubility/crystal-size models more directly to mechanism cards |
+| `src/chemworld/runtime/distillation_services.py` | shortcut VLE distillation, distillate purity/recovery metadata, heat-duty/cost/risk ledgers, and fraction collection | keep separate from mixed operation services and later bind VLE/component properties more directly to mechanism cards |
 | `src/chemworld/runtime/electrochemical_services.py` | potential/current setup, Nernst/Butler-Volmer electrolysis calls, faradaic conversion, electrical work, and electrochemical metadata | keep separate from mixed operation services and later bind electrode/reaction specs more directly to mechanism cards |
 | `src/chemworld/runtime/instrument_cost_services.py` | measurement cost, destructive sample consumption, and final-assay state markers | keep separate from observation generation and operation-record logging |
 | `src/chemworld/runtime/reaction_thermal_services.py` | reaction ODE advancement, heat/wait integration, energy ledgers, and pressure/risk projection | keep separate from mixed operation services and later bind integration choices more directly to mechanism cards |
@@ -128,7 +129,7 @@ Phase-ledger and extraction-style separation operations have now been extracted
 to `src/chemworld/runtime/phase_separation_services.py`. Crystallization state
 updates have been extracted to
 `src/chemworld/runtime/crystallization_services.py`. The remaining broad
-service file still mixes distillation and flow.
+service file still contains flow.
 Electrochemical operation logic has been extracted to
 `src/chemworld/runtime/electrochemical_services.py`, and measurement cost /
 destructive sampling has been extracted to
@@ -143,7 +144,7 @@ older benchmark mechanisms and tests.
 
 Recommended follow-up:
 
-- split `domain_services.py` into distillation and flow services;
+- split `domain_services.py` into a flow service;
 - keep operation kernels as small command handlers;
 - continue moving mechanism-specific scoring and observation mapping into
   compiled mechanism cards;
@@ -225,6 +226,10 @@ Recommended follow-up:
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration
   outside the mixed domain-service module.
+- Extracted `ChemWorldDistillationServices` into
+  `runtime/distillation_services.py`, keeping shortcut VLE distillation,
+  distillate purity/recovery metadata, heat-duty/cost/risk ledgers, and
+  fraction collection outside the mixed domain-service module.
 
 ## Verification
 
