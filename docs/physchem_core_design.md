@@ -99,6 +99,35 @@ downstream reactor models, and catches element-balance errors before an
 environment starts. This makes the current five-reaction batch world just one
 mechanism instance rather than a permanent architectural limit.
 
+## Reactor Model Core
+
+The P4 reactor core is implemented in `chemworld.physchem.reactors`. It turns
+mechanism-backed reaction networks into executable reactor models with material
+and energy ledgers:
+
+| Reactor model | Current implementation |
+| --- | --- |
+| Batch reactor | constant-volume mole balance, optional jacket heat, heat loss, reaction heat |
+| Semi-batch reactor | scheduled feeds, variable volume, feed heat, material-in ledger |
+| CSTR | dynamic well-mixed tank with inlet/outlet flows and steady-state integration helper |
+| PFR | steady plug-flow model integrated over residence time |
+
+All reactor results expose:
+
+- `initial_state` and `final_state`;
+- per-species amount trajectories;
+- temperature trajectory;
+- jacket-energy, reaction-heat, and heat-loss ledgers;
+- feed and outlet material ledgers where relevant;
+- element-based material-balance error;
+- convenience metrics such as conversion and yield.
+
+The implementation follows the same separation used by professional simulators:
+mechanism files define chemistry, reactor models define transport and residence
+time, and task/world layers define objectives and observations. This makes it
+possible to add semi-batch, CSTR, PFR, reactive flash, and continuous-flow tasks
+without creating separate toy environments.
+
 ## Boundaries
 
 This layer is now a real local property-correlation and reaction-network core,

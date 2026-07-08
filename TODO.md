@@ -19,7 +19,7 @@ finished, update its status and push immediately.
 | P1 physchem component/spec foundation | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | next: start P2 property-correlation core on top of these specs | this commit |
 | P2 full property-correlation core | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | next: connect the property package to energy balance and start P3 reaction-network specs | this commit |
 | P3 general reaction-network engine | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md`, `configs/mechanisms/` | next: connect mechanism-backed networks to batch/semi-batch/CSTR/PFR reactor models in P4 | this commit |
-| P4 reactor model core | whilesunny | Active | `src/chemworld/physchem/reactors.py`, `src/chemworld/world/reaction_kernel.py`, `tests/`, `docs/physchem_core_design.md` | implement mechanism-backed batch, semi-batch, CSTR, and PFR models with material/energy ledgers and qualitative tests | pending |
+| P4 reactor model core | whilesunny | Done | `src/chemworld/physchem/reactors.py`, `tests/`, `docs/physchem_core_design.md` | next: replace selected task/world transition paths with mechanism-backed reactor kernels, then start P5 EOS | this commit |
 
 Status values:
 

@@ -18,6 +18,8 @@ Current scope:
 - general reaction-network specs for species, reactions, stoichiometric
   matrices, element-balance checks, YAML/JSON mechanism loading, rate-law
   evaluation, and deterministic batch ODE integration.
+- mechanism-backed reactor kernels for batch, semi-batch, CSTR, and PFR
+  calculations with material and energy ledgers.
 
 Design rules:
 
@@ -26,6 +28,8 @@ Design rules:
   fractions;
 - keep property correlations separate from component identity;
 - keep mechanism definitions separate from reactor and task logic;
+- keep reactor residence time, feed/outlet flow, and heat-transfer contracts
+  explicit;
 - declare property units and validity ranges on every correlation;
 - reject unbalanced reaction networks before simulation;
 - add optional reference-backend comparisons only as skipped tests or adapters;

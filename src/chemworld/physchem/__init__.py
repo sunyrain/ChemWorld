@@ -30,6 +30,17 @@ from chemworld.physchem.reaction_network import (
     parse_reaction_equation,
     perturb_network_parameters,
 )
+from chemworld.physchem.reactors import (
+    BatchReactorModel,
+    CSTRModel,
+    FeedStreamSpec,
+    HeatTransferSpec,
+    PFRModel,
+    ReactorResult,
+    ReactorState,
+    SemiBatchFeedSpec,
+    SemiBatchReactorModel,
+)
 from chemworld.physchem.specs import (
     ComponentSpec,
     MixtureSpec,
@@ -40,15 +51,24 @@ from chemworld.physchem.specs import (
 
 __all__ = [
     "BatchIntegrationResult",
+    "BatchReactorModel",
+    "CSTRModel",
     "ComponentPropertyPackage",
     "ComponentSpec",
     "ElementSpec",
+    "FeedStreamSpec",
+    "HeatTransferSpec",
     "MixtureSpec",
+    "PFRModel",
     "PropertyCorrelation",
     "PropertyEvaluation",
     "RateLawSpec",
     "ReactionNetworkSpec",
     "ReactionSpec",
+    "ReactorResult",
+    "ReactorState",
+    "SemiBatchFeedSpec",
+    "SemiBatchReactorModel",
     "SpeciesSpec",
     "atom_fractions",
     "element_matrix",
