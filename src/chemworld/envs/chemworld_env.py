@@ -362,6 +362,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "safety_limit": self.safety_limit,
             "seed": self.seed,
             "world_id": self.world.world_id,
+            "task_contract_hash": (
+                None if self.task_spec is None else self.task_spec.contract_hash
+            ),
+            "runtime_profile_hash": self.runtime.profile.profile_hash,
             "mechanism_id": compiled_mechanism.mechanism_id,
             "mechanism_hash": compiled_mechanism.mechanism_hash,
             "mechanism_version": compiled_mechanism.mechanism_version,
@@ -541,6 +545,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "world_provider": self.world.provider,
             "objective": self.objective,
             "safety_limit": self.safety_limit,
+            "task_contract_hash": (
+                None if self.task_spec is None else self.task_spec.contract_hash
+            ),
+            "runtime_profile_hash": self.runtime.profile.profile_hash,
             "mechanism_id": self.scenario_instance.compiled_mechanism.mechanism_id,
             "mechanism_hash": self.scenario_instance.compiled_mechanism.mechanism_hash,
             "scoring_contract_hash": self.scoring_contract.contract_hash,

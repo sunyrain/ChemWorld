@@ -22,6 +22,8 @@ TRAJECTORY_REQUIRED_KEYS = {
     "budget",
     "episode_mode",
     "safety_limit",
+    "task_contract_hash",
+    "runtime_profile_hash",
     "mechanism_id",
     "mechanism_hash",
     "scoring_contract_hash",

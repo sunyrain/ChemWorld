@@ -21,6 +21,8 @@ class TrajectoryRecordPayload:
     budget: int
     episode_mode: str
     safety_limit: float
+    task_contract_hash: str | None
+    runtime_profile_hash: str | None
     mechanism_id: str | None
     mechanism_hash: str | None
     scoring_contract_hash: str | None

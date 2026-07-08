@@ -89,6 +89,30 @@ def test_verify_records_rejects_contract_hash_mismatch(tmp_path) -> None:
     assert "observation_contract_hash" in mismatch_fields
 
 
+def test_verify_records_rejects_task_profile_hash_mismatch(tmp_path) -> None:
+    path = tmp_path / "task_profile_hash.jsonl"
+    run_agent(
+        env_id="ChemWorld",
+        agent=make_agent("scripted_chemistry"),
+        world_split="public-dev",
+        budget=18,
+        objective="balanced",
+        seed=0,
+        task_id="reaction-to-assay",
+        output_path=path,
+    )
+    records = load_jsonl(path)
+    records[0]["task_contract_hash"] = "tampered-task-contract-hash"
+    records[0]["runtime_profile_hash"] = "tampered-runtime-profile-hash"
+
+    result = verify_records(records)
+
+    assert not result.verified
+    mismatch_fields = {mismatch["field"] for mismatch in result.mismatches}
+    assert "task_contract_hash" in mismatch_fields
+    assert "runtime_profile_hash" in mismatch_fields
+
+
 def test_verify_records_rejects_runtime_v2_transaction_metadata_tampering(
     tmp_path,
 ) -> None:

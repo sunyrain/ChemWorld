@@ -95,6 +95,14 @@ class TrajectoryLogger:
             "budget": int(task_info["budget"]),
             "episode_mode": task_info.get("episode_mode", "single_experiment"),
             "safety_limit": float(task_info.get("safety_limit", 0.65)),
+            "task_contract_hash": info.get(
+                "task_contract_hash",
+                task_info.get("task_contract_hash"),
+            ),
+            "runtime_profile_hash": info.get(
+                "runtime_profile_hash",
+                task_info.get("runtime_profile_hash"),
+            ),
             "mechanism_id": info.get("mechanism_id", task_info.get("mechanism_id")),
             "mechanism_hash": info.get("mechanism_hash", task_info.get("mechanism_hash")),
             "scoring_contract_hash": info.get(

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -53,7 +55,7 @@ class TaskRuntimeProfile:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload = {
             "world_law_id": self.world_law_id,
             "allowed_operations": sorted(self.allowed_operations),
             "required_kernels": sorted(self.required_kernels),
@@ -62,6 +64,22 @@ class TaskRuntimeProfile:
             "required_capabilities": sorted(self.required_capabilities),
             "allowed_instruments": sorted(self.allowed_instruments),
         }
+        payload["profile_hash"] = self.profile_hash
+        return payload
+
+    @property
+    def profile_hash(self) -> str:
+        payload = {
+            "world_law_id": self.world_law_id,
+            "allowed_operations": sorted(self.allowed_operations),
+            "required_kernels": sorted(self.required_kernels),
+            "optional_kernels": sorted(self.optional_kernels),
+            "required_domain_services": sorted(self.required_domain_services),
+            "required_capabilities": sorted(self.required_capabilities),
+            "allowed_instruments": sorted(self.allowed_instruments),
+        }
+        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
     def is_operation_allowed(self, operation_type: str) -> bool:
         return operation_type in self.allowed_operations

@@ -253,8 +253,10 @@ stable first-pass artifact score, not a replacement for expert review.
 `chemworld.data` defines the trajectory schema, logging utilities, dataset
 export, submission bundles, and anonymization helpers for human pilot studies.
 Runtime v2 trajectory records include `mechanism_id`, `mechanism_hash`,
-`kernel_id`, `kernel_version`, `affected_ledgers`, `world_events`,
-`state_patches_summary`, `transaction_status`, and `rollback_reason`.
+`task_contract_hash`, `runtime_profile_hash`, `scoring_contract_hash`,
+`observation_contract_hash`, `kernel_id`, `kernel_version`, `affected_ledgers`,
+`world_events`, `state_patches_summary`, `transaction_status`, and
+`rollback_reason`.
 Schema, task-policy, instrument-policy, and payload-shape failures are rejected
 before runtime dispatch as `validation_failed`. Stateful operation precondition
 failures, such as running a final assay before termination, now enter Runtime v2

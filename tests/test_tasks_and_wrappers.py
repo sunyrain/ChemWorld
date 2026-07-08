@@ -8,7 +8,7 @@ from chemworld.action_codec import ActionCodec
 from chemworld.agents.base import HistoryRecord
 from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.operation_validator import OperationValidator
-from chemworld.runtime import make_chemworld_constitution
+from chemworld.runtime import TaskRuntimeProfile, make_chemworld_constitution
 from chemworld.tasks import get_task, get_task_card, list_tasks
 from chemworld.world.scoring import (
     TaskScoringContract,
@@ -116,6 +116,24 @@ def test_env_task_info_exposes_scoring_contract() -> None:
         assert "process_mass_balance_error" in contract["success_metrics"]
         assert contract["contract_hash"] == info["scoring_contract_hash"]
         assert len(info["scoring_contract_hash"]) == 64
+    finally:
+        env.close()
+
+
+def test_env_task_info_exposes_task_and_runtime_profile_hashes() -> None:
+    task = get_task("reaction-to-purification")
+    env = gym.make("ChemWorld", task_id=task.task_id, seed=0)
+    try:
+        _, info = env.reset(seed=0)
+        profile = TaskRuntimeProfile.from_task(task)
+
+        assert task.to_dict()["contract_hash"] == task.contract_hash
+        assert profile.to_dict()["profile_hash"] == profile.profile_hash
+        assert info["task_contract_hash"] == task.contract_hash
+        assert info["runtime"]["profile"]["profile_hash"] == info["runtime_profile_hash"]
+        assert info["runtime_profile_hash"] == profile.profile_hash
+        assert len(info["task_contract_hash"]) == 64
+        assert len(info["runtime_profile_hash"]) == 64
     finally:
         env.close()
 

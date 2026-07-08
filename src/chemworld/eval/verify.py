@@ -174,6 +174,16 @@ def verify_records(
     replay_mechanism_hash = reset_info.get("mechanism_hash")
     early_mismatches: list[dict[str, Any]] = []
     for field, recorded, replayed in (
+        (
+            "task_contract_hash",
+            first.get("task_contract_hash"),
+            reset_info.get("task_contract_hash"),
+        ),
+        (
+            "runtime_profile_hash",
+            first.get("runtime_profile_hash"),
+            reset_info.get("runtime_profile_hash"),
+        ),
         ("mechanism_hash", recorded_mechanism_hash, replay_mechanism_hash),
         (
             "scoring_contract_hash",
@@ -279,6 +289,8 @@ def verify_records(
                         }
                     )
             replay_metadata_fields = (
+                "task_contract_hash",
+                "runtime_profile_hash",
                 "mechanism_id",
                 "mechanism_hash",
                 "scoring_contract_hash",

@@ -106,6 +106,8 @@ Runtime v2 的关键设计包括：
 
 评分和观测协议也进入同一套可复现合同。`TaskScoringContract` 与 `TaskObservationContract` 都生成确定性 `contract_hash`；trajectory 记录 `scoring_contract_hash` 与 `observation_contract_hash`，verifier 在重放时一并比对，防止 task 评分规则或可见观测口径悄悄漂移。
 
+任务边界和运行时 profile 也进入合同层。`TaskSpec.contract_hash` 锁定 task id、scenario、budget、allowed operations、allowed instruments、success metrics 和 safety limit；`TaskRuntimeProfile.profile_hash` 锁定当前任务实际需要的 kernels、domain services、capabilities 和 instruments。
+
 运行时已经不再依赖固定五物种网络。`A/P/B/D/E` 只应出现在具体 mechanism fixture 或显式 reference code 中，不应成为通用 runtime、observation、scoring 或 phase bookkeeping 的隐含前提。
 
 ## 6. Typed Ledgers
@@ -157,13 +159,13 @@ ChemWorld-Bench 的评测闭环包括：
 
 1. agent 或学生在本地 Gym 环境中执行有限预算实验。
 2. 每个 operation 产生 observation、reward、cost、risk、constraint flags 和 transaction metadata。
-3. trajectory JSONL 记录 action、observation、info、mechanism hash、scoring/observation contract hash、world events、state patches 和 rollback reason。
+3. trajectory JSONL 记录 action、observation、info、task/profile contract hash、mechanism hash、scoring/observation contract hash、world events、state patches 和 rollback reason。
 4. verifier 使用 task、scenario、mechanism hash、seed 和 action sequence 重放轨迹。
 5. evaluator 计算 task-specific metrics、sample efficiency、安全成本、public/private gap 和 leaderboard summary。
 6. submission bundle 包含 manifest、trajectories、results 和可选 explanations。
 
 当前 verifier 已经会比对 Runtime v2 transaction metadata，包括 kernel id/version、domain service id、affected ledgers、world events、state patch summaries、transaction status、rollback reason 和 state-delta summaries。
-同时，verifier 会比对 `mechanism_hash`、`scoring_contract_hash` 与 `observation_contract_hash`；只要机制、评分合同或观测合同发生变化，重放就会明确失败，而不是生成一个看似可比但语义不同的结果。
+同时，verifier 会比对 `task_contract_hash`、`runtime_profile_hash`、`mechanism_hash`、`scoring_contract_hash` 与 `observation_contract_hash`；只要任务边界、运行时 profile、机制、评分合同或观测合同发生变化，重放就会明确失败，而不是生成一个看似可比但语义不同的结果。
 
 在线 reward 和 `leaderboard_score` 来自 task-specific scoring contract。反应任务使用 yield/selectivity/conversion/cost/risk；纯化、结晶、蒸馏、连续流和电化学任务会把对应的 purity、recovery、crystal、distillate、flow 或 electrochemical 指标纳入同一个可审计分数合同。
 

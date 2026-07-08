@@ -32,19 +32,24 @@ def test_trajectory_records_include_instrument_signal_layers(tmp_path) -> None:
     path = tmp_path / "run.jsonl"
     run_agent(
         env_id="ChemWorld",
-        agent=make_agent("random"),
+        agent=make_agent("scripted_chemistry"),
         world_split="public-dev",
-        budget=8,
+        budget=18,
         objective="balanced",
         seed=2,
+        task_id="reaction-to-assay",
         output_path=path,
     )
     records = load_jsonl(path)
     validate_records(records)
     measured = [record for record in records if record["instrument"] is not None]
     assert measured
+    assert records[0]["task_contract_hash"]
+    assert records[0]["runtime_profile_hash"]
     assert records[0]["scoring_contract_hash"]
     assert records[0]["observation_contract_hash"]
+    assert len(records[0]["task_contract_hash"]) == 64
+    assert len(records[0]["runtime_profile_hash"]) == 64
     assert len(records[0]["scoring_contract_hash"]) == 64
     assert len(records[0]["observation_contract_hash"]) == 64
     assert "raw_signal" in measured[-1]

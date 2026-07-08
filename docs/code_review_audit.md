@@ -351,6 +351,10 @@ Recommended follow-up:
   trajectory records, and replay verification now include
   `scoring_contract_hash` and `observation_contract_hash`, so protocol drift is
   rejected even when the hidden mechanism hash is unchanged.
+- Added deterministic task and runtime-profile hashes. Task info, trajectory
+  records, schemas, and replay verification now include `task_contract_hash`
+  and `runtime_profile_hash`, so task boundaries, allowed instruments, budget,
+  safety limits, and runtime service requirements cannot drift silently.
 - Routed stateful operation precondition failures through Runtime v2 rollback
   semantics. Payload/schema/task-policy failures remain env-level
   `validation_failed` events, while physical precondition failures now emit

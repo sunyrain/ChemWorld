@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -88,7 +90,7 @@ class TaskSpec:
     kernel_maturity: TaskMaturitySpec
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload = {
             "task_id": self.task_id,
             "env_id": self.env_id,
             "world_law_id": self.world_law_id,
@@ -113,6 +115,36 @@ class TaskSpec:
             "physics_maturity": self.kernel_maturity.lowest_level.value,
             "proxy_allowed": self.kernel_maturity.proxy_allowed,
         }
+        payload["contract_hash"] = self.contract_hash
+        return payload
+
+    @property
+    def contract_hash(self) -> str:
+        payload = {
+            "task_id": self.task_id,
+            "env_id": self.env_id,
+            "world_law_id": self.world_law_id,
+            "scenario_id": self.scenario_id,
+            "initial_state_id": self.initial_state_id,
+            "world_split": self.world_split,
+            "objective": self.objective,
+            "budget": self.budget,
+            "seeds": list(self.seeds),
+            "threshold": self.threshold,
+            "episode_mode": self.episode_mode,
+            "allowed_operations": list(self.allowed_operations),
+            "allowed_instruments": list(self.allowed_instruments),
+            "observation_policy": self.observation_policy,
+            "termination_policy": self.termination_policy,
+            "success_metrics": list(self.success_metrics),
+            "safety_limit": self.safety_limit,
+            "difficulty": self.difficulty,
+            "description": self.description,
+            "tags": list(self.tags),
+            "kernel_maturity": self.kernel_maturity.to_dict(),
+        }
+        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
     def __post_init__(self) -> None:
         validate_task_maturity_policy(
