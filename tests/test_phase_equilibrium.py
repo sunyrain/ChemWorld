@@ -20,6 +20,7 @@ from chemworld.physchem import (
     rachford_rice_diagnostic_report,
     rachford_rice_vapor_fraction,
     raoult_k_values,
+    uniquac_activity_report,
     validate_model_card,
 )
 
@@ -77,6 +78,41 @@ def test_nrtl_activity_coefficients_match_reference_example() -> None:
     assert gamma["B"] == pytest.approx(1.011342, rel=5e-7)
 
 
+def test_uniquac_activity_coefficients_match_reference_example() -> None:
+    model = ActivityModelSpec(
+        "uniquac_ab",
+        ("A", "B"),
+        "uniquac",
+        {
+            "r:A": 2.1055,
+            "q:A": 1.972,
+            "r:B": 0.9200,
+            "q:B": 1.400,
+            "tau:A|B": 1.0919744384510301,
+            "tau:B|A": 0.37452902779205477,
+        },
+    )
+
+    report = uniquac_activity_report(
+        model,
+        {"A": 0.252, "B": 0.748},
+        temperature_K=343.15,
+    )
+    gamma = activity_coefficients(
+        model,
+        {"A": 0.252, "B": 0.748},
+        temperature_K=343.15,
+    )
+
+    assert gamma == report.activity_coefficients
+    assert report.volume_fractions["A"] + report.volume_fractions["B"] == pytest.approx(1.0)
+    assert report.surface_fractions["A"] + report.surface_fractions["B"] == pytest.approx(1.0)
+    assert report.tau_matrix["A"]["A"] == pytest.approx(1.0)
+    assert report.tau_matrix["A"]["B"] == pytest.approx(1.0919744384510301)
+    assert gamma["A"] == pytest.approx(2.35875137797083, rel=1e-12)
+    assert gamma["B"] == pytest.approx(1.2442093415968987, rel=1e-12)
+
+
 def test_wilson_and_nrtl_support_directional_ternary_parameters() -> None:
     components = ("A", "B", "C")
     composition = {"A": 0.2, "B": 0.3, "C": 0.5}
@@ -104,6 +140,41 @@ def test_wilson_and_nrtl_support_directional_ternary_parameters() -> None:
     assert any(value != pytest.approx(1.0) for value in nrtl_gamma.values())
 
 
+def test_uniquac_supports_directional_ternary_parameters() -> None:
+    components = ("A", "B", "C")
+    parameters = {
+        "r:A": 0.92,
+        "q:A": 1.4,
+        "r:B": 2.1055,
+        "q:B": 1.972,
+        "r:C": 3.1878,
+        "q:C": 2.4,
+    }
+    for left in components:
+        for right in components:
+            if left == right:
+                continue
+            offset = 0.02 * (components.index(left) + 1)
+            offset -= 0.01 * (components.index(right) + 1)
+            parameters[f"tau_a:{left}|{right}"] = offset
+            parameters[f"tau_b:{left}|{right}"] = 5.0 * (components.index(right) + 1)
+
+    model = ActivityModelSpec("uniquac_abc", components, "uniquac", parameters)
+    report = uniquac_activity_report(
+        model,
+        {"A": 0.45, "B": 0.25, "C": 0.30},
+        temperature_K=330.0,
+    )
+
+    assert set(report.activity_coefficients) == set(components)
+    assert all(value > 0.0 for value in report.activity_coefficients.values())
+    assert report.to_dict()["coordination_number"] == pytest.approx(10.0)
+    assert any(
+        value != pytest.approx(1.0)
+        for value in report.activity_coefficients.values()
+    )
+
+
 def test_activity_model_parameter_contracts_fail_fast() -> None:
     with pytest.raises(ValueError, match="wilson requires"):
         ActivityModelSpec(
@@ -124,6 +195,33 @@ def test_activity_model_parameter_contracts_fail_fast() -> None:
                 "alpha:B|A": 0.3,
             },
         )
+    with pytest.raises(ValueError, match="UNIQUAC requires q:B"):
+        ActivityModelSpec(
+            "bad_uniquac_missing_q",
+            ("A", "B"),
+            "uniquac",
+            {
+                "r:A": 2.1,
+                "q:A": 2.0,
+                "r:B": 1.0,
+                "tau:A|B": 1.1,
+                "tau:B|A": 0.8,
+            },
+        )
+    with pytest.raises(ValueError, match="UNIQUAC tau"):
+        ActivityModelSpec(
+            "bad_uniquac_tau",
+            ("A", "B"),
+            "uniquac",
+            {
+                "r:A": 2.1,
+                "q:A": 2.0,
+                "r:B": 1.0,
+                "q:B": 1.4,
+                "tau:A|B": 0.0,
+                "tau:B|A": 0.8,
+            },
+        )
 
 
 def test_activity_model_cards_are_auditable() -> None:
@@ -131,6 +229,7 @@ def test_activity_model_cards_are_auditable() -> None:
     assert {card.model_id for card in cards} == {
         "wilson_activity_coefficients",
         "nrtl_activity_coefficients",
+        "uniquac_activity_coefficients",
         "ideal_gamma_vle_temperature_reports",
         "gamma_phi_k_values_and_azeotrope_diagnostics",
     }

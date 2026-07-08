@@ -164,6 +164,106 @@ def activity_model_cards() -> tuple[ModelCard, ...]:
             ),
         ),
         ModelCard(
+            model_id="uniquac_activity_coefficients",
+            module_id="phase_equilibrium",
+            title="UNIQUAC Activity Coefficients",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "JSON-friendly UNIQUAC gamma model with explicit structural "
+                "r/q parameters, directional tau interactions, and auditable "
+                "combinatorial/residual log-gamma terms."
+            ),
+            equations=(
+                "Phi_i = x_i r_i / sum_j x_j r_j",
+                "theta_i = x_i q_i / sum_j x_j q_j",
+                "l_i = z/2 (r_i - q_i) - (r_i - 1)",
+                "ln(gamma_i) = ln(gamma_i^comb) + ln(gamma_i^res)",
+                "tau_ij = exp(a_ij + b_ij/T + c_ij ln(T) + d_ij T + "
+                "e_ij/T**2 + f_ij T**2), or direct positive tau_ij",
+            ),
+            assumptions=(
+                "Liquid mole fractions are normalized before evaluation.",
+                "Every component declares positive structural r and q "
+                "parameters.",
+                "Every off-diagonal tau interaction is directional and "
+                "explicit.",
+                "Default coordination number z is 10 unless the caller "
+                "declares a positive z parameter.",
+            ),
+            validity_limits=(
+                "Requires finite positive r, q, tau, temperature, and z.",
+                "Validated on the thermo UNIQUAC binary example and local "
+                "ternary directional-parameter regression tests.",
+                "No public parameter database is bundled; callers must provide "
+                "system-specific structural and interaction parameters.",
+            ),
+            failure_modes=(
+                "Missing r/q structural parameters fail during spec "
+                "construction.",
+                "Missing off-diagonal tau parameters fail during spec "
+                "construction.",
+                "Nonpositive tau/r/q/z values fail rather than being clipped.",
+                "Overflow in tau or gamma exponentiation is reported as a "
+                "validation error.",
+            ),
+            units={
+                "temperature": "K",
+                "composition": "mole fraction",
+                "gamma": "dimensionless",
+                "r/q/z": "dimensionless",
+                "tau/tau_a/tau_c": "dimensionless",
+                "tau_b": "K",
+                "tau_d": "1/K",
+                "tau_e": "K^2",
+                "tau_f": "1/K^2",
+            },
+            reference_reading=(
+                "reference_repos/thermo/thermo/uniquac.py: UNIQUAC_gammas "
+                "equation contract and binary examples",
+                "reference_repos/phasepy/phasepy/mixtures.py: UNIQUAC r/q "
+                "mixture parameter conventions",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="thermo-uniquac-binary-gammas",
+                    evidence_type="optional_reference_test",
+                    description=(
+                        "Compares the documented thermo UNIQUAC binary "
+                        "gamma example against ChemWorld's report path."
+                    ),
+                    status="implemented",
+                    reference_backend="thermo",
+                    command_or_path=(
+                        "tests/reference/test_optional_reference_backends.py"
+                    ),
+                    tolerance="rtol=1e-12",
+                ),
+                ValidationEvidence(
+                    evidence_id="chemworld-uniquac-report-structure",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks phi/theta normalization, tau matrix exposure, "
+                        "directional ternary parameters, and fail-fast "
+                        "parameter validation."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_phase_equilibrium.py",
+                    tolerance="pytest.approx formula closure",
+                ),
+            ),
+            model_limit_notes=(
+                "This card validates the UNIQUAC equation path and parameter "
+                "contract; it does not provide a public UNIQUAC parameter "
+                "database or a full LLE stability solver.",
+            ),
+            intended_use=(
+                "Nonideal VLE/LLE and extraction benchmark slices that need "
+                "activity coefficients with explicit structural parameters.",
+                "Scenario cards where public/private worlds vary liquid "
+                "nonideality through auditable parameters.",
+            ),
+        ),
+        ModelCard(
             model_id="ideal_gamma_vle_temperature_reports",
             module_id="phase_equilibrium",
             title="Raoult-Law Bubble/Dew Temperature Reports",

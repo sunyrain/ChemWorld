@@ -22,7 +22,7 @@ from chemworld.physchem.saturation import (
 )
 from chemworld.physchem.specs import PropertyCorrelation
 
-ActivityModel = Literal["ideal", "margules", "wilson", "nrtl"]
+ActivityModel = Literal["ideal", "margules", "wilson", "nrtl", "uniquac"]
 VLESolveMode = Literal["bubble_temperature", "dew_temperature"]
 FlashPhaseStatus = Literal["all_liquid", "two_phase", "all_vapor"]
 AzeotropeScanStatus = Literal[
@@ -42,7 +42,7 @@ class ActivityModelSpec:
     def __post_init__(self) -> None:
         if not self.model_id:
             raise ValueError("model_id cannot be empty")
-        if self.model not in {"ideal", "margules", "wilson", "nrtl"}:
+        if self.model not in {"ideal", "margules", "wilson", "nrtl", "uniquac"}:
             raise ValueError(f"Unsupported activity model: {self.model}")
         if not self.component_ids:
             raise ValueError("component_ids cannot be empty")
@@ -345,6 +345,84 @@ class BinaryAzeotropeDiagnosticReport:
 
 
 @dataclass(frozen=True)
+class UNIQUACActivityReport:
+    model_id: str
+    temperature_K: float
+    composition: dict[str, float]
+    r_parameters: dict[str, float]
+    q_parameters: dict[str, float]
+    tau_matrix: dict[str, dict[str, float]]
+    volume_fractions: dict[str, float]
+    surface_fractions: dict[str, float]
+    combinatorial_log_terms: dict[str, float]
+    residual_log_terms: dict[str, float]
+    activity_coefficients: dict[str, float]
+    coordination_number: float = 10.0
+    reference_reading: tuple[str, ...] = (
+        "reference_repos/thermo/thermo/uniquac.py: UNIQUAC_gammas "
+        "equation contract and binary examples",
+        "reference_repos/phasepy/phasepy/actmodels/uniquac.py: "
+        "UNIQUAC auxiliary activity-model workflow",
+    )
+
+    def __post_init__(self) -> None:
+        if self.temperature_K <= 0 or not isfinite(self.temperature_K):
+            raise ValueError("temperature_K must be positive and finite")
+        if self.coordination_number <= 0 or not isfinite(self.coordination_number):
+            raise ValueError("coordination_number must be positive and finite")
+        component_ids = set(self.composition)
+        if not component_ids:
+            raise ValueError("UNIQUAC report composition cannot be empty")
+        for field_name in (
+            "r_parameters",
+            "q_parameters",
+            "volume_fractions",
+            "surface_fractions",
+            "combinatorial_log_terms",
+            "residual_log_terms",
+            "activity_coefficients",
+        ):
+            if set(getattr(self, field_name)) != component_ids:
+                raise ValueError(f"{field_name} ids must match composition ids")
+        if set(self.tau_matrix) != component_ids:
+            raise ValueError("tau_matrix row ids must match composition ids")
+        for row_id, row in self.tau_matrix.items():
+            if set(row) != component_ids:
+                raise ValueError(f"tau_matrix column ids must match row {row_id!r}")
+            if any(value <= 0.0 or not isfinite(value) for value in row.values()):
+                raise ValueError("UNIQUAC tau values must be positive and finite")
+        if any(value <= 0.0 or not isfinite(value) for value in self.r_parameters.values()):
+            raise ValueError("UNIQUAC r parameters must be positive and finite")
+        if any(value <= 0.0 or not isfinite(value) for value in self.q_parameters.values()):
+            raise ValueError("UNIQUAC q parameters must be positive and finite")
+        if any(
+            value <= 0.0 or not isfinite(value)
+            for value in self.activity_coefficients.values()
+        ):
+            raise ValueError("UNIQUAC activity coefficients must be positive and finite")
+        object.__setattr__(self, "reference_reading", tuple(self.reference_reading))
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "model_id": self.model_id,
+            "temperature_K": self.temperature_K,
+            "composition": dict(self.composition),
+            "r_parameters": dict(self.r_parameters),
+            "q_parameters": dict(self.q_parameters),
+            "tau_matrix": {
+                row_id: dict(row) for row_id, row in self.tau_matrix.items()
+            },
+            "volume_fractions": dict(self.volume_fractions),
+            "surface_fractions": dict(self.surface_fractions),
+            "combinatorial_log_terms": dict(self.combinatorial_log_terms),
+            "residual_log_terms": dict(self.residual_log_terms),
+            "activity_coefficients": dict(self.activity_coefficients),
+            "coordination_number": self.coordination_number,
+            "reference_reading": list(self.reference_reading),
+        }
+
+
+@dataclass(frozen=True)
 class LLEStageResult:
     organic_amounts_mol: dict[str, float]
     aqueous_amounts_mol: dict[str, float]
@@ -379,7 +457,106 @@ def activity_coefficients(
         return _wilson_gamma(spec, x, temperature_K=temperature_K)
     if spec.model == "nrtl":
         return _nrtl_gamma(spec, x, temperature_K=temperature_K)
+    if spec.model == "uniquac":
+        return uniquac_activity_report(
+            spec,
+            composition,
+            temperature_K=temperature_K,
+        ).activity_coefficients
     raise ValueError(f"Unsupported activity model: {spec.model}")
+
+
+def uniquac_activity_report(
+    spec: ActivityModelSpec,
+    composition: Mapping[str, float],
+    *,
+    temperature_K: float,
+) -> UNIQUACActivityReport:
+    if spec.model != "uniquac":
+        raise ValueError("uniquac_activity_report requires model='uniquac'")
+    if temperature_K <= 0 or not isfinite(temperature_K):
+        raise ValueError("temperature_K must be positive and finite")
+    x_mapping = _composition_vector_mapping(spec.component_ids, composition)
+    x = tuple(x_mapping[component_id] for component_id in spec.component_ids)
+    r_values = tuple(
+        _uniquac_structural_parameter(spec, "r", component_id)
+        for component_id in spec.component_ids
+    )
+    q_values = tuple(
+        _uniquac_structural_parameter(spec, "q", component_id)
+        for component_id in spec.component_ids
+    )
+    tau = _uniquac_tau_matrix(spec, temperature_K)
+    z_coordination = _uniquac_coordination_number(spec)
+
+    r_sum = sum(x_i * r_i for x_i, r_i in zip(x, r_values, strict=True))
+    q_sum = sum(x_i * q_i for x_i, q_i in zip(x, q_values, strict=True))
+    if r_sum <= 0.0 or q_sum <= 0.0:
+        raise ValueError("UNIQUAC r/q composition sums must be positive")
+    phi = tuple(x_i * r_i / r_sum for x_i, r_i in zip(x, r_values, strict=True))
+    theta = tuple(x_i * q_i / q_sum for x_i, q_i in zip(x, q_values, strict=True))
+    l_values = tuple(
+        z_coordination * 0.5 * (r_i - q_i) - (r_i - 1.0)
+        for r_i, q_i in zip(r_values, q_values, strict=True)
+    )
+    x_l_sum = sum(x_i * l_i for x_i, l_i in zip(x, l_values, strict=True))
+
+    combinatorial: dict[str, float] = {}
+    residual: dict[str, float] = {}
+    gammas: dict[str, float] = {}
+    for i, component_id in enumerate(spec.component_ids):
+        phi_over_x = r_values[i] / r_sum
+        theta_over_phi = q_values[i] * r_sum / (r_values[i] * q_sum)
+        combinatorial_log = (
+            log(phi_over_x)
+            + z_coordination * 0.5 * q_values[i] * log(theta_over_phi)
+            + l_values[i]
+            - phi_over_x * x_l_sum
+        )
+
+        theta_tau_ji = sum(theta[j] * tau[j][i] for j in range(len(spec.component_ids)))
+        if theta_tau_ji <= 0.0 or not isfinite(theta_tau_ji):
+            raise ValueError("UNIQUAC residual denominator must be positive")
+        residual_sum = 0.0
+        for j in range(len(spec.component_ids)):
+            denominator = sum(theta[k] * tau[k][j] for k in range(len(spec.component_ids)))
+            if denominator <= 0.0 or not isfinite(denominator):
+                raise ValueError("UNIQUAC residual denominator must be positive")
+            residual_sum += theta[j] * tau[i][j] / denominator
+        residual_log = q_values[i] * (1.0 - log(theta_tau_ji) - residual_sum)
+        log_gamma = combinatorial_log + residual_log
+        if not isfinite(log_gamma):
+            raise ValueError("UNIQUAC log-gamma must be finite")
+        try:
+            gamma_value = exp(log_gamma)
+        except OverflowError as exc:
+            raise ValueError("UNIQUAC log-gamma is outside numerical range") from exc
+        if gamma_value <= 0.0 or not isfinite(gamma_value):
+            raise ValueError("UNIQUAC activity coefficient must be positive and finite")
+        combinatorial[component_id] = combinatorial_log
+        residual[component_id] = residual_log
+        gammas[component_id] = gamma_value
+
+    return UNIQUACActivityReport(
+        model_id=spec.model_id,
+        temperature_K=temperature_K,
+        composition=x_mapping,
+        r_parameters=dict(zip(spec.component_ids, r_values, strict=True)),
+        q_parameters=dict(zip(spec.component_ids, q_values, strict=True)),
+        tau_matrix={
+            left: {
+                right: tau[i][j]
+                for j, right in enumerate(spec.component_ids)
+            }
+            for i, left in enumerate(spec.component_ids)
+        },
+        volume_fractions=dict(zip(spec.component_ids, phi, strict=True)),
+        surface_fractions=dict(zip(spec.component_ids, theta, strict=True)),
+        combinatorial_log_terms=combinatorial,
+        residual_log_terms=residual,
+        activity_coefficients=gammas,
+        coordination_number=z_coordination,
+    )
 
 
 def raoult_k_values(
@@ -1468,9 +1645,83 @@ def _nrtl_alpha(
     )
 
 
+def _uniquac_tau_matrix(
+    spec: ActivityModelSpec,
+    temperature_K: float,
+) -> list[list[float]]:
+    component_ids = spec.component_ids
+    n = len(component_ids)
+    matrix = [[1.0 for _ in range(n)] for _ in range(n)]
+    for i, left in enumerate(component_ids):
+        for j, right in enumerate(component_ids):
+            if i == j:
+                continue
+            value = _uniquac_tau(spec, left, right, temperature_K)
+            if value <= 0.0 or not isfinite(value):
+                raise ValueError("UNIQUAC tau values must be positive and finite")
+            matrix[i][j] = value
+    return matrix
+
+
+def _uniquac_tau(
+    spec: ActivityModelSpec,
+    left: str,
+    right: str,
+    temperature_K: float,
+) -> float:
+    direct = _directional_parameter(spec, "tau", left, right, default=None)
+    if direct is not None:
+        return direct
+    exponent = (
+        _directional_value(spec, "tau_a", left, right, default=0.0)
+        + _directional_value(spec, "tau_b", left, right, default=0.0)
+        / temperature_K
+        + _directional_value(spec, "tau_c", left, right, default=0.0)
+        * log(temperature_K)
+        + _directional_value(spec, "tau_d", left, right, default=0.0)
+        * temperature_K
+        + _directional_value(spec, "tau_e", left, right, default=0.0)
+        / temperature_K**2
+        + _directional_value(spec, "tau_f", left, right, default=0.0)
+        * temperature_K**2
+    )
+    if not isfinite(exponent):
+        raise ValueError("UNIQUAC tau exponent must be finite")
+    try:
+        return exp(exponent)
+    except OverflowError as exc:
+        raise ValueError("UNIQUAC tau exponent is outside numerical range") from exc
+
+
+def _uniquac_structural_parameter(
+    spec: ActivityModelSpec,
+    prefix: str,
+    component_id: str,
+) -> float:
+    key = f"{prefix}:{component_id}"
+    if key not in spec.parameters:
+        raise ValueError(f"UNIQUAC requires {prefix}:{component_id}")
+    value = float(spec.parameters[key])
+    if value <= 0.0 or not isfinite(value):
+        raise ValueError(f"UNIQUAC {prefix} parameters must be positive and finite")
+    return value
+
+
+def _uniquac_coordination_number(spec: ActivityModelSpec) -> float:
+    value = float(spec.parameters.get("z", 10.0))
+    if value <= 0.0 or not isfinite(value):
+        raise ValueError("UNIQUAC coordination number z must be positive and finite")
+    return value
+
+
 def _validate_activity_parameter_contract(spec: ActivityModelSpec) -> None:
     if spec.model in {"ideal", "margules"}:
         return
+    if spec.model == "uniquac":
+        _uniquac_coordination_number(spec)
+        for component_id in spec.component_ids:
+            _uniquac_structural_parameter(spec, "r", component_id)
+            _uniquac_structural_parameter(spec, "q", component_id)
     for left in spec.component_ids:
         for right in spec.component_ids:
             if left == right:
@@ -1515,6 +1766,16 @@ def _validate_activity_parameter_contract(spec: ActivityModelSpec) -> None:
                 )
                 if direct_alpha is not None and direct_alpha <= 0.0:
                     raise ValueError("NRTL alpha values must be positive")
+            if spec.model == "uniquac":
+                _validate_pair_has_any(
+                    spec,
+                    left,
+                    right,
+                    ("tau", "tau_a", "tau_b", "tau_c", "tau_d", "tau_e", "tau_f"),
+                )
+                direct_tau = _directional_parameter(spec, "tau", left, right, default=None)
+                if direct_tau is not None and direct_tau <= 0.0:
+                    raise ValueError("UNIQUAC tau values must be positive")
 
 
 def _validate_pair_has_any(
@@ -1637,6 +1898,7 @@ __all__ = [
     "GammaPhiKValueReport",
     "LLEStageResult",
     "RachfordRiceDiagnosticReport",
+    "UNIQUACActivityReport",
     "VLESolveMode",
     "VLETemperatureReport",
     "activity_coefficients",
@@ -1652,4 +1914,5 @@ __all__ = [
     "rachford_rice_diagnostic_report",
     "rachford_rice_vapor_fraction",
     "raoult_k_values",
+    "uniquac_activity_report",
 ]

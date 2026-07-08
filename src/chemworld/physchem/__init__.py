@@ -74,6 +74,7 @@ from chemworld.physchem.equilibrium import (
     GammaPhiKValueReport,
     LLEStageResult,
     RachfordRiceDiagnosticReport,
+    UNIQUACActivityReport,
     VLETemperatureReport,
     activity_coefficients,
     binary_azeotrope_diagnostic_report,
@@ -87,6 +88,7 @@ from chemworld.physchem.equilibrium import (
     rachford_rice_diagnostic_report,
     rachford_rice_vapor_fraction,
     raoult_k_values,
+    uniquac_activity_report,
 )
 from chemworld.physchem.equilibrium_cards import activity_model_cards
 from chemworld.physchem.equilibrium_chemistry import (
@@ -476,6 +478,7 @@ __all__ = [
     "ThermochemicalDetailedBalanceResult",
     "TransportPropertyReport",
     "TwoPhasePressureDropResult",
+    "UNIQUACActivityReport",
     "VLETemperatureReport",
     "ValidationEvidence",
     "VaporPressureReport",
@@ -670,6 +673,7 @@ __all__ = [
     "transport_model_cards",
     "transport_property_report",
     "underwood_minimum_reflux_binary",
+    "uniquac_activity_report",
     "validate_binary_interaction_provenance",
     "validate_mechanism_library",
     "validate_model_card",

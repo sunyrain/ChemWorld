@@ -63,11 +63,12 @@ Current scope:
   states with compressibility roots, explicit root-selection policies,
   fugacity coefficients, residual enthalpy, residual entropy, residual Gibbs
   energy, and model-card evidence.
-- phase-equilibrium utilities for ideal, Margules, Wilson, and NRTL activity
-  coefficients, Raoult K-values, isothermal flash, bubble/dew pressure,
-  bubble/dew temperature reports backed by pure saturation reports,
-  gamma-phi K-value reports, binary relative-volatility crossing diagnostics,
-  Rachford-Rice diagnostics, and liquid-liquid extraction splits.
+- phase-equilibrium utilities for ideal, Margules, Wilson, NRTL, and UNIQUAC
+  activity coefficients, auditable UNIQUAC `phi/theta/tau` reports, Raoult
+  K-values, isothermal flash, bubble/dew pressure, bubble/dew temperature
+  reports backed by pure saturation reports, gamma-phi K-value reports, binary
+  relative-volatility crossing diagnostics, Rachford-Rice diagnostics, and
+  liquid-liquid extraction splits.
 - reaction-equilibrium and electrolyte utilities for mass-action reaction
   extents, van't Hoff equilibrium constants, fixed-TP ideal Gibbs minimization,
   weak-acid pH, water ion product, precipitation, charge balance, ionic

@@ -176,6 +176,17 @@ distillation, flash, and generalization tasks an auditable nonideality warning
 surface before a rigorous gamma-phi flash, tangent-plane stability test, or
 azeotrope curve tracer exists.
 
+DEEP-D4A extends the nonideal liquid path with a standard UNIQUAC activity
+model. `ActivityModelSpec(model="uniquac")` now requires explicit structural
+`r:<component>` and `q:<component>` parameters plus directional off-diagonal
+`tau` interactions. `uniquac_activity_report()` exposes normalized
+composition, volume fractions, surface fractions, the full tau matrix,
+combinatorial log terms, residual log terms, and activity coefficients. The
+same gamma values feed `gamma_phi_k_value_report()`, so VLE, distillation, and
+future extraction tasks can use UNIQUAC without a separate runtime path. The
+implementation deliberately does not bundle a UNIQUAC parameter database or
+claim full LLE phase-stability coverage.
+
 DEEP-D2B hardens the heat-capacity and enthalpy path. The public API now
 separates three concepts that were previously easy to blur:
 
@@ -503,7 +514,7 @@ small enough to audit and stable enough to run locally:
 | --- | --- | --- |
 | `chemicals` | ideal-gas molar volume via `chemicals.volume.ideal_gas`; Rachford-Rice vapor fraction and phase compositions via `chemicals.rachford_rice.Rachford_Rice_solution`; curated DIPPR101 vapor-pressure points via `chemicals.dippr.EQ101`; curated Poling ideal-gas Cp and sensible enthalpy integrals via `chemicals.dippr.EQ100` | `rtol=1e-12` |
 | `fluids` | Reynolds and Prandtl numbers via `fluids.core`; Haaland Darcy friction factor and single-phase pipe pressure drop via `fluids.friction` | `rtol=1e-12` |
-| `thermo` | ideal Raoult-law bubble/dew pressure and two-phase TP flash via `thermo.property_package.Ideal` with explicit constant vapor-pressure callables; fixed-lambda Wilson gamma via `thermo.wilson.Wilson_gammas`; fixed tau/alpha NRTL gamma via `thermo.nrtl.NRTL_gammas_binaries`; PR/SRK vapor-root `Z`, `phi`, `H_dep`, and `S_dep` via `thermo.eos` | `rtol=1e-12` for bubble/dew and gamma checks; `rtol=1e-11` for flash solver roundoff; `rtol=5e-5` for independent cubic-EOS residual-property convention differences |
+| `thermo` | ideal Raoult-law bubble/dew pressure and two-phase TP flash via `thermo.property_package.Ideal` with explicit constant vapor-pressure callables; fixed-lambda Wilson gamma via `thermo.wilson.Wilson_gammas`; fixed tau/alpha NRTL gamma via `thermo.nrtl.NRTL_gammas_binaries`; documented UNIQUAC gamma example via `thermo.uniquac.UNIQUAC_gammas`; PR/SRK vapor-root `Z`, `phi`, `H_dep`, and `S_dep` via `thermo.eos` | `rtol=1e-12` for bubble/dew and gamma checks; `rtol=1e-11` for flash solver roundoff; `rtol=5e-5` for independent cubic-EOS residual-property convention differences |
 
 Run the normal test path to confirm reference tests skip cleanly when optional
 backends are not enabled:
@@ -712,7 +723,7 @@ property correlations, and downstream separation tasks:
 
 | Equilibrium capability | Current implementation |
 | --- | --- |
-| Activity coefficients | ideal, Margules, Wilson, and NRTL models |
+| Activity coefficients | ideal, Margules, Wilson, NRTL, and UNIQUAC models |
 | Raoult K-values | activity-corrected `K_i = gamma_i Psat_i / phi_i P` |
 | Flash | Rachford-Rice vapor fraction and liquid/vapor compositions |
 | Bubble/dew pressure | iterative estimates with activity coefficients |
@@ -720,6 +731,7 @@ property correlations, and downstream separation tasks:
 | Rachford-Rice diagnostics | vapor fraction, endpoint objectives, phase-status classification, and residual reports |
 | Gamma-phi K-value reports | explicit gamma, vapor phi, liquid-reference phi, Poynting, K-value, and relative-volatility provenance |
 | Binary azeotrope diagnostics | isothermal `ln(alpha)` scan with crossing bracket, estimated composition, and no-crossing warnings |
+| UNIQUAC reports | structural r/q parameters, volume and surface fractions, tau matrix, combinatorial/residual log terms, and activity coefficients |
 | LLE stage | material-conserving extraction split with partition coefficients, phase volumes, stage efficiency, and entrainment |
 
 PRO-P4A hardens the nonideal activity path. Wilson and NRTL now use explicit
@@ -730,8 +742,8 @@ temperature-dependent `tau_ij` terms, `alpha_ij` terms, and the standard
 `G_ij = exp(-alpha_ij tau_ij)` local-composition sum. Missing off-diagonal
 Wilson/NRTL interactions fail during `ActivityModelSpec` construction, so a
 nonideal model cannot silently fall back to ideal behavior. Optional reference
-tests compare the implemented gamma equations against `thermo.wilson` and
-`thermo.nrtl`.
+tests compare the implemented gamma equations against `thermo.wilson`,
+`thermo.nrtl`, and `thermo.uniquac`.
 
 DEEP-D3C hardens the ideal/activity VLE flash diagnostics. Mixture
 bubble/dew-temperature APIs now use the same curated vapor-pressure reporting
@@ -745,6 +757,14 @@ distinguish modified Raoult-law assumptions from caller-supplied vapor
 fugacity, liquid-reference fugacity, and Poynting factors. Binary
 relative-volatility scans provide an azeotrope-risk hook for private/public
 scenario cards without requiring a heavyweight flash backend.
+
+DEEP-D4A adds UNIQUAC as the next nonideal activity model. The contract follows
+the standard combinatorial plus residual split and exposes the internal
+`phi/theta/tau` quantities as report fields. Missing `r/q` structural
+parameters, missing directional tau interactions, nonpositive parameters, and
+out-of-range exponentiation fail before a flash or extraction task can consume
+the model. Optional reference tests compare the documented binary case against
+`thermo.uniquac.UNIQUAC_gammas`.
 
 This is still compact, but it is enough to make future extraction, evaporation,
 distillation, solvent-screening, and purity/recovery tasks depend on shared

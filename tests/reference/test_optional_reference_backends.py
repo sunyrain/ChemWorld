@@ -150,6 +150,7 @@ def test_fluids_nusselt_definition_reference() -> None:
 def test_thermo_wilson_and_nrtl_activity_references() -> None:
     thermo_wilson = _reference_module("thermo.wilson", repo_names=("thermo",))
     thermo_nrtl = _reference_module("thermo.nrtl", repo_names=("thermo",))
+    thermo_uniquac = _reference_module("thermo.uniquac", repo_names=("thermo",))
 
     wilson_model = ActivityModelSpec(
         "wilson_reference_ab",
@@ -193,6 +194,31 @@ def test_thermo_wilson_and_nrtl_activity_references() -> None:
         0.7991,
         0.2,
         0.3,
+    )
+    uniquac_model = ActivityModelSpec(
+        "uniquac_reference_ab",
+        ("A", "B"),
+        "uniquac",
+        {
+            "r:A": 2.1055,
+            "q:A": 1.972,
+            "r:B": 0.9200,
+            "q:B": 1.400,
+            "tau:A|B": 1.0919744384510301,
+            "tau:B|A": 0.37452902779205477,
+        },
+    )
+    uniquac_composition = {"A": 0.252, "B": 0.748}
+    uniquac_gamma = activity_coefficients(
+        uniquac_model,
+        uniquac_composition,
+        temperature_K=343.15,
+    )
+    uniquac_reference = thermo_uniquac.UNIQUAC_gammas(
+        [uniquac_composition["A"], uniquac_composition["B"]],
+        [2.1055, 0.9200],
+        [1.972, 1.400],
+        [[1.0, 1.0919744384510301], [0.37452902779205477, 1.0]],
     )
 
     comparisons = [
@@ -238,6 +264,19 @@ def test_thermo_wilson_and_nrtl_activity_references() -> None:
                     note="Fixed tau/alpha binary NRTL gamma.",
                 )
             )
+    for component_index, component_id in enumerate(("A", "B")):
+        comparisons.append(
+            compare_scalar(
+                check_id=f"thermo-uniquac-gamma-{component_id}",
+                backend_id="thermo",
+                quantity="uniquac_activity_coefficient",
+                chemworld_value=uniquac_gamma[component_id],
+                reference_value=uniquac_reference[component_index],
+                unit="dimensionless",
+                rtol=1e-12,
+                note="Documented thermo UNIQUAC binary gamma example.",
+            )
+        )
 
     summary = summarize_reference_comparisons(tuple(comparisons))
     assert summary["all_passed"], summary

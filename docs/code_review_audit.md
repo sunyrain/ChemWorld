@@ -392,6 +392,12 @@ Recommended follow-up:
   relative-volatility crossing scans. This closes the first azeotrope-risk
   hook while keeping rigorous gamma-phi flash, tangent-plane stability, and
   azeotrope curve tracing as future professional work.
+- Added a UNIQUAC activity-coefficient slice. `equilibrium.py` now exposes
+  `uniquac_activity_report()` with r/q structural parameters, tau matrices,
+  volume/surface fractions, and combinatorial/residual log-gamma terms. The
+  public activity-model facade can use UNIQUAC in the same gamma-phi and
+  phase-equilibrium paths as Wilson and NRTL, while parameter databases and
+  phase-stability solvers remain future professional work.
 
 ## Verification
 
