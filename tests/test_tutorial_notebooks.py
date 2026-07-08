@@ -48,6 +48,21 @@ def test_tutorial_notebooks_have_half_hour_timeboxes() -> None:
             assert slot in text
 
 
+def test_tutorial_notebooks_have_progressive_guidance() -> None:
+    expected_guidance = (
+        "学习路径定位",
+        "本日任务梯度",
+        "基础任务",
+        "进阶任务",
+        "挑战任务",
+        "反思问题",
+    )
+    for notebook_name in TUTORIAL_NOTEBOOKS:
+        text = _notebook_text(TUTORIAL_DIR / notebook_name)
+        for phrase in expected_guidance:
+            assert phrase in text
+
+
 def test_tutorial_notebooks_use_plain_markdown_checkpoints() -> None:
     for notebook_name in TUTORIAL_NOTEBOOKS:
         text = _notebook_text(TUTORIAL_DIR / notebook_name)

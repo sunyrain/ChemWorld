@@ -2,32 +2,9 @@
 
 更新日期：2026-07-08
 
-ChemWorld-Bench 现在已经可以作为一个科研型虚拟自驱实验课程底座使用。它的核心不是“多个小游戏”，而是同一个 `ChemWorld` 物理化学世界规律下的不同 task slice。学生、LLM agent、BO、safe BO 和人工策略都在同一个实验接口、同一套日志和同一套评测协议下工作。
+ChemWorld-Bench 的教程不是 Python 语法课，也不是一串互不相关的小游戏。它训练的是同一套 `ChemWorld` 物理化学世界中的闭环实验能力：提出假设、设计操作、读取仪器观测、建立局部 world model、优化下一轮实验、解释机理并提交可复现 artifact。
 
-## 现在能做什么
-
-| 能力 | 怎么做 | 产出 |
-| --- | --- | --- |
-| 运行虚拟实验 | `gym.make("ChemWorld", task_id=..., seed=...)` 后执行事件动作。 | observation、reward、info、trajectory。 |
-| 设计反应条件 | 操作 `add_solvent`、`add_reagent`、`add_catalyst`、`heat`、`terminate`、`measure`。 | 产率、选择性、转化率、风险、成本。 |
-| 做后处理和分离 | 使用 `add_extractant`、`mix`、`settle`、`separate_phase`、`wash`、`dry`、`concentrate`。 | purity、recovery、phase ratio、mass balance error。 |
-| 使用仪器观测 | 选择 HPLC、GC、UV-vis、final assay。 | noisy processed estimate、uncertainty、raw spectral signal。 |
-| 生成谱图/色谱 | 读取 `info["raw_signal"]` 或 trajectory `raw_signal`。 | HPLC/GC 色谱、Beer-Lambert UV-vis、IR/NMR 合成谱。 |
-| 验证动作合法性 | 使用 validator、action schema、recipe compiler。 | invalid reasons、修复后的 recipe。 |
-| 训练局部模型 | 从轨迹抽取特征，训练 surrogate model。 | 预测、误差、候选实验推荐。 |
-| 运行 baseline | 使用 random、LHS、scripted、GP BO、RF EI、safe BO。 | baseline table、leaderboard metrics。 |
-| 组织评测 | 运行 `chemworld run/evaluate/verify/suite/leaderboard`。 | JSONL、manifest、results、leaderboard。 |
-| 做课程项目 | 使用 submission bundle 和本机教师端/学生端评测流程。 | 可审核项目包和排名结果。 |
-
-## 推荐学习路径
-
-| 阶段 | Notebook | 学生能力 |
-| --- | --- | --- |
-| 核心闭环 | Day 1-7 | 会调用环境、记录轨迹、理解 ontology/constitution/instrument、建立局部模型、提交可复现实验 artifact。 |
-| Benchmark 强化 | Day 8-12 | 会使用 validator、BO、安全优化、public/private generalization、submission bundle 和 demo-day 报告。 |
-| 过程扩展 | Day 13 + project blueprint | 会把同一世界扩展到结晶、蒸馏、连续流、电化学和课程 leaderboard。 |
-
-所有 notebook 都围绕同一个正式 Gym 入口：
+正式入口保持一致：
 
 ```python
 import gymnasium as gym
@@ -36,39 +13,70 @@ import chemworld
 env = gym.make("ChemWorld", task_id="reaction-optimization-standard", seed=0)
 ```
 
-## 每日 Notebook
+## 课程总目标
 
-| 天数 | 文件 | 学习重点 | 学生交付 |
-| --- | --- | --- | --- |
-| 1 | `day_01_enter_virtual_lab.ipynb` | 进入虚拟实验室，完成第一条实验轨迹。 | 轨迹表、第一张实验图、初始机制假设。 |
-| 2 | `day_02_ontology_and_constitution.ipynb` | ontology、单位、物理宪法、动作前置条件。 | 一个被 constitution 拦截的错误动作和修正版本。 |
-| 3 | `day_03_observation_and_instruments.ipynb` | HPLC、GC、UV-vis、final assay、虚拟谱图、非全知观测。 | 仪器成本/噪声/信息量比较和一张 raw signal 图。 |
-| 4 | `day_04_mechanism_scans.ipynb` | 温度、时间、催化剂、溶剂、风险扫描。 | 机制解释图和下一轮实验建议。 |
-| 5 | `day_05_surrogate_modeling.ipynb` | 用轨迹训练局部 surrogate model。 | 简单预测模型、不确定性或误差分析。 |
-| 6 | `day_06_baselines_and_leaderboard.ipynb` | random、LHS、scripted、BO、安全 BO 与指标。 | baseline 对比表。 |
-| 7 | `day_07_capstone_artifact.ipynb` | 复现实验、评测、验证和机制解释。 | 小型 submission artifact。 |
-| 8 | `day_08_gpt_planner_and_validation.ipynb` | GPT-style proposal、validator、动作修复。 | 一组可执行的 agent 操作计划。 |
-| 9 | `day_09_bayesian_optimization.ipynb` | BO / safe BO 收敛、风险、样本效率。 | BO 轨迹和 acquisition 阶段分析。 |
-| 10 | `day_10_public_leaderboard_challenge.ipynb` | public-test 提交演练和 JSONL 轨迹验证。 | public leaderboard 结果。 |
-| 11 | `day_11_private_generalization.ipynb` | public/private gap 与过拟合诊断。 | 泛化分析报告。 |
-| 12 | `day_12_demo_day_artifact.ipynb` | Demo Day：性能、机制、可复现性和报告。 | 最终展示材料。 |
-| 13 | `day_13_year2_process_modules.ipynb` | 结晶、蒸馏、连续流、电化学过程模块。 | 一个跨过程 task 的最小闭环结果。 |
-| 项目 | `project_leaderboard_blueprint.ipynb` | 教师端/学生端评测组织、榜单设计、项目制提交。 | 课程 leaderboard 方案。 |
+学生完成 Day 1-12 后，应能独立完成：
 
-## 每 30 分钟工作节奏
+1. 根据 task card 识别目标、预算、可用操作、仪器和约束。
+2. 使用统一 operation language 执行虚拟实验并保存 JSONL trajectory。
+3. 理解 ontology、physical constitution、partial observation、measurement cost 和 safety cost。
+4. 从有限实验中建立局部 surrogate/world model。
+5. 使用 human strategy、GPT-style planner、random/LHS/BO/safe BO 等方法比较闭环决策效率。
+6. 诊断 public/private generalization gap，避免只在公开世界刷分。
+7. 提交包含 trajectory、manifest、results 和 explanation 的可复现项目包。
 
-每个教程 notebook 的开头都已经加入 6 个时间盒。推荐每天 3 小时：
+## 难度坡度
 
-| 时间 | 活动 | 证据 |
+| 阶段 | Notebook | 难度 | 主要能力 | 典型交付 |
+| --- | --- | --- | --- | --- |
+| A. 进入世界 | Day 1-3 | 入门 | 环境调用、状态账本、仪器观测、非全知测量 | 一条可回放轨迹、一张仪器/实验图、一段机制假设 |
+| B. 认识规律 | Day 4-6 | 进阶 | 机制扫描、局部 surrogate、baseline 和 leaderboard 指标 | 机制扫描图、局部模型误差表、baseline 对比表 |
+| C. 形成项目 | Day 7-9 | 进阶到挑战 | 可复现 artifact、GPT-style planner、BO/safe BO | submission bundle、可执行 recipe、BO 轨迹分析 |
+| D. 接近科研评测 | Day 10-12 | 挑战 | public/private split、泛化诊断、最终展示 | public 结果、private gap 分析、Demo Day 报告 |
+| E. 研究延展 | Day 13 + project blueprint | 研究延展 | 结晶、蒸馏、连续流、电化学和课程 leaderboard 设计 | 一个跨过程 task 的最小闭环设计 |
+
+## 每日路线
+
+| 天数 | 文件 | 只解决什么 | 不要求什么 | 本日交付 |
+| --- | --- | --- | --- | --- |
+| Day 1 | `day_01_enter_virtual_lab.ipynb` | 第一次进入 `ChemWorld`，完成一条从动作到观测的实验轨迹 | 不要求优化，也不要求懂完整机理 | 轨迹表或 JSONL、第一张实验图、下一轮假设 |
+| Day 2 | `day_02_ontology_and_constitution.ipynb` | 理解物质、相、容器、操作和 physical constitution | 不要求写新 simulator | 一个被 constitution 拦截的错误动作和修复版 |
+| Day 3 | `day_03_observation_and_instruments.ipynb` | 比较 HPLC、GC、UV-vis、FinalAssay 的成本、噪声和信息量 | 不要求一次测完所有真值 | 仪器选择理由、一张 raw signal 或谱图、观测不确定性说明 |
+| Day 4 | `day_04_mechanism_scans.ipynb` | 扫描温度、时间、催化剂、溶剂、浓度，形成化工直觉 | 不要求训练复杂模型 | 机制解释图、风险-性能权衡、下一轮实验建议 |
+| Day 5 | `day_05_surrogate_modeling.ipynb` | 从轨迹训练局部 surrogate，理解误差和不确定性 | 不要求模型全局准确 | 预测模型、误差分析、候选条件排序 |
+| Day 6 | `day_06_baselines_and_leaderboard.ipynb` | 比较 random、LHS、scripted、BO、safe BO 的样本效率与安全性 | 不要求只追最高分 | baseline 对比表、sample efficiency 和 safety cost 解释 |
+| Day 7 | `day_07_capstone_artifact.ipynb` | 把前 6 天成果整理成可复现小项目 | 不要求做完私有榜 | manifest、trajectory、results、explanation 的小型提交包 |
+| Day 8 | `day_08_gpt_planner_and_validation.ipynb` | 把 GPT-style proposal 变成可验证、可执行的 recipe | 不依赖在线 GPT API | 原始 plan、validator 反馈、修复后的操作序列 |
+| Day 9 | `day_09_bayesian_optimization.ipynb` | 理解 BO 和 safe BO 如何利用历史数据闭环选点 | 不要求手写完整 GP 库 | BO 初始点、acquisition 阶段、best-score 曲线 |
+| Day 10 | `day_10_public_leaderboard_challenge.ipynb` | 在 public-test 上组织一次标准提交 | 不鼓励手工刷榜 | public 结果 JSON、验证日志、策略说明 |
+| Day 11 | `day_11_private_generalization.ipynb` | 诊断 public/private gap 和过拟合 | 不追求泄露 private 参数 | 泛化差距表、失败分析、下一版策略 |
+| Day 12 | `day_12_demo_day_artifact.ipynb` | 形成最终展示：性能、机理、风险、复现性并重 | 不只展示最高分 | Demo Day 报告骨架、项目摘要、可复现证据 |
+| Day 13 | `day_13_year2_process_modules.ipynb` | 理解同一 world law 下如何扩展到结晶、蒸馏、连续流、电化学 | 不要求所有模块达到专业库精度 | 一个跨过程 task 的最小闭环和后续开发计划 |
+| 项目 | `project_leaderboard_blueprint.ipynb` | 设计本机教师端/学生端 leaderboard 与项目制提交 | 不做云端账号系统 | 课程评测机流程、榜单指标、提交协议 |
+
+## 每天的 3 小时节奏
+
+| 时间 | 活动 | 必须留下的证据 |
 | --- | --- | --- |
-| 0:00-0:30 | 明确今天的化工问题、任务合同和评价指标。 | 写出任务目标或 task card 摘要。 |
-| 0:30-1:00 | 运行最小代码或最小实验。 | 得到第一条 observation 或检查表。 |
-| 1:00-1:30 | 执行核心实验、扫描、模型或 baseline。 | 生成轨迹表、模型表或指标表。 |
-| 1:30-2:00 | 验证、修复、对比或 debug。 | 留下 validator/verify/对比结果。 |
-| 2:00-2:30 | 可视化、解释或选择下一轮实验。 | 得到图、谱图、候选表或解释草稿。 |
-| 2:30-3:00 | 保存 artifact 并写反思。 | JSONL、manifest、结果摘要和下一步计划。 |
+| 0:00-0:30 | 明确今天的化工问题、task card、预算和评分指标 | 一句任务目标和当前限制 |
+| 0:30-1:00 | 跑通最小代码或最小实验 | 第一条 observation 或 validator 结果 |
+| 1:00-1:30 | 完成核心实验、扫描、模型或 baseline | 轨迹表、模型表或指标表 |
+| 1:30-2:00 | 验证、修复、对比或 debug | verify/validator/对比结果 |
+| 2:00-2:30 | 可视化、解释或选择下一轮实验 | 图、谱图、候选表或解释草稿 |
+| 2:30-3:00 | 保存 artifact 并写反思 | JSONL、manifest、结果摘要和下一步计划 |
 
-如果课堂只有 90 分钟，建议现场完成前 3 段，后 3 段作为课后提交。
+如果课堂只有 90 分钟，建议现场完成前三段，把后三段作为课后提交。
+
+## 分层任务设计
+
+每个 notebook 现在都用同一种分层方式组织：
+
+| 层级 | 面向对象 | 完成标准 |
+| --- | --- | --- |
+| 基础任务 | 所有学生 | 能运行、能保存、能解释一个最小闭环 |
+| 进阶任务 | 已经跑通基础任务的学生 | 能比较多个条件、多个仪器或多个策略 |
+| 挑战任务 | 项目组长、研究型学生或 agent 组 | 能形成策略改进、泛化诊断或可复现提交 |
+| 反思问题 | 所有人 | 能把数值结果翻译成化工意义和下一步实验 |
 
 ## 评分建议
 
@@ -76,11 +84,11 @@ env = gym.make("ChemWorld", task_id="reaction-optimization-standard", seed=0)
 
 | 项目 | 权重 | 证据 |
 | --- | --- | --- |
-| 实验闭环能力 | 25% | 能独立运行 task、保存 JSONL、通过 verify。 |
-| 建模与优化 | 25% | surrogate/BO/heuristic 是否真正使用历史数据。 |
-| 安全与成本意识 | 15% | 是否解释并控制 risk、cost、invalid operation。 |
-| 机制解释 | 20% | 是否能把结果联系到温度、时间、催化剂、溶剂、副反应、分离损失等机制。 |
-| 可复现 artifact | 15% | manifest、trajectory、results、explanation 是否完整。 |
+| 实验闭环能力 | 25% | 能独立运行 task、保存 JSONL、通过 verify |
+| 建模与优化 | 25% | surrogate、BO 或 heuristic 是否真正使用历史数据 |
+| 安全与成本意识 | 15% | 是否解释并控制 risk、cost、invalid operation |
+| 机理解释 | 20% | 是否能把结果联系到温度、时间、催化剂、溶剂、副反应、分离损失等机制 |
+| 可复现 artifact | 15% | manifest、trajectory、results、explanation 是否完整 |
 
 ## 教师端准备
 

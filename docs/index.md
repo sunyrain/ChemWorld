@@ -17,6 +17,10 @@ Start with:
 - [Architecture](architecture.md) for the core package design.
 - [Technical Architecture ZH](technical_architecture_zh.md) for the current
   unified-world architecture and design rationale.
+- [Tutorial Curriculum ZH](tutorial_curriculum_zh.md) for the progressive
+  notebook curriculum.
+- [SOTA Agent Environment Gap Audit](sota_agent_environment_gap_audit.md) for
+  the international interactive chemistry/science-agent benchmark comparison.
 - [World Law](world_law.md) and [Task Taxonomy](task_taxonomy.md) for the
   unified-world design.
 - [Benchmark Protocol](benchmark_protocol.md) for evaluation and submission

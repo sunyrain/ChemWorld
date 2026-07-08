@@ -7,8 +7,8 @@ research platform without requiring a web service or external API.
 
 The full teaching sequence is described in
 [ChemWorld 教程课程地图](tutorial_curriculum_zh.md). It maps Day 1-13 notebooks
-to learning goals, student deliverables, grading suggestions, and the local
-teacher/student evaluation workflow.
+to difficulty levels, prerequisites, student deliverables, grading suggestions,
+and the local teacher/student evaluation workflow.
 
 ## Manual Event Sequence
 
