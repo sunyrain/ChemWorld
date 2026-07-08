@@ -118,6 +118,89 @@ def test_env_task_info_exposes_scoring_contract() -> None:
         env.close()
 
 
+def test_env_task_info_exposes_task_observation_contract() -> None:
+    reaction_env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
+    purification_env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
+    try:
+        _, reaction_info = reaction_env.reset(seed=0)
+        _, purification_info = purification_env.reset(seed=0)
+
+        reaction_contract = reaction_info["observation_contract"]
+        purification_contract = purification_info["observation_contract"]
+
+        assert reaction_contract["score_family"] == "reaction"
+        assert "yield" in reaction_contract["instrument_observable_keys"]["hplc"]
+        assert "purity" not in reaction_contract["instrument_observable_keys"]["hplc"]
+        assert "recovery" not in reaction_contract["instrument_observable_keys"]["final_assay"]
+
+        assert purification_contract["score_family"] == "purification"
+        assert "purity" in purification_contract["instrument_observable_keys"]["hplc"]
+        assert "recovery" in purification_contract["instrument_observable_keys"]["final_assay"]
+        assert (
+            "process_mass_balance_error"
+            in purification_contract["instrument_observable_keys"]["final_assay"]
+        )
+        assert "target" in purification_contract["mechanism_observable_mapping"]
+    finally:
+        reaction_env.close()
+        purification_env.close()
+
+
+def test_observation_kernel_filters_measurements_by_task_contract() -> None:
+    reaction_env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
+    purification_env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
+    try:
+        reaction_env.reset(seed=0)
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {
+                "operation": "heat",
+                "target_temperature_K": 360.0,
+                "duration_s": 600.0,
+                "stirring_speed_rpm": 650.0,
+            },
+        ):
+            reaction_env.step(action)
+        _, _, _, _, reaction_info = reaction_env.step(
+            {"operation": "measure", "instrument": "hplc"}
+        )
+        assert "yield" in reaction_info["observed_keys"]
+        assert "purity" not in reaction_info["observed_keys"]
+        assert "purity" not in reaction_info["processed_estimate"]
+
+        purification_env.reset(seed=0)
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
+            {
+                "operation": "heat",
+                "target_temperature_K": 385.0,
+                "duration_s": 1500.0,
+                "stirring_speed_rpm": 720.0,
+            },
+            {"operation": "quench"},
+            {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012},
+            {"operation": "add_extractant", "extractant": "organic", "volume_L": 0.018},
+            {"operation": "mix", "duration_s": 240.0, "stirring_speed_rpm": 850.0},
+            {"operation": "settle", "duration_s": 420.0},
+            {"operation": "separate_phase", "target_phase": "organic"},
+            {"operation": "terminate"},
+        ):
+            purification_env.step(action)
+        _, _, terminated, _, purification_info = purification_env.step(
+            {"operation": "measure", "instrument": "final_assay"}
+        )
+        assert terminated
+        assert "purity" in purification_info["observed_keys"]
+        assert "recovery" in purification_info["observed_keys"]
+        assert "process_mass_balance_error" in purification_info["processed_estimate"]
+    finally:
+        reaction_env.close()
+        purification_env.close()
+
+
 def test_action_mask_wrapper_reports_valid_operations() -> None:
     env = ActionMaskWrapper(gym.make("ChemWorld", task_id="reaction-to-assay", seed=0))
     try:

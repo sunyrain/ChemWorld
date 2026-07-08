@@ -9,6 +9,7 @@ import numpy as np
 from chemworld.foundation import Observation, PhysicalConstitution, WorldState
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.world.observation_contracts import TaskObservationContract
 from chemworld.world.observation_kernel import (
     base_observed_mask,
     base_public_values,
@@ -30,6 +31,7 @@ class ChemWorldObservationKernel:
         objective: str,
         compiled_mechanism: CompiledMechanism,
         scoring_contract: TaskScoringContract | None = None,
+        observation_contract: TaskObservationContract | None = None,
     ) -> None:
         self.constitution = constitution
         self.objective = objective
@@ -37,6 +39,7 @@ class ChemWorldObservationKernel:
         self.scoring_contract = scoring_contract or TaskScoringContract.from_success_metrics(
             objective=objective,
         )
+        self.observation_contract = observation_contract
         self.species_view = MechanismSpeciesView(compiled_mechanism)
 
     def observe(
@@ -71,10 +74,21 @@ class ChemWorldObservationKernel:
         truth_values = self._truth_values(state)
         noisy = self._base_public_values(state)
         observed_mask = self._base_observed_mask()
+        observable_keys = (
+            instrument.observable_keys
+            if self.observation_contract is None
+            else self.observation_contract.observable_keys_for_instrument(
+                instrument_id,
+                instrument.observable_keys,
+            )
+        )
+        selected_keys = set(observable_keys)
         for key in instrument.observable_keys:
             std = instrument.noise_std.get(key, 0.0)
-            noisy[key] = float(np.clip(truth_values[key] + rng.normal(0.0, std), 0.0, 1.0))
-            observed_mask[key] = True
+            value = float(np.clip(truth_values[key] + rng.normal(0.0, std), 0.0, 1.0))
+            if key in selected_keys:
+                noisy[key] = value
+                observed_mask[key] = True
 
         if observed_mask["byproduct_signal"] and observed_mask["degradation_warning"]:
             byproduct_signal = self._observed_value(noisy, "byproduct_signal")

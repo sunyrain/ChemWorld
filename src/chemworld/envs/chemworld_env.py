@@ -22,6 +22,7 @@ from chemworld.runtime import (
 )
 from chemworld.tasks import default_kernel_maturity, get_task
 from chemworld.world.instruments import instrument_contracts
+from chemworld.world.observation_contracts import TaskObservationContract
 from chemworld.world.operations import (
     DOWNSTREAM_OBSERVATION_KEYS,
     INSTRUMENTS,
@@ -137,6 +138,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.scenario_instance = self.scenario_generator.generate(self.scenario_spec, seed)
         self.world = self.scenario_instance.parameters
         self.constitution = make_chemworld_constitution()
+        self.observation_contract = self._make_observation_contract()
         self.operation_validator = OperationValidator(
             constitution=self.constitution,
             allowed_operations=self.allowed_operations,
@@ -149,6 +151,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             objective,
             self.scenario_instance.compiled_mechanism,
             self.scoring_contract,
+            self.observation_contract,
         )
         self._rng = np.random.default_rng(seed)
         self._step_count = 0
@@ -209,12 +212,14 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.scenario_instance = self.scenario_generator.generate(self.scenario_spec, self.seed)
         self.world = self.scenario_instance.parameters
         self._state = self.scenario_instance.initial_state
+        self.observation_contract = self._make_observation_contract()
         self.runtime = self._make_runtime()
         self.observation_kernel = ChemWorldObservationKernel(
             self.constitution,
             self.objective,
             self.scenario_instance.compiled_mechanism,
             self.scoring_contract,
+            self.observation_contract,
         )
         self._step_count = 0
         self._experiment_index = 0
@@ -362,6 +367,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "mechanism_version": compiled_mechanism.mechanism_version,
             "mechanism_manifest": compiled_mechanism.manifest.to_dict(),
             "scoring_contract": self.scoring_contract.to_dict(),
+            "observation_contract": self.observation_contract.to_dict(),
             "env_version": __version__,
             "world_family_version": self.world.family_version,
             "runtime": self.runtime.to_dict(),
@@ -460,6 +466,19 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             task_spec=self.task_spec,
             compiled_mechanism=self.scenario_instance.compiled_mechanism,
             debug_truth=self.debug_truth,
+        )
+
+    def _make_observation_contract(self) -> TaskObservationContract:
+        return TaskObservationContract.from_task(
+            success_metrics=(
+                self.task_spec.success_metrics if self.task_spec is not None else ("score",)
+            ),
+            scoring_contract=self.scoring_contract,
+            allowed_instruments=tuple(sorted(self.allowed_instruments)),
+            instruments=self.constitution.instruments,
+            mechanism_observable_mapping=(
+                self.scenario_instance.compiled_mechanism.observable_mapping
+            ),
         )
 
     def _fresh_initial_state(self) -> WorldState:

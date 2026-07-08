@@ -336,6 +336,12 @@ Recommended follow-up:
   task objective plus success metrics into a JSON-friendly score family and
   component weights, and the observation kernel uses that contract instead of a
   single fixed reaction-only score formula for all task families.
+- Added a task-specific observation contract. `TaskObservationContract` now
+  compiles success metrics, the scoring contract, allowed instruments, and the
+  compiled mechanism observable mapping into per-instrument processed keys, so
+  reaction-only tasks no longer inherit unrelated purification, distillation,
+  crystallization, flow, or electrochemistry fields from global instrument
+  contracts.
 - Routed stateful operation precondition failures through Runtime v2 rollback
   semantics. Payload/schema/task-policy failures remain env-level
   `validation_failed` events, while physical precondition failures now emit
