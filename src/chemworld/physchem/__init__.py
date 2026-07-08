@@ -123,6 +123,8 @@ from chemworld.physchem.specs import (
     PropertyCorrelation,
     mass_fractions_from_mole_fractions,
     mole_fractions_from_mass_fractions,
+    property_equation_contracts,
+    supported_property_equations,
 )
 from chemworld.physchem.spectroscopy import (
     CalibrationCurve,
@@ -279,6 +281,7 @@ __all__ = [
     "pipe_pressure_drop",
     "prandtl_number",
     "precipitate_if_supersaturated",
+    "property_equation_contracts",
     "pump_work",
     "rachford_rice_vapor_fraction",
     "raoult_k_values",
@@ -294,6 +297,7 @@ __all__ = [
     "solve_mass_action_equilibrium",
     "solve_monoprotic_acid_base",
     "solve_reaction_extent",
+    "supported_property_equations",
     "synthesize_signal",
     "synthesize_signal_from_card",
     "thermal_hazard_proxy",

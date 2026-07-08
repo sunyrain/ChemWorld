@@ -13,6 +13,8 @@ from chemworld.physchem import (
     mole_fractions_from_mass_fractions,
     molecular_weight,
     parse_formula,
+    property_equation_contracts,
+    supported_property_equations,
 )
 
 
@@ -48,11 +50,18 @@ def test_component_spec_is_json_friendly_and_validated() -> None:
     assert payload["hill_formula"] == "C2H6O"
     assert payload["units"] == {"molecular_weight_g_mol": "g/mol"}
     assert component.molecular_weight_g_mol == pytest.approx(46.069)
+    assert ComponentSpec.from_dict(payload).to_dict() == payload
 
     with pytest.raises(ValueError, match="Unknown element"):
         ComponentSpec(identifier="bad", formula="Xx2")
     with pytest.raises(ValueError, match="Unsupported default phase"):
         ComponentSpec(identifier="bad_phase", formula="H2O", default_phase="plasma")
+    with pytest.raises(ValueError, match="inconsistent with formula"):
+        ComponentSpec(identifier="bad_mw", formula="H2O", molecular_weight_g_mol=99.0)
+    with pytest.raises(ValueError, match="cannot contain"):
+        ComponentSpec(identifier="bad id", formula="H2O")
+    with pytest.raises(ValueError, match="must be unique"):
+        ComponentSpec(identifier="dup_tags", formula="H2O", safety_tags=("safe", "safe"))
 
 
 def test_mole_and_mass_fraction_conversions_are_reversible() -> None:
@@ -80,6 +89,26 @@ def test_mole_and_mass_fraction_conversions_are_reversible() -> None:
         + 0.75 * molecular_weight(ethanol.composition)
     )
     assert mixture.to_dict()["units"]["pressure_Pa"] == "Pa"
+    assert MixtureSpec.from_dict(mixture.to_dict()).to_dict() == mixture.to_dict()
+
+    with pytest.raises(ValueError, match="component_ids must be unique"):
+        MixtureSpec(
+            component_ids=("water", "water"),
+            molecular_weights_g_mol=(18.015, 18.015),
+            mole_fractions=(0.5, 0.5),
+            mass_fractions=(0.5, 0.5),
+            phase_label="liquid",
+            temperature_K=298.15,
+            pressure_Pa=101325.0,
+        )
+    with pytest.raises(ValueError, match="not compatible"):
+        MixtureSpec.from_mole_fractions(
+            (water, ComponentSpec(identifier="co2", formula="CO2", default_phase="gas")),
+            (0.5, 0.5),
+            phase_label="liquid",
+            temperature_K=298.15,
+            pressure_Pa=101325.0,
+        )
 
 
 def test_property_correlation_units_fail_before_kernel_use() -> None:
@@ -88,29 +117,71 @@ def test_property_correlation_units_fail_before_kernel_use() -> None:
         equation_id="cp_polynomial",
         coefficients={"a": 75.3, "b": 0.0},
         input_units={"temperature": "K"},
-        output_unit="J/mol",
+        output_unit="J/(mol*K)",
         validity_ranges={"temperature": (273.15, 373.15)},
         source_note="benchmark placeholder correlation",
+        metadata={"source_quality": "audit"},
     )
-    assert correlation.to_dict()["output_unit"] == "J/mol"
+    assert correlation.to_dict()["output_unit"] == "J/(mol*K)"
+    assert PropertyCorrelation.from_dict(correlation.to_dict()).to_dict() == correlation.to_dict()
+    assert correlation.model_card()["output_dimension"] == "molar_heat_capacity"
 
     with pytest.raises(ValueError, match="Unsupported unit"):
         PropertyCorrelation(
             correlation_id="bad",
-            equation_id="bad",
+            equation_id="cp_polynomial",
             coefficients={"a": 1.0},
             input_units={"temperature": "rankine"},
-            output_unit="J/mol",
+            output_unit="J/(mol*K)",
         )
     with pytest.raises(ValueError, match="Invalid validity range"):
         PropertyCorrelation(
             correlation_id="bad_range",
+            equation_id="cp_polynomial",
+            coefficients={"a": 1.0},
+            input_units={"temperature": "K"},
+            output_unit="J/(mol*K)",
+            validity_ranges={"temperature": (400.0, 300.0)},
+        )
+    with pytest.raises(ValueError, match="Unsupported property equation_id"):
+        PropertyCorrelation(
+            correlation_id="bad_equation",
             equation_id="bad",
             coefficients={"a": 1.0},
             input_units={"temperature": "K"},
             output_unit="J/mol",
-            validity_ranges={"temperature": (400.0, 300.0)},
         )
+    with pytest.raises(ValueError, match="Missing coefficients"):
+        PropertyCorrelation(
+            correlation_id="missing_coeff",
+            equation_id="antoine",
+            coefficients={"A": 1.0},
+            input_units={"temperature": "K"},
+            output_unit="Pa",
+        )
+    with pytest.raises(ValueError, match="output_unit"):
+        PropertyCorrelation(
+            correlation_id="bad_dimension",
+            equation_id="antoine",
+            coefficients={"A": 1.0, "B": 1.0, "C": 1.0},
+            input_units={"temperature": "K"},
+            output_unit="J/mol",
+        )
+
+
+def test_property_equation_contracts_are_public_and_json_friendly() -> None:
+    equations = supported_property_equations()
+    contracts = property_equation_contracts()
+
+    assert "antoine" in equations
+    assert "sutherland_gas_viscosity" in equations
+    assert set(equations) == set(contracts)
+    assert contracts["antoine"] == {
+        "required_coefficients": ["A", "B", "C"],
+        "input_dimensions": {"temperature": "temperature"},
+        "output_dimension": "pressure",
+    }
+    assert contracts["cp_polynomial"]["output_dimension"] == "molar_heat_capacity"
 
 
 def test_extended_units_cover_physchem_dimensions() -> None:

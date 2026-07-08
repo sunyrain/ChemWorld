@@ -35,22 +35,26 @@ The implementation slices currently cover the P1-P8 foundation:
   correlation provenance.
 - `ComponentPropertyPackage`: a component-local correlation package that chooses
   an in-range method when multiple correlations exist.
+- `property_equation_contracts()`: a public introspection API exposing required
+  coefficients, accepted input dimensions, and output dimensions for every
+  supported property equation.
 - reaction-network, reactor, EOS, phase-equilibrium, equilibrium-chemistry,
   separation, transport, and heat-transfer kernels described below.
 
 ## Property Core
 
 The P2 property core is implemented in `chemworld.physchem.properties`. It
-supports the following local evaluators:
+supports the following local evaluators and now validates each one against a
+declared equation contract before numerical evaluation:
 
 | Property family | Supported equations |
 | --- | --- |
 | Vapor pressure | Antoine, Wagner |
 | Heat capacity | Cp polynomial |
 | Enthalpy | analytic Cp-polynomial sensible-enthalpy integral |
-| Phase change | Watson heat-of-vaporization correlation |
+| Phase change | Watson heat-of-vaporization correlation, constant heat-of-fusion proxy |
 | Density | linear liquid density, ideal gas density |
-| Viscosity | Andrade liquid viscosity |
+| Viscosity | Andrade liquid viscosity, Sutherland gas viscosity |
 | Surface tension | critical-temperature power law |
 | Mixture rules | mass-fraction specific-volume density, log-viscosity rule |
 | Safety proxies | volatility risk from vapor pressure, thermal hazard proxy |
@@ -69,6 +73,30 @@ Evaluation uses canonical ChemWorld inputs such as `temperature_K` and
 `pressure_Pa`, converts them into the correlation's declared input units, and
 returns a `PropertyEvaluation`. Out-of-range inputs can warn, raise, or be
 ignored through a `validity_policy`.
+
+The P1/P2 audit hardened the foundation around those evaluators:
+
+- component identifiers reject whitespace and padded values;
+- formula-derived molecular weight and manually supplied molecular weight must
+  agree within a small tolerance;
+- component aliases, safety tags, and allowed-correlation policies reject
+  duplicates;
+- mixture constructors validate component/phase compatibility before creating
+  a phase-local state;
+- property correlations reject unsupported equations, missing required
+  coefficients, wrong unit dimensions, unknown input fields, and invalid
+  validity-range variables;
+- `ComponentPropertyPackage` enforces the component's
+  `allowed_property_correlations` policy by correlation id, property id, or
+  equation id;
+- `PropertyCorrelation.model_card()` and `property_equation_contracts()` provide
+  JSON-friendly audit records for docs, schema generation, and external review.
+
+Acceptance coverage now includes formula parsing, mole/mass conversion
+round-trips, JSON round-trips for component/mixture/correlation specs, unit
+dimension failures before kernel use, monotonic water vapor pressure, Cp
+integral sign and units, positive density/viscosity/phase-change values, gas
+viscosity behavior, and component-level property policy failures.
 
 ## Reaction Network Core
 

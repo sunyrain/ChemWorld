@@ -15,6 +15,8 @@ Current scope:
 - local property evaluators for vapor pressure, heat capacity, enthalpy,
   phase-change enthalpy, density, viscosity, surface tension, mixture rules,
   and safety proxies.
+- public property-equation contracts for required coefficients, input
+  dimensions, output dimensions, and model cards.
 - general reaction-network specs for species, reactions, stoichiometric
   matrices, element-balance checks, YAML/JSON mechanism loading, rate-law
   evaluation, and deterministic batch ODE integration.
@@ -46,6 +48,9 @@ Design rules:
 - keep specs serializable with plain JSON types;
 - fail early on unknown elements, invalid phases, invalid units, or invalid
   fractions;
+- fail early on unsupported property equations, missing coefficients,
+  unit-dimension mismatches, phase-incompatible mixtures, duplicate policy
+  tags, and component-disallowed property correlations;
 - keep property correlations separate from component identity;
 - keep mechanism definitions separate from reactor and task logic;
 - keep mechanism scenario cards as the bridge between physical mechanism,

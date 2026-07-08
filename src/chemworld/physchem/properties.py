@@ -65,6 +65,20 @@ class ComponentPropertyPackage:
         ids = [correlation.correlation_id for correlation in self.correlations]
         if len(ids) != len(set(ids)):
             raise ValueError("Duplicate correlation_id values are not allowed")
+        allowed = set(self.component.allowed_property_correlations)
+        if allowed:
+            disallowed = [
+                correlation.correlation_id
+                for correlation in self.correlations
+                if correlation.correlation_id not in allowed
+                and correlation.property_id not in allowed
+                and correlation.equation_id not in allowed
+            ]
+            if disallowed:
+                raise ValueError(
+                    "Correlations are not allowed by component policy: "
+                    f"{disallowed}"
+                )
 
     def by_property(self, property_id: str) -> tuple[PropertyCorrelation, ...]:
         return tuple(
@@ -327,6 +341,8 @@ def _evaluate_equation(
             return 0.0
         ratio = (1.0 - temperature_K / Tc) / (1.0 - T_ref / Tc)
         return coeffs["Hvap_ref"] * ratio ** coeffs.get("exponent", 0.38)
+    if equation == "constant_phase_change_enthalpy":
+        return coeffs["delta_h"]
     if equation == "linear_liquid_density":
         rho = coeffs["rho_ref"] * (1.0 - coeffs.get("alpha", 0.0) * (T - coeffs["T_ref"]))
         return rho
@@ -338,6 +354,14 @@ def _evaluate_equation(
         return pressure * mw_kg_mol / (R_J_PER_MOL_K * temperature_K)
     if equation == "andrade_viscosity":
         return coeffs["A"] * exp(coeffs["B"] / T)
+    if equation == "sutherland_gas_viscosity":
+        T_ref = coeffs["T_ref"]
+        if T_ref <= 0:
+            raise ValueError("sutherland_gas_viscosity requires positive T_ref")
+        S = coeffs["S"]
+        if T + S <= 0 or T_ref + S <= 0:
+            raise ValueError("sutherland_gas_viscosity has invalid Sutherland constant")
+        return coeffs["mu_ref"] * (T / T_ref) ** 1.5 * (T_ref + S) / (T + S)
     if equation == "surface_tension_power":
         Tc = coeffs["Tc"]
         T_ref = coeffs["T_ref"]
@@ -418,9 +442,11 @@ def _ensure_finite_positive(value: float, correlation: PropertyCorrelation) -> N
         "vapor_pressure",
         "heat_capacity",
         "heat_of_vaporization",
+        "heat_of_fusion",
         "liquid_density",
         "gas_density",
         "liquid_viscosity",
+        "gas_viscosity",
         "surface_tension",
     } and value < 0:
         raise ValueError(f"Correlation returned negative value: {correlation.correlation_id}")

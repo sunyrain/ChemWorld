@@ -28,7 +28,7 @@ finished, update its status and push immediately.
 | P10 mechanism and scenario library | whilesunny | Done | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/physchem/mechanism_library.py`, `tests/`, `docs/physchem_core_design.md` | next: start P11 instrument and spectroscopy coupling using mechanism targets and impurity species | this commit |
 | P11 instrument and spectroscopy coupling | whilesunny | Done | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `tests/`, `docs/physchem_core_design.md` | next: start P12 optional reference-backend validation after choosing the first comparison targets | this commit |
 | P12 optional reference-backend validation | whilesunny | Planned | `tests/reference/`, `docs/physchem_core_design.md`, `TODO.md` | start after P1/P2 audit hardening is complete | pending |
-| P1/P2 audit and hardening | whilesunny | Active | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/properties.py`, `tests/`, `docs/physchem_core_design.md`, `TODO.md` | audit early foundation/property code, strengthen validation and local APIs, and mark completed implementation-plan checkboxes | pending |
+| P1/P2 audit and hardening | whilesunny | Done | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/properties.py`, `tests/`, `docs/physchem_core_design.md`, `TODO.md` | next: start P12 optional reference-backend validation after choosing first comparison targets | this commit |
 
 Status values:
 
@@ -425,74 +425,74 @@ Major capabilities to implement independently when needed:
 
 ### P1: Data Structures and Units
 
-- [ ] `ComponentSpec`
-  - [ ] identifier;
-  - [ ] formula;
-  - [ ] molecular weight;
-  - [ ] charge;
-  - [ ] default phase;
-  - [ ] safety tags;
-  - [ ] allowed property correlations.
-- [ ] `MixtureSpec`
-  - [ ] component ids;
-  - [ ] mole fractions;
-  - [ ] mass fractions;
-  - [ ] phase label;
-  - [ ] temperature and pressure.
-- [ ] `PropertyCorrelation`
-  - [ ] equation id;
-  - [ ] coefficients;
-  - [ ] units;
-  - [ ] validity range;
-  - [ ] source note.
-- [ ] Extend unit checks for:
-  - [ ] pressure;
-  - [ ] energy;
-  - [ ] power;
-  - [ ] molar enthalpy;
-  - [ ] mass density;
-  - [ ] viscosity;
-  - [ ] heat-transfer coefficient.
+- [x] `ComponentSpec`
+  - [x] identifier;
+  - [x] formula;
+  - [x] molecular weight;
+  - [x] charge;
+  - [x] default phase;
+  - [x] safety tags;
+  - [x] allowed property correlations.
+- [x] `MixtureSpec`
+  - [x] component ids;
+  - [x] mole fractions;
+  - [x] mass fractions;
+  - [x] phase label;
+  - [x] temperature and pressure.
+- [x] `PropertyCorrelation`
+  - [x] equation id;
+  - [x] coefficients;
+  - [x] units;
+  - [x] validity range;
+  - [x] source note.
+- [x] Extend unit checks for:
+  - [x] pressure;
+  - [x] energy;
+  - [x] power;
+  - [x] molar enthalpy;
+  - [x] mass density;
+  - [x] viscosity;
+  - [x] heat-transfer coefficient.
 
 Acceptance tests:
 
-- [ ] Formula parser conserves elements for `C2H6O`, `H2O`, `CO2`.
-- [ ] Mole fraction and mass fraction conversions are reversible.
-- [ ] Invalid units fail before transition kernels run.
+- [x] Formula parser conserves elements for `C2H6O`, `H2O`, `CO2`.
+- [x] Mole fraction and mass fraction conversions are reversible.
+- [x] Invalid units fail before transition kernels run.
 
 ### P2: Property Correlation Core
 
-- [ ] Vapor pressure:
-  - [ ] Antoine;
-  - [ ] Wagner-like placeholder;
-  - [ ] validity warnings.
-- [ ] Heat capacity:
-  - [ ] polynomial Cp;
-  - [ ] enthalpy integral;
-  - [ ] sensible heat.
-- [ ] Phase-change properties:
-  - [ ] heat of vaporization;
-  - [ ] heat of fusion placeholder.
-- [ ] Density:
-  - [ ] ideal gas density;
-  - [ ] liquid density correlation;
-  - [ ] mixture density rule.
-- [ ] Viscosity:
-  - [ ] liquid viscosity correlation;
-  - [ ] gas viscosity placeholder;
-  - [ ] mixture viscosity rule.
-- [ ] Surface tension:
-  - [ ] simple temperature-dependent proxy.
-- [ ] Safety properties:
-  - [ ] flammability proxy;
-  - [ ] volatility risk proxy;
-  - [ ] thermal hazard proxy.
+- [x] Vapor pressure:
+  - [x] Antoine;
+  - [x] Wagner-like placeholder;
+  - [x] validity warnings.
+- [x] Heat capacity:
+  - [x] polynomial Cp;
+  - [x] enthalpy integral;
+  - [x] sensible heat.
+- [x] Phase-change properties:
+  - [x] heat of vaporization;
+  - [x] heat of fusion placeholder.
+- [x] Density:
+  - [x] ideal gas density;
+  - [x] liquid density correlation;
+  - [x] mixture density rule.
+- [x] Viscosity:
+  - [x] liquid viscosity correlation;
+  - [x] gas viscosity placeholder;
+  - [x] mixture viscosity rule.
+- [x] Surface tension:
+  - [x] simple temperature-dependent proxy.
+- [x] Safety properties:
+  - [x] flammability proxy;
+  - [x] volatility risk proxy;
+  - [x] thermal hazard proxy.
 
 Acceptance tests:
 
-- [ ] Water vapor pressure increases monotonically with temperature.
-- [ ] Cp integral has correct sign and units.
-- [ ] Density and viscosity remain positive within validity ranges.
+- [x] Water vapor pressure increases monotonically with temperature.
+- [x] Cp integral has correct sign and units.
+- [x] Density and viscosity remain positive within validity ranges.
 
 ### P3: General Reaction Network Engine
 

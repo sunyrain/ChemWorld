@@ -143,11 +143,35 @@ def test_phase_change_density_viscosity_surface_tension_are_positive() -> None:
         input_units={"temperature": "K"},
         output_unit="N/m",
     )
+    fusion = PropertyCorrelation(
+        correlation_id="water_constant_hfus",
+        property_id="heat_of_fusion",
+        equation_id="constant_phase_change_enthalpy",
+        coefficients={"delta_h": 6010.0},
+        input_units={"temperature": "K"},
+        output_unit="J/mol",
+        validity_ranges={"temperature": (250.0, 273.16)},
+        source_note="constant latent-heat proxy for benchmark freezing tasks",
+    )
+    gas_viscosity = PropertyCorrelation(
+        correlation_id="water_vapor_sutherland_viscosity",
+        property_id="gas_viscosity",
+        equation_id="sutherland_gas_viscosity",
+        coefficients={"mu_ref": 9.0e-6, "T_ref": 300.0, "S": 110.0},
+        input_units={"temperature": "K"},
+        output_unit="Pa*s",
+        validity_ranges={"temperature": (250.0, 900.0)},
+    )
 
     assert evaluate_correlation(hvap, temperature_K=350.0).value > 0.0
     assert evaluate_correlation(density, temperature_K=320.0).value > 0.0
     assert evaluate_correlation(viscosity, temperature_K=298.15).value > 0.0
     assert evaluate_correlation(surface_tension, temperature_K=298.15).value > 0.0
+    assert evaluate_correlation(fusion, temperature_K=260.0).value == pytest.approx(6010.0)
+    assert evaluate_correlation(gas_viscosity, temperature_K=500.0).value > evaluate_correlation(
+        gas_viscosity,
+        temperature_K=300.0,
+    ).value
 
 
 def test_ideal_gas_density_uses_component_molecular_weight() -> None:
@@ -194,6 +218,38 @@ def test_component_property_package_selects_valid_correlation() -> None:
 
     assert evaluated.correlation_id == "room_range"
     assert evaluated.value == pytest.approx(75.0)
+
+
+def test_component_property_package_respects_allowed_correlation_policy() -> None:
+    water = ComponentSpec(
+        identifier="water",
+        formula="H2O",
+        default_phase="liquid",
+        allowed_property_correlations=("heat_capacity",),
+    )
+    allowed = PropertyCorrelation(
+        correlation_id="room_range",
+        property_id="heat_capacity",
+        equation_id="cp_polynomial",
+        coefficients={"a": 75.0},
+        input_units={"temperature": "K"},
+        output_unit="J/(mol*K)",
+    )
+    disallowed = PropertyCorrelation(
+        correlation_id="water_antoine_mmhg",
+        property_id="vapor_pressure",
+        equation_id="antoine",
+        coefficients={"A": 8.07131, "B": 1730.63, "C": 233.426},
+        input_units={"temperature": "degC"},
+        output_unit="mmHg",
+    )
+
+    assert ComponentPropertyPackage(water, (allowed,)).evaluate(
+        "heat_capacity",
+        temperature_K=298.15,
+    ).value == pytest.approx(75.0)
+    with pytest.raises(ValueError, match="not allowed"):
+        ComponentPropertyPackage(water, (disallowed,))
 
 
 def test_mixture_density_and_viscosity_rules_are_positive() -> None:
