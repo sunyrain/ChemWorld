@@ -147,6 +147,7 @@ with declarative mechanism files and reusable numerical machinery:
 | Surface / biochemical proxies | Langmuir-Hinshelwood-lite and Michaelis-Menten-lite |
 | Simulation | deterministic batch ODE integration with nonnegative amount projection |
 | Scenario variation | seed-based parameter perturbation for public/private world splits |
+| Thermochemistry | NASA7 species Cp/H/S/G, reaction Delta H/S/G, and equilibrium constants |
 
 Example mechanism files live under `configs/mechanisms/`:
 
@@ -186,6 +187,30 @@ This closes a narrow professional slice, not the whole kinetics stack.
 Falloff, third bodies, pressure-dependent rates, thermochemistry-derived
 `K(T)`, and heat-release-coupled reactor validation remain explicit future
 professional tasks.
+
+PRO-P5B adds the first professional thermochemistry slice. It follows the
+NASA7 polynomial form used by Cantera species YAML and RMG NASA exports:
+
+```text
+Cp/R = a0 + a1 T + a2 T^2 + a3 T^3 + a4 T^4
+H/RT = a0 + a1 T/2 + a2 T^2/3 + a3 T^3/4 + a4 T^4/5 + a5/T
+S/R = a0 ln(T) + a1 T + a2 T^2/2 + a3 T^3/3 + a4 T^4/4 + a6
+G = H - T S
+Delta G_rxn = sum_i nu_i G_i
+K = exp(-Delta G_rxn / RT)
+```
+
+The public API is `NASA7TemperatureSegment`, `NASA7SpeciesThermo`,
+`reaction_thermochemistry()`, and `equilibrium_constant_from_delta_g()`.
+Species can be built from a compact Cantera-style YAML thermo node with
+`model: NASA7`, `temperature-ranges`, and segment coefficient `data`.
+Continuity diagnostics flag gaps or jumps at adjacent segment boundaries.
+
+This closes species Cp/H/S/G, reaction enthalpy, reaction Gibbs energy, and
+equilibrium-constant calculation from declared species thermochemistry. It is
+not yet a full thermochemistry database, NASA9/Shomate implementation, RMG
+group-additivity engine, pressure-correction model, or reactor-energy-balance
+integration. Those remain professional deepening slices.
 
 ## Mechanism and Scenario Library
 

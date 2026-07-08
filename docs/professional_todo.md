@@ -161,6 +161,26 @@ slice:
   equilibrium constants, and heat-release-coupled reactors stay on the next
   professional TODO track.
 
+PRO-P5B is now implemented for the NASA7 thermochemistry and reaction Gibbs
+slice:
+
+- `NASA7TemperatureSegment` implements the Cantera/RMG NASA7 coefficient order
+  and evaluates `Cp/R`, `H/RT`, and `S/R` inside declared temperature ranges.
+- `NASA7SpeciesThermo.from_cantera_yaml_thermo()` parses the compact
+  Cantera-style `model: NASA7`, `temperature-ranges`, and coefficient `data`
+  structure.
+- `NASA7SpeciesThermo.evaluate()` returns Cp, enthalpy, entropy, and Gibbs
+  energy in explicit SI molar units.
+- `reaction_thermochemistry()` forms reaction Delta H, Delta S, Delta G, and
+  equilibrium constants by stoichiometric summation of species standard states.
+- `continuity_report()` flags gaps or jumps between adjacent NASA7 temperature
+  segments.
+- `thermochemistry_model_cards()` records the inspected Cantera/RMG references,
+  equations, validity limits, failure modes, and local tests.
+- This is a professional thermochemistry slice, not a full Cantera/RMG
+  thermochemistry database. NASA9, Shomate, group additivity, pressure
+  corrections, and reactor-energy coupling remain future deepening tasks.
+
 PRO-P6A is now implemented for the first reference-validated reactor
 multiplicity slice:
 

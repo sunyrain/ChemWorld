@@ -20,7 +20,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | --- | --- | --- | --- |
 | Component specs and units | Lite | `chemworld.physchem.specs`, local unit tests | broader curated component database and schema governance |
 | Property correlations | Lite with a reference-validated curated slice | vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against `chemicals` | broader component coverage, liquid/solid Cp, latent heat, derivatives, and CoolProp checks |
-| Reaction networks | Lite with a reference-validated ODE slice | YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check | Cantera-style thermochemistry, falloff, pressure dependence, heat-release-coupled reactor validation |
+| Reaction networks | Lite with reference-validated ODE and NASA7 thermochemistry slices | YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check, NASA7 Cp/H/S/G, reaction Delta H/G, and K_eq tests | thermochemistry-coupled reversible kinetics, falloff, pressure dependence, and heat-release-coupled reactor validation |
 | Reactor models | Lite with a reference-validated CSTR multiplicity slice | batch, semi-batch, CSTR, PFR tests; analytical exothermic CSTR three-root ignition/extinction case with stability classification | broader Cantera/IDAES reactor-network validation, pressure modes, and heat-transfer variants |
 | EOS | Lite with a reference-validated PR/SRK residual slice | ideal gas, PR/SRK roots, fugacity coefficients, explicit root policy, residual H/S/G tests, optional `thermo.eos` comparisons for methane/ethane/CO2 | volume translation, phase envelopes, flash derivatives, and broader CoolProp/teqp/thermopack validation |
 | Phase equilibrium | Lite with a reference-validated Wilson/NRTL gamma slice | ideal VLE, Wilson/NRTL gamma checks against `thermo`, LLE split tests | UNIQUAC, phase stability, nonideal VLE/LLE task cases |
@@ -162,3 +162,10 @@ copying the reference implementations.
 - PRO-P12B is implemented for reference-validation reporting: comparison
   summaries, backend availability, and skipped optional backends can be written
   as one JSON-friendly validation report.
+- PRO-P5B is implemented for the first thermochemistry slice: Cantera/RMG-style
+  NASA7 temperature segments, Cp/H/S/G evaluation, Cantera-style YAML thermo
+  parsing, segment-continuity diagnostics, reaction Delta H/S/G, equilibrium
+  constants from species Gibbs energies, model-card metadata, and local
+  identity tests are in place. This is not a full thermochemistry database,
+  NASA9/Shomate/group-additivity engine, pressure correction, or
+  heat-release-coupled reactor model.

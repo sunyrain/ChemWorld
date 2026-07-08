@@ -85,7 +85,7 @@ Every professional module must ship:
 | PRO-P12B validation summary export and optional-backend skip audit | liyijun | Review | current optional reference-backend tests and pytest skip patterns | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, docs | review JSON-friendly validation report and skipped optional-backend audit records | this commit |
 | PRO-P9A Gibbs minimization toy solver | whilesunny | Done | `Reaktoro` equilibrium specs, Cantera equilibrate constraints, `pycalphad` Gibbs model architecture | `src/chemworld/physchem/equilibrium_chemistry.py`, `src/chemworld/physchem/maturity.py`, `tests/test_equilibrium_chemistry.py`, `tests/test_maturity.py`, model cards, docs | next: add aqueous database-backed speciation or electrochemical thermodynamics in a separate slice | this commit |
 | PRO-P9B electrochemical thermodynamics and Butler-Volmer slice | whilesunny | Done | Cantera electrochemical examples, electrochemical equilibrium docs, existing ChemWorld electrochemistry proxy | `src/chemworld/physchem/electrochemistry.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/world/electrochemistry.py`, tests, docs | next: add ohmic drop, mass-transfer limiting current, and galvanostatic/potentiostatic controller slices in the deepening TODO | this commit |
-| PRO-P5B NASA7 thermochemistry and reaction Gibbs slice | whilesunny | Claimed | Cantera NASA7 species thermo, RMG thermo conventions, existing ChemWorld reaction-network thermochemistry gaps | `src/chemworld/physchem/thermochemistry.py`, `src/chemworld/physchem/reaction_network.py`, tests, docs | read local Cantera/RMG thermo references, then implement NASA7 Cp/H/S, reaction enthalpy/Gibbs, and equilibrium constants from species Gibbs energies | pending push |
+| PRO-P5B NASA7 thermochemistry and reaction Gibbs slice | whilesunny | Done | Cantera NASA7 species thermo, RMG thermo conventions, existing ChemWorld reaction-network thermochemistry gaps | `src/chemworld/physchem/thermochemistry.py`, `tests/test_thermochemistry.py`, docs | next: wire thermochemistry-derived `K(T)` and reaction enthalpy into reversible kinetics and reactor energy balances as deepening slices | this commit |
 | PRO-P1B component conflict policy and source-priority audit | liyijun | Claimed | `chemicals`, `thermo`, `CoolProp` constants/identifier priority patterns | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/curated_properties.py`, `tests/test_physchem_core.py`, docs | implement deterministic field-level conflict policy with warning vs hard-fail modes and JSON audit records | pending push |
 | PRO-P11B task maturity manifest export | liyijun | Claimed | Gymnasium/Minari metadata manifest patterns and ChemWorld task cards | `src/chemworld/tasks.py`, `tests/test_maturity.py`, `docs/tasks.md`, `docs/baseline_reference.md` | add JSON-friendly task maturity manifest exports grouped by physics maturity and proxy allowance | pending push |
 | PRO-P12C reference backend version and tolerance manifest | liyijun | Claimed | optional reference-backend status probes and validation tolerance records | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, docs | add backend version probes and declared tolerance profiles to validation artifacts | pending push |
@@ -282,10 +282,10 @@ Acceptance:
 Reference targets: `Cantera`, `RMG-Py`, `thermo`.
 
 - [ ] Species thermochemistry:
-  - [ ] NASA-polynomial parser or compact equivalent;
-  - [ ] Cp/H/S evaluation;
-  - [ ] reaction enthalpy from species data;
-  - [ ] equilibrium constants from Gibbs energy.
+  - [x] NASA-polynomial parser or compact equivalent;
+  - [x] Cp/H/S evaluation;
+  - [x] reaction enthalpy from species data;
+  - [x] equilibrium constants from Gibbs energy.
 - [ ] Rate laws:
   - [x] elementary mass-action;
   - [x] reversible rates obeying detailed balance for the validated
@@ -700,6 +700,26 @@ Reference-reading note for PRO-P5A:
   first-order ODE slice. Falloff, third bodies, pressure dependence,
   thermochemistry-derived `K(T)`, and heat-release-coupled reactor validation
   remain open professional work.
+
+Reference-reading note for PRO-P5B:
+
+- `cantera/include/cantera/thermo/NasaPoly1.h` documents the NASA7 equations
+  for `Cp/R`, `H/RT`, and `S/R`, including the coefficient order `a0..a6`.
+- `cantera/src/thermo/NasaPoly2.cpp` shows the two-temperature-segment NASA7
+  shape and validates continuity at the shared mid temperature.
+- `cantera/test/data/yaml-ck-reactions.yaml` shows the Cantera YAML contract:
+  `thermo: model: NASA7`, `temperature-ranges`, and segment coefficient
+  `data`.
+- `rmg-py/rmgpy/yaml_cantera2.py` exports sorted NASA polynomials into the
+  same Cantera YAML NASA7 structure.
+- `rmg-py/rmgpy/thermo/nasa.pyx` selects the valid NASA polynomial by
+  temperature before computing Cp, H, and S.
+- ChemWorld localizes this as `NASA7TemperatureSegment`,
+  `NASA7SpeciesThermo`, `reaction_thermochemistry()`, and
+  `equilibrium_constant_from_delta_g()`. It closes species Cp/H/S/G,
+  reaction Delta H/S/G, and `K = exp(-Delta G/RT)`. It does not claim NASA9,
+  Shomate, group additivity, pressure corrections, or thermochemistry-coupled
+  reactor energy integration yet.
 
 - [ ] `thermo`:
   - [x] ideal Raoult VLE bubble/dew/TP flash;
