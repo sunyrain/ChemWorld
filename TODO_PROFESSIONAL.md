@@ -9,7 +9,7 @@ chemistry core.
 
 ## Development Contract
 
-- Owner marker: `whilesunny`.
+- Owner markers currently in use: `whilesunny`, `liyijun`.
 - Before coding a professional module, claim the task in this file and push the
   claim.
 - Read at least one relevant local reference repository before implementing:
@@ -80,6 +80,9 @@ Every professional module must ship:
 | PRO-P10B Chromatography retention and peak-broadening calibration | whilesunny | Done | public chromatography equations, plate-count/resolution equations, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add empirical retention-index examples and method-condition sensitivity | this commit |
 | PRO-P3A Peng-Robinson/SRK fugacity and residual properties | whilesunny | Done | `thermo.eos`, `phasepy.cubic`, `teqp` and `thermopack` EOS architecture notes | `src/chemworld/physchem/eos.py`, `src/chemworld/physchem/reference_validation.py`, `tests/test_eos.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add volume translation, phase envelopes, and flash derivative hooks | this commit |
 | PRO-P8A heat-transfer correlations and exchanger duty validation | whilesunny | Claimed | `fluids.conv_internal`, `fluids.heat_transfer`, IDAES heat-exchanger/unit-model docs, CoolProp property workflow notes | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | read local heat-transfer implementations, then add explicit Nusselt-correlation metadata, heat-exchanger duty checks, and optional fluids comparisons | pending push |
+| PRO-P1A component registry provenance and conflict policy | liyijun | Claimed | `chemicals`, `thermo`, `CoolProp` identifiers and constants APIs | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/curated_properties.py`, `tests/test_physchem_core.py`, `tests/test_physchem_properties.py`, docs | add provenance/uncertainty fields, alias conflict failures, and JSON round-trip tests for curated component records | pending push |
+| PRO-P11A maturity metadata exports and submission summaries | liyijun | Claimed | Gymnasium, Minari, Safety-Gymnasium result-metadata patterns | `src/chemworld/tasks.py`, `src/chemworld/eval/baseline_report.py`, `docs/baseline_reference.md`, `tests/test_maturity.py`, `tests/test_baselines.py` | expose physics maturity in benchmark exports and prevent silent proxy/professional result mixing | pending push |
+| PRO-P12B validation summary export and optional-backend skip audit | liyijun | Claimed | current optional reference-backend tests and pytest skip patterns | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | add JSON-friendly comparison summaries and document skipped optional reference backends | pending push |
 
 ## P0: Governance And Model Maturity
 
