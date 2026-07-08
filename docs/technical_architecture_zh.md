@@ -66,6 +66,7 @@ ChemWorldEnv
       -> ActionValidator
       -> OperationKernelRegistry
       -> DomainServices
+      -> PrimitiveServices
       -> ReactionThermalServices
       -> PhaseSeparationServices
       -> CrystallizationServices
@@ -85,7 +86,8 @@ ChemWorldEnv
 - `ChemWorldEnv.step()` 只做 action canonicalize、validate、runtime dispatch、observation、reward/info 和 campaign bookkeeping。
 - `TaskRuntimeProfile` 声明当前任务需要哪些 operation、instrument、kernel 和 capability，不要求全局所有 kernel 都注册。
 - `OperationKernelRegistry` 把操作类型映射到小型 command handler。
-- `DomainServices` 现在主要作为轻量 operation composition surface，保留基础投料、取样、淬灭和无效动作惩罚，并把专业过程委托给独立服务。
+- `DomainServices` 现在主要作为轻量 operation composition surface，负责委托独立服务、constitution checks 和 operation record assembly。
+- `PrimitiveServices` 承担投料、加溶剂、加催化剂、取样、淬灭、蒸发和无效动作惩罚。
 - `ReactionThermalServices` 承担反应 ODE 推进、heat/wait 积分、搅拌元数据、能量账本更新和压力/风险投影。
 - `PhaseSeparationServices` 承担 phase ledger 规范化、液液分配、萃取、静置、分相、洗涤、干燥、浓缩、转移和 downstream truth metadata。
 - `CrystallizationServices` 承担晶种加入、冷却结晶、晶体纯度/收率元数据和晶体过滤账本更新。
@@ -98,7 +100,7 @@ ChemWorldEnv
 - `TransactionManager` 统一提交 `StatePatch`，记录 `WorldEvent`，并在 constitution failure 时回滚 material ledger。
 - safety/cost 作为一等信号进入 `info["cost"]`、`info["cost_components"]` 和 leaderboard metrics。
 
-这次拆分之后，reaction/thermal advancement、phase/extraction workflow、crystallization、distillation、continuous flow、electrochemical conversion、measurement cost/sample consumption 和 operation record assembly 都不再混在同一个 state-changing domain services 中。专门服务负责各自物理过程，事务层负责提交或回滚，record service 负责把已接受的 pre/post state pair 写成可回放轨迹。
+这次拆分之后，primitive material handling、reaction/thermal advancement、phase/extraction workflow、crystallization、distillation、continuous flow、electrochemical conversion、measurement cost/sample consumption 和 operation record assembly 都不再混在同一个 state-changing domain services 中。专门服务负责各自物理过程，事务层负责提交或回滚，record service 负责把已接受的 pre/post state pair 写成可回放轨迹。
 
 ## 5. Mechanism Compiler
 
@@ -182,7 +184,7 @@ Operation  -> 单步实验动作
 
 最重要的技术债不是任务数量，而是专业底座深度：
 
-- `runtime/domain_services.py` 已经移出 observation/scoring、operation-record assembly、reaction/thermal advancement、phase/extraction workflow、crystallization、distillation、continuous flow、electrochemical conversion 和 instrument-cost handling；下一步应保持轻量，并评估是否把基础投料/取样助手继续移入 primitive service；
+- `runtime/domain_services.py` 已经移出 primitive material handling、observation/scoring、operation-record assembly、reaction/thermal advancement、phase/extraction workflow、crystallization、distillation、continuous flow、electrochemical conversion 和 instrument-cost handling；下一步应保持轻量，不再把过程公式写回 composition layer；
 - `reaction_network.py`、`eos.py`、`equilibrium_chemistry.py`、`spectroscopy.py` 仍是较大模块，需要按算法族拆分；
 - reaction integration 仍有一部分历史 batch-reactor 数值假设，需要逐步完全由 mechanism spec 和 compiled mechanism 驱动；
 - separation、distillation、crystallization、flow、electrochemistry 目前是 benchmark-oriented semi-mechanistic models，还不是专业流程模拟器；
@@ -193,7 +195,7 @@ Operation  -> 单步实验动作
 
 下一阶段不应继续堆 task 名称，而应继续加深底座：
 
-1. 保持 `runtime/domain_services.py` 为轻量组合层，并评估是否把基础投料/取样助手下沉为 primitive operation service。
+1. 保持 `runtime/domain_services.py` 为轻量组合层，并继续减少各 focused runtime service 中的 legacy scalar-state adapter。
 2. 让 reaction network、observation mapping 和 scoring 完全由 mechanism/task spec 驱动。
 3. 把 macro operation 编译为 primitive/domain operation 序列，避免宏操作绕过 precondition 和 transaction。
 4. 强化 transaction replay、state patch 审计和 private-eval 机制。

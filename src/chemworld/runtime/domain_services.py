@@ -1,8 +1,8 @@
 """Operation composition services for ChemWorld runtime v2.
 
-This module wires primitive reagent/sample helpers to focused Runtime v2
-services. It is intentionally called by operation kernels rather than by
-``ChemWorldEnv`` directly.
+This module wires primitive helpers to focused Runtime v2 services. It is
+intentionally called by operation kernels rather than by ``ChemWorldEnv``
+directly.
 """
 
 from __future__ import annotations
@@ -10,9 +10,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-import numpy as np
-
-from chemworld.core.actions import CATALYSTS, SOLVENTS
 from chemworld.foundation import (
     OperationRecord,
     PhysicalConstitution,
@@ -26,6 +23,7 @@ from chemworld.runtime.flow_services import ChemWorldFlowServices
 from chemworld.runtime.instrument_cost_services import ChemWorldInstrumentCostServices
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.phase_separation_services import ChemWorldPhaseSeparationServices
+from chemworld.runtime.primitive_services import ChemWorldPrimitiveOperationServices
 from chemworld.runtime.reaction_thermal_services import ChemWorldReactionThermalServices
 from chemworld.runtime.record_services import ChemWorldOperationRecorder
 from chemworld.runtime.species import MechanismSpeciesView
@@ -51,15 +49,6 @@ def make_chemworld_constitution() -> PhysicalConstitution:
     )
 
 
-def _action_float(action: dict[str, Any], key: str, default: float) -> float:
-    value = action.get(key, default)
-    return float(np.asarray(value).reshape(-1)[0])
-
-
-def _action_index(action: dict[str, Any], key: str, default: int, count: int) -> int:
-    return int(np.clip(int(_action_float(action, key, float(default))), 0, count - 1))
-
-
 class ChemWorldDomainServices:
     """Runtime domain services called by operation kernels.
 
@@ -77,6 +66,7 @@ class ChemWorldDomainServices:
         self.constitution = constitution
         self.species_view = MechanismSpeciesView(compiled_mechanism)
         self.operation_recorder = ChemWorldOperationRecorder(constitution)
+        self.primitive = ChemWorldPrimitiveOperationServices(world, self.species_view)
         self.reaction_thermal = ChemWorldReactionThermalServices(world)
         self.phase_separation = ChemWorldPhaseSeparationServices(world, self.species_view)
         self.crystallization = ChemWorldCrystallizationServices(self.species_view)
@@ -94,7 +84,7 @@ class ChemWorldDomainServices:
         before = state
         preconditions = self.constitution.check_preconditions(operation, state, action)
         if not all(preconditions.values()):
-            next_state = self._penalize_invalid(state)
+            next_state = self.primitive.penalize_invalid(state)
             return next_state, self.operation_recorder.record(
                 operation,
                 before,
@@ -121,17 +111,17 @@ class ChemWorldDomainServices:
         self,
     ) -> dict[str, Callable[[WorldState, dict[str, Any]], WorldState]]:
         return {
-            "add_reagent": self._add_reagent,
-            "add_solvent": self._add_solvent,
-            "add_catalyst": self._add_catalyst,
+            "add_reagent": self.primitive.add_reagent,
+            "add_solvent": self.primitive.add_solvent,
+            "add_catalyst": self.primitive.add_catalyst,
             "heat": lambda state, action: self.reaction_thermal.integrate(
                 state, action, heat=True
             ),
             "wait": lambda state, action: self.reaction_thermal.integrate(
                 state, action, heat=False
             ),
-            "sample": self._sample,
-            "quench": lambda state, _action: self._quench(state),
+            "sample": self.primitive.sample,
+            "quench": lambda state, _action: self.primitive.quench(state),
             "add_phase": self.phase_separation.add_phase,
             "add_extractant": self.phase_separation.add_extractant,
             "mix": self.phase_separation.mix_phases,
@@ -144,7 +134,7 @@ class ChemWorldDomainServices:
             "seed_crystals": self.crystallization.seed_crystals,
             "cool_crystallize": self.crystallization.cool_crystallize,
             "filter_crystals": lambda state, _action: self.crystallization.filter_crystals(state),
-            "evaporate": self._evaporate,
+            "evaporate": self.primitive.evaporate,
             "distill": self.distillation.distill,
             "collect_fraction": self.distillation.collect_fraction,
             "set_flow_rate": self.flow.set_flow_rate,
@@ -156,7 +146,7 @@ class ChemWorldDomainServices:
         }
 
     def penalize_invalid(self, state: WorldState) -> WorldState:
-        return self._penalize_invalid(state)
+        return self.primitive.penalize_invalid(state)
 
     def record_operation(
         self,
@@ -167,95 +157,3 @@ class ChemWorldDomainServices:
         action: dict[str, Any],
     ) -> OperationRecord:
         return self.operation_recorder.record(operation, before, after, preconditions, action)
-
-    def _add_reagent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        amount = float(np.clip(_action_float(action, "amount_mol", 0.003), 0.0, 0.040))
-        species = state.species_amounts.copy()
-        reactant = self.species_view.reactant_species(state)
-        species[reactant] = species.get(reactant, 0.0) + amount
-        metadata = state.metadata.copy()
-        metadata = self.species_view.record_added_reactant(
-            metadata,
-            reactant_species=reactant,
-            amount_mol=amount,
-        )
-        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.03 * amount / 0.01)
-        return state.replace(species_amounts=species, ledger=ledger, metadata=metadata)
-
-    def _add_solvent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        volume = float(np.clip(_action_float(action, "volume_L", 0.025), 0.0, 0.080))
-        solvent = _action_index(action, "solvent", 0, len(SOLVENTS))
-        metadata = state.metadata.copy()
-        metadata["solvent"] = solvent
-        ledger = state.ledger.with_updates(
-            cost=state.ledger.cost + volume * 8.0 * float(self.world.solvent_costs[solvent])
-        )
-        return state.replace(volume_L=state.volume_L + volume, ledger=ledger, metadata=metadata)
-
-    def _add_catalyst(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        amount = float(np.clip(_action_float(action, "catalyst_amount_mol", 0.00020), 0.0, 0.005))
-        catalyst = _action_index(action, "catalyst", 0, len(CATALYSTS))
-        species = state.species_amounts.copy()
-        active_catalyst = self.species_view.active_catalyst_species(state)
-        species[active_catalyst] = species.get(active_catalyst, 0.0) + amount
-        metadata = state.metadata.copy()
-        metadata["catalyst"] = catalyst
-        ledger = state.ledger.with_updates(
-            cost=state.ledger.cost
-            + 4.0 * amount / 0.001 * float(self.world.catalyst_costs[catalyst])
-        )
-        return state.replace(species_amounts=species, ledger=ledger, metadata=metadata)
-
-    def _sample(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        volume = float(np.clip(_action_float(action, "sample_volume_L", 0.0001), 0.0, 0.002))
-        volume = min(volume, max(state.volume_L, 0.0))
-        fraction = 0.0 if state.volume_L <= 0 else volume / state.volume_L
-        species = {key: value * (1.0 - fraction) for key, value in state.species_amounts.items()}
-        ledger = state.ledger.with_updates(
-            sample_consumed_L=state.ledger.sample_consumed_L + volume,
-            cost=state.ledger.cost + 0.01,
-        )
-        return state.replace(
-            species_amounts=species,
-            volume_L=state.volume_L - volume,
-            ledger=ledger,
-        )
-
-    def _quench(self, state: WorldState) -> WorldState:
-        target = max(298.15, state.temperature_K - 45.0)
-        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.03)
-        return state.replace(temperature_K=target, quenched=True, ledger=ledger)
-
-    def _evaporate(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        duration = float(np.clip(_action_float(action, "duration_s", 600.0), 0.0, 14_400.0))
-        target_temperature = float(
-            np.clip(_action_float(action, "target_temperature_K", 328.15), 298.15, 390.0)
-        )
-        removal = float(
-            np.clip(
-                0.08 + duration / 7200.0 + (target_temperature - 298.15) / 420.0,
-                0.0,
-                0.70,
-            )
-        )
-        metadata = state.metadata.copy()
-        metadata["solvent_loss"] = min(1.0, float(metadata.get("solvent_loss", 0.0)) + removal)
-        ledger = state.ledger.with_updates(
-            time_s=state.ledger.time_s + duration,
-            cost=state.ledger.cost + duration / 3600.0 * 0.040,
-            risk=min(1.0, state.ledger.risk + 0.04 * removal),
-            energy_jacket_J=state.ledger.energy_jacket_J + 45.0 * duration,
-        )
-        return state.replace(
-            volume_L=state.volume_L * (1.0 - 0.55 * removal),
-            temperature_K=target_temperature,
-            ledger=ledger,
-            metadata=metadata,
-        )
-
-    def _penalize_invalid(self, state: WorldState) -> WorldState:
-        ledger = state.ledger.with_updates(
-            cost=state.ledger.cost + 0.01,
-            risk=min(1.0, state.ledger.risk + 0.08),
-        )
-        return state.replace(ledger=ledger)

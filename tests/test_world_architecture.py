@@ -235,6 +235,34 @@ def test_runtime_flow_service_is_separate_from_domain_services() -> None:
     assert "reaction_thermal.integrate" in flow_services
 
 
+def test_runtime_primitive_service_is_separate_from_domain_services() -> None:
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+        encoding="utf-8"
+    )
+    primitive_services = Path("src/chemworld/runtime/primitive_services.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "def _add_reagent" not in domain_services
+    assert "def _add_solvent" not in domain_services
+    assert "def _add_catalyst" not in domain_services
+    assert "def _sample" not in domain_services
+    assert "def _quench" not in domain_services
+    assert "def _evaporate" not in domain_services
+    assert "def _penalize_invalid" not in domain_services
+    assert "CATALYSTS" not in domain_services
+    assert "SOLVENTS" not in domain_services
+    assert "np.clip" not in domain_services
+    assert "class ChemWorldPrimitiveOperationServices" in primitive_services
+    assert "def add_reagent" in primitive_services
+    assert "def add_solvent" in primitive_services
+    assert "def add_catalyst" in primitive_services
+    assert "def sample" in primitive_services
+    assert "def quench" in primitive_services
+    assert "def evaporate" in primitive_services
+    assert "def penalize_invalid" in primitive_services
+
+
 def test_runtime_profile_requires_current_task_kernels_only() -> None:
     task = get_task("reaction-to-assay")
     profile = TaskRuntimeProfile.from_task(task)

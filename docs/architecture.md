@@ -50,8 +50,8 @@ The runtime is organized around:
   for the current profile rather than requiring every known ChemWorld operation
   globally;
 - `ChemWorldDomainServices`, which now acts as a lightweight operation
-  composition surface for primitive reagent/sample operations and delegated
-  runtime services;
+  composition surface for delegated runtime services, constitution checks, and
+  operation recording;
 - `ChemWorldReactionThermalServices`, implemented in
   `runtime/reaction_thermal_services.py`, which owns reaction ODE advancement,
   heat/wait integration, stirring metadata, energy-ledger updates, and
@@ -60,6 +60,9 @@ The runtime is organized around:
   `runtime/phase_separation_services.py`, which owns phase-ledger normalization,
   liquid-liquid partitioning, extraction, settling, phase selection, washing,
   drying, concentrating, transfer, and downstream truth metadata;
+- `ChemWorldPrimitiveOperationServices`, implemented in
+  `runtime/primitive_services.py`, which owns reagent, solvent, and catalyst
+  addition, sampling, quench, evaporation, and invalid-action penalty updates;
 - `ChemWorldCrystallizationServices`, implemented in
   `runtime/crystallization_services.py`, which owns seeding, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration
@@ -101,11 +104,12 @@ silently changing hidden material state.
 
 Reaction/thermal advancement, phase/extraction workflows, crystallization,
 distillation, electrochemical conversion, measurement cost/sample consumption,
-continuous-flow conversion, and operation-record assembly are separated from
-the lightweight domain-service composition layer. This makes the runtime easier
-to audit: focused services advance each physical process, the transaction
-manager commits or rolls back patches, and the recorder turns the accepted
-pre/post state pair into the replayable operation record.
+continuous-flow conversion, primitive material handling, and operation-record
+assembly are separated from the lightweight domain-service composition layer.
+This makes the runtime easier to audit: focused services advance each physical
+process, the transaction manager commits or rolls back patches, and the
+recorder turns the accepted pre/post state pair into the replayable operation
+record.
 
 The active backend remains `semi_mechanistic`, but it is now a runtime service
 implementation rather than the conceptual center of the package. Backend
