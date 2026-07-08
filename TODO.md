@@ -5,6 +5,35 @@ auditable physical-chemistry and chemical-engineering core. External open-source
 projects are used as a feature map and validation inspiration only. We do not
 copy their source code into ChemWorld.
 
+## Two-Person Active Work Board
+
+`TODO.md` is the shared source of truth for current work. Before coding, pull
+`origin/main`, claim the task here with a real owner, commit that ownership
+change, and push it. If the remote `TODO.md` changes while you are working,
+pull immediately and update your plan before continuing. When one task is
+finished, update its status and push immediately.
+
+| Item | Owner | Status | Files / Area | Next Step | Last Push |
+| --- | --- | --- | --- | --- | --- |
+| Docs cleanup and two-person rules | Codex | Done | `TODO.md`, `docs/`, `mkdocs.yml` | use this board for the next active task | this commit |
+
+Status values:
+
+- `Planned`: available and not started.
+- `Active`: one owner is working on it now.
+- `Blocked`: owner cannot proceed; handoff note required.
+- `Review`: pushed and waiting for the other person to inspect.
+- `Done`: complete and pushed.
+
+Ownership rules:
+
+- Every `Active` task must have exactly one owner.
+- Do not start another person's `Active` task unless they write a handoff note.
+- Claim a task by editing this table and pushing before implementation.
+- Finish a task by updating this table and pushing immediately.
+- Keep completed units small; avoid batching unrelated work into one delayed
+  push.
+
 ## Ground Rules
 
 - Implement ChemWorld's own code, data contracts, tests, and documentation.

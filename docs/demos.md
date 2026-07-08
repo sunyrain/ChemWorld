@@ -139,8 +139,9 @@ progressive short course:
 
 The current codebase also supports optional Year 2 extensions after Day 12:
 crystallization, distillation, continuous-flow optimization, and
-electrochemistry tasks. See [Year 2 Process Modules](year2_process_modules.md).
+electrochemistry tasks. See
+[Reaction and Separation Tasks](reaction_separation_tasks.md) and
+[Task Cards](task_cards.md).
 
 Start with `notebooks/tutorials/README.md`, then open the notebooks in order
 with the `Python (ChemWorld)` kernel.
-

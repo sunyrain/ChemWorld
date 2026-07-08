@@ -15,8 +15,8 @@ Start with:
 
 - [Current Progress](current_progress.md) for the implementation status.
 - [Architecture](architecture.md) for the core package design.
-- [Architecture Report](architecture_report.md) for the SOTA Gym benchmark
-  comparison and missing-piece roadmap.
+- [Technical Architecture ZH](technical_architecture_zh.md) for the current
+  unified-world architecture and design rationale.
 - [World Law](world_law.md) and [Task Taxonomy](task_taxonomy.md) for the
   unified-world design.
 - [Benchmark Protocol](benchmark_protocol.md) for evaluation and submission
@@ -24,4 +24,3 @@ Start with:
 - [Tasks](tasks.md), [Operations](operations.md), [Wrappers](wrappers.md), and
   [Submission Bundles](submission.md) for the research-release benchmark
   contract.
-

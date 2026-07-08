@@ -1,86 +1,108 @@
-# Two-Person Workflow
+# Two-Person Development Rules
 
-ChemWorld is currently a fast two-person research prototype. We do not need a
-heavy project-management system. The goal is simply to know who owns what, what
-is active, and what is ready to review.
+ChemWorld is a fast two-person research codebase. We keep coordination simple:
+the shared truth is `TODO.md`, every active task has one owner, and every
+completed unit is pushed immediately.
 
-## Simple Rules
+## Shared Source Of Truth
 
-- `TODO.md` is the shared roadmap.
-- Each active item has exactly one owner.
-- The owner writes code, runs checks, and leaves a short handoff note.
-- The other person reviews only the diff, tests, and model assumptions.
-- Reference repositories in `reference_repos/` are for reading only and are not
-  committed.
-- Pushes should not auto-run GitHub Actions while billing is blocked; CI is
-  manual-only.
+- `TODO.md` is the only active work board.
+- Every active task must name exactly one `Owner`.
+- A task without an owner is available.
+- A task marked `Active` by the other person must not be started unless the
+  owner writes a handoff note.
+- Reference repositories in `reference_repos/` are read-only references and are
+  not committed.
 
-## Lightweight Owner Table
+## Start Work Protocol
 
-Keep a tiny table in `TODO.md` or in a local note:
+Before starting any task:
 
-| Item | Owner | Status | Next Step | Files |
-| --- | --- | --- | --- | --- |
-| Generic reaction network | Person A | Active | build `ReactionNetworkSpec` | `src/chemworld/physchem/` |
-| Property correlations | Person B | Waiting | define component schema | `src/chemworld/physchem/properties/` |
-
-Statuses:
-
-- `Planned`
-- `Active`
-- `Blocked`
-- `Review`
-- `Done`
-
-That is enough.
-
-## Branches
-
-Use one working branch per larger topic:
-
-```text
-agent/unified-world-hardening
-physchem/reaction-network
-physchem/property-core
-physchem/phase-equilibrium
-notebooks/tutorial-polish
+```powershell
+git checkout main
+git pull --rebase origin main
 ```
 
-For tiny edits, working directly on the current feature branch is fine.
+Then edit `TODO.md`:
+
+- set the task `Status` to `Active`;
+- write the real `Owner`;
+- write the intended file area;
+- write the next concrete step.
+
+Commit and push that ownership update before coding:
+
+```powershell
+git add TODO.md
+git commit -m "Claim task: <short task name>"
+git push origin main
+```
+
+This prevents both people from doing the same work.
+
+## During Work
+
+- Pull immediately if the remote `TODO.md` changes.
+- If local edits are unfinished, commit a small WIP note or stash before pulling.
+- If the pull shows the other person claimed the same area first, stop and
+  coordinate through `TODO.md`.
+- Keep commits small enough that the other person can understand the diff.
+- Do not mix notebooks, core code, generated runs, and docs in one unrelated
+  commit.
+
+## Finish Work Protocol
+
+After finishing any task, immediately update `TODO.md`:
+
+- set `Status` to `Done`, `Review`, or `Blocked`;
+- record the commit hash if useful;
+- write the next step or handoff note;
+- clear or change `Owner` only when the handoff is explicit.
+
+Then push the result:
+
+```powershell
+git add <changed files> TODO.md
+git commit -m "<short completed task>"
+git push origin main
+```
+
+Do not wait to batch several completed tasks into one push. The current rule is:
+finish one useful unit, update `TODO.md`, push it.
+
+## Status Values
+
+Use only these statuses:
+
+| Status | Meaning |
+| --- | --- |
+| `Planned` | Not started and available. |
+| `Active` | One owner is working on it now. |
+| `Blocked` | Owner cannot proceed; handoff note is required. |
+| `Review` | Work is pushed and needs the other person to inspect. |
+| `Done` | Work is complete and pushed. |
 
 ## Handoff Note
 
-When one person stops working, leave a short note:
+Use this short format in `TODO.md` when stopping or handing off:
 
 ```text
-Owner: Person A
-Item: Generic reaction network
+Owner: <name>
+Status: Blocked / Review / Done
 Changed:
-- Added SpeciesSpec and ReactionSpec.
-- Added parser tests for irreversible reactions.
+- ...
 Next:
-- Add reversible reaction support.
-- Connect to batch reactor backend.
+- ...
 Checks:
-- ruff passed
-- pytest tests/test_physchem_reaction_network.py passed
+- ...
 Risks:
-- Formula parser does not handle parentheses yet.
+- ...
 ```
 
-## Review Rule
+## Checks
 
-For two-person fast iteration, review only these questions:
-
-1. Does it run?
-2. Does it preserve physical constraints?
-3. Does it keep public API simple?
-4. Does it avoid copying third-party code?
-5. Is the next step obvious?
-
-## Local Checks
-
-Run the full set before a meaningful push:
+Run targeted checks for small edits. Run the full local suite before a meaningful
+core change:
 
 ```powershell
 .\.venv\Scripts\python.exe -m ruff check .
@@ -89,23 +111,17 @@ Run the full set before a meaningful push:
 .\.venv\Scripts\python.exe -m mkdocs build --strict
 ```
 
-For quick inner-loop work, run only the targeted tests.
-
-## GitHub Actions
-
-The workflow is manual-only:
+GitHub Actions are currently manual-only because account billing blocks
+automatic runs. Trigger CI manually only when needed:
 
 ```text
 Actions -> CI -> Run workflow
 ```
 
-This avoids automatic billing-triggered startup failures on every push. If the
-account billing issue is fixed later, we can re-enable push or pull-request CI.
+## Do Not
 
-## What Not To Do
-
-- Do not create many labels, milestones, or formal issue templates yet.
-- Do not open huge PRs that mix notebooks, core models, and docs.
 - Do not commit `reference_repos/`.
 - Do not copy external library source into ChemWorld.
-- Do not push generated runs/results unless they are intentional examples.
+- Do not work on another person's `Active` task without a handoff.
+- Do not leave completed work unpushed.
+- Do not use `git add -A` when unrelated notebook or generated files are dirty.
