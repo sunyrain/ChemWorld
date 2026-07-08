@@ -24,7 +24,7 @@ finished, update its status and push immediately.
 | P6 phase-equilibrium core | whilesunny | Done | `src/chemworld/physchem/equilibrium.py`, `tests/`, `docs/physchem_core_design.md` | next: replace extraction and evaporation task proxies with phase-equilibrium kernels, then start P7 separations | this commit |
 | P7 separation and unit operations | whilesunny | Done | `src/chemworld/physchem/separations.py`, `tests/`, `docs/physchem_core_design.md` | next: implement fluid mechanics and heat-transfer utilities in P8, then wire separations into world tasks | this commit |
 | P8 fluid mechanics and heat transfer | whilesunny | Done | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `docs/physchem_core_design.md` | next: implement equilibrium chemistry in P9, then connect transport signals into world tasks and scoring | this commit |
-| P9 equilibrium chemistry | whilesunny | Active | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/`, `docs/physchem_core_design.md` | read Reaktoro/Cantera/thermo equilibrium references, then implement reaction extents, equilibrium constants, acid-base, precipitation, charge balance, and ionic-strength proxies | pending |
+| P9 equilibrium chemistry | whilesunny | Done | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/test_equilibrium_chemistry.py`, `docs/physchem_core_design.md` | next: expand mechanism and scenario library in P10 using the generalized physchem kernels | this commit |
 
 Status values:
 
@@ -675,19 +675,23 @@ Acceptance tests:
 
 ### P9: Equilibrium Chemistry
 
-- [ ] Mass-action equilibrium solver.
-- [ ] Reaction extent formulation.
-- [ ] Equilibrium constant temperature dependence.
-- [ ] Acid/base toy model.
-- [ ] Precipitation/dissolution proxy.
-- [ ] Charge balance.
-- [ ] Ionic strength placeholder.
+- [x] Mass-action equilibrium solver.
+- [x] Reaction extent formulation.
+- [x] Equilibrium constant temperature dependence.
+- [x] Acid/base equilibrium model.
+- [x] Precipitation/dissolution proxy.
+- [x] Charge balance.
+- [x] Ionic strength calculation.
+- [x] Water ion-product temperature proxy.
+- [x] Solid solubility proxy.
 
 Acceptance tests:
 
-- [ ] Equilibrium extent respects non-negativity.
-- [ ] Reversible reaction approaches expected equilibrium ratio.
-- [ ] Precipitation removes dissolved species only after saturation.
+- [x] Equilibrium extent respects non-negativity.
+- [x] Reversible reaction approaches expected equilibrium ratio.
+- [x] Precipitation removes dissolved species only after saturation.
+- [x] Weak-acid pH and charge balance are physically plausible.
+- [x] Ionic strength matches molality and amount-based forms.
 
 ### P10: Mechanism and Scenario Library
 

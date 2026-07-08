@@ -35,8 +35,8 @@ The implementation slices currently cover the P1-P8 foundation:
   correlation provenance.
 - `ComponentPropertyPackage`: a component-local correlation package that chooses
   an in-range method when multiple correlations exist.
-- reaction-network, reactor, EOS, phase-equilibrium, separation, transport, and
-  heat-transfer kernels described below.
+- reaction-network, reactor, EOS, phase-equilibrium, equilibrium-chemistry,
+  separation, transport, and heat-transfer kernels described below.
 
 ## Property Core
 
@@ -167,6 +167,39 @@ This is still compact, but it is enough to make future extraction, evaporation,
 distillation, solvent-screening, and purity/recovery tasks depend on shared
 thermodynamic rules rather than fixed hand-tuned proxies.
 
+## Equilibrium-Chemistry Core
+
+The P9 equilibrium-chemistry core is implemented in
+`chemworld.physchem.equilibrium_chemistry`. It covers reaction equilibrium and
+aqueous/electrolyte proxies that are separate from the VLE/LLE phase-equilibrium
+layer:
+
+| Capability | Current implementation |
+| --- | --- |
+| Reaction equilibrium spec | `EquilibriumReactionSpec` with stoichiometry, reference `log10(K)`, reaction enthalpy, and concentration activity model |
+| Problem spec | `EquilibriumSystemSpec` at fixed temperature, pressure, and volume |
+| Extent formulation | scalar extent bounds for single reactions and coupled extent-space least-squares for multi-reaction systems |
+| Equilibrium constant | van't Hoff temperature dependence from `K_ref`, `T_ref`, and `Delta H` |
+| Reaction quotient | concentration-based `Q` and `ln Q` utilities |
+| Acid/base | monoprotic weak-acid equilibrium with electroneutrality, water autoionization, pH/pOH, and ionic strength |
+| Water ion product | compact temperature interpolation for `K_w` |
+| Precipitation | binary solubility-product precipitation with saturation index and material-balance error |
+| Charge balance | single-ion electroneutrality adjustment and net charge equivalents |
+| Ionic strength | molality-based and amount-based ionic-strength calculations |
+| Solid solubility | eutectic-style mole-fraction solubility proxy |
+
+The reference projects informed the architecture rather than the source code.
+Reaktoro separates chemical state, equilibrium specifications, restrictions,
+conditions, and solvers; Cantera exposes equilibrium through constrained pairs
+such as `TP` and `HP`; thermo/chemicals provide focused electrolyte and
+solubility utilities. ChemWorld localizes the same separation into lightweight
+JSON-friendly specs and result objects suitable for benchmark replay.
+
+This layer is intentionally not a full Gibbs-energy minimizer. It is the
+professional first slice needed for ChemWorld tasks where agents must reason
+about reversible chemistry, pH, precipitation thresholds, electroneutrality, and
+ionic strength under finite experimental budgets.
+
 ## Separation Unit-Operation Core
 
 The P7 separation core is implemented in `chemworld.physchem.separations`. It
@@ -226,12 +259,13 @@ that are small enough for benchmark replay and robust enough for task design.
 ## Boundaries
 
 This layer is now a real local property-correlation, reaction-network, reactor,
-cubic-EOS, compact phase-equilibrium, downstream unit-operation, and
-transport/heat-transfer core, but it is not yet a complete process simulator. It
-does not perform rigorous multiphase stability analysis, database-grade flash
-calculations, automatic reaction mechanism generation, CFD, detailed two-fluid
-hydrodynamics, or exchanger network synthesis. Those will be built on top of
-these specs in later TODO milestones.
+cubic-EOS, compact phase-equilibrium, reaction-equilibrium/electrolyte,
+downstream unit-operation, and transport/heat-transfer core, but it is not yet a
+complete process simulator. It does not perform rigorous multiphase stability
+analysis, database-grade flash calculations, global Gibbs minimization,
+automatic reaction mechanism generation, CFD, detailed two-fluid hydrodynamics,
+or exchanger network synthesis. Those will be built on top of these specs in
+later TODO milestones.
 
 ## Validation Rules
 
@@ -246,6 +280,8 @@ The core fails early when:
 - a reaction references an unknown species;
 - a reaction is not element balanced;
 - a rate coefficient is negative, non-finite, or not numeric.
+- an equilibrium constant, reaction extent, pH calculation, solubility product,
+  ion charge, or ionic strength input is nonphysical.
 - a transport dimension, density, viscosity, heat-transfer coefficient, or
   equipment efficiency is nonphysical.
 
