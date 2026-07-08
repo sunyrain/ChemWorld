@@ -57,6 +57,7 @@ finished, update its status and push immediately.
 | Runtime v2 primitive operation service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | reagent/solvent/catalyst addition, sampling, quench, evaporation, and invalid-action penalty now live in `runtime/primitive_services.py` | this commit |
 | Reaction-network specs split | whilesunny | Done | `src/chemworld/physchem/`, tests/docs | species/rate-law/reaction specs, reaction-equation parsing, and mechanism dict helpers now live in `reaction_network_specs.py` | this commit |
 | Reaction-network rate-law split | whilesunny | Done | `src/chemworld/physchem/`, tests/docs | rate-law constants, parameter validation, mass-action/Arrhenius/reversible-rate helpers, and reaction lookup now live in `reaction_rate_laws.py` | this commit |
+| Reaction-network reference-case split | whilesunny | Active | `src/chemworld/physchem/`, tests/docs | extract analytical ODE reference cases, Cantera-comparable fixtures, and reference-case evaluation from `reaction_network.py` without changing public behavior | claim commit |
 
 Status values:
 
