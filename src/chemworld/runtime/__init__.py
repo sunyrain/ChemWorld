@@ -13,6 +13,7 @@ __all__ = [
     "CompiledMechanism",
     "KernelPlan",
     "KernelResult",
+    "MechanismSpeciesView",
     "OperationKernel",
     "OperationKernelRegistry",
     "RuntimeContext",
@@ -50,6 +51,10 @@ def __getattr__(name: str) -> Any:
         from chemworld.runtime import transactions
 
         return getattr(transactions, name)
+    if name == "MechanismSpeciesView":
+        from chemworld.runtime import species
+
+        return getattr(species, name)
     if name in {
         "KernelPlan",
         "KernelResult",

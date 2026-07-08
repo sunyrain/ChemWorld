@@ -7,36 +7,67 @@ from dataclasses import dataclass
 import numpy as np
 
 from chemworld.foundation import WorldState
+from chemworld.world.species_roles import (
+    LEGACY_PHASE_PRODUCT_AMOUNT_KEY,
+    PHASE_PRODUCT_AMOUNT_KEY,
+)
 
 
 def downstream_truth_values(
     state: WorldState,
     phase_ledger: dict[str, dict[str, float]] | None = None,
+    *,
+    product_amount_mol: float | None = None,
+    impurity_amount_mol: float | None = None,
+    initial_product_mol: float | None = None,
 ) -> dict[str, float]:
     phase_ledger = phase_ledger or dict(state.metadata.get("phase_ledger", {}))
+    product_amount = (
+        float(product_amount_mol)
+        if product_amount_mol is not None
+        else state.species_amounts.get("P", 0.0)
+    )
+    impurity_amount = (
+        float(impurity_amount_mol)
+        if impurity_amount_mol is not None
+        else state.species_amounts.get("B", 0.0)
+        + state.species_amounts.get("D", 0.0)
+        + state.species_amounts.get("E", 0.0)
+    )
     initial_p = max(
-        float(
-            state.metadata.get(
-                "pre_separation_product_mol",
-                state.metadata.get("max_product_mol", state.species_amounts.get("P", 0.0)),
+        (
+            float(initial_product_mol)
+            if initial_product_mol is not None
+            else float(
+                state.metadata.get(
+                    "pre_separation_product_mol",
+                    state.metadata.get("max_product_mol", product_amount),
+                )
             )
         ),
-        state.species_amounts.get("P", 0.0),
+        product_amount,
         1.0e-12,
     )
     organic = phase_ledger.get("organic", {})
     aqueous = phase_ledger.get("aqueous", {})
     selected_phase = str(state.metadata.get("selected_phase") or "organic")
     selected = phase_ledger.get(selected_phase, organic or aqueous or {})
-    product_in_organic = float(organic.get("P_mol", 0.0))
-    product_in_aqueous = float(aqueous.get("P_mol", 0.0))
-    selected_product = float(selected.get("P_mol", state.species_amounts.get("P", 0.0)))
+    product_in_organic = float(
+        organic.get(PHASE_PRODUCT_AMOUNT_KEY, organic.get(LEGACY_PHASE_PRODUCT_AMOUNT_KEY, 0.0))
+    )
+    product_in_aqueous = float(
+        aqueous.get(PHASE_PRODUCT_AMOUNT_KEY, aqueous.get(LEGACY_PHASE_PRODUCT_AMOUNT_KEY, 0.0))
+    )
+    selected_product = float(
+        selected.get(
+            PHASE_PRODUCT_AMOUNT_KEY,
+            selected.get(LEGACY_PHASE_PRODUCT_AMOUNT_KEY, product_amount),
+        )
+    )
     selected_impurity = float(
         selected.get(
             "impurity_mol",
-            state.species_amounts.get("B", 0.0)
-            + state.species_amounts.get("D", 0.0)
-            + state.species_amounts.get("E", 0.0),
+            impurity_amount,
         )
     )
     organic_volume = float(organic.get("volume_L", 0.0))
@@ -46,7 +77,7 @@ def downstream_truth_values(
     recovery = selected_product / initial_p
     phase_ratio = organic_volume / max(organic_volume + aqueous_volume, 1.0e-12)
     solvent_loss = float(selected.get("solvent_loss", 0.0))
-    mass_balance_error = abs(total_phase_product - state.species_amounts.get("P", 0.0)) / initial_p
+    mass_balance_error = abs(total_phase_product - product_amount) / initial_p
     return {
         "purity": float(np.clip(purity, 0.0, 1.0)),
         "recovery": float(np.clip(recovery, 0.0, 1.0)),

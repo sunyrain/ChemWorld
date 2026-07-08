@@ -24,6 +24,7 @@ from chemworld.foundation import (
 from chemworld.physchem.electrochemistry import ElectrodeReactionSpec, run_electrolysis
 from chemworld.physchem.separations import vle_shortcut_distillation
 from chemworld.runtime.mechanisms import CompiledMechanism
+from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.instruments import chemworld_instruments
 from chemworld.world.observation_kernel import (
     base_observed_mask,
@@ -39,6 +40,10 @@ from chemworld.world.phase_kernel import partition_split
 from chemworld.world.reaction_kernel import integrate_reaction_ode
 from chemworld.world.scoring import score_observation
 from chemworld.world.separation_kernel import downstream_truth_values
+from chemworld.world.species_roles import (
+    LEGACY_PHASE_PRODUCT_AMOUNT_KEY,
+    PHASE_PRODUCT_AMOUNT_KEY,
+)
 from chemworld.world.thermal_kernel import pressure_and_risk
 
 
@@ -78,9 +83,11 @@ class ChemWorldDomainServices:
         self,
         world: ChemWorldParameters,
         constitution: PhysicalConstitution,
+        compiled_mechanism: CompiledMechanism | None = None,
     ) -> None:
         self.world = world
         self.constitution = constitution
+        self.species_view = MechanismSpeciesView(compiled_mechanism)
 
     def apply_operation(
         self,
@@ -152,9 +159,14 @@ class ChemWorldDomainServices:
     def _add_reagent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         amount = float(np.clip(_action_float(action, "amount_mol", 0.003), 0.0, 0.040))
         species = state.species_amounts.copy()
-        species["A"] += amount
+        reactant = self.species_view.reactant_species(state)
+        species[reactant] = species.get(reactant, 0.0) + amount
         metadata = state.metadata.copy()
-        metadata["initial_A_mol"] = float(metadata.get("initial_A_mol", 0.0)) + amount
+        metadata = self.species_view.record_added_reactant(
+            metadata,
+            reactant_species=reactant,
+            amount_mol=amount,
+        )
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.03 * amount / 0.01)
         return state.replace(species_amounts=species, ledger=ledger, metadata=metadata)
 
@@ -172,7 +184,8 @@ class ChemWorldDomainServices:
         amount = float(np.clip(_action_float(action, "catalyst_amount_mol", 0.00020), 0.0, 0.005))
         catalyst = _action_index(action, "catalyst", 0, len(CATALYSTS))
         species = state.species_amounts.copy()
-        species["Cat_active"] += amount
+        active_catalyst = self.species_view.active_catalyst_species(state)
+        species[active_catalyst] = species.get(active_catalyst, 0.0) + amount
         metadata = state.metadata.copy()
         metadata["catalyst"] = catalyst
         ledger = state.ledger.with_updates(
@@ -205,19 +218,21 @@ class ChemWorldDomainServices:
         raw = state.metadata.get("phase_ledger", {})
         ledger: dict[str, dict[str, float]] = {}
         for phase_name, values in dict(raw).items():
+            product_amount = values.get(
+                PHASE_PRODUCT_AMOUNT_KEY,
+                values.get(LEGACY_PHASE_PRODUCT_AMOUNT_KEY, 0.0),
+            )
             ledger[str(phase_name)] = {
                 "volume_L": float(values.get("volume_L", 0.0)),
-                "P_mol": float(values.get("P_mol", 0.0)),
+                PHASE_PRODUCT_AMOUNT_KEY: float(product_amount),
                 "impurity_mol": float(values.get("impurity_mol", 0.0)),
                 "solvent_loss": float(values.get("solvent_loss", 0.0)),
             }
         if "reactor_liquid" not in ledger:
             ledger["reactor_liquid"] = {
                 "volume_L": state.volume_L,
-                "P_mol": state.species_amounts.get("P", 0.0),
-                "impurity_mol": state.species_amounts.get("B", 0.0)
-                + state.species_amounts.get("D", 0.0)
-                + state.species_amounts.get("E", 0.0),
+                PHASE_PRODUCT_AMOUNT_KEY: self.species_view.target_amount(state),
+                "impurity_mol": self.species_view.impurity_amount(state),
                 "solvent_loss": 0.0,
             }
         return ledger
@@ -231,7 +246,14 @@ class ChemWorldDomainServices:
     ) -> dict[str, Any]:
         metadata = state.metadata.copy()
         metadata["phase_ledger"] = phase_ledger
-        metadata.update(downstream_truth_values(state, phase_ledger))
+        metadata.update(
+            downstream_truth_values(
+                state,
+                phase_ledger,
+                product_amount_mol=self.species_view.target_amount(state),
+                impurity_amount_mol=self.species_view.impurity_amount(state),
+            )
+        )
         if updates:
             metadata.update(updates)
         return metadata
@@ -244,7 +266,12 @@ class ChemWorldDomainServices:
         phase_ledger = self._phase_ledger(state)
         phase = phase_ledger.setdefault(
             phase_name,
-            {"volume_L": 0.0, "P_mol": 0.0, "impurity_mol": 0.0, "solvent_loss": 0.0},
+            {
+                "volume_L": 0.0,
+                PHASE_PRODUCT_AMOUNT_KEY: 0.0,
+                "impurity_mol": 0.0,
+                "solvent_loss": 0.0,
+            },
         )
         phase["volume_L"] += volume
         metadata = self._write_phase_metadata(
@@ -261,7 +288,12 @@ class ChemWorldDomainServices:
         phase_ledger = self._phase_ledger(state)
         organic = phase_ledger.setdefault(
             "organic",
-            {"volume_L": 0.0, "P_mol": 0.0, "impurity_mol": 0.0, "solvent_loss": 0.0},
+            {
+                "volume_L": 0.0,
+                PHASE_PRODUCT_AMOUNT_KEY: 0.0,
+                "impurity_mol": 0.0,
+                "solvent_loss": 0.0,
+            },
         )
         organic["volume_L"] += volume
         metadata = self._write_phase_metadata(
@@ -292,22 +324,23 @@ class ChemWorldDomainServices:
                 "volume_L": max(
                     state.volume_L - phase_ledger.get("organic", {}).get("volume_L", 0.0), 0.0
                 ),
-                "P_mol": 0.0,
+                PHASE_PRODUCT_AMOUNT_KEY: 0.0,
                 "impurity_mol": 0.0,
                 "solvent_loss": 0.0,
             },
         )
         organic = phase_ledger.setdefault(
             "organic",
-            {"volume_L": 0.015, "P_mol": 0.0, "impurity_mol": 0.0, "solvent_loss": 0.0},
+            {
+                "volume_L": 0.015,
+                PHASE_PRODUCT_AMOUNT_KEY: 0.0,
+                "impurity_mol": 0.0,
+                "solvent_loss": 0.0,
+            },
         )
         aqueous = phase_ledger["aqueous"]
-        p_total = state.species_amounts.get("P", 0.0)
-        impurity_total = (
-            state.species_amounts.get("B", 0.0)
-            + state.species_amounts.get("D", 0.0)
-            + state.species_amounts.get("E", 0.0)
-        )
+        p_total = self.species_view.target_amount(state)
+        impurity_total = self.species_view.impurity_amount(state)
         solvent = int(state.metadata.get("solvent", 0))
         split = partition_split(
             product_mol=p_total,
@@ -319,13 +352,13 @@ class ChemWorldDomainServices:
             organic_volume_L=organic["volume_L"],
             aqueous_volume_L=aqueous["volume_L"],
         )
-        organic["P_mol"] = split["organic_product_mol"]
-        aqueous["P_mol"] = split["aqueous_product_mol"]
+        organic[PHASE_PRODUCT_AMOUNT_KEY] = split["organic_product_mol"]
+        aqueous[PHASE_PRODUCT_AMOUNT_KEY] = split["aqueous_product_mol"]
         organic["impurity_mol"] = split["organic_impurity_mol"]
         aqueous["impurity_mol"] = split["aqueous_impurity_mol"]
         phase_ledger["reactor_liquid"] = {
             "volume_L": state.volume_L,
-            "P_mol": p_total,
+            PHASE_PRODUCT_AMOUNT_KEY: p_total,
             "impurity_mol": impurity_total,
             "solvent_loss": 0.0,
         }
@@ -368,17 +401,17 @@ class ChemWorldDomainServices:
             target,
             {
                 "volume_L": state.volume_L,
-                "P_mol": state.species_amounts.get("P", 0.0),
+                PHASE_PRODUCT_AMOUNT_KEY: self.species_view.target_amount(state),
                 "impurity_mol": 0.0,
                 "solvent_loss": 0.0,
             },
         )
         entrainment_loss = 0.025 if target == "organic" else 0.045
-        retained_p = selected["P_mol"] * (1.0 - entrainment_loss)
+        retained_p = selected[PHASE_PRODUCT_AMOUNT_KEY] * (1.0 - entrainment_loss)
         retained_impurity = selected["impurity_mol"] * (1.0 + 0.20 * entrainment_loss)
         phase_ledger[target] = {
             "volume_L": selected["volume_L"] * (1.0 - 0.015),
-            "P_mol": retained_p,
+            PHASE_PRODUCT_AMOUNT_KEY: retained_p,
             "impurity_mol": retained_impurity,
             "solvent_loss": selected.get("solvent_loss", 0.0) + entrainment_loss,
         }
@@ -400,14 +433,14 @@ class ChemWorldDomainServices:
             target,
             {
                 "volume_L": state.volume_L,
-                "P_mol": state.species_amounts.get("P", 0.0),
+                PHASE_PRODUCT_AMOUNT_KEY: self.species_view.target_amount(state),
                 "impurity_mol": 0.0,
                 "solvent_loss": 0.0,
             },
         )
         impurity_removal = float(np.clip(0.18 + 8.0 * volume, 0.0, 0.65))
         phase["impurity_mol"] *= 1.0 - impurity_removal
-        phase["P_mol"] *= 1.0 - 0.015
+        phase[PHASE_PRODUCT_AMOUNT_KEY] *= 1.0 - 0.015
         phase["volume_L"] += volume * 0.35
         phase["solvent_loss"] += 0.012
         metadata = self._write_phase_metadata(
@@ -423,7 +456,7 @@ class ChemWorldDomainServices:
             target,
             {
                 "volume_L": state.volume_L,
-                "P_mol": state.species_amounts.get("P", 0.0),
+                PHASE_PRODUCT_AMOUNT_KEY: self.species_view.target_amount(state),
                 "impurity_mol": 0.0,
                 "solvent_loss": 0.0,
             },
@@ -446,14 +479,14 @@ class ChemWorldDomainServices:
             target,
             {
                 "volume_L": state.volume_L,
-                "P_mol": state.species_amounts.get("P", 0.0),
+                PHASE_PRODUCT_AMOUNT_KEY: self.species_view.target_amount(state),
                 "impurity_mol": 0.0,
                 "solvent_loss": 0.0,
             },
         )
         concentration_factor = float(np.clip(1.0 - duration / 7200.0, 0.45, 1.0))
         phase["volume_L"] *= concentration_factor
-        phase["P_mol"] *= 1.0 - 0.01 * (1.0 - concentration_factor)
+        phase[PHASE_PRODUCT_AMOUNT_KEY] *= 1.0 - 0.01 * (1.0 - concentration_factor)
         phase["solvent_loss"] += 0.025 * (1.0 - concentration_factor)
         metadata = self._write_phase_metadata(
             state, phase_ledger, updates={"selected_phase": target}
@@ -473,12 +506,12 @@ class ChemWorldDomainServices:
             target,
             {
                 "volume_L": state.volume_L,
-                "P_mol": state.species_amounts.get("P", 0.0),
+                PHASE_PRODUCT_AMOUNT_KEY: self.species_view.target_amount(state),
                 "impurity_mol": 0.0,
                 "solvent_loss": 0.0,
             },
         )
-        phase["P_mol"] *= fraction
+        phase[PHASE_PRODUCT_AMOUNT_KEY] *= fraction
         phase["impurity_mol"] *= fraction
         phase["volume_L"] *= fraction
         phase["solvent_loss"] += 1.0 - fraction
@@ -504,12 +537,8 @@ class ChemWorldDomainServices:
         cooling_depth = float(np.clip((state.temperature_K - target_temperature) / 55.0, 0.0, 1.0))
         time_factor = float(np.clip(1.0 - np.exp(-duration / 1800.0), 0.0, 1.0))
         seed_factor = 1.08 if bool(state.metadata.get("crystal_seeded", False)) else 0.92
-        p_mol = state.species_amounts.get("P", 0.0)
-        impurity_mol = (
-            state.species_amounts.get("B", 0.0)
-            + state.species_amounts.get("D", 0.0)
-            + state.species_amounts.get("E", 0.0)
-        )
+        p_mol = self.species_view.target_amount(state)
+        impurity_mol = self.species_view.impurity_amount(state)
         crystallized = float(np.clip(p_mol * cooling_depth * time_factor * seed_factor, 0.0, p_mol))
         occluded_impurity = float(
             np.clip(impurity_mol * (0.035 + 0.080 * cooling_depth) * time_factor, 0.0, impurity_mol)
@@ -547,10 +576,10 @@ class ChemWorldDomainServices:
             float(
                 state.metadata.get(
                     "pre_separation_product_mol",
-                    state.species_amounts.get("P", 0.0),
+                    self.species_view.target_amount(state),
                 )
             ),
-            state.species_amounts.get("P", 0.0),
+            self.species_view.target_amount(state),
             1.0e-12,
         )
         metadata.update(
@@ -605,12 +634,8 @@ class ChemWorldDomainServices:
             np.clip(_action_float(action, "target_temperature_K", 345.15), 298.15, 430.0)
         )
         reflux = float(np.clip(_action_float(action, "reflux_ratio", 1.5), 0.0, 10.0))
-        p_mol = state.species_amounts.get("P", 0.0)
-        impurity_mol = (
-            state.species_amounts.get("B", 0.0)
-            + state.species_amounts.get("D", 0.0)
-            + state.species_amounts.get("E", 0.0)
-        )
+        p_mol = self.species_view.target_amount(state)
+        impurity_mol = self.species_view.impurity_amount(state)
         distillate_cut = float(np.clip(0.25 + duration / 9000.0, 0.05, 0.90))
         theoretical_stages = float(np.clip(2.0 + duration / 900.0, 1.0, 20.0))
         if p_mol + impurity_mol <= 1.0e-12:
@@ -623,22 +648,22 @@ class ChemWorldDomainServices:
             distillation_risk = 0.035 + 0.06 * ((target_temperature - 298.15) / 132.0)
         else:
             distillation = vle_shortcut_distillation(
-                {"P": p_mol, "impurity": impurity_mol},
-                vapor_pressures_Pa={"P": 78_000.0, "impurity": 18_000.0},
+                {"product": p_mol, "impurity": impurity_mol},
+                vapor_pressures_Pa={"product": 78_000.0, "impurity": 18_000.0},
                 pressure_Pa=max(state.pressure_Pa, 1.0),
                 temperature_K=target_temperature,
-                light_key="P",
+                light_key="product",
                 heavy_key="impurity",
                 distillate_cut_fraction=distillate_cut,
                 theoretical_stages=theoretical_stages,
                 reflux_ratio=reflux,
                 stage_efficiency=0.62,
-                latent_heats_J_mol={"P": 38_000.0, "impurity": 55_000.0},
+                latent_heats_J_mol={"product": 38_000.0, "impurity": 55_000.0},
             )
             distillate = distillation.outlet("distillate")
-            distillate_product = distillate.get("P", 0.0)
+            distillate_product = distillate.get("product", 0.0)
             distillate_impurity = distillate.get("impurity", 0.0)
-            distillate_purity = distillation.purity("P", "distillate")
+            distillate_purity = distillation.purity("product", "distillate")
             distillation_metadata = distillation.ledger.metadata
             heat_duty = distillation.ledger.heat_duty_J
             distillation_cost = distillation.ledger.cost
@@ -683,10 +708,10 @@ class ChemWorldDomainServices:
             float(
                 state.metadata.get(
                     "pre_separation_product_mol",
-                    state.species_amounts.get("P", 0.0),
+                    self.species_view.target_amount(state),
                 )
             ),
-            state.species_amounts.get("P", 0.0),
+            self.species_view.target_amount(state),
             1.0e-12,
         )
         metadata = state.metadata.copy()
@@ -733,9 +758,13 @@ class ChemWorldDomainServices:
             "stirring_speed_rpm": 900.0,
         }
         reacted_state = self._integrate(state, effective_action, heat=True)
-        initial_a = max(float(state.metadata.get("initial_A_mol", 0.0)), 1.0e-12)
+        initial_a = max(self.species_view.initial_reactant_amount(state), 1.0e-12)
         conversion = float(
-            np.clip((initial_a - reacted_state.species_amounts.get("A", 0.0)) / initial_a, 0.0, 1.0)
+            np.clip(
+                (initial_a - self.species_view.reactant_amount(reacted_state)) / initial_a,
+                0.0,
+                1.0,
+            )
         )
         metadata = reacted_state.metadata.copy()
         metadata["flow_conversion"] = conversion
@@ -762,17 +791,20 @@ class ChemWorldDomainServices:
         potential = float(state.metadata.get("potential_V", 1.20))
         current_mA = float(state.metadata.get("current_mA", 50.0))
         species = state.species_amounts.copy()
-        a_mol = species.get("A", 0.0)
+        reactant = self.species_view.reactant_species(state)
+        product = self.species_view.primary_target_species
+        impurity = self.species_view.primary_impurity_species
+        a_mol = species.get(reactant, 0.0)
         volume = max(state.volume_L, 1.0e-9)
         catalyst = int(state.metadata.get("catalyst", 0))
         solvent = int(state.metadata.get("solvent", 0))
         exchange_current_density = 28.0 * float(self.world.catalyst_effects[catalyst, 0])
         exchange_current_density *= float(self.world.solvent_effects[solvent, 0])
         electrochemical_spec = ElectrodeReactionSpec(
-            reaction_id="A_to_P_electrochemical",
+            reaction_id=f"{reactant}_to_{product}_electrochemical",
             electrons_transferred=2.0,
             standard_potential_V=1.05,
-            reaction_quotient_exponents={"P": 1.0, "A": -1.0},
+            reaction_quotient_exponents={product: 1.0, reactant: -1.0},
             exchange_current_density_A_m2=exchange_current_density,
             electrode_area_m2=0.004,
             faradaic_efficiency_ref=0.91,
@@ -780,8 +812,8 @@ class ChemWorldDomainServices:
             overpotential_selectivity_sensitivity_V_inv=0.45,
         )
         activities = {
-            "A": max(a_mol / volume, 1.0e-12),
-            "P": max(species.get("P", 0.0) / volume, 1.0e-12),
+            reactant: max(a_mol / volume, 1.0e-12),
+            product: max(species.get(product, 0.0) / volume, 1.0e-12),
         }
         result = run_electrolysis(
             electrochemical_spec,
@@ -792,9 +824,9 @@ class ChemWorldDomainServices:
             temperature_K=state.temperature_K,
             applied_current_A=current_mA / 1000.0,
         )
-        species["A"] = a_mol - result.converted_mol
-        species["P"] += result.product_mol
-        species["B"] += result.byproduct_mol
+        species[reactant] = a_mol - result.converted_mol
+        species[product] = species.get(product, 0.0) + result.product_mol
+        species[impurity] = species.get(impurity, 0.0) + result.byproduct_mol
         metadata = state.metadata.copy()
         metadata["electrochemical_model"] = "nernst_butler_volmer_faradaic_v1"
         metadata["electrochemical_selectivity"] = result.product_selectivity
@@ -975,6 +1007,7 @@ class ChemWorldObservationKernel:
         self.constitution = constitution
         self.objective = objective
         self.compiled_mechanism = compiled_mechanism
+        self.species_view = MechanismSpeciesView(compiled_mechanism)
 
     def observe(
         self,
@@ -1114,80 +1147,13 @@ class ChemWorldObservationKernel:
         )
 
     def _truth_values(self, state: WorldState) -> dict[str, float]:
-        if self.compiled_mechanism is not None:
-            generic = self._mechanism_truth_values(state, self.compiled_mechanism)
-            if generic is not None:
-                return generic
-        return self._fixed_reference_truth_values(state)
-
-    @staticmethod
-    def _fixed_reference_truth_values(state: WorldState) -> dict[str, float]:
-        initial_a = max(float(state.metadata.get("initial_A_mol", 0.0)), 1.0e-12)
-        amounts = state.species_amounts
-        consumed = max(initial_a - amounts.get("A", 0.0), 1.0e-12)
-        yield_value = float(np.clip(amounts.get("P", 0.0) / initial_a, 0.0, 1.0))
-        selectivity = float(np.clip(amounts.get("P", 0.0) / consumed, 0.0, 1.0))
-        conversion = float(np.clip(consumed / initial_a, 0.0, 1.0))
-        byproduct = float(
-            np.clip((amounts.get("B", 0.0) + amounts.get("E", 0.0)) / initial_a, 0.0, 1.0)
-        )
-        degradation = float(np.clip(amounts.get("D", 0.0) / initial_a, 0.0, 1.0))
-        return {
-            "yield": yield_value,
-            "selectivity": selectivity,
-            "conversion": conversion,
-            "byproduct_signal": byproduct,
-            "degradation_warning": degradation,
-            **downstream_truth_values(state),
-        }
-
-    @staticmethod
-    def _mechanism_truth_values(
-        state: WorldState,
-        mechanism: CompiledMechanism,
-    ) -> dict[str, float] | None:
-        amounts = state.species_amounts
-        target_species = mechanism.score_spec.target_species
-        if not any(species_id in amounts for species_id in target_species):
-            return None
-        initial_species = mechanism.score_spec.initial_limiting_species
-        initial_amount = 0.0
-        if initial_species is not None:
-            initial_amount = float(
-                mechanism.initial_amount_policy.get(
-                    initial_species,
-                    state.species.initial_amounts_mol.get(initial_species, 0.0)
-                    if state.species is not None
-                    else 0.0,
-                )
-            )
-        initial_amount = max(initial_amount, 1.0e-12)
-        target_amount = sum(float(amounts.get(species_id, 0.0)) for species_id in target_species)
-        impurity_amount = sum(
-            float(amounts.get(species_id, 0.0))
-            for species_id in mechanism.score_spec.impurity_species
-        )
-        reactants = mechanism.observable_mapping.get("reactant", ())
-        remaining_reactant = sum(float(amounts.get(species_id, 0.0)) for species_id in reactants)
-        consumed = max(initial_amount - remaining_reactant, 1.0e-12)
-        yield_value = float(np.clip(target_amount / initial_amount, 0.0, 1.0))
-        selectivity = float(np.clip(target_amount / consumed, 0.0, 1.0))
-        conversion = float(np.clip(consumed / initial_amount, 0.0, 1.0))
-        byproduct = float(np.clip(impurity_amount / initial_amount, 0.0, 1.0))
-        degradation_species = mechanism.observable_mapping.get("degradation", ())
-        degradation = float(
-            np.clip(
-                sum(float(amounts.get(species_id, 0.0)) for species_id in degradation_species)
-                / initial_amount,
-                0.0,
-                1.0,
+        truth = self.species_view.truth_values(state)
+        truth.update(
+            downstream_truth_values(
+                state,
+                product_amount_mol=self.species_view.target_amount(state),
+                impurity_amount_mol=self.species_view.impurity_amount(state),
+                initial_product_mol=max(self.species_view.initial_reactant_amount(state), 1.0e-12),
             )
         )
-        return {
-            "yield": yield_value,
-            "selectivity": selectivity,
-            "conversion": conversion,
-            "byproduct_signal": byproduct,
-            "degradation_warning": degradation,
-            **downstream_truth_values(state),
-        }
+        return truth

@@ -116,6 +116,13 @@ better boundary than a batch-reactor-centered runtime, but the file still mixes
 reaction advancement, thermal updates, phase operations, observation helpers,
 scoring helpers, and operation-record assembly.
 
+Current hardening added a mechanism-aware species-role boundary. Runtime
+services now resolve reactants, targets, impurities, catalyst species,
+byproduct signals, and degradation markers through `MechanismSpeciesView`
+rather than reading fixed species names throughout the service code. The
+remaining legacy names are isolated as world-level fallback role bindings for
+older benchmark mechanisms and tests.
+
 Recommended follow-up:
 
 - split `domain_services.py` into reaction, thermal, phase/separation,
@@ -124,6 +131,8 @@ Recommended follow-up:
 - continue moving mechanism-specific scoring and observation mapping into
   compiled mechanism cards;
 - strengthen transaction-level replay tests.
+- continue shrinking the legacy fallback surface by letting reaction,
+  separation, spectroscopy, and score specs carry all species bindings.
 
 ### Low Priority: Facade Exports Are Large But Useful
 
@@ -162,6 +171,13 @@ Recommended follow-up:
   trajectory metadata.
 - Moved the former batch-reactor runtime implementation out of `core` and into
   `runtime/domain_services.py` as the current semi-mechanistic service backend.
+- Added `runtime/species.py` as the single species-role adapter between
+  compiled mechanisms and the current semi-mechanistic domain services.
+- Migrated reagent addition, catalyst addition, phase bookkeeping,
+  electrochemical conversion, downstream truth values, flow conversion, and
+  observation truth scoring toward compiled-mechanism role mappings.
+- Added regression tests using the `electrochemical_conversion` mechanism to
+  verify non-`A/P/B/D/E` species can drive runtime services and observations.
 
 ## Verification
 

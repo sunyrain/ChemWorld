@@ -51,6 +51,9 @@ The runtime is organized around:
   globally;
 - `ChemWorldDomainServices`, which owns reaction, thermal, phase, separation,
   instrument, and scoring calculations used by operation kernels;
+- `MechanismSpeciesView`, which resolves reactants, targets, impurities,
+  catalysts, byproducts, and degradation markers from the compiled mechanism
+  instead of letting runtime services depend on fixed species names;
 - `TransactionManager`, which applies state patches atomically, runs
   constitution checks, and records rollback/penalty events when a candidate
   state violates physical constraints.
@@ -71,6 +74,13 @@ scenario binds to a mechanism card, such as `simple_batch_reaction`,
 `electrochemical_conversion`. The runtime records `mechanism_id` and
 `mechanism_hash` in reset info and trajectory logs so replay can fail fast when
 the mechanism artifact changes.
+
+Runtime services now read species roles through the compiled mechanism. The
+legacy batch names remain isolated as world-level default role bindings;
+generic scoring, observation truth, reagent addition, electrochemical
+conversion, phase bookkeeping, distillation summaries, and flow conversion use
+semantic roles such as reactant, target, impurity, catalyst, and degradation
+marker.
 
 Typed ledgers in `WorldState` expose species definitions, phase material
 amounts, vessel bounds, equipment attachment, per-vessel heat ledgers, and

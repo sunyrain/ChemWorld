@@ -4,14 +4,21 @@ import json
 from pathlib import Path
 
 import gymnasium as gym
+import pytest
 
 import chemworld  # noqa: F401
 from chemworld.cli import main
 from chemworld.data.datasets import dataset_card, export_dataset
 from chemworld.data.logging import load_jsonl
 from chemworld.foundation.state import WorldState
+from chemworld.runtime.domain_services import (
+    ChemWorldDomainServices,
+    ChemWorldObservationKernel,
+    make_chemworld_constitution,
+)
 from chemworld.runtime.kernels import OperationKernelRegistry, TaskRuntimeProfile
 from chemworld.runtime.mechanisms import compile_mechanism_for_scenario
+from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.schemas import (
     ACTION_SCHEMA,
     MANIFEST_SCHEMA,
@@ -102,6 +109,104 @@ def test_mechanism_compiler_supports_non_fixed_species_networks() -> None:
         len(row) == len(compiled.network.reactions)
         for row in compiled.stoichiometric_matrix
     )
+
+
+def test_runtime_species_view_uses_mechanism_roles_without_fixed_names() -> None:
+    compiled = compile_mechanism_for_scenario("electrochemical-conversion")
+    view = MechanismSpeciesView(compiled)
+    state = WorldState(
+        species_amounts={
+            "Ox": 0.006,
+            "Red": 0.003,
+            "IsoRed": 0.001,
+            "D": 0.0,
+            "Coupled": 0.0,
+        },
+        volume_L=0.05,
+        temperature_K=298.15,
+        pressure_Pa=101_325.0,
+        phase="liquid",
+        vessel_id="electrochemical_cell",
+        metadata={"initial_Ox_mol": 0.010, "initial_reactant_mol": 0.010},
+    )
+
+    truth = view.truth_values(state)
+
+    assert view.reactant_species(state) == "Ox"
+    assert view.primary_target_species == "Red"
+    assert view.primary_impurity_species == "IsoRed"
+    assert view.target_amount(state) == 0.003
+    assert view.impurity_amount(state) == 0.001
+    assert truth["yield"] == pytest.approx(0.3)
+    assert truth["conversion"] == pytest.approx(0.4)
+    assert truth["selectivity"] == pytest.approx(0.75)
+
+
+def test_domain_services_apply_mechanism_roles_for_reagent_and_electrolysis() -> None:
+    compiled = compile_mechanism_for_scenario("electrochemical-conversion")
+    services = ChemWorldDomainServices(
+        load_chemworld_parameters("public-dev", seed=1),
+        make_chemworld_constitution(),
+        compiled,
+    )
+    state = WorldState(
+        species_amounts={"Ox": 0.0, "Red": 0.0, "IsoRed": 0.0, "D": 0.0, "Coupled": 0.0},
+        volume_L=0.05,
+        temperature_K=298.15,
+        pressure_Pa=101_325.0,
+        phase="liquid",
+        vessel_id="electrochemical_cell",
+        metadata={"solvent": 0, "catalyst": 0, "potential_V": 1.35, "current_mA": 80.0},
+    )
+
+    charged, add_record = services.apply_operation(
+        state,
+        {"operation": "add_reagent", "amount_mol": 0.010},
+    )
+    converted, electro_record = services.apply_operation(
+        charged,
+        {"operation": "electrolyze", "duration_s": 900.0},
+    )
+
+    assert add_record.preconditions["not_terminated"]
+    assert charged.species_amounts["Ox"] == pytest.approx(0.010)
+    assert "A" not in charged.species_amounts
+    assert charged.metadata["initial_Ox_mol"] == pytest.approx(0.010)
+    assert converted.species_amounts["Ox"] < charged.species_amounts["Ox"]
+    assert converted.species_amounts["Red"] > charged.species_amounts["Red"]
+    assert converted.species_amounts["IsoRed"] >= charged.species_amounts["IsoRed"]
+    assert abs(electro_record.state_delta_summary["actual_current_A"]) > 0.0
+
+
+def test_observation_kernel_scores_non_fixed_mechanism_species() -> None:
+    compiled = compile_mechanism_for_scenario("electrochemical-conversion")
+    kernel = ChemWorldObservationKernel(
+        make_chemworld_constitution(),
+        objective="balanced",
+        compiled_mechanism=compiled,
+    )
+    state = WorldState(
+        species_amounts={
+            "Ox": 0.004,
+            "Red": 0.004,
+            "IsoRed": 0.001,
+            "D": 0.001,
+            "Coupled": 0.0,
+        },
+        volume_L=0.05,
+        temperature_K=298.15,
+        pressure_Pa=101_325.0,
+        phase="liquid",
+        vessel_id="electrochemical_cell",
+        metadata={"initial_Ox_mol": 0.010, "initial_reactant_mol": 0.010},
+    )
+
+    truth = kernel._truth_values(state)
+
+    assert truth["yield"] == pytest.approx(0.4)
+    assert truth["conversion"] == pytest.approx(0.6)
+    assert truth["byproduct_signal"] == pytest.approx(0.2)
+    assert truth["degradation_warning"] == pytest.approx(0.1)
 
 
 def test_env_runtime_v2_info_contains_kernel_transaction_and_mechanism() -> None:

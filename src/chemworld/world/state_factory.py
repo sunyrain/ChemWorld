@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from chemworld.foundation import WorldState
 from chemworld.world.ontology import SPECIES
+from chemworld.world.species_roles import PHASE_PRODUCT_AMOUNT_KEY
 
 
 def initial_chemworld_state() -> WorldState:
@@ -35,7 +36,7 @@ def initial_chemworld_state() -> WorldState:
             "phase_ledger": {
                 "reactor_liquid": {
                     "volume_L": 0.0,
-                    "P_mol": 0.0,
+                    PHASE_PRODUCT_AMOUNT_KEY: 0.0,
                     "impurity_mol": 0.0,
                     "solvent_loss": 0.0,
                 }
