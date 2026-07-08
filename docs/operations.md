@@ -34,6 +34,20 @@ encodings:
 This lets students, GPT agents, Bayesian optimizers, replay tools, and RL
 libraries target the same underlying operation semantics.
 
+Operation contracts also declare a `kind`:
+
+| Kind | Meaning | Examples |
+| --- | --- | --- |
+| `primitive` | Direct event action handled by Runtime v2 services | `add_reagent`, `heat`, `sample`, `separate_phase` |
+| `domain` | Physics-domain operation backed by a specialized service | `distill`, `run_flow`, `electrolyze`, `cool_crystallize` |
+| `macro` | High-level recipe step compiled into executable operations | `wash`, `dry`, `concentrate` |
+| `terminal` | Episode/process terminal marker | `terminate` |
+
+Single-step environment interaction may still call any task-allowed operation.
+For recipe planning, macro steps are expanded before task-policy validation and
+execution, so they cannot bypass the operation validator or physical
+constitution.
+
 ## Reaction Operations
 
 | Operation | Purpose |
@@ -61,6 +75,11 @@ libraries target the same underlying operation semantics.
 | `dry` | Reduce solvent-loss signal |
 | `concentrate` | Reduce volume with cost/risk tradeoff |
 | `transfer` | Move retained material with handling loss |
+
+In recipe files, `wash`, `dry`, and `concentrate` are macro-friendly process
+steps. The compiler maps them to lower-level executable steps such as
+`add_extractant`, `mix`, `settle`, `separate_phase`, and `evaporate`, retaining
+`compiled_from_macro` metadata in the compiled action list.
 
 For a reaction-to-purification workflow, use `quench` before downstream
 processing and reserve `terminate` for the final stop before `final_assay`.

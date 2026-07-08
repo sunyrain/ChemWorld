@@ -315,6 +315,11 @@ Recommended follow-up:
   names in a `transaction_rollback` event, and rebuild operation records from
   the final rollback state so `state_delta_summary`, returned state, patches,
   and event logs describe the same transaction outcome.
+- Added operation-kind taxonomy and recipe-level macro expansion. Operation
+  contracts now classify `primitive`, `domain`, `macro`, and `terminal`
+  actions; `wash`, `dry`, and `concentrate` can be compiled into executable
+  primitive/domain steps, and task-aware recipe validation checks the compiled
+  actions rather than trusting the source macro.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration

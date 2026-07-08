@@ -36,6 +36,24 @@ CRYSTALLIZATION_OPERATIONS = ("seed_crystals", "cool_crystallize", "filter_cryst
 DISTILLATION_OPERATIONS = ("evaporate", "distill", "collect_fraction")
 FLOW_OPERATIONS = ("set_flow_rate", "run_flow")
 ELECTROCHEMISTRY_OPERATIONS = ("set_potential", "electrolyze")
+MACRO_OPERATIONS = ("wash", "dry", "concentrate")
+TERMINAL_OPERATIONS = ("terminate",)
+DOMAIN_OPERATIONS = (
+    *CRYSTALLIZATION_OPERATIONS,
+    *DISTILLATION_OPERATIONS,
+    *FLOW_OPERATIONS,
+    *ELECTROCHEMISTRY_OPERATIONS,
+)
+PRIMITIVE_OPERATIONS = tuple(
+    operation
+    for operation in (
+        *REACTION_OPERATIONS,
+        *SEPARATION_OPERATIONS,
+        *DOMAIN_OPERATIONS,
+        *TERMINAL_OPERATIONS,
+    )
+    if operation not in (*MACRO_OPERATIONS, *DOMAIN_OPERATIONS, *TERMINAL_OPERATIONS)
+)
 PROCESS_OPERATIONS = (
     *CRYSTALLIZATION_OPERATIONS,
     *DISTILLATION_OPERATIONS,
@@ -74,6 +92,7 @@ DOWNSTREAM_OBSERVATION_KEYS = (
 class OperationContract:
     operation_id: str
     module: str
+    kind: str
     required_fields: tuple[str, ...]
     preconditions: tuple[str, ...]
 
@@ -81,6 +100,7 @@ class OperationContract:
         return {
             "operation_id": self.operation_id,
             "module": self.module,
+            "kind": self.kind,
             "required_fields": list(self.required_fields),
             "preconditions": list(self.preconditions),
         }
@@ -206,6 +226,9 @@ def operation_contracts() -> dict[str, OperationContract]:
     distillation = set(DISTILLATION_OPERATIONS)
     flow = set(FLOW_OPERATIONS)
     electrochemistry = set(ELECTROCHEMISTRY_OPERATIONS)
+    macros = set(MACRO_OPERATIONS)
+    terminals = set(TERMINAL_OPERATIONS)
+    domains = set(DOMAIN_OPERATIONS)
     contracts: dict[str, OperationContract] = {}
     for operation in chemworld_operations():
         if operation.id in separation:
@@ -222,9 +245,18 @@ def operation_contracts() -> dict[str, OperationContract]:
             module = "reaction"
         else:
             module = "general"
+        if operation.id in macros:
+            kind = "macro"
+        elif operation.id in terminals:
+            kind = "terminal"
+        elif operation.id in domains:
+            kind = "domain"
+        else:
+            kind = "primitive"
         contracts[operation.id] = OperationContract(
             operation_id=operation.id,
             module=module,
+            kind=kind,
             required_fields=operation.required_fields,
             preconditions=operation.preconditions,
         )
@@ -252,14 +284,18 @@ def instrument_name(value: Any) -> str:
 __all__ = [
     "CRYSTALLIZATION_OPERATIONS",
     "DISTILLATION_OPERATIONS",
+    "DOMAIN_OPERATIONS",
     "DOWNSTREAM_OBSERVATION_KEYS",
     "ELECTROCHEMISTRY_OPERATIONS",
     "FLOW_OPERATIONS",
     "INSTRUMENTS",
+    "MACRO_OPERATIONS",
     "OPERATION_TYPES",
+    "PRIMITIVE_OPERATIONS",
     "PROCESS_OPERATIONS",
     "REACTION_OPERATIONS",
     "SEPARATION_OPERATIONS",
+    "TERMINAL_OPERATIONS",
     "OperationContract",
     "chemworld_operations",
     "chemworld_state_variable_contracts",

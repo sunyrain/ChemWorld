@@ -8,6 +8,7 @@ import numpy as np
 
 from chemworld.core.actions import canonicalize_action
 from chemworld.schemas import SchemaValidationResult, validate_action_schema, validate_recipe_schema
+from chemworld.world.operations import MACRO_OPERATIONS
 
 
 def recipe_to_event_sequence(action: dict[str, Any]) -> list[dict[str, Any]]:
@@ -38,37 +39,174 @@ def recipe_to_event_sequence(action: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
-def compile_recipe(recipe: dict[str, Any]) -> list[dict[str, Any]]:
+def compile_recipe(
+    recipe: dict[str, Any],
+    *,
+    expand_macros: bool = True,
+    task_info: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     """Compile a recipe object or recipe-style action into event actions."""
 
     if "steps" in recipe:
         result = validate_recipe_schema(recipe)
         if not result.valid:
             raise ValueError(f"Invalid recipe: {', '.join(result.errors)}")
-        return [dict(step) for step in recipe["steps"]]
+        steps = [_canonical_event_action(step) for step in recipe["steps"]]
+        return _checked_steps(
+            _expand_steps(steps) if expand_macros else steps,
+            task_info=task_info,
+        )
 
     if "operation" in recipe:
         result = validate_action_schema(recipe)
         if not result.valid:
             raise ValueError(f"Invalid recipe action: {', '.join(result.errors)}")
-        return [dict(recipe)]
-    return recipe_to_event_sequence(recipe)
+        steps = [_canonical_event_action(recipe)]
+        return _checked_steps(
+            _expand_steps(steps) if expand_macros else steps,
+            task_info=task_info,
+        )
+    return _checked_steps(recipe_to_event_sequence(recipe), task_info=task_info)
 
 
-def validate_recipe(recipe: dict[str, Any]) -> SchemaValidationResult:
+def validate_recipe(
+    recipe: dict[str, Any],
+    task_info: dict[str, Any] | None = None,
+    *,
+    expand_macros: bool = True,
+) -> SchemaValidationResult:
     """Validate a recipe and ensure it can be compiled."""
 
     if "steps" in recipe:
-        return validate_recipe_schema(recipe)
+        schema_result = validate_recipe_schema(recipe)
+        if not schema_result.valid:
+            return schema_result
     if "operation" in recipe:
         result = validate_action_schema(recipe)
         if not result.valid:
             return result
     try:
-        compile_recipe(recipe)
+        compile_recipe(recipe, expand_macros=expand_macros, task_info=task_info)
     except (KeyError, TypeError, ValueError) as exc:
         return SchemaValidationResult(False, (str(exc),))
     return SchemaValidationResult(True, ())
 
 
-__all__ = ["compile_recipe", "recipe_to_event_sequence", "validate_recipe"]
+def expand_macro_action(action: dict[str, Any]) -> list[dict[str, Any]]:
+    """Expand a high-level process macro into executable ChemWorld operations."""
+
+    canonical = _canonical_event_action(action)
+    operation = str(canonical["operation"])
+    if operation not in MACRO_OPERATIONS:
+        return [canonical]
+
+    if operation == "wash":
+        wash_volume = float(canonical.get("wash_volume_L", 0.010))
+        return _tag_macro_steps(
+            operation,
+            (
+                {
+                    "operation": "add_extractant",
+                    "extractant": int(canonical.get("extractant", canonical.get("solvent", 0))),
+                    "volume_L": wash_volume,
+                },
+                {
+                    "operation": "mix",
+                    "duration_s": float(canonical.get("mix_duration_s", 120.0)),
+                    "stirring_speed_rpm": float(canonical.get("stirring_speed_rpm", 600.0)),
+                },
+                {
+                    "operation": "settle",
+                    "duration_s": float(canonical.get("settle_duration_s", 300.0)),
+                },
+                {
+                    "operation": "separate_phase",
+                    "target_phase": str(canonical.get("target_phase", "organic")),
+                },
+            ),
+        )
+    if operation == "dry":
+        return _tag_macro_steps(
+            operation,
+            (
+                {
+                    "operation": "evaporate",
+                    "target_temperature_K": float(canonical.get("target_temperature_K", 315.0)),
+                    "duration_s": float(canonical.get("duration_s", 300.0)),
+                },
+            ),
+        )
+    if operation == "concentrate":
+        return _tag_macro_steps(
+            operation,
+            (
+                {
+                    "operation": "evaporate",
+                    "target_temperature_K": float(canonical.get("target_temperature_K", 335.0)),
+                    "duration_s": float(canonical.get("duration_s", 600.0)),
+                },
+            ),
+        )
+    raise ValueError(f"Unsupported macro operation: {operation}")
+
+
+def _canonical_event_action(action: dict[str, Any]) -> dict[str, Any]:
+    from chemworld.action_codec import ActionCodec
+
+    return ActionCodec().canonicalize(dict(action))
+
+
+def _expand_steps(steps: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    expanded: list[dict[str, Any]] = []
+    for step in steps:
+        expanded.extend(expand_macro_action(step))
+    return expanded
+
+
+def _tag_macro_steps(
+    macro_operation: str,
+    steps: tuple[dict[str, Any], ...],
+) -> list[dict[str, Any]]:
+    return [
+        {
+            **step,
+            "compiled_from_macro": macro_operation,
+            "macro_step_index": index,
+        }
+        for index, step in enumerate(steps)
+    ]
+
+
+def _checked_steps(
+    steps: list[dict[str, Any]],
+    *,
+    task_info: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    if not steps:
+        raise ValueError("Compiled recipe produced no executable steps")
+    errors: list[str] = []
+    allowed_operations = set(task_info.get("allowed_operations", ())) if task_info else set()
+    allowed_instruments = set(task_info.get("allowed_instruments", ())) if task_info else set()
+    for index, step in enumerate(steps):
+        result = validate_action_schema(step)
+        errors.extend(f"compiled_steps[{index}]: {error}" for error in result.errors)
+        operation = str(step.get("operation", ""))
+        if allowed_operations and operation not in allowed_operations:
+            errors.append(f"compiled_steps[{index}]: operation not allowed by task: {operation}")
+        if operation == "measure" and allowed_instruments:
+            instrument = str(step.get("instrument", "hplc"))
+            if instrument not in allowed_instruments:
+                errors.append(
+                    f"compiled_steps[{index}]: instrument not allowed by task: {instrument}"
+                )
+    if errors:
+        raise ValueError("; ".join(errors))
+    return steps
+
+
+__all__ = [
+    "compile_recipe",
+    "expand_macro_action",
+    "recipe_to_event_sequence",
+    "validate_recipe",
+]

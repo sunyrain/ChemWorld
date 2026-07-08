@@ -320,10 +320,11 @@ def _validate_action(args: argparse.Namespace) -> None:
 def _validate_recipe(args: argparse.Namespace) -> None:
     task = get_task(args.task)
     recipe = _load_json_file(args.recipe)
-    result = validate_recipe(recipe).to_dict()
+    task_info = task.to_dict()
+    result = validate_recipe(recipe, task_info=task_info).to_dict()
     result["task_id"] = task.task_id
     if result["valid"]:
-        result["compiled_steps"] = compile_recipe(recipe)
+        result["compiled_steps"] = compile_recipe(recipe, task_info=task_info)
         result["compiled_step_count"] = len(result["compiled_steps"])
     print(json.dumps(result, indent=2, sort_keys=True))
     if not result["valid"]:

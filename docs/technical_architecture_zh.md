@@ -199,7 +199,7 @@ Operation  -> 单步实验动作
 
 1. 保持 `runtime/domain_services.py` 为轻量组合层，并继续减少 focused runtime service 中的 legacy scalar-state adapter。
 2. 让 reaction network、observation mapping 和 scoring 完全由 mechanism/task spec 驱动。
-3. 把 macro operation 编译为 primitive/domain operation 序列，避免宏操作绕过 precondition 和 transaction。
+3. 继续扩展 macro recipe compiler：当前 `wash`、`dry`、`concentrate` 已能在 recipe 层展开为 primitive/domain operation，并接受 task-policy 校验；后续应把更复杂的实验计划也纳入这一层。
 4. 强化 ledger-level replay、state patch 审计和 private-eval 机制。
 5. 为每个主要任务生成 reference baseline table 和 paper artifact。
 6. 对照专业库逐步补足 property、EOS、equilibrium、reactor、separation、spectroscopy 的参考验证。

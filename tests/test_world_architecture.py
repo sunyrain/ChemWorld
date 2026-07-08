@@ -63,6 +63,7 @@ from chemworld.world.reaction_kernel import (
     integrate_compiled_reaction_ode,
 )
 from chemworld.world.reaction_reference import integrate_seven_slot_reference_ode
+from chemworld.world.recipes import compile_recipe, validate_recipe
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.world.thermal_kernel import pressure_and_risk
@@ -1383,6 +1384,52 @@ def test_action_and_recipe_public_validation() -> None:
     assert not blocked.valid
     recipe = {"steps": [{"operation": "add_solvent", "volume_L": 0.02, "solvent": 1}]}
     assert validate_recipe_schema(recipe).valid
+
+
+def test_operation_contracts_classify_macros_and_domains() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
+    try:
+        task_info = env.unwrapped.task_info()
+        contracts = task_info["operation_contracts"]
+
+        assert contracts["heat"]["kind"] == "primitive"
+        assert contracts["wash"]["kind"] == "macro"
+        assert contracts["dry"]["kind"] == "macro"
+        assert contracts["concentrate"]["kind"] == "macro"
+        assert contracts["distill"]["kind"] == "domain"
+        assert contracts["terminate"]["kind"] == "terminal"
+    finally:
+        env.close()
+
+
+def test_recipe_compiler_expands_macros_and_checks_task_policy() -> None:
+    recipe = {
+        "steps": [
+            {"operation": "wash", "volume_L": 0.012, "solvent": 2},
+            {"operation": "dry", "duration_s": 240.0},
+            {"operation": "concentrate", "duration_s": 360.0},
+        ]
+    }
+    purification_task = get_task("reaction-to-purification").to_dict()
+
+    compiled = compile_recipe(recipe, task_info=purification_task)
+
+    assert [step["operation"] for step in compiled] == [
+        "add_extractant",
+        "mix",
+        "settle",
+        "separate_phase",
+        "evaporate",
+        "evaporate",
+    ]
+    assert compiled[0]["compiled_from_macro"] == "wash"
+    assert compiled[-1]["compiled_from_macro"] == "concentrate"
+    assert validate_recipe(recipe, task_info=purification_task).valid
+
+    reaction_only_task = get_task("reaction-to-assay").to_dict()
+    blocked = validate_recipe(recipe, task_info=reaction_only_task)
+    assert not blocked.valid
+    assert "operation not allowed by task: add_extractant" in blocked.errors[0]
 
 
 def test_packaged_schema_files_match_runtime_constants() -> None:

@@ -11,7 +11,7 @@ from chemworld.world.parameters import (
     ChemWorldParameters,
     load_chemworld_parameters,
 )
-from chemworld.world.recipes import compile_recipe, validate_recipe
+from chemworld.world.recipes import compile_recipe, expand_macro_action, validate_recipe
 from chemworld.world.scenario import (
     ScenarioFamilySpec,
     ScenarioGenerator,
@@ -52,6 +52,7 @@ __all__ = [
     "ScenarioSpec",
     "compile_recipe",
     "constitution_rules",
+    "expand_macro_action",
     "final_assay_spectra",
     "gc_chromatogram",
     "get_scenario",
