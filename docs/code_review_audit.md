@@ -155,6 +155,12 @@ locks the mechanism id, final-assay score snapshot, campaign versus
 single-experiment termination semantics, operation-kernel metadata, transaction
 status, world-event payload, and affected-ledger signals.
 
+The architecture test suite now also enforces the active Runtime v2 boundary:
+`src/chemworld/envs` and `src/chemworld/runtime` must not import the removed
+`chemworld.core.batch_reactor` runtime, and `ChemWorldEnv.step()` must delegate
+process-operation dispatch to `runtime.apply_transaction()` instead of adding
+inline branches for process operations.
+
 ### Low Priority: Facade Exports Are Large But Useful
 
 `src/chemworld/physchem/__init__.py` is a large facade. It is not a correctness
@@ -205,6 +211,8 @@ Recommended follow-up:
   scripted final-assay trajectories, campaign/single-experiment semantics,
   operation-kernel metadata, transaction status, world events, affected ledgers,
   and final-assay score snapshots.
+- Added architecture tests that enforce env/runtime import boundaries and keep
+  concrete process-operation dispatch out of `ChemWorldEnv.step()`.
 - Extracted `ChemWorldObservationKernel` into
   `runtime/observation_services.py`, keeping noisy observations, raw signal
   assembly, processed estimates, uncertainty metadata, and observation scoring

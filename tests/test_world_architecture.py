@@ -41,6 +41,7 @@ from chemworld.world import (
     world_law_spec,
 )
 from chemworld.world.observation_kernel import raw_signal
+from chemworld.world.operations import OPERATION_TYPES
 from chemworld.world.phase_kernel import partition_split
 from chemworld.world.reaction_kernel import integrate_reaction_ode
 from chemworld.world.state_factory import initial_chemworld_state
@@ -80,6 +81,28 @@ def test_world_layer_does_not_import_batch_core() -> None:
         if "chemworld.core.batch_reactor" in path.read_text(encoding="utf-8")
     ]
     assert offenders == []
+
+
+def test_env_and_runtime_do_not_import_removed_batch_runtime() -> None:
+    roots = (Path("src/chemworld/envs"), Path("src/chemworld/runtime"))
+    offenders = [
+        path
+        for root in roots
+        for path in root.glob("*.py")
+        if "chemworld.core.batch_reactor" in path.read_text(encoding="utf-8")
+    ]
+    assert offenders == []
+
+
+def test_chemworld_env_delegates_process_operation_dispatch_to_runtime() -> None:
+    source = Path("src/chemworld/envs/chemworld_env.py").read_text(encoding="utf-8")
+    process_operations = set(OPERATION_TYPES) - {"measure"}
+
+    assert "runtime.apply_transaction" in source
+    for operation in process_operations:
+        assert f'operation_record.operation_type == "{operation}"' not in source
+        assert f'action["operation"] == "{operation}"' not in source
+        assert f"action['operation'] == '{operation}'" not in source
 
 
 def test_runtime_observation_service_is_separate_from_state_changing_services() -> None:
