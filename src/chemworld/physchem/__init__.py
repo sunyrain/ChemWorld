@@ -237,6 +237,7 @@ from chemworld.physchem.reference_validation import (
     summarize_reference_comparisons,
     write_reference_validation_report,
 )
+from chemworld.physchem.separation_cards import separation_model_cards
 from chemworld.physchem.separations import (
     FUGDistillationReport,
     FUGDistillationSpec,
@@ -251,7 +252,6 @@ from chemworld.physchem.separations import (
     filter_cake,
     gilliland_eduljee_stage_estimate,
     liquid_liquid_extraction,
-    separation_model_cards,
     underwood_minimum_reflux_binary,
     vle_shortcut_distillation,
 )

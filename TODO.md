@@ -35,6 +35,7 @@ finished, update its status and push immediately.
 | P12 optional reference-backend validation | whilesunny | Review | `src/chemworld/physchem/reference_validation.py`, `tests/reference/`, `docs/physchem_core_design.md`, `TODO.md` | next: add controlled CoolProp/Cantera/Reaktoro/pycalphad comparison cases when dependencies are available | `f4172fe` |
 | PhysChem maturity audit and proxy de-risking | whilesunny | Done | `TODO.md`, `TODO_PROFESSIONAL.md`, `docs/physchem_maturity_audit.md`, `docs/professional_todo.md`, `docs/physchem_core_design.md` | use `TODO_PROFESSIONAL.md` for post-P1-P12 professional hardening | this commit |
 | P1/P2 audit and hardening | whilesunny | Done | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/properties.py`, `tests/`, `docs/physchem_core_design.md`, `TODO.md` | next: start P12 optional reference-backend validation after choosing first comparison targets | this commit |
+| Code review audit and separation-card cleanup | whilesunny | Done | `src/chemworld/physchem/separations.py`, `src/chemworld/physchem/separation_cards.py`, `docs/code_review_audit.md` | next: extract remaining model-card functions into `*_cards.py` modules one slice at a time | this commit |
 
 Status values:
 
