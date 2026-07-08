@@ -288,6 +288,39 @@ def test_reaction_network_specs_are_separate_from_engine() -> None:
     assert "def reaction_from_dict" in specs
 
 
+def test_reaction_rate_laws_are_separate_from_network_engine() -> None:
+    reaction_network = Path("src/chemworld/physchem/reaction_network.py").read_text(
+        encoding="utf-8"
+    )
+    rate_laws = Path("src/chemworld/physchem/reaction_rate_laws.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "def mass_action_rate" not in reaction_network
+    assert "def _mass_action_rate" not in reaction_network
+    assert "def arrhenius_k" not in reaction_network
+    assert "def _arrhenius_k" not in reaction_network
+    assert "def reverse_rate_constant(" not in reaction_network
+    assert "def _reverse_rate_constant" not in reaction_network
+    assert "def reverse_params" not in reaction_network
+    assert "def _reverse_params" not in reaction_network
+    assert "def positive_reaction_parameter" not in reaction_network
+    assert "def _positive_reaction_parameter" not in reaction_network
+    assert "def with_reaction_parameter" not in reaction_network
+    assert "def _with_reaction_parameter" not in reaction_network
+    assert "def reaction_by_id" not in reaction_network
+    assert "def _reaction_by_id" not in reaction_network
+    assert "def float_param" not in reaction_network
+    assert "def _float_param" not in reaction_network
+    assert "reaction_rate_laws" in reaction_network
+    assert "def evaluate_rate_law" in rate_laws
+    assert "def mass_action_rate" in rate_laws
+    assert "def arrhenius_k" in rate_laws
+    assert "def reverse_rate_constant" in rate_laws
+    assert "def positive_reaction_parameter" in rate_laws
+    assert "def with_reaction_parameter" in rate_laws
+
+
 def test_runtime_profile_requires_current_task_kernels_only() -> None:
     task = get_task("reaction-to-assay")
     profile = TaskRuntimeProfile.from_task(task)
