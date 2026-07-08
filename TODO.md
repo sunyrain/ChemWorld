@@ -21,6 +21,7 @@ finished, update its status and push immediately.
 | P3 general reaction-network engine | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md`, `configs/mechanisms/` | next: connect mechanism-backed networks to batch/semi-batch/CSTR/PFR reactor models in P4 | this commit |
 | P4 reactor model core | whilesunny | Done | `src/chemworld/physchem/reactors.py`, `tests/`, `docs/physchem_core_design.md` | next: replace selected task/world transition paths with mechanism-backed reactor kernels, then start P5 EOS | this commit |
 | P5 equation-of-state core | whilesunny | Done | `src/chemworld/physchem/eos.py`, `tests/`, `docs/physchem_core_design.md` | next: build activity models and VLE/LLE flash on top of EOS and property packages | this commit |
+| P6 phase-equilibrium core | whilesunny | Active | `src/chemworld/physchem/equilibrium.py`, `tests/`, `docs/physchem_core_design.md` | implement ideal/Margules/NRTL-lite activity models, Raoult K-values, Rachford-Rice flash, bubble/dew point, and LLE split | pending |
 
 Status values:
 
