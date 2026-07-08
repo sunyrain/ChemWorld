@@ -33,6 +33,7 @@ with proxies and then call them professional.
 | `DEEP-D6A` | whilesunny | Done | Dynamic batch reactor with NASA7 reaction heat release, jacket control, variable-volume destructive sampling losses, material/energy ledgers, tests, model card, docs, and public reactor API integration. |
 | `DEEP-D5D` | whilesunny | Done | Finite-difference kinetic parameter sensitivity reports with normalized response coefficients, uncertainty propagation summaries, explanation-task ranking hooks, tests, model card, and docs. |
 | `DEEP-D2A` | whilesunny | Done | Vapor-pressure families with Antoine and Wagner/DIPPR forms, analytic temperature derivatives, validity-domain enforcement, sublimation-pressure report support, curated coefficient provenance, tests, model card, and downstream flash/distillation/safety integration notes. |
+| `DEEP-D2B` | whilesunny | Claimed | Phase-tagged heat-capacity and enthalpy package with reference states, sensible enthalpy reports, latent-heat transitions, reactor/flash heat-duty integration notes, tests, model card, and provenance. |
 
 ## Module Families
 
