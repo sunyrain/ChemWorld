@@ -142,6 +142,23 @@ def test_runtime_phase_separation_service_is_separate_from_domain_services() -> 
     assert "downstream_truth_values" in phase_separation_services
 
 
+def test_runtime_electrochemical_service_is_separate_from_domain_services() -> None:
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+        encoding="utf-8"
+    )
+    electrochemical_services = Path(
+        "src/chemworld/runtime/electrochemical_services.py"
+    ).read_text(encoding="utf-8")
+
+    assert "def _set_potential" not in domain_services
+    assert "def _electrolyze" not in domain_services
+    assert "run_electrolysis" not in domain_services
+    assert "ElectrodeReactionSpec" not in domain_services
+    assert "class ChemWorldElectrochemicalServices" in electrochemical_services
+    assert "run_electrolysis" in electrochemical_services
+    assert "ElectrodeReactionSpec" in electrochemical_services
+
+
 def test_runtime_profile_requires_current_task_kernels_only() -> None:
     task = get_task("reaction-to-assay")
     profile = TaskRuntimeProfile.from_task(task)

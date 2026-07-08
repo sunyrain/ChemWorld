@@ -68,6 +68,7 @@ ChemWorldEnv
       -> DomainServices
       -> ReactionThermalServices
       -> PhaseSeparationServices
+      -> ElectrochemicalServices
       -> OperationRecordServices
       -> TransactionManager
       -> ConstitutionChecker
@@ -80,15 +81,16 @@ ChemWorldEnv
 - `ChemWorldEnv.step()` 只做 action canonicalize、validate、runtime dispatch、observation、reward/info 和 campaign bookkeeping。
 - `TaskRuntimeProfile` 声明当前任务需要哪些 operation、instrument、kernel 和 capability，不要求全局所有 kernel 都注册。
 - `OperationKernelRegistry` 把操作类型映射到小型 command handler。
-- `DomainServices` 承担仍在收敛中的结晶、蒸馏、流动、电化学和仪器成本计算。
+- `DomainServices` 承担仍在收敛中的结晶、蒸馏、流动和仪器成本计算。
 - `ReactionThermalServices` 承担反应 ODE 推进、heat/wait 积分、搅拌元数据、能量账本更新和压力/风险投影。
 - `PhaseSeparationServices` 承担 phase ledger 规范化、液液分配、萃取、静置、分相、洗涤、干燥、浓缩、转移和 downstream truth metadata。
+- `ElectrochemicalServices` 承担电位/电流设置、Nernst/Butler-Volmer 电解调用、法拉第转化、电功账本和电化学元数据。
 - `OperationRecordServices` 从 pre/post state 生成 `OperationRecord`、constitution checks、measurement cost、sample consumption 和 state-delta summary。
 - `ObservationServices` 承担 hidden state 到 partial observation 的映射，包括 noisy instrument signal、processed estimate、uncertainty 和观测时评分。
 - `TransactionManager` 统一提交 `StatePatch`，记录 `WorldEvent`，并在 constitution failure 时回滚 material ledger。
 - safety/cost 作为一等信号进入 `info["cost"]`、`info["cost_components"]` 和 leaderboard metrics。
 
-这次拆分之后，reaction/thermal advancement、phase/extraction workflow 和 operation record assembly 都不再混在同一个 state-changing domain services 中。专门服务负责各自物理过程，事务层负责提交或回滚，record service 负责把已接受的 pre/post state pair 写成可回放轨迹。
+这次拆分之后，reaction/thermal advancement、phase/extraction workflow、electrochemical conversion 和 operation record assembly 都不再混在同一个 state-changing domain services 中。专门服务负责各自物理过程，事务层负责提交或回滚，record service 负责把已接受的 pre/post state pair 写成可回放轨迹。
 
 ## 5. Mechanism Compiler
 
@@ -172,7 +174,7 @@ Operation  -> 单步实验动作
 
 最重要的技术债不是任务数量，而是专业底座深度：
 
-- `runtime/domain_services.py` 已经移出 observation/scoring、operation-record assembly、reaction/thermal advancement 和 phase/extraction workflow，但仍然偏宽，需要继续拆成 crystallization、distillation、flow、instrument-cost 和 electrochemistry 等服务模块；
+- `runtime/domain_services.py` 已经移出 observation/scoring、operation-record assembly、reaction/thermal advancement、phase/extraction workflow 和 electrochemical conversion，但仍然偏宽，需要继续拆成 crystallization、distillation、flow 和 instrument-cost 等服务模块；
 - `reaction_network.py`、`eos.py`、`equilibrium_chemistry.py`、`spectroscopy.py` 仍是较大模块，需要按算法族拆分；
 - reaction integration 仍有一部分历史 batch-reactor 数值假设，需要逐步完全由 mechanism spec 和 compiled mechanism 驱动；
 - separation、distillation、crystallization、flow、electrochemistry 目前是 benchmark-oriented semi-mechanistic models，还不是专业流程模拟器；
