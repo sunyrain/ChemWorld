@@ -238,21 +238,23 @@ _REFERENCE_BACKENDS: tuple[ReferenceBackendSpec, ...] = (
             "material and energy port organization",
             "flowsheet initialization patterns",
         ),
-        model_limit_notes=("IDAES is used as a design reference, not a required runtime backend."),
+        model_limit_notes=(
+            "IDAES is used as a design reference, not a required runtime backend.",
+        ),
     ),
     ReferenceBackendSpec(
         backend_id="teqp",
         package_name="teqp",
         local_repo_names=("teqp",),
         comparison_scope=("EOS architecture", "phase-envelope workflow patterns"),
-        model_limit_notes=("teqp may require compiled extensions before imports succeed."),
+        model_limit_notes=("teqp may require compiled extensions before imports succeed.",),
     ),
     ReferenceBackendSpec(
         backend_id="thermopack",
         package_name="thermopack",
         local_repo_names=("thermopack",),
         comparison_scope=("EOS architecture", "mixture and phase-envelope workflows"),
-        model_limit_notes=("thermopack usually requires compiled shared libraries."),
+        model_limit_notes=("thermopack usually requires compiled shared libraries.",),
     ),
     ReferenceBackendSpec(
         backend_id="rmg-py",
@@ -263,7 +265,7 @@ _REFERENCE_BACKENDS: tuple[ReferenceBackendSpec, ...] = (
             "Arrhenius and falloff rate-law taxonomy",
             "thermochemistry data organization",
         ),
-        model_limit_notes=("RMG-Py has a large optional dependency surface."),
+        model_limit_notes=("RMG-Py has a large optional dependency surface.",),
     ),
 )
 
