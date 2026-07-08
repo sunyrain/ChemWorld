@@ -33,8 +33,9 @@ Current scope:
   calculations with material and energy ledgers.
 - local equation-of-state calculations for ideal gas, Peng-Robinson, and SRK
   states with compressibility roots and fugacity coefficients.
-- phase-equilibrium utilities for activity coefficients, Raoult K-values,
-  isothermal flash, bubble/dew pressure, and liquid-liquid extraction splits.
+- phase-equilibrium utilities for ideal, Margules, Wilson, and NRTL activity
+  coefficients, Raoult K-values, isothermal flash, bubble/dew pressure, and
+  liquid-liquid extraction splits.
 - reaction-equilibrium and electrolyte utilities for mass-action reaction
   extents, van't Hoff equilibrium constants, weak-acid pH, water ion product,
   precipitation, charge balance, ionic strength, and solid solubility.

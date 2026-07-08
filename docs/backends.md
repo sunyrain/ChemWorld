@@ -39,5 +39,6 @@ Current executable checks compare ChemWorld with `chemicals`, `fluids`, and
 vapor-pressure points, curated Poling ideal-gas Cp and sensible enthalpy
 integrals, Reynolds number, Prandtl number, Haaland Darcy friction factor,
 single-phase Darcy-Weisbach pipe pressure drop, ideal Raoult-law bubble/dew
-pressure, and a controlled ideal two-phase TP flash. These tests skip by
-default and run only when `CHEMWORLD_RUN_REFERENCE_TESTS=1` is set.
+pressure, a controlled ideal two-phase TP flash, and fixed-parameter Wilson/NRTL
+activity coefficients. These tests skip by default and run only when
+`CHEMWORLD_RUN_REFERENCE_TESTS=1` is set.

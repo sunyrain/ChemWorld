@@ -262,7 +262,7 @@ small enough to audit and stable enough to run locally:
 | --- | --- | --- |
 | `chemicals` | ideal-gas molar volume via `chemicals.volume.ideal_gas`; Rachford-Rice vapor fraction and phase compositions via `chemicals.rachford_rice.Rachford_Rice_solution`; curated DIPPR101 vapor-pressure points via `chemicals.dippr.EQ101`; curated Poling ideal-gas Cp and sensible enthalpy integrals via `chemicals.dippr.EQ100` | `rtol=1e-12` |
 | `fluids` | Reynolds and Prandtl numbers via `fluids.core`; Haaland Darcy friction factor and single-phase pipe pressure drop via `fluids.friction` | `rtol=1e-12` |
-| `thermo` | ideal Raoult-law bubble/dew pressure and two-phase TP flash via `thermo.property_package.Ideal` with explicit constant vapor-pressure callables | `rtol=1e-12` for bubble/dew; `rtol=1e-11` for flash solver roundoff |
+| `thermo` | ideal Raoult-law bubble/dew pressure and two-phase TP flash via `thermo.property_package.Ideal` with explicit constant vapor-pressure callables; fixed-lambda Wilson gamma via `thermo.wilson.Wilson_gammas`; fixed tau/alpha NRTL gamma via `thermo.nrtl.NRTL_gammas_binaries` | `rtol=1e-12` for bubble/dew and gamma checks; `rtol=1e-11` for flash solver roundoff |
 
 Run the normal test path to confirm reference tests skip cleanly when optional
 backends are not enabled:
@@ -349,11 +349,22 @@ property correlations, and downstream separation tasks:
 
 | Equilibrium capability | Current implementation |
 | --- | --- |
-| Activity coefficients | ideal, Margules, and NRTL-lite models |
+| Activity coefficients | ideal, Margules, Wilson, and NRTL models |
 | Raoult K-values | activity-corrected `K_i = gamma_i Psat_i / phi_i P` |
 | Flash | Rachford-Rice vapor fraction and liquid/vapor compositions |
 | Bubble/dew pressure | iterative estimates with activity coefficients |
 | LLE stage | material-conserving extraction split with partition coefficients, phase volumes, stage efficiency, and entrainment |
+
+PRO-P4A hardens the nonideal activity path. Wilson and NRTL now use explicit
+directional pair-key parameters instead of unlabeled proxy matrices. Wilson
+supports fixed `Lambda_ij` values or temperature-dependent coefficient form
+`a + b/T + c ln(T) + dT + e/T^2 + fT^2`. NRTL supports fixed or
+temperature-dependent `tau_ij` terms, `alpha_ij` terms, and the standard
+`G_ij = exp(-alpha_ij tau_ij)` local-composition sum. Missing off-diagonal
+Wilson/NRTL interactions fail during `ActivityModelSpec` construction, so a
+nonideal model cannot silently fall back to ideal behavior. Optional reference
+tests compare the implemented gamma equations against `thermo.wilson` and
+`thermo.nrtl`.
 
 This is still compact, but it is enough to make future extraction, evaporation,
 distillation, solvent-screening, and purity/recovery tasks depend on shared

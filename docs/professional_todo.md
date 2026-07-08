@@ -41,7 +41,8 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
    PRO-P12A.
 3. Replace placeholder property examples with curated reference-checked
    compounds. Done in PRO-P2A.
-4. Implement Wilson and full binary NRTL with reference comparisons.
+4. Implement Wilson and full binary NRTL with reference comparisons. Done in
+   PRO-P4A.
 5. Add Cantera-comparable irreversible and reversible reaction ODE cases.
 6. Add a CSTR multiple-steady-state professional example.
 7. Replace simple distillation proxy with VLE-coupled shortcut distillation.
@@ -96,3 +97,22 @@ PRO-P2A is now implemented for the first reference-validated property slice:
 - Optional reference tests compare ChemWorld vapor pressure, ideal-gas Cp, and
   sensible enthalpy integrals against `chemicals.dippr.EQ101` and
   `chemicals.dippr.EQ100`.
+
+PRO-P4A is now implemented for the first reference-validated nonideal activity
+coefficient slice:
+
+- `ActivityModelSpec` now supports explicit `wilson` and `nrtl` models with
+  auditable parameter contracts.
+- Wilson uses directional `Lambda_ij` pair parameters, including optional
+  temperature-dependent `a + b/T + c ln(T) + dT + e/T^2 + fT^2` coefficients.
+- NRTL uses directional `tau_ij`, `alpha_ij`, and `G_ij` matrices and supports
+  binary or multicomponent mixtures through the same JSON-friendly pair-key
+  contract.
+- Missing Wilson/NRTL directional pairs and nonpositive Wilson/NRTL parameters
+  fail during spec construction or evaluation instead of silently reverting to
+  ideal behavior.
+- `activity_model_cards()` records equations, assumptions, validity limits,
+  failure modes, intended use, and optional `thermo` validation evidence.
+- Optional reference tests compare ChemWorld Wilson and NRTL gamma values
+  against `thermo.wilson.Wilson_gammas` and
+  `thermo.nrtl.NRTL_gammas_binaries`.

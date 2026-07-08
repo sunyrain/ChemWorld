@@ -9,10 +9,12 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from math import exp, isfinite
+from math import exp, isfinite, log
 from typing import Literal
 
-ActivityModel = Literal["ideal", "margules", "nrtl_lite"]
+from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
+
+ActivityModel = Literal["ideal", "margules", "wilson", "nrtl"]
 
 
 @dataclass(frozen=True)
@@ -25,7 +27,7 @@ class ActivityModelSpec:
     def __post_init__(self) -> None:
         if not self.model_id:
             raise ValueError("model_id cannot be empty")
-        if self.model not in {"ideal", "margules", "nrtl_lite"}:
+        if self.model not in {"ideal", "margules", "wilson", "nrtl"}:
             raise ValueError(f"Unsupported activity model: {self.model}")
         if not self.component_ids:
             raise ValueError("component_ids cannot be empty")
@@ -33,6 +35,7 @@ class ActivityModelSpec:
             raise ValueError("Duplicate component ids are not allowed")
         if any(not isfinite(value) for value in self.parameters.values()):
             raise ValueError("activity-model parameters must be finite")
+        _validate_activity_parameter_contract(self)
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -90,9 +93,172 @@ def activity_coefficients(
         return dict.fromkeys(spec.component_ids, 1.0)
     if spec.model == "margules":
         return _margules_gamma(spec, x)
-    if spec.model == "nrtl_lite":
-        return _nrtl_lite_gamma(spec, x)
+    if spec.model == "wilson":
+        return _wilson_gamma(spec, x, temperature_K=temperature_K)
+    if spec.model == "nrtl":
+        return _nrtl_gamma(spec, x, temperature_K=temperature_K)
     raise ValueError(f"Unsupported activity model: {spec.model}")
+
+
+def activity_model_cards() -> tuple[ModelCard, ...]:
+    """Return model cards for the implemented activity-coefficient models."""
+
+    return (
+        ModelCard(
+            model_id="wilson_activity_coefficients",
+            module_id="phase_equilibrium",
+            title="Wilson Activity Coefficients",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "JSON-friendly Wilson gamma model for VLE-oriented benchmark "
+                "tasks with explicit asymmetric interaction parameters."
+            ),
+            equations=(
+                "ln(gamma_i) = 1 - ln(sum_j x_j Lambda_ij) - "
+                "sum_j x_j Lambda_ji / sum_k x_k Lambda_jk",
+                "Lambda_ij = exp(a_ij + b_ij/T + c_ij ln(T) + "
+                "d_ij T + e_ij/T**2 + f_ij T**2)",
+            ),
+            assumptions=(
+                "Liquid mole fractions are normalized before evaluation.",
+                "All off-diagonal Wilson interactions are directional and must "
+                "be declared explicitly.",
+                "Wilson is intended for liquid-phase VLE activity coefficients, "
+                "not LLE prediction.",
+            ),
+            validity_limits=(
+                "Requires positive finite Lambda values for all off-diagonal "
+                "pairs.",
+                "Temperature-dependent coefficients are accepted but only "
+                "validated on fixed-lambda benchmark cases.",
+            ),
+            failure_modes=(
+                "Missing directional interaction parameters fail during spec "
+                "construction.",
+                "Nonpositive Lambda values fail before gamma evaluation.",
+                "Near-singular composition sums raise validation errors rather "
+                "than being clipped.",
+            ),
+            units={
+                "temperature": "K",
+                "composition": "mole fraction",
+                "gamma": "dimensionless",
+                "lambda_a/lambda_c": "dimensionless",
+                "lambda_b": "K",
+                "lambda_d": "1/K",
+                "lambda_e": "K^2",
+                "lambda_f": "1/K^2",
+            },
+            reference_reading=(
+                "reference_repos/thermo/thermo/wilson.py: Wilson_gammas and "
+                "Wilson class",
+                "reference_repos/phasepy/phasepy/actmodels/wilson.py: compact "
+                "ln gamma API",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="thermo-wilson-binary-gammas",
+                    evidence_type="optional_reference_test",
+                    description=(
+                        "Compares fixed-lambda Wilson activity coefficients "
+                        "against thermo.wilson.Wilson_gammas."
+                    ),
+                    status="implemented",
+                    reference_backend="thermo",
+                    command_or_path=(
+                        "tests/reference/test_optional_reference_backends.py"
+                    ),
+                    tolerance="rtol=1e-12",
+                ),
+            ),
+            model_limit_notes=(
+                "This card validates the gamma equations and parameter contract; "
+                "it is not a complete Wilson parameter database.",
+            ),
+            intended_use=(
+                "Reference-validated nonideal VLE benchmark slices.",
+                "Solvent and volatility tasks where liquid nonideality matters.",
+            ),
+        ),
+        ModelCard(
+            model_id="nrtl_activity_coefficients",
+            module_id="phase_equilibrium",
+            title="NRTL Activity Coefficients",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "General asymmetric NRTL gamma model for binary and "
+                "multicomponent benchmark mixtures."
+            ),
+            equations=(
+                "tau_ij = A_ij + B_ij/T + E_ij ln(T) + F_ij T + "
+                "G_ij/T**2 + H_ij T**2",
+                "alpha_ij = c_ij + d_ij T",
+                "G_ij = exp(-alpha_ij tau_ij)",
+                "ln(gamma_i) follows the standard local-composition NRTL sum "
+                "over directional pair interactions.",
+            ),
+            assumptions=(
+                "Liquid mole fractions are normalized before evaluation.",
+                "Every off-diagonal tau and alpha interaction is directional "
+                "and explicit.",
+                "The current validation covers binary fixed-parameter cases; "
+                "the implementation supports any number of components.",
+            ),
+            validity_limits=(
+                "Requires positive alpha values for off-diagonal pairs.",
+                "Temperature-dependent tau/alpha coefficients are accepted but "
+                "need system-specific validation.",
+            ),
+            failure_modes=(
+                "Missing tau or alpha parameters fail during spec construction.",
+                "Nonpositive alpha values fail before gamma evaluation.",
+                "Singular NRTL denominator states raise validation errors rather "
+                "than being clipped.",
+            ),
+            units={
+                "temperature": "K",
+                "composition": "mole fraction",
+                "gamma": "dimensionless",
+                "tau_a/tau_e/alpha_c": "dimensionless",
+                "tau_b": "K",
+                "tau_f": "1/K",
+                "tau_g": "K^2",
+                "tau_h": "1/K^2",
+                "alpha_d": "1/K",
+            },
+            reference_reading=(
+                "reference_repos/thermo/thermo/nrtl.py: NRTL_gammas_binaries "
+                "and NRTL class",
+                "reference_repos/phasepy/phasepy/actmodels/nrtl.py: compact "
+                "matrix tau/G API",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="thermo-nrtl-binary-gammas",
+                    evidence_type="optional_reference_test",
+                    description=(
+                        "Compares fixed binary NRTL activity coefficients "
+                        "against thermo.nrtl.NRTL_gammas_binaries."
+                    ),
+                    status="implemented",
+                    reference_backend="thermo",
+                    command_or_path=(
+                        "tests/reference/test_optional_reference_backends.py"
+                    ),
+                    tolerance="rtol=1e-12",
+                ),
+            ),
+            model_limit_notes=(
+                "This card validates the NRTL equation path and parameter "
+                "contract; it does not provide a public interaction-parameter "
+                "database.",
+            ),
+            intended_use=(
+                "Reference-validated nonideal VLE/LLE benchmark slices.",
+                "Future solvent-selection and liquid-phase separation tasks.",
+            ),
+        ),
+    )
 
 
 def raoult_k_values(
@@ -298,7 +464,35 @@ def _margules_gamma(spec: ActivityModelSpec, x: tuple[float, ...]) -> dict[str, 
     return gamma
 
 
-def _nrtl_lite_gamma(spec: ActivityModelSpec, x: tuple[float, ...]) -> dict[str, float]:
+def _wilson_gamma(
+    spec: ActivityModelSpec,
+    x: tuple[float, ...],
+    *,
+    temperature_K: float,
+) -> dict[str, float]:
+    lambdas = _wilson_lambda_matrix(spec, temperature_K)
+    n = len(spec.component_ids)
+    sums = []
+    for i in range(n):
+        total = sum(x[j] * lambdas[i][j] for j in range(n))
+        if total <= 0.0 or not isfinite(total):
+            raise ValueError("Wilson lambda composition sum must be positive")
+        sums.append(total)
+
+    gamma = {}
+    for i, component_id in enumerate(spec.component_ids):
+        log_gamma = 1.0 - log(sums[i])
+        log_gamma -= sum(x[j] * lambdas[j][i] / sums[j] for j in range(n))
+        gamma[component_id] = exp(log_gamma)
+    return gamma
+
+
+def _nrtl_gamma(
+    spec: ActivityModelSpec,
+    x: tuple[float, ...],
+    *,
+    temperature_K: float,
+) -> dict[str, float]:
     n = len(spec.component_ids)
     tau = [[0.0 for _ in range(n)] for _ in range(n)]
     g = [[1.0 for _ in range(n)] for _ in range(n)]
@@ -306,30 +500,212 @@ def _nrtl_lite_gamma(spec: ActivityModelSpec, x: tuple[float, ...]) -> dict[str,
         for j, right in enumerate(spec.component_ids):
             if i == j:
                 continue
-            tau[i][j] = _pair_parameter(spec, left, right, prefix="tau")
-            alpha = _pair_parameter(spec, left, right, prefix="alpha", default=0.3)
+            tau[i][j] = _nrtl_tau(spec, left, right, temperature_K)
+            alpha = _nrtl_alpha(spec, left, right, temperature_K)
+            if alpha <= 0.0:
+                raise ValueError("NRTL alpha values must be positive")
             g[i][j] = exp(-alpha * tau[i][j])
 
     gamma = {}
     for i, component_id in enumerate(spec.component_ids):
-        first = 0.0
-        for j in range(n):
-            denominator = sum(x[k] * g[k][j] for k in range(n))
-            if denominator > 0:
-                first += x[j] * tau[j][i] * g[j][i] / denominator
+        denominator_i = sum(x[k] * g[k][i] for k in range(n))
+        if denominator_i <= 0.0 or not isfinite(denominator_i):
+            raise ValueError("NRTL denominator must be positive")
+        first = sum(x[j] * tau[j][i] * g[j][i] for j in range(n)) / denominator_i
         second = 0.0
         for j in range(n):
             denominator = sum(x[k] * g[k][j] for k in range(n))
             weighted_tau = sum(x[m] * tau[m][j] * g[m][j] for m in range(n))
-            if denominator > 0:
-                second += (
-                    x[j]
-                    * g[i][j]
-                    / denominator
-                    * (tau[i][j] - weighted_tau / denominator)
-                )
+            if denominator <= 0.0 or not isfinite(denominator):
+                raise ValueError("NRTL denominator must be positive")
+            second += (
+                x[j]
+                * g[i][j]
+                / denominator
+                * (tau[i][j] - weighted_tau / denominator)
+            )
         gamma[component_id] = exp(first + second)
     return gamma
+
+
+def _wilson_lambda_matrix(
+    spec: ActivityModelSpec,
+    temperature_K: float,
+) -> list[list[float]]:
+    component_ids = spec.component_ids
+    n = len(component_ids)
+    matrix = [[1.0 for _ in range(n)] for _ in range(n)]
+    for i, left in enumerate(component_ids):
+        for j, right in enumerate(component_ids):
+            if i == j:
+                continue
+            value = _wilson_lambda(spec, left, right, temperature_K)
+            if value <= 0.0 or not isfinite(value):
+                raise ValueError("Wilson Lambda values must be finite and positive")
+            matrix[i][j] = value
+    return matrix
+
+
+def _wilson_lambda(
+    spec: ActivityModelSpec,
+    left: str,
+    right: str,
+    temperature_K: float,
+) -> float:
+    direct = _directional_parameter(spec, "lambda", left, right, default=None)
+    if direct is not None:
+        return direct
+    exponent = (
+        _directional_value(spec, "lambda_a", left, right, default=0.0)
+        + _directional_value(spec, "lambda_b", left, right, default=0.0)
+        / temperature_K
+        + _directional_value(spec, "lambda_c", left, right, default=0.0)
+        * log(temperature_K)
+        + _directional_value(spec, "lambda_d", left, right, default=0.0)
+        * temperature_K
+        + _directional_value(spec, "lambda_e", left, right, default=0.0)
+        / temperature_K**2
+        + _directional_value(spec, "lambda_f", left, right, default=0.0)
+        * temperature_K**2
+    )
+    return exp(exponent)
+
+
+def _nrtl_tau(
+    spec: ActivityModelSpec,
+    left: str,
+    right: str,
+    temperature_K: float,
+) -> float:
+    direct = _directional_parameter(spec, "tau", left, right, default=None)
+    if direct is not None:
+        return direct
+    return (
+        _directional_value(spec, "tau_a", left, right, default=0.0)
+        + _directional_value(spec, "tau_b", left, right, default=0.0)
+        / temperature_K
+        + _directional_value(spec, "tau_e", left, right, default=0.0)
+        * log(temperature_K)
+        + _directional_value(spec, "tau_f", left, right, default=0.0)
+        * temperature_K
+        + _directional_value(spec, "tau_g", left, right, default=0.0)
+        / temperature_K**2
+        + _directional_value(spec, "tau_h", left, right, default=0.0)
+        * temperature_K**2
+    )
+
+
+def _nrtl_alpha(
+    spec: ActivityModelSpec,
+    left: str,
+    right: str,
+    temperature_K: float,
+) -> float:
+    direct = _directional_parameter(spec, "alpha", left, right, default=None)
+    if direct is not None:
+        return direct
+    return (
+        _directional_value(spec, "alpha_c", left, right, default=0.0)
+        + _directional_value(spec, "alpha_d", left, right, default=0.0)
+        * temperature_K
+    )
+
+
+def _validate_activity_parameter_contract(spec: ActivityModelSpec) -> None:
+    if spec.model in {"ideal", "margules"}:
+        return
+    for left in spec.component_ids:
+        for right in spec.component_ids:
+            if left == right:
+                continue
+            if spec.model == "wilson":
+                _validate_pair_has_any(
+                    spec,
+                    left,
+                    right,
+                    (
+                        "lambda",
+                        "lambda_a",
+                        "lambda_b",
+                        "lambda_c",
+                        "lambda_d",
+                        "lambda_e",
+                        "lambda_f",
+                    ),
+                )
+                direct = _directional_parameter(spec, "lambda", left, right, default=None)
+                if direct is not None and direct <= 0.0:
+                    raise ValueError("Wilson Lambda values must be positive")
+            if spec.model == "nrtl":
+                _validate_pair_has_any(
+                    spec,
+                    left,
+                    right,
+                    ("tau", "tau_a", "tau_b", "tau_e", "tau_f", "tau_g", "tau_h"),
+                )
+                _validate_pair_has_any(
+                    spec,
+                    left,
+                    right,
+                    ("alpha", "alpha_c", "alpha_d"),
+                )
+                direct_alpha = _directional_parameter(
+                    spec,
+                    "alpha",
+                    left,
+                    right,
+                    default=None,
+                )
+                if direct_alpha is not None and direct_alpha <= 0.0:
+                    raise ValueError("NRTL alpha values must be positive")
+
+
+def _validate_pair_has_any(
+    spec: ActivityModelSpec,
+    left: str,
+    right: str,
+    prefixes: tuple[str, ...],
+) -> None:
+    if not any(_has_directional_parameter(spec, prefix, left, right) for prefix in prefixes):
+        allowed = ", ".join(prefixes)
+        raise ValueError(
+            f"{spec.model} requires one of {{{allowed}}} for pair {left}|{right}"
+        )
+
+
+def _has_directional_parameter(
+    spec: ActivityModelSpec,
+    prefix: str,
+    left: str,
+    right: str,
+) -> bool:
+    return f"{prefix}:{left}|{right}" in spec.parameters
+
+
+def _directional_parameter(
+    spec: ActivityModelSpec,
+    prefix: str,
+    left: str,
+    right: str,
+    *,
+    default: float | None,
+) -> float | None:
+    key = f"{prefix}:{left}|{right}"
+    if key not in spec.parameters:
+        return default
+    return float(spec.parameters[key])
+
+
+def _directional_value(
+    spec: ActivityModelSpec,
+    prefix: str,
+    left: str,
+    right: str,
+    *,
+    default: float,
+) -> float:
+    value = _directional_parameter(spec, prefix, left, right, default=None)
+    return default if value is None else value
 
 
 def _pair_parameter(
@@ -389,6 +765,7 @@ __all__ = [
     "FlashResult",
     "LLEStageResult",
     "activity_coefficients",
+    "activity_model_cards",
     "bubble_pressure_pa",
     "dew_pressure_pa",
     "flash_isothermal",

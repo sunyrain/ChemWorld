@@ -23,7 +23,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Reaction networks | Lite | YAML/JSON mechanisms, stoichiometric checks, rate-law tests | Cantera-style thermochemistry, falloff, pressure dependence |
 | Reactor models | Lite | batch, semi-batch, CSTR, PFR tests | professional reactor-network validation and multiple-steady-state examples |
 | EOS | Lite | ideal gas, PR, SRK tests | residual properties and reference validation against CoolProp/thermo/teqp |
-| Phase equilibrium | Lite | ideal VLE, NRTL-lite, LLE split tests | full Wilson/NRTL/UNIQUAC, phase stability, nonideal reference cases |
+| Phase equilibrium | Lite with a reference-validated Wilson/NRTL gamma slice | ideal VLE, Wilson/NRTL gamma checks against `thermo`, LLE split tests | UNIQUAC, phase stability, nonideal VLE/LLE task cases |
 | Separations | Proxy/lite | material-conserving extraction, flash, distillation, crystallization, filtration, drying tests | rigorous equipment models and thermodynamic coupling |
 | Transport and heat transfer | Lite with reference-validated pipe-flow slice | dimensionless numbers, explicit friction methods, `fluids` Haaland and single-phase pipe-pressure-drop optional checks | broader `fluids` comparisons, heat-transfer validation, and validity maps |
 | Equilibrium chemistry | Lite/proxy | mass-action, acid/base, precipitation tests | Reaktoro-style Gibbs minimization and database-backed equilibria |
@@ -102,3 +102,6 @@ copying the reference implementations.
 - PRO-P2A is implemented: the first curated property slice has model-card
   metadata and optional `chemicals` reference checks for DIPPR101 vapor
   pressure, Poling ideal-gas Cp, and sensible enthalpy integrals.
+- PRO-P4A is implemented: the first nonideal activity-coefficient slice has
+  Wilson/NRTL model cards, explicit directional pair-parameter contracts, and
+  optional `thermo` reference checks for binary gamma values.

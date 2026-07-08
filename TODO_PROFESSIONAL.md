@@ -65,7 +65,7 @@ Every professional module must ship:
 | PRO-P0 maturity metadata and model-card templates | whilesunny | Done | IDAES, thermo, Cantera, Gymnasium-style metadata | `src/chemworld/physchem/maturity.py`, `src/chemworld/tasks.py`, `docs/physchem_maturity_audit.md`, tests | next: claim PRO-P12A or PRO-P2A for reference-validated numerical hardening | this commit |
 | PRO-P12A fluids friction factor and pressure-drop validation | whilesunny | Done | `fluids.friction`, `fluids.core`, Haaland and Darcy-Weisbach references | `src/chemworld/physchem/transport.py`, `src/chemworld/physchem/reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend pressure-drop validation to heat-transfer correlations or claim PRO-P2A | this commit |
 | PRO-P2A curated vapor-pressure and enthalpy property cases | whilesunny | Done | `chemicals.vapor_pressure`, `chemicals.heat_capacity`, `chemicals.dippr`, `thermo.heat_capacity` | `src/chemworld/physchem/curated_properties.py`, `src/chemworld/physchem/properties.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend the curated registry toward critical properties, liquid Cp, latent heat, and CoolProp checks | this commit |
-| PRO-P4A Wilson and full binary NRTL activity models | whilesunny | Claimed | `thermo.activity`, `thermo.nrtl`, `phasepy`, `thermopack` | `src/chemworld/physchem/equilibrium.py`, reference tests, model cards, docs | read local activity-model APIs, then replace NRTL-lite with explicit Wilson/NRTL parameter contracts and reference checks | pending push |
+| PRO-P4A Wilson and full binary NRTL activity models | whilesunny | Done | `thermo.activity`, `thermo.wilson`, `thermo.nrtl`, `phasepy.actmodels` | `src/chemworld/physchem/equilibrium.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add nonideal VLE task cases and Wilson/NRTL parameter-library governance | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -201,8 +201,8 @@ Reference targets: `thermo`, `phasepy`, `thermopack`.
 
 - [ ] Activity models:
   - [ ] Margules formal model card;
-  - [ ] Wilson;
-  - [ ] NRTL full binary/ternary form;
+  - [x] Wilson;
+  - [x] NRTL full binary/ternary form;
   - [ ] UNIQUAC;
   - [ ] UNIFAC-style extension only after data governance is solved.
 - [ ] Phase stability:
@@ -220,7 +220,8 @@ Reference targets: `thermo`, `phasepy`, `thermopack`.
 Acceptance:
 
 - [ ] Ideal VLE stays reference validated against `thermo`.
-- [ ] At least one nonideal binary case compares against `thermo` or `phasepy`.
+- [x] At least one nonideal binary case compares against `thermo` or `phasepy`
+      for the Wilson/NRTL gamma slice.
 - [ ] LLE solver conserves mass and reports stability/initialization failures.
 
 ## P5: Reaction Thermochemistry And Kinetics
@@ -477,9 +478,28 @@ Reference-reading note for PRO-P2A:
 - `thermo.vapor_pressure.VaporPressure` informed the separation between a
   component-local method registry, validity ranges, and method selection. The
   current ChemWorld slice remains curated rather than a full property database.
+
+Reference-reading note for PRO-P4A:
+
+- `thermo.activity.GibbsExcess` separates state, cached activity coefficients,
+  excess Gibbs energy, derivatives, and JSON-friendly model metadata.
+- `thermo.wilson.Wilson_gammas` documents the standard Wilson gamma equation
+  and the directional `Lambda_ij` matrix; ChemWorld localizes this as explicit
+  pair-key parameters instead of a heavy object hierarchy.
+- `thermo.wilson.Wilson` supports temperature-dependent `Lambda_ij` through
+  `a + b/T + c ln(T) + dT + e/T^2 + fT^2`; ChemWorld implements the same
+  coefficient contract with strict missing-pair validation.
+- `thermo.nrtl.NRTL_gammas_binaries` and `thermo.nrtl.NRTL` document the
+  directional `tau_ij`, `alpha_ij`, and `G_ij = exp(-alpha_ij tau_ij)` sums;
+  ChemWorld implements the general multicomponent form and validates binary
+  examples against `thermo`.
+- `phasepy.actmodels.wilson` and `phasepy.actmodels.nrtl` expose compact
+  `ln gamma` functions over matrices. ChemWorld adopts the compact API spirit
+  while keeping plain JSON-friendly specs and model cards.
+
 - [ ] `thermo`:
   - [x] ideal Raoult VLE bubble/dew/TP flash;
-  - [ ] nonideal activity-coefficient case;
+  - [x] nonideal activity-coefficient case;
   - [ ] cubic EOS mixture case;
   - [ ] property-package enthalpy case.
 - [ ] `CoolProp`:
@@ -523,7 +543,7 @@ Acceptance:
 3. `PRO-P2A`: Replace placeholder vapor-pressure/enthalpy examples with
    curated reference-checked compounds. Done.
 4. `PRO-P4A`: Implement Wilson and full binary NRTL with reference comparisons.
-   Claimed by whilesunny.
+   Done.
 5. `PRO-P5A`: Add Cantera-comparable irreversible and reversible reaction ODE
    cases.
 6. `PRO-P6A`: Add CSTR multiple-steady-state professional example.

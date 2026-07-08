@@ -8,6 +8,7 @@ from chemworld.physchem import (
     ActivityModelSpec,
     FluidState,
     PipeSpec,
+    activity_coefficients,
     bubble_pressure_pa,
     compare_scalar,
     curated_property_cases,
@@ -108,6 +109,102 @@ def test_fluids_dimensionless_number_reference() -> None:
         ),
     )
     summary = summarize_reference_comparisons(comparisons)
+    assert summary["all_passed"], summary
+
+
+def test_thermo_wilson_and_nrtl_activity_references() -> None:
+    thermo_wilson = _reference_module("thermo.wilson", repo_names=("thermo",))
+    thermo_nrtl = _reference_module("thermo.nrtl", repo_names=("thermo",))
+
+    wilson_model = ActivityModelSpec(
+        "wilson_reference_ab",
+        ("A", "B"),
+        "wilson",
+        {
+            "lambda:A|B": 0.154,
+            "lambda:B|A": 0.888,
+        },
+    )
+    wilson_composition = {"A": 0.252, "B": 0.748}
+    wilson_gamma = activity_coefficients(
+        wilson_model,
+        wilson_composition,
+        temperature_K=300.0,
+    )
+    wilson_reference = thermo_wilson.Wilson_gammas(
+        [wilson_composition["A"], wilson_composition["B"]],
+        [[1.0, 0.154], [0.888, 1.0]],
+    )
+
+    nrtl_model = ActivityModelSpec(
+        "nrtl_reference_ab",
+        ("A", "B"),
+        "nrtl",
+        {
+            "tau:A|B": 0.1759,
+            "tau:B|A": 0.7991,
+            "alpha:A|B": 0.2,
+            "alpha:B|A": 0.3,
+        },
+    )
+    nrtl_points = (
+        {"A": 0.1, "B": 0.9},
+        {"A": 0.3, "B": 0.7},
+        {"A": 0.85, "B": 0.15},
+    )
+    nrtl_reference = thermo_nrtl.NRTL_gammas_binaries(
+        [value for point in nrtl_points for value in (point["A"], point["B"])],
+        0.1759,
+        0.7991,
+        0.2,
+        0.3,
+    )
+
+    comparisons = [
+        compare_scalar(
+            check_id="thermo-wilson-gamma-A",
+            backend_id="thermo",
+            quantity="wilson_activity_coefficient",
+            chemworld_value=wilson_gamma["A"],
+            reference_value=wilson_reference[0],
+            unit="dimensionless",
+            rtol=1e-12,
+            note="Fixed-lambda Wilson gamma for component A.",
+        ),
+        compare_scalar(
+            check_id="thermo-wilson-gamma-B",
+            backend_id="thermo",
+            quantity="wilson_activity_coefficient",
+            chemworld_value=wilson_gamma["B"],
+            reference_value=wilson_reference[1],
+            unit="dimensionless",
+            rtol=1e-12,
+            note="Fixed-lambda Wilson gamma for component B.",
+        ),
+    ]
+    for point_index, point in enumerate(nrtl_points):
+        nrtl_gamma = activity_coefficients(
+            nrtl_model,
+            point,
+            temperature_K=310.0,
+        )
+        for component_index, component_id in enumerate(("A", "B")):
+            comparisons.append(
+                compare_scalar(
+                    check_id=f"thermo-nrtl-gamma-{point_index}-{component_id}",
+                    backend_id="thermo",
+                    quantity="nrtl_activity_coefficient",
+                    chemworld_value=nrtl_gamma[component_id],
+                    reference_value=nrtl_reference[
+                        point_index * 2 + component_index
+                    ],
+                    unit="dimensionless",
+                    rtol=1e-12,
+                    note="Fixed tau/alpha binary NRTL gamma.",
+                )
+            )
+
+    summary = summarize_reference_comparisons(tuple(comparisons))
     assert summary["all_passed"], summary
 
 
