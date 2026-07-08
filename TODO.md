@@ -22,6 +22,7 @@ finished, update its status and push immediately.
 | P4 reactor model core | whilesunny | Done | `src/chemworld/physchem/reactors.py`, `tests/`, `docs/physchem_core_design.md` | next: replace selected task/world transition paths with mechanism-backed reactor kernels, then start P5 EOS | this commit |
 | P5 equation-of-state core | whilesunny | Done | `src/chemworld/physchem/eos.py`, `tests/`, `docs/physchem_core_design.md` | next: build activity models and VLE/LLE flash on top of EOS and property packages | this commit |
 | P6 phase-equilibrium core | whilesunny | Done | `src/chemworld/physchem/equilibrium.py`, `tests/`, `docs/physchem_core_design.md` | next: replace extraction and evaporation task proxies with phase-equilibrium kernels, then start P7 separations | this commit |
+| P7 separation and unit operations | whilesunny | Active | `src/chemworld/physchem/separations.py`, `tests/`, `docs/physchem_core_design.md` | read separation references, then implement LLE stages, evaporation, distillation, crystallization, filtration, and drying with material/cost/risk ledgers | pending |
 
 Status values:
 
