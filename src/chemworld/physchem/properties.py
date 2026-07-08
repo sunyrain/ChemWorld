@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from math import exp, isfinite, log
+from math import exp, isfinite, log, sqrt
 from typing import Literal
 
 from chemworld.foundation.units import Quantity, convert_value
@@ -22,6 +22,14 @@ _HEAT_ENTHALPY_REFERENCE_READING = (
     "temperature correction",
     "reference_repos/thermo/thermo/chemical.py: phase-reference enthalpy "
     "paths across melting and boiling transitions",
+)
+_VOLUME_REFERENCE_READING = (
+    "reference_repos/chemicals/chemicals/volume.py: Rackett liquid molar "
+    "volume, Amgat liquid-mixture rule, ideal_gas, and CRC virial data notes",
+    "reference_repos/chemicals/chemicals/virial.py: second-virial gas-volume "
+    "families and mixture hooks",
+    "reference_repos/thermo/thermo/volume.py: VolumeLiquid, VolumeGas, and "
+    "VolumeLiquidMixture method organization and validity policy",
 )
 
 ValidityPolicy = Literal["warn", "raise", "ignore"]
@@ -115,6 +123,113 @@ class VaporPressureReport:
             "method_family": self.method_family,
             "validity_status": self.validity_status,
             "reference_reading": list(self.reference_reading),
+        }
+
+
+@dataclass(frozen=True)
+class MolarVolumeReport:
+    """Molar volume, optional density, and compressibility diagnostics."""
+
+    evaluation: PropertyEvaluation
+    phase: str
+    method_family: str
+    density_kg_m3: float | None = None
+    compressibility_factor: float | None = None
+    compressibility_status: str = "not_applicable"
+    reference_reading: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        _validate_phase(self.phase)
+        if self.evaluation.property_id not in {
+            "liquid_molar_volume",
+            "gas_molar_volume",
+        }:
+            raise ValueError("MolarVolumeReport requires a molar-volume property")
+        molar_volume = self.evaluation.to("m^3/mol").value
+        if molar_volume <= 0 or not isfinite(molar_volume):
+            raise ValueError("molar volume must be positive and finite")
+        if self.density_kg_m3 is not None and self.density_kg_m3 <= 0:
+            raise ValueError("density_kg_m3 must be positive when provided")
+        if self.compressibility_factor is not None and (
+            self.compressibility_factor <= 0
+            or not isfinite(self.compressibility_factor)
+        ):
+            raise ValueError("compressibility_factor must be positive and finite")
+        if self.compressibility_status not in {
+            "ideal",
+            "low_correction",
+            "moderate_correction",
+            "large_correction",
+            "not_applicable",
+        }:
+            raise ValueError("invalid compressibility_status")
+        object.__setattr__(self, "reference_reading", tuple(self.reference_reading))
+
+    @property
+    def molar_volume_m3_mol(self) -> float:
+        return self.evaluation.to("m^3/mol").value
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "property": self.evaluation.to_dict(),
+            "phase": self.phase,
+            "method_family": self.method_family,
+            "molar_volume_m3_mol": self.molar_volume_m3_mol,
+            "density_kg_m3": self.density_kg_m3,
+            "compressibility_factor": self.compressibility_factor,
+            "compressibility_status": self.compressibility_status,
+            "reference_reading": list(self.reference_reading),
+        }
+
+
+@dataclass(frozen=True)
+class MixtureVolumeLedger:
+    """Amgat-style mixture molar-volume ledger."""
+
+    ledger_id: str
+    phase: str
+    contributions: dict[str, dict[str, float]]
+    mixture_molar_volume_m3_mol: float
+    mixture_density_kg_m3: float | None = None
+    warnings: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not self.ledger_id:
+            raise ValueError("ledger_id cannot be empty")
+        _validate_phase(self.phase)
+        if not self.contributions:
+            raise ValueError("MixtureVolumeLedger requires contributions")
+        if self.mixture_molar_volume_m3_mol <= 0:
+            raise ValueError("mixture_molar_volume_m3_mol must be positive")
+        if self.mixture_density_kg_m3 is not None and self.mixture_density_kg_m3 <= 0:
+            raise ValueError("mixture_density_kg_m3 must be positive when provided")
+        recomputed = sum(
+            entry["mole_fraction"] * entry["molar_volume_m3_mol"]
+            for entry in self.contributions.values()
+        )
+        if abs(recomputed - self.mixture_molar_volume_m3_mol) > 1e-12:
+            raise ValueError("mixture molar volume must match contributions")
+        object.__setattr__(
+            self,
+            "contributions",
+            {
+                component_id: dict(contribution)
+                for component_id, contribution in self.contributions.items()
+            },
+        )
+        object.__setattr__(self, "warnings", tuple(self.warnings))
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "ledger_id": self.ledger_id,
+            "phase": self.phase,
+            "contributions": {
+                component_id: dict(contribution)
+                for component_id, contribution in self.contributions.items()
+            },
+            "mixture_molar_volume_m3_mol": self.mixture_molar_volume_m3_mol,
+            "mixture_density_kg_m3": self.mixture_density_kg_m3,
+            "warnings": list(self.warnings),
         }
 
 
@@ -761,6 +876,246 @@ def mixture_enthalpy_ledger(
     )
 
 
+def molar_volume_to_density_kg_m3(
+    molar_volume_m3_mol: float,
+    molecular_weight_g_mol: float,
+) -> float:
+    """Convert molar volume to mass density."""
+
+    if molar_volume_m3_mol <= 0:
+        raise ValueError("molar_volume_m3_mol must be positive")
+    if molecular_weight_g_mol <= 0:
+        raise ValueError("molecular_weight_g_mol must be positive")
+    return molecular_weight_g_mol / 1000.0 / molar_volume_m3_mol
+
+
+def density_to_molar_volume_m3_mol(
+    density_kg_m3: float,
+    molecular_weight_g_mol: float,
+) -> float:
+    """Convert mass density to molar volume."""
+
+    if density_kg_m3 <= 0:
+        raise ValueError("density_kg_m3 must be positive")
+    if molecular_weight_g_mol <= 0:
+        raise ValueError("molecular_weight_g_mol must be positive")
+    return molecular_weight_g_mol / 1000.0 / density_kg_m3
+
+
+def molar_volume_report(
+    correlation: PropertyCorrelation,
+    *,
+    temperature_K: float,
+    phase: str,
+    molecular_weight_g_mol: float | None = None,
+    validity_policy: ValidityPolicy = "warn",
+) -> MolarVolumeReport:
+    """Evaluate a liquid or correlation-based molar-volume report."""
+
+    _validate_phase(phase)
+    if correlation.property_id not in {
+        "liquid_molar_volume",
+        "gas_molar_volume",
+    }:
+        raise ValueError("molar_volume_report requires a molar-volume property")
+    result = evaluate_correlation(
+        correlation,
+        temperature_K=temperature_K,
+        validity_policy=validity_policy,
+    )
+    density = (
+        molar_volume_to_density_kg_m3(result.to("m^3/mol").value, molecular_weight_g_mol)
+        if molecular_weight_g_mol is not None
+        else None
+    )
+    return MolarVolumeReport(
+        evaluation=result,
+        phase=phase,
+        density_kg_m3=density,
+        method_family=_molar_volume_method_family(correlation.equation_id),
+        compressibility_status="not_applicable",
+        reference_reading=_VOLUME_REFERENCE_READING,
+    )
+
+
+def ideal_gas_molar_volume_report(
+    *,
+    temperature_K: float,
+    pressure_Pa: float,
+    molecular_weight_g_mol: float | None = None,
+) -> MolarVolumeReport:
+    """Ideal-gas molar volume with optional density conversion."""
+
+    if temperature_K <= 0:
+        raise ValueError("temperature_K must be positive")
+    if pressure_Pa <= 0:
+        raise ValueError("pressure_Pa must be positive")
+    molar_volume = R_J_PER_MOL_K * temperature_K / pressure_Pa
+    density = (
+        molar_volume_to_density_kg_m3(molar_volume, molecular_weight_g_mol)
+        if molecular_weight_g_mol is not None
+        else None
+    )
+    return MolarVolumeReport(
+        evaluation=PropertyEvaluation(
+            property_id="gas_molar_volume",
+            correlation_id="ideal_gas_molar_volume",
+            equation_id="ideal_gas_law",
+            value=molar_volume,
+            unit="m^3/mol",
+            inputs={"temperature": temperature_K, "pressure": pressure_Pa},
+        ),
+        phase="gas",
+        method_family="ideal_gas",
+        density_kg_m3=density,
+        compressibility_factor=1.0,
+        compressibility_status="ideal",
+        reference_reading=_VOLUME_REFERENCE_READING,
+    )
+
+
+def second_virial_coefficient_report(
+    correlation: PropertyCorrelation,
+    *,
+    temperature_K: float,
+    validity_policy: ValidityPolicy = "warn",
+) -> PropertyEvaluation:
+    """Evaluate a second virial coefficient in m^3/mol."""
+
+    if correlation.property_id != "second_virial_coefficient":
+        raise ValueError(
+            "second_virial_coefficient_report requires second_virial_coefficient"
+        )
+    result = evaluate_correlation(
+        correlation,
+        temperature_K=temperature_K,
+        validity_policy=validity_policy,
+    )
+    return result.to("m^3/mol")
+
+
+def virial_gas_molar_volume_report(
+    *,
+    temperature_K: float,
+    pressure_Pa: float,
+    second_virial_m3_mol: float,
+    molecular_weight_g_mol: float | None = None,
+    warning_threshold: float = 0.05,
+) -> MolarVolumeReport:
+    """Second-virial gas molar volume from Z = 1 + B/Vm."""
+
+    if temperature_K <= 0:
+        raise ValueError("temperature_K must be positive")
+    if pressure_Pa <= 0:
+        raise ValueError("pressure_Pa must be positive")
+    if warning_threshold <= 0:
+        raise ValueError("warning_threshold must be positive")
+    rt = R_J_PER_MOL_K * temperature_K
+    discriminant = rt * rt + 4.0 * pressure_Pa * rt * second_virial_m3_mol
+    if discriminant <= 0:
+        raise ValueError("second virial coefficient gives no positive gas-volume root")
+    molar_volume = (rt + sqrt(discriminant)) / (2.0 * pressure_Pa)
+    if molar_volume <= 0:
+        raise ValueError("virial gas molar volume root must be positive")
+    z_factor = pressure_Pa * molar_volume / rt
+    correction = abs(second_virial_m3_mol / molar_volume)
+    if correction <= 1e-12:
+        status = "ideal"
+    elif correction <= warning_threshold:
+        status = "low_correction"
+    elif correction <= 4.0 * warning_threshold:
+        status = "moderate_correction"
+    else:
+        status = "large_correction"
+    density = (
+        molar_volume_to_density_kg_m3(molar_volume, molecular_weight_g_mol)
+        if molecular_weight_g_mol is not None
+        else None
+    )
+    return MolarVolumeReport(
+        evaluation=PropertyEvaluation(
+            property_id="gas_molar_volume",
+            correlation_id="second_virial_gas_molar_volume",
+            equation_id="second_virial_volume_root",
+            value=molar_volume,
+            unit="m^3/mol",
+            inputs={
+                "temperature": temperature_K,
+                "pressure": pressure_Pa,
+                "second_virial_m3_mol": second_virial_m3_mol,
+            },
+        ),
+        phase="gas",
+        method_family="second_virial",
+        density_kg_m3=density,
+        compressibility_factor=z_factor,
+        compressibility_status=status,
+        reference_reading=_VOLUME_REFERENCE_READING,
+    )
+
+
+def mixture_molar_volume_ledger(
+    *,
+    component_mole_fractions: Mapping[str, float],
+    component_molar_volumes_m3_mol: Mapping[str, float],
+    component_molecular_weights_g_mol: Mapping[str, float] | None = None,
+    phase: str = "liquid",
+    ledger_id: str = "mixture_molar_volume_ledger",
+) -> MixtureVolumeLedger:
+    """Amgat-style mole-fraction mixture molar volume ledger."""
+
+    _validate_phase(phase)
+    if not component_mole_fractions:
+        raise ValueError("component_mole_fractions cannot be empty")
+    total_fraction = sum(component_mole_fractions.values())
+    if abs(total_fraction - 1.0) > 1e-9:
+        raise ValueError("component mole fractions must sum to 1")
+    contributions: dict[str, dict[str, float]] = {}
+    mixture_molar_volume = 0.0
+    average_mw = 0.0
+    for component_id, mole_fraction in component_mole_fractions.items():
+        if mole_fraction < 0:
+            raise ValueError(f"negative mole fraction for {component_id!r}")
+        if component_id not in component_molar_volumes_m3_mol:
+            raise ValueError(f"missing molar volume for {component_id!r}")
+        molar_volume = component_molar_volumes_m3_mol[component_id]
+        if molar_volume <= 0:
+            raise ValueError(f"molar volume must be positive for {component_id!r}")
+        contribution = mole_fraction * molar_volume
+        mixture_molar_volume += contribution
+        entry = {
+            "mole_fraction": mole_fraction,
+            "molar_volume_m3_mol": molar_volume,
+            "volume_contribution_m3_mol": contribution,
+        }
+        if component_molecular_weights_g_mol is not None:
+            if component_id not in component_molecular_weights_g_mol:
+                raise ValueError(f"missing molecular weight for {component_id!r}")
+            mw = component_molecular_weights_g_mol[component_id]
+            if mw <= 0:
+                raise ValueError(
+                    f"molecular weight must be positive for {component_id!r}"
+                )
+            average_mw += mole_fraction * mw
+            entry["molecular_weight_g_mol"] = mw
+        contributions[component_id] = entry
+    density = (
+        molar_volume_to_density_kg_m3(mixture_molar_volume, average_mw)
+        if component_molecular_weights_g_mol is not None
+        else None
+    )
+    return MixtureVolumeLedger(
+        ledger_id=ledger_id,
+        phase=phase,
+        contributions=contributions,
+        mixture_molar_volume_m3_mol=mixture_molar_volume,
+        mixture_density_kg_m3=density,
+        warnings=(
+            "Amgat ideal-volume mixing; no excess volume contribution included.",
+        ),
+    )
+
+
 def mixture_density(
     mixture: MixtureSpec,
     component_densities_kg_m3: tuple[float, ...],
@@ -923,6 +1278,30 @@ def _evaluate_equation(
         pressure = pressure_Pa if pressure_Pa is not None else STANDARD_PRESSURE_PA
         mw_kg_mol = molecular_weight_g_mol / 1000.0
         return pressure * mw_kg_mol / (R_J_PER_MOL_K * temperature_K)
+    if equation == "rackett_liquid_molar_volume":
+        Tc = coeffs["Tc"]
+        Pc = coeffs["Pc"]
+        Zc = coeffs["Zc"]
+        if Tc <= 0 or Pc <= 0 or Zc <= 0:
+            raise ValueError("Rackett requires positive Tc, Pc, and Zc")
+        if temperature_K >= Tc:
+            raise ValueError("Rackett liquid molar volume requires T < Tc")
+        exponent = 1.0 + (1.0 - temperature_K / Tc) ** (2.0 / 7.0)
+        return R_J_PER_MOL_K * Tc / Pc * Zc**exponent
+    if equation == "crc_second_virial":
+        t = 298.15 / T - 1.0
+        return 1e-6 * (
+            coeffs.get("a1", 0.0)
+            + t
+            * (
+                coeffs.get("a2", 0.0)
+                + t
+                * (
+                    coeffs.get("a3", 0.0)
+                    + t * (coeffs.get("a4", 0.0) + t * coeffs.get("a5", 0.0))
+                )
+            )
+        )
     if equation == "andrade_viscosity":
         return coeffs["A"] * exp(coeffs["B"] / T)
     if equation == "sutherland_gas_viscosity":
@@ -1174,6 +1553,93 @@ def property_correlation_model_cards() -> tuple[ModelCard, ...]:
                 "latent heat contributions with provenance.",
             ),
         ),
+        ModelCard(
+            model_id="density_molar_volume_package",
+            module_id="properties",
+            title="Density And Molar-Volume Package",
+            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            summary=(
+                "Liquid Rackett molar volume, ideal-gas and second-virial gas "
+                "volume reports, density/molar-volume conversion helpers, and "
+                "Amgat-style mixture volume ledgers."
+            ),
+            equations=(
+                "Rackett: Vm = R Tc/Pc * Zc**(1 + (1 - T/Tc)**(2/7)).",
+                "Ideal gas: Vm = R T/P, Z = 1.",
+                "CRC second virial polynomial: B = (a1 + t(a2 + t(a3 + "
+                "t(a4 + a5 t))))*1e-6, t = 298.15/T - 1.",
+                "Virial gas root: P Vm^2 - R T Vm - R T B = 0.",
+                "Amgat mixture: Vm_mix = sum_i x_i Vm_i.",
+            ),
+            assumptions=(
+                "Liquid Rackett reports are low-pressure saturated-liquid style "
+                "estimates and require caller-supplied critical constants.",
+                "Virial gas reports are intended for low to moderate density; "
+                "compressibility status is reported from |B/Vm|.",
+                "Mixture volume ledger assumes zero excess volume.",
+            ),
+            validity_limits=(
+                "Rackett hard-fails at or above Tc and does not apply a "
+                "compressed-liquid Tait correction.",
+                "Only a CRC-style second-virial coefficient polynomial hook is "
+                "implemented; broader Tsonopoulos/Pitzer families are future "
+                "deepening work.",
+                "No bulk component density database is vendored.",
+            ),
+            failure_modes=(
+                "Nonpositive Tc, Pc, Zc, temperature, pressure, density, "
+                "molecular weight, or molar volume raises ValueError.",
+                "Virial roots fail when the quadratic has no positive gas "
+                "molar-volume root.",
+                "Mixture ledgers fail on fraction mismatch, missing component "
+                "volume, or missing molecular weight.",
+            ),
+            units={
+                "temperature": "K",
+                "pressure": "Pa",
+                "molar_volume": "m^3/mol",
+                "density": "kg/m^3",
+                "molecular_weight": "g/mol",
+                "second_virial": "m^3/mol",
+            },
+            reference_reading=_VOLUME_REFERENCE_READING,
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="rackett-liquid-volume-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks Rackett liquid molar volume and density "
+                        "conversion against a hand calculation."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_physchem_properties.py",
+                    tolerance="rtol=1e-12",
+                ),
+                ValidationEvidence(
+                    evidence_id="virial-gas-volume-root-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks the second-virial gas-volume quadratic root, "
+                        "compressibility factor, and warning status."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_physchem_properties.py",
+                    tolerance="rtol=1e-12",
+                ),
+            ),
+            model_limit_notes=(
+                "This is a density/molar-volume ledger slice for ChemWorld "
+                "tasks. It is not CoolProp density coverage, compressed-liquid "
+                "Tait modeling, COSTALD mixture fitting, or a full virial "
+                "correlation library.",
+            ),
+            intended_use=(
+                "Flash, distillation, extraction, and safety tasks that need "
+                "auditable volume/density values.",
+                "Benchmark records that need compressibility status instead of "
+                "unlabeled gas-density corrections.",
+            ),
+        ),
     )
 
 
@@ -1360,6 +1826,8 @@ def _ensure_finite_positive(value: float, correlation: PropertyCorrelation) -> N
         "solid_heat_capacity",
         "heat_of_vaporization",
         "heat_of_fusion",
+        "liquid_molar_volume",
+        "gas_molar_volume",
         "liquid_density",
         "gas_density",
         "liquid_viscosity",
@@ -1380,6 +1848,14 @@ def _vapor_pressure_method_family(equation_id: str) -> str:
         return "Antoine"
     if equation_id == "wagner":
         return "Wagner"
+    return equation_id
+
+
+def _molar_volume_method_family(equation_id: str) -> str:
+    if equation_id == "rackett_liquid_molar_volume":
+        return "Rackett"
+    if equation_id == "crc_second_virial":
+        return "CRC second virial"
     return equation_id
 
 

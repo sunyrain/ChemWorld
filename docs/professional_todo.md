@@ -159,6 +159,28 @@ DEEP-D2B is now implemented for phase-aware heat capacity and enthalpy:
   heat-capacity database, EOS departure enthalpy model, or pressure-corrected
   thermodynamic package.
 
+DEEP-D2C is now implemented for density and molar-volume reports:
+
+- `molar_volume_report()` evaluates caller-supplied liquid molar-volume
+  correlations and returns phase, method family, optional density conversion,
+  validity warnings, and reference-reading provenance.
+- The Rackett liquid-volume equation is supported through explicit `Tc`, `Pc`,
+  and `Zc` coefficients with a hard failure at or above the critical
+  temperature.
+- `ideal_gas_molar_volume_report()` and `virial_gas_molar_volume_report()`
+  expose ideal and second-virial gas-volume paths with compressibility factor
+  and correction-status metadata.
+- `second_virial_coefficient_report()` supports a compact CRC-style polynomial
+  hook for caller-supplied virial coefficients.
+- `mixture_molar_volume_ledger()` closes an Amgat-style mole-fraction volume
+  balance and optionally reports mixture density from component molecular
+  weights.
+- Tests cover the propane Rackett sanity case, gas density round trips,
+  virial-root failures, mixture closure, and the density/molar-volume model
+  card.
+- This is a compact property-reporting slice, not a broad DIPPR116/COSTALD
+  database, pressure-corrected liquid-density package, or CoolProp replacement.
+
 PRO-P4A is now implemented for the first reference-validated nonideal activity
 coefficient slice:
 

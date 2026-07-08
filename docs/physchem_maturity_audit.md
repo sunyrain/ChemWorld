@@ -204,3 +204,10 @@ copying the reference implementations.
   contributions, and explanation rankings, and tests compare the first-order
   product sensitivity against the analytical expression. This is not an
   adjoint/global sensitivity package.
+- DEEP-D2C is implemented for the first density/molar-volume package:
+  Rackett liquid molar volume, ideal-gas molar volume, second-virial gas volume
+  roots, CRC-style virial coefficient hooks, density/molar-volume conversion,
+  and Amgat-style mixture volume ledgers are available with explicit units,
+  compressibility status, tests, and model-card evidence. This is not a broad
+  liquid-density database, pressure-corrected volume backend, or CoolProp
+  replacement.

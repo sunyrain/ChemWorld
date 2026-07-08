@@ -69,6 +69,16 @@ _EQUATION_CONTRACTS: dict[str, dict[str, object]] = {
         "input_dimensions": {"temperature": "temperature", "pressure": "pressure"},
         "output_dimension": "mass_density",
     },
+    "rackett_liquid_molar_volume": {
+        "required_coefficients": {"Tc", "Pc", "Zc"},
+        "input_dimensions": {"temperature": "temperature"},
+        "output_dimension": "molar_volume",
+    },
+    "crc_second_virial": {
+        "required_coefficients": {"a1"},
+        "input_dimensions": {"temperature": "temperature"},
+        "output_dimension": "molar_volume",
+    },
     "andrade_viscosity": {
         "required_coefficients": {"A", "B"},
         "input_dimensions": {"temperature": "temperature"},

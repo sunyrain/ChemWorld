@@ -8,28 +8,37 @@ from chemworld.physchem import (
     MaturityLevel,
     MixtureEnthalpyLedger,
     MixtureSpec,
+    MixtureVolumeLedger,
+    MolarVolumeReport,
     PhaseEnthalpyReport,
     PhaseTransitionSpec,
     PropertyCorrelation,
     curated_property_case_map,
     curated_property_model_cards,
     curated_property_package,
+    density_to_molar_volume_m3_mol,
     evaluate_correlation,
     heat_capacity_report,
+    ideal_gas_molar_volume_report,
     list_curated_property_packages,
     mixture_density,
     mixture_enthalpy_ledger,
+    mixture_molar_volume_ledger,
     mixture_viscosity_log_rule,
+    molar_volume_report,
+    molar_volume_to_density_kg_m3,
     phase_path_enthalpy_report,
     phase_sensible_enthalpy_report,
     phase_transition_enthalpy,
     property_correlation_model_cards,
     resolve_component_identifier,
+    second_virial_coefficient_report,
     sensible_enthalpy_change,
     thermal_hazard_proxy,
     validate_model_card,
     vapor_pressure_report,
     vapor_pressure_temperature_derivative,
+    virial_gas_molar_volume_report,
     volatility_risk_from_psat,
 )
 
@@ -475,6 +484,135 @@ def test_ideal_gas_density_uses_component_molecular_weight() -> None:
     assert value.value == pytest.approx(1.786, rel=0.02)
 
 
+def test_rackett_molar_volume_report_and_density_conversion() -> None:
+    propane_rackett = PropertyCorrelation(
+        correlation_id="propane_rackett",
+        property_id="liquid_molar_volume",
+        equation_id="rackett_liquid_molar_volume",
+        coefficients={"Tc": 369.83, "Pc": 4248000.0, "Zc": 0.2763},
+        input_units={"temperature": "K"},
+        output_unit="m^3/mol",
+        validity_ranges={"temperature": (90.0, 369.0)},
+        metadata={"phase": "liquid"},
+    )
+    report = molar_volume_report(
+        propane_rackett,
+        temperature_K=272.03889,
+        phase="liquid",
+        molecular_weight_g_mol=44.09562,
+        validity_policy="raise",
+    )
+
+    expected_vm = (
+        8.31446261815324
+        * 369.83
+        / 4248000.0
+        * 0.2763 ** (1.0 + (1.0 - 272.03889 / 369.83) ** (2.0 / 7.0))
+    )
+    assert isinstance(report, MolarVolumeReport)
+    assert report.method_family == "Rackett"
+    assert report.molar_volume_m3_mol == pytest.approx(expected_vm)
+    assert report.density_kg_m3 == pytest.approx(531.322141, rel=1e-6)
+    assert molar_volume_to_density_kg_m3(expected_vm, 44.09562) == pytest.approx(
+        report.density_kg_m3
+    )
+    assert density_to_molar_volume_m3_mol(report.density_kg_m3, 44.09562) == pytest.approx(
+        expected_vm
+    )
+
+
+def test_ideal_and_virial_gas_molar_volume_reports() -> None:
+    ideal = ideal_gas_molar_volume_report(
+        temperature_K=300.0,
+        pressure_Pa=101325.0,
+        molecular_weight_g_mol=44.01,
+    )
+    virial_correlation = PropertyCorrelation(
+        correlation_id="co2_crc_second_virial_demo",
+        property_id="second_virial_coefficient",
+        equation_id="crc_second_virial",
+        coefficients={"a1": -100.0, "a2": 20.0},
+        input_units={"temperature": "K"},
+        output_unit="m^3/mol",
+        validity_ranges={"temperature": (250.0, 600.0)},
+    )
+    second_virial = second_virial_coefficient_report(
+        virial_correlation,
+        temperature_K=298.15,
+        validity_policy="raise",
+    )
+    virial = virial_gas_molar_volume_report(
+        temperature_K=298.15,
+        pressure_Pa=101325.0,
+        second_virial_m3_mol=second_virial.value,
+        molecular_weight_g_mol=44.01,
+    )
+
+    rt = 8.31446261815324 * 298.15
+    expected_root = (rt + (rt * rt + 4.0 * 101325.0 * rt * second_virial.value) ** 0.5) / (
+        2.0 * 101325.0
+    )
+    assert ideal.compressibility_status == "ideal"
+    assert ideal.compressibility_factor == pytest.approx(1.0)
+    assert second_virial.value == pytest.approx(-100e-6)
+    assert virial.molar_volume_m3_mol == pytest.approx(expected_root)
+    assert virial.compressibility_factor == pytest.approx(101325.0 * expected_root / rt)
+    assert virial.compressibility_status == "low_correction"
+    assert virial.density_kg_m3 > ideal.density_kg_m3
+
+
+def test_mixture_molar_volume_ledger_closes_amgat_rule() -> None:
+    ledger = mixture_molar_volume_ledger(
+        component_mole_fractions={"water": 0.4, "ethanol": 0.6},
+        component_molar_volumes_m3_mol={"water": 18.1e-6, "ethanol": 58.7e-6},
+        component_molecular_weights_g_mol={"water": 18.01528, "ethanol": 46.06844},
+        phase="liquid",
+        ledger_id="aqueous_organic_volume_check",
+    )
+
+    expected_vm = 0.4 * 18.1e-6 + 0.6 * 58.7e-6
+    expected_mw = 0.4 * 18.01528 + 0.6 * 46.06844
+    assert isinstance(ledger, MixtureVolumeLedger)
+    assert ledger.mixture_molar_volume_m3_mol == pytest.approx(expected_vm)
+    assert ledger.mixture_density_kg_m3 == pytest.approx(
+        molar_volume_to_density_kg_m3(expected_vm, expected_mw)
+    )
+    assert ledger.contributions["ethanol"]["volume_contribution_m3_mol"] == pytest.approx(
+        0.6 * 58.7e-6
+    )
+    assert ledger.warnings
+
+
+def test_density_molar_volume_failures_are_explicit() -> None:
+    bad_rackett = PropertyCorrelation(
+        correlation_id="bad_rackett",
+        property_id="liquid_molar_volume",
+        equation_id="rackett_liquid_molar_volume",
+        coefficients={"Tc": 400.0, "Pc": 4.0e6, "Zc": 0.27},
+        input_units={"temperature": "K"},
+        output_unit="m^3/mol",
+    )
+
+    with pytest.raises(ValueError, match="T < Tc"):
+        molar_volume_report(
+            bad_rackett,
+            temperature_K=410.0,
+            phase="liquid",
+            validity_policy="raise",
+        )
+    with pytest.raises(ValueError, match="no positive gas-volume root"):
+        virial_gas_molar_volume_report(
+            temperature_K=300.0,
+            pressure_Pa=5.0e6,
+            second_virial_m3_mol=-0.1,
+        )
+    with pytest.raises(ValueError, match="sum to 1"):
+        mixture_molar_volume_ledger(
+            component_mole_fractions={"a": 0.4, "b": 0.4},
+            component_molar_volumes_m3_mol={"a": 1e-5, "b": 2e-5},
+        )
+
+
 def test_component_property_package_selects_valid_correlation() -> None:
     water = _water()
     low_range = PropertyCorrelation(
@@ -677,7 +815,7 @@ def test_curated_property_model_card_is_auditable() -> None:
 
 def test_property_correlation_model_card_is_auditable() -> None:
     cards = property_correlation_model_cards()
-    assert len(cards) == 2
+    assert len(cards) == 3
     card_map = {card.model_id: card for card in cards}
     card = card_map["vapor_pressure_correlation_families"]
     assert card.model_id == "vapor_pressure_correlation_families"
@@ -700,4 +838,14 @@ def test_property_correlation_model_card_is_auditable() -> None:
     } >= {
         "phase-cp-integral-regression-test",
         "phase-transition-ledger-test",
+    }
+    volume_card = card_map["density_molar_volume_package"]
+    assert volume_card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert validate_model_card(volume_card) == []
+    assert any("Rackett" in equation for equation in volume_card.equations)
+    assert {
+        evidence.evidence_id for evidence in volume_card.validation_evidence
+    } >= {
+        "rackett-liquid-volume-test",
+        "virial-gas-volume-root-test",
     }

@@ -193,11 +193,11 @@ Reference targets: `chemicals`, `thermo`, `CoolProp`.
   - [x] solid Cp where needed;
   - [x] enthalpy integrals with reference states;
   - [x] latent heat correlations.
-- [ ] Density/volume:
-  - [ ] liquid molar volume;
-  - [ ] Rackett-style correlation;
-  - [ ] ideal gas and virial hooks;
-  - [ ] mixture density with validity limits.
+- [x] Density/volume:
+  - [x] liquid molar volume;
+  - [x] Rackett-style correlation;
+  - [x] ideal gas and virial hooks;
+  - [x] mixture density with validity limits.
 - [ ] Transport properties:
   - [ ] gas viscosity;
   - [ ] liquid viscosity;
@@ -257,6 +257,26 @@ Reference-reading note for DEEP-D2B:
 - This closes the reactor/flash heat-duty ledger slice. It does not add broad
   Zabransky/Lastovka/tabular heat-capacity methods, EOS departure enthalpy,
   pressure corrections, or large latent-heat databases.
+
+Reference-reading note for DEEP-D2C:
+
+- `reference_repos/chemicals/chemicals/volume.py` exposes ideal-gas, virial,
+  Rackett, COSTALD, Yamada-Gunn, and Amgat-style liquid/mixture volume
+  patterns. ChemWorld localizes the Rackett liquid-volume equation, ideal-gas
+  molar-volume report, second-virial volume-root hook, and Amgat mixture
+  molar-volume ledger without vendoring reference property tables.
+- `reference_repos/chemicals/chemicals/virial.py` documents second-virial
+  coefficient families and CRC polynomial forms. ChemWorld implements a compact
+  caller-supplied CRC polynomial evaluator and explicit real-root failure for
+  invalid virial gas-volume states.
+- `reference_repos/thermo/thermo/volume.py` separates pure-liquid, gas, and
+  mixture volume method dispatch. ChemWorld keeps a smaller benchmark-facing
+  contract: reports expose molar volume, optional density, compressibility
+  factor/status, validity warnings, model-card provenance, and explicit
+  density/molar-volume conversion helpers.
+- This closes the first density/molar-volume slice. It does not add broad
+  DIPPR116/COSTALD/Yamada-Gunn tables, pressure-corrected liquid volume,
+  corresponding-states gas density, or CoolProp-level density backends.
 
 ## P3: EOS And Residual Thermodynamics
 

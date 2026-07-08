@@ -48,6 +48,8 @@ _UNIT_TABLE: dict[str, tuple[str, str, float, float]] = {
     "J/(mol*K)": ("molar_heat_capacity", "J/(mol*K)", 1.0, 0.0),
     "kJ/(mol*K)": ("molar_heat_capacity", "J/(mol*K)", 1000.0, 0.0),
     "g/mol": ("molecular_weight", "g/mol", 1.0, 0.0),
+    "m^3/mol": ("molar_volume", "m^3/mol", 1.0, 0.0),
+    "L/mol": ("molar_volume", "m^3/mol", 0.001, 0.0),
     "kg/m^3": ("mass_density", "kg/m^3", 1.0, 0.0),
     "g/mL": ("mass_density", "kg/m^3", 1000.0, 0.0),
     "Pa*s": ("dynamic_viscosity", "Pa*s", 1.0, 0.0),

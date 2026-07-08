@@ -571,6 +571,32 @@ validation. This is still a constant-density liquid-phase batch slice: no
 constant-pressure expansion, gas work, pressure dynamics, wall thermal inertia,
 or VLE phase change is claimed.
 
+## Density And Molar Volume
+
+DEEP-D2C adds the first professional density/volume property-reporting slice in
+`chemworld.physchem.properties`.
+
+| Capability | Current implementation |
+| --- | --- |
+| Liquid molar volume | Rackett equation with explicit `Tc`, `Pc`, `Zc`, temperature bounds, and SI `m^3/mol` output |
+| Density conversion | `molar_volume_to_density_kg_m3()` and `density_to_molar_volume_m3_mol()` with explicit molecular-weight units |
+| Ideal gas | `ideal_gas_molar_volume_report()` with `Z = 1`, optional gas density, and ledger-ready inputs |
+| Virial gas | CRC-style second-virial polynomial hook plus a second-virial molar-volume root and compressibility status |
+| Mixture volume | Amgat-style mole-fraction molar-volume closure with optional mixture density |
+| Provenance | density/molar-volume model card and local reference-reading notes for `chemicals.volume`, `chemicals.virial`, and `thermo.volume` |
+
+The API is deliberately report-oriented rather than table-oriented:
+`MolarVolumeReport` carries the `PropertyEvaluation`, phase, method family,
+optional density, compressibility factor, compressibility warning status, and
+reference-reading provenance. `MixtureVolumeLedger` records component mole
+fractions, component molar volumes, each `x_i V_i` contribution, the summed
+mixture molar volume, optional density, and any closure warning.
+
+This is enough for flash, distillation, separation, and reactor tasks to stop
+using unlabeled density proxies. It is not yet a pressure-corrected liquid
+volume backend, a COSTALD/DIPPR116/Yamada-Gunn database, or a CoolProp-level
+density package.
+
 ## Equation-Of-State Core
 
 The P5 EOS core is implemented in `chemworld.physchem.eos`. It gives ChemWorld a

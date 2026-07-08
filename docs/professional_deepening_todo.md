@@ -34,7 +34,7 @@ with proxies and then call them professional.
 | `DEEP-D5D` | whilesunny | Done | Finite-difference kinetic parameter sensitivity reports with normalized response coefficients, uncertainty propagation summaries, explanation-task ranking hooks, tests, model card, and docs. |
 | `DEEP-D2A` | whilesunny | Done | Vapor-pressure families with Antoine and Wagner/DIPPR forms, analytic temperature derivatives, validity-domain enforcement, sublimation-pressure report support, curated coefficient provenance, tests, model card, and downstream flash/distillation/safety integration notes. |
 | `DEEP-D2B` | whilesunny | Done | Phase-tagged heat-capacity and enthalpy package with reference states, sensible enthalpy reports, signed latent-heat transitions, mixture enthalpy ledgers for reactor/flash heat duties, tests, model card, and provenance. |
-| `DEEP-D2C` | whilesunny | Claimed | Density and molar-volume package with Rackett liquid volume, ideal/virial gas hooks, mixture specific-volume ledgers, compressibility warnings, tests, model card, and provenance. |
+| `DEEP-D2C` | whilesunny | Done | Density and molar-volume package with Rackett liquid volume, ideal/virial gas hooks, mixture specific-volume ledgers, compressibility warnings, tests, model card, and provenance. |
 
 ## Module Families
 
