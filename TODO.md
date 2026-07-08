@@ -59,6 +59,7 @@ finished, update its status and push immediately.
 | Reaction-network rate-law split | whilesunny | Done | `src/chemworld/physchem/`, tests/docs | rate-law constants, parameter validation, mass-action/Arrhenius/reversible-rate helpers, and reaction lookup now live in `reaction_rate_laws.py` | this commit |
 | Reaction-network reference-case split | whilesunny | Done | `src/chemworld/physchem/`, tests/docs | analytical ODE reference cases, Cantera-comparable fixtures, and reference-case evaluation now live in `reaction_reference_cases.py` | this commit |
 | Runtime v2 golden characterization | whilesunny | Done | `tests/`, runtime/env docs | scripted golden final-assay trajectories now cover all formal tasks, including campaign/single-experiment semantics and runtime transaction metadata | this commit |
+| Runtime v2 import and dispatch boundary audit | whilesunny | Active | `src/chemworld/envs/`, `src/chemworld/runtime/`, tests/docs | enforce that env/runtime do not import the removed batch runtime and ChemWorldEnv does not inline process-operation dispatch | this commit |
 
 Status values:
 
