@@ -31,6 +31,18 @@ _VOLUME_REFERENCE_READING = (
     "reference_repos/thermo/thermo/volume.py: VolumeLiquid, VolumeGas, and "
     "VolumeLiquidMixture method organization and validity policy",
 )
+_TRANSPORT_REFERENCE_READING = (
+    "reference_repos/chemicals/chemicals/viscosity.py: Andrade-like pure "
+    "viscosity families and Wilke gas-mixture viscosity rule",
+    "reference_repos/chemicals/chemicals/thermal_conductivity.py: DIPPR9B gas "
+    "conductivity and DIPPR9H/DIPPR9I liquid-mixture conductivity rules",
+    "reference_repos/thermo/thermo/viscosity.py and thermal_conductivity.py: "
+    "method-governance organization for pure and mixture transport properties",
+    "reference_repos/idaes-pse/.../viscosity_wilke.py: process-model Wilke "
+    "callback pattern for gas-mixture viscosity",
+    "reference_repos/idaes-pse/.../gas_phase_thermo.py: Fuller-style gas "
+    "diffusivity scaling and mixture-diffusivity closure",
+)
 
 ValidityPolicy = Literal["warn", "raise", "ignore"]
 PhaseLabel = Literal["solid", "liquid", "gas"]
@@ -230,6 +242,109 @@ class MixtureVolumeLedger:
             "mixture_molar_volume_m3_mol": self.mixture_molar_volume_m3_mol,
             "mixture_density_kg_m3": self.mixture_density_kg_m3,
             "warnings": list(self.warnings),
+        }
+
+
+@dataclass(frozen=True)
+class TransportPropertyReport:
+    """Transport property value with validity and uncertainty metadata."""
+
+    evaluation: PropertyEvaluation
+    phase: str
+    method_family: str
+    validity_status: str
+    relative_uncertainty: float | None = None
+    uncertainty_note: str = ""
+    reference_reading: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        _validate_phase(self.phase)
+        if self.evaluation.property_id not in {
+            "liquid_viscosity",
+            "gas_viscosity",
+            "mixture_viscosity",
+            "thermal_conductivity",
+            "mixture_thermal_conductivity",
+            "binary_gas_diffusivity",
+            "effective_gas_diffusivity",
+            "thermal_diffusivity",
+        }:
+            raise ValueError("TransportPropertyReport requires a transport property")
+        if self.evaluation.value <= 0 or not isfinite(self.evaluation.value):
+            raise ValueError("transport property value must be positive and finite")
+        if self.validity_status not in {"valid", "out_of_range", "estimated"}:
+            raise ValueError("invalid transport validity_status")
+        if self.relative_uncertainty is not None and (
+            self.relative_uncertainty < 0 or not isfinite(self.relative_uncertainty)
+        ):
+            raise ValueError("relative_uncertainty must be nonnegative when provided")
+        object.__setattr__(self, "reference_reading", tuple(self.reference_reading))
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "property": self.evaluation.to_dict(),
+            "phase": self.phase,
+            "method_family": self.method_family,
+            "validity_status": self.validity_status,
+            "relative_uncertainty": self.relative_uncertainty,
+            "uncertainty_note": self.uncertainty_note,
+            "reference_reading": list(self.reference_reading),
+        }
+
+
+@dataclass(frozen=True)
+class MixtureTransportLedger:
+    """Mixture transport-property ledger with method-specific contributions."""
+
+    ledger_id: str
+    phase: str
+    property_id: str
+    method_family: str
+    unit: str
+    mixture_value: float
+    contributions: dict[str, dict[str, float]]
+    warnings: tuple[str, ...] = ()
+    reference_reading: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not self.ledger_id:
+            raise ValueError("ledger_id cannot be empty")
+        _validate_phase(self.phase)
+        if self.property_id not in {
+            "mixture_viscosity",
+            "mixture_thermal_conductivity",
+            "effective_gas_diffusivity",
+        }:
+            raise ValueError("MixtureTransportLedger requires a mixture transport property")
+        if self.mixture_value <= 0 or not isfinite(self.mixture_value):
+            raise ValueError("mixture_value must be positive and finite")
+        if not self.contributions:
+            raise ValueError("MixtureTransportLedger requires contributions")
+        object.__setattr__(
+            self,
+            "contributions",
+            {
+                component_id: dict(contribution)
+                for component_id, contribution in self.contributions.items()
+            },
+        )
+        object.__setattr__(self, "warnings", tuple(self.warnings))
+        object.__setattr__(self, "reference_reading", tuple(self.reference_reading))
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "ledger_id": self.ledger_id,
+            "phase": self.phase,
+            "property_id": self.property_id,
+            "method_family": self.method_family,
+            "unit": self.unit,
+            "mixture_value": self.mixture_value,
+            "contributions": {
+                component_id: dict(contribution)
+                for component_id, contribution in self.contributions.items()
+            },
+            "warnings": list(self.warnings),
+            "reference_reading": list(self.reference_reading),
         }
 
 
@@ -1172,6 +1287,384 @@ def mixture_viscosity_log_rule(
     )
 
 
+def transport_property_report(
+    correlation: PropertyCorrelation,
+    *,
+    temperature_K: float,
+    phase: str,
+    pressure_Pa: float | None = None,
+    molecular_weight_g_mol: float | None = None,
+    validity_policy: ValidityPolicy = "warn",
+    relative_uncertainty: float | None = None,
+    uncertainty_note: str = "",
+) -> TransportPropertyReport:
+    """Evaluate a pure-component transport property with method metadata."""
+
+    _validate_phase(phase)
+    if correlation.property_id not in {
+        "liquid_viscosity",
+        "gas_viscosity",
+        "thermal_conductivity",
+    }:
+        raise ValueError(
+            "transport_property_report requires viscosity or thermal_conductivity"
+        )
+    result = evaluate_correlation(
+        correlation,
+        temperature_K=temperature_K,
+        pressure_Pa=pressure_Pa,
+        molecular_weight_g_mol=molecular_weight_g_mol,
+        validity_policy=validity_policy,
+    )
+    return TransportPropertyReport(
+        evaluation=result,
+        phase=phase,
+        method_family=_transport_method_family(correlation.equation_id),
+        validity_status="out_of_range" if result.warnings else "valid",
+        relative_uncertainty=relative_uncertainty,
+        uncertainty_note=uncertainty_note,
+        reference_reading=_TRANSPORT_REFERENCE_READING,
+    )
+
+
+def gas_thermal_conductivity_dippr9b_report(
+    *,
+    temperature_K: float,
+    molecular_weight_g_mol: float,
+    molar_cv_J_mol_K: float,
+    viscosity_Pa_s: float,
+    critical_temperature_K: float | None = None,
+    molecule_type: str = "linear",
+    relative_uncertainty: float = 0.2,
+) -> TransportPropertyReport:
+    """DIPPR9B-style gas thermal conductivity from Cv and viscosity."""
+
+    if temperature_K <= 0:
+        raise ValueError("temperature_K must be positive")
+    if molecular_weight_g_mol <= 0:
+        raise ValueError("molecular_weight_g_mol must be positive")
+    if molar_cv_J_mol_K <= 0:
+        raise ValueError("molar_cv_J_mol_K must be positive")
+    if viscosity_Pa_s <= 0:
+        raise ValueError("viscosity_Pa_s must be positive")
+    cv_j_kmol_k = molar_cv_J_mol_K * 1000.0
+    if molecule_type == "monoatomic":
+        conductivity = 2.5 * viscosity_Pa_s * cv_j_kmol_k / molecular_weight_g_mol
+    elif molecule_type == "nonlinear":
+        conductivity = (
+            viscosity_Pa_s
+            / molecular_weight_g_mol
+            * (1.15 * cv_j_kmol_k + 16903.36)
+        )
+    elif molecule_type == "linear":
+        if critical_temperature_K is None or critical_temperature_K <= 0:
+            raise ValueError("linear DIPPR9B gas conductivity requires positive Tc")
+        reduced_temperature = temperature_K / critical_temperature_K
+        conductivity = (
+            viscosity_Pa_s
+            / molecular_weight_g_mol
+            * (1.30 * cv_j_kmol_k + 14644.0 - 2928.80 / reduced_temperature)
+        )
+    else:
+        raise ValueError("molecule_type must be monoatomic, linear, or nonlinear")
+    if conductivity <= 0 or not isfinite(conductivity):
+        raise ValueError("DIPPR9B gas conductivity returned nonpositive value")
+    return TransportPropertyReport(
+        evaluation=PropertyEvaluation(
+            property_id="thermal_conductivity",
+            correlation_id="dippr9b_gas_thermal_conductivity",
+            equation_id="dippr9b_gas_thermal_conductivity",
+            value=conductivity,
+            unit="W/(m*K)",
+            inputs={
+                "temperature": temperature_K,
+                "molecular_weight_g_mol": molecular_weight_g_mol,
+                "molar_cv_J_mol_K": molar_cv_J_mol_K,
+                "viscosity_Pa_s": viscosity_Pa_s,
+                "critical_temperature_K": critical_temperature_K or 0.0,
+            },
+            warnings=(
+                "DIPPR9B is an empirical gas thermal-conductivity estimate; "
+                "accuracy depends on pure-gas viscosity and molecule type.",
+            ),
+        ),
+        phase="gas",
+        method_family="DIPPR9B",
+        validity_status="estimated",
+        relative_uncertainty=relative_uncertainty,
+        uncertainty_note="DIPPR-style empirical gas conductivity estimate.",
+        reference_reading=_TRANSPORT_REFERENCE_READING,
+    )
+
+
+def wilke_gas_mixture_viscosity_ledger(
+    *,
+    component_mole_fractions: Mapping[str, float],
+    component_viscosities_Pa_s: Mapping[str, float],
+    component_molecular_weights_g_mol: Mapping[str, float],
+    ledger_id: str = "wilke_gas_mixture_viscosity",
+) -> MixtureTransportLedger:
+    """Wilke low-pressure gas-mixture viscosity ledger."""
+
+    fractions = _validated_fraction_mapping(component_mole_fractions, "mole")
+    _require_same_keys(fractions, component_viscosities_Pa_s, "viscosity")
+    _require_same_keys(fractions, component_molecular_weights_g_mol, "molecular weight")
+    component_ids = tuple(fractions)
+    contributions: dict[str, dict[str, float]] = {}
+    mixture_viscosity = 0.0
+    for i in component_ids:
+        yi = fractions[i]
+        mui = component_viscosities_Pa_s[i]
+        mwi = component_molecular_weights_g_mol[i]
+        if mui <= 0:
+            raise ValueError(f"viscosity must be positive for {i!r}")
+        if mwi <= 0:
+            raise ValueError(f"molecular weight must be positive for {i!r}")
+        denominator = 0.0
+        for j in component_ids:
+            muj = component_viscosities_Pa_s[j]
+            mwj = component_molecular_weights_g_mol[j]
+            if muj <= 0:
+                raise ValueError(f"viscosity must be positive for {j!r}")
+            if mwj <= 0:
+                raise ValueError(f"molecular weight must be positive for {j!r}")
+            phi_ij = (
+                (1.0 + sqrt(mui / muj) * (mwj / mwi) ** 0.25) ** 2.0
+                / sqrt(8.0 * (1.0 + mwi / mwj))
+            )
+            denominator += fractions[j] * phi_ij
+        partial = yi * mui / denominator
+        mixture_viscosity += partial
+        contributions[i] = {
+            "mole_fraction": yi,
+            "viscosity_Pa_s": mui,
+            "molecular_weight_g_mol": mwi,
+            "wilke_denominator": denominator,
+            "partial_viscosity_Pa_s": partial,
+        }
+    return MixtureTransportLedger(
+        ledger_id=ledger_id,
+        phase="gas",
+        property_id="mixture_viscosity",
+        method_family="Wilke",
+        unit="Pa*s",
+        mixture_value=mixture_viscosity,
+        contributions=contributions,
+        warnings=(
+            "Wilke low-pressure gas-mixture rule; hydrogen-rich systems can "
+            "have larger errors and pure-component viscosity errors propagate.",
+        ),
+        reference_reading=_TRANSPORT_REFERENCE_READING,
+    )
+
+
+def liquid_mixture_thermal_conductivity_dippr9h_ledger(
+    *,
+    component_mass_fractions: Mapping[str, float],
+    component_thermal_conductivities_W_m_K: Mapping[str, float],
+    ledger_id: str = "dippr9h_liquid_mixture_conductivity",
+) -> MixtureTransportLedger:
+    """DIPPR9H/Vredeveld liquid-mixture thermal-conductivity ledger."""
+
+    fractions = _validated_fraction_mapping(component_mass_fractions, "mass")
+    _require_same_keys(fractions, component_thermal_conductivities_W_m_K, "conductivity")
+    inverse_square_sum = 0.0
+    contributions: dict[str, dict[str, float]] = {}
+    max_k = 0.0
+    min_k = float("inf")
+    for component_id, mass_fraction in fractions.items():
+        conductivity = component_thermal_conductivities_W_m_K[component_id]
+        if conductivity <= 0:
+            raise ValueError(f"thermal conductivity must be positive for {component_id!r}")
+        term = mass_fraction / (conductivity * conductivity)
+        inverse_square_sum += term
+        max_k = max(max_k, conductivity)
+        min_k = min(min_k, conductivity)
+        contributions[component_id] = {
+            "mass_fraction": mass_fraction,
+            "thermal_conductivity_W_m_K": conductivity,
+            "inverse_square_contribution": term,
+        }
+    warnings = ["DIPPR9H assumes nonaqueous liquid mixtures and can deviate up to 20%."]
+    if max_k > 2.0 * min_k:
+        warnings.append(
+            "Component conductivities differ by more than 2x; DIPPR9H warning applies."
+        )
+    return MixtureTransportLedger(
+        ledger_id=ledger_id,
+        phase="liquid",
+        property_id="mixture_thermal_conductivity",
+        method_family="DIPPR9H",
+        unit="W/(m*K)",
+        mixture_value=1.0 / sqrt(inverse_square_sum),
+        contributions=contributions,
+        warnings=tuple(warnings),
+        reference_reading=_TRANSPORT_REFERENCE_READING,
+    )
+
+
+def binary_gas_diffusivity_fuller_report(
+    *,
+    temperature_K: float,
+    pressure_Pa: float,
+    molecular_weight_a_g_mol: float,
+    molecular_weight_b_g_mol: float,
+    diffusion_volume_a: float,
+    diffusion_volume_b: float,
+    component_a: str = "A",
+    component_b: str = "B",
+    relative_uncertainty: float = 0.2,
+) -> TransportPropertyReport:
+    """Fuller-Schettler-Giddings binary gas diffusivity estimate."""
+
+    if temperature_K <= 0:
+        raise ValueError("temperature_K must be positive")
+    if pressure_Pa <= 0:
+        raise ValueError("pressure_Pa must be positive")
+    if molecular_weight_a_g_mol <= 0 or molecular_weight_b_g_mol <= 0:
+        raise ValueError("molecular weights must be positive")
+    if diffusion_volume_a <= 0 or diffusion_volume_b <= 0:
+        raise ValueError("diffusion volumes must be positive")
+    pressure_atm = pressure_Pa / 101325.0
+    mass_factor = sqrt(
+        (molecular_weight_a_g_mol + molecular_weight_b_g_mol)
+        / (2.0 * molecular_weight_a_g_mol * molecular_weight_b_g_mol)
+    )
+    diffusion_cm2_s = (
+        1.43e-3
+        * temperature_K**1.75
+        * mass_factor
+        / (
+            pressure_atm
+            * (diffusion_volume_a ** (1.0 / 3.0) + diffusion_volume_b ** (1.0 / 3.0))
+            ** 2.0
+        )
+    )
+    warnings = [
+        "Fuller gas diffusivity is an empirical low-pressure estimate based on "
+        "diffusion volumes.",
+    ]
+    if pressure_atm < 0.05 or pressure_atm > 20.0:
+        warnings.append("pressure outside nominal Fuller low/moderate-pressure range")
+    if temperature_K < 250.0 or temperature_K > 1500.0:
+        warnings.append("temperature outside broad gas-diffusivity screening range")
+    return TransportPropertyReport(
+        evaluation=PropertyEvaluation(
+            property_id="binary_gas_diffusivity",
+            correlation_id=f"fuller_diffusivity:{component_a}:{component_b}",
+            equation_id="fuller_schettler_giddings",
+            value=diffusion_cm2_s * 1e-4,
+            unit="m^2/s",
+            inputs={
+                "temperature": temperature_K,
+                "pressure": pressure_Pa,
+                "molecular_weight_a_g_mol": molecular_weight_a_g_mol,
+                "molecular_weight_b_g_mol": molecular_weight_b_g_mol,
+                "diffusion_volume_a": diffusion_volume_a,
+                "diffusion_volume_b": diffusion_volume_b,
+            },
+            warnings=tuple(warnings),
+        ),
+        phase="gas",
+        method_family="Fuller-Schettler-Giddings",
+        validity_status="estimated",
+        relative_uncertainty=relative_uncertainty,
+        uncertainty_note="Screening estimate; requires calibrated diffusion volumes.",
+        reference_reading=_TRANSPORT_REFERENCE_READING,
+    )
+
+
+def gas_mixture_effective_diffusivity_ledger(
+    *,
+    target_component: str,
+    component_mole_fractions: Mapping[str, float],
+    binary_diffusivities_m2_s: Mapping[str, float],
+    ledger_id: str = "gas_mixture_effective_diffusivity",
+) -> MixtureTransportLedger:
+    """Mixture-averaged gas diffusivity for one dilute/trace component."""
+
+    fractions = _validated_fraction_mapping(component_mole_fractions, "mole")
+    if target_component not in fractions:
+        raise ValueError("target_component must appear in component_mole_fractions")
+    others = [component_id for component_id in fractions if component_id != target_component]
+    if not others:
+        raise ValueError("effective diffusivity requires at least two components")
+    denominator = 0.0
+    contributions: dict[str, dict[str, float]] = {}
+    for component_id in others:
+        if component_id not in binary_diffusivities_m2_s:
+            raise ValueError(f"missing binary diffusivity for {component_id!r}")
+        diffusivity = binary_diffusivities_m2_s[component_id]
+        if diffusivity <= 0:
+            raise ValueError(f"binary diffusivity must be positive for {component_id!r}")
+        term = fractions[component_id] / diffusivity
+        denominator += term
+        contributions[component_id] = {
+            "mole_fraction": fractions[component_id],
+            "binary_diffusivity_m2_s": diffusivity,
+            "resistance_term_s_m2": term,
+        }
+    if denominator <= 0:
+        raise ValueError("effective diffusivity denominator must be positive")
+    target_fraction = fractions[target_component]
+    effective = (1.0 - target_fraction) / denominator
+    contributions[target_component] = {
+        "mole_fraction": target_fraction,
+        "effective_diffusivity_m2_s": effective,
+    }
+    return MixtureTransportLedger(
+        ledger_id=ledger_id,
+        phase="gas",
+        property_id="effective_gas_diffusivity",
+        method_family="mixture-averaged gas diffusivity",
+        unit="m^2/s",
+        mixture_value=effective,
+        contributions=contributions,
+        warnings=(
+            "Mixture-averaged diffusivity assumes binary diffusivities are "
+            "available for all non-target components.",
+        ),
+        reference_reading=_TRANSPORT_REFERENCE_READING,
+    )
+
+
+def thermal_diffusivity_report(
+    *,
+    thermal_conductivity_W_m_K: float,
+    density_kg_m3: float,
+    heat_capacity_J_kg_K: float,
+    phase: str,
+) -> TransportPropertyReport:
+    """Thermal diffusivity alpha = k/(rho Cp)."""
+
+    _validate_phase(phase)
+    if thermal_conductivity_W_m_K <= 0:
+        raise ValueError("thermal_conductivity_W_m_K must be positive")
+    if density_kg_m3 <= 0:
+        raise ValueError("density_kg_m3 must be positive")
+    if heat_capacity_J_kg_K <= 0:
+        raise ValueError("heat_capacity_J_kg_K must be positive")
+    value = thermal_conductivity_W_m_K / (density_kg_m3 * heat_capacity_J_kg_K)
+    return TransportPropertyReport(
+        evaluation=PropertyEvaluation(
+            property_id="thermal_diffusivity",
+            correlation_id="thermal_diffusivity_from_k_rho_cp",
+            equation_id="thermal_diffusivity_definition",
+            value=value,
+            unit="m^2/s",
+            inputs={
+                "thermal_conductivity_W_m_K": thermal_conductivity_W_m_K,
+                "density_kg_m3": density_kg_m3,
+                "heat_capacity_J_kg_K": heat_capacity_J_kg_K,
+            },
+        ),
+        phase=phase,
+        method_family="definition",
+        validity_status="valid",
+        reference_reading=_TRANSPORT_REFERENCE_READING,
+    )
+
+
 def volatility_risk_from_psat(
     vapor_pressure: PropertyEvaluation,
     *,
@@ -1312,6 +1805,18 @@ def _evaluate_equation(
         if T + S <= 0 or T_ref + S <= 0:
             raise ValueError("sutherland_gas_viscosity has invalid Sutherland constant")
         return coeffs["mu_ref"] * (T / T_ref) ** 1.5 * (T_ref + S) / (T + S)
+    if equation == "linear_thermal_conductivity":
+        conductivity = coeffs["k_ref"] * (
+            1.0 + coeffs.get("alpha", 0.0) * (T - coeffs["T_ref"])
+        )
+        return conductivity
+    if equation == "thermal_conductivity_polynomial":
+        return (
+            coeffs.get("a", 0.0)
+            + coeffs.get("b", 0.0) * T
+            + coeffs.get("c", 0.0) * T**2
+            + coeffs.get("d", 0.0) * T**3
+        )
     if equation == "surface_tension_power":
         Tc = coeffs["Tc"]
         T_ref = coeffs["T_ref"]
@@ -1640,6 +2145,105 @@ def property_correlation_model_cards() -> tuple[ModelCard, ...]:
                 "unlabeled gas-density corrections.",
             ),
         ),
+        ModelCard(
+            model_id="transport_property_package",
+            module_id="properties",
+            title="Transport Property Package",
+            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            summary=(
+                "Pure-component viscosity and thermal-conductivity reports, "
+                "Wilke gas-mixture viscosity ledgers, DIPPR9H liquid-mixture "
+                "conductivity ledgers, Fuller-style gas diffusivity estimates, "
+                "and thermal-diffusivity reports with explicit uncertainty and "
+                "validity metadata."
+            ),
+            equations=(
+                "Andrade/Arrhenius viscosity: mu = A exp(B/T).",
+                "Sutherland gas viscosity: mu = mu_ref (T/T_ref)^1.5 "
+                "(T_ref + S)/(T + S).",
+                "Linear conductivity: k = k_ref(1 + alpha(T - T_ref)); "
+                "polynomial conductivity is also supported.",
+                "DIPPR9B gas conductivity from gas viscosity, Cv, molecular "
+                "weight, molecule type, and critical temperature.",
+                "Wilke gas mixture: mu_mix = sum_i y_i mu_i / sum_j y_j phi_ij.",
+                "DIPPR9H liquid mixture: k_mix = (sum_i w_i/k_i^2)^-0.5.",
+                "Fuller gas diffusivity scales as T^1.75/P and diffusion-volume "
+                "groups; mixture effective diffusivity uses resistance summation.",
+                "Thermal diffusivity: alpha = k/(rho Cp).",
+            ),
+            assumptions=(
+                "Pure-property correlations use caller-supplied coefficients "
+                "with declared units and validity ranges.",
+                "Wilke and Fuller paths are low-pressure gas estimates; reported "
+                "uncertainty metadata must remain visible to tasks and datasets.",
+                "Liquid mixture conductivity uses the nonaqueous DIPPR9H rule "
+                "unless a future task selects another ledger.",
+            ),
+            validity_limits=(
+                "No broad viscosity, conductivity, or diffusion-volume database "
+                "is vendored.",
+                "No high-pressure gas viscosity correction, electrolyte "
+                "transport, multicomponent Maxwell-Stefan solver, or "
+                "temperature-dependent calibrated diffusion model is included.",
+                "DIPPR9H warnings are emitted for broad use and when component "
+                "conductivities differ by more than 2x.",
+            ),
+            failure_modes=(
+                "Nonpositive temperature, pressure, viscosity, conductivity, "
+                "diffusivity, density, heat capacity, molecular weight, or "
+                "diffusion volume raises ValueError.",
+                "Composition/key mismatches fail explicitly before mixture "
+                "ledger construction.",
+                "Unsupported molecule types or missing critical temperature for "
+                "linear DIPPR9B gas conductivity fail explicitly.",
+            ),
+            units={
+                "temperature": "K",
+                "pressure": "Pa",
+                "dynamic_viscosity": "Pa*s",
+                "thermal_conductivity": "W/(m*K)",
+                "diffusivity": "m^2/s",
+                "molecular_weight": "g/mol",
+            },
+            reference_reading=_TRANSPORT_REFERENCE_READING,
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="transport-viscosity-conductivity-report-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks Andrade/Sutherland reports, conductivity "
+                        "validity, and unit conversion."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_physchem_properties.py",
+                    tolerance="rtol=1e-12",
+                ),
+                ValidationEvidence(
+                    evidence_id="transport-mixture-diffusivity-ledger-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks Wilke gas viscosity, DIPPR9H liquid "
+                        "conductivity, Fuller binary gas diffusivity, and "
+                        "mixture effective diffusivity ledgers."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_physchem_properties.py",
+                    tolerance="rtol=1e-12",
+                ),
+            ),
+            model_limit_notes=(
+                "This is a compact transport-property reporting and ledger "
+                "slice for ChemWorld tasks. It is not a replacement for "
+                "chemicals/thermo/CoolProp transport coverage or a full "
+                "Maxwell-Stefan transport backend.",
+            ),
+            intended_use=(
+                "Heat-transfer, reactor, distillation, separation, and "
+                "instrument tasks that need explicit transport properties.",
+                "Benchmark logs that must expose uncertainty and method family "
+                "rather than silently using constants.",
+            ),
+        ),
     )
 
 
@@ -1832,6 +2436,12 @@ def _ensure_finite_positive(value: float, correlation: PropertyCorrelation) -> N
         "gas_density",
         "liquid_viscosity",
         "gas_viscosity",
+        "thermal_conductivity",
+        "mixture_viscosity",
+        "mixture_thermal_conductivity",
+        "binary_gas_diffusivity",
+        "effective_gas_diffusivity",
+        "thermal_diffusivity",
         "surface_tension",
     } and value < 0:
         raise ValueError(f"Correlation returned negative value: {correlation.correlation_id}")
@@ -1857,6 +2467,50 @@ def _molar_volume_method_family(equation_id: str) -> str:
     if equation_id == "crc_second_virial":
         return "CRC second virial"
     return equation_id
+
+
+def _transport_method_family(equation_id: str) -> str:
+    if equation_id == "andrade_viscosity":
+        return "Andrade/Arrhenius viscosity"
+    if equation_id == "sutherland_gas_viscosity":
+        return "Sutherland gas viscosity"
+    if equation_id == "linear_thermal_conductivity":
+        return "linear thermal conductivity"
+    if equation_id == "thermal_conductivity_polynomial":
+        return "thermal conductivity polynomial"
+    return equation_id
+
+
+def _validated_fraction_mapping(
+    fractions: Mapping[str, float],
+    fraction_name: str,
+) -> dict[str, float]:
+    if not fractions:
+        raise ValueError(f"component_{fraction_name}_fractions cannot be empty")
+    total = sum(fractions.values())
+    if abs(total - 1.0) > 1e-9:
+        raise ValueError(f"component {fraction_name} fractions must sum to 1")
+    normalized: dict[str, float] = {}
+    for component_id, fraction in fractions.items():
+        if not component_id:
+            raise ValueError("component id cannot be empty")
+        if fraction < 0 or not isfinite(fraction):
+            raise ValueError(f"invalid {fraction_name} fraction for {component_id!r}")
+        normalized[component_id] = float(fraction)
+    return normalized
+
+
+def _require_same_keys(
+    reference: Mapping[str, float],
+    values: Mapping[str, float],
+    value_name: str,
+) -> None:
+    missing = sorted(set(reference) - set(values))
+    extra = sorted(set(values) - set(reference))
+    if missing or extra:
+        raise ValueError(
+            f"{value_name} keys must match components; missing={missing}, extra={extra}"
+        )
 
 
 def _clamp(value: float, lower: float, upper: float) -> float:

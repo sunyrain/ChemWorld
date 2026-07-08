@@ -597,6 +597,34 @@ using unlabeled density proxies. It is not yet a pressure-corrected liquid
 volume backend, a COSTALD/DIPPR116/Yamada-Gunn database, or a CoolProp-level
 density package.
 
+## Transport Properties
+
+DEEP-D2D adds the first professional transport-property reporting slice in
+`chemworld.physchem.properties`.
+
+| Capability | Current implementation |
+| --- | --- |
+| Pure viscosity reports | Andrade/Arrhenius liquid viscosity and Sutherland gas viscosity through `PropertyCorrelation` |
+| Pure thermal conductivity | linear and polynomial conductivity correlations plus DIPPR9B-style gas conductivity from viscosity and `Cv` |
+| Gas mixture viscosity | Wilke low-pressure gas-mixture ledger with denominator and component partial-viscosity contributions |
+| Liquid mixture conductivity | DIPPR9H/Vredeveld mass-fraction conductivity ledger with warning metadata |
+| Gas diffusivity | Fuller-Schettler-Giddings binary gas diffusivity estimate and mixture-averaged effective diffusivity ledger |
+| Thermal diffusivity | `alpha = k/(rho Cp)` report in `m^2/s` |
+| Provenance | transport-property model card and local reference-reading notes for `chemicals`, `thermo`, and IDAES transport modules |
+
+The public API is report-oriented:
+`TransportPropertyReport` records the evaluated property, phase, method family,
+validity status, relative uncertainty, uncertainty note, and reference-reading
+provenance. `MixtureTransportLedger` records method-specific component
+contributions, mixture value, units, warnings, and provenance. This keeps
+transport constants out of hidden task code and makes viscosity, conductivity,
+and diffusivity assumptions visible in trajectories and model cards.
+
+This is not a complete transport backend. High-pressure gas viscosity,
+electrolyte transport, multicomponent Maxwell-Stefan diffusion,
+temperature-fitted diffusion data, and broad CoolProp/chemicals data coverage
+remain future deepening tasks.
+
 ## Equation-Of-State Core
 
 The P5 EOS core is implemented in `chemworld.physchem.eos`. It gives ChemWorld a

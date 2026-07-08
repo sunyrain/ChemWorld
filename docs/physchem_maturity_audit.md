@@ -211,3 +211,11 @@ copying the reference implementations.
   compressibility status, tests, and model-card evidence. This is not a broad
   liquid-density database, pressure-corrected volume backend, or CoolProp
   replacement.
+- DEEP-D2D is implemented for the first transport-property package:
+  Andrade/Sutherland viscosity reports, linear/polynomial conductivity
+  contracts, DIPPR9B gas conductivity, Wilke gas-mixture viscosity, DIPPR9H
+  liquid-mixture conductivity, Fuller gas diffusivity, mixture effective
+  diffusivity, and thermal diffusivity are available with explicit units,
+  uncertainty/status metadata, tests, and model-card evidence. This is not a
+  high-pressure transport backend, electrolyte model, Maxwell-Stefan solver, or
+  broad CoolProp/chemicals transport database.

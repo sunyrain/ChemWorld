@@ -13,13 +13,18 @@ from chemworld.physchem import (
     PhaseEnthalpyReport,
     PhaseTransitionSpec,
     PropertyCorrelation,
+    TransportPropertyReport,
+    binary_gas_diffusivity_fuller_report,
     curated_property_case_map,
     curated_property_model_cards,
     curated_property_package,
     density_to_molar_volume_m3_mol,
     evaluate_correlation,
+    gas_mixture_effective_diffusivity_ledger,
+    gas_thermal_conductivity_dippr9b_report,
     heat_capacity_report,
     ideal_gas_molar_volume_report,
+    liquid_mixture_thermal_conductivity_dippr9h_ledger,
     list_curated_property_packages,
     mixture_density,
     mixture_enthalpy_ledger,
@@ -34,12 +39,15 @@ from chemworld.physchem import (
     resolve_component_identifier,
     second_virial_coefficient_report,
     sensible_enthalpy_change,
+    thermal_diffusivity_report,
     thermal_hazard_proxy,
+    transport_property_report,
     validate_model_card,
     vapor_pressure_report,
     vapor_pressure_temperature_derivative,
     virial_gas_molar_volume_report,
     volatility_risk_from_psat,
+    wilke_gas_mixture_viscosity_ledger,
 )
 
 
@@ -613,6 +621,160 @@ def test_density_molar_volume_failures_are_explicit() -> None:
         )
 
 
+def test_transport_property_reports_cover_viscosity_and_conductivity() -> None:
+    liquid_viscosity = PropertyCorrelation(
+        correlation_id="demo_liquid_andrade",
+        property_id="liquid_viscosity",
+        equation_id="andrade_viscosity",
+        coefficients={"A": 1.0e-5, "B": 1500.0},
+        input_units={"temperature": "K"},
+        output_unit="Pa*s",
+        validity_ranges={"temperature": (280.0, 360.0)},
+    )
+    gas_viscosity = PropertyCorrelation(
+        correlation_id="air_sutherland_demo",
+        property_id="gas_viscosity",
+        equation_id="sutherland_gas_viscosity",
+        coefficients={"mu_ref": 1.716e-5, "T_ref": 273.15, "S": 111.0},
+        input_units={"temperature": "K"},
+        output_unit="Pa*s",
+    )
+    conductivity = PropertyCorrelation(
+        correlation_id="linear_conductivity_demo",
+        property_id="thermal_conductivity",
+        equation_id="linear_thermal_conductivity",
+        coefficients={"k_ref": 0.6, "T_ref": 300.0, "alpha": -1.0e-3},
+        input_units={"temperature": "K"},
+        output_unit="W/(m*K)",
+        validity_ranges={"temperature": (280.0, 360.0)},
+    )
+
+    liquid = transport_property_report(
+        liquid_viscosity,
+        temperature_K=298.15,
+        phase="liquid",
+        relative_uncertainty=0.1,
+    )
+    gas_300 = transport_property_report(gas_viscosity, temperature_K=300.0, phase="gas")
+    gas_600 = transport_property_report(gas_viscosity, temperature_K=600.0, phase="gas")
+    k_report = transport_property_report(
+        conductivity,
+        temperature_K=320.0,
+        phase="liquid",
+        validity_policy="raise",
+    )
+
+    assert isinstance(liquid, TransportPropertyReport)
+    assert liquid.evaluation.value == pytest.approx(
+        1.0e-5 * (2.718281828459045 ** (1500.0 / 298.15))
+    )
+    assert liquid.method_family == "Andrade/Arrhenius viscosity"
+    assert liquid.relative_uncertainty == pytest.approx(0.1)
+    assert gas_600.evaluation.value > gas_300.evaluation.value
+    assert k_report.evaluation.value == pytest.approx(0.6 * (1.0 - 0.001 * 20.0))
+    assert k_report.evaluation.to("mW/(m*K)").value == pytest.approx(588.0)
+
+
+def test_dippr9b_gas_conductivity_matches_reference_formula() -> None:
+    report = gas_thermal_conductivity_dippr9b_report(
+        temperature_K=200.0,
+        molecular_weight_g_mol=28.01,
+        molar_cv_J_mol_K=20.826,
+        viscosity_Pa_s=1.277e-5,
+        critical_temperature_K=132.92,
+        molecule_type="linear",
+    )
+
+    assert report.method_family == "DIPPR9B"
+    assert report.validity_status == "estimated"
+    assert report.evaluation.value == pytest.approx(0.01813208676438415)
+
+
+def test_wilke_gas_mixture_viscosity_ledger_matches_reference_example() -> None:
+    ledger = wilke_gas_mixture_viscosity_ledger(
+        component_mole_fractions={"so2": 0.05, "ethanol": 0.95},
+        component_viscosities_Pa_s={"so2": 1.34e-5, "ethanol": 9.5029e-6},
+        component_molecular_weights_g_mol={"so2": 64.06, "ethanol": 46.07},
+    )
+
+    assert ledger.property_id == "mixture_viscosity"
+    assert ledger.method_family == "Wilke"
+    assert ledger.mixture_value == pytest.approx(9.701614885866193e-06)
+    assert ledger.contributions["so2"]["wilke_denominator"] > 0.0
+
+
+def test_liquid_mixture_conductivity_and_diffusivity_ledgers() -> None:
+    conductivity = liquid_mixture_thermal_conductivity_dippr9h_ledger(
+        component_mass_fractions={"a": 0.258, "b": 0.742},
+        component_thermal_conductivities_W_m_K={"a": 0.1692, "b": 0.1528},
+    )
+    fuller = binary_gas_diffusivity_fuller_report(
+        temperature_K=300.0,
+        pressure_Pa=101325.0,
+        molecular_weight_a_g_mol=16.04,
+        molecular_weight_b_g_mol=44.01,
+        diffusion_volume_a=24.42,
+        diffusion_volume_b=26.9,
+        component_a="ch4",
+        component_b="co2",
+    )
+    effective = gas_mixture_effective_diffusivity_ledger(
+        target_component="ch4",
+        component_mole_fractions={"ch4": 0.2, "co2": 0.5, "h2o": 0.3},
+        binary_diffusivities_m2_s={
+            "co2": fuller.evaluation.value,
+            "h2o": fuller.evaluation.value * 1.5,
+        },
+    )
+    thermal = thermal_diffusivity_report(
+        thermal_conductivity_W_m_K=0.6,
+        density_kg_m3=1000.0,
+        heat_capacity_J_kg_K=4180.0,
+        phase="liquid",
+    )
+
+    assert conductivity.mixture_value == pytest.approx(0.15657104706719646)
+    assert conductivity.method_family == "DIPPR9H"
+    assert fuller.evaluation.value > 0.0
+    assert fuller.evaluation.to("cm^2/s").value == pytest.approx(
+        fuller.evaluation.value / 1e-4
+    )
+    expected_effective = 0.8 / (
+        0.5 / fuller.evaluation.value + 0.3 / (fuller.evaluation.value * 1.5)
+    )
+    assert effective.mixture_value == pytest.approx(expected_effective)
+    assert thermal.evaluation.value == pytest.approx(0.6 / (1000.0 * 4180.0))
+
+
+def test_transport_property_failures_are_explicit() -> None:
+    bad_conductivity = PropertyCorrelation(
+        correlation_id="bad_k",
+        property_id="thermal_conductivity",
+        equation_id="linear_thermal_conductivity",
+        coefficients={"k_ref": -0.1, "T_ref": 300.0},
+        input_units={"temperature": "K"},
+        output_unit="W/(m*K)",
+    )
+
+    with pytest.raises(ValueError, match="negative value"):
+        transport_property_report(bad_conductivity, temperature_K=300.0, phase="liquid")
+    with pytest.raises(ValueError, match="molecular weight"):
+        wilke_gas_mixture_viscosity_ledger(
+            component_mole_fractions={"a": 0.5, "b": 0.5},
+            component_viscosities_Pa_s={"a": 1e-5, "b": 2e-5},
+            component_molecular_weights_g_mol={"a": 20.0},
+        )
+    with pytest.raises(ValueError, match="pressure"):
+        binary_gas_diffusivity_fuller_report(
+            temperature_K=300.0,
+            pressure_Pa=-1.0,
+            molecular_weight_a_g_mol=16.04,
+            molecular_weight_b_g_mol=44.01,
+            diffusion_volume_a=24.42,
+            diffusion_volume_b=26.9,
+        )
+
+
 def test_component_property_package_selects_valid_correlation() -> None:
     water = _water()
     low_range = PropertyCorrelation(
@@ -815,7 +977,7 @@ def test_curated_property_model_card_is_auditable() -> None:
 
 def test_property_correlation_model_card_is_auditable() -> None:
     cards = property_correlation_model_cards()
-    assert len(cards) == 3
+    assert len(cards) == 4
     card_map = {card.model_id: card for card in cards}
     card = card_map["vapor_pressure_correlation_families"]
     assert card.model_id == "vapor_pressure_correlation_families"
@@ -848,4 +1010,14 @@ def test_property_correlation_model_card_is_auditable() -> None:
     } >= {
         "rackett-liquid-volume-test",
         "virial-gas-volume-root-test",
+    }
+    transport_card = card_map["transport_property_package"]
+    assert transport_card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert validate_model_card(transport_card) == []
+    assert any("Wilke" in equation for equation in transport_card.equations)
+    assert {
+        evidence.evidence_id for evidence in transport_card.validation_evidence
+    } >= {
+        "transport-viscosity-conductivity-report-test",
+        "transport-mixture-diffusivity-ledger-test",
     }

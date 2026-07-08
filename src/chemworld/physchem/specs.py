@@ -89,6 +89,16 @@ _EQUATION_CONTRACTS: dict[str, dict[str, object]] = {
         "input_dimensions": {"temperature": "temperature"},
         "output_dimension": "dynamic_viscosity",
     },
+    "linear_thermal_conductivity": {
+        "required_coefficients": {"k_ref", "T_ref"},
+        "input_dimensions": {"temperature": "temperature"},
+        "output_dimension": "thermal_conductivity",
+    },
+    "thermal_conductivity_polynomial": {
+        "required_coefficients": {"a"},
+        "input_dimensions": {"temperature": "temperature"},
+        "output_dimension": "thermal_conductivity",
+    },
     "surface_tension_power": {
         "required_coefficients": {"Tc", "T_ref", "sigma_ref"},
         "input_dimensions": {"temperature": "temperature"},

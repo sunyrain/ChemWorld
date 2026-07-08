@@ -307,6 +307,7 @@ def test_property_equation_contracts_are_public_and_json_friendly() -> None:
 
     assert "antoine" in equations
     assert "sutherland_gas_viscosity" in equations
+    assert "linear_thermal_conductivity" in equations
     assert set(equations) == set(contracts)
     assert contracts["antoine"] == {
         "required_coefficients": ["A", "B", "C"],
@@ -321,3 +322,5 @@ def test_extended_units_cover_physchem_dimensions() -> None:
     assert convert_value(1.0, "kJ/mol", "J/mol") == 1000.0
     assert convert_value(1.0, "g/mL", "kg/m^3") == 1000.0
     assert convert_value(1.0, "mPa*s", "Pa*s") == 0.001
+    assert convert_value(1.0, "mW/(m*K)", "W/(m*K)") == 0.001
+    assert convert_value(1.0, "cm^2/s", "m^2/s") == 0.0001

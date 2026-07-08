@@ -198,11 +198,11 @@ Reference targets: `chemicals`, `thermo`, `CoolProp`.
   - [x] Rackett-style correlation;
   - [x] ideal gas and virial hooks;
   - [x] mixture density with validity limits.
-- [ ] Transport properties:
-  - [ ] gas viscosity;
-  - [ ] liquid viscosity;
-  - [ ] thermal conductivity;
-  - [ ] diffusivity proxy with validity warning.
+- [x] Transport properties:
+  - [x] gas viscosity;
+  - [x] liquid viscosity;
+  - [x] thermal conductivity;
+  - [x] diffusivity proxy with validity warning.
 - [ ] Safety properties:
   - [ ] flash-point proxy;
   - [ ] vapor hazard;
@@ -277,6 +277,33 @@ Reference-reading note for DEEP-D2C:
 - This closes the first density/molar-volume slice. It does not add broad
   DIPPR116/COSTALD/Yamada-Gunn tables, pressure-corrected liquid volume,
   corresponding-states gas density, or CoolProp-level density backends.
+
+Reference-reading note for DEEP-D2D:
+
+- `reference_repos/chemicals/chemicals/viscosity.py` exposes Wilke gas-mixture
+  viscosity, Lucas/Gharagheizi families, and viscosity-conversion utilities.
+  ChemWorld localizes the report/ledger pattern around caller-supplied
+  Andrade/Sutherland pure correlations and a Wilke gas-mixture ledger without
+  vendoring viscosity tables.
+- `reference_repos/chemicals/chemicals/thermal_conductivity.py` documents
+  DIPPR9B gas thermal conductivity, DIPPR9H liquid-mixture conductivity, and
+  DIPPR9I volume-fraction mixture conductivity. ChemWorld implements the
+  DIPPR9B report and DIPPR9H ledger plus a linear/polynomial conductivity
+  correlation contract.
+- `reference_repos/thermo/thermo/viscosity.py` and
+  `reference_repos/thermo/thermo/thermal_conductivity.py` separate pure and
+  mixture property method governance. ChemWorld keeps a smaller benchmark
+  contract: `TransportPropertyReport` and `MixtureTransportLedger` expose
+  method family, validity status, uncertainty, units, and provenance.
+- IDAES transport-property modules show Wilke callbacks and Fuller-style
+  diffusion-volume scaling for process models. ChemWorld localizes those ideas
+  as `wilke_gas_mixture_viscosity_ledger()`,
+  `binary_gas_diffusivity_fuller_report()`, and
+  `gas_mixture_effective_diffusivity_ledger()`.
+- This closes the first transport-property reporting slice. It does not add
+  high-pressure gas viscosity corrections, electrolyte transport, full
+  Maxwell-Stefan diffusion, broad transport-property data tables, or CoolProp
+  transport backends.
 
 ## P3: EOS And Residual Thermodynamics
 

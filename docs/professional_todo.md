@@ -181,6 +181,32 @@ DEEP-D2C is now implemented for density and molar-volume reports:
 - This is a compact property-reporting slice, not a broad DIPPR116/COSTALD
   database, pressure-corrected liquid-density package, or CoolProp replacement.
 
+DEEP-D2D is now implemented for transport-property reports:
+
+- `transport_property_report()` evaluates pure-component liquid/gas viscosity
+  and thermal-conductivity correlations with phase, method family, validity
+  status, uncertainty, and provenance metadata.
+- Andrade/Arrhenius liquid viscosity, Sutherland gas viscosity, linear
+  conductivity, and polynomial conductivity are supported as
+  `PropertyCorrelation` equation contracts.
+- `gas_thermal_conductivity_dippr9b_report()` implements the DIPPR9B-style gas
+  thermal-conductivity estimate from viscosity, `Cv`, molecular weight,
+  molecule type, and critical temperature.
+- `wilke_gas_mixture_viscosity_ledger()` records the Wilke low-pressure
+  gas-mixture denominator and component partial-viscosity contributions.
+- `liquid_mixture_thermal_conductivity_dippr9h_ledger()` records a DIPPR9H
+  liquid-mixture conductivity ledger with warning metadata.
+- `binary_gas_diffusivity_fuller_report()` and
+  `gas_mixture_effective_diffusivity_ledger()` provide Fuller-style gas
+  diffusivity estimates and mixture-resistance closure.
+- `thermal_diffusivity_report()` exposes `alpha = k/(rho Cp)` in SI units.
+- Tests cover Sutherland/Andrade reports, DIPPR9B and DIPPR9H reference
+  examples, Wilke reference example, Fuller diffusivity scaling, thermal
+  diffusivity, unit conversions, failures, and the transport model card.
+- This is a compact transport reporting/ledger slice, not a high-pressure gas
+  viscosity package, electrolyte transport model, full Maxwell-Stefan solver,
+  broad transport-property data table, or CoolProp replacement.
+
 PRO-P4A is now implemented for the first reference-validated nonideal activity
 coefficient slice:
 

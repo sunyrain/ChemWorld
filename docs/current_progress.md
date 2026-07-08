@@ -35,7 +35,9 @@ The repository currently provides:
   vapor-pressure formula reports with analytic derivatives,
   phase-aware heat capacity, reference-state enthalpy paths, latent-heat
   transitions, mixture heat-duty ledgers, density/molar-volume reports,
-  ideal/virial gas-volume hooks, and mixture volume ledgers,
+  ideal/virial gas-volume hooks, mixture volume ledgers, transport-property
+  reports, gas/liquid mixture transport ledgers, gas diffusivity estimates,
+  and thermal diffusivity reports,
   friction/pipe pressure drop, internal-flow heat transfer, counterflow
   exchanger duty balance, Wilson/NRTL activity coefficients, reaction ODE
   cases, NASA7 thermochemistry and reaction Gibbs energies, thermochemical
