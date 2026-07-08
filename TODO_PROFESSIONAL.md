@@ -64,6 +64,7 @@ Every professional module must ship:
 | Professional TODO bootstrap | whilesunny | Done | all reference repos | `TODO_PROFESSIONAL.md`, `docs/professional_todo.md`, `docs/physchem_maturity_audit.md` | claim the first professional implementation item before coding | this commit |
 | PRO-P0 maturity metadata and model-card templates | whilesunny | Done | IDAES, thermo, Cantera, Gymnasium-style metadata | `src/chemworld/physchem/maturity.py`, `src/chemworld/tasks.py`, `docs/physchem_maturity_audit.md`, tests | next: claim PRO-P12A or PRO-P2A for reference-validated numerical hardening | this commit |
 | PRO-P12A fluids friction factor and pressure-drop validation | whilesunny | Done | `fluids.friction`, `fluids.core`, Haaland and Darcy-Weisbach references | `src/chemworld/physchem/transport.py`, `src/chemworld/physchem/reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend pressure-drop validation to heat-transfer correlations or claim PRO-P2A | this commit |
+| PRO-P2A curated vapor-pressure and enthalpy property cases | whilesunny | Claimed | `chemicals.vapor_pressure`, `chemicals.heat_capacity`, `chemicals.phase_change`, `thermo`, `CoolProp` | `src/chemworld/physchem/properties.py`, curated property data, optional reference tests, docs | read local property-reference APIs, then replace placeholder property cases with curated reference-checked compounds | pending push |
 
 ## P0: Governance And Model Maturity
 
