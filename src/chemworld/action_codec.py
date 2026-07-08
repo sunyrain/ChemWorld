@@ -64,12 +64,61 @@ class ActionCodec:
             payload.update({key: value for key, value in canonical.items() if key != "operation"})
             canonical = payload
         canonical["operation"] = operation_name(canonical["operation"])
+        canonical = self._apply_aliases(canonical)
         if "instrument" in canonical:
             canonical["instrument"] = instrument_name(canonical["instrument"])
         if "phase" in canonical:
             canonical["phase"] = self.phase_name(canonical["phase"])
         if "target_phase" in canonical:
             canonical["target_phase"] = self.phase_name(canonical["target_phase"])
+        return canonical
+
+    def _apply_aliases(self, action: dict[str, Any]) -> dict[str, Any]:
+        """Accept common user-facing names while preserving canonical output."""
+
+        operation = str(action["operation"])
+        canonical = dict(action)
+        if (
+            operation == "add_catalyst"
+            and "catalyst_amount_mol" not in canonical
+            and "amount_mol" in canonical
+        ):
+            canonical["catalyst_amount_mol"] = canonical["amount_mol"]
+        if (
+            operation
+            in {"heat", "cool_crystallize", "evaporate", "distill", "run_flow"}
+            and "target_temperature_K" not in canonical
+            and "temperature_K" in canonical
+        ):
+            canonical["target_temperature_K"] = canonical["temperature_K"]
+        if (
+            operation in {"heat", "wait", "mix"}
+            and "stirring_speed_rpm" not in canonical
+        ):
+            if "stirring_rpm" in canonical:
+                canonical["stirring_speed_rpm"] = canonical["stirring_rpm"]
+            elif "stirring_speed" in canonical:
+                canonical["stirring_speed_rpm"] = canonical["stirring_speed"]
+        if (
+            operation == "sample"
+            and "sample_volume_L" not in canonical
+            and "volume_L" in canonical
+        ):
+            canonical["sample_volume_L"] = canonical["volume_L"]
+        if (
+            operation == "add_extractant"
+            and "extractant" not in canonical
+            and "solvent" in canonical
+        ):
+            canonical["extractant"] = canonical["solvent"]
+        if (
+            operation == "separate_phase"
+            and "target_phase" not in canonical
+            and "phase" in canonical
+        ):
+            canonical["target_phase"] = canonical["phase"]
+        if operation == "wash" and "wash_volume_L" not in canonical and "volume_L" in canonical:
+            canonical["wash_volume_L"] = canonical["volume_L"]
         return canonical
 
     def encode_vector(self, action: dict[str, Any]) -> np.ndarray:

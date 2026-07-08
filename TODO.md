@@ -42,7 +42,7 @@ finished, update its status and push immediately.
 | Tutorial curriculum hardening and SOTA gap audit | whilesunny | Done | `notebooks/tutorials/`, `docs/`, SOTA references | next: split `reaction_network.py` into specs, rate laws, integration/reference cases, thermochemical coupling, sensitivities, and loaders | this commit |
 | Tutorial encoding repair and workload expansion | whilesunny | Done | `notebooks/`, tutorial guidance generator, docs/tests | next: split `reaction_network.py` into specs, rate laws, integration/reference cases, thermochemical coupling, sensitivities, and loaders | this commit |
 | High-level ChemWorld overview document | whilesunny | Done | `docs/`, `mkdocs.yml` | next: split `reaction_network.py` into specs, rate laws, integration/reference cases, thermochemical coupling, sensitivities, and loaders | this commit |
-| Multi-step recipe alias usability | whilesunny | Active | `src/chemworld/action_codec.py`, tests/docs | accept common user-facing action aliases and document correct purification sequence | claim commit |
+| Multi-step recipe alias usability | whilesunny | Done | `src/chemworld/action_codec.py`, tests/docs | common user-facing action aliases accepted; purification sequence documented and tested | this commit |
 
 Status values:
 

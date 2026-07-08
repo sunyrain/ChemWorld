@@ -109,6 +109,28 @@ def test_action_codec_roundtrip_vector() -> None:
     assert process_decoded["reflux_ratio"] == 2.5
 
 
+def test_action_codec_accepts_common_recipe_aliases() -> None:
+    codec = ActionCodec()
+    catalyst_action = codec.canonicalize(
+        {"operation": "add_catalyst", "catalyst": 2, "amount_mol": 0.0004}
+    )
+    assert catalyst_action["catalyst_amount_mol"] == 0.0004
+
+    heat_action = codec.canonicalize(
+        {
+            "operation": "heat",
+            "temperature_K": 350.0,
+            "duration_s": 1200.0,
+            "stirring_rpm": 800.0,
+        }
+    )
+    assert heat_action["target_temperature_K"] == 350.0
+    assert heat_action["stirring_speed_rpm"] == 800.0
+
+    phase_action = codec.canonicalize({"operation": "separate_phase", "phase": "organic"})
+    assert phase_action["target_phase"] == "organic"
+
+
 def test_action_mask_is_task_aware() -> None:
     reaction_env = ActionMaskWrapper(
         gym.make("ChemWorld", task_id="reaction-optimization-standard", seed=0)
@@ -267,6 +289,47 @@ def test_purification_task_reaches_downstream_assay() -> None:
         assert float(observation["purity"][0]) >= 0.0
         assert float(observation["recovery"][0]) >= 0.0
         assert final_info["processed_estimate"]["process_mass_balance_error"] >= 0.0
+    finally:
+        env.close()
+
+
+def test_purification_recipe_accepts_user_facing_aliases() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=1)
+    try:
+        env.reset(seed=1)
+        actions = [
+            {"operation": "add_solvent", "volume_L": 0.03, "solvent": 1},
+            {"operation": "add_reagent", "amount_mol": 0.012},
+            {"operation": "add_catalyst", "catalyst": 2, "amount_mol": 0.0004},
+            {
+                "operation": "heat",
+                "temperature_K": 350.0,
+                "duration_s": 1200.0,
+                "stirring_rpm": 800.0,
+            },
+            {"operation": "quench"},
+            {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012},
+            {"operation": "add_extractant", "volume_L": 0.02, "solvent": 2},
+            {"operation": "mix", "duration_s": 120.0, "stirring_rpm": 600.0},
+            {"operation": "settle", "duration_s": 300.0},
+            {"operation": "separate_phase", "phase": "organic"},
+            {"operation": "wash", "phase": "organic", "volume_L": 0.01},
+            {"operation": "dry", "phase": "organic", "duration_s": 300.0},
+            {
+                "operation": "concentrate",
+                "phase": "organic",
+                "target_volume_L": 0.008,
+                "duration_s": 300.0,
+            },
+            {"operation": "terminate"},
+            {"operation": "measure", "instrument": "final_assay"},
+        ]
+        final_info = {}
+        for action in actions:
+            _, _, terminated, _, final_info = env.step(action)
+            assert not final_info["constraint_flags"]["precondition_failed"]
+        assert terminated
+        assert final_info["leaderboard_score"] is not None
     finally:
         env.close()
 
