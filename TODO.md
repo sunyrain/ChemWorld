@@ -47,6 +47,7 @@ finished, update its status and push immediately.
 | Runtime v2 mechanism-driven domain services | whilesunny | Done | `src/chemworld/runtime/`, `src/chemworld/foundation/`, `src/chemworld/world/`, tests/docs | mechanism species-role mapping, product phase-ledger key, non-fixed electrochemical runtime tests, and docs are complete | this commit |
 | Runtime v2 observation/scoring service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | observation truth, scoring, raw signal assembly, processed estimates, and uncertainty now live in `runtime/observation_services.py` | this commit |
 | Runtime v2 operation-record service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | operation record assembly, constitution summaries, measurement cost/sample logging, and state-delta summaries now live in `runtime/record_services.py` | this commit |
+| Runtime v2 reaction/thermal service split | whilesunny | Active | `src/chemworld/runtime/`, tests/docs | extract reaction advancement, heat/wait, pressure/risk update, and thermal helpers from `domain_services.py` without changing behavior | claim commit |
 
 Status values:
 
