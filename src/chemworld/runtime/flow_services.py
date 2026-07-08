@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState
+from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
 from chemworld.runtime.reaction_thermal_services import ChemWorldReactionThermalServices
 from chemworld.runtime.species import MechanismSpeciesView
 
@@ -30,19 +30,29 @@ class ChemWorldFlowServices:
     def set_flow_rate(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         flow_rate = float(np.clip(_action_float(action, "flow_rate_mL_min", 1.0), 0.01, 20.0))
         residence = float(np.clip(_action_float(action, "residence_time_s", 600.0), 1.0, 7200.0))
-        metadata = state.metadata.copy()
-        metadata["flow_rate_mL_min"] = flow_rate
-        metadata["residence_time_s"] = residence
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="flow_reactor",
+            equipment_type="continuous_flow_reactor",
+            attached_vessel_id=state.vessel_id,
+            status="configured",
+            settings={
+                "flow_rate_mL_min": flow_rate,
+                "residence_time_s": residence,
+            },
+        )
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.012)
-        return state.replace(ledger=ledger, metadata=metadata)
+        return state.replace(ledger=ledger, equipment=equipment)
 
     def run_flow(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        flow_settings = equipment_settings(state.equipment, "flow_reactor")
         residence = float(
-            state.metadata.get(
+            flow_settings.get(
                 "residence_time_s",
                 _action_float(action, "duration_s", 600.0),
             )
         )
+        flow_rate = float(flow_settings.get("flow_rate_mL_min", 1.0))
         duration = float(
             np.clip(_action_float(action, "duration_s", residence), residence, 14_400.0)
         )
@@ -66,6 +76,7 @@ class ChemWorldFlowServices:
         metadata = reacted_state.metadata.copy()
         metadata["flow_conversion"] = conversion
         metadata["flow_campaign_time_s"] = duration
+        metadata["flow_throughput_mL"] = flow_rate * duration / 60.0
         ledger = reacted_state.ledger.with_updates(
             time_s=state.ledger.time_s + duration,
             cost=reacted_state.ledger.cost + duration / 3600.0 * 0.030,

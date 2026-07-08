@@ -178,6 +178,43 @@ class EquipmentLedger:
         }
 
 
+def equipment_settings(
+    equipment: EquipmentLedger | None,
+    equipment_id: str,
+) -> dict[str, Any]:
+    """Return a defensive copy of a typed equipment record's settings."""
+
+    if equipment is None or equipment_id not in equipment.equipment:
+        return {}
+    return deepcopy(equipment.equipment[equipment_id].settings)
+
+
+def upsert_equipment_record(
+    equipment: EquipmentLedger | None,
+    *,
+    equipment_id: str,
+    equipment_type: str,
+    attached_vessel_id: str,
+    status: str = "configured",
+    settings: dict[str, Any] | None = None,
+) -> EquipmentLedger:
+    """Insert or update a typed equipment record with merged settings."""
+
+    records = {} if equipment is None else equipment.equipment.copy()
+    previous = records.get(equipment_id)
+    merged_settings = {} if previous is None else previous.settings.copy()
+    if settings:
+        merged_settings.update(deepcopy(settings))
+    records[equipment_id] = EquipmentRecord(
+        equipment_id=equipment_id,
+        equipment_type=equipment_type,
+        attached_vessel_id=attached_vessel_id,
+        status=status,
+        settings=merged_settings,
+    )
+    return EquipmentLedger(records)
+
+
 @dataclass(frozen=True)
 class VesselThermalRecord:
     vessel_id: str
@@ -305,10 +342,6 @@ class WorldState:
                                 "solvent",
                                 "catalyst",
                                 "stirring_speed_rpm",
-                                "flow_rate_mL_min",
-                                "residence_time_s",
-                                "potential_V",
-                                "current_mA",
                             }
                         },
                     )

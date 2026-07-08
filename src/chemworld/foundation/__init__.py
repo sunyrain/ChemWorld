@@ -20,7 +20,9 @@ from chemworld.foundation.state import (
     Observation,
     OperationRecord,
     WorldState,
+    equipment_settings,
     scale_phase_ledger,
+    upsert_equipment_record,
 )
 from chemworld.foundation.units import Quantity, UnitSpec, convert_value
 from chemworld.foundation.world_law import WorldLawSpec
@@ -46,5 +48,7 @@ __all__ = [
     "WorldLawSpec",
     "WorldState",
     "convert_value",
+    "equipment_settings",
     "scale_phase_ledger",
+    "upsert_equipment_record",
 ]

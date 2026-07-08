@@ -10,7 +10,7 @@ import chemworld  # noqa: F401
 from chemworld.cli import main
 from chemworld.data.datasets import dataset_card, export_dataset
 from chemworld.data.logging import load_jsonl
-from chemworld.foundation.state import WorldState
+from chemworld.foundation.state import WorldState, equipment_settings
 from chemworld.runtime.domain_services import (
     ChemWorldDomainServices,
     make_chemworld_constitution,
@@ -439,25 +439,32 @@ def test_domain_services_apply_mechanism_roles_for_reagent_and_electrolysis() ->
         pressure_Pa=101_325.0,
         phase="liquid",
         vessel_id="electrochemical_cell",
-        metadata={"solvent": 0, "catalyst": 0, "potential_V": 1.35, "current_mA": 80.0},
+        metadata={"solvent": 0, "catalyst": 0},
     )
 
     charged, add_record = services.apply_operation(
         state,
         {"operation": "add_reagent", "amount_mol": 0.010},
     )
-    converted, electro_record = services.apply_operation(
+    configured, potential_record = services.apply_operation(
         charged,
+        {"operation": "set_potential", "potential_V": 1.35, "current_mA": 80.0},
+    )
+    converted, electro_record = services.apply_operation(
+        configured,
         {"operation": "electrolyze", "duration_s": 900.0},
     )
 
     assert add_record.preconditions["not_terminated"]
+    assert potential_record.preconditions["not_terminated"]
     assert charged.species_amounts["Ox"] == pytest.approx(0.010)
     assert "A" not in charged.species_amounts
     assert charged.metadata["initial_Ox_mol"] == pytest.approx(0.010)
-    assert converted.species_amounts["Ox"] < charged.species_amounts["Ox"]
-    assert converted.species_amounts["Red"] > charged.species_amounts["Red"]
-    assert converted.species_amounts["IsoRed"] >= charged.species_amounts["IsoRed"]
+    assert "potential_V" not in configured.metadata
+    assert equipment_settings(configured.equipment, "electrochemical_cell")["potential_V"] == 1.35
+    assert converted.species_amounts["Ox"] < configured.species_amounts["Ox"]
+    assert converted.species_amounts["Red"] > configured.species_amounts["Red"]
+    assert converted.species_amounts["IsoRed"] >= configured.species_amounts["IsoRed"]
     assert abs(electro_record.state_delta_summary["actual_current_A"]) > 0.0
 
 
@@ -575,6 +582,42 @@ def test_runtime_phase_separation_uses_typed_phase_ledger_as_primary_state() -> 
         assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
     finally:
         env.close()
+
+
+def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> None:
+    flow_env = gym.make("ChemWorld", task_id="flow-reaction-optimization", seed=0)
+    electro_env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
+    try:
+        flow_env.reset(seed=0)
+        _, _, _, _, flow_info = flow_env.step(
+            {"operation": "set_flow_rate", "flow_rate_mL_min": 1.2, "residence_time_s": 900.0}
+        )
+        flow_state = flow_env.unwrapped._state
+        flow_settings = equipment_settings(flow_state.equipment, "flow_reactor")
+        assert flow_info["transaction_status"] == "committed"
+        assert "equipment" in flow_info["affected_ledgers"]
+        assert "flow_rate_mL_min" not in flow_state.metadata
+        assert "residence_time_s" not in flow_state.metadata
+        assert flow_settings == {"flow_rate_mL_min": 1.2, "residence_time_s": 900.0}
+        assert flow_env.unwrapped.constitution.check_state(flow_state).passed
+
+        electro_env.reset(seed=0)
+        electro_env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 1})
+        electro_env.step({"operation": "add_reagent", "amount_mol": 0.010})
+        _, _, _, _, electro_info = electro_env.step(
+            {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0}
+        )
+        electro_state = electro_env.unwrapped._state
+        electro_settings = equipment_settings(electro_state.equipment, "electrochemical_cell")
+        assert electro_info["transaction_status"] == "committed"
+        assert "equipment" in electro_info["affected_ledgers"]
+        assert "potential_V" not in electro_state.metadata
+        assert "current_mA" not in electro_state.metadata
+        assert electro_settings == {"potential_V": 1.15, "current_mA": 75.0}
+        assert electro_env.unwrapped.constitution.check_state(electro_state).passed
+    finally:
+        flow_env.close()
+        electro_env.close()
 
 
 def test_world_kernels_are_executable_not_metadata_only() -> None:

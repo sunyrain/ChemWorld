@@ -7,7 +7,7 @@ from math import isfinite
 from typing import Any, ClassVar
 
 from chemworld.foundation.ontology import Instrument, Substance, Vessel
-from chemworld.foundation.state import Observation, WorldState
+from chemworld.foundation.state import Observation, WorldState, equipment_settings
 from chemworld.foundation.units import canonical_unit
 
 
@@ -149,8 +149,10 @@ class PhysicalConstitution:
         phase_settled = bool(state.metadata.get("phase_settled", False))
         crystallized = bool(state.metadata.get("crystallization_active", False))
         distillate_ready = bool(state.metadata.get("distillation_active", False))
-        flow_ready = "flow_rate_mL_min" in state.metadata
-        potential_ready = "potential_V" in state.metadata
+        flow_settings = equipment_settings(state.equipment, "flow_reactor")
+        potential_settings = equipment_settings(state.equipment, "electrochemical_cell")
+        flow_ready = {"flow_rate_mL_min", "residence_time_s"} <= set(flow_settings)
+        potential_ready = {"potential_V", "current_mA"} <= set(potential_settings)
         phase_operations = {
             "add_extractant",
             "mix",

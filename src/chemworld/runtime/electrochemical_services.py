@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState
+from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
 from chemworld.physchem.electrochemistry import ElectrodeReactionSpec, run_electrolysis
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
@@ -27,17 +27,26 @@ class ChemWorldElectrochemicalServices:
     def set_potential(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         potential = float(np.clip(_action_float(action, "potential_V", 1.20), -3.0, 3.0))
         current = float(np.clip(_action_float(action, "current_mA", 50.0), 0.0, 500.0))
-        metadata = state.metadata.copy()
-        metadata["potential_V"] = potential
-        metadata["current_mA"] = current
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="electrochemical_cell",
+            equipment_type="electrochemical_cell",
+            attached_vessel_id=state.vessel_id,
+            status="configured",
+            settings={
+                "potential_V": potential,
+                "current_mA": current,
+            },
+        )
         risk = min(1.0, state.ledger.risk + 0.02 * max(abs(potential) - 1.5, 0.0))
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.010, risk=risk)
-        return state.replace(ledger=ledger, metadata=metadata)
+        return state.replace(ledger=ledger, equipment=equipment)
 
     def electrolyze(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         duration = float(np.clip(_action_float(action, "duration_s", 900.0), 0.0, 14_400.0))
-        potential = float(state.metadata.get("potential_V", 1.20))
-        current_mA = float(state.metadata.get("current_mA", 50.0))
+        cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
+        potential = float(cell_settings.get("potential_V", 1.20))
+        current_mA = float(cell_settings.get("current_mA", 50.0))
         species = state.species_amounts.copy()
         reactant = self.species_view.reactant_species(state)
         product = self.species_view.primary_target_species

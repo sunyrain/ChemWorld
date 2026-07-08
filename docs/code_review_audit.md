@@ -228,6 +228,9 @@ Recommended follow-up:
   `PhaseLedger` records, added executable constitution checks for phase/vessel
   reverse indexes and metadata primary-state leakage, and synchronized
   destructive sampling/measurement with typed phase amounts.
+- Promoted Runtime v2 flow and electrochemical setup from metadata keys to
+  typed `EquipmentLedger` records, made flow/electrochemistry preconditions read
+  equipment settings, and kept derived process metrics in metadata only.
 - Extracted `ChemWorldObservationKernel` into
   `runtime/observation_services.py`, keeping noisy observations, raw signal
   assembly, processed estimates, uncertainty metadata, and observation scoring
