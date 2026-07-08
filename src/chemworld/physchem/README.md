@@ -66,6 +66,7 @@ Current scope:
 - phase-equilibrium utilities for ideal, Margules, Wilson, and NRTL activity
   coefficients, Raoult K-values, isothermal flash, bubble/dew pressure,
   bubble/dew temperature reports backed by pure saturation reports,
+  gamma-phi K-value reports, binary relative-volatility crossing diagnostics,
   Rachford-Rice diagnostics, and liquid-liquid extraction splits.
 - reaction-equilibrium and electrolyte utilities for mass-action reaction
   extents, van't Hoff equilibrium constants, fixed-TP ideal Gibbs minimization,

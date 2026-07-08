@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
+from itertools import pairwise
 from math import exp, isfinite, log
 from typing import Literal
 
@@ -24,6 +25,11 @@ from chemworld.physchem.specs import PropertyCorrelation
 ActivityModel = Literal["ideal", "margules", "wilson", "nrtl"]
 VLESolveMode = Literal["bubble_temperature", "dew_temperature"]
 FlashPhaseStatus = Literal["all_liquid", "two_phase", "all_vapor"]
+AzeotropeScanStatus = Literal[
+    "relative_volatility_crossing",
+    "endpoint_near_crossing",
+    "no_crossing",
+]
 
 
 @dataclass(frozen=True)
@@ -191,6 +197,154 @@ class VLETemperatureReport:
 
 
 @dataclass(frozen=True)
+class GammaPhiKValueReport:
+    activity_model_id: str
+    pressure_Pa: float
+    temperature_K: float
+    liquid_composition: dict[str, float]
+    vapor_pressures_Pa: dict[str, float]
+    activity_coefficients: dict[str, float]
+    vapor_fugacity_coefficients: dict[str, float]
+    liquid_reference_fugacity_coefficients: dict[str, float]
+    poynting_factors: dict[str, float]
+    k_values: dict[str, float]
+    relative_volatilities: dict[str, float]
+    reference_component_id: str
+    reference_reading: tuple[str, ...] = (
+        "reference_repos/chemicals/chemicals/flash_basic.py: K_value "
+        "gamma-phi equation hierarchy",
+        "reference_repos/thermo/thermo/phases/phase.py: fugacity coefficient "
+        "reporting conventions",
+    )
+
+    def __post_init__(self) -> None:
+        if self.pressure_Pa <= 0 or not isfinite(self.pressure_Pa):
+            raise ValueError("pressure_Pa must be positive and finite")
+        if self.temperature_K <= 0 or not isfinite(self.temperature_K):
+            raise ValueError("temperature_K must be positive and finite")
+        if self.reference_component_id not in self.k_values:
+            raise ValueError("reference_component_id must be present in k_values")
+        object.__setattr__(self, "reference_reading", tuple(self.reference_reading))
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "activity_model_id": self.activity_model_id,
+            "pressure_Pa": self.pressure_Pa,
+            "temperature_K": self.temperature_K,
+            "liquid_composition": dict(self.liquid_composition),
+            "vapor_pressures_Pa": dict(self.vapor_pressures_Pa),
+            "activity_coefficients": dict(self.activity_coefficients),
+            "vapor_fugacity_coefficients": dict(self.vapor_fugacity_coefficients),
+            "liquid_reference_fugacity_coefficients": dict(
+                self.liquid_reference_fugacity_coefficients
+            ),
+            "poynting_factors": dict(self.poynting_factors),
+            "k_values": dict(self.k_values),
+            "relative_volatilities": dict(self.relative_volatilities),
+            "reference_component_id": self.reference_component_id,
+            "reference_reading": list(self.reference_reading),
+        }
+
+
+@dataclass(frozen=True)
+class AzeotropeScanPoint:
+    composition: dict[str, float]
+    k_values: dict[str, float]
+    vapor_composition: dict[str, float]
+    relative_volatility: float
+    residual: float
+
+    def __post_init__(self) -> None:
+        if self.relative_volatility <= 0 or not isfinite(self.relative_volatility):
+            raise ValueError("relative_volatility must be positive and finite")
+        if not isfinite(self.residual):
+            raise ValueError("azeotrope residual must be finite")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "composition": dict(self.composition),
+            "k_values": dict(self.k_values),
+            "vapor_composition": dict(self.vapor_composition),
+            "relative_volatility": self.relative_volatility,
+            "residual": self.residual,
+        }
+
+
+@dataclass(frozen=True)
+class BinaryAzeotropeDiagnosticReport:
+    component_ids: tuple[str, str]
+    light_component_id: str
+    heavy_component_id: str
+    pressure_Pa: float
+    temperature_K: float
+    residual_type: str
+    status: AzeotropeScanStatus
+    scan_points: tuple[AzeotropeScanPoint, ...]
+    crossing_bracket: tuple[float, float] | None
+    estimated_azeotrope_composition: dict[str, float] | None
+    estimated_residual: float | None
+    warnings: tuple[str, ...] = ()
+    reference_reading: tuple[str, ...] = (
+        "reference_repos/chemicals/chemicals/flash_basic.py: K-value and "
+        "relative-volatility equation context",
+        "reference_repos/thermo/thermo/property_package.py: bubble/dew and "
+        "phase-envelope workflow context",
+    )
+
+    def __post_init__(self) -> None:
+        if self.status not in {
+            "relative_volatility_crossing",
+            "endpoint_near_crossing",
+            "no_crossing",
+        }:
+            raise ValueError("Unsupported azeotrope scan status")
+        if len(self.component_ids) != 2:
+            raise ValueError("BinaryAzeotropeDiagnosticReport requires two components")
+        if self.light_component_id not in self.component_ids:
+            raise ValueError("light_component_id must be one of component_ids")
+        if self.heavy_component_id not in self.component_ids:
+            raise ValueError("heavy_component_id must be one of component_ids")
+        if self.light_component_id == self.heavy_component_id:
+            raise ValueError("light and heavy components must be distinct")
+        if self.pressure_Pa <= 0 or not isfinite(self.pressure_Pa):
+            raise ValueError("pressure_Pa must be positive and finite")
+        if self.temperature_K <= 0 or not isfinite(self.temperature_K):
+            raise ValueError("temperature_K must be positive and finite")
+        if not self.scan_points:
+            raise ValueError("scan_points cannot be empty")
+        if self.crossing_bracket is not None:
+            lower, upper = self.crossing_bracket
+            if not 0.0 <= lower <= upper <= 1.0:
+                raise ValueError("crossing_bracket must be within [0, 1]")
+        if self.estimated_residual is not None and not isfinite(self.estimated_residual):
+            raise ValueError("estimated_residual must be finite")
+        object.__setattr__(self, "scan_points", tuple(self.scan_points))
+        object.__setattr__(self, "warnings", tuple(self.warnings))
+        object.__setattr__(self, "reference_reading", tuple(self.reference_reading))
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "component_ids": list(self.component_ids),
+            "light_component_id": self.light_component_id,
+            "heavy_component_id": self.heavy_component_id,
+            "pressure_Pa": self.pressure_Pa,
+            "temperature_K": self.temperature_K,
+            "residual_type": self.residual_type,
+            "status": self.status,
+            "scan_points": [point.to_dict() for point in self.scan_points],
+            "crossing_bracket": list(self.crossing_bracket)
+            if self.crossing_bracket is not None
+            else None,
+            "estimated_azeotrope_composition": None
+            if self.estimated_azeotrope_composition is None
+            else dict(self.estimated_azeotrope_composition),
+            "estimated_residual": self.estimated_residual,
+            "warnings": list(self.warnings),
+            "reference_reading": list(self.reference_reading),
+        }
+
+
+@dataclass(frozen=True)
 class LLEStageResult:
     organic_amounts_mol: dict[str, float]
     aqueous_amounts_mol: dict[str, float]
@@ -237,26 +391,221 @@ def raoult_k_values(
     temperature_K: float,
     vapor_fugacity_coefficients: Mapping[str, float] | None = None,
 ) -> dict[str, float]:
-    if pressure_Pa <= 0:
-        raise ValueError("pressure_Pa must be positive")
-    gamma = activity_coefficients(
+    return gamma_phi_k_value_report(
         activity_model,
         liquid_composition,
+        vapor_pressures_Pa=vapor_pressures_Pa,
+        pressure_Pa=pressure_Pa,
+        temperature_K=temperature_K,
+        vapor_fugacity_coefficients=vapor_fugacity_coefficients,
+    ).k_values
+
+
+def gamma_phi_k_value_report(
+    activity_model: ActivityModelSpec,
+    liquid_composition: Mapping[str, float],
+    *,
+    vapor_pressures_Pa: Mapping[str, float],
+    pressure_Pa: float,
+    temperature_K: float,
+    vapor_fugacity_coefficients: Mapping[str, float] | None = None,
+    liquid_reference_fugacity_coefficients: Mapping[str, float] | None = None,
+    poynting_factors: Mapping[str, float] | None = None,
+) -> GammaPhiKValueReport:
+    """Return an auditable gamma-phi VLE K-value report.
+
+    The compact contract follows the standard benchmark form
+    `K_i = gamma_i * Psat_i * phi_l_ref_i * Poynting_i / (phi_v_i * P)`.
+    Supplying no fugacity or Poynting mappings gives the modified Raoult-law
+    limit.
+    """
+
+    if pressure_Pa <= 0 or not isfinite(pressure_Pa):
+        raise ValueError("pressure_Pa must be positive and finite")
+    if temperature_K <= 0 or not isfinite(temperature_K):
+        raise ValueError("temperature_K must be positive and finite")
+    x = _composition_vector_mapping(activity_model.component_ids, liquid_composition)
+    _validate_vapor_pressure_values(x, vapor_pressures_Pa)
+    gamma = activity_coefficients(
+        activity_model,
+        x,
         temperature_K=temperature_K,
     )
-    phi = (
-        dict.fromkeys(activity_model.component_ids, 1.0)
-        if vapor_fugacity_coefficients is None
-        else dict(vapor_fugacity_coefficients)
+    phi_v = _factor_mapping(
+        activity_model.component_ids,
+        vapor_fugacity_coefficients,
+        field_name="vapor_fugacity_coefficients",
     )
-    k_values = {}
-    for component_id in activity_model.component_ids:
-        psat = float(vapor_pressures_Pa[component_id])
-        if psat < 0:
-            raise ValueError("vapor pressures cannot be negative")
-        phi_i = max(float(phi.get(component_id, 1.0)), 1e-12)
-        k_values[component_id] = gamma[component_id] * psat / (phi_i * pressure_Pa)
-    return k_values
+    phi_l_ref = _factor_mapping(
+        activity_model.component_ids,
+        liquid_reference_fugacity_coefficients,
+        field_name="liquid_reference_fugacity_coefficients",
+    )
+    poynting = _factor_mapping(
+        activity_model.component_ids,
+        poynting_factors,
+        field_name="poynting_factors",
+    )
+    k_values = {
+        component_id: gamma[component_id]
+        * float(vapor_pressures_Pa[component_id])
+        * phi_l_ref[component_id]
+        * poynting[component_id]
+        / (phi_v[component_id] * pressure_Pa)
+        for component_id in activity_model.component_ids
+    }
+    _validate_k_values(x, k_values)
+    reference_component_id = min(k_values, key=lambda component_id: k_values[component_id])
+    reference_k = k_values[reference_component_id]
+    relative_volatilities = {
+        component_id: k_values[component_id] / reference_k
+        for component_id in activity_model.component_ids
+    }
+    return GammaPhiKValueReport(
+        activity_model_id=activity_model.model_id,
+        pressure_Pa=pressure_Pa,
+        temperature_K=temperature_K,
+        liquid_composition=x,
+        vapor_pressures_Pa={
+            component_id: float(vapor_pressures_Pa[component_id])
+            for component_id in activity_model.component_ids
+        },
+        activity_coefficients=gamma,
+        vapor_fugacity_coefficients=phi_v,
+        liquid_reference_fugacity_coefficients=phi_l_ref,
+        poynting_factors=poynting,
+        k_values=k_values,
+        relative_volatilities=relative_volatilities,
+        reference_component_id=reference_component_id,
+    )
+
+
+def binary_azeotrope_diagnostic_report(
+    activity_model: ActivityModelSpec,
+    *,
+    vapor_pressures_Pa: Mapping[str, float],
+    pressure_Pa: float,
+    temperature_K: float,
+    light_component_id: str,
+    vapor_fugacity_coefficients: Mapping[str, float] | None = None,
+    liquid_reference_fugacity_coefficients: Mapping[str, float] | None = None,
+    poynting_factors: Mapping[str, float] | None = None,
+    grid_size: int = 41,
+    composition_bounds: tuple[float, float] = (1e-3, 1.0 - 1e-3),
+    residual_tolerance: float = 1e-6,
+) -> BinaryAzeotropeDiagnosticReport:
+    """Scan binary gamma-phi relative volatility for azeotrope-like crossings.
+
+    This diagnostic is intentionally isothermal and local. A sign change in
+    `ln(K_light/K_heavy)` indicates a relative-volatility crossing that should
+    be treated as azeotrope risk by flash/distillation tasks; it is not a full
+    phase-stability or pressure-composition azeotrope solver.
+    """
+
+    if len(activity_model.component_ids) != 2:
+        raise ValueError("binary azeotrope diagnostic requires a binary model")
+    if light_component_id not in activity_model.component_ids:
+        raise ValueError("light_component_id must be present in activity_model")
+    if grid_size < 3:
+        raise ValueError("grid_size must be at least 3")
+    if residual_tolerance <= 0:
+        raise ValueError("residual_tolerance must be positive")
+    lower, upper = composition_bounds
+    if not 0.0 < lower < upper < 1.0:
+        raise ValueError("composition_bounds must lie inside (0, 1)")
+    heavy_component_id = next(
+        component_id
+        for component_id in activity_model.component_ids
+        if component_id != light_component_id
+    )
+    _validate_vapor_pressure_values(
+        dict.fromkeys(activity_model.component_ids, 0.5),
+        vapor_pressures_Pa,
+    )
+    phi_v = _factor_mapping(
+        activity_model.component_ids,
+        vapor_fugacity_coefficients,
+        field_name="vapor_fugacity_coefficients",
+    )
+    phi_l_ref = _factor_mapping(
+        activity_model.component_ids,
+        liquid_reference_fugacity_coefficients,
+        field_name="liquid_reference_fugacity_coefficients",
+    )
+    poynting = _factor_mapping(
+        activity_model.component_ids,
+        poynting_factors,
+        field_name="poynting_factors",
+    )
+
+    scan_points: list[AzeotropeScanPoint] = []
+    for index in range(grid_size):
+        fraction = lower + (upper - lower) * index / (grid_size - 1)
+        composition = {
+            light_component_id: fraction,
+            heavy_component_id: 1.0 - fraction,
+        }
+        report = gamma_phi_k_value_report(
+            activity_model,
+            composition,
+            vapor_pressures_Pa=vapor_pressures_Pa,
+            pressure_Pa=pressure_Pa,
+            temperature_K=temperature_K,
+            vapor_fugacity_coefficients=phi_v,
+            liquid_reference_fugacity_coefficients=phi_l_ref,
+            poynting_factors=poynting,
+        )
+        relative_volatility = (
+            report.k_values[light_component_id] / report.k_values[heavy_component_id]
+        )
+        residual = log(relative_volatility)
+        vapor = _normalize_composition(
+            {
+                component_id: composition[component_id] * report.k_values[component_id]
+                for component_id in activity_model.component_ids
+            }
+        )
+        scan_points.append(
+            AzeotropeScanPoint(
+                composition=composition,
+                k_values=report.k_values,
+                vapor_composition=vapor,
+                relative_volatility=relative_volatility,
+                residual=residual,
+            )
+        )
+
+    crossing = _find_azeotrope_crossing(
+        scan_points,
+        light_component_id=light_component_id,
+        residual_tolerance=residual_tolerance,
+    )
+    warnings: list[str] = []
+    if crossing is None:
+        status: AzeotropeScanStatus = "no_crossing"
+        warnings.append("No binary relative-volatility crossing found on the grid")
+        crossing_bracket = None
+        estimated_composition = None
+        estimated_residual = None
+    else:
+        status, crossing_bracket, estimated_composition, estimated_residual = crossing
+        if status == "endpoint_near_crossing":
+            warnings.append("A grid endpoint is already within residual_tolerance")
+
+    return BinaryAzeotropeDiagnosticReport(
+        component_ids=activity_model.component_ids,
+        light_component_id=light_component_id,
+        heavy_component_id=heavy_component_id,
+        pressure_Pa=pressure_Pa,
+        temperature_K=temperature_K,
+        residual_type="ln_relative_volatility",
+        status=status,
+        scan_points=tuple(scan_points),
+        crossing_bracket=crossing_bracket,
+        estimated_azeotrope_composition=estimated_composition,
+        estimated_residual=estimated_residual,
+        warnings=tuple(warnings),
+    )
 
 
 def rachford_rice_vapor_fraction(
@@ -889,6 +1238,77 @@ def _validate_vapor_pressure_values(
         raise ValueError("vapor pressures must be finite and positive")
 
 
+def _factor_mapping(
+    component_ids: tuple[str, ...],
+    values: Mapping[str, float] | None,
+    *,
+    field_name: str,
+) -> dict[str, float]:
+    if values is None:
+        return dict.fromkeys(component_ids, 1.0)
+    missing = sorted(set(component_ids) - set(values))
+    extra = sorted(set(values) - set(component_ids))
+    if missing or extra:
+        raise ValueError(
+            f"{field_name} keys must match components: "
+            f"missing={missing}, extra={extra}"
+        )
+    result = {component_id: float(values[component_id]) for component_id in component_ids}
+    if any(value <= 0 or not isfinite(value) for value in result.values()):
+        raise ValueError(f"{field_name} must contain finite positive values")
+    return result
+
+
+def _find_azeotrope_crossing(
+    scan_points: list[AzeotropeScanPoint],
+    *,
+    light_component_id: str,
+    residual_tolerance: float,
+) -> tuple[
+    AzeotropeScanStatus,
+    tuple[float, float],
+    dict[str, float],
+    float,
+] | None:
+    for point in scan_points:
+        if abs(point.residual) <= residual_tolerance:
+            fraction = point.composition[light_component_id]
+            return (
+                "endpoint_near_crossing",
+                (fraction, fraction),
+                dict(point.composition),
+                point.residual,
+            )
+    for left, right in pairwise(scan_points):
+        if left.residual * right.residual > 0.0:
+            continue
+        left_fraction = left.composition[light_component_id]
+        right_fraction = right.composition[light_component_id]
+        denominator = right.residual - left.residual
+        if abs(denominator) <= 1e-300:
+            estimate = 0.5 * (left_fraction + right_fraction)
+        else:
+            estimate = left_fraction - left.residual * (
+                right_fraction - left_fraction
+            ) / denominator
+        estimate = min(max(estimate, left_fraction), right_fraction)
+        other_component = next(
+            component_id
+            for component_id in left.composition
+            if component_id != light_component_id
+        )
+        return (
+            "relative_volatility_crossing",
+            (left_fraction, right_fraction),
+            {
+                light_component_id: estimate,
+                other_component: 1.0 - estimate,
+            },
+            0.0,
+        )
+    return None
+
+
 def _margules_gamma(spec: ActivityModelSpec, x: tuple[float, ...]) -> dict[str, float]:
     gamma = {}
     for i, component_id in enumerate(spec.component_ids):
@@ -1209,19 +1629,25 @@ def _validate_k_values(
 __all__ = [
     "ActivityModel",
     "ActivityModelSpec",
+    "AzeotropeScanPoint",
+    "AzeotropeScanStatus",
+    "BinaryAzeotropeDiagnosticReport",
     "FlashPhaseStatus",
     "FlashResult",
+    "GammaPhiKValueReport",
     "LLEStageResult",
     "RachfordRiceDiagnosticReport",
     "VLESolveMode",
     "VLETemperatureReport",
     "activity_coefficients",
     "activity_model_cards",
+    "binary_azeotrope_diagnostic_report",
     "bubble_pressure_pa",
     "bubble_temperature_report",
     "dew_pressure_pa",
     "dew_temperature_report",
     "flash_isothermal",
+    "gamma_phi_k_value_report",
     "liquid_liquid_split",
     "rachford_rice_diagnostic_report",
     "rachford_rice_vapor_fraction",

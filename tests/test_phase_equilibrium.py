@@ -8,12 +8,14 @@ from chemworld.physchem import (
     MaturityLevel,
     activity_coefficients,
     activity_model_cards,
+    binary_azeotrope_diagnostic_report,
     bubble_pressure_pa,
     bubble_temperature_report,
     curated_property_package,
     dew_pressure_pa,
     dew_temperature_report,
     flash_isothermal,
+    gamma_phi_k_value_report,
     liquid_liquid_split,
     rachford_rice_diagnostic_report,
     rachford_rice_vapor_fraction,
@@ -130,6 +132,7 @@ def test_activity_model_cards_are_auditable() -> None:
         "wilson_activity_coefficients",
         "nrtl_activity_coefficients",
         "ideal_gamma_vle_temperature_reports",
+        "gamma_phi_k_values_and_azeotrope_diagnostics",
     }
     for card in cards:
         assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
@@ -206,6 +209,75 @@ def test_raoult_k_values_bubble_and_dew_pressure() -> None:
     assert 20_000.0 < bubble < 100_000.0
     assert 20_000.0 < dew < 100_000.0
     assert sum(liquid[key] * k_values[key] for key in liquid) == pytest.approx(1.0)
+
+
+def test_gamma_phi_k_value_report_records_all_factors_and_rejects_bad_phi() -> None:
+    model = ActivityModelSpec("ideal_ab", ("light", "heavy"), "ideal")
+    report = gamma_phi_k_value_report(
+        model,
+        {"light": 0.4, "heavy": 0.6},
+        vapor_pressures_Pa={"light": 120_000.0, "heavy": 40_000.0},
+        pressure_Pa=100_000.0,
+        temperature_K=330.0,
+        vapor_fugacity_coefficients={"light": 0.8, "heavy": 1.2},
+        liquid_reference_fugacity_coefficients={"light": 1.1, "heavy": 1.0},
+        poynting_factors={"light": 1.02, "heavy": 1.0},
+    )
+
+    assert report.k_values["light"] == pytest.approx(
+        1.0 * 120_000.0 * 1.1 * 1.02 / (0.8 * 100_000.0)
+    )
+    assert report.k_values["heavy"] == pytest.approx(1.0 * 40_000.0 / (1.2 * 100_000.0))
+    assert report.relative_volatilities["light"] > report.relative_volatilities["heavy"]
+    assert report.reference_component_id == "heavy"
+    assert report.to_dict()["vapor_fugacity_coefficients"]["light"] == pytest.approx(0.8)
+
+    with pytest.raises(ValueError, match="vapor_fugacity_coefficients"):
+        gamma_phi_k_value_report(
+            model,
+            {"light": 0.4, "heavy": 0.6},
+            vapor_pressures_Pa={"light": 120_000.0, "heavy": 40_000.0},
+            pressure_Pa=100_000.0,
+            temperature_K=330.0,
+            vapor_fugacity_coefficients={"light": 0.0, "heavy": 1.0},
+        )
+
+
+def test_binary_azeotrope_diagnostic_reports_relative_volatility_crossing() -> None:
+    model = ActivityModelSpec(
+        "margules_crossing",
+        ("light", "heavy"),
+        "margules",
+        {"A:light|heavy": 0.0, "A:heavy|light": 2.0},
+    )
+    crossing = binary_azeotrope_diagnostic_report(
+        model,
+        vapor_pressures_Pa={"light": 100_000.0, "heavy": 50_000.0},
+        pressure_Pa=100_000.0,
+        temperature_K=330.0,
+        light_component_id="light",
+        grid_size=51,
+    )
+    no_crossing = binary_azeotrope_diagnostic_report(
+        ActivityModelSpec("ideal_ab", ("light", "heavy"), "ideal"),
+        vapor_pressures_Pa={"light": 100_000.0, "heavy": 50_000.0},
+        pressure_Pa=100_000.0,
+        temperature_K=330.0,
+        light_component_id="light",
+        grid_size=11,
+    )
+
+    assert crossing.status == "relative_volatility_crossing"
+    assert crossing.crossing_bracket is not None
+    assert crossing.estimated_azeotrope_composition is not None
+    assert 0.5 < crossing.estimated_azeotrope_composition["light"] < 1.0
+    assert crossing.estimated_residual == pytest.approx(0.0)
+    assert crossing.scan_points[0].residual > 0.0
+    assert crossing.scan_points[-1].residual < 0.0
+    assert crossing.to_dict()["status"] == "relative_volatility_crossing"
+    assert no_crossing.status == "no_crossing"
+    assert no_crossing.crossing_bracket is None
+    assert no_crossing.warnings
 
 
 def test_curated_binary_bubble_and_dew_temperature_reports_close() -> None:

@@ -165,6 +165,17 @@ adds vapor-fraction, phase-status, endpoint objective, and residual diagnostics
 for TP flash tasks. This is an auditable benchmark VLE slice; it is not yet a
 gamma-phi EOS flash, azeotrope detector, or rigorous phase-stability solver.
 
+DEEP-D3D adds the first gamma-phi bridge and azeotrope-risk diagnostic.
+`gamma_phi_k_value_report()` reports `gamma`, `Psat`, vapor fugacity
+coefficients, liquid reference fugacity coefficients, Poynting factors,
+K-values, and relative volatilities in one JSON-friendly object.
+`binary_azeotrope_diagnostic_report()` scans a binary composition grid for
+`ln(K_light/K_heavy)` sign changes and returns crossing brackets, estimated
+composition, endpoint/no-crossing status, and warnings. This gives
+distillation, flash, and generalization tasks an auditable nonideality warning
+surface before a rigorous gamma-phi flash, tangent-plane stability test, or
+azeotrope curve tracer exists.
+
 DEEP-D2B hardens the heat-capacity and enthalpy path. The public API now
 separates three concepts that were previously easy to blur:
 
@@ -707,6 +718,8 @@ property correlations, and downstream separation tasks:
 | Bubble/dew pressure | iterative estimates with activity coefficients |
 | Bubble/dew temperature reports | bracketed pressure-residual solves using pure saturation reports, K-values, and residual metadata |
 | Rachford-Rice diagnostics | vapor fraction, endpoint objectives, phase-status classification, and residual reports |
+| Gamma-phi K-value reports | explicit gamma, vapor phi, liquid-reference phi, Poynting, K-value, and relative-volatility provenance |
+| Binary azeotrope diagnostics | isothermal `ln(alpha)` scan with crossing bracket, estimated composition, and no-crossing warnings |
 | LLE stage | material-conserving extraction split with partition coefficients, phase volumes, stage efficiency, and entrainment |
 
 PRO-P4A hardens the nonideal activity path. Wilson and NRTL now use explicit
@@ -726,6 +739,12 @@ surface as pure saturation, so separation tasks can show which component Psat
 correlation and K-value produced a phase-boundary decision. Invalid correlation
 keys, nonpositive pressures, bad brackets, and missing vapor-pressure data fail
 before a downstream unit operation can silently extrapolate.
+
+DEEP-D3D then exposes the gamma-phi K-value contract directly. Tasks can now
+distinguish modified Raoult-law assumptions from caller-supplied vapor
+fugacity, liquid-reference fugacity, and Poynting factors. Binary
+relative-volatility scans provide an azeotrope-risk hook for private/public
+scenario cards without requiring a heavyweight flash backend.
 
 This is still compact, but it is enough to make future extraction, evaporation,
 distillation, solvent-screening, and purity/recovery tasks depend on shared

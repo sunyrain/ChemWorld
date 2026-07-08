@@ -387,6 +387,11 @@ Recommended follow-up:
   K-values, bracketed pressure-residual solves, and Rachford-Rice phase-status
   diagnostics, while keeping gamma-phi EOS flash and azeotrope detection as
   future professional work.
+- Added a gamma-phi VLE diagnostic slice. `equilibrium.py` now exposes
+  auditable gamma/phi/Psat/Poynting K-value reports and binary
+  relative-volatility crossing scans. This closes the first azeotrope-risk
+  hook while keeping rigorous gamma-phi flash, tangent-plane stability, and
+  azeotrope curve tracing as future professional work.
 
 ## Verification
 

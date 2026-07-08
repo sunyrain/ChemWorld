@@ -251,6 +251,99 @@ def activity_model_cards() -> tuple[ModelCard, ...]:
                 "Rachford-Rice phase status.",
             ),
         ),
+        ModelCard(
+            model_id="gamma_phi_k_values_and_azeotrope_diagnostics",
+            module_id="phase_equilibrium",
+            title="Gamma-Phi K-Values and Binary Azeotrope Diagnostics",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Auditable gamma-phi K-value reports and binary isothermal "
+                "relative-volatility crossing diagnostics for flash and "
+                "distillation benchmark tasks."
+            ),
+            equations=(
+                "K_i = gamma_i P_sat,i phi_i^l,ref Poynting_i / (phi_i^v P)",
+                "relative volatility: alpha_light,heavy = K_light / K_heavy",
+                "azeotrope-risk residual: r(x) = ln(alpha_light,heavy(x))",
+            ),
+            assumptions=(
+                "Vapor fugacity coefficients, liquid reference fugacity "
+                "coefficients, and Poynting factors are caller-supplied "
+                "positive dimensionless mappings or default to one.",
+                "The azeotrope diagnostic is an isothermal composition-grid "
+                "scan of relative-volatility crossing, not a full phase "
+                "stability or pressure-composition azeotrope solver.",
+                "Activity coefficients come from ActivityModelSpec, so model "
+                "parameter provenance remains outside the solver.",
+            ),
+            validity_limits=(
+                "Requires finite positive pressure, vapor pressures, fugacity "
+                "coefficients, and Poynting factors.",
+                "The binary diagnostic requires exactly two components and a "
+                "composition grid strictly inside (0, 1).",
+                "Validated on formula closure, nonideal crossing, and "
+                "no-crossing regression tests.",
+            ),
+            failure_modes=(
+                "Missing or extra phi/Poynting keys fail before K-value "
+                "evaluation.",
+                "Nonpositive fugacity coefficients fail rather than being "
+                "clipped.",
+                "No relative-volatility sign change is reported as a "
+                "diagnostic status with warnings, not as an exception.",
+            ),
+            units={
+                "temperature": "K",
+                "pressure": "Pa",
+                "composition": "mole fraction",
+                "gamma": "dimensionless",
+                "phi": "dimensionless",
+                "Poynting": "dimensionless",
+                "K_value": "dimensionless",
+                "relative_volatility": "dimensionless",
+            },
+            reference_reading=(
+                "reference_repos/chemicals/chemicals/flash_basic.py: K_value "
+                "gamma-phi equation hierarchy",
+                "reference_repos/thermo/thermo/phases/phase.py: fugacity "
+                "coefficient reporting conventions",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="gamma-phi-factor-closure",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks K-values against explicit gamma, vapor phi, "
+                        "liquid-reference phi, and Poynting factors."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_phase_equilibrium.py",
+                    tolerance="pytest.approx formula closure",
+                ),
+                ValidationEvidence(
+                    evidence_id="binary-azeotrope-crossing-diagnostic",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks a Margules binary case with ln(alpha) crossing "
+                        "and an ideal no-crossing control case."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_phase_equilibrium.py",
+                    tolerance="bracketed residual sign change",
+                ),
+            ),
+            model_limit_notes=(
+                "The diagnostic highlights azeotrope risk for benchmark "
+                "planning. It is not a rigorous gamma-phi flash, tangent-plane "
+                "stability test, or azeotrope curve tracer.",
+            ),
+            intended_use=(
+                "Distillation and flash tasks that need visible K-value "
+                "provenance and relative-volatility warnings.",
+                "Scenario cards that vary public/private nonideality without "
+                "hiding the diagnostic contract.",
+            ),
+        ),
     )
 
 
