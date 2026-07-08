@@ -97,6 +97,7 @@ Every professional module must ship:
 | PRO-RUNTIME-A compiled mechanism required across runtime services | whilesunny | Done | Cantera mechanism-driven runtime architecture and ChemWorld role mapping tests | `src/chemworld/runtime/`, tests/docs | env/runtime/eval have no `LEGACY_*` species defaults and runtime/domain/observation services require compiled mechanisms | this commit |
 | PRO-RUNTIME-A mechanism role validation at compile time | whilesunny | Done | Cantera mechanism schema validation patterns and ChemWorld mechanism role tests | `src/chemworld/runtime/mechanisms.py`, mechanism tests/docs | compile-time validation separates base mechanism-library checks from stricter runtime scenario role contracts for target, impurity, initial species, and observable mappings | this commit |
 | PRO-RUNTIME-B transaction record consistency | whilesunny | Done | Safety-Gymnasium cost-channel patterns, transactional runtime architecture | `src/chemworld/runtime/kernels.py`, `src/chemworld/runtime/transactions.py`, tests/docs | rollback transactions now append explicit rollback patches and rebuild operation records from the committed rollback state | this commit |
+| PRO-RUNTIME-F precondition rollback transaction | whilesunny | Claimed | Safety-Gymnasium cost-channel patterns, transactional runtime architecture | `src/chemworld/runtime/`, `src/chemworld/envs/`, tests/docs | route operation precondition failures through Runtime v2 rollback events and process-only penalty patches | claim commit |
 
 ## P0: Governance And Model Maturity
 

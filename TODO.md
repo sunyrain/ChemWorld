@@ -81,6 +81,7 @@ finished, update its status and push immediately.
 | PRO-RUNTIME-C operation taxonomy and macro compiler | whilesunny | Done | `src/chemworld/world/operations.py`, `src/chemworld/world/recipes.py`, tests/docs | operation contracts now classify primitive/domain/macro/terminal steps; recipe compilation expands macros and validates compiled steps against task policy | this commit |
 | PRO-RUNTIME-D domain service registry | whilesunny | Done | `src/chemworld/runtime/domain_services.py`, `src/chemworld/runtime/engine.py`, tests/docs | runtime now exposes a typed DomainServiceRegistry, operation-to-service map, and domain service ids in operation events | this commit |
 | PRO-RUNTIME-E task runtime service contract | whilesunny | Done | `src/chemworld/runtime/kernels.py`, `src/chemworld/runtime/domain_services.py`, `src/chemworld/runtime/engine.py`, tests/docs | TaskRuntimeProfile now declares required domain services and runtime startup validates service/capability coverage | this commit |
+| PRO-RUNTIME-F precondition rollback transaction | whilesunny | Active | `src/chemworld/runtime/`, `src/chemworld/envs/`, tests/docs | route operation precondition failures through Runtime v2 rollback events and process-only penalty patches | claim commit |
 
 Status values:
 
