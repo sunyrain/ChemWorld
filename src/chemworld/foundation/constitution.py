@@ -7,7 +7,13 @@ from math import isfinite
 from typing import Any, ClassVar
 
 from chemworld.foundation.ontology import Instrument, Substance, Vessel
-from chemworld.foundation.state import Observation, WorldState, equipment_settings
+from chemworld.foundation.state import (
+    Observation,
+    WorldState,
+    equipment_settings,
+    has_phase_system,
+    phases_are_settled,
+)
 from chemworld.foundation.units import canonical_unit
 
 
@@ -62,6 +68,12 @@ class PhysicalConstitution:
         "catalyst",
         "solvent",
         "stirring_speed_rpm",
+    }
+
+    primary_phase_metadata_keys: ClassVar[set[str]] = {
+        "phase_system",
+        "phase_settled",
+        "selected_phase",
     }
 
     required_state_units: ClassVar[dict[str, str]] = {
@@ -151,8 +163,8 @@ class PhysicalConstitution:
         )
         final_assay_done = bool(state.metadata.get("final_assay_done", False))
         is_final_assay = operation_type == "measure" and instrument_id == "final_assay"
-        phase_system = bool(state.metadata.get("phase_system", False))
-        phase_settled = bool(state.metadata.get("phase_settled", False))
+        phase_system = has_phase_system(state.phases)
+        phase_settled = phases_are_settled(state.phases)
         crystallized = bool(state.metadata.get("crystallization_active", False))
         distillate_ready = bool(state.metadata.get("distillation_active", False))
         flow_settings = equipment_settings(state.equipment, "flow_reactor")
@@ -376,6 +388,12 @@ class PhysicalConstitution:
                 "metadata_no_primary_reactor_settings",
                 self.primary_reactor_metadata_keys.isdisjoint(state.metadata),
                 "Batch-reactor operation settings must live in typed EquipmentLedger.",
+            ),
+            CheckResult(
+                "metadata_no_primary_phase_status",
+                self.primary_phase_metadata_keys.isdisjoint(state.metadata),
+                "Phase-system readiness, settled status, and selection must "
+                "live in typed PhaseLedger.",
             )
         ]
         if state.phases is not None:

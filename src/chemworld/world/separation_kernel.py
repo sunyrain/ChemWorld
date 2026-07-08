@@ -7,10 +7,32 @@ from dataclasses import dataclass
 import numpy as np
 
 from chemworld.foundation import WorldState
+from chemworld.foundation.state import selected_phase_id
 from chemworld.world.species_roles import (
+    LEGACY_IMPURITY_SPECIES,
     LEGACY_PHASE_PRODUCT_AMOUNT_KEY,
+    LEGACY_TARGET_SPECIES,
     PHASE_PRODUCT_AMOUNT_KEY,
 )
+
+
+def _typed_phase_ledger_entries(state: WorldState) -> dict[str, dict[str, float]]:
+    if state.phases is None:
+        return {}
+    entries: dict[str, dict[str, float]] = {}
+    for phase_id, phase in state.phases.phases.items():
+        entries[phase_id] = {
+            "volume_L": float(phase.volume_L),
+            PHASE_PRODUCT_AMOUNT_KEY: float(
+                phase.species_amounts_mol.get(LEGACY_TARGET_SPECIES, 0.0)
+            ),
+            "impurity_mol": sum(
+                float(phase.species_amounts_mol.get(species_id, 0.0))
+                for species_id in LEGACY_IMPURITY_SPECIES
+            ),
+            "solvent_loss": float(phase.metadata.get("solvent_loss", 0.0)),
+        }
+    return entries
 
 
 def downstream_truth_values(
@@ -21,7 +43,7 @@ def downstream_truth_values(
     impurity_amount_mol: float | None = None,
     initial_product_mol: float | None = None,
 ) -> dict[str, float]:
-    phase_ledger = phase_ledger or dict(state.metadata.get("phase_ledger", {}))
+    phase_ledger = phase_ledger or _typed_phase_ledger_entries(state)
     product_amount = (
         float(product_amount_mol)
         if product_amount_mol is not None
@@ -50,7 +72,7 @@ def downstream_truth_values(
     )
     organic = phase_ledger.get("organic", {})
     aqueous = phase_ledger.get("aqueous", {})
-    selected_phase = str(state.metadata.get("selected_phase") or "organic")
+    selected_phase = selected_phase_id(state.phases) or "organic"
     selected = phase_ledger.get(selected_phase, organic or aqueous or {})
     product_in_organic = float(
         organic.get(PHASE_PRODUCT_AMOUNT_KEY, organic.get(LEGACY_PHASE_PRODUCT_AMOUNT_KEY, 0.0))

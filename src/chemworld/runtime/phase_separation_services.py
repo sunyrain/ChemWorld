@@ -7,7 +7,12 @@ from typing import Any
 import numpy as np
 
 from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
-from chemworld.foundation.state import EquipmentLedger, PhaseLedger, PhaseRecord
+from chemworld.foundation.state import (
+    EquipmentLedger,
+    PhaseLedger,
+    PhaseRecord,
+    selected_phase_id,
+)
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
 from chemworld.world.phase_kernel import partition_split
@@ -33,6 +38,9 @@ def _phase_type(phase_name: str) -> str:
     if phase_name in {"organic", "aqueous", "solid"}:
         return phase_name
     return "liquid"
+
+
+_SELECTED_PHASE_UNSET = object()
 
 
 class ChemWorldPhaseSeparationServices:
@@ -63,14 +71,31 @@ class ChemWorldPhaseSeparationServices:
         state: WorldState,
         phase_ledger: dict[str, dict[str, float]],
         *,
-        metadata: dict[str, Any] | None = None,
+        settled: bool | None = None,
+        selected_phase: str | None = None,
+        preserve_selection: bool = True,
     ) -> PhaseLedger:
-        state_metadata = state.metadata if metadata is None else metadata
         species_template = dict.fromkeys(state.species_amounts, 0.0)
         phases: dict[str, PhaseRecord] = {}
         has_split_phases = bool({"organic", "aqueous"} & set(phase_ledger))
 
         for phase_name, values in phase_ledger.items():
+            previous_phase = (
+                None if state.phases is None else state.phases.phases.get(phase_name)
+            )
+            phase_settled = (
+                bool(previous_phase.settled)
+                if settled is None and previous_phase is not None
+                else bool(settled)
+            )
+            if selected_phase is None:
+                phase_selected = (
+                    bool(previous_phase.selected)
+                    if preserve_selection and previous_phase
+                    else False
+                )
+            else:
+                phase_selected = selected_phase == phase_name
             species_amounts = species_template.copy()
             if phase_name == "reactor_liquid":
                 species_amounts.update(
@@ -89,8 +114,8 @@ class ChemWorldPhaseSeparationServices:
                 phase_type=_phase_type(phase_name),
                 volume_L=float(values.get("volume_L", 0.0)),
                 species_amounts_mol=species_amounts,
-                settled=bool(state_metadata.get("phase_settled", False)),
-                selected=str(state_metadata.get("selected_phase", "")) == phase_name,
+                settled=phase_settled,
+                selected=phase_selected,
                 metadata={"solvent_loss": float(values.get("solvent_loss", 0.0))},
             )
 
@@ -223,6 +248,9 @@ class ChemWorldPhaseSeparationServices:
     ) -> dict[str, Any]:
         metadata = state.metadata.copy()
         metadata.pop("phase_ledger", None)
+        metadata.pop("phase_system", None)
+        metadata.pop("phase_settled", None)
+        metadata.pop("selected_phase", None)
         metadata.pop("stirring_speed_rpm", None)
         metadata.update(
             downstream_truth_values(
@@ -242,12 +270,29 @@ class ChemWorldPhaseSeparationServices:
         phase_ledger: dict[str, dict[str, float]],
         *,
         metadata_updates: dict[str, Any] | None = None,
+        phase_settled: bool | None = None,
+        selected_phase: str | None | object = _SELECTED_PHASE_UNSET,
         ledger: Any | None = None,
         volume_L: float | None = None,
         equipment: EquipmentLedger | None = None,
     ) -> WorldState:
+        metadata_updates = {} if metadata_updates is None else metadata_updates.copy()
+        preserve_selection = selected_phase is _SELECTED_PHASE_UNSET
+        selected_phase_value: str | None = None
+        if preserve_selection:
+            selected_phase_value = selected_phase_id(state.phases)
+        elif selected_phase is None:
+            selected_phase_value = None
+        elif selected_phase is not None:
+            selected_phase_value = str(selected_phase)
         metadata = self.phase_metadata(state, phase_ledger, updates=metadata_updates)
-        phases = self.phase_ledger_records(state, phase_ledger, metadata=metadata)
+        phases = self.phase_ledger_records(
+            state,
+            phase_ledger,
+            settled=None if phase_settled is None else bool(phase_settled),
+            selected_phase=selected_phase_value,
+            preserve_selection=preserve_selection,
+        )
         species_amounts = phases.total_amounts_mol()
         return state.replace(
             species_amounts=species_amounts,
@@ -270,7 +315,8 @@ class ChemWorldPhaseSeparationServices:
         return self.with_phase_ledger(
             state,
             phase_ledger,
-            metadata_updates={"phase_system": True, "phase_settled": False, "selected_phase": None},
+            phase_settled=False,
+            selected_phase=None,
             ledger=ledger,
             volume_L=state.volume_L + volume,
         )
@@ -291,12 +337,9 @@ class ChemWorldPhaseSeparationServices:
         return self.with_phase_ledger(
             state,
             phase_ledger,
-            metadata_updates={
-                "phase_system": True,
-                "phase_settled": False,
-                "extractant": extractant,
-                "selected_phase": None,
-            },
+            metadata_updates={"extractant": extractant},
+            phase_settled=False,
+            selected_phase=None,
             ledger=ledger,
             volume_L=state.volume_L + volume,
         )
@@ -352,11 +395,8 @@ class ChemWorldPhaseSeparationServices:
         return self.with_phase_ledger(
             state,
             phase_ledger,
-            metadata_updates={
-                "phase_system": True,
-                "phase_settled": False,
-                "partition_coefficient": split["partition_coefficient"],
-            },
+            metadata_updates={"partition_coefficient": split["partition_coefficient"]},
+            phase_settled=False,
             ledger=ledger,
             equipment=equipment,
         )
@@ -371,7 +411,7 @@ class ChemWorldPhaseSeparationServices:
         return self.with_phase_ledger(
             state,
             phase_ledger,
-            metadata_updates={"phase_system": True, "phase_settled": duration >= 60.0},
+            phase_settled=duration >= 60.0,
             ledger=ledger,
         )
 
@@ -402,11 +442,8 @@ class ChemWorldPhaseSeparationServices:
         return self.with_phase_ledger(
             state,
             phase_ledger,
-            metadata_updates={
-                "selected_phase": target,
-                "phase_system": True,
-                "phase_settled": True,
-            },
+            phase_settled=True,
+            selected_phase=target,
             ledger=ledger,
             volume_L=phase_ledger[target]["volume_L"],
         )
@@ -414,7 +451,7 @@ class ChemWorldPhaseSeparationServices:
     def wash_phase(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         volume = float(np.clip(_action_float(action, "wash_volume_L", 0.010), 0.0, 0.040))
         phase_ledger = self.phase_ledger(state)
-        target = str(state.metadata.get("selected_phase") or "organic")
+        target = selected_phase_id(state.phases) or "organic"
         phase = phase_ledger.setdefault(
             target,
             {
@@ -433,14 +470,14 @@ class ChemWorldPhaseSeparationServices:
         return self.with_phase_ledger(
             state,
             phase_ledger,
-            metadata_updates={"selected_phase": target},
+            selected_phase=target,
             ledger=ledger,
             volume_L=phase["volume_L"],
         )
 
     def dry_phase(self, state: WorldState) -> WorldState:
         phase_ledger = self.phase_ledger(state)
-        target = str(state.metadata.get("selected_phase") or "organic")
+        target = selected_phase_id(state.phases) or "organic"
         phase = phase_ledger.setdefault(
             target,
             {
@@ -458,7 +495,7 @@ class ChemWorldPhaseSeparationServices:
         return self.with_phase_ledger(
             state,
             phase_ledger,
-            metadata_updates={"selected_phase": target},
+            selected_phase=target,
             ledger=ledger,
             volume_L=phase["volume_L"],
         )
@@ -466,7 +503,7 @@ class ChemWorldPhaseSeparationServices:
     def concentrate_phase(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         duration = float(np.clip(_action_float(action, "duration_s", 300.0), 0.0, 3600.0))
         phase_ledger = self.phase_ledger(state)
-        target = str(state.metadata.get("selected_phase") or "organic")
+        target = selected_phase_id(state.phases) or "organic"
         phase = phase_ledger.setdefault(
             target,
             {
@@ -488,7 +525,7 @@ class ChemWorldPhaseSeparationServices:
         return self.with_phase_ledger(
             state,
             phase_ledger,
-            metadata_updates={"selected_phase": target},
+            selected_phase=target,
             ledger=ledger,
             volume_L=phase["volume_L"],
         )
@@ -496,7 +533,7 @@ class ChemWorldPhaseSeparationServices:
     def transfer_phase(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         fraction = float(np.clip(_action_float(action, "transfer_fraction", 0.98), 0.0, 1.0))
         phase_ledger = self.phase_ledger(state)
-        target = str(state.metadata.get("selected_phase") or "organic")
+        target = selected_phase_id(state.phases) or "organic"
         phase = phase_ledger.setdefault(
             target,
             {
@@ -514,7 +551,7 @@ class ChemWorldPhaseSeparationServices:
         return self.with_phase_ledger(
             state,
             phase_ledger,
-            metadata_updates={"selected_phase": target},
+            selected_phase=target,
             ledger=ledger,
             volume_L=phase["volume_L"],
         )

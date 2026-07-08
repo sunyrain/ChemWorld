@@ -572,9 +572,14 @@ def test_runtime_phase_separation_uses_typed_phase_ledger_as_primary_state() -> 
 
         state = env.unwrapped._state
         assert "phase_ledger" not in state.metadata
+        assert "phase_system" not in state.metadata
+        assert "phase_settled" not in state.metadata
+        assert "selected_phase" not in state.metadata
         assert state.phases is not None
         assert {"organic", "aqueous"} <= set(state.phases.phases)
         assert state.phases.phases["organic"].selected is True
+        assert state.phases.phases["organic"].settled is True
+        assert state.phases.phases["aqueous"].settled is True
         assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
         assert state.vessels is not None
         assert set(state.vessels.vessels[state.vessel_id].phase_ids) == set(
@@ -590,6 +595,21 @@ def test_runtime_phase_separation_uses_typed_phase_ledger_as_primary_state() -> 
         assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
     finally:
         env.close()
+
+
+def test_constitution_rejects_primary_phase_status_metadata() -> None:
+    state = initial_chemworld_state().replace(
+        metadata={
+            **initial_chemworld_state().metadata,
+            "phase_system": True,
+            "phase_settled": True,
+            "selected_phase": "organic",
+        }
+    )
+    report = make_chemworld_constitution().check_state(state)
+
+    assert not report.passed
+    assert any(check.name == "metadata_no_primary_phase_status" for check in report.failures())
 
 
 def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> None:

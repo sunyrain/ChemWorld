@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 
 from chemworld.foundation import WorldState
+from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.runtime.species import MechanismSpeciesView
 
 
@@ -84,7 +85,6 @@ class ChemWorldCrystallizationServices:
         )
         metadata.update(
             {
-                "selected_phase": "solid",
                 "crystals_filtered": True,
                 "crystal_product_mol": product,
                 "crystal_impurity_mol": impurity,
@@ -99,7 +99,45 @@ class ChemWorldCrystallizationServices:
             time_s=state.ledger.time_s + 480.0,
             cost=state.ledger.cost + 0.026,
         )
-        return state.replace(ledger=ledger, metadata=metadata)
+        solid_amounts = dict.fromkeys(state.species_amounts, 0.0)
+        target_species = self.species_view.primary_target_species
+        impurity_species = self.species_view.primary_impurity_species
+        solid_amounts[target_species] = product
+        solid_amounts[impurity_species] = impurity
+        liquor_amounts = state.species_amounts.copy()
+        liquor_amounts[target_species] = max(
+            liquor_amounts.get(target_species, 0.0) - product,
+            0.0,
+        )
+        liquor_amounts[impurity_species] = max(
+            liquor_amounts.get(impurity_species, 0.0) - impurity,
+            0.0,
+        )
+        phases = PhaseLedger(
+            {
+                "mother_liquor": PhaseRecord(
+                    phase_id="mother_liquor",
+                    vessel_id=state.vessel_id,
+                    phase_type="liquid",
+                    volume_L=state.volume_L * 0.92,
+                    species_amounts_mol=liquor_amounts,
+                    settled=True,
+                    selected=False,
+                    metadata={"solvent_loss": float(metadata.get("solvent_loss", 0.0))},
+                ),
+                "solid": PhaseRecord(
+                    phase_id="solid",
+                    vessel_id=state.vessel_id,
+                    phase_type="solid",
+                    volume_L=0.0,
+                    species_amounts_mol=solid_amounts,
+                    settled=True,
+                    selected=True,
+                    metadata={"solvent_loss": 0.0},
+                ),
+            }
+        )
+        return state.replace(ledger=ledger, metadata=metadata, phases=phases)
 
 
 __all__ = ["ChemWorldCrystallizationServices"]

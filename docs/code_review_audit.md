@@ -277,6 +277,12 @@ Recommended follow-up:
   runtime metadata into typed `EquipmentLedger` settings. Reaction, thermal,
   electrochemical, and phase-partition services now read the typed reactor
   settings, and the constitution rejects these keys as primary metadata.
+- Promoted phase-system readiness, settled status, and selected-phase state out
+  of runtime metadata into typed `PhaseLedger` records. Constitution
+  preconditions now read `PhaseRecord.settled/selected`, extraction,
+  crystallization, and distillation outputs mark selected phases in typed
+  ledgers, and golden trajectories assert these primary phase-status keys never
+  reappear in state metadata.
 - Extracted `reaction_network_specs.py` from `reaction_network.py`, keeping
   species/rate-law/reaction specs, reaction-equation parsing, and mechanism
   dict helpers outside the ODE integration and rate-law evaluation engine.

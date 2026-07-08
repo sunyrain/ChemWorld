@@ -77,6 +77,36 @@ class PhaseLedger:
         return {phase_id: phase.to_dict() for phase_id, phase in self.phases.items()}
 
 
+def has_phase_system(phases: PhaseLedger | None) -> bool:
+    """Return whether a state has an explicit downstream phase system."""
+
+    if phases is None:
+        return False
+    return any(phase_id != "reactor_liquid" for phase_id in phases.phases)
+
+
+def phases_are_settled(phases: PhaseLedger | None) -> bool:
+    """Return whether all non-reactor phases are marked settled."""
+
+    if not has_phase_system(phases) or phases is None:
+        return False
+    downstream_phases = [
+        phase for phase_id, phase in phases.phases.items() if phase_id != "reactor_liquid"
+    ]
+    return bool(downstream_phases) and all(phase.settled for phase in downstream_phases)
+
+
+def selected_phase_id(phases: PhaseLedger | None) -> str | None:
+    """Return the selected phase id, if one is marked in the typed ledger."""
+
+    if phases is None:
+        return None
+    for phase_id, phase in phases.phases.items():
+        if phase.selected:
+            return phase_id
+    return None
+
+
 def scale_phase_ledger(
     phases: PhaseLedger | None,
     *,
@@ -303,8 +333,6 @@ class WorldState:
             phase_type=self.phase,
             volume_L=self.volume_L,
             species_amounts_mol=self.species_amounts,
-            settled=bool(self.metadata.get("phase_settled", False)),
-            selected=str(self.metadata.get("selected_phase", "")) == "reactor_liquid",
         )
         phases = (
             PhaseLedger({"reactor_liquid": phase})

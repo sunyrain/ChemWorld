@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 
 from chemworld.foundation import WorldState
+from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.physchem.separations import vle_shortcut_distillation
 from chemworld.runtime.species import MechanismSpeciesView
 
@@ -111,7 +112,6 @@ class ChemWorldDistillationServices:
         metadata = state.metadata.copy()
         metadata.update(
             {
-                "selected_phase": "distillate",
                 "fraction_collected": True,
                 "distillate_product_mol": product,
                 "distillate_impurity_mol": impurity,
@@ -122,7 +122,50 @@ class ChemWorldDistillationServices:
             }
         )
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.018)
-        return state.replace(volume_L=state.volume_L * fraction, ledger=ledger, metadata=metadata)
+        target_species = self.species_view.primary_target_species
+        impurity_species = self.species_view.primary_impurity_species
+        distillate_amounts = dict.fromkeys(state.species_amounts, 0.0)
+        distillate_amounts[target_species] = product
+        distillate_amounts[impurity_species] = impurity
+        bottoms_amounts = state.species_amounts.copy()
+        bottoms_amounts[target_species] = max(
+            bottoms_amounts.get(target_species, 0.0) - product,
+            0.0,
+        )
+        bottoms_amounts[impurity_species] = max(
+            bottoms_amounts.get(impurity_species, 0.0) - impurity,
+            0.0,
+        )
+        phases = PhaseLedger(
+            {
+                "bottoms": PhaseRecord(
+                    phase_id="bottoms",
+                    vessel_id=state.vessel_id,
+                    phase_type="liquid",
+                    volume_L=state.volume_L * max(1.0 - fraction, 0.0),
+                    species_amounts_mol=bottoms_amounts,
+                    settled=True,
+                    selected=False,
+                    metadata={"solvent_loss": float(metadata.get("solvent_loss", 0.0))},
+                ),
+                "distillate": PhaseRecord(
+                    phase_id="distillate",
+                    vessel_id=state.vessel_id,
+                    phase_type="liquid",
+                    volume_L=state.volume_L * fraction,
+                    species_amounts_mol=distillate_amounts,
+                    settled=True,
+                    selected=True,
+                    metadata={"solvent_loss": 0.0},
+                ),
+            }
+        )
+        return state.replace(
+            volume_L=state.volume_L * fraction,
+            ledger=ledger,
+            metadata=metadata,
+            phases=phases,
+        )
 
 
 __all__ = ["ChemWorldDistillationServices"]

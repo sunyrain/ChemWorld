@@ -21,7 +21,10 @@ from chemworld.foundation.state import (
     OperationRecord,
     WorldState,
     equipment_settings,
+    has_phase_system,
+    phases_are_settled,
     scale_phase_ledger,
+    selected_phase_id,
     upsert_equipment_record,
 )
 from chemworld.foundation.units import Quantity, UnitSpec, convert_value
@@ -49,6 +52,9 @@ __all__ = [
     "WorldState",
     "convert_value",
     "equipment_settings",
+    "has_phase_system",
+    "phases_are_settled",
     "scale_phase_ledger",
+    "selected_phase_id",
     "upsert_equipment_record",
 ]
