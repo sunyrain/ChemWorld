@@ -165,14 +165,37 @@ This is still compact, but it is enough to make future extraction, evaporation,
 distillation, solvent-screening, and purity/recovery tasks depend on shared
 thermodynamic rules rather than fixed hand-tuned proxies.
 
+## Separation Unit-Operation Core
+
+The P7 separation core is implemented in `chemworld.physchem.separations`. It
+wraps phase-equilibrium calculations into downstream processing units with
+explicit outlet streams, cost/risk ledgers, heat duty, solvent loss, and material
+balance errors:
+
+| Unit operation | Current implementation |
+| --- | --- |
+| Liquid-liquid extraction | multistage extraction using partition coefficients, finite stage efficiency, entrainment, and solvent loss |
+| Evaporation / flash | VLE-driven vapor/liquid split from K-values, heat duty, and concentration risk |
+| Simple distillation | volatility-score separation with reflux, stage efficiency, distillate cut, heat duty, and purity/recovery tradeoff |
+| Crystallization | solubility-limited crystallization, cooling proxy, impurity occlusion, crystal-size proxy |
+| Filtration | solid recovery, impurity retention, washing efficiency, and wash loss |
+| Drying | solvent removal, residual solvent, heat duty, thermal degradation risk |
+
+All units return a shared `SeparationResult` with named outlets and a
+`SeparationLedger`. This makes downstream processing benchmarkable: a task can
+reward purity and recovery while penalizing cost, risk, solvent loss, and
+process mass-balance errors. Excessive purification is therefore not
+automatically optimal, which is important for realistic reaction-to-purification
+tasks.
+
 ## Boundaries
 
 This layer is now a real local property-correlation, reaction-network, reactor,
-cubic-EOS, and compact phase-equilibrium core, but it is not yet a complete
-process simulator. It does not perform rigorous multiphase stability analysis,
-database-grade flash calculations, automatic reaction mechanism generation, or
-detailed transport calculations. Those will be built on top of these specs in
-later TODO milestones.
+cubic-EOS, compact phase-equilibrium, and downstream unit-operation core, but it
+is not yet a complete process simulator. It does not perform rigorous multiphase
+stability analysis, database-grade flash calculations, automatic reaction
+mechanism generation, or detailed transport calculations. Those will be built on
+top of these specs in later TODO milestones.
 
 ## Validation Rules
 

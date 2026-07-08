@@ -24,6 +24,9 @@ Current scope:
   states with compressibility roots and fugacity coefficients.
 - phase-equilibrium utilities for activity coefficients, Raoult K-values,
   isothermal flash, bubble/dew pressure, and liquid-liquid extraction splits.
+- downstream separation unit operations for multistage extraction,
+  evaporation, distillation, crystallization, filtration, drying, and
+  purity/recovery/cost/risk scoring.
 
 Design rules:
 
@@ -38,6 +41,8 @@ Design rules:
   selection, and fugacity outputs inspectable;
 - keep phase-equilibrium models explicit about activity assumptions,
   vapor-pressure inputs, partition coefficients, and mass-balance errors;
+- keep unit-operation results as named outlet streams plus cost, risk,
+  heat-duty, solvent-loss, and material-balance ledgers;
 - declare property units and validity ranges on every correlation;
 - reject unbalanced reaction networks before simulation;
 - add optional reference-backend comparisons only as skipped tests or adapters;
