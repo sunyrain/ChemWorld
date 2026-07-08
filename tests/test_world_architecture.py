@@ -13,11 +13,11 @@ from chemworld.data.logging import load_jsonl
 from chemworld.foundation.state import WorldState
 from chemworld.runtime.domain_services import (
     ChemWorldDomainServices,
-    ChemWorldObservationKernel,
     make_chemworld_constitution,
 )
 from chemworld.runtime.kernels import OperationKernelRegistry, TaskRuntimeProfile
 from chemworld.runtime.mechanisms import compile_mechanism_for_scenario
+from chemworld.runtime.observation_services import ChemWorldObservationKernel
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.schemas import (
     ACTION_SCHEMA,
@@ -80,6 +80,19 @@ def test_world_layer_does_not_import_batch_core() -> None:
         if "chemworld.core.batch_reactor" in path.read_text(encoding="utf-8")
     ]
     assert offenders == []
+
+
+def test_runtime_observation_service_is_separate_from_state_changing_services() -> None:
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+        encoding="utf-8"
+    )
+    observation_services = Path("src/chemworld/runtime/observation_services.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "class ChemWorldObservationKernel" not in domain_services
+    assert "class ChemWorldObservationKernel" in observation_services
+    assert "score_observation" not in domain_services
 
 
 def test_runtime_profile_requires_current_task_kernels_only() -> None:

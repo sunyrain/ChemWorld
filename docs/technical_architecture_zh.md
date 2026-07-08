@@ -68,7 +68,7 @@ ChemWorldEnv
       -> DomainServices
       -> TransactionManager
       -> ConstitutionChecker
-      -> ObservationKernel
+      -> ObservationServices
       -> ScoringService
 ```
 
@@ -77,7 +77,8 @@ ChemWorldEnv
 - `ChemWorldEnv.step()` 只做 action canonicalize、validate、runtime dispatch、observation、reward/info 和 campaign bookkeeping。
 - `TaskRuntimeProfile` 声明当前任务需要哪些 operation、instrument、kernel 和 capability，不要求全局所有 kernel 都注册。
 - `OperationKernelRegistry` 把操作类型映射到小型 command handler。
-- `DomainServices` 承担反应、传热、相平衡、分离、流动、电化学、仪器与评分计算。
+- `DomainServices` 承担会改变状态的反应、传热、相平衡、分离、流动、电化学和仪器成本计算。
+- `ObservationServices` 承担 hidden state 到 partial observation 的映射，包括 noisy instrument signal、processed estimate、uncertainty 和观测时评分。
 - `TransactionManager` 统一提交 `StatePatch`，记录 `WorldEvent`，并在 constitution failure 时回滚 material ledger。
 - safety/cost 作为一等信号进入 `info["cost"]`、`info["cost_components"]` 和 leaderboard metrics。
 
@@ -163,7 +164,7 @@ Operation  -> 单步实验动作
 
 最重要的技术债不是任务数量，而是专业底座深度：
 
-- `runtime/domain_services.py` 仍然偏宽，需要继续拆成 reaction、thermal、phase/separation、instrument、scoring 等服务模块；
+- `runtime/domain_services.py` 已经移出 observation/scoring，但仍然偏宽，需要继续拆成 reaction、thermal、phase/separation、instrument-cost、electrochemistry 和 operation-record 等服务模块；
 - `reaction_network.py`、`eos.py`、`equilibrium_chemistry.py`、`spectroscopy.py` 仍是较大模块，需要按算法族拆分；
 - reaction integration 仍有一部分历史 batch-reactor 数值假设，需要逐步完全由 mechanism spec 和 compiled mechanism 驱动；
 - separation、distillation、crystallization、flow、electrochemistry 目前是 benchmark-oriented semi-mechanistic models，还不是专业流程模拟器；

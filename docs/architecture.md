@@ -49,8 +49,13 @@ The runtime is organized around:
 - `OperationKernelRegistry`, which maps allowed operation types to typed kernels
   for the current profile rather than requiring every known ChemWorld operation
   globally;
-- `ChemWorldDomainServices`, which owns reaction, thermal, phase, separation,
-  instrument, and scoring calculations used by operation kernels;
+- `ChemWorldDomainServices`, which owns state-changing reaction, thermal,
+  phase, separation, process, electrochemical, and instrument-cost calculations
+  used by operation kernels;
+- `ChemWorldObservationKernel`, implemented in
+  `runtime/observation_services.py`, which owns observation truth extraction,
+  noisy instrument signals, processed estimates, uncertainty metadata, and
+  observation-time scoring;
 - `MechanismSpeciesView`, which resolves reactants, targets, impurities,
   catalysts, byproducts, and degradation markers from the compiled mechanism
   instead of letting runtime services depend on fixed species names;
@@ -144,7 +149,7 @@ terminated reaction state, ends the episode, and can only create one
 Task-aware wrappers can add operation masks and safety-cost signals without
 changing the Gymnasium five-tuple API.
 
-## Observation Kernel
+## Observation Services
 
 Instrument observations are represented as:
 
@@ -160,6 +165,12 @@ Instrument observations are represented as:
 
 Gym observations still expose the stable numeric observation keys. Missing
 values are represented as `NaN` in Gym arrays and `null` in trajectory JSONL.
+
+The observation implementation is separated from state-changing runtime
+services. `ChemWorldObservationKernel` reads the committed hidden state,
+compiled-mechanism species roles, instrument contracts, and task objective to
+generate partial observations. It does not mutate material, phase, vessel, or
+process ledgers.
 
 ## Agents
 

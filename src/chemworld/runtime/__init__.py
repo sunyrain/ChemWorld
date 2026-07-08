@@ -71,7 +71,11 @@ def __getattr__(name: str) -> Any:
         from chemworld.runtime import engine
 
         return getattr(engine, name)
-    if name in {"ChemWorldObservationKernel", "make_chemworld_constitution"}:
+    if name == "ChemWorldObservationKernel":
+        from chemworld.runtime import observation_services
+
+        return getattr(observation_services, name)
+    if name == "make_chemworld_constitution":
         from chemworld.runtime import domain_services
 
         return getattr(domain_services, name)
