@@ -24,6 +24,7 @@ from chemworld.physchem import (
     flash_isothermal,
     ideal_gas_molar_volume,
     import_reference_module,
+    internal_heat_transfer_coefficient,
     pipe_pressure_drop,
     prandtl_number,
     raoult_k_values,
@@ -116,6 +117,34 @@ def test_fluids_dimensionless_number_reference() -> None:
     )
     summary = summarize_reference_comparisons(comparisons)
     assert summary["all_passed"], summary
+
+
+def test_fluids_nusselt_definition_reference() -> None:
+    fluids_core = _reference_module("fluids.core")
+
+    nusselt = 86.5
+    diameter_m = 0.025
+    thermal_conductivity_W_m_K = 0.62
+    heat_transfer_coefficient = internal_heat_transfer_coefficient(
+        nusselt=nusselt,
+        thermal_conductivity_W_m_K=thermal_conductivity_W_m_K,
+        diameter_m=diameter_m,
+    )
+    comparison = compare_scalar(
+        check_id="fluids-nusselt-definition",
+        backend_id="fluids",
+        quantity="Nusselt",
+        chemworld_value=nusselt,
+        reference_value=fluids_core.Nusselt(
+            h=heat_transfer_coefficient,
+            L=diameter_m,
+            k=thermal_conductivity_W_m_K,
+        ),
+        unit="dimensionless",
+        rtol=1e-12,
+        note="Round-trip ChemWorld h = Nu k/D against fluids.core.Nusselt.",
+    )
+    assert comparison.passed, comparison.to_dict()
 
 
 def test_thermo_wilson_and_nrtl_activity_references() -> None:

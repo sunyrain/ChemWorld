@@ -63,6 +63,7 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
 10. Add Peng-Robinson/SRK fugacity-coefficient and residual-property validation.
     Done in PRO-P3A.
 11. Add heat-transfer correlations and heat-exchanger duty checks.
+    Done in PRO-P8A.
 12. Harden the component registry with provenance, aliases, uncertainty fields,
     and conflict-resolution policy.
 
@@ -254,3 +255,25 @@ property slice:
 - This is not a complete EOS/flash package. Volume translation, phase
   envelopes, saturation solvers, mixture flash derivatives, and critical-region
   handling remain on the later professional TODO track.
+
+PRO-P8A is now implemented for the first reference-validated heat-transfer and
+exchanger-duty slice:
+
+- `nusselt_internal_flow_details()` exposes the selected Nusselt branch,
+  flow regime, friction factor, validity warnings, and optional
+  `strict_validity=True` failure behavior.
+- The local heat-transfer branches cover a constant fully developed laminar
+  relation, Dittus-Boelter, and Gnielinski. Auto mode uses a smooth
+  laminar-to-Gnielinski transition for benchmark rollouts, while explicit
+  branches can fail on validity warnings in tests or validators.
+- `internal_heat_transfer_coefficient()` keeps the `h = Nu k / D` contract
+  explicit, and optional reference tests round-trip that definition against
+  `fluids.core.Nusselt`.
+- `heat_exchanger_counterflow()` now reports hot-side heat lost, cold-side heat
+  gained, maximum possible duty, and the duty-balance residual in addition to
+  effectiveness and outlet temperatures.
+- `transport_model_cards()` records the inspected `fluids`, IDAES
+  heat-exchanger, IDAES e-NTU, and CoolProp property-workflow references.
+- This is still a scoped single-phase heat-transfer slice. Boiling,
+  condensation, shell-side correction factors, fouling dynamics, and equipment
+  safety cards remain future deepening tasks rather than proxy-filled claims.

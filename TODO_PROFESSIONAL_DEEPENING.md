@@ -19,6 +19,9 @@ pushed.
 - Read relevant local reference repositories before implementation.
 - Do not vendor, translate, or copy external source code.
 - Do not implement a proxy as a placeholder for a professional module.
+- Do not add broad placeholder files merely to increase code size. A missing
+  professional capability should stay unchecked until its equations, validation
+  cases, limits, and task behavior are implemented.
 - If a reference library is outdated, document why and implement a smaller,
   clearer ChemWorld-local API with explicit units and validation boundaries.
 - A slice is done only when code, tests, model card, docs, reference-reading
@@ -149,9 +152,10 @@ Last push:
 
 ### D8 Transport, Equipment, And Safety
 
-- [ ] `DEEP-D8A` heat-transfer correlations:
-  Nusselt correlations, jacket/coil heat-transfer coefficients, fouling hooks,
-  and energy-ledger validation.
+- [ ] `DEEP-D8A` phase-change and equipment heat transfer:
+  boiling/condensation warning models, jacket/coil/shell-side correction
+  factors, dynamic fouling evolution, and energy-ledger validation beyond the
+  completed PRO-P8A single-phase Nusselt/e-NTU slice.
 - [ ] `DEEP-D8B` two-phase pressure drop:
   replace homogeneous proxy with a documented correlation slice and validity
   limits.

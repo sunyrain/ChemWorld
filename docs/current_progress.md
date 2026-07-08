@@ -32,7 +32,8 @@ The repository currently provides:
 - documentation, runnable example scripts, and executed notebooks.
 - a twelve-day executed tutorial sequence under `notebooks/tutorials/`.
 - reference-validated physical-chemistry slices for curated properties,
-  friction/pipe pressure drop, Wilson/NRTL activity coefficients, reaction ODE
+  friction/pipe pressure drop, internal-flow heat transfer, counterflow
+  exchanger duty balance, Wilson/NRTL activity coefficients, reaction ODE
   cases, CSTR multiplicity, shortcut distillation, UV-vis calibration,
   chromatography retention, and PR/SRK residual EOS properties.
 

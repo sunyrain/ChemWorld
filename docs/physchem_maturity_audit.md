@@ -25,7 +25,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | EOS | Lite with a reference-validated PR/SRK residual slice | ideal gas, PR/SRK roots, fugacity coefficients, explicit root policy, residual H/S/G tests, optional `thermo.eos` comparisons for methane/ethane/CO2 | volume translation, phase envelopes, flash derivatives, and broader CoolProp/teqp/thermopack validation |
 | Phase equilibrium | Lite with a reference-validated Wilson/NRTL gamma slice | ideal VLE, Wilson/NRTL gamma checks against `thermo`, LLE split tests | UNIQUAC, phase stability, nonideal VLE/LLE task cases |
 | Separations | Proxy/lite with a reference-validated VLE distillation shortcut slice | material-conserving extraction, VLE flash, VLE/Fenske shortcut distillation, crystallization, filtration, drying tests | rigorous MESH columns, thermodynamic extraction, crystallization kinetics, and broader equipment validation |
-| Transport and heat transfer | Lite with reference-validated pipe-flow slice | dimensionless numbers, explicit friction methods, `fluids` Haaland and single-phase pipe-pressure-drop optional checks | broader `fluids` comparisons, heat-transfer validation, and validity maps |
+| Transport and heat transfer | Lite with reference-validated pipe-flow and heat-transfer slices | dimensionless numbers, explicit friction methods, `fluids` Haaland and single-phase pipe-pressure-drop optional checks; Nusselt branch metadata; counterflow exchanger duty-balance tests; optional `fluids.core.Nusselt` check | two-phase correlations, boiling/condensation, shell-side correction factors, fouling dynamics, equipment safety cards, and broader validity maps |
 | Equilibrium chemistry | Lite/proxy | mass-action, acid/base, precipitation tests | Reaktoro-style Gibbs minimization and database-backed equilibria |
 | Mechanism/scenario library | Lite | curated mechanism cards and validation tests | reference-validated mechanisms and professional task bindings |
 | Spectroscopy/instruments | Synthetic/lite with reference-validated UV-vis and chromatography slices | state-coupled HPLC/GC/UV-vis/IR/NMR synthetic signals; UV-vis Beer-Lambert calibration tests; HPLC/GC retention-factor, plate-count, and resolution tests | empirical retention-index examples, IR empirical anchors, NMR coupling metadata, and broader public spectral examples |
@@ -126,3 +126,9 @@ copying the reference implementations.
   residual entropy, residual Gibbs energy, model-card metadata, default EOS
   tests, and optional `thermo.eos` reference checks for methane, ethane, and
   carbon dioxide.
+- PRO-P8A is implemented for the first heat-transfer and exchanger-duty slice:
+  Nusselt branch metadata, Dittus-Boelter and Gnielinski validity warnings,
+  strict validity failure mode, `h = Nu k / D` reference round-trip, counterflow
+  e-NTU duty-balance metadata, model-card evidence, and tests are in place.
+  Boiling, condensation, shell-side corrections, fouling dynamics, and
+  equipment safety cards remain future deepening tasks.

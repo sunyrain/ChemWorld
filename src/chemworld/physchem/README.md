@@ -56,9 +56,10 @@ Current scope:
   evaporation, VLE-coupled shortcut distillation, crystallization, filtration,
   drying, and purity/recovery/cost/risk scoring.
 - fluid-mechanics and heat-transfer kernels for Reynolds/Prandtl/Peclet/Nusselt
-  numbers, Darcy friction factors, pipe pressure drop, pump work, mixing power,
-  jacket heat transfer, counterflow heat exchangers, packed-bed pressure drop,
-  and homogeneous two-phase pressure-drop proxies.
+  numbers, explicit Nusselt branch metadata, Darcy friction factors, pipe
+  pressure drop, pump work, mixing power, jacket heat transfer, counterflow heat
+  exchangers with hot/cold duty-balance checks, packed-bed pressure drop, and
+  homogeneous two-phase pressure-drop proxies.
 - optional reference-backend validation helpers for locally comparing selected
   ChemWorld formulas against `chemicals`, `fluids`, and later heavier
   scientific backends without making them runtime dependencies.
@@ -90,7 +91,8 @@ Design rules:
 - keep unit-operation results as named outlet streams plus cost, risk,
   heat-duty, solvent-loss, and material-balance ledgers;
 - keep transport/equipment calculations explicit about SI units, flow regime,
-  pressure-drop components, heat-duty sign conventions, and equipment metadata;
+  pressure-drop components, heat-duty sign conventions, Nusselt-correlation
+  validity limits, exchanger duty residuals, and equipment metadata;
 - declare property units and validity ranges on every correlation;
 - reject unbalanced reaction networks before simulation;
 - add optional reference-backend comparisons only as skipped tests or adapters;

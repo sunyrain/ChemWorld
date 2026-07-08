@@ -10,7 +10,7 @@ chemical-engineering correlations, not wrappers around reference projects.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from math import exp, isfinite, log, log10, pi
+from math import exp, isfinite, log, log10, pi, sqrt
 from typing import Literal
 
 from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
@@ -19,6 +19,12 @@ GRAVITY_M_S2 = 9.80665
 
 FlowRegime = Literal["laminar", "transitional", "turbulent"]
 FrictionFactorMethod = Literal["auto", "laminar", "haaland"]
+NusseltCorrelationMethod = Literal[
+    "auto",
+    "laminar_constant",
+    "dittus_boelter",
+    "gnielinski",
+]
 
 
 @dataclass(frozen=True)
@@ -192,6 +198,10 @@ class HeatExchangerResult:
     """Counterflow heat-exchanger calculation using the effectiveness-NTU method."""
 
     heat_transfer_W: float
+    hot_heat_lost_W: float
+    cold_heat_gained_W: float
+    duty_balance_residual_W: float
+    maximum_heat_transfer_W: float
     hot_outlet_temperature_K: float
     cold_outlet_temperature_K: float
     effectiveness: float
@@ -203,6 +213,10 @@ class HeatExchangerResult:
 
     def __post_init__(self) -> None:
         _nonnegative(self.heat_transfer_W, "heat_transfer_W")
+        _nonnegative(self.hot_heat_lost_W, "hot_heat_lost_W")
+        _nonnegative(self.cold_heat_gained_W, "cold_heat_gained_W")
+        _finite(self.duty_balance_residual_W, "duty_balance_residual_W")
+        _nonnegative(self.maximum_heat_transfer_W, "maximum_heat_transfer_W")
         _positive(self.hot_outlet_temperature_K, "hot_outlet_temperature_K")
         _positive(self.cold_outlet_temperature_K, "cold_outlet_temperature_K")
         if not 0.0 <= self.effectiveness <= 1.0:
@@ -216,6 +230,10 @@ class HeatExchangerResult:
     def to_dict(self) -> dict[str, object]:
         return {
             "heat_transfer_W": self.heat_transfer_W,
+            "hot_heat_lost_W": self.hot_heat_lost_W,
+            "cold_heat_gained_W": self.cold_heat_gained_W,
+            "duty_balance_residual_W": self.duty_balance_residual_W,
+            "maximum_heat_transfer_W": self.maximum_heat_transfer_W,
             "hot_outlet_temperature_K": self.hot_outlet_temperature_K,
             "cold_outlet_temperature_K": self.cold_outlet_temperature_K,
             "effectiveness": self.effectiveness,
@@ -223,6 +241,41 @@ class HeatExchangerResult:
             "capacity_ratio": self.capacity_ratio,
             "c_min_W_K": self.c_min_W_K,
             "c_max_W_K": self.c_max_W_K,
+            "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class NusseltCorrelationResult:
+    """Internal-flow Nusselt correlation with method and validity metadata."""
+
+    nusselt: float
+    reynolds: float
+    prandtl: float
+    method: NusseltCorrelationMethod
+    regime: FlowRegime
+    heating: bool
+    friction_factor: float | None = None
+    validity_warnings: tuple[str, ...] = ()
+    metadata: dict[str, object] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        _positive(self.nusselt, "nusselt")
+        _nonnegative(self.reynolds, "reynolds")
+        _positive(self.prandtl, "prandtl")
+        if self.friction_factor is not None:
+            _positive(self.friction_factor, "friction_factor")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "nusselt": self.nusselt,
+            "reynolds": self.reynolds,
+            "prandtl": self.prandtl,
+            "method": self.method,
+            "regime": self.regime,
+            "heating": self.heating,
+            "friction_factor": self.friction_factor,
+            "validity_warnings": list(self.validity_warnings),
             "metadata": dict(self.metadata),
         }
 
@@ -332,22 +385,113 @@ def nusselt_internal_flow(
 ) -> float:
     """Return a smooth internal-flow Nusselt estimate.
 
-    The turbulent branch uses a Dittus-Boelter style relation.  The transitional
-    interval is blended between the laminar and turbulent limits to avoid
-    discontinuities in agent rollouts.
+    For detailed method and validity metadata, use
+    :func:`nusselt_internal_flow_details`.
+    """
+
+    return nusselt_internal_flow_details(
+        reynolds=reynolds,
+        prandtl=prandtl,
+        heating=heating,
+        laminar_nusselt=laminar_nusselt,
+    ).nusselt
+
+
+def nusselt_internal_flow_details(
+    *,
+    reynolds: float,
+    prandtl: float,
+    heating: bool = True,
+    laminar_nusselt: float = 3.66,
+    method: NusseltCorrelationMethod = "auto",
+    friction_factor: float | None = None,
+    relative_roughness: float = 0.0,
+    strict_validity: bool = False,
+) -> NusseltCorrelationResult:
+    """Return an internal-flow Nusselt correlation with validity metadata.
+
+    The explicit branches are a constant fully developed laminar relation,
+    Dittus-Boelter, and Gnielinski. ``auto`` keeps ChemWorld rollouts smooth by
+    using the laminar branch below Re=2300, a laminar-Gnielinski blend through
+    the transition interval, and Gnielinski for turbulent flow.
     """
 
     _nonnegative(reynolds, "reynolds")
     _positive(prandtl, "prandtl")
     _positive(laminar_nusselt, "laminar_nusselt")
-    exponent = 0.4 if heating else 0.3
-    turbulent = 0.023 * max(reynolds, 1e-12) ** 0.8 * prandtl**exponent
-    if reynolds < 2300.0:
-        return laminar_nusselt
-    if reynolds > 10_000.0:
-        return turbulent
-    weight = (reynolds - 2300.0) / 7700.0
-    return (1.0 - weight) * laminar_nusselt + weight * turbulent
+    _nonnegative(relative_roughness, "relative_roughness")
+    warnings: list[str] = []
+    regime = flow_regime(reynolds)
+    selected_method: NusseltCorrelationMethod = method
+    selected_friction = friction_factor
+
+    if method == "laminar_constant":
+        if reynolds >= 2300.0:
+            warnings.append("constant laminar Nusselt relation is normally used below Re=2300")
+        value = laminar_nusselt
+    elif method == "dittus_boelter":
+        value = _dittus_boelter_nusselt(reynolds=reynolds, prandtl=prandtl, heating=heating)
+        warnings.extend(_dittus_boelter_warnings(reynolds=reynolds, prandtl=prandtl))
+    elif method == "gnielinski":
+        if selected_friction is None:
+            selected_friction = darcy_friction_factor(
+                reynolds=max(reynolds, 1e-12),
+                relative_roughness=relative_roughness,
+                method="haaland",
+            )
+        value = _gnielinski_nusselt(
+            reynolds=reynolds,
+            prandtl=prandtl,
+            friction_factor=selected_friction,
+        )
+        warnings.extend(_gnielinski_warnings(reynolds=reynolds, prandtl=prandtl))
+    elif method == "auto":
+        if reynolds < 2300.0:
+            selected_method = "laminar_constant"
+            value = laminar_nusselt
+        else:
+            selected_friction = darcy_friction_factor(
+                reynolds=max(reynolds, 4000.0),
+                relative_roughness=relative_roughness,
+                method="haaland",
+            )
+            turbulent = _gnielinski_nusselt(
+                reynolds=max(reynolds, 4000.0),
+                prandtl=prandtl,
+                friction_factor=selected_friction,
+            )
+            if reynolds >= 4000.0:
+                selected_method = "gnielinski"
+                value = turbulent
+                warnings.extend(_gnielinski_warnings(reynolds=reynolds, prandtl=prandtl))
+            else:
+                selected_method = "auto"
+                warnings.append(
+                    "transitional flow uses ChemWorld's smooth laminar-Gnielinski blend"
+                )
+                weight = (reynolds - 2300.0) / 1700.0
+                value = (1.0 - weight) * laminar_nusselt + weight * turbulent
+    else:
+        raise ValueError(
+            "method must be one of: auto, laminar_constant, dittus_boelter, gnielinski"
+        )
+
+    if strict_validity and warnings:
+        raise ValueError("; ".join(warnings))
+    return NusseltCorrelationResult(
+        nusselt=value,
+        reynolds=reynolds,
+        prandtl=prandtl,
+        method=selected_method,
+        regime=regime,
+        heating=heating,
+        friction_factor=selected_friction,
+        validity_warnings=tuple(warnings),
+        metadata={
+            "laminar_nusselt": laminar_nusselt,
+            "relative_roughness": relative_roughness,
+        },
+    )
 
 
 def internal_heat_transfer_coefficient(
@@ -362,6 +506,50 @@ def internal_heat_transfer_coefficient(
     _positive(thermal_conductivity_W_m_K, "thermal_conductivity_W_m_K")
     _positive(diameter_m, "diameter_m")
     return nusselt * thermal_conductivity_W_m_K / diameter_m
+
+
+def _dittus_boelter_nusselt(*, reynolds: float, prandtl: float, heating: bool) -> float:
+    _positive(reynolds, "reynolds")
+    _positive(prandtl, "prandtl")
+    exponent = 0.4 if heating else 0.3
+    return 0.023 * reynolds**0.8 * prandtl**exponent
+
+
+def _gnielinski_nusselt(
+    *,
+    reynolds: float,
+    prandtl: float,
+    friction_factor: float,
+) -> float:
+    _positive(reynolds, "reynolds")
+    _positive(prandtl, "prandtl")
+    _positive(friction_factor, "friction_factor")
+    if reynolds <= 1000.0:
+        raise ValueError("Gnielinski relation requires Re > 1000 for positive heat transfer")
+    friction_term = friction_factor / 8.0
+    numerator = friction_term * (reynolds - 1000.0) * prandtl
+    denominator = 1.0 + 12.7 * sqrt(friction_term) * (prandtl ** (2.0 / 3.0) - 1.0)
+    if denominator <= 0.0:
+        raise ValueError("Gnielinski relation produced nonpositive denominator")
+    return numerator / denominator
+
+
+def _dittus_boelter_warnings(*, reynolds: float, prandtl: float) -> tuple[str, ...]:
+    warnings: list[str] = []
+    if reynolds < 10_000.0:
+        warnings.append("Dittus-Boelter is normally used for turbulent Re >= 10000")
+    if not 0.7 <= prandtl <= 160.0:
+        warnings.append("Dittus-Boelter common Pr range is approximately 0.7 <= Pr <= 160")
+    return tuple(warnings)
+
+
+def _gnielinski_warnings(*, reynolds: float, prandtl: float) -> tuple[str, ...]:
+    warnings: list[str] = []
+    if reynolds < 3000.0 or reynolds > 5.0e6:
+        warnings.append("Gnielinski common Re range is approximately 3000 <= Re <= 5e6")
+    if not 0.5 <= prandtl <= 2000.0:
+        warnings.append("Gnielinski common Pr range is approximately 0.5 <= Pr <= 2000")
+    return tuple(warnings)
 
 
 def flow_regime(reynolds: float) -> FlowRegime:
@@ -682,8 +870,15 @@ def heat_exchanger_counterflow(
     )
     hot_outlet = hot_inlet_temperature_K - heat_transfer / c_hot
     cold_outlet = cold_inlet_temperature_K + heat_transfer / c_cold
+    hot_heat_lost = c_hot * (hot_inlet_temperature_K - hot_outlet)
+    cold_heat_gained = c_cold * (cold_outlet - cold_inlet_temperature_K)
+    max_heat_transfer = c_min * (hot_inlet_temperature_K - cold_inlet_temperature_K)
     return HeatExchangerResult(
         heat_transfer_W=heat_transfer,
+        hot_heat_lost_W=hot_heat_lost,
+        cold_heat_gained_W=cold_heat_gained,
+        duty_balance_residual_W=hot_heat_lost - cold_heat_gained,
+        maximum_heat_transfer_W=max_heat_transfer,
         hot_outlet_temperature_K=hot_outlet,
         cold_outlet_temperature_K=cold_outlet,
         effectiveness=effectiveness,
@@ -696,6 +891,8 @@ def heat_exchanger_counterflow(
             "c_cold_W_K": c_cold,
             "overall_u_W_m2_K": overall_u_W_m2_K,
             "area_m2": area_m2,
+            "heat_exchanger_model": "counterflow_effectiveness_ntu",
+            "duty_balance_residual_W": hot_heat_lost - cold_heat_gained,
         },
     )
 
@@ -899,6 +1096,94 @@ def transport_model_cards() -> tuple[ModelCard, ...]:
             intended_use=(
                 "Reference-validated benchmark pressure-cost and safety features.",
                 "Educational inspection of pipe-flow cost ledgers.",
+            ),
+        ),
+        ModelCard(
+            model_id="internal_flow_heat_transfer_and_counterflow_hx",
+            module_id="transport",
+            title="Internal-Flow Heat Transfer And Counterflow Heat Exchanger",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Reference-auditable internal-flow Nusselt correlations and "
+                "effectiveness-NTU counterflow heat-exchanger duty checks."
+            ),
+            equations=(
+                "Nu_laminar = constant, default 3.66",
+                "Nu_Dittus-Boelter = 0.023 Re^0.8 Pr^n, n=0.4 heating or 0.3 cooling",
+                "Nu_Gnielinski = (f/8)(Re-1000)Pr/[1 + 12.7(f/8)^0.5(Pr^(2/3)-1)]",
+                "h = Nu k / D",
+                "NTU = U A / C_min",
+                "epsilon_counterflow = (1 - exp[-NTU(1-Cr)])/(1 - Cr exp[-NTU(1-Cr)])",
+                "Q = epsilon C_min (T_hot,in - T_cold,in)",
+            ),
+            assumptions=(
+                "Single-phase internal flow in circular channels.",
+                "Gnielinski branch uses a Darcy friction factor; ChemWorld auto mode uses Haaland.",
+                "Heat-exchanger calculation is steady counterflow e-NTU with "
+                "constant heat capacities.",
+            ),
+            validity_limits=(
+                "Constant laminar Nu is a fully developed benchmark approximation.",
+                "Dittus-Boelter is intended for turbulent Re >= 10000 and moderate Pr.",
+                "Gnielinski is intended for approximately 3000 <= Re <= 5e6.",
+                "No boiling, condensation, shell-side correction, or fouling dynamics are claimed.",
+            ),
+            failure_modes=(
+                "Nonpositive Reynolds, Prandtl, conductivity, diameter, U, "
+                "area, or heat capacities raise ValueError.",
+                "Gnielinski with Re <= 1000 raises ValueError instead of "
+                "returning nonphysical negative Nu.",
+                "strict_validity=True raises on method-specific validity warnings.",
+            ),
+            units={
+                "nusselt": "dimensionless",
+                "heat_transfer_coefficient": "W/(m^2*K)",
+                "overall_u": "W/(m^2*K)",
+                "area": "m^2",
+                "heat_duty": "W",
+                "temperature": "K",
+            },
+            reference_reading=(
+                "reference_repos/fluids/fluids/core.py:Nusselt, Prandtl, Reynolds",
+                "reference_repos/idaes-pse/idaes/models/unit_models/"
+                "heat_exchanger.py LMTD callbacks",
+                "reference_repos/idaes-pse/idaes/models/unit_models/"
+                "heat_exchanger_ntu.py e-NTU variables and duty constraint",
+                "reference_repos/coolprop docs/source/coolprop/"
+                "HighLevelAPI.rst property workflow notes",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="fluids-nusselt-definition",
+                    evidence_type="optional_reference_test",
+                    description=(
+                        "Compare ChemWorld h = Nu k / D round-trip against "
+                        "fluids.core.Nusselt."
+                    ),
+                    status="implemented",
+                    reference_backend="fluids",
+                    command_or_path="tests/reference/test_optional_reference_backends.py",
+                    tolerance="rtol=1e-12",
+                ),
+                ValidationEvidence(
+                    evidence_id="counterflow-duty-balance",
+                    evidence_type="unit_tests",
+                    description=(
+                        "Verify hot-side heat loss, cold-side heat gain, "
+                        "effectiveness, maximum duty, and balance residual."
+                    ),
+                    status="passing",
+                    command_or_path="python -m pytest tests/test_transport.py",
+                    tolerance="absolute residual near machine precision",
+                ),
+            ),
+            model_limit_notes=(
+                "This slice does not model boiling or condensation.",
+                "Shell-and-tube correction factors and fouling time dynamics remain future work.",
+            ),
+            intended_use=(
+                "Reference-validated heat-duty and thermal-cost ledgers.",
+                "Future reactor jacket and exchanger tasks with explicit heat-transfer metadata.",
             ),
         ),
     )

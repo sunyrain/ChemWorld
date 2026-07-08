@@ -79,7 +79,7 @@ Every professional module must ship:
 | PRO-P10A Beer-Lambert UV-vis calibration validation | whilesunny | Done | public Beer-Lambert equations, analytical calibration examples, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add HPLC/GC retention calibration, IR empirical anchors, and NMR coupling metadata | this commit |
 | PRO-P10B Chromatography retention and peak-broadening calibration | whilesunny | Done | public chromatography equations, plate-count/resolution equations, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add empirical retention-index examples and method-condition sensitivity | this commit |
 | PRO-P3A Peng-Robinson/SRK fugacity and residual properties | whilesunny | Done | `thermo.eos`, `phasepy.cubic`, `teqp` and `thermopack` EOS architecture notes | `src/chemworld/physchem/eos.py`, `src/chemworld/physchem/reference_validation.py`, `tests/test_eos.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add volume translation, phase envelopes, and flash derivative hooks | this commit |
-| PRO-P8A heat-transfer correlations and exchanger duty validation | whilesunny | Claimed | `fluids.conv_internal`, `fluids.heat_transfer`, IDAES heat-exchanger/unit-model docs, CoolProp property workflow notes | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | read local heat-transfer implementations, then add explicit Nusselt-correlation metadata, heat-exchanger duty checks, and optional fluids comparisons | pending push |
+| PRO-P8A heat-transfer correlations and exchanger duty validation | whilesunny | Done | `fluids.core`, IDAES heat-exchanger/unit-model docs, CoolProp property workflow notes | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: keep boiling/condensation, shell-side corrections, fouling dynamics, and equipment safety cards on the deepening roadmap | this commit |
 | PRO-P1A component registry provenance and conflict policy | liyijun | Claimed | `chemicals`, `thermo`, `CoolProp` identifiers and constants APIs | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/curated_properties.py`, `tests/test_physchem_core.py`, `tests/test_physchem_properties.py`, docs | add provenance/uncertainty fields, alias conflict failures, and JSON round-trip tests for curated component records | pending push |
 | PRO-P11A maturity metadata exports and submission summaries | liyijun | Claimed | Gymnasium, Minari, Safety-Gymnasium result-metadata patterns | `src/chemworld/tasks.py`, `src/chemworld/eval/baseline_report.py`, `docs/baseline_reference.md`, `tests/test_maturity.py`, `tests/test_baselines.py` | expose physics maturity in benchmark exports and prevent silent proxy/professional result mixing | pending push |
 | PRO-P12B validation summary export and optional-backend skip audit | liyijun | Claimed | current optional reference-backend tests and pytest skip patterns | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | add JSON-friendly comparison summaries and document skipped optional reference backends | pending push |
@@ -401,10 +401,10 @@ Reference targets: `fluids`, `IDAES`, `CoolProp`.
   - [ ] packed bed;
   - [ ] two-phase warnings.
 - [ ] Heat transfer:
-  - [ ] jacketed reactor;
-  - [ ] heat exchanger;
+  - [x] jacketed reactor;
+  - [x] heat exchanger;
   - [ ] boiling/condensation warning models;
-  - [ ] fouling factor.
+  - [x] fouling factor.
 - [ ] Mixing:
   - [ ] impeller power;
   - [ ] mixing time;
@@ -416,9 +416,32 @@ Reference targets: `fluids`, `IDAES`, `CoolProp`.
 
 Acceptance:
 
-- [ ] Selected dimensionless and equipment calculations compare against
+- [x] Selected dimensionless and equipment calculations compare against
       `fluids`.
 - [ ] Safety cost in tasks is traceable to declared physical terms.
+
+Reference-reading note for PRO-P8A:
+
+- `fluids.core.Nusselt`, `Prandtl`, and `Reynolds` define the dimensionless
+  number contracts used for optional reference validation. The local
+  `reference_repos/fluids` checkout did not include a complete
+  `conv_internal` implementation, so ChemWorld implements the Dittus-Boelter
+  and Gnielinski branches locally with explicit validity metadata rather than
+  pretending to wrap a missing backend.
+- `idaes-pse/idaes/models/unit_models/heat_exchanger.py` exposes heat-exchanger
+  contracts around `U`, area, temperature-difference callbacks, and stream heat
+  duties.
+- `idaes-pse/idaes/models/unit_models/heat_exchanger_ntu.py` exposes the
+  e-NTU contract: `C_min`, `C_max`, capacity ratio, `NTU = U A / C_min`, and
+  duty as effectiveness times available heat.
+- CoolProp high-level API docs reinforce that thermophysical-property backends
+  should stay outside ChemWorld's default runtime; ChemWorld's heat-transfer
+  slice therefore accepts explicit properties with SI units.
+- ChemWorld localizes those ideas as
+  `nusselt_internal_flow_details()`, explicit validity warnings,
+  `strict_validity=True`, `internal_heat_transfer_coefficient()`, and
+  `heat_exchanger_counterflow()` duty-balance metadata. This is not a claim of
+  shell-and-tube design, boiling/condensation modeling, or dynamic fouling.
 
 ## P9: Equilibrium Chemistry And Electrochemistry
 
@@ -681,7 +704,7 @@ Acceptance:
 10. `PRO-P3A`: Add Peng-Robinson/SRK fugacity-coefficient and residual-property
     validation slice with explicit root-selection policy. Done.
 11. `PRO-P8A`: Add reference-validated heat-transfer correlations and
-    heat-exchanger duty checks for reactor/process energy ledgers.
+    heat-exchanger duty checks for reactor/process energy ledgers. Done.
 12. `PRO-P1A`: Harden the component registry with provenance, aliases,
     uncertainty fields, and conflict-resolution policy.
 

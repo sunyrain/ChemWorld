@@ -15,6 +15,9 @@ with proxies and then call them professional.
   duplicate work.
 - Read relevant local reference repositories first.
 - Do not copy reference-library source code.
+- Do not add broad placeholder files merely to increase code size; missing
+  professional capability should stay unchecked until its equations,
+  validation cases, limits, and task behavior exist.
 - If a reference library is outdated, keep the equation or design insight only
   when it is still scientifically sound, then implement a smaller ChemWorld
   API with modern typing, explicit units, and benchmark-focused validation.
@@ -32,7 +35,7 @@ with proxies and then call them professional.
 | Kinetics | thermochemistry-coupled reversibility, falloff, mechanism schema, sensitivity |
 | Reactors | dynamic batch, CSTR, PFR, solver backend, event/replay diagnostics |
 | Separations | flash, distillation sizing, extraction, crystallization |
-| Equipment and safety | heat transfer, two-phase pressure drop, relief envelope, equipment cards |
+| Equipment and safety | phase-change heat transfer, two-phase pressure drop, relief envelope, equipment cards |
 | Instruments | HPLC/GC method sensitivity, IR, NMR, MS |
 | Benchmark datasets | maturity gates, dataset exports, official reports, solver manifests |
 
@@ -46,6 +49,8 @@ Do not start these until the current twelve-slice batch is complete.
 4. `DEEP-D6A`: dynamic batch reactor with heat release and jacket control.
 5. `DEEP-D9B`: IR functional-group spectrum slice.
 6. `DEEP-D10A`: benchmark model-maturity gate.
+7. `DEEP-D8A`: phase-change and equipment heat transfer beyond the completed
+   single-phase Nusselt/e-NTU slice.
 
 For the complete checklist, use the root file
 `TODO_PROFESSIONAL_DEEPENING.md`.

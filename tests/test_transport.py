@@ -15,6 +15,7 @@ from chemworld.physchem import (
     jacket_heat_transfer,
     mixing_power,
     nusselt_internal_flow,
+    nusselt_internal_flow_details,
     overall_heat_transfer_coefficient,
     packed_bed_pressure_drop_ergun,
     peclet_heat_number,
@@ -135,10 +136,18 @@ def test_transport_model_card_documents_reference_validated_slice() -> None:
         for card in cards
         if card.model_id == "pipe_friction_and_single_phase_pressure_drop"
     )
+    heat_transfer_card = next(
+        card
+        for card in cards
+        if card.model_id == "internal_flow_heat_transfer_and_counterflow_hx"
+    )
 
     assert pipe_card.maturity.value == "reference_validated"
     assert validate_model_card(pipe_card) == []
     assert pipe_card.validation_evidence
+    assert heat_transfer_card.maturity.value == "reference_validated"
+    assert validate_model_card(heat_transfer_card) == []
+    assert any("Gnielinski" in equation for equation in heat_transfer_card.equations)
 
 
 def test_pump_work_and_mixing_power_are_nonnegative() -> None:
@@ -163,6 +172,21 @@ def test_pump_work_and_mixing_power_are_nonnegative() -> None:
 def test_nusselt_and_heat_transfer_coefficient_increase_with_turbulence() -> None:
     laminar_nu = nusselt_internal_flow(reynolds=1000.0, prandtl=7.0)
     turbulent_nu = nusselt_internal_flow(reynolds=50_000.0, prandtl=7.0)
+    laminar_details = nusselt_internal_flow_details(reynolds=1000.0, prandtl=7.0)
+    gnielinski = nusselt_internal_flow_details(
+        reynolds=50_000.0,
+        prandtl=7.0,
+        method="gnielinski",
+        friction_factor=0.021,
+        strict_validity=True,
+    )
+    dittus = nusselt_internal_flow_details(
+        reynolds=50_000.0,
+        prandtl=7.0,
+        method="dittus_boelter",
+        heating=True,
+        strict_validity=True,
+    )
     h_laminar = internal_heat_transfer_coefficient(
         nusselt=laminar_nu,
         thermal_conductivity_W_m_K=0.60,
@@ -176,6 +200,24 @@ def test_nusselt_and_heat_transfer_coefficient_increase_with_turbulence() -> Non
 
     assert turbulent_nu > laminar_nu
     assert h_turbulent > h_laminar
+    assert laminar_details.method == "laminar_constant"
+    assert gnielinski.nusselt > 0.0
+    assert gnielinski.friction_factor == pytest.approx(0.021)
+    assert dittus.nusselt > 0.0
+    with pytest.raises(ValueError, match="Dittus-Boelter"):
+        nusselt_internal_flow_details(
+            reynolds=2500.0,
+            prandtl=7.0,
+            method="dittus_boelter",
+            strict_validity=True,
+        )
+    with pytest.raises(ValueError, match="Gnielinski relation requires"):
+        nusselt_internal_flow_details(
+            reynolds=900.0,
+            prandtl=7.0,
+            method="gnielinski",
+            friction_factor=0.03,
+        )
 
 
 def test_jacket_heat_transfer_scales_with_area_and_temperature_difference() -> None:
@@ -251,6 +293,10 @@ def test_counterflow_heat_exchanger_conserves_stream_energy() -> None:
     assert 0.0 < small.effectiveness < large.effectiveness < 1.0
     assert large.heat_transfer_W > small.heat_transfer_W
     assert hot_heat_lost == pytest.approx(cold_heat_gained)
+    assert large.hot_heat_lost_W == pytest.approx(hot_heat_lost)
+    assert large.cold_heat_gained_W == pytest.approx(cold_heat_gained)
+    assert large.duty_balance_residual_W == pytest.approx(0.0, abs=1e-9)
+    assert large.heat_transfer_W <= large.maximum_heat_transfer_W
     assert large.to_dict()["heat_transfer_W"] == pytest.approx(large.heat_transfer_W)
     assert counterflow_effectiveness(ntu=1.0, capacity_ratio=1.0) == pytest.approx(0.5)
 

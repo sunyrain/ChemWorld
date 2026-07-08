@@ -549,8 +549,8 @@ two-phase/packed-bed proxies.
 | Friction factor | explicit `auto`, `laminar`, and `haaland` branches with method metadata and validity warnings |
 | Pipe pressure drop | Darcy-Weisbach friction, fittings loss, static head, pump work, and recorded friction-method evidence |
 | Mixing | impeller power and optional volumetric power density |
-| Heat transfer | film/wall/fouling resistance to `U`, jacket heat duty, signed heat energy |
-| Heat exchanger | counterflow effectiveness-NTU model with stream energy balance |
+| Heat transfer | film/wall/fouling resistance to `U`, jacket heat duty, signed heat energy, and explicit Nusselt-correlation metadata |
+| Heat exchanger | counterflow effectiveness-NTU model with hot/cold duty balance and maximum-duty checks |
 | Packed bed | Ergun pressure-drop calculation with viscous and inertial terms |
 | Two-phase proxy | homogeneous pressure-drop model using quality-weighted mixture properties |
 
@@ -568,13 +568,18 @@ wrappers; IDAES exposes equipment contracts in terms of `U`, `A`, `Q`, `NTU`,
 and effectiveness. ChemWorld localizes those ideas into deterministic functions
 that are small enough for benchmark replay and robust enough for task design.
 
-The first reference-validated transport slice is now the single-phase pipe-flow
-path. `transport_model_cards()` records a model card for laminar/Haaland Darcy
-friction and Darcy-Weisbach pressure drop. Optional reference tests compare the
-Haaland branch to `fluids.friction.Haaland` and the pipe pressure-drop result to
-`fluids.friction.one_phase_dP` with `Method='Haaland'`. The homogeneous
-two-phase function remains a compact benchmark proxy until a later professional
-two-phase-correlation task replaces or validates it.
+The first reference-validated transport slices now cover single-phase pipe flow
+and single-phase heat transfer. `transport_model_cards()` records one model card
+for laminar/Haaland Darcy friction and Darcy-Weisbach pressure drop, and another
+for internal-flow Nusselt correlations plus counterflow e-NTU exchanger duty.
+Optional reference tests compare the Haaland branch to
+`fluids.friction.Haaland`, pipe pressure drop to `fluids.friction.one_phase_dP`
+with `Method='Haaland'`, and the `h = Nu k / D` definition to
+`fluids.core.Nusselt`. The heat-transfer path exposes branch metadata for a
+constant laminar relation, Dittus-Boelter, and Gnielinski, including validity
+warnings and strict validity failure mode. The homogeneous two-phase function
+and any boiling/condensation behavior remain compact benchmark proxies until a
+later professional two-phase or phase-change task replaces or validates them.
 
 ## Boundaries
 
