@@ -38,7 +38,7 @@ finished, update its status and push immediately.
 | Code review audit and separation-card cleanup | whilesunny | Done | `src/chemworld/physchem/separations.py`, `src/chemworld/physchem/separation_cards.py`, `docs/code_review_audit.md` | next: extract remaining model-card functions into `*_cards.py` modules one slice at a time | this commit |
 | PhysChem model-card metadata externalization | whilesunny | Done | `src/chemworld/physchem/*_cards.py`, model-card exports, audit docs | next: split `properties.py` by physical property family without changing numerical behavior | this commit |
 | PhysChem properties module split | whilesunny | Done | `src/chemworld/physchem/properties.py`, property-family modules, tests, audit docs | next: split `reactors.py` by reactor family and solver helpers | this commit |
-| PhysChem reactors module split | whilesunny | Active | `src/chemworld/physchem/reactors.py`, reactor-family modules, tests, audit docs | split shared reactor contracts, batch/dynamic batch, semi-batch, CSTR, PFR, and solver helpers without changing behavior | claim commit |
+| PhysChem reactors module split | whilesunny | Done | `src/chemworld/physchem/reactors.py`, reactor-family modules, tests, audit docs | next: split `reaction_network.py` into specs, rate laws, integration/reference cases, thermochemical coupling, sensitivities, and loaders | this commit |
 
 Status values:
 

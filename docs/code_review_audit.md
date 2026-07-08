@@ -17,7 +17,6 @@ Largest current source files after this cleanup:
 
 | File | Approximate role | Follow-up split target |
 | --- | --- | --- |
-| `src/chemworld/physchem/reactors.py` | reactor specs, batch, dynamic batch, semi-batch, CSTR, PFR, CSTR multiplicity | split into reactor specs, batch/dynamic batch, CSTR, PFR, and numerical solver helpers |
 | `src/chemworld/physchem/reaction_network.py` | species/reaction specs, ODE cases, detailed balance, sensitivities, mechanism loading | split into mechanism specs, rate laws, integration/reference cases, thermochemical coupling, sensitivity, and loaders |
 | `src/chemworld/physchem/equilibrium_chemistry.py` | mass-action equilibrium, acid-base, precipitation, Gibbs minimization | split into mass-action, electrolyte/acid-base, precipitation, and Gibbs minimization helpers |
 | `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, and provenance |
@@ -58,8 +57,8 @@ The new card modules are:
 
 Recommended next mechanical cleanup:
 
-1. Split `reactors.py` by reactor family while preserving public imports
-   through a thin aggregation module.
+1. Split `reaction_network.py` by mechanism-spec, rate-law, integration,
+   thermochemical-coupling, sensitivity, and loader responsibilities.
 
 ### Medium Priority: Property Module Split Is Complete
 
@@ -82,6 +81,26 @@ split by family:
 This split reduced `properties.py` from a multi-thousand-line numerical module
 to a small aggregation surface without changing public imports or numerical
 behavior.
+
+### Medium Priority: Reactor Module Split Is Complete
+
+`src/chemworld/physchem/reactors.py` is now a thin facade. Reactor logic is
+split by family and responsibility:
+
+- `reactor_shared.py`: heat-transfer specs, jacket programs, feed specs,
+  sampling specs, reactor states, results, and common validation;
+- `reactor_solvers.py`: ODE solving, integration-result assembly, heat ledgers,
+  material-balance helpers, and shared vector conversion;
+- `batch_reactors.py`: batch and dynamic/event-driven batch models;
+- `semibatch_reactors.py`: semi-batch model with explicit feed ledgers;
+- `cstr_reactors.py`: dynamic and steady-state CSTR model;
+- `pfr_reactors.py`: plug-flow reactor model;
+- `cstr_multiplicity.py`: exothermic CSTR multiplicity reference case and
+  root/stability solver;
+- `reactors.py`: public aggregation facade.
+
+This split reduced `reactors.py` from a broad numerical module to a small
+aggregation surface while preserving public imports and numerical behavior.
 
 ### Medium Priority: Runtime Still Depends On `core.batch_reactor`
 
@@ -126,6 +145,10 @@ Recommended follow-up:
   `chemworld.physchem.properties` as a thin public facade.
 - Verified property-specific tests and the full benchmark test suite after the
   split.
+- Split `reactors.py` into reactor-family modules and kept
+  `chemworld.physchem.reactors` as a thin public facade.
+- Verified reactor-specific tests and the full benchmark test suite after the
+  split.
 
 ## Verification
 
@@ -140,10 +163,9 @@ Run these after every cleanup slice:
 
 ## Next Cleanup Order
 
-1. Split `reactors.py` by reactor family and solver helpers.
-2. Split `reaction_network.py` into specs, rate laws, thermochemistry coupling,
+1. Split `reaction_network.py` into specs, rate laws, thermochemistry coupling,
    sensitivities, loaders, and reference cases.
-3. Split `eos.py`, `spectroscopy.py`, and `equilibrium_chemistry.py` by
+2. Split `eos.py`, `spectroscopy.py`, and `equilibrium_chemistry.py` by
    algorithm family.
-4. Move `core.batch_reactor` responsibilities into `world` and `foundation`
+3. Move `core.batch_reactor` responsibilities into `world` and `foundation`
    modules.
