@@ -67,7 +67,7 @@ class ChemWorldDomainServices:
         self.species_view = MechanismSpeciesView(compiled_mechanism)
         self.operation_recorder = ChemWorldOperationRecorder(constitution)
         self.primitive = ChemWorldPrimitiveOperationServices(world, self.species_view)
-        self.reaction_thermal = ChemWorldReactionThermalServices(world)
+        self.reaction_thermal = ChemWorldReactionThermalServices(world, self.species_view)
         self.phase_separation = ChemWorldPhaseSeparationServices(world, self.species_view)
         self.crystallization = ChemWorldCrystallizationServices(self.species_view)
         self.distillation = ChemWorldDistillationServices(self.species_view)

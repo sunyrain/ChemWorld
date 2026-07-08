@@ -51,6 +51,7 @@ from chemworld.world.observation_kernel import raw_signal
 from chemworld.world.operations import OPERATION_TYPES
 from chemworld.world.phase_kernel import partition_split
 from chemworld.world.reaction_kernel import integrate_reaction_ode
+from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.world.thermal_kernel import pressure_and_risk
 
@@ -456,6 +457,61 @@ def test_runtime_species_view_uses_mechanism_roles_without_fixed_names() -> None
     assert truth["yield"] == pytest.approx(0.3)
     assert truth["conversion"] == pytest.approx(0.4)
     assert truth["selectivity"] == pytest.approx(0.75)
+
+
+def test_scenario_initial_state_uses_compiled_mechanism_species() -> None:
+    scenario = get_scenario("electrochemical-conversion")
+    instance = DefaultScenarioGenerator().generate(scenario, seed=0)
+
+    assert set(instance.initial_state.species_amounts) == set(
+        instance.compiled_mechanism.species_index
+    )
+    assert "A" not in instance.initial_state.species_amounts
+    assert (
+        instance.initial_state.species.initial_amounts_mol
+        == instance.compiled_mechanism.initial_amount_policy
+    )
+    assert instance.initial_state.metadata["initial_Ox_mol"] == 0.0
+    assert instance.initial_state.metadata["initial_reactant_mol"] == 0.0
+    assert instance.initial_state.metadata["mechanism_id"] == "electrochemical_conversion"
+    assert (
+        instance.initial_state.metadata["mechanism_hash"]
+        == instance.compiled_mechanism.mechanism_hash
+    )
+
+
+def test_role_mapped_lite_reaction_backend_does_not_require_fixed_species_state() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-distillation", seed=0)
+    try:
+        env.reset(seed=0)
+        state = env.unwrapped._state
+        assert "A" not in state.species_amounts
+        assert "P" not in state.species_amounts
+        assert "Acid" in state.species_amounts
+        assert "Ester" in state.species_amounts
+
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
+            {
+                "operation": "heat",
+                "target_temperature_K": 385.0,
+                "duration_s": 1500.0,
+                "stirring_speed_rpm": 720.0,
+            },
+        ):
+            env.step(action)
+
+        heated = env.unwrapped._state
+        assert "A" not in heated.species_amounts
+        assert "P" not in heated.species_amounts
+        assert heated.species_amounts["Acid"] < 0.010
+        assert heated.species_amounts["Ester"] > 0.0
+        assert heated.phases is not None
+        assert heated.phases.total_amounts_mol() == pytest.approx(heated.species_amounts)
+    finally:
+        env.close()
 
 
 def test_domain_services_apply_mechanism_roles_for_reagent_and_electrolysis() -> None:

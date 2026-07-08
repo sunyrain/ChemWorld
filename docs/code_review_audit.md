@@ -285,6 +285,12 @@ Recommended follow-up:
   `chemworld.core.batch_reactor` runtime out of env/runtime imports and confines
   `LEGACY_*` species fallback bindings to `runtime/species.py`. The remaining
   follow-up is tracked as `PRO-RUNTIME-A` in `TODO_PROFESSIONAL.md`.
+- Moved scenario initial-state generation onto compiled mechanism species,
+  roles, and initial-amount policy. Non-fixed scenarios such as
+  `electrochemical_conversion` and `reactive_distillation_lite` now reset with
+  mechanism-owned species ledgers instead of fixed `A/P/B/D/E` state keys, while
+  the current lite reaction ODE slots are isolated behind
+  `MechanismSpeciesView.reaction_backend_species_map`.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration

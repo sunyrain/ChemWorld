@@ -2,15 +2,36 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
+
 from chemworld.foundation import WorldState, upsert_equipment_record
+from chemworld.foundation.state import SpeciesLedger
 from chemworld.world.ontology import SPECIES
 
 
-def initial_chemworld_state() -> WorldState:
-    """Return the canonical empty batch-reactor state for scenario generation."""
+def initial_chemworld_state(
+    *,
+    species_ids: Iterable[str] | None = None,
+    species_roles: Mapping[str, tuple[str, ...]] | None = None,
+    initial_amounts_mol: Mapping[str, float] | None = None,
+    initial_limiting_species: str | None = None,
+) -> WorldState:
+    """Return the canonical empty batch-reactor state for scenario generation.
+
+    The material amounts start at zero because ChemWorld tasks begin from an
+    empty virtual lab. The mechanism/scenario layer owns the species namespace
+    and initial-amount policy through ``SpeciesLedger``; user operations then
+    add material into that mechanism-specific species ledger.
+    """
+
+    resolved_species_ids = tuple(species_ids or SPECIES)
+    resolved_initial_amounts = {
+        species_id: float(amount)
+        for species_id, amount in (initial_amounts_mol or {}).items()
+    }
 
     state = WorldState(
-        species_amounts=dict.fromkeys(SPECIES, 0.0),
+        species_amounts=dict.fromkeys(resolved_species_ids, 0.0),
         volume_L=0.0,
         temperature_K=298.15,
         pressure_Pa=101_325.0,
@@ -25,10 +46,19 @@ def initial_chemworld_state() -> WorldState:
             "cost": "currency",
             "risk": "risk",
         },
+        species=SpeciesLedger(
+            species_roles=dict(species_roles or {}),
+            initial_amounts_mol=resolved_initial_amounts,
+        ),
     ).replace(
         metadata={
-            "initial_A_mol": 0.0,
+            "initial_reactant_mol": 0.0,
             "last_observation": {},
+            **(
+                {f"initial_{initial_limiting_species}_mol": 0.0}
+                if initial_limiting_species
+                else {}
+            ),
         }
     )
     return state.replace(

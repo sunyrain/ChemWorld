@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -49,6 +50,7 @@ def integrate_reaction_ode(
     target_temperature_K: float,
     heat: bool,
     stirring_speed_rpm: float,
+    species_map: Mapping[str, str] | None = None,
 ) -> ReactionIntegrationResult | None:
     """Integrate reaction and simplified thermal ODEs.
 
@@ -63,8 +65,15 @@ def integrate_reaction_ode(
 
     target_temperature = float(np.clip(target_temperature_K, 250.0, 520.0))
     stirring_speed = float(np.clip(stirring_speed_rpm, 100.0, 1200.0))
+    resolved_species_map = {
+        species_id: (species_map or {}).get(species_id, species_id)
+        for species_id in REACTION_SPECIES
+    }
     y0 = np.array(
-        [state.species_amounts[key] for key in REACTION_SPECIES]
+        [
+            state.species_amounts.get(resolved_species_map[key], 0.0)
+            for key in REACTION_SPECIES
+        ]
         + [state.temperature_K, 0.0, 0.0, 0.0],
     )
     result = solve_ivp(
@@ -83,8 +92,12 @@ def integrate_reaction_ode(
         atol=1.0e-10,
     )
     y = np.maximum(result.y[:, -1], 0.0)
+    species_amounts = state.species_amounts.copy()
+    for index, canonical_species in enumerate(REACTION_SPECIES):
+        mechanism_species = resolved_species_map[canonical_species]
+        species_amounts[mechanism_species] = float(y[index])
     return ReactionIntegrationResult(
-        species_amounts={key: float(y[index]) for index, key in enumerate(REACTION_SPECIES)},
+        species_amounts=species_amounts,
         temperature_K=float(np.clip(y[7], 250.0, 520.0)),
         duration_s=duration,
         cost_delta=duration / 3600.0 * (0.03 if heat else 0.01),

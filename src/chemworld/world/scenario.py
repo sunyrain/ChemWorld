@@ -94,7 +94,13 @@ class DefaultScenarioGenerator:
         parameter_seed = seed + spec.hidden_parameter_seed + profile_offset
         initial_seed = seed + spec.initial_state_seed + profile_offset
         parameters = load_chemworld_parameters(spec.split, parameter_seed)
-        initial_state = initial_chemworld_state()
+        compiled_mechanism = compile_mechanism_for_scenario(spec.scenario_id)
+        initial_state = initial_chemworld_state(
+            species_ids=tuple(compiled_mechanism.species_index),
+            species_roles=compiled_mechanism.species_roles,
+            initial_amounts_mol=compiled_mechanism.initial_amount_policy,
+            initial_limiting_species=compiled_mechanism.score_spec.initial_limiting_species,
+        )
         metadata = initial_state.metadata.copy()
         metadata.update(
             {
@@ -118,21 +124,12 @@ class DefaultScenarioGenerator:
             )
         else:
             initial_state = initial_state.replace(metadata=metadata)
-        compiled_mechanism = compile_mechanism_for_scenario(spec.scenario_id)
         mechanism_metadata = {
             **initial_state.metadata,
             "mechanism_id": compiled_mechanism.mechanism_id,
             "mechanism_hash": compiled_mechanism.mechanism_hash,
         }
-        initial_state = initial_state.replace(
-            metadata=mechanism_metadata,
-            species=initial_state.species.__class__(
-                species_roles=compiled_mechanism.species_roles,
-                initial_amounts_mol=compiled_mechanism.initial_amount_policy,
-            )
-            if initial_state.species is not None
-            else None,
-        )
+        initial_state = initial_state.replace(metadata=mechanism_metadata)
         return ScenarioInstance(
             spec=spec,
             parameters=parameters,

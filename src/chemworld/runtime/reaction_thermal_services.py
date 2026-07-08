@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 
 from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
+from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
 from chemworld.world.reaction_kernel import integrate_reaction_ode
 from chemworld.world.thermal_kernel import pressure_and_risk
@@ -20,8 +21,13 @@ def _action_float(action: dict[str, Any], key: str, default: float) -> float:
 class ChemWorldReactionThermalServices:
     """Advance reaction state and apply thermal pressure/risk ledgers."""
 
-    def __init__(self, world: ChemWorldParameters) -> None:
+    def __init__(
+        self,
+        world: ChemWorldParameters,
+        species_view: MechanismSpeciesView,
+    ) -> None:
         self.world = world
+        self.species_view = species_view
 
     def integrate(
         self,
@@ -45,6 +51,7 @@ class ChemWorldReactionThermalServices:
             target_temperature_K=target_temperature,
             heat=heat,
             stirring_speed_rpm=stirring_speed,
+            species_map=self.species_view.reaction_backend_species_map(state),
         )
         if result is None:
             return state
