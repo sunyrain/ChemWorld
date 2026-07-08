@@ -21,6 +21,9 @@ Current scope:
 - a curated mechanism/scenario library with balanced mechanism files, task
   cards, default initial states, operating windows, qualitative behavior
   metadata, and a programmatic validation report.
+- spectroscopy and chromatography signal synthesis for mechanism-linked HPLC,
+  GC, UV-vis, IR, and NMR raw signals with peak overlap, calibration curves,
+  baseline drift, detection limits, and replicate measurements.
 - mechanism-backed reactor kernels for batch, semi-batch, CSTR, and PFR
   calculations with material and energy ledgers.
 - local equation-of-state calculations for ideal gas, Peng-Robinson, and SRK
@@ -47,6 +50,8 @@ Design rules:
 - keep mechanism definitions separate from reactor and task logic;
 - keep mechanism scenario cards as the bridge between physical mechanism,
   benchmark task semantics, initial conditions, and qualitative expectations;
+- keep virtual instruments as observation kernels over species amounts and
+  processed estimates, not as hidden-state dumps;
 - keep reactor residence time, feed/outlet flow, and heat-transfer contracts
   explicit;
 - keep EOS component critical properties, mixture parameters, phase-root

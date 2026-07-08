@@ -29,15 +29,47 @@ def processed_estimate(
     return {key: values.get(key) for key in estimate_keys if observed_mask.get(key, False)}
 
 
-def raw_signal(instrument_id: str, values: dict[str, float | None]) -> dict[str, Any]:
+def raw_signal(
+    instrument_id: str,
+    values: dict[str, float | None],
+    *,
+    species_amounts_mol: dict[str, float] | None = None,
+    volume_L: float = 1.0,
+    seed: int = 0,
+    replicate_count: int = 1,
+) -> dict[str, Any]:
     if instrument_id == "uvvis":
-        return uvvis_spectrum(values)
+        return uvvis_spectrum(
+            values,
+            species_amounts_mol=species_amounts_mol,
+            volume_L=volume_L,
+            seed=seed,
+            replicate_count=replicate_count,
+        )
     if instrument_id == "hplc":
-        return hplc_chromatogram(values)
+        return hplc_chromatogram(
+            values,
+            species_amounts_mol=species_amounts_mol,
+            volume_L=volume_L,
+            seed=seed,
+            replicate_count=replicate_count,
+        )
     if instrument_id == "gc":
-        return gc_chromatogram(values)
+        return gc_chromatogram(
+            values,
+            species_amounts_mol=species_amounts_mol,
+            volume_L=volume_L,
+            seed=seed,
+            replicate_count=replicate_count,
+        )
     if instrument_id == "final_assay":
-        return final_assay_spectra(values)
+        return final_assay_spectra(
+            values,
+            species_amounts_mol=species_amounts_mol,
+            volume_L=volume_L,
+            seed=seed,
+            replicate_count=replicate_count,
+        )
     return {}
 
 

@@ -7,6 +7,8 @@ from typing import Any
 
 import numpy as np
 
+from chemworld.physchem.spectroscopy import build_signal_spec, synthesize_signal
+
 
 @dataclass(frozen=True)
 class SignalPeak:
@@ -69,8 +71,67 @@ def _chromatogram(
     }
 
 
-def hplc_chromatogram(values: dict[str, float | None]) -> dict[str, Any]:
+def _species_signal(
+    instrument_id: str,
+    species_amounts_mol: dict[str, float] | None,
+    *,
+    volume_L: float,
+    seed: int,
+    replicate_count: int,
+) -> dict[str, Any] | None:
+    if not species_amounts_mol:
+        return None
+    species_ids = tuple(species_amounts_mol)
+    target_species = tuple(
+        species_id
+        for species_id in species_ids
+        if species_id.startswith("P") or species_id in {"Ester", "Red"}
+    )
+    impurity_species = tuple(
+        species_id
+        for species_id in species_ids
+        if species_id.startswith(("B", "D", "E", "S"))
+        or "Dead" in species_id
+        or "Iso" in species_id
+        or "Coupled" in species_id
+        or "Ether" in species_id
+    )
+    spec = build_signal_spec(
+        instrument_id,
+        species_ids,
+        target_species=target_species,
+        impurity_species=impurity_species,
+    )
+    packet = synthesize_signal(
+        spec,
+        species_amounts_mol,
+        volume_L=volume_L,
+        seed=seed,
+        replicate_count=replicate_count,
+    ).to_dict()
+    packet["source"] = "species_amounts_with_calibration"
+    return packet
+
+
+def hplc_chromatogram(
+    values: dict[str, float | None],
+    *,
+    species_amounts_mol: dict[str, float] | None = None,
+    volume_L: float = 1.0,
+    seed: int = 0,
+    replicate_count: int = 1,
+) -> dict[str, Any]:
     """Return a compact HPLC chromatogram with reactant, product, and impurity peaks."""
+
+    species_packet = _species_signal(
+        "hplc",
+        species_amounts_mol,
+        volume_L=volume_L,
+        seed=seed,
+        replicate_count=replicate_count,
+    )
+    if species_packet is not None:
+        return species_packet
 
     product = max(
         _observed(values, "yield"),
@@ -95,8 +156,25 @@ def hplc_chromatogram(values: dict[str, float | None]) -> dict[str, Any]:
     )
 
 
-def gc_chromatogram(values: dict[str, float | None]) -> dict[str, Any]:
+def gc_chromatogram(
+    values: dict[str, float | None],
+    *,
+    species_amounts_mol: dict[str, float] | None = None,
+    volume_L: float = 1.0,
+    seed: int = 0,
+    replicate_count: int = 1,
+) -> dict[str, Any]:
     """Return a compact GC chromatogram for volatile byproducts and distillate quality."""
+
+    species_packet = _species_signal(
+        "gc",
+        species_amounts_mol,
+        volume_L=volume_L,
+        seed=seed,
+        replicate_count=replicate_count,
+    )
+    if species_packet is not None:
+        return species_packet
 
     volatile = _observed(values, "byproduct_signal")
     degradation = _observed(values, "degradation_warning")
@@ -116,8 +194,25 @@ def gc_chromatogram(values: dict[str, float | None]) -> dict[str, Any]:
     )
 
 
-def uvvis_spectrum(values: dict[str, float | None]) -> dict[str, Any]:
+def uvvis_spectrum(
+    values: dict[str, float | None],
+    *,
+    species_amounts_mol: dict[str, float] | None = None,
+    volume_L: float = 1.0,
+    seed: int = 0,
+    replicate_count: int = 1,
+) -> dict[str, Any]:
     """Return a UV-vis absorbance spectrum with broad proxy bands."""
+
+    species_packet = _species_signal(
+        "uvvis",
+        species_amounts_mol,
+        volume_L=volume_L,
+        seed=seed,
+        replicate_count=replicate_count,
+    )
+    if species_packet is not None:
+        return species_packet
 
     wavelength = _axis(320.0, 760.0, 111)
     bands = (
@@ -155,8 +250,25 @@ def uvvis_spectrum(values: dict[str, float | None]) -> dict[str, Any]:
     }
 
 
-def ir_spectrum(values: dict[str, float | None]) -> dict[str, Any]:
+def ir_spectrum(
+    values: dict[str, float | None],
+    *,
+    species_amounts_mol: dict[str, float] | None = None,
+    volume_L: float = 1.0,
+    seed: int = 0,
+    replicate_count: int = 1,
+) -> dict[str, Any]:
     """Return a low-resolution IR-like transmittance spectrum."""
+
+    species_packet = _species_signal(
+        "ir",
+        species_amounts_mol,
+        volume_L=volume_L,
+        seed=seed,
+        replicate_count=replicate_count,
+    )
+    if species_packet is not None:
+        return species_packet
 
     wavenumber = _axis(400.0, 4000.0, 121)
     product = max(_observed(values, "yield"), _observed(values, "purity"))
@@ -188,8 +300,25 @@ def ir_spectrum(values: dict[str, float | None]) -> dict[str, Any]:
     }
 
 
-def nmr_spectrum(values: dict[str, float | None]) -> dict[str, Any]:
+def nmr_spectrum(
+    values: dict[str, float | None],
+    *,
+    species_amounts_mol: dict[str, float] | None = None,
+    volume_L: float = 1.0,
+    seed: int = 0,
+    replicate_count: int = 1,
+) -> dict[str, Any]:
     """Return a toy 1H NMR-like spectrum for product and impurity proxies."""
+
+    species_packet = _species_signal(
+        "nmr",
+        species_amounts_mol,
+        volume_L=volume_L,
+        seed=seed,
+        replicate_count=replicate_count,
+    )
+    if species_packet is not None:
+        return species_packet
 
     shift = _axis(0.0, 12.0, 121)
     product = max(_observed(values, "yield"), _observed(values, "purity"))
@@ -218,7 +347,14 @@ def nmr_spectrum(values: dict[str, float | None]) -> dict[str, Any]:
     }
 
 
-def final_assay_spectra(values: dict[str, float | None]) -> dict[str, Any]:
+def final_assay_spectra(
+    values: dict[str, float | None],
+    *,
+    species_amounts_mol: dict[str, float] | None = None,
+    volume_L: float = 1.0,
+    seed: int = 0,
+    replicate_count: int = 1,
+) -> dict[str, Any]:
     """Return the multi-instrument spectral packet used by final assay records."""
 
     return {
@@ -226,11 +362,41 @@ def final_assay_spectra(values: dict[str, float | None]) -> dict[str, Any]:
         "quality": "leaderboard_grade",
         "channels": ["hplc", "gc", "uvvis", "ir", "nmr", "calibrated_mass_balance"],
         "spectra": {
-            "hplc": hplc_chromatogram(values),
-            "gc": gc_chromatogram(values),
-            "uvvis": uvvis_spectrum(values),
-            "ir": ir_spectrum(values),
-            "nmr": nmr_spectrum(values),
+            "hplc": hplc_chromatogram(
+                values,
+                species_amounts_mol=species_amounts_mol,
+                volume_L=volume_L,
+                seed=seed,
+                replicate_count=replicate_count,
+            ),
+            "gc": gc_chromatogram(
+                values,
+                species_amounts_mol=species_amounts_mol,
+                volume_L=volume_L,
+                seed=seed + 1,
+                replicate_count=replicate_count,
+            ),
+            "uvvis": uvvis_spectrum(
+                values,
+                species_amounts_mol=species_amounts_mol,
+                volume_L=volume_L,
+                seed=seed + 2,
+                replicate_count=replicate_count,
+            ),
+            "ir": ir_spectrum(
+                values,
+                species_amounts_mol=species_amounts_mol,
+                volume_L=volume_L,
+                seed=seed + 3,
+                replicate_count=replicate_count,
+            ),
+            "nmr": nmr_spectrum(
+                values,
+                species_amounts_mol=species_amounts_mol,
+                volume_L=volume_L,
+                seed=seed + 4,
+                replicate_count=replicate_count,
+            ),
         },
         "mass_balance": {
             "process_mass_balance_error": round(
@@ -274,8 +440,13 @@ def raw_signal_schema(instrument_id: str) -> dict[str, Any]:
             "kind": {"type": "string"},
             axis: {"type": "array", "items": {"type": "number"}},
             signal: {"type": "array", "items": {"type": "number"}},
+            "replicate_signals": {"type": "array"},
+            "replicate_count": {"type": "integer", "minimum": 1},
             "peaks": {"type": "array"},
             "bands": {"type": "array"},
+            "processed_estimates": {"type": "object"},
+            "uncertainty": {"type": "object"},
+            "metadata": {"type": "object"},
         },
         "additionalProperties": True,
     }

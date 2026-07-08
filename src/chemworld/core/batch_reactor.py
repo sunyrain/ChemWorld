@@ -950,7 +950,7 @@ class ChemWorldObservationKernel:
             values=noisy,
             units=self._observation_units(),
             observed_mask=observed_mask,
-            raw_signal=self._raw_signal(instrument_id, noisy),
+            raw_signal=self._raw_signal(instrument_id, noisy, state, rng),
             processed_estimate=self._processed_estimate(noisy, observed_mask),
             uncertainty={
                 f"{key}_std": float(std)
@@ -986,8 +986,21 @@ class ChemWorldObservationKernel:
         return processed_estimate(values, observed_mask)
 
     @staticmethod
-    def _raw_signal(instrument_id: str, values: dict[str, float | None]) -> dict[str, Any]:
-        return raw_signal(instrument_id, values)
+    def _raw_signal(
+        instrument_id: str,
+        values: dict[str, float | None],
+        state: WorldState,
+        rng: np.random.Generator,
+    ) -> dict[str, Any]:
+        replicate_count = 3 if instrument_id == "final_assay" else 2
+        return raw_signal(
+            instrument_id,
+            values,
+            species_amounts_mol=state.species_amounts,
+            volume_L=state.volume_L,
+            seed=int(rng.integers(0, 2**31 - 1)),
+            replicate_count=replicate_count,
+        )
 
     @staticmethod
     def _observation_units() -> dict[str, str]:
@@ -1036,4 +1049,3 @@ class ChemWorldObservationKernel:
             "degradation_warning": degradation,
             **downstream_truth_values(state),
         }
-

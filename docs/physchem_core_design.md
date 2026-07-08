@@ -152,6 +152,46 @@ element conservation, and every card's initial/target/impurity species are
 declared by the mechanism. This keeps task expansion anchored to a shared
 physical-chemistry world instead of drifting into unrelated mini-games.
 
+## Spectroscopy and Instrument Coupling
+
+The P11 spectroscopy core is implemented in
+`chemworld.physchem.spectroscopy` and connected to the world observation layer
+through `chemworld.world.spectra` and `chemworld.world.observation_kernel`.
+
+Reference reading showed that the local professional references focus on
+thermodynamics, reaction kinetics, reactor models, and process equipment rather
+than HPLC/NMR-style virtual instrument synthesis. ChemWorld therefore implements
+its own compact observation-kernel model instead of copying a spectroscopy
+package. The design goal is not database-grade spectral prediction; it is a
+realistic, auditable instrument layer for benchmark interaction.
+
+Current capability:
+
+| Instrument | Species mapping |
+| --- | --- |
+| HPLC | species groups map to retention-time peaks for reactants, targets, byproducts, degradation products, catalysts, and other species |
+| GC | volatile and vapor-like species map to short retention-time peaks |
+| UV-vis | target, reactant, impurity, degradation, and catalyst proxies map to broad wavelength bands |
+| IR | formula/role proxies map to fingerprint, carbonyl-like, O-H-like, and C-H-like bands |
+| NMR | species roles map to compact 1H chemical-shift proxy peaks |
+
+Each signal spec declares:
+
+- axis name, units, range, and point count;
+- peak center, width, response factor, role assignment, and shape;
+- calibration curve with slope, intercept, detection limit, and uncertainty;
+- baseline intercept and baseline drift;
+- replicate count and replicate raw signals;
+- processed species-level estimates and uncertainty;
+- peak-overlap metadata.
+
+The world environment now passes hidden species amounts into the spectroscopy
+synthesizer during measurement actions, but the returned observation does not
+expose the hidden state ledger. Agents see only plot-ready raw signals,
+calibrated estimates, uncertainty, instrument cost, and sample consumption.
+This preserves partial observability while making HPLC/GC/UV-vis/IR/NMR outputs
+depend on the actual mechanism state rather than only on aggregate score fields.
+
 ## Reactor Model Core
 
 The P4 reactor core is implemented in `chemworld.physchem.reactors`. It turns

@@ -26,7 +26,7 @@ finished, update its status and push immediately.
 | P8 fluid mechanics and heat transfer | whilesunny | Done | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `docs/physchem_core_design.md` | next: implement equilibrium chemistry in P9, then connect transport signals into world tasks and scoring | this commit |
 | P9 equilibrium chemistry | whilesunny | Done | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/test_equilibrium_chemistry.py`, `docs/physchem_core_design.md` | next: expand mechanism and scenario library in P10 using the generalized physchem kernels | this commit |
 | P10 mechanism and scenario library | whilesunny | Done | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/physchem/mechanism_library.py`, `tests/`, `docs/physchem_core_design.md` | next: start P11 instrument and spectroscopy coupling using mechanism targets and impurity species | this commit |
-| P11 instrument and spectroscopy coupling | whilesunny | Active | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `tests/`, `docs/physchem_core_design.md` | read local reference spectroscopy/instrument patterns, then implement peak specs, calibration, overlap, drift, detection limits, replicate measurements, and mechanism-linked spectra | pending |
+| P11 instrument and spectroscopy coupling | whilesunny | Done | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `tests/`, `docs/physchem_core_design.md` | next: start P12 optional reference-backend validation after choosing the first comparison targets | this commit |
 
 Status values:
 
@@ -716,23 +716,23 @@ Acceptance tests:
 
 ### P11: Instrument and Spectroscopy Coupling
 
-- [ ] Map species groups to HPLC peaks.
-- [ ] Map volatile species to GC peaks.
-- [ ] Map chromophores/proxy species to UV-vis bands.
-- [ ] Map functional-group proxies to IR bands.
-- [ ] Map species proxies to NMR shifts.
-- [ ] Support peak overlap.
-- [ ] Support calibration curves.
-- [ ] Support baseline drift.
-- [ ] Support instrument detection limits.
-- [ ] Support replicate measurements.
+- [x] Map species groups to HPLC peaks.
+- [x] Map volatile species to GC peaks.
+- [x] Map chromophores/proxy species to UV-vis bands.
+- [x] Map functional-group proxies to IR bands.
+- [x] Map species proxies to NMR shifts.
+- [x] Support peak overlap.
+- [x] Support calibration curves.
+- [x] Support baseline drift.
+- [x] Support instrument detection limits.
+- [x] Support replicate measurements.
 
 Acceptance tests:
 
-- [ ] Larger product amount increases product peak area.
-- [ ] Byproducts create visible impurity peaks.
-- [ ] Low concentration can fall below detection limit.
-- [ ] Processed estimates are consistent with raw signal within uncertainty.
+- [x] Larger product amount increases product peak area.
+- [x] Byproducts create visible impurity peaks.
+- [x] Low concentration can fall below detection limit.
+- [x] Processed estimates are consistent with raw signal within uncertainty.
 
 ### P12: Validation Against Reference Backends
 
