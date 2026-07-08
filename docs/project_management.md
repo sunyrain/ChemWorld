@@ -1,140 +1,86 @@
-# Team Project Management
+# Two-Person Workflow
 
-ChemWorld should treat `TODO.md` as the strategic backlog, not as the daily
-work tracker. Daily execution should happen through GitHub Issues, milestones,
-projects, pull requests, and release artifacts.
+ChemWorld is currently a fast two-person research prototype. We do not need a
+heavy project-management system. The goal is simply to know who owns what, what
+is active, and what is ready to review.
 
-## Operating Model
+## Simple Rules
 
-Use three levels:
+- `TODO.md` is the shared roadmap.
+- Each active item has exactly one owner.
+- The owner writes code, runs checks, and leaves a short handoff note.
+- The other person reviews only the diff, tests, and model assumptions.
+- Reference repositories in `reference_repos/` are for reading only and are not
+  committed.
+- Pushes should not auto-run GitHub Actions while billing is blocked; CI is
+  manual-only.
 
-1. Roadmap: `TODO.md`, `docs/roadmap.md`, and architecture docs.
-2. Execution: GitHub Issues, Project board, milestones, and PRs.
-3. Evidence: tests, benchmark reports, docs, notebooks, and release artifacts.
+## Lightweight Owner Table
 
-Every task should move from idea to merged code through:
+Keep a tiny table in `TODO.md` or in a local note:
 
-```text
-TODO.md item
-  -> GitHub issue
-  -> design note or acceptance criteria
-  -> implementation branch
-  -> PR with tests/docs
-  -> review
-  -> merge
-  -> release artifact or benchmark report update
-```
+| Item | Owner | Status | Next Step | Files |
+| --- | --- | --- | --- | --- |
+| Generic reaction network | Person A | Active | build `ReactionNetworkSpec` | `src/chemworld/physchem/` |
+| Property correlations | Person B | Waiting | define component schema | `src/chemworld/physchem/properties/` |
 
-## Project Board
+Statuses:
 
-Recommended columns:
+- `Planned`
+- `Active`
+- `Blocked`
+- `Review`
+- `Done`
 
-- `Inbox`: raw ideas, not yet scoped.
-- `Ready`: scoped issue with owner, acceptance criteria, and priority.
-- `In Progress`: actively worked this week.
-- `Review`: PR open or design awaiting review.
-- `Validation`: tests, benchmark runs, notebook smoke, docs build.
-- `Done`: merged and documented.
-- `Deferred`: valid but not in the current milestone.
+That is enough.
 
-Rules:
+## Branches
 
-- An item cannot enter `Ready` without acceptance criteria.
-- An item cannot enter `In Progress` without an owner.
-- An item cannot enter `Done` without a linked PR or explicit decision record.
-- Keep WIP small: each person should normally own at most two active issues.
-
-## Milestones
-
-Recommended milestones for the physchem-core push:
-
-- `M0 Governance`: third-party audit, no-copy policy, project management.
-- `M1 Reaction Network`: generic species, stoichiometry, mechanism loader.
-- `M2 Property Core`: vapor pressure, Cp, density, enthalpy, units.
-- `M3 Phase Equilibrium`: activity models, LLE, VLE, flash.
-- `M4 Reactor Models`: batch, semi-batch, CSTR, PFR.
-- `M5 Unit Operations`: extraction, distillation, crystallization, drying.
-- `M6 Reference Validation`: optional comparisons to external packages.
-- `M7 Benchmark Tasks`: new tasks, baselines, docs, artifacts.
-
-Each milestone should have:
-
-- scope;
-- non-goals;
-- owner;
-- target date;
-- risk list;
-- required tests;
-- release note.
-
-## Labels
-
-Use stable labels:
-
-- `area:physchem-core`
-- `area:reaction-network`
-- `area:thermo`
-- `area:eos`
-- `area:phase-equilibrium`
-- `area:reactor`
-- `area:unit-operation`
-- `area:instrumentation`
-- `area:evaluation`
-- `area:docs`
-- `area:notebook`
-- `kind:design`
-- `kind:implementation`
-- `kind:test`
-- `kind:bug`
-- `kind:refactor`
-- `kind:research`
-- `priority:P0`
-- `priority:P1`
-- `priority:P2`
-- `status:blocked`
-- `status:needs-decision`
-- `good-first-issue`
-
-## Issue Quality Bar
-
-Every implementation issue should contain:
-
-- problem statement;
-- target module/files;
-- desired public API;
-- acceptance criteria;
-- test plan;
-- documentation update;
-- risks or model limitations;
-- reference links if relevant;
-- non-goals.
-
-Example:
+Use one working branch per larger topic:
 
 ```text
-Title: Implement generic stoichiometric matrix builder
-
-Acceptance criteria:
-- Parses reversible and irreversible reaction equations.
-- Builds species list and S matrix.
-- Checks element conservation.
-- Fails invalid reactions with clear errors.
-- Includes tests for at least five mechanisms.
+agent/unified-world-hardening
+physchem/reaction-network
+physchem/property-core
+physchem/phase-equilibrium
+notebooks/tutorial-polish
 ```
 
-## PR Quality Bar
+For tiny edits, working directly on the current feature branch is fine.
 
-A PR should include:
+## Handoff Note
 
-- linked issue;
-- short design summary;
-- changed public API;
-- tests run;
-- docs updated;
-- benchmark impact;
-- known limitations.
+When one person stops working, leave a short note:
 
-Required local checks before review:
+```text
+Owner: Person A
+Item: Generic reaction network
+Changed:
+- Added SpeciesSpec and ReactionSpec.
+- Added parser tests for irreversible reactions.
+Next:
+- Add reversible reaction support.
+- Connect to batch reactor backend.
+Checks:
+- ruff passed
+- pytest tests/test_physchem_reaction_network.py passed
+Risks:
+- Formula parser does not handle parentheses yet.
+```
+
+## Review Rule
+
+For two-person fast iteration, review only these questions:
+
+1. Does it run?
+2. Does it preserve physical constraints?
+3. Does it keep public API simple?
+4. Does it avoid copying third-party code?
+5. Is the next step obvious?
+
+## Local Checks
+
+Run the full set before a meaningful push:
 
 ```powershell
 .\.venv\Scripts\python.exe -m ruff check .
@@ -143,102 +89,23 @@ Required local checks before review:
 .\.venv\Scripts\python.exe -m mkdocs build --strict
 ```
 
-Additional checks for benchmark-affecting PRs:
+For quick inner-loop work, run only the targeted tests.
 
-```powershell
-chemworld run --task reaction-to-assay --agent scripted_chemistry
-chemworld verify --constitution --submission <trajectory.jsonl>
-chemworld baselines report --tasks <task> --agents random scripted_chemistry --seeds 0
-```
+## GitHub Actions
 
-## Decision Records
-
-Use a short Architecture Decision Record when a choice affects future work:
+The workflow is manual-only:
 
 ```text
-docs/adr/0001-physchem-core-boundary.md
-docs/adr/0002-reaction-network-schema.md
-docs/adr/0003-property-correlation-source-policy.md
+Actions -> CI -> Run workflow
 ```
 
-ADR format:
+This avoids automatic billing-triggered startup failures on every push. If the
+account billing issue is fixed later, we can re-enable push or pull-request CI.
 
-- Status: proposed, accepted, superseded.
-- Context.
-- Decision.
-- Alternatives considered.
-- Consequences.
-- Follow-up tasks.
+## What Not To Do
 
-## Weekly Rhythm
-
-Suggested team cadence:
-
-- Monday: triage board, choose weekly P0/P1 issues.
-- Wednesday: 20-minute technical sync, unblock decisions.
-- Friday: demo merged work, update docs, close stale issues.
-- End of milestone: run full validation and write release notes.
-
-Daily async update format:
-
-```text
-Yesterday: ...
-Today: ...
-Blocked by: ...
-PR/issue links: ...
-```
-
-## Ownership Model
-
-Recommended roles:
-
-- Maintainer: release gate, issue triage, final merge.
-- Module owner: owns architecture and tests for one physchem area.
-- Implementer: writes code and local docs.
-- Reviewer: checks correctness, model limits, and maintainability.
-- Benchmark steward: reruns baselines and watches score drift.
-- Education steward: checks notebooks and teaching clarity.
-
-Every high-impact PR should have at least:
-
-- one implementation reviewer;
-- one scientific/model reviewer;
-- one benchmark or docs reviewer if the public API changes.
-
-## Backlog Hygiene
-
-Every two weeks:
-
-- close duplicate issues;
-- split issues larger than one week of work;
-- move vague ideas back to `Inbox`;
-- confirm P0/P1 priorities;
-- update `TODO.md` only when the roadmap changes;
-- update task cards when benchmark contracts change.
-
-## Definition Of Done
-
-A feature is done only when:
-
-- code is merged;
-- tests cover normal and failure paths;
-- docs explain assumptions and limitations;
-- public API or schema changes are documented;
-- benchmark or notebook impact is checked;
-- no hidden dependency on local reference repos exists.
-
-## How To Use `TODO.md`
-
-`TODO.md` is the north star. Use it to create scoped issues:
-
-- one issue per coherent deliverable;
-- one milestone per capability layer;
-- one PR per issue where possible;
-- update the checkbox only after the corresponding issue is merged.
-
-Do not use one giant PR to complete a full milestone. Large scientific modules
-should be merged as thin vertical slices:
-
-```text
-schema -> core math -> tests -> env integration -> docs -> benchmark task
-```
+- Do not create many labels, milestones, or formal issue templates yet.
+- Do not open huge PRs that mix notebooks, core models, and docs.
+- Do not commit `reference_repos/`.
+- Do not copy external library source into ChemWorld.
+- Do not push generated runs/results unless they are intentional examples.
