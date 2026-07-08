@@ -225,7 +225,7 @@ def test_runtime_crystallization_service_is_separate_from_domain_services() -> N
     assert "def filter_crystals" in crystallization_services
     assert "upsert_equipment_record" in crystallization_services
     assert "equipment_settings" in crystallization_services
-    assert "crystal_product_mol" in crystallization_services
+    assert "crystal_product_mol" not in crystallization_services
 
 
 def test_runtime_distillation_service_is_separate_from_domain_services() -> None:
@@ -655,6 +655,24 @@ def test_constitution_rejects_primary_crystallizer_seed_status_metadata() -> Non
     )
 
 
+def test_constitution_rejects_primary_crystallization_output_metadata() -> None:
+    state = initial_chemworld_state().replace(
+        metadata={
+            **initial_chemworld_state().metadata,
+            "crystallization_active": True,
+            "crystal_product_mol": 0.002,
+            "crystal_impurity_mol": 0.0001,
+        }
+    )
+    report = make_chemworld_constitution().check_state(state)
+
+    assert not report.passed
+    assert any(
+        check.name == "metadata_no_primary_crystallization_output"
+        for check in report.failures()
+    )
+
+
 def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> None:
     flow_env = gym.make("ChemWorld", task_id="flow-reaction-optimization", seed=0)
     electro_env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
@@ -783,6 +801,15 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         env.reset(seed=0)
         env.step({"operation": "add_solvent", "volume_L": 0.024, "solvent": 1})
         env.step({"operation": "add_reagent", "amount_mol": 0.010})
+        env.step({"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1})
+        env.step(
+            {
+                "operation": "heat",
+                "target_temperature_K": 385.0,
+                "duration_s": 1500.0,
+                "stirring_speed_rpm": 720.0,
+            }
+        )
         _, _, _, _, seed_info = env.step({"operation": "seed_crystals", "seed_mass_g": 0.006})
         state = env.unwrapped._state
         crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
@@ -804,8 +831,39 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         )
         state = env.unwrapped._state
         assert cool_info["transaction_status"] == "committed"
+        assert state.phases is not None
+        assert {"solid", "mother_liquor"} <= set(state.phases.phases)
+        solid_before_filter = state.phases.phases["solid"]
+        solid_product_before_filter = solid_before_filter.species_amounts_mol["P"]
+        solid_impurity_before_filter = solid_before_filter.species_amounts_mol["B"]
+        assert solid_product_before_filter > 0.0
+        assert solid_before_filter.selected is True
+        assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
         assert "crystal_seeded" not in state.metadata
         assert "crystal_seed_mass_g" not in state.metadata
+        assert "crystallization_active" not in state.metadata
+        assert "crystal_product_mol" not in state.metadata
+        assert "crystal_impurity_mol" not in state.metadata
+        assert env.unwrapped.constitution.check_preconditions(
+            "filter_crystals",
+            state,
+            {},
+        )["filter_requires_crystallization"]
+        assert env.unwrapped.constitution.check_state(state).passed
+
+        _, _, _, _, filter_info = env.step({"operation": "filter_crystals"})
+        state = env.unwrapped._state
+        solid_after_filter = state.phases.phases["solid"]
+        assert filter_info["transaction_status"] == "committed"
+        assert solid_after_filter.species_amounts_mol["P"] == pytest.approx(
+            solid_product_before_filter * 0.96
+        )
+        assert solid_after_filter.species_amounts_mol["B"] == pytest.approx(
+            solid_impurity_before_filter * 0.92
+        )
+        assert "crystallization_active" not in state.metadata
+        assert "crystal_product_mol" not in state.metadata
+        assert "crystal_impurity_mol" not in state.metadata
         assert env.unwrapped.constitution.check_state(state).passed
     finally:
         env.close()

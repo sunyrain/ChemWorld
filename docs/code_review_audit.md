@@ -25,7 +25,7 @@ Largest current source files after this cleanup:
 | `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, and provenance |
 | `src/chemworld/physchem/spectroscopy.py` | calibration, chromatography, signal synthesis, feature heuristics | split into calibration, chromatography, signal synthesis, and feature libraries |
 | `src/chemworld/runtime/domain_services.py` | lightweight operation composition surface with service delegation, constitution checks, and operation-record assembly | keep thin and do not add process-specific formulas back into this layer |
-| `src/chemworld/runtime/crystallization_services.py` | seed addition, typed crystallizer seed-equipment status, cooling crystallization, crystal purity/recovery metadata, and crystal filtration ledger updates | keep separate from mixed operation services and later bind solubility/crystal-size models more directly to mechanism cards |
+| `src/chemworld/runtime/crystallization_services.py` | seed addition, typed crystallizer seed-equipment status, cooling crystallization, typed solid/mother-liquor output phases, crystal purity/recovery metadata, and crystal filtration ledger updates | keep separate from mixed operation services and later bind solubility/crystal-size models more directly to mechanism cards |
 | `src/chemworld/runtime/distillation_services.py` | shortcut VLE distillation, distillate purity/recovery metadata, heat-duty/cost/risk ledgers, and fraction collection | keep separate from mixed operation services and later bind VLE/component properties more directly to mechanism cards |
 | `src/chemworld/runtime/electrochemical_services.py` | potential/current setup, Nernst/Butler-Volmer electrolysis calls, faradaic conversion, electrical work, and electrochemical metadata | keep separate from mixed operation services and later bind electrode/reaction specs more directly to mechanism cards |
 | `src/chemworld/runtime/flow_services.py` | flow-rate setup, residence-time reaction advancement, flow conversion metadata, and flow campaign ledger updates | keep separate from mixed operation services and later bind reactor geometry/residence-time distributions more directly to mechanism cards |
@@ -265,6 +265,10 @@ Recommended follow-up:
   into typed `crystallizer` equipment settings. Cooling crystallization now
   reads the typed seed configuration, and constitution/golden tests reject the
   old seed metadata keys.
+- Promoted crystallized product and occluded impurity amounts out of runtime
+  metadata into typed `solid` and `mother_liquor` phase records. Crystal
+  filtration now reads the typed solid phase, while metadata retains only
+  derived yield/purity/size summaries.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration

@@ -16,6 +16,77 @@ def _action_float(action: dict[str, Any], key: str, default: float) -> float:
     return float(np.asarray(value).reshape(-1)[0])
 
 
+def _solid_phase_amounts(
+    state: WorldState,
+    *,
+    target_species: str,
+    impurity_species: str,
+) -> tuple[float, float]:
+    if state.phases is None or "solid" not in state.phases.phases:
+        return 0.0, 0.0
+    solid = state.phases.phases["solid"]
+    return (
+        float(solid.species_amounts_mol.get(target_species, 0.0)),
+        float(solid.species_amounts_mol.get(impurity_species, 0.0)),
+    )
+
+
+def _crystallization_phases(
+    state: WorldState,
+    *,
+    target_species: str,
+    impurity_species: str,
+    product_mol: float,
+    impurity_mol: float,
+    mother_liquor_volume_L: float | None = None,
+    solvent_loss: float = 0.0,
+    solid_selected: bool = True,
+) -> PhaseLedger:
+    mother_liquor_volume = (
+        state.volume_L if mother_liquor_volume_L is None else mother_liquor_volume_L
+    )
+    product_mol = float(np.clip(product_mol, 0.0, state.species_amounts.get(target_species, 0.0)))
+    impurity_mol = float(
+        np.clip(impurity_mol, 0.0, state.species_amounts.get(impurity_species, 0.0))
+    )
+    solid_amounts = dict.fromkeys(state.species_amounts, 0.0)
+    solid_amounts[target_species] = product_mol
+    solid_amounts[impurity_species] = impurity_mol
+    liquor_amounts = state.species_amounts.copy()
+    liquor_amounts[target_species] = max(
+        liquor_amounts.get(target_species, 0.0) - product_mol,
+        0.0,
+    )
+    liquor_amounts[impurity_species] = max(
+        liquor_amounts.get(impurity_species, 0.0) - impurity_mol,
+        0.0,
+    )
+    return PhaseLedger(
+        {
+            "mother_liquor": PhaseRecord(
+                phase_id="mother_liquor",
+                vessel_id=state.vessel_id,
+                phase_type="liquid",
+                volume_L=mother_liquor_volume,
+                species_amounts_mol=liquor_amounts,
+                settled=True,
+                selected=not solid_selected,
+                metadata={"solvent_loss": solvent_loss},
+            ),
+            "solid": PhaseRecord(
+                phase_id="solid",
+                vessel_id=state.vessel_id,
+                phase_type="solid",
+                volume_L=0.0,
+                species_amounts_mol=solid_amounts,
+                settled=True,
+                selected=solid_selected,
+                metadata={"solvent_loss": 0.0},
+            ),
+        }
+    )
+
+
 class ChemWorldCrystallizationServices:
     """Apply seed, cooling crystallization, and filtration updates."""
 
@@ -63,9 +134,6 @@ class ChemWorldCrystallizationServices:
         metadata = state.metadata.copy()
         metadata.update(
             {
-                "crystallization_active": True,
-                "crystal_product_mol": crystallized,
-                "crystal_impurity_mol": occluded_impurity,
                 "crystal_yield": float(np.clip(crystallized / initial_p, 0.0, 1.0)),
                 "crystal_purity": float(np.clip(crystal_purity, 0.0, 1.0)),
                 "crystal_size": float(np.clip(0.25 + 0.65 * time_factor * seed_factor, 0.0, 1.0)),
@@ -76,12 +144,31 @@ class ChemWorldCrystallizationServices:
             cost=state.ledger.cost + 0.018 + duration / 3600.0 * 0.018,
             risk=max(0.0, state.ledger.risk - 0.02 * cooling_depth),
         )
-        return state.replace(temperature_K=target_temperature, ledger=ledger, metadata=metadata)
+        phases = _crystallization_phases(
+            state,
+            target_species=self.species_view.primary_target_species,
+            impurity_species=self.species_view.primary_impurity_species,
+            product_mol=crystallized,
+            impurity_mol=occluded_impurity,
+        )
+        return state.replace(
+            temperature_K=target_temperature,
+            ledger=ledger,
+            metadata=metadata,
+            phases=phases,
+        )
 
     def filter_crystals(self, state: WorldState) -> WorldState:
         metadata = state.metadata.copy()
-        product = float(metadata.get("crystal_product_mol", 0.0)) * 0.96
-        impurity = float(metadata.get("crystal_impurity_mol", 0.0)) * 0.92
+        target_species = self.species_view.primary_target_species
+        impurity_species = self.species_view.primary_impurity_species
+        solid_product, solid_impurity = _solid_phase_amounts(
+            state,
+            target_species=target_species,
+            impurity_species=impurity_species,
+        )
+        product = solid_product * 0.96
+        impurity = solid_impurity * 0.92
         purity = product / max(product + impurity, 1.0e-12)
         initial_p = max(
             float(
@@ -96,8 +183,6 @@ class ChemWorldCrystallizationServices:
         metadata.update(
             {
                 "crystals_filtered": True,
-                "crystal_product_mol": product,
-                "crystal_impurity_mol": impurity,
                 "crystal_yield": float(np.clip(product / initial_p, 0.0, 1.0)),
                 "crystal_purity": float(np.clip(purity, 0.0, 1.0)),
                 "recovery": float(np.clip(product / initial_p, 0.0, 1.0)),
@@ -109,43 +194,14 @@ class ChemWorldCrystallizationServices:
             time_s=state.ledger.time_s + 480.0,
             cost=state.ledger.cost + 0.026,
         )
-        solid_amounts = dict.fromkeys(state.species_amounts, 0.0)
-        target_species = self.species_view.primary_target_species
-        impurity_species = self.species_view.primary_impurity_species
-        solid_amounts[target_species] = product
-        solid_amounts[impurity_species] = impurity
-        liquor_amounts = state.species_amounts.copy()
-        liquor_amounts[target_species] = max(
-            liquor_amounts.get(target_species, 0.0) - product,
-            0.0,
-        )
-        liquor_amounts[impurity_species] = max(
-            liquor_amounts.get(impurity_species, 0.0) - impurity,
-            0.0,
-        )
-        phases = PhaseLedger(
-            {
-                "mother_liquor": PhaseRecord(
-                    phase_id="mother_liquor",
-                    vessel_id=state.vessel_id,
-                    phase_type="liquid",
-                    volume_L=state.volume_L * 0.92,
-                    species_amounts_mol=liquor_amounts,
-                    settled=True,
-                    selected=False,
-                    metadata={"solvent_loss": float(metadata.get("solvent_loss", 0.0))},
-                ),
-                "solid": PhaseRecord(
-                    phase_id="solid",
-                    vessel_id=state.vessel_id,
-                    phase_type="solid",
-                    volume_L=0.0,
-                    species_amounts_mol=solid_amounts,
-                    settled=True,
-                    selected=True,
-                    metadata={"solvent_loss": 0.0},
-                ),
-            }
+        phases = _crystallization_phases(
+            state,
+            target_species=target_species,
+            impurity_species=impurity_species,
+            product_mol=product,
+            impurity_mol=impurity,
+            mother_liquor_volume_L=state.volume_L * 0.92,
+            solvent_loss=float(metadata.get("solvent_loss", 0.0)),
         )
         return state.replace(ledger=ledger, metadata=metadata, phases=phases)
 

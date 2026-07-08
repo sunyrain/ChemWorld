@@ -87,6 +87,12 @@ class PhysicalConstitution:
         "crystal_seed_mass_g",
     }
 
+    primary_crystallization_output_metadata_keys: ClassVar[set[str]] = {
+        "crystallization_active",
+        "crystal_product_mol",
+        "crystal_impurity_mol",
+    }
+
     required_state_units: ClassVar[dict[str, str]] = {
         "volume_L": "L",
         "temperature_K": "K",
@@ -176,7 +182,11 @@ class PhysicalConstitution:
         is_final_assay = operation_type == "measure" and instrument_id == "final_assay"
         phase_system = has_phase_system(state.phases)
         phase_settled = phases_are_settled(state.phases)
-        crystallized = bool(state.metadata.get("crystallization_active", False))
+        crystallized = (
+            state.phases is not None
+            and "solid" in state.phases.phases
+            and sum(state.phases.phases["solid"].species_amounts_mol.values()) > self.tolerance
+        )
         distillate_ready = bool(state.metadata.get("distillation_active", False))
         flow_settings = equipment_settings(state.equipment, "flow_reactor")
         potential_settings = equipment_settings(state.equipment, "electrochemical_cell")
@@ -415,6 +425,11 @@ class PhysicalConstitution:
                 "metadata_no_primary_crystallizer_seed_status",
                 self.primary_crystallizer_metadata_keys.isdisjoint(state.metadata),
                 "Crystallizer seed status and seed mass must live in typed EquipmentLedger.",
+            ),
+            CheckResult(
+                "metadata_no_primary_crystallization_output",
+                self.primary_crystallization_output_metadata_keys.isdisjoint(state.metadata),
+                "Crystallized material amounts must live in typed PhaseLedger.",
             )
         ]
         if state.phases is not None:

@@ -66,7 +66,8 @@ The runtime is organized around:
 - `ChemWorldCrystallizationServices`, implemented in
   `runtime/crystallization_services.py`, which owns seeding, cooling
   crystallization, typed crystallizer seed-equipment status,
-  crystal purity/recovery metadata, and crystal filtration ledger updates;
+  typed solid/mother-liquor output phases, crystal purity/recovery metadata,
+  and crystal filtration ledger updates;
 - `ChemWorldDistillationServices`, implemented in
   `runtime/distillation_services.py`, which owns shortcut VLE distillation,
   distillate purity/recovery metadata, heat-duty/cost/risk ledger updates, and

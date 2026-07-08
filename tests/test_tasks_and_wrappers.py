@@ -227,6 +227,13 @@ def test_process_preconditions_are_stateful() -> None:
         for action in (
             {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
             {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
+            {
+                "operation": "heat",
+                "target_temperature_K": 385.0,
+                "duration_s": 1500.0,
+                "stirring_speed_rpm": 720.0,
+            },
             {"operation": "seed_crystals", "seed_mass_g": 0.006},
             {
                 "operation": "cool_crystallize",
