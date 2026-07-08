@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState
+from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.runtime.species import MechanismSpeciesView
 
@@ -24,11 +24,20 @@ class ChemWorldCrystallizationServices:
 
     def seed_crystals(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         seed_mass = float(np.clip(_action_float(action, "seed_mass_g", 0.005), 0.0, 0.050))
-        metadata = state.metadata.copy()
-        metadata["crystal_seeded"] = seed_mass > 0.0
-        metadata["crystal_seed_mass_g"] = seed_mass
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="crystallizer",
+            equipment_type="crystallizer",
+            attached_vessel_id=state.vessel_id,
+            status="seeded" if seed_mass > 0.0 else "configured",
+            settings={
+                "crystal_seeded": seed_mass > 0.0,
+                "crystal_seed_mass_g": seed_mass,
+                "last_seed_time_s": state.ledger.time_s,
+            },
+        )
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.012 + 0.20 * seed_mass)
-        return state.replace(ledger=ledger, metadata=metadata)
+        return state.replace(ledger=ledger, equipment=equipment)
 
     def cool_crystallize(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         duration = float(np.clip(_action_float(action, "duration_s", 1200.0), 0.0, 14_400.0))
@@ -37,7 +46,8 @@ class ChemWorldCrystallizationServices:
         )
         cooling_depth = float(np.clip((state.temperature_K - target_temperature) / 55.0, 0.0, 1.0))
         time_factor = float(np.clip(1.0 - np.exp(-duration / 1800.0), 0.0, 1.0))
-        seed_factor = 1.08 if bool(state.metadata.get("crystal_seeded", False)) else 0.92
+        crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
+        seed_factor = 1.08 if bool(crystallizer_settings.get("crystal_seeded", False)) else 0.92
         p_mol = self.species_view.target_amount(state)
         impurity_mol = self.species_view.impurity_amount(state)
         crystallized = float(np.clip(p_mol * cooling_depth * time_factor * seed_factor, 0.0, p_mol))

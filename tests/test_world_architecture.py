@@ -223,6 +223,8 @@ def test_runtime_crystallization_service_is_separate_from_domain_services() -> N
     assert "def seed_crystals" in crystallization_services
     assert "def cool_crystallize" in crystallization_services
     assert "def filter_crystals" in crystallization_services
+    assert "upsert_equipment_record" in crystallization_services
+    assert "equipment_settings" in crystallization_services
     assert "crystal_product_mol" in crystallization_services
 
 
@@ -636,6 +638,23 @@ def test_constitution_rejects_primary_instrument_status_metadata() -> None:
     )
 
 
+def test_constitution_rejects_primary_crystallizer_seed_status_metadata() -> None:
+    state = initial_chemworld_state().replace(
+        metadata={
+            **initial_chemworld_state().metadata,
+            "crystal_seeded": True,
+            "crystal_seed_mass_g": 0.006,
+        }
+    )
+    report = make_chemworld_constitution().check_state(state)
+
+    assert not report.passed
+    assert any(
+        check.name == "metadata_no_primary_crystallizer_seed_status"
+        for check in report.failures()
+    )
+
+
 def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> None:
     flow_env = gym.make("ChemWorld", task_id="flow-reaction-optimization", seed=0)
     electro_env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
@@ -754,6 +773,40 @@ def test_runtime_final_assay_status_uses_typed_instrument_equipment() -> None:
             {"instrument": "final_assay"},
         )
         assert not preconditions["measure_final_not_repeated"]
+    finally:
+        env.close()
+
+
+def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        env.reset(seed=0)
+        env.step({"operation": "add_solvent", "volume_L": 0.024, "solvent": 1})
+        env.step({"operation": "add_reagent", "amount_mol": 0.010})
+        _, _, _, _, seed_info = env.step({"operation": "seed_crystals", "seed_mass_g": 0.006})
+        state = env.unwrapped._state
+        crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
+
+        assert seed_info["transaction_status"] == "committed"
+        assert "equipment" in seed_info["affected_ledgers"]
+        assert crystallizer_settings["crystal_seeded"] is True
+        assert crystallizer_settings["crystal_seed_mass_g"] == pytest.approx(0.006)
+        assert "crystal_seeded" not in state.metadata
+        assert "crystal_seed_mass_g" not in state.metadata
+        assert env.unwrapped.constitution.check_state(state).passed
+
+        _, _, _, _, cool_info = env.step(
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 278.15,
+                "duration_s": 1200.0,
+            }
+        )
+        state = env.unwrapped._state
+        assert cool_info["transaction_status"] == "committed"
+        assert "crystal_seeded" not in state.metadata
+        assert "crystal_seed_mass_g" not in state.metadata
+        assert env.unwrapped.constitution.check_state(state).passed
     finally:
         env.close()
 

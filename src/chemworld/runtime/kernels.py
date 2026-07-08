@@ -322,6 +322,7 @@ def _affected_ledgers(operation_type: str) -> tuple[str, ...]:
         "heat",
         "wait",
         "mix",
+        "seed_crystals",
         "set_flow_rate",
         "set_potential",
         "electrolyze",

@@ -246,6 +246,8 @@ def test_runtime_v2_golden_scripted_final_assay(
             "selected_phase",
             "final_assay_done",
             "final_assay_time_s",
+            "crystal_seeded",
+            "crystal_seed_mass_g",
         }.isdisjoint(env.unwrapped._state.metadata)
 
         if task.episode_mode == "campaign":

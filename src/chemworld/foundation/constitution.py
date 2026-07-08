@@ -82,6 +82,11 @@ class PhysicalConstitution:
         "final_assay_time_s",
     }
 
+    primary_crystallizer_metadata_keys: ClassVar[set[str]] = {
+        "crystal_seeded",
+        "crystal_seed_mass_g",
+    }
+
     required_state_units: ClassVar[dict[str, str]] = {
         "volume_L": "L",
         "temperature_K": "K",
@@ -405,6 +410,11 @@ class PhysicalConstitution:
                 "metadata_no_primary_instrument_status",
                 self.primary_instrument_metadata_keys.isdisjoint(state.metadata),
                 "Instrument completion state must live in typed EquipmentLedger.",
+            ),
+            CheckResult(
+                "metadata_no_primary_crystallizer_seed_status",
+                self.primary_crystallizer_metadata_keys.isdisjoint(state.metadata),
+                "Crystallizer seed status and seed mass must live in typed EquipmentLedger.",
             )
         ]
         if state.phases is not None:
