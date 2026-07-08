@@ -52,6 +52,7 @@ finished, update its status and push immediately.
 | Runtime v2 electrochemical service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | potential setup and electrolysis conversion logic now live in `runtime/electrochemical_services.py` | this commit |
 | Runtime v2 instrument-cost service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | measurement cost, destructive sample consumption, and final-assay marker updates now live in `runtime/instrument_cost_services.py` | this commit |
 | Runtime v2 crystallization service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | seed addition, cooling crystallization, crystal purity/recovery metadata, and crystal filtration now live in `runtime/crystallization_services.py` | this commit |
+| Runtime v2 distillation service split | whilesunny | Active | `src/chemworld/runtime/`, tests/docs | extract shortcut distillation and fraction collection state updates from `domain_services.py` without changing behavior | claim commit |
 
 Status values:
 
