@@ -18,6 +18,7 @@ finished, update its status and push immediately.
 | Docs cleanup and two-person rules | Codex | Done | `TODO.md`, `docs/`, `mkdocs.yml` | use this board for the next active task | this commit |
 | P1 physchem component/spec foundation | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | next: start P2 property-correlation core on top of these specs | this commit |
 | P2 full property-correlation core | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | next: connect the property package to energy balance and start P3 reaction-network specs | this commit |
+| P3 general reaction-network engine | whilesunny | Active | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md`, `configs/mechanisms/` | read mechanism references, then implement species/reaction/network specs, stoichiometric matrices, conservation checks, JSON/YAML loading, and core rate laws | pending |
 
 Status values:
 
