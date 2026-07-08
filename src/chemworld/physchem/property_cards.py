@@ -131,6 +131,98 @@ def property_correlation_model_cards() -> tuple[ModelCard, ...]:
             ),
         ),
         ModelCard(
+            model_id="pure_fluid_saturation_solver",
+            module_id="properties",
+            title="Pure-Fluid Saturation Solver",
+            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            summary=(
+                "Auditable pure-fluid saturation reports built on explicit "
+                "vapor-pressure correlations, analytic pressure slopes, "
+                "bracketed temperature inversion, and critical-region guards."
+            ),
+            equations=(
+                "Forward saturation: P_sat = vapor_pressure_report(T).",
+                "Inverse saturation: solve ln(P_sat(T)/P_target) = 0.",
+                "Temperature inversion uses bracketed bisection on the "
+                "log-pressure residual.",
+                "Critical guards require T < Tc and P < Pc when critical "
+                "properties are supplied.",
+            ),
+            assumptions=(
+                "The vapor-pressure correlation remains the source of the "
+                "saturation curve; the solver does not infer hidden data.",
+                "Temperature brackets come from declared validity ranges unless "
+                "the caller supplies an explicit bracket.",
+                "Critical warnings are metadata for benchmark agents, not "
+                "high-accuracy critical-region thermodynamics.",
+            ),
+            validity_limits=(
+                "Pure-fluid only; mixture bubble/dew and azeotrope behavior are "
+                "handled by later flash tasks.",
+                "No EOS phase-envelope tracing or superancillary equations are "
+                "implemented in this slice.",
+                "A non-bracketing target pressure hard-fails instead of "
+                "extrapolating silently.",
+            ),
+            failure_modes=(
+                "Nonpositive pressure or temperature fails.",
+                "T >= Tc or P >= Pc fails when critical properties are supplied.",
+                "No bracketing sign change fails with residual diagnostics.",
+                "Unsupported vapor-pressure equations fail through the lower "
+                "property-correlation layer.",
+            ),
+            units={
+                "temperature": "K",
+                "pressure": "Pa",
+                "log_pressure_residual": "dimensionless",
+            },
+            reference_reading=(
+                "reference_repos/thermo/thermo/vapor_pressure.py: "
+                "VaporPressure method governance and validity limits",
+                "reference_repos/coolprop/Web/coolprop/HighLevelAPI.rst: "
+                "saturation inputs with vapor quality and critical-region "
+                "warnings",
+                "reference_repos/phasepy/phasepy/mixtures.py: Psat/Tsat "
+                "inverse API shape for Antoine-like correlations",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="pure-saturation-temperature-inversion-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks water Antoine Psat/Tsat closure and normal "
+                        "boiling-point inversion with residual diagnostics."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_physchem_properties.py",
+                    tolerance="relative temperature tolerance 5e-4",
+                ),
+                ValidationEvidence(
+                    evidence_id="pure-saturation-critical-guard-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks near-critical warnings, critical hard-fails, "
+                        "and non-bracketing pressure failures."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_physchem_properties.py",
+                    tolerance="guardrail behavior",
+                ),
+            ),
+            model_limit_notes=(
+                "This is a professional-candidate numerical contract for "
+                "benchmark saturation calls, not a replacement for CoolProp "
+                "or full EOS phase-envelope tracing.",
+            ),
+            intended_use=(
+                "Flash, distillation, vapor-loss, pressure-risk, and scenario "
+                "generation tasks needing replayable pure-fluid saturation "
+                "points.",
+                "Dataset exports that need explicit residuals, brackets, and "
+                "critical warning metadata.",
+            ),
+        ),
+        ModelCard(
             model_id="phase_heat_capacity_enthalpy_package",
             module_id="properties",
             title="Phase-Aware Heat Capacity And Enthalpy Package",

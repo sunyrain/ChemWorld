@@ -25,6 +25,12 @@ from chemworld.physchem.property_reports import (
     PropertyEvaluation,
     ValidityPolicy,
 )
+from chemworld.physchem.saturation import (
+    PureSaturationReport,
+    normal_boiling_point_report,
+    pure_saturation_pressure_report,
+    pure_saturation_temperature_report,
+)
 from chemworld.physchem.transport_properties import (
     MixtureTransportLedger,
     TransportPropertyReport,
@@ -67,6 +73,7 @@ __all__ = [
     "PhaseLabel",
     "PhaseTransitionSpec",
     "PropertyEvaluation",
+    "PureSaturationReport",
     "TransportPropertyReport",
     "ValidityPolicy",
     "VaporPressureReport",
@@ -84,10 +91,13 @@ __all__ = [
     "mixture_viscosity_log_rule",
     "molar_volume_report",
     "molar_volume_to_density_kg_m3",
+    "normal_boiling_point_report",
     "phase_path_enthalpy_report",
     "phase_sensible_enthalpy_report",
     "phase_transition_enthalpy",
     "property_correlation_model_cards",
+    "pure_saturation_pressure_report",
+    "pure_saturation_temperature_report",
     "second_virial_coefficient_report",
     "sensible_enthalpy_change",
     "thermal_diffusivity_report",

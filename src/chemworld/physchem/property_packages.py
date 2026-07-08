@@ -8,7 +8,17 @@ from chemworld.physchem.property_equations import (
     _choose_valid_correlation,
     evaluate_correlation,
 )
-from chemworld.physchem.property_reports import PropertyEvaluation, ValidityPolicy
+from chemworld.physchem.property_reports import (
+    STANDARD_PRESSURE_PA,
+    PropertyEvaluation,
+    ValidityPolicy,
+)
+from chemworld.physchem.saturation import (
+    PureSaturationReport,
+    normal_boiling_point_report,
+    pure_saturation_pressure_report,
+    pure_saturation_temperature_report,
+)
 from chemworld.physchem.specs import ComponentSpec, PropertyCorrelation
 from chemworld.physchem.vapor_pressure import VaporPressureReport, vapor_pressure_report
 
@@ -95,9 +105,96 @@ class ComponentPropertyPackage:
             validity_policy=validity_policy,
         )
 
+    def pure_saturation_pressure_report(
+        self,
+        *,
+        temperature_K: float,
+        property_id: str = "vapor_pressure",
+        critical_temperature_K: float | None = None,
+        critical_pressure_Pa: float | None = None,
+        validity_policy: ValidityPolicy = "warn",
+    ) -> PureSaturationReport:
+        candidates = self.by_property(property_id)
+        if not candidates:
+            raise ValueError(
+                f"No correlation for property {property_id!r} on component "
+                f"{self.component.identifier!r}"
+            )
+        chosen = _choose_valid_correlation(
+            candidates,
+            temperature_K=temperature_K,
+            pressure_Pa=None,
+        )
+        return pure_saturation_pressure_report(
+            chosen,
+            temperature_K=temperature_K,
+            critical_temperature_K=critical_temperature_K,
+            critical_pressure_Pa=critical_pressure_Pa,
+            validity_policy=validity_policy,
+        )
+
+    def pure_saturation_temperature_report(
+        self,
+        *,
+        pressure_Pa: float,
+        property_id: str = "vapor_pressure",
+        temperature_bounds_K: tuple[float, float] | None = None,
+        critical_temperature_K: float | None = None,
+        critical_pressure_Pa: float | None = None,
+        validity_policy: ValidityPolicy = "raise",
+    ) -> PureSaturationReport:
+        candidates = self.by_property(property_id)
+        if not candidates:
+            raise ValueError(
+                f"No correlation for property {property_id!r} on component "
+                f"{self.component.identifier!r}"
+            )
+        chosen = _choose_valid_correlation(
+            candidates,
+            temperature_K=temperature_bounds_K[0] if temperature_bounds_K else 298.15,
+            pressure_Pa=None,
+        )
+        return pure_saturation_temperature_report(
+            chosen,
+            pressure_Pa=pressure_Pa,
+            temperature_bounds_K=temperature_bounds_K,
+            critical_temperature_K=critical_temperature_K,
+            critical_pressure_Pa=critical_pressure_Pa,
+            validity_policy=validity_policy,
+        )
+
+    def normal_boiling_point_report(
+        self,
+        *,
+        pressure_Pa: float = STANDARD_PRESSURE_PA,
+        property_id: str = "vapor_pressure",
+        temperature_bounds_K: tuple[float, float] | None = None,
+        critical_temperature_K: float | None = None,
+        critical_pressure_Pa: float | None = None,
+        validity_policy: ValidityPolicy = "raise",
+    ) -> PureSaturationReport:
+        candidates = self.by_property(property_id)
+        if not candidates:
+            raise ValueError(
+                f"No correlation for property {property_id!r} on component "
+                f"{self.component.identifier!r}"
+            )
+        chosen = _choose_valid_correlation(
+            candidates,
+            temperature_K=temperature_bounds_K[0] if temperature_bounds_K else 298.15,
+            pressure_Pa=None,
+        )
+        return normal_boiling_point_report(
+            chosen,
+            pressure_Pa=pressure_Pa,
+            temperature_bounds_K=temperature_bounds_K,
+            critical_temperature_K=critical_temperature_K,
+            critical_pressure_Pa=critical_pressure_Pa,
+            validity_policy=validity_policy,
+        )
+
     def to_dict(self) -> dict[str, object]:
         return {
             "component": self.component.to_dict(),
             "correlations": [correlation.to_dict() for correlation in self.correlations],
         }
-

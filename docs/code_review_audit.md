@@ -378,6 +378,10 @@ Recommended follow-up:
   to local enum families, executable/eval-style rate laws are rejected, each
   compiled mechanism exports a deterministic hash-backed manifest, and
   `task_info()` exposes `mechanism_manifest` for replay and submission audits.
+- Added a pure-fluid saturation solver slice. `saturation.py` keeps
+  vapor-pressure-backed `T -> Psat`, bracketed `P -> Tsat`, normal boiling
+  point, critical guards, residual diagnostics, and reference-reading metadata
+  outside the larger EOS module while exposing public property-package wrappers.
 
 ## Verification
 

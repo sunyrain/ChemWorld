@@ -18,6 +18,9 @@ Current scope:
 - vapor-pressure reports with pressure, analytic `dP/dT`, `dlnP/dT`, validity
   status, method family, and reference-reading provenance for vapor or
   caller-supplied sublimation correlations.
+- pure-fluid saturation reports with `T -> Psat`, bracketed `P -> Tsat`
+  inversion, normal-boiling-point convenience calls, critical-region warnings,
+  residual diagnostics, and reference-reading provenance.
 - public property-equation contracts for required coefficients, input
   dimensions, output dimensions, and model cards.
 - curated reference-checked property packages for water, ethanol, acetone,

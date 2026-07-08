@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from chemworld.physchem import (
+    STANDARD_PRESSURE_PA,
     ComponentPropertyPackage,
     ComponentSpec,
     MaturityLevel,
@@ -13,6 +14,7 @@ from chemworld.physchem import (
     PhaseEnthalpyReport,
     PhaseTransitionSpec,
     PropertyCorrelation,
+    PureSaturationReport,
     TransportPropertyReport,
     binary_gas_diffusivity_fuller_report,
     curated_property_case_map,
@@ -32,10 +34,13 @@ from chemworld.physchem import (
     mixture_viscosity_log_rule,
     molar_volume_report,
     molar_volume_to_density_kg_m3,
+    normal_boiling_point_report,
     phase_path_enthalpy_report,
     phase_sensible_enthalpy_report,
     phase_transition_enthalpy,
     property_correlation_model_cards,
+    pure_saturation_pressure_report,
+    pure_saturation_temperature_report,
     resolve_component_identifier,
     second_virial_coefficient_report,
     sensible_enthalpy_change,
@@ -164,6 +169,124 @@ def test_vapor_pressure_report_supports_sublimation_pressure() -> None:
             ice_sublimation,
             temperature_K=290.0,
             validity_policy="raise",
+        )
+
+
+def test_pure_saturation_pressure_and_temperature_reports_close_water_curve() -> None:
+    water_psat = PropertyCorrelation(
+        correlation_id="water_antoine_mmhg",
+        property_id="vapor_pressure",
+        equation_id="antoine",
+        coefficients={"A": 8.07131, "B": 1730.63, "C": 233.426, "base": 10.0},
+        input_units={"temperature": "degC"},
+        output_unit="mmHg",
+        validity_ranges={"temperature": (1.0, 100.0)},
+    )
+
+    pressure_report = pure_saturation_pressure_report(
+        water_psat,
+        temperature_K=373.15,
+        critical_temperature_K=647.096,
+        critical_pressure_Pa=22.064e6,
+    )
+    assert isinstance(pressure_report, PureSaturationReport)
+    assert pressure_report.solve_mode == "pressure_at_temperature"
+    assert pressure_report.saturation_pressure_Pa == pytest.approx(
+        STANDARD_PRESSURE_PA,
+        rel=0.02,
+    )
+    assert pressure_report.converged
+    assert pressure_report.to_dict()["pressure_report"]["method_family"] == "Antoine"
+
+    temperature_report = pure_saturation_temperature_report(
+        water_psat,
+        pressure_Pa=STANDARD_PRESSURE_PA,
+        critical_temperature_K=647.096,
+        critical_pressure_Pa=22.064e6,
+    )
+    assert temperature_report.solve_mode == "temperature_at_pressure"
+    assert temperature_report.converged
+    assert temperature_report.iterations > 0
+    assert temperature_report.saturation_temperature_K == pytest.approx(373.15, rel=5e-4)
+    assert abs(temperature_report.log_pressure_residual) < 1e-8
+    assert temperature_report.bracket_temperature_K == pytest.approx((274.15, 373.15))
+
+
+def test_normal_boiling_point_report_and_package_wrapper() -> None:
+    water_psat = PropertyCorrelation(
+        correlation_id="water_antoine_mmhg",
+        property_id="vapor_pressure",
+        equation_id="antoine",
+        coefficients={"A": 8.07131, "B": 1730.63, "C": 233.426, "base": 10.0},
+        input_units={"temperature": "degC"},
+        output_unit="mmHg",
+        validity_ranges={"temperature": (1.0, 100.0)},
+    )
+    report = normal_boiling_point_report(
+        water_psat,
+        critical_temperature_K=647.096,
+        critical_pressure_Pa=22.064e6,
+    )
+    assert report.saturation_temperature_K == pytest.approx(373.15, rel=5e-4)
+
+    package_report = curated_property_package("water").normal_boiling_point_report(
+        critical_temperature_K=647.096,
+        critical_pressure_Pa=22.064e6,
+    )
+    assert package_report.saturation_pressure_Pa == pytest.approx(
+        STANDARD_PRESSURE_PA,
+        rel=1e-8,
+    )
+    assert package_report.method_family == "DIPPR101"
+    assert not package_report.near_critical
+
+
+def test_pure_saturation_solver_warns_near_critical_and_rejects_bad_bounds() -> None:
+    water_wagner = PropertyCorrelation(
+        correlation_id="water_wagner",
+        property_id="vapor_pressure",
+        equation_id="wagner",
+        coefficients={
+            "Tc": 647.096,
+            "Pc": 22.064e6,
+            "a": -7.85951783,
+            "b": 1.84408259,
+            "c": -11.7866497,
+            "d": 22.6807411,
+        },
+        input_units={"temperature": "K"},
+        output_unit="Pa",
+        validity_ranges={"temperature": (273.16, 647.0)},
+    )
+
+    near_critical = pure_saturation_pressure_report(
+        water_wagner,
+        temperature_K=640.0,
+        critical_temperature_K=647.096,
+        critical_pressure_Pa=22.064e6,
+    )
+    assert near_critical.near_critical
+    assert "near_critical_temperature" in near_critical.warnings
+
+    with pytest.raises(ValueError, match="below critical_temperature"):
+        pure_saturation_pressure_report(
+            water_wagner,
+            temperature_K=647.096,
+            critical_temperature_K=647.096,
+        )
+    with pytest.raises(ValueError, match="below critical_pressure"):
+        pure_saturation_temperature_report(
+            water_wagner,
+            pressure_Pa=22.064e6,
+            critical_pressure_Pa=22.064e6,
+        )
+    with pytest.raises(ValueError, match="outside the saturation bracket"):
+        pure_saturation_temperature_report(
+            water_wagner,
+            pressure_Pa=1.0e3,
+            temperature_bounds_K=(500.0, 600.0),
+            critical_temperature_K=647.096,
+            critical_pressure_Pa=22.064e6,
         )
 
 
@@ -977,7 +1100,7 @@ def test_curated_property_model_card_is_auditable() -> None:
 
 def test_property_correlation_model_card_is_auditable() -> None:
     cards = property_correlation_model_cards()
-    assert len(cards) == 4
+    assert len(cards) == 5
     card_map = {card.model_id: card for card in cards}
     card = card_map["vapor_pressure_correlation_families"]
     assert card.model_id == "vapor_pressure_correlation_families"
@@ -990,6 +1113,16 @@ def test_property_correlation_model_card_is_auditable() -> None:
     } >= {
         "antoine-vapor-pressure-derivative-test",
         "dippr101-vapor-pressure-derivative-test",
+    }
+    saturation_card = card_map["pure_fluid_saturation_solver"]
+    assert saturation_card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert validate_model_card(saturation_card) == []
+    assert any("ln(P_sat" in equation for equation in saturation_card.equations)
+    assert {
+        evidence.evidence_id for evidence in saturation_card.validation_evidence
+    } >= {
+        "pure-saturation-temperature-inversion-test",
+        "pure-saturation-critical-guard-test",
     }
     enthalpy_card = card_map["phase_heat_capacity_enthalpy_package"]
     assert enthalpy_card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE

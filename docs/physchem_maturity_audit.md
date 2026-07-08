@@ -19,7 +19,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Area | Current level | Evidence | Main gap |
 | --- | --- | --- | --- |
 | Component specs and units | Lite | `chemworld.physchem.specs`, local unit tests | broader curated component database and schema governance |
-| Property correlations | Lite with reference-validated curated and vapor-pressure-report slices | vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against `chemicals`; Antoine/Wagner/DIPPR vapor-pressure reports with analytic derivative checks | broader component coverage, liquid/solid Cp, latent heat, EOS saturation, and CoolProp checks |
+| Property correlations | Lite with reference-validated curated and vapor-pressure/saturation-report slices | vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against `chemicals`; Antoine/Wagner/DIPPR vapor-pressure reports with analytic derivative checks; pure-fluid saturation pressure/temperature inversion with critical warnings | broader component coverage, liquid/solid Cp, latent heat, mixture saturation, and broader CoolProp checks |
 | Reaction networks | Lite with reference-validated ODE, NASA7 thermochemistry, thermochemical detailed-balance, and local sensitivity slices | YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check, NASA7 Cp/H/S/G, reaction Delta H/G, K_eq, concentration-standard correction, thermochemical reverse-rate tests, and finite-difference first-order sensitivity tests | falloff, pressure dependence, adjoint/global sensitivities, and broader reactor-network validation |
 | Reactor models | Lite with reference-validated CSTR multiplicity and dynamic batch heat-release slices | batch, dynamic batch, semi-batch, CSTR, PFR tests; analytical exothermic CSTR three-root ignition/extinction case with stability classification; NASA7 heat-release dynamic batch, jacket, and sampling-ledger tests | broader Cantera/IDAES reactor-network validation, pressure modes, wall thermal inertia, and phase-change variants |
 | EOS | Lite with reference-validated PR/SRK residuals and a professional-candidate volume/root-governance slice | ideal gas, PR/SRK roots, fugacity coefficients, explicit root policy, residual H/S/G tests, optional `thermo.eos` comparisons for methane/ethane/CO2, volume-translation reports, translated roots, root-governance diagnostics, binary-interaction provenance | phase envelopes, saturation solvers, translated fugacity derivatives, flash derivatives, and broader CoolProp/teqp/thermopack validation |
@@ -154,8 +154,13 @@ copying the reference implementations.
   molar-volume reports, root-governance candidate ranking, vapor-root
   convention warnings, and binary-interaction provenance checks are now covered
   by tests and an EOS model card. This does not yet claim phase envelopes,
-  saturation solvers, translated fugacity derivatives, or broad EOS backend
-  validation.
+  mixture saturation solvers, translated fugacity derivatives, or broad EOS
+  backend validation.
+- DEEP-D3B is implemented for pure-fluid saturation reports:
+  vapor-pressure-backed `T -> Psat`, bracketed `P -> Tsat`, normal boiling
+  point solves, critical-temperature/pressure guards, log-pressure residuals,
+  and a professional-candidate model card. This remains a property-correlation
+  saturation contract, not a full EOS phase-envelope solver.
 - PRO-P8A is implemented for the first heat-transfer and exchanger-duty slice:
   Nusselt branch metadata, Dittus-Boelter and Gnielinski validity warnings,
   strict validity failure mode, `h = Nu k / D` reference round-trip, counterflow

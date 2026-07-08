@@ -143,6 +143,17 @@ against finite differences. This is deliberately not a broad data-table import,
 EOS saturation solver, IAPWS water package, or CoolProp-level critical-region
 backend.
 
+DEEP-D3B adds the first pure-fluid saturation solver on top of that reporting
+path. `pure_saturation_pressure_report()` evaluates `T -> Psat` while preserving
+the lower vapor-pressure report. `pure_saturation_temperature_report()` solves
+`ln(Psat(T) / P_target) = 0` with a bracketed bisection method, reports the
+temperature bracket, iteration count, pressure residual, log-pressure residual,
+and critical-region warnings, and hard-fails when the target pressure is outside
+the declared saturation bracket. `normal_boiling_point_report()` is a thin
+convenience wrapper at standard pressure. This slice is a replayable benchmark
+contract for pure-fluid saturation points; it is not a full EOS phase envelope,
+mixture bubble/dew solver, IAPWS water backend, or CoolProp replacement.
+
 DEEP-D2B hardens the heat-capacity and enthalpy path. The public API now
 separates three concepts that were previously easy to blur:
 
@@ -666,8 +677,10 @@ surfaces, but keeps a smaller ChemWorld API with explicit SI units and JSON
 reports. Tests cover pure-liquid translation, vapor warnings, negative
 translated-volume failure, stable-root ranking, and binary-interaction
 provenance round trips. This remains a compact cubic-EOS slice, not a full
-EOS/flash package with phase envelopes, critical-region treatment, saturation
-solvers, or translated fugacity derivatives.
+EOS/flash package with phase envelopes, mixture critical-region treatment,
+mixture saturation solvers, or translated fugacity derivatives. Pure-fluid
+vapor-pressure saturation inversion is handled separately by the property-layer
+DEEP-D3B saturation report.
 
 ## Phase-Equilibrium Core
 
