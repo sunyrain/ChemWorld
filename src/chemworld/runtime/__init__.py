@@ -8,6 +8,7 @@ would pull in action validation while the action codec is still initializing.
 from typing import Any
 
 __all__ = [
+    "ChemWorldCrystallizationServices",
     "ChemWorldElectrochemicalServices",
     "ChemWorldInstrumentCostServices",
     "ChemWorldObservationKernel",
@@ -64,6 +65,10 @@ def __getattr__(name: str) -> Any:
         from chemworld.runtime import record_services
 
         return getattr(record_services, name)
+    if name == "ChemWorldCrystallizationServices":
+        from chemworld.runtime import crystallization_services
+
+        return getattr(crystallization_services, name)
     if name == "ChemWorldElectrochemicalServices":
         from chemworld.runtime import electrochemical_services
 

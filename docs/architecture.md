@@ -59,6 +59,10 @@ The runtime is organized around:
   `runtime/phase_separation_services.py`, which owns phase-ledger normalization,
   liquid-liquid partitioning, extraction, settling, phase selection, washing,
   drying, concentrating, transfer, and downstream truth metadata;
+- `ChemWorldCrystallizationServices`, implemented in
+  `runtime/crystallization_services.py`, which owns seeding, cooling
+  crystallization, crystal purity/recovery metadata, and crystal filtration
+  ledger updates;
 - `ChemWorldElectrochemicalServices`, implemented in
   `runtime/electrochemical_services.py`, which owns potential/current setup,
   electrochemical mechanism binding, Nernst/Butler-Volmer electrolysis calls,
@@ -86,12 +90,13 @@ manager commits those patches to typed ledgers only after validation. This keeps
 material ledgers auditable: invalid actions can add process penalties without
 silently changing hidden material state.
 
-Reaction/thermal advancement, phase/extraction workflows, electrochemical
-conversion, measurement cost/sample consumption, and operation-record assembly
-are separated from the remaining state-changing domain services. This makes
-the runtime easier to audit: focused services advance each physical process,
-the transaction manager commits or rolls back patches, and the recorder turns
-the accepted pre/post state pair into the replayable operation record.
+Reaction/thermal advancement, phase/extraction workflows, crystallization,
+electrochemical conversion, measurement cost/sample consumption, and
+operation-record assembly are separated from the remaining state-changing
+domain services. This makes the runtime easier to audit: focused services
+advance each physical process, the transaction manager commits or rolls back
+patches, and the recorder turns the accepted pre/post state pair into the
+replayable operation record.
 
 The active backend remains `semi_mechanistic`, but it is now a runtime service
 implementation rather than the conceptual center of the package. Backend

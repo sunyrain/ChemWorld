@@ -176,6 +176,26 @@ def test_runtime_instrument_cost_service_is_separate_from_domain_services() -> N
     assert "sample_consumed_L=state.ledger.sample_consumed_L + volume" in instrument_cost_services
 
 
+def test_runtime_crystallization_service_is_separate_from_domain_services() -> None:
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+        encoding="utf-8"
+    )
+    crystallization_services = Path(
+        "src/chemworld/runtime/crystallization_services.py"
+    ).read_text(encoding="utf-8")
+
+    assert "def _seed_crystals" not in domain_services
+    assert "def _cool_crystallize" not in domain_services
+    assert "def _filter_crystals" not in domain_services
+    assert "crystal_seeded" not in domain_services
+    assert "crystal_product_mol" not in domain_services
+    assert "class ChemWorldCrystallizationServices" in crystallization_services
+    assert "def seed_crystals" in crystallization_services
+    assert "def cool_crystallize" in crystallization_services
+    assert "def filter_crystals" in crystallization_services
+    assert "crystal_product_mol" in crystallization_services
+
+
 def test_runtime_profile_requires_current_task_kernels_only() -> None:
     task = get_task("reaction-to-assay")
     profile = TaskRuntimeProfile.from_task(task)
