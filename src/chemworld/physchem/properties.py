@@ -332,6 +332,13 @@ def _evaluate_equation(
             + coeffs["d"] * tau**6.0
         ) / (1.0 - tau)
         return Pc * exp(exponent)
+    if equation == "dippr101_vapor_pressure":
+        return exp(
+            coeffs["A"]
+            + coeffs["B"] / T
+            + coeffs["C"] * log(T)
+            + coeffs["D"] * T ** coeffs["E"]
+        )
     if equation == "cp_polynomial":
         return _cp_polynomial(T, coeffs)
     if equation == "watson_hvap":

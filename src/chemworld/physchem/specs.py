@@ -39,6 +39,11 @@ _EQUATION_CONTRACTS: dict[str, dict[str, object]] = {
         "input_dimensions": {"temperature": "temperature"},
         "output_dimension": "pressure",
     },
+    "dippr101_vapor_pressure": {
+        "required_coefficients": {"A", "B", "C", "D", "E"},
+        "input_dimensions": {"temperature": "temperature"},
+        "output_dimension": "pressure",
+    },
     "cp_polynomial": {
         "required_coefficients": {"a"},
         "input_dimensions": {"temperature": "temperature"},
