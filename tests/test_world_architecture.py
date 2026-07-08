@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import gymnasium as gym
@@ -18,12 +19,13 @@ from chemworld.foundation.state import (
     instrument_equipment_id,
     upsert_equipment_record,
 )
+from chemworld.physchem.mechanism_library import get_mechanism_card, list_mechanism_cards
 from chemworld.runtime.domain_services import (
     ChemWorldDomainServices,
     make_chemworld_constitution,
 )
 from chemworld.runtime.kernels import OperationKernelRegistry, TaskRuntimeProfile
-from chemworld.runtime.mechanisms import compile_mechanism_for_scenario
+from chemworld.runtime.mechanisms import compile_mechanism, compile_mechanism_for_scenario
 from chemworld.runtime.observation_services import ChemWorldObservationKernel
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.schemas import (
@@ -456,6 +458,30 @@ def test_mechanism_compiler_supports_non_fixed_species_networks() -> None:
         len(row) == len(compiled.network.reactions)
         for row in compiled.stoichiometric_matrix
     )
+
+
+def test_mechanism_compiler_validates_runtime_role_contracts() -> None:
+    for card in list_mechanism_cards():
+        compiled = compile_mechanism(card)
+        assert compiled.score_spec.initial_limiting_species
+        assert compiled.score_spec.target_species
+
+    for task in list_tasks():
+        compiled = compile_mechanism_for_scenario(task.scenario_id)
+        assert compiled.score_spec.impurity_species
+
+    card = get_mechanism_card("simple_batch_reaction")
+    bad_target = replace(card, target_species=("MissingProduct",))
+    with pytest.raises(ValueError, match="target species not in mechanism"):
+        compile_mechanism(bad_target)
+
+    bad_initial = replace(card, initial_amounts_mol={"A": 0.0})
+    with pytest.raises(ValueError, match="at least one positive species"):
+        compile_mechanism(bad_initial)
+
+    bad_impurity = replace(card, impurity_species=())
+    with pytest.raises(ValueError, match="impurity_species cannot be empty"):
+        compile_mechanism(bad_impurity, require_runtime_roles=True)
 
 
 def test_runtime_species_view_uses_mechanism_roles_without_fixed_names() -> None:

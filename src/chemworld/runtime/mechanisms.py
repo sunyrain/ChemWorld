@@ -95,7 +95,7 @@ class CompiledMechanism:
 
 def compile_mechanism_for_scenario(scenario_id: str) -> CompiledMechanism:
     mechanism_id = mechanism_id_for_scenario(scenario_id)
-    return compile_mechanism(mechanism_id)
+    return compile_mechanism(mechanism_id, require_runtime_roles=True)
 
 
 def mechanism_id_for_scenario(scenario_id: str) -> str:
@@ -107,7 +107,11 @@ def mechanism_id_for_scenario(scenario_id: str) -> str:
     return "simple_batch_reaction"
 
 
-def compile_mechanism(card_or_mechanism_id: str | MechanismScenarioCard) -> CompiledMechanism:
+def compile_mechanism(
+    card_or_mechanism_id: str | MechanismScenarioCard,
+    *,
+    require_runtime_roles: bool | None = None,
+) -> CompiledMechanism:
     card = (
         card_or_mechanism_id
         if isinstance(card_or_mechanism_id, MechanismScenarioCard)
@@ -120,6 +124,18 @@ def compile_mechanism(card_or_mechanism_id: str | MechanismScenarioCard) -> Comp
         for species in network.species
     }
     observable_mapping = _observable_mapping(network, card)
+    initial_limiting_species = _initial_limiting_species(card)
+    _validate_compiled_role_contract(
+        network,
+        card,
+        observable_mapping=observable_mapping,
+        initial_limiting_species=initial_limiting_species,
+        require_runtime_roles=(
+            card.scenario_id in SCENARIO_MECHANISM_DEFAULTS
+            if require_runtime_roles is None
+            else require_runtime_roles
+        ),
+    )
     return CompiledMechanism(
         mechanism_id=network.network_id,
         mechanism_version=MECHANISM_SCHEMA_VERSION,
@@ -136,7 +152,7 @@ def compile_mechanism(card_or_mechanism_id: str | MechanismScenarioCard) -> Comp
         score_spec=ScoreSpec(
             target_species=card.target_species,
             impurity_species=card.impurity_species,
-            initial_limiting_species=_initial_limiting_species(card),
+            initial_limiting_species=initial_limiting_species,
         ),
         initial_amount_policy=dict(card.initial_amounts_mol),
     )
@@ -198,6 +214,58 @@ def _initial_limiting_species(card: MechanismScenarioCard) -> str | None:
         if amount > 0.0
     ]
     return positive[0] if positive else None
+
+
+def _validate_compiled_role_contract(
+    network: ReactionNetworkSpec,
+    card: MechanismScenarioCard,
+    *,
+    observable_mapping: dict[str, tuple[str, ...]],
+    initial_limiting_species: str | None,
+    require_runtime_roles: bool,
+) -> None:
+    species_ids = set(network.species_ids)
+    errors: list[str] = []
+
+    if not card.target_species:
+        errors.append("target_species cannot be empty")
+    if require_runtime_roles and not card.impurity_species:
+        errors.append("impurity_species cannot be empty for Runtime v2 scoring")
+    if initial_limiting_species is None:
+        errors.append("initial_amounts_mol must contain at least one positive species")
+
+    unknown_initial = sorted(set(card.initial_amounts_mol) - species_ids)
+    if unknown_initial:
+        errors.append(f"initial species not in mechanism: {unknown_initial}")
+    unknown_target = sorted(set(card.target_species) - species_ids)
+    if unknown_target:
+        errors.append(f"target species not in mechanism: {unknown_target}")
+    unknown_impurity = sorted(set(card.impurity_species) - species_ids)
+    if unknown_impurity:
+        errors.append(f"impurity species not in mechanism: {unknown_impurity}")
+    if initial_limiting_species is not None and initial_limiting_species not in species_ids:
+        errors.append(f"initial limiting species not in mechanism: {initial_limiting_species!r}")
+
+    for role, species in observable_mapping.items():
+        unknown_role_species = sorted(set(species) - species_ids)
+        if unknown_role_species:
+            errors.append(
+                f"observable role {role!r} contains unknown species: {unknown_role_species}"
+            )
+
+    if initial_limiting_species is not None:
+        reactants = observable_mapping.get("reactant", ())
+        if reactants and initial_limiting_species not in reactants:
+            errors.append(
+                "initial limiting species must be included in observable reactant role "
+                f"when reactants are declared: {initial_limiting_species!r}"
+            )
+
+    if errors:
+        raise ValueError(
+            f"Mechanism {card.mechanism_id!r} does not satisfy Runtime v2 role contract: "
+            + "; ".join(errors)
+        )
 
 
 __all__ = [

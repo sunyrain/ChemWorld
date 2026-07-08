@@ -306,6 +306,10 @@ Recommended follow-up:
   catalyst equipment/cost without fabricating `Cat_active`. Golden final-assay
   scores were updated because the old `A`-specific metadata branch had counted
   `initial_A_mol` twice.
+- Added compile-time mechanism role validation. All mechanisms still compile
+  under the base library contract, while runtime task scenarios additionally
+  require positive initial species, declared target species, impurity species,
+  and role mappings that refer only to species present in the mechanism.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration
