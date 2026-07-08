@@ -147,13 +147,32 @@ The EOS layer is JSON-friendly through `EOSComponentSpec`, `CubicEOSSpec`,
 flash, reactive flash, distillation, pressure-risk, and vapor-loss tasks without
 making CoolProp, thermo, teqp, or thermopack required runtime dependencies.
 
+## Phase-Equilibrium Core
+
+The P6 phase-equilibrium core is implemented in
+`chemworld.physchem.equilibrium`. It adds the first working bridge between EOS,
+property correlations, and downstream separation tasks:
+
+| Equilibrium capability | Current implementation |
+| --- | --- |
+| Activity coefficients | ideal, Margules, and NRTL-lite models |
+| Raoult K-values | activity-corrected `K_i = gamma_i Psat_i / phi_i P` |
+| Flash | Rachford-Rice vapor fraction and liquid/vapor compositions |
+| Bubble/dew pressure | iterative estimates with activity coefficients |
+| LLE stage | material-conserving extraction split with partition coefficients, phase volumes, stage efficiency, and entrainment |
+
+This is still compact, but it is enough to make future extraction, evaporation,
+distillation, solvent-screening, and purity/recovery tasks depend on shared
+thermodynamic rules rather than fixed hand-tuned proxies.
+
 ## Boundaries
 
 This layer is now a real local property-correlation, reaction-network, reactor,
-and cubic-EOS core, but it is not yet a complete process simulator. It does not
-perform full flash calculations, activity-coefficient calculations, automatic
-reaction mechanism generation, or detailed transport calculations. Those will
-be built on top of these specs in later TODO milestones.
+cubic-EOS, and compact phase-equilibrium core, but it is not yet a complete
+process simulator. It does not perform rigorous multiphase stability analysis,
+database-grade flash calculations, automatic reaction mechanism generation, or
+detailed transport calculations. Those will be built on top of these specs in
+later TODO milestones.
 
 ## Validation Rules
 

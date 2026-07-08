@@ -22,6 +22,8 @@ Current scope:
   calculations with material and energy ledgers.
 - local equation-of-state calculations for ideal gas, Peng-Robinson, and SRK
   states with compressibility roots and fugacity coefficients.
+- phase-equilibrium utilities for activity coefficients, Raoult K-values,
+  isothermal flash, bubble/dew pressure, and liquid-liquid extraction splits.
 
 Design rules:
 
@@ -34,6 +36,8 @@ Design rules:
   explicit;
 - keep EOS component critical properties, mixture parameters, phase-root
   selection, and fugacity outputs inspectable;
+- keep phase-equilibrium models explicit about activity assumptions,
+  vapor-pressure inputs, partition coefficients, and mass-balance errors;
 - declare property units and validity ranges on every correlation;
 - reject unbalanced reaction networks before simulation;
 - add optional reference-backend comparisons only as skipped tests or adapters;
