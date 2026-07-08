@@ -88,6 +88,7 @@ finished, update its status and push immediately.
 | PRO-RUNTIME-I task-specific observation contract | whilesunny | Done | `src/chemworld/world/`, `src/chemworld/runtime/observation_services.py`, `src/chemworld/envs/`, tests/docs | processed observation keys now read a task/mechanism observation contract instead of exposing every global instrument field | this commit |
 | PRO-RUNTIME-J task-aware raw-signal contract | whilesunny | Done | `src/chemworld/runtime/observation_services.py`, `src/chemworld/world/spectra.py`, tests/docs | environment raw signal generation now uses task-visible public role aggregates instead of passing full hidden species ledgers to agent-visible instrument packets | this commit |
 | PRO-RUNTIME-K scoring and observation contract hashes | whilesunny | Done | `src/chemworld/world/`, `src/chemworld/envs/`, `src/chemworld/data/`, `src/chemworld/eval/verify.py`, tests/docs | deterministic scoring/observation contract hashes are recorded in task info, trajectories, schemas, and replay verification | this commit |
+| PRO-RUNTIME-L task/profile contract hashes | whilesunny | Active | `src/chemworld/tasks.py`, `src/chemworld/runtime/kernels.py`, `src/chemworld/envs/`, `src/chemworld/data/`, `src/chemworld/eval/verify.py`, tests/docs | record deterministic task-spec and runtime-profile hashes in task info, trajectories, schemas, and replay verification | in progress |
 
 Status values:
 
