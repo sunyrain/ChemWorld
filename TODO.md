@@ -55,6 +55,7 @@ finished, update its status and push immediately.
 | Runtime v2 distillation service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | shortcut VLE distillation, distillate purity/recovery metadata, heat-duty/cost/risk ledgers, and fraction collection now live in `runtime/distillation_services.py` | this commit |
 | Runtime v2 flow service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | flow-rate setup, residence-time reaction advancement, flow conversion metadata, and flow campaign ledger updates now live in `runtime/flow_services.py` | this commit |
 | Runtime v2 primitive operation service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | reagent/solvent/catalyst addition, sampling, quench, evaporation, and invalid-action penalty now live in `runtime/primitive_services.py` | this commit |
+| Reaction-network specs split | whilesunny | Active | `src/chemworld/physchem/`, tests/docs | extract species/rate-law/reaction specs, reaction-equation parsing, and mechanism dict helpers from `reaction_network.py` without changing public imports | claim commit |
 
 Status values:
 
