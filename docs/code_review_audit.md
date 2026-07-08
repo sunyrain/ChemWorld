@@ -17,7 +17,8 @@ Largest current source files after this cleanup:
 
 | File | Approximate role | Follow-up split target |
 | --- | --- | --- |
-| `src/chemworld/physchem/reaction_network.py` | species/reaction specs, ODE cases, detailed balance, sensitivities, mechanism loading | split into mechanism specs, rate laws, integration/reference cases, thermochemical coupling, sensitivity, and loaders |
+| `src/chemworld/physchem/reaction_network.py` | network object, ODE cases, rate-law evaluation, detailed balance, sensitivities, mechanism loading | split rate laws, integration/reference cases, thermochemical coupling, sensitivity, and loaders |
+| `src/chemworld/physchem/reaction_network_specs.py` | species/rate-law/reaction specs, reaction-equation parser, mechanism dict helpers | keep schema/parser layer separate from ODE integration and rate-law evaluation |
 | `src/chemworld/physchem/equilibrium_chemistry.py` | mass-action equilibrium, acid-base, precipitation, Gibbs minimization | split into mass-action, electrolyte/acid-base, precipitation, and Gibbs minimization helpers |
 | `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, and provenance |
 | `src/chemworld/physchem/spectroscopy.py` | calibration, chromatography, signal synthesis, feature heuristics | split into calibration, chromatography, signal synthesis, and feature libraries |
@@ -67,8 +68,9 @@ The new card modules are:
 
 Recommended next mechanical cleanup:
 
-1. Split `reaction_network.py` by mechanism-spec, rate-law, integration,
-   thermochemical-coupling, sensitivity, and loader responsibilities.
+1. Continue splitting `reaction_network.py` by rate-law, integration,
+   thermochemical-coupling, sensitivity, loader, and reference-case
+   responsibilities.
 
 ### Medium Priority: Property Module Split Is Complete
 
@@ -234,6 +236,9 @@ Recommended follow-up:
   `runtime/primitive_services.py`, keeping reagent, solvent, and catalyst
   addition, sampling, quench, evaporation, and invalid-action penalty updates
   outside the composition layer.
+- Extracted `reaction_network_specs.py` from `reaction_network.py`, keeping
+  species/rate-law/reaction specs, reaction-equation parsing, and mechanism
+  dict helpers outside the ODE integration and rate-law evaluation engine.
 
 ## Verification
 
@@ -248,8 +253,8 @@ Run these after every cleanup slice:
 
 ## Next Cleanup Order
 
-1. Split `reaction_network.py` into specs, rate laws, thermochemistry coupling,
-   sensitivities, loaders, and reference cases.
+1. Continue splitting `reaction_network.py` into rate laws, thermochemistry
+   coupling, sensitivities, loaders, and reference cases.
 2. Split `eos.py`, `spectroscopy.py`, and `equilibrium_chemistry.py` by
    algorithm family.
 3. Keep `runtime/domain_services.py` thin while reducing legacy scalar-state

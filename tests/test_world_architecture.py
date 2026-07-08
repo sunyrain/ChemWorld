@@ -263,6 +263,31 @@ def test_runtime_primitive_service_is_separate_from_domain_services() -> None:
     assert "def penalize_invalid" in primitive_services
 
 
+def test_reaction_network_specs_are_separate_from_engine() -> None:
+    reaction_network = Path("src/chemworld/physchem/reaction_network.py").read_text(
+        encoding="utf-8"
+    )
+    specs = Path("src/chemworld/physchem/reaction_network_specs.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "class SpeciesSpec" not in reaction_network
+    assert "class RateLawSpec" not in reaction_network
+    assert "class ReactionSpec" not in reaction_network
+    assert "def parse_reaction_equation" not in reaction_network
+    assert "def _merge_side" not in reaction_network
+    assert "_TERM_RE" not in reaction_network
+    assert "def species_from_dict" not in reaction_network
+    assert "def reaction_from_dict" not in reaction_network
+    assert "from chemworld.physchem.reaction_network_specs import" in reaction_network
+    assert "class SpeciesSpec" in specs
+    assert "class RateLawSpec" in specs
+    assert "class ReactionSpec" in specs
+    assert "def parse_reaction_equation" in specs
+    assert "def species_from_dict" in specs
+    assert "def reaction_from_dict" in specs
+
+
 def test_runtime_profile_requires_current_task_kernels_only() -> None:
     task = get_task("reaction-to-assay")
     profile = TaskRuntimeProfile.from_task(task)
