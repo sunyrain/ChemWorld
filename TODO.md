@@ -40,6 +40,7 @@ finished, update its status and push immediately.
 | PhysChem properties module split | whilesunny | Done | `src/chemworld/physchem/properties.py`, property-family modules, tests, audit docs | next: split `reactors.py` by reactor family and solver helpers | this commit |
 | PhysChem reactors module split | whilesunny | Done | `src/chemworld/physchem/reactors.py`, reactor-family modules, tests, audit docs | next: split `reaction_network.py` into specs, rate laws, integration/reference cases, thermochemical coupling, sensitivities, and loaders | this commit |
 | Tutorial curriculum hardening and SOTA gap audit | whilesunny | Done | `notebooks/tutorials/`, `docs/`, SOTA references | next: split `reaction_network.py` into specs, rate laws, integration/reference cases, thermochemical coupling, sensitivities, and loaders | this commit |
+| Tutorial encoding repair and workload expansion | whilesunny | Active | `notebooks/`, tutorial guidance generator, docs/tests | force notebook JSON to encoding-safe escaped form; add substantial per-day experiment work orders and student workspaces | claim commit |
 
 Status values:
 
