@@ -118,7 +118,11 @@ _REFERENCE_BACKENDS: tuple[ReferenceBackendSpec, ...] = (
         backend_id="fluids",
         package_name="fluids",
         local_repo_names=("fluids",),
-        comparison_scope=("dimensionless numbers", "pressure-drop utilities"),
+        comparison_scope=(
+            "dimensionless numbers",
+            "Darcy friction factors",
+            "single-phase pressure-drop utilities",
+        ),
     ),
     ReferenceBackendSpec(
         backend_id="thermo",

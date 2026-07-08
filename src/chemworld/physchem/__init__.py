@@ -166,6 +166,7 @@ from chemworld.physchem.spectroscopy import (
 from chemworld.physchem.transport import (
     FlowResult,
     FluidState,
+    FrictionFactorResult,
     HeatExchangerResult,
     HeatTransferResult,
     PackedBedResult,
@@ -173,6 +174,7 @@ from chemworld.physchem.transport import (
     TwoPhasePressureDropResult,
     counterflow_effectiveness,
     darcy_friction_factor,
+    darcy_friction_factor_details,
     flow_regime,
     heat_exchanger_counterflow,
     homogeneous_two_phase_pressure_drop,
@@ -187,6 +189,7 @@ from chemworld.physchem.transport import (
     prandtl_number,
     pump_work,
     reynolds_number,
+    transport_model_cards,
 )
 
 __all__ = [
@@ -213,6 +216,7 @@ __all__ = [
     "FlashResult",
     "FlowResult",
     "FluidState",
+    "FrictionFactorResult",
     "HeatExchangerResult",
     "HeatTransferResult",
     "HeatTransferSpec",
@@ -265,6 +269,7 @@ __all__ = [
     "cubic_mixture_parameters",
     "cubic_pure_parameters",
     "darcy_friction_factor",
+    "darcy_friction_factor_details",
     "default_feature_specs",
     "detect_peak_overlap",
     "dew_pressure_pa",
@@ -345,6 +350,7 @@ __all__ = [
     "synthesize_signal",
     "synthesize_signal_from_card",
     "thermal_hazard_proxy",
+    "transport_model_cards",
     "validate_mechanism_library",
     "validate_model_card",
     "validate_task_maturity_policy",

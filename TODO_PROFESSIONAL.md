@@ -63,7 +63,7 @@ Every professional module must ship:
 | --- | --- | --- | --- | --- | --- | --- |
 | Professional TODO bootstrap | whilesunny | Done | all reference repos | `TODO_PROFESSIONAL.md`, `docs/professional_todo.md`, `docs/physchem_maturity_audit.md` | claim the first professional implementation item before coding | this commit |
 | PRO-P0 maturity metadata and model-card templates | whilesunny | Done | IDAES, thermo, Cantera, Gymnasium-style metadata | `src/chemworld/physchem/maturity.py`, `src/chemworld/tasks.py`, `docs/physchem_maturity_audit.md`, tests | next: claim PRO-P12A or PRO-P2A for reference-validated numerical hardening | this commit |
-| PRO-P12A fluids friction factor and pressure-drop validation | whilesunny | Claimed | `fluids.friction`, `fluids.core`, `fluids.two_phase`, Crane/Churchill/Haaland references | `src/chemworld/physchem/transport.py`, `src/chemworld/physchem/reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | read local `fluids` implementation, then add explicit validation cases and local model-card evidence | pending push |
+| PRO-P12A fluids friction factor and pressure-drop validation | whilesunny | Done | `fluids.friction`, `fluids.core`, Haaland and Darcy-Weisbach references | `src/chemworld/physchem/transport.py`, `src/chemworld/physchem/reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend pressure-drop validation to heat-transfer correlations or claim PRO-P2A | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -438,9 +438,23 @@ Reference targets: all local reference repositories.
 - [ ] `fluids`:
   - [x] Reynolds number;
   - [x] Prandtl number;
-  - [ ] friction factor;
-  - [ ] pressure drop;
+  - [x] friction factor;
+  - [x] pressure drop;
   - [ ] heat-transfer correlations.
+
+Reference-reading note for PRO-P12A:
+
+- `fluids.friction.friction_laminar` documents the standard Darcy `64/Re`
+  branch and its normal laminar range.
+- `fluids.friction.Haaland` exposes the explicit turbulent rough-pipe
+  correlation and its nominal Reynolds/roughness validity range.
+- `fluids.friction.friction_factor` uses a method-dispatch API with a default
+  high-accuracy turbulent solver and laminar override below transition.
+- `fluids.friction.one_phase_dP` wraps Reynolds number, friction-factor
+  selection, and Darcy-Weisbach pressure drop for single-phase pipe flow.
+- `fluids.two_phase.two_phase_dP` is a multi-correlation dispatcher; ChemWorld's
+  homogeneous two-phase pressure-drop function remains a lite/proxy model and is
+  not claimed as reference-validated by this task.
 - [ ] `thermo`:
   - [x] ideal Raoult VLE bubble/dew/TP flash;
   - [ ] nonideal activity-coefficient case;
@@ -483,7 +497,7 @@ Acceptance:
 
 1. `PRO-P0`: Add maturity metadata and model-card template to code/docs.
 2. `PRO-P12A`: Expand reference validation for `fluids` friction factor and
-   pressure drop.
+   pressure drop. Done.
 3. `PRO-P2A`: Replace placeholder vapor-pressure/enthalpy examples with
    curated reference-checked compounds.
 4. `PRO-P4A`: Implement Wilson and full binary NRTL with reference comparisons.

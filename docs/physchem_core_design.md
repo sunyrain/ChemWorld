@@ -250,7 +250,7 @@ small enough to audit and stable enough to run locally:
 | Reference backend | Current optional checks | Tolerance |
 | --- | --- | --- |
 | `chemicals` | ideal-gas molar volume via `chemicals.volume.ideal_gas`; Rachford-Rice vapor fraction and phase compositions via `chemicals.rachford_rice.Rachford_Rice_solution` | `rtol=1e-12` |
-| `fluids` | Reynolds and Prandtl numbers via `fluids.core` | `rtol=1e-12` |
+| `fluids` | Reynolds and Prandtl numbers via `fluids.core`; Haaland Darcy friction factor and single-phase pipe pressure drop via `fluids.friction` | `rtol=1e-12` |
 | `thermo` | ideal Raoult-law bubble/dew pressure and two-phase TP flash via `thermo.property_package.Ideal` with explicit constant vapor-pressure callables | `rtol=1e-12` for bubble/dew; `rtol=1e-11` for flash solver roundoff |
 
 Run the normal test path to confirm reference tests skip cleanly when optional
@@ -415,8 +415,8 @@ two-phase/packed-bed proxies.
 | --- | --- |
 | Dimensionless groups | Reynolds, Prandtl, Peclet, and internal-flow Nusselt estimates |
 | Flow regime | laminar, transitional, and turbulent classification |
-| Friction factor | laminar `64/Re`, Haaland turbulent approximation, smooth transition blend |
-| Pipe pressure drop | Darcy-Weisbach friction, fittings loss, static head, and pump work |
+| Friction factor | explicit `auto`, `laminar`, and `haaland` branches with method metadata and validity warnings |
+| Pipe pressure drop | Darcy-Weisbach friction, fittings loss, static head, pump work, and recorded friction-method evidence |
 | Mixing | impeller power and optional volumetric power density |
 | Heat transfer | film/wall/fouling resistance to `U`, jacket heat duty, signed heat energy |
 | Heat exchanger | counterflow effectiveness-NTU model with stream energy balance |
@@ -436,6 +436,14 @@ process-simulation backend. The reference libraries informed the API shape:
 wrappers; IDAES exposes equipment contracts in terms of `U`, `A`, `Q`, `NTU`,
 and effectiveness. ChemWorld localizes those ideas into deterministic functions
 that are small enough for benchmark replay and robust enough for task design.
+
+The first reference-validated transport slice is now the single-phase pipe-flow
+path. `transport_model_cards()` records a model card for laminar/Haaland Darcy
+friction and Darcy-Weisbach pressure drop. Optional reference tests compare the
+Haaland branch to `fluids.friction.Haaland` and the pipe pressure-drop result to
+`fluids.friction.one_phase_dP` with `Method='Haaland'`. The homogeneous
+two-phase function remains a compact benchmark proxy until a later professional
+two-phase-correlation task replaces or validates it.
 
 ## Boundaries
 

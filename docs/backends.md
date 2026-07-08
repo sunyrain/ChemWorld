@@ -36,6 +36,7 @@ and supports installed packages or local source snapshots under
 
 Current executable checks compare ChemWorld with `chemicals`, `fluids`, and
 `thermo` for ideal-gas molar volume, Rachford-Rice flash, Reynolds number,
-Prandtl number, ideal Raoult-law bubble/dew pressure, and a controlled ideal
+Prandtl number, Haaland Darcy friction factor, single-phase Darcy-Weisbach pipe
+pressure drop, ideal Raoult-law bubble/dew pressure, and a controlled ideal
 two-phase TP flash. These tests skip by default and run only when
 `CHEMWORLD_RUN_REFERENCE_TESTS=1` is set.

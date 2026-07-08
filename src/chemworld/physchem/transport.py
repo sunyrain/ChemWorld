@@ -13,9 +13,12 @@ from dataclasses import dataclass, field
 from math import exp, isfinite, log, log10, pi
 from typing import Literal
 
+from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
+
 GRAVITY_M_S2 = 9.80665
 
 FlowRegime = Literal["laminar", "transitional", "turbulent"]
+FrictionFactorMethod = Literal["auto", "laminar", "haaland"]
 
 
 @dataclass(frozen=True)
@@ -118,6 +121,33 @@ class FlowResult:
             "pump_work_W": self.pump_work_W,
             "regime": self.regime,
             "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class FrictionFactorResult:
+    """Darcy friction-factor result with method and validity metadata."""
+
+    friction_factor: float
+    reynolds: float
+    relative_roughness: float
+    method: FrictionFactorMethod
+    regime: FlowRegime
+    validity_warnings: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        _positive(self.friction_factor, "friction_factor")
+        _positive(self.reynolds, "reynolds")
+        _nonnegative(self.relative_roughness, "relative_roughness")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "friction_factor": self.friction_factor,
+            "reynolds": self.reynolds,
+            "relative_roughness": self.relative_roughness,
+            "method": self.method,
+            "regime": self.regime,
+            "validity_warnings": list(self.validity_warnings),
         }
 
 
@@ -345,23 +375,78 @@ def flow_regime(reynolds: float) -> FlowRegime:
     return "turbulent"
 
 
-def darcy_friction_factor(*, reynolds: float, relative_roughness: float = 0.0) -> float:
+def darcy_friction_factor_details(
+    *,
+    reynolds: float,
+    relative_roughness: float = 0.0,
+    method: FrictionFactorMethod = "auto",
+    strict_validity: bool = False,
+) -> FrictionFactorResult:
     """Return Darcy friction factor for circular-pipe flow.
 
-    Laminar flow uses 64/Re. Turbulent flow uses the explicit Haaland
-    approximation. Transitional flow is smoothly blended.
+    `auto` uses 64/Re for laminar flow, the explicit Haaland approximation for
+    turbulent flow, and a smooth transition blend for benchmark rollouts. Use
+    `laminar` or `haaland` when a reference check needs an explicit branch.
     """
 
     _positive(reynolds, "reynolds")
     _nonnegative(relative_roughness, "relative_roughness")
-    if reynolds < 2300.0:
-        return 64.0 / reynolds
-    turbulent = _haaland_friction_factor(reynolds, relative_roughness)
-    if reynolds >= 4000.0:
-        return turbulent
-    laminar_at_transition = 64.0 / 2300.0
-    weight = (reynolds - 2300.0) / 1700.0
-    return (1.0 - weight) * laminar_at_transition + weight * turbulent
+    warnings: list[str] = []
+    if method == "laminar":
+        if reynolds >= 2040.0:
+            warnings.append("laminar friction relation is normally used below Re=2040")
+        value = 64.0 / reynolds
+    elif method == "haaland":
+        if reynolds < 4000.0 or reynolds > 1e8:
+            warnings.append("Haaland correlation range is approximately 4e3 <= Re <= 1e8")
+        if relative_roughness < 1e-6 or relative_roughness > 5e-2:
+            warnings.append(
+                "Haaland published roughness range is approximately 1e-6 <= e/D <= 5e-2"
+            )
+        value = _haaland_friction_factor(reynolds, relative_roughness)
+    elif method == "auto":
+        if reynolds < 2300.0:
+            value = 64.0 / reynolds
+        else:
+            turbulent = _haaland_friction_factor(reynolds, relative_roughness)
+            if reynolds >= 4000.0:
+                value = turbulent
+            else:
+                warnings.append(
+                    "transitional flow uses ChemWorld's smooth laminar-Haaland blend"
+                )
+                laminar_at_transition = 64.0 / 2300.0
+                weight = (reynolds - 2300.0) / 1700.0
+                value = (1.0 - weight) * laminar_at_transition + weight * turbulent
+    else:
+        raise ValueError("method must be one of: auto, laminar, haaland")
+    if strict_validity and warnings:
+        raise ValueError("; ".join(warnings))
+    return FrictionFactorResult(
+        friction_factor=value,
+        reynolds=reynolds,
+        relative_roughness=relative_roughness,
+        method=method,
+        regime=flow_regime(reynolds),
+        validity_warnings=tuple(warnings),
+    )
+
+
+def darcy_friction_factor(
+    *,
+    reynolds: float,
+    relative_roughness: float = 0.0,
+    method: FrictionFactorMethod = "auto",
+    strict_validity: bool = False,
+) -> float:
+    """Return Darcy friction factor for circular-pipe flow."""
+
+    return darcy_friction_factor_details(
+        reynolds=reynolds,
+        relative_roughness=relative_roughness,
+        method=method,
+        strict_validity=strict_validity,
+    ).friction_factor
 
 
 def pipe_pressure_drop(
@@ -370,6 +455,8 @@ def pipe_pressure_drop(
     *,
     volumetric_flow_m3_s: float,
     pump_efficiency: float = 0.70,
+    friction_method: FrictionFactorMethod = "auto",
+    strict_friction_validity: bool = False,
 ) -> FlowResult:
     """Calculate single-phase pressure drop with friction, fittings, and static head."""
 
@@ -407,7 +494,13 @@ def pipe_pressure_drop(
         diameter_m=pipe.diameter_m,
         viscosity_Pa_s=fluid.viscosity_Pa_s,
     )
-    friction = darcy_friction_factor(reynolds=re, relative_roughness=pipe.relative_roughness)
+    friction_result = darcy_friction_factor_details(
+        reynolds=re,
+        relative_roughness=pipe.relative_roughness,
+        method=friction_method,
+        strict_validity=strict_friction_validity,
+    )
+    friction = friction_result.friction_factor
     dynamic_pressure = 0.5 * fluid.density_kg_m3 * velocity**2
     friction_drop = friction * pipe.length_m / pipe.diameter_m * dynamic_pressure
     fittings_drop = pipe.fittings_loss_coefficient * dynamic_pressure
@@ -433,6 +526,7 @@ def pipe_pressure_drop(
             "pipe": pipe.to_dict(),
             "fluid": fluid.to_dict(),
             "dynamic_pressure_Pa": dynamic_pressure,
+            "friction_factor": friction_result.to_dict(),
         },
     )
 
@@ -725,6 +819,88 @@ def homogeneous_two_phase_pressure_drop(
             "vapor_quality": vapor_quality,
             "roughness_m": roughness_m,
         },
+    )
+
+
+def transport_model_cards() -> tuple[ModelCard, ...]:
+    """Return model-card records for transport kernels with validation status."""
+
+    return (
+        ModelCard(
+            model_id="pipe_friction_and_single_phase_pressure_drop",
+            module_id="transport",
+            title="Pipe Friction And Single-Phase Pressure Drop",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Darcy-Weisbach single-phase pipe pressure drop with explicit "
+                "laminar and Haaland friction-factor branches."
+            ),
+            equations=(
+                "Re = rho V D / mu",
+                "f_laminar = 64 / Re",
+                "f_Haaland = [-1.8 log10((e/D/3.7)^1.11 + 6.9/Re)]^-2",
+                "DeltaP = f (L/D) rho V^2 / 2 + K rho V^2 / 2 + rho g dz",
+            ),
+            assumptions=(
+                "Straight circular pipe with incompressible single-phase flow.",
+                "Fittings use aggregate K loss coefficient.",
+                "Pump work uses hydraulic power divided by an explicit efficiency.",
+            ),
+            validity_limits=(
+                "Laminar branch is normally used below Re=2040.",
+                "Haaland branch is documented for approximately 4e3 <= Re <= 1e8.",
+                "Haaland roughness range is approximately 1e-6 <= e/D <= 5e-2.",
+                "Transitional auto mode is a ChemWorld smooth blend for benchmark continuity.",
+            ),
+            failure_modes=(
+                "Nonpositive density, viscosity, pipe diameter, or length raises ValueError.",
+                "strict_validity=True raises on branch-specific validity warnings.",
+                "Compressible and two-phase pressure gradients require separate models.",
+            ),
+            units={
+                "density": "kg/m^3",
+                "viscosity": "Pa*s",
+                "diameter": "m",
+                "length": "m",
+                "pressure_drop": "Pa",
+            },
+            reference_reading=(
+                "reference_repos/fluids/fluids/friction.py:friction_laminar",
+                "reference_repos/fluids/fluids/friction.py:Haaland",
+                "reference_repos/fluids/fluids/friction.py:one_phase_dP",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="fluids-haaland-friction-factor",
+                    evidence_type="optional_reference_test",
+                    description="Compare ChemWorld Haaland branch against fluids.friction.Haaland.",
+                    status="implemented",
+                    reference_backend="fluids",
+                    command_or_path="tests/reference/test_optional_reference_backends.py",
+                    tolerance="rtol=1e-12",
+                ),
+                ValidationEvidence(
+                    evidence_id="fluids-one-phase-pressure-drop",
+                    evidence_type="optional_reference_test",
+                    description=(
+                        "Compare single-phase Darcy-Weisbach pressure drop against "
+                        "fluids.friction.one_phase_dP with Method='Haaland'."
+                    ),
+                    status="implemented",
+                    reference_backend="fluids",
+                    command_or_path="tests/reference/test_optional_reference_backends.py",
+                    tolerance="rtol=1e-12",
+                ),
+            ),
+            model_limit_notes=(
+                "This card does not cover ChemWorld's homogeneous two-phase proxy.",
+                "It does not include Crane fitting tables or compressible-flow corrections.",
+            ),
+            intended_use=(
+                "Reference-validated benchmark pressure-cost and safety features.",
+                "Educational inspection of pipe-flow cost ledgers.",
+            ),
+        ),
     )
 
 

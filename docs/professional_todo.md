@@ -37,7 +37,8 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
 ## First Professional Queue
 
 1. Add maturity metadata and model-card templates. Done in PRO-P0.
-2. Expand `fluids` validation to friction factor and pressure drop.
+2. Expand `fluids` validation to friction factor and pressure drop. Done in
+   PRO-P12A.
 3. Replace placeholder property examples with curated reference-checked
    compounds.
 4. Implement Wilson and full binary NRTL with reference comparisons.
@@ -69,3 +70,14 @@ PRO-P0 is now implemented in `chemworld.physchem.maturity` and task metadata:
 - `TaskMaturitySpec` appears in task cards and environment `task_info`.
 - Proxy tasks must be explicitly marked as proxy-allowed and exploratory,
   teaching, smoke, or education.
+
+PRO-P12A is now implemented for the first reference-validated transport slice:
+
+- `darcy_friction_factor_details()` exposes method, regime, relative roughness,
+  and validity warnings.
+- `pipe_pressure_drop()` can run with an explicit `friction_method`, allowing
+  reference comparisons to select the Haaland branch directly.
+- `transport_model_cards()` declares the pipe-friction/single-phase-pressure
+  drop slice as reference-validated with `fluids` optional-test evidence.
+- Optional reference tests compare ChemWorld against `fluids.friction.Haaland`
+  and `fluids.friction.one_phase_dP`.

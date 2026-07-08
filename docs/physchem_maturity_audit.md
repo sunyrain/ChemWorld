@@ -25,11 +25,11 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | EOS | Lite | ideal gas, PR, SRK tests | residual properties and reference validation against CoolProp/thermo/teqp |
 | Phase equilibrium | Lite | ideal VLE, NRTL-lite, LLE split tests | full Wilson/NRTL/UNIQUAC, phase stability, nonideal reference cases |
 | Separations | Proxy/lite | material-conserving extraction, flash, distillation, crystallization, filtration, drying tests | rigorous equipment models and thermodynamic coupling |
-| Transport and heat transfer | Lite | dimensionless numbers, pressure drop, heat transfer tests | broader `fluids` comparisons and validity maps |
+| Transport and heat transfer | Lite with reference-validated pipe-flow slice | dimensionless numbers, explicit friction methods, `fluids` Haaland and single-phase pipe-pressure-drop optional checks | broader `fluids` comparisons, heat-transfer validation, and validity maps |
 | Equilibrium chemistry | Lite/proxy | mass-action, acid/base, precipitation tests | Reaktoro-style Gibbs minimization and database-backed equilibria |
 | Mechanism/scenario library | Lite | curated mechanism cards and validation tests | reference-validated mechanisms and professional task bindings |
 | Spectroscopy/instruments | Synthetic/proxy | state-coupled HPLC/GC/UV-vis/IR/NMR synthetic signals | public calibration examples and empirical anchors |
-| Reference validation | Partial | `chemicals`, `fluids`, `thermo` ideal VLE optional tests | CoolProp, Cantera, phasepy, Reaktoro, pycalphad coverage |
+| Reference validation | Partial | `chemicals`, `fluids` Reynolds/Prandtl/friction/pipe drop, and `thermo` ideal VLE optional tests | CoolProp, Cantera, phasepy, Reaktoro, pycalphad coverage |
 
 ## Policy
 

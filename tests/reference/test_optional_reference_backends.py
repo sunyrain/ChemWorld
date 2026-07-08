@@ -6,12 +6,16 @@ import pytest
 
 from chemworld.physchem import (
     ActivityModelSpec,
+    FluidState,
+    PipeSpec,
     bubble_pressure_pa,
     compare_scalar,
+    darcy_friction_factor,
     dew_pressure_pa,
     flash_isothermal,
     ideal_gas_molar_volume,
     import_reference_module,
+    pipe_pressure_drop,
     prandtl_number,
     raoult_k_values,
     reynolds_number,
@@ -98,6 +102,69 @@ def test_fluids_dimensionless_number_reference() -> None:
             ),
             unit="dimensionless",
             rtol=1e-12,
+        ),
+    )
+    summary = summarize_reference_comparisons(comparisons)
+    assert summary["all_passed"], summary
+
+
+def test_fluids_friction_factor_and_pressure_drop_reference() -> None:
+    fluids_friction = _reference_module("fluids.friction")
+
+    reynolds = 100_000.0
+    relative_roughness = 1e-4
+    density_kg_m3 = 998.0
+    viscosity_Pa_s = 0.001
+    diameter_m = 0.05
+    roughness_m = relative_roughness * diameter_m
+    length_m = 3.0
+    volumetric_flow_m3_s = 3.5e-3
+    mass_flow_kg_s = density_kg_m3 * volumetric_flow_m3_s
+
+    chemworld_flow = pipe_pressure_drop(
+        PipeSpec(length_m=length_m, diameter_m=diameter_m, roughness_m=roughness_m),
+        FluidState(density_kg_m3=density_kg_m3, viscosity_Pa_s=viscosity_Pa_s),
+        volumetric_flow_m3_s=volumetric_flow_m3_s,
+        friction_method="haaland",
+        strict_friction_validity=True,
+    )
+
+    comparisons = (
+        compare_scalar(
+            check_id="fluids-haaland-friction-factor",
+            backend_id="fluids",
+            quantity="darcy_friction_factor",
+            chemworld_value=darcy_friction_factor(
+                reynolds=reynolds,
+                relative_roughness=relative_roughness,
+                method="haaland",
+                strict_validity=True,
+            ),
+            reference_value=fluids_friction.Haaland(reynolds, relative_roughness),
+            unit="dimensionless",
+            rtol=1e-12,
+            note="Explicit Haaland branch against fluids.friction.Haaland.",
+        ),
+        compare_scalar(
+            check_id="fluids-one-phase-pressure-drop",
+            backend_id="fluids",
+            quantity="single_phase_pressure_drop",
+            chemworld_value=chemworld_flow.pressure_drop_friction_Pa,
+            reference_value=fluids_friction.one_phase_dP(
+                m=mass_flow_kg_s,
+                rho=density_kg_m3,
+                mu=viscosity_Pa_s,
+                D=diameter_m,
+                roughness=roughness_m,
+                L=length_m,
+                Method="Haaland",
+            ),
+            unit="Pa",
+            rtol=1e-12,
+            note=(
+                "Darcy-Weisbach frictional pressure drop against "
+                "fluids.friction.one_phase_dP with Method='Haaland'."
+            ),
         ),
     )
     summary = summarize_reference_comparisons(comparisons)

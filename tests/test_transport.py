@@ -7,6 +7,7 @@ from chemworld.physchem import (
     PipeSpec,
     counterflow_effectiveness,
     darcy_friction_factor,
+    darcy_friction_factor_details,
     flow_regime,
     heat_exchanger_counterflow,
     homogeneous_two_phase_pressure_drop,
@@ -21,6 +22,8 @@ from chemworld.physchem import (
     prandtl_number,
     pump_work,
     reynolds_number,
+    transport_model_cards,
+    validate_model_card,
 )
 
 
@@ -66,6 +69,30 @@ def test_friction_factor_transitions_from_laminar_to_turbulent() -> None:
     assert turbulent_rough > turbulent_smooth
 
 
+def test_friction_factor_details_report_method_and_validity() -> None:
+    laminar = darcy_friction_factor_details(reynolds=1000.0, method="laminar")
+    haaland = darcy_friction_factor_details(
+        reynolds=100_000.0,
+        relative_roughness=1e-4,
+        method="haaland",
+        strict_validity=True,
+    )
+    transitional = darcy_friction_factor_details(reynolds=3000.0, method="auto")
+
+    assert laminar.method == "laminar"
+    assert laminar.friction_factor == pytest.approx(0.064)
+    assert haaland.method == "haaland"
+    assert haaland.validity_warnings == ()
+    assert transitional.validity_warnings
+    with pytest.raises(ValueError, match="Haaland correlation range"):
+        darcy_friction_factor_details(
+            reynolds=3000.0,
+            relative_roughness=1e-4,
+            method="haaland",
+            strict_validity=True,
+        )
+
+
 def test_pipe_pressure_drop_increases_with_flow_and_length() -> None:
     water = FluidState(density_kg_m3=1000.0, viscosity_Pa_s=0.001)
     short_pipe = PipeSpec(length_m=5.0, diameter_m=0.025, roughness_m=1e-5)
@@ -79,6 +106,39 @@ def test_pipe_pressure_drop_increases_with_flow_and_length() -> None:
     assert long.pressure_drop_total_Pa > slow.pressure_drop_total_Pa
     assert fast.pump_work_W > slow.pump_work_W >= 0.0
     assert fast.to_dict()["regime"] in {"transitional", "turbulent"}
+    assert fast.metadata["friction_factor"]["method"] == "auto"
+
+
+def test_pipe_pressure_drop_can_use_explicit_friction_method() -> None:
+    water = FluidState(density_kg_m3=998.0, viscosity_Pa_s=0.001)
+    pipe = PipeSpec(length_m=3.0, diameter_m=0.05, roughness_m=5e-6)
+
+    result = pipe_pressure_drop(
+        pipe,
+        water,
+        volumetric_flow_m3_s=3.5e-3,
+        friction_method="haaland",
+        strict_friction_validity=True,
+    )
+
+    assert result.regime == "turbulent"
+    assert result.metadata["friction_factor"]["method"] == "haaland"
+    assert result.pressure_drop_total_Pa == pytest.approx(
+        result.pressure_drop_friction_Pa
+    )
+
+
+def test_transport_model_card_documents_reference_validated_slice() -> None:
+    cards = transport_model_cards()
+    pipe_card = next(
+        card
+        for card in cards
+        if card.model_id == "pipe_friction_and_single_phase_pressure_drop"
+    )
+
+    assert pipe_card.maturity.value == "reference_validated"
+    assert validate_model_card(pipe_card) == []
+    assert pipe_card.validation_evidence
 
 
 def test_pump_work_and_mixing_power_are_nonnegative() -> None:
