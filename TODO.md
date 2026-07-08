@@ -84,7 +84,7 @@ finished, update its status and push immediately.
 | PRO-RUNTIME-E task runtime service contract | whilesunny | Done | `src/chemworld/runtime/kernels.py`, `src/chemworld/runtime/domain_services.py`, `src/chemworld/runtime/engine.py`, tests/docs | TaskRuntimeProfile now declares required domain services and runtime startup validates service/capability coverage | this commit |
 | PRO-RUNTIME-F precondition rollback transaction | whilesunny | Done | `src/chemworld/runtime/`, `src/chemworld/envs/`, tests/docs | operation precondition failures now enter Runtime v2 rollback events and process-only penalty patches; schema/task/payload failures remain env-level validation failures | this commit |
 | PRO-RUNTIME-G task-scoped domain-service validation | whilesunny | Done | `src/chemworld/runtime/domain_services.py`, tests/docs | domain-service validation is task-profile scoped; unrelated future operations are not required by every task runtime | this commit |
-| PRO-RUNTIME-H task-specific scoring contract | whilesunny | Active | `src/chemworld/world/scoring.py`, `src/chemworld/runtime/observation_services.py`, `src/chemworld/envs/`, tests/docs | make score computation read a task-level scoring contract instead of always using the fixed reaction score formula | in progress |
+| PRO-RUNTIME-H task-specific scoring contract | whilesunny | Done | `src/chemworld/world/scoring.py`, `src/chemworld/runtime/observation_services.py`, `src/chemworld/envs/`, tests/docs | score computation now reads a task-level scoring contract instead of always using the fixed reaction score formula | this commit |
 
 Status values:
 

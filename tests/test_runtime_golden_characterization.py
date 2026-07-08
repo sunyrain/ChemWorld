@@ -107,12 +107,12 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "electrochemical-conversion": {
         "mechanism_id": "electrochemical_conversion",
         "steps": 6,
-        "score": 0.16370605114467338,
+        "score": 0.5536636959898259,
     },
     "flow-reaction-optimization": {
         "mechanism_id": "pfr_hotspot",
         "steps": 7,
-        "score": 0.1152057547145229,
+        "score": 0.07886019005209735,
     },
     "low-budget-characterization": {
         "mechanism_id": "autocatalytic_reaction",
@@ -122,7 +122,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "partition-discovery": {
         "mechanism_id": "reaction_extraction",
         "steps": 9,
-        "score": 0.0,
+        "score": 0.12689665850651619,
     },
     "public-private-generalization": {
         "mechanism_id": "parallel_series_reaction",
@@ -132,7 +132,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "purity-yield-tradeoff": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.1649070394461739,
+        "score": 0.04850709333240237,
     },
     "reaction-mechanism-explanation": {
         "mechanism_id": "autocatalytic_reaction",
@@ -157,17 +157,17 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "reaction-to-crystallization": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 10,
-        "score": 0.30580601337024405,
+        "score": 0.5762268534521817,
     },
     "reaction-to-distillation": {
         "mechanism_id": "reactive_distillation_lite",
         "steps": 10,
-        "score": 0.005860803318288227,
+        "score": 0.19278834745796017,
     },
     "reaction-to-purification": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.1507376072791482,
+        "score": 0.04623981888958233,
     },
     "tool-agent-planning": {
         "mechanism_id": "reaction_extraction",

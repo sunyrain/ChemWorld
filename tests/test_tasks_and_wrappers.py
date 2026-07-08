@@ -10,6 +10,11 @@ from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.operation_validator import OperationValidator
 from chemworld.runtime import make_chemworld_constitution
 from chemworld.tasks import get_task, get_task_card, list_tasks
+from chemworld.world.scoring import (
+    TaskScoringContract,
+    score_observation,
+    task_score_observation,
+)
 from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.wrappers import (
     ActionMaskWrapper,
@@ -58,6 +63,59 @@ def test_all_tasks_share_one_world_law() -> None:
     assert "purity-yield-tradeoff" in {task.task_id for task in tasks}
     assert "reaction-to-crystallization" in {task.task_id for task in tasks}
     assert "flow-reaction-optimization" in {task.task_id for task in tasks}
+
+
+def test_task_specific_scoring_contracts_are_explicit() -> None:
+    values = {
+        "yield": 0.40,
+        "selectivity": 0.75,
+        "conversion": 0.60,
+        "cost": 0.10,
+        "safety_risk": 0.20,
+        "purity": 0.90,
+        "recovery": 0.70,
+        "process_mass_balance_error": 0.02,
+    }
+    reaction_contract = TaskScoringContract.from_success_metrics(
+        objective="balanced",
+        success_metrics=("score", "yield", "selectivity"),
+    )
+    purification_contract = TaskScoringContract.from_success_metrics(
+        objective="balanced",
+        success_metrics=("score", "purity", "recovery", "process_mass_balance_error"),
+    )
+
+    reaction_score = score_observation(
+        objective="balanced",
+        product_yield=0.40,
+        selectivity=0.75,
+        conversion=0.60,
+        cost=0.10,
+        safety_risk=0.20,
+    )
+    expected_purification = 0.35 * reaction_score + 0.35 * 0.90 + 0.25 * 0.70 - 0.10 * 0.02
+
+    assert reaction_contract.score_family == "reaction"
+    assert purification_contract.score_family == "purification"
+    assert task_score_observation(contract=reaction_contract, values=values) == (
+        reaction_score
+    )
+    assert task_score_observation(contract=purification_contract, values=values) == (
+        expected_purification
+    )
+
+
+def test_env_task_info_exposes_scoring_contract() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
+    try:
+        _, info = env.reset(seed=0)
+        contract = info["scoring_contract"]
+        assert contract["objective"] == "balanced"
+        assert contract["score_family"] == "purification"
+        assert "purity" in contract["component_weights"]
+        assert "process_mass_balance_error" in contract["success_metrics"]
+    finally:
+        env.close()
 
 
 def test_action_mask_wrapper_reports_valid_operations() -> None:

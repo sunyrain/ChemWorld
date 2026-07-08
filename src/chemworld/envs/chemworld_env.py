@@ -32,7 +32,7 @@ from chemworld.world.operations import (
     operation_contracts,
 )
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
-from chemworld.world.scoring import safety_cost_from_flags
+from chemworld.world.scoring import TaskScoringContract, safety_cost_from_flags
 from chemworld.world.world_law import world_law_spec
 
 OBSERVATION_KEYS = (
@@ -121,6 +121,12 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.task_spec.episode_mode if self.task_spec is not None else "single_experiment"
         )
         self.safety_limit = self.task_spec.safety_limit if self.task_spec is not None else 0.65
+        self.scoring_contract = TaskScoringContract.from_success_metrics(
+            objective=objective,
+            success_metrics=(
+                self.task_spec.success_metrics if self.task_spec is not None else ("score",)
+            ),
+        )
         self.action_codec = ActionCodec()
         self.scenario_generator = DefaultScenarioGenerator()
         self.scenario_spec = (
@@ -142,6 +148,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.constitution,
             objective,
             self.scenario_instance.compiled_mechanism,
+            self.scoring_contract,
         )
         self._rng = np.random.default_rng(seed)
         self._step_count = 0
@@ -207,6 +214,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.constitution,
             self.objective,
             self.scenario_instance.compiled_mechanism,
+            self.scoring_contract,
         )
         self._step_count = 0
         self._experiment_index = 0
@@ -353,6 +361,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "mechanism_hash": compiled_mechanism.mechanism_hash,
             "mechanism_version": compiled_mechanism.mechanism_version,
             "mechanism_manifest": compiled_mechanism.manifest.to_dict(),
+            "scoring_contract": self.scoring_contract.to_dict(),
             "env_version": __version__,
             "world_family_version": self.world.family_version,
             "runtime": self.runtime.to_dict(),

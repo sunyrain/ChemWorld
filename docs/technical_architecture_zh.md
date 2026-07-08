@@ -71,6 +71,7 @@ ChemWorldEnv
 Runtime v2 的关键设计包括：
 
 - `TaskRuntimeProfile` 声明当前任务需要哪些 operation、instrument、kernel、domain service 和 capability。
+- `TaskScoringContract` 将 `objective` 和 `success_metrics` 编译成可序列化的评分合同。
 - `OperationKernelRegistry` 将 operation type 映射到小型 command handler。
 - `DomainServiceRegistry` 提供 JSON-friendly 的 service contract 和 operation-to-service map。
 - domain-service validation 是 task-scoped 的：一个只做反应测定的任务不需要注册萃取、蒸馏、电化学等无关服务。
@@ -158,6 +159,8 @@ ChemWorld-Bench 的评测闭环包括：
 
 当前 verifier 已经会比对 Runtime v2 transaction metadata，包括 kernel id/version、domain service id、affected ledgers、world events、state patch summaries、transaction status、rollback reason 和 state-delta summaries。
 
+在线 reward 和 `leaderboard_score` 来自 task-specific scoring contract。反应任务使用 yield/selectivity/conversion/cost/risk；纯化、结晶、蒸馏、连续流和电化学任务会把对应的 purity、recovery、crystal、distillate、flow 或 electrochemical 指标纳入同一个可审计分数合同。
+
 ## 10. 当前核心能力
 
 当前平台可以支持：
@@ -177,7 +180,7 @@ ChemWorld-Bench 的评测闭环包括：
 
 - 物理模型深度：distillation、crystallization、flow、electrochemistry、phase equilibrium、safety 还需要更严格的机理模型和验证矩阵。
 - 状态账本一致性：typed ledgers 已经存在，但 scalar adapter 仍在过渡期。
-- 机制驱动广度：observation、score、instrument mapping 还需要进一步完全由 mechanism/task spec 驱动。
+- 机制驱动广度：score 已经有 task-level scoring contract；observation 和 instrument mapping 还需要进一步完全由 mechanism/task spec 驱动。
 - benchmark 难度：需要更多 hidden scenarios、多机制 families、private-eval seeds、强 baseline calibration 和 public/private generalization audit。
 - 数据层成熟度：dataset card、trajectory schema、submission protocol 已有雏形，但还需要更接近 Minari 风格的数据版本治理和离线学习任务。
 - agent 生态：LLM adapter 和 replay/stub 已有，但还缺真正 tool-using chemical agent baseline、planner memory、实验假设日志和解释评分闭环。

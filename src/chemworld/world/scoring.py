@@ -17,6 +17,110 @@ class ObjectiveWeights:
     risk_penalty: float
 
 
+@dataclass(frozen=True)
+class TaskScoringContract:
+    """Serializable score contract compiled from task success metrics."""
+
+    objective: str
+    success_metrics: tuple[str, ...]
+    score_family: str
+    component_weights: dict[str, float]
+
+    @classmethod
+    def from_success_metrics(
+        cls,
+        *,
+        objective: str,
+        success_metrics: tuple[str, ...] = (),
+    ) -> TaskScoringContract:
+        metrics = frozenset(success_metrics)
+        if metrics.intersection({"crystal_yield", "crystal_purity", "crystal_size"}):
+            return cls(
+                objective,
+                success_metrics,
+                "crystallization",
+                {
+                    "reaction_score": 0.40,
+                    "crystal_yield": 0.28,
+                    "crystal_purity": 0.24,
+                    "crystal_size": 0.08,
+                },
+            )
+        if metrics.intersection({"distillate_purity", "distillate_recovery"}):
+            return cls(
+                objective,
+                success_metrics,
+                "distillation",
+                {
+                    "reaction_score": 0.40,
+                    "distillate_purity": 0.34,
+                    "distillate_recovery": 0.22,
+                    "solvent_loss": -0.10,
+                },
+            )
+        if metrics.intersection({"electrochemical_selectivity", "energy_efficiency"}):
+            return cls(
+                objective,
+                success_metrics,
+                "electrochemistry",
+                {
+                    "reaction_score": 0.35,
+                    "electrochemical_selectivity": 0.35,
+                    "energy_efficiency": 0.20,
+                    "conversion": 0.10,
+                },
+            )
+        if "flow_conversion" in metrics:
+            return cls(
+                objective,
+                success_metrics,
+                "continuous_flow",
+                {
+                    "reaction_score": 0.50,
+                    "flow_conversion": 0.35,
+                    "yield": 0.15,
+                },
+            )
+        if metrics.intersection({"purity", "recovery", "process_mass_balance_error"}):
+            return cls(
+                objective,
+                success_metrics,
+                "purification",
+                {
+                    "reaction_score": 0.35,
+                    "purity": 0.35,
+                    "recovery": 0.25,
+                    "process_mass_balance_error": -0.10,
+                },
+            )
+        if metrics.intersection({"phase_ratio", "product_in_organic", "product_in_aqueous"}):
+            return cls(
+                objective,
+                success_metrics,
+                "partition",
+                {
+                    "reaction_score": 0.25,
+                    "product_in_organic": 0.40,
+                    "phase_ratio": 0.25,
+                    "product_in_aqueous": -0.10,
+                },
+            )
+        return cls(
+            objective,
+            success_metrics,
+            "reaction",
+            {"reaction_score": 1.0},
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "objective": self.objective,
+            "success_metrics": list(self.success_metrics),
+            "score_family": self.score_family,
+            "component_weights": dict(self.component_weights),
+        }
+
+
 OBJECTIVES: dict[str, ObjectiveWeights] = {
     "balanced": ObjectiveWeights(0.50, 0.25, 0.10, 0.15, 0.25),
     "yield": ObjectiveWeights(0.75, 0.10, 0.05, 0.05, 0.10),
@@ -80,12 +184,44 @@ def score_observation(
     return float(np.clip(raw, 0.0, 1.0))
 
 
+def task_score_observation(
+    *,
+    contract: TaskScoringContract,
+    values: dict[str, float | None],
+) -> float:
+    """Compute the task-specific scalar score in [0, 1]."""
+
+    reaction_component = score_observation(
+        objective=contract.objective,
+        product_yield=scalar_observation(values, "yield"),
+        selectivity=scalar_observation(values, "selectivity"),
+        conversion=scalar_observation(values, "conversion"),
+        cost=scalar_observation(values, "cost"),
+        safety_risk=scalar_observation(values, "safety_risk"),
+    )
+    components = {"reaction_score": reaction_component}
+    components.update(
+        {
+            key: scalar_observation(values, key)
+            for key in contract.component_weights
+            if key != "reaction_score"
+        }
+    )
+    raw = sum(
+        weight * components.get(key, 0.0)
+        for key, weight in contract.component_weights.items()
+    )
+    return float(np.clip(raw, 0.0, 1.0))
+
+
 __all__ = [
     "OBJECTIVES",
     "ObjectiveWeights",
+    "TaskScoringContract",
     "purification_score",
     "reaction_score",
     "safety_cost_from_flags",
     "scalar_observation",
     "score_observation",
+    "task_score_observation",
 ]

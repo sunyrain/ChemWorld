@@ -17,7 +17,7 @@ from chemworld.world.observation_kernel import (
     raw_signal,
 )
 from chemworld.world.operations import instrument_name, operation_name
-from chemworld.world.scoring import score_observation
+from chemworld.world.scoring import TaskScoringContract, task_score_observation
 from chemworld.world.separation_kernel import downstream_truth_values
 
 
@@ -29,10 +29,14 @@ class ChemWorldObservationKernel:
         constitution: PhysicalConstitution,
         objective: str,
         compiled_mechanism: CompiledMechanism,
+        scoring_contract: TaskScoringContract | None = None,
     ) -> None:
         self.constitution = constitution
         self.objective = objective
         self.compiled_mechanism = compiled_mechanism
+        self.scoring_contract = scoring_contract or TaskScoringContract.from_success_metrics(
+            objective=objective,
+        )
         self.species_view = MechanismSpeciesView(compiled_mechanism)
 
     def observe(
@@ -163,13 +167,9 @@ class ChemWorldObservationKernel:
         return 0.0 if value is None else float(value)
 
     def _score(self, values: dict[str, float | None]) -> float:
-        return score_observation(
-            objective=self.objective,
-            product_yield=self._observed_value(values, "yield"),
-            selectivity=self._observed_value(values, "selectivity"),
-            conversion=self._observed_value(values, "conversion"),
-            cost=self._observed_value(values, "cost"),
-            safety_risk=self._observed_value(values, "safety_risk"),
+        return task_score_observation(
+            contract=self.scoring_contract,
+            values=values,
         )
 
     def _truth_values(self, state: WorldState) -> dict[str, float]:

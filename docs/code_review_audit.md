@@ -332,6 +332,10 @@ Recommended follow-up:
   registry can still be audited for full operation coverage, but runtime
   construction only enforces duplicate/unknown-operation integrity; a task that
   never allows separation no longer depends on separation service coverage.
+- Added a task-specific scoring contract. `TaskScoringContract` now compiles a
+  task objective plus success metrics into a JSON-friendly score family and
+  component weights, and the observation kernel uses that contract instead of a
+  single fixed reaction-only score formula for all task families.
 - Routed stateful operation precondition failures through Runtime v2 rollback
   semantics. Payload/schema/task-policy failures remain env-level
   `validation_failed` events, while physical precondition failures now emit
