@@ -181,6 +181,27 @@ slice:
   thermochemistry database. NASA9, Shomate, group additivity, pressure
   corrections, and reactor-energy coupling remain future deepening tasks.
 
+PRO-P5C is now implemented for thermochemistry-coupled reversible kinetics:
+
+- `thermochemical_detailed_balance()` computes forward and reverse rate
+  constants for a `reversible_arrhenius` reaction using NASA7 reaction Gibbs
+  energy.
+- `thermochemical_concentration_equilibrium_constant()` keeps the distinction
+  between dimensionless `K = exp(-Delta G/RT)` and the concentration
+  equilibrium constant used by mass-action rates:
+  `K_c = K * C0^(sum nu_i)`.
+- `reverse_rate_constant_from_equilibrium()` exposes the audited
+  `k_reverse = k_forward / K_c` relationship used by the local rate law.
+- `evaluate_rate_law()` and `ReactionNetworkSpec.integrate_batch()` can now use
+  supplied `species_thermo` when a reversible Arrhenius rate declares
+  `K_eq_source: nasa7`.
+- Tests cover zero net rate at the thermochemical equilibrium ratio,
+  long-time ODE convergence to the NASA7 equilibrium ratio, missing
+  thermochemistry failure, and non-equal-molecularity concentration-standard
+  correction.
+- This is not a full pressure-dependent, falloff, or heat-release-coupled
+  reactor model. Reaction enthalpy still needs a separate reactor-energy slice.
+
 PRO-P6A is now implemented for the first reference-validated reactor
 multiplicity slice:
 

@@ -20,7 +20,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | --- | --- | --- | --- |
 | Component specs and units | Lite | `chemworld.physchem.specs`, local unit tests | broader curated component database and schema governance |
 | Property correlations | Lite with a reference-validated curated slice | vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against `chemicals` | broader component coverage, liquid/solid Cp, latent heat, derivatives, and CoolProp checks |
-| Reaction networks | Lite with reference-validated ODE and NASA7 thermochemistry slices | YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check, NASA7 Cp/H/S/G, reaction Delta H/G, and K_eq tests | thermochemistry-coupled reversible kinetics, falloff, pressure dependence, and heat-release-coupled reactor validation |
+| Reaction networks | Lite with reference-validated ODE, NASA7 thermochemistry, and thermochemical detailed-balance slices | YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check, NASA7 Cp/H/S/G, reaction Delta H/G, K_eq, concentration-standard correction, and thermochemical reverse-rate tests | falloff, pressure dependence, and heat-release-coupled reactor validation |
 | Reactor models | Lite with a reference-validated CSTR multiplicity slice | batch, semi-batch, CSTR, PFR tests; analytical exothermic CSTR three-root ignition/extinction case with stability classification | broader Cantera/IDAES reactor-network validation, pressure modes, and heat-transfer variants |
 | EOS | Lite with a reference-validated PR/SRK residual slice | ideal gas, PR/SRK roots, fugacity coefficients, explicit root policy, residual H/S/G tests, optional `thermo.eos` comparisons for methane/ethane/CO2 | volume translation, phase envelopes, flash derivatives, and broader CoolProp/teqp/thermopack validation |
 | Phase equilibrium | Lite with a reference-validated Wilson/NRTL gamma slice | ideal VLE, Wilson/NRTL gamma checks against `thermo`, LLE split tests | UNIQUAC, phase stability, nonideal VLE/LLE task cases |
@@ -173,3 +173,11 @@ copying the reference implementations.
   resolve through explicit source-priority policy, task maturity can be exported
   as a manifest, and reference-validation reports include backend versions and
   declared tolerance profiles where available.
+- PRO-P5C is implemented for thermochemical detailed-balance kinetics:
+  reversible Arrhenius rates can declare `K_eq_source: nasa7`, consume supplied
+  species thermochemistry, compute `K_c = exp(-Delta G/RT) * C0^(sum nu_i)`,
+  and use `k_reverse = k_forward / K_c`. Tests cover zero net rate at
+  equilibrium, ODE convergence to the NASA7 equilibrium ratio, explicit failure
+  when thermochemistry is missing, and non-equal-molecularity concentration
+  standard-state correction. Falloff, pressure dependence, and reactor
+  heat-release coupling remain open.

@@ -34,9 +34,10 @@ The repository currently provides:
 - reference-validated physical-chemistry slices for curated properties,
   friction/pipe pressure drop, internal-flow heat transfer, counterflow
   exchanger duty balance, Wilson/NRTL activity coefficients, reaction ODE
-  cases, NASA7 thermochemistry and reaction Gibbs energies, CSTR multiplicity,
-  shortcut distillation, fixed-TP Gibbs minimization, UV-vis calibration,
-  chromatography retention, and PR/SRK residual EOS properties.
+  cases, NASA7 thermochemistry and reaction Gibbs energies, thermochemical
+  detailed-balance reverse rates, CSTR multiplicity, shortcut distillation,
+  fixed-TP Gibbs minimization, UV-vis calibration, chromatography retention,
+  and PR/SRK residual EOS properties.
 
 ## Scientific Model
 

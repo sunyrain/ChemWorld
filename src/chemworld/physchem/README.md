@@ -29,6 +29,9 @@ Current scope:
 - NASA7 thermochemistry for species Cp/H/S/G, Cantera-style YAML thermo
   parsing, segment-continuity diagnostics, reaction Delta H/S/G, equilibrium
   constants from species Gibbs energies, and a thermochemistry model card.
+- thermochemistry-coupled reversible Arrhenius rates with explicit
+  dimensionless-to-concentration equilibrium conversion and
+  `k_reverse = k_forward / K_c` detailed balance.
 - a curated mechanism/scenario library with balanced mechanism files, task
   cards, default initial states, operating windows, qualitative behavior
   metadata, and a programmatic validation report.
@@ -81,8 +84,8 @@ Design rules:
   tags, and component-disallowed property correlations;
 - keep property correlations separate from component identity;
 - keep mechanism definitions separate from reactor and task logic;
-- keep species thermochemistry separate from kinetic rate-law parameters until
-  a declared reversible-rate or reactor-energy slice wires them together;
+- keep species thermochemistry separate from kinetic rate-law parameters except
+  when a rate law explicitly declares a thermochemical equilibrium source;
 - keep mechanism scenario cards as the bridge between physical mechanism,
   benchmark task semantics, initial conditions, and qualitative expectations;
 - keep virtual instruments as observation kernels over species amounts and

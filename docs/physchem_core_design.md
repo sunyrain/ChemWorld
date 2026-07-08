@@ -192,9 +192,8 @@ reference tests additionally compare the local Arrhenius rate constant against
 `ct.ArrheniusRate` if Cantera is available.
 
 This closes a narrow professional slice, not the whole kinetics stack.
-Falloff, third bodies, pressure-dependent rates, thermochemistry-derived
-`K(T)`, and heat-release-coupled reactor validation remain explicit future
-professional tasks.
+Falloff, third bodies, pressure-dependent rates, and heat-release-coupled
+reactor validation remain explicit future professional tasks.
 
 PRO-P5B adds the first professional thermochemistry slice. It follows the
 NASA7 polynomial form used by Cantera species YAML and RMG NASA exports:
@@ -219,6 +218,29 @@ equilibrium-constant calculation from declared species thermochemistry. It is
 not yet a full thermochemistry database, NASA9/Shomate implementation, RMG
 group-additivity engine, pressure-correction model, or reactor-energy-balance
 integration. Those remain professional deepening slices.
+
+PRO-P5C connects that thermochemistry slice back into reversible mass-action
+kinetics. A `reversible_arrhenius` rate law can declare `K_eq_source: nasa7`;
+when `species_thermo` is supplied to `evaluate_rate_law()` or
+`ReactionNetworkSpec.integrate_batch()`, ChemWorld computes:
+
+```text
+K = exp(-Delta G_rxn^0 / RT)
+K_c = K * C0^(sum_i nu_i)
+k_reverse = k_forward / K_c
+r_net = k_forward prod_reactants c_i^nu_i
+      - k_reverse prod_products c_i^nu_i
+```
+
+This follows the same professional separation used by Cantera and RMG: the
+thermodynamic model supplies the equilibrium relation, and the kinetics layer
+uses microscopic reversibility to obtain the reverse rate. ChemWorld keeps the
+concentration-standard correction explicit because its local mass-action rates
+use `mol/L` concentration powers. The completed tests cover zero net rate at
+the thermochemical equilibrium composition, ODE relaxation to the NASA7
+equilibrium ratio, missing-thermo failure, and a non-equal-molecularity
+standard-concentration correction. This still does not wire reaction enthalpy
+into reactor energy balances.
 
 ## Mechanism and Scenario Library
 

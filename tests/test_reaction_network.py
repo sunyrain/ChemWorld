@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 import pytest
 
 from chemworld.physchem import (
+    NASA7SpeciesThermo,
+    NASA7TemperatureSegment,
     RateLawSpec,
     ReactionNetworkSpec,
     ReactionSpec,
@@ -16,8 +19,30 @@ from chemworld.physchem import (
     parse_reaction_equation,
     perturb_network_parameters,
     reaction_kinetics_model_cards,
+    reverse_rate_constant_from_equilibrium,
+    thermochemical_concentration_equilibrium_constant,
+    thermochemical_detailed_balance,
     validate_model_card,
 )
+
+
+def _constant_cp_thermo(
+    species_id: str,
+    *,
+    a5: float = 0.0,
+    a6: float = 0.0,
+) -> NASA7SpeciesThermo:
+    return NASA7SpeciesThermo(
+        species_id=species_id,
+        segments=(
+            NASA7TemperatureSegment(
+                min_temperature_K=200.0,
+                max_temperature_K=2500.0,
+                coefficients=(3.5, 0.0, 0.0, 0.0, 0.0, a5, a6),
+                label=f"{species_id}:constant-cp",
+            ),
+        ),
+    )
 
 
 def test_parse_reaction_equation_and_stoichiometric_matrix() -> None:
@@ -156,6 +181,143 @@ def test_reversible_reaction_moves_toward_equilibrium_ratio() -> None:
     )
     ratio = result.final_amounts_mol["B"] / result.final_amounts_mol["A"]
     assert ratio == pytest.approx(4.0, rel=0.05)
+
+
+def test_thermochemical_detailed_balance_sets_reverse_rate_from_nasa7() -> None:
+    temperature = 600.0
+    target_k_eq = 4.0
+    species_thermo = {
+        "A": _constant_cp_thermo("A"),
+        "B": _constant_cp_thermo("B", a6=math.log(target_k_eq)),
+    }
+    reaction = ReactionSpec.from_equation(
+        reaction_id="thermo_reversible",
+        equation="A <=> B",
+        rate_law=RateLawSpec(
+            "thermo_reversible_rate",
+            "reversible_arrhenius",
+            {"A": 0.02, "Ea_J_per_mol": 0.0, "K_eq_source": "nasa7"},
+        ),
+    )
+
+    detailed_balance = thermochemical_detailed_balance(
+        reaction,
+        species_thermo=species_thermo,
+        temperature_K=temperature,
+    )
+
+    assert detailed_balance.dimensionless_equilibrium_constant == pytest.approx(target_k_eq)
+    assert detailed_balance.concentration_equilibrium_constant == pytest.approx(target_k_eq)
+    assert detailed_balance.reverse_rate_constant == pytest.approx(0.02 / target_k_eq)
+    assert reverse_rate_constant_from_equilibrium(
+        forward_rate_constant=0.02,
+        concentration_equilibrium_constant=target_k_eq,
+    ) == pytest.approx(detailed_balance.reverse_rate_constant)
+
+    net_rate = evaluate_rate_law(
+        reaction,
+        concentrations_mol_L={"A": 0.25, "B": 1.0},
+        temperature_K=temperature,
+        species_thermo=species_thermo,
+    )
+    assert net_rate == pytest.approx(0.0, abs=1e-14)
+
+
+def test_thermochemical_reversible_network_moves_to_nasa7_equilibrium_ratio() -> None:
+    temperature = 600.0
+    target_k_eq = 4.0
+    species_thermo = {
+        "A": _constant_cp_thermo("A"),
+        "B": _constant_cp_thermo("B", a6=math.log(target_k_eq)),
+    }
+    network = ReactionNetworkSpec(
+        network_id="thermo_reversible_network",
+        species=(
+            SpeciesSpec("A", "C2H4O2", phase="gas"),
+            SpeciesSpec("B", "C2H4O2", phase="gas"),
+        ),
+        reactions=(
+            ReactionSpec.from_equation(
+                reaction_id="r1",
+                equation="A <=> B",
+                rate_law=RateLawSpec(
+                    "r1_thermo_reversible",
+                    "reversible_arrhenius",
+                    {"A": 0.02, "Ea_J_per_mol": 0.0, "K_eq_source": "nasa7"},
+                ),
+            ),
+        ),
+    )
+
+    result = network.integrate_batch(
+        {"A": 1.0, "B": 0.0},
+        volume_L=1.0,
+        temperature_K=temperature,
+        duration_s=2000.0,
+        species_thermo=species_thermo,
+    )
+    ratio = result.final_amounts_mol["B"] / result.final_amounts_mol["A"]
+    assert ratio == pytest.approx(target_k_eq, rel=5e-3)
+
+
+def test_thermochemical_equilibrium_constant_uses_concentration_standard_state() -> None:
+    temperature = 700.0
+    target_dimensionless_k = 8.0
+    standard_concentration = 2.0
+    reaction = ReactionSpec.from_equation(
+        reaction_id="association",
+        equation="A + B <=> C",
+        rate_law=RateLawSpec(
+            "association_rate",
+            "reversible_arrhenius",
+            {
+                "A": 0.1,
+                "Ea_J_per_mol": 0.0,
+                "K_eq_source": "nasa7",
+                "standard_concentration_mol_L": standard_concentration,
+            },
+        ),
+    )
+    species_thermo = {
+        "A": _constant_cp_thermo("A"),
+        "B": _constant_cp_thermo("B"),
+        "C": _constant_cp_thermo(
+            "C",
+            a5=3.5 * temperature,
+            a6=math.log(target_dimensionless_k) + 3.5 * math.log(temperature),
+        ),
+    }
+
+    concentration_k, dimensionless_k, delta_g = (
+        thermochemical_concentration_equilibrium_constant(
+            reaction,
+            species_thermo=species_thermo,
+            temperature_K=temperature,
+            standard_concentration_mol_L=standard_concentration,
+        )
+    )
+
+    assert dimensionless_k == pytest.approx(target_dimensionless_k)
+    assert concentration_k == pytest.approx(target_dimensionless_k / standard_concentration)
+    assert delta_g < 0.0
+
+
+def test_thermochemical_reversible_rate_fails_without_species_thermo() -> None:
+    reaction = ReactionSpec.from_equation(
+        reaction_id="missing_thermo",
+        equation="A <=> B",
+        rate_law=RateLawSpec(
+            "missing_thermo_rate",
+            "reversible_arrhenius",
+            {"A": 0.02, "K_eq_source": "nasa7"},
+        ),
+    )
+    with pytest.raises(ValueError, match="species_thermo"):
+        evaluate_rate_law(
+            reaction,
+            concentrations_mol_L={"A": 1.0, "B": 0.0},
+            temperature_K=600.0,
+        )
 
 
 def test_cantera_comparable_reaction_ode_cases_match_analytical_solutions() -> None:

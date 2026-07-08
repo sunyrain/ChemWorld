@@ -85,8 +85,8 @@ Every professional module must ship:
 | PRO-P12B validation summary export and optional-backend skip audit | liyijun | Review | current optional reference-backend tests and pytest skip patterns | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, docs | review JSON-friendly validation report and skipped optional-backend audit records | this commit |
 | PRO-P9A Gibbs minimization toy solver | whilesunny | Done | `Reaktoro` equilibrium specs, Cantera equilibrate constraints, `pycalphad` Gibbs model architecture | `src/chemworld/physchem/equilibrium_chemistry.py`, `src/chemworld/physchem/maturity.py`, `tests/test_equilibrium_chemistry.py`, `tests/test_maturity.py`, model cards, docs | next: add aqueous database-backed speciation or electrochemical thermodynamics in a separate slice | this commit |
 | PRO-P9B electrochemical thermodynamics and Butler-Volmer slice | whilesunny | Done | Cantera electrochemical examples, electrochemical equilibrium docs, existing ChemWorld electrochemistry proxy | `src/chemworld/physchem/electrochemistry.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/world/electrochemistry.py`, tests, docs | next: add ohmic drop, mass-transfer limiting current, and galvanostatic/potentiostatic controller slices in the deepening TODO | this commit |
-| PRO-P5B NASA7 thermochemistry and reaction Gibbs slice | whilesunny | Done | Cantera NASA7 species thermo, RMG thermo conventions, existing ChemWorld reaction-network thermochemistry gaps | `src/chemworld/physchem/thermochemistry.py`, `tests/test_thermochemistry.py`, docs | next: wire thermochemistry-derived `K(T)` and reaction enthalpy into reversible kinetics and reactor energy balances as deepening slices | this commit |
-| PRO-P5C thermochemistry-coupled reversible kinetics slice | whilesunny | Claimed | Cantera/RMG reverse-rate conventions, local NASA7 thermochemistry, existing reversible rate-law gaps | `src/chemworld/physchem/reaction_network.py`, `src/chemworld/physchem/thermochemistry.py`, tests, docs | read Cantera/RMG equilibrium-linked reverse-rate patterns, then implement detailed-balance reverse rates from NASA7 reaction Gibbs energy without changing reactor energy balance yet | pending push |
+| PRO-P5B NASA7 thermochemistry and reaction Gibbs slice | whilesunny | Done | Cantera NASA7 species thermo, RMG thermo conventions, existing ChemWorld reaction-network thermochemistry gaps | `src/chemworld/physchem/thermochemistry.py`, `tests/test_thermochemistry.py`, docs | next: reaction enthalpy still needs a reactor energy-balance slice | this commit |
+| PRO-P5C thermochemistry-coupled reversible kinetics slice | whilesunny | Done | Cantera/RMG reverse-rate conventions, local NASA7 thermochemistry, existing reversible rate-law gaps | `src/chemworld/physchem/reaction_network.py`, `src/chemworld/physchem/thermochemistry.py`, `tests/test_reaction_network.py`, docs | next: connect reaction enthalpy into reactor energy balances as a separate slice, without reopening detailed-balance kinetics | this commit |
 | PRO-P1B component conflict policy and source-priority audit | liyijun | Review | `chemicals`, `thermo`, `CoolProp` constants/identifier priority patterns | `src/chemworld/physchem/specs.py`, `tests/test_physchem_core.py`, docs | review deterministic field-level conflict policy with warning vs hard-fail modes and JSON audit records | this commit |
 | PRO-P11B task maturity manifest export | liyijun | Review | Gymnasium/Minari metadata manifest patterns and ChemWorld task cards | `src/chemworld/tasks.py`, `tests/test_maturity.py`, `docs/tasks.md`, `docs/baseline_reference.md` | review JSON-friendly task maturity manifest grouped by physics maturity and proxy allowance | this commit |
 | PRO-P12C reference backend version and tolerance manifest | liyijun | Review | optional reference-backend status probes and validation tolerance records | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, docs | review backend version probes and declared tolerance profiles in validation artifacts | this commit |
@@ -295,6 +295,8 @@ Reference targets: `Cantera`, `RMG-Py`, `thermo`.
   - [x] elementary mass-action;
   - [x] reversible rates obeying detailed balance for the validated
         constant-K first-order ODE slice;
+  - [x] reversible Arrhenius rates from NASA7 reaction Gibbs energy and
+        concentration-standard-state correction;
   - [x] modified Arrhenius;
   - [ ] falloff/Troe-style placeholder with validation target;
   - [ ] pressure-dependent hooks;
@@ -727,6 +729,29 @@ Reference-reading note for PRO-P5B:
   reaction Delta H/S/G, and `K = exp(-Delta G/RT)`. It does not claim NASA9,
   Shomate, group additivity, pressure corrections, or thermochemistry-coupled
   reactor energy integration yet.
+
+Reference-reading note for PRO-P5C:
+
+- `cantera/include/cantera/thermo/IdealGasPhase.h` documents the microscopic
+  reversibility bridge from thermodynamic equilibrium expressions to reverse
+  rate constants, and distinguishes dimensionless activity equilibrium
+  constants from concentration equilibrium constants used by kinetics managers.
+- `cantera/include/cantera/thermo/ThermoPhase.h` explicitly defines `K_a`,
+  `K_p`, and `K_c`, and states that kinetics managers require `K_c` for
+  reverse rate constants.
+- `rmg-py/rmgpy/solver/simple.pyx` populates forward rates, equilibrium
+  constants, and reverse rates with `k_reverse = k_forward / K_eq` for
+  reversible reactions.
+- `rmg-py/rmgpy/kinetics/diffusionLimited.py` uses the same `k_forward / Keq`
+  relationship before applying diffusion-limit corrections.
+- ChemWorld localizes this as `thermochemical_detailed_balance()`,
+  `thermochemical_concentration_equilibrium_constant()`, and
+  `reverse_rate_constant_from_equilibrium()`. A `reversible_arrhenius` rate law
+  can now declare `K_eq_source: nasa7`; when `species_thermo` is supplied,
+  reverse rates come from NASA7 reaction Gibbs energy and
+  `K_c = exp(-Delta G/RT) * C0^(sum nu_i)`. This closes the detailed-balance
+  reverse-rate slice, not falloff, pressure dependence, or reactor
+  heat-release coupling.
 
 - [ ] `thermo`:
   - [x] ideal Raoult VLE bubble/dew/TP flash;

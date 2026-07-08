@@ -237,6 +237,7 @@ class ReactionNetworkSpec:
         *,
         volume_L: float,
         temperature_K: float,
+        species_thermo: Mapping[str, Any] | None = None,
     ) -> dict[str, float]:
         concentrations = self._concentrations(amounts_mol, volume_L=volume_L)
         return {
@@ -244,6 +245,7 @@ class ReactionNetworkSpec:
                 reaction,
                 concentrations_mol_L=concentrations,
                 temperature_K=temperature_K,
+                species_thermo=species_thermo,
             )
             for reaction in self.reactions
         }
@@ -254,11 +256,13 @@ class ReactionNetworkSpec:
         *,
         volume_L: float,
         temperature_K: float,
+        species_thermo: Mapping[str, Any] | None = None,
     ) -> dict[str, float]:
         rates = self.reaction_rates(
             amounts_mol,
             volume_L=volume_L,
             temperature_K=temperature_K,
+            species_thermo=species_thermo,
         )
         derivatives = dict.fromkeys(self.species_ids, 0.0)
         for reaction in self.reactions:
@@ -275,6 +279,7 @@ class ReactionNetworkSpec:
         temperature_K: float,
         duration_s: float,
         evaluation_times_s: Sequence[float] | None = None,
+        species_thermo: Mapping[str, Any] | None = None,
     ) -> BatchIntegrationResult:
         if duration_s < 0:
             raise ValueError("duration_s cannot be negative")
@@ -296,6 +301,7 @@ class ReactionNetworkSpec:
                 amounts,
                 volume_L=volume_L,
                 temperature_K=temperature_K,
+                species_thermo=species_thermo,
             )
             return np.array([derivatives[species_id] for species_id in self.species_ids])
 
@@ -516,6 +522,40 @@ class ReactionODEReferenceResult:
         }
 
 
+@dataclass(frozen=True)
+class ThermochemicalDetailedBalanceResult:
+    """Forward and reverse rate constants linked by reaction thermochemistry."""
+
+    reaction_id: str
+    temperature_K: float
+    forward_rate_constant: float
+    reverse_rate_constant: float
+    concentration_equilibrium_constant: float
+    dimensionless_equilibrium_constant: float
+    delta_g_J_mol: float
+    reaction_order_delta: float
+    standard_concentration_mol_L: float
+    source: str = "nasa7"
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "reaction_id": self.reaction_id,
+            "temperature_K": self.temperature_K,
+            "forward_rate_constant": self.forward_rate_constant,
+            "reverse_rate_constant": self.reverse_rate_constant,
+            "concentration_equilibrium_constant": (
+                self.concentration_equilibrium_constant
+            ),
+            "dimensionless_equilibrium_constant": (
+                self.dimensionless_equilibrium_constant
+            ),
+            "delta_g_J_mol": self.delta_g_J_mol,
+            "reaction_order_delta": self.reaction_order_delta,
+            "standard_concentration_mol_L": self.standard_concentration_mol_L,
+            "source": self.source,
+        }
+
+
 def cantera_comparable_reaction_cases() -> tuple[ReactionODEReferenceCase, ...]:
     """Return ChemWorld-owned constant-volume ODE reference cases.
 
@@ -662,6 +702,100 @@ def evaluate_reaction_ode_reference_case(
     )
 
 
+def thermochemical_detailed_balance(
+    reaction: ReactionSpec,
+    *,
+    species_thermo: Mapping[str, Any],
+    temperature_K: float,
+    standard_concentration_mol_L: float = 1.0,
+) -> ThermochemicalDetailedBalanceResult:
+    """Compute reverse rate constant from NASA7 reaction thermochemistry.
+
+    The concentration equilibrium constant is consistent with ChemWorld's
+    mass-action rate powers:
+
+    ``K_c = K_dimensionless * C0 ** sum(nu_i)``.
+    """
+
+    if reaction.rate_law.equation_id != "reversible_arrhenius":
+        raise ValueError("thermochemical detailed balance requires reversible_arrhenius")
+    forward_rate_constant = _arrhenius_k(reaction.rate_law.parameters, temperature_K)
+    concentration_equilibrium_constant, dimensionless_equilibrium_constant, delta_g = (
+        thermochemical_concentration_equilibrium_constant(
+            reaction,
+            species_thermo=species_thermo,
+            temperature_K=temperature_K,
+            standard_concentration_mol_L=standard_concentration_mol_L,
+        )
+    )
+    return ThermochemicalDetailedBalanceResult(
+        reaction_id=reaction.reaction_id,
+        temperature_K=temperature_K,
+        forward_rate_constant=forward_rate_constant,
+        reverse_rate_constant=reverse_rate_constant_from_equilibrium(
+            forward_rate_constant=forward_rate_constant,
+            concentration_equilibrium_constant=concentration_equilibrium_constant,
+        ),
+        concentration_equilibrium_constant=concentration_equilibrium_constant,
+        dimensionless_equilibrium_constant=dimensionless_equilibrium_constant,
+        delta_g_J_mol=delta_g,
+        reaction_order_delta=_reaction_order_delta(reaction),
+        standard_concentration_mol_L=standard_concentration_mol_L,
+    )
+
+
+def thermochemical_concentration_equilibrium_constant(
+    reaction: ReactionSpec,
+    *,
+    species_thermo: Mapping[str, Any],
+    temperature_K: float,
+    standard_concentration_mol_L: float = 1.0,
+) -> tuple[float, float, float]:
+    """Return ``(K_c, K_dimensionless, Delta G)`` from species thermo."""
+
+    if temperature_K <= 0:
+        raise ValueError("temperature_K must be positive")
+    if standard_concentration_mol_L <= 0 or not isfinite(standard_concentration_mol_L):
+        raise ValueError("standard_concentration_mol_L must be finite and positive")
+    from chemworld.physchem.thermochemistry import reaction_thermochemistry
+
+    thermo_result = reaction_thermochemistry(
+        reaction_id=reaction.reaction_id,
+        stoichiometry=reaction.stoichiometry,
+        species_thermo=species_thermo,
+        temperature_K=temperature_K,
+    )
+    concentration_equilibrium_constant = (
+        thermo_result.equilibrium_constant
+        * standard_concentration_mol_L ** _reaction_order_delta(reaction)
+    )
+    if concentration_equilibrium_constant <= 0 or not isfinite(
+        concentration_equilibrium_constant
+    ):
+        raise ValueError("thermochemical concentration equilibrium constant is invalid")
+    return (
+        concentration_equilibrium_constant,
+        thermo_result.equilibrium_constant,
+        thermo_result.delta_g_J_mol,
+    )
+
+
+def reverse_rate_constant_from_equilibrium(
+    *,
+    forward_rate_constant: float,
+    concentration_equilibrium_constant: float,
+) -> float:
+    """Return ``k_reverse = k_forward / K_c`` with explicit validation."""
+
+    if forward_rate_constant < 0 or not isfinite(forward_rate_constant):
+        raise ValueError("forward_rate_constant must be finite and nonnegative")
+    if concentration_equilibrium_constant <= 0 or not isfinite(
+        concentration_equilibrium_constant
+    ):
+        raise ValueError("concentration_equilibrium_constant must be finite and positive")
+    return forward_rate_constant / concentration_equilibrium_constant
+
+
 def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
     return (
         ModelCard(
@@ -684,6 +818,10 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     "r_net = k_f c_A - k_r c_B, "
                     "k_r = k_f / K_eq for the validated reversible case"
                 ),
+                (
+                    "K_c(T) = exp(-Delta G_rxn^0/RT) * C0^(sum nu_i) "
+                    "for the NASA7 detailed-balance slice"
+                ),
             ),
             assumptions=(
                 "well-mixed homogeneous phase",
@@ -696,7 +834,7 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                 "validated ODE reference cases are first-order A=>B and A<=>B networks",
                 (
                     "no falloff, third-body, pressure-dependent, surface-coverage, "
-                    "or thermochemistry-coupled reverse-rate model in this slice"
+                    "or reactor-energy-coupled model in this slice"
                 ),
                 "rate coefficient units must be consistent with mol/L concentration powers",
             ),
@@ -761,6 +899,18 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     command_or_path="tests/reference/test_optional_reference_backends.py",
                     tolerance="rtol=1e-12",
                 ),
+                ValidationEvidence(
+                    evidence_id="nasa7-detailed-balance-rate-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "NASA7 species Gibbs energies determine K_eq(T), reverse "
+                        "rate constants, and the equilibrium ratio in a reversible "
+                        "batch ODE case."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reaction_network.py",
+                    tolerance="equilibrium ratio checked at 5e-3 relative tolerance",
+                ),
             ),
             model_limit_notes=(
                 (
@@ -768,9 +918,8 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     "not close the broader professional kinetics roadmap."
                 ),
                 (
-                    "Future tasks must add falloff, pressure dependence, "
-                    "thermochemical equilibrium constants, and heat-release-coupled "
-                    "reactor checks."
+                    "Future tasks must add falloff, pressure dependence, and "
+                    "heat-release-coupled reactor checks."
                 ),
             ),
             intended_use=(
@@ -810,6 +959,7 @@ def evaluate_rate_law(
     *,
     concentrations_mol_L: Mapping[str, float],
     temperature_K: float,
+    species_thermo: Mapping[str, Any] | None = None,
 ) -> float:
     if temperature_K <= 0:
         raise ValueError("temperature_K must be positive")
@@ -825,16 +975,23 @@ def evaluate_rate_law(
         k = _arrhenius_k(params, temperature_K)
         return _mass_action_rate(reaction.reactants, concentrations_mol_L, k)
     if equation_id == "reversible_arrhenius":
+        forward_rate_constant = _arrhenius_k(params, temperature_K)
         forward = _mass_action_rate(
             reaction.reactants,
             concentrations_mol_L,
-            _arrhenius_k(params, temperature_K),
+            forward_rate_constant,
         )
-        reverse_params = _reverse_params(params)
+        reverse_rate_constant = _reverse_rate_constant(
+            reaction,
+            params,
+            temperature_K=temperature_K,
+            forward_rate_constant=forward_rate_constant,
+            species_thermo=species_thermo,
+        )
         reverse = _mass_action_rate(
             reaction.products,
             concentrations_mol_L,
-            _arrhenius_k(reverse_params, temperature_K),
+            reverse_rate_constant,
         )
         return forward - reverse
     if equation_id == "catalytic_activity":
@@ -1013,6 +1170,48 @@ def _arrhenius_k(params: Mapping[str, object], temperature_K: float) -> float:
         default=_float_param(params, "Ea", default=0.0),
     )
     return A * temperature_K**b * exp(-Ea / (R_J_PER_MOL_K * temperature_K))
+
+
+def _reaction_order_delta(reaction: ReactionSpec) -> float:
+    return sum(reaction.stoichiometry.values())
+
+
+def _reverse_rate_constant(
+    reaction: ReactionSpec,
+    params: Mapping[str, object],
+    *,
+    temperature_K: float,
+    forward_rate_constant: float,
+    species_thermo: Mapping[str, Any] | None,
+) -> float:
+    if "A_reverse" in params:
+        return _arrhenius_k(_reverse_params(params), temperature_K)
+    if "K_eq" in params:
+        K_eq = _float_param(params, "K_eq")
+        if K_eq <= 0:
+            raise ValueError("K_eq must be positive")
+        return reverse_rate_constant_from_equilibrium(
+            forward_rate_constant=forward_rate_constant,
+            concentration_equilibrium_constant=K_eq,
+        )
+    source = str(params.get("K_eq_source", params.get("equilibrium_source", ""))).lower()
+    if source in {"nasa7", "species_thermo", "thermochemistry"}:
+        if species_thermo is None:
+            raise ValueError("NASA7 reversible_arrhenius requires species_thermo")
+        standard_concentration = _float_param(
+            params,
+            "standard_concentration_mol_L",
+            default=1.0,
+        )
+        return thermochemical_detailed_balance(
+            reaction,
+            species_thermo=species_thermo,
+            temperature_K=temperature_K,
+            standard_concentration_mol_L=standard_concentration,
+        ).reverse_rate_constant
+    raise ValueError(
+        "reversible_arrhenius requires A_reverse, K_eq, or K_eq_source='nasa7'"
+    )
 
 
 def _reverse_params(params: Mapping[str, object]) -> dict[str, object]:

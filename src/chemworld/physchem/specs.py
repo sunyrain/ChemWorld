@@ -1034,7 +1034,7 @@ __all__ = [
     "mole_fractions_from_mass_fractions",
     "normalize_component_token",
     "property_equation_contracts",
-    "resolve_component_identifier",
     "resolve_component_field_conflict",
+    "resolve_component_identifier",
     "supported_property_equations",
 ]
