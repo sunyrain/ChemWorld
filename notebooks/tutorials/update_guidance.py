@@ -219,6 +219,105 @@ GUIDANCE = {
     },
 }
 
+WORK_ORDERS = {
+    "day_01_enter_virtual_lab.ipynb": (
+        "至少新增 6 条不同 recipe，覆盖 2 个温度、2 个时间和 2 个溶剂/催化剂选择。",
+        "把每条实验的 action、observation、reward、risk、cost 保存成一张表。",
+        "至少画 2 张图：score/risk 随条件变化图，以及最终 best experiment 摘要图。",
+        "写 300 字实验日志：你认为哪一步最影响结果，下一轮为什么这样改。",
+    ),
+    "day_02_ontology_and_constitution.ipynb": (
+        "至少构造 4 个非法动作：缺少前置物料、非法仪器、越界温度/体积、错误操作顺序。",
+        "把每个非法动作的 validator/constitution 原因记录成表。",
+        "把其中 2 个非法动作修复为合法 recipe，并证明修复后可执行。",
+        "写 300 字解释：这些约束对应哪些真实化工安全或物料账本问题。",
+    ),
+    "day_03_observation_and_instruments.ipynb": (
+        "至少比较 HPLC、GC、UV-vis、FinalAssay 中 3 类仪器；每类至少做 3 次重复测量。",
+        "计算每类仪器的平均成本、平均 uncertainty、样品消耗和可观测字段数量。",
+        "至少画 2 张 raw signal/processed estimate 图，解释噪声如何影响判断。",
+        "设计一个低成本测量策略：先筛选，再确认，并说明何时升级到 FinalAssay。",
+    ),
+    "day_04_mechanism_scans.ipynb": (
+        "至少完成 20 个扫描实验：温度 5 点、时间 5 点、浓度 4 点、催化剂/溶剂组合至少 6 点。",
+        "画出 score、yield、selectivity、risk 至少 4 个指标的趋势图。",
+        "找出一个高产率但低综合 score 的条件，并解释 trade-off。",
+        "写出 3 条机制假设，并为每条假设设计下一轮验证实验。",
+    ),
+    "day_05_surrogate_modeling.ipynb": (
+        "至少使用 30 条实验样本；如果数据不足，先补做实验再建模。",
+        "训练至少 2 个模型或 2 组特征方案，并比较验证误差。",
+        "列出模型最不确定的 5 个候选条件和最可能高分的 5 个候选条件。",
+        "写 400 字模型局限：哪些区域是外推，哪些结论只能当局部 world model。",
+    ),
+    "day_06_baselines_and_leaderboard.ipynb": (
+        "至少运行 5 类策略：random、LHS、scripted、BO、safe BO；每类至少 3 个 seed。",
+        "输出 performance、sample efficiency、safety cost、invalid action count 四类指标。",
+        "画 best-score 曲线和 safety-cost 曲线，解释两条曲线是否一致。",
+        "写 400 字 baseline 诊断：哪个策略最稳，哪个策略最容易刷榜但不安全。",
+    ),
+    "day_07_capstone_artifact.ipynb": (
+        "整理至少 1 个完整 submission bundle：manifest、trajectory、results、explanation。",
+        "至少 replay/verify 2 条轨迹：一条成功轨迹，一条失败或低分轨迹。",
+        "补齐 failure analysis：至少解释 2 个失败原因和对应修复方案。",
+        "写 500 字项目摘要，让别人不问你也能复现实验结论。",
+    ),
+    "day_08_gpt_planner_and_validation.ipynb": (
+        "至少写 3 个 GPT-style plan：保守、激进、安全约束三种风格。",
+        "每个 plan 至少包含 8 个 operation，并全部经过 validate/repair。",
+        "记录每次 invalid reason 和修复动作，形成 tool-call 日志表。",
+        "写 400 字讨论：LLM planner 在哪里帮了忙，在哪里必须被工具约束。",
+    ),
+    "day_09_bayesian_optimization.ipynb": (
+        "使用足够 budget 让 BO 至少进入 3 次 acquisition 决策，而不是停在初始点。",
+        "比较普通 BO 与 safe BO：至少各跑 3 个 seed。",
+        "画 best-score、risk、constraint violation 随实验轮次变化的曲线。",
+        "写 400 字分析：BO 被哪些观测误差或安全约束影响，下一版 acquisition 如何改。",
+    ),
+    "day_10_public_leaderboard_challenge.ipynb": (
+        "至少提交 2 个 agent，每个 agent 至少 3 个 seed。",
+        "每个提交都必须包含 manifest、trajectory、results 和一段 strategy note。",
+        "比较 public leaderboard 的 performance、sample efficiency、safety-aware score。",
+        "写 400 字说明：哪些改动是稳健策略，哪些可能只是 public-test 过拟合。",
+    ),
+    "day_11_private_generalization.ipynb": (
+        "至少比较 2 个策略在 public-test 与 private-like split 上的表现。",
+        "每个策略至少 3 个 seed，报告均值、标准误和 public/private gap。",
+        "把 gap 拆成 performance、safety、sample efficiency、invalid operation 四部分。",
+        "写 500 字泛化诊断：失败来自机理误判、采样不足、噪声，还是公开榜过拟合。",
+    ),
+    "day_12_demo_day_artifact.ipynb": (
+        "整理最终 6 类证据：轨迹、榜单、图表、机理解释、失败分析、复现命令。",
+        "形成 8-10 页展示稿或等价 markdown 报告。",
+        "至少选择 1 条最佳轨迹和 1 条失败轨迹进行并排解释。",
+        "写 800 字最终结论：你发现了什么局部 world model，下一步如何验证。",
+    ),
+    "day_13_year2_process_modules.ipynb": (
+        "至少运行 4 个过程 task：结晶、蒸馏、连续流、电化学各一次。",
+        "为每个过程记录新增 ledger 字段、观测字段、风险来源和失效模式。",
+        "选择 1 个过程做深挖，写出需要新增的专业物理模型和测试清单。",
+        "写 500 字论证：为什么它应挂在同一套 WorldLaw 下，而不是独立小游戏。",
+    ),
+    "project_leaderboard_blueprint.ipynb": (
+        "模拟至少 2 个学生提交、2 个 task、2 个 seed 的本机评测流程。",
+        "输出教师端 inbox、验证日志、结果表、leaderboard 四类文件结构。",
+        "设计至少 4 个榜：performance、sample efficiency、safety、explanation。",
+        "写出双人/小组协作规则：如何声明任务、如何提交、如何避免重复劳动和刷榜。",
+    ),
+    "full_workflow_demo.ipynb": (
+        "完整跑通一次全流程，并把每个输出映射到对应 API 或 CLI。",
+        "修改一个 task 或 agent 参数，重新生成一条不同轨迹。",
+        "至少对比 2 个 agent 的结果，并运行 verify。",
+        "写 400 字总结：哪些步骤是实验执行，哪些步骤是评测复现。",
+    ),
+    "physics_sanity_check.ipynb": (
+        "每类扫描至少 10 个点：温度、时间、催化剂-溶剂、浓度-风险。",
+        "对每张图写出预期趋势、实际趋势和不一致原因。",
+        "至少新增 2 条 sanity assertion，作为后续物理内核重构的回归测试候选。",
+        "写 400 字说明：通过 sanity check 与真实校准之间还差什么。",
+    ),
+}
+
 
 def _markdown_cell(text: str) -> dict:
     if not text.endswith("\n"):
@@ -238,6 +337,8 @@ def _is_existing_guidance(cell: dict) -> bool:
     return (
         text.startswith("## 学习路径定位")
         or text.startswith("## 本日任务梯度")
+        or text.startswith("## 三小时实验工单")
+        or text.startswith("## 学生工作区")
         or (text.startswith("## ??????") and "| ?? | ?? |" in text)
     )
 
@@ -275,9 +376,57 @@ def _ladder_cell(meta: dict[str, str]) -> dict:
     )
 
 
+def _work_order_cell(path: Path, meta: dict[str, str]) -> dict:
+    orders = WORK_ORDERS[path.name]
+    rows = "\n".join(f"| {index} | {item} |" for index, item in enumerate(orders, start=1))
+    return _markdown_cell(
+        f"""## 三小时实验工单（必须自己完成）
+
+这一节不是演示输出，而是当天真正的工作量。请不要只从上到下运行已有单元；必须在后面的学生工作区新增自己的实验、图表、表格和文字结论。
+
+| 序号 | 最小完成量 |
+| --- | --- |
+{rows}
+
+验收口径：本日交付至少应包含数据表、图或谱图、验证/评测结果、机制解释和下一步实验建议。低于这些证据量，视为只完成了演示浏览。
+
+"""
+    )
+
+
+def _workspace_markdown_cell() -> dict:
+    return _markdown_cell(
+        """## 学生工作区
+
+请从这里开始写自己的实验扩展。建议保留上方演示单元作为参考，不要直接覆盖；把你新增的实验条件、图、模型、验证结果和文字结论放在下面。
+
+建议你在本节下面新增自己的代码单元。可从这个记录模板开始：
+
+```python
+student_work = {
+    "hypothesis": "",
+    "experiments_added": 0,
+    "figures_created": 0,
+    "verification_or_metric": "",
+    "next_experiment": "",
+}
+```
+
+"""
+    )
+
+
+def _is_existing_workspace_code(cell: dict) -> bool:
+    return cell.get("cell_type") == "code" and _text(cell).lstrip().startswith("# 学生工作区")
+
+
 def update_notebook(path: Path, meta: dict[str, str]) -> None:
     notebook = json.loads(path.read_text(encoding="utf-8"))
-    cells = [cell for cell in notebook["cells"] if not _is_existing_guidance(cell)]
+    cells = [
+        cell
+        for cell in notebook["cells"]
+        if not _is_existing_guidance(cell) and not _is_existing_workspace_code(cell)
+    ]
     cells.insert(1 if cells else 0, _path_cell(meta))
 
     target = None
@@ -294,9 +443,11 @@ def update_notebook(path: Path, meta: dict[str, str]) -> None:
     if target is None:
         target = min(2, len(cells))
     cells.insert(target, _ladder_cell(meta))
+    cells.insert(target + 1, _work_order_cell(path, meta))
+    cells.insert(target + 2, _workspace_markdown_cell())
 
     notebook["cells"] = cells
-    path.write_text(json.dumps(notebook, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(notebook, ensure_ascii=True, indent=1) + "\n", encoding="ascii")
 
 
 def main() -> None:

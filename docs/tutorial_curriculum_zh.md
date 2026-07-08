@@ -78,6 +78,18 @@ env = gym.make("ChemWorld", task_id="reaction-optimization-standard", seed=0)
 | 挑战任务 | 项目组长、研究型学生或 agent 组 | 能形成策略改进、泛化诊断或可复现提交 |
 | 反思问题 | 所有人 | 能把数值结果翻译成化工意义和下一步实验 |
 
+## 每日最小工作量
+
+每个 notebook 都新增了 `三小时实验工单（必须自己完成）` 和 `学生工作区`。学生不能只运行已保存输出；每一天至少要留下：
+
+- 一组自己新增的实验、扫描、baseline、模型或提交结果。
+- 一张表：记录 action、observation、score/risk/cost、instrument 或 metric。
+- 至少一张图或谱图：用于解释趋势、噪声、风险或泛化差距。
+- 一条验证证据：validator、verify、leaderboard row、模型误差或 sanity assertion。
+- 一段文字结论：机制解释、失败分析、下一轮实验设计。
+
+建议教师把“新增实验数量”和“解释质量”作为课堂检查点。示例阈值：Day 4 至少 20 个机制扫描实验，Day 5 至少 30 条建模样本，Day 6 至少 5 类 baseline 各 3 个 seed，Day 9 至少让 BO 进入 3 次 acquisition 决策。
+
 ## 评分建议
 
 不要只看最高分。建议课程评分分成五项：

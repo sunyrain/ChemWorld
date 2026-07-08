@@ -32,6 +32,16 @@ def _notebook_text(path: Path) -> str:
     )
 
 
+def _all_notebook_text(path: Path) -> str:
+    notebook = json.loads(path.read_text(encoding="utf-8"))
+    return "\n".join(
+        "".join(cell.get("source", []))
+        if isinstance(cell.get("source", []), list)
+        else str(cell.get("source", ""))
+        for cell in notebook["cells"]
+    )
+
+
 def test_tutorial_notebooks_have_half_hour_timeboxes() -> None:
     expected_slots = (
         "0:00-0:30",
@@ -52,15 +62,31 @@ def test_tutorial_notebooks_have_progressive_guidance() -> None:
     expected_guidance = (
         "学习路径定位",
         "本日任务梯度",
+        "三小时实验工单",
+        "学生工作区",
         "基础任务",
         "进阶任务",
         "挑战任务",
         "反思问题",
+        "最小完成量",
     )
     for notebook_name in TUTORIAL_NOTEBOOKS:
-        text = _notebook_text(TUTORIAL_DIR / notebook_name)
+        text = _all_notebook_text(TUTORIAL_DIR / notebook_name)
         for phrase in expected_guidance:
             assert phrase in text
+
+
+def test_tutorial_notebooks_do_not_contain_garbled_guidance() -> None:
+    garbled_markers = (
+        "## ??????",
+        "| ?? | ?? |",
+        "??? ChemWorld",
+        "???? recipe",
+    )
+    for notebook_name in TUTORIAL_NOTEBOOKS:
+        text = _all_notebook_text(TUTORIAL_DIR / notebook_name)
+        for marker in garbled_markers:
+            assert marker not in text
 
 
 def test_tutorial_notebooks_use_plain_markdown_checkpoints() -> None:

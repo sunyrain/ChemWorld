@@ -20,6 +20,8 @@ python -m ipykernel install --user --name chemworld --display-name "Python (Chem
 - 学习路径定位：难度、先修、今天只解决什么、本日交付。
 - 课堂时间盒：每 30 分钟都要留下一个可检查证据。
 - 本日任务梯度：基础任务、进阶任务、挑战任务和反思问题。
+- 三小时实验工单：列出当天最低实验数量、图表、验证和文字交付。
+- 学生工作区：留给学生新增代码和记录，不再只浏览已执行输出。
 - 检查点：不用调用可视化 helper，直接在 markdown 里写清楚今天应提交什么。
 
 如果课堂只有 90 分钟，建议现场完成前 3 个时间盒，把后 3 个作为课后提交。
@@ -56,6 +58,7 @@ python -m ipykernel install --user --name chemworld --display-name "Python (Chem
 ## 教师建议
 
 - 每 30 分钟要求一个小证据：表格、图、JSONL、验证结果、解释文本或下一轮实验建议。
+- 把“自己新增的实验/模型/提交”作为硬要求；只点击运行演示单元不算完成。
 - 不只奖励最高分；同时评价安全、样本效率、可复现性、机理解释和日志质量。
 - 鼓励学生使用 GPT 或其他助手，但必须经过 action schema、validator、verify 和最终轨迹记录约束。
 - 谱图、色谱和 raw signal 位于 `info["raw_signal"]` 或 trajectory `raw_signal`，适合用来训练仪器观测和机制解释。
