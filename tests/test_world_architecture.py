@@ -10,7 +10,7 @@ import pytest
 
 import chemworld  # noqa: F401
 from chemworld.cli import main
-from chemworld.data.datasets import dataset_card, export_dataset
+from chemworld.data.datasets import dataset_card, export_dataset, flatten_record
 from chemworld.data.logging import load_jsonl
 from chemworld.foundation import OperationRecord
 from chemworld.foundation.state import (
@@ -1685,6 +1685,27 @@ def test_cli_scenarios_validation_render_and_dataset(tmp_path, capsys) -> None:
     records = load_jsonl(exported)
     assert records[0]["campaign_id"]
     card = dataset_card(exported)
+    flattened = export_dataset(trajectory, output=tmp_path / "copy.jsonl", format="jsonl")
     assert card["record_count"] == len(records)
-    exported_result = export_dataset(trajectory, output=tmp_path / "copy.jsonl", format="jsonl")
-    assert exported_result.record_count == len(records)
+    assert card["schema_version"] == "chemworld-dataset-card-0.2"
+    assert card["trajectory_schema_versions"] == ["chemworld-trajectory-0.1"]
+    assert card["protocol_hashes"]["task_contract_hashes"] == [
+        records[0]["task_contract_hash"]
+    ]
+    assert card["protocol_hashes"]["runtime_profile_hashes"] == [
+        records[0]["runtime_profile_hash"]
+    ]
+    assert card["protocol_hashes"]["mechanism_hashes"] == [records[0]["mechanism_hash"]]
+    assert card["protocol_hashes"]["scoring_contract_hashes"] == [
+        records[0]["scoring_contract_hash"]
+    ]
+    assert card["protocol_hashes"]["observation_contract_hashes"] == [
+        records[0]["observation_contract_hash"]
+    ]
+    assert card["replay_verification"]["verified"]
+    assert card["replay_verification"]["checked_steps"] == len(records)
+    assert card["privacy"]["status"] == "synthetic_or_submission_provided"
+    assert flattened.record_count == len(records)
+    flattened_record = flatten_record(records[0])
+    assert flattened_record["task_contract_hash"] == records[0]["task_contract_hash"]
+    assert flattened_record["runtime_profile_hash"] == records[0]["runtime_profile_hash"]

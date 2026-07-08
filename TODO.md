@@ -89,7 +89,7 @@ finished, update its status and push immediately.
 | PRO-RUNTIME-J task-aware raw-signal contract | whilesunny | Done | `src/chemworld/runtime/observation_services.py`, `src/chemworld/world/spectra.py`, tests/docs | environment raw signal generation now uses task-visible public role aggregates instead of passing full hidden species ledgers to agent-visible instrument packets | this commit |
 | PRO-RUNTIME-K scoring and observation contract hashes | whilesunny | Done | `src/chemworld/world/`, `src/chemworld/envs/`, `src/chemworld/data/`, `src/chemworld/eval/verify.py`, tests/docs | deterministic scoring/observation contract hashes are recorded in task info, trajectories, schemas, and replay verification | this commit |
 | PRO-RUNTIME-L task/profile contract hashes | whilesunny | Done | `src/chemworld/tasks.py`, `src/chemworld/runtime/kernels.py`, `src/chemworld/envs/`, `src/chemworld/data/`, `src/chemworld/eval/verify.py`, tests/docs | deterministic task-spec and runtime-profile hashes are recorded in task info, trajectories, schemas, and replay verification | this commit |
-| DEEP-D10B dataset export hardening | whilesunny | Active | `src/chemworld/data/datasets.py`, `src/chemworld/eval/verify.py`, tests/docs | add schema-versioned dataset cards with replay verification summaries and protocol hash manifests | in progress |
+| DEEP-D10B dataset export hardening | whilesunny | Done | `src/chemworld/data/datasets.py`, `src/chemworld/eval/verify.py`, tests/docs | dataset cards now include schema version, replay verification summaries, protocol hash manifests, privacy summaries, and Parquet/JSONL flattening keeps protocol hashes | this commit |
 
 Status values:
 
