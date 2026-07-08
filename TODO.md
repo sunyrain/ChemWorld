@@ -85,6 +85,7 @@ finished, update its status and push immediately.
 | PRO-RUNTIME-F precondition rollback transaction | whilesunny | Done | `src/chemworld/runtime/`, `src/chemworld/envs/`, tests/docs | operation precondition failures now enter Runtime v2 rollback events and process-only penalty patches; schema/task/payload failures remain env-level validation failures | this commit |
 | PRO-RUNTIME-G task-scoped domain-service validation | whilesunny | Done | `src/chemworld/runtime/domain_services.py`, tests/docs | domain-service validation is task-profile scoped; unrelated future operations are not required by every task runtime | this commit |
 | PRO-RUNTIME-H task-specific scoring contract | whilesunny | Done | `src/chemworld/world/scoring.py`, `src/chemworld/runtime/observation_services.py`, `src/chemworld/envs/`, tests/docs | score computation now reads a task-level scoring contract instead of always using the fixed reaction score formula | this commit |
+| PRO-RUNTIME-I task-specific observation contract | whilesunny | Active | `src/chemworld/world/`, `src/chemworld/runtime/observation_services.py`, `src/chemworld/envs/`, tests/docs | make instrument observable keys read a task/mechanism observation contract instead of always using each global instrument's full key list | in progress |
 
 Status values:
 
