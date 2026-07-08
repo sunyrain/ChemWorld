@@ -10,7 +10,7 @@ import chemworld  # noqa: F401
 from chemworld.cli import main
 from chemworld.data.datasets import dataset_card, export_dataset
 from chemworld.data.logging import load_jsonl
-from chemworld.foundation.state import WorldState, equipment_settings
+from chemworld.foundation.state import WorldState, equipment_settings, upsert_equipment_record
 from chemworld.runtime.domain_services import (
     ChemWorldDomainServices,
     make_chemworld_constitution,
@@ -439,7 +439,15 @@ def test_domain_services_apply_mechanism_roles_for_reagent_and_electrolysis() ->
         pressure_Pa=101_325.0,
         phase="liquid",
         vessel_id="electrochemical_cell",
-        metadata={"solvent": 0, "catalyst": 0},
+    ).replace(
+        equipment=upsert_equipment_record(
+            None,
+            equipment_id="batch_reactor",
+            equipment_type="batch_reactor",
+            attached_vessel_id="electrochemical_cell",
+            status="configured",
+            settings={"solvent": 0, "catalyst": 0},
+        )
     )
 
     charged, add_record = services.apply_operation(
@@ -620,6 +628,59 @@ def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> 
         electro_env.close()
 
 
+def test_runtime_reactor_settings_use_typed_equipment_ledger() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
+    try:
+        env.reset(seed=0)
+        _, _, _, _, solvent_info = env.step(
+            {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2}
+        )
+        state = env.unwrapped._state
+        settings = equipment_settings(state.equipment, "batch_reactor")
+        assert "equipment" in solvent_info["affected_ledgers"]
+        assert settings["solvent"] == 2
+        assert "solvent" not in state.metadata
+
+        _, _, _, _, catalyst_info = env.step(
+            {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1}
+        )
+        state = env.unwrapped._state
+        settings = equipment_settings(state.equipment, "batch_reactor")
+        assert "equipment" in catalyst_info["affected_ledgers"]
+        assert settings["catalyst"] == 1
+        assert "catalyst" not in state.metadata
+
+        env.step({"operation": "add_reagent", "amount_mol": 0.010})
+        _, _, _, _, heat_info = env.step(
+            {
+                "operation": "heat",
+                "target_temperature_K": 380.0,
+                "duration_s": 600.0,
+                "stirring_speed_rpm": 740.0,
+            }
+        )
+        state = env.unwrapped._state
+        settings = equipment_settings(state.equipment, "batch_reactor")
+        assert "equipment" in heat_info["affected_ledgers"]
+        assert settings["stirring_speed_rpm"] == pytest.approx(740.0)
+        assert "stirring_speed_rpm" not in state.metadata
+        assert env.unwrapped.constitution.check_state(state).passed
+
+        env.step({"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012})
+        env.step({"operation": "add_extractant", "extractant": "organic", "volume_L": 0.018})
+        _, _, _, _, mix_info = env.step(
+            {"operation": "mix", "duration_s": 240.0, "stirring_speed_rpm": 850.0}
+        )
+        state = env.unwrapped._state
+        mixer_settings = equipment_settings(state.equipment, "phase_mixer")
+        assert "equipment" in mix_info["affected_ledgers"]
+        assert mixer_settings["stirring_speed_rpm"] == pytest.approx(850.0)
+        assert "stirring_speed_rpm" not in state.metadata
+        assert env.unwrapped.constitution.check_state(state).passed
+    finally:
+        env.close()
+
+
 def test_world_kernels_are_executable_not_metadata_only() -> None:
     world = load_chemworld_parameters("public-dev", seed=1)
     state = initial_chemworld_state().replace(
@@ -636,9 +697,15 @@ def test_world_kernels_are_executable_not_metadata_only() -> None:
         metadata={
             **initial_chemworld_state().metadata,
             "initial_A_mol": 0.01,
-            "solvent": 1,
-            "catalyst": 1,
         },
+        equipment=upsert_equipment_record(
+            initial_chemworld_state().equipment,
+            equipment_id="batch_reactor",
+            equipment_type="batch_reactor",
+            attached_vessel_id="batch_reactor",
+            status="configured",
+            settings={"solvent": 1, "catalyst": 1, "stirring_speed_rpm": 700.0},
+        ),
     )
     result = integrate_reaction_ode(
         state=state,

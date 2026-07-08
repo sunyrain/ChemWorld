@@ -53,8 +53,9 @@ class ChemWorldElectrochemicalServices:
         impurity = self.species_view.primary_impurity_species
         a_mol = species.get(reactant, 0.0)
         volume = max(state.volume_L, 1.0e-9)
-        catalyst = int(state.metadata.get("catalyst", 0))
-        solvent = int(state.metadata.get("solvent", 0))
+        reactor_settings = equipment_settings(state.equipment, "batch_reactor")
+        catalyst = int(reactor_settings.get("catalyst", 0))
+        solvent = int(reactor_settings.get("solvent", 0))
         exchange_current_density = 28.0 * float(self.world.catalyst_effects[catalyst, 0])
         exchange_current_density *= float(self.world.solvent_effects[solvent, 0])
         electrochemical_spec = ElectrodeReactionSpec(

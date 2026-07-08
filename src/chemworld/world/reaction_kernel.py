@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from chemworld.foundation import Reaction, WorldState
+from chemworld.foundation import Reaction, WorldState, equipment_settings
 
 R_GAS = 8.31446261815324
 REACTION_SPECIES = ("A", "P", "B", "D", "E", "Cat_active", "Cat_dead")
@@ -107,8 +107,9 @@ def reaction_ode_rhs(
     amounts = np.maximum(y[:7], 0.0)
     temperature = float(np.clip(y[7], 250.0, 520.0))
     volume = max(state.volume_L, 1.0e-6)
-    catalyst = int(state.metadata.get("catalyst", 0))
-    solvent = int(state.metadata.get("solvent", 0))
+    reactor_settings = equipment_settings(state.equipment, "batch_reactor")
+    catalyst = int(reactor_settings.get("catalyst", 0))
+    solvent = int(reactor_settings.get("solvent", 0))
     concentrations = amounts / volume
     cat_total = max(amounts[5] + amounts[6], 1.0e-12)
     eta_cat = amounts[5] / cat_total

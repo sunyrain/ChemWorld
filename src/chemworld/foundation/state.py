@@ -334,20 +334,11 @@ class WorldState:
                         "batch_reactor",
                         attached_vessel_id=self.vessel_id,
                         status="terminated" if self.terminated else "idle",
-                        settings={
-                            key: deepcopy(value)
-                            for key, value in self.metadata.items()
-                            if key
-                            in {
-                                "solvent",
-                                "catalyst",
-                                "stirring_speed_rpm",
-                            }
-                        },
+                        settings={},
                     )
                 }
             )
-            if self.equipment is None or set(self.equipment.equipment) == {"batch_reactor"}
+            if self.equipment is None
             else self.equipment
         )
         thermal = (

@@ -6,8 +6,8 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState
-from chemworld.foundation.state import PhaseLedger, PhaseRecord
+from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
+from chemworld.foundation.state import EquipmentLedger, PhaseLedger, PhaseRecord
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
 from chemworld.world.phase_kernel import partition_split
@@ -223,6 +223,7 @@ class ChemWorldPhaseSeparationServices:
     ) -> dict[str, Any]:
         metadata = state.metadata.copy()
         metadata.pop("phase_ledger", None)
+        metadata.pop("stirring_speed_rpm", None)
         metadata.update(
             downstream_truth_values(
                 state,
@@ -243,6 +244,7 @@ class ChemWorldPhaseSeparationServices:
         metadata_updates: dict[str, Any] | None = None,
         ledger: Any | None = None,
         volume_L: float | None = None,
+        equipment: EquipmentLedger | None = None,
     ) -> WorldState:
         metadata = self.phase_metadata(state, phase_ledger, updates=metadata_updates)
         phases = self.phase_ledger_records(state, phase_ledger, metadata=metadata)
@@ -253,6 +255,7 @@ class ChemWorldPhaseSeparationServices:
             volume_L=state.volume_L if volume_L is None else volume_L,
             ledger=state.ledger if ledger is None else ledger,
             metadata=metadata,
+            equipment=state.equipment if equipment is None else equipment,
         )
 
     def add_phase(self, state: WorldState, action: dict[str, Any]) -> WorldState:
@@ -278,7 +281,8 @@ class ChemWorldPhaseSeparationServices:
         phase_ledger = self.phase_ledger(state)
         organic = phase_ledger.setdefault("organic", _empty_phase())
         organic["volume_L"] += volume
-        solvent = int(state.metadata.get("solvent", 0))
+        reactor_settings = equipment_settings(state.equipment, "batch_reactor")
+        solvent = int(reactor_settings.get("solvent", 0))
         risk = min(1.0, state.ledger.risk + 0.04 + 0.05 * float(self.world.solvent_risks[solvent]))
         ledger = state.ledger.with_updates(
             cost=state.ledger.cost + 0.025 + 0.80 * volume,
@@ -316,7 +320,8 @@ class ChemWorldPhaseSeparationServices:
         aqueous = phase_ledger["aqueous"]
         p_total = self._phase_product_amount(state)
         impurity_total = self._phase_impurity_amount(state)
-        solvent = int(state.metadata.get("solvent", 0))
+        reactor_settings = equipment_settings(state.equipment, "batch_reactor")
+        solvent = int(reactor_settings.get("solvent", 0))
         split = partition_split(
             product_mol=p_total,
             impurity_mol=impurity_total,
@@ -332,6 +337,14 @@ class ChemWorldPhaseSeparationServices:
         organic["impurity_mol"] = split["organic_impurity_mol"]
         aqueous["impurity_mol"] = split["aqueous_impurity_mol"]
         phase_ledger.pop("reactor_liquid", None)
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="phase_mixer",
+            equipment_type="phase_mixer",
+            attached_vessel_id=state.vessel_id,
+            status="configured",
+            settings={"stirring_speed_rpm": stirring},
+        )
         ledger = state.ledger.with_updates(
             time_s=state.ledger.time_s + duration,
             cost=state.ledger.cost + 0.01 + duration / 3600.0 * 0.015,
@@ -343,9 +356,9 @@ class ChemWorldPhaseSeparationServices:
                 "phase_system": True,
                 "phase_settled": False,
                 "partition_coefficient": split["partition_coefficient"],
-                "stirring_speed_rpm": stirring,
             },
             ledger=ledger,
+            equipment=equipment,
         )
 
     def settle_phases(self, state: WorldState, action: dict[str, Any]) -> WorldState:

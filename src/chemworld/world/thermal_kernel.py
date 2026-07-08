@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from chemworld.foundation import WorldState
+from chemworld.foundation import WorldState, equipment_settings
 
 
 def pressure_and_risk(
@@ -14,7 +14,8 @@ def pressure_and_risk(
     state: WorldState,
     solvent_risks: np.ndarray,
 ) -> tuple[float, float]:
-    solvent = int(state.metadata.get("solvent", 0))
+    reactor_settings = equipment_settings(state.equipment, "batch_reactor")
+    solvent = int(reactor_settings.get("solvent", 0))
     total_amount = sum(
         value for key, value in state.species_amounts.items() if not key.startswith("Cat")
     )

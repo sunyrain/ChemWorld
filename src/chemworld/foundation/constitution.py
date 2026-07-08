@@ -58,6 +58,12 @@ class PhysicalConstitution:
         "true_conversion",
     }
 
+    primary_reactor_metadata_keys: ClassVar[set[str]] = {
+        "catalyst",
+        "solvent",
+        "stirring_speed_rpm",
+    }
+
     required_state_units: ClassVar[dict[str, str]] = {
         "volume_L": "L",
         "temperature_K": "K",
@@ -365,6 +371,11 @@ class PhysicalConstitution:
                 "metadata_no_primary_phase_ledger",
                 "phase_ledger" not in state.metadata,
                 "Phase material state must live in typed PhaseLedger.",
+            ),
+            CheckResult(
+                "metadata_no_primary_reactor_settings",
+                self.primary_reactor_metadata_keys.isdisjoint(state.metadata),
+                "Batch-reactor operation settings must live in typed EquipmentLedger.",
             )
         ]
         if state.phases is not None:

@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState
+from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
 from chemworld.world.parameters import ChemWorldParameters
 from chemworld.world.reaction_kernel import integrate_reaction_ode
 from chemworld.world.thermal_kernel import pressure_and_risk
@@ -32,10 +32,11 @@ class ChemWorldReactionThermalServices:
     ) -> WorldState:
         duration = float(np.clip(_action_float(action, "duration_s", 600.0), 0.0, 14_400.0))
         target_temperature = _action_float(action, "target_temperature_K", state.temperature_K)
+        reactor_settings = equipment_settings(state.equipment, "batch_reactor")
         stirring_speed = _action_float(
             action,
             "stirring_speed_rpm",
-            float(state.metadata.get("stirring_speed_rpm", 600.0)),
+            float(reactor_settings.get("stirring_speed_rpm", 600.0)),
         )
         result = integrate_reaction_ode(
             state=state,
@@ -54,13 +55,19 @@ class ChemWorldReactionThermalServices:
             heat_reaction_J=state.ledger.heat_reaction_J + result.heat_reaction_J,
             heat_loss_J=state.ledger.heat_loss_J + result.heat_loss_J,
         )
-        metadata = state.metadata.copy()
-        metadata["stirring_speed_rpm"] = result.stirring_speed_rpm
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="batch_reactor",
+            equipment_type="batch_reactor",
+            attached_vessel_id=state.vessel_id,
+            status="configured",
+            settings={"stirring_speed_rpm": result.stirring_speed_rpm},
+        )
         return state.replace(
             species_amounts=result.species_amounts,
             temperature_K=result.temperature_K,
             ledger=ledger,
-            metadata=metadata,
+            equipment=equipment,
         )
 
     def with_risk_and_pressure(self, state: WorldState) -> WorldState:

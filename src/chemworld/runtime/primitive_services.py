@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 
 from chemworld.core.actions import CATALYSTS, SOLVENTS
-from chemworld.foundation import WorldState, scale_phase_ledger
+from chemworld.foundation import WorldState, scale_phase_ledger, upsert_equipment_record
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
 
@@ -45,12 +45,18 @@ class ChemWorldPrimitiveOperationServices:
     def add_solvent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         volume = float(np.clip(_action_float(action, "volume_L", 0.025), 0.0, 0.080))
         solvent = _action_index(action, "solvent", 0, len(SOLVENTS))
-        metadata = state.metadata.copy()
-        metadata["solvent"] = solvent
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="batch_reactor",
+            equipment_type="batch_reactor",
+            attached_vessel_id=state.vessel_id,
+            status="configured",
+            settings={"solvent": solvent},
+        )
         ledger = state.ledger.with_updates(
             cost=state.ledger.cost + volume * 8.0 * float(self.world.solvent_costs[solvent])
         )
-        return state.replace(volume_L=state.volume_L + volume, ledger=ledger, metadata=metadata)
+        return state.replace(volume_L=state.volume_L + volume, ledger=ledger, equipment=equipment)
 
     def add_catalyst(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         amount = float(np.clip(_action_float(action, "catalyst_amount_mol", 0.00020), 0.0, 0.005))
@@ -58,13 +64,19 @@ class ChemWorldPrimitiveOperationServices:
         species = state.species_amounts.copy()
         active_catalyst = self.species_view.active_catalyst_species(state)
         species[active_catalyst] = species.get(active_catalyst, 0.0) + amount
-        metadata = state.metadata.copy()
-        metadata["catalyst"] = catalyst
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="batch_reactor",
+            equipment_type="batch_reactor",
+            attached_vessel_id=state.vessel_id,
+            status="configured",
+            settings={"catalyst": catalyst},
+        )
         ledger = state.ledger.with_updates(
             cost=state.ledger.cost
             + 4.0 * amount / 0.001 * float(self.world.catalyst_costs[catalyst])
         )
-        return state.replace(species_amounts=species, ledger=ledger, metadata=metadata)
+        return state.replace(species_amounts=species, ledger=ledger, equipment=equipment)
 
     def sample(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         volume = float(np.clip(_action_float(action, "sample_volume_L", 0.0001), 0.0, 0.002))

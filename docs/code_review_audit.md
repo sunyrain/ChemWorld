@@ -241,7 +241,7 @@ Recommended follow-up:
   domain-service module.
 - Extracted `ChemWorldReactionThermalServices` into
   `runtime/reaction_thermal_services.py`, keeping heat/wait reaction
-  integration, stirring metadata, energy-ledger updates, and pressure/risk
+  integration, typed reactor stirring settings, energy-ledger updates, and pressure/risk
   projection outside the mixed domain-service module.
 - Extracted `ChemWorldPhaseSeparationServices` into
   `runtime/phase_separation_services.py`, keeping phase-ledger normalization,
@@ -273,6 +273,10 @@ Recommended follow-up:
   `runtime/primitive_services.py`, keeping reagent, solvent, and catalyst
   addition, sampling, quench, evaporation, and invalid-action penalty updates
   outside the composition layer.
+- Promoted batch-reactor solvent, catalyst, and stirring configuration out of
+  runtime metadata into typed `EquipmentLedger` settings. Reaction, thermal,
+  electrochemical, and phase-partition services now read the typed reactor
+  settings, and the constitution rejects these keys as primary metadata.
 - Extracted `reaction_network_specs.py` from `reaction_network.py`, keeping
   species/rate-law/reaction specs, reaction-equation parsing, and mechanism
   dict helpers outside the ODE integration and rate-law evaluation engine.

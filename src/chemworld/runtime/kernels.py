@@ -279,6 +279,7 @@ def _affected_ledgers(operation_type: str) -> tuple[str, ...]:
     material = {
         "add_reagent",
         "add_catalyst",
+        "add_solvent",
         "sample",
         "heat",
         "wait",
@@ -304,10 +305,28 @@ def _affected_ledgers(operation_type: str) -> tuple[str, ...]:
     if operation_type in material:
         affected.append("species")
         affected.append("phases")
-    if operation_type in {"heat", "wait", "quench", "evaporate", "distill", "run_flow"}:
+    if operation_type in {
+        "add_solvent",
+        "heat",
+        "wait",
+        "quench",
+        "evaporate",
+        "distill",
+        "run_flow",
+    }:
         affected.append("thermal")
         affected.append("vessels")
-    if operation_type in {"set_flow_rate", "set_potential", "electrolyze", "distill"}:
+    if operation_type in {
+        "add_solvent",
+        "add_catalyst",
+        "heat",
+        "wait",
+        "mix",
+        "set_flow_rate",
+        "set_potential",
+        "electrolyze",
+        "distill",
+    }:
         affected.append("equipment")
     if operation_type == "measure":
         affected.append("observation")
