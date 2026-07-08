@@ -128,13 +128,32 @@ time, and task/world layers define objectives and observations. This makes it
 possible to add semi-batch, CSTR, PFR, reactive flash, and continuous-flow tasks
 without creating separate toy environments.
 
+## Equation-Of-State Core
+
+The P5 EOS core is implemented in `chemworld.physchem.eos`. It gives ChemWorld a
+local thermodynamic backend for gas and dense-fluid calculations:
+
+| EOS capability | Current implementation |
+| --- | --- |
+| Ideal gas | molar volume, pressure, normalized composition, unit fugacity coefficients |
+| Pure cubic parameters | Peng-Robinson and SRK `a alpha`, `b`, alpha, kappa |
+| Mixture rules | classical one-fluid `a_mix`, `b_mix`, optional binary interaction `k_ij` |
+| Compressibility | real admissible cubic `Z` roots |
+| Phase root selection | vapor, liquid, and residual-Gibbs-style stable root selector |
+| Fugacity | component fugacity coefficients for PR and SRK mixtures |
+
+The EOS layer is JSON-friendly through `EOSComponentSpec`, `CubicEOSSpec`,
+`EOSMixtureParameters`, and `EOSState`. It is designed to support future VLE,
+flash, reactive flash, distillation, pressure-risk, and vapor-loss tasks without
+making CoolProp, thermo, teqp, or thermopack required runtime dependencies.
+
 ## Boundaries
 
-This layer is now a real local property-correlation and reaction-network core,
-but it is not yet a complete process simulator. It does not perform flash
-calculations, EOS solves, activity-coefficient calculations, automatic reaction
-mechanism generation, or detailed transport calculations. Those will be built
-on top of these specs in later TODO milestones.
+This layer is now a real local property-correlation, reaction-network, reactor,
+and cubic-EOS core, but it is not yet a complete process simulator. It does not
+perform full flash calculations, activity-coefficient calculations, automatic
+reaction mechanism generation, or detailed transport calculations. Those will
+be built on top of these specs in later TODO milestones.
 
 ## Validation Rules
 

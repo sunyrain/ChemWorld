@@ -20,6 +20,8 @@ Current scope:
   evaluation, and deterministic batch ODE integration.
 - mechanism-backed reactor kernels for batch, semi-batch, CSTR, and PFR
   calculations with material and energy ledgers.
+- local equation-of-state calculations for ideal gas, Peng-Robinson, and SRK
+  states with compressibility roots and fugacity coefficients.
 
 Design rules:
 
@@ -30,6 +32,8 @@ Design rules:
 - keep mechanism definitions separate from reactor and task logic;
 - keep reactor residence time, feed/outlet flow, and heat-transfer contracts
   explicit;
+- keep EOS component critical properties, mixture parameters, phase-root
+  selection, and fugacity outputs inspectable;
 - declare property units and validity ranges on every correlation;
 - reject unbalanced reaction networks before simulation;
 - add optional reference-backend comparisons only as skipped tests or adapters;
