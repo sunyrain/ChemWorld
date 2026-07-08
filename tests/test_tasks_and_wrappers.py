@@ -201,6 +201,36 @@ def test_observation_kernel_filters_measurements_by_task_contract() -> None:
         purification_env.close()
 
 
+def test_env_raw_signal_uses_public_task_species_contract() -> None:
+    env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
+    try:
+        env.reset(seed=0)
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0},
+            {"operation": "electrolyze", "duration_s": 1800.0},
+            {"operation": "terminate"},
+        ):
+            env.step(action)
+        _, _, _, _, info = env.step({"operation": "measure", "instrument": "final_assay"})
+
+        raw_signal = info["raw_signal"]
+        species_ids = _nested_values_for_key(raw_signal, "species_id")
+        detection_limit_species = _nested_detection_limit_species(raw_signal)
+        public_species = {"A_public", "P_public", "B_public", "D_public"}
+        hidden_species = set(env.unwrapped.scenario_instance.compiled_mechanism.species_index)
+
+        assert raw_signal["visibility"] == "task_observation_contract"
+        assert species_ids
+        assert species_ids <= public_species
+        assert detection_limit_species <= public_species
+        assert species_ids.isdisjoint(hidden_species)
+        assert detection_limit_species.isdisjoint(hidden_species)
+    finally:
+        env.close()
+
+
 def test_action_mask_wrapper_reports_valid_operations() -> None:
     env = ActionMaskWrapper(gym.make("ChemWorld", task_id="reaction-to-assay", seed=0))
     try:
@@ -480,6 +510,37 @@ def test_purification_recipe_accepts_user_facing_aliases() -> None:
         assert final_info["leaderboard_score"] is not None
     finally:
         env.close()
+
+
+def _nested_values_for_key(payload: object, key: str) -> set[str]:
+    if isinstance(payload, dict):
+        values = {str(payload[key])} if key in payload else set()
+        for value in payload.values():
+            values.update(_nested_values_for_key(value, key))
+        return values
+    if isinstance(payload, list | tuple):
+        values: set[str] = set()
+        for item in payload:
+            values.update(_nested_values_for_key(item, key))
+        return values
+    return set()
+
+
+def _nested_detection_limit_species(payload: object) -> set[str]:
+    if isinstance(payload, dict):
+        values = set()
+        limits = payload.get("detection_limits_mol_L")
+        if isinstance(limits, dict):
+            values.update(str(key) for key in limits)
+        for value in payload.values():
+            values.update(_nested_detection_limit_species(value))
+        return values
+    if isinstance(payload, list | tuple):
+        values: set[str] = set()
+        for item in payload:
+            values.update(_nested_detection_limit_species(item))
+        return values
+    return set()
 
 
 def _run_scripted_task(task_id: str) -> tuple[dict[str, np.ndarray], dict[str, object]]:

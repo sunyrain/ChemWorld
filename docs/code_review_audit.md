@@ -342,6 +342,11 @@ Recommended follow-up:
   reaction-only tasks no longer inherit unrelated purification, distillation,
   crystallization, flow, or electrochemistry fields from global instrument
   contracts.
+- Added task-aware raw-signal shielding for environment observations. Runtime
+  instrument packets now synthesize spectra from task-visible public role
+  aggregates such as `A_public`, `P_public`, `B_public`, and `D_public` rather
+  than passing full hidden species ledgers or mechanism-internal species names
+  into agent-visible raw-signal packets.
 - Routed stateful operation precondition failures through Runtime v2 rollback
   semantics. Payload/schema/task-policy failures remain env-level
   `validation_failed` events, while physical precondition failures now emit

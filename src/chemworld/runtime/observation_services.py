@@ -107,11 +107,21 @@ class ChemWorldObservationKernel:
         observed_mask["safety_risk"] = True
         noisy["score"] = self._score(noisy)
         observed_mask["score"] = True
+        public_species_amounts = self._public_species_amounts(
+            state,
+            observable_keys=observable_keys,
+        )
         return Observation(
             values=noisy,
             units=self._observation_units(),
             observed_mask=observed_mask,
-            raw_signal=self._raw_signal(instrument_id, noisy, state, rng),
+            raw_signal=self._raw_signal(
+                instrument_id,
+                noisy,
+                state,
+                rng,
+                species_amounts_mol=public_species_amounts,
+            ),
             processed_estimate=self._processed_estimate(noisy, observed_mask),
             uncertainty={
                 f"{key}_std": float(std)
@@ -146,22 +156,28 @@ class ChemWorldObservationKernel:
     ) -> dict[str, float | None]:
         return processed_estimate(values, observed_mask)
 
-    @staticmethod
     def _raw_signal(
+        self,
         instrument_id: str,
         values: dict[str, float | None],
         state: WorldState,
         rng: np.random.Generator,
+        *,
+        species_amounts_mol: dict[str, float] | None = None,
     ) -> dict[str, Any]:
         replicate_count = 3 if instrument_id == "final_assay" else 2
-        return raw_signal(
+        packet = raw_signal(
             instrument_id,
             values,
-            species_amounts_mol=state.species_amounts,
+            species_amounts_mol=species_amounts_mol,
             volume_L=state.volume_L,
             seed=int(rng.integers(0, 2**31 - 1)),
             replicate_count=replicate_count,
         )
+        if species_amounts_mol is not None:
+            packet["source"] = "task_public_species_calibration"
+            packet["visibility"] = "task_observation_contract"
+        return packet
 
     @staticmethod
     def _observation_units() -> dict[str, str]:
@@ -197,6 +213,66 @@ class ChemWorldObservationKernel:
             )
         )
         return truth
+
+    def _public_species_amounts(
+        self,
+        state: WorldState,
+        *,
+        observable_keys: tuple[str, ...],
+    ) -> dict[str, float] | None:
+        if self.observation_contract is None:
+            return state.species_amounts
+        keys = set(observable_keys)
+        public_amounts: dict[str, float] = {}
+        reaction_keys = {
+            "yield",
+            "selectivity",
+            "conversion",
+            "byproduct_signal",
+            "degradation_warning",
+        }
+        target_keys = {
+            "yield",
+            "selectivity",
+            "purity",
+            "recovery",
+            "phase_ratio",
+            "product_in_organic",
+            "product_in_aqueous",
+            "crystal_yield",
+            "crystal_purity",
+            "distillate_purity",
+            "distillate_recovery",
+            "flow_conversion",
+            "electrochemical_selectivity",
+        }
+        impurity_keys = {
+            "selectivity",
+            "byproduct_signal",
+            "purity",
+            "impurity_signal",
+            "process_mass_balance_error",
+            "crystal_purity",
+            "distillate_purity",
+        }
+        if keys.intersection(reaction_keys):
+            public_amounts["A_public"] = self.species_view.reactant_amount(state)
+        if keys.intersection(target_keys):
+            public_amounts["P_public"] = self.species_view.target_amount(state)
+        if keys.intersection(impurity_keys):
+            public_amounts["B_public"] = max(
+                self.species_view.byproduct_amount(state),
+                self.species_view.impurity_amount(state)
+                - self.species_view.degradation_amount(state),
+                0.0,
+            )
+        if "degradation_warning" in keys:
+            public_amounts["D_public"] = self.species_view.degradation_amount(state)
+        return {
+            species_id: amount
+            for species_id, amount in public_amounts.items()
+            if amount > 0.0
+        } or None
 
 
 __all__ = ["ChemWorldObservationKernel"]
