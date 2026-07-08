@@ -255,3 +255,8 @@ export, submission bundles, and anonymization helpers for human pilot studies.
 Runtime v2 trajectory records include `mechanism_id`, `mechanism_hash`,
 `kernel_id`, `kernel_version`, `affected_ledgers`, `world_events`,
 `state_patches_summary`, `transaction_status`, and `rollback_reason`.
+Schema, task-policy, instrument-policy, and payload-shape failures are rejected
+before runtime dispatch as `validation_failed`. Stateful operation precondition
+failures, such as running a final assay before termination, now enter Runtime v2
+and produce an `operation_rejected` event, a `transaction_rollback` event, and a
+process-only `rollback_penalty` patch without mutating material ledgers.

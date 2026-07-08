@@ -22,10 +22,33 @@ class OperationValidation:
     cost_penalty: float
     safety_flags: dict[str, bool]
 
+    @property
+    def dispatchable_to_runtime(self) -> bool:
+        """Return whether the action can enter Runtime v2 transaction handling.
+
+        Schema, task-policy, instrument-policy, and payload-shape failures are
+        rejected before runtime dispatch. Stateful physical precondition
+        failures are still dispatchable so the transactional runtime can record
+        a rollback event and process-only penalty.
+        """
+
+        blocking_reasons = {
+            "action_schema_valid",
+            "operation_allowed_by_task",
+            "instrument_allowed_by_task",
+        }
+        return not any(
+            reason in blocking_reasons
+            or reason.startswith("payload_has:")
+            or reason.startswith("payload_bounds:")
+            for reason in self.invalid_reasons
+        )
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "operation_type": self.operation_type,
             "valid": self.is_valid,
+            "dispatchable_to_runtime": self.dispatchable_to_runtime,
             "preconditions": self.preconditions,
             "invalid_reasons": list(self.invalid_reasons),
             "valid_operations": list(self.valid_operations),

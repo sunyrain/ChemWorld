@@ -118,6 +118,50 @@ class TransactionManager:
             constitution_checks=checks,
         )
 
+    def rollback(
+        self,
+        *,
+        state: WorldState,
+        operation_type: str,
+        rollback_reason: str,
+        failed_preconditions: tuple[str, ...] = (),
+        failed_checks: tuple[str, ...] = (),
+        events: tuple[WorldEvent, ...] = (),
+    ) -> TransactionResult:
+        """Rollback an action before candidate-state mutation is committed."""
+
+        penalty_state = self._penalize_rollback(state)
+        payload: dict[str, Any] = {"rollback_reason": rollback_reason}
+        if failed_preconditions:
+            payload["failed_preconditions"] = list(failed_preconditions)
+        if failed_checks:
+            payload["failed_checks"] = list(failed_checks)
+        rollback_event = WorldEvent("transaction_rollback", operation_type, payload)
+        rollback_patch = StatePatch(
+            patch_type="rollback_penalty",
+            affected_ledgers=("process",),
+            state=penalty_state,
+            summary={
+                "delta_cost": penalty_state.ledger.cost - state.ledger.cost,
+                "delta_risk": penalty_state.ledger.risk - state.ledger.risk,
+                "delta_sample_consumed_L": (
+                    penalty_state.ledger.sample_consumed_L
+                    - state.ledger.sample_consumed_L
+                ),
+                "failed_preconditions": list(failed_preconditions),
+                "failed_checks": list(failed_checks),
+            },
+        )
+        checks = tuple(check.to_dict() for check in self.constitution.check_state(state).checks)
+        return TransactionResult(
+            state=penalty_state,
+            events=(*events, rollback_event),
+            patches=(rollback_patch,),
+            transaction_status="rolled_back",
+            rollback_reason=rollback_reason,
+            constitution_checks=checks,
+        )
+
     @staticmethod
     def _penalize_rollback(state: WorldState) -> WorldState:
         ledger = state.ledger.with_updates(

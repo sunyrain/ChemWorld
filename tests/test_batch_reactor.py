@@ -73,6 +73,12 @@ def test_failed_final_assay_does_not_leak_observation() -> None:
     try:
         obs, _ = env.reset(seed=7)
         del obs
+        validation = env.unwrapped.operation_validator.validate(
+            {"operation": "measure", "instrument": "final_assay"},
+            env.unwrapped._state,
+        )
+        assert not validation.is_valid
+        assert validation.dispatchable_to_runtime
         observation, reward, terminated, truncated, info = env.step(
             {"operation": "measure", "instrument": "final_assay"}
         )
@@ -86,6 +92,11 @@ def test_failed_final_assay_does_not_leak_observation() -> None:
         assert info["leaderboard_score"] is None
         assert info["measurement_cost"] == 0.0
         assert info["sample_consumed"] == 0.0
+        assert info["transaction_status"] == "rolled_back"
+        assert info["rollback_reason"] == "precondition_failed"
+        assert info["world_events"][0]["event_type"] == "operation_rejected"
+        assert info["world_events"][-1]["event_type"] == "transaction_rollback"
+        assert info["state_patches_summary"][-1]["patch_type"] == "rollback_penalty"
         assert info["constraint_flags"]["precondition_failed"]
         assert "measure_final_requires_terminated" in info["error_message"]
         assert all(not observed for observed in info["observed_mask"].values())

@@ -228,7 +228,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         action = self.action_codec.canonicalize(action)
         previous_state = self._state
         validation = self.operation_validator.validate(action, self._state)
-        if validation.is_valid:
+        if validation.dispatchable_to_runtime:
             runtime_result = self.runtime.apply_transaction(self._state, action)
             self._state = runtime_result.state
             operation_record = runtime_result.operation_record

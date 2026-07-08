@@ -199,9 +199,55 @@ class ServiceOperationKernel:
         context: RuntimeContext,
     ) -> KernelResult:
         before = state
-        next_state, record = context.domain_services.apply_operation(state, action)
         domain_service_id = context.domain_services.service_id_for_operation(self.operation_type)
         affected = _affected_ledgers(self.operation_type)
+        next_state, record = context.domain_services.apply_operation(state, action)
+        failed_preconditions = tuple(
+            key for key, passed in record.preconditions.items() if not passed
+        )
+        if failed_preconditions:
+            rejection_event = WorldEvent(
+                event_type="operation_rejected",
+                operation_type=self.operation_type,
+                payload={
+                    "kernel_id": self.kernel_id,
+                    "domain_service_id": domain_service_id,
+                    "affected_ledgers": list(affected),
+                    "failed_preconditions": list(failed_preconditions),
+                },
+            )
+            transaction = context.transaction_manager.rollback(
+                state=before,
+                operation_type=self.operation_type,
+                rollback_reason="precondition_failed",
+                failed_preconditions=failed_preconditions,
+                events=(rejection_event,),
+            )
+            record = context.domain_services.record_operation(
+                self.operation_type,
+                before,
+                transaction.state,
+                record.preconditions,
+                action,
+            )
+            return KernelResult(
+                state=transaction.state,
+                operation_record=record,
+                events=transaction.events,
+                patches=transaction.patches,
+                state_delta_summary=record.state_delta_summary,
+                cost_delta=transaction.state.ledger.cost - before.ledger.cost,
+                risk_delta=transaction.state.ledger.risk - before.ledger.risk,
+                sample_delta=(
+                    transaction.state.ledger.sample_consumed_L
+                    - before.ledger.sample_consumed_L
+                ),
+                affected_ledgers=("process",),
+                kernel_id=self.kernel_id,
+                kernel_version=self.kernel_version,
+                transaction_status=transaction.transaction_status,
+                rollback_reason=transaction.rollback_reason,
+            )
         patch = StatePatch(
             patch_type="replace_state",
             affected_ledgers=affected,

@@ -328,6 +328,11 @@ Recommended follow-up:
   declares required domain services in addition to operations, kernels,
   instruments, and capabilities; runtime startup validates the profile against
   both operation kernels and focused domain-service contracts.
+- Routed stateful operation precondition failures through Runtime v2 rollback
+  semantics. Payload/schema/task-policy failures remain env-level
+  `validation_failed` events, while physical precondition failures now emit
+  `operation_rejected` plus `transaction_rollback` events and only commit a
+  process-ledger penalty patch.
 - Added an IR functional-group spectroscopy slice. IR signal generation now
   exposes curated local band assignments, broad O-H Lorentzian bands,
   transmittance bounds, overlap/interference metadata, public API exports, and a

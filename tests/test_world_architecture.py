@@ -1571,13 +1571,23 @@ def test_validator_rejects_invalid_payload_bounds() -> None:
     env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
     try:
         _, _ = env.reset(seed=0)
+        before = env.unwrapped._state
         bad = env.unwrapped.operation_validator.validate(
             {"operation": "add_solvent", "volume_L": 0.2, "solvent": 1},
             env.unwrapped._state,
         )
         assert not bad.is_valid
+        assert not bad.dispatchable_to_runtime
         assert "payload_bounds:volume_L" in bad.invalid_reasons
         assert "payload_bounds:total_volume_L" in bad.invalid_reasons
+        _, _, _, _, info = env.step(
+            {"operation": "add_solvent", "volume_L": 0.2, "solvent": 1}
+        )
+        after = env.unwrapped._state
+        assert info["transaction_status"] == "validation_failed"
+        assert info["world_events"][0]["event_type"] == "validation_failed"
+        assert after.species_amounts == before.species_amounts
+        assert after.volume_L == pytest.approx(before.volume_L)
     finally:
         env.close()
 
