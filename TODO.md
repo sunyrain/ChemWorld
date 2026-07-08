@@ -60,7 +60,7 @@ finished, update its status and push immediately.
 | Reaction-network reference-case split | whilesunny | Done | `src/chemworld/physchem/`, tests/docs | analytical ODE reference cases, Cantera-comparable fixtures, and reference-case evaluation now live in `reaction_reference_cases.py` | this commit |
 | Runtime v2 golden characterization | whilesunny | Done | `tests/`, runtime/env docs | scripted golden final-assay trajectories now cover all formal tasks, including campaign/single-experiment semantics and runtime transaction metadata | this commit |
 | Runtime v2 import and dispatch boundary audit | whilesunny | Done | `src/chemworld/envs/`, `src/chemworld/runtime/`, tests/docs | env/runtime import boundaries and ChemWorldEnv process-operation dispatch delegation are now enforced by architecture tests | this commit |
-| Runtime v2 transaction replay golden | whilesunny | Active | `src/chemworld/eval/verify.py`, `tests/`, docs | add replay tests for mechanism-hash mismatch and Runtime v2 transaction metadata consistency | this commit |
+| Runtime v2 transaction replay golden | whilesunny | Done | `src/chemworld/eval/verify.py`, `tests/`, docs | verifier now replays and compares mechanism hash, kernel metadata, world events, state-patch summaries, transaction status, and state-delta summaries | this commit |
 
 Status values:
 

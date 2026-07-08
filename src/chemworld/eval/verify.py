@@ -45,6 +45,104 @@ def _scalar_observation(observation: dict[str, Any]) -> dict[str, float | None]:
     return payload
 
 
+def _jsonish_mismatches(
+    *,
+    step: int,
+    field: str,
+    recorded: Any,
+    replayed: Any,
+    tolerance: float,
+) -> list[dict[str, Any]]:
+    """Compare replay metadata while tolerating deterministic float roundoff."""
+
+    if isinstance(recorded, bool) or isinstance(replayed, bool):
+        if recorded == replayed:
+            return []
+        return [
+            {
+                "step": step,
+                "field": field,
+                "recorded": recorded,
+                "replayed": replayed,
+                "abs_error": None,
+            }
+        ]
+    if isinstance(recorded, float | int) and isinstance(replayed, float | int):
+        error = abs(float(recorded) - float(replayed))
+        if error <= tolerance:
+            return []
+        return [
+            {
+                "step": step,
+                "field": field,
+                "recorded": recorded,
+                "replayed": replayed,
+                "abs_error": error,
+            }
+        ]
+    if isinstance(recorded, dict) and isinstance(replayed, dict):
+        mismatches: list[dict[str, Any]] = []
+        recorded_keys = set(recorded)
+        replayed_keys = set(replayed)
+        for key in sorted(recorded_keys | replayed_keys):
+            child_field = f"{field}.{key}"
+            if key not in recorded or key not in replayed:
+                mismatches.append(
+                    {
+                        "step": step,
+                        "field": child_field,
+                        "recorded": recorded.get(key),
+                        "replayed": replayed.get(key),
+                        "abs_error": None,
+                    }
+                )
+                continue
+            mismatches.extend(
+                _jsonish_mismatches(
+                    step=step,
+                    field=child_field,
+                    recorded=recorded[key],
+                    replayed=replayed[key],
+                    tolerance=tolerance,
+                )
+            )
+        return mismatches
+    if isinstance(recorded, list) and isinstance(replayed, list):
+        mismatches = []
+        if len(recorded) != len(replayed):
+            mismatches.append(
+                {
+                    "step": step,
+                    "field": f"{field}.length",
+                    "recorded": len(recorded),
+                    "replayed": len(replayed),
+                    "abs_error": None,
+                }
+            )
+        for index, recorded_item in enumerate(recorded[: len(replayed)]):
+            mismatches.extend(
+                _jsonish_mismatches(
+                    step=step,
+                    field=f"{field}.{index}",
+                    recorded=recorded_item,
+                    replayed=replayed[index],
+                    tolerance=tolerance,
+                )
+            )
+        return mismatches
+    if recorded != replayed:
+        return [
+            {
+                "step": step,
+                "field": field,
+                "recorded": recorded,
+                "replayed": replayed,
+                "abs_error": None,
+            }
+        ]
+    return []
+
+
 def verify_records(
     records: list[dict[str, Any]],
     *,
@@ -167,6 +265,34 @@ def verify_records(
                             "abs_error": None,
                         }
                     )
+            replay_metadata_fields = (
+                "mechanism_id",
+                "mechanism_hash",
+                "kernel_id",
+                "kernel_version",
+                "affected_ledgers",
+                "world_events",
+                "state_patches_summary",
+                "transaction_status",
+                "rollback_reason",
+                "state_delta_summary",
+            )
+            for field in replay_metadata_fields:
+                if field not in record:
+                    continue
+                replayed_metadata = info.get(field)
+                field_mismatches = _jsonish_mismatches(
+                    step=int(record["step"]),
+                    field=field,
+                    recorded=record[field],
+                    replayed=replayed_metadata,
+                    tolerance=tolerance,
+                )
+                mismatches.extend(field_mismatches)
+                for mismatch in field_mismatches:
+                    abs_error = mismatch.get("abs_error")
+                    if abs_error is not None:
+                        max_abs_error = max(max_abs_error, float(abs_error))
             if record.get("constitution_checks"):
                 recorded_checks = record["constitution_checks"]
                 replay_checks = info.get("constitution_checks", [])

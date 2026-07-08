@@ -145,7 +145,8 @@ Recommended follow-up:
 - keep operation kernels as small command handlers;
 - continue moving mechanism-specific scoring and observation mapping into
   compiled mechanism cards;
-- strengthen transaction-level replay tests.
+- continue strengthening ledger-level replay beyond the current transaction
+  metadata checks.
 - continue shrinking the legacy fallback surface by letting reaction,
   separation, spectroscopy, and score specs carry all species bindings.
 
@@ -160,6 +161,12 @@ The architecture test suite now also enforces the active Runtime v2 boundary:
 `chemworld.core.batch_reactor` runtime, and `ChemWorldEnv.step()` must delegate
 process-operation dispatch to `runtime.apply_transaction()` instead of adding
 inline branches for process operations.
+
+Replay verification now compares Runtime v2 transaction metadata in addition
+to rewards and observations. The verifier rejects mechanism-hash drift,
+operation-kernel metadata tampering, changed affected-ledger lists, altered
+world events, modified state-patch summaries, transaction-status changes, and
+state-delta summary drift.
 
 ### Low Priority: Facade Exports Are Large But Useful
 
@@ -213,6 +220,10 @@ Recommended follow-up:
   and final-assay score snapshots.
 - Added architecture tests that enforce env/runtime import boundaries and keep
   concrete process-operation dispatch out of `ChemWorldEnv.step()`.
+- Extended replay verification to check mechanism hash, kernel id/version,
+  affected ledgers, world events, state-patch summaries, transaction status,
+  rollback reason, and state-delta summaries with recursive tolerance-aware
+  comparisons.
 - Extracted `ChemWorldObservationKernel` into
   `runtime/observation_services.py`, keeping noisy observations, raw signal
   assembly, processed estimates, uncertainty metadata, and observation scoring
