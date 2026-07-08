@@ -78,7 +78,7 @@ Every professional module must ship:
 | PRO-P7A VLE-coupled shortcut distillation | whilesunny | Done | `idaes-pse` distillation/flash units, `thermo` flash/property-package APIs, `phasepy` VLE examples | `src/chemworld/physchem/separations.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/tasks.py`, `tests/test_separations.py`, model cards, docs | next: add Underwood/Gilliland sizing, pressure-profile effects, and nonideal VLE task cases | this commit |
 | PRO-P10A Beer-Lambert UV-vis calibration validation | whilesunny | Done | public Beer-Lambert equations, analytical calibration examples, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add HPLC/GC retention calibration, IR empirical anchors, and NMR coupling metadata | this commit |
 | PRO-P10B Chromatography retention and peak-broadening calibration | whilesunny | Done | public chromatography equations, plate-count/resolution equations, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add empirical retention-index examples and method-condition sensitivity | this commit |
-| PRO-P3A Peng-Robinson/SRK fugacity and residual properties | whilesunny | Claimed | `thermo.eos`, `phasepy.cubic`, `teqp` and `thermopack` EOS architecture notes | `src/chemworld/physchem/eos.py`, `src/chemworld/physchem/reference_validation.py`, `tests/test_eos.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | read local EOS/reference implementations, then add explicit root policy, fugacity/residual enthalpy/entropy validation slice, and reference comparisons | pending push |
+| PRO-P3A Peng-Robinson/SRK fugacity and residual properties | whilesunny | Done | `thermo.eos`, `phasepy.cubic`, `teqp` and `thermopack` EOS architecture notes | `src/chemworld/physchem/eos.py`, `src/chemworld/physchem/reference_validation.py`, `tests/test_eos.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add volume translation, phase envelopes, and flash derivative hooks | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -188,14 +188,14 @@ Acceptance:
 Reference targets: `CoolProp`, `thermo`, `teqp`, `thermopack`.
 
 - [ ] Refactor cubic EOS into a professional API:
-  - [ ] pure-parameter generation;
-  - [ ] binary interaction matrix;
+  - [x] pure-parameter generation;
+  - [x] binary interaction matrix;
   - [ ] volume translation hook;
-  - [ ] liquid/vapor/stable root policy;
-  - [ ] fugacity coefficients;
-  - [ ] residual enthalpy;
-  - [ ] residual entropy;
-  - [ ] departure functions.
+  - [x] liquid/vapor/stable root policy;
+  - [x] fugacity coefficients;
+  - [x] residual enthalpy;
+  - [x] residual entropy;
+  - [x] departure functions.
 - [ ] Add phase-envelope utilities:
   - [ ] saturation solve for pure fluids;
   - [ ] bubble/dew solve for mixtures;
@@ -204,9 +204,24 @@ Reference targets: `CoolProp`, `thermo`, `teqp`, `thermopack`.
 
 Acceptance:
 
-- [ ] PR/SRK limiting cases match ideal gas at low pressure.
-- [ ] Selected methane/ethane/CO2 cases compare against reference backends.
-- [ ] Root selection is explicit and reproducible.
+- [x] PR/SRK limiting cases match ideal gas at low pressure.
+- [x] Selected methane/ethane/CO2 cases compare against reference backends.
+- [x] Root selection is explicit and reproducible.
+
+Reference-reading note for PRO-P3A:
+
+- `reference_repos/thermo/thermo/eos.py` keeps cubic fugacity and departure
+  properties together through `main_derivatives_and_departures`, `eos_lnphi`,
+  and PR/SRK classes with `H_dep`, `S_dep`, and `phi` attributes.
+- `reference_repos/phasepy/phasepy/cubic/cubicpure.py` and `cubicmix.py`
+  expose `logfug`, `EntropyR`, and `EnthalpyR` APIs around cubic EOS roots.
+- `reference_repos/thermopack/addon/pycThermopack/thermopack/thermo.py`
+  exposes residual enthalpy/entropy and fugacity-coefficient API boundaries,
+  but relies on compiled backends.
+- `reference_repos/teqp/teqp/__init__.py` shows the larger architecture
+  direction: fugacity, VLE, and critical-condition hooks are backend-level
+  capabilities. ChemWorld localizes only the formula-level PR/SRK residual
+  slice needed for benchmark replay.
 
 ## P4: Activity Models And Phase Equilibrium
 
@@ -660,7 +675,7 @@ Acceptance:
 9. `PRO-P10B`: Add HPLC/GC retention-factor and peak-broadening calibration.
    Done.
 10. `PRO-P3A`: Add Peng-Robinson/SRK fugacity-coefficient and residual-property
-    validation slice with explicit root-selection policy.
+    validation slice with explicit root-selection policy. Done.
 11. `PRO-P8A`: Add reference-validated heat-transfer correlations and
     heat-exchanger duty checks for reactor/process energy ledgers.
 12. `PRO-P1A`: Harden the component registry with provenance, aliases,

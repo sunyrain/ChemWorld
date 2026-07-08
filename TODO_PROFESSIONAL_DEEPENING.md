@@ -74,9 +74,9 @@ Last push:
 
 ### D3 EOS And Flash
 
-- [ ] `DEEP-D3A` cubic EOS core:
-  PR/SRK pure parameters, binary interaction matrices, stable-root selection,
-  fugacity coefficients, and residual enthalpy/entropy.
+- [ ] `DEEP-D3A` volume-translated cubic EOS and root governance:
+  volume translation, stable-root policy diagnostics, binary-parameter
+  provenance, and regression cases beyond the PRO-P3A PR/SRK residual slice.
 - [ ] `DEEP-D3B` pure-fluid saturation solver:
   saturation pressure/temperature solve, critical-region warnings, and
   reference-backend comparisons.

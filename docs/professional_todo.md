@@ -61,6 +61,7 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
 9. Add HPLC/GC retention-factor and peak-broadening calibration.
    Done in PRO-P10B.
 10. Add Peng-Robinson/SRK fugacity-coefficient and residual-property validation.
+    Done in PRO-P3A.
 11. Add heat-transfer correlations and heat-exchanger duty checks.
 12. Harden the component registry with provenance, aliases, uncertainty fields,
     and conflict-resolution policy.
@@ -231,3 +232,25 @@ PRO-P10B is now implemented for the HPLC/GC retention and peak-broadening slice:
   `gc_retention_plate_calibration_v1`, and adjacent-peak resolution summaries.
 - This is still a compact benchmark instrument kernel, not empirical retention
   index prediction, gradient elution, column aging, or asymmetric peak tailing.
+
+PRO-P3A is now implemented for the first reference-validated cubic-EOS residual
+property slice:
+
+- `CubicPureParameters` now records the attractive parameter derivative
+  `da_alpha_dT`, and `EOSMixtureParameters` records `da_mix_dT`.
+- `evaluate_cubic_eos()` returns explicit `root_selection_policy`,
+  residual enthalpy, residual entropy, residual Gibbs energy, and residual
+  property metadata in `EOSState`.
+- `cubic_residual_properties()` implements PR/SRK departure-property formulas
+  for molar `H^R`, `S^R`, and `G^R`.
+- `eos_model_cards()` documents equations, assumptions, validity limits,
+  failure modes, inspected references, and validation evidence.
+- Default tests cover low-pressure ideal-gas limits, liquid/vapor/stable root
+  policies, Gibbs consistency with fugacity coefficients, and model-card
+  metadata.
+- Optional reference tests compare methane, ethane, and carbon dioxide pure
+  vapor-root PR/SRK `Z`, `phi`, `H_dep`, and `S_dep` against `thermo.eos` when
+  `CHEMWORLD_RUN_REFERENCE_TESTS=1`.
+- This is not a complete EOS/flash package. Volume translation, phase
+  envelopes, saturation solvers, mixture flash derivatives, and critical-region
+  handling remain on the later professional TODO track.

@@ -411,11 +411,23 @@ local thermodynamic backend for gas and dense-fluid calculations:
 | Compressibility | real admissible cubic `Z` roots |
 | Phase root selection | vapor, liquid, and residual-Gibbs-style stable root selector |
 | Fugacity | component fugacity coefficients for PR and SRK mixtures |
+| Residual properties | PR/SRK molar residual enthalpy, entropy, Gibbs energy, and departure-log metadata |
 
 The EOS layer is JSON-friendly through `EOSComponentSpec`, `CubicEOSSpec`,
 `EOSMixtureParameters`, and `EOSState`. It is designed to support future VLE,
 flash, reactive flash, distillation, pressure-risk, and vapor-loss tasks without
 making CoolProp, thermo, teqp, or thermopack required runtime dependencies.
+
+PRO-P3A hardens the EOS path with a reference-validated residual-property
+slice. `CubicPureParameters` records `da_alpha_dT`, `EOSMixtureParameters`
+records `da_mix_dT`, and `EOSState` now carries explicit root-selection policy,
+`H^R`, `S^R`, and `G^R`. The model card exposed through `eos_model_cards()`
+documents the PR/SRK departure equations, inspected `thermo`, `phasepy`,
+`thermopack`, and `teqp` reference surfaces, default unit tests, and optional
+`thermo.eos` reference comparisons for methane, ethane, and carbon dioxide.
+This remains a compact cubic-EOS slice, not a full EOS/flash package with
+volume translation, phase envelopes, critical-region treatment, or mixture
+flash derivative hooks.
 
 ## Phase-Equilibrium Core
 

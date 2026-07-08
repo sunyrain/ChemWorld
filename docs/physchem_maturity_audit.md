@@ -22,7 +22,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Property correlations | Lite with a reference-validated curated slice | vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against `chemicals` | broader component coverage, liquid/solid Cp, latent heat, derivatives, and CoolProp checks |
 | Reaction networks | Lite with a reference-validated ODE slice | YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check | Cantera-style thermochemistry, falloff, pressure dependence, heat-release-coupled reactor validation |
 | Reactor models | Lite with a reference-validated CSTR multiplicity slice | batch, semi-batch, CSTR, PFR tests; analytical exothermic CSTR three-root ignition/extinction case with stability classification | broader Cantera/IDAES reactor-network validation, pressure modes, and heat-transfer variants |
-| EOS | Lite | ideal gas, PR, SRK tests | residual properties and reference validation against CoolProp/thermo/teqp |
+| EOS | Lite with a reference-validated PR/SRK residual slice | ideal gas, PR/SRK roots, fugacity coefficients, explicit root policy, residual H/S/G tests, optional `thermo.eos` comparisons for methane/ethane/CO2 | volume translation, phase envelopes, flash derivatives, and broader CoolProp/teqp/thermopack validation |
 | Phase equilibrium | Lite with a reference-validated Wilson/NRTL gamma slice | ideal VLE, Wilson/NRTL gamma checks against `thermo`, LLE split tests | UNIQUAC, phase stability, nonideal VLE/LLE task cases |
 | Separations | Proxy/lite with a reference-validated VLE distillation shortcut slice | material-conserving extraction, VLE flash, VLE/Fenske shortcut distillation, crystallization, filtration, drying tests | rigorous MESH columns, thermodynamic extraction, crystallization kinetics, and broader equipment validation |
 | Transport and heat transfer | Lite with reference-validated pipe-flow slice | dimensionless numbers, explicit friction methods, `fluids` Haaland and single-phase pipe-pressure-drop optional checks | broader `fluids` comparisons, heat-transfer validation, and validity maps |
@@ -121,3 +121,8 @@ copying the reference implementations.
   time, theoretical plates, baseline width, adjacent resolution, calibration
   fitting, model-card metadata, and species-signal tests are in place. IR, NMR,
   and empirical retention-index prediction remain future slices.
+- PRO-P3A is implemented for the cubic-EOS residual slice: PR/SRK states now
+  expose explicit root-selection policy, `da_mix_dT`, residual enthalpy,
+  residual entropy, residual Gibbs energy, model-card metadata, default EOS
+  tests, and optional `thermo.eos` reference checks for methane, ethane, and
+  carbon dioxide.

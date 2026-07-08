@@ -27,7 +27,7 @@ with proxies and then call them professional.
 | --- | --- |
 | Component data and units | identity registry, strict dimensions, provenance, conflict policy |
 | Properties | vapor pressure, Cp/enthalpy, density, transport properties |
-| EOS and flash | cubic EOS, fugacity, residual properties, saturation and mixture flash |
+| EOS and flash | volume-translated cubic EOS, root governance, saturation and mixture flash |
 | Phase equilibrium | UNIQUAC, LLE, electrolyte/aqueous equilibria, Gibbs minimization |
 | Kinetics | thermochemistry-coupled reversibility, falloff, mechanism schema, sensitivity |
 | Reactors | dynamic batch, CSTR, PFR, solver backend, event/replay diagnostics |
@@ -40,7 +40,7 @@ with proxies and then call them professional.
 
 Do not start these until the current twelve-slice batch is complete.
 
-1. `DEEP-D3A`: cubic EOS fugacity and residual-property core.
+1. `DEEP-D3A`: volume-translated cubic EOS and root-governance diagnostics.
 2. `DEEP-D2B`: heat-capacity/enthalpy package with reactor energy integration.
 3. `DEEP-D7B`: Fenske-Underwood-Gilliland distillation sizing.
 4. `DEEP-D6A`: dynamic batch reactor with heat release and jacket control.

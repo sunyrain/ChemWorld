@@ -43,7 +43,9 @@ Current scope:
 - an exothermic CSTR multiple-steady-state reference case with analytical
   energy-balance roots, stability classification, and a reactor model card.
 - local equation-of-state calculations for ideal gas, Peng-Robinson, and SRK
-  states with compressibility roots and fugacity coefficients.
+  states with compressibility roots, explicit root-selection policies,
+  fugacity coefficients, residual enthalpy, residual entropy, residual Gibbs
+  energy, and model-card evidence.
 - phase-equilibrium utilities for ideal, Margules, Wilson, and NRTL activity
   coefficients, Raoult K-values, isothermal flash, bubble/dew pressure, and
   liquid-liquid extraction splits.
@@ -78,7 +80,8 @@ Design rules:
 - keep reactor residence time, feed/outlet flow, and heat-transfer contracts
   explicit;
 - keep EOS component critical properties, mixture parameters, phase-root
-  selection, and fugacity outputs inspectable;
+  selection, fugacity outputs, residual properties, and departure metadata
+  inspectable;
 - keep phase-equilibrium models explicit about activity assumptions,
   vapor-pressure inputs, partition coefficients, and mass-balance errors;
 - keep reaction-equilibrium and electrolyte models explicit about fixed

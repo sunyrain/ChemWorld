@@ -31,6 +31,10 @@ The repository currently provides:
 - local CLI workflows;
 - documentation, runnable example scripts, and executed notebooks.
 - a twelve-day executed tutorial sequence under `notebooks/tutorials/`.
+- reference-validated physical-chemistry slices for curated properties,
+  friction/pipe pressure drop, Wilson/NRTL activity coefficients, reaction ODE
+  cases, CSTR multiplicity, shortcut distillation, UV-vis calibration,
+  chromatography retention, and PR/SRK residual EOS properties.
 
 ## Scientific Model
 
@@ -259,4 +263,3 @@ Near-term research work:
 - study public-test to private-eval generalization;
 - analyze safety-aware exploration behavior;
 - analyze whether mechanism explanations correlate with optimization quality.
-

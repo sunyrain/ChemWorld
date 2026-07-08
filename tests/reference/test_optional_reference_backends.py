@@ -6,6 +6,8 @@ import pytest
 
 from chemworld.physchem import (
     ActivityModelSpec,
+    CubicEOSSpec,
+    EOSComponentSpec,
     FluidState,
     PipeSpec,
     RateLawSpec,
@@ -17,6 +19,7 @@ from chemworld.physchem import (
     curated_property_package,
     darcy_friction_factor,
     dew_pressure_pa,
+    evaluate_cubic_eos,
     evaluate_rate_law,
     flash_isothermal,
     ideal_gas_molar_volume,
@@ -271,6 +274,108 @@ def test_fluids_friction_factor_and_pressure_drop_reference() -> None:
         ),
     )
     summary = summarize_reference_comparisons(comparisons)
+    assert summary["all_passed"], summary
+
+
+def test_thermo_pr_srk_eos_residual_reference() -> None:
+    thermo_eos = _reference_module("thermo.eos", repo_names=("thermo",))
+
+    components = (
+        (
+            EOSComponentSpec(
+                "methane",
+                critical_temperature_K=190.56,
+                critical_pressure_Pa=4.5992e6,
+                acentric_factor=0.011,
+            ),
+            350.0,
+            5.0e6,
+        ),
+        (
+            EOSComponentSpec(
+                "ethane",
+                critical_temperature_K=305.32,
+                critical_pressure_Pa=4.872e6,
+                acentric_factor=0.099,
+            ),
+            360.0,
+            5.0e6,
+        ),
+        (
+            EOSComponentSpec(
+                "carbon_dioxide",
+                critical_temperature_K=304.1282,
+                critical_pressure_Pa=7.3773e6,
+                acentric_factor=0.22394,
+            ),
+            330.0,
+            5.0e6,
+        ),
+    )
+    cases = (
+        ("peng_robinson", thermo_eos.PR, "thermo-pr-methane"),
+        ("srk", thermo_eos.SRK, "thermo-srk-methane"),
+    )
+    comparisons = []
+    for component, temperature_K, pressure_Pa in components:
+        for model, reference_cls, check_prefix in cases:
+            reference_state = reference_cls(
+                Tc=component.critical_temperature_K,
+                Pc=component.critical_pressure_Pa,
+                omega=component.acentric_factor,
+                T=temperature_K,
+                P=pressure_Pa,
+            )
+            chemworld_state = evaluate_cubic_eos(
+                CubicEOSSpec(
+                    f"{model}_{component.component_id}_reference",
+                    model,
+                    (component,),
+                ),
+                {component.component_id: 1.0},
+                temperature_K=temperature_K,
+                pressure_Pa=pressure_Pa,
+                phase="vapor",
+            )
+            reference_values = {
+                "compressibility_factor": reference_state.Z_g,
+                "fugacity_coefficient": reference_state.phi_g,
+                "residual_enthalpy": reference_state.H_dep_g,
+                "residual_entropy": reference_state.S_dep_g,
+            }
+            chemworld_values = {
+                "compressibility_factor": chemworld_state.compressibility_factor,
+                "fugacity_coefficient": chemworld_state.fugacity_coefficients[
+                    component.component_id
+                ],
+                "residual_enthalpy": chemworld_state.molar_residual_enthalpy_J_mol,
+                "residual_entropy": chemworld_state.molar_residual_entropy_J_mol_K,
+            }
+            units = {
+                "compressibility_factor": "dimensionless",
+                "fugacity_coefficient": "dimensionless",
+                "residual_enthalpy": "J/mol",
+                "residual_entropy": "J/(mol*K)",
+            }
+            for quantity, reference_value in reference_values.items():
+                comparisons.append(
+                    compare_scalar(
+                        check_id=f"{check_prefix}-{component.component_id}-{quantity}",
+                        backend_id="thermo",
+                        quantity=quantity,
+                        chemworld_value=chemworld_values[quantity],
+                        reference_value=reference_value,
+                        unit=units[quantity],
+                        rtol=1e-6,
+                        atol=1e-8,
+                        note=(
+                            "Pure methane/ethane/CO2 vapor-root comparison "
+                            "against thermo.eos for PR/SRK fugacity and "
+                            "residual departure properties."
+                        ),
+                    )
+                )
+    summary = summarize_reference_comparisons(tuple(comparisons))
     assert summary["all_passed"], summary
 
 
