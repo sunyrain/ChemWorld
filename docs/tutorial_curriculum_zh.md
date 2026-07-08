@@ -2,17 +2,30 @@
 
 更新日期：2026-07-08
 
-这套教程面向本科高年级、研究生入门、AI4Science workshop 或课题组 onboarding。它不是把 Python 语法重新包装成小游戏，而是让学生和 agent 在同一个 `ChemWorld` 物理化学世界中完成实验设计、观测、建模、优化、解释和提交。
+ChemWorld-Bench 现在已经可以作为一个科研型虚拟自驱实验课程底座使用。它的核心不是“多个小游戏”，而是同一个 `ChemWorld` 物理化学世界规律下的不同 task slice。学生、LLM agent、BO、safe BO 和人工策略都在同一个实验接口、同一套日志和同一套评测协议下工作。
 
-## 课程结构
+## 现在能做什么
 
-教程分为三层：
+| 能力 | 怎么做 | 产出 |
+| --- | --- | --- |
+| 运行虚拟实验 | `gym.make("ChemWorld", task_id=..., seed=...)` 后执行事件动作。 | observation、reward、info、trajectory。 |
+| 设计反应条件 | 操作 `add_solvent`、`add_reagent`、`add_catalyst`、`heat`、`terminate`、`measure`。 | 产率、选择性、转化率、风险、成本。 |
+| 做后处理和分离 | 使用 `add_extractant`、`mix`、`settle`、`separate_phase`、`wash`、`dry`、`concentrate`。 | purity、recovery、phase ratio、mass balance error。 |
+| 使用仪器观测 | 选择 HPLC、GC、UV-vis、final assay。 | noisy processed estimate、uncertainty、raw spectral signal。 |
+| 生成谱图/色谱 | 读取 `info["raw_signal"]` 或 trajectory `raw_signal`。 | HPLC/GC 色谱、UV-vis、IR、NMR proxy spectra。 |
+| 验证动作合法性 | 使用 validator、action schema、recipe compiler。 | invalid reasons、修复后的 recipe。 |
+| 训练局部模型 | 从轨迹抽取特征，训练 surrogate model。 | 预测、误差、候选实验推荐。 |
+| 运行 baseline | 使用 random、LHS、scripted、GP BO、RF EI、safe BO。 | baseline table、leaderboard metrics。 |
+| 组织评测 | 运行 `chemworld run/evaluate/verify/suite/leaderboard`。 | JSONL、manifest、results、leaderboard。 |
+| 做课程项目 | 使用 submission bundle 和本机教师端/学生端评测流程。 | 可审核项目包和排名结果。 |
 
-| 层级 | Notebook | 目标 |
+## 推荐学习路径
+
+| 阶段 | Notebook | 学生能力 |
 | --- | --- | --- |
 | 核心闭环 | Day 1-7 | 会调用环境、记录轨迹、理解 ontology/constitution/instrument、建立局部模型、提交可复现实验 artifact。 |
 | Benchmark 强化 | Day 8-12 | 会使用 validator、BO、安全优化、public/private generalization、submission bundle 和 demo-day 报告。 |
-| Year 2 扩展 | Day 13 + project blueprint | 把同一世界扩展到结晶、蒸馏、连续流、电化学和课程 leaderboard。 |
+| 过程扩展 | Day 13 + project blueprint | 会把同一世界扩展到结晶、蒸馏、连续流、电化学和课程 leaderboard。 |
 
 所有 notebook 都围绕同一个正式 Gym 入口：
 
@@ -23,13 +36,13 @@ import chemworld
 env = gym.make("ChemWorld", task_id="reaction-optimization-standard", seed=0)
 ```
 
-## 每日路线
+## 每日 Notebook
 
-| 天数 | 文件 | 学习重点 | 学生产出 |
+| 天数 | 文件 | 学习重点 | 学生交付 |
 | --- | --- | --- | --- |
 | 1 | `day_01_enter_virtual_lab.ipynb` | 进入虚拟实验室，完成第一条实验轨迹。 | 轨迹表、第一张实验图、初始机制假设。 |
 | 2 | `day_02_ontology_and_constitution.ipynb` | ontology、单位、物理宪法、动作前置条件。 | 一个被 constitution 拦截的错误动作和修正版本。 |
-| 3 | `day_03_observation_and_instruments.ipynb` | HPLC、GC、UV-vis、final assay、非全知观测。 | 仪器成本/噪声/信息量比较。 |
+| 3 | `day_03_observation_and_instruments.ipynb` | HPLC、GC、UV-vis、final assay、虚拟谱图、非全知观测。 | 仪器成本/噪声/信息量比较和一张 raw signal 图。 |
 | 4 | `day_04_mechanism_scans.ipynb` | 温度、时间、催化剂、溶剂、风险扫描。 | 机制解释图和下一轮实验建议。 |
 | 5 | `day_05_surrogate_modeling.ipynb` | 用轨迹训练局部 surrogate model。 | 简单预测模型、不确定性或误差分析。 |
 | 6 | `day_06_baselines_and_leaderboard.ipynb` | random、LHS、scripted、BO、安全 BO 与指标。 | baseline 对比表。 |
@@ -42,17 +55,20 @@ env = gym.make("ChemWorld", task_id="reaction-optimization-standard", seed=0)
 | 13 | `day_13_year2_process_modules.ipynb` | 结晶、蒸馏、连续流、电化学过程模块。 | 一个跨过程 task 的最小闭环结果。 |
 | 项目 | `project_leaderboard_blueprint.ipynb` | 教师端/学生端评测组织、榜单设计、项目制提交。 | 课程 leaderboard 方案。 |
 
-## 教学节奏
+## 每 30 分钟工作节奏
 
-推荐每天 3 小时：
+每个教程 notebook 的开头都已经加入 6 个时间盒。推荐每天 3 小时：
 
-| 时间 | 活动 |
-| --- | --- |
-| 0:00-0:25 | 今日化工问题、任务目标和评价方式。 |
-| 0:25-0:55 | 最小代码演示，强调可复现 seed、action schema 和观测限制。 |
-| 0:55-1:45 | 学生使用 Python/GPT/agent 推进实验。 |
-| 1:45-2:30 | 小组 debug、策略比较、机制解释。 |
-| 2:30-3:00 | 保存轨迹、更新榜单、写当日反思。 |
+| 时间 | 活动 | 证据 |
+| --- | --- | --- |
+| 0:00-0:30 | 明确今天的化工问题、任务合同和评价指标。 | 写出任务目标或 task card 摘要。 |
+| 0:30-1:00 | 运行最小代码或最小实验。 | 得到第一条 observation 或检查表。 |
+| 1:00-1:30 | 执行核心实验、扫描、模型或 baseline。 | 生成轨迹表、模型表或指标表。 |
+| 1:30-2:00 | 验证、修复、对比或 debug。 | 留下 validator/verify/对比结果。 |
+| 2:00-2:30 | 可视化、解释或选择下一轮实验。 | 得到图、谱图、候选表或解释草稿。 |
+| 2:30-3:00 | 保存 artifact 并写反思。 | JSONL、manifest、结果摘要和下一步计划。 |
+
+如果课堂只有 90 分钟，建议现场完成前 3 段，后 3 段作为课后提交。
 
 ## 评分建议
 
@@ -77,8 +93,4 @@ python -m pytest
 python -m mkdocs build --strict
 ```
 
-如果使用本机评测机，请把学生提交集中到 `local_eval_server/teacher_server/submissions_inbox/`，由教师端统一执行 validate、verify、evaluate、summarize 和 leaderboard export。
-
-## 当前状态
-
-当前仓库已保存执行输出的教程包括 Day 1-13 和 project leaderboard blueprint。Notebook 中不再使用自定义 HTML checkpoint 组件；每日交付要求以普通 Markdown 呈现，方便阅读、打印和二次编辑。
+如果使用本机评测机，把学生提交集中到 `local_eval_server/teacher_server/submissions_inbox/`，由教师端统一执行 validate、verify、evaluate、summarize 和 leaderboard export。
