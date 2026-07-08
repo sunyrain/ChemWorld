@@ -162,13 +162,10 @@ The architecture test suite now also enforces the active Runtime v2 boundary:
 process-operation dispatch to `runtime.apply_transaction()` instead of adding
 inline branches for process operations.
 
-The final Runtime v2 boundary audit also enforces that `LEGACY_*` species
-fallback names are isolated to `runtime/species.py`. This is an intentional
-temporary adapter for mechanisms whose initial state is still generated through
-the older scalar-state shape. The next professional runtime slice is
-`PRO-RUNTIME-A`: make scenario/mechanism initialization own species amounts
-directly and then remove the `A/P/B/D/E` fallback constants from runtime species
-resolution.
+The final Runtime v2 boundary audit also enforces that generic runtime,
+observation, scoring, and downstream bookkeeping do not depend on fixed
+`A/P/B/D/E` species names. The original seven-slot mechanism remains only as an
+explicit world-level reference fixture, not as a hidden runtime fallback.
 
 Replay verification now compares Runtime v2 transaction metadata in addition
 to rewards and observations. The verifier rejects mechanism-hash drift,
@@ -282,9 +279,10 @@ Recommended follow-up:
   the typed distillate phase, while metadata retains only derived purity,
   recovery, and distillation-kernel summaries.
 - Added a Runtime v2 final boundary audit that keeps the removed
-  `chemworld.core.batch_reactor` runtime out of env/runtime imports and confines
-  `LEGACY_*` species fallback bindings to `runtime/species.py`. The remaining
-  follow-up is tracked as `PRO-RUNTIME-A` in `TODO_PROFESSIONAL.md`.
+  `chemworld.core.batch_reactor` runtime out of env/runtime imports. Later
+  cleanup removed the downstream `LEGACY_*` species fallback bindings as well:
+  separation truth now reads mechanism-role quantities and typed phase-ledger
+  summaries rather than fixed `A/P/B/D/E` slots.
 - Moved scenario initial-state generation onto compiled mechanism species,
   roles, and initial-amount policy. Non-fixed scenarios such as
   `electrochemical_conversion` and `reactive_distillation_lite` now reset with

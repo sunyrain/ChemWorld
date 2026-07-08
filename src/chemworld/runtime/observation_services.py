@@ -210,6 +210,8 @@ class ChemWorldObservationKernel:
                 product_amount_mol=self.species_view.target_amount(state),
                 impurity_amount_mol=self.species_view.impurity_amount(state),
                 initial_product_mol=max(self.species_view.initial_reactant_amount(state), 1.0e-12),
+                target_species=self.species_view.target_species_for_state(state),
+                impurity_species=self.species_view.impurity_species_for_state(state),
             )
         )
         return truth

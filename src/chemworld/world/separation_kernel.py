@@ -8,28 +8,39 @@ import numpy as np
 
 from chemworld.foundation import WorldState
 from chemworld.foundation.state import selected_phase_id
-from chemworld.world.species_roles import (
-    LEGACY_IMPURITY_SPECIES,
-    LEGACY_PHASE_PRODUCT_AMOUNT_KEY,
-    LEGACY_TARGET_SPECIES,
-    PHASE_PRODUCT_AMOUNT_KEY,
-)
+from chemworld.world.species_roles import PHASE_PRODUCT_AMOUNT_KEY
 
 
-def _typed_phase_ledger_entries(state: WorldState) -> dict[str, dict[str, float]]:
+def _typed_phase_ledger_entries(
+    state: WorldState,
+    *,
+    target_species: tuple[str, ...] = (),
+    impurity_species: tuple[str, ...] = (),
+) -> dict[str, dict[str, float]]:
     if state.phases is None:
         return {}
     entries: dict[str, dict[str, float]] = {}
     for phase_id, phase in state.phases.phases.items():
+        product_amount = (
+            sum(
+                float(phase.species_amounts_mol.get(species_id, 0.0))
+                for species_id in target_species
+            )
+            if target_species
+            else float(phase.metadata.get(PHASE_PRODUCT_AMOUNT_KEY, 0.0))
+        )
+        impurity_amount = (
+            sum(
+                float(phase.species_amounts_mol.get(species_id, 0.0))
+                for species_id in impurity_species
+            )
+            if impurity_species
+            else float(phase.metadata.get("impurity_mol", 0.0))
+        )
         entries[phase_id] = {
             "volume_L": float(phase.volume_L),
-            PHASE_PRODUCT_AMOUNT_KEY: float(
-                phase.species_amounts_mol.get(LEGACY_TARGET_SPECIES, 0.0)
-            ),
-            "impurity_mol": sum(
-                float(phase.species_amounts_mol.get(species_id, 0.0))
-                for species_id in LEGACY_IMPURITY_SPECIES
-            ),
+            PHASE_PRODUCT_AMOUNT_KEY: product_amount,
+            "impurity_mol": impurity_amount,
             "solvent_loss": float(phase.metadata.get("solvent_loss", 0.0)),
         }
     return entries
@@ -42,19 +53,29 @@ def downstream_truth_values(
     product_amount_mol: float | None = None,
     impurity_amount_mol: float | None = None,
     initial_product_mol: float | None = None,
+    target_species: tuple[str, ...] = (),
+    impurity_species: tuple[str, ...] = (),
 ) -> dict[str, float]:
-    phase_ledger = phase_ledger or _typed_phase_ledger_entries(state)
+    phase_ledger = phase_ledger or _typed_phase_ledger_entries(
+        state,
+        target_species=target_species,
+        impurity_species=impurity_species,
+    )
+    phase_product_total = sum(
+        float(entry.get(PHASE_PRODUCT_AMOUNT_KEY, 0.0)) for entry in phase_ledger.values()
+    )
+    phase_impurity_total = sum(
+        float(entry.get("impurity_mol", 0.0)) for entry in phase_ledger.values()
+    )
     product_amount = (
         float(product_amount_mol)
         if product_amount_mol is not None
-        else state.species_amounts.get("P", 0.0)
+        else phase_product_total
     )
     impurity_amount = (
         float(impurity_amount_mol)
         if impurity_amount_mol is not None
-        else state.species_amounts.get("B", 0.0)
-        + state.species_amounts.get("D", 0.0)
-        + state.species_amounts.get("E", 0.0)
+        else phase_impurity_total
     )
     initial_p = max(
         (
@@ -74,16 +95,12 @@ def downstream_truth_values(
     aqueous = phase_ledger.get("aqueous", {})
     selected_phase = selected_phase_id(state.phases) or "organic"
     selected = phase_ledger.get(selected_phase, organic or aqueous or {})
-    product_in_organic = float(
-        organic.get(PHASE_PRODUCT_AMOUNT_KEY, organic.get(LEGACY_PHASE_PRODUCT_AMOUNT_KEY, 0.0))
-    )
-    product_in_aqueous = float(
-        aqueous.get(PHASE_PRODUCT_AMOUNT_KEY, aqueous.get(LEGACY_PHASE_PRODUCT_AMOUNT_KEY, 0.0))
-    )
+    product_in_organic = float(organic.get(PHASE_PRODUCT_AMOUNT_KEY, 0.0))
+    product_in_aqueous = float(aqueous.get(PHASE_PRODUCT_AMOUNT_KEY, 0.0))
     selected_product = float(
         selected.get(
             PHASE_PRODUCT_AMOUNT_KEY,
-            selected.get(LEGACY_PHASE_PRODUCT_AMOUNT_KEY, product_amount),
+            product_amount,
         )
     )
     selected_impurity = float(

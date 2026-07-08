@@ -14,6 +14,8 @@ from chemworld.data.datasets import dataset_card, export_dataset, flatten_record
 from chemworld.data.logging import load_jsonl
 from chemworld.foundation import OperationRecord
 from chemworld.foundation.state import (
+    PhaseLedger,
+    PhaseRecord,
     WorldState,
     equipment_settings,
     instrument_completed,
@@ -66,6 +68,7 @@ from chemworld.world.reaction_kernel import (
 from chemworld.world.reaction_reference import integrate_seven_slot_reference_ode
 from chemworld.world.recipes import compile_recipe, validate_recipe
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
+from chemworld.world.separation_kernel import downstream_truth_values
 from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.world.thermal_kernel import pressure_and_risk
 
@@ -133,6 +136,19 @@ def test_runtime_does_not_use_legacy_species_constants() -> None:
         (path.as_posix(), lineno, name)
         for path, lineno, name in legacy_usage
     ] == []
+
+
+def test_downstream_world_modules_do_not_use_legacy_species_fallbacks() -> None:
+    checked_paths = (
+        Path("src/chemworld/world/species_roles.py"),
+        Path("src/chemworld/world/separation_kernel.py"),
+    )
+    offenders = {
+        path.as_posix(): path.read_text(encoding="utf-8")
+        for path in checked_paths
+        if "LEGACY_" in path.read_text(encoding="utf-8")
+    }
+    assert offenders == {}
 
 
 def test_chemworld_env_delegates_process_operation_dispatch_to_runtime() -> None:
@@ -891,6 +907,54 @@ def test_typed_phase_ledger_tracks_state_replacements() -> None:
     assert updated.phases.total_amounts_mol() == {"A": 0.2, "P": 0.8}
     assert updated.process is not None
     assert updated.process.time_s == updated.ledger.time_s
+
+
+def test_downstream_truth_uses_mechanism_role_species_not_fixed_slots() -> None:
+    state = WorldState(
+        species_amounts={"reactant_Q": 0.0, "target_X": 0.006, "impurity_Y": 0.001},
+        volume_L=0.030,
+        temperature_K=298.15,
+        pressure_Pa=101_325.0,
+        phase="liquid",
+        vessel_id="reactor",
+        metadata={"pre_separation_product_mol": 0.006},
+        phases=PhaseLedger(
+            {
+                "organic": PhaseRecord(
+                    phase_id="organic",
+                    vessel_id="reactor",
+                    phase_type="organic",
+                    volume_L=0.020,
+                    species_amounts_mol={"target_X": 0.0045, "impurity_Y": 0.0002},
+                    selected=True,
+                    metadata={"solvent_loss": 0.03},
+                ),
+                "aqueous": PhaseRecord(
+                    phase_id="aqueous",
+                    vessel_id="reactor",
+                    phase_type="aqueous",
+                    volume_L=0.010,
+                    species_amounts_mol={"target_X": 0.0015, "impurity_Y": 0.0008},
+                    selected=False,
+                ),
+            }
+        ),
+    )
+
+    truth = downstream_truth_values(
+        state,
+        product_amount_mol=0.006,
+        impurity_amount_mol=0.001,
+        initial_product_mol=0.006,
+        target_species=("target_X",),
+        impurity_species=("impurity_Y",),
+    )
+
+    assert truth["product_in_organic"] == pytest.approx(0.75)
+    assert truth["product_in_aqueous"] == pytest.approx(0.25)
+    assert truth["recovery"] == pytest.approx(0.75)
+    assert truth["purity"] == pytest.approx(0.0045 / 0.0047)
+    assert truth["process_mass_balance_error"] == pytest.approx(0.0)
 
 
 def test_runtime_phase_separation_uses_typed_phase_ledger_as_primary_state() -> None:
