@@ -105,9 +105,8 @@ def test_env_and_runtime_do_not_import_removed_batch_runtime() -> None:
     assert offenders == []
 
 
-def test_legacy_species_fallback_is_isolated_to_runtime_species_view() -> None:
+def test_runtime_does_not_use_legacy_species_constants() -> None:
     roots = (Path("src/chemworld/envs"), Path("src/chemworld/runtime"), Path("src/chemworld/eval"))
-    allowed = {Path("src/chemworld/runtime/species.py")}
     legacy_usage: list[tuple[Path, int, str]] = []
 
     for root in roots:
@@ -119,13 +118,10 @@ def test_legacy_species_fallback_is_isolated_to_runtime_species_view() -> None:
                 elif isinstance(node, ast.alias) and node.name.startswith("LEGACY_"):
                     legacy_usage.append((path, node.lineno, node.name))
 
-    offenders = [
+    assert [
         (path.as_posix(), lineno, name)
         for path, lineno, name in legacy_usage
-        if path not in allowed
-    ]
-    assert offenders == []
-    assert legacy_usage
+    ] == []
 
 
 def test_chemworld_env_delegates_process_operation_dispatch_to_runtime() -> None:
@@ -540,6 +536,7 @@ def test_compiled_runtime_reaction_does_not_require_fixed_species_state() -> Non
         heated = env.unwrapped._state
         assert "A" not in heated.species_amounts
         assert "P" not in heated.species_amounts
+        assert "Cat_active" not in heated.species_amounts
         assert heated.species_amounts["Acid"] < 0.010
         assert heated.species_amounts["Ester"] > 0.0
         assert heated.phases is not None

@@ -28,7 +28,7 @@ class ChemWorldObservationKernel:
         self,
         constitution: PhysicalConstitution,
         objective: str,
-        compiled_mechanism: CompiledMechanism | None = None,
+        compiled_mechanism: CompiledMechanism,
     ) -> None:
         self.constitution = constitution
         self.objective = objective

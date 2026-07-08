@@ -53,7 +53,7 @@ class ChemWorldRuntime:
         world: ChemWorldParameters,
         constitution: PhysicalConstitution,
         task_spec: TaskSpec | None,
-        compiled_mechanism: CompiledMechanism | None,
+        compiled_mechanism: CompiledMechanism,
         debug_truth: bool = False,
         registry: OperationKernelRegistry | None = None,
     ) -> None:
@@ -96,9 +96,7 @@ class ChemWorldRuntime:
         return {
             "profile": self.profile.to_dict(),
             "operation_kernels": self.registry.to_dict(),
-            "compiled_mechanism": (
-                None if self.compiled_mechanism is None else self.compiled_mechanism.to_dict()
-            ),
+            "compiled_mechanism": self.compiled_mechanism.to_dict(),
         }
 
 

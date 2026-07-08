@@ -66,7 +66,7 @@ class TaskRuntimeProfile:
 class RuntimeContext:
     task_spec: TaskSpec | None
     profile: TaskRuntimeProfile
-    compiled_mechanism: CompiledMechanism | None
+    compiled_mechanism: CompiledMechanism
     domain_services: ChemWorldDomainServices
     transaction_manager: TransactionManager
     debug_truth: bool = False

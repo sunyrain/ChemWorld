@@ -112,12 +112,12 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "flow-reaction-optimization": {
         "mechanism_id": "pfr_hotspot",
         "steps": 7,
-        "score": 0.0,
+        "score": 0.1152057547145229,
     },
     "low-budget-characterization": {
         "mechanism_id": "autocatalytic_reaction",
         "steps": 7,
-        "score": 0.12202243615895295,
+        "score": 0.23014967742381762,
     },
     "partition-discovery": {
         "mechanism_id": "reaction_extraction",
@@ -127,37 +127,37 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "public-private-generalization": {
         "mechanism_id": "parallel_series_reaction",
         "steps": 7,
-        "score": 0.1612052318741488,
+        "score": 0.3469284691974852,
     },
     "purity-yield-tradeoff": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.12887491681570912,
+        "score": 0.1649070394461739,
     },
     "reaction-mechanism-explanation": {
         "mechanism_id": "autocatalytic_reaction",
         "steps": 7,
-        "score": 0.09145061250415273,
+        "score": 0.1688916942379091,
     },
     "reaction-optimization-standard": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 7,
-        "score": 0.17307355354333206,
+        "score": 0.3344145979704315,
     },
     "reaction-safety-constrained": {
         "mechanism_id": "catalyst_deactivation",
         "steps": 7,
-        "score": 0.09051760562501227,
+        "score": 0.22429195461366705,
     },
     "reaction-to-assay": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 7,
-        "score": 0.19406253737179602,
+        "score": 0.375832822290746,
     },
     "reaction-to-crystallization": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 10,
-        "score": 0.1552851881951666,
+        "score": 0.30580601337024405,
     },
     "reaction-to-distillation": {
         "mechanism_id": "reactive_distillation_lite",
@@ -167,12 +167,12 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "reaction-to-purification": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.12143555168778081,
+        "score": 0.1507376072791482,
     },
     "tool-agent-planning": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.10750795297576769,
+        "score": 0.1230181900228312,
     },
 }
 

@@ -60,7 +60,7 @@ class ChemWorldDomainServices:
         self,
         world: ChemWorldParameters,
         constitution: PhysicalConstitution,
-        compiled_mechanism: CompiledMechanism | None = None,
+        compiled_mechanism: CompiledMechanism,
     ) -> None:
         self.world = world
         self.constitution = constitution

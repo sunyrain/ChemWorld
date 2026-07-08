@@ -158,8 +158,6 @@ class ChemWorldPhaseSeparationServices:
 
     def _species_with_alias(self, alias: str) -> str | None:
         mechanism = self.species_view.mechanism
-        if mechanism is None:
-            return None
         for species_id, aliases in mechanism.species_roles.items():
             if alias in aliases:
                 return species_id

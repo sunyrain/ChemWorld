@@ -300,6 +300,12 @@ Recommended follow-up:
   `world/reaction_reference.py`. The ordinary `world/reaction_kernel.py` now
   declares a compiled-mechanism runtime contract and no longer exports fixed
   species slots or the old reference integrator.
+- Removed generic `LEGACY_*` species defaults and optional compiled-mechanism
+  service constructors from env/runtime/eval paths. Runtime role resolution now
+  requires a compiled mechanism; mechanisms with no catalyst species update
+  catalyst equipment/cost without fabricating `Cat_active`. Golden final-assay
+  scores were updated because the old `A`-specific metadata branch had counted
+  `initial_A_mol` twice.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration

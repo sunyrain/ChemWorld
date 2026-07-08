@@ -9,45 +9,28 @@ import numpy as np
 
 from chemworld.foundation import WorldState
 from chemworld.runtime.mechanisms import CompiledMechanism
-from chemworld.world.species_roles import (
-    LEGACY_ACTIVE_CATALYST_SPECIES,
-    LEGACY_BYPRODUCT_SPECIES,
-    LEGACY_DEGRADATION_SPECIES,
-    LEGACY_IMPURITY_SPECIES,
-    LEGACY_INITIAL_REACTANT_METADATA_KEY,
-    LEGACY_REACTANT_SPECIES,
-    LEGACY_TARGET_SPECIES,
-)
 
 
 @dataclass(frozen=True)
 class MechanismSpeciesView:
-    """Resolve semantic species roles from a compiled mechanism.
+    """Resolve semantic species roles from a compiled mechanism."""
 
-    The current semi-mechanistic backend still has a legacy batch-reaction
-    integrator. This view isolates legacy fallback names in one place while
-    allowing runtime services to ask for reactant, product, impurity, catalyst,
-    and degradation amounts by role.
-    """
+    mechanism: CompiledMechanism
 
-    mechanism: CompiledMechanism | None = None
+    def __post_init__(self) -> None:
+        if self.mechanism is None:
+            raise ValueError("Runtime species roles require a compiled mechanism")
 
     @property
     def target_species(self) -> tuple[str, ...]:
-        if self.mechanism is None or not self.mechanism.score_spec.target_species:
-            return (LEGACY_TARGET_SPECIES,)
-        return self.mechanism.score_spec.target_species
+        return self._role_species("target", fallback=self.mechanism.score_spec.target_species)
 
     @property
     def impurity_species(self) -> tuple[str, ...]:
-        if self.mechanism is None or not self.mechanism.score_spec.impurity_species:
-            return LEGACY_IMPURITY_SPECIES
-        return self.mechanism.score_spec.impurity_species
+        return self._role_species("impurity", fallback=self.mechanism.score_spec.impurity_species)
 
     @property
     def byproduct_species(self) -> tuple[str, ...]:
-        if self.mechanism is None:
-            return LEGACY_BYPRODUCT_SPECIES
         species = self.mechanism.observable_mapping.get("byproduct", ())
         return species or tuple(
             species_id
@@ -57,42 +40,50 @@ class MechanismSpeciesView:
 
     @property
     def degradation_species(self) -> tuple[str, ...]:
-        if self.mechanism is None:
-            return LEGACY_DEGRADATION_SPECIES
-        return (
-            self.mechanism.observable_mapping.get("degradation", ())
-            or LEGACY_DEGRADATION_SPECIES
-        )
+        return self.mechanism.observable_mapping.get("degradation", ())
 
     @property
     def catalyst_species(self) -> tuple[str, ...]:
-        if self.mechanism is None:
-            return (LEGACY_ACTIVE_CATALYST_SPECIES,)
-        return self.mechanism.observable_mapping.get("catalyst", ()) or (
-            LEGACY_ACTIVE_CATALYST_SPECIES,
-        )
+        return self.mechanism.observable_mapping.get("catalyst", ())
 
     @property
     def primary_target_species(self) -> str:
+        if not self.target_species:
+            raise ValueError(
+                f"Mechanism {self.mechanism.mechanism_id!r} does not declare target species"
+            )
         return self.target_species[0]
 
     @property
     def primary_impurity_species(self) -> str:
-        return self.impurity_species[0] if self.impurity_species else LEGACY_IMPURITY_SPECIES[0]
+        if not self.impurity_species:
+            raise ValueError(
+                f"Mechanism {self.mechanism.mechanism_id!r} does not declare impurity species"
+            )
+        return self.impurity_species[0]
+
+    def _role_species(
+        self,
+        role: str,
+        *,
+        fallback: tuple[str, ...] = (),
+    ) -> tuple[str, ...]:
+        return self.mechanism.observable_mapping.get(role, ()) or fallback
 
     def reactant_species(self, state: WorldState | None = None) -> str:
-        if self.mechanism is not None and self.mechanism.score_spec.initial_limiting_species:
+        if self.mechanism.score_spec.initial_limiting_species:
             species_id = self.mechanism.score_spec.initial_limiting_species
             if state is None or species_id in state.species_amounts:
                 return species_id
-        if self.mechanism is not None:
-            reactants = self.mechanism.observable_mapping.get("reactant", ())
-            for species_id in reactants:
-                if state is None or species_id in state.species_amounts:
-                    return species_id
-        return LEGACY_REACTANT_SPECIES
+        reactants = self.mechanism.observable_mapping.get("reactant", ())
+        for species_id in reactants:
+            if state is None or species_id in state.species_amounts:
+                return species_id
+        raise ValueError(
+            f"Mechanism {self.mechanism.mechanism_id!r} does not declare a usable reactant species"
+        )
 
-    def active_catalyst_species(self, state: WorldState | None = None) -> str:
+    def active_catalyst_species(self, state: WorldState | None = None) -> str | None:
         for species_id in self.catalyst_species:
             is_active = "active" in species_id.lower()
             is_present = state is None or species_id in state.species_amounts
@@ -101,7 +92,7 @@ class MechanismSpeciesView:
         for species_id in self.catalyst_species:
             if state is None or species_id in state.species_amounts:
                 return species_id
-        return LEGACY_ACTIVE_CATALYST_SPECIES
+        return None
 
     def target_species_for_state(self, state: WorldState) -> tuple[str, ...]:
         species = tuple(
@@ -109,9 +100,7 @@ class MechanismSpeciesView:
             for species_id in self.target_species
             if species_id in state.species_amounts
         )
-        if species:
-            return species
-        return (LEGACY_TARGET_SPECIES,)
+        return species or self.target_species
 
     def impurity_species_for_state(self, state: WorldState) -> tuple[str, ...]:
         species = tuple(
@@ -119,13 +108,7 @@ class MechanismSpeciesView:
             for species_id in self.impurity_species
             if species_id in state.species_amounts
         )
-        if species:
-            return species
-        return tuple(
-            species_id
-            for species_id in LEGACY_IMPURITY_SPECIES
-            if species_id in state.species_amounts
-        )
+        return species or self.impurity_species
 
     def byproduct_species_for_state(self, state: WorldState) -> tuple[str, ...]:
         species = tuple(
@@ -133,11 +116,7 @@ class MechanismSpeciesView:
             for species_id in self.byproduct_species
             if species_id in state.species_amounts
         )
-        return species or tuple(
-            species_id
-            for species_id in LEGACY_BYPRODUCT_SPECIES
-            if species_id in state.species_amounts
-        )
+        return species or self.byproduct_species
 
     def degradation_species_for_state(self, state: WorldState) -> tuple[str, ...]:
         species = tuple(
@@ -145,11 +124,7 @@ class MechanismSpeciesView:
             for species_id in self.degradation_species
             if species_id in state.species_amounts
         )
-        return species or tuple(
-            species_id
-            for species_id in LEGACY_DEGRADATION_SPECIES
-            if species_id in state.species_amounts
-        )
+        return species or self.degradation_species
 
     def amount(self, state: WorldState, species_ids: tuple[str, ...]) -> float:
         return sum(float(state.species_amounts.get(species_id, 0.0)) for species_id in species_ids)
@@ -174,7 +149,6 @@ class MechanismSpeciesView:
         candidates = (
             f"initial_{reactant}_mol",
             "initial_reactant_mol",
-            LEGACY_INITIAL_REACTANT_METADATA_KEY,
         )
         for key in candidates:
             if key in state.metadata:
@@ -201,10 +175,6 @@ class MechanismSpeciesView:
         metadata["initial_reactant_mol"] = (
             float(metadata.get("initial_reactant_mol", 0.0)) + amount_mol
         )
-        if reactant_species == LEGACY_REACTANT_SPECIES:
-            metadata[LEGACY_INITIAL_REACTANT_METADATA_KEY] = (
-                float(metadata.get(LEGACY_INITIAL_REACTANT_METADATA_KEY, 0.0)) + amount_mol
-            )
         return metadata
 
     def reagent_charge_amounts(
@@ -216,8 +186,6 @@ class MechanismSpeciesView:
         """Return mechanism-ratio reagent additions for one charge operation."""
 
         reactant = self.reactant_species(state)
-        if self.mechanism is None:
-            return {reactant: limiting_amount_mol}
         policy = self.mechanism.initial_amount_policy
         reference = float(policy.get(reactant, 0.0))
         if reference <= 0.0:
@@ -246,11 +214,5 @@ class MechanismSpeciesView:
 
 
 __all__ = [
-    "LEGACY_ACTIVE_CATALYST_SPECIES",
-    "LEGACY_BYPRODUCT_SPECIES",
-    "LEGACY_DEGRADATION_SPECIES",
-    "LEGACY_IMPURITY_SPECIES",
-    "LEGACY_REACTANT_SPECIES",
-    "LEGACY_TARGET_SPECIES",
     "MechanismSpeciesView",
 ]

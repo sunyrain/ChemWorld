@@ -67,7 +67,8 @@ class ChemWorldPrimitiveOperationServices:
         catalyst = _action_index(action, "catalyst", 0, len(CATALYSTS))
         species = state.species_amounts.copy()
         active_catalyst = self.species_view.active_catalyst_species(state)
-        species[active_catalyst] = species.get(active_catalyst, 0.0) + amount
+        if active_catalyst is not None:
+            species[active_catalyst] = species.get(active_catalyst, 0.0) + amount
         equipment = upsert_equipment_record(
             state.equipment,
             equipment_id="batch_reactor",
