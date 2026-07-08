@@ -67,6 +67,7 @@ Every professional module must ship:
 | PRO-P2A curated vapor-pressure and enthalpy property cases | whilesunny | Done | `chemicals.vapor_pressure`, `chemicals.heat_capacity`, `chemicals.dippr`, `thermo.heat_capacity` | `src/chemworld/physchem/curated_properties.py`, `src/chemworld/physchem/properties.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend the curated registry toward critical properties, liquid Cp, latent heat, and CoolProp checks | this commit |
 | PRO-P4A Wilson and full binary NRTL activity models | whilesunny | Done | `thermo.activity`, `thermo.wilson`, `thermo.nrtl`, `phasepy.actmodels` | `src/chemworld/physchem/equilibrium.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add nonideal VLE task cases and Wilson/NRTL parameter-library governance | this commit |
 | PRO-P5A Cantera-comparable irreversible/reversible reaction ODE cases | whilesunny | Done | `cantera` reactor examples, `cantera` reaction-rate APIs, `rmg-py` Arrhenius/reverse-rate APIs | `src/chemworld/physchem/reaction_network.py`, `tests/test_reaction_network.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add falloff, third-body, pressure-dependent, and thermochemistry-coupled reverse-rate tasks | this commit |
+| PRO-P6A CSTR multiple-steady-state professional example | whilesunny | Claimed | `cantera` stirred-reactor examples, `idaes-pse` CSTR/control-volume models, nonlinear reactor design equations | `src/chemworld/physchem/reactors.py`, optional reference tests, model cards, docs | read local Cantera/IDAES reactor APIs, then add analytical CSTR ignition/extinction validation slice | pending push |
 
 ## P0: Governance And Model Maturity
 
@@ -570,6 +571,7 @@ Acceptance:
 5. `PRO-P5A`: Add Cantera-comparable irreversible and reversible reaction ODE
    cases. Done.
 6. `PRO-P6A`: Add CSTR multiple-steady-state professional example.
+   Claimed by whilesunny.
 7. `PRO-P7A`: Replace simple distillation proxy with VLE-coupled shortcut
    distillation.
 8. `PRO-P10A`: Add Beer-Lambert UV-vis model card and calibration validation.
