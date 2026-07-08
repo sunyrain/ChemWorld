@@ -27,7 +27,7 @@ finished, update its status and push immediately.
 | P9 equilibrium chemistry | whilesunny | Done | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/test_equilibrium_chemistry.py`, `docs/physchem_core_design.md` | next: expand mechanism and scenario library in P10 using the generalized physchem kernels | this commit |
 | P10 mechanism and scenario library | whilesunny | Done | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/physchem/mechanism_library.py`, `tests/`, `docs/physchem_core_design.md` | next: start P11 instrument and spectroscopy coupling using mechanism targets and impurity species | this commit |
 | P11 instrument and spectroscopy coupling | whilesunny | Done | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `tests/`, `docs/physchem_core_design.md` | next: start P12 optional reference-backend validation after choosing the first comparison targets | this commit |
-| P12 optional reference-backend validation | whilesunny | Active | `src/chemworld/physchem/reference_validation.py`, `tests/reference/`, `docs/physchem_core_design.md`, `TODO.md` | next: add controlled CoolProp/Cantera/phasepy/Reaktoro/pycalphad comparison cases when dependencies are available | this commit |
+| P12 optional reference-backend validation | whilesunny | Active | `src/chemworld/physchem/reference_validation.py`, `tests/reference/`, `docs/physchem_core_design.md`, `TODO.md` | next: add controlled CoolProp/Cantera/Reaktoro/pycalphad comparison cases when dependencies are available | this commit |
 | P1/P2 audit and hardening | whilesunny | Done | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/properties.py`, `tests/`, `docs/physchem_core_design.md`, `TODO.md` | next: start P12 optional reference-backend validation after choosing first comparison targets | this commit |
 
 Status values:
@@ -412,12 +412,12 @@ Major capabilities to implement independently when needed:
 
 - [ ] Create `docs/third_party_feature_map.md` from this TODO.
 - [ ] Add a no-source-copy policy to contributor docs.
-- [ ] Add a `docs/physchem_core_design.md` architecture page.
-- [ ] Add `src/chemworld/physchem/README.md` explaining module boundaries.
-- [ ] Add tests confirming the core package imports without optional external
+- [x] Add a `docs/physchem_core_design.md` architecture page.
+- [x] Add `src/chemworld/physchem/README.md` explaining module boundaries.
+- [x] Add tests confirming the core package imports without optional external
       scientific backends.
 - [ ] Add optional extras only after adapters exist:
-  - [ ] `physchem-ref`
+  - [x] `physchem-ref`
   - [ ] `cantera`
   - [ ] `coolprop`
   - [ ] `idaes`
@@ -496,67 +496,67 @@ Acceptance tests:
 
 ### P3: General Reaction Network Engine
 
-- [ ] `SpeciesSpec`
-  - [ ] element composition;
-  - [ ] phase;
-  - [ ] charge;
-  - [ ] catalyst flag;
-  - [ ] observable aliases.
-- [ ] `ReactionSpec`
-  - [ ] equation string;
-  - [ ] stoichiometric coefficients;
-  - [ ] reversible flag;
-  - [ ] rate-law id;
-  - [ ] heat of reaction;
-  - [ ] equilibrium model id.
-- [ ] `ReactionNetworkSpec`
-  - [ ] species list;
-  - [ ] reaction list;
-  - [ ] stoichiometric matrix;
-  - [ ] element matrix;
-  - [ ] conservation checks.
-- [ ] Mechanism loader:
-  - [ ] JSON;
-  - [ ] YAML;
-  - [ ] schema validation;
-  - [ ] deterministic scenario parameter perturbation.
-- [ ] Rate laws:
-  - [ ] mass action;
-  - [ ] Arrhenius;
-  - [ ] modified Arrhenius;
-  - [ ] reversible Arrhenius;
-  - [ ] catalytic activity multiplier;
-  - [ ] catalyst deactivation;
-  - [ ] Langmuir-Hinshelwood-lite;
-  - [ ] Michaelis-Menten-lite;
+- [x] `SpeciesSpec`
+  - [x] element composition;
+  - [x] phase;
+  - [x] charge;
+  - [x] catalyst flag;
+  - [x] observable aliases.
+- [x] `ReactionSpec`
+  - [x] equation string;
+  - [x] stoichiometric coefficients;
+  - [x] reversible flag;
+  - [x] rate-law id;
+  - [x] heat of reaction;
+  - [x] equilibrium model id.
+- [x] `ReactionNetworkSpec`
+  - [x] species list;
+  - [x] reaction list;
+  - [x] stoichiometric matrix;
+  - [x] element matrix;
+  - [x] conservation checks.
+- [x] Mechanism loader:
+  - [x] JSON;
+  - [x] YAML;
+  - [x] schema validation;
+  - [x] deterministic scenario parameter perturbation.
+- [x] Rate laws:
+  - [x] mass action;
+  - [x] Arrhenius;
+  - [x] modified Arrhenius;
+  - [x] reversible Arrhenius;
+  - [x] catalytic activity multiplier;
+  - [x] catalyst deactivation;
+  - [x] Langmuir-Hinshelwood-lite;
+  - [x] Michaelis-Menten-lite;
   - [ ] electrochemical Butler-Volmer-lite later.
 
 Acceptance tests:
 
-- [ ] Stoichiometric matrix for arbitrary network is correct.
-- [ ] Element balance catches impossible reactions.
-- [ ] `A -> P -> D` reproduces current qualitative behavior.
-- [ ] Network with 20 species and 30 reactions runs deterministically.
+- [x] Stoichiometric matrix for arbitrary network is correct.
+- [x] Element balance catches impossible reactions.
+- [x] `A -> P -> D` reproduces current qualitative behavior.
+- [x] Network with 20 species and 30 reactions runs deterministically.
 
 ### P4: Reactor Models
 
-- [ ] Batch reactor:
-  - [ ] mole balance;
-  - [ ] energy balance;
-  - [ ] variable volume;
-  - [ ] heat-transfer jacket.
-- [ ] Semi-batch reactor:
-  - [ ] feed schedule;
-  - [ ] addition-limited selectivity;
-  - [ ] runaway risk.
-- [ ] CSTR:
-  - [ ] steady-state solve;
-  - [ ] dynamic startup;
-  - [ ] residence time;
+- [x] Batch reactor:
+  - [x] mole balance;
+  - [x] energy balance;
+  - [x] variable volume;
+  - [x] heat-transfer jacket.
+- [x] Semi-batch reactor:
+  - [x] feed schedule;
+  - [x] addition-limited selectivity;
+  - [x] runaway risk.
+- [x] CSTR:
+  - [x] steady-state solve;
+  - [x] dynamic startup;
+  - [x] residence time;
   - [ ] multiple steady-state example.
-- [ ] PFR:
-  - [ ] axial coordinate integration;
-  - [ ] temperature profile;
+- [x] PFR:
+  - [x] axial coordinate integration;
+  - [x] temperature profile;
   - [ ] pressure-drop placeholder.
 - [ ] Reactive flash:
   - [ ] reaction plus phase split;
@@ -569,88 +569,88 @@ Acceptance tests:
 Acceptance tests:
 
 - [ ] Batch and CSTR agree in limiting cases where expected.
-- [ ] PFR conversion increases with residence time.
-- [ ] Semi-batch feed rate changes selectivity.
-- [ ] Reactor state never creates negative species.
+- [x] PFR conversion increases with residence time.
+- [x] Semi-batch feed rate changes selectivity.
+- [x] Reactor state never creates negative species.
 
 ### P5: Equations of State
 
-- [ ] Ideal gas EOS.
-- [ ] Peng-Robinson EOS:
-  - [ ] pure component parameters;
-  - [ ] mixture rules;
-  - [ ] compressibility roots;
-  - [ ] fugacity coefficients.
-- [ ] SRK EOS:
-  - [ ] pure component parameters;
-  - [ ] mixture rules;
-  - [ ] fugacity coefficients.
-- [ ] Phase identification by root selection.
+- [x] Ideal gas EOS.
+- [x] Peng-Robinson EOS:
+  - [x] pure component parameters;
+  - [x] mixture rules;
+  - [x] compressibility roots;
+  - [x] fugacity coefficients.
+- [x] SRK EOS:
+  - [x] pure component parameters;
+  - [x] mixture rules;
+  - [x] fugacity coefficients.
+- [x] Phase identification by root selection.
 - [ ] Residual enthalpy placeholder.
-- [ ] EOS JSON spec.
+- [x] EOS JSON spec.
 
 Acceptance tests:
 
-- [ ] Ideal gas limit matches `PV=nRT`.
-- [ ] PR roots are real/filtered and stable.
-- [ ] Fugacity coefficients remain positive.
+- [x] Ideal gas limit matches `PV=nRT`.
+- [x] PR roots are real/filtered and stable.
+- [x] Fugacity coefficients remain positive.
 
 ### P6: Activity Models and Phase Equilibrium
 
-- [ ] Ideal-solution activity model.
-- [ ] Margules binary model.
+- [x] Ideal-solution activity model.
+- [x] Margules binary model.
 - [ ] Wilson-lite.
-- [ ] NRTL-lite.
+- [x] NRTL-lite.
 - [ ] UNIQUAC-lite.
-- [ ] Binary LLE solver.
+- [x] Binary LLE solver.
 - [ ] Ternary LLE placeholder.
-- [ ] Bubble point.
-- [ ] Dew point.
-- [ ] Isothermal flash.
+- [x] Bubble point.
+- [x] Dew point.
+- [x] Isothermal flash.
 - [ ] Adiabatic flash later.
 - [ ] Phase-stability heuristic.
 
 Acceptance tests:
 
-- [ ] Ideal binary flash has expected limiting behavior.
-- [ ] LLE split conserves material.
-- [ ] Increasing extractant volume changes recovery/purity tradeoff.
+- [x] Ideal binary flash has expected limiting behavior.
+- [x] LLE split conserves material.
+- [x] Increasing extractant volume changes recovery/purity tradeoff.
 - [ ] Distillation task uses VLE rather than fixed proxy where enabled.
 
 ### P7: Separation and Unit Operations
 
-- [ ] Liquid-liquid extraction:
-  - [ ] equilibrium stage;
-  - [ ] finite mixing efficiency;
-  - [ ] entrainment loss;
-  - [ ] solvent loss;
+- [x] Liquid-liquid extraction:
+  - [x] equilibrium stage;
+  - [x] finite mixing efficiency;
+  - [x] entrainment loss;
+  - [x] solvent loss;
   - [ ] washing stages.
-- [ ] Evaporation:
-  - [ ] VLE-driven removal;
-  - [ ] heat duty;
-  - [ ] concentration risk.
-- [ ] Simple distillation:
-  - [ ] relative volatility;
-  - [ ] reflux purity/recovery tradeoff;
-  - [ ] fraction cut.
-- [ ] Crystallization:
-  - [ ] solubility curve;
-  - [ ] supersaturation;
-  - [ ] nucleation/growth proxy;
-  - [ ] filtration loss.
-- [ ] Filtration:
-  - [ ] cake recovery;
-  - [ ] impurity retention;
-  - [ ] wash loss.
-- [ ] Drying:
-  - [ ] residual solvent;
-  - [ ] thermal degradation risk.
+- [x] Evaporation:
+  - [x] VLE-driven removal;
+  - [x] heat duty;
+  - [x] concentration risk.
+- [x] Simple distillation:
+  - [x] relative volatility;
+  - [x] reflux purity/recovery tradeoff;
+  - [x] fraction cut.
+- [x] Crystallization:
+  - [x] solubility curve;
+  - [x] supersaturation;
+  - [x] nucleation/growth proxy;
+  - [x] filtration loss.
+- [x] Filtration:
+  - [x] cake recovery;
+  - [x] impurity retention;
+  - [x] wash loss.
+- [x] Drying:
+  - [x] residual solvent;
+  - [x] thermal degradation risk.
 
 Acceptance tests:
 
-- [ ] Every unit operation has material balance checks.
-- [ ] Purity/recovery tradeoff is nontrivial.
-- [ ] Excessive purification increases cost and may reduce score.
+- [x] Every unit operation has material balance checks.
+- [x] Purity/recovery tradeoff is nontrivial.
+- [x] Excessive purification increases cost and may reduce score.
 
 ### P8: Fluid Mechanics and Heat Transfer
 
@@ -745,14 +745,16 @@ They validate behavior but do not make external packages required.
 - [x] Compare selected fluid calculations with `fluids`.
 - [ ] Compare vapor pressure/enthalpy points with `CoolProp`.
 - [ ] Compare simple reaction ODE cases with `Cantera`.
-- [ ] Compare simple LLE/VLE cases with `phasepy` or `thermo`.
+- [x] Compare simple LLE/VLE cases with `phasepy` or `thermo`.
 - [ ] Compare equilibrium toy cases with `Reaktoro`.
 - [ ] Compare solid-phase toy cases with `pycalphad`.
 
 Current P12 note: the completed property/backend comparison is implemented
-against `chemicals` for ideal-gas molar volume and Rachford-Rice flash. `thermo`
-is registered as a reference target, but dedicated numerical checks remain for
-a later controlled EOS/flash validation pass.
+against `chemicals` for ideal-gas molar volume and Rachford-Rice flash, against
+`fluids` for Reynolds and Prandtl numbers, and against `thermo` for a controlled
+ideal Raoult-law bubble/dew/TP-flash VLE case. `phasepy` remains a useful design
+reference, but the local snapshot currently requires a compiled Cython module
+before it can serve as an executable optional backend.
 
 Acceptance tests:
 

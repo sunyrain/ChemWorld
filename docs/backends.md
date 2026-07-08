@@ -34,7 +34,8 @@ The current validation layer lives in `chemworld.physchem.reference_validation`
 and supports installed packages or local source snapshots under
 `reference_repos/`.
 
-Current executable checks compare ChemWorld with `chemicals` and `fluids` for
-ideal-gas molar volume, Rachford-Rice flash, Reynolds number, and Prandtl
-number. These tests skip by default and run only when
+Current executable checks compare ChemWorld with `chemicals`, `fluids`, and
+`thermo` for ideal-gas molar volume, Rachford-Rice flash, Reynolds number,
+Prandtl number, ideal Raoult-law bubble/dew pressure, and a controlled ideal
+two-phase TP flash. These tests skip by default and run only when
 `CHEMWORLD_RUN_REFERENCE_TESTS=1` is set.

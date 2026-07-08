@@ -5,11 +5,15 @@ import os
 import pytest
 
 from chemworld.physchem import (
+    ActivityModelSpec,
+    bubble_pressure_pa,
     compare_scalar,
+    dew_pressure_pa,
     flash_isothermal,
     ideal_gas_molar_volume,
     import_reference_module,
     prandtl_number,
+    raoult_k_values,
     reynolds_number,
     summarize_reference_comparisons,
 )
@@ -20,9 +24,9 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def _reference_module(module_name: str):
+def _reference_module(module_name: str, repo_names: tuple[str, ...] | None = None):
     try:
-        return import_reference_module(module_name)
+        return import_reference_module(module_name, repo_names=repo_names)
     except Exception as exc:
         pytest.skip(f"optional reference module {module_name!r} is unavailable: {exc}")
 
@@ -152,6 +156,140 @@ def test_chemicals_rachford_rice_flash_reference() -> None:
                 reference_value=reference_y,
                 unit="mole_fraction",
                 rtol=1e-12,
+            )
+        )
+
+    summary = summarize_reference_comparisons(comparisons)
+    assert summary["all_passed"], summary
+
+
+def test_thermo_ideal_vle_reference() -> None:
+    thermo_property_package = _reference_module(
+        "thermo.property_package",
+        repo_names=("fluids", "chemicals", "thermo"),
+    )
+
+    class ConstantVaporPressure:
+        def __init__(self, value: float) -> None:
+            self.value = value
+
+        def __call__(self, temperature: float) -> float:
+            if temperature <= 0:
+                raise ValueError("temperature must be positive")
+            return self.value
+
+    component_ids = ("ethanol", "water")
+    temperature_K = 298.15
+    pressure_Pa = 5000.0
+    composition = {"ethanol": 0.5, "water": 0.5}
+    vapor_pressures_Pa = {"ethanol": 7860.0, "water": 3168.0}
+    activity_model = ActivityModelSpec(
+        "ideal_ethanol_water",
+        component_ids,
+        "ideal",
+    )
+    ideal_package = thermo_property_package.Ideal(
+        [
+            ConstantVaporPressure(vapor_pressures_Pa["ethanol"]),
+            ConstantVaporPressure(vapor_pressures_Pa["water"]),
+        ],
+        [159.0, 273.15],
+        [514.0, 647.0],
+        [6.1e6, 22.1e6],
+    )
+    phase, reference_xs, reference_ys, reference_vapor_fraction = (
+        ideal_package.flash_TP_zs(
+            temperature_K,
+            pressure_Pa,
+            [composition[component_id] for component_id in component_ids],
+        )
+    )
+    chemworld_k_values = raoult_k_values(
+        activity_model,
+        composition,
+        vapor_pressures_Pa=vapor_pressures_Pa,
+        pressure_Pa=pressure_Pa,
+        temperature_K=temperature_K,
+    )
+    chemworld_flash = flash_isothermal(composition, chemworld_k_values)
+
+    comparisons = [
+        compare_scalar(
+            check_id="thermo-ideal-bubble-pressure",
+            backend_id="thermo",
+            quantity="bubble_pressure",
+            chemworld_value=bubble_pressure_pa(
+                composition,
+                vapor_pressures_Pa=vapor_pressures_Pa,
+                activity_model=activity_model,
+                temperature_K=temperature_K,
+            ),
+            reference_value=ideal_package.Pbubble(
+                temperature_K,
+                [composition[component_id] for component_id in component_ids],
+            ),
+            unit="Pa",
+            rtol=1e-12,
+            note="Ideal Raoult-law bubble pressure against thermo.property_package.Ideal.",
+        ),
+        compare_scalar(
+            check_id="thermo-ideal-dew-pressure",
+            backend_id="thermo",
+            quantity="dew_pressure",
+            chemworld_value=dew_pressure_pa(
+                composition,
+                vapor_pressures_Pa=vapor_pressures_Pa,
+                activity_model=activity_model,
+                temperature_K=temperature_K,
+            ),
+            reference_value=ideal_package.Pdew(
+                temperature_K,
+                [composition[component_id] for component_id in component_ids],
+            ),
+            unit="Pa",
+            rtol=1e-12,
+            note="Ideal Raoult-law dew pressure against thermo.property_package.Ideal.",
+        ),
+        compare_scalar(
+            check_id="thermo-ideal-flash-vapor-fraction",
+            backend_id="thermo",
+            quantity="vapor_fraction",
+            chemworld_value=chemworld_flash.vapor_fraction,
+            reference_value=reference_vapor_fraction,
+            unit="dimensionless",
+            rtol=1e-11,
+            note=(
+                "Thermo phase label: "
+                f"{phase}; tolerance allows bisection vs thermo flash-solver roundoff."
+            ),
+        ),
+    ]
+    for component_id, reference_x, reference_y in zip(
+        component_ids,
+        reference_xs,
+        reference_ys,
+        strict=True,
+    ):
+        comparisons.append(
+            compare_scalar(
+                check_id=f"thermo-ideal-flash-x-{component_id}",
+                backend_id="thermo",
+                quantity=f"x_{component_id}",
+                chemworld_value=chemworld_flash.liquid_composition[component_id],
+                reference_value=reference_x,
+                unit="mole_fraction",
+                rtol=1e-11,
+            )
+        )
+        comparisons.append(
+            compare_scalar(
+                check_id=f"thermo-ideal-flash-y-{component_id}",
+                backend_id="thermo",
+                quantity=f"y_{component_id}",
+                chemworld_value=chemworld_flash.vapor_composition[component_id],
+                reference_value=reference_y,
+                unit="mole_fraction",
+                rtol=1e-11,
             )
         )
 

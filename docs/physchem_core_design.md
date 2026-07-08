@@ -242,6 +242,7 @@ small enough to audit and stable enough to run locally:
 | --- | --- | --- |
 | `chemicals` | ideal-gas molar volume via `chemicals.volume.ideal_gas`; Rachford-Rice vapor fraction and phase compositions via `chemicals.rachford_rice.Rachford_Rice_solution` | `rtol=1e-12` |
 | `fluids` | Reynolds and Prandtl numbers via `fluids.core` | `rtol=1e-12` |
+| `thermo` | ideal Raoult-law bubble/dew pressure and two-phase TP flash via `thermo.property_package.Ideal` with explicit constant vapor-pressure callables | `rtol=1e-12` for bubble/dew; `rtol=1e-11` for flash solver roundoff |
 
 Run the normal test path to confirm reference tests skip cleanly when optional
 backends are not enabled:
@@ -267,7 +268,10 @@ python -m pytest tests/reference
 CoolProp, Cantera, phasepy, Reaktoro, and pycalphad are registered as reference
 targets with explicit model-limit notes, but their numerical comparisons are
 not marked complete until their compiled or optional dependencies are available
-and the corresponding checks can run in a controlled environment.
+and the corresponding checks can run in a controlled environment. In the current
+local snapshot, `phasepy` exposes useful LLE/VLE source structure for design
+reading but cannot be imported directly without its compiled Cython extension,
+so ChemWorld's completed VLE reference check uses `thermo` instead.
 
 ## Reactor Model Core
 

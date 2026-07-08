@@ -90,9 +90,11 @@ $env:CHEMWORLD_RUN_REFERENCE_TESTS = "1"
 python -m pytest tests/reference
 ```
 
-Current executable comparisons use `chemicals` and `fluids` because their local
-source snapshots can run as pure Python in the development environment. Heavy
-or compiled backends such as CoolProp, Cantera, Reaktoro, pycalphad,
-thermopack, and teqp remain tracked as validation targets, but are not
-considered complete until their runtime dependencies are available and their
-comparisons run successfully.
+Current executable comparisons use `chemicals`, `fluids`, and a controlled
+`thermo.property_package.Ideal` VLE case because those paths can run from the
+local source snapshots in the development environment. The `thermo` comparison
+checks ideal Raoult-law bubble/dew pressure and a two-phase TP flash against
+ChemWorld's local phase-equilibrium kernel. Heavy or compiled backends such as
+CoolProp, Cantera, phasepy, Reaktoro, pycalphad, thermopack, and teqp remain
+tracked as validation targets, but are not considered complete until their
+runtime dependencies are available and their comparisons run successfully.
