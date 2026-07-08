@@ -62,6 +62,7 @@ Every professional module must ship:
 | Item | Owner | Status | Reference Targets | Code Areas | Next Step | Last Push |
 | --- | --- | --- | --- | --- | --- | --- |
 | Professional TODO bootstrap | whilesunny | Done | all reference repos | `TODO_PROFESSIONAL.md`, `docs/professional_todo.md`, `docs/physchem_maturity_audit.md` | claim the first professional implementation item before coding | this commit |
+| PRO-P0 maturity metadata and model-card templates | whilesunny | Claimed | IDAES, thermo, Cantera, Gymnasium-style metadata | `src/chemworld/physchem/maturity.py`, `src/chemworld/tasks.py`, `docs/physchem_maturity_audit.md`, tests | read reference metadata patterns, then implement maturity enum, model-card templates, and task maturity fields | this commit |
 
 ## P0: Governance And Model Maturity
 
