@@ -182,6 +182,91 @@ def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
                 "LLM/tool-agent parsing of chromatograms and calibrated estimates",
             ),
         ),
+        ModelCard(
+            model_id="ir_functional_group_bands",
+            module_id="spectroscopy_instruments",
+            title="IR Functional-Group Band Model",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "IR spectra are generated from a compact curated functional-group "
+                "band catalog with formula/role-triggered assignments, explicit "
+                "wavenumber units, broadening, transmittance-mode signal synthesis, "
+                "and overlap/interference diagnostics."
+            ),
+            equations=(
+                "band response: R_i = alpha_group * c_species",
+                "Gaussian band: I = A / (sigma sqrt(2 pi)) exp[-0.5 ((nu-nu0)/sigma)^2]",
+                "Lorentzian broad O-H band: I = A (gamma/pi) / ((nu-nu0)^2 + gamma^2)",
+                "transmittance signal: T = clip(1 - sum(I_i) - baseline, 0, 1)",
+                "overlap flag: |nu_i - nu_j| <= 0.55 * (width_i + width_j)",
+            ),
+            assumptions=(
+                "formula-level functional-group triggers are intentionally coarse",
+                "band centers and widths are local benchmark parameters",
+                "broad O-H bands use a Lorentzian shape to mimic low-resolution tails",
+                "overlap diagnostics are qualitative and intended for agent reasoning",
+            ),
+            validity_limits=(
+                "requires a molecular formula for strict functional-group assignment",
+                "does not infer connectivity, stereochemistry, solvent shifts, or real databases",
+                "not a replacement for empirical IR libraries or quantum vibrational spectra",
+            ),
+            failure_modes=(
+                "missing strict formula raises ValueError",
+                "nonpositive wavenumber, width, or intensity raises ValueError",
+                "invalid peak shape raises ValueError",
+            ),
+            units={
+                "wavenumber": "cm^-1",
+                "width": "cm^-1",
+                "concentration": "mol/L",
+                "transmittance": "dimensionless",
+            },
+            reference_reading=(
+                (
+                    "Public organic spectroscopy band tables motivate the "
+                    "carbonyl, hydroxyl, C-H, fingerprint, and heteroatom proxy "
+                    "regions; ChemWorld stores only compact local benchmark bands."
+                ),
+                (
+                    "reference_repos/chemicals/docs/developers.rst notes IR, "
+                    "NMR, and MS spectral databases such as NIST as future data "
+                    "sources, but does not implement an instrument kernel."
+                ),
+                (
+                    "Local spectroscopy implementation read in "
+                    "src/chemworld/physchem/spectroscopy.py and "
+                    "src/chemworld/world/spectra.py."
+                ),
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="ir_functional_group_assignment",
+                    evidence_type="unit_test",
+                    description=(
+                        "Formula-triggered carbonyl, hydroxyl, C-H, and fingerprint "
+                        "bands are assigned with explicit metadata and broadening."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_spectroscopy.py",
+                ),
+                ValidationEvidence(
+                    evidence_id="ir_signal_interference_metadata",
+                    evidence_type="unit_test",
+                    description=(
+                        "IR raw-signal packets expose functional-group metadata, "
+                        "transmittance bounds, and unresolved-band interference flags."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_spectroscopy.py",
+                ),
+            ),
+            intended_use=(
+                "virtual IR functional-group reasoning in ChemWorld tasks",
+                "LLM/tool-agent parsing of raw final-assay packets",
+                "teaching qualitative band overlap and instrument uncertainty",
+            ),
+        ),
     )
 
 

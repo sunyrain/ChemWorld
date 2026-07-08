@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from itertools import pairwise
@@ -161,6 +162,112 @@ class BeerLambertCalibrationResult:
             "r_squared": self.r_squared,
             "detection_limit_mol_L": self.detection_limit_mol_L,
             "quantitation_limit_mol_L": self.quantitation_limit_mol_L,
+        }
+
+
+@dataclass(frozen=True)
+class IRFunctionalGroupBandSpec:
+    group_id: str
+    assignment: str
+    center_cm_inv: float
+    width_cm_inv: float
+    relative_intensity: float
+    shape: PeakShape = "gaussian"
+    detection_limit_mol_L: float = 0.004
+    provenance: str = "ChemWorld curated functional-group IR slice"
+
+    def __post_init__(self) -> None:
+        if not self.group_id.strip() or not self.assignment.strip():
+            raise ValueError("IR group_id and assignment cannot be empty")
+        if self.center_cm_inv <= 0.0 or not isfinite(self.center_cm_inv):
+            raise ValueError("IR center_cm_inv must be finite and positive")
+        if self.width_cm_inv <= 0.0 or not isfinite(self.width_cm_inv):
+            raise ValueError("IR width_cm_inv must be finite and positive")
+        if self.relative_intensity <= 0.0 or not isfinite(self.relative_intensity):
+            raise ValueError("IR relative_intensity must be finite and positive")
+        if self.detection_limit_mol_L < 0.0:
+            raise ValueError("IR detection_limit_mol_L cannot be negative")
+        if self.shape not in {"gaussian", "lorentzian"}:
+            raise ValueError("IR shape must be gaussian or lorentzian")
+
+    def to_feature(
+        self,
+        *,
+        species_id: str,
+        role: str,
+        formula: str,
+        warning: str | None = None,
+    ) -> SpectralFeatureSpec:
+        metadata: dict[str, object] = self.to_dict()
+        metadata.update(
+            {
+                "model_id": "ir_functional_group_bands",
+                "species_id": species_id,
+                "role": role,
+                "formula": formula,
+                "warning": warning,
+            }
+        )
+        role_gain = {
+            "target": 1.15,
+            "reactant": 0.95,
+            "byproduct": 1.05,
+            "degradation": 1.20,
+            "catalyst": 0.75,
+            "other": 0.85,
+        }.get(role, 0.85)
+        slope = self.relative_intensity * role_gain
+        return SpectralFeatureSpec(
+            species_id=species_id,
+            instrument_id="ir",
+            center=self.center_cm_inv,
+            width=self.width_cm_inv,
+            response_factor=slope,
+            detection_limit_mol_L=self.detection_limit_mol_L,
+            assignment=f"{species_id}_{self.group_id}_{self.assignment}",
+            group=role,
+            shape=self.shape,
+            calibration=CalibrationCurve(
+                slope=slope,
+                lower_limit=self.detection_limit_mol_L,
+                upper_limit=5.0,
+                noise_relative=0.055 if self.group_id != "hydroxyl_broad" else 0.075,
+            ),
+            metadata=metadata,
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "group_id": self.group_id,
+            "assignment": self.assignment,
+            "center_cm_inv": self.center_cm_inv,
+            "width_cm_inv": self.width_cm_inv,
+            "relative_intensity": self.relative_intensity,
+            "shape": self.shape,
+            "detection_limit_mol_L": self.detection_limit_mol_L,
+            "provenance": self.provenance,
+        }
+
+
+@dataclass(frozen=True)
+class IRBandAssignmentReport:
+    species_id: str
+    role: str
+    formula: str
+    element_counts: dict[str, int]
+    bands: tuple[IRFunctionalGroupBandSpec, ...]
+    interference_pairs: tuple[tuple[str, str], ...]
+    warnings: tuple[str, ...]
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "species_id": self.species_id,
+            "role": self.role,
+            "formula": self.formula,
+            "element_counts": dict(self.element_counts),
+            "bands": [band.to_dict() for band in self.bands],
+            "interference_pairs": [list(pair) for pair in self.interference_pairs],
+            "warnings": list(self.warnings),
         }
 
 
@@ -750,6 +857,151 @@ def default_feature_specs(
     return tuple(features)
 
 
+def assign_ir_functional_group_bands(
+    *,
+    species_id: str,
+    role: str,
+    formula: str,
+    strict_formula: bool = True,
+) -> IRBandAssignmentReport:
+    """Assign compact IR functional-group bands from a formula and benchmark role.
+
+    The rules are intentionally local and auditable. They are not a spectral
+    database; they provide chemically interpretable raw-signal features for
+    ChemWorld agent tasks.
+    """
+
+    if not species_id.strip():
+        raise ValueError("species_id cannot be empty")
+    normalized_formula = formula.strip()
+    warnings: tuple[str, ...]
+    if not normalized_formula:
+        if strict_formula:
+            raise ValueError("formula is required for IR functional-group assignment")
+        counts: dict[str, int] = {}
+        warnings = ("missing_formula_fingerprint_only",)
+    else:
+        counts = _formula_element_counts(normalized_formula)
+        warnings = () if counts else ("formula_parse_empty_fingerprint_only",)
+
+    carbon = counts.get("C", 0)
+    hydrogen = counts.get("H", 0)
+    oxygen = counts.get("O", 0)
+    nitrogen = counts.get("N", 0)
+    sulfur = counts.get("S", 0)
+    halogen = sum(counts.get(element, 0) for element in ("F", "Cl", "Br", "I"))
+
+    bands: list[IRFunctionalGroupBandSpec] = [
+        _ir_band(
+            "fingerprint",
+            "fingerprint C-O/C-C/C-N region",
+            1130.0,
+            70.0,
+            0.115,
+            species_id=species_id,
+            scale=42.0,
+        )
+    ]
+    if carbon and oxygen:
+        bands.append(
+            _ir_band(
+                "carbonyl",
+                "C=O stretch",
+                1715.0,
+                42.0,
+                0.235,
+                species_id=species_id,
+                scale=35.0,
+            )
+        )
+    if oxygen and hydrogen:
+        bands.append(
+            _ir_band(
+                "hydroxyl_broad",
+                "O-H broad stretch",
+                3340.0,
+                190.0,
+                0.155,
+                species_id=species_id,
+                scale=70.0,
+                shape="lorentzian",
+            )
+        )
+    if carbon and hydrogen:
+        bands.append(
+            _ir_band(
+                "aliphatic_ch",
+                "aliphatic C-H stretch",
+                2940.0,
+                85.0,
+                0.085,
+                species_id=species_id,
+                scale=45.0,
+            )
+        )
+    if carbon >= 5 and hydrogen >= 4:
+        bands.append(
+            _ir_band(
+                "alkene_aromatic_proxy",
+                "C=C/aromatic proxy stretch",
+                1605.0,
+                55.0,
+                0.075,
+                species_id=species_id,
+                scale=32.0,
+            )
+        )
+    if carbon and nitrogen:
+        bands.append(
+            _ir_band(
+                "nitrile_amine_proxy",
+                "C-N/CN proxy stretch",
+                2225.0 if hydrogen <= carbon else 1250.0,
+                50.0,
+                0.070,
+                species_id=species_id,
+                scale=28.0,
+            )
+        )
+    if sulfur:
+        bands.append(
+            _ir_band(
+                "sulfur_oxygen_proxy",
+                "S=O/C-S proxy region",
+                1040.0,
+                65.0,
+                0.080,
+                species_id=species_id,
+                scale=25.0,
+            )
+        )
+    if halogen:
+        bands.append(
+            _ir_band(
+                "carbon_halogen",
+                "C-halogen stretch",
+                720.0,
+                80.0,
+                0.070,
+                species_id=species_id,
+                scale=45.0,
+            )
+        )
+
+    interference_pairs = _ir_band_interference_pairs(bands)
+    if interference_pairs:
+        warnings = (*warnings, "overlapping_ir_bands")
+    return IRBandAssignmentReport(
+        species_id=species_id,
+        role=role,
+        formula=normalized_formula,
+        element_counts=counts,
+        bands=tuple(bands),
+        interference_pairs=interference_pairs,
+        warnings=warnings,
+    )
+
+
 def synthesize_signal(
     spec: InstrumentSignalSpec,
     amounts_mol: Mapping[str, float],
@@ -807,6 +1059,8 @@ def synthesize_signal(
     calibration_profile = (
         "uvvis_beer_lambert_calibration_v1"
         if spec.instrument_id == "uvvis"
+        else "ir_functional_group_calibration_v1"
+        if spec.instrument_id == "ir"
         else f"{spec.instrument_id}_retention_plate_calibration_v1"
         if spec.instrument_id in {"hplc", "gc"}
         else f"{spec.instrument_id}_species_calibration_v1"
@@ -826,6 +1080,17 @@ def synthesize_signal(
     }
     if chromatographic_resolution_summary:
         metadata["chromatographic_resolution"] = chromatographic_resolution_summary
+    if spec.instrument_id == "ir":
+        functional_groups: set[str] = set()
+        for peak in detected_peaks:
+            peak_metadata = peak.get("metadata")
+            if (
+                isinstance(peak_metadata, Mapping)
+                and peak_metadata.get("model_id") == "ir_functional_group_bands"
+            ):
+                functional_groups.add(str(peak_metadata.get("group_id")))
+        metadata["ir_functional_groups"] = sorted(functional_groups)
+        metadata["ir_interference"] = _ir_interference_summary(detected_peaks)
     return SpectralMeasurement(
         instrument_id=spec.instrument_id,
         kind=spec.kind,
@@ -1028,33 +1293,21 @@ def _uvvis_feature(species_id: str, role: str) -> SpectralFeatureSpec:
 
 
 def _ir_features(species_id: str, role: str, formula: str) -> tuple[SpectralFeatureSpec, ...]:
-    formula_upper = formula.upper()
-    centers = [1180.0 + _stable_offset(species_id, scale=35.0)]
-    if "O" in formula_upper and "C" in formula_upper:
-        centers.append(1720.0 + _stable_offset(species_id + "carbonyl", scale=40.0))
-    if "H" in formula_upper and "O" in formula_upper:
-        centers.append(3360.0 + _stable_offset(species_id + "oh", scale=60.0))
-    if "C" in formula_upper and "H" in formula_upper:
-        centers.append(2960.0 + _stable_offset(species_id + "ch", scale=45.0))
-    response = 0.18 if role == "target" else 0.12
+    report = assign_ir_functional_group_bands(
+        species_id=species_id,
+        role=role,
+        formula=formula,
+        strict_formula=False,
+    )
+    warning = ";".join(report.warnings) if report.warnings else None
     return tuple(
-        SpectralFeatureSpec(
+        band.to_feature(
             species_id=species_id,
-            instrument_id="ir",
-            center=center,
-            width=65.0 if center < 2000.0 else 120.0,
-            response_factor=response,
-            detection_limit_mol_L=0.004,
-            assignment=f"{species_id}_{role}_ir_{idx}",
-            group=role,
-            calibration=CalibrationCurve(
-                slope=response,
-                lower_limit=0.004,
-                upper_limit=5.0,
-                noise_relative=0.06,
-            ),
+            role=role,
+            formula=report.formula,
+            warning=warning,
         )
-        for idx, center in enumerate(centers)
+        for band in report.bands
     )
 
 
@@ -1229,6 +1482,34 @@ def _chromatographic_resolution_summary(
     }
 
 
+def _ir_interference_summary(peaks: Sequence[Mapping[str, object]]) -> dict[str, object]:
+    ir_peaks: list[Mapping[str, object]] = []
+    for peak in peaks:
+        peak_metadata = peak.get("metadata")
+        if (
+            isinstance(peak_metadata, Mapping)
+            and peak_metadata.get("model_id") == "ir_functional_group_bands"
+        ):
+            ir_peaks.append(peak)
+    pairs: list[dict[str, object]] = []
+    for left, right in pairwise(sorted(ir_peaks, key=lambda peak: _as_float(peak["center"]))):
+        distance = abs(_as_float(right["center"]) - _as_float(left["center"]))
+        limit = 0.55 * (_as_float(left["width"]) + _as_float(right["width"]))
+        if distance <= limit:
+            pairs.append(
+                {
+                    "left_assignment": str(left["assignment"]),
+                    "right_assignment": str(right["assignment"]),
+                    "center_distance_cm_inv": round(distance, 6),
+                    "resolution_proxy": round(distance / max(limit, 1.0e-12), 6),
+                }
+            )
+    return {
+        "overlap_pairs": pairs,
+        "unresolved": bool(pairs),
+    }
+
+
 def _processed_from_peaks(
     features: Sequence[SpectralFeatureSpec],
     concentrations: Mapping[str, float],
@@ -1277,6 +1558,46 @@ def _peak_shape(axis: np.ndarray, peak: Mapping[str, object]) -> np.ndarray:
     return height * np.exp(-0.5 * ((axis - center) / width) ** 2)
 
 
+def _ir_band(
+    group_id: str,
+    assignment: str,
+    center_cm_inv: float,
+    width_cm_inv: float,
+    relative_intensity: float,
+    *,
+    species_id: str,
+    scale: float,
+    shape: PeakShape = "gaussian",
+) -> IRFunctionalGroupBandSpec:
+    return IRFunctionalGroupBandSpec(
+        group_id=group_id,
+        assignment=assignment,
+        center_cm_inv=center_cm_inv + _stable_offset(f"{species_id}:{group_id}", scale=scale),
+        width_cm_inv=width_cm_inv,
+        relative_intensity=relative_intensity,
+        shape=shape,
+    )
+
+
+def _ir_band_interference_pairs(
+    bands: Sequence[IRFunctionalGroupBandSpec],
+) -> tuple[tuple[str, str], ...]:
+    pairs: list[tuple[str, str]] = []
+    for left, right in pairwise(sorted(bands, key=lambda band: band.center_cm_inv)):
+        distance = abs(right.center_cm_inv - left.center_cm_inv)
+        limit = 0.55 * (left.width_cm_inv + right.width_cm_inv)
+        if distance <= limit:
+            pairs.append((left.group_id, right.group_id))
+    return tuple(pairs)
+
+
+def _formula_element_counts(formula: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for element, count_text in re.findall(r"([A-Z][a-z]?)(\d*)", formula):
+        counts[element] = counts.get(element, 0) + int(count_text or "1")
+    return counts
+
+
 def _stable_offset(text: str, *, scale: float) -> float:
     bucket = sum((idx + 1) * ord(char) for idx, char in enumerate(text)) % 101
     return ((bucket / 100.0) - 0.5) * scale
@@ -1298,9 +1619,12 @@ __all__ = [
     "CalibrationCurve",
     "ChromatographyCalibrationResult",
     "ChromatographyMethodSpec",
+    "IRBandAssignmentReport",
+    "IRFunctionalGroupBandSpec",
     "InstrumentSignalSpec",
     "SpectralFeatureSpec",
     "SpectralMeasurement",
+    "assign_ir_functional_group_bands",
     "beer_lambert_absorbance",
     "build_signal_spec",
     "build_signal_spec_from_card",

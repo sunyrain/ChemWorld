@@ -328,6 +328,10 @@ Recommended follow-up:
   declares required domain services in addition to operations, kernels,
   instruments, and capabilities; runtime startup validates the profile against
   both operation kernels and focused domain-service contracts.
+- Added an IR functional-group spectroscopy slice. IR signal generation now
+  exposes curated local band assignments, broad O-H Lorentzian bands,
+  transmittance bounds, overlap/interference metadata, public API exports, and a
+  model card with validation evidence.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration

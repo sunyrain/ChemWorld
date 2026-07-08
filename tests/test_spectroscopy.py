@@ -4,7 +4,10 @@ import pytest
 
 from chemworld.physchem import (
     BeerLambertBandSpec,
+    IRFunctionalGroupBandSpec,
+    assign_ir_functional_group_bands,
     beer_lambert_absorbance,
+    build_signal_spec,
     build_signal_spec_from_card,
     chromatographic_baseline_peak_width,
     chromatographic_resolution,
@@ -324,6 +327,85 @@ def test_uvvis_signal_uses_beer_lambert_band_metadata() -> None:
     assert product_peak["estimated_concentration_mol_L"] == pytest.approx(0.30)
 
 
+def test_ir_functional_group_assignment_reports_interpretable_bands() -> None:
+    report = assign_ir_functional_group_bands(
+        species_id="HydroxyEster",
+        role="target",
+        formula="C4H8O3",
+    )
+    payload = report.to_dict()
+    group_ids = {band["group_id"] for band in payload["bands"]}
+
+    assert {"fingerprint", "carbonyl", "hydroxyl_broad", "aliphatic_ch"} <= group_ids
+    assert payload["element_counts"] == {"C": 4, "H": 8, "O": 3}
+    hydroxyl = next(band for band in payload["bands"] if band["group_id"] == "hydroxyl_broad")
+    carbonyl = next(band for band in payload["bands"] if band["group_id"] == "carbonyl")
+    assert hydroxyl["width_cm_inv"] > carbonyl["width_cm_inv"]
+    assert hydroxyl["shape"] == "lorentzian"
+
+
+def test_ir_signal_uses_functional_group_metadata_and_transmittance_bounds() -> None:
+    spec = build_signal_spec(
+        "ir",
+        ("HydroxyEster", "AminoAlcohol"),
+        target_species=("HydroxyEster",),
+        impurity_species=("AminoAlcohol",),
+        formulas={"HydroxyEster": "C4H8O3", "AminoAlcohol": "C2H7NO"},
+    )
+    measurement = synthesize_signal(
+        spec,
+        {"HydroxyEster": 0.24, "AminoAlcohol": 0.08},
+        volume_L=1.0,
+        seed=9,
+    )
+    packet = measurement.to_dict()
+    ester_peak = _peak(packet, "HydroxyEster")
+    metadata = ester_peak["metadata"]
+
+    assert packet["kind"] == "ir_spectrum"
+    assert packet["metadata"]["calibration_profile"] == "ir_functional_group_calibration_v1"
+    assert "ir_functional_group_bands" in packet["metadata"]["model_ids"]
+    assert "carbonyl" in packet["metadata"]["ir_functional_groups"]
+    assert packet["metadata"]["ir_interference"]["unresolved"] in {True, False}
+    assert metadata["model_id"] == "ir_functional_group_bands"
+    assert metadata["formula"] == "C4H8O3"
+    assert metadata["group_id"] in {
+        "fingerprint",
+        "carbonyl",
+        "hydroxyl_broad",
+        "aliphatic_ch",
+    }
+    assert min(packet["transmittance"]) >= 0.0
+    assert max(packet["transmittance"]) <= 1.0
+
+
+def test_ir_band_validation_and_missing_formula_policy() -> None:
+    with pytest.raises(ValueError, match="width_cm_inv"):
+        IRFunctionalGroupBandSpec(
+            group_id="bad",
+            assignment="invalid",
+            center_cm_inv=1700.0,
+            width_cm_inv=0.0,
+            relative_intensity=0.2,
+        )
+
+    with pytest.raises(ValueError, match="formula is required"):
+        assign_ir_functional_group_bands(
+            species_id="Unknown",
+            role="other",
+            formula="",
+        )
+
+    fallback = assign_ir_functional_group_bands(
+        species_id="Unknown",
+        role="other",
+        formula="",
+        strict_formula=False,
+    )
+    assert fallback.warnings == ("missing_formula_fingerprint_only",)
+    assert [band.group_id for band in fallback.bands] == ["fingerprint"]
+
+
 def test_spectroscopy_model_card_documents_beer_lambert_uvvis() -> None:
     cards = spectroscopy_model_cards()
     card = next(card for card in cards if card.model_id == "beer_lambert_uvvis")
@@ -340,6 +422,15 @@ def test_spectroscopy_model_card_documents_chromatography_retention() -> None:
     assert card.maturity.value == "reference_validated"
     assert not validate_model_card(card)
     assert any("retention factor" in equation for equation in card.equations)
+
+
+def test_spectroscopy_model_card_documents_ir_functional_groups() -> None:
+    cards = spectroscopy_model_cards()
+    card = next(card for card in cards if card.model_id == "ir_functional_group_bands")
+
+    assert card.maturity.value == "reference_validated"
+    assert not validate_model_card(card)
+    assert any("Lorentzian" in equation for equation in card.equations)
 
 
 def _peak(packet: dict[str, object], species_id: str) -> dict[str, object]:
