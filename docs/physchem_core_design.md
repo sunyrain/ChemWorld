@@ -153,6 +153,29 @@ downstream reactor models, and catches element-balance errors before an
 environment starts. This makes the current five-reaction batch world just one
 mechanism instance rather than a permanent architectural limit.
 
+PRO-P5A adds the first reference-validated reaction ODE slice. The function
+`cantera_comparable_reaction_cases()` now returns two ChemWorld-owned
+constant-volume, isothermal, homogeneous batch ODE reference cases:
+
+- an irreversible first-order `A => B` case with analytical
+  `A(t) = A0 exp(-kt)`;
+- a reversible first-order `A <=> B` case with finite `K_eq = k_f/k_r` and
+  analytical relaxation to the equilibrium ratio.
+
+`evaluate_reaction_ode_reference_case()` integrates each `ReactionNetworkSpec`
+and compares the full trajectory against the analytical solution. The related
+model card is exposed through `reaction_kinetics_model_cards()` and records
+the inspected Cantera/RMG references: Cantera reaction equations and
+`ArrheniusRate`, Cantera ReactorNet's ODE framing, RMG Arrhenius rate
+coefficients, and RMG reverse-rate generation from `k_forward/K_eq`. Optional
+reference tests additionally compare the local Arrhenius rate constant against
+`ct.ArrheniusRate` if Cantera is available.
+
+This closes a narrow professional slice, not the whole kinetics stack.
+Falloff, third bodies, pressure-dependent rates, thermochemistry-derived
+`K(T)`, and heat-release-coupled reactor validation remain explicit future
+professional tasks.
+
 ## Mechanism and Scenario Library
 
 The P10 mechanism/scenario library is implemented in

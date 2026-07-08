@@ -66,7 +66,7 @@ Every professional module must ship:
 | PRO-P12A fluids friction factor and pressure-drop validation | whilesunny | Done | `fluids.friction`, `fluids.core`, Haaland and Darcy-Weisbach references | `src/chemworld/physchem/transport.py`, `src/chemworld/physchem/reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend pressure-drop validation to heat-transfer correlations or claim PRO-P2A | this commit |
 | PRO-P2A curated vapor-pressure and enthalpy property cases | whilesunny | Done | `chemicals.vapor_pressure`, `chemicals.heat_capacity`, `chemicals.dippr`, `thermo.heat_capacity` | `src/chemworld/physchem/curated_properties.py`, `src/chemworld/physchem/properties.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend the curated registry toward critical properties, liquid Cp, latent heat, and CoolProp checks | this commit |
 | PRO-P4A Wilson and full binary NRTL activity models | whilesunny | Done | `thermo.activity`, `thermo.wilson`, `thermo.nrtl`, `phasepy.actmodels` | `src/chemworld/physchem/equilibrium.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add nonideal VLE task cases and Wilson/NRTL parameter-library governance | this commit |
-| PRO-P5A Cantera-comparable irreversible/reversible reaction ODE cases | whilesunny | Claimed | `cantera` reactor examples, `cantera` reaction-rate APIs, `rmg-py` mechanism schema | `src/chemworld/physchem/reaction_network.py`, optional reference tests, model cards, docs | read local Cantera/RMG reaction APIs, then add analytical and optional-Cantera ODE validation cases | pending push |
+| PRO-P5A Cantera-comparable irreversible/reversible reaction ODE cases | whilesunny | Done | `cantera` reactor examples, `cantera` reaction-rate APIs, `rmg-py` Arrhenius/reverse-rate APIs | `src/chemworld/physchem/reaction_network.py`, `tests/test_reaction_network.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add falloff, third-body, pressure-dependent, and thermochemistry-coupled reverse-rate tasks | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -235,9 +235,10 @@ Reference targets: `Cantera`, `RMG-Py`, `thermo`.
   - [ ] reaction enthalpy from species data;
   - [ ] equilibrium constants from Gibbs energy.
 - [ ] Rate laws:
-  - [ ] elementary mass-action;
-  - [ ] reversible rates obeying detailed balance;
-  - [ ] modified Arrhenius;
+  - [x] elementary mass-action;
+  - [x] reversible rates obeying detailed balance for the validated
+        constant-K first-order ODE slice;
+  - [x] modified Arrhenius;
   - [ ] falloff/Troe-style placeholder with validation target;
   - [ ] pressure-dependent hooks;
   - [ ] heterogeneous catalytic rate template;
@@ -248,10 +249,12 @@ Reference targets: `Cantera`, `RMG-Py`, `thermo`.
 
 Acceptance:
 
-- [ ] Simple irreversible and reversible ODE cases compare against Cantera.
+- [x] Simple irreversible and reversible ODE cases compare against analytical
+      constant-volume first-order solutions, with optional Cantera
+      `ArrheniusRate` comparison where available.
 - [ ] Energy balance uses reaction enthalpy from thermochemistry where
       available.
-- [ ] Invalid or unbalanced reactions fail before simulation.
+- [x] Invalid or unbalanced reactions fail before simulation.
 
 ## P6: Reactor And Process Dynamics
 
@@ -498,6 +501,25 @@ Reference-reading note for PRO-P4A:
   `ln gamma` functions over matrices. ChemWorld adopts the compact API spirit
   while keeping plain JSON-friendly specs and model cards.
 
+Reference-reading note for PRO-P5A:
+
+- `cantera/doc/sphinx/yaml/reactions.md` shows the shared reaction-language
+  contract used here: `=>` for irreversible reactions, `<=>` for reversible
+  reactions, and explicit `rate-constant` records.
+- `cantera/test/python/test_reaction.py` verifies the Arrhenius form
+  `A*T**b*exp(-Ea/RT)` through `ct.ArrheniusRate`.
+- `cantera/doc/sphinx/reference/reactors/index.md` and reactor examples frame
+  reactor integration as a coupled ODE/DAE system advanced by `ReactorNet`.
+- `rmg-py/rmgpy/kinetics/arrhenius.pyx` implements
+  `A*(T/T0)**n*exp(-Ea/RT)` for Arrhenius rate coefficients.
+- `rmg-py/rmgpy/reaction.py` generates reverse Arrhenius data from
+  `k_forward/K_eq`; ChemWorld's first validated reversible slice implements
+  the constant-K version of that relationship.
+- This task closes only the constant-volume, isothermal, homogeneous,
+  first-order ODE slice. Falloff, third bodies, pressure dependence,
+  thermochemistry-derived `K(T)`, and heat-release-coupled reactor validation
+  remain open professional work.
+
 - [ ] `thermo`:
   - [x] ideal Raoult VLE bubble/dew/TP flash;
   - [x] nonideal activity-coefficient case;
@@ -546,7 +568,7 @@ Acceptance:
 4. `PRO-P4A`: Implement Wilson and full binary NRTL with reference comparisons.
    Done.
 5. `PRO-P5A`: Add Cantera-comparable irreversible and reversible reaction ODE
-   cases. Claimed by whilesunny.
+   cases. Done.
 6. `PRO-P6A`: Add CSTR multiple-steady-state professional example.
 7. `PRO-P7A`: Replace simple distillation proxy with VLE-coupled shortcut
    distillation.

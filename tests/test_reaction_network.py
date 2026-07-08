@@ -9,10 +9,14 @@ from chemworld.physchem import (
     ReactionNetworkSpec,
     ReactionSpec,
     SpeciesSpec,
+    cantera_comparable_reaction_cases,
     evaluate_rate_law,
+    evaluate_reaction_ode_reference_case,
     load_mechanism,
     parse_reaction_equation,
     perturb_network_parameters,
+    reaction_kinetics_model_cards,
+    validate_model_card,
 )
 
 
@@ -152,6 +156,38 @@ def test_reversible_reaction_moves_toward_equilibrium_ratio() -> None:
     )
     ratio = result.final_amounts_mol["B"] / result.final_amounts_mol["A"]
     assert ratio == pytest.approx(4.0, rel=0.05)
+
+
+def test_cantera_comparable_reaction_ode_cases_match_analytical_solutions() -> None:
+    cases = cantera_comparable_reaction_cases()
+    assert {case.case_id for case in cases} == {
+        "cantera_comparable_irreversible_first_order",
+        "cantera_comparable_reversible_first_order",
+    }
+
+    for case in cases:
+        comparison = evaluate_reaction_ode_reference_case(case)
+        assert comparison.passed, comparison.to_dict()
+
+        analytical_final = case.analytical_amounts_mol(case.duration_s)
+        assert comparison.analytical_final_amounts_mol == pytest.approx(
+            analytical_final,
+            rel=1e-12,
+            abs=1e-12,
+        )
+        initial_total = sum(case.initial_amounts_mol.values())
+        final_total = sum(comparison.final_amounts_mol.values())
+        assert final_total == pytest.approx(initial_total, rel=1e-9, abs=1e-9)
+
+
+def test_reaction_kinetics_model_cards_are_auditable() -> None:
+    cards = reaction_kinetics_model_cards()
+    assert len(cards) == 1
+    card = cards[0]
+    assert card.maturity.value == "reference_validated"
+    assert validate_model_card(card) == []
+    assert any("Cantera" in note for note in card.reference_reading)
+    assert any("RMG" in note for note in card.reference_reading)
 
 
 def test_parameter_perturbation_is_deterministic() -> None:

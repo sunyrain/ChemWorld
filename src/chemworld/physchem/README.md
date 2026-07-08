@@ -23,6 +23,9 @@ Current scope:
 - general reaction-network specs for species, reactions, stoichiometric
   matrices, element-balance checks, YAML/JSON mechanism loading, rate-law
   evaluation, and deterministic batch ODE integration.
+- Cantera-comparable irreversible and reversible first-order reaction ODE
+  reference cases with analytical trajectory validation and a reaction
+  kinetics model card.
 - a curated mechanism/scenario library with balanced mechanism files, task
   cards, default initial states, operating windows, qualitative behavior
   metadata, and a programmatic validation report.

@@ -44,6 +44,7 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
 4. Implement Wilson and full binary NRTL with reference comparisons. Done in
    PRO-P4A.
 5. Add Cantera-comparable irreversible and reversible reaction ODE cases.
+   Done in PRO-P5A.
 6. Add a CSTR multiple-steady-state professional example.
 7. Replace simple distillation proxy with VLE-coupled shortcut distillation.
 8. Add Beer-Lambert UV-vis model card and calibration validation.
@@ -116,3 +117,23 @@ coefficient slice:
 - Optional reference tests compare ChemWorld Wilson and NRTL gamma values
   against `thermo.wilson.Wilson_gammas` and
   `thermo.nrtl.NRTL_gammas_binaries`.
+
+PRO-P5A is now implemented for the first reference-validated reaction ODE
+slice:
+
+- `cantera_comparable_reaction_cases()` exposes ChemWorld-owned irreversible
+  `A => B` and reversible `A <=> B` constant-volume, isothermal, first-order
+  batch ODE cases.
+- Each case has a balanced `ReactionNetworkSpec`, explicit rate parameters,
+  evaluation times, and an analytical trajectory.
+- `evaluate_reaction_ode_reference_case()` compares numerical integration
+  against analytical solutions with explicit `rtol`/`atol`.
+- `reaction_kinetics_model_cards()` records the validated slice, reference
+  reading notes, equations, assumptions, validity limits, failure modes, and
+  optional Cantera evidence.
+- Optional reference tests compare ChemWorld's Arrhenius rate constant against
+  `ct.ArrheniusRate` if Cantera is importable.
+- This is not a claim that ChemWorld has reimplemented Cantera. Falloff,
+  third-body effects, pressure dependence, thermochemistry-derived
+  equilibrium constants, and heat-release-coupled reactors stay on the next
+  professional TODO track.

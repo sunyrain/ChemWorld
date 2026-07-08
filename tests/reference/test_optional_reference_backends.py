@@ -8,6 +8,8 @@ from chemworld.physchem import (
     ActivityModelSpec,
     FluidState,
     PipeSpec,
+    RateLawSpec,
+    ReactionSpec,
     activity_coefficients,
     bubble_pressure_pa,
     compare_scalar,
@@ -15,6 +17,7 @@ from chemworld.physchem import (
     curated_property_package,
     darcy_friction_factor,
     dew_pressure_pa,
+    evaluate_rate_law,
     flash_isothermal,
     ideal_gas_molar_volume,
     import_reference_module,
@@ -269,6 +272,43 @@ def test_fluids_friction_factor_and_pressure_drop_reference() -> None:
     )
     summary = summarize_reference_comparisons(comparisons)
     assert summary["all_passed"], summary
+
+
+def test_cantera_arrhenius_rate_reference() -> None:
+    cantera = _reference_module("cantera", repo_names=("cantera",))
+
+    temperature_K = 900.0
+    rate_parameters = {"A": 2.4e3, "b": 0.5, "Ea_J_per_mol": 12_500.0}
+    chemworld_rate = evaluate_rate_law(
+        ReactionSpec.from_equation(
+            reaction_id="arrhenius_reference",
+            equation="A => B",
+            rate_law=RateLawSpec(
+                "arrhenius_reference_rate",
+                "arrhenius",
+                rate_parameters,
+            ),
+        ),
+        concentrations_mol_L={"A": 1.0, "B": 0.0},
+        temperature_K=temperature_K,
+    )
+    cantera_rate = cantera.ArrheniusRate(
+        rate_parameters["A"],
+        rate_parameters["b"],
+        rate_parameters["Ea_J_per_mol"],
+    )(temperature_K)
+
+    comparison = compare_scalar(
+        check_id="cantera-arrhenius-rate-constant",
+        backend_id="cantera",
+        quantity="arrhenius_rate_constant",
+        chemworld_value=chemworld_rate,
+        reference_value=cantera_rate,
+        unit="1/s for unit concentration first-order case",
+        rtol=1e-12,
+        note="Cantera ct.ArrheniusRate formula for a unit-concentration A=>B case.",
+    )
+    assert comparison.passed, comparison.to_dict()
 
 
 def test_chemicals_rachford_rice_flash_reference() -> None:
