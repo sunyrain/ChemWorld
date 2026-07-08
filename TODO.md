@@ -79,7 +79,7 @@ finished, update its status and push immediately.
 | PRO-RUNTIME-A mechanism role validation at compile time | whilesunny | Done | `src/chemworld/runtime/mechanisms.py`, mechanism tests/docs | compile-time validation now separates base mechanism-library checks from stricter runtime scenario role contracts for target, impurity, initial species, and observable mappings | this commit |
 | PRO-RUNTIME-B transaction record consistency | whilesunny | Done | `src/chemworld/runtime/kernels.py`, `src/chemworld/runtime/transactions.py`, tests/docs | rollback transactions now append explicit rollback patches and rebuild operation records from the committed rollback state | this commit |
 | PRO-RUNTIME-C operation taxonomy and macro compiler | whilesunny | Done | `src/chemworld/world/operations.py`, `src/chemworld/world/recipes.py`, tests/docs | operation contracts now classify primitive/domain/macro/terminal steps; recipe compilation expands macros and validates compiled steps against task policy | this commit |
-| PRO-RUNTIME-D domain service registry | whilesunny | Active | `src/chemworld/runtime/domain_services.py`, `src/chemworld/runtime/engine.py`, tests/docs | expose a typed DomainServiceRegistry mapping operations to focused physics services and include service ids in runtime metadata/events | claim commit |
+| PRO-RUNTIME-D domain service registry | whilesunny | Done | `src/chemworld/runtime/domain_services.py`, `src/chemworld/runtime/engine.py`, tests/docs | runtime now exposes a typed DomainServiceRegistry, operation-to-service map, and domain service ids in operation events | this commit |
 
 Status values:
 

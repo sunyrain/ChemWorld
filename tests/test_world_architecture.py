@@ -23,6 +23,7 @@ from chemworld.foundation.state import (
 from chemworld.physchem.mechanism_library import get_mechanism_card, list_mechanism_cards
 from chemworld.runtime.domain_services import (
     ChemWorldDomainServices,
+    DomainServiceRegistry,
     make_chemworld_constitution,
 )
 from chemworld.runtime.kernels import (
@@ -693,8 +694,39 @@ def test_env_runtime_v2_info_contains_kernel_transaction_and_mechanism() -> None
         assert step_info["rollback_reason"] is None
         assert "process" in step_info["affected_ledgers"]
         assert step_info["world_events"][0]["event_type"] == "operation_applied"
+        assert step_info["world_events"][0]["payload"]["domain_service_id"] == (
+            "primitive_operations"
+        )
+        runtime = env.unwrapped.task_info()["runtime"]
+        assert runtime["domain_services"]["operation_service_map"]["heat"] == (
+            "reaction_thermal"
+        )
+        assert runtime["domain_services"]["operation_service_map"]["measure"] == (
+            "instrument_cost"
+        )
     finally:
         env.close()
+
+
+def test_domain_service_registry_covers_operations_once() -> None:
+    registry = DomainServiceRegistry.default()
+    registry.validate_operation_coverage()
+    payload = registry.to_dict()
+    operation_service_map = payload["operation_service_map"]
+
+    assert set(operation_service_map) == set(OPERATION_TYPES)
+    assert payload["services"]["phase_separation"]["operations"] == [
+        "add_phase",
+        "add_extractant",
+        "mix",
+        "settle",
+        "separate_phase",
+        "wash",
+        "dry",
+        "concentrate",
+        "transfer",
+    ]
+    assert registry.service_id_for_operation("electrolyze") == "electrochemistry"
 
 
 def test_service_kernel_operation_record_matches_rollback_state(

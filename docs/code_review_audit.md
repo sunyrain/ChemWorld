@@ -320,6 +320,10 @@ Recommended follow-up:
   actions; `wash`, `dry`, and `concentrate` can be compiled into executable
   primitive/domain steps, and task-aware recipe validation checks the compiled
   actions rather than trusting the source macro.
+- Added a typed Runtime v2 domain-service registry. Focused runtime services now
+  publish JSON-friendly service contracts, `task_info()` exposes an
+  operation-to-service map, and accepted `operation_applied` events carry the
+  `domain_service_id` used for audit and replay metadata.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration

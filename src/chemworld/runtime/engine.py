@@ -96,6 +96,7 @@ class ChemWorldRuntime:
         return {
             "profile": self.profile.to_dict(),
             "operation_kernels": self.registry.to_dict(),
+            "domain_services": self.domain_services.to_dict(),
             "compiled_mechanism": self.compiled_mechanism.to_dict(),
         }
 

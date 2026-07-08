@@ -192,6 +192,7 @@ class ServiceOperationKernel:
     ) -> KernelResult:
         before = state
         next_state, record = context.domain_services.apply_operation(state, action)
+        domain_service_id = context.domain_services.service_id_for_operation(self.operation_type)
         affected = _affected_ledgers(self.operation_type)
         patch = StatePatch(
             patch_type="replace_state",
@@ -202,7 +203,11 @@ class ServiceOperationKernel:
         event = WorldEvent(
             event_type="operation_applied",
             operation_type=self.operation_type,
-            payload={"kernel_id": self.kernel_id, "affected_ledgers": list(affected)},
+            payload={
+                "kernel_id": self.kernel_id,
+                "domain_service_id": domain_service_id,
+                "affected_ledgers": list(affected),
+            },
         )
         transaction = context.transaction_manager.commit(
             state=before,

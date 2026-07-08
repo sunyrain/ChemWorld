@@ -8,6 +8,7 @@ directly.
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
 
 from chemworld.foundation import (
@@ -29,8 +30,142 @@ from chemworld.runtime.record_services import ChemWorldOperationRecorder
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.instruments import chemworld_instruments
 from chemworld.world.ontology import chemworld_substances
-from chemworld.world.operations import operation_name
+from chemworld.world.operations import OPERATION_TYPES, operation_name
 from chemworld.world.parameters import ChemWorldParameters
+
+
+@dataclass(frozen=True)
+class DomainServiceContract:
+    service_id: str
+    module: str
+    service_class: str
+    operations: tuple[str, ...]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "service_id": self.service_id,
+            "module": self.module,
+            "service_class": self.service_class,
+            "operations": list(self.operations),
+        }
+
+
+@dataclass(frozen=True)
+class DomainServiceRegistry:
+    contracts: tuple[DomainServiceContract, ...]
+
+    @classmethod
+    def default(cls) -> DomainServiceRegistry:
+        return cls(
+            (
+                DomainServiceContract(
+                    "primitive_operations",
+                    "reaction",
+                    "ChemWorldPrimitiveOperationServices",
+                    (
+                        "add_reagent",
+                        "add_solvent",
+                        "add_catalyst",
+                        "sample",
+                        "quench",
+                        "evaporate",
+                        "terminate",
+                    ),
+                ),
+                DomainServiceContract(
+                    "reaction_thermal",
+                    "reaction",
+                    "ChemWorldReactionThermalServices",
+                    ("heat", "wait"),
+                ),
+                DomainServiceContract(
+                    "phase_separation",
+                    "separation",
+                    "ChemWorldPhaseSeparationServices",
+                    (
+                        "add_phase",
+                        "add_extractant",
+                        "mix",
+                        "settle",
+                        "separate_phase",
+                        "wash",
+                        "dry",
+                        "concentrate",
+                        "transfer",
+                    ),
+                ),
+                DomainServiceContract(
+                    "crystallization",
+                    "crystallization",
+                    "ChemWorldCrystallizationServices",
+                    ("seed_crystals", "cool_crystallize", "filter_crystals"),
+                ),
+                DomainServiceContract(
+                    "distillation",
+                    "distillation",
+                    "ChemWorldDistillationServices",
+                    ("distill", "collect_fraction"),
+                ),
+                DomainServiceContract(
+                    "continuous_flow",
+                    "continuous_flow",
+                    "ChemWorldFlowServices",
+                    ("set_flow_rate", "run_flow"),
+                ),
+                DomainServiceContract(
+                    "electrochemistry",
+                    "electrochemistry",
+                    "ChemWorldElectrochemicalServices",
+                    ("set_potential", "electrolyze"),
+                ),
+                DomainServiceContract(
+                    "instrument_cost",
+                    "observation",
+                    "ChemWorldInstrumentCostServices",
+                    ("measure",),
+                ),
+            )
+        )
+
+    def validate_operation_coverage(self) -> None:
+        owners: dict[str, str] = {}
+        duplicates: list[str] = []
+        for contract in self.contracts:
+            for operation in contract.operations:
+                if operation in owners:
+                    duplicates.append(operation)
+                owners[operation] = contract.service_id
+        missing = sorted(set(OPERATION_TYPES) - set(owners))
+        extra = sorted(set(owners) - set(OPERATION_TYPES))
+        if duplicates or missing or extra:
+            details = {
+                "duplicates": sorted(duplicates),
+                "missing": missing,
+                "extra": extra,
+            }
+            raise ValueError(f"Invalid domain service registry operation coverage: {details}")
+
+    def service_id_for_operation(self, operation: str) -> str:
+        for contract in self.contracts:
+            if operation in contract.operations:
+                return contract.service_id
+        raise ValueError(f"No domain service registered for operation {operation!r}")
+
+    def operation_map(self) -> dict[str, str]:
+        return {
+            operation: contract.service_id
+            for contract in self.contracts
+            for operation in contract.operations
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "services": {
+                contract.service_id: contract.to_dict()
+                for contract in self.contracts
+            },
+            "operation_service_map": self.operation_map(),
+        }
 
 
 def make_chemworld_constitution() -> PhysicalConstitution:
@@ -64,6 +199,8 @@ class ChemWorldDomainServices:
     ) -> None:
         self.world = world
         self.constitution = constitution
+        self.service_registry = DomainServiceRegistry.default()
+        self.service_registry.validate_operation_coverage()
         self.species_view = MechanismSpeciesView(compiled_mechanism)
         self.operation_recorder = ChemWorldOperationRecorder(constitution)
         self.primitive = ChemWorldPrimitiveOperationServices(world, self.species_view)
@@ -144,6 +281,12 @@ class ChemWorldDomainServices:
             "terminate": lambda state, _action: state.replace(terminated=True),
             "measure": self.instrument_cost.apply_measurement_cost,
         }
+
+    def service_id_for_operation(self, operation: str) -> str:
+        return self.service_registry.service_id_for_operation(operation)
+
+    def to_dict(self) -> dict[str, Any]:
+        return self.service_registry.to_dict()
 
     def penalize_invalid(self, state: WorldState) -> WorldState:
         return self.primitive.penalize_invalid(state)

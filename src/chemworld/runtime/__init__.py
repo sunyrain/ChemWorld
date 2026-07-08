@@ -10,6 +10,7 @@ from typing import Any
 __all__ = [
     "ChemWorldCrystallizationServices",
     "ChemWorldDistillationServices",
+    "ChemWorldDomainServices",
     "ChemWorldElectrochemicalServices",
     "ChemWorldFlowServices",
     "ChemWorldInstrumentCostServices",
@@ -20,6 +21,8 @@ __all__ = [
     "ChemWorldReactionThermalServices",
     "ChemWorldRuntime",
     "CompiledMechanism",
+    "DomainServiceContract",
+    "DomainServiceRegistry",
     "KernelPlan",
     "KernelResult",
     "MechanismSpeciesView",
@@ -100,6 +103,10 @@ def __getattr__(name: str) -> Any:
         from chemworld.runtime import reaction_thermal_services
 
         return getattr(reaction_thermal_services, name)
+    if name in {"ChemWorldDomainServices", "DomainServiceContract", "DomainServiceRegistry"}:
+        from chemworld.runtime import domain_services
+
+        return getattr(domain_services, name)
     if name in {
         "KernelPlan",
         "KernelResult",

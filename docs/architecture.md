@@ -49,6 +49,9 @@ The runtime is organized around:
 - `OperationKernelRegistry`, which maps allowed operation types to typed kernels
   for the current profile rather than requiring every known ChemWorld operation
   globally;
+- `DomainServiceRegistry`, which publishes JSON-friendly service contracts and
+  the operation-to-service map used by task info, audits, and transaction
+  events;
 - `ChemWorldDomainServices`, which now acts as a lightweight operation
   composition surface for delegated runtime services, constitution checks, and
   operation recording;
@@ -110,7 +113,11 @@ assembly are separated from the lightweight domain-service composition layer.
 This makes the runtime easier to audit: focused services advance each physical
 process, the transaction manager commits or rolls back patches, and the
 recorder turns the accepted pre/post state pair into the replayable operation
-record.
+record. Each accepted `operation_applied` event also records the
+`domain_service_id`, so reviewers can trace whether an operation was handled by
+primitive operations, reaction/thermal services, phase separation,
+crystallization, distillation, flow, electrochemistry, or instrument-cost
+services without reading internal Python objects.
 
 The active backend remains `semi_mechanistic`, but it is now a runtime service
 implementation rather than the conceptual center of the package. Backend
