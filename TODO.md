@@ -61,6 +61,7 @@ finished, update its status and push immediately.
 | Runtime v2 golden characterization | whilesunny | Done | `tests/`, runtime/env docs | scripted golden final-assay trajectories now cover all formal tasks, including campaign/single-experiment semantics and runtime transaction metadata | this commit |
 | Runtime v2 import and dispatch boundary audit | whilesunny | Done | `src/chemworld/envs/`, `src/chemworld/runtime/`, tests/docs | env/runtime import boundaries and ChemWorldEnv process-operation dispatch delegation are now enforced by architecture tests | this commit |
 | Runtime v2 transaction replay golden | whilesunny | Done | `src/chemworld/eval/verify.py`, `tests/`, docs | verifier now replays and compares mechanism hash, kernel metadata, world events, state-patch summaries, transaction status, and state-delta summaries | this commit |
+| Chinese technical architecture report repair | whilesunny | Active | `docs/technical_architecture_zh.md`, docs | replace mojibake report with a readable Chinese architecture summary reflecting Runtime v2 and replay hardening | this commit |
 
 Status values:
 
