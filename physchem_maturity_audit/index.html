@@ -1,0 +1,1934 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Research benchmark for closed-loop virtual chemical experimentation.">
+      
+      
+      
+      
+        <link rel="prev" href="../physchem_core_design/">
+      
+      
+        <link rel="next" href="../code_review_audit/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>PhysChem Maturity Audit - ChemWorld-Bench</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#physchem-maturity-audit" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ChemWorld-Bench" class="md-header__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ChemWorld-Bench
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              PhysChem Maturity Audit
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ChemWorld-Bench" class="md-nav__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ChemWorld-Bench
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chemworld_overview_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ChemWorld Overview ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../current_progress/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Current Progress
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference_repos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Reference Repos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial_curriculum_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial Curriculum ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sota_agent_environment_gap_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SOTA Agent Environment Gap Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../technical_architecture_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Architecture ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../world_law/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    World Law
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../physchem_core_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PhysChem Core Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PhysChem Maturity Audit
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PhysChem Maturity Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#maturity-levels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Maturity Levels
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#machine-readable-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Machine-Readable Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reference-reading-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference-Reading Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#immediate-corrections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Immediate Corrections
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_review_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Review Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../professional_todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Professional TODO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../professional_deepening_todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Professional Deepening TODO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../campaign_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Campaign Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_taxonomy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Task Taxonomy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmark_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Task Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../action_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instrument_contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instrument Contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spectroscopy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Virtual Spectroscopy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../safety_cost/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Safety And Cost
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset_layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Card
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reaction_separation_tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaction and Separation Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../leaderboard_project_blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Leaderboard Project Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../world_model_learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    World-Model Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wrappers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wrappers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../submission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Submission Bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../local_eval_machine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Eval Machine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ethics_and_data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ethics and Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_artifact/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper Artifact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release_checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#maturity-levels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Maturity Levels
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#machine-readable-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Machine-Readable Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reference-reading-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference-Reading Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#immediate-corrections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Immediate Corrections
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="physchem-maturity-audit">PhysChem Maturity Audit</h1>
+<p>ChemWorld now has a broad local physical-chemistry foundation, but broad does
+not mean professional-grade. This page makes the current status explicit so the
+project does not confuse proxy/lite kernels with validated scientific models.</p>
+<h2 id="maturity-levels">Maturity Levels</h2>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Meaning</th>
+<th>Can be used in official benchmark claims?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Proxy</td>
+<td>Qualitative behavior only; useful for early task design</td>
+<td>No, unless the task is explicitly labeled educational/proxy</td>
+</tr>
+<tr>
+<td>Lite</td>
+<td>Local implementation with units, invariants, and tests</td>
+<td>Yes for alpha tasks, but not as professional physics</td>
+</tr>
+<tr>
+<td>Reference validated</td>
+<td>Selected cases compare against optional reference backends</td>
+<td>Yes for scoped benchmark claims</td>
+</tr>
+<tr>
+<td>Professional candidate</td>
+<td>Model card, validity range, validation matrix, and task integration exist</td>
+<td>Yes, with stated limits</td>
+</tr>
+<tr>
+<td>Professional</td>
+<td>Multiple validation cases, failure modes, documentation, and maintenance policy exist</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<h2 id="current-audit">Current Audit</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Current level</th>
+<th>Evidence</th>
+<th>Main gap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Component specs and units</td>
+<td>Lite</td>
+<td><code>chemworld.physchem.specs</code>, local unit tests</td>
+<td>broader curated component database and schema governance</td>
+</tr>
+<tr>
+<td>Property correlations</td>
+<td>Lite with reference-validated curated and vapor-pressure-report slices</td>
+<td>vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against <code>chemicals</code>; Antoine/Wagner/DIPPR vapor-pressure reports with analytic derivative checks</td>
+<td>broader component coverage, liquid/solid Cp, latent heat, EOS saturation, and CoolProp checks</td>
+</tr>
+<tr>
+<td>Reaction networks</td>
+<td>Lite with reference-validated ODE, NASA7 thermochemistry, thermochemical detailed-balance, and local sensitivity slices</td>
+<td>YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check, NASA7 Cp/H/S/G, reaction Delta H/G, K_eq, concentration-standard correction, thermochemical reverse-rate tests, and finite-difference first-order sensitivity tests</td>
+<td>falloff, pressure dependence, adjoint/global sensitivities, and broader reactor-network validation</td>
+</tr>
+<tr>
+<td>Reactor models</td>
+<td>Lite with reference-validated CSTR multiplicity and dynamic batch heat-release slices</td>
+<td>batch, dynamic batch, semi-batch, CSTR, PFR tests; analytical exothermic CSTR three-root ignition/extinction case with stability classification; NASA7 heat-release dynamic batch, jacket, and sampling-ledger tests</td>
+<td>broader Cantera/IDAES reactor-network validation, pressure modes, wall thermal inertia, and phase-change variants</td>
+</tr>
+<tr>
+<td>EOS</td>
+<td>Lite with reference-validated PR/SRK residuals and a professional-candidate volume/root-governance slice</td>
+<td>ideal gas, PR/SRK roots, fugacity coefficients, explicit root policy, residual H/S/G tests, optional <code>thermo.eos</code> comparisons for methane/ethane/CO2, volume-translation reports, translated roots, root-governance diagnostics, binary-interaction provenance</td>
+<td>phase envelopes, saturation solvers, translated fugacity derivatives, flash derivatives, and broader CoolProp/teqp/thermopack validation</td>
+</tr>
+<tr>
+<td>Phase equilibrium</td>
+<td>Lite with a reference-validated Wilson/NRTL gamma slice</td>
+<td>ideal VLE, Wilson/NRTL gamma checks against <code>thermo</code>, LLE split tests</td>
+<td>UNIQUAC, phase stability, nonideal VLE/LLE task cases</td>
+</tr>
+<tr>
+<td>Separations</td>
+<td>Proxy/lite with a reference-validated VLE distillation shortcut slice and a professional-candidate FUG sizing slice</td>
+<td>material-conserving extraction, VLE flash, VLE/Fenske shortcut distillation, Fenske-Underwood-Gilliland binary sizing tests, crystallization, filtration, drying tests</td>
+<td>rigorous MESH columns, boilup/pressure-drop closure, thermodynamic extraction, crystallization kinetics, and broader equipment validation</td>
+</tr>
+<tr>
+<td>Transport and heat transfer</td>
+<td>Lite with reference-validated pipe-flow and heat-transfer slices</td>
+<td>dimensionless numbers, explicit friction methods, <code>fluids</code> Haaland and single-phase pipe-pressure-drop optional checks; Nusselt branch metadata; counterflow exchanger duty-balance tests; optional <code>fluids.core.Nusselt</code> check</td>
+<td>two-phase correlations, boiling/condensation, shell-side correction factors, fouling dynamics, equipment safety cards, and broader validity maps</td>
+</tr>
+<tr>
+<td>Equilibrium chemistry</td>
+<td>Lite/proxy with a reference-validated Gibbs-minimization slice</td>
+<td>mass-action, acid/base, precipitation tests; fixed-TP ideal Gibbs minimization with element, charge, phase, and nonnegative-species constraints; analytical ideal-isomerization validation</td>
+<td>database-backed aqueous speciation, activity-corrected electrolytes, redox/electron basis selection, and CALPHAD global phase selection</td>
+</tr>
+<tr>
+<td>Electrochemistry</td>
+<td>Lite with a reference-validated Nernst/BV/Faraday slice</td>
+<td>Nernst equilibrium potential, Butler-Volmer current, Faraday charge-to-extent conversion, Faradaic efficiency, energy accounting, task metadata, and operation-summary tests</td>
+<td>ohmic drop, limiting current, mass transfer, double-layer dynamics, porous electrodes, electrolyte speciation, and control-mode solvers</td>
+</tr>
+<tr>
+<td>Mechanism/scenario library</td>
+<td>Lite</td>
+<td>curated mechanism cards and validation tests</td>
+<td>reference-validated mechanisms and professional task bindings</td>
+</tr>
+<tr>
+<td>Spectroscopy/instruments</td>
+<td>Synthetic/lite with reference-validated UV-vis and chromatography slices</td>
+<td>state-coupled HPLC/GC/UV-vis/IR/NMR synthetic signals; UV-vis Beer-Lambert calibration tests; HPLC/GC retention-factor, plate-count, and resolution tests</td>
+<td>empirical retention-index examples, IR empirical anchors, NMR coupling metadata, and broader public spectral examples</td>
+</tr>
+<tr>
+<td>Reference validation</td>
+<td>Partial</td>
+<td><code>chemicals</code> ideal gas, Rachford-Rice, curated vapor pressure/Cp/enthalpy; <code>fluids</code> Reynolds/Prandtl/friction/pipe drop; and <code>thermo</code> ideal VLE optional tests</td>
+<td>CoolProp, Cantera, phasepy, Reaktoro, pycalphad coverage</td>
+</tr>
+</tbody>
+</table>
+<h2 id="policy">Policy</h2>
+<ul>
+<li>Proxy kernels must be named as proxy kernels.</li>
+<li>A proxy can support exploration, but cannot close a professional TODO item.</li>
+<li>A local lite implementation can close a foundation TODO item only when tests
+  cover units, invariants, and failure modes.</li>
+<li>A professional TODO item closes only when reference reading, model card,
+  validation, and task integration are all present.</li>
+<li>If a professional reference library appears outdated, ChemWorld should still
+  document what was inspected, identify the outdated assumption, and implement a
+  clearer local alternative.</li>
+</ul>
+<h2 id="machine-readable-metadata">Machine-Readable Metadata</h2>
+<p>PRO-P0 adds the first code-level contract for these rules in
+<code>chemworld.physchem.maturity</code>.</p>
+<p>Public objects:</p>
+<ul>
+<li><code>MaturityLevel</code>: <code>proxy</code>, <code>lite</code>, <code>reference_validated</code>,
+  <code>professional_candidate</code>, and <code>professional</code>.</li>
+<li><code>ModelCardTemplate</code>: required model-card sections for properties, EOS, phase
+  equilibrium, equilibrium chemistry, reaction kinetics, reactors, separations,
+  transport, and spectroscopy/instruments.</li>
+<li><code>ModelCard</code>: JSON-friendly model-card record with equations, assumptions,
+  validity limits, failure modes, units, reference-reading notes, validation
+  evidence, model-limit notes, and intended use.</li>
+<li><code>ValidationEvidence</code>: optional reference-test or documented analytical
+  evidence.</li>
+<li><code>ModuleMaturity</code> and <code>TaskMaturitySpec</code>: task-level declarations of which
+  modules are proxy, lite, reference-validated, or professional.</li>
+</ul>
+<p>Current task cards and <code>env.reset()</code> task info now expose:</p>
+<ul>
+<li><code>kernel_maturity</code>;</li>
+<li><code>physics_maturity</code>;</li>
+<li><code>proxy_allowed</code>.</li>
+</ul>
+<p>If a task uses a proxy kernel, <code>proxy_allowed</code> must be true and the task must be
+tagged as teaching, smoke, exploratory, or education. This makes proxy use
+visible to students, agents, leaderboard tooling, and paper artifacts.</p>
+<p>Trajectory logs, suite results, baseline report rows, and baseline report
+metadata now carry the same maturity fields. Baseline report generation rejects
+inconsistent maturity metadata within a single task, so a benchmark result
+cannot silently mix proxy and professional kernels.</p>
+<h2 id="reference-reading-notes">Reference-Reading Notes</h2>
+<p>The first maturity implementation was designed after inspecting local reference
+repositories:</p>
+<ul>
+<li><code>thermo</code> separates model parameters from state and exposes JSON-friendly
+  serialization for activity models.</li>
+<li><code>thermo</code> property packages define flash tolerances and fixed temperature and
+  pressure bounds.</li>
+<li>Cantera YAML files keep description, generator, source files, units, phase
+  models, species models, and transport models explicit.</li>
+<li>IDAES declares component and property capabilities through structured config
+  blocks and property-package metadata.</li>
+</ul>
+<p>ChemWorld localizes those ideas into small dataclasses rather than importing or
+copying the reference implementations.</p>
+<h2 id="immediate-corrections">Immediate Corrections</h2>
+<ul>
+<li><code>TODO.md</code> now describes the current P1-P12 batch as foundation/lite work.</li>
+<li><code>TODO_PROFESSIONAL.md</code> is the canonical long-term professional roadmap.</li>
+<li>Docs should describe the current physical layer as compact and auditable, not
+  as parity with Cantera, CoolProp, thermo, phasepy, Reaktoro, pycalphad, or
+  IDAES.</li>
+<li>PRO-P0 is implemented: maturity enum, model-card templates, task maturity
+  metadata, proxy policy checks, and tests are now in the codebase.</li>
+<li>PRO-P2A is implemented: the first curated property slice has model-card
+  metadata and optional <code>chemicals</code> reference checks for DIPPR101 vapor
+  pressure, Poling ideal-gas Cp, and sensible enthalpy integrals.</li>
+<li>DEEP-D2A is implemented for vapor-pressure formula families: Antoine, Wagner,
+  and DIPPR101 report pressure, analytic <code>dP/dT</code>, <code>dlnP/dT</code>, validity status,
+  and method provenance; sublimation pressure can use the same path when
+  coefficients are explicitly supplied.</li>
+<li>DEEP-D2B is implemented for phase-aware heat capacity and enthalpy: gas,
+  liquid, and solid Cp correlations can be integrated into explicit reference
+  state reports; signed latent-heat transitions build solid/liquid/gas paths;
+  and <code>MixtureEnthalpyLedger</code> provides reactor/flash heat-duty contributions.
+  Broad Zabransky/Lastovka/tabular Cp families, EOS departure enthalpy, and
+  pressure-corrected thermodynamic packages remain future slices.</li>
+<li>PRO-P4A is implemented: the first nonideal activity-coefficient slice has
+  Wilson/NRTL model cards, explicit directional pair-parameter contracts, and
+  optional <code>thermo</code> reference checks for binary gamma values.</li>
+<li>PRO-P6A is implemented: the first reactor multiplicity slice has an
+  exothermic CSTR model card, inspected Cantera/IDAES reference notes,
+  analytical steady-state roots, and stable/unstable/stable Jacobian-based
+  classification tests.</li>
+<li>PRO-P7A is implemented: the distillation path no longer uses an unlabeled
+  volatility-score proxy. It now uses a VLE-coupled shortcut model with
+  Raoult/activity K-values, Fenske-style distribution-ratio tests, model-card
+  metadata, and task maturity metadata for <code>reaction-to-distillation</code>.</li>
+<li>DEEP-D7B is implemented for binary Fenske-Underwood-Gilliland distillation
+  sizing: the public report includes <code>N_min</code>, Underwood theta, <code>R_min</code>,
+  Gilliland/Eduljee theoretical stages, actual trays, feed-stage estimate,
+  pressure-profile warnings, provenance, and early failures for invalid alpha,
+  impossible splits, missing provenance, unsupported feed quality, and reflux
+  below minimum. MESH-lite, boilup, hydraulics, pressure-drop integration,
+  multicomponent roots, and azeotropes remain open.</li>
+<li>PRO-P10A is implemented for UV-vis only: Beer-Lambert absorbance, path length,
+  sample dilution, blank absorbance, analytical calibration fitting, LOD/LOQ,
+  model-card metadata, and species-signal tests are in place. Other instruments
+  remain synthetic/lite until their own professional slices are implemented.</li>
+<li>PRO-P10B is implemented for HPLC/GC retention only: retention factor, dead
+  time, theoretical plates, baseline width, adjacent resolution, calibration
+  fitting, model-card metadata, and species-signal tests are in place. IR, NMR,
+  and empirical retention-index prediction remain future slices.</li>
+<li>PRO-P3A is implemented for the cubic-EOS residual slice: PR/SRK states now
+  expose explicit root-selection policy, <code>da_mix_dT</code>, residual enthalpy,
+  residual entropy, residual Gibbs energy, model-card metadata, default EOS
+  tests, and optional <code>thermo.eos</code> reference checks for methane, ethane, and
+  carbon dioxide with a documented cubic-residual tolerance profile.</li>
+<li>DEEP-D3A is implemented for volume-translated cubic-EOS diagnostics:
+  Peneloux-style component shifts, translated cubic roots, translated
+  molar-volume reports, root-governance candidate ranking, vapor-root
+  convention warnings, and binary-interaction provenance checks are now covered
+  by tests and an EOS model card. This does not yet claim phase envelopes,
+  saturation solvers, translated fugacity derivatives, or broad EOS backend
+  validation.</li>
+<li>PRO-P8A is implemented for the first heat-transfer and exchanger-duty slice:
+  Nusselt branch metadata, Dittus-Boelter and Gnielinski validity warnings,
+  strict validity failure mode, <code>h = Nu k / D</code> reference round-trip, counterflow
+  e-NTU duty-balance metadata, model-card evidence, and tests are in place.
+  Boiling, condensation, shell-side corrections, fouling dynamics, and
+  equipment safety cards remain future deepening tasks.</li>
+<li>PRO-P9A is implemented for the first equilibrium-chemistry Gibbs slice:
+  fixed-TP ideal Gibbs minimization, supplied species standard Gibbs energies,
+  element constraints, charge constraints, phase restrictions, nonnegative
+  bounds, linearly independent constraint selection, residual diagnostics,
+  model-card metadata, and analytical ideal-isomerization tests are in place.
+  Reaktoro-style databases, activity-corrected aqueous speciation, and CALPHAD
+  global phase selection remain future work.</li>
+<li>PRO-P9B is implemented for the first electrochemistry slice: Nernst
+  equilibrium potential, Butler-Volmer current, Faraday charge conversion,
+  Faradaic efficiency, electrical-work accounting, model-card metadata, local
+  identity tests, and <code>electrochemical-conversion</code> task integration are in
+  place. This is still below a full electrochemical-cell model with ohmic drop,
+  mass-transfer limiting current, double-layer dynamics, porous electrodes, and
+  electrolyte speciation.</li>
+<li>PRO-P1A is implemented for the curated component registry: component records
+  now include structured provenance and uncertainty metadata, checksum-validated
+  CAS identity anchors, normalized alias/CAS resolution, conflict failures, and
+  JSON round-trip tests.</li>
+<li>PRO-P11A is implemented for benchmark maturity exports: trajectory logs,
+  suite results, baseline leaderboards, and baseline reports expose
+  <code>kernel_maturity</code>, <code>physics_maturity</code>, and <code>proxy_allowed</code>, with consistency
+  checks against silent maturity mixing.</li>
+<li>PRO-P12B is implemented for reference-validation reporting: comparison
+  summaries, backend availability, and skipped optional backends can be written
+  as one JSON-friendly validation report.</li>
+<li>PRO-P5B is implemented for the first thermochemistry slice: Cantera/RMG-style
+  NASA7 temperature segments, Cp/H/S/G evaluation, Cantera-style YAML thermo
+  parsing, segment-continuity diagnostics, reaction Delta H/S/G, equilibrium
+  constants from species Gibbs energies, model-card metadata, and local
+  identity tests are in place. This is not a full thermochemistry database,
+  NASA9/Shomate/group-additivity engine, pressure correction, or
+  heat-release-coupled reactor model.</li>
+<li>PRO-P1B/PRO-P11B/PRO-P12C add the next audit layer: component field conflicts
+  resolve through explicit source-priority policy, task maturity can be exported
+  as a manifest, and reference-validation reports include all tracked reference
+  repositories, local checkout commits, backend versions, and declared
+  tolerance profiles where available.</li>
+<li>PRO-P5C is implemented for thermochemical detailed-balance kinetics:
+  reversible Arrhenius rates can declare <code>K_eq_source: nasa7</code>, consume supplied
+  species thermochemistry, compute <code>K_c = exp(-Delta G/RT) * C0^(sum nu_i)</code>,
+  and use <code>k_reverse = k_forward / K_c</code>. Tests cover zero net rate at
+  equilibrium, ODE convergence to the NASA7 equilibrium ratio, explicit failure
+  when thermochemistry is missing, and non-equal-molecularity concentration
+  standard-state correction. Falloff, pressure dependence, and reactor
+  heat-release coupling remain open.</li>
+<li>DEEP-D6A is implemented for dynamic batch heat-release coupling: the reactor
+  energy balance can consume NASA7 reaction enthalpy, uses explicit jacket and
+  heat-loss terms, and treats destructive sampling as a material-out and volume
+  event. This closes a constant-density batch slice; pressure dynamics,
+  gas-phase work, wall thermal inertia, and phase change remain open.</li>
+<li>DEEP-D5D is implemented for local kinetic sensitivity analysis:
+  positive multiplier-like kinetic parameters are perturbed in log space,
+  reports expose <code>d y / d ln(p)</code>, normalized sensitivities, uncertainty
+  contributions, and explanation rankings, and tests compare the first-order
+  product sensitivity against the analytical expression. This is not an
+  adjoint/global sensitivity package.</li>
+<li>DEEP-D2C is implemented for the first density/molar-volume package:
+  Rackett liquid molar volume, ideal-gas molar volume, second-virial gas volume
+  roots, CRC-style virial coefficient hooks, density/molar-volume conversion,
+  and Amgat-style mixture volume ledgers are available with explicit units,
+  compressibility status, tests, and model-card evidence. This is not a broad
+  liquid-density database, pressure-corrected volume backend, or CoolProp
+  replacement.</li>
+<li>DEEP-D2D is implemented for the first transport-property package:
+  Andrade/Sutherland viscosity reports, linear/polynomial conductivity
+  contracts, DIPPR9B gas conductivity, Wilke gas-mixture viscosity, DIPPR9H
+  liquid-mixture conductivity, Fuller gas diffusivity, mixture effective
+  diffusivity, and thermal diffusivity are available with explicit units,
+  uncertainty/status metadata, tests, and model-card evidence. This is not a
+  high-pressure transport backend, electrolyte model, Maxwell-Stefan solver, or
+  broad CoolProp/chemicals transport database.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

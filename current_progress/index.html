@@ -1,0 +1,1939 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Research benchmark for closed-loop virtual chemical experimentation.">
+      
+      
+      
+      
+        <link rel="prev" href="../chemworld_overview_zh/">
+      
+      
+        <link rel="next" href="../project_management/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Current Progress - ChemWorld-Bench</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#current-progress" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ChemWorld-Bench" class="md-header__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ChemWorld-Bench
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Current Progress
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ChemWorld-Bench" class="md-nav__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ChemWorld-Bench
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chemworld_overview_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ChemWorld Overview ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Current Progress
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Current Progress
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Exists
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scientific-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scientific Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#foundation-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Foundation Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public Interface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmark-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Baselines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-and-ethics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data And Ethics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference_repos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Reference Repos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial_curriculum_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial Curriculum ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sota_agent_environment_gap_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SOTA Agent Environment Gap Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../technical_architecture_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Architecture ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../world_law/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    World Law
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../physchem_core_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PhysChem Core Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../physchem_maturity_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PhysChem Maturity Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_review_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Review Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../professional_todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Professional TODO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../professional_deepening_todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Professional Deepening TODO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../campaign_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Campaign Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_taxonomy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Task Taxonomy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmark_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Task Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../action_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instrument_contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instrument Contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spectroscopy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Virtual Spectroscopy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../safety_cost/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Safety And Cost
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset_layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Card
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reaction_separation_tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaction and Separation Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../leaderboard_project_blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Leaderboard Project Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../world_model_learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    World-Model Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wrappers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wrappers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../submission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Submission Bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../local_eval_machine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Eval Machine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ethics_and_data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ethics and Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_artifact/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper Artifact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release_checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Exists
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scientific-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scientific Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#foundation-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Foundation Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public Interface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmark-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Baselines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-and-ethics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data And Ethics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="current-progress">Current Progress</h1>
+<p>This document summarizes the current implementation state of ChemWorld-Bench.
+The platform is now organized around one public environment,
+<code>ChemWorld</code>, backed by the Chemical World Model foundation layer.</p>
+<h2 id="what-exists">What Exists</h2>
+<p>The repository currently provides:</p>
+<ul>
+<li>a Python package installable with <code>python -m pip install -e ".[dev]"</code>;</li>
+<li>one Gymnasium environment, <code>ChemWorld</code>;</li>
+<li>a unified task registry over one shared world law;</li>
+<li>world-law modules owning ontology, parameter generation, instruments,
+  operations, recipe compilation, numerical reaction ODEs, thermal risk,
+  phase partitioning, observation helpers, and scoring helpers;</li>
+<li>an event-driven transition orchestrator that calls those shared world
+  kernels and records state-ledger updates;</li>
+<li>phase partition, downstream separation, crystallization, distillation,
+  continuous-flow, and electrochemistry process modules;</li>
+<li>executable physical constitution checks;</li>
+<li>noisy, partial instrument observations with explicit <code>observed_mask</code> fields;</li>
+<li>plot-ready virtual HPLC, GC, UV-vis, IR, and NMR signal packets in
+  <code>raw_signal</code>;</li>
+<li>standard trajectory logging, replay verification, metrics, and leaderboard
+  aggregation;</li>
+<li>official baseline agents;</li>
+<li>task-based baseline report generation;</li>
+<li>signed private-eval artifacts;</li>
+<li>local paper/preprint artifact generation;</li>
+<li>local CLI workflows;</li>
+<li>documentation, runnable example scripts, and executed notebooks.</li>
+<li>a twelve-day executed tutorial sequence under <code>notebooks/tutorials/</code>.</li>
+<li>reference-validated physical-chemistry slices for curated properties,
+  vapor-pressure formula reports with analytic derivatives,
+  phase-aware heat capacity, reference-state enthalpy paths, latent-heat
+  transitions, mixture heat-duty ledgers, density/molar-volume reports,
+  ideal/virial gas-volume hooks, mixture volume ledgers, transport-property
+  reports, gas/liquid mixture transport ledgers, gas diffusivity estimates,
+  and thermal diffusivity reports,
+  friction/pipe pressure drop, internal-flow heat transfer, counterflow
+  exchanger duty balance, Wilson/NRTL activity coefficients, reaction ODE
+  cases, NASA7 thermochemistry and reaction Gibbs energies, thermochemical
+  detailed-balance reverse rates, local kinetic sensitivity reports, dynamic
+  batch heat-release/sampling, CSTR multiplicity, shortcut distillation,
+  Fenske-Underwood-Gilliland binary distillation sizing,
+  fixed-TP Gibbs minimization, UV-vis calibration, chromatography retention,
+  PR/SRK residual EOS properties, volume-translated cubic-EOS reports, and
+  root-governance diagnostics.</li>
+</ul>
+<h2 id="scientific-model">Scientific Model</h2>
+<p><code>ChemWorld</code> currently models a virtual 100 mL jacketed reaction and separation
+workflow. The hidden state includes species amounts, active/dead catalyst,
+phase ledgers, volume, temperature, pressure proxy, elapsed time, cost, risk,
+and sample consumption.</p>
+<p>The reaction network is:</p>
+<ul>
+<li><code>A -&gt; P</code>, target product formation;</li>
+<li><code>A -&gt; B</code>, byproduct formation;</li>
+<li><code>P -&gt; D</code>, product degradation;</li>
+<li><code>A + P -&gt; E</code>, coupled impurity formation;</li>
+<li><code>Cat_active -&gt; Cat_dead</code>, catalyst deactivation.</li>
+</ul>
+<p>Continuous dynamics are integrated with <code>scipy.integrate.solve_ivp</code>. Rate
+constants follow Arrhenius temperature dependence and are modified by catalyst,
+solvent, catalyst activity, concentration, and stirring speed. Temperature is
+updated through a simplified energy balance with jacket heat, heat loss, and
+reaction heat.</p>
+<p>Downstream processing tracks aqueous/organic phase volume, product
+partitioning, impurity carryover, phase settling, separation loss, washing,
+drying, concentration, transfer loss, purity, recovery, solvent loss, and
+process mass-balance error.</p>
+<p>Year 2 process modules extend the same shared world law with:</p>
+<ul>
+<li>crystallization: seeding, cooling crystallization, filtration, crystal yield,
+  crystal purity, and crystal-size proxy;</li>
+<li>distillation: evaporation, distillation, fraction collection, distillate
+  purity, distillate recovery, solvent loss, energy cost, and thermal risk;</li>
+<li>continuous flow: flow-rate setup, residence-time control, flow conversion,
+  and safety-aware flow reaction projection;</li>
+<li>electrochemistry: potential/current setup, Nernst equilibrium potential,
+  Butler-Volmer kinetic current, Faraday charge-to-extent conversion,
+  selectivity, energy efficiency, and electrical risk accounting.</li>
+</ul>
+<h2 id="foundation-layer">Foundation Layer</h2>
+<p><code>chemworld.foundation</code> contains the reusable base layer:</p>
+<ul>
+<li>ontology primitives: <code>Substance</code>, <code>Vessel</code>, <code>Instrument</code>, <code>Operation</code>,
+  <code>Reaction</code>, and <code>StateVariable</code>;</li>
+<li>lightweight units and conversions;</li>
+<li><code>WorldState</code>, public <code>Observation</code>, <code>Ledger</code>, and <code>OperationRecord</code>;</li>
+<li><code>PhysicalConstitution</code> checks for non-negativity, unit validity, vessel
+  bounds, risk range, material conservation, observation non-omniscience,
+  measurement cost, and action preconditions;</li>
+<li>transition and observation kernel protocols.</li>
+</ul>
+<p>Learned local world-model interfaces now live in <code>chemworld.models</code>, not in the
+foundation layer. This keeps the hidden physical world separate from the
+student or agent belief state inferred from trajectories.</p>
+<h2 id="public-interface">Public Interface</h2>
+<p>The Gym API is:</p>
+<pre><code class="language-python">import gymnasium as gym
+import chemworld
+
+env = gym.make(
+    &quot;ChemWorld&quot;,
+    task_id=&quot;reaction-optimization-standard&quot;,
+    seed=42,
+)
+obs, info = env.reset()
+obs, reward, terminated, truncated, info = env.step(
+    {&quot;operation&quot;: &quot;add_solvent&quot;, &quot;volume_L&quot;: 0.03, &quot;solvent&quot;: 2}
+)
+</code></pre>
+<p>Supported operations are:</p>
+<ul>
+<li><code>add_solvent</code>;</li>
+<li><code>add_reagent</code>;</li>
+<li><code>add_catalyst</code>;</li>
+<li><code>heat</code>;</li>
+<li><code>wait</code>;</li>
+<li><code>sample</code>;</li>
+<li><code>quench</code>;</li>
+<li><code>add_phase</code>;</li>
+<li><code>add_extractant</code>;</li>
+<li><code>mix</code>;</li>
+<li><code>settle</code>;</li>
+<li><code>separate_phase</code>;</li>
+<li><code>wash</code>;</li>
+<li><code>dry</code>;</li>
+<li><code>concentrate</code>;</li>
+<li><code>transfer</code>;</li>
+<li><code>seed_crystals</code>;</li>
+<li><code>cool_crystallize</code>;</li>
+<li><code>filter_crystals</code>;</li>
+<li><code>evaporate</code>;</li>
+<li><code>distill</code>;</li>
+<li><code>collect_fraction</code>;</li>
+<li><code>set_flow_rate</code>;</li>
+<li><code>run_flow</code>;</li>
+<li><code>set_potential</code>;</li>
+<li><code>electrolyze</code>;</li>
+<li><code>terminate</code>;</li>
+<li><code>measure</code>.</li>
+</ul>
+<p>Supported instruments are:</p>
+<ul>
+<li><code>hplc</code>;</li>
+<li><code>gc</code>;</li>
+<li><code>uvvis</code>;</li>
+<li><code>final_assay</code>.</li>
+</ul>
+<h2 id="benchmark-layer">Benchmark Layer</h2>
+<p>The CLI supports:</p>
+<pre><code class="language-bash">chemworld run
+chemworld evaluate
+chemworld verify
+chemworld leaderboard
+chemworld suite
+chemworld inspect-constitution
+</code></pre>
+<p>Every run can produce a trajectory JSONL and a submission manifest. Replay
+verification recomputes environment transitions and observations from the
+recorded operations. <code>verify --constitution</code> also requires recorded
+constitution checks and action preconditions to pass.</p>
+<p>Trajectory observations distinguish measured values from unknown values. Unseen
+fields are serialized as <code>null</code> in JSONL, represented as <code>NaN</code> in Gym arrays, and
+tracked with <code>observed_mask</code> and <code>observed_keys</code>. Official leaderboard metrics
+use <code>leaderboard_score</code>, which is only populated by final-assay measurements;
+<code>observed_reward</code> remains available as online feedback for agents.</p>
+<p>Instrument observations also carry <code>raw_signal</code>, <code>processed_estimate</code>, and
+<code>uncertainty</code> fields. These make the observation kernel closer to a real
+instrument workflow: instruments produce signals, processed estimates are
+derived from those signals, and agents maintain a belief state from the observed
+trajectory.
+HPLC and GC records include retention-time traces, retention-factor metadata,
+plate-count width estimates, and adjacent-resolution summaries; UV-vis records include
+wavelength/absorbance traces; final assay records include a multi-instrument
+packet with chromatography, UV-vis, IR, NMR, and calibrated mass-balance
+summaries.</p>
+<p>Failed action preconditions now return empty, non-informative observations and
+explicit <code>error_message</code> fields. Final assay is treated as the official scoring
+event: in single-experiment tasks it ends the episode, while in campaign tasks
+it closes the current experiment and lets the campaign continue with a fresh
+experiment until the global budget is exhausted.</p>
+<h2 id="baselines">Baselines</h2>
+<p>Current official agents include:</p>
+<ul>
+<li><code>random</code>;</li>
+<li><code>scripted_chemistry</code>;</li>
+<li><code>lhs</code>;</li>
+<li><code>greedy</code>;</li>
+<li><code>gp_bo</code>;</li>
+<li><code>rf_ei</code>;</li>
+<li><code>safe_gp_bo</code>;</li>
+<li><code>llm_planner</code> adapter;</li>
+<li><code>llm_replay</code> adapter.</li>
+</ul>
+<p>Recipe-space optimizers such as LHS and BO internally choose terminal recipe
+parameters, then execute them as event sequences. This keeps the public
+environment interface unified while still supporting standard optimizer
+baselines.</p>
+<h2 id="data-and-ethics">Data And Ethics</h2>
+<p>The data layer includes:</p>
+<ul>
+<li>versioned trajectory records;</li>
+<li>JSONL logging;</li>
+<li>submission manifests;</li>
+<li>anonymization helpers for human pilot data;</li>
+<li>structured explanation fields.</li>
+</ul>
+<p>Human data use should still require informed consent, separation of teaching
+grades from research use, and removal of identifiable text before release.</p>
+<h2 id="current-validation">Current Validation</h2>
+<p>The current codebase is expected to pass:</p>
+<pre><code class="language-text">ruff check .
+mypy src/chemworld
+pytest
+mkdocs build --strict
+</code></pre>
+<p>At the time of this document, the local test suite contains more than 60 tests covering
+the environment, foundation checks, baselines, CLI, replay verification,
+metrics, reproducibility, validation, anonymization, and suite/leaderboard
+flows.</p>
+<h2 id="current-limitations">Current Limitations</h2>
+<p>The platform is intentionally not a real reaction predictor, molecular
+simulator, DFT wrapper, process simulator, or robot-lab controller. The current
+model is qualitative and benchmark-oriented. It aims to be physically
+plausible enough for closed-loop decision research and teaching, not to model
+one named real chemical system.</p>
+<p>The current release has one shared world law with reaction, phase/separation,
+crystallization, distillation, continuous-flow, and electrochemistry modules.
+Future work should improve physical fidelity and baseline calibration without
+splitting these processes into separate mini-game environments.</p>
+<h2 id="recommended-next-steps">Recommended Next Steps</h2>
+<p>Near-term engineering work:</p>
+<ul>
+<li>run and freeze stronger baseline calibration tables from the artifact tools;</li>
+<li>add richer explanation schemas and scoring rubrics;</li>
+<li>calibrate the mechanism-explanation rubric with expert examples.</li>
+</ul>
+<p>Near-term research work:</p>
+<ul>
+<li>compare human, BO, LLM replay, and human-plus-LLM strategies;</li>
+<li>study public-test to private-eval generalization;</li>
+<li>analyze safety-aware exploration behavior;</li>
+<li>analyze whether mechanism explanations correlate with optimization quality.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1941 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Research benchmark for closed-loop virtual chemical experimentation.">
+      
+      
+      
+      
+        <link rel="prev" href="../tutorial_curriculum_zh/">
+      
+      
+        <link rel="next" href="../architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>SOTA Agent Environment Gap Audit - ChemWorld-Bench</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#sota-gap-audit" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ChemWorld-Bench" class="md-header__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ChemWorld-Bench
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              SOTA Agent Environment Gap Audit
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ChemWorld-Bench" class="md-nav__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ChemWorld-Bench
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chemworld_overview_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ChemWorld Overview ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../current_progress/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Current Progress
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference_repos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Reference Repos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial_curriculum_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial Curriculum ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SOTA Agent Environment Gap Audit
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SOTA Agent Environment Gap Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        参照对象
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chemworld" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        当前 ChemWorld 的优势
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        主要差距
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="主要差距">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 科学发现循环还不够完整
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-affordance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 交互环境 affordance 还不够强
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-tool-using-agent-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Tool-using agent baseline 还偏弱
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-bench" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Bench 之间还缺真实样品流转
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-grounding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 真实 grounding 和参考校准不足
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-dataset-minari" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Dataset 层还需要接近 Minari 风格
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notebook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notebook 与课程需要补的坡度
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#todo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        下一轮工程 TODO
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        定位更新
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../technical_architecture_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Architecture ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../world_law/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    World Law
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../physchem_core_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PhysChem Core Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../physchem_maturity_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PhysChem Maturity Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_review_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Review Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../professional_todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Professional TODO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../professional_deepening_todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Professional Deepening TODO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../campaign_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Campaign Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_taxonomy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Task Taxonomy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmark_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Task Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../action_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instrument_contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instrument Contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spectroscopy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Virtual Spectroscopy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../safety_cost/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Safety And Cost
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset_layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Card
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reaction_separation_tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaction and Separation Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../leaderboard_project_blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Leaderboard Project Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../world_model_learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    World-Model Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wrappers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wrappers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../submission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Submission Bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../local_eval_machine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Eval Machine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ethics_and_data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ethics and Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_artifact/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper Artifact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release_checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        参照对象
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chemworld" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        当前 ChemWorld 的优势
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        主要差距
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="主要差距">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 科学发现循环还不够完整
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-affordance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 交互环境 affordance 还不够强
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-tool-using-agent-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Tool-using agent baseline 还偏弱
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-bench" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Bench 之间还缺真实样品流转
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-grounding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 真实 grounding 和参考校准不足
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-dataset-minari" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Dataset 层还需要接近 Minari 风格
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notebook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notebook 与课程需要补的坡度
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#todo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        下一轮工程 TODO
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        定位更新
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="sota-gap-audit">国际 SOTA 智能体交互化学环境 Gap Audit</h1>
+<p>更新日期：2026-07-08</p>
+<p>这份审计用于回答一个实际问题：ChemWorld 如果要从“可运行的虚拟化工 benchmark”走向“专业级智能体交互化学世界”，还需要补哪些能力。结论不是把外部项目照搬进来，而是把它们体现出的设计压力转化为 ChemWorld 自己的架构要求。</p>
+<h2 id="_1">参照对象</h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>关键定位</th>
+<th>对 ChemWorld 的启发</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://pubs.rsc.org/en/content/articlehtml/2024/dd/d3dd00183k">ChemGymRL</a> / <a href="https://arxiv.org/abs/2305.14177">arXiv</a></td>
+<td>Gymnasium 风格的虚拟化学实验室，包含 reaction、distillation、extraction benches</td>
+<td>化学环境不应只有反应优化；bench 之间要能共享样品、容器、相态、分离和测量状态</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2406.06769">DiscoveryWorld</a></td>
+<td>面向完整科学发现循环的虚拟环境，包含多主题、多难度、多参数变化任务</td>
+<td>任务要评价假设形成、实验设计、结果分析和解释性知识发现，而不是只看终点分数</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2203.07540">ScienceWorld</a></td>
+<td>交互式文本科学环境，强调概念在新情境中的可迁移推理</td>
+<td>ChemWorld 需要更强的 action feedback、state affordance、错误恢复和自然语言任务卡</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2602.12984">SciAgentGym</a></td>
+<td>多步科学 tool-use 环境，覆盖物理、化学、生物、材料等学科工具</td>
+<td>LLM agent 不能只调用 <code>env.step</code>，还应能使用 validator、recipe compiler、surrogate、仪器和数据工具</td>
+</tr>
+<tr>
+<td><a href="https://www.nature.com/articles/s42256-024-00832-8">ChemCrow</a> / <a href="https://arxiv.org/abs/2304.05376">arXiv</a></td>
+<td>将 LLM 与专家化学工具结合，服务合成、药物发现和材料设计</td>
+<td>ChemWorld 需要真正的 tool-using agent baseline，而不是只有在线 API adapter</td>
+</tr>
+<tr>
+<td><a href="https://www.nature.com/articles/s41586-023-06792-0">Coscientist</a></td>
+<td>LLM 结合搜索、代码、文档和实验自动化执行复杂化学实验</td>
+<td>长期应支持 planner → validator → instrument/simulator → analysis 的多工具闭环</td>
+</tr>
+<tr>
+<td><a href="https://www.nature.com/articles/s41586-023-06734-w">A-Lab</a></td>
+<td>结合文献、计算、机器学习、主动学习和机器人执行的闭环材料实验室</td>
+<td>ChemWorld 的虚拟闭环需要更明确地区分 prediction、execution、diagnosis、active learning 和 failure recovery</td>
+</tr>
+<tr>
+<td><a href="https://www.nature.com/articles/s42256-025-01055-1">Matbench Discovery</a> / <a href="https://matbench-discovery.materialsproject.org/">leaderboard</a></td>
+<td>任务式材料发现评测和公开 leaderboard</td>
+<td>ChemWorld 的 leaderboard 应使用任务相关指标、public/private split、提交包和可复现实验记录</td>
+</tr>
+</tbody>
+</table>
+<h2 id="chemworld">当前 ChemWorld 的优势</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>当前状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>统一入口</td>
+<td><code>gym.make("ChemWorld", task_id=...)</code> 已经成为主入口</td>
+</tr>
+<tr>
+<td>共享世界规律</td>
+<td>reaction、phase、separation、observation 正在挂到同一套 <code>WorldLaw</code></td>
+</tr>
+<tr>
+<td>事件驱动实验</td>
+<td>支持 add、heat、wait、measure、terminate、separation 等 operation</td>
+</tr>
+<tr>
+<td>轨迹与提交</td>
+<td>JSONL trajectory、manifest、verify、submission bundle、local eval machine 已有基础</td>
+</tr>
+<tr>
+<td>教学闭环</td>
+<td>Day 1-13 notebook 已覆盖入门、机制、观测、surrogate、BO、leaderboard、泛化和过程模块</td>
+</tr>
+<tr>
+<td>专业底座开端</td>
+<td><code>physchem</code> 已开始实现 properties、reaction networks、reactors、EOS、equilibrium、spectroscopy 等本地核心</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_2">主要差距</h2>
+<h3 id="1">1. 科学发现循环还不够完整</h3>
+<p>DiscoveryWorld 的强项是把任务组织成完整循环：提出假设、设计实验、执行、分析、形成解释性知识。ChemWorld 现在已经有解释字段和反思问题，但自动评测仍偏向数值分数。</p>
+<p>需要加强：</p>
+<ul>
+<li><code>explanation_schema</code>：把 hypothesis、evidence、mechanism update、failure analysis、next experiment rationale 做成结构化对象。</li>
+<li>explanation rubric：先人工评分，后续再做半自动对齐评分。</li>
+<li>knowledge discovery metrics：记录 agent 是否发现了温度-副反应、溶剂-分配、催化剂失活、纯度-回收率等隐藏规律。</li>
+</ul>
+<h3 id="2-affordance">2. 交互环境 affordance 还不够强</h3>
+<p>ScienceWorld 和 DiscoveryWorld 会给 agent 明确的可操作对象、位置、状态和失败反馈。ChemWorld 目前已有 action mask 和 validator，但状态摘要仍偏工程字段。</p>
+<p>需要加强：</p>
+<ul>
+<li><code>visible_state_summary</code>：给 agent 一个可读的实验台状态，例如当前容器、相态、可用样品、已终止/未终止、可测量仪器。</li>
+<li>invalid action recovery：非法动作不只返回失败，还返回可修复建议。</li>
+<li>operation cards：每个 operation 需要 human-readable preconditions、payload ranges、typical use、failure modes。</li>
+</ul>
+<h3 id="3-tool-using-agent-baseline">3. Tool-using agent baseline 还偏弱</h3>
+<p>ChemCrow、Coscientist、SciAgentGym 的共同点是 agent 不只是直接给动作，而是编排工具。ChemWorld 当前有 <code>LLMReplayAgent</code> 和 stub，但还没有标准工具箱。</p>
+<p>需要加强：</p>
+<ul>
+<li><code>ChemWorldToolKit</code>：统一暴露 <code>validate_action</code>、<code>validate_recipe</code>、<code>compile_recipe</code>、<code>run_experiment</code>、<code>query_task_info</code>、<code>fit_surrogate</code>、<code>plot_trajectory</code>。</li>
+<li><code>ToolUsingLLMStub</code>：不依赖在线模型，但必须走真实工具链。</li>
+<li>LLM replay trace：记录每次 tool call、输入、输出、修复过程和成本。</li>
+</ul>
+<h3 id="4-bench">4. Bench 之间还缺真实样品流转</h3>
+<p>ChemGymRL 的 reaction、distillation、extraction benches 指向同一实验室直觉。ChemWorld 已经有 reaction-to-purification，但需要让反应、相分配、分离、纯化和最终 assay 的 ledger 更像真实样品账本。</p>
+<p>需要加强：</p>
+<ul>
+<li>vessel inventory：多个容器、转移、废液、取样、损失、残留。</li>
+<li>phase ledger：每个相中的关键物种、体积、密度 proxy、溶解度限制和夹带损失。</li>
+<li>sample lineage：每次取样、分液、浓缩和最终检测能追溯来源。</li>
+</ul>
+<h3 id="5-grounding">5. 真实 grounding 和参考校准不足</h3>
+<p>Coscientist、A-Lab 和 Matbench Discovery 都强调真实工具、真实数据或任务式真实评价。ChemWorld 仍是半机理虚拟世界，科研可信度要靠透明假设、参考校准和任务化评测补强。</p>
+<p>需要加强：</p>
+<ul>
+<li>reference cases：用公开文献或标准物性数据校准少量受控案例，而不是宣称通用预测。</li>
+<li>optional backend validation：对 CoolProp、Cantera、thermo、Reaktoro、pycalphad 等只做可选对照，不作为核心依赖。</li>
+<li>benchmark cards：每个 task 说明适用范围、隐藏机制、指标、失效模式和不该外推的地方。</li>
+</ul>
+<h3 id="6-dataset-minari">6. Dataset 层还需要接近 Minari 风格</h3>
+<p>SOTA 环境越来越重视可复用数据集。ChemWorld 有 JSONL，但还需要更正式的 dataset card、Parquet export、trajectory validation 和 offline agent training split。</p>
+<p>需要加强：</p>
+<ul>
+<li><code>dataset_card.json</code>：记录 task、world law、agent、seed、license、隐私状态、已知局限。</li>
+<li>offline split：baseline trajectories、student trajectories、external submissions 分开。</li>
+<li>replay hash：每条 trajectory 的 action/observation/reward 可重放校验哈希。</li>
+</ul>
+<h2 id="notebook">Notebook 与课程需要补的坡度</h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>当前问题</th>
+<th>本轮调整方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Day 1-3</td>
+<td>入门已经能跑，但学生容易不知道“今天只该学什么”</td>
+<td>增加难度、先修、核心产出、不要做什么、下一天如何复用</td>
+</tr>
+<tr>
+<td>Day 4-6</td>
+<td>机制扫描、surrogate、baseline 之间衔接偏松</td>
+<td>明确从 hypothesis → data → local model → next experiment 的证据链</td>
+</tr>
+<tr>
+<td>Day 7-9</td>
+<td>capstone、GPT planner、BO 难度跃迁较大</td>
+<td>加入基础/进阶/挑战任务分层，先让学生修复 recipe，再进入自动优化</td>
+</tr>
+<tr>
+<td>Day 10-12</td>
+<td>leaderboard 和 private generalization 容易被理解为刷榜</td>
+<td>明确 public/private gap、过拟合诊断、解释质量和可复现提交</td>
+</tr>
+<tr>
+<td>Day 13</td>
+<td>Year 2 过程模块容易像愿景展示</td>
+<td>改成研究延展入口：每个模块说明共享 world law 下新增哪类物理账本</td>
+</tr>
+</tbody>
+</table>
+<h2 id="todo">下一轮工程 TODO</h2>
+<ol>
+<li>把 <code>visible_state_summary</code> 和 operation cards 暴露到 <code>env.task_info()</code> 与 wrapper info。</li>
+<li>建立 <code>ChemWorldToolKit</code>，让 LLM baseline 通过工具调用而不是直接拼动作。</li>
+<li>给 explanation 增加结构化 schema 和人工评分 rubric。</li>
+<li>给 reaction-to-purification 增加更完整的 sample lineage 和 vessel inventory。</li>
+<li>扩展 dataset export：Parquet + dataset card + replay hash。</li>
+<li>为 <code>physchem</code> 选择 3-5 个 reference calibration cases，优先 properties、reaction kinetics、phase equilibrium、spectroscopy。</li>
+<li>把 notebook 每日任务改成基础、进阶、挑战三层，并标注难度与交付物。</li>
+</ol>
+<h2 id="_3">定位更新</h2>
+<p>ChemWorld 当前最适合的国际定位是：</p>
+<blockquote>
+<p>面向 AI4Science 教育与 agent 研究的统一物理化学交互世界。它不是通用真实化学预测软件，而是在同一套可执行物理化学约束下，评测人类、LLM agent、BO 和 hybrid system 如何完成有限预算实验设计、局部 world model 学习、过程决策、解释和可复现提交。</p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

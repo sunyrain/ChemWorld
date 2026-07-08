@@ -1,0 +1,1970 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Research benchmark for closed-loop virtual chemical experimentation.">
+      
+      
+      
+      
+        <link rel="prev" href="../architecture/">
+      
+      
+        <link rel="next" href="../world_law/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Technical Architecture ZH - ChemWorld-Bench</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#chemworld-bench" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ChemWorld-Bench" class="md-header__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ChemWorld-Bench
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Technical Architecture ZH
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ChemWorld-Bench" class="md-nav__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ChemWorld-Bench
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chemworld_overview_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ChemWorld Overview ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../current_progress/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Current Progress
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference_repos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Reference Repos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial_curriculum_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial Curriculum ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sota_agent_environment_gap_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SOTA Agent Environment Gap Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Architecture ZH
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Architecture ZH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 平台定位
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 当前核心架构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-worldlaw" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. WorldLaw：统一物理化学世界
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Scenario：隐藏世界实例
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Task：世界切片而不是独立环境
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-campaign-experiment-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Campaign / Experiment / Operation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-action-schema-recipe-compiler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Action Schema 与 Recipe Compiler
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-instrument-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Instrument Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-safety-cost-channel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Safety / Cost Channel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-dataset-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Dataset Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 当前实现状态
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 验收命令
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../world_law/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    World Law
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../physchem_core_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PhysChem Core Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../physchem_maturity_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PhysChem Maturity Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_review_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Review Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../professional_todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Professional TODO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../professional_deepening_todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Professional Deepening TODO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../campaign_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Campaign Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_taxonomy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Task Taxonomy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmark_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Task Cards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../action_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instrument_contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instrument Contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spectroscopy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Virtual Spectroscopy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../safety_cost/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Safety And Cost
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset_layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Card
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reaction_separation_tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reaction and Separation Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../leaderboard_project_blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Leaderboard Project Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../world_model_learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    World-Model Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wrappers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wrappers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../submission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Submission Bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../local_eval_machine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Eval Machine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ethics_and_data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ethics and Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_artifact/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper Artifact
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release_checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 平台定位
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 当前核心架构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-worldlaw" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. WorldLaw：统一物理化学世界
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Scenario：隐藏世界实例
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Task：世界切片而不是独立环境
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-campaign-experiment-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Campaign / Experiment / Operation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-action-schema-recipe-compiler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Action Schema 与 Recipe Compiler
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-instrument-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Instrument Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-safety-cost-channel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Safety / Cost Channel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-dataset-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Dataset Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 当前实现状态
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 验收命令
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="chemworld-bench">ChemWorld-Bench 技术架构文档</h1>
+<p>更新日期：2026-07-08</p>
+<h2 id="1">1. 平台定位</h2>
+<p>ChemWorld-Bench 是一个面向 AI4Science、化工教育和闭环实验决策研究的虚拟物理化学 benchmark。它不是一组彼此独立的小游戏，也不声称预测真实反应体系；它的正式定位是：</p>
+<blockquote>
+<p>在同一个共享物理化学世界规律下，提供多个可复现、可评测、可提交的实验任务切片，用于研究 agent、人类学习者、贝叶斯优化器和混合系统如何在有限预算下进行实验设计、观测、建模、优化和解释。</p>
+</blockquote>
+<p>正式 Gymnasium 入口统一为：</p>
+<pre><code class="language-python">import gymnasium as gym
+import chemworld
+
+env = gym.make(&quot;ChemWorld&quot;, task_id=&quot;reaction-optimization-standard&quot;, seed=0)
+obs, info = env.reset(seed=0)
+obs, reward, terminated, truncated, info = env.step(action)
+</code></pre>
+<h2 id="2">2. 当前核心架构</h2>
+<p>当前代码主干位于 <code>src/chemworld/</code>：</p>
+<pre><code class="language-text">chemworld
+├── foundation          # ontology、constitution、state、ledger、units、world law
+├── world               # 专业 world-law 层：ontology、scenario、instrument、operation、recipe、kernel、scoring
+├── core                # 事件调度层：调用 world kernel，维护 state ledger 和 operation record
+├── envs                # ChemWorld Gymnasium 环境
+├── tasks               # task registry 和 task card
+├── schemas             # action、recipe、trajectory、manifest、task、scenario schema
+├── agents              # random、LHS、greedy、BO、safe BO、scripted、LLM stub
+├── eval                # runner、metrics、leaderboard、verify、suite
+├── data                # logging、submission、dataset export、validation、anonymize
+├── wrappers            # action mask、safety/cost、NaN observation wrappers
+└── cli                 # run/evaluate/verify/tasks/scenarios/datasets/render
+</code></pre>
+<h2 id="3-worldlaw">3. WorldLaw：统一物理化学世界</h2>
+<p><code>WorldLawSpec</code> 是所有 task 的共同底座。它记录：</p>
+<ul>
+<li>ontology registry；</li>
+<li>physical constitution；</li>
+<li>operation registry；</li>
+<li>instrument registry；</li>
+<li>transition kernel registry；</li>
+<li>observation kernel registry；</li>
+<li>module versions；</li>
+<li>backend spec；</li>
+<li>scenario generators；</li>
+<li>constitution rules。</li>
+</ul>
+<p>当前所有内置 task 共享：</p>
+<pre><code class="language-text">world_law_id = chemworld-physical-chemistry
+</code></pre>
+<p>这保证新增 task 不会变成独立小游戏，而是同一个物理化学世界下的不同 scenario/task slice。</p>
+<h2 id="4-scenario">4. Scenario：隐藏世界实例</h2>
+<p>Scenario 是 hidden parameter 和 initial state 的正式契约。每个 scenario 声明：</p>
+<ul>
+<li><code>scenario_id</code>；</li>
+<li><code>world_law_id</code>；</li>
+<li><code>family</code>；</li>
+<li><code>split</code>；</li>
+<li><code>difficulty</code>；</li>
+<li><code>hidden_parameter_seed</code>；</li>
+<li><code>initial_state_seed</code>；</li>
+<li><code>initial_state_id</code>；</li>
+<li><code>parameter_profile</code>；</li>
+<li><code>allowed_module_tags</code>；</li>
+<li><code>expected_qualitative_behavior</code>。</li>
+</ul>
+<p>CLI 支持：</p>
+<pre><code class="language-bash">chemworld scenarios list
+chemworld scenarios show reaction-to-purification
+</code></pre>
+<p>public/private split 共享机制族，但不共享具体 hidden parameters。</p>
+<h2 id="5-task">5. Task：世界切片而不是独立环境</h2>
+<p>Task 只定义评测切片：</p>
+<ul>
+<li>使用哪个 scenario；</li>
+<li>允许哪些 operations；</li>
+<li>允许哪些 instruments；</li>
+<li>预算是多少；</li>
+<li>是 single experiment 还是 campaign；</li>
+<li>目标函数和成功指标是什么；</li>
+<li>safety limit 是多少。</li>
+</ul>
+<p>当前任务包括：</p>
+<ul>
+<li><code>reaction-optimization-standard</code></li>
+<li><code>reaction-safety-constrained</code></li>
+<li><code>reaction-mechanism-explanation</code></li>
+<li><code>reaction-to-assay</code></li>
+<li><code>reaction-to-purification</code></li>
+<li><code>reaction-to-crystallization</code></li>
+<li><code>reaction-to-distillation</code></li>
+<li><code>flow-reaction-optimization</code></li>
+<li><code>electrochemical-conversion</code></li>
+<li><code>partition-discovery</code></li>
+<li><code>purity-yield-tradeoff</code></li>
+<li><code>public-private-generalization</code></li>
+<li><code>low-budget-characterization</code></li>
+<li><code>tool-agent-planning</code></li>
+</ul>
+<h2 id="6-campaign-experiment-operation">6. Campaign / Experiment / Operation</h2>
+<p>当前日志模型已经正式区分三层：</p>
+<pre><code class="language-text">Campaign
+  └── Experiment
+        └── Operation
+</code></pre>
+<p>每条 trajectory JSONL 记录包含：</p>
+<ul>
+<li><code>campaign_id</code></li>
+<li><code>experiment_index</code></li>
+<li><code>operation_id</code></li>
+<li><code>scenario_id</code></li>
+<li><code>initial_state_id</code></li>
+</ul>
+<p>在 campaign task 中，<code>final_assay</code> 结束当前 experiment，但不结束整个 campaign；在 single-experiment task 中，<code>final_assay</code> 终止 episode。</p>
+<h2 id="7-action-schema-recipe-compiler">7. Action Schema 与 Recipe Compiler</h2>
+<p>动作语言统一为：</p>
+<pre><code class="language-json">{
+  &quot;operation&quot;: &quot;add_solvent&quot;,
+  &quot;volume_L&quot;: 0.02,
+  &quot;solvent&quot;: 1
+}
+</code></pre>
+<p>高层 recipe 可以编译为 operation sequence：</p>
+<pre><code class="language-json">{
+  &quot;steps&quot;: [
+    {&quot;operation&quot;: &quot;add_solvent&quot;, &quot;volume_L&quot;: 0.02, &quot;solvent&quot;: 1},
+    {&quot;operation&quot;: &quot;add_reagent&quot;, &quot;amount_mol&quot;: 0.01}
+  ]
+}
+</code></pre>
+<p>验证分三层：</p>
+<ol>
+<li>schema validation；</li>
+<li>task policy；</li>
+<li>constitution preconditions。</li>
+</ol>
+<p>CLI 支持：</p>
+<pre><code class="language-bash">chemworld validate-action --task reaction-to-purification --action action.json
+chemworld validate-recipe --task reaction-to-purification --recipe recipe.json
+</code></pre>
+<h2 id="8-instrument-contract">8. Instrument Contract</h2>
+<p>每个 instrument 都有正式 contract：</p>
+<ul>
+<li>observable keys；</li>
+<li>raw signal schema；</li>
+<li>processed estimate schema；</li>
+<li>uncertainty model；</li>
+<li>noise model；</li>
+<li>cost；</li>
+<li>latency；</li>
+<li>sample consumption；</li>
+<li>destructive flag；</li>
+<li>requires terminated；</li>
+<li>calibration profile。</li>
+</ul>
+<p>当前 instruments：</p>
+<ul>
+<li><code>uvvis</code></li>
+<li><code>gc</code></li>
+<li><code>hplc</code></li>
+<li><code>final_assay</code></li>
+</ul>
+<p>默认 observation 不泄露 hidden species amounts、rate constants 或 partition coefficients。<code>final_assay</code> 是 leaderboard score 的正式来源。</p>
+<h2 id="9-safety-cost-channel">9. Safety / Cost Channel</h2>
+<p>ChemWorld 保持 Gymnasium 五元组不变，同时在 <code>info</code> 中提供安全成本：</p>
+<pre><code class="language-python">info[&quot;cost&quot;]
+info[&quot;cost_components&quot;]
+info[&quot;constraint_budget_remaining&quot;]
+</code></pre>
+<p>cost components 包括：</p>
+<ul>
+<li>safety risk；</li>
+<li>high cost；</li>
+<li>precondition failure；</li>
+<li>constitution failure。</li>
+</ul>
+<p>安全任务使用 task-level <code>safety_limit</code>，不再依赖硬编码全局阈值。</p>
+<h2 id="10-dataset-layer">10. Dataset Layer</h2>
+<p>数据导出命令：</p>
+<pre><code class="language-bash">chemworld datasets export --submission runs/example.jsonl --format jsonl
+chemworld datasets export --submission runs/example.jsonl --format parquet
+chemworld datasets card --dataset datasets/chemworld_dataset.jsonl
+</code></pre>
+<p>JSONL 始终可用；Parquet 需要本地安装 <code>pyarrow</code> 或 <code>fastparquet</code>。</p>
+<p>Dataset card 包含：</p>
+<ul>
+<li>dataset id；</li>
+<li>task ids；</li>
+<li>world law versions；</li>
+<li>env versions；</li>
+<li>commit hash；</li>
+<li>seeds；</li>
+<li>agent manifests；</li>
+<li>license；</li>
+<li>privacy/anonymization status；</li>
+<li>known limitations。</li>
+</ul>
+<h2 id="11">11. 当前实现状态</h2>
+<p>已完成：</p>
+<ul>
+<li>单一正式 Gym 环境 <code>ChemWorld</code>；</li>
+<li>共享 <code>WorldLawSpec</code>；</li>
+<li>scenario registry；</li>
+<li>task registry；</li>
+<li>campaign/experiment/operation 日志字段；</li>
+<li>action/recipe schema；</li>
+<li>instrument contracts；</li>
+<li>safety/cost channel；</li>
+<li>dataset export/card；</li>
+<li>render ansi；</li>
+<li>task-aware wrappers；</li>
+<li>BO 默认 <code>n_initial=4</code>；</li>
+<li>reaction + separation 任务族；</li>
+<li>crystallization、distillation、continuous-flow、electrochemistry Year 2 过程模块基础版；</li>
+<li><code>chemworld baselines report</code> 官方基线报告生成器；</li>
+<li><code>chemworld private-eval sign</code> 本机私有评测签名 artifact；</li>
+<li><code>chemworld artifact create</code> release artifact 目录生成器；</li>
+<li>本地教师端/学生端评测框架；</li>
+<li>12 天中文 notebook 教程。</li>
+</ul>
+<p>仍需继续推进：</p>
+<ul>
+<li>继续把 crystallization、continuous-flow、electrochemistry 的过程 proxy 拆成更独立的 world kernel；distillation 已有 VLE shortcut 和 Fenske-Underwood-Gilliland sizing，下一步推进到 MESH-lite、boilup、压力降积分和水力学约束；</li>
+<li>继续把 IR/NMR 从合成信号推进到带公开校准案例的 instrument kernels；UV-vis 已有 Beer-Lambert 校准切片，HPLC/GC 已有 retention-factor/plate-count 校准切片；</li>
+<li>用完整 task/agent/seed 矩阵重新运行并冻结官方 reference baseline table；</li>
+<li>将本机 signed private-eval artifact 升级为远端 maintainer-side registry；</li>
+<li>增加 Minari 风格 dataset metadata；</li>
+<li>继续提高 crystallization、distillation、continuous flow、electrochemistry 的物理保真度与 baseline 标定。</li>
+</ul>
+<h2 id="12">12. 验收命令</h2>
+<pre><code class="language-bash">.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m mypy src\chemworld
+.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m mkdocs build --strict
+</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
