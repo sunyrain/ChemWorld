@@ -86,6 +86,7 @@ finished, update its status and push immediately.
 | PRO-RUNTIME-G task-scoped domain-service validation | whilesunny | Done | `src/chemworld/runtime/domain_services.py`, tests/docs | domain-service validation is task-profile scoped; unrelated future operations are not required by every task runtime | this commit |
 | PRO-RUNTIME-H task-specific scoring contract | whilesunny | Done | `src/chemworld/world/scoring.py`, `src/chemworld/runtime/observation_services.py`, `src/chemworld/envs/`, tests/docs | score computation now reads a task-level scoring contract instead of always using the fixed reaction score formula | this commit |
 | PRO-RUNTIME-I task-specific observation contract | whilesunny | Done | `src/chemworld/world/`, `src/chemworld/runtime/observation_services.py`, `src/chemworld/envs/`, tests/docs | processed observation keys now read a task/mechanism observation contract instead of exposing every global instrument field | this commit |
+| PRO-RUNTIME-J task-aware raw-signal contract | whilesunny | Active | `src/chemworld/runtime/observation_services.py`, `src/chemworld/world/spectra.py`, tests/docs | make raw signal generation use task/mechanism observable contracts instead of passing full hidden species ledgers to every instrument packet | in progress |
 
 Status values:
 
