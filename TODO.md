@@ -25,6 +25,7 @@ finished, update its status and push immediately.
 | P7 separation and unit operations | whilesunny | Done | `src/chemworld/physchem/separations.py`, `tests/`, `docs/physchem_core_design.md` | next: implement fluid mechanics and heat-transfer utilities in P8, then wire separations into world tasks | this commit |
 | P8 fluid mechanics and heat transfer | whilesunny | Done | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `docs/physchem_core_design.md` | next: implement equilibrium chemistry in P9, then connect transport signals into world tasks and scoring | this commit |
 | P9 equilibrium chemistry | whilesunny | Done | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/test_equilibrium_chemistry.py`, `docs/physchem_core_design.md` | next: expand mechanism and scenario library in P10 using the generalized physchem kernels | this commit |
+| P10 mechanism and scenario library | whilesunny | Active | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/physchem/mechanism_library.py`, `tests/`, `docs/physchem_core_design.md` | read Cantera/Reaktoro/RMG mechanism-library patterns, then add curated mechanisms, scenario cards, qualitative behavior metadata, and loader validation | pending |
 
 Status values:
 
