@@ -42,7 +42,7 @@ branches.
 The runtime is organized around:
 
 - `TaskRuntimeProfile`, which declares the operations, instruments, kernels, and
-  capabilities required by one task slice;
+  domain services required by one task slice;
 - `MechanismCompiler`, which compiles mechanism YAML into a `CompiledMechanism`
   with species indexes, a stoichiometric matrix, observable mappings, score
   bindings, and a mechanism hash;
@@ -51,7 +51,9 @@ The runtime is organized around:
   globally;
 - `DomainServiceRegistry`, which publishes JSON-friendly service contracts and
   the operation-to-service map used by task info, audits, and transaction
-  events;
+  events. Runtime startup validates the current task profile against this
+  registry, so a task cannot allow an operation whose focused domain service or
+  capability is missing;
 - `ChemWorldDomainServices`, which now acts as a lightweight operation
   composition surface for delegated runtime services, constitution checks, and
   operation recording;

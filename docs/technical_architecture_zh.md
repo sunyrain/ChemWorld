@@ -84,14 +84,16 @@ ChemWorldEnv
 关键设计：
 
 - `ChemWorldEnv.step()` 只做 action canonicalization、validation、runtime dispatch、observation、reward/info 和 campaign bookkeeping。
-- `TaskRuntimeProfile` 声明当前任务需要哪些 operation、instrument、kernel 和 capability，不要求全局所有 kernel 都注册。
+- `TaskRuntimeProfile` 声明当前任务需要哪些 operation、instrument、kernel、domain service 和 capability，不要求全局所有 kernel 都注册。
 - `OperationKernelRegistry` 把操作类型映射到小型 command handler。
-- `DomainServiceRegistry` 提供 JSON-friendly 的 service contract 和 operation-to-service map，供 `task_info()`、审计、trajectory event 和文档读取。
+- `DomainServiceRegistry` 提供 JSON-friendly 的 service contract 和 operation-to-service map，供 `task_info()`、审计、trajectory event 和文档读取；runtime 启动时会用当前 task profile 校验 service/capability 覆盖。
 - `ChemWorldDomainServices` 是轻量 operation composition surface，只负责编排独立服务、constitution checks 和 operation record assembly。
 - `TransactionManager` 统一提交 `StatePatch`，记录 `WorldEvent`，并在 constitution failure 时回滚 material ledger。
 - safety/cost 作为一等信号进入 `info["cost"]`、`info["cost_components"]` 和 leaderboard metrics。
 
 这次重构后，primitive material handling、reaction/thermal advancement、phase/extraction workflow、crystallization、distillation、continuous flow、electrochemical conversion、measurement cost/sample consumption 和 operation record assembly 不再混在一个 state-changing domain service 里。专门服务负责各自物理过程，事务层负责提交或回滚，record service 负责把已接受的 pre/post state pair 写成可回放轨迹。每个 `operation_applied` event 还会记录 `domain_service_id`，方便审计某个动作到底由哪类物理服务处理。
+
+`task_info()["runtime"]["profile"]` 现在会公开 `required_domain_services`。这意味着学生、agent、评测器和审稿人都能看到某个任务到底需要 reaction、separation、distillation、flow、electrochemistry 或 observation service 中的哪些能力，而不是只看到一串 operation 名称。
 
 ## 5. Mechanism Compiler
 

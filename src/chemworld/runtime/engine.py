@@ -69,6 +69,7 @@ class ChemWorldRuntime:
             constitution,
             compiled_mechanism=compiled_mechanism,
         )
+        self.domain_services.validate_profile(self.profile)
         self.transaction_manager = TransactionManager(constitution)
         self.context = RuntimeContext(
             task_spec=task_spec,

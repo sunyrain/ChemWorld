@@ -324,6 +324,10 @@ Recommended follow-up:
   publish JSON-friendly service contracts, `task_info()` exposes an
   operation-to-service map, and accepted `operation_applied` events carry the
   `domain_service_id` used for audit and replay metadata.
+- Hardened the Runtime v2 task profile contract. `TaskRuntimeProfile` now
+  declares required domain services in addition to operations, kernels,
+  instruments, and capabilities; runtime startup validates the profile against
+  both operation kernels and focused domain-service contracts.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration

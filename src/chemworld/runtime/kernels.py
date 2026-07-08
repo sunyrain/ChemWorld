@@ -7,7 +7,7 @@ from typing import Any, Protocol
 
 from chemworld.foundation import OperationRecord, WorldState
 from chemworld.operation_validator import OperationValidation
-from chemworld.runtime.domain_services import ChemWorldDomainServices
+from chemworld.runtime.domain_services import ChemWorldDomainServices, DomainServiceRegistry
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.transactions import StatePatch, TransactionManager, WorldEvent
 from chemworld.tasks import TaskSpec
@@ -20,6 +20,7 @@ class TaskRuntimeProfile:
     allowed_operations: frozenset[str]
     required_kernels: frozenset[str]
     optional_kernels: frozenset[str]
+    required_domain_services: frozenset[str]
     required_capabilities: frozenset[str]
     allowed_instruments: frozenset[str]
 
@@ -32,6 +33,8 @@ class TaskRuntimeProfile:
             allowed = frozenset(task.allowed_operations)
             instruments = frozenset(task.allowed_instruments)
         contracts = operation_contracts()
+        service_registry = DomainServiceRegistry.default()
+        required_domain_services = service_registry.service_ids_for_operations(allowed)
         capabilities = frozenset(
             contracts[operation].module for operation in allowed if operation in contracts
         )
@@ -44,6 +47,7 @@ class TaskRuntimeProfile:
             allowed_operations=allowed,
             required_kernels=allowed,
             optional_kernels=frozenset(OPERATION_TYPES) - allowed,
+            required_domain_services=required_domain_services,
             required_capabilities=capabilities,
             allowed_instruments=instruments,
         )
@@ -54,12 +58,16 @@ class TaskRuntimeProfile:
             "allowed_operations": sorted(self.allowed_operations),
             "required_kernels": sorted(self.required_kernels),
             "optional_kernels": sorted(self.optional_kernels),
+            "required_domain_services": sorted(self.required_domain_services),
             "required_capabilities": sorted(self.required_capabilities),
             "allowed_instruments": sorted(self.allowed_instruments),
         }
 
     def is_operation_allowed(self, operation_type: str) -> bool:
         return operation_type in self.allowed_operations
+
+    def is_domain_service_required(self, service_id: str) -> bool:
+        return service_id in self.required_domain_services
 
 
 @dataclass(frozen=True)
@@ -267,6 +275,16 @@ class OperationKernelRegistry:
         missing = sorted(profile.required_kernels - set(self._kernels))
         if missing:
             raise ValueError(f"Missing required operation kernels: {missing}")
+        kernel_capabilities = frozenset(
+            capability
+            for operation in profile.required_kernels
+            for capability in self._kernels[operation].required_capabilities
+        )
+        missing_capabilities = sorted(profile.required_capabilities - kernel_capabilities)
+        if missing_capabilities:
+            raise ValueError(
+                f"Missing required operation kernel capabilities: {missing_capabilities}"
+            )
 
     def has(self, operation_type: str) -> bool:
         return operation_type in self._kernels

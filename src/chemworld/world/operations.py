@@ -241,6 +241,8 @@ def operation_contracts() -> dict[str, OperationContract]:
             module = "continuous_flow"
         elif operation.id in electrochemistry:
             module = "electrochemistry"
+        elif operation.id == "measure":
+            module = "observation"
         elif operation.id in reaction:
             module = "reaction"
         else:

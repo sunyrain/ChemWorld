@@ -448,9 +448,14 @@ def test_runtime_profile_requires_current_task_kernels_only() -> None:
     assert profile.world_law_id == "chemworld-physical-chemistry"
     assert "measure" in profile.required_kernels
     assert "add_extractant" not in profile.required_kernels
+    assert "instrument_cost" in profile.required_domain_services
+    assert "phase_separation" not in profile.required_domain_services
+    assert "observation" in profile.required_capabilities
     assert all(registry.has(operation) for operation in profile.required_kernels)
     assert profile.is_operation_allowed("measure")
     assert not profile.is_operation_allowed("add_extractant")
+    assert profile.is_domain_service_required("instrument_cost")
+    assert not profile.is_domain_service_required("phase_separation")
 
 
 def test_mechanism_compiler_supports_non_fixed_species_networks() -> None:
@@ -698,6 +703,8 @@ def test_env_runtime_v2_info_contains_kernel_transaction_and_mechanism() -> None
             "primitive_operations"
         )
         runtime = env.unwrapped.task_info()["runtime"]
+        assert "instrument_cost" in runtime["profile"]["required_domain_services"]
+        assert "phase_separation" not in runtime["profile"]["required_domain_services"]
         assert runtime["domain_services"]["operation_service_map"]["heat"] == (
             "reaction_thermal"
         )
@@ -727,6 +734,49 @@ def test_domain_service_registry_covers_operations_once() -> None:
         "transfer",
     ]
     assert registry.service_id_for_operation("electrolyze") == "electrochemistry"
+
+
+def test_domain_service_registry_validates_task_profile() -> None:
+    profile = TaskRuntimeProfile.from_task(get_task("reaction-to-purification"))
+    registry = DomainServiceRegistry.default()
+
+    registry.validate_profile(profile)
+    assert registry.service_ids_for_operations(profile.required_kernels) == (
+        profile.required_domain_services
+    )
+    assert "phase_separation" in profile.required_domain_services
+    assert "separation" in profile.required_capabilities
+
+    broken_registry = DomainServiceRegistry(
+        tuple(
+            replace(
+                contract,
+                operations=tuple(
+                    operation
+                    for operation in contract.operations
+                    if operation != "add_extractant"
+                ),
+            )
+            if contract.service_id == "phase_separation"
+            else contract
+            for contract in registry.contracts
+        )
+    )
+    with pytest.raises(ValueError, match="Missing domain service operation coverage"):
+        broken_registry.validate_profile(profile)
+
+
+def test_operation_kernel_registry_validates_profile_capabilities() -> None:
+    profile = TaskRuntimeProfile.from_task(get_task("reaction-to-assay"))
+    broken_registry = OperationKernelRegistry(
+        [
+            ServiceOperationKernel(operation_type=operation, module="general")
+            for operation in OPERATION_TYPES
+        ]
+    )
+
+    with pytest.raises(ValueError, match="Missing required operation kernel capabilities"):
+        broken_registry.validate_profile(profile)
 
 
 def test_service_kernel_operation_record_matches_rollback_state(
