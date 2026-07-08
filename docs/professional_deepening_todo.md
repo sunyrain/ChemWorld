@@ -29,6 +29,7 @@ with proxies and then call them professional.
 | ID | Owner | Status | Scope |
 | --- | --- | --- | --- |
 | `DEEP-D6A` | whilesunny | Done | Dynamic batch reactor with NASA7 reaction heat release, jacket control, variable-volume destructive sampling losses, material/energy ledgers, tests, model card, docs, and public reactor API integration. |
+| `DEEP-D5D` | whilesunny | Claimed | Finite-difference kinetic parameter sensitivity reports with normalized response coefficients, uncertainty propagation summaries, explanation-task ranking hooks, tests, model card, and docs. |
 
 ## Module Families
 
