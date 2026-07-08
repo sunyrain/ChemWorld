@@ -13,7 +13,13 @@ from typing import Any
 
 from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
 from chemworld.physchem.properties import R_J_PER_MOL_K, ComponentPropertyPackage
-from chemworld.physchem.specs import ComponentSpec, PropertyCorrelation
+from chemworld.physchem.specs import (
+    ComponentProvenance,
+    ComponentSpec,
+    ComponentUncertainty,
+    PropertyCorrelation,
+    component_alias_index,
+)
 
 
 @dataclass(frozen=True)
@@ -256,7 +262,9 @@ def curated_property_cases() -> tuple[CuratedPropertyCase, ...]:
 def curated_components() -> tuple[ComponentSpec, ...]:
     """Return curated component specs with provenance metadata."""
 
-    return tuple(_component_from_record(record) for record in _CURATED_RECORDS)
+    components = tuple(_component_from_record(record) for record in _CURATED_RECORDS)
+    component_alias_index(components)
+    return components
 
 
 def curated_property_correlations(component_id: str) -> tuple[PropertyCorrelation, ...]:
@@ -388,6 +396,8 @@ def _component_from_record(record: _CuratedPropertyRecord) -> ComponentSpec:
         default_phase=record.default_phase,
         safety_tags=record.safety_tags,
         aliases=record.aliases,
+        provenance=_component_provenance(record),
+        uncertainty=_component_uncertainty(record),
         allowed_property_correlations=(
             "vapor_pressure",
             "ideal_gas_heat_capacity",
@@ -399,7 +409,66 @@ def _component_from_record(record: _CuratedPropertyRecord) -> ComponentSpec:
                 "curated ChemWorld subset checked against local chemicals "
                 "reference backend"
             ),
+            "provenance_source_ids": [
+                item.source_id for item in _component_provenance(record)
+            ],
+            "uncertainty_field_ids": [
+                item.field_id for item in _component_uncertainty(record)
+            ],
         },
+    )
+
+
+def _component_provenance(record: _CuratedPropertyRecord) -> tuple[ComponentProvenance, ...]:
+    return (
+        ComponentProvenance(
+            source_id="chemicals:Psat_data_Perrys2_8",
+            source_name="chemicals",
+            source_table="Psat_data_Perrys2_8",
+            source_key=record.casrn,
+            source_path="reference_repos/chemicals/chemicals/vapor_pressure.py",
+            notes=(
+                "Perry/DIPPR101 vapor-pressure coefficients are selected for "
+                "the curated ChemWorld regression slice.",
+            ),
+        ),
+        ComponentProvenance(
+            source_id="chemicals:Cp_data_Poling",
+            source_name="chemicals",
+            source_table="Cp_data_Poling",
+            source_key=record.casrn,
+            source_path="reference_repos/chemicals/chemicals/heat_capacity.py",
+            notes=(
+                "Poling ideal-gas heat-capacity coefficients are R-scaled into "
+                "ChemWorld SI units.",
+            ),
+        ),
+    )
+
+
+def _component_uncertainty(record: _CuratedPropertyRecord) -> tuple[ComponentUncertainty, ...]:
+    return (
+        ComponentUncertainty(
+            field_id="molecular_weight_g_mol",
+            unit="g/mol",
+            relative_uncertainty=ComponentSpec.molecular_weight_rel_tolerance,
+            coverage="schema_consistency_tolerance",
+            source_id="formula-derived",
+            note=(
+                "ComponentSpec validates supplied molecular weights against the "
+                "formula-derived value within this relative tolerance."
+            ),
+        ),
+        ComponentUncertainty(
+            field_id="curated_property_coefficients",
+            unit="dimensionless_or_declared_correlation_units",
+            coverage="table_regression_case",
+            source_id=f"chemicals:{record.casrn}",
+            note=(
+                "The curated coefficient subset is regression-checked against "
+                "optional reference backends; it is not a full uncertainty model."
+            ),
+        ),
     )
 
 

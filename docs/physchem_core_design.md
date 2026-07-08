@@ -34,8 +34,9 @@ The implementation slices currently cover the P1-P12 foundation/lite batch:
 - `ElementSpec`: benchmark-relevant element metadata.
 - `parse_formula`: formula parsing with nested parentheses and charge stripping.
 - `molecular_weight`: molecular weight from elemental composition.
-- `ComponentSpec`: component identity, formula, charge, phase, safety tags, and
-  allowed property-correlation IDs.
+- `ComponentSpec`: component identity, formula, charge, phase, safety tags,
+  aliases, structured provenance, uncertainty metadata, and allowed
+  property-correlation IDs.
 - `MixtureSpec`: self-contained mole/mass fraction state with component molecular
   weights, temperature, pressure, and phase label.
 - `PropertyCorrelation`: portable correlation metadata with explicit units and
@@ -90,6 +91,11 @@ The P1/P2 audit hardened the foundation around those evaluators:
   agree within a small tolerance;
 - component aliases, safety tags, and allowed-correlation policies reject
   duplicates;
+- `component_alias_index()` and `resolve_component_identifier()` reject
+  cross-component alias conflicts before a registry is used;
+- curated components carry `ComponentProvenance` and `ComponentUncertainty`
+  records so source tables, source keys, and known uncertainty limitations
+  round-trip through JSON;
 - mixture constructors validate component/phase compatibility before creating
   a phase-local state;
 - property correlations reject unsupported equations, missing required
@@ -117,6 +123,11 @@ correlation scaled into SI units, validity ranges, source notes, and a model
 card. Optional reference tests compare ChemWorld values against local
 `chemicals` reference implementations for vapor pressure, ideal-gas Cp, and
 sensible enthalpy integrals.
+
+PRO-P1A hardens the curated component registry itself. Component records now
+round-trip structured provenance and uncertainty metadata, curated aliases are
+checked with a normalized registry index, and conflicting aliases fail before a
+property package or task can silently bind to the wrong component.
 
 ## Reaction Network Core
 

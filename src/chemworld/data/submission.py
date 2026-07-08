@@ -305,10 +305,26 @@ def summarize_submission_bundle(path: str | Path) -> dict[str, Any]:
     trajectory_paths = sorted((root / "trajectories").glob("*.jsonl"))
     evaluations = []
     seeds: set[int] = set()
+    task_maturity: dict[str, dict[str, Any]] = {}
     for trajectory_path in trajectory_paths:
         records = load_jsonl(trajectory_path)
         evaluations.append(evaluate_records(records).to_dict())
         seeds.update(int(record["seed"]) for record in records)
+        first = records[0]
+        task_id = str(first.get("benchmark_task_id") or first["task_id"])
+        maturity_payload = {
+            "kernel_maturity": first["kernel_maturity"],
+            "physics_maturity": first["physics_maturity"],
+            "proxy_allowed": bool(first["proxy_allowed"]),
+        }
+        existing = task_maturity.get(task_id)
+        if existing is not None and existing != maturity_payload:
+            return {
+                "valid": False,
+                "validation": validation.to_dict(),
+                "errors": [f"mixed maturity metadata for benchmark task {task_id!r}"],
+            }
+        task_maturity[task_id] = maturity_payload
 
     total_scores = [float(item["total_score"]) for item in evaluations]
     risks = [float(item["mean_safety_risk"]) for item in evaluations]
@@ -322,4 +338,8 @@ def summarize_submission_bundle(path: str | Path) -> dict[str, Any]:
         "mean_total_score": sum(total_scores) / len(total_scores),
         "mean_safety_risk": sum(risks) / len(risks),
         "max_final_best_score": max(best_scores),
+        "task_maturity": task_maturity,
+        "physics_maturity_levels": sorted(
+            {item["physics_maturity"] for item in task_maturity.values()}
+        ),
     }

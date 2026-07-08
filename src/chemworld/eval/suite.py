@@ -52,6 +52,7 @@ def run_suite(
             records = load_jsonl(trajectory_path)
             validate_records(records)
             result = evaluate_records(records, threshold=threshold).to_dict()
+            result.update(_maturity_payload(records[0]))
             result["trajectory_path"] = str(trajectory_path)
             result_path = result_dir / (trajectory_path.stem + ".json")
             with result_path.open("w", encoding="utf-8") as handle:
@@ -63,3 +64,11 @@ def run_suite(
     with manifest_path.open("w", encoding="utf-8") as handle:
         json.dump(results, handle, indent=2, sort_keys=True)
     return results
+
+
+def _maturity_payload(record: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "kernel_maturity": record.get("kernel_maturity", {}),
+        "physics_maturity": record.get("physics_maturity"),
+        "proxy_allowed": bool(record.get("proxy_allowed", False)),
+    }

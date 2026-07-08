@@ -65,7 +65,7 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
 11. Add heat-transfer correlations and heat-exchanger duty checks.
     Done in PRO-P8A.
 12. Harden the component registry with provenance, aliases, uncertainty fields,
-    and conflict-resolution policy.
+    and conflict-resolution policy. Done in PRO-P1A.
 
 After item 12 is done, the next active roadmap is the
 [Professional Deepening TODO](professional_deepening_todo.md). That roadmap is
@@ -322,3 +322,39 @@ charge-accounting slice:
   double-layer dynamics, explicit mass-transfer limiting current, porous
   electrodes, electrolyte speciation, and potentiostatic/galvanostatic
   controllers remain deepening tasks.
+
+PRO-P1A is now implemented for component registry provenance and conflict
+policy:
+
+- `ComponentProvenance` and `ComponentUncertainty` make component-level source
+  tables, source keys, source paths, and uncertainty notes JSON-friendly.
+- `ComponentSpec` round-trips those records without breaking older component
+  declarations.
+- `component_alias_index()` and `resolve_component_identifier()` normalize
+  aliases and reject cross-component conflicts before task or property kernels
+  bind to an ambiguous component.
+- Curated property packages now attach structured provenance/uncertainty to
+  water, ethanol, acetone, toluene, methane, and carbon dioxide.
+- This remains a small curated registry, not a vendored chemicals, thermo, or
+  CoolProp database.
+
+PRO-P11A is now implemented for benchmark maturity exports:
+
+- Trajectory JSONL records carry `kernel_maturity`, `physics_maturity`, and
+  `proxy_allowed`.
+- Suite results and baseline report rows retain those fields.
+- `BaselineReport` includes a task maturity manifest and a maturity summary by
+  physics level.
+- Report generation fails if results for the same benchmark task contain mixed
+  maturity metadata, preventing silent proxy/professional result mixing.
+
+PRO-P12B is now implemented for reference-validation summary export and skip
+auditing:
+
+- `ReferenceValidationReport` combines scalar comparison summaries with
+  backend availability reports.
+- `skipped_reference_backends()` records unavailable or failed optional
+  reference backends with explicit reasons and comparison scope.
+- `write_reference_validation_report()` writes the audit payload as JSON.
+- This does not make optional backends required for the default install; it
+  makes their absence visible in validation artifacts.

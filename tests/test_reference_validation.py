@@ -3,10 +3,14 @@ from __future__ import annotations
 import pytest
 
 from chemworld.physchem import (
+    ReferenceBackendStatus,
     compare_scalar,
+    reference_validation_report,
     reference_backend_specs,
     reference_backend_status,
+    skipped_reference_backends,
     summarize_reference_comparisons,
+    write_reference_validation_report,
 )
 
 
@@ -67,3 +71,56 @@ def test_compare_scalar_and_summary_record_failures_explicitly() -> None:
     assert summary["passed"] == 1
     assert summary["failed"] == 1
     assert summary["all_passed"] is False
+
+
+def test_reference_validation_report_records_skipped_backends(tmp_path) -> None:
+    unavailable = ReferenceBackendStatus(
+        backend_id="coolprop",
+        package_name="CoolProp",
+        installed_available=False,
+        local_repo_available=False,
+        import_probe_attempted=False,
+        import_available=None,
+    )
+    import_failed = ReferenceBackendStatus(
+        backend_id="cantera",
+        package_name="cantera",
+        installed_available=True,
+        local_repo_available=False,
+        import_probe_attempted=True,
+        import_available=False,
+        import_error="ImportError: missing compiled extension",
+    )
+    import_ok = ReferenceBackendStatus(
+        backend_id="chemicals",
+        package_name="chemicals",
+        installed_available=True,
+        local_repo_available=False,
+        import_probe_attempted=True,
+        import_available=True,
+        source="site-packages/chemicals/__init__.py",
+    )
+
+    skipped = skipped_reference_backends((unavailable, import_failed, import_ok))
+    assert {item["backend_id"] for item in skipped} == {"coolprop", "cantera"}
+    assert all(item["reason"] for item in skipped)
+
+    comparison = compare_scalar(
+        check_id="unit-check",
+        backend_id="chemicals",
+        quantity="pressure",
+        chemworld_value=101325.0,
+        reference_value=101325.0,
+        unit="Pa",
+        rtol=1e-12,
+    )
+    report = reference_validation_report((comparison,), reference_root=tmp_path)
+    payload = report.to_dict()
+    assert payload["schema_version"] == "chemworld-reference-validation-report-0.1"
+    assert payload["comparison_summary"]["all_passed"] is True
+    assert "backend_statuses" in payload
+
+    output = tmp_path / "reference_validation_report.json"
+    written = write_reference_validation_report(output, (comparison,), reference_root=tmp_path)
+    assert output.exists()
+    assert written.to_dict()["comparison_summary"]["total"] == 1

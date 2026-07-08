@@ -20,6 +20,14 @@ REQUIRED_OBSERVATION_KEYS = {
     "score",
 }
 
+MATURITY_LEVELS = {
+    "proxy",
+    "lite",
+    "reference_validated",
+    "professional_candidate",
+    "professional",
+}
+
 
 def validate_record(record: dict[str, Any]) -> None:
     missing = REQUIRED_RECORD_KEYS - record.keys()
@@ -50,6 +58,17 @@ def validate_record(record: dict[str, Any]) -> None:
         value = float(raw_value)
         if not 0.0 <= value <= 1.0:
             raise ValueError(f"Observation {key}={value} is outside [0, 1]")
+
+    physics_maturity = str(record["physics_maturity"])
+    if physics_maturity not in MATURITY_LEVELS:
+        raise ValueError(f"Unsupported physics_maturity={physics_maturity!r}")
+    kernel_maturity = record.get("kernel_maturity", {})
+    if not isinstance(kernel_maturity, dict):
+        raise ValueError("kernel_maturity must be an object")
+    if kernel_maturity.get("lowest_level") not in {None, physics_maturity}:
+        raise ValueError("kernel_maturity.lowest_level must match physics_maturity")
+    if physics_maturity == "proxy" and not bool(record["proxy_allowed"]):
+        raise ValueError("proxy physics_maturity requires proxy_allowed=True")
 
 
 def validate_records(records: list[dict[str, Any]]) -> None:

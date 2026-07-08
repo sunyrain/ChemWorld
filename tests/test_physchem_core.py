@@ -4,9 +4,12 @@ import pytest
 
 from chemworld.foundation import convert_value
 from chemworld.physchem import (
+    ComponentProvenance,
     ComponentSpec,
+    ComponentUncertainty,
     MixtureSpec,
     PropertyCorrelation,
+    component_alias_index,
     element_matrix,
     hill_formula,
     mass_fractions_from_mole_fractions,
@@ -14,6 +17,7 @@ from chemworld.physchem import (
     molecular_weight,
     parse_formula,
     property_equation_contracts,
+    resolve_component_identifier,
     supported_property_equations,
 )
 
@@ -62,6 +66,72 @@ def test_component_spec_is_json_friendly_and_validated() -> None:
         ComponentSpec(identifier="bad id", formula="H2O")
     with pytest.raises(ValueError, match="must be unique"):
         ComponentSpec(identifier="dup_tags", formula="H2O", safety_tags=("safe", "safe"))
+
+
+def test_component_provenance_and_uncertainty_round_trip() -> None:
+    component = ComponentSpec(
+        identifier="water",
+        formula="H2O",
+        default_phase="liquid",
+        aliases=("dihydrogen_oxide",),
+        provenance=(
+            ComponentProvenance(
+                source_id="chemicals:Psat_data_Perrys2_8",
+                source_name="chemicals",
+                source_table="Psat_data_Perrys2_8",
+                source_key="7732-18-5",
+                source_path="reference_repos/chemicals/chemicals/vapor_pressure.py",
+                notes=("identifier and CASRN checked in curated registry",),
+            ),
+        ),
+        uncertainty=(
+            ComponentUncertainty(
+                field_id="molecular_weight_g_mol",
+                unit="g/mol",
+                relative_uncertainty=0.02,
+                coverage="schema_consistency_tolerance",
+            ),
+        ),
+    )
+
+    payload = component.to_dict()
+    assert payload["provenance"][0]["source_name"] == "chemicals"
+    assert payload["uncertainty"][0]["field_id"] == "molecular_weight_g_mol"
+    assert ComponentSpec.from_dict(payload).to_dict() == payload
+
+    with pytest.raises(ValueError, match="relative_uncertainty"):
+        ComponentUncertainty(field_id="bad", relative_uncertainty=-0.1)
+
+
+def test_component_alias_index_rejects_registry_conflicts() -> None:
+    water = ComponentSpec(
+        identifier="water",
+        formula="H2O",
+        default_phase="liquid",
+        aliases=("dihydrogen oxide",),
+    )
+    ethanol = ComponentSpec(
+        identifier="ethanol",
+        formula="C2H6O",
+        default_phase="liquid",
+        aliases=("ethyl_alcohol",),
+    )
+
+    index = component_alias_index((water, ethanol))
+    assert index["dihydrogen_oxide"] == "water"
+    assert resolve_component_identifier((water, ethanol), "ethyl alcohol") == "ethanol"
+
+    conflicting = ComponentSpec(
+        identifier="conflicting_water",
+        formula="H2O",
+        default_phase="liquid",
+        aliases=("dihydrogen oxide",),
+    )
+    with pytest.raises(ValueError, match="alias conflict"):
+        component_alias_index((water, conflicting))
+
+    with pytest.raises(KeyError, match="unknown component"):
+        resolve_component_identifier((water, ethanol), "acetone")
 
 
 def test_mole_and_mass_fraction_conversions_are_reversible() -> None:

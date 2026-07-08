@@ -42,7 +42,20 @@ The command writes:
 - `baseline_results.json`: run-level metrics;
 - `baseline_leaderboard.json`: task-specific leaderboard rows;
 - `baseline_report.json`: metadata, platform version, commit hash, tasks,
-  agents, seeds, and leaderboard rows.
+  agents, seeds, task maturity metadata, maturity summary, and leaderboard
+  rows.
 
 Rows are grouped per task. Do not merge reaction, purification, crystallization,
 distillation, flow, and electrochemistry tasks into one global table.
+
+Every trajectory and baseline result now carries:
+
+- `kernel_maturity`;
+- `physics_maturity`;
+- `proxy_allowed`.
+
+Report generation validates that all results for the same task use the same
+maturity metadata and raises an error if a task silently mixes proxy,
+lite/reference-validated, or professional kernels. Multi-task reports may still
+contain different maturity levels, but `maturity_summary` and leaderboard rows
+make those levels explicit.

@@ -88,6 +88,92 @@ _EQUATION_CONTRACTS: dict[str, dict[str, object]] = {
 
 
 @dataclass(frozen=True)
+class ComponentProvenance:
+    """Structured source metadata for a curated component record."""
+
+    source_id: str
+    source_name: str
+    source_table: str = ""
+    source_key: str = ""
+    source_path: str = ""
+    notes: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        for field_name in ("source_id", "source_name"):
+            if not str(getattr(self, field_name)).strip():
+                raise ValueError(f"{field_name} cannot be empty")
+        _validate_string_tuple(self.notes, "notes")
+        object.__setattr__(self, "notes", tuple(self.notes))
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "source_id": self.source_id,
+            "source_name": self.source_name,
+            "source_table": self.source_table,
+            "source_key": self.source_key,
+            "source_path": self.source_path,
+            "notes": list(self.notes),
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> ComponentProvenance:
+        return cls(
+            source_id=str(payload["source_id"]),
+            source_name=str(payload["source_name"]),
+            source_table=str(payload.get("source_table", "")),
+            source_key=str(payload.get("source_key", "")),
+            source_path=str(payload.get("source_path", "")),
+            notes=tuple(str(value) for value in payload.get("notes", ())),
+        )
+
+
+@dataclass(frozen=True)
+class ComponentUncertainty:
+    """Uncertainty metadata for a component-level field or curated constant."""
+
+    field_id: str
+    unit: str = ""
+    standard_uncertainty: float | None = None
+    relative_uncertainty: float | None = None
+    coverage: str = ""
+    source_id: str = ""
+    note: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.field_id.strip():
+            raise ValueError("field_id cannot be empty")
+        if self.standard_uncertainty is not None and self.standard_uncertainty < 0:
+            raise ValueError("standard_uncertainty must be nonnegative")
+        if self.relative_uncertainty is not None and self.relative_uncertainty < 0:
+            raise ValueError("relative_uncertainty must be nonnegative")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "field_id": self.field_id,
+            "unit": self.unit,
+            "standard_uncertainty": self.standard_uncertainty,
+            "relative_uncertainty": self.relative_uncertainty,
+            "coverage": self.coverage,
+            "source_id": self.source_id,
+            "note": self.note,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> ComponentUncertainty:
+        standard = payload.get("standard_uncertainty")
+        relative = payload.get("relative_uncertainty")
+        return cls(
+            field_id=str(payload["field_id"]),
+            unit=str(payload.get("unit", "")),
+            standard_uncertainty=None if standard is None else float(standard),
+            relative_uncertainty=None if relative is None else float(relative),
+            coverage=str(payload.get("coverage", "")),
+            source_id=str(payload.get("source_id", "")),
+            note=str(payload.get("note", "")),
+        )
+
+
+@dataclass(frozen=True)
 class ComponentSpec:
     """A compact component identity and composition record.
 
@@ -103,6 +189,8 @@ class ComponentSpec:
     safety_tags: tuple[str, ...] = ()
     allowed_property_correlations: tuple[str, ...] = ()
     aliases: tuple[str, ...] = ()
+    provenance: tuple[ComponentProvenance, ...] = ()
+    uncertainty: tuple[ComponentUncertainty, ...] = ()
     metadata: dict[str, object] = field(default_factory=dict)
     molecular_weight_rel_tolerance: ClassVar[float] = _MOLECULAR_WEIGHT_REL_TOL
 
@@ -147,6 +235,16 @@ class ComponentSpec:
             tuple(self.allowed_property_correlations),
         )
         object.__setattr__(self, "aliases", tuple(self.aliases))
+        object.__setattr__(
+            self,
+            "provenance",
+            tuple(_coerce_component_provenance(item) for item in self.provenance),
+        )
+        object.__setattr__(
+            self,
+            "uncertainty",
+            tuple(_coerce_component_uncertainty(item) for item in self.uncertainty),
+        )
         object.__setattr__(self, "metadata", dict(self.metadata))
 
     @property
@@ -172,6 +270,8 @@ class ComponentSpec:
             "safety_tags": list(self.safety_tags),
             "allowed_property_correlations": list(self.allowed_property_correlations),
             "aliases": list(self.aliases),
+            "provenance": [item.to_dict() for item in self.provenance],
+            "uncertainty": [item.to_dict() for item in self.uncertainty],
             "metadata": dict(self.metadata),
             "units": {"molecular_weight_g_mol": "g/mol"},
         }
@@ -194,6 +294,14 @@ class ComponentSpec:
                 for value in payload.get("allowed_property_correlations", ())
             ),
             aliases=tuple(str(value) for value in payload.get("aliases", ())),
+            provenance=tuple(
+                ComponentProvenance.from_dict(dict(value))
+                for value in payload.get("provenance", ())
+            ),
+            uncertainty=tuple(
+                ComponentUncertainty.from_dict(dict(value))
+                for value in payload.get("uncertainty", ())
+            ),
             metadata=dict(payload.get("metadata", {})),
         )
 
@@ -479,6 +587,52 @@ def mole_fractions_from_mass_fractions(
     return tuple(value / total for value in weighted)
 
 
+def normalize_component_token(value: str) -> str:
+    """Normalize an identifier or alias for registry lookup."""
+
+    token = "_".join(value.strip().lower().split())
+    if not token:
+        raise ValueError("component identifier or alias cannot be empty")
+    return token
+
+
+def component_alias_index(components: Sequence[ComponentSpec]) -> dict[str, str]:
+    """Build a normalized alias-to-identifier map and reject conflicts."""
+
+    index: dict[str, str] = {}
+    for component in components:
+        tokens = (component.identifier, *component.aliases)
+        for token_value in tokens:
+            token = normalize_component_token(token_value)
+            existing = index.get(token)
+            if existing is not None and existing != component.identifier:
+                raise ValueError(
+                    "component identifier/alias conflict: "
+                    f"{token_value!r} maps to both {existing!r} and "
+                    f"{component.identifier!r}"
+                )
+            index[token] = component.identifier
+    return index
+
+
+def resolve_component_identifier(
+    components: Sequence[ComponentSpec],
+    identifier_or_alias: str,
+) -> str:
+    """Resolve an identifier or alias against a component registry."""
+
+    token = normalize_component_token(identifier_or_alias)
+    index = component_alias_index(components)
+    try:
+        return index[token]
+    except KeyError as exc:
+        allowed = ", ".join(sorted({component.identifier for component in components}))
+        raise KeyError(
+            f"unknown component identifier or alias {identifier_or_alias!r}; "
+            f"allowed={allowed}"
+        ) from exc
+
+
 def _mw(component: ComponentSpec) -> float:
     assert component.molecular_weight_g_mol is not None
     return component.molecular_weight_g_mol
@@ -557,6 +711,26 @@ def _required_coefficients(equation_id: str) -> set[str]:
     return {str(value) for value in required}
 
 
+def _coerce_component_provenance(
+    value: ComponentProvenance | dict[str, object],
+) -> ComponentProvenance:
+    if isinstance(value, ComponentProvenance):
+        return value
+    if isinstance(value, dict):
+        return ComponentProvenance.from_dict(value)
+    raise ValueError("provenance entries must be ComponentProvenance or dict")
+
+
+def _coerce_component_uncertainty(
+    value: ComponentUncertainty | dict[str, object],
+) -> ComponentUncertainty:
+    if isinstance(value, ComponentUncertainty):
+        return value
+    if isinstance(value, dict):
+        return ComponentUncertainty.from_dict(value)
+    raise ValueError("uncertainty entries must be ComponentUncertainty or dict")
+
+
 def property_equation_contracts() -> dict[str, dict[str, object]]:
     """Return JSON-friendly contracts for supported property equations."""
 
@@ -583,11 +757,16 @@ def supported_property_equations() -> tuple[str, ...]:
 
 
 __all__ = [
+    "ComponentProvenance",
     "ComponentSpec",
+    "ComponentUncertainty",
     "MixtureSpec",
     "PropertyCorrelation",
+    "component_alias_index",
     "mass_fractions_from_mole_fractions",
     "mole_fractions_from_mass_fractions",
+    "normalize_component_token",
     "property_equation_contracts",
+    "resolve_component_identifier",
     "supported_property_equations",
 ]

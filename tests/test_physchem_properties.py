@@ -15,6 +15,7 @@ from chemworld.physchem import (
     list_curated_property_packages,
     mixture_density,
     mixture_viscosity_log_rule,
+    resolve_component_identifier,
     sensible_enthalpy_change,
     thermal_hazard_proxy,
     validate_model_card,
@@ -315,6 +316,12 @@ def test_curated_property_packages_are_reference_ready() -> None:
         case = cases[component_id]
         assert ComponentSpec.from_dict(package.component.to_dict()).identifier == component_id
         assert package.component.metadata["casrn"] == case.casrn
+        assert package.component.provenance
+        assert package.component.uncertainty
+        assert package.component.metadata["provenance_source_ids"]
+        assert {
+            uncertainty.field_id for uncertainty in package.component.uncertainty
+        } >= {"molecular_weight_g_mol", "curated_property_coefficients"}
 
         vapor_pressure = package.evaluate(
             "vapor_pressure",
@@ -348,6 +355,9 @@ def test_curated_property_packages_are_reference_ready() -> None:
 def test_curated_property_package_accepts_aliases() -> None:
     assert curated_property_package("co2").component.identifier == "carbon_dioxide"
     assert curated_property_package("carbon dioxide").component.identifier == "carbon_dioxide"
+    components = tuple(package.component for package in list_curated_property_packages())
+    assert resolve_component_identifier(components, "carbon dioxide") == "carbon_dioxide"
+    assert resolve_component_identifier(components, "ethyl alcohol") == "ethanol"
     with pytest.raises(KeyError, match="unknown curated component"):
         curated_property_package("unobtainium")
 

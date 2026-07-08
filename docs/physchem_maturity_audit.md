@@ -74,6 +74,11 @@ If a task uses a proxy kernel, `proxy_allowed` must be true and the task must be
 tagged as teaching, smoke, exploratory, or education. This makes proxy use
 visible to students, agents, leaderboard tooling, and paper artifacts.
 
+Trajectory logs, suite results, baseline report rows, and baseline report
+metadata now carry the same maturity fields. Baseline report generation rejects
+inconsistent maturity metadata within a single task, so a benchmark result
+cannot silently mix proxy and professional kernels.
+
 ## Reference-Reading Notes
 
 The first maturity implementation was designed after inspecting local reference
@@ -147,3 +152,13 @@ copying the reference implementations.
   place. This is still below a full electrochemical-cell model with ohmic drop,
   mass-transfer limiting current, double-layer dynamics, porous electrodes, and
   electrolyte speciation.
+- PRO-P1A is implemented for the curated component registry: component records
+  now include structured provenance and uncertainty metadata, normalized alias
+  resolution, conflict failures, and JSON round-trip tests.
+- PRO-P11A is implemented for benchmark maturity exports: trajectory logs,
+  suite results, baseline leaderboards, and baseline reports expose
+  `kernel_maturity`, `physics_maturity`, and `proxy_allowed`, with consistency
+  checks against silent maturity mixing.
+- PRO-P12B is implemented for reference-validation reporting: comparison
+  summaries, backend availability, and skipped optional backends can be written
+  as one JSON-friendly validation report.

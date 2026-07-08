@@ -55,6 +55,8 @@ def test_submission_bundle_init_validate_and_summarize(tmp_path) -> None:
     assert summary["seeds"] == [0]
     assert 0.0 <= summary["mean_total_score"] <= 1.0
     assert 0.0 <= summary["mean_safety_risk"] <= 1.0
+    assert summary["task_maturity"]
+    assert summary["physics_maturity_levels"]
 
 
 def test_submission_bundle_validation_rejects_missing_parts(tmp_path) -> None:
@@ -87,4 +89,3 @@ def test_cli_submission_commands(tmp_path, capsys) -> None:
     output = capsys.readouterr().out
     assert "chemworld-submission-bundle-0.1" in output
     assert '"valid": true' in output
-

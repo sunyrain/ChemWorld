@@ -80,9 +80,9 @@ Every professional module must ship:
 | PRO-P10B Chromatography retention and peak-broadening calibration | whilesunny | Done | public chromatography equations, plate-count/resolution equations, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add empirical retention-index examples and method-condition sensitivity | this commit |
 | PRO-P3A Peng-Robinson/SRK fugacity and residual properties | whilesunny | Done | `thermo.eos`, `phasepy.cubic`, `teqp` and `thermopack` EOS architecture notes | `src/chemworld/physchem/eos.py`, `src/chemworld/physchem/reference_validation.py`, `tests/test_eos.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add volume translation, phase envelopes, and flash derivative hooks | this commit |
 | PRO-P8A heat-transfer correlations and exchanger duty validation | whilesunny | Done | `fluids.core`, IDAES heat-exchanger/unit-model docs, CoolProp property workflow notes | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: keep boiling/condensation, shell-side corrections, fouling dynamics, and equipment safety cards on the deepening roadmap | this commit |
-| PRO-P1A component registry provenance and conflict policy | liyijun | Claimed | `chemicals`, `thermo`, `CoolProp` identifiers and constants APIs | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/curated_properties.py`, `tests/test_physchem_core.py`, `tests/test_physchem_properties.py`, docs | add provenance/uncertainty fields, alias conflict failures, and JSON round-trip tests for curated component records | pending push |
-| PRO-P11A maturity metadata exports and submission summaries | liyijun | Claimed | Gymnasium, Minari, Safety-Gymnasium result-metadata patterns | `src/chemworld/tasks.py`, `src/chemworld/eval/baseline_report.py`, `docs/baseline_reference.md`, `tests/test_maturity.py`, `tests/test_baselines.py` | expose physics maturity in benchmark exports and prevent silent proxy/professional result mixing | pending push |
-| PRO-P12B validation summary export and optional-backend skip audit | liyijun | Claimed | current optional reference-backend tests and pytest skip patterns | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | add JSON-friendly comparison summaries and document skipped optional reference backends | pending push |
+| PRO-P1A component registry provenance and conflict policy | liyijun | Review | `chemicals`, `thermo`, `CoolProp` identifiers and constants APIs | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/curated_properties.py`, `tests/test_physchem_core.py`, `tests/test_physchem_properties.py`, docs | review structured provenance/uncertainty fields, alias conflict failures, and JSON round-trip tests | this commit |
+| PRO-P11A maturity metadata exports and submission summaries | liyijun | Review | Gymnasium, Minari, Safety-Gymnasium result-metadata patterns | `src/chemworld/data/logging.py`, `src/chemworld/data/submission.py`, `src/chemworld/eval/baseline_report.py`, `src/chemworld/eval/suite.py`, docs, tests | review maturity fields in trajectories, suite results, baseline reports, and submission summaries | this commit |
+| PRO-P12B validation summary export and optional-backend skip audit | liyijun | Review | current optional reference-backend tests and pytest skip patterns | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, docs | review JSON-friendly validation report and skipped optional-backend audit records | this commit |
 | PRO-P9A Gibbs minimization toy solver | whilesunny | Done | `Reaktoro` equilibrium specs, Cantera equilibrate constraints, `pycalphad` Gibbs model architecture | `src/chemworld/physchem/equilibrium_chemistry.py`, `src/chemworld/physchem/maturity.py`, `tests/test_equilibrium_chemistry.py`, `tests/test_maturity.py`, model cards, docs | next: add aqueous database-backed speciation or electrochemical thermodynamics in a separate slice | this commit |
 | PRO-P9B electrochemical thermodynamics and Butler-Volmer slice | whilesunny | Done | Cantera electrochemical examples, electrochemical equilibrium docs, existing ChemWorld electrochemistry proxy | `src/chemworld/physchem/electrochemistry.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/world/electrochemistry.py`, tests, docs | next: add ohmic drop, mass-transfer limiting current, and galvanostatic/potentiostatic controller slices in the deepening TODO | this commit |
 | PRO-P5B NASA7 thermochemistry and reaction Gibbs slice | whilesunny | Claimed | Cantera NASA7 species thermo, RMG thermo conventions, existing ChemWorld reaction-network thermochemistry gaps | `src/chemworld/physchem/thermochemistry.py`, `src/chemworld/physchem/reaction_network.py`, tests, docs | read local Cantera/RMG thermo references, then implement NASA7 Cp/H/S, reaction enthalpy/Gibbs, and equilibrium constants from species Gibbs energies | pending push |
@@ -126,9 +126,9 @@ Reference-reading note for PRO-P0:
 Reference targets: `chemicals`, `thermo`, `CoolProp`.
 
 - [ ] Build a curated component registry with provenance:
-  - [ ] identifiers and aliases;
-  - [ ] formula and charge;
-  - [ ] molecular weight;
+  - [x] identifiers and aliases;
+  - [x] formula and charge;
+  - [x] molecular weight;
   - [ ] critical properties;
   - [ ] acentric factor;
   - [ ] normal boiling/melting points;
@@ -147,9 +147,24 @@ Reference targets: `chemicals`, `thermo`, `CoolProp`.
 
 Acceptance:
 
-- [ ] Component records round-trip through JSON.
-- [ ] Conflicting aliases fail unless explicitly resolved.
-- [ ] Reference values are compared with documented tolerances.
+- [x] Component records round-trip through JSON.
+- [x] Conflicting aliases fail unless explicitly resolved.
+- [x] Reference values are compared with documented tolerances.
+
+Reference-reading note for PRO-P1A:
+
+- Local `reference_repos/` was absent. A shallow clone of `chemicals` and
+  `thermo` was attempted before coding but the network download failed with
+  early EOF, so no reference source was committed.
+- Upstream source reading covered the `chemicals` identifier/database pattern:
+  stable CAS/name keys, multiple alias indexes, and preferred records are kept
+  separate from numerical property evaluation.
+- Upstream source reading covered the `thermo` simple-interface style: user
+  payloads are converted to explicit SI-oriented property records rather than
+  letting ambiguous names drive numerical kernels.
+- ChemWorld localizes those patterns as `ComponentProvenance`,
+  `ComponentUncertainty`, `component_alias_index()`, and
+  `resolve_component_identifier()` without copying reference source code.
 
 ## P2: Professional Property Correlations
 
@@ -567,10 +582,10 @@ Reference-reading note for PRO-P10B:
 Reference targets: DiscoveryWorld-style scientific task design, Gymnasium,
 Minari, Safety-Gymnasium.
 
-- [ ] Each task declares kernel maturity:
-  - [ ] proxy allowed;
-  - [ ] lite;
-  - [ ] reference validated;
+- [x] Each task declares kernel maturity:
+  - [x] proxy allowed;
+  - [x] lite;
+  - [x] reference validated;
   - [ ] professional.
 - [ ] Add professional task families:
   - [ ] reference-validated VLE flash;
@@ -580,13 +595,23 @@ Minari, Safety-Gymnasium.
   - [ ] reaction calorimetry;
   - [ ] electrochemical selectivity;
   - [ ] crystallization purity/recovery.
-- [ ] Add dataset exports with maturity metadata.
-- [ ] Add leaderboard views by physics maturity level.
+- [x] Add dataset exports with maturity metadata.
+- [x] Add leaderboard views by physics maturity level.
 
 Acceptance:
 
-- [ ] A benchmark result cannot silently mix proxy and professional kernels.
-- [ ] Submission summaries report the physics maturity of every task.
+- [x] A benchmark result cannot silently mix proxy and professional kernels.
+- [x] Submission summaries report the physics maturity of every task.
+
+Reference-reading note for PRO-P11A:
+
+- Gymnasium's environment specification pattern keeps environment metadata
+  serializable and separate from runtime state. ChemWorld localizes that idea by
+  exporting task/kernel maturity through task cards, trajectory records, suite
+  results, baseline reports, and submission summaries.
+- Minari/Safety-Gymnasium-style dataset and safety metadata informed the
+  decision to keep proxy allowance and physics maturity visible in every
+  benchmark artifact rather than only in docs.
 
 ## P12: Reference Validation Matrix
 
@@ -707,9 +732,18 @@ Reference-reading note for PRO-P5A:
 
 Acceptance:
 
-- [ ] Optional validation tests skip cleanly without external packages.
-- [ ] Running validation locally produces JSON-friendly comparison summaries.
+- [x] Optional validation tests skip cleanly without external packages.
+- [x] Running validation locally produces JSON-friendly comparison summaries.
 - [ ] Model-limit divergences are documented rather than hidden.
+
+Reference-reading note for PRO-P12B:
+
+- Local optional-reference tests already used explicit pytest skip gates for
+  unavailable packages. ChemWorld now mirrors that runtime behavior in a
+  persistent `ReferenceValidationReport`.
+- `skipped_reference_backends()` records package availability, failed import
+  probes, comparison scope, and model-limit notes so missing optional packages
+  are visible in validation artifacts.
 
 ## First Professional Implementation Queue
 
@@ -735,7 +769,7 @@ Acceptance:
 11. `PRO-P8A`: Add reference-validated heat-transfer correlations and
     heat-exchanger duty checks for reactor/process energy ledgers. Done.
 12. `PRO-P1A`: Harden the component registry with provenance, aliases,
-    uncertainty fields, and conflict-resolution policy.
+    uncertainty fields, and conflict-resolution policy. In review.
 
 After item 12 is completed, open `TODO_PROFESSIONAL_DEEPENING.md` as the active
 professional roadmap. Do not use the deepening roadmap to mark broad modules

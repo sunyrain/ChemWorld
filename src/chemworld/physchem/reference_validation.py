@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
+import json
 import sys
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
@@ -96,6 +97,24 @@ class ReferenceComparison:
             "rel_error": self.rel_error,
             "passed": self.passed,
             "note": self.note,
+        }
+
+
+@dataclass(frozen=True)
+class ReferenceValidationReport:
+    """JSON-friendly summary for optional reference-backend validation runs."""
+
+    schema_version: str
+    comparison_summary: dict[str, object]
+    backend_statuses: tuple[ReferenceBackendStatus, ...]
+    skipped_backends: tuple[dict[str, object], ...]
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema_version": self.schema_version,
+            "comparison_summary": self.comparison_summary,
+            "backend_statuses": [status.to_dict() for status in self.backend_statuses],
+            "skipped_backends": [dict(item) for item in self.skipped_backends],
         }
 
 
@@ -350,6 +369,80 @@ def summarize_reference_comparisons(
     }
 
 
+def skipped_reference_backends(
+    statuses: Sequence[ReferenceBackendStatus],
+    specs: Sequence[ReferenceBackendSpec] | None = None,
+) -> tuple[dict[str, object], ...]:
+    """Return explicit skip records for unavailable optional backends."""
+
+    spec_map = {spec.backend_id: spec for spec in (specs or _REFERENCE_BACKENDS)}
+    skipped: list[dict[str, object]] = []
+    for status in statuses:
+        reason: str | None = None
+        if status.import_probe_attempted and status.import_available is False:
+            reason = status.import_error or "import probe failed"
+        elif not status.installed_available and not status.local_repo_available:
+            reason = "package is not installed and no local reference repository was found"
+        if reason is None:
+            continue
+        spec = spec_map.get(status.backend_id)
+        skipped.append(
+            {
+                "backend_id": status.backend_id,
+                "package_name": status.package_name,
+                "reason": reason,
+                "comparison_scope": []
+                if spec is None
+                else list(spec.comparison_scope),
+                "model_limit_notes": []
+                if spec is None
+                else list(spec.model_limit_notes),
+            }
+        )
+    return tuple(skipped)
+
+
+def reference_validation_report(
+    comparisons: Sequence[ReferenceComparison] = (),
+    *,
+    reference_root: str | Path | None = None,
+    probe_import: bool = False,
+) -> ReferenceValidationReport:
+    """Build a JSON-friendly validation report with backend skip auditing."""
+
+    statuses = reference_backend_status(
+        reference_root=reference_root,
+        probe_import=probe_import,
+    )
+    return ReferenceValidationReport(
+        schema_version="chemworld-reference-validation-report-0.1",
+        comparison_summary=summarize_reference_comparisons(comparisons),
+        backend_statuses=statuses,
+        skipped_backends=skipped_reference_backends(statuses),
+    )
+
+
+def write_reference_validation_report(
+    path: str | Path,
+    comparisons: Sequence[ReferenceComparison] = (),
+    *,
+    reference_root: str | Path | None = None,
+    probe_import: bool = False,
+) -> ReferenceValidationReport:
+    """Write a reference-validation report and return the in-memory payload."""
+
+    report = reference_validation_report(
+        comparisons,
+        reference_root=reference_root,
+        probe_import=probe_import,
+    )
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8") as handle:
+        json.dump(report.to_dict(), handle, indent=2, sort_keys=True)
+    return report
+
+
 def _all_local_repo_names() -> tuple[str, ...]:
     names: list[str] = []
     for spec in _REFERENCE_BACKENDS:
@@ -373,6 +466,7 @@ __all__ = [
     "ReferenceBackendSpec",
     "ReferenceBackendStatus",
     "ReferenceComparison",
+    "ReferenceValidationReport",
     "compare_scalar",
     "import_reference_module",
     "reference_backend_context",
@@ -380,6 +474,9 @@ __all__ = [
     "reference_backend_status",
     "reference_repo_paths",
     "reference_repos_root",
+    "reference_validation_report",
     "repository_root",
+    "skipped_reference_backends",
     "summarize_reference_comparisons",
+    "write_reference_validation_report",
 ]
