@@ -17,9 +17,10 @@ Largest current source files after this cleanup:
 
 | File | Approximate role | Follow-up split target |
 | --- | --- | --- |
-| `src/chemworld/physchem/reaction_network.py` | network object, ODE/reference cases, detailed balance, sensitivities, mechanism loading, and public facade wrappers | split integration/reference cases, thermochemical coupling, sensitivity, and loaders |
+| `src/chemworld/physchem/reaction_network.py` | network object, batch integration, detailed balance, sensitivities, mechanism loading, and public facade wrappers | split integration core, thermochemical coupling, sensitivity, and loaders |
 | `src/chemworld/physchem/reaction_network_specs.py` | species/rate-law/reaction specs, reaction-equation parser, mechanism dict helpers | keep schema/parser layer separate from ODE integration and rate-law evaluation |
 | `src/chemworld/physchem/reaction_rate_laws.py` | rate-law constants, mass-action/Arrhenius/reversible-rate evaluation, parameter validation, reaction lookup helpers | keep kinetic formula evaluation separate from ODE integration, thermochemical reports, and file loading |
+| `src/chemworld/physchem/reaction_reference_cases.py` | analytical ODE reference cases, Cantera-comparable fixtures, and reference-case evaluation | keep validation fixtures separate from network integration, sensitivity, and mechanism loading |
 | `src/chemworld/physchem/equilibrium_chemistry.py` | mass-action equilibrium, acid-base, precipitation, Gibbs minimization | split into mass-action, electrolyte/acid-base, precipitation, and Gibbs minimization helpers |
 | `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, and provenance |
 | `src/chemworld/physchem/spectroscopy.py` | calibration, chromatography, signal synthesis, feature heuristics | split into calibration, chromatography, signal synthesis, and feature libraries |
@@ -69,9 +70,8 @@ The new card modules are:
 
 Recommended next mechanical cleanup:
 
-1. Continue splitting `reaction_network.py` by integration,
-   thermochemical-coupling, sensitivity, loader, and reference-case
-   responsibilities.
+1. Continue splitting `reaction_network.py` by integration core,
+   thermochemical-coupling, sensitivity, and loader responsibilities.
 
 ### Medium Priority: Property Module Split Is Complete
 
@@ -244,6 +244,9 @@ Recommended follow-up:
   mass-action, Arrhenius, reversible Arrhenius, catalytic, deactivation,
   Langmuir-Hinshelwood, Michaelis-Menten, parameter validation, and reaction
   lookup helpers outside the network ODE/reference-case engine.
+- Extracted `reaction_reference_cases.py` from `reaction_network.py`, keeping
+  analytical first-order ODE cases, Cantera-comparable fixtures, and
+  reference-case evaluation outside the network integration engine.
 
 ## Verification
 
@@ -258,7 +261,7 @@ Run these after every cleanup slice:
 
 ## Next Cleanup Order
 
-1. Continue splitting `reaction_network.py` into integration/reference cases,
+1. Continue splitting `reaction_network.py` into integration core,
    thermochemistry coupling, sensitivities, and loaders.
 2. Split `eos.py`, `spectroscopy.py`, and `equilibrium_chemistry.py` by
    algorithm family.

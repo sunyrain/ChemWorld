@@ -279,7 +279,7 @@ def test_reaction_network_specs_are_separate_from_engine() -> None:
     assert "_TERM_RE" not in reaction_network
     assert "def species_from_dict" not in reaction_network
     assert "def reaction_from_dict" not in reaction_network
-    assert "from chemworld.physchem.reaction_network_specs import" in reaction_network
+    assert "reaction_network_specs" in reaction_network
     assert "class SpeciesSpec" in specs
     assert "class RateLawSpec" in specs
     assert "class ReactionSpec" in specs
@@ -319,6 +319,27 @@ def test_reaction_rate_laws_are_separate_from_network_engine() -> None:
     assert "def reverse_rate_constant" in rate_laws
     assert "def positive_reaction_parameter" in rate_laws
     assert "def with_reaction_parameter" in rate_laws
+
+
+def test_reaction_reference_cases_are_separate_from_network_engine() -> None:
+    reaction_network = Path("src/chemworld/physchem/reaction_network.py").read_text(
+        encoding="utf-8"
+    )
+    reference_cases = Path(
+        "src/chemworld/physchem/reaction_reference_cases.py"
+    ).read_text(encoding="utf-8")
+
+    assert "class ReactionODEReferenceCase" not in reaction_network
+    assert "class ReactionODEReferenceResult" not in reaction_network
+    assert "def cantera_comparable_reaction_cases" not in reaction_network
+    assert "def integrate_reaction_ode_reference_case" not in reaction_network
+    assert "def evaluate_reaction_ode_reference_case" not in reaction_network
+    assert "reaction_reference_cases" in reaction_network
+    assert "class ReactionODEReferenceCase" in reference_cases
+    assert "class ReactionODEReferenceResult" in reference_cases
+    assert "def cantera_comparable_reaction_cases" in reference_cases
+    assert "def integrate_reaction_ode_reference_case" in reference_cases
+    assert "def evaluate_reaction_ode_reference_case" in reference_cases
 
 
 def test_runtime_profile_requires_current_task_kernels_only() -> None:
