@@ -182,6 +182,25 @@ def test_runtime_reaction_thermal_service_is_separate_from_domain_services() -> 
     assert "pressure_and_risk" in reaction_thermal_services
 
 
+def test_runtime_reaction_thermal_requires_compiled_mechanism_without_fallback_map() -> None:
+    reaction_thermal_services = Path(
+        "src/chemworld/runtime/reaction_thermal_services.py"
+    ).read_text(encoding="utf-8")
+    species_services = Path("src/chemworld/runtime/species.py").read_text(
+        encoding="utf-8"
+    )
+    reaction_kernel = Path("src/chemworld/world/reaction_kernel.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "reaction_backend_species_map" not in reaction_thermal_services
+    assert "def reaction_backend_species_map" not in species_services
+    assert "Runtime v2 reaction advancement requires a compiled mechanism" in (
+        reaction_thermal_services
+    )
+    assert "compiled_mechanism is required" in reaction_kernel
+
+
 def test_runtime_phase_separation_service_is_separate_from_domain_services() -> None:
     domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
         encoding="utf-8"
@@ -483,7 +502,7 @@ def test_scenario_initial_state_uses_compiled_mechanism_species() -> None:
     )
 
 
-def test_role_mapped_lite_reaction_backend_does_not_require_fixed_species_state() -> None:
+def test_compiled_runtime_reaction_does_not_require_fixed_species_state() -> None:
     env = gym.make("ChemWorld", task_id="reaction-to-distillation", seed=0)
     try:
         env.reset(seed=0)
@@ -1177,6 +1196,22 @@ def test_compiled_reaction_kernel_uses_mechanism_species_not_fixed_slots() -> No
     assert result.species_amounts["Acid"] < state.species_amounts["Acid"]
     assert result.species_amounts["Ester"] > 0.0
     assert result.heat_reaction_J != 0.0
+
+
+def test_compiled_reaction_kernel_rejects_missing_mechanism() -> None:
+    world = load_chemworld_parameters("public-dev", seed=1)
+    state = initial_chemworld_state().replace(volume_L=0.025)
+
+    with pytest.raises(ValueError, match="compiled_mechanism is required"):
+        integrate_compiled_reaction_ode(
+            state=state,
+            world=world,
+            compiled_mechanism=None,
+            duration_s=1200.0,
+            target_temperature_K=380.0,
+            heat=True,
+            stirring_speed_rpm=700.0,
+        )
 
 
 def test_scenarios_are_first_class_and_share_world_law() -> None:

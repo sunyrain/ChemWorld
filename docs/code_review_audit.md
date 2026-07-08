@@ -288,15 +288,14 @@ Recommended follow-up:
 - Moved scenario initial-state generation onto compiled mechanism species,
   roles, and initial-amount policy. Non-fixed scenarios such as
   `electrochemical_conversion` and `reactive_distillation_lite` now reset with
-  mechanism-owned species ledgers instead of fixed `A/P/B/D/E` state keys, while
-  the current lite reaction ODE slots are isolated behind
-  `MechanismSpeciesView.reaction_backend_species_map`.
+  mechanism-owned species ledgers instead of fixed `A/P/B/D/E` state keys.
 - Added a compiled reaction integration path for heat/wait-style advancement.
   Runtime reaction/thermal services now prefer compiled mechanism species,
   stoichiometry, rate-law evaluators, and reaction enthalpies; the old
-  seven-slot ODE is only a fallback when no compiled mechanism exists. Reagent
-  charging also uses mechanism `initial_amount_policy`, so multi-reactant
-  mechanisms such as reactive distillation add co-reactants in declared ratios.
+  seven-slot ODE remains only as an explicit world-level reference fixture.
+  Reagent charging also uses mechanism `initial_amount_policy`, so
+  multi-reactant mechanisms such as reactive distillation add co-reactants in
+  declared ratios.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration

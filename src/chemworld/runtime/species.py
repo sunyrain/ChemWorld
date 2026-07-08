@@ -103,63 +103,6 @@ class MechanismSpeciesView:
                 return species_id
         return LEGACY_ACTIVE_CATALYST_SPECIES
 
-    def reaction_backend_species_map(self, state: WorldState) -> dict[str, str]:
-        """Map the lite reaction backend slots onto mechanism-owned species.
-
-        The current ODE backend still integrates a compact seven-slot reaction
-        scaffold. This method keeps that scaffold behind semantic species roles
-        so runtime state no longer has to be initialized with ``A/P/B/D/E``.
-        """
-
-        target = self._first_existing(self.target_species_for_state(state))
-        reactant = self.reactant_species(state)
-        impurity_candidates = tuple(
-            species_id
-            for species_id in self.impurity_species_for_state(state)
-            if species_id != reactant and species_id != target
-        )
-        byproduct = self._first_existing(
-            self.byproduct_species_for_state(state),
-            exclude={reactant, target},
-        ) or self._first_existing(impurity_candidates)
-        degradation = self._first_existing(
-            self.degradation_species_for_state(state),
-            exclude={reactant, target, byproduct} if byproduct else {reactant, target},
-        ) or self._first_existing(
-            impurity_candidates,
-            exclude={byproduct} if byproduct else set(),
-        )
-        coupled = self._first_existing(
-            impurity_candidates,
-            exclude={species_id for species_id in (byproduct, degradation) if species_id},
-        )
-        active_catalyst = self.active_catalyst_species(state)
-        catalyst_dead = "Cat_dead"
-        if active_catalyst != LEGACY_ACTIVE_CATALYST_SPECIES:
-            candidate = active_catalyst.replace("active", "dead").replace("Active", "Dead")
-            catalyst_dead = candidate if candidate in state.species_amounts else "Cat_dead"
-        return {
-            LEGACY_REACTANT_SPECIES: reactant,
-            LEGACY_TARGET_SPECIES: target,
-            LEGACY_IMPURITY_SPECIES[0]: byproduct or LEGACY_IMPURITY_SPECIES[0],
-            LEGACY_DEGRADATION_SPECIES[0]: degradation or LEGACY_DEGRADATION_SPECIES[0],
-            "E": coupled or "E",
-            LEGACY_ACTIVE_CATALYST_SPECIES: active_catalyst,
-            "Cat_dead": catalyst_dead,
-        }
-
-    @staticmethod
-    def _first_existing(
-        species_ids: tuple[str, ...],
-        *,
-        exclude: set[str | None] | None = None,
-    ) -> str:
-        excluded = set(exclude or set())
-        for species_id in species_ids:
-            if species_id not in excluded:
-                return species_id
-        return ""
-
     def target_species_for_state(self, state: WorldState) -> tuple[str, ...]:
         species = tuple(
             species_id

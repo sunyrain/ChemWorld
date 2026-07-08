@@ -112,30 +112,21 @@ def integrate_compiled_reaction_ode(
     *,
     state: WorldState,
     world: Any,
-    compiled_mechanism: Any | None,
+    compiled_mechanism: Any,
     duration_s: float,
     target_temperature_K: float,
     heat: bool,
     stirring_speed_rpm: float,
-    fallback_species_map: Mapping[str, str] | None = None,
 ) -> ReactionIntegrationResult | None:
     """Integrate a mechanism-compiled reaction network and thermal balance.
 
     Runtime v2 treats mechanism YAML as the owner of species and reactions. The
-    legacy seven-slot ODE remains callable as a short-lived reference fallback
-    for contexts that do not yet provide ``CompiledMechanism``.
+    legacy seven-slot ODE remains available only as an explicit reference
+    fixture through ``integrate_reaction_ode``.
     """
 
     if compiled_mechanism is None:
-        return integrate_reaction_ode(
-            state=state,
-            world=world,
-            duration_s=duration_s,
-            target_temperature_K=target_temperature_K,
-            heat=heat,
-            stirring_speed_rpm=stirring_speed_rpm,
-            species_map=fallback_species_map,
-        )
+        raise ValueError("compiled_mechanism is required for Runtime v2 reaction integration")
 
     duration = float(np.clip(duration_s, 0.0, 14_400.0))
     if duration <= 0.0 or state.volume_L <= 0.0:
