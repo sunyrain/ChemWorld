@@ -36,6 +36,7 @@ finished, update its status and push immediately.
 | PhysChem maturity audit and proxy de-risking | whilesunny | Done | `TODO.md`, `TODO_PROFESSIONAL.md`, `docs/physchem_maturity_audit.md`, `docs/professional_todo.md`, `docs/physchem_core_design.md` | use `TODO_PROFESSIONAL.md` for post-P1-P12 professional hardening | this commit |
 | P1/P2 audit and hardening | whilesunny | Done | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/properties.py`, `tests/`, `docs/physchem_core_design.md`, `TODO.md` | next: start P12 optional reference-backend validation after choosing first comparison targets | this commit |
 | Code review audit and separation-card cleanup | whilesunny | Done | `src/chemworld/physchem/separations.py`, `src/chemworld/physchem/separation_cards.py`, `docs/code_review_audit.md` | next: extract remaining model-card functions into `*_cards.py` modules one slice at a time | this commit |
+| PhysChem model-card metadata externalization | whilesunny | Active | `src/chemworld/physchem/*_cards.py`, model-card exports, audit docs | move remaining `*_model_cards()` functions out of numerical kernels without changing behavior | claim commit |
 
 Status values:
 
