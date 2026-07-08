@@ -17,6 +17,9 @@ Current scope:
   and safety proxies.
 - public property-equation contracts for required coefficients, input
   dimensions, output dimensions, and model cards.
+- curated reference-checked property packages for water, ethanol, acetone,
+  toluene, methane, and carbon dioxide using DIPPR101 vapor pressure and
+  Poling ideal-gas heat-capacity correlations.
 - general reaction-network specs for species, reactions, stoichiometric
   matrices, element-balance checks, YAML/JSON mechanism loading, rate-law
   evaluation, and deterministic batch ODE integration.

@@ -40,7 +40,7 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
 2. Expand `fluids` validation to friction factor and pressure drop. Done in
    PRO-P12A.
 3. Replace placeholder property examples with curated reference-checked
-   compounds.
+   compounds. Done in PRO-P2A.
 4. Implement Wilson and full binary NRTL with reference comparisons.
 5. Add Cantera-comparable irreversible and reversible reaction ODE cases.
 6. Add a CSTR multiple-steady-state professional example.
@@ -81,3 +81,18 @@ PRO-P12A is now implemented for the first reference-validated transport slice:
   drop slice as reference-validated with `fluids` optional-test evidence.
 - Optional reference tests compare ChemWorld against `fluids.friction.Haaland`
   and `fluids.friction.one_phase_dP`.
+
+PRO-P2A is now implemented for the first reference-validated property slice:
+
+- `curated_property_package()` exposes water, ethanol, acetone, toluene,
+  methane, and carbon dioxide as small auditable property packages.
+- The curated vapor-pressure path uses Perry/DIPPR101 coefficients and the
+  equation `Psat = exp(A + B/T + C ln(T) + D T^E)`.
+- The curated ideal-gas heat-capacity path uses Poling/DIPPR100 polynomial
+  coefficients scaled by `R` into SI units.
+- `curated_property_model_cards()` records equations, assumptions, validity
+  limits, failure modes, intended use, and optional `chemicals` validation
+  evidence.
+- Optional reference tests compare ChemWorld vapor pressure, ideal-gas Cp, and
+  sensible enthalpy integrals against `chemicals.dippr.EQ101` and
+  `chemicals.dippr.EQ100`.

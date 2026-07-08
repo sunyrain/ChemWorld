@@ -5,13 +5,19 @@ import pytest
 from chemworld.physchem import (
     ComponentPropertyPackage,
     ComponentSpec,
+    MaturityLevel,
     MixtureSpec,
     PropertyCorrelation,
+    curated_property_case_map,
+    curated_property_model_cards,
+    curated_property_package,
     evaluate_correlation,
+    list_curated_property_packages,
     mixture_density,
     mixture_viscosity_log_rule,
     sensible_enthalpy_change,
     thermal_hazard_proxy,
+    validate_model_card,
     volatility_risk_from_psat,
 )
 
@@ -290,3 +296,71 @@ def test_safety_proxy_properties_are_bounded() -> None:
     assert 0.0 <= volatility.value <= 1.0
     assert 0.0 <= thermal.value <= 1.0
     assert thermal.value == pytest.approx((420.0 - 380.0) / (500.0 - 380.0))
+
+
+def test_curated_property_packages_are_reference_ready() -> None:
+    packages = list_curated_property_packages()
+    cases = curated_property_case_map()
+    assert {package.component.identifier for package in packages} == {
+        "water",
+        "ethanol",
+        "acetone",
+        "toluene",
+        "methane",
+        "carbon_dioxide",
+    }
+
+    for package in packages:
+        component_id = package.component.identifier
+        case = cases[component_id]
+        assert ComponentSpec.from_dict(package.component.to_dict()).identifier == component_id
+        assert package.component.metadata["casrn"] == case.casrn
+
+        vapor_pressure = package.evaluate(
+            "vapor_pressure",
+            temperature_K=case.reference_temperature_K,
+            validity_policy="raise",
+        )
+        ideal_gas_cp = package.evaluate(
+            "ideal_gas_heat_capacity",
+            temperature_K=case.reference_temperature_K,
+            validity_policy="raise",
+        )
+        cp_correlation = package.by_property("ideal_gas_heat_capacity")[0]
+        enthalpy = sensible_enthalpy_change(
+            cp_correlation,
+            initial_temperature_K=case.enthalpy_initial_temperature_K,
+            final_temperature_K=case.enthalpy_final_temperature_K,
+            validity_policy="raise",
+        )
+
+        assert vapor_pressure.value > 0.0
+        assert vapor_pressure.unit == "Pa"
+        assert ideal_gas_cp.value > 0.0
+        assert ideal_gas_cp.unit == "J/(mol*K)"
+        assert enthalpy.value > 0.0
+        for correlation in package.correlations:
+            payload = PropertyCorrelation.from_dict(correlation.to_dict()).to_dict()
+            assert payload == correlation.to_dict()
+            assert correlation.metadata["casrn"] == case.casrn
+
+
+def test_curated_property_package_accepts_aliases() -> None:
+    assert curated_property_package("co2").component.identifier == "carbon_dioxide"
+    assert curated_property_package("carbon dioxide").component.identifier == "carbon_dioxide"
+    with pytest.raises(KeyError, match="unknown curated component"):
+        curated_property_package("unobtainium")
+
+
+def test_curated_property_model_card_is_auditable() -> None:
+    cards = curated_property_model_cards()
+    assert len(cards) == 1
+    card = cards[0]
+    assert card.model_id == "curated_dippr101_poling_property_subset"
+    assert card.module_id == "properties"
+    assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
+    assert validate_model_card(card) == []
+    assert {
+        evidence.reference_backend for evidence in card.validation_evidence
+    } == {"chemicals"}
+    assert any("DIPPR101" in equation for equation in card.equations)

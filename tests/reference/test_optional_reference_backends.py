@@ -10,6 +10,8 @@ from chemworld.physchem import (
     PipeSpec,
     bubble_pressure_pa,
     compare_scalar,
+    curated_property_cases,
+    curated_property_package,
     darcy_friction_factor,
     dew_pressure_pa,
     flash_isothermal,
@@ -19,6 +21,7 @@ from chemworld.physchem import (
     prandtl_number,
     raoult_k_values,
     reynolds_number,
+    sensible_enthalpy_change,
     summarize_reference_comparisons,
 )
 
@@ -227,6 +230,106 @@ def test_chemicals_rachford_rice_flash_reference() -> None:
         )
 
     summary = summarize_reference_comparisons(comparisons)
+    assert summary["all_passed"], summary
+
+
+def test_chemicals_curated_vapor_pressure_and_enthalpy_references() -> None:
+    chemicals_dippr = _reference_module("chemicals.dippr")
+    chemicals_heat_capacity = _reference_module("chemicals.heat_capacity")
+    chemicals_vapor_pressure = _reference_module("chemicals.vapor_pressure")
+    fluids_constants = _reference_module("fluids.constants", repo_names=("fluids",))
+
+    comparisons = []
+    for case in curated_property_cases():
+        package = curated_property_package(case.component_id)
+        vapor_pressure = package.evaluate(
+            "vapor_pressure",
+            temperature_K=case.reference_temperature_K,
+            validity_policy="raise",
+        )
+        cp_correlation = package.by_property("ideal_gas_heat_capacity")[0]
+        heat_capacity = package.evaluate(
+            "ideal_gas_heat_capacity",
+            temperature_K=case.reference_temperature_K,
+            validity_policy="raise",
+        )
+        enthalpy = sensible_enthalpy_change(
+            cp_correlation,
+            initial_temperature_K=case.enthalpy_initial_temperature_K,
+            final_temperature_K=case.enthalpy_final_temperature_K,
+            validity_policy="raise",
+        )
+
+        psat_row = chemicals_vapor_pressure.Psat_data_Perrys2_8.loc[case.casrn]
+        cp_row = chemicals_heat_capacity.Cp_data_Poling.loc[case.casrn]
+        r = fluids_constants.R
+        reference_cp_coefficients = {
+            "A": r * float(cp_row["a0"]),
+            "B": r * float(cp_row["a1"]),
+            "C": r * float(cp_row["a2"]),
+            "D": r * float(cp_row["a3"]),
+            "E": r * float(cp_row["a4"]),
+        }
+
+        comparisons.append(
+            compare_scalar(
+                check_id=f"chemicals-curated-psat-{case.component_id}",
+                backend_id="chemicals",
+                quantity="vapor_pressure",
+                chemworld_value=vapor_pressure.value,
+                reference_value=chemicals_dippr.EQ101(
+                    case.reference_temperature_K,
+                    float(psat_row["C1"]),
+                    float(psat_row["C2"]),
+                    float(psat_row["C3"]),
+                    float(psat_row["C4"]),
+                    float(psat_row["C5"]),
+                ),
+                unit="Pa",
+                rtol=1e-12,
+                note="Curated DIPPR101/Perry vapor-pressure record.",
+            )
+        )
+        comparisons.append(
+            compare_scalar(
+                check_id=f"chemicals-curated-cpig-{case.component_id}",
+                backend_id="chemicals",
+                quantity="ideal_gas_heat_capacity",
+                chemworld_value=heat_capacity.value,
+                reference_value=chemicals_dippr.EQ100(
+                    case.reference_temperature_K,
+                    **reference_cp_coefficients,
+                ),
+                unit="J/(mol*K)",
+                rtol=1e-12,
+                note="Curated R-scaled Poling ideal-gas Cp record.",
+            )
+        )
+        comparisons.append(
+            compare_scalar(
+                check_id=f"chemicals-curated-enthalpy-{case.component_id}",
+                backend_id="chemicals",
+                quantity="ideal_gas_sensible_enthalpy",
+                chemworld_value=enthalpy.value,
+                reference_value=(
+                    chemicals_dippr.EQ100(
+                        case.enthalpy_final_temperature_K,
+                        order=-1,
+                        **reference_cp_coefficients,
+                    )
+                    - chemicals_dippr.EQ100(
+                        case.enthalpy_initial_temperature_K,
+                        order=-1,
+                        **reference_cp_coefficients,
+                    )
+                ),
+                unit="J/mol",
+                rtol=1e-12,
+                note="Analytic sensible-enthalpy integral for curated Poling Cp.",
+            )
+        )
+
+    summary = summarize_reference_comparisons(tuple(comparisons))
     assert summary["all_passed"], summary
 
 

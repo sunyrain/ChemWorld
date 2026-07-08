@@ -64,7 +64,7 @@ Every professional module must ship:
 | Professional TODO bootstrap | whilesunny | Done | all reference repos | `TODO_PROFESSIONAL.md`, `docs/professional_todo.md`, `docs/physchem_maturity_audit.md` | claim the first professional implementation item before coding | this commit |
 | PRO-P0 maturity metadata and model-card templates | whilesunny | Done | IDAES, thermo, Cantera, Gymnasium-style metadata | `src/chemworld/physchem/maturity.py`, `src/chemworld/tasks.py`, `docs/physchem_maturity_audit.md`, tests | next: claim PRO-P12A or PRO-P2A for reference-validated numerical hardening | this commit |
 | PRO-P12A fluids friction factor and pressure-drop validation | whilesunny | Done | `fluids.friction`, `fluids.core`, Haaland and Darcy-Weisbach references | `src/chemworld/physchem/transport.py`, `src/chemworld/physchem/reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend pressure-drop validation to heat-transfer correlations or claim PRO-P2A | this commit |
-| PRO-P2A curated vapor-pressure and enthalpy property cases | whilesunny | Claimed | `chemicals.vapor_pressure`, `chemicals.heat_capacity`, `chemicals.phase_change`, `thermo`, `CoolProp` | `src/chemworld/physchem/properties.py`, curated property data, optional reference tests, docs | read local property-reference APIs, then replace placeholder property cases with curated reference-checked compounds | pending push |
+| PRO-P2A curated vapor-pressure and enthalpy property cases | whilesunny | Done | `chemicals.vapor_pressure`, `chemicals.heat_capacity`, `chemicals.dippr`, `thermo.heat_capacity` | `src/chemworld/physchem/curated_properties.py`, `src/chemworld/physchem/properties.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend the curated registry toward critical properties, liquid Cp, latent heat, and CoolProp checks | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -116,13 +116,13 @@ Reference targets: `chemicals`, `thermo`, `CoolProp`.
 - [ ] Add strict unit dimensions for every property input/output.
 - [ ] Add uncertainty/provenance fields to property records.
 - [ ] Add conflict-resolution policy when multiple data sources disagree.
-- [ ] Add reference comparisons for selected public compounds:
-  - [ ] water;
-  - [ ] ethanol;
-  - [ ] acetone;
-  - [ ] toluene;
-  - [ ] methane;
-  - [ ] carbon dioxide.
+- [x] Add reference comparisons for selected public compounds:
+  - [x] water;
+  - [x] ethanol;
+  - [x] acetone;
+  - [x] toluene;
+  - [x] methane;
+  - [x] carbon dioxide.
 
 Acceptance:
 
@@ -136,14 +136,14 @@ Reference targets: `chemicals`, `thermo`, `CoolProp`.
 
 - [ ] Vapor pressure:
   - [ ] Antoine with validity domains;
-  - [ ] Wagner/DIPPR-style form;
+  - [x] Wagner/DIPPR-style form;
   - [ ] sublimation pressure where needed;
   - [ ] derivative with respect to temperature.
 - [ ] Heat capacity and enthalpy:
-  - [ ] ideal-gas Cp;
+  - [x] ideal-gas Cp;
   - [ ] liquid Cp;
   - [ ] solid Cp where needed;
-  - [ ] enthalpy integrals with reference states;
+  - [x] enthalpy integrals with reference states;
   - [ ] latent heat correlations.
 - [ ] Density/volume:
   - [ ] liquid molar volume;
@@ -162,8 +162,10 @@ Reference targets: `chemicals`, `thermo`, `CoolProp`.
 
 Acceptance:
 
-- [ ] Correlations expose validity-range warnings and hard-fail mode.
-- [ ] Public reference cases compare against `chemicals` or `CoolProp`.
+- [x] Correlations expose validity-range warnings and hard-fail mode for the
+      curated DIPPR101/Poling slice.
+- [x] Public reference cases compare against `chemicals` for the curated
+      DIPPR101 vapor-pressure and Poling ideal-gas Cp/enthalpy slice.
 - [ ] Property package can be used by reactor energy balances without unit
       ambiguity.
 
@@ -431,11 +433,11 @@ Acceptance:
 
 Reference targets: all local reference repositories.
 
-- [ ] `chemicals`:
+- [x] `chemicals`:
   - [x] ideal gas molar volume;
   - [x] Rachford-Rice flash;
-  - [ ] vapor pressure points;
-  - [ ] enthalpy/heat-capacity points.
+  - [x] vapor pressure points;
+  - [x] enthalpy/heat-capacity points.
 - [ ] `fluids`:
   - [x] Reynolds number;
   - [x] Prandtl number;
@@ -456,6 +458,24 @@ Reference-reading note for PRO-P12A:
 - `fluids.two_phase.two_phase_dP` is a multi-correlation dispatcher; ChemWorld's
   homogeneous two-phase pressure-drop function remains a lite/proxy model and is
   not claimed as reference-validated by this task.
+
+Reference-reading note for PRO-P2A:
+
+- `chemicals.vapor_pressure.Psat_data_Perrys2_8` exposes Perry/DIPPR101
+  vapor-pressure coefficients with per-compound temperature ranges.
+- `chemicals.dippr.EQ101` evaluates the same vapor-pressure equation as
+  `exp(A + B/T + C ln(T) + D T^E)`.
+- `chemicals.heat_capacity.Cp_data_Poling` stores Poling ideal-gas Cp
+  polynomial coefficients in dimensionless gas-constant-scaled form.
+- `chemicals.dippr.EQ100` evaluates the Cp polynomial and its analytical
+  integral; ChemWorld uses the same polynomial form after scaling coefficients
+  by `R` into J/(mol*K).
+- `thermo.heat_capacity.HeatCapacityGas` registers the Poling polynomial as a
+  DIPPR100 model with `R`-scaled coefficients, confirming the unit conversion
+  used locally.
+- `thermo.vapor_pressure.VaporPressure` informed the separation between a
+  component-local method registry, validity ranges, and method selection. The
+  current ChemWorld slice remains curated rather than a full property database.
 - [ ] `thermo`:
   - [x] ideal Raoult VLE bubble/dew/TP flash;
   - [ ] nonideal activity-coefficient case;
@@ -500,7 +520,7 @@ Acceptance:
 2. `PRO-P12A`: Expand reference validation for `fluids` friction factor and
    pressure drop. Done.
 3. `PRO-P2A`: Replace placeholder vapor-pressure/enthalpy examples with
-   curated reference-checked compounds.
+   curated reference-checked compounds. Done.
 4. `PRO-P4A`: Implement Wilson and full binary NRTL with reference comparisons.
 5. `PRO-P5A`: Add Cantera-comparable irreversible and reversible reaction ODE
    cases.

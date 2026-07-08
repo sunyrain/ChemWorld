@@ -19,7 +19,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Area | Current level | Evidence | Main gap |
 | --- | --- | --- | --- |
 | Component specs and units | Lite | `chemworld.physchem.specs`, local unit tests | broader curated component database and schema governance |
-| Property correlations | Lite/proxy | vapor pressure, Cp, density, viscosity, surface tension tests | more reference-checked compounds and fewer placeholders |
+| Property correlations | Lite with a reference-validated curated slice | vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against `chemicals` | broader component coverage, liquid/solid Cp, latent heat, derivatives, and CoolProp checks |
 | Reaction networks | Lite | YAML/JSON mechanisms, stoichiometric checks, rate-law tests | Cantera-style thermochemistry, falloff, pressure dependence |
 | Reactor models | Lite | batch, semi-batch, CSTR, PFR tests | professional reactor-network validation and multiple-steady-state examples |
 | EOS | Lite | ideal gas, PR, SRK tests | residual properties and reference validation against CoolProp/thermo/teqp |
@@ -29,7 +29,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Equilibrium chemistry | Lite/proxy | mass-action, acid/base, precipitation tests | Reaktoro-style Gibbs minimization and database-backed equilibria |
 | Mechanism/scenario library | Lite | curated mechanism cards and validation tests | reference-validated mechanisms and professional task bindings |
 | Spectroscopy/instruments | Synthetic/proxy | state-coupled HPLC/GC/UV-vis/IR/NMR synthetic signals | public calibration examples and empirical anchors |
-| Reference validation | Partial | `chemicals`, `fluids` Reynolds/Prandtl/friction/pipe drop, and `thermo` ideal VLE optional tests | CoolProp, Cantera, phasepy, Reaktoro, pycalphad coverage |
+| Reference validation | Partial | `chemicals` ideal gas, Rachford-Rice, curated vapor pressure/Cp/enthalpy; `fluids` Reynolds/Prandtl/friction/pipe drop; and `thermo` ideal VLE optional tests | CoolProp, Cantera, phasepy, Reaktoro, pycalphad coverage |
 
 ## Policy
 
@@ -99,3 +99,6 @@ copying the reference implementations.
   IDAES.
 - PRO-P0 is implemented: maturity enum, model-card templates, task maturity
   metadata, proxy policy checks, and tests are now in the codebase.
+- PRO-P2A is implemented: the first curated property slice has model-card
+  metadata and optional `chemicals` reference checks for DIPPR101 vapor
+  pressure, Poling ideal-gas Cp, and sensible enthalpy integrals.

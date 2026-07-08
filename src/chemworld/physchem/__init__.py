@@ -1,5 +1,15 @@
 """Compact physical-chemistry primitives for ChemWorld world-law modules."""
 
+from chemworld.physchem.curated_properties import (
+    CuratedPropertyCase,
+    curated_components,
+    curated_property_case_map,
+    curated_property_cases,
+    curated_property_correlations,
+    curated_property_model_cards,
+    curated_property_package,
+    list_curated_property_packages,
+)
 from chemworld.physchem.elements import (
     ElementSpec,
     atom_fractions,
@@ -205,6 +215,7 @@ __all__ = [
     "ComponentSpec",
     "CubicEOSSpec",
     "CubicPureParameters",
+    "CuratedPropertyCase",
     "EOSComponentSpec",
     "EOSMixtureParameters",
     "EOSState",
@@ -268,6 +279,12 @@ __all__ = [
     "cubic_fugacity_coefficients",
     "cubic_mixture_parameters",
     "cubic_pure_parameters",
+    "curated_components",
+    "curated_property_case_map",
+    "curated_property_cases",
+    "curated_property_correlations",
+    "curated_property_model_cards",
+    "curated_property_package",
     "darcy_friction_factor",
     "darcy_friction_factor_details",
     "default_feature_specs",
@@ -298,6 +315,7 @@ __all__ = [
     "jacket_heat_transfer",
     "liquid_liquid_extraction",
     "liquid_liquid_split",
+    "list_curated_property_packages",
     "list_mechanism_cards",
     "list_mechanism_paths",
     "load_library_mechanism",

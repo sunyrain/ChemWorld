@@ -58,8 +58,8 @@ declared equation contract before numerical evaluation:
 
 | Property family | Supported equations |
 | --- | --- |
-| Vapor pressure | Antoine, Wagner |
-| Heat capacity | Cp polynomial |
+| Vapor pressure | Antoine, Wagner, DIPPR101/Perry form |
+| Heat capacity | Cp polynomial, Poling/DIPPR100 ideal-gas Cp slice |
 | Enthalpy | analytic Cp-polynomial sensible-enthalpy integral |
 | Phase change | Watson heat-of-vaporization correlation, constant heat-of-fusion proxy |
 | Density | linear liquid density, ideal gas density |
@@ -106,6 +106,17 @@ round-trips, JSON round-trips for component/mixture/correlation specs, unit
 dimension failures before kernel use, monotonic water vapor pressure, Cp
 integral sign and units, positive density/viscosity/phase-change values, gas
 viscosity behavior, and component-level property policy failures.
+
+PRO-P2A adds the first reference-validated curated property slice in
+`chemworld.physchem.curated_properties`. It intentionally keeps the data set
+small and auditable instead of vendoring a large third-party property database.
+The current curated compounds are water, ethanol, acetone, toluene, methane,
+and carbon dioxide. Each package includes component metadata, a DIPPR101/Perry
+vapor-pressure correlation, a Poling/DIPPR100 ideal-gas heat-capacity
+correlation scaled into SI units, validity ranges, source notes, and a model
+card. Optional reference tests compare ChemWorld values against local
+`chemicals` reference implementations for vapor pressure, ideal-gas Cp, and
+sensible enthalpy integrals.
 
 ## Reaction Network Core
 
@@ -249,7 +260,7 @@ small enough to audit and stable enough to run locally:
 
 | Reference backend | Current optional checks | Tolerance |
 | --- | --- | --- |
-| `chemicals` | ideal-gas molar volume via `chemicals.volume.ideal_gas`; Rachford-Rice vapor fraction and phase compositions via `chemicals.rachford_rice.Rachford_Rice_solution` | `rtol=1e-12` |
+| `chemicals` | ideal-gas molar volume via `chemicals.volume.ideal_gas`; Rachford-Rice vapor fraction and phase compositions via `chemicals.rachford_rice.Rachford_Rice_solution`; curated DIPPR101 vapor-pressure points via `chemicals.dippr.EQ101`; curated Poling ideal-gas Cp and sensible enthalpy integrals via `chemicals.dippr.EQ100` | `rtol=1e-12` |
 | `fluids` | Reynolds and Prandtl numbers via `fluids.core`; Haaland Darcy friction factor and single-phase pipe pressure drop via `fluids.friction` | `rtol=1e-12` |
 | `thermo` | ideal Raoult-law bubble/dew pressure and two-phase TP flash via `thermo.property_package.Ideal` with explicit constant vapor-pressure callables | `rtol=1e-12` for bubble/dew; `rtol=1e-11` for flash solver roundoff |
 
