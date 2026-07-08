@@ -43,6 +43,7 @@ The repository currently provides:
   cases, NASA7 thermochemistry and reaction Gibbs energies, thermochemical
   detailed-balance reverse rates, local kinetic sensitivity reports, dynamic
   batch heat-release/sampling, CSTR multiplicity, shortcut distillation,
+  Fenske-Underwood-Gilliland binary distillation sizing,
   fixed-TP Gibbs minimization, UV-vis calibration, chromatography retention,
   PR/SRK residual EOS properties, volume-translated cubic-EOS reports, and
   root-governance diagnostics.

@@ -24,7 +24,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Reactor models | Lite with reference-validated CSTR multiplicity and dynamic batch heat-release slices | batch, dynamic batch, semi-batch, CSTR, PFR tests; analytical exothermic CSTR three-root ignition/extinction case with stability classification; NASA7 heat-release dynamic batch, jacket, and sampling-ledger tests | broader Cantera/IDAES reactor-network validation, pressure modes, wall thermal inertia, and phase-change variants |
 | EOS | Lite with reference-validated PR/SRK residuals and a professional-candidate volume/root-governance slice | ideal gas, PR/SRK roots, fugacity coefficients, explicit root policy, residual H/S/G tests, optional `thermo.eos` comparisons for methane/ethane/CO2, volume-translation reports, translated roots, root-governance diagnostics, binary-interaction provenance | phase envelopes, saturation solvers, translated fugacity derivatives, flash derivatives, and broader CoolProp/teqp/thermopack validation |
 | Phase equilibrium | Lite with a reference-validated Wilson/NRTL gamma slice | ideal VLE, Wilson/NRTL gamma checks against `thermo`, LLE split tests | UNIQUAC, phase stability, nonideal VLE/LLE task cases |
-| Separations | Proxy/lite with a reference-validated VLE distillation shortcut slice | material-conserving extraction, VLE flash, VLE/Fenske shortcut distillation, crystallization, filtration, drying tests | rigorous MESH columns, thermodynamic extraction, crystallization kinetics, and broader equipment validation |
+| Separations | Proxy/lite with a reference-validated VLE distillation shortcut slice and a professional-candidate FUG sizing slice | material-conserving extraction, VLE flash, VLE/Fenske shortcut distillation, Fenske-Underwood-Gilliland binary sizing tests, crystallization, filtration, drying tests | rigorous MESH columns, boilup/pressure-drop closure, thermodynamic extraction, crystallization kinetics, and broader equipment validation |
 | Transport and heat transfer | Lite with reference-validated pipe-flow and heat-transfer slices | dimensionless numbers, explicit friction methods, `fluids` Haaland and single-phase pipe-pressure-drop optional checks; Nusselt branch metadata; counterflow exchanger duty-balance tests; optional `fluids.core.Nusselt` check | two-phase correlations, boiling/condensation, shell-side correction factors, fouling dynamics, equipment safety cards, and broader validity maps |
 | Equilibrium chemistry | Lite/proxy with a reference-validated Gibbs-minimization slice | mass-action, acid/base, precipitation tests; fixed-TP ideal Gibbs minimization with element, charge, phase, and nonnegative-species constraints; analytical ideal-isomerization validation | database-backed aqueous speciation, activity-corrected electrolytes, redox/electron basis selection, and CALPHAD global phase selection |
 | Electrochemistry | Lite with a reference-validated Nernst/BV/Faraday slice | Nernst equilibrium potential, Butler-Volmer current, Faraday charge-to-extent conversion, Faradaic efficiency, energy accounting, task metadata, and operation-summary tests | ohmic drop, limiting current, mass transfer, double-layer dynamics, porous electrodes, electrolyte speciation, and control-mode solvers |
@@ -129,6 +129,13 @@ copying the reference implementations.
   volatility-score proxy. It now uses a VLE-coupled shortcut model with
   Raoult/activity K-values, Fenske-style distribution-ratio tests, model-card
   metadata, and task maturity metadata for `reaction-to-distillation`.
+- DEEP-D7B is implemented for binary Fenske-Underwood-Gilliland distillation
+  sizing: the public report includes `N_min`, Underwood theta, `R_min`,
+  Gilliland/Eduljee theoretical stages, actual trays, feed-stage estimate,
+  pressure-profile warnings, provenance, and early failures for invalid alpha,
+  impossible splits, missing provenance, unsupported feed quality, and reflux
+  below minimum. MESH-lite, boilup, hydraulics, pressure-drop integration,
+  multicomponent roots, and azeotropes remain open.
 - PRO-P10A is implemented for UV-vis only: Beer-Lambert absorbance, path length,
   sample dilution, blank absorbance, analytical calibration fitting, LOD/LOQ,
   model-card metadata, and species-signal tests are in place. Other instruments

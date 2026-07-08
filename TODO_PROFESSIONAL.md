@@ -75,7 +75,7 @@ Every professional module must ship:
 | PRO-P4A Wilson and full binary NRTL activity models | whilesunny | Done | `thermo.activity`, `thermo.wilson`, `thermo.nrtl`, `phasepy.actmodels` | `src/chemworld/physchem/equilibrium.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add nonideal VLE task cases and Wilson/NRTL parameter-library governance | this commit |
 | PRO-P5A Cantera-comparable irreversible/reversible reaction ODE cases | whilesunny | Done | `cantera` reactor examples, `cantera` reaction-rate APIs, `rmg-py` Arrhenius/reverse-rate APIs | `src/chemworld/physchem/reaction_network.py`, `tests/test_reaction_network.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add falloff, third-body, pressure-dependent, and thermochemistry-coupled reverse-rate tasks | this commit |
 | PRO-P6A CSTR multiple-steady-state professional example | whilesunny | Done | `cantera` stirred-reactor examples, `idaes-pse` CSTR/control-volume models, nonlinear reactor design equations | `src/chemworld/physchem/reactors.py`, `tests/test_reactor_models.py`, model cards, docs | next: add Cantera dynamic reactor-net cross-checks and plant-scale heat-transfer variants | this commit |
-| PRO-P7A VLE-coupled shortcut distillation | whilesunny | Done | `idaes-pse` distillation/flash units, `thermo` flash/property-package APIs, `phasepy` VLE examples | `src/chemworld/physchem/separations.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/tasks.py`, `tests/test_separations.py`, model cards, docs | next: add Underwood/Gilliland sizing, pressure-profile effects, and nonideal VLE task cases | this commit |
+| PRO-P7A VLE-coupled shortcut distillation | whilesunny | Done | `idaes-pse` distillation/flash units, `thermo` flash/property-package APIs, `phasepy` VLE examples | `src/chemworld/physchem/separations.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/tasks.py`, `tests/test_separations.py`, model cards, docs | D7B now adds Fenske-Underwood-Gilliland sizing; next: MESH-lite, boilup, pressure-drop integration, and nonideal VLE task cases | this commit |
 | PRO-P10A Beer-Lambert UV-vis calibration validation | whilesunny | Done | public Beer-Lambert equations, analytical calibration examples, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add HPLC/GC retention calibration, IR empirical anchors, and NMR coupling metadata | this commit |
 | PRO-P10B Chromatography retention and peak-broadening calibration | whilesunny | Done | public chromatography equations, plate-count/resolution equations, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add empirical retention-index examples and method-condition sensitivity | this commit |
 | PRO-P3A Peng-Robinson/SRK fugacity and residual properties | whilesunny | Done | `thermo.eos`, `phasepy.cubic`, `teqp` and `thermopack` EOS architecture notes | `src/chemworld/physchem/eos.py`, `src/chemworld/physchem/reference_validation.py`, `tests/test_eos.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add volume translation, phase envelopes, and flash derivative hooks | this commit |
@@ -514,6 +514,7 @@ Reference targets: `IDAES`, `thermo`, `phasepy`, `fluids`.
   - [ ] MESH-lite stage model;
   - [ ] reflux and boilup;
   - [x] shortcut Fenske option;
+  - [x] Fenske-Underwood-Gilliland sizing;
   - [x] VLE-coupled task.
 - [ ] Evaporation/flash:
   - [ ] VLE-coupled vapor removal;
@@ -552,6 +553,28 @@ Reference-reading note for PRO-P7A:
   come from Raoult/activity models, relative volatilities are derived from
   those K-values, and component split ratios satisfy a Fenske-style analytical
   identity. This is not a full MESH column solver.
+
+Reference-reading note for DEEP-D7B:
+
+- `idaes-pse/idaes/models_extra/column_models/tray_column.py` organizes a
+  rigorous column around `number_of_trays`, `feed_tray_location`, condenser and
+  reboiler blocks, optional heat transfer, pressure change, and a property
+  package. ChemWorld now exposes the analogous sizing-report fields without
+  claiming a tray-by-tray MESH solve.
+- `condenser.py` defines reflux through the split fraction `R/(1+R)`, and
+  `reboiler.py` exposes heat-duty, pressure-change, and optional boilup-ratio
+  contracts. D7B records reflux and pressure warnings; rigorous boilup closure
+  remains open.
+- `thermo/README.rst` shows flash/property workflows built from constants,
+  correlations, phase models, and result objects. `phasepy` flash code uses
+  K-values, Rachford-Rice, and Gibbs fallback for true flash problems.
+- ChemWorld localizes those ideas as `FUGDistillationSpec` and
+  `fenske_underwood_gilliland_sizing()`: binary constant-alpha Fenske minimum
+  stages, Underwood minimum reflux for saturated-liquid feed, Gilliland/Eduljee
+  theoretical stages, actual tray count, feed-stage estimate, pressure-profile
+  warnings, provenance, and failure modes. This closes shortcut sizing only;
+  MESH-lite, hydraulics, boilup, multicomponent Underwood roots, and azeotrope
+  handling remain open work.
 
 ## P8: Transport, Equipment, And Safety
 

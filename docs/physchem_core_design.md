@@ -753,6 +753,7 @@ balance errors:
 | Liquid-liquid extraction | multistage extraction using partition coefficients, finite stage efficiency, entrainment, and solvent loss |
 | Evaporation / flash | VLE-driven vapor/liquid split from K-values, heat duty, and concentration risk |
 | VLE shortcut distillation | Raoult/activity K-values, relative volatilities, Fenske-style split ratios, reflux-scaled effective stages, heat duty, and purity/recovery/cost tradeoff |
+| FUG distillation sizing | binary Fenske minimum stages, Underwood minimum reflux for saturated-liquid feed, Gilliland/Eduljee stage estimate, actual trays, feed-stage estimate, pressure-profile warnings, and provenance |
 | Crystallization | solubility-limited crystallization, cooling proxy, impurity occlusion, crystal-size proxy |
 | Filtration | solid recovery, impurity retention, washing efficiency, and wash loss |
 | Drying | solvent removal, residual solvent, heat duty, thermal degradation risk |
@@ -784,6 +785,19 @@ state ledger. The model card exposed through `separation_model_cards()` records
 the inspected IDAES flash/control-volume design, thermo `FlashVL` API, and
 phasepy PT-flash algorithm. This is still a shortcut model, not a full MESH
 column solver.
+
+DEEP-D7B adds a separate binary column-sizing report rather than hiding sizing
+inside the split kernel. `FUGDistillationSpec` requires explicit light/heavy
+keys, constant relative volatility, feed/distillate/bottoms mole fractions,
+reflux ratio, stage efficiency, pressure data, feed quality, and provenance.
+`fenske_underwood_gilliland_sizing()` returns Fenske `N_min`, Underwood theta
+and `R_min` for saturated-liquid feed, Eduljee/Gilliland theoretical stages,
+actual trays, feed stage from the top, section-stage estimates, pressure-profile
+warnings, and model-card evidence. Reflux below `R_min`, impossible splits,
+unsupported feed quality, invalid pressure, and missing provenance fail early.
+This is still not a MESH model: pressure-drop integration, boilup closure,
+tray hydraulics, Murphree efficiency profiles, multicomponent Underwood roots,
+and azeotrope handling remain D7 deepening work.
 
 ## Transport and Heat-Transfer Core
 

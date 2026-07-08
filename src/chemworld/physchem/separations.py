@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from math import exp, isfinite, log, log1p
+from math import ceil, exp, isfinite, log, log1p, sqrt
 
 from chemworld.physchem.equilibrium import (
     ActivityModelSpec,
@@ -97,6 +97,333 @@ class SeparationResult:
             "outlets": {key: dict(value) for key, value in self.outlets.items()},
             "ledger": self.ledger.to_dict(),
         }
+
+
+@dataclass(frozen=True)
+class FUGDistillationSpec:
+    """Binary Fenske-Underwood-Gilliland sizing input contract.
+
+    The implemented Underwood equation is intentionally scoped to a saturated
+    liquid binary feed. Broader q-line and multicomponent root selection belong
+    in later rigorous-column slices.
+    """
+
+    light_key: str
+    heavy_key: str
+    relative_volatility: float
+    feed_light_mole_fraction: float
+    distillate_light_mole_fraction: float
+    bottoms_light_mole_fraction: float
+    reflux_ratio: float
+    stage_efficiency: float = 1.0
+    feed_quality: float = 1.0
+    pressure_top_Pa: float = 101_325.0
+    pressure_bottom_Pa: float | None = None
+    provenance_id: str = ""
+    provenance_note: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.light_key or not self.heavy_key:
+            raise ValueError("light_key and heavy_key cannot be empty")
+        if self.light_key == self.heavy_key:
+            raise ValueError("light_key and heavy_key must be distinct")
+        _validate_positive_finite(self.relative_volatility, "relative_volatility")
+        if self.relative_volatility <= 1.0:
+            raise ValueError("relative_volatility must be greater than 1")
+        for name, value in {
+            "feed_light_mole_fraction": self.feed_light_mole_fraction,
+            "distillate_light_mole_fraction": self.distillate_light_mole_fraction,
+            "bottoms_light_mole_fraction": self.bottoms_light_mole_fraction,
+        }.items():
+            _validate_open_fraction(value, name)
+        if not (
+            self.bottoms_light_mole_fraction
+            < self.feed_light_mole_fraction
+            < self.distillate_light_mole_fraction
+        ):
+            raise ValueError(
+                "distillate/bottoms split must satisfy "
+                "bottoms_light < feed_light < distillate_light"
+            )
+        _validate_positive_finite(self.reflux_ratio, "reflux_ratio")
+        _validate_positive_finite(self.stage_efficiency, "stage_efficiency")
+        if self.stage_efficiency > 1.0:
+            raise ValueError("stage_efficiency must be in (0, 1]")
+        if abs(self.feed_quality - 1.0) > 1e-12:
+            raise ValueError("only saturated-liquid binary feed_quality=1 is supported")
+        _validate_positive_finite(self.pressure_top_Pa, "pressure_top_Pa")
+        if self.pressure_bottom_Pa is not None:
+            _validate_positive_finite(self.pressure_bottom_Pa, "pressure_bottom_Pa")
+        if not self.provenance_id:
+            raise ValueError("provenance_id is required for distillation sizing")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "light_key": self.light_key,
+            "heavy_key": self.heavy_key,
+            "relative_volatility": self.relative_volatility,
+            "feed_light_mole_fraction": self.feed_light_mole_fraction,
+            "distillate_light_mole_fraction": self.distillate_light_mole_fraction,
+            "bottoms_light_mole_fraction": self.bottoms_light_mole_fraction,
+            "reflux_ratio": self.reflux_ratio,
+            "stage_efficiency": self.stage_efficiency,
+            "feed_quality": self.feed_quality,
+            "pressure_top_Pa": self.pressure_top_Pa,
+            "pressure_bottom_Pa": self.pressure_bottom_Pa,
+            "provenance_id": self.provenance_id,
+            "provenance_note": self.provenance_note,
+        }
+
+
+@dataclass(frozen=True)
+class FUGDistillationReport:
+    model_id: str
+    light_key: str
+    heavy_key: str
+    relative_volatility: float
+    feed_light_mole_fraction: float
+    distillate_light_mole_fraction: float
+    bottoms_light_mole_fraction: float
+    minimum_stages: float
+    underwood_theta: float
+    minimum_reflux_ratio: float
+    reflux_ratio: float
+    gilliland_x: float
+    gilliland_y: float
+    theoretical_stages: float
+    actual_trays: int
+    feed_stage_from_top: int
+    rectifying_stages: float
+    stripping_stages: float
+    stage_efficiency: float
+    pressure_top_Pa: float
+    pressure_bottom_Pa: float | None
+    pressure_drop_fraction: float
+    warnings: tuple[str, ...]
+    provenance_id: str
+    provenance_note: str
+
+    def __post_init__(self) -> None:
+        if self.minimum_stages <= 0.0:
+            raise ValueError("minimum_stages must be positive")
+        if self.minimum_reflux_ratio <= 0.0:
+            raise ValueError("minimum_reflux_ratio must be positive")
+        if self.reflux_ratio <= self.minimum_reflux_ratio:
+            raise ValueError("reflux_ratio must exceed minimum_reflux_ratio")
+        if self.theoretical_stages <= self.minimum_stages:
+            raise ValueError("theoretical_stages must exceed minimum_stages")
+        if self.actual_trays <= 0:
+            raise ValueError("actual_trays must be positive")
+        if not 1 <= self.feed_stage_from_top <= self.actual_trays:
+            raise ValueError("feed_stage_from_top must fall within actual_trays")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "model_id": self.model_id,
+            "light_key": self.light_key,
+            "heavy_key": self.heavy_key,
+            "relative_volatility": self.relative_volatility,
+            "feed_light_mole_fraction": self.feed_light_mole_fraction,
+            "distillate_light_mole_fraction": self.distillate_light_mole_fraction,
+            "bottoms_light_mole_fraction": self.bottoms_light_mole_fraction,
+            "minimum_stages": self.minimum_stages,
+            "underwood_theta": self.underwood_theta,
+            "minimum_reflux_ratio": self.minimum_reflux_ratio,
+            "reflux_ratio": self.reflux_ratio,
+            "gilliland_x": self.gilliland_x,
+            "gilliland_y": self.gilliland_y,
+            "theoretical_stages": self.theoretical_stages,
+            "actual_trays": self.actual_trays,
+            "feed_stage_from_top": self.feed_stage_from_top,
+            "rectifying_stages": self.rectifying_stages,
+            "stripping_stages": self.stripping_stages,
+            "stage_efficiency": self.stage_efficiency,
+            "pressure_top_Pa": self.pressure_top_Pa,
+            "pressure_bottom_Pa": self.pressure_bottom_Pa,
+            "pressure_drop_fraction": self.pressure_drop_fraction,
+            "warnings": list(self.warnings),
+            "provenance_id": self.provenance_id,
+            "provenance_note": self.provenance_note,
+        }
+
+
+def fenske_minimum_stages(
+    *,
+    relative_volatility: float,
+    distillate_light_mole_fraction: float,
+    bottoms_light_mole_fraction: float,
+) -> float:
+    """Return the total-reflux binary Fenske minimum equilibrium stages."""
+
+    _validate_positive_finite(relative_volatility, "relative_volatility")
+    if relative_volatility <= 1.0:
+        raise ValueError("relative_volatility must be greater than 1")
+    _validate_open_fraction(distillate_light_mole_fraction, "distillate_light_mole_fraction")
+    _validate_open_fraction(bottoms_light_mole_fraction, "bottoms_light_mole_fraction")
+    if distillate_light_mole_fraction <= bottoms_light_mole_fraction:
+        raise ValueError("distillate_light_mole_fraction must exceed bottoms_light_mole_fraction")
+    light_distillate_odds = distillate_light_mole_fraction / (
+        1.0 - distillate_light_mole_fraction
+    )
+    light_bottoms_odds = bottoms_light_mole_fraction / (1.0 - bottoms_light_mole_fraction)
+    return log(light_distillate_odds / light_bottoms_odds) / log(relative_volatility)
+
+
+def underwood_minimum_reflux_binary(
+    *,
+    relative_volatility: float,
+    feed_light_mole_fraction: float,
+    distillate_light_mole_fraction: float,
+    feed_quality: float = 1.0,
+) -> tuple[float, float]:
+    """Solve binary Underwood theta and minimum reflux for q=1 feed."""
+
+    _validate_positive_finite(relative_volatility, "relative_volatility")
+    if relative_volatility <= 1.0:
+        raise ValueError("relative_volatility must be greater than 1")
+    _validate_open_fraction(feed_light_mole_fraction, "feed_light_mole_fraction")
+    _validate_open_fraction(distillate_light_mole_fraction, "distillate_light_mole_fraction")
+    if abs(feed_quality - 1.0) > 1e-12:
+        raise ValueError("only saturated-liquid binary feed_quality=1 is supported")
+
+    alpha = relative_volatility
+    z_light = feed_light_mole_fraction
+    z_heavy = 1.0 - z_light
+
+    def underwood_residual(theta: float) -> float:
+        return alpha * z_light / (alpha - theta) + z_heavy / (1.0 - theta)
+
+    low = 1.0 + 1e-12
+    high = alpha - 1e-12
+    f_low = underwood_residual(low)
+    f_high = underwood_residual(high)
+    if not (isfinite(f_low) and isfinite(f_high)) or f_low * f_high > 0.0:
+        raise ValueError("failed to bracket binary Underwood root")
+    for _ in range(200):
+        mid = 0.5 * (low + high)
+        f_mid = underwood_residual(mid)
+        if abs(f_mid) < 1e-13:
+            low = high = mid
+            break
+        if f_low * f_mid <= 0.0:
+            high = mid
+        else:
+            low = mid
+            f_low = f_mid
+    theta = 0.5 * (low + high)
+    x_distillate_light = distillate_light_mole_fraction
+    x_distillate_heavy = 1.0 - x_distillate_light
+    reflux_plus_one = (
+        alpha * x_distillate_light / (alpha - theta)
+        + x_distillate_heavy / (1.0 - theta)
+    )
+    minimum_reflux_ratio = reflux_plus_one - 1.0
+    if minimum_reflux_ratio <= 0.0 or not isfinite(minimum_reflux_ratio):
+        raise ValueError("minimum reflux ratio is not physically positive")
+    return theta, minimum_reflux_ratio
+
+
+def gilliland_eduljee_stage_estimate(
+    *,
+    minimum_stages: float,
+    minimum_reflux_ratio: float,
+    reflux_ratio: float,
+) -> tuple[float, float, float]:
+    """Estimate theoretical stages with Eduljee's explicit Gilliland fit."""
+
+    _validate_positive_finite(minimum_stages, "minimum_stages")
+    _validate_positive_finite(minimum_reflux_ratio, "minimum_reflux_ratio")
+    _validate_positive_finite(reflux_ratio, "reflux_ratio")
+    if reflux_ratio <= minimum_reflux_ratio:
+        raise ValueError("reflux_ratio must exceed minimum reflux ratio")
+    gilliland_x = (reflux_ratio - minimum_reflux_ratio) / (reflux_ratio + 1.0)
+    if not 0.0 < gilliland_x < 1.0:
+        raise ValueError("Gilliland X must be inside (0, 1)")
+    exponent = (
+        (1.0 + 54.4 * gilliland_x)
+        / (11.0 + 117.2 * gilliland_x)
+        * ((gilliland_x - 1.0) / sqrt(gilliland_x))
+    )
+    gilliland_y = 1.0 - exp(exponent)
+    gilliland_y = min(max(gilliland_y, 0.0), 1.0 - 1e-12)
+    theoretical_stages = (minimum_stages + gilliland_y) / (1.0 - gilliland_y)
+    if theoretical_stages <= minimum_stages or not isfinite(theoretical_stages):
+        raise ValueError("Gilliland estimate produced invalid stage count")
+    return gilliland_x, gilliland_y, theoretical_stages
+
+
+def fenske_underwood_gilliland_sizing(spec: FUGDistillationSpec) -> FUGDistillationReport:
+    """Size a binary distillation shortcut with explicit FUG assumptions."""
+
+    minimum_stages = fenske_minimum_stages(
+        relative_volatility=spec.relative_volatility,
+        distillate_light_mole_fraction=spec.distillate_light_mole_fraction,
+        bottoms_light_mole_fraction=spec.bottoms_light_mole_fraction,
+    )
+    theta, minimum_reflux_ratio = underwood_minimum_reflux_binary(
+        relative_volatility=spec.relative_volatility,
+        feed_light_mole_fraction=spec.feed_light_mole_fraction,
+        distillate_light_mole_fraction=spec.distillate_light_mole_fraction,
+        feed_quality=spec.feed_quality,
+    )
+    gilliland_x, gilliland_y, theoretical_stages = gilliland_eduljee_stage_estimate(
+        minimum_stages=minimum_stages,
+        minimum_reflux_ratio=minimum_reflux_ratio,
+        reflux_ratio=spec.reflux_ratio,
+    )
+    actual_trays = max(1, ceil(theoretical_stages / spec.stage_efficiency))
+    rectifying_min, stripping_min = _binary_stage_split_estimate(
+        relative_volatility=spec.relative_volatility,
+        feed_light_mole_fraction=spec.feed_light_mole_fraction,
+        distillate_light_mole_fraction=spec.distillate_light_mole_fraction,
+        bottoms_light_mole_fraction=spec.bottoms_light_mole_fraction,
+    )
+    split_total = rectifying_min + stripping_min
+    rectifying_fraction = 0.5 if split_total <= 0.0 else rectifying_min / split_total
+    rectifying_stages = max(1.0, theoretical_stages * rectifying_fraction)
+    stripping_stages = max(1.0, theoretical_stages - rectifying_stages)
+    feed_stage_from_top = min(max(1, ceil(rectifying_stages + 1.0)), actual_trays)
+
+    pressure_drop_fraction = 0.0
+    if spec.pressure_bottom_Pa is not None:
+        pressure_drop_fraction = abs(spec.pressure_bottom_Pa - spec.pressure_top_Pa) / (
+            spec.pressure_top_Pa
+        )
+    warnings: list[str] = []
+    if pressure_drop_fraction > 0.10:
+        warnings.append("pressure_profile_may_change_relative_volatility")
+    if spec.reflux_ratio < 1.10 * minimum_reflux_ratio:
+        warnings.append("near_minimum_reflux_high_stage_count")
+    if actual_trays > 2.0 * theoretical_stages:
+        warnings.append("low_stage_efficiency_inflates_actual_tray_count")
+
+    return FUGDistillationReport(
+        model_id="fenske_underwood_gilliland_sizing",
+        light_key=spec.light_key,
+        heavy_key=spec.heavy_key,
+        relative_volatility=spec.relative_volatility,
+        feed_light_mole_fraction=spec.feed_light_mole_fraction,
+        distillate_light_mole_fraction=spec.distillate_light_mole_fraction,
+        bottoms_light_mole_fraction=spec.bottoms_light_mole_fraction,
+        minimum_stages=minimum_stages,
+        underwood_theta=theta,
+        minimum_reflux_ratio=minimum_reflux_ratio,
+        reflux_ratio=spec.reflux_ratio,
+        gilliland_x=gilliland_x,
+        gilliland_y=gilliland_y,
+        theoretical_stages=theoretical_stages,
+        actual_trays=actual_trays,
+        feed_stage_from_top=feed_stage_from_top,
+        rectifying_stages=rectifying_stages,
+        stripping_stages=stripping_stages,
+        stage_efficiency=spec.stage_efficiency,
+        pressure_top_Pa=spec.pressure_top_Pa,
+        pressure_bottom_Pa=spec.pressure_bottom_Pa,
+        pressure_drop_fraction=pressure_drop_fraction,
+        warnings=tuple(warnings),
+        provenance_id=spec.provenance_id,
+        provenance_note=spec.provenance_note,
+    )
 
 
 def liquid_liquid_extraction(
@@ -440,13 +767,115 @@ def separation_model_cards() -> tuple[ModelCard, ...]:
             model_limit_notes=(
                 "This is a professional shortcut slice for benchmark tasks, "
                 "not a replacement for rigorous IDAES column MESH models.",
-                "Azeotrope detection, Underwood/Gilliland sizing, tray "
-                "hydraulics, pressure-drop profiles, and column costing remain open work.",
+                "Azeotrope detection, tray hydraulics, rigorous pressure-drop "
+                "profiles, and column costing remain open work.",
             ),
             intended_use=(
                 "reaction-to-purification task kernels",
                 "purity/recovery/cost tradeoff benchmark cases",
                 "agent planning tasks that need interpretable VLE-coupled separation behavior",
+            ),
+        ),
+        ModelCard(
+            model_id="fenske_underwood_gilliland_sizing",
+            module_id="separations",
+            title="Binary Fenske-Underwood-Gilliland Distillation Sizing",
+            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            summary=(
+                "Binary shortcut column-sizing report that combines Fenske "
+                "minimum stages, Underwood minimum reflux for a saturated "
+                "liquid feed, and Eduljee's explicit Gilliland correlation."
+            ),
+            equations=(
+                "N_min = ln[(xD_LK/xD_HK)(xB_HK/xB_LK)] / ln(alpha_LK,HK)",
+                "Underwood root: sum_i alpha_i z_i/(alpha_i - theta) = 1 - q, with q = 1",
+                "Underwood reflux: R_min + 1 = sum_i alpha_i xD_i/(alpha_i - theta)",
+                "X = (R - R_min)/(R + 1)",
+                "Y = (N - N_min)/(N + 1)",
+                "Y = 1 - exp[((1 + 54.4 X)/(11 + 117.2 X))((X - 1)/sqrt(X))]",
+            ),
+            assumptions=(
+                "binary light-key/heavy-key separation",
+                "constant relative volatility supplied by the caller",
+                "saturated liquid feed with q = 1",
+                "total-condenser shortcut semantics and no tray hydraulics",
+                "feed-stage estimate is a Fenske-style composition-distance heuristic",
+            ),
+            validity_limits=(
+                "relative volatility must be greater than one",
+                "bottoms_light < feed_light < distillate_light",
+                "reflux ratio must exceed the calculated Underwood minimum",
+                "pressure profile is only reported as a warning and does not update alpha",
+                "not valid for azeotropes, multicomponent key distribution, or reactive columns",
+            ),
+            failure_modes=(
+                "missing provenance raises a validation error",
+                "invalid mole fractions, pressure, alpha, or stage efficiency fail early",
+                "reflux below minimum fails instead of returning an infinite-stage proxy",
+                "unsupported feed_quality values fail instead of silently using q=1 equations",
+            ),
+            units={
+                "pressure": "Pa",
+                "relative_volatility": "dimensionless",
+                "mole_fraction": "dimensionless",
+                "reflux_ratio": "dimensionless",
+                "stage_count": "dimensionless",
+            },
+            reference_reading=(
+                (
+                    "IDAES tray_column.py configures rigorous columns around "
+                    "number_of_trays, feed_tray_location, condenser/reboiler "
+                    "blocks, optional heat transfer, pressure change, and a "
+                    "property_package; ChemWorld's report exposes the analogous "
+                    "sizing fields without pretending to solve MESH equations."
+                ),
+                (
+                    "IDAES condenser.py defines a reflux_ratio split fraction "
+                    "R/(1+R), reinforcing that reflux is a first-class column "
+                    "contract rather than a hidden score multiplier."
+                ),
+                (
+                    "IDAES reboiler.py exposes heat duty, pressure-change hooks, "
+                    "and optional boilup ratio; ChemWorld records pressure "
+                    "warnings now and leaves rigorous boilup for D7/MESH work."
+                ),
+                (
+                    "thermo README shows flash/property-package workflows built "
+                    "from constants, correlations, phase models, and result "
+                    "objects; ChemWorld keeps alpha/provenance explicit here."
+                ),
+                (
+                    "phasepy.equilibrium.flash uses K-values, Rachford-Rice, "
+                    "and Gibbs fallback for real flash problems; this shortcut "
+                    "sizing report deliberately remains a binary column design slice."
+                ),
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="fug-binary-stage-sizing",
+                    evidence_type="unit_test",
+                    description=(
+                        "Tests validate Fenske analytical stage counts, "
+                        "Underwood minimum reflux, Gilliland monotonicity with "
+                        "reflux ratio, feed-stage bounds, pressure warnings, "
+                        "and failure cases."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_separations.py",
+                    tolerance="pytest.approx local tolerances",
+                ),
+            ),
+            model_limit_notes=(
+                "This is a professional shortcut sizing layer, not a rigorous "
+                "rate-based or equilibrium-stage column solve.",
+                "Multicomponent Underwood roots, Murphree efficiency profiles, "
+                "boilup calculation, hydraulics, flooding, weeping, pressure "
+                "drop integration, and column costing remain open deepening work.",
+            ),
+            intended_use=(
+                "distillation task planning and report generation",
+                "purification task model cards that need explicit reflux/stage assumptions",
+                "agent explanations comparing high purity, reflux cost, and tray count",
             ),
         ),
     )
@@ -702,6 +1131,24 @@ def _observed_fenske_stage_count(
     return log(light_distribution / heavy_distribution) / log(key_alpha)
 
 
+def _binary_stage_split_estimate(
+    *,
+    relative_volatility: float,
+    feed_light_mole_fraction: float,
+    distillate_light_mole_fraction: float,
+    bottoms_light_mole_fraction: float,
+) -> tuple[float, float]:
+    feed_odds = feed_light_mole_fraction / (1.0 - feed_light_mole_fraction)
+    distillate_odds = distillate_light_mole_fraction / (
+        1.0 - distillate_light_mole_fraction
+    )
+    bottoms_odds = bottoms_light_mole_fraction / (1.0 - bottoms_light_mole_fraction)
+    ln_alpha = log(relative_volatility)
+    rectifying_min = max(log(distillate_odds / feed_odds) / ln_alpha, 0.0)
+    stripping_min = max(log(feed_odds / bottoms_odds) / ln_alpha, 0.0)
+    return rectifying_min, stripping_min
+
+
 def _flash_amount_split(
     feed: Mapping[str, float],
     k_values: Mapping[str, float],
@@ -751,6 +1198,16 @@ def _validate_positive_mapping(
             raise ValueError(f"{value_name} values must be finite and positive")
 
 
+def _validate_positive_finite(value: float, name: str) -> None:
+    if value <= 0.0 or not isfinite(value):
+        raise ValueError(f"{name} must be finite and positive")
+
+
+def _validate_open_fraction(value: float, name: str) -> None:
+    if not 0.0 < value < 1.0 or not isfinite(value):
+        raise ValueError(f"{name} must be a finite fraction inside (0, 1)")
+
+
 def _add_amounts(left: Mapping[str, float], right: Mapping[str, float]) -> dict[str, float]:
     result = dict(left)
     for component_id, amount in right.items():
@@ -791,14 +1248,20 @@ def _clip01(value: float) -> float:
 
 
 __all__ = [
+    "FUGDistillationReport",
+    "FUGDistillationSpec",
     "SeparationLedger",
     "SeparationResult",
     "crystallize",
     "downstream_score",
     "dry_solid",
     "evaporation_flash",
+    "fenske_minimum_stages",
+    "fenske_underwood_gilliland_sizing",
     "filter_cake",
+    "gilliland_eduljee_stage_estimate",
     "liquid_liquid_extraction",
     "separation_model_cards",
+    "underwood_minimum_reflux_binary",
     "vle_shortcut_distillation",
 ]

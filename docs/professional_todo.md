@@ -362,8 +362,24 @@ shortcut slice:
   failure modes, inspected IDAES/thermo/phasepy references, and analytical
   validation evidence.
 - This is still a shortcut column model, not a rigorous MESH tray-by-tray
-  solver with pressure profile, hydraulics, Underwood/Gilliland sizing, or
+  solver with integrated pressure profile, hydraulics, boilup calculation, or
   azeotrope detection.
+
+DEEP-D7B is now implemented for binary Fenske-Underwood-Gilliland distillation
+sizing:
+
+- `FUGDistillationSpec` declares light/heavy keys, constant relative
+  volatility, feed/distillate/bottoms compositions, reflux ratio, stage
+  efficiency, top/bottom pressure, feed quality, and provenance.
+- `fenske_underwood_gilliland_sizing()` reports Fenske minimum stages,
+  Underwood theta and minimum reflux for a saturated-liquid binary feed,
+  Eduljee/Gilliland theoretical stages, actual tray count, feed-stage estimate,
+  pressure-profile warnings, and model-card provenance.
+- Invalid alpha, impossible product compositions, missing provenance, nonpositive
+  pressure, unsupported feed quality, and reflux below `R_min` fail early.
+- This closes FUG shortcut sizing only; MESH-lite tray balances, Murphree
+  profiles, boilup, hydraulics, pressure-drop integration, column costing, and
+  multicomponent/azeotrope handling remain open D7 work.
 
 PRO-P10A is now implemented for the UV-vis analytical calibration slice:
 

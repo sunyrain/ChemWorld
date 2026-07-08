@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+from math import ceil, log
+
 import pytest
 
 from chemworld.physchem import (
+    FUGDistillationSpec,
     crystallize,
     downstream_score,
     dry_solid,
     evaporation_flash,
+    fenske_underwood_gilliland_sizing,
     filter_cake,
     liquid_liquid_extraction,
     separation_model_cards,
@@ -133,15 +137,140 @@ def test_vle_shortcut_distillation_handles_multicomponent_keys() -> None:
     assert result.ledger.material_balance_error_mol < 1e-12
 
 
-def test_separation_model_cards_document_vle_shortcut_distillation() -> None:
-    card = next(
-        card for card in separation_model_cards() if card.model_id == "vle_shortcut_distillation"
+def test_fug_distillation_sizing_reports_stage_and_reflux_contract() -> None:
+    spec = FUGDistillationSpec(
+        light_key="benzene",
+        heavy_key="toluene",
+        relative_volatility=2.4,
+        feed_light_mole_fraction=0.50,
+        distillate_light_mole_fraction=0.95,
+        bottoms_light_mole_fraction=0.05,
+        reflux_ratio=2.0,
+        stage_efficiency=0.72,
+        pressure_top_Pa=101_325.0,
+        pressure_bottom_Pa=121_325.0,
+        provenance_id="local-btx-shortcut",
+        provenance_note="synthetic benzene/toluene-style constant alpha sanity case",
     )
+    report = fenske_underwood_gilliland_sizing(spec)
+
+    expected_nmin = log((0.95 / 0.05) * (0.95 / 0.05)) / log(2.4)
+    assert report.minimum_stages == pytest.approx(expected_nmin)
+    assert 1.0 < report.underwood_theta < spec.relative_volatility
+    assert report.minimum_reflux_ratio > 0.0
+    assert report.reflux_ratio > report.minimum_reflux_ratio
+    assert report.theoretical_stages > report.minimum_stages
+    assert report.actual_trays == ceil(report.theoretical_stages / spec.stage_efficiency)
+    assert 1 <= report.feed_stage_from_top <= report.actual_trays
+    assert "pressure_profile_may_change_relative_volatility" in report.warnings
+    assert report.to_dict()["provenance_id"] == "local-btx-shortcut"
+
+
+def test_fug_distillation_stage_count_decreases_with_reflux_ratio() -> None:
+    base = FUGDistillationSpec(
+        light_key="light",
+        heavy_key="heavy",
+        relative_volatility=2.2,
+        feed_light_mole_fraction=0.45,
+        distillate_light_mole_fraction=0.93,
+        bottoms_light_mole_fraction=0.06,
+        reflux_ratio=2.0,
+        stage_efficiency=0.85,
+        provenance_id="local-binary-alpha",
+    )
+    reference = fenske_underwood_gilliland_sizing(base)
+    low_reflux = fenske_underwood_gilliland_sizing(
+        FUGDistillationSpec(
+            light_key=base.light_key,
+            heavy_key=base.heavy_key,
+            relative_volatility=base.relative_volatility,
+            feed_light_mole_fraction=base.feed_light_mole_fraction,
+            distillate_light_mole_fraction=base.distillate_light_mole_fraction,
+            bottoms_light_mole_fraction=base.bottoms_light_mole_fraction,
+            reflux_ratio=reference.minimum_reflux_ratio * 1.2,
+            stage_efficiency=base.stage_efficiency,
+            provenance_id=base.provenance_id,
+        )
+    )
+    high_reflux = fenske_underwood_gilliland_sizing(
+        FUGDistillationSpec(
+            light_key=base.light_key,
+            heavy_key=base.heavy_key,
+            relative_volatility=base.relative_volatility,
+            feed_light_mole_fraction=base.feed_light_mole_fraction,
+            distillate_light_mole_fraction=base.distillate_light_mole_fraction,
+            bottoms_light_mole_fraction=base.bottoms_light_mole_fraction,
+            reflux_ratio=reference.minimum_reflux_ratio * 3.0,
+            stage_efficiency=base.stage_efficiency,
+            provenance_id=base.provenance_id,
+        )
+    )
+
+    assert high_reflux.theoretical_stages < low_reflux.theoretical_stages
+    assert high_reflux.actual_trays <= low_reflux.actual_trays
+
+
+def test_fug_distillation_validation_fails_on_invalid_design_contracts() -> None:
+    with pytest.raises(ValueError, match="relative_volatility"):
+        FUGDistillationSpec(
+            light_key="light",
+            heavy_key="heavy",
+            relative_volatility=1.0,
+            feed_light_mole_fraction=0.5,
+            distillate_light_mole_fraction=0.95,
+            bottoms_light_mole_fraction=0.05,
+            reflux_ratio=2.0,
+            provenance_id="bad-alpha",
+        )
+    with pytest.raises(ValueError, match="bottoms_light < feed_light < distillate_light"):
+        FUGDistillationSpec(
+            light_key="light",
+            heavy_key="heavy",
+            relative_volatility=2.0,
+            feed_light_mole_fraction=0.5,
+            distillate_light_mole_fraction=0.45,
+            bottoms_light_mole_fraction=0.05,
+            reflux_ratio=2.0,
+            provenance_id="bad-split",
+        )
+    with pytest.raises(ValueError, match="provenance_id"):
+        FUGDistillationSpec(
+            light_key="light",
+            heavy_key="heavy",
+            relative_volatility=2.0,
+            feed_light_mole_fraction=0.5,
+            distillate_light_mole_fraction=0.95,
+            bottoms_light_mole_fraction=0.05,
+            reflux_ratio=2.0,
+        )
+    with pytest.raises(ValueError, match="minimum reflux"):
+        fenske_underwood_gilliland_sizing(
+            FUGDistillationSpec(
+                light_key="light",
+                heavy_key="heavy",
+                relative_volatility=2.0,
+                feed_light_mole_fraction=0.5,
+                distillate_light_mole_fraction=0.95,
+                bottoms_light_mole_fraction=0.05,
+                reflux_ratio=0.1,
+                provenance_id="below-rmin",
+            )
+        )
+
+
+def test_separation_model_cards_document_vle_shortcut_distillation() -> None:
+    cards = {card.model_id: card for card in separation_model_cards()}
+    card = cards["vle_shortcut_distillation"]
     assert card.maturity.value == "reference_validated"
     assert validate_model_card(card) == []
     assert any("IDAES" in note for note in card.reference_reading)
     assert any("thermo" in note for note in card.reference_reading)
     assert any("phasepy" in note for note in card.reference_reading)
+    fug_card = cards["fenske_underwood_gilliland_sizing"]
+    assert fug_card.maturity.value == "professional_candidate"
+    assert validate_model_card(fug_card) == []
+    assert any("Underwood" in equation for equation in fug_card.equations)
+    assert any("IDAES tray_column.py" in note for note in fug_card.reference_reading)
 
 
 def test_crystallization_and_filtration_reduce_impurity_with_tradeoff() -> None:

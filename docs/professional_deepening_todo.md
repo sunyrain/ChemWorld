@@ -37,7 +37,7 @@ with proxies and then call them professional.
 | `DEEP-D2C` | whilesunny | Done | Density and molar-volume package with Rackett liquid volume, ideal/virial gas hooks, mixture specific-volume ledgers, compressibility warnings, tests, model card, and provenance. |
 | `DEEP-D2D` | whilesunny | Done | Transport-property package with liquid/gas viscosity reports, DIPPR9B gas conductivity, DIPPR9H liquid-mixture conductivity, Wilke gas-mixture viscosity, Fuller gas diffusivity estimates, thermal diffusivity, uncertainty/validity metadata, tests, model card, and provenance. |
 | `DEEP-D3A` | whilesunny | Done | Volume-translated cubic EOS and root-governance diagnostics with translated molar-volume reports, stable-root policy evidence, binary-interaction provenance, tests, model card, and docs. |
-| `DEEP-D7B` | whilesunny | Claimed | Fenske-Underwood-Gilliland distillation sizing with minimum stages, minimum reflux, Gilliland/Eduljee stage estimate, feed-stage estimate, pressure-profile warnings, tests, model card, and docs. |
+| `DEEP-D7B` | whilesunny | Done | Fenske-Underwood-Gilliland distillation sizing with minimum stages, minimum reflux, Gilliland/Eduljee stage estimate, feed-stage estimate, pressure-profile warnings, tests, model card, and docs. |
 | `DEEP-D1A` | liyijun | Claimed | Component identity registry with aliases, checksum-validated CAS, InChIKey-style identifiers where licensing permits, curated provenance, duplicate-identity checks, JSON round-trips, and task/property lookup integration. |
 | `DEEP-D1B` | liyijun | Claimed | Unit-dimension checker with canonical dimensions for amount, mass, volume, temperature, pressure, energy, power, viscosity, diffusivity, conductivity, and instrument response, plus compatibility tests before kernels run. |
 | `DEEP-D1C` | liyijun | Claimed | Data conflict policy with source-priority, uncertainty-aware warning versus hard-fail modes, unit compatibility checks, JSON-friendly resolution reports, and curated registry provenance. |
@@ -67,6 +67,7 @@ Do not start these until the current twelve-slice batch is complete.
 2. `DEEP-D2B`: heat-capacity/enthalpy package with reactor energy integration.
    Done.
 3. `DEEP-D7B`: Fenske-Underwood-Gilliland distillation sizing.
+   Done.
 4. `DEEP-D6A`: dynamic batch reactor with heat release and jacket control.
    Done.
 5. `DEEP-D9B`: IR functional-group spectrum slice.
