@@ -46,6 +46,9 @@ Current scope:
   uncertainty, and model-card evidence.
 - mechanism-backed reactor kernels for batch, semi-batch, CSTR, and PFR
   calculations with material and energy ledgers.
+- dynamic batch reactor heat-release/sampling slice with NASA7 reaction
+  enthalpy coupling, step/linear jacket temperature programs, destructive
+  sampling events, and material/energy ledger evidence.
 - an exothermic CSTR multiple-steady-state reference case with analytical
   energy-balance roots, stability classification, and a reactor model card.
 - local equation-of-state calculations for ideal gas, Peng-Robinson, and SRK

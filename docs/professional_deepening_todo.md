@@ -28,7 +28,7 @@ with proxies and then call them professional.
 
 | ID | Owner | Status | Scope |
 | --- | --- | --- | --- |
-| `DEEP-D6A` | whilesunny | Claimed | Dynamic batch reactor with reaction heat release, jacket control, variable-volume sampling losses, event-driven reset policy, tests, model card, docs, and task integration. |
+| `DEEP-D6A` | whilesunny | Done | Dynamic batch reactor with NASA7 reaction heat release, jacket control, variable-volume destructive sampling losses, material/energy ledgers, tests, model card, docs, and public reactor API integration. |
 
 ## Module Families
 
@@ -54,6 +54,7 @@ Do not start these until the current twelve-slice batch is complete.
 2. `DEEP-D2B`: heat-capacity/enthalpy package with reactor energy integration.
 3. `DEEP-D7B`: Fenske-Underwood-Gilliland distillation sizing.
 4. `DEEP-D6A`: dynamic batch reactor with heat release and jacket control.
+   Done.
 5. `DEEP-D9B`: IR functional-group spectrum slice.
 6. `DEEP-D10A`: benchmark model-maturity gate.
 7. `DEEP-D8A`: phase-change and equipment heat transfer beyond the completed

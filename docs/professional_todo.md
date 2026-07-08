@@ -199,8 +199,9 @@ PRO-P5C is now implemented for thermochemistry-coupled reversible kinetics:
   long-time ODE convergence to the NASA7 equilibrium ratio, missing
   thermochemistry failure, and non-equal-molecularity concentration-standard
   correction.
-- This is not a full pressure-dependent, falloff, or heat-release-coupled
-  reactor model. Reaction enthalpy still needs a separate reactor-energy slice.
+- This is not a full pressure-dependent, falloff, gas-expansion, or
+  pressure-dependent reactor model. DEEP-D6A wires reaction enthalpy into a
+  constant-density dynamic batch energy-balance slice.
 
 PRO-P6A is now implemented for the first reference-validated reactor
 multiplicity slice:
@@ -218,6 +219,28 @@ multiplicity slice:
   inspected Cantera/IDAES references, and analytical validation evidence.
 - This closes a narrow professional slice for multiple steady states. It does
   not claim full Cantera reactor-network parity or IDAES process-model parity.
+
+DEEP-D6A is now implemented for the dynamic batch heat-release and sampling
+slice:
+
+- `DynamicBatchReactorModel` integrates species and temperature trajectories
+  for a constant-density batch reactor.
+- The energy equation is
+  `rhoCp V dT/dt = Q_jacket - Q_loss - sum_i DeltaH_i(T) r_i V`.
+- If NASA7 species thermochemistry is supplied, reaction heat comes from
+  `reaction_thermochemistry()` at the current temperature; otherwise the local
+  reaction `delta_h_J_per_mol` field is used.
+- `JacketTemperatureProgram` supports step or linear jacket setpoints over
+  time.
+- `SamplingEventSpec` removes a well-mixed destructive sample, reduces volume,
+  records `material_out_mol`, and preserves element material balance.
+- `reactor_model_cards()` now includes
+  `dynamic_batch_heat_release_jacket_sampling` with equations, assumptions,
+  validity limits, failure modes, Cantera/IDAES reference reading, and test
+  evidence.
+- This closes the dynamic constant-density batch heat-release/sampling slice,
+  not constant-pressure expansion, gas-phase work, wall thermal inertia,
+  vapor-liquid phase change, or full process-control dynamics.
 
 PRO-P7A is now implemented for the first reference-validated distillation
 shortcut slice:

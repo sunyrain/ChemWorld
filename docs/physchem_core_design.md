@@ -452,6 +452,7 @@ and energy ledgers:
 | Reactor model | Current implementation |
 | --- | --- |
 | Batch reactor | constant-volume mole balance, optional jacket heat, heat loss, reaction heat |
+| Dynamic batch reactor | thermochemistry-coupled reaction heat, time-dependent jacket setpoints, destructive sampling events, material/energy ledgers |
 | Semi-batch reactor | scheduled feeds, variable volume, feed heat, material-in ledger |
 | CSTR | dynamic well-mixed tank with inlet/outlet flows and steady-state integration helper |
 | PFR | steady plug-flow model integrated over residence time |
@@ -490,6 +491,27 @@ residual, dynamic-Jacobian eigenvalues, and a stable/unstable/marginal label.
 The model card exposed through `reactor_model_cards()` records the inspected
 Cantera stirred-reactor examples and IDAES CSTR control-volume contract. This
 is a deliberately narrow professional slice, not a full Cantera or IDAES clone.
+
+DEEP-D6A adds the first dynamic batch reactor deepening slice. The public
+`DynamicBatchReactorModel` integrates:
+
+```text
+dn/dt = S r(n, T)
+rhoCp V dT/dt = Q_jacket - Q_loss - sum_i DeltaH_i(T) r_i V
+Q_jacket = UA_jacket (T_jacket(t) - T) + Q_fixed
+Q_loss = UA_env (T - T_env)
+```
+
+If NASA7 species thermochemistry is supplied, reaction enthalpies are evaluated
+from species enthalpies at the current temperature; otherwise the declared
+reaction `delta_h_J_per_mol` is used. `JacketTemperatureProgram` supports step
+or linear time-dependent jacket setpoints, and `SamplingEventSpec` removes a
+well-mixed sample fraction while recording `material_out_mol` and the
+post-sample volume ledger. Tests cover adiabatic temperature rise from NASA7
+reaction enthalpy, jacket heating energy, destructive sampling, and model-card
+validation. This is still a constant-density liquid-phase batch slice: no
+constant-pressure expansion, gas work, pressure dynamics, wall thermal inertia,
+or VLE phase change is claimed.
 
 ## Equation-Of-State Core
 

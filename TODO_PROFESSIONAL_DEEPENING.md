@@ -50,7 +50,7 @@ Last push:
 
 | ID | Owner | Status | Reference targets | Equations or algorithms | Data/provenance requirement | Validation cases | Failure modes | Code areas | Benchmark/task integration | Exit criteria | Last push |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| DEEP-D6A | whilesunny | Claimed | Cantera constant-volume/constant-pressure reactor energy equations, IDAES control-volume energy-balance docs, existing ChemWorld reactor and thermochemistry kernels | dynamic batch material balance, reaction enthalpy heat release, jacket heat transfer, variable-volume sampling loss, event-driven campaign reset policy | reuse local NASA7 species thermochemistry and model-card provenance; no copied reference code | adiabatic temperature rise, cooled reactor energy ledger, sampling mass loss, replay-safe event handling | negative volume/amount, impossible heat capacity, missing thermochemistry, solver nonconvergence, unsafe temperature runaway | `src/chemworld/physchem/reactors.py`, `src/chemworld/physchem/reaction_network.py`, `src/chemworld/physchem/thermochemistry.py`, `src/chemworld/core/batch_reactor.py`, tests, docs | dynamic batch task kernels can expose heat-release/jacket/sampling terms without proxy labels | code, tests, model card, docs, reference-reading note, validation examples, task integration | pending push |
+| DEEP-D6A | whilesunny | Done | Cantera constant-volume/constant-pressure reactor energy equations, IDAES control-volume energy-balance docs, existing ChemWorld reactor and thermochemistry kernels | dynamic batch material balance, reaction enthalpy heat release, jacket heat transfer, variable-volume sampling loss, event-driven campaign reset policy | reuse local NASA7 species thermochemistry and model-card provenance; no copied reference code | adiabatic temperature rise, cooled reactor energy ledger, sampling mass loss, replay-safe event handling | negative volume/amount, impossible heat capacity, missing thermochemistry, solver nonconvergence, unsafe temperature runaway | `src/chemworld/physchem/reactors.py`, `src/chemworld/physchem/thermochemistry.py`, `tests/test_reactor_models.py`, docs | dynamic batch task kernels expose heat-release/jacket/sampling terms without proxy labels through public reactor API and model cards | code, tests, model card, docs, reference-reading note, validation examples, task-facing public API | this commit |
 
 ## Module Deepening Map
 
@@ -128,7 +128,7 @@ Last push:
 
 ### D6 Reactors And Process Dynamics
 
-- [ ] `DEEP-D6A` dynamic batch reactor:
+- [x] `DEEP-D6A` dynamic batch reactor:
   heat release, jacket control, variable volume, sampling losses, and
   event-driven campaign reset policy.
 - [ ] `DEEP-D6B` CSTR dynamics:
@@ -223,6 +223,6 @@ Last push:
 ## Activation Checklist
 
 - [x] The first twelve items in `TODO_PROFESSIONAL.md` are complete and pushed.
-- [ ] `docs/professional_deepening_todo.md` is updated from this file.
-- [ ] `TODO_PROFESSIONAL.md` points active developers here.
-- [ ] The first deepening slice is claimed and pushed before implementation.
+- [x] `docs/professional_deepening_todo.md` is updated from this file.
+- [x] `TODO_PROFESSIONAL.md` points active developers here.
+- [x] The first deepening slice is claimed and pushed before implementation.

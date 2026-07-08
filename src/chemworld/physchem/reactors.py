@@ -24,8 +24,13 @@ from chemworld.physchem.reaction_network import (
     ReactionSpec,
     SpeciesSpec,
 )
+from chemworld.physchem.thermochemistry import (
+    NASA7SpeciesThermo,
+    reaction_thermochemistry,
+)
 
 SteadyStateStability = Literal["stable", "unstable", "marginal"]
+JacketInterpolationMode = Literal["step", "linear"]
 
 
 @dataclass(frozen=True)
@@ -55,6 +60,55 @@ class HeatTransferSpec:
 
     def heat_loss_w(self, temperature_K: float) -> float:
         return self.ua_W_per_K * (temperature_K - self.environment_temperature_K)
+
+
+@dataclass(frozen=True)
+class JacketTemperatureProgram:
+    """Time-dependent jacket setpoint for dynamic batch energy balances."""
+
+    setpoints: tuple[tuple[float, float], ...]
+    mode: JacketInterpolationMode = "step"
+
+    def __post_init__(self) -> None:
+        if not self.setpoints:
+            raise ValueError("jacket setpoints cannot be empty")
+        previous_time = -1.0
+        for time_s, temperature_K in self.setpoints:
+            if time_s < 0:
+                raise ValueError("jacket setpoint times cannot be negative")
+            if time_s < previous_time:
+                raise ValueError("jacket setpoints must be sorted by time")
+            if temperature_K <= 0:
+                raise ValueError("jacket setpoint temperatures must be positive")
+            previous_time = time_s
+        if self.mode not in {"step", "linear"}:
+            raise ValueError("jacket program mode must be 'step' or 'linear'")
+
+    def temperature_at(self, time_s: float) -> float:
+        if time_s <= self.setpoints[0][0]:
+            return float(self.setpoints[0][1])
+        for (left_time, left_temperature), (
+            right_time,
+            right_temperature,
+        ) in zip(self.setpoints, self.setpoints[1:], strict=False):
+            if left_time <= time_s <= right_time:
+                if self.mode == "step" or right_time == left_time:
+                    return float(left_temperature)
+                fraction = (time_s - left_time) / (right_time - left_time)
+                return float(
+                    left_temperature
+                    + fraction * (right_temperature - left_temperature)
+                )
+        return float(self.setpoints[-1][1])
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "setpoints": [
+                {"time_s": time_s, "temperature_K": temperature_K}
+                for time_s, temperature_K in self.setpoints
+            ],
+            "mode": self.mode,
+        }
 
 
 @dataclass(frozen=True)
@@ -99,6 +153,30 @@ class SemiBatchFeedSpec:
         if not self.is_active(time_s):
             return 0.0
         return self.stream.volumetric_flow_L_s
+
+
+@dataclass(frozen=True)
+class SamplingEventSpec:
+    """A well-mixed destructive sample removed from a dynamic batch reactor."""
+
+    time_s: float
+    volume_L: float
+    label: str = "sample"
+
+    def __post_init__(self) -> None:
+        if self.time_s < 0:
+            raise ValueError("sampling time_s cannot be negative")
+        if self.volume_L <= 0:
+            raise ValueError("sampling volume_L must be positive")
+        if not self.label.strip():
+            raise ValueError("sampling label cannot be empty")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "time_s": self.time_s,
+            "volume_L": self.volume_L,
+            "label": self.label,
+        }
 
 
 @dataclass(frozen=True)
@@ -446,6 +524,229 @@ class BatchReactorModel:
             rhs=rhs,
             volume_getter=lambda _time_s, _y: volume_L,
             evaluation_times_s=evaluation_times_s,
+        )
+
+
+@dataclass(frozen=True)
+class DynamicBatchReactorModel:
+    """Event-driven batch reactor with thermochemical heat release.
+
+    The model is intentionally compact but follows the professional 0D reactor
+    separation used by Cantera/IDAES: reaction rates update species amounts,
+    reaction enthalpies define heat release, wall/jacket terms define heat
+    exchange, and destructive sampling is an explicit material-out event.
+    """
+
+    network: ReactionNetworkSpec
+    reactor_id: str = "dynamic_batch"
+
+    def simulate(
+        self,
+        initial_amounts_mol: Mapping[str, float],
+        *,
+        initial_volume_L: float,
+        temperature_K: float,
+        duration_s: float,
+        heat_transfer: HeatTransferSpec | None = None,
+        species_thermo: Mapping[str, NASA7SpeciesThermo] | None = None,
+        jacket_program: JacketTemperatureProgram | None = None,
+        sampling_events: Sequence[SamplingEventSpec] = (),
+        evaluation_times_s: Sequence[float] | None = None,
+    ) -> ReactorResult:
+        if duration_s < 0:
+            raise ValueError("duration_s cannot be negative")
+        if initial_volume_L <= 0:
+            raise ValueError("initial_volume_L must be positive")
+        thermal = HeatTransferSpec() if heat_transfer is None else heat_transfer
+        events = tuple(sorted(sampling_events, key=lambda event: event.time_s))
+        if any(event.time_s > duration_s for event in events):
+            raise ValueError("sampling events cannot occur after duration_s")
+        if evaluation_times_s is not None:
+            for time_s in evaluation_times_s:
+                if time_s < 0 or time_s > duration_s:
+                    raise ValueError("evaluation_times_s must lie inside the simulation")
+
+        n_species = len(self.network.species_ids)
+        y_current = np.array(
+            [
+                *_amount_vector(self.network, initial_amounts_mol),
+                temperature_K,
+                0.0,
+                0.0,
+                0.0,
+            ],
+            dtype=float,
+        )
+        current_volume = float(initial_volume_L)
+        current_time = 0.0
+        material_out = dict.fromkeys(self.network.species_ids, 0.0)
+        sample_records: list[dict[str, object]] = []
+        times: list[float] = []
+        states: list[np.ndarray] = []
+        volumes: list[float] = []
+
+        def append_solution(segment: Any) -> None:
+            for idx, time_value in enumerate(segment.t):
+                if times and abs(float(time_value) - times[-1]) < 1e-12:
+                    times[-1] = float(time_value)
+                    states[-1] = np.array(segment.y[:, idx], dtype=float)
+                    volumes[-1] = current_volume
+                else:
+                    times.append(float(time_value))
+                    states.append(np.array(segment.y[:, idx], dtype=float))
+                    volumes.append(current_volume)
+
+        def rhs(time_s: float, y: np.ndarray) -> np.ndarray:
+            amounts = _amounts_from_vector(self.network, y[:n_species])
+            temperature = max(float(y[n_species]), 1.0)
+            derivatives = self.network.amount_derivatives(
+                amounts,
+                volume_L=current_volume,
+                temperature_K=temperature,
+                species_thermo=species_thermo,
+            )
+            heat_reaction_W = _reaction_heat_w(
+                self.network,
+                amounts,
+                volume_L=current_volume,
+                temperature_K=temperature,
+                species_thermo=species_thermo,
+            )
+            jacket_setpoint = (
+                jacket_program.temperature_at(time_s)
+                if jacket_program is not None
+                else thermal.jacket_temperature_K
+            )
+            q_jacket_W = _jacket_heat_w(
+                thermal,
+                temperature_K=temperature,
+                jacket_temperature_K=jacket_setpoint,
+            )
+            q_loss_W = thermal.heat_loss_w(temperature)
+            heat_capacity = thermal.rho_cp_J_per_L_K * current_volume
+            dtemperature = (q_jacket_W - q_loss_W - heat_reaction_W) / heat_capacity
+            return np.array(
+                [
+                    *(derivatives[species_id] for species_id in self.network.species_ids),
+                    dtemperature,
+                    q_jacket_W,
+                    heat_reaction_W,
+                    q_loss_W,
+                ],
+                dtype=float,
+            )
+
+        transition_times = sorted({event.time_s for event in events} | {duration_s})
+        for next_time in transition_times:
+            if next_time > current_time:
+                segment = _solve_interval(
+                    rhs,
+                    y_current,
+                    start_s=current_time,
+                    end_s=next_time,
+                    evaluation_times_s=_segment_evaluation_times(
+                        current_time,
+                        next_time,
+                        evaluation_times_s,
+                    ),
+                )
+                append_solution(segment)
+                y_current = np.array(segment.y[:, -1], dtype=float)
+                current_time = next_time
+            elif not times:
+                times.append(current_time)
+                states.append(y_current.copy())
+                volumes.append(current_volume)
+
+            events_at_time = [
+                event
+                for event in events
+                if abs(event.time_s - current_time) < 1e-12
+            ]
+            for event in events_at_time:
+                if event.volume_L >= current_volume:
+                    raise ValueError("sampling volume cannot remove all reactor volume")
+                fraction = event.volume_L / current_volume
+                sampled: dict[str, float] = {}
+                for index, species_id in enumerate(self.network.species_ids):
+                    removed = max(float(y_current[index]), 0.0) * fraction
+                    y_current[index] = max(float(y_current[index]) - removed, 0.0)
+                    material_out[species_id] += removed
+                    sampled[species_id] = removed
+                current_volume -= event.volume_L
+                sample_records.append(
+                    {
+                        **event.to_dict(),
+                        "fraction_removed": fraction,
+                        "sampled_amounts_mol": sampled,
+                        "remaining_volume_L": current_volume,
+                    }
+                )
+                if times and abs(times[-1] - current_time) < 1e-12:
+                    states[-1] = y_current.copy()
+                    volumes[-1] = current_volume
+
+        if not times:
+            times.append(0.0)
+            states.append(y_current.copy())
+            volumes.append(current_volume)
+
+        state_matrix = np.vstack(states).T
+        amounts_timeseries = {
+            species_id: tuple(
+                max(float(value), 0.0) for value in state_matrix[index]
+            )
+            for index, species_id in enumerate(self.network.species_ids)
+        }
+        initial_state = ReactorState(
+            amounts_mol={
+                species_id: max(float(initial_amounts_mol.get(species_id, 0.0)), 0.0)
+                for species_id in self.network.species_ids
+            },
+            volume_L=initial_volume_L,
+            temperature_K=temperature_K,
+            time_s=0.0,
+        )
+        final_state = ReactorState(
+            amounts_mol={
+                species_id: amounts_timeseries[species_id][-1]
+                for species_id in self.network.species_ids
+            },
+            volume_L=current_volume,
+            temperature_K=max(float(state_matrix[n_species, -1]), 1.0),
+            time_s=duration_s,
+            energy_jacket_J=float(state_matrix[n_species + 1, -1]),
+            heat_reaction_J=float(state_matrix[n_species + 2, -1]),
+            heat_loss_J=float(state_matrix[n_species + 3, -1]),
+            material_out_mol=material_out,
+        )
+        return ReactorResult(
+            reactor_id=self.reactor_id,
+            model_id="dynamic_batch",
+            network_id=self.network.network_id,
+            initial_state=initial_state,
+            final_state=final_state,
+            times_s=tuple(times),
+            amounts_mol=amounts_timeseries,
+            temperatures_K=tuple(float(value) for value in state_matrix[n_species]),
+            material_balance_error_mol=_material_balance_error(
+                self.network,
+                initial_state,
+                final_state,
+            ),
+            metadata={
+                "heat_source": (
+                    "nasa7_reaction_enthalpy"
+                    if species_thermo is not None
+                    else "reaction_delta_h"
+                ),
+                "sample_events": sample_records,
+                "volume_L_timeseries": tuple(volumes),
+                "jacket_program": (
+                    jacket_program.to_dict() if jacket_program is not None else None
+                ),
+                "reference_contract": "cantera_idaes_zero_d_energy_balance_slice",
+            },
         )
 
 
@@ -882,6 +1183,106 @@ def solve_cstr_multiple_steady_states(
 def reactor_model_cards() -> tuple[ModelCard, ...]:
     return (
         ModelCard(
+            model_id="dynamic_batch_heat_release_jacket_sampling",
+            module_id="reactors",
+            title="Dynamic Batch Reactor With Heat Release And Sampling",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Event-driven dynamic batch reactor slice with material "
+                "balances, thermochemistry-derived reaction heat, wall/jacket "
+                "heat transfer, destructive sampling events, and auditable "
+                "material/energy ledgers."
+            ),
+            equations=(
+                "dn/dt = S r(n, T)",
+                "rhoCp V dT/dt = Q_jacket - Q_loss - sum_i DeltaH_i(T) r_i V",
+                "Q_jacket = UA_jacket (T_jacket(t) - T) + Q_fixed",
+                "Q_loss = UA_env (T - T_env)",
+                "sample event: n_j <- n_j(1 - V_sample/V), V <- V - V_sample",
+            ),
+            assumptions=(
+                "well-mixed liquid-phase batch reactor",
+                "constant density heat-capacity basis rhoCp V",
+                "sampling removes a representative well-mixed fraction",
+                "reaction enthalpy uses supplied NASA7 species thermochemistry when available",
+            ),
+            validity_limits=(
+                "no pressure dynamics, vapor-liquid equilibrium, or wall thermal inertia",
+                "sample events must leave positive reactor volume",
+                "NASA7 reaction enthalpy requires thermochemistry for every reacting species",
+            ),
+            failure_modes=(
+                "negative duration, volume, sample volume, or temperature raises errors",
+                "missing species thermochemistry raises a KeyError when NASA7 heat is requested",
+                "ODE solver failure raises RuntimeError instead of silently clipping",
+            ),
+            units={
+                "amount": "mol",
+                "volume": "L",
+                "temperature": "K",
+                "heat_capacity_density": "J/(L*K)",
+                "heat_duty": "W",
+                "energy_ledger": "J",
+            },
+            reference_reading=(
+                (
+                    "Cantera: reference_repos/cantera/src/zeroD/Reactor.cpp "
+                    "separates species production, wall heat Qdot, inlet/outlet "
+                    "enthalpy, and energy-equation terms."
+                ),
+                (
+                    "Cantera: reference_repos/cantera/src/zeroD/"
+                    "IdealGasReactor.cpp uses mass*cv*dT/dt as the energy "
+                    "equation left-hand side for temperature-state reactors."
+                ),
+                (
+                    "IDAES: modular property packages expose enthalpy/internal "
+                    "energy flow and density terms for control-volume energy "
+                    "balances."
+                ),
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="dynamic-batch-adiabatic-rise-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "Exothermic reaction with NASA7 enthalpy produces the "
+                        "expected adiabatic temperature rise from the integrated "
+                        "reaction-heat ledger."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reactor_models.py",
+                    tolerance="pytest.approx local tolerances",
+                ),
+                ValidationEvidence(
+                    evidence_id="dynamic-batch-sampling-ledger-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "Destructive sampling reduces volume, records material_out, "
+                        "and preserves elemental material balance."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reactor_models.py",
+                    tolerance="material balance error < 1e-8 mol",
+                ),
+            ),
+            model_limit_notes=(
+                (
+                    "This slice closes the dynamic batch heat-release and sampling "
+                    "kernel, not a full Cantera/IDAES reactor clone."
+                ),
+                (
+                    "Pressure dynamics, gas expansion work, variable Cp mixtures, "
+                    "and vapor-liquid phase change remain explicit future slices."
+                ),
+            ),
+            intended_use=(
+                "reaction calorimetry task design",
+                "heat-release-aware campaign simulation",
+                "safe-operation benchmark scenarios with explicit material and energy ledgers",
+            ),
+        ),
+        ModelCard(
             model_id="cstr_exothermic_multiplicity_reference",
             module_id="reactors",
             title="Exothermic CSTR Multiple-Steady-State Reference Slice",
@@ -1093,6 +1494,45 @@ def _solve(
     return result
 
 
+def _solve_interval(
+    rhs: Callable[[float, np.ndarray], np.ndarray],
+    y0: np.ndarray,
+    *,
+    start_s: float,
+    end_s: float,
+    evaluation_times_s: Sequence[float],
+) -> Any:
+    t_eval = np.array(tuple(evaluation_times_s), dtype=float)
+    result = solve_ivp(
+        rhs,
+        (start_s, end_s),
+        y0,
+        t_eval=t_eval,
+        method="LSODA",
+        rtol=1e-8,
+        atol=1e-12,
+    )
+    if not result.success:
+        raise RuntimeError(f"Reactor integration failed: {result.message}")
+    return result
+
+
+def _segment_evaluation_times(
+    start_s: float,
+    end_s: float,
+    requested_times_s: Sequence[float] | None,
+) -> tuple[float, ...]:
+    if requested_times_s is None:
+        return (start_s, end_s) if end_s > start_s else (start_s,)
+    selected = [
+        float(time_s)
+        for time_s in requested_times_s
+        if start_s - 1e-12 <= time_s <= end_s + 1e-12
+    ]
+    selected.extend([start_s, end_s])
+    return tuple(sorted(set(selected)))
+
+
 def _amount_vector(
     network: ReactionNetworkSpec,
     amounts_mol: Mapping[str, float],
@@ -1119,16 +1559,52 @@ def _reaction_heat_w(
     *,
     volume_L: float,
     temperature_K: float,
+    species_thermo: Mapping[str, NASA7SpeciesThermo] | None = None,
 ) -> float:
     rates = network.reaction_rates(
         amounts_mol,
         volume_L=volume_L,
         temperature_K=temperature_K,
+        species_thermo=species_thermo,
     )
     return sum(
-        reaction.delta_h_J_per_mol * rates[reaction.reaction_id] * volume_L
+        _reaction_enthalpy_j_mol(
+            reaction,
+            temperature_K=temperature_K,
+            species_thermo=species_thermo,
+        )
+        * rates[reaction.reaction_id]
+        * volume_L
         for reaction in network.reactions
     )
+
+
+def _reaction_enthalpy_j_mol(
+    reaction: ReactionSpec,
+    *,
+    temperature_K: float,
+    species_thermo: Mapping[str, NASA7SpeciesThermo] | None,
+) -> float:
+    if species_thermo is None:
+        return reaction.delta_h_J_per_mol
+    return reaction_thermochemistry(
+        reaction_id=reaction.reaction_id,
+        stoichiometry=reaction.stoichiometry,
+        species_thermo=species_thermo,
+        temperature_K=temperature_K,
+    ).delta_h_J_mol
+
+
+def _jacket_heat_w(
+    thermal: HeatTransferSpec,
+    *,
+    temperature_K: float,
+    jacket_temperature_K: float | None,
+) -> float:
+    jacket = 0.0
+    if jacket_temperature_K is not None:
+        jacket = thermal.jacket_ua_W_per_K * (jacket_temperature_K - temperature_K)
+    return thermal.fixed_heat_W + jacket
 
 
 def _feed_heat_w(
@@ -1310,11 +1786,14 @@ __all__ = [
     "CSTRMultiplicityResult",
     "CSTRMultiplicitySpec",
     "CSTRSteadyStatePoint",
+    "DynamicBatchReactorModel",
     "FeedStreamSpec",
     "HeatTransferSpec",
+    "JacketTemperatureProgram",
     "PFRModel",
     "ReactorResult",
     "ReactorState",
+    "SamplingEventSpec",
     "SemiBatchFeedSpec",
     "SemiBatchReactorModel",
     "cstr_multiple_steady_state_reference_case",

@@ -311,7 +311,7 @@ Acceptance:
 - [x] Simple irreversible and reversible ODE cases compare against analytical
       constant-volume first-order solutions, with optional Cantera
       `ArrheniusRate` comparison where available.
-- [ ] Energy balance uses reaction enthalpy from thermochemistry where
+- [x] Energy balance uses reaction enthalpy from thermochemistry where
       available.
 - [x] Invalid or unbalanced reactions fail before simulation.
 
@@ -320,10 +320,11 @@ Acceptance:
 Reference targets: `Cantera`, `IDAES`.
 
 - [ ] Batch reactor:
-  - [ ] constant-volume and constant-pressure modes;
-  - [ ] heat-transfer wall/jacket;
+  - [x] constant-volume mode;
+  - [ ] constant-pressure mode;
+  - [x] heat-transfer wall/jacket;
   - [ ] pressure model;
-  - [ ] event handling.
+  - [x] event handling for destructive sampling.
 - [ ] Semi-batch reactor:
   - [ ] time-dependent feed;
   - [ ] addition-controlled selectivity;
@@ -360,6 +361,26 @@ Reference-reading note for PRO-P6A:
   energy-balance problem, finds three steady states, and classifies the
   stable/unstable/stable branches from the dynamic CSTR Jacobian. This is not a
   full reactor-network or process-control clone.
+
+Reference-reading note for DEEP-D6A:
+
+- `cantera/src/zeroD/Reactor.cpp` separates species production, wall heat
+  `Qdot`, inlet/outlet enthalpy, and energy-equation terms. ChemWorld localizes
+  that separation as a compact batch kernel rather than copying Cantera's
+  reactor network.
+- `cantera/src/zeroD/IdealGasReactor.cpp` uses a temperature-state energy
+  equation with a heat-capacity left-hand side. ChemWorld's liquid-phase
+  dynamic batch slice uses `rhoCp V dT/dt`.
+- IDAES modular property/state definitions expose enthalpy and internal-energy
+  flow/density terms for control-volume energy balances. ChemWorld keeps the
+  same accounting idea in explicit material and energy ledgers.
+- `DynamicBatchReactorModel` now implements `dn/dt = S r(n,T)`,
+  `rhoCp V dT/dt = Q_jacket - Q_loss - sum(DeltaH_i(T) r_i V)`,
+  optional NASA7 reaction enthalpy, time-dependent jacket setpoints, and
+  destructive sampling events with `material_out` and volume ledgers. This
+  closes the constant-volume dynamic batch heat-release/sampling slice, not
+  constant-pressure, pressure dynamics, vapor-liquid expansion, or full
+  process-control behavior.
 
 Acceptance:
 
