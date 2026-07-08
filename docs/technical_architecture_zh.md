@@ -267,7 +267,7 @@ Dataset card 包含：
 仍需继续推进：
 
 - 继续把 crystallization、continuous-flow、electrochemistry 的过程 proxy 拆成更独立的 world kernel，并把 distillation 从当前 VLE shortcut slice 推进到 Underwood/Gilliland 与 MESH 级严格塔模型；
-- 继续把 HPLC/GC/IR/NMR 从合成信号推进到带公开校准案例的 instrument kernels；UV-vis 已有 Beer-Lambert 校准切片；
+- 继续把 IR/NMR 从合成信号推进到带公开校准案例的 instrument kernels；UV-vis 已有 Beer-Lambert 校准切片，HPLC/GC 已有 retention-factor/plate-count 校准切片；
 - 用完整 task/agent/seed 矩阵重新运行并冻结官方 reference baseline table；
 - 将本机 signed private-eval artifact 升级为远端 maintainer-side registry；
 - 增加 Minari 风格 dataset metadata；

@@ -22,6 +22,9 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
   twelve-area queue is settled; when it is opened, every line must be a concrete
   implementation slice with reference targets, equations, validation cases, and
   task integration criteria rather than a proxy placeholder.
+- After the first twelve professional implementation slices are finished, active
+  work moves to `TODO_PROFESSIONAL_DEEPENING.md` and the
+  [Professional Deepening TODO](professional_deepening_todo.md) docs page.
 
 ## Module Queue
 
@@ -55,6 +58,17 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
    Done in PRO-P7A.
 8. Add Beer-Lambert UV-vis model card and calibration validation.
    Done in PRO-P10A.
+9. Add HPLC/GC retention-factor and peak-broadening calibration.
+   Done in PRO-P10B.
+10. Add Peng-Robinson/SRK fugacity-coefficient and residual-property validation.
+11. Add heat-transfer correlations and heat-exchanger duty checks.
+12. Harden the component registry with provenance, aliases, uncertainty fields,
+    and conflict-resolution policy.
+
+After item 12 is done, the next active roadmap is the
+[Professional Deepening TODO](professional_deepening_todo.md). That roadmap is
+not a proxy backlog; each item must name equations, reference targets,
+validation cases, model cards, and benchmark integration.
 
 ## Completion Bar
 
@@ -196,4 +210,24 @@ PRO-P10A is now implemented for the UV-vis analytical calibration slice:
   `uvvis_beer_lambert_calibration_v1`.
 - `spectroscopy_model_cards()` documents equations, assumptions, limits,
   failure modes, reference reading, and analytical validation evidence.
-- HPLC, GC, IR, NMR, and MS still need their own professional slices.
+- IR, NMR, MS, and empirical spectral databases still need their own
+  professional slices.
+
+PRO-P10B is now implemented for the HPLC/GC retention and peak-broadening slice:
+
+- `ChromatographyMethodSpec` declares dead time, theoretical plates,
+  role-specific retention factors, detector response factors, detection limit,
+  and calibration noise.
+- `chromatographic_retention_time()`,
+  `chromatographic_retention_factor()`,
+  `chromatographic_baseline_peak_width()`,
+  `chromatographic_theoretical_plates()`, and
+  `chromatographic_resolution()` implement the analytical equations used by the
+  virtual method.
+- `fit_chromatography_calibration()` estimates retention factor and theoretical
+  plates from calibration retention times and baseline widths.
+- HPLC/GC species spectra now carry `chromatography_retention_plate` metadata,
+  `hplc_retention_plate_calibration_v1` or
+  `gc_retention_plate_calibration_v1`, and adjacent-peak resolution summaries.
+- This is still a compact benchmark instrument kernel, not empirical retention
+  index prediction, gradient elution, column aging, or asymmetric peak tailing.

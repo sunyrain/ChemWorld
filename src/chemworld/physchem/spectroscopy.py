@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from itertools import pairwise
 from math import isfinite, sqrt
 from typing import Any, Literal
 
@@ -160,6 +161,112 @@ class BeerLambertCalibrationResult:
             "r_squared": self.r_squared,
             "detection_limit_mol_L": self.detection_limit_mol_L,
             "quantitation_limit_mol_L": self.quantitation_limit_mol_L,
+        }
+
+
+@dataclass(frozen=True)
+class ChromatographyMethodSpec:
+    instrument_id: str
+    dead_time_min: float
+    theoretical_plates: float
+    retention_factor_by_group: Mapping[str, float]
+    response_factor_by_group: Mapping[str, float]
+    detection_limit_mol_L: float
+    noise_relative: float = 0.025
+    reference_peak_width_min: float | None = None
+
+    def __post_init__(self) -> None:
+        if self.instrument_id not in {"hplc", "gc"}:
+            raise ValueError("instrument_id must be 'hplc' or 'gc'")
+        if self.dead_time_min <= 0.0 or not isfinite(self.dead_time_min):
+            raise ValueError("dead_time_min must be finite and positive")
+        if self.theoretical_plates <= 0.0 or not isfinite(self.theoretical_plates):
+            raise ValueError("theoretical_plates must be finite and positive")
+        if self.detection_limit_mol_L < 0.0 or self.noise_relative < 0.0:
+            raise ValueError("detection limit and noise must be nonnegative")
+        if not self.retention_factor_by_group:
+            raise ValueError("retention_factor_by_group cannot be empty")
+        for group, retention_factor in self.retention_factor_by_group.items():
+            if not group.strip():
+                raise ValueError("retention-factor groups cannot be empty")
+            if retention_factor < 0.0 or not isfinite(retention_factor):
+                raise ValueError("retention factors must be finite and nonnegative")
+        for group, response in self.response_factor_by_group.items():
+            if not group.strip():
+                raise ValueError("response-factor groups cannot be empty")
+            if response <= 0.0 or not isfinite(response):
+                raise ValueError("response factors must be finite and positive")
+        if self.reference_peak_width_min is not None and self.reference_peak_width_min <= 0.0:
+            raise ValueError("reference_peak_width_min must be positive if supplied")
+
+    def retention_factor(self, group: str, species_id: str) -> float:
+        base = self.retention_factor_by_group.get(
+            group,
+            self.retention_factor_by_group.get("other", 1.0),
+        )
+        perturbation = _stable_offset(f"{self.instrument_id}:{species_id}:k", scale=0.18)
+        return max(base + perturbation, 0.02)
+
+    def response_factor(self, group: str) -> float:
+        return self.response_factor_by_group.get(
+            group,
+            self.response_factor_by_group.get("other", 500.0),
+        )
+
+    def feature_metadata(self, *, species_id: str, group: str) -> dict[str, object]:
+        retention_factor = self.retention_factor(group, species_id)
+        retention_time = chromatographic_retention_time(
+            dead_time_min=self.dead_time_min,
+            retention_factor=retention_factor,
+        )
+        baseline_width = chromatographic_baseline_peak_width(
+            retention_time_min=retention_time,
+            theoretical_plates=self.theoretical_plates,
+        )
+        gaussian_sigma = baseline_width / 4.0
+        return {
+            "model_id": "chromatography_retention_plate",
+            "instrument_id": self.instrument_id,
+            "species_id": species_id,
+            "group": group,
+            "dead_time_min": self.dead_time_min,
+            "retention_factor": retention_factor,
+            "retention_time_min": retention_time,
+            "theoretical_plates": self.theoretical_plates,
+            "baseline_width_min": baseline_width,
+            "gaussian_sigma_min": gaussian_sigma,
+            "detection_limit_mol_L": self.detection_limit_mol_L,
+            "reference_peak_width_min": self.reference_peak_width_min,
+        }
+
+
+@dataclass(frozen=True)
+class ChromatographyCalibrationResult:
+    species_id: str
+    instrument_id: str
+    dead_time_min: float
+    retention_times_min: tuple[float, ...]
+    baseline_widths_min: tuple[float, ...]
+    retention_factor_mean: float
+    retention_factor_std: float
+    retention_time_mean_min: float
+    retention_time_std_min: float
+    theoretical_plates_mean: float
+    theoretical_plates_std: float
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "species_id": self.species_id,
+            "instrument_id": self.instrument_id,
+            "dead_time_min": self.dead_time_min,
+            "retention_times_min": list(self.retention_times_min),
+            "baseline_widths_min": list(self.baseline_widths_min),
+            "retention_factor_mean": self.retention_factor_mean,
+            "retention_factor_std": self.retention_factor_std,
+            "retention_time_mean_min": self.retention_time_mean_min,
+            "retention_time_std_min": self.retention_time_std_min,
+            "theoretical_plates_mean": self.theoretical_plates_mean,
+            "theoretical_plates_std": self.theoretical_plates_std,
         }
 
 
@@ -501,6 +608,130 @@ def generate_beer_lambert_calibration(
     )
 
 
+def chromatographic_retention_time(*, dead_time_min: float, retention_factor: float) -> float:
+    if dead_time_min <= 0.0 or not isfinite(dead_time_min):
+        raise ValueError("dead_time_min must be finite and positive")
+    if retention_factor < 0.0 or not isfinite(retention_factor):
+        raise ValueError("retention_factor must be finite and nonnegative")
+    return dead_time_min * (1.0 + retention_factor)
+
+
+def chromatographic_retention_factor(
+    *,
+    retention_time_min: float,
+    dead_time_min: float,
+) -> float:
+    if dead_time_min <= 0.0 or not isfinite(dead_time_min):
+        raise ValueError("dead_time_min must be finite and positive")
+    if retention_time_min < dead_time_min or not isfinite(retention_time_min):
+        raise ValueError("retention_time_min must be finite and at least dead_time_min")
+    return (retention_time_min - dead_time_min) / dead_time_min
+
+
+def chromatographic_baseline_peak_width(
+    *,
+    retention_time_min: float,
+    theoretical_plates: float,
+) -> float:
+    if retention_time_min <= 0.0 or not isfinite(retention_time_min):
+        raise ValueError("retention_time_min must be finite and positive")
+    if theoretical_plates <= 0.0 or not isfinite(theoretical_plates):
+        raise ValueError("theoretical_plates must be finite and positive")
+    return 4.0 * retention_time_min / sqrt(theoretical_plates)
+
+
+def chromatographic_theoretical_plates(
+    *,
+    retention_time_min: float,
+    baseline_width_min: float,
+) -> float:
+    if retention_time_min <= 0.0 or not isfinite(retention_time_min):
+        raise ValueError("retention_time_min must be finite and positive")
+    if baseline_width_min <= 0.0 or not isfinite(baseline_width_min):
+        raise ValueError("baseline_width_min must be finite and positive")
+    return 16.0 * (retention_time_min / baseline_width_min) ** 2
+
+
+def chromatographic_resolution(
+    retention_time_1_min: float,
+    retention_time_2_min: float,
+    baseline_width_1_min: float,
+    baseline_width_2_min: float,
+) -> float:
+    if baseline_width_1_min <= 0.0 or baseline_width_2_min <= 0.0:
+        raise ValueError("baseline widths must be positive")
+    if not all(
+        isfinite(value)
+        for value in (
+            retention_time_1_min,
+            retention_time_2_min,
+            baseline_width_1_min,
+            baseline_width_2_min,
+        )
+    ):
+        raise ValueError("resolution inputs must be finite")
+    return 2.0 * abs(retention_time_2_min - retention_time_1_min) / (
+        baseline_width_1_min + baseline_width_2_min
+    )
+
+
+def fit_chromatography_calibration(
+    retention_times_min: Sequence[float],
+    baseline_widths_min: Sequence[float],
+    *,
+    species_id: str = "unknown",
+    instrument_id: str = "hplc",
+    dead_time_min: float,
+) -> ChromatographyCalibrationResult:
+    if instrument_id not in {"hplc", "gc"}:
+        raise ValueError("instrument_id must be 'hplc' or 'gc'")
+    if dead_time_min <= 0.0 or not isfinite(dead_time_min):
+        raise ValueError("dead_time_min must be finite and positive")
+    if len(retention_times_min) != len(baseline_widths_min):
+        raise ValueError("retention times and baseline widths must have equal length")
+    if not retention_times_min:
+        raise ValueError("at least one calibration peak is required")
+    retention_times = np.array([float(value) for value in retention_times_min], dtype=float)
+    widths = np.array([float(value) for value in baseline_widths_min], dtype=float)
+    if np.any(~np.isfinite(retention_times)) or np.any(~np.isfinite(widths)):
+        raise ValueError("calibration values must be finite")
+    if np.any(retention_times < dead_time_min) or np.any(widths <= 0.0):
+        raise ValueError("retention times must exceed dead time and widths must be positive")
+    retention_factors = np.array(
+        [
+            chromatographic_retention_factor(
+                retention_time_min=float(retention_time),
+                dead_time_min=dead_time_min,
+            )
+            for retention_time in retention_times
+        ],
+        dtype=float,
+    )
+    theoretical_plates = np.array(
+        [
+            chromatographic_theoretical_plates(
+                retention_time_min=float(retention_time),
+                baseline_width_min=float(width),
+            )
+            for retention_time, width in zip(retention_times, widths, strict=True)
+        ],
+        dtype=float,
+    )
+    return ChromatographyCalibrationResult(
+        species_id=species_id,
+        instrument_id=instrument_id,
+        dead_time_min=dead_time_min,
+        retention_times_min=tuple(round(float(value), 12) for value in retention_times),
+        baseline_widths_min=tuple(round(float(value), 12) for value in widths),
+        retention_factor_mean=float(np.mean(retention_factors)),
+        retention_factor_std=float(np.std(retention_factors, ddof=0)),
+        retention_time_mean_min=float(np.mean(retention_times)),
+        retention_time_std_min=float(np.std(retention_times, ddof=0)),
+        theoretical_plates_mean=float(np.mean(theoretical_plates)),
+        theoretical_plates_std=float(np.std(theoretical_plates, ddof=0)),
+    )
+
+
 def default_feature_specs(
     instrument_id: str,
     species_ids: Sequence[str],
@@ -576,8 +807,25 @@ def synthesize_signal(
     calibration_profile = (
         "uvvis_beer_lambert_calibration_v1"
         if spec.instrument_id == "uvvis"
+        else f"{spec.instrument_id}_retention_plate_calibration_v1"
+        if spec.instrument_id in {"hplc", "gc"}
         else f"{spec.instrument_id}_species_calibration_v1"
     )
+    chromatographic_resolution_summary = _chromatographic_resolution_summary(detected_peaks)
+    metadata: dict[str, object] = {
+        "axis_unit": spec.axis_unit,
+        "baseline": spec.baseline,
+        "baseline_drift": spec.baseline_drift,
+        "calibration_profile": calibration_profile,
+        "detection_limits_mol_L": {
+            feature.species_id: feature.detection_limit_mol_L
+            for feature in spec.features
+        },
+        "peak_overlap": any(bool(peak["overlap_group"]) for peak in detected_peaks),
+        "model_ids": model_ids,
+    }
+    if chromatographic_resolution_summary:
+        metadata["chromatographic_resolution"] = chromatographic_resolution_summary
     return SpectralMeasurement(
         instrument_id=spec.instrument_id,
         kind=spec.kind,
@@ -589,18 +837,7 @@ def synthesize_signal(
         peaks=tuple(detected_peaks),
         processed_estimates=processed,
         uncertainty=uncertainty,
-        metadata={
-            "axis_unit": spec.axis_unit,
-            "baseline": spec.baseline,
-            "baseline_drift": spec.baseline_drift,
-            "calibration_profile": calibration_profile,
-            "detection_limits_mol_L": {
-                feature.species_id: feature.detection_limit_mol_L
-                for feature in spec.features
-            },
-            "peak_overlap": any(bool(peak["overlap_group"]) for peak in detected_peaks),
-            "model_ids": model_ids,
-        },
+        metadata=metadata,
     )
 
 
@@ -674,30 +911,58 @@ def _chromatography_feature(
     role: str,
 ) -> SpectralFeatureSpec:
     if instrument_id == "hplc":
-        centers = {
-            "reactant": 1.15,
-            "target": 2.62,
-            "byproduct": 3.28,
-            "degradation": 4.05,
-            "catalyst": 5.25,
-            "other": 2.10,
-        }
-        width = 0.055 if role in {"reactant", "target"} else 0.085
-        response = 950.0 if role == "target" else 620.0
-        detection = 0.0008
+        method = ChromatographyMethodSpec(
+            instrument_id="hplc",
+            dead_time_min=0.62,
+            theoretical_plates=7200.0,
+            retention_factor_by_group={
+                "reactant": 0.86,
+                "target": 3.22,
+                "byproduct": 4.25,
+                "degradation": 5.45,
+                "catalyst": 7.40,
+                "other": 2.45,
+            },
+            response_factor_by_group={
+                "target": 950.0,
+                "reactant": 620.0,
+                "byproduct": 640.0,
+                "degradation": 590.0,
+                "catalyst": 420.0,
+                "other": 560.0,
+            },
+            detection_limit_mol_L=0.0008,
+            noise_relative=0.025,
+        )
     else:
-        centers = {
-            "reactant": 0.82,
-            "target": 2.35,
-            "byproduct": 1.08,
-            "degradation": 1.72,
-            "catalyst": 3.40,
-            "other": 1.55,
-        }
-        width = 0.040 if role in {"reactant", "byproduct"} else 0.060
-        response = 760.0 if role == "target" else 560.0
-        detection = 0.0012
-    center = centers.get(role, centers["other"]) + _stable_offset(species_id, scale=0.18)
+        method = ChromatographyMethodSpec(
+            instrument_id="gc",
+            dead_time_min=0.34,
+            theoretical_plates=5400.0,
+            retention_factor_by_group={
+                "reactant": 1.35,
+                "target": 5.90,
+                "byproduct": 2.10,
+                "degradation": 3.85,
+                "catalyst": 8.70,
+                "other": 3.25,
+            },
+            response_factor_by_group={
+                "target": 760.0,
+                "reactant": 540.0,
+                "byproduct": 600.0,
+                "degradation": 570.0,
+                "catalyst": 390.0,
+                "other": 520.0,
+            },
+            detection_limit_mol_L=0.0012,
+            noise_relative=0.030,
+        )
+    metadata = method.feature_metadata(species_id=species_id, group=role)
+    center = _as_float(metadata["retention_time_min"])
+    width = _as_float(metadata["gaussian_sigma_min"])
+    response = method.response_factor(role)
+    detection = method.detection_limit_mol_L
     return SpectralFeatureSpec(
         species_id=species_id,
         instrument_id=instrument_id,
@@ -711,8 +976,9 @@ def _chromatography_feature(
             slope=response,
             lower_limit=detection,
             upper_limit=5.0,
-            noise_relative=0.025,
+            noise_relative=method.noise_relative,
         ),
+        metadata=metadata,
     )
 
 
@@ -916,6 +1182,53 @@ def _annotate_peaks(
     return annotated
 
 
+def _chromatographic_resolution_summary(
+    peaks: Sequence[Mapping[str, object]],
+) -> dict[str, object]:
+    chromatographic: list[Mapping[str, object]] = []
+    for peak in peaks:
+        metadata = peak.get("metadata", {})
+        if (
+            bool(peak["detected"])
+            and isinstance(metadata, Mapping)
+            and metadata.get("model_id") == "chromatography_retention_plate"
+        ):
+            chromatographic.append(peak)
+    if len(chromatographic) < 2:
+        return {}
+    ordered = sorted(chromatographic, key=lambda peak: _as_float(peak["center"]))
+    resolutions: list[tuple[float, str, str]] = []
+    for left, right in pairwise(ordered):
+        left_metadata = left["metadata"]
+        right_metadata = right["metadata"]
+        if not isinstance(left_metadata, Mapping) or not isinstance(right_metadata, Mapping):
+            continue
+        resolution = chromatographic_resolution(
+            _as_float(left["center"]),
+            _as_float(right["center"]),
+            _as_float(left_metadata["baseline_width_min"]),
+            _as_float(right_metadata["baseline_width_min"]),
+        )
+        resolutions.append(
+            (
+                resolution,
+                str(left["species_id"]),
+                str(right["species_id"]),
+            )
+        )
+    if not resolutions:
+        return {}
+    minimum_resolution, left_species, right_species = min(
+        resolutions,
+        key=lambda item: item[0],
+    )
+    return {
+        "minimum_adjacent_resolution": round(minimum_resolution, 6),
+        "critical_pair": [left_species, right_species],
+        "well_resolved": minimum_resolution >= 1.5,
+    }
+
+
 def _processed_from_peaks(
     features: Sequence[SpectralFeatureSpec],
     concentrations: Mapping[str, float],
@@ -1036,6 +1349,94 @@ def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
                 "LLM/tool-agent parsing of raw spectra and processed estimates",
             ),
         ),
+        ModelCard(
+            model_id="chromatography_retention_plate",
+            module_id="spectroscopy_instruments",
+            title="Chromatography Retention And Plate-Count Calibration Model",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "HPLC and GC retention-time traces are generated from explicit "
+                "dead time, retention factor, theoretical plate count, baseline "
+                "peak width, detector response calibration, and adjacent-peak "
+                "resolution equations."
+            ),
+            equations=(
+                "retention factor: k' = (t_R - t_M) / t_M",
+                "retention time: t_R = t_M * (1 + k')",
+                "baseline width: w_b = 4 * t_R / sqrt(N)",
+                "theoretical plates: N = 16 * (t_R / w_b)^2",
+                "resolution: R_s = 2 * (t_R2 - t_R1) / (w_b1 + w_b2)",
+            ),
+            assumptions=(
+                "one Gaussian peak per visible species in the virtual method",
+                "role-based benchmark retention factors with deterministic species offsets",
+                "constant plate count per method",
+                "area calibration is linear over the benchmark concentration range",
+            ),
+            validity_limits=(
+                "requires positive dead time and theoretical plate count",
+                "requires retention time at least as large as dead time",
+                "does not model gradient elution, temperature programming, tailing, or columns",
+                "not a substitute for empirical retention-index or LSER databases",
+            ),
+            failure_modes=(
+                "negative retention factor raises ValueError",
+                "invalid baseline widths or dead time raise ValueError",
+                "calibration data with inconsistent lengths raise ValueError",
+            ),
+            units={
+                "dead_time": "min",
+                "retention_time": "min",
+                "baseline_width": "min",
+                "concentration": "mol/L",
+                "response": "arbitrary detector area",
+            },
+            reference_reading=(
+                (
+                    "Public chromatography equations for k', theoretical "
+                    "plates, baseline width, and resolution are used directly "
+                    "as analytical reference cases."
+                ),
+                (
+                    "reference_repos/rmg-py/documentation/source/users/rmg/"
+                    "liquids.rst cites chromatography/LSER references by "
+                    "Vitha-Carr and Poole, but does not implement an instrument kernel."
+                ),
+                (
+                    "Local spectroscopy implementation read in "
+                    "src/chemworld/physchem/spectroscopy.py and "
+                    "src/chemworld/world/spectra.py."
+                ),
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="chromatography_retention_equations",
+                    evidence_type="analytical",
+                    description=(
+                        "Unit tests verify retention factor, retention time, "
+                        "baseline width, theoretical plates, and resolution formulas."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_spectroscopy.py",
+                    tolerance="floating-point pytest.approx",
+                ),
+                ValidationEvidence(
+                    evidence_id="chromatography_species_signal_metadata",
+                    evidence_type="unit_test",
+                    description=(
+                        "HPLC/GC species peaks carry model id, dead time, "
+                        "retention factor, plate count, width, and resolution metadata."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_spectroscopy.py",
+                ),
+            ),
+            intended_use=(
+                "virtual HPLC/GC retention calibration in ChemWorld tasks",
+                "teaching peak width, overlap, and method resolution tradeoffs",
+                "LLM/tool-agent parsing of chromatograms and calibrated estimates",
+            ),
+        ),
     )
 
 
@@ -1075,15 +1476,23 @@ __all__ = [
     "BeerLambertBandSpec",
     "BeerLambertCalibrationResult",
     "CalibrationCurve",
+    "ChromatographyCalibrationResult",
+    "ChromatographyMethodSpec",
     "InstrumentSignalSpec",
     "SpectralFeatureSpec",
     "SpectralMeasurement",
     "beer_lambert_absorbance",
     "build_signal_spec",
     "build_signal_spec_from_card",
+    "chromatographic_baseline_peak_width",
+    "chromatographic_resolution",
+    "chromatographic_retention_factor",
+    "chromatographic_retention_time",
+    "chromatographic_theoretical_plates",
     "default_feature_specs",
     "detect_peak_overlap",
     "fit_beer_lambert_calibration",
+    "fit_chromatography_calibration",
     "generate_beer_lambert_calibration",
     "spectroscopy_model_cards",
     "synthesize_signal",

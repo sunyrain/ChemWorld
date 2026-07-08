@@ -7,10 +7,12 @@ molecule.
 
 ## Signal Types
 
-- `hplc_chromatogram`: retention-time axis, normalized intensity trace, and
-  reactant/product/impurity peak annotations.
-- `gc_chromatogram`: retention-time axis, normalized intensity trace, and
-  volatile byproduct, degradation, solvent-loss, and distillate peaks.
+- `hplc_chromatogram`: retention-time axis, normalized intensity trace,
+  retention-factor metadata, plate-count peak widths, adjacent-peak resolution,
+  and reactant/product/impurity peak annotations.
+- `gc_chromatogram`: retention-time axis, normalized intensity trace,
+  retention-factor metadata, plate-count peak widths, adjacent-peak resolution,
+  and volatile byproduct/degradation/product peaks.
 - `uvvis_spectrum`: wavelength axis and absorbance trace. When species amounts
   are available, UV-vis bands use the Beer-Lambert relation with explicit path
   length, sample dilution, blank absorbance, and calibration uncertainty;
@@ -36,16 +38,27 @@ stored separately in `processed_estimate`. Measurement uncertainty is stored in
 ## Design Boundary
 
 These signals are synthetic, semi-mechanistic teaching and benchmark signals.
-The UV-vis species path now has one reference-validated analytical slice:
+HPLC/GC species paths now have a reference-validated analytical slice:
+
+```text
+k' = (t_R - t_M) / t_M
+t_R = t_M * (1 + k')
+w_b = 4 * t_R / sqrt(N)
+R_s = 2 * (t_R2 - t_R1) / (w_b1 + w_b2)
+```
+
+UV-vis species path also has one reference-validated analytical slice:
 
 ```text
 Beer-Lambert: A = A_blank + epsilon * l * c_cuvette
 c_cuvette = c_reactor / dilution_factor
 ```
 
-Calibration runs fit `A = slope * c_reactor + intercept` and report residual
-standard deviation, LOD, LOQ, and slope uncertainty. HPLC, GC, IR, and NMR are
-still compact virtual instruments rather than empirical spectrum predictors.
+UV-vis calibration runs fit `A = slope * c_reactor + intercept` and report
+residual standard deviation, LOD, LOQ, and slope uncertainty. HPLC/GC
+calibration runs report retention-factor and theoretical-plate estimates. IR
+and NMR are still compact virtual instruments rather than empirical spectrum
+predictors.
 
 They are designed to support:
 They are designed to support:

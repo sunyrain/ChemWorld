@@ -172,7 +172,8 @@ Instrument observations also carry `raw_signal`, `processed_estimate`, and
 instrument workflow: instruments produce signals, processed estimates are
 derived from those signals, and agents maintain a belief state from the observed
 trajectory.
-HPLC and GC records include retention-time traces; UV-vis records include
+HPLC and GC records include retention-time traces, retention-factor metadata,
+plate-count width estimates, and adjacent-resolution summaries; UV-vis records include
 wavelength/absorbance traces; final assay records include a multi-instrument
 packet with chromatography, UV-vis, IR, NMR, and calibrated mass-balance
 summaries.
@@ -258,5 +259,4 @@ Near-term research work:
 - study public-test to private-eval generalization;
 - analyze safety-aware exploration behavior;
 - analyze whether mechanism explanations correlate with optimization quality.
-
 

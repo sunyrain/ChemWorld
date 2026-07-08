@@ -25,6 +25,9 @@ chemistry core.
   split every module into concrete implementation slices with reference targets,
   equations, validation cases, and task integration criteria; never pre-fill it
   with proxy placeholders.
+- After the first twelve professional implementation slices are completed, move
+  active work to `TODO_PROFESSIONAL_DEEPENING.md`. That next file is for
+  module-by-module professional deepening, not for adding broad proxy coverage.
 - A module is complete only when implementation, model card, validity limits,
   failure modes, tests, and at least one controlled validation path exist.
 - If a reference library appears outdated, document the limitation and implement
@@ -74,7 +77,7 @@ Every professional module must ship:
 | PRO-P6A CSTR multiple-steady-state professional example | whilesunny | Done | `cantera` stirred-reactor examples, `idaes-pse` CSTR/control-volume models, nonlinear reactor design equations | `src/chemworld/physchem/reactors.py`, `tests/test_reactor_models.py`, model cards, docs | next: add Cantera dynamic reactor-net cross-checks and plant-scale heat-transfer variants | this commit |
 | PRO-P7A VLE-coupled shortcut distillation | whilesunny | Done | `idaes-pse` distillation/flash units, `thermo` flash/property-package APIs, `phasepy` VLE examples | `src/chemworld/physchem/separations.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/tasks.py`, `tests/test_separations.py`, model cards, docs | next: add Underwood/Gilliland sizing, pressure-profile effects, and nonideal VLE task cases | this commit |
 | PRO-P10A Beer-Lambert UV-vis calibration validation | whilesunny | Done | public Beer-Lambert equations, analytical calibration examples, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add HPLC/GC retention calibration, IR empirical anchors, and NMR coupling metadata | this commit |
-| PRO-P10B Chromatography retention and peak-broadening calibration | whilesunny | Claimed | public chromatography equations, plate-count/resolution equations, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `tests/test_spectroscopy.py`, model cards, docs | read local chromatography implementation and equation-oriented references, then replace role-only HPLC/GC retention proxy with declared retention-factor/plate-count calibration slice | pending push |
+| PRO-P10B Chromatography retention and peak-broadening calibration | whilesunny | Done | public chromatography equations, plate-count/resolution equations, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add empirical retention-index examples and method-condition sensitivity | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -432,11 +435,11 @@ Acceptance:
 Reference targets: public instrument equations and datasets, not primarily the
 thermodynamic libraries.
 
-- [ ] Chromatography:
-  - [ ] HPLC retention-time model;
-  - [ ] GC volatility/retention model;
-  - [ ] peak broadening and overlap;
-  - [ ] calibration uncertainty.
+- [x] Chromatography:
+  - [x] HPLC retention-time model;
+  - [x] GC volatility/retention model;
+  - [x] peak broadening and overlap;
+  - [x] calibration uncertainty.
 - [ ] Spectroscopy:
   - [x] UV-vis Beer-Lambert model;
   - [ ] IR functional-group bands;
@@ -452,6 +455,7 @@ Acceptance:
 
 - [ ] Instrument signals are generated from species state, not score fields.
 - [x] UV-vis has a Beer-Lambert model card and analytical sanity examples.
+- [x] HPLC/GC have retention-factor, plate-count, and resolution model-card examples.
 - [ ] Each instrument has a model card and at least one public sanity example.
 
 Reference-reading note for PRO-P10A:
@@ -468,6 +472,23 @@ Reference-reading note for PRO-P10A:
   `fit_beer_lambert_calibration()`, and `generate_beer_lambert_calibration()`.
   The implementation separates true molar absorptivity, path length, sample
   dilution, blank absorbance, effective calibration slope, LOD, and LOQ.
+
+Reference-reading note for PRO-P10B:
+
+- Local reading covered the existing HPLC/GC code path in
+  `src/chemworld/physchem/spectroscopy.py` and `src/chemworld/world/spectra.py`.
+  Before this task, retention centers were role-based constants with stable
+  species offsets.
+- `reference_repos/rmg-py/documentation/source/users/rmg/liquids.rst` cites
+  chromatography and LSER references by Vitha-Carr and Poole, but does not
+  implement HPLC/GC instrument kernels.
+- ChemWorld localizes public chromatography equations as
+  `chromatographic_retention_time()`, `chromatographic_retention_factor()`,
+  `chromatographic_baseline_peak_width()`,
+  `chromatographic_theoretical_plates()`, `chromatographic_resolution()`, and
+  `fit_chromatography_calibration()`. HPLC/GC species peaks now carry dead
+  time, retention factor, theoretical plates, baseline width, and adjacent
+  resolution metadata.
 
 ## P11: Benchmark Task Integration
 
@@ -636,7 +657,18 @@ Acceptance:
 8. `PRO-P10A`: Add Beer-Lambert UV-vis model card and calibration validation.
    Done.
 9. `PRO-P10B`: Add HPLC/GC retention-factor and peak-broadening calibration.
-   Claimed by whilesunny.
+   Done.
+10. `PRO-P3A`: Add Peng-Robinson/SRK fugacity-coefficient and residual-property
+    validation slice with explicit root-selection policy.
+11. `PRO-P8A`: Add reference-validated heat-transfer correlations and
+    heat-exchanger duty checks for reactor/process energy ledgers.
+12. `PRO-P1A`: Harden the component registry with provenance, aliases,
+    uncertainty fields, and conflict-resolution policy.
+
+After item 12 is completed, open `TODO_PROFESSIONAL_DEEPENING.md` as the active
+professional roadmap. Do not use the deepening roadmap to mark broad modules
+complete without concrete equations, reference readings, validation cases,
+model cards, and task integration tests.
 
 ## Explicit Non-Goals
 

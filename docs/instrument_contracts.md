@@ -18,15 +18,18 @@ a formal contract:
 
 Current instruments:
 
-- `uvvis`: low-cost proxy for yield, conversion, and phase ratio.
-- `gc`: volatile/byproduct and degradation signal.
-- `hplc`: chromatography-style yield, selectivity, byproduct, and purity signal.
+- `uvvis`: low-cost Beer-Lambert species-band signal with labeled proxy fallback.
+- `gc`: chromatography retention-factor, detector-response, volatile byproduct,
+  and degradation signal.
+- `hplc`: chromatography retention-factor, detector-response, yield,
+  selectivity, byproduct, and purity signal.
 - `final_assay`: leaderboard-grade terminal measurement.
 
 Raw signals are plot-ready JSON packets:
 
-- HPLC and GC expose `time_min`, `intensity`, `peaks`, baseline, and
-  normalization metadata.
+- HPLC and GC expose `time_min`, `intensity`, `peaks`, baseline, normalization,
+  retention factor, theoretical plates, baseline width, and adjacent-resolution
+  metadata.
 - UV-vis exposes `wavelength_nm`, `absorbance`, Beer-Lambert species-band
   metadata when species amounts are available, and labeled fallback proxy bands
   when only aggregate task fields are available.

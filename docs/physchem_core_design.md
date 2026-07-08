@@ -240,8 +240,8 @@ Current capability:
 
 | Instrument | Species mapping |
 | --- | --- |
-| HPLC | species groups map to retention-time peaks for reactants, targets, byproducts, degradation products, catalysts, and other species |
-| GC | volatile and vapor-like species map to short retention-time peaks |
+| HPLC | species groups map to retention-factor peaks with dead time, theoretical plates, baseline peak width, detector response calibration, and adjacent-peak resolution metadata |
+| GC | volatile and vapor-like species map to retention-factor peaks with dead time, theoretical plates, baseline peak width, detector response calibration, and adjacent-peak resolution metadata |
 | UV-vis | species amounts map to Beer-Lambert bands with path length, dilution, molar absorptivity, blank absorbance, LOD/LOQ calibration metadata, and proxy fallbacks when only aggregate score fields are available |
 | IR | formula/role proxies map to fingerprint, carbonyl-like, O-H-like, and C-H-like bands |
 | NMR | species roles map to compact 1H chemical-shift proxy peaks |
@@ -261,6 +261,24 @@ against reactor concentration, true molar absorptivity after dilution
 correction, residual standard deviation, LOD, LOQ, and slope uncertainty. This
 closes a narrow UV-vis calibration slice; it does not claim empirical UV-vis
 database prediction.
+
+PRO-P10B adds a reference-validated HPLC/GC chromatography slice. The
+implementation uses public analytical chromatography equations,
+
+```text
+k' = (t_R - t_M) / t_M
+t_R = t_M * (1 + k')
+w_b = 4 * t_R / sqrt(N)
+N = 16 * (t_R / w_b)^2
+R_s = 2 * (t_R2 - t_R1) / (w_b1 + w_b2)
+```
+
+and exposes `ChromatographyMethodSpec`,
+`fit_chromatography_calibration()`, `chromatographic_resolution()`, and related
+helpers. HPLC/GC peaks now store dead time, retention factor, theoretical
+plates, baseline width, and minimum adjacent resolution metadata. This closes a
+narrow retention/plate-count slice; it does not claim empirical retention-index
+prediction, gradient elution, column aging, or peak tailing.
 
 Each signal spec declares:
 

@@ -28,7 +28,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Transport and heat transfer | Lite with reference-validated pipe-flow slice | dimensionless numbers, explicit friction methods, `fluids` Haaland and single-phase pipe-pressure-drop optional checks | broader `fluids` comparisons, heat-transfer validation, and validity maps |
 | Equilibrium chemistry | Lite/proxy | mass-action, acid/base, precipitation tests | Reaktoro-style Gibbs minimization and database-backed equilibria |
 | Mechanism/scenario library | Lite | curated mechanism cards and validation tests | reference-validated mechanisms and professional task bindings |
-| Spectroscopy/instruments | Synthetic/lite with a reference-validated Beer-Lambert UV-vis slice | state-coupled HPLC/GC/UV-vis/IR/NMR synthetic signals; UV-vis Beer-Lambert calibration tests and model card | HPLC/GC retention calibration, IR empirical anchors, NMR coupling metadata, and broader public spectral examples |
+| Spectroscopy/instruments | Synthetic/lite with reference-validated UV-vis and chromatography slices | state-coupled HPLC/GC/UV-vis/IR/NMR synthetic signals; UV-vis Beer-Lambert calibration tests; HPLC/GC retention-factor, plate-count, and resolution tests | empirical retention-index examples, IR empirical anchors, NMR coupling metadata, and broader public spectral examples |
 | Reference validation | Partial | `chemicals` ideal gas, Rachford-Rice, curated vapor pressure/Cp/enthalpy; `fluids` Reynolds/Prandtl/friction/pipe drop; and `thermo` ideal VLE optional tests | CoolProp, Cantera, phasepy, Reaktoro, pycalphad coverage |
 
 ## Policy
@@ -117,3 +117,7 @@ copying the reference implementations.
   sample dilution, blank absorbance, analytical calibration fitting, LOD/LOQ,
   model-card metadata, and species-signal tests are in place. Other instruments
   remain synthetic/lite until their own professional slices are implemented.
+- PRO-P10B is implemented for HPLC/GC retention only: retention factor, dead
+  time, theoretical plates, baseline width, adjacent resolution, calibration
+  fitting, model-card metadata, and species-signal tests are in place. IR, NMR,
+  and empirical retention-index prediction remain future slices.

@@ -279,10 +279,15 @@ def default_kernel_maturity(
         ModuleMaturity(
             "spectroscopy_instruments",
             MaturityLevel.LITE,
-            model_ids=("chemworld_synthetic_instruments", "beer_lambert_uvvis"),
+            model_ids=(
+                "chemworld_synthetic_instruments",
+                "beer_lambert_uvvis",
+                "chromatography_retention_plate",
+            ),
             notes=(
-                "State-coupled synthetic observations with a reference-validated "
-                "Beer-Lambert UV-vis slice; not empirical spectral prediction.",
+                "State-coupled synthetic observations with reference-validated "
+                "Beer-Lambert UV-vis and chromatography retention/plate-count "
+                "slices; not empirical spectral prediction.",
             ),
         ),
     ]
