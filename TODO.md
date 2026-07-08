@@ -50,6 +50,7 @@ finished, update its status and push immediately.
 | Runtime v2 reaction/thermal service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | reaction advancement, heat/wait integration, energy-ledger updates, and pressure/risk projection now live in `runtime/reaction_thermal_services.py` | this commit |
 | Runtime v2 phase/separation service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | phase ledger helpers and extraction-style downstream separation operations now live in `runtime/phase_separation_services.py` | this commit |
 | Runtime v2 electrochemical service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | potential setup and electrolysis conversion logic now live in `runtime/electrochemical_services.py` | this commit |
+| Runtime v2 instrument-cost service split | whilesunny | Active | `src/chemworld/runtime/`, tests/docs | extract measurement cost, destructive sample consumption, and final-assay marker updates from `domain_services.py` without changing behavior | claim commit |
 
 Status values:
 
