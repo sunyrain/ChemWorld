@@ -202,7 +202,7 @@ def uvvis_spectrum(
     seed: int = 0,
     replicate_count: int = 1,
 ) -> dict[str, Any]:
-    """Return a UV-vis absorbance spectrum with broad proxy bands."""
+    """Return a Beer-Lambert species spectrum or fallback broad proxy bands."""
 
     species_packet = _species_signal(
         "uvvis",

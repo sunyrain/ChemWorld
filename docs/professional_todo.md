@@ -54,6 +54,7 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
 7. Replace simple distillation proxy with VLE-coupled shortcut distillation.
    Done in PRO-P7A.
 8. Add Beer-Lambert UV-vis model card and calibration validation.
+   Done in PRO-P10A.
 
 ## Completion Bar
 
@@ -181,3 +182,18 @@ shortcut slice:
 - This is still a shortcut column model, not a rigorous MESH tray-by-tray
   solver with pressure profile, hydraulics, Underwood/Gilliland sizing, or
   azeotrope detection.
+
+PRO-P10A is now implemented for the UV-vis analytical calibration slice:
+
+- `BeerLambertBandSpec` declares wavelength, molar absorptivity, path length,
+  sample dilution, blank absorbance, detection limit, and noise.
+- `beer_lambert_absorbance()` implements `A = A_blank + epsilon * l * c`.
+- `fit_beer_lambert_calibration()` and
+  `generate_beer_lambert_calibration()` fit calibration standards and report
+  effective slope, dilution-corrected molar absorptivity, residual standard
+  deviation, LOD, LOQ, and slope uncertainty.
+- UV-vis species spectra now carry `beer_lambert_uvvis` metadata and use
+  `uvvis_beer_lambert_calibration_v1`.
+- `spectroscopy_model_cards()` documents equations, assumptions, limits,
+  failure modes, reference reading, and analytical validation evidence.
+- HPLC, GC, IR, NMR, and MS still need their own professional slices.

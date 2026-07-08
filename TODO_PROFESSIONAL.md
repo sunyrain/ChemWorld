@@ -73,7 +73,7 @@ Every professional module must ship:
 | PRO-P5A Cantera-comparable irreversible/reversible reaction ODE cases | whilesunny | Done | `cantera` reactor examples, `cantera` reaction-rate APIs, `rmg-py` Arrhenius/reverse-rate APIs | `src/chemworld/physchem/reaction_network.py`, `tests/test_reaction_network.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add falloff, third-body, pressure-dependent, and thermochemistry-coupled reverse-rate tasks | this commit |
 | PRO-P6A CSTR multiple-steady-state professional example | whilesunny | Done | `cantera` stirred-reactor examples, `idaes-pse` CSTR/control-volume models, nonlinear reactor design equations | `src/chemworld/physchem/reactors.py`, `tests/test_reactor_models.py`, model cards, docs | next: add Cantera dynamic reactor-net cross-checks and plant-scale heat-transfer variants | this commit |
 | PRO-P7A VLE-coupled shortcut distillation | whilesunny | Done | `idaes-pse` distillation/flash units, `thermo` flash/property-package APIs, `phasepy` VLE examples | `src/chemworld/physchem/separations.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/tasks.py`, `tests/test_separations.py`, model cards, docs | next: add Underwood/Gilliland sizing, pressure-profile effects, and nonideal VLE task cases | this commit |
-| PRO-P10A Beer-Lambert UV-vis calibration validation | whilesunny | Claimed | public Beer-Lambert equations, analytical calibration examples, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `tests/test_spectroscopy.py`, model cards, docs | read local spectroscopy implementation and public equation-oriented references, then replace broad UV-vis proxy with a declared Beer-Lambert calibration slice | pending push |
+| PRO-P10A Beer-Lambert UV-vis calibration validation | whilesunny | Done | public Beer-Lambert equations, analytical calibration examples, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add HPLC/GC retention calibration, IR empirical anchors, and NMR coupling metadata | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -437,20 +437,36 @@ thermodynamic libraries.
   - [ ] peak broadening and overlap;
   - [ ] calibration uncertainty.
 - [ ] Spectroscopy:
-  - [ ] UV-vis Beer-Lambert model;
+  - [x] UV-vis Beer-Lambert model;
   - [ ] IR functional-group bands;
   - [ ] NMR shift proxy with coupling metadata;
   - [ ] optional MS fragment proxy.
 - [ ] Instrument operations:
   - [ ] destructive sample accounting;
-  - [ ] calibration runs;
+  - [x] UV-vis calibration runs;
   - [ ] replicate strategy;
   - [ ] detection-limit behavior.
 
 Acceptance:
 
 - [ ] Instrument signals are generated from species state, not score fields.
+- [x] UV-vis has a Beer-Lambert model card and analytical sanity examples.
 - [ ] Each instrument has a model card and at least one public sanity example.
+
+Reference-reading note for PRO-P10A:
+
+- `reference_repos/chemicals/docs/developers.rst` notes that IR, NMR, MS, and
+  UV-Vis spectra are plausible future data additions and names public database
+  sources such as NIST, but `chemicals` does not implement a UV-vis instrument
+  kernel.
+- Local reading covered `src/chemworld/physchem/spectroscopy.py` and
+  `src/chemworld/world/spectra.py`, where ChemWorld already synthesized
+  state-coupled spectra from species amounts.
+- ChemWorld localizes the public Beer-Lambert relation as
+  `BeerLambertBandSpec`, `beer_lambert_absorbance()`,
+  `fit_beer_lambert_calibration()`, and `generate_beer_lambert_calibration()`.
+  The implementation separates true molar absorptivity, path length, sample
+  dilution, blank absorbance, effective calibration slope, LOD, and LOQ.
 
 ## P11: Benchmark Task Integration
 
@@ -617,7 +633,7 @@ Acceptance:
 7. `PRO-P7A`: Replace simple distillation proxy with VLE-coupled shortcut
    distillation. Done.
 8. `PRO-P10A`: Add Beer-Lambert UV-vis model card and calibration validation.
-   Claimed by whilesunny.
+   Done.
 
 ## Explicit Non-Goals
 

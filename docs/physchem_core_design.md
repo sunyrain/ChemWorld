@@ -242,9 +242,25 @@ Current capability:
 | --- | --- |
 | HPLC | species groups map to retention-time peaks for reactants, targets, byproducts, degradation products, catalysts, and other species |
 | GC | volatile and vapor-like species map to short retention-time peaks |
-| UV-vis | target, reactant, impurity, degradation, and catalyst proxies map to broad wavelength bands |
+| UV-vis | species amounts map to Beer-Lambert bands with path length, dilution, molar absorptivity, blank absorbance, LOD/LOQ calibration metadata, and proxy fallbacks when only aggregate score fields are available |
 | IR | formula/role proxies map to fingerprint, carbonyl-like, O-H-like, and C-H-like bands |
 | NMR | species roles map to compact 1H chemical-shift proxy peaks |
+
+PRO-P10A adds a reference-validated UV-vis analytical slice. The implementation
+uses the Beer-Lambert relation,
+
+```text
+A = A_blank + epsilon * l * c_cuvette
+c_cuvette = c_reactor / dilution_factor
+```
+
+and exposes `BeerLambertBandSpec`, `beer_lambert_absorbance()`,
+`fit_beer_lambert_calibration()`, `generate_beer_lambert_calibration()`, and
+`spectroscopy_model_cards()`. Calibration fits report the effective slope
+against reactor concentration, true molar absorptivity after dilution
+correction, residual standard deviation, LOD, LOQ, and slope uncertainty. This
+closes a narrow UV-vis calibration slice; it does not claim empirical UV-vis
+database prediction.
 
 Each signal spec declares:
 

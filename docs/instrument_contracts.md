@@ -27,7 +27,9 @@ Raw signals are plot-ready JSON packets:
 
 - HPLC and GC expose `time_min`, `intensity`, `peaks`, baseline, and
   normalization metadata.
-- UV-vis exposes `wavelength_nm`, `absorbance`, and broad proxy bands.
+- UV-vis exposes `wavelength_nm`, `absorbance`, Beer-Lambert species-band
+  metadata when species amounts are available, and labeled fallback proxy bands
+  when only aggregate task fields are available.
 - Final assay exposes a multi-instrument packet with HPLC, GC, UV-vis, IR, NMR,
   and calibrated mass-balance summaries.
 

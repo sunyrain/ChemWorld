@@ -3,11 +3,17 @@ from __future__ import annotations
 import pytest
 
 from chemworld.physchem import (
+    BeerLambertBandSpec,
+    beer_lambert_absorbance,
     build_signal_spec_from_card,
+    fit_beer_lambert_calibration,
+    generate_beer_lambert_calibration,
     get_mechanism_card,
     load_library_mechanism,
+    spectroscopy_model_cards,
     synthesize_signal,
     synthesize_signal_from_card,
+    validate_model_card,
 )
 from chemworld.world.observation_kernel import raw_signal
 
@@ -143,6 +149,102 @@ def test_world_raw_signal_accepts_species_amounts_without_leaking_hidden_state()
     assert "species_amounts" not in packet
     assert packet["replicate_count"] == 2
     assert "processed_estimates" in packet
+
+
+def test_beer_lambert_absorbance_scales_with_concentration_and_path() -> None:
+    single = beer_lambert_absorbance(
+        2.0e-4,
+        molar_absorptivity_L_mol_cm=12_000.0,
+        path_length_cm=1.0,
+        blank_absorbance=0.015,
+    )
+    doubled = beer_lambert_absorbance(
+        4.0e-4,
+        molar_absorptivity_L_mol_cm=12_000.0,
+        path_length_cm=1.0,
+        blank_absorbance=0.015,
+    )
+    longer_path = beer_lambert_absorbance(
+        2.0e-4,
+        molar_absorptivity_L_mol_cm=12_000.0,
+        path_length_cm=2.0,
+        blank_absorbance=0.015,
+    )
+
+    assert single == pytest.approx(2.415)
+    assert doubled - 0.015 == pytest.approx(2.0 * (single - 0.015))
+    assert longer_path - 0.015 == pytest.approx(2.0 * (single - 0.015))
+
+
+def test_beer_lambert_calibration_recovers_noiseless_molar_absorptivity() -> None:
+    band = BeerLambertBandSpec(
+        species_id="Dye",
+        wavelength_nm=512.0,
+        molar_absorptivity_L_mol_cm=8500.0,
+        path_length_cm=1.0,
+        dilution_factor=100.0,
+        blank_absorbance=0.010,
+    )
+    standards = (0.0, 0.01, 0.02, 0.04)
+    result = generate_beer_lambert_calibration(
+        band,
+        standards,
+        noise_absorbance=0.0,
+    )
+
+    assert result.fitted_slope_absorbance_per_mol_L == pytest.approx(85.0)
+    assert result.intercept_absorbance == pytest.approx(0.010)
+    assert result.molar_absorptivity_L_mol_cm == pytest.approx(8500.0)
+    assert result.dilution_factor == pytest.approx(100.0)
+    assert result.r_squared == pytest.approx(1.0)
+    assert result.detection_limit_mol_L == 0.0
+
+
+def test_fit_beer_lambert_calibration_reports_residual_uncertainty() -> None:
+    result = fit_beer_lambert_calibration(
+        (0.0, 0.1, 0.2, 0.3),
+        (0.012, 0.095, 0.182, 0.267),
+        species_id="P",
+        path_length_cm=1.0,
+    )
+
+    assert result.fitted_slope_absorbance_per_mol_L > 0.8
+    assert result.r_squared > 0.999
+    assert result.detection_limit_mol_L > 0.0
+    assert result.quantitation_limit_mol_L > result.detection_limit_mol_L
+
+
+def test_uvvis_signal_uses_beer_lambert_band_metadata() -> None:
+    card = get_mechanism_card("simple_batch_reaction")
+    network = load_library_mechanism(card)
+    measurement = synthesize_signal_from_card(
+        "uvvis",
+        card,
+        network,
+        {"A": 0.2, "P": 0.30, "B": 0.04, "D": 0.0, "E": 0.0},
+        volume_L=1.0,
+        seed=7,
+        replicate_count=3,
+    )
+    packet = measurement.to_dict()
+    product_peak = _peak(packet, "P")
+    metadata = product_peak["metadata"]
+
+    assert packet["metadata"]["calibration_profile"] == "uvvis_beer_lambert_calibration_v1"
+    assert "beer_lambert_uvvis" in packet["metadata"]["model_ids"]
+    assert metadata["model_id"] == "beer_lambert_uvvis"
+    assert metadata["path_length_cm"] == pytest.approx(1.0)
+    assert metadata["dilution_factor"] == pytest.approx(1000.0)
+    assert product_peak["estimated_concentration_mol_L"] == pytest.approx(0.30)
+
+
+def test_spectroscopy_model_card_documents_beer_lambert_uvvis() -> None:
+    cards = spectroscopy_model_cards()
+    card = next(card for card in cards if card.model_id == "beer_lambert_uvvis")
+
+    assert card.maturity.value == "reference_validated"
+    assert not validate_model_card(card)
+    assert any("Beer-Lambert" in equation for equation in card.equations)
 
 
 def _peak(packet: dict[str, object], species_id: str) -> dict[str, object]:

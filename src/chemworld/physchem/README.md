@@ -32,6 +32,9 @@ Current scope:
 - spectroscopy and chromatography signal synthesis for mechanism-linked HPLC,
   GC, UV-vis, IR, and NMR raw signals with peak overlap, calibration curves,
   baseline drift, detection limits, and replicate measurements.
+- a Beer-Lambert UV-vis calibration slice with explicit path length, sample
+  dilution, molar absorptivity, blank absorbance, LOD/LOQ, and model-card
+  evidence.
 - mechanism-backed reactor kernels for batch, semi-batch, CSTR, and PFR
   calculations with material and energy ledgers.
 - an exothermic CSTR multiple-steady-state reference case with analytical

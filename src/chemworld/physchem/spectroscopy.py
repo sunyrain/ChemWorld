@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 import numpy as np
 
+from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
 from chemworld.physchem.mechanism_library import MechanismScenarioCard
 from chemworld.physchem.reaction_network import ReactionNetworkSpec
 
@@ -46,6 +47,119 @@ class CalibrationCurve:
             "lower_limit": self.lower_limit,
             "upper_limit": self.upper_limit,
             "noise_relative": self.noise_relative,
+        }
+
+
+@dataclass(frozen=True)
+class BeerLambertBandSpec:
+    species_id: str
+    wavelength_nm: float
+    molar_absorptivity_L_mol_cm: float
+    path_length_cm: float = 1.0
+    dilution_factor: float = 1.0
+    bandwidth_nm: float = 32.0
+    blank_absorbance: float = 0.0
+    detection_limit_mol_L: float = 0.0
+    noise_absorbance: float = 0.001
+    assignment: str = "uvvis_band"
+    group: str = "other"
+
+    def __post_init__(self) -> None:
+        if not self.species_id.strip():
+            raise ValueError("species_id cannot be empty")
+        if self.wavelength_nm <= 0.0 or not isfinite(self.wavelength_nm):
+            raise ValueError("wavelength_nm must be finite and positive")
+        if (
+            self.molar_absorptivity_L_mol_cm <= 0.0
+            or not isfinite(self.molar_absorptivity_L_mol_cm)
+        ):
+            raise ValueError("molar_absorptivity_L_mol_cm must be finite and positive")
+        if self.path_length_cm <= 0.0 or self.dilution_factor <= 0.0:
+            raise ValueError("path_length_cm and dilution_factor must be positive")
+        if self.bandwidth_nm <= 0.0:
+            raise ValueError("bandwidth_nm must be positive")
+        if self.blank_absorbance < 0.0 or self.detection_limit_mol_L < 0.0:
+            raise ValueError("blank_absorbance and detection_limit_mol_L cannot be negative")
+        if self.noise_absorbance < 0.0:
+            raise ValueError("noise_absorbance cannot be negative")
+
+    @property
+    def effective_slope_absorbance_per_mol_l(self) -> float:
+        return (
+            self.molar_absorptivity_L_mol_cm
+            * self.path_length_cm
+            / self.dilution_factor
+        )
+
+    def absorbance(self, concentration_mol_L: float) -> float:
+        return beer_lambert_absorbance(
+            concentration_mol_L / self.dilution_factor,
+            molar_absorptivity_L_mol_cm=self.molar_absorptivity_L_mol_cm,
+            path_length_cm=self.path_length_cm,
+            blank_absorbance=self.blank_absorbance,
+        )
+
+    def calibration_curve(self) -> CalibrationCurve:
+        return CalibrationCurve(
+            slope=self.effective_slope_absorbance_per_mol_l,
+            intercept=self.blank_absorbance,
+            lower_limit=self.detection_limit_mol_L,
+            upper_limit=5.0,
+            noise_relative=max(self.noise_absorbance, 1.0e-12)
+            / max(self.effective_slope_absorbance_per_mol_l, 1.0e-12),
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "model_id": "beer_lambert_uvvis",
+            "species_id": self.species_id,
+            "wavelength_nm": self.wavelength_nm,
+            "molar_absorptivity_L_mol_cm": self.molar_absorptivity_L_mol_cm,
+            "path_length_cm": self.path_length_cm,
+            "dilution_factor": self.dilution_factor,
+            "bandwidth_nm": self.bandwidth_nm,
+            "blank_absorbance": self.blank_absorbance,
+            "detection_limit_mol_L": self.detection_limit_mol_L,
+            "noise_absorbance": self.noise_absorbance,
+            "effective_slope_absorbance_per_mol_L": (
+                self.effective_slope_absorbance_per_mol_l
+            ),
+            "assignment": self.assignment,
+            "group": self.group,
+        }
+
+
+@dataclass(frozen=True)
+class BeerLambertCalibrationResult:
+    species_id: str
+    path_length_cm: float
+    dilution_factor: float
+    concentrations_mol_L: tuple[float, ...]
+    absorbances: tuple[float, ...]
+    fitted_slope_absorbance_per_mol_L: float
+    intercept_absorbance: float
+    molar_absorptivity_L_mol_cm: float
+    residual_std_absorbance: float
+    slope_std_error: float
+    r_squared: float
+    detection_limit_mol_L: float
+    quantitation_limit_mol_L: float
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "species_id": self.species_id,
+            "path_length_cm": self.path_length_cm,
+            "dilution_factor": self.dilution_factor,
+            "concentrations_mol_L": list(self.concentrations_mol_L),
+            "absorbances": list(self.absorbances),
+            "fitted_slope_absorbance_per_mol_L": self.fitted_slope_absorbance_per_mol_L,
+            "intercept_absorbance": self.intercept_absorbance,
+            "molar_absorptivity_L_mol_cm": self.molar_absorptivity_L_mol_cm,
+            "residual_std_absorbance": self.residual_std_absorbance,
+            "slope_std_error": self.slope_std_error,
+            "r_squared": self.r_squared,
+            "detection_limit_mol_L": self.detection_limit_mol_L,
+            "quantitation_limit_mol_L": self.quantitation_limit_mol_L,
         }
 
 
@@ -275,6 +389,118 @@ def build_signal_spec(
     raise ValueError(f"Unsupported instrument_id={instrument_id!r}")
 
 
+def beer_lambert_absorbance(
+    concentration_mol_L: float,
+    *,
+    molar_absorptivity_L_mol_cm: float,
+    path_length_cm: float = 1.0,
+    blank_absorbance: float = 0.0,
+) -> float:
+    if concentration_mol_L < 0.0 or not isfinite(concentration_mol_L):
+        raise ValueError("concentration_mol_L must be finite and nonnegative")
+    if (
+        molar_absorptivity_L_mol_cm <= 0.0
+        or not isfinite(molar_absorptivity_L_mol_cm)
+    ):
+        raise ValueError("molar_absorptivity_L_mol_cm must be finite and positive")
+    if path_length_cm <= 0.0 or not isfinite(path_length_cm):
+        raise ValueError("path_length_cm must be finite and positive")
+    if blank_absorbance < 0.0 or not isfinite(blank_absorbance):
+        raise ValueError("blank_absorbance must be finite and nonnegative")
+    return (
+        blank_absorbance
+        + molar_absorptivity_L_mol_cm * path_length_cm * concentration_mol_L
+    )
+
+
+def fit_beer_lambert_calibration(
+    concentrations_mol_L: Sequence[float],
+    absorbances: Sequence[float],
+    *,
+    species_id: str = "unknown",
+    path_length_cm: float = 1.0,
+    dilution_factor: float = 1.0,
+) -> BeerLambertCalibrationResult:
+    if path_length_cm <= 0.0 or not isfinite(path_length_cm):
+        raise ValueError("path_length_cm must be finite and positive")
+    if dilution_factor <= 0.0 or not isfinite(dilution_factor):
+        raise ValueError("dilution_factor must be finite and positive")
+    if len(concentrations_mol_L) != len(absorbances):
+        raise ValueError("concentrations and absorbances must have equal length")
+    if len(concentrations_mol_L) < 2:
+        raise ValueError("at least two calibration points are required")
+    x = np.array([float(value) for value in concentrations_mol_L], dtype=float)
+    y = np.array([float(value) for value in absorbances], dtype=float)
+    if np.any(~np.isfinite(x)) or np.any(~np.isfinite(y)):
+        raise ValueError("calibration points must be finite")
+    if np.any(x < 0.0):
+        raise ValueError("calibration concentrations must be nonnegative")
+    if np.allclose(x, x[0]):
+        raise ValueError("calibration concentrations must span a nonzero range")
+    design = np.vstack([x, np.ones_like(x)]).T
+    slope, intercept = np.linalg.lstsq(design, y, rcond=None)[0]
+    if slope <= 0.0:
+        raise ValueError("fitted Beer-Lambert slope must be positive")
+    fitted = slope * x + intercept
+    residuals = y - fitted
+    degrees = max(len(x) - 2, 1)
+    residual_std = float(np.sqrt(float(np.sum(residuals**2)) / degrees))
+    if residual_std <= 1.0e-14:
+        residual_std = 0.0
+    centered_y = y - float(np.mean(y))
+    total_sum_squares = float(np.sum(centered_y**2))
+    r_squared = (
+        1.0
+        if total_sum_squares <= 1.0e-24
+        else 1.0 - float(np.sum(residuals**2)) / total_sum_squares
+    )
+    sxx = float(np.sum((x - float(np.mean(x))) ** 2))
+    slope_std_error = 0.0 if sxx <= 0.0 else residual_std / sqrt(sxx)
+    detection_limit = 0.0 if residual_std == 0.0 else 3.3 * residual_std / float(slope)
+    quantitation_limit = 0.0 if residual_std == 0.0 else 10.0 * residual_std / float(slope)
+    return BeerLambertCalibrationResult(
+        species_id=species_id,
+        path_length_cm=path_length_cm,
+        dilution_factor=dilution_factor,
+        concentrations_mol_L=tuple(round(float(value), 12) for value in x),
+        absorbances=tuple(round(float(value), 12) for value in y),
+        fitted_slope_absorbance_per_mol_L=float(slope),
+        intercept_absorbance=float(intercept),
+        molar_absorptivity_L_mol_cm=float(slope) * dilution_factor / path_length_cm,
+        residual_std_absorbance=residual_std,
+        slope_std_error=slope_std_error,
+        r_squared=float(max(min(r_squared, 1.0), -1.0)),
+        detection_limit_mol_L=detection_limit,
+        quantitation_limit_mol_L=quantitation_limit,
+    )
+
+
+def generate_beer_lambert_calibration(
+    band: BeerLambertBandSpec,
+    standard_concentrations_mol_L: Sequence[float],
+    *,
+    seed: int = 0,
+    noise_absorbance: float | None = None,
+) -> BeerLambertCalibrationResult:
+    noise = band.noise_absorbance if noise_absorbance is None else float(noise_absorbance)
+    if noise < 0.0:
+        raise ValueError("noise_absorbance cannot be negative")
+    rng = np.random.default_rng(seed)
+    absorbances = []
+    for concentration in standard_concentrations_mol_L:
+        absorbance = band.absorbance(float(concentration))
+        if noise:
+            absorbance += float(rng.normal(0.0, noise))
+        absorbances.append(absorbance)
+    return fit_beer_lambert_calibration(
+        standard_concentrations_mol_L,
+        absorbances,
+        species_id=band.species_id,
+        path_length_cm=band.path_length_cm,
+        dilution_factor=band.dilution_factor,
+    )
+
+
 def default_feature_specs(
     instrument_id: str,
     species_ids: Sequence[str],
@@ -340,6 +566,18 @@ def synthesize_signal(
         detected_peaks,
         replicate_count=replicate_count,
     )
+    model_ids = sorted(
+        {
+            str(feature.metadata["model_id"])
+            for feature in spec.features
+            if "model_id" in feature.metadata
+        }
+    )
+    calibration_profile = (
+        "uvvis_beer_lambert_calibration_v1"
+        if spec.instrument_id == "uvvis"
+        else f"{spec.instrument_id}_species_calibration_v1"
+    )
     return SpectralMeasurement(
         instrument_id=spec.instrument_id,
         kind=spec.kind,
@@ -355,12 +593,13 @@ def synthesize_signal(
             "axis_unit": spec.axis_unit,
             "baseline": spec.baseline,
             "baseline_drift": spec.baseline_drift,
-            "calibration_profile": f"{spec.instrument_id}_species_calibration_v1",
+            "calibration_profile": calibration_profile,
             "detection_limits_mol_L": {
                 feature.species_id: feature.detection_limit_mol_L
                 for feature in spec.features
             },
             "peak_overlap": any(bool(peak["overlap_group"]) for peak in detected_peaks),
+            "model_ids": model_ids,
         },
     )
 
@@ -486,22 +725,39 @@ def _uvvis_feature(species_id: str, role: str) -> SpectralFeatureSpec:
         "catalyst": 680.0,
         "other": 470.0,
     }
+    absorptivities = {
+        "reactant": 420.0,
+        "target": 950.0,
+        "byproduct": 560.0,
+        "degradation": 720.0,
+        "catalyst": 240.0,
+        "other": 360.0,
+    }
     center = centers.get(role, centers["other"]) + _stable_offset(species_id, scale=18.0)
+    band = BeerLambertBandSpec(
+        species_id=species_id,
+        wavelength_nm=center,
+        molar_absorptivity_L_mol_cm=absorptivities.get(role, absorptivities["other"]),
+        path_length_cm=1.0,
+        dilution_factor=1000.0,
+        bandwidth_nm=34.0 if role != "catalyst" else 48.0,
+        blank_absorbance=0.020,
+        detection_limit_mol_L=0.0025,
+        noise_absorbance=0.0015,
+        assignment=f"{species_id}_{role}_beer_lambert_band",
+        group=role,
+    )
     return SpectralFeatureSpec(
         species_id=species_id,
         instrument_id="uvvis",
         center=center,
-        width=34.0 if role != "catalyst" else 48.0,
-        response_factor=0.75 if role == "target" else 0.45,
+        width=band.bandwidth_nm,
+        response_factor=1.0,
         detection_limit_mol_L=0.0025,
-        assignment=f"{species_id}_{role}_band",
+        assignment=band.assignment,
         group=role,
-        calibration=CalibrationCurve(
-            slope=0.75 if role == "target" else 0.45,
-            lower_limit=0.0025,
-            upper_limit=5.0,
-            noise_relative=0.05,
-        ),
+        calibration=band.calibration_curve(),
+        metadata=band.to_dict(),
     )
 
 
@@ -618,6 +874,7 @@ def _feature_peaks(
                 "response_factor": feature.response_factor,
                 "shape": feature.shape,
                 "calibration": feature.calibration,
+                "feature_metadata": dict(feature.metadata),
             }
         )
     return peaks
@@ -635,6 +892,9 @@ def _annotate_peaks(
         area = _as_float(peak["area"])
         response = area / max(_as_float(peak["response_factor"]), 1.0e-12)
         estimated = calibration.estimate_concentration(response)
+        feature_metadata = peak.get("feature_metadata", {})
+        if not isinstance(feature_metadata, Mapping):
+            feature_metadata = {}
         annotated.append(
             {
                 "species_id": str(peak["species_id"]),
@@ -650,6 +910,7 @@ def _annotate_peaks(
                 ),
                 "estimated_concentration_mol_L": round(estimated, 9),
                 "overlap_group": overlap_groups.get(idx),
+                "metadata": dict(feature_metadata),
             }
         )
     return annotated
@@ -686,6 +947,98 @@ def _processed_from_peaks(
     return processed, uncertainty
 
 
+def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
+    return (
+        ModelCard(
+            model_id="beer_lambert_uvvis",
+            module_id="spectroscopy_instruments",
+            title="Beer-Lambert UV-vis Calibration Model",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "UV-vis absorbance and species calibration are generated from "
+                "the Beer-Lambert relation with explicit path length, effective "
+                "sample dilution, blank absorbance, detection limits, and "
+                "linear calibration residuals."
+            ),
+            equations=(
+                "Beer-Lambert: A = A_blank + epsilon * l * c_cuvette",
+                "c_cuvette = c_reactor / dilution_factor",
+                "calibration: A = slope * c_reactor + intercept",
+                "LOD = 3.3 * sigma_residual / slope",
+                "LOQ = 10 * sigma_residual / slope",
+            ),
+            assumptions=(
+                "single dominant band per virtual species role",
+                "linear absorbance range after explicit dilution",
+                "baseline drift and Gaussian band shape are synthetic instrument effects",
+                "molar absorptivities are benchmark parameters, not molecule-specific data",
+            ),
+            validity_limits=(
+                "requires finite nonnegative concentrations",
+                "requires positive molar absorptivity and optical path length",
+                "does not model scattering, stray light, saturation, or real solvent baselines",
+                "not a substitute for empirical UV-vis databases or quantum spectra",
+            ),
+            failure_modes=(
+                "negative concentration or invalid optical parameters raise ValueError",
+                "calibration standards with no concentration span raise ValueError",
+                "nonpositive fitted slope raises ValueError",
+            ),
+            units={
+                "absorbance": "dimensionless",
+                "molar_absorptivity": "L mol^-1 cm^-1",
+                "path_length": "cm",
+                "concentration": "mol/L",
+                "wavelength": "nm",
+            },
+            reference_reading=(
+                (
+                    "Beer-Lambert analytical relation used directly as the "
+                    "reference equation for public instrument behavior."
+                ),
+                (
+                    "reference_repos/chemicals/docs/developers.rst notes UV-Vis "
+                    "spectral databases such as NIST as future data sources, but "
+                    "does not implement an instrument model."
+                ),
+                (
+                    "Local spectroscopy implementation read in "
+                    "src/chemworld/physchem/spectroscopy.py and "
+                    "src/chemworld/world/spectra.py."
+                ),
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="beer_lambert_linear_calibration",
+                    evidence_type="analytical",
+                    description=(
+                        "Noiseless standards recover the declared effective "
+                        "Beer-Lambert slope and molar absorptivity."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_spectroscopy.py",
+                    tolerance="1e-12 relative for noiseless calibration",
+                ),
+                ValidationEvidence(
+                    evidence_id="uvvis_species_signal_uses_band_metadata",
+                    evidence_type="unit_test",
+                    description=(
+                        "UV-vis species spectra carry path length, dilution, "
+                        "absorptivity, and Beer-Lambert model metadata."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_spectroscopy.py",
+                ),
+            ),
+            intended_use=(
+                "virtual UV-vis calibration in ChemWorld benchmark tasks",
+                "teaching instrument selection and calibration uncertainty",
+                "LLM/tool-agent parsing of raw spectra and processed estimates",
+            ),
+        ),
+    )
+
+
 def _baseline(axis: np.ndarray, intercept: float, drift: float) -> np.ndarray:
     span = max(float(axis[-1] - axis[0]), 1.0)
     normalized = (axis - axis[0]) / span
@@ -719,14 +1072,20 @@ def _as_float(value: object) -> float:
 
 
 __all__ = [
+    "BeerLambertBandSpec",
+    "BeerLambertCalibrationResult",
     "CalibrationCurve",
     "InstrumentSignalSpec",
     "SpectralFeatureSpec",
     "SpectralMeasurement",
+    "beer_lambert_absorbance",
     "build_signal_spec",
     "build_signal_spec_from_card",
     "default_feature_specs",
     "detect_peak_overlap",
+    "fit_beer_lambert_calibration",
+    "generate_beer_lambert_calibration",
+    "spectroscopy_model_cards",
     "synthesize_signal",
     "synthesize_signal_from_card",
 ]

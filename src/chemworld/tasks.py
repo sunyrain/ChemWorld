@@ -279,8 +279,11 @@ def default_kernel_maturity(
         ModuleMaturity(
             "spectroscopy_instruments",
             MaturityLevel.LITE,
-            model_ids=("chemworld_synthetic_instruments",),
-            notes=("State-coupled synthetic observations, not empirical spectral prediction.",),
+            model_ids=("chemworld_synthetic_instruments", "beer_lambert_uvvis"),
+            notes=(
+                "State-coupled synthetic observations with a reference-validated "
+                "Beer-Lambert UV-vis slice; not empirical spectral prediction.",
+            ),
         ),
     ]
     if operations.intersection({"add_phase", "add_extractant", "mix", "settle"}):
