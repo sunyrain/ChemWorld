@@ -20,7 +20,7 @@ No reference-project source code is copied.
 
 ## Current Scope
 
-The first implementation slices cover the P1 and P2 TODO foundation:
+The implementation slices currently cover the P1-P8 foundation:
 
 - `ElementSpec`: benchmark-relevant element metadata.
 - `parse_formula`: formula parsing with nested parentheses and charge stripping.
@@ -35,6 +35,8 @@ The first implementation slices cover the P1 and P2 TODO foundation:
   correlation provenance.
 - `ComponentPropertyPackage`: a component-local correlation package that chooses
   an in-range method when multiple correlations exist.
+- reaction-network, reactor, EOS, phase-equilibrium, separation, transport, and
+  heat-transfer kernels described below.
 
 ## Property Core
 
@@ -188,14 +190,48 @@ process mass-balance errors. Excessive purification is therefore not
 automatically optimal, which is important for realistic reaction-to-purification
 tasks.
 
+## Transport and Heat-Transfer Core
+
+The P8 transport core is implemented in `chemworld.physchem.transport`. It adds
+the first local equipment-calculation layer needed by professional interaction
+environments: flow, pressure, pumping, mixing, heat transfer, and compact
+two-phase/packed-bed proxies.
+
+| Capability | Current implementation |
+| --- | --- |
+| Dimensionless groups | Reynolds, Prandtl, Peclet, and internal-flow Nusselt estimates |
+| Flow regime | laminar, transitional, and turbulent classification |
+| Friction factor | laminar `64/Re`, Haaland turbulent approximation, smooth transition blend |
+| Pipe pressure drop | Darcy-Weisbach friction, fittings loss, static head, and pump work |
+| Mixing | impeller power and optional volumetric power density |
+| Heat transfer | film/wall/fouling resistance to `U`, jacket heat duty, signed heat energy |
+| Heat exchanger | counterflow effectiveness-NTU model with stream energy balance |
+| Packed bed | Ergun pressure-drop calculation with viscous and inertial terms |
+| Two-phase proxy | homogeneous pressure-drop model using quality-weighted mixture properties |
+
+All transport results are JSON-friendly dataclasses. They expose the engineering
+quantity, the units implied by the field names, the regime or model branch used,
+and a metadata block with the equipment inputs. This keeps later world-law
+modules honest: a task can penalize high pump work, high pressure drop, poor heat
+removal, high mixing energy, or risky gas-liquid operation using the same
+calculation surface that students and agents can inspect.
+
+The module intentionally uses compact correlations instead of importing a heavy
+process-simulation backend. The reference libraries informed the API shape:
+`fluids` separates dimensionless groups, friction factors, and pressure-drop
+wrappers; IDAES exposes equipment contracts in terms of `U`, `A`, `Q`, `NTU`,
+and effectiveness. ChemWorld localizes those ideas into deterministic functions
+that are small enough for benchmark replay and robust enough for task design.
+
 ## Boundaries
 
 This layer is now a real local property-correlation, reaction-network, reactor,
-cubic-EOS, compact phase-equilibrium, and downstream unit-operation core, but it
-is not yet a complete process simulator. It does not perform rigorous multiphase
-stability analysis, database-grade flash calculations, automatic reaction
-mechanism generation, or detailed transport calculations. Those will be built on
-top of these specs in later TODO milestones.
+cubic-EOS, compact phase-equilibrium, downstream unit-operation, and
+transport/heat-transfer core, but it is not yet a complete process simulator. It
+does not perform rigorous multiphase stability analysis, database-grade flash
+calculations, automatic reaction mechanism generation, CFD, detailed two-fluid
+hydrodynamics, or exchanger network synthesis. Those will be built on top of
+these specs in later TODO milestones.
 
 ## Validation Rules
 
@@ -210,6 +246,8 @@ The core fails early when:
 - a reaction references an unknown species;
 - a reaction is not element balanced;
 - a rate coefficient is negative, non-finite, or not numeric.
+- a transport dimension, density, viscosity, heat-transfer coefficient, or
+  equipment efficiency is nonphysical.
 
 This gives later transition kernels a cleaner contract: invalid chemistry
 metadata should fail before simulation begins.

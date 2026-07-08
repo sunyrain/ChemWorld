@@ -23,7 +23,7 @@ finished, update its status and push immediately.
 | P5 equation-of-state core | whilesunny | Done | `src/chemworld/physchem/eos.py`, `tests/`, `docs/physchem_core_design.md` | next: build activity models and VLE/LLE flash on top of EOS and property packages | this commit |
 | P6 phase-equilibrium core | whilesunny | Done | `src/chemworld/physchem/equilibrium.py`, `tests/`, `docs/physchem_core_design.md` | next: replace extraction and evaporation task proxies with phase-equilibrium kernels, then start P7 separations | this commit |
 | P7 separation and unit operations | whilesunny | Done | `src/chemworld/physchem/separations.py`, `tests/`, `docs/physchem_core_design.md` | next: implement fluid mechanics and heat-transfer utilities in P8, then wire separations into world tasks | this commit |
-| P8 fluid mechanics and heat transfer | whilesunny | Active | `src/chemworld/physchem/transport.py`, `tests/`, `docs/physchem_core_design.md` | read fluids/heat-transfer references, then implement dimensionless numbers, friction factor, pipe pressure drop, pump work, jacket heat transfer, and heat-exchanger effectiveness | pending |
+| P8 fluid mechanics and heat transfer | whilesunny | Done | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `docs/physchem_core_design.md` | next: implement equilibrium chemistry in P9, then connect transport signals into world tasks and scoring | this commit |
 
 Status values:
 
@@ -649,22 +649,28 @@ Acceptance tests:
 
 ### P8: Fluid Mechanics and Heat Transfer
 
-- [ ] Reynolds number.
-- [ ] Prandtl number.
-- [ ] Nusselt number placeholders.
-- [ ] Pipe pressure drop.
-- [ ] Laminar/turbulent friction factor.
-- [ ] Pump work.
-- [ ] Jacket heat-transfer coefficient.
-- [ ] Heat exchanger effectiveness placeholder.
-- [ ] Packed-bed pressure drop later.
-- [ ] Two-phase pressure drop later.
+- [x] Reynolds number.
+- [x] Prandtl number.
+- [x] Peclet number.
+- [x] Internal-flow Nusselt number.
+- [x] Pipe pressure drop.
+- [x] Laminar/transitional/turbulent friction factor.
+- [x] Pump work.
+- [x] Mixing power.
+- [x] Overall heat-transfer coefficient.
+- [x] Jacket heat transfer.
+- [x] Counterflow heat exchanger effectiveness-NTU model.
+- [x] Packed-bed pressure drop.
+- [x] Homogeneous two-phase pressure drop.
 
 Acceptance tests:
 
-- [ ] Pressure drop increases with flow rate.
-- [ ] Heat-transfer rate increases with area and driving force.
-- [ ] Pump work is nonnegative.
+- [x] Pressure drop increases with flow rate.
+- [x] Heat-transfer rate increases with area and driving force.
+- [x] Pump work is nonnegative.
+- [x] Heat-exchanger stream energy is conserved.
+- [x] Packed-bed pressure drop increases with superficial velocity.
+- [x] Invalid equipment dimensions and policies fail fast.
 
 ### P9: Equilibrium Chemistry
 
