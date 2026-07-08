@@ -73,6 +73,7 @@ Every professional module must ship:
 | PRO-P4A Wilson and full binary NRTL activity models | whilesunny | Done | `thermo.activity`, `thermo.wilson`, `thermo.nrtl`, `phasepy.actmodels` | `src/chemworld/physchem/equilibrium.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add nonideal VLE task cases and Wilson/NRTL parameter-library governance | this commit |
 | PRO-P5A Cantera-comparable irreversible/reversible reaction ODE cases | whilesunny | Done | `cantera` reactor examples, `cantera` reaction-rate APIs, `rmg-py` Arrhenius/reverse-rate APIs | `src/chemworld/physchem/reaction_network.py`, `tests/test_reaction_network.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add falloff, third-body, pressure-dependent, and thermochemistry-coupled reverse-rate tasks | this commit |
 | PRO-P6A CSTR multiple-steady-state professional example | whilesunny | Done | `cantera` stirred-reactor examples, `idaes-pse` CSTR/control-volume models, nonlinear reactor design equations | `src/chemworld/physchem/reactors.py`, `tests/test_reactor_models.py`, model cards, docs | next: add Cantera dynamic reactor-net cross-checks and plant-scale heat-transfer variants | this commit |
+| PRO-P7A VLE-coupled shortcut distillation | whilesunny | Claimed | `idaes-pse` distillation/flash units, `thermo` flash/property-package APIs, `phasepy` VLE examples | `src/chemworld/physchem/separations.py`, `tests/test_separations.py`, optional reference tests, model cards, docs | read local IDAES/thermo/phasepy separation APIs, then replace simple distillation proxy with a declared VLE-coupled shortcut model | pending push |
 
 ## P0: Governance And Model Maturity
 
@@ -596,7 +597,7 @@ Acceptance:
 6. `PRO-P6A`: Add CSTR multiple-steady-state professional example.
    Done.
 7. `PRO-P7A`: Replace simple distillation proxy with VLE-coupled shortcut
-   distillation.
+   distillation. Claimed by whilesunny.
 8. `PRO-P10A`: Add Beer-Lambert UV-vis model card and calibration validation.
 
 ## Explicit Non-Goals
