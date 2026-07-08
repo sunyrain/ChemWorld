@@ -36,6 +36,7 @@ with proxies and then call them professional.
 | `DEEP-D2B` | whilesunny | Done | Phase-tagged heat-capacity and enthalpy package with reference states, sensible enthalpy reports, signed latent-heat transitions, mixture enthalpy ledgers for reactor/flash heat duties, tests, model card, and provenance. |
 | `DEEP-D2C` | whilesunny | Done | Density and molar-volume package with Rackett liquid volume, ideal/virial gas hooks, mixture specific-volume ledgers, compressibility warnings, tests, model card, and provenance. |
 | `DEEP-D2D` | whilesunny | Done | Transport-property package with liquid/gas viscosity reports, DIPPR9B gas conductivity, DIPPR9H liquid-mixture conductivity, Wilke gas-mixture viscosity, Fuller gas diffusivity estimates, thermal diffusivity, uncertainty/validity metadata, tests, model card, and provenance. |
+| `DEEP-D3A` | whilesunny | Claimed | Volume-translated cubic EOS and root-governance diagnostics with translated molar-volume reports, stable-root policy evidence, binary-interaction provenance, tests, model card, and docs. |
 
 ## Module Families
 
