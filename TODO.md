@@ -17,6 +17,7 @@ finished, update its status and push immediately.
 | --- | --- | --- | --- | --- | --- |
 | Docs cleanup and two-person rules | Codex | Done | `TODO.md`, `docs/`, `mkdocs.yml` | use this board for the next active task | this commit |
 | P1 physchem component/spec foundation | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | next: start P2 property-correlation core on top of these specs | this commit |
+| P2 full property-correlation core | whilesunny | Active | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | read property-package references, then implement full local evaluators for vapor pressure, Cp/enthalpy, phase change, density, viscosity, surface tension, and safety proxies | pending |
 
 Status values:
 
