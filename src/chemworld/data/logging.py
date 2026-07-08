@@ -97,6 +97,14 @@ class TrajectoryLogger:
             "safety_limit": float(task_info.get("safety_limit", 0.65)),
             "mechanism_id": info.get("mechanism_id", task_info.get("mechanism_id")),
             "mechanism_hash": info.get("mechanism_hash", task_info.get("mechanism_hash")),
+            "scoring_contract_hash": info.get(
+                "scoring_contract_hash",
+                task_info.get("scoring_contract_hash"),
+            ),
+            "observation_contract_hash": info.get(
+                "observation_contract_hash",
+                task_info.get("observation_contract_hash"),
+            ),
             "kernel_id": info.get("kernel_id"),
             "kernel_version": info.get("kernel_version"),
             "affected_ledgers": to_builtin(info.get("affected_ledgers", [])),

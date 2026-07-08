@@ -367,7 +367,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "mechanism_version": compiled_mechanism.mechanism_version,
             "mechanism_manifest": compiled_mechanism.manifest.to_dict(),
             "scoring_contract": self.scoring_contract.to_dict(),
+            "scoring_contract_hash": self.scoring_contract.contract_hash,
             "observation_contract": self.observation_contract.to_dict(),
+            "observation_contract_hash": self.observation_contract.contract_hash,
             "env_version": __version__,
             "world_family_version": self.world.family_version,
             "runtime": self.runtime.to_dict(),
@@ -541,6 +543,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "safety_limit": self.safety_limit,
             "mechanism_id": self.scenario_instance.compiled_mechanism.mechanism_id,
             "mechanism_hash": self.scenario_instance.compiled_mechanism.mechanism_hash,
+            "scoring_contract_hash": self.scoring_contract.contract_hash,
+            "observation_contract_hash": self.observation_contract.contract_hash,
             "operation_type": operation_record.operation_type,
             "operation_allowed_by_task": operation_record.operation_type in self.allowed_operations,
             "instrument_allowed_by_task": (

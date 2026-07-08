@@ -24,6 +24,8 @@ TRAJECTORY_REQUIRED_KEYS = {
     "safety_limit",
     "mechanism_id",
     "mechanism_hash",
+    "scoring_contract_hash",
+    "observation_contract_hash",
     "kernel_id",
     "kernel_version",
     "affected_ledgers",

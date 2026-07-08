@@ -347,6 +347,10 @@ Recommended follow-up:
   aggregates such as `A_public`, `P_public`, `B_public`, and `D_public` rather
   than passing full hidden species ledgers or mechanism-internal species names
   into agent-visible raw-signal packets.
+- Added deterministic scoring and observation contract hashes. Task info,
+  trajectory records, and replay verification now include
+  `scoring_contract_hash` and `observation_contract_hash`, so protocol drift is
+  rejected even when the hidden mechanism hash is unchanged.
 - Routed stateful operation precondition failures through Runtime v2 rollback
   semantics. Payload/schema/task-policy failures remain env-level
   `validation_failed` events, while physical precondition failures now emit

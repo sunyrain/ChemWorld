@@ -114,6 +114,8 @@ def test_env_task_info_exposes_scoring_contract() -> None:
         assert contract["score_family"] == "purification"
         assert "purity" in contract["component_weights"]
         assert "process_mass_balance_error" in contract["success_metrics"]
+        assert contract["contract_hash"] == info["scoring_contract_hash"]
+        assert len(info["scoring_contract_hash"]) == 64
     finally:
         env.close()
 
@@ -141,6 +143,12 @@ def test_env_task_info_exposes_task_observation_contract() -> None:
             in purification_contract["instrument_observable_keys"]["final_assay"]
         )
         assert "target" in purification_contract["mechanism_observable_mapping"]
+        assert reaction_contract["contract_hash"] == reaction_info["observation_contract_hash"]
+        assert (
+            purification_contract["contract_hash"]
+            == purification_info["observation_contract_hash"]
+        )
+        assert len(purification_info["observation_contract_hash"]) == 64
     finally:
         reaction_env.close()
         purification_env.close()

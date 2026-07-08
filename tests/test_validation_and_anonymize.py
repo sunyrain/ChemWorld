@@ -43,6 +43,10 @@ def test_trajectory_records_include_instrument_signal_layers(tmp_path) -> None:
     validate_records(records)
     measured = [record for record in records if record["instrument"] is not None]
     assert measured
+    assert records[0]["scoring_contract_hash"]
+    assert records[0]["observation_contract_hash"]
+    assert len(records[0]["scoring_contract_hash"]) == 64
+    assert len(records[0]["observation_contract_hash"]) == 64
     assert "raw_signal" in measured[-1]
     assert "processed_estimate" in measured[-1]
     assert "uncertainty" in measured[-1]
@@ -73,4 +77,3 @@ def test_anonymize_helpers_redact_personal_identifiers(tmp_path) -> None:
     assert "email" not in payload
     assert payload["participant_id"] != "alice"
     assert "[REDACTED_EMAIL]" in payload["explanation"]["note"]
-

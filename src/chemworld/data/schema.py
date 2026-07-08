@@ -23,6 +23,8 @@ class TrajectoryRecordPayload:
     safety_limit: float
     mechanism_id: str | None
     mechanism_hash: str | None
+    scoring_contract_hash: str | None
+    observation_contract_hash: str | None
     kernel_id: str | None
     kernel_version: str | None
     affected_ledgers: list[str]

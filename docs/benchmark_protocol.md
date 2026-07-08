@@ -76,6 +76,8 @@ Each trajectory records event-level world-model fields:
 - `raw_signal`;
 - `processed_estimate`;
 - `uncertainty`;
+- `scoring_contract_hash`;
+- `observation_contract_hash`;
 - `measurement_cost`;
 - `sample_consumed`;
 - `observed_reward`;
@@ -97,6 +99,11 @@ the instrument-like signal packet, `processed_estimate` stores the derived
 public estimates, and `uncertainty` stores measurement-noise metadata. This
 keeps the benchmark usable by simple Gym agents while preserving a richer
 scientific audit trail.
+
+Replay verification checks `mechanism_hash`, `scoring_contract_hash`, and
+`observation_contract_hash`. A trajectory is therefore not considered
+reproducible if the hidden mechanism is unchanged but the leaderboard scoring
+contract or public observation contract has drifted.
 
 Failed action preconditions return a non-informative observation: all observation
 fields are `null`/`NaN`, `observed_keys` is empty, `observed_reward` is zero, and
@@ -200,4 +207,3 @@ For a paper or preprint bundle:
 ```bash
 chemworld artifact create --output-dir artifact/release
 ```
-

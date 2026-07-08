@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -86,7 +88,26 @@ class TaskObservationContract:
                 role: list(species)
                 for role, species in sorted(self.mechanism_observable_mapping.items())
             },
+            "contract_hash": self.contract_hash,
         }
+
+    @property
+    def contract_hash(self) -> str:
+        payload = {
+            "success_metrics": list(self.success_metrics),
+            "score_family": self.score_family,
+            "required_observation_keys": list(self.required_observation_keys),
+            "instrument_observable_keys": {
+                instrument_id: list(keys)
+                for instrument_id, keys in sorted(self.instrument_observable_keys.items())
+            },
+            "mechanism_observable_mapping": {
+                role: list(species)
+                for role, species in sorted(self.mechanism_observable_mapping.items())
+            },
+        }
+        digest = hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8"))
+        return digest.hexdigest()
 
 
 def _required_observation_keys(

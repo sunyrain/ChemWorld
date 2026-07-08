@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -118,7 +120,19 @@ class TaskScoringContract:
             "success_metrics": list(self.success_metrics),
             "score_family": self.score_family,
             "component_weights": dict(self.component_weights),
+            "contract_hash": self.contract_hash,
         }
+
+    @property
+    def contract_hash(self) -> str:
+        payload = {
+            "objective": self.objective,
+            "success_metrics": list(self.success_metrics),
+            "score_family": self.score_family,
+            "component_weights": dict(sorted(self.component_weights.items())),
+        }
+        digest = hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8"))
+        return digest.hexdigest()
 
 
 OBJECTIVES: dict[str, ObjectiveWeights] = {

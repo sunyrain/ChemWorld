@@ -173,16 +173,29 @@ def verify_records(
     recorded_mechanism_hash = first.get("mechanism_hash")
     replay_mechanism_hash = reset_info.get("mechanism_hash")
     early_mismatches: list[dict[str, Any]] = []
-    if recorded_mechanism_hash and replay_mechanism_hash != recorded_mechanism_hash:
-        early_mismatches.append(
-            {
-                "step": 0,
-                "field": "mechanism_hash",
-                "recorded": recorded_mechanism_hash,
-                "replayed": replay_mechanism_hash,
-                "abs_error": None,
-            }
-        )
+    for field, recorded, replayed in (
+        ("mechanism_hash", recorded_mechanism_hash, replay_mechanism_hash),
+        (
+            "scoring_contract_hash",
+            first.get("scoring_contract_hash"),
+            reset_info.get("scoring_contract_hash"),
+        ),
+        (
+            "observation_contract_hash",
+            first.get("observation_contract_hash"),
+            reset_info.get("observation_contract_hash"),
+        ),
+    ):
+        if recorded and replayed != recorded:
+            early_mismatches.append(
+                {
+                    "step": 0,
+                    "field": field,
+                    "recorded": recorded,
+                    "replayed": replayed,
+                    "abs_error": None,
+                }
+            )
 
     mismatches: list[dict[str, Any]] = list(early_mismatches)
     max_abs_error = 0.0
@@ -268,6 +281,8 @@ def verify_records(
             replay_metadata_fields = (
                 "mechanism_id",
                 "mechanism_hash",
+                "scoring_contract_hash",
+                "observation_contract_hash",
                 "kernel_id",
                 "kernel_version",
                 "affected_ledgers",
