@@ -37,8 +37,20 @@ _UNIT_TABLE: dict[str, tuple[str, str, float, float]] = {
     "mol": ("amount", "mol", 1.0, 0.0),
     "mmol": ("amount", "mol", 0.001, 0.0),
     "mol/L": ("concentration", "mol/L", 1.0, 0.0),
+    "kg": ("mass", "kg", 1.0, 0.0),
+    "g": ("mass", "kg", 0.001, 0.0),
     "J": ("energy", "J", 1.0, 0.0),
     "kJ": ("energy", "J", 1000.0, 0.0),
+    "W": ("power", "W", 1.0, 0.0),
+    "kW": ("power", "W", 1000.0, 0.0),
+    "J/mol": ("molar_enthalpy", "J/mol", 1.0, 0.0),
+    "kJ/mol": ("molar_enthalpy", "J/mol", 1000.0, 0.0),
+    "g/mol": ("molecular_weight", "g/mol", 1.0, 0.0),
+    "kg/m^3": ("mass_density", "kg/m^3", 1.0, 0.0),
+    "g/mL": ("mass_density", "kg/m^3", 1000.0, 0.0),
+    "Pa*s": ("dynamic_viscosity", "Pa*s", 1.0, 0.0),
+    "mPa*s": ("dynamic_viscosity", "Pa*s", 0.001, 0.0),
+    "W/(m^2*K)": ("heat_transfer_coefficient", "W/(m^2*K)", 1.0, 0.0),
     "Pa": ("pressure", "Pa", 1.0, 0.0),
     "bar": ("pressure", "Pa", 100000.0, 0.0),
     "currency": ("cost", "currency", 1.0, 0.0),
@@ -77,4 +89,3 @@ def convert_value(value: float, source_unit: str, target_unit: str) -> float:
 
 def supported_units() -> dict[str, UnitSpec]:
     return {unit: unit_spec(unit) for unit in sorted(_UNIT_TABLE)}
-

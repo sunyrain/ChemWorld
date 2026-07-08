@@ -16,7 +16,7 @@ finished, update its status and push immediately.
 | Item | Owner | Status | Files / Area | Next Step | Last Push |
 | --- | --- | --- | --- | --- | --- |
 | Docs cleanup and two-person rules | Codex | Done | `TODO.md`, `docs/`, `mkdocs.yml` | use this board for the next active task | this commit |
-| P1 physchem component/spec foundation | whilesunny | Active | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | read reference project designs, then implement JSON-friendly component specs, formula parsing, fractions, and unit checks | pending |
+| P1 physchem component/spec foundation | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | next: start P2 property-correlation core on top of these specs | this commit |
 
 Status values:
 
