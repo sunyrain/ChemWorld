@@ -20,6 +20,7 @@ finished, update its status and push immediately.
 | P2 full property-correlation core | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | next: connect the property package to energy balance and start P3 reaction-network specs | this commit |
 | P3 general reaction-network engine | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md`, `configs/mechanisms/` | next: connect mechanism-backed networks to batch/semi-batch/CSTR/PFR reactor models in P4 | this commit |
 | P4 reactor model core | whilesunny | Done | `src/chemworld/physchem/reactors.py`, `tests/`, `docs/physchem_core_design.md` | next: replace selected task/world transition paths with mechanism-backed reactor kernels, then start P5 EOS | this commit |
+| P5 equation-of-state core | whilesunny | Active | `src/chemworld/physchem/eos.py`, `tests/`, `docs/physchem_core_design.md` | implement ideal gas, Peng-Robinson, SRK, mixture parameters, compressibility roots, fugacity coefficients, and phase root selection | pending |
 
 Status values:
 
