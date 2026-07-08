@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from itertools import pairwise
 from math import exp, isfinite, log, log10
 from typing import Literal
 
 import numpy as np
-from scipy.optimize import brentq, least_squares
+from scipy.optimize import brentq, least_squares, minimize
 
+from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
 from chemworld.physchem.reaction_network import R_J_PER_MOL_K, parse_reaction_equation
 
 EquilibriumActivityModel = Literal["concentration"]
@@ -176,6 +177,150 @@ class EquilibriumResult:
             "equilibrium_constants": dict(self.equilibrium_constants),
             "reaction_quotients": dict(self.reaction_quotients),
             "residuals_log": dict(self.residuals_log),
+            "converged": self.converged,
+            "iterations": self.iterations,
+            "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class GibbsSpeciesSpec:
+    """Species record for the compact fixed-TP Gibbs minimization solver."""
+
+    species_id: str
+    phase: str
+    element_counts: dict[str, float]
+    standard_gibbs_J_mol: float = 0.0
+    charge: float = 0.0
+    metadata: dict[str, object] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if not self.species_id:
+            raise ValueError("species_id cannot be empty")
+        if not self.phase:
+            raise ValueError("phase cannot be empty")
+        if not self.element_counts:
+            raise ValueError("element_counts cannot be empty")
+        if not any(value > 0.0 for value in self.element_counts.values()):
+            raise ValueError("element_counts must contain at least one positive count")
+        for element_id, count in self.element_counts.items():
+            if not element_id:
+                raise ValueError("element id cannot be empty")
+            _nonnegative(float(count), f"element_counts[{element_id}]")
+        _finite(self.standard_gibbs_J_mol, "standard_gibbs_J_mol")
+        _finite(self.charge, "charge")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "species_id": self.species_id,
+            "phase": self.phase,
+            "element_counts": dict(self.element_counts),
+            "standard_gibbs_J_mol": self.standard_gibbs_J_mol,
+            "charge": self.charge,
+            "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class GibbsMinimizationSpec:
+    """Fixed-TP ideal-mixture Gibbs minimization problem."""
+
+    system_id: str
+    species: tuple[GibbsSpeciesSpec, ...]
+    temperature_K: float = 298.15
+    pressure_Pa: float = 101_325.0
+    allowed_phases: tuple[str, ...] = ()
+    target_charge_eq: float | None = None
+    metadata: dict[str, object] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if not self.system_id:
+            raise ValueError("system_id cannot be empty")
+        if not self.species:
+            raise ValueError("Gibbs minimization problem must contain species")
+        species_ids = [item.species_id for item in self.species]
+        if len(species_ids) != len(set(species_ids)):
+            raise ValueError("Duplicate Gibbs species ids are not allowed")
+        _positive(self.temperature_K, "temperature_K")
+        _positive(self.pressure_Pa, "pressure_Pa")
+        if len(self.allowed_phases) != len(set(self.allowed_phases)):
+            raise ValueError("Duplicate allowed phases are not allowed")
+        if self.target_charge_eq is not None:
+            _finite(self.target_charge_eq, "target_charge_eq")
+
+    @property
+    def species_ids(self) -> tuple[str, ...]:
+        return tuple(species.species_id for species in self.species)
+
+    @property
+    def element_ids(self) -> tuple[str, ...]:
+        return tuple(
+            sorted(
+                {
+                    element_id
+                    for species in self.species
+                    for element_id in species.element_counts
+                }
+            )
+        )
+
+    @property
+    def phase_ids(self) -> tuple[str, ...]:
+        return tuple(sorted({species.phase for species in self.species}))
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "system_id": self.system_id,
+            "species": [species.to_dict() for species in self.species],
+            "temperature_K": self.temperature_K,
+            "pressure_Pa": self.pressure_Pa,
+            "allowed_phases": list(self.allowed_phases),
+            "target_charge_eq": self.target_charge_eq,
+            "element_ids": list(self.element_ids),
+            "phase_ids": list(self.phase_ids),
+            "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class GibbsMinimizationResult:
+    """Result of a compact constrained Gibbs minimization."""
+
+    system_id: str
+    initial_amounts_mol: dict[str, float]
+    final_amounts_mol: dict[str, float]
+    total_gibbs_J: float
+    element_balance_residuals_mol: dict[str, float]
+    charge_balance_residual_eq: float
+    phase_amounts_mol: dict[str, float]
+    active_phases: tuple[str, ...]
+    converged: bool
+    iterations: int
+    metadata: dict[str, object] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if not self.system_id:
+            raise ValueError("system_id cannot be empty")
+        _validate_amounts(self.initial_amounts_mol, "initial_amounts_mol")
+        _validate_amounts(self.final_amounts_mol, "final_amounts_mol")
+        _finite(self.total_gibbs_J, "total_gibbs_J")
+        if any(not isfinite(value) for value in self.element_balance_residuals_mol.values()):
+            raise ValueError("element balance residuals must be finite")
+        _finite(self.charge_balance_residual_eq, "charge_balance_residual_eq")
+        _validate_amounts(self.phase_amounts_mol, "phase_amounts_mol")
+        if self.iterations < 0:
+            raise ValueError("iterations cannot be negative")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "system_id": self.system_id,
+            "initial_amounts_mol": dict(self.initial_amounts_mol),
+            "final_amounts_mol": dict(self.final_amounts_mol),
+            "total_gibbs_J": self.total_gibbs_J,
+            "element_balance_residuals_mol": dict(self.element_balance_residuals_mol),
+            "charge_balance_residual_eq": self.charge_balance_residual_eq,
+            "phase_amounts_mol": dict(self.phase_amounts_mol),
+            "active_phases": list(self.active_phases),
             "converged": self.converged,
             "iterations": self.iterations,
             "metadata": dict(self.metadata),
@@ -428,6 +573,126 @@ def solve_mass_action_equilibrium(
         converged=bool(solved.success and max(abs(v) for v in residual_values) < 1e-6),
         iterations=int(solved.nfev),
         metadata={"solver": "least_squares", "message": str(solved.message)},
+    )
+
+
+def solve_gibbs_minimization(
+    spec: GibbsMinimizationSpec,
+    initial_amounts_mol: Mapping[str, float],
+    *,
+    target_element_amounts_mol: Mapping[str, float] | None = None,
+    target_charge_eq: float | None = None,
+    tolerance: float = 1e-10,
+    max_iterations: int = 500,
+) -> GibbsMinimizationResult:
+    """Minimize ideal-mixture Gibbs energy subject to conservation constraints.
+
+    This is a scoped benchmark solver for small fixed-TP problems. It enforces
+    element balances, total charge, phase restrictions, and nonnegative species
+    amounts, but it is not a database-backed Reaktoro or CALPHAD replacement.
+    """
+
+    _positive(tolerance, "tolerance")
+    if max_iterations <= 0:
+        raise ValueError("max_iterations must be positive")
+    initial = _complete_amounts(_amounts(initial_amounts_mol), spec.species_ids)
+    unknown = set(initial) - set(spec.species_ids)
+    if unknown:
+        raise ValueError(f"initial_amounts_mol contains unknown species: {sorted(unknown)}")
+
+    allowed_phases = set(spec.allowed_phases or spec.phase_ids)
+    if not allowed_phases:
+        raise ValueError("At least one phase must be allowed")
+    species = tuple(spec.species)
+    species_index = {item.species_id: index for index, item in enumerate(species)}
+    disallowed_initial = [
+        item.species_id
+        for item in species
+        if item.phase not in allowed_phases and initial.get(item.species_id, 0.0) > tolerance
+    ]
+    if disallowed_initial:
+        raise ValueError(
+            "phase restrictions exclude nonzero initial species: "
+            f"{sorted(disallowed_initial)}"
+        )
+
+    target_elements = (
+        _element_totals(species, initial)
+        if target_element_amounts_mol is None
+        else _target_element_amounts(target_element_amounts_mol)
+    )
+    _check_allowed_species_cover_elements(species, allowed_phases, target_elements)
+
+    charge_target = (
+        target_charge_eq
+        if target_charge_eq is not None
+        else (
+            spec.target_charge_eq
+            if spec.target_charge_eq is not None
+            else _charge_total(species, initial)
+        )
+    )
+    _finite(charge_target, "target_charge_eq")
+
+    x0 = np.asarray([initial[item.species_id] for item in species], dtype=float)
+    bounds = [
+        (0.0, _species_upper_bound(item, target_elements))
+        if item.phase in allowed_phases
+        else (0.0, 0.0)
+        for item in species
+    ]
+    constraint_rows = _independent_constraint_rows(species, target_elements, charge_target)
+    constraints = [
+        {"type": "eq", "fun": _linear_constraint(row, target)}
+        for _, row, target in constraint_rows
+    ]
+
+    solved = minimize(
+        lambda values: _ideal_gibbs_energy(species, values, spec.temperature_K),
+        x0,
+        method="SLSQP",
+        bounds=bounds,
+        constraints=constraints,
+        options={"ftol": tolerance, "maxiter": max_iterations, "disp": False},
+    )
+    final_array = _project_array_nonnegative(solved.x)
+    final = {
+        item.species_id: float(final_array[species_index[item.species_id]])
+        for item in species
+    }
+    residuals = _element_residuals(species, final, target_elements)
+    charge_residual = _charge_total(species, final) - charge_target
+    max_element_residual = max((abs(value) for value in residuals.values()), default=0.0)
+    converged = bool(
+        solved.success
+        and max_element_residual <= max(1e-8, 100.0 * tolerance)
+        and abs(charge_residual) <= max(1e-8, 100.0 * tolerance)
+    )
+    phase_amounts = _phase_amounts(species, final)
+    return GibbsMinimizationResult(
+        system_id=spec.system_id,
+        initial_amounts_mol=initial,
+        final_amounts_mol=final,
+        total_gibbs_J=_ideal_gibbs_energy(species, final_array, spec.temperature_K),
+        element_balance_residuals_mol=residuals,
+        charge_balance_residual_eq=charge_residual,
+        phase_amounts_mol=phase_amounts,
+        active_phases=tuple(
+            sorted(phase for phase, amount in phase_amounts.items() if amount > 1e-12)
+        ),
+        converged=converged,
+        iterations=int(getattr(solved, "nit", 0)),
+        metadata={
+            "solver": "scipy_slsqp_gibbs_minimization",
+            "message": str(solved.message),
+            "success": bool(solved.success),
+            "temperature_K": spec.temperature_K,
+            "pressure_Pa": spec.pressure_Pa,
+            "allowed_phases": sorted(allowed_phases),
+            "target_element_amounts_mol": dict(target_elements),
+            "target_charge_eq": charge_target,
+            "objective_model": "ideal_phase_mixture_plus_standard_gibbs",
+        },
     )
 
 
@@ -764,6 +1029,249 @@ def solid_solubility_mole_fraction(
         + delta_cp / R_J_PER_MOL_K * log(melting_temperature_K / temperature_K)
     )
     return _clip01(exp(exponent) / activity_coefficient)
+
+
+def equilibrium_chemistry_model_cards() -> tuple[ModelCard, ...]:
+    """Return model cards for equilibrium-chemistry kernels."""
+
+    return (
+        ModelCard(
+            model_id="fixed_tp_ideal_gibbs_minimization",
+            module_id="equilibrium_chemistry",
+            title="Fixed-TP Ideal Gibbs Minimization",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Small constrained Gibbs minimization slice for benchmark "
+                "species sets with element, charge, phase, and nonnegativity constraints."
+            ),
+            equations=(
+                "min_n G = sum_i n_i G_i^0 + R T sum_i n_i ln(x_i_phase)",
+                "element constraints: A_element n = b_element",
+                "charge constraint: z^T n = q_target",
+                "phase restrictions: n_i = 0 for species in disallowed phases",
+                "bounds: n_i >= 0",
+            ),
+            assumptions=(
+                "Fixed temperature and pressure.",
+                "Ideal mixing within each non-solid phase.",
+                "Pure condensed solid activities are treated as one.",
+                "Species standard Gibbs energies are supplied by the caller.",
+            ),
+            validity_limits=(
+                "Small benchmark systems with explicit species and phases.",
+                "No thermodynamic database, activity-coefficient model, or phase stability search.",
+                "No automatic species generation or redox/electron basis selection.",
+            ),
+            failure_modes=(
+                "Unknown initial species, nonphysical amounts, duplicate species ids, "
+                "or nonpositive T/P raise ValueError.",
+                "Phase restrictions with nonzero disallowed initial species raise ValueError.",
+                "If allowed species cannot carry a target element, the solver raises ValueError.",
+                "Numerical nonconvergence is reported in the result metadata rather than hidden.",
+            ),
+            units={
+                "amount": "mol",
+                "standard_gibbs": "J/mol",
+                "total_gibbs": "J",
+                "temperature": "K",
+                "pressure": "Pa",
+                "charge": "mol charge equivalents",
+            },
+            reference_reading=(
+                "reference_repos/reaktoro/Reaktoro/Equilibrium/EquilibriumSpecs.hpp",
+                "reference_repos/reaktoro/Reaktoro/Equilibrium/SmartEquilibriumSolver.hpp",
+                "reference_repos/cantera/doc/sphinx/userguide/python-tutorial.md "
+                "chemical equilibrium section",
+                "reference_repos/pycalphad/pycalphad/core/equilibrium.py",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="analytical-ideal-isomerization",
+                    evidence_type="unit_tests",
+                    description=(
+                        "For A and B with identical element vectors, ideal Gibbs "
+                        "minimization reproduces n_B/n_A = exp[-(G_B^0-G_A^0)/RT]."
+                    ),
+                    status="passing",
+                    command_or_path="python -m pytest tests/test_equilibrium_chemistry.py",
+                    tolerance="rel=1e-7",
+                ),
+            ),
+            model_limit_notes=(
+                "This is a ChemWorld-local professional slice, not a Reaktoro clone.",
+                "Database-backed aqueous speciation and CALPHAD phase selection "
+                "remain future work.",
+            ),
+            intended_use=(
+                "Small hidden equilibrium scenarios for local world-model learning.",
+                "Auditable element/charge/phase-constrained equilibrium tasks.",
+            ),
+        ),
+    )
+
+
+def _element_totals(
+    species: tuple[GibbsSpeciesSpec, ...],
+    amounts_mol: Mapping[str, float],
+) -> dict[str, float]:
+    totals: dict[str, float] = {}
+    for item in species:
+        amount = float(amounts_mol.get(item.species_id, 0.0))
+        for element_id, count in item.element_counts.items():
+            totals[element_id] = totals.get(element_id, 0.0) + amount * float(count)
+    return totals
+
+
+def _target_element_amounts(amounts_mol: Mapping[str, float]) -> dict[str, float]:
+    if not amounts_mol:
+        raise ValueError("target_element_amounts_mol cannot be empty")
+    targets = {key: float(value) for key, value in amounts_mol.items()}
+    for element_id, amount in targets.items():
+        if not element_id:
+            raise ValueError("target_element_amounts_mol contains an empty element id")
+        _nonnegative(amount, f"target_element_amounts_mol[{element_id}]")
+    return targets
+
+
+def _check_allowed_species_cover_elements(
+    species: tuple[GibbsSpeciesSpec, ...],
+    allowed_phases: set[str],
+    target_elements: Mapping[str, float],
+) -> None:
+    covered = {
+        element_id
+        for item in species
+        if item.phase in allowed_phases
+        for element_id, count in item.element_counts.items()
+        if count > 0.0
+    }
+    missing = [
+        element_id
+        for element_id, amount in target_elements.items()
+        if amount > 0.0 and element_id not in covered
+    ]
+    if missing:
+        raise ValueError(f"Allowed phases cannot carry target elements: {sorted(missing)}")
+
+
+def _species_upper_bound(
+    species: GibbsSpeciesSpec,
+    target_elements: Mapping[str, float],
+) -> float | None:
+    bounds = [
+        float(target_elements[element_id]) / float(count)
+        for element_id, count in species.element_counts.items()
+        if count > 0.0 and element_id in target_elements
+    ]
+    if not bounds:
+        return None
+    return max(0.0, min(bounds))
+
+
+def _independent_constraint_rows(
+    species: tuple[GibbsSpeciesSpec, ...],
+    target_elements: Mapping[str, float],
+    charge_target: float,
+) -> list[tuple[str, np.ndarray, float]]:
+    rows: list[tuple[str, np.ndarray, float]] = []
+    for element_id, target in sorted(target_elements.items()):
+        row = np.asarray(
+            [float(item.element_counts.get(element_id, 0.0)) for item in species],
+            dtype=float,
+        )
+        rows.append((f"element:{element_id}", row, float(target)))
+    rows.append((
+        "charge",
+        np.asarray([float(item.charge) for item in species], dtype=float),
+        float(charge_target),
+    ))
+
+    selected: list[tuple[str, np.ndarray, float]] = []
+    selected_rows: list[np.ndarray] = []
+    current_rank = 0
+    for constraint_id, row, target in rows:
+        if np.allclose(row, 0.0, atol=1e-14):
+            if abs(target) > 1e-12:
+                raise ValueError(f"Constraint {constraint_id} has no species carrier")
+            continue
+        candidate = np.vstack([*selected_rows, row])
+        candidate_rank = int(np.linalg.matrix_rank(candidate, tol=1e-12))
+        if candidate_rank > current_rank:
+            selected.append((constraint_id, row, target))
+            selected_rows.append(row)
+            current_rank = candidate_rank
+    return selected
+
+
+def _linear_constraint(row: np.ndarray, target_amount_mol: float) -> Callable[[np.ndarray], float]:
+    def constraint(values: np.ndarray) -> float:
+        return float(np.dot(row, values) - target_amount_mol)
+
+    return constraint
+
+
+def _charge_total(
+    species: tuple[GibbsSpeciesSpec, ...],
+    amounts_mol: Mapping[str, float],
+) -> float:
+    return sum(item.charge * float(amounts_mol.get(item.species_id, 0.0)) for item in species)
+
+
+def _ideal_gibbs_energy(
+    species: tuple[GibbsSpeciesSpec, ...],
+    values: np.ndarray,
+    temperature_K: float,
+) -> float:
+    phase_totals: dict[str, float] = {}
+    for index, item in enumerate(species):
+        amount = max(float(values[index]), 0.0)
+        phase_totals[item.phase] = phase_totals.get(item.phase, 0.0) + amount
+
+    total = 0.0
+    for index, item in enumerate(species):
+        amount = max(float(values[index]), 0.0)
+        if amount <= 0.0:
+            continue
+        total += amount * item.standard_gibbs_J_mol
+        if not _pure_condensed_phase(item.phase):
+            phase_total = max(phase_totals.get(item.phase, 0.0), _ACTIVITY_FLOOR)
+            activity = max(amount / phase_total, _ACTIVITY_FLOOR)
+            total += R_J_PER_MOL_K * temperature_K * amount * log(activity)
+    return total
+
+
+def _pure_condensed_phase(phase: str) -> bool:
+    phase_lower = phase.lower()
+    return phase_lower in {"solid", "pure_solid", "crystal"} or "solid" in phase_lower
+
+
+def _element_residuals(
+    species: tuple[GibbsSpeciesSpec, ...],
+    amounts_mol: Mapping[str, float],
+    target_elements: Mapping[str, float],
+) -> dict[str, float]:
+    totals = _element_totals(species, amounts_mol)
+    return {
+        element_id: totals.get(element_id, 0.0) - target
+        for element_id, target in sorted(target_elements.items())
+    }
+
+
+def _phase_amounts(
+    species: tuple[GibbsSpeciesSpec, ...],
+    amounts_mol: Mapping[str, float],
+) -> dict[str, float]:
+    totals: dict[str, float] = {}
+    for item in species:
+        totals[item.phase] = totals.get(item.phase, 0.0) + amounts_mol.get(item.species_id, 0.0)
+    return dict(sorted(totals.items()))
+
+
+def _project_array_nonnegative(values: np.ndarray) -> np.ndarray:
+    projected = np.asarray(values, dtype=float).copy()
+    projected[np.abs(projected) < 1e-12] = 0.0
+    projected[projected < 0.0] = 0.0
+    return projected
 
 
 def _solve_single_reaction(

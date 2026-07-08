@@ -277,3 +277,25 @@ exchanger-duty slice:
 - This is still a scoped single-phase heat-transfer slice. Boiling,
   condensation, shell-side correction factors, fouling dynamics, and equipment
   safety cards remain future deepening tasks rather than proxy-filled claims.
+
+PRO-P9A is now implemented for the first reference-validated equilibrium
+chemistry Gibbs-minimization slice:
+
+- `GibbsSpeciesSpec` declares species id, phase, element counts, charge, and
+  supplied standard Gibbs energy.
+- `GibbsMinimizationSpec` declares a fixed-TP small-system equilibrium problem
+  with optional phase restrictions and target charge.
+- `solve_gibbs_minimization()` minimizes an ideal phase-mixture Gibbs objective
+  subject to element balances, charge balance, phase restrictions, and
+  nonnegative species amounts.
+- The solver removes linearly redundant element/charge constraints before
+  calling SLSQP, then still reports full element and charge residuals in
+  `GibbsMinimizationResult`.
+- Tests cover the analytical ideal isomerization relation
+  `n_B/n_A = exp[-(G_B^0-G_A^0)/RT]`, phase-restricted salt behavior,
+  solid-forming behavior, failure modes, and model-card validation.
+- `equilibrium_chemistry_model_cards()` records inspected Reaktoro
+  `EquilibriumSpecs`/solver interfaces, Cantera equilibrium documentation, and
+  pycalphad `conditions + phases + GM/MU` architecture.
+- This is not a database-backed aqueous speciation solver, a Reaktoro clone, or
+  a CALPHAD global phase-selection algorithm.

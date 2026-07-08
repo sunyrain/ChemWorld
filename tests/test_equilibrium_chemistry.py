@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+from math import log
+
 import pytest
 
 from chemworld.physchem import (
     EquilibriumReactionSpec,
     EquilibriumSystemSpec,
+    GibbsMinimizationSpec,
+    GibbsSpeciesSpec,
     SolubilityProductSpec,
     balance_charge_by_adjusting_ion,
+    equilibrium_chemistry_model_cards,
     equilibrium_constant_vant_hoff,
     ionic_strength,
     ionic_strength_from_amounts,
@@ -15,9 +20,11 @@ from chemworld.physchem import (
     reaction_extent_bounds,
     reaction_quotient,
     solid_solubility_mole_fraction,
+    solve_gibbs_minimization,
     solve_mass_action_equilibrium,
     solve_monoprotic_acid_base,
     solve_reaction_extent,
+    validate_model_card,
     water_ion_product,
 )
 
@@ -84,6 +91,84 @@ def test_mass_action_multi_reaction_solver_returns_finite_residuals() -> None:
     assert result.final_amounts_mol["B"] == pytest.approx(1 / 3, rel=1e-5)
     assert result.final_amounts_mol["C"] == pytest.approx(1 / 3, rel=1e-5)
     assert max(abs(value) for value in result.residuals_log.values()) < 1e-6
+
+
+def test_gibbs_minimization_matches_analytical_ideal_isomerization() -> None:
+    temperature = 298.15
+    gas_constant = 8.31446261815324
+    spec = GibbsMinimizationSpec(
+        system_id="ideal_isomerization",
+        species=(
+            GibbsSpeciesSpec(
+                "A",
+                "liquid",
+                {"X": 1.0},
+                standard_gibbs_J_mol=0.0,
+            ),
+            GibbsSpeciesSpec(
+                "B",
+                "liquid",
+                {"X": 1.0},
+                standard_gibbs_J_mol=-gas_constant * temperature * log(4.0),
+            ),
+        ),
+        temperature_K=temperature,
+    )
+
+    result = solve_gibbs_minimization(spec, {"A": 1.0, "B": 0.0})
+
+    assert result.converged
+    assert result.final_amounts_mol["B"] / result.final_amounts_mol["A"] == pytest.approx(
+        4.0,
+        rel=1e-7,
+    )
+    assert result.final_amounts_mol["A"] + result.final_amounts_mol["B"] == pytest.approx(1.0)
+    assert abs(result.element_balance_residuals_mol["X"]) < 1e-8
+    assert abs(result.charge_balance_residual_eq) < 1e-8
+    assert result.phase_amounts_mol["liquid"] == pytest.approx(1.0)
+    assert result.to_dict()["metadata"]["solver"] == "scipy_slsqp_gibbs_minimization"
+
+
+def test_gibbs_minimization_enforces_phase_restrictions_and_charge() -> None:
+    species = (
+        GibbsSpeciesSpec("Na+", "aqueous", {"Na": 1.0}, charge=1.0),
+        GibbsSpeciesSpec("Cl-", "aqueous", {"Cl": 1.0}, charge=-1.0),
+        GibbsSpeciesSpec(
+            "NaCl(s)",
+            "solid",
+            {"Na": 1.0, "Cl": 1.0},
+            standard_gibbs_J_mol=-20_000.0,
+        ),
+    )
+    aqueous_only = GibbsMinimizationSpec(
+        system_id="restricted_salt",
+        species=species,
+        allowed_phases=("aqueous",),
+    )
+    with_solid = GibbsMinimizationSpec(
+        system_id="solid_allowed_salt",
+        species=species,
+        allowed_phases=("aqueous", "solid"),
+    )
+
+    restricted = solve_gibbs_minimization(
+        aqueous_only,
+        {"Na+": 1.0, "Cl-": 1.0, "NaCl(s)": 0.0},
+    )
+    precipitated = solve_gibbs_minimization(
+        with_solid,
+        {"Na+": 1.0, "Cl-": 1.0, "NaCl(s)": 0.0},
+    )
+
+    assert restricted.converged
+    assert restricted.final_amounts_mol["NaCl(s)"] == pytest.approx(0.0)
+    assert restricted.charge_balance_residual_eq == pytest.approx(0.0)
+    assert restricted.active_phases == ("aqueous",)
+    assert precipitated.converged
+    assert precipitated.final_amounts_mol["NaCl(s)"] > 0.99
+    assert abs(precipitated.element_balance_residuals_mol["Na"]) < 1e-8
+    assert abs(precipitated.element_balance_residuals_mol["Cl"]) < 1e-8
+    assert abs(precipitated.charge_balance_residual_eq) < 1e-8
 
 
 def test_vant_hoff_temperature_dependence_has_correct_direction() -> None:
@@ -213,6 +298,18 @@ def test_solid_solubility_mole_fraction_increases_with_temperature() -> None:
     assert 0.0 < cold < warm < 1.0
 
 
+def test_equilibrium_chemistry_model_cards_include_gibbs_minimization() -> None:
+    card = next(
+        item
+        for item in equilibrium_chemistry_model_cards()
+        if item.model_id == "fixed_tp_ideal_gibbs_minimization"
+    )
+
+    assert card.maturity.value == "reference_validated"
+    assert validate_model_card(card) == []
+    assert any("element constraints" in equation for equation in card.equations)
+
+
 def test_equilibrium_chemistry_validation_fails_fast() -> None:
     with pytest.raises(ValueError, match="reactant"):
         EquilibriumReactionSpec("bad", {"B": 1.0}, log10_k_ref=0.0)
@@ -234,4 +331,23 @@ def test_equilibrium_chemistry_validation_fails_fast() -> None:
             {"Na+": 0.1},
             {"Na+": 0},
             adjustable_species_id="Na+",
+        )
+    with pytest.raises(ValueError, match="phase restrictions exclude"):
+        solve_gibbs_minimization(
+            GibbsMinimizationSpec(
+                system_id="bad_phase",
+                species=(GibbsSpeciesSpec("S", "solid", {"X": 1.0}),),
+                allowed_phases=("liquid",),
+            ),
+            {"S": 1.0},
+        )
+    with pytest.raises(ValueError, match="Allowed phases cannot carry"):
+        solve_gibbs_minimization(
+            GibbsMinimizationSpec(
+                system_id="missing_element_carrier",
+                species=(GibbsSpeciesSpec("S", "solid", {"X": 1.0}),),
+                allowed_phases=("liquid",),
+            ),
+            {"S": 0.0},
+            target_element_amounts_mol={"X": 1.0},
         )

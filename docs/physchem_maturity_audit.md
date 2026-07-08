@@ -26,7 +26,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Phase equilibrium | Lite with a reference-validated Wilson/NRTL gamma slice | ideal VLE, Wilson/NRTL gamma checks against `thermo`, LLE split tests | UNIQUAC, phase stability, nonideal VLE/LLE task cases |
 | Separations | Proxy/lite with a reference-validated VLE distillation shortcut slice | material-conserving extraction, VLE flash, VLE/Fenske shortcut distillation, crystallization, filtration, drying tests | rigorous MESH columns, thermodynamic extraction, crystallization kinetics, and broader equipment validation |
 | Transport and heat transfer | Lite with reference-validated pipe-flow and heat-transfer slices | dimensionless numbers, explicit friction methods, `fluids` Haaland and single-phase pipe-pressure-drop optional checks; Nusselt branch metadata; counterflow exchanger duty-balance tests; optional `fluids.core.Nusselt` check | two-phase correlations, boiling/condensation, shell-side correction factors, fouling dynamics, equipment safety cards, and broader validity maps |
-| Equilibrium chemistry | Lite/proxy | mass-action, acid/base, precipitation tests | Reaktoro-style Gibbs minimization and database-backed equilibria |
+| Equilibrium chemistry | Lite/proxy with a reference-validated Gibbs-minimization slice | mass-action, acid/base, precipitation tests; fixed-TP ideal Gibbs minimization with element, charge, phase, and nonnegative-species constraints; analytical ideal-isomerization validation | database-backed aqueous speciation, activity-corrected electrolytes, redox/electron basis selection, and CALPHAD global phase selection |
 | Mechanism/scenario library | Lite | curated mechanism cards and validation tests | reference-validated mechanisms and professional task bindings |
 | Spectroscopy/instruments | Synthetic/lite with reference-validated UV-vis and chromatography slices | state-coupled HPLC/GC/UV-vis/IR/NMR synthetic signals; UV-vis Beer-Lambert calibration tests; HPLC/GC retention-factor, plate-count, and resolution tests | empirical retention-index examples, IR empirical anchors, NMR coupling metadata, and broader public spectral examples |
 | Reference validation | Partial | `chemicals` ideal gas, Rachford-Rice, curated vapor pressure/Cp/enthalpy; `fluids` Reynolds/Prandtl/friction/pipe drop; and `thermo` ideal VLE optional tests | CoolProp, Cantera, phasepy, Reaktoro, pycalphad coverage |
@@ -53,8 +53,8 @@ Public objects:
 - `MaturityLevel`: `proxy`, `lite`, `reference_validated`,
   `professional_candidate`, and `professional`.
 - `ModelCardTemplate`: required model-card sections for properties, EOS, phase
-  equilibrium, reaction kinetics, reactors, separations, transport, and
-  spectroscopy/instruments.
+  equilibrium, equilibrium chemistry, reaction kinetics, reactors, separations,
+  transport, and spectroscopy/instruments.
 - `ModelCard`: JSON-friendly model-card record with equations, assumptions,
   validity limits, failure modes, units, reference-reading notes, validation
   evidence, model-limit notes, and intended use.
@@ -132,3 +132,10 @@ copying the reference implementations.
   e-NTU duty-balance metadata, model-card evidence, and tests are in place.
   Boiling, condensation, shell-side corrections, fouling dynamics, and
   equipment safety cards remain future deepening tasks.
+- PRO-P9A is implemented for the first equilibrium-chemistry Gibbs slice:
+  fixed-TP ideal Gibbs minimization, supplied species standard Gibbs energies,
+  element constraints, charge constraints, phase restrictions, nonnegative
+  bounds, linearly independent constraint selection, residual diagnostics,
+  model-card metadata, and analytical ideal-isomerization tests are in place.
+  Reaktoro-style databases, activity-corrected aqueous speciation, and CALPHAD
+  global phase selection remain future work.

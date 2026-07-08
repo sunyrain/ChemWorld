@@ -83,7 +83,7 @@ Every professional module must ship:
 | PRO-P1A component registry provenance and conflict policy | liyijun | Claimed | `chemicals`, `thermo`, `CoolProp` identifiers and constants APIs | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/curated_properties.py`, `tests/test_physchem_core.py`, `tests/test_physchem_properties.py`, docs | add provenance/uncertainty fields, alias conflict failures, and JSON round-trip tests for curated component records | pending push |
 | PRO-P11A maturity metadata exports and submission summaries | liyijun | Claimed | Gymnasium, Minari, Safety-Gymnasium result-metadata patterns | `src/chemworld/tasks.py`, `src/chemworld/eval/baseline_report.py`, `docs/baseline_reference.md`, `tests/test_maturity.py`, `tests/test_baselines.py` | expose physics maturity in benchmark exports and prevent silent proxy/professional result mixing | pending push |
 | PRO-P12B validation summary export and optional-backend skip audit | liyijun | Claimed | current optional reference-backend tests and pytest skip patterns | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | add JSON-friendly comparison summaries and document skipped optional reference backends | pending push |
-| PRO-P9A Gibbs minimization toy solver | whilesunny | Claimed | `Reaktoro` equilibrium specs, Cantera equilibrate constraints, `pycalphad` Gibbs model architecture | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/test_equilibrium_chemistry.py`, model cards, docs | read local reference implementations, then add a scoped Gibbs minimizer with element, charge, phase, and nonnegative-species constraints | pending push |
+| PRO-P9A Gibbs minimization toy solver | whilesunny | Done | `Reaktoro` equilibrium specs, Cantera equilibrate constraints, `pycalphad` Gibbs model architecture | `src/chemworld/physchem/equilibrium_chemistry.py`, `src/chemworld/physchem/maturity.py`, `tests/test_equilibrium_chemistry.py`, `tests/test_maturity.py`, model cards, docs | next: add aqueous database-backed speciation or electrochemical thermodynamics in a separate slice | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -448,11 +448,11 @@ Reference-reading note for PRO-P8A:
 
 Reference targets: `Reaktoro`, `Cantera`, `pycalphad`.
 
-- [ ] Gibbs minimization toy solver:
-  - [ ] element constraints;
-  - [ ] charge constraints;
-  - [ ] phase restrictions;
-  - [ ] nonnegative species.
+- [x] Gibbs minimization toy solver:
+  - [x] element constraints;
+  - [x] charge constraints;
+  - [x] phase restrictions;
+  - [x] nonnegative species.
 - [ ] Aqueous chemistry:
   - [ ] acid/base;
   - [ ] precipitation/dissolution;
@@ -473,6 +473,32 @@ Acceptance:
 - [ ] At least one aqueous equilibrium case compares against Reaktoro or a
       documented analytical case.
 - [ ] Electrochemical tasks use charge and energy accounting, not only labels.
+
+Reference-reading note for PRO-P9A:
+
+- `reaktoro/Reaktoro/Equilibrium/EquilibriumSpecs.hpp` separates equilibrium
+  problem declarations, equation constraints, control variables, and
+  reactivity restrictions. ChemWorld adopts that separation at small scale as a
+  fixed-TP spec with explicit species, phases, element balances, charge target,
+  and phase restrictions.
+- `reaktoro/Reaktoro/Equilibrium/SmartEquilibriumSolver.hpp` treats the initial
+  state as both guess and mutable result, and reports solver outcome through a
+  result object. ChemWorld localizes this as a JSON-friendly
+  `GibbsMinimizationResult` with convergence, iterations, residuals, active
+  phases, and solver metadata.
+- Cantera's Python tutorial documents `equilibrate("TP")`, `equilibrate("HP")`,
+  and the distinction between element-potential and Gibbs-minimization
+  formulations. ChemWorld implements only the fixed-TP Gibbs slice in this
+  task.
+- `pycalphad/core/equilibrium.py` organizes equilibrium calculations around
+  components, phases, conditions, `GM`, and `MU` outputs. ChemWorld mirrors the
+  condition/phase/result-card shape, but does not implement CALPHAD databases,
+  site-fraction models, or global phase-selection algorithms.
+- ChemWorld's local solver minimizes
+  `sum_i n_i G_i^0 + R T sum_i n_i ln(x_i_phase)` with explicit linear
+  conservation constraints. It removes linearly redundant constraints before
+  calling SLSQP and still reports full element and charge residuals after
+  solving.
 
 ## P10: Instruments And Spectroscopy
 

@@ -472,6 +472,7 @@ layer:
 | Extent formulation | scalar extent bounds for single reactions and coupled extent-space least-squares for multi-reaction systems |
 | Equilibrium constant | van't Hoff temperature dependence from `K_ref`, `T_ref`, and `Delta H` |
 | Reaction quotient | concentration-based `Q` and `ln Q` utilities |
+| Gibbs minimization | fixed-TP ideal phase-mixture Gibbs minimization with element, charge, phase, and nonnegative-species constraints |
 | Acid/base | monoprotic weak-acid equilibrium with electroneutrality, water autoionization, pH/pOH, and ionic strength |
 | Water ion product | compact temperature interpolation for `K_w` |
 | Precipitation | binary solubility-product precipitation with saturation index and material-balance error |
@@ -482,14 +483,23 @@ layer:
 The reference projects informed the architecture rather than the source code.
 Reaktoro separates chemical state, equilibrium specifications, restrictions,
 conditions, and solvers; Cantera exposes equilibrium through constrained pairs
-such as `TP` and `HP`; thermo/chemicals provide focused electrolyte and
-solubility utilities. ChemWorld localizes the same separation into lightweight
-JSON-friendly specs and result objects suitable for benchmark replay.
+such as `TP` and `HP`; pycalphad organizes equilibrium around components,
+phases, conditions, and `GM`/`MU` outputs. ChemWorld localizes the same
+separation into lightweight JSON-friendly specs and result objects suitable for
+benchmark replay.
 
-This layer is intentionally not a full Gibbs-energy minimizer. It is the
-professional first slice needed for ChemWorld tasks where agents must reason
-about reversible chemistry, pH, precipitation thresholds, electroneutrality, and
-ionic strength under finite experimental budgets.
+The first Gibbs slice is `solve_gibbs_minimization()`: it minimizes
+
+```text
+G = sum_i n_i G_i^0 + R T sum_i n_i ln(x_i,phase)
+```
+
+subject to element balances, total charge, phase restrictions, and
+nonnegative species bounds. It removes linearly redundant constraints before
+calling SLSQP, then reports the full element and charge residuals afterward.
+This is enough to support small hidden equilibrium scenarios and analytical
+validation cases, but it is still not a Reaktoro-style database solver or a
+CALPHAD global phase-selection algorithm.
 
 ## Separation Unit-Operation Core
 

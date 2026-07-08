@@ -248,6 +248,14 @@ def model_card_templates() -> tuple[ModelCardTemplate, ...]:
             ("bubble/dew/flash cases", "mass-balance checks"),
         ),
         ModelCardTemplate(
+            "equilibrium_chemistry_model_card",
+            "equilibrium_chemistry",
+            "Equilibrium Chemistry Model Card",
+            common,
+            ("Reaktoro", "Cantera", "pycalphad"),
+            ("Gibbs minimization cases", "element/charge balance checks"),
+        ),
+        ModelCardTemplate(
             "reaction_kinetics_model_card",
             "reaction_kinetics",
             "Reaction Kinetics Model Card",

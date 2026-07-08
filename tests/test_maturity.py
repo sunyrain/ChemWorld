@@ -33,6 +33,7 @@ def test_model_card_templates_cover_professional_modules() -> None:
         "properties",
         "eos",
         "phase_equilibrium",
+        "equilibrium_chemistry",
         "reaction_kinetics",
         "reactors",
         "separations",
