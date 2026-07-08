@@ -23,6 +23,7 @@ from chemworld.foundation import (
 from chemworld.physchem.electrochemistry import ElectrodeReactionSpec, run_electrolysis
 from chemworld.physchem.separations import vle_shortcut_distillation
 from chemworld.runtime.mechanisms import CompiledMechanism
+from chemworld.runtime.reaction_thermal_services import ChemWorldReactionThermalServices
 from chemworld.runtime.record_services import ChemWorldOperationRecorder
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.instruments import chemworld_instruments
@@ -30,13 +31,11 @@ from chemworld.world.ontology import chemworld_substances
 from chemworld.world.operations import instrument_name, operation_name
 from chemworld.world.parameters import ChemWorldParameters
 from chemworld.world.phase_kernel import partition_split
-from chemworld.world.reaction_kernel import integrate_reaction_ode
 from chemworld.world.separation_kernel import downstream_truth_values
 from chemworld.world.species_roles import (
     LEGACY_PHASE_PRODUCT_AMOUNT_KEY,
     PHASE_PRODUCT_AMOUNT_KEY,
 )
-from chemworld.world.thermal_kernel import pressure_and_risk
 
 
 def make_chemworld_constitution() -> PhysicalConstitution:
@@ -81,6 +80,7 @@ class ChemWorldDomainServices:
         self.constitution = constitution
         self.species_view = MechanismSpeciesView(compiled_mechanism)
         self.operation_recorder = ChemWorldOperationRecorder(constitution)
+        self.reaction_thermal = ChemWorldReactionThermalServices(world)
 
     def apply_operation(
         self,
@@ -105,7 +105,7 @@ class ChemWorldDomainServices:
         except KeyError as exc:
             raise ValueError(f"Unsupported operation: {operation}") from exc
 
-        next_state = self._with_risk_and_pressure(next_state)
+        next_state = self.reaction_thermal.with_risk_and_pressure(next_state)
         return next_state, self.operation_recorder.record(
             operation,
             before,
@@ -121,8 +121,12 @@ class ChemWorldDomainServices:
             "add_reagent": self._add_reagent,
             "add_solvent": self._add_solvent,
             "add_catalyst": self._add_catalyst,
-            "heat": lambda state, action: self._integrate(state, action, heat=True),
-            "wait": lambda state, action: self._integrate(state, action, heat=False),
+            "heat": lambda state, action: self.reaction_thermal.integrate(
+                state, action, heat=True
+            ),
+            "wait": lambda state, action: self.reaction_thermal.integrate(
+                state, action, heat=False
+            ),
             "sample": self._sample,
             "quench": lambda state, _action: self._quench(state),
             "add_phase": self._add_phase,
@@ -762,7 +766,7 @@ class ChemWorldDomainServices:
             "target_temperature_K": target_temperature,
             "stirring_speed_rpm": 900.0,
         }
-        reacted_state = self._integrate(state, effective_action, heat=True)
+        reacted_state = self.reaction_thermal.integrate(state, effective_action, heat=True)
         initial_a = max(self.species_view.initial_reactant_amount(state), 1.0e-12)
         conversion = float(
             np.clip(
@@ -886,44 +890,3 @@ class ChemWorldDomainServices:
             risk=min(1.0, state.ledger.risk + 0.08),
         )
         return state.replace(ledger=ledger)
-
-    def _integrate(self, state: WorldState, action: dict[str, Any], *, heat: bool) -> WorldState:
-        duration = float(np.clip(_action_float(action, "duration_s", 600.0), 0.0, 14_400.0))
-        target_temperature = _action_float(action, "target_temperature_K", state.temperature_K)
-        stirring_speed = _action_float(
-            action,
-            "stirring_speed_rpm",
-            float(state.metadata.get("stirring_speed_rpm", 600.0)),
-        )
-        result = integrate_reaction_ode(
-            state=state,
-            world=self.world,
-            duration_s=duration,
-            target_temperature_K=target_temperature,
-            heat=heat,
-            stirring_speed_rpm=stirring_speed,
-        )
-        if result is None:
-            return state
-        ledger = state.ledger.with_updates(
-            time_s=state.ledger.time_s + result.duration_s,
-            cost=state.ledger.cost + result.cost_delta,
-            energy_jacket_J=state.ledger.energy_jacket_J + result.energy_jacket_J,
-            heat_reaction_J=state.ledger.heat_reaction_J + result.heat_reaction_J,
-            heat_loss_J=state.ledger.heat_loss_J + result.heat_loss_J,
-        )
-        metadata = state.metadata.copy()
-        metadata["stirring_speed_rpm"] = result.stirring_speed_rpm
-        return state.replace(
-            species_amounts=result.species_amounts,
-            temperature_K=result.temperature_K,
-            ledger=ledger,
-            metadata=metadata,
-        )
-
-    def _with_risk_and_pressure(self, state: WorldState) -> WorldState:
-        pressure, risk = pressure_and_risk(
-            state=state,
-            solvent_risks=self.world.solvent_risks,
-        )
-        return state.replace(pressure_Pa=pressure, ledger=state.ledger.with_updates(risk=risk))

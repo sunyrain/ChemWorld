@@ -108,6 +108,23 @@ def test_runtime_operation_recorder_is_separate_from_state_changing_services() -
     assert "material delta allowed or phase-ledger conserved" not in domain_services
 
 
+def test_runtime_reaction_thermal_service_is_separate_from_domain_services() -> None:
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+        encoding="utf-8"
+    )
+    reaction_thermal_services = Path(
+        "src/chemworld/runtime/reaction_thermal_services.py"
+    ).read_text(encoding="utf-8")
+
+    assert "def _integrate" not in domain_services
+    assert "def _with_risk_and_pressure" not in domain_services
+    assert "integrate_reaction_ode" not in domain_services
+    assert "pressure_and_risk" not in domain_services
+    assert "class ChemWorldReactionThermalServices" in reaction_thermal_services
+    assert "integrate_reaction_ode" in reaction_thermal_services
+    assert "pressure_and_risk" in reaction_thermal_services
+
+
 def test_runtime_profile_requires_current_task_kernels_only() -> None:
     task = get_task("reaction-to-assay")
     profile = TaskRuntimeProfile.from_task(task)

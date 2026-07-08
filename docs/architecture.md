@@ -52,6 +52,10 @@ The runtime is organized around:
 - `ChemWorldDomainServices`, which owns state-changing reaction, thermal,
   phase, separation, process, electrochemical, and instrument-cost calculations
   used by operation kernels;
+- `ChemWorldReactionThermalServices`, implemented in
+  `runtime/reaction_thermal_services.py`, which owns reaction ODE advancement,
+  heat/wait integration, stirring metadata, energy-ledger updates, and
+  pressure/risk projection;
 - `ChemWorldObservationKernel`, implemented in
   `runtime/observation_services.py`, which owns observation truth extraction,
   noisy instrument signals, processed estimates, uncertainty metadata, and
@@ -72,10 +76,11 @@ manager commits those patches to typed ledgers only after validation. This keeps
 material ledgers auditable: invalid actions can add process penalties without
 silently changing hidden material state.
 
-Operation-record assembly is separated from the state-changing domain services.
-This makes trajectory rows easier to audit: physical services advance state,
-the transaction manager commits or rolls back patches, and the recorder turns
-the accepted pre/post state pair into the replayable operation record.
+Reaction/thermal advancement and operation-record assembly are separated from
+the remaining state-changing domain services. This makes the runtime easier to
+audit: reaction/thermal services advance continuous dynamics, the transaction
+manager commits or rolls back patches, and the recorder turns the accepted
+pre/post state pair into the replayable operation record.
 
 The active backend remains `semi_mechanistic`, but it is now a runtime service
 implementation rather than the conceptual center of the package. Backend
