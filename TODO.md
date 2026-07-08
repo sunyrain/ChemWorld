@@ -41,7 +41,7 @@ finished, update its status and push immediately.
 | PhysChem reactors module split | whilesunny | Done | `src/chemworld/physchem/reactors.py`, reactor-family modules, tests, audit docs | next: split `reaction_network.py` into specs, rate laws, integration/reference cases, thermochemical coupling, sensitivities, and loaders | this commit |
 | Tutorial curriculum hardening and SOTA gap audit | whilesunny | Done | `notebooks/tutorials/`, `docs/`, SOTA references | next: split `reaction_network.py` into specs, rate laws, integration/reference cases, thermochemical coupling, sensitivities, and loaders | this commit |
 | Tutorial encoding repair and workload expansion | whilesunny | Done | `notebooks/`, tutorial guidance generator, docs/tests | next: split `reaction_network.py` into specs, rate laws, integration/reference cases, thermochemical coupling, sensitivities, and loaders | this commit |
-| High-level ChemWorld overview document | whilesunny | Active | `docs/`, `mkdocs.yml` | write a concise whole-project overview and clarify distance to a chemical world model | claim commit |
+| High-level ChemWorld overview document | whilesunny | Done | `docs/`, `mkdocs.yml` | next: split `reaction_network.py` into specs, rate laws, integration/reference cases, thermochemical coupling, sensitivities, and loaders | this commit |
 
 Status values:
 

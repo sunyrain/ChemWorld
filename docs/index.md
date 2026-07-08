@@ -13,6 +13,8 @@ ledger, transition kernels, and instrument observation kernels.
 
 Start with:
 
+- [ChemWorld Overview ZH](chemworld_overview_zh.md) for the high-level project
+  positioning, maturity assessment, and benchmark shape.
 - [Current Progress](current_progress.md) for the implementation status.
 - [Architecture](architecture.md) for the core package design.
 - [Technical Architecture ZH](technical_architecture_zh.md) for the current
