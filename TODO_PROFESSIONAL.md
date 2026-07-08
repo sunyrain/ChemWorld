@@ -74,6 +74,7 @@ Every professional module must ship:
 | PRO-P6A CSTR multiple-steady-state professional example | whilesunny | Done | `cantera` stirred-reactor examples, `idaes-pse` CSTR/control-volume models, nonlinear reactor design equations | `src/chemworld/physchem/reactors.py`, `tests/test_reactor_models.py`, model cards, docs | next: add Cantera dynamic reactor-net cross-checks and plant-scale heat-transfer variants | this commit |
 | PRO-P7A VLE-coupled shortcut distillation | whilesunny | Done | `idaes-pse` distillation/flash units, `thermo` flash/property-package APIs, `phasepy` VLE examples | `src/chemworld/physchem/separations.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/tasks.py`, `tests/test_separations.py`, model cards, docs | next: add Underwood/Gilliland sizing, pressure-profile effects, and nonideal VLE task cases | this commit |
 | PRO-P10A Beer-Lambert UV-vis calibration validation | whilesunny | Done | public Beer-Lambert equations, analytical calibration examples, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `src/chemworld/tasks.py`, `tests/test_spectroscopy.py`, model cards, docs | next: add HPLC/GC retention calibration, IR empirical anchors, and NMR coupling metadata | this commit |
+| PRO-P10B Chromatography retention and peak-broadening calibration | whilesunny | Claimed | public chromatography equations, plate-count/resolution equations, local spectroscopy/instrument APIs | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `tests/test_spectroscopy.py`, model cards, docs | read local chromatography implementation and equation-oriented references, then replace role-only HPLC/GC retention proxy with declared retention-factor/plate-count calibration slice | pending push |
 
 ## P0: Governance And Model Maturity
 
@@ -634,6 +635,8 @@ Acceptance:
    distillation. Done.
 8. `PRO-P10A`: Add Beer-Lambert UV-vis model card and calibration validation.
    Done.
+9. `PRO-P10B`: Add HPLC/GC retention-factor and peak-broadening calibration.
+   Claimed by whilesunny.
 
 ## Explicit Non-Goals
 
