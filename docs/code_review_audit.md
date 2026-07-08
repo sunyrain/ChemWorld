@@ -310,6 +310,11 @@ Recommended follow-up:
   under the base library contract, while runtime task scenarios additionally
   require positive initial species, declared target species, impurity species,
   and role mappings that refer only to species present in the mechanism.
+- Hardened Runtime v2 transaction consistency. Rollback transactions now append
+  an explicit `rollback_penalty` patch, preserve the failed-candidate check
+  names in a `transaction_rollback` event, and rebuild operation records from
+  the final rollback state so `state_delta_summary`, returned state, patches,
+  and event logs describe the same transaction outcome.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration

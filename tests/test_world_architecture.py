@@ -12,6 +12,7 @@ import chemworld  # noqa: F401
 from chemworld.cli import main
 from chemworld.data.datasets import dataset_card, export_dataset
 from chemworld.data.logging import load_jsonl
+from chemworld.foundation import OperationRecord
 from chemworld.foundation.state import (
     WorldState,
     equipment_settings,
@@ -24,10 +25,16 @@ from chemworld.runtime.domain_services import (
     ChemWorldDomainServices,
     make_chemworld_constitution,
 )
-from chemworld.runtime.kernels import OperationKernelRegistry, TaskRuntimeProfile
+from chemworld.runtime.kernels import (
+    OperationKernelRegistry,
+    RuntimeContext,
+    ServiceOperationKernel,
+    TaskRuntimeProfile,
+)
 from chemworld.runtime.mechanisms import compile_mechanism, compile_mechanism_for_scenario
 from chemworld.runtime.observation_services import ChemWorldObservationKernel
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.runtime.transactions import TransactionManager
 from chemworld.schemas import (
     ACTION_SCHEMA,
     MANIFEST_SCHEMA,
@@ -687,6 +694,63 @@ def test_env_runtime_v2_info_contains_kernel_transaction_and_mechanism() -> None
         assert step_info["world_events"][0]["event_type"] == "operation_applied"
     finally:
         env.close()
+
+
+def test_service_kernel_operation_record_matches_rollback_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    compiled = compile_mechanism_for_scenario("reaction-to-assay")
+    scenario = get_scenario("reaction-to-assay")
+    instance = DefaultScenarioGenerator().generate(scenario, seed=0)
+    constitution = make_chemworld_constitution()
+    services = ChemWorldDomainServices(
+        load_chemworld_parameters("public-dev", seed=0),
+        constitution,
+        compiled,
+    )
+    context = RuntimeContext(
+        task_spec=None,
+        profile=TaskRuntimeProfile.from_task(None),
+        compiled_mechanism=compiled,
+        domain_services=services,
+        transaction_manager=TransactionManager(constitution),
+    )
+    before = instance.initial_state
+    action = {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1}
+
+    def apply_invalid_candidate(
+        state: WorldState,
+        candidate_action: dict[str, object],
+    ) -> tuple[WorldState, OperationRecord]:
+        candidate = state.replace(volume_L=999.0)
+        record = services.record_operation(
+            "add_solvent",
+            state,
+            candidate,
+            {"not_terminated": True},
+            candidate_action,
+        )
+        return candidate, record
+
+    monkeypatch.setattr(services, "apply_operation", apply_invalid_candidate)
+
+    result = ServiceOperationKernel("add_solvent", "reaction").apply(
+        before,
+        action,
+        context,
+    )
+
+    assert result.transaction_status == "rolled_back"
+    assert result.rollback_reason == "constitution_failed"
+    assert result.state.volume_L == pytest.approx(before.volume_L)
+    assert result.operation_record.state_delta_summary["delta_volume_L"] == pytest.approx(0.0)
+    assert result.state_delta_summary["delta_cost"] == pytest.approx(
+        result.state.ledger.cost - before.ledger.cost
+    )
+    assert result.state_delta_summary == result.operation_record.state_delta_summary
+    assert result.patches[-1].patch_type == "rollback_penalty"
+    assert result.patches[-1].affected_ledgers == ("process",)
+    assert any(event.event_type == "transaction_rollback" for event in result.events)
 
 
 def test_typed_phase_ledger_tracks_state_replacements() -> None:

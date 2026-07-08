@@ -210,6 +210,14 @@ class ServiceOperationKernel:
             events=(event,),
             patches=(patch,),
         )
+        if transaction.transaction_status != "committed":
+            record = context.domain_services.record_operation(
+                self.operation_type,
+                before,
+                transaction.state,
+                record.preconditions,
+                action,
+            )
         return KernelResult(
             state=transaction.state,
             operation_record=record,

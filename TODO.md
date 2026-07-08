@@ -77,7 +77,7 @@ finished, update its status and push immediately.
 | PRO-RUNTIME-A seven-slot reference quarantine | whilesunny | Done | `src/chemworld/world/reaction_kernel.py`, `src/chemworld/world/reaction_reference.py`, tests/docs | fixed A/P/B/D/E ODE is now quarantined in an explicit reference fixture; ordinary reaction kernel declares compiled-mechanism runtime only and architecture tests block runtime imports | this commit |
 | PRO-RUNTIME-A compiled mechanism required across runtime services | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | env/runtime/eval now have no `LEGACY_*` species defaults and runtime/domain/observation services require compiled mechanisms; golden scores updated after removing duplicated `initial_A_mol` counting | this commit |
 | PRO-RUNTIME-A mechanism role validation at compile time | whilesunny | Done | `src/chemworld/runtime/mechanisms.py`, mechanism tests/docs | compile-time validation now separates base mechanism-library checks from stricter runtime scenario role contracts for target, impurity, initial species, and observable mappings | this commit |
-| PRO-RUNTIME-B transaction record consistency | whilesunny | Active | `src/chemworld/runtime/kernels.py`, `src/chemworld/runtime/transactions.py`, tests/docs | make operation records, state patches, rollback events, and returned state describe the same committed or rolled-back transaction result | pending |
+| PRO-RUNTIME-B transaction record consistency | whilesunny | Done | `src/chemworld/runtime/kernels.py`, `src/chemworld/runtime/transactions.py`, tests/docs | rollback transactions now append explicit rollback patches and rebuild operation records from the committed rollback state | this commit |
 
 Status values:
 

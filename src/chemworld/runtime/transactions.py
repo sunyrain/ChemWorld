@@ -30,7 +30,7 @@ class StatePatch:
     summary: dict[str, Any] = field(default_factory=dict)
 
     def apply(self, state: WorldState) -> WorldState:
-        if self.patch_type == "replace_state" and self.state is not None:
+        if self.patch_type in {"replace_state", "rollback_penalty"} and self.state is not None:
             return self.state
         return state
 
@@ -89,15 +89,30 @@ class TransactionManager:
                 constitution_checks=checks,
             )
         penalty_state = self._penalize_rollback(state)
+        failed_checks = [check["name"] for check in checks if not check["passed"]]
         rollback_event = WorldEvent(
             "transaction_rollback",
             operation_type,
-            {"failed_checks": [check["name"] for check in checks if not check["passed"]]},
+            {"failed_checks": failed_checks},
+        )
+        rollback_patch = StatePatch(
+            patch_type="rollback_penalty",
+            affected_ledgers=("process",),
+            state=penalty_state,
+            summary={
+                "delta_cost": penalty_state.ledger.cost - state.ledger.cost,
+                "delta_risk": penalty_state.ledger.risk - state.ledger.risk,
+                "delta_sample_consumed_L": (
+                    penalty_state.ledger.sample_consumed_L
+                    - state.ledger.sample_consumed_L
+                ),
+                "failed_checks": failed_checks,
+            },
         )
         return TransactionResult(
             state=penalty_state,
             events=(*events, rollback_event),
-            patches=patches,
+            patches=(*patches, rollback_patch),
             transaction_status="rolled_back",
             rollback_reason="constitution_failed",
             constitution_checks=checks,
