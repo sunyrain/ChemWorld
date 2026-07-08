@@ -10,6 +10,8 @@ from chemworld.cli import main
 from chemworld.data.datasets import dataset_card, export_dataset
 from chemworld.data.logging import load_jsonl
 from chemworld.foundation.state import WorldState
+from chemworld.runtime.kernels import OperationKernelRegistry, TaskRuntimeProfile
+from chemworld.runtime.mechanisms import compile_mechanism_for_scenario
 from chemworld.schemas import (
     ACTION_SCHEMA,
     MANIFEST_SCHEMA,
@@ -71,6 +73,71 @@ def test_world_layer_does_not_import_batch_core() -> None:
         if "chemworld.core.batch_reactor" in path.read_text(encoding="utf-8")
     ]
     assert offenders == []
+
+
+def test_runtime_profile_requires_current_task_kernels_only() -> None:
+    task = get_task("reaction-to-assay")
+    profile = TaskRuntimeProfile.from_task(task)
+    registry = OperationKernelRegistry.default()
+
+    assert profile.world_law_id == "chemworld-physical-chemistry"
+    assert "measure" in profile.required_kernels
+    assert "add_extractant" not in profile.required_kernels
+    assert all(registry.has(operation) for operation in profile.required_kernels)
+    assert profile.is_operation_allowed("measure")
+    assert not profile.is_operation_allowed("add_extractant")
+
+
+def test_mechanism_compiler_supports_non_fixed_species_networks() -> None:
+    compiled = compile_mechanism_for_scenario("electrochemical-conversion")
+
+    assert compiled.mechanism_id == "electrochemical_conversion"
+    assert "Ox" in compiled.species_index
+    assert "Red" in compiled.species_index
+    assert compiled.score_spec.reactant_species == "Ox"
+    assert compiled.score_spec.product_species == "Red"
+    assert compiled.mechanism_hash
+    assert len(compiled.stoichiometric_matrix) == len(compiled.species_index)
+    assert all(
+        len(row) == len(compiled.network.reactions)
+        for row in compiled.stoichiometric_matrix
+    )
+
+
+def test_env_runtime_v2_info_contains_kernel_transaction_and_mechanism() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
+    try:
+        _, reset_info = env.reset(seed=0)
+        _, _, _, _, step_info = env.step(
+            {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1}
+        )
+
+        assert reset_info["mechanism_id"] == "simple_batch_reaction"
+        assert reset_info["mechanism_hash"]
+        assert step_info["kernel_id"] == "chemworld.operation.add_solvent"
+        assert step_info["transaction_status"] == "committed"
+        assert step_info["rollback_reason"] is None
+        assert "process" in step_info["affected_ledgers"]
+        assert step_info["world_events"][0]["event_type"] == "operation_applied"
+    finally:
+        env.close()
+
+
+def test_typed_phase_ledger_tracks_state_replacements() -> None:
+    state = WorldState(
+        species_amounts={"A": 1.0, "P": 0.0},
+        volume_L=0.01,
+        temperature_K=298.15,
+        pressure_Pa=101_325.0,
+        phase="liquid",
+        vessel_id="reactor",
+    )
+    updated = state.replace(species_amounts={"A": 0.2, "P": 0.8})
+
+    assert updated.phases is not None
+    assert updated.phases.total_amounts_mol() == {"A": 0.2, "P": 0.8}
+    assert updated.process is not None
+    assert updated.process.time_s == updated.ledger.time_s
 
 
 def test_world_kernels_are_executable_not_metadata_only() -> None:

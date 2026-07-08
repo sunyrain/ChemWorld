@@ -13,13 +13,13 @@ from chemworld import __version__
 from chemworld.action_codec import ActionCodec
 from chemworld.backends import semi_mechanistic_backend_spec
 from chemworld.core.actions import CATALYSTS, SOLVENTS
-from chemworld.core.batch_reactor import (
-    ChemWorldObservationKernel,
-    ChemWorldTransitionKernel,
-    make_chemworld_constitution,
-)
 from chemworld.foundation.state import OperationRecord, WorldState
 from chemworld.operation_validator import OperationValidator
+from chemworld.runtime import (
+    ChemWorldObservationKernel,
+    ChemWorldRuntime,
+    make_chemworld_constitution,
+)
 from chemworld.tasks import default_kernel_maturity, get_task
 from chemworld.world.instruments import instrument_contracts
 from chemworld.world.operations import (
@@ -31,11 +31,8 @@ from chemworld.world.operations import (
     chemworld_state_variable_contracts,
     operation_contracts,
 )
-from chemworld.world.parameters import load_chemworld_parameters
-from chemworld.world.reaction_kernel import reaction_network
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 from chemworld.world.scoring import safety_cost_from_flags
-from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.world.world_law import world_law_spec
 
 OBSERVATION_KEYS = (
@@ -50,6 +47,7 @@ OBSERVATION_KEYS = (
     "virtual_spectrum_summary",
     *DOWNSTREAM_OBSERVATION_KEYS,
 )
+DEFAULT_SCENARIO_ID = "reaction-to-assay"
 
 
 class NullableScalarBox(spaces.Box):
@@ -128,18 +126,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.scenario_spec = (
             get_scenario(self.task_spec.scenario_id, split=world_split)
             if self.task_spec is not None
-            else None
+            else get_scenario(DEFAULT_SCENARIO_ID, split=world_split)
         )
-        self.scenario_instance = (
-            self.scenario_generator.generate(self.scenario_spec, seed)
-            if self.scenario_spec is not None
-            else None
-        )
-        self.world = (
-            self.scenario_instance.parameters
-            if self.scenario_instance is not None
-            else load_chemworld_parameters(world_split, seed)
-        )
+        self.scenario_instance = self.scenario_generator.generate(self.scenario_spec, seed)
+        self.world = self.scenario_instance.parameters
         self.constitution = make_chemworld_constitution()
         self.operation_validator = OperationValidator(
             constitution=self.constitution,
@@ -147,18 +137,18 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             allowed_instruments=self.allowed_instruments,
             action_codec=self.action_codec,
         )
-        self.transition_kernel = ChemWorldTransitionKernel(self.world, self.constitution)
-        self.observation_kernel = ChemWorldObservationKernel(self.constitution, objective)
+        self.runtime = self._make_runtime()
+        self.observation_kernel = ChemWorldObservationKernel(
+            self.constitution,
+            objective,
+            self.scenario_instance.compiled_mechanism,
+        )
         self._rng = np.random.default_rng(seed)
         self._step_count = 0
         self._experiment_index = 0
         self._operation_id = 0
         self._done = False
-        self._state = (
-            self.scenario_instance.initial_state
-            if self.scenario_instance is not None
-            else initial_chemworld_state()
-        )
+        self._state = self.scenario_instance.initial_state
         self._last_observation = self._empty_observation()
         self._last_operation_record: OperationRecord | None = None
         self._campaign_id = self._make_campaign_id()
@@ -209,15 +199,15 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self._rng = np.random.default_rng(seed)
         if options and options.get("scenario_id"):
             self.scenario_spec = get_scenario(str(options["scenario_id"]), split=self.world_split)
-        if self.scenario_spec is not None:
-            self.scenario_instance = self.scenario_generator.generate(self.scenario_spec, self.seed)
-            self.world = self.scenario_instance.parameters
-            self._state = self.scenario_instance.initial_state
-        else:
-            self.scenario_instance = None
-            self.world = load_chemworld_parameters(self.world_split, self.seed)
-            self._state = initial_chemworld_state()
-        self.transition_kernel = ChemWorldTransitionKernel(self.world, self.constitution)
+        self.scenario_instance = self.scenario_generator.generate(self.scenario_spec, self.seed)
+        self.world = self.scenario_instance.parameters
+        self._state = self.scenario_instance.initial_state
+        self.runtime = self._make_runtime()
+        self.observation_kernel = ChemWorldObservationKernel(
+            self.constitution,
+            self.objective,
+            self.scenario_instance.compiled_mechanism,
+        )
         self._step_count = 0
         self._experiment_index = 0
         self._operation_id = 0
@@ -239,14 +229,13 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         previous_state = self._state
         validation = self.operation_validator.validate(action, self._state)
         if validation.is_valid:
-            self._state, operation_record = self.transition_kernel.transition(
-                self._state,
-                action,
-                self._rng,
-            )
+            runtime_result = self.runtime.apply_transaction(self._state, action)
+            self._state = runtime_result.state
+            operation_record = runtime_result.operation_record
+            runtime_info = runtime_result.info_payload()
         else:
-            penalized = self.transition_kernel._penalize_invalid(self._state)
-            operation_record = self.transition_kernel._record(
+            penalized = self.runtime.domain_services.penalize_invalid(self._state)
+            operation_record = self.runtime.domain_services.record_operation(
                 action["operation"],
                 self._state,
                 penalized,
@@ -254,6 +243,24 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 action,
             )
             self._state = penalized
+            runtime_info = {
+                "kernel_id": "validation:invalid_action",
+                "kernel_version": "runtime-v2.0",
+                "affected_ledgers": ["process"],
+                "world_events": [
+                    {
+                        "event_type": "validation_failed",
+                        "operation_type": action["operation"],
+                        "payload": {"invalid_reasons": list(validation.invalid_reasons)},
+                    }
+                ],
+                "state_patches_summary": [],
+                "cost_delta": 0.0,
+                "risk_delta": 0.0,
+                "sample_delta": 0.0,
+                "transaction_status": "validation_failed",
+                "rollback_reason": None,
+            }
         preconditions_passed = all(operation_record.preconditions.values())
         if preconditions_passed:
             observation = self.observation_kernel.observe(self._state, action, self._rng)
@@ -301,6 +308,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         reward = self._value_or_default(observation_values, "score")
         self._last_operation_record = operation_record
         info = self._info(operation_record, observation)
+        info.update(runtime_info)
         if self.debug_truth:
             info["truth"] = self._state.to_dict(include_hidden=True)
         if campaign_final_assay:
@@ -324,18 +332,15 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         return observation_dict, reward, terminated, truncated, info
 
     def task_info(self) -> dict[str, Any]:
-        scenario_card = (
-            None if self.scenario_instance is None else self.scenario_instance.to_card()
-        )
+        scenario_card = self.scenario_instance.to_card()
+        compiled_mechanism = self.scenario_instance.compiled_mechanism
         return {
             "env_id": "ChemWorld",
             "task_id": self.task_id,
             "world_law_id": self.world.family_version,
-            "scenario_id": None if self.scenario_spec is None else self.scenario_spec.scenario_id,
+            "scenario_id": self.scenario_spec.scenario_id,
             "scenario": scenario_card,
-            "initial_state_id": (
-                None if self.scenario_spec is None else self.scenario_spec.initial_state_id
-            ),
+            "initial_state_id": self.scenario_spec.initial_state_id,
             "world_split": self.world_split,
             "world_provider": self.world.provider,
             "objective": self.objective,
@@ -344,8 +349,12 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "safety_limit": self.safety_limit,
             "seed": self.seed,
             "world_id": self.world.world_id,
+            "mechanism_id": compiled_mechanism.mechanism_id,
+            "mechanism_hash": compiled_mechanism.mechanism_hash,
+            "mechanism_version": compiled_mechanism.mechanism_version,
             "env_version": __version__,
             "world_family_version": self.world.family_version,
+            "runtime": self.runtime.to_dict(),
             "operation_types": list(OPERATION_TYPES),
             "allowed_operations": sorted(self.allowed_operations),
             "allowed_instruments": sorted(self.allowed_instruments),
@@ -355,7 +364,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "instruments": {
                 key: contract.to_dict() for key, contract in instrument_contracts().items()
             },
-            "reactions": [reaction.to_dict() for reaction in reaction_network()],
+            "reactions": [
+                reaction.to_dict()
+                for reaction in compiled_mechanism.network.reactions
+            ],
             "operations": [operation.to_dict() for operation in chemworld_operations()],
             "operation_contracts": {
                 key: contract.to_dict() for key, contract in operation_contracts().items()
@@ -431,10 +443,17 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         scenario_part = "none" if self.scenario_spec is None else self.scenario_spec.scenario_id
         return f"{task_part}:{scenario_part}:seed-{self.seed}"
 
+    def _make_runtime(self) -> ChemWorldRuntime:
+        return ChemWorldRuntime(
+            world=self.world,
+            constitution=self.constitution,
+            task_spec=self.task_spec,
+            compiled_mechanism=self.scenario_instance.compiled_mechanism,
+            debug_truth=self.debug_truth,
+        )
+
     def _fresh_initial_state(self) -> WorldState:
-        if self.scenario_instance is not None:
-            return self.scenario_instance.initial_state
-        return initial_chemworld_state()
+        return self.scenario_instance.initial_state
 
     def _info(self, operation_record: OperationRecord, observation: Any) -> dict[str, Any]:
         values = observation.values
@@ -485,14 +504,14 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "world_id": self.world.world_id,
             "task_id": self.task_id,
             "scenario_id": None if self.scenario_spec is None else self.scenario_spec.scenario_id,
-            "initial_state_id": (
-                None if self.scenario_spec is None else self.scenario_spec.initial_state_id
-            ),
+            "initial_state_id": self.scenario_spec.initial_state_id,
             "world_law_id": self.world.family_version,
             "world_split": self.world_split,
             "world_provider": self.world.provider,
             "objective": self.objective,
             "safety_limit": self.safety_limit,
+            "mechanism_id": self.scenario_instance.compiled_mechanism.mechanism_id,
+            "mechanism_hash": self.scenario_instance.compiled_mechanism.mechanism_hash,
             "operation_type": operation_record.operation_type,
             "operation_allowed_by_task": operation_record.operation_type in self.allowed_operations,
             "instrument_allowed_by_task": (

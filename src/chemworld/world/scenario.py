@@ -8,6 +8,7 @@ from random import Random
 from typing import Protocol
 
 from chemworld.foundation import WorldState
+from chemworld.runtime.mechanisms import CompiledMechanism, compile_mechanism_for_scenario
 from chemworld.world.parameters import ChemWorldParameters, load_chemworld_parameters
 
 WORLD_LAW_ID = "chemworld-physical-chemistry"
@@ -66,6 +67,7 @@ class ScenarioInstance:
     spec: ScenarioSpec
     parameters: ChemWorldParameters
     initial_state: WorldState
+    compiled_mechanism: CompiledMechanism
 
     def to_card(self) -> dict[str, object]:
         return {
@@ -73,6 +75,7 @@ class ScenarioInstance:
             "world_id": self.parameters.world_id,
             "world_provider": self.parameters.provider,
             "world_family_version": self.parameters.family_version,
+            "mechanism": self.compiled_mechanism.to_dict(),
         }
 
 
@@ -115,10 +118,26 @@ class DefaultScenarioGenerator:
             )
         else:
             initial_state = initial_state.replace(metadata=metadata)
+        compiled_mechanism = compile_mechanism_for_scenario(spec.scenario_id)
+        mechanism_metadata = {
+            **initial_state.metadata,
+            "mechanism_id": compiled_mechanism.mechanism_id,
+            "mechanism_hash": compiled_mechanism.mechanism_hash,
+        }
+        initial_state = initial_state.replace(
+            metadata=mechanism_metadata,
+            species=initial_state.species.__class__(
+                species_roles=compiled_mechanism.species_roles,
+                initial_amounts_mol=compiled_mechanism.initial_amount_policy,
+            )
+            if initial_state.species is not None
+            else None,
+        )
         return ScenarioInstance(
             spec=spec,
             parameters=parameters,
             initial_state=initial_state,
+            compiled_mechanism=compiled_mechanism,
         )
 
 

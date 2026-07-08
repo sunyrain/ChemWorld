@@ -1,6 +1,6 @@
 # Code Review Audit
 
-Date: 2026-07-08
+Date: 2026-07-09
 
 Scope: completed ChemWorld professional/deepening slices, with emphasis on
 large files, redundant metadata, and reviewability risks.
@@ -21,7 +21,7 @@ Largest current source files after this cleanup:
 | `src/chemworld/physchem/equilibrium_chemistry.py` | mass-action equilibrium, acid-base, precipitation, Gibbs minimization | split into mass-action, electrolyte/acid-base, precipitation, and Gibbs minimization helpers |
 | `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, and provenance |
 | `src/chemworld/physchem/spectroscopy.py` | calibration, chromatography, signal synthesis, feature heuristics | split into calibration, chromatography, signal synthesis, and feature libraries |
-| `src/chemworld/core/batch_reactor.py` | task runtime, constitution factory, hidden world parameter/state transitions | migrate foundation/world-law pieces out of `core` and keep runtime orchestration small |
+| `src/chemworld/runtime/domain_services.py` | semi-mechanistic domain-service implementation used by Runtime v2 | split reaction, thermal, observation, separation, scoring, and operation-record assembly into narrower service modules |
 
 ### Medium Priority: Model Cards Are Better As Metadata Modules
 
@@ -102,20 +102,28 @@ split by family and responsibility:
 This split reduced `reactors.py` from a broad numerical module to a small
 aggregation surface while preserving public imports and numerical behavior.
 
-### Medium Priority: Runtime Still Depends On `core.batch_reactor`
+### Medium Priority: Runtime V2 Is In Place, Domain Services Remain Broad
 
-`ChemWorldEnv` still imports the main runtime pieces and constitution factory
-from `chemworld.core.batch_reactor`. That file remains a broad orchestration
-module. This is acceptable for the current benchmark, but it is the next major
-architecture cleanup if the goal is a professional world-law layer.
+`ChemWorldEnv` now delegates operation execution to `chemworld.runtime`.
+The active runtime path contains `ChemWorldRuntime`,
+`OperationKernelRegistry`, `TaskRuntimeProfile`, `TransactionManager`,
+`CompiledMechanism`, and typed state ledgers. The old
+`chemworld.core.batch_reactor` runtime center has been removed from the running
+path.
+
+The broad file is now `src/chemworld/runtime/domain_services.py`. This is a
+better boundary than a batch-reactor-centered runtime, but the file still mixes
+reaction advancement, thermal updates, phase operations, observation helpers,
+scoring helpers, and operation-record assembly.
 
 Recommended follow-up:
 
-- move constitution construction into `foundation` or `world.world_law`;
-- move hidden parameter/world generation into `world.parameters`;
-- move reaction/separation event execution into dedicated world kernels;
-- leave `core.batch_reactor` as a thin scenario/runtime bridge or remove it
-after tests are migrated.
+- split `domain_services.py` into reaction, thermal, phase/separation,
+  observation, instrument-cost, scoring, and operation-record services;
+- keep operation kernels as small command handlers;
+- continue moving mechanism-specific scoring and observation mapping into
+  compiled mechanism cards;
+- strengthen transaction-level replay tests.
 
 ### Low Priority: Facade Exports Are Large But Useful
 
@@ -149,6 +157,11 @@ Recommended follow-up:
   `chemworld.physchem.reactors` as a thin public facade.
 - Verified reactor-specific tests and the full benchmark test suite after the
   split.
+- Introduced Runtime v2 with operation kernel registry, task runtime profiles,
+  transaction manager, mechanism compiler, typed ledgers, and mechanism-hash
+  trajectory metadata.
+- Moved the former batch-reactor runtime implementation out of `core` and into
+  `runtime/domain_services.py` as the current semi-mechanistic service backend.
 
 ## Verification
 
@@ -167,5 +180,5 @@ Run these after every cleanup slice:
    sensitivities, loaders, and reference cases.
 2. Split `eos.py`, `spectroscopy.py`, and `equilibrium_chemistry.py` by
    algorithm family.
-3. Move `core.batch_reactor` responsibilities into `world` and `foundation`
-   modules.
+3. Split `runtime/domain_services.py` into narrower domain-service modules and
+   continue reducing legacy scalar-state adapter responsibilities.

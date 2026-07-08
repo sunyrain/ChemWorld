@@ -71,9 +71,22 @@ def verify_records(
         first["env_id"],
         **env_kwargs,
     )
-    env.reset(seed=int(first["seed"]))
+    _, reset_info = env.reset(seed=int(first["seed"]))
+    recorded_mechanism_hash = first.get("mechanism_hash")
+    replay_mechanism_hash = reset_info.get("mechanism_hash")
+    early_mismatches: list[dict[str, Any]] = []
+    if recorded_mechanism_hash and replay_mechanism_hash != recorded_mechanism_hash:
+        early_mismatches.append(
+            {
+                "step": 0,
+                "field": "mechanism_hash",
+                "recorded": recorded_mechanism_hash,
+                "replayed": replay_mechanism_hash,
+                "abs_error": None,
+            }
+        )
 
-    mismatches: list[dict[str, Any]] = []
+    mismatches: list[dict[str, Any]] = list(early_mismatches)
     max_abs_error = 0.0
     try:
         for record in records:

@@ -4,7 +4,7 @@ import gymnasium as gym
 import pytest
 
 import chemworld  # noqa: F401
-from chemworld.core.batch_reactor import (
+from chemworld.runtime import (
     make_chemworld_constitution,
 )
 from chemworld.world.state_factory import initial_chemworld_state
@@ -138,4 +138,3 @@ def test_constitution_rejects_repeated_final_assay() -> None:
     )
 
     assert not preconditions["measure_final_not_repeated"]
-

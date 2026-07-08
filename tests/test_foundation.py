@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from chemworld.core.batch_reactor import make_chemworld_constitution
 from chemworld.foundation import Quantity, convert_value
+from chemworld.runtime import make_chemworld_constitution
 from chemworld.world.instruments import chemworld_instruments
 from chemworld.world.state_factory import initial_chemworld_state
 
@@ -36,5 +36,4 @@ def test_final_assay_requires_termination() -> None:
     )
     assert not preconditions["measure_final_requires_terminated"]
     assert chemworld_instruments()["final_assay"].requires_terminated
-
 

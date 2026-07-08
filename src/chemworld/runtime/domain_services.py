@@ -1,7 +1,14 @@
-"""Foundation-backed ChemWorld reaction and separation module."""
+"""Domain services for ChemWorld runtime v2.
+
+This module owns the current compact physical calculations for reaction,
+thermal, phase, separation, process, electrochemical, and instrument-cost
+updates. It is intentionally called by operation kernels rather than by
+``ChemWorldEnv`` directly.
+"""
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 import numpy as np
@@ -11,12 +18,12 @@ from chemworld.foundation import (
     Observation,
     OperationRecord,
     PhysicalConstitution,
-    TransitionKernel,
     Vessel,
     WorldState,
 )
 from chemworld.physchem.electrochemistry import ElectrodeReactionSpec, run_electrolysis
 from chemworld.physchem.separations import vle_shortcut_distillation
+from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.world.instruments import chemworld_instruments
 from chemworld.world.observation_kernel import (
     base_observed_mask,
@@ -60,7 +67,13 @@ def _action_index(action: dict[str, Any], key: str, default: int, count: int) ->
     return int(np.clip(int(_action_float(action, key, float(default))), 0, count - 1))
 
 
-class ChemWorldTransitionKernel(TransitionKernel):
+class ChemWorldDomainServices:
+    """Runtime domain services called by operation kernels.
+
+    Operation dispatch is table-driven so adding a new operation does not
+    require editing a central ``if/elif`` block.
+    """
+
     def __init__(
         self,
         world: ChemWorldParameters,
@@ -69,13 +82,11 @@ class ChemWorldTransitionKernel(TransitionKernel):
         self.world = world
         self.constitution = constitution
 
-    def transition(
+    def apply_operation(
         self,
         state: WorldState,
         action: dict[str, Any],
-        rng: np.random.Generator,
     ) -> tuple[WorldState, OperationRecord]:
-        del rng
         operation = operation_name(action["operation"])
         before = state
         preconditions = self.constitution.check_preconditions(operation, state, action)
@@ -83,67 +94,60 @@ class ChemWorldTransitionKernel(TransitionKernel):
             next_state = self._penalize_invalid(state)
             return next_state, self._record(operation, before, next_state, preconditions, action)
 
-        if operation == "add_reagent":
-            next_state = self._add_reagent(state, action)
-        elif operation == "add_solvent":
-            next_state = self._add_solvent(state, action)
-        elif operation == "add_catalyst":
-            next_state = self._add_catalyst(state, action)
-        elif operation == "heat":
-            next_state = self._integrate(state, action, heat=True)
-        elif operation == "wait":
-            next_state = self._integrate(state, action, heat=False)
-        elif operation == "sample":
-            next_state = self._sample(state, action)
-        elif operation == "quench":
-            next_state = self._quench(state)
-        elif operation == "add_phase":
-            next_state = self._add_phase(state, action)
-        elif operation == "add_extractant":
-            next_state = self._add_extractant(state, action)
-        elif operation == "mix":
-            next_state = self._mix_phases(state, action)
-        elif operation == "settle":
-            next_state = self._settle_phases(state, action)
-        elif operation == "separate_phase":
-            next_state = self._separate_phase(state, action)
-        elif operation == "wash":
-            next_state = self._wash_phase(state, action)
-        elif operation == "dry":
-            next_state = self._dry_phase(state)
-        elif operation == "concentrate":
-            next_state = self._concentrate_phase(state, action)
-        elif operation == "transfer":
-            next_state = self._transfer_phase(state, action)
-        elif operation == "seed_crystals":
-            next_state = self._seed_crystals(state, action)
-        elif operation == "cool_crystallize":
-            next_state = self._cool_crystallize(state, action)
-        elif operation == "filter_crystals":
-            next_state = self._filter_crystals(state)
-        elif operation == "evaporate":
-            next_state = self._evaporate(state, action)
-        elif operation == "distill":
-            next_state = self._distill(state, action)
-        elif operation == "collect_fraction":
-            next_state = self._collect_fraction(state, action)
-        elif operation == "set_flow_rate":
-            next_state = self._set_flow_rate(state, action)
-        elif operation == "run_flow":
-            next_state = self._run_flow(state, action)
-        elif operation == "set_potential":
-            next_state = self._set_potential(state, action)
-        elif operation == "electrolyze":
-            next_state = self._electrolyze(state, action)
-        elif operation == "terminate":
-            next_state = state.replace(terminated=True)
-        elif operation == "measure":
-            next_state = self._apply_measurement_cost(state, action)
-        else:
-            raise ValueError(f"Unsupported operation: {operation}")
+        try:
+            next_state = self.operation_methods()[operation](state, action)
+        except KeyError as exc:
+            raise ValueError(f"Unsupported operation: {operation}") from exc
 
         next_state = self._with_risk_and_pressure(next_state)
         return next_state, self._record(operation, before, next_state, preconditions, action)
+
+    def operation_methods(
+        self,
+    ) -> dict[str, Callable[[WorldState, dict[str, Any]], WorldState]]:
+        return {
+            "add_reagent": self._add_reagent,
+            "add_solvent": self._add_solvent,
+            "add_catalyst": self._add_catalyst,
+            "heat": lambda state, action: self._integrate(state, action, heat=True),
+            "wait": lambda state, action: self._integrate(state, action, heat=False),
+            "sample": self._sample,
+            "quench": lambda state, _action: self._quench(state),
+            "add_phase": self._add_phase,
+            "add_extractant": self._add_extractant,
+            "mix": self._mix_phases,
+            "settle": self._settle_phases,
+            "separate_phase": self._separate_phase,
+            "wash": self._wash_phase,
+            "dry": lambda state, _action: self._dry_phase(state),
+            "concentrate": self._concentrate_phase,
+            "transfer": self._transfer_phase,
+            "seed_crystals": self._seed_crystals,
+            "cool_crystallize": self._cool_crystallize,
+            "filter_crystals": lambda state, _action: self._filter_crystals(state),
+            "evaporate": self._evaporate,
+            "distill": self._distill,
+            "collect_fraction": self._collect_fraction,
+            "set_flow_rate": self._set_flow_rate,
+            "run_flow": self._run_flow,
+            "set_potential": self._set_potential,
+            "electrolyze": self._electrolyze,
+            "terminate": lambda state, _action: state.replace(terminated=True),
+            "measure": self._apply_measurement_cost,
+        }
+
+    def penalize_invalid(self, state: WorldState) -> WorldState:
+        return self._penalize_invalid(state)
+
+    def record_operation(
+        self,
+        operation: str,
+        before: WorldState,
+        after: WorldState,
+        preconditions: dict[str, bool],
+        action: dict[str, Any],
+    ) -> OperationRecord:
+        return self._record(operation, before, after, preconditions, action)
 
     def _add_reagent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         amount = float(np.clip(_action_float(action, "amount_mol", 0.003), 0.0, 0.040))
@@ -962,9 +966,15 @@ class ChemWorldTransitionKernel(TransitionKernel):
 
 
 class ChemWorldObservationKernel:
-    def __init__(self, constitution: PhysicalConstitution, objective: str) -> None:
+    def __init__(
+        self,
+        constitution: PhysicalConstitution,
+        objective: str,
+        compiled_mechanism: CompiledMechanism | None = None,
+    ) -> None:
         self.constitution = constitution
         self.objective = objective
+        self.compiled_mechanism = compiled_mechanism
 
     def observe(
         self,
@@ -1103,8 +1113,15 @@ class ChemWorldObservationKernel:
             safety_risk=self._observed_value(values, "safety_risk"),
         )
 
+    def _truth_values(self, state: WorldState) -> dict[str, float]:
+        if self.compiled_mechanism is not None:
+            generic = self._mechanism_truth_values(state, self.compiled_mechanism)
+            if generic is not None:
+                return generic
+        return self._fixed_reference_truth_values(state)
+
     @staticmethod
-    def _truth_values(state: WorldState) -> dict[str, float]:
+    def _fixed_reference_truth_values(state: WorldState) -> dict[str, float]:
         initial_a = max(float(state.metadata.get("initial_A_mol", 0.0)), 1.0e-12)
         amounts = state.species_amounts
         consumed = max(initial_a - amounts.get("A", 0.0), 1.0e-12)
@@ -1115,6 +1132,57 @@ class ChemWorldObservationKernel:
             np.clip((amounts.get("B", 0.0) + amounts.get("E", 0.0)) / initial_a, 0.0, 1.0)
         )
         degradation = float(np.clip(amounts.get("D", 0.0) / initial_a, 0.0, 1.0))
+        return {
+            "yield": yield_value,
+            "selectivity": selectivity,
+            "conversion": conversion,
+            "byproduct_signal": byproduct,
+            "degradation_warning": degradation,
+            **downstream_truth_values(state),
+        }
+
+    @staticmethod
+    def _mechanism_truth_values(
+        state: WorldState,
+        mechanism: CompiledMechanism,
+    ) -> dict[str, float] | None:
+        amounts = state.species_amounts
+        target_species = mechanism.score_spec.target_species
+        if not any(species_id in amounts for species_id in target_species):
+            return None
+        initial_species = mechanism.score_spec.initial_limiting_species
+        initial_amount = 0.0
+        if initial_species is not None:
+            initial_amount = float(
+                mechanism.initial_amount_policy.get(
+                    initial_species,
+                    state.species.initial_amounts_mol.get(initial_species, 0.0)
+                    if state.species is not None
+                    else 0.0,
+                )
+            )
+        initial_amount = max(initial_amount, 1.0e-12)
+        target_amount = sum(float(amounts.get(species_id, 0.0)) for species_id in target_species)
+        impurity_amount = sum(
+            float(amounts.get(species_id, 0.0))
+            for species_id in mechanism.score_spec.impurity_species
+        )
+        reactants = mechanism.observable_mapping.get("reactant", ())
+        remaining_reactant = sum(float(amounts.get(species_id, 0.0)) for species_id in reactants)
+        consumed = max(initial_amount - remaining_reactant, 1.0e-12)
+        yield_value = float(np.clip(target_amount / initial_amount, 0.0, 1.0))
+        selectivity = float(np.clip(target_amount / consumed, 0.0, 1.0))
+        conversion = float(np.clip(consumed / initial_amount, 0.0, 1.0))
+        byproduct = float(np.clip(impurity_amount / initial_amount, 0.0, 1.0))
+        degradation_species = mechanism.observable_mapping.get("degradation", ())
+        degradation = float(
+            np.clip(
+                sum(float(amounts.get(species_id, 0.0)) for species_id in degradation_species)
+                / initial_amount,
+                0.0,
+                1.0,
+            )
+        )
         return {
             "yield": yield_value,
             "selectivity": selectivity,

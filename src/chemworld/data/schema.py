@@ -21,6 +21,15 @@ class TrajectoryRecordPayload:
     budget: int
     episode_mode: str
     safety_limit: float
+    mechanism_id: str | None
+    mechanism_hash: str | None
+    kernel_id: str | None
+    kernel_version: str | None
+    affected_ledgers: list[str]
+    world_events: list[dict[str, Any]]
+    state_patches_summary: list[dict[str, Any]]
+    transaction_status: str | None
+    rollback_reason: str | None
     world_id: str
     seed: int
     step: int

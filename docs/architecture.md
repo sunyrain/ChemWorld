@@ -33,37 +33,50 @@ The foundation separates three epistemic layers:
 This separation is central to the benchmark. Agents can act on observations and
 beliefs, but cannot read hidden state except in explicit developer/debug runs.
 
-## Core
+## Runtime V2
 
-`chemworld.core` owns the scientific abstraction:
+`chemworld.runtime` is now the execution center. The Gym environment delegates
+chemistry to a transactional runtime instead of carrying operation-specific
+branches.
 
-- recipe-space utilities used by optimization baselines;
-- hidden world parameter generation across public and private splits;
-- semi-mechanistic event transition kernels;
-- phase partitioning and downstream separation state ledgers;
-- objective scoring.
+The runtime is organized around:
 
-The active implementation is declared as the `semi_mechanistic` backend. Backend
-metadata lives in `chemworld.backends`, separating the shared world law from the
-particular fidelity used to advance hidden state.
+- `TaskRuntimeProfile`, which declares the operations, instruments, kernels, and
+  capabilities required by one task slice;
+- `MechanismCompiler`, which compiles mechanism YAML into a `CompiledMechanism`
+  with species indexes, a stoichiometric matrix, observable mappings, score
+  bindings, and a mechanism hash;
+- `OperationKernelRegistry`, which maps allowed operation types to typed kernels
+  for the current profile rather than requiring every known ChemWorld operation
+  globally;
+- `ChemWorldDomainServices`, which owns reaction, thermal, phase, separation,
+  instrument, and scoring calculations used by operation kernels;
+- `TransactionManager`, which applies state patches atomically, runs
+  constitution checks, and records rollback/penalty events when a candidate
+  state violates physical constraints.
 
-The current world family uses five reactions:
+Operation kernels return `WorldEvent` and `StatePatch` records. The transaction
+manager commits those patches to typed ledgers only after validation. This keeps
+material ledgers auditable: invalid actions can add process penalties without
+silently changing hidden material state.
 
-- `A -> P`, target product formation;
-- `A -> B`, byproduct formation;
-- `P -> D`, target product degradation.
-- `A + P -> E`, coupled impurity formation;
-- `Cat_active -> Cat_dead`, catalyst deactivation.
+The active backend remains `semi_mechanistic`, but it is now a runtime service
+implementation rather than the conceptual center of the package. Backend
+metadata still lives in `chemworld.backends`, separating the shared world law
+from the fidelity used to advance hidden state.
 
-Rates follow Arrhenius temperature dependence and are modified by catalyst,
-solvent, concentration, catalyst activity, and stirring speed. The transition
-kernel also updates temperature through a simplified energy balance, plus cost,
-sampling, pressure proxy, and safety risk ledgers.
+Mechanisms are no longer fixed to a single `A/P/B/D/E` reaction family. Each
+scenario binds to a mechanism card, such as `simple_batch_reaction`,
+`reaction_extraction`, `reactive_distillation_lite`, `pfr_hotspot`, or
+`electrochemical_conversion`. The runtime records `mechanism_id` and
+`mechanism_hash` in reset info and trajectory logs so replay can fail fast when
+the mechanism artifact changes.
 
-The same world state also supports downstream processing. Separation operations
-maintain phase ledgers for organic and aqueous volumes, product partitioning,
-impurity carryover, solvent loss, purity, recovery, and process mass-balance
-error.
+Typed ledgers in `WorldState` expose species definitions, phase material
+amounts, vessel bounds, equipment attachment, per-vessel heat ledgers, and
+process cost/risk/time. During the current migration, the legacy scalar state is
+adapted into typed ledgers so phase totals remain synchronized with the hidden
+material state.
 
 ## Task Registry
 
@@ -90,14 +103,19 @@ baseline reference-score slots.
 
 ## Gym API
 
-`chemworld.envs` exposes `ChemWorld` through Gymnasium. Each `step()`
-is an executable operation such as `add_reagent`, `heat`, `wait`, `measure`, or
+`chemworld.envs` exposes `ChemWorld` through Gymnasium. Each `step()` is an
+executable operation such as `add_reagent`, `heat`, `wait`, `measure`, or
 `terminate`. The environment does not expose hidden species amounts or hidden
 rate parameters unless explicitly constructed with `debug_truth=True`.
 
-`ChemWorld` integrates ODE dynamics for `A -> P`, `A -> B`,
-`P -> D`, `A + P -> E`, and `Cat_active -> Cat_dead`, with a simplified energy
-balance and instrument observation kernel.
+`ChemWorldEnv.step()` is intentionally thin:
+
+1. canonicalize the action;
+2. validate schema, task policy, instrument policy, and preconditions;
+3. dispatch the action to `ChemWorldRuntime`;
+4. observe through the instrument observation kernel;
+5. compute reward/cost/info;
+6. update campaign bookkeeping and return the Gymnasium five-tuple.
 
 Action handling is split into an explicit abstraction layer:
 
@@ -158,6 +176,8 @@ stable first-pass artifact score, not a replacement for expert review.
 
 ## Data
 
-`chemworld.data` defines the trajectory schema, logging utilities, and
-anonymization helpers for human pilot studies.
-
+`chemworld.data` defines the trajectory schema, logging utilities, dataset
+export, submission bundles, and anonymization helpers for human pilot studies.
+Runtime v2 trajectory records include `mechanism_id`, `mechanism_hash`,
+`kernel_id`, `kernel_version`, `affected_ledgers`, `world_events`,
+`state_patches_summary`, `transaction_status`, and `rollback_reason`.

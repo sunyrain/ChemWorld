@@ -7,8 +7,8 @@ import chemworld  # noqa: F401
 from chemworld.action_codec import ActionCodec
 from chemworld.agents.base import HistoryRecord
 from chemworld.agents.event import ScriptedChemistryAgent
-from chemworld.core.batch_reactor import make_chemworld_constitution
 from chemworld.operation_validator import OperationValidator
+from chemworld.runtime import make_chemworld_constitution
 from chemworld.tasks import get_task, get_task_card, list_tasks
 from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.wrappers import (
