@@ -83,7 +83,7 @@ finished, update its status and push immediately.
 | PRO-RUNTIME-D domain service registry | whilesunny | Done | `src/chemworld/runtime/domain_services.py`, `src/chemworld/runtime/engine.py`, tests/docs | runtime now exposes a typed DomainServiceRegistry, operation-to-service map, and domain service ids in operation events | this commit |
 | PRO-RUNTIME-E task runtime service contract | whilesunny | Done | `src/chemworld/runtime/kernels.py`, `src/chemworld/runtime/domain_services.py`, `src/chemworld/runtime/engine.py`, tests/docs | TaskRuntimeProfile now declares required domain services and runtime startup validates service/capability coverage | this commit |
 | PRO-RUNTIME-F precondition rollback transaction | whilesunny | Done | `src/chemworld/runtime/`, `src/chemworld/envs/`, tests/docs | operation precondition failures now enter Runtime v2 rollback events and process-only penalty patches; schema/task/payload failures remain env-level validation failures | this commit |
-| PRO-RUNTIME-G task-scoped domain-service validation | whilesunny | Active | `src/chemworld/runtime/domain_services.py`, tests/docs | make domain-service validation task-profile scoped so unrelated future operations are not required by every task runtime | in progress |
+| PRO-RUNTIME-G task-scoped domain-service validation | whilesunny | Done | `src/chemworld/runtime/domain_services.py`, tests/docs | domain-service validation is task-profile scoped; unrelated future operations are not required by every task runtime | this commit |
 
 Status values:
 

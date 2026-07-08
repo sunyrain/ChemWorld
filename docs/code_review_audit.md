@@ -328,6 +328,10 @@ Recommended follow-up:
   declares required domain services in addition to operations, kernels,
   instruments, and capabilities; runtime startup validates the profile against
   both operation kernels and focused domain-service contracts.
+- Made Runtime v2 domain-service validation explicitly task-scoped. The default
+  registry can still be audited for full operation coverage, but runtime
+  construction only enforces duplicate/unknown-operation integrity; a task that
+  never allows separation no longer depends on separation service coverage.
 - Routed stateful operation precondition failures through Runtime v2 rollback
   semantics. Payload/schema/task-policy failures remain env-level
   `validation_failed` events, while physical precondition failures now emit

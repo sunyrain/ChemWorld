@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from chemworld.foundation import OperationRecord, PhysicalConstitution, WorldState
-from chemworld.runtime.domain_services import ChemWorldDomainServices
+from chemworld.runtime.domain_services import ChemWorldDomainServices, DomainServiceRegistry
 from chemworld.runtime.kernels import (
     KernelResult,
     OperationKernelRegistry,
@@ -56,6 +56,7 @@ class ChemWorldRuntime:
         compiled_mechanism: CompiledMechanism,
         debug_truth: bool = False,
         registry: OperationKernelRegistry | None = None,
+        domain_service_registry: DomainServiceRegistry | None = None,
     ) -> None:
         self.world = world
         self.constitution = constitution
@@ -68,6 +69,7 @@ class ChemWorldRuntime:
             world,
             constitution,
             compiled_mechanism=compiled_mechanism,
+            service_registry=domain_service_registry,
         )
         self.domain_services.validate_profile(self.profile)
         self.transaction_manager = TransactionManager(constitution)

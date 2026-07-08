@@ -740,9 +740,11 @@ def test_domain_service_registry_covers_operations_once() -> None:
 
 def test_domain_service_registry_validates_task_profile() -> None:
     profile = TaskRuntimeProfile.from_task(get_task("reaction-to-purification"))
+    assay_profile = TaskRuntimeProfile.from_task(get_task("reaction-to-assay"))
     registry = DomainServiceRegistry.default()
 
     registry.validate_profile(profile)
+    registry.validate_operation_coverage(operations=assay_profile.required_kernels)
     assert registry.service_ids_for_operations(profile.required_kernels) == (
         profile.required_domain_services
     )
@@ -764,8 +766,44 @@ def test_domain_service_registry_validates_task_profile() -> None:
             for contract in registry.contracts
         )
     )
+    broken_registry.validate_contract_integrity()
+    broken_registry.validate_profile(assay_profile)
+    broken_registry.validate_operation_coverage(operations=assay_profile.required_kernels)
     with pytest.raises(ValueError, match="Missing domain service operation coverage"):
         broken_registry.validate_profile(profile)
+    with pytest.raises(ValueError, match="Invalid domain service registry operation coverage"):
+        broken_registry.validate_operation_coverage()
+
+
+def test_domain_services_runtime_construction_is_task_scoped() -> None:
+    registry = DomainServiceRegistry.default()
+    assay_profile = TaskRuntimeProfile.from_task(get_task("reaction-to-assay"))
+    purification_profile = TaskRuntimeProfile.from_task(get_task("reaction-to-purification"))
+    assay_only_registry = DomainServiceRegistry(
+        tuple(
+            replace(
+                contract,
+                operations=tuple(
+                    operation
+                    for operation in contract.operations
+                    if operation != "add_extractant"
+                ),
+            )
+            if contract.service_id == "phase_separation"
+            else contract
+            for contract in registry.contracts
+        )
+    )
+    services = ChemWorldDomainServices(
+        load_chemworld_parameters("public-dev", seed=0),
+        make_chemworld_constitution(),
+        compile_mechanism_for_scenario("reaction-to-assay"),
+        service_registry=assay_only_registry,
+    )
+
+    services.validate_profile(assay_profile)
+    with pytest.raises(ValueError, match="Missing domain service operation coverage"):
+        services.validate_profile(purification_profile)
 
 
 def test_operation_kernel_registry_validates_profile_capabilities() -> None:

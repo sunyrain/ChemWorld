@@ -137,7 +137,7 @@ class DomainServiceRegistry:
             )
         )
 
-    def validate_operation_coverage(self) -> None:
+    def validate_contract_integrity(self) -> None:
         owners: dict[str, str] = {}
         duplicates: list[str] = []
         for contract in self.contracts:
@@ -145,15 +145,24 @@ class DomainServiceRegistry:
                 if operation in owners:
                     duplicates.append(operation)
                 owners[operation] = contract.service_id
-        missing = sorted(set(OPERATION_TYPES) - set(owners))
-        extra = sorted(set(owners) - set(OPERATION_TYPES))
-        if duplicates or missing or extra:
+        unknown = sorted(set(owners) - set(OPERATION_TYPES))
+        if duplicates or unknown:
             details = {
                 "duplicates": sorted(duplicates),
-                "missing": missing,
-                "extra": extra,
+                "unknown": unknown,
             }
-            raise ValueError(f"Invalid domain service registry operation coverage: {details}")
+            raise ValueError(f"Invalid domain service registry contract: {details}")
+
+    def validate_operation_coverage(self, operations: Iterable[str] | None = None) -> None:
+        self.validate_contract_integrity()
+        owners = set(self.operation_map())
+        expected = set(OPERATION_TYPES) if operations is None else set(operations)
+        missing = sorted(expected - owners)
+        if missing:
+            raise ValueError(
+                f"Invalid domain service registry operation coverage: "
+                f"{{'missing': {missing}}}"
+            )
 
     def service_id_for_operation(self, operation: str) -> str:
         operation_map = self.operation_map()
@@ -251,11 +260,12 @@ class ChemWorldDomainServices:
         world: ChemWorldParameters,
         constitution: PhysicalConstitution,
         compiled_mechanism: CompiledMechanism,
+        service_registry: DomainServiceRegistry | None = None,
     ) -> None:
         self.world = world
         self.constitution = constitution
-        self.service_registry = DomainServiceRegistry.default()
-        self.service_registry.validate_operation_coverage()
+        self.service_registry = service_registry or DomainServiceRegistry.default()
+        self.service_registry.validate_contract_integrity()
         self.species_view = MechanismSpeciesView(compiled_mechanism)
         self.operation_recorder = ChemWorldOperationRecorder(constitution)
         self.primitive = ChemWorldPrimitiveOperationServices(world, self.species_view)
