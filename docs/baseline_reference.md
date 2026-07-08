@@ -63,4 +63,5 @@ make those levels explicit.
 The task registry also exposes `task_maturity_manifest()` for tooling that
 needs the maturity view without running baselines. Reference-validation reports
 now include backend availability, optional package versions when discoverable,
+local reference-repository paths and short commits when checkouts are present,
 and declared tolerance profiles for common comparison families.

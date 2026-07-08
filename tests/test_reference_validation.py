@@ -7,6 +7,7 @@ from chemworld.physchem import (
     compare_scalar,
     reference_backend_specs,
     reference_backend_status,
+    reference_repo_roots,
     reference_tolerance_profiles,
     reference_validation_report,
     skipped_reference_backends,
@@ -28,6 +29,10 @@ def test_reference_backend_specs_are_json_friendly() -> None:
         "phasepy",
         "reaktoro",
         "pycalphad",
+        "idaes-pse",
+        "teqp",
+        "thermopack",
+        "rmg-py",
     }
     assert payloads[0]["local_repo_names"]
     assert all(payload["comparison_scope"] for payload in payloads)
@@ -41,6 +46,28 @@ def test_reference_backend_status_does_not_require_optional_imports() -> None:
     assert all(status.import_available is None for status in statuses)
     assert all(isinstance(status.to_dict()["local_repo_available"], bool) for status in statuses)
     assert all("installed_version" in status.to_dict() for status in statuses)
+    assert all("local_repo_commits" in status.to_dict() for status in statuses)
+
+
+def test_reference_backend_status_records_local_repo_commits(tmp_path) -> None:
+    repo = tmp_path / "rmg-py"
+    ref_dir = repo / ".git" / "refs" / "heads"
+    ref_dir.mkdir(parents=True)
+    (repo / ".git" / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+    (ref_dir / "main").write_text(
+        "abcdef1234567890abcdef1234567890abcdef12\n",
+        encoding="utf-8",
+    )
+
+    roots = reference_repo_roots(("rmg-py",), reference_root=tmp_path)
+    assert roots == (repo,)
+
+    statuses = reference_backend_status(reference_root=tmp_path, probe_import=False)
+    rmg_status = next(status for status in statuses if status.backend_id == "rmg-py")
+    payload = rmg_status.to_dict()
+    assert payload["local_repo_available"] is True
+    assert payload["local_repo_commits"] == {"rmg-py": "abcdef1"}
+    assert payload["local_repo_paths"] == [str(repo)]
 
 
 def test_compare_scalar_and_summary_record_failures_explicitly() -> None:
@@ -126,6 +153,9 @@ def test_reference_validation_report_records_skipped_backends(tmp_path) -> None:
         "chemicals",
         "fluids",
         "thermo",
+        "coolprop",
+        "cantera",
+        "reaktoro",
     }
 
     output = tmp_path / "reference_validation_report.json"

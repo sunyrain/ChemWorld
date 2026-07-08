@@ -369,7 +369,9 @@ property slice:
   metadata.
 - Optional reference tests compare methane, ethane, and carbon dioxide pure
   vapor-root PR/SRK `Z`, `phi`, `H_dep`, and `S_dep` against `thermo.eos` when
-  `CHEMWORLD_RUN_REFERENCE_TESTS=1`.
+  `CHEMWORLD_RUN_REFERENCE_TESTS=1`; the residual-property comparison uses
+  `rtol=5e-5` to document small independent-implementation convention
+  differences in `thermo` cubic EOS routines.
 - This is not a complete EOS/flash package. Volume translation, phase
   envelopes, saturation solvers, mixture flash derivatives, and critical-region
   handling remain on the later professional TODO track.
@@ -447,10 +449,11 @@ policy:
 - `ComponentProvenance` and `ComponentUncertainty` make component-level source
   tables, source keys, source paths, and uncertainty notes JSON-friendly.
 - `ComponentSpec` round-trips those records without breaking older component
-  declarations.
+  declarations and now carries an optional checksum-validated CAS number for
+  curated identity anchors.
 - `component_alias_index()` and `resolve_component_identifier()` normalize
-  aliases and reject cross-component conflicts before task or property kernels
-  bind to an ambiguous component.
+  aliases, CAS strings, and compact CAS strings, then reject cross-component
+  conflicts before task or property kernels bind to an ambiguous component.
 - Curated property packages now attach structured provenance/uncertainty to
   water, ethanol, acetone, toluene, methane, and carbon dioxide.
 - This remains a small curated registry, not a vendored chemicals, thermo, or
@@ -497,6 +500,10 @@ PRO-P12C is now implemented for reference backend version and tolerance
 manifests:
 
 - `ReferenceBackendStatus` includes an optional installed package version.
+- Backend status records cover all twelve local reference repositories tracked
+  in `docs/reference_repos.md`, including IDAES, teqp, thermopack, and RMG-Py.
+- Local reference repository paths and short Git commits are recorded when a
+  checkout is present, so validation artifacts identify the inspected snapshot.
 - `ReferenceToleranceProfile` records declared tolerances for common optional
   reference-comparison families.
 - `ReferenceValidationReport` now carries those tolerance profiles alongside

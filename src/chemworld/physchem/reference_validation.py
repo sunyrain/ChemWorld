@@ -16,7 +16,7 @@ import json
 import sys
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from types import ModuleType
 
@@ -53,6 +53,8 @@ class ReferenceBackendStatus:
     import_available: bool | None
     source: str | None = None
     installed_version: str | None = None
+    local_repo_paths: tuple[str, ...] = ()
+    local_repo_commits: dict[str, str] = field(default_factory=dict)
     import_error: str | None = None
 
     def to_dict(self) -> dict[str, object]:
@@ -65,6 +67,8 @@ class ReferenceBackendStatus:
             "import_available": self.import_available,
             "source": self.source,
             "installed_version": self.installed_version,
+            "local_repo_paths": list(self.local_repo_paths),
+            "local_repo_commits": dict(self.local_repo_commits),
             "import_error": self.import_error,
         }
 
@@ -225,6 +229,42 @@ _REFERENCE_BACKENDS: tuple[ReferenceBackendSpec, ...] = (
         comparison_scope=("solid-phase and Gibbs-energy toy cases",),
         model_limit_notes=("pycalphad source imports require optional symbolic dependencies.",),
     ),
+    ReferenceBackendSpec(
+        backend_id="idaes-pse",
+        package_name="idaes",
+        local_repo_names=("idaes-pse",),
+        comparison_scope=(
+            "process unit contracts",
+            "material and energy port organization",
+            "flowsheet initialization patterns",
+        ),
+        model_limit_notes=("IDAES is used as a design reference, not a required runtime backend."),
+    ),
+    ReferenceBackendSpec(
+        backend_id="teqp",
+        package_name="teqp",
+        local_repo_names=("teqp",),
+        comparison_scope=("EOS architecture", "phase-envelope workflow patterns"),
+        model_limit_notes=("teqp may require compiled extensions before imports succeed."),
+    ),
+    ReferenceBackendSpec(
+        backend_id="thermopack",
+        package_name="thermopack",
+        local_repo_names=("thermopack",),
+        comparison_scope=("EOS architecture", "mixture and phase-envelope workflows"),
+        model_limit_notes=("thermopack usually requires compiled shared libraries."),
+    ),
+    ReferenceBackendSpec(
+        backend_id="rmg-py",
+        package_name="rmgpy",
+        local_repo_names=("rmg-py",),
+        comparison_scope=(
+            "mechanism schema conventions",
+            "Arrhenius and falloff rate-law taxonomy",
+            "thermochemistry data organization",
+        ),
+        model_limit_notes=("RMG-Py has a large optional dependency surface."),
+    ),
 )
 
 _REFERENCE_TOLERANCE_PROFILES: tuple[ReferenceToleranceProfile, ...] = (
@@ -245,13 +285,52 @@ _REFERENCE_TOLERANCE_PROFILES: tuple[ReferenceToleranceProfile, ...] = (
         note="Same analytical branch selected on both sides.",
     ),
     ReferenceToleranceProfile(
-        profile_id="thermo-activity-and-eos-reference",
+        profile_id="thermo-activity-and-flash-reference",
         backend_id="thermo",
-        quantity="activity coefficients, ideal flash, and cubic EOS pure states",
+        quantity="activity coefficients and ideal flash",
         rtol=1e-8,
         atol=1e-10,
         unit="mixed",
         note="Allows small backend/version differences in nonlinear thermo routines.",
+    ),
+    ReferenceToleranceProfile(
+        profile_id="thermo-cubic-eos-residual-reference",
+        backend_id="thermo",
+        quantity="cubic EOS Z, fugacity, residual enthalpy, and residual entropy",
+        rtol=5e-5,
+        atol=1e-8,
+        unit="mixed",
+        note=(
+            "Independent PR/SRK implementations differ slightly in alpha, "
+            "departure-property, and constant conventions across thermo versions."
+        ),
+    ),
+    ReferenceToleranceProfile(
+        profile_id="coolprop-pure-fluid-regression",
+        backend_id="coolprop",
+        quantity="pure-fluid saturation, density, and enthalpy points",
+        rtol=1e-6,
+        atol=1e-8,
+        unit="mixed",
+        note="Reserved for compiled CoolProp comparisons near documented validity regions.",
+    ),
+    ReferenceToleranceProfile(
+        profile_id="cantera-rmg-kinetics-regression",
+        backend_id="cantera",
+        quantity="Arrhenius, reversible kinetics, and thermochemistry-linked rates",
+        rtol=1e-8,
+        atol=1e-12,
+        unit="SI rate units",
+        note="Used only for explicitly opt-in kinetic reference comparisons.",
+    ),
+    ReferenceToleranceProfile(
+        profile_id="equilibrium-compiled-backend-regression",
+        backend_id="reaktoro",
+        quantity="small aqueous or Gibbs-minimization equilibrium examples",
+        rtol=1e-7,
+        atol=1e-10,
+        unit="mixed",
+        note="Reserved for compiled equilibrium backends with explicit model-limit notes.",
     ),
 )
 
@@ -302,6 +381,28 @@ def reference_repo_paths(
             deduped.append(path)
             seen.add(key)
     return tuple(deduped)
+
+
+def reference_repo_roots(
+    repo_names: Iterable[str] | None = None,
+    *,
+    reference_root: str | Path | None = None,
+) -> tuple[Path, ...]:
+    """Return existing top-level local reference repository roots."""
+
+    root = reference_repos_root(reference_root)
+    names = tuple(repo_names) if repo_names is not None else _all_local_repo_names()
+    roots: list[Path] = []
+    seen: set[str] = set()
+    for name in names:
+        path = root / name
+        if not path.exists():
+            continue
+        key = str(path.resolve())
+        if key not in seen:
+            roots.append(path)
+            seen.add(key)
+    return tuple(roots)
 
 
 @contextmanager
@@ -356,9 +457,17 @@ def reference_backend_status(
             if installed_available
             else None
         )
-        local_repo_available = bool(
-            reference_repo_paths(spec.local_repo_names, reference_root=reference_root)
+        local_repo_roots = reference_repo_roots(
+            spec.local_repo_names,
+            reference_root=reference_root,
         )
+        local_repo_available = bool(local_repo_roots)
+        local_repo_paths = tuple(str(path) for path in local_repo_roots)
+        local_repo_commits = {
+            path.name: commit
+            for path in local_repo_roots
+            if (commit := _git_short_commit(path)) is not None
+        }
         import_available: bool | None = None
         source: str | None = None
         import_error: str | None = None
@@ -389,6 +498,8 @@ def reference_backend_status(
                 import_available=import_available,
                 source=source,
                 installed_version=installed_version,
+                local_repo_paths=local_repo_paths,
+                local_repo_commits=local_repo_commits,
                 import_error=import_error,
             )
         )
@@ -543,9 +654,35 @@ def _python_path_candidates(root: Path, repo_name: str) -> tuple[Path, ...]:
         repo / "src",
         repo / "wrappers" / "Python",
         repo / "interfaces" / "python",
+        repo / "interface" / "python",
+        repo / "addon" / "pycThermopack",
         repo / "Python",
     )
     return tuple(path for path in candidates if path.exists())
+
+
+def _git_short_commit(repo_root: Path) -> str | None:
+    git_entry = repo_root / ".git"
+    if git_entry.is_file():
+        content = git_entry.read_text(encoding="utf-8", errors="ignore").strip()
+        if not content.startswith("gitdir:"):
+            return None
+        git_dir = (git_entry.parent / content.split(":", 1)[1].strip()).resolve()
+    elif git_entry.is_dir():
+        git_dir = git_entry
+    else:
+        return None
+
+    head_path = git_dir / "HEAD"
+    if not head_path.exists():
+        return None
+    head = head_path.read_text(encoding="utf-8", errors="ignore").strip()
+    if head.startswith("ref:"):
+        ref_path = git_dir / head.split(":", 1)[1].strip()
+        if not ref_path.exists():
+            return None
+        head = ref_path.read_text(encoding="utf-8", errors="ignore").strip()
+    return head[:7] if head else None
 
 
 __all__ = [
@@ -560,6 +697,7 @@ __all__ = [
     "reference_backend_specs",
     "reference_backend_status",
     "reference_repo_paths",
+    "reference_repo_roots",
     "reference_repos_root",
     "reference_tolerance_profiles",
     "reference_validation_report",

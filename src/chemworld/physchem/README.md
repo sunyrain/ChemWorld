@@ -9,7 +9,7 @@ Current scope:
 - element metadata for benchmark-relevant elements;
 - formula parsing with element conservation support;
 - molecular-weight and elemental-fraction utilities;
-- JSON-friendly `ComponentSpec`;
+- JSON-friendly `ComponentSpec` with optional checksum-validated CAS identity;
 - self-contained `MixtureSpec`;
 - explicit-unit `PropertyCorrelation` records.
 - local property evaluators for vapor pressure, heat capacity, enthalpy,

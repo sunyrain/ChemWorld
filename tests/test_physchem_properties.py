@@ -591,6 +591,7 @@ def test_curated_property_packages_are_reference_ready() -> None:
         case = cases[component_id]
         assert ComponentSpec.from_dict(package.component.to_dict()).identifier == component_id
         assert package.component.metadata["casrn"] == case.casrn
+        assert package.component.cas_number == case.casrn
         assert package.component.provenance
         assert package.component.uncertainty
         assert package.component.metadata["provenance_source_ids"]

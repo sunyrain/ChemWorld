@@ -341,6 +341,7 @@ class ComponentSpec:
     provenance: tuple[ComponentProvenance, ...] = ()
     uncertainty: tuple[ComponentUncertainty, ...] = ()
     metadata: dict[str, object] = field(default_factory=dict)
+    cas_number: str = ""
     molecular_weight_rel_tolerance: ClassVar[float] = _MOLECULAR_WEIGHT_REL_TOL
 
     def __post_init__(self) -> None:
@@ -353,6 +354,8 @@ class ComponentSpec:
                 "Component identifier cannot contain leading, trailing, or "
                 "internal whitespace"
             )
+        if self.cas_number:
+            object.__setattr__(self, "cas_number", _validate_cas_number(self.cas_number))
         if self.default_phase not in _VALID_PHASES:
             raise ValueError(f"Unsupported default phase: {self.default_phase}")
         composition = parse_formula(self.formula)
@@ -411,6 +414,7 @@ class ComponentSpec:
         return {
             "identifier": self.identifier,
             "formula": self.formula,
+            "cas_number": self.cas_number,
             "hill_formula": self.hill_formula,
             "composition": self.composition,
             "molecular_weight_g_mol": self.molecular_weight_g_mol,
@@ -430,6 +434,7 @@ class ComponentSpec:
         return cls(
             identifier=str(payload["identifier"]),
             formula=str(payload["formula"]),
+            cas_number=str(payload.get("cas_number", payload.get("casrn", ""))),
             molecular_weight_g_mol=(
                 None
                 if payload.get("molecular_weight_g_mol") is None
@@ -750,7 +755,7 @@ def component_alias_index(components: Sequence[ComponentSpec]) -> dict[str, str]
 
     index: dict[str, str] = {}
     for component in components:
-        tokens = (component.identifier, *component.aliases)
+        tokens = _component_identity_tokens(component)
         for token_value in tokens:
             token = normalize_component_token(token_value)
             existing = index.get(token)
@@ -895,6 +900,33 @@ def _validate_string_tuple(values: Sequence[str], field_name: str) -> None:
         if value in seen:
             raise ValueError(f"{field_name} values must be unique")
         seen.add(value)
+
+
+def _validate_cas_number(cas_number: str) -> str:
+    parts = cas_number.split("-")
+    if (
+        len(parts) != 3
+        or not all(part.isdigit() for part in parts)
+        or len(parts[0]) < 2
+        or len(parts[1]) != 2
+        or len(parts[2]) != 1
+    ):
+        raise ValueError("cas_number must use CAS Registry Number format")
+    digits = parts[0] + parts[1]
+    checksum = sum(
+        int(digit) * weight
+        for weight, digit in enumerate(reversed(digits), start=1)
+    ) % 10
+    if checksum != int(parts[2]):
+        raise ValueError("cas_number checksum is invalid")
+    return cas_number
+
+
+def _component_identity_tokens(component: ComponentSpec) -> tuple[str, ...]:
+    tokens = [component.identifier, *component.aliases]
+    if component.cas_number:
+        tokens.extend((component.cas_number, component.cas_number.replace("-", "")))
+    return tuple(tokens)
 
 
 def _validate_component_phase_compatibility(

@@ -141,7 +141,7 @@ copying the reference implementations.
   expose explicit root-selection policy, `da_mix_dT`, residual enthalpy,
   residual entropy, residual Gibbs energy, model-card metadata, default EOS
   tests, and optional `thermo.eos` reference checks for methane, ethane, and
-  carbon dioxide.
+  carbon dioxide with a documented cubic-residual tolerance profile.
 - PRO-P8A is implemented for the first heat-transfer and exchanger-duty slice:
   Nusselt branch metadata, Dittus-Boelter and Gnielinski validity warnings,
   strict validity failure mode, `h = Nu k / D` reference round-trip, counterflow
@@ -163,8 +163,9 @@ copying the reference implementations.
   mass-transfer limiting current, double-layer dynamics, porous electrodes, and
   electrolyte speciation.
 - PRO-P1A is implemented for the curated component registry: component records
-  now include structured provenance and uncertainty metadata, normalized alias
-  resolution, conflict failures, and JSON round-trip tests.
+  now include structured provenance and uncertainty metadata, checksum-validated
+  CAS identity anchors, normalized alias/CAS resolution, conflict failures, and
+  JSON round-trip tests.
 - PRO-P11A is implemented for benchmark maturity exports: trajectory logs,
   suite results, baseline leaderboards, and baseline reports expose
   `kernel_maturity`, `physics_maturity`, and `proxy_allowed`, with consistency
@@ -181,8 +182,9 @@ copying the reference implementations.
   heat-release-coupled reactor model.
 - PRO-P1B/PRO-P11B/PRO-P12C add the next audit layer: component field conflicts
   resolve through explicit source-priority policy, task maturity can be exported
-  as a manifest, and reference-validation reports include backend versions and
-  declared tolerance profiles where available.
+  as a manifest, and reference-validation reports include all tracked reference
+  repositories, local checkout commits, backend versions, and declared
+  tolerance profiles where available.
 - PRO-P5C is implemented for thermochemical detailed-balance kinetics:
   reversible Arrhenius rates can declare `K_eq_source: nasa7`, consume supplied
   species thermochemistry, compute `K_c = exp(-Delta G/RT) * C0^(sum nu_i)`,

@@ -34,9 +34,9 @@ The implementation slices currently cover the P1-P12 foundation/lite batch:
 - `ElementSpec`: benchmark-relevant element metadata.
 - `parse_formula`: formula parsing with nested parentheses and charge stripping.
 - `molecular_weight`: molecular weight from elemental composition.
-- `ComponentSpec`: component identity, formula, charge, phase, safety tags,
-  aliases, structured provenance, uncertainty metadata, and allowed
-  property-correlation IDs.
+- `ComponentSpec`: component identity, formula, checksum-validated CAS number
+  where curated, charge, phase, safety tags, aliases, structured provenance,
+  uncertainty metadata, and allowed property-correlation IDs.
 - `MixtureSpec`: self-contained mole/mass fraction state with component molecular
   weights, temperature, pressure, and phase label.
 - `PropertyCorrelation`: portable correlation metadata with explicit units and
@@ -163,9 +163,11 @@ phase paths, and sampled negative heat capacity fail explicitly instead of
 being clipped.
 
 PRO-P1A hardens the curated component registry itself. Component records now
-round-trip structured provenance and uncertainty metadata, curated aliases are
-checked with a normalized registry index, and conflicting aliases fail before a
-property package or task can silently bind to the wrong component.
+round-trip structured provenance, uncertainty metadata, and optional CAS
+identity anchors. Curated aliases, CAS strings, and compact CAS strings are
+checked with a normalized registry index, and conflicting aliases or CAS
+numbers fail before a property package or task can silently bind to the wrong
+component.
 
 PRO-P1B adds the source-priority audit layer for future multi-source component
 records. It does not introduce a large property database; it records how one
@@ -453,7 +455,8 @@ packages runtime dependencies. Instead, it provides:
 
 - `ReferenceBackendSpec` records for tracked external backends;
 - `reference_backend_status()` to report installed packages, local
-  `reference_repos/` availability, and optional import-probe errors;
+  `reference_repos/` availability, local checkout paths and short commits, and
+  optional import-probe errors;
 - `reference_backend_context()` and `import_reference_module()` to temporarily
   import locally cloned reference repositories without vendoring them;
 - `compare_scalar()` and `summarize_reference_comparisons()` to record
@@ -467,7 +470,7 @@ small enough to audit and stable enough to run locally:
 | --- | --- | --- |
 | `chemicals` | ideal-gas molar volume via `chemicals.volume.ideal_gas`; Rachford-Rice vapor fraction and phase compositions via `chemicals.rachford_rice.Rachford_Rice_solution`; curated DIPPR101 vapor-pressure points via `chemicals.dippr.EQ101`; curated Poling ideal-gas Cp and sensible enthalpy integrals via `chemicals.dippr.EQ100` | `rtol=1e-12` |
 | `fluids` | Reynolds and Prandtl numbers via `fluids.core`; Haaland Darcy friction factor and single-phase pipe pressure drop via `fluids.friction` | `rtol=1e-12` |
-| `thermo` | ideal Raoult-law bubble/dew pressure and two-phase TP flash via `thermo.property_package.Ideal` with explicit constant vapor-pressure callables; fixed-lambda Wilson gamma via `thermo.wilson.Wilson_gammas`; fixed tau/alpha NRTL gamma via `thermo.nrtl.NRTL_gammas_binaries` | `rtol=1e-12` for bubble/dew and gamma checks; `rtol=1e-11` for flash solver roundoff |
+| `thermo` | ideal Raoult-law bubble/dew pressure and two-phase TP flash via `thermo.property_package.Ideal` with explicit constant vapor-pressure callables; fixed-lambda Wilson gamma via `thermo.wilson.Wilson_gammas`; fixed tau/alpha NRTL gamma via `thermo.nrtl.NRTL_gammas_binaries`; PR/SRK vapor-root `Z`, `phi`, `H_dep`, and `S_dep` via `thermo.eos` | `rtol=1e-12` for bubble/dew and gamma checks; `rtol=1e-11` for flash solver roundoff; `rtol=5e-5` for independent cubic-EOS residual-property convention differences |
 
 Run the normal test path to confirm reference tests skip cleanly when optional
 backends are not enabled:

@@ -169,6 +169,10 @@ Reference-reading note for PRO-P1A:
 - ChemWorld localizes those patterns as `ComponentProvenance`,
   `ComponentUncertainty`, `component_alias_index()`, and
   `resolve_component_identifier()` without copying reference source code.
+- Follow-up local audit after cloning `reference_repos/chemicals`,
+  `reference_repos/thermo`, and `reference_repos/coolprop` added
+  checksum-validated `ComponentSpec.cas_number`, CAS/compact-CAS identity
+  resolution, and curated-property CAS promotion out of ad hoc metadata.
 - PRO-P1B extends that registry layer with `ComponentConflictPolicy`,
   `ComponentFieldCandidate`, and `resolve_component_field_conflict()` so future
   multi-source data merges can warn, hard-fail, or choose a deterministic
@@ -293,6 +297,10 @@ Reference-reading note for PRO-P3A:
   direction: fugacity, VLE, and critical-condition hooks are backend-level
   capabilities. ChemWorld localizes only the formula-level PR/SRK residual
   slice needed for benchmark replay.
+- Follow-up opt-in reference testing with the cloned `thermo` snapshot records
+  a separate `rtol=5e-5` tolerance profile for cubic-EOS residual properties,
+  reflecting small independent-implementation convention differences rather
+  than hiding them under the tighter activity/flash tolerance.
 
 ## P4: Activity Models And Phase Equilibrium
 
@@ -879,7 +887,8 @@ Reference-reading note for PRO-P12B:
   probes, comparison scope, and model-limit notes so missing optional packages
   are visible in validation artifacts.
 - PRO-P12C extends backend status records with optional package versions when
-  discoverable and adds declared tolerance profiles for common comparison
+  discoverable, all twelve local reference repository targets, short checkout
+  commits when present, and declared tolerance profiles for common comparison
   families.
 
 ## First Professional Implementation Queue

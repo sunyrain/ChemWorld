@@ -46,6 +46,7 @@ def test_component_spec_is_json_friendly_and_validated() -> None:
     component = ComponentSpec(
         identifier="ethanol",
         formula="C2H6O",
+        cas_number="64-17-5",
         default_phase="liquid",
         safety_tags=("flammable", "volatile"),
         allowed_property_correlations=("antoine", "liquid_density"),
@@ -53,6 +54,7 @@ def test_component_spec_is_json_friendly_and_validated() -> None:
 
     payload = component.to_dict()
     assert payload["identifier"] == "ethanol"
+    assert payload["cas_number"] == "64-17-5"
     assert payload["composition"] == {"C": 2.0, "H": 6.0, "O": 1.0}
     assert payload["hill_formula"] == "C2H6O"
     assert payload["units"] == {"molecular_weight_g_mol": "g/mol"}
@@ -69,6 +71,8 @@ def test_component_spec_is_json_friendly_and_validated() -> None:
         ComponentSpec(identifier="bad id", formula="H2O")
     with pytest.raises(ValueError, match="must be unique"):
         ComponentSpec(identifier="dup_tags", formula="H2O", safety_tags=("safe", "safe"))
+    with pytest.raises(ValueError, match="checksum"):
+        ComponentSpec(identifier="bad_cas", formula="H2O", cas_number="7732-18-4")
 
 
 def test_component_provenance_and_uncertainty_round_trip() -> None:
@@ -110,6 +114,7 @@ def test_component_alias_index_rejects_registry_conflicts() -> None:
     water = ComponentSpec(
         identifier="water",
         formula="H2O",
+        cas_number="7732-18-5",
         default_phase="liquid",
         aliases=("dihydrogen oxide",),
     )
@@ -122,13 +127,15 @@ def test_component_alias_index_rejects_registry_conflicts() -> None:
 
     index = component_alias_index((water, ethanol))
     assert index["dihydrogen_oxide"] == "water"
+    assert index["7732-18-5"] == "water"
+    assert resolve_component_identifier((water, ethanol), "7732185") == "water"
     assert resolve_component_identifier((water, ethanol), "ethyl alcohol") == "ethanol"
 
     conflicting = ComponentSpec(
         identifier="conflicting_water",
         formula="H2O",
+        cas_number="7732-18-5",
         default_phase="liquid",
-        aliases=("dihydrogen oxide",),
     )
     with pytest.raises(ValueError, match="alias conflict"):
         component_alias_index((water, conflicting))

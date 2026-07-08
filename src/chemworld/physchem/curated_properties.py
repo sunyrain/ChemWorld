@@ -393,6 +393,7 @@ def _component_from_record(record: _CuratedPropertyRecord) -> ComponentSpec:
     return ComponentSpec(
         identifier=record.component_id,
         formula=record.formula,
+        cas_number=record.casrn,
         default_phase=record.default_phase,
         safety_tags=record.safety_tags,
         aliases=record.aliases,
