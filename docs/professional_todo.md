@@ -378,3 +378,28 @@ auditing:
 - `write_reference_validation_report()` writes the audit payload as JSON.
 - This does not make optional backends required for the default install; it
   makes their absence visible in validation artifacts.
+
+PRO-P1B is now implemented for component source-priority conflict auditing:
+
+- `ComponentConflictPolicy` declares warning, hard-fail, or source-priority
+  preference behavior.
+- `ComponentFieldCandidate` records candidate values, source ids, priority, and
+  uncertainty metadata.
+- `resolve_component_field_conflict()` returns a JSON-friendly audit record or
+  raises before ambiguous component data can reach a physical kernel.
+
+PRO-P11B is now implemented for task maturity manifests:
+
+- `task_maturity_manifest()` exports task/kernel maturity metadata without
+  running an environment.
+- The manifest is grouped by task id and by physics maturity level, and lists
+  proxy-allowed tasks explicitly.
+
+PRO-P12C is now implemented for reference backend version and tolerance
+manifests:
+
+- `ReferenceBackendStatus` includes an optional installed package version.
+- `ReferenceToleranceProfile` records declared tolerances for common optional
+  reference-comparison families.
+- `ReferenceValidationReport` now carries those tolerance profiles alongside
+  comparisons, backend statuses, and skipped-backend records.

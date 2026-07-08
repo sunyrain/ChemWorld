@@ -4,6 +4,8 @@ import pytest
 
 from chemworld.foundation import convert_value
 from chemworld.physchem import (
+    ComponentConflictPolicy,
+    ComponentFieldCandidate,
     ComponentProvenance,
     ComponentSpec,
     ComponentUncertainty,
@@ -17,6 +19,7 @@ from chemworld.physchem import (
     molecular_weight,
     parse_formula,
     property_equation_contracts,
+    resolve_component_field_conflict,
     resolve_component_identifier,
     supported_property_equations,
 )
@@ -132,6 +135,58 @@ def test_component_alias_index_rejects_registry_conflicts() -> None:
 
     with pytest.raises(KeyError, match="unknown component"):
         resolve_component_identifier((water, ethanol), "acetone")
+
+
+def test_component_field_conflict_policy_is_auditable() -> None:
+    candidates = (
+        ComponentFieldCandidate(
+            field_id="normal_boiling_point_K",
+            value=373.124,
+            source_id="chemicals",
+        ),
+        ComponentFieldCandidate(
+            field_id="normal_boiling_point_K",
+            value=373.125,
+            source_id="thermo",
+        ),
+    )
+    policy = ComponentConflictPolicy(
+        mode="warn",
+        source_priority=("thermo", "chemicals"),
+        field_atol={"normal_boiling_point_K": 0.01},
+    )
+    resolution = resolve_component_field_conflict(
+        "normal_boiling_point_K",
+        candidates,
+        policy,
+    )
+
+    assert resolution.status == "consistent"
+    assert resolution.resolved_source_id == "thermo"
+    assert resolution.to_dict()["candidates"][0]["source_id"] == "thermo"
+    assert ComponentConflictPolicy.from_dict(policy.to_dict()).to_dict() == policy.to_dict()
+    assert ComponentFieldCandidate.from_dict(candidates[0].to_dict()).to_dict() == (
+        candidates[0].to_dict()
+    )
+
+    warning = resolve_component_field_conflict(
+        "normal_boiling_point_K",
+        candidates,
+        ComponentConflictPolicy(
+            mode="warn",
+            source_priority=("thermo", "chemicals"),
+            field_atol={"normal_boiling_point_K": 1e-6},
+        ),
+    )
+    assert warning.status == "conflict_warning"
+    assert "selected" in warning.message
+
+    with pytest.raises(ValueError, match="candidates conflict"):
+        resolve_component_field_conflict(
+            "normal_boiling_point_K",
+            candidates,
+            ComponentConflictPolicy(mode="raise", source_priority=("thermo",)),
+        )
 
 
 def test_mole_and_mass_fraction_conversions_are_reversible() -> None:

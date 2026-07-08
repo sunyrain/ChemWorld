@@ -569,6 +569,52 @@ def list_task_cards() -> list[dict[str, Any]]:
     return [task.to_card() for task in list_tasks()]
 
 
+def task_maturity_manifest(task_ids: tuple[str, ...] | None = None) -> dict[str, Any]:
+    """Return a JSON-friendly maturity manifest for benchmark tasks."""
+
+    tasks = (
+        list_tasks()
+        if task_ids is None
+        else [get_task(task_id) for task_id in task_ids]
+    )
+    by_task: dict[str, dict[str, Any]] = {}
+    by_level: dict[str, dict[str, Any]] = {}
+    proxy_allowed_task_ids: list[str] = []
+    for task in tasks:
+        payload = task.to_dict()
+        maturity_payload = {
+            "kernel_maturity": payload["kernel_maturity"],
+            "physics_maturity": payload["physics_maturity"],
+            "proxy_allowed": payload["proxy_allowed"],
+            "world_split": payload["world_split"],
+            "episode_mode": payload["episode_mode"],
+            "tags": payload["tags"],
+        }
+        by_task[task.task_id] = maturity_payload
+        level = str(payload["physics_maturity"])
+        level_entry = by_level.setdefault(
+            level,
+            {"task_ids": [], "proxy_allowed_task_ids": []},
+        )
+        level_entry["task_ids"].append(task.task_id)
+        if payload["proxy_allowed"]:
+            proxy_allowed_task_ids.append(task.task_id)
+            level_entry["proxy_allowed_task_ids"].append(task.task_id)
+
+    for entry in by_level.values():
+        entry["task_ids"] = sorted(entry["task_ids"])
+        entry["proxy_allowed_task_ids"] = sorted(entry["proxy_allowed_task_ids"])
+        entry["task_count"] = len(entry["task_ids"])
+
+    return {
+        "schema_version": "chemworld-task-maturity-manifest-0.1",
+        "task_count": len(tasks),
+        "by_task": by_task,
+        "by_physics_maturity": dict(sorted(by_level.items())),
+        "proxy_allowed_task_ids": sorted(proxy_allowed_task_ids),
+    }
+
+
 def get_task(task_id: str) -> TaskSpec:
     try:
         return TASK_REGISTRY[task_id]

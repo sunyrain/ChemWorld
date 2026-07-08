@@ -10,6 +10,7 @@ tolerances.
 from __future__ import annotations
 
 import importlib
+import importlib.metadata as importlib_metadata
 import importlib.util
 import json
 import sys
@@ -51,6 +52,7 @@ class ReferenceBackendStatus:
     import_probe_attempted: bool
     import_available: bool | None
     source: str | None = None
+    installed_version: str | None = None
     import_error: str | None = None
 
     def to_dict(self) -> dict[str, object]:
@@ -62,6 +64,7 @@ class ReferenceBackendStatus:
             "import_probe_attempted": self.import_probe_attempted,
             "import_available": self.import_available,
             "source": self.source,
+            "installed_version": self.installed_version,
             "import_error": self.import_error,
         }
 
@@ -108,6 +111,7 @@ class ReferenceValidationReport:
     comparison_summary: dict[str, object]
     backend_statuses: tuple[ReferenceBackendStatus, ...]
     skipped_backends: tuple[dict[str, object], ...]
+    tolerance_profiles: tuple[ReferenceToleranceProfile, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -115,6 +119,40 @@ class ReferenceValidationReport:
             "comparison_summary": self.comparison_summary,
             "backend_statuses": [status.to_dict() for status in self.backend_statuses],
             "skipped_backends": [dict(item) for item in self.skipped_backends],
+            "tolerance_profiles": [
+                profile.to_dict() for profile in self.tolerance_profiles
+            ],
+        }
+
+
+@dataclass(frozen=True)
+class ReferenceToleranceProfile:
+    """Declared tolerance intent for one optional reference comparison family."""
+
+    profile_id: str
+    backend_id: str
+    quantity: str
+    rtol: float
+    atol: float = 0.0
+    unit: str = ""
+    note: str = ""
+
+    def __post_init__(self) -> None:
+        for field_name in ("profile_id", "backend_id", "quantity"):
+            if not str(getattr(self, field_name)).strip():
+                raise ValueError(f"{field_name} cannot be empty")
+        if self.rtol < 0 or self.atol < 0:
+            raise ValueError("rtol and atol must be nonnegative")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "profile_id": self.profile_id,
+            "backend_id": self.backend_id,
+            "quantity": self.quantity,
+            "rtol": self.rtol,
+            "atol": self.atol,
+            "unit": self.unit,
+            "note": self.note,
         }
 
 
@@ -189,11 +227,45 @@ _REFERENCE_BACKENDS: tuple[ReferenceBackendSpec, ...] = (
     ),
 )
 
+_REFERENCE_TOLERANCE_PROFILES: tuple[ReferenceToleranceProfile, ...] = (
+    ReferenceToleranceProfile(
+        profile_id="chemicals-curated-properties-tight",
+        backend_id="chemicals",
+        quantity="curated vapor pressure, ideal-gas Cp, and enthalpy",
+        rtol=1e-12,
+        unit="declared property units",
+        note="Exact equation/regression comparison against mirrored public correlations.",
+    ),
+    ReferenceToleranceProfile(
+        profile_id="fluids-pressure-drop-tight",
+        backend_id="fluids",
+        quantity="Haaland friction factor and Darcy-Weisbach pressure drop",
+        rtol=1e-12,
+        unit="dimensionless or Pa",
+        note="Same analytical branch selected on both sides.",
+    ),
+    ReferenceToleranceProfile(
+        profile_id="thermo-activity-and-eos-reference",
+        backend_id="thermo",
+        quantity="activity coefficients, ideal flash, and cubic EOS pure states",
+        rtol=1e-8,
+        atol=1e-10,
+        unit="mixed",
+        note="Allows small backend/version differences in nonlinear thermo routines.",
+    ),
+)
+
 
 def reference_backend_specs() -> tuple[ReferenceBackendSpec, ...]:
     """Return the optional reference backends tracked by ChemWorld."""
 
     return _REFERENCE_BACKENDS
+
+
+def reference_tolerance_profiles() -> tuple[ReferenceToleranceProfile, ...]:
+    """Return declared tolerances for optional reference validation families."""
+
+    return _REFERENCE_TOLERANCE_PROFILES
 
 
 def repository_root() -> Path:
@@ -279,6 +351,11 @@ def reference_backend_status(
     statuses: list[ReferenceBackendStatus] = []
     for spec in _REFERENCE_BACKENDS:
         installed_available = importlib.util.find_spec(spec.package_name) is not None
+        installed_version = (
+            _installed_package_version(spec.package_name)
+            if installed_available
+            else None
+        )
         local_repo_available = bool(
             reference_repo_paths(spec.local_repo_names, reference_root=reference_root)
         )
@@ -311,6 +388,7 @@ def reference_backend_status(
                 import_probe_attempted=probe_import,
                 import_available=import_available,
                 source=source,
+                installed_version=installed_version,
                 import_error=import_error,
             )
         )
@@ -419,6 +497,7 @@ def reference_validation_report(
         comparison_summary=summarize_reference_comparisons(comparisons),
         backend_statuses=statuses,
         skipped_backends=skipped_reference_backends(statuses),
+        tolerance_profiles=reference_tolerance_profiles(),
     )
 
 
@@ -450,6 +529,13 @@ def _all_local_repo_names() -> tuple[str, ...]:
     return tuple(names)
 
 
+def _installed_package_version(package_name: str) -> str | None:
+    try:
+        return importlib_metadata.version(package_name)
+    except importlib_metadata.PackageNotFoundError:
+        return None
+
+
 def _python_path_candidates(root: Path, repo_name: str) -> tuple[Path, ...]:
     repo = root / repo_name
     candidates = (
@@ -466,6 +552,7 @@ __all__ = [
     "ReferenceBackendSpec",
     "ReferenceBackendStatus",
     "ReferenceComparison",
+    "ReferenceToleranceProfile",
     "ReferenceValidationReport",
     "compare_scalar",
     "import_reference_module",
@@ -474,6 +561,7 @@ __all__ = [
     "reference_backend_status",
     "reference_repo_paths",
     "reference_repos_root",
+    "reference_tolerance_profiles",
     "reference_validation_report",
     "repository_root",
     "skipped_reference_backends",

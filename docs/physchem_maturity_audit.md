@@ -169,3 +169,7 @@ copying the reference implementations.
   identity tests are in place. This is not a full thermochemistry database,
   NASA9/Shomate/group-additivity engine, pressure correction, or
   heat-release-coupled reactor model.
+- PRO-P1B/PRO-P11B/PRO-P12C add the next audit layer: component field conflicts
+  resolve through explicit source-priority policy, task maturity can be exported
+  as a manifest, and reference-validation reports include backend versions and
+  declared tolerance profiles where available.

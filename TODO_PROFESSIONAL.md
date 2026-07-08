@@ -87,9 +87,9 @@ Every professional module must ship:
 | PRO-P9B electrochemical thermodynamics and Butler-Volmer slice | whilesunny | Done | Cantera electrochemical examples, electrochemical equilibrium docs, existing ChemWorld electrochemistry proxy | `src/chemworld/physchem/electrochemistry.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/world/electrochemistry.py`, tests, docs | next: add ohmic drop, mass-transfer limiting current, and galvanostatic/potentiostatic controller slices in the deepening TODO | this commit |
 | PRO-P5B NASA7 thermochemistry and reaction Gibbs slice | whilesunny | Done | Cantera NASA7 species thermo, RMG thermo conventions, existing ChemWorld reaction-network thermochemistry gaps | `src/chemworld/physchem/thermochemistry.py`, `tests/test_thermochemistry.py`, docs | next: wire thermochemistry-derived `K(T)` and reaction enthalpy into reversible kinetics and reactor energy balances as deepening slices | this commit |
 | PRO-P5C thermochemistry-coupled reversible kinetics slice | whilesunny | Claimed | Cantera/RMG reverse-rate conventions, local NASA7 thermochemistry, existing reversible rate-law gaps | `src/chemworld/physchem/reaction_network.py`, `src/chemworld/physchem/thermochemistry.py`, tests, docs | read Cantera/RMG equilibrium-linked reverse-rate patterns, then implement detailed-balance reverse rates from NASA7 reaction Gibbs energy without changing reactor energy balance yet | pending push |
-| PRO-P1B component conflict policy and source-priority audit | liyijun | Claimed | `chemicals`, `thermo`, `CoolProp` constants/identifier priority patterns | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/curated_properties.py`, `tests/test_physchem_core.py`, docs | implement deterministic field-level conflict policy with warning vs hard-fail modes and JSON audit records | pending push |
-| PRO-P11B task maturity manifest export | liyijun | Claimed | Gymnasium/Minari metadata manifest patterns and ChemWorld task cards | `src/chemworld/tasks.py`, `tests/test_maturity.py`, `docs/tasks.md`, `docs/baseline_reference.md` | add JSON-friendly task maturity manifest exports grouped by physics maturity and proxy allowance | pending push |
-| PRO-P12C reference backend version and tolerance manifest | liyijun | Claimed | optional reference-backend status probes and validation tolerance records | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, docs | add backend version probes and declared tolerance profiles to validation artifacts | pending push |
+| PRO-P1B component conflict policy and source-priority audit | liyijun | Review | `chemicals`, `thermo`, `CoolProp` constants/identifier priority patterns | `src/chemworld/physchem/specs.py`, `tests/test_physchem_core.py`, docs | review deterministic field-level conflict policy with warning vs hard-fail modes and JSON audit records | this commit |
+| PRO-P11B task maturity manifest export | liyijun | Review | Gymnasium/Minari metadata manifest patterns and ChemWorld task cards | `src/chemworld/tasks.py`, `tests/test_maturity.py`, `docs/tasks.md`, `docs/baseline_reference.md` | review JSON-friendly task maturity manifest grouped by physics maturity and proxy allowance | this commit |
+| PRO-P12C reference backend version and tolerance manifest | liyijun | Review | optional reference-backend status probes and validation tolerance records | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, docs | review backend version probes and declared tolerance profiles in validation artifacts | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -169,6 +169,10 @@ Reference-reading note for PRO-P1A:
 - ChemWorld localizes those patterns as `ComponentProvenance`,
   `ComponentUncertainty`, `component_alias_index()`, and
   `resolve_component_identifier()` without copying reference source code.
+- PRO-P1B extends that registry layer with `ComponentConflictPolicy`,
+  `ComponentFieldCandidate`, and `resolve_component_field_conflict()` so future
+  multi-source data merges can warn, hard-fail, or choose a deterministic
+  source-priority winner with an auditable JSON record.
 
 ## P2: Professional Property Correlations
 
@@ -616,6 +620,8 @@ Reference-reading note for PRO-P11A:
 - Minari/Safety-Gymnasium-style dataset and safety metadata informed the
   decision to keep proxy allowance and physics maturity visible in every
   benchmark artifact rather than only in docs.
+- PRO-P11B adds `task_maturity_manifest()` so release tooling can inspect the
+  same task/kernel maturity records without running environments or baselines.
 
 ## P12: Reference Validation Matrix
 
@@ -768,6 +774,9 @@ Reference-reading note for PRO-P12B:
 - `skipped_reference_backends()` records package availability, failed import
   probes, comparison scope, and model-limit notes so missing optional packages
   are visible in validation artifacts.
+- PRO-P12C extends backend status records with optional package versions when
+  discoverable and adds declared tolerance profiles for common comparison
+  families.
 
 ## First Professional Implementation Queue
 

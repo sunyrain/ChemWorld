@@ -174,6 +174,155 @@ class ComponentUncertainty:
 
 
 @dataclass(frozen=True)
+class ComponentFieldCandidate:
+    """One source candidate for a component-level field."""
+
+    field_id: str
+    value: object
+    source_id: str
+    source_priority: int = 100
+    uncertainty: ComponentUncertainty | None = None
+    note: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.field_id.strip():
+            raise ValueError("field_id cannot be empty")
+        if not self.source_id.strip():
+            raise ValueError("source_id cannot be empty")
+        if not isinstance(self.source_priority, int):
+            raise ValueError("source_priority must be an integer")
+        if self.uncertainty is not None:
+            object.__setattr__(
+                self,
+                "uncertainty",
+                _coerce_component_uncertainty(self.uncertainty),
+            )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "field_id": self.field_id,
+            "value": self.value,
+            "source_id": self.source_id,
+            "source_priority": self.source_priority,
+            "uncertainty": None
+            if self.uncertainty is None
+            else self.uncertainty.to_dict(),
+            "note": self.note,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> ComponentFieldCandidate:
+        uncertainty = payload.get("uncertainty")
+        return cls(
+            field_id=str(payload["field_id"]),
+            value=payload["value"],
+            source_id=str(payload["source_id"]),
+            source_priority=int(payload.get("source_priority", 100)),
+            uncertainty=None
+            if uncertainty is None
+            else ComponentUncertainty.from_dict(dict(uncertainty)),
+            note=str(payload.get("note", "")),
+        )
+
+
+@dataclass(frozen=True)
+class ComponentConflictPolicy:
+    """Deterministic policy for resolving component field disagreements."""
+
+    mode: str = "raise"
+    source_priority: tuple[str, ...] = ()
+    default_rtol: float = 0.0
+    default_atol: float = 0.0
+    field_rtol: dict[str, float] = field(default_factory=dict)
+    field_atol: dict[str, float] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if self.mode not in {"raise", "warn", "prefer_priority"}:
+            raise ValueError("mode must be raise, warn, or prefer_priority")
+        _validate_string_tuple(self.source_priority, "source_priority")
+        if self.default_rtol < 0 or self.default_atol < 0:
+            raise ValueError("default tolerances must be nonnegative")
+        for mapping_name, mapping in (
+            ("field_rtol", self.field_rtol),
+            ("field_atol", self.field_atol),
+        ):
+            for key, value in mapping.items():
+                if not str(key).strip():
+                    raise ValueError(f"{mapping_name} keys cannot be empty")
+                if float(value) < 0:
+                    raise ValueError(f"{mapping_name} values must be nonnegative")
+        object.__setattr__(self, "source_priority", tuple(self.source_priority))
+        object.__setattr__(
+            self,
+            "field_rtol",
+            {str(key): float(value) for key, value in self.field_rtol.items()},
+        )
+        object.__setattr__(
+            self,
+            "field_atol",
+            {str(key): float(value) for key, value in self.field_atol.items()},
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "mode": self.mode,
+            "source_priority": list(self.source_priority),
+            "default_rtol": self.default_rtol,
+            "default_atol": self.default_atol,
+            "field_rtol": dict(self.field_rtol),
+            "field_atol": dict(self.field_atol),
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> ComponentConflictPolicy:
+        return cls(
+            mode=str(payload.get("mode", "raise")),
+            source_priority=tuple(str(value) for value in payload.get("source_priority", ())),
+            default_rtol=float(payload.get("default_rtol", 0.0)),
+            default_atol=float(payload.get("default_atol", 0.0)),
+            field_rtol={
+                str(key): float(value)
+                for key, value in dict(payload.get("field_rtol", {})).items()
+            },
+            field_atol={
+                str(key): float(value)
+                for key, value in dict(payload.get("field_atol", {})).items()
+            },
+        )
+
+
+@dataclass(frozen=True)
+class ComponentConflictResolution:
+    """JSON-friendly audit record for one resolved component field."""
+
+    field_id: str
+    resolved_value: object
+    resolved_source_id: str
+    status: str
+    candidates: tuple[ComponentFieldCandidate, ...]
+    message: str = ""
+
+    def __post_init__(self) -> None:
+        if self.status not in {"consistent", "conflict_warning", "preferred"}:
+            raise ValueError("unknown conflict resolution status")
+        object.__setattr__(
+            self,
+            "candidates",
+            tuple(_coerce_component_field_candidate(item) for item in self.candidates),
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "field_id": self.field_id,
+            "resolved_value": self.resolved_value,
+            "resolved_source_id": self.resolved_source_id,
+            "status": self.status,
+            "candidates": [candidate.to_dict() for candidate in self.candidates],
+            "message": self.message,
+        }
+
+
+@dataclass(frozen=True)
 class ComponentSpec:
     """A compact component identity and composition record.
 
@@ -633,6 +782,78 @@ def resolve_component_identifier(
         ) from exc
 
 
+def resolve_component_field_conflict(
+    field_id: str,
+    candidates: Sequence[ComponentFieldCandidate | dict[str, object]],
+    policy: ComponentConflictPolicy | dict[str, object] | None = None,
+) -> ComponentConflictResolution:
+    """Resolve one component field with an auditable source-priority policy."""
+
+    if not field_id.strip():
+        raise ValueError("field_id cannot be empty")
+    normalized_policy = _coerce_component_conflict_policy(
+        ComponentConflictPolicy() if policy is None else policy
+    )
+    normalized_candidates = tuple(
+        _coerce_component_field_candidate(candidate) for candidate in candidates
+    )
+    if not normalized_candidates:
+        raise ValueError("at least one field candidate is required")
+    if any(candidate.field_id != field_id for candidate in normalized_candidates):
+        raise ValueError("all candidates must match field_id")
+
+    ordered = tuple(
+        sorted(
+            normalized_candidates,
+            key=lambda candidate: (
+                _source_rank(candidate.source_id, normalized_policy),
+                candidate.source_priority,
+                candidate.source_id,
+            ),
+        )
+    )
+    selected = ordered[0]
+    conflicts = [
+        candidate
+        for candidate in ordered[1:]
+        if not _values_within_tolerance(
+            selected.value,
+            candidate.value,
+            field_id=field_id,
+            policy=normalized_policy,
+        )
+    ]
+    if not conflicts:
+        return ComponentConflictResolution(
+            field_id=field_id,
+            resolved_value=selected.value,
+            resolved_source_id=selected.source_id,
+            status="consistent",
+            candidates=ordered,
+            message="all candidate values agree within policy tolerance",
+        )
+
+    conflict_sources = ", ".join(candidate.source_id for candidate in conflicts)
+    message = (
+        f"{field_id} candidates conflict; selected {selected.source_id!r} by "
+        f"source priority over {conflict_sources}"
+    )
+    if normalized_policy.mode == "raise":
+        raise ValueError(message)
+    return ComponentConflictResolution(
+        field_id=field_id,
+        resolved_value=selected.value,
+        resolved_source_id=selected.source_id,
+        status=(
+            "conflict_warning"
+            if normalized_policy.mode == "warn"
+            else "preferred"
+        ),
+        candidates=ordered,
+        message=message,
+    )
+
+
 def _mw(component: ComponentSpec) -> float:
     assert component.molecular_weight_g_mol is not None
     return component.molecular_weight_g_mol
@@ -731,6 +952,49 @@ def _coerce_component_uncertainty(
     raise ValueError("uncertainty entries must be ComponentUncertainty or dict")
 
 
+def _coerce_component_field_candidate(
+    value: ComponentFieldCandidate | dict[str, object],
+) -> ComponentFieldCandidate:
+    if isinstance(value, ComponentFieldCandidate):
+        return value
+    if isinstance(value, dict):
+        return ComponentFieldCandidate.from_dict(value)
+    raise ValueError("field candidates must be ComponentFieldCandidate or dict")
+
+
+def _coerce_component_conflict_policy(
+    value: ComponentConflictPolicy | dict[str, object],
+) -> ComponentConflictPolicy:
+    if isinstance(value, ComponentConflictPolicy):
+        return value
+    if isinstance(value, dict):
+        return ComponentConflictPolicy.from_dict(value)
+    raise ValueError("conflict policy must be ComponentConflictPolicy or dict")
+
+
+def _source_rank(source_id: str, policy: ComponentConflictPolicy) -> int:
+    try:
+        return policy.source_priority.index(source_id)
+    except ValueError:
+        return len(policy.source_priority)
+
+
+def _values_within_tolerance(
+    left: object,
+    right: object,
+    *,
+    field_id: str,
+    policy: ComponentConflictPolicy,
+) -> bool:
+    if isinstance(left, int | float) and isinstance(right, int | float):
+        left_float = float(left)
+        right_float = float(right)
+        rtol = policy.field_rtol.get(field_id, policy.default_rtol)
+        atol = policy.field_atol.get(field_id, policy.default_atol)
+        return abs(left_float - right_float) <= atol + rtol * abs(left_float)
+    return left == right
+
+
 def property_equation_contracts() -> dict[str, dict[str, object]]:
     """Return JSON-friendly contracts for supported property equations."""
 
@@ -757,6 +1021,9 @@ def supported_property_equations() -> tuple[str, ...]:
 
 
 __all__ = [
+    "ComponentConflictPolicy",
+    "ComponentConflictResolution",
+    "ComponentFieldCandidate",
     "ComponentProvenance",
     "ComponentSpec",
     "ComponentUncertainty",
@@ -768,5 +1035,6 @@ __all__ = [
     "normalize_component_token",
     "property_equation_contracts",
     "resolve_component_identifier",
+    "resolve_component_field_conflict",
     "supported_property_equations",
 ]

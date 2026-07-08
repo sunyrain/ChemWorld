@@ -11,7 +11,7 @@ from chemworld.physchem import (
     model_card_template_map,
     validate_model_card,
 )
-from chemworld.tasks import get_task, list_tasks
+from chemworld.tasks import get_task, list_tasks, task_maturity_manifest
 
 
 def test_maturity_levels_are_machine_readable() -> None:
@@ -133,3 +133,17 @@ def test_env_task_info_exposes_maturity_metadata() -> None:
         )
     finally:
         env.close()
+
+
+def test_task_maturity_manifest_is_json_friendly_and_grouped() -> None:
+    manifest = task_maturity_manifest(
+        ("reaction-to-assay", "reaction-to-purification")
+    )
+
+    assert manifest["schema_version"] == "chemworld-task-maturity-manifest-0.1"
+    assert manifest["task_count"] == 2
+    assert manifest["by_task"]["reaction-to-assay"]["physics_maturity"] == "lite"
+    assert manifest["by_task"]["reaction-to-purification"]["physics_maturity"] == "proxy"
+    assert "reaction-to-purification" in manifest["proxy_allowed_task_ids"]
+    assert "proxy" in manifest["by_physics_maturity"]
+    assert "lite" in manifest["by_physics_maturity"]

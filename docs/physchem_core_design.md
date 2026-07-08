@@ -96,6 +96,9 @@ The P1/P2 audit hardened the foundation around those evaluators:
 - curated components carry `ComponentProvenance` and `ComponentUncertainty`
   records so source tables, source keys, and known uncertainty limitations
   round-trip through JSON;
+- `ComponentConflictPolicy`, `ComponentFieldCandidate`, and
+  `resolve_component_field_conflict()` provide deterministic source-priority
+  resolution with warning or hard-fail behavior for disagreeing component data;
 - mixture constructors validate component/phase compatibility before creating
   a phase-local state;
 - property correlations reject unsupported equations, missing required
@@ -128,6 +131,11 @@ PRO-P1A hardens the curated component registry itself. Component records now
 round-trip structured provenance and uncertainty metadata, curated aliases are
 checked with a normalized registry index, and conflicting aliases fail before a
 property package or task can silently bind to the wrong component.
+
+PRO-P1B adds the source-priority audit layer for future multi-source component
+records. It does not introduce a large property database; it records how one
+field was selected, which candidates disagreed, and whether the policy warned
+or failed.
 
 ## Reaction Network Core
 

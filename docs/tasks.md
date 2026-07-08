@@ -68,6 +68,11 @@ The allowed maturity levels are `proxy`, `lite`, `reference_validated`,
 it must be tagged as teaching, smoke, exploratory, or education. This prevents
 professional benchmark claims from silently relying on proxy unit operations.
 
+`task_maturity_manifest()` exports the same information as a JSON-friendly
+manifest grouped by task id and by physics maturity level. Use it when building
+dataset cards, baseline reports, or release checks that need to prove which
+tasks allowed proxy kernels.
+
 ## Episode Modes
 
 `single_experiment` tasks are one experimental workflow. A successful

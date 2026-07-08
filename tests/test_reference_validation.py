@@ -5,6 +5,7 @@ import pytest
 from chemworld.physchem import (
     ReferenceBackendStatus,
     compare_scalar,
+    reference_tolerance_profiles,
     reference_backend_specs,
     reference_backend_status,
     reference_validation_report,
@@ -39,6 +40,7 @@ def test_reference_backend_status_does_not_require_optional_imports() -> None:
     assert all(not status.import_probe_attempted for status in statuses)
     assert all(status.import_available is None for status in statuses)
     assert all(isinstance(status.to_dict()["local_repo_available"], bool) for status in statuses)
+    assert all("installed_version" in status.to_dict() for status in statuses)
 
 
 def test_compare_scalar_and_summary_record_failures_explicitly() -> None:
@@ -119,8 +121,21 @@ def test_reference_validation_report_records_skipped_backends(tmp_path) -> None:
     assert payload["schema_version"] == "chemworld-reference-validation-report-0.1"
     assert payload["comparison_summary"]["all_passed"] is True
     assert "backend_statuses" in payload
+    assert payload["tolerance_profiles"]
+    assert {profile["backend_id"] for profile in payload["tolerance_profiles"]} >= {
+        "chemicals",
+        "fluids",
+        "thermo",
+    }
 
     output = tmp_path / "reference_validation_report.json"
     written = write_reference_validation_report(output, (comparison,), reference_root=tmp_path)
     assert output.exists()
     assert written.to_dict()["comparison_summary"]["total"] == 1
+
+
+def test_reference_tolerance_profiles_are_json_friendly() -> None:
+    profiles = reference_tolerance_profiles()
+    assert profiles
+    assert all(profile.rtol >= 0.0 and profile.atol >= 0.0 for profile in profiles)
+    assert all(profile.to_dict()["profile_id"] for profile in profiles)
