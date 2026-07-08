@@ -9,7 +9,9 @@ from chemworld.physchem import (
     evaporation_flash,
     filter_cake,
     liquid_liquid_extraction,
-    simple_distillation,
+    separation_model_cards,
+    validate_model_card,
+    vle_shortcut_distillation,
 )
 
 
@@ -60,19 +62,29 @@ def test_flash_evaporation_prefers_volatile_component_and_reports_heat_duty() ->
     assert result.ledger.material_balance_error_mol < 1e-10
 
 
-def test_distillation_enriches_light_key_but_high_reflux_costs_more() -> None:
+def test_vle_shortcut_distillation_uses_vle_and_fenske_distribution() -> None:
     feed = {"light": 1.0, "heavy": 1.0}
-    low_reflux = simple_distillation(
+    low_reflux = vle_shortcut_distillation(
         feed,
-        volatility_scores={"light": 4.0, "heavy": 1.0},
+        vapor_pressures_Pa={"light": 80_000.0, "heavy": 20_000.0},
+        pressure_Pa=101_325.0,
+        temperature_K=355.0,
+        light_key="light",
+        heavy_key="heavy",
         distillate_cut_fraction=0.45,
+        theoretical_stages=8.0,
         reflux_ratio=0.2,
         stage_efficiency=0.7,
     )
-    high_reflux = simple_distillation(
+    high_reflux = vle_shortcut_distillation(
         feed,
-        volatility_scores={"light": 4.0, "heavy": 1.0},
+        vapor_pressures_Pa={"light": 80_000.0, "heavy": 20_000.0},
+        pressure_Pa=101_325.0,
+        temperature_K=355.0,
+        light_key="light",
+        heavy_key="heavy",
         distillate_cut_fraction=0.45,
+        theoretical_stages=8.0,
         reflux_ratio=3.0,
         stage_efficiency=0.7,
     )
@@ -84,7 +96,52 @@ def test_distillation_enriches_light_key_but_high_reflux_costs_more() -> None:
         "distillate",
     )
     assert high_reflux.ledger.cost > low_reflux.ledger.cost
+    assert high_reflux.ledger.metadata["k_values"] == pytest.approx(
+        {"light": 80_000.0 / 101_325.0, "heavy": 20_000.0 / 101_325.0}
+    )
+    assert high_reflux.ledger.metadata["relative_volatilities"] == pytest.approx(
+        {"light": 4.0, "heavy": 1.0}
+    )
+    assert high_reflux.ledger.metadata["observed_fenske_stage_count"] == pytest.approx(
+        high_reflux.ledger.metadata["effective_stages"]
+    )
     assert high_reflux.ledger.material_balance_error_mol < 1e-12
+
+
+def test_vle_shortcut_distillation_handles_multicomponent_keys() -> None:
+    feed = {"lights": 0.5, "product": 1.0, "heavies": 0.4}
+    result = vle_shortcut_distillation(
+        feed,
+        vapor_pressures_Pa={"lights": 120_000.0, "product": 45_000.0, "heavies": 8_000.0},
+        pressure_Pa=80_000.0,
+        temperature_K=345.0,
+        light_key="product",
+        heavy_key="heavies",
+        distillate_cut_fraction=0.62,
+        theoretical_stages=12.0,
+        reflux_ratio=2.0,
+        stage_efficiency=0.65,
+        latent_heats_J_mol={"lights": 28_000.0, "product": 38_000.0, "heavies": 55_000.0},
+    )
+
+    assert result.purity("lights", "distillate") > feed["lights"] / sum(feed.values())
+    assert result.purity("heavies", "bottoms") > feed["heavies"] / sum(feed.values())
+    assert result.ledger.heat_duty_J > 0.0
+    assert result.ledger.metadata["flash_anchor"]["k_values"]["product"] == pytest.approx(
+        45_000.0 / 80_000.0
+    )
+    assert result.ledger.material_balance_error_mol < 1e-12
+
+
+def test_separation_model_cards_document_vle_shortcut_distillation() -> None:
+    card = next(
+        card for card in separation_model_cards() if card.model_id == "vle_shortcut_distillation"
+    )
+    assert card.maturity.value == "reference_validated"
+    assert validate_model_card(card) == []
+    assert any("IDAES" in note for note in card.reference_reading)
+    assert any("thermo" in note for note in card.reference_reading)
+    assert any("phasepy" in note for note in card.reference_reading)
 
 
 def test_crystallization_and_filtration_reduce_impurity_with_tradeoff() -> None:
@@ -200,10 +257,26 @@ def test_separation_validation_fails_fast() -> None:
             stages=0,
         )
     with pytest.raises(ValueError, match="distillate_cut_fraction"):
-        simple_distillation(
+        vle_shortcut_distillation(
             {"light": 1.0},
-            volatility_scores={"light": 1.0},
+            vapor_pressures_Pa={"light": 10_000.0},
+            pressure_Pa=101_325.0,
+            temperature_K=350.0,
+            light_key="light",
+            heavy_key="light",
             distillate_cut_fraction=1.5,
+            theoretical_stages=3.0,
+        )
+    with pytest.raises(ValueError, match="more volatile"):
+        vle_shortcut_distillation(
+            {"light": 1.0, "heavy": 1.0},
+            vapor_pressures_Pa={"light": 10_000.0, "heavy": 20_000.0},
+            pressure_Pa=101_325.0,
+            temperature_K=350.0,
+            light_key="light",
+            heavy_key="heavy",
+            distillate_cut_fraction=0.5,
+            theoretical_stages=4.0,
         )
     with pytest.raises(ValueError, match="target_component"):
         crystallize(

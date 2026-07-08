@@ -163,7 +163,8 @@ from chemworld.physchem.separations import (
     evaporation_flash,
     filter_cake,
     liquid_liquid_extraction,
-    simple_distillation,
+    separation_model_cards,
+    vle_shortcut_distillation,
 )
 from chemworld.physchem.specs import (
     ComponentSpec,
@@ -383,7 +384,7 @@ __all__ = [
     "reynolds_number",
     "select_cubic_root",
     "sensible_enthalpy_change",
-    "simple_distillation",
+    "separation_model_cards",
     "solid_solubility_mole_fraction",
     "solve_cstr_multiple_steady_states",
     "solve_mass_action_equilibrium",
@@ -398,6 +399,7 @@ __all__ = [
     "validate_mechanism_library",
     "validate_model_card",
     "validate_task_maturity_policy",
+    "vle_shortcut_distillation",
     "volatility_risk_from_psat",
     "water_ion_product",
 ]

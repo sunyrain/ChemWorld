@@ -21,8 +21,7 @@ chemistry core.
   `reference_repos/thermopack`, or `reference_repos/rmg-py`.
 - Do not copy source code from reference repositories.
 - Do not mark a task done because a proxy exists.
-- Do not create the next-stage professional TODO expansion until the current
-  twelve-area foundation/professional queue is settled. When it is created,
+- This file is the post-foundation professional TODO. Future expansions must
   split every module into concrete implementation slices with reference targets,
   equations, validation cases, and task integration criteria; never pre-fill it
   with proxy placeholders.
@@ -73,7 +72,7 @@ Every professional module must ship:
 | PRO-P4A Wilson and full binary NRTL activity models | whilesunny | Done | `thermo.activity`, `thermo.wilson`, `thermo.nrtl`, `phasepy.actmodels` | `src/chemworld/physchem/equilibrium.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add nonideal VLE task cases and Wilson/NRTL parameter-library governance | this commit |
 | PRO-P5A Cantera-comparable irreversible/reversible reaction ODE cases | whilesunny | Done | `cantera` reactor examples, `cantera` reaction-rate APIs, `rmg-py` Arrhenius/reverse-rate APIs | `src/chemworld/physchem/reaction_network.py`, `tests/test_reaction_network.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add falloff, third-body, pressure-dependent, and thermochemistry-coupled reverse-rate tasks | this commit |
 | PRO-P6A CSTR multiple-steady-state professional example | whilesunny | Done | `cantera` stirred-reactor examples, `idaes-pse` CSTR/control-volume models, nonlinear reactor design equations | `src/chemworld/physchem/reactors.py`, `tests/test_reactor_models.py`, model cards, docs | next: add Cantera dynamic reactor-net cross-checks and plant-scale heat-transfer variants | this commit |
-| PRO-P7A VLE-coupled shortcut distillation | whilesunny | Claimed | `idaes-pse` distillation/flash units, `thermo` flash/property-package APIs, `phasepy` VLE examples | `src/chemworld/physchem/separations.py`, `tests/test_separations.py`, optional reference tests, model cards, docs | read local IDAES/thermo/phasepy separation APIs, then replace simple distillation proxy with a declared VLE-coupled shortcut model | pending push |
+| PRO-P7A VLE-coupled shortcut distillation | whilesunny | Done | `idaes-pse` distillation/flash units, `thermo` flash/property-package APIs, `phasepy` VLE examples | `src/chemworld/physchem/separations.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/tasks.py`, `tests/test_separations.py`, model cards, docs | next: add Underwood/Gilliland sizing, pressure-profile effects, and nonideal VLE task cases | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -327,8 +326,8 @@ Reference targets: `IDAES`, `thermo`, `phasepy`, `fluids`.
 - [ ] Distillation:
   - [ ] MESH-lite stage model;
   - [ ] reflux and boilup;
-  - [ ] shortcut Fenske-Underwood-Gilliland option;
-  - [ ] VLE-coupled task.
+  - [x] shortcut Fenske option;
+  - [x] VLE-coupled task.
 - [ ] Evaporation/flash:
   - [ ] VLE-coupled vapor removal;
   - [ ] heat duty from enthalpy;
@@ -346,8 +345,26 @@ Reference targets: `IDAES`, `thermo`, `phasepy`, `fluids`.
 
 Acceptance:
 
-- [ ] No separation task uses an unlabeled proxy in the benchmark default.
+- [x] No distillation task uses an unlabeled distillation proxy in the benchmark default.
 - [ ] Purity/recovery/cost tradeoffs are produced by declared physical models.
+
+Reference-reading note for PRO-P7A:
+
+- `idaes-pse/idaes/models/unit_models/flash.py` builds a static flash unit
+  around a 0D control volume, phase-equilibrium state blocks, material balances,
+  energy balances, momentum balances, and vapor/liquid outlet ports.
+- `idaes-pse/.../activity_coeff_prop_pack.py` `_make_flash_eq` declares total
+  and component flash balances and a smooth VLE flash formulation.
+- `thermo/README.rst` and `thermo/thermo/flash/flash_vl.py` show `FlashVL`
+  objects built from constants, property correlations, liquid/gas phase objects,
+  and PT/VF flash specifications.
+- `phasepy/phasepy/equilibrium/flash.py` solves PT flash using K-values,
+  Rachford-Rice material balance, accelerated successive substitution, and
+  Gibbs minimization fallback.
+- ChemWorld localizes those ideas as `vle_shortcut_distillation`: VLE K-values
+  come from Raoult/activity models, relative volatilities are derived from
+  those K-values, and component split ratios satisfy a Fenske-style analytical
+  identity. This is not a full MESH column solver.
 
 ## P8: Transport, Equipment, And Safety
 
@@ -597,7 +614,7 @@ Acceptance:
 6. `PRO-P6A`: Add CSTR multiple-steady-state professional example.
    Done.
 7. `PRO-P7A`: Replace simple distillation proxy with VLE-coupled shortcut
-   distillation. Claimed by whilesunny.
+   distillation. Done.
 8. `PRO-P10A`: Add Beer-Lambert UV-vis model card and calibration validation.
 
 ## Explicit Non-Goals

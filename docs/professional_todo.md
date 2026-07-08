@@ -52,6 +52,7 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
 6. Add a CSTR multiple-steady-state professional example.
    Done in PRO-P6A.
 7. Replace simple distillation proxy with VLE-coupled shortcut distillation.
+   Done in PRO-P7A.
 8. Add Beer-Lambert UV-vis model card and calibration validation.
 
 ## Completion Bar
@@ -159,3 +160,24 @@ multiplicity slice:
   inspected Cantera/IDAES references, and analytical validation evidence.
 - This closes a narrow professional slice for multiple steady states. It does
   not claim full Cantera reactor-network parity or IDAES process-model parity.
+
+PRO-P7A is now implemented for the first reference-validated distillation
+shortcut slice:
+
+- `vle_shortcut_distillation()` replaces arbitrary volatility-score splitting
+  with Raoult/activity VLE `K_i` values, relative volatilities, reflux-scaled
+  effective stages, and a solved total distillate cut.
+- Component distribution ratios satisfy the Fenske-style identity
+  `(D_i/B_i)/(D_j/B_j) = (alpha_i/alpha_j)**N_eff`, which is checked in local
+  tests.
+- The ChemWorld `distill` operation now records `distillation_model =
+  "vle_shortcut_distillation"` and stores the VLE/Fenske metadata in the
+  campaign state ledger.
+- The `reaction-to-distillation` task metadata now reports the distillation
+  module as `reference_validated` rather than proxy.
+- `separation_model_cards()` records equations, assumptions, validity limits,
+  failure modes, inspected IDAES/thermo/phasepy references, and analytical
+  validation evidence.
+- This is still a shortcut column model, not a rigorous MESH tray-by-tray
+  solver with pressure profile, hydraulics, Underwood/Gilliland sizing, or
+  azeotrope detection.

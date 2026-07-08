@@ -45,8 +45,8 @@ Current scope:
   extents, van't Hoff equilibrium constants, weak-acid pH, water ion product,
   precipitation, charge balance, ionic strength, and solid solubility.
 - downstream separation unit operations for multistage extraction,
-  evaporation, distillation, crystallization, filtration, drying, and
-  purity/recovery/cost/risk scoring.
+  evaporation, VLE-coupled shortcut distillation, crystallization, filtration,
+  drying, and purity/recovery/cost/risk scoring.
 - fluid-mechanics and heat-transfer kernels for Reynolds/Prandtl/Peclet/Nusselt
   numbers, Darcy friction factors, pipe pressure drop, pump work, mixing power,
   jacket heat transfer, counterflow heat exchangers, packed-bed pressure drop,

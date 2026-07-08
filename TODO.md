@@ -27,7 +27,7 @@ finished, update its status and push immediately.
 | P4 reactor-model lite core | whilesunny | Lite Done | `src/chemworld/physchem/reactors.py`, `tests/`, `docs/physchem_core_design.md` | next: add Cantera/IDAES-style reactor validation and multi-steady-state CSTR case | this commit |
 | P5 EOS lite core | whilesunny | Lite Done | `src/chemworld/physchem/eos.py`, `tests/`, `docs/physchem_core_design.md` | next: validate PR/SRK against controlled CoolProp/thermo/teqp cases | this commit |
 | P6 phase-equilibrium lite core | whilesunny | Lite Done | `src/chemworld/physchem/equilibrium.py`, `tests/`, `docs/physchem_core_design.md` | next: add Wilson/UNIQUAC, stability tests, and phasepy/thermo validation | this commit |
-| P7 separation and unit-operation proxies | whilesunny | Lite Done | `src/chemworld/physchem/separations.py`, `tests/`, `docs/physchem_core_design.md` | next: replace proxy distillation/extraction/crystallization pieces with thermodynamic unit models | this commit |
+| P7 separation and unit operations | whilesunny | Lite + Reference Slice | `src/chemworld/physchem/separations.py`, `tests/`, `docs/physchem_core_design.md` | next: extend extraction/crystallization and rigorous columns beyond the VLE shortcut distillation slice | this commit |
 | P8 fluid mechanics and heat-transfer lite core | whilesunny | Lite Done | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `docs/physchem_core_design.md` | next: validate pressure-drop/heat-transfer correlations against fluids and public examples | this commit |
 | P9 equilibrium-chemistry lite core | whilesunny | Lite Done | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/test_equilibrium_chemistry.py`, `docs/physchem_core_design.md` | next: add Reaktoro-style equilibrium validation and pH/precipitation benchmark tasks | this commit |
 | P10 mechanism and scenario lite library | whilesunny | Lite Done | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/physchem/mechanism_library.py`, `tests/`, `docs/physchem_core_design.md` | next: add reference-validated mechanism cards and task bindings | this commit |
@@ -661,7 +661,7 @@ Acceptance tests:
 - [x] Ideal binary flash has expected limiting behavior.
 - [x] LLE split conserves material.
 - [x] Increasing extractant volume changes recovery/purity tradeoff.
-- [ ] Distillation task uses VLE rather than fixed proxy where enabled.
+- [x] Distillation task uses VLE rather than fixed proxy where enabled.
 
 ### P7: Separation and Unit Operations
 
@@ -675,10 +675,12 @@ Acceptance tests:
   - [x] VLE-driven removal;
   - [x] heat duty;
   - [x] concentration risk.
-- [x] Simple distillation:
-  - [x] relative volatility;
-  - [x] reflux purity/recovery tradeoff;
-  - [x] fraction cut.
+- [x] VLE shortcut distillation:
+  - [x] Raoult/activity-coefficient K-values;
+  - [x] relative volatility from VLE keys;
+  - [x] Fenske-style distillate/bottoms distribution ratios;
+  - [x] reflux-scaled effective stages;
+  - [x] fraction cut and heat-duty ledger.
 - [x] Crystallization:
   - [x] solubility curve;
   - [x] supersaturation;

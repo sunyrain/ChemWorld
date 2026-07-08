@@ -24,7 +24,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Reactor models | Lite with a reference-validated CSTR multiplicity slice | batch, semi-batch, CSTR, PFR tests; analytical exothermic CSTR three-root ignition/extinction case with stability classification | broader Cantera/IDAES reactor-network validation, pressure modes, and heat-transfer variants |
 | EOS | Lite | ideal gas, PR, SRK tests | residual properties and reference validation against CoolProp/thermo/teqp |
 | Phase equilibrium | Lite with a reference-validated Wilson/NRTL gamma slice | ideal VLE, Wilson/NRTL gamma checks against `thermo`, LLE split tests | UNIQUAC, phase stability, nonideal VLE/LLE task cases |
-| Separations | Proxy/lite | material-conserving extraction, flash, distillation, crystallization, filtration, drying tests | rigorous equipment models and thermodynamic coupling |
+| Separations | Proxy/lite with a reference-validated VLE distillation shortcut slice | material-conserving extraction, VLE flash, VLE/Fenske shortcut distillation, crystallization, filtration, drying tests | rigorous MESH columns, thermodynamic extraction, crystallization kinetics, and broader equipment validation |
 | Transport and heat transfer | Lite with reference-validated pipe-flow slice | dimensionless numbers, explicit friction methods, `fluids` Haaland and single-phase pipe-pressure-drop optional checks | broader `fluids` comparisons, heat-transfer validation, and validity maps |
 | Equilibrium chemistry | Lite/proxy | mass-action, acid/base, precipitation tests | Reaktoro-style Gibbs minimization and database-backed equilibria |
 | Mechanism/scenario library | Lite | curated mechanism cards and validation tests | reference-validated mechanisms and professional task bindings |
@@ -109,3 +109,7 @@ copying the reference implementations.
   exothermic CSTR model card, inspected Cantera/IDAES reference notes,
   analytical steady-state roots, and stable/unstable/stable Jacobian-based
   classification tests.
+- PRO-P7A is implemented: the distillation path no longer uses an unlabeled
+  volatility-score proxy. It now uses a VLE-coupled shortcut model with
+  Raoult/activity K-values, Fenske-style distribution-ratio tests, model-card
+  metadata, and task maturity metadata for `reaction-to-distillation`.

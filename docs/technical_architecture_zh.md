@@ -266,7 +266,7 @@ Dataset card 包含：
 
 仍需继续推进：
 
-- 继续把 crystallization、distillation、continuous-flow、electrochemistry 的过程 proxy 拆成更独立的 world kernel，并提升物理 fidelity；
+- 继续把 crystallization、continuous-flow、electrochemistry 的过程 proxy 拆成更独立的 world kernel，并把 distillation 从当前 VLE shortcut slice 推进到 Underwood/Gilliland 与 MESH 级严格塔模型；
 - 用完整 task/agent/seed 矩阵重新运行并冻结官方 reference baseline table；
 - 将本机 signed private-eval artifact 升级为远端 maintainer-side registry；
 - 增加 Minari 风格 dataset metadata；

@@ -305,9 +305,12 @@ def default_kernel_maturity(
         modules.append(
             ModuleMaturity(
                 "distillation",
-                MaturityLevel.PROXY,
-                model_ids=("chemworld_distillation_proxy",),
-                notes=("Distillation is not yet a VLE-coupled professional unit model.",),
+                MaturityLevel.REFERENCE_VALIDATED,
+                model_ids=("vle_shortcut_distillation",),
+                notes=(
+                    "Distillation uses a VLE-coupled constant-relative-volatility "
+                    "shortcut model with analytical Fenske identity tests.",
+                ),
             )
         )
     if operations.intersection(FLOW_OPERATIONS):

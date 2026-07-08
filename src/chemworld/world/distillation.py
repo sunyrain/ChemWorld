@@ -13,8 +13,9 @@ class DistillationModuleSpec:
     version: str = "0.1"
     operations: tuple[str, ...] = DISTILLATION_OPERATIONS
     laws: tuple[str, ...] = (
-        "evaporation_volume_reduction",
-        "reflux_purity_recovery_tradeoff",
+        "raoult_activity_vle_k_values",
+        "constant_relative_volatility_shortcut",
+        "fenske_distribution_ratio_identity",
         "thermal_risk_and_energy_cost",
     )
 

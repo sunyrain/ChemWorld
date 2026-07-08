@@ -103,11 +103,12 @@ def test_task_maturity_metadata_is_public_and_policy_checked() -> None:
 
     distillation = get_task("reaction-to-distillation")
     distillation_payload = distillation.to_dict()
-    assert distillation_payload["physics_maturity"] == "proxy"
-    assert distillation_payload["proxy_allowed"] is True
-    assert "exploratory" in distillation_payload["tags"]
+    assert distillation_payload["physics_maturity"] == "lite"
+    assert distillation_payload["proxy_allowed"] is False
     assert any(
-        module["module_id"] == "distillation" and module["level"] == "proxy"
+        module["module_id"] == "distillation"
+        and module["level"] == "reference_validated"
+        and "vle_shortcut_distillation" in module["model_ids"]
         for module in distillation_payload["kernel_maturity"]["modules"]
     )
 

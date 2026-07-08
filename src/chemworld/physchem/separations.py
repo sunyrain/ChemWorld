@@ -4,9 +4,15 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from math import exp, log1p
+from math import exp, isfinite, log, log1p
 
-from chemworld.physchem.equilibrium import flash_isothermal, liquid_liquid_split
+from chemworld.physchem.equilibrium import (
+    ActivityModelSpec,
+    flash_isothermal,
+    liquid_liquid_split,
+    raoult_k_values,
+)
+from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
 
 
 @dataclass(frozen=True)
@@ -186,53 +192,262 @@ def evaporation_flash(
     )
 
 
-def simple_distillation(
+def vle_shortcut_distillation(
     feed_amounts_mol: Mapping[str, float],
     *,
-    volatility_scores: Mapping[str, float],
+    vapor_pressures_Pa: Mapping[str, float],
+    pressure_Pa: float,
+    temperature_K: float,
+    light_key: str,
+    heavy_key: str,
     distillate_cut_fraction: float,
+    theoretical_stages: float,
     reflux_ratio: float = 1.0,
     stage_efficiency: float = 1.0,
+    activity_model: ActivityModelSpec | None = None,
+    latent_heats_J_mol: Mapping[str, float] | None = None,
+    vapor_fugacity_coefficients: Mapping[str, float] | None = None,
 ) -> SeparationResult:
+    """Shortcut distillation with VLE-derived relative volatilities.
+
+    Component distribution ratios obey a Fenske-style constant-relative-
+    volatility relationship:
+
+        (D_i/B_i) / (D_j/B_j) = (alpha_i/alpha_j)**N_eff
+
+    A single cut parameter is then solved so the requested total distillate
+    cut is met exactly.
+    """
+
     feed = _amounts(feed_amounts_mol)
     if not 0.0 <= distillate_cut_fraction <= 1.0:
         raise ValueError("distillate_cut_fraction must be between 0 and 1")
+    if pressure_Pa <= 0 or temperature_K <= 0:
+        raise ValueError("pressure_Pa and temperature_K must be positive")
+    if light_key not in feed or heavy_key not in feed:
+        raise ValueError("light_key and heavy_key must be present in feed")
+    if light_key == heavy_key:
+        raise ValueError("light_key and heavy_key must be distinct")
+    if theoretical_stages <= 0:
+        raise ValueError("theoretical_stages must be positive")
     if reflux_ratio < 0:
         raise ValueError("reflux_ratio cannot be negative")
     if not 0.0 <= stage_efficiency <= 1.0:
         raise ValueError("stage_efficiency must be between 0 and 1")
-    selectivity_power = max(0.1, stage_efficiency * (1.0 + log1p(reflux_ratio)))
-    weights = {
-        component_id: amount * max(float(volatility_scores.get(component_id, 1.0)), 1e-12)
-        ** selectivity_power
-        for component_id, amount in feed.items()
-    }
-    target_distillate = sum(feed.values()) * distillate_cut_fraction
-    total_weight = max(sum(weights.values()), 1e-12)
-    distillate = {
-        component_id: min(
-            feed[component_id],
-            target_distillate * weights[component_id] / total_weight,
+
+    component_ids = tuple(feed)
+    if activity_model is None:
+        activity_model = ActivityModelSpec(
+            "ideal_distillation_activity",
+            component_ids,
+            "ideal",
         )
-        for component_id in feed
+    elif set(activity_model.component_ids) != set(component_ids):
+        raise ValueError("activity_model components must match feed components")
+    component_ids = activity_model.component_ids
+    _validate_positive_mapping(
+        vapor_pressures_Pa,
+        component_ids=component_ids,
+        value_name="vapor_pressures_Pa",
+    )
+    if latent_heats_J_mol is not None:
+        _validate_positive_mapping(
+            latent_heats_J_mol,
+            component_ids=component_ids,
+            value_name="latent_heats_J_mol",
+        )
+
+    total_feed = sum(feed.values())
+    overall_composition = {
+        component_id: feed[component_id] / total_feed for component_id in component_ids
     }
+    k_values = raoult_k_values(
+        activity_model,
+        overall_composition,
+        vapor_pressures_Pa=vapor_pressures_Pa,
+        pressure_Pa=pressure_Pa,
+        temperature_K=temperature_K,
+        vapor_fugacity_coefficients=vapor_fugacity_coefficients,
+    )
+    flash = flash_isothermal(overall_composition, k_values)
+    heavy_key_k = k_values[heavy_key]
+    if heavy_key_k <= 0.0:
+        raise ValueError("heavy_key VLE K-value must be positive")
+    relative_volatilities = {
+        component_id: k_values[component_id] / heavy_key_k for component_id in component_ids
+    }
+    key_relative_volatility = relative_volatilities[light_key]
+    if key_relative_volatility <= 1.0:
+        raise ValueError("light_key must be more volatile than heavy_key")
+
+    reflux_effectiveness = 0.0 if reflux_ratio == 0.0 else reflux_ratio / (1.0 + reflux_ratio)
+    effective_stages = theoretical_stages * stage_efficiency * reflux_effectiveness
+    separation_factors = {
+        component_id: relative_volatilities[component_id] ** effective_stages
+        for component_id in component_ids
+    }
+    target_distillate = total_feed * distillate_cut_fraction
+    distillate = _shortcut_distillate_split(feed, separation_factors, target_distillate)
     bottoms = {component_id: feed[component_id] - distillate[component_id] for component_id in feed}
-    heat_duty = 28_000.0 * sum(distillate.values()) * (1.0 + 0.35 * reflux_ratio)
+    latent_heats = dict.fromkeys(component_ids, 35_000.0)
+    if latent_heats_J_mol is not None:
+        latent_heats.update({key: float(value) for key, value in latent_heats_J_mol.items()})
+    distillate_total = sum(distillate.values())
+    average_latent_heat = (
+        0.0
+        if distillate_total <= 0.0
+        else sum(
+            distillate[component_id] * latent_heats[component_id]
+            for component_id in component_ids
+        )
+        / distillate_total
+    )
+    internal_vapor_mol = distillate_total * (1.0 + reflux_ratio)
+    heat_duty = internal_vapor_mol * average_latent_heat
+    distribution_ratios = {
+        component_id: _safe_distribution_ratio(distillate[component_id], bottoms[component_id])
+        for component_id in component_ids
+    }
+    observed_stage_count = _observed_fenske_stage_count(
+        distribution_ratios,
+        relative_volatilities,
+        light_key=light_key,
+        heavy_key=heavy_key,
+    )
+    temperature_risk = max(temperature_K - 298.15, 0.0) / 150.0
+    pressure_risk = max(pressure_Pa / 101_325.0 - 1.0, 0.0) / 8.0
     outlets = {"distillate": distillate, "bottoms": bottoms}
     return SeparationResult(
-        operation_id="simple_distillation",
+        operation_id="vle_shortcut_distillation",
         outlets=outlets,
         ledger=SeparationLedger(
-            unit_id="simple_distillation",
-            cost=heat_duty / 800_000.0 + 0.10 * reflux_ratio,
-            risk=_clip01(0.12 + 0.08 * reflux_ratio + 0.25 * distillate_cut_fraction),
+            unit_id="vle_shortcut_distillation",
+            cost=heat_duty / 850_000.0 + 0.08 * theoretical_stages + 0.10 * reflux_ratio,
+            risk=_clip01(
+                0.08
+                + 0.04 * log1p(reflux_ratio)
+                + 0.08 * flash.vapor_fraction
+                + 0.05 * temperature_risk
+                + 0.04 * pressure_risk
+            ),
             heat_duty_J=heat_duty,
             material_balance_error_mol=_component_balance_error(feed, outlets),
             metadata={
                 "distillate_cut_fraction": distillate_cut_fraction,
                 "reflux_ratio": reflux_ratio,
-                "selectivity_power": selectivity_power,
+                "reflux_effectiveness": reflux_effectiveness,
+                "theoretical_stages": theoretical_stages,
+                "stage_efficiency": stage_efficiency,
+                "effective_stages": effective_stages,
+                "light_key": light_key,
+                "heavy_key": heavy_key,
+                "k_values": dict(k_values),
+                "relative_volatilities": dict(relative_volatilities),
+                "separation_factors": dict(separation_factors),
+                "distribution_ratios": dict(distribution_ratios),
+                "observed_fenske_stage_count": observed_stage_count,
+                "flash_anchor": flash.to_dict(),
+                "internal_vapor_mol": internal_vapor_mol,
+                "average_latent_heat_J_mol": average_latent_heat,
+                "condenser_duty_J": heat_duty,
             },
+        ),
+    )
+
+
+def separation_model_cards() -> tuple[ModelCard, ...]:
+    return (
+        ModelCard(
+            model_id="vle_shortcut_distillation",
+            module_id="separations",
+            title="VLE-Coupled Shortcut Distillation",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Constant-relative-volatility shortcut distillation model "
+                "whose separation factors are derived from Raoult/activity "
+                "VLE K-values rather than arbitrary volatility scores."
+            ),
+            equations=(
+                "K_i = gamma_i Psat_i / (phi_i P)",
+                "alpha_i,HK = K_i / K_HK",
+                "N_eff = N_theoretical * tray_efficiency * R/(1+R)",
+                "(D_i/B_i)/(D_j/B_j) = (alpha_i/alpha_j)**N_eff",
+                "sum_i D_i = distillate_cut * sum_i F_i",
+            ),
+            assumptions=(
+                "constant relative volatility at the supplied temperature and pressure",
+                "total condenser/reboiler shortcut behavior represented by reflux-scaled stages",
+                "no tray hydraulics, flooding, pressure profile, or rigorous MESH solve",
+                "latent heat duty scales with internal vapor traffic",
+            ),
+            validity_limits=(
+                "requires positive vapor pressures and positive VLE K-values",
+                "light key must be more volatile than heavy key under supplied VLE conditions",
+                "intended for benchmark-scale binary or small multicomponent separations",
+                "not valid for azeotropic, reactive, or multiple-liquid-phase columns",
+            ),
+            failure_modes=(
+                "missing feed, vapor-pressure, or latent-heat components raise validation errors",
+                (
+                    "invalid pressure, temperature, cut fraction, reflux, or "
+                    "stage efficiency fails early"
+                ),
+                "key order that contradicts VLE K-values fails instead of silently swapping labels",
+            ),
+            units={
+                "feed_amount": "mol",
+                "pressure": "Pa",
+                "temperature": "K",
+                "vapor_pressure": "Pa",
+                "latent_heat": "J/mol",
+                "heat_duty": "J",
+            },
+            reference_reading=(
+                (
+                    "IDAES: reference_repos/idaes-pse/idaes/models/unit_models/"
+                    "flash.py builds a 0D flash with phase-equilibrium state "
+                    "blocks, material balances, energy balances, and vapor/liquid outlets."
+                ),
+                (
+                    "IDAES: activity_coeff_prop_pack.py _make_flash_eq defines "
+                    "total/component balances and a smooth VLE flash formulation."
+                ),
+                (
+                    "thermo: README and thermo.flash.flash_vl.FlashVL show "
+                    "FlashVL objects built from constants, property correlations, "
+                    "liquid/gas phases, and PT/VF flash specifications."
+                ),
+                (
+                    "phasepy: phasepy.equilibrium.flash solves PT flash with "
+                    "K-values, Rachford-Rice mass balance, accelerated "
+                    "successive substitution, and Gibbs minimization fallback."
+                ),
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="vle-shortcut-fenske-identity",
+                    evidence_type="unit_test",
+                    description=(
+                        "Binary and multicomponent tests verify material "
+                        "balance, VLE-derived key ordering, and the analytical "
+                        "Fenske distribution-ratio identity."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_separations.py",
+                    tolerance="pytest.approx local tolerances",
+                ),
+            ),
+            model_limit_notes=(
+                "This is a professional shortcut slice for benchmark tasks, "
+                "not a replacement for rigorous IDAES column MESH models.",
+                "Azeotrope detection, Underwood/Gilliland sizing, tray "
+                "hydraulics, pressure-drop profiles, and column costing remain open work.",
+            ),
+            intended_use=(
+                "reaction-to-purification task kernels",
+                "purity/recovery/cost tradeoff benchmark cases",
+                "agent planning tasks that need interpretable VLE-coupled separation behavior",
+            ),
         ),
     )
 
@@ -417,6 +632,76 @@ def downstream_score(
     return _clip01(0.55 * purity + 0.45 * recovery - penalty)
 
 
+def _shortcut_distillate_split(
+    feed: Mapping[str, float],
+    separation_factors: Mapping[str, float],
+    target_distillate_mol: float,
+) -> dict[str, float]:
+    if target_distillate_mol <= 0.0:
+        return dict.fromkeys(feed, 0.0)
+    total_feed = sum(feed.values())
+    if target_distillate_mol >= total_feed:
+        return dict(feed)
+    for component_id in feed:
+        factor = float(separation_factors[component_id])
+        if factor <= 0.0 or not isfinite(factor):
+            raise ValueError("separation factors must be finite and positive")
+
+    def distillate_total(theta: float) -> float:
+        total = 0.0
+        for component_id, amount in feed.items():
+            ratio = theta * separation_factors[component_id]
+            total += amount * ratio / (1.0 + ratio)
+        return total
+
+    low = 0.0
+    high = 1.0
+    while distillate_total(high) < target_distillate_mol:
+        high *= 2.0
+    for _ in range(200):
+        mid = 0.5 * (low + high)
+        if distillate_total(mid) < target_distillate_mol:
+            low = mid
+        else:
+            high = mid
+    theta = 0.5 * (low + high)
+    return {
+        component_id: amount
+        * (theta * separation_factors[component_id])
+        / (1.0 + theta * separation_factors[component_id])
+        for component_id, amount in feed.items()
+    }
+
+
+def _safe_distribution_ratio(distillate_mol: float, bottoms_mol: float) -> float:
+    if distillate_mol <= 0.0 and bottoms_mol <= 0.0:
+        return 0.0
+    if bottoms_mol <= 0.0:
+        return float("inf")
+    return distillate_mol / bottoms_mol
+
+
+def _observed_fenske_stage_count(
+    distribution_ratios: Mapping[str, float],
+    relative_volatilities: Mapping[str, float],
+    *,
+    light_key: str,
+    heavy_key: str,
+) -> float | None:
+    light_distribution = distribution_ratios[light_key]
+    heavy_distribution = distribution_ratios[heavy_key]
+    key_alpha = relative_volatilities[light_key] / relative_volatilities[heavy_key]
+    if (
+        light_distribution <= 0.0
+        or heavy_distribution <= 0.0
+        or not isfinite(light_distribution)
+        or not isfinite(heavy_distribution)
+        or key_alpha <= 1.0
+    ):
+        return None
+    return log(light_distribution / heavy_distribution) / log(key_alpha)
+
+
 def _flash_amount_split(
     feed: Mapping[str, float],
     k_values: Mapping[str, float],
@@ -449,6 +734,21 @@ def _amounts(amounts: Mapping[str, float]) -> dict[str, float]:
     if any(value < -1e-12 for value in amounts.values()):
         raise ValueError("amounts cannot be negative")
     return {component_id: max(float(amount), 0.0) for component_id, amount in amounts.items()}
+
+
+def _validate_positive_mapping(
+    values: Mapping[str, float],
+    *,
+    component_ids: Sequence[str],
+    value_name: str,
+) -> None:
+    missing = [component_id for component_id in component_ids if component_id not in values]
+    if missing:
+        raise ValueError(f"{value_name} missing components: {missing}")
+    for component_id in component_ids:
+        value = float(values[component_id])
+        if value <= 0.0 or not isfinite(value):
+            raise ValueError(f"{value_name} values must be finite and positive")
 
 
 def _add_amounts(left: Mapping[str, float], right: Mapping[str, float]) -> dict[str, float]:
@@ -499,5 +799,6 @@ __all__ = [
     "evaporation_flash",
     "filter_cake",
     "liquid_liquid_extraction",
-    "simple_distillation",
+    "separation_model_cards",
+    "vle_shortcut_distillation",
 ]

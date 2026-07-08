@@ -456,7 +456,7 @@ balance errors:
 | --- | --- |
 | Liquid-liquid extraction | multistage extraction using partition coefficients, finite stage efficiency, entrainment, and solvent loss |
 | Evaporation / flash | VLE-driven vapor/liquid split from K-values, heat duty, and concentration risk |
-| Simple distillation | volatility-score separation with reflux, stage efficiency, distillate cut, heat duty, and purity/recovery tradeoff |
+| VLE shortcut distillation | Raoult/activity K-values, relative volatilities, Fenske-style split ratios, reflux-scaled effective stages, heat duty, and purity/recovery/cost tradeoff |
 | Crystallization | solubility-limited crystallization, cooling proxy, impurity occlusion, crystal-size proxy |
 | Filtration | solid recovery, impurity retention, washing efficiency, and wash loss |
 | Drying | solvent removal, residual solvent, heat duty, thermal degradation risk |
@@ -467,6 +467,27 @@ reward purity and recovery while penalizing cost, risk, solvent loss, and
 process mass-balance errors. Excessive purification is therefore not
 automatically optimal, which is important for realistic reaction-to-purification
 tasks.
+
+PRO-P7A replaces the old score-based distillation split with
+`vle_shortcut_distillation()`. The model first computes `K_i` values through the
+shared phase-equilibrium layer,
+
+```text
+K_i = gamma_i Psat_i / (phi_i P)
+alpha_i,HK = K_i / K_HK
+N_eff = N_theoretical * tray_efficiency * R/(1+R)
+(D_i/B_i)/(D_j/B_j) = (alpha_i/alpha_j)**N_eff
+```
+
+and then solves a single cut parameter so the requested total distillate amount
+is met exactly. This gives agents a physically interpretable lever: vapor
+pressure, activity model, pressure, reflux, stage count, and tray efficiency all
+affect purity, recovery, energy cost, and risk. The environment's `distill`
+operation now calls this kernel and records the VLE/Fenske metadata in the
+state ledger. The model card exposed through `separation_model_cards()` records
+the inspected IDAES flash/control-volume design, thermo `FlashVL` API, and
+phasepy PT-flash algorithm. This is still a shortcut model, not a full MESH
+column solver.
 
 ## Transport and Heat-Transfer Core
 
