@@ -34,6 +34,8 @@ Current scope:
   baseline drift, detection limits, and replicate measurements.
 - mechanism-backed reactor kernels for batch, semi-batch, CSTR, and PFR
   calculations with material and energy ledgers.
+- an exothermic CSTR multiple-steady-state reference case with analytical
+  energy-balance roots, stability classification, and a reactor model card.
 - local equation-of-state calculations for ideal gas, Peng-Robinson, and SRK
   states with compressibility roots and fugacity coefficients.
 - phase-equilibrium utilities for ideal, Margules, Wilson, and NRTL activity

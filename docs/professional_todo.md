@@ -18,6 +18,10 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
 - Implement local typed APIs with explicit units and JSON-friendly specs.
 - Add model cards, validity ranges, failure modes, and validation tests.
 - Keep optional heavy packages out of the default runtime.
+- Do not open the next-stage professional TODO expansion until the current
+  twelve-area queue is settled; when it is opened, every line must be a concrete
+  implementation slice with reference targets, equations, validation cases, and
+  task integration criteria rather than a proxy placeholder.
 
 ## Module Queue
 
@@ -46,6 +50,7 @@ compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
 5. Add Cantera-comparable irreversible and reversible reaction ODE cases.
    Done in PRO-P5A.
 6. Add a CSTR multiple-steady-state professional example.
+   Done in PRO-P6A.
 7. Replace simple distillation proxy with VLE-coupled shortcut distillation.
 8. Add Beer-Lambert UV-vis model card and calibration validation.
 
@@ -137,3 +142,20 @@ slice:
   third-body effects, pressure dependence, thermochemistry-derived
   equilibrium constants, and heat-release-coupled reactors stay on the next
   professional TODO track.
+
+PRO-P6A is now implemented for the first reference-validated reactor
+multiplicity slice:
+
+- `cstr_multiple_steady_state_reference_case()` exposes a ChemWorld-owned
+  exothermic first-order CSTR case with explicit feed, volume, heat-transfer,
+  coolant, heat-capacity, Arrhenius, and temperature-bound parameters.
+- `solve_cstr_multiple_steady_states()` solves the scalar steady-state energy
+  balance, returns three ignition/extinction roots, and classifies local
+  stability from the dynamic CSTR Jacobian.
+- `CSTRMultiplicitySpec.network()` exposes the corresponding balanced
+  `ReactionNetworkSpec`, keeping reactor examples tied to the shared chemistry
+  representation.
+- `reactor_model_cards()` records assumptions, validity limits, failure modes,
+  inspected Cantera/IDAES references, and analytical validation evidence.
+- This closes a narrow professional slice for multiple steady states. It does
+  not claim full Cantera reactor-network parity or IDAES process-model parity.

@@ -345,6 +345,25 @@ time, and task/world layers define objectives and observations. This makes it
 possible to add semi-batch, CSTR, PFR, reactive flash, and continuous-flow tasks
 without creating separate toy environments.
 
+PRO-P6A adds the first reference-validated reactor multiplicity slice. The
+function `cstr_multiple_steady_state_reference_case()` defines an exothermic
+first-order CSTR with feed concentration, residence time, coolant temperature,
+`UA`, heat-capacity density, heat of reaction, and Arrhenius parameters. The
+solver `solve_cstr_multiple_steady_states()` reduces the coupled steady-state
+material and energy balances to a scalar energy residual,
+
+```text
+0 = (-DeltaH) V k(T) C_A(T) - rhoCp q(T - T_f) - UA(T - T_c)
+C_A(T) = C_Af / (1 + k(T) V/q)
+```
+
+and finds three roots for the default ignition/extinction case. Each root is
+returned with conversion, reaction rate, heat generation, heat removal,
+residual, dynamic-Jacobian eigenvalues, and a stable/unstable/marginal label.
+The model card exposed through `reactor_model_cards()` records the inspected
+Cantera stirred-reactor examples and IDAES CSTR control-volume contract. This
+is a deliberately narrow professional slice, not a full Cantera or IDAES clone.
+
 ## Equation-Of-State Core
 
 The P5 EOS core is implemented in `chemworld.physchem.eos`. It gives ChemWorld a

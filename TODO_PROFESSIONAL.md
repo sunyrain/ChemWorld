@@ -21,6 +21,11 @@ chemistry core.
   `reference_repos/thermopack`, or `reference_repos/rmg-py`.
 - Do not copy source code from reference repositories.
 - Do not mark a task done because a proxy exists.
+- Do not create the next-stage professional TODO expansion until the current
+  twelve-area foundation/professional queue is settled. When it is created,
+  split every module into concrete implementation slices with reference targets,
+  equations, validation cases, and task integration criteria; never pre-fill it
+  with proxy placeholders.
 - A module is complete only when implementation, model card, validity limits,
   failure modes, tests, and at least one controlled validation path exist.
 - If a reference library appears outdated, document the limitation and implement
@@ -67,7 +72,7 @@ Every professional module must ship:
 | PRO-P2A curated vapor-pressure and enthalpy property cases | whilesunny | Done | `chemicals.vapor_pressure`, `chemicals.heat_capacity`, `chemicals.dippr`, `thermo.heat_capacity` | `src/chemworld/physchem/curated_properties.py`, `src/chemworld/physchem/properties.py`, `tests/reference/test_optional_reference_backends.py`, docs | next: extend the curated registry toward critical properties, liquid Cp, latent heat, and CoolProp checks | this commit |
 | PRO-P4A Wilson and full binary NRTL activity models | whilesunny | Done | `thermo.activity`, `thermo.wilson`, `thermo.nrtl`, `phasepy.actmodels` | `src/chemworld/physchem/equilibrium.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add nonideal VLE task cases and Wilson/NRTL parameter-library governance | this commit |
 | PRO-P5A Cantera-comparable irreversible/reversible reaction ODE cases | whilesunny | Done | `cantera` reactor examples, `cantera` reaction-rate APIs, `rmg-py` Arrhenius/reverse-rate APIs | `src/chemworld/physchem/reaction_network.py`, `tests/test_reaction_network.py`, `tests/reference/test_optional_reference_backends.py`, model cards, docs | next: add falloff, third-body, pressure-dependent, and thermochemistry-coupled reverse-rate tasks | this commit |
-| PRO-P6A CSTR multiple-steady-state professional example | whilesunny | Claimed | `cantera` stirred-reactor examples, `idaes-pse` CSTR/control-volume models, nonlinear reactor design equations | `src/chemworld/physchem/reactors.py`, optional reference tests, model cards, docs | read local Cantera/IDAES reactor APIs, then add analytical CSTR ignition/extinction validation slice | pending push |
+| PRO-P6A CSTR multiple-steady-state professional example | whilesunny | Done | `cantera` stirred-reactor examples, `idaes-pse` CSTR/control-volume models, nonlinear reactor design equations | `src/chemworld/physchem/reactors.py`, `tests/test_reactor_models.py`, model cards, docs | next: add Cantera dynamic reactor-net cross-checks and plant-scale heat-transfer variants | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -273,8 +278,8 @@ Reference targets: `Cantera`, `IDAES`.
 - [ ] CSTR:
   - [ ] dynamic startup;
   - [ ] steady-state solve;
-  - [ ] multiple steady-state example;
-  - [ ] stability classification.
+  - [x] multiple steady-state example;
+  - [x] stability classification.
 - [ ] PFR:
   - [ ] axial integration;
   - [ ] heat-transfer profile;
@@ -285,9 +290,27 @@ Reference targets: `Cantera`, `IDAES`.
   - [ ] valves/flow devices;
   - [ ] serial/parallel reactors.
 
+Reference-reading note for PRO-P6A:
+
+- `cantera/doc/sphinx/userguide/reactor-tutorial.md` documents a CSTR as a
+  single well-stirred reactor with inlet/outlet reservoirs and steady-state
+  advancement through `ReactorNet.advance_to_steady_state`.
+- `cantera/samples/python/reactors/continuous_reactor.py` shows the practical
+  stirred-reactor construction using reservoirs, a mass-flow controller,
+  pressure controller, reactor volume, and a reactor network.
+- `idaes-pse/idaes/models/unit_models/cstr.py` builds a 0D control-volume CSTR
+  with material, energy, and momentum balances.
+- The IDAES `cstr_performance_eqn` relates reaction extent to
+  `volume * reaction_rate`, which ChemWorld mirrors in the analytical
+  exothermic CSTR multiplicity slice.
+- ChemWorld's completed slice solves a scalar exothermic first-order CSTR
+  energy-balance problem, finds three steady states, and classifies the
+  stable/unstable/stable branches from the dynamic CSTR Jacobian. This is not a
+  full reactor-network or process-control clone.
+
 Acceptance:
 
-- [ ] Selected reactor cases compare against Cantera or a documented analytical
+- [x] Selected reactor cases compare against Cantera or a documented analytical
       case.
 - [ ] Campaign tasks can select professional reactor kernels.
 
@@ -571,7 +594,7 @@ Acceptance:
 5. `PRO-P5A`: Add Cantera-comparable irreversible and reversible reaction ODE
    cases. Done.
 6. `PRO-P6A`: Add CSTR multiple-steady-state professional example.
-   Claimed by whilesunny.
+   Done.
 7. `PRO-P7A`: Replace simple distillation proxy with VLE-coupled shortcut
    distillation.
 8. `PRO-P10A`: Add Beer-Lambert UV-vis model card and calibration validation.

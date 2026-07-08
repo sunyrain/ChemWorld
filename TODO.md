@@ -429,23 +429,27 @@ Maturity semantics for this section:
 - A module becomes professional-grade only after validity ranges, model-limit
   notes, reference comparisons, failure modes, and task-level integration are
   all documented.
+- The next-stage professional TODO expansion must wait until this twelve-area
+  batch is settled. That later file should decompose every physical module into
+  concrete implementation slices with reference targets and validation cases,
+  not pre-fill the roadmap with proxy placeholders.
 
 Current maturity summary:
 
 | Area | Current maturity | Main reason it is not professional-grade yet |
 | --- | --- | --- |
 | P1 specs/units | Local foundation | Needs broader schema generation and component database governance |
-| P2 properties | Lite/proxy | Several correlations are placeholder/proxy and only a few are reference-checked |
-| P3 reaction networks | Lite | No Cantera-comparable thermochemistry, falloff, pressure dependence, or sensitivity validation |
-| P4 reactors | Lite | Reactor models are ODE benchmark kernels, not industrial reactor-network solvers |
+| P2 properties | Lite with curated reference slice | Broader component coverage, liquid/solid Cp, latent heat, derivatives, and CoolProp checks remain open |
+| P3 reaction networks | Lite with reference ODE slice | No Cantera-comparable thermochemistry, falloff, pressure dependence, or sensitivity validation |
+| P4 reactors | Lite with CSTR multiplicity slice | Reactor models are ODE benchmark kernels, not industrial reactor-network solvers |
 | P5 EOS | Lite | PR/SRK are local implementations without broad property-package validation |
 | P6 phase equilibrium | Lite | No full phase stability, VLLE, Wilson/UNIQUAC, or robust parameter fitting |
 | P7 separations | Proxy/lite | Unit operations are material-conserving benchmark proxies, not rigorous equipment models |
-| P8 transport/heat transfer | Lite | Useful correlations exist, but only limited reference checks are active |
+| P8 transport/heat transfer | Lite with pipe-flow reference slice | Useful correlations exist, but only limited heat-transfer reference checks are active |
 | P9 equilibrium chemistry | Lite/proxy | No Gibbs minimization or database-backed aqueous/mineral equilibrium |
 | P10 scenarios | Lite library | Mechanisms are curated benchmark scenarios, not generated mechanisms |
 | P11 spectroscopy | Synthetic/proxy | Generates realistic signals, not database-grade spectral prediction |
-| P12 reference validation | Partial | Only chemicals, fluids, and thermo ideal VLE cases currently execute |
+| P12 reference validation | Partial | Chemicals, fluids, thermo, and selected Cantera rate checks execute; CoolProp/Reaktoro/pycalphad coverage remains open |
 
 ### P0: Governance, Scope, and Audit
 
@@ -595,7 +599,7 @@ Acceptance tests:
   - [x] steady-state solve;
   - [x] dynamic startup;
   - [x] residence time;
-  - [ ] multiple steady-state example.
+  - [x] multiple steady-state example.
 - [x] PFR:
   - [x] axial coordinate integration;
   - [x] temperature profile;
@@ -641,7 +645,7 @@ Acceptance tests:
 
 - [x] Ideal-solution activity model.
 - [x] Margules binary model.
-- [ ] Wilson-lite.
+- [x] Wilson-lite.
 - [x] NRTL-lite.
 - [ ] UNIQUAC-lite.
 - [x] Binary LLE solver.
@@ -786,17 +790,20 @@ They validate behavior but do not make external packages required.
 - [x] Compare selected property correlations with `chemicals/thermo`.
 - [x] Compare selected fluid calculations with `fluids`.
 - [ ] Compare vapor pressure/enthalpy points with `CoolProp`.
+- [x] Compare selected Arrhenius rate constants with `Cantera`.
 - [ ] Compare simple reaction ODE cases with `Cantera`.
 - [x] Compare simple LLE/VLE cases with `phasepy` or `thermo`.
 - [ ] Compare equilibrium toy cases with `Reaktoro`.
 - [ ] Compare solid-phase toy cases with `pycalphad`.
 
-Current P12 note: the completed property/backend comparison is implemented
-against `chemicals` for ideal-gas molar volume and Rachford-Rice flash, against
-`fluids` for Reynolds and Prandtl numbers, and against `thermo` for a controlled
-ideal Raoult-law bubble/dew/TP-flash VLE case. `phasepy` remains a useful design
-reference, but the local snapshot currently requires a compiled Cython module
-before it can serve as an executable optional backend.
+Current P12 note: the completed executable comparison set includes
+`chemicals` ideal-gas/Rachford-Rice checks, curated DIPPR101 vapor-pressure and
+Poling heat-capacity/enthalpy checks, `fluids` Reynolds/Prandtl/Haaland
+friction/pipe-pressure-drop checks, `thermo` ideal VLE and Wilson/NRTL gamma
+checks, and a selected Cantera `ArrheniusRate` check when Cantera is importable.
+`phasepy` remains a useful design reference, but the local snapshot currently
+requires a compiled Cython module before it can serve as an executable optional
+backend.
 
 Acceptance tests:
 

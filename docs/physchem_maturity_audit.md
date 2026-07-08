@@ -21,7 +21,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Component specs and units | Lite | `chemworld.physchem.specs`, local unit tests | broader curated component database and schema governance |
 | Property correlations | Lite with a reference-validated curated slice | vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against `chemicals` | broader component coverage, liquid/solid Cp, latent heat, derivatives, and CoolProp checks |
 | Reaction networks | Lite with a reference-validated ODE slice | YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check | Cantera-style thermochemistry, falloff, pressure dependence, heat-release-coupled reactor validation |
-| Reactor models | Lite | batch, semi-batch, CSTR, PFR tests | professional reactor-network validation and multiple-steady-state examples |
+| Reactor models | Lite with a reference-validated CSTR multiplicity slice | batch, semi-batch, CSTR, PFR tests; analytical exothermic CSTR three-root ignition/extinction case with stability classification | broader Cantera/IDAES reactor-network validation, pressure modes, and heat-transfer variants |
 | EOS | Lite | ideal gas, PR, SRK tests | residual properties and reference validation against CoolProp/thermo/teqp |
 | Phase equilibrium | Lite with a reference-validated Wilson/NRTL gamma slice | ideal VLE, Wilson/NRTL gamma checks against `thermo`, LLE split tests | UNIQUAC, phase stability, nonideal VLE/LLE task cases |
 | Separations | Proxy/lite | material-conserving extraction, flash, distillation, crystallization, filtration, drying tests | rigorous equipment models and thermodynamic coupling |
@@ -105,3 +105,7 @@ copying the reference implementations.
 - PRO-P4A is implemented: the first nonideal activity-coefficient slice has
   Wilson/NRTL model cards, explicit directional pair-parameter contracts, and
   optional `thermo` reference checks for binary gamma values.
+- PRO-P6A is implemented: the first reactor multiplicity slice has an
+  exothermic CSTR model card, inspected Cantera/IDAES reference notes,
+  analytical steady-state roots, and stable/unstable/stable Jacobian-based
+  classification tests.

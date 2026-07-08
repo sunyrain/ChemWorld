@@ -5,6 +5,7 @@ import pytest
 from chemworld.physchem import (
     BatchReactorModel,
     CSTRModel,
+    CSTRMultiplicitySpec,
     FeedStreamSpec,
     HeatTransferSpec,
     PFRModel,
@@ -14,6 +15,10 @@ from chemworld.physchem import (
     SemiBatchFeedSpec,
     SemiBatchReactorModel,
     SpeciesSpec,
+    cstr_multiple_steady_state_reference_case,
+    reactor_model_cards,
+    solve_cstr_multiple_steady_states,
+    validate_model_card,
 )
 
 
@@ -103,6 +108,57 @@ def test_cstr_conversion_increases_with_residence_time() -> None:
     assert large.material_balance_error_mol < 1e-6
 
 
+def test_cstr_multiple_steady_state_reference_case_has_three_roots() -> None:
+    spec = cstr_multiple_steady_state_reference_case()
+    result = solve_cstr_multiple_steady_states(spec)
+
+    assert len(result.steady_states) == 3
+    assert result.temperatures_k == pytest.approx(
+        (301.09292796381203, 339.9926749511754, 367.1096762683921),
+        rel=1e-8,
+        abs=1e-8,
+    )
+    assert tuple(point.stability for point in result.steady_states) == (
+        "stable",
+        "unstable",
+        "stable",
+    )
+    assert len(result.stable_temperatures_k) == 2
+
+    for point in result.steady_states:
+        assert abs(point.residual_W) <= 1e-6
+        assert point.heat_generation_w == pytest.approx(point.heat_removal_w, abs=1e-6)
+        expected_a = spec.feed_concentration_A_mol_L / (
+            1.0 + spec.rate_constant_s_inv(point.temperature_K) * spec.residence_time_s
+        )
+        assert point.concentration_A_mol_L == pytest.approx(expected_a)
+        assert point.concentration_P_mol_L == pytest.approx(
+            spec.feed_concentration_A_mol_L - expected_a
+        )
+        assert 0.0 < point.conversion < 1.0
+
+
+def test_cstr_multiplicity_spec_exposes_balanced_network() -> None:
+    spec = cstr_multiple_steady_state_reference_case()
+    network = spec.network()
+    assert network.check_element_balance()
+    assert network.reactions[0].delta_h_J_per_mol < 0.0
+    assert network.reactions[0].rate_law.parameters["A"] == spec.arrhenius_A_s_inv
+
+
+def test_reactor_model_cards_document_cstr_multiplicity_slice() -> None:
+    cards = reactor_model_cards()
+    card = next(
+        card
+        for card in cards
+        if card.model_id == "cstr_exothermic_multiplicity_reference"
+    )
+    assert card.maturity.value == "reference_validated"
+    assert validate_model_card(card) == []
+    assert any("Cantera" in note for note in card.reference_reading)
+    assert any("IDAES" in note for note in card.reference_reading)
+
+
 def test_pfr_conversion_increases_with_residence_time() -> None:
     network = _isomerization_network(k=0.08)
     fast = PFRModel(network, reactor_volume_L=0.2, volumetric_flow_L_s=0.01).simulate(
@@ -124,3 +180,18 @@ def test_reactor_models_reject_invalid_specs() -> None:
         CSTRModel(network, FeedStreamSpec({"A": 1.0}, 1.0), volume_L=0.0)
     with pytest.raises(ValueError, match="volumetric_flow_L_s must be positive"):
         PFRModel(network, reactor_volume_L=1.0, volumetric_flow_L_s=0.0)
+    with pytest.raises(ValueError, match="exothermic"):
+        CSTRMultiplicitySpec(
+            case_id="bad",
+            feed_concentration_A_mol_L=1.0,
+            volumetric_flow_L_s=1.0,
+            volume_L=1.0,
+            feed_temperature_K=300.0,
+            coolant_temperature_K=290.0,
+            ua_W_per_K=1.0,
+            rho_cp_J_per_L_K=4180.0,
+            delta_h_J_per_mol=10.0,
+            arrhenius_A_s_inv=1.0,
+            arrhenius_Ea_J_per_mol=10_000.0,
+            temperature_bounds_K=(290.0, 400.0),
+        )
