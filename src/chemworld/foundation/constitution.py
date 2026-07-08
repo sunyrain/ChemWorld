@@ -93,6 +93,12 @@ class PhysicalConstitution:
         "crystal_impurity_mol",
     }
 
+    primary_distillation_output_metadata_keys: ClassVar[set[str]] = {
+        "distillation_active",
+        "distillate_product_mol",
+        "distillate_impurity_mol",
+    }
+
     required_state_units: ClassVar[dict[str, str]] = {
         "volume_L": "L",
         "temperature_K": "K",
@@ -187,7 +193,12 @@ class PhysicalConstitution:
             and "solid" in state.phases.phases
             and sum(state.phases.phases["solid"].species_amounts_mol.values()) > self.tolerance
         )
-        distillate_ready = bool(state.metadata.get("distillation_active", False))
+        distillate_ready = (
+            state.phases is not None
+            and "distillate" in state.phases.phases
+            and sum(state.phases.phases["distillate"].species_amounts_mol.values())
+            > self.tolerance
+        )
         flow_settings = equipment_settings(state.equipment, "flow_reactor")
         potential_settings = equipment_settings(state.equipment, "electrochemical_cell")
         flow_ready = {"flow_rate_mL_min", "residence_time_s"} <= set(flow_settings)
@@ -430,6 +441,11 @@ class PhysicalConstitution:
                 "metadata_no_primary_crystallization_output",
                 self.primary_crystallization_output_metadata_keys.isdisjoint(state.metadata),
                 "Crystallized material amounts must live in typed PhaseLedger.",
+            ),
+            CheckResult(
+                "metadata_no_primary_distillation_output",
+                self.primary_distillation_output_metadata_keys.isdisjoint(state.metadata),
+                "Distillate material amounts must live in typed PhaseLedger.",
             )
         ]
         if state.phases is not None:

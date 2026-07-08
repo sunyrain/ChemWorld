@@ -244,7 +244,7 @@ def test_runtime_distillation_service_is_separate_from_domain_services() -> None
     assert "def distill" in distillation_services
     assert "def collect_fraction" in distillation_services
     assert "vle_shortcut_distillation" in distillation_services
-    assert "distillate_product_mol" in distillation_services
+    assert "distillate_product_mol" not in distillation_services
 
 
 def test_runtime_flow_service_is_separate_from_domain_services() -> None:
@@ -673,6 +673,24 @@ def test_constitution_rejects_primary_crystallization_output_metadata() -> None:
     )
 
 
+def test_constitution_rejects_primary_distillation_output_metadata() -> None:
+    state = initial_chemworld_state().replace(
+        metadata={
+            **initial_chemworld_state().metadata,
+            "distillation_active": True,
+            "distillate_product_mol": 0.002,
+            "distillate_impurity_mol": 0.0001,
+        }
+    )
+    report = make_chemworld_constitution().check_state(state)
+
+    assert not report.passed
+    assert any(
+        check.name == "metadata_no_primary_distillation_output"
+        for check in report.failures()
+    )
+
+
 def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> None:
     flow_env = gym.make("ChemWorld", task_id="flow-reaction-optimization", seed=0)
     electro_env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
@@ -864,6 +882,91 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         assert "crystallization_active" not in state.metadata
         assert "crystal_product_mol" not in state.metadata
         assert "crystal_impurity_mol" not in state.metadata
+        assert env.unwrapped.constitution.check_state(state).passed
+    finally:
+        env.close()
+
+
+def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-distillation", seed=0)
+    try:
+        env.reset(seed=0)
+        species_view = MechanismSpeciesView(
+            env.unwrapped.scenario_instance.compiled_mechanism
+        )
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
+            {
+                "operation": "heat",
+                "target_temperature_K": 385.0,
+                "duration_s": 1500.0,
+                "stirring_speed_rpm": 720.0,
+            },
+            {"operation": "wait", "duration_s": 900.0, "stirring_speed_rpm": 720.0},
+            {"operation": "evaporate", "target_temperature_K": 335.0, "duration_s": 600.0},
+        ):
+            env.step(action)
+
+        _, _, _, _, distill_info = env.step(
+            {
+                "operation": "distill",
+                "target_temperature_K": 360.0,
+                "duration_s": 1500.0,
+                "reflux_ratio": 2.0,
+            }
+        )
+        state = env.unwrapped._state
+        assert distill_info["transaction_status"] == "committed"
+        assert state.phases is not None
+        assert {"distillate", "bottoms"} <= set(state.phases.phases)
+        target_species = species_view.target_species_for_state(state)
+        impurity_species = species_view.impurity_species_for_state(state)
+        distillate_before_collect = state.phases.phases["distillate"]
+        product_before_collect = sum(
+            distillate_before_collect.species_amounts_mol[species_id]
+            for species_id in target_species
+        )
+        impurity_before_collect = sum(
+            distillate_before_collect.species_amounts_mol[species_id]
+            for species_id in impurity_species
+        )
+        assert product_before_collect > 0.0
+        assert distillate_before_collect.selected is True
+        assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
+        assert "distillation_active" not in state.metadata
+        assert "distillate_product_mol" not in state.metadata
+        assert "distillate_impurity_mol" not in state.metadata
+        assert env.unwrapped.constitution.check_preconditions(
+            "collect_fraction",
+            state,
+            {},
+        )["collect_fraction_requires_distillation"]
+        assert env.unwrapped.constitution.check_state(state).passed
+
+        _, _, _, _, collect_info = env.step(
+            {"operation": "collect_fraction", "transfer_fraction": 0.92}
+        )
+        state = env.unwrapped._state
+        distillate_after_collect = state.phases.phases["distillate"]
+        assert collect_info["transaction_status"] == "committed"
+        assert sum(
+            distillate_after_collect.species_amounts_mol[species_id]
+            for species_id in target_species
+        ) == pytest.approx(
+            product_before_collect * 0.92
+        )
+        assert sum(
+            distillate_after_collect.species_amounts_mol[species_id]
+            for species_id in impurity_species
+        ) == pytest.approx(
+            impurity_before_collect * 0.92
+        )
+        assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
+        assert "distillation_active" not in state.metadata
+        assert "distillate_product_mol" not in state.metadata
+        assert "distillate_impurity_mol" not in state.metadata
         assert env.unwrapped.constitution.check_state(state).passed
     finally:
         env.close()

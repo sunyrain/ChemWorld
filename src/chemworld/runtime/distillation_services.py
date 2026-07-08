@@ -17,6 +17,106 @@ def _action_float(action: dict[str, Any], key: str, default: float) -> float:
     return float(np.asarray(value).reshape(-1)[0])
 
 
+def _distillate_phase_amounts(
+    state: WorldState,
+    *,
+    target_species: tuple[str, ...],
+    impurity_species: tuple[str, ...],
+) -> tuple[float, float]:
+    if state.phases is None or "distillate" not in state.phases.phases:
+        return 0.0, 0.0
+    distillate = state.phases.phases["distillate"]
+    return (
+        sum(
+            float(distillate.species_amounts_mol.get(species_id, 0.0))
+            for species_id in target_species
+        ),
+        sum(
+            float(distillate.species_amounts_mol.get(species_id, 0.0))
+            for species_id in impurity_species
+        ),
+    )
+
+
+def _allocated_amounts(
+    source_amounts: dict[str, float],
+    species_ids: tuple[str, ...],
+    total_mol: float,
+) -> dict[str, float]:
+    source_total = sum(
+        max(float(source_amounts.get(species_id, 0.0)), 0.0)
+        for species_id in species_ids
+    )
+    allocated_total = min(max(float(total_mol), 0.0), source_total)
+    if source_total <= 1.0e-12 or allocated_total <= 0.0:
+        return dict.fromkeys(species_ids, 0.0)
+    return {
+        species_id: allocated_total
+        * max(float(source_amounts.get(species_id, 0.0)), 0.0)
+        / source_total
+        for species_id in species_ids
+    }
+
+
+def _distillation_phases(
+    state: WorldState,
+    *,
+    target_species: tuple[str, ...],
+    impurity_species: tuple[str, ...],
+    product_mol: float,
+    impurity_mol: float,
+    distillate_volume_L: float,
+    bottoms_volume_L: float,
+    solvent_loss: float = 0.0,
+    distillate_selected: bool = True,
+) -> PhaseLedger:
+    distillate_amounts = dict.fromkeys(state.species_amounts, 0.0)
+    allocated_targets = _allocated_amounts(
+        state.species_amounts,
+        target_species,
+        product_mol,
+    )
+    allocated_impurities = _allocated_amounts(
+        state.species_amounts,
+        impurity_species,
+        impurity_mol,
+    )
+    for species_id, amount_mol in allocated_targets.items():
+        distillate_amounts[species_id] = amount_mol
+    for species_id, amount_mol in allocated_impurities.items():
+        distillate_amounts[species_id] = amount_mol
+    bottoms_amounts = state.species_amounts.copy()
+    for species_id, amount_mol in distillate_amounts.items():
+        bottoms_amounts[species_id] = max(
+            bottoms_amounts.get(species_id, 0.0) - amount_mol,
+            0.0,
+        )
+    return PhaseLedger(
+        {
+            "bottoms": PhaseRecord(
+                phase_id="bottoms",
+                vessel_id=state.vessel_id,
+                phase_type="liquid",
+                volume_L=max(bottoms_volume_L, 0.0),
+                species_amounts_mol=bottoms_amounts,
+                settled=True,
+                selected=not distillate_selected,
+                metadata={"solvent_loss": solvent_loss},
+            ),
+            "distillate": PhaseRecord(
+                phase_id="distillate",
+                vessel_id=state.vessel_id,
+                phase_type="liquid",
+                volume_L=max(distillate_volume_L, 0.0),
+                species_amounts_mol=distillate_amounts,
+                settled=True,
+                selected=distillate_selected,
+                metadata={"solvent_loss": 0.0},
+            ),
+        }
+    )
+
+
 class ChemWorldDistillationServices:
     """Apply shortcut distillation and fraction collection updates."""
 
@@ -29,6 +129,8 @@ class ChemWorldDistillationServices:
             np.clip(_action_float(action, "target_temperature_K", 345.15), 298.15, 430.0)
         )
         reflux = float(np.clip(_action_float(action, "reflux_ratio", 1.5), 0.0, 10.0))
+        target_species = self.species_view.target_species_for_state(state)
+        impurity_species = self.species_view.impurity_species_for_state(state)
         p_mol = self.species_view.target_amount(state)
         impurity_mol = self.species_view.impurity_amount(state)
         distillate_cut = float(np.clip(0.25 + duration / 9000.0, 0.05, 0.90))
@@ -71,9 +173,6 @@ class ChemWorldDistillationServices:
         metadata = state.metadata.copy()
         metadata.update(
             {
-                "distillation_active": True,
-                "distillate_product_mol": float(distillate_product),
-                "distillate_impurity_mol": float(distillate_impurity),
                 "distillate_purity": float(np.clip(distillate_purity, 0.0, 1.0)),
                 "distillate_recovery": float(np.clip(distillate_product / initial_p, 0.0, 1.0)),
                 "distillation_model": "vle_shortcut_distillation",
@@ -87,17 +186,35 @@ class ChemWorldDistillationServices:
             risk=risk,
             energy_jacket_J=state.ledger.energy_jacket_J + heat_duty,
         )
+        volume_after_distill = max(state.volume_L * 0.62, 0.001)
+        phases = _distillation_phases(
+            state,
+            target_species=target_species,
+            impurity_species=impurity_species,
+            product_mol=distillate_product,
+            impurity_mol=distillate_impurity,
+            distillate_volume_L=volume_after_distill * distillate_cut,
+            bottoms_volume_L=volume_after_distill * max(1.0 - distillate_cut, 0.0),
+        )
         return state.replace(
-            volume_L=max(state.volume_L * 0.62, 0.001),
+            volume_L=volume_after_distill,
             temperature_K=target_temperature,
             ledger=ledger,
             metadata=metadata,
+            phases=phases,
         )
 
     def collect_fraction(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         fraction = float(np.clip(_action_float(action, "transfer_fraction", 0.90), 0.0, 1.0))
-        product = float(state.metadata.get("distillate_product_mol", 0.0)) * fraction
-        impurity = float(state.metadata.get("distillate_impurity_mol", 0.0)) * fraction
+        target_species = self.species_view.target_species_for_state(state)
+        impurity_species = self.species_view.impurity_species_for_state(state)
+        distillate_product, distillate_impurity = _distillate_phase_amounts(
+            state,
+            target_species=target_species,
+            impurity_species=impurity_species,
+        )
+        product = distillate_product * fraction
+        impurity = distillate_impurity * fraction
         purity = product / max(product + impurity, 1.0e-12)
         initial_p = max(
             float(
@@ -113,8 +230,6 @@ class ChemWorldDistillationServices:
         metadata.update(
             {
                 "fraction_collected": True,
-                "distillate_product_mol": product,
-                "distillate_impurity_mol": impurity,
                 "distillate_purity": float(np.clip(purity, 0.0, 1.0)),
                 "distillate_recovery": float(np.clip(product / initial_p, 0.0, 1.0)),
                 "purity": float(np.clip(purity, 0.0, 1.0)),
@@ -122,43 +237,15 @@ class ChemWorldDistillationServices:
             }
         )
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.018)
-        target_species = self.species_view.primary_target_species
-        impurity_species = self.species_view.primary_impurity_species
-        distillate_amounts = dict.fromkeys(state.species_amounts, 0.0)
-        distillate_amounts[target_species] = product
-        distillate_amounts[impurity_species] = impurity
-        bottoms_amounts = state.species_amounts.copy()
-        bottoms_amounts[target_species] = max(
-            bottoms_amounts.get(target_species, 0.0) - product,
-            0.0,
-        )
-        bottoms_amounts[impurity_species] = max(
-            bottoms_amounts.get(impurity_species, 0.0) - impurity,
-            0.0,
-        )
-        phases = PhaseLedger(
-            {
-                "bottoms": PhaseRecord(
-                    phase_id="bottoms",
-                    vessel_id=state.vessel_id,
-                    phase_type="liquid",
-                    volume_L=state.volume_L * max(1.0 - fraction, 0.0),
-                    species_amounts_mol=bottoms_amounts,
-                    settled=True,
-                    selected=False,
-                    metadata={"solvent_loss": float(metadata.get("solvent_loss", 0.0))},
-                ),
-                "distillate": PhaseRecord(
-                    phase_id="distillate",
-                    vessel_id=state.vessel_id,
-                    phase_type="liquid",
-                    volume_L=state.volume_L * fraction,
-                    species_amounts_mol=distillate_amounts,
-                    settled=True,
-                    selected=True,
-                    metadata={"solvent_loss": 0.0},
-                ),
-            }
+        phases = _distillation_phases(
+            state,
+            target_species=target_species,
+            impurity_species=impurity_species,
+            product_mol=product,
+            impurity_mol=impurity,
+            distillate_volume_L=state.volume_L * fraction,
+            bottoms_volume_L=state.volume_L * max(1.0 - fraction, 0.0),
+            solvent_loss=float(metadata.get("solvent_loss", 0.0)),
         )
         return state.replace(
             volume_L=state.volume_L * fraction,

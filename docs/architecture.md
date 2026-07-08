@@ -70,8 +70,8 @@ The runtime is organized around:
   and crystal filtration ledger updates;
 - `ChemWorldDistillationServices`, implemented in
   `runtime/distillation_services.py`, which owns shortcut VLE distillation,
-  distillate purity/recovery metadata, heat-duty/cost/risk ledger updates, and
-  fraction collection;
+  typed distillate/bottoms output phases, distillate purity/recovery metadata,
+  heat-duty/cost/risk ledger updates, and fraction collection;
 - `ChemWorldElectrochemicalServices`, implemented in
   `runtime/electrochemical_services.py`, which owns potential/current setup,
   electrochemical mechanism binding, Nernst/Butler-Volmer electrolysis calls,

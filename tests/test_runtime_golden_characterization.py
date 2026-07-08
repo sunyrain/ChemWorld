@@ -251,6 +251,9 @@ def test_runtime_v2_golden_scripted_final_assay(
             "crystallization_active",
             "crystal_product_mol",
             "crystal_impurity_mol",
+            "distillation_active",
+            "distillate_product_mol",
+            "distillate_impurity_mol",
         }.isdisjoint(env.unwrapped._state.metadata)
 
         if task.episode_mode == "campaign":
