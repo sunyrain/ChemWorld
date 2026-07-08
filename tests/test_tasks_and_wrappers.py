@@ -329,3 +329,25 @@ def test_flow_and_electrochemistry_campaigns_produce_process_assays() -> None:
     assert float(electro_obs["electrochemical_selectivity"][0]) >= 0.0
     assert float(electro_obs["energy_efficiency"][0]) >= 0.0
 
+
+def test_electrolysis_info_reports_charge_and_overpotential() -> None:
+    env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
+    try:
+        env.reset()
+        sequence = [
+            {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0},
+            {"operation": "electrolyze", "duration_s": 1800.0},
+        ]
+        info = {}
+        for action in sequence:
+            _, _, _, _, info = env.step(action)
+        summary = info["state_delta_summary"]
+        assert summary["charge_C"] > 0.0
+        assert summary["faradaic_charge_C"] > 0.0
+        assert "overpotential_V" in summary
+        assert "equilibrium_potential_V" in summary
+        assert 0.0 <= summary["faradaic_efficiency"] <= 1.0
+    finally:
+        env.close()

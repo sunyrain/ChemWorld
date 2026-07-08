@@ -299,3 +299,26 @@ chemistry Gibbs-minimization slice:
   pycalphad `conditions + phases + GM/MU` architecture.
 - This is not a database-backed aqueous speciation solver, a Reaktoro clone, or
   a CALPHAD global phase-selection algorithm.
+
+PRO-P9B is now implemented for the first electrochemical thermodynamics and
+charge-accounting slice:
+
+- `ElectrodeReactionSpec` declares electron number, standard potential,
+  reaction-quotient exponents, exchange-current density, electrode area, charge
+  transfer coefficients, Faradaic efficiency, and selectivity parameters.
+- `nernst_potential()` implements `E_eq = E0 - RT/(nF) ln Q`.
+- `butler_volmer_current()` implements signed Butler-Volmer current with the
+  usual anodic/cathodic exponential branches and bounded exponents for
+  numerical stability.
+- `faradaic_extent_mol()` and `run_electrolysis()` convert current and duration
+  into reaction extent, product/byproduct amounts, Faradaic charge, electrical
+  work, reversible-work proxy, and energy efficiency.
+- The `electrolyze` operation in `ChemWorld` now records equilibrium potential,
+  overpotential, kinetic/current-limited current, charge, Faradaic charge,
+  Faradaic efficiency, and electrical work in the operation summary.
+- `electrochemical-conversion` task maturity now reports
+  `nernst_butler_volmer_faradaic_v1` rather than the old electrochemistry proxy.
+- This is not a full electrochemical-cell or battery simulator. Ohmic drop,
+  double-layer dynamics, explicit mass-transfer limiting current, porous
+  electrodes, electrolyte speciation, and potentiostatic/galvanostatic
+  controllers remain deepening tasks.

@@ -15,6 +15,7 @@ from chemworld.foundation import (
     Vessel,
     WorldState,
 )
+from chemworld.physchem.electrochemistry import ElectrodeReactionSpec, run_electrolysis
 from chemworld.physchem.separations import vle_shortcut_distillation
 from chemworld.world.instruments import chemworld_instruments
 from chemworld.world.observation_kernel import (
@@ -755,32 +756,65 @@ class ChemWorldTransitionKernel(TransitionKernel):
     def _electrolyze(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         duration = float(np.clip(_action_float(action, "duration_s", 900.0), 0.0, 14_400.0))
         potential = float(state.metadata.get("potential_V", 1.20))
-        current = float(state.metadata.get("current_mA", 50.0))
+        current_mA = float(state.metadata.get("current_mA", 50.0))
         species = state.species_amounts.copy()
         a_mol = species.get("A", 0.0)
-        charge_factor = float(np.clip(current * duration / 1_800_000.0, 0.0, 0.85))
-        selectivity = float(
-            np.clip(
-                0.78 - 0.18 * abs(potential - 1.20) + 0.08 * (potential > 0.8),
-                0.20,
-                0.92,
-            )
+        volume = max(state.volume_L, 1.0e-9)
+        catalyst = int(state.metadata.get("catalyst", 0))
+        solvent = int(state.metadata.get("solvent", 0))
+        exchange_current_density = 28.0 * float(self.world.catalyst_effects[catalyst, 0])
+        exchange_current_density *= float(self.world.solvent_effects[solvent, 0])
+        electrochemical_spec = ElectrodeReactionSpec(
+            reaction_id="A_to_P_electrochemical",
+            electrons_transferred=2.0,
+            standard_potential_V=1.05,
+            reaction_quotient_exponents={"P": 1.0, "A": -1.0},
+            exchange_current_density_A_m2=exchange_current_density,
+            electrode_area_m2=0.004,
+            faradaic_efficiency_ref=0.91,
+            product_selectivity_ref=0.90,
+            overpotential_selectivity_sensitivity_V_inv=0.45,
         )
-        converted = min(a_mol, a_mol * charge_factor)
-        species["A"] = a_mol - converted
-        species["P"] += converted * selectivity
-        species["B"] += converted * (1.0 - selectivity)
-        energy_j = abs(potential) * current / 1000.0 * duration
+        activities = {
+            "A": max(a_mol / volume, 1.0e-12),
+            "P": max(species.get("P", 0.0) / volume, 1.0e-12),
+        }
+        result = run_electrolysis(
+            electrochemical_spec,
+            electrode_potential_V=potential,
+            duration_s=duration,
+            activities=activities,
+            available_substrate_mol=a_mol,
+            temperature_K=state.temperature_K,
+            applied_current_A=current_mA / 1000.0,
+        )
+        species["A"] = a_mol - result.converted_mol
+        species["P"] += result.product_mol
+        species["B"] += result.byproduct_mol
         metadata = state.metadata.copy()
-        metadata["electrochemical_selectivity"] = selectivity
-        metadata["energy_efficiency"] = float(
-            np.clip(selectivity * (1.0 - energy_j / 75_000.0), 0.0, 1.0)
-        )
+        metadata["electrochemical_model"] = "nernst_butler_volmer_faradaic_v1"
+        metadata["electrochemical_selectivity"] = result.product_selectivity
+        metadata["faradaic_efficiency"] = result.faradaic_efficiency
+        metadata["energy_efficiency"] = result.energy_efficiency
+        metadata["equilibrium_potential_V"] = result.equilibrium_potential_V
+        metadata["overpotential_V"] = result.overpotential_V
+        metadata["kinetic_current_A"] = result.kinetic_current_A
+        metadata["actual_current_A"] = result.actual_current_A
+        metadata["charge_C"] = result.charge_C
+        metadata["faradaic_charge_C"] = result.faradaic_charge_C
+        metadata["electrical_work_J"] = result.electrical_work_J
+        overpotential_risk = max(abs(result.overpotential_V) - 0.35, 0.0)
         ledger = state.ledger.with_updates(
             time_s=state.ledger.time_s + duration,
-            cost=state.ledger.cost + 0.018 + energy_j / 250_000.0,
-            risk=min(1.0, state.ledger.risk + 0.02 + 0.03 * abs(potential)),
-            energy_jacket_J=state.ledger.energy_jacket_J + energy_j,
+            cost=state.ledger.cost + 0.018 + result.electrical_work_J / 250_000.0,
+            risk=min(
+                1.0,
+                state.ledger.risk
+                + 0.015
+                + 0.025 * abs(potential)
+                + 0.035 * overpotential_risk,
+            ),
+            energy_jacket_J=state.ledger.energy_jacket_J + result.electrical_work_J,
         )
         return state.replace(species_amounts=species, ledger=ledger, metadata=metadata)
 
@@ -897,16 +931,29 @@ class ChemWorldTransitionKernel(TransitionKernel):
             if preconditions_passed:
                 measurement_cost = self.constitution.instruments[instrument].cost
                 sample_consumed = self.constitution.instruments[instrument].sample_volume_L
+        state_delta_summary = {
+            "delta_time_s": after.ledger.time_s - before.ledger.time_s,
+            "delta_cost": after.ledger.cost - before.ledger.cost,
+            "delta_risk": after.ledger.risk - before.ledger.risk,
+            "delta_temperature_K": after.temperature_K - before.temperature_K,
+            "delta_volume_L": after.volume_L - before.volume_L,
+        }
+        if operation == "electrolyze":
+            for key in (
+                "equilibrium_potential_V",
+                "overpotential_V",
+                "actual_current_A",
+                "charge_C",
+                "faradaic_charge_C",
+                "faradaic_efficiency",
+                "electrical_work_J",
+            ):
+                if key in after.metadata:
+                    state_delta_summary[key] = after.metadata[key]
         return OperationRecord(
             operation_type=operation,
             preconditions=preconditions,
-            state_delta_summary={
-                "delta_time_s": after.ledger.time_s - before.ledger.time_s,
-                "delta_cost": after.ledger.cost - before.ledger.cost,
-                "delta_risk": after.ledger.risk - before.ledger.risk,
-                "delta_temperature_K": after.temperature_K - before.temperature_K,
-                "delta_volume_L": after.volume_L - before.volume_L,
-            },
+            state_delta_summary=state_delta_summary,
             constitution_checks=[check.to_dict() for check in checks],
             instrument=instrument,
             measurement_cost=measurement_cost,

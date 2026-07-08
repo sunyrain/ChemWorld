@@ -53,6 +53,9 @@ Current scope:
   extents, van't Hoff equilibrium constants, fixed-TP ideal Gibbs minimization,
   weak-acid pH, water ion product, precipitation, charge balance, ionic
   strength, and solid solubility.
+- electrochemical thermodynamics and charge accounting for Nernst equilibrium
+  potentials, Butler-Volmer currents, Faraday charge-to-extent conversion,
+  Faradaic efficiency, and electrical-work ledgers.
 - downstream separation unit operations for multistage extraction,
   evaporation, VLE-coupled shortcut distillation, crystallization, filtration,
   drying, and purity/recovery/cost/risk scoring.
@@ -89,6 +92,10 @@ Design rules:
 - keep reaction-equilibrium and electrolyte models explicit about fixed
   constraints, supplied Gibbs energies, activity proxies, charge balance, phase
   restrictions, saturation state, and nonnegative extents or species amounts;
+- keep electrochemical models explicit about sign conventions, electron number,
+  activities, overpotential, Faradaic charge, electrical work, and the absence
+  of full-cell effects such as ohmic drop or double-layer dynamics unless those
+  effects have their own validated slice;
 - keep unit-operation results as named outlet streams plus cost, risk,
   heat-duty, solvent-loss, and material-balance ledgers;
 - keep transport/equipment calculations explicit about SI units, flow regime,

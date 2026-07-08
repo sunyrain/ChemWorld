@@ -196,6 +196,24 @@ Last push:
   commit hash, dependency lock, optional backend versions, numerical tolerances,
   and hidden-scenario salt policy.
 
+### D11 Electrochemistry And Electrode Processes
+
+- [ ] `DEEP-D11A` ohmic-drop and electrolyte-resistance slice:
+  solution resistance, uncompensated resistance, measured vs interfacial
+  potential, energy-loss accounting, and potential-control failure modes.
+- [ ] `DEEP-D11B` mass-transfer limiting-current slice:
+  diffusion-layer approximation, limiting current, concentration depletion,
+  current-efficiency loss, and validation cases with analytical plateaus.
+- [ ] `DEEP-D11C` potentiostatic and galvanostatic controllers:
+  controller semantics, current/potential clipping, ramp/hold recipes,
+  operation logs, and replay-verification contracts.
+- [ ] `DEEP-D11D` double-layer and capacitive-current slice:
+  RC transient response, non-Faradaic current, startup artifacts, and instrument
+  observations for current traces.
+- [ ] `DEEP-D11E` electrochemical scenario cards:
+  redox couple metadata, electrode area, electrolyte window, side-reaction
+  thresholds, and public/private hidden-parameter generation.
+
 ## Activation Checklist
 
 - [ ] The first twelve items in `TODO_PROFESSIONAL.md` are complete and pushed.

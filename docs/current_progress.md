@@ -72,8 +72,9 @@ Year 2 process modules extend the same shared world law with:
   purity, distillate recovery, solvent loss, energy cost, and thermal risk;
 - continuous flow: flow-rate setup, residence-time control, flow conversion,
   and safety-aware flow reaction projection;
-- electrochemistry: potential/current setup, electrolysis, selectivity, energy
-  efficiency, and electrical risk proxy.
+- electrochemistry: potential/current setup, Nernst equilibrium potential,
+  Butler-Volmer kinetic current, Faraday charge-to-extent conversion,
+  selectivity, energy efficiency, and electrical risk accounting.
 
 ## Foundation Layer
 

@@ -84,7 +84,7 @@ Every professional module must ship:
 | PRO-P11A maturity metadata exports and submission summaries | liyijun | Claimed | Gymnasium, Minari, Safety-Gymnasium result-metadata patterns | `src/chemworld/tasks.py`, `src/chemworld/eval/baseline_report.py`, `docs/baseline_reference.md`, `tests/test_maturity.py`, `tests/test_baselines.py` | expose physics maturity in benchmark exports and prevent silent proxy/professional result mixing | pending push |
 | PRO-P12B validation summary export and optional-backend skip audit | liyijun | Claimed | current optional reference-backend tests and pytest skip patterns | `src/chemworld/physchem/reference_validation.py`, `tests/test_reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | add JSON-friendly comparison summaries and document skipped optional reference backends | pending push |
 | PRO-P9A Gibbs minimization toy solver | whilesunny | Done | `Reaktoro` equilibrium specs, Cantera equilibrate constraints, `pycalphad` Gibbs model architecture | `src/chemworld/physchem/equilibrium_chemistry.py`, `src/chemworld/physchem/maturity.py`, `tests/test_equilibrium_chemistry.py`, `tests/test_maturity.py`, model cards, docs | next: add aqueous database-backed speciation or electrochemical thermodynamics in a separate slice | this commit |
-| PRO-P9B electrochemical thermodynamics and Butler-Volmer slice | whilesunny | Claimed | Cantera electrochemical examples, electrochemical equilibrium docs, existing ChemWorld electrochemistry proxy | `src/chemworld/physchem/electrochemistry.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/world/electrochemistry.py`, tests, docs | read local electrochemical reference examples, then add Nernst potential, Butler-Volmer current, Faradaic conversion, and energy accounting | pending push |
+| PRO-P9B electrochemical thermodynamics and Butler-Volmer slice | whilesunny | Done | Cantera electrochemical examples, electrochemical equilibrium docs, existing ChemWorld electrochemistry proxy | `src/chemworld/physchem/electrochemistry.py`, `src/chemworld/core/batch_reactor.py`, `src/chemworld/world/electrochemistry.py`, tests, docs | next: add ohmic drop, mass-transfer limiting current, and galvanostatic/potentiostatic controller slices in the deepening TODO | this commit |
 
 ## P0: Governance And Model Maturity
 
@@ -275,7 +275,7 @@ Reference targets: `Cantera`, `RMG-Py`, `thermo`.
   - [ ] falloff/Troe-style placeholder with validation target;
   - [ ] pressure-dependent hooks;
   - [ ] heterogeneous catalytic rate template;
-  - [ ] Butler-Volmer electrochemical rate.
+  - [x] Butler-Volmer electrochemical rate.
 - [ ] Sensitivity hooks:
   - [ ] finite-difference sensitivities;
   - [ ] local parameter perturbation reports.
@@ -464,10 +464,10 @@ Reference targets: `Reaktoro`, `Cantera`, `pycalphad`.
   - [ ] phase-fraction solve;
   - [ ] phase-boundary task later.
 - [ ] Electrochemistry:
-  - [ ] Nernst potential;
-  - [ ] Butler-Volmer kinetics;
-  - [ ] Faradaic efficiency;
-  - [ ] energy accounting.
+  - [x] Nernst potential;
+  - [x] Butler-Volmer kinetics;
+  - [x] Faradaic efficiency;
+  - [x] energy accounting.
 
 Acceptance:
 

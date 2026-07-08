@@ -10,12 +10,13 @@ from chemworld.world.operations import ELECTROCHEMISTRY_OPERATIONS
 @dataclass(frozen=True)
 class ElectrochemistryModuleSpec:
     module_id: str = "electrochemistry"
-    version: str = "0.1"
+    version: str = "0.2"
     operations: tuple[str, ...] = ELECTROCHEMISTRY_OPERATIONS
     laws: tuple[str, ...] = (
-        "charge_controls_conversion_proxy",
-        "potential_controls_selectivity",
-        "electrical_energy_efficiency",
+        "nernst_equilibrium_potential",
+        "butler_volmer_current",
+        "faradaic_charge_to_extent",
+        "electrical_work_accounting",
     )
 
     def to_dict(self) -> dict[str, object]:
@@ -26,7 +27,9 @@ class ElectrochemistryModuleSpec:
             "laws": list(self.laws),
             "tracked_metrics": [
                 "electrochemical_selectivity",
+                "faradaic_efficiency",
                 "energy_efficiency",
+                "charge_C",
                 "yield",
             ],
         }

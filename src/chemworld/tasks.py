@@ -334,9 +334,12 @@ def default_kernel_maturity(
         modules.append(
             ModuleMaturity(
                 "electrochemistry",
-                MaturityLevel.PROXY,
-                model_ids=("chemworld_electrochemistry_proxy",),
-                notes=("Electrochemistry lacks Butler-Volmer and charge accounting.",),
+                MaturityLevel.REFERENCE_VALIDATED,
+                model_ids=("nernst_butler_volmer_faradaic_v1",),
+                notes=(
+                    "Electrochemistry uses Nernst potential, Butler-Volmer current, "
+                    "Faraday charge accounting, and electrical work ledgers.",
+                ),
             )
         )
     if operations.intersection({"separate_phase", "wash", "dry", "concentrate"}):

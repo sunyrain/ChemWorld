@@ -38,6 +38,7 @@ with proxies and then call them professional.
 | Equipment and safety | phase-change heat transfer, two-phase pressure drop, relief envelope, equipment cards |
 | Instruments | HPLC/GC method sensitivity, IR, NMR, MS |
 | Benchmark datasets | maturity gates, dataset exports, official reports, solver manifests |
+| Electrochemistry | ohmic drop, limiting current, controller modes, capacitive current, scenario cards |
 
 ## First Deepening Candidates
 
@@ -51,6 +52,8 @@ Do not start these until the current twelve-slice batch is complete.
 6. `DEEP-D10A`: benchmark model-maturity gate.
 7. `DEEP-D8A`: phase-change and equipment heat transfer beyond the completed
    single-phase Nusselt/e-NTU slice.
+8. `DEEP-D11A`: electrochemical ohmic-drop and electrolyte-resistance slice.
+9. `DEEP-D11B`: mass-transfer limiting-current slice for electrode processes.
 
 For the complete checklist, use the root file
 `TODO_PROFESSIONAL_DEEPENING.md`.

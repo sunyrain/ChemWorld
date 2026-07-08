@@ -195,7 +195,7 @@ Current mechanism coverage:
 | `reactive_distillation_lite` | reversible esterification with volatile pseudo-species |
 | `cstr_multiplicity` | exothermic autocatalytic continuous-reactor slice |
 | `pfr_hotspot` | PFR hotspot and heat-removal planning slice |
-| `electrochemical_conversion` | electrochemical selectivity and energy proxy |
+| `electrochemical_conversion` | Nernst/BV/Faraday electrochemical conversion slice |
 
 The companion scenario cards live in
 `configs/scenarios/mechanism_scenarios.yaml`. Each card declares:
@@ -296,6 +296,33 @@ expose the hidden state ledger. Agents see only plot-ready raw signals,
 calibrated estimates, uncertainty, instrument cost, and sample consumption.
 This preserves partial observability while making HPLC/GC/UV-vis/IR/NMR outputs
 depend on the actual mechanism state rather than only on aggregate score fields.
+
+## Electrochemistry
+
+The PRO-P9B electrochemistry core is implemented in
+`chemworld.physchem.electrochemistry` and connected to the
+`electrochemical-conversion` task through the shared `ChemWorld` transition
+kernel.
+
+The current slice uses the standard relations:
+
+```text
+E_eq = E0 - RT/(nF) ln Q
+i = i0 A [exp(alpha_a nF eta/RT) - exp(-alpha_c nF eta/RT)]
+extent = |i| t FE / (nF)
+W_elec = |E_cell i t|
+```
+
+The environment now records equilibrium potential, overpotential,
+Butler-Volmer kinetic current, actual current, charge, Faradaic charge,
+Faradaic efficiency, electrical work, selectivity, and energy efficiency in the
+operation summary. This replaces the earlier unlabeled electrolysis proxy.
+
+This is still a scoped benchmark electrochemistry kernel. It does not yet solve
+ohmic drop, explicit mass-transfer limiting current, double-layer dynamics,
+porous electrode structure, electrolyte speciation, or full potentiostatic and
+galvanostatic controller dynamics. Those are tracked as professional-deepening
+items.
 
 ## Optional Reference Backend Validation
 
