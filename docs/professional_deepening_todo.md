@@ -24,6 +24,12 @@ with proxies and then call them professional.
 - A slice is done only when code, tests, model card, docs, validation examples,
   and task integration are present.
 
+## Active Deepening Work
+
+| ID | Owner | Status | Scope |
+| --- | --- | --- | --- |
+| `DEEP-D6A` | whilesunny | Claimed | Dynamic batch reactor with reaction heat release, jacket control, variable-volume sampling losses, event-driven reset policy, tests, model card, docs, and task integration. |
+
 ## Module Families
 
 | Family | Deepening target |
