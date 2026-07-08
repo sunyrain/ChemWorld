@@ -75,6 +75,7 @@ finished, update its status and push immediately.
 | PRO-RUNTIME-A compiled reaction integrator | whilesunny | Done | `src/chemworld/runtime/mechanisms.py`, `src/chemworld/world/reaction_kernel.py`, `src/chemworld/runtime/reaction_thermal_services.py`, tests/docs | heat/wait and flow reaction advancement now use compiled mechanism species, stoichiometry, rate laws, and reaction enthalpies; mechanism initial-amount policy now drives multi-reactant reagent charging | this commit |
 | PRO-RUNTIME-A runtime compiled mechanism required | whilesunny | Done | `src/chemworld/runtime/reaction_thermal_services.py`, `src/chemworld/world/reaction_kernel.py`, `src/chemworld/runtime/species.py`, tests/docs | reaction/thermal runtime now requires compiled mechanisms, no longer calls `reaction_backend_species_map`, and guards against missing compiled mechanisms with regression tests | this commit |
 | PRO-RUNTIME-A seven-slot reference quarantine | whilesunny | Done | `src/chemworld/world/reaction_kernel.py`, `src/chemworld/world/reaction_reference.py`, tests/docs | fixed A/P/B/D/E ODE is now quarantined in an explicit reference fixture; ordinary reaction kernel declares compiled-mechanism runtime only and architecture tests block runtime imports | this commit |
+| PRO-RUNTIME-A compiled mechanism required across runtime services | whilesunny | Active | `src/chemworld/runtime/`, tests/docs | remove optional compiled-mechanism service constructors and generic legacy species defaults from ordinary runtime role resolution | pending |
 
 Status values:
 
