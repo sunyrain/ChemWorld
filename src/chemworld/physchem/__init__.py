@@ -61,6 +61,19 @@ from chemworld.physchem.equilibrium_chemistry import (
     solve_reaction_extent,
     water_ion_product,
 )
+from chemworld.physchem.mechanism_library import (
+    MECHANISM_SCENARIO_SCHEMA_VERSION,
+    MechanismLibraryValidationReport,
+    MechanismScenarioCard,
+    get_mechanism_card,
+    list_mechanism_cards,
+    list_mechanism_paths,
+    load_library_mechanism,
+    mechanism_library_root,
+    mechanism_scenario_library_path,
+    repository_root,
+    validate_mechanism_library,
+)
 from chemworld.physchem.properties import (
     ComponentPropertyPackage,
     PropertyEvaluation,
@@ -138,6 +151,7 @@ from chemworld.physchem.transport import (
 )
 
 __all__ = [
+    "MECHANISM_SCENARIO_SCHEMA_VERSION",
     "AcidBaseResult",
     "ActivityModelSpec",
     "BatchIntegrationResult",
@@ -163,6 +177,8 @@ __all__ = [
     "HeatTransferResult",
     "HeatTransferSpec",
     "LLEStageResult",
+    "MechanismLibraryValidationReport",
+    "MechanismScenarioCard",
     "MixtureSpec",
     "PFRModel",
     "PackedBedResult",
@@ -206,6 +222,7 @@ __all__ = [
     "filter_cake",
     "flash_isothermal",
     "flow_regime",
+    "get_mechanism_card",
     "heat_exchanger_counterflow",
     "hill_formula",
     "homogeneous_two_phase_pressure_drop",
@@ -218,9 +235,14 @@ __all__ = [
     "jacket_heat_transfer",
     "liquid_liquid_extraction",
     "liquid_liquid_split",
+    "list_mechanism_cards",
+    "list_mechanism_paths",
+    "load_library_mechanism",
     "load_mechanism",
     "mass_fractions_from_formula",
     "mass_fractions_from_mole_fractions",
+    "mechanism_library_root",
+    "mechanism_scenario_library_path",
     "mixing_power",
     "mixture_density",
     "mixture_viscosity_log_rule",
@@ -243,6 +265,7 @@ __all__ = [
     "reaction_extent_bounds",
     "reaction_quotient",
     "reaction_quotient_log",
+    "repository_root",
     "reynolds_number",
     "select_cubic_root",
     "sensible_enthalpy_change",
@@ -252,6 +275,7 @@ __all__ = [
     "solve_monoprotic_acid_base",
     "solve_reaction_extent",
     "thermal_hazard_proxy",
+    "validate_mechanism_library",
     "volatility_risk_from_psat",
     "water_ion_product",
 ]

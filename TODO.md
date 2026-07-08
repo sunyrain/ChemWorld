@@ -25,7 +25,7 @@ finished, update its status and push immediately.
 | P7 separation and unit operations | whilesunny | Done | `src/chemworld/physchem/separations.py`, `tests/`, `docs/physchem_core_design.md` | next: implement fluid mechanics and heat-transfer utilities in P8, then wire separations into world tasks | this commit |
 | P8 fluid mechanics and heat transfer | whilesunny | Done | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `docs/physchem_core_design.md` | next: implement equilibrium chemistry in P9, then connect transport signals into world tasks and scoring | this commit |
 | P9 equilibrium chemistry | whilesunny | Done | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/test_equilibrium_chemistry.py`, `docs/physchem_core_design.md` | next: expand mechanism and scenario library in P10 using the generalized physchem kernels | this commit |
-| P10 mechanism and scenario library | whilesunny | Active | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/physchem/mechanism_library.py`, `tests/`, `docs/physchem_core_design.md` | read Cantera/Reaktoro/RMG mechanism-library patterns, then add curated mechanisms, scenario cards, qualitative behavior metadata, and loader validation | pending |
+| P10 mechanism and scenario library | whilesunny | Done | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/physchem/mechanism_library.py`, `tests/`, `docs/physchem_core_design.md` | next: start P11 instrument and spectroscopy coupling using mechanism targets and impurity species | this commit |
 
 Status values:
 
@@ -696,22 +696,22 @@ Acceptance tests:
 
 ### P10: Mechanism and Scenario Library
 
-- [ ] `mechanisms/simple_batch_reaction.yaml`
-- [ ] `mechanisms/parallel_series_reaction.yaml`
-- [ ] `mechanisms/reversible_reaction.yaml`
-- [ ] `mechanisms/catalyst_deactivation.yaml`
-- [ ] `mechanisms/autocatalytic_reaction.yaml`
-- [ ] `mechanisms/reaction_extraction.yaml`
-- [ ] `mechanisms/reactive_distillation_lite.yaml`
-- [ ] `mechanisms/cstr_multiplicity.yaml`
-- [ ] `mechanisms/pfr_hotspot.yaml`
-- [ ] `mechanisms/electrochemical_conversion.yaml`
+- [x] `mechanisms/simple_batch_reaction.yaml`
+- [x] `mechanisms/parallel_series_reaction.yaml`
+- [x] `mechanisms/reversible_reaction.yaml`
+- [x] `mechanisms/catalyst_deactivation.yaml`
+- [x] `mechanisms/autocatalytic_reaction.yaml`
+- [x] `mechanisms/reaction_extraction.yaml`
+- [x] `mechanisms/reactive_distillation_lite.yaml`
+- [x] `mechanisms/cstr_multiplicity.yaml`
+- [x] `mechanisms/pfr_hotspot.yaml`
+- [x] `mechanisms/electrochemical_conversion.yaml`
 
 Acceptance tests:
 
-- [ ] Every mechanism loads from file.
-- [ ] Every mechanism passes conservation checks.
-- [ ] Every mechanism has a task card and expected qualitative behavior.
+- [x] Every mechanism loads from file.
+- [x] Every mechanism passes conservation checks.
+- [x] Every mechanism has a task card and expected qualitative behavior.
 
 ### P11: Instrument and Spectroscopy Coupling
 

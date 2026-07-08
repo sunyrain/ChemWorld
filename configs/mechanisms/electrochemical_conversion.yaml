@@ -1,0 +1,69 @@
+network_id: electrochemical_conversion
+metadata:
+  description: >
+    Compact electrochemical-selectivity proxy represented as balanced redox
+    pseudo-species without explicit electron bookkeeping.
+  mechanism_family: electrochemical
+  qualitative_tags: [potential_selectivity, current_efficiency, energy_tradeoff]
+species:
+  - species_id: Ox
+    formula: C6H10O5
+    phase: liquid
+    observable_aliases: [oxidized_reactant]
+  - species_id: Red
+    formula: C6H10O5
+    phase: liquid
+    observable_aliases: [reduced_product]
+  - species_id: IsoRed
+    formula: C6H10O5
+    phase: liquid
+    observable_aliases: [isomeric_byproduct]
+  - species_id: D
+    formula: C6H10O5
+    phase: liquid
+    observable_aliases: [overreduction_product]
+  - species_id: Coupled
+    formula: C12H20O10
+    phase: liquid
+    observable_aliases: [dimer_impurity]
+reactions:
+  - reaction_id: desired_reduction
+    equation: Ox => Red
+    delta_h_J_per_mol: -18000.0
+    rate_law:
+      rate_law_id: desired_electrochemical_rate
+      equation_id: arrhenius
+      parameters:
+        A: 0.022
+        Ea_J_per_mol: 12000.0
+        potential_window_V: [-0.9, -0.55]
+        current_efficiency: 0.82
+  - reaction_id: isomeric_side_path
+    equation: Ox => IsoRed
+    delta_h_J_per_mol: -12000.0
+    rate_law:
+      rate_law_id: side_electrochemical_rate
+      equation_id: arrhenius
+      parameters:
+        A: 0.01
+        Ea_J_per_mol: 9000.0
+        potential_window_V: [-1.2, -0.75]
+        current_efficiency: 0.36
+  - reaction_id: overreduction
+    equation: Red => D
+    delta_h_J_per_mol: 6000.0
+    rate_law:
+      rate_law_id: overreduction_rate
+      equation_id: arrhenius
+      parameters:
+        A: 0.0025
+        Ea_J_per_mol: 8000.0
+        potential_window_V: [-1.4, -0.95]
+  - reaction_id: coupling_impurity
+    equation: Ox + Red => Coupled
+    delta_h_J_per_mol: -6000.0
+    rate_law:
+      rate_law_id: coupling_rate
+      equation_id: mass_action
+      parameters:
+        k: 0.0012

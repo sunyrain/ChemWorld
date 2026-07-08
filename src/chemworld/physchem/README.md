@@ -18,6 +18,9 @@ Current scope:
 - general reaction-network specs for species, reactions, stoichiometric
   matrices, element-balance checks, YAML/JSON mechanism loading, rate-law
   evaluation, and deterministic batch ODE integration.
+- a curated mechanism/scenario library with balanced mechanism files, task
+  cards, default initial states, operating windows, qualitative behavior
+  metadata, and a programmatic validation report.
 - mechanism-backed reactor kernels for batch, semi-batch, CSTR, and PFR
   calculations with material and energy ledgers.
 - local equation-of-state calculations for ideal gas, Peng-Robinson, and SRK
@@ -42,6 +45,8 @@ Design rules:
   fractions;
 - keep property correlations separate from component identity;
 - keep mechanism definitions separate from reactor and task logic;
+- keep mechanism scenario cards as the bridge between physical mechanism,
+  benchmark task semantics, initial conditions, and qualitative expectations;
 - keep reactor residence time, feed/outlet flow, and heat-transfer contracts
   explicit;
 - keep EOS component critical properties, mixture parameters, phase-root

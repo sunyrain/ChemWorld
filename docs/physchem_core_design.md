@@ -94,12 +94,63 @@ Example mechanism files live under `configs/mechanisms/`:
 - `simple_batch_reaction.yaml`: target reaction, side reaction, degradation,
   coupling impurity, and catalyst deactivation.
 - `reversible_reaction.yaml`: a small equilibrium-like reversible case.
+- additional curated mechanisms now cover parallel/series selectivity,
+  catalyst deactivation, autocatalysis, reaction-to-extraction,
+  reactive-distillation-lite, CSTR multiplicity, PFR hotspot risk, and
+  electrochemical selectivity.
 
 The reaction engine is intentionally compact, but it is not a placeholder. It
 supports arbitrary balanced species/reaction networks, generates matrices for
 downstream reactor models, and catches element-balance errors before an
 environment starts. This makes the current five-reaction batch world just one
 mechanism instance rather than a permanent architectural limit.
+
+## Mechanism and Scenario Library
+
+The P10 mechanism/scenario library is implemented in
+`chemworld.physchem.mechanism_library`. It turns mechanism files into a curated
+benchmark resource rather than a loose folder of examples.
+
+Current mechanism coverage:
+
+| Mechanism | Main purpose |
+| --- | --- |
+| `simple_batch_reaction` | reference target/side/degradation/coupling/catalyst-loss world |
+| `parallel_series_reaction` | competing selectivity and late impurity formation |
+| `reversible_reaction` | minimal reversible equilibrium-like kinetic case |
+| `catalyst_deactivation` | hidden activity loss and temperature tradeoff |
+| `autocatalytic_reaction` | nonlinear induction and seed sensitivity |
+| `reaction_extraction` | reaction coupled to aqueous/organic phase transfer |
+| `reactive_distillation_lite` | reversible esterification with volatile pseudo-species |
+| `cstr_multiplicity` | exothermic autocatalytic continuous-reactor slice |
+| `pfr_hotspot` | PFR hotspot and heat-removal planning slice |
+| `electrochemical_conversion` | electrochemical selectivity and energy proxy |
+
+The companion scenario cards live in
+`configs/scenarios/mechanism_scenarios.yaml`. Each card declares:
+
+- the mechanism file and `mechanism_id`;
+- the intended scenario/task family;
+- recommended reactor or process backend;
+- module tags such as reaction, equilibrium, phase partition, distillation,
+  CSTR, PFR, electrochemistry, and heat transfer;
+- default initial amounts, operating windows, and benchmark conditions;
+- target and impurity species for scoring;
+- expected qualitative behavior for explanation tasks and sanity checks.
+
+The public API exposes:
+
+- `list_mechanism_paths()`;
+- `list_mechanism_cards()`;
+- `get_mechanism_card(card_or_mechanism_id)`;
+- `load_library_mechanism(card_or_mechanism_id)`;
+- `validate_mechanism_library()`.
+
+`validate_mechanism_library()` is the CI-facing contract. It checks that every
+mechanism file has a card, every card resolves to a file, every network passes
+element conservation, and every card's initial/target/impurity species are
+declared by the mechanism. This keeps task expansion anchored to a shared
+physical-chemistry world instead of drifting into unrelated mini-games.
 
 ## Reactor Model Core
 
