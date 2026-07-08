@@ -7,17 +7,16 @@ large files, redundant metadata, and reviewability risks.
 
 ## Findings
 
-### High Priority: Large PhysChem Modules Mix Multiple Responsibilities
+### High Priority: Remaining Large PhysChem Modules Mix Multiple Responsibilities
 
-The largest files still combine public specs, numerical kernels, validation
-helpers, model cards, and export lists. This makes review harder and increases
+The largest remaining files still combine public specs, numerical kernels,
+validation helpers, and export lists. This makes review harder and increases
 merge-conflict risk during two-person development.
 
 Largest current source files after this cleanup:
 
 | File | Approximate role | Follow-up split target |
 | --- | --- | --- |
-| `src/chemworld/physchem/properties.py` | property reports, vapor pressure, enthalpy, volume, transport-property ledgers, hazard helpers | split into property specs/reports, vapor pressure, enthalpy, volume/density, transport-property reports, and hazard helpers |
 | `src/chemworld/physchem/reactors.py` | reactor specs, batch, dynamic batch, semi-batch, CSTR, PFR, CSTR multiplicity | split into reactor specs, batch/dynamic batch, CSTR, PFR, and numerical solver helpers |
 | `src/chemworld/physchem/reaction_network.py` | species/reaction specs, ODE cases, detailed balance, sensitivities, mechanism loading | split into mechanism specs, rate laws, integration/reference cases, thermochemical coupling, sensitivity, and loaders |
 | `src/chemworld/physchem/equilibrium_chemistry.py` | mass-action equilibrium, acid-base, precipitation, Gibbs minimization | split into mass-action, electrolyte/acid-base, precipitation, and Gibbs minimization helpers |
@@ -59,8 +58,30 @@ The new card modules are:
 
 Recommended next mechanical cleanup:
 
-1. Split `properties.py` by physical property family while preserving public
-   imports through a thin aggregation module.
+1. Split `reactors.py` by reactor family while preserving public imports
+   through a thin aggregation module.
+
+### Medium Priority: Property Module Split Is Complete
+
+`src/chemworld/physchem/properties.py` is now a thin facade. Property logic is
+split by family:
+
+- `property_reports.py`: shared constants, report contract, phase/fraction
+  validation helpers;
+- `property_equations.py`: supported correlation equations, validity checks,
+  and equation derivatives;
+- `property_packages.py`: component-level convenience wrapper;
+- `vapor_pressure.py`: vapor/sublimation pressure reports and derivatives;
+- `enthalpy.py`: heat-capacity, phase-transition, and mixture enthalpy reports;
+- `volume_properties.py`: molar volume, density, and volume-mixture ledgers;
+- `transport_properties.py`: viscosity, conductivity, diffusivity, and
+  transport ledgers;
+- `hazard_properties.py`: property-derived screening hazard proxies;
+- `properties.py`: public aggregation facade.
+
+This split reduced `properties.py` from a multi-thousand-line numerical module
+to a small aggregation surface without changing public imports or numerical
+behavior.
 
 ### Medium Priority: Runtime Still Depends On `core.batch_reactor`
 
@@ -101,6 +122,10 @@ Recommended follow-up:
   from card modules.
 - Preserved module-level model-card re-exports from the numerical kernels.
 - Verified facade imports and model-card validation after the split.
+- Split `properties.py` into property-family modules and kept
+  `chemworld.physchem.properties` as a thin public facade.
+- Verified property-specific tests and the full benchmark test suite after the
+  split.
 
 ## Verification
 
@@ -115,11 +140,10 @@ Run these after every cleanup slice:
 
 ## Next Cleanup Order
 
-1. Split `properties.py` by physical property family.
-2. Split `reactors.py` by reactor family and solver helpers.
-3. Split `reaction_network.py` into specs, rate laws, thermochemistry coupling,
+1. Split `reactors.py` by reactor family and solver helpers.
+2. Split `reaction_network.py` into specs, rate laws, thermochemistry coupling,
    sensitivities, loaders, and reference cases.
-4. Split `eos.py`, `spectroscopy.py`, and `equilibrium_chemistry.py` by
+3. Split `eos.py`, `spectroscopy.py`, and `equilibrium_chemistry.py` by
    algorithm family.
-5. Move `core.batch_reactor` responsibilities into `world` and `foundation`
+4. Move `core.batch_reactor` responsibilities into `world` and `foundation`
    modules.
