@@ -45,6 +45,7 @@ finished, update its status and push immediately.
 | Multi-step recipe alias usability | whilesunny | Done | `src/chemworld/action_codec.py`, tests/docs | common user-facing action aliases accepted; purification sequence documented and tested | this commit |
 | Runtime v2 transactional kernel architecture | whilesunny | Done | `src/chemworld/runtime/`, `src/chemworld/envs/`, `src/chemworld/foundation/`, tests/docs | next: split `runtime/domain_services.py` and replace remaining fixed-species service logic with compiled-mechanism mappings | this commit |
 | Runtime v2 mechanism-driven domain services | whilesunny | Done | `src/chemworld/runtime/`, `src/chemworld/foundation/`, `src/chemworld/world/`, tests/docs | mechanism species-role mapping, product phase-ledger key, non-fixed electrochemical runtime tests, and docs are complete | this commit |
+| Runtime v2 observation/scoring service split | whilesunny | Active | `src/chemworld/runtime/`, tests/docs | extract observation truth, scoring, and instrument signal assembly from `domain_services.py` without changing behavior | claim commit |
 
 Status values:
 
