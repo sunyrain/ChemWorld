@@ -56,6 +56,10 @@ The runtime is organized around:
   `runtime/observation_services.py`, which owns observation truth extraction,
   noisy instrument signals, processed estimates, uncertainty metadata, and
   observation-time scoring;
+- `ChemWorldOperationRecorder`, implemented in `runtime/record_services.py`,
+  which builds `OperationRecord` payloads, constitution summaries,
+  measurement cost/sample fields, and state-delta summaries from pre/post
+  transaction states;
 - `MechanismSpeciesView`, which resolves reactants, targets, impurities,
   catalysts, byproducts, and degradation markers from the compiled mechanism
   instead of letting runtime services depend on fixed species names;
@@ -67,6 +71,11 @@ Operation kernels return `WorldEvent` and `StatePatch` records. The transaction
 manager commits those patches to typed ledgers only after validation. This keeps
 material ledgers auditable: invalid actions can add process penalties without
 silently changing hidden material state.
+
+Operation-record assembly is separated from the state-changing domain services.
+This makes trajectory rows easier to audit: physical services advance state,
+the transaction manager commits or rolls back patches, and the recorder turns
+the accepted pre/post state pair into the replayable operation record.
 
 The active backend remains `semi_mechanistic`, but it is now a runtime service
 implementation rather than the conceptual center of the package. Backend

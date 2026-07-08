@@ -21,8 +21,9 @@ Largest current source files after this cleanup:
 | `src/chemworld/physchem/equilibrium_chemistry.py` | mass-action equilibrium, acid-base, precipitation, Gibbs minimization | split into mass-action, electrolyte/acid-base, precipitation, and Gibbs minimization helpers |
 | `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, and provenance |
 | `src/chemworld/physchem/spectroscopy.py` | calibration, chromatography, signal synthesis, feature heuristics | split into calibration, chromatography, signal synthesis, and feature libraries |
-| `src/chemworld/runtime/domain_services.py` | semi-mechanistic state-changing domain services used by Runtime v2 | split reaction, thermal, separation, instrument-cost, electrochemical, and operation-record assembly into narrower service modules |
+| `src/chemworld/runtime/domain_services.py` | semi-mechanistic state-changing domain services used by Runtime v2 | split reaction, thermal, separation, instrument-cost, and electrochemical responsibilities into narrower service modules |
 | `src/chemworld/runtime/observation_services.py` | observation truth, noisy instrument signals, processed estimates, and scoring | keep separate from state-changing services and later bind observation/score specs more directly to mechanism/task cards |
+| `src/chemworld/runtime/record_services.py` | operation-record assembly, constitution summaries, measurement cost/sample fields, and state-delta summaries | keep separate from state-changing services and later bind record schemas more directly to trajectory schema generation |
 
 ### Medium Priority: Model Cards Are Better As Metadata Modules
 
@@ -113,11 +114,12 @@ The active runtime path contains `ChemWorldRuntime`,
 path.
 
 The broad file is now `src/chemworld/runtime/domain_services.py`. This is a
-better boundary than a batch-reactor-centered runtime, and observation/scoring
-has now been extracted to `src/chemworld/runtime/observation_services.py`.
-The remaining broad service file still mixes reaction advancement, thermal
-updates, phase/separation operations, electrochemical operations, instrument
-costs, and operation-record assembly.
+better boundary than a batch-reactor-centered runtime. Observation/scoring has
+been extracted to `src/chemworld/runtime/observation_services.py`, and
+operation-record assembly has been extracted to
+`src/chemworld/runtime/record_services.py`. The remaining broad service file
+still mixes reaction advancement, thermal updates, phase/separation operations,
+electrochemical operations, and instrument costs.
 
 Current hardening added a mechanism-aware species-role boundary. Runtime
 services now resolve reactants, targets, impurities, catalyst species,
@@ -129,7 +131,7 @@ older benchmark mechanisms and tests.
 Recommended follow-up:
 
 - split `domain_services.py` into reaction, thermal, phase/separation,
-  instrument-cost, electrochemical, and operation-record services;
+  instrument-cost, and electrochemical services;
 - keep operation kernels as small command handlers;
 - continue moving mechanism-specific scoring and observation mapping into
   compiled mechanism cards;
@@ -185,6 +187,10 @@ Recommended follow-up:
   `runtime/observation_services.py`, keeping noisy observations, raw signal
   assembly, processed estimates, uncertainty metadata, and observation scoring
   outside the state-changing domain-service module.
+- Extracted `ChemWorldOperationRecorder` into `runtime/record_services.py`,
+  keeping operation-record assembly, constitution summaries, measurement
+  cost/sample fields, and state-delta summaries outside the state-changing
+  domain-service module.
 
 ## Verification
 

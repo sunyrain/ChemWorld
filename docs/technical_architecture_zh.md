@@ -4,7 +4,7 @@
 
 ## 1. 平台定位
 
-ChemWorld-Bench 是一个面向 AI4Science、化工教育和闭环实验决策研究的虚拟物理化学交互环境。它不是若干互不相关的小游戏，也不声称预测真实反应体系；它的目标是在同一套物理化学世界规律下，为人类学生、LLM agent、贝叶斯优化器和混合系统提供可复现、可提交、可验证、可评测的实验任务。
+ChemWorld-Bench 是一个面向 AI4Science、化工教育和闭环实验决策研究的虚拟物理化学交互环境。它不是若干互不相关的小游戏，也不声称预测真实反应体系；它的目标是在同一套物理化学世界规律下，为学生、LLM agent、贝叶斯优化器和混合系统提供可复现、可提交、可验证、可评测的实验任务。
 
 正式 Gymnasium 入口统一为：
 
@@ -25,7 +25,7 @@ chemworld
 ├── world           # scenario、operation、instrument、recipe、world-law modules
 ├── runtime         # Runtime v2：transaction、kernel registry、mechanism compiler
 ├── envs            # Gymnasium adapter：ChemWorldEnv
-├── tasks           # task registry 和 task card
+├── tasks           # task registry 与 task card
 ├── schemas         # action、recipe、trajectory、manifest、task、scenario schema
 ├── agents          # random、LHS、greedy、BO、safe BO、scripted、LLM stub
 ├── eval            # runner、metrics、verify、suite、leaderboard
@@ -66,6 +66,7 @@ ChemWorldEnv
       -> ActionValidator
       -> OperationKernelRegistry
       -> DomainServices
+      -> OperationRecordServices
       -> TransactionManager
       -> ConstitutionChecker
       -> ObservationServices
@@ -78,9 +79,12 @@ ChemWorldEnv
 - `TaskRuntimeProfile` 声明当前任务需要哪些 operation、instrument、kernel 和 capability，不要求全局所有 kernel 都注册。
 - `OperationKernelRegistry` 把操作类型映射到小型 command handler。
 - `DomainServices` 承担会改变状态的反应、传热、相平衡、分离、流动、电化学和仪器成本计算。
+- `OperationRecordServices` 从 pre/post state 生成 `OperationRecord`、constitution checks、measurement cost、sample consumption 和 state-delta summary。
 - `ObservationServices` 承担 hidden state 到 partial observation 的映射，包括 noisy instrument signal、processed estimate、uncertainty 和观测时评分。
 - `TransactionManager` 统一提交 `StatePatch`，记录 `WorldEvent`，并在 constitution failure 时回滚 material ledger。
 - safety/cost 作为一等信号进入 `info["cost"]`、`info["cost_components"]` 和 leaderboard metrics。
+
+这次拆分之后，operation record assembly 不再混在 state-changing domain services 中。物理服务负责推进状态，事务层负责提交或回滚，record service 负责把已接受的 pre/post state pair 写成可回放轨迹。
 
 ## 5. Mechanism Compiler
 
@@ -99,7 +103,7 @@ ChemWorldEnv
 - `score_spec`
 - `initial_amount_policy`
 
-trajectory 和 verifier 会记录 `mechanism_id` 和 `mechanism_hash`。如果机制文件变化，replay 应该直接失败，而不是产生悄悄漂移的结果。
+trajectory 和 verifier 会记录 `mechanism_id` 与 `mechanism_hash`。如果机制文件变化，replay 应该直接失败，而不是产生悄悄漂移的结果。
 
 运行时已经不再把通用逻辑写死到某一个五物种网络。`MechanismSpeciesView` 会从 compiled mechanism 中解析 reactant、target、impurity、catalyst、byproduct 和 degradation marker。旧的 batch-reaction 物种名只作为 world-level default role bindings 存在，用于少数历史 benchmark mechanism 的 fallback，不再散落在 observation、scoring、phase bookkeeping 或 electrochemistry 服务中。
 
@@ -131,7 +135,7 @@ Operation  -> 单步实验动作
 
 在 campaign task 中，`final_assay` 结束当前 experiment，但不必结束整个 campaign；在 single-experiment task 中，`final_assay` 会终止 episode。
 
-## 8. Observation 和仪器
+## 8. Observation 与仪器
 
 观测采用三层结构：
 
@@ -139,9 +143,9 @@ Operation  -> 单步实验动作
 - `processed_estimate`：yield、selectivity、conversion、purity、recovery、risk 等处理后估计；
 - `uncertainty`：每个观测值的噪声和不确定性。
 
-默认 observation 不泄露 hidden species amounts、rate constants、partition coefficients 或机制参数。agent 只能通过 instrument action 获取有成本、有噪声、有样品消耗的观测。
+默认 observation 不泄露 hidden species amounts、rate constants、partition coefficients 或机制参数。Agent 只能通过 instrument action 获取有成本、有噪声、有样品消耗的观测。
 
-## 9. 当前可实现的核心功能
+## 9. 当前核心能力
 
 当前平台已经支持：
 
@@ -164,7 +168,7 @@ Operation  -> 单步实验动作
 
 最重要的技术债不是任务数量，而是专业底座深度：
 
-- `runtime/domain_services.py` 已经移出 observation/scoring，但仍然偏宽，需要继续拆成 reaction、thermal、phase/separation、instrument-cost、electrochemistry 和 operation-record 等服务模块；
+- `runtime/domain_services.py` 已经移出 observation/scoring 和 operation-record assembly，但仍然偏宽，需要继续拆成 reaction、thermal、phase/separation、instrument-cost 和 electrochemistry 等服务模块；
 - `reaction_network.py`、`eos.py`、`equilibrium_chemistry.py`、`spectroscopy.py` 仍是较大模块，需要按算法族拆分；
 - reaction integration 仍有一部分历史 batch-reactor 数值假设，需要逐步完全由 mechanism spec 和 compiled mechanism 驱动；
 - separation、distillation、crystallization、flow、electrochemistry 目前是 benchmark-oriented semi-mechanistic models，还不是专业流程模拟器；

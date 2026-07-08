@@ -9,6 +9,7 @@ from typing import Any
 
 __all__ = [
     "ChemWorldObservationKernel",
+    "ChemWorldOperationRecorder",
     "ChemWorldRuntime",
     "CompiledMechanism",
     "KernelPlan",
@@ -55,6 +56,10 @@ def __getattr__(name: str) -> Any:
         from chemworld.runtime import species
 
         return getattr(species, name)
+    if name == "ChemWorldOperationRecorder":
+        from chemworld.runtime import record_services
+
+        return getattr(record_services, name)
     if name in {
         "KernelPlan",
         "KernelResult",

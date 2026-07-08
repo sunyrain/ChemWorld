@@ -95,6 +95,19 @@ def test_runtime_observation_service_is_separate_from_state_changing_services() 
     assert "score_observation" not in domain_services
 
 
+def test_runtime_operation_recorder_is_separate_from_state_changing_services() -> None:
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+        encoding="utf-8"
+    )
+    record_services = Path("src/chemworld/runtime/record_services.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "def _record" not in domain_services
+    assert "class ChemWorldOperationRecorder" in record_services
+    assert "material delta allowed or phase-ledger conserved" not in domain_services
+
+
 def test_runtime_profile_requires_current_task_kernels_only() -> None:
     task = get_task("reaction-to-assay")
     profile = TaskRuntimeProfile.from_task(task)

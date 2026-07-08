@@ -23,6 +23,7 @@ from chemworld.foundation import (
 from chemworld.physchem.electrochemistry import ElectrodeReactionSpec, run_electrolysis
 from chemworld.physchem.separations import vle_shortcut_distillation
 from chemworld.runtime.mechanisms import CompiledMechanism
+from chemworld.runtime.record_services import ChemWorldOperationRecorder
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.instruments import chemworld_instruments
 from chemworld.world.ontology import chemworld_substances
@@ -79,6 +80,7 @@ class ChemWorldDomainServices:
         self.world = world
         self.constitution = constitution
         self.species_view = MechanismSpeciesView(compiled_mechanism)
+        self.operation_recorder = ChemWorldOperationRecorder(constitution)
 
     def apply_operation(
         self,
@@ -90,7 +92,13 @@ class ChemWorldDomainServices:
         preconditions = self.constitution.check_preconditions(operation, state, action)
         if not all(preconditions.values()):
             next_state = self._penalize_invalid(state)
-            return next_state, self._record(operation, before, next_state, preconditions, action)
+            return next_state, self.operation_recorder.record(
+                operation,
+                before,
+                next_state,
+                preconditions,
+                action,
+            )
 
         try:
             next_state = self.operation_methods()[operation](state, action)
@@ -98,7 +106,13 @@ class ChemWorldDomainServices:
             raise ValueError(f"Unsupported operation: {operation}") from exc
 
         next_state = self._with_risk_and_pressure(next_state)
-        return next_state, self._record(operation, before, next_state, preconditions, action)
+        return next_state, self.operation_recorder.record(
+            operation,
+            before,
+            next_state,
+            preconditions,
+            action,
+        )
 
     def operation_methods(
         self,
@@ -145,7 +159,7 @@ class ChemWorldDomainServices:
         preconditions: dict[str, bool],
         action: dict[str, Any],
     ) -> OperationRecord:
-        return self._record(operation, before, after, preconditions, action)
+        return self.operation_recorder.record(operation, before, after, preconditions, action)
 
     def _add_reagent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         amount = float(np.clip(_action_float(action, "amount_mol", 0.003), 0.0, 0.040))
@@ -913,76 +927,3 @@ class ChemWorldDomainServices:
             solvent_risks=self.world.solvent_risks,
         )
         return state.replace(pressure_Pa=pressure, ledger=state.ledger.with_updates(risk=risk))
-
-    def _record(
-        self,
-        operation: str,
-        before: WorldState,
-        after: WorldState,
-        preconditions: dict[str, bool],
-        action: dict[str, Any] | None = None,
-    ) -> OperationRecord:
-        action = action or {}
-        report = self.constitution.check_state(after)
-        material_check = self.constitution.check_material_conservation(before, after)
-        if operation in {
-            "add_reagent",
-            "add_catalyst",
-            "add_solvent",
-            "sample",
-            "measure",
-            "add_phase",
-            "add_extractant",
-            "mix",
-            "settle",
-            "separate_phase",
-            "wash",
-            "dry",
-            "concentrate",
-            "transfer",
-        }:
-            material_check = material_check.__class__(
-                "material_conservation",
-                True,
-                "material delta allowed or phase-ledger conserved for operation",
-                value=0.0,
-                tolerance=self.constitution.tolerance,
-            )
-        checks = [*report.checks, material_check]
-        measurement_cost = 0.0
-        sample_consumed = 0.0
-        instrument = None
-        preconditions_passed = all(preconditions.values())
-        if operation == "measure":
-            instrument = instrument_name(action.get("instrument", "hplc"))
-            if preconditions_passed:
-                measurement_cost = self.constitution.instruments[instrument].cost
-                sample_consumed = self.constitution.instruments[instrument].sample_volume_L
-        state_delta_summary = {
-            "delta_time_s": after.ledger.time_s - before.ledger.time_s,
-            "delta_cost": after.ledger.cost - before.ledger.cost,
-            "delta_risk": after.ledger.risk - before.ledger.risk,
-            "delta_temperature_K": after.temperature_K - before.temperature_K,
-            "delta_volume_L": after.volume_L - before.volume_L,
-        }
-        if operation == "electrolyze":
-            for key in (
-                "equilibrium_potential_V",
-                "overpotential_V",
-                "actual_current_A",
-                "charge_C",
-                "faradaic_charge_C",
-                "faradaic_efficiency",
-                "electrical_work_J",
-            ):
-                if key in after.metadata:
-                    state_delta_summary[key] = after.metadata[key]
-        return OperationRecord(
-            operation_type=operation,
-            preconditions=preconditions,
-            state_delta_summary=state_delta_summary,
-            constitution_checks=[check.to_dict() for check in checks],
-            instrument=instrument,
-            measurement_cost=measurement_cost,
-            sample_consumed_L=sample_consumed,
-        )
