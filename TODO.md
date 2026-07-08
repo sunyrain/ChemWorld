@@ -48,6 +48,7 @@ finished, update its status and push immediately.
 | Runtime v2 observation/scoring service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | observation truth, scoring, raw signal assembly, processed estimates, and uncertainty now live in `runtime/observation_services.py` | this commit |
 | Runtime v2 operation-record service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | operation record assembly, constitution summaries, measurement cost/sample logging, and state-delta summaries now live in `runtime/record_services.py` | this commit |
 | Runtime v2 reaction/thermal service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | reaction advancement, heat/wait integration, energy-ledger updates, and pressure/risk projection now live in `runtime/reaction_thermal_services.py` | this commit |
+| Runtime v2 phase/separation service split | whilesunny | Active | `src/chemworld/runtime/`, tests/docs | extract phase ledger helpers and downstream separation operations from `domain_services.py` without changing behavior | claim commit |
 
 Status values:
 
