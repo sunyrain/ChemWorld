@@ -21,6 +21,7 @@ from chemworld.foundation import (
 )
 from chemworld.physchem.separations import vle_shortcut_distillation
 from chemworld.runtime.electrochemical_services import ChemWorldElectrochemicalServices
+from chemworld.runtime.instrument_cost_services import ChemWorldInstrumentCostServices
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.phase_separation_services import ChemWorldPhaseSeparationServices
 from chemworld.runtime.reaction_thermal_services import ChemWorldReactionThermalServices
@@ -28,7 +29,7 @@ from chemworld.runtime.record_services import ChemWorldOperationRecorder
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.instruments import chemworld_instruments
 from chemworld.world.ontology import chemworld_substances
-from chemworld.world.operations import instrument_name, operation_name
+from chemworld.world.operations import operation_name
 from chemworld.world.parameters import ChemWorldParameters
 
 
@@ -77,6 +78,7 @@ class ChemWorldDomainServices:
         self.reaction_thermal = ChemWorldReactionThermalServices(world)
         self.phase_separation = ChemWorldPhaseSeparationServices(world, self.species_view)
         self.electrochemical = ChemWorldElectrochemicalServices(world, self.species_view)
+        self.instrument_cost = ChemWorldInstrumentCostServices(constitution)
 
     def apply_operation(
         self,
@@ -145,7 +147,7 @@ class ChemWorldDomainServices:
             "set_potential": self.electrochemical.set_potential,
             "electrolyze": self.electrochemical.electrolyze,
             "terminate": lambda state, _action: state.replace(terminated=True),
-            "measure": self._apply_measurement_cost,
+            "measure": self.instrument_cost.apply_measurement_cost,
         }
 
     def penalize_invalid(self, state: WorldState) -> WorldState:
@@ -473,27 +475,6 @@ class ChemWorldDomainServices:
             risk=min(1.0, reacted_state.ledger.risk + 0.015 * (target_temperature > 390.0)),
         )
         return reacted_state.replace(ledger=ledger, metadata=metadata)
-
-    def _apply_measurement_cost(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        instrument_id = instrument_name(action.get("instrument", "hplc"))
-        instrument = self.constitution.instruments[instrument_id]
-        volume = min(instrument.sample_volume_L, max(state.volume_L, 0.0))
-        fraction = 0.0 if state.volume_L <= 0 else volume / state.volume_L
-        species = {key: value * (1.0 - fraction) for key, value in state.species_amounts.items()}
-        ledger = state.ledger.with_updates(
-            cost=state.ledger.cost + instrument.cost,
-            sample_consumed_L=state.ledger.sample_consumed_L + volume,
-        )
-        metadata = state.metadata.copy()
-        if instrument_id == "final_assay":
-            metadata["final_assay_done"] = True
-            metadata["final_assay_time_s"] = state.ledger.time_s
-        return state.replace(
-            species_amounts=species,
-            volume_L=state.volume_L - volume,
-            ledger=ledger,
-            metadata=metadata,
-        )
 
     def _penalize_invalid(self, state: WorldState) -> WorldState:
         ledger = state.ledger.with_updates(

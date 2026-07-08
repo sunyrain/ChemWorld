@@ -63,6 +63,9 @@ The runtime is organized around:
   `runtime/electrochemical_services.py`, which owns potential/current setup,
   electrochemical mechanism binding, Nernst/Butler-Volmer electrolysis calls,
   faradaic conversion, electrical-work ledgers, and electrochemical metadata;
+- `ChemWorldInstrumentCostServices`, implemented in
+  `runtime/instrument_cost_services.py`, which owns measurement cost,
+  destructive sample consumption, and final-assay state markers;
 - `ChemWorldObservationKernel`, implemented in
   `runtime/observation_services.py`, which owns observation truth extraction,
   noisy instrument signals, processed estimates, uncertainty metadata, and
@@ -84,11 +87,11 @@ material ledgers auditable: invalid actions can add process penalties without
 silently changing hidden material state.
 
 Reaction/thermal advancement, phase/extraction workflows, electrochemical
-conversion, and operation-record assembly are separated from the remaining
-state-changing domain services. This makes the runtime easier to audit:
-focused services advance each physical process, the transaction manager commits
-or rolls back patches, and the recorder turns the accepted pre/post state pair
-into the replayable operation record.
+conversion, measurement cost/sample consumption, and operation-record assembly
+are separated from the remaining state-changing domain services. This makes
+the runtime easier to audit: focused services advance each physical process,
+the transaction manager commits or rolls back patches, and the recorder turns
+the accepted pre/post state pair into the replayable operation record.
 
 The active backend remains `semi_mechanistic`, but it is now a runtime service
 implementation rather than the conceptual center of the package. Backend

@@ -159,6 +159,23 @@ def test_runtime_electrochemical_service_is_separate_from_domain_services() -> N
     assert "ElectrodeReactionSpec" in electrochemical_services
 
 
+def test_runtime_instrument_cost_service_is_separate_from_domain_services() -> None:
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+        encoding="utf-8"
+    )
+    instrument_cost_services = Path(
+        "src/chemworld/runtime/instrument_cost_services.py"
+    ).read_text(encoding="utf-8")
+
+    assert "def _apply_measurement_cost" not in domain_services
+    assert "instrument_name" not in domain_services
+    assert "final_assay_done" not in domain_services
+    assert "class ChemWorldInstrumentCostServices" in instrument_cost_services
+    assert "instrument_name" in instrument_cost_services
+    assert "final_assay_done" in instrument_cost_services
+    assert "sample_consumed_L=state.ledger.sample_consumed_L + volume" in instrument_cost_services
+
+
 def test_runtime_profile_requires_current_task_kernels_only() -> None:
     task = get_task("reaction-to-assay")
     profile = TaskRuntimeProfile.from_task(task)
