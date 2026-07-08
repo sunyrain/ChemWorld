@@ -52,8 +52,8 @@ from chemworld.world.operations import OPERATION_TYPES
 from chemworld.world.phase_kernel import partition_split
 from chemworld.world.reaction_kernel import (
     integrate_compiled_reaction_ode,
-    integrate_reaction_ode,
 )
+from chemworld.world.reaction_reference import integrate_seven_slot_reference_ode
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.world.thermal_kernel import pressure_and_risk
@@ -199,6 +199,18 @@ def test_runtime_reaction_thermal_requires_compiled_mechanism_without_fallback_m
         reaction_thermal_services
     )
     assert "compiled_mechanism is required" in reaction_kernel
+
+
+def test_runtime_does_not_import_seven_slot_reference_fixture() -> None:
+    roots = (Path("src/chemworld/envs"), Path("src/chemworld/runtime"), Path("src/chemworld/eval"))
+    offenders = [
+        path.as_posix()
+        for root in roots
+        for path in root.glob("*.py")
+        if "reaction_reference" in path.read_text(encoding="utf-8")
+        or "integrate_seven_slot_reference_ode" in path.read_text(encoding="utf-8")
+    ]
+    assert offenders == []
 
 
 def test_runtime_phase_separation_service_is_separate_from_domain_services() -> None:
@@ -1091,7 +1103,7 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         env.close()
 
 
-def test_world_kernels_are_executable_not_metadata_only() -> None:
+def test_world_reference_reaction_fixture_is_executable_not_metadata_only() -> None:
     world = load_chemworld_parameters("public-dev", seed=1)
     state = initial_chemworld_state().replace(
         species_amounts={
@@ -1117,7 +1129,7 @@ def test_world_kernels_are_executable_not_metadata_only() -> None:
             settings={"solvent": 1, "catalyst": 1, "stirring_speed_rpm": 700.0},
         ),
     )
-    result = integrate_reaction_ode(
+    result = integrate_seven_slot_reference_ode(
         state=state,
         world=world,
         duration_s=900.0,

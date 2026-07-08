@@ -296,6 +296,10 @@ Recommended follow-up:
   Reagent charging also uses mechanism `initial_amount_policy`, so
   multi-reactant mechanisms such as reactive distillation add co-reactants in
   declared ratios.
+- Quarantined the old fixed A/P/B/D/E seven-slot ODE in
+  `world/reaction_reference.py`. The ordinary `world/reaction_kernel.py` now
+  declares a compiled-mechanism runtime contract and no longer exports fixed
+  species slots or the old reference integrator.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
   crystallization, crystal purity/recovery metadata, and crystal filtration
