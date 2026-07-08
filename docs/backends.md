@@ -25,3 +25,16 @@ entire meaning of ChemWorld. Future backends can target the same world law:
 - real-lab adapter backend.
 
 Those are roadmap targets, not current claims.
+
+## Reference Validation
+
+Reference backends are not transition backends. They are optional external
+packages used to check selected formulas or limiting cases during development.
+The current validation layer lives in `chemworld.physchem.reference_validation`
+and supports installed packages or local source snapshots under
+`reference_repos/`.
+
+Current executable checks compare ChemWorld with `chemicals` and `fluids` for
+ideal-gas molar volume, Rachford-Rice flash, Reynolds number, and Prandtl
+number. These tests skip by default and run only when
+`CHEMWORLD_RUN_REFERENCE_TESTS=1` is set.

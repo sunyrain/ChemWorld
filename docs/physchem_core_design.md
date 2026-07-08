@@ -220,6 +220,55 @@ calibrated estimates, uncertainty, instrument cost, and sample consumption.
 This preserves partial observability while making HPLC/GC/UV-vis/IR/NMR outputs
 depend on the actual mechanism state rather than only on aggregate score fields.
 
+## Optional Reference Backend Validation
+
+The P12 reference-validation layer is implemented in
+`chemworld.physchem.reference_validation`. It does not make external scientific
+packages runtime dependencies. Instead, it provides:
+
+- `ReferenceBackendSpec` records for tracked external backends;
+- `reference_backend_status()` to report installed packages, local
+  `reference_repos/` availability, and optional import-probe errors;
+- `reference_backend_context()` and `import_reference_module()` to temporarily
+  import locally cloned reference repositories without vendoring them;
+- `compare_scalar()` and `summarize_reference_comparisons()` to record
+  ChemWorld/reference differences with explicit tolerances and model-limit
+  notes.
+
+The current executable optional checks cover formula-level comparisons that are
+small enough to audit and stable enough to run locally:
+
+| Reference backend | Current optional checks | Tolerance |
+| --- | --- | --- |
+| `chemicals` | ideal-gas molar volume via `chemicals.volume.ideal_gas`; Rachford-Rice vapor fraction and phase compositions via `chemicals.rachford_rice.Rachford_Rice_solution` | `rtol=1e-12` |
+| `fluids` | Reynolds and Prandtl numbers via `fluids.core` | `rtol=1e-12` |
+
+Run the normal test path to confirm reference tests skip cleanly when optional
+backends are not enabled:
+
+```bash
+python -m pytest tests/reference
+```
+
+Run the local reference comparisons against packages installed in the
+environment or source trees under `reference_repos/`:
+
+```bash
+CHEMWORLD_RUN_REFERENCE_TESTS=1 python -m pytest tests/reference
+```
+
+On PowerShell:
+
+```powershell
+$env:CHEMWORLD_RUN_REFERENCE_TESTS = "1"
+python -m pytest tests/reference
+```
+
+CoolProp, Cantera, phasepy, Reaktoro, and pycalphad are registered as reference
+targets with explicit model-limit notes, but their numerical comparisons are
+not marked complete until their compiled or optional dependencies are available
+and the corresponding checks can run in a controlled environment.
+
 ## Reactor Model Core
 
 The P4 reactor core is implemented in `chemworld.physchem.reactors`. It turns

@@ -70,3 +70,29 @@ Use this map to guide independent ChemWorld implementation work:
 - If behavior is compared to a reference repo, write it as an optional reference
   test that skips when the package is absent.
 - Keep reference repos out of commits, releases, wheels, and paper artifacts.
+
+## Optional Validation Layer
+
+ChemWorld's reference comparison utilities live in
+`chemworld.physchem.reference_validation`. They are intentionally small:
+
+- discover tracked reference backends and local source trees;
+- temporarily add local reference repositories to `sys.path`;
+- import optional packages only inside explicit validation calls;
+- record scalar comparisons as JSON-friendly reports with `rtol`, `atol`,
+  absolute error, relative error, and model-limit notes.
+
+Default CI does not import external backends. The optional reference tests under
+`tests/reference/` skip unless explicitly enabled:
+
+```powershell
+$env:CHEMWORLD_RUN_REFERENCE_TESTS = "1"
+python -m pytest tests/reference
+```
+
+Current executable comparisons use `chemicals` and `fluids` because their local
+source snapshots can run as pure Python in the development environment. Heavy
+or compiled backends such as CoolProp, Cantera, Reaktoro, pycalphad,
+thermopack, and teqp remain tracked as validation targets, but are not
+considered complete until their runtime dependencies are available and their
+comparisons run successfully.

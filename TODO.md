@@ -27,7 +27,7 @@ finished, update its status and push immediately.
 | P9 equilibrium chemistry | whilesunny | Done | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/test_equilibrium_chemistry.py`, `docs/physchem_core_design.md` | next: expand mechanism and scenario library in P10 using the generalized physchem kernels | this commit |
 | P10 mechanism and scenario library | whilesunny | Done | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/physchem/mechanism_library.py`, `tests/`, `docs/physchem_core_design.md` | next: start P11 instrument and spectroscopy coupling using mechanism targets and impurity species | this commit |
 | P11 instrument and spectroscopy coupling | whilesunny | Done | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `tests/`, `docs/physchem_core_design.md` | next: start P12 optional reference-backend validation after choosing the first comparison targets | this commit |
-| P12 optional reference-backend validation | whilesunny | Active | `tests/reference/`, `docs/physchem_core_design.md`, `TODO.md` | read local reference backend patterns, add optional validation adapters and skipped reference tests | pending |
+| P12 optional reference-backend validation | whilesunny | Active | `src/chemworld/physchem/reference_validation.py`, `tests/reference/`, `docs/physchem_core_design.md`, `TODO.md` | next: add controlled CoolProp/Cantera/phasepy/Reaktoro/pycalphad comparison cases when dependencies are available | this commit |
 | P1/P2 audit and hardening | whilesunny | Done | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/properties.py`, `tests/`, `docs/physchem_core_design.md`, `TODO.md` | next: start P12 optional reference-backend validation after choosing first comparison targets | this commit |
 
 Status values:
@@ -741,19 +741,24 @@ Acceptance tests:
 These are optional tests that run only when external packages are installed.
 They validate behavior but do not make external packages required.
 
-- [ ] Compare selected property correlations with `chemicals/thermo`.
-- [ ] Compare selected fluid calculations with `fluids`.
+- [x] Compare selected property correlations with `chemicals/thermo`.
+- [x] Compare selected fluid calculations with `fluids`.
 - [ ] Compare vapor pressure/enthalpy points with `CoolProp`.
 - [ ] Compare simple reaction ODE cases with `Cantera`.
 - [ ] Compare simple LLE/VLE cases with `phasepy` or `thermo`.
 - [ ] Compare equilibrium toy cases with `Reaktoro`.
 - [ ] Compare solid-phase toy cases with `pycalphad`.
 
+Current P12 note: the completed property/backend comparison is implemented
+against `chemicals` for ideal-gas molar volume and Rachford-Rice flash. `thermo`
+is registered as a reference target, but dedicated numerical checks remain for
+a later controlled EOS/flash validation pass.
+
 Acceptance tests:
 
-- [ ] Optional tests skip cleanly when reference packages are absent.
-- [ ] Reference comparison tolerances are documented.
-- [ ] Divergences are recorded as model-limit notes, not hidden failures.
+- [x] Optional tests skip cleanly when reference packages are absent.
+- [x] Reference comparison tolerances are documented.
+- [x] Divergences are recorded as model-limit notes, not hidden failures.
 
 ### P13: Benchmark Tasks Enabled by the New Core
 

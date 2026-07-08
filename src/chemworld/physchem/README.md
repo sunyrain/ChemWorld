@@ -42,6 +42,9 @@ Current scope:
   numbers, Darcy friction factors, pipe pressure drop, pump work, mixing power,
   jacket heat transfer, counterflow heat exchangers, packed-bed pressure drop,
   and homogeneous two-phase pressure-drop proxies.
+- optional reference-backend validation helpers for locally comparing selected
+  ChemWorld formulas against `chemicals`, `fluids`, and later heavier
+  scientific backends without making them runtime dependencies.
 
 Design rules:
 
