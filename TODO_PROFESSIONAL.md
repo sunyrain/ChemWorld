@@ -63,6 +63,7 @@ Every professional module must ship:
 | --- | --- | --- | --- | --- | --- | --- |
 | Professional TODO bootstrap | whilesunny | Done | all reference repos | `TODO_PROFESSIONAL.md`, `docs/professional_todo.md`, `docs/physchem_maturity_audit.md` | claim the first professional implementation item before coding | this commit |
 | PRO-P0 maturity metadata and model-card templates | whilesunny | Done | IDAES, thermo, Cantera, Gymnasium-style metadata | `src/chemworld/physchem/maturity.py`, `src/chemworld/tasks.py`, `docs/physchem_maturity_audit.md`, tests | next: claim PRO-P12A or PRO-P2A for reference-validated numerical hardening | this commit |
+| PRO-P12A fluids friction factor and pressure-drop validation | whilesunny | Claimed | `fluids.friction`, `fluids.core`, `fluids.two_phase`, Crane/Churchill/Haaland references | `src/chemworld/physchem/transport.py`, `src/chemworld/physchem/reference_validation.py`, `tests/reference/test_optional_reference_backends.py`, docs | read local `fluids` implementation, then add explicit validation cases and local model-card evidence | pending push |
 
 ## P0: Governance And Model Maturity
 
