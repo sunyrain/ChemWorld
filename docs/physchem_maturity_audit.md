@@ -19,7 +19,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Area | Current level | Evidence | Main gap |
 | --- | --- | --- | --- |
 | Component specs and units | Lite | `chemworld.physchem.specs`, local unit tests | broader curated component database and schema governance |
-| Property correlations | Lite with a reference-validated curated slice | vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against `chemicals` | broader component coverage, liquid/solid Cp, latent heat, derivatives, and CoolProp checks |
+| Property correlations | Lite with reference-validated curated and vapor-pressure-report slices | vapor pressure, Cp, density, viscosity, surface tension tests; curated DIPPR101/Poling checks against `chemicals`; Antoine/Wagner/DIPPR vapor-pressure reports with analytic derivative checks | broader component coverage, liquid/solid Cp, latent heat, EOS saturation, and CoolProp checks |
 | Reaction networks | Lite with reference-validated ODE, NASA7 thermochemistry, thermochemical detailed-balance, and local sensitivity slices | YAML/JSON mechanisms, stoichiometric checks, rate-law tests, analytical irreversible/reversible first-order ODE cases, optional Cantera Arrhenius-rate check, NASA7 Cp/H/S/G, reaction Delta H/G, K_eq, concentration-standard correction, thermochemical reverse-rate tests, and finite-difference first-order sensitivity tests | falloff, pressure dependence, adjoint/global sensitivities, and broader reactor-network validation |
 | Reactor models | Lite with reference-validated CSTR multiplicity and dynamic batch heat-release slices | batch, dynamic batch, semi-batch, CSTR, PFR tests; analytical exothermic CSTR three-root ignition/extinction case with stability classification; NASA7 heat-release dynamic batch, jacket, and sampling-ledger tests | broader Cantera/IDAES reactor-network validation, pressure modes, wall thermal inertia, and phase-change variants |
 | EOS | Lite with a reference-validated PR/SRK residual slice | ideal gas, PR/SRK roots, fugacity coefficients, explicit root policy, residual H/S/G tests, optional `thermo.eos` comparisons for methane/ethane/CO2 | volume translation, phase envelopes, flash derivatives, and broader CoolProp/teqp/thermopack validation |
@@ -108,6 +108,10 @@ copying the reference implementations.
 - PRO-P2A is implemented: the first curated property slice has model-card
   metadata and optional `chemicals` reference checks for DIPPR101 vapor
   pressure, Poling ideal-gas Cp, and sensible enthalpy integrals.
+- DEEP-D2A is implemented for vapor-pressure formula families: Antoine, Wagner,
+  and DIPPR101 report pressure, analytic `dP/dT`, `dlnP/dT`, validity status,
+  and method provenance; sublimation pressure can use the same path when
+  coefficients are explicitly supplied.
 - PRO-P4A is implemented: the first nonideal activity-coefficient slice has
   Wilson/NRTL model cards, explicit directional pair-parameter contracts, and
   optional `thermo` reference checks for binary gamma values.

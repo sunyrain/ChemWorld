@@ -43,6 +43,9 @@ The implementation slices currently cover the P1-P12 foundation/lite batch:
   validity ranges.
 - `PropertyEvaluation`: a value, unit, inputs, validity warnings, and
   correlation provenance.
+- `VaporPressureReport`: vapor or sublimation pressure with analytic
+  `dP/dT`, `dlnP/dT`, validity status, method family, and reference-reading
+  provenance for flash, distillation, and volatility-risk tasks.
 - `ComponentPropertyPackage`: a component-local correlation package that chooses
   an in-range method when multiple correlations exist.
 - `property_equation_contracts()`: a public introspection API exposing required
@@ -59,7 +62,7 @@ declared equation contract before numerical evaluation:
 
 | Property family | Supported equations |
 | --- | --- |
-| Vapor pressure | Antoine, Wagner, DIPPR101/Perry form |
+| Vapor pressure | Antoine, Wagner, DIPPR101/Perry form, analytic derivative reports |
 | Heat capacity | Cp polynomial, Poling/DIPPR100 ideal-gas Cp slice |
 | Enthalpy | analytic Cp-polynomial sensible-enthalpy integral |
 | Phase change | Watson heat-of-vaporization correlation, constant heat-of-fusion proxy |
@@ -107,8 +110,9 @@ The P1/P2 audit hardened the foundation around those evaluators:
 - `ComponentPropertyPackage` enforces the component's
   `allowed_property_correlations` policy by correlation id, property id, or
   equation id;
-- `PropertyCorrelation.model_card()` and `property_equation_contracts()` provide
-  JSON-friendly audit records for docs, schema generation, and external review.
+- `property_correlation_model_cards()` and `property_equation_contracts()`
+  provide JSON-friendly audit records for docs, schema generation, and external
+  review.
 
 Acceptance coverage now includes formula parsing, mole/mass conversion
 round-trips, JSON round-trips for component/mixture/correlation specs, unit
@@ -126,6 +130,18 @@ correlation scaled into SI units, validity ranges, source notes, and a model
 card. Optional reference tests compare ChemWorld values against local
 `chemicals` reference implementations for vapor pressure, ideal-gas Cp, and
 sensible enthalpy integrals.
+
+DEEP-D2A hardens the vapor-pressure path itself. `vapor_pressure_report()`
+returns pressure, analytic `dP/dT`, `dlnP/dT`, validity status, method family,
+and inspected-reference provenance for Antoine, Wagner, and DIPPR101 formula
+families. `ComponentPropertyPackage.vapor_pressure_report()` gives curated
+components the same reporting surface. The same report path accepts
+`property_id="sublimation_pressure"` when a task or user supplies declared
+sublimation coefficients. The model card records inspected `chemicals` and
+`thermo` vapor-pressure APIs and the tests compare Antoine/DIPPR derivatives
+against finite differences. This is deliberately not a broad data-table import,
+EOS saturation solver, IAPWS water package, or CoolProp-level critical-region
+backend.
 
 PRO-P1A hardens the curated component registry itself. Component records now
 round-trip structured provenance and uncertainty metadata, curated aliases are

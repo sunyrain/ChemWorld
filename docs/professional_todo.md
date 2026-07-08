@@ -122,6 +122,23 @@ PRO-P2A is now implemented for the first reference-validated property slice:
   sensible enthalpy integrals against `chemicals.dippr.EQ101` and
   `chemicals.dippr.EQ100`.
 
+DEEP-D2A is now implemented for vapor-pressure formula families:
+
+- `vapor_pressure_report()` returns a `VaporPressureReport` with pressure,
+  analytic `dP/dT`, `dlnP/dT`, method family, validity status, and
+  reference-reading provenance.
+- `vapor_pressure_temperature_derivative()` supports Antoine, the existing
+  ChemWorld Wagner form, and DIPPR101 vapor-pressure correlations.
+- `ComponentPropertyPackage.vapor_pressure_report()` exposes the same report
+  through component-local curated packages.
+- Sublimation pressure can use the same report path when the caller supplies a
+  `PropertyCorrelation` with `property_id="sublimation_pressure"`.
+- Tests compare Antoine and DIPPR101 derivatives against finite differences,
+  verify validity hard-fail behavior, and validate the vapor-pressure model
+  card.
+- This is a professional formula/reporting slice, not a broad vapor-pressure
+  database, EOS saturation solver, IAPWS water package, or CoolProp replacement.
+
 PRO-P4A is now implemented for the first reference-validated nonideal activity
 coefficient slice:
 

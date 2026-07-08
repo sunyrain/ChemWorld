@@ -7,6 +7,7 @@ from math import exp, isfinite, log
 from typing import Literal
 
 from chemworld.foundation.units import Quantity, convert_value
+from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
 from chemworld.physchem.specs import ComponentSpec, MixtureSpec, PropertyCorrelation
 
 R_J_PER_MOL_K = 8.31446261815324
@@ -53,6 +54,54 @@ class PropertyEvaluation:
             "inputs": dict(self.inputs),
             "warnings": list(self.warnings),
             "valid": self.valid,
+        }
+
+
+@dataclass(frozen=True)
+class VaporPressureReport:
+    """Vapor/sublimation pressure with derivative and method provenance."""
+
+    pressure: PropertyEvaluation
+    temperature_derivative_value: float
+    temperature_derivative_unit: str
+    dln_pressure_dT_1_K: float
+    method_family: str
+    validity_status: str
+    reference_reading: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if self.pressure.property_id not in {"vapor_pressure", "sublimation_pressure"}:
+            raise ValueError("VaporPressureReport requires vapor or sublimation pressure")
+        if not isfinite(self.temperature_derivative_value):
+            raise ValueError("temperature derivative must be finite")
+        if self.pressure.value <= 0:
+            raise ValueError("pressure value must be positive")
+        if not isfinite(self.dln_pressure_dT_1_K):
+            raise ValueError("log-pressure derivative must be finite")
+        if self.validity_status not in {"valid", "out_of_range"}:
+            raise ValueError("validity_status must be valid or out_of_range")
+        object.__setattr__(self, "reference_reading", tuple(self.reference_reading))
+
+    @property
+    def pressure_pa(self) -> float:
+        return self.pressure.to("Pa").value
+
+    @property
+    def dp_dt_pa_per_k(self) -> float:
+        return self.temperature_derivative_value * _pressure_unit_to_pa_factor(
+            self.pressure.unit
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "pressure": self.pressure.to_dict(),
+            "temperature_derivative_value": self.temperature_derivative_value,
+            "temperature_derivative_unit": self.temperature_derivative_unit,
+            "dP_dT_Pa_per_K": self.dp_dt_pa_per_k,
+            "dln_pressure_dT_1_K": self.dln_pressure_dT_1_K,
+            "method_family": self.method_family,
+            "validity_status": self.validity_status,
+            "reference_reading": list(self.reference_reading),
         }
 
 
@@ -114,6 +163,30 @@ class ComponentPropertyPackage:
             validity_policy=validity_policy,
         )
 
+    def vapor_pressure_report(
+        self,
+        *,
+        temperature_K: float,
+        property_id: str = "vapor_pressure",
+        validity_policy: ValidityPolicy = "warn",
+    ) -> VaporPressureReport:
+        candidates = self.by_property(property_id)
+        if not candidates:
+            raise ValueError(
+                f"No correlation for property {property_id!r} on component "
+                f"{self.component.identifier!r}"
+            )
+        chosen = _choose_valid_correlation(
+            candidates,
+            temperature_K=temperature_K,
+            pressure_Pa=None,
+        )
+        return vapor_pressure_report(
+            chosen,
+            temperature_K=temperature_K,
+            validity_policy=validity_policy,
+        )
+
     def to_dict(self) -> dict[str, object]:
         return {
             "component": self.component.to_dict(),
@@ -163,6 +236,88 @@ def evaluate_correlation(
         unit=correlation.output_unit,
         inputs=inputs,
         warnings=() if validity_policy == "ignore" else warnings,
+        )
+
+
+def vapor_pressure_report(
+    correlation: PropertyCorrelation,
+    *,
+    temperature_K: float,
+    validity_policy: ValidityPolicy = "warn",
+) -> VaporPressureReport:
+    """Evaluate pressure and analytic temperature derivative for vapor models."""
+
+    if correlation.property_id not in {"vapor_pressure", "sublimation_pressure"}:
+        raise ValueError("vapor_pressure_report requires vapor or sublimation pressure")
+    pressure = evaluate_correlation(
+        correlation,
+        temperature_K=temperature_K,
+        validity_policy=validity_policy,
+    )
+    derivative = vapor_pressure_temperature_derivative(
+        correlation,
+        temperature_K=temperature_K,
+        validity_policy=validity_policy,
+    )
+    pressure_value = pressure.value
+    dln = derivative.value / pressure_value
+    return VaporPressureReport(
+        pressure=pressure,
+        temperature_derivative_value=derivative.value,
+        temperature_derivative_unit=derivative.unit,
+        dln_pressure_dT_1_K=dln,
+        method_family=_vapor_pressure_method_family(correlation.equation_id),
+        validity_status="valid" if not pressure.warnings else "out_of_range",
+        reference_reading=(
+            "reference_repos/chemicals/chemicals/vapor_pressure.py: "
+            "Antoine, Wagner, dWagner_dT",
+            "reference_repos/chemicals/chemicals/dippr.py: EQ101 order=1 "
+            "derivative",
+            "reference_repos/thermo/thermo/vapor_pressure.py: "
+            "VaporPressure ranked methods and validity limits",
+        ),
+    )
+
+
+def vapor_pressure_temperature_derivative(
+    correlation: PropertyCorrelation,
+    *,
+    temperature_K: float,
+    validity_policy: ValidityPolicy = "warn",
+) -> PropertyEvaluation:
+    """Analytic `dP_sat/dT` in the correlation output unit per kelvin."""
+
+    if correlation.property_id not in {"vapor_pressure", "sublimation_pressure"}:
+        raise ValueError(
+            "vapor_pressure_temperature_derivative requires vapor or "
+            "sublimation pressure"
+        )
+    pressure = evaluate_correlation(
+        correlation,
+        temperature_K=temperature_K,
+        validity_policy=validity_policy,
+    )
+    inputs = {
+        "temperature": _convert_input(temperature_K, "K", correlation, "temperature")
+    }
+    derivative = _evaluate_temperature_derivative(
+        correlation,
+        inputs=inputs,
+        pressure_value=pressure.value,
+    )
+    if not isfinite(derivative):
+        raise ValueError(
+            f"Correlation derivative returned non-finite value: "
+            f"{correlation.correlation_id}"
+        )
+    return PropertyEvaluation(
+        property_id=f"{correlation.property_id}_temperature_derivative",
+        correlation_id=f"{correlation.correlation_id}:dP_dT",
+        equation_id=f"{correlation.equation_id}_temperature_derivative",
+        value=derivative,
+        unit=f"{correlation.output_unit}/K",
+        inputs=inputs,
+        warnings=pressure.warnings,
     )
 
 
@@ -318,6 +473,8 @@ def _evaluate_equation(
     T = inputs["temperature"]
     if equation == "antoine":
         base = coeffs.get("base", 10.0)
+        if T + coeffs["C"] <= 0:
+            raise ValueError("Antoine vapor pressure singularity: T + C must be positive")
         return base ** (coeffs["A"] - coeffs["B"] / (T + coeffs["C"]))
     if equation == "wagner":
         Tc = coeffs["Tc"]
@@ -377,6 +534,153 @@ def _evaluate_equation(
         ratio = (1.0 - temperature_K / Tc) / (1.0 - T_ref / Tc)
         return coeffs["sigma_ref"] * ratio ** coeffs.get("exponent", 1.26)
     raise ValueError(f"Unsupported property equation_id: {equation}")
+
+
+def _evaluate_temperature_derivative(
+    correlation: PropertyCorrelation,
+    *,
+    inputs: dict[str, float],
+    pressure_value: float,
+) -> float:
+    equation = correlation.equation_id
+    coeffs = correlation.coefficients
+    T = inputs["temperature"]
+    if equation == "antoine":
+        base = coeffs.get("base", 10.0)
+        denominator = T + coeffs["C"]
+        if denominator <= 0:
+            raise ValueError("Antoine vapor pressure singularity: T + C must be positive")
+        return pressure_value * log(base) * coeffs["B"] / denominator**2
+    if equation == "wagner":
+        Tc = coeffs["Tc"]
+        if Tc <= T:
+            raise ValueError("Wagner vapor pressure derivative requires T < Tc")
+        tau = 1.0 - T / Tc
+        reduced_temperature = T / Tc
+        numerator = (
+            coeffs["a"] * tau
+            + coeffs["b"] * tau**1.5
+            + coeffs["c"] * tau**3.0
+            + coeffs["d"] * tau**6.0
+        )
+        dnumerator_dtau = (
+            coeffs["a"]
+            + 1.5 * coeffs["b"] * tau**0.5
+            + 3.0 * coeffs["c"] * tau**2.0
+            + 6.0 * coeffs["d"] * tau**5.0
+        )
+        dnumerator_dT = -dnumerator_dtau / Tc
+        dreduced_temperature_dT = 1.0 / Tc
+        dexponent_dT = (
+            dnumerator_dT * reduced_temperature
+            - numerator * dreduced_temperature_dT
+        ) / reduced_temperature**2
+        return pressure_value * dexponent_dT
+    if equation == "dippr101_vapor_pressure":
+        return pressure_value * (
+            -coeffs["B"] / T**2
+            + coeffs["C"] / T
+            + coeffs["D"] * coeffs["E"] * T ** (coeffs["E"] - 1.0)
+        )
+    raise ValueError(
+        f"Unsupported vapor-pressure derivative equation_id: {equation}"
+    )
+
+
+def property_correlation_model_cards() -> tuple[ModelCard, ...]:
+    """Return model cards for generic property-correlation families."""
+
+    return (
+        ModelCard(
+            model_id="vapor_pressure_correlation_families",
+            module_id="properties",
+            title="Vapor-Pressure Correlation Families",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Formula-level vapor and sublimation pressure evaluators with "
+                "explicit validity ranges, analytic temperature derivatives, "
+                "and JSON-friendly reports."
+            ),
+            equations=(
+                "Antoine: log_base(P) = A - B/(T + C)",
+                "Wagner original 3,6 form: ln(P/Pc) = "
+                "(a*tau + b*tau**1.5 + c*tau**3 + d*tau**6)/Tr",
+                "DIPPR101: P = exp(A + B/T + C*ln(T) + D*T**E)",
+                "dP/dT is analytic for Antoine, Wagner, and DIPPR101 reports.",
+            ),
+            assumptions=(
+                "Coefficient units must match each PropertyCorrelation input "
+                "and output unit declaration.",
+                "Validity ranges are treated as benchmark contracts; callers "
+                "choose warn, raise, or ignore policy.",
+                "Sublimation pressure uses the same formula families when a "
+                "caller supplies sublimation-pressure coefficients.",
+            ),
+            validity_limits=(
+                "No automatic method ranking beyond the caller-provided "
+                "correlation order in ComponentPropertyPackage.",
+                "No data-table vendoring; only explicitly curated coefficients "
+                "are shipped.",
+                "Critical-region behavior is limited to declared correlation "
+                "validity bounds.",
+            ),
+            failure_modes=(
+                "Unsupported equations fail before derivative evaluation.",
+                "Antoine singularities fail when T + C is nonpositive.",
+                "Wagner reports fail at or above the declared critical temperature.",
+                "Out-of-range calls can hard-fail with validity_policy='raise'.",
+            ),
+            units={
+                "temperature": "K or declared temperature unit",
+                "pressure": "Pa or declared pressure unit",
+                "dP_dT": "declared_pressure_unit/K",
+                "dlnP_dT": "1/K",
+            },
+            reference_reading=(
+                "reference_repos/chemicals/chemicals/vapor_pressure.py: "
+                "Antoine, Wagner, dWagner_dT, vapor-pressure data families",
+                "reference_repos/chemicals/chemicals/dippr.py: EQ101 and "
+                "order=1 derivative",
+                "reference_repos/thermo/thermo/vapor_pressure.py: "
+                "VaporPressure method ranking, validity limits, and derivative API",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="antoine-vapor-pressure-derivative-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks Antoine pressure and analytic derivative "
+                        "against central finite differences."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_physchem_properties.py",
+                    tolerance="rtol=1e-5",
+                ),
+                ValidationEvidence(
+                    evidence_id="dippr101-vapor-pressure-derivative-test",
+                    evidence_type="unit_test",
+                    description=(
+                        "Checks DIPPR101 analytic dP/dT against central finite "
+                        "differences for curated compounds."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_physchem_properties.py",
+                    tolerance="rtol=1e-5",
+                ),
+            ),
+            model_limit_notes=(
+                "This is a compact formula-family implementation, not a "
+                "replacement for chemicals/thermo data coverage or EOS-based "
+                "critical-region saturation solvers.",
+            ),
+            intended_use=(
+                "Flash, distillation, volatility-risk, and safety-envelope "
+                "tasks requiring auditable vapor-pressure values and slopes.",
+                "Benchmark datasets that need replayable property reports with "
+                "validity status.",
+            ),
+        ),
+    )
 
 
 def _cp_polynomial(T: float, coeffs: dict[str, float]) -> float:
@@ -447,6 +751,7 @@ def _ensure_finite_positive(value: float, correlation: PropertyCorrelation) -> N
         raise ValueError(f"Correlation returned non-finite value: {correlation.correlation_id}")
     if correlation.property_id in {
         "vapor_pressure",
+        "sublimation_pressure",
         "heat_capacity",
         "heat_of_vaporization",
         "heat_of_fusion",
@@ -457,6 +762,20 @@ def _ensure_finite_positive(value: float, correlation: PropertyCorrelation) -> N
         "surface_tension",
     } and value < 0:
         raise ValueError(f"Correlation returned negative value: {correlation.correlation_id}")
+
+
+def _pressure_unit_to_pa_factor(unit: str) -> float:
+    return convert_value(1.0, unit, "Pa")
+
+
+def _vapor_pressure_method_family(equation_id: str) -> str:
+    if equation_id == "dippr101_vapor_pressure":
+        return "DIPPR101"
+    if equation_id == "antoine":
+        return "Antoine"
+    if equation_id == "wagner":
+        return "Wagner"
+    return equation_id
 
 
 def _clamp(value: float, lower: float, upper: float) -> float:

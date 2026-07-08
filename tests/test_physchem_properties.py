@@ -15,10 +15,13 @@ from chemworld.physchem import (
     list_curated_property_packages,
     mixture_density,
     mixture_viscosity_log_rule,
+    property_correlation_model_cards,
     resolve_component_identifier,
     sensible_enthalpy_change,
     thermal_hazard_proxy,
     validate_model_card,
+    vapor_pressure_report,
+    vapor_pressure_temperature_derivative,
     volatility_risk_from_psat,
 )
 
@@ -55,6 +58,25 @@ def test_antoine_water_vapor_pressure_increases_monotonically() -> None:
     assert low.to("Pa").value < high.to("Pa").value < boiling.to("Pa").value
     assert boiling.value == pytest.approx(760.0, rel=0.02)
 
+    derivative = vapor_pressure_temperature_derivative(
+        water_psat,
+        temperature_K=353.15,
+    )
+    finite_difference = (
+        evaluate_correlation(water_psat, temperature_K=353.151).value
+        - evaluate_correlation(water_psat, temperature_K=353.149).value
+    ) / 0.002
+    assert derivative.value == pytest.approx(finite_difference, rel=1e-5)
+
+    report = vapor_pressure_report(water_psat, temperature_K=353.15)
+    assert report.method_family == "Antoine"
+    assert report.validity_status == "valid"
+    assert report.dp_dt_pa_per_k > 0.0
+    assert report.dln_pressure_dT_1_K == pytest.approx(
+        derivative.value / report.pressure.value
+    )
+    assert report.to_dict()["method_family"] == "Antoine"
+
 
 def test_wagner_vapor_pressure_and_validity_policy() -> None:
     water_wagner = PropertyCorrelation(
@@ -82,6 +104,42 @@ def test_wagner_vapor_pressure_and_validity_policy() -> None:
         evaluate_correlation(water_wagner, temperature_K=260.0, validity_policy="raise")
     warned = evaluate_correlation(water_wagner, temperature_K=260.0, validity_policy="warn")
     assert warned.warnings
+
+    report = vapor_pressure_report(water_wagner, temperature_K=350.0)
+    assert report.method_family == "Wagner"
+    assert report.temperature_derivative_value > 0.0
+
+
+def test_vapor_pressure_report_supports_sublimation_pressure() -> None:
+    ice_sublimation = PropertyCorrelation(
+        correlation_id="ice_sublimation_antoine_demo",
+        property_id="sublimation_pressure",
+        equation_id="antoine",
+        coefficients={"A": 11.344, "B": 3885.7, "C": -42.98, "base": 10.0},
+        input_units={"temperature": "K"},
+        output_unit="Pa",
+        validity_ranges={"temperature": (180.0, 273.15)},
+        source_note=(
+            "Compact sublimation-pressure correlation fixture for API "
+            "validation, not a broad data table."
+        ),
+    )
+
+    report = vapor_pressure_report(
+        ice_sublimation,
+        temperature_K=250.0,
+        validity_policy="raise",
+    )
+    assert report.pressure.property_id == "sublimation_pressure"
+    assert report.pressure.value > 0.0
+    assert report.temperature_derivative_value > 0.0
+
+    with pytest.raises(ValueError, match="outside validity range"):
+        vapor_pressure_report(
+            ice_sublimation,
+            temperature_K=290.0,
+            validity_policy="raise",
+        )
 
 
 def test_heat_capacity_polynomial_and_enthalpy_integral() -> None:
@@ -328,6 +386,10 @@ def test_curated_property_packages_are_reference_ready() -> None:
             temperature_K=case.reference_temperature_K,
             validity_policy="raise",
         )
+        vapor_pressure_with_derivative = package.vapor_pressure_report(
+            temperature_K=case.reference_temperature_K,
+            validity_policy="raise",
+        )
         ideal_gas_cp = package.evaluate(
             "ideal_gas_heat_capacity",
             temperature_K=case.reference_temperature_K,
@@ -343,6 +405,25 @@ def test_curated_property_packages_are_reference_ready() -> None:
 
         assert vapor_pressure.value > 0.0
         assert vapor_pressure.unit == "Pa"
+        assert vapor_pressure_with_derivative.method_family == "DIPPR101"
+        assert vapor_pressure_with_derivative.temperature_derivative_value > 0.0
+        step = 1e-3
+        finite_difference = (
+            package.evaluate(
+                "vapor_pressure",
+                temperature_K=case.reference_temperature_K + step,
+                validity_policy="raise",
+            ).value
+            - package.evaluate(
+                "vapor_pressure",
+                temperature_K=case.reference_temperature_K - step,
+                validity_policy="raise",
+            ).value
+        ) / (2.0 * step)
+        assert vapor_pressure_with_derivative.temperature_derivative_value == pytest.approx(
+            finite_difference,
+            rel=1e-5,
+        )
         assert ideal_gas_cp.value > 0.0
         assert ideal_gas_cp.unit == "J/(mol*K)"
         assert enthalpy.value > 0.0
@@ -374,3 +455,20 @@ def test_curated_property_model_card_is_auditable() -> None:
         evidence.reference_backend for evidence in card.validation_evidence
     } == {"chemicals"}
     assert any("DIPPR101" in equation for equation in card.equations)
+
+
+def test_property_correlation_model_card_is_auditable() -> None:
+    cards = property_correlation_model_cards()
+    assert len(cards) == 1
+    card = cards[0]
+    assert card.model_id == "vapor_pressure_correlation_families"
+    assert card.module_id == "properties"
+    assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
+    assert validate_model_card(card) == []
+    assert any("dP/dT" in equation for equation in card.equations)
+    assert {
+        evidence.evidence_id for evidence in card.validation_evidence
+    } >= {
+        "antoine-vapor-pressure-derivative-test",
+        "dippr101-vapor-pressure-derivative-test",
+    }

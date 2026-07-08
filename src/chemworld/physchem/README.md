@@ -15,6 +15,9 @@ Current scope:
 - local property evaluators for vapor pressure, heat capacity, enthalpy,
   phase-change enthalpy, density, viscosity, surface tension, mixture rules,
   and safety proxies.
+- vapor-pressure reports with pressure, analytic `dP/dT`, `dlnP/dT`, validity
+  status, method family, and reference-reading provenance for vapor or
+  caller-supplied sublimation correlations.
 - public property-equation contracts for required coefficients, input
   dimensions, output dimensions, and model cards.
 - curated reference-checked property packages for water, ethanol, acetone,

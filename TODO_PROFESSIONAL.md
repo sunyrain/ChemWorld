@@ -178,11 +178,11 @@ Reference-reading note for PRO-P1A:
 
 Reference targets: `chemicals`, `thermo`, `CoolProp`.
 
-- [ ] Vapor pressure:
-  - [ ] Antoine with validity domains;
+- [x] Vapor pressure:
+  - [x] Antoine with validity domains;
   - [x] Wagner/DIPPR-style form;
-  - [ ] sublimation pressure where needed;
-  - [ ] derivative with respect to temperature.
+  - [x] sublimation pressure where caller-supplied coefficients exist;
+  - [x] derivative with respect to temperature.
 - [ ] Heat capacity and enthalpy:
   - [x] ideal-gas Cp;
   - [ ] liquid Cp;
@@ -212,6 +212,24 @@ Acceptance:
       DIPPR101 vapor-pressure and Poling ideal-gas Cp/enthalpy slice.
 - [ ] Property package can be used by reactor energy balances without unit
       ambiguity.
+
+Reference-reading note for DEEP-D2A:
+
+- `reference_repos/chemicals/chemicals/vapor_pressure.py` exposes formula-level
+  Antoine and Wagner vapor-pressure functions, plus tabular method families
+  such as Antoine, Wagner, Landolt, and Perry/DIPPR101. ChemWorld localizes the
+  formula and validity-bound pattern without vendoring those data tables.
+- `reference_repos/chemicals/chemicals/dippr.py` implements `EQ101` and its
+  first derivative through the `order=1` path. ChemWorld mirrors the analytic
+  derivative for the local DIPPR101 vapor-pressure equation.
+- `reference_repos/thermo/thermo/vapor_pressure.py` separates method ranking,
+  validity limits, method-specific calculation, and derivative access through
+  `VaporPressure`. ChemWorld keeps a smaller benchmark-facing contract:
+  `VaporPressureReport` returns pressure, `dP/dT`, `dlnP/dT`, validity status,
+  method family, and reference-reading provenance.
+- This closes a compact formula-family/reporting slice. It does not add broad
+  vapor-pressure data coverage, EOS-based saturation solves, IAPWS special
+  water handling, or CoolProp-level critical-region behavior.
 
 ## P3: EOS And Residual Thermodynamics
 
