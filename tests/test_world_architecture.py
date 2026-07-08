@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import json
 from pathlib import Path
 
@@ -98,6 +99,29 @@ def test_env_and_runtime_do_not_import_removed_batch_runtime() -> None:
         if "chemworld.core.batch_reactor" in path.read_text(encoding="utf-8")
     ]
     assert offenders == []
+
+
+def test_legacy_species_fallback_is_isolated_to_runtime_species_view() -> None:
+    roots = (Path("src/chemworld/envs"), Path("src/chemworld/runtime"), Path("src/chemworld/eval"))
+    allowed = {Path("src/chemworld/runtime/species.py")}
+    legacy_usage: list[tuple[Path, int, str]] = []
+
+    for root in roots:
+        for path in root.glob("*.py"):
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Name) and node.id.startswith("LEGACY_"):
+                    legacy_usage.append((path, node.lineno, node.id))
+                elif isinstance(node, ast.alias) and node.name.startswith("LEGACY_"):
+                    legacy_usage.append((path, node.lineno, node.name))
+
+    offenders = [
+        (path.as_posix(), lineno, name)
+        for path, lineno, name in legacy_usage
+        if path not in allowed
+    ]
+    assert offenders == []
+    assert legacy_usage
 
 
 def test_chemworld_env_delegates_process_operation_dispatch_to_runtime() -> None:
