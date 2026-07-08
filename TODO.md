@@ -23,6 +23,7 @@ finished, update its status and push immediately.
 | P5 equation-of-state core | whilesunny | Done | `src/chemworld/physchem/eos.py`, `tests/`, `docs/physchem_core_design.md` | next: build activity models and VLE/LLE flash on top of EOS and property packages | this commit |
 | P6 phase-equilibrium core | whilesunny | Done | `src/chemworld/physchem/equilibrium.py`, `tests/`, `docs/physchem_core_design.md` | next: replace extraction and evaporation task proxies with phase-equilibrium kernels, then start P7 separations | this commit |
 | P7 separation and unit operations | whilesunny | Done | `src/chemworld/physchem/separations.py`, `tests/`, `docs/physchem_core_design.md` | next: implement fluid mechanics and heat-transfer utilities in P8, then wire separations into world tasks | this commit |
+| P8 fluid mechanics and heat transfer | whilesunny | Active | `src/chemworld/physchem/transport.py`, `tests/`, `docs/physchem_core_design.md` | read fluids/heat-transfer references, then implement dimensionless numbers, friction factor, pipe pressure drop, pump work, jacket heat transfer, and heat-exchanger effectiveness | pending |
 
 Status values:
 
