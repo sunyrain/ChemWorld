@@ -264,6 +264,27 @@ class MechanismSpeciesView:
             )
         return metadata
 
+    def reagent_charge_amounts(
+        self,
+        state: WorldState,
+        *,
+        limiting_amount_mol: float,
+    ) -> dict[str, float]:
+        """Return mechanism-ratio reagent additions for one charge operation."""
+
+        reactant = self.reactant_species(state)
+        if self.mechanism is None:
+            return {reactant: limiting_amount_mol}
+        policy = self.mechanism.initial_amount_policy
+        reference = float(policy.get(reactant, 0.0))
+        if reference <= 0.0:
+            return {reactant: limiting_amount_mol}
+        return {
+            species_id: limiting_amount_mol * float(amount) / reference
+            for species_id, amount in policy.items()
+            if amount > 0.0 and species_id in state.species_amounts
+        } or {reactant: limiting_amount_mol}
+
     def truth_values(self, state: WorldState) -> dict[str, float]:
         initial = max(self.initial_reactant_amount(state), 1.0e-12)
         target = self.target_amount(state)

@@ -108,6 +108,166 @@ def integrate_reaction_ode(
     )
 
 
+def integrate_compiled_reaction_ode(
+    *,
+    state: WorldState,
+    world: Any,
+    compiled_mechanism: Any | None,
+    duration_s: float,
+    target_temperature_K: float,
+    heat: bool,
+    stirring_speed_rpm: float,
+    fallback_species_map: Mapping[str, str] | None = None,
+) -> ReactionIntegrationResult | None:
+    """Integrate a mechanism-compiled reaction network and thermal balance.
+
+    Runtime v2 treats mechanism YAML as the owner of species and reactions. The
+    legacy seven-slot ODE remains callable as a short-lived reference fallback
+    for contexts that do not yet provide ``CompiledMechanism``.
+    """
+
+    if compiled_mechanism is None:
+        return integrate_reaction_ode(
+            state=state,
+            world=world,
+            duration_s=duration_s,
+            target_temperature_K=target_temperature_K,
+            heat=heat,
+            stirring_speed_rpm=stirring_speed_rpm,
+            species_map=fallback_species_map,
+        )
+
+    duration = float(np.clip(duration_s, 0.0, 14_400.0))
+    if duration <= 0.0 or state.volume_L <= 0.0:
+        return None
+
+    network = compiled_mechanism.network
+    species_ids = network.species_ids
+    target_temperature = float(np.clip(target_temperature_K, 250.0, 520.0))
+    stirring_speed = float(np.clip(stirring_speed_rpm, 100.0, 1200.0))
+    y0 = np.array(
+        [state.species_amounts.get(species_id, 0.0) for species_id in species_ids]
+        + [state.temperature_K, 0.0, 0.0, 0.0],
+    )
+    result = solve_ivp(
+        lambda _t, y: compiled_reaction_ode_rhs(
+            y=y,
+            state=state,
+            world=world,
+            compiled_mechanism=compiled_mechanism,
+            target_temperature_K=target_temperature,
+            heat=heat,
+            stirring_speed_rpm=stirring_speed,
+        ),
+        (0.0, duration),
+        y0,
+        method="LSODA",
+        rtol=1.0e-7,
+        atol=1.0e-11,
+    )
+    if not result.success:
+        raise RuntimeError(f"Compiled mechanism integration failed: {result.message}")
+    y = np.maximum(result.y[:, -1], 0.0)
+    species_amounts = state.species_amounts.copy()
+    for index, species_id in enumerate(species_ids):
+        species_amounts[species_id] = float(y[index])
+    offset = len(species_ids)
+    return ReactionIntegrationResult(
+        species_amounts=species_amounts,
+        temperature_K=float(np.clip(y[offset], 250.0, 520.0)),
+        duration_s=duration,
+        cost_delta=duration / 3600.0 * (0.03 if heat else 0.01),
+        energy_jacket_J=float(y[offset + 1]),
+        heat_reaction_J=float(y[offset + 2]),
+        heat_loss_J=float(y[offset + 3]),
+        stirring_speed_rpm=stirring_speed,
+    )
+
+
+def compiled_reaction_ode_rhs(
+    *,
+    y: np.ndarray,
+    state: WorldState,
+    world: Any,
+    compiled_mechanism: Any,
+    target_temperature_K: float,
+    heat: bool,
+    stirring_speed_rpm: float,
+) -> np.ndarray:
+    network = compiled_mechanism.network
+    species_ids = network.species_ids
+    species_count = len(species_ids)
+    amounts_array = np.maximum(y[:species_count], 0.0)
+    temperature = float(np.clip(y[species_count], 250.0, 520.0))
+    volume = max(state.volume_L, 1.0e-6)
+    amounts = {
+        species_id: float(amount)
+        for species_id, amount in zip(species_ids, amounts_array, strict=True)
+    }
+    rates_mol_L_s = network.reaction_rates(
+        amounts,
+        volume_L=volume,
+        temperature_K=temperature,
+    )
+    reactor_settings = equipment_settings(state.equipment, "batch_reactor")
+    catalyst = int(reactor_settings.get("catalyst", 0))
+    solvent = int(reactor_settings.get("solvent", 0))
+    stirring_factor = 0.70 + 0.30 * (1.0 - np.exp(-stirring_speed_rpm / 420.0))
+
+    derivatives = np.zeros(species_count + 4)
+    reaction_heat_W = 0.0
+    for reaction_index, reaction in enumerate(network.reactions):
+        hidden_modifier = _hidden_reaction_modifier(
+            world,
+            catalyst=catalyst,
+            solvent=solvent,
+            reaction_index=reaction_index,
+            stirring_factor=stirring_factor,
+        )
+        rate_mol_s = rates_mol_L_s[reaction.reaction_id] * volume * hidden_modifier
+        for species_id, coefficient in reaction.stoichiometry.items():
+            derivatives[network.species_index[species_id]] += coefficient * rate_mol_s
+        reaction_heat_W += reaction.delta_h_J_per_mol * rate_mol_s
+
+    q_jacket = 0.0
+    if heat:
+        q_jacket = float(np.clip((target_temperature_K - temperature) * 4.0, -70.0, 90.0))
+    heat_loss = world.ua_W_per_K * (temperature - world.environment_temperature_K)
+    heat_capacity = max(world.rho_cp_J_per_L_K * volume, 1.0e-6)
+    derivatives[species_count] = (q_jacket - heat_loss - reaction_heat_W) / heat_capacity
+    derivatives[species_count + 1] = q_jacket
+    derivatives[species_count + 2] = reaction_heat_W
+    derivatives[species_count + 3] = heat_loss
+    return derivatives
+
+
+def _hidden_reaction_modifier(
+    world: Any,
+    *,
+    catalyst: int,
+    solvent: int,
+    reaction_index: int,
+    stirring_factor: float,
+) -> float:
+    catalyst_effects = np.asarray(world.catalyst_effects, dtype=float)
+    solvent_effects = np.asarray(world.solvent_effects, dtype=float)
+    catalyst_index = int(np.clip(catalyst, 0, catalyst_effects.shape[0] - 1))
+    solvent_index = int(np.clip(solvent, 0, solvent_effects.shape[0] - 1))
+    catalyst_reaction_index = min(reaction_index, catalyst_effects.shape[-1] - 1)
+    solvent_reaction_index = min(reaction_index, solvent_effects.shape[-1] - 1)
+    catalyst_factor = (
+        catalyst_effects[catalyst_index, catalyst_reaction_index]
+        if catalyst_effects.ndim == 2
+        else catalyst_effects[catalyst_index]
+    )
+    solvent_factor = (
+        solvent_effects[solvent_index, solvent_reaction_index]
+        if solvent_effects.ndim == 2
+        else solvent_effects[solvent_index]
+    )
+    return float(catalyst_factor * solvent_factor * stirring_factor)
+
+
 def reaction_ode_rhs(
     *,
     y: np.ndarray,
@@ -191,6 +351,8 @@ __all__ = [
     "R_GAS",
     "ReactionIntegrationResult",
     "ReactionModuleSpec",
+    "compiled_reaction_ode_rhs",
+    "integrate_compiled_reaction_ode",
     "integrate_reaction_ode",
     "reaction_network",
     "reaction_ode_rhs",

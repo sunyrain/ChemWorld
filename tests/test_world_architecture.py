@@ -50,7 +50,10 @@ from chemworld.world import (
 from chemworld.world.observation_kernel import raw_signal
 from chemworld.world.operations import OPERATION_TYPES
 from chemworld.world.phase_kernel import partition_split
-from chemworld.world.reaction_kernel import integrate_reaction_ode
+from chemworld.world.reaction_kernel import (
+    integrate_compiled_reaction_ode,
+    integrate_reaction_ode,
+)
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.world.thermal_kernel import pressure_and_risk
@@ -175,7 +178,7 @@ def test_runtime_reaction_thermal_service_is_separate_from_domain_services() -> 
     assert "integrate_reaction_ode" not in domain_services
     assert "pressure_and_risk" not in domain_services
     assert "class ChemWorldReactionThermalServices" in reaction_thermal_services
-    assert "integrate_reaction_ode" in reaction_thermal_services
+    assert "integrate_compiled_reaction_ode" in reaction_thermal_services
     assert "pressure_and_risk" in reaction_thermal_services
 
 
@@ -510,6 +513,23 @@ def test_role_mapped_lite_reaction_backend_does_not_require_fixed_species_state(
         assert heated.species_amounts["Ester"] > 0.0
         assert heated.phases is not None
         assert heated.phases.total_amounts_mol() == pytest.approx(heated.species_amounts)
+    finally:
+        env.close()
+
+
+def test_reagent_charge_uses_mechanism_initial_amount_policy() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-distillation", seed=0)
+    try:
+        env.reset(seed=0)
+        env.step({"operation": "add_solvent", "volume_L": 0.028, "solvent": 2})
+        _, _, _, _, info = env.step({"operation": "add_reagent", "amount_mol": 0.010})
+        state = env.unwrapped._state
+
+        assert info["transaction_status"] == "committed"
+        assert state.species_amounts["Acid"] == pytest.approx(0.010)
+        assert state.species_amounts["Alcohol"] == pytest.approx(0.0125)
+        assert state.metadata["initial_Acid_mol"] == pytest.approx(0.010)
+        assert state.metadata["initial_reactant_mol"] == pytest.approx(0.010)
     finally:
         env.close()
 
@@ -1109,6 +1129,54 @@ def test_world_kernels_are_executable_not_metadata_only() -> None:
         aqueous_volume_L=0.025,
     )
     assert split["organic_product_mol"] + split["aqueous_product_mol"] == 0.005
+
+
+def test_compiled_reaction_kernel_uses_mechanism_species_not_fixed_slots() -> None:
+    compiled = compile_mechanism_for_scenario("reaction-to-distillation")
+    world = load_chemworld_parameters("public-dev", seed=1)
+    state = initial_chemworld_state(
+        species_ids=tuple(compiled.species_index),
+        species_roles=compiled.species_roles,
+        initial_amounts_mol=compiled.initial_amount_policy,
+        initial_limiting_species=compiled.score_spec.initial_limiting_species,
+    ).replace(
+        species_amounts={
+            "Acid": 0.010,
+            "Alcohol": 0.012,
+            "Ester": 0.0,
+            "Water": 0.0,
+            "Ether": 0.0,
+            "Ester_vapor": 0.0,
+            "Alcohol_vapor": 0.0,
+            "Water_vapor": 0.0,
+        },
+        volume_L=0.028,
+        equipment=upsert_equipment_record(
+            initial_chemworld_state().equipment,
+            equipment_id="batch_reactor",
+            equipment_type="batch_reactor",
+            attached_vessel_id="batch_reactor",
+            status="configured",
+            settings={"solvent": 1, "catalyst": 1, "stirring_speed_rpm": 700.0},
+        ),
+    )
+
+    result = integrate_compiled_reaction_ode(
+        state=state,
+        world=world,
+        compiled_mechanism=compiled,
+        duration_s=1200.0,
+        target_temperature_K=380.0,
+        heat=True,
+        stirring_speed_rpm=700.0,
+    )
+
+    assert result is not None
+    assert "A" not in result.species_amounts
+    assert "P" not in result.species_amounts
+    assert result.species_amounts["Acid"] < state.species_amounts["Acid"]
+    assert result.species_amounts["Ester"] > 0.0
+    assert result.heat_reaction_J != 0.0
 
 
 def test_scenarios_are_first_class_and_share_world_law() -> None:

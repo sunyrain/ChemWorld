@@ -32,7 +32,11 @@ class ChemWorldPrimitiveOperationServices:
         amount = float(np.clip(_action_float(action, "amount_mol", 0.003), 0.0, 0.040))
         species = state.species_amounts.copy()
         reactant = self.species_view.reactant_species(state)
-        species[reactant] = species.get(reactant, 0.0) + amount
+        for species_id, addition in self.species_view.reagent_charge_amounts(
+            state,
+            limiting_amount_mol=amount,
+        ).items():
+            species[species_id] = species.get(species_id, 0.0) + addition
         metadata = state.metadata.copy()
         metadata = self.species_view.record_added_reactant(
             metadata,

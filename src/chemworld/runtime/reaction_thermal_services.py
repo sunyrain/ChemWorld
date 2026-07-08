@@ -9,7 +9,7 @@ import numpy as np
 from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
-from chemworld.world.reaction_kernel import integrate_reaction_ode
+from chemworld.world.reaction_kernel import integrate_compiled_reaction_ode
 from chemworld.world.thermal_kernel import pressure_and_risk
 
 
@@ -44,14 +44,19 @@ class ChemWorldReactionThermalServices:
             "stirring_speed_rpm",
             float(reactor_settings.get("stirring_speed_rpm", 600.0)),
         )
-        result = integrate_reaction_ode(
+        result = integrate_compiled_reaction_ode(
             state=state,
             world=self.world,
+            compiled_mechanism=self.species_view.mechanism,
             duration_s=duration,
             target_temperature_K=target_temperature,
             heat=heat,
             stirring_speed_rpm=stirring_speed,
-            species_map=self.species_view.reaction_backend_species_map(state),
+            fallback_species_map=(
+                None
+                if self.species_view.mechanism is not None
+                else self.species_view.reaction_backend_species_map(state)
+            ),
         )
         if result is None:
             return state
