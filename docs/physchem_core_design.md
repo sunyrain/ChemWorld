@@ -20,7 +20,7 @@ No reference-project source code is copied.
 
 ## Current Scope
 
-The first implementation slice covers the P1 TODO foundation:
+The first implementation slices cover the P1 and P2 TODO foundation:
 
 - `ElementSpec`: benchmark-relevant element metadata.
 - `parse_formula`: formula parsing with nested parentheses and charge stripping.
@@ -31,13 +31,49 @@ The first implementation slice covers the P1 TODO foundation:
   weights, temperature, pressure, and phase label.
 - `PropertyCorrelation`: portable correlation metadata with explicit units and
   validity ranges.
+- `PropertyEvaluation`: a value, unit, inputs, validity warnings, and
+  correlation provenance.
+- `ComponentPropertyPackage`: a component-local correlation package that chooses
+  an in-range method when multiple correlations exist.
+
+## Property Core
+
+The P2 property core is implemented in `chemworld.physchem.properties`. It
+supports the following local evaluators:
+
+| Property family | Supported equations |
+| --- | --- |
+| Vapor pressure | Antoine, Wagner |
+| Heat capacity | Cp polynomial |
+| Enthalpy | analytic Cp-polynomial sensible-enthalpy integral |
+| Phase change | Watson heat-of-vaporization correlation |
+| Density | linear liquid density, ideal gas density |
+| Viscosity | Andrade liquid viscosity |
+| Surface tension | critical-temperature power law |
+| Mixture rules | mass-fraction specific-volume density, log-viscosity rule |
+| Safety proxies | volatility risk from vapor pressure, thermal hazard proxy |
+
+Every correlation declares:
+
+- `property_id`;
+- `equation_id`;
+- coefficients;
+- input units;
+- output unit;
+- validity ranges;
+- source notes.
+
+Evaluation uses canonical ChemWorld inputs such as `temperature_K` and
+`pressure_Pa`, converts them into the correlation's declared input units, and
+returns a `PropertyEvaluation`. Out-of-range inputs can warn, raise, or be
+ignored through a `validity_policy`.
 
 ## Boundaries
 
-This layer is intentionally not a real property package yet. It does not perform
-flash calculations, EOS solves, activity-coefficient calculations, or reaction
-mechanism generation. Those will be built on top of these specs in later TODO
-milestones.
+This layer is now a real local property-correlation core, but it is not yet a
+complete process simulator. It does not perform flash calculations, EOS solves,
+activity-coefficient calculations, or reaction mechanism generation. Those will
+be built on top of these specs in later TODO milestones.
 
 ## Validation Rules
 

@@ -197,12 +197,15 @@ class PropertyCorrelation:
     coefficients: dict[str, float]
     input_units: dict[str, str]
     output_unit: str
+    property_id: str = ""
     validity_ranges: dict[str, tuple[float, float]] = field(default_factory=dict)
     source_note: str = ""
 
     def __post_init__(self) -> None:
         if not self.correlation_id:
             raise ValueError("correlation_id cannot be empty")
+        if self.property_id and not self.property_id.replace("_", "").isalnum():
+            raise ValueError(f"Invalid property_id: {self.property_id}")
         if not self.equation_id:
             raise ValueError("equation_id cannot be empty")
         if not self.coefficients:
@@ -222,6 +225,7 @@ class PropertyCorrelation:
     def to_dict(self) -> dict[str, object]:
         return {
             "correlation_id": self.correlation_id,
+            "property_id": self.property_id,
             "equation_id": self.equation_id,
             "coefficients": dict(self.coefficients),
             "input_units": dict(self.input_units),

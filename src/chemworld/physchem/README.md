@@ -12,6 +12,9 @@ Current scope:
 - JSON-friendly `ComponentSpec`;
 - self-contained `MixtureSpec`;
 - explicit-unit `PropertyCorrelation` records.
+- local property evaluators for vapor pressure, heat capacity, enthalpy,
+  phase-change enthalpy, density, viscosity, surface tension, mixture rules,
+  and safety proxies.
 
 Design rules:
 
@@ -19,6 +22,6 @@ Design rules:
 - fail early on unknown elements, invalid phases, invalid units, or invalid
   fractions;
 - keep property correlations separate from component identity;
+- declare property units and validity ranges on every correlation;
 - add optional reference-backend comparisons only as skipped tests or adapters;
 - do not copy source code from `reference_repos/`.
-
