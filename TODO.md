@@ -56,6 +56,7 @@ finished, update its status and push immediately.
 | Runtime v2 flow service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | flow-rate setup, residence-time reaction advancement, flow conversion metadata, and flow campaign ledger updates now live in `runtime/flow_services.py` | this commit |
 | Runtime v2 primitive operation service split | whilesunny | Done | `src/chemworld/runtime/`, tests/docs | reagent/solvent/catalyst addition, sampling, quench, evaporation, and invalid-action penalty now live in `runtime/primitive_services.py` | this commit |
 | Reaction-network specs split | whilesunny | Done | `src/chemworld/physchem/`, tests/docs | species/rate-law/reaction specs, reaction-equation parsing, and mechanism dict helpers now live in `reaction_network_specs.py` | this commit |
+| Reaction-network rate-law split | whilesunny | Active | `src/chemworld/physchem/`, tests/docs | extract rate-law constants, parameter validation, mass-action/Arrhenius/reversible-rate helpers, and reaction lookup from `reaction_network.py` without changing public behavior | claim commit |
 
 Status values:
 
