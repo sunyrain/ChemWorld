@@ -88,6 +88,7 @@ class PhysicalConstitution:
             *self._check_nonnegative(state),
             *self._check_units(state),
             *self._check_vessel_bounds(state),
+            *self._check_typed_ledgers(state),
             self._check_risk_range(state),
         ]
         return ConstitutionReport(checks)
@@ -355,6 +356,65 @@ class PhysicalConstitution:
                 self.tolerance,
             ),
         ]
+
+    def _check_typed_ledgers(self, state: WorldState) -> list[CheckResult]:
+        checks: list[CheckResult] = [
+            CheckResult(
+                "metadata_no_primary_phase_ledger",
+                "phase_ledger" not in state.metadata,
+                "Phase material state must live in typed PhaseLedger.",
+            )
+        ]
+        if state.phases is not None:
+            for phase_id, phase in state.phases.phases.items():
+                checks.append(
+                    CheckResult(
+                        f"phase_volume_nonnegative:{phase_id}",
+                        isfinite(phase.volume_L) and phase.volume_L >= -self.tolerance,
+                        f"volume_L={phase.volume_L}",
+                        phase.volume_L,
+                        self.tolerance,
+                    )
+                )
+                for species_id, amount in phase.species_amounts_mol.items():
+                    checks.append(
+                        CheckResult(
+                            f"phase_amount_nonnegative:{phase_id}:{species_id}",
+                            isfinite(amount) and amount >= -self.tolerance,
+                            f"amount={amount}",
+                            amount,
+                            self.tolerance,
+                        )
+                    )
+                if state.vessels is not None:
+                    checks.append(
+                        CheckResult(
+                            f"phase_attached_vessel_exists:{phase_id}",
+                            phase.vessel_id in state.vessels.vessels,
+                            f"vessel_id={phase.vessel_id}",
+                        )
+                    )
+        if state.vessels is not None:
+            known_phases = set(state.phases.phases) if state.phases is not None else set()
+            for vessel_id, vessel in state.vessels.vessels.items():
+                missing = sorted(set(vessel.phase_ids) - known_phases)
+                checks.append(
+                    CheckResult(
+                        f"vessel_phase_reverse_index:{vessel_id}",
+                        not missing,
+                        "" if not missing else f"missing phase ids: {missing}",
+                    )
+                )
+        if state.equipment is not None and state.vessels is not None:
+            for equipment_id, equipment in state.equipment.equipment.items():
+                checks.append(
+                    CheckResult(
+                        f"equipment_attached_vessel_exists:{equipment_id}",
+                        equipment.attached_vessel_id in state.vessels.vessels,
+                        f"attached_vessel_id={equipment.attached_vessel_id}",
+                    )
+                )
+        return checks
 
     def _check_risk_range(self, state: WorldState) -> CheckResult:
         return CheckResult(

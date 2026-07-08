@@ -528,6 +528,55 @@ def test_typed_phase_ledger_tracks_state_replacements() -> None:
     assert updated.process.time_s == updated.ledger.time_s
 
 
+def test_runtime_phase_separation_uses_typed_phase_ledger_as_primary_state() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
+    actions = (
+        {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+        {"operation": "add_reagent", "amount_mol": 0.010},
+        {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
+        {
+            "operation": "heat",
+            "target_temperature_K": 385.0,
+            "duration_s": 1500.0,
+            "stirring_speed_rpm": 720.0,
+        },
+        {"operation": "wait", "duration_s": 900.0, "stirring_speed_rpm": 720.0},
+        {"operation": "quench"},
+        {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012},
+        {"operation": "add_extractant", "extractant": "organic", "volume_L": 0.018},
+        {"operation": "mix", "duration_s": 240.0, "stirring_speed_rpm": 850.0},
+        {"operation": "settle", "duration_s": 420.0},
+        {"operation": "separate_phase", "target_phase": "organic"},
+    )
+    try:
+        env.reset(seed=0)
+        for action in actions:
+            _, _, _, _, info = env.step(action)
+            assert not info["constraint_flags"]["precondition_failed"], action
+            assert info["transaction_status"] == "committed"
+
+        state = env.unwrapped._state
+        assert "phase_ledger" not in state.metadata
+        assert state.phases is not None
+        assert {"organic", "aqueous"} <= set(state.phases.phases)
+        assert state.phases.phases["organic"].selected is True
+        assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
+        assert state.vessels is not None
+        assert set(state.vessels.vessels[state.vessel_id].phase_ids) == set(
+            state.phases.phases
+        )
+        assert env.unwrapped.constitution.check_state(state).passed
+
+        env.step({"operation": "terminate"})
+        _, _, _, _, info = env.step({"operation": "measure", "instrument": "final_assay"})
+        assert info["transaction_status"] == "committed"
+        state = env.unwrapped._state
+        assert state.phases is not None
+        assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
+    finally:
+        env.close()
+
+
 def test_world_kernels_are_executable_not_metadata_only() -> None:
     world = load_chemworld_parameters("public-dev", seed=1)
     state = initial_chemworld_state().replace(

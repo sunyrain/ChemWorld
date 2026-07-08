@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 
 from chemworld.core.actions import CATALYSTS, SOLVENTS
-from chemworld.foundation import WorldState
+from chemworld.foundation import WorldState, scale_phase_ledger
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
 
@@ -77,6 +77,11 @@ class ChemWorldPrimitiveOperationServices:
         )
         return state.replace(
             species_amounts=species,
+            phases=scale_phase_ledger(
+                state.phases,
+                amount_factor=1.0 - fraction,
+                volume_factor=1.0 - fraction,
+            ),
             volume_L=state.volume_L - volume,
             ledger=ledger,
         )

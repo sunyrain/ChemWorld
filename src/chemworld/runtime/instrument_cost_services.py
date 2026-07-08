@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from chemworld.foundation import PhysicalConstitution, WorldState
+from chemworld.foundation import PhysicalConstitution, WorldState, scale_phase_ledger
 from chemworld.world.operations import instrument_name
 
 
@@ -30,6 +30,11 @@ class ChemWorldInstrumentCostServices:
             metadata["final_assay_time_s"] = state.ledger.time_s
         return state.replace(
             species_amounts=species,
+            phases=scale_phase_ledger(
+                state.phases,
+                amount_factor=1.0 - fraction,
+                volume_factor=1.0 - fraction,
+            ),
             volume_L=state.volume_L - volume,
             ledger=ledger,
             metadata=metadata,

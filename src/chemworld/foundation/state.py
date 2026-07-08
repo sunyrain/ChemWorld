@@ -40,9 +40,11 @@ class PhaseRecord:
     species_amounts_mol: dict[str, float]
     settled: bool = False
     selected: bool = False
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "species_amounts_mol", deepcopy(self.species_amounts_mol))
+        object.__setattr__(self, "metadata", deepcopy(self.metadata))
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -53,6 +55,7 @@ class PhaseRecord:
             "species_amounts_mol": deepcopy(self.species_amounts_mol),
             "settled": self.settled,
             "selected": self.selected,
+            "metadata": deepcopy(self.metadata),
         }
 
 
@@ -72,6 +75,37 @@ class PhaseLedger:
 
     def to_dict(self) -> dict[str, Any]:
         return {phase_id: phase.to_dict() for phase_id, phase in self.phases.items()}
+
+
+def scale_phase_ledger(
+    phases: PhaseLedger | None,
+    *,
+    amount_factor: float,
+    volume_factor: float | None = None,
+) -> PhaseLedger | None:
+    """Return a phase ledger scaled by destructive sampling or volume removal."""
+
+    if phases is None:
+        return None
+    volume_factor = amount_factor if volume_factor is None else volume_factor
+    return PhaseLedger(
+        {
+            phase_id: PhaseRecord(
+                phase_id=phase.phase_id,
+                vessel_id=phase.vessel_id,
+                phase_type=phase.phase_type,
+                volume_L=phase.volume_L * volume_factor,
+                species_amounts_mol={
+                    species_id: amount * amount_factor
+                    for species_id, amount in phase.species_amounts_mol.items()
+                },
+                settled=phase.settled,
+                selected=phase.selected,
+                metadata=phase.metadata,
+            )
+            for phase_id, phase in phases.phases.items()
+        }
+    )
 
 
 @dataclass(frozen=True)

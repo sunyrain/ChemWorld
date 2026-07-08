@@ -224,6 +224,10 @@ Recommended follow-up:
   affected ledgers, world events, state-patch summaries, transaction status,
   rollback reason, and state-delta summaries with recursive tolerance-aware
   comparisons.
+- Promoted Runtime v2 extraction phase bookkeeping from metadata to typed
+  `PhaseLedger` records, added executable constitution checks for phase/vessel
+  reverse indexes and metadata primary-state leakage, and synchronized
+  destructive sampling/measurement with typed phase amounts.
 - Extracted `ChemWorldObservationKernel` into
   `runtime/observation_services.py`, keeping noisy observations, raw signal
   assembly, processed estimates, uncertainty metadata, and observation scoring
