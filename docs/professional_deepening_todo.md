@@ -33,7 +33,7 @@ with proxies and then call them professional.
 | `DEEP-D6A` | whilesunny | Done | Dynamic batch reactor with NASA7 reaction heat release, jacket control, variable-volume destructive sampling losses, material/energy ledgers, tests, model card, docs, and public reactor API integration. |
 | `DEEP-D5D` | whilesunny | Done | Finite-difference kinetic parameter sensitivity reports with normalized response coefficients, uncertainty propagation summaries, explanation-task ranking hooks, tests, model card, and docs. |
 | `DEEP-D2A` | whilesunny | Done | Vapor-pressure families with Antoine and Wagner/DIPPR forms, analytic temperature derivatives, validity-domain enforcement, sublimation-pressure report support, curated coefficient provenance, tests, model card, and downstream flash/distillation/safety integration notes. |
-| `DEEP-D2B` | whilesunny | Claimed | Phase-tagged heat-capacity and enthalpy package with reference states, sensible enthalpy reports, latent-heat transitions, reactor/flash heat-duty integration notes, tests, model card, and provenance. |
+| `DEEP-D2B` | whilesunny | Done | Phase-tagged heat-capacity and enthalpy package with reference states, sensible enthalpy reports, signed latent-heat transitions, mixture enthalpy ledgers for reactor/flash heat duties, tests, model card, and provenance. |
 
 ## Module Families
 
@@ -57,6 +57,7 @@ Do not start these until the current twelve-slice batch is complete.
 
 1. `DEEP-D3A`: volume-translated cubic EOS and root-governance diagnostics.
 2. `DEEP-D2B`: heat-capacity/enthalpy package with reactor energy integration.
+   Done.
 3. `DEEP-D7B`: Fenske-Underwood-Gilliland distillation sizing.
 4. `DEEP-D6A`: dynamic batch reactor with heat release and jacket control.
    Done.

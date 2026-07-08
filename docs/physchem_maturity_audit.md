@@ -112,6 +112,12 @@ copying the reference implementations.
   and DIPPR101 report pressure, analytic `dP/dT`, `dlnP/dT`, validity status,
   and method provenance; sublimation pressure can use the same path when
   coefficients are explicitly supplied.
+- DEEP-D2B is implemented for phase-aware heat capacity and enthalpy: gas,
+  liquid, and solid Cp correlations can be integrated into explicit reference
+  state reports; signed latent-heat transitions build solid/liquid/gas paths;
+  and `MixtureEnthalpyLedger` provides reactor/flash heat-duty contributions.
+  Broad Zabransky/Lastovka/tabular Cp families, EOS departure enthalpy, and
+  pressure-corrected thermodynamic packages remain future slices.
 - PRO-P4A is implemented: the first nonideal activity-coefficient slice has
   Wilson/NRTL model cards, explicit directional pair-parameter contracts, and
   optional `thermo` reference checks for binary gamma values.

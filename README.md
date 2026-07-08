@@ -61,6 +61,9 @@ manifest also records the current commit hash.
 ## Architecture
 
 - `chemworld.core`: reaction, phase/separation, objectives, action specs.
+- `chemworld.physchem`: local physical-chemistry kernels for properties,
+  EOS, equilibrium, reactors, separations, transport, spectroscopy, and
+  thermochemistry.
 - `chemworld.foundation`: ontology, units, state ledger, constitution checks,
   transition/observation kernel protocols, surrogate interfaces.
 - `chemworld.envs`: Gymnasium environments and registration.
@@ -97,4 +100,3 @@ jupyter notebook notebooks/tutorials/day_01_enter_virtual_lab.ipynb
 
 See `docs/current_progress.md` for the current platform status and
 `docs/demos.md` for demo details.
-

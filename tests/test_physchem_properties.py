@@ -6,15 +6,23 @@ from chemworld.physchem import (
     ComponentPropertyPackage,
     ComponentSpec,
     MaturityLevel,
+    MixtureEnthalpyLedger,
     MixtureSpec,
+    PhaseEnthalpyReport,
+    PhaseTransitionSpec,
     PropertyCorrelation,
     curated_property_case_map,
     curated_property_model_cards,
     curated_property_package,
     evaluate_correlation,
+    heat_capacity_report,
     list_curated_property_packages,
     mixture_density,
+    mixture_enthalpy_ledger,
     mixture_viscosity_log_rule,
+    phase_path_enthalpy_report,
+    phase_sensible_enthalpy_report,
+    phase_transition_enthalpy,
     property_correlation_model_cards,
     resolve_component_identifier,
     sensible_enthalpy_change,
@@ -163,6 +171,215 @@ def test_heat_capacity_polynomial_and_enthalpy_integral() -> None:
     assert cp_298.value > 0.0
     assert dh.value > 0.0
     assert dh.unit == "J/mol"
+
+
+def test_phase_heat_capacity_reports_reference_state_and_phase() -> None:
+    liquid_cp = PropertyCorrelation(
+        correlation_id="water_liquid_cp_phase",
+        property_id="liquid_heat_capacity",
+        equation_id="cp_polynomial",
+        coefficients={"a": 75.0, "b": 0.02},
+        input_units={"temperature": "K"},
+        output_unit="J/(mol*K)",
+        validity_ranges={"temperature": (273.15, 373.15)},
+        metadata={"phase": "liquid"},
+    )
+    solid_cp = PropertyCorrelation(
+        correlation_id="ice_solid_cp_phase",
+        property_id="solid_heat_capacity",
+        equation_id="cp_polynomial",
+        coefficients={"a": 37.0, "b": 0.01},
+        input_units={"temperature": "K"},
+        output_unit="J/(mol*K)",
+        validity_ranges={"temperature": (200.0, 273.15)},
+        metadata={"phase": "solid"},
+    )
+
+    cp_eval = heat_capacity_report(liquid_cp, temperature_K=298.15)
+    zero = phase_sensible_enthalpy_report(
+        component_id="water",
+        phase="liquid",
+        heat_capacity_correlation=liquid_cp,
+        initial_temperature_K=298.15,
+        final_temperature_K=298.15,
+        reference_temperature_K=298.15,
+        validity_policy="raise",
+    )
+    warming = phase_sensible_enthalpy_report(
+        component_id="water",
+        phase="solid",
+        heat_capacity_correlation=solid_cp,
+        initial_temperature_K=250.0,
+        final_temperature_K=260.0,
+        reference_temperature_K=250.0,
+        validity_policy="raise",
+    )
+
+    assert cp_eval.value > 0.0
+    assert isinstance(zero, PhaseEnthalpyReport)
+    assert zero.total_enthalpy_J_mol == pytest.approx(0.0)
+    expected_solid = (37.0 * 260.0 + 0.5 * 0.01 * 260.0**2) - (
+        37.0 * 250.0 + 0.5 * 0.01 * 250.0**2
+    )
+    assert warming.total_enthalpy_J_mol == pytest.approx(expected_solid)
+
+
+def test_phase_path_enthalpy_and_mixture_ledger() -> None:
+    solid_cp = PropertyCorrelation(
+        correlation_id="ice_cp_path",
+        property_id="solid_heat_capacity",
+        equation_id="cp_polynomial",
+        coefficients={"a": 38.0},
+        input_units={"temperature": "K"},
+        output_unit="J/(mol*K)",
+        validity_ranges={"temperature": (200.0, 273.15)},
+        metadata={"phase": "solid"},
+    )
+    liquid_cp = PropertyCorrelation(
+        correlation_id="water_cp_path",
+        property_id="liquid_heat_capacity",
+        equation_id="cp_polynomial",
+        coefficients={"a": 75.0},
+        input_units={"temperature": "K"},
+        output_unit="J/(mol*K)",
+        validity_ranges={"temperature": (273.15, 373.15)},
+        metadata={"phase": "liquid"},
+    )
+    gas_cp = PropertyCorrelation(
+        correlation_id="steam_cp_path",
+        property_id="ideal_gas_heat_capacity",
+        equation_id="cp_polynomial",
+        coefficients={"a": 34.0},
+        input_units={"temperature": "K"},
+        output_unit="J/(mol*K)",
+        validity_ranges={"temperature": (373.15, 700.0)},
+        metadata={"phase": "gas"},
+    )
+    hfus = PropertyCorrelation(
+        correlation_id="water_hfus_path",
+        property_id="heat_of_fusion",
+        equation_id="constant_phase_change_enthalpy",
+        coefficients={"delta_h": 6010.0},
+        input_units={"temperature": "K"},
+        output_unit="J/mol",
+        validity_ranges={"temperature": (250.0, 280.0)},
+    )
+    hvap = PropertyCorrelation(
+        correlation_id="water_hvap_watson_path",
+        property_id="heat_of_vaporization",
+        equation_id="watson_hvap",
+        coefficients={
+            "Tc": 647.096,
+            "T_ref": 373.15,
+            "Hvap_ref": 40650.0,
+            "exponent": 0.38,
+        },
+        input_units={"temperature": "K"},
+        output_unit="J/mol",
+        validity_ranges={"temperature": (273.15, 647.0)},
+    )
+    fusion = PhaseTransitionSpec(
+        transition_id="water_fusion",
+        from_phase="solid",
+        to_phase="liquid",
+        transition_temperature_K=273.15,
+        enthalpy_correlation=hfus,
+    )
+    vaporization = PhaseTransitionSpec(
+        transition_id="water_vaporization",
+        from_phase="liquid",
+        to_phase="gas",
+        transition_temperature_K=373.15,
+        enthalpy_correlation=hvap,
+    )
+
+    report = phase_path_enthalpy_report(
+        component_id="water",
+        heat_capacity_correlations={
+            "solid": solid_cp,
+            "liquid": liquid_cp,
+            "gas": gas_cp,
+        },
+        transitions=(fusion, vaporization),
+        initial_phase="solid",
+        final_phase="gas",
+        initial_temperature_K=250.0,
+        final_temperature_K=400.0,
+        validity_policy="raise",
+    )
+    condensation = phase_transition_enthalpy(
+        vaporization,
+        from_phase="gas",
+        to_phase="liquid",
+        validity_policy="raise",
+    )
+    ledger = mixture_enthalpy_ledger(
+        component_amounts_mol={"water": 2.0},
+        component_reports={"water": report},
+        ledger_id="reactor_heat_duty",
+    )
+
+    expected = (
+        38.0 * (273.15 - 250.0)
+        + 6010.0
+        + 75.0 * (373.15 - 273.15)
+        + 40650.0
+        + 34.0 * (400.0 - 373.15)
+    )
+    assert report.transition_ids == ("water_fusion", "water_vaporization")
+    assert report.total_enthalpy_J_mol == pytest.approx(expected)
+    assert condensation.value == pytest.approx(-40650.0)
+    assert isinstance(ledger, MixtureEnthalpyLedger)
+    assert ledger.total_enthalpy_change_J == pytest.approx(2.0 * expected)
+    assert ledger.to_dict()["ledger_id"] == "reactor_heat_duty"
+
+
+def test_phase_enthalpy_failures_are_explicit() -> None:
+    liquid_cp = PropertyCorrelation(
+        correlation_id="bad_liquid_cp",
+        property_id="liquid_heat_capacity",
+        equation_id="cp_polynomial",
+        coefficients={"a": -10.0},
+        input_units={"temperature": "K"},
+        output_unit="J/(mol*K)",
+        validity_ranges={"temperature": (250.0, 350.0)},
+        metadata={"phase": "liquid"},
+    )
+    gas_cp = PropertyCorrelation(
+        correlation_id="gas_cp_for_wrong_phase",
+        property_id="ideal_gas_heat_capacity",
+        equation_id="cp_polynomial",
+        coefficients={"a": 30.0},
+        input_units={"temperature": "K"},
+        output_unit="J/(mol*K)",
+        validity_ranges={"temperature": (250.0, 500.0)},
+        metadata={"phase": "gas"},
+    )
+
+    with pytest.raises(ValueError, match="positive"):
+        sensible_enthalpy_change(
+            liquid_cp,
+            initial_temperature_K=280.0,
+            final_temperature_K=300.0,
+        )
+    with pytest.raises(ValueError, match="not 'liquid'"):
+        phase_sensible_enthalpy_report(
+            component_id="water",
+            phase="liquid",
+            heat_capacity_correlation=gas_cp,
+            initial_temperature_K=280.0,
+            final_temperature_K=300.0,
+        )
+    with pytest.raises(ValueError, match="Missing heat-capacity correlation"):
+        phase_path_enthalpy_report(
+            component_id="water",
+            heat_capacity_correlations={"liquid": gas_cp},
+            transitions=(),
+            initial_phase="gas",
+            final_phase="gas",
+            initial_temperature_K=300.0,
+            final_temperature_K=320.0,
+        )
 
 
 def test_phase_change_density_viscosity_surface_tension_are_positive() -> None:
@@ -459,8 +676,9 @@ def test_curated_property_model_card_is_auditable() -> None:
 
 def test_property_correlation_model_card_is_auditable() -> None:
     cards = property_correlation_model_cards()
-    assert len(cards) == 1
-    card = cards[0]
+    assert len(cards) == 2
+    card_map = {card.model_id: card for card in cards}
+    card = card_map["vapor_pressure_correlation_families"]
     assert card.model_id == "vapor_pressure_correlation_families"
     assert card.module_id == "properties"
     assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
@@ -471,4 +689,14 @@ def test_property_correlation_model_card_is_auditable() -> None:
     } >= {
         "antoine-vapor-pressure-derivative-test",
         "dippr101-vapor-pressure-derivative-test",
+    }
+    enthalpy_card = card_map["phase_heat_capacity_enthalpy_package"]
+    assert enthalpy_card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert validate_model_card(enthalpy_card) == []
+    assert any("Delta H" in equation for equation in enthalpy_card.equations)
+    assert {
+        evidence.evidence_id for evidence in enthalpy_card.validation_evidence
+    } >= {
+        "phase-cp-integral-regression-test",
+        "phase-transition-ledger-test",
     }

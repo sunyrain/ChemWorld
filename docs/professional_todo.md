@@ -139,6 +139,26 @@ DEEP-D2A is now implemented for vapor-pressure formula families:
 - This is a professional formula/reporting slice, not a broad vapor-pressure
   database, EOS saturation solver, IAPWS water package, or CoolProp replacement.
 
+DEEP-D2B is now implemented for phase-aware heat capacity and enthalpy:
+
+- `heat_capacity_report()` evaluates positive molar Cp correlations with
+  explicit validity policy.
+- `phase_sensible_enthalpy_report()` records same-phase sensible enthalpy
+  against an explicit reference temperature.
+- `PhaseTransitionSpec` and `phase_transition_enthalpy()` declare signed
+  latent heats for melting/freezing and vaporization/condensation paths.
+- `phase_path_enthalpy_report()` walks solid/liquid/gas phase paths through
+  declared transition temperatures and sums Cp integrals plus latent heats.
+- `MixtureEnthalpyLedger` converts molar component reports into reactor or
+  flash heat-duty ledgers in joules.
+- The model card records inspected `chemicals` DIPPR100/phase-change APIs and
+  `thermo` phase-reference enthalpy paths. Tests cover ideal-gas, liquid, and
+  solid Cp integrals; reference-state zero; latent-heat sign convention; and
+  explicit failure for missing phase Cp or negative heat capacity.
+- This is a professional path/ledger slice, not a broad Zabransky/Lastovka
+  heat-capacity database, EOS departure enthalpy model, or pressure-corrected
+  thermodynamic package.
+
 PRO-P4A is now implemented for the first reference-validated nonideal activity
 coefficient slice:
 

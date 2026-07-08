@@ -183,12 +183,12 @@ Reference targets: `chemicals`, `thermo`, `CoolProp`.
   - [x] Wagner/DIPPR-style form;
   - [x] sublimation pressure where caller-supplied coefficients exist;
   - [x] derivative with respect to temperature.
-- [ ] Heat capacity and enthalpy:
+- [x] Heat capacity and enthalpy:
   - [x] ideal-gas Cp;
-  - [ ] liquid Cp;
-  - [ ] solid Cp where needed;
+  - [x] liquid Cp;
+  - [x] solid Cp where needed;
   - [x] enthalpy integrals with reference states;
-  - [ ] latent heat correlations.
+  - [x] latent heat correlations.
 - [ ] Density/volume:
   - [ ] liquid molar volume;
   - [ ] Rackett-style correlation;
@@ -210,7 +210,7 @@ Acceptance:
       curated DIPPR101/Poling slice.
 - [x] Public reference cases compare against `chemicals` for the curated
       DIPPR101 vapor-pressure and Poling ideal-gas Cp/enthalpy slice.
-- [ ] Property package can be used by reactor energy balances without unit
+- [x] Property package can be used by reactor energy balances without unit
       ambiguity.
 
 Reference-reading note for DEEP-D2A:
@@ -230,6 +230,29 @@ Reference-reading note for DEEP-D2A:
 - This closes a compact formula-family/reporting slice. It does not add broad
   vapor-pressure data coverage, EOS-based saturation solves, IAPWS special
   water handling, or CoolProp-level critical-region behavior.
+
+Reference-reading note for DEEP-D2B:
+
+- `reference_repos/chemicals/chemicals/dippr.py` exposes DIPPR100 heat-capacity
+  values and analytic temperature integrals. ChemWorld localizes this as the
+  existing `cp_polynomial` evaluator plus strict sampled positive-Cp checks
+  before sensible-enthalpy integration.
+- `reference_repos/chemicals/chemicals/heat_capacity.py` maps gas, liquid, and
+  solid heat-capacity method families to object-level integral APIs. ChemWorld
+  does not import those data tables; it adds phase-tagged Cp contracts so task
+  and reactor code can state which phase is being integrated.
+- `reference_repos/chemicals/chemicals/phase_change.py` documents Watson
+  vaporization enthalpy and constant/estimated phase-change families. ChemWorld
+  uses caller-supplied Watson or constant latent-heat correlations and signs the
+  latent heat by declared transition direction.
+- `reference_repos/thermo/thermo/chemical.py` computes enthalpy by explicitly
+  walking solid/liquid/gas reference paths through melting and boiling points.
+  ChemWorld localizes that convention as `PhaseTransitionSpec`,
+  `PhaseEnthalpyReport`, `phase_path_enthalpy_report()`, and
+  `MixtureEnthalpyLedger`.
+- This closes the reactor/flash heat-duty ledger slice. It does not add broad
+  Zabransky/Lastovka/tabular heat-capacity methods, EOS departure enthalpy,
+  pressure corrections, or large latent-heat databases.
 
 ## P3: EOS And Residual Thermodynamics
 

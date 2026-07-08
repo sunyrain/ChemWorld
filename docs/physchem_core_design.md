@@ -143,6 +143,25 @@ against finite differences. This is deliberately not a broad data-table import,
 EOS saturation solver, IAPWS water package, or CoolProp-level critical-region
 backend.
 
+DEEP-D2B hardens the heat-capacity and enthalpy path. The public API now
+separates three concepts that were previously easy to blur:
+
+| Concept | API | Purpose |
+| --- | --- | --- |
+| Phase Cp | `heat_capacity_report()` | Evaluate positive molar Cp with declared units and validity policy. |
+| Same-phase sensible enthalpy | `phase_sensible_enthalpy_report()` | Integrate Cp relative to an explicit reference temperature. |
+| Cross-phase path | `PhaseTransitionSpec`, `phase_transition_enthalpy()`, `phase_path_enthalpy_report()` | Walk solid/liquid/gas paths through declared transition temperatures and signed latent heats. |
+| Mixture heat duty | `MixtureEnthalpyLedger`, `mixture_enthalpy_ledger()` | Convert molar component reports to reactor/flash/separation heat duties in joules. |
+
+The implementation follows the professional convention seen in local
+`chemicals`/`thermo` references: heat-capacity correlations provide analytic
+temperature integrals, and cross-phase enthalpy is a path sum of sensible
+segments plus signed latent heats. It does not import broad data tables. A task
+or model must provide local Cp and latent-heat coefficients with explicit phase
+labels and validity ranges. Invalid phase labels, missing phase Cp, disconnected
+phase paths, and sampled negative heat capacity fail explicitly instead of
+being clipped.
+
 PRO-P1A hardens the curated component registry itself. Component records now
 round-trip structured provenance and uncertainty metadata, curated aliases are
 checked with a normalized registry index, and conflicting aliases fail before a
