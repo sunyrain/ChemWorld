@@ -1,8 +1,15 @@
 # PhysChem Core Design
 
-ChemWorld now includes a small `chemworld.physchem` layer. Its job is to make
-the shared physical-chemical world more professional without turning the
-benchmark into a heavy process simulator.
+ChemWorld now includes a small `chemworld.physchem` layer. Its current job is
+to provide a compact foundation/lite physical-chemistry core for benchmark
+development. It is not professional-library parity with Cantera, CoolProp,
+thermo, phasepy, IDAES, Reaktoro, pycalphad, teqp, thermopack, or RMG-Py.
+
+The post-foundation professional roadmap is tracked separately in
+`TODO_PROFESSIONAL.md` and summarized in the Professional TODO docs page.
+Professional work must replace or harden proxies with explicit models,
+reference reading notes, model cards, validity limits, and controlled numerical
+validation.
 
 ## Reference Reading
 
@@ -16,11 +23,13 @@ The local reference repositories were used as design references only:
   stable interface between mechanism files and numerical kernels.
 
 ChemWorld localizes those ideas into a compact, auditable, JSON-friendly core.
-No reference-project source code is copied.
+No reference-project source code is copied. When a local implementation is only
+qualitative or educational, it must remain labeled as proxy/lite rather than
+being presented as professional-grade physics.
 
 ## Current Scope
 
-The implementation slices currently cover the P1-P8 foundation:
+The implementation slices currently cover the P1-P12 foundation/lite batch:
 
 - `ElementSpec`: benchmark-relevant element metadata.
 - `parse_formula`: formula parsing with nested parentheses and charge stripping.

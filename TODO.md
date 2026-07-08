@@ -5,6 +5,11 @@ auditable physical-chemistry and chemical-engineering core. External open-source
 projects are used as a feature map and validation inspiration only. We do not
 copy their source code into ChemWorld.
 
+Scope note: this file tracks the first foundation/lite batch. After P1-P12 are
+settled, professional hardening moves to `TODO_PROFESSIONAL.md`. A checked item
+in this file means "local ChemWorld foundation exists", not "professional
+library parity".
+
 ## Two-Person Active Work Board
 
 `TODO.md` is the shared source of truth for current work. Before coding, pull
@@ -17,18 +22,18 @@ finished, update its status and push immediately.
 | --- | --- | --- | --- | --- | --- |
 | Docs cleanup and two-person rules | Codex | Done | `TODO.md`, `docs/`, `mkdocs.yml` | use this board for the next active task | this commit |
 | P1 physchem component/spec foundation | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | next: start P2 property-correlation core on top of these specs | this commit |
-| P2 full property-correlation core | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | next: connect the property package to energy balance and start P3 reaction-network specs | this commit |
-| P3 general reaction-network engine | whilesunny | Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md`, `configs/mechanisms/` | next: connect mechanism-backed networks to batch/semi-batch/CSTR/PFR reactor models in P4 | this commit |
-| P4 reactor model core | whilesunny | Done | `src/chemworld/physchem/reactors.py`, `tests/`, `docs/physchem_core_design.md` | next: replace selected task/world transition paths with mechanism-backed reactor kernels, then start P5 EOS | this commit |
-| P5 equation-of-state core | whilesunny | Done | `src/chemworld/physchem/eos.py`, `tests/`, `docs/physchem_core_design.md` | next: build activity models and VLE/LLE flash on top of EOS and property packages | this commit |
-| P6 phase-equilibrium core | whilesunny | Done | `src/chemworld/physchem/equilibrium.py`, `tests/`, `docs/physchem_core_design.md` | next: replace extraction and evaporation task proxies with phase-equilibrium kernels, then start P7 separations | this commit |
-| P7 separation and unit operations | whilesunny | Done | `src/chemworld/physchem/separations.py`, `tests/`, `docs/physchem_core_design.md` | next: implement fluid mechanics and heat-transfer utilities in P8, then wire separations into world tasks | this commit |
-| P8 fluid mechanics and heat transfer | whilesunny | Done | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `docs/physchem_core_design.md` | next: implement equilibrium chemistry in P9, then connect transport signals into world tasks and scoring | this commit |
-| P9 equilibrium chemistry | whilesunny | Done | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/test_equilibrium_chemistry.py`, `docs/physchem_core_design.md` | next: expand mechanism and scenario library in P10 using the generalized physchem kernels | this commit |
-| P10 mechanism and scenario library | whilesunny | Done | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/physchem/mechanism_library.py`, `tests/`, `docs/physchem_core_design.md` | next: start P11 instrument and spectroscopy coupling using mechanism targets and impurity species | this commit |
-| P11 instrument and spectroscopy coupling | whilesunny | Done | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `tests/`, `docs/physchem_core_design.md` | next: start P12 optional reference-backend validation after choosing the first comparison targets | this commit |
+| P2 property-correlation lite core | whilesunny | Lite Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md` | next: add reference-validated vapor pressure, enthalpy, and transport-property cases | this commit |
+| P3 reaction-network lite engine | whilesunny | Lite Done | `src/chemworld/physchem/`, `tests/`, `docs/physchem_core_design.md`, `configs/mechanisms/` | next: add Cantera-comparable ODE and rate-law validation cases | this commit |
+| P4 reactor-model lite core | whilesunny | Lite Done | `src/chemworld/physchem/reactors.py`, `tests/`, `docs/physchem_core_design.md` | next: add Cantera/IDAES-style reactor validation and multi-steady-state CSTR case | this commit |
+| P5 EOS lite core | whilesunny | Lite Done | `src/chemworld/physchem/eos.py`, `tests/`, `docs/physchem_core_design.md` | next: validate PR/SRK against controlled CoolProp/thermo/teqp cases | this commit |
+| P6 phase-equilibrium lite core | whilesunny | Lite Done | `src/chemworld/physchem/equilibrium.py`, `tests/`, `docs/physchem_core_design.md` | next: add Wilson/UNIQUAC, stability tests, and phasepy/thermo validation | this commit |
+| P7 separation and unit-operation proxies | whilesunny | Lite Done | `src/chemworld/physchem/separations.py`, `tests/`, `docs/physchem_core_design.md` | next: replace proxy distillation/extraction/crystallization pieces with thermodynamic unit models | this commit |
+| P8 fluid mechanics and heat-transfer lite core | whilesunny | Lite Done | `src/chemworld/physchem/transport.py`, `tests/test_transport.py`, `docs/physchem_core_design.md` | next: validate pressure-drop/heat-transfer correlations against fluids and public examples | this commit |
+| P9 equilibrium-chemistry lite core | whilesunny | Lite Done | `src/chemworld/physchem/equilibrium_chemistry.py`, `tests/test_equilibrium_chemistry.py`, `docs/physchem_core_design.md` | next: add Reaktoro-style equilibrium validation and pH/precipitation benchmark tasks | this commit |
+| P10 mechanism and scenario lite library | whilesunny | Lite Done | `configs/mechanisms/`, `configs/scenarios/`, `src/chemworld/physchem/mechanism_library.py`, `tests/`, `docs/physchem_core_design.md` | next: add reference-validated mechanism cards and task bindings | this commit |
+| P11 synthetic instrument and spectroscopy layer | whilesunny | Lite Done | `src/chemworld/physchem/spectroscopy.py`, `src/chemworld/world/spectra.py`, `tests/`, `docs/physchem_core_design.md` | next: add public calibration examples and empirical spectrum anchors | this commit |
 | P12 optional reference-backend validation | whilesunny | Review | `src/chemworld/physchem/reference_validation.py`, `tests/reference/`, `docs/physchem_core_design.md`, `TODO.md` | next: add controlled CoolProp/Cantera/Reaktoro/pycalphad comparison cases when dependencies are available | `f4172fe` |
-| PhysChem maturity audit and proxy de-risking | whilesunny | Active | `TODO.md`, `docs/physchem_maturity_audit.md`, `docs/physchem_core_design.md` | distinguish lite implementations from reference-validated and professional-grade work | this commit |
+| PhysChem maturity audit and proxy de-risking | whilesunny | Done | `TODO.md`, `TODO_PROFESSIONAL.md`, `docs/physchem_maturity_audit.md`, `docs/professional_todo.md`, `docs/physchem_core_design.md` | use `TODO_PROFESSIONAL.md` for post-P1-P12 professional hardening | this commit |
 | P1/P2 audit and hardening | whilesunny | Done | `src/chemworld/physchem/specs.py`, `src/chemworld/physchem/properties.py`, `tests/`, `docs/physchem_core_design.md`, `TODO.md` | next: start P12 optional reference-backend validation after choosing first comparison targets | this commit |
 
 Status values:
@@ -37,6 +42,10 @@ Status values:
 - `Active`: one owner is working on it now.
 - `Blocked`: owner cannot proceed; handoff note required.
 - `Review`: pushed and waiting for the other person to inspect.
+- `Lite Done`: compact ChemWorld-local implementation exists with tests, but it
+  is not professional-library parity.
+- `Reference Done`: implementation has controlled numerical checks against at
+  least one optional reference backend.
 - `Done`: complete and pushed.
 
 Ownership rules:
@@ -409,10 +418,42 @@ Major capabilities to implement independently when needed:
 
 ## ChemWorld Independent Implementation Plan
 
+Maturity semantics for this section:
+
+- A checked item means the compact ChemWorld-local version exists and is
+  covered by local tests.
+- It does not mean parity with Cantera, CoolProp, thermo, phasepy, IDAES,
+  Reaktoro, pycalphad, teqp, thermopack, or RMG-Py.
+- A module becomes `Reference Done` only after controlled optional tests compare
+  selected numerical cases against a reference backend and document tolerances.
+- A module becomes professional-grade only after validity ranges, model-limit
+  notes, reference comparisons, failure modes, and task-level integration are
+  all documented.
+
+Current maturity summary:
+
+| Area | Current maturity | Main reason it is not professional-grade yet |
+| --- | --- | --- |
+| P1 specs/units | Local foundation | Needs broader schema generation and component database governance |
+| P2 properties | Lite/proxy | Several correlations are placeholder/proxy and only a few are reference-checked |
+| P3 reaction networks | Lite | No Cantera-comparable thermochemistry, falloff, pressure dependence, or sensitivity validation |
+| P4 reactors | Lite | Reactor models are ODE benchmark kernels, not industrial reactor-network solvers |
+| P5 EOS | Lite | PR/SRK are local implementations without broad property-package validation |
+| P6 phase equilibrium | Lite | No full phase stability, VLLE, Wilson/UNIQUAC, or robust parameter fitting |
+| P7 separations | Proxy/lite | Unit operations are material-conserving benchmark proxies, not rigorous equipment models |
+| P8 transport/heat transfer | Lite | Useful correlations exist, but only limited reference checks are active |
+| P9 equilibrium chemistry | Lite/proxy | No Gibbs minimization or database-backed aqueous/mineral equilibrium |
+| P10 scenarios | Lite library | Mechanisms are curated benchmark scenarios, not generated mechanisms |
+| P11 spectroscopy | Synthetic/proxy | Generates realistic signals, not database-grade spectral prediction |
+| P12 reference validation | Partial | Only chemicals, fluids, and thermo ideal VLE cases currently execute |
+
 ### P0: Governance, Scope, and Audit
 
 - [ ] Create `docs/third_party_feature_map.md` from this TODO.
 - [ ] Add a no-source-copy policy to contributor docs.
+- [x] Add `docs/physchem_maturity_audit.md`.
+- [x] Add `TODO_PROFESSIONAL.md` for the post-P1-P12 professional roadmap.
+- [x] Add `docs/professional_todo.md` for the rendered professional roadmap.
 - [x] Add a `docs/physchem_core_design.md` architecture page.
 - [x] Add `src/chemworld/physchem/README.md` explaining module boundaries.
 - [x] Add tests confirming the core package imports without optional external
