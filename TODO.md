@@ -63,6 +63,7 @@ finished, update its status and push immediately.
 | Runtime v2 transaction replay golden | whilesunny | Done | `src/chemworld/eval/verify.py`, `tests/`, docs | verifier now replays and compares mechanism hash, kernel metadata, world events, state-patch summaries, transaction status, and state-delta summaries | this commit |
 | Chinese technical architecture report repair | whilesunny | Done | `docs/technical_architecture_zh.md`, docs | mojibake report replaced with a readable Chinese architecture summary reflecting Runtime v2, typed ledgers, tasks, replay, and remaining gaps | this commit |
 | Runtime v2 typed phase-ledger primary state | whilesunny | Done | `src/chemworld/foundation/state.py`, `src/chemworld/runtime/phase_separation_services.py`, tests/docs | phase/separation services now read/write typed `PhaseLedger`, destructive sampling keeps phases and scalar adapter aligned, and constitution rejects metadata phase-ledger primary state | this commit |
+| Runtime v2 typed equipment-ledger primary state | whilesunny | Active | `src/chemworld/foundation/state.py`, `src/chemworld/foundation/constitution.py`, `src/chemworld/runtime/flow_services.py`, `src/chemworld/runtime/electrochemical_services.py`, tests/docs | move flow and electrochemical setup state from metadata keys into typed `EquipmentLedger` records and make preconditions read equipment settings | this commit |
 
 Status values:
 
