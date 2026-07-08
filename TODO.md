@@ -39,6 +39,7 @@ finished, update its status and push immediately.
 | PhysChem model-card metadata externalization | whilesunny | Done | `src/chemworld/physchem/*_cards.py`, model-card exports, audit docs | next: split `properties.py` by physical property family without changing numerical behavior | this commit |
 | PhysChem properties module split | whilesunny | Done | `src/chemworld/physchem/properties.py`, property-family modules, tests, audit docs | next: split `reactors.py` by reactor family and solver helpers | this commit |
 | PhysChem reactors module split | whilesunny | Done | `src/chemworld/physchem/reactors.py`, reactor-family modules, tests, audit docs | next: split `reaction_network.py` into specs, rate laws, integration/reference cases, thermochemical coupling, sensitivities, and loaders | this commit |
+| Tutorial curriculum hardening and SOTA gap audit | whilesunny | Active | `notebooks/tutorials/`, `docs/`, SOTA references | repair tutorial guidance and difficulty progression; document international interactive chemistry/science-agent environment gaps | claim commit |
 
 Status values:
 
