@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/tasks/">
+        <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/llm_agent_harness/">
       
       
-        <link rel="prev" href="../task_taxonomy/">
+        <link rel="prev" href="../agent_interface/">
       
       
-        <link rel="next" href="../task_cards/">
+        <link rel="next" href="../submission/">
       
       
         
@@ -31,7 +31,7 @@
     
     
       
-        <title>任务列表 - ChemWorld-Bench 文档</title>
+        <title>LLM Agent Harness - ChemWorld-Bench 文档</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#benchmark" class="md-skip">
+        <a href="#llm-agent-harness" class="md-skip">
           跳转至
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              任务列表
+              LLM Agent Harness
             
           </span>
         </div>
@@ -798,37 +798,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    任务列表
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../tasks/" class="md-nav__link">
         
   
   
@@ -844,70 +817,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="目录">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      目录
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        内置任务
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        物理成熟度
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#episode" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Episode 模式
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#worldscenariotask" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        World、Scenario、Task
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1225,10 +1134,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../llm_agent_harness/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Agent Harness
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1244,6 +1180,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#toolusingllmstubagent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ToolUsingLLMStubAgent
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llmreplayagent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LLMReplayAgent
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-offline-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Offline First
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trace-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trace Policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2161,45 +2161,54 @@
 
 
 
-<h1 id="benchmark">Benchmark 任务</h1>
-<p>ChemWorld 的任务不是彼此独立的小游戏，而是同一个 <code>world_law_id</code> 下的切片。每个任务
-突出不同能力：反应优化、安全、机理、表征、分离、连续流、电化学或 tool planning。</p>
-<h2 id="_1">内置任务</h2>
-<p>当前注册任务族包括：</p>
+<h1 id="llm-agent-harness">LLM Agent Harness</h1>
+<p>ChemWorld 当前不依赖在线 LLM API。首版 harness 采用可复现的离线协议：</p>
+<pre><code class="language-text">Planner -&gt; Action Validator -&gt; Env Step -&gt; Observation Summarizer -&gt; Memory -&gt; Next Action
+</code></pre>
+<p>这样可以先把 tool-use、validator-use、observation-use 和 replay 评测打牢，再接入在线模型。</p>
+<h2 id="toolusingllmstubagent">ToolUsingLLMStubAgent</h2>
+<p><code>ToolUsingLLMStubAgent</code> 是确定性的 tool-using LLM stub。它不调用模型，但会模拟一个 LLM/tool agent 应该留下的行为记录：</p>
 <ul>
-<li><code>reaction-optimization</code></li>
-<li><code>reaction-to-purification</code></li>
-<li><code>safety-constrained-control</code></li>
-<li><code>mechanism-explanation</code></li>
-<li><code>characterization-planning</code></li>
-<li><code>partition-discovery</code></li>
-<li><code>purity-yield-tradeoff</code></li>
-<li><code>crystallization-control</code></li>
-<li><code>distillation-cut-selection</code></li>
-<li><code>continuous-flow-optimization</code></li>
-<li><code>electrochemical-screening</code></li>
-<li><code>tool-agent-planning</code></li>
+<li>prompt input 摘要；</li>
+<li>selected action；</li>
+<li>reasoning summary；</li>
+<li>hypothesis note；</li>
+<li>validator result；</li>
+<li>observation summary；</li>
+<li>short memory summary。</li>
 </ul>
-<p>具体数量以 registry 和 <a href="../task_cards/">任务卡</a> 为准。</p>
-<h2 id="_2">物理成熟度</h2>
-<p>每个任务必须声明 maturity。常见层级：</p>
+<p>运行示例：</p>
+<pre><code class="language-bash">python examples/demo_llm_replay_harness.py
+</code></pre>
+<p>在 trajectory JSONL 中，相关字段写入：</p>
 <ul>
-<li><code>proxy</code></li>
-<li><code>lite</code></li>
-<li><code>reference-validated</code></li>
-<li><code>professional-candidate</code></li>
+<li><code>agent_view</code></li>
+<li><code>agent_trace</code></li>
 </ul>
-<p>没有 maturity 的任务不应进入正式 benchmark claim。</p>
-<h2 id="episode">Episode 模式</h2>
+<h2 id="llmreplayagent">LLMReplayAgent</h2>
+<p><code>LLMReplayAgent</code> 从 JSONL 读取固定 action trace：</p>
+<pre><code class="language-json">{&quot;action&quot;: {&quot;operation&quot;: &quot;add_solvent&quot;, &quot;volume_L&quot;: 0.028, &quot;solvent&quot;: 2}}
+{&quot;action&quot;: {&quot;operation&quot;: &quot;add_reagent&quot;, &quot;amount_mol&quot;: 0.010}}
+{&quot;action&quot;: {&quot;operation&quot;: &quot;terminate&quot;}}
+{&quot;action&quot;: {&quot;operation&quot;: &quot;measure&quot;, &quot;instrument&quot;: &quot;final_assay&quot;}}
+</code></pre>
+<p>它用于复现实验、教学展示和之后对真实 LLM trace 的离线评测。</p>
+<h2 id="why-offline-first">Why Offline First</h2>
+<p>离线 harness 有三个好处：</p>
 <ul>
-<li>交互式 step-by-step。</li>
-<li>固定 recipe。</li>
-<li>replay。</li>
-<li>evaluation。</li>
+<li>结果可复现，不受模型版本、API 波动和 temperature 影响；</li>
+<li>可以先验证 action schema、validator、lab report、trajectory 和 replay；</li>
+<li>后续接入真实 LLM 时，只需要替换 planner，不需要改变 benchmark contract。</li>
 </ul>
-<h2 id="worldscenariotask">World、Scenario、Task</h2>
-<p><code>world</code> 定义统一规则，<code>scenario</code> 定义一次 episode 的隐藏条件和可见条件，<code>task</code> 定义
-目标、预算、评分和可见接口。三者分开是 ChemWorld 可扩展性的核心。</p>
+<h2 id="trace-policy">Trace Policy</h2>
+<p><code>agent_trace</code> 只保存行为摘要，不强制保存完整 chain-of-thought。建议记录：</p>
+<ul>
+<li>prompt/task 摘要；</li>
+<li>validator 结果；</li>
+<li>selected action；</li>
+<li>observation-use 摘要；</li>
+<li>hypothesis or next-step rationale。</li>
+</ul>
 
 
 
