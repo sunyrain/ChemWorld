@@ -23,6 +23,8 @@ Start with:
   notebook curriculum.
 - [SOTA Agent Environment Gap Audit](sota_agent_environment_gap_audit.md) for
   the international interactive chemistry/science-agent benchmark comparison.
+- [Codex 5.5 Medium Behavior Report](codex55_medium_behavior_report.md) for an
+  empirical audit of the recent sub-agent recipe-planning probe.
 - [World Law](world_law.md) and [Task Taxonomy](task_taxonomy.md) for the
   unified-world design.
 - [Benchmark Protocol](benchmark_protocol.md) for evaluation and submission
