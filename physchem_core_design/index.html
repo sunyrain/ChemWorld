@@ -1676,6 +1676,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="相平衡核心">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LLE 相稳定性与相分配
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2472,6 +2489,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="相平衡核心">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LLE 相稳定性与相分配
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2626,6 +2660,21 @@ card。它适合训练 agent 理解相行为趋势，但不替代专业热力学
 <h2 id="_11">相平衡核心</h2>
 <p>相平衡层覆盖 Raoult-style VLE、activity coefficient 入口、UNIQUAC slice 和 flash/VLE
 报告。未来 extraction、evaporation 和 distillation 任务会依赖这一层。</p>
+<h3 id="lle">LLE 相稳定性与相分配</h3>
+<p>当前 LLE 切片已经从单纯分配系数 proxy 推进到可审计的 <code>reference_validated</code>
+诊断层：</p>
+<ul>
+<li><code>lle_phase_stability_diagnostic()</code> 生成 TPD-style phase-stability report；</li>
+<li>初始化策略显式记录为 <code>initialization_policy</code>；</li>
+<li>organic / aqueous trial composition 由 partition coefficient、phase volume 和 feed composition 生成；</li>
+<li><code>liquid_liquid_split()</code> 在保持组分物料守恒的同时返回 <code>stability_diagnostic</code>；</li>
+<li><code>liquid_liquid_extraction()</code> 把最新一级 split diagnostic 写入 separation ledger metadata；</li>
+<li>runtime <code>partition_split()</code> 复用同一诊断，并把 <code>lle_phase_status</code>、<code>lle_minimum_tpd_like</code>
+  和 <code>lle_partition_log_spread</code> 进入 phase metadata。</li>
+</ul>
+<p>边界：这不是严格的 LLE flash、tie-line tracing 或全局 Gibbs minimization。它适合
+extraction / partition-discovery benchmark，让 agent 能看到稳定、可解释、可回放的相分配规律；
+严谨的 electrolyte LLE、密度耦合体积预测和参数估计仍属于后续 P3 深化。</p>
 <h2 id="_12">平衡化学核心</h2>
 <p>平衡化学层提供小规模 reaction equilibrium 和 Gibbs minimization slice。当前适合隐藏
 equilibrium scenario 和 analytical checks，不是数据库驱动的 aqueous speciation solver。</p>
