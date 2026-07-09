@@ -53,5 +53,4 @@ maturity。
 
 ## 建议下一步
 
-1. 增加三个端到端 notebook：`reaction-to-assay`、`reaction-to-purification`、`partition-discovery`。
-2. 最后冻结发布检查表、已知限制、citation 和 private-eval 政策。
+1. 最后冻结发布检查表、已知限制、citation 和 private-eval 政策。

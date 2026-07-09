@@ -118,6 +118,18 @@ chemworld submission summarize runs/example_submission
 Notebook 应保持短小：每个 notebook 聚焦一个概念，避免把全部任务、全部指标和全部
 debug 信息塞进同一页。
 
+## 端到端闭环 Notebook
+
+预发布包现在提供三份完整闭环 notebook，位置在 `notebooks/end_to_end/`：
+
+| Notebook | 任务 | 覆盖内容 |
+| --- | --- | --- |
+| `reaction_to_assay_end_to_end.ipynb` | `reaction-to-assay` | 任务规划、action validation、中间 HPLC、final assay、谱图和下一轮实验 |
+| `reaction_to_purification_end_to_end.ipynb` | `reaction-to-purification` | 反应、相系统、萃取、分相、洗涤、干燥、浓缩、final assay |
+| `partition_discovery_end_to_end.ipynb` | `partition-discovery` | campaign 多轮实验、分配趋势、final assay packet、局部 world model |
+
+它们不是最高分策略，而是可验证流程模板：每份都包含 planning、execution、spectra、metrics 和 reflection。
+
 ## 十二天教程
 
 课程应先让学生理解 `reset`、`step`、`info` 和 `constraint_flags`，再逐步引入

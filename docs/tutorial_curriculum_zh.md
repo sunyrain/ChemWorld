@@ -134,3 +134,13 @@ python -m mkdocs build --strict
 ```
 
 如果使用本机评测机，把学生提交集中到 `local_eval_server/teacher_server/submissions_inbox/`，由教师端统一执行 validate、verify、evaluate、summarize 和 leaderboard export。
+
+## 端到端示例
+
+如果学习者需要完整流程样板，先运行 `notebooks/end_to_end/` 下的三份 notebook：
+
+- `reaction_to_assay_end_to_end.ipynb`：从 task prompt 到 final assay。
+- `reaction_to_purification_end_to_end.ipynb`：反应、分相、纯化和最终检测。
+- `partition_discovery_end_to_end.ipynb`：campaign 多轮实验和分配规律推断。
+
+这些 notebook 可作为 Day 7 以后提交包、leaderboard 和 Demo Day 的参考模板。
