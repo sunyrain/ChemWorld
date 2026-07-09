@@ -2419,6 +2419,50 @@ env.campaign_state()
 <p><code>observation_view("rl")</code> 输出 NaN-safe vector、mask、cost 和 constraint flags，适合 RL 或 bandit-style agent。</p>
 <p><code>observation_view("tool_json")</code> 输出机器可读 dict：public observation、raw signal、processed estimate、uncertainty、cost、constraints、campaign state、available actions 和 lab report。</p>
 <p><code>observation_view("lab_report")</code> 输出 LLM/学生可读实验摘要。它只由 public observation/info 派生，不读取 hidden species amounts、rate constants 或 private scenario 参数。</p>
+<p><code>lab_report</code> 当前包含：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>visible_metrics</code></td>
+<td>从 public observation 中提取的有限数值指标</td>
+</tr>
+<tr>
+<td><code>instrument_summary</code></td>
+<td>当前 instrument、observed keys、measurement cost、sample consumption</td>
+</tr>
+<tr>
+<td><code>spectra_summary</code></td>
+<td>public peak group fractions、dominant peak、spectral channels、warnings</td>
+</tr>
+<tr>
+<td><code>final_assay_summary</code></td>
+<td>是否 final assay、leaderboard score、episode/campaign terminal 状态</td>
+</tr>
+<tr>
+<td><code>campaign_progress</code></td>
+<td>step/budget、experiment index、remaining budget、final assay count、best score</td>
+</tr>
+<tr>
+<td><code>failure_summary</code></td>
+<td>precondition/constitution/rollback/error 摘要</td>
+</tr>
+<tr>
+<td><code>next_action_hints</code></td>
+<td>当前可执行 operation 的有限列表</td>
+</tr>
+<tr>
+<td><code>recovery_suggestion</code></td>
+<td>失败动作后的恢复建议</td>
+</tr>
+</tbody>
+</table>
+<p>报告文本固定由这些 public 字段渲染，因此可用于 LLM prompt、课堂日志和 replay dataset。</p>
 <h2 id="wrappers">Wrappers</h2>
 <pre><code class="language-python">from chemworld.wrappers import (
     AgentInfoWrapper,
