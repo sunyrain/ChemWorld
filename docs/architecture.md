@@ -15,6 +15,11 @@ physical-chemical world law rather than separate environments.
 - executable `PhysicalConstitution` checks for non-negativity, units, material
   conservation, observation non-omniscience, measurement cost, preconditions,
   vessel bounds, and risk;
+- `foundation/constitution_reports.py`,
+  `foundation/constitution_state_checks.py`, and
+  `foundation/constitution_preconditions.py`, which keep report contracts,
+  state invariant checks, and operation precondition tables outside the
+  `PhysicalConstitution` facade;
 - transition and observation kernel protocols.
 
 Learnable world-model interfaces live in `chemworld.models`, not in

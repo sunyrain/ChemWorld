@@ -181,6 +181,13 @@ operation coverage validation, and capability checks, and
 `runtime/constitution_factory.py` owns the default ChemWorld constitution
 factory.
 
+Current cleanup also split the foundation constitution boundary.
+`foundation/constitution.py` now keeps the `PhysicalConstitution` facade and
+cross-cutting material/yield/observation checks, while
+`foundation/constitution_reports.py` owns report data contracts,
+`foundation/constitution_state_checks.py` owns state invariant checks, and
+`foundation/constitution_preconditions.py` owns operation precondition tables.
+
 The architecture test suite now also enforces the active Runtime v2 boundary:
 `src/chemworld/envs` and `src/chemworld/runtime` must not import the removed
 `chemworld.core.batch_reactor` runtime, and `ChemWorldEnv.step()` must delegate

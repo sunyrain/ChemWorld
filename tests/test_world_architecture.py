@@ -354,6 +354,31 @@ def test_runtime_domain_service_registry_and_constitution_factory_are_separate()
     assert "def make_chemworld_constitution" in factory_source
 
 
+def test_foundation_constitution_reports_state_checks_and_preconditions_are_separate() -> None:
+    constitution_source = Path("src/chemworld/foundation/constitution.py").read_text(
+        encoding="utf-8"
+    )
+    reports_source = Path("src/chemworld/foundation/constitution_reports.py").read_text(
+        encoding="utf-8"
+    )
+    state_checks_source = Path(
+        "src/chemworld/foundation/constitution_state_checks.py"
+    ).read_text(encoding="utf-8")
+    preconditions_source = Path(
+        "src/chemworld/foundation/constitution_preconditions.py"
+    ).read_text(encoding="utf-8")
+
+    assert "class CheckResult" not in constitution_source
+    assert "class ConstitutionReport" not in constitution_source
+    assert "def check_operation_preconditions" not in constitution_source
+    assert "def check_typed_ledgers" not in constitution_source
+    assert "class PhysicalConstitution" in constitution_source
+    assert "class CheckResult" in reports_source
+    assert "class ConstitutionReport" in reports_source
+    assert "def check_typed_ledgers" in state_checks_source
+    assert "def check_operation_preconditions" in preconditions_source
+
+
 def test_runtime_electrochemical_service_is_separate_from_domain_services() -> None:
     domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
         encoding="utf-8"
