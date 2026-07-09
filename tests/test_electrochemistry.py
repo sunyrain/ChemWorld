@@ -7,10 +7,13 @@ import pytest
 from chemworld.physchem.electrochemistry import (
     FARADAY_C_PER_MOL,
     ElectrodeReactionSpec,
+    ElectrolyteResistanceSpec,
     butler_volmer_current,
     electrochemistry_model_cards,
+    electrolyte_resistance_ohm,
     faradaic_extent_mol,
     nernst_potential,
+    ohmic_drop,
     run_electrolysis,
 )
 from chemworld.physchem.maturity import validate_model_card
@@ -73,6 +76,62 @@ def test_faradaic_extent_uses_charge_electron_number_and_efficiency() -> None:
     assert extent == pytest.approx(0.2 * 100.0 * 0.8 / (2.0 * FARADAY_C_PER_MOL))
 
 
+def test_electrolyte_resistance_uses_geometry_and_contact_resistance() -> None:
+    spec = ElectrolyteResistanceSpec(
+        electrolyte_conductivity_S_m=5.0,
+        electrode_gap_m=0.002,
+        electrode_area_m2=0.010,
+        contact_resistance_ohm=0.20,
+    )
+
+    assert spec.electrolyte_resistance_ohm == pytest.approx(0.002 / (5.0 * 0.010))
+    assert electrolyte_resistance_ohm(spec) == pytest.approx(0.24)
+
+
+def test_electrolyte_resistance_rejects_invalid_geometry() -> None:
+    with pytest.raises(ValueError, match="electrolyte_conductivity_S_m"):
+        ElectrolyteResistanceSpec(
+            electrolyte_conductivity_S_m=0.0,
+            electrode_gap_m=0.002,
+            electrode_area_m2=0.010,
+        )
+    with pytest.raises(ValueError, match="electrode_gap_m"):
+        ElectrolyteResistanceSpec(
+            electrolyte_conductivity_S_m=5.0,
+            electrode_gap_m=-0.002,
+            electrode_area_m2=0.010,
+        )
+    with pytest.raises(ValueError, match="electrode_area_m2"):
+        ElectrolyteResistanceSpec(
+            electrolyte_conductivity_S_m=5.0,
+            electrode_gap_m=0.002,
+            electrode_area_m2=0.0,
+        )
+
+
+def test_ohmic_drop_splits_measured_and_interfacial_potential() -> None:
+    resistance = ElectrolyteResistanceSpec(
+        electrolyte_conductivity_S_m=4.0,
+        electrode_gap_m=0.004,
+        electrode_area_m2=0.010,
+        contact_resistance_ohm=0.10,
+        voltage_window_V=1.5,
+    )
+
+    result = ohmic_drop(
+        measured_potential_V=1.20,
+        current_A=0.25,
+        duration_s=100.0,
+        resistance=resistance,
+    )
+
+    assert result.total_resistance_ohm == pytest.approx(0.20)
+    assert result.uncompensated_voltage_drop_V == pytest.approx(0.05)
+    assert result.interfacial_potential_V == pytest.approx(1.15)
+    assert result.ohmic_loss_J == pytest.approx(0.25 * 0.25 * 0.20 * 100.0)
+    assert not result.voltage_window_exceeded
+
+
 def test_run_electrolysis_limits_substrate_and_reports_energy_accounting() -> None:
     spec = _spec()
     result = run_electrolysis(
@@ -90,6 +149,59 @@ def test_run_electrolysis_limits_substrate_and_reports_energy_accounting() -> No
     assert 0.0 <= result.product_selectivity <= 1.0
     assert 0.0 <= result.energy_efficiency <= 1.0
     assert math.isfinite(result.overpotential_V)
+    assert result.measured_potential_V == pytest.approx(1.0)
+    assert result.interfacial_potential_V == pytest.approx(1.0)
+    assert result.ohmic_loss_J == pytest.approx(0.0)
+
+
+def test_run_electrolysis_reports_ohmic_energy_loss() -> None:
+    spec = _spec()
+    resistance = ElectrolyteResistanceSpec(
+        electrolyte_conductivity_S_m=4.0,
+        electrode_gap_m=0.002,
+        electrode_area_m2=0.010,
+        contact_resistance_ohm=0.05,
+    )
+    result = run_electrolysis(
+        spec,
+        electrode_potential_V=1.30,
+        duration_s=600.0,
+        activities={"A": 1.0, "P": 0.1},
+        available_substrate_mol=1.0,
+        applied_current_A=0.10,
+        electrolyte_resistance=resistance,
+    )
+
+    assert result.total_resistance_ohm == pytest.approx(0.10)
+    assert result.uncompensated_voltage_drop_V == pytest.approx(
+        result.actual_current_A * result.total_resistance_ohm
+    )
+    assert result.interfacial_potential_V == pytest.approx(
+        result.measured_potential_V - result.uncompensated_voltage_drop_V
+    )
+    assert result.ohmic_loss_J == pytest.approx(
+        result.actual_current_A
+        * result.actual_current_A
+        * result.total_resistance_ohm
+        * 600.0
+    )
+    assert result.electrical_work_J >= result.ohmic_loss_J
+
+
+def test_ohmic_drop_reports_voltage_window_exceeded() -> None:
+    result = ohmic_drop(
+        measured_potential_V=2.20,
+        current_A=0.01,
+        duration_s=10.0,
+        resistance=ElectrolyteResistanceSpec(
+            electrolyte_conductivity_S_m=10.0,
+            electrode_gap_m=0.001,
+            electrode_area_m2=0.010,
+            voltage_window_V=2.0,
+        ),
+    )
+
+    assert result.voltage_window_exceeded
 
 
 def test_electrochemistry_model_card_is_valid() -> None:

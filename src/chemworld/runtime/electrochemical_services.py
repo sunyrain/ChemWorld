@@ -12,7 +12,11 @@ from chemworld.foundation import (
     process_with_metrics,
     upsert_equipment_record,
 )
-from chemworld.physchem.electrochemistry import ElectrodeReactionSpec, run_electrolysis
+from chemworld.physchem.electrochemistry import (
+    ElectrodeReactionSpec,
+    ElectrolyteResistanceSpec,
+    run_electrolysis,
+)
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
 
@@ -32,6 +36,21 @@ class ChemWorldElectrochemicalServices:
     def set_potential(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         potential = float(np.clip(_action_float(action, "potential_V", 1.20), -3.0, 3.0))
         current = float(np.clip(_action_float(action, "current_mA", 50.0), 0.0, 500.0))
+        conductivity = float(
+            np.clip(_action_float(action, "electrolyte_conductivity_S_m", 8.0), 0.05, 100.0)
+        )
+        electrode_gap = float(
+            np.clip(_action_float(action, "electrode_gap_m", 0.004), 1.0e-5, 0.050)
+        )
+        electrode_area = float(
+            np.clip(_action_float(action, "electrode_area_m2", 0.004), 1.0e-5, 0.20)
+        )
+        contact_resistance = float(
+            np.clip(_action_float(action, "contact_resistance_ohm", 0.20), 0.0, 100.0)
+        )
+        voltage_window = float(
+            np.clip(_action_float(action, "voltage_window_V", 2.5), 0.1, 10.0)
+        )
         equipment = upsert_equipment_record(
             state.equipment,
             equipment_id="electrochemical_cell",
@@ -41,6 +60,11 @@ class ChemWorldElectrochemicalServices:
             settings={
                 "potential_V": potential,
                 "current_mA": current,
+                "electrolyte_conductivity_S_m": conductivity,
+                "electrode_gap_m": electrode_gap,
+                "electrode_area_m2": electrode_area,
+                "contact_resistance_ohm": contact_resistance,
+                "voltage_window_V": voltage_window,
             },
         )
         risk = min(1.0, state.ledger.risk + 0.02 * max(abs(potential) - 1.5, 0.0))
@@ -52,6 +76,15 @@ class ChemWorldElectrochemicalServices:
         cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
         potential = float(cell_settings.get("potential_V", 1.20))
         current_mA = float(cell_settings.get("current_mA", 50.0))
+        resistance = ElectrolyteResistanceSpec(
+            electrolyte_conductivity_S_m=float(
+                cell_settings.get("electrolyte_conductivity_S_m", 8.0)
+            ),
+            electrode_gap_m=float(cell_settings.get("electrode_gap_m", 0.004)),
+            electrode_area_m2=float(cell_settings.get("electrode_area_m2", 0.004)),
+            contact_resistance_ohm=float(cell_settings.get("contact_resistance_ohm", 0.20)),
+            voltage_window_V=float(cell_settings.get("voltage_window_V", 2.5)),
+        )
         species = state.species_amounts.copy()
         reactant = self.species_view.reactant_species(state)
         product = self.species_view.primary_target_species
@@ -86,6 +119,7 @@ class ChemWorldElectrochemicalServices:
             available_substrate_mol=a_mol,
             temperature_K=state.temperature_K,
             applied_current_A=current_mA / 1000.0,
+            electrolyte_resistance=resistance,
         )
         species[reactant] = a_mol - result.converted_mol
         species[product] = species.get(product, 0.0) + result.product_mol
@@ -96,12 +130,21 @@ class ChemWorldElectrochemicalServices:
             faradaic_efficiency=result.faradaic_efficiency,
             energy_efficiency=result.energy_efficiency,
             equilibrium_potential_V=result.equilibrium_potential_V,
+            measured_potential_V=result.measured_potential_V,
+            interfacial_potential_V=result.interfacial_potential_V,
             overpotential_V=result.overpotential_V,
             kinetic_current_A=result.kinetic_current_A,
             actual_current_A=result.actual_current_A,
             charge_C=result.charge_C,
             faradaic_charge_C=result.faradaic_charge_C,
             electrical_work_J=result.electrical_work_J,
+            interfacial_work_J=result.interfacial_work_J,
+            ohmic_loss_J=result.ohmic_loss_J,
+            electrolyte_resistance_ohm=result.electrolyte_resistance_ohm,
+            contact_resistance_ohm=result.contact_resistance_ohm,
+            total_resistance_ohm=result.total_resistance_ohm,
+            uncompensated_voltage_drop_V=result.uncompensated_voltage_drop_V,
+            voltage_window_exceeded=float(result.voltage_window_exceeded),
         )
         overpotential_risk = max(abs(result.overpotential_V) - 0.35, 0.0)
         ledger = state.ledger.with_updates(
@@ -112,7 +155,8 @@ class ChemWorldElectrochemicalServices:
                 state.ledger.risk
                 + 0.015
                 + 0.025 * abs(potential)
-                + 0.035 * overpotential_risk,
+                + 0.035 * overpotential_risk
+                + 0.020 * float(result.voltage_window_exceeded),
             ),
             energy_jacket_J=state.ledger.energy_jacket_J + result.electrical_work_J,
         )

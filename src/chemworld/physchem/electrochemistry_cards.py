@@ -21,23 +21,32 @@ def electrochemistry_model_cards() -> tuple[ModelCard, ...]:
             equations=(
                 "E_eq = E0 - RT/(nF) ln Q",
                 "i = i0 A [exp(alpha_a nF eta/RT) - exp(-alpha_c nF eta/RT)]",
+                "R_cell = L/(kappa A) + R_contact",
+                "E_interface = E_measured - i R_cell",
+                "P_ohmic = i^2 R_cell",
                 "extent = |i| t FE / (nF)",
-                "W_elec = |E_cell i t|",
+                "W_elec = |E_measured i t|",
             ),
             assumptions=(
                 "Activities are dimensionless and supplied by the world state.",
-                "No double-layer dynamics, ohmic drop, or spatial transport gradients.",
+                "Electrolyte resistance is a lumped Ohm-law cell resistance.",
+                "No double-layer dynamics, spatial electrolyte gradients, or "
+                "porous-electrode transport.",
                 "A finite applied current is capped by the Butler-Volmer kinetic current.",
             ),
             validity_limits=(
                 "Designed for benchmark-scale virtual conversions, not battery design.",
                 "Requires positive temperature and positive electron number.",
+                "Requires positive electrolyte conductivity, electrode area, and "
+                "electrode gap when ohmic drop is enabled.",
                 "Extreme overpotentials are exponent-clipped for numerical stability.",
             ),
             failure_modes=(
                 "Missing activity calibration can distort Nernst potentials.",
-                "Mass-transfer limitation and electrolyte resistance are not yet explicit.",
+                "Lumped electrolyte resistance cannot represent concentration gradients "
+                "or porous-electrode tortuosity.",
                 "Large time steps do not update activities continuously during electrolysis.",
+                "Large requested currents can exceed kinetic support or voltage-window limits.",
             ),
             units={
                 "potential": "V",
@@ -45,10 +54,20 @@ def electrochemistry_model_cards() -> tuple[ModelCard, ...]:
                 "charge": "C",
                 "extent": "mol",
                 "energy": "J",
+                "resistance": "ohm",
+                "conductivity": "S/m",
+                "electrode_gap": "m",
+                "electrode_area": "m^2",
             },
             reference_reading=(
-                "Cantera lithium_ion_battery.py: Butler-Volmer current and equilibrium voltage",
-                "Standard electrochemical thermodynamics: DeltaG = -nFE",
+                "reference_repos/cantera/doc/sphinx/reference/kinetics/"
+                "reaction-rates.md: Butler-Volmer overpotential form",
+                "reference_repos/cantera/data/lithium_ion_battery.yaml: "
+                "electrolyte/interface battery mechanism organization",
+                "reference_repos/idaes-pse/idaes/models_extra/power_generation/"
+                "unit_models/soc_submodels/triple_phase_boundary.py: voltage-drop "
+                "and resistive-heating terms",
+                "Standard electrochemical thermodynamics: DeltaG = -nFE and Ohm-law iR loss",
             ),
             validation_evidence=(
                 ValidationEvidence(
@@ -56,7 +75,8 @@ def electrochemistry_model_cards() -> tuple[ModelCard, ...]:
                     evidence_type="unit-test",
                     description=(
                         "Nernst direction, zero-current equilibrium, Butler-Volmer sign, "
-                        "and Faraday charge conversion tests."
+                        "Faraday charge conversion, Ohm-law voltage drop, resistance scaling, "
+                        "and electrolysis energy-loss tests."
                     ),
                     status="implemented",
                     command_or_path="tests/test_electrochemistry.py",
@@ -65,7 +85,8 @@ def electrochemistry_model_cards() -> tuple[ModelCard, ...]:
             ),
             model_limit_notes=(
                 "This slice replaces the previous empirical electrolysis proxy but "
-                "remains below a full porous-electrode or electrochemical-cell model.",
+                "remains below a full porous-electrode, electrolyte-transport, or "
+                "battery-cell model.",
             ),
             intended_use=(
                 "Electrochemical conversion benchmark tasks.",
@@ -73,8 +94,6 @@ def electrochemistry_model_cards() -> tuple[ModelCard, ...]:
             ),
         ),
     )
-
-
 
 
 __all__ = [

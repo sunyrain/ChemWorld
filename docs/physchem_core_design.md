@@ -478,21 +478,25 @@ The current slice uses the standard relations:
 
 ```text
 E_eq = E0 - RT/(nF) ln Q
+R_cell = L/(kappa A) + R_contact
+E_interface = E_measured - i R_cell
 i = i0 A [exp(alpha_a nF eta/RT) - exp(-alpha_c nF eta/RT)]
 extent = |i| t FE / (nF)
-W_elec = |E_cell i t|
+W_elec = |E_measured i t|
+Q_ohmic = i^2 R_cell t
 ```
 
-The environment now records equilibrium potential, overpotential,
-Butler-Volmer kinetic current, actual current, charge, Faradaic charge,
-Faradaic efficiency, electrical work, selectivity, and energy efficiency in the
-operation summary. This replaces the earlier unlabeled electrolysis proxy.
+The environment now records equilibrium potential, measured cell potential,
+interfacial potential, uncompensated voltage drop, Butler-Volmer kinetic
+current, actual current, charge, Faradaic charge, Faradaic efficiency,
+electrical work, interfacial work, ohmic loss, electrolyte/contact/total
+resistance, selectivity, and energy efficiency in the operation summary. This
+replaces the earlier unlabeled electrolysis proxy.
 
 This is still a scoped benchmark electrochemistry kernel. It does not yet solve
-ohmic drop, explicit mass-transfer limiting current, double-layer dynamics,
-porous electrode structure, electrolyte speciation, or full potentiostatic and
-galvanostatic controller dynamics. Those are tracked as professional-deepening
-items.
+explicit mass-transfer limiting current, double-layer dynamics, porous electrode
+structure, electrolyte speciation, or full potentiostatic and galvanostatic
+controller dynamics. Those are tracked as professional-deepening items.
 
 ## Optional Reference Backend Validation
 

@@ -514,17 +514,19 @@ charge-accounting slice:
   usual anodic/cathodic exponential branches and bounded exponents for
   numerical stability.
 - `faradaic_extent_mol()` and `run_electrolysis()` convert current and duration
-  into reaction extent, product/byproduct amounts, Faradaic charge, electrical
-  work, reversible-work proxy, and energy efficiency.
+  into reaction extent, product/byproduct amounts, Faradaic charge, measured
+  cell work, interfacial work, ohmic loss, reversible-work proxy, and energy
+  efficiency.
 - The `electrolyze` operation in `ChemWorld` now records equilibrium potential,
+  measured potential, interfacial potential, uncompensated voltage drop,
   overpotential, kinetic/current-limited current, charge, Faradaic charge,
-  Faradaic efficiency, and electrical work in the operation summary.
+  Faradaic efficiency, electrical work, and ohmic loss in the operation summary.
 - `electrochemical-conversion` task maturity now reports
   `nernst_butler_volmer_faradaic_v1` rather than the old electrochemistry proxy.
-- This is not a full electrochemical-cell or battery simulator. Ohmic drop,
-  double-layer dynamics, explicit mass-transfer limiting current, porous
-  electrodes, electrolyte speciation, and potentiostatic/galvanostatic
-  controllers remain deepening tasks.
+- This is not a full electrochemical-cell or battery simulator. Explicit
+  mass-transfer limiting current, double-layer dynamics, porous electrodes,
+  electrolyte speciation, and potentiostatic/galvanostatic controllers remain
+  deepening tasks.
 
 PRO-P1A is now implemented for component registry provenance and conflict
 policy:

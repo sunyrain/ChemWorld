@@ -93,11 +93,94 @@ class ElectrodeReactionSpec:
 
 
 @dataclass(frozen=True)
+class ElectrolyteResistanceSpec:
+    """Lumped electrolyte and contact-resistance contract.
+
+    The compact cell model uses ``R = L / (kappa A) + R_contact`` where ``L`` is
+    the uncompensated electrolyte path length, ``kappa`` is ionic conductivity,
+    and ``A`` is effective electrode area.  It is deliberately a cell-level
+    lumped resistance rather than a porous-electrode transport model.
+    """
+
+    electrolyte_conductivity_S_m: float
+    electrode_gap_m: float
+    electrode_area_m2: float
+    contact_resistance_ohm: float = 0.0
+    voltage_window_V: float | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        _positive(
+            self.electrolyte_conductivity_S_m,
+            "electrolyte_conductivity_S_m",
+        )
+        _positive(self.electrode_gap_m, "electrode_gap_m")
+        _positive(self.electrode_area_m2, "electrode_area_m2")
+        _nonnegative(self.contact_resistance_ohm, "contact_resistance_ohm")
+        if self.voltage_window_V is not None:
+            _positive(self.voltage_window_V, "voltage_window_V")
+
+    @property
+    def electrolyte_resistance_ohm(self) -> float:
+        return self.electrode_gap_m / (
+            self.electrolyte_conductivity_S_m * self.electrode_area_m2
+        )
+
+    @property
+    def total_resistance_ohm(self) -> float:
+        return self.electrolyte_resistance_ohm + self.contact_resistance_ohm
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "electrolyte_conductivity_S_m": self.electrolyte_conductivity_S_m,
+            "electrode_gap_m": self.electrode_gap_m,
+            "electrode_area_m2": self.electrode_area_m2,
+            "contact_resistance_ohm": self.contact_resistance_ohm,
+            "electrolyte_resistance_ohm": self.electrolyte_resistance_ohm,
+            "total_resistance_ohm": self.total_resistance_ohm,
+            "voltage_window_V": self.voltage_window_V,
+            "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class OhmicDropResult:
+    """Measured/interfacial potential split for a lumped cell resistance."""
+
+    measured_potential_V: float
+    interfacial_potential_V: float
+    current_A: float
+    electrolyte_resistance_ohm: float
+    contact_resistance_ohm: float
+    total_resistance_ohm: float
+    uncompensated_voltage_drop_V: float
+    ohmic_loss_J: float
+    voltage_window_exceeded: bool
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "measured_potential_V": self.measured_potential_V,
+            "interfacial_potential_V": self.interfacial_potential_V,
+            "current_A": self.current_A,
+            "electrolyte_resistance_ohm": self.electrolyte_resistance_ohm,
+            "contact_resistance_ohm": self.contact_resistance_ohm,
+            "total_resistance_ohm": self.total_resistance_ohm,
+            "uncompensated_voltage_drop_V": self.uncompensated_voltage_drop_V,
+            "ohmic_loss_J": self.ohmic_loss_J,
+            "voltage_window_exceeded": self.voltage_window_exceeded,
+            "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
 class ElectrolysisResult:
     """Terminal electrolysis accounting for one operation."""
 
     reaction_id: str
     equilibrium_potential_V: float
+    measured_potential_V: float
+    interfacial_potential_V: float
     overpotential_V: float
     kinetic_current_A: float
     actual_current_A: float
@@ -110,14 +193,23 @@ class ElectrolysisResult:
     faradaic_efficiency: float
     product_selectivity: float
     electrical_work_J: float
+    interfacial_work_J: float
+    ohmic_loss_J: float
     reversible_work_J: float
     energy_efficiency: float
+    electrolyte_resistance_ohm: float
+    contact_resistance_ohm: float
+    total_resistance_ohm: float
+    uncompensated_voltage_drop_V: float
+    voltage_window_exceeded: bool
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "reaction_id": self.reaction_id,
             "equilibrium_potential_V": self.equilibrium_potential_V,
+            "measured_potential_V": self.measured_potential_V,
+            "interfacial_potential_V": self.interfacial_potential_V,
             "overpotential_V": self.overpotential_V,
             "kinetic_current_A": self.kinetic_current_A,
             "actual_current_A": self.actual_current_A,
@@ -130,8 +222,15 @@ class ElectrolysisResult:
             "faradaic_efficiency": self.faradaic_efficiency,
             "product_selectivity": self.product_selectivity,
             "electrical_work_J": self.electrical_work_J,
+            "interfacial_work_J": self.interfacial_work_J,
+            "ohmic_loss_J": self.ohmic_loss_J,
             "reversible_work_J": self.reversible_work_J,
             "energy_efficiency": self.energy_efficiency,
+            "electrolyte_resistance_ohm": self.electrolyte_resistance_ohm,
+            "contact_resistance_ohm": self.contact_resistance_ohm,
+            "total_resistance_ohm": self.total_resistance_ohm,
+            "uncompensated_voltage_drop_V": self.uncompensated_voltage_drop_V,
+            "voltage_window_exceeded": self.voltage_window_exceeded,
             "metadata": dict(self.metadata),
         }
 
@@ -242,6 +341,57 @@ def faradaic_extent_mol(
     return charge_C * faradaic_efficiency / (electrons_transferred * FARADAY_C_PER_MOL)
 
 
+def electrolyte_resistance_ohm(spec: ElectrolyteResistanceSpec) -> float:
+    """Return lumped electrolyte plus contact resistance in ohms."""
+
+    return spec.total_resistance_ohm
+
+
+def ohmic_drop(
+    *,
+    measured_potential_V: float,
+    current_A: float,
+    duration_s: float,
+    resistance: ElectrolyteResistanceSpec | None,
+) -> OhmicDropResult:
+    """Return uncompensated voltage drop and interfacial potential.
+
+    Positive current lowers the interfacial potential relative to the measured
+    terminal/control potential by ``iR``.  Negative current shifts it upward by
+    the same Ohm-law convention.
+    """
+
+    _finite(measured_potential_V, "measured_potential_V")
+    _finite(current_A, "current_A")
+    _nonnegative(duration_s, "duration_s")
+    if resistance is None:
+        total_resistance = 0.0
+        electrolyte_resistance = 0.0
+        contact_resistance = 0.0
+        voltage_window = None
+    else:
+        total_resistance = resistance.total_resistance_ohm
+        electrolyte_resistance = resistance.electrolyte_resistance_ohm
+        contact_resistance = resistance.contact_resistance_ohm
+        voltage_window = resistance.voltage_window_V
+    voltage_drop = current_A * total_resistance
+    interfacial_potential = measured_potential_V - voltage_drop
+    return OhmicDropResult(
+        measured_potential_V=measured_potential_V,
+        interfacial_potential_V=interfacial_potential,
+        current_A=current_A,
+        electrolyte_resistance_ohm=electrolyte_resistance,
+        contact_resistance_ohm=contact_resistance,
+        total_resistance_ohm=total_resistance,
+        uncompensated_voltage_drop_V=voltage_drop,
+        ohmic_loss_J=current_A * current_A * total_resistance * duration_s,
+        voltage_window_exceeded=(
+            voltage_window is not None and abs(measured_potential_V) > voltage_window
+        ),
+        metadata={"model_id": "lumped_electrolyte_ohmic_drop_v1"},
+    )
+
+
 def run_electrolysis(
     spec: ElectrodeReactionSpec,
     *,
@@ -251,6 +401,7 @@ def run_electrolysis(
     available_substrate_mol: float,
     temperature_K: float = 298.15,
     applied_current_A: float | None = None,
+    electrolyte_resistance: ElectrolyteResistanceSpec | None = None,
 ) -> ElectrolysisResult:
     """Run a terminal electrolysis accounting step.
 
@@ -268,21 +419,52 @@ def run_electrolysis(
         _finite(applied_current_A, "applied_current_A")
 
     equilibrium_potential = nernst_potential(spec, activities, temperature_K=temperature_K)
-    overpotential = electrode_potential_V - equilibrium_potential
+    actual_current = 0.0 if applied_current_A is None else float(applied_current_A)
+    kinetic_current = 0.0
+    interfacial_potential = electrode_potential_V
+    iteration_count = 0
+    for _ in range(12):
+        iteration_count += 1
+        drop = ohmic_drop(
+            measured_potential_V=electrode_potential_V,
+            current_A=actual_current,
+            duration_s=duration_s,
+            resistance=electrolyte_resistance,
+        )
+        interfacial_potential = drop.interfacial_potential_V
+        kinetic_current = butler_volmer_current(
+            spec,
+            electrode_potential_V=interfacial_potential,
+            activities=activities,
+            temperature_K=temperature_K,
+        )
+        kinetic_magnitude = abs(kinetic_current)
+        if applied_current_A is None:
+            next_current = kinetic_current
+        else:
+            requested_magnitude = abs(applied_current_A)
+            actual_magnitude = min(requested_magnitude, kinetic_magnitude)
+            sign_source = kinetic_current if kinetic_magnitude > 0.0 else applied_current_A
+            next_current = _copy_sign(actual_magnitude, sign_source)
+        if abs(next_current - actual_current) <= 1.0e-12:
+            actual_current = next_current
+            break
+        actual_current = next_current
+
+    drop = ohmic_drop(
+        measured_potential_V=electrode_potential_V,
+        current_A=actual_current,
+        duration_s=duration_s,
+        resistance=electrolyte_resistance,
+    )
+    interfacial_potential = drop.interfacial_potential_V
+    overpotential = interfacial_potential - equilibrium_potential
     kinetic_current = butler_volmer_current(
         spec,
-        electrode_potential_V=electrode_potential_V,
+        electrode_potential_V=interfacial_potential,
         activities=activities,
         temperature_K=temperature_K,
     )
-    kinetic_magnitude = abs(kinetic_current)
-    if applied_current_A is None:
-        actual_current = kinetic_current
-    else:
-        requested_magnitude = abs(applied_current_A)
-        actual_magnitude = min(requested_magnitude, kinetic_magnitude)
-        sign_source = kinetic_current if kinetic_magnitude > 0.0 else applied_current_A
-        actual_current = _copy_sign(actual_magnitude, sign_source)
 
     overpotential_stress = max(abs(overpotential) - 0.15, 0.0)
     faradaic_efficiency = _clip01(
@@ -305,9 +487,10 @@ def run_electrolysis(
     charge = abs(actual_current) * duration_s
     faradaic_charge = charge * faradaic_efficiency
     electrical_work = abs(electrode_potential_V * actual_current * duration_s)
+    interfacial_work = abs(interfacial_potential * actual_current * duration_s)
     reversible_work = min(
         abs(equilibrium_potential) * faradaic_charge,
-        electrical_work,
+        max(electrical_work - drop.ohmic_loss_J, 0.0),
     )
     energy_efficiency = 0.0
     if electrical_work > 0.0:
@@ -315,6 +498,8 @@ def run_electrolysis(
     return ElectrolysisResult(
         reaction_id=spec.reaction_id,
         equilibrium_potential_V=equilibrium_potential,
+        measured_potential_V=electrode_potential_V,
+        interfacial_potential_V=interfacial_potential,
         overpotential_V=overpotential,
         kinetic_current_A=kinetic_current,
         actual_current_A=actual_current,
@@ -327,15 +512,24 @@ def run_electrolysis(
         faradaic_efficiency=faradaic_efficiency,
         product_selectivity=product_selectivity,
         electrical_work_J=electrical_work,
+        interfacial_work_J=interfacial_work,
+        ohmic_loss_J=drop.ohmic_loss_J,
         reversible_work_J=reversible_work,
         energy_efficiency=energy_efficiency,
+        electrolyte_resistance_ohm=drop.electrolyte_resistance_ohm,
+        contact_resistance_ohm=drop.contact_resistance_ohm,
+        total_resistance_ohm=drop.total_resistance_ohm,
+        uncompensated_voltage_drop_V=drop.uncompensated_voltage_drop_V,
+        voltage_window_exceeded=drop.voltage_window_exceeded,
         metadata={
             "model_id": "nernst_butler_volmer_faradaic_v1",
+            "ohmic_drop_model_id": drop.metadata["model_id"],
             "temperature_K": temperature_K,
             "applied_current_A": applied_current_A,
             "kinetic_current_limited": (
-                applied_current_A is not None and abs(applied_current_A) > kinetic_magnitude
+                applied_current_A is not None and abs(applied_current_A) > abs(kinetic_current)
             ),
+            "ohmic_iteration_count": iteration_count,
         },
     )
 
@@ -381,11 +575,15 @@ __all__ = [
     "FARADAY_C_PER_MOL",
     "ElectrodeReactionSpec",
     "ElectrolysisResult",
+    "ElectrolyteResistanceSpec",
+    "OhmicDropResult",
     "butler_volmer_current",
     "electrochemistry_model_cards",
+    "electrolyte_resistance_ohm",
     "equilibrium_potential_from_delta_g",
     "faradaic_extent_mol",
     "nernst_potential",
+    "ohmic_drop",
     "reaction_quotient_from_activities",
     "reaction_quotient_log_from_activities",
     "run_electrolysis",

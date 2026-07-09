@@ -886,10 +886,18 @@ def test_domain_services_apply_mechanism_roles_for_reagent_and_electrolysis() ->
     assert charged.species.initial_amounts_mol["Ox"] == pytest.approx(0.010)
     assert "potential_V" not in configured.metadata
     assert equipment_settings(configured.equipment, "electrochemical_cell")["potential_V"] == 1.35
+    assert (
+        equipment_settings(configured.equipment, "electrochemical_cell")[
+            "electrolyte_conductivity_S_m"
+        ]
+        > 0.0
+    )
     assert converted.species_amounts["Ox"] < configured.species_amounts["Ox"]
     assert converted.species_amounts["Red"] > configured.species_amounts["Red"]
     assert converted.species_amounts["IsoRed"] >= configured.species_amounts["IsoRed"]
     assert abs(electro_record.state_delta_summary["actual_current_A"]) > 0.0
+    assert "interfacial_potential_V" in electro_record.state_delta_summary
+    assert "ohmic_loss_J" in electro_record.state_delta_summary
 
 
 def test_observation_kernel_scores_non_fixed_mechanism_species() -> None:
@@ -1594,7 +1602,13 @@ def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> 
         assert "equipment" in electro_info["affected_ledgers"]
         assert "potential_V" not in electro_state.metadata
         assert "current_mA" not in electro_state.metadata
-        assert electro_settings == {"potential_V": 1.15, "current_mA": 75.0}
+        assert electro_settings["potential_V"] == pytest.approx(1.15)
+        assert electro_settings["current_mA"] == pytest.approx(75.0)
+        assert electro_settings["electrolyte_conductivity_S_m"] > 0.0
+        assert electro_settings["electrode_gap_m"] > 0.0
+        assert electro_settings["electrode_area_m2"] > 0.0
+        assert electro_settings["contact_resistance_ohm"] >= 0.0
+        assert electro_settings["voltage_window_V"] > 0.0
         assert electro_env.unwrapped.constitution.check_state(electro_state).passed
         _, _, _, _, electrolysis_info = electro_env.step(
             {"operation": "electrolyze", "duration_s": 1800.0}
@@ -1607,6 +1621,8 @@ def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> 
         assert 0.0 <= electro_state.process.metrics["electrochemical_selectivity"] <= 1.0
         assert 0.0 <= electro_state.process.metrics["energy_efficiency"] <= 1.0
         assert electro_state.process.metrics["charge_C"] > 0.0
+        assert electro_state.process.metrics["total_resistance_ohm"] > 0.0
+        assert electro_state.process.metrics["ohmic_loss_J"] >= 0.0
         assert electro_env.unwrapped.constitution.check_state(electro_state).passed
     finally:
         flow_env.close()
@@ -2241,6 +2257,34 @@ def test_validator_rejects_invalid_payload_bounds() -> None:
         assert info["world_events"][0]["event_type"] == "validation_failed"
         assert after.species_amounts == before.species_amounts
         assert after.volume_L == pytest.approx(before.volume_L)
+    finally:
+        env.close()
+
+
+def test_validator_rejects_invalid_electrochemical_payload_bounds() -> None:
+    env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
+    try:
+        _, _ = env.reset(seed=0)
+        bad = env.unwrapped.operation_validator.validate(
+            {
+                "operation": "set_potential",
+                "potential_V": 1.2,
+                "current_mA": 75.0,
+                "electrolyte_conductivity_S_m": 0.0,
+                "electrode_gap_m": 0.20,
+                "electrode_area_m2": 0.0,
+                "contact_resistance_ohm": -0.1,
+                "voltage_window_V": 0.0,
+            },
+            env.unwrapped._state,
+        )
+
+        assert not bad.is_valid
+        assert "payload_bounds:electrolyte_conductivity_S_m" in bad.invalid_reasons
+        assert "payload_bounds:electrode_gap_m" in bad.invalid_reasons
+        assert "payload_bounds:electrode_area_m2" in bad.invalid_reasons
+        assert "payload_bounds:contact_resistance_ohm" in bad.invalid_reasons
+        assert "payload_bounds:voltage_window_V" in bad.invalid_reasons
     finally:
         env.close()
 

@@ -107,7 +107,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "electrochemical-conversion": {
         "mechanism_id": "electrochemical_conversion",
         "steps": 6,
-        "score": 0.5536636959898259,
+        "score": 0.5532872810141272,
     },
     "flow-reaction-optimization": {
         "mechanism_id": "pfr_hotspot",

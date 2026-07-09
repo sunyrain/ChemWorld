@@ -115,9 +115,10 @@ Design rules:
   constraints, supplied Gibbs energies, activity proxies, charge balance, phase
   restrictions, saturation state, and nonnegative extents or species amounts;
 - keep electrochemical models explicit about sign conventions, electron number,
-  activities, overpotential, Faradaic charge, electrical work, and the absence
-  of full-cell effects such as ohmic drop or double-layer dynamics unless those
-  effects have their own validated slice;
+  activities, measured/interfacial potential, ohmic drop, Faradaic charge,
+  electrical work, and the absence of full-cell effects such as double-layer
+  dynamics or mass-transfer limiting current unless those effects have their
+  own validated slice;
 - keep unit-operation results as named outlet streams plus cost, risk,
   heat-duty, solvent-loss, and material-balance ledgers;
 - keep transport/equipment calculations explicit about SI units, flow regime,

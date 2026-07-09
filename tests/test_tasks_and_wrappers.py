@@ -651,6 +651,11 @@ def test_electrolysis_info_reports_charge_and_overpotential() -> None:
         assert summary["faradaic_charge_C"] > 0.0
         assert "overpotential_V" in summary
         assert "equilibrium_potential_V" in summary
+        assert "measured_potential_V" in summary
+        assert "interfacial_potential_V" in summary
+        assert "uncompensated_voltage_drop_V" in summary
+        assert "ohmic_loss_J" in summary
+        assert "total_resistance_ohm" in summary
         assert 0.0 <= summary["faradaic_efficiency"] <= 1.0
     finally:
         env.close()

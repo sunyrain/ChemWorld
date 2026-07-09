@@ -29,12 +29,19 @@ MATERIAL_DELTA_ALLOWED_OPERATIONS = frozenset(
 
 ELECTROCHEMICAL_SUMMARY_KEYS = (
     "equilibrium_potential_V",
+    "measured_potential_V",
+    "interfacial_potential_V",
     "overpotential_V",
     "actual_current_A",
     "charge_C",
     "faradaic_charge_C",
     "faradaic_efficiency",
     "electrical_work_J",
+    "interfacial_work_J",
+    "ohmic_loss_J",
+    "total_resistance_ohm",
+    "uncompensated_voltage_drop_V",
+    "voltage_window_exceeded",
 )
 
 

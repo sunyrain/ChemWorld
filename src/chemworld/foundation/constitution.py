@@ -99,12 +99,21 @@ class PhysicalConstitution:
         "faradaic_efficiency",
         "energy_efficiency",
         "equilibrium_potential_V",
+        "measured_potential_V",
+        "interfacial_potential_V",
         "overpotential_V",
         "kinetic_current_A",
         "actual_current_A",
         "charge_C",
         "faradaic_charge_C",
         "electrical_work_J",
+        "interfacial_work_J",
+        "ohmic_loss_J",
+        "electrolyte_resistance_ohm",
+        "contact_resistance_ohm",
+        "total_resistance_ohm",
+        "uncompensated_voltage_drop_V",
+        "voltage_window_exceeded",
     }
 
     required_state_units: ClassVar[dict[str, str]] = {

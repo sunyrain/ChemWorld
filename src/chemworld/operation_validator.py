@@ -359,6 +359,46 @@ class OperationValidator:
                     500.0,
                     inclusive_low=True,
                 )
+            if "electrolyte_conductivity_S_m" in payload:
+                checks["payload_bounds:electrolyte_conductivity_S_m"] = self._in_range(
+                    payload,
+                    "electrolyte_conductivity_S_m",
+                    0.05,
+                    100.0,
+                    inclusive_low=True,
+                )
+            if "electrode_gap_m" in payload:
+                checks["payload_bounds:electrode_gap_m"] = self._in_range(
+                    payload,
+                    "electrode_gap_m",
+                    1.0e-5,
+                    0.05,
+                    inclusive_low=True,
+                )
+            if "electrode_area_m2" in payload:
+                checks["payload_bounds:electrode_area_m2"] = self._in_range(
+                    payload,
+                    "electrode_area_m2",
+                    1.0e-5,
+                    0.20,
+                    inclusive_low=True,
+                )
+            if "contact_resistance_ohm" in payload:
+                checks["payload_bounds:contact_resistance_ohm"] = self._in_range(
+                    payload,
+                    "contact_resistance_ohm",
+                    0.0,
+                    100.0,
+                    inclusive_low=True,
+                )
+            if "voltage_window_V" in payload:
+                checks["payload_bounds:voltage_window_V"] = self._in_range(
+                    payload,
+                    "voltage_window_V",
+                    0.1,
+                    10.0,
+                    inclusive_low=True,
+                )
         return checks
 
     @staticmethod

@@ -51,7 +51,7 @@ with proxies and then call them professional.
 | `DEEP-D1B` | liyijun | Claimed | Unit-dimension checker with canonical dimensions for amount, mass, volume, temperature, pressure, energy, power, viscosity, diffusivity, conductivity, and instrument response, plus compatibility tests before kernels run. |
 | `DEEP-D1C` | liyijun | Claimed | Data conflict policy with source-priority, uncertainty-aware warning versus hard-fail modes, unit compatibility checks, JSON-friendly resolution reports, and curated registry provenance. |
 | `DEEP-D10A` | whilesunny | Done | Model-maturity gate audit for task, trajectory, baseline, and leaderboard outputs; benchmark artifacts expose proxy/lite/professional metadata and reject silent same-task maturity mixing. |
-| `DEEP-D11A` | whilesunny | Claimed | Electrochemical ohmic-drop and electrolyte-resistance slice: solution resistance, uncompensated voltage drop, measured versus interfacial potential, energy-loss accounting, and runtime/task metadata. |
+| `DEEP-D11A` | whilesunny | Done | Electrochemical ohmic-drop and electrolyte-resistance slice: solution resistance, uncompensated voltage drop, measured versus interfacial potential, energy-loss accounting, runtime/task metadata, tests, docs, and public API exports. |
 
 ## Module Families
 
@@ -67,7 +67,7 @@ with proxies and then call them professional.
 | Equipment and safety | phase-change heat transfer, two-phase pressure drop, relief envelope, equipment cards |
 | Instruments | HPLC/GC method sensitivity, IR, NMR, MS |
 | Benchmark datasets | maturity gates, dataset exports, official reports, solver manifests |
-| Electrochemistry | ohmic drop, limiting current, controller modes, capacitive current, scenario cards |
+| Electrochemistry | limiting current, controller modes, capacitive current, scenario cards |
 
 ## First Deepening Candidates
 
@@ -87,6 +87,7 @@ Do not start these until the current twelve-slice batch is complete.
 7. `DEEP-D8A`: phase-change and equipment heat transfer beyond the completed
    single-phase Nusselt/e-NTU slice.
 8. `DEEP-D11A`: electrochemical ohmic-drop and electrolyte-resistance slice.
+   Done.
 9. `DEEP-D11B`: mass-transfer limiting-current slice for electrode processes.
 
 For the complete checklist, use the root file

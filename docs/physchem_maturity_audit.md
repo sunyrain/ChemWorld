@@ -27,7 +27,7 @@ project does not confuse proxy/lite kernels with validated scientific models.
 | Separations | Proxy/lite with a reference-validated VLE distillation shortcut slice and a professional-candidate FUG sizing slice | material-conserving extraction, VLE flash, VLE/Fenske shortcut distillation, Fenske-Underwood-Gilliland binary sizing tests, crystallization, filtration, drying tests | rigorous MESH columns, boilup/pressure-drop closure, thermodynamic extraction, crystallization kinetics, and broader equipment validation |
 | Transport and heat transfer | Lite with reference-validated pipe-flow and heat-transfer slices | dimensionless numbers, explicit friction methods, `fluids` Haaland and single-phase pipe-pressure-drop optional checks; Nusselt branch metadata; counterflow exchanger duty-balance tests; optional `fluids.core.Nusselt` check | two-phase correlations, boiling/condensation, shell-side correction factors, fouling dynamics, equipment safety cards, and broader validity maps |
 | Equilibrium chemistry | Lite/proxy with a reference-validated Gibbs-minimization slice | mass-action, acid/base, precipitation tests; fixed-TP ideal Gibbs minimization with element, charge, phase, and nonnegative-species constraints; analytical ideal-isomerization validation | database-backed aqueous speciation, activity-corrected electrolytes, redox/electron basis selection, and CALPHAD global phase selection |
-| Electrochemistry | Lite with a reference-validated Nernst/BV/Faraday slice | Nernst equilibrium potential, Butler-Volmer current, Faraday charge-to-extent conversion, Faradaic efficiency, energy accounting, task metadata, and operation-summary tests | ohmic drop, limiting current, mass transfer, double-layer dynamics, porous electrodes, electrolyte speciation, and control-mode solvers |
+| Electrochemistry | Lite with reference-validated Nernst/BV/Faraday and lumped ohmic-drop slices | Nernst equilibrium potential, Butler-Volmer current, Faraday charge-to-extent conversion, lumped electrolyte/contact resistance, uncompensated voltage drop, Faradaic efficiency, energy accounting, task metadata, and operation-summary tests | limiting current, mass transfer, double-layer dynamics, porous electrodes, electrolyte speciation, and control-mode solvers |
 | Mechanism/scenario library | Lite | curated mechanism cards and validation tests | reference-validated mechanisms and professional task bindings |
 | Spectroscopy/instruments | Synthetic/lite with reference-validated UV-vis and chromatography slices | state-coupled HPLC/GC/UV-vis/IR/NMR synthetic signals; UV-vis Beer-Lambert calibration tests; HPLC/GC retention-factor, plate-count, and resolution tests | empirical retention-index examples, IR empirical anchors, NMR coupling metadata, and broader public spectral examples |
 | Reference validation | Partial | `chemicals` ideal gas, Rachford-Rice, curated vapor pressure/Cp/enthalpy; `fluids` Reynolds/Prandtl/friction/pipe drop; and `thermo` ideal VLE optional tests | CoolProp, Cantera, phasepy, Reaktoro, pycalphad coverage |
@@ -195,11 +195,13 @@ copying the reference implementations.
   model-card metadata, and analytical ideal-isomerization tests are in place.
   Reaktoro-style databases, activity-corrected aqueous speciation, and CALPHAD
   global phase selection remain future work.
-- PRO-P9B is implemented for the first electrochemistry slice: Nernst
-  equilibrium potential, Butler-Volmer current, Faraday charge conversion,
-  Faradaic efficiency, electrical-work accounting, model-card metadata, local
+- PRO-P9B/DEEP-D11A are implemented for the first electrochemistry slice:
+  Nernst equilibrium potential, Butler-Volmer current, Faraday charge
+  conversion, lumped electrolyte/contact resistance, uncompensated ohmic drop,
+  measured-vs-interfacial potential splitting, Faradaic efficiency,
+  electrical/interfacial/ohmic energy accounting, model-card metadata, local
   identity tests, and `electrochemical-conversion` task integration are in
-  place. This is still below a full electrochemical-cell model with ohmic drop,
+  place. This is still below a full electrochemical-cell model with
   mass-transfer limiting current, double-layer dynamics, porous electrodes, and
   electrolyte speciation.
 - PRO-P1A is implemented for the curated component registry: component records
