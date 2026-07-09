@@ -2351,6 +2351,12 @@
 {&quot;action&quot;: {&quot;operation&quot;: &quot;measure&quot;, &quot;instrument&quot;: &quot;final_assay&quot;}}
 </code></pre>
 <p>它用于复现实验、教学展示和之后对真实 LLM trace 的离线评测。</p>
+<p>公开预发布 fixture：</p>
+<pre><code class="language-text">examples/fixtures/llm_replay/reaction_to_assay_public_trace.jsonl
+</code></pre>
+<p>该 trace 包含 <code>prompt_input</code>、<code>selected action</code>、<code>reasoning_summary</code>、<code>hypothesis_note</code> 和 <code>memory_note</code>，运行时会补全 validator result 与 observation summary。可用下面命令演示：</p>
+<pre><code class="language-bash">python examples/demo_llm_replay_harness.py
+</code></pre>
 <h2 id="why-offline-first">Why Offline First</h2>
 <p>离线 harness 有三个好处：</p>
 <ul>
@@ -2430,7 +2436,7 @@
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
-        <script src="../assets/javascripts/outline-toggle-v3.js"></script>
+        <script src="../assets/javascripts/outline-toggle-v4.js"></script>
       
     
   </body>
