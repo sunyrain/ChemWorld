@@ -963,6 +963,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#multi-round-probe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Round Probe
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#llmreplayagent" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2215,6 +2226,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#multi-round-probe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Round Probe
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#llmreplayagent" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2278,7 +2300,7 @@
 <li>hypothesis note；</li>
 <li>validator result；</li>
 <li>observation summary；</li>
-<li>short memory summary。</li>
+<li>memory note / short memory summary。</li>
 </ul>
 <p>运行示例：</p>
 <pre><code class="language-bash">python examples/demo_llm_replay_harness.py
@@ -2288,6 +2310,39 @@
 <li><code>agent_view</code></li>
 <li><code>agent_trace</code></li>
 </ul>
+<h2 id="multi-round-probe">Multi-Round Probe</h2>
+<p>公开预发布阶段提供一个多轮 probe，用于检查 agent-facing 环境是否支持连续规划、重复 final assay、best-so-far 曲线和 invalid-action recovery 指标：</p>
+<pre><code class="language-bash">python scripts/probe_tool_agent_rounds.py \
+  --task reaction-optimization-standard \
+  --seeds 0 1 2 \
+  --budget 18 \
+  --min-rounds 12 \
+  --output-dir runs/tool_agent_probe
+</code></pre>
+<p>输出文件：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tool_agent_probe_report.json</code></td>
+<td>seeds、trajectory 路径、best score、best-score AUC、invalid/precondition recovery、final assay count</td>
+</tr>
+<tr>
+<td><code>tool_agent_probe_summary.csv</code></td>
+<td>每个 seed 一行的表格摘要</td>
+</tr>
+<tr>
+<td><code>trajectories/*.jsonl</code></td>
+<td>带 <code>agent_view</code> 和 <code>agent_trace</code> 的完整轨迹</td>
+</tr>
+</tbody>
+</table>
+<p>默认任务是 <code>reaction-optimization-standard</code>，因为它是 campaign task：<code>final_assay</code> 结束当前 experiment，但不结束整个 campaign，因此 18 步内可以观察多次实验和 best-so-far 曲线。</p>
 <h2 id="llmreplayagent">LLMReplayAgent</h2>
 <p><code>LLMReplayAgent</code> 从 JSONL 读取固定 action trace：</p>
 <pre><code class="language-json">{&quot;action&quot;: {&quot;operation&quot;: &quot;add_solvent&quot;, &quot;volume_L&quot;: 0.028, &quot;solvent&quot;: 2}}
@@ -2310,7 +2365,8 @@
 <li>validator 结果；</li>
 <li>selected action；</li>
 <li>observation-use 摘要；</li>
-<li>hypothesis or next-step rationale。</li>
+<li>hypothesis or next-step rationale；</li>
+<li>memory note。</li>
 </ul>
 
 
