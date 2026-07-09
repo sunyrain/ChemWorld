@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/environment_self_consistency_audit_zh/">
+        <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/architecture_report/">
       
       
-        <link rel="prev" href="../world_model_learning/">
+        <link rel="prev" href="../current_progress/">
       
       
-        <link rel="next" href="../physchem_maturity_audit/">
+        <link rel="next" href="../demos/">
       
       
         
@@ -31,7 +31,7 @@
     
     
       
-        <title>环境自一致性审计 - ChemWorld-Bench 文档</title>
+        <title>架构快照 - ChemWorld-Bench 文档</title>
       
     
     
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              环境自一致性审计
+              架构快照
             
           </span>
         </div>
@@ -256,18 +256,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -288,7 +290,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -359,10 +361,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../architecture_report/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    架构快照
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -378,6 +407,125 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        当前定位
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        源码分层
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 执行链路
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime v2
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        机制与场景
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-ledgers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typed Ledgers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent-facing-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent-facing API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        评测与数据
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        当前限制
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1646,20 +1794,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
           <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
@@ -1680,7 +1826,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1695,37 +1841,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    环境自一致性审计
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../environment_self_consistency_audit_zh/" class="md-nav__link">
         
   
   
@@ -1741,164 +1860,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="目录">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      目录
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        审计目标
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        当前检查工具
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        最新全量审计结果
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        自洽性维度
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="自洽性维度">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        结构自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        物理自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        观测自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        谱图与指标自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        评测自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        文档自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        验收命令
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_12" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        当前判断
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2275,7 +2236,7 @@
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        审计目标
+        当前定位
       
     </span>
   </a>
@@ -2286,7 +2247,29 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前检查工具
+        源码分层
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 执行链路
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime v2
       
     </span>
   </a>
@@ -2297,7 +2280,29 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        最新全量审计结果
+        机制与场景
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-ledgers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typed Ledgers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent-facing-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent-facing API
       
     </span>
   </a>
@@ -2308,101 +2313,18 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        自洽性维度
+        评测与数据
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="自洽性维度">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        结构自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        物理自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        观测自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        谱图与指标自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        评测自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        文档自洽
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        验收命令
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_12" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        当前判断
+        当前限制
       
     </span>
   </a>
@@ -2426,373 +2348,206 @@
 
 
 
-<h1 id="chemworld">ChemWorld 环境自洽性审计</h1>
-<p>更新日期：2026-07-09</p>
-<p>本文档描述 ChemWorld 当前环境自洽性检查方法。这里的“自洽”不是指所有物理模型都已经达到真实预测级别，而是指同一个虚拟世界内部的声明、机制、状态、动作、观测、谱图、评分、日志和回放彼此一致。</p>
-<h2 id="_1">审计目标</h2>
-<p>ChemWorld 的正式交互入口是：</p>
+<h1 id="chemworld">ChemWorld 架构快照</h1>
+<p>本文档给外部读者一个短版架构说明，只描述当前 <code>main</code> 分支已经落到代码里的结构。
+更细的设计细节见 <a href="../technical_architecture_zh/">技术架构</a>。</p>
+<h2 id="_1">当前定位</h2>
+<p>ChemWorld-Bench 是一个统一的虚拟物理化学交互环境。正式入口只有一个：</p>
 <pre><code class="language-python">import gymnasium as gym
 import chemworld
 
-env = gym.make(&quot;ChemWorld&quot;, task_id=&quot;reaction-to-purification&quot;, seed=0)
+env = gym.make(&quot;ChemWorld&quot;, task_id=&quot;reaction-to-purification&quot;, seed=1)
+obs, info = env.reset(seed=1)
 </code></pre>
-<p>环境自洽性审计要回答五个问题：</p>
-<ol>
-<li><code>TaskSpec -&gt; Scenario -&gt; Runtime -&gt; Observation -&gt; Scoring -&gt; Verify</code> 是否全链路一致。</li>
-<li>typed ledger 和 physical constitution 是否能在每一步后保持非负、守恒和可回放。</li>
-<li>HPLC、GC、UV-vis、final assay 的 raw spectra、processed estimates 和 task metrics 是否语义对齐。</li>
-<li>trajectory 中的 hash、maturity、kernel、state patch 和 world event 是否能被 replay verifier 重新计算。</li>
-<li>agent 多轮交互时看到的反馈是否稳定、可解释、可复现。</li>
-</ol>
-<h2 id="_2">当前检查工具</h2>
-<p>新增脚本：</p>
-<pre><code class="language-powershell">.\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2
-.\.venv\Scripts\python.exe scripts\audit_runtime_boundary.py --output runs\audit\runtime_boundary_report.json
-</code></pre>
-<p>默认输出：</p>
-<pre><code class="language-text">runs/audit/environment_consistency_report.json
-runs/audit/environment_consistency_report.csv
-runs/audit/trajectories/*.jsonl
-</code></pre>
-<p>每条审计记录包含：</p>
+<p><code>task_id</code> 不是切换到另一个小游戏，而是在同一个 <code>world_law_id =
+chemworld-physical-chemistry</code> 下选择不同 task slice。任务通过预算、初始场景、允许操作、
+仪器权限、评分指标和终止策略定义差异。</p>
+<h2 id="_2">源码分层</h2>
 <table>
 <thead>
 <tr>
-<th>字段</th>
-<th>含义</th>
+<th>层</th>
+<th>主要目录</th>
+<th>责任</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>task_id</code></td>
-<td>被检查的正式 benchmark task</td>
+<td>Gym 入口</td>
+<td><code>src/chemworld/envs</code></td>
+<td>提供 <code>ChemWorldEnv</code>、spaces、render、task info 和 Gym 五元组</td>
 </tr>
 <tr>
-<td><code>seed</code></td>
-<td>随机种子</td>
+<td>Runtime v2</td>
+<td><code>src/chemworld/runtime</code></td>
+<td>profile、operation kernel、domain services、transaction、mechanism compile summary</td>
 </tr>
 <tr>
-<td><code>scenario_id</code></td>
-<td>task 绑定的 scenario</td>
+<td>世界底座</td>
+<td><code>src/chemworld/foundation</code></td>
+<td>ontology、constitution、typed ledgers、unit/state helpers、public leakage audit</td>
 </tr>
 <tr>
-<td><code>task_contract_hash</code></td>
-<td>task contract hash</td>
+<td>世界描述</td>
+<td><code>src/chemworld/world</code></td>
+<td>operations、scenario、world law、instrument cards、observation/scoring contracts</td>
 </tr>
 <tr>
-<td><code>mechanism_hash</code></td>
-<td>编译后 mechanism 的 hash</td>
+<td>物理化学模块</td>
+<td><code>src/chemworld/physchem</code></td>
+<td>反应、分离、热力学、谱图、输运、电化学、成熟度和参考验证切片</td>
 </tr>
 <tr>
-<td><code>score_contract_hash</code></td>
-<td>task scoring contract hash</td>
+<td>任务合同</td>
+<td><code>src/chemworld/tasks.py</code></td>
+<td><code>TaskSpec</code>、task cards、allowed operations、seeds、maturity、contract hash</td>
 </tr>
 <tr>
-<td><code>profile_hash</code></td>
-<td>runtime profile hash</td>
+<td>Agent 接口</td>
+<td><code>src/chemworld/agent_interface.py</code>、<code>src/chemworld/wrappers.py</code></td>
+<td>task prompt、available actions、observation views、RL/LLM wrappers</td>
 </tr>
 <tr>
-<td><code>observation_contract_hash</code></td>
-<td>observation contract hash</td>
+<td>Baseline</td>
+<td><code>src/chemworld/agents</code></td>
+<td>random、LHS、BO、safe BO、scripted、LLM replay/stub</td>
 </tr>
 <tr>
-<td><code>maturity</code></td>
-<td>当前 task 的最低物理成熟度</td>
+<td>评测</td>
+<td><code>src/chemworld/eval</code></td>
+<td>metrics、suite、leaderboard、verify、baseline report、paper artifact、agent probe</td>
 </tr>
 <tr>
-<td><code>invalid_count</code></td>
-<td>precondition failure 数量</td>
+<td>数据</td>
+<td><code>src/chemworld/data</code></td>
+<td>trajectory schema、logging、submission bundle、dataset export、anonymization</td>
 </tr>
 <tr>
-<td><code>ledger_single_source_failures</code></td>
-<td>typed ledger 单一事实源审计失败数量</td>
-</tr>
-<tr>
-<td><code>public_leakage_failures</code></td>
-<td>public observation、task info、agent view 和 trajectory 泄漏审计失败数量</td>
-</tr>
-<tr>
-<td><code>verify_status</code></td>
-<td>replay verifier 是否通过</td>
-</tr>
-<tr>
-<td><code>spectra_metric_consistency</code></td>
-<td>raw spectra 与 processed metrics 的一致性状态</td>
-</tr>
-<tr>
-<td><code>warnings</code></td>
-<td>不阻断运行但需要关注的自洽性风险</td>
+<td>Schema</td>
+<td><code>src/chemworld/schemas</code></td>
+<td>action、recipe、trajectory、manifest、task、scenario、mechanism JSON schema</td>
 </tr>
 </tbody>
 </table>
-<p>脚本还会运行一个小型 agent-facing probe：在 <code>reaction-to-purification</code> 上使用固定 seeds 和多轮谱图反馈，记录 first score、best score、best-so-far AUC、invalid action 和谱图决策特征。</p>
-<p><code>audit_runtime_boundary.py</code> 专门检查 Runtime v2 源码边界：</p>
-<ul>
-<li>runtime-facing source 不得 import <code>chemworld.core</code>。</li>
-<li>legacy <code>src/chemworld/core</code> 不得重新出现运行时代码。</li>
-<li><code>ChemWorldEnv.step()</code> 不得按具体 operation 名称写 <code>if</code> / <code>match</code> 分支。</li>
-<li><code>ChemWorldEnv.step()</code> 不得直接访问 <code>runtime.domain_services</code>。</li>
-<li>valid action 必须委托给 <code>runtime.apply_transaction()</code>。</li>
-<li>invalid action 必须委托给 <code>runtime.apply_invalid_transaction()</code>。</li>
-</ul>
-<h2 id="_3">最新全量审计结果</h2>
-<p>运行命令：</p>
-<pre><code class="language-powershell">.\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2 --output-dir runs\audit
+<h2 id="step">Step 执行链路</h2>
+<p>当前 <code>ChemWorldEnv.step(action)</code> 是薄编排层：</p>
+<pre><code class="language-text">canonicalize action
+  -&gt; OperationValidator
+  -&gt; ChemWorldRuntime.apply_transaction(...)
+  -&gt; ObservationKernel.observe(...)
+  -&gt; scoring / reward / info
+  -&gt; campaign bookkeeping
+  -&gt; Gymnasium tuple
 </code></pre>
-<p>本次覆盖 14 个正式 task，共 42 条 task/seed 审计记录。</p>
-<table>
-<thead>
-<tr>
-<th>指标</th>
-<th style="text-align: right;">结果</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>row_count</code></td>
-<td style="text-align: right;">42</td>
-</tr>
-<tr>
-<td><code>covered_task_count</code></td>
-<td style="text-align: right;">14</td>
-</tr>
-<tr>
-<td><code>hash_coverage_complete</code></td>
-<td style="text-align: right;">true</td>
-</tr>
-<tr>
-<td><code>verify_failures</code></td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr>
-<td><code>spectra_failures</code></td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr>
-<td><code>spectra_warnings</code></td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr>
-<td><code>invalid_steps</code></td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr>
-<td><code>constitution_failures</code></td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr>
-<td><code>ledger_single_source_failures</code></td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr>
-<td><code>public_leakage_failures</code></td>
-<td style="text-align: right;">0</td>
-</tr>
-</tbody>
-</table>
-<p>Runtime boundary audit：</p>
-<table>
-<thead>
-<tr>
-<th>指标</th>
-<th style="text-align: right;">结果</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>passed</code></td>
-<td style="text-align: right;">true</td>
-</tr>
-<tr>
-<td><code>finding_count</code></td>
-<td style="text-align: right;">0</td>
-</tr>
-</tbody>
-</table>
-<p>覆盖的正式任务：</p>
-<ul>
-<li><code>electrochemical-conversion</code></li>
-<li><code>flow-reaction-optimization</code></li>
-<li><code>low-budget-characterization</code></li>
-<li><code>partition-discovery</code></li>
-<li><code>public-private-generalization</code></li>
-<li><code>purity-yield-tradeoff</code></li>
-<li><code>reaction-mechanism-explanation</code></li>
-<li><code>reaction-optimization-standard</code></li>
-<li><code>reaction-safety-constrained</code></li>
-<li><code>reaction-to-assay</code></li>
-<li><code>reaction-to-crystallization</code></li>
-<li><code>reaction-to-distillation</code></li>
-<li><code>reaction-to-purification</code></li>
-<li><code>tool-agent-planning</code></li>
-</ul>
-<p>每条记录均包含并通过非空检查：</p>
-<ul>
-<li><code>task_contract_hash</code></li>
-<li><code>mechanism_hash</code></li>
-<li><code>score_contract_hash</code></li>
-<li><code>profile_hash</code></li>
-<li><code>observation_contract_hash</code></li>
-</ul>
-<p>agent-facing probe 结果：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: right;">Seed</th>
-<th style="text-align: right;">First score</th>
-<th style="text-align: right;">Best score</th>
-<th style="text-align: right;">Best round</th>
-<th style="text-align: right;">Best-so-far AUC</th>
-<th style="text-align: right;">Invalid count</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">0.371</td>
-<td style="text-align: right;">0.426</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">0.416</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.282</td>
-<td style="text-align: right;">0.345</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">0.329</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">0.335</td>
-<td style="text-align: right;">0.387</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">0.378</td>
-<td style="text-align: right;">0</td>
-</tr>
-</tbody>
-</table>
-<p>当前 warning：无。</p>
-<p>本轮修复：<code>reaction-to-purification</code> 的 final assay raw HPLC 过去使用全局 reaction
-species amounts 生成谱图，因此 processed purity 较高时仍可能出现 <code>reactant_public</code> 主导峰。
-现在 downstream task 在存在 selected phase 时，会使用 selected product phase 的 public
-species calibration 生成 HPLC/GC/UV-vis/final assay raw signals。这样 processed purity、
-recovery 与 raw spectra 指向同一个被测样品。</p>
-<h2 id="_4">自洽性维度</h2>
-<h3 id="_5">结构自洽</h3>
-<p>检查 task、scenario、world law、mechanism、runtime profile 是否互相指向同一套世界规则。</p>
-<p>当前已具备：</p>
-<ul>
-<li>所有正式 task 通过 <code>gym.make("ChemWorld", task_id=...)</code> 进入同一环境。</li>
-<li><code>task_info()</code> 暴露 <code>world_law_id</code>、<code>scenario_id</code>、<code>mechanism_hash</code>、<code>runtime_profile_hash</code>、<code>scoring_contract_hash</code> 和 <code>observation_contract_hash</code>。</li>
-<li>replay verifier 会检查 mechanism、runtime profile、scoring contract 和 observation contract hash。</li>
-<li>public <code>task_info()</code> 只暴露 mechanism id/hash/count 摘要、scoring contract、public observation contract 摘要和 runtime profile；
-  完整 <code>mechanism_manifest</code>、reaction list、stoichiometric matrix、rate-law 参数和 mechanism observable mapping
-  只允许出现在 <code>debug_truth=True</code> 的 debug 字段中。</li>
-</ul>
-<p>当前风险：</p>
-<ul>
-<li><code>reaction-to-purification</code> 的 allowed operations 已收紧为反应 + downstream
-  extraction / separation / purification 操作；审计脚本仍保留
-  <code>task_policy_warning</code> 规则，以便后续任务切片再次误暴露 flow、电化学、结晶或蒸馏操作时能够立刻报警。</li>
-</ul>
-<h3 id="_6">物理自洽</h3>
-<p>检查每一步 transition 后是否满足 physical constitution。</p>
-<p>当前已具备：</p>
-<ul>
-<li>非负 amount、volume、temperature、pressure、cost、risk、sample ledger。</li>
-<li>typed phase/vessel/equipment/process ledger。</li>
-<li>material conservation、phase mass balance、vessel bounds、equipment attachment。</li>
-<li>metadata 禁止保存 primary structured state。</li>
-<li>ledger single-source audit：<code>PhaseLedger</code> 是物料状态主来源，<code>ProcessLedger</code>
-  是时间、成本、风险和样品消耗主来源；legacy <code>species_amounts</code> 与 <code>ledger</code> 只作为兼容视图，
-  必须与 typed ledgers 保持同步。</li>
-</ul>
-<p>审计标准：</p>
-<ul>
-<li>每步 <code>constitution.check_state(state)</code> 必须通过。</li>
-<li><code>audit_ledger_single_source_of_truth(state)</code> 必须无失败。</li>
-<li><code>PhaseLedger.total_amounts_mol()</code> 必须等于 compatibility <code>state.species_amounts</code>。</li>
-<li>vessel、phase、equipment、thermal ledger 的引用必须闭合。</li>
-<li>state metadata 和 phase metadata 不得保存 primary material、vessel、equipment、instrument
-  或 process state。</li>
-<li><code>constraint_flags["constitution_failed"]</code> 不应出现。</li>
-<li>非法动作只应影响 process penalty，不应破坏 material ledger。</li>
-</ul>
-<h3 id="_7">观测自洽</h3>
-<p>检查 agent 得到的 observation 是否与 instrument contract 一致。</p>
-<p>当前已具备：</p>
-<ul>
-<li>observation 包含 <code>raw_signal</code>、<code>processed_estimate</code>、<code>uncertainty</code>、<code>observed_mask</code>。</li>
-<li>failed precondition 返回非信息性 observation。</li>
-<li>HPLC、GC、UV-vis、final assay 均有 plot-ready raw signal。</li>
-</ul>
-<p>审计标准：</p>
-<ul>
-<li>raw spectra 中只能出现 public aggregate species label，例如 <code>target_public</code>、<code>reactant_public</code>、<code>impurity_public</code>。</li>
-<li>raw spectra 不得泄漏 hidden species name、rate constant、hidden theta。</li>
-<li>observed mask 中未观测字段不得被当作有效测量值。</li>
-<li><code>audit_public_payload()</code> 会扫描 reset info、step info、tool JSON、lab report、agent view 和 JSONL trajectory；
-  若出现 hidden species id、rate law、mechanism manifest、reaction list 或 compiled mechanism payload，会计入
-  <code>public_leakage_failures</code>。</li>
-</ul>
-<h3 id="_8">谱图与指标自洽</h3>
-<p>检查 raw spectra 与 processed metrics 是否方向一致。</p>
-<p>当前已具备：</p>
-<ul>
-<li>HPLC/GC peak table 包含 retention time、peak width、area、estimated concentration、assignment 和 group。</li>
-<li>UV-vis 包含 wavelength 和 absorbance。</li>
-<li>final assay 返回 HPLC、GC、UV-vis、IR、NMR 和 calibrated mass-balance packet。</li>
-</ul>
-<p>当前状态：</p>
-<ul>
-<li><code>reaction-to-purification</code> 的 final assay HPLC 已不再由全局未反应物主导。</li>
-<li>审计脚本仍保留 <code>semantic_alignment_warning</code> 规则；如果后续新增任务或仪器再次出现
-  high-purity / reactant-dominant 冲突，会继续报警。</li>
-</ul>
-<p>后续建议：</p>
-<ul>
-<li>明确 final assay processed purity 与 HPLC public peak table 的校准关系。</li>
-<li>对 crystallization、distillation、flow、electrochemistry 的专属谱图继续增加方向性测试。</li>
-</ul>
-<h3 id="_9">评测自洽</h3>
-<p>检查 online reward、final assay score、leaderboard score 和 replay verify 是否一致。</p>
-<p>当前已具备：</p>
-<ul>
-<li><code>leaderboard_score</code> 只在合法 final assay 后出现。</li>
-<li><code>verify_records()</code> 会重放 action sequence 并比较 observation、reward、terminated/truncated、kernel metadata、state patch summary 和 constitution checks。</li>
-<li>tampered mechanism hash、contract hash、runtime metadata 和 state patch 会被测试覆盖。</li>
-</ul>
-<p>审计标准：</p>
-<ul>
-<li>final assay 后 <code>info["leaderboard_score"]</code> 必须等于 scoring contract 对当前 observation 的重新计算结果。</li>
-<li>审计脚本生成的每条 JSONL trajectory 必须通过 <code>verify_records()</code>。</li>
-</ul>
-<h3 id="_10">文档自洽</h3>
-<p>检查中文文档、课程材料和项目叙事是否没有乱码、没有过度宣称、没有与 maturity metadata 冲突。</p>
-<p>当前约束：</p>
-<ul>
-<li>proxy kernel 必须明确标记为 proxy。</li>
-<li>task maturity 必须进入 task info、trajectory、baseline report 和 docs。</li>
-<li>中文文档必须 UTF-8 可读，不应出现常见 mojibake 标记，例如 U+951B、U+9359 或替换字符 U+FFFD。</li>
-</ul>
-<h2 id="_11">验收命令</h2>
-<pre><code class="language-powershell">.\.venv\Scripts\python.exe scripts\audit_runtime_boundary.py --output runs\audit\runtime_boundary_report.json
-.\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2
-.\.venv\Scripts\python.exe -m pytest tests\test_environment_self_consistency.py
-.\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\python.exe -m mkdocs build --strict
+<p>核心状态改变不在 Gym 层完成，而由 Runtime v2 处理。</p>
+<h2 id="runtime-v2">Runtime v2</h2>
+<p>Runtime v2 的当前中心是 <code>ChemWorldRuntime</code>：</p>
+<pre><code class="language-text">ChemWorldRuntime
+  ├── TaskRuntimeProfile
+  ├── OperationKernelRegistry
+  ├── DomainServiceRegistry
+  ├── ChemWorldDomainServices
+  ├── TransactionManager
+  └── RuntimeContext
 </code></pre>
-<h2 id="_12">当前判断</h2>
-<p>ChemWorld 当前已经具备较强的结构自洽和 replay 自洽基础。主要短板不在“能不能执行”，而在更高层的语义一致性：</p>
+<p>关键规则：</p>
 <ul>
-<li>task slice 权限需要持续由测试锁住，避免后续新增操作时再次误导 agent；</li>
-<li>raw spectra 与 processed metrics 需要更明确的校准关系；</li>
-<li>多轮 agent probe 应进入正式 benchmark protocol，而不只是临时实验；</li>
-<li>proxy/lite/reference-validated 的边界要继续在 docs、trajectory 和 leaderboard 中保持显式。</li>
+<li>task 只要求当前 profile 需要的 kernel/service，不要求全局所有操作都可用；</li>
+<li>operation kernel 负责 command dispatch，不承载大段物理模型；</li>
+<li>物理语义由 domain services 执行；</li>
+<li>transaction 返回 <code>WorldEvent</code>、<code>StatePatch</code>、<code>affected_ledgers</code>、<code>cost_delta</code>、<code>risk_delta</code>；</li>
+<li>constitution failure 通过 transaction rollback 记录，不静默修改物料账本；</li>
+<li><code>info</code> 中暴露 <code>kernel_id</code>、<code>kernel_version</code>、<code>transaction_status</code> 和 patch/event 摘要。</li>
 </ul>
-<p>这套审计的目标不是让所有 warning 立刻消失，而是让 ChemWorld 的每个层次都能被重复检查、被记录、被解释。</p>
+<h2 id="_3">机制与场景</h2>
+<p>机制不在每一步 runtime 中读取。场景初始化时会编译为 <code>CompiledMechanism</code>，并记录：</p>
+<ul>
+<li><code>mechanism_id</code>;</li>
+<li><code>mechanism_hash</code>;</li>
+<li>species index;</li>
+<li>stoichiometric matrix;</li>
+<li>rate-law equation ids;</li>
+<li>reaction enthalpies;</li>
+<li>observable mapping;</li>
+<li>score spec;</li>
+<li>initial amount policy.</li>
+</ul>
+<p>公开 agent-facing view 只暴露 hash、计数、contract 和 maturity，不暴露 hidden species identity、
+rate constants、stoichiometry 或 private scenario seed。</p>
+<h2 id="typed-ledgers">Typed Ledgers</h2>
+<p><code>WorldState</code> 由强类型账本组织：</p>
+<table>
+<thead>
+<tr>
+<th>Ledger</th>
+<th>主职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SpeciesLedger</code></td>
+<td>物种定义、公开角色、式量和标签</td>
+</tr>
+<tr>
+<td><code>PhaseLedger</code></td>
+<td>每个相中的物种量、体积、相类型、容器归属</td>
+</tr>
+<tr>
+<td><code>VesselLedger</code></td>
+<td>容器容量、相引用、温度、压力</td>
+</tr>
+<tr>
+<td><code>EquipmentLedger</code></td>
+<td>柱、流动反应器、电化学池、结晶器等设备状态</td>
+</tr>
+<tr>
+<td><code>ThermalLedger</code></td>
+<td>per-vessel heat input、reaction heat、heat loss</td>
+</tr>
+<tr>
+<td><code>ProcessLedger</code></td>
+<td>elapsed time、cost、risk、sample consumption、process metrics</td>
+</tr>
+</tbody>
+</table>
+<p>物料状态以 phase ledger 为主来源；全局物种量是聚合视图。审计会检查 phase/vessel/equipment
+交叉引用、非负性、process ledger 和 metadata 泄漏。</p>
+<h2 id="agent-facing-api">Agent-facing API</h2>
+<p>环境直接暴露一组稳定 agent 接口：</p>
+<pre><code class="language-python">env.task_prompt()
+env.available_actions()
+env.action_schema(&quot;heat&quot;)
+env.validate_action(action)
+env.observation_view(&quot;rl&quot;)
+env.observation_view(&quot;tool_json&quot;)
+env.observation_view(&quot;lab_report&quot;)
+env.campaign_state()
+</code></pre>
+<p>这些接口只聚合公开 task、validator、observation 和 campaign bookkeeping，不读取 hidden truth。
+RL 使用 finite vector/mask/cost view；LLM 和学生使用 tool-json/lab-report view。</p>
+<h2 id="_4">评测与数据</h2>
+<p>当前预发布评测链路包含：</p>
+<ul>
+<li>official seed suite；</li>
+<li>baseline report；</li>
+<li>submission bundle；</li>
+<li>replay verifier；</li>
+<li>paper artifact skeleton；</li>
+<li>dataset export；</li>
+<li>environment self-consistency audit；</li>
+<li>multi-round tool-agent probe。</li>
+</ul>
+<p>每条轨迹应携带 task/scenario/mechanism/scoring/profile hash、operation metadata、transaction
+status、constraint flags、agent metadata 和 maturity metadata。</p>
+<h2 id="_5">当前限制</h2>
+<ul>
+<li>平台是虚拟半机理 benchmark，不是现实反应预测软件。</li>
+<li>多数高等物理化学模块仍处于 proxy、lite 或 professional-candidate 阶段，需要 P3 深化。</li>
+<li>预发布核心任务目前冻结为 <code>reaction-to-assay</code>、<code>reaction-to-purification</code>、
+  <code>partition-discovery</code>；其余任务已经注册但不等同于第一版正式榜单任务。</li>
+<li>private eval 仍采用维护者本机 hidden salt / seed 方案，尚未升级为 server-side signed evaluator。</li>
+<li>文档和教程正在 P4 阶段收束，长期专业模型深化暂缓。</li>
+</ul>
 
 
 
