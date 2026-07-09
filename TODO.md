@@ -12,17 +12,17 @@ archives only.
 
 | Scope | Total | Done | Active | Claimed | Open | Remaining |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| P0 Pre-release benchmark hardening | 12 | 3 | 0 | 0 | 9 | 9 |
+| P0 Pre-release benchmark hardening | 12 | 4 | 0 | 0 | 8 | 8 |
 | P1 Runtime and environment consistency | 8 | 3 | 0 | 0 | 5 | 5 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 6 | 0 | 3 | 49 | 52 |
+| Total | 58 | 7 | 0 | 3 | 48 | 51 |
 
 Immediate release target:
 
-- Finish P0 and P1 first: 14 remaining items.
-- Finish P0, P1, P2, and P4 for a usable public pre-release package: 25
+- Finish P0 and P1 first: 13 remaining items.
+- Finish P0, P1, P2, and P4 for a usable public pre-release package: 24
   remaining items.
 - P3 is the long professional-physics backlog: 27 remaining items. Pull from it
   only when it directly strengthens a benchmark task or replaces a declared
@@ -51,9 +51,9 @@ examples, and clear limitations.
 
 Current unfinished work:
 
-- 52 total remaining items.
-- 14 immediate P0/P1 benchmark-trust items.
-- 25 public pre-release items across P0/P1/P2/P4.
+- 51 total remaining items.
+- 13 immediate P0/P1 benchmark-trust items.
+- 24 public pre-release items across P0/P1/P2/P4.
 - 27 long-horizon P3 professional-physics deepening items.
 
 Interpretation:
@@ -107,7 +107,7 @@ Frozen core tasks:
 | P0-BENCH-05 |  | Open | Lock golden trajectories | Scripted trajectories for the three core tasks compare observations, reward/info, transaction metadata, and final metrics |
 | P0-BENCH-06 |  | Open | Audit scoring contracts | `obs["score"]`, final assay metrics, `leaderboard_score`, and task score contract recomputation agree |
 | P0-BENCH-07 |  | Open | Harden replay verifier | Verify catches tampered mechanism hash, scoring hash, profile hash, reward, observation, and transaction summary |
-| P0-BENCH-08 |  | Open | Build one valid submission bundle example | `manifest.json`, trajectories, results, explanations, dependency notes, and reproducible command all validate |
+| P0-BENCH-08 | Codex | Done | Build one valid submission bundle example | `chemworld submission example` and `examples/demo_submission_bundle.py` generate a bundle with `manifest.json`, trajectories, results, explanations, dependency notes, README, reproducible command, validation, summary, and replay verification |
 | P0-BENCH-09 |  | Open | Build local teacher/student evaluation smoke | Teacher-side validate -> verify -> evaluate -> summarize works on one simulated student sandbox |
 | P0-BENCH-10 |  | Open | Produce benchmark paper artifact skeleton | Includes task contracts, baseline report, dataset card, replay manifest, and release checklist |
 | P0-BENCH-11 |  | Open | Add CI-like local release command | One documented command runs lint, type check, tests, docs build, audit script, and baseline smoke |
@@ -196,11 +196,11 @@ behavior.
 
 Do these next, in order:
 
-1. `P0-BENCH-08`: publish a valid submission bundle example.
-2. `P0-BENCH-02`: build the official seed suite.
-3. `P1-CONSIST-04`: audit invalid action atomicity.
-4. `P0-BENCH-05`: lock golden trajectories.
-5. `P0-BENCH-06`: audit scoring contracts.
+1. `P0-BENCH-02`: build the official seed suite.
+2. `P1-CONSIST-04`: audit invalid action atomicity.
+3. `P0-BENCH-05`: lock golden trajectories.
+4. `P0-BENCH-06`: audit scoring contracts.
+5. `P0-BENCH-07`: harden replay verifier.
 
 This sequence reduces the highest public benchmark risk first: baseline
 credibility, agent-facing action clarity, submission reproducibility, seed

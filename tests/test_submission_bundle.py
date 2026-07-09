@@ -5,6 +5,7 @@ import json
 from chemworld.cli import main
 from chemworld.data.logging import load_jsonl
 from chemworld.data.submission import (
+    build_example_submission_bundle,
     init_submission_bundle,
     summarize_submission_bundle,
     validate_submission_bundle,
@@ -81,6 +82,11 @@ def test_cli_submission_commands(tmp_path, capsys) -> None:
             "baseline",
             "--task-id",
             "reaction-to-assay",
+            "--command-text",
+            "chemworld",
+            "submission",
+            "example",
+            "bundle",
         ]
     )
     _write_bundle_run(bundle, seed=0)
@@ -89,3 +95,44 @@ def test_cli_submission_commands(tmp_path, capsys) -> None:
     output = capsys.readouterr().out
     assert "chemworld-submission-bundle-0.1" in output
     assert '"valid": true' in output
+
+
+def test_build_example_submission_bundle(tmp_path) -> None:
+    bundle = tmp_path / "example_bundle"
+    result = build_example_submission_bundle(
+        bundle,
+        task_id="reaction-to-assay",
+        agent_name="tool_using_llm_stub",
+        seeds=[0],
+    )
+
+    assert result["validation"]["valid"]
+    assert result["summary"]["valid"]
+    assert result["verification"][0]["verified"]
+    assert (bundle / "manifest.json").exists()
+    assert (bundle / "README.md").exists()
+    assert (bundle / "dependency_notes.md").exists()
+    assert list((bundle / "trajectories").glob("*.jsonl"))
+    assert list((bundle / "results").glob("*.json"))
+    assert list((bundle / "explanations").glob("*.json"))
+
+
+def test_cli_submission_example_command(tmp_path, capsys) -> None:
+    bundle = tmp_path / "cli_example_bundle"
+    main(
+        [
+            "submission",
+            "example",
+            str(bundle),
+            "--task-id",
+            "reaction-to-assay",
+            "--agent",
+            "tool_using_llm_stub",
+            "--seeds",
+            "0",
+        ]
+    )
+
+    output = capsys.readouterr().out
+    assert '"valid": true' in output
+    assert (bundle / "dependency_notes.md").exists()

@@ -22,12 +22,12 @@ obs, info = env.reset(seed=1)
 recipe = [
     {"operation": "add_solvent", "volume_L": 0.03, "solvent": 1},
     {"operation": "add_reagent", "amount_mol": 0.012},
-    {"operation": "add_catalyst", "catalyst": 2, "amount_mol": 0.0004},
+    {"operation": "add_catalyst", "catalyst": 2, "catalyst_amount_mol": 0.0004},
     {
         "operation": "heat",
-        "temperature_K": 350.0,
+        "target_temperature_K": 350.0,
         "duration_s": 1200.0,
-        "stirring_rpm": 800.0,
+        "stirring_speed_rpm": 800.0,
     },
     {"operation": "quench"},
     {"operation": "terminate"},
@@ -60,6 +60,7 @@ env.unwrapped.campaign_state()
 python examples/demo_agent_facing_api.py
 python examples/demo_llm_replay_harness.py
 python examples/demo_rl_vector_wrapper.py
+python examples/demo_submission_bundle.py
 ```
 
 ## Baseline 对比
@@ -93,6 +94,22 @@ chemworld score --run artifacts/runs/example.jsonl
 
 本地评测机接收 agent、任务和 seeds，输出 trajectory、score 和 report。见
 [本地评测机](local_eval_machine.md)。
+
+## 提交包示例
+
+构建一个完整、可验证、可回放的 submission bundle：
+
+```bash
+chemworld submission example runs/example_submission \
+  --task-id reaction-to-purification \
+  --agent tool_using_llm_stub \
+  --seeds 0
+chemworld submission validate runs/example_submission
+chemworld submission summarize runs/example_submission
+```
+
+该示例会生成 manifest、trajectory、results、explanations、dependency notes 和 README。
+详情见 [提交包](submission.md)。
 
 ## Notebook 走读
 

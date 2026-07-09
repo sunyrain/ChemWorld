@@ -17,6 +17,7 @@ from chemworld import ENV_ID
 from chemworld.data.datasets import dataset_card, export_dataset
 from chemworld.data.logging import load_jsonl
 from chemworld.data.submission import (
+    build_example_submission_bundle,
     init_submission_bundle,
     summarize_submission_bundle,
     validate_submission_bundle,
@@ -384,6 +385,20 @@ def _submission_summarize(args: argparse.Namespace) -> None:
     print(json.dumps(summarize_submission_bundle(args.path), indent=2, sort_keys=True))
 
 
+def _submission_example(args: argparse.Namespace) -> None:
+    result = build_example_submission_bundle(
+        args.path,
+        task_id=args.task_id,
+        agent_name=args.agent,
+        seeds=args.seeds,
+    )
+    print(json.dumps(result, indent=2, sort_keys=True))
+    if not result["validation"]["valid"]:
+        raise SystemExit(1)
+    if not all(item["verified"] for item in result["verification"]):
+        raise SystemExit(1)
+
+
 def _inspect_constitution(args: argparse.Namespace) -> None:
     kwargs: dict[str, Any] = {
         "world_split": args.world_split,
@@ -603,7 +618,7 @@ def build_parser() -> argparse.ArgumentParser:
     submission_init_parser.add_argument("--task-id", default="reaction-optimization-standard")
     submission_init_parser.add_argument("--seeds", nargs="+", type=int, default=[0])
     submission_init_parser.add_argument("--command-text", nargs="*", default=[])
-    submission_init_parser.add_argument("--dependency-file", default="pyproject.toml")
+    submission_init_parser.add_argument("--dependency-file", default="dependency_notes.md")
     submission_init_parser.set_defaults(func=_submission_init)
     submission_validate_parser = submission_subparsers.add_parser(
         "validate",
@@ -617,6 +632,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     submission_summarize_parser.add_argument("path")
     submission_summarize_parser.set_defaults(func=_submission_summarize)
+    submission_example_parser = submission_subparsers.add_parser(
+        "example",
+        help="Build a complete valid submission bundle example.",
+    )
+    submission_example_parser.add_argument("path")
+    submission_example_parser.add_argument("--task-id", default="reaction-to-purification")
+    submission_example_parser.add_argument("--agent", default="tool_using_llm_stub")
+    submission_example_parser.add_argument("--seeds", nargs="+", type=int)
+    submission_example_parser.set_defaults(func=_submission_example)
 
     constitution_parser = subparsers.add_parser(
         "inspect-constitution",
