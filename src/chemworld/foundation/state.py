@@ -6,325 +6,30 @@ from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from typing import Any
 
-
-@dataclass(frozen=True)
-class SpeciesLedger:
-    """Species definitions, roles, and initial amounts.
-
-    Phase ledgers are the primary material-state source; global species totals
-    are derived from phase contents.
-    """
-
-    species_roles: dict[str, tuple[str, ...]] = field(default_factory=dict)
-    initial_amounts_mol: dict[str, float] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "species_roles", deepcopy(self.species_roles))
-        object.__setattr__(self, "initial_amounts_mol", deepcopy(self.initial_amounts_mol))
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "species_roles": {
-                species_id: list(roles) for species_id, roles in self.species_roles.items()
-            },
-            "initial_amounts_mol": deepcopy(self.initial_amounts_mol),
-        }
-
-
-@dataclass(frozen=True)
-class PhaseRecord:
-    phase_id: str
-    vessel_id: str
-    phase_type: str
-    volume_L: float
-    species_amounts_mol: dict[str, float]
-    settled: bool = False
-    selected: bool = False
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "species_amounts_mol", deepcopy(self.species_amounts_mol))
-        object.__setattr__(self, "metadata", deepcopy(self.metadata))
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "phase_id": self.phase_id,
-            "vessel_id": self.vessel_id,
-            "phase_type": self.phase_type,
-            "volume_L": self.volume_L,
-            "species_amounts_mol": deepcopy(self.species_amounts_mol),
-            "settled": self.settled,
-            "selected": self.selected,
-            "metadata": deepcopy(self.metadata),
-        }
-
-
-@dataclass(frozen=True)
-class PhaseLedger:
-    phases: dict[str, PhaseRecord] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "phases", deepcopy(self.phases))
-
-    def total_amounts_mol(self) -> dict[str, float]:
-        totals: dict[str, float] = {}
-        for phase in self.phases.values():
-            for species_id, amount in phase.species_amounts_mol.items():
-                totals[species_id] = totals.get(species_id, 0.0) + float(amount)
-        return totals
-
-    def to_dict(self) -> dict[str, Any]:
-        return {phase_id: phase.to_dict() for phase_id, phase in self.phases.items()}
-
-
-def has_phase_system(phases: PhaseLedger | None) -> bool:
-    """Return whether a state has an explicit downstream phase system."""
-
-    if phases is None:
-        return False
-    return any(phase_id != "reactor_liquid" for phase_id in phases.phases)
-
-
-def phases_are_settled(phases: PhaseLedger | None) -> bool:
-    """Return whether all non-reactor phases are marked settled."""
-
-    if not has_phase_system(phases) or phases is None:
-        return False
-    downstream_phases = [
-        phase for phase_id, phase in phases.phases.items() if phase_id != "reactor_liquid"
-    ]
-    return bool(downstream_phases) and all(phase.settled for phase in downstream_phases)
-
-
-def selected_phase_id(phases: PhaseLedger | None) -> str | None:
-    """Return the selected phase id, if one is marked in the typed ledger."""
-
-    if phases is None:
-        return None
-    for phase_id, phase in phases.phases.items():
-        if phase.selected:
-            return phase_id
-    return None
-
-
-def scale_phase_ledger(
-    phases: PhaseLedger | None,
-    *,
-    amount_factor: float,
-    volume_factor: float | None = None,
-) -> PhaseLedger | None:
-    """Return a phase ledger scaled by destructive sampling or volume removal."""
-
-    if phases is None:
-        return None
-    volume_factor = amount_factor if volume_factor is None else volume_factor
-    return PhaseLedger(
-        {
-            phase_id: PhaseRecord(
-                phase_id=phase.phase_id,
-                vessel_id=phase.vessel_id,
-                phase_type=phase.phase_type,
-                volume_L=phase.volume_L * volume_factor,
-                species_amounts_mol={
-                    species_id: amount * amount_factor
-                    for species_id, amount in phase.species_amounts_mol.items()
-                },
-                settled=phase.settled,
-                selected=phase.selected,
-                metadata=phase.metadata,
-            )
-            for phase_id, phase in phases.phases.items()
-        }
-    )
-
-
-@dataclass(frozen=True)
-class VesselRecord:
-    vessel_id: str
-    vessel_type: str
-    max_volume_L: float
-    max_temperature_K: float
-    max_pressure_Pa: float
-    phase_ids: tuple[str, ...] = ()
-    temperature_K: float = 298.15
-    pressure_Pa: float = 101_325.0
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "vessel_id": self.vessel_id,
-            "vessel_type": self.vessel_type,
-            "max_volume_L": self.max_volume_L,
-            "max_temperature_K": self.max_temperature_K,
-            "max_pressure_Pa": self.max_pressure_Pa,
-            "phase_ids": list(self.phase_ids),
-            "temperature_K": self.temperature_K,
-            "pressure_Pa": self.pressure_Pa,
-        }
-
-
-@dataclass(frozen=True)
-class VesselLedger:
-    vessels: dict[str, VesselRecord] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "vessels", deepcopy(self.vessels))
-
-    def to_dict(self) -> dict[str, Any]:
-        return {vessel_id: vessel.to_dict() for vessel_id, vessel in self.vessels.items()}
-
-
-@dataclass(frozen=True)
-class EquipmentRecord:
-    equipment_id: str
-    equipment_type: str
-    attached_vessel_id: str
-    status: str = "idle"
-    settings: dict[str, Any] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "settings", deepcopy(self.settings))
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "equipment_id": self.equipment_id,
-            "equipment_type": self.equipment_type,
-            "attached_vessel_id": self.attached_vessel_id,
-            "status": self.status,
-            "settings": deepcopy(self.settings),
-        }
-
-
-@dataclass(frozen=True)
-class EquipmentLedger:
-    equipment: dict[str, EquipmentRecord] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "equipment", deepcopy(self.equipment))
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            equipment_id: equipment.to_dict()
-            for equipment_id, equipment in self.equipment.items()
-        }
-
-
-def equipment_settings(
-    equipment: EquipmentLedger | None,
-    equipment_id: str,
-) -> dict[str, Any]:
-    """Return a defensive copy of a typed equipment record's settings."""
-
-    if equipment is None or equipment_id not in equipment.equipment:
-        return {}
-    return deepcopy(equipment.equipment[equipment_id].settings)
-
-
-def equipment_status(
-    equipment: EquipmentLedger | None,
-    equipment_id: str,
-) -> str | None:
-    """Return a typed equipment record status, if present."""
-
-    if equipment is None or equipment_id not in equipment.equipment:
-        return None
-    return equipment.equipment[equipment_id].status
-
-
-def instrument_equipment_id(instrument_id: str) -> str:
-    """Return the canonical typed-equipment id for an instrument."""
-
-    return f"instrument:{instrument_id}"
-
-
-def instrument_completed(
-    equipment: EquipmentLedger | None,
-    instrument_id: str,
-) -> bool:
-    """Return whether an instrument record is marked completed."""
-
-    return equipment_status(equipment, instrument_equipment_id(instrument_id)) == "completed"
-
-
-def upsert_equipment_record(
-    equipment: EquipmentLedger | None,
-    *,
-    equipment_id: str,
-    equipment_type: str,
-    attached_vessel_id: str,
-    status: str = "configured",
-    settings: dict[str, Any] | None = None,
-) -> EquipmentLedger:
-    """Insert or update a typed equipment record with merged settings."""
-
-    records = {} if equipment is None else equipment.equipment.copy()
-    previous = records.get(equipment_id)
-    merged_settings = {} if previous is None else previous.settings.copy()
-    if settings:
-        merged_settings.update(deepcopy(settings))
-    records[equipment_id] = EquipmentRecord(
-        equipment_id=equipment_id,
-        equipment_type=equipment_type,
-        attached_vessel_id=attached_vessel_id,
-        status=status,
-        settings=merged_settings,
-    )
-    return EquipmentLedger(records)
-
-
-@dataclass(frozen=True)
-class VesselThermalRecord:
-    vessel_id: str
-    energy_jacket_J: float = 0.0
-    heat_reaction_J: float = 0.0
-    heat_loss_J: float = 0.0
-
-    def to_dict(self) -> dict[str, float | str]:
-        return self.__dict__.copy()
-
-
-@dataclass(frozen=True)
-class ThermalLedger:
-    vessels: dict[str, VesselThermalRecord] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "vessels", deepcopy(self.vessels))
-
-    def to_dict(self) -> dict[str, Any]:
-        return {vessel_id: record.to_dict() for vessel_id, record in self.vessels.items()}
-
-
-@dataclass(frozen=True)
-class ProcessLedger:
-    time_s: float = 0.0
-    cost: float = 0.0
-    risk: float = 0.0
-    sample_consumed_L: float = 0.0
-    waste_L: float = 0.0
-    metrics: dict[str, float] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "metrics",
-            {str(key): float(value) for key, value in self.metrics.items()},
-        )
-
-    def to_dict(self) -> dict[str, Any]:
-        payload = self.__dict__.copy()
-        payload["metrics"] = deepcopy(self.metrics)
-        return payload
-
-
-def process_with_metrics(
-    process: ProcessLedger | None,
-    **metrics: float,
-) -> ProcessLedger:
-    """Return a process ledger with merged derived process metrics."""
-
-    process = process or ProcessLedger()
-    merged = process.metrics.copy()
-    merged.update({str(key): float(value) for key, value in metrics.items()})
-    return replace(process, metrics=merged)
+from chemworld.foundation.state_helpers import (
+    equipment_settings,
+    equipment_status,
+    has_phase_system,
+    instrument_completed,
+    instrument_equipment_id,
+    phases_are_settled,
+    scale_phase_ledger,
+    selected_phase_id,
+    upsert_equipment_record,
+)
+from chemworld.foundation.state_ledgers import (
+    EquipmentLedger,
+    EquipmentRecord,
+    PhaseLedger,
+    PhaseRecord,
+    ProcessLedger,
+    SpeciesLedger,
+    ThermalLedger,
+    VesselLedger,
+    VesselRecord,
+    VesselThermalRecord,
+    process_with_metrics,
+)
 
 
 @dataclass(frozen=True)
@@ -520,3 +225,31 @@ class OperationRecord:
             "measurement_cost": self.measurement_cost,
             "sample_consumed": self.sample_consumed_L,
         }
+
+
+__all__ = [
+    "EquipmentLedger",
+    "EquipmentRecord",
+    "Ledger",
+    "Observation",
+    "OperationRecord",
+    "PhaseLedger",
+    "PhaseRecord",
+    "ProcessLedger",
+    "SpeciesLedger",
+    "ThermalLedger",
+    "VesselLedger",
+    "VesselRecord",
+    "VesselThermalRecord",
+    "WorldState",
+    "equipment_settings",
+    "equipment_status",
+    "has_phase_system",
+    "instrument_completed",
+    "instrument_equipment_id",
+    "phases_are_settled",
+    "process_with_metrics",
+    "scale_phase_ledger",
+    "selected_phase_id",
+    "upsert_equipment_record",
+]

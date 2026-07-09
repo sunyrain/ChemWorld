@@ -188,6 +188,14 @@ cross-cutting material/yield/observation checks, while
 `foundation/constitution_state_checks.py` owns state invariant checks, and
 `foundation/constitution_preconditions.py` owns operation precondition tables.
 
+Current cleanup also split the foundation state boundary. `foundation/state.py`
+now keeps `Ledger`, `WorldState`, `Observation`, and `OperationRecord` plus
+public re-exports, while `foundation/state_ledgers.py` owns typed species,
+phase, vessel, equipment, thermal, and process ledger records, and
+`foundation/state_helpers.py` owns typed-ledger helper functions such as phase
+selection, destructive phase scaling, equipment settings, instrument status,
+and equipment upserts.
+
 The architecture test suite now also enforces the active Runtime v2 boundary:
 `src/chemworld/envs` and `src/chemworld/runtime` must not import the removed
 `chemworld.core.batch_reactor` runtime, and `ChemWorldEnv.step()` must delegate

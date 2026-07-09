@@ -12,6 +12,9 @@ physical-chemical world law rather than separate environments.
   reactions, and state variables;
 - lightweight canonical units and conversions;
 - hidden `WorldState`, public `Observation`, and experiment `Ledger`;
+- `foundation/state_ledgers.py` and `foundation/state_helpers.py`, which keep
+  typed species, phase, vessel, equipment, thermal, and process ledger records
+  plus ledger helper functions outside the `WorldState` facade;
 - executable `PhysicalConstitution` checks for non-negativity, units, material
   conservation, observation non-omniscience, measurement cost, preconditions,
   vessel bounds, and risk;

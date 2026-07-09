@@ -379,6 +379,31 @@ def test_foundation_constitution_reports_state_checks_and_preconditions_are_sepa
     assert "def check_operation_preconditions" in preconditions_source
 
 
+def test_foundation_state_ledgers_and_helpers_are_separate_from_state_facade() -> None:
+    state_source = Path("src/chemworld/foundation/state.py").read_text(
+        encoding="utf-8"
+    )
+    ledgers_source = Path("src/chemworld/foundation/state_ledgers.py").read_text(
+        encoding="utf-8"
+    )
+    helpers_source = Path("src/chemworld/foundation/state_helpers.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "class SpeciesLedger" not in state_source
+    assert "class PhaseLedger" not in state_source
+    assert "class EquipmentLedger" not in state_source
+    assert "def equipment_settings" not in state_source
+    assert "def scale_phase_ledger" not in state_source
+    assert "class WorldState" in state_source
+    assert "class SpeciesLedger" in ledgers_source
+    assert "class PhaseLedger" in ledgers_source
+    assert "class EquipmentLedger" in ledgers_source
+    assert "def process_with_metrics" in ledgers_source
+    assert "def equipment_settings" in helpers_source
+    assert "def scale_phase_ledger" in helpers_source
+
+
 def test_runtime_electrochemical_service_is_separate_from_domain_services() -> None:
     domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
         encoding="utf-8"
