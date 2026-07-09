@@ -254,7 +254,11 @@ def test_env_task_info_exposes_task_observation_contract() -> None:
             "process_mass_balance_error"
             in purification_contract["instrument_observable_keys"]["final_assay"]
         )
-        assert "target" in purification_contract["mechanism_observable_mapping"]
+        assert "mechanism_observable_mapping" not in purification_contract
+        assert (
+            purification_contract["mapping_visibility_policy"]
+            == "hidden mechanism-to-species mapping is not public"
+        )
         assert reaction_contract["contract_hash"] == reaction_info["observation_contract_hash"]
         assert (
             purification_contract["contract_hash"]

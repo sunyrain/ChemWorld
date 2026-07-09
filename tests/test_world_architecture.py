@@ -941,8 +941,10 @@ def test_env_runtime_v2_info_contains_kernel_transaction_and_mechanism() -> None
 
         assert reset_info["mechanism_id"] == "simple_batch_reaction"
         assert reset_info["mechanism_hash"]
-        assert reset_info["mechanism_manifest"]["mechanism_id"] == "simple_batch_reaction"
-        assert reset_info["mechanism_manifest"]["validation_report"]["passed"]
+        assert reset_info["mechanism_summary"]["mechanism_id"] == "simple_batch_reaction"
+        assert reset_info["mechanism_summary"]["validation_passed"]
+        assert "mechanism_manifest" not in reset_info
+        assert "reactions" not in reset_info
         assert step_info["kernel_id"] == "chemworld.operation.add_solvent"
         assert step_info["transaction_status"] == "committed"
         assert step_info["rollback_reason"] is None
@@ -954,6 +956,8 @@ def test_env_runtime_v2_info_contains_kernel_transaction_and_mechanism() -> None
         runtime = env.unwrapped.task_info()["runtime"]
         assert "instrument_cost" in runtime["profile"]["required_domain_services"]
         assert "phase_separation" not in runtime["profile"]["required_domain_services"]
+        assert runtime["mechanism_summary"]["mechanism_id"] == "simple_batch_reaction"
+        assert "compiled_mechanism" not in runtime
         assert runtime["domain_services"]["operation_service_map"]["heat"] == (
             "reaction_thermal"
         )
@@ -2293,8 +2297,10 @@ def test_scenario_generator_uses_initial_state_seed_and_profile() -> None:
     env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
     try:
         _, info = env.reset(seed=0)
-        assert info["scenario"]["initial_state_seed"] == 7
-        assert info["scenario"]["parameter_profile"] == "downstream_processing"
+        assert "initial_state_seed" not in info["scenario"]
+        assert "parameter_profile" not in info["scenario"]
+        assert env.unwrapped.scenario_spec.initial_state_seed == 7
+        assert env.unwrapped.scenario_spec.parameter_profile == "downstream_processing"
         assert env.unwrapped._state.metadata["scenario_id"] == "reaction-to-purification"
         assert "initial_condition_jitter" in env.unwrapped._state.metadata
     finally:

@@ -67,6 +67,7 @@ def test_audit_smoke_generates_replay_verified_trajectory(tmp_path: Path) -> Non
     assert row["invalid_count"] == 0
     assert row["constitution_failure_count"] == 0
     assert row["state_check_failures"] == 0
+    assert row["public_leakage_failures"] == 0
     assert row["score_recompute_max_error"] <= 1.0e-6
     assert Path(row["trajectory_path"]).exists()
     assert row["mechanism_hash"]

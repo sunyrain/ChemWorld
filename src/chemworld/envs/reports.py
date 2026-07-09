@@ -22,14 +22,13 @@ from chemworld.world.world_law import world_law_spec
 
 
 def build_task_info(env: Any) -> dict[str, Any]:
-    scenario_card = env.scenario_instance.to_card()
     compiled_mechanism = env.scenario_instance.compiled_mechanism
-    return {
+    payload = {
         "env_id": "ChemWorld",
         "task_id": env.task_id,
         "world_law_id": env.world.family_version,
         "scenario_id": env.scenario_spec.scenario_id,
-        "scenario": scenario_card,
+        "scenario": build_public_scenario_summary(env),
         "initial_state_id": env.scenario_spec.initial_state_id,
         "world_split": env.world_split,
         "world_provider": env.world.provider,
@@ -46,14 +45,14 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "mechanism_id": compiled_mechanism.mechanism_id,
         "mechanism_hash": compiled_mechanism.mechanism_hash,
         "mechanism_version": compiled_mechanism.mechanism_version,
-        "mechanism_manifest": compiled_mechanism.manifest.to_dict(),
+        "mechanism_summary": build_public_mechanism_summary(compiled_mechanism),
         "scoring_contract": env.scoring_contract.to_dict(),
         "scoring_contract_hash": env.scoring_contract.contract_hash,
-        "observation_contract": env.observation_contract.to_dict(),
+        "observation_contract": build_public_observation_contract_summary(env),
         "observation_contract_hash": env.observation_contract.contract_hash,
         "env_version": __version__,
         "world_family_version": env.world.family_version,
-        "runtime": env.runtime.to_dict(),
+        "runtime": env.runtime.to_dict(include_debug_truth=env.debug_truth),
         "operation_types": list(OPERATION_TYPES),
         "allowed_operations": sorted(env.allowed_operations),
         "allowed_instruments": sorted(env.allowed_instruments),
@@ -63,9 +62,6 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "instruments": {
             key: contract.to_dict() for key, contract in instrument_contracts().items()
         },
-        "reactions": [
-            reaction.to_dict() for reaction in compiled_mechanism.network.reactions
-        ],
         "operations": [operation.to_dict() for operation in chemworld_operations()],
         "operation_contracts": {
             key: contract.to_dict() for key, contract in operation_contracts().items()
@@ -77,6 +73,72 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "world_law": world_law_spec().to_dict(),
         "backend": semi_mechanistic_backend_spec().to_dict(),
         "observation_keys": list(OBSERVATION_KEYS),
+    }
+    if env.debug_truth:
+        payload["debug_mechanism"] = {
+            "mechanism_manifest": compiled_mechanism.manifest.to_dict(),
+            "reactions": [
+                reaction.to_dict() for reaction in compiled_mechanism.network.reactions
+            ],
+            "scenario_card": env.scenario_instance.to_card(),
+        }
+    return payload
+
+
+def build_public_scenario_summary(env: Any) -> dict[str, Any]:
+    spec = env.scenario_spec
+    return {
+        "scenario_id": spec.scenario_id,
+        "world_law_id": spec.world_law_id,
+        "family": spec.family,
+        "split": spec.split,
+        "difficulty": spec.difficulty,
+        "initial_state_id": spec.initial_state_id,
+        "allowed_module_tags": list(spec.allowed_module_tags),
+        "expected_qualitative_behavior": list(spec.expected_qualitative_behavior),
+        "world_id": env.world.world_id,
+        "world_provider": env.world.provider,
+        "world_family_version": env.world.family_version,
+        "hidden_parameter_policy": (
+            "hidden parameter seeds, parameter profiles, and generated mechanism "
+            "internals are not exposed in public task_info"
+        ),
+    }
+
+
+def build_public_mechanism_summary(compiled_mechanism: Any) -> dict[str, Any]:
+    return {
+        "mechanism_id": compiled_mechanism.mechanism_id,
+        "mechanism_version": compiled_mechanism.mechanism_version,
+        "mechanism_hash": compiled_mechanism.mechanism_hash,
+        "species_count": compiled_mechanism.manifest.species_count,
+        "reaction_count": compiled_mechanism.manifest.reaction_count,
+        "validation_passed": compiled_mechanism.manifest.validation_report.passed,
+        "public_boundary": (
+            "identity/hash/count summary only; hidden species ids, reactions, "
+            "stoichiometry, rate laws, and parameter policies are not exposed"
+        ),
+    }
+
+
+def build_public_observation_contract_summary(env: Any) -> dict[str, Any]:
+    contract = env.observation_contract
+    return {
+        "success_metrics": list(contract.success_metrics),
+        "score_family": contract.score_family,
+        "required_observation_keys": list(contract.required_observation_keys),
+        "instrument_observable_keys": {
+            instrument_id: list(keys)
+            for instrument_id, keys in sorted(contract.instrument_observable_keys.items())
+        },
+        "public_species_label_policy": [
+            "reactant_public",
+            "target_public",
+            "impurity_public",
+            "degradation_public",
+        ],
+        "mapping_visibility_policy": "hidden mechanism-to-species mapping is not public",
+        "contract_hash": contract.contract_hash,
     }
 
 
@@ -245,6 +307,9 @@ def build_step_info(
 
 __all__ = [
     "build_constitution_summary",
+    "build_public_mechanism_summary",
+    "build_public_observation_contract_summary",
+    "build_public_scenario_summary",
     "build_step_info",
     "build_task_info",
     "render_env",

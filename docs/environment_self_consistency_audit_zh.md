@@ -54,6 +54,7 @@ runs/audit/trajectories/*.jsonl
 | `maturity` | 当前 task 的最低物理成熟度 |
 | `invalid_count` | precondition failure 数量 |
 | `ledger_single_source_failures` | typed ledger 单一事实源审计失败数量 |
+| `public_leakage_failures` | public observation、task info、agent view 和 trajectory 泄漏审计失败数量 |
 | `verify_status` | replay verifier 是否通过 |
 | `spectra_metric_consistency` | raw spectra 与 processed metrics 的一致性状态 |
 | `warnings` | 不阻断运行但需要关注的自洽性风险 |
@@ -81,6 +82,7 @@ runs/audit/trajectories/*.jsonl
 | `invalid_steps` | 0 |
 | `constitution_failures` | 0 |
 | `ledger_single_source_failures` | 0 |
+| `public_leakage_failures` | 0 |
 
 覆盖的正式任务：
 
@@ -134,6 +136,9 @@ recovery 与 raw spectra 指向同一个被测样品。
 - 所有正式 task 通过 `gym.make("ChemWorld", task_id=...)` 进入同一环境。
 - `task_info()` 暴露 `world_law_id`、`scenario_id`、`mechanism_hash`、`runtime_profile_hash`、`scoring_contract_hash` 和 `observation_contract_hash`。
 - replay verifier 会检查 mechanism、runtime profile、scoring contract 和 observation contract hash。
+- public `task_info()` 只暴露 mechanism id/hash/count 摘要、scoring contract、public observation contract 摘要和 runtime profile；
+  完整 `mechanism_manifest`、reaction list、stoichiometric matrix、rate-law 参数和 mechanism observable mapping
+  只允许出现在 `debug_truth=True` 的 debug 字段中。
 
 当前风险：
 
@@ -181,6 +186,9 @@ recovery 与 raw spectra 指向同一个被测样品。
 - raw spectra 中只能出现 public aggregate species label，例如 `target_public`、`reactant_public`、`impurity_public`。
 - raw spectra 不得泄漏 hidden species name、rate constant、hidden theta。
 - observed mask 中未观测字段不得被当作有效测量值。
+- `audit_public_payload()` 会扫描 reset info、step info、tool JSON、lab report、agent view 和 JSONL trajectory；
+  若出现 hidden species id、rate law、mechanism manifest、reaction list 或 compiled mechanism payload，会计入
+  `public_leakage_failures`。
 
 ### 谱图与指标自洽
 

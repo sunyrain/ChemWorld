@@ -19,6 +19,12 @@ from chemworld.foundation.ontology import (
     Substance,
     Vessel,
 )
+from chemworld.foundation.public_leakage import (
+    PUBLIC_SPECIES_SUFFIX,
+    PublicLeakageFinding,
+    audit_public_payload,
+    public_leakage_passed,
+)
 from chemworld.foundation.state import (
     Ledger,
     Observation,
@@ -40,6 +46,7 @@ from chemworld.foundation.units import Quantity, UnitSpec, convert_value
 from chemworld.foundation.world_law import WorldLawSpec
 
 __all__ = [
+    "PUBLIC_SPECIES_SUFFIX",
     "CheckResult",
     "ConstitutionReport",
     "Instrument",
@@ -51,6 +58,7 @@ __all__ = [
     "OperationRecord",
     "Phase",
     "PhysicalConstitution",
+    "PublicLeakageFinding",
     "Quantity",
     "Reaction",
     "StateVariable",
@@ -61,6 +69,7 @@ __all__ = [
     "WorldLawSpec",
     "WorldState",
     "audit_ledger_single_source_of_truth",
+    "audit_public_payload",
     "convert_value",
     "equipment_settings",
     "equipment_status",
@@ -69,6 +78,7 @@ __all__ = [
     "instrument_equipment_id",
     "phases_are_settled",
     "process_with_metrics",
+    "public_leakage_passed",
     "scale_phase_ledger",
     "selected_phase_id",
     "species_with_added_initial_amounts",

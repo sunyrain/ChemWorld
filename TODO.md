@@ -1,38 +1,68 @@
-# ChemWorld 统一 TODO
+# ChemWorld TODO
 
 最后更新：2026-07-09
 
-本文件是 ChemWorld 唯一活跃任务板。此前的发布、专业化、模型深化、notebook 和站点任务已经收束到这里。MkDocs 页面 `docs/todo.md` 只保留公开摘要，不作为第二份工作板维护。
+本文件是 ChemWorld 唯一活跃任务板。所有开发、发布、专业物理模型深化、notebook、站点和本地评测机任务都收束到这里。`docs/todo.md` 只保留公开摘要，不作为第二份工作板维护。
 
-## 当前定位
+## 当前统计
 
-ChemWorld 已经不是“缺少功能入口”的阶段。当前阶段是 **benchmark trust hardening**：任务合同、评分、回放、提交包、agent-facing 交互、文档、成熟度边界和发布证据必须相互一致。
+| 阶段 | 目标 | 总数 | 已完成 | 已认领 | 待开始 | 剩余 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| P0 | 预发布 benchmark hardening | 12 | 12 | 0 | 0 | 0 |
+| P1 | runtime 与环境自洽性 | 8 | 7 | 0 | 1 | 1 |
+| P2 | agent-facing 交互与数据集 | 6 | 0 | 0 | 6 | 6 |
+| P3 | 专业物理化学深化 | 27 | 0 | 3 | 24 | 27 |
+| P4 | 文档、notebook、站点与发布包装 | 5 | 0 | 0 | 5 | 5 |
+| **合计** |  | **58** | **19** | **3** | **36** | **39** |
 
-当前统计：
+还需要完成 **39 项**。其中 **36 项尚未开始**，**3 项已由 liyijun 认领但未完成**。
 
-| 范围 | 总数 | 已完成 | 进行中 | 已认领 | 待开始 | 剩余 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| P0 预发布 benchmark hardening | 12 | 12 | 0 | 0 | 0 | 0 |
-| P1 runtime 与环境自洽性 | 8 | 6 | 0 | 0 | 2 | 2 |
-| P2 agent-facing 交互与数据集 | 6 | 0 | 0 | 0 | 6 | 6 |
-| P3 专业物理化学深化 | 27 | 0 | 0 | 3 | 24 | 27 |
-| P4 文档、notebook、站点与发布包装 | 5 | 0 | 0 | 0 | 5 | 5 |
-| **Total** | **58** | **18** | **0** | **3** | **37** | **40** |
+## 阶段判断
 
-Cutline：
+当前 ChemWorld 已经越过“功能入口不足”的阶段，重点转为 **benchmark trust hardening**：
 
-| Cutline | 剩余 | 含义 |
+- P0 已完成：三项预发布任务、baseline、replay、submission、artifact、release gate 已具备。
+- P1 只剩 1 项：runtime boundary scan。完成后，最小可信 benchmark 的结构审计闭环基本成立。
+- P2 和 P4 是公开预发布的主要缺口：agent 交互层、数据导出、教程和站点需要收束。
+- P3 是长期专业化路线：不阻塞第一版预发布，但每个模块必须带 maturity、适用范围、验证算例和失败边界。
+
+## Cutline
+
+| Cutline | 剩余 | 定义 |
 | --- | ---: | --- |
-| 最小可信 benchmark | 2 | 完成全部 P0/P1。冻结任务的 replay、scoring、ledger、observation 和 runtime boundary check 才算基本可信。 |
-| 可公开预发布包 | 13 | 完成 P0/P1/P2/P4。外部用户可以安装、运行、提交、阅读文档和复现实验。 |
-| 全部可见路线图 | 40 | 包含长期 P3 专业物理化学深化。P3 不阻塞第一版公开预发布，除非某个冻结任务明确依赖它。 |
+| 最小可信 benchmark | 1 | 完成全部 P0/P1。任务、runtime、ledger、observation、scoring、replay 和公开边界通过审计。 |
+| 可公开预发布包 | 12 | 完成 P0/P1/P2/P4。外部用户可安装、运行、提交、阅读文档并复现实验。 |
+| 全部可见路线图 | 39 | 包含长期 P3 专业物理化学深化。P3 不阻塞预发布，除非某项冻结任务明确依赖。 |
 
-下一步执行顺序：
+## 下一执行队列
 
-1. `P1-CONSIST-07`：public observation leakage audit。
-2. `P1-CONSIST-08`：runtime boundary scan。
-3. `P2-AGENT-01`：polish `task_prompt()` for the three pre-release tasks。
-4. 继续 P2 和 P4，把系统收束成外部用户可用的预发布包。
+1. `P1-CONSIST-08`：runtime boundary scan。
+2. `P2-AGENT-01`：polish `task_prompt()` for the three pre-release tasks。
+3. `P2-AGENT-02`：improve lab-report summaries。
+4. `P2-AGENT-03`：stabilize RL observation view。
+5. `P4-DOCS-01`：reorganize docs around pre-release benchmark。
+
+## 协作规则
+
+- 默认在 `main` 开发。
+- 开始非平凡任务前先拉取远端。
+- 一次只把一个任务标为 `Active`。
+- 任务完成后立即更新本文件，运行相关门禁，提交并推送。
+- 不重复实现别人已标记为 `Claimed` 的任务，除非明确重新分配。
+- 不维护第二份活跃 TODO。
+- 不把 `proxy`、`lite` 或 `professional-candidate` 写成 `professional`。
+- 每个 `Done` 项必须有代码、测试、文档，或明确的 no-test rationale。
+
+状态定义：
+
+| 状态 | 含义 |
+| --- | --- |
+| Open | 可开始 |
+| Claimed | 已由 owner 预留，但尚未实现 |
+| Active | 正在实现 |
+| Review | 已推送，等待审查 |
+| Done | 已实现、已验证、已更新 TODO、已推送 |
+| Blocked | 有明确阻塞条件 |
 
 ## 当前系统基线
 
@@ -41,11 +71,11 @@ Cutline：
 - 正式 Gymnasium 入口是 `gym.make("ChemWorld", task_id=...)`。
 - 所有正式 task 指向同一个 `world_law_id`。
 - 已有 task registry、scenario/profile/mechanism/scoring hash、submission bundle、paper artifact 和 local release gate。
-- Runtime v2 概念已经进入代码：typed ledger、transaction record、operation kernel、domain service、compiled mechanism、observation/scoring contract、replay verifier。
-- Ledger single-source audit 已进入 constitution check 和环境审计。Phase ledger 是物料主来源；process ledger 是时间、成本、风险和样品消耗主来源；metadata 不能保存 primary structured state。
+- Runtime v2 概念已进入代码：typed ledger、transaction record、operation kernel、domain service、compiled mechanism、observation/scoring contract、replay verifier。
+- Ledger single-source audit 已进入 constitution check 和环境审计。Phase ledger 是物料主来源；process ledger 是时间、成本、风险和样品消耗主来源；metadata 不允许保存 primary structured state。
 - Agent-facing API 已具备基础入口：task prompt、available actions、action schema、validation、RL/tool-JSON/lab-report observation view、campaign state。
 - 已有本地教师端/学生端评测机模拟。
-- MkDocs 站点已发布，但 P4 仍需重组结构、增强教程和补齐端到端 notebook。
+- MkDocs 站点已发布，但 P4 仍需围绕预发布 benchmark 重组结构、增强教程和补齐端到端 notebook。
 
 边界声明：
 
@@ -54,28 +84,6 @@ Cutline：
 - ChemWorld 还不是通用化学世界模型。
 - ChemWorld 当前是机制驱动、可交互、可回放、可评测的虚拟物理化学 benchmark 环境。
 - P3 professional deepening 是长期工作，必须带明确 maturity label、验证算例和失败边界。
-
-## 协作规则
-
-- 从 `main` 开发。
-- 开始非平凡任务前先拉取远端。
-- 每次只把一个任务标记为 `Active`。
-- 完成任务时更新本文件，运行相关门禁，提交并推送。
-- 不重复实现他人已标记为 `Claimed` 的任务，除非显式重新分配。
-- 不维护第二份活跃 TODO。
-- 不把 `proxy`、`lite` 或 `professional-candidate` 模型写成 `professional`。
-- 每个 `Done` 项必须有代码、测试、文档，或明确的 no-test rationale。
-
-状态定义：
-
-| 状态 | 含义 |
-| --- | --- |
-| Open | 可以开始 |
-| Claimed | 已由 owner 预留，但尚未实现 |
-| Active | 正在实现 |
-| Review | 已推送，等待审查 |
-| Done | 已实现、已验证、已更新 TODO、已推送 |
-| Blocked | 有明确阻塞条件 |
 
 ## P0 - 预发布 Benchmark Hardening
 
@@ -104,7 +112,7 @@ Cutline：
 
 ## P1 - Runtime 与环境自洽性
 
-目标：actions、ledgers、observations、spectra、scoring、logs、replay 和 docs 必须相互一致。
+目标：actions、ledgers、observations、spectra、scoring、logs、replay 和 docs 必须互相一致。
 
 | ID | Owner | Status | Task | Exit Criteria |
 | --- | --- | --- | --- | --- |
@@ -114,7 +122,7 @@ Cutline：
 | P1-CONSIST-04 | Codex | Done | Invalid action atomicity | Schema, task-policy, payload-bound, and state-precondition failures are covered by material-ledger atomicity tests; invalid actions only mutate process/cost/risk ledgers and emit explicit validation or rollback metadata. |
 | P1-CONSIST-05 | Codex | Done | Campaign vs single-experiment semantics audit | Tests cover all task termination policies; single-experiment final assay terminates and campaign final assay records experiment summaries while keeping the Gym episode alive when budget remains. |
 | P1-CONSIST-06 | Codex | Done | Ledger single-source-of-truth audit | `audit_ledger_single_source_of_truth()` is part of constitution state checks and release audit; tests cover material totals, process compatibility, metadata rejection, reference closure, and all formal task smoke trajectories. |
-| P1-CONSIST-07 |  | Open | Public observation leakage audit | Agent-visible observations, tool JSON, lab reports, spectra labels, reset info, task info, and trajectories do not expose hidden species ids, rate constants, or mechanism-truth payloads unless `debug_truth=True`. |
+| P1-CONSIST-07 | Codex | Done | Public observation leakage audit | `audit_public_payload()` scans reset info, task info, observations, step info, tool JSON, lab reports, agent views, spectra labels, and JSONL trajectories; public task info no longer exposes mechanism manifest, reactions, compiled mechanism, mechanism observable mapping, hidden scenario seeds, hidden species ids, or rate constants unless `debug_truth=True`; full environment audit reports `public_leakage_failures=0`. |
 | P1-CONSIST-08 |  | Open | Runtime boundary scan | `ChemWorldEnv` remains a thin Gym adapter, no operation-specific if/elif dispatch returns, and runtime does not import legacy core modules. |
 
 ## P2 - Agent-Facing 交互与数据集
@@ -132,7 +140,7 @@ Cutline：
 
 ## P3 - 专业物理化学深化
 
-目标：把 proxy/lite 物理化学模块逐步替换为窄范围、可审计、可验证的专业模型切片。
+目标：把 proxy/lite 物理化学模块逐步替换为范围明确、可审计、可验证的专业模型切片。
 
 规则：
 

@@ -96,13 +96,27 @@ class ChemWorldRuntime:
             kernel_result=result,
         )
 
-    def to_dict(self) -> dict[str, Any]:
-        return {
+    def to_dict(self, *, include_debug_truth: bool = False) -> dict[str, Any]:
+        payload = {
             "profile": self.profile.to_dict(),
             "operation_kernels": self.registry.to_dict(),
             "domain_services": self.domain_services.to_dict(),
-            "compiled_mechanism": self.compiled_mechanism.to_dict(),
+            "mechanism_summary": {
+                "mechanism_id": self.compiled_mechanism.mechanism_id,
+                "mechanism_version": self.compiled_mechanism.mechanism_version,
+                "mechanism_hash": self.compiled_mechanism.mechanism_hash,
+                "species_count": self.compiled_mechanism.manifest.species_count,
+                "reaction_count": self.compiled_mechanism.manifest.reaction_count,
+                "validation_passed": self.compiled_mechanism.manifest.validation_report.passed,
+                "public_boundary": (
+                    "hash/count summary only; species identities, rate laws, and "
+                    "stoichiometry are hidden from public agent-facing views"
+                ),
+            },
         }
+        if include_debug_truth:
+            payload["debug_compiled_mechanism"] = self.compiled_mechanism.to_dict()
+        return payload
 
 
 __all__ = ["ChemWorldRuntime", "RuntimeStepResult"]
