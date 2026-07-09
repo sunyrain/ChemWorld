@@ -11,17 +11,17 @@
 2. 部分页面仍保留快速迭代阶段的语气，例如历史迁移、占位 baseline、过时测试数量。
 3. 任务、runtime、maturity、self-consistency audit 已经成为当前阶段主线，但首页没有把这些放在首屏。
 
-本轮已把站点收束为七个分区：
+本轮已把站点收束为七个面向预发布的分区：
 
 | 分区 | 作用 |
 | --- | --- |
-| 项目状态 | 当前进度、站点审计、发布检查、路线图 |
-| 核心概念 | 项目定位、世界规律、核心架构、物理化学底座 |
-| Benchmark 合同 | 环境、任务、动作、机制、仪器、提交和评测协议 |
-| 评测与数据 | baseline、dataset、本地评测机、leaderboard、paper artifact |
-| 教程与示例 | 12 天教程、示例、API |
-| 审计 | 自洽性、成熟度、SOTA 对比、agent 行为、代码审计 |
-| 开发与发布 | 双人协作、参考仓库、统一任务板 |
+| 预发布入口 | 项目总览、当前进展、演示、教程、API |
+| Benchmark 合同 | 评测协议、任务、种子、baseline、提交、本地评测机、release gate、预发布限制 |
+| Agent 接入 | task prompt、action schema、wrappers、LLM harness、agent 交互示例 |
+| 数据与产物 | dataset、paper artifact、leaderboard 蓝图、伦理与数据 |
+| 环境底座 | world law、scenario、campaign、runtime、mechanism、instrument、spectra、backend |
+| 审计与状态 | self-consistency、maturity、SOTA gap、代码审计、站点审计 |
+| 开发与发布 | 路线图、项目管理、本地参考仓库、统一任务板 |
 
 ## 当前主线
 
@@ -29,11 +29,11 @@
 
 ```text
 ChemWorld overview
-  -> world law and runtime architecture
-  -> task registry and task cards
-  -> action/instrument/observation contracts
-  -> benchmark protocol and submission bundle
-  -> baseline and dataset outputs
+  -> benchmark contract and release boundary
+  -> task registry, seed suite, baseline, submission bundle
+  -> agent-facing API and observation views
+  -> dataset and paper artifact outputs
+  -> world law, runtime architecture, mechanism and instrument contracts
   -> self-consistency and maturity audits
 ```
 
@@ -42,7 +42,9 @@ ChemWorld overview
 ## 已完成收束
 
 - 首页改为读者路径入口，而不是链接堆叠页。
-- MkDocs 导航改为分区导航。
+- MkDocs 导航改为预发布 benchmark 优先的分区导航。
+- 首页正文不再提供居中的中英文切换按钮，语言切换只使用 Material 顶部入口。
+- 左侧保留主导航；右侧页面 outline 仅作为可折叠的页内目录。
 - `current_progress.md` 改为当前 `main` 分支状态摘要。
 - `task_cards.md` 增加当前任务矩阵，并明确 task card 是 registry 生成的发布合同。
 - `campaign_model.md` 扩展为 campaign / experiment / operation 的正式语义页。

@@ -53,7 +53,7 @@ maturity。
 
 ## 建议下一步
 
-1. 固定 `site/` 发布流程。
-2. 冻结任务卡和 baseline 表。
-3. 增加本地 eval artifact。
-4. 逐步引入 reference validation backend。
+1. 完成一份面向外部读者的精简架构报告，直接说明 Runtime v2、task contract、ledger、mechanism、agent interface 和当前限制。
+2. 加固 12 天教程，使每天都有可检查产物，而不是只运行示例代码。
+3. 增加三个端到端 notebook：`reaction-to-assay`、`reaction-to-purification`、`partition-discovery`。
+4. 最后冻结发布检查表、已知限制、citation 和 private-eval 政策。
