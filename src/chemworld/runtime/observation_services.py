@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 
 from chemworld.foundation import Observation, PhysicalConstitution, WorldState
+from chemworld.foundation.state import ProcessLedger
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.observation_contracts import TaskObservationContract
@@ -50,8 +51,9 @@ class ChemWorldObservationKernel:
     ) -> Observation:
         operation = operation_name(action["operation"])
         if operation != "measure":
-            last = dict(state.metadata.get("last_observation", {}))
-            last_mask = dict(state.metadata.get("last_observed_mask", {}))
+            process = state.process or ProcessLedger()
+            last = dict(process.last_observation)
+            last_mask = dict(process.last_observed_mask)
             values = self._base_public_values(state)
             observed_mask = self._base_observed_mask()
             values.update(last)

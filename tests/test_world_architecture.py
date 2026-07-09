@@ -1312,6 +1312,8 @@ def test_constitution_rejects_primary_process_metric_metadata() -> None:
     state = initial_chemworld_state().replace(
         metadata={
             **initial_chemworld_state().metadata,
+            "last_observation": {"yield": 0.4},
+            "last_observed_mask": {"yield": True},
             "crystal_yield": 0.6,
             "distillate_purity": 0.9,
             "flow_conversion": 0.7,
@@ -1325,6 +1327,44 @@ def test_constitution_rejects_primary_process_metric_metadata() -> None:
         check.name == "metadata_no_primary_process_metrics"
         for check in report.failures()
     )
+
+
+def test_runtime_observation_cache_uses_typed_process_ledger() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=4)
+    try:
+        env.reset(seed=4)
+        env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 1})
+        env.step({"operation": "add_reagent", "amount_mol": 0.010})
+        observation, _, _, _, measure_info = env.step(
+            {"operation": "measure", "instrument": "hplc"}
+        )
+        measured_yield = float(observation["yield"][0])
+        state_after_measure = env.unwrapped._state
+
+        assert measure_info["transaction_status"] == "committed"
+        assert "last_observation" not in state_after_measure.metadata
+        assert "last_observed_mask" not in state_after_measure.metadata
+        assert state_after_measure.process.last_observation["yield"] == pytest.approx(
+            measured_yield
+        )
+        assert state_after_measure.process.last_observed_mask["yield"] is True
+        assert env.unwrapped.constitution.check_state(state_after_measure).passed
+
+        followup_observation, _, _, _, wait_info = env.step(
+            {"operation": "wait", "duration_s": 30.0}
+        )
+        state_after_wait = env.unwrapped._state
+
+        assert wait_info["transaction_status"] == "committed"
+        assert float(followup_observation["yield"][0]) == pytest.approx(measured_yield)
+        assert "last_observation" not in state_after_wait.metadata
+        assert "last_observed_mask" not in state_after_wait.metadata
+        assert state_after_wait.process.last_observation["yield"] == pytest.approx(
+            measured_yield
+        )
+        assert env.unwrapped.constitution.check_state(state_after_wait).passed
+    finally:
+        env.close()
 
 
 def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> None:

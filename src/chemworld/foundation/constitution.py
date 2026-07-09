@@ -67,6 +67,8 @@ class PhysicalConstitution:
     }
 
     primary_process_metric_metadata_keys: ClassVar[set[str]] = {
+        "last_observation",
+        "last_observed_mask",
         "purity",
         "recovery",
         "crystal_yield",

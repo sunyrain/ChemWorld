@@ -28,6 +28,7 @@ from chemworld.foundation.state_ledgers import (
     VesselLedger,
     VesselRecord,
     VesselThermalRecord,
+    process_with_last_observation,
     process_with_metrics,
 )
 
@@ -143,6 +144,12 @@ class WorldState:
             sample_consumed_L=self.ledger.sample_consumed_L,
             waste_L=0.0 if self.process is None else self.process.waste_L,
             metrics={} if self.process is None else self.process.metrics,
+            last_observation=(
+                {} if self.process is None else self.process.last_observation
+            ),
+            last_observed_mask=(
+                {} if self.process is None else self.process.last_observed_mask
+            ),
         )
         object.__setattr__(self, "species", species)
         object.__setattr__(self, "phases", phases)
@@ -248,6 +255,7 @@ __all__ = [
     "instrument_completed",
     "instrument_equipment_id",
     "phases_are_settled",
+    "process_with_last_observation",
     "process_with_metrics",
     "scale_phase_ledger",
     "selected_phase_id",

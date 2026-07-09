@@ -23,7 +23,12 @@ from chemworld.envs.spaces import (
     to_observation,
     value_or_default,
 )
-from chemworld.foundation.state import OperationRecord, WorldState
+from chemworld.foundation.state import (
+    OperationRecord,
+    ProcessLedger,
+    WorldState,
+    process_with_last_observation,
+)
 from chemworld.operation_validator import OperationValidator
 from chemworld.runtime import (
     ChemWorldObservationKernel,
@@ -247,18 +252,22 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         observation_values = observation.values
         if preconditions_passed and operation_record.operation_type == "measure":
-            metadata = self._state.metadata.copy()
-            metadata["last_observation"] = observation_values.copy()
-            metadata["last_observed_mask"] = observation.observed_mask.copy()
-            self._state = self._state.replace(metadata=metadata)
-        elif preconditions_passed and previous_state.metadata.get("last_observation"):
-            metadata = self._state.metadata.copy()
-            metadata["last_observation"] = previous_state.metadata["last_observation"]
-            metadata["last_observed_mask"] = previous_state.metadata.get(
-                "last_observed_mask",
-                {},
+            self._state = self._state.replace(
+                process=process_with_last_observation(
+                    self._state.process,
+                    observation_values,
+                    observation.observed_mask,
+                )
             )
-            self._state = self._state.replace(metadata=metadata)
+        previous_process = previous_state.process or ProcessLedger()
+        if preconditions_passed and previous_process.last_observation:
+            self._state = self._state.replace(
+                process=process_with_last_observation(
+                    self._state.process,
+                    previous_process.last_observation,
+                    previous_process.last_observed_mask,
+                )
+            )
 
         self._step_count += 1
         self._operation_id += 1

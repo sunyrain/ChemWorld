@@ -52,7 +52,6 @@ def initial_chemworld_state(
     ).replace(
         metadata={
             "initial_reactant_mol": 0.0,
-            "last_observation": {},
             **(
                 {f"initial_{initial_limiting_species}_mol": 0.0}
                 if initial_limiting_species

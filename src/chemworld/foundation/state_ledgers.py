@@ -177,6 +177,8 @@ class ProcessLedger:
     sample_consumed_L: float = 0.0
     waste_L: float = 0.0
     metrics: dict[str, float] = field(default_factory=dict)
+    last_observation: dict[str, float | None] = field(default_factory=dict)
+    last_observed_mask: dict[str, bool] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -184,10 +186,25 @@ class ProcessLedger:
             "metrics",
             {str(key): float(value) for key, value in self.metrics.items()},
         )
+        object.__setattr__(
+            self,
+            "last_observation",
+            {
+                str(key): (None if value is None else float(value))
+                for key, value in self.last_observation.items()
+            },
+        )
+        object.__setattr__(
+            self,
+            "last_observed_mask",
+            {str(key): bool(value) for key, value in self.last_observed_mask.items()},
+        )
 
     def to_dict(self) -> dict[str, Any]:
         payload = self.__dict__.copy()
         payload["metrics"] = deepcopy(self.metrics)
+        payload["last_observation"] = deepcopy(self.last_observation)
+        payload["last_observed_mask"] = deepcopy(self.last_observed_mask)
         return payload
 
 
@@ -203,6 +220,21 @@ def process_with_metrics(
     return replace(process, metrics=merged)
 
 
+def process_with_last_observation(
+    process: ProcessLedger | None,
+    values: dict[str, float | None],
+    observed_mask: dict[str, bool],
+) -> ProcessLedger:
+    """Return a process ledger with updated public observation cache."""
+
+    process = process or ProcessLedger()
+    return replace(
+        process,
+        last_observation=values.copy(),
+        last_observed_mask=observed_mask.copy(),
+    )
+
+
 __all__ = [
     "EquipmentLedger",
     "EquipmentRecord",
@@ -214,5 +246,6 @@ __all__ = [
     "VesselLedger",
     "VesselRecord",
     "VesselThermalRecord",
+    "process_with_last_observation",
     "process_with_metrics",
 ]

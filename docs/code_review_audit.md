@@ -427,6 +427,10 @@ Recommended follow-up:
   yield/purity/size, and distillate purity/recovery are no longer primary
   metadata fields; phase services, observation truth, and constitution checks
   read and enforce the typed process-ledger boundary.
+- Promoted the last public observation cache into typed `ProcessLedger`.
+  Non-measurement observations still preserve the latest public instrument
+  values, while constitution checks now reject the old `last_observation` and
+  `last_observed_mask` metadata keys.
 - Added deterministic scoring and observation contract hashes. Task info,
   trajectory records, and replay verification now include
   `scoring_contract_hash` and `observation_contract_hash`, so protocol drift is
