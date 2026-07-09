@@ -151,19 +151,25 @@ def test_env_and_runtime_do_not_import_removed_batch_runtime() -> None:
 
 
 def test_runtime_env_and_world_use_world_action_catalog() -> None:
+    assert not Path("src/chemworld/core/actions.py").exists()
+
+
+def test_core_package_removed_from_source_and_tutorials() -> None:
     roots = (
         Path("src/chemworld"),
         Path("notebooks/tutorials"),
     )
-    offenders = [
-        path
-        for root in roots
-        for path in root.rglob("*")
-        if path.suffix in {".py", ".ipynb"}
-        if "chemworld.core.actions" in path.read_text(encoding="utf-8")
-    ]
+    offenders: list[Path] = []
+    for root in roots:
+        for path in root.rglob("*"):
+            if path.suffix not in {".py", ".ipynb"}:
+                continue
+            text = path.read_text(encoding="utf-8")
+            if "chemworld.core." in text or "from chemworld.core" in text:
+                offenders.append(path)
+    core_sources = list(Path("src/chemworld/core").glob("*.py"))
 
-    assert not Path("src/chemworld/core/actions.py").exists()
+    assert core_sources == []
     assert offenders == []
 
 

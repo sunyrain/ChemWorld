@@ -229,6 +229,10 @@ world-law catalog directly. The follow-up cleanup removed the remaining
 `core/actions.py` facade; baseline agents and tutorial helpers now import the
 same world-law helpers directly, and architecture tests block reintroducing the
 old action facade into source or tutorial notebooks.
+Current cleanup also removed the duplicated `core/objectives.py` scoring island.
+Reaction and task scoring are now owned by `world/scoring.py`; the source tree
+and tutorial notebooks are covered by architecture tests that reject
+`chemworld.core` imports.
 
 Replay verification now compares Runtime v2 transaction metadata in addition
 to rewards and observations. The verifier rejects mechanism-hash drift,
