@@ -1,0 +1,251 @@
+"""Task, render, and step-info report builders for ChemWorldEnv."""
+
+from __future__ import annotations
+
+from typing import Any
+
+import numpy as np
+
+from chemworld import __version__
+from chemworld.backends import semi_mechanistic_backend_spec
+from chemworld.envs.spaces import OBSERVATION_KEYS, value_or_default
+from chemworld.foundation.state import OperationRecord
+from chemworld.world.instruments import instrument_contracts
+from chemworld.world.operations import (
+    OPERATION_TYPES,
+    chemworld_operations,
+    chemworld_state_variable_contracts,
+    operation_contracts,
+)
+from chemworld.world.scoring import safety_cost_from_flags
+from chemworld.world.world_law import world_law_spec
+
+
+def build_task_info(env: Any) -> dict[str, Any]:
+    scenario_card = env.scenario_instance.to_card()
+    compiled_mechanism = env.scenario_instance.compiled_mechanism
+    return {
+        "env_id": "ChemWorld",
+        "task_id": env.task_id,
+        "world_law_id": env.world.family_version,
+        "scenario_id": env.scenario_spec.scenario_id,
+        "scenario": scenario_card,
+        "initial_state_id": env.scenario_spec.initial_state_id,
+        "world_split": env.world_split,
+        "world_provider": env.world.provider,
+        "objective": env.objective,
+        "budget": env.budget,
+        "episode_mode": env.episode_mode,
+        "safety_limit": env.safety_limit,
+        "seed": env.seed,
+        "world_id": env.world.world_id,
+        "task_contract_hash": (
+            None if env.task_spec is None else env.task_spec.contract_hash
+        ),
+        "runtime_profile_hash": env.runtime.profile.profile_hash,
+        "mechanism_id": compiled_mechanism.mechanism_id,
+        "mechanism_hash": compiled_mechanism.mechanism_hash,
+        "mechanism_version": compiled_mechanism.mechanism_version,
+        "mechanism_manifest": compiled_mechanism.manifest.to_dict(),
+        "scoring_contract": env.scoring_contract.to_dict(),
+        "scoring_contract_hash": env.scoring_contract.contract_hash,
+        "observation_contract": env.observation_contract.to_dict(),
+        "observation_contract_hash": env.observation_contract.contract_hash,
+        "env_version": __version__,
+        "world_family_version": env.world.family_version,
+        "runtime": env.runtime.to_dict(),
+        "operation_types": list(OPERATION_TYPES),
+        "allowed_operations": sorted(env.allowed_operations),
+        "allowed_instruments": sorted(env.allowed_instruments),
+        "kernel_maturity": env.kernel_maturity.to_dict(),
+        "physics_maturity": env.kernel_maturity.lowest_level.value,
+        "proxy_allowed": env.kernel_maturity.proxy_allowed,
+        "instruments": {
+            key: contract.to_dict() for key, contract in instrument_contracts().items()
+        },
+        "reactions": [
+            reaction.to_dict() for reaction in compiled_mechanism.network.reactions
+        ],
+        "operations": [operation.to_dict() for operation in chemworld_operations()],
+        "operation_contracts": {
+            key: contract.to_dict() for key, contract in operation_contracts().items()
+        },
+        "state_variables": [
+            variable.to_dict() for variable in chemworld_state_variable_contracts()
+        ],
+        "constitution": build_constitution_summary(env),
+        "world_law": world_law_spec().to_dict(),
+        "backend": semi_mechanistic_backend_spec().to_dict(),
+        "observation_keys": list(OBSERVATION_KEYS),
+    }
+
+
+def build_constitution_summary(env: Any) -> dict[str, Any]:
+    state_report = env.constitution.check_state(env._state)
+    return {
+        "name": "PhysicalConstitutionChecklist",
+        "passed": state_report.passed,
+        "checks": state_report.to_list(),
+        "rules": [
+            "material_conservation",
+            "nonnegative_state",
+            "unit_consistency",
+            "yield_upper_bound",
+            "energy_balance",
+            "phase_mass_balance",
+            "observation_non_omniscient",
+            "measurement_has_cost",
+            "action_preconditions",
+            "safety_constraints",
+            "public_private_reproducibility",
+        ],
+    }
+
+
+def render_env(env: Any) -> Any:
+    """Render a concise visible campaign summary."""
+
+    last_operation = (
+        None
+        if env._last_operation_record is None
+        else env._last_operation_record.operation_type
+    )
+    lines = [
+        "ChemWorld",
+        f"  task: {env.task_id or 'ad-hoc'}",
+        f"  scenario: {None if env.scenario_spec is None else env.scenario_spec.scenario_id}",
+        f"  campaign: {env._campaign_id}",
+        f"  step: {env._step_count}/{env.budget}",
+        f"  experiment: {env._experiment_index}",
+        f"  last_operation: {last_operation}",
+        (
+            "  ledger: "
+            f"time_s={env._state.ledger.time_s:.1f}, "
+            f"cost={env._state.ledger.cost:.3f}, "
+            f"risk={env._state.ledger.risk:.3f}, "
+            f"sample_L={env._state.ledger.sample_consumed_L:.6f}"
+        ),
+    ]
+    visible = {
+        key: float(value[0])
+        for key, value in env._last_observation.items()
+        if np.isfinite(float(value[0]))
+    }
+    lines.append(f"  visible_observation: {visible}")
+    rendered = "\n".join(lines)
+    if env.render_mode == "human":
+        print(rendered)
+        return None
+    return rendered
+
+
+def build_step_info(
+    env: Any,
+    operation_record: OperationRecord,
+    observation: Any,
+) -> dict[str, Any]:
+    values = observation.values
+    checks = operation_record.constitution_checks
+    constitution_failed = any(not bool(check.get("passed", False)) for check in checks)
+    precondition_failed = not all(operation_record.preconditions.values())
+    observed_keys = [key for key, observed in observation.observed_mask.items() if observed]
+    if precondition_failed:
+        reward_source = "failed_precondition"
+    elif operation_record.operation_type == "measure":
+        reward_source = f"instrument:{operation_record.instrument}"
+    elif any(key in observed_keys for key in ("yield", "selectivity", "conversion")):
+        reward_source = "carried_observation_with_public_ledger"
+    else:
+        reward_source = "public_ledger_only"
+    score = value_or_default(values, "score")
+    failed_preconditions = [
+        key for key, passed in operation_record.preconditions.items() if not passed
+    ]
+    constraint_flags = {
+        "unsafe": value_or_default(values, "safety_risk") >= env.safety_limit,
+        "unsafe_by_task_limit": (
+            value_or_default(values, "safety_risk") >= env.safety_limit
+        ),
+        "high_cost": value_or_default(values, "cost") >= 0.75,
+        "low_selectivity": value_or_default(values, "selectivity") <= 0.35,
+        "degradation_detected": value_or_default(values, "degradation_warning") >= 0.28,
+        "constitution_failed": constitution_failed,
+        "precondition_failed": precondition_failed,
+        "phase_mass_balance_failed": any(
+            check.get("name") == "phase_mass_balance" and not check.get("passed", False)
+            for check in checks
+        ),
+    }
+    cost_signal, cost_components = safety_cost_from_flags(constraint_flags)
+    return {
+        "step": env._step_count,
+        "budget": env.budget,
+        "remaining_budget": max(env.budget - env._step_count, 0),
+        "campaign_id": env._campaign_id,
+        "episode_mode": env.episode_mode,
+        "experiment_index": env._experiment_index,
+        "operation_id": env._operation_id,
+        "experiment_ended": False,
+        "experiment_summaries": list(env._experiment_summaries),
+        "world_id": env.world.world_id,
+        "task_id": env.task_id,
+        "scenario_id": None if env.scenario_spec is None else env.scenario_spec.scenario_id,
+        "initial_state_id": env.scenario_spec.initial_state_id,
+        "world_law_id": env.world.family_version,
+        "world_split": env.world_split,
+        "world_provider": env.world.provider,
+        "objective": env.objective,
+        "safety_limit": env.safety_limit,
+        "task_contract_hash": (
+            None if env.task_spec is None else env.task_spec.contract_hash
+        ),
+        "runtime_profile_hash": env.runtime.profile.profile_hash,
+        "mechanism_id": env.scenario_instance.compiled_mechanism.mechanism_id,
+        "mechanism_hash": env.scenario_instance.compiled_mechanism.mechanism_hash,
+        "scoring_contract_hash": env.scoring_contract.contract_hash,
+        "observation_contract_hash": env.observation_contract.contract_hash,
+        "operation_type": operation_record.operation_type,
+        "operation_allowed_by_task": operation_record.operation_type in env.allowed_operations,
+        "instrument_allowed_by_task": (
+            operation_record.operation_type != "measure"
+            or operation_record.instrument in env.allowed_instruments
+        ),
+        "preconditions": operation_record.preconditions,
+        "state_delta_summary": operation_record.state_delta_summary,
+        "constitution_checks": checks,
+        "instrument": operation_record.instrument,
+        "instrument_source": observation.instrument_id,
+        "observed_keys": observed_keys,
+        "observed_mask": observation.observed_mask,
+        "raw_signal": observation.raw_signal,
+        "processed_estimate": observation.processed_estimate,
+        "uncertainty": observation.uncertainty,
+        "measurement_cost": operation_record.measurement_cost,
+        "sample_consumed": operation_record.sample_consumed_L,
+        "observed_reward": score,
+        "leaderboard_score": (
+            score
+            if operation_record.instrument == "final_assay" and not precondition_failed
+            else None
+        ),
+        "reward_source": reward_source,
+        "cost": cost_signal,
+        "cost_components": cost_components,
+        "constraint_budget_remaining": max(1.0 - cost_signal, 0.0),
+        "error_message": (
+            None
+            if not failed_preconditions
+            else f"Action precondition failed: {', '.join(failed_preconditions)}"
+        ),
+        "constraint_flags": constraint_flags,
+        "env_version": __version__,
+        "world_family_version": env.world.family_version,
+    }
+
+
+__all__ = [
+    "build_constitution_summary",
+    "build_step_info",
+    "build_task_info",
+    "render_env",
+]

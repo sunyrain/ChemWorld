@@ -8,9 +8,13 @@ from typing import Any
 import gymnasium as gym
 import numpy as np
 
-from chemworld import __version__
 from chemworld.action_codec import ActionCodec
-from chemworld.backends import semi_mechanistic_backend_spec
+from chemworld.envs.reports import (
+    build_constitution_summary,
+    build_step_info,
+    build_task_info,
+    render_env,
+)
 from chemworld.envs.spaces import (
     OBSERVATION_KEYS,
     empty_observation,
@@ -27,21 +31,16 @@ from chemworld.runtime import (
     make_chemworld_constitution,
 )
 from chemworld.tasks import default_kernel_maturity, get_task
-from chemworld.world.instruments import instrument_contracts
 from chemworld.world.observation_contracts import TaskObservationContract
 from chemworld.world.operations import (
     INSTRUMENTS,
-    OPERATION_TYPES,
     REACTION_OPERATIONS,
-    chemworld_operations,
-    chemworld_state_variable_contracts,
-    operation_contracts,
 )
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
-from chemworld.world.scoring import TaskScoringContract, safety_cost_from_flags
-from chemworld.world.world_law import world_law_spec
+from chemworld.world.scoring import TaskScoringContract
 
 DEFAULT_SCENARIO_ID = "reaction-to-assay"
+__all__ = ["OBSERVATION_KEYS", "ChemWorldEnv"]
 
 
 class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
@@ -290,120 +289,13 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         return observation_dict, reward, terminated, truncated, info
 
     def task_info(self) -> dict[str, Any]:
-        scenario_card = self.scenario_instance.to_card()
-        compiled_mechanism = self.scenario_instance.compiled_mechanism
-        return {
-            "env_id": "ChemWorld",
-            "task_id": self.task_id,
-            "world_law_id": self.world.family_version,
-            "scenario_id": self.scenario_spec.scenario_id,
-            "scenario": scenario_card,
-            "initial_state_id": self.scenario_spec.initial_state_id,
-            "world_split": self.world_split,
-            "world_provider": self.world.provider,
-            "objective": self.objective,
-            "budget": self.budget,
-            "episode_mode": self.episode_mode,
-            "safety_limit": self.safety_limit,
-            "seed": self.seed,
-            "world_id": self.world.world_id,
-            "task_contract_hash": (
-                None if self.task_spec is None else self.task_spec.contract_hash
-            ),
-            "runtime_profile_hash": self.runtime.profile.profile_hash,
-            "mechanism_id": compiled_mechanism.mechanism_id,
-            "mechanism_hash": compiled_mechanism.mechanism_hash,
-            "mechanism_version": compiled_mechanism.mechanism_version,
-            "mechanism_manifest": compiled_mechanism.manifest.to_dict(),
-            "scoring_contract": self.scoring_contract.to_dict(),
-            "scoring_contract_hash": self.scoring_contract.contract_hash,
-            "observation_contract": self.observation_contract.to_dict(),
-            "observation_contract_hash": self.observation_contract.contract_hash,
-            "env_version": __version__,
-            "world_family_version": self.world.family_version,
-            "runtime": self.runtime.to_dict(),
-            "operation_types": list(OPERATION_TYPES),
-            "allowed_operations": sorted(self.allowed_operations),
-            "allowed_instruments": sorted(self.allowed_instruments),
-            "kernel_maturity": self.kernel_maturity.to_dict(),
-            "physics_maturity": self.kernel_maturity.lowest_level.value,
-            "proxy_allowed": self.kernel_maturity.proxy_allowed,
-            "instruments": {
-                key: contract.to_dict() for key, contract in instrument_contracts().items()
-            },
-            "reactions": [
-                reaction.to_dict()
-                for reaction in compiled_mechanism.network.reactions
-            ],
-            "operations": [operation.to_dict() for operation in chemworld_operations()],
-            "operation_contracts": {
-                key: contract.to_dict() for key, contract in operation_contracts().items()
-            },
-            "state_variables": [
-                variable.to_dict() for variable in chemworld_state_variable_contracts()
-            ],
-            "constitution": self.constitution_summary(),
-            "world_law": world_law_spec().to_dict(),
-            "backend": semi_mechanistic_backend_spec().to_dict(),
-            "observation_keys": list(OBSERVATION_KEYS),
-        }
+        return build_task_info(self)
 
     def constitution_summary(self) -> dict[str, Any]:
-        state_report = self.constitution.check_state(self._state)
-        return {
-            "name": "PhysicalConstitutionChecklist",
-            "passed": state_report.passed,
-            "checks": state_report.to_list(),
-            "rules": [
-                "material_conservation",
-                "nonnegative_state",
-                "unit_consistency",
-                "yield_upper_bound",
-                "energy_balance",
-                "phase_mass_balance",
-                "observation_non_omniscient",
-                "measurement_has_cost",
-                "action_preconditions",
-                "safety_constraints",
-                "public_private_reproducibility",
-            ],
-        }
+        return build_constitution_summary(self)
 
     def render(self) -> Any:
-        """Render a concise visible campaign summary."""
-
-        last_operation = (
-            None
-            if self._last_operation_record is None
-            else self._last_operation_record.operation_type
-        )
-        lines = [
-            "ChemWorld",
-            f"  task: {self.task_id or 'ad-hoc'}",
-            f"  scenario: {None if self.scenario_spec is None else self.scenario_spec.scenario_id}",
-            f"  campaign: {self._campaign_id}",
-            f"  step: {self._step_count}/{self.budget}",
-            f"  experiment: {self._experiment_index}",
-            f"  last_operation: {last_operation}",
-            (
-                "  ledger: "
-                f"time_s={self._state.ledger.time_s:.1f}, "
-                f"cost={self._state.ledger.cost:.3f}, "
-                f"risk={self._state.ledger.risk:.3f}, "
-                f"sample_L={self._state.ledger.sample_consumed_L:.6f}"
-            ),
-        ]
-        visible = {
-            key: float(value[0])
-            for key, value in self._last_observation.items()
-            if np.isfinite(float(value[0]))
-        }
-        lines.append(f"  visible_observation: {visible}")
-        rendered = "\n".join(lines)
-        if self.render_mode == "human":
-            print(rendered)
-            return None
-        return rendered
+        return render_env(self)
 
     def _make_campaign_id(self) -> str:
         task_part = self.task_id or "adhoc"
@@ -436,102 +328,4 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         return self.scenario_instance.initial_state
 
     def _info(self, operation_record: OperationRecord, observation: Any) -> dict[str, Any]:
-        values = observation.values
-        checks = operation_record.constitution_checks
-        constitution_failed = any(not bool(check.get("passed", False)) for check in checks)
-        precondition_failed = not all(operation_record.preconditions.values())
-        observed_keys = [key for key, observed in observation.observed_mask.items() if observed]
-        if precondition_failed:
-            reward_source = "failed_precondition"
-        elif operation_record.operation_type == "measure":
-            reward_source = f"instrument:{operation_record.instrument}"
-        elif any(key in observed_keys for key in ("yield", "selectivity", "conversion")):
-            reward_source = "carried_observation_with_public_ledger"
-        else:
-            reward_source = "public_ledger_only"
-        score = value_or_default(values, "score")
-        failed_preconditions = [
-            key for key, passed in operation_record.preconditions.items() if not passed
-        ]
-        constraint_flags = {
-            "unsafe": value_or_default(values, "safety_risk") >= self.safety_limit,
-            "unsafe_by_task_limit": (
-                value_or_default(values, "safety_risk") >= self.safety_limit
-            ),
-            "high_cost": value_or_default(values, "cost") >= 0.75,
-            "low_selectivity": value_or_default(values, "selectivity") <= 0.35,
-            "degradation_detected": (
-                value_or_default(values, "degradation_warning") >= 0.28
-            ),
-            "constitution_failed": constitution_failed,
-            "precondition_failed": precondition_failed,
-            "phase_mass_balance_failed": any(
-                check.get("name") == "phase_mass_balance" and not check.get("passed", False)
-                for check in checks
-            ),
-        }
-        cost_signal, cost_components = safety_cost_from_flags(constraint_flags)
-        return {
-            "step": self._step_count,
-            "budget": self.budget,
-            "remaining_budget": max(self.budget - self._step_count, 0),
-            "campaign_id": self._campaign_id,
-            "episode_mode": self.episode_mode,
-            "experiment_index": self._experiment_index,
-            "operation_id": self._operation_id,
-            "experiment_ended": False,
-            "experiment_summaries": list(self._experiment_summaries),
-            "world_id": self.world.world_id,
-            "task_id": self.task_id,
-            "scenario_id": None if self.scenario_spec is None else self.scenario_spec.scenario_id,
-            "initial_state_id": self.scenario_spec.initial_state_id,
-            "world_law_id": self.world.family_version,
-            "world_split": self.world_split,
-            "world_provider": self.world.provider,
-            "objective": self.objective,
-            "safety_limit": self.safety_limit,
-            "task_contract_hash": (
-                None if self.task_spec is None else self.task_spec.contract_hash
-            ),
-            "runtime_profile_hash": self.runtime.profile.profile_hash,
-            "mechanism_id": self.scenario_instance.compiled_mechanism.mechanism_id,
-            "mechanism_hash": self.scenario_instance.compiled_mechanism.mechanism_hash,
-            "scoring_contract_hash": self.scoring_contract.contract_hash,
-            "observation_contract_hash": self.observation_contract.contract_hash,
-            "operation_type": operation_record.operation_type,
-            "operation_allowed_by_task": operation_record.operation_type in self.allowed_operations,
-            "instrument_allowed_by_task": (
-                operation_record.operation_type != "measure"
-                or operation_record.instrument in self.allowed_instruments
-            ),
-            "preconditions": operation_record.preconditions,
-            "state_delta_summary": operation_record.state_delta_summary,
-            "constitution_checks": checks,
-            "instrument": operation_record.instrument,
-            "instrument_source": observation.instrument_id,
-            "observed_keys": observed_keys,
-            "observed_mask": observation.observed_mask,
-            "raw_signal": observation.raw_signal,
-            "processed_estimate": observation.processed_estimate,
-            "uncertainty": observation.uncertainty,
-            "measurement_cost": operation_record.measurement_cost,
-            "sample_consumed": operation_record.sample_consumed_L,
-            "observed_reward": score,
-            "leaderboard_score": (
-                score
-                if operation_record.instrument == "final_assay" and not precondition_failed
-                else None
-            ),
-            "reward_source": reward_source,
-            "cost": cost_signal,
-            "cost_components": cost_components,
-            "constraint_budget_remaining": max(1.0 - cost_signal, 0.0),
-            "error_message": (
-                None
-                if not failed_preconditions
-                else f"Action precondition failed: {', '.join(failed_preconditions)}"
-            ),
-            "constraint_flags": constraint_flags,
-            "env_version": __version__,
-            "world_family_version": self.world.family_version,
-        }
+        return build_step_info(self, operation_record, observation)

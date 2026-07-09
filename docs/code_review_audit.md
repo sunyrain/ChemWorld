@@ -165,7 +165,9 @@ process-operation dispatch to `runtime.apply_transaction()` instead of adding
 inline branches for process operations. Current cleanup also extracted
 `chemworld.envs.spaces`, keeping Gym action/observation space construction,
 nullable scalar boxes, and observation-array encoding outside the environment
-control loop.
+control loop. It also extracted `chemworld.envs.reports`, keeping task info,
+constitution summaries, render text, and step-info payload construction outside
+the environment control loop.
 
 The final Runtime v2 boundary audit also enforces that generic runtime,
 observation, scoring, and downstream bookkeeping do not depend on fixed

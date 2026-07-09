@@ -271,6 +271,21 @@ def test_chemworld_env_spaces_are_separate_from_control_loop() -> None:
     assert "class NullableScalarBox" in space_source
 
 
+def test_chemworld_env_reports_are_separate_from_control_loop() -> None:
+    env_source = Path("src/chemworld/envs/chemworld_env.py").read_text(encoding="utf-8")
+    report_source = Path("src/chemworld/envs/reports.py").read_text(encoding="utf-8")
+
+    assert "def build_task_info" in report_source
+    assert "def build_step_info" in report_source
+    assert "def render_env" in report_source
+    assert "instrument_contracts" not in env_source
+    assert "semi_mechanistic_backend_spec" not in env_source
+    assert "safety_cost_from_flags" not in env_source
+    assert "return build_task_info(self)" in env_source
+    assert "return build_step_info(self, operation_record, observation)" in env_source
+    assert "return render_env(self)" in env_source
+
+
 def test_runtime_electrochemical_service_is_separate_from_domain_services() -> None:
     domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
         encoding="utf-8"

@@ -197,6 +197,8 @@ Action handling is split into an explicit abstraction layer:
   single validation result;
 - `envs/spaces.py`: owns Gym action/observation space construction, nullable
   scalar observation boxes, and observation-array encoding;
+- `envs/reports.py`: owns task-info cards, constitution summaries, render text,
+  and step-info payload construction;
 - wrappers read validator output instead of duplicating validation logic.
 
 Failed action preconditions return non-informative observations with empty
