@@ -15,9 +15,9 @@ clear maturity boundaries.
 
 Current remaining work:
 
-- 44 items remain out of 58.
-- 6 P0/P1 items block a credible pre-release benchmark.
-- 17 P0/P1/P2/P4 items remain for a usable public pre-release package.
+- 43 items remain out of 58.
+- 5 P0/P1 items block a credible pre-release benchmark.
+- 16 P0/P1/P2/P4 items remain for a usable public pre-release package.
 - 27 P3 items remain for long-term professional physical-chemistry deepening.
 
 Release interpretation:
@@ -33,20 +33,20 @@ Release interpretation:
 
 | Scope | Total | Done | Active | Claimed | Open | Remaining |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| P0 Pre-release benchmark hardening | 12 | 9 | 0 | 0 | 3 | 3 |
+| P0 Pre-release benchmark hardening | 12 | 10 | 0 | 0 | 2 | 2 |
 | P1 Runtime and environment consistency | 8 | 5 | 0 | 0 | 3 | 3 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 14 | 0 | 3 | 41 | 44 |
+| Total | 58 | 15 | 0 | 3 | 40 | 43 |
 
 Near-term cutline:
 
 | Milestone | Remaining | Meaning |
 | --- | ---: | --- |
-| Benchmark trust minimum | 6 | Finish all P0/P1 items |
-| Public pre-release package | 17 | Finish P0/P1/P2/P4 |
-| Full visible roadmap | 44 | Finish all open and claimed items |
+| Benchmark trust minimum | 5 | Finish all P0/P1 items |
+| Public pre-release package | 16 | Finish P0/P1/P2/P4 |
+| Full visible roadmap | 43 | Finish all open and claimed items |
 
 ## 3. Current System Position
 
@@ -107,12 +107,11 @@ Definition of done:
 
 Do these next, in order:
 
-1. `P0-BENCH-10`: produce benchmark paper artifact skeleton.
-2. `P0-BENCH-11`: add CI-like local release command.
-3. `P0-BENCH-12`: write pre-release limitations statement.
-4. `P1-CONSIST-06`: audit ledger single-source-of-truth.
-5. `P1-CONSIST-07`: audit public observation leakage.
-6. `P1-CONSIST-08`: scan runtime boundaries.
+1. `P0-BENCH-11`: add CI-like local release command.
+2. `P0-BENCH-12`: write pre-release limitations statement.
+3. `P1-CONSIST-06`: audit ledger single-source-of-truth.
+4. `P1-CONSIST-07`: audit public observation leakage.
+5. `P1-CONSIST-08`: scan runtime boundaries.
 
 This sequence reduces public benchmark risk before expanding model scope.
 
@@ -137,7 +136,7 @@ Frozen core tasks:
 | P0-BENCH-07 | Codex | Done | Harden replay verifier | `verify_records` catches tampered mechanism hash, scoring hash, profile hash, reward, observation, operation metadata, runtime transaction status, world events, state patch summaries, and early-termination replay drift; tests cover first-record and mid-trajectory contract hash tampering |
 | P0-BENCH-08 | Codex | Done | Build one valid submission bundle example | `chemworld submission example` and `examples/demo_submission_bundle.py` generate a bundle with `manifest.json`, trajectories, results, explanations, dependency notes, README, reproducible command, validation, summary, and replay verification |
 | P0-BENCH-09 | Codex | Done | Build local teacher/student evaluation smoke | `local_eval_server/teacher_side/eval_machine.py` supports `init-demo`, `validate`, `run`, `aggregate`, `summarize`, and `demo`; tests cover one-command demo plus manual `init-demo -> validate -> run -> summarize` over the simulated `team_alpha` student sandbox with trajectory, result, verify, leaderboard, and summary artifacts |
-| P0-BENCH-10 |  | Open | Produce benchmark paper artifact skeleton | Includes task contracts, baseline report, dataset card, replay manifest, and release checklist |
+| P0-BENCH-10 | Codex | Done | Produce benchmark paper artifact skeleton | `chemworld artifact create` generates task cards, task contracts, scenario/world-law snapshots, schemas, baseline report, example trajectory, dataset card, replay manifest, release manifest, release checklist, environment summary, and reproduction script; tests verify generated replay metadata and checklist files |
 | P0-BENCH-11 |  | Open | Add CI-like local release command | One documented command runs lint, type check, tests, docs build, audit script, and baseline smoke |
 | P0-BENCH-12 |  | Open | Write pre-release limitations statement | Clearly states virtual semi-mechanistic scope, model maturity, non-real-predictor boundary, and known proxy/lite surfaces |
 

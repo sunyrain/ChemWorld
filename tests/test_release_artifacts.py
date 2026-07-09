@@ -44,10 +44,46 @@ def test_baseline_report_private_signature_and_paper_artifact(tmp_path: Path) ->
         seeds=[0],
     )
     assert artifact["baseline_report"]["result_count"] == 1
+    assert artifact["replay_verified"] is True
+    assert (tmp_path / "paper_artifact" / "README.md").exists()
+    assert (tmp_path / "paper_artifact" / "environment.md").exists()
     assert (tmp_path / "paper_artifact" / "tasks" / "task_cards.json").exists()
+    assert (tmp_path / "paper_artifact" / "tasks" / "task_contracts.json").exists()
     assert (tmp_path / "paper_artifact" / "schemas" / "action_schema.json").exists()
     assert (tmp_path / "paper_artifact" / "dataset_examples" / "dataset_card.json").exists()
+    assert (
+        tmp_path
+        / "paper_artifact"
+        / "manifests"
+        / "replay_manifest.json"
+    ).exists()
+    assert (
+        tmp_path
+        / "paper_artifact"
+        / "manifests"
+        / "release_manifest.json"
+    ).exists()
+    assert (tmp_path / "paper_artifact" / "release_checklist.md").exists()
     assert (tmp_path / "paper_artifact" / "scripts" / "reproduce_public_artifact.ps1").exists()
+    replay_manifest = json.loads(
+        (
+            tmp_path
+            / "paper_artifact"
+            / "manifests"
+            / "replay_manifest.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert replay_manifest["verification"]["verified"] is True
+    release_checklist = json.loads(
+        (
+            tmp_path
+            / "paper_artifact"
+            / "manifests"
+            / "release_checklist.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert release_checklist["items"][0]["id"] == "task_contracts"
+    assert release_checklist["ready_for_public_claim"] is False
 
 
 def test_release_artifact_cli_commands(tmp_path: Path, capsys) -> None:

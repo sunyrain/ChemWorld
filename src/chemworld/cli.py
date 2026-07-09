@@ -540,7 +540,7 @@ def build_parser() -> argparse.ArgumentParser:
     artifact_create_parser.add_argument(
         "--tasks",
         nargs="+",
-        default=["reaction-to-assay"],
+        default=list(PRE_RELEASE_TASK_IDS),
     )
     artifact_create_parser.add_argument(
         "--agents",
