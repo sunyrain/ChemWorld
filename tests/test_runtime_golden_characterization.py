@@ -265,6 +265,11 @@ def test_runtime_v2_golden_scripted_final_assay(
             key.startswith("initial_") and key.endswith("_mol")
             for key in env.unwrapped._state.metadata
         )
+        if env.unwrapped._state.phases is not None:
+            assert all(
+                "solvent_loss" not in phase.metadata
+                for phase in env.unwrapped._state.phases.phases.values()
+            )
 
         if task.episode_mode == "campaign":
             assert not final_terminated

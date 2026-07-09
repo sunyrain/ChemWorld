@@ -41,7 +41,7 @@ def _typed_phase_ledger_entries(
             "volume_L": float(phase.volume_L),
             PHASE_PRODUCT_AMOUNT_KEY: product_amount,
             "impurity_mol": impurity_amount,
-            "solvent_loss": float(phase.metadata.get("solvent_loss", 0.0)),
+            "solvent_loss": 0.0,
         }
     return entries
 
@@ -111,10 +111,7 @@ def downstream_truth_values(
     purity = selected_product / max(selected_product + selected_impurity, 1.0e-12)
     recovery = selected_product / initial_p
     phase_ratio = organic_volume / max(organic_volume + aqueous_volume, 1.0e-12)
-    solvent_loss = max(
-        float(process_metrics.get("solvent_loss", 0.0)),
-        float(selected.get("solvent_loss", 0.0)),
-    )
+    solvent_loss = float(process_metrics.get("solvent_loss", 0.0))
     mass_balance_error = abs(total_phase_product - product_amount) / initial_p
     return {
         "purity": float(np.clip(purity, 0.0, 1.0)),

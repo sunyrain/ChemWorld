@@ -1143,6 +1143,7 @@ def test_downstream_truth_uses_mechanism_role_species_not_fixed_slots() -> None:
         process=process_with_metrics(
             ProcessLedger(),
             pre_separation_product_mol=0.006,
+            solvent_loss=0.03,
         ),
         phases=PhaseLedger(
             {
@@ -1153,7 +1154,6 @@ def test_downstream_truth_uses_mechanism_role_species_not_fixed_slots() -> None:
                     volume_L=0.020,
                     species_amounts_mol={"target_X": 0.0045, "impurity_Y": 0.0002},
                     selected=True,
-                    metadata={"solvent_loss": 0.03},
                 ),
                 "aqueous": PhaseRecord(
                     phase_id="aqueous",
@@ -1180,6 +1180,7 @@ def test_downstream_truth_uses_mechanism_role_species_not_fixed_slots() -> None:
     assert truth["product_in_aqueous"] == pytest.approx(0.25)
     assert truth["recovery"] == pytest.approx(0.75)
     assert truth["purity"] == pytest.approx(0.0045 / 0.0047)
+    assert truth["solvent_loss"] == pytest.approx(0.03)
     assert truth["process_mass_balance_error"] == pytest.approx(0.0)
 
 
@@ -1434,6 +1435,30 @@ def test_constitution_rejects_primary_process_metric_metadata() -> None:
     assert not report.passed
     assert any(
         check.name == "metadata_no_primary_process_metrics"
+        for check in report.failures()
+    )
+
+
+def test_constitution_rejects_phase_local_process_metric_metadata() -> None:
+    state = initial_chemworld_state().replace(
+        phases=PhaseLedger(
+            {
+                "organic": PhaseRecord(
+                    phase_id="organic",
+                    vessel_id="batch_reactor",
+                    phase_type="organic",
+                    volume_L=0.010,
+                    species_amounts_mol={},
+                    metadata={"solvent_loss": 0.04},
+                )
+            }
+        )
+    )
+    report = make_chemworld_constitution().check_state(state)
+
+    assert not report.passed
+    assert any(
+        check.name == "phase_metadata_no_primary_process_metrics:organic"
         for check in report.failures()
     )
 

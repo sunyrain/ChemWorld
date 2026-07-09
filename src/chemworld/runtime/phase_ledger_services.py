@@ -124,7 +124,7 @@ class ChemWorldPhaseLedgerServices:
                 species_amounts_mol=species_amounts,
                 settled=phase_settled,
                 selected=phase_selected,
-                metadata={"solvent_loss": float(values.get("solvent_loss", 0.0))},
+                metadata={},
             )
 
         if has_split_phases:
@@ -143,7 +143,7 @@ class ChemWorldPhaseLedgerServices:
                 species_amounts_mol=species_amounts,
                 settled=carrier.settled,
                 selected=carrier.selected,
-                metadata=carrier.metadata,
+                metadata=self._phase_metadata_without_primary_metrics(carrier.metadata),
             )
 
         return PhaseLedger(phases)
@@ -179,11 +179,19 @@ class ChemWorldPhaseLedgerServices:
             target_species=self.species_view.target_species_for_state(state),
             impurity_species=self.species_view.impurity_species_for_state(state),
         )
-        return {
+        metrics = {
             key: float(value)
             for key, value in truth_values.items()
             if key in PHASE_PROCESS_METRIC_KEYS
         }
+        metrics["solvent_loss"] = max(
+            metrics.get("solvent_loss", 0.0),
+            *(
+                float(values.get("solvent_loss", 0.0))
+                for values in phase_ledger.values()
+            ),
+        )
+        return metrics
 
     def with_phase_ledger(
         self,
@@ -307,7 +315,7 @@ class ChemWorldPhaseLedgerServices:
             "volume_L": float(phase.volume_L),
             PHASE_PRODUCT_AMOUNT_KEY: product_amount,
             "impurity_mol": impurity_amount,
-            "solvent_loss": float(phase.metadata.get("solvent_loss", 0.0)),
+            "solvent_loss": 0.0,
         }
 
     def _species_with_alias(self, alias: str) -> str | None:
@@ -325,6 +333,12 @@ class ChemWorldPhaseLedgerServices:
                 base = species_id[: -len(suffix)]
                 family.update({base, f"{base}_org", f"{base}_aq"})
         return family
+
+    @staticmethod
+    def _phase_metadata_without_primary_metrics(metadata: dict[str, Any]) -> dict[str, Any]:
+        cleaned = metadata.copy()
+        cleaned.pop("solvent_loss", None)
+        return cleaned
 
 
 __all__ = [

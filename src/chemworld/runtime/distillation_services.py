@@ -101,7 +101,7 @@ def _distillation_phases(
                 species_amounts_mol=bottoms_amounts,
                 settled=True,
                 selected=not distillate_selected,
-                metadata={"solvent_loss": solvent_loss},
+                metadata={},
             ),
             "distillate": PhaseRecord(
                 phase_id="distillate",
@@ -111,7 +111,7 @@ def _distillation_phases(
                 species_amounts_mol=distillate_amounts,
                 settled=True,
                 selected=distillate_selected,
-                metadata={"solvent_loss": 0.0},
+                metadata={},
             ),
         }
     )

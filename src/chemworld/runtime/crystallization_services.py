@@ -76,7 +76,7 @@ def _crystallization_phases(
                 species_amounts_mol=liquor_amounts,
                 settled=True,
                 selected=not solid_selected,
-                metadata={"solvent_loss": solvent_loss},
+                metadata={},
             ),
             "solid": PhaseRecord(
                 phase_id="solid",
@@ -86,7 +86,7 @@ def _crystallization_phases(
                 species_amounts_mol=solid_amounts,
                 settled=True,
                 selected=solid_selected,
-                metadata={"solvent_loss": 0.0},
+                metadata={},
             ),
         }
     )

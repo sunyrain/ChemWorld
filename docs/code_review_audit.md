@@ -492,6 +492,11 @@ Recommended follow-up:
   `WorldState` no longer derives max volume, temperature, or pressure from
   metadata; constitution checks and operation payload validation now read the
   current vessel record, and metadata vessel-bound keys are rejected.
+- Removed the remaining phase-local `solvent_loss` metadata path. Separation,
+  crystallization, and distillation phases now carry only typed phase identity,
+  volume, composition, and status; process loss is written to and read from
+  `ProcessLedger.metrics`, and constitution checks reject phase metadata loss
+  fallbacks.
 - Promoted phase-system readiness, settled status, and selected-phase state out
   of runtime metadata into typed `PhaseLedger` records. Constitution
   preconditions now read `PhaseRecord.settled/selected`, extraction,

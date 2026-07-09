@@ -184,6 +184,13 @@ def check_typed_ledgers(constitution: Any, state: WorldState) -> list[CheckResul
                         constitution.tolerance,
                     )
                 )
+            checks.append(
+                CheckResult(
+                    f"phase_metadata_no_primary_process_metrics:{phase_id}",
+                    "solvent_loss" not in phase.metadata,
+                    "Phase-local process losses must live in typed ProcessLedger.",
+                )
+            )
             if state.vessels is not None:
                 checks.append(
                     CheckResult(
