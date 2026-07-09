@@ -76,7 +76,7 @@ runs/audit/trajectories/*.jsonl
 | `hash_coverage_complete` | true |
 | `verify_failures` | 0 |
 | `spectra_failures` | 0 |
-| `spectra_warnings` | 2 |
+| `spectra_warnings` | 0 |
 | `invalid_steps` | 0 |
 | `constitution_failures` | 0 |
 
@@ -113,15 +113,13 @@ agent-facing probe 结果：
 | 1 | 0.282 | 0.345 | 6 | 0.329 | 0 |
 | 2 | 0.335 | 0.387 | 3 | 0.378 | 0 |
 
-当前 warning：
+当前 warning：无。
 
-- `reaction-to-purification`, seed 0:
-  `semantic_alignment_warning:high_purity_with_dominant_reactant_peak`
-- `reaction-to-purification`, seed 2:
-  `semantic_alignment_warning:high_purity_with_dominant_reactant_peak`
-
-解释：这两个 warning 不影响 replay 或 constitution 自洽性，但说明 raw HPLC peak table 与
-processed purity 的语义校准仍需下一项 `P1-CONSIST-02` 专门处理。
+本轮修复：`reaction-to-purification` 的 final assay raw HPLC 过去使用全局 reaction
+species amounts 生成谱图，因此 processed purity 较高时仍可能出现 `reactant_public` 主导峰。
+现在 downstream task 在存在 selected phase 时，会使用 selected product phase 的 public
+species calibration 生成 HPLC/GC/UV-vis/final assay raw signals。这样 processed purity、
+recovery 与 raw spectra 指向同一个被测样品。
 
 ## 自洽性维度
 
@@ -184,15 +182,16 @@ processed purity 的语义校准仍需下一项 `P1-CONSIST-02` 专门处理。
 - UV-vis 包含 wavelength 和 absorbance。
 - final assay 返回 HPLC、GC、UV-vis、IR、NMR 和 calibrated mass-balance packet。
 
-当前风险：
+当前状态：
 
-- 已观察到一种语义不完全对齐现象：final processed purity 可以较高，但 final HPLC 中 `reactant_public` peak 仍然占主导。这会被审计脚本标记为 `semantic_alignment_warning`，暂不作为失败处理。
+- `reaction-to-purification` 的 final assay HPLC 已不再由全局未反应物主导。
+- 审计脚本仍保留 `semantic_alignment_warning` 规则；如果后续新增任务或仪器再次出现
+  high-purity / reactant-dominant 冲突，会继续报警。
 
 后续建议：
 
 - 明确 final assay processed purity 与 HPLC public peak table 的校准关系。
-- 如果 HPLC peak table 被设计为全样品公共校准信号，应在 docs 和 instrument card 中写清楚。
-- 如果 HPLC peak table 应代表最终产物流，则需要调整 raw signal 生成或 downstream ledger 映射。
+- 对 crystallization、distillation、flow、electrochemistry 的专属谱图继续增加方向性测试。
 
 ### 评测自洽
 

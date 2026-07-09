@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 
 from chemworld.foundation import Observation, PhysicalConstitution, WorldState
-from chemworld.foundation.state import ProcessLedger
+from chemworld.foundation.state import ProcessLedger, selected_phase_id
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.observation_contracts import TaskObservationContract
@@ -227,6 +227,12 @@ class ChemWorldObservationKernel:
         if self.observation_contract is None:
             return state.species_amounts
         keys = set(observable_keys)
+        downstream_public_amounts = self._selected_phase_public_species_amounts(
+            state,
+            observable_keys=keys,
+        )
+        if downstream_public_amounts is not None:
+            return downstream_public_amounts
         public_amounts: dict[str, float] = {}
         reaction_keys = {
             "yield",
@@ -277,6 +283,70 @@ class ChemWorldObservationKernel:
             for species_id, amount in public_amounts.items()
             if amount > 0.0
         } or None
+
+    def _selected_phase_public_species_amounts(
+        self,
+        state: WorldState,
+        *,
+        observable_keys: set[str],
+    ) -> dict[str, float] | None:
+        downstream_keys = {
+            "purity",
+            "recovery",
+            "phase_ratio",
+            "product_in_organic",
+            "product_in_aqueous",
+            "impurity_signal",
+            "process_mass_balance_error",
+            "crystal_yield",
+            "crystal_purity",
+            "distillate_purity",
+            "distillate_recovery",
+        }
+        if not observable_keys.intersection(downstream_keys):
+            return None
+        if state.phases is None:
+            return None
+        selected_id = selected_phase_id(state.phases)
+        if selected_id is None:
+            return None
+        selected = state.phases.phases.get(selected_id)
+        if selected is None:
+            return None
+
+        phase_amounts = selected.species_amounts_mol
+        target_amount = self._phase_amount(phase_amounts, self.species_view.target_species)
+        byproduct_amount = self._phase_amount(phase_amounts, self.species_view.byproduct_species)
+        degradation_amount = self._phase_amount(
+            phase_amounts,
+            self.species_view.degradation_species,
+        )
+        impurity_amount = self._phase_amount(phase_amounts, self.species_view.impurity_species)
+        reactant_amount = float(
+            phase_amounts.get(self.species_view.reactant_species(state), 0.0)
+        )
+
+        public_amounts: dict[str, float] = {}
+        if reactant_amount > 0.0:
+            public_amounts["reactant_public"] = reactant_amount
+        if target_amount > 0.0:
+            public_amounts["target_public"] = target_amount
+        if impurity_amount > 0.0 or byproduct_amount > 0.0:
+            public_amounts["impurity_public"] = max(
+                impurity_amount - degradation_amount,
+                byproduct_amount,
+                0.0,
+            )
+        if degradation_amount > 0.0:
+            public_amounts["degradation_public"] = degradation_amount
+        return public_amounts or None
+
+    @staticmethod
+    def _phase_amount(
+        phase_amounts: dict[str, float],
+        species_ids: tuple[str, ...],
+    ) -> float:
+        return sum(float(phase_amounts.get(species_id, 0.0)) for species_id in species_ids)
 
 
 __all__ = ["ChemWorldObservationKernel"]

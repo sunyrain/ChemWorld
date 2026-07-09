@@ -108,6 +108,24 @@ def test_purification_slice_no_longer_allows_unrelated_process_ops(
     )
 
 
+def test_purification_final_assay_hplc_tracks_selected_product_phase(
+    tmp_path: Path,
+) -> None:
+    audit = _audit_module()
+    row = audit.run_smoke_audit(
+        task_id="reaction-to-purification",
+        seed=0,
+        output_dir=tmp_path,
+        max_steps=18,
+    )
+    assert row["verify_status"] == "pass"
+    assert row["spectra_metric_consistency"] == "pass"
+    assert not any(
+        warning.startswith("semantic_alignment_warning:")
+        for warning in row["warnings"]
+    )
+
+
 def test_spectra_metric_warning_for_high_purity_with_reactant_dominant_hplc() -> None:
     audit = _audit_module()
     raw_signal = {

@@ -10,11 +10,11 @@ this file.
 Current board size:
 
 - 58 active items total.
-- 3 items done.
-- 55 items remaining: 52 open, 3 claimed.
-- First release target: finish P0 and P1, which currently leaves 17 items.
+- 4 items done.
+- 54 items remaining: 51 open, 3 claimed.
+- First release target: finish P0 and P1, which currently leaves 16 items.
 - Full pre-release package target: finish P0, P1, P2, and P4, which currently
-  leaves 28 items.
+  leaves 27 items.
 - Professional deepening backlog: 27 items, including 3 already claimed by
   `liyijun`.
 
@@ -61,11 +61,11 @@ Fresh consolidated board counts:
 | Area | Total | Done | Open | Claimed | Remaining | Notes |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | P0 Pre-release benchmark hardening | 12 | 2 | 10 | 0 | 10 | Highest priority |
-| P1 Runtime and environment consistency | 8 | 1 | 7 | 0 | 7 | Needed before public benchmark claims |
+| P1 Runtime and environment consistency | 8 | 2 | 6 | 0 | 6 | Needed before public benchmark claims |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 6 | 0 | 6 | Required for RL/BO/LLM users |
 | P3 Professional physchem deepening | 27 | 0 | 24 | 3 | 27 | Concrete slices from the deepening roadmap |
 | P4 Docs, notebooks, and release packaging | 5 | 0 | 5 | 0 | 5 | Keep site useful but do not let docs outrun code |
-| Total active board | 58 | 3 | 52 | 3 | 55 | First target: finish P0/P1 |
+| Total active board | 58 | 4 | 51 | 3 | 54 | First target: finish P0/P1 |
 
 Priority interpretation:
 
@@ -124,7 +124,7 @@ the same story.
 | ID | Owner | Status | Task | Exit Criteria |
 | --- | --- | --- | --- | --- |
 | P1-CONSIST-01 | Codex | Done | Run and document environment self-consistency audit | Full audit covers 14 formal tasks over seeds 0/1/2 with complete task/profile/mechanism/scoring/observation hash coverage, replay verification, and documented warnings |
-| P1-CONSIST-02 |  | Open | Spectra-metric semantic alignment | HPLC/GC/UV-vis/final assay raw signals have directionally consistent processed estimates and warnings for known weak cases |
+| P1-CONSIST-02 | Codex | Done | Spectra-metric semantic alignment | Downstream final assay spectra now use selected-phase public species calibration; full audit reports zero spectra failures and zero spectra warnings |
 | P1-CONSIST-03 |  | Open | Action affordance consistency | `available_actions`, action mask, validator, task policy, and operation registry agree for every task |
 | P1-CONSIST-04 |  | Open | Invalid action atomicity | Schema/task/precondition failures do not mutate material ledgers and record explicit process/cost penalties where appropriate |
 | P1-CONSIST-05 |  | Open | Campaign vs single-experiment semantics audit | Final assay ends an experiment in campaign tasks but ends the episode only in single-experiment tasks |
@@ -198,11 +198,11 @@ Goal: make the project legible without letting docs outrun tested behavior.
 
 Do these in order:
 
-1. `P1-CONSIST-02` fix or document spectra-metric semantic warnings.
-2. `P0-BENCH-04` calibrate BO budgets and initial samples.
+1. `P0-BENCH-04` calibrate BO budgets and initial samples.
+2. `P1-CONSIST-03` audit action affordance consistency.
 3. `P0-BENCH-08` publish a valid submission bundle example.
 4. `P0-BENCH-02` build official seed suite.
-5. `P1-CONSIST-03` audit action affordance consistency.
+5. `P1-CONSIST-04` audit invalid action atomicity.
 
 Rationale: these five items convert ChemWorld from a rich internal prototype into
 a benchmark that an outside researcher can understand, run, and compare against.
