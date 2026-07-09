@@ -2327,14 +2327,24 @@
 <h1 id="_1">发布检查表</h1>
 <p>本检查表用于判断 ChemWorld 文档站、包和 benchmark contract 是否可以发布。</p>
 <h2 id="gate">代码 Gate</h2>
-<pre><code class="language-bash">python -m ruff check .
-python -m mypy src/chemworld
-python -m pytest
+<p>本地 release candidate 使用一个入口命令：</p>
+<pre><code class="language-powershell">.\.venv\Scripts\python.exe scripts\run_release_gate.py
 </code></pre>
-<p>任何 release candidate 都应记录命令输出、Python 版本、依赖版本和 commit。</p>
+<p>该命令会顺序运行：</p>
+<ol>
+<li><code>python -m ruff check .</code></li>
+<li><code>python -m mypy src/chemworld</code></li>
+<li><code>python -m pytest</code></li>
+<li><code>python -m mkdocs build --strict</code></li>
+<li><code>python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2</code></li>
+<li><code>python -m chemworld.cli baselines report --tasks reaction-to-assay --agents scripted_chemistry --seeds 0</code></li>
+</ol>
+<p>命令会把摘要写入 <code>runs/release_gate/release_gate_summary.json</code>。任何 release candidate
+都应记录该摘要、Python 版本、依赖版本和 commit。</p>
 <h2 id="gate_1">环境自洽性 Gate</h2>
 <pre><code class="language-bash">python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
 </code></pre>
+<p>该命令已被 <code>scripts/run_release_gate.py</code> 调用；单独运行主要用于调试环境自洽性失败。</p>
 <p>必须确认：</p>
 <ul>
 <li>注册任务均可 reset/step；</li>
@@ -2346,6 +2356,7 @@ python -m pytest
 <h2 id="gate_2">文档 Gate</h2>
 <pre><code class="language-bash">python -m mkdocs build --strict
 </code></pre>
+<p>该命令已被 <code>scripts/run_release_gate.py</code> 调用；单独运行主要用于调试文档构建失败。</p>
 <p>首页应指向当前架构、任务注册表、评测协议、baseline、release artifact 和 maturity
 说明。发布到 <code>gh-pages</code> 前，<code>site/</code> 目录必须来自同一 commit 的构建结果。</p>
 <h2 id="benchmark">Benchmark 合同</h2>
