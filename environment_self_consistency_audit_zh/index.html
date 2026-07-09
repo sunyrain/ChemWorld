@@ -1774,6 +1774,17 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
+        最新全量审计结果
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         自洽性维度
       
     </span>
@@ -1783,7 +1794,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         结构自洽
@@ -1794,7 +1805,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         物理自洽
@@ -1805,7 +1816,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
         观测自洽
@@ -1816,7 +1827,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
         谱图与指标自洽
@@ -1827,7 +1838,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         评测自洽
@@ -1838,7 +1849,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_9" class="md-nav__link">
+  <a href="#_10" class="md-nav__link">
     <span class="md-ellipsis">
       
         文档自洽
@@ -1854,7 +1865,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_10" class="md-nav__link">
+  <a href="#_11" class="md-nav__link">
     <span class="md-ellipsis">
       
         验收命令
@@ -1865,7 +1876,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_11" class="md-nav__link">
+  <a href="#_12" class="md-nav__link">
     <span class="md-ellipsis">
       
         当前判断
@@ -2354,6 +2365,10 @@ runs/audit/trajectories/*.jsonl
 <td>task 绑定的 scenario</td>
 </tr>
 <tr>
+<td><code>task_contract_hash</code></td>
+<td>task contract hash</td>
+</tr>
+<tr>
 <td><code>mechanism_hash</code></td>
 <td>编译后 mechanism 的 hash</td>
 </tr>
@@ -2364,6 +2379,10 @@ runs/audit/trajectories/*.jsonl
 <tr>
 <td><code>profile_hash</code></td>
 <td>runtime profile hash</td>
+</tr>
+<tr>
+<td><code>observation_contract_hash</code></td>
+<td>observation contract hash</td>
 </tr>
 <tr>
 <td><code>maturity</code></td>
@@ -2388,8 +2407,128 @@ runs/audit/trajectories/*.jsonl
 </tbody>
 </table>
 <p>脚本还会运行一个小型 agent-facing probe：在 <code>reaction-to-purification</code> 上使用固定 seeds 和多轮谱图反馈，记录 first score、best score、best-so-far AUC、invalid action 和谱图决策特征。</p>
-<h2 id="_3">自洽性维度</h2>
-<h3 id="_4">结构自洽</h3>
+<h2 id="_3">最新全量审计结果</h2>
+<p>运行命令：</p>
+<pre><code class="language-powershell">.\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2 --output-dir runs\audit
+</code></pre>
+<p>本次覆盖 14 个正式 task，共 42 条 task/seed 审计记录。</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th style="text-align: right;">结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>row_count</code></td>
+<td style="text-align: right;">42</td>
+</tr>
+<tr>
+<td><code>covered_task_count</code></td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td><code>hash_coverage_complete</code></td>
+<td style="text-align: right;">true</td>
+</tr>
+<tr>
+<td><code>verify_failures</code></td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>spectra_failures</code></td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>spectra_warnings</code></td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td><code>invalid_steps</code></td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>constitution_failures</code></td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p>覆盖的正式任务：</p>
+<ul>
+<li><code>electrochemical-conversion</code></li>
+<li><code>flow-reaction-optimization</code></li>
+<li><code>low-budget-characterization</code></li>
+<li><code>partition-discovery</code></li>
+<li><code>public-private-generalization</code></li>
+<li><code>purity-yield-tradeoff</code></li>
+<li><code>reaction-mechanism-explanation</code></li>
+<li><code>reaction-optimization-standard</code></li>
+<li><code>reaction-safety-constrained</code></li>
+<li><code>reaction-to-assay</code></li>
+<li><code>reaction-to-crystallization</code></li>
+<li><code>reaction-to-distillation</code></li>
+<li><code>reaction-to-purification</code></li>
+<li><code>tool-agent-planning</code></li>
+</ul>
+<p>每条记录均包含并通过非空检查：</p>
+<ul>
+<li><code>task_contract_hash</code></li>
+<li><code>mechanism_hash</code></li>
+<li><code>score_contract_hash</code></li>
+<li><code>profile_hash</code></li>
+<li><code>observation_contract_hash</code></li>
+</ul>
+<p>agent-facing probe 结果：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Seed</th>
+<th style="text-align: right;">First score</th>
+<th style="text-align: right;">Best score</th>
+<th style="text-align: right;">Best round</th>
+<th style="text-align: right;">Best-so-far AUC</th>
+<th style="text-align: right;">Invalid count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.371</td>
+<td style="text-align: right;">0.426</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.416</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.282</td>
+<td style="text-align: right;">0.345</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.329</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.335</td>
+<td style="text-align: right;">0.387</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.378</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p>当前 warning：</p>
+<ul>
+<li><code>reaction-to-purification</code>, seed 0:
+  <code>semantic_alignment_warning:high_purity_with_dominant_reactant_peak</code></li>
+<li><code>reaction-to-purification</code>, seed 2:
+  <code>semantic_alignment_warning:high_purity_with_dominant_reactant_peak</code></li>
+</ul>
+<p>解释：这两个 warning 不影响 replay 或 constitution 自洽性，但说明 raw HPLC peak table 与
+processed purity 的语义校准仍需下一项 <code>P1-CONSIST-02</code> 专门处理。</p>
+<h2 id="_4">自洽性维度</h2>
+<h3 id="_5">结构自洽</h3>
 <p>检查 task、scenario、world law、mechanism、runtime profile 是否互相指向同一套世界规则。</p>
 <p>当前已具备：</p>
 <ul>
@@ -2403,7 +2542,7 @@ runs/audit/trajectories/*.jsonl
   extraction / separation / purification 操作；审计脚本仍保留
   <code>task_policy_warning</code> 规则，以便后续任务切片再次误暴露 flow、电化学、结晶或蒸馏操作时能够立刻报警。</li>
 </ul>
-<h3 id="_5">物理自洽</h3>
+<h3 id="_6">物理自洽</h3>
 <p>检查每一步 transition 后是否满足 physical constitution。</p>
 <p>当前已具备：</p>
 <ul>
@@ -2418,7 +2557,7 @@ runs/audit/trajectories/*.jsonl
 <li><code>constraint_flags["constitution_failed"]</code> 不应出现。</li>
 <li>非法动作只应影响 process penalty，不应破坏 material ledger。</li>
 </ul>
-<h3 id="_6">观测自洽</h3>
+<h3 id="_7">观测自洽</h3>
 <p>检查 agent 得到的 observation 是否与 instrument contract 一致。</p>
 <p>当前已具备：</p>
 <ul>
@@ -2432,7 +2571,7 @@ runs/audit/trajectories/*.jsonl
 <li>raw spectra 不得泄漏 hidden species name、rate constant、hidden theta。</li>
 <li>observed mask 中未观测字段不得被当作有效测量值。</li>
 </ul>
-<h3 id="_7">谱图与指标自洽</h3>
+<h3 id="_8">谱图与指标自洽</h3>
 <p>检查 raw spectra 与 processed metrics 是否方向一致。</p>
 <p>当前已具备：</p>
 <ul>
@@ -2450,7 +2589,7 @@ runs/audit/trajectories/*.jsonl
 <li>如果 HPLC peak table 被设计为全样品公共校准信号，应在 docs 和 instrument card 中写清楚。</li>
 <li>如果 HPLC peak table 应代表最终产物流，则需要调整 raw signal 生成或 downstream ledger 映射。</li>
 </ul>
-<h3 id="_8">评测自洽</h3>
+<h3 id="_9">评测自洽</h3>
 <p>检查 online reward、final assay score、leaderboard score 和 replay verify 是否一致。</p>
 <p>当前已具备：</p>
 <ul>
@@ -2463,7 +2602,7 @@ runs/audit/trajectories/*.jsonl
 <li>final assay 后 <code>info["leaderboard_score"]</code> 必须等于 scoring contract 对当前 observation 的重新计算结果。</li>
 <li>审计脚本生成的每条 JSONL trajectory 必须通过 <code>verify_records()</code>。</li>
 </ul>
-<h3 id="_9">文档自洽</h3>
+<h3 id="_10">文档自洽</h3>
 <p>检查中文文档、课程材料和项目叙事是否没有乱码、没有过度宣称、没有与 maturity metadata 冲突。</p>
 <p>当前约束：</p>
 <ul>
@@ -2471,13 +2610,13 @@ runs/audit/trajectories/*.jsonl
 <li>task maturity 必须进入 task info、trajectory、baseline report 和 docs。</li>
 <li>中文文档必须 UTF-8 可读，不应出现常见 mojibake 标记，例如 U+951B、U+9359 或替换字符 U+FFFD。</li>
 </ul>
-<h2 id="_10">验收命令</h2>
+<h2 id="_11">验收命令</h2>
 <pre><code class="language-powershell">.\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2
 .\.venv\Scripts\python.exe -m pytest tests\test_environment_self_consistency.py
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -m mkdocs build --strict
 </code></pre>
-<h2 id="_11">当前判断</h2>
+<h2 id="_12">当前判断</h2>
 <p>ChemWorld 当前已经具备较强的结构自洽和 replay 自洽基础。主要短板不在“能不能执行”，而在更高层的语义一致性：</p>
 <ul>
 <li>task slice 权限需要持续由测试锁住，避免后续新增操作时再次误导 agent；</li>
