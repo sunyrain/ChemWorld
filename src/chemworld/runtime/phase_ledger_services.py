@@ -30,6 +30,13 @@ PHASE_PROCESS_METRIC_KEYS = frozenset(
         "process_mass_balance_error",
     }
 )
+PHASE_PRIMARY_METADATA_KEYS = frozenset(
+    {
+        PHASE_PRODUCT_AMOUNT_KEY,
+        "impurity_mol",
+        "solvent_loss",
+    }
+)
 
 
 def action_float(action: dict[str, Any], key: str, default: float) -> float:
@@ -143,7 +150,7 @@ class ChemWorldPhaseLedgerServices:
                 species_amounts_mol=species_amounts,
                 settled=carrier.settled,
                 selected=carrier.selected,
-                metadata=self._phase_metadata_without_primary_metrics(carrier.metadata),
+                metadata=self._phase_metadata_without_primary_state(carrier.metadata),
             )
 
         return PhaseLedger(phases)
@@ -335,13 +342,15 @@ class ChemWorldPhaseLedgerServices:
         return family
 
     @staticmethod
-    def _phase_metadata_without_primary_metrics(metadata: dict[str, Any]) -> dict[str, Any]:
+    def _phase_metadata_without_primary_state(metadata: dict[str, Any]) -> dict[str, Any]:
         cleaned = metadata.copy()
-        cleaned.pop("solvent_loss", None)
+        for key in PHASE_PRIMARY_METADATA_KEYS:
+            cleaned.pop(key, None)
         return cleaned
 
 
 __all__ = [
+    "PHASE_PRIMARY_METADATA_KEYS",
     "PHASE_PROCESS_METRIC_KEYS",
     "SELECTED_PHASE_UNSET",
     "ChemWorldPhaseLedgerServices",

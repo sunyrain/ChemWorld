@@ -497,6 +497,11 @@ Recommended follow-up:
   volume, composition, and status; process loss is written to and read from
   `ProcessLedger.metrics`, and constitution checks reject phase metadata loss
   fallbacks.
+- Removed the remaining phase-local product/impurity material fallback path.
+  Downstream truth calculations no longer read `product_mol` or `impurity_mol`
+  from `PhaseRecord.metadata`; phase material amounts must come from typed
+  `PhaseRecord.species_amounts_mol`, and constitution/golden tests reject these
+  phase metadata keys.
 - Promoted phase-system readiness, settled status, and selected-phase state out
   of runtime metadata into typed `PhaseLedger` records. Constitution
   preconditions now read `PhaseRecord.settled/selected`, extraction,

@@ -27,7 +27,7 @@ def _typed_phase_ledger_entries(
                 for species_id in target_species
             )
             if target_species
-            else float(phase.metadata.get(PHASE_PRODUCT_AMOUNT_KEY, 0.0))
+            else 0.0
         )
         impurity_amount = (
             sum(
@@ -35,7 +35,7 @@ def _typed_phase_ledger_entries(
                 for species_id in impurity_species
             )
             if impurity_species
-            else float(phase.metadata.get("impurity_mol", 0.0))
+            else 0.0
         )
         entries[phase_id] = {
             "volume_L": float(phase.volume_L),

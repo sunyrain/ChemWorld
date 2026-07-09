@@ -9,6 +9,14 @@ from chemworld.foundation.constitution_reports import CheckResult
 from chemworld.foundation.state import WorldState
 from chemworld.foundation.units import canonical_unit
 
+PHASE_PRIMARY_METADATA_KEYS = frozenset(
+    {
+        "product_mol",
+        "impurity_mol",
+        "solvent_loss",
+    }
+)
+
 
 def check_nonnegative(constitution: Any, state: WorldState) -> list[CheckResult]:
     values = {
@@ -186,9 +194,10 @@ def check_typed_ledgers(constitution: Any, state: WorldState) -> list[CheckResul
                 )
             checks.append(
                 CheckResult(
-                    f"phase_metadata_no_primary_process_metrics:{phase_id}",
-                    "solvent_loss" not in phase.metadata,
-                    "Phase-local process losses must live in typed ProcessLedger.",
+                    f"phase_metadata_no_primary_material_or_process_state:{phase_id}",
+                    PHASE_PRIMARY_METADATA_KEYS.isdisjoint(phase.metadata),
+                    "Phase material amounts must live in typed phase species "
+                    "amounts, and process losses must live in typed ProcessLedger.",
                 )
             )
             if state.vessels is not None:

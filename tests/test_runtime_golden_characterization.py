@@ -267,7 +267,9 @@ def test_runtime_v2_golden_scripted_final_assay(
         )
         if env.unwrapped._state.phases is not None:
             assert all(
-                "solvent_loss" not in phase.metadata
+                {"product_mol", "impurity_mol", "solvent_loss"}.isdisjoint(
+                    phase.metadata
+                )
                 for phase in env.unwrapped._state.phases.phases.values()
             )
 
