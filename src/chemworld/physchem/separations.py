@@ -436,6 +436,9 @@ def liquid_liquid_extraction(
     stage_efficiency: float = 1.0,
     entrainment_fraction: float = 0.0,
     solvent_loss_fraction: float = 0.0,
+    activity_model: ActivityModelSpec | None = None,
+    temperature_K: float = 298.15,
+    initialization_policy: str = "partition_weighted",
 ) -> SeparationResult:
     feed = _amounts(feed_amounts_mol)
     if stages <= 0:
@@ -446,6 +449,7 @@ def liquid_liquid_extraction(
     extract = dict.fromkeys(feed, 0.0)
     solvent_loss_mol = 0.0
     phase_volume = max(organic_volume_L, 1e-12)
+    latest_diagnostic: dict[str, object] | None = None
     for _ in range(stages):
         split = liquid_liquid_split(
             raffinate,
@@ -454,7 +458,11 @@ def liquid_liquid_extraction(
             organic_volume_L=organic_volume_L,
             stage_efficiency=stage_efficiency,
             entrainment_fraction=entrainment_fraction,
+            activity_model=activity_model,
+            temperature_K=temperature_K,
+            initialization_policy=initialization_policy,
         )
+        latest_diagnostic = split.stability_diagnostic
         extract = _add_amounts(extract, split.organic_amounts_mol)
         raffinate = split.aqueous_amounts_mol
         solvent_loss_mol += solvent_loss_fraction * phase_volume
@@ -474,6 +482,9 @@ def liquid_liquid_extraction(
                 "stages": stages,
                 "stage_efficiency": stage_efficiency,
                 "entrainment_fraction": entrainment_fraction,
+                "initialization_policy": initialization_policy,
+                "temperature_K": temperature_K,
+                "stability_diagnostic": latest_diagnostic,
             },
         ),
     )

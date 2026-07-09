@@ -105,6 +105,23 @@ card。它适合训练 agent 理解相行为趋势，但不替代专业热力学
 相平衡层覆盖 Raoult-style VLE、activity coefficient 入口、UNIQUAC slice 和 flash/VLE
 报告。未来 extraction、evaporation 和 distillation 任务会依赖这一层。
 
+### LLE 相稳定性与相分配
+
+当前 LLE 切片已经从单纯分配系数 proxy 推进到可审计的 `reference_validated`
+诊断层：
+
+- `lle_phase_stability_diagnostic()` 生成 TPD-style phase-stability report；
+- 初始化策略显式记录为 `initialization_policy`；
+- organic / aqueous trial composition 由 partition coefficient、phase volume 和 feed composition 生成；
+- `liquid_liquid_split()` 在保持组分物料守恒的同时返回 `stability_diagnostic`；
+- `liquid_liquid_extraction()` 把最新一级 split diagnostic 写入 separation ledger metadata；
+- runtime `partition_split()` 复用同一诊断，并把 `lle_phase_status`、`lle_minimum_tpd_like`
+  和 `lle_partition_log_spread` 进入 phase metadata。
+
+边界：这不是严格的 LLE flash、tie-line tracing 或全局 Gibbs minimization。它适合
+extraction / partition-discovery benchmark，让 agent 能看到稳定、可解释、可回放的相分配规律；
+严谨的 electrolyte LLE、密度耦合体积预测和参数估计仍属于后续 P3 深化。
+
 ## 平衡化学核心
 
 平衡化学层提供小规模 reaction equilibrium 和 Gibbs minimization slice。当前适合隐藏

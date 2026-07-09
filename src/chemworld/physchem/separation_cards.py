@@ -8,6 +8,97 @@ from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvid
 def separation_model_cards() -> tuple[ModelCard, ...]:
     return (
         ModelCard(
+            model_id="lle_tpd_style_phase_stability",
+            module_id="separations",
+            title="TPD-Style Liquid-Liquid Phase Split Diagnostic",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Material-conserving liquid-liquid split layer with a "
+                "partition-seeded tangent-plane-distance-style phase-stability "
+                "diagnostic and explicit initialization policy."
+            ),
+            equations=(
+                "w_org,i proportional z_i K_i V_org",
+                "w_aq,i proportional z_i V_aq / K_i",
+                "TPD_like(w) = sum_i w_i[ln(w_i gamma_i(w)) - ln(z_i gamma_i(z))]",
+                "min_TPD_like = min(TPD_org, TPD_aq) - partition/nonideality drive",
+                "n_org,i = eta_stage F_i K_i V_org / (K_i V_org + V_aq) + entrainment",
+            ),
+            assumptions=(
+                "partition coefficients are supplied by task/scenario or downstream model",
+                "activity coefficients come from the local ideal/Wilson/NRTL/UNIQUAC layer",
+                "negative TPD-like scores indicate a two-liquid split is favored",
+                "stage efficiency models incomplete mixing and approach to the split",
+                "entrainment is an explicit mass-conserving transfer term",
+            ),
+            validity_limits=(
+                "requires positive phase volumes and positive partition coefficients",
+                "component set in optional activity model must match the feed",
+                "does not perform global Gibbs minimization or rigorous tie-line tracing",
+                "best suited to benchmark extraction tasks and qualitative LLE planning",
+            ),
+            failure_modes=(
+                "non-positive volumes or partition coefficients fail early",
+                "negative or zero-total feed amounts fail early",
+                "activity-model component mismatch fails early",
+                "low stage efficiency is recorded as a diagnostic warning",
+            ),
+            units={
+                "feed_amount": "mol",
+                "phase_volume": "L",
+                "temperature": "K",
+                "partition_coefficient": "dimensionless",
+                "tpd_like": "dimensionless",
+            },
+            reference_reading=(
+                (
+                    "Michelsen TPD stability analysis motivates the "
+                    "tangent-plane-distance form used for the diagnostic."
+                ),
+                (
+                    "phasepy.equilibrium.flash and thermo flash workflows "
+                    "separate stability/initialization diagnostics from the "
+                    "final material split; ChemWorld follows that contract "
+                    "without claiming rigorous multiphase minimization."
+                ),
+                (
+                    "IDAES flash-style unit models make material balances "
+                    "first-class outputs; this LLE slice keeps component "
+                    "balance errors explicit in the separation ledger."
+                ),
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="lle-tpd-diagnostic-phase-split",
+                    evidence_type="unit_test",
+                    description=(
+                        "Tests verify ideal single-liquid classification, "
+                        "partition-driven two-liquid classification, "
+                        "initialization composition normalization, material "
+                        "balance, metadata propagation, and extraction-task "
+                        "runtime integration."
+                    ),
+                    status="implemented",
+                    command_or_path=(
+                        "tests/test_phase_equilibrium.py; tests/test_separations.py"
+                    ),
+                    tolerance="pytest.approx and exact balance checks",
+                ),
+            ),
+            model_limit_notes=(
+                "This is a TPD-style diagnostic and mass-balanced split "
+                "solver, not a rigorous LLE flash package.",
+                "Tie-line tracing, TPD minimization over arbitrary trial "
+                "compositions, electrolyte LLE, density-coupled volume "
+                "prediction, and parameter-estimation workflows remain open P3 work.",
+            ),
+            intended_use=(
+                "reaction-to-purification extraction steps",
+                "partition-discovery world-model learning tasks",
+                "agent-facing explanations of recovery/purity tradeoffs",
+            ),
+        ),
+        ModelCard(
             model_id="vle_shortcut_distillation",
             module_id="separations",
             title="VLE-Coupled Shortcut Distillation",

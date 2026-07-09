@@ -17,6 +17,7 @@ from chemworld.physchem import (
     validate_model_card,
     vle_shortcut_distillation,
 )
+from chemworld.world.phase_kernel import partition_split
 
 
 def test_multistage_extraction_improves_product_recovery_and_balances_material() -> None:
@@ -46,6 +47,27 @@ def test_multistage_extraction_improves_product_recovery_and_balances_material()
     assert three_stage.purity("product", "extract") > 0.80
     assert three_stage.ledger.material_balance_error_mol < 1e-12
     assert three_stage.ledger.cost > one_stage.ledger.cost
+    assert three_stage.ledger.metadata["initialization_policy"] == "partition_weighted"
+    assert three_stage.ledger.metadata["stability_diagnostic"]["phase_status"] == "two_liquid"
+
+
+def test_partition_split_uses_lle_diagnostic_and_balances_runtime_amounts() -> None:
+    split = partition_split(
+        product_mol=0.8,
+        impurity_mol=0.2,
+        solvent=2,
+        temperature_K=330.0,
+        duration_s=240.0,
+        stirring_speed_rpm=800.0,
+        organic_volume_L=0.35,
+        aqueous_volume_L=1.0,
+    )
+
+    assert split["lle_phase_status"] == "two_liquid"
+    assert split["lle_partition_log_spread"] > 0.0
+    assert split["organic_product_mol"] + split["aqueous_product_mol"] == pytest.approx(0.8)
+    assert split["organic_impurity_mol"] + split["aqueous_impurity_mol"] == pytest.approx(0.2)
+    assert split["organic_product_mol"] / 0.8 > split["organic_impurity_mol"] / 0.2
 
 
 def test_flash_evaporation_prefers_volatile_component_and_reports_heat_duty() -> None:

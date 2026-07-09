@@ -123,7 +123,13 @@ class ChemWorldPhaseSeparationServices:
         return self.phase_ledgers.with_phase_ledger(
             state,
             phase_ledger,
-            metadata_updates={"partition_coefficient": split["partition_coefficient"]},
+            metadata_updates={
+                "partition_coefficient": split["partition_coefficient"],
+                "impurity_partition_coefficient": split["impurity_partition_coefficient"],
+                "lle_phase_status": split["lle_phase_status"],
+                "lle_minimum_tpd_like": split["lle_minimum_tpd_like"],
+                "lle_partition_log_spread": split["lle_partition_log_spread"],
+            },
             phase_settled=False,
             ledger=ledger,
             equipment=equipment,

@@ -132,7 +132,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "purity-yield-tradeoff": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.3477819714716202,
+        "score": 0.3397726182550309,
     },
     "reaction-mechanism-explanation": {
         "mechanism_id": "autocatalytic_reaction",
@@ -167,12 +167,12 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "reaction-to-purification": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.3774806725634104,
+        "score": 0.37117277432013834,
     },
     "tool-agent-planning": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.1230181900228312,
+        "score": 0.11973556080518238,
     },
 }
 

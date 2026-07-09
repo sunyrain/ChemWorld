@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from itertools import pairwise
-from math import exp, isfinite, log
+from math import exp, isfinite, log, sqrt
 from typing import Literal
 
 from chemworld.foundation.units import convert_value
@@ -429,14 +429,111 @@ class LLEStageResult:
     recovery_to_organic: dict[str, float]
     phase_volumes_L: dict[str, float]
     material_balance_error_mol: float
+    stability_diagnostic: dict[str, object] | None = None
 
     def to_dict(self) -> dict[str, object]:
-        return {
+        result: dict[str, object] = {
             "organic_amounts_mol": dict(self.organic_amounts_mol),
             "aqueous_amounts_mol": dict(self.aqueous_amounts_mol),
             "recovery_to_organic": dict(self.recovery_to_organic),
             "phase_volumes_L": dict(self.phase_volumes_L),
             "material_balance_error_mol": self.material_balance_error_mol,
+        }
+        if self.stability_diagnostic is not None:
+            result["stability_diagnostic"] = dict(self.stability_diagnostic)
+        return result
+
+
+@dataclass(frozen=True)
+class LLEPhaseStabilityDiagnostic:
+    """TPD-style liquid-liquid phase stability diagnostic.
+
+    This report is intentionally a compact benchmark diagnostic, not a full
+    thermodynamic phase-stability minimizer. It evaluates tangent-plane-like
+    composition distances from the feed to partition-seeded candidate phases,
+    then subtracts an explicit partition/nonideality driving-force term. The
+    resulting score is auditable and deterministic: negative values indicate
+    that a two-liquid split is favored by the supplied model slice.
+    """
+
+    model_id: str
+    component_ids: tuple[str, ...]
+    temperature_K: float
+    initialization_policy: str
+    phase_status: str
+    feed_composition: dict[str, float]
+    organic_trial_composition: dict[str, float]
+    aqueous_trial_composition: dict[str, float]
+    feed_activity_coefficients: dict[str, float]
+    organic_activity_coefficients: dict[str, float]
+    aqueous_activity_coefficients: dict[str, float]
+    partition_coefficients: dict[str, float]
+    organic_tpd_like: float
+    aqueous_tpd_like: float
+    partition_log_spread: float
+    nonideality_drive: float
+    minimum_tpd_like: float
+    warnings: tuple[str, ...] = ()
+    reference_reading: tuple[str, ...] = (
+        "Michelsen tangent-plane distance stability analysis: "
+        "TPD(w) = sum_i w_i [ln(w_i gamma_i(w)) - ln(z_i gamma_i(z))]",
+        "phasepy.equilibrium.flash: phase-split initialization with "
+        "successive substitution and Gibbs fallback",
+        "thermo.flash: stability/testing stage before multiphase equilibrium solves",
+    )
+
+    def __post_init__(self) -> None:
+        if self.phase_status not in {"single_liquid", "two_liquid"}:
+            raise ValueError("phase_status must be single_liquid or two_liquid")
+        if self.temperature_K <= 0.0 or not isfinite(self.temperature_K):
+            raise ValueError("temperature_K must be positive and finite")
+        if not self.initialization_policy:
+            raise ValueError("initialization_policy cannot be empty")
+        component_ids = set(self.component_ids)
+        if not component_ids:
+            raise ValueError("component_ids cannot be empty")
+        for field_name in (
+            "feed_composition",
+            "organic_trial_composition",
+            "aqueous_trial_composition",
+            "feed_activity_coefficients",
+            "organic_activity_coefficients",
+            "aqueous_activity_coefficients",
+            "partition_coefficients",
+        ):
+            if set(getattr(self, field_name)) != component_ids:
+                raise ValueError(f"{field_name} ids must match component ids")
+        for field_name in (
+            "organic_tpd_like",
+            "aqueous_tpd_like",
+            "partition_log_spread",
+            "nonideality_drive",
+            "minimum_tpd_like",
+        ):
+            if not isfinite(getattr(self, field_name)):
+                raise ValueError(f"{field_name} must be finite")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "model_id": self.model_id,
+            "component_ids": list(self.component_ids),
+            "temperature_K": self.temperature_K,
+            "initialization_policy": self.initialization_policy,
+            "phase_status": self.phase_status,
+            "feed_composition": dict(self.feed_composition),
+            "organic_trial_composition": dict(self.organic_trial_composition),
+            "aqueous_trial_composition": dict(self.aqueous_trial_composition),
+            "feed_activity_coefficients": dict(self.feed_activity_coefficients),
+            "organic_activity_coefficients": dict(self.organic_activity_coefficients),
+            "aqueous_activity_coefficients": dict(self.aqueous_activity_coefficients),
+            "partition_coefficients": dict(self.partition_coefficients),
+            "organic_tpd_like": self.organic_tpd_like,
+            "aqueous_tpd_like": self.aqueous_tpd_like,
+            "partition_log_spread": self.partition_log_spread,
+            "nonideality_drive": self.nonideality_drive,
+            "minimum_tpd_like": self.minimum_tpd_like,
+            "warnings": list(self.warnings),
+            "reference_reading": list(self.reference_reading),
         }
 
 
@@ -1150,6 +1247,118 @@ def dew_pressure_pa(
     return pressure
 
 
+def lle_phase_stability_diagnostic(
+    feed_amounts_mol: Mapping[str, float],
+    *,
+    partition_coefficients: Mapping[str, float],
+    aqueous_volume_L: float,
+    organic_volume_L: float,
+    activity_model: ActivityModelSpec | None = None,
+    temperature_K: float = 298.15,
+    initialization_policy: str = "partition_weighted",
+    stage_efficiency: float = 1.0,
+    tpd_tolerance: float = 1.0e-9,
+) -> LLEPhaseStabilityDiagnostic:
+    """Return a deterministic TPD-style LLE phase-stability diagnostic.
+
+    The diagnostic seeds two trial liquid phases from supplied partition
+    coefficients and phase volumes, evaluates tangent-plane-like distances
+    against the feed composition, and subtracts an explicit partition-drive
+    term. It is designed for benchmark LLE/extraction tasks where the split
+    must be explainable, mass-balanced, and replayable without exposing hidden
+    runtime state.
+    """
+
+    if aqueous_volume_L <= 0.0 or organic_volume_L <= 0.0:
+        raise ValueError("phase volumes must be positive")
+    if temperature_K <= 0.0 or not isfinite(temperature_K):
+        raise ValueError("temperature_K must be positive and finite")
+    if not 0.0 <= stage_efficiency <= 1.0:
+        raise ValueError("stage_efficiency must be between 0 and 1")
+    if tpd_tolerance < 0.0 or not isfinite(tpd_tolerance):
+        raise ValueError("tpd_tolerance must be non-negative and finite")
+    feed = _normalize_amounts(feed_amounts_mol)
+    component_ids = tuple(feed)
+    coefficients = _partition_coefficient_mapping(component_ids, partition_coefficients)
+    if activity_model is None:
+        activity_model = ActivityModelSpec(
+            "ideal_lle_phase_stability",
+            component_ids,
+            "ideal",
+        )
+    if set(activity_model.component_ids) != set(component_ids):
+        raise ValueError("activity_model component ids must match feed components")
+
+    z = _normalize_composition(feed)
+    organic_trial = _trial_phase_composition(
+        z,
+        coefficients,
+        organic_volume_L=organic_volume_L,
+        aqueous_volume_L=aqueous_volume_L,
+        phase="organic",
+    )
+    aqueous_trial = _trial_phase_composition(
+        z,
+        coefficients,
+        organic_volume_L=organic_volume_L,
+        aqueous_volume_L=aqueous_volume_L,
+        phase="aqueous",
+    )
+    feed_gamma = activity_coefficients(activity_model, z, temperature_K=temperature_K)
+    organic_gamma = activity_coefficients(
+        activity_model,
+        organic_trial,
+        temperature_K=temperature_K,
+    )
+    aqueous_gamma = activity_coefficients(
+        activity_model,
+        aqueous_trial,
+        temperature_K=temperature_K,
+    )
+    organic_tpd = _tpd_like_distance(organic_trial, organic_gamma, z, feed_gamma)
+    aqueous_tpd = _tpd_like_distance(aqueous_trial, aqueous_gamma, z, feed_gamma)
+    log_coefficients = {component_id: log(value) for component_id, value in coefficients.items()}
+    mean_log_k = sum(z[component_id] * log_coefficients[component_id] for component_id in z)
+    partition_log_spread = sqrt(
+        sum(
+            z[component_id] * (log_coefficients[component_id] - mean_log_k) ** 2
+            for component_id in z
+        )
+    )
+    nonideality_drive = sum(
+        abs(log(feed_gamma[component_id])) * z[component_id] for component_id in z
+    )
+    volume_drive = 0.05 * abs(log(organic_volume_L / aqueous_volume_L))
+    drive = stage_efficiency * (0.45 * partition_log_spread + 0.15 * nonideality_drive)
+    drive += volume_drive
+    minimum_tpd = min(organic_tpd, aqueous_tpd) - drive
+    warnings = []
+    if partition_log_spread < 1.0e-8 and nonideality_drive < 1.0e-8:
+        warnings.append("no_partition_or_nonideality_drive")
+    if stage_efficiency < 0.5:
+        warnings.append("low_stage_efficiency_limits_phase_approach")
+    return LLEPhaseStabilityDiagnostic(
+        model_id="lle_tpd_style_phase_stability",
+        component_ids=component_ids,
+        temperature_K=temperature_K,
+        initialization_policy=initialization_policy,
+        phase_status="two_liquid" if minimum_tpd < -tpd_tolerance else "single_liquid",
+        feed_composition=z,
+        organic_trial_composition=organic_trial,
+        aqueous_trial_composition=aqueous_trial,
+        feed_activity_coefficients=feed_gamma,
+        organic_activity_coefficients=organic_gamma,
+        aqueous_activity_coefficients=aqueous_gamma,
+        partition_coefficients=coefficients,
+        organic_tpd_like=organic_tpd,
+        aqueous_tpd_like=aqueous_tpd,
+        partition_log_spread=partition_log_spread,
+        nonideality_drive=nonideality_drive,
+        minimum_tpd_like=minimum_tpd,
+        warnings=tuple(warnings),
+    )
+
+
 def liquid_liquid_split(
     feed_amounts_mol: Mapping[str, float],
     *,
@@ -1158,6 +1367,9 @@ def liquid_liquid_split(
     organic_volume_L: float,
     stage_efficiency: float = 1.0,
     entrainment_fraction: float = 0.0,
+    activity_model: ActivityModelSpec | None = None,
+    temperature_K: float = 298.15,
+    initialization_policy: str = "partition_weighted",
 ) -> LLEStageResult:
     if aqueous_volume_L <= 0 or organic_volume_L <= 0:
         raise ValueError("phase volumes must be positive")
@@ -1167,6 +1379,16 @@ def liquid_liquid_split(
         raise ValueError("entrainment_fraction must be in [0, 1)")
     if any(value < 0 for value in feed_amounts_mol.values()):
         raise ValueError("feed amounts cannot be negative")
+    diagnostic = lle_phase_stability_diagnostic(
+        feed_amounts_mol,
+        partition_coefficients=partition_coefficients,
+        aqueous_volume_L=aqueous_volume_L,
+        organic_volume_L=organic_volume_L,
+        activity_model=activity_model,
+        temperature_K=temperature_K,
+        initialization_policy=initialization_policy,
+        stage_efficiency=stage_efficiency,
+    )
 
     organic = {}
     aqueous = {}
@@ -1201,6 +1423,7 @@ def liquid_liquid_split(
             "organic": organic_volume_L + aqueous_volume_L * entrainment_fraction,
         },
         material_balance_error_mol=balance_error,
+        stability_diagnostic=diagnostic.to_dict(),
     )
 
 
@@ -1842,6 +2065,87 @@ def _pair_parameter(
     )
 
 
+def _normalize_amounts(amounts: Mapping[str, float]) -> dict[str, float]:
+    if not amounts:
+        raise ValueError("feed amounts cannot be empty")
+    result = {}
+    for component_id, amount in amounts.items():
+        if not component_id:
+            raise ValueError("component ids cannot be empty")
+        value = float(amount)
+        if value < 0.0 or not isfinite(value):
+            raise ValueError("feed amounts must be finite and non-negative")
+        result[component_id] = value
+    if sum(result.values()) <= 0.0:
+        raise ValueError("feed amount total must be positive")
+    return result
+
+
+def _partition_coefficient_mapping(
+    component_ids: tuple[str, ...],
+    partition_coefficients: Mapping[str, float],
+) -> dict[str, float]:
+    result = {}
+    for component_id in component_ids:
+        coefficient = float(partition_coefficients.get(component_id, 1.0))
+        if coefficient <= 0.0 or not isfinite(coefficient):
+            raise ValueError("partition coefficients must be finite and positive")
+        result[component_id] = coefficient
+    return result
+
+
+def _trial_phase_composition(
+    feed_composition: Mapping[str, float],
+    partition_coefficients: Mapping[str, float],
+    *,
+    organic_volume_L: float,
+    aqueous_volume_L: float,
+    phase: str,
+) -> dict[str, float]:
+    if phase not in {"organic", "aqueous"}:
+        raise ValueError("phase must be organic or aqueous")
+    if phase == "organic":
+        weights = {
+            component_id: max(
+                feed_composition[component_id]
+                * partition_coefficients[component_id]
+                * organic_volume_L,
+                1.0e-300,
+            )
+            for component_id in feed_composition
+        }
+    else:
+        weights = {
+            component_id: max(
+                feed_composition[component_id]
+                * aqueous_volume_L
+                / partition_coefficients[component_id],
+                1.0e-300,
+            )
+            for component_id in feed_composition
+        }
+    return _normalize_composition(weights)
+
+
+def _tpd_like_distance(
+    trial_composition: Mapping[str, float],
+    trial_activity_coefficients: Mapping[str, float],
+    feed_composition: Mapping[str, float],
+    feed_activity_coefficients: Mapping[str, float],
+) -> float:
+    floor = 1.0e-300
+    return sum(
+        trial_composition[component_id]
+        * (
+            log(max(trial_composition[component_id], floor))
+            + log(max(trial_activity_coefficients[component_id], floor))
+            - log(max(feed_composition[component_id], floor))
+            - log(max(feed_activity_coefficients[component_id], floor))
+        )
+        for component_id in feed_composition
+    )
+
+
 def _composition_vector(
     component_ids: tuple[str, ...],
     composition: Mapping[str, float],
@@ -1896,6 +2200,7 @@ __all__ = [
     "FlashPhaseStatus",
     "FlashResult",
     "GammaPhiKValueReport",
+    "LLEPhaseStabilityDiagnostic",
     "LLEStageResult",
     "RachfordRiceDiagnosticReport",
     "UNIQUACActivityReport",
@@ -1911,6 +2216,7 @@ __all__ = [
     "flash_isothermal",
     "gamma_phi_k_value_report",
     "liquid_liquid_split",
+    "lle_phase_stability_diagnostic",
     "rachford_rice_diagnostic_report",
     "rachford_rice_vapor_fraction",
     "raoult_k_values",

@@ -17,6 +17,7 @@ from chemworld.physchem import (
     flash_isothermal,
     gamma_phi_k_value_report,
     liquid_liquid_split,
+    lle_phase_stability_diagnostic,
     rachford_rice_diagnostic_report,
     rachford_rice_vapor_fraction,
     raoult_k_values,
@@ -237,6 +238,57 @@ def test_activity_model_cards_are_auditable() -> None:
         assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
         assert validate_model_card(card) == []
         assert card.validation_evidence
+
+
+def test_lle_tpd_diagnostic_classifies_ideal_uniform_partition_as_single_liquid() -> None:
+    report = lle_phase_stability_diagnostic(
+        {"A": 1.0, "B": 1.0},
+        partition_coefficients={"A": 1.0, "B": 1.0},
+        aqueous_volume_L=1.0,
+        organic_volume_L=1.0,
+    )
+
+    assert report.phase_status == "single_liquid"
+    assert report.minimum_tpd_like >= -1e-12
+    assert report.partition_log_spread == pytest.approx(0.0)
+    assert report.organic_trial_composition == pytest.approx({"A": 0.5, "B": 0.5})
+    assert report.aqueous_trial_composition == pytest.approx({"A": 0.5, "B": 0.5})
+
+
+def test_lle_tpd_diagnostic_detects_partition_driven_two_liquid_split() -> None:
+    report = lle_phase_stability_diagnostic(
+        {"product": 1.0, "impurity": 0.25},
+        partition_coefficients={"product": 8.0, "impurity": 0.2},
+        aqueous_volume_L=1.0,
+        organic_volume_L=0.4,
+        stage_efficiency=0.9,
+        initialization_policy="partition_weighted_test",
+    )
+
+    assert report.phase_status == "two_liquid"
+    assert report.initialization_policy == "partition_weighted_test"
+    assert report.minimum_tpd_like < 0.0
+    assert report.partition_log_spread > 0.0
+    assert report.organic_trial_composition["product"] > report.feed_composition["product"]
+    assert report.aqueous_trial_composition["impurity"] > report.feed_composition["impurity"]
+    assert report.to_dict()["model_id"] == "lle_tpd_style_phase_stability"
+
+
+def test_liquid_liquid_split_records_stability_diagnostic_and_balances_material() -> None:
+    split = liquid_liquid_split(
+        {"product": 1.0, "impurity": 0.25},
+        partition_coefficients={"product": 5.0, "impurity": 0.4},
+        aqueous_volume_L=1.0,
+        organic_volume_L=0.35,
+        stage_efficiency=0.85,
+        initialization_policy="unit_test_seed",
+    )
+
+    assert split.material_balance_error_mol < 1e-12
+    assert split.stability_diagnostic is not None
+    assert split.stability_diagnostic["initialization_policy"] == "unit_test_seed"
+    assert split.stability_diagnostic["phase_status"] == "two_liquid"
+    assert split.recovery_to_organic["product"] > split.recovery_to_organic["impurity"]
 
 
 def test_rachford_rice_flash_balances_two_phase_split() -> None:

@@ -41,7 +41,7 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 | Task | Maturity | 边界 |
 | --- | --- | --- |
 | `reaction-to-assay` | `lite` | 有半机理反应网络、物料/能量约束和合成仪器观测；不是真实反应预测器 |
-| `reaction-to-purification` | `proxy` | 覆盖反应、萃取、相分离、纯化和 final assay 语义；下游分离模型仍是 benchmark proxy |
+| `reaction-to-purification` | `proxy` | 覆盖反应、萃取、相分离、纯化和 final assay 语义；LLE phase split 已有 reference-validated 诊断层，但整体 downstream process 仍含 proxy 单元 |
 | `partition-discovery` | `proxy` | 用于学习隐藏分配规律和仪器策略；不等同真实溶剂体系热力学 |
 
 所有图表、论文 artifact、baseline table 和课程报告都应显示 maturity，不能只展示最高分。
@@ -51,7 +51,7 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 当前仍需明确标注的低成熟度表面包括：
 
 - reaction kinetics：局部反应网络与速率律，未系统对齐真实机理数据库；
-- downstream separation：萃取、相分离、干燥、浓缩等仍以可解释 proxy 为主；
+- downstream separation：LLE phase split 已接入 TPD-style diagnostic 和物料守恒检查；干燥、浓缩等仍以可解释 proxy 为主；
 - crystallization、distillation、flow、electrochemistry：已有交互语义和部分物理片段，但不应作为高保真流程模型宣传；
 - spectroscopy/instruments：生成合成 HPLC/GC/UV-vis/final assay 信号，用于 agent 观测与教学，不是真实仪器谱图预测；
 - safety/cost：是 benchmark 约束信号，不是法律、工业或实验室安全合规结论。
