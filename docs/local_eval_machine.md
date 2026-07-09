@@ -1,114 +1,51 @@
-# Local Eval Machine
+# 本地评测机
 
-This page describes how to run ChemWorld when one physical machine acts as the
-teacher evaluation server and student projects are deployed on the same host.
+本地评测机用于在不依赖托管服务的情况下运行 ChemWorld 任务、收集轨迹、计算分数并
+生成报告。它是未来 hosted leaderboard 的最小可运行前身。
 
-The recommended boundary is:
-
-```text
-teacher-side runner owns ChemWorld env.reset/env.step
-student-side process only returns actions
-```
-
-Students should not run `private-eval` themselves. The evaluator starts a
-student process, sends sanitized task information and observations through JSON
-lines, receives actions, then writes trajectories, metrics, replay verification,
-and leaderboard files.
-
-## Directory Layout
-
-The reference implementation lives in:
+## 目录布局
 
 ```text
-local_eval_server/
-├── teacher_side/
-│   ├── eval_machine.py
-│   └── eval_config.demo.json
-└── student_side/
-    ├── student_agent_runtime.py
-    └── team_alpha_submission/
+local_eval/
+├── submissions/
+├── runs/
+├── scores/
+├── reports/
+└── manifests/
 ```
 
-`team_alpha_submission` is a sample student folder. In a real course, each team
-submits a similar folder with:
+`submissions/` 存放 agent 或 recipe；`runs/` 存放原始轨迹；`scores/` 存放结构化评分；
+`reports/` 存放人类可读报告；`manifests/` 存放版本、seed 和配置。
 
-- `manifest.json`;
-- `agent.py`;
-- `requirements.txt` or another dependency file;
-- optional prompt/cache/explanation files.
-
-## One-Command Demo
+## 一条命令演示
 
 ```bash
-python local_eval_server/teacher_side/eval_machine.py \
-  --workspace runs/local_eval_machine \
-  demo
+python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
 ```
 
-For a tiny smoke run:
+这个命令侧重环境自洽性，不等同正式 leaderboard，但它能快速检查任务注册、reset/step、
+replay、spectra 和 constitution 是否处于可发布状态。
 
-```bash
-python local_eval_server/teacher_side/eval_machine.py \
-  --workspace runs/local_eval_machine \
-  demo \
-  --tasks reaction-to-assay \
-  --seeds 0
+## 手动评测流程
+
+1. 选择任务集和 seeds。
+2. 加载 agent 或 recipe。
+3. 逐个 episode 运行环境。
+4. 保存 trajectory、task_info、score 和 manifest。
+5. 生成汇总表和失败案例报告。
+
+最小 API 形态：
+
+```python
+import gymnasium as gym
+import chemworld
+
+env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=1)
+obs, info = env.reset(seed=1)
 ```
 
-The output workspace contains:
+## 安全模型
 
-```text
-runs/local_eval_machine/
-├── teacher_private/eval_config.json
-├── submissions/accepted/<team_id>/
-├── runs/<run_id>/<team_id>/
-│   ├── trajectories/*.jsonl
-│   ├── results/*.json
-│   ├── verify/*.json
-│   └── logs/*.log
-└── published/
-    ├── <run_id>_leaderboard.csv
-    └── <run_id>_leaderboard.json
-```
-
-## Manual Evaluation Flow
-
-```bash
-python local_eval_server/teacher_side/eval_machine.py \
-  --workspace runs/local_eval_machine \
-  init-demo
-
-python local_eval_server/teacher_side/eval_machine.py \
-  --workspace runs/local_eval_machine \
-  validate
-
-python local_eval_server/teacher_side/eval_machine.py \
-  --workspace runs/local_eval_machine \
-  run \
-  --tasks reaction-to-assay \
-  --seeds 0
-
-python local_eval_server/teacher_side/eval_machine.py \
-  --workspace runs/local_eval_machine \
-  aggregate \
-  --run-id demo_eval
-```
-
-## Security Model
-
-This implementation simulates Docker isolation with independent folders and a
-separate student subprocess. It removes private environment variables before
-starting student code, but it is not a hard sandbox if students have the same
-host account and filesystem permissions as the evaluator.
-
-For a real high-stakes leaderboard, replace the subprocess launcher with Docker
-or another sandbox:
-
-- mount student code read-only;
-- disable network unless explicitly allowed;
-- limit CPU, memory, and wall time;
-- keep `teacher_private/` outside the container mount;
-- run private evaluation only after the submission deadline.
-
-The protocol is already shaped so that the replacement is localized: swap the
-student process command while keeping the teacher-side ChemWorld runner.
+本地评测机默认只执行受信任代码。若允许第三方提交 Python agent，应使用隔离进程、
+资源限制、超时、只读数据目录和明确的输出协议。不要在教师机或发布机上直接运行未知
+代码。

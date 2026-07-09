@@ -1,69 +1,42 @@
-# Leaderboard And Project Blueprint
+# 榜单与项目蓝图
 
-ChemWorld projects should use one shared physical-chemical world rather than
-separate mini-games. A course or workshop can run the **ChemWorld Shared World
-Challenge**: teams submit agents, human+GPT workflows, BO policies, or
-mechanism-driven strategies against task slices of the same `ChemWorld` law.
+ChemWorld 的 leaderboard 应鼓励 agent 学会在统一化学世界中做长期决策，而不是只记住
+固定 recipe。榜单设计需要同时衡量性能、约束遵守、样本效率和可解释性。
 
-## Challenge Principle
+## 挑战原则
 
-Every submission must answer three questions:
+- 公开训练任务与隐藏评测任务共享同一个 `world_law_id`。
+- 任务成熟度必须显示在榜单上。
+- 评分同时考虑目标指标、成本、安全和无效操作。
+- 提交包必须可复现，不能依赖隐藏 state 或手工调参。
 
-- Did the strategy improve experimental performance under a finite budget?
-- Did it stay safe and reproducible?
-- Did it produce a credible local world-model explanation?
+## 可见榜单
 
-The leaderboard should therefore be multi-board, not a single highest-score
-table.
+- `reaction-optimization`
+- `reaction-to-purification`
+- `safety-constrained-control`
+- `characterization-planning`
+- `mechanism-explanation`
+- `tool-agent-planning`
 
-## Visible Boards
+未来可以按任务成熟度分为 `lite`、`reference-validated` 和
+`professional-candidate` track。
 
-| Board | Metric | Why It Exists |
-| --- | --- | --- |
-| Performance | private final-assay score | Rewards strong terminal decisions |
-| Safety | low risk and few violations | Prevents unsafe score chasing |
-| Sample efficiency | area-under-best-score per budget | Rewards good experiment design |
-| Generalization | small public-private gap | Discourages public-test overfitting |
-| Scientific understanding | mechanism explanation rubric | Rewards interpretable world-model learning |
+## 项目赛道
 
-The composite score can be used for an overall ranking, but all five boards
-should remain visible so that trade-offs are not hidden.
+- 规则 baseline 与强 recipe。
+- Bayesian optimization / black-box optimizer。
+- RL agent。
+- Tool-using LLM agent。
+- World-model learner。
+- Curriculum learning / self-play。
 
-## Suggested Project Tracks
+## 提交合同
 
-| Track | Primary Task | Core Question |
-| --- | --- | --- |
-| Reaction optimizer | `reaction-optimization-standard` | Can the strategy beat scripted chemistry without becoming unsafe? |
-| Safety-first agent | `reaction-safety-constrained` | How much score is worth giving up for robust low risk? |
-| Purification strategist | `reaction-to-purification` | Can downstream processing improve purity without destroying recovery? |
-| Partition scientist | `partition-discovery` | Can a learner infer phase behavior from sparse measurements? |
-| Tool-using LLM planner | `tool-agent-planning` | Can language proposals survive validator checks and replay? |
+提交包应包含 agent 入口、依赖、运行配置、manifest 和安全声明。托管评测应以只读任务
+配置、固定资源限制和结构化输出为默认。
 
-Each team should choose one primary track and one diagnostic board to emphasize.
+## Notebook 教学
 
-## Submission Contract
-
-A leaderboard row is accepted only if it has:
-
-- `manifest.json` with agent name, task id, seeds, command, commit hash, and
-  dependency notes;
-- `trajectories/*.jsonl` with replayable experiment records;
-- `results/*.json` from local evaluation;
-- optional `explanations/*.json` with hypothesis, learned mechanism, failure
-  analysis, and next-experiment rationale;
-- a short README describing what should and should not be trusted.
-
-Public-test results are for development and classroom feedback. Private-eval
-results should be maintained by a hidden registry or signed evaluation artifact
-before being treated as a production leaderboard.
-
-## Notebook
-
-The executable project notebook is:
-
-```text
-notebooks/tutorials/project_leaderboard_blueprint.ipynb
-```
-
-It renders the task board, leaderboard schema, project tracks, submission bundle,
-and a mock visible leaderboard shape.
+教学 notebook 应先演示可解释的 recipe，再逐步进入自动优化和 agent planning。不要让
+学生一开始面对完整隐藏世界；课程需要坡度。

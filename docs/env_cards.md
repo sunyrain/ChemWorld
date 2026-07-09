@@ -1,114 +1,74 @@
-# Environment Card
+# 环境卡
 
 ## ChemWorld
 
-`ChemWorld` is the single formal Gymnasium entry point.
+`ChemWorld` 是统一的 Gymnasium 环境入口。不同任务通过 `task_id` 选择，但它们共享同
+一个物理化学世界律和运行时服务。
 
 ```python
-import gymnasium as gym
-import chemworld
-
-env = gym.make("ChemWorld", task_id="reaction-optimization-standard", seed=0)
-obs, info = env.reset()
+env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=1)
 ```
 
-Task diversity is expressed through `task_id`, not through separate environment
-names.
+环境卡用于说明任务能力、输入输出、成熟度和审计入口。它是 agent 作者理解 benchmark
+合同的第一层机器可读/人类可读文档。
 
-## Reset Info
+## Reset 信息
 
-`reset()` returns public task and runtime metadata, including:
+`reset()` 返回的 `info` 应包含：
 
-- `world_law_id`;
-- `task_id`;
-- `scenario_id`;
-- `initial_state_id`;
-- `mechanism_id`;
-- `mechanism_hash`;
-- `task_contract_hash`;
-- `runtime_profile_hash`;
-- `scoring_contract_hash`;
-- `observation_contract_hash`;
-- `kernel_maturity`;
-- `physics_maturity`;
-- `proxy_allowed`;
-- operation cards;
-- instrument cards;
-- backend spec;
-- constitution summary.
+- `task_id`
+- `world_law_id`
+- `task_maturity`
+- 可见 scenario 信息
+- budget 和 step limit
+- 允许操作列表
+- scoring metadata
 
-Agents may use these fields for planning and reproducibility. They do not
-contain hidden species amounts, hidden rate constants, or private mechanism
-parameters.
+隐藏 scenario 不应在公开 `info` 中泄露。
 
-## Step Contract
+## Step 合同
 
-Each `step(action)` applies one executable operation:
+`step(action)` 返回：
 
 ```python
-obs, reward, terminated, truncated, info = env.step(
-    {"operation": "measure", "instrument": "hplc"}
-)
+obs, reward, terminated, truncated, info
 ```
 
-The Gymnasium five-tuple remains standard. ChemWorld adds benchmark-specific
-signals in `info`, including:
+其中 `info["constraint_flags"]` 是诊断 agent 行为的关键字段。无效动作应产生可解释
+flag，而不是让状态静默损坏。
 
-- `raw_signal`;
-- `processed_estimate`;
-- `uncertainty`;
-- `observed_keys`;
-- `observed_mask`;
-- `cost`;
-- `cost_components`;
-- `constraint_flags`;
-- `leaderboard_score`;
-- `kernel_id`;
-- `domain_service_id`;
-- `world_events`;
-- `state_patches_summary`.
+## Agent-Facing 入口
 
-## Rendering
+`ChemWorldEnv` 现在直接暴露 agent-facing 方法：
 
-The current renderer is `ansi`:
+- `task_prompt()`：返回任务说明、目标、预算、可用工具、成功指标和隐藏信息政策。
+- `available_actions()`：返回当前 state 下合法操作及其 schema/preconditions。
+- `action_schema(operation)`：查看单个 operation 的 payload、单位和推荐范围。
+- `validate_action(action)`：只校验不执行，适合 LLM/tool planner 预检查。
+- `observation_view("rl" | "tool_json" | "lab_report")`：面向 RL、工具 agent 和学生的三种公开观测视图。
+- `campaign_state()`：返回 campaign/experiment 进度、remaining budget、best score 和 final assay count。
 
-```bash
-chemworld render --task reaction-to-assay --seed 0
-```
+这些接口是 public observation view，不允许泄露 hidden state、hidden species amounts、rate constants 或 private eval 参数。
 
-It summarizes campaign state, experiment index, last operation, public ledger
-state, and visible observations. It is intended for debugging and teaching,
-not as a graphical lab interface.
+## 渲染
 
-## Checker Note
+当前 rendering 以结构化文本和数据为主。未来可以加入更直观的实验状态图、相分布、
+谱图和 campaign 进度视图。
 
-Scientific quantities that have not been measured are represented as `NaN` in
-Gym arrays and `null` in JSONL. Gymnasium's raw env checker does not treat
-reset-time `NaN` values as deterministic equivalents, so checker smoke tests
-should wrap the env:
+## 检查说明
 
-```python
-from gymnasium.utils.env_checker import check_env
-from chemworld.wrappers import NaNObservationWrapper
+环境自洽性检查应覆盖注册任务、reset/step、replay、spectra、constitution 和 smoke
+trajectory。检查结果应进入 release checklist。
 
-env = NaNObservationWrapper(gym.make("ChemWorld", task_id="reaction-to-assay"))
-check_env(env)
-```
+## 自一致性 Gate
 
-## Self-Consistency Gate
-
-Use the environment audit script to check that task info, ledgers,
-observations, spectra, scoring, logs, and replay remain aligned:
+发布前至少运行：
 
 ```bash
 python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
 ```
 
-The audit writes JSON and CSV summaries under `runs/audit/`.
+## 成熟度边界
 
-## Maturity Boundary
-
-`ChemWorld` is a benchmark environment. Some task slices use proxy process
-models and are marked as such. Release claims should report the maturity fields
-from reset info and trajectory records rather than treating all tasks as
-equally validated physical simulations.
+环境卡必须明确哪些模块是 proxy/lite/reference-validated。没有成熟度标注的 task 不应
+进入正式 benchmark claim。

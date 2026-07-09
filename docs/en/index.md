@@ -1,10 +1,5 @@
 # ChemWorld-Bench
 
-<p class="cw-language-switch">
-  <a class="cw-lang-button" href="../">中文</a>
-  <a class="cw-lang-button cw-lang-button-primary" href="./">English</a>
-</p>
-
 ChemWorld-Bench is a research benchmark for closed-loop virtual chemical
 experimentation. The formal Gymnasium entry point is `ChemWorld`: a shared
 physical-chemical world where tasks are slices of the same world law rather

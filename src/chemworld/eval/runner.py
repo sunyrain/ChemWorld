@@ -9,6 +9,7 @@ from typing import Any
 import gymnasium as gym
 
 import chemworld  # noqa: F401
+from chemworld.agent_interface import agent_view_bundle
 from chemworld.agents import (
     GaussianProcessBOAgent,
     GreedyLocalAgent,
@@ -100,6 +101,10 @@ def run_agent(
             )
             history.append(record)
             if logger is not None:
+                agent_trace_factory = getattr(agent, "agent_trace", None)
+                agent_trace = (
+                    agent_trace_factory() if callable(agent_trace_factory) else []
+                )
                 logger.log(
                     task_info=task_info,
                     step=step,
@@ -110,6 +115,8 @@ def run_agent(
                     truncated=truncated,
                     info=info,
                     agent_metadata=agent_metadata,
+                    agent_view=agent_view_bundle(env, observation, info),
+                    agent_trace=agent_trace,
                 )
             if terminated or truncated:
                 break

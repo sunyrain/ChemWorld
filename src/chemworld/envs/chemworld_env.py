@@ -142,6 +142,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._state = self.scenario_instance.initial_state
         self._last_observation = empty_observation()
         self._last_operation_record: OperationRecord | None = None
+        self._last_info: dict[str, Any] = {}
         self._campaign_id = self._make_campaign_id()
         self._experiment_summaries: list[dict[str, Any]] = []
 
@@ -187,6 +188,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._done = False
         self._last_observation = empty_observation()
         self._last_operation_record = None
+        self._last_info = {}
         self._campaign_id = self._make_campaign_id()
         self._experiment_summaries = []
         return self._last_observation, self.task_info()
@@ -306,10 +308,41 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 info["next_experiment_ready"] = True
             else:
                 info["next_experiment_ready"] = False
+        self._last_info = dict(info)
         return observation_dict, reward, terminated, truncated, info
 
     def task_info(self) -> dict[str, Any]:
         return build_task_info(self)
+
+    def task_prompt(self) -> dict[str, Any]:
+        from chemworld.agent_interface import task_prompt
+
+        return task_prompt(self)
+
+    def available_actions(self) -> list[dict[str, Any]]:
+        from chemworld.agent_interface import available_actions
+
+        return available_actions(self)
+
+    def action_schema(self, operation: str) -> dict[str, Any]:
+        from chemworld.agent_interface import action_schema
+
+        return action_schema(self, operation)
+
+    def validate_action(self, action: dict[str, Any]) -> dict[str, Any]:
+        from chemworld.agent_interface import validate_action
+
+        return validate_action(self, action)
+
+    def observation_view(self, mode: str = "tool_json") -> dict[str, Any]:
+        from chemworld.agent_interface import observation_view
+
+        return observation_view(self, mode)
+
+    def campaign_state(self) -> dict[str, Any]:
+        from chemworld.agent_interface import campaign_state
+
+        return campaign_state(self)
 
     def constitution_summary(self) -> dict[str, Any]:
         return build_constitution_summary(self)

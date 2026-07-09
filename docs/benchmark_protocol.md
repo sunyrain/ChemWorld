@@ -1,212 +1,81 @@
-# Benchmark Protocol
+# Benchmark 协议
 
-## Splits
+本协议定义 ChemWorld 任务如何拆分、提交、评分和发布。
 
-- `public-dev`: open development and teaching split.
-- `public-test`: open local benchmark split.
-- `private-eval`: hidden production leaderboard split.
+## 数据划分
 
-The public repository deterministically generates all splits so the package is
-self-testable. A production leaderboard should replace `private-eval` with a
-server-side registry while preserving the same public API. In local open-source
-runs, `private-eval` is marked as `public-placeholder-private`. Maintainers can
-set `CHEMWORLD_PRIVATE_EVAL_SALT` for hidden production parameters without
-changing the public environment interface.
+- `train`：公开任务和公开 scenario，用于开发 agent。
+- `validation`：公开但固定的检查集，用于调参和报告。
+- `private_eval`：隐藏 scenario 或隐藏任务切片，用于 leaderboard。
 
-## Submission
+所有 split 共享同一个 `world_law_id`，但隐藏参数和评分 seed 不应泄露。
 
-A task-based run is preferred for public benchmark claims:
+## 提交要求
 
-```bash
-chemworld run --task reaction-optimization-standard --agent scripted_chemistry
-chemworld suite --task reaction-optimization-standard --agent gp_bo
-```
+提交包应包含 agent 入口、依赖、配置和 manifest。评测端负责创建环境、运行 episode、
+保存 trajectory 并计算分数。
 
-The task fixes the environment, world law, scenario, split, objective, budget,
-seeds, threshold, episode mode, allowed operations, allowed instruments,
-observation policy, termination policy, success metrics, and safety limit.
+提交包不得：
 
-A valid single-run submission contains:
+- 读取 hidden scenario；
+- 根据文件名或 seed 表作弊；
+- 写入评测目录以外的位置；
+- 访问未授权网络资源；
+- 修改环境代码。
 
-- trajectory JSONL;
-- agent manifest;
-- environment version;
-- world family version;
-- seed, budget, and benchmark task id;
-- reproducible command.
+## 基础记录
 
-`chemworld run` writes a `*.manifest.json` sidecar containing dependency
-versions, platform information, source digest, agent metadata, and the exact
-command used for the local run. If git metadata are available, it also records
-the current commit hash.
+每次评测都应记录：
 
-For release-oriented submissions, use a submission bundle:
+- ChemWorld commit；
+- Python 和依赖版本；
+- `task_id`；
+- `world_law_id`；
+- task maturity；
+- seed；
+- scenario id；
+- scoring protocol version；
+- agent manifest。
 
-```bash
-chemworld submission init my_submission --task-id reaction-optimization-standard
-chemworld submission validate my_submission
-chemworld submission summarize my_submission
-```
+## 指标
 
-A bundle contains `manifest.json`, `trajectories/*.jsonl`, `results/*.json`,
-and optional `explanations/*.json`.
+指标应按任务声明，常见维度包括：
 
-Every trajectory is validated before scoring. A single JSONL file must contain
-exactly one task, contiguous step numbers, required action keys, required
-observation keys, and observations in valid benchmark ranges.
+- yield；
+- purity；
+- selectivity；
+- information gain；
+- mechanism accuracy；
+- safety penalty；
+- cost penalty；
+- invalid-action penalty；
+- sample efficiency。
 
-Maintainers can additionally run `chemworld verify` to replay submitted
-operations in the declared environment and confirm that observations and rewards
-match the deterministic benchmark implementation. Use
-`chemworld verify --constitution` to require the recorded physical constitution
-checks to be present and reproducible.
+总分可以是加权组合，但每个子指标都应单独报告，便于诊断。
 
-## Foundation Records
+## Agent-Facing 指标
 
-Each trajectory records event-level world-model fields:
+除最终性能外，agent 交互质量也需要记录：
 
-- `operation_type`;
-- `preconditions`;
-- `state_delta_summary`;
-- `constitution_checks`;
-- `instrument`;
-- `instrument_source`;
-- `observed_keys`;
-- `observed_mask`;
-- `raw_signal`;
-- `processed_estimate`;
-- `uncertainty`;
-- `task_contract_hash`;
-- `runtime_profile_hash`;
-- `scoring_contract_hash`;
-- `observation_contract_hash`;
-- `measurement_cost`;
-- `sample_consumed`;
-- `observed_reward`;
-- `leaderboard_score`;
-- `reward_source`.
-- downstream observation fields such as `purity`, `recovery`, `phase_ratio`,
-  `product_in_organic`, `product_in_aqueous`, `impurity_signal`,
-  `solvent_loss`, and `process_mass_balance_error` when a task and instrument
-  make them observable.
+- invalid action rate；
+- precondition failure recovery；
+- final assay count；
+- best-so-far AUC；
+- cost-aware score；
+- observation-use summary；
+- instrument-use summary；
+- 是否使用 validator 或 action affordance。
 
-Observation records are partial-observation records, not truth dumps. Fields that
-were not measured by the current or carried-forward instrument are stored as
-`null` in JSON and have `observed_mask[field] == false`. Gym observations use
-`NaN` for the same missing values. Public ledger fields such as cost and safety
-risk remain observable.
+trajectory 可选记录 `agent_view` 和 `agent_trace`。`agent_view` 是环境公开视图，包含 RL vector、tool JSON 和 lab report；`agent_trace` 是 agent 行为摘要，包含 prompt input、selected action、validator result、observation summary 和 hypothesis note。
 
-Instrument records distinguish signal and estimate layers. `raw_signal` stores
-the instrument-like signal packet, `processed_estimate` stores the derived
-public estimates, and `uncertainty` stores measurement-noise metadata. This
-keeps the benchmark usable by simple Gym agents while preserving a richer
-scientific audit trail.
+## 发布产物
 
-Replay verification checks `task_contract_hash`, `runtime_profile_hash`,
-`mechanism_hash`, `scoring_contract_hash`, and `observation_contract_hash`. A
-trajectory is therefore not considered reproducible if the hidden mechanism is
-unchanged but the task boundary, runtime profile, leaderboard scoring contract,
-or public observation contract has drifted.
+正式 release 应包含：
 
-Failed action preconditions return a non-informative observation: all observation
-fields are `null`/`NaN`, `observed_keys` is empty, `observed_reward` is zero, and
-`error_message` records the failed precondition names. Failed measurement actions
-do not consume instrument cost or sample volume.
-
-`observed_reward` is the online feedback available to the agent from measured
-quantities and public ledger state. `leaderboard_score` is only populated for
-official final-assay scoring events and is the value used for benchmark
-performance metrics.
-
-ChemWorld separates two episode semantics:
-
-- `single_experiment`: `final_assay` terminates the Gym episode. This is used
-  for short teaching workflows such as `reaction-to-assay`.
-- `campaign`: `final_assay` ends one experiment inside the campaign, records a
-  `leaderboard_score`, resets the public reactor state for the next independent
-  experiment, and the Gym episode continues until the campaign budget is
-  exhausted. This is the correct mode for BO, LHS, greedy search, and public
-  leaderboard optimization tasks.
-
-In both modes, `final_assay` requires a terminated reaction state. Repeated
-final assays inside the same single experiment are rejected by the physical
-constitution. Campaign tasks permit multiple final assays because each one
-belongs to a new experiment within the same finite-budget campaign.
-
-Use `chemworld inspect-constitution --env ChemWorld` to inspect the declared
-rules for the environment. Use `chemworld tasks show <task_id>` to inspect the
-task slice over the shared world law.
-
-## Metrics
-
-ChemWorld-Bench reports official metrics from `leaderboard_score`, so
-intermediate HPLC, GC, or UV-vis measurements cannot directly become formal
-leaderboard performance. It reports:
-
-- final best score;
-- best valid score after excluding unsafe and high-cost experiments;
-- best valid yield;
-- area under the best-score curve;
-- threshold sample efficiency;
-- final assay count;
-- safety violations;
-- invalid action count;
-- mean cost and mean risk;
-- purification fields such as mean purity and recovery when observable;
-- safety-aware score;
-- weighted total score.
-
-The default total score is:
-
-```text
-0.40 * performance
-+ 0.25 * sample efficiency
-+ 0.20 * safety-aware score
-+ 0.15 * best valid score
-```
-
-Explanation quality is collected through structured fields but is not included
-in the automatic total score.
-
-For research comparisons, run the same agent over multiple seeds and at least
-`public-test` plus `private-eval`. The local leaderboard reports a
-`public_private_gap` when both splits are available for an agent. It also
-reports standard deviation, standard error, and a 95% confidence interval for
-mean total score.
-
-## Release Artifacts
-
-Official baseline reports are generated per task:
-
-```bash
-chemworld baselines report \
-  --tasks reaction-optimization-standard \
-  --agents random scripted_chemistry gp_bo safe_gp_bo \
-  --seeds 0 1 2 3 4 \
-  --output-dir runs/baseline_report
-```
-
-Maintainer-side private-eval results can be signed without publishing the
-secret salt:
-
-```bash
-chemworld private-eval sign \
-  --results runs/private_eval/results/*.json \
-  --output runs/private_eval/signed_private_eval.json
-```
-
-The signer reads `CHEMWORLD_PRIVATE_EVAL_SALT`, stores only a salt hash, and
-creates an HMAC signature over the result payload and run log. The signature can
-be checked by a maintainer with:
-
-```bash
-chemworld private-eval verify \
-  --artifact runs/private_eval/signed_private_eval.json \
-  --salt <maintainer-secret>
-```
-
-For a paper or preprint bundle:
-
-```bash
-chemworld artifact create --output-dir artifact/release
-```
+- 文档站；
+- 任务卡；
+- baseline 表；
+- trajectory 示例；
+- self-consistency audit；
+- release checklist；
+- paper artifact 说明。

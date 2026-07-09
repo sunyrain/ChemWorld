@@ -1,41 +1,33 @@
-# Reaction And Separation Tasks
+# 反应与分离任务
 
-The first task expansion keeps one environment, `ChemWorld`, and adds downstream
-processing to the same world state.
+本页描述反应和后处理耦合任务。它们是 ChemWorld 区分普通 reaction optimization toy
+environment 和完整 chemical world model gym 的关键。
 
-## Reaction-To-Purification
+## 反应到纯化
 
-`reaction-to-purification` asks an agent to run a reaction, quench it, add a
-phase/extractant, mix, settle, separate, wash or concentrate if useful, and then
-terminate for final assay.
+该任务要求 agent 先完成反应，再进行萃取、洗涤、干燥、浓缩或终点评测。评分通常同时
+考虑产率、纯度、成本和安全。
 
-Official outputs include:
+典型路线：
 
-- reaction score;
-- purity;
-- recovery;
-- phase ratio;
-- product in organic and aqueous phases;
-- impurity signal;
-- solvent loss;
-- process mass-balance error.
+1. 加 solvent、reagent、catalyst。
+2. 加热或搅拌推进反应。
+3. `terminate` 结束反应阶段。
+4. 加 extractant 并混合、静置、分相。
+5. 选择目标相并进行 wash、dry、concentrate。
+6. 使用 `final_assay` 测量并触发最终评分。
 
-## Partition Discovery
+## 分配发现
 
-`partition-discovery` narrows the task to learning how solvent and process
-conditions affect product distribution across phases. It is useful for local
-world-model learning because the agent must infer partition behavior from
-partial instrument observations.
+该任务强调 agent 通过有限测量学习物质在不同相之间的分配规律。它适合测试 exploration、
+active learning 和 instrument cost tradeoff。
 
-## Purity-Yield Tradeoff
+## 纯度-产率权衡
 
-`purity-yield-tradeoff` rewards downstream decision-making under competing
-objectives. A high-yield reaction can still be a poor process if washing,
-separation, or concentration causes high loss, high cost, or poor purity.
+该任务要求 agent 在纯度和回收率之间做取舍。过度纯化可能降低产率，过少后处理可能
+导致 impurity penalty。
 
-## Why This Matters
+## 为什么重要
 
-These tasks broaden the benchmark without creating disconnected environments.
-The same constitution enforces units, non-negativity, action preconditions,
-measurement cost, material ledgers, and safety signals across reaction and
-separation.
+真实化学工作流往往不是“反应结束即成功”。agent 需要理解反应、相行为、分离、测量和
+成本之间的耦合。ChemWorld 应优先把这些耦合做成可交互任务。

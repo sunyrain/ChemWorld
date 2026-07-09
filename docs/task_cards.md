@@ -1,74 +1,36 @@
-# Task Cards
+# 任务卡
 
-Task cards are the release-facing benchmark contract for each registered task.
-They are generated from `TaskSpec`, scenario cards, runtime profiles, and
-maturity metadata so CLI output, docs, and leaderboard artifacts do not drift.
+任务卡是 ChemWorld benchmark 的发布合同。它把 registry 中的任务信息压缩成人类和
+agent 作者都能理解的矩阵。
 
-Inspect a card:
+## 当前 Registry 矩阵
 
-```bash
-chemworld tasks card reaction-optimization-standard
-```
+| 任务族 | 主要能力 | 典型指标 | 成熟度 |
+| --- | --- | --- | --- |
+| reaction-optimization | 反应条件优化 | yield、selectivity、cost | lite |
+| reaction-to-purification | 反应到纯化闭环 | purity、yield、cost、safety | lite |
+| safety-constrained-control | 安全约束控制 | objective、safety penalty | proxy/lite |
+| mechanism-explanation | 机理解释 | explanation accuracy | proxy |
+| characterization-planning | 表征规划 | information gain、cost | proxy/lite |
+| partition-discovery | 分配规律发现 | prediction error、sample efficiency | lite |
+| purity-yield-tradeoff | 纯度-产率权衡 | purity、recovery | lite |
+| crystallization-control | 结晶控制 | purity、crystal quality | proxy/lite |
+| distillation-cut-selection | 蒸馏切割选择 | purity、recovery、energy | proxy/lite |
+| continuous-flow-optimization | 连续流优化 | yield、throughput、safety | proxy/lite |
+| electrochemical-screening | 电化学筛选 | conversion、selectivity、risk | proxy/lite |
+| tool-agent-planning | 工具型 agent 规划 | task score、invalid actions | proxy/lite |
 
-Each card contains:
+## Baseline 行
 
-- task id, motivation, difficulty, and recommended use;
-- shared `world_law_id` and scenario id;
-- allowed operations and instruments;
-- budget, episode mode, seed policy, and termination policy;
-- online reward and leaderboard metric definitions;
-- success metrics and safety limit;
-- scenario card and split;
-- kernel maturity, physics maturity, and proxy policy;
-- reference baseline slots and recommended agent families;
-- known failure modes.
+每张任务卡应至少记录：
 
-## Current Registry Matrix
+- random baseline；
+- legal-random baseline；
+- fixed recipe baseline；
+- simple optimizer baseline；
+- 可选 tool-agent baseline。
 
-This table is a compact snapshot. The authoritative version is always the CLI
-card generated from the registry.
+## 发布规则
 
-| Task | Split | Mode | Budget | Maturity | Proxy | Scenario |
-| --- | --- | --- | ---: | --- | --- | --- |
-| `electrochemical-conversion` | `public-test` | `campaign` | 48 | `lite` | `false` | `electrochemical-conversion` |
-| `flow-reaction-optimization` | `public-test` | `campaign` | 60 | `proxy` | `true` | `flow-reaction-optimization` |
-| `low-budget-characterization` | `public-test` | `campaign` | 18 | `lite` | `false` | `low-budget-characterization` |
-| `partition-discovery` | `public-test` | `campaign` | 48 | `proxy` | `true` | `partition-discovery` |
-| `public-private-generalization` | `private-eval` | `campaign` | 72 | `lite` | `false` | `generalization` |
-| `purity-yield-tradeoff` | `public-test` | `campaign` | 90 | `proxy` | `true` | `purity-yield-tradeoff` |
-| `reaction-mechanism-explanation` | `public-test` | `campaign` | 36 | `lite` | `false` | `reaction-mechanism` |
-| `reaction-optimization-standard` | `public-test` | `campaign` | 72 | `lite` | `false` | `reaction-optimization` |
-| `reaction-safety-constrained` | `public-test` | `campaign` | 72 | `lite` | `false` | `reaction-safety` |
-| `reaction-to-assay` | `public-dev` | `single_experiment` | 18 | `lite` | `false` | `reaction-to-assay` |
-| `reaction-to-crystallization` | `public-test` | `single_experiment` | 72 | `proxy` | `true` | `reaction-to-crystallization` |
-| `reaction-to-distillation` | `public-test` | `single_experiment` | 72 | `lite` | `false` | `reaction-to-distillation` |
-| `reaction-to-purification` | `public-test` | `single_experiment` | 90 | `proxy` | `true` | `reaction-to-purification` |
-| `tool-agent-planning` | `public-dev` | `single_experiment` | 48 | `proxy` | `true` | `tool-agent-planning` |
-
-## Baseline Rows
-
-Task cards contain baseline reference slots. Public release tables should be
-filled by:
-
-```bash
-chemworld baselines report \
-  --tasks reaction-optimization-standard reaction-to-distillation \
-  --agents random scripted_chemistry gp_bo safe_gp_bo \
-  --seeds 0 1 2 \
-  --output-dir runs/baseline_report
-```
-
-The generated baseline artifact, not a hand-written table, is the source of
-truth for release numbers.
-
-## Release Rule
-
-A task should not be treated as release-ready until it has:
-
-- fixed public seeds and documented private-eval policy;
-- a generated task card checked into the paper artifact;
-- reference baseline rows for the relevant agent families;
-- replay-verified trajectories for official baseline runs;
-- maturity metadata in task cards, trajectories, baseline rows, and submission
-  summaries;
-- known failure modes and intended use.
+任务卡必须与 registry 保持一致。若任务的 action space、metrics、maturity 或 hidden
+scenario policy 改变，应视为 benchmark contract 变更。

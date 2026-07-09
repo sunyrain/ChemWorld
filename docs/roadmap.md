@@ -1,61 +1,37 @@
-# Roadmap
+# 路线图
 
-ChemWorld-Bench now prioritizes benchmark hardening and documentation
-convergence before adding more physical modules.
+本路线图按发布优先级组织，而不是按理想研究愿景展开。
 
-## P0: Current Pre-Release Closure
+## P0：当前预发布收束
 
-Goal: make the current unified-world benchmark externally understandable and
-locally reproducible.
+- 中文化 `site/` 发布站点。
+- 固定首页、导航、任务卡和 release checklist。
+- 确保 `python -m mkdocs build --strict` 通过。
+- 确保环境自洽性审计通过。
+- 对 `reward=0`、precondition 和 phase workflow 的常见问题补文档。
 
-- Keep the formal entry point as `gym.make("ChemWorld", task_id=...)`.
-- Keep documentation structured around world law, task registry, runtime
-  contracts, evaluation, and audits.
-- Run environment self-consistency audit as a release gate.
-- Freeze task cards for the pre-release task set.
-- Remove stale docs language that implies old environment generations or
-  unrelated mini-games.
+## P1：Benchmark 合同加固
 
-## P1: Benchmark Contract Hardening
+- 冻结 action schema、observation schema 和 task cards。
+- 补全 baseline table 和 trajectory manifest。
+- 明确每个任务的 maturity、budget、metrics 和 failure flags。
+- 建立最小 submission bundle。
 
-Goal: make public benchmark numbers credible.
+## P2：数据与 Agent 研究层
 
-- Generate official baseline reports for release tasks.
-- Record baseline commands, seeds, platform version, commit hash, dependency
-  file, and maturity metadata.
-- Narrow broad task profiles so each release task exposes only relevant
-  operations.
-- Keep replay verification deterministic across task/scenario/mechanism hash
-  boundaries.
-- Sign maintainer private-eval artifacts when reporting hidden results.
+- 接近 Minari 风格的数据集打包。
+- 增加 rule baseline、optimizer baseline 和 tool-agent baseline。
+- 增加 world-model learning 接口。
+- 建立本地 leaderboard prototype。
 
-## P2: Dataset And Agent Research Layer
+## P3：专业物理深化
 
-Goal: make ChemWorld useful for agent and world-model research.
+- 逐步强化物性、相平衡、反应网络、单元操作和仪器模型。
+- 引入参考 backend 校准，但保持默认环境轻量。
+- 所有专业模块必须携带 maturity metadata。
 
-- Export JSONL and columnar datasets with dataset cards.
-- Add offline world-model, imitation, and RL baseline adapters.
-- Add richer explanation rubrics and example explanations.
-- Compare random, BO, safe BO, scripted, LLM replay, and human-plus-LLM
-  strategies across public/private splits.
+## P4：托管评测
 
-## P3: Professional Physics Deepening
-
-Goal: improve model fidelity without turning tasks into separate games.
-
-- Replace proxy modules one slice at a time with reference-validated or
-  professional-candidate kernels.
-- Deepen separations, crystallization, distillation, continuous flow, and
-  electrochemistry under the same world law.
-- Add external backend adapters only after the local benchmark contract is
-  stable.
-- Preserve maturity metadata so physical fidelity changes remain auditable.
-
-## P4: Hosted Evaluation
-
-Goal: move from local benchmark protocol to managed evaluation when needed.
-
-- Add hosted hidden task registry and server-side private seeds.
-- Add reviewed submission ingestion.
-- Add web leaderboard only after local submission bundles, verifier, and
-  signed artifacts are stable.
+- 隔离执行第三方提交。
+- 隐藏 evaluation split。
+- 自动生成 score report、failure report 和公开榜单。

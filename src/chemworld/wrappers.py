@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import gymnasium as gym
 import numpy as np
 from gymnasium.utils import RecordConstructorArgs
 
+from chemworld.agent_interface import observation_view
 from chemworld.world.operations import OPERATION_TYPES
 from chemworld.world.scoring import safety_cost_from_flags
 
@@ -147,3 +148,155 @@ class NaNObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordConstru
         if self.include_mask:
             values.extend(mask)
         return np.asarray(values, dtype=np.float32)
+
+
+class AgentInfoWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):
+    """Attach task prompt, campaign state, and current action affordances to info."""
+
+    def __init__(self, env: gym.Env[Any, Any]) -> None:
+        RecordConstructorArgs.__init__(self)
+        super().__init__(env)
+
+    def reset(self, **kwargs: Any) -> tuple[Any, dict[str, Any]]:
+        observation, info = self.env.reset(**kwargs)
+        return observation, self._with_agent_info(info)
+
+    def step(self, action: Any) -> tuple[Any, float, bool, bool, dict[str, Any]]:
+        observation, reward, terminated, truncated, info = self.env.step(action)
+        return observation, float(reward), terminated, truncated, self._with_agent_info(info)
+
+    def _with_agent_info(self, info: dict[str, Any]) -> dict[str, Any]:
+        base = _base_env(self.env)
+        payload = dict(info)
+        payload["task_prompt"] = base.task_prompt()
+        payload["campaign_state"] = base.campaign_state()
+        payload["available_actions"] = base.available_actions()
+        return payload
+
+
+class LLMObservationWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):
+    """Attach deterministic LLM/student-readable observation summaries to info."""
+
+    def __init__(self, env: gym.Env[Any, Any]) -> None:
+        RecordConstructorArgs.__init__(self)
+        super().__init__(env)
+
+    def reset(self, **kwargs: Any) -> tuple[Any, dict[str, Any]]:
+        observation, info = self.env.reset(**kwargs)
+        return observation, self._with_views(observation, info)
+
+    def step(self, action: Any) -> tuple[Any, float, bool, bool, dict[str, Any]]:
+        observation, reward, terminated, truncated, info = self.env.step(action)
+        return (
+            observation,
+            float(reward),
+            terminated,
+            truncated,
+            self._with_views(observation, info),
+        )
+
+    def _with_views(self, observation: Any, info: dict[str, Any]) -> dict[str, Any]:
+        payload = dict(info)
+        payload["lab_report"] = observation_view(
+            self.env,
+            "lab_report",
+            observation,
+            info,
+        )
+        payload["tool_json"] = observation_view(
+            self.env,
+            "tool_json",
+            observation,
+            info,
+        )
+        return payload
+
+
+class RLObservationWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):
+    """Return a NaN-safe vector observation and expose mask/cost in info."""
+
+    def __init__(
+        self,
+        env: gym.Env[Any, Any],
+        *,
+        include_mask: bool = True,
+        include_cost: bool = True,
+    ) -> None:
+        RecordConstructorArgs.__init__(
+            self,
+            include_mask=include_mask,
+            include_cost=include_cost,
+        )
+        super().__init__(env)
+        self.include_mask = include_mask
+        self.include_cost = include_cost
+        if not isinstance(env.observation_space, gym.spaces.Dict):
+            raise TypeError("RLObservationWrapper requires a Dict observation space.")
+        observation_space = cast(gym.spaces.Dict, env.observation_space)
+        self.observation_keys = list(observation_space.spaces.keys())
+        width = len(self.observation_keys) + (1 if include_cost else 0)
+        if include_mask:
+            width *= 2
+        self.observation_space = gym.spaces.Box(
+            low=-np.inf,
+            high=np.inf,
+            shape=(width,),
+            dtype=np.float32,
+        )
+
+    def reset(self, **kwargs: Any) -> tuple[np.ndarray, dict[str, Any]]:
+        observation, info = self.env.reset(**kwargs)
+        vector, payload = self._vectorize(observation, info)
+        return vector, payload
+
+    def step(self, action: Any) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
+        observation, reward, terminated, truncated, info = self.env.step(action)
+        vector, payload = self._vectorize(observation, info)
+        return vector, float(reward), terminated, truncated, payload
+
+    def _vectorize(
+        self,
+        observation: Any,
+        info: dict[str, Any],
+    ) -> tuple[np.ndarray, dict[str, Any]]:
+        view = observation_view(self.env, "rl", observation, info)
+        values = list(view["vector"])
+        mask = list(view["mask"])
+        if not self.include_cost:
+            values = values[:-1]
+            mask = mask[:-1]
+        vector_values = [*values, *mask] if self.include_mask else values
+        payload = dict(info)
+        payload["rl_view"] = view
+        payload["observation_mask"] = np.asarray(mask, dtype=np.float32)
+        payload["cost_signal"] = float(view["cost"])
+        return np.asarray(vector_values, dtype=np.float32), payload
+
+
+class ActionSuggestionWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):
+    """Expose legal next actions without auto-correcting the submitted action."""
+
+    def __init__(self, env: gym.Env[Any, Any]) -> None:
+        RecordConstructorArgs.__init__(self)
+        super().__init__(env)
+
+    def reset(self, **kwargs: Any) -> tuple[Any, dict[str, Any]]:
+        observation, info = self.env.reset(**kwargs)
+        return observation, self._with_suggestions(info)
+
+    def step(self, action: Any) -> tuple[Any, float, bool, bool, dict[str, Any]]:
+        observation, reward, terminated, truncated, info = self.env.step(action)
+        return observation, float(reward), terminated, truncated, self._with_suggestions(info)
+
+    def _with_suggestions(self, info: dict[str, Any]) -> dict[str, Any]:
+        base = _base_env(self.env)
+        payload = dict(info)
+        suggestions = base.available_actions()
+        payload["action_suggestions"] = suggestions
+        if payload.get("constraint_flags", {}).get("precondition_failed", False):
+            operation_names = [entry["operation"] for entry in suggestions[:4]]
+            payload["recovery_suggestion"] = (
+                "Try one of the currently valid operations: "
+                + (", ".join(operation_names) if operation_names else "none")
+            )
+        return payload

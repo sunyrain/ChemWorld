@@ -75,6 +75,8 @@ class TrajectoryLogger:
         info: dict[str, Any],
         agent_metadata: dict[str, Any],
         explanation: dict[str, Any] | None = None,
+        agent_view: dict[str, Any] | None = None,
+        agent_trace: list[dict[str, Any]] | None = None,
     ) -> None:
         payload = {
             "schema_version": TRAJECTORY_SCHEMA_VERSION,
@@ -157,6 +159,8 @@ class TrajectoryLogger:
             "leaderboard_score": to_builtin(info.get("leaderboard_score")),
             "reward_source": info.get("reward_source"),
             "agent_metadata": to_builtin(agent_metadata),
+            "agent_view": to_builtin(agent_view or {}),
+            "agent_trace": to_builtin(agent_trace or []),
             "timestamp": datetime.now(UTC).isoformat(),
             "explanation": explanation or {},
         }

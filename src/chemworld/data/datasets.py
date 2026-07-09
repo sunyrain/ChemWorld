@@ -89,6 +89,12 @@ def flatten_record(record: dict[str, Any]) -> dict[str, Any]:
         "precondition_failed": flags.get("precondition_failed"),
         "constitution_failed": flags.get("constitution_failed"),
         "action": json.dumps(to_builtin(record.get("action", {})), sort_keys=True),
+        "agent_view": json.dumps(to_builtin(record.get("agent_view", {})), sort_keys=True),
+        "lab_report": json.dumps(
+            to_builtin(record.get("agent_view", {}).get("lab_report", {})),
+            sort_keys=True,
+        ),
+        "agent_trace": json.dumps(to_builtin(record.get("agent_trace", [])), sort_keys=True),
     }
 
 

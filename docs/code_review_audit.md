@@ -1,569 +1,81 @@
-# Code Review Audit
+# 代码审计
 
-Date: 2026-07-09
+本页记录当前工程结构的主要审计结论。原始逐条历史记录较长，发布站点中保留中文收束版；
+更细的过程信息应放入开发日志或 archive。
 
-Scope: completed ChemWorld professional/deepening slices, with emphasis on
-large files, redundant metadata, and reviewability risks.
+## 主要发现
 
-## Findings
+### 高优先级：PhysChem 大模块仍需继续拆分
 
-### High Priority: Remaining Large PhysChem Modules Mix Multiple Responsibilities
+部分物理化学模块已经完成 facade 化，但仍有一些文件同时承担 public spec、数值 kernel、
+验证 helper 和导出列表。后续应继续按职责拆分，避免单个文件成为审查和测试瓶颈。
 
-The largest remaining files still combine public specs, numerical kernels,
-validation helpers, and export lists. This makes review harder and increases
-merge-conflict risk during two-person development.
+建议方向：
 
-Largest current source files after this cleanup:
+- public dataclass / spec 放在 `*_specs.py` 或 model card 模块；
+- 数值 kernel 放在独立实现模块；
+- validation helper 与测试 fixture 分开；
+- facade 只保留稳定导入面。
 
-| File | Approximate role | Follow-up split target |
-| --- | --- | --- |
-| `src/chemworld/physchem/reaction_network.py` | network object, batch integration, detailed balance, mechanism loading, and public facade wrappers | split integration core, thermochemical coupling, and loaders |
-| `src/chemworld/physchem/reaction_sensitivity.py` | finite-difference kinetic sensitivity reports, local uncertainty summaries, explanation ranking, and candidate-parameter scanning | keep sensitivity analysis separate from ODE integration and mechanism loading |
-| `src/chemworld/physchem/reaction_network_specs.py` | species/rate-law/reaction specs, reaction-equation parser, mechanism dict helpers | keep schema/parser layer separate from ODE integration and rate-law evaluation |
-| `src/chemworld/physchem/reaction_rate_laws.py` | rate-law constants, mass-action/Arrhenius/reversible-rate evaluation, parameter validation, reaction lookup helpers | keep kinetic formula evaluation separate from ODE integration, thermochemical reports, and file loading |
-| `src/chemworld/physchem/reaction_reference_cases.py` | analytical ODE reference cases, Cantera-comparable fixtures, and reference-case evaluation | keep validation fixtures separate from network integration, sensitivity, and mechanism loading |
-| `src/chemworld/physchem/equilibrium_chemistry.py` | mass-action equilibrium, acid-base, precipitation, Gibbs minimization | split into mass-action, electrolyte/acid-base, precipitation, and Gibbs minimization helpers |
-| `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, and provenance |
-| `src/chemworld/physchem/spectroscopy.py` | calibration, chromatography, signal synthesis, feature heuristics | split into calibration, chromatography, signal synthesis, and feature libraries |
-| `src/chemworld/runtime/domain_services.py` | lightweight operation composition surface with service delegation, constitution checks, and operation-record assembly | keep thin and do not add process-specific formulas back into this layer |
-| `src/chemworld/runtime/crystallization_services.py` | seed addition, typed crystallizer seed-equipment status, cooling crystallization, typed solid/mother-liquor output phases, crystal process metrics, and crystal filtration ledger updates | keep separate from mixed operation services and later bind solubility/crystal-size models more directly to mechanism cards |
-| `src/chemworld/runtime/distillation_services.py` | shortcut VLE distillation, typed distillate/bottoms output phases, distillate process metrics, heat-duty/cost/risk ledgers, and fraction collection | keep separate from mixed operation services and later bind VLE/component properties more directly to mechanism cards |
-| `src/chemworld/runtime/electrochemical_services.py` | potential/current setup, Nernst/Butler-Volmer electrolysis calls, faradaic conversion, electrical work, and electrochemical metadata | keep separate from mixed operation services and later bind electrode/reaction specs more directly to mechanism cards |
-| `src/chemworld/runtime/flow_services.py` | flow-rate setup, residence-time reaction advancement, flow conversion metrics, and flow campaign ledger updates | keep separate from mixed operation services and later bind reactor geometry/residence-time distributions more directly to mechanism cards |
-| `src/chemworld/runtime/instrument_cost_services.py` | measurement cost, destructive sample consumption, and typed instrument equipment status | keep separate from observation generation and operation-record logging |
-| `src/chemworld/runtime/reaction_thermal_services.py` | reaction ODE advancement, heat/wait integration, energy ledgers, and pressure/risk projection | keep separate from mixed operation services and later bind integration choices more directly to mechanism cards |
-| `src/chemworld/runtime/phase_ledger_services.py` | typed phase-ledger normalization, mechanism role mapping into phases, selected-phase state replacement, and downstream process-metric updates | keep phase ledger state and derived process metrics separate from extraction operation handlers |
-| `src/chemworld/runtime/phase_separation_services.py` | liquid-liquid partitioning, extraction, settling, phase selection, washing, drying, concentrating, and transfer operation handlers | keep operation handlers separate from phase-ledger normalization and process-metric derivation |
-| `src/chemworld/runtime/primitive_services.py` | reagent, solvent, and catalyst addition, sampling, quench, evaporation, and invalid-action penalty updates | keep separate from composition and later bind primitive material additions more directly to typed ledgers |
-| `src/chemworld/runtime/observation_services.py` | observation truth, noisy instrument signals, processed estimates, and scoring | keep separate from state-changing services and later bind observation/score specs more directly to mechanism/task cards |
-| `src/chemworld/runtime/record_services.py` | operation-record assembly, constitution summaries, measurement cost/sample fields, and state-delta summaries | keep separate from state-changing services and later bind record schemas more directly to trajectory schema generation |
+### 中优先级：Model card 应继续模块化
 
-### Medium Priority: Model Cards Are Better As Metadata Modules
+model card 是 maturity、参考来源、适用边界和验证证据的承载层。它们不应散落在 runtime
+或数值 kernel 中。推荐为 properties、reactors、separations、spectroscopy、transport
+等模块分别维护轻量 metadata。
 
-Many modules contain long `*_model_cards()` functions. These are valuable but
-they are mostly metadata. Keeping them inside numerical kernels makes diffs
-noisy whenever docs/provenance changes.
+### 中优先级：Runtime V2 边界已建立
 
-Action completed in this pass:
+当前 runtime 已经具备 `ChemWorldRuntime`、mechanism-aware state、typed ledgers 和
+domain services。下一步不是重写 runtime，而是继续收紧边界：
 
-- moved all remaining PhysChem `*_model_cards()` functions into dedicated
-  `*_cards.py` modules;
-- moved card-only provenance constants with their card modules where needed;
-- kept the public facade `chemworld.physchem` exporting the same model-card
-  functions;
-- kept numerical kernels focused on calculations, reports, and runtime data
-  structures;
-- did not change numerical behavior.
+- generic runtime 不直接读取固定 species 名；
+- task-specific scoring 进入 world/scoring 或 task evaluator；
+- process operation 不在 runtime 主循环里写大量 inline branch；
+- action catalog 属于 world-law 层。
 
-The new card modules are:
+### 中优先级：黄金表征测试值得保留
 
-- `curated_property_cards.py`
-- `electrochemistry_cards.py`
-- `eos_cards.py`
-- `equilibrium_cards.py`
-- `equilibrium_chemistry_cards.py`
-- `property_cards.py`
-- `reaction_network_cards.py`
-- `reactor_cards.py`
-- `separation_cards.py`
-- `spectroscopy_cards.py`
-- `thermochemistry_cards.py`
-- `transport_cards.py`
+golden characterization tests 能保护 agent-facing 行为不被重构破坏。建议继续覆盖：
 
-Recommended next mechanical cleanup:
+- reset info；
+- action validity；
+- reward timing；
+- constraint flags；
+- spectra/instrument readout；
+- replay verification。
 
-1. Continue splitting `reaction_network.py` by integration core,
-   thermochemical-coupling, sensitivity, and loader responsibilities.
+### 低优先级：Facade 较大但目前可接受
 
-### Medium Priority: Property Module Split Is Complete
+一些 facade 导出较多，但它们为外部用户提供稳定导入路径。短期不必为了“看起来更小”
+破坏 API；优先拆内部职责。
 
-`src/chemworld/physchem/properties.py` is now a thin facade. Property logic is
-split by family:
+## 已完成清理
 
-- `property_reports.py`: shared constants, report contract, phase/fraction
-  validation helpers;
-- `property_equations.py`: supported correlation equations, validity checks,
-  and equation derivatives;
-- `property_packages.py`: component-level convenience wrapper;
-- `vapor_pressure.py`: vapor/sublimation pressure reports and derivatives;
-- `enthalpy.py`: heat-capacity, phase-transition, and mixture enthalpy reports;
-- `volume_properties.py`: molar volume, density, and volume-mixture ledgers;
-- `transport_properties.py`: viscosity, conductivity, diffusivity, and
-  transport ledgers;
-- `hazard_properties.py`: property-derived screening hazard proxies;
-- `properties.py`: public aggregation facade.
+- property 模块已从大型数值文件收缩为更薄的 facade。
+- reactor 模块已完成初步职责拆分。
+- mechanism compiler、runtime kernel/profile、domain-service composition、constitution、
+  foundation state 等边界已有测试保护。
+- action catalog 已向 world-law 层迁移。
+- duplicated scoring island 已收束到统一 scoring 路线。
 
-This split reduced `properties.py` from a multi-thousand-line numerical module
-to a small aggregation surface without changing public imports or numerical
-behavior.
+## 验证
 
-### Medium Priority: Reactor Module Split Is Complete
-
-`src/chemworld/physchem/reactors.py` is now a thin facade. Reactor logic is
-split by family and responsibility:
-
-- `reactor_shared.py`: heat-transfer specs, jacket programs, feed specs,
-  sampling specs, reactor states, results, and common validation;
-- `reactor_solvers.py`: ODE solving, integration-result assembly, heat ledgers,
-  material-balance helpers, and shared vector conversion;
-- `batch_reactors.py`: batch and dynamic/event-driven batch models;
-- `semibatch_reactors.py`: semi-batch model with explicit feed ledgers;
-- `cstr_reactors.py`: dynamic and steady-state CSTR model;
-- `pfr_reactors.py`: plug-flow reactor model;
-- `cstr_multiplicity.py`: exothermic CSTR multiplicity reference case and
-  root/stability solver;
-- `reactors.py`: public aggregation facade.
-
-This split reduced `reactors.py` from a broad numerical module to a small
-aggregation surface while preserving public imports and numerical behavior.
-
-### Medium Priority: Runtime V2 Is In Place, Domain Services Remain Broad
-
-`ChemWorldEnv` now delegates operation execution to `chemworld.runtime`.
-The active runtime path contains `ChemWorldRuntime`,
-`OperationKernelRegistry`, `TaskRuntimeProfile`, `TransactionManager`,
-`CompiledMechanism`, and typed state ledgers. The old
-`chemworld.core.batch_reactor` runtime center has been removed from the running
-path.
-
-`src/chemworld/runtime/domain_services.py` is now a lightweight composition
-surface rather than the physical runtime center. Observation/scoring,
-operation-record assembly, reaction/thermal advancement, phase-ledger and
-extraction-style separation operations, crystallization, distillation, flow,
-electrochemical operation logic, measurement cost / destructive sampling, and
-primitive material handling have been extracted to focused service modules.
-
-Current hardening added a mechanism-aware species-role boundary. Runtime
-services now resolve reactants, targets, impurities, catalyst species,
-byproduct signals, and degradation markers through `MechanismSpeciesView`
-rather than reading fixed species names throughout the service code. The
-remaining legacy names are isolated as world-level fallback role bindings for
-older benchmark mechanisms and tests.
-
-Recommended follow-up:
-
-- keep `domain_services.py` thin and do not add process-specific formulas back
-  into the composition layer;
-- keep operation kernels as small command handlers;
-- continue moving mechanism-specific scoring and observation mapping into
-  compiled mechanism cards;
-- continue strengthening ledger-level replay beyond the current transaction
-  metadata checks.
-- continue shrinking the legacy fallback surface by letting reaction,
-  separation, spectroscopy, and score specs carry all species bindings.
-
-Current hardening also adds a golden-characterization test layer for the active
-Runtime v2 path. Each formal task now has a scripted final-assay trajectory that
-locks the mechanism id, final-assay score snapshot, campaign versus
-single-experiment termination semantics, operation-kernel metadata, transaction
-status, world-event payload, and affected-ledger signals.
-
-Current cleanup also split the mechanism compiler boundary. The lightweight
-`runtime/mechanisms.py` facade now keeps scenario-to-mechanism selection and
-`compile_mechanism()` assembly, while `runtime/mechanism_manifest.py` owns
-`CompiledMechanism`, `MechanismManifest`, `MechanismValidationReport`, and
-`ScoreSpec`, and `runtime/mechanism_validation.py` owns YAML loading, canonical
-hashing, schema validation, observable-role mapping, and Runtime v2 role
-contract checks.
-
-Current cleanup also split the runtime kernel/profile boundary. The
-`runtime/kernels.py` facade now only re-exports the public kernel surface,
-`runtime/profiles.py` owns `TaskRuntimeProfile` and profile hashes,
-`runtime/kernel_contracts.py` owns `RuntimeContext`, `KernelPlan`,
-`KernelResult`, and the `OperationKernel` protocol, and
-`runtime/kernel_registry.py` owns the service-backed default kernel, affected
-ledger declarations, and task-scoped registry validation.
-
-Current cleanup also split the domain-service composition boundary. The
-`runtime/domain_services.py` module now owns `ChemWorldDomainServices` only,
-while `runtime/domain_service_registry.py` owns domain-service contracts,
-operation coverage validation, and capability checks, and
-`runtime/constitution_factory.py` owns the default ChemWorld constitution
-factory.
-
-Current cleanup also split the foundation constitution boundary.
-`foundation/constitution.py` now keeps the `PhysicalConstitution` facade and
-cross-cutting material/yield/observation checks, while
-`foundation/constitution_reports.py` owns report data contracts,
-`foundation/constitution_state_checks.py` owns state invariant checks, and
-`foundation/constitution_preconditions.py` owns operation precondition tables.
-
-Current cleanup also split the foundation state boundary. `foundation/state.py`
-now keeps `Ledger`, `WorldState`, `Observation`, and `OperationRecord` plus
-public re-exports, while `foundation/state_ledgers.py` owns typed species,
-phase, vessel, equipment, thermal, and process ledger records, and
-`foundation/state_helpers.py` owns typed-ledger helper functions such as phase
-selection, destructive phase scaling, equipment settings, instrument status,
-and equipment upserts.
-
-The architecture test suite now also enforces the active Runtime v2 boundary:
-`src/chemworld/envs` and `src/chemworld/runtime` must not import the removed
-`chemworld.core.batch_reactor` runtime, and `ChemWorldEnv.step()` must delegate
-process-operation dispatch to `runtime.apply_transaction()` instead of adding
-inline branches for process operations. Current cleanup also extracted
-`chemworld.envs.spaces`, keeping Gym action/observation space construction,
-nullable scalar boxes, and observation-array encoding outside the environment
-control loop. It also extracted `chemworld.envs.reports`, keeping task info,
-constitution summaries, render text, and step-info payload construction outside
-the environment control loop.
-
-The final Runtime v2 boundary audit also enforces that generic runtime,
-observation, scoring, and downstream bookkeeping do not depend on fixed
-`A/P/B/D/E` species names. The original seven-slot mechanism remains only as an
-explicit world-level reference fixture, not as a hidden runtime fallback.
-Current cleanup extends that boundary to the world ontology and initial-state
-factory: `world/ontology.py` no longer declares fixed global species,
-`world/state_factory.py` no longer falls back to a fixed species tuple, and
-`make_chemworld_constitution()` can build the substance registry from the
-current compiled mechanism. `ChemWorldEnv.reset()` now rebuilds the constitution
-and validator when a scenario changes.
-Current cleanup also removes fixed-species raw-signal names from the virtual
-instrument layer. Agent-visible spectra now use public role aggregates such as
-`reactant_public`, `target_public`, `impurity_public`, and
-`degradation_public`, and generic spectral role inference no longer classifies
-arbitrary `A/P/B/D/E`-style names by first letter.
-Current cleanup also moved the action catalog into the world-law layer.
-`world/actions.py` now owns catalyst/solvent choices, terminal-recipe bounds,
-and action-vector helpers; env, runtime, world, and `ActionCodec` import that
-world-law catalog directly. The follow-up cleanup removed the remaining
-`core/actions.py` facade; baseline agents and tutorial helpers now import the
-same world-law helpers directly, and architecture tests block reintroducing the
-old action facade into source or tutorial notebooks.
-Current cleanup also removed the duplicated `core/objectives.py` scoring island.
-Reaction and task scoring are now owned by `world/scoring.py`; the source tree
-and tutorial notebooks are covered by architecture tests that reject
-`chemworld.core` imports.
-
-Replay verification now compares Runtime v2 transaction metadata in addition
-to rewards and observations. The verifier rejects mechanism-hash drift,
-operation-kernel metadata tampering, changed affected-ledger lists, altered
-world events, modified state-patch summaries, transaction-status changes, and
-state-delta summary drift.
-
-### Low Priority: Facade Exports Are Large But Useful
-
-`src/chemworld/physchem/__init__.py` is a large facade. It is not a correctness
-risk, but merge conflicts are likely as new professional slices add exports.
-
-Recommended follow-up:
-
-- keep the facade for user ergonomics;
-- consider grouped internal subfacades later, such as
-  `chemworld.physchem.properties_api` and `chemworld.physchem.reactors_api`;
-- avoid removing public names without a deliberate API decision.
-
-## Cleanup Completed
-
-- Extracted separation model-card metadata from the separation numerical kernel.
-- Extracted the remaining PhysChem model-card metadata from numerical kernels.
-- Added dedicated `*_cards.py` modules for property correlations, reactors,
-  reaction networks, EOS, spectroscopy, transport, equilibrium, equilibrium
-  chemistry, thermochemistry, electrochemistry, curated properties, and
-  separations.
-- Updated `chemworld.physchem.__init__` to import model-card functions directly
-  from card modules.
-- Preserved module-level model-card re-exports from the numerical kernels.
-- Verified facade imports and model-card validation after the split.
-- Split `properties.py` into property-family modules and kept
-  `chemworld.physchem.properties` as a thin public facade.
-- Verified property-specific tests and the full benchmark test suite after the
-  split.
-- Split `reactors.py` into reactor-family modules and kept
-  `chemworld.physchem.reactors` as a thin public facade.
-- Verified reactor-specific tests and the full benchmark test suite after the
-  split.
-- Introduced Runtime v2 with operation kernel registry, task runtime profiles,
-  transaction manager, mechanism compiler, typed ledgers, and mechanism-hash
-  trajectory metadata.
-- Moved the former batch-reactor runtime implementation out of `core` and then
-  split major state-changing process responsibilities into focused runtime
-  services.
-- Added `runtime/species.py` as the single species-role adapter between
-  compiled mechanisms and the current semi-mechanistic domain services.
-- Migrated reagent addition, catalyst addition, phase bookkeeping,
-  electrochemical conversion, downstream truth values, flow conversion,
-  distillation summaries, crystallization summaries, and observation truth
-  scoring toward compiled-mechanism role mappings.
-- Added regression tests using the `electrochemical_conversion` mechanism to
-  verify non-`A/P/B/D/E` species can drive runtime services and observations.
-- Added Runtime v2 golden-characterization tests covering all formal tasks with
-  scripted final-assay trajectories, campaign/single-experiment semantics,
-  operation-kernel metadata, transaction status, world events, affected ledgers,
-  and final-assay score snapshots.
-- Added architecture tests that enforce env/runtime import boundaries and keep
-  concrete process-operation dispatch out of `ChemWorldEnv.step()`.
-- Extended replay verification to check mechanism hash, kernel id/version,
-  affected ledgers, world events, state-patch summaries, transaction status,
-  rollback reason, and state-delta summaries with recursive tolerance-aware
-  comparisons.
-- Promoted Runtime v2 extraction phase bookkeeping from metadata to typed
-  `PhaseLedger` records, added executable constitution checks for phase/vessel
-  reverse indexes and metadata primary-state leakage, and synchronized
-  destructive sampling/measurement with typed phase amounts.
-- Promoted Runtime v2 flow and electrochemical setup from metadata keys to
-  typed `EquipmentLedger` records, made flow/electrochemistry preconditions read
-  equipment settings, and moved their derived process metrics into typed
-  process ledgers.
-- Extracted `ChemWorldObservationKernel` into
-  `runtime/observation_services.py`, keeping noisy observations, raw signal
-  assembly, processed estimates, uncertainty metadata, and observation scoring
-  outside the state-changing domain-service module.
-- Extracted `ChemWorldOperationRecorder` into `runtime/record_services.py`,
-  keeping operation-record assembly, constitution summaries, measurement
-  cost/sample fields, and state-delta summaries outside the state-changing
-  domain-service module.
-- Extracted `ChemWorldReactionThermalServices` into
-  `runtime/reaction_thermal_services.py`, keeping heat/wait reaction
-  integration, typed reactor stirring settings, energy-ledger updates, and pressure/risk
-  projection outside the mixed domain-service module.
-- Extracted `ChemWorldPhaseSeparationServices` into
-  `runtime/phase_separation_services.py`, keeping partitioning, extraction,
-  settling, phase selection, washing, drying, concentrating, and transfer
-  operation handlers outside the mixed domain-service module.
-- Extracted `ChemWorldPhaseLedgerServices` into
-  `runtime/phase_ledger_services.py`, keeping phase-ledger normalization,
-  mechanism-role-to-phase mapping, selected-phase state replacement, and
-  downstream process-metric updates outside the extraction operation handlers.
-- Extracted `ChemWorldElectrochemicalServices` into
-  `runtime/electrochemical_services.py`, keeping potential/current setup,
-  electrochemical mechanism binding, faradaic conversion, electrical-work
-  ledgers, and electrochemical metadata outside the mixed domain-service
-  module.
-- Extracted `ChemWorldInstrumentCostServices` into
-  `runtime/instrument_cost_services.py`, keeping measurement cost, destructive
-  sample consumption, and typed instrument equipment status outside the mixed
-  domain-service module.
-- Promoted final-assay completion and timing out of runtime metadata into typed
-  `instrument:final_assay` equipment status. Constitution preconditions now use
-  typed instrument completion to block repeated final assays, and golden
-  trajectories assert the old metadata keys do not reappear.
-- Promoted crystallization seed status and seed mass out of runtime metadata
-  into typed `crystallizer` equipment settings. Cooling crystallization now
-  reads the typed seed configuration, and constitution/golden tests reject the
-  old seed metadata keys.
-- Promoted crystallized product and occluded impurity amounts out of runtime
-  metadata into typed `solid` and `mother_liquor` phase records. Crystal
-  filtration now reads the typed solid phase, while derived yield/purity/size
-  summaries live in `ProcessLedger.metrics`.
-- Promoted distillate product and impurity amounts out of runtime metadata into
-  typed `distillate` and `bottoms` phase records. Fraction collection now reads
-  the typed distillate phase, while derived purity/recovery summaries live in
-  `ProcessLedger.metrics`; metadata retains only distillation-kernel notes.
-- Promoted the downstream pre-separation product reference amount out of runtime
-  metadata into `ProcessLedger.metrics`. Crystallization, distillation, fraction
-  collection, and downstream truth calculations now use that typed process
-  metric as the recovery denominator, and constitution checks reject the old
-  metadata key.
-- Promoted campaign-level solvent-loss bookkeeping out of runtime metadata into
-  `ProcessLedger.metrics`. Evaporation, crystallization filtration,
-  distillation, and downstream truth calculations now use the typed process
-  metric for cumulative solvent-loss observations, while phase records keep
-  phase-local loss summaries.
-- Added a Runtime v2 final boundary audit that keeps the removed
-  `chemworld.core.batch_reactor` runtime out of env/runtime imports. Later
-  cleanup removed the downstream `LEGACY_*` species fallback bindings as well:
-  separation truth now reads mechanism-role quantities and typed phase-ledger
-  summaries rather than fixed `A/P/B/D/E` slots.
-- Moved scenario initial-state generation onto compiled mechanism species,
-  roles, and initial-amount policy. Non-fixed scenarios such as
-  `electrochemical_conversion` and `reactive_distillation_lite` now reset with
-  mechanism-owned species ledgers instead of fixed `A/P/B/D/E` state keys.
-- Added a compiled reaction integration path for heat/wait-style advancement.
-  Runtime reaction/thermal services now prefer compiled mechanism species,
-  stoichiometry, rate-law evaluators, and reaction enthalpies; the old
-  seven-slot ODE remains only as an explicit world-level reference fixture.
-  Reagent charging also uses mechanism `initial_amount_policy`, so
-  multi-reactant mechanisms such as reactive distillation add co-reactants in
-  declared ratios.
-- Quarantined the old fixed A/P/B/D/E seven-slot ODE in
-  `world/reaction_reference.py`. The ordinary `world/reaction_kernel.py` now
-  declares a compiled-mechanism runtime contract and no longer exports fixed
-  species slots or the old reference integrator.
-- Removed generic `LEGACY_*` species defaults and optional compiled-mechanism
-  service constructors from env/runtime/eval paths. Runtime role resolution now
-  requires a compiled mechanism; mechanisms with no catalyst species update
-  catalyst equipment/cost without fabricating `Cat_active`. Golden final-assay
-  scores were updated because the old `A`-specific metadata branch had counted
-  `initial_A_mol` twice.
-- Added compile-time mechanism role validation. All mechanisms still compile
-  under the base library contract, while runtime task scenarios additionally
-  require positive initial species, declared target species, impurity species,
-  and role mappings that refer only to species present in the mechanism.
-- Hardened Runtime v2 transaction consistency. Rollback transactions now append
-  an explicit `rollback_penalty` patch, preserve the failed-candidate check
-  names in a `transaction_rollback` event, and rebuild operation records from
-  the final rollback state so `state_delta_summary`, returned state, patches,
-  and event logs describe the same transaction outcome.
-- Added operation-kind taxonomy and recipe-level macro expansion. Operation
-  contracts now classify `primitive`, `domain`, `macro`, and `terminal`
-  actions; `wash`, `dry`, and `concentrate` can be compiled into executable
-  primitive/domain steps, and task-aware recipe validation checks the compiled
-  actions rather than trusting the source macro.
-- Added a typed Runtime v2 domain-service registry. Focused runtime services now
-  publish JSON-friendly service contracts, `task_info()` exposes an
-  operation-to-service map, and accepted `operation_applied` events carry the
-  `domain_service_id` used for audit and replay metadata.
-- Hardened the Runtime v2 task profile contract. `TaskRuntimeProfile` now
-  declares required domain services in addition to operations, kernels,
-  instruments, and capabilities; runtime startup validates the profile against
-  both operation kernels and focused domain-service contracts.
-- Made Runtime v2 domain-service validation explicitly task-scoped. The default
-  registry can still be audited for full operation coverage, but runtime
-  construction only enforces duplicate/unknown-operation integrity; a task that
-  never allows separation no longer depends on separation service coverage.
-- Added a task-specific scoring contract. `TaskScoringContract` now compiles a
-  task objective plus success metrics into a JSON-friendly score family and
-  component weights, and the observation kernel uses that contract instead of a
-  single fixed reaction-only score formula for all task families.
-- Added a task-specific observation contract. `TaskObservationContract` now
-  compiles success metrics, the scoring contract, allowed instruments, and the
-  compiled mechanism observable mapping into per-instrument processed keys, so
-  reaction-only tasks no longer inherit unrelated purification, distillation,
-  crystallization, flow, or electrochemistry fields from global instrument
-  contracts.
-- Added task-aware raw-signal shielding for environment observations. Runtime
-  instrument packets now synthesize spectra from task-visible public role
-  aggregates such as `reactant_public`, `target_public`, `impurity_public`, and
-  `degradation_public` rather than passing full hidden species ledgers or
-  mechanism-internal species names into agent-visible raw-signal packets.
-- Promoted flow and electrochemical derived metrics into typed
-  `ProcessLedger.metrics`. Flow conversion, residence campaign time,
-  throughput, electrochemical selectivity, faradaic efficiency, charge, and
-  electrical work are no longer primary metadata fields; constitution checks
-  reject those keys in `state.metadata`, while observations and operation
-  records read them from the typed process ledger.
-- Promoted downstream separation, crystallization, and distillation derived
-  metrics into typed `ProcessLedger.metrics`. Purity, recovery, crystal
-  yield/purity/size, and distillate purity/recovery are no longer primary
-  metadata fields; phase services, observation truth, and constitution checks
-  read and enforce the typed process-ledger boundary.
-- Promoted the last public observation cache into typed `ProcessLedger`.
-  Non-measurement observations still preserve the latest public instrument
-  values, while constitution checks now reject the old `last_observation` and
-  `last_observed_mask` metadata keys.
-- Added deterministic scoring and observation contract hashes. Task info,
-  trajectory records, and replay verification now include
-  `scoring_contract_hash` and `observation_contract_hash`, so protocol drift is
-  rejected even when the hidden mechanism hash is unchanged.
-- Added deterministic task and runtime-profile hashes. Task info, trajectory
-  records, schemas, and replay verification now include `task_contract_hash`
-  and `runtime_profile_hash`, so task boundaries, allowed instruments, budget,
-  safety limits, and runtime service requirements cannot drift silently.
-- Routed stateful operation precondition failures through Runtime v2 rollback
-  semantics. Payload/schema/task-policy failures remain env-level
-  `validation_failed` events, while physical precondition failures now emit
-  `operation_rejected` plus `transaction_rollback` events and only commit a
-  process-ledger penalty patch.
-- Added an IR functional-group spectroscopy slice. IR signal generation now
-  exposes curated local band assignments, broad O-H Lorentzian bands,
-  transmittance bounds, overlap/interference metadata, public API exports, and a
-  model card with validation evidence.
-- Extracted `ChemWorldCrystallizationServices` into
-  `runtime/crystallization_services.py`, keeping seed addition, cooling
-  crystallization, crystal process metrics, and crystal filtration
-  outside the mixed domain-service module.
-- Extracted `ChemWorldDistillationServices` into
-  `runtime/distillation_services.py`, keeping shortcut VLE distillation,
-  distillate process metrics, heat-duty/cost/risk ledgers, and
-  fraction collection outside the mixed domain-service module.
-- Extracted `ChemWorldFlowServices` into `runtime/flow_services.py`, keeping
-  flow-rate setup, residence-time reaction advancement, flow conversion
-  metrics, and flow campaign ledger updates outside the mixed domain-service
-  module.
-- Extracted `ChemWorldPrimitiveOperationServices` into
-  `runtime/primitive_services.py`, keeping reagent, solvent, and catalyst
-  addition, sampling, quench, evaporation, and invalid-action penalty updates
-  outside the composition layer.
-- Promoted batch-reactor solvent, catalyst, and stirring configuration out of
-  runtime metadata into typed `EquipmentLedger` settings. Reaction, thermal,
-  electrochemical, and phase-partition services now read the typed reactor
-  settings, and the constitution rejects these keys as primary metadata.
-- Promoted actual charged initial amounts out of runtime metadata into
-  `SpeciesLedger.initial_amounts_mol`. Scenario reset keeps mechanism
-  recipe-scale policies at zero actual charge until `add_reagent`, scoring
-  reads the typed species ledger, and the constitution rejects
-  `initial_*_mol`/`initial_reactant_mol` metadata keys.
-- Promoted downstream operation status and diagnostics out of runtime metadata.
-  Crystal filtering now records completion and filtered material summaries on a
-  typed `crystal_filter` equipment record, while distillation and fraction
-  collection record model diagnostics and collection settings on the typed
-  `distillation_column` equipment record.
-- Promoted vessel operating bounds fully into typed `VesselLedger` records.
-  `WorldState` no longer derives max volume, temperature, or pressure from
-  metadata; constitution checks and operation payload validation now read the
-  current vessel record, and metadata vessel-bound keys are rejected.
-- Removed the remaining phase-local `solvent_loss` metadata path. Separation,
-  crystallization, and distillation phases now carry only typed phase identity,
-  volume, composition, and status; process loss is written to and read from
-  `ProcessLedger.metrics`, and constitution checks reject phase metadata loss
-  fallbacks.
-- Removed the remaining phase-local product/impurity material fallback path.
-  Downstream truth calculations no longer read `product_mol` or `impurity_mol`
-  from `PhaseRecord.metadata`; phase material amounts must come from typed
-  `PhaseRecord.species_amounts_mol`, and constitution/golden tests reject these
-  phase metadata keys.
-- Promoted phase-system readiness, settled status, and selected-phase state out
-  of runtime metadata into typed `PhaseLedger` records. Constitution
-  preconditions now read `PhaseRecord.settled/selected`, extraction,
-  crystallization, and distillation outputs mark selected phases in typed
-  ledgers, and golden trajectories assert these primary phase-status keys never
-  reappear in state metadata.
-- Extracted `reaction_network_specs.py` from `reaction_network.py`, keeping
-  species/rate-law/reaction specs, reaction-equation parsing, and mechanism
-  dict helpers outside the ODE integration and rate-law evaluation engine.
-- Extracted `reaction_rate_laws.py` from `reaction_network.py`, keeping
-  mass-action, Arrhenius, reversible Arrhenius, catalytic, deactivation,
-  Langmuir-Hinshelwood, Michaelis-Menten, parameter validation, and reaction
-  lookup helpers outside the network ODE/reference-case engine.
-- Extracted `reaction_reference_cases.py` from `reaction_network.py`, keeping
-  analytical first-order ODE cases, Cantera-comparable fixtures, and
-  reference-case evaluation outside the network integration engine.
-- Extracted `reaction_sensitivity.py` from `reaction_network.py`, keeping
-  finite-difference sensitivity entries, reports, uncertainty summaries,
-  explanation rankings, and positive-parameter candidate scanning outside the
-  network integration facade.
-- Added a schema-versioned mechanism contract and replay manifest. Mechanism
-  YAML now validates against `chemworld_mechanism_v1`, rate laws are restricted
-  to local enum families, executable/eval-style rate laws are rejected, each
-  compiled mechanism exports a deterministic hash-backed manifest, and
-  `task_info()` exposes `mechanism_manifest` for replay and submission audits.
-- Added a pure-fluid saturation solver slice. `saturation.py` keeps
-  vapor-pressure-backed `T -> Psat`, bracketed `P -> Tsat`, normal boiling
-  point, critical guards, residual diagnostics, and reference-reading metadata
-  outside the larger EOS module while exposing public property-package wrappers.
-- Added a mixture VLE diagnostic slice. `equilibrium.py` now exposes
-  bubble/dew-temperature reports backed by pure saturation reports, Raoult
-  K-values, bracketed pressure-residual solves, and Rachford-Rice phase-status
-  diagnostics, while keeping gamma-phi EOS flash and azeotrope detection as
-  future professional work.
-- Added a gamma-phi VLE diagnostic slice. `equilibrium.py` now exposes
-  auditable gamma/phi/Psat/Poynting K-value reports and binary
-  relative-volatility crossing scans. This closes the first azeotrope-risk
-  hook while keeping rigorous gamma-phi flash, tangent-plane stability, and
-  azeotrope curve tracing as future professional work.
-- Added a UNIQUAC activity-coefficient slice. `equilibrium.py` now exposes
-  `uniquac_activity_report()` with r/q structural parameters, tau matrices,
-  volume/surface fractions, and combinatorial/residual log-gamma terms. The
-  public activity-model facade can use UNIQUAC in the same gamma-phi and
-  phase-equilibrium paths as Wilson and NRTL, while parameter databases and
-  phase-stability solvers remain future professional work.
-
-## Verification
-
-Run these after every cleanup slice:
+推荐检查：
 
 ```bash
-.\.venv\Scripts\python.exe -m ruff check .
-.\.venv\Scripts\python.exe -m mypy src\chemworld
-.\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\python.exe -m mkdocs build --strict
+python -m ruff check .
+python -m mypy src/chemworld
+python -m pytest
+python -m mkdocs build --strict
 ```
 
-## Next Cleanup Order
+架构类测试应持续防止 runtime、world law、task registry 和 physchem kernel 再次互相侵入。
 
-1. Continue splitting `reaction_network.py` into integration core,
-   thermochemistry coupling, sensitivities, and loaders.
-2. Split `eos.py`, `spectroscopy.py`, and `equilibrium_chemistry.py` by
-   algorithm family.
-3. Keep `runtime/domain_services.py` thin while reducing legacy scalar-state
-   adapter responsibilities in the focused runtime services.
+## 下一轮清理顺序
+
+1. 先处理仍然超过合理长度的 physchem 模块。
+2. 再整理 model card 和 maturity metadata。
+3. 最后处理 facade 命名和 public exports。
+
+整体判断：当前工程已经从“功能堆叠”进入“边界可维护”的阶段，但距离科研级长期维护还
+需要继续压缩大文件、冻结 public contract，并把 maturity metadata 做成发布硬门槛。

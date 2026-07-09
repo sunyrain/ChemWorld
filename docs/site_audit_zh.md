@@ -15,13 +15,13 @@
 
 | 分区 | 作用 |
 | --- | --- |
-| Project Status | 当前进度、站点审计、发布检查、路线图 |
-| Core Concepts | 项目定位、世界规律、核心架构、物理化学底座 |
-| Benchmark Contract | 环境、任务、动作、机制、仪器、提交和评测协议 |
-| Evaluation And Data | baseline、dataset、本地评测机、leaderboard、paper artifact |
-| Tutorials And Examples | 12 天教程、示例、API |
-| Audits | 自洽性、成熟度、SOTA 对比、agent 行为、代码审计 |
-| Development | 双人协作、参考仓库、专业 TODO |
+| 项目状态 | 当前进度、站点审计、发布检查、路线图 |
+| 核心概念 | 项目定位、世界规律、核心架构、物理化学底座 |
+| Benchmark 合同 | 环境、任务、动作、机制、仪器、提交和评测协议 |
+| 评测与数据 | baseline、dataset、本地评测机、leaderboard、paper artifact |
+| 教程与示例 | 12 天教程、示例、API |
+| 审计 | 自洽性、成熟度、SOTA 对比、agent 行为、代码审计 |
+| 开发与发布 | 双人协作、参考仓库、专业 TODO |
 
 ## 当前主线
 
@@ -72,7 +72,7 @@ ChemWorld overview
 ### 部分历史审计页较长
 
 `code_review_audit.md`、`physchem_core_design.md`、`professional_todo.md`
-记录了大量过程信息。它们保留在 Audits / Development 分区，但不再作为首页入口。
+记录了大量过程信息。它们保留在“审计 / 开发与发布”分区，但不再作为首页入口。
 后续如果准备公开文档站，可以再拆成 archive 或 developer notes。
 
 ## 文档站验收

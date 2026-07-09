@@ -1,48 +1,34 @@
-# World-Model Learning
+# World Model 学习
 
-ChemWorld is meant to evaluate local world-model learning under finite
-experimental budget.
+World-model learning 任务关注 agent 是否能从交互数据中学习环境动态、观测模型和评分
+结构。它是 ChemWorld 从 recipe benchmark 走向 agentic science environment 的关键。
 
-Agents never need to recover the full hidden simulator. A good local model
-should instead support decisions such as:
+## 学习者可用数据
 
-- which reaction conditions are promising;
-- where measurement uncertainty is still high;
-- when high temperature or concentration becomes unsafe;
-- which solvent/catalyst interaction appears beneficial;
-- how product partitions between aqueous and organic phases;
-- whether purification improves final score after recovery and cost penalties.
+可提供的数据包括：
 
-## Data Available To Learners
+- trajectory；
+- action；
+- observation；
+- reward；
+- constraint flags；
+- instrument readings；
+- task metadata；
+- public scenario metadata。
 
-Trajectory records provide:
+隐藏 state、oracle mechanism 参数和 private eval scenario 不应直接提供。
 
-- action and operation type;
-- public observation values;
-- observed mask;
-- raw instrument signal summaries;
-- processed estimates;
-- uncertainty metadata;
-- cost, risk, and sample ledgers;
-- constitution and precondition results.
+## Surrogate 接口
 
-They do not expose hidden rate parameters, true species amounts, or unmeasured
-phase amounts in normal runs.
+学习到的 surrogate model 可以用于：
 
-## Surrogate Interface
+- 预测下一个 observation；
+- 估计最终得分；
+- 选择信息增益最高的 measurement；
+- 规划下一批 experiment；
+- 在低成本模拟中预筛 recipe。
 
-Surrogate models can implement:
+## 评测重点
 
-```python
-fit(trajectory)
-predict(action_or_recipe)
-uncertainty(action_or_recipe)
-recommend(history, constraints)
-```
-
-This interface is intentionally broad enough for student models, Bayesian
-optimization, random-forest surrogates, and LLM/tool agents.
-
-The public interfaces live in `chemworld.models`, not in
-`chemworld.foundation`. Foundation describes the hidden world and its laws;
-models describe a learner's local approximation of that world.
+不要只看 prediction loss。还应评估 surrogate 是否能帮助 agent 在新 scenario 中获得更好
+的交互决策。

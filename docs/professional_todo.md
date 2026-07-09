@@ -1,595 +1,68 @@
-# Professional TODO
+# 专业化 TODO
 
-The repository root file `TODO_PROFESSIONAL.md` is the canonical professional
-implementation roadmap. It starts after the first foundation/lite batch in
-`TODO.md`.
+本页概括 ChemWorld 从 research benchmark 走向更专业物理化学环境的长期路线。根目录
+`TODO_PROFESSIONAL.md` 可作为更细的开发任务源；发布站点保留中文化摘要。
 
-The professional roadmap exists because ChemWorld should not become a pile of
-qualitative proxies. The long-term path is to inspect professional libraries,
-identify where they remain useful or outdated, then implement ChemWorld's own
-compact, modern, unit-explicit, benchmark-oriented physical chemistry core.
+## 规则
 
-## Rules
+- 不把 qualitative proxy 伪装成真实物理模型。
+- 每个专业模块必须有 maturity、参考来源和验证范围。
+- 先接小而可审计的专业 slice，再考虑重型 backend。
+- 默认安装保持轻量，optional backend 作为验证层存在。
+- 任何专业化提升都不能破坏 Gym API、trajectory replay 和 task cards。
 
-- Do not copy source from reference repositories.
-- Do not mark a professional task done because a proxy exists.
-- Read relevant local reference repositories before implementation.
-- Record what was read and what design choices were accepted or rejected.
-- Implement local typed APIs with explicit units and JSON-friendly specs.
-- Add model cards, validity ranges, failure modes, and validation tests.
-- Keep optional heavy packages out of the default runtime.
-- Do not open the next-stage professional TODO expansion until the current
-  twelve-area queue is settled; when it is opened, every line must be a concrete
-  implementation slice with reference targets, equations, validation cases, and
-  task integration criteria rather than a proxy placeholder.
-- After the first twelve professional implementation slices are finished, active
-  work moves to `TODO_PROFESSIONAL_DEEPENING.md` and the
-  [Professional Deepening TODO](professional_deepening_todo.md) docs page.
+## 模块队列
 
-## Module Queue
-
-| Professional area | Reference targets | First hardening goal |
+| 专业方向 | 参考目标 | 首个加固目标 |
 | --- | --- | --- |
-| Data and properties | `chemicals`, `thermo`, `CoolProp` | curated component records and reference-checked property points |
-| EOS | `CoolProp`, `thermo`, `teqp`, `thermopack` | PR/SRK residual properties and reference validation |
-| Activity and phase equilibrium | `thermo`, `phasepy`, `thermopack` | Wilson, full NRTL, phase stability, nonideal VLE/LLE validation |
-| Reaction kinetics | `Cantera`, `RMG-Py`, `thermo` | thermochemistry, detailed balance, falloff hooks, Cantera-comparable ODEs |
-| Reactors | `Cantera`, `IDAES` | professional batch/CSTR/PFR validation and multiple steady states |
-| Separations | `IDAES`, `thermo`, `phasepy`, `fluids` | VLE-coupled distillation and thermodynamic extraction models |
-| Transport and heat transfer | `fluids`, `IDAES`, `CoolProp` | broader pressure-drop and heat-transfer reference comparisons |
-| Equilibrium chemistry | `Reaktoro`, `Cantera`, `pycalphad` | Gibbs minimization, aqueous equilibria, and solid-phase toy models |
-| Instruments | public instrument equations/datasets | model cards and calibration examples for HPLC/GC/UV-vis/IR/NMR |
-| Benchmark integration | Gymnasium, Minari, Safety-Gymnasium, DiscoveryWorld | task metadata showing proxy/lite/reference/professional kernels |
-
-## First Professional Queue
-
-1. Add maturity metadata and model-card templates. Done in PRO-P0.
-2. Expand `fluids` validation to friction factor and pressure drop. Done in
-   PRO-P12A.
-3. Replace placeholder property examples with curated reference-checked
-   compounds. Done in PRO-P2A.
-4. Implement Wilson and full binary NRTL with reference comparisons. Done in
-   PRO-P4A.
-5. Add Cantera-comparable irreversible and reversible reaction ODE cases.
-   Done in PRO-P5A.
-6. Add a CSTR multiple-steady-state professional example.
-   Done in PRO-P6A.
-7. Replace simple distillation proxy with VLE-coupled shortcut distillation.
-   Done in PRO-P7A.
-8. Add Beer-Lambert UV-vis model card and calibration validation.
-   Done in PRO-P10A.
-9. Add HPLC/GC retention-factor and peak-broadening calibration.
-   Done in PRO-P10B.
-10. Add Peng-Robinson/SRK fugacity-coefficient and residual-property validation.
-    Done in PRO-P3A.
-11. Add heat-transfer correlations and heat-exchanger duty checks.
-    Done in PRO-P8A.
-12. Harden the component registry with provenance, aliases, uncertainty fields,
-    and conflict-resolution policy. Done in PRO-P1A.
-
-After item 12 is done, the next active roadmap is the
-[Professional Deepening TODO](professional_deepening_todo.md). That roadmap is
-not a proxy backlog; each item must name equations, reference targets,
-validation cases, model cards, and benchmark integration.
-
-## Completion Bar
-
-A professional item is done only when these are all true:
-
-- implementation exists;
-- model card exists;
-- validity limits are documented;
-- invalid inputs fail explicitly;
-- local tests cover invariants and edge cases;
-- optional reference validation exists where practical;
-- benchmark task integration reports the model maturity level.
-
-## Current Implementation
-
-PRO-P0 is now implemented in `chemworld.physchem.maturity` and task metadata:
-
-- `MaturityLevel` defines proxy, lite, reference-validated,
-  professional-candidate, and professional states.
-- `ModelCardTemplate` defines required sections for each physical module family.
-- `ModelCard` and `ValidationEvidence` make professional claims auditable.
-- `TaskMaturitySpec` appears in task cards and environment `task_info`.
-- Proxy tasks must be explicitly marked as proxy-allowed and exploratory,
-  teaching, smoke, or education.
-
-PRO-P12A is now implemented for the first reference-validated transport slice:
-
-- `darcy_friction_factor_details()` exposes method, regime, relative roughness,
-  and validity warnings.
-- `pipe_pressure_drop()` can run with an explicit `friction_method`, allowing
-  reference comparisons to select the Haaland branch directly.
-- `transport_model_cards()` declares the pipe-friction/single-phase-pressure
-  drop slice as reference-validated with `fluids` optional-test evidence.
-- Optional reference tests compare ChemWorld against `fluids.friction.Haaland`
-  and `fluids.friction.one_phase_dP`.
-
-PRO-P2A is now implemented for the first reference-validated property slice:
-
-- `curated_property_package()` exposes water, ethanol, acetone, toluene,
-  methane, and carbon dioxide as small auditable property packages.
-- The curated vapor-pressure path uses Perry/DIPPR101 coefficients and the
-  equation `Psat = exp(A + B/T + C ln(T) + D T^E)`.
-- The curated ideal-gas heat-capacity path uses Poling/DIPPR100 polynomial
-  coefficients scaled by `R` into SI units.
-- `curated_property_model_cards()` records equations, assumptions, validity
-  limits, failure modes, intended use, and optional `chemicals` validation
-  evidence.
-- Optional reference tests compare ChemWorld vapor pressure, ideal-gas Cp, and
-  sensible enthalpy integrals against `chemicals.dippr.EQ101` and
-  `chemicals.dippr.EQ100`.
-
-DEEP-D2A is now implemented for vapor-pressure formula families:
-
-- `vapor_pressure_report()` returns a `VaporPressureReport` with pressure,
-  analytic `dP/dT`, `dlnP/dT`, method family, validity status, and
-  reference-reading provenance.
-- `vapor_pressure_temperature_derivative()` supports Antoine, the existing
-  ChemWorld Wagner form, and DIPPR101 vapor-pressure correlations.
-- `ComponentPropertyPackage.vapor_pressure_report()` exposes the same report
-  through component-local curated packages.
-- Sublimation pressure can use the same report path when the caller supplies a
-  `PropertyCorrelation` with `property_id="sublimation_pressure"`.
-- Tests compare Antoine and DIPPR101 derivatives against finite differences,
-  verify validity hard-fail behavior, and validate the vapor-pressure model
-  card.
-- This is a professional formula/reporting slice, not a broad vapor-pressure
-  database, EOS saturation solver, IAPWS water package, or CoolProp replacement.
-
-DEEP-D2B is now implemented for phase-aware heat capacity and enthalpy:
-
-- `heat_capacity_report()` evaluates positive molar Cp correlations with
-  explicit validity policy.
-- `phase_sensible_enthalpy_report()` records same-phase sensible enthalpy
-  against an explicit reference temperature.
-- `PhaseTransitionSpec` and `phase_transition_enthalpy()` declare signed
-  latent heats for melting/freezing and vaporization/condensation paths.
-- `phase_path_enthalpy_report()` walks solid/liquid/gas phase paths through
-  declared transition temperatures and sums Cp integrals plus latent heats.
-- `MixtureEnthalpyLedger` converts molar component reports into reactor or
-  flash heat-duty ledgers in joules.
-- The model card records inspected `chemicals` DIPPR100/phase-change APIs and
-  `thermo` phase-reference enthalpy paths. Tests cover ideal-gas, liquid, and
-  solid Cp integrals; reference-state zero; latent-heat sign convention; and
-  explicit failure for missing phase Cp or negative heat capacity.
-- This is a professional path/ledger slice, not a broad Zabransky/Lastovka
-  heat-capacity database, EOS departure enthalpy model, or pressure-corrected
-  thermodynamic package.
-
-DEEP-D2C is now implemented for density and molar-volume reports:
-
-- `molar_volume_report()` evaluates caller-supplied liquid molar-volume
-  correlations and returns phase, method family, optional density conversion,
-  validity warnings, and reference-reading provenance.
-- The Rackett liquid-volume equation is supported through explicit `Tc`, `Pc`,
-  and `Zc` coefficients with a hard failure at or above the critical
-  temperature.
-- `ideal_gas_molar_volume_report()` and `virial_gas_molar_volume_report()`
-  expose ideal and second-virial gas-volume paths with compressibility factor
-  and correction-status metadata.
-- `second_virial_coefficient_report()` supports a compact CRC-style polynomial
-  hook for caller-supplied virial coefficients.
-- `mixture_molar_volume_ledger()` closes an Amgat-style mole-fraction volume
-  balance and optionally reports mixture density from component molecular
-  weights.
-- Tests cover the propane Rackett sanity case, gas density round trips,
-  virial-root failures, mixture closure, and the density/molar-volume model
-  card.
-- This is a compact property-reporting slice, not a broad DIPPR116/COSTALD
-  database, pressure-corrected liquid-density package, or CoolProp replacement.
-
-DEEP-D2D is now implemented for transport-property reports:
-
-- `transport_property_report()` evaluates pure-component liquid/gas viscosity
-  and thermal-conductivity correlations with phase, method family, validity
-  status, uncertainty, and provenance metadata.
-- Andrade/Arrhenius liquid viscosity, Sutherland gas viscosity, linear
-  conductivity, and polynomial conductivity are supported as
-  `PropertyCorrelation` equation contracts.
-- `gas_thermal_conductivity_dippr9b_report()` implements the DIPPR9B-style gas
-  thermal-conductivity estimate from viscosity, `Cv`, molecular weight,
-  molecule type, and critical temperature.
-- `wilke_gas_mixture_viscosity_ledger()` records the Wilke low-pressure
-  gas-mixture denominator and component partial-viscosity contributions.
-- `liquid_mixture_thermal_conductivity_dippr9h_ledger()` records a DIPPR9H
-  liquid-mixture conductivity ledger with warning metadata.
-- `binary_gas_diffusivity_fuller_report()` and
-  `gas_mixture_effective_diffusivity_ledger()` provide Fuller-style gas
-  diffusivity estimates and mixture-resistance closure.
-- `thermal_diffusivity_report()` exposes `alpha = k/(rho Cp)` in SI units.
-- Tests cover Sutherland/Andrade reports, DIPPR9B and DIPPR9H reference
-  examples, Wilke reference example, Fuller diffusivity scaling, thermal
-  diffusivity, unit conversions, failures, and the transport model card.
-- This is a compact transport reporting/ledger slice, not a high-pressure gas
-  viscosity package, electrolyte transport model, full Maxwell-Stefan solver,
-  broad transport-property data table, or CoolProp replacement.
-
-PRO-P4A is now implemented for the first reference-validated nonideal activity
-coefficient slice:
-
-- `ActivityModelSpec` now supports explicit `wilson` and `nrtl` models with
-  auditable parameter contracts.
-- Wilson uses directional `Lambda_ij` pair parameters, including optional
-  temperature-dependent `a + b/T + c ln(T) + dT + e/T^2 + fT^2` coefficients.
-- NRTL uses directional `tau_ij`, `alpha_ij`, and `G_ij` matrices and supports
-  binary or multicomponent mixtures through the same JSON-friendly pair-key
-  contract.
-- Missing Wilson/NRTL directional pairs and nonpositive Wilson/NRTL parameters
-  fail during spec construction or evaluation instead of silently reverting to
-  ideal behavior.
-- `activity_model_cards()` records equations, assumptions, validity limits,
-  failure modes, intended use, and optional `thermo` validation evidence.
-- Optional reference tests compare ChemWorld Wilson and NRTL gamma values
-  against `thermo.wilson.Wilson_gammas` and
-  `thermo.nrtl.NRTL_gammas_binaries`.
-
-PRO-P5A is now implemented for the first reference-validated reaction ODE
-slice:
-
-- `cantera_comparable_reaction_cases()` exposes ChemWorld-owned irreversible
-  `A => B` and reversible `A <=> B` constant-volume, isothermal, first-order
-  batch ODE cases.
-- Each case has a balanced `ReactionNetworkSpec`, explicit rate parameters,
-  evaluation times, and an analytical trajectory.
-- `evaluate_reaction_ode_reference_case()` compares numerical integration
-  against analytical solutions with explicit `rtol`/`atol`.
-- `reaction_kinetics_model_cards()` records the validated slice, reference
-  reading notes, equations, assumptions, validity limits, failure modes, and
-  optional Cantera evidence.
-- Optional reference tests compare ChemWorld's Arrhenius rate constant against
-  `ct.ArrheniusRate` if Cantera is importable.
-- This is not a claim that ChemWorld has reimplemented Cantera. Falloff,
-  third-body effects, pressure dependence, thermochemistry-derived
-  equilibrium constants, and heat-release-coupled reactors stay on the next
-  professional TODO track.
-
-PRO-P5B is now implemented for the NASA7 thermochemistry and reaction Gibbs
-slice:
-
-- `NASA7TemperatureSegment` implements the Cantera/RMG NASA7 coefficient order
-  and evaluates `Cp/R`, `H/RT`, and `S/R` inside declared temperature ranges.
-- `NASA7SpeciesThermo.from_cantera_yaml_thermo()` parses the compact
-  Cantera-style `model: NASA7`, `temperature-ranges`, and coefficient `data`
-  structure.
-- `NASA7SpeciesThermo.evaluate()` returns Cp, enthalpy, entropy, and Gibbs
-  energy in explicit SI molar units.
-- `reaction_thermochemistry()` forms reaction Delta H, Delta S, Delta G, and
-  equilibrium constants by stoichiometric summation of species standard states.
-- `continuity_report()` flags gaps or jumps between adjacent NASA7 temperature
-  segments.
-- `thermochemistry_model_cards()` records the inspected Cantera/RMG references,
-  equations, validity limits, failure modes, and local tests.
-- This is a professional thermochemistry slice, not a full Cantera/RMG
-  thermochemistry database. NASA9, Shomate, group additivity, pressure
-  corrections, and reactor-energy coupling remain future deepening tasks.
-
-PRO-P5C is now implemented for thermochemistry-coupled reversible kinetics:
-
-- `thermochemical_detailed_balance()` computes forward and reverse rate
-  constants for a `reversible_arrhenius` reaction using NASA7 reaction Gibbs
-  energy.
-- `thermochemical_concentration_equilibrium_constant()` keeps the distinction
-  between dimensionless `K = exp(-Delta G/RT)` and the concentration
-  equilibrium constant used by mass-action rates:
-  `K_c = K * C0^(sum nu_i)`.
-- `reverse_rate_constant_from_equilibrium()` exposes the audited
-  `k_reverse = k_forward / K_c` relationship used by the local rate law.
-- `evaluate_rate_law()` and `ReactionNetworkSpec.integrate_batch()` can now use
-  supplied `species_thermo` when a reversible Arrhenius rate declares
-  `K_eq_source: nasa7`.
-- Tests cover zero net rate at the thermochemical equilibrium ratio,
-  long-time ODE convergence to the NASA7 equilibrium ratio, missing
-  thermochemistry failure, and non-equal-molecularity concentration-standard
-  correction.
-- This is not a full pressure-dependent, falloff, gas-expansion, or
-  pressure-dependent reactor model. DEEP-D6A wires reaction enthalpy into a
-  constant-density dynamic batch energy-balance slice.
-
-DEEP-D5D is now implemented for local kinetic sensitivity analysis:
-
-- `finite_difference_reaction_sensitivities()` reruns a
-  `ReactionNetworkSpec` under central log-parameter perturbations.
-- `kinetic_sensitivity_parameter_candidates()` scans positive multiplier-like
-  kinetic parameters including `k`, `A`, `A_reverse`, `K_eq`, `vmax`, and
-  `Km`.
-- `ReactionSensitivityReport` records baseline observable value,
-  per-parameter `d y / d ln(p)`, normalized `S = (1/y) d y / d ln(p)`,
-  local uncertainty contributions, ranked entries, and explanation summaries.
-- Tests compare the first-order irreversible product sensitivity against the
-  analytical `k t exp(-kt)/(1-exp(-kt))` expression and cover zero-baseline
-  normalization and explicit failure modes.
-- This is a local finite-difference benchmark/explanation hook, not a global
-  Sobol analysis, adjoint sensitivity solver, or pressure-dependent kinetics
-  package.
-
-PRO-P6A is now implemented for the first reference-validated reactor
-multiplicity slice:
-
-- `cstr_multiple_steady_state_reference_case()` exposes a ChemWorld-owned
-  exothermic first-order CSTR case with explicit feed, volume, heat-transfer,
-  coolant, heat-capacity, Arrhenius, and temperature-bound parameters.
-- `solve_cstr_multiple_steady_states()` solves the scalar steady-state energy
-  balance, returns three ignition/extinction roots, and classifies local
-  stability from the dynamic CSTR Jacobian.
-- `CSTRMultiplicitySpec.network()` exposes the corresponding balanced
-  `ReactionNetworkSpec`, keeping reactor examples tied to the shared chemistry
-  representation.
-- `reactor_model_cards()` records assumptions, validity limits, failure modes,
-  inspected Cantera/IDAES references, and analytical validation evidence.
-- This closes a narrow professional slice for multiple steady states. It does
-  not claim full Cantera reactor-network parity or IDAES process-model parity.
-
-DEEP-D6A is now implemented for the dynamic batch heat-release and sampling
-slice:
-
-- `DynamicBatchReactorModel` integrates species and temperature trajectories
-  for a constant-density batch reactor.
-- The energy equation is
-  `rhoCp V dT/dt = Q_jacket - Q_loss - sum_i DeltaH_i(T) r_i V`.
-- If NASA7 species thermochemistry is supplied, reaction heat comes from
-  `reaction_thermochemistry()` at the current temperature; otherwise the local
-  reaction `delta_h_J_per_mol` field is used.
-- `JacketTemperatureProgram` supports step or linear jacket setpoints over
-  time.
-- `SamplingEventSpec` removes a well-mixed destructive sample, reduces volume,
-  records `material_out_mol`, and preserves element material balance.
-- `reactor_model_cards()` now includes
-  `dynamic_batch_heat_release_jacket_sampling` with equations, assumptions,
-  validity limits, failure modes, Cantera/IDAES reference reading, and test
-  evidence.
-- This closes the dynamic constant-density batch heat-release/sampling slice,
-  not constant-pressure expansion, gas-phase work, wall thermal inertia,
-  vapor-liquid phase change, or full process-control dynamics.
-
-PRO-P7A is now implemented for the first reference-validated distillation
-shortcut slice:
-
-- `vle_shortcut_distillation()` replaces arbitrary volatility-score splitting
-  with Raoult/activity VLE `K_i` values, relative volatilities, reflux-scaled
-  effective stages, and a solved total distillate cut.
-- Component distribution ratios satisfy the Fenske-style identity
-  `(D_i/B_i)/(D_j/B_j) = (alpha_i/alpha_j)**N_eff`, which is checked in local
-  tests.
-- The ChemWorld `distill` operation records `distillation_model =
-  "vle_shortcut_distillation"` and VLE/Fenske diagnostics on the typed
-  `distillation_column` equipment record.
-- The `reaction-to-distillation` task metadata now reports the distillation
-  module as `reference_validated` rather than proxy.
-- `separation_model_cards()` records equations, assumptions, validity limits,
-  failure modes, inspected IDAES/thermo/phasepy references, and analytical
-  validation evidence.
-- This is still a shortcut column model, not a rigorous MESH tray-by-tray
-  solver with integrated pressure profile, hydraulics, boilup calculation, or
-  azeotrope detection.
-
-DEEP-D7B is now implemented for binary Fenske-Underwood-Gilliland distillation
-sizing:
-
-- `FUGDistillationSpec` declares light/heavy keys, constant relative
-  volatility, feed/distillate/bottoms compositions, reflux ratio, stage
-  efficiency, top/bottom pressure, feed quality, and provenance.
-- `fenske_underwood_gilliland_sizing()` reports Fenske minimum stages,
-  Underwood theta and minimum reflux for a saturated-liquid binary feed,
-  Eduljee/Gilliland theoretical stages, actual tray count, feed-stage estimate,
-  pressure-profile warnings, and model-card provenance.
-- Invalid alpha, impossible product compositions, missing provenance, nonpositive
-  pressure, unsupported feed quality, and reflux below `R_min` fail early.
-- This closes FUG shortcut sizing only; MESH-lite tray balances, Murphree
-  profiles, boilup, hydraulics, pressure-drop integration, column costing, and
-  multicomponent/azeotrope handling remain open D7 work.
-
-PRO-P10A is now implemented for the UV-vis analytical calibration slice:
-
-- `BeerLambertBandSpec` declares wavelength, molar absorptivity, path length,
-  sample dilution, blank absorbance, detection limit, and noise.
-- `beer_lambert_absorbance()` implements `A = A_blank + epsilon * l * c`.
-- `fit_beer_lambert_calibration()` and
-  `generate_beer_lambert_calibration()` fit calibration standards and report
-  effective slope, dilution-corrected molar absorptivity, residual standard
-  deviation, LOD, LOQ, and slope uncertainty.
-- UV-vis species spectra now carry `beer_lambert_uvvis` metadata and use
-  `uvvis_beer_lambert_calibration_v1`.
-- `spectroscopy_model_cards()` documents equations, assumptions, limits,
-  failure modes, reference reading, and analytical validation evidence.
-- IR, NMR, MS, and empirical spectral databases still need their own
-  professional slices.
-
-PRO-P10B is now implemented for the HPLC/GC retention and peak-broadening slice:
-
-- `ChromatographyMethodSpec` declares dead time, theoretical plates,
-  role-specific retention factors, detector response factors, detection limit,
-  and calibration noise.
-- `chromatographic_retention_time()`,
-  `chromatographic_retention_factor()`,
-  `chromatographic_baseline_peak_width()`,
-  `chromatographic_theoretical_plates()`, and
-  `chromatographic_resolution()` implement the analytical equations used by the
-  virtual method.
-- `fit_chromatography_calibration()` estimates retention factor and theoretical
-  plates from calibration retention times and baseline widths.
-- HPLC/GC species spectra now carry `chromatography_retention_plate` metadata,
-  `hplc_retention_plate_calibration_v1` or
-  `gc_retention_plate_calibration_v1`, and adjacent-peak resolution summaries.
-- This is still a compact benchmark instrument kernel, not empirical retention
-  index prediction, gradient elution, column aging, or asymmetric peak tailing.
-
-PRO-P3A is now implemented for the first reference-validated cubic-EOS residual
-property slice:
-
-- `CubicPureParameters` now records the attractive parameter derivative
-  `da_alpha_dT`, and `EOSMixtureParameters` records `da_mix_dT`.
-- `evaluate_cubic_eos()` returns explicit `root_selection_policy`,
-  residual enthalpy, residual entropy, residual Gibbs energy, and residual
-  property metadata in `EOSState`.
-- `cubic_residual_properties()` implements PR/SRK departure-property formulas
-  for molar `H^R`, `S^R`, and `G^R`.
-- `eos_model_cards()` documents equations, assumptions, validity limits,
-  failure modes, inspected references, and validation evidence.
-- Default tests cover low-pressure ideal-gas limits, liquid/vapor/stable root
-  policies, Gibbs consistency with fugacity coefficients, and model-card
-  metadata.
-- Optional reference tests compare methane, ethane, and carbon dioxide pure
-  vapor-root PR/SRK `Z`, `phi`, `H_dep`, and `S_dep` against `thermo.eos` when
-  `CHEMWORLD_RUN_REFERENCE_TESTS=1`; the residual-property comparison uses
-  `rtol=5e-5` to document small independent-implementation convention
-  differences in `thermo` cubic EOS routines.
-
-DEEP-D3A is now implemented for volume-translated cubic EOS diagnostics and
-root governance:
-
-- `VolumeTranslationSpec` carries component Peneloux-style shifts in `m^3/mol`
-  with source metadata and optional temperature ranges.
-- `translated_cubic_compressibility_roots()` evaluates translated PR/SRK cubic
-  roots with `C = c_mix P/(R T)` and admissibility `Z > B - C`.
-- `evaluate_volume_translated_cubic_eos()` reports base and translated `Z`,
-  base and translated molar volume, mixture-shift contributions, translated
-  roots, and root-governance evidence.
-- `cubic_root_governance_report()` ranks roots with explicit score basis and
-  selected-root evidence instead of hiding the root policy inside a solver
-  side effect.
-- `BinaryInteractionProvenance` and
-  `validate_binary_interaction_provenance()` make scenario-level `k_ij`
-  sources auditable and optionally mandatory.
-- Tests cover liquid translation, vapor-root warnings, stable-root ranking,
-  translated-volume failure, and provenance round trips. This is still not a
-  complete EOS/flash package: phase envelopes, saturation solvers, mixture
-  flash derivatives, translated fugacity derivatives, and critical-region
-  handling remain on the later professional TODO track.
-
-PRO-P8A is now implemented for the first reference-validated heat-transfer and
-exchanger-duty slice:
-
-- `nusselt_internal_flow_details()` exposes the selected Nusselt branch,
-  flow regime, friction factor, validity warnings, and optional
-  `strict_validity=True` failure behavior.
-- The local heat-transfer branches cover a constant fully developed laminar
-  relation, Dittus-Boelter, and Gnielinski. Auto mode uses a smooth
-  laminar-to-Gnielinski transition for benchmark rollouts, while explicit
-  branches can fail on validity warnings in tests or validators.
-- `internal_heat_transfer_coefficient()` keeps the `h = Nu k / D` contract
-  explicit, and optional reference tests round-trip that definition against
-  `fluids.core.Nusselt`.
-- `heat_exchanger_counterflow()` now reports hot-side heat lost, cold-side heat
-  gained, maximum possible duty, and the duty-balance residual in addition to
-  effectiveness and outlet temperatures.
-- `transport_model_cards()` records the inspected `fluids`, IDAES
-  heat-exchanger, IDAES e-NTU, and CoolProp property-workflow references.
-- This is still a scoped single-phase heat-transfer slice. Boiling,
-  condensation, shell-side correction factors, fouling dynamics, and equipment
-  safety cards remain future deepening tasks rather than proxy-filled claims.
-
-PRO-P9A is now implemented for the first reference-validated equilibrium
-chemistry Gibbs-minimization slice:
-
-- `GibbsSpeciesSpec` declares species id, phase, element counts, charge, and
-  supplied standard Gibbs energy.
-- `GibbsMinimizationSpec` declares a fixed-TP small-system equilibrium problem
-  with optional phase restrictions and target charge.
-- `solve_gibbs_minimization()` minimizes an ideal phase-mixture Gibbs objective
-  subject to element balances, charge balance, phase restrictions, and
-  nonnegative species amounts.
-- The solver removes linearly redundant element/charge constraints before
-  calling SLSQP, then still reports full element and charge residuals in
-  `GibbsMinimizationResult`.
-- Tests cover the analytical ideal isomerization relation
-  `n_B/n_A = exp[-(G_B^0-G_A^0)/RT]`, phase-restricted salt behavior,
-  solid-forming behavior, failure modes, and model-card validation.
-- `equilibrium_chemistry_model_cards()` records inspected Reaktoro
-  `EquilibriumSpecs`/solver interfaces, Cantera equilibrium documentation, and
-  pycalphad `conditions + phases + GM/MU` architecture.
-- This is not a database-backed aqueous speciation solver, a Reaktoro clone, or
-  a CALPHAD global phase-selection algorithm.
-
-PRO-P9B is now implemented for the first electrochemical thermodynamics and
-charge-accounting slice:
-
-- `ElectrodeReactionSpec` declares electron number, standard potential,
-  reaction-quotient exponents, exchange-current density, electrode area, charge
-  transfer coefficients, Faradaic efficiency, and selectivity parameters.
-- `nernst_potential()` implements `E_eq = E0 - RT/(nF) ln Q`.
-- `butler_volmer_current()` implements signed Butler-Volmer current with the
-  usual anodic/cathodic exponential branches and bounded exponents for
-  numerical stability.
-- `faradaic_extent_mol()` and `run_electrolysis()` convert current and duration
-  into reaction extent, product/byproduct amounts, Faradaic charge, measured
-  cell work, interfacial work, ohmic loss, reversible-work proxy, and energy
-  efficiency.
-- The `electrolyze` operation in `ChemWorld` now records equilibrium potential,
-  measured potential, interfacial potential, uncompensated voltage drop,
-  overpotential, kinetic/current-limited current, charge, Faradaic charge,
-  Faradaic efficiency, electrical work, and ohmic loss in the operation summary.
-- `electrochemical-conversion` task maturity now reports
-  `nernst_butler_volmer_faradaic_v1` rather than the old electrochemistry proxy.
-- This is not a full electrochemical-cell or battery simulator. Explicit
-  mass-transfer limiting current, double-layer dynamics, porous electrodes,
-  electrolyte speciation, and potentiostatic/galvanostatic controllers remain
-  deepening tasks.
-
-PRO-P1A is now implemented for component registry provenance and conflict
-policy:
-
-- `ComponentProvenance` and `ComponentUncertainty` make component-level source
-  tables, source keys, source paths, and uncertainty notes JSON-friendly.
-- `ComponentSpec` round-trips those records without breaking older component
-  declarations and now carries an optional checksum-validated CAS number for
-  curated identity anchors.
-- `component_alias_index()` and `resolve_component_identifier()` normalize
-  aliases, CAS strings, and compact CAS strings, then reject cross-component
-  conflicts before task or property kernels bind to an ambiguous component.
-- Curated property packages now attach structured provenance/uncertainty to
-  water, ethanol, acetone, toluene, methane, and carbon dioxide.
-- This remains a small curated registry, not a vendored chemicals, thermo, or
-  CoolProp database.
-
-PRO-P11A is now implemented for benchmark maturity exports:
-
-- Trajectory JSONL records carry `kernel_maturity`, `physics_maturity`, and
-  `proxy_allowed`.
-- Suite results and baseline report rows retain those fields.
-- `BaselineReport` includes a task maturity manifest and a maturity summary by
-  physics level.
-- Report generation fails if results for the same benchmark task contain mixed
-  maturity metadata, preventing silent proxy/professional result mixing.
-
-PRO-P12B is now implemented for reference-validation summary export and skip
-auditing:
-
-- `ReferenceValidationReport` combines scalar comparison summaries with
-  backend availability reports.
-- `skipped_reference_backends()` records unavailable or failed optional
-  reference backends with explicit reasons and comparison scope.
-- `write_reference_validation_report()` writes the audit payload as JSON.
-- This does not make optional backends required for the default install; it
-  makes their absence visible in validation artifacts.
-
-PRO-P1B is now implemented for component source-priority conflict auditing:
-
-- `ComponentConflictPolicy` declares warning, hard-fail, or source-priority
-  preference behavior.
-- `ComponentFieldCandidate` records candidate values, source ids, priority, and
-  uncertainty metadata.
-- `resolve_component_field_conflict()` returns a JSON-friendly audit record or
-  raises before ambiguous component data can reach a physical kernel.
-
-PRO-P11B is now implemented for task maturity manifests:
-
-- `task_maturity_manifest()` exports task/kernel maturity metadata without
-  running an environment.
-- The manifest is grouped by task id and by physics maturity level, and lists
-  proxy-allowed tasks explicitly.
-
-PRO-P12C is now implemented for reference backend version and tolerance
-manifests:
-
-- `ReferenceBackendStatus` includes an optional installed package version.
-- Backend status records cover all twelve local reference repositories tracked
-  in `docs/reference_repos.md`, including IDAES, teqp, thermopack, and RMG-Py.
-- Local reference repository paths and short Git commits are recorded when a
-  checkout is present, so validation artifacts identify the inspected snapshot.
-- `ReferenceToleranceProfile` records declared tolerances for common optional
-  reference-comparison families.
-- `ReferenceValidationReport` now carries those tolerance profiles alongside
-  comparisons, backend statuses, and skipped-backend records.
+| 物性 | `chemicals`、`thermo`、DIPPR/Perry | 蒸气压、热容、液体体积、输运性质 |
+| 反应动力学 | `Cantera`、`RMG-Py` | 热化学、详细平衡、ODE 验证 |
+| 反应器 | IDAES、Cantera examples | CSTR、batch、热释放、multiple steady states |
+| 相平衡 | teqp、thermopack、phasepy | cubic EOS、activity model、flash/VLE |
+| 分离 | IDAES、shortcut distillation | FUG、蒸馏、萃取、结晶 |
+| 仪器 | 分析化学参考 | UV-vis、HPLC/GC、IR/NMR 的 benchmark kernel |
+| 电化学 | Nernst/Butler-Volmer 基础 | equilibrium potential、energy efficiency |
+
+## 第一批 Professional Queue
+
+优先处理对任务质量影响最大、实现边界清楚、验证成本低的 slice：
+
+- curated vapor-pressure path；
+- ideal-gas heat capacity；
+- Rackett liquid volume；
+- compact transport reporting；
+- reference-validated reaction ODE；
+- shortcut distillation；
+- UV-vis calibration；
+- HPLC/GC retention summary；
+- cubic EOS report；
+- Gibbs minimization 小场景。
+
+## 完成度条
+
+当前不是“已完成专业化”，而是“已有若干可审计专业 slice”。发布时应使用谨慎表述：
+
+```text
+foundation/lite with selected reference-validated slices
+```
+
+## 当前实现
+
+已经存在的实现方向包括：
+
+- 物性报告 API：蒸气压、热容、密度/摩尔体积、输运性质。
+- 反应网络：反应 spec、ODE、热化学、敏感性 hook。
+- 反应器：CSTR、batch、热释放和局部验证。
+- 相平衡：cubic EOS、Raoult-style VLE、UNIQUAC 入口。
+- 分离：shortcut distillation 和 ledger 集成。
+- 仪器：UV-vis、HPLC/GC、虚拟谱图接口。
+- 电化学：equilibrium potential、measured cell potential、能效摘要。
+- 参考 backend：可选校验，不作为默认依赖。
+
+## 发布表述
+
+推荐写法：
+
+> ChemWorld 是一个可控虚拟化学交互 benchmark，包含若干经过参考阅读或局部校准的
+> 物理化学 slice；它不是完整流程模拟器、数据库驱动 speciation solver 或真实实验
+> 控制系统。

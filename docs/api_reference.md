@@ -1,73 +1,58 @@
-# API Reference
+# API 参考
 
-This page summarizes the public APIs intended for external benchmark users.
+本页给出 ChemWorld 当前最小 API 面。字段名保持英文，因为它们是包的稳定接口。
 
-## Environment
+## 环境
 
 ```python
 import gymnasium as gym
 import chemworld
 
-env = gym.make(
-    "ChemWorld",
-    task_id="reaction-optimization-standard",
-    seed=0,
-)
-obs, info = env.reset(seed=0)
+env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=1)
+obs, info = env.reset(seed=1)
 obs, reward, terminated, truncated, info = env.step(action)
 ```
 
-Task-free construction is mainly useful for development. Benchmark claims
-should use `task_id`.
+`info` 中应包含任务元数据、约束 flags、评分细节和可选调试信息。
 
-## Tasks
-
-```python
-from chemworld.tasks import get_task, list_tasks
-
-task = get_task("reaction-optimization-standard")
-print(task.to_dict())
-```
-
-Each task records `world_law_id`, scenario id, initial-state id, `episode_mode`,
-allowed operations, allowed instruments, observation policy, termination policy,
-success metrics, and safety limit.
-
-`single_experiment` tasks end the Gym episode after a valid final assay.
-`campaign` tasks continue after final assay by resetting the reactor state for
-the next independent experiment inside the same budget.
-
-## Wrappers
+## 任务
 
 ```python
-from chemworld.wrappers import ActionMaskWrapper, SafetyCostWrapper
+env.task_info()
+env.task_prompt()
+env.available_actions()
+env.action_schema("heat")
+env.validate_action(action)
+env.observation_view("tool_json")
+env.observation_view("lab_report")
+env.observation_view("rl")
+env.campaign_state()
 ```
 
-`ActionMaskWrapper` adds task-aware `valid_operations`, `action_mask`, and
-invalid-reason summaries. `SafetyCostWrapper` adds safe-RL style cost signals
-without changing the Gymnasium five-tuple return.
+任务信息应说明 `task_id`、`world_law_id`、maturity、预算、指标、允许操作和主要约束。
+agent-facing 方法是推荐的交互入口；它们只聚合公开 task、validator、observation 和
+campaign bookkeeping，不读取 hidden truth。
 
-## Agents
+## Wrapper
 
-Agents implement:
+常用 wrapper：
 
-```python
-reset(task_info, seed)
-act(history)
-update(action, observation, reward, info)
-```
+- `ActionMaskWrapper`
+- `SafetyCostWrapper`
+- `NaNObservationWrapper`
+- `AgentInfoWrapper`
+- `LLMObservationWrapper`
+- `RLObservationWrapper`
+- `ActionSuggestionWrapper`
 
-## Trajectories
+Wrapper 不改变底层任务语义，只增强 agent 训练和诊断时的可用性。
 
-Use `TrajectoryLogger` for JSONL logs and `validate_records` before evaluation.
+## Agent
 
-```python
-from chemworld.data.logging import load_jsonl
-from chemworld.data.validation import validate_records
-from chemworld.eval.metrics import evaluate_records
+Agent 最小形态是一个接收 observation 并返回 action 的对象或函数。正式评测应固定随机
+种子、超时、资源限制和输出目录。
 
-records = load_jsonl("run.jsonl")
-validate_records(records)
-result = evaluate_records(records)
-```
+## 轨迹
 
+Trajectory 应保存每一步的 action、observation、reward、termination、truncation 和
+`info` 摘要。用于公开数据集时，还需要 manifest 和 task maturity metadata。

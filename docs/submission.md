@@ -1,45 +1,36 @@
-# Submission Bundles
+# 提交包
 
-A submission bundle is a local folder that contains enough information for a
-maintainer to replay, audit, and summarize an agent run.
+提交包定义 agent 如何参加本地评测或未来 hosted leaderboard。
 
-Create a skeleton:
-
-```bash
-chemworld submission init my_submission \
-  --agent-name scripted_chemistry \
-  --agent-family baseline \
-  --task-id reaction-optimization-standard
-```
-
-Required structure:
+## 最小结构
 
 ```text
-my_submission/
-  manifest.json
-  trajectories/
-    *.jsonl
-  results/
-    *.json
-  explanations/
-    *.json
+submission/
+├── README.md
+├── agent.py
+├── requirements.txt
+├── config.json
+└── manifest.json
 ```
 
-Validate:
+## Agent 入口
 
-```bash
-chemworld submission validate my_submission
-```
+Agent 应暴露一个清晰入口：接收 observation，返回 action。评测端负责创建环境、设置
+seed、执行 step、保存轨迹和评分。
 
-Summarize:
+## Manifest
 
-```bash
-chemworld submission summarize my_submission
-```
+`manifest.json` 应包含：
 
-`manifest.json` includes agent name, agent family, ChemWorld version, commit
-hash, dependency file, command, task id, seeds, and optional LLM metadata.
+- 提交名称；
+- 版本；
+- 依赖；
+- 允许资源；
+- 随机性说明；
+- 作者声明；
+- 适用任务。
 
-The bundle protocol is local-first. It does not require a web account system or
-remote evaluation service.
+## 运行限制
 
+托管评测应限制时间、内存、网络和文件系统访问。第三方 agent 不应接触 hidden scenario
+或评测答案。

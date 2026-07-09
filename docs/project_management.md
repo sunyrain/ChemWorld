@@ -1,127 +1,52 @@
-# Two-Person Development Rules
+# 双人开发规则
 
-ChemWorld is a fast two-person research codebase. We keep coordination simple:
-the shared truth is `TODO.md`, every active task has one owner, and every
-completed unit is pushed immediately.
+本页给出小团队协作规则。目标是避免多人同时重构时互相覆盖，也避免文档、代码和 TODO
+之间失去同步。
 
-## Shared Source Of Truth
+## 共享事实源
 
-- `TODO.md` is the only active work board.
-- Every active task must name exactly one `Owner`.
-- A task without an owner is available.
-- A task marked `Active` by the other person must not be started unless the
-  owner writes a handoff note.
-- Reference repositories in `reference_repos/` are read-only references and are
-  not committed.
+根目录 `TODO.md` 或对应路线文档应作为活跃任务板。每个任务需要一个 owner、一个状态和
+一个可验收结果。
 
-## Start Work Protocol
+## 开始工作协议
 
-Before starting any task:
+开始前先同步主分支、查看当前 diff，并确认自己要改的文件范围。不要在不理解工作区
+状态时做大规模移动或格式化。
 
-```powershell
-git checkout main
-git pull --rebase origin main
+## 工作中
+
+- 小步提交。
+- 运行与修改范围匹配的测试。
+- 文档和代码一起更新。
+- 如果发现他人未提交改动，先读懂再继续，不要回滚。
+
+## 完成协议
+
+完成后更新 TODO、运行检查、写清楚变更摘要和剩余风险。
+
+## 状态值
+
+- `todo`
+- `in_progress`
+- `blocked`
+- `review`
+- `done`
+
+## 交接说明
+
+交接时写明：已完成什么、未完成什么、验证命令、下一步文件入口和已知风险。
+
+## 检查
+
+```bash
+python -m ruff check .
+python -m mypy src/chemworld
+python -m pytest
+python -m mkdocs build --strict
 ```
 
-Then edit `TODO.md`:
+## 不要做
 
-- set the task `Status` to `Active`;
-- write the real `Owner`;
-- write the intended file area;
-- write the next concrete step.
-
-Commit and push that ownership update before coding:
-
-```powershell
-git add TODO.md
-git commit -m "Claim task: <short task name>"
-git push origin main
-```
-
-This prevents both people from doing the same work.
-
-## During Work
-
-- Pull immediately if the remote `TODO.md` changes.
-- If local edits are unfinished, commit a small WIP note or stash before pulling.
-- If the pull shows the other person claimed the same area first, stop and
-  coordinate through `TODO.md`.
-- Keep commits small enough that the other person can understand the diff.
-- Do not mix notebooks, core code, generated runs, and docs in one unrelated
-  commit.
-
-## Finish Work Protocol
-
-After finishing any task, immediately update `TODO.md`:
-
-- set `Status` to `Done`, `Review`, or `Blocked`;
-- record the commit hash if useful;
-- write the next step or handoff note;
-- clear or change `Owner` only when the handoff is explicit.
-
-Then push the result:
-
-```powershell
-git add <changed files> TODO.md
-git commit -m "<short completed task>"
-git push origin main
-```
-
-Do not wait to batch several completed tasks into one push. The current rule is:
-finish one useful unit, update `TODO.md`, push it.
-
-## Status Values
-
-Use only these statuses:
-
-| Status | Meaning |
-| --- | --- |
-| `Planned` | Not started and available. |
-| `Active` | One owner is working on it now. |
-| `Blocked` | Owner cannot proceed; handoff note is required. |
-| `Review` | Work is pushed and needs the other person to inspect. |
-| `Done` | Work is complete and pushed. |
-
-## Handoff Note
-
-Use this short format in `TODO.md` when stopping or handing off:
-
-```text
-Owner: <name>
-Status: Blocked / Review / Done
-Changed:
-- ...
-Next:
-- ...
-Checks:
-- ...
-Risks:
-- ...
-```
-
-## Checks
-
-Run targeted checks for small edits. Run the full local suite before a meaningful
-core change:
-
-```powershell
-.\.venv\Scripts\python.exe -m ruff check .
-.\.venv\Scripts\python.exe -m mypy src\chemworld
-.\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\python.exe -m mkdocs build --strict
-```
-
-GitHub Actions are currently manual-only because account billing blocks
-automatic runs. Trigger CI manually only when needed:
-
-```text
-Actions -> CI -> Run workflow
-```
-
-## Do Not
-
-- Do not commit `reference_repos/`.
-- Do not copy external library source into ChemWorld.
-- Do not work on another person's `Active` task without a handoff.
-- Do not leave completed work unpushed.
-- Do not use `git add -A` when unrelated notebook or generated files are dirty.
+- 不要重置他人的未提交改动。
+- 不要把大规模搬迁和功能修改混在一个提交。
+- 不要在没有 maturity 标注时发布 benchmark claim。

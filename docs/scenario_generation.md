@@ -1,38 +1,32 @@
-# Scenario Generation
+# 场景生成
 
-ChemWorld treats a task as a slice of one shared physical-chemical world, not as
-an independent game. A scenario is the hidden parameter and initial-state family
-behind that slice.
+Scenario generation 定义环境在 reset 时如何采样隐藏条件和可见条件。它决定任务是否能
+测试泛化，而不是让 agent 记住单个固定实例。
 
-## Contract
+## 合同
 
-Each scenario declares:
+一个 scenario generator 应说明：
 
-- `scenario_id`
-- `world_law_id`
-- `family`
-- `split`
-- `difficulty`
-- `hidden_parameter_seed`
-- `initial_state_seed`
-- `initial_state_id`
-- `parameter_profile`
-- `allowed_module_tags`
-- `expected_qualitative_behavior`
+- 可见参数；
+- 隐藏参数；
+- seed 使用规则；
+- train/eval split；
+- 参数范围和物理约束；
+- 与 scoring 的关系。
 
-The default generator is deterministic: the same scenario, split, profile, and
-seed reconstruct the same hidden world. `hidden_parameter_seed` and
-`parameter_profile` shift the hidden kinetic/partition parameters;
-`initial_state_seed` controls reproducible initial-state jitter for scenarios
-that need it. Public and private splits share the same mechanism family but use
-different hidden parameters.
+公开 observation 不应泄露隐藏答案。任务卡可以描述采样范围，但不应暴露 private eval
+的具体 scenario。
 
 ## CLI
 
+未来可提供：
+
 ```bash
-chemworld scenarios list
-chemworld scenarios show reaction-to-purification
+chemworld scenario sample --task reaction-to-purification --seed 1
+chemworld scenario inspect --task reaction-to-purification --public-only
 ```
 
-Use `chemworld tasks card <task_id>` to see the scenario card attached to a
-benchmark task.
+## 质量要求
+
+Scenario 应可复现、可序列化、可审计。若一个任务的 scenario 只是一组硬编码常数，它
+仍可用于 smoke test，但不应作为正式泛化 benchmark。

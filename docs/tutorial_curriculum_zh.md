@@ -13,6 +13,17 @@ import chemworld
 env = gym.make("ChemWorld", task_id="reaction-optimization-standard", seed=0)
 ```
 
+建议从 Day 1 开始就使用 agent-facing 方法：
+
+```python
+print(env.unwrapped.task_prompt()["text"])
+env.unwrapped.available_actions()
+env.unwrapped.validate_action({"operation": "heat", "duration_s": 10.0})
+env.unwrapped.observation_view("lab_report")
+```
+
+这些方法把 task card、动作合法性、仪器观测和 campaign 进度变成学生/GPT/BO/RL 都能读取的公开接口。
+
 ## 课程总目标
 
 学生完成 Day 1-12 后，应能独立完成：

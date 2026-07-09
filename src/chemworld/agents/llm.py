@@ -13,8 +13,8 @@ from typing import Any
 
 from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.recipe_sequence import RecipeSequenceMixin
+from chemworld.data.logging import to_builtin
 from chemworld.world.actions import canonicalize_action
-from chemworld.world.recipes import compile_recipe
 
 DEFAULT_PROMPT_TEMPLATE = """You are planning the next virtual ChemWorld reaction experiment.
 Task info:
@@ -116,14 +116,173 @@ class ReplayLLMAgent(LLMPlannerAgent):
         return manifest
 
 
+class LLMReplayAgent(BaseAgent):
+    """Replay a fixed tool/action trace without requiring an online LLM."""
+
+    name = "llm_replay_action_trace"
+
+    def __init__(self, replay_path: str | Path) -> None:
+        self.replay_path = Path(replay_path)
+
+    def reset(self, task_info: dict[str, Any], seed: int) -> None:
+        super().reset(task_info, seed)
+        with self.replay_path.open("r", encoding="utf-8") as handle:
+            self._records = [json.loads(line) for line in handle if line.strip()]
+        self._index = 0
+        self._trace: list[dict[str, Any]] = []
+
+    def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
+        del history
+        if self._index >= len(self._records):
+            return {"operation": "measure", "instrument": "final_assay"}
+        record = self._records[self._index]
+        self._index += 1
+        action = dict(record.get("action", record))
+        self._trace.append(
+            {
+                "prompt_input": record.get("prompt_input", {}),
+                "selected_action": action,
+                "reasoning_summary": record.get("reasoning_summary", "offline replay action"),
+                "hypothesis_note": record.get("hypothesis_note"),
+            }
+        )
+        return action
+
+    def update(
+        self,
+        action: dict[str, Any],
+        observation: dict[str, float | None],
+        reward: float,
+        info: dict[str, Any],
+    ) -> None:
+        if self._trace:
+            self._trace[-1]["validator_result"] = {
+                "constraint_flags": info.get("constraint_flags", {}),
+                "error_message": info.get("error_message"),
+            }
+            self._trace[-1]["observation_summary"] = {
+                "reward": reward,
+                "observed_keys": info.get("observed_keys", []),
+                "leaderboard_score": info.get("leaderboard_score"),
+            }
+        del action, observation
+
+    def agent_trace(self) -> list[dict[str, Any]]:
+        return to_builtin(self._trace)
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update(
+            {
+                "requires_online_model": False,
+                "replay_path": str(self.replay_path),
+                "trace_format": "chemworld-agent-trace-0.1",
+            }
+        )
+        return manifest
+
+
 class ToolUsingLLMStubAgent(BaseAgent):
     """Deterministic tool-using LLM stub for offline benchmark plumbing."""
 
     name = "tool_using_llm_stub"
 
+    def reset(self, task_info: dict[str, Any], seed: int) -> None:
+        super().reset(task_info, seed)
+        self._plan = self._plan_for_task(task_info)
+        self._trace: list[dict[str, Any]] = []
+        self._memory: list[str] = []
+
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
-        purification_enabled = "separate_phase" in set(self.task_info.get("allowed_operations", []))
-        steps: list[dict[str, Any]] = [
+        step = len(history)
+        action = dict(self._plan[step % len(self._plan)])
+        self._trace.append(
+            {
+                "prompt_input": {
+                    "task_id": self.task_info.get("task_id"),
+                    "allowed_operations": self.task_info.get("allowed_operations", []),
+                    "history_length": len(history),
+                    "memory_summary": list(self._memory[-3:]),
+                },
+                "selected_action": action,
+                "reasoning_summary": self._reason_for_action(action),
+                "hypothesis_note": self._hypothesis_note(step),
+            }
+        )
+        return action
+
+    def update(
+        self,
+        action: dict[str, Any],
+        observation: dict[str, float | None],
+        reward: float,
+        info: dict[str, Any],
+    ) -> None:
+        flags = info.get("constraint_flags", {})
+        memory = (
+            f"{action.get('operation')} -> reward={reward:.3f}, "
+            f"precondition_failed={bool(flags.get('precondition_failed', False))}, "
+            f"observed={','.join(info.get('observed_keys', [])) or 'none'}"
+        )
+        self._memory.append(memory)
+        if self._trace:
+            self._trace[-1]["validator_result"] = {
+                "constraint_flags": flags,
+                "error_message": info.get("error_message"),
+                "preconditions": info.get("preconditions", {}),
+            }
+            self._trace[-1]["observation_summary"] = {
+                "reward": reward,
+                "observation": observation,
+                "observed_keys": info.get("observed_keys", []),
+                "leaderboard_score": info.get("leaderboard_score"),
+            }
+
+    def agent_trace(self) -> list[dict[str, Any]]:
+        return to_builtin(self._trace)
+
+    def _plan_for_task(self, task_info: dict[str, Any]) -> list[dict[str, Any]]:
+        allowed_operations = set(task_info.get("allowed_operations", []))
+        if "run_flow" in allowed_operations:
+            return [
+                {"operation": "add_solvent", "volume_L": 0.026, "solvent": 2},
+                {"operation": "add_reagent", "amount_mol": 0.010},
+                {"operation": "add_catalyst", "catalyst_amount_mol": 0.00022, "catalyst": 1},
+                {
+                    "operation": "set_flow_rate",
+                    "flow_rate_mL_min": 1.2,
+                    "residence_time_s": 900.0,
+                },
+                {"operation": "run_flow", "target_temperature_K": 382.0, "duration_s": 1800.0},
+                {"operation": "measure", "instrument": "uvvis"},
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
+        if "electrolyze" in allowed_operations:
+            return [
+                {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+                {"operation": "add_reagent", "amount_mol": 0.010},
+                {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0},
+                {"operation": "electrolyze", "duration_s": 1800.0},
+                {"operation": "measure", "instrument": "uvvis"},
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
+        if "add_phase" in allowed_operations and "heat" not in allowed_operations:
+            return [
+                {"operation": "add_solvent", "volume_L": 0.024, "solvent": 2},
+                {"operation": "add_reagent", "amount_mol": 0.010},
+                {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.014},
+                {"operation": "add_extractant", "extractant": "organic", "volume_L": 0.020},
+                {"operation": "mix", "duration_s": 240.0, "stirring_speed_rpm": 850.0},
+                {"operation": "settle", "duration_s": 420.0},
+                {"operation": "measure", "instrument": "hplc"},
+                {"operation": "separate_phase", "target_phase": "organic"},
+                {"operation": "measure", "instrument": "hplc"},
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
+        sequence: list[dict[str, Any]] = [
             {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
             {"operation": "add_reagent", "amount_mol": 0.010},
             {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
@@ -135,15 +294,8 @@ class ToolUsingLLMStubAgent(BaseAgent):
             },
             {"operation": "quench"},
         ]
-        recipe: dict[str, Any] = {
-            "steps": steps,
-            "metadata": {
-                "planner": "tool_using_llm_stub",
-                "uses": ["recipe_compiler", "operation_validator"],
-            },
-        }
-        if purification_enabled:
-            steps.extend(
+        if "separate_phase" in allowed_operations:
+            sequence.extend(
                 [
                     {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012},
                     {"operation": "add_extractant", "extractant": "organic", "volume_L": 0.018},
@@ -155,14 +307,70 @@ class ToolUsingLLMStubAgent(BaseAgent):
                     {"operation": "concentrate", "duration_s": 450.0},
                 ]
             )
-        steps.extend(
+        if "cool_crystallize" in allowed_operations:
+            sequence.extend(
+                [
+                    {"operation": "seed_crystals", "seed_mass_g": 0.006},
+                    {
+                        "operation": "cool_crystallize",
+                        "target_temperature_K": 278.15,
+                        "duration_s": 1800.0,
+                    },
+                    {"operation": "filter_crystals"},
+                    {"operation": "measure", "instrument": "hplc"},
+                ]
+            )
+        if "distill" in allowed_operations:
+            sequence.extend(
+                [
+                    {
+                        "operation": "evaporate",
+                        "target_temperature_K": 335.0,
+                        "duration_s": 600.0,
+                    },
+                    {
+                        "operation": "distill",
+                        "target_temperature_K": 360.0,
+                        "duration_s": 1500.0,
+                        "reflux_ratio": 2.0,
+                    },
+                    {"operation": "collect_fraction", "transfer_fraction": 0.92},
+                    {"operation": "measure", "instrument": "gc"},
+                ]
+            )
+        sequence.extend(
             [
                 {"operation": "terminate"},
                 {"operation": "measure", "instrument": "final_assay"},
             ]
         )
-        steps = compile_recipe(recipe)
-        return steps[len(history) % len(steps)]
+        return sequence
+
+    def _reason_for_action(self, action: dict[str, Any]) -> str:
+        operation = str(action.get("operation"))
+        reasons = {
+            "add_solvent": "charge a stable liquid medium before adding material",
+            "add_reagent": "create observable reactant inventory",
+            "add_catalyst": "increase target pathway rate before heating",
+            "heat": "advance reaction while monitoring safety-cost tradeoff",
+            "wait": "allow additional conversion before an intermediate instrument check",
+            "measure": "use an allowed instrument to update the public belief state",
+            "quench": "stop reaction chemistry before downstream handling",
+            "add_phase": "create a phase system for partition or purification",
+            "add_extractant": "improve product transfer into the recoverable phase",
+            "mix": "promote interphase mass transfer",
+            "settle": "let phases separate before taking a product-rich phase",
+            "separate_phase": "isolate the phase expected to contain product",
+            "terminate": "mark the experiment ready for final assay",
+        }
+        return reasons.get(operation, "execute the next task-allowed operation in the plan")
+
+    def _hypothesis_note(self, step: int) -> str:
+        if step == 0:
+            return "Moderate solvent/catalyst choices should expose a stable baseline."
+        if step < 5:
+            return "Build enough reaction progress for informative spectroscopy."
+        return "Use downstream operations to improve public purity/recovery signals."
 
     def manifest(self) -> dict[str, Any]:
         manifest = super().manifest()
@@ -170,7 +378,9 @@ class ToolUsingLLMStubAgent(BaseAgent):
             {
                 "requires_online_model": False,
                 "uses_recipe_compiler": True,
+                "uses_validator_feedback": True,
                 "llm_role": "offline_tool_agent_stub",
+                "agent_trace_schema_version": "chemworld-agent-trace-0.1",
             }
         )
         return manifest

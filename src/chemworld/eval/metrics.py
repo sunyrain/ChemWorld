@@ -27,6 +27,8 @@ class EvaluationResult:
     safety_violations: int
     high_cost_violations: int
     invalid_action_count: int
+    invalid_action_rate: float
+    precondition_recovery_count: int
     mean_cost: float
     mean_safety_risk: float
     mean_purity: float
@@ -46,6 +48,8 @@ class EvaluationResult:
     campaign_area_under_best_score: float
     safety_cost: float
     safety_aware_score: float
+    cost_aware_score: float
+    observation_use_summary: dict[str, Any]
     total_score: float
 
     def to_dict(self) -> dict[str, Any]:
@@ -165,6 +169,7 @@ def evaluate_records(
     safety_violations = int(np.sum(unsafe))
     high_cost_violations = int(np.sum(high_cost))
     invalid_action_count = int(np.sum(invalid_actions))
+    invalid_action_rate = invalid_action_count / max(len(records), 1)
     mean_cost = float(fmean(costs))
     mean_risk = float(fmean(risks))
     mean_purity = float(fmean(purities)) if purities else 0.0
@@ -193,6 +198,26 @@ def evaluate_records(
     process_mass_balance_violation_count = int(
         sum(error > 0.05 for error in mass_balance_errors)
     )
+    precondition_recovery_count = int(
+        sum(
+            bool(precondition_failures[index])
+            and not bool(precondition_failures[index + 1])
+            for index in range(max(len(precondition_failures) - 1, 0))
+        )
+    )
+    instrument_counts: dict[str, int] = {}
+    observed_key_counts: dict[str, int] = {}
+    for record in records:
+        instrument = record.get("instrument")
+        if instrument:
+            instrument_counts[str(instrument)] = instrument_counts.get(str(instrument), 0) + 1
+        for key in record.get("observed_keys", []):
+            observed_key_counts[str(key)] = observed_key_counts.get(str(key), 0) + 1
+    observation_use_summary = {
+        "instrument_counts": instrument_counts,
+        "observed_key_counts": observed_key_counts,
+        "final_assay_count": int(np.sum(scored_mask)),
+    }
 
     safety_penalty = min(
         1.0,
@@ -202,6 +227,9 @@ def evaluate_records(
         + 0.20 * mean_risk,
     )
     safety_aware_score = float(np.clip(best_valid_score - safety_penalty, 0.0, 1.0))
+    cost_aware_score = float(
+        np.clip(best_valid_score - 0.10 * mean_cost - 0.10 * mean_risk, 0.0, 1.0)
+    )
     efficiency_score = area
     if sample_efficiency_step is not None:
         efficiency_score = max(
@@ -238,6 +266,8 @@ def evaluate_records(
         safety_violations=safety_violations,
         high_cost_violations=high_cost_violations,
         invalid_action_count=invalid_action_count,
+        invalid_action_rate=invalid_action_rate,
+        precondition_recovery_count=precondition_recovery_count,
         mean_cost=mean_cost,
         mean_safety_risk=mean_risk,
         mean_purity=mean_purity,
@@ -257,5 +287,7 @@ def evaluate_records(
         campaign_area_under_best_score=area,
         safety_cost=safety_penalty,
         safety_aware_score=safety_aware_score,
+        cost_aware_score=cost_aware_score,
+        observation_use_summary=observation_use_summary,
         total_score=total_score,
     )

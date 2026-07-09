@@ -1,100 +1,36 @@
-# Local Reference Repositories
+# 本地参考仓库
 
-These repositories are shallow-cloned into `reference_repos/` for local reading
-and feature mapping. The directory is ignored by Git and must not be committed
-to ChemWorld.
+本页记录可用于 ChemWorld 物理化学深化的外部开源项目。它们不是当前 benchmark 的硬
+依赖，而是 future backend、reference validation 和专业化路线的参考。
 
-The repositories are reference material only. ChemWorld implements its own
-physical-chemistry core and does not copy source code from these projects.
+## 本地快照
 
-## Local Snapshot
+建议在 `references/` 或外部工作区维护只读快照，并记录 commit、license 和用途。不要
+把大体积第三方仓库直接混入 ChemWorld 主包。
 
-| Name | Local Path | Branch | Commit | Size | Remote |
-| --- | --- | --- | --- | ---: | --- |
-| Cantera | `reference_repos/cantera` | `main` | `67b9f12` | 15.8 MB | <https://github.com/Cantera/cantera.git> |
-| CoolProp | `reference_repos/coolprop` | `master` | `0e67fe7` | 54.3 MB | <https://github.com/CoolProp/CoolProp.git> |
-| thermo | `reference_repos/thermo` | `master` | `3c2fa0c` | 59.3 MB | <https://github.com/CalebBell/thermo.git> |
-| chemicals | `reference_repos/chemicals` | `master` | `82faef9` | 98.3 MB | <https://github.com/CalebBell/chemicals.git> |
-| fluids | `reference_repos/fluids` | `master` | `091070e` | 15.3 MB | <https://github.com/CalebBell/fluids.git> |
-| phasepy | `reference_repos/phasepy` | `master` | `9376df1` | 4.8 MB | <https://github.com/gustavochm/phasepy.git> |
-| IDAES | `reference_repos/idaes-pse` | `main` | `4275c45` | 71.3 MB | <https://github.com/IDAES/idaes-pse.git> |
-| Reaktoro | `reference_repos/reaktoro` | `main` | `f587235` | 81.2 MB | <https://github.com/reaktoro/reaktoro.git> |
-| pycalphad | `reference_repos/pycalphad` | `develop` | `144d83d` | 12.2 MB | <https://github.com/pycalphad/pycalphad.git> |
-| teqp | `reference_repos/teqp` | `main` | `58a24fd` | 26.9 MB | <https://github.com/usnistgov/teqp.git> |
-| thermopack | `reference_repos/thermopack` | `main` | `d68c794` | 192.6 MB | <https://github.com/thermotools/thermopack.git> |
-| RMG-Py | `reference_repos/rmg-py` | `main` | `f3dc397` | 222.2 MB | <https://github.com/ReactionMechanismGenerator/RMG-Py.git> |
+## 重建快照
 
-## Recreate The Snapshot
-
-```powershell
-$repos = @(
-  @{name='cantera'; url='https://github.com/Cantera/cantera.git'},
-  @{name='coolprop'; url='https://github.com/CoolProp/CoolProp.git'},
-  @{name='thermo'; url='https://github.com/CalebBell/thermo.git'},
-  @{name='chemicals'; url='https://github.com/CalebBell/chemicals.git'},
-  @{name='fluids'; url='https://github.com/CalebBell/fluids.git'},
-  @{name='phasepy'; url='https://github.com/gustavochm/phasepy.git'},
-  @{name='idaes-pse'; url='https://github.com/IDAES/idaes-pse.git'},
-  @{name='reaktoro'; url='https://github.com/reaktoro/reaktoro.git'},
-  @{name='pycalphad'; url='https://github.com/pycalphad/pycalphad.git'},
-  @{name='teqp'; url='https://github.com/usnistgov/teqp.git'},
-  @{name='thermopack'; url='https://github.com/thermotools/thermopack.git'},
-  @{name='rmg-py'; url='https://github.com/ReactionMechanismGenerator/RMG-Py.git'}
-)
-New-Item -ItemType Directory -Force -Path reference_repos | Out-Null
-foreach ($repo in $repos) {
-  git clone --depth 1 --single-branch $repo.url "reference_repos/$($repo.name)"
-}
+```bash
+git clone <repo-url> references/<name>
+git -C references/<name> rev-parse HEAD
 ```
 
-## Reading Map
+把 commit 写入文档或 manifest，确保以后能复现阅读和校准上下文。
 
-Use this map to guide independent ChemWorld implementation work:
+## 阅读地图
 
-- Cantera: reaction mechanisms, rate-law taxonomy, reactor network concepts.
-- CoolProp: property API design, high-accuracy thermophysical property scope.
-- thermo / chemicals: compact chemical-engineering property correlations.
-- fluids: dimensionless numbers, pressure drop, mixing, equipment utilities.
-- phasepy: LLE/VLE workflows and activity-model organization.
-- IDAES: process unit contracts, flowsheet organization, initialization ideas.
-- Reaktoro: equilibrium problem statements, constraints, and reactive transport.
-- pycalphad: Gibbs-energy models and phase-equilibrium data structures.
-- teqp / thermopack: EOS architecture and phase-envelope workflows.
-- RMG-Py: mechanism specification and reaction-family concepts.
+- RMG-Py：反应网络、动力学、机理生成。
+- IDAES：过程系统工程、单元操作、优化。
+- teqp：热力学性质和 equation of state。
+- thermopack：相平衡和物性。
 
-## Rules For Contributors
+## 贡献者规则
 
-- Do not copy source code from `reference_repos/`.
-- If a formula is implemented, cite an original public source or textbook in
-  ChemWorld docs/tests.
-- If behavior is compared to a reference repo, write it as an optional reference
-  test that skips when the package is absent.
-- Keep reference repos out of commits, releases, wheels, and paper artifacts.
+- 不直接复制第三方代码进核心包，除非 license 和维护策略明确。
+- 先写 adapter/interface，再接具体 backend。
+- 引入参考模型时必须增加测试和 maturity 标注。
 
-## Optional Validation Layer
+## 可选验证层
 
-ChemWorld's reference comparison utilities live in
-`chemworld.physchem.reference_validation`. They are intentionally small:
-
-- discover tracked reference backends and local source trees;
-- temporarily add local reference repositories to `sys.path`;
-- import optional packages only inside explicit validation calls;
-- record scalar comparisons as JSON-friendly reports with `rtol`, `atol`,
-  absolute error, relative error, and model-limit notes.
-
-Default CI does not import external backends. The optional reference tests under
-`tests/reference/` skip unless explicitly enabled:
-
-```powershell
-$env:CHEMWORLD_RUN_REFERENCE_TESTS = "1"
-python -m pytest tests/reference
-```
-
-Current executable comparisons use `chemicals`, `fluids`, and a controlled
-`thermo.property_package.Ideal` VLE case because those paths can run from the
-local source snapshots in the development environment. The `thermo` comparison
-checks ideal Raoult-law bubble/dew pressure and a two-phase TP flash against
-ChemWorld's local phase-equilibrium kernel. Heavy or compiled backends such as
-CoolProp, Cantera, phasepy, Reaktoro, pycalphad, thermopack, and teqp remain
-tracked as validation targets, but are not considered complete until their
-runtime dependencies are available and their comparisons run successfully.
+参考仓库可用于抽样校准，不要求每个 step 都调用外部重型模拟器。核心 benchmark 仍应
+保持轻量、可复现、可离线运行。

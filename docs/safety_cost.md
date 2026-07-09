@@ -1,26 +1,25 @@
-# Safety And Cost
+# 安全与成本
 
-Reward, score, cost, and leaderboard score are different channels.
+安全和成本是 ChemWorld 任务评分的一部分，不是事后日志。Agent 必须学会在性能、风险
+和预算之间做取舍。
 
-- `reward`: online scalar returned by Gymnasium `step`.
-- `score`: visible or estimated task performance from the current observation.
-- `leaderboard_score`: final-assay score used for official ranking.
-- `cost`: safe-RL style constraint signal.
+## 安全信号
 
-`info` includes:
+常见字段：
 
-```python
-info["cost"]
-info["cost_components"]
-info["constraint_budget_remaining"]
-```
+- `unsafe`
+- `unsafe_by_task_limit`
+- `degradation_detected`
+- `precondition_failed`
 
-Cost components are:
+安全 flag 应进入 reward、score report 和 failure analysis。
 
-- safety risk;
-- high cost;
-- precondition failure;
-- constitution failure.
+## 成本信号
 
-Safety-aware tasks use the task-level `safety_limit`, not a hard-coded global
-threshold.
+成本可来自试剂、溶剂、催化剂、仪器、时间、温度和操作次数。不同任务可以采用不同权重，
+但必须在任务卡中声明。
+
+## 设计原则
+
+高分路线不应只追求目标指标。若某路线通过过高风险、过高成本或大量无效操作获得表面
+高产率，应在 benchmark 中被惩罚。

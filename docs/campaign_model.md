@@ -1,95 +1,39 @@
-# Campaign Model
+# Campaign 模型
 
-ChemWorld logs benchmark interaction at three nested levels:
+Campaign 模型把一次 agent 研究过程拆成三层：`campaign`、`experiment` 和
+`operation`。这样可以同时支持单个 Gym episode、批量优化、课程任务和未来 hosted
+evaluation。
 
-```text
-Campaign
-  -> Experiment
-      -> Operation
-```
+## Campaign：研究批次
 
-This distinction is important because Bayesian optimization, Latin hypercube
-search, greedy search, and leaderboard agents often run many independent
-experiments under one finite budget.
+Campaign 是一个目标明确的研究批次，例如“在 20 次实验预算内优化产率和纯度”。它包含：
 
-## Campaign
+- 任务集合和 split；
+- budget、seed 和隐藏 scenario 规则；
+- agent 配置和 baseline 配置；
+- scoring protocol；
+- 输出 manifest。
 
-A campaign is one full benchmark run for one task and seed. It owns:
+## Experiment：单次实验
 
-- `campaign_id`;
-- `task_id`;
-- `scenario_id`;
-- `mechanism_hash`;
-- global operation budget;
-- experiment records;
-- aggregate best-score, safety, cost, and sample-efficiency metrics.
+Experiment 是 campaign 中的一次 episode。它绑定一个 `task_id`、一个 seed、一个隐藏
+scenario 和一次环境 reset。实验过程中的所有 action、observation、reward、ledger
+变更和仪器读数都应可回放。
 
-In `campaign` tasks, the Gym episode continues until the global budget is
-exhausted or a task-level terminal condition is reached.
+## Operation：单步操作
 
-## Experiment
+Operation 是 agent 提交给环境的单步动作，例如 `add_reagent`、`heat`、`measure`、
+`separate_phase`。operation 必须通过 action schema 校验，并在运行时产生结构化
+transaction record。
 
-An experiment is one attempt inside a campaign. It owns:
+## Episode 模式
 
-- `experiment_index`;
-- initial state id;
-- operation sequence;
-- final-assay event if one occurs;
-- terminal score and process summary.
+- `interactive`：agent 在线观察并逐步决策。
+- `recipe`：一次性提交固定 action 序列。
+- `replay`：重放已有 trajectory，用于核验 determinism 和日志完整性。
+- `evaluation`：关闭调试信息，只输出公开 observation 和评分。
 
-For recipe-space optimizers, one recipe normally corresponds to one
-experiment. `final_assay` closes that experiment and starts the next experiment
-inside the same campaign.
+## Replay 合同
 
-## Operation
-
-An operation is one executable laboratory action:
-
-- `add_reagent`;
-- `heat`;
-- `measure`;
-- `distill`;
-- `electrolyze`;
-- `terminate`;
-- and other registered operations.
-
-Every operation record includes:
-
-- `operation_id`;
-- `operation_type`;
-- action payload;
-- precondition results;
-- affected ledgers;
-- state-delta summary;
-- world events;
-- constitution checks;
-- observation packet;
-- reward, cost, and leaderboard-score fields when applicable.
-
-## Episode Modes
-
-ChemWorld uses two episode semantics.
-
-| Mode | Final-assay behavior | Intended use |
-| --- | --- | --- |
-| `single_experiment` | `final_assay` terminates the Gym episode | teaching workflows, one complete procedure, downstream process tasks |
-| `campaign` | `final_assay` closes the current experiment but does not terminate the campaign | BO, LHS, greedy search, public leaderboard optimization |
-
-In both modes, `final_assay` requires a terminated or assay-ready experiment
-state. Repeated final assays inside the same single experiment are rejected by
-preconditions.
-
-## Replay Contract
-
-Replay verification restores:
-
-- task id;
-- scenario id;
-- seed;
-- mechanism hash;
-- task/runtime/scoring/observation contract hashes;
-- action sequence.
-
-The verifier then recomputes observations, rewards, and constitution reports.
-A mismatch in mechanism or contract hashes is a reproducibility failure rather
-than a warning.
+Replay 不应依赖随机隐式状态。轨迹必须记录 seed、task metadata、action 序列、关键
+observation 和评分版本。若 replay 结果与原始结果不一致，应视为环境或记录层缺陷。

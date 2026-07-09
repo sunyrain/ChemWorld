@@ -1,110 +1,54 @@
-# Operation Language
+# 操作语言
 
-All ChemWorld tasks use the same event-action format:
+操作语言定义 agent 在 ChemWorld 中能做什么。它处在“真实化学语义”和“可计算 Gym
+action”之间：足够接近实验流程，便于人类理解；又足够结构化，便于校验、回放和评分。
 
-```python
-{
-    "operation": "add_reagent",
-    "payload": {"amount_mol": 0.01},
-}
-```
+## Action 抽象层
 
-For convenience, payload fields may also be supplied flat:
+每个操作由 `operation` 字段标识，并携带参数。环境会根据当前 task stage 和 state
+ledger 检查前置条件。
 
-```python
-{"operation": "heat", "target_temperature_K": 385.0, "duration_s": 1200.0}
-```
+常见字段：
 
-The action codec also accepts common aliases and maps them to canonical fields.
-For example, `temperature_K` maps to `target_temperature_K`, `stirring_rpm` maps
-to `stirring_speed_rpm`, catalyst `amount_mol` maps to `catalyst_amount_mol`,
-and `phase` maps to `target_phase` for `separate_phase`.
+- `volume_L`：体积。
+- `amount_mol`：物质的量。
+- `temperature_K`：温度。
+- `duration_s`：持续时间。
+- `stirring_rpm`：搅拌速率。
+- `phase`：相，例如 `organic` 或 `aqueous`。
+- `instrument`：测量工具。
 
-## Action Abstraction Layer
+字段保持英文，以保证 API 稳定。
 
-ChemWorld separates the semantic action language from Gym/RL-friendly numeric
-encodings:
+## 反应操作
 
-- `EventAction`: human/LLM-facing JSON such as `{"operation": "heat", ...}`;
-- `CanonicalAction`: normalized JSON with canonical operation, instrument, and
-  phase names;
-- `ActionCodec`: conversion between canonical JSON and stable numeric vectors;
-- `OperationValidator`: task-aware and constitution-aware validity check.
+- `add_solvent`
+- `add_reagent`
+- `add_catalyst`
+- `heat`
+- `cool`
+- `stir`
+- `terminate`
+- `measure`
 
-This lets students, GPT agents, Bayesian optimizers, replay tools, and RL
-libraries target the same underlying operation semantics.
+这些操作会影响反应进程、成本、安全、选择性和观测结果。
 
-Operation contracts also declare a `kind`:
+## 分离操作
 
-| Kind | Meaning | Examples |
-| --- | --- | --- |
-| `primitive` | Direct event action handled by Runtime v2 services | `add_reagent`, `heat`, `sample`, `separate_phase` |
-| `domain` | Physics-domain operation backed by a specialized service | `distill`, `run_flow`, `electrolyze`, `cool_crystallize` |
-| `macro` | High-level recipe step compiled into executable operations | `wash`, `dry`, `concentrate` |
-| `terminal` | Episode/process terminal marker | `terminate` |
+- `add_extractant`
+- `mix`
+- `settle`
+- `separate_phase`
+- `wash`
+- `dry`
+- `concentrate`
+- `crystallize`
+- `distill`
 
-Single-step environment interaction may still call any task-allowed operation.
-For recipe planning, macro steps are expanded before task-policy validation and
-execution, so they cannot bypass the operation validator or physical
-constitution.
+分离操作通常依赖前序状态。例如没有形成可分离相时调用 `separate_phase`，应返回
+`precondition_failed`，而不是静默成功。
 
-## Reaction Operations
+## 设计原则
 
-| Operation | Purpose |
-| --- | --- |
-| `add_reagent` | Add reactant A to the vessel |
-| `add_solvent` | Add solvent and set solvent identity |
-| `add_catalyst` | Add active catalyst and set catalyst identity |
-| `heat` | Integrate reaction ODEs with jacket heating |
-| `wait` | Integrate reaction ODEs without active heating |
-| `sample` | Remove sample volume and material |
-| `quench` | Cool the reactor and mark reaction quench |
-| `terminate` | End processing before final assay |
-| `measure` | Use an instrument to obtain partial observation |
-
-## Separation Operations
-
-| Operation | Purpose |
-| --- | --- |
-| `add_phase` | Add an aqueous or organic phase |
-| `add_extractant` | Add extraction solvent |
-| `mix` | Distribute product and impurities across phases |
-| `settle` | Allow phases to separate |
-| `separate_phase` | Retain selected phase with entrainment loss |
-| `wash` | Reduce impurity at a small recovery cost |
-| `dry` | Reduce solvent-loss signal |
-| `concentrate` | Reduce volume with cost/risk tradeoff |
-| `transfer` | Move retained material with handling loss |
-
-In recipe files, `wash`, `dry`, and `concentrate` are macro-friendly process
-steps. The compiler maps them to lower-level executable steps such as
-`add_extractant`, `mix`, `settle`, `separate_phase`, and `evaporate`, retaining
-`compiled_from_macro` metadata in the compiled action list.
-
-For a reaction-to-purification workflow, use `quench` before downstream
-processing and reserve `terminate` for the final stop before `final_assay`.
-A typical order is:
-
-```python
-[
-    {"operation": "add_solvent", "volume_L": 0.03, "solvent": 1},
-    {"operation": "add_reagent", "amount_mol": 0.012},
-    {"operation": "add_catalyst", "catalyst": 2, "amount_mol": 0.0004},
-    {"operation": "heat", "temperature_K": 350.0, "duration_s": 1200.0, "stirring_rpm": 800.0},
-    {"operation": "quench"},
-    {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012},
-    {"operation": "add_extractant", "volume_L": 0.02, "solvent": 2},
-    {"operation": "mix", "duration_s": 120.0, "stirring_rpm": 600.0},
-    {"operation": "settle", "duration_s": 300.0},
-    {"operation": "separate_phase", "phase": "organic"},
-    {"operation": "wash", "phase": "organic", "volume_L": 0.01},
-    {"operation": "dry", "phase": "organic", "duration_s": 300.0},
-    {"operation": "concentrate", "phase": "organic", "target_volume_L": 0.008, "duration_s": 300.0},
-    {"operation": "terminate"},
-    {"operation": "measure", "instrument": "final_assay"},
-]
-```
-
-`ActionMaskWrapper` reports which operation types are currently valid for the
-task and state. It does not replace the physical constitution: payload values
-are still checked by `ActionCodec` canonicalization and precondition logic.
+操作语言不追求覆盖真实实验室全部 SOP，而是优先服务 benchmark：合法性清楚、反馈可
+学习、失败可解释、trajectory 可回放。

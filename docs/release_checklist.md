@@ -1,104 +1,62 @@
-# Release Checklist
+# 发布检查表
 
-Use this checklist before a public benchmark release or paper artifact freeze.
+本检查表用于判断 ChemWorld 文档站、包和 benchmark contract 是否可以发布。
 
-## Code Gate
+## 代码 Gate
 
 ```bash
 python -m ruff check .
 python -m mypy src/chemworld
 python -m pytest
-python -m mkdocs build --strict
 ```
 
-## Environment Self-Consistency Gate
+任何 release candidate 都应记录命令输出、Python 版本、依赖版本和 commit。
+
+## 环境自洽性 Gate
 
 ```bash
 python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
 ```
 
-Required result:
+必须确认：
 
-- zero replay failures;
-- zero constitution failures;
-- zero invalid smoke steps;
-- zero spectra failures;
-- documented warnings only for known design risks.
+- 注册任务均可 reset/step；
+- smoke trajectory 不触发未知异常；
+- replay 结果稳定；
+- spectra 与 instrument contract 一致；
+- constitution check 无失败。
 
-## Documentation Gate
-
-- Homepage points to the current architecture, task registry, benchmark
-  protocol, tutorial, and audit pages.
-- MkDocs navigation is grouped by reader goal.
-- `Current Progress` reflects the current branch, not historical migration
-  notes.
-- Task docs clearly distinguish `campaign` and `single_experiment`.
-- Task cards are generated from the registry and are not hand-written copies.
-- Known proxy/lite/reference-validated maturity boundaries are visible.
-- `mkdocs build --strict` succeeds.
-- UTF-8 scan has no obvious mojibake markers.
-
-## Benchmark Contract
-
-- Built-in tasks are listed and documented.
-- Task cards include scenario, split, budget, seed policy, episode mode,
-  allowed operations, instruments, metrics, and maturity metadata.
-- Broad exploratory task profiles are explicitly marked as exploratory and
-  proxy-allowed.
-- Release tasks expose only operations needed by their task profile.
-- Submission bundle validation succeeds on sample artifacts.
-- Replay verification succeeds on all official trajectories.
-
-## Baseline Artifacts
-
-Generate per-task baseline tables:
+## 文档 Gate
 
 ```bash
-chemworld baselines report \
-  --tasks reaction-optimization-standard reaction-to-distillation \
-  --agents random scripted_chemistry gp_bo safe_gp_bo \
-  --seeds 0 1 2 \
-  --output-dir runs/baseline_report
+python -m mkdocs build --strict
 ```
 
-The frozen report must include:
+首页应指向当前架构、任务注册表、评测协议、baseline、release artifact 和 maturity
+说明。发布到 `gh-pages` 前，`site/` 目录必须来自同一 commit 的构建结果。
 
-- command used;
-- platform version;
-- commit hash;
-- dependency metadata;
-- seeds;
-- agent manifests;
-- task maturity metadata;
-- mean, standard error, safety/cost metrics, and confidence intervals when
-  available.
+## Benchmark 合同
 
-## Private Eval
+- `task_id`、`world_law_id`、maturity 和 metrics 已冻结。
+- 任务卡与 registry 一致。
+- action schema 和 observation schema 可被 agent 作者理解。
+- 无效操作、约束 flags、termination/truncation 规则清楚。
 
-- Private salts and hidden parameters are not committed.
-- Reported private-eval results have a signed maintainer artifact.
-- The artifact stores salt hash and signature, not the secret salt.
+## Baseline 产物
 
-## Data And Ethics
+- 至少一个简单 baseline。
+- 至少一个可解释强 baseline 或 recipe。
+- score table、trajectory bundle、manifest 和失败分析齐全。
 
-- Human data is anonymized before release.
-- Consent and data-use boundaries are documented.
-- Dataset cards describe provenance, task ids, seeds, agent manifests,
-  limitations, license, and privacy status.
+## 隐藏评测
 
-## Paper Artifact
+隐藏评测 split 不应泄露 hidden scenario 或 oracle state。提交包不得读取测试集答案。
 
-```bash
-chemworld artifact create --output-dir artifact/release
-```
+## 数据与伦理
 
-The paper artifact should include:
+公开数据应说明生成方式、成熟度、限制和安全边界。不要把虚拟环境输出包装成真实实验
+结论。
 
-- README with install, run, evaluate, and verify commands;
-- schema snapshots;
-- task cards;
-- baseline tables;
-- dataset examples;
-- self-consistency audit summary;
-- reproduction scripts;
-- platform version, commit hash, seeds, and dependency file.
+## 论文产物
+
+论文 artifact 应包含 README、环境说明、任务卡、baseline 结果、轨迹、图表和 manifest。

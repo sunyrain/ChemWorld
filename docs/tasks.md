@@ -1,99 +1,46 @@
-# Benchmark Tasks
+# Benchmark 任务
 
-ChemWorld tasks are stable benchmark contracts over one shared
-physical-chemical world. A task does not define a separate game. It selects a
-scenario, initial state, allowed operations, observation policy, budget, seeds,
-objective, and success metrics inside the same `ChemWorld` environment and the
-same `chemworld-physical-chemistry` world law.
+ChemWorld 的任务不是彼此独立的小游戏，而是同一个 `world_law_id` 下的切片。每个任务
+突出不同能力：反应优化、安全、机理、表征、分离、连续流、电化学或 tool planning。
 
-List tasks:
+## 内置任务
 
-```bash
-chemworld tasks list
-```
+当前注册任务族包括：
 
-Inspect one task:
+- `reaction-optimization`
+- `reaction-to-purification`
+- `safety-constrained-control`
+- `mechanism-explanation`
+- `characterization-planning`
+- `partition-discovery`
+- `purity-yield-tradeoff`
+- `crystallization-control`
+- `distillation-cut-selection`
+- `continuous-flow-optimization`
+- `electrochemical-screening`
+- `tool-agent-planning`
 
-```bash
-chemworld tasks show reaction-optimization-standard
-```
+具体数量以 registry 和 [任务卡](task_cards.md) 为准。
 
-Run a task:
+## 物理成熟度
 
-```bash
-chemworld run --task reaction-optimization-standard --agent scripted_chemistry
-```
+每个任务必须声明 maturity。常见层级：
 
-Run the task suite:
+- `proxy`
+- `lite`
+- `reference-validated`
+- `professional-candidate`
 
-```bash
-chemworld suite --task reaction-optimization-standard --agent gp_bo
-```
+没有 maturity 的任务不应进入正式 benchmark claim。
 
-## Built-In Tasks
+## Episode 模式
 
-| Task | Split | Mode | Budget | Operation Slice | Main Metrics |
-| --- | --- | --- | --- | --- | --- |
-| `reaction-optimization-standard` | `public-test` | campaign | 72 | reaction | score, yield, selectivity, sample efficiency |
-| `reaction-safety-constrained` | `public-test` | campaign | 72 | reaction | score, safety risk, constraint violations |
-| `reaction-mechanism-explanation` | `public-test` | campaign | 36 | reaction | score, mechanism explanation, failure analysis |
-| `reaction-to-assay` | `public-dev` | single experiment | 18 | reaction | final-assay score, trajectory validity |
-| `reaction-to-purification` | `public-test` | single experiment | 90 | reaction + separation | score, purity, recovery, mass balance |
-| `reaction-to-crystallization` | `public-test` | single experiment | 72 | reaction + crystallization | score, crystal yield, crystal purity, crystal size |
-| `reaction-to-distillation` | `public-test` | single experiment | 72 | reaction + distillation | score, distillate purity, distillate recovery, solvent loss |
-| `flow-reaction-optimization` | `public-test` | campaign | 60 | reaction + continuous flow | score, flow conversion, yield, safety risk |
-| `electrochemical-conversion` | `public-test` | campaign | 48 | reaction + electrochemistry | score, selectivity, energy efficiency, safety risk |
-| `partition-discovery` | `public-test` | campaign | 48 | phase/partition | phase ratio, product partition |
-| `purity-yield-tradeoff` | `public-test` | campaign | 90 | reaction + separation | yield, purity, recovery, cost |
-| `public-private-generalization` | `private-eval` | campaign | 72 | reaction | score, public/private gap |
-| `low-budget-characterization` | `public-test` | campaign | 18 | reaction | sample efficiency, uncertainty, local model quality |
-| `tool-agent-planning` | `public-dev` | single experiment | 48 | reaction + separation | trajectory validity, validator use, score |
+- 交互式 step-by-step。
+- 固定 recipe。
+- replay。
+- evaluation。
 
-Task-based evaluation is preferred for public results because it removes
-ambiguity about budget, split, objective, and seed selection.
+## World、Scenario、Task
 
-## Physics Maturity
-
-Each task card now exposes machine-readable physics maturity metadata:
-
-- `kernel_maturity`: module-level maturity records such as reaction kinetics,
-  reactors, separations, phase equilibrium, distillation, electrochemistry, and
-  instruments.
-- `physics_maturity`: the lowest maturity level among the modules used by the
-  task.
-- `proxy_allowed`: whether the task explicitly permits proxy kernels.
-
-The allowed maturity levels are `proxy`, `lite`, `reference_validated`,
-`professional_candidate`, and `professional`. If a task uses a proxy kernel,
-it must be tagged as teaching, smoke, exploratory, or education. This prevents
-professional benchmark claims from silently relying on proxy unit operations.
-
-`task_maturity_manifest()` exports the same information as a JSON-friendly
-manifest grouped by task id and by physics maturity level. Use it when building
-dataset cards, baseline reports, or release checks that need to prove which
-tasks allowed proxy kernels.
-
-## Episode Modes
-
-`single_experiment` tasks are one experimental workflow. A successful
-`final_assay` terminates the episode.
-
-`campaign` tasks are finite-budget experimental campaigns. A successful
-`final_assay` scores and closes the current experiment, then the reactor state
-is reset for the next independent experiment. The episode ends only when the
-campaign budget is exhausted. Optimizer baselines such as LHS, greedy search,
-GP-BO, RF-EI, and safe BO should be evaluated on campaign tasks.
-
-## World, Scenario, Task
-
-- `WorldLaw` is the shared ontology, constitution, operation registry,
-  transition kernels, and observation kernels.
-- `Scenario` is a hidden initial-condition and parameter family inside that
-  world law, such as reaction optimization or partition discovery.
-- `Task` is the public benchmark contract: scenario, split, budget, allowed
-  operations, instruments, seeds, and scoring targets.
-
-This design keeps task diversity from becoming a collection of disconnected
-toy environments. Agents that learn reaction kinetics, safety constraints,
-instrument noise, or phase behavior are learning reusable structure inside one
-world.
+`world` 定义统一规则，`scenario` 定义一次 episode 的隐藏条件和可见条件，`task` 定义
+目标、预算、评分和可见接口。三者分开是 ChemWorld 可扩展性的核心。

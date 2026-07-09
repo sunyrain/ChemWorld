@@ -1,302 +1,95 @@
-# Architecture
+# 架构
 
-ChemWorld-Bench is organized as a layered Python package around one registered
-environment, `ChemWorld`. Task diversity is expressed as slices of the same
-physical-chemical world law rather than separate environments.
+ChemWorld 的架构目标是提供一个统一的、可交互的虚拟化学世界。任务只是同一世界律的
+不同切片；agent 面对的是连续的实验决策过程，而不是一组互不相干的 toy task。
 
-## Foundation
+## 基础层
 
-`chemworld.foundation` is the reusable Chemical World Model base layer:
+基础层包含：
 
-- ontology primitives for substances, phases, vessels, instruments, operations,
-  reactions, and state variables;
-- concrete substance registries are scenario/mechanism-owned: a compiled
-  mechanism supplies species, roles, formulas, and initial-amount policy for the
-  current scenario instead of the world layer carrying fixed default species;
-- lightweight canonical units and conversions;
-- hidden `WorldState`, public `Observation`, and experiment `Ledger`;
-- `foundation/state_ledgers.py` and `foundation/state_helpers.py`, which keep
-  typed species, phase, vessel, equipment, thermal, and process ledger records
-  plus ledger helper functions outside the `WorldState` facade;
-- executable `PhysicalConstitution` checks for non-negativity, units, material
-  conservation, observation non-omniscience, measurement cost, preconditions,
-  vessel bounds, and risk;
-- `foundation/constitution_reports.py`,
-  `foundation/constitution_state_checks.py`, and
-  `foundation/constitution_preconditions.py`, which keep report contracts,
-  state invariant checks, and operation precondition tables outside the
-  `PhysicalConstitution` facade;
-- transition and observation kernel protocols.
+- ontology：物种、相、操作、仪器、任务和约束的概念定义；
+- physical constitution：质量、电荷、相组成和 ledger 守恒；
+- mechanism schema：反应网络和参数的机器可读描述；
+- task registry：任务卡、maturity、预算、指标和可见接口；
+- action/observation schema：agent 与环境交互的稳定合同。
 
-Learnable world-model interfaces live in `chemworld.models`, not in
-`chemworld.foundation`. This keeps the boundary clear: foundation defines the
-world law; models define agent-side beliefs about that world.
+这些模块共同定义 `world_law_id = chemworld-physical-chemistry`。
 
-The foundation separates three epistemic layers:
+## Runtime V2 运行时
 
-- hidden state: species amounts, catalyst activity, physical state, and hidden
-  world parameters;
-- observation: public instrument readouts, raw signals, processed estimates, and
-  uncertainty;
-- belief state: the learner or agent's local world model inferred from
-  trajectory records.
+Runtime V2 把每个 step 拆成可追踪 transaction：
 
-This separation is central to the benchmark. Agents can act on observations and
-beliefs, but cannot read hidden state except in explicit developer/debug runs.
+1. 校验 action schema。
+2. 检查任务阶段和操作前置条件。
+3. 调用 domain services 更新状态。
+4. 写入 typed ledger 和 transaction record。
+5. 生成 observation、instrument readout、reward 和 constraint flags。
+6. 判断 termination/truncation。
 
-## Runtime V2
+这条链路让环境既能服务 RL，也能服务 audit、replay 和课程教学。
 
-`chemworld.runtime` is now the execution center. The Gym environment delegates
-chemistry to a transactional runtime instead of carrying operation-specific
-branches.
+## 领域服务
 
-The runtime is organized around:
+Domain services 处理具体物理化学语义：
 
-- `TaskRuntimeProfile`, which declares the operations, instruments, kernels, and
-  domain services required by one task slice;
-- `runtime/profiles.py`, which owns task-scoped runtime profiles and their
-  deterministic profile hashes;
-- `runtime/kernel_contracts.py`, which owns runtime context, kernel plans,
-  kernel results, and the `OperationKernel` protocol;
-- `runtime/kernel_registry.py`, which owns the default service-backed
-  operation kernel, affected-ledger declarations, and task-scoped registry
-  validation;
-- `MechanismCompiler`, which compiles mechanism YAML into a `CompiledMechanism`
-  with species indexes, a stoichiometric matrix, observable mappings, score
-  bindings, and a mechanism hash;
-- `runtime/mechanism_manifest.py` and `runtime/mechanism_validation.py`, which
-  keep compiled-mechanism data contracts, replay manifests, YAML hashing,
-  schema validation, and Runtime v2 role-contract checks separate from the
-  lightweight compiler facade;
-- `OperationKernelRegistry`, which maps allowed operation types to typed kernels
-  for the current profile rather than requiring every known ChemWorld operation
-  globally;
-- `DomainServiceRegistry`, which publishes JSON-friendly service contracts and
-  the operation-to-service map used by task info, audits, and transaction
-  events. Runtime startup validates the current task profile against this
-  registry, so a task cannot allow an operation whose focused domain service or
-  capability is missing;
-- `runtime/domain_service_registry.py`, which owns domain-service contracts,
-  operation coverage validation, service-capability validation, and the
-  operation-to-service map;
-- `runtime/constitution_factory.py`, which owns the default ChemWorld
-  constitution factory for the virtual vessel and instrument set;
-- `ChemWorldDomainServices`, which now acts as a lightweight operation
-  composition surface for delegated runtime services, constitution checks, and
-  operation recording;
-- `ChemWorldReactionThermalServices`, implemented in
-  `runtime/reaction_thermal_services.py`, which owns reaction ODE advancement,
-  heat/wait integration, stirring metadata, energy-ledger updates, and
-  pressure/risk projection;
-- `ChemWorldPhaseSeparationServices`, implemented in
-  `runtime/phase_separation_services.py`, which owns liquid-liquid
-  partitioning, extraction, settling, phase selection, washing, drying,
-  concentrating, and transfer operation handlers;
-- `ChemWorldPhaseLedgerServices`, implemented in
-  `runtime/phase_ledger_services.py`, which owns phase-ledger normalization,
-  mechanism-role-to-phase mapping, selected-phase state replacement, and
-  downstream process-metric updates;
-- `ChemWorldPrimitiveOperationServices`, implemented in
-  `runtime/primitive_services.py`, which owns reagent, solvent, and catalyst
-  addition, sampling, quench, evaporation, and invalid-action penalty updates;
-- `ChemWorldCrystallizationServices`, implemented in
-  `runtime/crystallization_services.py`, which owns seeding, cooling
-  crystallization, typed crystallizer seed-equipment status,
-  typed solid/mother-liquor output phases, crystal process metrics, and crystal
-  filtration ledger updates;
-- `ChemWorldDistillationServices`, implemented in
-  `runtime/distillation_services.py`, which owns shortcut VLE distillation,
-  typed distillate/bottoms output phases, distillate process metrics,
-  heat-duty/cost/risk ledger updates, and fraction collection;
-- `ChemWorldElectrochemicalServices`, implemented in
-  `runtime/electrochemical_services.py`, which owns potential/current setup,
-  electrochemical mechanism binding, Nernst/Butler-Volmer electrolysis calls,
-  faradaic conversion, electrical-work ledgers, and electrochemical metadata;
-- `ChemWorldFlowServices`, implemented in `runtime/flow_services.py`, which owns
-  flow-rate setup, residence-time reaction advancement through
-  reaction/thermal services, flow conversion metrics, and flow campaign ledger
-  updates;
-- `ChemWorldInstrumentCostServices`, implemented in
-  `runtime/instrument_cost_services.py`, which owns measurement cost,
-  destructive sample consumption, and typed instrument equipment status;
-- `ChemWorldObservationKernel`, implemented in
-  `runtime/observation_services.py`, which owns observation truth extraction,
-  noisy instrument signals, processed estimates, uncertainty metadata, and
-  observation-time scoring;
-- `ChemWorldOperationRecorder`, implemented in `runtime/record_services.py`,
-  which builds `OperationRecord` payloads, constitution summaries,
-  measurement cost/sample fields, and state-delta summaries from pre/post
-  transaction states;
-- `MechanismSpeciesView`, which resolves reactants, targets, impurities,
-  catalysts, byproducts, and degradation markers from the compiled mechanism
-  instead of letting runtime services depend on fixed species names;
-- `TransactionManager`, which applies state patches atomically, runs
-  constitution checks, and records rollback/penalty events when a candidate
-  state violates physical constraints.
+- reaction service；
+- phase/partition service；
+- separation service；
+- spectroscopy/instrument service；
+- safety/cost service；
+- scoring service。
 
-Operation kernels return `WorldEvent` and `StatePatch` records. The transaction
-manager commits those patches to typed ledgers only after validation. This keeps
-material ledgers auditable: invalid actions can add process penalties without
-silently changing hidden material state.
+服务之间通过 typed state 和 ledger 交互，避免把所有逻辑塞进一个巨大的 `step()`。
 
-Reaction/thermal advancement, phase/extraction workflows, crystallization,
-distillation, electrochemical conversion, measurement cost/sample consumption,
-continuous-flow conversion, primitive material handling, and operation-record
-assembly are separated from the lightweight domain-service composition layer.
-This makes the runtime easier to audit: focused services advance each physical
-process, the transaction manager commits or rolls back patches, and the
-recorder turns the accepted pre/post state pair into the replayable operation
-record. Each accepted `operation_applied` event also records the
-`domain_service_id`, so reviewers can trace whether an operation was handled by
-primitive operations, reaction/thermal services, phase separation,
-crystallization, distillation, flow, electrochemistry, or instrument-cost
-services without reading internal Python objects.
+## 任务注册表
 
-The active backend remains `semi_mechanistic`, but it is now a runtime service
-implementation rather than the conceptual center of the package. Backend
-metadata still lives in `chemworld.backends`, separating the shared world law
-from the fidelity used to advance hidden state.
+Task registry 是 benchmark contract 的中心。每个任务应声明：
 
-Mechanisms are no longer fixed to a single `A/P/B/D/E` reaction family. Each
-scenario binds to a mechanism card, such as `simple_batch_reaction`,
-`reaction_extraction`, `reactive_distillation_lite`, `pfr_hotspot`, or
-`electrochemical_conversion`. The runtime records `mechanism_id` and
-`mechanism_hash` in reset info and trajectory logs so replay can fail fast when
-the mechanism artifact changes.
+- `task_id`
+- `world_law_id`
+- maturity；
+- allowed operations；
+- observation channels；
+- budget；
+- metrics；
+- hidden scenario policy。
 
-Runtime services read species roles through the compiled mechanism. Generic
-scoring, observation truth, reagent addition, electrochemical conversion, phase
-bookkeeping, distillation summaries, and flow conversion use semantic roles
-such as reactant, target, impurity, catalyst, and degradation marker rather
-than hard-coded species names.
-
-Typed ledgers in `WorldState` expose species definitions, phase material
-amounts, vessel bounds, equipment attachment, per-vessel heat ledgers, and
-process cost/risk/time. Helper views keep scalar observations synchronized with
-the typed ledger state so benchmark agents can use stable numeric observation
-keys without reading hidden material ledgers.
-
-## Task Registry
-
-`chemworld.tasks` defines benchmark contracts over the shared world law. Each
-`TaskSpec` fixes:
-
-- `world_law_id`;
-- scenario and initial-state ids;
-- split, budget, seeds, objective, and threshold;
-- allowed operations and instruments;
-- observation and termination policies;
-- success metrics and difficulty.
-
-The official entrypoint is:
-
-```python
-gym.make("ChemWorld", task_id="reaction-optimization-standard", seed=0)
-```
-
-Each task can also emit a task card through `chemworld tasks card <task_id>`.
-Task cards are the release-facing benchmark contract and include motivation,
-allowed operations, instruments, seed policy, metrics, failure modes, and
-baseline reference-score slots.
+任务卡应从 registry 生成或至少与 registry 保持一致。
 
 ## Gym API
 
-`chemworld.envs` exposes `ChemWorld` through Gymnasium. Each `step()` is an
-executable operation such as `add_reagent`, `heat`, `wait`, `measure`, or
-`terminate`. The environment does not expose hidden species amounts or hidden
-rate parameters unless explicitly constructed with `debug_truth=True`.
+正式入口：
 
-`ChemWorldEnv.step()` is intentionally thin:
+```python
+env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=1)
+obs, info = env.reset(seed=1)
+obs, reward, terminated, truncated, info = env.step(action)
+```
 
-1. canonicalize the action;
-2. validate schema, task policy, instrument policy, and preconditions;
-3. dispatch the action to `ChemWorldRuntime`;
-4. observe through the instrument observation kernel;
-5. compute reward/cost/info;
-6. update campaign bookkeeping and return the Gymnasium five-tuple.
+Gym API 是 agent 的公共面；内部 runtime 可以复杂，但对外合同必须稳定。
 
-Action handling is split into an explicit abstraction layer:
+## 观测服务
 
-- `world/actions.py`: owns the shared action catalog, catalyst/solvent choices,
-  bounds, and terminal-recipe vector helpers used by agents and recipe planners;
-- `ActionCodec`: converts semantic event JSON to canonical actions and stable
-  numeric vectors;
-- `OperationValidator`: combines task policy and physical preconditions into a
-  single validation result;
-- `envs/spaces.py`: owns Gym action/observation space construction, nullable
-  scalar observation boxes, and observation-array encoding;
-- `envs/reports.py`: owns task-info cards, constitution summaries, render text,
-  and step-info payload construction;
-- wrappers read validator output instead of duplicating validation logic.
+Observation 不应泄露 hidden state。仪器读数、谱图、final assay 和 phase probe 都应通过
+独立服务生成，并记录 noise、cost、unit 和 visibility boundary。
 
-Failed action preconditions return non-informative observations with empty
-`observed_keys`, no instrument cost, no sample consumption, and an explicit
-`error_message`. `final_assay` is a terminal scoring measurement: it requires a
-terminated reaction state, ends the episode, and can only create one
-`leaderboard_score`.
+## Agent 类型
 
-Task-aware wrappers can add operation masks and safety-cost signals without
-changing the Gymnasium five-tuple API.
+支持的 agent 类型包括：
 
-## Observation Services
+- 固定 recipe；
+- 规则 baseline；
+- black-box optimizer；
+- RL agent；
+- tool-using LLM agent；
+- world-model learner。
 
-Instrument observations are represented as:
+## 评测层
 
-- `raw_signal`: teaching- and research-facing instrument signal packets such as
-  UV-vis spectra, HPLC/GC chromatograms, IR/NMR proxy spectra, or a final-assay
-  multi-instrument packet;
-- `processed_estimate`: derived estimates such as yield, selectivity,
-  conversion, byproduct signal, degradation warning, purity, recovery, or phase
-  partition metrics;
-- `uncertainty`: per-estimate measurement noise metadata;
-- `observed_mask`: the explicit mask distinguishing measured values from
-  unknown values.
+评测层负责 score、constraint summary、trajectory validation、baseline table 和
+leaderboard artifact。它不应修改环境语义。
 
-Gym observations still expose the stable numeric observation keys. Missing
-values are represented as `NaN` in Gym arrays and `null` in trajectory JSONL.
-The array codec lives in `chemworld.envs.spaces`, keeping `ChemWorldEnv`
-focused on reset/step/render orchestration rather than Gym-space bookkeeping.
+## 数据层
 
-The observation implementation is separated from state-changing runtime
-services. `ChemWorldObservationKernel` reads the committed hidden state,
-compiled-mechanism species roles, instrument contracts, and task objective to
-generate partial observations. It does not mutate material, phase, vessel, or
-process ledgers.
-
-## Agents
-
-`chemworld.agents` contains official baselines:
-
-- random search;
-- Latin hypercube search;
-- greedy local perturbation;
-- Gaussian-process Bayesian optimization;
-- random-forest expected improvement;
-- safety-constrained Bayesian optimization;
-- LLM planner adapter and deterministic replay agent.
-
-## Evaluation
-
-`chemworld.eval` computes performance, sample efficiency, safety-aware scores,
-and leaderboard aggregates from JSONL trajectories.
-
-Evaluation now also contains a transparent mechanism-explanation rubric. This
-rubric is intentionally simple: it checks whether a submitted explanation covers
-temperature trade-offs, degradation, byproducts/selectivity, catalyst-solvent
-interactions, concentration/safety, uncertainty, and a next experiment. It is a
-stable first-pass artifact score, not a replacement for expert review.
-
-## Data
-
-`chemworld.data` defines the trajectory schema, logging utilities, dataset
-export, submission bundles, and anonymization helpers for human pilot studies.
-Runtime v2 trajectory records include `mechanism_id`, `mechanism_hash`,
-`task_contract_hash`, `runtime_profile_hash`, `scoring_contract_hash`,
-`observation_contract_hash`, `kernel_id`, `kernel_version`, `affected_ledgers`,
-`world_events`, `state_patches_summary`, `transaction_status`, and
-`rollback_reason`.
-Schema, task-policy, instrument-policy, and payload-shape failures are rejected
-before runtime dispatch as `validation_failed`. Stateful operation precondition
-failures, such as running a final assay before termination, now enter Runtime v2
-and produce an `operation_rejected` event, a `transaction_rollback` event, and a
-process-only `rollback_penalty` patch without mutating material ledgers.
+数据层保存 trajectory、task card、manifest、score 和 report。正式发布时，数据包必须
+能说明生成命令、commit、seeds 和 maturity metadata。

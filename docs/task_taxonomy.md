@@ -1,46 +1,27 @@
-# Task Taxonomy
+# 任务分类
 
-ChemWorld separates world law, scenario, and task.
+任务分类用于组织 ChemWorld 的能力覆盖，而不是替代 registry。它帮助读者理解某个任务
+主要考察什么能力。
 
-| Layer | Meaning | Example |
-| --- | --- | --- |
-| World law | Shared physical-chemical rules | `chemworld-physical-chemistry` |
-| Scenario | Hidden parameter and initial-condition family | reaction optimization, partition discovery |
-| Task | Public benchmark contract | `reaction-to-purification` |
+## 当前任务家族
 
-## Current Task Families
+- 反应优化：条件搜索、产率、选择性和成本。
+- 安全约束控制：在限制内完成目标。
+- 机理解释：从观测和结果推断合理机制。
+- 表征规划：选择仪器和测量顺序。
+- 反应-纯化闭环：把反应、相分离和终点评测连起来。
+- 分配发现：学习相间分配规律。
+- 结晶和蒸馏：下游单元操作。
+- 连续流和电化学：不同实验 affordance。
+- Tool-agent planning：调用工具、检查约束和组合 recipe。
 
-Reaction tasks exercise the ODE reaction module and instrument observation:
+## 扩展原则
 
-- `reaction-optimization-standard`
-- `reaction-safety-constrained`
-- `reaction-mechanism-explanation`
-- `reaction-to-assay`
-- `low-budget-characterization`
-- `public-private-generalization`
+新增任务必须回答：
 
-Reaction + separation tasks exercise reaction planning plus downstream
-processing:
-
-- `reaction-to-purification`
-- `purity-yield-tradeoff`
-- `tool-agent-planning`
-
-Year 2 process tasks extend the same world law with additional physical
-modules:
-
-- `reaction-to-crystallization`
-- `reaction-to-distillation`
-- `flow-reaction-optimization`
-- `electrochemical-conversion`
-
-Partition tasks isolate phase behavior so agents can learn solvent/product
-distribution rules:
-
-- `partition-discovery`
-
-## Expansion Principle
-
-Task diversity should come from changing budgets, allowed operations,
-observation policies, objectives, and hidden parameters inside the same world.
-This makes learned local world models transferable across tasks.
+- 属于哪个能力家族；
+- 是否共享现有 `world_law_id`；
+- 哪些 observation 对 agent 可见；
+- 评分指标是什么；
+- 物理成熟度是什么；
+- 是否需要新的 operation 或 instrument contract。

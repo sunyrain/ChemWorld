@@ -1,9 +1,6 @@
 # ChemWorld-Bench
 
-<p class="cw-language-switch">
-  <a class="cw-lang-button cw-lang-button-primary" href="./">中文</a>
-  <a class="cw-lang-button" href="en/">English</a>
-</p>
+<p class="cw-site-version">当前站点版本：中文发布版 · 2026-07-09</p>
 
 ChemWorld-Bench 是面向闭环虚拟化学实验的研究级 benchmark。正式的
 Gymnasium 入口是 `ChemWorld`：所有任务都来自同一个物理化学世界律的切片，

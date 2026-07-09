@@ -1,147 +1,105 @@
-# Demos
+# 演示
 
-The `examples/` directory contains small scripts that exercise the current
-research platform without requiring a web service or external API.
+本页整理 ChemWorld 的最小演示路径。目标是让读者先跑通一次可解释流程，再进入自动化
+agent 或课程 notebook。
 
-## Tutorial Curriculum
+## 教程课程
 
-The full teaching sequence is described in
-[ChemWorld 教程课程地图](tutorial_curriculum_zh.md). It maps Day 1-13 notebooks
-to difficulty levels, prerequisites, student deliverables, grading suggestions,
-and the local teacher/student evaluation workflow.
+完整课程路线见 [ChemWorld 教程课程地图](tutorial_curriculum_zh.md)。课程从环境 reset
+和单步 action 开始，逐步进入 recipe、baseline、任务族、光谱、分离和 agent planning。
 
-## Manual Event Sequence
+## 手动事件序列
 
-```bash
-python examples/demo_manual_event_sequence.py
+最小示例：
+
+```python
+import gymnasium as gym
+import chemworld
+
+env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=1)
+obs, info = env.reset(seed=1)
+
+recipe = [
+    {"operation": "add_solvent", "volume_L": 0.03, "solvent": 1},
+    {"operation": "add_reagent", "amount_mol": 0.012},
+    {"operation": "add_catalyst", "catalyst": 2, "amount_mol": 0.0004},
+    {
+        "operation": "heat",
+        "temperature_K": 350.0,
+        "duration_s": 1200.0,
+        "stirring_rpm": 800.0,
+    },
+    {"operation": "quench"},
+    {"operation": "terminate"},
+    {"operation": "measure", "instrument": "final_assay"},
+]
+
+for action in recipe:
+    obs, reward, terminated, truncated, info = env.step(action)
+    print(action["operation"], reward, info.get("constraint_flags", {}))
+    if terminated or truncated:
+        break
 ```
 
-This runs one explicit reactor workflow:
+如果 reward 始终为 0，应先检查任务阶段、前置条件和最终 measurement 是否真的触发评分。
 
-- add solvent;
-- add reagent;
-- add catalyst;
-- heat with a stirring speed;
-- take an HPLC measurement;
-- wait;
-- terminate;
-- run a final assay.
+## Agent-Facing API
 
-It prints the public observation after each operation plus constraint flags.
-
-For the downstream workflow, run the `reaction-to-purification` task with the
-scripted chemistry baseline:
-
-```bash
-chemworld run --task reaction-to-purification --agent scripted_chemistry
+```python
+print(env.unwrapped.task_prompt()["text"])
+env.unwrapped.available_actions()
+env.unwrapped.action_schema("heat")
+env.unwrapped.validate_action({"operation": "heat", "duration_s": 10.0})
+env.unwrapped.observation_view("lab_report")
+env.unwrapped.campaign_state()
 ```
 
-Year 2 process modules can be exercised with the same environment and agent:
+也可以直接运行：
 
 ```bash
-chemworld run --task reaction-to-crystallization --agent scripted_chemistry
-chemworld run --task reaction-to-distillation --agent scripted_chemistry
-chemworld run --task flow-reaction-optimization --agent scripted_chemistry
-chemworld run --task electrochemical-conversion --agent scripted_chemistry
+python examples/demo_agent_facing_api.py
+python examples/demo_llm_replay_harness.py
+python examples/demo_rl_vector_wrapper.py
 ```
 
-These are not separate mini-games. They are task slices over the same
-`ChemWorld` law with different allowed operations and success metrics.
+## Baseline 对比
 
-## Baseline Comparison
+建议至少比较三类：
+
+- 随机合法动作 baseline；
+- 固定 recipe baseline；
+- 简单 optimizer 或 tool-agent baseline。
+
+不要只报告平均 reward，也要报告 invalid action、safety、cost 和 selectivity flags。
+
+## 验证与检查
 
 ```bash
-python examples/demo_compare_baselines.py
+python -m pytest
+python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
+python -m mkdocs build --strict
 ```
 
-This runs a tiny local suite for `random`, `scripted_chemistry`, and `lhs` on
-`public-test` and `private-eval`, then prints leaderboard rows with mean score,
-uncertainty fields, and `public_private_gap`. It writes local JSONL trajectories
-under `runs/demos/baseline_compare/`.
+## CLI 等价入口
 
-## Verify And Inspect
+未来可把 notebook 示例收束成 CLI：
 
 ```bash
-python examples/demo_verify_and_inspect.py
+chemworld run --task reaction-to-purification --agent baseline_recipe --seed 1
+chemworld score --run artifacts/runs/example.jsonl
 ```
 
-This generates one random-agent trajectory, replays it with `verify_records`,
-and prints the active physical constitution rules. It writes the trajectory to
-`runs/demos/verify_random.jsonl`.
+## 本地评测机
 
-## CLI Equivalents
+本地评测机接收 agent、任务和 seeds，输出 trajectory、score 和 report。见
+[本地评测机](local_eval_machine.md)。
 
-```bash
-chemworld tasks list
-chemworld inspect-constitution --env ChemWorld
-chemworld run --task reaction-to-assay --agent random
-chemworld verify --constitution --submission runs/random_ChemWorld_public-dev_balanced_seed0.jsonl
-chemworld suite --task reaction-optimization-standard --agent scripted_chemistry
-chemworld submission init runs/submissions/example --task-id reaction-optimization-standard
-```
+## Notebook 走读
 
-The submission example creates a skeleton. Add trajectories and result JSON
-files before running `chemworld submission validate`.
+Notebook 应保持短小：每个 notebook 聚焦一个概念，避免把全部任务、全部指标和全部
+debug 信息塞进同一页。
 
-## Local Eval Machine
+## 十二天教程
 
-```bash
-python local_eval_server/teacher_side/eval_machine.py \
-  --workspace runs/local_eval_machine \
-  demo \
-  --tasks reaction-to-assay \
-  --seeds 0
-```
-
-This simulates a teacher-side evaluator and a student-side submission process on
-the same host. The teacher process owns `ChemWorld`; the student process only
-receives observations and returns actions. See [Local Eval Machine](local_eval_machine.md).
-
-## Notebook Walkthrough
-
-```bash
-python -m pip install -e ".[dev,notebooks]"
-jupyter notebook notebooks/full_workflow_demo.ipynb
-jupyter notebook notebooks/physics_sanity_check.ipynb
-jupyter notebook notebooks/tutorials/day_01_enter_virtual_lab.ipynb
-```
-
-The full workflow notebook demonstrates environment inspection, physical
-constitution, manual event sequence, trajectory logging, evaluation, replay
-verification, suite execution, leaderboard aggregation, and LLM replay
-integration. The physics sanity notebook scans temperature, time,
-catalyst-solvent interactions, and concentration-risk trade-offs.
-
-## Twelve-Day Tutorial
-
-The `notebooks/tutorials/` directory contains twelve executed notebooks for a
-progressive short course:
-
-- Day 1: first closed-loop virtual experiment;
-- Day 2: ontology, units, and physical constitution;
-- Day 3: instruments and partial observability;
-- Day 4: mechanism scans and chemical intuition;
-- Day 5: local surrogate-model learning;
-- Day 6: baseline suites, BO/safe BO smoke baselines, and public/private
-  leaderboard;
-- Day 7: capstone trajectory replaying the selected best candidate, evaluation,
-  verification, and explanation.
-- Day 8: GPT-style structured planning and validator repair;
-- Day 9: Bayesian optimization and safe Bayesian optimization;
-- Day 10: public leaderboard challenge submissions;
-- Day 11: private-world generalization and overfitting diagnosis;
-- Day 12: Demo Day artifact with performance, mechanism, and reproducibility
-  scores.
-- Day 13 extension: Year 2 crystallization, distillation, continuous-flow, and
-  electrochemistry process modules.
-- Project blueprint: shared-world leaderboard design, project tracks, submission
-  bundle shape, and visible multi-board scoring.
-
-The current codebase also supports optional Year 2 extensions after Day 12:
-crystallization, distillation, continuous-flow optimization, and
-electrochemistry tasks. See
-[Reaction and Separation Tasks](reaction_separation_tasks.md) and
-[Task Cards](task_cards.md).
-
-Start with `notebooks/tutorials/README.md`, then open the notebooks in order
-with the `Python (ChemWorld)` kernel.
+课程应先让学生理解 `reset`、`step`、`info` 和 `constraint_flags`，再逐步引入
+reaction、separation、spectroscopy、world-model learning 和 tool-agent planning。

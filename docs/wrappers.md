@@ -1,69 +1,22 @@
-# Wrappers And Validity Signals
+# Wrapper 与合法性信号
 
-ChemWorld wrappers are optional Gymnasium wrappers. They do not change the core
-environment contract.
+Wrappers 用于增强 agent 训练和调试体验，但不改变底层任务语义。
 
-## ActionMaskWrapper
+## ActionMaskWrapper：动作掩码
 
-`ActionMaskWrapper` adds operation-level validity signals to `info`:
+提供当前状态下可能合法的 operation mask。它适合 RL 或搜索 agent 使用，但正式评测
+需要声明是否允许 agent 读取该 mask。
 
-- `valid_operations`: operation names whose current preconditions pass;
-- `action_mask`: boolean mask aligned with `operation_types`;
-- `operation_types`: ordered operation names;
-- `invalid_reasons`: per-operation invalid reason summaries.
+## SafetyCostWrapper：安全与成本
 
-Example:
+把 safety 和 cost 信号整理成更直接的 observation 或 reward component。用于训练时很
+方便，但不要掩盖原始 `constraint_flags`。
 
-```python
-import gymnasium as gym
-import chemworld
-from chemworld.wrappers import ActionMaskWrapper
+## NaNObservationWrapper：观测检查
 
-env = ActionMaskWrapper(gym.make("ChemWorld", budget=12, seed=0))
-obs, info = env.reset(seed=0)
-print(info["valid_operations"])
-```
+检查 observation 中的 NaN、inf 或形状异常。发现异常时应给出明确错误或诊断信息。
 
-The mask is produced by the shared `OperationValidator`, which combines task
-allowed operations and physical constitution preconditions. Numeric payload
-ranges remain the responsibility of action spaces, `ActionCodec`, and
-constitution checks.
+## 事件合法性校验 Helper
 
-## SafetyCostWrapper
-
-`SafetyCostWrapper` adds safe-RL style cost fields to `info` without changing
-Gymnasium's five-value return:
-
-- `cost_signal`;
-- `cost_components`;
-- `constraint_budget_remaining`.
-
-Cost components are derived from unsafe operation, high cost, failed
-preconditions, and failed constitution checks.
-
-## NaNObservationWrapper
-
-`NaNObservationWrapper` converts dict observations with missing `NaN` values
-into RL-friendly vectors:
-
-```python
-from chemworld.wrappers import NaNObservationWrapper
-
-env = NaNObservationWrapper(gym.make("ChemWorld", task_id="reaction-to-assay"))
-obs, info = env.reset()
-```
-
-The vector is:
-
-```text
-filled_values + observed_mask
-```
-
-Missing values are replaced by a configurable sentinel, defaulting to `-1.0`.
-
-## Event Validation Helper
-
-Use `validate_event_action(action, env)` to pre-check an event action against the
-current state. This helper delegates to the same `OperationValidator` used by
-the environment and wrappers.
-
+事件验证 helper 可用于检查 recipe 中每一步是否满足前置条件。它适合教程、baseline
+开发和调试，不应成为 agent 绕过环境交互的 oracle。

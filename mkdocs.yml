@@ -1,12 +1,14 @@
 site_name: ChemWorld-Bench 文档
 site_description: 面向闭环虚拟化学实验和 agent world model 研究的基准文档。
+site_url: https://sunyrain.github.io/ChemWorld/
 theme:
   name: material
   language: zh
   features:
-    - navigation.tabs
     - navigation.sections
+    - navigation.expand
     - navigation.top
+    - toc.integrate
     - search.highlight
     - content.code.copy
 plugins:
@@ -17,16 +19,15 @@ plugins:
 extra:
   alternate:
     - name: 中文
-      link: /
+      link: https://sunyrain.github.io/ChemWorld/
       lang: zh
     - name: English
-      link: /en/
+      link: https://sunyrain.github.io/ChemWorld/en/
       lang: en
 extra_css:
   - assets/stylesheets/language-switch.css
 nav:
   - 首页: index.md
-  - English: en/index.md
   - 项目状态:
       - 当前进展: current_progress.md
       - 站点审计: site_audit_zh.md
@@ -43,20 +44,22 @@ nav:
   - Benchmark 合同:
       - 环境卡: env_cards.md
       - 任务分类: task_taxonomy.md
-      - Tasks: tasks.md
+      - 任务列表: tasks.md
       - 任务卡: task_cards.md
       - 场景生成: scenario_generation.md
       - Campaign 模型: campaign_model.md
       - 操作协议: operations.md
-      - Action Schema: action_schema.md
-      - Mechanism Schema: mechanism_schema.md
+      - Action 协议: action_schema.md
+      - Mechanism 协议: mechanism_schema.md
       - 仪器合同: instrument_contracts.md
       - 虚拟光谱: spectroscopy.md
       - 安全与成本: safety_cost.md
-      - Wrappers: wrappers.md
+      - Wrapper 与合法性: wrappers.md
+      - Agent 交互接口: agent_interface.md
+      - LLM Agent Harness: llm_agent_harness.md
       - 提交包: submission.md
       - 评测协议: benchmark_protocol.md
-      - Backends: backends.md
+      - Backend 后端: backends.md
   - 评测与数据:
       - Baseline 参考: baseline_reference.md
       - 数据集层: dataset_layer.md
@@ -66,8 +69,9 @@ nav:
       - 伦理与数据: ethics_and_data.md
   - 教程与示例:
       - 教程课程图: tutorial_curriculum_zh.md
-      - Demos: demos.md
-      - API Reference: api_reference.md
+      - 演示: demos.md
+      - Agent 交互示例: agent_interaction_examples.md
+      - API 参考: api_reference.md
       - 反应与分离任务: reaction_separation_tasks.md
   - 审计:
       - 环境自一致性审计: environment_self_consistency_audit_zh.md
@@ -78,5 +82,5 @@ nav:
   - 开发与发布:
       - 项目管理: project_management.md
       - 本地参考仓库: reference_repos.md
-      - Professional TODO: professional_todo.md
-      - Professional 深化 TODO: professional_deepening_todo.md
+      - 专业化 TODO: professional_todo.md
+      - 专业化深化 TODO: professional_deepening_todo.md

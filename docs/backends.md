@@ -1,44 +1,26 @@
-# Backends
+# Backend 后端
 
-ChemWorld separates the shared world law from the implementation that advances
-hidden state. The current backend is:
+Backend 层用于把同一套任务语义连接到不同物理实现：轻量 proxy、参考校准模块、外部
+模拟器或未来真实设备 adapter。当前默认 backend 仍以可控虚拟环境为主。
 
-```text
-semi_mechanistic
-```
+## 为什么需要 Backend
 
-It uses Arrhenius reaction ODEs, a simplified energy balance, phase partition
-heuristics, separation ledgers, and instrument-cost updates.
+没有 backend 抽象时，任务逻辑、物理近似和运行时工程会混在一起，导致 maturity 难以
+声明、测试难以隔离、未来替换参考实现也困难。
 
-## Why This Exists
+Backend 应回答：
 
-`WorldLawSpec` defines ontology, constitution, operation registry, transition
-kernel registry, and observation kernel registry. A backend implements those
-transition modules at a particular fidelity.
+- 使用哪套物性/动力学/相平衡模型；
+- 是否带噪声、近似或隐藏参数；
+- 可复现性边界在哪里；
+- 与 task maturity 的关系是什么。
 
-This prevents the current semi-mechanistic implementation from becoming the
-entire meaning of ChemWorld. Future backends can target the same world law:
+## 参考校准
 
-- Cantera-style reaction/thermodynamic backend;
-- IDAES/DWSIM-style process backend;
-- ASE/MLIP-style atomistic backend;
-- real-lab adapter backend.
+未来可以逐步引入 RMG-Py、IDAES、teqp、thermopack 等参考工具作为校准层。但这些工具
+不应突然替换 benchmark 语义；它们应作为独立 backend 接入，并通过任务卡标注 maturity。
 
-Those are roadmap targets, not current claims.
+## 当前边界
 
-## Reference Validation
-
-Reference backends are not transition backends. They are optional external
-packages used to check selected formulas or limiting cases during development.
-The current validation layer lives in `chemworld.physchem.reference_validation`
-and supports installed packages or local source snapshots under
-`reference_repos/`.
-
-Current executable checks compare ChemWorld with `chemicals`, `fluids`, and
-`thermo` for ideal-gas molar volume, Rachford-Rice flash, curated DIPPR101
-vapor-pressure points, curated Poling ideal-gas Cp and sensible enthalpy
-integrals, Reynolds number, Prandtl number, Haaland Darcy friction factor,
-single-phase Darcy-Weisbach pipe pressure drop, ideal Raoult-law bubble/dew
-pressure, a controlled ideal two-phase TP flash, and fixed-parameter Wilson/NRTL
-activity coefficients. These tests skip by default and run only when
-`CHEMWORLD_RUN_REFERENCE_TESTS=1` is set.
+当前 ChemWorld 仍是 agent 化学交互环境，不是真实流程模拟器。Backend 抽象是为了给
+未来升级留接口，而不是暗示当前所有结果已经达到工程级物性精度。

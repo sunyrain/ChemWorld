@@ -1,55 +1,40 @@
-# Benchmark Paper Artifact
+# Benchmark 论文产物
 
-The paper artifact should be reproducible from a clean checkout.
+本页定义 ChemWorld-Bench 若作为论文或公开 benchmark 发布时应包含的 artifact。目标是
+让读者能复现核心结论，而不是只看到一次性的 demo。
 
-Generate a local artifact with:
-
-```bash
-chemworld artifact create \
-  --output-dir artifact/release \
-  --tasks reaction-to-assay \
-  --agents scripted_chemistry \
-  --seeds 0
-```
-
-For a release, expand `--tasks`, `--agents`, and `--seeds` to the full public
-benchmark suite. The command creates this structure:
+## 推荐包结构
 
 ```text
-artifact/
-  README.md
-  metadata.json
-  artifact_summary.json
-  scripts/
-    reproduce_public_artifact.ps1
-  tasks/
-    task_cards.json
-    scenario_cards.json
-    world_law.json
-  schemas/
-    action_schema.json
-    recipe_schema.json
-    trajectory_schema.json
-  baseline_report/
-    baseline_results.json
-    baseline_leaderboard.json
-    baseline_report.json
-  dataset_examples/
-    *_example.jsonl
-    *_example_dataset.jsonl
-    dataset_card.json
+paper_artifact/
+├── README.md
+├── environment.md
+├── task_cards/
+├── baseline_results/
+├── trajectories/
+├── figures/
+├── tables/
+└── manifests/
 ```
 
-Minimum commands:
+## 必备内容
 
-```bash
-chemworld tasks list
-chemworld baselines report --tasks reaction-optimization-standard --agents random
-chemworld artifact create --output-dir artifact/release
-chemworld submission validate submissions/example
-```
+- 环境版本、commit、依赖版本和构建命令。
+- 任务列表、任务成熟度、隐藏/公开 split 规则。
+- baseline agent 的实现说明和运行命令。
+- 每个任务的 metrics、预算、安全约束和失败处理规则。
+- trajectory bundle 或可复现实验脚本。
+- 已知限制：哪些模块是 proxy，哪些是 lite，哪些经过参考校准。
 
-The artifact should report mean score, safety-aware score, sample efficiency,
-public/private gap where applicable, and mechanism explanation rubric scores
-when used.
+## 图表建议
 
+- 任务覆盖矩阵：反应、分离、表征、安全、机理、规划等维度。
+- agent performance 表：随机、规则 baseline、简单 optimizer、tool-agent。
+- 约束失败分析：precondition、safety、cost、selectivity 的分布。
+- world model 学习曲线：离线数据量与在线表现。
+
+## 发布原则
+
+论文中的 benchmark claim 必须携带 `world_law_id`、任务版本和 maturity metadata。
+如果某个物理模块仍处于 proxy/lite 层级，应在主文或附录中明确说明，避免把教学环境
+误读为真实反应预测系统。

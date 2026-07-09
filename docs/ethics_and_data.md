@@ -1,18 +1,17 @@
-# Ethics and Data
+# 伦理与数据
 
-ChemWorld-Bench can support human and student pilot studies, but human data must
-not be treated as ordinary benchmark exhaust.
+ChemWorld 是虚拟化学交互环境，不应被包装成可直接指导真实实验或危险合成的系统。
+公开材料应强调：环境目标是研究 agent 决策、评测协议和教学流程，而不是提供现实世界
+实验方案。
 
-Minimum requirements:
+## 数据原则
 
-- obtain informed consent before research use;
-- separate course grading from research participation;
-- anonymize participant identifiers;
-- remove emails, student IDs, and personally identifying text;
-- publish only anonymized trajectories and aggregate summaries;
-- document whether GPT conversations are collected, summarized, or excluded.
+- 不发布真实敏感配方、危险操作细节或可直接执行的违法用途流程。
+- 不把 proxy/lite 物理模块的输出伪装成真实实验数据。
+- 公开 trajectory 应带任务成熟度和生成版本。
+- 隐藏评测数据应避免泄露答案、oracle state 或专用场景。
 
-The `chemworld.data.anonymize` module provides basic redaction helpers. It is
-not a substitute for institutional review.
+## 使用边界
 
-
+ChemWorld 可以用于 agent benchmark、课程作业、算法比较和虚拟实验设计练习。若要接入
+真实实验室、机器人或外部数据库，必须加入独立的安全审查、权限控制和领域专家审核。
