@@ -55,6 +55,7 @@ python -m mkdocs build --strict
 - 任务卡与 registry 一致。
 - action schema 和 observation schema 可被 agent 作者理解。
 - 无效操作、约束 flags、termination/truncation 规则清楚。
+- 预发布限制声明已发布，并进入 paper artifact 的 `limitations.md`。
 - 三项 pre-release core task 的 golden trajectory fixture 通过测试，并且任何 fixture 更新都经过人工 diff 审查。
 - 三项 pre-release core task 的 scoring contract audit 通过，且能拒绝篡改后的公开 score、错误 scoring hash、以及非 final assay 暴露的 leaderboard score。
 - Replay verifier 能拒绝篡改后的 mechanism hash、task/profile/scoring/observation hash、reward、observation、transaction status、world events 和 state patch summary。

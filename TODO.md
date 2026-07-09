@@ -15,9 +15,9 @@ clear maturity boundaries.
 
 Current remaining work:
 
-- 42 items remain out of 58.
-- 4 P0/P1 items block a credible pre-release benchmark.
-- 15 P0/P1/P2/P4 items remain for a usable public pre-release package.
+- 41 items remain out of 58.
+- 3 P0/P1 items block a credible pre-release benchmark.
+- 14 P0/P1/P2/P4 items remain for a usable public pre-release package.
 - 27 P3 items remain for long-term professional physical-chemistry deepening.
 
 Release interpretation:
@@ -33,20 +33,20 @@ Release interpretation:
 
 | Scope | Total | Done | Active | Claimed | Open | Remaining |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| P0 Pre-release benchmark hardening | 12 | 11 | 0 | 0 | 1 | 1 |
+| P0 Pre-release benchmark hardening | 12 | 12 | 0 | 0 | 0 | 0 |
 | P1 Runtime and environment consistency | 8 | 5 | 0 | 0 | 3 | 3 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 16 | 0 | 3 | 39 | 42 |
+| Total | 58 | 17 | 0 | 3 | 38 | 41 |
 
 Near-term cutline:
 
 | Milestone | Remaining | Meaning |
 | --- | ---: | --- |
-| Benchmark trust minimum | 4 | Finish all P0/P1 items |
-| Public pre-release package | 15 | Finish P0/P1/P2/P4 |
-| Full visible roadmap | 42 | Finish all open and claimed items |
+| Benchmark trust minimum | 3 | Finish all P0/P1 items |
+| Public pre-release package | 14 | Finish P0/P1/P2/P4 |
+| Full visible roadmap | 41 | Finish all open and claimed items |
 
 ## 3. Current System Position
 
@@ -107,10 +107,9 @@ Definition of done:
 
 Do these next, in order:
 
-1. `P0-BENCH-12`: write pre-release limitations statement.
-2. `P1-CONSIST-06`: audit ledger single-source-of-truth.
-3. `P1-CONSIST-07`: audit public observation leakage.
-4. `P1-CONSIST-08`: scan runtime boundaries.
+1. `P1-CONSIST-06`: audit ledger single-source-of-truth.
+2. `P1-CONSIST-07`: audit public observation leakage.
+3. `P1-CONSIST-08`: scan runtime boundaries.
 
 This sequence reduces public benchmark risk before expanding model scope.
 
@@ -137,7 +136,7 @@ Frozen core tasks:
 | P0-BENCH-09 | Codex | Done | Build local teacher/student evaluation smoke | `local_eval_server/teacher_side/eval_machine.py` supports `init-demo`, `validate`, `run`, `aggregate`, `summarize`, and `demo`; tests cover one-command demo plus manual `init-demo -> validate -> run -> summarize` over the simulated `team_alpha` student sandbox with trajectory, result, verify, leaderboard, and summary artifacts |
 | P0-BENCH-10 | Codex | Done | Produce benchmark paper artifact skeleton | `chemworld artifact create` generates task cards, task contracts, scenario/world-law snapshots, schemas, baseline report, example trajectory, dataset card, replay manifest, release manifest, release checklist, environment summary, and reproduction script; tests verify generated replay metadata and checklist files |
 | P0-BENCH-11 | Codex | Done | Add CI-like local release command | `scripts/run_release_gate.py` is the documented local release command and runs lint, type check, tests, docs build, full environment audit, and baseline smoke; `--dry-run` is tested, and the full gate writes `runs/release_gate/release_gate_summary.json` |
-| P0-BENCH-12 |  | Open | Write pre-release limitations statement | Clearly states virtual semi-mechanistic scope, model maturity, non-real-predictor boundary, and known proxy/lite surfaces |
+| P0-BENCH-12 | Codex | Done | Write pre-release limitations statement | `docs/pre_release_limitations.md` states the virtual semi-mechanistic scope, model maturity, non-real-predictor boundary, proxy/lite surfaces, data/safety boundary, and release-gate requirement; docs navigation and generated paper artifacts include the statement as `limitations.md` |
 
 ## P1: Runtime And Environment Consistency
 

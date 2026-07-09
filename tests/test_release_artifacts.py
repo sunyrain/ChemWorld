@@ -47,6 +47,7 @@ def test_baseline_report_private_signature_and_paper_artifact(tmp_path: Path) ->
     assert artifact["replay_verified"] is True
     assert (tmp_path / "paper_artifact" / "README.md").exists()
     assert (tmp_path / "paper_artifact" / "environment.md").exists()
+    assert (tmp_path / "paper_artifact" / "limitations.md").exists()
     assert (tmp_path / "paper_artifact" / "tasks" / "task_cards.json").exists()
     assert (tmp_path / "paper_artifact" / "tasks" / "task_contracts.json").exists()
     assert (tmp_path / "paper_artifact" / "schemas" / "action_schema.json").exists()
@@ -83,7 +84,7 @@ def test_baseline_report_private_signature_and_paper_artifact(tmp_path: Path) ->
         ).read_text(encoding="utf-8")
     )
     assert release_checklist["items"][0]["id"] == "task_contracts"
-    assert release_checklist["ready_for_public_claim"] is False
+    assert release_checklist["ready_for_public_claim"] is True
 
 
 def test_release_artifact_cli_commands(tmp_path: Path, capsys) -> None:
