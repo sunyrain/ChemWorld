@@ -1154,6 +1154,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#golden-trajectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Golden Trajectory 合同
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2329,6 +2340,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#golden-trajectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Golden Trajectory 合同
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2431,6 +2453,29 @@
 <li>是否使用 validator 或 action affordance。</li>
 </ul>
 <p>trajectory 可选记录 <code>agent_view</code> 和 <code>agent_trace</code>。<code>agent_view</code> 是环境公开视图，包含 RL vector、tool JSON 和 lab report；<code>agent_trace</code> 是 agent 行为摘要，包含 prompt input、selected action、validator result、observation summary 和 hypothesis note。</p>
+<h2 id="golden-trajectory">Golden Trajectory 合同</h2>
+<p>预发布阶段冻结三项核心任务的 scripted golden trajectory：</p>
+<ul>
+<li><code>reaction-to-assay</code></li>
+<li><code>reaction-to-purification</code></li>
+<li><code>partition-discovery</code></li>
+</ul>
+<p>对应 fixture 位于 <code>tests/fixtures/golden/pre_release_scripted_trajectories.json</code>。它锁定：</p>
+<ul>
+<li>action sequence；</li>
+<li>public observation summary；</li>
+<li>reward 和 final metrics；</li>
+<li>transaction status；</li>
+<li>kernel id/version；</li>
+<li>affected ledgers；</li>
+<li>world event 和 state patch summary；</li>
+<li>final assay 输出。</li>
+</ul>
+<p>测试会重新运行 <code>scripted_chemistry</code>，重算 summary，并与 fixture 做容差比较。只有当
+task/runtime/scoring contract 被有意修改时，才应运行：</p>
+<pre><code class="language-bash">python scripts/update_golden_trajectories.py
+</code></pre>
+<p>更新后必须审查 fixture diff，确认变化是预期行为，而不是无意 drift。</p>
 <h2 id="_5">发布产物</h2>
 <p>正式 release 应包含：</p>
 <ul>
