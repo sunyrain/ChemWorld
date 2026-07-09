@@ -19,6 +19,11 @@ from chemworld.eval.private_artifact import (
     verify_private_eval_artifact,
 )
 from chemworld.eval.runner import make_agent, run_agent
+from chemworld.eval.scoring_audit import (
+    ScoringAuditFailure,
+    ScoringAuditResult,
+    audit_scoring_contract,
+)
 from chemworld.eval.suite import run_suite
 from chemworld.eval.verify import VerificationResult, verify_records
 
@@ -27,8 +32,11 @@ __all__ = [
     "BaselineReport",
     "EvaluationResult",
     "MechanismScore",
+    "ScoringAuditFailure",
+    "ScoringAuditResult",
     "SignedPrivateEvalArtifact",
     "VerificationResult",
+    "audit_scoring_contract",
     "combined_artifact_score",
     "create_paper_artifact",
     "evaluate_records",

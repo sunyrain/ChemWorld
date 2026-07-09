@@ -116,6 +116,22 @@ python scripts/update_golden_trajectories.py
 
 更新后必须审查 fixture diff，确认变化是预期行为，而不是无意 drift。
 
+## Scoring Contract Audit
+
+预发布核心任务必须通过 scoring contract audit。审计入口是
+`chemworld.eval.audit_scoring_contract(records)`，它会重新计算并核对：
+
+- `obs["score"]` 是否符合当前 task scoring contract；
+- `reward` 和 `observed_reward` 是否与公开 observation score 一致；
+- final assay step 的 `leaderboard_score` 是否等于重新计算的 contract score；
+- 非 final assay step 是否没有暴露 `leaderboard_score`；
+- `processed_estimate` 中的公开指标是否与 observation 中同名指标一致；
+- `scoring_contract_hash` 是否匹配 task contract；
+- `evaluate_records(...).final_best_score` 是否等于 trajectory 中 final assay leaderboard score 的最优值。
+
+测试会覆盖正常轨迹、篡改 observation score、以及非 final assay 暴露 leaderboard score
+三类情况。
+
 ## 发布产物
 
 正式 release 应包含：
