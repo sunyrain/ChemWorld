@@ -22,6 +22,7 @@ from chemworld.world.operations import (
     DISTILLATION_OPERATIONS,
     ELECTROCHEMISTRY_OPERATIONS,
     FLOW_OPERATIONS,
+    OPERATION_TYPES,
     REACTION_OPERATIONS,
     SEPARATION_OPERATIONS,
 )
@@ -36,6 +37,7 @@ from chemworld.wrappers import (
     NaNObservationWrapper,
     SafetyCostWrapper,
     validate_event_action,
+    validate_operation_affordance,
 )
 
 
@@ -452,6 +454,52 @@ def test_action_mask_is_task_aware() -> None:
     finally:
         reaction_env.close()
         purification_env.close()
+
+
+def test_agent_affordances_match_masks_validator_and_task_policy() -> None:
+    for task in list_tasks():
+        env = ActionMaskWrapper(gym.make("ChemWorld", task_id=task.task_id, seed=0))
+        try:
+            _, info = env.reset(seed=0)
+            base = env.unwrapped
+            validator_valid = set(base.operation_validator.valid_operations(base._state))
+            wrapper_valid = set(info["valid_operations"])
+            agent_entries = base.available_actions()
+            agent_valid = {entry["operation"] for entry in agent_entries}
+            mask = list(base.operation_validator.action_mask(base._state))
+            masked_valid = {
+                operation
+                for operation, is_valid in zip(OPERATION_TYPES, mask, strict=True)
+                if is_valid
+            }
+
+            assert wrapper_valid == validator_valid == agent_valid == masked_valid
+            assert list(info["action_mask"]) == mask
+            assert len(mask) == len(OPERATION_TYPES)
+            assert all(entry["valid"] for entry in agent_entries)
+            assert all(not entry["invalid_reasons"] for entry in agent_entries)
+
+            all_entries = {
+                entry["operation"]: entry
+                for entry in base.available_actions(include_invalid=True)
+            }
+            assert set(all_entries) == set(OPERATION_TYPES)
+            for operation, entry in all_entries.items():
+                affordance = validate_operation_affordance(operation, env)
+                assert entry["schema"]["task_allowed"] == (
+                    operation in set(task.allowed_operations)
+                )
+                assert entry["valid"] == (operation in validator_valid)
+                assert entry["invalid_reasons"] == affordance["invalid_reasons"]
+                assert not any(
+                    reason.startswith("payload_has:")
+                    or reason.startswith("payload_bounds:")
+                    for reason in entry["invalid_reasons"]
+                )
+                if operation not in task.allowed_operations:
+                    assert "operation_allowed_by_task" in entry["invalid_reasons"]
+        finally:
+            env.close()
 
 
 def test_safety_cost_wrapper_preserves_gym_return_shape() -> None:

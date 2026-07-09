@@ -319,10 +319,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
 
         return task_prompt(self)
 
-    def available_actions(self) -> list[dict[str, Any]]:
+    def available_actions(self, *, include_invalid: bool = False) -> list[dict[str, Any]]:
         from chemworld.agent_interface import available_actions
 
-        return available_actions(self)
+        return available_actions(self, include_invalid=include_invalid)
 
     def action_schema(self, operation: str) -> dict[str, Any]:
         from chemworld.agent_interface import action_schema

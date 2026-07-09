@@ -1,26 +1,28 @@
-# ChemWorld TODO List
+# ChemWorld Master TODO
 
 Last updated: 2026-07-09
 
-This file is the only active project board for ChemWorld. The older root files
-`TODO_PROFESSIONAL.md` and `TODO_PROFESSIONAL_DEEPENING.md`, plus their docs
-copies, are reference archives. Do not use them as live task boards.
+This file is the single active project board for ChemWorld. All release,
+runtime, agent-interface, documentation, and professional-physics work is
+tracked here. The older root files `TODO_PROFESSIONAL.md` and
+`TODO_PROFESSIONAL_DEEPENING.md`, plus their docs copies, are reference
+archives only.
 
 ## Current Count
 
 | Scope | Total | Done | Active | Claimed | Open | Remaining |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | P0 Pre-release benchmark hardening | 12 | 3 | 0 | 0 | 9 | 9 |
-| P1 Runtime and environment consistency | 8 | 2 | 0 | 0 | 6 | 6 |
+| P1 Runtime and environment consistency | 8 | 3 | 0 | 0 | 5 | 5 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 5 | 0 | 3 | 50 | 53 |
+| Total | 58 | 6 | 0 | 3 | 49 | 52 |
 
 Immediate release target:
 
-- Finish P0 and P1 first: 15 remaining items.
-- Finish P0, P1, P2, and P4 for a usable public pre-release package: 26
+- Finish P0 and P1 first: 14 remaining items.
+- Finish P0, P1, P2, and P4 for a usable public pre-release package: 25
   remaining items.
 - P3 is the long professional-physics backlog: 27 remaining items. Pull from it
   only when it directly strengthens a benchmark task or replaces a declared
@@ -44,6 +46,24 @@ ChemWorld currently has:
 The current bottleneck is not feature count. The bottleneck is benchmark trust:
 stable task contracts, calibrated baselines, replay/audit strength, submission
 examples, and clear limitations.
+
+## Completion Summary
+
+Current unfinished work:
+
+- 52 total remaining items.
+- 14 immediate P0/P1 benchmark-trust items.
+- 25 public pre-release items across P0/P1/P2/P4.
+- 27 long-horizon P3 professional-physics deepening items.
+
+Interpretation:
+
+- P0/P1 are the release blockers.
+- P2 improves agent usability and dataset export but should follow the P0/P1
+  trust work.
+- P3 is not a pre-release blocker unless a benchmark task depends on one of its
+  physical models.
+- P4 packages the public story once the benchmark contract is stable.
 
 ## Work Rules
 
@@ -102,7 +122,7 @@ docs tell the same story.
 | --- | --- | --- | --- | --- |
 | P1-CONSIST-01 | Codex | Done | Run and document environment self-consistency audit | Full audit covers 14 formal tasks over seeds 0/1/2 with complete task/profile/mechanism/scoring/observation hash coverage, replay verification, and documented warnings |
 | P1-CONSIST-02 | Codex | Done | Spectra-metric semantic alignment | Downstream final assay spectra use selected-phase public species calibration; full audit reports zero spectra failures and zero spectra warnings |
-| P1-CONSIST-03 |  | Open | Action affordance consistency | `available_actions`, action mask, validator, task policy, and operation registry agree for every task |
+| P1-CONSIST-03 | Codex | Done | Action affordance consistency | `available_actions`, ActionMaskWrapper, OperationValidator affordance, task policy, operation registry, and action masks are covered by cross-task tests; affordance-level invalid reasons no longer include payload-field failures |
 | P1-CONSIST-04 |  | Open | Invalid action atomicity | Schema/task/precondition failures do not mutate material ledgers and record explicit process/cost penalties where appropriate |
 | P1-CONSIST-05 |  | Open | Campaign vs single-experiment semantics audit | Final assay ends an experiment in campaign tasks but ends the episode only in single-experiment tasks |
 | P1-CONSIST-06 |  | Open | Ledger single-source-of-truth audit | Material amounts come from typed phase ledgers; equipment/process/vessel state does not fall back to metadata |
@@ -176,11 +196,11 @@ behavior.
 
 Do these next, in order:
 
-1. `P1-CONSIST-03`: audit action affordance consistency.
-2. `P0-BENCH-08`: publish a valid submission bundle example.
-3. `P0-BENCH-02`: build the official seed suite.
-4. `P1-CONSIST-04`: audit invalid action atomicity.
-5. `P0-BENCH-05`: lock golden trajectories.
+1. `P0-BENCH-08`: publish a valid submission bundle example.
+2. `P0-BENCH-02`: build the official seed suite.
+3. `P1-CONSIST-04`: audit invalid action atomicity.
+4. `P0-BENCH-05`: lock golden trajectories.
+5. `P0-BENCH-06`: audit scoring contracts.
 
 This sequence reduces the highest public benchmark risk first: baseline
 credibility, agent-facing action clarity, submission reproducibility, seed

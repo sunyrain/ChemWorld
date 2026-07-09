@@ -36,6 +36,13 @@ def validate_event_action(action: dict[str, Any], env: gym.Env[Any, Any]) -> dic
     return base.operation_validator.validate(action, base._state).to_dict()
 
 
+def validate_operation_affordance(operation: str, env: gym.Env[Any, Any]) -> dict[str, Any]:
+    """Validate current operation-level affordance without requiring payload fields."""
+
+    base = _base_env(env)
+    return base.operation_validator.operation_affordance(operation, base._state).to_dict()
+
+
 class ActionMaskWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):
     """Add operation validity signals to reset/step info."""
 
@@ -62,7 +69,7 @@ class ActionMaskWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):
         payload["action_mask"] = np.asarray(mask, dtype=bool)
         payload["operation_types"] = list(OPERATION_TYPES)
         payload["invalid_reasons"] = {
-            operation_type: validate_event_action({"operation": operation_type}, self.env)[
+            operation_type: validate_operation_affordance(operation_type, self.env)[
                 "invalid_reasons"
             ]
             for operation_type in OPERATION_TYPES

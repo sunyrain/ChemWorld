@@ -193,7 +193,8 @@ def available_actions(env: Any, *, include_invalid: bool = False) -> list[dict[s
     for operation in OPERATION_TYPES:
         if operation not in allowed and not include_invalid:
             continue
-        validation = validate_action(base, {"operation": operation})
+        affordance = base.operation_validator.operation_affordance(operation, base._state)
+        validation = affordance.to_dict()
         is_valid = operation in valid
         if not is_valid and not include_invalid:
             continue

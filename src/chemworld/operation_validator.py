@@ -122,20 +122,63 @@ class OperationValidator:
     def valid_operations(self, state: WorldState) -> tuple[str, ...]:
         valid: list[str] = []
         for operation_type in self.operation_types:
-            payload = self._default_payload(operation_type)
-            checks = self._preconditions(
-                operation_type,
-                payload,
-                state,
-                check_payload=False,
-            )
-            if all(checks.values()):
+            affordance = self.operation_affordance(operation_type, state)
+            if affordance.is_valid:
                 valid.append(operation_type)
         return tuple(valid)
 
     def action_mask(self, state: WorldState) -> tuple[bool, ...]:
         valid = set(self.valid_operations(state))
         return tuple(operation_type in valid for operation_type in self.operation_types)
+
+    def operation_affordance(
+        self,
+        operation_type: str,
+        state: WorldState,
+    ) -> OperationValidation:
+        payload = self._default_payload(operation_type)
+        preconditions = self._preconditions(
+            operation_type,
+            payload,
+            state,
+            check_payload=False,
+        )
+        invalid_reasons = tuple(key for key, passed in preconditions.items() if not passed)
+        action_mask = tuple(
+            self._operation_preconditions_pass(candidate, state)
+            for candidate in self.operation_types
+        )
+        valid_operations = tuple(
+            operation
+            for operation, is_valid in zip(self.operation_types, action_mask, strict=True)
+            if is_valid
+        )
+        return OperationValidation(
+            operation_type=operation_type,
+            is_valid=not invalid_reasons,
+            preconditions=preconditions,
+            invalid_reasons=invalid_reasons,
+            valid_operations=valid_operations,
+            action_mask=action_mask,
+            cost_penalty=min(1.0, 0.10 * len(invalid_reasons)),
+            safety_flags={
+                "operation_allowed_by_task": preconditions.get(
+                    "operation_allowed_by_task",
+                    False,
+                ),
+                "precondition_failed": bool(invalid_reasons),
+            },
+        )
+
+    def _operation_preconditions_pass(self, operation_type: str, state: WorldState) -> bool:
+        payload = self._default_payload(operation_type)
+        checks = self._preconditions(
+            operation_type,
+            payload,
+            state,
+            check_payload=False,
+        )
+        return all(checks.values())
 
     def _preconditions(
         self,
