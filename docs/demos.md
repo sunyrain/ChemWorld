@@ -62,6 +62,7 @@ python examples/demo_llm_replay_harness.py
 python examples/demo_rl_vector_wrapper.py
 python examples/demo_dataset_agent_trace_export.py
 python examples/demo_submission_bundle.py
+python scripts/probe_tool_agent_rounds.py --seeds 0 1 2 --budget 18 --min-rounds 12
 ```
 
 ## Baseline 对比

@@ -18,7 +18,7 @@ Planner -> Action Validator -> Env Step -> Observation Summarizer -> Memory -> N
 - hypothesis note；
 - validator result；
 - observation summary；
-- short memory summary。
+- memory note / short memory summary。
 
 运行示例：
 
@@ -30,6 +30,29 @@ python examples/demo_llm_replay_harness.py
 
 - `agent_view`
 - `agent_trace`
+
+## Multi-Round Probe
+
+公开预发布阶段提供一个多轮 probe，用于检查 agent-facing 环境是否支持连续规划、重复 final assay、best-so-far 曲线和 invalid-action recovery 指标：
+
+```bash
+python scripts/probe_tool_agent_rounds.py \
+  --task reaction-optimization-standard \
+  --seeds 0 1 2 \
+  --budget 18 \
+  --min-rounds 12 \
+  --output-dir runs/tool_agent_probe
+```
+
+输出文件：
+
+| 文件 | 内容 |
+| --- | --- |
+| `tool_agent_probe_report.json` | seeds、trajectory 路径、best score、best-score AUC、invalid/precondition recovery、final assay count |
+| `tool_agent_probe_summary.csv` | 每个 seed 一行的表格摘要 |
+| `trajectories/*.jsonl` | 带 `agent_view` 和 `agent_trace` 的完整轨迹 |
+
+默认任务是 `reaction-optimization-standard`，因为它是 campaign task：`final_assay` 结束当前 experiment，但不结束整个 campaign，因此 18 步内可以观察多次实验和 best-so-far 曲线。
 
 ## LLMReplayAgent
 
@@ -60,4 +83,5 @@ python examples/demo_llm_replay_harness.py
 - validator 结果；
 - selected action；
 - observation-use 摘要；
-- hypothesis or next-step rationale。
+- hypothesis or next-step rationale；
+- memory note。
