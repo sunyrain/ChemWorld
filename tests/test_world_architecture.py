@@ -76,6 +76,9 @@ from chemworld.world.thermal_kernel import pressure_and_risk
 def test_world_law_contains_professional_contracts() -> None:
     spec = world_law_spec().to_dict()
     assert spec["law_version"] == "chemworld-physical-chemistry"
+    assert spec["ontology_registry"]["substance_registry_policy"] == (
+        "scenario_compiled_mechanism"
+    )
     assert "reaction" in spec["module_versions"]
     assert "thermal_energy_balance" in spec["transition_kernel_registry"]
     assert "crystallization" in spec["transition_kernel_registry"]
@@ -96,6 +99,34 @@ def test_world_law_contains_professional_contracts() -> None:
     } <= module_ids
     assert spec["module_versions"]["reaction"] == "0.3"
     assert spec["module_versions"]["observation"] == "0.4"
+
+
+def test_runtime_ontology_is_mechanism_owned_not_fixed_species_default() -> None:
+    ontology_source = Path("src/chemworld/world/ontology.py").read_text(
+        encoding="utf-8"
+    )
+    state_factory_source = Path("src/chemworld/world/state_factory.py").read_text(
+        encoding="utf-8"
+    )
+    reference_source = Path("src/chemworld/world/reaction_reference.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "SPECIES =" not in ontology_source
+    assert '"A"' not in ontology_source
+    assert '"P"' not in ontology_source
+    assert "from chemworld.world.ontology import SPECIES" not in state_factory_source
+    assert "species_ids or SPECIES" not in state_factory_source
+    assert "REFERENCE_REACTION_SPECIES" in reference_source
+
+
+def test_env_constitution_substances_follow_compiled_mechanism() -> None:
+    env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=3)
+    env.reset(seed=3)
+    compiled_species = set(env.unwrapped.scenario_instance.compiled_mechanism.species_index)
+    constitution_species = set(env.unwrapped.constitution.substances)
+
+    assert constitution_species == compiled_species
 
 
 def test_world_layer_does_not_import_batch_core() -> None:

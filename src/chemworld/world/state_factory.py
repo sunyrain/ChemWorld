@@ -6,7 +6,6 @@ from collections.abc import Iterable, Mapping
 
 from chemworld.foundation import WorldState, upsert_equipment_record
 from chemworld.foundation.state import SpeciesLedger
-from chemworld.world.ontology import SPECIES
 
 
 def initial_chemworld_state(
@@ -24,7 +23,7 @@ def initial_chemworld_state(
     add material into that mechanism-specific species ledger.
     """
 
-    resolved_species_ids = tuple(species_ids or SPECIES)
+    resolved_species_ids = tuple(species_ids or ())
     resolved_initial_amounts = {
         species_id: float(amount)
         for species_id, amount in (initial_amounts_mol or {}).items()

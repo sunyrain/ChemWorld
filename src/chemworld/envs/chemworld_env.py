@@ -111,7 +111,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         self.scenario_instance = self.scenario_generator.generate(self.scenario_spec, seed)
         self.world = self.scenario_instance.parameters
-        self.constitution = make_chemworld_constitution()
+        self.constitution = make_chemworld_constitution(
+            self.scenario_instance.compiled_mechanism
+        )
         self.observation_contract = self._make_observation_contract()
         self.operation_validator = OperationValidator(
             constitution=self.constitution,
@@ -156,6 +158,15 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.scenario_instance = self.scenario_generator.generate(self.scenario_spec, self.seed)
         self.world = self.scenario_instance.parameters
         self._state = self.scenario_instance.initial_state
+        self.constitution = make_chemworld_constitution(
+            self.scenario_instance.compiled_mechanism
+        )
+        self.operation_validator = OperationValidator(
+            constitution=self.constitution,
+            allowed_operations=self.allowed_operations,
+            allowed_instruments=self.allowed_instruments,
+            action_codec=self.action_codec,
+        )
         self.observation_contract = self._make_observation_contract()
         self.runtime = self._make_runtime()
         self.observation_kernel = ChemWorldObservationKernel(

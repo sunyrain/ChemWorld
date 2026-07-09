@@ -211,6 +211,12 @@ The final Runtime v2 boundary audit also enforces that generic runtime,
 observation, scoring, and downstream bookkeeping do not depend on fixed
 `A/P/B/D/E` species names. The original seven-slot mechanism remains only as an
 explicit world-level reference fixture, not as a hidden runtime fallback.
+Current cleanup extends that boundary to the world ontology and initial-state
+factory: `world/ontology.py` no longer declares fixed global species,
+`world/state_factory.py` no longer falls back to a fixed species tuple, and
+`make_chemworld_constitution()` can build the substance registry from the
+current compiled mechanism. `ChemWorldEnv.reset()` now rebuilds the constitution
+and validator when a scenario changes.
 
 Replay verification now compares Runtime v2 transaction metadata in addition
 to rewards and observations. The verifier rejects mechanism-hash drift,

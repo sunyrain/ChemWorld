@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from chemworld.foundation import PhysicalConstitution, Vessel
 from chemworld.world.instruments import chemworld_instruments
 from chemworld.world.ontology import chemworld_substances
 
 
-def make_chemworld_constitution() -> PhysicalConstitution:
+def make_chemworld_constitution(
+    compiled_mechanism: Any | None = None,
+) -> PhysicalConstitution:
     return PhysicalConstitution(
-        substances=chemworld_substances(),
+        substances=chemworld_substances(compiled_mechanism),
         vessel=Vessel(
             "batch_reactor",
             "Virtual 100 mL jacketed batch reactor",

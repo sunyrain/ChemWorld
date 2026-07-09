@@ -10,6 +10,9 @@ physical-chemical world law rather than separate environments.
 
 - ontology primitives for substances, phases, vessels, instruments, operations,
   reactions, and state variables;
+- concrete substance registries are scenario/mechanism-owned: a compiled
+  mechanism supplies species, roles, formulas, and initial-amount policy for the
+  current scenario instead of the world layer carrying fixed default species;
 - lightweight canonical units and conversions;
 - hidden `WorldState`, public `Observation`, and experiment `Ledger`;
 - `foundation/state_ledgers.py` and `foundation/state_helpers.py`, which keep

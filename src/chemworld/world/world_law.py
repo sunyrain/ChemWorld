@@ -10,7 +10,6 @@ from chemworld.world.distillation import DistillationModuleSpec
 from chemworld.world.electrochemistry import ElectrochemistryModuleSpec
 from chemworld.world.instruments import instrument_contracts
 from chemworld.world.observation_kernel import ObservationModuleSpec
-from chemworld.world.ontology import chemworld_substances
 from chemworld.world.operations import INSTRUMENTS, OPERATION_TYPES
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.phase_kernel import PhaseModuleSpec
@@ -58,7 +57,7 @@ def world_law_spec() -> WorldLawSpec:
     return WorldLawSpec(
         law_version=WORLD_FAMILY_VERSION,
         ontology_registry={
-            "substances": sorted(chemworld_substances()),
+            "substance_registry_policy": "scenario_compiled_mechanism",
             "phases": ["reactor_liquid", "aqueous", "organic", "solid"],
             "vessels": ["batch_reactor", "separator", "assay_vial"],
             "instruments": list(INSTRUMENTS),
