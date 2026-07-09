@@ -77,16 +77,12 @@ def downstream_truth_values(
         if impurity_amount_mol is not None
         else phase_impurity_total
     )
+    process_metrics = {} if state.process is None else state.process.metrics
     initial_p = max(
         (
             float(initial_product_mol)
             if initial_product_mol is not None
-            else float(
-                state.metadata.get(
-                    "pre_separation_product_mol",
-                    state.metadata.get("max_product_mol", product_amount),
-                )
-            )
+            else float(process_metrics.get("pre_separation_product_mol", product_amount))
         ),
         product_amount,
         1.0e-12,
@@ -117,7 +113,6 @@ def downstream_truth_values(
     phase_ratio = organic_volume / max(organic_volume + aqueous_volume, 1.0e-12)
     solvent_loss = float(selected.get("solvent_loss", 0.0))
     mass_balance_error = abs(total_phase_product - product_amount) / initial_p
-    process_metrics = {} if state.process is None else state.process.metrics
     return {
         "purity": float(np.clip(purity, 0.0, 1.0)),
         "recovery": float(np.clip(recovery, 0.0, 1.0)),

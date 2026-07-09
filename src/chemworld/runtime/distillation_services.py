@@ -165,8 +165,9 @@ class ChemWorldDistillationServices:
             heat_duty = distillation.ledger.heat_duty_J
             distillation_cost = distillation.ledger.cost
             distillation_risk = distillation.ledger.risk
+        process_metrics = {} if state.process is None else state.process.metrics
         initial_p = max(
-            float(state.metadata.get("pre_separation_product_mol", p_mol)),
+            float(process_metrics.get("pre_separation_product_mol", p_mol)),
             p_mol,
             1.0e-12,
         )
@@ -179,6 +180,7 @@ class ChemWorldDistillationServices:
         )
         process = process_with_metrics(
             state.process,
+            pre_separation_product_mol=initial_p,
             distillate_purity=float(np.clip(distillate_purity, 0.0, 1.0)),
             distillate_recovery=float(np.clip(distillate_product / initial_p, 0.0, 1.0)),
         )
@@ -220,14 +222,11 @@ class ChemWorldDistillationServices:
         product = distillate_product * fraction
         impurity = distillate_impurity * fraction
         purity = product / max(product + impurity, 1.0e-12)
+        process_metrics = {} if state.process is None else state.process.metrics
+        target_amount = self.species_view.target_amount(state)
         initial_p = max(
-            float(
-                state.metadata.get(
-                    "pre_separation_product_mol",
-                    self.species_view.target_amount(state),
-                )
-            ),
-            self.species_view.target_amount(state),
+            float(process_metrics.get("pre_separation_product_mol", target_amount)),
+            target_amount,
             1.0e-12,
         )
         metadata = state.metadata.copy()
@@ -238,6 +237,7 @@ class ChemWorldDistillationServices:
         )
         process = process_with_metrics(
             state.process,
+            pre_separation_product_mol=initial_p,
             distillate_purity=float(np.clip(purity, 0.0, 1.0)),
             distillate_recovery=float(np.clip(product / initial_p, 0.0, 1.0)),
             purity=float(np.clip(purity, 0.0, 1.0)),

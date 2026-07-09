@@ -131,13 +131,15 @@ class ChemWorldCrystallizationServices:
             np.clip(impurity_mol * (0.035 + 0.080 * cooling_depth) * time_factor, 0.0, impurity_mol)
         )
         crystal_purity = crystallized / max(crystallized + occluded_impurity, 1.0e-12)
+        process_metrics = {} if state.process is None else state.process.metrics
         initial_p = max(
-            float(state.metadata.get("pre_separation_product_mol", p_mol)),
+            float(process_metrics.get("pre_separation_product_mol", p_mol)),
             p_mol,
             1.0e-12,
         )
         process = process_with_metrics(
             state.process,
+            pre_separation_product_mol=initial_p,
             crystal_yield=float(np.clip(crystallized / initial_p, 0.0, 1.0)),
             crystal_purity=float(np.clip(crystal_purity, 0.0, 1.0)),
             crystal_size=float(np.clip(0.25 + 0.65 * time_factor * seed_factor, 0.0, 1.0)),
@@ -173,14 +175,11 @@ class ChemWorldCrystallizationServices:
         product = solid_product * 0.96
         impurity = solid_impurity * 0.92
         purity = product / max(product + impurity, 1.0e-12)
+        process_metrics = {} if state.process is None else state.process.metrics
+        target_amount = self.species_view.target_amount(state)
         initial_p = max(
-            float(
-                state.metadata.get(
-                    "pre_separation_product_mol",
-                    self.species_view.target_amount(state),
-                )
-            ),
-            self.species_view.target_amount(state),
+            float(process_metrics.get("pre_separation_product_mol", target_amount)),
+            target_amount,
             1.0e-12,
         )
         metadata.update(
@@ -191,6 +190,7 @@ class ChemWorldCrystallizationServices:
         )
         process = process_with_metrics(
             state.process,
+            pre_separation_product_mol=initial_p,
             crystal_yield=float(np.clip(product / initial_p, 0.0, 1.0)),
             crystal_purity=float(np.clip(purity, 0.0, 1.0)),
             recovery=float(np.clip(product / initial_p, 0.0, 1.0)),

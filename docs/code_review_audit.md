@@ -349,6 +349,11 @@ Recommended follow-up:
   typed `distillate` and `bottoms` phase records. Fraction collection now reads
   the typed distillate phase, while derived purity/recovery summaries live in
   `ProcessLedger.metrics`; metadata retains only distillation-kernel notes.
+- Promoted the downstream pre-separation product reference amount out of runtime
+  metadata into `ProcessLedger.metrics`. Crystallization, distillation, fraction
+  collection, and downstream truth calculations now use that typed process
+  metric as the recovery denominator, and constitution checks reject the old
+  metadata key.
 - Added a Runtime v2 final boundary audit that keeps the removed
   `chemworld.core.batch_reactor` runtime out of env/runtime imports. Later
   cleanup removed the downstream `LEGACY_*` species fallback bindings as well:

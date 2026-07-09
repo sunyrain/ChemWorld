@@ -16,10 +16,12 @@ from chemworld.foundation import OperationRecord
 from chemworld.foundation.state import (
     PhaseLedger,
     PhaseRecord,
+    ProcessLedger,
     WorldState,
     equipment_settings,
     instrument_completed,
     instrument_equipment_id,
+    process_with_metrics,
     upsert_equipment_record,
 )
 from chemworld.physchem.mechanism_library import get_mechanism_card, list_mechanism_cards
@@ -1129,7 +1131,10 @@ def test_downstream_truth_uses_mechanism_role_species_not_fixed_slots() -> None:
         pressure_Pa=101_325.0,
         phase="liquid",
         vessel_id="reactor",
-        metadata={"pre_separation_product_mol": 0.006},
+        process=process_with_metrics(
+            ProcessLedger(),
+            pre_separation_product_mol=0.006,
+        ),
         phases=PhaseLedger(
             {
                 "organic": PhaseRecord(
@@ -1314,6 +1319,7 @@ def test_constitution_rejects_primary_process_metric_metadata() -> None:
             **initial_chemworld_state().metadata,
             "last_observation": {"yield": 0.4},
             "last_observed_mask": {"yield": True},
+            "pre_separation_product_mol": 0.006,
             "crystal_yield": 0.6,
             "distillate_purity": 0.9,
             "flow_conversion": 0.7,
@@ -1566,6 +1572,8 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         assert "crystal_yield" not in state.metadata
         assert "crystal_purity" not in state.metadata
         assert "crystal_size" not in state.metadata
+        assert "pre_separation_product_mol" not in state.metadata
+        assert state.process.metrics["pre_separation_product_mol"] > 0.0
         assert state.process.metrics["crystal_yield"] > 0.0
         assert state.process.metrics["crystal_purity"] > 0.0
         assert state.process.metrics["crystal_size"] > 0.0
@@ -1594,6 +1602,8 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         assert "crystal_size" not in state.metadata
         assert "purity" not in state.metadata
         assert "recovery" not in state.metadata
+        assert "pre_separation_product_mol" not in state.metadata
+        assert state.process.metrics["pre_separation_product_mol"] > 0.0
         assert state.process.metrics["crystal_yield"] > 0.0
         assert state.process.metrics["crystal_purity"] > 0.0
         assert state.process.metrics["purity"] > 0.0
@@ -1656,6 +1666,8 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert "distillate_impurity_mol" not in state.metadata
         assert "distillate_purity" not in state.metadata
         assert "distillate_recovery" not in state.metadata
+        assert "pre_separation_product_mol" not in state.metadata
+        assert state.process.metrics["pre_separation_product_mol"] > 0.0
         assert state.process.metrics["distillate_purity"] > 0.0
         assert state.process.metrics["distillate_recovery"] > 0.0
         assert env.unwrapped.constitution.check_preconditions(
@@ -1691,6 +1703,8 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert "distillate_recovery" not in state.metadata
         assert "purity" not in state.metadata
         assert "recovery" not in state.metadata
+        assert "pre_separation_product_mol" not in state.metadata
+        assert state.process.metrics["pre_separation_product_mol"] > 0.0
         assert state.process.metrics["distillate_purity"] > 0.0
         assert state.process.metrics["distillate_recovery"] > 0.0
         assert state.process.metrics["purity"] > 0.0
