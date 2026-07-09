@@ -421,7 +421,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        已注册任务族
+        当前验证状态
       
     </span>
   </a>
@@ -432,7 +432,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        验证状态
+        成熟度边界
       
     </span>
   </a>
@@ -443,7 +443,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        成熟度边界
+        已知风险
       
     </span>
   </a>
@@ -454,18 +454,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        已知风险
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        建议下一步
+        下一步
       
     </span>
   </a>
@@ -2236,7 +2225,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        已注册任务族
+        当前验证状态
       
     </span>
   </a>
@@ -2247,7 +2236,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        验证状态
+        成熟度边界
       
     </span>
   </a>
@@ -2258,7 +2247,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        成熟度边界
+        已知风险
       
     </span>
   </a>
@@ -2269,18 +2258,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        已知风险
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        建议下一步
+        下一步
       
     </span>
   </a>
@@ -2305,54 +2283,61 @@
 
 
 <h1 id="_1">当前进展</h1>
-<p>ChemWorld 当前已经从单一任务原型推进到统一世界律下的多任务 benchmark 雏形。核心问题
-不再是“能否创建环境”，而是如何把 public contract、环境自洽性、任务成熟度和发布站点
-一起收束。</p>
+<p>ChemWorld 已从单一任务原型推进到统一世界律下的多任务 benchmark 雏形。当前核心问题不再是
+“能否创建环境”，而是如何持续提高物理化学底座、agent 交互合同、任务成熟度和发布可信度。</p>
 <h2 id="_2">阶段总结</h2>
 <ul>
-<li>正式 Gymnasium 入口为 <code>ChemWorld</code>。</li>
-<li>任务通过 <code>task_id</code> 选择，共享 <code>world_law_id</code>。</li>
-<li>Runtime V2、typed ledger、transaction record 和 instrument observation 已形成主线。</li>
-<li>文档站已经改为中文优先，并保留英文首页入口。</li>
-<li>环境自洽性审计脚本已加入发布流程。</li>
+<li>正式 Gymnasium 入口为 <code>ChemWorld</code>；</li>
+<li>任务通过 <code>task_id</code> 选择，共享 <code>world_law_id</code>；</li>
+<li>Runtime V2、typed ledger、transaction record 和 instrument observation 已形成主线；</li>
+<li>Agent-facing API 已支持 task prompt、available actions、validation、RL/tool-json/lab-report observation view 和 campaign state；</li>
+<li>公开预发布包的 P0/P1/P2/P4 已完成；</li>
+<li>P3 专业物理化学深化已经开始，D4 组已完成。</li>
 </ul>
 <h2 id="_3">已实现能力</h2>
 <ul>
-<li>反应、分离、表征、安全、机理、连续流、电化学和 tool-agent planning 任务切片。</li>
-<li>Action schema 和 recipe 运行。</li>
-<li>约束 flags：安全、成本、选择性、前置条件、constitution 等。</li>
-<li>虚拟仪器和虚拟光谱。</li>
-<li>replay 和 smoke trajectory 检查。</li>
-<li>任务卡与 maturity metadata。</li>
-<li>LLE phase split 已有 TPD-style diagnostic、初始化策略、物料守恒检查和 extraction/runtime metadata 集成。</li>
+<li>反应、分离、表征、安全、机理解释、连续流、电化学和 tool-agent planning 任务切片；</li>
+<li>action schema、recipe 执行和 operation validator；</li>
+<li>safety/cost/constraint flags；</li>
+<li>虚拟仪器和虚拟光谱；</li>
+<li>replay verifier、golden trajectories、baseline report 和 release gate；</li>
+<li>本地教师端/学生端评测机模拟；</li>
+<li>LLE phase split 的 TPD-style diagnostic；</li>
+<li>aqueous acid-base pH observation 与 Ksp precipitation hooks；</li>
+<li>Gibbs minimization 的 constraint/KKT-style diagnostics。</li>
 </ul>
-<h2 id="_4">已注册任务族</h2>
-<p>详见 <a href="../task_cards/">任务卡</a> 和 <a href="../tasks/">任务</a>。当前任务覆盖从单步优化到反应-纯化
-闭环流程的多种能力。</p>
-<h2 id="_5">验证状态</h2>
-<p>推荐当前 gate：</p>
+<h2 id="_4">当前验证状态</h2>
+<p>推荐门禁：</p>
 <pre><code class="language-bash">python -m ruff check .
 python -m mypy src/chemworld
 python -m pytest
 python -m mkdocs build --strict
 python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
 </code></pre>
-<h2 id="_6">成熟度边界</h2>
-<p>当前系统仍应被称为 research benchmark / virtual chemical world model gym，而不是
-真实反应预测器、DFT wrapper、流程模拟器或机器人控制器。所有公开 claim 都要携带
-maturity。</p>
-<h2 id="_7">已知风险</h2>
+<p>D4 相关专项测试当前通过：</p>
+<pre><code class="language-bash">python -m pytest tests/test_equilibrium_chemistry.py
+</code></pre>
+<h2 id="_5">成熟度边界</h2>
+<p>当前系统应被称为 research benchmark / virtual chemical world model gym，而不是：</p>
 <ul>
-<li>部分物理模块仍是 proxy/lite。</li>
-<li>任务奖励和 measurement timing 需要继续用强 baseline 压测。</li>
-<li>文档仍有历史审计页偏长，需要后续迁移到 archive 或 audits。</li>
-<li>英文完整镜像尚未逐页维护，目前中文站点是发布主入口。</li>
+<li>真实反应预测软件；</li>
+<li>DFT wrapper；</li>
+<li>完整流程模拟器；</li>
+<li>机器人控制器；</li>
+<li>通用 chemical world model。</li>
 </ul>
-<h2 id="_8">建议下一步</h2>
-<ol>
-<li>继续 P3 未认领条目；不要重复实现 <code>liyijun</code> 已认领的 D1A/D1B/D1C。</li>
-<li>每完成一个专业切片，都同步 model card、测试、TODO 和 maturity 边界。</li>
-</ol>
+<p>所有公开 claim 都必须携带 maturity label 和适用范围。</p>
+<h2 id="_6">已知风险</h2>
+<ul>
+<li>仍有多个 P3 专业模块未完成；</li>
+<li>部分物理模块仍是 proxy/lite；</li>
+<li>英文镜像尚未逐页维护；</li>
+<li>历史文档仍可能存在需要继续清理的旧审计文本；</li>
+<li>当前 D4 的 pH 和 Gibbs 能力是 benchmark slice，不是数据库驱动的严谨 speciation 或 multiphase equilibrium solver。</li>
+</ul>
+<h2 id="_7">下一步</h2>
+<p>按照当前用户要求：D4 完成后暂停，先讨论后续路线。若继续 P3，优先从未被 <code>liyijun</code>
+认领的开放项中选择，并保持每个专业切片都同步代码、测试、model card、文档和 TODO。</p>
 
 
 

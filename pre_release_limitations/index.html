@@ -2287,34 +2287,34 @@
 leaderboard 叙述都应遵守这里的表述。</p>
 <h2 id="_2">一句话边界</h2>
 <p>ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学交互环境。它不是
-真实反应预测软件，不是 DFT/分子动力学 wrapper，不是商业流程模拟器，也不是实验机器人
+真实反应预测软件，不是 DFT 或分子动力学 wrapper，不是商业流程模拟器，也不是实验机器人
 控制系统。</p>
 <h2 id="_3">当前适用范围</h2>
-<p>预发布版本只支持受控虚拟任务：</p>
+<p>当前版本支持受控虚拟任务：</p>
 <ul>
 <li>在同一个 <code>world_law_id=chemworld-physical-chemistry</code> 下运行任务切片；</li>
 <li>使用半机理或轻量物理模型生成 hidden scenario；</li>
 <li>通过 Gymnasium API、CLI、trajectory、replay verifier 和 baseline report 评测 agent；</li>
 <li>比较有限预算实验设计、仪器观测使用、局部 world model 学习、约束处理和可复现提交。</li>
 </ul>
-<p>可以声称：</p>
+<p>可以声明：</p>
 <ul>
 <li>这是一个可交互、可复现、可评测的虚拟化学实验 benchmark；</li>
 <li>task、scenario、mechanism、scoring 和 trajectory 带有版本化合同和 hash；</li>
 <li>agent 只能通过公开 observation、instrument result、cost/risk signal 和日志学习；</li>
-<li>pre-release 三项核心任务已经有 frozen task contract、golden trajectory、baseline report、
+<li>预发布核心任务已经有 frozen task contract、golden trajectory、baseline report、
   replay verifier 和本地 release gate。</li>
 </ul>
-<p>不可以声称：</p>
+<p>不可声明：</p>
 <ul>
 <li>ChemWorld 能预测真实反应产率、选择性、纯度、谱图或工艺表现；</li>
 <li>当前参数可以直接指导真实实验；</li>
-<li>proxy/lite 模块等同于经过工业验证的热力学、动力学、传递或设备模型；</li>
+<li>proxy/lite 模块等同于工业验证的热力学、动力学、传递或设备模型；</li>
 <li>leaderboard 分数代表真实实验室成功概率；</li>
 <li>当前 LLM/tool agent baseline 代表真实最强化学智能体能力。</li>
 </ul>
 <h2 id="_4">任务成熟度</h2>
-<p>每个任务必须携带 <code>physics_maturity</code> 和 <code>kernel_maturity</code>。预发布核心任务的当前边界是：</p>
+<p>每个任务必须携带 <code>physics_maturity</code> 和 <code>kernel_maturity</code>。预发布核心任务当前边界是：</p>
 <table>
 <thead>
 <tr>
@@ -2327,45 +2327,47 @@ leaderboard 叙述都应遵守这里的表述。</p>
 <tr>
 <td><code>reaction-to-assay</code></td>
 <td><code>lite</code></td>
-<td>有半机理反应网络、物料/能量约束和合成仪器观测；不是真实反应预测器</td>
+<td>有半机理反应网络、物料/能量约束和合成仪器观测；不是真实反应预测器。</td>
 </tr>
 <tr>
 <td><code>reaction-to-purification</code></td>
 <td><code>proxy</code></td>
-<td>覆盖反应、萃取、相分离、纯化和 final assay 语义；LLE phase split 已有 reference-validated 诊断层，但整体 downstream process 仍含 proxy 单元</td>
+<td>覆盖反应、萃取、相分离、纯化和 final assay 语义；LLE phase split 已有 reference-validated 诊断层，但整体 downstream process 仍含 proxy 单元。</td>
 </tr>
 <tr>
 <td><code>partition-discovery</code></td>
 <td><code>proxy</code></td>
-<td>用于学习隐藏分配规律和仪器策略；不等同真实溶剂体系热力学</td>
+<td>用于学习隐藏分配规律和仪器策略；不等同于真实溶剂体系热力学。</td>
 </tr>
 </tbody>
 </table>
-<p>所有图表、论文 artifact、baseline table 和课程报告都应显示 maturity，不能只展示最高分。</p>
+<p>所有图表、论文 artifact、baseline table 和课程报告都应显示 maturity，而不能只展示最高分。</p>
 <h2 id="proxylite">已知 proxy/lite 表面</h2>
 <p>当前仍需明确标注的低成熟度表面包括：</p>
 <ul>
 <li>reaction kinetics：局部反应网络与速率律，未系统对齐真实机理数据库；</li>
-<li>downstream separation：LLE phase split 已接入 TPD-style diagnostic 和物料守恒检查；干燥、浓缩等仍以可解释 proxy 为主；</li>
+<li>downstream separation：LLE phase split 已接入 TPD-style diagnostic 和物料守恒检查，干燥、浓缩等仍以可解释 proxy 为主；</li>
+<li>aqueous chemistry：D4C 已提供 pH observation 和 Ksp precipitation hooks，但不是完整 electrolyte speciation solver；</li>
+<li>Gibbs equilibrium：D4D 已提供 fixed-TP ideal-mixture solver diagnostics，但不是数据库驱动的 multiphase Gibbs minimizer；</li>
 <li>crystallization、distillation、flow、electrochemistry：已有交互语义和部分物理片段，但不应作为高保真流程模型宣传；</li>
 <li>spectroscopy/instruments：生成合成 HPLC/GC/UV-vis/final assay 信号，用于 agent 观测与教学，不是真实仪器谱图预测；</li>
 <li>safety/cost：是 benchmark 约束信号，不是法律、工业或实验室安全合规结论。</li>
 </ul>
 <h2 id="_5">数据和安全边界</h2>
 <ul>
-<li>公开 trajectory 是虚拟数据，不能伪装成真实实验数据。</li>
-<li>学生或 human pilot 日志用于研究前必须匿名化，并分离教学评分与科研使用。</li>
-<li>任何真实实验、真实机器人、外部数据库或危险化学流程接入，都需要独立安全审查和领域专家审核。</li>
+<li>公开 trajectory 是虚拟数据，不能伪装成真实实验数据；</li>
+<li>学生或 human pilot 日志用于研究前必须匿名化，并分离教学评分与科研使用；</li>
+<li>任何真实实验、真实机器人、外部数据库或危险化学流程接入，都需要独立安全审查和领域专家审核；</li>
 <li>benchmark 输出不能作为真实实验操作建议。</li>
 </ul>
 <h2 id="_6">预发布验收口径</h2>
-<p>预发布的目标不是“完成通用 chemical world model”，而是提供一个小而可信的 benchmark
-核心。当前 release gate 是：</p>
+<p>预发布目标不是“完成通用 chemical world model”，而是提供一个小而可信的 benchmark 核心。
+当前 release gate 是：</p>
 <pre><code class="language-powershell">.\.venv\Scripts\python.exe scripts\run_release_gate.py
 </code></pre>
-<p>该 gate 覆盖 lint、type check、全量测试、文档构建、环境自洽性审计和 baseline smoke。
-只有通过该 gate，并在 artifact 中包含任务合同、baseline report、dataset card、
-replay manifest、release checklist 和本限制声明时，才能发布预发布 benchmark claim。</p>
+<p>该 gate 覆盖 lint、type check、全量测试、文档构建、环境自洽性审计和 baseline smoke。只有通过
+该 gate，并在 artifact 中包含任务合同、baseline report、dataset card、replay manifest、
+release checklist 和本限制声明时，才能发布预发布 benchmark claim。</p>
 
 
 
