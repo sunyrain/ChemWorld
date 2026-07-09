@@ -339,7 +339,6 @@ def _is_existing_guidance(cell: dict) -> bool:
         or text.startswith("## 本日任务梯度")
         or text.startswith("## 三小时实验工单")
         or text.startswith("## 学生工作区")
-        or (text.startswith("## ??????") and "| ?? | ?? |" in text)
     )
 
 

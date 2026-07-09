@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from scripts.audit_tutorial_workload import audit_tutorials
+
 TUTORIAL_DIR = Path("notebooks/tutorials")
 TUTORIAL_NOTEBOOKS = (
     "day_01_enter_virtual_lab.ipynb",
@@ -94,3 +96,10 @@ def test_tutorial_notebooks_use_plain_markdown_checkpoints() -> None:
         text = _notebook_text(TUTORIAL_DIR / notebook_name)
         assert "display_student_checkpoint" not in text
         assert "student-checkpoint" not in text
+
+
+def test_twelve_day_tutorial_workload_audit_passes() -> None:
+    rows = audit_tutorials(Path("."))
+    assert len(rows) == 12
+    failures = [row for row in rows if not row["passed"]]
+    assert failures == []

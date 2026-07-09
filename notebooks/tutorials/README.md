@@ -26,6 +26,15 @@ python -m ipykernel install --user --name chemworld --display-name "Python (Chem
 
 如果课堂只有 90 分钟，建议现场完成前 3 个时间盒，把后 3 个作为课后提交。
 
+可以用下面的命令检查教程是否仍然满足非平凡工作量要求：
+
+```bash
+python scripts/audit_tutorial_workload.py --output-dir runs/tutorial_audit
+python -m pytest tests/test_tutorial_notebooks.py
+```
+
+该审计会检查 Day 1-12 是否包含 30 分钟时间盒、三小时实验工单、学生工作区、最低实验数量或提交数量、图表/验证/解释证据，以及是否残留乱码或旧式 checkpoint helper。
+
 ## 难度路线
 
 | 阶段 | Notebook | 难度 | 学习重点 |

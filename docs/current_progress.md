@@ -53,6 +53,5 @@ maturity。
 
 ## 建议下一步
 
-1. 加固 12 天教程，使每天都有可检查产物，而不是只运行示例代码。
-2. 增加三个端到端 notebook：`reaction-to-assay`、`reaction-to-purification`、`partition-discovery`。
-3. 最后冻结发布检查表、已知限制、citation 和 private-eval 政策。
+1. 增加三个端到端 notebook：`reaction-to-assay`、`reaction-to-purification`、`partition-discovery`。
+2. 最后冻结发布检查表、已知限制、citation 和 private-eval 政策。
