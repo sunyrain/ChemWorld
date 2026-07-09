@@ -2473,6 +2473,7 @@ env = gym.make(&quot;ChemWorld&quot;, task_id=&quot;reaction-to-purification&quo
 <h2 id="_2">当前检查工具</h2>
 <p>新增脚本：</p>
 <pre><code class="language-powershell">.\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2
+.\.venv\Scripts\python.exe scripts\audit_runtime_boundary.py --output runs\audit\runtime_boundary_report.json
 </code></pre>
 <p>默认输出：</p>
 <pre><code class="language-text">runs/audit/environment_consistency_report.json
@@ -2551,6 +2552,15 @@ runs/audit/trajectories/*.jsonl
 </tbody>
 </table>
 <p>脚本还会运行一个小型 agent-facing probe：在 <code>reaction-to-purification</code> 上使用固定 seeds 和多轮谱图反馈，记录 first score、best score、best-so-far AUC、invalid action 和谱图决策特征。</p>
+<p><code>audit_runtime_boundary.py</code> 专门检查 Runtime v2 源码边界：</p>
+<ul>
+<li>runtime-facing source 不得 import <code>chemworld.core</code>。</li>
+<li>legacy <code>src/chemworld/core</code> 不得重新出现运行时代码。</li>
+<li><code>ChemWorldEnv.step()</code> 不得按具体 operation 名称写 <code>if</code> / <code>match</code> 分支。</li>
+<li><code>ChemWorldEnv.step()</code> 不得直接访问 <code>runtime.domain_services</code>。</li>
+<li>valid action 必须委托给 <code>runtime.apply_transaction()</code>。</li>
+<li>invalid action 必须委托给 <code>runtime.apply_invalid_transaction()</code>。</li>
+</ul>
 <h2 id="_3">最新全量审计结果</h2>
 <p>运行命令：</p>
 <pre><code class="language-powershell">.\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2 --output-dir runs\audit
@@ -2602,6 +2612,25 @@ runs/audit/trajectories/*.jsonl
 </tr>
 <tr>
 <td><code>public_leakage_failures</code></td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p>Runtime boundary audit：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th style="text-align: right;">结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>passed</code></td>
+<td style="text-align: right;">true</td>
+</tr>
+<tr>
+<td><code>finding_count</code></td>
 <td style="text-align: right;">0</td>
 </tr>
 </tbody>
@@ -2775,7 +2804,8 @@ recovery 与 raw spectra 指向同一个被测样品。</p>
 <li>中文文档必须 UTF-8 可读，不应出现常见 mojibake 标记，例如 U+951B、U+9359 或替换字符 U+FFFD。</li>
 </ul>
 <h2 id="_11">验收命令</h2>
-<pre><code class="language-powershell">.\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2
+<pre><code class="language-powershell">.\.venv\Scripts\python.exe scripts\audit_runtime_boundary.py --output runs\audit\runtime_boundary_report.json
+.\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2
 .\.venv\Scripts\python.exe -m pytest tests\test_environment_self_consistency.py
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -m mkdocs build --strict
