@@ -1,5 +1,5 @@
 (function () {
-  var tocStorageKey = "chemworld.toc.collapsed";
+  var tocStorageKey = "chemworld.toc.collapsed.v2";
 
   function getStoredCollapsed(storageKey) {
     try {
@@ -63,15 +63,11 @@
     });
   }
 
-  function setupChemWorldToggles() {
-    setupTocToggle();
-  }
-
   if (typeof document$ !== "undefined" && document$.subscribe) {
-    document$.subscribe(setupChemWorldToggles);
+    document$.subscribe(setupTocToggle);
   } else if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupChemWorldToggles);
+    document.addEventListener("DOMContentLoaded", setupTocToggle);
   } else {
-    setupChemWorldToggles();
+    setupTocToggle();
   }
 })();
