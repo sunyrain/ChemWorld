@@ -45,8 +45,8 @@
       title.appendChild(button);
 
       applyButtonState(nav, button, getStoredCollapsed(tocStorageKey), "cw-toc-collapsed", {
-        collapse: "收起目录",
-        expand: "展开目录"
+        collapse: "Collapse contents",
+        expand: "Expand contents"
       });
 
       button.addEventListener("click", function (event) {
@@ -56,8 +56,8 @@
         var collapsed = !nav.classList.contains("cw-toc-collapsed");
         setStoredCollapsed(tocStorageKey, collapsed);
         applyButtonState(nav, button, collapsed, "cw-toc-collapsed", {
-          collapse: "收起目录",
-          expand: "展开目录"
+          collapse: "Collapse contents",
+          expand: "Expand contents"
         });
       });
     });
