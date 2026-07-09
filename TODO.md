@@ -3,8 +3,20 @@
 Last consolidated: 2026-07-09
 
 This is the single active TODO for ChemWorld. Older detailed boards
-(`TODO_PROFESSIONAL.md` and `TODO_PROFESSIONAL_DEEPENING.md`) are kept as
-reference archives, but new work should be claimed and updated here first.
+(`TODO_PROFESSIONAL.md` and `TODO_PROFESSIONAL_DEEPENING.md`) are reference
+archives only. New work should be claimed, updated, completed, and counted in
+this file.
+
+Current board size:
+
+- 58 active items total.
+- 1 item done.
+- 57 items remaining: 54 open, 3 claimed.
+- First release target: finish P0 and P1, which currently leaves 19 items.
+- Full pre-release package target: finish P0, P1, P2, and P4, which currently
+  leaves 30 items.
+- Professional deepening backlog: 27 items, including 3 already claimed by
+  `liyijun`.
 
 ## Current Position
 
@@ -16,7 +28,7 @@ The next phase is not to add more surface area. The next phase is to harden a
 small pre-release benchmark until outside users can trust, reproduce, and submit
 against it.
 
-## Work Rules For Two-Person Fast Iteration
+## Work Rules For Fast Iteration
 
 - Pull `origin/main` before claiming work.
 - Claim exactly one concrete item by setting `Owner` and `Status`, then push.
@@ -24,6 +36,8 @@ against it.
   update your local plan.
 - Finish one item, update this file, run relevant gates, commit, and push before
   starting another.
+- If working alone, claiming can be skipped for very short tasks, but the
+  completed item still needs an owner in this table before commit.
 - Do not mark a proxy/lite implementation as professional.
 - Do not copy source code from reference repositories.
 - Every completed item should include code, tests, docs or a short note saying
@@ -44,14 +58,23 @@ Status vocabulary:
 
 Fresh consolidated board counts:
 
-| Area | Done | Remaining | Notes |
-| --- | ---: | ---: | --- |
-| Pre-release benchmark hardening | 1 | 11 | Highest priority |
-| Runtime and environment consistency | 0 | 8 | Needed before public benchmark claims |
-| Agent-facing interaction and datasets | 0 | 6 | Required for RL/BO/LLM users |
-| Professional physchem deepening | 0 | 27 | Concrete slices from the deepening roadmap |
-| Docs, notebooks, and release packaging | 0 | 5 | Keep site useful but do not let docs outrun code |
-| Total active remaining | 1 | 57 | First target: finish P0/P1 only |
+| Area | Total | Done | Open | Claimed | Remaining | Notes |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| P0 Pre-release benchmark hardening | 12 | 1 | 11 | 0 | 11 | Highest priority |
+| P1 Runtime and environment consistency | 8 | 0 | 8 | 0 | 8 | Needed before public benchmark claims |
+| P2 Agent-facing interaction and datasets | 6 | 0 | 6 | 0 | 6 | Required for RL/BO/LLM users |
+| P3 Professional physchem deepening | 27 | 0 | 24 | 3 | 27 | Concrete slices from the deepening roadmap |
+| P4 Docs, notebooks, and release packaging | 5 | 0 | 5 | 0 | 5 | Keep site useful but do not let docs outrun code |
+| Total active board | 58 | 1 | 54 | 3 | 57 | First target: finish P0/P1 |
+
+Priority interpretation:
+
+1. Benchmark credibility requires P0 first.
+2. Public trust requires P1 immediately after or alongside P0.
+3. Agent usability requires P2 after the pre-release contract is stable.
+4. Site, notebooks, and release packaging should track code, not outrun it.
+5. P3 is the long professional-physics backlog; only pull from it when it
+   directly improves a benchmark task or replaces a declared proxy/lite gap.
 
 Historical implementation already completed:
 
