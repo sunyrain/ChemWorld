@@ -313,17 +313,19 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             info["truth"] = self._state.to_dict(include_hidden=True)
         if campaign_final_assay:
             info["experiment_ended"] = True
-            self._experiment_summaries.append(
-                {
-                    "experiment_index": self._experiment_index,
-                    "terminal_step": self._step_count,
-                    "leaderboard_score": info["leaderboard_score"],
-                    "safety_risk": value_or_default(observation_values, "safety_risk"),
-                    "cost": value_or_default(observation_values, "cost"),
-                    "final_assay": True,
-                }
-            )
+            terminal_summary = {
+                "experiment_index": self._experiment_index,
+                "terminal_step": self._step_count,
+                "leaderboard_score": info["leaderboard_score"],
+                "safety_risk": value_or_default(observation_values, "safety_risk"),
+                "cost": value_or_default(observation_values, "cost"),
+                "final_assay": True,
+            }
+            self._experiment_summaries.append(terminal_summary)
             self._experiment_index += 1
+            info["experiment_summaries"] = list(self._experiment_summaries)
+            info["last_terminal_summary"] = terminal_summary
+            info["next_experiment_index"] = self._experiment_index
             if not truncated:
                 self._state = self._fresh_initial_state()
                 info["next_experiment_ready"] = True

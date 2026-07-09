@@ -15,9 +15,9 @@ clear maturity boundaries.
 
 Current remaining work:
 
-- 45 items remain out of 58.
-- 7 P0/P1 items block a credible pre-release benchmark.
-- 18 P0/P1/P2/P4 items remain for a usable public pre-release package.
+- 44 items remain out of 58.
+- 6 P0/P1 items block a credible pre-release benchmark.
+- 17 P0/P1/P2/P4 items remain for a usable public pre-release package.
 - 27 P3 items remain for long-term professional physical-chemistry deepening.
 
 Release interpretation:
@@ -34,19 +34,19 @@ Release interpretation:
 | Scope | Total | Done | Active | Claimed | Open | Remaining |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | P0 Pre-release benchmark hardening | 12 | 9 | 0 | 0 | 3 | 3 |
-| P1 Runtime and environment consistency | 8 | 4 | 0 | 0 | 4 | 4 |
+| P1 Runtime and environment consistency | 8 | 5 | 0 | 0 | 3 | 3 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 13 | 0 | 3 | 42 | 45 |
+| Total | 58 | 14 | 0 | 3 | 41 | 44 |
 
 Near-term cutline:
 
 | Milestone | Remaining | Meaning |
 | --- | ---: | --- |
-| Benchmark trust minimum | 7 | Finish all P0/P1 items |
-| Public pre-release package | 18 | Finish P0/P1/P2/P4 |
-| Full visible roadmap | 45 | Finish all open and claimed items |
+| Benchmark trust minimum | 6 | Finish all P0/P1 items |
+| Public pre-release package | 17 | Finish P0/P1/P2/P4 |
+| Full visible roadmap | 44 | Finish all open and claimed items |
 
 ## 3. Current System Position
 
@@ -107,13 +107,12 @@ Definition of done:
 
 Do these next, in order:
 
-1. `P1-CONSIST-05`: audit campaign vs single-experiment semantics.
-2. `P0-BENCH-10`: produce benchmark paper artifact skeleton.
-3. `P0-BENCH-11`: add CI-like local release command.
-4. `P0-BENCH-12`: write pre-release limitations statement.
-5. `P1-CONSIST-06`: audit ledger single-source-of-truth.
-6. `P1-CONSIST-07`: audit public observation leakage.
-7. `P1-CONSIST-08`: scan runtime boundaries.
+1. `P0-BENCH-10`: produce benchmark paper artifact skeleton.
+2. `P0-BENCH-11`: add CI-like local release command.
+3. `P0-BENCH-12`: write pre-release limitations statement.
+4. `P1-CONSIST-06`: audit ledger single-source-of-truth.
+5. `P1-CONSIST-07`: audit public observation leakage.
+6. `P1-CONSIST-08`: scan runtime boundaries.
 
 This sequence reduces public benchmark risk before expanding model scope.
 
@@ -153,7 +152,7 @@ docs tell the same story.
 | P1-CONSIST-02 | Codex | Done | Spectra-metric semantic alignment | Downstream final assay spectra use selected-phase public species calibration; full audit reports zero spectra failures and zero spectra warnings |
 | P1-CONSIST-03 | Codex | Done | Action affordance consistency | `available_actions`, ActionMaskWrapper, OperationValidator affordance, task policy, operation registry, and action masks are covered by cross-task tests; affordance-level invalid reasons no longer include payload-field failures |
 | P1-CONSIST-04 | Codex | Done | Invalid action atomicity | Schema, task-policy, payload-bound, and state-precondition failures are covered by material-ledger atomicity tests; invalid actions only mutate process/cost/risk ledgers and emit explicit validation or rollback penalty metadata |
-| P1-CONSIST-05 |  | Open | Campaign vs single-experiment semantics audit | Final assay ends an experiment in campaign tasks but ends the episode only in single-experiment tasks |
+| P1-CONSIST-05 | Codex | Done | Campaign vs single-experiment semantics audit | Tests cover all task termination policies; single-experiment final assay terminates and blocks further steps; campaign final assay records experiment summaries, exposes `last_terminal_summary` and `next_experiment_index`, keeps the Gym episode alive, and prepares the next experiment when budget remains |
 | P1-CONSIST-06 |  | Open | Ledger single-source-of-truth audit | Material amounts come from typed phase ledgers; equipment/process/vessel state does not fall back to metadata |
 | P1-CONSIST-07 |  | Open | Public observation leakage audit | Agent-visible observations, tool JSON, lab reports, spectra labels, and trajectories do not expose hidden species ids or rate constants |
 | P1-CONSIST-08 |  | Open | Runtime boundary scan | `ChemWorldEnv` remains thin, no operation-specific if/elif dispatch returns, and runtime does not import legacy core modules |

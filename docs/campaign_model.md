@@ -28,10 +28,37 @@ transaction record。
 
 ## Episode 模式
 
-- `interactive`：agent 在线观察并逐步决策。
-- `recipe`：一次性提交固定 action 序列。
-- `replay`：重放已有 trajectory，用于核验 determinism 和日志完整性。
-- `evaluation`：关闭调试信息，只输出公开 observation 和评分。
+ChemWorld 目前只使用两种正式 episode 语义：
+
+- `single_experiment`：一次 Gym episode 对应一次完整实验。合法 `final_assay` 会返回
+  `leaderboard_score`，同时 `terminated=True`、`truncated=False`，之后必须
+  `reset()` 才能继续。
+- `campaign`：一次 Gym episode 对应一个有限预算 campaign。合法 `final_assay`
+  只结束当前 experiment，不结束整个 Gym episode；环境返回
+  `experiment_ended=True`、`terminated=False`，并在预算未耗尽时返回
+  `next_experiment_ready=True`。
+
+这一区分避免把 recipe-space optimizer 错误限制为“一次 final assay 后就结束”。
+在 campaign task 中，一个 recipe 通常是一组 operation，并以 `final_assay` 产生一个
+可用于 BO、LHS、greedy 或 leaderboard 聚合的 experiment-level 观测。
+
+## Campaign Final Assay 信息合同
+
+在 `campaign` task 中，合法 `final_assay` 后的 `info` 必须包含：
+
+- `experiment_ended=True`
+- `leaderboard_score`
+- `experiment_summaries`
+- `last_terminal_summary`
+- `next_experiment_index`
+- `next_experiment_ready`
+
+其中 `experiment_index` 指刚结束的 experiment，`next_experiment_index` 指下一次
+experiment 的编号。若预算已经耗尽，`truncated=True` 且
+`next_experiment_ready=False`。
+
+在 `single_experiment` task 中，合法 `final_assay` 后不返回
+`next_experiment_ready` 或 `next_experiment_index`，因为 episode 已经结束。
 
 ## Replay 合同
 

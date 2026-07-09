@@ -35,10 +35,16 @@ ChemWorld 的任务不是彼此独立的小游戏，而是同一个 `world_law_i
 
 ## Episode 模式
 
-- 交互式 step-by-step。
-- 固定 recipe。
-- replay。
-- evaluation。
+`episode_mode` 描述 final assay 对 Gym episode 的影响，而不是 agent 的交互方式：
+
+- `single_experiment`：一次 Gym episode 只包含一个完整实验。合法 `final_assay`
+  终止 episode，适合 `reaction-to-assay`、`reaction-to-purification` 这类完整流程任务。
+- `campaign`：一次 Gym episode 包含多个 experiment。合法 `final_assay` 结束当前
+  experiment，但不终止 episode；环境会在预算未耗尽时准备下一次 experiment，适合
+  BO、LHS、greedy 和 leaderboard 优化任务。
+
+交互式 step-by-step、固定 recipe、replay 和 evaluation 是运行方式；它们可以作用在
+任一 episode mode 上。
 
 ## World、Scenario、Task
 
