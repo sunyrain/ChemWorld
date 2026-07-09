@@ -851,6 +851,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#task-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task Prompt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#action-affordance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Action Affordance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#observation-views" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2215,6 +2237,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#task-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task Prompt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#action-affordance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Action Affordance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#observation-views" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2265,15 +2309,16 @@
 
 
 <h1 id="agent-facing-interface">Agent-Facing Interface</h1>
-<p>ChemWorld 的正式 Gym 入口仍是 <code>gym.make("ChemWorld", task_id=...)</code>。本层新增的是 agent 能直接调用的公开交互接口，目标是让 RL、BO、LLM 和学生不需要阅读内部 runtime 代码，也能理解任务、检查动作、读取观测并恢复错误。</p>
-<h2 id="env-methods">Env Methods</h2>
+<p>ChemWorld 的正式 Gym 入口仍是：</p>
 <pre><code class="language-python">import gymnasium as gym
 import chemworld
 
 env = gym.make(&quot;ChemWorld&quot;, task_id=&quot;reaction-to-purification&quot;, seed=0)
 obs, info = env.reset(seed=0)
-
-env.task_prompt()
+</code></pre>
+<p>本层提供 agent 可直接调用的公开交互接口，目标是让 RL、BO、LLM 和学生不需要阅读内部 runtime，也能理解任务、检查动作、读取观测、恢复错误并复现实验。</p>
+<h2 id="env-methods">Env Methods</h2>
+<pre><code class="language-python">env.task_prompt()
 env.available_actions()
 env.action_schema(&quot;heat&quot;)
 env.validate_action({&quot;operation&quot;: &quot;heat&quot;, &quot;duration_s&quot;: 10.0})
@@ -2282,11 +2327,94 @@ env.observation_view(&quot;lab_report&quot;)
 env.observation_view(&quot;rl&quot;)
 env.campaign_state()
 </code></pre>
-<p><code>task_prompt()</code> 返回自然语言任务说明和结构化字段：任务目标、预算、可用操作、可用仪器、成功指标、安全限制和隐藏信息政策。</p>
-<p><code>available_actions()</code> 返回当前 state 下真正可执行的 operation affordance，每个条目带 schema、preconditions 和 invalid reason 摘要。</p>
+<h2 id="task-prompt">Task Prompt</h2>
+<p><code>task_prompt()</code> 返回两层信息：</p>
+<ul>
+<li><code>text</code>：给 LLM、学生或人类 reviewer 阅读的紧凑任务说明。</li>
+<li>结构化字段：给 tool agent、planner、dataset exporter 和 replay harness 使用。</li>
+</ul>
+<p>当前结构化字段包括：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>task_goal</code></td>
+<td>当前任务的自然语言目标</td>
+</tr>
+<tr>
+<td><code>constraints</code></td>
+<td>预算、episode mode、安全、前置条件等约束</td>
+</tr>
+<tr>
+<td><code>success_criteria</code></td>
+<td>agent 应优化或满足的成功标准</td>
+</tr>
+<tr>
+<td><code>allowed_tools</code></td>
+<td>可用 operation、operation group 和 instrument</td>
+</tr>
+<tr>
+<td><code>measurement_policy</code></td>
+<td>仪器观测的成本、噪声和终端测量规则</td>
+</tr>
+<tr>
+<td><code>recommended_strategy</code></td>
+<td>不读取 hidden truth 的任务策略建议</td>
+</tr>
+<tr>
+<td><code>failure_modes</code></td>
+<td>常见失败模式</td>
+</tr>
+<tr>
+<td><code>hidden_information_policy</code></td>
+<td>明确说明不可见的 hidden state / mechanism 信息</td>
+</tr>
+<tr>
+<td><code>submission_requirements</code></td>
+<td>trajectory、manifest 和复现实验命令要求</td>
+</tr>
+</tbody>
+</table>
+<p>三项预发布任务已有专门 prompt profile：</p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Prompt 重点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reaction-to-assay</code></td>
+<td>单实验闭环，从投料到 <code>final_assay</code>；强调合法终止、final assay score 和 trajectory validity。</td>
+</tr>
+<tr>
+<td><code>reaction-to-purification</code></td>
+<td>反应、相分离、洗涤/干燥/浓缩和终端检测；强调 purity、recovery、mass balance 和 final assay。</td>
+</tr>
+<tr>
+<td><code>partition-discovery</code></td>
+<td>campaign 式分配规律学习；强调 phase ratio、organic/aqueous enrichment、有限测量和 hidden partition policy。</td>
+</tr>
+</tbody>
+</table>
+<p><code>task_prompt()</code> 是 public view。它不会泄露 hidden species id、hidden amounts、rate constants、partition coefficients、mechanism internals 或 private scenario 参数。</p>
+<h2 id="action-affordance">Action Affordance</h2>
+<p><code>available_actions()</code> 返回当前 state 下真正可执行的 operation affordance。每个条目包含：</p>
+<ul>
+<li><code>operation</code></li>
+<li><code>valid</code></li>
+<li><code>invalid_reasons</code></li>
+<li><code>preconditions</code></li>
+<li><code>schema</code></li>
+</ul>
 <p><code>action_schema(operation)</code> 返回单个 operation 的 JSON-friendly schema，包括 required fields、单位、推荐范围和 categorical choices。</p>
 <p><code>validate_action(action)</code> 只检查，不执行，不改变 state。它复用 <code>OperationValidator</code>，覆盖 schema、task policy、instrument policy 和 stateful preconditions。</p>
-<p><code>campaign_state()</code> 返回 campaign id、experiment index、operation count、remaining budget、final assay count、best score 和 last terminal summary。</p>
 <h2 id="observation-views">Observation Views</h2>
 <p><code>observation_view("rl")</code> 输出 NaN-safe vector、mask、cost 和 constraint flags，适合 RL 或 bandit-style agent。</p>
 <p><code>observation_view("tool_json")</code> 输出机器可读 dict：public observation、raw signal、processed estimate、uncertainty、cost、constraints、campaign state、available actions 和 lab report。</p>
@@ -2299,12 +2427,34 @@ env.campaign_state()
     ActionSuggestionWrapper,
 )
 </code></pre>
-<p><code>AgentInfoWrapper</code> 在 reset/step info 中加入 <code>task_prompt</code>、<code>campaign_state</code> 和 <code>available_actions</code>。</p>
-<p><code>LLMObservationWrapper</code> 在 info 中加入 <code>lab_report</code> 和 <code>tool_json</code>。</p>
-<p><code>RLObservationWrapper</code> 返回 vector observation，并在 info 中加入 <code>rl_view</code>、<code>observation_mask</code> 和 <code>cost_signal</code>。</p>
-<p><code>ActionSuggestionWrapper</code> 只暴露合法动作建议和失败恢复建议，不自动修正 agent 提交的 action。</p>
+<table>
+<thead>
+<tr>
+<th>Wrapper</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AgentInfoWrapper</code></td>
+<td>在 reset/step info 中加入 <code>task_prompt</code>、<code>campaign_state</code> 和 <code>available_actions</code>。</td>
+</tr>
+<tr>
+<td><code>LLMObservationWrapper</code></td>
+<td>在 info 中加入 <code>lab_report</code> 和 <code>tool_json</code>。</td>
+</tr>
+<tr>
+<td><code>RLObservationWrapper</code></td>
+<td>返回 vector observation，并在 info 中加入 <code>rl_view</code>、<code>observation_mask</code> 和 <code>cost_signal</code>。</td>
+</tr>
+<tr>
+<td><code>ActionSuggestionWrapper</code></td>
+<td>暴露合法动作建议和失败恢复建议，不自动修正 agent 提交的 action。</td>
+</tr>
+</tbody>
+</table>
 <h2 id="design-rule">Design Rule</h2>
-<p>Agent-facing 接口是 public view，不是 debug truth。它不会泄露 hidden species id、hidden amounts、rate constants、partition coefficients 或 private eval 参数。</p>
+<p>Agent-facing 接口是 public protocol，不是 debug truth。它提供规划所需的 affordance、schema、任务合同和观测摘要，但不暴露 hidden world internals。</p>
 
 
 
