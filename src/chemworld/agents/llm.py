@@ -147,6 +147,7 @@ class LLMReplayAgent(BaseAgent):
                 "selected_action": action,
                 "reasoning_summary": record.get("reasoning_summary", "offline replay action"),
                 "hypothesis_note": record.get("hypothesis_note"),
+                "memory_note": record.get("memory_note"),
             }
         )
         return action

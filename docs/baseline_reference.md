@@ -19,6 +19,14 @@ Baseline 的作用不是追求最高分，而是给 benchmark 提供可复现的
 | `tool_using_llm_stub` | 不依赖在线 API 的 tool-using planner stub |
 | `llm_replay` | 固定 reasoning/action trace 的离线 LLM replay |
 
+`llm_replay` 的公开 fixture 位于：
+
+```text
+examples/fixtures/llm_replay/reaction_to_assay_public_trace.jsonl
+```
+
+该 fixture 是可审计的 public baseline artifact：同一个 seed 下 replay 的 action sequence、final assay score 和 evaluation metrics 应保持确定。
+
 ## 生成报告
 
 默认命令会使用预发布三任务、官方 baseline agent 集合和每个任务冻结的 seeds：

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -14,34 +13,13 @@ from chemworld.eval.runner import run_agent
 def main() -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
-        trace_path = root / "llm_trace.jsonl"
-        output_path = root / "run.jsonl"
-        actions = [
-            {"action": {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2}},
-            {"action": {"operation": "add_reagent", "amount_mol": 0.010}},
-            {
-                "action": {
-                    "operation": "add_catalyst",
-                    "catalyst_amount_mol": 0.00025,
-                    "catalyst": 1,
-                }
-            },
-            {
-                "action": {
-                    "operation": "heat",
-                    "target_temperature_K": 382.0,
-                    "duration_s": 1350.0,
-                    "stirring_speed_rpm": 720.0,
-                }
-            },
-            {"action": {"operation": "quench"}},
-            {"action": {"operation": "terminate"}},
-            {"action": {"operation": "measure", "instrument": "final_assay"}},
-        ]
-        trace_path.write_text(
-            "\n".join(json.dumps(action, sort_keys=True) for action in actions),
-            encoding="utf-8",
+        trace_path = (
+            Path(__file__).resolve().parent
+            / "fixtures"
+            / "llm_replay"
+            / "reaction_to_assay_public_trace.jsonl"
         )
+        output_path = root / "run.jsonl"
 
         history = run_agent(
             env_id="ChemWorld",

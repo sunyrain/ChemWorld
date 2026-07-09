@@ -67,6 +67,18 @@ python scripts/probe_tool_agent_rounds.py \
 
 它用于复现实验、教学展示和之后对真实 LLM trace 的离线评测。
 
+公开预发布 fixture：
+
+```text
+examples/fixtures/llm_replay/reaction_to_assay_public_trace.jsonl
+```
+
+该 trace 包含 `prompt_input`、`selected action`、`reasoning_summary`、`hypothesis_note` 和 `memory_note`，运行时会补全 validator result 与 observation summary。可用下面命令演示：
+
+```bash
+python examples/demo_llm_replay_harness.py
+```
+
 ## Why Offline First
 
 离线 harness 有三个好处：
