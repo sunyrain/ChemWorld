@@ -8,29 +8,28 @@ ChemWorld 当前不是功能数量不足，而是需要继续提高 benchmark tr
 
 当前剩余工作：
 
-- 总任务 58 项，已完成 15 项，剩余 43 项。
-- 公开预发布最关键的是 P0/P1，剩余 5 项。
-- 可用的公开预发布包需要完成 P0/P1/P2/P4，剩余 16 项。
+- 总任务 58 项，已完成 16 项，剩余 42 项。
+- 公开预发布最关键的是 P0/P1，剩余 4 项。
+- 可用的公开预发布包需要完成 P0/P1/P2/P4，剩余 15 项。
 - P3 是长期专业物理化学深化，剩余 27 项，不应阻塞第一版公开预发布。
 
 ## 当前统计
 
 | 范围 | 总数 | 已完成 | 进行中 | 已认领 | 待做 | 剩余 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| P0 Pre-release benchmark hardening | 12 | 10 | 0 | 0 | 2 | 2 |
+| P0 Pre-release benchmark hardening | 12 | 11 | 0 | 0 | 1 | 1 |
 | P1 Runtime and environment consistency | 8 | 5 | 0 | 0 | 3 | 3 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 15 | 0 | 3 | 40 | 43 |
+| Total | 58 | 16 | 0 | 3 | 39 | 42 |
 
 ## 下一轮优先级
 
-1. `P0-BENCH-11`: add CI-like local release command.
-2. `P0-BENCH-12`: write pre-release limitations statement.
-3. `P1-CONSIST-06`: audit ledger single-source-of-truth.
-4. `P1-CONSIST-07`: audit public observation leakage.
-5. `P1-CONSIST-08`: scan runtime boundaries.
+1. `P0-BENCH-12`: write pre-release limitations statement.
+2. `P1-CONSIST-06`: audit ledger single-source-of-truth.
+3. `P1-CONSIST-07`: audit public observation leakage.
+4. `P1-CONSIST-08`: scan runtime boundaries.
 
 ## 协作规则
 

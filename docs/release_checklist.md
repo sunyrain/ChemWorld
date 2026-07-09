@@ -4,19 +4,31 @@
 
 ## 代码 Gate
 
-```bash
-python -m ruff check .
-python -m mypy src/chemworld
-python -m pytest
+本地 release candidate 使用一个入口命令：
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_release_gate.py
 ```
 
-任何 release candidate 都应记录命令输出、Python 版本、依赖版本和 commit。
+该命令会顺序运行：
+
+1. `python -m ruff check .`
+2. `python -m mypy src/chemworld`
+3. `python -m pytest`
+4. `python -m mkdocs build --strict`
+5. `python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2`
+6. `python -m chemworld.cli baselines report --tasks reaction-to-assay --agents scripted_chemistry --seeds 0`
+
+命令会把摘要写入 `runs/release_gate/release_gate_summary.json`。任何 release candidate
+都应记录该摘要、Python 版本、依赖版本和 commit。
 
 ## 环境自洽性 Gate
 
 ```bash
 python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
 ```
+
+该命令已被 `scripts/run_release_gate.py` 调用；单独运行主要用于调试环境自洽性失败。
 
 必须确认：
 
@@ -31,6 +43,8 @@ python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
 ```bash
 python -m mkdocs build --strict
 ```
+
+该命令已被 `scripts/run_release_gate.py` 调用；单独运行主要用于调试文档构建失败。
 
 首页应指向当前架构、任务注册表、评测协议、baseline、release artifact 和 maturity
 说明。发布到 `gh-pages` 前，`site/` 目录必须来自同一 commit 的构建结果。
