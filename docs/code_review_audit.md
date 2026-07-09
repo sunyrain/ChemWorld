@@ -166,6 +166,14 @@ Current cleanup also split the mechanism compiler boundary. The lightweight
 hashing, schema validation, observable-role mapping, and Runtime v2 role
 contract checks.
 
+Current cleanup also split the runtime kernel/profile boundary. The
+`runtime/kernels.py` facade now only re-exports the public kernel surface,
+`runtime/profiles.py` owns `TaskRuntimeProfile` and profile hashes,
+`runtime/kernel_contracts.py` owns `RuntimeContext`, `KernelPlan`,
+`KernelResult`, and the `OperationKernel` protocol, and
+`runtime/kernel_registry.py` owns the service-backed default kernel, affected
+ledger declarations, and task-scoped registry validation.
+
 The architecture test suite now also enforces the active Runtime v2 boundary:
 `src/chemworld/envs` and `src/chemworld/runtime` must not import the removed
 `chemworld.core.batch_reactor` runtime, and `ChemWorldEnv.step()` must delegate

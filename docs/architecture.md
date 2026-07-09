@@ -43,6 +43,13 @@ The runtime is organized around:
 
 - `TaskRuntimeProfile`, which declares the operations, instruments, kernels, and
   domain services required by one task slice;
+- `runtime/profiles.py`, which owns task-scoped runtime profiles and their
+  deterministic profile hashes;
+- `runtime/kernel_contracts.py`, which owns runtime context, kernel plans,
+  kernel results, and the `OperationKernel` protocol;
+- `runtime/kernel_registry.py`, which owns the default service-backed
+  operation kernel, affected-ledger declarations, and task-scoped registry
+  validation;
 - `MechanismCompiler`, which compiles mechanism YAML into a `CompiledMechanism`
   with species indexes, a stoichiometric matrix, observable mappings, score
   bindings, and a mechanism hash;

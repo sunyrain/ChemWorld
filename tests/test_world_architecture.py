@@ -310,6 +310,30 @@ def test_runtime_mechanism_manifest_and_validation_are_separate_from_compiler_fa
     assert "def validate_compiled_role_contract" in validation_source
 
 
+def test_runtime_kernel_profile_contracts_and_registry_are_separate() -> None:
+    kernels_source = Path("src/chemworld/runtime/kernels.py").read_text(encoding="utf-8")
+    profiles_source = Path("src/chemworld/runtime/profiles.py").read_text(encoding="utf-8")
+    contracts_source = Path("src/chemworld/runtime/kernel_contracts.py").read_text(
+        encoding="utf-8"
+    )
+    registry_source = Path("src/chemworld/runtime/kernel_registry.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "class TaskRuntimeProfile" not in kernels_source
+    assert "class RuntimeContext" not in kernels_source
+    assert "class ServiceOperationKernel" not in kernels_source
+    assert "class OperationKernelRegistry" not in kernels_source
+    assert "class TaskRuntimeProfile" in profiles_source
+    assert "def profile_hash" in profiles_source
+    assert "class RuntimeContext" in contracts_source
+    assert "class KernelResult" in contracts_source
+    assert "class OperationKernel" in contracts_source
+    assert "class ServiceOperationKernel" in registry_source
+    assert "class OperationKernelRegistry" in registry_source
+    assert "def affected_ledgers" in registry_source
+
+
 def test_runtime_electrochemical_service_is_separate_from_domain_services() -> None:
     domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
         encoding="utf-8"
