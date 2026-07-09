@@ -16,6 +16,7 @@ __all__ = [
     "ChemWorldInstrumentCostServices",
     "ChemWorldObservationKernel",
     "ChemWorldOperationRecorder",
+    "ChemWorldPhaseLedgerServices",
     "ChemWorldPhaseSeparationServices",
     "ChemWorldPrimitiveOperationServices",
     "ChemWorldReactionThermalServices",
@@ -101,6 +102,10 @@ def __getattr__(name: str) -> Any:
         from chemworld.runtime import phase_separation_services
 
         return getattr(phase_separation_services, name)
+    if name == "ChemWorldPhaseLedgerServices":
+        from chemworld.runtime import phase_ledger_services
+
+        return getattr(phase_ledger_services, name)
     if name == "ChemWorldPrimitiveOperationServices":
         from chemworld.runtime import primitive_services
 

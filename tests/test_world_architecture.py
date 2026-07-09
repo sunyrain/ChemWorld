@@ -243,14 +243,19 @@ def test_runtime_phase_separation_service_is_separate_from_domain_services() -> 
     phase_separation_services = Path(
         "src/chemworld/runtime/phase_separation_services.py"
     ).read_text(encoding="utf-8")
+    phase_ledger_services = Path(
+        "src/chemworld/runtime/phase_ledger_services.py"
+    ).read_text(encoding="utf-8")
 
     assert "def _phase_ledger" not in domain_services
     assert "def _mix_phases" not in domain_services
     assert "def _separate_phase" not in domain_services
     assert "partition_split" not in domain_services
+    assert "downstream_truth_values" not in phase_separation_services
     assert "class ChemWorldPhaseSeparationServices" in phase_separation_services
     assert "partition_split" in phase_separation_services
-    assert "downstream_truth_values" in phase_separation_services
+    assert "class ChemWorldPhaseLedgerServices" in phase_ledger_services
+    assert "downstream_truth_values" in phase_ledger_services
 
 
 def test_runtime_electrochemical_service_is_separate_from_domain_services() -> None:

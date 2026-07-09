@@ -32,7 +32,8 @@ Largest current source files after this cleanup:
 | `src/chemworld/runtime/flow_services.py` | flow-rate setup, residence-time reaction advancement, flow conversion metrics, and flow campaign ledger updates | keep separate from mixed operation services and later bind reactor geometry/residence-time distributions more directly to mechanism cards |
 | `src/chemworld/runtime/instrument_cost_services.py` | measurement cost, destructive sample consumption, and typed instrument equipment status | keep separate from observation generation and operation-record logging |
 | `src/chemworld/runtime/reaction_thermal_services.py` | reaction ODE advancement, heat/wait integration, energy ledgers, and pressure/risk projection | keep separate from mixed operation services and later bind integration choices more directly to mechanism cards |
-| `src/chemworld/runtime/phase_separation_services.py` | phase-ledger normalization, liquid-liquid partitioning, extraction, settling, washing, drying, concentrating, transfer, and downstream process-metric updates | keep separate from crystallization/distillation and keep primary phase/process state out of metadata |
+| `src/chemworld/runtime/phase_ledger_services.py` | typed phase-ledger normalization, mechanism role mapping into phases, selected-phase state replacement, and downstream process-metric updates | keep phase ledger state and derived process metrics separate from extraction operation handlers |
+| `src/chemworld/runtime/phase_separation_services.py` | liquid-liquid partitioning, extraction, settling, phase selection, washing, drying, concentrating, and transfer operation handlers | keep operation handlers separate from phase-ledger normalization and process-metric derivation |
 | `src/chemworld/runtime/primitive_services.py` | reagent, solvent, and catalyst addition, sampling, quench, evaporation, and invalid-action penalty updates | keep separate from composition and later bind primitive material additions more directly to typed ledgers |
 | `src/chemworld/runtime/observation_services.py` | observation truth, noisy instrument signals, processed estimates, and scoring | keep separate from state-changing services and later bind observation/score specs more directly to mechanism/task cards |
 | `src/chemworld/runtime/record_services.py` | operation-record assembly, constitution summaries, measurement cost/sample fields, and state-delta summaries | keep separate from state-changing services and later bind record schemas more directly to trajectory schema generation |
@@ -251,10 +252,13 @@ Recommended follow-up:
   integration, typed reactor stirring settings, energy-ledger updates, and pressure/risk
   projection outside the mixed domain-service module.
 - Extracted `ChemWorldPhaseSeparationServices` into
-  `runtime/phase_separation_services.py`, keeping phase-ledger normalization,
-  partitioning, extraction, settling, phase selection, washing, drying,
-  concentrating, transfer, and downstream process-metric updates outside the mixed
-  domain-service module.
+  `runtime/phase_separation_services.py`, keeping partitioning, extraction,
+  settling, phase selection, washing, drying, concentrating, and transfer
+  operation handlers outside the mixed domain-service module.
+- Extracted `ChemWorldPhaseLedgerServices` into
+  `runtime/phase_ledger_services.py`, keeping phase-ledger normalization,
+  mechanism-role-to-phase mapping, selected-phase state replacement, and
+  downstream process-metric updates outside the extraction operation handlers.
 - Extracted `ChemWorldElectrochemicalServices` into
   `runtime/electrochemical_services.py`, keeping potential/current setup,
   electrochemical mechanism binding, faradaic conversion, electrical-work

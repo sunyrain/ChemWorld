@@ -62,9 +62,13 @@ The runtime is organized around:
   heat/wait integration, stirring metadata, energy-ledger updates, and
   pressure/risk projection;
 - `ChemWorldPhaseSeparationServices`, implemented in
-  `runtime/phase_separation_services.py`, which owns phase-ledger normalization,
-  liquid-liquid partitioning, extraction, settling, phase selection, washing,
-  drying, concentrating, transfer, and downstream process-metric updates;
+  `runtime/phase_separation_services.py`, which owns liquid-liquid
+  partitioning, extraction, settling, phase selection, washing, drying,
+  concentrating, and transfer operation handlers;
+- `ChemWorldPhaseLedgerServices`, implemented in
+  `runtime/phase_ledger_services.py`, which owns phase-ledger normalization,
+  mechanism-role-to-phase mapping, selected-phase state replacement, and
+  downstream process-metric updates;
 - `ChemWorldPrimitiveOperationServices`, implemented in
   `runtime/primitive_services.py`, which owns reagent, solvent, and catalyst
   addition, sampling, quench, evaporation, and invalid-action penalty updates;
