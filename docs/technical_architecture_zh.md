@@ -154,7 +154,7 @@ Runtime v2 的关键设计包括：
 | `ThermalLedger` | 按 vessel 记录夹套热、反应热和热损失 |
 | `ProcessLedger` | 时间、成本、风险、样品消耗、废液和过程指标 |
 
-当前 `ProcessLedger.metrics` 已经承接连续流和电化学等过程派生指标，例如 flow conversion、flow throughput、faradaic efficiency、energy efficiency、overpotential、charge 和 electrical work。constitution 会拒绝把这些 primary/derived process metrics 放回 `metadata`，避免 `metadata` 重新变成隐藏状态垃圾箱。
+当前 `ProcessLedger.metrics` 已经承接下游分离、结晶、蒸馏、连续流和电化学等过程派生指标，例如 purity、recovery、crystal yield/purity/size、distillate purity/recovery、flow conversion、flow throughput、faradaic efficiency、energy efficiency、overpotential、charge 和 electrical work。constitution 会拒绝把这些 primary/derived process metrics 放回 `metadata`，避免 `metadata` 重新变成隐藏状态垃圾箱。
 
 仍需注意：快速迭代期内还保留少量 scalar adapter，用于稳定旧轨迹、notebook 和测试路径。长期目标是让 phase/vessel/equipment/process ledgers 成为唯一结构化状态源。
 

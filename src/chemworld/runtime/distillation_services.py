@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState
+from chemworld.foundation import WorldState, process_with_metrics
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.physchem.separations import vle_shortcut_distillation
 from chemworld.runtime.species import MechanismSpeciesView
@@ -173,11 +173,14 @@ class ChemWorldDistillationServices:
         metadata = state.metadata.copy()
         metadata.update(
             {
-                "distillate_purity": float(np.clip(distillate_purity, 0.0, 1.0)),
-                "distillate_recovery": float(np.clip(distillate_product / initial_p, 0.0, 1.0)),
                 "distillation_model": "vle_shortcut_distillation",
                 "distillation_kernel": distillation_metadata,
             }
+        )
+        process = process_with_metrics(
+            state.process,
+            distillate_purity=float(np.clip(distillate_purity, 0.0, 1.0)),
+            distillate_recovery=float(np.clip(distillate_product / initial_p, 0.0, 1.0)),
         )
         risk = min(1.0, state.ledger.risk + distillation_risk)
         ledger = state.ledger.with_updates(
@@ -201,6 +204,7 @@ class ChemWorldDistillationServices:
             temperature_K=target_temperature,
             ledger=ledger,
             metadata=metadata,
+            process=process,
             phases=phases,
         )
 
@@ -230,11 +234,14 @@ class ChemWorldDistillationServices:
         metadata.update(
             {
                 "fraction_collected": True,
-                "distillate_purity": float(np.clip(purity, 0.0, 1.0)),
-                "distillate_recovery": float(np.clip(product / initial_p, 0.0, 1.0)),
-                "purity": float(np.clip(purity, 0.0, 1.0)),
-                "recovery": float(np.clip(product / initial_p, 0.0, 1.0)),
             }
+        )
+        process = process_with_metrics(
+            state.process,
+            distillate_purity=float(np.clip(purity, 0.0, 1.0)),
+            distillate_recovery=float(np.clip(product / initial_p, 0.0, 1.0)),
+            purity=float(np.clip(purity, 0.0, 1.0)),
+            recovery=float(np.clip(product / initial_p, 0.0, 1.0)),
         )
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.018)
         phases = _distillation_phases(
@@ -251,6 +258,7 @@ class ChemWorldDistillationServices:
             volume_L=state.volume_L * fraction,
             ledger=ledger,
             metadata=metadata,
+            process=process,
             phases=phases,
         )
 

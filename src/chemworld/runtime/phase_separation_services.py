@@ -6,7 +6,12 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
+from chemworld.foundation import (
+    WorldState,
+    equipment_settings,
+    process_with_metrics,
+    upsert_equipment_record,
+)
 from chemworld.foundation.state import (
     EquipmentLedger,
     PhaseLedger,
@@ -41,7 +46,7 @@ def _phase_type(phase_name: str) -> str:
 
 
 _SELECTED_PHASE_UNSET = object()
-PHASE_METADATA_TRUTH_KEYS = frozenset(
+PHASE_PROCESS_METRIC_KEYS = frozenset(
     {
         "purity",
         "recovery",
@@ -262,6 +267,15 @@ class ChemWorldPhaseSeparationServices:
         metadata.pop("phase_settled", None)
         metadata.pop("selected_phase", None)
         metadata.pop("stirring_speed_rpm", None)
+        if updates:
+            metadata.update(updates)
+        return metadata
+
+    def phase_process_metrics(
+        self,
+        state: WorldState,
+        phase_ledger: dict[str, dict[str, float]],
+    ) -> dict[str, float]:
         truth_values = downstream_truth_values(
             state,
             phase_ledger,
@@ -270,16 +284,11 @@ class ChemWorldPhaseSeparationServices:
             target_species=self.species_view.target_species_for_state(state),
             impurity_species=self.species_view.impurity_species_for_state(state),
         )
-        metadata.update(
-            {
-                key: value
-                for key, value in truth_values.items()
-                if key in PHASE_METADATA_TRUTH_KEYS
-            }
-        )
-        if updates:
-            metadata.update(updates)
-        return metadata
+        return {
+            key: float(value)
+            for key, value in truth_values.items()
+            if key in PHASE_PROCESS_METRIC_KEYS
+        }
 
     def with_phase_ledger(
         self,
@@ -311,6 +320,10 @@ class ChemWorldPhaseSeparationServices:
             preserve_selection=preserve_selection,
         )
         species_amounts = phases.total_amounts_mol()
+        process = process_with_metrics(
+            state.process,
+            **self.phase_process_metrics(state, phase_ledger),
+        )
         return state.replace(
             species_amounts=species_amounts,
             phases=phases,
@@ -318,6 +331,7 @@ class ChemWorldPhaseSeparationServices:
             ledger=state.ledger if ledger is None else ledger,
             metadata=metadata,
             equipment=state.equipment if equipment is None else equipment,
+            process=process,
         )
 
     def add_phase(self, state: WorldState, action: dict[str, Any]) -> WorldState:

@@ -100,6 +100,13 @@ class PhysicalConstitution:
     }
 
     primary_process_metric_metadata_keys: ClassVar[set[str]] = {
+        "purity",
+        "recovery",
+        "crystal_yield",
+        "crystal_purity",
+        "crystal_size",
+        "distillate_purity",
+        "distillate_recovery",
         "flow_conversion",
         "flow_campaign_time_s",
         "flow_throughput_mL",
@@ -467,7 +474,7 @@ class PhysicalConstitution:
             CheckResult(
                 "metadata_no_primary_process_metrics",
                 self.primary_process_metric_metadata_keys.isdisjoint(state.metadata),
-                "Flow and electrochemical process metrics must live in typed ProcessLedger.",
+                "Derived process metrics must live in typed ProcessLedger.",
             ),
         ]
         if state.phases is not None:

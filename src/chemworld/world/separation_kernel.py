@@ -127,16 +127,20 @@ def downstream_truth_values(
         "impurity_signal": float(np.clip(selected_impurity / initial_p, 0.0, 1.0)),
         "solvent_loss": float(np.clip(solvent_loss, 0.0, 1.0)),
         "process_mass_balance_error": float(np.clip(mass_balance_error, 0.0, 1.0)),
-        "crystal_yield": float(np.clip(float(state.metadata.get("crystal_yield", 0.0)), 0.0, 1.0)),
-        "crystal_purity": float(
-            np.clip(float(state.metadata.get("crystal_purity", 0.0)), 0.0, 1.0)
+        "crystal_yield": float(
+            np.clip(float(process_metrics.get("crystal_yield", 0.0)), 0.0, 1.0)
         ),
-        "crystal_size": float(np.clip(float(state.metadata.get("crystal_size", 0.0)), 0.0, 1.0)),
+        "crystal_purity": float(
+            np.clip(float(process_metrics.get("crystal_purity", 0.0)), 0.0, 1.0)
+        ),
+        "crystal_size": float(
+            np.clip(float(process_metrics.get("crystal_size", 0.0)), 0.0, 1.0)
+        ),
         "distillate_purity": float(
-            np.clip(float(state.metadata.get("distillate_purity", 0.0)), 0.0, 1.0)
+            np.clip(float(process_metrics.get("distillate_purity", 0.0)), 0.0, 1.0)
         ),
         "distillate_recovery": float(
-            np.clip(float(state.metadata.get("distillate_recovery", 0.0)), 0.0, 1.0)
+            np.clip(float(process_metrics.get("distillate_recovery", 0.0)), 0.0, 1.0)
         ),
         "flow_conversion": float(
             np.clip(float(process_metrics.get("flow_conversion", 0.0)), 0.0, 1.0)

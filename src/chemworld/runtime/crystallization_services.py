@@ -6,7 +6,12 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
+from chemworld.foundation import (
+    WorldState,
+    equipment_settings,
+    process_with_metrics,
+    upsert_equipment_record,
+)
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.runtime.species import MechanismSpeciesView
 
@@ -131,13 +136,11 @@ class ChemWorldCrystallizationServices:
             p_mol,
             1.0e-12,
         )
-        metadata = state.metadata.copy()
-        metadata.update(
-            {
-                "crystal_yield": float(np.clip(crystallized / initial_p, 0.0, 1.0)),
-                "crystal_purity": float(np.clip(crystal_purity, 0.0, 1.0)),
-                "crystal_size": float(np.clip(0.25 + 0.65 * time_factor * seed_factor, 0.0, 1.0)),
-            }
+        process = process_with_metrics(
+            state.process,
+            crystal_yield=float(np.clip(crystallized / initial_p, 0.0, 1.0)),
+            crystal_purity=float(np.clip(crystal_purity, 0.0, 1.0)),
+            crystal_size=float(np.clip(0.25 + 0.65 * time_factor * seed_factor, 0.0, 1.0)),
         )
         ledger = state.ledger.with_updates(
             time_s=state.ledger.time_s + duration,
@@ -154,7 +157,7 @@ class ChemWorldCrystallizationServices:
         return state.replace(
             temperature_K=target_temperature,
             ledger=ledger,
-            metadata=metadata,
+            process=process,
             phases=phases,
         )
 
@@ -183,12 +186,15 @@ class ChemWorldCrystallizationServices:
         metadata.update(
             {
                 "crystals_filtered": True,
-                "crystal_yield": float(np.clip(product / initial_p, 0.0, 1.0)),
-                "crystal_purity": float(np.clip(purity, 0.0, 1.0)),
-                "recovery": float(np.clip(product / initial_p, 0.0, 1.0)),
-                "purity": float(np.clip(purity, 0.0, 1.0)),
                 "solvent_loss": min(1.0, float(metadata.get("solvent_loss", 0.0)) + 0.04),
             }
+        )
+        process = process_with_metrics(
+            state.process,
+            crystal_yield=float(np.clip(product / initial_p, 0.0, 1.0)),
+            crystal_purity=float(np.clip(purity, 0.0, 1.0)),
+            recovery=float(np.clip(product / initial_p, 0.0, 1.0)),
+            purity=float(np.clip(purity, 0.0, 1.0)),
         )
         ledger = state.ledger.with_updates(
             time_s=state.ledger.time_s + 480.0,
@@ -203,7 +209,7 @@ class ChemWorldCrystallizationServices:
             mother_liquor_volume_L=state.volume_L * 0.92,
             solvent_loss=float(metadata.get("solvent_loss", 0.0)),
         )
-        return state.replace(ledger=ledger, metadata=metadata, phases=phases)
+        return state.replace(ledger=ledger, metadata=metadata, phases=phases, process=process)
 
 
 __all__ = ["ChemWorldCrystallizationServices"]

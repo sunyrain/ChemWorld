@@ -1100,6 +1100,8 @@ def test_constitution_rejects_primary_process_metric_metadata() -> None:
     state = initial_chemworld_state().replace(
         metadata={
             **initial_chemworld_state().metadata,
+            "crystal_yield": 0.6,
+            "distillate_purity": 0.9,
             "flow_conversion": 0.7,
             "electrochemical_selectivity": 0.8,
         }
@@ -1309,6 +1311,12 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         assert "crystallization_active" not in state.metadata
         assert "crystal_product_mol" not in state.metadata
         assert "crystal_impurity_mol" not in state.metadata
+        assert "crystal_yield" not in state.metadata
+        assert "crystal_purity" not in state.metadata
+        assert "crystal_size" not in state.metadata
+        assert state.process.metrics["crystal_yield"] > 0.0
+        assert state.process.metrics["crystal_purity"] > 0.0
+        assert state.process.metrics["crystal_size"] > 0.0
         assert env.unwrapped.constitution.check_preconditions(
             "filter_crystals",
             state,
@@ -1329,6 +1337,15 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         assert "crystallization_active" not in state.metadata
         assert "crystal_product_mol" not in state.metadata
         assert "crystal_impurity_mol" not in state.metadata
+        assert "crystal_yield" not in state.metadata
+        assert "crystal_purity" not in state.metadata
+        assert "crystal_size" not in state.metadata
+        assert "purity" not in state.metadata
+        assert "recovery" not in state.metadata
+        assert state.process.metrics["crystal_yield"] > 0.0
+        assert state.process.metrics["crystal_purity"] > 0.0
+        assert state.process.metrics["purity"] > 0.0
+        assert state.process.metrics["recovery"] > 0.0
         assert env.unwrapped.constitution.check_state(state).passed
     finally:
         env.close()
@@ -1385,6 +1402,10 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert "distillation_active" not in state.metadata
         assert "distillate_product_mol" not in state.metadata
         assert "distillate_impurity_mol" not in state.metadata
+        assert "distillate_purity" not in state.metadata
+        assert "distillate_recovery" not in state.metadata
+        assert state.process.metrics["distillate_purity"] > 0.0
+        assert state.process.metrics["distillate_recovery"] > 0.0
         assert env.unwrapped.constitution.check_preconditions(
             "collect_fraction",
             state,
@@ -1414,6 +1435,14 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert "distillation_active" not in state.metadata
         assert "distillate_product_mol" not in state.metadata
         assert "distillate_impurity_mol" not in state.metadata
+        assert "distillate_purity" not in state.metadata
+        assert "distillate_recovery" not in state.metadata
+        assert "purity" not in state.metadata
+        assert "recovery" not in state.metadata
+        assert state.process.metrics["distillate_purity"] > 0.0
+        assert state.process.metrics["distillate_recovery"] > 0.0
+        assert state.process.metrics["purity"] > 0.0
+        assert state.process.metrics["recovery"] > 0.0
         assert env.unwrapped.constitution.check_state(state).passed
     finally:
         env.close()

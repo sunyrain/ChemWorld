@@ -25,13 +25,13 @@ Largest current source files after this cleanup:
 | `src/chemworld/physchem/eos.py` | cubic EOS specs, root solving, residuals, volume translation, provenance | split into EOS specs, cubic parameters, root policy, residual properties, volume translation, and provenance |
 | `src/chemworld/physchem/spectroscopy.py` | calibration, chromatography, signal synthesis, feature heuristics | split into calibration, chromatography, signal synthesis, and feature libraries |
 | `src/chemworld/runtime/domain_services.py` | lightweight operation composition surface with service delegation, constitution checks, and operation-record assembly | keep thin and do not add process-specific formulas back into this layer |
-| `src/chemworld/runtime/crystallization_services.py` | seed addition, typed crystallizer seed-equipment status, cooling crystallization, typed solid/mother-liquor output phases, crystal purity/recovery metadata, and crystal filtration ledger updates | keep separate from mixed operation services and later bind solubility/crystal-size models more directly to mechanism cards |
-| `src/chemworld/runtime/distillation_services.py` | shortcut VLE distillation, typed distillate/bottoms output phases, distillate purity/recovery metadata, heat-duty/cost/risk ledgers, and fraction collection | keep separate from mixed operation services and later bind VLE/component properties more directly to mechanism cards |
+| `src/chemworld/runtime/crystallization_services.py` | seed addition, typed crystallizer seed-equipment status, cooling crystallization, typed solid/mother-liquor output phases, crystal process metrics, and crystal filtration ledger updates | keep separate from mixed operation services and later bind solubility/crystal-size models more directly to mechanism cards |
+| `src/chemworld/runtime/distillation_services.py` | shortcut VLE distillation, typed distillate/bottoms output phases, distillate process metrics, heat-duty/cost/risk ledgers, and fraction collection | keep separate from mixed operation services and later bind VLE/component properties more directly to mechanism cards |
 | `src/chemworld/runtime/electrochemical_services.py` | potential/current setup, Nernst/Butler-Volmer electrolysis calls, faradaic conversion, electrical work, and electrochemical metadata | keep separate from mixed operation services and later bind electrode/reaction specs more directly to mechanism cards |
-| `src/chemworld/runtime/flow_services.py` | flow-rate setup, residence-time reaction advancement, flow conversion metadata, and flow campaign ledger updates | keep separate from mixed operation services and later bind reactor geometry/residence-time distributions more directly to mechanism cards |
+| `src/chemworld/runtime/flow_services.py` | flow-rate setup, residence-time reaction advancement, flow conversion metrics, and flow campaign ledger updates | keep separate from mixed operation services and later bind reactor geometry/residence-time distributions more directly to mechanism cards |
 | `src/chemworld/runtime/instrument_cost_services.py` | measurement cost, destructive sample consumption, and typed instrument equipment status | keep separate from observation generation and operation-record logging |
 | `src/chemworld/runtime/reaction_thermal_services.py` | reaction ODE advancement, heat/wait integration, energy ledgers, and pressure/risk projection | keep separate from mixed operation services and later bind integration choices more directly to mechanism cards |
-| `src/chemworld/runtime/phase_separation_services.py` | phase-ledger normalization, liquid-liquid partitioning, extraction, settling, washing, drying, concentrating, transfer, and downstream truth metadata | keep separate from crystallization/distillation and later migrate primary phase state from metadata into typed ledgers |
+| `src/chemworld/runtime/phase_separation_services.py` | phase-ledger normalization, liquid-liquid partitioning, extraction, settling, washing, drying, concentrating, transfer, and downstream process-metric updates | keep separate from crystallization/distillation and keep primary phase/process state out of metadata |
 | `src/chemworld/runtime/primitive_services.py` | reagent, solvent, and catalyst addition, sampling, quench, evaporation, and invalid-action penalty updates | keep separate from composition and later bind primitive material additions more directly to typed ledgers |
 | `src/chemworld/runtime/observation_services.py` | observation truth, noisy instrument signals, processed estimates, and scoring | keep separate from state-changing services and later bind observation/score specs more directly to mechanism/task cards |
 | `src/chemworld/runtime/record_services.py` | operation-record assembly, constitution summaries, measurement cost/sample fields, and state-delta summaries | keep separate from state-changing services and later bind record schemas more directly to trajectory schema generation |
@@ -235,7 +235,8 @@ Recommended follow-up:
   destructive sampling/measurement with typed phase amounts.
 - Promoted Runtime v2 flow and electrochemical setup from metadata keys to
   typed `EquipmentLedger` records, made flow/electrochemistry preconditions read
-  equipment settings, and kept derived process metrics in metadata only.
+  equipment settings, and moved their derived process metrics into typed
+  process ledgers.
 - Extracted `ChemWorldObservationKernel` into
   `runtime/observation_services.py`, keeping noisy observations, raw signal
   assembly, processed estimates, uncertainty metadata, and observation scoring
@@ -251,7 +252,7 @@ Recommended follow-up:
 - Extracted `ChemWorldPhaseSeparationServices` into
   `runtime/phase_separation_services.py`, keeping phase-ledger normalization,
   partitioning, extraction, settling, phase selection, washing, drying,
-  concentrating, transfer, and downstream truth metadata outside the mixed
+  concentrating, transfer, and downstream process-metric updates outside the mixed
   domain-service module.
 - Extracted `ChemWorldElectrochemicalServices` into
   `runtime/electrochemical_services.py`, keeping potential/current setup,
@@ -272,12 +273,12 @@ Recommended follow-up:
   old seed metadata keys.
 - Promoted crystallized product and occluded impurity amounts out of runtime
   metadata into typed `solid` and `mother_liquor` phase records. Crystal
-  filtration now reads the typed solid phase, while metadata retains only
-  derived yield/purity/size summaries.
+  filtration now reads the typed solid phase, while derived yield/purity/size
+  summaries live in `ProcessLedger.metrics`.
 - Promoted distillate product and impurity amounts out of runtime metadata into
   typed `distillate` and `bottoms` phase records. Fraction collection now reads
-  the typed distillate phase, while metadata retains only derived purity,
-  recovery, and distillation-kernel summaries.
+  the typed distillate phase, while derived purity/recovery summaries live in
+  `ProcessLedger.metrics`; metadata retains only distillation-kernel notes.
 - Added a Runtime v2 final boundary audit that keeps the removed
   `chemworld.core.batch_reactor` runtime out of env/runtime imports. Later
   cleanup removed the downstream `LEGACY_*` species fallback bindings as well:
@@ -351,6 +352,11 @@ Recommended follow-up:
   electrical work are no longer primary metadata fields; constitution checks
   reject those keys in `state.metadata`, while observations and operation
   records read them from the typed process ledger.
+- Promoted downstream separation, crystallization, and distillation derived
+  metrics into typed `ProcessLedger.metrics`. Purity, recovery, crystal
+  yield/purity/size, and distillate purity/recovery are no longer primary
+  metadata fields; phase services, observation truth, and constitution checks
+  read and enforce the typed process-ledger boundary.
 - Added deterministic scoring and observation contract hashes. Task info,
   trajectory records, and replay verification now include
   `scoring_contract_hash` and `observation_contract_hash`, so protocol drift is
@@ -370,15 +376,15 @@ Recommended follow-up:
   model card with validation evidence.
 - Extracted `ChemWorldCrystallizationServices` into
   `runtime/crystallization_services.py`, keeping seed addition, cooling
-  crystallization, crystal purity/recovery metadata, and crystal filtration
+  crystallization, crystal process metrics, and crystal filtration
   outside the mixed domain-service module.
 - Extracted `ChemWorldDistillationServices` into
   `runtime/distillation_services.py`, keeping shortcut VLE distillation,
-  distillate purity/recovery metadata, heat-duty/cost/risk ledgers, and
+  distillate process metrics, heat-duty/cost/risk ledgers, and
   fraction collection outside the mixed domain-service module.
 - Extracted `ChemWorldFlowServices` into `runtime/flow_services.py`, keeping
   flow-rate setup, residence-time reaction advancement, flow conversion
-  metadata, and flow campaign ledger updates outside the mixed domain-service
+  metrics, and flow campaign ledger updates outside the mixed domain-service
   module.
 - Extracted `ChemWorldPrimitiveOperationServices` into
   `runtime/primitive_services.py`, keeping reagent, solvent, and catalyst

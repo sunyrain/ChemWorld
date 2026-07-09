@@ -64,18 +64,18 @@ The runtime is organized around:
 - `ChemWorldPhaseSeparationServices`, implemented in
   `runtime/phase_separation_services.py`, which owns phase-ledger normalization,
   liquid-liquid partitioning, extraction, settling, phase selection, washing,
-  drying, concentrating, transfer, and downstream truth metadata;
+  drying, concentrating, transfer, and downstream process-metric updates;
 - `ChemWorldPrimitiveOperationServices`, implemented in
   `runtime/primitive_services.py`, which owns reagent, solvent, and catalyst
   addition, sampling, quench, evaporation, and invalid-action penalty updates;
 - `ChemWorldCrystallizationServices`, implemented in
   `runtime/crystallization_services.py`, which owns seeding, cooling
   crystallization, typed crystallizer seed-equipment status,
-  typed solid/mother-liquor output phases, crystal purity/recovery metadata,
-  and crystal filtration ledger updates;
+  typed solid/mother-liquor output phases, crystal process metrics, and crystal
+  filtration ledger updates;
 - `ChemWorldDistillationServices`, implemented in
   `runtime/distillation_services.py`, which owns shortcut VLE distillation,
-  typed distillate/bottoms output phases, distillate purity/recovery metadata,
+  typed distillate/bottoms output phases, distillate process metrics,
   heat-duty/cost/risk ledger updates, and fraction collection;
 - `ChemWorldElectrochemicalServices`, implemented in
   `runtime/electrochemical_services.py`, which owns potential/current setup,
@@ -83,7 +83,7 @@ The runtime is organized around:
   faradaic conversion, electrical-work ledgers, and electrochemical metadata;
 - `ChemWorldFlowServices`, implemented in `runtime/flow_services.py`, which owns
   flow-rate setup, residence-time reaction advancement through
-  reaction/thermal services, flow conversion metadata, and flow campaign ledger
+  reaction/thermal services, flow conversion metrics, and flow campaign ledger
   updates;
 - `ChemWorldInstrumentCostServices`, implemented in
   `runtime/instrument_cost_services.py`, which owns measurement cost,
