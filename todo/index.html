@@ -2138,6 +2138,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cutline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cutline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2224,6 +2235,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cutline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cutline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2265,13 +2287,15 @@
 <h1 id="_1">统一任务板摘要</h1>
 <p>活跃任务源只有仓库根目录的 <code>TODO.md</code>。本页只给站点读者一个当前状态摘要，避免维护两套任务板。</p>
 <h2 id="_2">当前结论</h2>
-<p>ChemWorld 当前不是功能数量不足，而是需要继续提高 benchmark trust：任务合同、评分、回放、提交包、文档和成熟度边界还要收束。</p>
+<p>ChemWorld 当前已经进入 benchmark trust hardening 阶段。短期重点不是继续扩展新任务，而是收束任务合同、ledger、观测泄漏、runtime 边界、agent 交互和公开预发布文档。</p>
 <p>当前剩余工作：</p>
 <ul>
-<li>总任务 58 项，已完成 17 项，剩余 41 项。</li>
-<li>公开预发布最关键的是 P0/P1，剩余 3 项。</li>
-<li>可用的公开预发布包需要完成 P0/P1/P2/P4，剩余 14 项。</li>
-<li>P3 是长期专业物理化学深化，剩余 27 项，不应阻塞第一版公开预发布。</li>
+<li>总任务 58 项。</li>
+<li>已完成 17 项。</li>
+<li>进行中 1 项。</li>
+<li>已认领 3 项。</li>
+<li>待开始 37 项。</li>
+<li>剩余 41 项。</li>
 </ul>
 <h2 id="_3">当前统计</h2>
 <table>
@@ -2282,13 +2306,13 @@
 <th style="text-align: right;">已完成</th>
 <th style="text-align: right;">进行中</th>
 <th style="text-align: right;">已认领</th>
-<th style="text-align: right;">待做</th>
+<th style="text-align: right;">待开始</th>
 <th style="text-align: right;">剩余</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>P0 Pre-release benchmark hardening</td>
+<td>P0 预发布 benchmark hardening</td>
 <td style="text-align: right;">12</td>
 <td style="text-align: right;">12</td>
 <td style="text-align: right;">0</td>
@@ -2297,16 +2321,16 @@
 <td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td>P1 Runtime and environment consistency</td>
+<td>P1 runtime 与环境自洽性</td>
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
 <td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td>P2 Agent-facing interaction and datasets</td>
+<td>P2 agent-facing 交互与数据集</td>
 <td style="text-align: right;">6</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
@@ -2315,7 +2339,7 @@
 <td style="text-align: right;">6</td>
 </tr>
 <tr>
-<td>P3 Professional physchem deepening</td>
+<td>P3 专业物理化学深化</td>
 <td style="text-align: right;">27</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
@@ -2324,7 +2348,7 @@
 <td style="text-align: right;">27</td>
 </tr>
 <tr>
-<td>P4 Docs, notebooks, site, release packaging</td>
+<td>P4 文档、notebook、站点与发布包装</td>
 <td style="text-align: right;">5</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
@@ -2336,26 +2360,53 @@
 <td>Total</td>
 <td style="text-align: right;">58</td>
 <td style="text-align: right;">17</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: right;">38</td>
+<td style="text-align: right;">37</td>
 <td style="text-align: right;">41</td>
+</tr>
+</tbody>
+</table>
+<h2 id="cutline">Cutline</h2>
+<table>
+<thead>
+<tr>
+<th>Cutline</th>
+<th style="text-align: right;">剩余</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>最小可信 benchmark</td>
+<td style="text-align: right;">3</td>
+<td>完成全部 P0/P1</td>
+</tr>
+<tr>
+<td>可公开预发布包</td>
+<td style="text-align: right;">14</td>
+<td>完成 P0/P1/P2/P4</td>
+</tr>
+<tr>
+<td>全部可见路线图</td>
+<td style="text-align: right;">41</td>
+<td>包含长期 P3 专业物化深化</td>
 </tr>
 </tbody>
 </table>
 <h2 id="_4">下一轮优先级</h2>
 <ol>
-<li><code>P1-CONSIST-06</code>: audit ledger single-source-of-truth.</li>
-<li><code>P1-CONSIST-07</code>: audit public observation leakage.</li>
-<li><code>P1-CONSIST-08</code>: scan runtime boundaries.</li>
+<li><code>P1-CONSIST-06</code>：ledger single-source-of-truth audit。</li>
+<li><code>P1-CONSIST-07</code>：public observation leakage audit。</li>
+<li><code>P1-CONSIST-08</code>：runtime boundary scan。</li>
 </ol>
 <h2 id="_5">协作规则</h2>
 <ul>
-<li>开始任务前先拉取 <code>main</code>。</li>
-<li>每次只认领一个任务，并在根目录 <code>TODO.md</code> 写清 owner 和 status。</li>
-<li>完成任务后立即更新 <code>TODO.md</code>、提交并推送。</li>
+<li>从 <code>main</code> 开发，开始任务前先拉取远端。</li>
+<li>每次只把一个任务标记为 <code>Active</code>。</li>
+<li>完成任务后立即更新根目录 <code>TODO.md</code>、提交并推送。</li>
 <li>不维护第二份活跃 TODO。</li>
-<li>不把 proxy/lite 工作标记为 professional。</li>
+<li>不把 <code>proxy</code>、<code>lite</code> 或 <code>professional-candidate</code> 模型写成 <code>professional</code>。</li>
 </ul>
 <p>详细任务、owner、验收标准和状态以根目录 <code>TODO.md</code> 为准。</p>
 
