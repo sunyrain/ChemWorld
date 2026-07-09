@@ -20,7 +20,7 @@
 已稳定接入的核心方向包括：
 
 - 物性报告、蒸气压、热容、密度、摩尔体积和基础输运性质；
-- 反应网络、Arrhenius / mass-action / 可逆动力学和有限差分敏感性；
+- 反应网络、Arrhenius / mass-action / 可逆动力学、第三体、Lindemann/Troe falloff 和有限差分敏感性；
 - NASA7 物种热化学、反应焓、反应 Gibbs 自由能、平衡常数和可逆速率 detailed balance；
 - batch reactor、反应热、简化传热和运行报告；
 - LLE 诊断、分配、萃取、shortcut distillation、dry/concentrate 等分离切片；
@@ -44,9 +44,10 @@
 - 不可逆/可逆一阶 batch ODE 与解析解对比；
 - Arrhenius rate 与可选 Cantera backend 对照；
 - NASA7 Gibbs 自由能驱动的 `K_eq(T)`、浓度标准态换算、`k_reverse = k_forward / K_c` detailed balance；
+- 第三体 collision efficiency、Lindemann 低压/高压极限、Troe broadening 和 bath-gas-sensitive ODE；
 - 反应网络有限差分敏感性报告。
 
-仍未完成的专业化方向包括 falloff / pressure-dependent kinetics、第三体效率、表面覆盖、反应器能量方程与大型刚性网络求解策略。
+仍未完成的专业化方向包括 chemically activated pressure dependence、表面覆盖、反应器能量方程与大型刚性网络求解策略。
 
 ## 热化学核心
 

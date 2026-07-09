@@ -17,7 +17,8 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                 "for isothermal constant-volume batch kinetics. The validated "
                 "slice covers first-order irreversible and reversible elementary "
                 "mass-action cases with analytical solutions and Cantera/RMG-style "
-                "Arrhenius parameterization."
+                "Arrhenius parameterization. It also includes a compact pressure-"
+                "dependent slice for third-body, Lindemann, and Troe falloff rates."
             ),
             equations=(
                 "dn/dt = V * S * r(c, T)",
@@ -31,6 +32,10 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     "K_c(T) = exp(-Delta G_rxn^0/RT) * C0^(sum nu_i) "
                     "for the NASA7 detailed-balance slice"
                 ),
+                "[M]_eff = sum_i alpha_i C_i",
+                "Pr = k0(T) [M]_eff / k_inf(T)",
+                "k_Lindemann = k_inf Pr / (1 + Pr)",
+                "k_Troe = k_Lindemann F_Troe(T, Pr, a, T1, T2, T3)",
                 "S = (1/y) d y / d ln(p) for finite-difference sensitivity reports",
             ),
             assumptions=(
@@ -39,12 +44,14 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                 "constant temperature",
                 "element-balanced stoichiometric reactions",
                 "activities approximated by concentrations for this validated slice",
+                "falloff tests use homogeneous gas-phase collision-efficiency proxies",
             ),
             validity_limits=(
                 "validated ODE reference cases are first-order A=>B and A<=>B networks",
                 (
-                    "no falloff, third-body, pressure-dependent, surface-coverage, "
-                    "or reactor-energy-coupled model in this slice"
+                    "falloff validation is limited to compact third-body, Lindemann, "
+                    "and Troe formulas; no chemically activated bimolecular pressure "
+                    "dependence or surface-coverage model is included"
                 ),
                 "rate coefficient units must be consistent with mol/L concentration powers",
             ),
@@ -55,6 +62,7 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     "very stiff large networks may require tighter solver policy "
                     "in future professional reactor tasks"
                 ),
+                "negative collision efficiencies and invalid Troe parameters raise errors",
             ),
             units={
                 "amount": "mol",
@@ -132,6 +140,18 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     tolerance="equilibrium ratio checked at 5e-3 relative tolerance",
                 ),
                 ValidationEvidence(
+                    evidence_id="pressure-dependent-falloff-rate-tests",
+                    evidence_type="unit_test",
+                    description=(
+                        "Third-body collision efficiencies, Lindemann low/high-pressure "
+                        "limits, Troe broadening, and bath-gas-sensitive batch ODE "
+                        "integration are checked with deterministic compact cases."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reaction_network.py",
+                    tolerance="pytest.approx local tolerances for analytical limits",
+                ),
+                ValidationEvidence(
                     evidence_id="kinetic-finite-difference-sensitivity-test",
                     evidence_type="unit_test",
                     description=(
@@ -151,12 +171,13 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                 ),
                 (
                     "Future tasks must add falloff, pressure dependence, and "
-                    "adjoint/global sensitivity checks."
+                    "adjoint/global sensitivity checks beyond the compact D5B slice."
                 ),
             ),
             intended_use=(
                 "benchmark reaction-network sanity checks",
                 "mechanism-card validation",
+                "pressure-dependent qualitative kinetics checks",
                 "foundation for task-specific reaction optimization and reactor models",
             ),
         ),

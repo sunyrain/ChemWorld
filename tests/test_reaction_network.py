@@ -13,10 +13,12 @@ from chemworld.physchem import (
     ReactionSpec,
     SpeciesSpec,
     cantera_comparable_reaction_cases,
+    effective_third_body_concentration,
     evaluate_rate_law,
     evaluate_reaction_ode_reference_case,
     finite_difference_reaction_sensitivities,
     kinetic_sensitivity_parameter_candidates,
+    lindemann_falloff_rate_constant,
     load_mechanism,
     parse_reaction_equation,
     perturb_network_parameters,
@@ -24,6 +26,8 @@ from chemworld.physchem import (
     reverse_rate_constant_from_equilibrium,
     thermochemical_concentration_equilibrium_constant,
     thermochemical_detailed_balance,
+    troe_broadening_factor,
+    troe_falloff_rate_constant,
     validate_model_card,
 )
 
@@ -171,6 +175,120 @@ def test_rate_law_variants_return_finite_nonnegative_rates() -> None:
     ]
     assert all(rate >= 0.0 for rate in rates)
     assert rates[-1] == pytest.approx(0.4 / 1.2)
+
+
+def test_third_body_arrhenius_uses_collision_efficiencies() -> None:
+    reaction = ReactionSpec.from_equation(
+        reaction_id="third_body",
+        equation="A => P",
+        rate_law=RateLawSpec(
+            "third_body_rate",
+            "third_body_arrhenius",
+            {
+                "A": 2.0,
+                "default_efficiency": 0.0,
+                "third_body_efficiencies": {"N2": 1.0, "Ar": 0.2},
+            },
+        ),
+    )
+    concentrations = {"A": 0.5, "N2": 3.0, "Ar": 5.0}
+
+    third_body = effective_third_body_concentration(
+        concentrations,
+        efficiencies={"N2": 1.0, "Ar": 0.2},
+        default_efficiency=0.0,
+    )
+    rate = evaluate_rate_law(
+        reaction,
+        concentrations_mol_L=concentrations,
+        temperature_K=900.0,
+    )
+
+    assert third_body == pytest.approx(4.0)
+    assert rate == pytest.approx(2.0 * third_body * concentrations["A"])
+
+
+def test_lindemann_falloff_matches_low_and_high_pressure_limits() -> None:
+    params = {
+        "low_A": 2.0,
+        "high_A": 10.0,
+        "default_efficiency": 0.0,
+        "third_body_efficiencies": {"N2": 1.0},
+    }
+    low_concentrations = {"A": 1.0, "N2": 1.0e-8}
+    high_concentrations = {"A": 1.0, "N2": 1.0e8}
+
+    low_k = lindemann_falloff_rate_constant(params, low_concentrations, 800.0)
+    high_k = lindemann_falloff_rate_constant(params, high_concentrations, 800.0)
+
+    assert low_k == pytest.approx(2.0e-8, rel=1.0e-6)
+    assert high_k == pytest.approx(10.0, rel=1.0e-6)
+
+
+def test_troe_falloff_broadens_lindemann_rate() -> None:
+    params = {
+        "low_A": 30.0,
+        "high_A": 10.0,
+        "default_efficiency": 0.0,
+        "third_body_efficiencies": {"N2": 1.0},
+        "troe_a": 0.5,
+        "troe_T3": 1000.0,
+        "troe_T1": 10_000.0,
+        "troe_T2": 5000.0,
+    }
+    concentrations = {"A": 1.0, "N2": 1.0}
+    lindemann = lindemann_falloff_rate_constant(params, concentrations, 900.0)
+    reduced_pressure = 30.0 * concentrations["N2"] / 10.0
+    broadening = troe_broadening_factor(params, 900.0, reduced_pressure)
+    troe = troe_falloff_rate_constant(params, concentrations, 900.0)
+
+    assert 0.0 < broadening <= 1.0
+    assert troe == pytest.approx(lindemann * broadening)
+    assert troe < lindemann
+
+
+def test_falloff_reaction_network_is_bath_gas_sensitive() -> None:
+    network = ReactionNetworkSpec(
+        network_id="falloff_bath_gas_network",
+        species=(
+            SpeciesSpec("A", "C2H4O2", phase="gas"),
+            SpeciesSpec("P", "C2H4O2", phase="gas"),
+            SpeciesSpec("N2", "N2", phase="gas"),
+        ),
+        reactions=(
+            ReactionSpec.from_equation(
+                reaction_id="r1",
+                equation="A => P",
+                rate_law=RateLawSpec(
+                    "r1_falloff",
+                    "lindemann_falloff",
+                    {
+                        "low_A": 0.02,
+                        "high_A": 0.2,
+                        "default_efficiency": 0.0,
+                        "third_body_efficiencies": {"N2": 1.0},
+                    },
+                ),
+            ),
+        ),
+    )
+
+    dilute_bath = network.integrate_batch(
+        {"A": 1.0, "P": 0.0, "N2": 0.05},
+        volume_L=1.0,
+        temperature_K=850.0,
+        duration_s=200.0,
+    )
+    dense_bath = network.integrate_batch(
+        {"A": 1.0, "P": 0.0, "N2": 5.0},
+        volume_L=1.0,
+        temperature_K=850.0,
+        duration_s=200.0,
+    )
+
+    assert dense_bath.final_amounts_mol["P"] > dilute_bath.final_amounts_mol["P"]
+    assert dense_bath.final_amounts_mol["N2"] == pytest.approx(5.0)
+    assert dilute_bath.final_amounts_mol["N2"] == pytest.approx(0.05)
 
 
 def test_reversible_reaction_moves_toward_equilibrium_ratio() -> None:
@@ -354,6 +472,10 @@ def test_reaction_kinetics_model_cards_are_auditable() -> None:
     assert any("RMG" in note for note in card.reference_reading)
     assert any(
         evidence.evidence_id == "kinetic-finite-difference-sensitivity-test"
+        for evidence in card.validation_evidence
+    )
+    assert any(
+        evidence.evidence_id == "pressure-dependent-falloff-rate-tests"
         for evidence in card.validation_evidence
     )
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import replace
-from math import exp, isfinite
+from math import exp, isfinite, log10
 from typing import Any, Protocol, TypeVar, cast
 
 from chemworld.physchem.reaction_network_specs import ReactionSpec
@@ -44,6 +44,20 @@ def evaluate_rate_law(
         )
     if equation_id in {"arrhenius", "modified_arrhenius"}:
         k = arrhenius_k(params, temperature_K)
+        return mass_action_rate(reaction.reactants, concentrations_mol_L, k)
+    if equation_id == "third_body_arrhenius":
+        k = arrhenius_k(params, temperature_K)
+        third_body = effective_third_body_concentration(
+            concentrations_mol_L,
+            efficiencies=third_body_efficiencies(params),
+            default_efficiency=float_param(params, "default_efficiency", default=1.0),
+        )
+        return mass_action_rate(reaction.reactants, concentrations_mol_L, k * third_body)
+    if equation_id == "lindemann_falloff":
+        k = lindemann_falloff_rate_constant(params, concentrations_mol_L, temperature_K)
+        return mass_action_rate(reaction.reactants, concentrations_mol_L, k)
+    if equation_id == "troe_falloff":
+        k = troe_falloff_rate_constant(params, concentrations_mol_L, temperature_K)
         return mass_action_rate(reaction.reactants, concentrations_mol_L, k)
     if equation_id == "reversible_arrhenius":
         forward_rate_constant = arrhenius_k(params, temperature_K)
@@ -129,6 +143,218 @@ def arrhenius_k(params: Mapping[str, object], temperature_K: float) -> float:
         default=float_param(params, "Ea", default=0.0),
     )
     return A * temperature_K**b * exp(-Ea / (R_J_PER_MOL_K * temperature_K))
+
+
+def effective_third_body_concentration(
+    concentrations_mol_L: Mapping[str, float],
+    *,
+    efficiencies: Mapping[str, float] | None = None,
+    default_efficiency: float = 1.0,
+) -> float:
+    """Return effective third-body concentration ``[M]_eff``.
+
+    The compact slice follows the usual collision-efficiency form:
+
+    ``[M]_eff = sum_i alpha_i C_i``.
+    """
+
+    if default_efficiency < 0.0 or not isfinite(default_efficiency):
+        raise ValueError("default_efficiency must be finite and nonnegative")
+    efficiency_map = {} if efficiencies is None else dict(efficiencies)
+    total = 0.0
+    for species_id, concentration in concentrations_mol_L.items():
+        value = max(float(concentration), 0.0)
+        efficiency = float(efficiency_map.get(species_id, default_efficiency))
+        if efficiency < 0.0 or not isfinite(efficiency):
+            raise ValueError(f"third-body efficiency for {species_id!r} is invalid")
+        total += efficiency * value
+    return total
+
+
+def third_body_efficiencies(params: Mapping[str, object]) -> dict[str, float]:
+    """Parse ``third_body_efficiencies`` from rate-law parameters."""
+
+    payload = params.get("third_body_efficiencies", params.get("efficiencies", {}))
+    if payload is None:
+        return {}
+    if not isinstance(payload, Mapping):
+        raise ValueError("third_body_efficiencies must be a mapping")
+    result: dict[str, float] = {}
+    for species_id, efficiency in payload.items():
+        value = float(efficiency)
+        if value < 0.0 or not isfinite(value):
+            raise ValueError(
+                f"third-body efficiency for {species_id!r} must be finite and nonnegative"
+            )
+        result[str(species_id)] = value
+    return result
+
+
+def lindemann_falloff_rate_constant(
+    params: Mapping[str, object],
+    concentrations_mol_L: Mapping[str, float],
+    temperature_K: float,
+) -> float:
+    """Return Lindemann pressure-dependent effective rate constant.
+
+    ``k_eff = k_inf * Pr / (1 + Pr)``, where ``Pr = k0 [M]_eff / k_inf``.
+    """
+
+    if temperature_K <= 0.0:
+        raise ValueError("temperature_K must be positive")
+    low_k = arrhenius_k(prefixed_arrhenius_params(params, "low"), temperature_K)
+    high_k = arrhenius_k(prefixed_arrhenius_params(params, "high"), temperature_K)
+    if high_k <= 0.0 or not isfinite(high_k):
+        raise ValueError("high-pressure Arrhenius rate must be finite and positive")
+    third_body = effective_third_body_concentration(
+        concentrations_mol_L,
+        efficiencies=third_body_efficiencies(params),
+        default_efficiency=float_param(params, "default_efficiency", default=1.0),
+    )
+    if third_body <= 0.0:
+        return 0.0
+    reduced_pressure = low_k * third_body / high_k
+    if reduced_pressure < 0.0 or not isfinite(reduced_pressure):
+        raise ValueError("falloff reduced pressure must be finite and nonnegative")
+    return high_k * reduced_pressure / (1.0 + reduced_pressure)
+
+
+def troe_falloff_rate_constant(
+    params: Mapping[str, object],
+    concentrations_mol_L: Mapping[str, float],
+    temperature_K: float,
+) -> float:
+    """Return Troe-broadened falloff effective rate constant."""
+
+    lindemann = lindemann_falloff_rate_constant(
+        params,
+        concentrations_mol_L,
+        temperature_K,
+    )
+    if lindemann <= 0.0:
+        return 0.0
+    reduced_pressure = falloff_reduced_pressure(
+        params,
+        concentrations_mol_L,
+        temperature_K,
+    )
+    return lindemann * troe_broadening_factor(params, temperature_K, reduced_pressure)
+
+
+def falloff_reduced_pressure(
+    params: Mapping[str, object],
+    concentrations_mol_L: Mapping[str, float],
+    temperature_K: float,
+) -> float:
+    """Return ``Pr = k0 [M]_eff / k_inf`` for falloff rate laws."""
+
+    low_k = arrhenius_k(prefixed_arrhenius_params(params, "low"), temperature_K)
+    high_k = arrhenius_k(prefixed_arrhenius_params(params, "high"), temperature_K)
+    if high_k <= 0.0 or not isfinite(high_k):
+        raise ValueError("high-pressure Arrhenius rate must be finite and positive")
+    third_body = effective_third_body_concentration(
+        concentrations_mol_L,
+        efficiencies=third_body_efficiencies(params),
+        default_efficiency=float_param(params, "default_efficiency", default=1.0),
+    )
+    return low_k * third_body / high_k
+
+
+def troe_broadening_factor(
+    params: Mapping[str, object],
+    temperature_K: float,
+    reduced_pressure: float,
+) -> float:
+    """Return compact Troe broadening factor ``F``.
+
+    The implementation uses the common four-parameter form with optional
+    ``troe_T2``. It is intentionally small but keeps all numerical choices
+    explicit for model-card validation.
+    """
+
+    if temperature_K <= 0.0:
+        raise ValueError("temperature_K must be positive")
+    if reduced_pressure < 0.0 or not isfinite(reduced_pressure):
+        raise ValueError("reduced_pressure must be finite and nonnegative")
+    if reduced_pressure == 0.0:
+        return 1.0
+    alpha = float_param(params, "troe_a")
+    if not 0.0 <= alpha <= 1.0:
+        raise ValueError("troe_a must lie in [0, 1]")
+    t3 = float_param(params, "troe_T3")
+    t1 = float_param(params, "troe_T1")
+    if t3 <= 0.0 or t1 <= 0.0:
+        raise ValueError("troe_T1 and troe_T3 must be positive")
+    f_cent = (1.0 - alpha) * exp(-temperature_K / t3) + alpha * exp(-temperature_K / t1)
+    if "troe_T2" in params:
+        t2 = float_param(params, "troe_T2")
+        if t2 <= 0.0:
+            raise ValueError("troe_T2 must be positive when provided")
+        f_cent += exp(-t2 / temperature_K)
+    if f_cent <= 0.0 or not isfinite(f_cent):
+        raise ValueError("Troe F_cent must be finite and positive")
+    log_f_cent = log10(f_cent)
+    log_pr = log10(max(reduced_pressure, 1.0e-300))
+    c_value = -0.4 - 0.67 * log_f_cent
+    n_value = 0.75 - 1.27 * log_f_cent
+    denominator = n_value - 0.14 * (log_pr + c_value)
+    if abs(denominator) < 1.0e-300:
+        raise ValueError("Troe denominator is numerically singular")
+    broadening_log = log_f_cent / (
+        1.0 + ((log_pr + c_value) / denominator) ** 2
+    )
+    factor = 10.0**broadening_log
+    if factor <= 0.0 or not isfinite(factor):
+        raise ValueError("Troe broadening factor must be finite and positive")
+    return factor
+
+
+def prefixed_arrhenius_params(
+    params: Mapping[str, object],
+    prefix: str,
+) -> dict[str, object]:
+    """Extract low/high Arrhenius parameter groups from a falloff law."""
+
+    aliases = {
+        "low": {
+            "A": ("low_A", "A0", "A_low"),
+            "b": ("low_b", "b0", "b_low"),
+            "Ea_J_per_mol": (
+                "low_Ea_J_per_mol",
+                "Ea0_J_per_mol",
+                "Ea_low_J_per_mol",
+                "low_Ea",
+                "Ea0",
+                "Ea_low",
+            ),
+        },
+        "high": {
+            "A": ("high_A", "A_inf", "A_high", "Ainf"),
+            "b": ("high_b", "b_inf", "b_high", "binf"),
+            "Ea_J_per_mol": (
+                "high_Ea_J_per_mol",
+                "Ea_inf_J_per_mol",
+                "Ea_high_J_per_mol",
+                "high_Ea",
+                "Ea_inf",
+                "Ea_high",
+                "Eainf",
+            ),
+        },
+    }
+    if prefix not in aliases:
+        raise ValueError(f"unknown Arrhenius prefix: {prefix}")
+    extracted: dict[str, object] = {}
+    for target_key, candidate_keys in aliases[prefix].items():
+        for candidate in candidate_keys:
+            if candidate in params:
+                extracted[target_key] = params[candidate]
+                break
+        if target_key == "A" and target_key not in extracted:
+            raise ValueError(f"{prefix}-pressure Arrhenius group requires A")
+    extracted.setdefault("b", 0.0)
+    extracted.setdefault("Ea_J_per_mol", 0.0)
+    return extracted
 
 
 def reaction_order_delta(reaction: ReactionSpec) -> float:
@@ -294,14 +520,21 @@ __all__ = [
     "ReactionNetworkLike",
     "ThermochemicalReverseRate",
     "arrhenius_k",
+    "effective_third_body_concentration",
     "evaluate_rate_law",
+    "falloff_reduced_pressure",
     "float_param",
+    "lindemann_falloff_rate_constant",
     "mass_action_rate",
     "positive_reaction_parameter",
+    "prefixed_arrhenius_params",
     "reaction_by_id",
     "reaction_order_delta",
     "reverse_params",
     "reverse_rate_constant",
     "reverse_rate_constant_from_equilibrium",
+    "third_body_efficiencies",
+    "troe_broadening_factor",
+    "troe_falloff_rate_constant",
     "with_reaction_parameter",
 ]
