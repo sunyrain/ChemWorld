@@ -193,6 +193,9 @@ def summarize_baseline_results(results: list[dict[str, Any]]) -> list[dict[str, 
         "cost_aware_score": "cost_aware_score",
         "steps": "steps",
         "precondition_failure_count": "precondition_failure_count",
+        "bo_initial_recipe_count": "bo_initial_recipe_count",
+        "bo_acquisition_recipe_count": "bo_acquisition_recipe_count",
+        "bo_entered_acquisition": "bo_entered_acquisition",
     }
     for (task_id, agent_name), items in sorted(groups.items()):
         row: dict[str, Any] = {

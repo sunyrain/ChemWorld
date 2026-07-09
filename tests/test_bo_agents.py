@@ -6,6 +6,7 @@ from chemworld.agents.bo import (
     SafetyConstrainedBOAgent,
 )
 from chemworld.data.logging import load_jsonl
+from chemworld.eval.metrics import evaluate_records
 from chemworld.eval.runner import run_agent
 
 
@@ -54,3 +55,38 @@ def test_bo_campaign_runs_multiple_recipes(tmp_path) -> None:
     assert records[0]["episode_mode"] == "campaign"
     assert records[0]["benchmark_task_id"] == "reaction-optimization-standard"
 
+
+def test_default_gp_bo_enters_acquisition_under_benchmark_budget(tmp_path) -> None:
+    gp_path = tmp_path / "gp_bo_default.jsonl"
+    random_path = tmp_path / "random_default.jsonl"
+    run_agent(
+        env_id="ChemWorld",
+        agent=GaussianProcessBOAgent(),
+        world_split="public-test",
+        budget=72,
+        objective="balanced",
+        seed=0,
+        task_id="reaction-optimization-standard",
+        output_path=gp_path,
+    )
+    from chemworld.agents.random import RandomAgent
+
+    run_agent(
+        env_id="ChemWorld",
+        agent=RandomAgent(),
+        world_split="public-test",
+        budget=72,
+        objective="balanced",
+        seed=0,
+        task_id="reaction-optimization-standard",
+        output_path=random_path,
+    )
+
+    gp_result = evaluate_records(load_jsonl(gp_path))
+    random_result = evaluate_records(load_jsonl(random_path))
+    assert gp_result.bo_initial_recipe_count == 4
+    assert gp_result.bo_acquisition_recipe_count >= 1
+    assert gp_result.bo_entered_acquisition is True
+    assert gp_result.final_assay_count >= 5
+    assert gp_result.final_best_score > random_result.final_best_score
+    assert gp_result.final_best_score < 0.95

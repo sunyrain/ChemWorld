@@ -37,6 +37,39 @@ def _expected_improvement(
 class CandidateSurrogateMixin:
     rng: np.random.Generator
 
+    def _start_recipe(self, action: dict[str, Any]) -> dict[str, Any]:
+        raise NotImplementedError
+
+    def _reset_surrogate_diagnostics(self) -> None:
+        self._decision_trace: list[dict[str, Any]] = []
+
+    def _start_surrogate_recipe(
+        self,
+        action: dict[str, Any],
+        *,
+        phase: str,
+        trained_recipe_count: int,
+        best_observed_score: float | None = None,
+        acquisition_value: float | None = None,
+        selected_policy: str,
+    ) -> dict[str, Any]:
+        self._decision_trace.append(
+            {
+                "trace_type": "surrogate_recipe_decision",
+                "phase": phase,
+                "trained_recipe_count": trained_recipe_count,
+                "used_surrogate": phase == "acquisition",
+                "selected_policy": selected_policy,
+                "best_observed_score": best_observed_score,
+                "acquisition_value": acquisition_value,
+                "selected_recipe": dict(action),
+            }
+        )
+        return self._start_recipe(action)
+
+    def agent_trace(self) -> list[dict[str, Any]]:
+        return [dict(item) for item in getattr(self, "_decision_trace", [])]
+
     def _candidate_actions(self, count: int) -> list[dict[str, Any]]:
         return [sample_random_action(self.rng) for _ in range(count)]
 
@@ -57,6 +90,7 @@ class GaussianProcessBOAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseA
     def reset(self, task_info: dict[str, Any], seed: int) -> None:
         super().reset(task_info, seed)
         self.rng = np.random.default_rng(seed)
+        self._reset_surrogate_diagnostics()
 
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
         del history
@@ -66,7 +100,12 @@ class GaussianProcessBOAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseA
 
         recipe_history = self._recipe_history
         if len(recipe_history) < self.n_initial:
-            return self._start_recipe(sample_random_action(self.rng))
+            return self._start_surrogate_recipe(
+                sample_random_action(self.rng),
+                phase="initial",
+                trained_recipe_count=len(recipe_history),
+                selected_policy="random_initial_design",
+            )
 
         from sklearn.gaussian_process import GaussianProcessRegressor
         from sklearn.gaussian_process.kernels import Matern, WhiteKernel
@@ -84,7 +123,26 @@ class GaussianProcessBOAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseA
         x_candidates = np.vstack([action_to_vector(action) for action in candidates])
         mu, sigma = model.predict(x_candidates, return_std=True)
         acquisition = _expected_improvement(mu, sigma, best=float(np.max(y_train)))
-        return self._start_recipe(candidates[int(np.argmax(acquisition))])
+        selected_index = int(np.argmax(acquisition))
+        return self._start_surrogate_recipe(
+            candidates[selected_index],
+            phase="acquisition",
+            trained_recipe_count=len(recipe_history),
+            best_observed_score=float(np.max(y_train)),
+            acquisition_value=float(acquisition[selected_index]),
+            selected_policy="gp_expected_improvement",
+        )
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update(
+            {
+                "surrogate_family": "gaussian_process",
+                "n_initial": self.n_initial,
+                "n_candidates": self.n_candidates,
+            }
+        )
+        return manifest
 
 
 class RandomForestEIAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgent):
@@ -103,6 +161,7 @@ class RandomForestEIAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgen
     def reset(self, task_info: dict[str, Any], seed: int) -> None:
         super().reset(task_info, seed)
         self.rng = np.random.default_rng(seed)
+        self._reset_surrogate_diagnostics()
 
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
         del history
@@ -112,7 +171,12 @@ class RandomForestEIAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgen
 
         recipe_history = self._recipe_history
         if len(recipe_history) < self.n_initial:
-            return self._start_recipe(sample_random_action(self.rng))
+            return self._start_surrogate_recipe(
+                sample_random_action(self.rng),
+                phase="initial",
+                trained_recipe_count=len(recipe_history),
+                selected_policy="random_initial_design",
+            )
 
         from sklearn.ensemble import RandomForestRegressor
 
@@ -130,7 +194,27 @@ class RandomForestEIAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgen
         mu = tree_predictions.mean(axis=0)
         sigma = tree_predictions.std(axis=0)
         acquisition = _expected_improvement(mu, sigma, best=float(np.max(y_train)))
-        return self._start_recipe(candidates[int(np.argmax(acquisition))])
+        selected_index = int(np.argmax(acquisition))
+        return self._start_surrogate_recipe(
+            candidates[selected_index],
+            phase="acquisition",
+            trained_recipe_count=len(recipe_history),
+            best_observed_score=float(np.max(y_train)),
+            acquisition_value=float(acquisition[selected_index]),
+            selected_policy="rf_expected_improvement",
+        )
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update(
+            {
+                "surrogate_family": "random_forest",
+                "n_initial": self.n_initial,
+                "n_candidates": self.n_candidates,
+                "n_estimators": self.n_estimators,
+            }
+        )
+        return manifest
 
 
 class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
@@ -153,7 +237,12 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
 
         recipe_history = self._recipe_history
         if len(recipe_history) < self.n_initial:
-            return self._start_recipe(sample_random_action(self.rng))
+            return self._start_surrogate_recipe(
+                sample_random_action(self.rng),
+                phase="initial",
+                trained_recipe_count=len(recipe_history),
+                selected_policy="random_initial_design",
+            )
 
         from sklearn.gaussian_process import GaussianProcessRegressor
         from sklearn.gaussian_process.kernels import Matern, WhiteKernel
@@ -192,6 +281,32 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
         safe_mask = safety_margin <= self.risk_threshold
         if np.any(safe_mask):
             acquisition = np.where(safe_mask, acquisition, -np.inf)
-            return self._start_recipe(candidates[int(np.argmax(acquisition))])
+            selected_index = int(np.argmax(acquisition))
+            return self._start_surrogate_recipe(
+                candidates[selected_index],
+                phase="acquisition",
+                trained_recipe_count=len(recipe_history),
+                best_observed_score=float(np.max(y_train)),
+                acquisition_value=float(acquisition[selected_index]),
+                selected_policy="safe_gp_expected_improvement",
+            )
 
-        return self._start_recipe(candidates[int(np.argmin(safety_margin))])
+        selected_index = int(np.argmin(safety_margin))
+        return self._start_surrogate_recipe(
+            candidates[selected_index],
+            phase="acquisition",
+            trained_recipe_count=len(recipe_history),
+            best_observed_score=float(np.max(y_train)),
+            acquisition_value=float(acquisition[selected_index]),
+            selected_policy="safe_gp_risk_fallback",
+        )
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update(
+            {
+                "surrogate_family": "safe_gaussian_process",
+                "risk_threshold": self.risk_threshold,
+            }
+        )
+        return manifest

@@ -94,6 +94,24 @@ def test_baseline_report_summary_rows_include_pre_release_metrics(tmp_path) -> N
     assert "stderr_invalid_action_rate" in llm_row
     assert "mean_auc" in llm_row
     assert "stderr_auc" in llm_row
+    assert "mean_bo_acquisition_recipe_count" in llm_row
+    assert llm_row["mean_bo_acquisition_recipe_count"] == 0.0
+
+
+def test_baseline_report_exposes_bo_acquisition_diagnostics(tmp_path) -> None:
+    report = generate_baseline_report(
+        task_ids=["reaction-optimization-standard"],
+        agents=["gp_bo"],
+        seeds=[0],
+        output_dir=tmp_path / "bo_report",
+    )
+    row = report.summary_rows[0]
+    assert row["task_id"] == "reaction-optimization-standard"
+    assert row["agent_name"] == "gp_bo"
+    assert row["mean_bo_initial_recipe_count"] == 4.0
+    assert row["mean_bo_acquisition_recipe_count"] >= 1.0
+    assert row["mean_bo_entered_acquisition"] == 1.0
+    assert row["mean_final_best_score"] < 0.95
 
 
 def test_maturity_summary_rejects_silent_task_mixing() -> None:

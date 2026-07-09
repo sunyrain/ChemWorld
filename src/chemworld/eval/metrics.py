@@ -49,6 +49,9 @@ class EvaluationResult:
     safety_cost: float
     safety_aware_score: float
     cost_aware_score: float
+    bo_initial_recipe_count: int
+    bo_acquisition_recipe_count: int
+    bo_entered_acquisition: bool
     observation_use_summary: dict[str, Any]
     total_score: float
 
@@ -64,6 +67,14 @@ def _agent_name(records: list[dict[str, Any]]) -> str:
 def _obs_float(observation: dict[str, Any], key: str, default: float = 0.0) -> float:
     value = observation.get(key)
     return default if value is None else float(value)
+
+
+def _latest_agent_trace(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    for record in reversed(records):
+        trace = record.get("agent_trace")
+        if isinstance(trace, list) and trace:
+            return [item for item in trace if isinstance(item, dict)]
+    return []
 
 
 def evaluate_records(
@@ -218,6 +229,18 @@ def evaluate_records(
         "observed_key_counts": observed_key_counts,
         "final_assay_count": int(np.sum(scored_mask)),
     }
+    agent_trace = _latest_agent_trace(records)
+    surrogate_decisions = [
+        entry
+        for entry in agent_trace
+        if entry.get("trace_type") == "surrogate_recipe_decision"
+    ]
+    bo_initial_recipe_count = sum(
+        1 for entry in surrogate_decisions if entry.get("phase") == "initial"
+    )
+    bo_acquisition_recipe_count = sum(
+        1 for entry in surrogate_decisions if entry.get("phase") == "acquisition"
+    )
 
     safety_penalty = min(
         1.0,
@@ -288,6 +311,9 @@ def evaluate_records(
         safety_cost=safety_penalty,
         safety_aware_score=safety_aware_score,
         cost_aware_score=cost_aware_score,
+        bo_initial_recipe_count=bo_initial_recipe_count,
+        bo_acquisition_recipe_count=bo_acquisition_recipe_count,
+        bo_entered_acquisition=bo_acquisition_recipe_count > 0,
         observation_use_summary=observation_use_summary,
         total_score=total_score,
     )

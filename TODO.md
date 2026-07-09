@@ -10,17 +10,17 @@ copies, are reference archives. Do not use them as live task boards.
 
 | Scope | Total | Done | Active | Claimed | Open | Remaining |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| P0 Pre-release benchmark hardening | 12 | 2 | 1 | 0 | 9 | 10 |
+| P0 Pre-release benchmark hardening | 12 | 3 | 0 | 0 | 9 | 9 |
 | P1 Runtime and environment consistency | 8 | 2 | 0 | 0 | 6 | 6 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 4 | 1 | 3 | 50 | 54 |
+| Total | 58 | 5 | 0 | 3 | 50 | 53 |
 
 Immediate release target:
 
-- Finish P0 and P1 first: 16 remaining items.
-- Finish P0, P1, P2, and P4 for a usable public pre-release package: 27
+- Finish P0 and P1 first: 15 remaining items.
+- Finish P0, P1, P2, and P4 for a usable public pre-release package: 26
   remaining items.
 - P3 is the long professional-physics backlog: 27 remaining items. Pull from it
   only when it directly strengthens a benchmark task or replaces a declared
@@ -83,7 +83,7 @@ Frozen core tasks:
 | P0-BENCH-01 | Codex | Done | Freeze the three-task pre-release contract | Task cards specify objective, budget, allowed operations, instruments, seeds, score metrics, safety limits, maturity tags, and expected qualitative behavior |
 | P0-BENCH-02 |  | Open | Build official seed suite | Public-dev/public-test seed lists and hidden-eval salt policy are documented and loaded by CLI |
 | P0-BENCH-03 | Codex | Done | Generate official baseline table | `chemworld baselines report` runs random, scripted, BO, safe BO, ToolUsingLLMStub, and LLMReplay across frozen task seeds; `baseline_summary_table.json` and docs report mean, stderr, invalid rate, final-assay count, and AUC |
-| P0-BENCH-04 | Codex | Active | Calibrate BO budgets and initial samples | BO agents enter acquisition phase under default benchmark budgets and are stronger than random without saturating score |
+| P0-BENCH-04 | Codex | Done | Calibrate BO budgets and initial samples | BO acquisition diagnostics are recorded in agent traces, metrics, baseline summaries, tests, and docs; GP-BO/safe GP-BO enter acquisition under default budgets and outperform random without saturating score |
 | P0-BENCH-05 |  | Open | Lock golden trajectories | Scripted trajectories for the three core tasks compare observations, reward/info, transaction metadata, and final metrics |
 | P0-BENCH-06 |  | Open | Audit scoring contracts | `obs["score"]`, final assay metrics, `leaderboard_score`, and task score contract recomputation agree |
 | P0-BENCH-07 |  | Open | Harden replay verifier | Verify catches tampered mechanism hash, scoring hash, profile hash, reward, observation, and transaction summary |
@@ -176,11 +176,11 @@ behavior.
 
 Do these next, in order:
 
-1. `P0-BENCH-04`: finish BO calibration and acquisition-phase diagnostics.
-2. `P1-CONSIST-03`: audit action affordance consistency.
-3. `P0-BENCH-08`: publish a valid submission bundle example.
-4. `P0-BENCH-02`: build the official seed suite.
-5. `P1-CONSIST-04`: audit invalid action atomicity.
+1. `P1-CONSIST-03`: audit action affordance consistency.
+2. `P0-BENCH-08`: publish a valid submission bundle example.
+3. `P0-BENCH-02`: build the official seed suite.
+4. `P1-CONSIST-04`: audit invalid action atomicity.
+5. `P0-BENCH-05`: lock golden trajectories.
 
 This sequence reduces the highest public benchmark risk first: baseline
 credibility, agent-facing action clarity, submission reproducibility, seed
