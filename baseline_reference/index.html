@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/baseline_reference/">
       
       
-        <link rel="prev" href="../benchmark_protocol/">
+        <link rel="prev" href="../seed_suite/">
       
       
         <link rel="next" href="../submission/">
@@ -1038,6 +1038,34 @@
     
   
     评测协议
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seed_suite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Official Seed Suite
   
 
     
@@ -2279,6 +2307,9 @@
 <h2 id="_1">生成报告</h2>
 <p>默认命令会使用预发布三任务、官方 baseline agent 集合和每个任务冻结的 seeds：</p>
 <pre><code class="language-powershell">chemworld baselines report --output-dir runs/baseline_report
+</code></pre>
+<p>冻结 seeds 来自 official seed suite：</p>
+<pre><code class="language-powershell">chemworld seeds show
 </code></pre>
 <p>快速 smoke 可缩小任务、agent 和 seed：</p>
 <pre><code class="language-powershell">chemworld baselines report `

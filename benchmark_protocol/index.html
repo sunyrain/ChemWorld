@@ -16,7 +16,7 @@
         <link rel="prev" href="../agent_interaction_examples/">
       
       
-        <link rel="next" href="../baseline_reference/">
+        <link rel="next" href="../seed_suite/">
       
       
         
@@ -1101,6 +1101,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#seed-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Seed Suite
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1159,6 +1170,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seed_suite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Official Seed Suite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2253,6 +2292,21 @@
 <li><code>private_eval</code>：隐藏 scenario 或隐藏任务切片，用于 leaderboard。</li>
 </ul>
 <p>所有 split 共享同一个 <code>world_law_id</code>，但隐藏参数和评分 seed 不应泄露。</p>
+<h2 id="seed-suite">Seed Suite</h2>
+<p>正式报告必须声明使用哪一组 seed。预发布阶段的官方 seed suite 可由 CLI 查询：</p>
+<pre><code class="language-bash">chemworld seeds show
+</code></pre>
+<p>核心规则：</p>
+<ul>
+<li><code>public-dev</code> seeds 可公开用于教学、调试和 smoke test；</li>
+<li><code>public-test</code> seeds 公开且冻结，用于 baseline 表和外部复现实验；</li>
+<li><code>private-eval</code> hidden seeds 和 salt 由维护者控制；</li>
+<li>没有 <code>CHEMWORLD_PRIVATE_EVAL_SALT</code> 时，<code>private-eval</code> 只代表本地 placeholder；</li>
+<li><code>chemworld suite --task ...</code> 和 <code>chemworld baselines report --tasks ...</code> 默认读取
+  official seed suite；</li>
+<li>显式 <code>--seeds</code> 是 smoke/debug override，不能冒充完整官方结果。</li>
+</ul>
+<p>详见 <a href="../seed_suite/">Official Seed Suite</a>。</p>
 <h2 id="_2">提交要求</h2>
 <p>提交包应包含 agent 入口、依赖、配置和 manifest。评测端负责创建环境、运行 episode、
 保存 trajectory 并计算分数。</p>
