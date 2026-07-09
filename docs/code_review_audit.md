@@ -483,6 +483,11 @@ Recommended follow-up:
   recipe-scale policies at zero actual charge until `add_reagent`, scoring
   reads the typed species ledger, and the constitution rejects
   `initial_*_mol`/`initial_reactant_mol` metadata keys.
+- Promoted downstream operation status and diagnostics out of runtime metadata.
+  Crystal filtering now records completion and filtered material summaries on a
+  typed `crystal_filter` equipment record, while distillation and fraction
+  collection record model diagnostics and collection settings on the typed
+  `distillation_column` equipment record.
 - Promoted phase-system readiness, settled status, and selected-phase state out
   of runtime metadata into typed `PhaseLedger` records. Constitution
   preconditions now read `PhaseRecord.settled/selected`, extraction,

@@ -1319,6 +1319,25 @@ def test_constitution_rejects_primary_distillation_output_metadata() -> None:
     )
 
 
+def test_constitution_rejects_primary_downstream_operation_metadata() -> None:
+    state = initial_chemworld_state().replace(
+        metadata={
+            **initial_chemworld_state().metadata,
+            "crystals_filtered": True,
+            "distillation_model": "vle_shortcut_distillation",
+            "distillation_kernel": {"stage_efficiency": 0.62},
+            "fraction_collected": True,
+        }
+    )
+    report = make_chemworld_constitution().check_state(state)
+
+    assert not report.passed
+    assert any(
+        check.name == "metadata_no_primary_downstream_operation_status"
+        for check in report.failures()
+    )
+
+
 def test_constitution_rejects_primary_process_metric_metadata() -> None:
     state = initial_chemworld_state().replace(
         metadata={
@@ -1611,6 +1630,7 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         _, _, _, _, filter_info = env.step({"operation": "filter_crystals"})
         state = env.unwrapped._state
         solid_after_filter = state.phases.phases["solid"]
+        filter_settings = equipment_settings(state.equipment, "crystal_filter")
         assert filter_info["transaction_status"] == "committed"
         assert solid_after_filter.species_amounts_mol["P"] == pytest.approx(
             solid_product_before_filter * 0.96
@@ -1628,6 +1648,9 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         assert "recovery" not in state.metadata
         assert "pre_separation_product_mol" not in state.metadata
         assert "solvent_loss" not in state.metadata
+        assert "crystals_filtered" not in state.metadata
+        assert filter_settings["crystals_filtered"] is True
+        assert filter_settings["filtered_product_mol"] > 0.0
         assert state.process.metrics["pre_separation_product_mol"] > 0.0
         assert state.process.metrics["solvent_loss"] > 0.0
         assert state.process.metrics["crystal_yield"] > 0.0
@@ -1677,6 +1700,7 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert distill_info["transaction_status"] == "committed"
         assert state.phases is not None
         assert {"distillate", "bottoms"} <= set(state.phases.phases)
+        distillation_settings = equipment_settings(state.equipment, "distillation_column")
         target_species = species_view.target_species_for_state(state)
         impurity_species = species_view.impurity_species_for_state(state)
         distillate_before_collect = state.phases.phases["distillate"]
@@ -1698,6 +1722,10 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert "distillate_recovery" not in state.metadata
         assert "pre_separation_product_mol" not in state.metadata
         assert "solvent_loss" not in state.metadata
+        assert "distillation_model" not in state.metadata
+        assert "distillation_kernel" not in state.metadata
+        assert distillation_settings["distillation_model"] == "vle_shortcut_distillation"
+        assert "distillation_kernel" in distillation_settings
         assert state.process.metrics["pre_separation_product_mol"] > 0.0
         assert state.process.metrics["solvent_loss"] > 0.0
         assert state.process.metrics["distillate_purity"] > 0.0
@@ -1714,6 +1742,7 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         )
         state = env.unwrapped._state
         distillate_after_collect = state.phases.phases["distillate"]
+        fraction_settings = equipment_settings(state.equipment, "distillation_column")
         assert collect_info["transaction_status"] == "committed"
         assert sum(
             distillate_after_collect.species_amounts_mol[species_id]
@@ -1737,6 +1766,9 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert "recovery" not in state.metadata
         assert "pre_separation_product_mol" not in state.metadata
         assert "solvent_loss" not in state.metadata
+        assert "fraction_collected" not in state.metadata
+        assert fraction_settings["fraction_collected"] is True
+        assert fraction_settings["transfer_fraction"] == pytest.approx(0.92)
         assert state.process.metrics["pre_separation_product_mol"] > 0.0
         assert state.process.metrics["solvent_loss"] > 0.0
         assert state.process.metrics["distillate_purity"] > 0.0

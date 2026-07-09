@@ -66,6 +66,13 @@ class PhysicalConstitution:
         "distillate_impurity_mol",
     }
 
+    primary_downstream_operation_metadata_keys: ClassVar[set[str]] = {
+        "crystals_filtered",
+        "distillation_model",
+        "distillation_kernel",
+        "fraction_collected",
+    }
+
     primary_process_metric_metadata_keys: ClassVar[set[str]] = {
         "last_observation",
         "last_observed_mask",

@@ -164,7 +164,6 @@ class ChemWorldCrystallizationServices:
         )
 
     def filter_crystals(self, state: WorldState) -> WorldState:
-        metadata = state.metadata.copy()
         target_species = self.species_view.primary_target_species
         impurity_species = self.species_view.primary_impurity_species
         solid_product, solid_impurity = _solid_phase_amounts(
@@ -186,10 +185,18 @@ class ChemWorldCrystallizationServices:
             1.0,
             float(process_metrics.get("solvent_loss", 0.0)) + 0.04,
         )
-        metadata.update(
-            {
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="crystal_filter",
+            equipment_type="solid_liquid_filter",
+            attached_vessel_id=state.vessel_id,
+            status="completed",
+            settings={
                 "crystals_filtered": True,
-            }
+                "filtered_product_mol": product,
+                "filtered_impurity_mol": impurity,
+                "filter_purity": purity,
+            },
         )
         process = process_with_metrics(
             state.process,
@@ -213,7 +220,12 @@ class ChemWorldCrystallizationServices:
             mother_liquor_volume_L=state.volume_L * 0.92,
             solvent_loss=solvent_loss,
         )
-        return state.replace(ledger=ledger, metadata=metadata, phases=phases, process=process)
+        return state.replace(
+            ledger=ledger,
+            phases=phases,
+            process=process,
+            equipment=equipment,
+        )
 
 
 __all__ = ["ChemWorldCrystallizationServices"]

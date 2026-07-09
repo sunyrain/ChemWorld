@@ -353,9 +353,9 @@ shortcut slice:
 - Component distribution ratios satisfy the Fenske-style identity
   `(D_i/B_i)/(D_j/B_j) = (alpha_i/alpha_j)**N_eff`, which is checked in local
   tests.
-- The ChemWorld `distill` operation now records `distillation_model =
-  "vle_shortcut_distillation"` and stores the VLE/Fenske metadata in the
-  campaign state ledger.
+- The ChemWorld `distill` operation records `distillation_model =
+  "vle_shortcut_distillation"` and VLE/Fenske diagnostics on the typed
+  `distillation_column` equipment record.
 - The `reaction-to-distillation` task metadata now reports the distillation
   module as `reference_validated` rather than proxy.
 - `separation_model_cards()` records equations, assumptions, validity limits,

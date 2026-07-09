@@ -122,6 +122,14 @@ def check_typed_ledgers(constitution: Any, state: WorldState) -> list[CheckResul
             "Distillate material amounts must live in typed PhaseLedger.",
         ),
         CheckResult(
+            "metadata_no_primary_downstream_operation_status",
+            constitution.primary_downstream_operation_metadata_keys.isdisjoint(
+                state.metadata
+            ),
+            "Downstream operation status and diagnostics must live in typed "
+            "EquipmentLedger or ProcessLedger.",
+        ),
+        CheckResult(
             "metadata_no_primary_process_metrics",
             constitution.primary_process_metric_metadata_keys.isdisjoint(state.metadata),
             "Derived process metrics must live in typed ProcessLedger.",

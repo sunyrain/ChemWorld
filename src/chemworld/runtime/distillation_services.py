@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState, process_with_metrics
+from chemworld.foundation import WorldState, process_with_metrics, upsert_equipment_record
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.physchem.separations import vle_shortcut_distillation
 from chemworld.runtime.species import MechanismSpeciesView
@@ -171,12 +171,19 @@ class ChemWorldDistillationServices:
             p_mol,
             1.0e-12,
         )
-        metadata = state.metadata.copy()
-        metadata.update(
-            {
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="distillation_column",
+            equipment_type="shortcut_distillation_column",
+            attached_vessel_id=state.vessel_id,
+            status="distilled",
+            settings={
                 "distillation_model": "vle_shortcut_distillation",
                 "distillation_kernel": distillation_metadata,
-            }
+                "distillate_cut_fraction": distillate_cut,
+                "theoretical_stages": theoretical_stages,
+                "reflux_ratio": reflux,
+            },
         )
         solvent_loss = float(process_metrics.get("solvent_loss", 0.0))
         process = process_with_metrics(
@@ -208,7 +215,7 @@ class ChemWorldDistillationServices:
             volume_L=volume_after_distill,
             temperature_K=target_temperature,
             ledger=ledger,
-            metadata=metadata,
+            equipment=equipment,
             process=process,
             phases=phases,
         )
@@ -232,11 +239,19 @@ class ChemWorldDistillationServices:
             target_amount,
             1.0e-12,
         )
-        metadata = state.metadata.copy()
-        metadata.update(
-            {
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="distillation_column",
+            equipment_type="shortcut_distillation_column",
+            attached_vessel_id=state.vessel_id,
+            status="fraction_collected",
+            settings={
                 "fraction_collected": True,
-            }
+                "transfer_fraction": fraction,
+                "collected_product_mol": product,
+                "collected_impurity_mol": impurity,
+                "collected_purity": purity,
+            },
         )
         solvent_loss = float(process_metrics.get("solvent_loss", 0.0))
         process = process_with_metrics(
@@ -262,7 +277,7 @@ class ChemWorldDistillationServices:
         return state.replace(
             volume_L=state.volume_L * fraction,
             ledger=ledger,
-            metadata=metadata,
+            equipment=equipment,
             process=process,
             phases=phases,
         )

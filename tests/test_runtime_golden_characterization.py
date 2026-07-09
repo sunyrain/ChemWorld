@@ -256,6 +256,10 @@ def test_runtime_v2_golden_scripted_final_assay(
             "distillate_impurity_mol",
             "solvent_loss",
             "initial_reactant_mol",
+            "crystals_filtered",
+            "distillation_model",
+            "distillation_kernel",
+            "fraction_collected",
         }.isdisjoint(env.unwrapped._state.metadata)
         assert not any(
             key.startswith("initial_") and key.endswith("_mol")
