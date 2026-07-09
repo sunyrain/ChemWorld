@@ -51,6 +51,7 @@ with proxies and then call them professional.
 | `DEEP-D1B` | liyijun | Claimed | Unit-dimension checker with canonical dimensions for amount, mass, volume, temperature, pressure, energy, power, viscosity, diffusivity, conductivity, and instrument response, plus compatibility tests before kernels run. |
 | `DEEP-D1C` | liyijun | Claimed | Data conflict policy with source-priority, uncertainty-aware warning versus hard-fail modes, unit compatibility checks, JSON-friendly resolution reports, and curated registry provenance. |
 | `DEEP-D10A` | whilesunny | Done | Model-maturity gate audit for task, trajectory, baseline, and leaderboard outputs; benchmark artifacts expose proxy/lite/professional metadata and reject silent same-task maturity mixing. |
+| `DEEP-D11A` | whilesunny | Claimed | Electrochemical ohmic-drop and electrolyte-resistance slice: solution resistance, uncompensated voltage drop, measured versus interfacial potential, energy-loss accounting, and runtime/task metadata. |
 
 ## Module Families
 
