@@ -2529,6 +2529,10 @@ runs/audit/trajectories/*.jsonl
 <td>precondition failure 数量</td>
 </tr>
 <tr>
+<td><code>ledger_single_source_failures</code></td>
+<td>typed ledger 单一事实源审计失败数量</td>
+</tr>
+<tr>
 <td><code>verify_status</code></td>
 <td>replay verifier 是否通过</td>
 </tr>
@@ -2586,6 +2590,10 @@ runs/audit/trajectories/*.jsonl
 </tr>
 <tr>
 <td><code>constitution_failures</code></td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>ledger_single_source_failures</code></td>
 <td style="text-align: right;">0</td>
 </tr>
 </tbody>
@@ -2683,10 +2691,18 @@ recovery 与 raw spectra 指向同一个被测样品。</p>
 <li>typed phase/vessel/equipment/process ledger。</li>
 <li>material conservation、phase mass balance、vessel bounds、equipment attachment。</li>
 <li>metadata 禁止保存 primary structured state。</li>
+<li>ledger single-source audit：<code>PhaseLedger</code> 是物料状态主来源，<code>ProcessLedger</code>
+  是时间、成本、风险和样品消耗主来源；legacy <code>species_amounts</code> 与 <code>ledger</code> 只作为兼容视图，
+  必须与 typed ledgers 保持同步。</li>
 </ul>
 <p>审计标准：</p>
 <ul>
 <li>每步 <code>constitution.check_state(state)</code> 必须通过。</li>
+<li><code>audit_ledger_single_source_of_truth(state)</code> 必须无失败。</li>
+<li><code>PhaseLedger.total_amounts_mol()</code> 必须等于 compatibility <code>state.species_amounts</code>。</li>
+<li>vessel、phase、equipment、thermal ledger 的引用必须闭合。</li>
+<li>state metadata 和 phase metadata 不得保存 primary material、vessel、equipment、instrument
+  或 process state。</li>
 <li><code>constraint_flags["constitution_failed"]</code> 不应出现。</li>
 <li>非法动作只应影响 process penalty，不应破坏 material ledger。</li>
 </ul>

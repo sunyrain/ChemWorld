@@ -2675,7 +2675,13 @@ Operation   -&gt; 单步实验动作
 </tr>
 </tbody>
 </table>
-<p>物料状态以 phase ledger 为单一事实源，global species totals 是从 phase ledger 聚合得到的视图。普通 agent 只能看到 observation，不会直接读取 hidden material ledger。</p>
+<p>物料状态以 phase ledger 为单一事实源，global species totals 是从 phase ledger 聚合得到的视图。<code>WorldState.species_amounts</code>
+仍作为兼容视图存在，但每次 constitution check 会通过 ledger single-source audit 确认它与
+<code>PhaseLedger.total_amounts_mol()</code> 同步。</p>
+<p>同样，<code>ProcessLedger</code> 是时间、成本、风险、样品消耗和过程指标的主来源；legacy <code>Ledger</code>
+只作为兼容视图。vessel、phase、equipment 和 thermal ledgers 的交叉引用也会被审计。
+metadata 不允许保存 primary material、phase、vessel、equipment、instrument 或 process
+state。普通 agent 只能看到 observation，不会直接读取 hidden material ledger。</p>
 <h2 id="8-observation-and-spectra">8. Observation And Spectra</h2>
 <p>观测分三层：</p>
 <table>
