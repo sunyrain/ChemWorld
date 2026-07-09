@@ -164,18 +164,17 @@ scenario binds to a mechanism card, such as `simple_batch_reaction`,
 `mechanism_hash` in reset info and trajectory logs so replay can fail fast when
 the mechanism artifact changes.
 
-Runtime services now read species roles through the compiled mechanism. The
-legacy batch names remain isolated as world-level default role bindings;
-generic scoring, observation truth, reagent addition, electrochemical
-conversion, phase bookkeeping, distillation summaries, and flow conversion use
-semantic roles such as reactant, target, impurity, catalyst, and degradation
-marker.
+Runtime services read species roles through the compiled mechanism. Generic
+scoring, observation truth, reagent addition, electrochemical conversion, phase
+bookkeeping, distillation summaries, and flow conversion use semantic roles
+such as reactant, target, impurity, catalyst, and degradation marker rather
+than hard-coded species names.
 
 Typed ledgers in `WorldState` expose species definitions, phase material
 amounts, vessel bounds, equipment attachment, per-vessel heat ledgers, and
-process cost/risk/time. During the current migration, the legacy scalar state is
-adapted into typed ledgers so phase totals remain synchronized with the hidden
-material state.
+process cost/risk/time. Helper views keep scalar observations synchronized with
+the typed ledger state so benchmark agents can use stable numeric observation
+keys without reading hidden material ledgers.
 
 ## Task Registry
 

@@ -1,49 +1,82 @@
-site_name: ChemWorld-Bench
-site_description: Research benchmark for closed-loop virtual chemical experimentation.
+site_name: ChemWorld-Bench 文档
+site_description: 面向闭环虚拟化学实验和 agent world model 研究的基准文档。
 theme:
   name: material
+  language: zh
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+extra:
+  alternate:
+    - name: 中文
+      link: /
+      lang: zh
+    - name: English
+      link: /en/
+      lang: en
+extra_css:
+  - assets/stylesheets/language-switch.css
 nav:
-  - Home: index.md
-  - ChemWorld Overview ZH: chemworld_overview_zh.md
-  - Current Progress: current_progress.md
-  - Project Management: project_management.md
-  - Local Reference Repos: reference_repos.md
-  - Tutorial Curriculum ZH: tutorial_curriculum_zh.md
-  - SOTA Agent Environment Gap Audit: sota_agent_environment_gap_audit.md
-  - Codex 5.5 Medium Behavior Report: codex55_medium_behavior_report.md
-  - Architecture: architecture.md
-  - Technical Architecture ZH: technical_architecture_zh.md
-  - World Law: world_law.md
-  - PhysChem Core Design: physchem_core_design.md
-  - PhysChem Maturity Audit: physchem_maturity_audit.md
-  - Code Review Audit: code_review_audit.md
-  - Professional TODO: professional_todo.md
-  - Professional Deepening TODO: professional_deepening_todo.md
-  - Scenario Generation: scenario_generation.md
-  - Campaign Model: campaign_model.md
-  - Task Taxonomy: task_taxonomy.md
-  - Benchmark Protocol: benchmark_protocol.md
-  - Tasks: tasks.md
-  - Task Cards: task_cards.md
-  - Operations: operations.md
-  - Action Schema: action_schema.md
-  - Mechanism Schema: mechanism_schema.md
-  - Instrument Contracts: instrument_contracts.md
-  - Virtual Spectroscopy: spectroscopy.md
-  - Safety And Cost: safety_cost.md
-  - Dataset Layer: dataset_layer.md
-  - Environment Card: env_cards.md
-  - Backends: backends.md
-  - Reaction and Separation Tasks: reaction_separation_tasks.md
-  - Baseline Reference: baseline_reference.md
-  - Leaderboard Project Blueprint: leaderboard_project_blueprint.md
-  - World-Model Learning: world_model_learning.md
-  - Wrappers: wrappers.md
-  - Submission Bundles: submission.md
-  - Local Eval Machine: local_eval_machine.md
-  - API Reference: api_reference.md
-  - Demos: demos.md
-  - Ethics and Data: ethics_and_data.md
-  - Paper Artifact: paper_artifact.md
-  - Release Checklist: release_checklist.md
-  - Roadmap: roadmap.md
+  - 首页: index.md
+  - English: en/index.md
+  - 项目状态:
+      - 当前进展: current_progress.md
+      - 站点审计: site_audit_zh.md
+      - 站点层级规划: site_structure_zh.md
+      - 发布检查表: release_checklist.md
+      - 路线图: roadmap.md
+  - 核心概念:
+      - 项目总览: chemworld_overview_zh.md
+      - 世界律: world_law.md
+      - 架构设计: architecture.md
+      - 技术架构: technical_architecture_zh.md
+      - 物理化学核心设计: physchem_core_design.md
+      - World Model 学习: world_model_learning.md
+  - Benchmark 合同:
+      - 环境卡: env_cards.md
+      - 任务分类: task_taxonomy.md
+      - Tasks: tasks.md
+      - 任务卡: task_cards.md
+      - 场景生成: scenario_generation.md
+      - Campaign 模型: campaign_model.md
+      - 操作协议: operations.md
+      - Action Schema: action_schema.md
+      - Mechanism Schema: mechanism_schema.md
+      - 仪器合同: instrument_contracts.md
+      - 虚拟光谱: spectroscopy.md
+      - 安全与成本: safety_cost.md
+      - Wrappers: wrappers.md
+      - 提交包: submission.md
+      - 评测协议: benchmark_protocol.md
+      - Backends: backends.md
+  - 评测与数据:
+      - Baseline 参考: baseline_reference.md
+      - 数据集层: dataset_layer.md
+      - 本地评测机: local_eval_machine.md
+      - 榜单蓝图: leaderboard_project_blueprint.md
+      - 论文产物: paper_artifact.md
+      - 伦理与数据: ethics_and_data.md
+  - 教程与示例:
+      - 教程课程图: tutorial_curriculum_zh.md
+      - Demos: demos.md
+      - API Reference: api_reference.md
+      - 反应与分离任务: reaction_separation_tasks.md
+  - 审计:
+      - 环境自一致性审计: environment_self_consistency_audit_zh.md
+      - 物化成熟度审计: physchem_maturity_audit.md
+      - SOTA Agent 环境差距审计: sota_agent_environment_gap_audit.md
+      - Codex 5.5 Medium 行为报告: codex55_medium_behavior_report.md
+      - 代码审计: code_review_audit.md
+  - 开发与发布:
+      - 项目管理: project_management.md
+      - 本地参考仓库: reference_repos.md
+      - Professional TODO: professional_todo.md
+      - Professional 深化 TODO: professional_deepening_todo.md
