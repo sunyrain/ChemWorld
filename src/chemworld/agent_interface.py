@@ -68,6 +68,131 @@ FIELD_CHOICES: dict[str, list[Any]] = {
     "extractant": ["organic", "aqueous", "toluene", "ethyl_acetate"],
 }
 
+OPERATION_GROUPS: dict[str, tuple[str, ...]] = {
+    "reaction_setup": ("add_solvent", "add_reagent", "add_catalyst"),
+    "reaction_control": ("heat", "wait", "quench", "terminate"),
+    "sampling_and_measurement": ("sample", "measure"),
+    "phase_setup": ("add_phase", "add_extractant"),
+    "phase_partition": ("mix", "settle", "separate_phase"),
+    "purification": ("transfer", "wash", "dry", "concentrate"),
+}
+
+PRE_RELEASE_TASK_PROMPT_PROFILES: dict[str, dict[str, Any]] = {
+    "reaction-to-assay": {
+        "task_goal": (
+            "Run one complete reaction experiment from charging the reactor to a "
+            "valid terminal final assay."
+        ),
+        "success_criteria": [
+            "Reach a valid final_assay after a physically legal operation sequence.",
+            "Improve final_assay_score while keeping the trajectory valid.",
+            "Use intermediate instruments only when their information is worth the cost.",
+        ],
+        "constraints": [
+            "Single-experiment task: final_assay ends the episode.",
+            "Terminate or quench before requesting final_assay.",
+            "Heating before adding solvent/reagent/catalyst is invalid.",
+        ],
+        "measurement_policy": (
+            "HPLC, GC, and UV-vis are noisy intermediate tools; final_assay is the "
+            "high-cost terminal measurement used for the task result."
+        ),
+        "recommended_strategy": [
+            "Charge solvent and reagent first, then add catalyst if used.",
+            "Choose a temperature/time pair, run heat or wait, then inspect with HPLC/UV-vis.",
+            "Terminate and run final_assay only after the reaction has meaningful conversion.",
+        ],
+        "failure_modes": [
+            "precondition failure",
+            "budget exhaustion before final_assay",
+            "unsafe high-temperature or high-risk trajectory",
+        ],
+    },
+    "reaction-to-purification": {
+        "task_goal": (
+            "Complete a reaction, extract product through phase separation, purify "
+            "the material, and submit a final assay."
+        ),
+        "success_criteria": [
+            "Maximize score while balancing purity, recovery, and cost.",
+            "Keep process_mass_balance_error small through separation and purification.",
+            "Use final_assay after downstream workup to make the result leaderboard eligible.",
+        ],
+        "constraints": [
+            "Single-experiment task: final_assay ends the episode.",
+            "Downstream purification should follow a terminated or quenched reaction.",
+            "Phase operations require appropriate phase or extractant setup.",
+        ],
+        "measurement_policy": (
+            "Intermediate HPLC/GC/UV-vis can guide reaction and workup choices. "
+            "The final_assay should be run on the selected purified material."
+        ),
+        "recommended_strategy": [
+            "First generate product under safe reaction conditions.",
+            (
+                "Add extractant or phase, mix, settle, and separate the phase "
+                "expected to carry product."
+            ),
+            "Use wash/dry/concentrate to trade recovery against purity before final_assay.",
+        ],
+        "failure_modes": [
+            "poor phase split",
+            "low product recovery",
+            "high impurity after purification",
+            "mass-balance drift",
+        ],
+    },
+    "partition-discovery": {
+        "task_goal": (
+            "Learn the public behavior of an unknown product/solvent partition system "
+            "through repeated finite-budget experiments."
+        ),
+        "success_criteria": [
+            "Estimate phase_ratio from public observations.",
+            "Identify when product is enriched in organic versus aqueous phase.",
+            "Use measurements efficiently across campaign experiments.",
+        ],
+        "constraints": [
+            (
+                "Campaign task: one terminal assay or termination summarizes an "
+                "experiment, not the whole campaign."
+            ),
+            "Partition coefficients and hidden phase amounts are not directly visible.",
+            "Phase split actions require a valid phase setup, mixing, and settling sequence.",
+        ],
+        "measurement_policy": (
+            "Use HPLC/GC/UV-vis/final_assay as public instruments to infer partition "
+            "trends; do not assume hidden partition coefficients are known."
+        ),
+        "recommended_strategy": [
+            "Vary solvent or extractant choices across experiments.",
+            "Use mix and settle before separating phases.",
+            (
+                "Compare instrument summaries from organic and aqueous outcomes "
+                "to build a local model."
+            ),
+        ],
+        "failure_modes": [
+            "insufficient phase setup",
+            "separating before settling",
+            "overusing costly measurements",
+            "confusing noisy instrument estimates with hidden truth",
+        ],
+    },
+}
+
+HIDDEN_INFORMATION_POLICY = (
+    "No hidden species amounts, rate constants, mechanism parameters, partition "
+    "coefficients, hidden phase amounts, or private scenario parameters are exposed "
+    "through agent-facing views."
+)
+
+SUBMISSION_REQUIREMENTS = [
+    "trajectory JSONL",
+    "agent manifest",
+    "reproducible command or replay trace",
+]
+
 
 def _base_env(env: Any) -> Any:
     return getattr(env, "unwrapped", env)
@@ -210,51 +335,179 @@ def available_actions(env: Any, *, include_invalid: bool = False) -> list[dict[s
     return actions
 
 
+def _task_spec_value(base: Any, name: str, fallback: Any = None) -> Any:
+    spec = getattr(base, "task_spec", None)
+    if spec is None:
+        return fallback
+    return getattr(spec, name, fallback)
+
+
+def _allowed_operation_groups(allowed_operations: list[str]) -> dict[str, list[str]]:
+    allowed = set(allowed_operations)
+    groups: dict[str, list[str]] = {}
+    grouped: set[str] = set()
+    for group, operations in OPERATION_GROUPS.items():
+        present = [operation for operation in operations if operation in allowed]
+        if present:
+            groups[group] = present
+            grouped.update(present)
+    other = sorted(allowed - grouped)
+    if other:
+        groups["other"] = other
+    return groups
+
+
+def _default_task_prompt_profile(info: dict[str, Any], base: Any) -> dict[str, Any]:
+    description = _task_spec_value(
+        base,
+        "description",
+        info.get("description") or "Run the ChemWorld task under the public contract.",
+    )
+    return {
+        "task_goal": description,
+        "success_criteria": [
+            "Optimize the public task score under the stated budget and constraints.",
+            "Use only task-allowed operations and instruments.",
+            "Submit a replayable trajectory with public observations and constraint flags.",
+        ],
+        "constraints": [
+            f"Episode mode: {info.get('episode_mode')}.",
+            f"Safety limit: {info.get('safety_limit')}.",
+            "Measurements are noisy and consume time, sample, or cost.",
+        ],
+        "measurement_policy": (
+            "Use available instruments to obtain public observations. Instrument "
+            "outputs are partial, noisy, and cost-aware."
+        ),
+        "recommended_strategy": [
+            "Validate actions before executing them.",
+            "Use measurements to update a local world model.",
+            "Balance score, cost, risk, and remaining budget.",
+        ],
+        "failure_modes": [
+            "invalid operation",
+            "precondition failure",
+            "budget exhaustion",
+            "unsafe or high-cost trajectory",
+        ],
+    }
+
+
+def _task_prompt_profile(info: dict[str, Any], base: Any) -> dict[str, Any]:
+    task_id = str(info.get("task_id") or "")
+    if task_id in PRE_RELEASE_TASK_PROMPT_PROFILES:
+        return PRE_RELEASE_TASK_PROMPT_PROFILES[task_id]
+    return _default_task_prompt_profile(info, base)
+
+
+def _render_task_prompt_text(
+    *,
+    task_id: str,
+    objective: Any,
+    budget: Any,
+    episode_mode: Any,
+    safety_limit: Any,
+    profile: dict[str, Any],
+    allowed_operations: list[str],
+    allowed_instruments: list[str],
+    success_metrics: list[str],
+    operation_groups: dict[str, list[str]],
+) -> str:
+    group_lines = [
+        f"  - {group}: {', '.join(operations)}"
+        for group, operations in operation_groups.items()
+    ]
+    lines = [
+        f"Task: {task_id or 'ad-hoc ChemWorld task'}",
+        f"Goal: {profile['task_goal']}",
+        (
+            f"Objective: {objective}; budget: {budget} operations; "
+            f"episode_mode: {episode_mode}; safety_limit: {safety_limit}."
+        ),
+        "Hidden information policy: " + HIDDEN_INFORMATION_POLICY,
+        "Success criteria:",
+        *[f"  - {item}" for item in profile["success_criteria"]],
+        "Constraints:",
+        *[f"  - {item}" for item in profile["constraints"]],
+        "Allowed tools:",
+        f"  - instruments: {', '.join(allowed_instruments)}",
+        "  - operation groups:",
+        *group_lines,
+        f"  - all operations: {', '.join(allowed_operations)}",
+        f"Success metrics: {', '.join(success_metrics) if success_metrics else 'task score'}.",
+        f"Measurement policy: {profile['measurement_policy']}",
+        "Recommended strategy:",
+        *[f"  - {item}" for item in profile["recommended_strategy"]],
+        "Submission requirements: " + ", ".join(SUBMISSION_REQUIREMENTS) + ".",
+    ]
+    return "\n".join(lines)
+
+
 def task_prompt(env: Any) -> dict[str, Any]:
     """Build a natural-language task prompt plus structured task facts."""
 
     base = _base_env(env)
     info = base.task_info()
-    success_metrics = list(info.get("scoring_contract", {}).get("success_metrics", []))
-    lines = [
-        f"Task: {info.get('task_id') or 'ad-hoc ChemWorld task'}",
-        f"Objective: {info.get('objective')} under a budget of {info.get('budget')} operations.",
-        (
-            "You control a partially observable virtual physical-chemical world. "
-            "Hidden species amounts, kinetic parameters, partition coefficients, "
-            "and mechanism internals are not directly observable."
-        ),
-        (
-            "Use only the listed operations and instruments. Measurements are noisy, "
-            "cost time/sample, and final_assay is the leaderboard scoring source."
-        ),
-        f"Allowed operations: {', '.join(info.get('allowed_operations', []))}.",
-        f"Allowed instruments: {', '.join(info.get('allowed_instruments', []))}.",
-        f"Success metrics: {', '.join(success_metrics) if success_metrics else 'task score'}.",
-        (
-            "Submit a valid trajectory with actions, observations, constraint flags, "
-            "and any hypothesis or explanation fields required by the task."
-        ),
-    ]
+    allowed_operations = list(info.get("allowed_operations", []))
+    allowed_instruments = list(info.get("allowed_instruments", []))
+    success_metrics = list(
+        info.get("scoring_contract", {}).get("success_metrics")
+        or _task_spec_value(base, "success_metrics", ())
+        or []
+    )
+    operation_groups = _allowed_operation_groups(allowed_operations)
+    profile = _task_prompt_profile(info, base)
+    task_id = str(info.get("task_id") or "")
+    text = _render_task_prompt_text(
+        task_id=task_id,
+        objective=info.get("objective"),
+        budget=info.get("budget"),
+        episode_mode=info.get("episode_mode"),
+        safety_limit=info.get("safety_limit"),
+        profile=profile,
+        allowed_operations=allowed_operations,
+        allowed_instruments=allowed_instruments,
+        success_metrics=success_metrics,
+        operation_groups=operation_groups,
+    )
     return {
-        "text": "\n".join(lines),
+        "text": text,
         "task_id": info.get("task_id"),
         "objective": info.get("objective"),
         "budget": info.get("budget"),
         "episode_mode": info.get("episode_mode"),
+        "description": _task_spec_value(base, "description", info.get("description")),
+        "world_law_id": info.get("world_law_id"),
+        "scenario_id": info.get("scenario_id"),
         "allowed_operations": info.get("allowed_operations", []),
         "allowed_instruments": info.get("allowed_instruments", []),
         "success_metrics": success_metrics,
         "safety_limit": info.get("safety_limit"),
-        "hidden_information_policy": (
-            "No hidden species amounts, rate constants, mechanism parameters, or "
-            "private scenario parameters are exposed through agent-facing views."
+        "threshold": _task_spec_value(base, "threshold", info.get("threshold")),
+        "termination_policy": _task_spec_value(
+            base,
+            "termination_policy",
+            info.get("termination_policy"),
         ),
-        "submission_requirements": [
-            "trajectory JSONL",
-            "agent manifest",
-            "reproducible command or replay trace",
-        ],
+        "observation_policy": _task_spec_value(
+            base,
+            "observation_policy",
+            info.get("observation_policy"),
+        ),
+        "task_goal": profile["task_goal"],
+        "constraints": list(profile["constraints"]),
+        "success_criteria": list(profile["success_criteria"]),
+        "allowed_tools": {
+            "operations": allowed_operations,
+            "operation_groups": operation_groups,
+            "instruments": allowed_instruments,
+        },
+        "measurement_policy": profile["measurement_policy"],
+        "recommended_strategy": list(profile["recommended_strategy"]),
+        "failure_modes": list(profile["failure_modes"]),
+        "hidden_information_policy": HIDDEN_INFORMATION_POLICY,
+        "submission_requirements": list(SUBMISSION_REQUIREMENTS),
+        "prompt_version": "chemworld-agent-task-prompt-0.2",
     }
 
 

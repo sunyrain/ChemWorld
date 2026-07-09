@@ -10,6 +10,7 @@ from chemworld.agents.llm import LLMReplayAgent, ToolUsingLLMStubAgent
 from chemworld.data.datasets import flatten_record
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.runner import run_agent
+from chemworld.foundation.public_leakage import audit_public_payload
 from chemworld.wrappers import (
     ActionSuggestionWrapper,
     AgentInfoWrapper,
@@ -50,6 +51,71 @@ def test_env_exposes_agent_facing_methods() -> None:
         assert before == after
     finally:
         env.close()
+
+
+def test_pre_release_task_prompts_are_structured_and_public() -> None:
+    expectations = {
+        "reaction-to-assay": {
+            "must_include": [
+                "single-experiment",
+                "final_assay_score",
+                "trajectory_validity",
+                "Terminate",
+            ],
+            "metrics": {"final_assay_score", "trajectory_validity"},
+        },
+        "reaction-to-purification": {
+            "must_include": [
+                "purity",
+                "recovery",
+                "process_mass_balance_error",
+                "phase separation",
+                "final_assay",
+            ],
+            "metrics": {"score", "purity", "recovery", "process_mass_balance_error"},
+        },
+        "partition-discovery": {
+            "must_include": [
+                "Campaign task",
+                "partition",
+                "phase_ratio",
+                "product_in_organic",
+                "product_in_aqueous",
+            ],
+            "metrics": {"phase_ratio", "product_in_organic", "product_in_aqueous"},
+        },
+    }
+    for task_id, expected in expectations.items():
+        env = gym.make("ChemWorld", task_id=task_id, seed=0)
+        try:
+            env.reset(seed=0)
+            prompt = env.unwrapped.task_prompt()
+            text = prompt["text"]
+            assert prompt["prompt_version"] == "chemworld-agent-task-prompt-0.2"
+            assert prompt["task_id"] == task_id
+            assert str(prompt["budget"]) in text
+            assert "budget" in text
+            assert "Hidden information policy" in text
+            assert "Allowed tools" in text
+            assert "Success criteria" in text
+            assert "Submission requirements" in text
+            assert prompt["task_goal"]
+            assert prompt["constraints"]
+            assert prompt["success_criteria"]
+            assert prompt["measurement_policy"]
+            assert prompt["recommended_strategy"]
+            assert prompt["failure_modes"]
+            assert prompt["hidden_information_policy"]
+            assert prompt["allowed_tools"]["operations"] == prompt["allowed_operations"]
+            assert prompt["allowed_tools"]["instruments"] == prompt["allowed_instruments"]
+            assert set(prompt["success_metrics"]) == expected["metrics"]
+            lower_text = text.lower()
+            for phrase in expected["must_include"]:
+                assert phrase.lower() in lower_text
+            hidden_species = set(env.unwrapped.scenario_instance.compiled_mechanism.species_index)
+            assert not audit_public_payload(prompt, hidden_species_ids=hidden_species)
+        finally:
+            env.close()
 
 
 def test_observation_views_are_json_safe_and_public() -> None:
