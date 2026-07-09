@@ -2266,12 +2266,16 @@
 </ul>
 <p>没有 maturity 的任务不应进入正式 benchmark claim。</p>
 <h2 id="episode">Episode 模式</h2>
+<p><code>episode_mode</code> 描述 final assay 对 Gym episode 的影响，而不是 agent 的交互方式：</p>
 <ul>
-<li>交互式 step-by-step。</li>
-<li>固定 recipe。</li>
-<li>replay。</li>
-<li>evaluation。</li>
+<li><code>single_experiment</code>：一次 Gym episode 只包含一个完整实验。合法 <code>final_assay</code>
+  终止 episode，适合 <code>reaction-to-assay</code>、<code>reaction-to-purification</code> 这类完整流程任务。</li>
+<li><code>campaign</code>：一次 Gym episode 包含多个 experiment。合法 <code>final_assay</code> 结束当前
+  experiment，但不终止 episode；环境会在预算未耗尽时准备下一次 experiment，适合
+  BO、LHS、greedy 和 leaderboard 优化任务。</li>
 </ul>
+<p>交互式 step-by-step、固定 recipe、replay 和 evaluation 是运行方式；它们可以作用在
+任一 episode mode 上。</p>
 <h2 id="worldscenariotask">World、Scenario、Task</h2>
 <p><code>world</code> 定义统一规则，<code>scenario</code> 定义一次 episode 的隐藏条件和可见条件，<code>task</code> 定义
 目标、预算、评分和可见接口。三者分开是 ChemWorld 可扩展性的核心。</p>

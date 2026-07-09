@@ -2801,7 +2801,7 @@ contact_resistance_ohm
 <h2 id="_13">暴露出的环境问题</h2>
 <p>本轮 78 个 trial 没有出现 invalid action、precondition failure 或 constitution failure。但它暴露了几个 benchmark 设计问题：</p>
 <ol>
-<li>campaign task 中，final assay 可以返回 <code>leaderboard_score</code>，同时 <code>terminated=False</code> 且 <code>experiment_ended=True</code>。这可能是合理的 campaign 语义，但外部 runner 容易误读。</li>
+<li>campaign task 中，final assay 返回 <code>leaderboard_score</code>、<code>experiment_ended=True</code>，但保持 <code>terminated=False</code>。该语义现在由 <code>campaign_model.md</code>、<code>info["experiment_summaries"]</code>、<code>info["last_terminal_summary"]</code> 和 <code>info["next_experiment_ready"]</code> 明确约束。</li>
 <li><code>info["cost"]</code> 是 safe-RL 风格的 constraint signal，而 observation 或 assay 中的 <code>cost</code> 是过程指标。两个 cost 的命名需要进一步区分。</li>
 <li>purification、crystallization、flow 等复杂过程仍依赖 proxy-maturity modules，高分不能被解释成高保真物理模拟成功。</li>
 <li>best-trial result 适合调试和 agent probing，但正式 leaderboard 应使用 mean-over-seeds、置信区间和固定评测预算。</li>
