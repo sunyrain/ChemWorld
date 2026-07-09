@@ -2417,6 +2417,46 @@ env.campaign_state()
 <p><code>validate_action(action)</code> 只检查，不执行，不改变 state。它复用 <code>OperationValidator</code>，覆盖 schema、task policy、instrument policy 和 stateful preconditions。</p>
 <h2 id="observation-views">Observation Views</h2>
 <p><code>observation_view("rl")</code> 输出 NaN-safe vector、mask、cost 和 constraint flags，适合 RL 或 bandit-style agent。</p>
+<p>RL view 使用固定合同：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>schema_version</code></td>
+<td>当前为 <code>chemworld-rl-view-0.2</code></td>
+</tr>
+<tr>
+<td><code>keys</code></td>
+<td><code>OBSERVATION_KEYS</code> 加可选 <code>cost_signal</code></td>
+</tr>
+<tr>
+<td><code>vector</code></td>
+<td>NaN-safe float vector；缺失观测写为 <code>-1.0</code></td>
+</tr>
+<tr>
+<td><code>mask</code></td>
+<td>与 <code>vector</code> 对齐的 observed mask，取值为 <code>0.0</code> 或 <code>1.0</code></td>
+</tr>
+<tr>
+<td><code>bounds</code></td>
+<td>vector 的低/高界；观测值为 <code>[-1, 1]</code>，cost 为 <code>[0, 1]</code></td>
+</tr>
+<tr>
+<td><code>mask_bounds</code></td>
+<td>mask 的低/高界 <code>[0, 1]</code></td>
+</tr>
+<tr>
+<td><code>cost</code></td>
+<td>safety/cost channel，来自 public info</td>
+</tr>
+</tbody>
+</table>
+<p><code>RLObservationWrapper</code> 使用同一份 RL spec 构造 Gymnasium <code>Box</code> observation space，因此 wrapper 输出、<code>info["rl_view"]</code> 和 <code>info["observation_mask"]</code> 的长度与 bounds 保持一致。</p>
 <p><code>observation_view("tool_json")</code> 输出机器可读 dict：public observation、raw signal、processed estimate、uncertainty、cost、constraints、campaign state、available actions 和 lab report。</p>
 <p><code>observation_view("lab_report")</code> 输出 LLM/学生可读实验摘要。它只由 public observation/info 派生，不读取 hidden species amounts、rate constants 或 private scenario 参数。</p>
 <p><code>lab_report</code> 当前包含：</p>
