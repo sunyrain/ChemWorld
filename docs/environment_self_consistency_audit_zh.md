@@ -53,6 +53,7 @@ runs/audit/trajectories/*.jsonl
 | `observation_contract_hash` | observation contract hash |
 | `maturity` | 当前 task 的最低物理成熟度 |
 | `invalid_count` | precondition failure 数量 |
+| `ledger_single_source_failures` | typed ledger 单一事实源审计失败数量 |
 | `verify_status` | replay verifier 是否通过 |
 | `spectra_metric_consistency` | raw spectra 与 processed metrics 的一致性状态 |
 | `warnings` | 不阻断运行但需要关注的自洽性风险 |
@@ -79,6 +80,7 @@ runs/audit/trajectories/*.jsonl
 | `spectra_warnings` | 0 |
 | `invalid_steps` | 0 |
 | `constitution_failures` | 0 |
+| `ledger_single_source_failures` | 0 |
 
 覆盖的正式任务：
 
@@ -149,10 +151,18 @@ recovery 与 raw spectra 指向同一个被测样品。
 - typed phase/vessel/equipment/process ledger。
 - material conservation、phase mass balance、vessel bounds、equipment attachment。
 - metadata 禁止保存 primary structured state。
+- ledger single-source audit：`PhaseLedger` 是物料状态主来源，`ProcessLedger`
+  是时间、成本、风险和样品消耗主来源；legacy `species_amounts` 与 `ledger` 只作为兼容视图，
+  必须与 typed ledgers 保持同步。
 
 审计标准：
 
 - 每步 `constitution.check_state(state)` 必须通过。
+- `audit_ledger_single_source_of_truth(state)` 必须无失败。
+- `PhaseLedger.total_amounts_mol()` 必须等于 compatibility `state.species_amounts`。
+- vessel、phase、equipment、thermal ledger 的引用必须闭合。
+- state metadata 和 phase metadata 不得保存 primary material、vessel、equipment、instrument
+  或 process state。
 - `constraint_flags["constitution_failed"]` 不应出现。
 - 非法动作只应影响 process penalty，不应破坏 material ledger。
 

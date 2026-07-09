@@ -7,6 +7,7 @@ from typing import Any, ClassVar
 from chemworld.foundation.constitution_preconditions import check_operation_preconditions
 from chemworld.foundation.constitution_reports import CheckResult, ConstitutionReport
 from chemworld.foundation.constitution_state_checks import (
+    check_ledger_single_source,
     check_nonnegative,
     check_risk_range,
     check_typed_ledgers,
@@ -147,6 +148,7 @@ class PhysicalConstitution:
             *check_units(self),
             *check_vessel_bounds(self, state),
             *check_typed_ledgers(self, state),
+            *check_ledger_single_source(self, state),
             check_risk_range(self, state),
         ]
         return ConstitutionReport(checks)

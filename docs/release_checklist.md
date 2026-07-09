@@ -37,6 +37,9 @@ python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
 - replay 结果稳定；
 - spectra 与 instrument contract 一致；
 - constitution check 无失败。
+- ledger single-source audit 无失败：material amounts 来自 typed phase ledgers，
+  process/cost/risk/sample 来自 typed process ledger，vessel/equipment/thermal 引用闭合，
+  metadata 不保存 primary structured state。
 
 ## 文档 Gate
 

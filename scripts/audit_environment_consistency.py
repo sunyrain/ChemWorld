@@ -24,6 +24,7 @@ from chemworld.agents.base import HistoryRecord
 from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.data.logging import TrajectoryLogger, load_jsonl, observation_to_json, to_builtin
 from chemworld.eval.verify import verify_records
+from chemworld.foundation import audit_ledger_single_source_of_truth
 from chemworld.tasks import get_task, list_tasks
 from chemworld.world.scoring import task_score_observation
 
@@ -354,6 +355,7 @@ def run_smoke_audit(
     last_info: dict[str, Any] = {}
     final_score_error = 0.0
     state_check_failures = 0
+    ledger_single_source_failures = 0
     with TrajectoryLogger(trajectory_path) as logger:
         planned_actions = smoke_action_sequence(task_id)
         for step in range(min(task.budget, max_steps)):
@@ -369,6 +371,14 @@ def run_smoke_audit(
             constitution_failure_count += int(bool(flags.get("constitution_failed")))
             state_report = env.unwrapped.constitution.check_state(env.unwrapped._state)
             state_check_failures += int(not state_report.passed)
+            ledger_failures = [
+                finding
+                for finding in audit_ledger_single_source_of_truth(env.unwrapped._state)
+                if not finding.passed
+            ]
+            ledger_single_source_failures += len(ledger_failures)
+            if ledger_failures:
+                warnings.append("ledger_single_source_failed")
             if not state_report.passed:
                 warnings.append("state_constitution_failed")
             score_ok, score_error = score_consistency(
@@ -444,6 +454,7 @@ def run_smoke_audit(
         "invalid_count": invalid_count,
         "constitution_failure_count": constitution_failure_count,
         "state_check_failures": state_check_failures,
+        "ledger_single_source_failures": ledger_single_source_failures,
         "verify_status": "pass" if verification.verified else "fail",
         "verify_max_abs_error": verification.max_abs_error,
         "verify_mismatch_count": len(verification.mismatches),
@@ -653,6 +664,7 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         "invalid_count",
         "constitution_failure_count",
         "state_check_failures",
+        "ledger_single_source_failures",
         "verify_status",
         "verify_mismatch_count",
         "spectra_metric_consistency",
@@ -713,6 +725,9 @@ def main() -> None:
             "spectra_warnings": sum(row["spectra_metric_consistency"] == "warning" for row in rows),
             "invalid_steps": sum(int(row["invalid_count"]) for row in rows),
             "constitution_failures": sum(int(row["constitution_failure_count"]) for row in rows),
+            "ledger_single_source_failures": sum(
+                int(row["ledger_single_source_failures"]) for row in rows
+            ),
         },
     }
     json_path = output_dir / "environment_consistency_report.json"

@@ -11,36 +11,36 @@
 当前剩余工作：
 
 - 总任务 58 项。
-- 已完成 17 项。
-- 进行中 1 项。
+- 已完成 18 项。
+- 进行中 0 项。
 - 已认领 3 项。
 - 待开始 37 项。
-- 剩余 41 项。
+- 剩余 40 项。
 
 三个 cutline：
 
 | Cutline | 剩余 | 含义 |
 | --- | ---: | --- |
-| 最小可信 benchmark | 3 | 完成全部 P0/P1 后，三项冻结任务的 replay、scoring、ledger、observation、runtime 边界才算基本可信 |
-| 可公开预发布包 | 14 | 完成 P0/P1/P2/P4 后，外部用户可安装、运行、提交、阅读文档和复现实验 |
-| 全部可见路线图 | 41 | 包含长期专业物化深化，不应阻塞第一版公开预发布 |
+| 最小可信 benchmark | 2 | 完成全部 P0/P1 后，三项冻结任务的 replay、scoring、ledger、observation、runtime 边界才算基本可信 |
+| 可公开预发布包 | 13 | 完成 P0/P1/P2/P4 后，外部用户可安装、运行、提交、阅读文档和复现实验 |
+| 全部可见路线图 | 40 | 包含长期专业物化深化，不应阻塞第一版公开预发布 |
 
 当前应优先完成：
 
-1. `P1-CONSIST-06`：ledger single-source-of-truth audit。
-2. `P1-CONSIST-07`：public observation leakage audit。
-3. `P1-CONSIST-08`：runtime boundary scan。
+1. `P1-CONSIST-07`：public observation leakage audit。
+2. `P1-CONSIST-08`：runtime boundary scan。
+3. `P2-AGENT-01`：polish `task_prompt()` for the three pre-release tasks。
 
 ## 1. 进度统计
 
 | 范围 | 总数 | 已完成 | 进行中 | 已认领 | 待开始 | 剩余 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | P0 预发布 benchmark hardening | 12 | 12 | 0 | 0 | 0 | 0 |
-| P1 runtime 与环境自洽性 | 8 | 5 | 1 | 0 | 2 | 3 |
+| P1 runtime 与环境自洽性 | 8 | 6 | 0 | 0 | 2 | 2 |
 | P2 agent-facing 交互与数据集 | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 专业物理化学深化 | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 文档、notebook、站点与发布包装 | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 17 | 1 | 3 | 37 | 41 |
+| Total | 58 | 18 | 0 | 3 | 37 | 40 |
 
 ## 2. 当前系统状态
 
@@ -50,6 +50,7 @@
 - 所有正式 task 指向同一个 `world_law_id`。
 - 已建立 task registry、scenario/profile/mechanism/scoring hash、submission bundle、paper artifact、local release gate。
 - Runtime v2 的主要概念已经进入代码：typed ledger、transaction record、operation kernel、domain service、compiled mechanism、observation/scoring contract、replay verifier。
+- Ledger single-source audit 已进入 constitution check 和环境审计：phase ledger 是物料主来源，process ledger 是时间、成本、风险和样品消耗主来源，metadata 不保存 primary structured state。
 - Agent-facing API 已具备基础入口：task prompt、available actions、action schema、validation、RL/tool JSON/lab report observation view、campaign state。
 - 已有本地教师端/学生端评测机模拟。
 - MkDocs 站点已发布，但 P4 仍需继续压缩结构、增强教程和补齐端到端 notebook。
@@ -88,11 +89,10 @@
 
 最短路径是先完成 P1，然后进入 P2/P4：
 
-1. `P1-CONSIST-06`：补齐 ledger single-source-of-truth audit，确认 material/equipment/process/vessel 主状态不落回 metadata。
-2. `P1-CONSIST-07`：审计 public observation、tool JSON、lab report、spectra label、trajectory 是否泄露 hidden species id 或 rate constants。
-3. `P1-CONSIST-08`：扫描 runtime 边界，确认 `ChemWorldEnv` 保持薄层，不再出现 operation-specific dispatch 或 legacy core runtime 回流。
-4. `P2-AGENT-*`：让 RL/BO/LLM/student agent 不需要读源码也能规划、验证、执行、恢复和复现。
-5. `P4-DOCS-*`：收束站点和教程，只展示已测试能力，不让文档超过代码。
+1. `P1-CONSIST-07`：审计 public observation、tool JSON、lab report、spectra label、trajectory 是否泄露 hidden species id 或 rate constants。
+2. `P1-CONSIST-08`：扫描 runtime 边界，确认 `ChemWorldEnv` 保持薄层，不再出现 operation-specific dispatch 或 legacy core runtime 回流。
+3. `P2-AGENT-*`：让 RL/BO/LLM/student agent 不需要读源码也能规划、验证、执行、恢复和复现。
+4. `P4-DOCS-*`：收束站点和教程，只展示已测试能力，不让文档超过代码。
 
 ## P0：预发布 Benchmark Hardening
 
@@ -130,7 +130,7 @@
 | P1-CONSIST-03 | Codex | Done | Action affordance consistency | `available_actions`, ActionMaskWrapper, OperationValidator affordance, task policy, operation registry, and action masks are covered by cross-task tests |
 | P1-CONSIST-04 | Codex | Done | Invalid action atomicity | Schema, task-policy, payload-bound, and state-precondition failures are covered by material-ledger atomicity tests; invalid actions only mutate process/cost/risk ledgers and emit explicit validation or rollback metadata |
 | P1-CONSIST-05 | Codex | Done | Campaign vs single-experiment semantics audit | Tests cover all task termination policies; single-experiment final assay terminates and campaign final assay records experiment summaries while keeping the Gym episode alive when budget remains |
-| P1-CONSIST-06 | Codex | Active | Ledger single-source-of-truth audit | Material amounts come from typed phase ledgers; equipment/process/vessel state does not fall back to metadata |
+| P1-CONSIST-06 | Codex | Done | Ledger single-source-of-truth audit | `audit_ledger_single_source_of_truth()` is part of constitution state checks and release audit; tests cover material totals, process compatibility, metadata rejection, reference closure, and all formal task smoke trajectories |
 | P1-CONSIST-07 |  | Open | Public observation leakage audit | Agent-visible observations, tool JSON, lab reports, spectra labels, and trajectories do not expose hidden species ids or rate constants |
 | P1-CONSIST-08 |  | Open | Runtime boundary scan | `ChemWorldEnv` remains thin, no operation-specific if/elif dispatch returns, and runtime does not import legacy core modules |
 

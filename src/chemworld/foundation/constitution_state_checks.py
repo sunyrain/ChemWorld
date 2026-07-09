@@ -6,16 +6,12 @@ from math import isfinite
 from typing import Any
 
 from chemworld.foundation.constitution_reports import CheckResult
+from chemworld.foundation.ledger_audit import (
+    PHASE_PRIMARY_METADATA_KEYS,
+    audit_ledger_single_source_of_truth,
+)
 from chemworld.foundation.state import WorldState
 from chemworld.foundation.units import canonical_unit
-
-PHASE_PRIMARY_METADATA_KEYS = frozenset(
-    {
-        "product_mol",
-        "impurity_mol",
-        "solvent_loss",
-    }
-)
 
 
 def check_nonnegative(constitution: Any, state: WorldState) -> list[CheckResult]:
@@ -231,6 +227,36 @@ def check_typed_ledgers(constitution: Any, state: WorldState) -> list[CheckResul
     return checks
 
 
+def check_ledger_single_source(constitution: Any, state: WorldState) -> list[CheckResult]:
+    primary_metadata_keys = (
+        constitution.primary_reactor_metadata_keys
+        | constitution.primary_phase_metadata_keys
+        | constitution.primary_vessel_metadata_keys
+        | constitution.primary_instrument_metadata_keys
+        | constitution.primary_crystallizer_metadata_keys
+        | constitution.primary_crystallization_output_metadata_keys
+        | constitution.primary_distillation_output_metadata_keys
+        | constitution.primary_downstream_operation_metadata_keys
+        | constitution.primary_process_metric_metadata_keys
+    )
+    findings = audit_ledger_single_source_of_truth(
+        state,
+        tolerance=constitution.tolerance,
+        primary_metadata_keys=primary_metadata_keys,
+        phase_primary_metadata_keys=PHASE_PRIMARY_METADATA_KEYS,
+    )
+    return [
+        CheckResult(
+            finding.name,
+            finding.passed,
+            finding.message,
+            finding.value,
+            finding.tolerance,
+        )
+        for finding in findings
+    ]
+
+
 def check_risk_range(constitution: Any, state: WorldState) -> CheckResult:
     return CheckResult(
         "risk_range",
@@ -242,6 +268,7 @@ def check_risk_range(constitution: Any, state: WorldState) -> CheckResult:
 
 
 __all__ = [
+    "check_ledger_single_source",
     "check_nonnegative",
     "check_risk_range",
     "check_typed_ledgers",

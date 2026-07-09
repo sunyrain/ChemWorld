@@ -135,7 +135,14 @@ trajectory 和 verifier 记录 `task_id`、`scenario_id`、`mechanism_hash`、`r
 | ThermalLedger | per-vessel heat input、reaction heat、heat loss |
 | ProcessLedger | elapsed time、cost、risk、sample consumption、process metrics |
 
-物料状态以 phase ledger 为单一事实源，global species totals 是从 phase ledger 聚合得到的视图。普通 agent 只能看到 observation，不会直接读取 hidden material ledger。
+物料状态以 phase ledger 为单一事实源，global species totals 是从 phase ledger 聚合得到的视图。`WorldState.species_amounts`
+仍作为兼容视图存在，但每次 constitution check 会通过 ledger single-source audit 确认它与
+`PhaseLedger.total_amounts_mol()` 同步。
+
+同样，`ProcessLedger` 是时间、成本、风险、样品消耗和过程指标的主来源；legacy `Ledger`
+只作为兼容视图。vessel、phase、equipment 和 thermal ledgers 的交叉引用也会被审计。
+metadata 不允许保存 primary material、phase、vessel、equipment、instrument 或 process
+state。普通 agent 只能看到 observation，不会直接读取 hidden material ledger。
 
 ## 8. Observation And Spectra
 

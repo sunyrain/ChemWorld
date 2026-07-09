@@ -6,6 +6,10 @@ from chemworld.foundation.constitution import (
     PhysicalConstitution,
 )
 from chemworld.foundation.kernels import ObservationKernel, TransitionKernel
+from chemworld.foundation.ledger_audit import (
+    LedgerAuditFinding,
+    audit_ledger_single_source_of_truth,
+)
 from chemworld.foundation.ontology import (
     Instrument,
     Operation,
@@ -40,6 +44,7 @@ __all__ = [
     "ConstitutionReport",
     "Instrument",
     "Ledger",
+    "LedgerAuditFinding",
     "Observation",
     "ObservationKernel",
     "Operation",
@@ -55,6 +60,7 @@ __all__ = [
     "Vessel",
     "WorldLawSpec",
     "WorldState",
+    "audit_ledger_single_source_of_truth",
     "convert_value",
     "equipment_settings",
     "equipment_status",
