@@ -2119,7 +2119,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前阶段
+        当前判断
       
     </span>
   </a>
@@ -2205,7 +2205,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前阶段
+        当前判断
       
     </span>
   </a>
@@ -2263,9 +2263,14 @@
 
 
 <h1 id="_1">统一任务板摘要</h1>
-<p>活跃任务源只有仓库根目录的 <code>TODO.md</code>。本页只给站点读者一个当前状态摘要，避免维护两套任务板。</p>
-<h2 id="_2">当前阶段</h2>
-<p>ChemWorld 当前处在 <strong>benchmark trust hardening</strong> 收束阶段。P0 预发布 benchmark hardening 和 P1 runtime / environment self-consistency 已完成；下一步重点转入 P2 agent-facing 交互和 P4 站点、notebook、发布包装。</p>
+<p>活跃任务源只有仓库根目录的 <code>TODO.md</code>。本页只给站点读者提供当前状态摘要，避免维护两套任务板。</p>
+<h2 id="_2">当前判断</h2>
+<p>ChemWorld 已完成 <strong>最小可信 benchmark</strong> 的 P0/P1 收束：核心任务、baseline、submission、replay、release gate、runtime boundary audit、ledger audit、public leakage audit 和环境自洽性审计已经闭环。</p>
+<p>下一步分两条线：</p>
+<ul>
+<li><strong>公开预发布包</strong>：完成 P2 agent-facing 交互与数据集、P4 文档/notebook/站点。</li>
+<li><strong>长期专业化路线</strong>：推进 P3 专业物理化学模块深化，每个模块必须有 maturity、适用范围、验证算例和失败边界。</li>
+</ul>
 <h2 id="_3">当前统计</h2>
 <table>
 <thead>
@@ -2273,9 +2278,10 @@
 <th>阶段</th>
 <th>目标</th>
 <th style="text-align: right;">总数</th>
-<th style="text-align: right;">已完成</th>
-<th style="text-align: right;">已认领</th>
-<th style="text-align: right;">待开始</th>
+<th style="text-align: right;">Done</th>
+<th style="text-align: right;">Claimed</th>
+<th style="text-align: right;">Open</th>
+<th style="text-align: right;">Blocked</th>
 <th style="text-align: right;">剩余</th>
 </tr>
 </thead>
@@ -2288,12 +2294,14 @@
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
 <td>P1</td>
 <td>runtime 与环境自洽性</td>
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">8</td>
+<td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
@@ -2305,6 +2313,7 @@
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">6</td>
+<td style="text-align: right;">0</td>
 <td style="text-align: right;">6</td>
 </tr>
 <tr>
@@ -2314,6 +2323,7 @@
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">24</td>
+<td style="text-align: right;">0</td>
 <td style="text-align: right;">27</td>
 </tr>
 <tr>
@@ -2323,6 +2333,7 @@
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
 <td style="text-align: right;">5</td>
 </tr>
 <tr>
@@ -2332,17 +2343,24 @@
 <td style="text-align: right;"><strong>20</strong></td>
 <td style="text-align: right;"><strong>3</strong></td>
 <td style="text-align: right;"><strong>35</strong></td>
+<td style="text-align: right;"><strong>0</strong></td>
 <td style="text-align: right;"><strong>38</strong></td>
 </tr>
 </tbody>
 </table>
-<p>还需要完成 <strong>38 项</strong>。其中 <strong>35 项尚未开始</strong>，<strong>3 项已由 liyijun 认领但未完成</strong>。</p>
+<p>还需要完成 <strong>38 项</strong>：</p>
+<ul>
+<li><strong>11 项</strong>用于公开预发布：P2 全部 6 项 + P4 全部 5 项。</li>
+<li><strong>27 项</strong>用于长期专业化深化：P3 全部 27 项，其中 3 项已由 <code>liyijun</code> 认领。</li>
+</ul>
 <h2 id="_4">下一执行队列</h2>
 <ol>
 <li><code>P2-AGENT-01</code>：polish <code>task_prompt()</code> for the three pre-release tasks。</li>
 <li><code>P2-AGENT-02</code>：improve lab-report summaries。</li>
 <li><code>P2-AGENT-03</code>：stabilize RL observation view。</li>
 <li><code>P2-AGENT-04</code>：add agent trace to dataset export examples。</li>
+<li><code>P2-AGENT-05</code>：multi-round ToolUsingLLMStub probe。</li>
+<li><code>P2-AGENT-06</code>：LLMReplay benchmark fixture。</li>
 <li><code>P4-DOCS-01</code>：reorganize docs around pre-release benchmark。</li>
 </ol>
 <h2 id="cutline">Cutline</h2>
@@ -2350,25 +2368,25 @@
 <thead>
 <tr>
 <th>Cutline</th>
-<th style="text-align: right;">剩余</th>
-<th>定义</th>
+<th style="text-align: right;">还差</th>
+<th>判定标准</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>最小可信 benchmark</td>
 <td style="text-align: right;">0</td>
-<td>完成全部 P0/P1。</td>
+<td>P0/P1 全部完成。</td>
 </tr>
 <tr>
 <td>可公开预发布包</td>
 <td style="text-align: right;">11</td>
-<td>完成 P0/P1/P2/P4。</td>
+<td>完成 P2/P4。</td>
 </tr>
 <tr>
 <td>全部可见路线图</td>
 <td style="text-align: right;">38</td>
-<td>包含长期 P3 专业物理化学深化。</td>
+<td>完成 P2/P3/P4。</td>
 </tr>
 </tbody>
 </table>
