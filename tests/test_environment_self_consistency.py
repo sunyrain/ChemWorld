@@ -70,8 +70,10 @@ def test_audit_smoke_generates_replay_verified_trajectory(tmp_path: Path) -> Non
     assert row["score_recompute_max_error"] <= 1.0e-6
     assert Path(row["trajectory_path"]).exists()
     assert row["mechanism_hash"]
+    assert row["task_contract_hash"]
     assert row["score_contract_hash"]
     assert row["profile_hash"]
+    assert row["observation_contract_hash"]
 
 
 def test_purification_slice_no_longer_allows_unrelated_process_ops(

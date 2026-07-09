@@ -12,6 +12,7 @@ import csv
 import json
 import math
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -429,6 +430,7 @@ def run_smoke_audit(
         "world_law_id": task_info.get("world_law_id"),
         "scenario_id": task_info.get("scenario_id"),
         "initial_state_id": task_info.get("initial_state_id"),
+        "task_contract_hash": task_info.get("task_contract_hash"),
         "mechanism_id": task_info.get("mechanism_id"),
         "mechanism_hash": task_info.get("mechanism_hash"),
         "score_contract_hash": task_info.get("scoring_contract_hash"),
@@ -639,9 +641,11 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         "seed",
         "world_law_id",
         "scenario_id",
+        "task_contract_hash",
         "mechanism_hash",
         "score_contract_hash",
         "profile_hash",
+        "observation_contract_hash",
         "maturity",
         "proxy_allowed",
         "episode_mode",
@@ -683,14 +687,27 @@ def main() -> None:
                 )
             )
     agent_probe = run_agent_probe(args.seeds, int(args.agent_probe_rounds))
+    required_hash_keys = (
+        "task_contract_hash",
+        "mechanism_hash",
+        "score_contract_hash",
+        "profile_hash",
+        "observation_contract_hash",
+    )
     summary = {
         "schema_version": "chemworld-environment-consistency-audit-0.1",
+        "generated_at": datetime.now(UTC).isoformat(),
         "task_count": len(task_ids),
+        "task_ids": task_ids,
         "seeds": args.seeds,
         "rows": rows,
         "agent_probe": agent_probe,
         "aggregate": {
             "row_count": len(rows),
+            "covered_task_count": len({row["task_id"] for row in rows}),
+            "hash_coverage_complete": all(
+                all(row.get(key) for key in required_hash_keys) for row in rows
+            ),
             "verify_failures": sum(row["verify_status"] != "pass" for row in rows),
             "spectra_failures": sum(row["spectra_metric_consistency"] == "fail" for row in rows),
             "spectra_warnings": sum(row["spectra_metric_consistency"] == "warning" for row in rows),

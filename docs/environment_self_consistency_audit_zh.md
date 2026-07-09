@@ -46,9 +46,11 @@ runs/audit/trajectories/*.jsonl
 | `task_id` | 被检查的正式 benchmark task |
 | `seed` | 随机种子 |
 | `scenario_id` | task 绑定的 scenario |
+| `task_contract_hash` | task contract hash |
 | `mechanism_hash` | 编译后 mechanism 的 hash |
 | `score_contract_hash` | task scoring contract hash |
 | `profile_hash` | runtime profile hash |
+| `observation_contract_hash` | observation contract hash |
 | `maturity` | 当前 task 的最低物理成熟度 |
 | `invalid_count` | precondition failure 数量 |
 | `verify_status` | replay verifier 是否通过 |
@@ -56,6 +58,70 @@ runs/audit/trajectories/*.jsonl
 | `warnings` | 不阻断运行但需要关注的自洽性风险 |
 
 脚本还会运行一个小型 agent-facing probe：在 `reaction-to-purification` 上使用固定 seeds 和多轮谱图反馈，记录 first score、best score、best-so-far AUC、invalid action 和谱图决策特征。
+
+## 最新全量审计结果
+
+运行命令：
+
+```powershell
+.\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2 --output-dir runs\audit
+```
+
+本次覆盖 14 个正式 task，共 42 条 task/seed 审计记录。
+
+| 指标 | 结果 |
+| --- | ---: |
+| `row_count` | 42 |
+| `covered_task_count` | 14 |
+| `hash_coverage_complete` | true |
+| `verify_failures` | 0 |
+| `spectra_failures` | 0 |
+| `spectra_warnings` | 2 |
+| `invalid_steps` | 0 |
+| `constitution_failures` | 0 |
+
+覆盖的正式任务：
+
+- `electrochemical-conversion`
+- `flow-reaction-optimization`
+- `low-budget-characterization`
+- `partition-discovery`
+- `public-private-generalization`
+- `purity-yield-tradeoff`
+- `reaction-mechanism-explanation`
+- `reaction-optimization-standard`
+- `reaction-safety-constrained`
+- `reaction-to-assay`
+- `reaction-to-crystallization`
+- `reaction-to-distillation`
+- `reaction-to-purification`
+- `tool-agent-planning`
+
+每条记录均包含并通过非空检查：
+
+- `task_contract_hash`
+- `mechanism_hash`
+- `score_contract_hash`
+- `profile_hash`
+- `observation_contract_hash`
+
+agent-facing probe 结果：
+
+| Seed | First score | Best score | Best round | Best-so-far AUC | Invalid count |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 | 0.371 | 0.426 | 3 | 0.416 | 0 |
+| 1 | 0.282 | 0.345 | 6 | 0.329 | 0 |
+| 2 | 0.335 | 0.387 | 3 | 0.378 | 0 |
+
+当前 warning：
+
+- `reaction-to-purification`, seed 0:
+  `semantic_alignment_warning:high_purity_with_dominant_reactant_peak`
+- `reaction-to-purification`, seed 2:
+  `semantic_alignment_warning:high_purity_with_dominant_reactant_peak`
+
+解释：这两个 warning 不影响 replay 或 constitution 自洽性，但说明 raw HPLC peak table 与
+processed purity 的语义校准仍需下一项 `P1-CONSIST-02` 专门处理。
 
 ## 自洽性维度
 
