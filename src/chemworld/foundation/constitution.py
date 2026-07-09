@@ -99,6 +99,23 @@ class PhysicalConstitution:
         "distillate_impurity_mol",
     }
 
+    primary_process_metric_metadata_keys: ClassVar[set[str]] = {
+        "flow_conversion",
+        "flow_campaign_time_s",
+        "flow_throughput_mL",
+        "electrochemical_model",
+        "electrochemical_selectivity",
+        "faradaic_efficiency",
+        "energy_efficiency",
+        "equilibrium_potential_V",
+        "overpotential_V",
+        "kinetic_current_A",
+        "actual_current_A",
+        "charge_C",
+        "faradaic_charge_C",
+        "electrical_work_J",
+    }
+
     required_state_units: ClassVar[dict[str, str]] = {
         "volume_L": "L",
         "temperature_K": "K",
@@ -446,7 +463,12 @@ class PhysicalConstitution:
                 "metadata_no_primary_distillation_output",
                 self.primary_distillation_output_metadata_keys.isdisjoint(state.metadata),
                 "Distillate material amounts must live in typed PhaseLedger.",
-            )
+            ),
+            CheckResult(
+                "metadata_no_primary_process_metrics",
+                self.primary_process_metric_metadata_keys.isdisjoint(state.metadata),
+                "Flow and electrochemical process metrics must live in typed ProcessLedger.",
+            ),
         ]
         if state.phases is not None:
             for phase_id, phase in state.phases.phases.items():

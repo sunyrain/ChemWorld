@@ -6,7 +6,12 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
+from chemworld.foundation import (
+    WorldState,
+    equipment_settings,
+    process_with_metrics,
+    upsert_equipment_record,
+)
 from chemworld.runtime.reaction_thermal_services import ChemWorldReactionThermalServices
 from chemworld.runtime.species import MechanismSpeciesView
 
@@ -73,16 +78,18 @@ class ChemWorldFlowServices:
                 1.0,
             )
         )
-        metadata = reacted_state.metadata.copy()
-        metadata["flow_conversion"] = conversion
-        metadata["flow_campaign_time_s"] = duration
-        metadata["flow_throughput_mL"] = flow_rate * duration / 60.0
+        process = process_with_metrics(
+            reacted_state.process,
+            flow_conversion=conversion,
+            flow_campaign_time_s=duration,
+            flow_throughput_mL=flow_rate * duration / 60.0,
+        )
         ledger = reacted_state.ledger.with_updates(
             time_s=state.ledger.time_s + duration,
             cost=reacted_state.ledger.cost + duration / 3600.0 * 0.030,
             risk=min(1.0, reacted_state.ledger.risk + 0.015 * (target_temperature > 390.0)),
         )
-        return reacted_state.replace(ledger=ledger, metadata=metadata)
+        return reacted_state.replace(ledger=ledger, process=process)
 
 
 __all__ = ["ChemWorldFlowServices"]

@@ -345,6 +345,12 @@ Recommended follow-up:
   aggregates such as `A_public`, `P_public`, `B_public`, and `D_public` rather
   than passing full hidden species ledgers or mechanism-internal species names
   into agent-visible raw-signal packets.
+- Promoted flow and electrochemical derived metrics into typed
+  `ProcessLedger.metrics`. Flow conversion, residence campaign time,
+  throughput, electrochemical selectivity, faradaic efficiency, charge, and
+  electrical work are no longer primary metadata fields; constitution checks
+  reject those keys in `state.metadata`, while observations and operation
+  records read them from the typed process ledger.
 - Added deterministic scoring and observation contract hashes. Task info,
   trajectory records, and replay verification now include
   `scoring_contract_hash` and `observation_contract_hash`, so protocol drift is

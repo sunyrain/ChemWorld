@@ -105,9 +105,10 @@ class ChemWorldOperationRecorder:
             "delta_volume_L": after.volume_L - before.volume_L,
         }
         if operation == "electrolyze":
+            process_metrics = {} if after.process is None else after.process.metrics
             for key in ELECTROCHEMICAL_SUMMARY_KEYS:
-                if key in after.metadata:
-                    state_delta_summary[key] = float(after.metadata[key])
+                if key in process_metrics:
+                    state_delta_summary[key] = float(process_metrics[key])
         return state_delta_summary
 
 

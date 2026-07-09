@@ -6,7 +6,12 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
+from chemworld.foundation import (
+    WorldState,
+    equipment_settings,
+    process_with_metrics,
+    upsert_equipment_record,
+)
 from chemworld.physchem.electrochemistry import ElectrodeReactionSpec, run_electrolysis
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
@@ -85,18 +90,19 @@ class ChemWorldElectrochemicalServices:
         species[reactant] = a_mol - result.converted_mol
         species[product] = species.get(product, 0.0) + result.product_mol
         species[impurity] = species.get(impurity, 0.0) + result.byproduct_mol
-        metadata = state.metadata.copy()
-        metadata["electrochemical_model"] = "nernst_butler_volmer_faradaic_v1"
-        metadata["electrochemical_selectivity"] = result.product_selectivity
-        metadata["faradaic_efficiency"] = result.faradaic_efficiency
-        metadata["energy_efficiency"] = result.energy_efficiency
-        metadata["equilibrium_potential_V"] = result.equilibrium_potential_V
-        metadata["overpotential_V"] = result.overpotential_V
-        metadata["kinetic_current_A"] = result.kinetic_current_A
-        metadata["actual_current_A"] = result.actual_current_A
-        metadata["charge_C"] = result.charge_C
-        metadata["faradaic_charge_C"] = result.faradaic_charge_C
-        metadata["electrical_work_J"] = result.electrical_work_J
+        process = process_with_metrics(
+            state.process,
+            electrochemical_selectivity=result.product_selectivity,
+            faradaic_efficiency=result.faradaic_efficiency,
+            energy_efficiency=result.energy_efficiency,
+            equilibrium_potential_V=result.equilibrium_potential_V,
+            overpotential_V=result.overpotential_V,
+            kinetic_current_A=result.kinetic_current_A,
+            actual_current_A=result.actual_current_A,
+            charge_C=result.charge_C,
+            faradaic_charge_C=result.faradaic_charge_C,
+            electrical_work_J=result.electrical_work_J,
+        )
         overpotential_risk = max(abs(result.overpotential_V) - 0.35, 0.0)
         ledger = state.ledger.with_updates(
             time_s=state.ledger.time_s + duration,
@@ -110,7 +116,7 @@ class ChemWorldElectrochemicalServices:
             ),
             energy_jacket_J=state.ledger.energy_jacket_J + result.electrical_work_J,
         )
-        return state.replace(species_amounts=species, ledger=ledger, metadata=metadata)
+        return state.replace(species_amounts=species, ledger=ledger, process=process)
 
 
 __all__ = ["ChemWorldElectrochemicalServices"]

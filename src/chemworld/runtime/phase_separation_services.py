@@ -41,6 +41,18 @@ def _phase_type(phase_name: str) -> str:
 
 
 _SELECTED_PHASE_UNSET = object()
+PHASE_METADATA_TRUTH_KEYS = frozenset(
+    {
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "solvent_loss",
+        "process_mass_balance_error",
+    }
+)
 
 
 class ChemWorldPhaseSeparationServices:
@@ -250,15 +262,20 @@ class ChemWorldPhaseSeparationServices:
         metadata.pop("phase_settled", None)
         metadata.pop("selected_phase", None)
         metadata.pop("stirring_speed_rpm", None)
+        truth_values = downstream_truth_values(
+            state,
+            phase_ledger,
+            product_amount_mol=self._phase_product_amount(state),
+            impurity_amount_mol=self._phase_impurity_amount(state),
+            target_species=self.species_view.target_species_for_state(state),
+            impurity_species=self.species_view.impurity_species_for_state(state),
+        )
         metadata.update(
-            downstream_truth_values(
-                state,
-                phase_ledger,
-                product_amount_mol=self._phase_product_amount(state),
-                impurity_amount_mol=self._phase_impurity_amount(state),
-                target_species=self.species_view.target_species_for_state(state),
-                impurity_species=self.species_view.impurity_species_for_state(state),
-            )
+            {
+                key: value
+                for key, value in truth_values.items()
+                if key in PHASE_METADATA_TRUTH_KEYS
+            }
         )
         if updates:
             metadata.update(updates)

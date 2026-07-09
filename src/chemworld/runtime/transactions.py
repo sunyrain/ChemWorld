@@ -176,6 +176,7 @@ class TransactionManager:
                 risk=ledger.risk,
                 sample_consumed_L=state.process.sample_consumed_L,
                 waste_L=state.process.waste_L,
+                metrics=state.process.metrics,
             )
         return state.replace(ledger=ledger, process=process)
 

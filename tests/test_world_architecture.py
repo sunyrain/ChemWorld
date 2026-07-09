@@ -1096,11 +1096,30 @@ def test_constitution_rejects_primary_distillation_output_metadata() -> None:
     )
 
 
+def test_constitution_rejects_primary_process_metric_metadata() -> None:
+    state = initial_chemworld_state().replace(
+        metadata={
+            **initial_chemworld_state().metadata,
+            "flow_conversion": 0.7,
+            "electrochemical_selectivity": 0.8,
+        }
+    )
+    report = make_chemworld_constitution().check_state(state)
+
+    assert not report.passed
+    assert any(
+        check.name == "metadata_no_primary_process_metrics"
+        for check in report.failures()
+    )
+
+
 def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> None:
     flow_env = gym.make("ChemWorld", task_id="flow-reaction-optimization", seed=0)
     electro_env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
     try:
         flow_env.reset(seed=0)
+        flow_env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 2})
+        flow_env.step({"operation": "add_reagent", "amount_mol": 0.010})
         _, _, _, _, flow_info = flow_env.step(
             {"operation": "set_flow_rate", "flow_rate_mL_min": 1.2, "residence_time_s": 900.0}
         )
@@ -1111,6 +1130,17 @@ def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> 
         assert "flow_rate_mL_min" not in flow_state.metadata
         assert "residence_time_s" not in flow_state.metadata
         assert flow_settings == {"flow_rate_mL_min": 1.2, "residence_time_s": 900.0}
+        assert flow_env.unwrapped.constitution.check_state(flow_state).passed
+        _, _, _, _, flow_run_info = flow_env.step(
+            {"operation": "run_flow", "target_temperature_K": 382.0, "duration_s": 1800.0}
+        )
+        flow_state = flow_env.unwrapped._state
+        assert "process" in flow_run_info["affected_ledgers"]
+        assert "flow_conversion" not in flow_state.metadata
+        assert "flow_campaign_time_s" not in flow_state.metadata
+        assert flow_state.process is not None
+        assert flow_state.process.metrics["flow_conversion"] >= 0.0
+        assert flow_state.process.metrics["flow_campaign_time_s"] == pytest.approx(1800.0)
         assert flow_env.unwrapped.constitution.check_state(flow_state).passed
 
         electro_env.reset(seed=0)
@@ -1126,6 +1156,18 @@ def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> 
         assert "potential_V" not in electro_state.metadata
         assert "current_mA" not in electro_state.metadata
         assert electro_settings == {"potential_V": 1.15, "current_mA": 75.0}
+        assert electro_env.unwrapped.constitution.check_state(electro_state).passed
+        _, _, _, _, electrolysis_info = electro_env.step(
+            {"operation": "electrolyze", "duration_s": 1800.0}
+        )
+        electro_state = electro_env.unwrapped._state
+        assert "process" in electrolysis_info["affected_ledgers"]
+        assert "electrochemical_selectivity" not in electro_state.metadata
+        assert "energy_efficiency" not in electro_state.metadata
+        assert electro_state.process is not None
+        assert 0.0 <= electro_state.process.metrics["electrochemical_selectivity"] <= 1.0
+        assert 0.0 <= electro_state.process.metrics["energy_efficiency"] <= 1.0
+        assert electro_state.process.metrics["charge_C"] > 0.0
         assert electro_env.unwrapped.constitution.check_state(electro_state).passed
     finally:
         flow_env.close()

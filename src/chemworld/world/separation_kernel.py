@@ -117,6 +117,7 @@ def downstream_truth_values(
     phase_ratio = organic_volume / max(organic_volume + aqueous_volume, 1.0e-12)
     solvent_loss = float(selected.get("solvent_loss", 0.0))
     mass_balance_error = abs(total_phase_product - product_amount) / initial_p
+    process_metrics = {} if state.process is None else state.process.metrics
     return {
         "purity": float(np.clip(purity, 0.0, 1.0)),
         "recovery": float(np.clip(recovery, 0.0, 1.0)),
@@ -138,13 +139,17 @@ def downstream_truth_values(
             np.clip(float(state.metadata.get("distillate_recovery", 0.0)), 0.0, 1.0)
         ),
         "flow_conversion": float(
-            np.clip(float(state.metadata.get("flow_conversion", 0.0)), 0.0, 1.0)
+            np.clip(float(process_metrics.get("flow_conversion", 0.0)), 0.0, 1.0)
         ),
         "electrochemical_selectivity": float(
-            np.clip(float(state.metadata.get("electrochemical_selectivity", 0.0)), 0.0, 1.0)
+            np.clip(
+                float(process_metrics.get("electrochemical_selectivity", 0.0)),
+                0.0,
+                1.0,
+            )
         ),
         "energy_efficiency": float(
-            np.clip(float(state.metadata.get("energy_efficiency", 0.0)), 0.0, 1.0)
+            np.clip(float(process_metrics.get("energy_efficiency", 0.0)), 0.0, 1.0)
         ),
     }
 

@@ -39,8 +39,13 @@ def chemworld_state_variables() -> tuple[StateVariable, ...]:
         StateVariable("metadata.process_mass_balance_error", "dimensionless", hidden=True),
         StateVariable("metadata.crystal_yield", "dimensionless", hidden=True),
         StateVariable("metadata.distillate_purity", "dimensionless", hidden=True),
-        StateVariable("metadata.flow_conversion", "dimensionless", hidden=True),
-        StateVariable("metadata.electrochemical_selectivity", "dimensionless", hidden=True),
+        StateVariable("process.metrics.flow_conversion", "dimensionless", hidden=True),
+        StateVariable(
+            "process.metrics.electrochemical_selectivity",
+            "dimensionless",
+            hidden=True,
+        ),
+        StateVariable("process.metrics.energy_efficiency", "dimensionless", hidden=True),
     )
 
 

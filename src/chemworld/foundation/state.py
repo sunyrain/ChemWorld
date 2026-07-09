@@ -300,9 +300,31 @@ class ProcessLedger:
     risk: float = 0.0
     sample_consumed_L: float = 0.0
     waste_L: float = 0.0
+    metrics: dict[str, float] = field(default_factory=dict)
 
-    def to_dict(self) -> dict[str, float]:
-        return self.__dict__.copy()
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "metrics",
+            {str(key): float(value) for key, value in self.metrics.items()},
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        payload = self.__dict__.copy()
+        payload["metrics"] = deepcopy(self.metrics)
+        return payload
+
+
+def process_with_metrics(
+    process: ProcessLedger | None,
+    **metrics: float,
+) -> ProcessLedger:
+    """Return a process ledger with merged derived process metrics."""
+
+    process = process or ProcessLedger()
+    merged = process.metrics.copy()
+    merged.update({str(key): float(value) for key, value in metrics.items()})
+    return replace(process, metrics=merged)
 
 
 @dataclass(frozen=True)
@@ -415,6 +437,7 @@ class WorldState:
             risk=self.ledger.risk,
             sample_consumed_L=self.ledger.sample_consumed_L,
             waste_L=0.0 if self.process is None else self.process.waste_L,
+            metrics={} if self.process is None else self.process.metrics,
         )
         object.__setattr__(self, "species", species)
         object.__setattr__(self, "phases", phases)
