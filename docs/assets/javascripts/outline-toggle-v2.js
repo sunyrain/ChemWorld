@@ -1,5 +1,6 @@
 (function () {
   var tocStorageKey = "chemworld.toc.collapsed.v2";
+  var primaryNavStorageKey = "chemworld.primaryNav.open.v1";
 
   function getStoredCollapsed(storageKey) {
     try {
@@ -15,6 +16,97 @@
     } catch (error) {
       return;
     }
+  }
+
+  function readStoredOpenSections() {
+    try {
+      var raw = window.localStorage.getItem(primaryNavStorageKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function writeStoredOpenSections(sectionIds) {
+    try {
+      window.localStorage.setItem(primaryNavStorageKey, JSON.stringify(sectionIds));
+    } catch (error) {
+      return;
+    }
+  }
+
+  function getPrimarySectionToggles() {
+    var nav = document.querySelector("nav.md-nav--primary");
+    var list = nav ? nav.querySelector(".md-nav__list") : null;
+
+    if (!list) {
+      return [];
+    }
+
+    return Array.prototype.slice.call(list.children)
+      .map(function (item) {
+        return Array.prototype.slice.call(item.children).find(function (child) {
+          return child.matches && child.matches("input.md-nav__toggle[id^='__nav_']");
+        });
+      })
+      .filter(Boolean);
+  }
+
+  function savePrimaryNavigationState() {
+    var openIds = getPrimarySectionToggles()
+      .filter(function (input) {
+        return input.checked;
+      })
+      .map(function (input) {
+        return input.id;
+      });
+
+    writeStoredOpenSections(openIds);
+  }
+
+  function restorePrimaryNavigationState() {
+    var stored = readStoredOpenSections();
+    var toggles = getPrimarySectionToggles();
+
+    if (!stored || toggles.length === 0) {
+      return;
+    }
+
+    toggles.forEach(function (input) {
+      var item = input.closest(".md-nav__item");
+      var isActiveBranch = item && item.classList.contains("md-nav__item--active");
+      input.checked = stored.indexOf(input.id) !== -1 || isActiveBranch;
+    });
+  }
+
+  function setupPrimaryNavigationPersistence() {
+    var nav = document.querySelector("nav.md-nav--primary");
+    var toggles = getPrimarySectionToggles();
+
+    if (!nav || toggles.length === 0) {
+      return;
+    }
+
+    restorePrimaryNavigationState();
+    window.setTimeout(restorePrimaryNavigationState, 0);
+
+    toggles.forEach(function (input) {
+      if (input.dataset.cwNavPersist === "ready") {
+        return;
+      }
+
+      input.dataset.cwNavPersist = "ready";
+      input.addEventListener("change", savePrimaryNavigationState);
+    });
+
+    nav.querySelectorAll("a.md-nav__link").forEach(function (link) {
+      if (link.dataset.cwNavPersist === "ready") {
+        return;
+      }
+
+      link.dataset.cwNavPersist = "ready";
+      link.addEventListener("click", savePrimaryNavigationState);
+    });
   }
 
   function applyButtonState(target, button, collapsed, className, labels) {
@@ -64,10 +156,19 @@
   }
 
   if (typeof document$ !== "undefined" && document$.subscribe) {
-    document$.subscribe(setupTocToggle);
+    document$.subscribe(function () {
+      setupTocToggle();
+      setupPrimaryNavigationPersistence();
+    });
   } else if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupTocToggle);
+    document.addEventListener("DOMContentLoaded", function () {
+      setupTocToggle();
+      setupPrimaryNavigationPersistence();
+    });
   } else {
     setupTocToggle();
+    setupPrimaryNavigationPersistence();
   }
+
+  window.addEventListener("beforeunload", savePrimaryNavigationState);
 })();
