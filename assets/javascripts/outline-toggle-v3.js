@@ -1,6 +1,6 @@
 (function () {
-  var tocStorageKey = "chemworld.toc.collapsed.v2";
-  var primaryNavStorageKey = "chemworld.primaryNav.open.v1";
+  var tocStorageKey = "chemworld.toc.collapsed.v3";
+  var primaryNavStorageKey = "chemworld.primaryNav.open.v2";
 
   function getStoredCollapsed(storageKey) {
     try {
@@ -27,12 +27,22 @@
     }
   }
 
-  function writeStoredOpenSections(sectionIds) {
+  function writeStoredOpenSections(sectionKeys) {
     try {
-      window.localStorage.setItem(primaryNavStorageKey, JSON.stringify(sectionIds));
+      window.localStorage.setItem(primaryNavStorageKey, JSON.stringify(sectionKeys));
     } catch (error) {
       return;
     }
+  }
+
+  function normalizeText(value) {
+    return (value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function getToggleKey(input) {
+    var label = document.querySelector("label[for='" + input.id + "']");
+    var title = label ? normalizeText(label.textContent) : "";
+    return title || input.id;
   }
 
   function getPrimarySectionToggles() {
@@ -53,15 +63,13 @@
   }
 
   function savePrimaryNavigationState() {
-    var openIds = getPrimarySectionToggles()
+    var openKeys = getPrimarySectionToggles()
       .filter(function (input) {
         return input.checked;
       })
-      .map(function (input) {
-        return input.id;
-      });
+      .map(getToggleKey);
 
-    writeStoredOpenSections(openIds);
+    writeStoredOpenSections(openKeys);
   }
 
   function restorePrimaryNavigationState() {
@@ -75,8 +83,24 @@
     toggles.forEach(function (input) {
       var item = input.closest(".md-nav__item");
       var isActiveBranch = item && item.classList.contains("md-nav__item--active");
-      input.checked = stored.indexOf(input.id) !== -1 || isActiveBranch;
+      input.checked = stored.indexOf(getToggleKey(input)) !== -1 || isActiveBranch;
     });
+  }
+
+  function schedulePrimaryNavigationRestore() {
+    restorePrimaryNavigationState();
+
+    if (window.requestAnimationFrame) {
+      window.requestAnimationFrame(restorePrimaryNavigationState);
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(restorePrimaryNavigationState);
+      });
+    }
+
+    window.setTimeout(restorePrimaryNavigationState, 0);
+    window.setTimeout(restorePrimaryNavigationState, 50);
+    window.setTimeout(restorePrimaryNavigationState, 150);
+    window.setTimeout(restorePrimaryNavigationState, 300);
   }
 
   function setupPrimaryNavigationPersistence() {
@@ -87,8 +111,7 @@
       return;
     }
 
-    restorePrimaryNavigationState();
-    window.setTimeout(restorePrimaryNavigationState, 0);
+    schedulePrimaryNavigationRestore();
 
     toggles.forEach(function (input) {
       if (input.dataset.cwNavPersist === "ready") {
@@ -98,14 +121,22 @@
       input.dataset.cwNavPersist = "ready";
       input.addEventListener("change", savePrimaryNavigationState);
     });
+  }
 
-    nav.querySelectorAll("a.md-nav__link").forEach(function (link) {
-      if (link.dataset.cwNavPersist === "ready") {
-        return;
-      }
+  function installEarlyNavigationCapture() {
+    if (document.documentElement.dataset.cwNavCapture === "ready") {
+      return;
+    }
 
-      link.dataset.cwNavPersist = "ready";
-      link.addEventListener("click", savePrimaryNavigationState);
+    document.documentElement.dataset.cwNavCapture = "ready";
+
+    ["pointerdown", "mousedown", "touchstart", "click"].forEach(function (eventName) {
+      document.addEventListener(eventName, function (event) {
+        var link = event.target.closest && event.target.closest("nav.md-nav--primary a.md-nav__link");
+        if (link) {
+          savePrimaryNavigationState();
+        }
+      }, true);
     });
   }
 
@@ -155,19 +186,18 @@
     });
   }
 
-  if (typeof document$ !== "undefined" && document$.subscribe) {
-    document$.subscribe(function () {
-      setupTocToggle();
-      setupPrimaryNavigationPersistence();
-    });
-  } else if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () {
-      setupTocToggle();
-      setupPrimaryNavigationPersistence();
-    });
-  } else {
+  function setupChemWorldNavigation() {
+    installEarlyNavigationCapture();
     setupTocToggle();
     setupPrimaryNavigationPersistence();
+  }
+
+  if (typeof document$ !== "undefined" && document$.subscribe) {
+    document$.subscribe(setupChemWorldNavigation);
+  } else if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupChemWorldNavigation);
+  } else {
+    setupChemWorldNavigation();
   }
 
   window.addEventListener("beforeunload", savePrimaryNavigationState);
