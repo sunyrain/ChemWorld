@@ -1165,6 +1165,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#scoring-contract-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scoring Contract Audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2351,6 +2362,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#scoring-contract-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scoring Contract Audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2476,6 +2498,20 @@ task/runtime/scoring contract 被有意修改时，才应运行：</p>
 <pre><code class="language-bash">python scripts/update_golden_trajectories.py
 </code></pre>
 <p>更新后必须审查 fixture diff，确认变化是预期行为，而不是无意 drift。</p>
+<h2 id="scoring-contract-audit">Scoring Contract Audit</h2>
+<p>预发布核心任务必须通过 scoring contract audit。审计入口是
+<code>chemworld.eval.audit_scoring_contract(records)</code>，它会重新计算并核对：</p>
+<ul>
+<li><code>obs["score"]</code> 是否符合当前 task scoring contract；</li>
+<li><code>reward</code> 和 <code>observed_reward</code> 是否与公开 observation score 一致；</li>
+<li>final assay step 的 <code>leaderboard_score</code> 是否等于重新计算的 contract score；</li>
+<li>非 final assay step 是否没有暴露 <code>leaderboard_score</code>；</li>
+<li><code>processed_estimate</code> 中的公开指标是否与 observation 中同名指标一致；</li>
+<li><code>scoring_contract_hash</code> 是否匹配 task contract；</li>
+<li><code>evaluate_records(...).final_best_score</code> 是否等于 trajectory 中 final assay leaderboard score 的最优值。</li>
+</ul>
+<p>测试会覆盖正常轨迹、篡改 observation score、以及非 final assay 暴露 leaderboard score
+三类情况。</p>
 <h2 id="_5">发布产物</h2>
 <p>正式 release 应包含：</p>
 <ul>
