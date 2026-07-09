@@ -8,7 +8,7 @@ import numpy as np
 
 from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.recipe_sequence import RecipeSequenceMixin
-from chemworld.core.actions import ACTION_BOUNDS, CATALYSTS, SOLVENTS, sample_random_action
+from chemworld.world.actions import ACTION_BOUNDS, CATALYSTS, SOLVENTS, sample_random_action
 
 
 class GreedyLocalAgent(RecipeSequenceMixin, BaseAgent):

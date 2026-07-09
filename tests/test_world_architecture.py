@@ -152,21 +152,26 @@ def test_env_and_runtime_do_not_import_removed_batch_runtime() -> None:
 
 def test_runtime_env_and_world_use_world_action_catalog() -> None:
     roots = (
-        Path("src/chemworld/envs"),
-        Path("src/chemworld/runtime"),
-        Path("src/chemworld/world"),
+        Path("src/chemworld"),
+        Path("notebooks/tutorials"),
     )
     offenders = [
         path
         for root in roots
-        for path in root.glob("*.py")
+        for path in root.rglob("*")
+        if path.suffix in {".py", ".ipynb"}
         if "chemworld.core.actions" in path.read_text(encoding="utf-8")
     ]
-    action_codec = Path("src/chemworld/action_codec.py").read_text(encoding="utf-8")
 
+    assert not Path("src/chemworld/core/actions.py").exists()
     assert offenders == []
-    assert "chemworld.core.actions" not in action_codec
-    assert "from chemworld.world.actions" in action_codec
+
+
+def test_tutorial_helpers_do_not_import_removed_batch_runtime() -> None:
+    tutorial_helpers = Path("notebooks/tutorials/tutorial_utils.py").read_text(encoding="utf-8")
+
+    assert "chemworld.core.batch_reactor" not in tutorial_helpers
+    assert "from chemworld.world.recipes import recipe_to_event_sequence" in tutorial_helpers
 
 
 def test_runtime_does_not_use_legacy_species_constants() -> None:

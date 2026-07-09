@@ -1,10 +1,3 @@
-"""Core semi-mechanistic world models."""
+"""Objective helpers kept outside the Runtime v2 world-law layer."""
 
-from chemworld.core.actions import ACTION_BOUNDS, CATALYSTS, SOLVENTS
-
-__all__ = [
-    "ACTION_BOUNDS",
-    "CATALYSTS",
-    "SOLVENTS",
-]
-
+__all__: list[str] = []

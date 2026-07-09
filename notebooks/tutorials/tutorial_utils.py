@@ -14,9 +14,9 @@ import pandas as pd
 from IPython.display import HTML, SVG, display
 
 import chemworld  # noqa: F401
-from chemworld.core.actions import CATALYSTS, SOLVENTS, sample_random_action
-from chemworld.core.batch_reactor import recipe_to_event_sequence
 from chemworld.data.logging import TrajectoryLogger, load_jsonl, observation_to_json
+from chemworld.world.actions import CATALYSTS, SOLVENTS, sample_random_action
+from chemworld.world.recipes import recipe_to_event_sequence
 
 
 def project_root() -> Path:
@@ -987,4 +987,3 @@ def leaderboard_blueprint_svg() -> SVG:
     )
     parts.append("</svg>")
     return SVG("".join(parts))
-

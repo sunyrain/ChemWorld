@@ -8,7 +8,7 @@ import numpy as np
 
 from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.recipe_sequence import DEFAULT_RECIPE_EVENT_COUNT, RecipeSequenceMixin
-from chemworld.core.actions import ACTION_BOUNDS, CATALYSTS, SOLVENTS, vector_to_action
+from chemworld.world.actions import ACTION_BOUNDS, CATALYSTS, SOLVENTS, vector_to_action
 
 
 class LatinHypercubeAgent(RecipeSequenceMixin, BaseAgent):

@@ -11,7 +11,7 @@ from sklearn.exceptions import ConvergenceWarning
 
 from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.recipe_sequence import RecipeSequenceMixin
-from chemworld.core.actions import action_to_vector, sample_random_action
+from chemworld.world.actions import action_to_vector, sample_random_action
 
 
 def _normal_cdf(z: np.ndarray) -> np.ndarray:

@@ -225,9 +225,10 @@ arbitrary `A/P/B/D/E`-style names by first letter.
 Current cleanup also moved the action catalog into the world-law layer.
 `world/actions.py` now owns catalyst/solvent choices, terminal-recipe bounds,
 and action-vector helpers; env, runtime, world, and `ActionCodec` import that
-world-law catalog directly. `core/actions.py` remains an agent-facing facade so
-baseline agents can share the same public action helpers without making the
-runtime depend on core.
+world-law catalog directly. The follow-up cleanup removed the remaining
+`core/actions.py` facade; baseline agents and tutorial helpers now import the
+same world-law helpers directly, and architecture tests block reintroducing the
+old action facade into source or tutorial notebooks.
 
 Replay verification now compares Runtime v2 transaction metadata in addition
 to rewards and observations. The verifier rejects mechanism-hash drift,

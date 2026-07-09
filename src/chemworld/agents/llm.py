@@ -13,7 +13,7 @@ from typing import Any
 
 from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.recipe_sequence import RecipeSequenceMixin
-from chemworld.core.actions import canonicalize_action
+from chemworld.world.actions import canonicalize_action
 from chemworld.world.recipes import compile_recipe
 
 DEFAULT_PROMPT_TEMPLATE = """You are planning the next virtual ChemWorld reaction experiment.
@@ -174,4 +174,3 @@ class ToolUsingLLMStubAgent(BaseAgent):
             }
         )
         return manifest
-
