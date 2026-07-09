@@ -622,6 +622,13 @@ def spectra_summary(info: dict[str, Any]) -> dict[str, Any]:
     """Summarize public raw signals without exposing hidden mechanism identities."""
 
     raw_signal = info.get("raw_signal", {})
+    raw_signal_dict = raw_signal if isinstance(raw_signal, dict) else {}
+    spectra = raw_signal_dict.get("spectra", {})
+    channels = raw_signal_dict.get("channels", [])
+    if not isinstance(channels, list):
+        channels = []
+    if isinstance(spectra, dict) and not channels:
+        channels = sorted(str(key) for key in spectra)
     peak_tables = _find_peak_tables(raw_signal)
     grouped: dict[str, float] = {
         "target": 0.0,
@@ -658,6 +665,11 @@ def spectra_summary(info: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "instrument": info.get("instrument_source") or info.get("instrument"),
+        "packet_kind": raw_signal_dict.get("kind"),
+        "has_spectral_packet": bool(peak_tables or spectra or channels),
+        "channels": [str(channel) for channel in channels],
+        "channel_count": len(channels),
+        "peak_table_count": len(peak_tables),
         "observed_keys": list(observed),
         "peak_group_fractions": grouped,
         "dominant_peak": {"group": dominant_group, "fraction": dominant_fraction},
@@ -680,39 +692,184 @@ def _recovery_suggestion(env: Any, info: dict[str, Any]) -> str | None:
     )
 
 
+def _visible_metrics(observation: dict[str, Any]) -> dict[str, float]:
+    metrics: dict[str, float] = {}
+    for key in OBSERVATION_KEYS:
+        value, observed = _observed_float(observation.get(key))
+        if observed:
+            metrics[key] = value
+    return metrics
+
+
+def _format_metric_map(metrics: dict[str, float], keys: tuple[str, ...]) -> str:
+    parts = [f"{key}={metrics[key]:.3f}" for key in keys if key in metrics]
+    return ", ".join(parts) if parts else "none"
+
+
+def _instrument_summary(info: dict[str, Any]) -> dict[str, Any]:
+    instrument = info.get("instrument_source") or info.get("instrument")
+    return {
+        "operation_type": info.get("operation_type"),
+        "instrument": instrument,
+        "is_measurement": info.get("operation_type") == "measure",
+        "observed_keys": to_builtin(info.get("observed_keys", [])),
+        "measurement_cost": _safe_float(info.get("measurement_cost"), default=0.0),
+        "sample_consumed": _safe_float(info.get("sample_consumed"), default=0.0),
+        "reward_source": info.get("reward_source"),
+    }
+
+
+def _final_assay_summary(info: dict[str, Any], campaign: dict[str, Any]) -> dict[str, Any]:
+    instrument = info.get("instrument_source") or info.get("instrument")
+    is_final_assay = info.get("operation_type") == "measure" and instrument == "final_assay"
+    leaderboard_score = info.get("leaderboard_score")
+    return {
+        "is_final_assay": is_final_assay,
+        "leaderboard_score": (
+            None if leaderboard_score is None else _safe_float(leaderboard_score)
+        ),
+        "leaderboard_eligible": bool(is_final_assay and leaderboard_score is not None),
+        "experiment_ended": bool(info.get("experiment_ended", False)),
+        "episode_done": bool(campaign.get("done", False)),
+        "final_assay_count": campaign.get("final_assay_count", 0),
+        "last_terminal_summary": to_builtin(campaign.get("last_terminal_summary")),
+    }
+
+
+def _campaign_progress(campaign: dict[str, Any]) -> dict[str, Any]:
+    budget = max(int(campaign.get("budget") or 0), 0)
+    operation_count = max(int(campaign.get("operation_count") or 0), 0)
+    remaining = max(int(campaign.get("remaining_budget") or 0), 0)
+    progress_fraction = operation_count / budget if budget > 0 else 0.0
+    best_score = campaign.get("best_score")
+    return {
+        "campaign_id": campaign.get("campaign_id"),
+        "task_id": campaign.get("task_id"),
+        "episode_mode": campaign.get("episode_mode"),
+        "experiment_index": campaign.get("experiment_index"),
+        "operation_count": operation_count,
+        "budget": budget,
+        "remaining_budget": remaining,
+        "progress_fraction": progress_fraction,
+        "final_assay_count": campaign.get("final_assay_count", 0),
+        "best_score": None if best_score is None else _safe_float(best_score),
+        "done": bool(campaign.get("done", False)),
+    }
+
+
+def _failure_summary(info: dict[str, Any]) -> dict[str, Any]:
+    flags = info.get("constraint_flags", {})
+    preconditions = info.get("preconditions", {})
+    failed_preconditions = [
+        str(key)
+        for key, passed in preconditions.items()
+        if isinstance(passed, bool) and not passed
+    ]
+    return {
+        "precondition_failed": bool(flags.get("precondition_failed", False)),
+        "constitution_failed": bool(flags.get("constitution_failed", False)),
+        "transaction_status": info.get("transaction_status"),
+        "rollback_reason": info.get("rollback_reason"),
+        "error_message": info.get("error_message"),
+        "failed_preconditions": failed_preconditions,
+    }
+
+
+def _next_action_hints(env: Any, *, limit: int = 5) -> list[str]:
+    return [entry["operation"] for entry in available_actions(env)[:limit]]
+
+
 def lab_report_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) -> dict[str, Any]:
     """Return a compact public lab report for LLMs and students."""
 
     summary = spectra_summary(info)
     campaign = campaign_state(env)
+    progress = _campaign_progress(campaign)
+    metrics = _visible_metrics(observation)
+    instrument = _instrument_summary(info)
+    final_assay = _final_assay_summary(info, campaign)
+    failure = _failure_summary(info)
     score = _safe_float(observation.get("score"), default=0.0)
     cost = _safe_float(observation.get("cost"), default=0.0)
     risk = _safe_float(observation.get("safety_risk"), default=0.0)
-    failed = bool(info.get("constraint_flags", {}).get("precondition_failed", False))
+    failed = failure["precondition_failed"]
     status = "failed_precondition" if failed else "accepted"
     lines = [
         f"Operation {info.get('operation_type') or 'none'} was {status}.",
         f"Visible score={score:.3f}, cost={cost:.3f}, safety_risk={risk:.3f}.",
+        (
+            "Key public metrics: "
+            + _format_metric_map(
+                metrics,
+                (
+                    "yield",
+                    "selectivity",
+                    "conversion",
+                    "purity",
+                    "recovery",
+                    "phase_ratio",
+                    "score",
+                ),
+            )
+            + "."
+        ),
         f"Observed keys: {', '.join(summary['observed_keys']) or 'none'}.",
+        (
+            f"Campaign progress: step {progress['operation_count']}/{progress['budget']}, "
+            f"experiment {progress['experiment_index']}, "
+            f"remaining {progress['remaining_budget']}, "
+            f"final_assays {progress['final_assay_count']}."
+        ),
     ]
+    if instrument["instrument"] is not None:
+        lines.append(
+            f"Instrument: {instrument['instrument']} "
+            f"(measurement_cost={instrument['measurement_cost']:.3f}, "
+            f"sample={instrument['sample_consumed']:.6f})."
+        )
+    if final_assay["is_final_assay"]:
+        score_text = (
+            "none"
+            if final_assay["leaderboard_score"] is None
+            else f"{float(final_assay['leaderboard_score']):.3f}"
+        )
+        lines.append(
+            "Final assay: leaderboard_eligible="
+            f"{final_assay['leaderboard_eligible']}, score={score_text}."
+        )
+    if summary["has_spectral_packet"]:
+        channels = ", ".join(summary["channels"]) or "public peaks"
+        lines.append(
+            f"Spectra packet: {summary['packet_kind'] or 'instrument_signal'} "
+            f"with {summary['channel_count']} channels ({channels})."
+        )
     dominant = summary["dominant_peak"]
     if dominant["group"] is not None:
         lines.append(
             f"Dominant public spectral group: {dominant['group']} "
             f"({float(dominant['fraction']):.2f})."
         )
+    if summary["warnings"]:
+        lines.append("Spectral warnings: " + ", ".join(summary["warnings"]) + ".")
     recovery = _recovery_suggestion(env, info)
     if recovery is not None:
         lines.append(f"Recovery suggestion: {recovery}")
     if campaign["best_score"] is not None:
-        lines.append(f"Best campaign score so far: {float(campaign['best_score']):.3f}.")
+        lines.append(f"Best score so far: {float(campaign['best_score']):.3f}.")
     return {
         "mode": "lab_report",
+        "report_version": "chemworld-lab-report-0.2",
         "text": "\n".join(lines),
         "status": status,
         "operation_type": info.get("operation_type"),
+        "visible_metrics": metrics,
+        "instrument_summary": instrument,
+        "final_assay_summary": final_assay,
         "spectra_summary": summary,
         "campaign_state": campaign,
+        "campaign_progress": progress,
+        "failure_summary": failure,
+        "next_action_hints": _next_action_hints(env),
         "recovery_suggestion": recovery,
         "constraint_flags": to_builtin(info.get("constraint_flags", {})),
     }

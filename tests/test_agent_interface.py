@@ -148,7 +148,17 @@ def test_observation_views_are_json_safe_and_public() -> None:
 
         lab_report = env.unwrapped.observation_view("lab_report")
         assert "Visible score" in lab_report["text"]
+        assert "Key public metrics" in lab_report["text"]
+        assert "Campaign progress" in lab_report["text"]
+        assert "Spectra packet" in lab_report["text"]
+        assert lab_report["report_version"] == "chemworld-lab-report-0.2"
         assert "spectra_summary" in lab_report
+        assert lab_report["spectra_summary"]["has_spectral_packet"]
+        assert lab_report["spectra_summary"]["peak_table_count"] >= 1
+        assert lab_report["instrument_summary"]["instrument"] == "hplc"
+        assert lab_report["instrument_summary"]["is_measurement"]
+        assert "score" in lab_report["visible_metrics"]
+        assert lab_report["campaign_progress"]["remaining_budget"] >= 0
     finally:
         env.close()
 
@@ -161,6 +171,10 @@ def test_lab_report_includes_failed_action_recovery() -> None:
         report = env.unwrapped.observation_view("lab_report")
         assert report["status"] == "failed_precondition"
         assert report["recovery_suggestion"]
+        assert report["failure_summary"]["precondition_failed"]
+        assert report["failure_summary"]["failed_preconditions"]
+        assert report["next_action_hints"]
+        assert "Recovery suggestion" in report["text"]
     finally:
         env.close()
 
@@ -229,12 +243,18 @@ def test_campaign_state_updates_after_campaign_final_assay() -> None:
         for action in sequence:
             _, _, terminated, truncated, info = env.step(action)
         state = env.unwrapped.campaign_state()
+        report = env.unwrapped.observation_view("lab_report")
         assert not terminated
         assert not truncated
         assert info["experiment_ended"]
         assert state["final_assay_count"] == 1
         assert state["experiment_index"] == 1
         assert state["best_score"] is not None
+        assert report["final_assay_summary"]["is_final_assay"]
+        assert report["final_assay_summary"]["leaderboard_eligible"]
+        assert report["campaign_progress"]["final_assay_count"] == 1
+        assert "Final assay" in report["text"]
+        assert "Best score so far" in report["text"]
     finally:
         env.close()
 

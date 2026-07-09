@@ -78,6 +78,21 @@ env.campaign_state()
 
 `observation_view("lab_report")` 输出 LLM/学生可读实验摘要。它只由 public observation/info 派生，不读取 hidden species amounts、rate constants 或 private scenario 参数。
 
+`lab_report` 当前包含：
+
+| 字段 | 含义 |
+| --- | --- |
+| `visible_metrics` | 从 public observation 中提取的有限数值指标 |
+| `instrument_summary` | 当前 instrument、observed keys、measurement cost、sample consumption |
+| `spectra_summary` | public peak group fractions、dominant peak、spectral channels、warnings |
+| `final_assay_summary` | 是否 final assay、leaderboard score、episode/campaign terminal 状态 |
+| `campaign_progress` | step/budget、experiment index、remaining budget、final assay count、best score |
+| `failure_summary` | precondition/constitution/rollback/error 摘要 |
+| `next_action_hints` | 当前可执行 operation 的有限列表 |
+| `recovery_suggestion` | 失败动作后的恢复建议 |
+
+报告文本固定由这些 public 字段渲染，因此可用于 LLM prompt、课堂日志和 replay dataset。
+
 ## Wrappers
 
 ```python
