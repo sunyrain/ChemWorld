@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 from gymnasium import spaces
 
-from chemworld.core.actions import CATALYSTS, SOLVENTS
+from chemworld.world.actions import CATALYSTS, SOLVENTS
 from chemworld.world.operations import DOWNSTREAM_OBSERVATION_KEYS, INSTRUMENTS, OPERATION_TYPES
 
 OBSERVATION_KEYS = (

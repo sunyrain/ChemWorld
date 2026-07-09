@@ -7,7 +7,7 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.core.actions import CATALYSTS, SOLVENTS
+from chemworld.world.actions import CATALYSTS, SOLVENTS
 from chemworld.world.operations import (
     INSTRUMENTS,
     OPERATION_TYPES,

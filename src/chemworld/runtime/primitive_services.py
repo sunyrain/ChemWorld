@@ -6,9 +6,9 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.core.actions import CATALYSTS, SOLVENTS
 from chemworld.foundation import WorldState, scale_phase_ledger, upsert_equipment_record
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.world.actions import CATALYSTS, SOLVENTS
 from chemworld.world.parameters import ChemWorldParameters
 
 

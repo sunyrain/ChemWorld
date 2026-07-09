@@ -218,6 +218,8 @@ rate parameters unless explicitly constructed with `debug_truth=True`.
 
 Action handling is split into an explicit abstraction layer:
 
+- `world/actions.py`: owns the shared action catalog, catalyst/solvent choices,
+  bounds, and terminal-recipe vector helpers used by agents and recipe planners;
 - `ActionCodec`: converts semantic event JSON to canonical actions and stable
   numeric vectors;
 - `OperationValidator`: combines task policy and physical preconditions into a

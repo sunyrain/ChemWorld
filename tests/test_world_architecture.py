@@ -150,6 +150,25 @@ def test_env_and_runtime_do_not_import_removed_batch_runtime() -> None:
     assert offenders == []
 
 
+def test_runtime_env_and_world_use_world_action_catalog() -> None:
+    roots = (
+        Path("src/chemworld/envs"),
+        Path("src/chemworld/runtime"),
+        Path("src/chemworld/world"),
+    )
+    offenders = [
+        path
+        for root in roots
+        for path in root.glob("*.py")
+        if "chemworld.core.actions" in path.read_text(encoding="utf-8")
+    ]
+    action_codec = Path("src/chemworld/action_codec.py").read_text(encoding="utf-8")
+
+    assert offenders == []
+    assert "chemworld.core.actions" not in action_codec
+    assert "from chemworld.world.actions" in action_codec
+
+
 def test_runtime_does_not_use_legacy_species_constants() -> None:
     roots = (Path("src/chemworld/envs"), Path("src/chemworld/runtime"), Path("src/chemworld/eval"))
     legacy_usage: list[tuple[Path, int, str]] = []

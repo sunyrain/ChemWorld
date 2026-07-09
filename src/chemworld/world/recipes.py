@@ -6,8 +6,8 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.core.actions import canonicalize_action
 from chemworld.schemas import SchemaValidationResult, validate_action_schema, validate_recipe_schema
+from chemworld.world.actions import canonicalize_action
 from chemworld.world.operations import MACRO_OPERATIONS
 
 

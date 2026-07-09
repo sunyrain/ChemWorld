@@ -8,7 +8,7 @@ from hashlib import sha256
 
 import numpy as np
 
-from chemworld.core.actions import CATALYSTS, SOLVENTS
+from chemworld.world.actions import CATALYSTS, SOLVENTS
 
 WORLD_FAMILY_VERSION = "chemworld-physical-chemistry"
 SUPPORTED_SPLITS = ("public-dev", "public-test", "private-eval")
