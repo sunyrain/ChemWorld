@@ -2221,42 +2221,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../professional_todo/" class="md-nav__link">
+      <a href="../todo/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    专业化 TODO
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../professional_deepening_todo/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    专业化深化 TODO
+    统一任务板
   
 
     
@@ -2298,11 +2270,11 @@
 <p>本页给出小团队协作规则。目标是避免多人同时重构时互相覆盖，也避免文档、代码和 TODO
 之间失去同步。</p>
 <h2 id="_2">共享事实源</h2>
-<p>根目录 <code>TODO.md</code> 或对应路线文档应作为活跃任务板。每个任务需要一个 owner、一个状态和
-一个可验收结果。</p>
+<p>根目录 <code>TODO.md</code> 是唯一活跃任务板。每个任务必须有 owner、状态和可验收结果。
+站点中的“统一任务板”只是摘要，不作为第二份工作板维护。</p>
 <h2 id="_3">开始工作协议</h2>
-<p>开始前先同步主分支、查看当前 diff，并确认自己要改的文件范围。不要在不理解工作区
-状态时做大规模移动或格式化。</p>
+<p>开始前先同步主分支、查看当前 diff，并确认自己要改的文件范围。认领任务时必须更新
+根目录 <code>TODO.md</code> 并推送，避免两个人同时做同一项。</p>
 <h2 id="_4">工作中</h2>
 <ul>
 <li>小步提交。</li>
@@ -2311,7 +2283,7 @@
 <li>如果发现他人未提交改动，先读懂再继续，不要回滚。</li>
 </ul>
 <h2 id="_5">完成协议</h2>
-<p>完成后更新 TODO、运行检查、写清楚变更摘要和剩余风险。</p>
+<p>完成后更新 <code>TODO.md</code>、运行检查、写清楚变更摘要和剩余风险，然后立即推送。</p>
 <h2 id="_6">状态值</h2>
 <ul>
 <li><code>todo</code></li>
@@ -2320,6 +2292,8 @@
 <li><code>review</code></li>
 <li><code>done</code></li>
 </ul>
+<p>仓库根目录 <code>TODO.md</code> 使用的正式状态为 <code>Open</code>、<code>Claimed</code>、<code>Active</code>、<code>Review</code>、<code>Done</code>、
+<code>Blocked</code>。本页的小写状态只用于口头交接时快速描述。</p>
 <h2 id="_7">交接说明</h2>
 <p>交接时写明：已完成什么、未完成什么、验证命令、下一步文件入口和已知风险。</p>
 <h2 id="_8">检查</h2>
