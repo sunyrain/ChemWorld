@@ -195,6 +195,8 @@ Action handling is split into an explicit abstraction layer:
   numeric vectors;
 - `OperationValidator`: combines task policy and physical preconditions into a
   single validation result;
+- `envs/spaces.py`: owns Gym action/observation space construction, nullable
+  scalar observation boxes, and observation-array encoding;
 - wrappers read validator output instead of duplicating validation logic.
 
 Failed action preconditions return non-informative observations with empty
@@ -222,6 +224,8 @@ Instrument observations are represented as:
 
 Gym observations still expose the stable numeric observation keys. Missing
 values are represented as `NaN` in Gym arrays and `null` in trajectory JSONL.
+The array codec lives in `chemworld.envs.spaces`, keeping `ChemWorldEnv`
+focused on reset/step/render orchestration rather than Gym-space bookkeeping.
 
 The observation implementation is separated from state-changing runtime
 services. `ChemWorldObservationKernel` reads the committed hidden state,

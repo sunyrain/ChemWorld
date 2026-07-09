@@ -258,6 +258,19 @@ def test_runtime_phase_separation_service_is_separate_from_domain_services() -> 
     assert "downstream_truth_values" in phase_ledger_services
 
 
+def test_chemworld_env_spaces_are_separate_from_control_loop() -> None:
+    env_source = Path("src/chemworld/envs/chemworld_env.py").read_text(encoding="utf-8")
+    space_source = Path("src/chemworld/envs/spaces.py").read_text(encoding="utf-8")
+
+    assert "from gymnasium import spaces" not in env_source
+    assert "spaces.Box" not in env_source
+    assert "spaces.Discrete" not in env_source
+    assert "make_action_space()" in env_source
+    assert "make_observation_space()" in env_source
+    assert "def make_action_space" in space_source
+    assert "class NullableScalarBox" in space_source
+
+
 def test_runtime_electrochemical_service_is_separate_from_domain_services() -> None:
     domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
         encoding="utf-8"

@@ -162,7 +162,10 @@ The architecture test suite now also enforces the active Runtime v2 boundary:
 `src/chemworld/envs` and `src/chemworld/runtime` must not import the removed
 `chemworld.core.batch_reactor` runtime, and `ChemWorldEnv.step()` must delegate
 process-operation dispatch to `runtime.apply_transaction()` instead of adding
-inline branches for process operations.
+inline branches for process operations. Current cleanup also extracted
+`chemworld.envs.spaces`, keeping Gym action/observation space construction,
+nullable scalar boxes, and observation-array encoding outside the environment
+control loop.
 
 The final Runtime v2 boundary audit also enforces that generic runtime,
 observation, scoring, and downstream bookkeeping do not depend on fixed

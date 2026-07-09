@@ -7,12 +7,18 @@ from typing import Any
 
 import gymnasium as gym
 import numpy as np
-from gymnasium import spaces
 
 from chemworld import __version__
 from chemworld.action_codec import ActionCodec
 from chemworld.backends import semi_mechanistic_backend_spec
-from chemworld.core.actions import CATALYSTS, SOLVENTS
+from chemworld.envs.spaces import (
+    OBSERVATION_KEYS,
+    empty_observation,
+    make_action_space,
+    make_observation_space,
+    to_observation,
+    value_or_default,
+)
 from chemworld.foundation.state import OperationRecord, WorldState
 from chemworld.operation_validator import OperationValidator
 from chemworld.runtime import (
@@ -24,7 +30,6 @@ from chemworld.tasks import default_kernel_maturity, get_task
 from chemworld.world.instruments import instrument_contracts
 from chemworld.world.observation_contracts import TaskObservationContract
 from chemworld.world.operations import (
-    DOWNSTREAM_OBSERVATION_KEYS,
     INSTRUMENTS,
     OPERATION_TYPES,
     REACTION_OPERATIONS,
@@ -36,37 +41,7 @@ from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 from chemworld.world.scoring import TaskScoringContract, safety_cost_from_flags
 from chemworld.world.world_law import world_law_spec
 
-OBSERVATION_KEYS = (
-    "yield",
-    "selectivity",
-    "conversion",
-    "cost",
-    "safety_risk",
-    "score",
-    "byproduct_signal",
-    "degradation_warning",
-    "virtual_spectrum_summary",
-    *DOWNSTREAM_OBSERVATION_KEYS,
-)
 DEFAULT_SCENARIO_ID = "reaction-to-assay"
-
-
-class NullableScalarBox(spaces.Box):
-    """A scalar Box that treats NaN as a valid missing observation."""
-
-    def contains(self, x: object) -> bool:
-        try:
-            array = np.asarray(x, dtype=self.dtype)
-        except (TypeError, ValueError):
-            return False
-        if array.shape != self.shape:
-            return False
-        finite = np.isfinite(array)
-        if not np.any(finite):
-            return True
-        return bool(
-            np.all(array[finite] >= self.low[finite]) and np.all(array[finite] <= self.high[finite])
-        )
 
 
 class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
@@ -159,43 +134,13 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._operation_id = 0
         self._done = False
         self._state = self.scenario_instance.initial_state
-        self._last_observation = self._empty_observation()
+        self._last_observation = empty_observation()
         self._last_operation_record: OperationRecord | None = None
         self._campaign_id = self._make_campaign_id()
         self._experiment_summaries: list[dict[str, Any]] = []
 
-        self.action_space = spaces.Dict(
-            {
-                "operation": spaces.Discrete(len(OPERATION_TYPES)),
-                "amount_mol": spaces.Box(0.0, 0.040, shape=(1,), dtype=np.float32),
-                "volume_L": spaces.Box(0.0, 0.080, shape=(1,), dtype=np.float32),
-                "catalyst_amount_mol": spaces.Box(0.0, 0.005, shape=(1,), dtype=np.float32),
-                "target_temperature_K": spaces.Box(250.0, 520.0, shape=(1,), dtype=np.float32),
-                "duration_s": spaces.Box(0.0, 14_400.0, shape=(1,), dtype=np.float32),
-                "stirring_speed_rpm": spaces.Box(100.0, 1200.0, shape=(1,), dtype=np.float32),
-                "sample_volume_L": spaces.Box(0.0, 0.002, shape=(1,), dtype=np.float32),
-                "instrument": spaces.Discrete(len(INSTRUMENTS)),
-                "catalyst": spaces.Discrete(len(CATALYSTS)),
-                "solvent": spaces.Discrete(len(SOLVENTS)),
-                "phase": spaces.Discrete(3),
-                "target_phase": spaces.Discrete(3),
-                "extractant": spaces.Discrete(4),
-                "wash_volume_L": spaces.Box(0.0, 0.040, shape=(1,), dtype=np.float32),
-                "transfer_fraction": spaces.Box(0.0, 1.0, shape=(1,), dtype=np.float32),
-                "seed_mass_g": spaces.Box(0.0, 1.0, shape=(1,), dtype=np.float32),
-                "reflux_ratio": spaces.Box(0.0, 10.0, shape=(1,), dtype=np.float32),
-                "flow_rate_mL_min": spaces.Box(0.01, 20.0, shape=(1,), dtype=np.float32),
-                "residence_time_s": spaces.Box(1.0, 7200.0, shape=(1,), dtype=np.float32),
-                "potential_V": spaces.Box(-3.0, 3.0, shape=(1,), dtype=np.float32),
-                "current_mA": spaces.Box(0.0, 500.0, shape=(1,), dtype=np.float32),
-            }
-        )
-        self.observation_space = spaces.Dict(
-            {
-                key: NullableScalarBox(low=0.0, high=1.0, shape=(1,), dtype=np.float32)
-                for key in OBSERVATION_KEYS
-            }
-        )
+        self.action_space = make_action_space()
+        self.observation_space = make_observation_space()
 
     def reset(
         self,
@@ -225,7 +170,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._experiment_index = 0
         self._operation_id = 0
         self._done = False
-        self._last_observation = self._empty_observation()
+        self._last_observation = empty_observation()
         self._last_operation_record = None
         self._campaign_id = self._make_campaign_id()
         self._experiment_summaries = []
@@ -316,9 +261,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         campaign_final_assay = successful_final_assay and self.episode_mode == "campaign"
         terminated = successful_final_assay and not campaign_final_assay
         self._done = terminated or truncated
-        observation_dict = self._to_observation(observation_values)
+        observation_dict = to_observation(observation_values)
         self._last_observation = observation_dict
-        reward = self._value_or_default(observation_values, "score")
+        reward = value_or_default(observation_values, "score")
         self._last_operation_record = operation_record
         info = self._info(operation_record, observation)
         info.update(runtime_info)
@@ -331,8 +276,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     "experiment_index": self._experiment_index,
                     "terminal_step": self._step_count,
                     "leaderboard_score": info["leaderboard_score"],
-                    "safety_risk": self._value_or_default(observation_values, "safety_risk"),
-                    "cost": self._value_or_default(observation_values, "cost"),
+                    "safety_risk": value_or_default(observation_values, "safety_risk"),
+                    "cost": value_or_default(observation_values, "cost"),
                     "final_assay": True,
                 }
             )
@@ -504,19 +449,19 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             reward_source = "carried_observation_with_public_ledger"
         else:
             reward_source = "public_ledger_only"
-        score = self._value_or_default(values, "score")
+        score = value_or_default(values, "score")
         failed_preconditions = [
             key for key, passed in operation_record.preconditions.items() if not passed
         ]
         constraint_flags = {
-            "unsafe": self._value_or_default(values, "safety_risk") >= self.safety_limit,
+            "unsafe": value_or_default(values, "safety_risk") >= self.safety_limit,
             "unsafe_by_task_limit": (
-                self._value_or_default(values, "safety_risk") >= self.safety_limit
+                value_or_default(values, "safety_risk") >= self.safety_limit
             ),
-            "high_cost": self._value_or_default(values, "cost") >= 0.75,
-            "low_selectivity": self._value_or_default(values, "selectivity") <= 0.35,
+            "high_cost": value_or_default(values, "cost") >= 0.75,
+            "low_selectivity": value_or_default(values, "selectivity") <= 0.35,
             "degradation_detected": (
-                self._value_or_default(values, "degradation_warning") >= 0.28
+                value_or_default(values, "degradation_warning") >= 0.28
             ),
             "constitution_failed": constitution_failed,
             "precondition_failed": precondition_failed,
@@ -589,33 +534,4 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "constraint_flags": constraint_flags,
             "env_version": __version__,
             "world_family_version": self.world.family_version,
-        }
-
-    @staticmethod
-    def _value_or_default(values: dict[str, float | None], key: str, default: float = 0.0) -> float:
-        value = values.get(key)
-        return default if value is None else float(value)
-
-    @staticmethod
-    def _to_observation(values: dict[str, float | None]) -> dict[str, np.ndarray]:
-        def scalar_value(key: str) -> float:
-            value = values.get(key)
-            return np.nan if value is None else float(value)
-
-        return {
-            key: np.array(
-                [scalar_value(key)],
-                dtype=np.float32,
-            )
-            for key in OBSERVATION_KEYS
-        }
-
-    @staticmethod
-    def _empty_observation() -> dict[str, np.ndarray]:
-        return {
-            key: np.array(
-                [0.0 if key in {"cost", "safety_risk", "score"} else np.nan],
-                dtype=np.float32,
-            )
-            for key in OBSERVATION_KEYS
         }
