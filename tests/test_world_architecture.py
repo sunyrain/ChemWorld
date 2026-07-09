@@ -286,6 +286,30 @@ def test_chemworld_env_reports_are_separate_from_control_loop() -> None:
     assert "return render_env(self)" in env_source
 
 
+def test_runtime_mechanism_manifest_and_validation_are_separate_from_compiler_facade() -> None:
+    mechanisms_source = Path("src/chemworld/runtime/mechanisms.py").read_text(
+        encoding="utf-8"
+    )
+    manifest_source = Path("src/chemworld/runtime/mechanism_manifest.py").read_text(
+        encoding="utf-8"
+    )
+    validation_source = Path("src/chemworld/runtime/mechanism_validation.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "class CompiledMechanism" not in mechanisms_source
+    assert "class MechanismManifest" not in mechanisms_source
+    assert "class MechanismValidationReport" not in mechanisms_source
+    assert "def validate_mechanism_file" not in mechanisms_source
+    assert "def mechanism_hash" not in mechanisms_source
+    assert "def compile_mechanism" in mechanisms_source
+    assert "class CompiledMechanism" in manifest_source
+    assert "class MechanismManifest" in manifest_source
+    assert "class MechanismValidationReport" in manifest_source
+    assert "def validate_mechanism_file" in validation_source
+    assert "def validate_compiled_role_contract" in validation_source
+
+
 def test_runtime_electrochemical_service_is_separate_from_domain_services() -> None:
     domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
         encoding="utf-8"

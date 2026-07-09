@@ -46,6 +46,10 @@ The runtime is organized around:
 - `MechanismCompiler`, which compiles mechanism YAML into a `CompiledMechanism`
   with species indexes, a stoichiometric matrix, observable mappings, score
   bindings, and a mechanism hash;
+- `runtime/mechanism_manifest.py` and `runtime/mechanism_validation.py`, which
+  keep compiled-mechanism data contracts, replay manifests, YAML hashing,
+  schema validation, and Runtime v2 role-contract checks separate from the
+  lightweight compiler facade;
 - `OperationKernelRegistry`, which maps allowed operation types to typed kernels
   for the current profile rather than requiring every known ChemWorld operation
   globally;

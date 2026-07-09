@@ -158,6 +158,14 @@ locks the mechanism id, final-assay score snapshot, campaign versus
 single-experiment termination semantics, operation-kernel metadata, transaction
 status, world-event payload, and affected-ledger signals.
 
+Current cleanup also split the mechanism compiler boundary. The lightweight
+`runtime/mechanisms.py` facade now keeps scenario-to-mechanism selection and
+`compile_mechanism()` assembly, while `runtime/mechanism_manifest.py` owns
+`CompiledMechanism`, `MechanismManifest`, `MechanismValidationReport`, and
+`ScoreSpec`, and `runtime/mechanism_validation.py` owns YAML loading, canonical
+hashing, schema validation, observable-role mapping, and Runtime v2 role
+contract checks.
+
 The architecture test suite now also enforces the active Runtime v2 boundary:
 `src/chemworld/envs` and `src/chemworld/runtime` must not import the removed
 `chemworld.core.batch_reactor` runtime, and `ChemWorldEnv.step()` must delegate
