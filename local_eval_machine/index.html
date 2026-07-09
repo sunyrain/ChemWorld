@@ -1253,7 +1253,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        手动评测流程
+        分步评测流程
       
     </span>
   </a>
@@ -1264,7 +1264,29 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
+        输出结构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         安全模型
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        当前验收状态
       
     </span>
   </a>
@@ -2255,7 +2277,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        手动评测流程
+        分步评测流程
       
     </span>
   </a>
@@ -2266,7 +2288,29 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
+        输出结构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         安全模型
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        当前验收状态
       
     </span>
   </a>
@@ -2291,42 +2335,138 @@
 
 
 <h1 id="_1">本地评测机</h1>
-<p>本地评测机用于在不依赖托管服务的情况下运行 ChemWorld 任务、收集轨迹、计算分数并
-生成报告。它是未来 hosted leaderboard 的最小可运行前身。</p>
+<p>本地评测机用于在不依赖托管服务的情况下模拟“教师端评测 + 学生端提交”的完整流程。
+它是未来 hosted leaderboard 的最小可运行前身。</p>
+<p>当前实现位于 <code>local_eval_server/</code>，核心入口是：</p>
+<pre><code class="language-bash">python local_eval_server/teacher_side/eval_machine.py
+</code></pre>
 <h2 id="_2">目录布局</h2>
-<pre><code class="language-text">local_eval/
-├── submissions/
-├── runs/
-├── scores/
-├── reports/
-└── manifests/
+<pre><code class="language-text">local_eval_server/
+├── teacher_side/
+│   ├── eval_machine.py
+│   └── eval_config.demo.json
+└── student_side/
+    ├── student_agent_runtime.py
+    └── team_alpha_submission/
+        ├── agent.py
+        ├── manifest.json
+        ├── requirements.txt
+        └── README.md
 </code></pre>
-<p><code>submissions/</code> 存放 agent 或 recipe；<code>runs/</code> 存放原始轨迹；<code>scores/</code> 存放结构化评分；
-<code>reports/</code> 存放人类可读报告；<code>manifests/</code> 存放版本、seed 和配置。</p>
+<p>教师端拥有 ChemWorld 环境、private salt、seeds、trajectory、verify、evaluate、leaderboard
+和发布目录。学生端只暴露一个 JSONL agent runtime：教师端发送 sanitized task info 和
+history，学生端返回下一步 action。</p>
+<p>学生端不创建 <code>gym.make("ChemWorld", ...)</code>，也不直接调用 <code>env.step()</code>。</p>
 <h2 id="_3">一条命令演示</h2>
-<pre><code class="language-bash">python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
+<pre><code class="language-bash">python local_eval_server/teacher_side/eval_machine.py \
+  --workspace runs/local_eval_machine \
+  demo \
+  --tasks reaction-to-assay \
+  --seeds 0
 </code></pre>
-<p>这个命令侧重环境自洽性，不等同正式 leaderboard，但它能快速检查任务注册、reset/step、
-replay、spectra 和 constitution 是否处于可发布状态。</p>
-<h2 id="_4">手动评测流程</h2>
-<ol>
-<li>选择任务集和 seeds。</li>
-<li>加载 agent 或 recipe。</li>
-<li>逐个 episode 运行环境。</li>
-<li>保存 trajectory、task_info、score 和 manifest。</li>
-<li>生成汇总表和失败案例报告。</li>
-</ol>
-<p>最小 API 形态：</p>
-<pre><code class="language-python">import gymnasium as gym
-import chemworld
+<p>这个命令会初始化 demo workspace、接收一个模拟学生提交、运行教师端环境、保存轨迹、
+重放验证、计算指标并发布 leaderboard 与 summary。</p>
+<h2 id="_4">分步评测流程</h2>
+<p>推荐在正式课程或内部评测中使用分步命令：</p>
+<pre><code class="language-bash">python local_eval_server/teacher_side/eval_machine.py \
+  --workspace runs/local_eval_machine \
+  init-demo
 
-env = gym.make(&quot;ChemWorld&quot;, task_id=&quot;reaction-to-purification&quot;, seed=1)
-obs, info = env.reset(seed=1)
+python local_eval_server/teacher_side/eval_machine.py \
+  --workspace runs/local_eval_machine \
+  validate
+
+python local_eval_server/teacher_side/eval_machine.py \
+  --workspace runs/local_eval_machine \
+  run \
+  --tasks reaction-to-assay \
+  --seeds 0
+
+python local_eval_server/teacher_side/eval_machine.py \
+  --workspace runs/local_eval_machine \
+  summarize \
+  --run-id demo_eval
 </code></pre>
-<h2 id="_5">安全模型</h2>
-<p>本地评测机默认只执行受信任代码。若允许第三方提交 Python agent，应使用隔离进程、
-资源限制、超时、只读数据目录和明确的输出协议。不要在教师机或发布机上直接运行未知
-代码。</p>
+<p>对应含义：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>命令</th>
+<th>产物</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初始化</td>
+<td><code>init-demo</code></td>
+<td><code>teacher_private/eval_config.json</code> 和 <code>submissions/incoming/team_alpha_submission/</code></td>
+</tr>
+<tr>
+<td>接收提交</td>
+<td><code>validate</code></td>
+<td>校验 manifest、entrypoint、依赖声明；合法提交移动到 <code>submissions/accepted/</code></td>
+</tr>
+<tr>
+<td>教师端运行</td>
+<td><code>run</code></td>
+<td><code>runs/&lt;run_id&gt;/&lt;team&gt;/trajectories/</code>、<code>results/</code>、<code>verify/</code>、<code>logs/</code></td>
+</tr>
+<tr>
+<td>汇总发布</td>
+<td><code>summarize</code></td>
+<td><code>published/&lt;run_id&gt;_leaderboard.json</code>、<code>.csv</code>、<code>&lt;run_id&gt;_summary.json</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>run</code> 阶段会调用正式的 <code>chemworld.eval.verify_records</code>，不是本地简化 verifier。因此
+本地评测机与 benchmark replay gate 使用同一套重放检查。</p>
+<h2 id="_5">输出结构</h2>
+<pre><code class="language-text">runs/local_eval_machine/
+├── teacher_private/
+│   └── eval_config.json
+├── submissions/
+│   ├── incoming/
+│   ├── accepted/team_alpha/
+│   └── rejected/
+├── runs/demo_eval/team_alpha/
+│   ├── trajectories/reaction-to-assay_seed0.jsonl
+│   ├── results/reaction-to-assay_seed0.json
+│   ├── verify/reaction-to-assay_seed0.json
+│   └── logs/
+└── published/
+    ├── demo_eval_leaderboard.csv
+    ├── demo_eval_leaderboard.json
+    └── demo_eval_summary.json
+</code></pre>
+<p><code>summary.json</code> 至少包含：</p>
+<pre><code class="language-json">{
+  &quot;result_count&quot;: 1,
+  &quot;verification_count&quot;: 1,
+  &quot;verified_count&quot;: 1,
+  &quot;failed_verifications&quot;: [],
+  &quot;leaderboard_json&quot;: &quot;.../demo_eval_leaderboard.json&quot;
+}
+</code></pre>
+<h2 id="_6">安全模型</h2>
+<p>当前实现是本机模拟 Docker，而不是强隔离沙箱：</p>
+<ul>
+<li>教师端负责 <code>env.reset/env.step</code>；</li>
+<li>学生端只通过 stdin/stdout JSONL 协议收发消息；</li>
+<li>教师端会移除已知 private env keys；</li>
+<li>学生端收到的 <code>task_info</code> 和 <code>info</code> 会被清理，避免直接暴露 private world 信息；</li>
+<li>每次学生响应都有 timeout。</li>
+</ul>
+<p>如果用于真实第三方评测，应继续增加容器隔离、只读挂载、网络禁用、资源限制和进程级
+权限控制。</p>
+<h2 id="_7">当前验收状态</h2>
+<p>测试 <code>tests/test_local_eval_machine.py</code> 覆盖：</p>
+<ul>
+<li>一条命令 demo；</li>
+<li>分步 <code>init-demo -&gt; validate -&gt; run -&gt; summarize</code>；</li>
+<li>trajectory、result、verify、leaderboard 和 summary 产物存在；</li>
+<li>verify JSON 中 <code>verified == true</code>。</li>
+</ul>
 
 
 
