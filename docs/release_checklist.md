@@ -44,6 +44,7 @@ python -m mkdocs build --strict
 - 三项 pre-release core task 的 golden trajectory fixture 通过测试，并且任何 fixture 更新都经过人工 diff 审查。
 - 三项 pre-release core task 的 scoring contract audit 通过，且能拒绝篡改后的公开 score、错误 scoring hash、以及非 final assay 暴露的 leaderboard score。
 - Replay verifier 能拒绝篡改后的 mechanism hash、task/profile/scoring/observation hash、reward、observation、transaction status、world events 和 state patch summary。
+- 本地教师端/学生端评测 smoke 通过：`init-demo -> validate -> run -> summarize` 能生成 trajectory、result、verify、leaderboard 和 summary 产物。
 
 ## Baseline 产物
 

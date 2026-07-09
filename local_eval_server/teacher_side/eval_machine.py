@@ -12,7 +12,6 @@ import argparse
 import contextlib
 import csv
 import json
-import math
 import os
 import shutil
 import subprocess
@@ -39,6 +38,7 @@ import chemworld  # noqa: F401
 from chemworld.data.logging import TrajectoryLogger, load_jsonl, observation_to_json
 from chemworld.eval.leaderboard import aggregate_leaderboard
 from chemworld.eval.metrics import evaluate_records
+from chemworld.eval.verify import verify_records
 from chemworld.tasks import get_task
 
 
@@ -280,106 +280,6 @@ def _task_entries(
     return entries
 
 
-def _verify_task_records(
-    records: list[dict[str, Any]],
-    *,
-    task_id: str,
-    tolerance: float = 1.0e-5,
-) -> dict[str, Any]:
-    """Replay a teacher-run task trajectory with the original TaskSpec budget."""
-
-    if not records:
-        raise ValueError("Cannot verify an empty trajectory")
-    first = records[0]
-    env = gym.make("ChemWorld", task_id=task_id, seed=int(first["seed"]))
-    env.reset(seed=int(first["seed"]))
-    mismatches: list[dict[str, Any]] = []
-    max_abs_error = 0.0
-    try:
-        for record in records:
-            observation, reward, terminated, truncated, info = env.step(record["action"])
-            replay_observation = observation_to_json(observation)
-            reward_error = abs(float(record["reward"]) - float(reward))
-            max_abs_error = max(max_abs_error, reward_error)
-            if reward_error > tolerance:
-                mismatches.append(
-                    {
-                        "step": record["step"],
-                        "field": "reward",
-                        "recorded": float(record["reward"]),
-                        "replayed": float(reward),
-                        "abs_error": reward_error,
-                    }
-                )
-            for key, replayed_raw in replay_observation.items():
-                recorded_raw = record["observation"].get(key)
-                if replayed_raw is None or recorded_raw is None:
-                    if replayed_raw is not None or recorded_raw is not None:
-                        mismatches.append(
-                            {
-                                "step": record["step"],
-                                "field": f"observation.{key}",
-                                "recorded": recorded_raw,
-                                "replayed": replayed_raw,
-                                "abs_error": None,
-                            }
-                        )
-                    continue
-                replayed = float(replayed_raw)
-                recorded = float(recorded_raw)
-                error = abs(replayed - recorded)
-                max_abs_error = max(max_abs_error, error)
-                if math.isfinite(error) and error > tolerance:
-                    mismatches.append(
-                        {
-                            "step": record["step"],
-                            "field": f"observation.{key}",
-                            "recorded": recorded,
-                            "replayed": replayed,
-                            "abs_error": error,
-                        }
-                    )
-            if bool(record["terminated"]) != bool(terminated):
-                mismatches.append(
-                    {
-                        "step": record["step"],
-                        "field": "terminated",
-                        "recorded": bool(record["terminated"]),
-                        "replayed": bool(terminated),
-                        "abs_error": None,
-                    }
-                )
-            if bool(record["truncated"]) != bool(truncated):
-                mismatches.append(
-                    {
-                        "step": record["step"],
-                        "field": "truncated",
-                        "recorded": bool(record["truncated"]),
-                        "replayed": bool(truncated),
-                        "abs_error": None,
-                    }
-                )
-            if record.get("operation_type") != info.get("operation_type"):
-                mismatches.append(
-                    {
-                        "step": record["step"],
-                        "field": "operation_type",
-                        "recorded": record.get("operation_type"),
-                        "replayed": info.get("operation_type"),
-                        "abs_error": None,
-                    }
-                )
-    finally:
-        env.close()
-    return {
-        "verified": not mismatches,
-        "checked_steps": len(records),
-        "max_abs_error": max_abs_error,
-        "mismatches": mismatches,
-        "task_aware": True,
-    }
-
-
 def run_trajectory(
     *,
     submission: Submission,
@@ -491,7 +391,8 @@ def run_trajectory(
 
     records = load_jsonl(trajectory_path)
     result = evaluate_records(records).to_dict()
-    verification = _verify_task_records(records, task_id=task_id)
+    verification = verify_records(records).to_dict()
+    verification["official_verifier"] = True
     result.update(
         {
             "team_id": submission.team_id,
@@ -560,6 +461,50 @@ def aggregate(workspace: Path, run_id: str) -> list[dict[str, Any]]:
     return rows
 
 
+def summarize(workspace: Path, run_id: str) -> dict[str, Any]:
+    """Summarize a teacher-side local evaluation run."""
+
+    paths = workspace_paths(workspace)
+    run_root = paths["runs"] / run_id
+    result_paths = sorted(run_root.glob("*/results/*.json"))
+    verify_paths = sorted(run_root.glob("*/verify/*.json"))
+    if not result_paths:
+        raise RuntimeError(f"No result JSON files found under {run_root}")
+    results = [_read_json(path) for path in result_paths]
+    verifications = [_read_json(path) for path in verify_paths]
+    leaderboard_rows = aggregate(workspace, run_id)
+    team_ids = sorted({str(result["team_id"]) for result in results})
+    task_ids = sorted({str(result["task_id"]) for result in results})
+    verified_count = sum(1 for item in verifications if bool(item.get("verified", False)))
+    failed_verifications = [
+        str(path.relative_to(run_root))
+        for path, item in zip(verify_paths, verifications, strict=True)
+        if not bool(item.get("verified", False))
+    ]
+    published = paths["published"]
+    summary = {
+        "run_id": run_id,
+        "workspace": str(workspace),
+        "team_count": len(team_ids),
+        "teams": team_ids,
+        "task_count": len(task_ids),
+        "tasks": task_ids,
+        "result_count": len(results),
+        "verification_count": len(verifications),
+        "verified_count": verified_count,
+        "failed_verifications": failed_verifications,
+        "leaderboard_rows": len(leaderboard_rows),
+        "leaderboard_json": str(published / f"{run_id}_leaderboard.json"),
+        "leaderboard_csv": str(published / f"{run_id}_leaderboard.csv"),
+        "summary_json": str(published / f"{run_id}_summary.json"),
+    }
+    (published / f"{run_id}_summary.json").write_text(
+        json.dumps(summary, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+    return summary
+
+
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Local ChemWorld teacher-side evaluator.")
     parser.add_argument("--workspace", type=Path, default=Path("runs/local_eval_machine"))
@@ -578,6 +523,12 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
     aggregate_parser = subparsers.add_parser("aggregate", help="Aggregate one run leaderboard.")
     aggregate_parser.add_argument("--run-id", default=None)
+
+    summarize_parser = subparsers.add_parser(
+        "summarize",
+        help="Summarize one run with verification and leaderboard artifacts.",
+    )
+    summarize_parser.add_argument("--run-id", default=None)
 
     demo_parser = subparsers.add_parser("demo", help="Initialize, run, and aggregate a tiny demo.")
     demo_parser.add_argument("--tasks", nargs="*", default=["reaction-to-assay"])
@@ -609,6 +560,10 @@ def main(argv: list[str] | None = None) -> int:
         rows = aggregate(args.workspace, args.run_id or str(config["run_id"]))
         print(json.dumps(rows, indent=2, sort_keys=True))
         return 0
+    if args.command == "summarize":
+        summary = summarize(args.workspace, args.run_id or str(config["run_id"]))
+        print(json.dumps(summary, indent=2, sort_keys=True))
+        return 0
     if args.command == "demo":
         init_workspace(args.workspace, args.config)
         results = run_all(
@@ -618,12 +573,14 @@ def main(argv: list[str] | None = None) -> int:
             seeds=args.seeds,
         )
         rows = aggregate(args.workspace, str(config["run_id"]))
+        summary = summarize(args.workspace, str(config["run_id"]))
         print(
             json.dumps(
                 {
                     "workspace": str(args.workspace),
                     "result_count": len(results),
                     "leaderboard": rows,
+                    "summary": summary,
                 },
                 indent=2,
                 sort_keys=True,

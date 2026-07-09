@@ -46,7 +46,7 @@ runs/local_eval_machine/
 python local_eval_server/teacher_side/eval_machine.py --workspace runs/local_eval_machine init-demo
 python local_eval_server/teacher_side/eval_machine.py --workspace runs/local_eval_machine validate
 python local_eval_server/teacher_side/eval_machine.py --workspace runs/local_eval_machine run --tasks reaction-to-assay --seeds 0
-python local_eval_server/teacher_side/eval_machine.py --workspace runs/local_eval_machine aggregate --run-id demo_eval
+python local_eval_server/teacher_side/eval_machine.py --workspace runs/local_eval_machine summarize --run-id demo_eval
 ```
 
 For a real course, replace `team_alpha_submission` with student folders under
