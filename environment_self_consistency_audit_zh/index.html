@@ -2533,6 +2533,10 @@ runs/audit/trajectories/*.jsonl
 <td>typed ledger 单一事实源审计失败数量</td>
 </tr>
 <tr>
+<td><code>public_leakage_failures</code></td>
+<td>public observation、task info、agent view 和 trajectory 泄漏审计失败数量</td>
+</tr>
+<tr>
 <td><code>verify_status</code></td>
 <td>replay verifier 是否通过</td>
 </tr>
@@ -2594,6 +2598,10 @@ runs/audit/trajectories/*.jsonl
 </tr>
 <tr>
 <td><code>ledger_single_source_failures</code></td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>public_leakage_failures</code></td>
 <td style="text-align: right;">0</td>
 </tr>
 </tbody>
@@ -2676,6 +2684,9 @@ recovery 与 raw spectra 指向同一个被测样品。</p>
 <li>所有正式 task 通过 <code>gym.make("ChemWorld", task_id=...)</code> 进入同一环境。</li>
 <li><code>task_info()</code> 暴露 <code>world_law_id</code>、<code>scenario_id</code>、<code>mechanism_hash</code>、<code>runtime_profile_hash</code>、<code>scoring_contract_hash</code> 和 <code>observation_contract_hash</code>。</li>
 <li>replay verifier 会检查 mechanism、runtime profile、scoring contract 和 observation contract hash。</li>
+<li>public <code>task_info()</code> 只暴露 mechanism id/hash/count 摘要、scoring contract、public observation contract 摘要和 runtime profile；
+  完整 <code>mechanism_manifest</code>、reaction list、stoichiometric matrix、rate-law 参数和 mechanism observable mapping
+  只允许出现在 <code>debug_truth=True</code> 的 debug 字段中。</li>
 </ul>
 <p>当前风险：</p>
 <ul>
@@ -2719,6 +2730,9 @@ recovery 与 raw spectra 指向同一个被测样品。</p>
 <li>raw spectra 中只能出现 public aggregate species label，例如 <code>target_public</code>、<code>reactant_public</code>、<code>impurity_public</code>。</li>
 <li>raw spectra 不得泄漏 hidden species name、rate constant、hidden theta。</li>
 <li>observed mask 中未观测字段不得被当作有效测量值。</li>
+<li><code>audit_public_payload()</code> 会扫描 reset info、step info、tool JSON、lab report、agent view 和 JSONL trajectory；
+  若出现 hidden species id、rate law、mechanism manifest、reaction list 或 compiled mechanism payload，会计入
+  <code>public_leakage_failures</code>。</li>
 </ul>
 <h3 id="_8">谱图与指标自洽</h3>
 <p>检查 raw spectra 与 processed metrics 是否方向一致。</p>
