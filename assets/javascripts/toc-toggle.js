@@ -1,6 +1,5 @@
 (function () {
   var tocStorageKey = "chemworld.toc.collapsed";
-  var sidebarStorageKey = "chemworld.sidebar.collapsed";
 
   function getStoredCollapsed(storageKey) {
     try {
@@ -64,48 +63,8 @@
     });
   }
 
-  function setupPrimarySidebarToggle() {
-    var sidebars = document.querySelectorAll(".md-sidebar--primary");
-    sidebars.forEach(function (sidebar) {
-      var nav = sidebar.querySelector("nav.md-nav--primary");
-      var title = sidebar.querySelector("nav.md-nav--primary > .md-nav__title");
-      var list = sidebar.querySelector("nav.md-nav--primary > .md-nav__list");
-
-      if (!nav || !title || !list || sidebar.dataset.cwSidebarToggle === "ready") {
-        return;
-      }
-
-      sidebar.dataset.cwSidebarToggle = "ready";
-      title.classList.add("cw-sidebar-title");
-
-      var button = document.createElement("button");
-      button.type = "button";
-      button.className = "cw-outline-toggle cw-sidebar-toggle";
-
-      title.appendChild(button);
-
-      applyButtonState(sidebar, button, getStoredCollapsed(sidebarStorageKey), "cw-sidebar-collapsed", {
-        collapse: "收起左侧导航",
-        expand: "展开左侧导航"
-      });
-
-      button.addEventListener("click", function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        var collapsed = !sidebar.classList.contains("cw-sidebar-collapsed");
-        setStoredCollapsed(sidebarStorageKey, collapsed);
-        applyButtonState(sidebar, button, collapsed, "cw-sidebar-collapsed", {
-          collapse: "收起左侧导航",
-          expand: "展开左侧导航"
-        });
-      });
-    });
-  }
-
   function setupChemWorldToggles() {
     setupTocToggle();
-    setupPrimarySidebarToggle();
   }
 
   if (typeof document$ !== "undefined" && document$.subscribe) {
