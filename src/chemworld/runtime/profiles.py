@@ -7,7 +7,7 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-from chemworld.runtime.domain_services import DomainServiceRegistry
+from chemworld.runtime.domain_service_registry import DomainServiceRegistry
 from chemworld.tasks import TaskSpec
 from chemworld.world.operations import OPERATION_TYPES, operation_contracts
 

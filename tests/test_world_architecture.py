@@ -334,6 +334,26 @@ def test_runtime_kernel_profile_contracts_and_registry_are_separate() -> None:
     assert "def affected_ledgers" in registry_source
 
 
+def test_runtime_domain_service_registry_and_constitution_factory_are_separate() -> None:
+    domain_source = Path("src/chemworld/runtime/domain_services.py").read_text(
+        encoding="utf-8"
+    )
+    registry_source = Path("src/chemworld/runtime/domain_service_registry.py").read_text(
+        encoding="utf-8"
+    )
+    factory_source = Path("src/chemworld/runtime/constitution_factory.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "class DomainServiceContract" not in domain_source
+    assert "class DomainServiceRegistry" not in domain_source
+    assert "def make_chemworld_constitution" not in domain_source
+    assert "class ChemWorldDomainServices" in domain_source
+    assert "class DomainServiceContract" in registry_source
+    assert "class DomainServiceRegistry" in registry_source
+    assert "def make_chemworld_constitution" in factory_source
+
+
 def test_runtime_electrochemical_service_is_separate_from_domain_services() -> None:
     domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
         encoding="utf-8"

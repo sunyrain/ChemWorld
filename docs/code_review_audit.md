@@ -174,6 +174,13 @@ Current cleanup also split the runtime kernel/profile boundary. The
 `runtime/kernel_registry.py` owns the service-backed default kernel, affected
 ledger declarations, and task-scoped registry validation.
 
+Current cleanup also split the domain-service composition boundary. The
+`runtime/domain_services.py` module now owns `ChemWorldDomainServices` only,
+while `runtime/domain_service_registry.py` owns domain-service contracts,
+operation coverage validation, and capability checks, and
+`runtime/constitution_factory.py` owns the default ChemWorld constitution
+factory.
+
 The architecture test suite now also enforces the active Runtime v2 boundary:
 `src/chemworld/envs` and `src/chemworld/runtime` must not import the removed
 `chemworld.core.batch_reactor` runtime, and `ChemWorldEnv.step()` must delegate

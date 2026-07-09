@@ -65,6 +65,11 @@ The runtime is organized around:
   events. Runtime startup validates the current task profile against this
   registry, so a task cannot allow an operation whose focused domain service or
   capability is missing;
+- `runtime/domain_service_registry.py`, which owns domain-service contracts,
+  operation coverage validation, service-capability validation, and the
+  operation-to-service map;
+- `runtime/constitution_factory.py`, which owns the default ChemWorld
+  constitution factory for the virtual vessel and instrument set;
 - `ChemWorldDomainServices`, which now acts as a lightweight operation
   composition surface for delegated runtime services, constitution checks, and
   operation recording;

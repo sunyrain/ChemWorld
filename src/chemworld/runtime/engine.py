@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from chemworld.foundation import OperationRecord, PhysicalConstitution, WorldState
-from chemworld.runtime.domain_services import ChemWorldDomainServices, DomainServiceRegistry
+from chemworld.runtime.domain_service_registry import DomainServiceRegistry
+from chemworld.runtime.domain_services import ChemWorldDomainServices
 from chemworld.runtime.kernels import (
     KernelResult,
     OperationKernelRegistry,

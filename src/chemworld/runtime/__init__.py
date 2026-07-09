@@ -114,10 +114,14 @@ def __getattr__(name: str) -> Any:
         from chemworld.runtime import reaction_thermal_services
 
         return getattr(reaction_thermal_services, name)
-    if name in {"ChemWorldDomainServices", "DomainServiceContract", "DomainServiceRegistry"}:
+    if name == "ChemWorldDomainServices":
         from chemworld.runtime import domain_services
 
         return getattr(domain_services, name)
+    if name in {"DomainServiceContract", "DomainServiceRegistry"}:
+        from chemworld.runtime import domain_service_registry
+
+        return getattr(domain_service_registry, name)
     if name in {
         "KernelPlan",
         "KernelResult",
@@ -139,7 +143,7 @@ def __getattr__(name: str) -> Any:
 
         return getattr(observation_services, name)
     if name == "make_chemworld_constitution":
-        from chemworld.runtime import domain_services
+        from chemworld.runtime import constitution_factory
 
-        return getattr(domain_services, name)
+        return getattr(constitution_factory, name)
     raise AttributeError(f"module 'chemworld.runtime' has no attribute {name!r}")
