@@ -87,8 +87,7 @@ Benchmark 与评测
     ├── 发布检查表
     ├── 项目管理
     ├── 本地参考仓库
-    ├── 专业化 TODO
-    └── 专业化深化 TODO
+    └── 统一任务板
 ```
 
 ## 未来文件目录结构
@@ -153,8 +152,7 @@ docs/
     ├── release_checklist.md
     ├── project_management.md
     ├── reference_repos.md
-    ├── professional_todo.md
-    └── professional_deepening_todo.md
+    └── todo.md
 ```
 
 ## 迁移顺序

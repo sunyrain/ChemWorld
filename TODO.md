@@ -1,28 +1,44 @@
-# ChemWorld Master TODO
+# ChemWorld Unified TODO
 
 Last updated: 2026-07-09
 
-This file is the single active project board for ChemWorld. All release,
-runtime, agent-interface, documentation, and professional-physics work is
-tracked here. The older root files `TODO_PROFESSIONAL.md` and
-`TODO_PROFESSIONAL_DEEPENING.md`, plus their docs copies, are reference
-archives only.
+This is the only active task board for ChemWorld. It replaces the earlier
+release, professionalization, and deepening TODO files. All new work must be
+claimed, updated, and completed here.
+
+## Remaining Work Snapshot
+
+Current unfinished work:
+
+- 49 total remaining items.
+- 11 immediate P0/P1 benchmark-trust items.
+- 22 public pre-release items across P0/P1/P2/P4.
+- 27 long-horizon P3 professional-physics deepening items.
+
+Interpretation:
+
+- P0 and P1 are release blockers.
+- P2 improves agent usability and dataset export after the benchmark contract is
+  stable.
+- P3 is a long professional-physics backlog, not a first pre-release blocker
+  unless a frozen benchmark task depends on it.
+- P4 packages the public story once the benchmark trust layer is stable.
 
 ## Current Count
 
 | Scope | Total | Done | Active | Claimed | Open | Remaining |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | P0 Pre-release benchmark hardening | 12 | 5 | 0 | 0 | 7 | 7 |
-| P1 Runtime and environment consistency | 8 | 3 | 0 | 0 | 5 | 5 |
+| P1 Runtime and environment consistency | 8 | 4 | 0 | 0 | 4 | 4 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 8 | 0 | 3 | 47 | 50 |
+| Total | 58 | 9 | 0 | 3 | 46 | 49 |
 
 Immediate release target:
 
-- Finish P0 and P1 first: 12 remaining items.
-- Finish P0, P1, P2, and P4 for a usable public pre-release package: 23
+- Finish P0 and P1 first: 11 remaining items.
+- Finish P0, P1, P2, and P4 for a usable public pre-release package: 22
   remaining items.
 - P3 is the long professional-physics backlog: 27 remaining items. Pull from it
   only when it directly strengthens a benchmark task or replaces a declared
@@ -46,24 +62,6 @@ ChemWorld currently has:
 The current bottleneck is not feature count. The bottleneck is benchmark trust:
 stable task contracts, calibrated baselines, replay/audit strength, submission
 examples, and clear limitations.
-
-## Completion Summary
-
-Current unfinished work:
-
-- 50 total remaining items.
-- 12 immediate P0/P1 benchmark-trust items.
-- 23 public pre-release items across P0/P1/P2/P4.
-- 27 long-horizon P3 professional-physics deepening items.
-
-Interpretation:
-
-- P0/P1 are the release blockers.
-- P2 improves agent usability and dataset export but should follow the P0/P1
-  trust work.
-- P3 is not a pre-release blocker unless a benchmark task depends on one of its
-  physical models.
-- P4 packages the public story once the benchmark contract is stable.
 
 ## Work Rules
 
@@ -123,7 +121,7 @@ docs tell the same story.
 | P1-CONSIST-01 | Codex | Done | Run and document environment self-consistency audit | Full audit covers 14 formal tasks over seeds 0/1/2 with complete task/profile/mechanism/scoring/observation hash coverage, replay verification, and documented warnings |
 | P1-CONSIST-02 | Codex | Done | Spectra-metric semantic alignment | Downstream final assay spectra use selected-phase public species calibration; full audit reports zero spectra failures and zero spectra warnings |
 | P1-CONSIST-03 | Codex | Done | Action affordance consistency | `available_actions`, ActionMaskWrapper, OperationValidator affordance, task policy, operation registry, and action masks are covered by cross-task tests; affordance-level invalid reasons no longer include payload-field failures |
-| P1-CONSIST-04 |  | Open | Invalid action atomicity | Schema/task/precondition failures do not mutate material ledgers and record explicit process/cost penalties where appropriate |
+| P1-CONSIST-04 | Codex | Done | Invalid action atomicity | Schema, task-policy, payload-bound, and state-precondition failures are covered by material-ledger atomicity tests; invalid actions only mutate process/cost/risk ledgers and emit explicit validation or rollback penalty metadata |
 | P1-CONSIST-05 |  | Open | Campaign vs single-experiment semantics audit | Final assay ends an experiment in campaign tasks but ends the episode only in single-experiment tasks |
 | P1-CONSIST-06 |  | Open | Ledger single-source-of-truth audit | Material amounts come from typed phase ledgers; equipment/process/vessel state does not fall back to metadata |
 | P1-CONSIST-07 |  | Open | Public observation leakage audit | Agent-visible observations, tool JSON, lab reports, spectra labels, and trajectories do not expose hidden species ids or rate constants |
@@ -196,24 +194,24 @@ behavior.
 
 Do these next, in order:
 
-1. `P1-CONSIST-04`: audit invalid action atomicity.
-2. `P0-BENCH-05`: lock golden trajectories.
-3. `P0-BENCH-06`: audit scoring contracts.
-4. `P0-BENCH-07`: harden replay verifier.
-5. `P0-BENCH-09`: build local teacher/student evaluation smoke.
+1. `P0-BENCH-05`: lock golden trajectories.
+2. `P0-BENCH-06`: audit scoring contracts.
+3. `P0-BENCH-07`: harden replay verifier.
+4. `P0-BENCH-09`: build local teacher/student evaluation smoke.
+5. `P1-CONSIST-05`: audit campaign vs single-experiment semantics.
 
 This sequence reduces the highest public benchmark risk first: baseline
 credibility, agent-facing action clarity, submission reproducibility, seed
-policy, and invalid-action trust.
+policy, scoring contract consistency, and replay trust.
 
-## Deprecated Boards
+## Removed Boards
 
-These files are no longer active planning surfaces:
+These files were consolidated into this TODO and removed from the active root
+workspace:
 
 - `TODO_PROFESSIONAL.md`
 - `TODO_PROFESSIONAL_DEEPENING.md`
-- `docs/professional_todo.md`
-- `docs/professional_deepening_todo.md`
 
-They remain useful as historical references, but all new planning and progress
-accounting should happen in this file.
+The documentation site now exposes a concise unified task-board page instead of
+separate professional TODO pages. All planning and progress accounting should
+happen in this file.

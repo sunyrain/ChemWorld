@@ -21,7 +21,7 @@
 | 评测与数据 | baseline、dataset、本地评测机、leaderboard、paper artifact |
 | 教程与示例 | 12 天教程、示例、API |
 | 审计 | 自洽性、成熟度、SOTA 对比、agent 行为、代码审计 |
-| 开发与发布 | 双人协作、参考仓库、专业 TODO |
+| 开发与发布 | 双人协作、参考仓库、统一任务板 |
 
 ## 当前主线
 
@@ -71,8 +71,9 @@ ChemWorld overview
 
 ### 部分历史审计页较长
 
-`code_review_audit.md`、`physchem_core_design.md`、`professional_todo.md`
-记录了大量过程信息。它们保留在“审计 / 开发与发布”分区，但不再作为首页入口。
+`code_review_audit.md` 和 `physchem_core_design.md` 记录了大量过程信息。它们保留在
+“审计 / 世界模型底座”分区，但不再作为首页入口。专业化任务已经并入根目录
+`TODO.md`，站点只保留统一任务板摘要。
 后续如果准备公开文档站，可以再拆成 archive 或 developer notes。
 
 ## 文档站验收

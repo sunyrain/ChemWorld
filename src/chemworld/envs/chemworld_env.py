@@ -210,6 +210,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             runtime_info = runtime_result.info_payload()
         else:
             penalized = self.runtime.domain_services.penalize_invalid(self._state)
+            cost_delta = penalized.ledger.cost - self._state.ledger.cost
+            risk_delta = penalized.ledger.risk - self._state.ledger.risk
+            sample_delta = (
+                penalized.ledger.sample_consumed_L - self._state.ledger.sample_consumed_L
+            )
             operation_record = self.runtime.domain_services.record_operation(
                 action["operation"],
                 self._state,
@@ -226,15 +231,31 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     {
                         "event_type": "validation_failed",
                         "operation_type": action["operation"],
-                        "payload": {"invalid_reasons": list(validation.invalid_reasons)},
+                        "payload": {
+                            "invalid_reasons": list(validation.invalid_reasons),
+                            "cost_delta": cost_delta,
+                            "risk_delta": risk_delta,
+                            "sample_delta": sample_delta,
+                        },
                     }
                 ],
-                "state_patches_summary": [],
-                "cost_delta": 0.0,
-                "risk_delta": 0.0,
-                "sample_delta": 0.0,
+                "state_patches_summary": [
+                    {
+                        "patch_type": "validation_penalty",
+                        "affected_ledgers": ["process"],
+                        "summary": {
+                            "delta_cost": cost_delta,
+                            "delta_risk": risk_delta,
+                            "delta_sample_consumed_L": sample_delta,
+                            "invalid_reasons": list(validation.invalid_reasons),
+                        },
+                    }
+                ],
+                "cost_delta": cost_delta,
+                "risk_delta": risk_delta,
+                "sample_delta": sample_delta,
                 "transaction_status": "validation_failed",
-                "rollback_reason": None,
+                "rollback_reason": "validation_failed",
             }
         preconditions_passed = all(operation_record.preconditions.values())
         if preconditions_passed:

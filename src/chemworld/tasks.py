@@ -419,7 +419,7 @@ def default_kernel_maturity(
     proxy_allowed = any(module.level is MaturityLevel.PROXY for module in modules)
     notes = (
         "Current task maturity is alpha/lite; professional hardening is tracked in "
-        "TODO_PROFESSIONAL.md.",
+        "the root TODO.md.",
     )
     return TaskMaturitySpec(
         modules=tuple(modules),
