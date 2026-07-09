@@ -1799,7 +1799,7 @@ def test_virtual_instrument_signals_are_plot_ready() -> None:
     hplc = raw_signal("hplc", values)
     assert hplc["kind"] == "hplc_chromatogram"
     assert len(hplc["time_min"]) == len(hplc["intensity"]) >= 100
-    assert hplc["peaks"][1]["assignment"] == "P_proxy"
+    assert hplc["peaks"][1]["assignment"] == "target_product_proxy"
 
     uvvis = raw_signal("uvvis", values)
     assert uvvis["kind"] == "uvvis_spectrum"
@@ -1808,6 +1808,19 @@ def test_virtual_instrument_signals_are_plot_ready() -> None:
     final_packet = raw_signal("final_assay", values)
     assert final_packet["kind"] == "final_assay_packet"
     assert {"hplc", "gc", "uvvis", "ir", "nmr"} <= set(final_packet["spectra"])
+
+
+def test_spectra_do_not_expose_fixed_reaction_species_labels() -> None:
+    spectra_source = Path("src/chemworld/world/spectra.py").read_text(encoding="utf-8")
+    spectroscopy_source = Path("src/chemworld/physchem/spectroscopy.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "A_proxy" not in spectra_source
+    assert "P_proxy" not in spectra_source
+    assert 'startswith("P")' not in spectra_source
+    assert 'startswith(("B", "D", "E", "S"))' not in spectra_source
+    assert 'lowered.startswith(("b", "s", "d", "e"))' not in spectroscopy_source
 
 
 def test_action_and_recipe_public_validation() -> None:

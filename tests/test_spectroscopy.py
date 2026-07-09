@@ -147,7 +147,12 @@ def test_world_raw_signal_accepts_species_amounts_without_leaking_hidden_state()
     packet = raw_signal(
         "hplc",
         {"yield": 0.5, "conversion": 0.7, "byproduct_signal": 0.1},
-        species_amounts_mol={"A": 0.25, "P": 0.45, "B": 0.08, "D": 0.02},
+        species_amounts_mol={
+            "reactant_public": 0.25,
+            "target_public": 0.45,
+            "impurity_public": 0.08,
+            "degradation_public": 0.02,
+        },
         volume_L=1.0,
         seed=6,
         replicate_count=2,

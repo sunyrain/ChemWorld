@@ -244,7 +244,12 @@ def test_env_raw_signal_uses_public_task_species_contract() -> None:
         raw_signal = info["raw_signal"]
         species_ids = _nested_values_for_key(raw_signal, "species_id")
         detection_limit_species = _nested_detection_limit_species(raw_signal)
-        public_species = {"A_public", "P_public", "B_public", "D_public"}
+        public_species = {
+            "reactant_public",
+            "target_public",
+            "impurity_public",
+            "degradation_public",
+        }
         hidden_species = set(env.unwrapped.scenario_instance.compiled_mechanism.species_index)
 
         assert raw_signal["visibility"] == "task_observation_contract"

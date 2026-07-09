@@ -258,18 +258,18 @@ class ChemWorldObservationKernel:
             "distillate_purity",
         }
         if keys.intersection(reaction_keys):
-            public_amounts["A_public"] = self.species_view.reactant_amount(state)
+            public_amounts["reactant_public"] = self.species_view.reactant_amount(state)
         if keys.intersection(target_keys):
-            public_amounts["P_public"] = self.species_view.target_amount(state)
+            public_amounts["target_public"] = self.species_view.target_amount(state)
         if keys.intersection(impurity_keys):
-            public_amounts["B_public"] = max(
+            public_amounts["impurity_public"] = max(
                 self.species_view.byproduct_amount(state),
                 self.species_view.impurity_amount(state)
                 - self.species_view.degradation_amount(state),
                 0.0,
             )
         if "degradation_warning" in keys:
-            public_amounts["D_public"] = self.species_view.degradation_amount(state)
+            public_amounts["degradation_public"] = self.species_view.degradation_amount(state)
         return {
             species_id: amount
             for species_id, amount in public_amounts.items()

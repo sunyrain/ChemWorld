@@ -1347,16 +1347,16 @@ def _species_role(species_id: str, *, targets: set[str], impurities: set[str]) -
     if species_id in targets:
         return "target"
     if species_id in impurities:
-        if lowered.startswith("d") or "degrad" in lowered:
+        if "degrad" in lowered:
             return "degradation"
         return "byproduct"
-    if lowered in {"a", "acid", "alcohol", "ox"} or "reactant" in lowered:
+    if "reactant" in lowered:
         return "reactant"
-    if lowered.startswith("cat"):
+    if "catalyst" in lowered:
         return "catalyst"
-    if lowered.startswith("p") or species_id in {"Ester", "Red"}:
+    if "target" in lowered or "product" in lowered:
         return "target"
-    if lowered.startswith(("b", "s", "d", "e")) or "impurity" in lowered:
+    if "byproduct" in lowered or "impurity" in lowered:
         return "byproduct"
     return "other"
 

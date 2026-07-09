@@ -83,18 +83,12 @@ def _species_signal(
         return None
     species_ids = tuple(species_amounts_mol)
     target_species = tuple(
-        species_id
-        for species_id in species_ids
-        if species_id.startswith("P") or species_id in {"Ester", "Red"}
+        species_id for species_id in species_ids if _public_species_role(species_id) == "target"
     )
     impurity_species = tuple(
         species_id
         for species_id in species_ids
-        if species_id.startswith(("B", "D", "E", "S"))
-        or "Dead" in species_id
-        or "Iso" in species_id
-        or "Coupled" in species_id
-        or "Ether" in species_id
+        if _public_species_role(species_id) in {"byproduct", "degradation", "impurity"}
     )
     spec = build_signal_spec(
         instrument_id,
@@ -111,6 +105,20 @@ def _species_signal(
     ).to_dict()
     packet["source"] = "species_amounts_with_calibration"
     return packet
+
+
+def _public_species_role(species_id: str) -> str:
+    """Return the task-visible role encoded in a public aggregate species key."""
+
+    if species_id == "target_public":
+        return "target"
+    if species_id == "impurity_public":
+        return "impurity"
+    if species_id == "degradation_public":
+        return "degradation"
+    if species_id == "reactant_public":
+        return "reactant"
+    return "unassigned"
 
 
 def hplc_chromatogram(
@@ -143,8 +151,8 @@ def hplc_chromatogram(
     impurity = max(_observed(values, "byproduct_signal"), _observed(values, "impurity_signal"))
     degradation = _observed(values, "degradation_warning")
     peaks = (
-        SignalPeak(1.15, 0.055, 260.0 * reactant, "A_proxy"),
-        SignalPeak(2.62, 0.075, 720.0 * product, "P_proxy"),
+        SignalPeak(1.15, 0.055, 260.0 * reactant, "reactant_proxy"),
+        SignalPeak(2.62, 0.075, 720.0 * product, "target_product_proxy"),
         SignalPeak(3.36, 0.090, 380.0 * impurity, "byproduct_proxy"),
         SignalPeak(4.18, 0.110, 240.0 * degradation, "degradation_proxy"),
     )

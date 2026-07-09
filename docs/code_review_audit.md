@@ -217,6 +217,11 @@ factory: `world/ontology.py` no longer declares fixed global species,
 `make_chemworld_constitution()` can build the substance registry from the
 current compiled mechanism. `ChemWorldEnv.reset()` now rebuilds the constitution
 and validator when a scenario changes.
+Current cleanup also removes fixed-species raw-signal names from the virtual
+instrument layer. Agent-visible spectra now use public role aggregates such as
+`reactant_public`, `target_public`, `impurity_public`, and
+`degradation_public`, and generic spectral role inference no longer classifies
+arbitrary `A/P/B/D/E`-style names by first letter.
 
 Replay verification now compares Runtime v2 transaction metadata in addition
 to rewards and observations. The verifier rejects mechanism-hash drift,
@@ -397,9 +402,9 @@ Recommended follow-up:
   contracts.
 - Added task-aware raw-signal shielding for environment observations. Runtime
   instrument packets now synthesize spectra from task-visible public role
-  aggregates such as `A_public`, `P_public`, `B_public`, and `D_public` rather
-  than passing full hidden species ledgers or mechanism-internal species names
-  into agent-visible raw-signal packets.
+  aggregates such as `reactant_public`, `target_public`, `impurity_public`, and
+  `degradation_public` rather than passing full hidden species ledgers or
+  mechanism-internal species names into agent-visible raw-signal packets.
 - Promoted flow and electrochemical derived metrics into typed
   `ProcessLedger.metrics`. Flow conversion, residence campaign time,
   throughput, electrochemical selectivity, faradaic efficiency, charge, and
