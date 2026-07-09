@@ -354,6 +354,11 @@ Recommended follow-up:
   collection, and downstream truth calculations now use that typed process
   metric as the recovery denominator, and constitution checks reject the old
   metadata key.
+- Promoted campaign-level solvent-loss bookkeeping out of runtime metadata into
+  `ProcessLedger.metrics`. Evaporation, crystallization filtration,
+  distillation, and downstream truth calculations now use the typed process
+  metric for cumulative solvent-loss observations, while phase records keep
+  phase-local loss summaries.
 - Added a Runtime v2 final boundary audit that keeps the removed
   `chemworld.core.batch_reactor` runtime out of env/runtime imports. Later
   cleanup removed the downstream `LEGACY_*` species fallback bindings as well:

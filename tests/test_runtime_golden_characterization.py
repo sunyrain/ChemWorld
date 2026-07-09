@@ -162,7 +162,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "reaction-to-distillation": {
         "mechanism_id": "reactive_distillation_lite",
         "steps": 10,
-        "score": 0.19278834745796017,
+        "score": 0.1676812046008173,
     },
     "reaction-to-purification": {
         "mechanism_id": "reaction_extraction",
@@ -254,6 +254,7 @@ def test_runtime_v2_golden_scripted_final_assay(
             "distillation_active",
             "distillate_product_mol",
             "distillate_impurity_mol",
+            "solvent_loss",
         }.isdisjoint(env.unwrapped._state.metadata)
 
         if task.episode_mode == "campaign":

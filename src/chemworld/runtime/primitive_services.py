@@ -6,7 +6,12 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState, scale_phase_ledger, upsert_equipment_record
+from chemworld.foundation import (
+    WorldState,
+    process_with_metrics,
+    scale_phase_ledger,
+    upsert_equipment_record,
+)
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.actions import CATALYSTS, SOLVENTS
 from chemworld.world.parameters import ChemWorldParameters
@@ -120,8 +125,12 @@ class ChemWorldPrimitiveOperationServices:
                 0.70,
             )
         )
-        metadata = state.metadata.copy()
-        metadata["solvent_loss"] = min(1.0, float(metadata.get("solvent_loss", 0.0)) + removal)
+        process_metrics = {} if state.process is None else state.process.metrics
+        solvent_loss = min(
+            1.0,
+            float(process_metrics.get("solvent_loss", 0.0)) + removal,
+        )
+        process = process_with_metrics(state.process, solvent_loss=solvent_loss)
         ledger = state.ledger.with_updates(
             time_s=state.ledger.time_s + duration,
             cost=state.ledger.cost + duration / 3600.0 * 0.040,
@@ -132,7 +141,7 @@ class ChemWorldPrimitiveOperationServices:
             volume_L=state.volume_L * (1.0 - 0.55 * removal),
             temperature_K=target_temperature,
             ledger=ledger,
-            metadata=metadata,
+            process=process,
         )
 
     def penalize_invalid(self, state: WorldState) -> WorldState:

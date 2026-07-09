@@ -1322,6 +1322,7 @@ def test_constitution_rejects_primary_process_metric_metadata() -> None:
             "pre_separation_product_mol": 0.006,
             "crystal_yield": 0.6,
             "distillate_purity": 0.9,
+            "solvent_loss": 0.2,
             "flow_conversion": 0.7,
             "electrochemical_selectivity": 0.8,
         }
@@ -1603,7 +1604,9 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         assert "purity" not in state.metadata
         assert "recovery" not in state.metadata
         assert "pre_separation_product_mol" not in state.metadata
+        assert "solvent_loss" not in state.metadata
         assert state.process.metrics["pre_separation_product_mol"] > 0.0
+        assert state.process.metrics["solvent_loss"] > 0.0
         assert state.process.metrics["crystal_yield"] > 0.0
         assert state.process.metrics["crystal_purity"] > 0.0
         assert state.process.metrics["purity"] > 0.0
@@ -1634,6 +1637,10 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
             {"operation": "evaporate", "target_temperature_K": 335.0, "duration_s": 600.0},
         ):
             env.step(action)
+        state = env.unwrapped._state
+        assert "solvent_loss" not in state.metadata
+        assert state.process.metrics["solvent_loss"] > 0.0
+        assert env.unwrapped.constitution.check_state(state).passed
 
         _, _, _, _, distill_info = env.step(
             {
@@ -1667,7 +1674,9 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert "distillate_purity" not in state.metadata
         assert "distillate_recovery" not in state.metadata
         assert "pre_separation_product_mol" not in state.metadata
+        assert "solvent_loss" not in state.metadata
         assert state.process.metrics["pre_separation_product_mol"] > 0.0
+        assert state.process.metrics["solvent_loss"] > 0.0
         assert state.process.metrics["distillate_purity"] > 0.0
         assert state.process.metrics["distillate_recovery"] > 0.0
         assert env.unwrapped.constitution.check_preconditions(
@@ -1704,7 +1713,9 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert "purity" not in state.metadata
         assert "recovery" not in state.metadata
         assert "pre_separation_product_mol" not in state.metadata
+        assert "solvent_loss" not in state.metadata
         assert state.process.metrics["pre_separation_product_mol"] > 0.0
+        assert state.process.metrics["solvent_loss"] > 0.0
         assert state.process.metrics["distillate_purity"] > 0.0
         assert state.process.metrics["distillate_recovery"] > 0.0
         assert state.process.metrics["purity"] > 0.0

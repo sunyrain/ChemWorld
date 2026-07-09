@@ -72,6 +72,7 @@ class PhysicalConstitution:
         "pre_separation_product_mol",
         "purity",
         "recovery",
+        "solvent_loss",
         "crystal_yield",
         "crystal_purity",
         "crystal_size",

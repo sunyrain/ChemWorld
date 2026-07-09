@@ -182,15 +182,19 @@ class ChemWorldCrystallizationServices:
             target_amount,
             1.0e-12,
         )
+        solvent_loss = min(
+            1.0,
+            float(process_metrics.get("solvent_loss", 0.0)) + 0.04,
+        )
         metadata.update(
             {
                 "crystals_filtered": True,
-                "solvent_loss": min(1.0, float(metadata.get("solvent_loss", 0.0)) + 0.04),
             }
         )
         process = process_with_metrics(
             state.process,
             pre_separation_product_mol=initial_p,
+            solvent_loss=solvent_loss,
             crystal_yield=float(np.clip(product / initial_p, 0.0, 1.0)),
             crystal_purity=float(np.clip(purity, 0.0, 1.0)),
             recovery=float(np.clip(product / initial_p, 0.0, 1.0)),
@@ -207,7 +211,7 @@ class ChemWorldCrystallizationServices:
             product_mol=product,
             impurity_mol=impurity,
             mother_liquor_volume_L=state.volume_L * 0.92,
-            solvent_loss=float(metadata.get("solvent_loss", 0.0)),
+            solvent_loss=solvent_loss,
         )
         return state.replace(ledger=ledger, metadata=metadata, phases=phases, process=process)
 

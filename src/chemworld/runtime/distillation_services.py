@@ -178,9 +178,11 @@ class ChemWorldDistillationServices:
                 "distillation_kernel": distillation_metadata,
             }
         )
+        solvent_loss = float(process_metrics.get("solvent_loss", 0.0))
         process = process_with_metrics(
             state.process,
             pre_separation_product_mol=initial_p,
+            solvent_loss=solvent_loss,
             distillate_purity=float(np.clip(distillate_purity, 0.0, 1.0)),
             distillate_recovery=float(np.clip(distillate_product / initial_p, 0.0, 1.0)),
         )
@@ -200,6 +202,7 @@ class ChemWorldDistillationServices:
             impurity_mol=distillate_impurity,
             distillate_volume_L=volume_after_distill * distillate_cut,
             bottoms_volume_L=volume_after_distill * max(1.0 - distillate_cut, 0.0),
+            solvent_loss=solvent_loss,
         )
         return state.replace(
             volume_L=volume_after_distill,
@@ -235,9 +238,11 @@ class ChemWorldDistillationServices:
                 "fraction_collected": True,
             }
         )
+        solvent_loss = float(process_metrics.get("solvent_loss", 0.0))
         process = process_with_metrics(
             state.process,
             pre_separation_product_mol=initial_p,
+            solvent_loss=solvent_loss,
             distillate_purity=float(np.clip(purity, 0.0, 1.0)),
             distillate_recovery=float(np.clip(product / initial_p, 0.0, 1.0)),
             purity=float(np.clip(purity, 0.0, 1.0)),
@@ -252,7 +257,7 @@ class ChemWorldDistillationServices:
             impurity_mol=impurity,
             distillate_volume_L=state.volume_L * fraction,
             bottoms_volume_L=state.volume_L * max(1.0 - fraction, 0.0),
-            solvent_loss=float(metadata.get("solvent_loss", 0.0)),
+            solvent_loss=solvent_loss,
         )
         return state.replace(
             volume_L=state.volume_L * fraction,
