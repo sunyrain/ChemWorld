@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 
 import gymnasium as gym
 import numpy as np
 from gymnasium.utils import RecordConstructorArgs
 
-from chemworld.agent_interface import observation_view
+from chemworld.agent_interface import observation_view, rl_observation_spec, rl_observation_view
 from chemworld.world.operations import OPERATION_TYPES
 from chemworld.world.scoring import safety_cost_from_flags
 
@@ -239,15 +239,18 @@ class RLObservationWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArg
         self.include_cost = include_cost
         if not isinstance(env.observation_space, gym.spaces.Dict):
             raise TypeError("RLObservationWrapper requires a Dict observation space.")
-        observation_space = cast(gym.spaces.Dict, env.observation_space)
-        self.observation_keys = list(observation_space.spaces.keys())
-        width = len(self.observation_keys) + (1 if include_cost else 0)
-        if include_mask:
-            width *= 2
+        spec = rl_observation_spec(include_cost=include_cost)
+        self.observation_keys = list(spec["keys"])
+        value_low = list(spec["value_bounds"]["low"])
+        value_high = list(spec["value_bounds"]["high"])
+        mask_low = list(spec["mask_bounds"]["low"])
+        mask_high = list(spec["mask_bounds"]["high"])
+        low = [*value_low, *mask_low] if include_mask else value_low
+        high = [*value_high, *mask_high] if include_mask else value_high
         self.observation_space = gym.spaces.Box(
-            low=-np.inf,
-            high=np.inf,
-            shape=(width,),
+            low=np.asarray(low, dtype=np.float32),
+            high=np.asarray(high, dtype=np.float32),
+            shape=(len(low),),
             dtype=np.float32,
         )
 
@@ -266,12 +269,9 @@ class RLObservationWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArg
         observation: Any,
         info: dict[str, Any],
     ) -> tuple[np.ndarray, dict[str, Any]]:
-        view = observation_view(self.env, "rl", observation, info)
+        view = rl_observation_view(observation, info, include_cost=self.include_cost)
         values = list(view["vector"])
         mask = list(view["mask"])
-        if not self.include_cost:
-            values = values[:-1]
-            mask = mask[:-1]
         vector_values = [*values, *mask] if self.include_mask else values
         payload = dict(info)
         payload["rl_view"] = view

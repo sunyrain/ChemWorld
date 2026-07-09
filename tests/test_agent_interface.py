@@ -6,9 +6,11 @@ import gymnasium as gym
 import numpy as np
 
 import chemworld  # noqa: F401
+from chemworld.agent_interface import rl_observation_spec
 from chemworld.agents.llm import LLMReplayAgent, ToolUsingLLMStubAgent
 from chemworld.data.datasets import flatten_record
 from chemworld.data.logging import load_jsonl
+from chemworld.envs.spaces import OBSERVATION_KEYS
 from chemworld.eval.runner import run_agent
 from chemworld.foundation.public_leakage import audit_public_payload
 from chemworld.wrappers import (
@@ -137,8 +139,18 @@ def test_observation_views_are_json_safe_and_public() -> None:
             env.step(action)
 
         rl_view = env.unwrapped.observation_view("rl")
+        assert rl_view["schema_version"] == "chemworld-rl-view-0.2"
+        assert rl_view["nan_safe"]
+        assert rl_view["missing_value"] == -1.0
         assert len(rl_view["vector"]) == len(rl_view["mask"])
+        assert len(rl_view["bounds"]["low"]) == len(rl_view["vector"])
+        assert len(rl_view["bounds"]["high"]) == len(rl_view["vector"])
         assert all(np.isfinite(float(value)) for value in rl_view["vector"])
+        for value, observed in zip(rl_view["vector"], rl_view["mask"], strict=True):
+            if observed == 0.0:
+                assert value == rl_view["missing_value"]
+        assert rl_view["keys"] == [*OBSERVATION_KEYS, "cost_signal"]
+        assert rl_view["cost"] >= 0.0
 
         tool_view = env.unwrapped.observation_view("tool_json")
         json.dumps(tool_view, sort_keys=True)
@@ -205,7 +217,15 @@ def test_agent_wrappers_preserve_gym_shape_and_add_views() -> None:
         observation, info = rl_env.reset(seed=0)
         assert observation.shape == rl_env.observation_space.shape
         assert np.all(np.isfinite(observation))
+        assert rl_env.observation_space.contains(observation)
+        assert np.all(np.isfinite(rl_env.observation_space.low))
+        assert np.all(np.isfinite(rl_env.observation_space.high))
         assert "rl_view" in info
+        spec = rl_observation_spec()
+        assert info["rl_view"]["keys"] == spec["keys"]
+        assert info["rl_view"]["bounds"] == spec["value_bounds"]
+        assert info["observation_mask"].shape == (len(spec["keys"]),)
+        assert "cost_signal" in info
     finally:
         rl_env.close()
 

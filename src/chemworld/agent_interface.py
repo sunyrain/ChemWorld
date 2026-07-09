@@ -187,6 +187,11 @@ HIDDEN_INFORMATION_POLICY = (
     "through agent-facing views."
 )
 
+RL_MISSING_VALUE = -1.0
+RL_OBSERVATION_VALUE_BOUNDS = (RL_MISSING_VALUE, 1.0)
+RL_MASK_BOUNDS = (0.0, 1.0)
+RL_COST_BOUNDS = (0.0, 1.0)
+
 SUBMISSION_REQUIREMENTS = [
     "trajectory JSONL",
     "agent manifest",
@@ -562,18 +567,51 @@ def rl_observation_view(
     mask: list[float] = []
     for key in OBSERVATION_KEYS:
         value, observed = _observed_float(observation.get(key))
-        values.append(value)
+        values.append(value if observed else RL_MISSING_VALUE)
         mask.append(1.0 if observed else 0.0)
     if include_cost:
         values.append(_safe_float((info or {}).get("cost"), default=0.0))
         mask.append(1.0)
+    spec = rl_observation_spec(include_cost=include_cost)
     return {
         "mode": "rl",
-        "keys": [*OBSERVATION_KEYS, *(["cost_signal"] if include_cost else [])],
+        "schema_version": "chemworld-rl-view-0.2",
+        "keys": spec["keys"],
         "vector": values,
         "mask": mask,
         "cost": _safe_float((info or {}).get("cost"), default=0.0),
+        "bounds": spec["value_bounds"],
+        "mask_bounds": spec["mask_bounds"],
+        "missing_value": RL_MISSING_VALUE,
+        "dtype": "float32",
+        "nan_safe": True,
         "constraint_flags": to_builtin((info or {}).get("constraint_flags", {})),
+    }
+
+
+def rl_observation_spec(*, include_cost: bool = True) -> dict[str, Any]:
+    """Return the stable RL vector contract used by views and wrappers."""
+
+    keys = [*OBSERVATION_KEYS, *(["cost_signal"] if include_cost else [])]
+    low = [RL_OBSERVATION_VALUE_BOUNDS[0] for _ in OBSERVATION_KEYS]
+    high = [RL_OBSERVATION_VALUE_BOUNDS[1] for _ in OBSERVATION_KEYS]
+    if include_cost:
+        low.append(RL_COST_BOUNDS[0])
+        high.append(RL_COST_BOUNDS[1])
+    return {
+        "schema_version": "chemworld-rl-view-0.2",
+        "keys": list(keys),
+        "value_bounds": {
+            "low": low,
+            "high": high,
+        },
+        "mask_bounds": {
+            "low": [RL_MASK_BOUNDS[0] for _ in keys],
+            "high": [RL_MASK_BOUNDS[1] for _ in keys],
+        },
+        "missing_value": RL_MISSING_VALUE,
+        "dtype": "float32",
+        "nan_safe": True,
     }
 
 
@@ -940,6 +978,7 @@ __all__ = [
     "campaign_state",
     "lab_report_view",
     "observation_view",
+    "rl_observation_spec",
     "rl_observation_view",
     "spectra_summary",
     "task_prompt",

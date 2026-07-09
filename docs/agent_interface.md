@@ -74,6 +74,20 @@ env.campaign_state()
 
 `observation_view("rl")` 输出 NaN-safe vector、mask、cost 和 constraint flags，适合 RL 或 bandit-style agent。
 
+RL view 使用固定合同：
+
+| 字段 | 含义 |
+| --- | --- |
+| `schema_version` | 当前为 `chemworld-rl-view-0.2` |
+| `keys` | `OBSERVATION_KEYS` 加可选 `cost_signal` |
+| `vector` | NaN-safe float vector；缺失观测写为 `-1.0` |
+| `mask` | 与 `vector` 对齐的 observed mask，取值为 `0.0` 或 `1.0` |
+| `bounds` | vector 的低/高界；观测值为 `[-1, 1]`，cost 为 `[0, 1]` |
+| `mask_bounds` | mask 的低/高界 `[0, 1]` |
+| `cost` | safety/cost channel，来自 public info |
+
+`RLObservationWrapper` 使用同一份 RL spec 构造 Gymnasium `Box` observation space，因此 wrapper 输出、`info["rl_view"]` 和 `info["observation_mask"]` 的长度与 bounds 保持一致。
+
 `observation_view("tool_json")` 输出机器可读 dict：public observation、raw signal、processed estimate、uncertainty、cost、constraints、campaign state、available actions 和 lab report。
 
 `observation_view("lab_report")` 输出 LLM/学生可读实验摘要。它只由 public observation/info 派生，不读取 hidden species amounts、rate constants 或 private scenario 参数。
