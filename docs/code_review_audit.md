@@ -17,7 +17,8 @@ Largest current source files after this cleanup:
 
 | File | Approximate role | Follow-up split target |
 | --- | --- | --- |
-| `src/chemworld/physchem/reaction_network.py` | network object, batch integration, detailed balance, sensitivities, mechanism loading, and public facade wrappers | split integration core, thermochemical coupling, sensitivity, and loaders |
+| `src/chemworld/physchem/reaction_network.py` | network object, batch integration, detailed balance, mechanism loading, and public facade wrappers | split integration core, thermochemical coupling, and loaders |
+| `src/chemworld/physchem/reaction_sensitivity.py` | finite-difference kinetic sensitivity reports, local uncertainty summaries, explanation ranking, and candidate-parameter scanning | keep sensitivity analysis separate from ODE integration and mechanism loading |
 | `src/chemworld/physchem/reaction_network_specs.py` | species/rate-law/reaction specs, reaction-equation parser, mechanism dict helpers | keep schema/parser layer separate from ODE integration and rate-law evaluation |
 | `src/chemworld/physchem/reaction_rate_laws.py` | rate-law constants, mass-action/Arrhenius/reversible-rate evaluation, parameter validation, reaction lookup helpers | keep kinetic formula evaluation separate from ODE integration, thermochemical reports, and file loading |
 | `src/chemworld/physchem/reaction_reference_cases.py` | analytical ODE reference cases, Cantera-comparable fixtures, and reference-case evaluation | keep validation fixtures separate from network integration, sensitivity, and mechanism loading |
@@ -410,6 +411,10 @@ Recommended follow-up:
 - Extracted `reaction_reference_cases.py` from `reaction_network.py`, keeping
   analytical first-order ODE cases, Cantera-comparable fixtures, and
   reference-case evaluation outside the network integration engine.
+- Extracted `reaction_sensitivity.py` from `reaction_network.py`, keeping
+  finite-difference sensitivity entries, reports, uncertainty summaries,
+  explanation rankings, and positive-parameter candidate scanning outside the
+  network integration facade.
 - Added a schema-versioned mechanism contract and replay manifest. Mechanism
   YAML now validates against `chemworld_mechanism_v1`, rate laws are restricted
   to local enum families, executable/eval-style rate laws are rejected, each

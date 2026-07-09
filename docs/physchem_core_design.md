@@ -340,8 +340,11 @@ per-parameter derivatives, normalized sensitivities, local uncertainty
 contributions, ranked entries, and short explanation summaries. Tests compare
 the first-order irreversible product sensitivity against the analytical
 `k t exp(-kt)/(1-exp(-kt))` expression and cover zero-baseline behavior and
-explicit failure modes. This is not an adjoint solver, global sensitivity
-analysis, or pressure-dependent kinetics sensitivity package.
+explicit failure modes. The implementation lives in `reaction_sensitivity.py`;
+`reaction_network.py` re-exports the same public API so notebooks and
+benchmark code keep importing through the reaction-network facade. This is not
+an adjoint solver, global sensitivity analysis, or pressure-dependent kinetics
+sensitivity package.
 
 ## Mechanism and Scenario Library
 
