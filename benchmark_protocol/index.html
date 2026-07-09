@@ -1176,6 +1176,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#replay-verifier-hardening" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replay Verifier Hardening
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2373,6 +2384,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#replay-verifier-hardening" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replay Verifier Hardening
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2512,6 +2534,30 @@ task/runtime/scoring contract 被有意修改时，才应运行：</p>
 </ul>
 <p>测试会覆盖正常轨迹、篡改 observation score、以及非 final assay 暴露 leaderboard score
 三类情况。</p>
+<h2 id="replay-verifier-hardening">Replay Verifier Hardening</h2>
+<p><code>chemworld.eval.verify_records(records)</code> 是提交轨迹进入评测前的 replay gate。它会用
+<code>task_id + seed + scenario/mechanism/task/profile/scoring hash + action sequence</code>
+重新创建环境并逐步执行 action，然后比较：</p>
+<ul>
+<li>reward；</li>
+<li>public observation；</li>
+<li>terminated / truncated；</li>
+<li>mechanism hash；</li>
+<li>task contract hash；</li>
+<li>runtime profile hash；</li>
+<li>scoring contract hash；</li>
+<li>observation contract hash；</li>
+<li>operation type、kernel id、kernel version；</li>
+<li>affected ledgers；</li>
+<li>world events；</li>
+<li>state patch summary；</li>
+<li>state delta summary；</li>
+<li>transaction status 和 rollback reason；</li>
+<li>constitution checks。</li>
+</ul>
+<p>预发布测试覆盖 reward 篡改、observation 篡改、首行和中途 contract hash 篡改、mechanism
+hash 篡改、profile hash 篡改、transaction metadata 篡改、state patch summary 篡改，以及
+early termination 轨迹重放。</p>
 <h2 id="_5">发布产物</h2>
 <p>正式 release 应包含：</p>
 <ul>
