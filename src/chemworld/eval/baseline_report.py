@@ -6,13 +6,14 @@ import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from statistics import fmean, pstdev
 from typing import Any
 
 from chemworld import __version__
 from chemworld.data.submission import git_commit
 from chemworld.eval.leaderboard import aggregate_leaderboard
 from chemworld.eval.suite import run_suite
-from chemworld.tasks import get_task
+from chemworld.tasks import PRE_RELEASE_TASK_IDS, get_task
 
 DEFAULT_BASELINE_AGENTS = (
     "random",
@@ -21,6 +22,14 @@ DEFAULT_BASELINE_AGENTS = (
     "gp_bo",
     "safe_gp_bo",
     "tool_using_llm_stub",
+)
+PRE_RELEASE_BASELINE_AGENTS = (
+    "random",
+    "scripted_chemistry",
+    "gp_bo",
+    "safe_gp_bo",
+    "tool_using_llm_stub",
+    "llm_replay",
 )
 
 
@@ -33,10 +42,12 @@ class BaselineReport:
     tasks: tuple[str, ...]
     agents: tuple[str, ...]
     seeds: tuple[int, ...]
+    task_seed_plan: dict[str, list[int]]
     output_dir: str
     result_count: int
     task_maturity: dict[str, dict[str, Any]]
     maturity_summary: dict[str, Any]
+    summary_rows: list[dict[str, Any]]
     leaderboard_rows: list[dict[str, Any]]
 
     def to_dict(self) -> dict[str, Any]:
@@ -48,10 +59,12 @@ class BaselineReport:
             "tasks": list(self.tasks),
             "agents": list(self.agents),
             "seeds": list(self.seeds),
+            "task_seed_plan": self.task_seed_plan,
             "output_dir": self.output_dir,
             "result_count": self.result_count,
             "task_maturity": self.task_maturity,
             "maturity_summary": self.maturity_summary,
+            "summary_rows": self.summary_rows,
             "leaderboard_rows": self.leaderboard_rows,
         }
 
@@ -75,10 +88,12 @@ def generate_baseline_report(
     root.mkdir(parents=True, exist_ok=True)
     all_results: list[dict[str, Any]] = []
     resolved_seeds = tuple(seeds or ())
+    task_seed_plan: dict[str, list[int]] = {}
 
     for task_id in task_ids:
         task = get_task(task_id)
         task_seeds = list(resolved_seeds or task.seeds)
+        task_seed_plan[task.task_id] = task_seeds
         for agent_name in resolved_agents:
             task_output = root / "runs" / task.task_id / agent_name
             results = run_suite(
@@ -106,28 +121,96 @@ def generate_baseline_report(
         json.dump(all_results, handle, indent=2, sort_keys=True)
 
     leaderboard_rows = _aggregate_task_leaderboards(all_results)
+    summary_rows = summarize_baseline_results(all_results)
     leaderboard_path = root / "baseline_leaderboard.json"
     with leaderboard_path.open("w", encoding="utf-8") as handle:
         json.dump(leaderboard_rows, handle, indent=2, sort_keys=True)
+    summary_path = root / "baseline_summary_table.json"
+    with summary_path.open("w", encoding="utf-8") as handle:
+        json.dump(summary_rows, handle, indent=2, sort_keys=True)
 
     report = BaselineReport(
-        schema_version="chemworld-baseline-report-0.1",
+        schema_version="chemworld-baseline-report-0.2",
         generated_at=datetime.now(UTC).isoformat(),
         chemworld_version=__version__,
         commit_hash=git_commit(),
         tasks=tuple(task_ids),
         agents=resolved_agents,
         seeds=resolved_seeds,
+        task_seed_plan=task_seed_plan,
         output_dir=str(root),
         result_count=len(all_results),
         task_maturity=task_maturity,
         maturity_summary=maturity_summary,
+        summary_rows=summary_rows,
         leaderboard_rows=leaderboard_rows,
     )
     report_path = root / "baseline_report.json"
     with report_path.open("w", encoding="utf-8") as handle:
         json.dump(report.to_dict(), handle, indent=2, sort_keys=True)
     return report
+
+
+def generate_pre_release_baseline_report(
+    *,
+    agents: list[str] | None = None,
+    seeds: list[int] | None = None,
+    output_dir: str | Path,
+) -> BaselineReport:
+    """Generate the official baseline table for the pre-release task set."""
+
+    return generate_baseline_report(
+        task_ids=list(PRE_RELEASE_TASK_IDS),
+        agents=agents or list(PRE_RELEASE_BASELINE_AGENTS),
+        seeds=seeds,
+        output_dir=output_dir,
+    )
+
+
+def summarize_baseline_results(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Aggregate seed-level baseline results by task and baseline agent.
+
+    This table is the artifact intended for papers, docs, and release notes. It
+    keeps each task separate and reports the agent-facing metrics required by
+    the pre-release benchmark contract.
+    """
+
+    groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for result in results:
+        task_id = str(result.get("task_id") or result.get("benchmark_task_id") or "unknown")
+        agent_name = str(result.get("baseline_agent") or result.get("agent_name") or "unknown")
+        groups.setdefault((task_id, agent_name), []).append(result)
+
+    rows: list[dict[str, Any]] = []
+    metric_keys = {
+        "total_score": "total_score",
+        "final_best_score": "final_best_score",
+        "best_valid_score": "best_valid_score",
+        "auc": "area_under_best_score",
+        "invalid_action_rate": "invalid_action_rate",
+        "final_assay_count": "final_assay_count",
+        "safety_aware_score": "safety_aware_score",
+        "cost_aware_score": "cost_aware_score",
+        "steps": "steps",
+        "precondition_failure_count": "precondition_failure_count",
+    }
+    for (task_id, agent_name), items in sorted(groups.items()):
+        row: dict[str, Any] = {
+            "task_id": task_id,
+            "agent_name": agent_name,
+            "runs": len(items),
+            "seeds": sorted({int(item["seed"]) for item in items if "seed" in item}),
+        }
+        for public_name, result_key in metric_keys.items():
+            values = [float(item.get(result_key, 0.0)) for item in items]
+            row[f"mean_{public_name}"] = fmean(values) if values else 0.0
+            row[f"stderr_{public_name}"] = _stderr(values)
+        rows.append(row)
+    return rows
+
+
+def _stderr(values: list[float]) -> float:
+    return pstdev(values) / (len(values) ** 0.5) if len(values) > 1 else 0.0
 
 
 def _aggregate_task_leaderboards(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -240,8 +323,11 @@ def maturity_summary_for_results(results: list[dict[str, Any]]) -> dict[str, Any
 
 __all__ = [
     "DEFAULT_BASELINE_AGENTS",
+    "PRE_RELEASE_BASELINE_AGENTS",
     "BaselineReport",
     "generate_baseline_report",
+    "generate_pre_release_baseline_report",
     "maturity_summary_for_results",
+    "summarize_baseline_results",
     "validate_result_maturity_consistency",
 ]

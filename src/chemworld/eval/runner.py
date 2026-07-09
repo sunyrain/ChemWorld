@@ -14,6 +14,7 @@ from chemworld.agents import (
     GaussianProcessBOAgent,
     GreedyLocalAgent,
     LatinHypercubeAgent,
+    LLMReplayAgent,
     RandomAgent,
     RandomForestEIAgent,
     SafetyConstrainedBOAgent,
@@ -38,6 +39,7 @@ AGENT_REGISTRY: dict[str, Callable[[], Agent]] = {
     "partition_discovery_heuristic": ScriptedChemistryAgent,
     "heuristic": ScriptedChemistryAgent,
     "tool_using_llm_stub": ToolUsingLLMStubAgent,
+    "llm_replay": LLMReplayAgent,
 }
 
 

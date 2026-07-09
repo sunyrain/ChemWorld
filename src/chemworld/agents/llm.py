@@ -119,15 +119,18 @@ class ReplayLLMAgent(LLMPlannerAgent):
 class LLMReplayAgent(BaseAgent):
     """Replay a fixed tool/action trace without requiring an online LLM."""
 
-    name = "llm_replay_action_trace"
+    name = "llm_replay"
 
-    def __init__(self, replay_path: str | Path) -> None:
-        self.replay_path = Path(replay_path)
+    def __init__(self, replay_path: str | Path | None = None) -> None:
+        self.replay_path = None if replay_path is None else Path(replay_path)
 
     def reset(self, task_info: dict[str, Any], seed: int) -> None:
         super().reset(task_info, seed)
-        with self.replay_path.open("r", encoding="utf-8") as handle:
-            self._records = [json.loads(line) for line in handle if line.strip()]
+        if self.replay_path is None:
+            self._records = self._default_records_for_task(task_info)
+        else:
+            with self.replay_path.open("r", encoding="utf-8") as handle:
+                self._records = [json.loads(line) for line in handle if line.strip()]
         self._index = 0
         self._trace: list[dict[str, Any]] = []
 
@@ -175,11 +178,152 @@ class LLMReplayAgent(BaseAgent):
         manifest.update(
             {
                 "requires_online_model": False,
-                "replay_path": str(self.replay_path),
+                "replay_path": None if self.replay_path is None else str(self.replay_path),
+                "uses_builtin_trace": self.replay_path is None,
                 "trace_format": "chemworld-agent-trace-0.1",
             }
         )
         return manifest
+
+    def _default_records_for_task(self, task_info: dict[str, Any]) -> list[dict[str, Any]]:
+        allowed_operations = set(task_info.get("allowed_operations", []))
+        records: list[dict[str, Any]] = [
+            self._record(
+                {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+                "Start with a moderate solvent charge to create a stable liquid medium.",
+            ),
+            self._record(
+                {"operation": "add_reagent", "amount_mol": 0.010},
+                "Add a conservative reactant amount before choosing energy input.",
+            ),
+        ]
+        if "add_catalyst" in allowed_operations:
+            records.append(
+                self._record(
+                    {
+                        "operation": "add_catalyst",
+                        "catalyst_amount_mol": 0.00025,
+                        "catalyst": 1,
+                    },
+                    "Use a moderate catalyst loading to expose catalytic acceleration.",
+                )
+            )
+        if "heat" in allowed_operations:
+            records.append(
+                self._record(
+                    {
+                        "operation": "heat",
+                        "target_temperature_K": 378.0,
+                        "duration_s": 1350.0,
+                        "stirring_speed_rpm": 720.0,
+                    },
+                    "Advance conversion without pushing the high-risk temperature range.",
+                )
+            )
+        allowed_instruments = set(task_info.get("allowed_instruments", []))
+        if "measure" in allowed_operations and "uvvis" in allowed_instruments:
+            records.append(
+                self._record(
+                    {"operation": "measure", "instrument": "uvvis"},
+                    "Take a low-cost proxy measurement before committing to endpoint handling.",
+                )
+            )
+        if "quench" in allowed_operations:
+            records.append(
+                self._record(
+                    {"operation": "quench"},
+                    "Stop reaction chemistry before downstream phase operations.",
+                )
+            )
+        if "add_phase" in allowed_operations:
+            records.extend(
+                [
+                    self._record(
+                        {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012},
+                        "Create a second phase so partitioning can reveal downstream behavior.",
+                    ),
+                    self._record(
+                        {
+                            "operation": "add_extractant",
+                            "extractant": "organic",
+                            "volume_L": 0.018,
+                        },
+                        "Add an organic extractant to improve product recovery.",
+                    ),
+                    self._record(
+                        {
+                            "operation": "mix",
+                            "duration_s": 240.0,
+                            "stirring_speed_rpm": 850.0,
+                        },
+                        "Mix long enough for interphase mass transfer.",
+                    ),
+                    self._record(
+                        {"operation": "settle", "duration_s": 420.0},
+                        "Let the phases settle before measuring or separating.",
+                    ),
+                ]
+            )
+            if "measure" in allowed_operations and "hplc" in allowed_instruments:
+                records.append(
+                    self._record(
+                        {"operation": "measure", "instrument": "hplc"},
+                        "Use HPLC to observe the public product/byproduct signal.",
+                    )
+                )
+            records.append(
+                self._record(
+                    {"operation": "separate_phase", "target_phase": "organic"},
+                    "Separate the phase expected to contain the product-rich fraction.",
+                )
+            )
+        if "wash" in allowed_operations:
+            records.append(
+                self._record(
+                    {"operation": "wash", "wash_volume_L": 0.006},
+                    "Wash the isolated phase to improve purity at modest recovery cost.",
+                )
+            )
+        if "dry" in allowed_operations:
+            records.append(
+                self._record(
+                    {"operation": "dry"},
+                    "Remove residual water before final concentration or assay.",
+                )
+            )
+        if "concentrate" in allowed_operations:
+            records.append(
+                self._record(
+                    {"operation": "concentrate", "duration_s": 450.0},
+                    "Concentrate the product fraction before final assay.",
+                )
+            )
+        records.extend(
+            [
+                self._record(
+                    {"operation": "terminate"},
+                    "Terminate the experiment so final assay becomes valid.",
+                ),
+                self._record(
+                    {"operation": "measure", "instrument": "final_assay"},
+                    "Use the leaderboard instrument after termination.",
+                ),
+            ]
+        )
+        return records
+
+    def _record(self, action: dict[str, Any], reasoning_summary: str) -> dict[str, Any]:
+        return {
+            "action": action,
+            "prompt_input": {
+                "baseline": "builtin deterministic LLM replay",
+                "hidden_truth_policy": "public observations only",
+            },
+            "reasoning_summary": reasoning_summary,
+            "hypothesis_note": (
+                "Moderate conditions should expose informative score and spectra signals."
+            ),
+        }
 
 
 class ToolUsingLLMStubAgent(BaseAgent):

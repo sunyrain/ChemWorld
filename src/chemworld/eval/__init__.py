@@ -1,6 +1,11 @@
 """Evaluation protocol and leaderboard utilities."""
 
-from chemworld.eval.baseline_report import BaselineReport, generate_baseline_report
+from chemworld.eval.baseline_report import (
+    PRE_RELEASE_BASELINE_AGENTS,
+    BaselineReport,
+    generate_baseline_report,
+    generate_pre_release_baseline_report,
+)
 from chemworld.eval.explanations import (
     MechanismScore,
     combined_artifact_score,
@@ -18,6 +23,7 @@ from chemworld.eval.suite import run_suite
 from chemworld.eval.verify import VerificationResult, verify_records
 
 __all__ = [
+    "PRE_RELEASE_BASELINE_AGENTS",
     "BaselineReport",
     "EvaluationResult",
     "MechanismScore",
@@ -27,6 +33,7 @@ __all__ = [
     "create_paper_artifact",
     "evaluate_records",
     "generate_baseline_report",
+    "generate_pre_release_baseline_report",
     "make_agent",
     "run_agent",
     "run_suite",

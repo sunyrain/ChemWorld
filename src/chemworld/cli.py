@@ -23,7 +23,10 @@ from chemworld.data.submission import (
     write_submission_manifest,
 )
 from chemworld.data.validation import validate_records
-from chemworld.eval.baseline_report import generate_baseline_report
+from chemworld.eval.baseline_report import (
+    PRE_RELEASE_BASELINE_AGENTS,
+    generate_baseline_report,
+)
 from chemworld.eval.leaderboard import aggregate_leaderboard, load_results
 from chemworld.eval.metrics import evaluate_records
 from chemworld.eval.paper_artifact import create_paper_artifact
@@ -34,7 +37,7 @@ from chemworld.eval.private_artifact import (
 from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.suite import run_suite
 from chemworld.eval.verify import verify_records
-from chemworld.tasks import get_task, get_task_card, list_tasks
+from chemworld.tasks import PRE_RELEASE_TASK_IDS, get_task, get_task_card, list_tasks
 from chemworld.world.recipes import compile_recipe, validate_recipe
 from chemworld.world.scenario import get_scenario_card, list_scenarios
 from chemworld.wrappers import validate_event_action
@@ -460,14 +463,14 @@ def build_parser() -> argparse.ArgumentParser:
     baselines_report_parser.add_argument(
         "--tasks",
         nargs="+",
-        default=["reaction-optimization-standard"],
+        default=list(PRE_RELEASE_TASK_IDS),
     )
     baselines_report_parser.add_argument(
         "--agents",
         nargs="+",
-        default=["random", "scripted_chemistry"],
+        default=list(PRE_RELEASE_BASELINE_AGENTS),
     )
-    baselines_report_parser.add_argument("--seeds", nargs="+", type=int, default=[0])
+    baselines_report_parser.add_argument("--seeds", nargs="+", type=int)
     baselines_report_parser.add_argument("--output-dir", default="runs/baseline_report")
     baselines_report_parser.set_defaults(func=_baselines_report)
 
