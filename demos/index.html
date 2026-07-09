@@ -508,6 +508,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        提交包示例
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#notebook" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -519,7 +530,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
         十二天教程
@@ -2294,12 +2305,12 @@ obs, info = env.reset(seed=1)
 recipe = [
     {&quot;operation&quot;: &quot;add_solvent&quot;, &quot;volume_L&quot;: 0.03, &quot;solvent&quot;: 1},
     {&quot;operation&quot;: &quot;add_reagent&quot;, &quot;amount_mol&quot;: 0.012},
-    {&quot;operation&quot;: &quot;add_catalyst&quot;, &quot;catalyst&quot;: 2, &quot;amount_mol&quot;: 0.0004},
+    {&quot;operation&quot;: &quot;add_catalyst&quot;, &quot;catalyst&quot;: 2, &quot;catalyst_amount_mol&quot;: 0.0004},
     {
         &quot;operation&quot;: &quot;heat&quot;,
-        &quot;temperature_K&quot;: 350.0,
+        &quot;target_temperature_K&quot;: 350.0,
         &quot;duration_s&quot;: 1200.0,
-        &quot;stirring_rpm&quot;: 800.0,
+        &quot;stirring_speed_rpm&quot;: 800.0,
     },
     {&quot;operation&quot;: &quot;quench&quot;},
     {&quot;operation&quot;: &quot;terminate&quot;},
@@ -2325,6 +2336,7 @@ env.unwrapped.campaign_state()
 <pre><code class="language-bash">python examples/demo_agent_facing_api.py
 python examples/demo_llm_replay_harness.py
 python examples/demo_rl_vector_wrapper.py
+python examples/demo_submission_bundle.py
 </code></pre>
 <h2 id="baseline">Baseline 对比</h2>
 <p>建议至少比较三类：</p>
@@ -2347,10 +2359,21 @@ chemworld score --run artifacts/runs/example.jsonl
 <h2 id="_5">本地评测机</h2>
 <p>本地评测机接收 agent、任务和 seeds，输出 trajectory、score 和 report。见
 <a href="../local_eval_machine/">本地评测机</a>。</p>
+<h2 id="_6">提交包示例</h2>
+<p>构建一个完整、可验证、可回放的 submission bundle：</p>
+<pre><code class="language-bash">chemworld submission example runs/example_submission \
+  --task-id reaction-to-purification \
+  --agent tool_using_llm_stub \
+  --seeds 0
+chemworld submission validate runs/example_submission
+chemworld submission summarize runs/example_submission
+</code></pre>
+<p>该示例会生成 manifest、trajectory、results、explanations、dependency notes 和 README。
+详情见 <a href="../submission/">提交包</a>。</p>
 <h2 id="notebook">Notebook 走读</h2>
 <p>Notebook 应保持短小：每个 notebook 聚焦一个概念，避免把全部任务、全部指标和全部
 debug 信息塞进同一页。</p>
-<h2 id="_6">十二天教程</h2>
+<h2 id="_7">十二天教程</h2>
 <p>课程应先让学生理解 <code>reset</code>、<code>step</code>、<code>info</code> 和 <code>constraint_flags</code>，再逐步引入
 reaction、separation、spectroscopy、world-model learning 和 tool-agent planning。</p>
 
