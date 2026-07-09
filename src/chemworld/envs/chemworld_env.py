@@ -205,58 +205,15 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         validation = self.operation_validator.validate(action, self._state)
         if validation.dispatchable_to_runtime:
             runtime_result = self.runtime.apply_transaction(self._state, action)
-            self._state = runtime_result.state
-            operation_record = runtime_result.operation_record
-            runtime_info = runtime_result.info_payload()
         else:
-            penalized = self.runtime.domain_services.penalize_invalid(self._state)
-            cost_delta = penalized.ledger.cost - self._state.ledger.cost
-            risk_delta = penalized.ledger.risk - self._state.ledger.risk
-            sample_delta = (
-                penalized.ledger.sample_consumed_L - self._state.ledger.sample_consumed_L
-            )
-            operation_record = self.runtime.domain_services.record_operation(
-                action["operation"],
+            runtime_result = self.runtime.apply_invalid_transaction(
                 self._state,
-                penalized,
-                validation.preconditions,
                 action,
+                validation,
             )
-            self._state = penalized
-            runtime_info = {
-                "kernel_id": "validation:invalid_action",
-                "kernel_version": "runtime-v2.0",
-                "affected_ledgers": ["process"],
-                "world_events": [
-                    {
-                        "event_type": "validation_failed",
-                        "operation_type": action["operation"],
-                        "payload": {
-                            "invalid_reasons": list(validation.invalid_reasons),
-                            "cost_delta": cost_delta,
-                            "risk_delta": risk_delta,
-                            "sample_delta": sample_delta,
-                        },
-                    }
-                ],
-                "state_patches_summary": [
-                    {
-                        "patch_type": "validation_penalty",
-                        "affected_ledgers": ["process"],
-                        "summary": {
-                            "delta_cost": cost_delta,
-                            "delta_risk": risk_delta,
-                            "delta_sample_consumed_L": sample_delta,
-                            "invalid_reasons": list(validation.invalid_reasons),
-                        },
-                    }
-                ],
-                "cost_delta": cost_delta,
-                "risk_delta": risk_delta,
-                "sample_delta": sample_delta,
-                "transaction_status": "validation_failed",
-                "rollback_reason": "validation_failed",
-            }
+        self._state = runtime_result.state
+        operation_record = runtime_result.operation_record
+        runtime_info = runtime_result.info_payload()
         preconditions_passed = all(operation_record.preconditions.values())
         if preconditions_passed:
             observation = self.observation_kernel.observe(self._state, action, self._rng)
@@ -274,7 +231,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             ],
         )
         observation_values = observation.values
-        if preconditions_passed and operation_record.operation_type == "measure":
+        if preconditions_passed and operation_record.is_instrument_measurement:
             self._state = self._state.replace(
                 process=process_with_last_observation(
                     self._state.process,
@@ -296,8 +253,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._operation_id += 1
         successful_final_assay = (
             preconditions_passed
-            and operation_record.operation_type == "measure"
-            and operation_record.instrument == "final_assay"
+            and operation_record.is_final_assay
         )
         truncated = self._step_count >= self.budget
         campaign_final_assay = successful_final_assay and self.episode_mode == "campaign"

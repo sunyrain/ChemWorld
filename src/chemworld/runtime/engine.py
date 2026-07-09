@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from chemworld.foundation import OperationRecord, PhysicalConstitution, WorldState
+from chemworld.operation_validator import OperationValidation
 from chemworld.runtime.domain_service_registry import DomainServiceRegistry
 from chemworld.runtime.domain_services import ChemWorldDomainServices
 from chemworld.runtime.kernels import (
@@ -15,7 +16,7 @@ from chemworld.runtime.kernels import (
     TaskRuntimeProfile,
 )
 from chemworld.runtime.mechanisms import CompiledMechanism
-from chemworld.runtime.transactions import TransactionManager
+from chemworld.runtime.transactions import StatePatch, TransactionManager, WorldEvent
 from chemworld.tasks import TaskSpec
 from chemworld.world.parameters import ChemWorldParameters
 
@@ -93,6 +94,66 @@ class ChemWorldRuntime:
         return RuntimeStepResult(
             state=result.state,
             operation_record=result.operation_record,
+            kernel_result=result,
+        )
+
+    def apply_invalid_transaction(
+        self,
+        state: WorldState,
+        action: dict[str, Any],
+        validation: OperationValidation,
+    ) -> RuntimeStepResult:
+        penalized = self.domain_services.penalize_invalid(state)
+        cost_delta = penalized.ledger.cost - state.ledger.cost
+        risk_delta = penalized.ledger.risk - state.ledger.risk
+        sample_delta = penalized.ledger.sample_consumed_L - state.ledger.sample_consumed_L
+        operation_record = self.domain_services.record_operation(
+            str(action["operation"]),
+            state,
+            penalized,
+            validation.preconditions,
+            action,
+        )
+        result = KernelResult(
+            state=penalized,
+            operation_record=operation_record,
+            events=(
+                WorldEvent(
+                    event_type="validation_failed",
+                    operation_type=str(action["operation"]),
+                    payload={
+                        "invalid_reasons": list(validation.invalid_reasons),
+                        "cost_delta": cost_delta,
+                        "risk_delta": risk_delta,
+                        "sample_delta": sample_delta,
+                    },
+                ),
+            ),
+            patches=(
+                StatePatch(
+                    patch_type="validation_penalty",
+                    affected_ledgers=("process",),
+                    summary={
+                        "delta_cost": cost_delta,
+                        "delta_risk": risk_delta,
+                        "delta_sample_consumed_L": sample_delta,
+                        "invalid_reasons": list(validation.invalid_reasons),
+                    },
+                ),
+            ),
+            state_delta_summary=operation_record.state_delta_summary,
+            cost_delta=cost_delta,
+            risk_delta=risk_delta,
+            sample_delta=sample_delta,
+            affected_ledgers=("process",),
+            kernel_id="validation:invalid_action",
+            kernel_version="runtime-v2.0",
+            transaction_status="validation_failed",
+            rollback_reason="validation_failed",
+        )
+        return RuntimeStepResult(
+            state=penalized,
+            operation_record=operation_record,
             kernel_result=result,
         )
 

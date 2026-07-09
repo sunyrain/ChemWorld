@@ -38,6 +38,15 @@ def release_gate_commands(
         GateCommand("tests", [python, "-m", "pytest"]),
         GateCommand("docs", [python, "-m", "mkdocs", "build", "--strict"]),
         GateCommand(
+            "runtime_boundary_audit",
+            [
+                python,
+                "scripts/audit_runtime_boundary.py",
+                "--output",
+                str(output_dir / "runtime_boundary_report.json"),
+            ],
+        ),
+        GateCommand(
             "environment_audit",
             [
                 python,

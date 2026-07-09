@@ -29,6 +29,7 @@ env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2
+.\.venv\Scripts\python.exe scripts\audit_runtime_boundary.py --output runs\audit\runtime_boundary_report.json
 ```
 
 默认输出：
@@ -61,6 +62,15 @@ runs/audit/trajectories/*.jsonl
 
 脚本还会运行一个小型 agent-facing probe：在 `reaction-to-purification` 上使用固定 seeds 和多轮谱图反馈，记录 first score、best score、best-so-far AUC、invalid action 和谱图决策特征。
 
+`audit_runtime_boundary.py` 专门检查 Runtime v2 源码边界：
+
+- runtime-facing source 不得 import `chemworld.core`。
+- legacy `src/chemworld/core` 不得重新出现运行时代码。
+- `ChemWorldEnv.step()` 不得按具体 operation 名称写 `if` / `match` 分支。
+- `ChemWorldEnv.step()` 不得直接访问 `runtime.domain_services`。
+- valid action 必须委托给 `runtime.apply_transaction()`。
+- invalid action 必须委托给 `runtime.apply_invalid_transaction()`。
+
 ## 最新全量审计结果
 
 运行命令：
@@ -83,6 +93,13 @@ runs/audit/trajectories/*.jsonl
 | `constitution_failures` | 0 |
 | `ledger_single_source_failures` | 0 |
 | `public_leakage_failures` | 0 |
+
+Runtime boundary audit：
+
+| 指标 | 结果 |
+| --- | ---: |
+| `passed` | true |
+| `finding_count` | 0 |
 
 覆盖的正式任务：
 
@@ -239,6 +256,7 @@ recovery 与 raw spectra 指向同一个被测样品。
 ## 验收命令
 
 ```powershell
+.\.venv\Scripts\python.exe scripts\audit_runtime_boundary.py --output runs\audit\runtime_boundary_report.json
 .\.venv\Scripts\python.exe scripts\audit_environment_consistency.py --tasks all --seeds 0 1 2
 .\.venv\Scripts\python.exe -m pytest tests\test_environment_self_consistency.py
 .\.venv\Scripts\python.exe -m pytest

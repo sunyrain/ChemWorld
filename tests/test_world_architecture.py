@@ -220,10 +220,12 @@ def test_downstream_world_modules_do_not_use_legacy_species_fallbacks() -> None:
 
 def test_chemworld_env_delegates_process_operation_dispatch_to_runtime() -> None:
     source = Path("src/chemworld/envs/chemworld_env.py").read_text(encoding="utf-8")
-    process_operations = set(OPERATION_TYPES) - {"measure"}
 
     assert "runtime.apply_transaction" in source
-    for operation in process_operations:
+    assert "runtime.apply_invalid_transaction" in source
+    assert ".domain_services" not in source
+    assert "operation_record.operation_type" not in source
+    for operation in OPERATION_TYPES:
         assert f'operation_record.operation_type == "{operation}"' not in source
         assert f'action["operation"] == "{operation}"' not in source
         assert f"action['operation'] == '{operation}'" not in source

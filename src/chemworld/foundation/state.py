@@ -238,6 +238,14 @@ class OperationRecord:
     measurement_cost: float = 0.0
     sample_consumed_L: float = 0.0
 
+    @property
+    def is_instrument_measurement(self) -> bool:
+        return self.instrument is not None
+
+    @property
+    def is_final_assay(self) -> bool:
+        return self.instrument == "final_assay"
+
     def to_dict(self) -> dict[str, object]:
         return {
             "operation_type": self.operation_type,

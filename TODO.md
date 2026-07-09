@@ -9,20 +9,20 @@
 | 阶段 | 目标 | 总数 | 已完成 | 已认领 | 待开始 | 剩余 |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
 | P0 | 预发布 benchmark hardening | 12 | 12 | 0 | 0 | 0 |
-| P1 | runtime 与环境自洽性 | 8 | 7 | 0 | 1 | 1 |
+| P1 | runtime 与环境自洽性 | 8 | 8 | 0 | 0 | 0 |
 | P2 | agent-facing 交互与数据集 | 6 | 0 | 0 | 6 | 6 |
 | P3 | 专业物理化学深化 | 27 | 0 | 3 | 24 | 27 |
 | P4 | 文档、notebook、站点与发布包装 | 5 | 0 | 0 | 5 | 5 |
-| **合计** |  | **58** | **19** | **3** | **36** | **39** |
+| **合计** |  | **58** | **20** | **3** | **35** | **38** |
 
-还需要完成 **39 项**。其中 **36 项尚未开始**，**3 项已由 liyijun 认领但未完成**。
+还需要完成 **38 项**。其中 **35 项尚未开始**，**3 项已由 liyijun 认领但未完成**。
 
 ## 阶段判断
 
 当前 ChemWorld 已经越过“功能入口不足”的阶段，重点转为 **benchmark trust hardening**：
 
 - P0 已完成：三项预发布任务、baseline、replay、submission、artifact、release gate 已具备。
-- P1 只剩 1 项：runtime boundary scan。完成后，最小可信 benchmark 的结构审计闭环基本成立。
+- P1 已完成：runtime boundary scan 已纳入自动审计，最小可信 benchmark 的结构审计闭环基本成立。
 - P2 和 P4 是公开预发布的主要缺口：agent 交互层、数据导出、教程和站点需要收束。
 - P3 是长期专业化路线：不阻塞第一版预发布，但每个模块必须带 maturity、适用范围、验证算例和失败边界。
 
@@ -30,16 +30,16 @@
 
 | Cutline | 剩余 | 定义 |
 | --- | ---: | --- |
-| 最小可信 benchmark | 1 | 完成全部 P0/P1。任务、runtime、ledger、observation、scoring、replay 和公开边界通过审计。 |
-| 可公开预发布包 | 12 | 完成 P0/P1/P2/P4。外部用户可安装、运行、提交、阅读文档并复现实验。 |
-| 全部可见路线图 | 39 | 包含长期 P3 专业物理化学深化。P3 不阻塞预发布，除非某项冻结任务明确依赖。 |
+| 最小可信 benchmark | 0 | 完成全部 P0/P1。任务、runtime、ledger、observation、scoring、replay 和公开边界通过审计。 |
+| 可公开预发布包 | 11 | 完成 P0/P1/P2/P4。外部用户可安装、运行、提交、阅读文档并复现实验。 |
+| 全部可见路线图 | 38 | 包含长期 P3 专业物理化学深化。P3 不阻塞预发布，除非某项冻结任务明确依赖。 |
 
 ## 下一执行队列
 
-1. `P1-CONSIST-08`：runtime boundary scan。
-2. `P2-AGENT-01`：polish `task_prompt()` for the three pre-release tasks。
-3. `P2-AGENT-02`：improve lab-report summaries。
-4. `P2-AGENT-03`：stabilize RL observation view。
+1. `P2-AGENT-01`：polish `task_prompt()` for the three pre-release tasks。
+2. `P2-AGENT-02`：improve lab-report summaries。
+3. `P2-AGENT-03`：stabilize RL observation view。
+4. `P2-AGENT-04`：add agent trace to dataset export examples。
 5. `P4-DOCS-01`：reorganize docs around pre-release benchmark。
 
 ## 协作规则
@@ -123,7 +123,7 @@
 | P1-CONSIST-05 | Codex | Done | Campaign vs single-experiment semantics audit | Tests cover all task termination policies; single-experiment final assay terminates and campaign final assay records experiment summaries while keeping the Gym episode alive when budget remains. |
 | P1-CONSIST-06 | Codex | Done | Ledger single-source-of-truth audit | `audit_ledger_single_source_of_truth()` is part of constitution state checks and release audit; tests cover material totals, process compatibility, metadata rejection, reference closure, and all formal task smoke trajectories. |
 | P1-CONSIST-07 | Codex | Done | Public observation leakage audit | `audit_public_payload()` scans reset info, task info, observations, step info, tool JSON, lab reports, agent views, spectra labels, and JSONL trajectories; public task info no longer exposes mechanism manifest, reactions, compiled mechanism, mechanism observable mapping, hidden scenario seeds, hidden species ids, or rate constants unless `debug_truth=True`; full environment audit reports `public_leakage_failures=0`. |
-| P1-CONSIST-08 |  | Open | Runtime boundary scan | `ChemWorldEnv` remains a thin Gym adapter, no operation-specific if/elif dispatch returns, and runtime does not import legacy core modules. |
+| P1-CONSIST-08 | Codex | Done | Runtime boundary scan | `scripts/audit_runtime_boundary.py` and `audit_runtime_boundaries()` verify that `ChemWorldEnv` delegates valid and invalid actions to runtime transactions, does not access `runtime.domain_services`, does not branch on specific operation names inside `step()`, and runtime-facing source does not import legacy `chemworld.core` modules. |
 
 ## P2 - Agent-Facing 交互与数据集
 

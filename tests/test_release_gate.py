@@ -25,6 +25,7 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
         "type_check",
         "tests",
         "docs",
+        "runtime_boundary_audit",
         "environment_audit",
         "baseline_smoke",
     ]
