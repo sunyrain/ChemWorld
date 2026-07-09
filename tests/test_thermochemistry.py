@@ -143,3 +143,7 @@ def test_thermochemistry_model_card_is_valid() -> None:
     assert [card.model_id for card in cards] == ["nasa7_species_reaction_thermochemistry_v1"]
     for card in cards:
         assert validate_model_card(card) == []
+        assert any(
+            evidence.evidence_id == "nasa7-detailed-balance-reaction-network-tests"
+            for evidence in card.validation_evidence
+        )
