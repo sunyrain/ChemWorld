@@ -1118,10 +1118,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#baseline_1" class="md-nav__link">
+  <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        推荐 baseline
+        生成官方表格
       
     </span>
   </a>
@@ -1129,10 +1129,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#baseline_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        记录内容
+        当前预发布 baseline 表
       
     </span>
   </a>
@@ -1143,7 +1143,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        解读方式
+        解读原则
       
     </span>
   </a>
@@ -2223,33 +2223,344 @@
 
 
 <h1 id="baseline">Baseline 参考</h1>
-<p>Baseline 的作用不是追求最高分，而是提供可复现的下限、诊断环境问题，并帮助新 agent
-作者理解任务接口。</p>
-<h2 id="baseline_1">推荐 baseline</h2>
+<p>Baseline 的作用不是追求最高分，而是提供可复现的比较下限、诊断环境问题，并帮助
+agent 作者确认任务接口、预算语义、仪器观测和 leaderboard 指标是否一致。</p>
+<p>当前预发布 benchmark 固定三项核心任务：</p>
 <ul>
-<li>随机合法动作 agent。</li>
-<li>固定 recipe agent。</li>
-<li>规则型安全 agent。</li>
-<li>简单 black-box optimizer。</li>
-<li>带 tool 调用的 LLM recipe planner。</li>
+<li><code>reaction-to-assay</code></li>
+<li><code>reaction-to-purification</code></li>
+<li><code>partition-discovery</code></li>
 </ul>
-<h2 id="_1">记录内容</h2>
-<p>每个 baseline run 应记录：</p>
+<p>官方 baseline agent 集合：</p>
+<table>
+<thead>
+<tr>
+<th>Agent</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>random</code></td>
+<td>合法随机动作下限</td>
+</tr>
+<tr>
+<td><code>scripted_chemistry</code></td>
+<td>规则型化学流程基线</td>
+</tr>
+<tr>
+<td><code>gp_bo</code></td>
+<td>高斯过程 BO 基线</td>
+</tr>
+<tr>
+<td><code>safe_gp_bo</code></td>
+<td>safety-aware BO 基线</td>
+</tr>
+<tr>
+<td><code>tool_using_llm_stub</code></td>
+<td>不依赖在线 API 的 tool-using LLM stub</td>
+</tr>
+<tr>
+<td><code>llm_replay</code></td>
+<td>固定 reasoning/action trace 的离线 LLM replay</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_1">生成官方表格</h2>
+<p>默认命令会使用预发布三任务、官方 baseline agent 集合和每个任务冻结的 public seeds：</p>
+<pre><code class="language-powershell">chemworld baselines report --output-dir runs/baseline_report
+</code></pre>
+<p>输出文件：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>baseline_results.json</code></td>
+<td>每个 task / agent / seed 的逐 run 指标</td>
+</tr>
+<tr>
+<td><code>baseline_summary_table.json</code></td>
+<td>按 task 和 agent 聚合的论文表格字段</td>
+</tr>
+<tr>
+<td><code>baseline_leaderboard.json</code></td>
+<td>按 task 分开的 leaderboard 聚合</td>
+</tr>
+<tr>
+<td><code>baseline_report.json</code></td>
+<td>报告总 manifest，含版本、commit、seeds、maturity 和表格</td>
+</tr>
+</tbody>
+</table>
+<p><code>baseline_summary_table.json</code> 至少包含：</p>
 <ul>
-<li>任务集合和 seeds；</li>
-<li>agent 配置；</li>
-<li>trajectory bundle；</li>
-<li>score table；</li>
-<li>constraint failure 分布；</li>
-<li>代码版本和依赖版本。</li>
+<li><code>task_id</code></li>
+<li><code>agent_name</code></li>
+<li><code>runs</code></li>
+<li><code>seeds</code></li>
+<li><code>mean_total_score</code> / <code>stderr_total_score</code></li>
+<li><code>mean_final_best_score</code> / <code>stderr_final_best_score</code></li>
+<li><code>mean_auc</code> / <code>stderr_auc</code></li>
+<li><code>mean_invalid_action_rate</code> / <code>stderr_invalid_action_rate</code></li>
+<li><code>mean_final_assay_count</code> / <code>stderr_final_assay_count</code></li>
+<li><code>mean_safety_aware_score</code></li>
+<li><code>mean_cost_aware_score</code></li>
 </ul>
-<h2 id="_2">解读方式</h2>
-<p>如果强 recipe 无法稳定得分，优先检查任务前置条件、reward timing、phase ledger 和
-measurement contract。如果随机 agent 经常触发 constitution failure，说明环境本身的
-状态守恒或错误处理需要加固。</p>
+<p>需要快速 smoke 时可以显式缩小任务、agent 和 seed：</p>
+<pre><code class="language-powershell">chemworld baselines report `
+  --tasks reaction-to-assay `
+  --agents random llm_replay `
+  --seeds 0 `
+  --output-dir runs/baseline_smoke
+</code></pre>
+<h2 id="baseline_1">当前预发布 baseline 表</h2>
+<p>以下表格由 <code>chemworld baselines report --output-dir runs/baseline_report_official</code>
+生成。它用于校准当前 alpha benchmark 的难度，不代表最终正式榜单。</p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Agent</th>
+<th style="text-align: right;">Runs</th>
+<th style="text-align: right;">Mean total</th>
+<th style="text-align: right;">Stderr total</th>
+<th style="text-align: right;">Mean final best</th>
+<th style="text-align: right;">Mean AUC</th>
+<th style="text-align: right;">Invalid rate</th>
+<th style="text-align: right;">Final assays</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>partition-discovery</code></td>
+<td><code>gp_bo</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.006</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.008</td>
+<td style="text-align: right;">0.005</td>
+<td style="text-align: right;">0.333</td>
+<td style="text-align: right;">8.00</td>
+</tr>
+<tr>
+<td><code>partition-discovery</code></td>
+<td><code>llm_replay</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.113</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.151</td>
+<td style="text-align: right;">0.120</td>
+<td style="text-align: right;">0.771</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>partition-discovery</code></td>
+<td><code>random</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.625</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>partition-discovery</code></td>
+<td><code>safe_gp_bo</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.006</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.008</td>
+<td style="text-align: right;">0.005</td>
+<td style="text-align: right;">0.333</td>
+<td style="text-align: right;">8.00</td>
+</tr>
+<tr>
+<td><code>partition-discovery</code></td>
+<td><code>scripted_chemistry</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.106</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.153</td>
+<td style="text-align: right;">0.087</td>
+<td style="text-align: right;">0.438</td>
+<td style="text-align: right;">2.00</td>
+</tr>
+<tr>
+<td><code>partition-discovery</code></td>
+<td><code>tool_using_llm_stub</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.137</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.152</td>
+<td style="text-align: right;">0.119</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">4.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-assay</code></td>
+<td><code>gp_bo</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.124</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.163</td>
+<td style="text-align: right;">0.027</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-assay</code></td>
+<td><code>llm_replay</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.296</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.385</td>
+<td style="text-align: right;">0.048</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-assay</code></td>
+<td><code>random</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.139</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.187</td>
+<td style="text-align: right;">0.010</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-assay</code></td>
+<td><code>safe_gp_bo</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.124</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.163</td>
+<td style="text-align: right;">0.027</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-assay</code></td>
+<td><code>scripted_chemistry</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.252</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.332</td>
+<td style="text-align: right;">0.030</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-assay</code></td>
+<td><code>tool_using_llm_stub</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.306</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.395</td>
+<td style="text-align: right;">0.056</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-purification</code></td>
+<td><code>gp_bo</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.089</td>
+<td style="text-align: right;">0.033</td>
+<td style="text-align: right;">0.118</td>
+<td style="text-align: right;">0.020</td>
+<td style="text-align: right;">0.067</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-purification</code></td>
+<td><code>llm_replay</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.231</td>
+<td style="text-align: right;">0.012</td>
+<td style="text-align: right;">0.311</td>
+<td style="text-align: right;">0.018</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-purification</code></td>
+<td><code>random</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.037</td>
+<td style="text-align: right;">0.015</td>
+<td style="text-align: right;">0.091</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-purification</code></td>
+<td><code>safe_gp_bo</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.089</td>
+<td style="text-align: right;">0.033</td>
+<td style="text-align: right;">0.118</td>
+<td style="text-align: right;">0.020</td>
+<td style="text-align: right;">0.067</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-purification</code></td>
+<td><code>scripted_chemistry</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.134</td>
+<td style="text-align: right;">0.007</td>
+<td style="text-align: right;">0.324</td>
+<td style="text-align: right;">0.015</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td><code>reaction-to-purification</code></td>
+<td><code>tool_using_llm_stub</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.239</td>
+<td style="text-align: right;">0.012</td>
+<td style="text-align: right;">0.321</td>
+<td style="text-align: right;">0.021</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+</tbody>
+</table>
+<p>当前诊断：</p>
+<ul>
+<li><code>tool_using_llm_stub</code> 和 <code>llm_replay</code> 在反应与纯化任务上强于随机下限。</li>
+<li><code>partition-discovery</code> 的随机、LLM replay、scripted agent invalid rate 偏高，说明该任务的
+  action affordance / planner contract 还需要进入 P1/P2 继续治理。</li>
+<li><code>gp_bo</code> 和 <code>safe_gp_bo</code> 在当前 event-sequence 任务上表现接近，BO budget 与 recipe
+  acquisition 行为仍应由 <code>P0-BENCH-04</code> 单独校准。</li>
+</ul>
+<h2 id="_2">解读原则</h2>
+<ul>
+<li>如果 <code>scripted_chemistry</code> 或 <code>llm_replay</code> 无法稳定产生 final assay，优先检查
+  action precondition、episode mode、instrument policy 和 termination policy。</li>
+<li>如果 <code>random</code> 经常触发 constitution failure，优先检查 validator、transaction rollback
+  和 ledger non-negativity。</li>
+<li>如果 BO 类方法没有进入 acquisition 阶段，优先检查 task budget、recipe 长度和
+  <code>n_initial</code> 设置。</li>
+<li>如果 <code>mean_auc</code> 高但 <code>mean_final_best_score</code> 低，说明 agent 早期探索有信号但未能
+  稳定保留最佳实验。</li>
+<li>如果 <code>mean_invalid_action_rate</code> 高，说明该 agent 不适合作为强基线，或者
+  <code>available_actions()</code> / validator / task policy 之间还有不一致。</li>
+</ul>
 <h2 id="_3">发布要求</h2>
-<p>正式发布前至少提供一个简单 baseline 和一个可解释强 baseline。leaderboard 上的模型
-分数应始终与这些 baseline 同表展示。</p>
+<p>正式发布前，baseline 表必须和 task card、scenario card、mechanism hash、score contract
+以及 replay verifier 同步发布。leaderboard 不应只展示模型排名，还应同时展示上述官方
+baseline，作为判断任务难度和环境健康度的参考。</p>
 
 
 
