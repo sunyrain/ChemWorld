@@ -478,6 +478,11 @@ Recommended follow-up:
   runtime metadata into typed `EquipmentLedger` settings. Reaction, thermal,
   electrochemical, and phase-partition services now read the typed reactor
   settings, and the constitution rejects these keys as primary metadata.
+- Promoted actual charged initial amounts out of runtime metadata into
+  `SpeciesLedger.initial_amounts_mol`. Scenario reset keeps mechanism
+  recipe-scale policies at zero actual charge until `add_reagent`, scoring
+  reads the typed species ledger, and the constitution rejects
+  `initial_*_mol`/`initial_reactant_mol` metadata keys.
 - Promoted phase-system readiness, settled status, and selected-phase state out
   of runtime metadata into typed `PhaseLedger` records. Constitution
   preconditions now read `PhaseRecord.settled/selected`, extraction,

@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import WorldState
+from chemworld.foundation import WorldState, species_with_added_initial_amounts
+from chemworld.foundation.state import SpeciesLedger
 from chemworld.runtime.mechanisms import CompiledMechanism
 
 
@@ -146,13 +146,6 @@ class MechanismSpeciesView:
 
     def initial_reactant_amount(self, state: WorldState) -> float:
         reactant = self.reactant_species(state)
-        candidates = (
-            f"initial_{reactant}_mol",
-            "initial_reactant_mol",
-        )
-        for key in candidates:
-            if key in state.metadata:
-                return max(float(state.metadata.get(key, 0.0)), 0.0)
         if state.species is not None:
             amount = state.species.initial_amounts_mol.get(reactant)
             if amount is not None:
@@ -164,18 +157,15 @@ class MechanismSpeciesView:
 
     def record_added_reactant(
         self,
-        metadata: dict[str, Any],
+        species: SpeciesLedger | None,
         *,
         reactant_species: str,
         amount_mol: float,
-    ) -> dict[str, Any]:
-        metadata[f"initial_{reactant_species}_mol"] = (
-            float(metadata.get(f"initial_{reactant_species}_mol", 0.0)) + amount_mol
+    ) -> SpeciesLedger:
+        return species_with_added_initial_amounts(
+            species,
+            {reactant_species: amount_mol},
         )
-        metadata["initial_reactant_mol"] = (
-            float(metadata.get("initial_reactant_mol", 0.0)) + amount_mol
-        )
-        return metadata
 
     def reagent_charge_amounts(
         self,

@@ -42,14 +42,13 @@ class ChemWorldPrimitiveOperationServices:
             limiting_amount_mol=amount,
         ).items():
             species[species_id] = species.get(species_id, 0.0) + addition
-        metadata = state.metadata.copy()
-        metadata = self.species_view.record_added_reactant(
-            metadata,
+        species_ledger = self.species_view.record_added_reactant(
+            state.species,
             reactant_species=reactant,
             amount_mol=amount,
         )
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.03 * amount / 0.01)
-        return state.replace(species_amounts=species, ledger=ledger, metadata=metadata)
+        return state.replace(species_amounts=species, ledger=ledger, species=species_ledger)
 
     def add_solvent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         volume = float(np.clip(_action_float(action, "volume_L", 0.025), 0.0, 0.080))

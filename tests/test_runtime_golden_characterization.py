@@ -255,7 +255,12 @@ def test_runtime_v2_golden_scripted_final_assay(
             "distillate_product_mol",
             "distillate_impurity_mol",
             "solvent_loss",
+            "initial_reactant_mol",
         }.isdisjoint(env.unwrapped._state.metadata)
+        assert not any(
+            key.startswith("initial_") and key.endswith("_mol")
+            for key in env.unwrapped._state.metadata
+        )
 
         if task.episode_mode == "campaign":
             assert not final_terminated

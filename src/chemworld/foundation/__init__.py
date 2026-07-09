@@ -29,6 +29,7 @@ from chemworld.foundation.state import (
     process_with_metrics,
     scale_phase_ledger,
     selected_phase_id,
+    species_with_added_initial_amounts,
     upsert_equipment_record,
 )
 from chemworld.foundation.units import Quantity, UnitSpec, convert_value
@@ -64,5 +65,6 @@ __all__ = [
     "process_with_metrics",
     "scale_phase_ledger",
     "selected_phase_id",
+    "species_with_added_initial_amounts",
     "upsert_equipment_record",
 ]

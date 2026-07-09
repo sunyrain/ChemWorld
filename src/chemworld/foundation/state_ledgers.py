@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from typing import Any
@@ -20,7 +21,14 @@ class SpeciesLedger:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "species_roles", deepcopy(self.species_roles))
-        object.__setattr__(self, "initial_amounts_mol", deepcopy(self.initial_amounts_mol))
+        object.__setattr__(
+            self,
+            "initial_amounts_mol",
+            {
+                str(species_id): max(float(amount_mol), 0.0)
+                for species_id, amount_mol in self.initial_amounts_mol.items()
+            },
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -218,6 +226,22 @@ def process_with_metrics(
     merged = process.metrics.copy()
     merged.update({str(key): float(value) for key, value in metrics.items()})
     return replace(process, metrics=merged)
+
+
+def species_with_added_initial_amounts(
+    species: SpeciesLedger | None,
+    additions_mol: Mapping[str, float],
+) -> SpeciesLedger:
+    """Return a species ledger with accumulated campaign initial charges."""
+
+    species = species or SpeciesLedger()
+    merged = species.initial_amounts_mol.copy()
+    for species_id, amount_mol in additions_mol.items():
+        merged[str(species_id)] = merged.get(str(species_id), 0.0) + max(
+            float(amount_mol),
+            0.0,
+        )
+    return replace(species, initial_amounts_mol=merged)
 
 
 def process_with_last_observation(

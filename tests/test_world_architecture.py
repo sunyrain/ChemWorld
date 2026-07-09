@@ -17,6 +17,7 @@ from chemworld.foundation.state import (
     PhaseLedger,
     PhaseRecord,
     ProcessLedger,
+    SpeciesLedger,
     WorldState,
     equipment_settings,
     instrument_completed,
@@ -744,7 +745,7 @@ def test_runtime_species_view_uses_mechanism_roles_without_fixed_names() -> None
         pressure_Pa=101_325.0,
         phase="liquid",
         vessel_id="electrochemical_cell",
-        metadata={"initial_Ox_mol": 0.010, "initial_reactant_mol": 0.010},
+        species=SpeciesLedger(initial_amounts_mol={"Ox": 0.010}),
     )
 
     truth = view.truth_values(state)
@@ -767,12 +768,15 @@ def test_scenario_initial_state_uses_compiled_mechanism_species() -> None:
         instance.compiled_mechanism.species_index
     )
     assert "A" not in instance.initial_state.species_amounts
-    assert (
-        instance.initial_state.species.initial_amounts_mol
-        == instance.compiled_mechanism.initial_amount_policy
+    assert set(instance.initial_state.species.initial_amounts_mol) == set(
+        instance.compiled_mechanism.initial_amount_policy
     )
-    assert instance.initial_state.metadata["initial_Ox_mol"] == 0.0
-    assert instance.initial_state.metadata["initial_reactant_mol"] == 0.0
+    assert all(
+        amount_mol == pytest.approx(0.0)
+        for amount_mol in instance.initial_state.species.initial_amounts_mol.values()
+    )
+    assert "initial_Ox_mol" not in instance.initial_state.metadata
+    assert "initial_reactant_mol" not in instance.initial_state.metadata
     assert instance.initial_state.metadata["mechanism_id"] == "electrochemical_conversion"
     assert (
         instance.initial_state.metadata["mechanism_hash"]
@@ -826,8 +830,10 @@ def test_reagent_charge_uses_mechanism_initial_amount_policy() -> None:
         assert info["transaction_status"] == "committed"
         assert state.species_amounts["Acid"] == pytest.approx(0.010)
         assert state.species_amounts["Alcohol"] == pytest.approx(0.0125)
-        assert state.metadata["initial_Acid_mol"] == pytest.approx(0.010)
-        assert state.metadata["initial_reactant_mol"] == pytest.approx(0.010)
+        assert state.species.initial_amounts_mol["Acid"] == pytest.approx(0.010)
+        assert "initial_Acid_mol" not in state.metadata
+        assert "initial_reactant_mol" not in state.metadata
+        assert env.unwrapped.constitution.check_state(state).passed
     finally:
         env.close()
 
@@ -874,7 +880,7 @@ def test_domain_services_apply_mechanism_roles_for_reagent_and_electrolysis() ->
     assert potential_record.preconditions["not_terminated"]
     assert charged.species_amounts["Ox"] == pytest.approx(0.010)
     assert "A" not in charged.species_amounts
-    assert charged.metadata["initial_Ox_mol"] == pytest.approx(0.010)
+    assert charged.species.initial_amounts_mol["Ox"] == pytest.approx(0.010)
     assert "potential_V" not in configured.metadata
     assert equipment_settings(configured.equipment, "electrochemical_cell")["potential_V"] == 1.35
     assert converted.species_amounts["Ox"] < configured.species_amounts["Ox"]
@@ -903,7 +909,7 @@ def test_observation_kernel_scores_non_fixed_mechanism_species() -> None:
         pressure_Pa=101_325.0,
         phase="liquid",
         vessel_id="electrochemical_cell",
-        metadata={"initial_Ox_mol": 0.010, "initial_reactant_mol": 0.010},
+        species=SpeciesLedger(initial_amounts_mol={"Ox": 0.010}),
     )
 
     truth = kernel._truth_values(state)
@@ -1336,6 +1342,23 @@ def test_constitution_rejects_primary_process_metric_metadata() -> None:
     )
 
 
+def test_constitution_rejects_primary_initial_amount_metadata() -> None:
+    state = initial_chemworld_state().replace(
+        metadata={
+            **initial_chemworld_state().metadata,
+            "initial_A_mol": 0.010,
+            "initial_reactant_mol": 0.010,
+        }
+    )
+    report = make_chemworld_constitution().check_state(state)
+
+    assert not report.passed
+    assert any(
+        check.name == "metadata_no_primary_initial_amounts"
+        for check in report.failures()
+    )
+
+
 def test_runtime_observation_cache_uses_typed_process_ledger() -> None:
     env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=4)
     try:
@@ -1738,10 +1761,7 @@ def test_world_reference_reaction_fixture_is_executable_not_metadata_only() -> N
             "Cat_dead": 0.0,
         },
         volume_L=0.025,
-        metadata={
-            **initial_chemworld_state().metadata,
-            "initial_A_mol": 0.01,
-        },
+        species=SpeciesLedger(initial_amounts_mol={"A": 0.01}),
         equipment=upsert_equipment_record(
             initial_chemworld_state().equipment,
             equipment_id="batch_reactor",

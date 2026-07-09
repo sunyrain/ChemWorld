@@ -19,15 +19,12 @@ def initial_chemworld_state(
 
     The material amounts start at zero because ChemWorld tasks begin from an
     empty virtual lab. The mechanism/scenario layer owns the species namespace
-    and initial-amount policy through ``SpeciesLedger``; user operations then
-    add material into that mechanism-specific species ledger.
+    and recipe-scale initial-amount policy; Runtime v2 records actual charged
+    initial amounts in ``SpeciesLedger.initial_amounts_mol``.
     """
 
     resolved_species_ids = tuple(species_ids or ())
-    resolved_initial_amounts = {
-        species_id: float(amount)
-        for species_id, amount in (initial_amounts_mol or {}).items()
-    }
+    resolved_initial_amounts = dict.fromkeys(initial_amounts_mol or {}, 0.0)
 
     state = WorldState(
         species_amounts=dict.fromkeys(resolved_species_ids, 0.0),
@@ -49,15 +46,6 @@ def initial_chemworld_state(
             species_roles=dict(species_roles or {}),
             initial_amounts_mol=resolved_initial_amounts,
         ),
-    ).replace(
-        metadata={
-            "initial_reactant_mol": 0.0,
-            **(
-                {f"initial_{initial_limiting_species}_mol": 0.0}
-                if initial_limiting_species
-                else {}
-            ),
-        }
     )
     return state.replace(
         equipment=upsert_equipment_record(

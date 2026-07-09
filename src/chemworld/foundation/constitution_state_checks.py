@@ -74,6 +74,12 @@ def check_vessel_bounds(constitution: Any, state: WorldState) -> list[CheckResul
 
 
 def check_typed_ledgers(constitution: Any, state: WorldState) -> list[CheckResult]:
+    initial_amount_metadata_keys = {
+        key
+        for key in state.metadata
+        if key == "initial_reactant_mol"
+        or (key.startswith("initial_") and key.endswith("_mol"))
+    }
     checks: list[CheckResult] = [
         CheckResult(
             "metadata_no_primary_phase_ledger",
@@ -119,6 +125,11 @@ def check_typed_ledgers(constitution: Any, state: WorldState) -> list[CheckResul
             "metadata_no_primary_process_metrics",
             constitution.primary_process_metric_metadata_keys.isdisjoint(state.metadata),
             "Derived process metrics must live in typed ProcessLedger.",
+        ),
+        CheckResult(
+            "metadata_no_primary_initial_amounts",
+            not initial_amount_metadata_keys,
+            "Initial charged material amounts must live in typed SpeciesLedger.",
         ),
     ]
     if state.phases is not None:
