@@ -27,6 +27,12 @@ Baseline 的作用不是追求最高分，而是给 benchmark 提供可复现的
 chemworld baselines report --output-dir runs/baseline_report
 ```
 
+冻结 seeds 来自 official seed suite：
+
+```powershell
+chemworld seeds show
+```
+
 快速 smoke 可缩小任务、agent 和 seed：
 
 ```powershell

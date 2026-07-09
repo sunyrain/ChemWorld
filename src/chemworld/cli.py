@@ -36,6 +36,7 @@ from chemworld.eval.private_artifact import (
     verify_private_eval_artifact,
 )
 from chemworld.eval.runner import make_agent, run_agent
+from chemworld.eval.seed_suite import official_seed_suite, official_seeds_for_task
 from chemworld.eval.suite import run_suite
 from chemworld.eval.verify import verify_records
 from chemworld.tasks import PRE_RELEASE_TASK_IDS, get_task, get_task_card, list_tasks
@@ -82,7 +83,7 @@ def _resolve_suite_args(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "env": task.env_id,
         "world_splits": [task.world_split],
-        "seeds": list(task.seeds),
+        "seeds": official_seeds_for_task(task.task_id),
         "budget": task.budget,
         "objective": task.objective,
         "threshold": task.threshold,
@@ -399,6 +400,15 @@ def _submission_example(args: argparse.Namespace) -> None:
         raise SystemExit(1)
 
 
+def _seeds_show(args: argparse.Namespace) -> None:
+    task_ids = (
+        [task.task_id for task in list_tasks()]
+        if args.all_tasks
+        else args.tasks
+    )
+    print(json.dumps(official_seed_suite(task_ids), indent=2, sort_keys=True))
+
+
 def _inspect_constitution(args: argparse.Namespace) -> None:
     kwargs: dict[str, Any] = {
         "world_split": args.world_split,
@@ -550,6 +560,16 @@ def build_parser() -> argparse.ArgumentParser:
     tasks_card_parser = tasks_subparsers.add_parser("card", help="Show one task card.")
     tasks_card_parser.add_argument("task_id")
     tasks_card_parser.set_defaults(func=_tasks_card)
+
+    seeds_parser = subparsers.add_parser("seeds", help="Inspect official seed suites.")
+    seeds_subparsers = seeds_parser.add_subparsers(dest="seeds_command", required=True)
+    seeds_show_parser = seeds_subparsers.add_parser(
+        "show",
+        help="Show the official pre-release seed suite.",
+    )
+    seeds_show_parser.add_argument("--tasks", nargs="+")
+    seeds_show_parser.add_argument("--all-tasks", action="store_true")
+    seeds_show_parser.set_defaults(func=_seeds_show)
 
     scenarios_parser = subparsers.add_parser("scenarios", help="Inspect scenario specs.")
     scenarios_subparsers = scenarios_parser.add_subparsers(

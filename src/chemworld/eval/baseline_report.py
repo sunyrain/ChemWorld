@@ -12,6 +12,7 @@ from typing import Any
 from chemworld import __version__
 from chemworld.data.submission import git_commit
 from chemworld.eval.leaderboard import aggregate_leaderboard
+from chemworld.eval.seed_suite import task_seed_plan
 from chemworld.eval.suite import run_suite
 from chemworld.tasks import PRE_RELEASE_TASK_IDS, get_task
 
@@ -88,12 +89,11 @@ def generate_baseline_report(
     root.mkdir(parents=True, exist_ok=True)
     all_results: list[dict[str, Any]] = []
     resolved_seeds = tuple(seeds or ())
-    task_seed_plan: dict[str, list[int]] = {}
+    resolved_task_seed_plan = task_seed_plan(task_ids, override_seeds=seeds)
 
     for task_id in task_ids:
         task = get_task(task_id)
-        task_seeds = list(resolved_seeds or task.seeds)
-        task_seed_plan[task.task_id] = task_seeds
+        task_seeds = resolved_task_seed_plan[task.task_id]
         for agent_name in resolved_agents:
             task_output = root / "runs" / task.task_id / agent_name
             results = run_suite(
@@ -137,7 +137,7 @@ def generate_baseline_report(
         tasks=tuple(task_ids),
         agents=resolved_agents,
         seeds=resolved_seeds,
-        task_seed_plan=task_seed_plan,
+        task_seed_plan=resolved_task_seed_plan,
         output_dir=str(root),
         result_count=len(all_results),
         task_maturity=task_maturity,

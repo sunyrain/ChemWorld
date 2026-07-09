@@ -107,3 +107,14 @@ def test_cli_tasks_and_run_task(tmp_path, capsys) -> None:
         assert task_record["observation"] == explicit_record["observation"]
         assert task_record["reward"] == explicit_record["reward"]
 
+
+def test_cli_seeds_show(capsys) -> None:
+    main(["seeds", "show"])
+    output = capsys.readouterr().out
+    payload = json.loads(output)
+
+    assert payload["schema_version"] == "chemworld-seed-suite-0.1"
+    assert "reaction-to-assay" in payload["task_seed_plan"]
+    assert payload["private_eval_salt_policy"]["salt_environment_variable"] == (
+        "CHEMWORLD_PRIVATE_EVAL_SALT"
+    )

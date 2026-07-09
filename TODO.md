@@ -12,17 +12,17 @@ archives only.
 
 | Scope | Total | Done | Active | Claimed | Open | Remaining |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| P0 Pre-release benchmark hardening | 12 | 4 | 0 | 0 | 8 | 8 |
+| P0 Pre-release benchmark hardening | 12 | 5 | 0 | 0 | 7 | 7 |
 | P1 Runtime and environment consistency | 8 | 3 | 0 | 0 | 5 | 5 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 7 | 0 | 3 | 48 | 51 |
+| Total | 58 | 8 | 0 | 3 | 47 | 50 |
 
 Immediate release target:
 
-- Finish P0 and P1 first: 13 remaining items.
-- Finish P0, P1, P2, and P4 for a usable public pre-release package: 24
+- Finish P0 and P1 first: 12 remaining items.
+- Finish P0, P1, P2, and P4 for a usable public pre-release package: 23
   remaining items.
 - P3 is the long professional-physics backlog: 27 remaining items. Pull from it
   only when it directly strengthens a benchmark task or replaces a declared
@@ -51,9 +51,9 @@ examples, and clear limitations.
 
 Current unfinished work:
 
-- 51 total remaining items.
-- 13 immediate P0/P1 benchmark-trust items.
-- 24 public pre-release items across P0/P1/P2/P4.
+- 50 total remaining items.
+- 12 immediate P0/P1 benchmark-trust items.
+- 23 public pre-release items across P0/P1/P2/P4.
 - 27 long-horizon P3 professional-physics deepening items.
 
 Interpretation:
@@ -101,7 +101,7 @@ Frozen core tasks:
 | ID | Owner | Status | Task | Exit Criteria |
 | --- | --- | --- | --- | --- |
 | P0-BENCH-01 | Codex | Done | Freeze the three-task pre-release contract | Task cards specify objective, budget, allowed operations, instruments, seeds, score metrics, safety limits, maturity tags, and expected qualitative behavior |
-| P0-BENCH-02 |  | Open | Build official seed suite | Public-dev/public-test seed lists and hidden-eval salt policy are documented and loaded by CLI |
+| P0-BENCH-02 | Codex | Done | Build official seed suite | `chemworld seeds show` exposes the pre-release seed suite, public-dev/public-test seeds, private-eval salt policy, and suite/baseline CLI paths load the official plan unless explicit smoke seeds are provided |
 | P0-BENCH-03 | Codex | Done | Generate official baseline table | `chemworld baselines report` runs random, scripted, BO, safe BO, ToolUsingLLMStub, and LLMReplay across frozen task seeds; `baseline_summary_table.json` and docs report mean, stderr, invalid rate, final-assay count, and AUC |
 | P0-BENCH-04 | Codex | Done | Calibrate BO budgets and initial samples | BO acquisition diagnostics are recorded in agent traces, metrics, baseline summaries, tests, and docs; GP-BO/safe GP-BO enter acquisition under default budgets and outperform random without saturating score |
 | P0-BENCH-05 |  | Open | Lock golden trajectories | Scripted trajectories for the three core tasks compare observations, reward/info, transaction metadata, and final metrics |
@@ -196,11 +196,11 @@ behavior.
 
 Do these next, in order:
 
-1. `P0-BENCH-02`: build the official seed suite.
-2. `P1-CONSIST-04`: audit invalid action atomicity.
-3. `P0-BENCH-05`: lock golden trajectories.
-4. `P0-BENCH-06`: audit scoring contracts.
-5. `P0-BENCH-07`: harden replay verifier.
+1. `P1-CONSIST-04`: audit invalid action atomicity.
+2. `P0-BENCH-05`: lock golden trajectories.
+3. `P0-BENCH-06`: audit scoring contracts.
+4. `P0-BENCH-07`: harden replay verifier.
+5. `P0-BENCH-09`: build local teacher/student evaluation smoke.
 
 This sequence reduces the highest public benchmark risk first: baseline
 credibility, agent-facing action clarity, submission reproducibility, seed

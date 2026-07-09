@@ -10,6 +10,26 @@
 
 所有 split 共享同一个 `world_law_id`，但隐藏参数和评分 seed 不应泄露。
 
+## Seed Suite
+
+正式报告必须声明使用哪一组 seed。预发布阶段的官方 seed suite 可由 CLI 查询：
+
+```bash
+chemworld seeds show
+```
+
+核心规则：
+
+- `public-dev` seeds 可公开用于教学、调试和 smoke test；
+- `public-test` seeds 公开且冻结，用于 baseline 表和外部复现实验；
+- `private-eval` hidden seeds 和 salt 由维护者控制；
+- 没有 `CHEMWORLD_PRIVATE_EVAL_SALT` 时，`private-eval` 只代表本地 placeholder；
+- `chemworld suite --task ...` 和 `chemworld baselines report --tasks ...` 默认读取
+  official seed suite；
+- 显式 `--seeds` 是 smoke/debug override，不能冒充完整官方结果。
+
+详见 [Official Seed Suite](seed_suite.md)。
+
 ## 提交要求
 
 提交包应包含 agent 入口、依赖、配置和 manifest。评测端负责创建环境、运行 episode、
