@@ -72,6 +72,27 @@ class TaskScoringContract:
                     "conversion": 0.10,
                 },
             )
+        if metrics.intersection(
+            {
+                "pH_normalized",
+                "acid_dissociation_fraction",
+                "precipitation_signal",
+                "equilibrium_residual",
+                "equilibrium_confidence",
+            }
+        ):
+            return cls(
+                objective,
+                success_metrics,
+                "equilibrium_characterization",
+                {
+                    "equilibrium_confidence": 0.45,
+                    "acid_dissociation_fraction": 0.20,
+                    "precipitation_signal": 0.15,
+                    "pH_normalized": 0.10,
+                    "equilibrium_residual": -0.25,
+                },
+            )
         if "flow_conversion" in metrics:
             return cls(
                 objective,

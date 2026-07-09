@@ -12,6 +12,7 @@ from chemworld.data.datasets import dataset_card, export_dataset
 from chemworld.data.logging import load_jsonl
 from chemworld.data.submission import git_commit
 from chemworld.eval.baseline_report import generate_baseline_report
+from chemworld.eval.provenance import build_solver_provenance_manifest
 from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.verify import verify_records
 from chemworld.schemas import ACTION_SCHEMA, RECIPE_SCHEMA, TRAJECTORY_SCHEMA
@@ -140,6 +141,15 @@ def create_paper_artifact(
         json.dumps(release_checklist, indent=2, sort_keys=True),
         encoding="utf-8",
     )
+    solver_provenance = build_solver_provenance_manifest(
+        task_ids=task_ids,
+        agents=agents,
+        seeds=seeds,
+    )
+    (manifest_dir / "solver_provenance_manifest.json").write_text(
+        json.dumps(solver_provenance, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
     (root / "release_checklist.md").write_text(
         _release_checklist_markdown(release_checklist),
         encoding="utf-8",
@@ -152,6 +162,7 @@ def create_paper_artifact(
                 "baseline_result_count": baseline_report.result_count,
                 "dataset_card_schema_version": dataset_card_payload["schema_version"],
                 "replay_verified": verification["verified"],
+                "solver_provenance_schema_version": solver_provenance["schema_version"],
                 "required_files": _required_artifact_files(),
             },
             indent=2,
@@ -206,6 +217,9 @@ def create_paper_artifact(
         "dataset_card": str(dataset_dir / "dataset_card.json"),
         "example_trajectory": str(example_trajectory),
         "replay_manifest": str(manifest_dir / "replay_manifest.json"),
+        "solver_provenance_manifest": str(
+            manifest_dir / "solver_provenance_manifest.json"
+        ),
         "release_checklist": str(root / "release_checklist.md"),
         "replay_verified": verification["verified"],
     }
@@ -274,6 +288,11 @@ def _build_release_checklist(
             "id": "replay_manifest",
             "status": "verified" if verification["verified"] else "failed",
             "evidence": "manifests/replay_manifest.json",
+        },
+        {
+            "id": "solver_provenance",
+            "status": "included",
+            "evidence": "manifests/solver_provenance_manifest.json",
         },
         {
             "id": "release_limitations",
@@ -389,6 +408,7 @@ def _required_artifact_files() -> list[str]:
         "baseline_report/baseline_report.json",
         "dataset_examples/dataset_card.json",
         "manifests/replay_manifest.json",
+        "manifests/solver_provenance_manifest.json",
         "manifests/release_manifest.json",
         "limitations.md",
         "release_checklist.md",

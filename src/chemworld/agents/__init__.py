@@ -10,6 +10,8 @@ from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.agents.greedy import GreedyLocalAgent
 from chemworld.agents.lhs import LatinHypercubeAgent
 from chemworld.agents.llm import (
+    CodexSubagentOnlineAgent,
+    CodexSubagentReplayAgent,
     LLMPlannerAgent,
     LLMReplayAgent,
     ReplayLLMAgent,
@@ -19,6 +21,8 @@ from chemworld.agents.random import RandomAgent
 
 __all__ = [
     "Agent",
+    "CodexSubagentOnlineAgent",
+    "CodexSubagentReplayAgent",
     "GaussianProcessBOAgent",
     "GreedyLocalAgent",
     "HistoryRecord",

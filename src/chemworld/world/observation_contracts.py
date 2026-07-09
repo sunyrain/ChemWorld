@@ -148,6 +148,16 @@ def _required_observation_keys(
         keys.append("flow_conversion")
     elif scoring_contract.score_family == "electrochemistry":
         keys.extend(("electrochemical_selectivity", "energy_efficiency"))
+    elif scoring_contract.score_family == "equilibrium_characterization":
+        keys.extend(
+            (
+                "pH_normalized",
+                "acid_dissociation_fraction",
+                "precipitation_signal",
+                "equilibrium_residual",
+                "equilibrium_confidence",
+            )
+        )
     return tuple(dict.fromkeys(keys))
 
 

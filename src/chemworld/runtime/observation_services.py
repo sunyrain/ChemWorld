@@ -8,6 +8,11 @@ import numpy as np
 
 from chemworld.foundation import Observation, PhysicalConstitution, WorldState
 from chemworld.foundation.state import ProcessLedger, selected_phase_id
+from chemworld.physchem.equilibrium_chemistry import (
+    SolubilityProductSpec,
+    apply_precipitation_hooks,
+    solve_monoprotic_acid_base,
+)
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.observation_contracts import TaskObservationContract
@@ -216,7 +221,90 @@ class ChemWorldObservationKernel:
                 impurity_species=self.species_view.impurity_species_for_state(state),
             )
         )
+        truth.update(self._equilibrium_truth_values(state))
         return truth
+
+    def _equilibrium_truth_values(self, state: WorldState) -> dict[str, float]:
+        """Return public equilibrium-characterization signals in [0, 1].
+
+        The underlying weak-acid and precipitation calculations use D4
+        equilibrium-chemistry kernels, but only normalized instrument-facing
+        estimates are returned here. Hidden equilibrium constants and mechanism
+        species ids remain outside the public observation.
+        """
+
+        volume_L = max(float(state.volume_L), 1.0e-9)
+        acid_total = max(self.species_view.initial_reactant_amount(state), 0.0)
+        if acid_total <= 0.0:
+            return {
+                "pH_normalized": 7.0 / 14.0,
+                "acid_dissociation_fraction": 0.0,
+                "precipitation_signal": 0.0,
+                "equilibrium_residual": 1.0,
+                "equilibrium_confidence": 0.0,
+            }
+
+        pka = self._hidden_acid_pka(state)
+        strong_cation = min(0.020, 0.15 * acid_total)
+        strong_anion = min(0.020, 0.08 * acid_total)
+        acid = solve_monoprotic_acid_base(
+            acid_total_mol=acid_total,
+            volume_L=volume_L,
+            pka=pka,
+            temperature_K=state.temperature_K,
+            strong_cation_mol=strong_cation,
+            strong_anion_mol=strong_anion,
+        )
+        precipitation = apply_precipitation_hooks(
+            {
+                "Ag+": strong_cation + 0.10 * acid.species_amounts_mol.get("A-", 0.0),
+                "Cl-": strong_anion + 0.08 * acid.species_amounts_mol.get("HA", 0.0),
+            },
+            (
+                SolubilityProductSpec(
+                    precipitate_id="AgCl_public",
+                    cation_id="Ag+",
+                    anion_id="Cl-",
+                    ksp=1.8e-10,
+                ),
+            ),
+            volume_L=volume_L,
+        )
+        precipitation_signal = float(
+            np.clip(precipitation.total_precipitated_mol / max(acid_total, 1.0e-12), 0.0, 1.0)
+        )
+        residual = float(
+            np.clip(
+                abs(acid.charge_balance_error_eq) / max(acid_total / volume_L, 1.0e-12),
+                0.0,
+                1.0,
+            )
+        )
+        confidence = float(
+            np.clip(
+                0.55 * (1.0 - residual)
+                + 0.25 * acid.acid_dissociation_fraction
+                + 0.20 * (1.0 - min(abs(acid.pH - 4.5) / 4.5, 1.0)),
+                0.0,
+                1.0,
+            )
+        )
+        return {
+            "pH_normalized": float(np.clip(acid.pH / 14.0, 0.0, 1.0)),
+            "acid_dissociation_fraction": float(
+                np.clip(acid.acid_dissociation_fraction, 0.0, 1.0)
+            ),
+            "precipitation_signal": precipitation_signal,
+            "equilibrium_residual": residual,
+            "equilibrium_confidence": confidence,
+        }
+
+    @staticmethod
+    def _hidden_acid_pka(state: WorldState) -> float:
+        scenario_id = str(state.metadata.get("scenario_id", "equilibrium-characterization"))
+        jitter = (sum(ord(char) for char in scenario_id) % 13) / 100.0
+        temperature_shift = np.clip((state.temperature_K - 298.15) / 600.0, -0.25, 0.25)
+        return float(4.55 + jitter - temperature_shift)
 
     def _public_species_amounts(
         self,

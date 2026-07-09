@@ -25,6 +25,7 @@ from chemworld.data.submission import (
 )
 from chemworld.data.validation import validate_records
 from chemworld.eval.baseline_report import (
+    AAAI_BASELINE_AGENTS,
     PRE_RELEASE_BASELINE_AGENTS,
     generate_baseline_report,
 )
@@ -39,7 +40,7 @@ from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.seed_suite import official_seed_suite, official_seeds_for_task
 from chemworld.eval.suite import run_suite
 from chemworld.eval.verify import verify_records
-from chemworld.tasks import PRE_RELEASE_TASK_IDS, get_task, get_task_card, list_tasks
+from chemworld.tasks import AAAI_TASK_IDS, PRE_RELEASE_TASK_IDS, get_task, get_task_card, list_tasks
 from chemworld.world.recipes import compile_recipe, validate_recipe
 from chemworld.world.scenario import get_scenario_card, list_scenarios
 from chemworld.wrappers import validate_event_action
@@ -231,9 +232,11 @@ def _suite(args: argparse.Namespace) -> None:
 
 
 def _baselines_report(args: argparse.Namespace) -> None:
+    task_ids = _resolve_task_preset(args.preset, args.tasks)
+    agents = _resolve_agent_preset(args.preset, args.agents)
     report = generate_baseline_report(
-        task_ids=args.tasks,
-        agents=args.agents,
+        task_ids=task_ids,
+        agents=agents,
         seeds=args.seeds,
         output_dir=args.output_dir,
     )
@@ -262,13 +265,42 @@ def _private_eval_verify(args: argparse.Namespace) -> None:
 
 
 def _artifact_create(args: argparse.Namespace) -> None:
+    task_ids = _resolve_task_preset(args.preset, args.tasks)
+    agents = _resolve_artifact_agent_preset(args.preset, args.agents)
     summary = create_paper_artifact(
         output_dir=args.output_dir,
-        task_ids=args.tasks,
-        agents=args.agents,
+        task_ids=task_ids,
+        agents=agents,
         seeds=args.seeds,
     )
     print(json.dumps(summary, indent=2, sort_keys=True))
+
+
+def _resolve_task_preset(preset: str | None, tasks: list[str] | None) -> list[str]:
+    if tasks:
+        return tasks
+    if preset == "aaai":
+        return list(AAAI_TASK_IDS)
+    return list(PRE_RELEASE_TASK_IDS)
+
+
+def _resolve_agent_preset(preset: str | None, agents: list[str] | None) -> list[str]:
+    if agents:
+        return agents
+    if preset == "aaai":
+        return list(AAAI_BASELINE_AGENTS)
+    return list(PRE_RELEASE_BASELINE_AGENTS)
+
+
+def _resolve_artifact_agent_preset(
+    preset: str | None,
+    agents: list[str] | None,
+) -> list[str]:
+    if agents:
+        return agents
+    if preset == "aaai":
+        return list(AAAI_BASELINE_AGENTS)
+    return ["scripted_chemistry"]
 
 
 def _tasks_list(args: argparse.Namespace) -> None:
@@ -486,14 +518,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run official baselines and write a task-based report.",
     )
     baselines_report_parser.add_argument(
+        "--preset",
+        choices=["pre_release", "aaai"],
+        default="pre_release",
+        help="Use a frozen task/agent preset unless --tasks or --agents override it.",
+    )
+    baselines_report_parser.add_argument(
         "--tasks",
         nargs="+",
-        default=list(PRE_RELEASE_TASK_IDS),
     )
     baselines_report_parser.add_argument(
         "--agents",
         nargs="+",
-        default=list(PRE_RELEASE_BASELINE_AGENTS),
     )
     baselines_report_parser.add_argument("--seeds", nargs="+", type=int)
     baselines_report_parser.add_argument("--output-dir", default="runs/baseline_report")
@@ -538,14 +574,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     artifact_create_parser.add_argument("--output-dir", default="artifact")
     artifact_create_parser.add_argument(
+        "--preset",
+        choices=["pre_release", "aaai"],
+        default="pre_release",
+        help="Use a frozen artifact preset unless --tasks or --agents override it.",
+    )
+    artifact_create_parser.add_argument(
         "--tasks",
         nargs="+",
-        default=list(PRE_RELEASE_TASK_IDS),
     )
     artifact_create_parser.add_argument(
         "--agents",
         nargs="+",
-        default=["scripted_chemistry"],
     )
     artifact_create_parser.add_argument("--seeds", nargs="+", type=int, default=[0])
     artifact_create_parser.set_defaults(func=_artifact_create)

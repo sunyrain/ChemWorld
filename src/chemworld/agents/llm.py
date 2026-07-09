@@ -188,6 +188,7 @@ class LLMReplayAgent(BaseAgent):
 
     def _default_records_for_task(self, task_info: dict[str, Any]) -> list[dict[str, Any]]:
         allowed_operations = set(task_info.get("allowed_operations", []))
+        allowed_instruments = set(task_info.get("allowed_instruments", []))
         records: list[dict[str, Any]] = [
             self._record(
                 {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
@@ -198,6 +199,32 @@ class LLMReplayAgent(BaseAgent):
                 "Add a conservative reactant amount before choosing energy input.",
             ),
         ]
+        if "ph_meter" in allowed_instruments:
+            records.extend(
+                [
+                    self._record(
+                        {"operation": "measure", "instrument": "ph_meter"},
+                        "Measure pH early to characterize acid/base behavior.",
+                    ),
+                    self._record(
+                        {"operation": "add_reagent", "amount_mol": 0.004},
+                        "Perturb concentration to test the equilibrium response.",
+                    ),
+                    self._record(
+                        {"operation": "measure", "instrument": "ph_meter"},
+                        "Compare the second pH observation against the first.",
+                    ),
+                    self._record(
+                        {"operation": "terminate"},
+                        "Terminate before leaderboard-grade final assay.",
+                    ),
+                    self._record(
+                        {"operation": "measure", "instrument": "final_assay"},
+                        "Use final assay to score equilibrium characterization.",
+                    ),
+                ]
+            )
+            return records
         if "add_catalyst" in allowed_operations:
             records.append(
                 self._record(
@@ -327,6 +354,56 @@ class LLMReplayAgent(BaseAgent):
         }
 
 
+class CodexSubagentReplayAgent(LLMReplayAgent):
+    """Replay a trace produced by a Codex sub-agent planner."""
+
+    name = "codex_subagent_replay"
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update(
+            {
+                "agent_family": "codex_subagent",
+                "requires_online_model": False,
+                "online_counterpart": "codex_subagent_online",
+                "trace_format": "chemworld-codex-subagent-trace-0.1",
+            }
+        )
+        return manifest
+
+
+class CodexSubagentOnlineAgent(BaseAgent):
+    """Protocol placeholder for live Codex sub-agent experiments.
+
+    Repository code cannot spawn the conversation-level Codex sub-agent tool by
+    itself. Live runs are orchestrated by the evaluator, written as JSONL traces,
+    and then replayed by :class:`CodexSubagentReplayAgent`.
+    """
+
+    name = "codex_subagent_online"
+
+    def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
+        del history
+        raise RuntimeError(
+            "codex_subagent_online requires an external evaluator harness. "
+            "Run live Codex planning from the host session and replay the saved "
+            "trace with codex_subagent_replay."
+        )
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update(
+            {
+                "agent_family": "codex_subagent",
+                "requires_online_model": True,
+                "execution_policy": "external_codex_subagent_orchestrator",
+                "replay_agent": "codex_subagent_replay",
+                "trace_format": "chemworld-codex-subagent-trace-0.1",
+            }
+        )
+        return manifest
+
+
 class ToolUsingLLMStubAgent(BaseAgent):
     """Deterministic tool-using LLM stub for offline benchmark plumbing."""
 
@@ -389,6 +466,17 @@ class ToolUsingLLMStubAgent(BaseAgent):
 
     def _plan_for_task(self, task_info: dict[str, Any]) -> list[dict[str, Any]]:
         allowed_operations = set(task_info.get("allowed_operations", []))
+        allowed_instruments = set(task_info.get("allowed_instruments", []))
+        if "ph_meter" in allowed_instruments:
+            return [
+                {"operation": "add_solvent", "volume_L": 0.030, "solvent": 0},
+                {"operation": "add_reagent", "amount_mol": 0.006},
+                {"operation": "measure", "instrument": "ph_meter"},
+                {"operation": "add_reagent", "amount_mol": 0.004},
+                {"operation": "measure", "instrument": "ph_meter"},
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
         if "run_flow" in allowed_operations:
             return [
                 {"operation": "add_solvent", "volume_L": 0.026, "solvent": 2},

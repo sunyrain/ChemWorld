@@ -258,6 +258,54 @@ def uvvis_spectrum(
     }
 
 
+def ph_meter_signal(
+    values: dict[str, float | None],
+    *,
+    seed: int = 0,
+    replicate_count: int = 1,
+) -> dict[str, Any]:
+    """Return a compact public pH-meter packet.
+
+    The scalar Gym key is normalized to [0, 1], while this raw packet exposes
+    the chemically meaningful pH and electrode response as an instrument
+    observation. It does not expose hidden equilibrium constants or species
+    amounts.
+    """
+
+    rng = np.random.default_rng(seed)
+    normalized = _observed(values, "pH_normalized")
+    pH = float(np.clip(14.0 * normalized, 0.0, 14.0))
+    pH_replicates = [
+        round(float(np.clip(pH + rng.normal(0.0, 0.02), 0.0, 14.0)), 3)
+        for _ in range(max(int(replicate_count), 1))
+    ]
+    electrode_mV = -59.16 * (pH - 7.0)
+    return {
+        "kind": "ph_meter_signal",
+        "instrument_id": "ph_meter",
+        "signal_type": "potentiometric_ph",
+        "pH": round(pH, 3),
+        "hydrogen_mol_L": round(10.0 ** (-pH), 12),
+        "electrode_mV": round(electrode_mV, 3),
+        "replicate_pH": pH_replicates,
+        "processed_estimates": {
+            "pH_normalized": round(normalized, 6),
+            "acid_dissociation_fraction": round(
+                _observed(values, "acid_dissociation_fraction"),
+                6,
+            ),
+            "precipitation_signal": round(_observed(values, "precipitation_signal"), 6),
+            "equilibrium_residual": round(_observed(values, "equilibrium_residual"), 6),
+            "equilibrium_confidence": round(_observed(values, "equilibrium_confidence"), 6),
+        },
+        "uncertainty": {
+            "pH_std": 0.02,
+            "normalized_pH_std": round(0.02 / 14.0, 6),
+        },
+        "visibility": "public_processed_observation",
+    }
+
+
 def ir_spectrum(
     values: dict[str, float | None],
     *,
@@ -368,7 +416,15 @@ def final_assay_spectra(
     return {
         "kind": "final_assay_packet",
         "quality": "leaderboard_grade",
-        "channels": ["hplc", "gc", "uvvis", "ir", "nmr", "calibrated_mass_balance"],
+        "channels": [
+            "hplc",
+            "gc",
+            "uvvis",
+            "ph_meter",
+            "ir",
+            "nmr",
+            "calibrated_mass_balance",
+        ],
         "spectra": {
             "hplc": hplc_chromatogram(
                 values,
@@ -389,6 +445,11 @@ def final_assay_spectra(
                 species_amounts_mol=species_amounts_mol,
                 volume_L=volume_L,
                 seed=seed + 2,
+                replicate_count=replicate_count,
+            ),
+            "ph_meter": ph_meter_signal(
+                values,
+                seed=seed + 5,
                 replicate_count=replicate_count,
             ),
             "ir": ir_spectrum(
@@ -426,6 +487,21 @@ def raw_signal_schema(instrument_id: str) -> dict[str, Any]:
     elif instrument_id == "uvvis":
         axis = "wavelength_nm"
         signal = "absorbance"
+    elif instrument_id == "ph_meter":
+        return {
+            "type": "object",
+            "required": ["kind", "pH", "electrode_mV", "processed_estimates"],
+            "properties": {
+                "kind": {"const": "ph_meter_signal"},
+                "pH": {"type": "number", "minimum": 0.0, "maximum": 14.0},
+                "hydrogen_mol_L": {"type": "number", "minimum": 0.0},
+                "electrode_mV": {"type": "number"},
+                "replicate_pH": {"type": "array", "items": {"type": "number"}},
+                "processed_estimates": {"type": "object"},
+                "uncertainty": {"type": "object"},
+            },
+            "additionalProperties": True,
+        }
     elif instrument_id == "final_assay":
         return {
             "type": "object",
@@ -467,6 +543,7 @@ __all__ = [
     "hplc_chromatogram",
     "ir_spectrum",
     "nmr_spectrum",
+    "ph_meter_signal",
     "raw_signal_schema",
     "uvvis_spectrum",
 ]

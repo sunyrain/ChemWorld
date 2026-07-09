@@ -12,9 +12,10 @@ from typing import Any
 from chemworld import __version__
 from chemworld.data.submission import git_commit
 from chemworld.eval.leaderboard import aggregate_leaderboard
+from chemworld.eval.provenance import build_solver_provenance_manifest
 from chemworld.eval.seed_suite import task_seed_plan
 from chemworld.eval.suite import run_suite
-from chemworld.tasks import PRE_RELEASE_TASK_IDS, get_task
+from chemworld.tasks import AAAI_TASK_IDS, PRE_RELEASE_TASK_IDS, get_task
 
 DEFAULT_BASELINE_AGENTS = (
     "random",
@@ -32,6 +33,15 @@ PRE_RELEASE_BASELINE_AGENTS = (
     "tool_using_llm_stub",
     "llm_replay",
 )
+AAAI_BASELINE_AGENTS = (
+    "random",
+    "lhs",
+    "scripted_chemistry",
+    "gp_bo",
+    "safe_gp_bo",
+    "tool_using_llm_stub",
+    "codex_subagent_replay",
+)
 
 
 @dataclass(frozen=True)
@@ -48,6 +58,7 @@ class BaselineReport:
     result_count: int
     task_maturity: dict[str, dict[str, Any]]
     maturity_summary: dict[str, Any]
+    solver_provenance: dict[str, Any]
     summary_rows: list[dict[str, Any]]
     leaderboard_rows: list[dict[str, Any]]
 
@@ -65,6 +76,7 @@ class BaselineReport:
             "result_count": self.result_count,
             "task_maturity": self.task_maturity,
             "maturity_summary": self.maturity_summary,
+            "solver_provenance": self.solver_provenance,
             "summary_rows": self.summary_rows,
             "leaderboard_rows": self.leaderboard_rows,
         }
@@ -142,6 +154,17 @@ def generate_baseline_report(
         result_count=len(all_results),
         task_maturity=task_maturity,
         maturity_summary=maturity_summary,
+        solver_provenance=build_solver_provenance_manifest(
+            task_ids=list(task_ids),
+            agents=list(resolved_agents),
+            seeds=sorted(
+                {
+                    int(seed)
+                    for task_seeds in resolved_task_seed_plan.values()
+                    for seed in task_seeds
+                }
+            ),
+        ),
         summary_rows=summary_rows,
         leaderboard_rows=leaderboard_rows,
     )
@@ -162,6 +185,22 @@ def generate_pre_release_baseline_report(
     return generate_baseline_report(
         task_ids=list(PRE_RELEASE_TASK_IDS),
         agents=agents or list(PRE_RELEASE_BASELINE_AGENTS),
+        seeds=seeds,
+        output_dir=output_dir,
+    )
+
+
+def generate_aaai_baseline_report(
+    *,
+    agents: list[str] | None = None,
+    seeds: list[int] | None = None,
+    output_dir: str | Path,
+) -> BaselineReport:
+    """Generate the AAAI 6-task baseline table."""
+
+    return generate_baseline_report(
+        task_ids=list(AAAI_TASK_IDS),
+        agents=agents or list(AAAI_BASELINE_AGENTS),
         seeds=seeds,
         output_dir=output_dir,
     )
@@ -196,6 +235,11 @@ def summarize_baseline_results(results: list[dict[str, Any]]) -> list[dict[str, 
         "bo_initial_recipe_count": "bo_initial_recipe_count",
         "bo_acquisition_recipe_count": "bo_acquisition_recipe_count",
         "bo_entered_acquisition": "bo_entered_acquisition",
+        "pH_normalized": "mean_pH_normalized",
+        "acid_dissociation_fraction": "mean_acid_dissociation_fraction",
+        "precipitation_signal": "mean_precipitation_signal",
+        "equilibrium_residual": "mean_equilibrium_residual",
+        "equilibrium_confidence": "mean_equilibrium_confidence",
     }
     for (task_id, agent_name), items in sorted(groups.items()):
         row: dict[str, Any] = {
@@ -325,9 +369,11 @@ def maturity_summary_for_results(results: list[dict[str, Any]]) -> dict[str, Any
 
 
 __all__ = [
+    "AAAI_BASELINE_AGENTS",
     "DEFAULT_BASELINE_AGENTS",
     "PRE_RELEASE_BASELINE_AGENTS",
     "BaselineReport",
+    "generate_aaai_baseline_report",
     "generate_baseline_report",
     "generate_pre_release_baseline_report",
     "maturity_summary_for_results",

@@ -11,6 +11,8 @@ import gymnasium as gym
 import chemworld  # noqa: F401
 from chemworld.agent_interface import agent_view_bundle
 from chemworld.agents import (
+    CodexSubagentOnlineAgent,
+    CodexSubagentReplayAgent,
     GaussianProcessBOAgent,
     GreedyLocalAgent,
     LatinHypercubeAgent,
@@ -40,6 +42,8 @@ AGENT_REGISTRY: dict[str, Callable[[], Agent]] = {
     "heuristic": ScriptedChemistryAgent,
     "tool_using_llm_stub": ToolUsingLLMStubAgent,
     "llm_replay": LLMReplayAgent,
+    "codex_subagent_replay": CodexSubagentReplayAgent,
+    "codex_subagent_online": CodexSubagentOnlineAgent,
 }
 
 

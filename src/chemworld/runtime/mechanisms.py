@@ -33,6 +33,7 @@ SCENARIO_MECHANISM_DEFAULTS = {
     "reaction-to-distillation": "reactive_distillation_lite",
     "flow-reaction-optimization": "pfr_hotspot",
     "electrochemical-conversion": "electrochemical_conversion",
+    "equilibrium-characterization": "simple_batch_reaction",
     "partition-discovery": "reaction_extraction",
     "purity-yield-tradeoff": "reaction_extraction",
     "generalization": "parallel_series_reaction",

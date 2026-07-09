@@ -197,6 +197,13 @@ SCENARIO_FAMILIES: dict[str, ScenarioFamilySpec] = {
         module_tags=("reaction", "electrochemistry", "observation"),
         split_policy="same shared law; electrochemical selectivity varies by hidden seed",
     ),
+    "equilibrium_characterization": ScenarioFamilySpec(
+        family_id="equilibrium_characterization",
+        world_law_id=WORLD_LAW_ID,
+        description="Bounded aqueous-equilibrium characterization with public pH observations.",
+        module_tags=("equilibrium_chemistry", "observation", "instrumentation"),
+        split_policy="same D4 equilibrium slice; hidden acidity profile varies by seed",
+    ),
 }
 
 
@@ -346,6 +353,23 @@ SCENARIO_REGISTRY: dict[str, ScenarioSpec] = {
             "potential controls selectivity",
             "current and time control conversion",
             "excess electrical input lowers energy efficiency and raises risk",
+        ),
+    ),
+    "equilibrium-characterization": ScenarioSpec(
+        scenario_id="equilibrium-characterization",
+        world_law_id=WORLD_LAW_ID,
+        family="equilibrium_characterization",
+        split="public-test",
+        difficulty="standard",
+        hidden_parameter_seed=71,
+        initial_state_seed=43,
+        initial_state_id="equilibrium-characterization:default",
+        parameter_profile="d4_equilibrium_characterization",
+        allowed_module_tags=("equilibrium_chemistry", "observation", "instrumentation"),
+        expected_qualitative_behavior=(
+            "pH-meter observations reveal acid/base strength without exposing hidden constants",
+            "precipitation signal appears only when public ion-product proxy crosses Ksp",
+            "final assay reports equilibrium residual and confidence for scoring",
         ),
     ),
     "partition-discovery": ScenarioSpec(

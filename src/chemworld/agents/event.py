@@ -20,6 +20,18 @@ class ScriptedChemistryAgent(BaseAgent):
         distillation_enabled = "distill" in allowed_operations
         flow_enabled = "run_flow" in allowed_operations
         electrochemistry_enabled = "electrolyze" in allowed_operations
+        allowed_instruments = set(self.task_info.get("allowed_instruments", []))
+        if "ph_meter" in allowed_instruments:
+            equilibrium_sequence: list[dict[str, Any]] = [
+                {"operation": "add_solvent", "volume_L": 0.030, "solvent": 0},
+                {"operation": "add_reagent", "amount_mol": 0.006},
+                {"operation": "measure", "instrument": "ph_meter"},
+                {"operation": "add_reagent", "amount_mol": 0.004},
+                {"operation": "measure", "instrument": "ph_meter"},
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
+            return self._sequence_action(equilibrium_sequence, step)
         if flow_enabled:
             flow_sequence: list[dict[str, Any]] = [
                 {"operation": "add_solvent", "volume_L": 0.026, "solvent": 2},

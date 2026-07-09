@@ -1,6 +1,7 @@
 site_name: ChemWorld-Bench 文档
-site_description: 面向闭环虚拟化学实验和 agent world model 研究的基准文档。
+site_description: 面向闭环虚拟化学实验与 agent world model 研究的 benchmark 文档。
 site_url: https://sunyrain.github.io/ChemWorld/
+
 theme:
   name: material
   language: zh
@@ -13,11 +14,13 @@ theme:
     - toc.follow
     - search.highlight
     - content.code.copy
+
 plugins:
   - search:
       lang:
         - zh
         - en
+
 extra:
   alternate:
     - name: 中文
@@ -26,13 +29,17 @@ extra:
     - name: English
       link: https://sunyrain.github.io/ChemWorld/en/
       lang: en
+
 extra_css:
   - assets/stylesheets/language-switch.css
+
 extra_javascript:
   - assets/javascripts/outline-toggle-v4.js
+
 nav:
   - 首页: index.md
-  - 预发布入口:
+  - English Home: en/index.md
+  - 项目状态:
       - 项目总览: chemworld_overview_zh.md
       - 当前进展: current_progress.md
       - 架构快照: architecture_report.md
@@ -41,6 +48,8 @@ nav:
       - API 参考: api_reference.md
   - Benchmark 合同:
       - 评测协议: benchmark_protocol.md
+      - AAAI 实验计划: aaai_experiment_plan.md
+      - AAAI 结果模板: aaai_results_template.md
       - 任务列表: tasks.md
       - 任务卡: task_cards.md
       - Official Seed Suite: seed_suite.md
@@ -78,7 +87,7 @@ nav:
       - Backend 后端: backends.md
       - World Model 学习: world_model_learning.md
   - 审计与状态:
-      - 环境自一致性审计: environment_self_consistency_audit_zh.md
+      - 环境自洽性审计: environment_self_consistency_audit_zh.md
       - 物化成熟度审计: physchem_maturity_audit.md
       - SOTA Agent 环境差距审计: sota_agent_environment_gap_audit.md
       - 代码审计: code_review_audit.md

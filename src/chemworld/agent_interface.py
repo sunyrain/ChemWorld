@@ -75,6 +75,7 @@ OPERATION_GROUPS: dict[str, tuple[str, ...]] = {
     "phase_setup": ("add_phase", "add_extractant"),
     "phase_partition": ("mix", "settle", "separate_phase"),
     "purification": ("transfer", "wash", "dry", "concentrate"),
+    "equilibrium_characterization": ("measure", "terminate"),
 }
 
 PRE_RELEASE_TASK_PROMPT_PROFILES: dict[str, dict[str, Any]] = {
@@ -177,6 +178,36 @@ PRE_RELEASE_TASK_PROMPT_PROFILES: dict[str, dict[str, Any]] = {
             "separating before settling",
             "overusing costly measurements",
             "confusing noisy instrument estimates with hidden truth",
+        ],
+    },
+    "equilibrium-characterization": {
+        "task_goal": (
+            "Characterize a bounded aqueous-equilibrium slice using pH-meter "
+            "and final-assay observations."
+        ),
+        "success_criteria": [
+            "Obtain informative pH-meter observations before final assay.",
+            "Maximize equilibrium_confidence while keeping equilibrium_residual low.",
+            "Use measurements efficiently under the finite campaign budget.",
+        ],
+        "constraints": [
+            "pH is public only through ph_meter or final_assay observations.",
+            "Hidden acidity constants and species amounts are never exposed.",
+            "Final assay still requires terminate.",
+        ],
+        "measurement_policy": (
+            "ph_meter is the low-cost primary characterization instrument. "
+            "final_assay provides leaderboard-grade equilibrium metrics."
+        ),
+        "recommended_strategy": [
+            "Charge solvent and a moderate reagent amount.",
+            "Measure pH, perturb concentration, then measure pH again.",
+            "Terminate and request final_assay after enough equilibrium evidence.",
+        ],
+        "failure_modes": [
+            "measuring before material exists",
+            "overusing final assay without intermediate evidence",
+            "treating pH-normalized Gym scalar as hidden pKa",
         ],
     },
 }
@@ -704,7 +735,9 @@ def spectra_summary(info: dict[str, Any]) -> dict[str, Any]:
     return {
         "instrument": info.get("instrument_source") or info.get("instrument"),
         "packet_kind": raw_signal_dict.get("kind"),
-        "has_spectral_packet": bool(peak_tables or spectra or channels),
+        "has_spectral_packet": bool(
+            peak_tables or spectra or channels or raw_signal_dict.get("kind") == "ph_meter_signal"
+        ),
         "channels": [str(channel) for channel in channels],
         "channel_count": len(channels),
         "peak_table_count": len(peak_tables),
@@ -846,6 +879,11 @@ def lab_report_view(env: Any, observation: dict[str, Any], info: dict[str, Any])
                     "purity",
                     "recovery",
                     "phase_ratio",
+                    "pH_normalized",
+                    "acid_dissociation_fraction",
+                    "precipitation_signal",
+                    "equilibrium_residual",
+                    "equilibrium_confidence",
                     "score",
                 ),
             )

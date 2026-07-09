@@ -32,6 +32,17 @@ PRE_RELEASE_TASK_IDS = (
     "reaction-to-purification",
     "partition-discovery",
 )
+AAAI_TASK_IDS = (
+    "reaction-optimization-standard",
+    "reaction-to-purification",
+    "partition-discovery",
+    "reaction-to-distillation",
+    "electrochemical-conversion",
+    "equilibrium-characterization",
+)
+STANDARD_INSTRUMENTS = tuple(
+    instrument for instrument in INSTRUMENTS if instrument != "ph_meter"
+)
 REACTION_ALLOWED = REACTION_OPERATIONS
 REACTION_SEPARATION_ALLOWED = (*REACTION_OPERATIONS, *SEPARATION_OPERATIONS)
 REACTION_CRYSTALLIZATION_ALLOWED = (*REACTION_OPERATIONS, *CRYSTALLIZATION_OPERATIONS)
@@ -277,7 +288,7 @@ def _task(
     difficulty: str = "standard",
     description: str,
     tags: tuple[str, ...],
-    instruments: tuple[str, ...] = INSTRUMENTS,
+    instruments: tuple[str, ...] = STANDARD_INSTRUMENTS,
     observation_policy: str = "partial-instrument-observation",
     termination_policy: str | None = None,
     kernel_maturity: TaskMaturitySpec | None = None,
@@ -428,6 +439,38 @@ def default_kernel_maturity(
     )
 
 
+def equilibrium_kernel_maturity() -> TaskMaturitySpec:
+    """Return the D4 maturity contract for the equilibrium characterization task."""
+
+    return TaskMaturitySpec(
+        modules=(
+            ModuleMaturity(
+                "equilibrium_chemistry",
+                MaturityLevel.REFERENCE_VALIDATED,
+                model_ids=(
+                    "aqueous_acid_base_ph_observation",
+                    "fixed_tp_ideal_gibbs_minimization",
+                ),
+                notes=(
+                    "D4 equilibrium slice: weak-acid charge balance, public pH-meter "
+                    "observation, sequential Ksp hooks, and Gibbs diagnostic metadata.",
+                ),
+            ),
+            ModuleMaturity(
+                "spectroscopy_instruments",
+                MaturityLevel.LITE,
+                model_ids=("ph_meter_public_signal", "chemworld_synthetic_instruments"),
+                notes=("pH-meter signal is instrument-facing and benchmark-calibrated.",),
+            ),
+        ),
+        proxy_allowed=False,
+        notes=(
+            "Equilibrium characterization is a bounded D4 task, not a general "
+            "aqueous speciation engine.",
+        ),
+    )
+
+
 TASK_REGISTRY: dict[str, TaskSpec] = {
     "reaction-optimization-standard": _task(
         "reaction-optimization-standard",
@@ -554,6 +597,30 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         description="Probe potential/current choices for a virtual electrochemical conversion.",
         tags=("reaction", "electrochemistry", "optimization", "year2"),
     ),
+    "equilibrium-characterization": _task(
+        "equilibrium-characterization",
+        scenario_id="equilibrium-characterization",
+        world_split="public-test",
+        budget=24,
+        seeds=(0, 1, 2),
+        threshold=0.62,
+        episode_mode="campaign",
+        allowed_operations=REACTION_ALLOWED,
+        instruments=("ph_meter", "uvvis", "final_assay"),
+        success_metrics=(
+            "pH_normalized",
+            "acid_dissociation_fraction",
+            "precipitation_signal",
+            "equilibrium_residual",
+            "equilibrium_confidence",
+        ),
+        description=(
+            "Characterize a bounded aqueous-equilibrium slice using public pH-meter "
+            "and final-assay observations."
+        ),
+        tags=("equilibrium", "characterization", "world-model-learning", "aaai"),
+        kernel_maturity=equilibrium_kernel_maturity(),
+    ),
     "partition-discovery": _task(
         "partition-discovery",
         scenario_id="partition-discovery",
@@ -640,6 +707,14 @@ def list_pre_release_tasks() -> list[TaskSpec]:
 
 def list_pre_release_task_cards() -> list[dict[str, Any]]:
     return [task.to_card() for task in list_pre_release_tasks()]
+
+
+def list_aaai_tasks() -> list[TaskSpec]:
+    return [get_task(task_id) for task_id in AAAI_TASK_IDS]
+
+
+def list_aaai_task_cards() -> list[dict[str, Any]]:
+    return [task.to_card() for task in list_aaai_tasks()]
 
 
 def task_maturity_manifest(task_ids: tuple[str, ...] | None = None) -> dict[str, Any]:

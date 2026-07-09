@@ -6,10 +6,11 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from chemworld.tasks import PRE_RELEASE_TASK_IDS, get_task
+from chemworld.tasks import AAAI_TASK_IDS, PRE_RELEASE_TASK_IDS, get_task
 
 SEED_SUITE_SCHEMA_VERSION = "chemworld-seed-suite-0.1"
 PRE_RELEASE_SEED_SUITE_ID = "chemworld-pre-release-core-0.1"
+AAAI_SEED_SUITE_ID = "chemworld-aaai-2027-0.1"
 PRIVATE_EVAL_SALT_ENV = "CHEMWORLD_PRIVATE_EVAL_SALT"
 
 
@@ -123,6 +124,12 @@ def official_seed_suite(
     }
 
 
+def aaai_seed_suite() -> dict[str, Any]:
+    """Return the frozen AAAI 6-task public seed suite."""
+
+    return official_seed_suite(AAAI_TASK_IDS, suite_id=AAAI_SEED_SUITE_ID)
+
+
 def official_seeds_for_task(task_id: str) -> list[int]:
     return list(seed_entry_for_task(task_id).runnable_seeds)
 
@@ -139,10 +146,12 @@ def task_seed_plan(
 
 
 __all__ = [
+    "AAAI_SEED_SUITE_ID",
     "PRE_RELEASE_SEED_SUITE_ID",
     "PRIVATE_EVAL_SALT_ENV",
     "SEED_SUITE_SCHEMA_VERSION",
     "SeedSuiteEntry",
+    "aaai_seed_suite",
     "official_seed_entries",
     "official_seed_suite",
     "official_seeds_for_task",

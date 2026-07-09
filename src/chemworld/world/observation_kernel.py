@@ -5,11 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from chemworld.world.operations import DOWNSTREAM_OBSERVATION_KEYS
+from chemworld.world.operations import DOWNSTREAM_OBSERVATION_KEYS, EQUILIBRIUM_OBSERVATION_KEYS
 from chemworld.world.spectra import (
     final_assay_spectra,
     gc_chromatogram,
     hplc_chromatogram,
+    ph_meter_signal,
     uvvis_spectrum,
 )
 
@@ -25,6 +26,7 @@ def processed_estimate(
         "byproduct_signal",
         "degradation_warning",
         *DOWNSTREAM_OBSERVATION_KEYS,
+        *EQUILIBRIUM_OBSERVATION_KEYS,
     )
     return {key: values.get(key) for key in estimate_keys if observed_mask.get(key, False)}
 
@@ -43,6 +45,12 @@ def raw_signal(
             values,
             species_amounts_mol=species_amounts_mol,
             volume_L=volume_L,
+            seed=seed,
+            replicate_count=replicate_count,
+        )
+    if instrument_id == "ph_meter":
+        return ph_meter_signal(
+            values,
             seed=seed,
             replicate_count=replicate_count,
         )
@@ -82,6 +90,7 @@ def observation_units() -> dict[str, str]:
         "degradation_warning": "dimensionless",
         "virtual_spectrum_summary": "dimensionless",
         **dict.fromkeys(DOWNSTREAM_OBSERVATION_KEYS, "dimensionless"),
+        **dict.fromkeys(EQUILIBRIUM_OBSERVATION_KEYS, "dimensionless"),
         "cost": "currency",
         "safety_risk": "risk",
         "score": "dimensionless",
@@ -131,6 +140,7 @@ class ObservationModuleSpec:
             "layers": list(self.layers),
             "partial_observation": True,
             "downstream_keys": list(DOWNSTREAM_OBSERVATION_KEYS),
+            "equilibrium_keys": list(EQUILIBRIUM_OBSERVATION_KEYS),
         }
 
 

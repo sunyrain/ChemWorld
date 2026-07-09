@@ -91,6 +91,16 @@ ELECTROCHEMISTRY_FINAL = (
     {"operation": "measure", "instrument": "final_assay"},
 )
 
+EQUILIBRIUM_FINAL = (
+    {"operation": "add_solvent", "volume_L": 0.030, "solvent": 0},
+    {"operation": "add_reagent", "amount_mol": 0.006},
+    {"operation": "measure", "instrument": "ph_meter"},
+    {"operation": "add_reagent", "amount_mol": 0.004},
+    {"operation": "measure", "instrument": "ph_meter"},
+    {"operation": "terminate"},
+    {"operation": "measure", "instrument": "final_assay"},
+)
+
 PARTITION_FINAL = (
     {"operation": "add_solvent", "volume_L": 0.025, "solvent": 1},
     {"operation": "add_reagent", "amount_mol": 0.008},
@@ -108,6 +118,11 @@ GOLDEN: dict[str, dict[str, Any]] = {
         "mechanism_id": "electrochemical_conversion",
         "steps": 6,
         "score": 0.5532872810141272,
+    },
+    "equilibrium-characterization": {
+        "mechanism_id": "simple_batch_reaction",
+        "steps": 7,
+        "score": 0.38636008640520014,
     },
     "flow-reaction-optimization": {
         "mechanism_id": "pfr_hotspot",
@@ -192,6 +207,8 @@ def _scripted_final_actions(task_id: str) -> tuple[dict[str, Any], ...]:
         return FLOW_FINAL
     if task_id == "electrochemical-conversion":
         return ELECTROCHEMISTRY_FINAL
+    if task_id == "equilibrium-characterization":
+        return EQUILIBRIUM_FINAL
     if task_id == "partition-discovery":
         return PARTITION_FINAL
     return REACTION_FINAL

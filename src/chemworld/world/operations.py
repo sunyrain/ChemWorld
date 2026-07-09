@@ -67,7 +67,7 @@ OPERATION_TYPES = (
     "terminate",
     "measure",
 )
-INSTRUMENTS = ("hplc", "gc", "uvvis", "final_assay")
+INSTRUMENTS = ("hplc", "gc", "uvvis", "ph_meter", "final_assay")
 DOWNSTREAM_OBSERVATION_KEYS = (
     "purity",
     "recovery",
@@ -85,6 +85,13 @@ DOWNSTREAM_OBSERVATION_KEYS = (
     "flow_conversion",
     "electrochemical_selectivity",
     "energy_efficiency",
+)
+EQUILIBRIUM_OBSERVATION_KEYS = (
+    "pH_normalized",
+    "acid_dissociation_fraction",
+    "precipitation_signal",
+    "equilibrium_residual",
+    "equilibrium_confidence",
 )
 
 
@@ -289,6 +296,7 @@ __all__ = [
     "DOMAIN_OPERATIONS",
     "DOWNSTREAM_OBSERVATION_KEYS",
     "ELECTROCHEMISTRY_OPERATIONS",
+    "EQUILIBRIUM_OBSERVATION_KEYS",
     "FLOW_OPERATIONS",
     "INSTRUMENTS",
     "MACRO_OPERATIONS",

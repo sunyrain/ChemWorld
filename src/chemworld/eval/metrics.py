@@ -41,6 +41,11 @@ class EvaluationResult:
     mean_flow_conversion: float
     mean_electrochemical_selectivity: float
     mean_energy_efficiency: float
+    mean_pH_normalized: float
+    mean_acid_dissociation_fraction: float
+    mean_precipitation_signal: float
+    mean_equilibrium_residual: float
+    mean_equilibrium_confidence: float
     phase_mass_balance_violations: int
     process_mass_balance_violation_count: int
     instrument_policy_violation_count: int
@@ -165,6 +170,31 @@ def evaluate_records(
         for obs in observations
         if obs.get("energy_efficiency") is not None
     ]
+    ph_normalized_values = [
+        _obs_float(obs, "pH_normalized")
+        for obs in observations
+        if obs.get("pH_normalized") is not None
+    ]
+    acid_dissociation_values = [
+        _obs_float(obs, "acid_dissociation_fraction")
+        for obs in observations
+        if obs.get("acid_dissociation_fraction") is not None
+    ]
+    precipitation_values = [
+        _obs_float(obs, "precipitation_signal")
+        for obs in observations
+        if obs.get("precipitation_signal") is not None
+    ]
+    equilibrium_residuals = [
+        _obs_float(obs, "equilibrium_residual")
+        for obs in observations
+        if obs.get("equilibrium_residual") is not None
+    ]
+    equilibrium_confidences = [
+        _obs_float(obs, "equilibrium_confidence")
+        for obs in observations
+        if obs.get("equilibrium_confidence") is not None
+    ]
     mass_balance_errors = [
         _obs_float(obs, "process_mass_balance_error")
         for obs in observations
@@ -198,6 +228,19 @@ def evaluate_records(
         float(fmean(electrochemical_selectivities)) if electrochemical_selectivities else 0.0
     )
     mean_energy_efficiency = float(fmean(energy_efficiencies)) if energy_efficiencies else 0.0
+    mean_pH_normalized = float(fmean(ph_normalized_values)) if ph_normalized_values else 0.0
+    mean_acid_dissociation_fraction = (
+        float(fmean(acid_dissociation_values)) if acid_dissociation_values else 0.0
+    )
+    mean_precipitation_signal = (
+        float(fmean(precipitation_values)) if precipitation_values else 0.0
+    )
+    mean_equilibrium_residual = (
+        float(fmean(equilibrium_residuals)) if equilibrium_residuals else 0.0
+    )
+    mean_equilibrium_confidence = (
+        float(fmean(equilibrium_confidences)) if equilibrium_confidences else 0.0
+    )
     mean_mass_balance_error = float(fmean(mass_balance_errors)) if mass_balance_errors else 0.0
     purification_score = float(
         np.clip(
@@ -303,6 +346,11 @@ def evaluate_records(
         mean_flow_conversion=mean_flow_conversion,
         mean_electrochemical_selectivity=mean_electrochemical_selectivity,
         mean_energy_efficiency=mean_energy_efficiency,
+        mean_pH_normalized=mean_pH_normalized,
+        mean_acid_dissociation_fraction=mean_acid_dissociation_fraction,
+        mean_precipitation_signal=mean_precipitation_signal,
+        mean_equilibrium_residual=mean_equilibrium_residual,
+        mean_equilibrium_confidence=mean_equilibrium_confidence,
         phase_mass_balance_violations=int(np.sum(phase_mass_balance_failures)),
         process_mass_balance_violation_count=process_mass_balance_violation_count,
         instrument_policy_violation_count=int(np.sum(instrument_policy_violations)),
