@@ -10,7 +10,10 @@ from chemworld.physchem import (
     GibbsMinimizationSpec,
     GibbsSpeciesSpec,
     SolubilityProductSpec,
+    apply_precipitation_hooks,
+    aqueous_ph_observation,
     balance_charge_by_adjusting_ion,
+    diagnose_gibbs_minimization,
     equilibrium_chemistry_model_cards,
     equilibrium_constant_vant_hoff,
     ionic_strength,
@@ -127,6 +130,43 @@ def test_gibbs_minimization_matches_analytical_ideal_isomerization() -> None:
     assert abs(result.charge_balance_residual_eq) < 1e-8
     assert result.phase_amounts_mol["liquid"] == pytest.approx(1.0)
     assert result.to_dict()["metadata"]["solver"] == "scipy_slsqp_gibbs_minimization"
+    assert result.diagnostic is not None
+    assert result.diagnostic.status == "ok"
+    assert result.diagnostic.max_element_residual_mol < 1e-8
+    assert result.diagnostic.stationarity_residual_J_mol < 1e-4
+    assert result.to_dict()["metadata"]["diagnostic"]["status"] == "ok"
+
+    recomputed = diagnose_gibbs_minimization(spec, result)
+    assert recomputed.to_dict() == result.diagnostic.to_dict()
+
+
+def test_gibbs_minimization_handles_stoichiometric_compound_formation() -> None:
+    spec = GibbsMinimizationSpec(
+        system_id="water_formation",
+        species=(
+            GibbsSpeciesSpec("H2", "gas", {"H": 2.0}, standard_gibbs_J_mol=0.0),
+            GibbsSpeciesSpec("O2", "gas", {"O": 2.0}, standard_gibbs_J_mol=0.0),
+            GibbsSpeciesSpec(
+                "H2O",
+                "gas",
+                {"H": 2.0, "O": 1.0},
+                standard_gibbs_J_mol=-120_000.0,
+            ),
+        ),
+        temperature_K=298.15,
+    )
+
+    result = solve_gibbs_minimization(spec, {"H2": 1.0, "O2": 0.5, "H2O": 0.0})
+
+    assert result.converged
+    assert result.final_amounts_mol["H2O"] > 0.999
+    assert result.final_amounts_mol["H2"] < 1e-3
+    assert result.final_amounts_mol["O2"] < 1e-3
+    assert result.diagnostic is not None
+    assert result.diagnostic.status == "ok"
+    assert result.diagnostic.constraint_matrix_rank == 2
+    assert result.diagnostic.degrees_of_freedom == 1
+    assert result.diagnostic.max_element_residual_mol < 1e-8
 
 
 def test_gibbs_minimization_enforces_phase_restrictions_and_charge() -> None:
@@ -169,6 +209,12 @@ def test_gibbs_minimization_enforces_phase_restrictions_and_charge() -> None:
     assert abs(precipitated.element_balance_residuals_mol["Na"]) < 1e-8
     assert abs(precipitated.element_balance_residuals_mol["Cl"]) < 1e-8
     assert abs(precipitated.charge_balance_residual_eq) < 1e-8
+    assert precipitated.diagnostic is not None
+    assert precipitated.diagnostic.status in {"ok", "warning"}
+    assert precipitated.diagnostic.convexity_class == (
+        "convex_with_linear_pure_condensed_phase_terms"
+    )
+    assert "NaCl(s)" in precipitated.diagnostic.active_species_ids
 
 
 def test_vant_hoff_temperature_dependence_has_correct_direction() -> None:
@@ -225,6 +271,13 @@ def test_monoprotic_acid_base_solves_ph_and_charge_balance() -> None:
     assert result.ionic_strength_mol_kg > 0.0
     assert result.to_dict()["pH"] == pytest.approx(result.pH)
 
+    observation = aqueous_ph_observation(result, noise_std_pH=0.0, seed=7)
+    payload = observation.to_dict()
+    assert payload["raw_signal"]["signal_type"] == "potentiometric_ph"
+    assert payload["processed_estimate"]["pH"] == pytest.approx(result.pH, abs=0.01)
+    assert payload["observed_mask"]["species_amounts_mol"] is False
+    assert "species_amounts_mol" not in payload["processed_estimate"]
+
 
 def test_water_ion_product_changes_with_temperature() -> None:
     cold = water_ion_product(273.15)
@@ -258,6 +311,28 @@ def test_precipitation_removes_ions_only_after_saturation() -> None:
     assert supersaturated.final_amounts_mol["Cl-"] == pytest.approx(1e-5, rel=1e-4)
     assert supersaturated.ion_product == pytest.approx(spec.ksp, rel=1e-6)
     assert supersaturated.material_balance_error_mol < 1e-12
+
+
+def test_precipitation_hooks_apply_multiple_solubility_specs() -> None:
+    hooks = apply_precipitation_hooks(
+        {"Ag+": 1e-3, "Cl-": 1e-3, "Ba2+": 2e-3, "SO4--": 2e-3},
+        (
+            SolubilityProductSpec("AgCl(s)", "Ag+", "Cl-", ksp=1e-10),
+            SolubilityProductSpec("BaSO4(s)", "Ba2+", "SO4--", ksp=1e-10),
+        ),
+        volume_L=1.0,
+    )
+
+    assert hooks.metadata["status"] == "converged"
+    assert hooks.total_precipitated_mol > 2e-3
+    assert hooks.material_balance_error_mol < 1e-12
+    assert {event["precipitate_id"] for event in hooks.precipitation_events} == {
+        "AgCl(s)",
+        "BaSO4(s)",
+    }
+    assert hooks.final_amounts_mol["AgCl(s)"] > 9e-4
+    assert hooks.final_amounts_mol["BaSO4(s)"] > 1.9e-3
+    assert hooks.to_dict()["precipitation_events"]
 
 
 def test_charge_balance_adjusts_selected_ion_to_electroneutrality() -> None:
@@ -299,6 +374,7 @@ def test_solid_solubility_mole_fraction_increases_with_temperature() -> None:
 
 
 def test_equilibrium_chemistry_model_cards_include_gibbs_minimization() -> None:
+    assert all(validate_model_card(item) == [] for item in equilibrium_chemistry_model_cards())
     card = next(
         item
         for item in equilibrium_chemistry_model_cards()
@@ -306,8 +382,11 @@ def test_equilibrium_chemistry_model_cards_include_gibbs_minimization() -> None:
     )
 
     assert card.maturity.value == "reference_validated"
-    assert validate_model_card(card) == []
     assert any("element constraints" in equation for equation in card.equations)
+    assert any(
+        item.model_id == "aqueous_acid_base_ph_observation"
+        for item in equilibrium_chemistry_model_cards()
+    )
 
 
 def test_equilibrium_chemistry_validation_fails_fast() -> None:

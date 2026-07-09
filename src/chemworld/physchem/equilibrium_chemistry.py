@@ -295,6 +295,7 @@ class GibbsMinimizationResult:
     active_phases: tuple[str, ...]
     converged: bool
     iterations: int
+    diagnostic: GibbsMinimizationDiagnostic | None = None
     metadata: dict[str, object] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -322,7 +323,56 @@ class GibbsMinimizationResult:
             "active_phases": list(self.active_phases),
             "converged": self.converged,
             "iterations": self.iterations,
+            "diagnostic": None if self.diagnostic is None else self.diagnostic.to_dict(),
             "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class GibbsMinimizationDiagnostic:
+    """Constraint and KKT-style diagnostic for the compact Gibbs solver."""
+
+    status: Literal["ok", "warning", "failed"]
+    max_element_residual_mol: float
+    charge_residual_eq: float
+    max_bound_violation_mol: float
+    stationarity_residual_J_mol: float
+    constraint_matrix_rank: int
+    allowed_species_count: int
+    degrees_of_freedom: int
+    active_species_ids: tuple[str, ...]
+    active_lower_bound_species_ids: tuple[str, ...]
+    active_upper_bound_species_ids: tuple[str, ...]
+    convexity_class: str
+    notes: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        _nonnegative(self.max_element_residual_mol, "max_element_residual_mol")
+        _finite(self.charge_residual_eq, "charge_residual_eq")
+        _nonnegative(self.max_bound_violation_mol, "max_bound_violation_mol")
+        _nonnegative(self.stationarity_residual_J_mol, "stationarity_residual_J_mol")
+        if self.constraint_matrix_rank < 0:
+            raise ValueError("constraint_matrix_rank cannot be negative")
+        if self.allowed_species_count < 0:
+            raise ValueError("allowed_species_count cannot be negative")
+        if self.degrees_of_freedom < 0:
+            raise ValueError("degrees_of_freedom cannot be negative")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "status": self.status,
+            "max_element_residual_mol": self.max_element_residual_mol,
+            "charge_residual_eq": self.charge_residual_eq,
+            "max_bound_violation_mol": self.max_bound_violation_mol,
+            "stationarity_residual_J_mol": self.stationarity_residual_J_mol,
+            "constraint_matrix_rank": self.constraint_matrix_rank,
+            "allowed_species_count": self.allowed_species_count,
+            "degrees_of_freedom": self.degrees_of_freedom,
+            "active_species_ids": list(self.active_species_ids),
+            "active_lower_bound_species_ids": list(self.active_lower_bound_species_ids),
+            "active_upper_bound_species_ids": list(self.active_upper_bound_species_ids),
+            "convexity_class": self.convexity_class,
+            "notes": list(self.notes),
         }
 
 
@@ -361,6 +411,36 @@ class AcidBaseResult:
             "acid_dissociation_fraction": self.acid_dissociation_fraction,
             "charge_balance_error_eq": self.charge_balance_error_eq,
             "ionic_strength_mol_kg": self.ionic_strength_mol_kg,
+            "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class PHObservationResult:
+    """Public pH-meter style observation for an aqueous acid/base state."""
+
+    raw_signal: dict[str, object]
+    processed_estimate: dict[str, float]
+    uncertainty: dict[str, float]
+    observed_mask: dict[str, bool]
+    metadata: dict[str, object] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if not self.raw_signal:
+            raise ValueError("raw_signal cannot be empty")
+        if not self.processed_estimate:
+            raise ValueError("processed_estimate cannot be empty")
+        for key, value in self.processed_estimate.items():
+            _finite(float(value), f"processed_estimate[{key}]")
+        for key, value in self.uncertainty.items():
+            _nonnegative(float(value), f"uncertainty[{key}]")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "raw_signal": dict(self.raw_signal),
+            "processed_estimate": dict(self.processed_estimate),
+            "uncertainty": dict(self.uncertainty),
+            "observed_mask": dict(self.observed_mask),
             "metadata": dict(self.metadata),
         }
 
@@ -422,6 +502,31 @@ class PrecipitationResult:
             "precipitated_mol": self.precipitated_mol,
             "ion_product": self.ion_product,
             "saturation_index": self.saturation_index,
+            "material_balance_error_mol": self.material_balance_error_mol,
+            "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class PrecipitationHookResult:
+    """Sequential precipitation-hook result for compact aqueous scenarios."""
+
+    final_amounts_mol: dict[str, float]
+    precipitation_events: tuple[dict[str, object], ...]
+    total_precipitated_mol: float
+    material_balance_error_mol: float
+    metadata: dict[str, object] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        _validate_amounts(self.final_amounts_mol, "final_amounts_mol")
+        _nonnegative(self.total_precipitated_mol, "total_precipitated_mol")
+        _nonnegative(self.material_balance_error_mol, "material_balance_error_mol")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "final_amounts_mol": dict(self.final_amounts_mol),
+            "precipitation_events": [dict(event) for event in self.precipitation_events],
+            "total_precipitated_mol": self.total_precipitated_mol,
             "material_balance_error_mol": self.material_balance_error_mol,
             "metadata": dict(self.metadata),
         }
@@ -668,6 +773,17 @@ def solve_gibbs_minimization(
         and abs(charge_residual) <= max(1e-8, 100.0 * tolerance)
     )
     phase_amounts = _phase_amounts(species, final)
+    diagnostic = _gibbs_minimization_diagnostic(
+        spec=spec,
+        final_array=final_array,
+        final_amounts_mol=final,
+        target_elements=target_elements,
+        charge_target=charge_target,
+        allowed_phases=allowed_phases,
+        bounds=bounds,
+        constraint_rows=constraint_rows,
+        tolerance=tolerance,
+    )
     return GibbsMinimizationResult(
         system_id=spec.system_id,
         initial_amounts_mol=initial,
@@ -681,6 +797,7 @@ def solve_gibbs_minimization(
         ),
         converged=converged,
         iterations=int(getattr(solved, "nit", 0)),
+        diagnostic=diagnostic,
         metadata={
             "solver": "scipy_slsqp_gibbs_minimization",
             "message": str(solved.message),
@@ -691,7 +808,62 @@ def solve_gibbs_minimization(
             "target_element_amounts_mol": dict(target_elements),
             "target_charge_eq": charge_target,
             "objective_model": "ideal_phase_mixture_plus_standard_gibbs",
+            "diagnostic": diagnostic.to_dict(),
         },
+    )
+
+
+def diagnose_gibbs_minimization(
+    spec: GibbsMinimizationSpec,
+    result: GibbsMinimizationResult,
+    *,
+    tolerance: float = 1e-10,
+) -> GibbsMinimizationDiagnostic:
+    """Recompute the Gibbs-minimization diagnostic from a stored result."""
+
+    _positive(tolerance, "tolerance")
+    if spec.system_id != result.system_id:
+        raise ValueError("spec and result system_id values do not match")
+    species = tuple(spec.species)
+    allowed_phases_raw = result.metadata.get("allowed_phases")
+    if isinstance(allowed_phases_raw, (list, tuple, set)):
+        allowed_phases = {str(item) for item in allowed_phases_raw}
+    else:
+        allowed_phases = set(spec.allowed_phases or spec.phase_ids)
+    target_elements_raw = result.metadata.get("target_element_amounts_mol")
+    if isinstance(target_elements_raw, Mapping):
+        target_elements = _target_element_amounts(target_elements_raw)
+    else:
+        target_elements = _element_totals(species, result.initial_amounts_mol)
+    charge_target_raw = result.metadata.get("target_charge_eq", spec.target_charge_eq)
+    if charge_target_raw is None:
+        charge_target = _charge_total(species, result.initial_amounts_mol)
+    elif isinstance(charge_target_raw, int | float | str):
+        charge_target = float(charge_target_raw)
+    else:
+        charge_target = _charge_total(species, result.initial_amounts_mol)
+    _finite(charge_target, "target_charge_eq")
+    bounds = [
+        (0.0, _species_upper_bound(item, target_elements))
+        if item.phase in allowed_phases
+        else (0.0, 0.0)
+        for item in species
+    ]
+    constraint_rows = _independent_constraint_rows(species, target_elements, charge_target)
+    final_array = np.asarray(
+        [float(result.final_amounts_mol.get(item.species_id, 0.0)) for item in species],
+        dtype=float,
+    )
+    return _gibbs_minimization_diagnostic(
+        spec=spec,
+        final_array=final_array,
+        final_amounts_mol=result.final_amounts_mol,
+        target_elements=target_elements,
+        charge_target=charge_target,
+        allowed_phases=allowed_phases,
+        bounds=bounds,
+        constraint_rows=constraint_rows,
+        tolerance=tolerance,
     )
 
 
@@ -844,6 +1016,79 @@ def solve_monoprotic_acid_base(
     )
 
 
+def aqueous_ph_observation(
+    result: AcidBaseResult,
+    *,
+    instrument_id: str = "ph_meter",
+    noise_std_pH: float = 0.02,
+    calibration_offset_pH: float = 0.0,
+    resolution_pH: float = 0.01,
+    seed: int | None = None,
+) -> PHObservationResult:
+    """Generate a public pH-meter observation from an acid/base result.
+
+    The observation intentionally exposes processed pH and uncertainty, not
+    hidden species amounts. A Nernst-style millivolt signal is included as the
+    raw signal so agents can reason about instrument calibration.
+    """
+
+    if not instrument_id:
+        raise ValueError("instrument_id cannot be empty")
+    _nonnegative(noise_std_pH, "noise_std_pH")
+    _finite(calibration_offset_pH, "calibration_offset_pH")
+    _nonnegative(resolution_pH, "resolution_pH")
+    rng = np.random.default_rng(seed)
+    noise = float(rng.normal(0.0, noise_std_pH)) if noise_std_pH > 0.0 else 0.0
+    measured_pH = result.pH + calibration_offset_pH + noise
+    if resolution_pH > 0.0:
+        measured_pH = round(measured_pH / resolution_pH) * resolution_pH
+    measured_pH = max(0.0, min(14.0, measured_pH))
+    temperature_raw = result.metadata.get("temperature_K", 298.15)
+    temperature_K = (
+        float(temperature_raw)
+        if isinstance(temperature_raw, int | float | str)
+        else 298.15
+    )
+    nernst_slope_mV_pH = (
+        1000.0 * R_J_PER_MOL_K * temperature_K * log(10.0) / 96485.33212
+    )
+    electrode_mV = -nernst_slope_mV_pH * (measured_pH - 7.0)
+    hydrogen = 10.0 ** (-measured_pH)
+    return PHObservationResult(
+        raw_signal={
+            "instrument_id": instrument_id,
+            "signal_type": "potentiometric_ph",
+            "electrode_mV": electrode_mV,
+            "temperature_K": temperature_K,
+            "resolution_pH": resolution_pH,
+        },
+        processed_estimate={
+            "pH": measured_pH,
+            "hydrogen_mol_L": hydrogen,
+            "ionic_strength_mol_kg": result.ionic_strength_mol_kg,
+            "charge_balance_error_eq": result.charge_balance_error_eq,
+        },
+        uncertainty={
+            "pH_std": noise_std_pH,
+            "hydrogen_relative_std": log(10.0) * noise_std_pH,
+            "calibration_offset_pH": abs(calibration_offset_pH),
+        },
+        observed_mask={
+            "pH": True,
+            "hydrogen_mol_L": True,
+            "ionic_strength_mol_kg": True,
+            "charge_balance_error_eq": True,
+            "species_amounts_mol": False,
+            "pka": False,
+        },
+        metadata={
+            "source": "aqueous_ph_observation",
+            "visibility": "public_processed_observation",
+            "noise_model": "normal_pH_noise_then_resolution_rounding",
+        },
+    )
+
+
 def precipitate_if_supersaturated(
     amounts_mol: Mapping[str, float],
     spec: SolubilityProductSpec,
@@ -922,6 +1167,69 @@ def precipitate_if_supersaturated(
             "initial_ion_product": initial_product,
             "initial_saturation_index": initial_saturation_index,
             "spec": spec.to_dict(),
+        },
+    )
+
+
+def apply_precipitation_hooks(
+    amounts_mol: Mapping[str, float],
+    specs: tuple[SolubilityProductSpec, ...] | list[SolubilityProductSpec],
+    *,
+    volume_L: float,
+    max_passes: int = 3,
+) -> PrecipitationHookResult:
+    """Apply sequential solubility-product hooks to an aqueous amount ledger."""
+
+    amounts = _amounts(amounts_mol)
+    _positive(volume_L, "volume_L")
+    if max_passes <= 0:
+        raise ValueError("max_passes must be positive")
+    events: list[dict[str, object]] = []
+    total_precipitated = 0.0
+    balance_error = 0.0
+    specs_tuple = tuple(specs)
+    for pass_index in range(max_passes):
+        changed = False
+        for spec in specs_tuple:
+            result = precipitate_if_supersaturated(amounts, spec, volume_L=volume_L)
+            amounts = result.final_amounts_mol
+            balance_error += result.material_balance_error_mol
+            if result.precipitated_mol > 0.0:
+                changed = True
+                total_precipitated += result.precipitated_mol
+                events.append(
+                    {
+                        "pass_index": pass_index,
+                        "precipitate_id": spec.precipitate_id,
+                        "cation_id": spec.cation_id,
+                        "anion_id": spec.anion_id,
+                        "precipitated_mol": result.precipitated_mol,
+                        "ion_product": result.ion_product,
+                        "saturation_index": result.saturation_index,
+                        "status": result.metadata.get("status", "unknown"),
+                    }
+                )
+        if not changed:
+            return PrecipitationHookResult(
+                final_amounts_mol=amounts,
+                precipitation_events=tuple(events),
+                total_precipitated_mol=total_precipitated,
+                material_balance_error_mol=balance_error,
+                metadata={
+                    "status": "converged",
+                    "passes": pass_index + 1,
+                    "spec_count": len(specs_tuple),
+                },
+            )
+    return PrecipitationHookResult(
+        final_amounts_mol=amounts,
+        precipitation_events=tuple(events),
+        total_precipitated_mol=total_precipitated,
+        material_balance_error_mol=balance_error,
+        metadata={
+            "status": "max_passes_reached",
+            "passes": max_passes,
+            "spec_count": len(specs_tuple),
         },
     )
 
@@ -1128,6 +1436,177 @@ def _linear_constraint(row: np.ndarray, target_amount_mol: float) -> Callable[[n
         return float(np.dot(row, values) - target_amount_mol)
 
     return constraint
+
+
+def _gibbs_minimization_diagnostic(
+    *,
+    spec: GibbsMinimizationSpec,
+    final_array: np.ndarray,
+    final_amounts_mol: Mapping[str, float],
+    target_elements: Mapping[str, float],
+    charge_target: float,
+    allowed_phases: set[str],
+    bounds: list[tuple[float, float | None]],
+    constraint_rows: list[tuple[str, np.ndarray, float]],
+    tolerance: float,
+) -> GibbsMinimizationDiagnostic:
+    species = tuple(spec.species)
+    residuals = _element_residuals(species, final_amounts_mol, target_elements)
+    max_element_residual = max((abs(value) for value in residuals.values()), default=0.0)
+    charge_residual = _charge_total(species, final_amounts_mol) - charge_target
+    active_tol = max(1e-12, 100.0 * tolerance)
+
+    max_bound_violation = 0.0
+    active_species: list[str] = []
+    active_lower: list[str] = []
+    active_upper: list[str] = []
+    allowed_indices: list[int] = []
+    free_indices: list[int] = []
+    for index, item in enumerate(species):
+        amount = float(final_array[index])
+        lower, upper = bounds[index]
+        if item.phase in allowed_phases:
+            allowed_indices.append(index)
+        if amount > active_tol:
+            active_species.append(item.species_id)
+        if amount <= lower + active_tol:
+            active_lower.append(item.species_id)
+        if upper is not None and amount >= upper - active_tol:
+            active_upper.append(item.species_id)
+        if amount < lower:
+            max_bound_violation = max(max_bound_violation, lower - amount)
+        if upper is not None and amount > upper:
+            max_bound_violation = max(max_bound_violation, amount - upper)
+        if (
+            item.phase in allowed_phases
+            and amount > lower + active_tol
+            and (upper is None or amount < upper - active_tol)
+        ):
+            free_indices.append(index)
+
+    constraint_matrix = (
+        np.vstack([row for _, row, _ in constraint_rows])
+        if constraint_rows
+        else np.zeros((0, len(species)))
+    )
+    constraint_rank = (
+        int(np.linalg.matrix_rank(constraint_matrix, tol=1e-12))
+        if constraint_matrix.size
+        else 0
+    )
+    degrees_of_freedom = max(0, len(allowed_indices) - constraint_rank)
+    stationarity_residual = _gibbs_stationarity_residual(
+        species,
+        final_array,
+        spec.temperature_K,
+        constraint_matrix,
+        free_indices,
+    )
+    notes = _gibbs_diagnostic_notes(
+        species,
+        allowed_phases,
+        free_indices,
+        degrees_of_freedom,
+    )
+    residual_limit = max(1e-8, 100.0 * tolerance)
+    stationarity_limit = max(1e-5, 1e6 * tolerance)
+    if max_element_residual <= residual_limit and abs(charge_residual) <= residual_limit:
+        status: Literal["ok", "warning", "failed"] = (
+            "ok"
+            if max_bound_violation <= residual_limit
+            and stationarity_residual <= stationarity_limit
+            else "warning"
+        )
+    else:
+        status = "failed"
+    return GibbsMinimizationDiagnostic(
+        status=status,
+        max_element_residual_mol=max_element_residual,
+        charge_residual_eq=charge_residual,
+        max_bound_violation_mol=max_bound_violation,
+        stationarity_residual_J_mol=stationarity_residual,
+        constraint_matrix_rank=constraint_rank,
+        allowed_species_count=len(allowed_indices),
+        degrees_of_freedom=degrees_of_freedom,
+        active_species_ids=tuple(sorted(active_species)),
+        active_lower_bound_species_ids=tuple(sorted(active_lower)),
+        active_upper_bound_species_ids=tuple(sorted(active_upper)),
+        convexity_class=_gibbs_convexity_class(species, allowed_phases),
+        notes=notes,
+    )
+
+
+def _gibbs_stationarity_residual(
+    species: tuple[GibbsSpeciesSpec, ...],
+    values: np.ndarray,
+    temperature_K: float,
+    constraint_matrix: np.ndarray,
+    free_indices: list[int],
+) -> float:
+    if not free_indices:
+        return 0.0
+    chemical_potentials = _gibbs_chemical_potentials(species, values, temperature_K)
+    free_mu = chemical_potentials[free_indices]
+    if constraint_matrix.size:
+        free_constraints = constraint_matrix[:, free_indices].T
+        multipliers, *_ = np.linalg.lstsq(free_constraints, -free_mu, rcond=None)
+        residual = free_constraints @ multipliers + free_mu
+    else:
+        residual = free_mu
+    return float(np.max(np.abs(residual))) if residual.size else 0.0
+
+
+def _gibbs_chemical_potentials(
+    species: tuple[GibbsSpeciesSpec, ...],
+    values: np.ndarray,
+    temperature_K: float,
+) -> np.ndarray:
+    phase_totals: dict[str, float] = {}
+    for index, item in enumerate(species):
+        amount = max(float(values[index]), 0.0)
+        phase_totals[item.phase] = phase_totals.get(item.phase, 0.0) + amount
+
+    potentials = np.zeros(len(species), dtype=float)
+    for index, item in enumerate(species):
+        potential = item.standard_gibbs_J_mol
+        if not _pure_condensed_phase(item.phase):
+            amount = max(float(values[index]), _ACTIVITY_FLOOR)
+            phase_total = max(phase_totals.get(item.phase, 0.0), _ACTIVITY_FLOOR)
+            potential += R_J_PER_MOL_K * temperature_K * log(
+                max(amount / phase_total, _ACTIVITY_FLOOR)
+            )
+        potentials[index] = potential
+    return potentials
+
+
+def _gibbs_convexity_class(
+    species: tuple[GibbsSpeciesSpec, ...],
+    allowed_phases: set[str],
+) -> str:
+    allowed = [item for item in species if item.phase in allowed_phases]
+    if any(_pure_condensed_phase(item.phase) for item in allowed):
+        return "convex_with_linear_pure_condensed_phase_terms"
+    return "strictly_convex_ideal_mixture_over_linear_constraints"
+
+
+def _gibbs_diagnostic_notes(
+    species: tuple[GibbsSpeciesSpec, ...],
+    allowed_phases: set[str],
+    free_indices: list[int],
+    degrees_of_freedom: int,
+) -> tuple[str, ...]:
+    notes: list[str] = []
+    allowed = [item for item in species if item.phase in allowed_phases]
+    if any(_pure_condensed_phase(item.phase) for item in allowed):
+        notes.append(
+            "Pure condensed species have linear activity terms; multiple boundary "
+            "optima can be degenerate."
+        )
+    if not free_indices:
+        notes.append("All allowed species are active on a lower or upper bound.")
+    if degrees_of_freedom == 0:
+        notes.append("Linear conservation constraints leave no free composition degree of freedom.")
+    return tuple(notes)
 
 
 def _charge_total(

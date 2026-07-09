@@ -24,6 +24,9 @@ def equilibrium_chemistry_model_cards() -> tuple[ModelCard, ...]:
                 "charge constraint: z^T n = q_target",
                 "phase restrictions: n_i = 0 for species in disallowed phases",
                 "bounds: n_i >= 0",
+                "diagnostics: element/charge residuals, bound violation, "
+                "rank(A), degrees of freedom, and KKT-style stationarity "
+                "residual on free species",
             ),
             assumptions=(
                 "Fixed temperature and pressure.",
@@ -42,6 +45,8 @@ def equilibrium_chemistry_model_cards() -> tuple[ModelCard, ...]:
                 "Phase restrictions with nonzero disallowed initial species raise ValueError.",
                 "If allowed species cannot carry a target element, the solver raises ValueError.",
                 "Numerical nonconvergence is reported in the result metadata rather than hidden.",
+                "KKT diagnostics are local checks for the SLSQP result; they do not prove "
+                "global optimality for arbitrary nonideal or database-generated systems.",
             ),
             units={
                 "amount": "mol",
@@ -70,15 +75,128 @@ def equilibrium_chemistry_model_cards() -> tuple[ModelCard, ...]:
                     command_or_path="python -m pytest tests/test_equilibrium_chemistry.py",
                     tolerance="rel=1e-7",
                 ),
+                ValidationEvidence(
+                    evidence_id="stoichiometric-water-formation",
+                    evidence_type="unit_tests",
+                    description=(
+                        "A small H/O stoichiometric system forms H2O while preserving "
+                        "element constraints and emitting rank, degree-of-freedom, "
+                        "bound, and stationarity diagnostics."
+                    ),
+                    status="passing",
+                    command_or_path="python -m pytest tests/test_equilibrium_chemistry.py",
+                    tolerance="element residual < 1e-8 mol",
+                ),
+                ValidationEvidence(
+                    evidence_id="solid-phase-charge-restriction",
+                    evidence_type="unit_tests",
+                    description=(
+                        "A Na+/Cl-/NaCl(s) case checks phase restrictions, charge "
+                        "balance, pure-condensed linear-term notes, and active-species "
+                        "diagnostics."
+                    ),
+                    status="passing",
+                    command_or_path="python -m pytest tests/test_equilibrium_chemistry.py",
+                    tolerance="charge residual < 1e-8 equivalent mol",
+                ),
             ),
             model_limit_notes=(
                 "This is a ChemWorld-local professional slice, not a Reaktoro clone.",
+                "Diagnostics harden the benchmark contract but do not replace rigorous "
+                "database-backed speciation, phase selection, or multiphase Gibbs "
+                "minimization.",
                 "Database-backed aqueous speciation and CALPHAD phase selection "
                 "remain future work.",
             ),
             intended_use=(
                 "Small hidden equilibrium scenarios for local world-model learning.",
                 "Auditable element/charge/phase-constrained equilibrium tasks.",
+            ),
+        ),
+        ModelCard(
+            model_id="aqueous_acid_base_ph_observation",
+            module_id="equilibrium_chemistry",
+            title="Aqueous Acid-Base pH Observation Slice",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Compact monoprotic acid/base equilibrium with charge balance, "
+                "temperature-dependent water ion product, pH-meter style public "
+                "observation, and sequential precipitation hooks."
+            ),
+            equations=(
+                "Ka = [H+][A-] / [HA]",
+                "Kw(T) = [H+][OH-] from compact tabulated interpolation",
+                "electroneutrality: [H+] + strong cations = [OH-] + [A-] + strong anions",
+                "pH observation: E_mV = -2.303 R T / F * (pH_measured - 7)",
+                "precipitation hook: ion product is driven back to Ksp for binary salts",
+            ),
+            assumptions=(
+                "Single monoprotic acid in water.",
+                "Activities are concentration proxies.",
+                "Strong ions are fully dissociated.",
+                "pH-meter observation adds configurable normal pH noise and resolution rounding.",
+                "Precipitation hooks are applied sequentially to declared binary salts.",
+            ),
+            validity_limits=(
+                "Small aqueous benchmark cases.",
+                "No full activity-coefficient speciation model.",
+                "No buffer mixtures, polyprotic acids, complexation, or redox basis selection.",
+                "Sequential precipitation hooks are deterministic and order-dependent.",
+            ),
+            failure_modes=(
+                "Negative amounts, nonpositive volume, nonpositive Ksp, or invalid "
+                "pH observation noise raise ValueError.",
+                "pH bracketing failure raises ValueError instead of returning a "
+                "hidden clipped state.",
+            ),
+            units={
+                "amount": "mol",
+                "volume": "L",
+                "concentration": "mol/L",
+                "pH": "dimensionless",
+                "electrode_signal": "mV",
+                "charge": "mol charge equivalents",
+            },
+            reference_reading=(
+                "reference_repos/reaktoro/Reaktoro/Equilibrium/EquilibriumSpecs.hpp",
+                "reference_repos/cantera/doc/sphinx/userguide/python-tutorial.md "
+                "chemical equilibrium section",
+                "standard analytical weak-acid and Ksp textbook balances",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="monoprotic-weak-acid-charge-balance",
+                    evidence_type="unit_tests",
+                    description=(
+                        "A 0.1 mol/L weak acid returns the expected pH range, "
+                        "low dissociation fraction, small charge-balance residual, "
+                        "and a public pH observation without species leakage."
+                    ),
+                    status="passing",
+                    command_or_path="python -m pytest tests/test_equilibrium_chemistry.py",
+                    tolerance="pH within 0.05 and charge residual < 1e-10",
+                ),
+                ValidationEvidence(
+                    evidence_id="sequential-ksp-hooks",
+                    evidence_type="unit_tests",
+                    description=(
+                        "AgCl and BaSO4 hooks precipitate supersaturated binary "
+                        "salts while preserving material balance in a compact ledger."
+                    ),
+                    status="passing",
+                    command_or_path="python -m pytest tests/test_equilibrium_chemistry.py",
+                    tolerance="material balance error < 1e-12 mol",
+                ),
+            ),
+            model_limit_notes=(
+                "This is a ChemWorld-local benchmark slice for pH and precipitation "
+                "feedback, not a rigorous electrolyte speciation package.",
+                "Order-dependent precipitation hooks should be replaced by coupled "
+                "equilibrium solving in later professional work.",
+            ),
+            intended_use=(
+                "Aqueous characterization tasks where agents can observe pH and infer acidity.",
+                "Small precipitation and cleanup scenarios with explicit Ksp hooks.",
             ),
         ),
     )
