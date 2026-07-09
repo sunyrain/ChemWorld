@@ -9,7 +9,7 @@ import gymnasium as gym
 import pytest
 
 import chemworld  # noqa: F401
-from chemworld.tasks import list_tasks
+from chemworld.tasks import get_task, list_tasks
 from chemworld.wrappers import valid_operations
 
 
@@ -74,7 +74,7 @@ def test_audit_smoke_generates_replay_verified_trajectory(tmp_path: Path) -> Non
     assert row["profile_hash"]
 
 
-def test_audit_records_task_policy_warning_for_overbroad_purification_slice(
+def test_purification_slice_no_longer_allows_unrelated_process_ops(
     tmp_path: Path,
 ) -> None:
     audit = _audit_module()
@@ -85,11 +85,24 @@ def test_audit_records_task_policy_warning_for_overbroad_purification_slice(
         max_steps=12,
     )
     assert row["verify_status"] == "pass"
-    assert any(
-        warning.startswith(
-            "task_policy_warning:reaction_to_purification_allows_unrelated_process_ops="
-        )
+    assert not any(
+        warning.startswith("task_policy_warning:reaction_to_purification")
         for warning in row["warnings"]
+    )
+    allowed = set(get_task("reaction-to-purification").allowed_operations)
+    assert not allowed.intersection(
+        {
+            "seed_crystals",
+            "cool_crystallize",
+            "filter_crystals",
+            "evaporate",
+            "distill",
+            "collect_fraction",
+            "set_flow_rate",
+            "run_flow",
+            "set_potential",
+            "electrolyze",
+        }
     )
 
 

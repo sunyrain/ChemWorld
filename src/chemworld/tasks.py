@@ -20,14 +20,20 @@ from chemworld.world.operations import (
     ELECTROCHEMISTRY_OPERATIONS,
     FLOW_OPERATIONS,
     INSTRUMENTS,
-    OPERATION_TYPES,
     REACTION_OPERATIONS,
+    SEPARATION_OPERATIONS,
 )
 from chemworld.world.scenario import get_scenario_card
 
 WORLD_LAW_ID = "chemworld-physical-chemistry"
+TASK_CONTRACT_VERSION = "chemworld-task-contract-0.2"
+PRE_RELEASE_TASK_IDS = (
+    "reaction-to-assay",
+    "reaction-to-purification",
+    "partition-discovery",
+)
 REACTION_ALLOWED = REACTION_OPERATIONS
-REACTION_SEPARATION_ALLOWED = OPERATION_TYPES
+REACTION_SEPARATION_ALLOWED = (*REACTION_OPERATIONS, *SEPARATION_OPERATIONS)
 REACTION_CRYSTALLIZATION_ALLOWED = (*REACTION_OPERATIONS, *CRYSTALLIZATION_OPERATIONS)
 REACTION_DISTILLATION_ALLOWED = (*REACTION_OPERATIONS, *DISTILLATION_OPERATIONS)
 FLOW_REACTION_ALLOWED = (
@@ -91,6 +97,7 @@ class TaskSpec:
 
     def to_dict(self) -> dict[str, Any]:
         payload = {
+            "task_contract_version": TASK_CONTRACT_VERSION,
             "task_id": self.task_id,
             "env_id": self.env_id,
             "world_law_id": self.world_law_id,
@@ -121,6 +128,7 @@ class TaskSpec:
     @property
     def contract_hash(self) -> str:
         payload = {
+            "task_contract_version": TASK_CONTRACT_VERSION,
             "task_id": self.task_id,
             "env_id": self.env_id,
             "world_law_id": self.world_law_id,
@@ -163,8 +171,16 @@ class TaskSpec:
         }
 
     def to_card(self) -> dict[str, Any]:
+        scenario_card = get_scenario_card(self.scenario_id, split=self.world_split)
         return {
+            "task_contract_version": TASK_CONTRACT_VERSION,
             "task_id": self.task_id,
+            "task_contract_hash": self.contract_hash,
+            "release_status": (
+                "pre-release-core"
+                if self.task_id in PRE_RELEASE_TASK_IDS
+                else "registered-task"
+            ),
             "scientific_motivation": self.description,
             "world_law_id": self.world_law_id,
             "scenario_id": self.scenario_id,
@@ -176,6 +192,20 @@ class TaskSpec:
                 "online_reward": "observed score from instrument-visible estimates",
                 "leaderboard_score": "final-assay score only",
                 "success_metrics": list(self.success_metrics),
+                "threshold": self.threshold,
+            },
+            "benchmark_contract": {
+                "objective": self.objective,
+                "budget": self.budget,
+                "episode_mode": self.episode_mode,
+                "world_split": self.world_split,
+                "public_seeds": list(self.seeds)
+                if self.world_split != "private-eval"
+                else "maintainer-controlled",
+                "safety_limit": self.safety_limit,
+                "success_metrics": list(self.success_metrics),
+                "allowed_operations": list(self.allowed_operations),
+                "allowed_instruments": list(self.allowed_instruments),
             },
             "observation_policy": self.observation_policy,
             "termination_policy": self.termination_policy,
@@ -186,7 +216,10 @@ class TaskSpec:
             "baseline_reference_scores": dict.fromkeys(REFERENCE_BASELINES),
             "reference_baselines": list(REFERENCE_BASELINES),
             "recommended_agent_families": self._recommended_agent_families(),
-            "scenario_card": get_scenario_card(self.scenario_id, split=self.world_split),
+            "scenario_card": scenario_card,
+            "expected_qualitative_behavior": scenario_card[
+                "expected_qualitative_behavior"
+            ],
             "kernel_maturity": self.kernel_maturity.to_dict(),
             "physics_maturity": self.kernel_maturity.lowest_level.value,
             "proxy_allowed": self.kernel_maturity.proxy_allowed,
@@ -599,6 +632,14 @@ def list_tasks() -> list[TaskSpec]:
 
 def list_task_cards() -> list[dict[str, Any]]:
     return [task.to_card() for task in list_tasks()]
+
+
+def list_pre_release_tasks() -> list[TaskSpec]:
+    return [get_task(task_id) for task_id in PRE_RELEASE_TASK_IDS]
+
+
+def list_pre_release_task_cards() -> list[dict[str, Any]]:
+    return [task.to_card() for task in list_pre_release_tasks()]
 
 
 def task_maturity_manifest(task_ids: tuple[str, ...] | None = None) -> dict[str, Any]:

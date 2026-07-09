@@ -46,12 +46,12 @@ Fresh consolidated board counts:
 
 | Area | Done | Remaining | Notes |
 | --- | ---: | ---: | --- |
-| Pre-release benchmark hardening | 0 | 12 | Highest priority |
+| Pre-release benchmark hardening | 1 | 11 | Highest priority |
 | Runtime and environment consistency | 0 | 8 | Needed before public benchmark claims |
 | Agent-facing interaction and datasets | 0 | 6 | Required for RL/BO/LLM users |
 | Professional physchem deepening | 0 | 27 | Concrete slices from the deepening roadmap |
 | Docs, notebooks, and release packaging | 0 | 5 | Keep site useful but do not let docs outrun code |
-| Total active remaining | 0 | 58 | First target: finish P0/P1 only |
+| Total active remaining | 1 | 57 | First target: finish P0/P1 only |
 
 Historical implementation already completed:
 
@@ -80,7 +80,7 @@ Recommended first tasks:
 
 | ID | Owner | Status | Task | Exit Criteria |
 | --- | --- | --- | --- | --- |
-| P0-BENCH-01 |  | Open | Freeze the three-task pre-release contract | Task cards specify objective, budget, allowed operations, instruments, seeds, score metrics, safety limits, maturity tags, and expected qualitative behavior |
+| P0-BENCH-01 | Codex | Done | Freeze the three-task pre-release contract | Task cards specify objective, budget, allowed operations, instruments, seeds, score metrics, safety limits, maturity tags, and expected qualitative behavior |
 | P0-BENCH-02 |  | Open | Build official seed suite | Public-dev/public-test seed lists and hidden-eval salt policy are documented and loaded by CLI |
 | P0-BENCH-03 |  | Open | Generate official baseline table | Random, scripted, BO, safe BO, ToolUsingLLMStub, and LLMReplay run across seeds with mean, stderr, invalid rate, final-assay count, and AUC |
 | P0-BENCH-04 |  | Open | Calibrate BO budgets and initial samples | BO agents enter acquisition phase under default benchmark budgets and are stronger than random without saturating score |
@@ -175,11 +175,11 @@ Goal: make the project legible without letting docs outrun tested behavior.
 
 Do these in order:
 
-1. `P0-BENCH-01` freeze the three-task benchmark contract.
-2. `P0-BENCH-03` generate the first official baseline table.
-3. `P1-CONSIST-01` run the environment self-consistency audit.
-4. `P1-CONSIST-02` fix or document spectra-metric semantic warnings.
-5. `P0-BENCH-08` publish a valid submission bundle example.
+1. `P0-BENCH-03` generate the first official baseline table.
+2. `P1-CONSIST-01` run the environment self-consistency audit.
+3. `P1-CONSIST-02` fix or document spectra-metric semantic warnings.
+4. `P0-BENCH-08` publish a valid submission bundle example.
+5. `P0-BENCH-02` build official seed suite.
 
 Rationale: these five items convert ChemWorld from a rich internal prototype into
 a benchmark that an outside researcher can understand, run, and compare against.

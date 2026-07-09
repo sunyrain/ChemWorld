@@ -2170,8 +2170,8 @@ def test_recipe_compiler_expands_macros_and_checks_task_policy() -> None:
         "mix",
         "settle",
         "separate_phase",
-        "evaporate",
-        "evaporate",
+        "dry",
+        "concentrate",
     ]
     assert compiled[0]["compiled_from_macro"] == "wash"
     assert compiled[-1]["compiled_from_macro"] == "concentrate"

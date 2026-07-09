@@ -9,7 +9,22 @@ from chemworld.agents.base import HistoryRecord
 from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.operation_validator import OperationValidator
 from chemworld.runtime import TaskRuntimeProfile, make_chemworld_constitution
-from chemworld.tasks import get_task, get_task_card, list_tasks
+from chemworld.tasks import (
+    PRE_RELEASE_TASK_IDS,
+    get_task,
+    get_task_card,
+    list_pre_release_task_cards,
+    list_pre_release_tasks,
+    list_tasks,
+)
+from chemworld.world.operations import (
+    CRYSTALLIZATION_OPERATIONS,
+    DISTILLATION_OPERATIONS,
+    ELECTROCHEMISTRY_OPERATIONS,
+    FLOW_OPERATIONS,
+    REACTION_OPERATIONS,
+    SEPARATION_OPERATIONS,
+)
 from chemworld.world.scoring import (
     TaskScoringContract,
     score_observation,
@@ -52,6 +67,83 @@ def test_builtin_tasks_are_instantiable() -> None:
     assay_task = get_task("reaction-to-assay")
     assert assay_task.episode_mode == "single_experiment"
     assert assay_task.termination_policy == "final-assay-or-budget"
+
+
+def test_pre_release_task_contracts_are_frozen() -> None:
+    tasks = {task.task_id: task for task in list_pre_release_tasks()}
+    assert tuple(tasks) == PRE_RELEASE_TASK_IDS
+
+    assay = tasks["reaction-to-assay"]
+    assert assay.world_split == "public-dev"
+    assert assay.budget == 18
+    assert assay.seeds == (0,)
+    assert assay.episode_mode == "single_experiment"
+    assert assay.allowed_operations == REACTION_OPERATIONS
+    assert assay.allowed_instruments == ("hplc", "gc", "uvvis", "final_assay")
+    assert assay.success_metrics == ("final_assay_score", "trajectory_validity")
+    assert assay.safety_limit == 0.65
+
+    purification = tasks["reaction-to-purification"]
+    assert purification.world_split == "public-test"
+    assert purification.budget == 90
+    assert purification.seeds == (0, 1, 2, 3, 4)
+    assert purification.episode_mode == "single_experiment"
+    assert purification.allowed_operations == (
+        *REACTION_OPERATIONS,
+        *SEPARATION_OPERATIONS,
+    )
+    assert not set(purification.allowed_operations).intersection(
+        {
+            *CRYSTALLIZATION_OPERATIONS,
+            *DISTILLATION_OPERATIONS,
+            *FLOW_OPERATIONS,
+            *ELECTROCHEMISTRY_OPERATIONS,
+        }
+    )
+    assert purification.success_metrics == (
+        "score",
+        "purity",
+        "recovery",
+        "process_mass_balance_error",
+    )
+    assert purification.safety_limit == 0.65
+
+    partition = tasks["partition-discovery"]
+    assert partition.world_split == "public-test"
+    assert partition.budget == 48
+    assert partition.seeds == (0, 1, 2)
+    assert partition.episode_mode == "campaign"
+    assert partition.success_metrics == (
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+    )
+    assert partition.safety_limit == 0.65
+
+
+def test_pre_release_task_cards_are_complete_release_contracts() -> None:
+    cards = {card["task_id"]: card for card in list_pre_release_task_cards()}
+    assert tuple(cards) == PRE_RELEASE_TASK_IDS
+
+    for task_id, card in cards.items():
+        task = get_task(task_id)
+        contract = card["benchmark_contract"]
+        assert card["release_status"] == "pre-release-core"
+        assert card["task_contract_version"] == "chemworld-task-contract-0.2"
+        assert card["task_contract_hash"] == task.contract_hash
+        assert len(card["task_contract_hash"]) == 64
+        assert contract["objective"] == task.objective
+        assert contract["budget"] == task.budget
+        assert contract["episode_mode"] == task.episode_mode
+        assert contract["world_split"] == task.world_split
+        assert contract["success_metrics"] == list(task.success_metrics)
+        assert contract["allowed_operations"] == list(task.allowed_operations)
+        assert contract["allowed_instruments"] == list(task.allowed_instruments)
+        assert contract["safety_limit"] == task.safety_limit
+        assert card["reward_leaderboard_metric"]["threshold"] == task.threshold
+        assert card["kernel_maturity"]["modules"]
+        assert card["physics_maturity"] in {"proxy", "lite", "reference_validated"}
+        assert card["expected_qualitative_behavior"]
 
 
 def test_all_tasks_share_one_world_law() -> None:

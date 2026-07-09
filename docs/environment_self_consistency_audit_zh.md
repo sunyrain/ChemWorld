@@ -71,7 +71,9 @@ runs/audit/trajectories/*.jsonl
 
 当前风险：
 
-- `reaction-to-purification` 的 allowed operations 目前包含若干无关过程操作，例如 flow、电化学、结晶和蒸馏操作。审计脚本会记录 `task_policy_warning`。这不一定导致运行失败，但会误导通用 scripted agent 选择错误任务分支。
+- `reaction-to-purification` 的 allowed operations 已收紧为反应 + downstream
+  extraction / separation / purification 操作；审计脚本仍保留
+  `task_policy_warning` 规则，以便后续任务切片再次误暴露 flow、电化学、结晶或蒸馏操作时能够立刻报警。
 
 ### 物理自洽
 
@@ -164,7 +166,7 @@ runs/audit/trajectories/*.jsonl
 
 ChemWorld 当前已经具备较强的结构自洽和 replay 自洽基础。主要短板不在“能不能执行”，而在更高层的语义一致性：
 
-- task slice 权限需要继续收紧，避免 agent 被无关操作误导；
+- task slice 权限需要持续由测试锁住，避免后续新增操作时再次误导 agent；
 - raw spectra 与 processed metrics 需要更明确的校准关系；
 - 多轮 agent probe 应进入正式 benchmark protocol，而不只是临时实验；
 - proxy/lite/reference-validated 的边界要继续在 docs、trajectory 和 leaderboard 中保持显式。

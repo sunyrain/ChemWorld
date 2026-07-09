@@ -130,8 +130,7 @@ def expand_macro_action(action: dict[str, Any]) -> list[dict[str, Any]]:
             operation,
             (
                 {
-                    "operation": "evaporate",
-                    "target_temperature_K": float(canonical.get("target_temperature_K", 315.0)),
+                    "operation": "dry",
                     "duration_s": float(canonical.get("duration_s", 300.0)),
                 },
             ),
@@ -141,8 +140,7 @@ def expand_macro_action(action: dict[str, Any]) -> list[dict[str, Any]]:
             operation,
             (
                 {
-                    "operation": "evaporate",
-                    "target_temperature_K": float(canonical.get("target_temperature_K", 335.0)),
+                    "operation": "concentrate",
                     "duration_s": float(canonical.get("duration_s", 600.0)),
                 },
             ),
