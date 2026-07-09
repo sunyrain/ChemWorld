@@ -50,7 +50,7 @@ with proxies and then call them professional.
 | `DEEP-D1A` | liyijun | Claimed | Component identity registry with aliases, checksum-validated CAS, InChIKey-style identifiers where licensing permits, curated provenance, duplicate-identity checks, JSON round-trips, and task/property lookup integration. |
 | `DEEP-D1B` | liyijun | Claimed | Unit-dimension checker with canonical dimensions for amount, mass, volume, temperature, pressure, energy, power, viscosity, diffusivity, conductivity, and instrument response, plus compatibility tests before kernels run. |
 | `DEEP-D1C` | liyijun | Claimed | Data conflict policy with source-priority, uncertainty-aware warning versus hard-fail modes, unit compatibility checks, JSON-friendly resolution reports, and curated registry provenance. |
-| `DEEP-D10A` | whilesunny | Claimed | Model-maturity gate audit for task, trajectory, baseline, and leaderboard outputs; benchmark artifacts must expose proxy/lite/professional metadata and reject silent same-task maturity mixing. |
+| `DEEP-D10A` | whilesunny | Done | Model-maturity gate audit for task, trajectory, baseline, and leaderboard outputs; benchmark artifacts expose proxy/lite/professional metadata and reject silent same-task maturity mixing. |
 
 ## Module Families
 
@@ -82,6 +82,7 @@ Do not start these until the current twelve-slice batch is complete.
    Done.
 5. `DEEP-D9B`: IR functional-group spectrum slice.
 6. `DEEP-D10A`: benchmark model-maturity gate.
+   Done.
 7. `DEEP-D8A`: phase-change and equipment heat transfer beyond the completed
    single-phase Nusselt/e-NTU slice.
 8. `DEEP-D11A`: electrochemical ohmic-drop and electrolyte-resistance slice.
