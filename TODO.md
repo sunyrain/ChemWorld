@@ -10,9 +10,9 @@ claimed, updated, and completed here.
 
 Current unfinished work:
 
-- 49 total remaining items.
-- 11 immediate P0/P1 benchmark-trust items.
-- 22 public pre-release items across P0/P1/P2/P4.
+- 48 total remaining items.
+- 10 immediate P0/P1 benchmark-trust items.
+- 21 public pre-release items across P0/P1/P2/P4.
 - 27 long-horizon P3 professional-physics deepening items.
 
 Interpretation:
@@ -28,17 +28,17 @@ Interpretation:
 
 | Scope | Total | Done | Active | Claimed | Open | Remaining |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| P0 Pre-release benchmark hardening | 12 | 5 | 0 | 0 | 7 | 7 |
+| P0 Pre-release benchmark hardening | 12 | 6 | 0 | 0 | 6 | 6 |
 | P1 Runtime and environment consistency | 8 | 4 | 0 | 0 | 4 | 4 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 9 | 0 | 3 | 46 | 49 |
+| Total | 58 | 10 | 0 | 3 | 45 | 48 |
 
 Immediate release target:
 
-- Finish P0 and P1 first: 11 remaining items.
-- Finish P0, P1, P2, and P4 for a usable public pre-release package: 22
+- Finish P0 and P1 first: 10 remaining items.
+- Finish P0, P1, P2, and P4 for a usable public pre-release package: 21
   remaining items.
 - P3 is the long professional-physics backlog: 27 remaining items. Pull from it
   only when it directly strengthens a benchmark task or replaces a declared
@@ -102,7 +102,7 @@ Frozen core tasks:
 | P0-BENCH-02 | Codex | Done | Build official seed suite | `chemworld seeds show` exposes the pre-release seed suite, public-dev/public-test seeds, private-eval salt policy, and suite/baseline CLI paths load the official plan unless explicit smoke seeds are provided |
 | P0-BENCH-03 | Codex | Done | Generate official baseline table | `chemworld baselines report` runs random, scripted, BO, safe BO, ToolUsingLLMStub, and LLMReplay across frozen task seeds; `baseline_summary_table.json` and docs report mean, stderr, invalid rate, final-assay count, and AUC |
 | P0-BENCH-04 | Codex | Done | Calibrate BO budgets and initial samples | BO acquisition diagnostics are recorded in agent traces, metrics, baseline summaries, tests, and docs; GP-BO/safe GP-BO enter acquisition under default budgets and outperform random without saturating score |
-| P0-BENCH-05 |  | Open | Lock golden trajectories | Scripted trajectories for the three core tasks compare observations, reward/info, transaction metadata, and final metrics |
+| P0-BENCH-05 | Codex | Done | Lock golden trajectories | `tests/fixtures/golden/pre_release_scripted_trajectories.json` locks scripted trajectories for `reaction-to-assay`, `reaction-to-purification`, and `partition-discovery`; tests regenerate summaries from `scripted_chemistry` and compare actions, observations, rewards, transaction metadata, final assay output, and final metrics |
 | P0-BENCH-06 |  | Open | Audit scoring contracts | `obs["score"]`, final assay metrics, `leaderboard_score`, and task score contract recomputation agree |
 | P0-BENCH-07 |  | Open | Harden replay verifier | Verify catches tampered mechanism hash, scoring hash, profile hash, reward, observation, and transaction summary |
 | P0-BENCH-08 | Codex | Done | Build one valid submission bundle example | `chemworld submission example` and `examples/demo_submission_bundle.py` generate a bundle with `manifest.json`, trajectories, results, explanations, dependency notes, README, reproducible command, validation, summary, and replay verification |
@@ -194,11 +194,11 @@ behavior.
 
 Do these next, in order:
 
-1. `P0-BENCH-05`: lock golden trajectories.
-2. `P0-BENCH-06`: audit scoring contracts.
-3. `P0-BENCH-07`: harden replay verifier.
-4. `P0-BENCH-09`: build local teacher/student evaluation smoke.
-5. `P1-CONSIST-05`: audit campaign vs single-experiment semantics.
+1. `P0-BENCH-06`: audit scoring contracts.
+2. `P0-BENCH-07`: harden replay verifier.
+3. `P0-BENCH-09`: build local teacher/student evaluation smoke.
+4. `P1-CONSIST-05`: audit campaign vs single-experiment semantics.
+5. `P0-BENCH-10`: produce benchmark paper artifact skeleton.
 
 This sequence reduces the highest public benchmark risk first: baseline
 credibility, agent-facing action clarity, submission reproducibility, seed

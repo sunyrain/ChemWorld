@@ -88,6 +88,34 @@ chemworld seeds show
 
 trajectory 可选记录 `agent_view` 和 `agent_trace`。`agent_view` 是环境公开视图，包含 RL vector、tool JSON 和 lab report；`agent_trace` 是 agent 行为摘要，包含 prompt input、selected action、validator result、observation summary 和 hypothesis note。
 
+## Golden Trajectory 合同
+
+预发布阶段冻结三项核心任务的 scripted golden trajectory：
+
+- `reaction-to-assay`
+- `reaction-to-purification`
+- `partition-discovery`
+
+对应 fixture 位于 `tests/fixtures/golden/pre_release_scripted_trajectories.json`。它锁定：
+
+- action sequence；
+- public observation summary；
+- reward 和 final metrics；
+- transaction status；
+- kernel id/version；
+- affected ledgers；
+- world event 和 state patch summary；
+- final assay 输出。
+
+测试会重新运行 `scripted_chemistry`，重算 summary，并与 fixture 做容差比较。只有当
+task/runtime/scoring contract 被有意修改时，才应运行：
+
+```bash
+python scripts/update_golden_trajectories.py
+```
+
+更新后必须审查 fixture diff，确认变化是预期行为，而不是无意 drift。
+
 ## 发布产物
 
 正式 release 应包含：

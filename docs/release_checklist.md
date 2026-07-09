@@ -41,6 +41,7 @@ python -m mkdocs build --strict
 - 任务卡与 registry 一致。
 - action schema 和 observation schema 可被 agent 作者理解。
 - 无效操作、约束 flags、termination/truncation 规则清楚。
+- 三项 pre-release core task 的 golden trajectory fixture 通过测试，并且任何 fixture 更新都经过人工 diff 审查。
 
 ## Baseline 产物
 
