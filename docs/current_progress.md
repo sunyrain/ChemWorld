@@ -53,4 +53,5 @@ maturity。
 
 ## 建议下一步
 
-1. 最后冻结发布检查表、已知限制、citation 和 private-eval 政策。
+1. 运行一次完整 release gate，并在需要时打预发布 tag。
+2. P3 专业物理化学深化暂缓，等待重新开启。

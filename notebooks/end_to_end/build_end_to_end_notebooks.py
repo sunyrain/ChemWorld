@@ -63,7 +63,7 @@ import gymnasium as gym
 import pandas as pd
 from IPython.display import display
 
-import chemworld  # registers ChemWorld
+import chemworld  # noqa: F401 - registers ChemWorld
 
 OUTPUT_DIR = Path("runs/end_to_end")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -73,13 +73,13 @@ pd.set_option("display.precision", 4)
 
 RUN_HELPER = """def run_recipe(task_id: str, recipe: list[dict], *, seed: int = 0) -> tuple[pd.DataFrame, dict]:
     env = gym.make("ChemWorld", task_id=task_id, seed=seed)
-    obs, info = env.reset(seed=seed)
+    _obs, info = env.reset(seed=seed)
     rows = []
     final_info = info
     try:
         for step, action in enumerate(recipe, start=1):
             validation = env.unwrapped.validate_action(action)
-            obs, reward, terminated, truncated, info = env.step(action)
+            _obs, reward, terminated, truncated, info = env.step(action)
             final_info = info
             rows.append(
                 {
@@ -135,7 +135,7 @@ def build_reaction_to_assay() -> None:
             COMMON_IMPORTS
             + """
 env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
-obs, info = env.reset(seed=0)
+_obs, _info = env.reset(seed=0)
 display(env.unwrapped.task_prompt())
 display(pd.DataFrame(env.unwrapped.available_actions()).head(12))
 display(env.unwrapped.action_schema("heat"))
@@ -167,7 +167,7 @@ for action in recipe:
     validation = env.unwrapped.validate_action(action)
     validation_rows.append({"operation": action["operation"], "valid": validation["valid"], "reasons": validation.get("invalid_reasons", [])})
     if validation["valid"]:
-        obs, reward, terminated, truncated, info = env.step(action)
+        _obs, _reward, terminated, truncated, _info = env.step(action)
         if terminated or truncated:
             break
 env.close()
@@ -241,7 +241,7 @@ def build_reaction_to_purification() -> None:
             COMMON_IMPORTS
             + """
 env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
-obs, info = env.reset(seed=0)
+_obs, _info = env.reset(seed=0)
 display(env.unwrapped.task_prompt())
 display(pd.DataFrame(env.unwrapped.available_actions()).head(16))
 display(env.unwrapped.action_schema("add_extractant"))
@@ -346,7 +346,7 @@ def build_partition_discovery() -> None:
             COMMON_IMPORTS
             + """
 env = gym.make("ChemWorld", task_id="partition-discovery", seed=0)
-obs, info = env.reset(seed=0)
+_obs, _info = env.reset(seed=0)
 display(env.unwrapped.task_prompt())
 display(env.unwrapped.campaign_state())
 display(pd.DataFrame(env.unwrapped.available_actions()).head(14))
@@ -392,13 +392,13 @@ env.close()
         ),
         code(
             """env = gym.make("ChemWorld", task_id="partition-discovery", seed=0)
-obs, info = env.reset(seed=0)
+_obs, _info = env.reset(seed=0)
 rows = []
 final_packets = []
 for experiment_index, recipe in enumerate(experiment_recipes):
     for action in recipe:
         validation = env.unwrapped.validate_action(action)
-        obs, reward, terminated, truncated, info = env.step(action)
+        _obs, reward, terminated, truncated, info = env.step(action)
         rows.append({
             "experiment": experiment_index,
             "operation": action["operation"],
