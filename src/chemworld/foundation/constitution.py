@@ -44,6 +44,12 @@ class PhysicalConstitution:
         "selected_phase",
     }
 
+    primary_vessel_metadata_keys: ClassVar[set[str]] = {
+        "max_volume_L",
+        "max_temperature_K",
+        "max_pressure_Pa",
+    }
+
     primary_instrument_metadata_keys: ClassVar[set[str]] = {
         "final_assay_done",
         "final_assay_time_s",

@@ -18,6 +18,8 @@ from chemworld.foundation.state import (
     PhaseRecord,
     ProcessLedger,
     SpeciesLedger,
+    VesselLedger,
+    VesselRecord,
     WorldState,
     equipment_settings,
     instrument_completed,
@@ -25,6 +27,7 @@ from chemworld.foundation.state import (
     process_with_metrics,
     upsert_equipment_record,
 )
+from chemworld.operation_validator import OperationValidator
 from chemworld.physchem.mechanism_library import get_mechanism_card, list_mechanism_cards
 from chemworld.runtime.domain_services import (
     ChemWorldDomainServices,
@@ -1247,6 +1250,80 @@ def test_constitution_rejects_primary_phase_status_metadata() -> None:
 
     assert not report.passed
     assert any(check.name == "metadata_no_primary_phase_status" for check in report.failures())
+
+
+def test_constitution_rejects_primary_vessel_bound_metadata() -> None:
+    state = initial_chemworld_state().replace(
+        metadata={
+            **initial_chemworld_state().metadata,
+            "max_volume_L": 0.02,
+            "max_temperature_K": 330.0,
+            "max_pressure_Pa": 150_000.0,
+        }
+    )
+    report = make_chemworld_constitution().check_state(state)
+
+    assert not report.passed
+    assert any(
+        check.name == "metadata_no_primary_vessel_bounds"
+        for check in report.failures()
+    )
+
+
+def test_typed_vessel_bounds_drive_constitution_and_validator() -> None:
+    vessel = VesselRecord(
+        vessel_id="batch_reactor",
+        vessel_type="micro_batch_reactor",
+        max_volume_L=0.020,
+        max_temperature_K=330.0,
+        max_pressure_Pa=150_000.0,
+        phase_ids=("reactor_liquid",),
+        temperature_K=320.0,
+        pressure_Pa=101_325.0,
+    )
+    state = initial_chemworld_state().replace(
+        volume_L=0.019,
+        temperature_K=320.0,
+        vessels=VesselLedger({"batch_reactor": vessel}),
+    )
+    constitution = make_chemworld_constitution()
+    validator = OperationValidator(
+        constitution=constitution,
+        allowed_operations={"add_solvent", "heat"},
+    )
+
+    assert state.vessels.vessels["batch_reactor"].max_volume_L == pytest.approx(0.020)
+    assert state.vessels.vessels["batch_reactor"].max_temperature_K == pytest.approx(
+        330.0
+    )
+    assert constitution.check_state(state).passed
+
+    too_large = state.replace(volume_L=0.021)
+    too_hot = state.replace(temperature_K=331.0)
+    large_report = constitution.check_state(too_large)
+    hot_report = constitution.check_state(too_hot)
+
+    assert not large_report.passed
+    assert any(check.name == "vessel_volume_bound" for check in large_report.failures())
+    assert not hot_report.passed
+    assert any(check.name == "vessel_temperature_bound" for check in hot_report.failures())
+
+    solvent_result = validator.validate(
+        {"operation": "add_solvent", "volume_L": 0.005, "solvent": 1},
+        state,
+    )
+    heat_result = validator.validate(
+        {
+            "operation": "heat",
+            "target_temperature_K": 335.0,
+            "duration_s": 60.0,
+            "stirring_speed_rpm": 600.0,
+        },
+        state,
+    )
+
+    assert "payload_bounds:total_volume_L" in solvent_result.invalid_reasons
+    assert "payload_bounds:target_temperature_K" in heat_result.invalid_reasons
 
 
 def test_constitution_rejects_primary_instrument_status_metadata() -> None:

@@ -230,7 +230,7 @@ class OperationValidator:
             )
             checks["payload_bounds:total_volume_L"] = (
                 added_volume is not None
-                and state.volume_L + added_volume <= self.constitution.vessel.max_volume_L
+                and state.volume_L + added_volume <= self._max_volume_l(state)
             )
         if operation_type == "add_catalyst" and "catalyst_amount_mol" in payload:
             checks["payload_bounds:catalyst_amount_mol"] = self._in_range(
@@ -247,7 +247,7 @@ class OperationValidator:
                 payload,
                 "target_temperature_K",
                 250.0,
-                self.constitution.vessel.max_temperature_K,
+                self._max_temperature_k(state),
             )
         if (
             operation_type
@@ -382,3 +382,13 @@ class OperationValidator:
             return False
         lower_ok = value >= low if inclusive_low else value > low
         return lower_ok and value <= high
+
+    def _max_volume_l(self, state: WorldState) -> float:
+        if state.vessels is not None and state.vessel_id in state.vessels.vessels:
+            return state.vessels.vessels[state.vessel_id].max_volume_L
+        return self.constitution.vessel.max_volume_L
+
+    def _max_temperature_k(self, state: WorldState) -> float:
+        if state.vessels is not None and state.vessel_id in state.vessels.vessels:
+            return state.vessels.vessels[state.vessel_id].max_temperature_K
+        return self.constitution.vessel.max_temperature_K

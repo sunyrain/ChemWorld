@@ -46,10 +46,28 @@ def check_units(constitution: Any) -> list[CheckResult]:
 
 
 def check_vessel_bounds(constitution: Any, state: WorldState) -> list[CheckResult]:
+    vessel = None
+    if state.vessels is not None:
+        vessel = state.vessels.vessels.get(state.vessel_id)
+    max_volume_L = (
+        constitution.vessel.max_volume_L
+        if vessel is None
+        else vessel.max_volume_L
+    )
+    max_temperature_K = (
+        constitution.vessel.max_temperature_K
+        if vessel is None
+        else vessel.max_temperature_K
+    )
+    max_pressure_Pa = (
+        constitution.vessel.max_pressure_Pa
+        if vessel is None
+        else vessel.max_pressure_Pa
+    )
     return [
         CheckResult(
             "vessel_volume_bound",
-            state.volume_L <= constitution.vessel.max_volume_L + constitution.tolerance,
+            state.volume_L <= max_volume_L + constitution.tolerance,
             f"volume={state.volume_L}",
             state.volume_L,
             constitution.tolerance,
@@ -57,15 +75,14 @@ def check_vessel_bounds(constitution: Any, state: WorldState) -> list[CheckResul
         CheckResult(
             "vessel_temperature_bound",
             state.temperature_K
-            <= constitution.vessel.max_temperature_K + constitution.tolerance,
+            <= max_temperature_K + constitution.tolerance,
             f"temperature_K={state.temperature_K}",
             state.temperature_K,
             constitution.tolerance,
         ),
         CheckResult(
             "vessel_pressure_bound",
-            state.pressure_Pa
-            <= constitution.vessel.max_pressure_Pa + constitution.tolerance,
+            state.pressure_Pa <= max_pressure_Pa + constitution.tolerance,
             f"pressure_Pa={state.pressure_Pa}",
             state.pressure_Pa,
             constitution.tolerance,
@@ -96,6 +113,11 @@ def check_typed_ledgers(constitution: Any, state: WorldState) -> list[CheckResul
             constitution.primary_phase_metadata_keys.isdisjoint(state.metadata),
             "Phase-system readiness, settled status, and selection must "
             "live in typed PhaseLedger.",
+        ),
+        CheckResult(
+            "metadata_no_primary_vessel_bounds",
+            constitution.primary_vessel_metadata_keys.isdisjoint(state.metadata),
+            "Vessel operating bounds must live in typed VesselLedger.",
         ),
         CheckResult(
             "metadata_no_primary_instrument_status",

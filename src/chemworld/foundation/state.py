@@ -94,21 +94,36 @@ class WorldState:
             if self.phases is None or set(self.phases.phases) == {"reactor_liquid"}
             else self.phases
         )
-        vessel = VesselRecord(
-            vessel_id=self.vessel_id,
-            vessel_type=self.vessel_id,
-            max_volume_L=float(self.metadata.get("max_volume_L", 0.10)),
-            max_temperature_K=float(self.metadata.get("max_temperature_K", 470.0)),
-            max_pressure_Pa=float(self.metadata.get("max_pressure_Pa", 550_000.0)),
-            phase_ids=tuple(phases.phases),
-            temperature_K=self.temperature_K,
-            pressure_Pa=self.pressure_Pa,
-        )
-        vessels = (
-            VesselLedger({self.vessel_id: vessel})
-            if self.vessels is None or set(self.vessels.vessels) == {self.vessel_id}
-            else self.vessels
-        )
+        if self.vessels is None:
+            vessel = VesselRecord(
+                vessel_id=self.vessel_id,
+                vessel_type=self.vessel_id,
+                max_volume_L=0.10,
+                max_temperature_K=470.0,
+                max_pressure_Pa=550_000.0,
+                phase_ids=tuple(phases.phases),
+                temperature_K=self.temperature_K,
+                pressure_Pa=self.pressure_Pa,
+            )
+            vessels = VesselLedger({self.vessel_id: vessel})
+        elif set(self.vessels.vessels) == {self.vessel_id}:
+            current_vessel = self.vessels.vessels[self.vessel_id]
+            vessels = VesselLedger(
+                {
+                    self.vessel_id: VesselRecord(
+                        vessel_id=current_vessel.vessel_id,
+                        vessel_type=current_vessel.vessel_type,
+                        max_volume_L=current_vessel.max_volume_L,
+                        max_temperature_K=current_vessel.max_temperature_K,
+                        max_pressure_Pa=current_vessel.max_pressure_Pa,
+                        phase_ids=tuple(phases.phases),
+                        temperature_K=self.temperature_K,
+                        pressure_Pa=self.pressure_Pa,
+                    )
+                }
+            )
+        else:
+            vessels = self.vessels
         equipment = (
             EquipmentLedger(
                 {

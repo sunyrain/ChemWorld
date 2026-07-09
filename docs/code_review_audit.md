@@ -488,6 +488,10 @@ Recommended follow-up:
   typed `crystal_filter` equipment record, while distillation and fraction
   collection record model diagnostics and collection settings on the typed
   `distillation_column` equipment record.
+- Promoted vessel operating bounds fully into typed `VesselLedger` records.
+  `WorldState` no longer derives max volume, temperature, or pressure from
+  metadata; constitution checks and operation payload validation now read the
+  current vessel record, and metadata vessel-bound keys are rejected.
 - Promoted phase-system readiness, settled status, and selected-phase state out
   of runtime metadata into typed `PhaseLedger` records. Constitution
   preconditions now read `PhaseRecord.settled/selected`, extraction,
