@@ -132,6 +132,32 @@ python scripts/update_golden_trajectories.py
 测试会覆盖正常轨迹、篡改 observation score、以及非 final assay 暴露 leaderboard score
 三类情况。
 
+## Replay Verifier Hardening
+
+`chemworld.eval.verify_records(records)` 是提交轨迹进入评测前的 replay gate。它会用
+`task_id + seed + scenario/mechanism/task/profile/scoring hash + action sequence`
+重新创建环境并逐步执行 action，然后比较：
+
+- reward；
+- public observation；
+- terminated / truncated；
+- mechanism hash；
+- task contract hash；
+- runtime profile hash；
+- scoring contract hash；
+- observation contract hash；
+- operation type、kernel id、kernel version；
+- affected ledgers；
+- world events；
+- state patch summary；
+- state delta summary；
+- transaction status 和 rollback reason；
+- constitution checks。
+
+预发布测试覆盖 reward 篡改、observation 篡改、首行和中途 contract hash 篡改、mechanism
+hash 篡改、profile hash 篡改、transaction metadata 篡改、state patch summary 篡改，以及
+early termination 轨迹重放。
+
 ## 发布产物
 
 正式 release 应包含：

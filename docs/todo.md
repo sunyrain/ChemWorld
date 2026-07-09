@@ -6,20 +6,20 @@
 
 | 范围 | 总数 | 已完成 | 已认领 | 待做 | 剩余 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| P0 Pre-release benchmark hardening | 12 | 7 | 0 | 5 | 5 |
+| P0 Pre-release benchmark hardening | 12 | 8 | 0 | 4 | 4 |
 | P1 Runtime and environment consistency | 8 | 4 | 0 | 4 | 4 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 5 | 5 |
-| Total | 58 | 11 | 3 | 44 | 47 |
+| Total | 58 | 12 | 3 | 43 | 46 |
 
 ## 当前优先级
 
-1. `P0-BENCH-07`: harden replay verifier.
-2. `P0-BENCH-09`: build local teacher/student evaluation smoke.
-3. `P1-CONSIST-05`: audit campaign vs single-experiment semantics.
-4. `P0-BENCH-10`: produce benchmark paper artifact skeleton.
-5. `P0-BENCH-11`: add CI-like local release command.
+1. `P0-BENCH-09`: build local teacher/student evaluation smoke.
+2. `P1-CONSIST-05`: audit campaign vs single-experiment semantics.
+3. `P0-BENCH-10`: produce benchmark paper artifact skeleton.
+4. `P0-BENCH-11`: add CI-like local release command.
+5. `P0-BENCH-12`: write pre-release limitations statement.
 
 ## 协作规则
 
@@ -33,7 +33,7 @@
 
 第一阶段公开预发布不要求完成全部 58 项。真正阻塞发布的是 P0/P1：
 
-- P0/P1 剩余 9 项，是 benchmark trust 的核心。
+- P0/P1 剩余 8 项，是 benchmark trust 的核心。
 - P2/P4 剩余 11 项，是可用性和文档包装。
 - P3 剩余 27 项，是长期专业物理化学深化。
 

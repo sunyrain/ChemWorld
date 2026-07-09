@@ -10,9 +10,9 @@ claimed, updated, and completed here.
 
 当前仍未完成的工作量：
 
-- 47 total remaining items.
-- 9 immediate P0/P1 benchmark-trust items.
-- 20 public pre-release items across P0/P1/P2/P4.
+- 46 total remaining items.
+- 8 immediate P0/P1 benchmark-trust items.
+- 19 public pre-release items across P0/P1/P2/P4.
 - 27 long-horizon P3 professional-physics deepening items.
 
 判断口径：
@@ -26,17 +26,17 @@ claimed, updated, and completed here.
 
 | Scope | Total | Done | Active | Claimed | Open | Remaining |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| P0 Pre-release benchmark hardening | 12 | 7 | 0 | 0 | 5 | 5 |
+| P0 Pre-release benchmark hardening | 12 | 8 | 0 | 0 | 4 | 4 |
 | P1 Runtime and environment consistency | 8 | 4 | 0 | 0 | 4 | 4 |
 | P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
 | P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
-| Total | 58 | 11 | 0 | 3 | 44 | 47 |
+| Total | 58 | 12 | 0 | 3 | 43 | 46 |
 
 Immediate release target:
 
-- Finish P0 and P1 first: 9 remaining items.
-- Finish P0, P1, P2, and P4 for a usable public pre-release package: 20
+- Finish P0 and P1 first: 8 remaining items.
+- Finish P0, P1, P2, and P4 for a usable public pre-release package: 19
   remaining items.
 - P3 is the long professional-physics backlog: 27 remaining items. Pull from it
   only when it directly strengthens a benchmark task or replaces a declared
@@ -121,7 +121,7 @@ Frozen core tasks:
 | P0-BENCH-04 | Codex | Done | Calibrate BO budgets and initial samples | BO acquisition diagnostics are recorded in agent traces, metrics, baseline summaries, tests, and docs; GP-BO/safe GP-BO enter acquisition under default budgets and outperform random without saturating score |
 | P0-BENCH-05 | Codex | Done | Lock golden trajectories | `tests/fixtures/golden/pre_release_scripted_trajectories.json` locks scripted trajectories for `reaction-to-assay`, `reaction-to-purification`, and `partition-discovery`; tests regenerate summaries from `scripted_chemistry` and compare actions, observations, rewards, transaction metadata, final assay output, and final metrics |
 | P0-BENCH-06 | Codex | Done | Audit scoring contracts | `audit_scoring_contract` recomputes `obs["score"]`, `reward`, `observed_reward`, final-assay `leaderboard_score`, processed metric alignment, `scoring_contract_hash`, and `evaluate_records.final_best_score` for the three frozen pre-release tasks; tampered score and non-final leaderboard score are rejected |
-| P0-BENCH-07 |  | Open | Harden replay verifier | Verify catches tampered mechanism hash, scoring hash, profile hash, reward, observation, and transaction summary |
+| P0-BENCH-07 | Codex | Done | Harden replay verifier | `verify_records` catches tampered mechanism hash, scoring hash, profile hash, reward, observation, operation metadata, runtime transaction status, world events, state patch summaries, and early-termination replay drift; tests cover first-record and mid-trajectory contract hash tampering |
 | P0-BENCH-08 | Codex | Done | Build one valid submission bundle example | `chemworld submission example` and `examples/demo_submission_bundle.py` generate a bundle with `manifest.json`, trajectories, results, explanations, dependency notes, README, reproducible command, validation, summary, and replay verification |
 | P0-BENCH-09 |  | Open | Build local teacher/student evaluation smoke | Teacher-side validate -> verify -> evaluate -> summarize works on one simulated student sandbox |
 | P0-BENCH-10 |  | Open | Produce benchmark paper artifact skeleton | Includes task contracts, baseline report, dataset card, replay manifest, and release checklist |
@@ -211,11 +211,11 @@ behavior.
 
 Do these next, in order:
 
-1. `P0-BENCH-07`: harden replay verifier.
-2. `P0-BENCH-09`: build local teacher/student evaluation smoke.
-3. `P1-CONSIST-05`: audit campaign vs single-experiment semantics.
-4. `P0-BENCH-10`: produce benchmark paper artifact skeleton.
-5. `P0-BENCH-11`: add CI-like local release command.
+1. `P0-BENCH-09`: build local teacher/student evaluation smoke.
+2. `P1-CONSIST-05`: audit campaign vs single-experiment semantics.
+3. `P0-BENCH-10`: produce benchmark paper artifact skeleton.
+4. `P0-BENCH-11`: add CI-like local release command.
+5. `P0-BENCH-12`: write pre-release limitations statement.
 
 This sequence reduces the highest public benchmark risk first: baseline
 credibility, agent-facing action clarity, submission reproducibility, seed

@@ -43,6 +43,7 @@ python -m mkdocs build --strict
 - 无效操作、约束 flags、termination/truncation 规则清楚。
 - 三项 pre-release core task 的 golden trajectory fixture 通过测试，并且任何 fixture 更新都经过人工 diff 审查。
 - 三项 pre-release core task 的 scoring contract audit 通过，且能拒绝篡改后的公开 score、错误 scoring hash、以及非 final assay 暴露的 leaderboard score。
+- Replay verifier 能拒绝篡改后的 mechanism hash、task/profile/scoring/observation hash、reward、observation、transaction status、world events 和 state patch summary。
 
 ## Baseline 产物
 
