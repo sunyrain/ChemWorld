@@ -1,56 +1,70 @@
-# ChemWorld TODO
+# ChemWorld Unified TODO
 
 最后更新：2026-07-09
 
 本文件是 ChemWorld 唯一活跃任务板。所有开发、发布、专业物理模型深化、notebook、站点和本地评测机任务都收束到这里。`docs/todo.md` 只保留公开摘要，不作为第二份工作板维护。
 
-## 当前统计
+## 1. 当前结论
 
-| 阶段 | 目标 | 总数 | 已完成 | 已认领 | 待开始 | 剩余 |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| P0 | 预发布 benchmark hardening | 12 | 12 | 0 | 0 | 0 |
-| P1 | runtime 与环境自洽性 | 8 | 8 | 0 | 0 | 0 |
-| P2 | agent-facing 交互与数据集 | 6 | 0 | 0 | 6 | 6 |
-| P3 | 专业物理化学深化 | 27 | 0 | 3 | 24 | 27 |
-| P4 | 文档、notebook、站点与发布包装 | 5 | 0 | 0 | 5 | 5 |
-| **合计** |  | **58** | **20** | **3** | **35** | **38** |
+ChemWorld 当前已经完成 **最小可信 benchmark** 的 P0/P1 收束：核心任务、baseline、submission、replay、release gate、runtime boundary audit、ledger audit、public leakage audit 和环境自洽性审计已经闭环。
 
-还需要完成 **38 项**。其中 **35 项尚未开始**，**3 项已由 liyijun 认领但未完成**。
+下一步不应继续扩散新概念，而是完成两个方向：
 
-## 阶段判断
+1. **公开预发布包**：P2 agent-facing 交互与数据集、P4 文档/notebook/站点。
+2. **长期专业化路线**：P3 专业物理化学模块深化，每个模块必须有 maturity、适用范围、验证算例和失败边界。
 
-当前 ChemWorld 已经越过“功能入口不足”的阶段，重点转为 **benchmark trust hardening**：
+## 2. 当前统计
 
-- P0 已完成：三项预发布任务、baseline、replay、submission、artifact、release gate 已具备。
-- P1 已完成：runtime boundary scan 已纳入自动审计，最小可信 benchmark 的结构审计闭环基本成立。
-- P2 和 P4 是公开预发布的主要缺口：agent 交互层、数据导出、教程和站点需要收束。
-- P3 是长期专业化路线：不阻塞第一版预发布，但每个模块必须带 maturity、适用范围、验证算例和失败边界。
+| 阶段 | 目标 | 总数 | Done | Claimed | Open | Blocked | 剩余 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| P0 | 预发布 benchmark hardening | 12 | 12 | 0 | 0 | 0 | 0 |
+| P1 | runtime 与环境自洽性 | 8 | 8 | 0 | 0 | 0 | 0 |
+| P2 | agent-facing 交互与数据集 | 6 | 0 | 0 | 6 | 0 | 6 |
+| P3 | 专业物理化学深化 | 27 | 0 | 3 | 24 | 0 | 27 |
+| P4 | 文档、notebook、站点与发布包装 | 5 | 0 | 0 | 5 | 0 | 5 |
+| **合计** |  | **58** | **20** | **3** | **35** | **0** | **38** |
 
-## Cutline
+还需要完成 **38 项**：
 
-| Cutline | 剩余 | 定义 |
+- **11 项**用于公开预发布：P2 全部 6 项 + P4 全部 5 项。
+- **27 项**用于长期专业化深化：P3 全部 27 项，其中 3 项已由 `liyijun` 认领。
+- 当前没有 `Active` 或 `Blocked` 项。
+
+## 3. Cutline
+
+| Cutline | 还差 | 判定标准 |
 | --- | ---: | --- |
-| 最小可信 benchmark | 0 | 完成全部 P0/P1。任务、runtime、ledger、observation、scoring、replay 和公开边界通过审计。 |
-| 可公开预发布包 | 11 | 完成 P0/P1/P2/P4。外部用户可安装、运行、提交、阅读文档并复现实验。 |
-| 全部可见路线图 | 38 | 包含长期 P3 专业物理化学深化。P3 不阻塞预发布，除非某项冻结任务明确依赖。 |
+| 最小可信 benchmark | 0 | P0/P1 全部完成。任务、runtime、ledger、observation、scoring、replay 和公开边界通过审计。 |
+| 可公开预发布包 | 11 | 完成 P2/P4。外部用户能安装、运行、提交、阅读文档、复现实验、理解限制。 |
+| 全部可见路线图 | 38 | 完成 P2/P3/P4。包含长期专业物理化学模块深化。 |
 
-## 下一执行队列
+## 4. 推荐执行顺序
+
+第一优先级是公开预发布包：
 
 1. `P2-AGENT-01`：polish `task_prompt()` for the three pre-release tasks。
 2. `P2-AGENT-02`：improve lab-report summaries。
 3. `P2-AGENT-03`：stabilize RL observation view。
 4. `P2-AGENT-04`：add agent trace to dataset export examples。
-5. `P4-DOCS-01`：reorganize docs around pre-release benchmark。
+5. `P2-AGENT-05`：multi-round ToolUsingLLMStub probe。
+6. `P2-AGENT-06`：LLMReplay benchmark fixture。
+7. `P4-DOCS-01`：reorganize docs around pre-release benchmark。
+8. `P4-DOCS-02`：build concise architecture report from current code。
+9. `P4-DOCS-03`：harden 12-day tutorial workload。
+10. `P4-DOCS-04`：add three end-to-end notebooks。
+11. `P4-DOCS-05`：finalize release checklist page。
 
-## 协作规则
+P3 不阻塞公开预发布。只有当某个 P3 项被明确纳入 release freeze 时，才提升到第一优先级。
+
+## 5. 协作规则
 
 - 默认在 `main` 开发。
-- 开始非平凡任务前先拉取远端。
+- 开始非平凡任务前先 `git pull --ff-only origin main`。
 - 一次只把一个任务标为 `Active`。
-- 任务完成后立即更新本文件，运行相关门禁，提交并推送。
-- 不重复实现别人已标记为 `Claimed` 的任务，除非明确重新分配。
-- 不维护第二份活跃 TODO。
-- 不把 `proxy`、`lite` 或 `professional-candidate` 写成 `professional`。
+- 已由别人标为 `Claimed` 的任务不要重复实现，除非明确重新分配。
+- 完成一个任务后立即更新本文件、运行相关门禁、提交并推送。
+- `docs/todo.md` 只同步摘要，不作为第二份任务板。
+- 不把 `proxy`、`lite`、`reference_validated` 或 `professional-candidate` 混写成 `professional`。
 - 每个 `Done` 项必须有代码、测试、文档，或明确的 no-test rationale。
 
 状态定义：
@@ -64,9 +78,9 @@
 | Done | 已实现、已验证、已更新 TODO、已推送 |
 | Blocked | 有明确阻塞条件 |
 
-## 当前系统基线
+## 6. 当前系统基线
 
-当前可作为基线的能力：
+已具备能力：
 
 - 正式 Gymnasium 入口是 `gym.make("ChemWorld", task_id=...)`。
 - 所有正式 task 指向同一个 `world_law_id`。
@@ -79,13 +93,13 @@
 
 边界声明：
 
-- ChemWorld 不是真实反应预测软件。
+- ChemWorld 不是实际反应预测软件。
 - ChemWorld 不是完整流程模拟器。
-- ChemWorld 还不是通用化学世界模型。
+- ChemWorld 当前还不是通用化学 world model。
 - ChemWorld 当前是机制驱动、可交互、可回放、可评测的虚拟物理化学 benchmark 环境。
 - P3 professional deepening 是长期工作，必须带明确 maturity label、验证算例和失败边界。
 
-## P0 - 预发布 Benchmark Hardening
+## 7. P0 - 预发布 Benchmark Hardening
 
 目标：让第一版公开 benchmark 小而可信，可复现、可提交、可引用。
 
@@ -110,7 +124,7 @@
 | P0-BENCH-11 | Codex | Done | Add CI-like local release command | `scripts/run_release_gate.py` runs lint, type check, tests, docs build, full environment audit, and baseline smoke. |
 | P0-BENCH-12 | Codex | Done | Write pre-release limitations statement | Docs and paper artifacts include a virtual semi-mechanistic scope, maturity boundary, non-real-predictor statement, proxy/lite surface, and release-gate requirement. |
 
-## P1 - Runtime 与环境自洽性
+## 8. P1 - Runtime 与环境自洽性
 
 目标：actions、ledgers、observations、spectra、scoring、logs、replay 和 docs 必须互相一致。
 
@@ -125,7 +139,7 @@
 | P1-CONSIST-07 | Codex | Done | Public observation leakage audit | `audit_public_payload()` scans reset info, task info, observations, step info, tool JSON, lab reports, agent views, spectra labels, and JSONL trajectories; public task info no longer exposes mechanism manifest, reactions, compiled mechanism, mechanism observable mapping, hidden scenario seeds, hidden species ids, or rate constants unless `debug_truth=True`; full environment audit reports `public_leakage_failures=0`. |
 | P1-CONSIST-08 | Codex | Done | Runtime boundary scan | `scripts/audit_runtime_boundary.py` and `audit_runtime_boundaries()` verify that `ChemWorldEnv` delegates valid and invalid actions to runtime transactions, does not access `runtime.domain_services`, does not branch on specific operation names inside `step()`, and runtime-facing source does not import legacy `chemworld.core` modules. |
 
-## P2 - Agent-Facing 交互与数据集
+## 9. P2 - Agent-Facing 交互与数据集
 
 目标：RL、BO、LLM 和学生 agent 不需要读内部源码，也能规划、验证、执行、恢复和复现。
 
@@ -138,7 +152,7 @@
 | P2-AGENT-05 |  | Open | Multi-round ToolUsingLLMStub probe | At least one task runs 12+ decision rounds over seeds 0/1/2 with best-score AUC and invalid-action recovery metrics. |
 | P2-AGENT-06 |  | Open | LLMReplay benchmark fixture | A fixed reasoning/action trace replays deterministically and is usable as a public baseline artifact. |
 
-## P3 - 专业物理化学深化
+## 10. P3 - 专业物理化学深化
 
 目标：把 proxy/lite 物理化学模块逐步替换为范围明确、可审计、可验证的专业模型切片。
 
@@ -178,7 +192,7 @@
 | DEEP-D11D |  | Open | Double-layer and capacitive-current slice | RC transient, non-Faradaic current, startup artifacts, current-trace observations. |
 | DEEP-D11E |  | Open | Electrochemical scenario cards | Redox metadata, electrode area, electrolyte window, side-reaction thresholds, hidden-parameter generation. |
 
-## P4 - 文档、Notebook、站点与发布包装
+## 11. P4 - 文档、Notebook、站点与发布包装
 
 目标：让外部用户能快速理解稳定能力，并能完成端到端实验复现。
 
@@ -190,7 +204,18 @@
 | P4-DOCS-04 |  | Open | Add three end-to-end notebooks | Reaction-to-assay, reaction-to-purification, and partition-discovery each show planning, execution, spectra, metrics, and reflection. |
 | P4-DOCS-05 |  | Open | Finalize release checklist page | Includes gates, artifacts, known limitations, private-eval policy, and citation instructions. |
 
-## 已合并并废弃的旧任务板
+## 12. 任务门禁
+
+按任务类型运行对应检查：
+
+| 任务类型 | 必跑检查 |
+| --- | --- |
+| Python/runtime | `python -m ruff check .`; `python -m mypy src/chemworld`; `python -m pytest` |
+| Env/benchmark/replay | 上述检查 + `python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2` |
+| Docs/site | `python -m mkdocs build --strict` |
+| Release-level | `python scripts/run_release_gate.py` |
+
+## 13. 已合并并废弃的旧任务板
 
 以下任务板已合并到本文件，不再单独维护：
 

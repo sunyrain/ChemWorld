@@ -1,23 +1,31 @@
 # 统一任务板摘要
 
-活跃任务源只有仓库根目录的 `TODO.md`。本页只给站点读者一个当前状态摘要，避免维护两套任务板。
+活跃任务源只有仓库根目录的 `TODO.md`。本页只给站点读者提供当前状态摘要，避免维护两套任务板。
 
-## 当前阶段
+## 当前判断
 
-ChemWorld 当前处在 **benchmark trust hardening** 收束阶段。P0 预发布 benchmark hardening 和 P1 runtime / environment self-consistency 已完成；下一步重点转入 P2 agent-facing 交互和 P4 站点、notebook、发布包装。
+ChemWorld 已完成 **最小可信 benchmark** 的 P0/P1 收束：核心任务、baseline、submission、replay、release gate、runtime boundary audit、ledger audit、public leakage audit 和环境自洽性审计已经闭环。
+
+下一步分两条线：
+
+- **公开预发布包**：完成 P2 agent-facing 交互与数据集、P4 文档/notebook/站点。
+- **长期专业化路线**：推进 P3 专业物理化学模块深化，每个模块必须有 maturity、适用范围、验证算例和失败边界。
 
 ## 当前统计
 
-| 阶段 | 目标 | 总数 | 已完成 | 已认领 | 待开始 | 剩余 |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| P0 | 预发布 benchmark hardening | 12 | 12 | 0 | 0 | 0 |
-| P1 | runtime 与环境自洽性 | 8 | 8 | 0 | 0 | 0 |
-| P2 | agent-facing 交互与数据集 | 6 | 0 | 0 | 6 | 6 |
-| P3 | 专业物理化学深化 | 27 | 0 | 3 | 24 | 27 |
-| P4 | 文档、notebook、站点与发布包装 | 5 | 0 | 0 | 5 | 5 |
-| **合计** |  | **58** | **20** | **3** | **35** | **38** |
+| 阶段 | 目标 | 总数 | Done | Claimed | Open | Blocked | 剩余 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| P0 | 预发布 benchmark hardening | 12 | 12 | 0 | 0 | 0 | 0 |
+| P1 | runtime 与环境自洽性 | 8 | 8 | 0 | 0 | 0 | 0 |
+| P2 | agent-facing 交互与数据集 | 6 | 0 | 0 | 6 | 0 | 6 |
+| P3 | 专业物理化学深化 | 27 | 0 | 3 | 24 | 0 | 27 |
+| P4 | 文档、notebook、站点与发布包装 | 5 | 0 | 0 | 5 | 0 | 5 |
+| **合计** |  | **58** | **20** | **3** | **35** | **0** | **38** |
 
-还需要完成 **38 项**。其中 **35 项尚未开始**，**3 项已由 liyijun 认领但未完成**。
+还需要完成 **38 项**：
+
+- **11 项**用于公开预发布：P2 全部 6 项 + P4 全部 5 项。
+- **27 项**用于长期专业化深化：P3 全部 27 项，其中 3 项已由 `liyijun` 认领。
 
 ## 下一执行队列
 
@@ -25,14 +33,16 @@ ChemWorld 当前处在 **benchmark trust hardening** 收束阶段。P0 预发布
 2. `P2-AGENT-02`：improve lab-report summaries。
 3. `P2-AGENT-03`：stabilize RL observation view。
 4. `P2-AGENT-04`：add agent trace to dataset export examples。
-5. `P4-DOCS-01`：reorganize docs around pre-release benchmark。
+5. `P2-AGENT-05`：multi-round ToolUsingLLMStub probe。
+6. `P2-AGENT-06`：LLMReplay benchmark fixture。
+7. `P4-DOCS-01`：reorganize docs around pre-release benchmark。
 
 ## Cutline
 
-| Cutline | 剩余 | 定义 |
+| Cutline | 还差 | 判定标准 |
 | --- | ---: | --- |
-| 最小可信 benchmark | 0 | 完成全部 P0/P1。 |
-| 可公开预发布包 | 11 | 完成 P0/P1/P2/P4。 |
-| 全部可见路线图 | 38 | 包含长期 P3 专业物理化学深化。 |
+| 最小可信 benchmark | 0 | P0/P1 全部完成。 |
+| 可公开预发布包 | 11 | 完成 P2/P4。 |
+| 全部可见路线图 | 38 | 完成 P2/P3/P4。 |
 
 详细任务、owner、验收标准和状态以根目录 `TODO.md` 为准。
