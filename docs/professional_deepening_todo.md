@@ -1,34 +1,23 @@
-# 专业化深化 TODO
+# 专业化深化 TODO 归档
 
-本页对应更长期的专业化深化路线。它位于基础工程收束之后，目标是把 ChemWorld 从可控
-虚拟 benchmark 推向更有化学可信度的 research environment。
+本页不再作为活跃任务板使用。
 
-## 操作规则
+当前唯一活跃任务板是仓库根目录的 `TODO.md`。专业化深化任务已经并入其中的
+`P3 Professional PhysChem Deepening`。
 
-- 先稳定 public API 和任务合同，再深化物理模块。
-- 每个新增专业模块必须声明 maturity 和验证证据。
-- 不把重型 backend 变成默认依赖。
-- 所有深化工作都应保持 replay、trajectory 和评测协议兼容。
+## 当前使用规则
 
-## 活跃深化工作
+- 计划、认领、完成状态和剩余工作量只更新根目录 `TODO.md`。
+- 本页仅保留归档说明，避免站点读者看到过期乱码或过期路线。
+- 专业化深化任务不阻塞第一个 public benchmark pre-release，除非它直接影响冻结任务的可信度。
 
-- 物性核心：密度、摩尔体积、扩散、黏度、热容等。
-- 相平衡：分配、液液平衡、汽液平衡。
-- 反应网络：机制库、速率模型、副反应和降解。
-- 单元操作：萃取、结晶、蒸馏、反应器。
-- 仪器：虚拟光谱、噪声、校准和观测代价。
+## 深化工作的边界
 
-## 模块家族
+专业化深化的目标不是一次性实现完整化工流程模拟器，而是逐一替换当前明确声明的 proxy/lite surface。每个深化任务都应满足：
 
-- `properties`
-- `phase_equilibrium`
-- `reaction_network`
-- `reactor_models`
-- `separation_units`
-- `spectroscopy`
-- `validation_backends`
+- 范围小且可审计；
+- 有物理假设、适用边界和 maturity 标记；
+- 有测试或参考案例；
+- 不破坏 Gym API、trajectory replay、task cards 和 benchmark 复现。
 
-## 第一批候选
-
-优先选择能显著改善 task realism、同时不破坏 benchmark 可复现性的模块。建议从分配/
-相平衡、反应选择性和仪器噪声模型开始。
+详细任务以根目录 `TODO.md` 为准。

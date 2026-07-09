@@ -1,68 +1,28 @@
-# 专业化 TODO
+# 专业化 TODO 归档
 
-本页概括 ChemWorld 从 research benchmark 走向更专业物理化学环境的长期路线。根目录
-`TODO_PROFESSIONAL.md` 可作为更细的开发任务源；发布站点保留中文化摘要。
+本页不再作为活跃任务板使用。
 
-## 规则
+当前唯一活跃任务板是仓库根目录的 `TODO.md`。其中已经把专业化路线收束到
+`P3 Professional PhysChem Deepening`，并给出了 owner、status、退出标准和剩余工作量统计。
 
-- 不把 qualitative proxy 伪装成真实物理模型。
-- 每个专业模块必须有 maturity、参考来源和验证范围。
-- 先接小而可审计的专业 slice，再考虑重型 backend。
-- 默认安装保持轻量，optional backend 作为验证层存在。
-- 任何专业化提升都不能破坏 Gym API、trajectory replay 和 task cards。
+## 为什么归档
 
-## 模块队列
+早期项目同时存在多个 TODO 文件，适合快速发散，但不适合后续协作和发布前收束。现在项目管理规则是：
 
-| 专业方向 | 参考目标 | 首个加固目标 |
-| --- | --- | --- |
-| 物性 | `chemicals`、`thermo`、DIPPR/Perry | 蒸气压、热容、液体体积、输运性质 |
-| 反应动力学 | `Cantera`、`RMG-Py` | 热化学、详细平衡、ODE 验证 |
-| 反应器 | IDAES、Cantera examples | CSTR、batch、热释放、multiple steady states |
-| 相平衡 | teqp、thermopack、phasepy | cubic EOS、activity model、flash/VLE |
-| 分离 | IDAES、shortcut distillation | FUG、蒸馏、萃取、结晶 |
-| 仪器 | 分析化学参考 | UV-vis、HPLC/GC、IR/NMR 的 benchmark kernel |
-| 电化学 | Nernst/Butler-Volmer 基础 | equilibrium potential、energy efficiency |
+- 所有新任务只写入根目录 `TODO.md`；
+- 旧专业化 TODO 只作为历史参考；
+- 不再维护多个并列工作板；
+- 不把 proxy/lite 实现标记为 professional。
 
-## 第一批 Professional Queue
+## 当前专业化方向
 
-优先处理对任务质量影响最大、实现边界清楚、验证成本低的 slice：
+专业化工作仍然重要，但优先级低于 P0/P1 的 benchmark 可信度建设。当前长期方向包括：
 
-- curated vapor-pressure path；
-- ideal-gas heat capacity；
-- Rackett liquid volume；
-- compact transport reporting；
-- reference-validated reaction ODE；
-- shortcut distillation；
-- UV-vis calibration；
-- HPLC/GC retention summary；
-- cubic EOS report；
-- Gibbs minimization 小场景。
+- 组分身份、单位维度和数据冲突策略；
+- 相平衡、萃取、闪蒸、结晶和分离单元；
+- 热化学、可逆反应、压力相关动力学和反应器模型；
+- 谱图、HPLC/GC、NMR、MS 等仪器观测；
+- 电化学、传质限制、电位/电流控制和场景卡；
+- solver/provenance manifest 和 reference baseline 报告。
 
-## 完成度条
-
-当前不是“已完成专业化”，而是“已有若干可审计专业 slice”。发布时应使用谨慎表述：
-
-```text
-foundation/lite with selected reference-validated slices
-```
-
-## 当前实现
-
-已经存在的实现方向包括：
-
-- 物性报告 API：蒸气压、热容、密度/摩尔体积、输运性质。
-- 反应网络：反应 spec、ODE、热化学、敏感性 hook。
-- 反应器：CSTR、batch、热释放和局部验证。
-- 相平衡：cubic EOS、Raoult-style VLE、UNIQUAC 入口。
-- 分离：shortcut distillation 和 ledger 集成。
-- 仪器：UV-vis、HPLC/GC、虚拟谱图接口。
-- 电化学：equilibrium potential、measured cell potential、能效摘要。
-- 参考 backend：可选校验，不作为默认依赖。
-
-## 发布表述
-
-推荐写法：
-
-> ChemWorld 是一个可控虚拟化学交互 benchmark，包含若干经过参考阅读或局部校准的
-> 物理化学 slice；它不是完整流程模拟器、数据库驱动 speciation solver 或真实实验
-> 控制系统。
+详细任务以根目录 `TODO.md` 为准。

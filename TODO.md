@@ -1,101 +1,78 @@
-# ChemWorld Master TODO
+# ChemWorld TODO List
 
-Last consolidated: 2026-07-09
+Last updated: 2026-07-09
 
-This is the single active TODO for ChemWorld. Older detailed boards
-(`TODO_PROFESSIONAL.md` and `TODO_PROFESSIONAL_DEEPENING.md`) are reference
-archives only. New work should be claimed, updated, completed, and counted in
-this file.
+This file is the only active project board for ChemWorld. The older root files
+`TODO_PROFESSIONAL.md` and `TODO_PROFESSIONAL_DEEPENING.md`, plus their docs
+copies, are reference archives. Do not use them as live task boards.
 
-Current board size:
+## Current Count
 
-- 58 active items total.
-- 4 items done.
-- 54 items remaining: 51 open, 3 claimed.
-- First release target: finish P0 and P1, which currently leaves 16 items.
-- Full pre-release package target: finish P0, P1, P2, and P4, which currently
-  leaves 27 items.
-- Professional deepening backlog: 27 items, including 3 already claimed by
-  `liyijun`.
+| Scope | Total | Done | Active | Claimed | Open | Remaining |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| P0 Pre-release benchmark hardening | 12 | 2 | 1 | 0 | 9 | 10 |
+| P1 Runtime and environment consistency | 8 | 2 | 0 | 0 | 6 | 6 |
+| P2 Agent-facing interaction and datasets | 6 | 0 | 0 | 0 | 6 | 6 |
+| P3 Professional physchem deepening | 27 | 0 | 0 | 3 | 24 | 27 |
+| P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
+| Total | 58 | 4 | 1 | 3 | 50 | 54 |
+
+Immediate release target:
+
+- Finish P0 and P1 first: 16 remaining items.
+- Finish P0, P1, P2, and P4 for a usable public pre-release package: 27
+  remaining items.
+- P3 is the long professional-physics backlog: 27 remaining items. Pull from it
+  only when it directly strengthens a benchmark task or replaces a declared
+  proxy/lite limitation.
 
 ## Current Position
 
-ChemWorld is now a unified `ChemWorld` Gymnasium environment with Runtime v2,
-typed ledgers, mechanism-driven reaction integration, task contracts, agent-facing
-views, replay verification, dataset export hooks, and a published MkDocs site.
+ChemWorld currently has:
 
-The next phase is not to add more surface area. The next phase is to harden a
-small pre-release benchmark until outside users can trust, reproduce, and submit
-against it.
+- one formal Gymnasium entrypoint: `gym.make("ChemWorld", task_id=...)`;
+- a unified task registry and shared `world_law_id`;
+- Runtime v2 with transactional records, typed ledgers, mechanism compilation,
+  operation kernels, domain services, observation kernels, scoring contracts,
+  replay verification, and task/profile/mechanism/scoring hashes;
+- agent-facing views for RL/tool JSON/lab report usage;
+- dataset export hooks and submission bundle infrastructure;
+- a published MkDocs site;
+- selected professional-candidate physchem slices, but not a fully rigorous
+  process simulator.
 
-## Work Rules For Fast Iteration
+The current bottleneck is not feature count. The bottleneck is benchmark trust:
+stable task contracts, calibrated baselines, replay/audit strength, submission
+examples, and clear limitations.
 
-- Pull `origin/main` before claiming work.
-- Claim exactly one concrete item by setting `Owner` and `Status`, then push.
-- If remote `TODO.md` changes while you are working, pull immediately and
-  update your local plan.
-- Finish one item, update this file, run relevant gates, commit, and push before
-  starting another.
-- If working alone, claiming can be skipped for very short tasks, but the
-  completed item still needs an owner in this table before commit.
-- Do not mark a proxy/lite implementation as professional.
+## Work Rules
+
+- Work from `main`.
+- Pull before starting a task.
+- Claim or mark exactly one item `Active` before doing nontrivial work.
+- Update this file immediately when a task is completed.
+- Push after every completed item.
+- Do not mark proxy/lite work as professional.
 - Do not copy source code from reference repositories.
-- Every completed item should include code, tests, docs or a short note saying
-  why docs are not needed.
+- Each done item must include code, tests, docs, or an explicit note that docs
+  are unnecessary.
 
-Status vocabulary:
+Status meanings:
 
 | Status | Meaning |
 | --- | --- |
-| Open | Ready to claim |
-| Claimed | Owner reserved the task and pushed the claim |
-| Active | Implementation is in progress |
+| Open | Ready to start |
+| Claimed | Reserved by an owner, implementation not started |
+| Active | Implementation in progress |
 | Review | Pushed and waiting for review |
-| Done | Complete, tested, documented, and pushed |
-| Blocked | Explicit blocker with handoff note |
-
-## Progress Summary
-
-Fresh consolidated board counts:
-
-| Area | Total | Done | Open | Claimed | Remaining | Notes |
-| --- | ---: | ---: | ---: | ---: | ---: | --- |
-| P0 Pre-release benchmark hardening | 12 | 2 | 10 | 0 | 10 | Highest priority |
-| P1 Runtime and environment consistency | 8 | 2 | 6 | 0 | 6 | Needed before public benchmark claims |
-| P2 Agent-facing interaction and datasets | 6 | 0 | 6 | 0 | 6 | Required for RL/BO/LLM users |
-| P3 Professional physchem deepening | 27 | 0 | 24 | 3 | 27 | Concrete slices from the deepening roadmap |
-| P4 Docs, notebooks, and release packaging | 5 | 0 | 5 | 0 | 5 | Keep site useful but do not let docs outrun code |
-| Total active board | 58 | 4 | 51 | 3 | 54 | First target: finish P0/P1 |
-
-Priority interpretation:
-
-1. Benchmark credibility requires P0 first.
-2. Public trust requires P1 immediately after or alongside P0.
-3. Agent usability requires P2 after the pre-release contract is stable.
-4. Site, notebooks, and release packaging should track code, not outrun it.
-5. P3 is the long professional-physics backlog; only pull from it when it
-   directly improves a benchmark task or replaces a declared proxy/lite gap.
-
-Historical implementation already completed:
-
-- unified `ChemWorld` entrypoint and task registry;
-- Runtime v2 transactional kernel architecture;
-- mechanism compiler and compiled reaction integrator;
-- typed phase, species, vessel, equipment, process, and instrument ledgers;
-- role-based spectra and public observation contracts;
-- task/profile/scoring/observation hashes in replay records;
-- dataset export hardening;
-- agent-facing API and wrappers;
-- major physchem lite/professional-candidate slices across properties, EOS,
-  reactions, reactors, separations, transport, spectroscopy, thermochemistry,
-  and electrochemistry;
-- GitHub Pages documentation deployment.
+| Done | Complete, tested, documented where needed, and pushed |
+| Blocked | Explicit blocker recorded in the task note |
 
 ## P0: Pre-Release Benchmark Hardening
 
-Goal: make three core tasks credible as a small benchmark release.
+Goal: make the first public benchmark small, reproducible, and credible.
 
-Recommended first tasks:
+Frozen core tasks:
 
 - `reaction-to-assay`
 - `reaction-to-purification`
@@ -106,7 +83,7 @@ Recommended first tasks:
 | P0-BENCH-01 | Codex | Done | Freeze the three-task pre-release contract | Task cards specify objective, budget, allowed operations, instruments, seeds, score metrics, safety limits, maturity tags, and expected qualitative behavior |
 | P0-BENCH-02 |  | Open | Build official seed suite | Public-dev/public-test seed lists and hidden-eval salt policy are documented and loaded by CLI |
 | P0-BENCH-03 | Codex | Done | Generate official baseline table | `chemworld baselines report` runs random, scripted, BO, safe BO, ToolUsingLLMStub, and LLMReplay across frozen task seeds; `baseline_summary_table.json` and docs report mean, stderr, invalid rate, final-assay count, and AUC |
-| P0-BENCH-04 |  | Open | Calibrate BO budgets and initial samples | BO agents enter acquisition phase under default benchmark budgets and are stronger than random without saturating score |
+| P0-BENCH-04 | Codex | Active | Calibrate BO budgets and initial samples | BO agents enter acquisition phase under default benchmark budgets and are stronger than random without saturating score |
 | P0-BENCH-05 |  | Open | Lock golden trajectories | Scripted trajectories for the three core tasks compare observations, reward/info, transaction metadata, and final metrics |
 | P0-BENCH-06 |  | Open | Audit scoring contracts | `obs["score"]`, final assay metrics, `leaderboard_score`, and task score contract recomputation agree |
 | P0-BENCH-07 |  | Open | Harden replay verifier | Verify catches tampered mechanism hash, scoring hash, profile hash, reward, observation, and transaction summary |
@@ -118,13 +95,13 @@ Recommended first tasks:
 
 ## P1: Runtime And Environment Consistency
 
-Goal: ensure actions, ledgers, observations, spectra, scoring, logs, and docs tell
-the same story.
+Goal: make actions, ledgers, observations, spectra, scoring, logs, replay, and
+docs tell the same story.
 
 | ID | Owner | Status | Task | Exit Criteria |
 | --- | --- | --- | --- | --- |
 | P1-CONSIST-01 | Codex | Done | Run and document environment self-consistency audit | Full audit covers 14 formal tasks over seeds 0/1/2 with complete task/profile/mechanism/scoring/observation hash coverage, replay verification, and documented warnings |
-| P1-CONSIST-02 | Codex | Done | Spectra-metric semantic alignment | Downstream final assay spectra now use selected-phase public species calibration; full audit reports zero spectra failures and zero spectra warnings |
+| P1-CONSIST-02 | Codex | Done | Spectra-metric semantic alignment | Downstream final assay spectra use selected-phase public species calibration; full audit reports zero spectra failures and zero spectra warnings |
 | P1-CONSIST-03 |  | Open | Action affordance consistency | `available_actions`, action mask, validator, task policy, and operation registry agree for every task |
 | P1-CONSIST-04 |  | Open | Invalid action atomicity | Schema/task/precondition failures do not mutate material ledgers and record explicit process/cost penalties where appropriate |
 | P1-CONSIST-05 |  | Open | Campaign vs single-experiment semantics audit | Final assay ends an experiment in campaign tasks but ends the episode only in single-experiment tasks |
@@ -149,8 +126,8 @@ requiring internal source reading.
 ## P3: Professional PhysChem Deepening
 
 Goal: replace remaining proxy/lite gaps with narrow, auditable, validated
-physical-chemistry slices. These are concrete tasks distilled from
-`TODO_PROFESSIONAL_DEEPENING.md`.
+physical-chemistry slices. These are long-horizon tasks, not blockers for the
+first benchmark pre-release unless a task contract depends on them.
 
 | ID | Owner | Status | Task | Exit Criteria |
 | --- | --- | --- | --- | --- |
@@ -184,7 +161,8 @@ physical-chemistry slices. These are concrete tasks distilled from
 
 ## P4: Docs, Notebooks, Site, And Release Packaging
 
-Goal: make the project legible without letting docs outrun tested behavior.
+Goal: make the project legible without letting documentation outrun tested
+behavior.
 
 | ID | Owner | Status | Task | Exit Criteria |
 | --- | --- | --- | --- | --- |
@@ -196,21 +174,26 @@ Goal: make the project legible without letting docs outrun tested behavior.
 
 ## Recommended Next Sprint
 
-Do these in order:
+Do these next, in order:
 
-1. `P0-BENCH-04` calibrate BO budgets and initial samples.
-2. `P1-CONSIST-03` audit action affordance consistency.
-3. `P0-BENCH-08` publish a valid submission bundle example.
-4. `P0-BENCH-02` build official seed suite.
-5. `P1-CONSIST-04` audit invalid action atomicity.
+1. `P0-BENCH-04`: finish BO calibration and acquisition-phase diagnostics.
+2. `P1-CONSIST-03`: audit action affordance consistency.
+3. `P0-BENCH-08`: publish a valid submission bundle example.
+4. `P0-BENCH-02`: build the official seed suite.
+5. `P1-CONSIST-04`: audit invalid action atomicity.
 
-Rationale: these five items convert ChemWorld from a rich internal prototype into
-a benchmark that an outside researcher can understand, run, and compare against.
+This sequence reduces the highest public benchmark risk first: baseline
+credibility, agent-facing action clarity, submission reproducibility, seed
+policy, and invalid-action trust.
 
-## Archived Detailed Boards
+## Deprecated Boards
 
-- `TODO_PROFESSIONAL.md`: broad professional-grade module roadmap and completed
-  first professional slices.
-- `TODO_PROFESSIONAL_DEEPENING.md`: detailed physchem deepening slices and
-  reference-reading contract.
-- Git history before 2026-07-09 preserves the long historical `TODO.md`.
+These files are no longer active planning surfaces:
+
+- `TODO_PROFESSIONAL.md`
+- `TODO_PROFESSIONAL_DEEPENING.md`
+- `docs/professional_todo.md`
+- `docs/professional_deepening_todo.md`
+
+They remain useful as historical references, but all new planning and progress
+accounting should happen in this file.
