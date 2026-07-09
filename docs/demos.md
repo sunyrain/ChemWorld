@@ -60,6 +60,7 @@ env.unwrapped.campaign_state()
 python examples/demo_agent_facing_api.py
 python examples/demo_llm_replay_harness.py
 python examples/demo_rl_vector_wrapper.py
+python examples/demo_dataset_agent_trace_export.py
 python examples/demo_submission_bundle.py
 ```
 

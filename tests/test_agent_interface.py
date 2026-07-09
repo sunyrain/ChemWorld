@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import gymnasium as gym
 import numpy as np
+from examples.demo_dataset_agent_trace_export import build_demo
 
 import chemworld  # noqa: F401
 from chemworld.agent_interface import rl_observation_spec
@@ -295,9 +297,33 @@ def test_tool_using_llm_stub_runs_agent_facing_tasks(tmp_path) -> None:
     assert history[-1].info["leaderboard_score"] is not None
     assert records[-1]["agent_view"]["lab_report"]["mode"] == "lab_report"
     assert records[-1]["agent_trace"]
+    latest_trace = records[-1]["agent_trace"][-1]
+    assert latest_trace["prompt_input"]
+    assert latest_trace["selected_action"]
+    assert latest_trace["validator_result"]
+    assert latest_trace["observation_summary"]
+    assert latest_trace["memory_note"]
     flattened = flatten_record(records[-1])
     assert "agent_view" in flattened
     assert "agent_trace" in flattened
+    assert flattened["agent_trace_step_count"] == len(records[-1]["agent_trace"])
+    assert json.loads(flattened["agent_trace_prompt_summary"])
+    assert json.loads(flattened["agent_trace_selected_action"])["operation"] == "measure"
+    assert json.loads(flattened["agent_trace_validation_result"])
+    assert json.loads(flattened["agent_trace_observation_summary"])
+    assert flattened["agent_trace_memory_note"]
+
+
+def test_dataset_agent_trace_export_demo(tmp_path) -> None:
+    summary = build_demo(tmp_path / "agent_trace_dataset_demo")
+    assert Path(summary["trajectory_path"]).exists()
+    assert summary["jsonl_export"]["record_count"] == summary["record_count"]
+    assert summary["agent_trace_step_count"] == summary["record_count"]
+    assert json.loads(summary["agent_trace_selected_action"])["operation"] == "measure"
+    assert json.loads(summary["agent_trace_validation_result"])
+    assert json.loads(summary["agent_trace_observation_summary"])
+    assert summary["agent_trace_memory_note"]
+    assert "Visible score" in summary["lab_report_text"]
 
 
 def test_llm_replay_agent_replays_action_trace(tmp_path) -> None:

@@ -53,9 +53,32 @@ def load_dataset_records(path: str | Path) -> list[dict[str, Any]]:
     return records
 
 
+def _latest_agent_trace_entry(record: dict[str, Any]) -> dict[str, Any]:
+    trace = record.get("agent_trace", [])
+    if not isinstance(trace, list) or not trace:
+        return {}
+    latest = trace[-1]
+    return latest if isinstance(latest, dict) else {}
+
+
+def _agent_trace_memory_note(entry: dict[str, Any]) -> str | None:
+    memory_note = entry.get("memory_note")
+    if memory_note not in {None, ""}:
+        return str(memory_note)
+    prompt_input = entry.get("prompt_input", {})
+    if not isinstance(prompt_input, dict):
+        return None
+    memory_summary = prompt_input.get("memory_summary", [])
+    if isinstance(memory_summary, list) and memory_summary:
+        return str(memory_summary[-1])
+    return None
+
+
 def flatten_record(record: dict[str, Any]) -> dict[str, Any]:
     observation = record.get("observation", {})
     flags = record.get("constraint_flags", {})
+    trace = record.get("agent_trace", [])
+    latest_trace = _latest_agent_trace_entry(record)
     return {
         "campaign_id": record.get("campaign_id"),
         "experiment_index": record.get("experiment_index"),
@@ -95,6 +118,26 @@ def flatten_record(record: dict[str, Any]) -> dict[str, Any]:
             sort_keys=True,
         ),
         "agent_trace": json.dumps(to_builtin(record.get("agent_trace", [])), sort_keys=True),
+        "agent_trace_step_count": len(trace) if isinstance(trace, list) else 0,
+        "agent_trace_prompt_summary": json.dumps(
+            to_builtin(latest_trace.get("prompt_input", {})),
+            sort_keys=True,
+        ),
+        "agent_trace_selected_action": json.dumps(
+            to_builtin(latest_trace.get("selected_action", {})),
+            sort_keys=True,
+        ),
+        "agent_trace_validation_result": json.dumps(
+            to_builtin(latest_trace.get("validator_result", {})),
+            sort_keys=True,
+        ),
+        "agent_trace_observation_summary": json.dumps(
+            to_builtin(latest_trace.get("observation_summary", {})),
+            sort_keys=True,
+        ),
+        "agent_trace_reasoning_summary": latest_trace.get("reasoning_summary"),
+        "agent_trace_hypothesis_note": latest_trace.get("hypothesis_note"),
+        "agent_trace_memory_note": _agent_trace_memory_note(latest_trace),
     }
 
 

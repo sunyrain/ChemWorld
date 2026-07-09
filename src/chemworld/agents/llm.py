@@ -351,6 +351,7 @@ class ToolUsingLLMStubAgent(BaseAgent):
                 "selected_action": action,
                 "reasoning_summary": self._reason_for_action(action),
                 "hypothesis_note": self._hypothesis_note(step),
+                "memory_note": self._memory[-1] if self._memory else "no prior observations",
             }
         )
         return action
