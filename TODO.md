@@ -1,28 +1,35 @@
-# ChemWorld 统一 TODO
+# ChemWorld Unified TODO
 
 Last updated: 2026-07-09
 
-This is the only active task board for ChemWorld. It replaces the earlier
-release, professionalization, and deepening TODO files. All new work must be
-claimed, updated, and completed here.
+This is the single active task board for ChemWorld. Earlier release,
+professionalization, and deepening task boards have been consolidated here.
+All planning, ownership, status updates, and completion accounting should use
+this file.
 
-## 1. Current Remaining Work
+## 1. Current Answer
 
-当前仍未完成的工作量：
+ChemWorld is not blocked by lack of features. It is blocked by benchmark trust:
+task contracts, replay, scoring, submission artifacts, user-facing docs, and
+clear maturity boundaries.
 
-- 45 total remaining items.
-- 7 immediate P0/P1 benchmark-trust items.
-- 18 public pre-release items across P0/P1/P2/P4.
-- 27 long-horizon P3 professional-physics deepening items.
+Current remaining work:
 
-判断口径：
+- 45 items remain out of 58.
+- 7 P0/P1 items block a credible pre-release benchmark.
+- 18 P0/P1/P2/P4 items remain for a usable public pre-release package.
+- 27 P3 items remain for long-term professional physical-chemistry deepening.
 
-- P0/P1 是公开预发布的信任层阻塞项。
-- P2 是 agent 可用性和 dataset/export 体验项，应该在 P0/P1 稳定后推进。
-- P3 是长期专业物理化学深化，不阻塞第一版公开预发布，除非某个冻结 task 明确依赖它。
-- P4 是文档、教程、站点和 release packaging。
+Release interpretation:
 
-## 2. Count
+- P0/P1 are the immediate benchmark-trust gates.
+- P2 makes the environment usable by RL, BO, LLM, and student agents.
+- P3 is long-horizon professional model deepening; it should not block the
+  first public pre-release unless a frozen benchmark task directly depends on
+  that model.
+- P4 is documentation, tutorial, site, and release packaging.
+
+## 2. Progress Count
 
 | Scope | Total | Done | Active | Claimed | Open | Remaining |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -33,33 +40,36 @@ claimed, updated, and completed here.
 | P4 Docs, notebooks, site, release packaging | 5 | 0 | 0 | 0 | 5 | 5 |
 | Total | 58 | 13 | 0 | 3 | 42 | 45 |
 
-Immediate release target:
+Near-term cutline:
 
-- Finish P0 and P1 first: 7 remaining items.
-- Finish P0, P1, P2, and P4 for a usable public pre-release package: 18
-  remaining items.
-- P3 is the long professional-physics backlog: 27 remaining items. Pull from it
-  only when it directly strengthens a benchmark task or replaces a declared
-  proxy/lite limitation.
+| Milestone | Remaining | Meaning |
+| --- | ---: | --- |
+| Benchmark trust minimum | 7 | Finish all P0/P1 items |
+| Public pre-release package | 18 | Finish P0/P1/P2/P4 |
+| Full visible roadmap | 45 | Finish all open and claimed items |
 
-## 3. Current Position
+## 3. Current System Position
 
 ChemWorld currently has:
 
 - one formal Gymnasium entrypoint: `gym.make("ChemWorld", task_id=...)`;
-- a unified task registry and shared `world_law_id`;
-- Runtime v2 with transactional records, typed ledgers, mechanism compilation,
-  operation kernels, domain services, observation kernels, scoring contracts,
-  replay verification, and task/profile/mechanism/scoring hashes;
-- agent-facing views for RL/tool JSON/lab report usage;
-- dataset export hooks and submission bundle infrastructure;
+- a unified task registry with a shared `world_law_id`;
+- Runtime v2 concepts: transactional records, typed ledgers, mechanism
+  compilation, operation kernels, domain services, observation kernels,
+  scoring contracts, replay verification, and task/profile/mechanism/scoring
+  hashes;
+- agent-facing views for RL, tool JSON, and lab-report usage;
+- dataset export hooks and submission-bundle infrastructure;
 - a published MkDocs site;
 - selected professional-candidate physchem slices, but not a fully rigorous
   process simulator.
 
-The current bottleneck is not feature count. The bottleneck is benchmark trust:
-stable task contracts, calibrated baselines, replay/audit strength, submission
-examples, and clear limitations.
+The next phase should not add many new tasks. It should harden the three frozen
+pre-release tasks:
+
+- `reaction-to-assay`
+- `reaction-to-purification`
+- `partition-discovery`
 
 ## 4. Work Rules
 
@@ -68,10 +78,11 @@ examples, and clear limitations.
 - Claim or mark exactly one item `Active` before doing nontrivial work.
 - Update this file immediately when a task is completed.
 - Push after every completed item.
+- Do not maintain a second active TODO file.
 - Do not mark proxy/lite work as professional.
 - Do not copy source code from reference repositories.
-- Each done item must include code, tests, docs, or an explicit note that docs
-  are unnecessary.
+- Each done item must include code, tests, docs, or an explicit no-test
+  rationale.
 
 Status meanings:
 
@@ -84,24 +95,27 @@ Status meanings:
 | Done | Complete, tested, documented where needed, and pushed |
 | Blocked | Explicit blocker recorded in the task note |
 
-## 5. Execution Cutline
-
-Public pre-release should not wait for every professional-physics item. The
-minimum credible release path is:
-
-1. Finish all P0 items.
-2. Finish all P1 items.
-3. Add enough P2/P4 work for external users to run, submit, inspect, and cite
-   the benchmark without reading internal source code.
-4. Keep P3 as visible maturity work, not as hidden release debt.
-
-Definition of done for any item:
+Definition of done:
 
 - implementation exists;
 - tests or an explicit no-test rationale exist;
 - docs are updated when behavior or workflow changes;
 - TODO status and count are updated;
 - change is committed and pushed.
+
+## 5. Recommended Next Sprint
+
+Do these next, in order:
+
+1. `P1-CONSIST-05`: audit campaign vs single-experiment semantics.
+2. `P0-BENCH-10`: produce benchmark paper artifact skeleton.
+3. `P0-BENCH-11`: add CI-like local release command.
+4. `P0-BENCH-12`: write pre-release limitations statement.
+5. `P1-CONSIST-06`: audit ledger single-source-of-truth.
+6. `P1-CONSIST-07`: audit public observation leakage.
+7. `P1-CONSIST-08`: scan runtime boundaries.
+
+This sequence reduces public benchmark risk before expanding model scope.
 
 ## P0: Pre-Release Benchmark Hardening
 
@@ -164,6 +178,9 @@ Goal: replace remaining proxy/lite gaps with narrow, auditable, validated
 physical-chemistry slices. These are long-horizon tasks, not blockers for the
 first benchmark pre-release unless a task contract depends on them.
 
+The three `liyijun` items are intentionally marked `Claimed`; they should not
+be duplicated by Codex unless explicitly reassigned.
+
 | ID | Owner | Status | Task | Exit Criteria |
 | --- | --- | --- | --- | --- |
 | DEEP-D1A | liyijun | Claimed | Component identity registry | Aliases, CAS/InChI-like placeholders, formula, charge, molecular weight, provenance, duplicate checks, JSON round-trip |
@@ -207,21 +224,7 @@ behavior.
 | P4-DOCS-04 |  | Open | Add three end-to-end notebooks | Reaction-to-assay, reaction-to-purification, and partition-discovery each show planning, execution, spectra, metrics, and reflection |
 | P4-DOCS-05 |  | Open | Finalize release checklist page | Includes gates, artifacts, known limitations, private-eval policy, and citation instructions |
 
-## Recommended Next Sprint
-
-Do these next, in order:
-
-1. `P1-CONSIST-05`: audit campaign vs single-experiment semantics.
-2. `P0-BENCH-10`: produce benchmark paper artifact skeleton.
-3. `P0-BENCH-11`: add CI-like local release command.
-4. `P0-BENCH-12`: write pre-release limitations statement.
-5. `P1-CONSIST-06`: audit ledger single-source-of-truth.
-
-This sequence reduces the highest public benchmark risk first: baseline
-credibility, agent-facing action clarity, submission reproducibility, seed
-policy, scoring contract consistency, and replay trust.
-
-## Removed Boards
+## Consolidated And Removed Boards
 
 These files were consolidated into this TODO and removed from the active root
 workspace:
@@ -229,6 +232,6 @@ workspace:
 - `TODO_PROFESSIONAL.md`
 - `TODO_PROFESSIONAL_DEEPENING.md`
 
-The documentation site now exposes a concise unified task-board page instead of
-separate professional TODO pages. All planning and progress accounting should
-happen in this file.
+The documentation site exposes a concise summary page instead of maintaining a
+second active task board. If the site summary disagrees with this file, this
+file is authoritative.
