@@ -1,22 +1,26 @@
 
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="zh" class="no-js">
   <head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Research benchmark for closed-loop virtual chemical experimentation.">
+        <meta name="description" content="面向闭环虚拟化学实验和 agent world model 研究的基准文档。">
       
       
       
       
-        <link rel="prev" href="../world_law/">
+        <link rel="prev" href="../technical_architecture_zh/">
       
       
-        <link rel="next" href="../physchem_maturity_audit/">
+        <link rel="next" href="../world_model_learning/">
       
       
+        
+          <link rel="alternate" href="/" hreflang="zh">
+        
+          <link rel="alternate" href="/en/" hreflang="en">
         
       
       
@@ -25,7 +29,7 @@
     
     
       
-        <title>PhysChem Core Design - ChemWorld-Bench</title>
+        <title>物理化学核心设计 - ChemWorld-Bench 文档</title>
       
     
     
@@ -48,6 +52,8 @@
       
     
     
+      <link rel="stylesheet" href="../assets/stylesheets/language-switch.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -66,8 +72,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#physchem-core-design" class="md-skip">
-          Skip to content
+        <a href="#_1" class="md-skip">
+          跳转至
         </a>
       
     </div>
@@ -78,11 +84,9 @@
     
       
 
-  
-
-<header class="md-header md-header--shadow" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="ChemWorld-Bench" class="md-header__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="ChemWorld-Bench 文档" class="md-header__button md-logo" aria-label="ChemWorld-Bench 文档" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -96,13 +100,13 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            ChemWorld-Bench
+            ChemWorld-Bench 文档
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              PhysChem Core Design
+              物理化学核心设计
             
           </span>
         </div>
@@ -112,6 +116,32 @@
     
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="选择当前语言">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="/" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="/en/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
     
     
       
@@ -124,16 +154,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
+      <nav class="md-search__options" aria-label="查找">
         
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -144,7 +174,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initializing search
+            正在初始化搜索引擎
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -164,6 +194,195 @@
       
         
           
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../en/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  English 首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../current_progress/" class="md-tabs__link">
+          
+  
+  
+  项目状态
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../chemworld_overview_zh/" class="md-tabs__link">
+          
+  
+  
+  核心概念
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../env_cards/" class="md-tabs__link">
+          
+  
+  
+  Benchmark 合同
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../baseline_reference/" class="md-tabs__link">
+          
+  
+  
+  评测与数据
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tutorial_curriculum_zh/" class="md-tabs__link">
+          
+  
+  
+  教程与示例
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../environment_self_consistency_audit_zh/" class="md-tabs__link">
+          
+  
+  
+  审计
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../project_management/" class="md-tabs__link">
+          
+  
+  
+  开发与发布
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
         
       
       <main class="md-main" data-md-component="main">
@@ -177,16 +396,18 @@
                     
 
 
+  
 
-<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="ChemWorld-Bench" class="md-nav__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
+    <a href=".." title="ChemWorld-Bench 文档" class="md-nav__button md-logo" aria-label="ChemWorld-Bench 文档" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
 
     </a>
-    ChemWorld-Bench
+    ChemWorld-Bench 文档
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -205,7 +426,7 @@
   <span class="md-ellipsis">
     
   
-    Home
+    首页
   
 
     
@@ -225,14 +446,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../chemworld_overview_zh/" class="md-nav__link">
+      <a href="../en/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    ChemWorld Overview ZH
+    English 首页
   
 
     
@@ -247,6 +468,58 @@
     
       
       
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    项目状态
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    项目状态
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
   
   
   
@@ -259,7 +532,7 @@
   <span class="md-ellipsis">
     
   
-    Current Progress
+    当前进展
   
 
     
@@ -271,22 +544,23 @@
     </li>
   
 
-    
-      
-      
+              
+            
+              
+                
   
   
   
   
     <li class="md-nav__item">
-      <a href="../project_management/" class="md-nav__link">
+      <a href="../site_audit_zh/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Project Management
+    站点审计
   
 
     
@@ -298,22 +572,23 @@
     </li>
   
 
-    
-      
-      
+              
+            
+              
+                
   
   
   
   
     <li class="md-nav__item">
-      <a href="../reference_repos/" class="md-nav__link">
+      <a href="../site_structure_zh/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Local Reference Repos
+    站点层级规划
   
 
     
@@ -325,22 +600,23 @@
     </li>
   
 
-    
-      
-      
+              
+            
+              
+                
   
   
   
   
     <li class="md-nav__item">
-      <a href="../tutorial_curriculum_zh/" class="md-nav__link">
+      <a href="../release_checklist/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Tutorial Curriculum ZH
+    发布检查表
   
 
     
@@ -352,22 +628,23 @@
     </li>
   
 
-    
-      
-      
+              
+            
+              
+                
   
   
   
   
     <li class="md-nav__item">
-      <a href="../sota_agent_environment_gap_audit/" class="md-nav__link">
+      <a href="../roadmap/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SOTA Agent Environment Gap Audit
+    路线图
   
 
     
@@ -379,22 +656,87 @@
     </li>
   
 
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
     
       
       
   
   
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    核心概念
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    核心概念
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
   
   
     <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
+      <a href="../chemworld_overview_zh/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Architecture
+    项目总览
   
 
     
@@ -406,36 +748,10 @@
     </li>
   
 
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../technical_architecture_zh/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Technical Architecture ZH
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
+              
+            
+              
+                
   
   
   
@@ -448,7 +764,7 @@
   <span class="md-ellipsis">
     
   
-    World Law
+    世界律
   
 
     
@@ -460,9 +776,66 @@
     </li>
   
 
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
     
-      
-      
+  
+    架构设计
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../technical_architecture_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    技术架构
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
   
   
     
@@ -484,7 +857,7 @@
   <span class="md-ellipsis">
     
   
-    PhysChem Core Design
+    物理化学核心设计
   
 
     
@@ -502,7 +875,7 @@
   <span class="md-ellipsis">
     
   
-    PhysChem Core Design
+    物理化学核心设计
   
 
     
@@ -514,7 +887,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="目录">
   
   
   
@@ -523,15 +896,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      目录
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#reference-reading" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reference Reading
+        参考阅读
       
     </span>
   </a>
@@ -539,10 +912,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#current-scope" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current Scope
+        当前范围
       
     </span>
   </a>
@@ -550,10 +923,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#property-core" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Property Core
+        物性核心
       
     </span>
   </a>
@@ -561,10 +934,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reaction-network-core" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reaction Network Core
+        反应网络核心
       
     </span>
   </a>
@@ -572,10 +945,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#mechanism-and-scenario-library" class="md-nav__link">
+  <a href="#mechanism-scenario-library" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Mechanism and Scenario Library
+        Mechanism 与 Scenario Library
       
     </span>
   </a>
@@ -583,10 +956,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#spectroscopy-and-instrument-coupling" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Spectroscopy and Instrument Coupling
+        光谱与仪器耦合
       
     </span>
   </a>
@@ -594,10 +967,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#electrochemistry" class="md-nav__link">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Electrochemistry
+        电化学
       
     </span>
   </a>
@@ -605,10 +978,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#optional-reference-backend-validation" class="md-nav__link">
+  <a href="#backend" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional Reference Backend Validation
+        可选参考 Backend 验证
       
     </span>
   </a>
@@ -616,10 +989,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reactor-model-core" class="md-nav__link">
+  <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reactor Model Core
+        反应器模型核心
       
     </span>
   </a>
@@ -627,10 +1000,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#density-and-molar-volume" class="md-nav__link">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Density And Molar Volume
+        密度与摩尔体积
       
     </span>
   </a>
@@ -638,10 +1011,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#transport-properties" class="md-nav__link">
+  <a href="#_10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Transport Properties
+        输运性质
       
     </span>
   </a>
@@ -649,10 +1022,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#equation-of-state-core" class="md-nav__link">
+  <a href="#eos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Equation-Of-State Core
+        EOS 核心
       
     </span>
   </a>
@@ -660,10 +1033,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-equilibrium-core" class="md-nav__link">
+  <a href="#_11" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase-Equilibrium Core
+        相平衡核心
       
     </span>
   </a>
@@ -671,10 +1044,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#equilibrium-chemistry-core" class="md-nav__link">
+  <a href="#_12" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Equilibrium-Chemistry Core
+        平衡化学核心
       
     </span>
   </a>
@@ -682,10 +1055,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#separation-unit-operation-core" class="md-nav__link">
+  <a href="#_13" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Separation Unit-Operation Core
+        分离单元操作核心
       
     </span>
   </a>
@@ -693,10 +1066,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#transport-and-heat-transfer-core" class="md-nav__link">
+  <a href="#_14" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Transport and Heat-Transfer Core
+        传递与换热核心
       
     </span>
   </a>
@@ -704,10 +1077,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#boundaries" class="md-nav__link">
+  <a href="#_15" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Boundaries
+        边界
       
     </span>
   </a>
@@ -715,10 +1088,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validation-rules" class="md-nav__link">
+  <a href="#_16" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validation Rules
+        验证规则
       
     </span>
   </a>
@@ -732,576 +1105,10 @@
     </li>
   
 
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../physchem_maturity_audit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    PhysChem Maturity Audit
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../code_review_audit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Code Review Audit
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../professional_todo/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Professional TODO
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../professional_deepening_todo/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Professional Deepening TODO
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../scenario_generation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Scenario Generation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../campaign_model/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Campaign Model
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../task_taxonomy/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Task Taxonomy
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../benchmark_protocol/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Benchmark Protocol
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tasks/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tasks
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../task_cards/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Task Cards
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../operations/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Operations
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../action_schema/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Action Schema
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../instrument_contracts/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Instrument Contracts
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../spectroscopy/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Virtual Spectroscopy
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../safety_cost/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Safety And Cost
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../dataset_layer/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Dataset Layer
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../env_cards/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Environment Card
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../backends/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backends
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../reaction_separation_tasks/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Reaction and Separation Tasks
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../baseline_reference/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Baseline Reference
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../leaderboard_project_blueprint/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Leaderboard Project Blueprint
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
+              
+            
+              
+                
   
   
   
@@ -1314,7 +1121,7 @@
   <span class="md-ellipsis">
     
   
-    World-Model Learning
+    World Model 学习
   
 
     
@@ -1326,9 +1133,405 @@
     </li>
   
 
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
     
       
       
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark 合同
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Benchmark 合同
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    环境卡
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_taxonomy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    任务分类
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    任务列表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    任务卡
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    场景生成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../campaign_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Campaign 模型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    操作协议
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../action_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action 协议
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mechanism_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mechanism 协议
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instrument_contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    仪器合同
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spectroscopy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    虚拟光谱
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../safety_cost/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    安全与成本
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
   
   
   
@@ -1341,7 +1544,7 @@
   <span class="md-ellipsis">
     
   
-    Wrappers
+    Wrapper 与合法性
   
 
     
@@ -1353,9 +1556,10 @@
     </li>
   
 
-    
-      
-      
+              
+            
+              
+                
   
   
   
@@ -1368,7 +1572,7 @@
   <span class="md-ellipsis">
     
   
-    Submission Bundles
+    提交包
   
 
     
@@ -1380,9 +1584,181 @@
     </li>
   
 
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmark_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    评测协议
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend 后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
     
       
       
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    评测与数据
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    评测与数据
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline 参考
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset_layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据集层
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
   
   
   
@@ -1395,7 +1771,7 @@
   <span class="md-ellipsis">
     
   
-    Local Eval Machine
+    本地评测机
   
 
     
@@ -1407,22 +1783,23 @@
     </li>
   
 
-    
-      
-      
+              
+            
+              
+                
   
   
   
   
     <li class="md-nav__item">
-      <a href="../api_reference/" class="md-nav__link">
+      <a href="../leaderboard_project_blueprint/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    API Reference
+    榜单蓝图
   
 
     
@@ -1434,63 +1811,10 @@
     </li>
   
 
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../demos/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Demos
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ethics_and_data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Ethics and Data
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
+              
+            
+              
+                
   
   
   
@@ -1503,7 +1827,7 @@
   <span class="md-ellipsis">
     
   
-    Paper Artifact
+    论文产物
   
 
     
@@ -1515,22 +1839,23 @@
     </li>
   
 
-    
-      
-      
+              
+            
+              
+                
   
   
   
   
     <li class="md-nav__item">
-      <a href="../release_checklist/" class="md-nav__link">
+      <a href="../ethics_and_data/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Release Checklist
+    伦理与数据
   
 
     
@@ -1542,6 +1867,14 @@
     </li>
   
 
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
     
       
       
@@ -1549,15 +1882,67 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    教程与示例
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    教程与示例
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../roadmap/" class="md-nav__link">
+      <a href="../tutorial_curriculum_zh/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Roadmap
+    教程课程图
   
 
     
@@ -1566,6 +1951,468 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    演示
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 参考
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reaction_separation_tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    反应与分离任务
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    审计
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    审计
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment_self_consistency_audit_zh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    环境自一致性审计
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../physchem_maturity_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    物化成熟度审计
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sota_agent_environment_gap_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SOTA Agent 环境差距审计
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../codex55_medium_behavior_report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Codex 5.5 Medium 行为报告
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_review_audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    代码审计
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开发与发布
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    开发与发布
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    项目管理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference_repos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    本地参考仓库
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../professional_todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    专业化 TODO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../professional_deepening_todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    专业化深化 TODO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1583,7 +2430,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="目录">
   
   
   
@@ -1592,15 +2439,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      目录
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#reference-reading" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reference Reading
+        参考阅读
       
     </span>
   </a>
@@ -1608,10 +2455,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#current-scope" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current Scope
+        当前范围
       
     </span>
   </a>
@@ -1619,10 +2466,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#property-core" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Property Core
+        物性核心
       
     </span>
   </a>
@@ -1630,10 +2477,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reaction-network-core" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reaction Network Core
+        反应网络核心
       
     </span>
   </a>
@@ -1641,10 +2488,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#mechanism-and-scenario-library" class="md-nav__link">
+  <a href="#mechanism-scenario-library" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Mechanism and Scenario Library
+        Mechanism 与 Scenario Library
       
     </span>
   </a>
@@ -1652,10 +2499,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#spectroscopy-and-instrument-coupling" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Spectroscopy and Instrument Coupling
+        光谱与仪器耦合
       
     </span>
   </a>
@@ -1663,10 +2510,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#electrochemistry" class="md-nav__link">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Electrochemistry
+        电化学
       
     </span>
   </a>
@@ -1674,10 +2521,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#optional-reference-backend-validation" class="md-nav__link">
+  <a href="#backend" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional Reference Backend Validation
+        可选参考 Backend 验证
       
     </span>
   </a>
@@ -1685,10 +2532,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reactor-model-core" class="md-nav__link">
+  <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reactor Model Core
+        反应器模型核心
       
     </span>
   </a>
@@ -1696,10 +2543,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#density-and-molar-volume" class="md-nav__link">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Density And Molar Volume
+        密度与摩尔体积
       
     </span>
   </a>
@@ -1707,10 +2554,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#transport-properties" class="md-nav__link">
+  <a href="#_10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Transport Properties
+        输运性质
       
     </span>
   </a>
@@ -1718,10 +2565,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#equation-of-state-core" class="md-nav__link">
+  <a href="#eos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Equation-Of-State Core
+        EOS 核心
       
     </span>
   </a>
@@ -1729,10 +2576,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#phase-equilibrium-core" class="md-nav__link">
+  <a href="#_11" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase-Equilibrium Core
+        相平衡核心
       
     </span>
   </a>
@@ -1740,10 +2587,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#equilibrium-chemistry-core" class="md-nav__link">
+  <a href="#_12" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Equilibrium-Chemistry Core
+        平衡化学核心
       
     </span>
   </a>
@@ -1751,10 +2598,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#separation-unit-operation-core" class="md-nav__link">
+  <a href="#_13" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Separation Unit-Operation Core
+        分离单元操作核心
       
     </span>
   </a>
@@ -1762,10 +2609,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#transport-and-heat-transfer-core" class="md-nav__link">
+  <a href="#_14" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Transport and Heat-Transfer Core
+        传递与换热核心
       
     </span>
   </a>
@@ -1773,10 +2620,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#boundaries" class="md-nav__link">
+  <a href="#_15" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Boundaries
+        边界
       
     </span>
   </a>
@@ -1784,10 +2631,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validation-rules" class="md-nav__link">
+  <a href="#_16" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validation Rules
+        验证规则
       
     </span>
   </a>
@@ -1811,1180 +2658,109 @@
 
 
 
-<h1 id="physchem-core-design">PhysChem Core Design</h1>
-<p>ChemWorld now includes a small <code>chemworld.physchem</code> layer. Its current job is
-to provide a compact foundation/lite physical-chemistry core for benchmark
-development. It is not professional-library parity with Cantera, CoolProp,
-thermo, phasepy, IDAES, Reaktoro, pycalphad, teqp, thermopack, or RMG-Py.</p>
-<p>The post-foundation professional roadmap is tracked separately in
-<code>TODO_PROFESSIONAL.md</code> and summarized in the Professional TODO docs page.
-Professional work must replace or harden proxies with explicit models,
-reference reading notes, model cards, validity limits, and controlled numerical
-validation.</p>
-<h2 id="reference-reading">Reference Reading</h2>
-<p>The local reference repositories were used as design references only:</p>
+<h1 id="_1">物理化学核心设计</h1>
+<p>本页给出 PhysChem 核心层的中文发布版设计说明。更细的逐项实现记录应进入开发文档；
+站点主线只保留模块边界、当前能力和成熟度限制。</p>
+<h2 id="_2">参考阅读</h2>
+<p>本地参考仓库只作为设计参照，不直接复制实现。主要参照方向包括：</p>
 <ul>
-<li><code>chemicals</code> separates elemental bookkeeping, formula parsing, molecular
-  weights, and composition utilities.</li>
-<li><code>thermo</code> separates chemical constants from property-correlation packages and
-  mixture state objects.</li>
-<li><code>Cantera</code> uses declarative species, phase, and reaction specifications as the
-  stable interface between mechanism files and numerical kernels.</li>
+<li>RMG-Py：反应网络、热化学和机理生成；</li>
+<li>Cantera：反应器、热化学和动力学接口；</li>
+<li>IDAES：过程系统工程和单元操作结构；</li>
+<li>teqp / thermopack / phasepy：热力学、EOS、相平衡；</li>
+<li>chemicals / thermo / fluids：物性和输运性质相关公式。</li>
 </ul>
-<p>ChemWorld localizes those ideas into a compact, auditable, JSON-friendly core.
-No reference-project source code is copied. When a local implementation is only
-qualitative or educational, it must remain labeled as proxy/lite rather than
-being presented as professional-grade physics.</p>
-<h2 id="current-scope">Current Scope</h2>
-<p>The implementation slices currently cover the P1-P12 foundation/lite batch:</p>
+<h2 id="_3">当前范围</h2>
+<p>当前实现覆盖 foundation/lite 主线，并包含若干 reference-validated slice。核心目标是让
+ChemWorld 的任务不只是字符串游戏，而是有可审计的物理化学骨架。</p>
+<h2 id="_4">物性核心</h2>
+<p>物性层提供蒸气压、热容、密度、摩尔体积、输运性质和 EOS 相关报告。设计重点是：</p>
 <ul>
-<li><code>ElementSpec</code>: benchmark-relevant element metadata.</li>
-<li><code>parse_formula</code>: formula parsing with nested parentheses and charge stripping.</li>
-<li><code>molecular_weight</code>: molecular weight from elemental composition.</li>
-<li><code>ComponentSpec</code>: component identity, formula, checksum-validated CAS number
-  where curated, charge, phase, safety tags, aliases, structured provenance,
-  uncertainty metadata, and allowed property-correlation IDs.</li>
-<li><code>MixtureSpec</code>: self-contained mole/mass fraction state with component molecular
-  weights, temperature, pressure, and phase label.</li>
-<li><code>PropertyCorrelation</code>: portable correlation metadata with explicit units and
-  validity ranges.</li>
-<li><code>PropertyEvaluation</code>: a value, unit, inputs, validity warnings, and
-  correlation provenance.</li>
-<li><code>VaporPressureReport</code>: vapor or sublimation pressure with analytic
-  <code>dP/dT</code>, <code>dlnP/dT</code>, validity status, method family, and reference-reading
-  provenance for flash, distillation, and volatility-risk tasks.</li>
-<li><code>ComponentPropertyPackage</code>: a component-local correlation package that chooses
-  an in-range method when multiple correlations exist.</li>
-<li><code>property_equation_contracts()</code>: a public introspection API exposing required
-  coefficients, accepted input dimensions, and output dimensions for every
-  supported property equation.</li>
-<li>reaction-network, reactor, EOS, phase-equilibrium, equilibrium-chemistry,
-  separation, transport, and heat-transfer kernels described below.</li>
+<li>API 可序列化；</li>
+<li>provenance 可追踪；</li>
+<li>单位明确；</li>
+<li>超出适用域时给出 warning 或 failure；</li>
+<li>与 separation、reactor、instrument 共享同一报告面。</li>
 </ul>
-<h2 id="property-core">Property Core</h2>
-<p>The P2 property core is implemented in <code>chemworld.physchem.properties</code>. It
-supports the following local evaluators and now validates each one against a
-declared equation contract before numerical evaluation:</p>
-<table>
-<thead>
-<tr>
-<th>Property family</th>
-<th>Supported equations</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Vapor pressure</td>
-<td>Antoine, Wagner, DIPPR101/Perry form, analytic derivative reports</td>
-</tr>
-<tr>
-<td>Heat capacity</td>
-<td>Cp polynomial, Poling/DIPPR100 ideal-gas Cp slice</td>
-</tr>
-<tr>
-<td>Enthalpy</td>
-<td>analytic Cp-polynomial sensible-enthalpy integral</td>
-</tr>
-<tr>
-<td>Phase change</td>
-<td>Watson heat-of-vaporization correlation, constant heat-of-fusion proxy</td>
-</tr>
-<tr>
-<td>Density</td>
-<td>linear liquid density, ideal gas density</td>
-</tr>
-<tr>
-<td>Viscosity</td>
-<td>Andrade liquid viscosity, Sutherland gas viscosity</td>
-</tr>
-<tr>
-<td>Surface tension</td>
-<td>critical-temperature power law</td>
-</tr>
-<tr>
-<td>Mixture rules</td>
-<td>mass-fraction specific-volume density, log-viscosity rule</td>
-</tr>
-<tr>
-<td>Safety proxies</td>
-<td>volatility risk from vapor pressure, thermal hazard proxy</td>
-</tr>
-</tbody>
-</table>
-<p>Every correlation declares:</p>
+<p>该层仍不是完整数据库；当前只覆盖 curated compounds 和 compact correlations。</p>
+<h2 id="_5">反应网络核心</h2>
+<p>反应网络层包含 <code>ReactionSpec</code>、stoichiometry、可逆性、反应热、速率表达、ODE 入口和
+局部 analytical validation。它支持 mechanism library 和 scenario generation，但不是
+完整 RMG/Cantera 替代品。</p>
+<p>重点边界：</p>
 <ul>
-<li><code>property_id</code>;</li>
-<li><code>equation_id</code>;</li>
-<li>coefficients;</li>
-<li>input units;</li>
-<li>output unit;</li>
-<li>validity ranges;</li>
-<li>source notes.</li>
+<li>mechanism 是任务可执行合同；</li>
+<li>reaction kernel 不直接决定 task reward；</li>
+<li>反应热、Gibbs、平衡和动力学应逐步接入 model card；</li>
+<li>隐藏机制只通过观测和评分影响 agent。</li>
 </ul>
-<p>Evaluation uses canonical ChemWorld inputs such as <code>temperature_K</code> and
-<code>pressure_Pa</code>, converts them into the correlation's declared input units, and
-returns a <code>PropertyEvaluation</code>. Out-of-range inputs can warn, raise, or be
-ignored through a <code>validity_policy</code>.</p>
-<p>The P1/P2 audit hardened the foundation around those evaluators:</p>
+<h2 id="mechanism-scenario-library">Mechanism 与 Scenario Library</h2>
+<p>机制库负责把反应、species role、可见参数和隐藏参数组织成可复现实验场景。Scenario
+card 应说明采样范围、hidden/public boundary 和 maturity。</p>
+<h2 id="_6">光谱与仪器耦合</h2>
+<p>虚拟仪器层生成 UV-vis、HPLC/GC、IR/NMR 等 benchmark-oriented signals。目标不是数据库
+级谱图预测，而是让 agent 在有限测量预算下进行合理规划。</p>
+<p>仪器输出应携带：</p>
 <ul>
-<li>component identifiers reject whitespace and padded values;</li>
-<li>formula-derived molecular weight and manually supplied molecular weight must
-  agree within a small tolerance;</li>
-<li>component aliases, safety tags, and allowed-correlation policies reject
-  duplicates;</li>
-<li><code>component_alias_index()</code> and <code>resolve_component_identifier()</code> reject
-  cross-component alias conflicts before a registry is used;</li>
-<li>curated components carry <code>ComponentProvenance</code> and <code>ComponentUncertainty</code>
-  records so source tables, source keys, and known uncertainty limitations
-  round-trip through JSON;</li>
-<li><code>ComponentConflictPolicy</code>, <code>ComponentFieldCandidate</code>, and
-  <code>resolve_component_field_conflict()</code> provide deterministic source-priority
-  resolution with warning or hard-fail behavior for disagreeing component data;</li>
-<li>mixture constructors validate component/phase compatibility before creating
-  a phase-local state;</li>
-<li>property correlations reject unsupported equations, missing required
-  coefficients, wrong unit dimensions, unknown input fields, and invalid
-  validity-range variables;</li>
-<li><code>ComponentPropertyPackage</code> enforces the component's
-  <code>allowed_property_correlations</code> policy by correlation id, property id, or
-  equation id;</li>
-<li><code>property_correlation_model_cards()</code> and <code>property_equation_contracts()</code>
-  provide JSON-friendly audit records for docs, schema generation, and external
-  review.</li>
+<li>signal type；</li>
+<li>noise；</li>
+<li>unit；</li>
+<li>cost；</li>
+<li>calibration metadata；</li>
+<li>visibility boundary。</li>
 </ul>
-<p>Acceptance coverage now includes formula parsing, mole/mass conversion
-round-trips, JSON round-trips for component/mixture/correlation specs, unit
-dimension failures before kernel use, monotonic water vapor pressure, Cp
-integral sign and units, positive density/viscosity/phase-change values, gas
-viscosity behavior, and component-level property policy failures.</p>
-<p>PRO-P2A adds the first reference-validated curated property slice in
-<code>chemworld.physchem.curated_properties</code>. It intentionally keeps the data set
-small and auditable instead of vendoring a large third-party property database.
-The current curated compounds are water, ethanol, acetone, toluene, methane,
-and carbon dioxide. Each package includes component metadata, a DIPPR101/Perry
-vapor-pressure correlation, a Poling/DIPPR100 ideal-gas heat-capacity
-correlation scaled into SI units, validity ranges, source notes, and a model
-card. Optional reference tests compare ChemWorld values against local
-<code>chemicals</code> reference implementations for vapor pressure, ideal-gas Cp, and
-sensible enthalpy integrals.</p>
-<p>DEEP-D2A hardens the vapor-pressure path itself. <code>vapor_pressure_report()</code>
-returns pressure, analytic <code>dP/dT</code>, <code>dlnP/dT</code>, validity status, method family,
-and inspected-reference provenance for Antoine, Wagner, and DIPPR101 formula
-families. <code>ComponentPropertyPackage.vapor_pressure_report()</code> gives curated
-components the same reporting surface. The same report path accepts
-<code>property_id="sublimation_pressure"</code> when a task or user supplies declared
-sublimation coefficients. The model card records inspected <code>chemicals</code> and
-<code>thermo</code> vapor-pressure APIs and the tests compare Antoine/DIPPR derivatives
-against finite differences. This is deliberately not a broad data-table import,
-EOS saturation solver, IAPWS water package, or CoolProp-level critical-region
-backend.</p>
-<p>DEEP-D2B hardens the heat-capacity and enthalpy path. The public API now
-separates three concepts that were previously easy to blur:</p>
-<table>
-<thead>
-<tr>
-<th>Concept</th>
-<th>API</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Phase Cp</td>
-<td><code>heat_capacity_report()</code></td>
-<td>Evaluate positive molar Cp with declared units and validity policy.</td>
-</tr>
-<tr>
-<td>Same-phase sensible enthalpy</td>
-<td><code>phase_sensible_enthalpy_report()</code></td>
-<td>Integrate Cp relative to an explicit reference temperature.</td>
-</tr>
-<tr>
-<td>Cross-phase path</td>
-<td><code>PhaseTransitionSpec</code>, <code>phase_transition_enthalpy()</code>, <code>phase_path_enthalpy_report()</code></td>
-<td>Walk solid/liquid/gas paths through declared transition temperatures and signed latent heats.</td>
-</tr>
-<tr>
-<td>Mixture heat duty</td>
-<td><code>MixtureEnthalpyLedger</code>, <code>mixture_enthalpy_ledger()</code></td>
-<td>Convert molar component reports to reactor/flash/separation heat duties in joules.</td>
-</tr>
-</tbody>
-</table>
-<p>The implementation follows the professional convention seen in local
-<code>chemicals</code>/<code>thermo</code> references: heat-capacity correlations provide analytic
-temperature integrals, and cross-phase enthalpy is a path sum of sensible
-segments plus signed latent heats. It does not import broad data tables. A task
-or model must provide local Cp and latent-heat coefficients with explicit phase
-labels and validity ranges. Invalid phase labels, missing phase Cp, disconnected
-phase paths, and sampled negative heat capacity fail explicitly instead of
-being clipped.</p>
-<p>PRO-P1A hardens the curated component registry itself. Component records now
-round-trip structured provenance, uncertainty metadata, and optional CAS
-identity anchors. Curated aliases, CAS strings, and compact CAS strings are
-checked with a normalized registry index, and conflicting aliases or CAS
-numbers fail before a property package or task can silently bind to the wrong
-component.</p>
-<p>PRO-P1B adds the source-priority audit layer for future multi-source component
-records. It does not introduce a large property database; it records how one
-field was selected, which candidates disagreed, and whether the policy warned
-or failed.</p>
-<h2 id="reaction-network-core">Reaction Network Core</h2>
-<p>The P3 reaction-network core is implemented in
-<code>chemworld.physchem.reaction_network</code>. It replaces hard-coded reaction lists
-with declarative mechanism files and reusable numerical machinery:</p>
-<table>
-<thead>
-<tr>
-<th>Capability</th>
-<th>Current implementation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Species records</td>
-<td><code>SpeciesSpec</code> with formula, phase, charge, catalyst flag, observable aliases</td>
-</tr>
-<tr>
-<td>Reaction records</td>
-<td><code>ReactionSpec</code> with equation string, stoichiometry, reversibility, heat of reaction</td>
-</tr>
-<tr>
-<td>Network records</td>
-<td><code>ReactionNetworkSpec</code> with species/reaction ids, stoichiometric matrix, element matrix</td>
-</tr>
-<tr>
-<td>Mechanism files</td>
-<td>JSON and YAML loaders for portable mechanism definitions</td>
-</tr>
-<tr>
-<td>Conservation</td>
-<td>element-balance residuals and fail-fast checks for impossible reactions</td>
-</tr>
-<tr>
-<td>Rate laws</td>
-<td>mass action, Arrhenius, modified Arrhenius, reversible Arrhenius</td>
-</tr>
-<tr>
-<td>Catalysis</td>
-<td>catalyst activity multiplier and catalyst deactivation</td>
-</tr>
-<tr>
-<td>Surface / biochemical proxies</td>
-<td>Langmuir-Hinshelwood-lite and Michaelis-Menten-lite</td>
-</tr>
-<tr>
-<td>Simulation</td>
-<td>deterministic batch ODE integration with nonnegative amount projection</td>
-</tr>
-<tr>
-<td>Scenario variation</td>
-<td>seed-based parameter perturbation for public/private world splits</td>
-</tr>
-<tr>
-<td>Thermochemistry</td>
-<td>NASA7 species Cp/H/S/G, reaction Delta H/S/G, and equilibrium constants</td>
-</tr>
-</tbody>
-</table>
-<p>Example mechanism files live under <code>configs/mechanisms/</code>:</p>
+<h2 id="_7">电化学</h2>
+<p>当前电化学 slice 关注 equilibrium potential、measured cell potential、overpotential、
+resistance、selectivity 和 energy efficiency。它适合 benchmark，不是完整电池或电化学
+反应器模拟器。</p>
+<h2 id="backend">可选参考 Backend 验证</h2>
+<p>参考 backend 用于局部公式级比较或 smoke validation，不应成为默认环境的硬依赖。引入
+任何外部 backend 都需要说明 license、安装方式、适用范围和容忍度。</p>
+<h2 id="_8">反应器模型核心</h2>
+<p>反应器层提供 CSTR、batch、热释放和局部稳定性/多稳态分析入口。设计上分离：</p>
 <ul>
-<li><code>simple_batch_reaction.yaml</code>: target reaction, side reaction, degradation,
-  coupling impurity, and catalyst deactivation.</li>
-<li><code>reversible_reaction.yaml</code>: a small equilibrium-like reversible case.</li>
-<li>additional curated mechanisms now cover parallel/series selectivity,
-  catalyst deactivation, autocatalysis, reaction-to-extraction,
-  reactive-distillation-lite, CSTR multiplicity, PFR hotspot risk, and
-  electrochemical selectivity.</li>
+<li>mechanism；</li>
+<li>reactor equations；</li>
+<li>numerical integration；</li>
+<li>task observation；</li>
+<li>scoring。</li>
 </ul>
-<p>The reaction engine is intentionally compact, but it is not a placeholder. It
-supports arbitrary balanced species/reaction networks, generates matrices for
-downstream reactor models, and catches element-balance errors before an
-environment starts. This makes the current five-reaction batch world just one
-mechanism instance rather than a permanent architectural limit.</p>
-<p>PRO-P5A adds the first reference-validated reaction ODE slice. The function
-<code>cantera_comparable_reaction_cases()</code> now returns two ChemWorld-owned
-constant-volume, isothermal, homogeneous batch ODE reference cases:</p>
+<p>这能避免任务层和数值积分层互相污染。</p>
+<h2 id="_9">密度与摩尔体积</h2>
+<p>密度和摩尔体积用于 flash、distillation、separation 和 reactor volume 相关任务。当前
+以报告型 API 为主，返回估计值、单位、适用范围和 warning。</p>
+<h2 id="_10">输运性质</h2>
+<p>输运性质包括 viscosity、diffusivity、thermal conductivity 和 heat-transfer 相关
+correlation。当前只覆盖小范围 benchmark slice，不是高压气体或复杂多相流通用后端。</p>
+<h2 id="eos">EOS 核心</h2>
+<p>EOS 层以 compact cubic EOS 为主，提供根选择、残余性质、volume translation 和 model
+card。它适合训练 agent 理解相行为趋势，但不替代专业热力学软件。</p>
+<h2 id="_11">相平衡核心</h2>
+<p>相平衡层覆盖 Raoult-style VLE、activity coefficient 入口、UNIQUAC slice 和 flash/VLE
+报告。未来 extraction、evaporation 和 distillation 任务会依赖这一层。</p>
+<h2 id="_12">平衡化学核心</h2>
+<p>平衡化学层提供小规模 reaction equilibrium 和 Gibbs minimization slice。当前适合隐藏
+equilibrium scenario 和 analytical checks，不是数据库驱动的 aqueous speciation solver。</p>
+<h2 id="_13">分离单元操作核心</h2>
+<p>分离层支持 extraction、shortcut distillation、phase split 和 ledger 集成。目标是让
+downstream processing 可以进入 benchmark，而不是在反应结束后直接给最终分数。</p>
+<h2 id="_14">传递与换热核心</h2>
+<p>传递/换热层提供小范围 pipe flow、heat-transfer correlation 和 metadata。当前覆盖
+单相或简化两相场景，boiling、condensation、复杂设备几何仍不在默认范围。</p>
+<h2 id="_15">边界</h2>
+<p>当前 PhysChem 核心是真实工程模型的“可审计轻量骨架”，不是完整商业流程模拟器。所有
+使用它的任务都应声明 maturity 和适用范围。</p>
+<h2 id="_16">验证规则</h2>
+<p>核心层应在以下情况快速失败：</p>
 <ul>
-<li>an irreversible first-order <code>A =&gt; B</code> case with analytical
-  <code>A(t) = A0 exp(-kt)</code>;</li>
-<li>a reversible first-order <code>A &lt;=&gt; B</code> case with finite <code>K_eq = k_f/k_r</code> and
-  analytical relaxation to the equilibrium ratio.</li>
+<li>单位或参数缺失；</li>
+<li>输入超出适用范围；</li>
+<li>ledger 守恒失败；</li>
+<li>phase 或 species role 不一致；</li>
+<li>optional backend 结果超出容忍度。</li>
 </ul>
-<p><code>evaluate_reaction_ode_reference_case()</code> integrates each <code>ReactionNetworkSpec</code>
-and compares the full trajectory against the analytical solution. The related
-model card is exposed through <code>reaction_kinetics_model_cards()</code> and records
-the inspected Cantera/RMG references: Cantera reaction equations and
-<code>ArrheniusRate</code>, Cantera ReactorNet's ODE framing, RMG Arrhenius rate
-coefficients, and RMG reverse-rate generation from <code>k_forward/K_eq</code>. Optional
-reference tests additionally compare the local Arrhenius rate constant against
-<code>ct.ArrheniusRate</code> if Cantera is available.</p>
-<p>This closes a narrow professional slice, not the whole kinetics stack.
-Falloff, third bodies, pressure-dependent rates, and heat-release-coupled
-reactor validation remain explicit future professional tasks.</p>
-<p>PRO-P5B adds the first professional thermochemistry slice. It follows the
-NASA7 polynomial form used by Cantera species YAML and RMG NASA exports:</p>
-<pre><code class="language-text">Cp/R = a0 + a1 T + a2 T^2 + a3 T^3 + a4 T^4
-H/RT = a0 + a1 T/2 + a2 T^2/3 + a3 T^3/4 + a4 T^4/5 + a5/T
-S/R = a0 ln(T) + a1 T + a2 T^2/2 + a3 T^3/3 + a4 T^4/4 + a6
-G = H - T S
-Delta G_rxn = sum_i nu_i G_i
-K = exp(-Delta G_rxn / RT)
-</code></pre>
-<p>The public API is <code>NASA7TemperatureSegment</code>, <code>NASA7SpeciesThermo</code>,
-<code>reaction_thermochemistry()</code>, and <code>equilibrium_constant_from_delta_g()</code>.
-Species can be built from a compact Cantera-style YAML thermo node with
-<code>model: NASA7</code>, <code>temperature-ranges</code>, and segment coefficient <code>data</code>.
-Continuity diagnostics flag gaps or jumps at adjacent segment boundaries.</p>
-<p>This closes species Cp/H/S/G, reaction enthalpy, reaction Gibbs energy, and
-equilibrium-constant calculation from declared species thermochemistry. It is
-not yet a full thermochemistry database, NASA9/Shomate implementation, RMG
-group-additivity engine, pressure-correction model, or reactor-energy-balance
-integration. Those remain professional deepening slices.</p>
-<p>PRO-P5C connects that thermochemistry slice back into reversible mass-action
-kinetics. A <code>reversible_arrhenius</code> rate law can declare <code>K_eq_source: nasa7</code>;
-when <code>species_thermo</code> is supplied to <code>evaluate_rate_law()</code> or
-<code>ReactionNetworkSpec.integrate_batch()</code>, ChemWorld computes:</p>
-<pre><code class="language-text">K = exp(-Delta G_rxn^0 / RT)
-K_c = K * C0^(sum_i nu_i)
-k_reverse = k_forward / K_c
-r_net = k_forward prod_reactants c_i^nu_i
-      - k_reverse prod_products c_i^nu_i
-</code></pre>
-<p>This follows the same professional separation used by Cantera and RMG: the
-thermodynamic model supplies the equilibrium relation, and the kinetics layer
-uses microscopic reversibility to obtain the reverse rate. ChemWorld keeps the
-concentration-standard correction explicit because its local mass-action rates
-use <code>mol/L</code> concentration powers. The completed tests cover zero net rate at
-the thermochemical equilibrium composition, ODE relaxation to the NASA7
-equilibrium ratio, missing-thermo failure, and a non-equal-molecularity
-standard-concentration correction. DEEP-D6A wires reaction enthalpy into the
-constant-density dynamic batch energy-balance slice.</p>
-<p>DEEP-D5D adds local kinetic sensitivity reports for explanation and mechanism
-learning tasks. The public API is
-<code>finite_difference_reaction_sensitivities()</code>, which computes central finite
-differences in log-parameter space for positive multiplier-like kinetic
-parameters. For an observable species final amount <code>y</code>, ChemWorld reports:</p>
-<pre><code class="language-text">S = (1/y) d y / d ln(p)
-sigma_y ~= |d y / d ln(p)| sigma_ln_p
-</code></pre>
-<p>This follows the same local response concept used by Cantera reactor
-sensitivities while staying dependency-light and JSON-friendly. Reports expose
-per-parameter derivatives, normalized sensitivities, local uncertainty
-contributions, ranked entries, and short explanation summaries. Tests compare
-the first-order irreversible product sensitivity against the analytical
-<code>k t exp(-kt)/(1-exp(-kt))</code> expression and cover zero-baseline behavior and
-explicit failure modes. This is not an adjoint solver, global sensitivity
-analysis, or pressure-dependent kinetics sensitivity package.</p>
-<h2 id="mechanism-and-scenario-library">Mechanism and Scenario Library</h2>
-<p>The P10 mechanism/scenario library is implemented in
-<code>chemworld.physchem.mechanism_library</code>. It turns mechanism files into a curated
-benchmark resource rather than a loose folder of examples.</p>
-<p>Current mechanism coverage:</p>
-<table>
-<thead>
-<tr>
-<th>Mechanism</th>
-<th>Main purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>simple_batch_reaction</code></td>
-<td>reference target/side/degradation/coupling/catalyst-loss world</td>
-</tr>
-<tr>
-<td><code>parallel_series_reaction</code></td>
-<td>competing selectivity and late impurity formation</td>
-</tr>
-<tr>
-<td><code>reversible_reaction</code></td>
-<td>minimal reversible equilibrium-like kinetic case</td>
-</tr>
-<tr>
-<td><code>catalyst_deactivation</code></td>
-<td>hidden activity loss and temperature tradeoff</td>
-</tr>
-<tr>
-<td><code>autocatalytic_reaction</code></td>
-<td>nonlinear induction and seed sensitivity</td>
-</tr>
-<tr>
-<td><code>reaction_extraction</code></td>
-<td>reaction coupled to aqueous/organic phase transfer</td>
-</tr>
-<tr>
-<td><code>reactive_distillation_lite</code></td>
-<td>reversible esterification with volatile pseudo-species</td>
-</tr>
-<tr>
-<td><code>cstr_multiplicity</code></td>
-<td>exothermic autocatalytic continuous-reactor slice</td>
-</tr>
-<tr>
-<td><code>pfr_hotspot</code></td>
-<td>PFR hotspot and heat-removal planning slice</td>
-</tr>
-<tr>
-<td><code>electrochemical_conversion</code></td>
-<td>Nernst/BV/Faraday electrochemical conversion slice</td>
-</tr>
-</tbody>
-</table>
-<p>The companion scenario cards live in
-<code>configs/scenarios/mechanism_scenarios.yaml</code>. Each card declares:</p>
-<ul>
-<li>the mechanism file and <code>mechanism_id</code>;</li>
-<li>the intended scenario/task family;</li>
-<li>recommended reactor or process backend;</li>
-<li>module tags such as reaction, equilibrium, phase partition, distillation,
-  CSTR, PFR, electrochemistry, and heat transfer;</li>
-<li>default initial amounts, operating windows, and benchmark conditions;</li>
-<li>target and impurity species for scoring;</li>
-<li>expected qualitative behavior for explanation tasks and sanity checks.</li>
-</ul>
-<p>The public API exposes:</p>
-<ul>
-<li><code>list_mechanism_paths()</code>;</li>
-<li><code>list_mechanism_cards()</code>;</li>
-<li><code>get_mechanism_card(card_or_mechanism_id)</code>;</li>
-<li><code>load_library_mechanism(card_or_mechanism_id)</code>;</li>
-<li><code>validate_mechanism_library()</code>.</li>
-</ul>
-<p><code>validate_mechanism_library()</code> is the CI-facing contract. It checks that every
-mechanism file has a card, every card resolves to a file, every network passes
-element conservation, and every card's initial/target/impurity species are
-declared by the mechanism. This keeps task expansion anchored to a shared
-physical-chemistry world instead of drifting into unrelated mini-games.</p>
-<h2 id="spectroscopy-and-instrument-coupling">Spectroscopy and Instrument Coupling</h2>
-<p>The P11 spectroscopy core is implemented in
-<code>chemworld.physchem.spectroscopy</code> and connected to the world observation layer
-through <code>chemworld.world.spectra</code> and <code>chemworld.world.observation_kernel</code>.</p>
-<p>Reference reading showed that the local professional references focus on
-thermodynamics, reaction kinetics, reactor models, and process equipment rather
-than HPLC/NMR-style virtual instrument synthesis. ChemWorld therefore implements
-its own compact observation-kernel model instead of copying a spectroscopy
-package. The design goal is not database-grade spectral prediction; it is a
-realistic, auditable instrument layer for benchmark interaction.</p>
-<p>Current capability:</p>
-<table>
-<thead>
-<tr>
-<th>Instrument</th>
-<th>Species mapping</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>HPLC</td>
-<td>species groups map to retention-factor peaks with dead time, theoretical plates, baseline peak width, detector response calibration, and adjacent-peak resolution metadata</td>
-</tr>
-<tr>
-<td>GC</td>
-<td>volatile and vapor-like species map to retention-factor peaks with dead time, theoretical plates, baseline peak width, detector response calibration, and adjacent-peak resolution metadata</td>
-</tr>
-<tr>
-<td>UV-vis</td>
-<td>species amounts map to Beer-Lambert bands with path length, dilution, molar absorptivity, blank absorbance, LOD/LOQ calibration metadata, and proxy fallbacks when only aggregate score fields are available</td>
-</tr>
-<tr>
-<td>IR</td>
-<td>formula/role proxies map to fingerprint, carbonyl-like, O-H-like, and C-H-like bands</td>
-</tr>
-<tr>
-<td>NMR</td>
-<td>species roles map to compact 1H chemical-shift proxy peaks</td>
-</tr>
-</tbody>
-</table>
-<p>PRO-P10A adds a reference-validated UV-vis analytical slice. The implementation
-uses the Beer-Lambert relation,</p>
-<pre><code class="language-text">A = A_blank + epsilon * l * c_cuvette
-c_cuvette = c_reactor / dilution_factor
-</code></pre>
-<p>and exposes <code>BeerLambertBandSpec</code>, <code>beer_lambert_absorbance()</code>,
-<code>fit_beer_lambert_calibration()</code>, <code>generate_beer_lambert_calibration()</code>, and
-<code>spectroscopy_model_cards()</code>. Calibration fits report the effective slope
-against reactor concentration, true molar absorptivity after dilution
-correction, residual standard deviation, LOD, LOQ, and slope uncertainty. This
-closes a narrow UV-vis calibration slice; it does not claim empirical UV-vis
-database prediction.</p>
-<p>PRO-P10B adds a reference-validated HPLC/GC chromatography slice. The
-implementation uses public analytical chromatography equations,</p>
-<pre><code class="language-text">k' = (t_R - t_M) / t_M
-t_R = t_M * (1 + k')
-w_b = 4 * t_R / sqrt(N)
-N = 16 * (t_R / w_b)^2
-R_s = 2 * (t_R2 - t_R1) / (w_b1 + w_b2)
-</code></pre>
-<p>and exposes <code>ChromatographyMethodSpec</code>,
-<code>fit_chromatography_calibration()</code>, <code>chromatographic_resolution()</code>, and related
-helpers. HPLC/GC peaks now store dead time, retention factor, theoretical
-plates, baseline width, and minimum adjacent resolution metadata. This closes a
-narrow retention/plate-count slice; it does not claim empirical retention-index
-prediction, gradient elution, column aging, or peak tailing.</p>
-<p>Each signal spec declares:</p>
-<ul>
-<li>axis name, units, range, and point count;</li>
-<li>peak center, width, response factor, role assignment, and shape;</li>
-<li>calibration curve with slope, intercept, detection limit, and uncertainty;</li>
-<li>baseline intercept and baseline drift;</li>
-<li>replicate count and replicate raw signals;</li>
-<li>processed species-level estimates and uncertainty;</li>
-<li>peak-overlap metadata.</li>
-</ul>
-<p>The world environment now passes hidden species amounts into the spectroscopy
-synthesizer during measurement actions, but the returned observation does not
-expose the hidden state ledger. Agents see only plot-ready raw signals,
-calibrated estimates, uncertainty, instrument cost, and sample consumption.
-This preserves partial observability while making HPLC/GC/UV-vis/IR/NMR outputs
-depend on the actual mechanism state rather than only on aggregate score fields.</p>
-<h2 id="electrochemistry">Electrochemistry</h2>
-<p>The PRO-P9B electrochemistry core is implemented in
-<code>chemworld.physchem.electrochemistry</code> and connected to the
-<code>electrochemical-conversion</code> task through the shared <code>ChemWorld</code> transition
-kernel.</p>
-<p>The current slice uses the standard relations:</p>
-<pre><code class="language-text">E_eq = E0 - RT/(nF) ln Q
-i = i0 A [exp(alpha_a nF eta/RT) - exp(-alpha_c nF eta/RT)]
-extent = |i| t FE / (nF)
-W_elec = |E_cell i t|
-</code></pre>
-<p>The environment now records equilibrium potential, overpotential,
-Butler-Volmer kinetic current, actual current, charge, Faradaic charge,
-Faradaic efficiency, electrical work, selectivity, and energy efficiency in the
-operation summary. This replaces the earlier unlabeled electrolysis proxy.</p>
-<p>This is still a scoped benchmark electrochemistry kernel. It does not yet solve
-ohmic drop, explicit mass-transfer limiting current, double-layer dynamics,
-porous electrode structure, electrolyte speciation, or full potentiostatic and
-galvanostatic controller dynamics. Those are tracked as professional-deepening
-items.</p>
-<h2 id="optional-reference-backend-validation">Optional Reference Backend Validation</h2>
-<p>The P12 reference-validation layer is implemented in
-<code>chemworld.physchem.reference_validation</code>. It does not make external scientific
-packages runtime dependencies. Instead, it provides:</p>
-<ul>
-<li><code>ReferenceBackendSpec</code> records for tracked external backends;</li>
-<li><code>reference_backend_status()</code> to report installed packages, local
-  <code>reference_repos/</code> availability, local checkout paths and short commits, and
-  optional import-probe errors;</li>
-<li><code>reference_backend_context()</code> and <code>import_reference_module()</code> to temporarily
-  import locally cloned reference repositories without vendoring them;</li>
-<li><code>compare_scalar()</code> and <code>summarize_reference_comparisons()</code> to record
-  ChemWorld/reference differences with explicit tolerances and model-limit
-  notes.</li>
-</ul>
-<p>The current executable optional checks cover formula-level comparisons that are
-small enough to audit and stable enough to run locally:</p>
-<table>
-<thead>
-<tr>
-<th>Reference backend</th>
-<th>Current optional checks</th>
-<th>Tolerance</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>chemicals</code></td>
-<td>ideal-gas molar volume via <code>chemicals.volume.ideal_gas</code>; Rachford-Rice vapor fraction and phase compositions via <code>chemicals.rachford_rice.Rachford_Rice_solution</code>; curated DIPPR101 vapor-pressure points via <code>chemicals.dippr.EQ101</code>; curated Poling ideal-gas Cp and sensible enthalpy integrals via <code>chemicals.dippr.EQ100</code></td>
-<td><code>rtol=1e-12</code></td>
-</tr>
-<tr>
-<td><code>fluids</code></td>
-<td>Reynolds and Prandtl numbers via <code>fluids.core</code>; Haaland Darcy friction factor and single-phase pipe pressure drop via <code>fluids.friction</code></td>
-<td><code>rtol=1e-12</code></td>
-</tr>
-<tr>
-<td><code>thermo</code></td>
-<td>ideal Raoult-law bubble/dew pressure and two-phase TP flash via <code>thermo.property_package.Ideal</code> with explicit constant vapor-pressure callables; fixed-lambda Wilson gamma via <code>thermo.wilson.Wilson_gammas</code>; fixed tau/alpha NRTL gamma via <code>thermo.nrtl.NRTL_gammas_binaries</code>; PR/SRK vapor-root <code>Z</code>, <code>phi</code>, <code>H_dep</code>, and <code>S_dep</code> via <code>thermo.eos</code></td>
-<td><code>rtol=1e-12</code> for bubble/dew and gamma checks; <code>rtol=1e-11</code> for flash solver roundoff; <code>rtol=5e-5</code> for independent cubic-EOS residual-property convention differences</td>
-</tr>
-</tbody>
-</table>
-<p>Run the normal test path to confirm reference tests skip cleanly when optional
-backends are not enabled:</p>
-<pre><code class="language-bash">python -m pytest tests/reference
-</code></pre>
-<p>Run the local reference comparisons against packages installed in the
-environment or source trees under <code>reference_repos/</code>:</p>
-<pre><code class="language-bash">CHEMWORLD_RUN_REFERENCE_TESTS=1 python -m pytest tests/reference
-</code></pre>
-<p>On PowerShell:</p>
-<pre><code class="language-powershell">$env:CHEMWORLD_RUN_REFERENCE_TESTS = &quot;1&quot;
-python -m pytest tests/reference
-</code></pre>
-<p>CoolProp, Cantera, phasepy, Reaktoro, and pycalphad are registered as reference
-targets with explicit model-limit notes, but their numerical comparisons are
-not marked complete until their compiled or optional dependencies are available
-and the corresponding checks can run in a controlled environment. In the current
-local snapshot, <code>phasepy</code> exposes useful LLE/VLE source structure for design
-reading but cannot be imported directly without its compiled Cython extension,
-so ChemWorld's completed VLE reference check uses <code>thermo</code> instead.</p>
-<h2 id="reactor-model-core">Reactor Model Core</h2>
-<p>The P4 reactor core is implemented in <code>chemworld.physchem.reactors</code>. It turns
-mechanism-backed reaction networks into executable reactor models with material
-and energy ledgers:</p>
-<table>
-<thead>
-<tr>
-<th>Reactor model</th>
-<th>Current implementation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Batch reactor</td>
-<td>constant-volume mole balance, optional jacket heat, heat loss, reaction heat</td>
-</tr>
-<tr>
-<td>Dynamic batch reactor</td>
-<td>thermochemistry-coupled reaction heat, time-dependent jacket setpoints, destructive sampling events, material/energy ledgers</td>
-</tr>
-<tr>
-<td>Semi-batch reactor</td>
-<td>scheduled feeds, variable volume, feed heat, material-in ledger</td>
-</tr>
-<tr>
-<td>CSTR</td>
-<td>dynamic well-mixed tank with inlet/outlet flows and steady-state integration helper</td>
-</tr>
-<tr>
-<td>PFR</td>
-<td>steady plug-flow model integrated over residence time</td>
-</tr>
-</tbody>
-</table>
-<p>All reactor results expose:</p>
-<ul>
-<li><code>initial_state</code> and <code>final_state</code>;</li>
-<li>per-species amount trajectories;</li>
-<li>temperature trajectory;</li>
-<li>jacket-energy, reaction-heat, and heat-loss ledgers;</li>
-<li>feed and outlet material ledgers where relevant;</li>
-<li>element-based material-balance error;</li>
-<li>convenience metrics such as conversion and yield.</li>
-</ul>
-<p>The implementation follows the same separation used by professional simulators:
-mechanism files define chemistry, reactor models define transport and residence
-time, and task/world layers define objectives and observations. This makes it
-possible to add semi-batch, CSTR, PFR, reactive flash, and continuous-flow tasks
-without creating separate toy environments.</p>
-<p>PRO-P6A adds the first reference-validated reactor multiplicity slice. The
-function <code>cstr_multiple_steady_state_reference_case()</code> defines an exothermic
-first-order CSTR with feed concentration, residence time, coolant temperature,
-<code>UA</code>, heat-capacity density, heat of reaction, and Arrhenius parameters. The
-solver <code>solve_cstr_multiple_steady_states()</code> reduces the coupled steady-state
-material and energy balances to a scalar energy residual,</p>
-<pre><code class="language-text">0 = (-DeltaH) V k(T) C_A(T) - rhoCp q(T - T_f) - UA(T - T_c)
-C_A(T) = C_Af / (1 + k(T) V/q)
-</code></pre>
-<p>and finds three roots for the default ignition/extinction case. Each root is
-returned with conversion, reaction rate, heat generation, heat removal,
-residual, dynamic-Jacobian eigenvalues, and a stable/unstable/marginal label.
-The model card exposed through <code>reactor_model_cards()</code> records the inspected
-Cantera stirred-reactor examples and IDAES CSTR control-volume contract. This
-is a deliberately narrow professional slice, not a full Cantera or IDAES clone.</p>
-<p>DEEP-D6A adds the first dynamic batch reactor deepening slice. The public
-<code>DynamicBatchReactorModel</code> integrates:</p>
-<pre><code class="language-text">dn/dt = S r(n, T)
-rhoCp V dT/dt = Q_jacket - Q_loss - sum_i DeltaH_i(T) r_i V
-Q_jacket = UA_jacket (T_jacket(t) - T) + Q_fixed
-Q_loss = UA_env (T - T_env)
-</code></pre>
-<p>If NASA7 species thermochemistry is supplied, reaction enthalpies are evaluated
-from species enthalpies at the current temperature; otherwise the declared
-reaction <code>delta_h_J_per_mol</code> is used. <code>JacketTemperatureProgram</code> supports step
-or linear time-dependent jacket setpoints, and <code>SamplingEventSpec</code> removes a
-well-mixed sample fraction while recording <code>material_out_mol</code> and the
-post-sample volume ledger. Tests cover adiabatic temperature rise from NASA7
-reaction enthalpy, jacket heating energy, destructive sampling, and model-card
-validation. This is still a constant-density liquid-phase batch slice: no
-constant-pressure expansion, gas work, pressure dynamics, wall thermal inertia,
-or VLE phase change is claimed.</p>
-<h2 id="density-and-molar-volume">Density And Molar Volume</h2>
-<p>DEEP-D2C adds the first professional density/volume property-reporting slice in
-<code>chemworld.physchem.properties</code>.</p>
-<table>
-<thead>
-<tr>
-<th>Capability</th>
-<th>Current implementation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Liquid molar volume</td>
-<td>Rackett equation with explicit <code>Tc</code>, <code>Pc</code>, <code>Zc</code>, temperature bounds, and SI <code>m^3/mol</code> output</td>
-</tr>
-<tr>
-<td>Density conversion</td>
-<td><code>molar_volume_to_density_kg_m3()</code> and <code>density_to_molar_volume_m3_mol()</code> with explicit molecular-weight units</td>
-</tr>
-<tr>
-<td>Ideal gas</td>
-<td><code>ideal_gas_molar_volume_report()</code> with <code>Z = 1</code>, optional gas density, and ledger-ready inputs</td>
-</tr>
-<tr>
-<td>Virial gas</td>
-<td>CRC-style second-virial polynomial hook plus a second-virial molar-volume root and compressibility status</td>
-</tr>
-<tr>
-<td>Mixture volume</td>
-<td>Amgat-style mole-fraction molar-volume closure with optional mixture density</td>
-</tr>
-<tr>
-<td>Provenance</td>
-<td>density/molar-volume model card and local reference-reading notes for <code>chemicals.volume</code>, <code>chemicals.virial</code>, and <code>thermo.volume</code></td>
-</tr>
-</tbody>
-</table>
-<p>The API is deliberately report-oriented rather than table-oriented:
-<code>MolarVolumeReport</code> carries the <code>PropertyEvaluation</code>, phase, method family,
-optional density, compressibility factor, compressibility warning status, and
-reference-reading provenance. <code>MixtureVolumeLedger</code> records component mole
-fractions, component molar volumes, each <code>x_i V_i</code> contribution, the summed
-mixture molar volume, optional density, and any closure warning.</p>
-<p>This is enough for flash, distillation, separation, and reactor tasks to stop
-using unlabeled density proxies. It is not yet a pressure-corrected liquid
-volume backend, a COSTALD/DIPPR116/Yamada-Gunn database, or a CoolProp-level
-density package.</p>
-<h2 id="transport-properties">Transport Properties</h2>
-<p>DEEP-D2D adds the first professional transport-property reporting slice in
-<code>chemworld.physchem.properties</code>.</p>
-<table>
-<thead>
-<tr>
-<th>Capability</th>
-<th>Current implementation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Pure viscosity reports</td>
-<td>Andrade/Arrhenius liquid viscosity and Sutherland gas viscosity through <code>PropertyCorrelation</code></td>
-</tr>
-<tr>
-<td>Pure thermal conductivity</td>
-<td>linear and polynomial conductivity correlations plus DIPPR9B-style gas conductivity from viscosity and <code>Cv</code></td>
-</tr>
-<tr>
-<td>Gas mixture viscosity</td>
-<td>Wilke low-pressure gas-mixture ledger with denominator and component partial-viscosity contributions</td>
-</tr>
-<tr>
-<td>Liquid mixture conductivity</td>
-<td>DIPPR9H/Vredeveld mass-fraction conductivity ledger with warning metadata</td>
-</tr>
-<tr>
-<td>Gas diffusivity</td>
-<td>Fuller-Schettler-Giddings binary gas diffusivity estimate and mixture-averaged effective diffusivity ledger</td>
-</tr>
-<tr>
-<td>Thermal diffusivity</td>
-<td><code>alpha = k/(rho Cp)</code> report in <code>m^2/s</code></td>
-</tr>
-<tr>
-<td>Provenance</td>
-<td>transport-property model card and local reference-reading notes for <code>chemicals</code>, <code>thermo</code>, and IDAES transport modules</td>
-</tr>
-</tbody>
-</table>
-<p>The public API is report-oriented:
-<code>TransportPropertyReport</code> records the evaluated property, phase, method family,
-validity status, relative uncertainty, uncertainty note, and reference-reading
-provenance. <code>MixtureTransportLedger</code> records method-specific component
-contributions, mixture value, units, warnings, and provenance. This keeps
-transport constants out of hidden task code and makes viscosity, conductivity,
-and diffusivity assumptions visible in trajectories and model cards.</p>
-<p>This is not a complete transport backend. High-pressure gas viscosity,
-electrolyte transport, multicomponent Maxwell-Stefan diffusion,
-temperature-fitted diffusion data, and broad CoolProp/chemicals data coverage
-remain future deepening tasks.</p>
-<h2 id="equation-of-state-core">Equation-Of-State Core</h2>
-<p>The P5 EOS core is implemented in <code>chemworld.physchem.eos</code>. It gives ChemWorld a
-local thermodynamic backend for gas and dense-fluid calculations:</p>
-<table>
-<thead>
-<tr>
-<th>EOS capability</th>
-<th>Current implementation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ideal gas</td>
-<td>molar volume, pressure, normalized composition, unit fugacity coefficients</td>
-</tr>
-<tr>
-<td>Pure cubic parameters</td>
-<td>Peng-Robinson and SRK <code>a alpha</code>, <code>b</code>, alpha, kappa</td>
-</tr>
-<tr>
-<td>Mixture rules</td>
-<td>classical one-fluid <code>a_mix</code>, <code>b_mix</code>, optional binary interaction <code>k_ij</code></td>
-</tr>
-<tr>
-<td>Compressibility</td>
-<td>real admissible cubic <code>Z</code> roots</td>
-</tr>
-<tr>
-<td>Phase root selection</td>
-<td>vapor, liquid, and residual-Gibbs-style stable root selector</td>
-</tr>
-<tr>
-<td>Fugacity</td>
-<td>component fugacity coefficients for PR and SRK mixtures</td>
-</tr>
-<tr>
-<td>Residual properties</td>
-<td>PR/SRK molar residual enthalpy, entropy, Gibbs energy, and departure-log metadata</td>
-</tr>
-<tr>
-<td>Volume translation</td>
-<td>Peneloux-style component shifts, translated cubic roots, translated molar-volume reports</td>
-</tr>
-<tr>
-<td>Root governance</td>
-<td>per-root diagnostic reports with phase hints, residual-Gibbs scores, ranks, and selected-root evidence</td>
-</tr>
-<tr>
-<td>Parameter provenance</td>
-<td>binary-interaction provenance records and optional hard-fail checks for missing or mismatched <code>k_ij</code> sources</td>
-</tr>
-</tbody>
-</table>
-<p>The EOS layer is JSON-friendly through <code>EOSComponentSpec</code>, <code>CubicEOSSpec</code>,
-<code>EOSMixtureParameters</code>, and <code>EOSState</code>. It is designed to support future VLE,
-flash, reactive flash, distillation, pressure-risk, and vapor-loss tasks without
-making CoolProp, thermo, teqp, or thermopack required runtime dependencies.</p>
-<p>PRO-P3A hardens the EOS path with a reference-validated residual-property
-slice. <code>CubicPureParameters</code> records <code>da_alpha_dT</code>, <code>EOSMixtureParameters</code>
-records <code>da_mix_dT</code>, and <code>EOSState</code> now carries explicit root-selection policy,
-<code>H^R</code>, <code>S^R</code>, and <code>G^R</code>. The model card exposed through <code>eos_model_cards()</code>
-documents the PR/SRK departure equations, inspected <code>thermo</code>, <code>phasepy</code>,
-<code>thermopack</code>, and <code>teqp</code> reference surfaces, default unit tests, and optional
-<code>thermo.eos</code> reference comparisons for methane, ethane, and carbon dioxide.
-DEEP-D3A adds the first volume-translation and root-governance slice. The EOS
-module now exposes <code>VolumeTranslationSpec</code>, <code>BinaryInteractionProvenance</code>,
-<code>translated_cubic_compressibility_roots()</code>,
-<code>cubic_root_governance_report()</code>, and
-<code>evaluate_volume_translated_cubic_eos()</code>. The implementation follows the local
-reference-reading pattern from <code>phasepy</code> translated cubic roots,
-<code>thermopack</code> Peneloux volume-shift hooks, and <code>thermo</code> translated PR/SRK design
-surfaces, but keeps a smaller ChemWorld API with explicit SI units and JSON
-reports. Tests cover pure-liquid translation, vapor warnings, negative
-translated-volume failure, stable-root ranking, and binary-interaction
-provenance round trips. This remains a compact cubic-EOS slice, not a full
-EOS/flash package with phase envelopes, critical-region treatment, saturation
-solvers, or translated fugacity derivatives.</p>
-<h2 id="phase-equilibrium-core">Phase-Equilibrium Core</h2>
-<p>The P6 phase-equilibrium core is implemented in
-<code>chemworld.physchem.equilibrium</code>. It adds the first working bridge between EOS,
-property correlations, and downstream separation tasks:</p>
-<table>
-<thead>
-<tr>
-<th>Equilibrium capability</th>
-<th>Current implementation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Activity coefficients</td>
-<td>ideal, Margules, Wilson, and NRTL models</td>
-</tr>
-<tr>
-<td>Raoult K-values</td>
-<td>activity-corrected <code>K_i = gamma_i Psat_i / phi_i P</code></td>
-</tr>
-<tr>
-<td>Flash</td>
-<td>Rachford-Rice vapor fraction and liquid/vapor compositions</td>
-</tr>
-<tr>
-<td>Bubble/dew pressure</td>
-<td>iterative estimates with activity coefficients</td>
-</tr>
-<tr>
-<td>LLE stage</td>
-<td>material-conserving extraction split with partition coefficients, phase volumes, stage efficiency, and entrainment</td>
-</tr>
-</tbody>
-</table>
-<p>PRO-P4A hardens the nonideal activity path. Wilson and NRTL now use explicit
-directional pair-key parameters instead of unlabeled proxy matrices. Wilson
-supports fixed <code>Lambda_ij</code> values or temperature-dependent coefficient form
-<code>a + b/T + c ln(T) + dT + e/T^2 + fT^2</code>. NRTL supports fixed or
-temperature-dependent <code>tau_ij</code> terms, <code>alpha_ij</code> terms, and the standard
-<code>G_ij = exp(-alpha_ij tau_ij)</code> local-composition sum. Missing off-diagonal
-Wilson/NRTL interactions fail during <code>ActivityModelSpec</code> construction, so a
-nonideal model cannot silently fall back to ideal behavior. Optional reference
-tests compare the implemented gamma equations against <code>thermo.wilson</code> and
-<code>thermo.nrtl</code>.</p>
-<p>This is still compact, but it is enough to make future extraction, evaporation,
-distillation, solvent-screening, and purity/recovery tasks depend on shared
-thermodynamic rules rather than fixed hand-tuned proxies.</p>
-<h2 id="equilibrium-chemistry-core">Equilibrium-Chemistry Core</h2>
-<p>The P9 equilibrium-chemistry core is implemented in
-<code>chemworld.physchem.equilibrium_chemistry</code>. It covers reaction equilibrium and
-aqueous/electrolyte proxies that are separate from the VLE/LLE phase-equilibrium
-layer:</p>
-<table>
-<thead>
-<tr>
-<th>Capability</th>
-<th>Current implementation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Reaction equilibrium spec</td>
-<td><code>EquilibriumReactionSpec</code> with stoichiometry, reference <code>log10(K)</code>, reaction enthalpy, and concentration activity model</td>
-</tr>
-<tr>
-<td>Problem spec</td>
-<td><code>EquilibriumSystemSpec</code> at fixed temperature, pressure, and volume</td>
-</tr>
-<tr>
-<td>Extent formulation</td>
-<td>scalar extent bounds for single reactions and coupled extent-space least-squares for multi-reaction systems</td>
-</tr>
-<tr>
-<td>Equilibrium constant</td>
-<td>van't Hoff temperature dependence from <code>K_ref</code>, <code>T_ref</code>, and <code>Delta H</code></td>
-</tr>
-<tr>
-<td>Reaction quotient</td>
-<td>concentration-based <code>Q</code> and <code>ln Q</code> utilities</td>
-</tr>
-<tr>
-<td>Gibbs minimization</td>
-<td>fixed-TP ideal phase-mixture Gibbs minimization with element, charge, phase, and nonnegative-species constraints</td>
-</tr>
-<tr>
-<td>Acid/base</td>
-<td>monoprotic weak-acid equilibrium with electroneutrality, water autoionization, pH/pOH, and ionic strength</td>
-</tr>
-<tr>
-<td>Water ion product</td>
-<td>compact temperature interpolation for <code>K_w</code></td>
-</tr>
-<tr>
-<td>Precipitation</td>
-<td>binary solubility-product precipitation with saturation index and material-balance error</td>
-</tr>
-<tr>
-<td>Charge balance</td>
-<td>single-ion electroneutrality adjustment and net charge equivalents</td>
-</tr>
-<tr>
-<td>Ionic strength</td>
-<td>molality-based and amount-based ionic-strength calculations</td>
-</tr>
-<tr>
-<td>Solid solubility</td>
-<td>eutectic-style mole-fraction solubility proxy</td>
-</tr>
-</tbody>
-</table>
-<p>The reference projects informed the architecture rather than the source code.
-Reaktoro separates chemical state, equilibrium specifications, restrictions,
-conditions, and solvers; Cantera exposes equilibrium through constrained pairs
-such as <code>TP</code> and <code>HP</code>; pycalphad organizes equilibrium around components,
-phases, conditions, and <code>GM</code>/<code>MU</code> outputs. ChemWorld localizes the same
-separation into lightweight JSON-friendly specs and result objects suitable for
-benchmark replay.</p>
-<p>The first Gibbs slice is <code>solve_gibbs_minimization()</code>: it minimizes</p>
-<pre><code class="language-text">G = sum_i n_i G_i^0 + R T sum_i n_i ln(x_i,phase)
-</code></pre>
-<p>subject to element balances, total charge, phase restrictions, and
-nonnegative species bounds. It removes linearly redundant constraints before
-calling SLSQP, then reports the full element and charge residuals afterward.
-This is enough to support small hidden equilibrium scenarios and analytical
-validation cases, but it is still not a Reaktoro-style database solver or a
-CALPHAD global phase-selection algorithm.</p>
-<h2 id="separation-unit-operation-core">Separation Unit-Operation Core</h2>
-<p>The P7 separation core is implemented in <code>chemworld.physchem.separations</code>. It
-wraps phase-equilibrium calculations into downstream processing units with
-explicit outlet streams, cost/risk ledgers, heat duty, solvent loss, and material
-balance errors:</p>
-<table>
-<thead>
-<tr>
-<th>Unit operation</th>
-<th>Current implementation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Liquid-liquid extraction</td>
-<td>multistage extraction using partition coefficients, finite stage efficiency, entrainment, and solvent loss</td>
-</tr>
-<tr>
-<td>Evaporation / flash</td>
-<td>VLE-driven vapor/liquid split from K-values, heat duty, and concentration risk</td>
-</tr>
-<tr>
-<td>VLE shortcut distillation</td>
-<td>Raoult/activity K-values, relative volatilities, Fenske-style split ratios, reflux-scaled effective stages, heat duty, and purity/recovery/cost tradeoff</td>
-</tr>
-<tr>
-<td>FUG distillation sizing</td>
-<td>binary Fenske minimum stages, Underwood minimum reflux for saturated-liquid feed, Gilliland/Eduljee stage estimate, actual trays, feed-stage estimate, pressure-profile warnings, and provenance</td>
-</tr>
-<tr>
-<td>Crystallization</td>
-<td>solubility-limited crystallization, cooling proxy, impurity occlusion, crystal-size proxy</td>
-</tr>
-<tr>
-<td>Filtration</td>
-<td>solid recovery, impurity retention, washing efficiency, and wash loss</td>
-</tr>
-<tr>
-<td>Drying</td>
-<td>solvent removal, residual solvent, heat duty, thermal degradation risk</td>
-</tr>
-</tbody>
-</table>
-<p>All units return a shared <code>SeparationResult</code> with named outlets and a
-<code>SeparationLedger</code>. This makes downstream processing benchmarkable: a task can
-reward purity and recovery while penalizing cost, risk, solvent loss, and
-process mass-balance errors. Excessive purification is therefore not
-automatically optimal, which is important for realistic reaction-to-purification
-tasks.</p>
-<p>PRO-P7A replaces the old score-based distillation split with
-<code>vle_shortcut_distillation()</code>. The model first computes <code>K_i</code> values through the
-shared phase-equilibrium layer,</p>
-<pre><code class="language-text">K_i = gamma_i Psat_i / (phi_i P)
-alpha_i,HK = K_i / K_HK
-N_eff = N_theoretical * tray_efficiency * R/(1+R)
-(D_i/B_i)/(D_j/B_j) = (alpha_i/alpha_j)**N_eff
-</code></pre>
-<p>and then solves a single cut parameter so the requested total distillate amount
-is met exactly. This gives agents a physically interpretable lever: vapor
-pressure, activity model, pressure, reflux, stage count, and tray efficiency all
-affect purity, recovery, energy cost, and risk. The environment's <code>distill</code>
-operation now calls this kernel and records the VLE/Fenske metadata in the
-state ledger. The model card exposed through <code>separation_model_cards()</code> records
-the inspected IDAES flash/control-volume design, thermo <code>FlashVL</code> API, and
-phasepy PT-flash algorithm. This is still a shortcut model, not a full MESH
-column solver.</p>
-<p>DEEP-D7B adds a separate binary column-sizing report rather than hiding sizing
-inside the split kernel. <code>FUGDistillationSpec</code> requires explicit light/heavy
-keys, constant relative volatility, feed/distillate/bottoms mole fractions,
-reflux ratio, stage efficiency, pressure data, feed quality, and provenance.
-<code>fenske_underwood_gilliland_sizing()</code> returns Fenske <code>N_min</code>, Underwood theta
-and <code>R_min</code> for saturated-liquid feed, Eduljee/Gilliland theoretical stages,
-actual trays, feed stage from the top, section-stage estimates, pressure-profile
-warnings, and model-card evidence. Reflux below <code>R_min</code>, impossible splits,
-unsupported feed quality, invalid pressure, and missing provenance fail early.
-This is still not a MESH model: pressure-drop integration, boilup closure,
-tray hydraulics, Murphree efficiency profiles, multicomponent Underwood roots,
-and azeotrope handling remain D7 deepening work.</p>
-<h2 id="transport-and-heat-transfer-core">Transport and Heat-Transfer Core</h2>
-<p>The P8 transport core is implemented in <code>chemworld.physchem.transport</code>. It adds
-the first local equipment-calculation layer needed by professional interaction
-environments: flow, pressure, pumping, mixing, heat transfer, and compact
-two-phase/packed-bed proxies.</p>
-<table>
-<thead>
-<tr>
-<th>Capability</th>
-<th>Current implementation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Dimensionless groups</td>
-<td>Reynolds, Prandtl, Peclet, and internal-flow Nusselt estimates</td>
-</tr>
-<tr>
-<td>Flow regime</td>
-<td>laminar, transitional, and turbulent classification</td>
-</tr>
-<tr>
-<td>Friction factor</td>
-<td>explicit <code>auto</code>, <code>laminar</code>, and <code>haaland</code> branches with method metadata and validity warnings</td>
-</tr>
-<tr>
-<td>Pipe pressure drop</td>
-<td>Darcy-Weisbach friction, fittings loss, static head, pump work, and recorded friction-method evidence</td>
-</tr>
-<tr>
-<td>Mixing</td>
-<td>impeller power and optional volumetric power density</td>
-</tr>
-<tr>
-<td>Heat transfer</td>
-<td>film/wall/fouling resistance to <code>U</code>, jacket heat duty, signed heat energy, and explicit Nusselt-correlation metadata</td>
-</tr>
-<tr>
-<td>Heat exchanger</td>
-<td>counterflow effectiveness-NTU model with hot/cold duty balance and maximum-duty checks</td>
-</tr>
-<tr>
-<td>Packed bed</td>
-<td>Ergun pressure-drop calculation with viscous and inertial terms</td>
-</tr>
-<tr>
-<td>Two-phase proxy</td>
-<td>homogeneous pressure-drop model using quality-weighted mixture properties</td>
-</tr>
-</tbody>
-</table>
-<p>All transport results are JSON-friendly dataclasses. They expose the engineering
-quantity, the units implied by the field names, the regime or model branch used,
-and a metadata block with the equipment inputs. This keeps later world-law
-modules honest: a task can penalize high pump work, high pressure drop, poor heat
-removal, high mixing energy, or risky gas-liquid operation using the same
-calculation surface that students and agents can inspect.</p>
-<p>The module intentionally uses compact correlations instead of importing a heavy
-process-simulation backend. The reference libraries informed the API shape:
-<code>fluids</code> separates dimensionless groups, friction factors, and pressure-drop
-wrappers; IDAES exposes equipment contracts in terms of <code>U</code>, <code>A</code>, <code>Q</code>, <code>NTU</code>,
-and effectiveness. ChemWorld localizes those ideas into deterministic functions
-that are small enough for benchmark replay and robust enough for task design.</p>
-<p>The first reference-validated transport slices now cover single-phase pipe flow
-and single-phase heat transfer. <code>transport_model_cards()</code> records one model card
-for laminar/Haaland Darcy friction and Darcy-Weisbach pressure drop, and another
-for internal-flow Nusselt correlations plus counterflow e-NTU exchanger duty.
-Optional reference tests compare the Haaland branch to
-<code>fluids.friction.Haaland</code>, pipe pressure drop to <code>fluids.friction.one_phase_dP</code>
-with <code>Method='Haaland'</code>, and the <code>h = Nu k / D</code> definition to
-<code>fluids.core.Nusselt</code>. The heat-transfer path exposes branch metadata for a
-constant laminar relation, Dittus-Boelter, and Gnielinski, including validity
-warnings and strict validity failure mode. The homogeneous two-phase function
-and any boiling/condensation behavior remain compact benchmark proxies until a
-later professional two-phase or phase-change task replaces or validates them.</p>
-<h2 id="boundaries">Boundaries</h2>
-<p>This layer is now a real local property-correlation, reaction-network, reactor,
-cubic-EOS, compact phase-equilibrium, reaction-equilibrium/electrolyte,
-downstream unit-operation, and transport/heat-transfer core, but it is not yet a
-complete process simulator. It does not perform rigorous multiphase stability
-analysis, database-grade flash calculations, global Gibbs minimization,
-automatic reaction mechanism generation, CFD, detailed two-fluid hydrodynamics,
-or exchanger network synthesis. Those will be built on top of these specs in
-later TODO milestones.</p>
-<h2 id="validation-rules">Validation Rules</h2>
-<p>The core fails early when:</p>
-<ul>
-<li>a formula has unknown elements or unsupported hydrate/dot syntax;</li>
-<li>mole or mass fractions are negative or do not sum to one;</li>
-<li>mixture temperature or pressure is nonpositive;</li>
-<li>a component phase is outside the supported phase labels;</li>
-<li>a property correlation references an unsupported unit;</li>
-<li>a validity range is reversed or degenerate.</li>
-<li>a reaction references an unknown species;</li>
-<li>a reaction is not element balanced;</li>
-<li>a rate coefficient is negative, non-finite, or not numeric.</li>
-<li>an equilibrium constant, reaction extent, pH calculation, solubility product,
-  ion charge, or ionic strength input is nonphysical.</li>
-<li>a transport dimension, density, viscosity, heat-transfer coefficient, or
-  equipment efficiency is nonphysical.</li>
-</ul>
-<p>This gives later transition kernels a cleaner contract: invalid chemistry
-metadata should fail before simulation begins.</p>
+<p>这给 transition kernels 更清晰的合同：无效化学状态应被早发现、早解释，而不是在后续
+评分阶段才表现为神秘异常。</p>
 
 
 
@@ -3004,6 +2780,12 @@ metadata should fail before simulation begins.</p>
           
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
         
       </main>
       
@@ -3034,7 +2816,7 @@ metadata should fail before simulation begins.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
