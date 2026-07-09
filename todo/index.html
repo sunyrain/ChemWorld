@@ -2119,18 +2119,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前结论
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        当前统计
+        当前阶段
       
     </span>
   </a>
@@ -2149,7 +2138,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         下一轮优先级
@@ -2160,7 +2149,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         协作规则
@@ -2216,18 +2205,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前结论
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        当前统计
+        当前阶段
       
     </span>
   </a>
@@ -2246,7 +2224,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         下一轮优先级
@@ -2257,7 +2235,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         协作规则
@@ -2286,18 +2264,9 @@
 
 <h1 id="_1">统一任务板摘要</h1>
 <p>活跃任务源只有仓库根目录的 <code>TODO.md</code>。本页只给站点读者一个当前状态摘要，避免维护两套任务板。</p>
-<h2 id="_2">当前结论</h2>
-<p>ChemWorld 当前已经进入 benchmark trust hardening 阶段。短期重点不是继续扩展新任务，而是收束任务合同、ledger、观测泄漏、runtime 边界、agent 交互和公开预发布文档。</p>
-<p>当前剩余工作：</p>
-<ul>
-<li>总任务 58 项。</li>
-<li>已完成 18 项。</li>
-<li>进行中 0 项。</li>
-<li>已认领 3 项。</li>
-<li>待开始 37 项。</li>
-<li>剩余 40 项。</li>
-</ul>
-<h2 id="_3">当前统计</h2>
+<h2 id="_2">当前阶段</h2>
+<p>ChemWorld 当前处于 <strong>benchmark trust hardening</strong> 阶段。短期重点不是继续堆新任务，而是把任务合同、ledger、观测泄漏、runtime 边界、agent 交互和公开预发布文档做实。</p>
+<p>当前统计：</p>
 <table>
 <thead>
 <tr>
@@ -2357,13 +2326,13 @@
 <td style="text-align: right;">5</td>
 </tr>
 <tr>
-<td>Total</td>
-<td style="text-align: right;">58</td>
-<td style="text-align: right;">18</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">37</td>
-<td style="text-align: right;">40</td>
+<td><strong>Total</strong></td>
+<td style="text-align: right;"><strong>58</strong></td>
+<td style="text-align: right;"><strong>18</strong></td>
+<td style="text-align: right;"><strong>0</strong></td>
+<td style="text-align: right;"><strong>3</strong></td>
+<td style="text-align: right;"><strong>37</strong></td>
+<td style="text-align: right;"><strong>40</strong></td>
 </tr>
 </tbody>
 </table>
@@ -2380,27 +2349,27 @@
 <tr>
 <td>最小可信 benchmark</td>
 <td style="text-align: right;">2</td>
-<td>完成全部 P0/P1</td>
+<td>完成全部 P0/P1，冻结任务的 replay、scoring、ledger、observation 和 runtime 边界才算基本可信。</td>
 </tr>
 <tr>
 <td>可公开预发布包</td>
 <td style="text-align: right;">13</td>
-<td>完成 P0/P1/P2/P4</td>
+<td>完成 P0/P1/P2/P4，外部用户可安装、运行、提交、阅读文档和复现实验。</td>
 </tr>
 <tr>
 <td>全部可见路线图</td>
 <td style="text-align: right;">40</td>
-<td>包含长期 P3 专业物化深化</td>
+<td>包含长期 P3 专业物化深化，不阻塞第一版公开预发布。</td>
 </tr>
 </tbody>
 </table>
-<h2 id="_4">下一轮优先级</h2>
+<h2 id="_3">下一轮优先级</h2>
 <ol>
 <li><code>P1-CONSIST-07</code>：public observation leakage audit。</li>
 <li><code>P1-CONSIST-08</code>：runtime boundary scan。</li>
 <li><code>P2-AGENT-01</code>：polish <code>task_prompt()</code> for the three pre-release tasks。</li>
 </ol>
-<h2 id="_5">协作规则</h2>
+<h2 id="_4">协作规则</h2>
 <ul>
 <li>从 <code>main</code> 开发，开始任务前先拉取远端。</li>
 <li>每次只把一个任务标记为 <code>Active</code>。</li>
