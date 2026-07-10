@@ -152,7 +152,7 @@ def test_task_report_exposes_current_maturity_declaration_gaps() -> None:
     report = audit_model_reachability()
     assert report["contract_integrity_passed"] is True
     assert report["route_count"] == len(OPERATION_TYPES)
-    assert report["declaration_alignment_status"] == "gaps_detected"
+    assert report["declaration_alignment_status"] == "aligned"
 
     assay = report["tasks"]["reaction-to-assay"]
     assert assay["alignment_status"] == "aligned"
@@ -162,10 +162,8 @@ def test_task_report_exposes_current_maturity_declaration_gaps() -> None:
     assert partition["reachable_but_undeclared"] == []
 
     equilibrium = report["tasks"]["equilibrium-characterization"]
-    assert "fixed_tp_ideal_gibbs_minimization" in (equilibrium["declared_but_unreachable"])
-    assert "beer_lambert_uvvis" in equilibrium["reachable_but_undeclared"]
-    assert "chemworld_reaction_network_lite" in equilibrium["reachable_but_undeclared"]
-    assert "chemworld_reactor_lite" in equilibrium["reachable_but_undeclared"]
+    assert equilibrium["declared_but_unreachable"] == []
+    assert equilibrium["reachable_but_undeclared"] == []
 
 
 def test_adapter_manifest_round_trip_is_hash_bound() -> None:

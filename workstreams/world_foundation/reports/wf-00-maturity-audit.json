@@ -1,7 +1,7 @@
 {
   "contract_integrity_passed": true,
-  "declaration_alignment_status": "gaps_detected",
-  "declaration_gap_count": 4,
+  "declaration_alignment_status": "aligned",
+  "declaration_gap_count": 0,
   "evidence_paths": [
     "scripts/audit_model_reachability.py",
     "src/chemworld/physchem/equilibrium.py",
@@ -31,7 +31,7 @@
     "ph_meter_public_signal": "runtime",
     "vle_shortcut_distillation": "runtime"
   },
-  "report_hash": "6c5a53ab7595ec46555e10488b73adf4e6adc51633c315ec8f9b0520dbba8b5d",
+  "report_hash": "da3ffcb4a4897580e1646076acf20b045da73ea100bd5defb046343a46b8e35a",
   "role_boundary_passed": true,
   "route_count": 28,
   "schema_version": "chemworld-maturity-audit-0.1",
@@ -296,14 +296,14 @@
         ],
         "runtime_fallback": []
       },
-      "alignment_status": "gaps_detected",
-      "declared_but_unreachable": [
-        "fixed_tp_ideal_gibbs_minimization"
-      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
       "declared_model_ids": [
         "aqueous_acid_base_ph_observation",
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
         "chemworld_synthetic_instruments",
-        "fixed_tp_ideal_gibbs_minimization",
         "ph_meter_public_signal"
       ],
       "declared_module_maturity": {
@@ -312,23 +312,43 @@
           {
             "level": "reference_validated",
             "model_ids": [
-              "aqueous_acid_base_ph_observation",
-              "fixed_tp_ideal_gibbs_minimization"
+              "aqueous_acid_base_ph_observation"
             ],
             "module_id": "equilibrium_chemistry",
             "notes": [
-              "D4 equilibrium slice: weak-acid charge balance, public pH-meter observation, sequential Ksp hooks, and Gibbs diagnostic metadata."
+              "D4 equilibrium slice: weak-acid charge balance, public pH-meter observation and sequential Ksp hooks. The fixed-T,P Gibbs solver remains reference-only and is not a runtime task dependency."
             ]
           },
           {
             "level": "lite",
             "model_ids": [
-              "ph_meter_public_signal",
-              "chemworld_synthetic_instruments"
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Heat and wait operations use the bounded reaction-network slice."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Heat and wait operations use the bounded reactor slice."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "beer_lambert_uvvis",
+              "chemworld_synthetic_instruments",
+              "ph_meter_public_signal"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "pH-meter signal is instrument-facing and benchmark-calibrated."
+              "pH-meter and UV/Vis signals are instrument-facing and benchmark-calibrated."
             ]
           }
         ],
@@ -339,8 +359,10 @@
       },
       "declared_provider_roles": {
         "aqueous_acid_base_ph_observation": "runtime",
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
         "chemworld_synthetic_instruments": "runtime",
-        "fixed_tp_ideal_gibbs_minimization": "reference",
         "ph_meter_public_signal": "runtime"
       },
       "evidence_paths": [
@@ -362,11 +384,7 @@
         "chemworld_synthetic_instruments": "lite",
         "ph_meter_public_signal": "lite"
       },
-      "reachable_but_undeclared": [
-        "beer_lambert_uvvis",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite"
-      ],
+      "reachable_but_undeclared": [],
       "routes": [
         {
           "instrument_model_ids": {},
@@ -465,7 +483,7 @@
         }
       ],
       "runtime_profile_hash": "39b115ed097ccb2dcafeb819f8cde8ac9b7e2c89296836e3717189398558eeeb",
-      "task_contract_hash": "a4ac08cff7eab9bf7c37c10dc08ed4ef133a39801afe12f7efa2a1e2a886fca3",
+      "task_contract_hash": "4fb5f7835dd85eb19f4e9c20a6438a9aa863c037341e82f09ceafcee5bc2eed9",
       "task_id": "equilibrium-characterization",
       "world_law_id": "chemworld-physical-chemistry-v0.3"
     },

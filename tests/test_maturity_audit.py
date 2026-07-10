@@ -23,8 +23,8 @@ def test_full_report_covers_all_fifteen_tasks_and_actual_dependencies() -> None:
     assert report["task_count"] == 15
     assert {item["task_id"] for item in report["tasks"]} == {task.task_id for task in list_tasks()}
     assert report["contract_integrity_passed"]
-    assert report["declaration_alignment_status"] == "gaps_detected"
-    assert report["declaration_gap_count"] == 4
+    assert report["declaration_alignment_status"] == "aligned"
+    assert report["declaration_gap_count"] == 0
     assert validate_maturity_audit_report(report, repository_root=root) == []
 
 
@@ -65,9 +65,7 @@ def test_role_audit_separates_runtime_diagnostic_and_reference_models() -> None:
     equilibrium = next(
         item for item in report["tasks"] if item["task_id"] == "equilibrium-characterization"
     )
-    assert equilibrium["declared_provider_roles"]["fixed_tp_ideal_gibbs_minimization"] == (
-        "reference"
-    )
+    assert "fixed_tp_ideal_gibbs_minimization" not in equilibrium["declared_model_ids"]
     assert "fixed_tp_ideal_gibbs_minimization" not in equilibrium["actual_model_ids"]
 
 

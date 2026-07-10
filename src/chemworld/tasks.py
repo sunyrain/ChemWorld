@@ -509,20 +509,37 @@ def equilibrium_kernel_maturity() -> TaskMaturitySpec:
             ModuleMaturity(
                 "equilibrium_chemistry",
                 MaturityLevel.REFERENCE_VALIDATED,
-                model_ids=(
-                    "aqueous_acid_base_ph_observation",
-                    "fixed_tp_ideal_gibbs_minimization",
-                ),
+                model_ids=("aqueous_acid_base_ph_observation",),
                 notes=(
                     "D4 equilibrium slice: weak-acid charge balance, public pH-meter "
-                    "observation, sequential Ksp hooks, and Gibbs diagnostic metadata.",
+                    "observation and sequential Ksp hooks. The fixed-T,P Gibbs solver "
+                    "remains reference-only and is not a runtime task dependency.",
                 ),
+            ),
+            ModuleMaturity(
+                "reaction_kinetics",
+                MaturityLevel.LITE,
+                model_ids=("chemworld_reaction_network_lite",),
+                notes=("Heat and wait operations use the bounded reaction-network slice.",),
+            ),
+            ModuleMaturity(
+                "reactors",
+                MaturityLevel.LITE,
+                model_ids=("chemworld_reactor_lite",),
+                notes=("Heat and wait operations use the bounded reactor slice.",),
             ),
             ModuleMaturity(
                 "spectroscopy_instruments",
                 MaturityLevel.LITE,
-                model_ids=("ph_meter_public_signal", "chemworld_synthetic_instruments"),
-                notes=("pH-meter signal is instrument-facing and benchmark-calibrated.",),
+                model_ids=(
+                    "beer_lambert_uvvis",
+                    "chemworld_synthetic_instruments",
+                    "ph_meter_public_signal",
+                ),
+                notes=(
+                    "pH-meter and UV/Vis signals are instrument-facing and "
+                    "benchmark-calibrated.",
+                ),
             ),
         ),
         proxy_allowed=False,
