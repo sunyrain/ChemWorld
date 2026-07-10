@@ -20,3 +20,11 @@ target 与 line final inventory，并对物料和体积执行硬闭合。
 该 proposal 使用新的 `chemworld_transfer_holdup_vnext` model id，暂时是 `runtime_addition`，不声明
 已经替代同时覆盖 dry/concentrate/transfer 的 `chemworld_separation_proxy`。只有 WF-110 在 vNext
 为 transfer 单独切换路由并完成轨迹、成本和风险重冻结后，才允许从 transfer 正式路径移除 proxy。
+
+`wf-30-drying-sorbent` 交付 dry 的有限容量 reference slice：声明式 sorbent card、竞争共享位点
+平衡、有限接触时间、初始吸附库存/解吸、机械夹带和 spent-sorbent 废物流。湿液、干燥液、夹带液
+和吸附相逐组分闭合；单组分平衡对照解析二次方程，多组分平衡独立对照 SciPy 非线性求解。
+
+该 proposal 使用 `chemworld_sorbent_drying_vnext`，同样保持 `runtime_addition`。它不声称代表任意
+真实干燥剂，也不覆盖真空或热干燥；参数必须来自后续带 provenance 的 sorbent/property card。
+在 concentrate slice 和 WF-110 路由/基准重冻结完成前，共享 v0.3 proxy 仍不得删除。
