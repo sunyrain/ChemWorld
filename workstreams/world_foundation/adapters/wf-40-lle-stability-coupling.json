@@ -1,0 +1,72 @@
+{
+  "adapter_id": "wf-40-lle-stability-coupling",
+  "adapter_version": "0.1",
+  "integration_operations": [
+    "mix",
+    "wash"
+  ],
+  "manifest_hash": "90aee3c6b5513bdf0335ea364aea31c2f4766826b420c46c526bcbc623d8848b",
+  "owned_paths": [
+    "src/chemworld/physchem/phase_equilibrium_units.py",
+    "src/chemworld/physchem/phase_equilibrium_adapter_manifest.py",
+    "tests/test_phase_equilibrium_units.py",
+    "workstreams/world_foundation/adapters/wf-40-lle-stability-coupling.json"
+  ],
+  "owner_workstream": "wf-40-lle-stability-coupling",
+  "provider_contract": {
+    "diagnostic_fields": [
+      "material_balance_error_mol",
+      "maximum_stage_material_balance_error_mol",
+      "minimum_tpd_like",
+      "maximum_distribution_residual",
+      "target_recovery",
+      "target_purity",
+      "impurity_rejection",
+      "entrained_volume_L",
+      "all_stages_two_liquid",
+      "all_stages_converged",
+      "warnings"
+    ],
+    "failure_policy": "return an explicit failed provider result for invalid, single-liquid, non-converged, out-of-domain, or non-conservative contacts; never fabricate a split or silently accept an incomplete ledger",
+    "input_fields": [
+      "request"
+    ],
+    "intended_operations": [
+      "mix",
+      "wash"
+    ],
+    "maturity": "professional_candidate",
+    "model_id": "chemworld_stability_aware_lle_vnext",
+    "module_id": "separations",
+    "output_fields": [
+      "phase_equilibrium_result"
+    ],
+    "provenance": [
+      "WF-40 analytical ideal-contact and multistage recovery identities",
+      "coupled TPD-style stability, gamma-corrected distribution, and directional entrainment ledgers",
+      "PhasePy 9376df19c9ddf6723d10639d11cad64ee0b54047:phasepy/equilibrium/stability.py and phasepy/equilibrium/lle.py convention boundary"
+    ],
+    "provider_path": "chemworld.physchem.phase_equilibrium_adapter_manifest.StabilityAwareLLEProvider",
+    "role": "runtime",
+    "runtime_reachable": true,
+    "units": {
+      "phase_equilibrium_result": "JSON stage stability, phase allocation, entrainment, and material ledger",
+      "request": "StabilityAwareExtractionRequest with explicit mol/L/K units"
+    },
+    "validity_checks": [
+      "request is a StabilityAwareExtractionRequest",
+      "feed, distribution, and optional stability activity models share exact component ids",
+      "intrinsic and activity-corrected distribution coefficients remain in [1e-12, 1e12]",
+      "every contact lies within the declared volume, stage-count, and temperature domain",
+      "every contact passes the two-liquid TPD-style stability gate",
+      "distribution iterations converge and stage/train component ledgers close"
+    ]
+  },
+  "replaces_model_ids": [
+    "activity_corrected_extraction_train_v1",
+    "lle_phase_stability_diagnostic_v1"
+  ],
+  "schema_version": "chemworld-model-adapter-manifest-0.1",
+  "status": "proposal",
+  "target_world_law": "chemworld-physical-chemistry-vnext"
+}
