@@ -10,7 +10,7 @@ import numpy as np
 
 from chemworld.world.actions import CATALYSTS, SOLVENTS
 
-WORLD_FAMILY_VERSION = "chemworld-physical-chemistry"
+WORLD_FAMILY_VERSION = "chemworld-physical-chemistry-v0.2"
 SUPPORTED_SPLITS = ("public-dev", "public-test", "private-eval")
 
 

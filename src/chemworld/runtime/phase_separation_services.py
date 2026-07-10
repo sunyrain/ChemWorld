@@ -12,6 +12,10 @@ from chemworld.foundation import (
     upsert_equipment_record,
 )
 from chemworld.foundation.state import selected_phase_id
+from chemworld.physchem.extraction_units import (
+    DistributionCoefficientModelSpec,
+    activity_corrected_extraction_train,
+)
 from chemworld.runtime.phase_ledger_services import (
     ChemWorldPhaseLedgerServices,
     action_float,
@@ -129,6 +133,14 @@ class ChemWorldPhaseSeparationServices:
                 "lle_phase_status": split["lle_phase_status"],
                 "lle_minimum_tpd_like": split["lle_minimum_tpd_like"],
                 "lle_partition_log_spread": split["lle_partition_log_spread"],
+                "extraction_model_id": split["extraction_model_id"],
+                "extraction_converged": split["extraction_converged"],
+                "extraction_material_balance_error_mol": split[
+                    "extraction_material_balance_error_mol"
+                ],
+                "extraction_entrained_aqueous_volume_L": split[
+                    "extraction_entrained_aqueous_volume_L"
+                ],
             },
             phase_settled=False,
             ledger=ledger,
@@ -163,14 +175,21 @@ class ChemWorldPhaseSeparationServices:
                 "solvent_loss": 0.0,
             },
         )
-        entrainment_loss = 0.025 if target == "organic" else 0.045
-        retained_p = selected[PHASE_PRODUCT_AMOUNT_KEY] * (1.0 - entrainment_loss)
-        retained_impurity = selected["impurity_mol"] * (1.0 + 0.20 * entrainment_loss)
+        entrained_volume_L = float(
+            state.metadata.get("extraction_entrained_aqueous_volume_L", 0.0)
+        )
+        contact_volume_L = sum(
+            max(float(values.get("volume_L", 0.0)), 0.0)
+            for values in phase_ledger.values()
+        )
+        entrainment_fraction = float(
+            np.clip(entrained_volume_L / max(contact_volume_L, 1.0e-12), 0.0, 1.0)
+        )
         phase_ledger[target] = {
-            "volume_L": selected["volume_L"] * (1.0 - 0.015),
-            PHASE_PRODUCT_AMOUNT_KEY: retained_p,
-            "impurity_mol": retained_impurity,
-            "solvent_loss": selected.get("solvent_loss", 0.0) + entrainment_loss,
+            "volume_L": selected["volume_L"],
+            PHASE_PRODUCT_AMOUNT_KEY: selected[PHASE_PRODUCT_AMOUNT_KEY],
+            "impurity_mol": selected["impurity_mol"],
+            "solvent_loss": selected.get("solvent_loss", 0.0) + entrainment_fraction,
         }
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.025)
         return self.phase_ledgers.with_phase_ledger(
@@ -195,15 +214,84 @@ class ChemWorldPhaseSeparationServices:
                 "solvent_loss": 0.0,
             },
         )
-        impurity_removal = float(np.clip(0.18 + 8.0 * volume, 0.0, 0.65))
-        phase["impurity_mol"] *= 1.0 - impurity_removal
-        phase[PHASE_PRODUCT_AMOUNT_KEY] *= 1.0 - 0.015
-        phase["volume_L"] += volume * 0.35
-        phase["solvent_loss"] += 0.012
-        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.02 + 0.25 * volume)
+        feed = {
+            "product": max(float(phase[PHASE_PRODUCT_AMOUNT_KEY]), 0.0),
+            "impurity": max(float(phase["impurity_mol"]), 0.0),
+        }
+        if sum(feed.values()) <= 0.0 or target != "organic":
+            ledger = state.ledger.with_updates(
+                cost=state.ledger.cost + 0.02 + 0.25 * volume
+            )
+            return self.phase_ledgers.with_phase_ledger(
+                state,
+                phase_ledger,
+                selected_phase=target,
+                ledger=ledger,
+                volume_L=phase["volume_L"],
+            )
+        distribution_model = DistributionCoefficientModelSpec(
+            model_id="runtime_wash_distribution_v1",
+            component_ids=("product", "impurity"),
+            intrinsic_partition_coefficients={
+                "product": max(
+                    float(state.metadata.get("partition_coefficient", 1.0)),
+                    0.05,
+                ),
+                "impurity": max(
+                    float(
+                        state.metadata.get("impurity_partition_coefficient", 0.25)
+                    ),
+                    0.05,
+                ),
+            },
+            provenance_id="chemworld-world-law-v0.2-wash-policy",
+        )
+        result = activity_corrected_extraction_train(
+            feed,
+            distribution_model=distribution_model,
+            target_component="product",
+            aqueous_volume_L=max(volume, 1.0e-9),
+            organic_volume_L=max(float(phase["volume_L"]), 1.0e-9),
+            extraction_stages=1,
+            extraction_stage_efficiency=0.95,
+            extraction_entrainment_fraction=0.01,
+            temperature_K=state.temperature_K,
+        )
+        retained = result.outlet("extract")
+        removed = result.outlet("raffinate")
+        stage = result.stage_reports[0]
+        phase[PHASE_PRODUCT_AMOUNT_KEY] = retained["product"]
+        phase["impurity_mol"] = retained["impurity"]
+        phase["volume_L"] += stage.entrained_aqueous_volume_L
+        phase["solvent_loss"] += stage.entrained_aqueous_volume_L / max(
+            volume,
+            1.0e-12,
+        )
+        wash_waste = phase_ledger.setdefault("wash_aqueous", empty_phase())
+        wash_waste[PHASE_PRODUCT_AMOUNT_KEY] += removed["product"]
+        wash_waste["impurity_mol"] += removed["impurity"]
+        wash_waste["volume_L"] += max(
+            volume - stage.entrained_aqueous_volume_L,
+            0.0,
+        )
+        ledger = state.ledger.with_updates(
+            cost=state.ledger.cost + 0.02 + 0.25 * volume,
+            risk=min(1.0, state.ledger.risk + 0.02 * result.risk),
+        )
         return self.phase_ledgers.with_phase_ledger(
             state,
             phase_ledger,
+            metadata_updates={
+                "wash_model_id": result.model_id,
+                "wash_distribution_model_id": result.distribution_model_id,
+                "wash_material_balance_error_mol": result.material_balance_error_mol,
+                "wash_converged": all(
+                    report.converged for report in result.stage_reports
+                ),
+                "wash_entrained_aqueous_volume_L": (
+                    result.entrained_aqueous_volume_L
+                ),
+            },
             selected_phase=target,
             ledger=ledger,
             volume_L=phase["volume_L"],

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from math import pi
 from typing import Any
 
 import numpy as np
@@ -12,6 +13,7 @@ from chemworld.foundation import (
     process_with_metrics,
     upsert_equipment_record,
 )
+from chemworld.physchem.pfr_reactors import PFRGeometrySpec, PFRModel
 from chemworld.runtime.reaction_thermal_services import ChemWorldReactionThermalServices
 from chemworld.runtime.species import MechanismSpeciesView
 
@@ -22,7 +24,7 @@ def _action_float(action: dict[str, Any], key: str, default: float) -> float:
 
 
 class ChemWorldFlowServices:
-    """Apply flow setup and residence-time conversion updates."""
+    """Apply flow setup and a geometry-resolved PFR state update."""
 
     def __init__(
         self,
@@ -64,32 +66,102 @@ class ChemWorldFlowServices:
         target_temperature = float(
             np.clip(_action_float(action, "target_temperature_K", 348.15), 298.15, 430.0)
         )
-        effective_action = {
-            "duration_s": residence,
-            "target_temperature_K": target_temperature,
-            "stirring_speed_rpm": 900.0,
-        }
-        reacted_state = self.reaction_thermal.integrate(state, effective_action, heat=True)
-        initial_a = max(self.species_view.initial_reactant_amount(state), 1.0e-12)
-        conversion = float(
-            np.clip(
-                (initial_a - self.species_view.reactant_amount(reacted_state)) / initial_a,
-                0.0,
-                1.0,
-            )
+        volumetric_flow_L_s = flow_rate / 1000.0 / 60.0
+        reactor_volume_L = volumetric_flow_L_s * residence
+        inner_diameter_m = 0.004
+        cross_section_area_m2 = pi * inner_diameter_m**2 / 4.0
+        geometry = PFRGeometrySpec(
+            length_m=(reactor_volume_L / 1000.0) / cross_section_area_m2,
+            inner_diameter_m=inner_diameter_m,
+            roughness_m=1.0e-6,
+            fluid_density_kg_m3=950.0,
+            fluid_viscosity_Pa_s=1.2e-3,
+            boundary_ua_W_per_m_K=5.0,
+            boundary_temperature_K=target_temperature,
         )
+        model = PFRModel(
+            network=self.species_view.mechanism.network,
+            reactor_volume_L=reactor_volume_L,
+            volumetric_flow_L_s=volumetric_flow_L_s,
+            geometry=geometry,
+            inlet_pressure_Pa=max(state.pressure_Pa, 101_325.0),
+            reactor_id="chemworld_runtime_pfr_v1",
+        )
+        inlet_concentrations = {
+            species_id: max(state.species_amounts.get(species_id, 0.0), 0.0)
+            / max(state.volume_L, 1.0e-12)
+            for species_id in model.network.species_ids
+        }
+        result = model.simulate(
+            inlet_concentrations,
+            temperature_K=target_temperature,
+            axial_positions_m=(0.0, geometry.length_m * 0.5, geometry.length_m),
+        )
+        state_scale = state.volume_L / reactor_volume_L
+        species_amounts = state.species_amounts.copy()
+        for species_id, amount_mol in result.final_state.amounts_mol.items():
+            species_amounts[species_id] = max(amount_mol * state_scale, 0.0)
+        reactant_id = self.species_view.reactant_species(state)
+        conversion = result.conversion(reactant_id)
         process = process_with_metrics(
-            reacted_state.process,
+            state.process,
             flow_conversion=conversion,
             flow_campaign_time_s=duration,
             flow_throughput_mL=flow_rate * duration / 60.0,
         )
-        ledger = reacted_state.ledger.with_updates(
+        ledger = state.ledger.with_updates(
             time_s=state.ledger.time_s + duration,
-            cost=reacted_state.ledger.cost + duration / 3600.0 * 0.030,
-            risk=min(1.0, reacted_state.ledger.risk + 0.015 * (target_temperature > 390.0)),
+            cost=state.ledger.cost + duration / 3600.0 * 0.030,
+            energy_jacket_J=(
+                state.ledger.energy_jacket_J
+                + result.final_state.energy_jacket_J * state_scale
+            ),
+            heat_reaction_J=(
+                state.ledger.heat_reaction_J
+                + result.final_state.heat_reaction_J * state_scale
+            ),
+            heat_loss_J=(
+                state.ledger.heat_loss_J
+                + result.final_state.heat_loss_J * state_scale
+            ),
+            risk=min(1.0, state.ledger.risk + 0.015 * (target_temperature > 390.0)),
         )
-        return reacted_state.replace(ledger=ledger, process=process)
+        pressure_payload = result.metadata.get("pressures_Pa")
+        pressure_drop_payload = result.metadata.get("pressure_drop_Pa")
+        reynolds_payload = result.metadata.get("reynolds_number")
+        if not isinstance(pressure_payload, tuple | list) or not pressure_payload:
+            raise RuntimeError("PFR result is missing its pressure profile")
+        if not isinstance(pressure_drop_payload, int | float):
+            raise RuntimeError("PFR result is missing pressure_drop_Pa")
+        if not isinstance(reynolds_payload, int | float):
+            raise RuntimeError("PFR result is missing reynolds_number")
+        pressures = tuple(float(value) for value in pressure_payload)
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="flow_reactor",
+            equipment_type="continuous_flow_reactor",
+            attached_vessel_id=state.vessel_id,
+            status="completed",
+            settings={
+                "flow_model_id": "pfr",
+                "runtime_adapter_id": "chemworld_geometry_resolved_pfr_v1",
+                "reactor_volume_L": reactor_volume_L,
+                "geometry": geometry.to_dict(),
+                "outlet_pressure_Pa": pressures[-1],
+                "pressure_drop_Pa": float(pressure_drop_payload),
+                "reynolds_number": float(reynolds_payload),
+                "solver_diagnostic": result.metadata["solver_diagnostic"],
+                "material_balance_error_mol": result.material_balance_error_mol,
+            },
+        )
+        return state.replace(
+            species_amounts=species_amounts,
+            temperature_K=result.final_state.temperature_K,
+            pressure_Pa=pressures[-1],
+            ledger=ledger,
+            process=process,
+            equipment=equipment,
+        )
 
 
 __all__ = ["ChemWorldFlowServices"]

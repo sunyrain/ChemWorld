@@ -1,5 +1,9 @@
 # Local Eval Server
 
+> Security boundary: the bundled evaluator uses trusted local subprocesses. It is not a
+> sandbox and must not execute untrusted third-party submissions without an external
+> container/runtime that disables network access and limits filesystem and process privileges.
+
 This directory simulates a two-sided ChemWorld evaluation machine:
 
 - `teacher_side/`: owns ChemWorld, private salts, seeds, trajectories, metrics,

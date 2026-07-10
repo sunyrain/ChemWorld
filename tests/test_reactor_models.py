@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from itertools import pairwise
+
+import numpy as np
 import pytest
 
 from chemworld.physchem import (
     BatchReactorModel,
+    CSTRFlowProgram,
     CSTRModel,
     CSTRMultiplicitySpec,
     DynamicBatchReactorModel,
@@ -12,6 +16,7 @@ from chemworld.physchem import (
     JacketTemperatureProgram,
     NASA7SpeciesThermo,
     NASA7TemperatureSegment,
+    PFRGeometrySpec,
     PFRModel,
     RateLawSpec,
     ReactionNetworkSpec,
@@ -212,6 +217,45 @@ def test_cstr_conversion_increases_with_residence_time() -> None:
     assert large.material_balance_error_mol < 1e-6
 
 
+def test_cstr_startup_flow_program_matches_no_reaction_analytical_limit() -> None:
+    network = _isomerization_network(k=0.0)
+    inlet = FeedStreamSpec({"A": 0.01}, volumetric_flow_L_s=0.01, temperature_K=300.0)
+    program = CSTRFlowProgram(((0.0, 0.0), (100.0, 1.0)), mode="linear")
+    result = CSTRModel(network, inlet=inlet, volume_L=1.0).simulate_dynamic(
+        {"A": 0.0, "P": 0.0},
+        temperature_K=300.0,
+        duration_s=200.0,
+        flow_program=program,
+        evaluation_times_s=(0.0, 50.0, 100.0, 200.0),
+    )
+
+    integrated_flow_scale_s = 0.5 * 100.0 + 100.0
+    expected_a_mol = 1.0 - np.exp(-0.01 * integrated_flow_scale_s)
+    assert result.final_state.amounts_mol["A"] == pytest.approx(expected_a_mol, rel=2e-6)
+    assert result.material_balance_error_mol < 1.0e-8
+    assert result.metadata["flow_program"]["operation_mode"] == "startup"
+    assert result.metadata["flow_scale_timeseries"] == pytest.approx((0.0, 0.5, 1.0, 1.0))
+
+
+def test_cstr_shutdown_flow_program_holds_material_after_flow_reaches_zero() -> None:
+    network = _isomerization_network(k=0.0)
+    inlet = FeedStreamSpec({}, volumetric_flow_L_s=0.01, temperature_K=300.0)
+    program = CSTRFlowProgram(((0.0, 1.0), (100.0, 0.0)), mode="linear")
+    result = CSTRModel(network, inlet=inlet, volume_L=1.0).simulate_dynamic(
+        {"A": 1.0, "P": 0.0},
+        temperature_K=300.0,
+        duration_s=200.0,
+        flow_program=program,
+        evaluation_times_s=(0.0, 100.0, 200.0),
+    )
+
+    expected_a_mol = np.exp(-0.01 * 0.5 * 100.0)
+    assert result.final_state.amounts_mol["A"] == pytest.approx(expected_a_mol, rel=2e-6)
+    assert result.amounts_mol["A"][-1] == pytest.approx(result.amounts_mol["A"][-2])
+    assert result.material_balance_error_mol < 1.0e-8
+    assert result.metadata["flow_program"]["operation_mode"] == "shutdown"
+
+
 def test_cstr_multiple_steady_state_reference_case_has_three_roots() -> None:
     spec = cstr_multiple_steady_state_reference_case()
     result = solve_cstr_multiple_steady_states(spec)
@@ -263,6 +307,32 @@ def test_reactor_model_cards_document_cstr_multiplicity_slice() -> None:
     assert any("IDAES" in note for note in card.reference_reading)
 
 
+def test_reactor_model_cards_document_dynamic_cstr_slice() -> None:
+    card = next(
+        card
+        for card in reactor_model_cards()
+        if card.model_id == "dynamic_cstr_startup_shutdown"
+    )
+
+    assert card.maturity.value == "reference_validated"
+    assert validate_model_card(card) == []
+    assert any("startup" in use for use in card.intended_use)
+    assert len(card.validation_evidence) >= 2
+
+
+def test_reactor_model_cards_document_axial_pfr_slice() -> None:
+    card = next(
+        card
+        for card in reactor_model_cards()
+        if card.model_id == "pfr_axial_hydraulics_heat_boundary"
+    )
+
+    assert card.maturity.value == "reference_validated"
+    assert validate_model_card(card) == []
+    assert any("dP/dz" in equation for equation in card.equations)
+    assert len(card.validation_evidence) >= 2
+
+
 def test_reactor_model_cards_document_dynamic_batch_slice() -> None:
     cards = reactor_model_cards()
     card = next(
@@ -290,6 +360,72 @@ def test_pfr_conversion_increases_with_residence_time() -> None:
 
     assert slow.yield_on("P", "A") > fast.yield_on("P", "A")
     assert slow.material_balance_error_mol < 1e-8
+
+
+def test_pfr_axial_hydraulics_and_heat_boundary_match_analytical_limits() -> None:
+    volume_L = 1.0
+    length_m = 10.0
+    area_m2 = volume_L / 1000.0 / length_m
+    diameter_m = np.sqrt(4.0 * area_m2 / np.pi)
+    geometry = PFRGeometrySpec(
+        length_m=length_m,
+        inner_diameter_m=diameter_m,
+        roughness_m=1.0e-6,
+        boundary_ua_W_per_m_K=2.0,
+        boundary_temperature_K=350.0,
+    )
+    flow_L_s = 0.01
+    model = PFRModel(
+        _isomerization_network(k=0.0),
+        reactor_volume_L=volume_L,
+        volumetric_flow_L_s=flow_L_s,
+        geometry=geometry,
+        inlet_pressure_Pa=300_000.0,
+    )
+    positions = (0.0, 2.5, 5.0, 10.0)
+    result = model.simulate(
+        {"A": 1.0},
+        temperature_K=300.0,
+        axial_positions_m=positions,
+    )
+
+    pressures = result.metadata["pressures_Pa"]
+    assert result.metadata["axial_positions_m"] == pytest.approx(positions)
+    assert all(left > right for left, right in pairwise(pressures))
+    expected_pressure_drop = geometry.pressure_gradient_pa_m(flow_L_s) * length_m
+    assert result.metadata["pressure_drop_Pa"] == pytest.approx(expected_pressure_drop)
+    total_ua_W_K = geometry.boundary_ua_W_per_m_K * length_m
+    expected_temperature_K = 350.0 - 50.0 * np.exp(
+        -total_ua_W_K / (4180.0 * flow_L_s)
+    )
+    assert result.final_state.temperature_K == pytest.approx(expected_temperature_K, rel=2e-6)
+    assert result.material_balance_error_mol < 1.0e-10
+    assert result.metadata["reynolds_number"] > 0.0
+
+
+def test_pfr_geometry_volume_and_axial_grid_are_validated() -> None:
+    network = _isomerization_network(k=0.0)
+    geometry = PFRGeometrySpec(length_m=1.0, inner_diameter_m=0.01)
+    with pytest.raises(ValueError, match="geometry volume"):
+        PFRModel(
+            network,
+            reactor_volume_L=1.0,
+            volumetric_flow_L_s=0.01,
+            geometry=geometry,
+        )
+
+    matched = PFRModel(
+        network,
+        reactor_volume_L=geometry.volume_l,
+        volumetric_flow_L_s=0.01,
+        geometry=geometry,
+    )
+    with pytest.raises(ValueError, match="inside the PFR length"):
+        matched.simulate(
+            {"A": 1.0},
+            temperature_K=300.0,
+            axial_positions_m=(0.0, 1.1),
+        )
 
 
 def test_reactor_models_reject_invalid_specs() -> None:

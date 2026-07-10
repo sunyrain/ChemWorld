@@ -31,17 +31,19 @@ class SignedPrivateEvalArtifact:
     result_count: int
     payload: dict[str, Any]
 
-    def to_dict(self) -> dict[str, Any]:
+    def signing_payload(self) -> dict[str, Any]:
         return {
             "schema_version": self.schema_version,
             "generated_at": self.generated_at,
             "chemworld_version": self.chemworld_version,
             "commit_hash": self.commit_hash,
             "salt_hash": self.salt_hash,
-            "signature": self.signature,
             "result_count": self.result_count,
             "payload": self.payload,
         }
+
+    def to_dict(self) -> dict[str, Any]:
+        return {**self.signing_payload(), "signature": self.signature}
 
 
 def sign_private_eval_results(
@@ -69,16 +71,24 @@ def sign_private_eval_results(
         "run_log": run_log or {},
         "result_paths": [str(path) for path in result_paths],
     }
-    signature = hmac.new(secret.encode("utf-8"), _canonical_json(payload), hashlib.sha256)
-    artifact = SignedPrivateEvalArtifact(
-        schema_version="chemworld-private-eval-signed-0.1",
-        generated_at=datetime.now(UTC).isoformat(),
+    generated_at = datetime.now(UTC).isoformat()
+    unsigned = SignedPrivateEvalArtifact(
+        schema_version="chemworld-private-eval-signed-0.2",
+        generated_at=generated_at,
         chemworld_version=__version__,
         commit_hash=git_commit(),
         salt_hash=hashlib.sha256(secret.encode("utf-8")).hexdigest(),
-        signature=signature.hexdigest(),
+        signature="",
         result_count=len(results),
         payload=payload,
+    )
+    signature = hmac.new(
+        secret.encode("utf-8"),
+        _canonical_json(unsigned.signing_payload()),
+        hashlib.sha256,
+    )
+    artifact = SignedPrivateEvalArtifact(
+        **{**unsigned.__dict__, "signature": signature.hexdigest()}
     )
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -90,8 +100,22 @@ def sign_private_eval_results(
 def verify_private_eval_artifact(path: str | Path, *, salt: str) -> bool:
     with Path(path).open("r", encoding="utf-8") as handle:
         artifact = json.load(handle)
-    payload = artifact.get("payload", {})
-    expected = hmac.new(salt.encode("utf-8"), _canonical_json(payload), hashlib.sha256)
+    if artifact.get("schema_version") != "chemworld-private-eval-signed-0.2":
+        return False
+    payload = artifact.get("payload")
+    if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
+        return False
+    if artifact.get("result_count") != len(payload["results"]):
+        return False
+    expected_salt_hash = hashlib.sha256(salt.encode("utf-8")).hexdigest()
+    if not hmac.compare_digest(str(artifact.get("salt_hash", "")), expected_salt_hash):
+        return False
+    signed_fields = {key: value for key, value in artifact.items() if key != "signature"}
+    expected = hmac.new(
+        salt.encode("utf-8"),
+        _canonical_json(signed_fields),
+        hashlib.sha256,
+    )
     return hmac.compare_digest(str(artifact.get("signature", "")), expected.hexdigest())
 
 

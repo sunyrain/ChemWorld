@@ -156,7 +156,7 @@ def downstream_truth_values(
 @dataclass(frozen=True)
 class SeparationModuleSpec:
     module_id: str = "separation"
-    version: str = "0.3"
+    version: str = "0.4"
     operations: tuple[str, ...] = (
         "add_phase",
         "add_extractant",
@@ -168,12 +168,19 @@ class SeparationModuleSpec:
         "concentrate",
         "transfer",
     )
+    laws: tuple[str, ...] = (
+        "activity_corrected_extraction_and_wash",
+        "explicit_entrainment_and_material_balance",
+        "selected_phase_recovery_and_purity",
+        "bounded_dry_concentrate_transfer_fallbacks",
+    )
 
     def to_dict(self) -> dict[str, object]:
         return {
             "module_id": self.module_id,
             "version": self.version,
             "operations": list(self.operations),
+            "laws": list(self.laws),
             "tracked_metrics": [
                 "purity",
                 "recovery",

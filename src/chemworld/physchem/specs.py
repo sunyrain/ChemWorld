@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from math import isfinite
@@ -224,9 +225,7 @@ class ComponentFieldCandidate:
             "value": self.value,
             "source_id": self.source_id,
             "source_priority": self.source_priority,
-            "uncertainty": None
-            if self.uncertainty is None
-            else self.uncertainty.to_dict(),
+            "uncertainty": None if self.uncertainty is None else self.uncertainty.to_dict(),
             "note": self.note,
         }
 
@@ -255,11 +254,19 @@ class ComponentConflictPolicy:
     default_atol: float = 0.0
     field_rtol: dict[str, float] = field(default_factory=dict)
     field_atol: dict[str, float] = field(default_factory=dict)
+    required_uncertainty_fields: tuple[str, ...] = ()
+    missing_uncertainty_mode: str = "warn"
 
     def __post_init__(self) -> None:
         if self.mode not in {"raise", "warn", "prefer_priority"}:
             raise ValueError("mode must be raise, warn, or prefer_priority")
+        if self.missing_uncertainty_mode not in {"ignore", "warn", "raise"}:
+            raise ValueError("missing_uncertainty_mode must be ignore, warn, or raise")
         _validate_string_tuple(self.source_priority, "source_priority")
+        _validate_string_tuple(
+            self.required_uncertainty_fields,
+            "required_uncertainty_fields",
+        )
         if self.default_rtol < 0 or self.default_atol < 0:
             raise ValueError("default tolerances must be nonnegative")
         for mapping_name, mapping in (
@@ -272,6 +279,11 @@ class ComponentConflictPolicy:
                 if float(value) < 0:
                     raise ValueError(f"{mapping_name} values must be nonnegative")
         object.__setattr__(self, "source_priority", tuple(self.source_priority))
+        object.__setattr__(
+            self,
+            "required_uncertainty_fields",
+            tuple(self.required_uncertainty_fields),
+        )
         object.__setattr__(
             self,
             "field_rtol",
@@ -291,6 +303,8 @@ class ComponentConflictPolicy:
             "default_atol": self.default_atol,
             "field_rtol": dict(self.field_rtol),
             "field_atol": dict(self.field_atol),
+            "required_uncertainty_fields": list(self.required_uncertainty_fields),
+            "missing_uncertainty_mode": self.missing_uncertainty_mode,
         }
 
     @classmethod
@@ -301,13 +315,15 @@ class ComponentConflictPolicy:
             default_rtol=float(payload.get("default_rtol", 0.0)),
             default_atol=float(payload.get("default_atol", 0.0)),
             field_rtol={
-                str(key): float(value)
-                for key, value in dict(payload.get("field_rtol", {})).items()
+                str(key): float(value) for key, value in dict(payload.get("field_rtol", {})).items()
             },
             field_atol={
-                str(key): float(value)
-                for key, value in dict(payload.get("field_atol", {})).items()
+                str(key): float(value) for key, value in dict(payload.get("field_atol", {})).items()
             },
+            required_uncertainty_fields=tuple(
+                str(value) for value in payload.get("required_uncertainty_fields", ())
+            ),
+            missing_uncertainty_mode=str(payload.get("missing_uncertainty_mode", "warn")),
         )
 
 
@@ -341,6 +357,20 @@ class ComponentConflictResolution:
             "message": self.message,
         }
 
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> ComponentConflictResolution:
+        return cls(
+            field_id=str(payload["field_id"]),
+            resolved_value=payload["resolved_value"],
+            resolved_source_id=str(payload["resolved_source_id"]),
+            status=str(payload["status"]),
+            candidates=tuple(
+                ComponentFieldCandidate.from_dict(dict(item))
+                for item in payload.get("candidates", ())
+            ),
+            message=str(payload.get("message", "")),
+        )
+
 
 @dataclass(frozen=True)
 class ComponentSpec:
@@ -362,6 +392,8 @@ class ComponentSpec:
     uncertainty: tuple[ComponentUncertainty, ...] = ()
     metadata: dict[str, object] = field(default_factory=dict)
     cas_number: str = ""
+    inchi: str = ""
+    inchi_key: str = ""
     molecular_weight_rel_tolerance: ClassVar[float] = _MOLECULAR_WEIGHT_REL_TOL
 
     def __post_init__(self) -> None:
@@ -371,11 +403,14 @@ class ComponentSpec:
             char.isspace() for char in self.identifier
         ):
             raise ValueError(
-                "Component identifier cannot contain leading, trailing, or "
-                "internal whitespace"
+                "Component identifier cannot contain leading, trailing, or internal whitespace"
             )
         if self.cas_number:
             object.__setattr__(self, "cas_number", _validate_cas_number(self.cas_number))
+        if self.inchi and not self.inchi.startswith(("InChI=1/", "InChI=1S/")):
+            raise ValueError("inchi must use an InChI=1/ or InChI=1S/ prefix")
+        if self.inchi_key and re.fullmatch(r"[A-Z]{14}-[A-Z]{10}-[A-Z]", self.inchi_key) is None:
+            raise ValueError("inchi_key must use the standard 14-10-1 uppercase shape")
         if self.default_phase not in _VALID_PHASES:
             raise ValueError(f"Unsupported default phase: {self.default_phase}")
         composition = parse_formula(self.formula)
@@ -435,6 +470,8 @@ class ComponentSpec:
             "identifier": self.identifier,
             "formula": self.formula,
             "cas_number": self.cas_number,
+            "inchi": self.inchi,
+            "inchi_key": self.inchi_key,
             "hill_formula": self.hill_formula,
             "composition": self.composition,
             "molecular_weight_g_mol": self.molecular_weight_g_mol,
@@ -455,6 +492,8 @@ class ComponentSpec:
             identifier=str(payload["identifier"]),
             formula=str(payload["formula"]),
             cas_number=str(payload.get("cas_number", payload.get("casrn", ""))),
+            inchi=str(payload.get("inchi", "")),
+            inchi_key=str(payload.get("inchi_key", "")),
             molecular_weight_g_mol=(
                 None
                 if payload.get("molecular_weight_g_mol") is None
@@ -464,8 +503,7 @@ class ComponentSpec:
             default_phase=str(payload.get("default_phase", "liquid")),
             safety_tags=tuple(str(value) for value in payload.get("safety_tags", ())),
             allowed_property_correlations=tuple(
-                str(value)
-                for value in payload.get("allowed_property_correlations", ())
+                str(value) for value in payload.get("allowed_property_correlations", ())
             ),
             aliases=tuple(str(value) for value in payload.get("aliases", ())),
             provenance=tuple(
@@ -686,9 +724,7 @@ class PropertyCorrelation:
             "coefficients": dict(self.coefficients),
             "input_units": dict(self.input_units),
             "output_unit": self.output_unit,
-            "validity_ranges": {
-                key: list(value) for key, value in self.validity_ranges.items()
-            },
+            "validity_ranges": {key: list(value) for key, value in self.validity_ranges.items()},
             "source_note": self.source_note,
             "metadata": dict(self.metadata),
         }
@@ -699,12 +735,10 @@ class PropertyCorrelation:
             correlation_id=str(payload["correlation_id"]),
             equation_id=str(payload["equation_id"]),
             coefficients={
-                str(key): float(value)
-                for key, value in dict(payload["coefficients"]).items()
+                str(key): float(value) for key, value in dict(payload["coefficients"]).items()
             },
             input_units={
-                str(key): str(value)
-                for key, value in dict(payload["input_units"]).items()
+                str(key): str(value) for key, value in dict(payload["input_units"]).items()
             },
             output_unit=str(payload["output_unit"]),
             property_id=str(payload.get("property_id", "")),
@@ -727,9 +761,7 @@ class PropertyCorrelation:
             "input_units": dict(self.input_units),
             "output_unit": self.output_unit,
             "output_dimension": output.dimension,
-            "validity_ranges": {
-                key: list(value) for key, value in self.validity_ranges.items()
-            },
+            "validity_ranges": {key: list(value) for key, value in self.validity_ranges.items()},
             "source_note": self.source_note,
             "metadata": dict(self.metadata),
         }
@@ -802,8 +834,7 @@ def resolve_component_identifier(
     except KeyError as exc:
         allowed = ", ".join(sorted({component.identifier for component in components}))
         raise KeyError(
-            f"unknown component identifier or alias {identifier_or_alias!r}; "
-            f"allowed={allowed}"
+            f"unknown component identifier or alias {identifier_or_alias!r}; allowed={allowed}"
         ) from exc
 
 
@@ -869,11 +900,7 @@ def resolve_component_field_conflict(
         field_id=field_id,
         resolved_value=selected.value,
         resolved_source_id=selected.source_id,
-        status=(
-            "conflict_warning"
-            if normalized_policy.mode == "warn"
-            else "preferred"
-        ),
+        status=("conflict_warning" if normalized_policy.mode == "warn" else "preferred"),
         candidates=ordered,
         message=message,
     )
@@ -933,10 +960,9 @@ def _validate_cas_number(cas_number: str) -> str:
     ):
         raise ValueError("cas_number must use CAS Registry Number format")
     digits = parts[0] + parts[1]
-    checksum = sum(
-        int(digit) * weight
-        for weight, digit in enumerate(reversed(digits), start=1)
-    ) % 10
+    checksum = (
+        sum(int(digit) * weight for weight, digit in enumerate(reversed(digits), start=1)) % 10
+    )
     if checksum != int(parts[2]):
         raise ValueError("cas_number checksum is invalid")
     return cas_number
@@ -946,6 +972,10 @@ def _component_identity_tokens(component: ComponentSpec) -> tuple[str, ...]:
     tokens = [component.identifier, *component.aliases]
     if component.cas_number:
         tokens.extend((component.cas_number, component.cas_number.replace("-", "")))
+    if component.inchi:
+        tokens.append(component.inchi)
+    if component.inchi_key:
+        tokens.append(component.inchi_key)
     return tuple(tokens)
 
 
@@ -955,9 +985,7 @@ def _validate_component_phase_compatibility(
 ) -> None:
     allowed = _PHASE_COMPATIBILITY[phase_label]
     incompatible = [
-        component.identifier
-        for component in components
-        if component.default_phase not in allowed
+        component.identifier for component in components if component.default_phase not in allowed
     ]
     if incompatible:
         raise ValueError(
@@ -1058,8 +1086,7 @@ def property_equation_contracts() -> dict[str, dict[str, object]]:
         contracts[equation_id] = {
             "required_coefficients": sorted(_required_coefficients(equation_id)),
             "input_dimensions": {
-                str(field): str(dimension)
-                for field, dimension in input_dimensions.items()
+                str(field): str(dimension) for field, dimension in input_dimensions.items()
             },
             "output_dimension": str(contract["output_dimension"]),
         }

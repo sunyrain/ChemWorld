@@ -206,6 +206,12 @@ def test_ohmic_drop_reports_voltage_window_exceeded() -> None:
 
 def test_electrochemistry_model_card_is_valid() -> None:
     cards = electrochemistry_model_cards()
-    assert [card.model_id for card in cards] == ["nernst_butler_volmer_faradaic_v1"]
+    assert {card.model_id for card in cards} == {
+        "diffusion_layer_limiting_current_v1",
+        "electrochemical_setpoint_recipe_controller_v1",
+        "electrochemical_scenario_card_generation_v1",
+        "nernst_butler_volmer_faradaic_v1",
+        "randles_double_layer_transient_v1",
+    }
     for card in cards:
         assert validate_model_card(card) == []

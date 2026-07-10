@@ -8,8 +8,8 @@ from chemworld.physchem.cstr_multiplicity import (
     cstr_multiple_steady_state_reference_case,
     solve_cstr_multiple_steady_states,
 )
-from chemworld.physchem.cstr_reactors import CSTRModel
-from chemworld.physchem.pfr_reactors import PFRModel
+from chemworld.physchem.cstr_reactors import CSTRFlowProgram, CSTRModel
+from chemworld.physchem.pfr_reactors import PFRGeometrySpec, PFRModel
 from chemworld.physchem.reactor_cards import reactor_model_cards
 from chemworld.physchem.reactor_shared import (
     FeedStreamSpec,
@@ -24,6 +24,7 @@ from chemworld.physchem.semibatch_reactors import SemiBatchReactorModel
 
 __all__ = [
     "BatchReactorModel",
+    "CSTRFlowProgram",
     "CSTRModel",
     "CSTRMultiplicityResult",
     "CSTRMultiplicitySpec",
@@ -32,6 +33,7 @@ __all__ = [
     "FeedStreamSpec",
     "HeatTransferSpec",
     "JacketTemperatureProgram",
+    "PFRGeometrySpec",
     "PFRModel",
     "ReactorResult",
     "ReactorState",

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from math import isfinite
+from typing import Literal
 
 import numpy as np
 
@@ -19,6 +21,68 @@ from chemworld.physchem.reactor_solvers import (
     _integrate_result,
     _reaction_heat_w,
 )
+
+CSTRFlowInterpolationMode = Literal["step", "linear"]
+
+
+@dataclass(frozen=True)
+class CSTRFlowProgram:
+    """Time-dependent common scale for a constant-volume CSTR inlet and outlet."""
+
+    setpoints: tuple[tuple[float, float], ...]
+    mode: CSTRFlowInterpolationMode = "step"
+
+    def __post_init__(self) -> None:
+        if not self.setpoints:
+            raise ValueError("CSTR flow-program setpoints cannot be empty")
+        previous_time = -1.0
+        for time_s, flow_scale in self.setpoints:
+            if time_s < 0.0 or not isfinite(time_s):
+                raise ValueError("CSTR flow-program times must be finite and nonnegative")
+            if time_s < previous_time:
+                raise ValueError("CSTR flow-program setpoints must be sorted by time")
+            if flow_scale < 0.0 or not isfinite(flow_scale):
+                raise ValueError("CSTR flow scale must be finite and nonnegative")
+            previous_time = time_s
+        if self.mode not in {"step", "linear"}:
+            raise ValueError("CSTR flow-program mode must be 'step' or 'linear'")
+
+    def scale_at(self, time_s: float) -> float:
+        if time_s <= self.setpoints[0][0]:
+            return float(self.setpoints[0][1])
+        for (left_time, left_scale), (right_time, right_scale) in zip(
+            self.setpoints,
+            self.setpoints[1:],
+            strict=False,
+        ):
+            if left_time <= time_s <= right_time:
+                if self.mode == "step" or right_time == left_time:
+                    return float(left_scale)
+                fraction = (time_s - left_time) / (right_time - left_time)
+                return float(left_scale + fraction * (right_scale - left_scale))
+        return float(self.setpoints[-1][1])
+
+    @property
+    def operation_mode(self) -> str:
+        initial = self.setpoints[0][1]
+        final = self.setpoints[-1][1]
+        if initial == 0.0 and final > 0.0:
+            return "startup"
+        if initial > 0.0 and final == 0.0:
+            return "shutdown"
+        if any(scale != initial for _, scale in self.setpoints[1:]):
+            return "variable_flow"
+        return "steady_flow"
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "setpoints": [
+                {"time_s": time_s, "flow_scale": flow_scale}
+                for time_s, flow_scale in self.setpoints
+            ],
+            "mode": self.mode,
+            "operation_mode": self.operation_mode,
+        }
 
 
 @dataclass(frozen=True)
@@ -48,6 +112,7 @@ class CSTRModel:
         temperature_K: float,
         duration_s: float,
         heat_transfer: HeatTransferSpec | None = None,
+        flow_program: CSTRFlowProgram | None = None,
         evaluation_times_s: Sequence[float] | None = None,
     ) -> ReactorResult:
         if duration_s < 0:
@@ -67,9 +132,10 @@ class CSTRModel:
             dtype=float,
         )
 
-        def rhs(_time_s: float, y: np.ndarray) -> np.ndarray:
+        def rhs(time_s: float, y: np.ndarray) -> np.ndarray:
             amounts = _amounts_from_vector(self.network, y[:n_species])
             temperature = max(float(y[n_species]), 1.0)
+            flow_scale = 1.0 if flow_program is None else flow_program.scale_at(time_s)
             reaction_derivatives = self.network.amount_derivatives(
                 amounts,
                 volume_L=self.volume_L,
@@ -79,10 +145,11 @@ class CSTRModel:
                 species_id: max(amounts[species_id], 0.0)
                 / self.volume_L
                 * self.outlet_flow_l_s
+                * flow_scale
                 for species_id in self.network.species_ids
             }
             inlet = {
-                species_id: self.inlet.flow_for(species_id)
+                species_id: self.inlet.flow_for(species_id) * flow_scale
                 for species_id in self.network.species_ids
             }
             heat_reaction_W = _reaction_heat_w(
@@ -96,18 +163,15 @@ class CSTRModel:
             inlet_heat_W = (
                 thermal.rho_cp_J_per_L_K
                 * self.inlet.volumetric_flow_L_s
+                * flow_scale
                 * (self.inlet.temperature_K - temperature)
             )
             heat_capacity = thermal.rho_cp_J_per_L_K * self.volume_L
-            dtemperature = (
-                q_jacket_W + inlet_heat_W - q_loss_W - heat_reaction_W
-            ) / heat_capacity
+            dtemperature = (q_jacket_W + inlet_heat_W - q_loss_W - heat_reaction_W) / heat_capacity
             return np.array(
                 [
                     *(
-                        reaction_derivatives[species_id]
-                        + inlet[species_id]
-                        - outlet[species_id]
+                        reaction_derivatives[species_id] + inlet[species_id] - outlet[species_id]
                         for species_id in self.network.species_ids
                     ),
                     dtemperature,
@@ -120,7 +184,7 @@ class CSTRModel:
                 dtype=float,
             )
 
-        return _integrate_result(
+        result = _integrate_result(
             model_id="cstr_dynamic",
             reactor_id=self.reactor_id,
             network=self.network,
@@ -134,6 +198,22 @@ class CSTRModel:
             evaluation_times_s=evaluation_times_s,
             material_in_slice=slice(n_species + 4, n_species + 4 + n_species),
             material_out_slice=slice(n_species + 4 + n_species, n_species + 4 + 2 * n_species),
+        )
+        resolved_program = flow_program or CSTRFlowProgram(((0.0, 1.0),))
+        return replace(
+            result,
+            metadata={
+                **result.metadata,
+                "residence_time_s": (
+                    None
+                    if self.inlet.volumetric_flow_L_s <= 0.0
+                    else self.volume_L / self.inlet.volumetric_flow_L_s
+                ),
+                "flow_program": resolved_program.to_dict(),
+                "flow_scale_timeseries": tuple(
+                    resolved_program.scale_at(time_s) for time_s in result.times_s
+                ),
+            },
         )
 
     def simulate_to_steady_state(
@@ -161,4 +241,4 @@ class CSTRModel:
         )
 
 
-__all__ = ["CSTRModel"]
+__all__ = ["CSTRFlowInterpolationMode", "CSTRFlowProgram", "CSTRModel"]

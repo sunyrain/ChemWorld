@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
-from scipy.integrate import solve_ivp
 
 from chemworld.foundation import WorldState, equipment_settings
+from chemworld.physchem.solver_backend import (
+    RUNTIME_REACTION_KERNEL_ODE_POLICY,
+    solve_ode,
+)
 
 R_GAS = 8.31446261815324
 
@@ -23,6 +26,7 @@ class ReactionIntegrationResult:
     heat_reaction_J: float
     heat_loss_J: float
     stirring_speed_rpm: float
+    solver_diagnostic: dict[str, object] = field(default_factory=dict)
 
 
 def integrate_compiled_reaction_ode(
@@ -57,7 +61,7 @@ def integrate_compiled_reaction_ode(
         [state.species_amounts.get(species_id, 0.0) for species_id in species_ids]
         + [state.temperature_K, 0.0, 0.0, 0.0],
     )
-    result = solve_ivp(
+    report = solve_ode(
         lambda _t, y: compiled_reaction_ode_rhs(
             y=y,
             state=state,
@@ -67,14 +71,12 @@ def integrate_compiled_reaction_ode(
             heat=heat,
             stirring_speed_rpm=stirring_speed,
         ),
-        (0.0, duration),
         y0,
-        method="LSODA",
-        rtol=1.0e-7,
-        atol=1.0e-11,
+        time_span_s=(0.0, duration),
+        policy=RUNTIME_REACTION_KERNEL_ODE_POLICY,
     )
-    if not result.success:
-        raise RuntimeError(f"Compiled mechanism integration failed: {result.message}")
+    report.raise_for_failure("Compiled mechanism integration")
+    result = report.raw_result
     y = np.maximum(result.y[:, -1], 0.0)
     species_amounts = state.species_amounts.copy()
     for index, species_id in enumerate(species_ids):
@@ -89,6 +91,7 @@ def integrate_compiled_reaction_ode(
         heat_reaction_J=float(y[offset + 2]),
         heat_loss_J=float(y[offset + 3]),
         stirring_speed_rpm=stirring_speed,
+        solver_diagnostic=report.diagnostic.to_dict(),
     )
 
 

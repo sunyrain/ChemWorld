@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import runpy
 import subprocess
 import sys
 
@@ -25,6 +26,8 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
         "type_check",
         "tests",
         "docs",
+        "wheel_smoke",
+        "reference_validation",
         "runtime_boundary_audit",
         "environment_audit",
         "baseline_smoke",
@@ -34,5 +37,18 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
     assert any("mypy src/chemworld" in command for command in flat_commands)
     assert any("pytest" in command for command in flat_commands)
     assert any("mkdocs build --strict" in command for command in flat_commands)
+    assert any("smoke_test_wheel.py" in command for command in flat_commands)
+    assert any("run_reference_validation.py" in command for command in flat_commands)
     assert any("audit_environment_consistency.py" in command for command in flat_commands)
     assert any("baselines report" in command for command in flat_commands)
+
+
+def test_reference_gate_requires_every_backend_used_by_reference_tests() -> None:
+    namespace = runpy.run_path("scripts/run_reference_validation.py", run_name="reference_gate")
+
+    assert set(namespace["REFERENCE_MODULES"]) == {
+        "cantera",
+        "chemicals",
+        "fluids",
+        "thermo",
+    }

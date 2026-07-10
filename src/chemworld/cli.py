@@ -23,19 +23,18 @@ from chemworld.data.submission import (
     validate_submission_bundle,
     write_submission_manifest,
 )
-from chemworld.data.validation import validate_records
 from chemworld.eval.baseline_report import (
     AAAI_BASELINE_AGENTS,
     PRE_RELEASE_BASELINE_AGENTS,
     generate_baseline_report,
 )
 from chemworld.eval.leaderboard import aggregate_leaderboard, load_results
-from chemworld.eval.metrics import evaluate_records
 from chemworld.eval.paper_artifact import create_paper_artifact
 from chemworld.eval.private_artifact import (
     sign_private_eval_results,
     verify_private_eval_artifact,
 )
+from chemworld.eval.result_artifacts import build_verified_evaluation_result
 from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.seed_suite import official_seed_suite, official_seeds_for_task
 from chemworld.eval.suite import run_suite
@@ -140,8 +139,11 @@ def _run(args: argparse.Namespace) -> None:
 
 def _evaluate(args: argparse.Namespace) -> None:
     records = load_jsonl(args.submission)
-    validate_records(records)
-    result = evaluate_records(records, threshold=args.threshold).to_dict()
+    result = build_verified_evaluation_result(
+        records,
+        trajectory_path=args.submission,
+        threshold=args.threshold,
+    )
     if args.output is None:
         output = Path("results") / (Path(args.submission).stem + ".json")
     else:
@@ -194,7 +196,7 @@ def _expand_patterns(patterns: list[str]) -> list[str]:
 
 def _leaderboard(args: argparse.Namespace) -> None:
     paths = _expand_patterns(args.results)
-    rows = aggregate_leaderboard(load_results(paths))
+    rows = aggregate_leaderboard(load_results(paths), replay_verify=False)
     if args.output:
         output = Path(args.output)
         output.parent.mkdir(parents=True, exist_ok=True)

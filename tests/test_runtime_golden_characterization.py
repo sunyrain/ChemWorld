@@ -127,67 +127,67 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "flow-reaction-optimization": {
         "mechanism_id": "pfr_hotspot",
         "steps": 7,
-        "score": 0.07886019005209735,
+        "score": 0.0408827840135835,
     },
     "low-budget-characterization": {
         "mechanism_id": "autocatalytic_reaction",
         "steps": 7,
-        "score": 0.23014967742381762,
+        "score": 0.16356495196728366,
     },
     "partition-discovery": {
         "mechanism_id": "reaction_extraction",
         "steps": 9,
-        "score": 0.12689665850651619,
+        "score": 0.12784124288938772,
     },
     "public-private-generalization": {
         "mechanism_id": "parallel_series_reaction",
         "steps": 7,
-        "score": 0.3469284691974852,
+        "score": 0.18765675085555011,
     },
     "purity-yield-tradeoff": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.3397726182550309,
+        "score": 0.36691926753265347,
     },
     "reaction-mechanism-explanation": {
         "mechanism_id": "autocatalytic_reaction",
         "steps": 7,
-        "score": 0.1688916942379091,
+        "score": 0.2714085741743678,
     },
     "reaction-optimization-standard": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 7,
-        "score": 0.3344145979704315,
+        "score": 0.31996168041699097,
     },
     "reaction-safety-constrained": {
         "mechanism_id": "catalyst_deactivation",
         "steps": 7,
-        "score": 0.22429195461366705,
+        "score": 0.1676217331490375,
     },
     "reaction-to-assay": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 7,
-        "score": 0.375832822290746,
+        "score": 0.3428953250558487,
     },
     "reaction-to-crystallization": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 10,
-        "score": 0.5762268534521817,
+        "score": 0.5992381747625802,
     },
     "reaction-to-distillation": {
         "mechanism_id": "reactive_distillation_lite",
         "steps": 10,
-        "score": 0.1676812046008173,
+        "score": 0.20414524931339473,
     },
     "reaction-to-purification": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.37117277432013834,
+        "score": 0.34341859205802355,
     },
     "tool-agent-planning": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.11973556080518238,
+        "score": 0.13024531446783377,
     },
 }
 

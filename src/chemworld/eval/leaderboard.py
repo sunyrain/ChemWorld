@@ -9,8 +9,14 @@ from pathlib import Path
 from statistics import fmean, pstdev
 from typing import Any
 
+from chemworld.eval.result_artifacts import validate_verified_evaluation_result
 
-def load_results(paths: Sequence[str | Path]) -> list[dict[str, Any]]:
+
+def load_results(
+    paths: Sequence[str | Path],
+    *,
+    replay_verify: bool = True,
+) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     for path in paths:
         with Path(path).open("r", encoding="utf-8") as handle:
@@ -19,10 +25,18 @@ def load_results(paths: Sequence[str | Path]) -> list[dict[str, Any]]:
             results.extend(payload)
         else:
             results.append(payload)
+    for result in results:
+        validate_verified_evaluation_result(result, replay=replay_verify)
     return results
 
 
-def aggregate_leaderboard(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def aggregate_leaderboard(
+    results: list[dict[str, Any]],
+    *,
+    replay_verify: bool = True,
+) -> list[dict[str, Any]]:
+    for result in results:
+        validate_verified_evaluation_result(result, replay=replay_verify)
     grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for result in results:
         grouped[(str(result["agent_name"]), str(result["world_split"]))].append(result)

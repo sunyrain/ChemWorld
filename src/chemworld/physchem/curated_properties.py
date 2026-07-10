@@ -24,6 +24,27 @@ from chemworld.physchem.specs import (
     component_alias_index,
 )
 
+_CURATED_INCHI_IDENTITIES: dict[str, tuple[str, str]] = {
+    "water": ("InChI=1S/H2O/h1H2", "XLYOFNOQVPJJNP-UHFFFAOYSA-N"),
+    "ethanol": (
+        "InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3",
+        "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+    ),
+    "acetone": (
+        "InChI=1S/C3H6O/c1-3(2)4/h1-2H3",
+        "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+    ),
+    "toluene": (
+        "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
+        "YXFVVABEGXRONW-UHFFFAOYSA-N",
+    ),
+    "methane": ("InChI=1S/CH4/h1H4", "VNWKTOKETHGBQD-UHFFFAOYSA-N"),
+    "carbon_dioxide": (
+        "InChI=1S/CO2/c2-1-3",
+        "CURLTUGMZLYLDI-UHFFFAOYSA-N",
+    ),
+}
+
 
 @dataclass(frozen=True)
 class CuratedPropertyCase:
@@ -293,10 +314,13 @@ def curated_property_case_map() -> dict[str, CuratedPropertyCase]:
 
 
 def _component_from_record(record: _CuratedPropertyRecord) -> ComponentSpec:
+    inchi, inchi_key = _CURATED_INCHI_IDENTITIES[record.component_id]
     return ComponentSpec(
         identifier=record.component_id,
         formula=record.formula,
         cas_number=record.casrn,
+        inchi=inchi,
+        inchi_key=inchi_key,
         default_phase=record.default_phase,
         safety_tags=record.safety_tags,
         aliases=record.aliases,
@@ -310,15 +334,10 @@ def _component_from_record(record: _CuratedPropertyRecord) -> ComponentSpec:
             "display_name": record.display_name,
             "casrn": record.casrn,
             "provenance": (
-                "curated ChemWorld subset checked against local chemicals "
-                "reference backend"
+                "curated ChemWorld subset checked against local chemicals reference backend"
             ),
-            "provenance_source_ids": [
-                item.source_id for item in _component_provenance(record)
-            ],
-            "uncertainty_field_ids": [
-                item.field_id for item in _component_uncertainty(record)
-            ],
+            "provenance_source_ids": [item.source_id for item in _component_provenance(record)],
+            "uncertainty_field_ids": [item.field_id for item in _component_uncertainty(record)],
         },
     )
 
@@ -343,8 +362,7 @@ def _component_provenance(record: _CuratedPropertyRecord) -> tuple[ComponentProv
             source_key=record.casrn,
             source_path="reference_repos/chemicals/chemicals/heat_capacity.py",
             notes=(
-                "Poling ideal-gas heat-capacity coefficients are R-scaled into "
-                "ChemWorld SI units.",
+                "Poling ideal-gas heat-capacity coefficients are R-scaled into ChemWorld SI units.",
             ),
         ),
     )

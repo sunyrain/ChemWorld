@@ -116,16 +116,19 @@ runs/local_eval_machine/
 
 ## 安全模型
 
-当前实现是本机模拟 Docker，而不是强隔离沙箱：
+当前实现是 `trusted-local-subprocess`，只允许运行教师信任的代码；它是本机模拟
+Docker，而不是强隔离沙箱：
 
 - 教师端负责 `env.reset/env.step`；
 - 学生端只通过 stdin/stdout JSONL 协议收发消息；
-- 教师端会移除已知 private env keys；
+- 教师端使用环境变量白名单，不向学生进程继承任意宿主变量；
+- manifest 的 `team_id`、entrypoint 和依赖路径会经过字符集与目录边界校验；
 - 学生端收到的 `task_info` 和 `info` 会被清理，避免直接暴露 private world 信息；
 - 每次学生响应都有 timeout。
 
-如果用于真实第三方评测，应继续增加容器隔离、只读挂载、网络禁用、资源限制和进程级
-权限控制。
+不得使用该模式直接运行不可信第三方提交。真实第三方评测必须使用独立容器或沙箱，
+并配置只读挂载、网络禁用、环境白名单、CPU/内存/PID 限制和低权限用户。仅在 manifest
+中声明 `allowed_network=false` 不构成网络隔离。
 
 ## 当前验收状态
 

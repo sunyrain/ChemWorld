@@ -2,6 +2,18 @@
 
 from __future__ import annotations
 
+from chemworld.physchem.electrochem_control_cards import (
+    electrochem_control_model_cards,
+)
+from chemworld.physchem.electrochem_double_layer_cards import (
+    electrochem_double_layer_model_cards,
+)
+from chemworld.physchem.electrochem_transport_cards import (
+    electrochem_transport_model_cards,
+)
+from chemworld.physchem.electrochemical_scenario_model_cards import (
+    electrochemical_scenario_model_cards,
+)
 from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
 
 
@@ -9,6 +21,10 @@ def electrochemistry_model_cards() -> tuple[ModelCard, ...]:
     """Return model-card metadata for the electrochemistry slice."""
 
     return (
+        *electrochem_control_model_cards(),
+        *electrochem_double_layer_model_cards(),
+        *electrochem_transport_model_cards(),
+        *electrochemical_scenario_model_cards(),
         ModelCard(
             model_id="nernst_butler_volmer_faradaic_v1",
             module_id="electrochemistry",

@@ -240,7 +240,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 )
             )
         previous_process = previous_state.process or ProcessLedger()
-        if preconditions_passed and previous_process.last_observation:
+        if (
+            preconditions_passed
+            and not operation_record.is_instrument_measurement
+            and previous_process.last_observation
+        ):
             self._state = self._state.replace(
                 process=process_with_last_observation(
                     self._state.process,

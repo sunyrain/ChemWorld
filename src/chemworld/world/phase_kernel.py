@@ -7,7 +7,11 @@ from typing import TypedDict
 
 import numpy as np
 
-from chemworld.physchem.equilibrium import liquid_liquid_split
+from chemworld.physchem.equilibrium import lle_phase_stability_diagnostic
+from chemworld.physchem.extraction_units import (
+    DistributionCoefficientModelSpec,
+    activity_corrected_extraction_train,
+)
 
 
 class PartitionSplitResult(TypedDict):
@@ -20,6 +24,10 @@ class PartitionSplitResult(TypedDict):
     lle_phase_status: str
     lle_minimum_tpd_like: float
     lle_partition_log_spread: float
+    extraction_model_id: str
+    extraction_converged: bool
+    extraction_material_balance_error_mol: float
+    extraction_entrained_aqueous_volume_L: float
 
 
 def partition_split(
@@ -44,23 +52,58 @@ def partition_split(
     impurity_partition = max(0.05, float(0.18 * partition + 0.08 * (solvent + 1)))
     feed = {"product": max(product_mol, 0.0), "impurity": max(impurity_mol, 0.0)}
     if sum(feed.values()) > 0.0:
-        split = liquid_liquid_split(
-            feed,
-            partition_coefficients={
+        distribution_model = DistributionCoefficientModelSpec(
+            model_id="runtime_activity_corrected_distribution_v1",
+            component_ids=("product", "impurity"),
+            intrinsic_partition_coefficients={
                 "product": partition,
                 "impurity": impurity_partition,
             },
+            provenance_id="chemworld-world-law-v0.2-partition-policy",
+        )
+        entrainment_fraction = float(
+            np.clip(
+                0.01
+                + 0.015
+                * stirring_speed_rpm
+                / 1200.0
+                * (1.0 - np.exp(-duration_s / 120.0)),
+                0.0,
+                0.04,
+            )
+        )
+        extraction = activity_corrected_extraction_train(
+            feed,
+            distribution_model=distribution_model,
+            target_component="product",
             aqueous_volume_L=v_aq,
             organic_volume_L=v_org,
-            stage_efficiency=float(np.clip(mix_factor, 0.0, 1.0)),
+            extraction_stages=1,
+            extraction_stage_efficiency=float(np.clip(mix_factor, 0.0, 1.0)),
+            extraction_entrainment_fraction=entrainment_fraction,
             temperature_K=temperature_K,
-            initialization_policy="partition_weighted_runtime",
         )
-        organic_product_mol = split.organic_amounts_mol["product"]
-        aqueous_product_mol = split.aqueous_amounts_mol["product"]
-        organic_impurity_mol = split.organic_amounts_mol["impurity"]
-        aqueous_impurity_mol = split.aqueous_amounts_mol["impurity"]
-        diagnostic: dict[str, object] = split.stability_diagnostic or {}
+        organic = extraction.outlet("extract")
+        aqueous = extraction.outlet("raffinate")
+        organic_product_mol = organic["product"]
+        aqueous_product_mol = aqueous["product"]
+        organic_impurity_mol = organic["impurity"]
+        aqueous_impurity_mol = aqueous["impurity"]
+        diagnostic = lle_phase_stability_diagnostic(
+            feed,
+            partition_coefficients=distribution_model.intrinsic_partition_coefficients,
+            aqueous_volume_L=v_aq,
+            organic_volume_L=v_org,
+            temperature_K=temperature_K,
+            initialization_policy="partition_weighted_runtime_v0.2",
+            stage_efficiency=float(np.clip(mix_factor, 0.0, 1.0)),
+        ).to_dict()
+        extraction_model_id = extraction.model_id
+        extraction_converged = all(
+            report.converged for report in extraction.stage_reports
+        )
+        extraction_balance_error = extraction.material_balance_error_mol
+        extraction_entrained_volume = extraction.entrained_aqueous_volume_L
     else:
         organic_product_mol = aqueous_product_mol = 0.0
         organic_impurity_mol = aqueous_impurity_mol = 0.0
@@ -69,6 +112,10 @@ def partition_split(
             "minimum_tpd_like": 0.0,
             "partition_log_spread": 0.0,
         }
+        extraction_model_id = "activity_corrected_extraction_train_v1"
+        extraction_converged = True
+        extraction_balance_error = 0.0
+        extraction_entrained_volume = 0.0
     return {
         "partition_coefficient": partition,
         "impurity_partition_coefficient": impurity_partition,
@@ -83,18 +130,22 @@ def partition_split(
         "lle_partition_log_spread": _diagnostic_float(
             diagnostic.get("partition_log_spread", 0.0)
         ),
+        "extraction_model_id": extraction_model_id,
+        "extraction_converged": extraction_converged,
+        "extraction_material_balance_error_mol": extraction_balance_error,
+        "extraction_entrained_aqueous_volume_L": extraction_entrained_volume,
     }
 
 
 @dataclass(frozen=True)
 class PhaseModuleSpec:
     module_id: str = "phase_partition"
-    version: str = "0.3"
+    version: str = "0.4"
     laws: tuple[str, ...] = (
         "aqueous_organic_phase_volume_balance",
-        "partition_coefficient_proxy",
-        "solubility_limit_proxy",
-        "entrainment_loss_proxy",
+        "benchmark_calibrated_intrinsic_distribution_coefficients",
+        "activity_corrected_extraction_train",
+        "explicit_aqueous_entrainment_ledger",
         "tpd_style_phase_stability_diagnostic",
     )
 

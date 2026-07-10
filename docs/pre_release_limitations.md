@@ -13,7 +13,7 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 
 当前版本支持受控虚拟任务：
 
-- 在同一个 `world_law_id=chemworld-physical-chemistry` 下运行任务切片；
+- 在同一个 `world_law_id=chemworld-physical-chemistry-v0.2` 下运行任务切片；
 - 使用半机理或轻量物理模型生成 hidden scenario；
 - 通过 Gymnasium API、CLI、trajectory、replay verifier 和 baseline report 评测 agent；
 - 比较有限预算实验设计、仪器观测使用、局部 world model 学习、约束处理和可复现提交。
@@ -41,8 +41,8 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 | Task | Maturity | 边界 |
 | --- | --- | --- |
 | `reaction-to-assay` | `lite` | 有半机理反应网络、物料/能量约束和合成仪器观测；不是真实反应预测器。 |
-| `reaction-to-purification` | `proxy` | 覆盖反应、萃取、相分离、纯化和 final assay 语义；LLE phase split 已有 reference-validated 诊断层，但整体 downstream process 仍含 proxy 单元。 |
-| `partition-discovery` | `proxy` | 用于学习隐藏分配规律和仪器策略；不等同于真实溶剂体系热力学。 |
+| `reaction-to-purification` | `proxy` | 萃取/洗涤使用专业候选模型；干燥、浓缩和转移仍为有界 proxy。 |
+| `partition-discovery` | `lite` | 相接触使用专业候选 extraction train，但分配参数仍为 benchmark 校准值，不等同于真实溶剂体系热力学。 |
 
 所有图表、论文 artifact、baseline table 和课程报告都应显示 maturity，而不能只展示最高分。
 
@@ -51,10 +51,10 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 当前仍需明确标注的低成熟度表面包括：
 
 - reaction kinetics：局部反应网络与速率律，未系统对齐真实机理数据库；
-- downstream separation：LLE phase split 已接入 TPD-style diagnostic 和物料守恒检查，干燥、浓缩等仍以可解释 proxy 为主；
+- downstream separation：萃取/洗涤已接入活度修正 extraction train、TPD-style diagnostic、夹带和物料守恒；干燥、浓缩、转移仍为可解释 proxy；
 - aqueous chemistry：D4C 已提供 pH observation 和 Ksp precipitation hooks，但不是完整 electrolyte speciation solver；
 - Gibbs equilibrium：D4D 已提供 fixed-TP ideal-mixture solver diagnostics，但不是数据库驱动的 multiphase Gibbs minimizer；
-- crystallization、distillation、flow、electrochemistry：已有交互语义和部分物理片段，但不应作为高保真流程模型宣传；
+- crystallization 与 flow：运行时已接入专业候选 PBM/PFR；distillation 有 reference-validated shortcut slice，electrochemistry 含多个专业候选子模块；它们仍不应作为工业高保真流程模型宣传；
 - spectroscopy/instruments：生成合成 HPLC/GC/UV-vis/final assay 信号，用于 agent 观测与教学，不是真实仪器谱图预测；
 - safety/cost：是 benchmark 约束信号，不是法律、工业或实验室安全合规结论。
 

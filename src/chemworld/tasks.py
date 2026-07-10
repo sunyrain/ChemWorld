@@ -23,10 +23,11 @@ from chemworld.world.operations import (
     REACTION_OPERATIONS,
     SEPARATION_OPERATIONS,
 )
+from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.scenario import get_scenario_card
 
-WORLD_LAW_ID = "chemworld-physical-chemistry"
-TASK_CONTRACT_VERSION = "chemworld-task-contract-0.2"
+WORLD_LAW_ID = WORLD_FAMILY_VERSION
+TASK_CONTRACT_VERSION = "chemworld-task-contract-0.3"
 PRE_RELEASE_TASK_IDS = (
     "reaction-to-assay",
     "reaction-to-purification",
@@ -371,18 +372,29 @@ def default_kernel_maturity(
         modules.append(
             ModuleMaturity(
                 "phase_equilibrium",
-                MaturityLevel.LITE,
-                model_ids=("chemworld_phase_equilibrium_lite",),
-                notes=("Raoult/Rachford-Rice/LLE-lite models with partial validation.",),
+                MaturityLevel.PROFESSIONAL_CANDIDATE,
+                model_ids=(
+                    "activity_corrected_extraction_train_v1",
+                    "lle_phase_stability_diagnostic_v1",
+                ),
+                notes=(
+                    "Runtime phase contact uses the activity-corrected extraction "
+                    "train with explicit entrainment and TPD-style diagnostics; "
+                    "intrinsic distribution coefficients remain benchmark-calibrated.",
+                ),
             )
         )
     if operations.intersection(CRYSTALLIZATION_OPERATIONS):
         modules.append(
             ModuleMaturity(
                 "crystallization",
-                MaturityLevel.PROXY,
-                model_ids=("chemworld_crystallization_proxy",),
-                notes=("Crystallization is a material-conserving benchmark proxy.",),
+                MaturityLevel.PROFESSIONAL_CANDIDATE,
+                model_ids=("cooling_crystallization_population_balance_v1",),
+                notes=(
+                    "Runtime cooling crystallization uses van't Hoff solubility, "
+                    "explicit seed mass, nucleation/growth cohorts, impurity "
+                    "occlusion, material closure, and CSD diagnostics.",
+                ),
             )
         )
     if operations.intersection(DISTILLATION_OPERATIONS):
@@ -401,9 +413,13 @@ def default_kernel_maturity(
         modules.append(
             ModuleMaturity(
                 "continuous_flow",
-                MaturityLevel.PROXY,
-                model_ids=("chemworld_continuous_flow_proxy",),
-                notes=("Continuous-flow behavior is a projection of the shared reaction law.",),
+                MaturityLevel.PROFESSIONAL_CANDIDATE,
+                model_ids=("pfr", "chemworld_geometry_resolved_pfr_v1"),
+                notes=(
+                    "Runtime flow uses the shared compiled reaction network in a "
+                    "geometry-resolved PFR with residence time, distributed thermal "
+                    "boundary, Darcy pressure drop, solver diagnostics, and ledgers.",
+                ),
             )
         )
     if operations.intersection(ELECTROCHEMISTRY_OPERATIONS):
@@ -418,19 +434,34 @@ def default_kernel_maturity(
                 ),
             )
         )
-    if operations.intersection({"separate_phase", "wash", "dry", "concentrate"}):
+    if "wash" in operations:
+        modules.append(
+            ModuleMaturity(
+                "extraction_wash",
+                MaturityLevel.PROFESSIONAL_CANDIDATE,
+                model_ids=("activity_corrected_extraction_train_v1",),
+                notes=(
+                    "Aqueous wash contacts use the same distribution, convergence, "
+                    "entrainment, and material-balance contract as extraction stages.",
+                ),
+            )
+        )
+    if operations.intersection({"dry", "concentrate", "transfer"}):
         modules.append(
             ModuleMaturity(
                 "separations",
                 MaturityLevel.PROXY,
                 model_ids=("chemworld_separation_proxy",),
-                notes=("Downstream purification uses material-conserving proxy units.",),
+                notes=(
+                    "Drying, concentration, and transfer remain bounded material-ledger "
+                    "operations without a general equipment/phase-equilibrium backend.",
+                ),
             )
         )
     proxy_allowed = any(module.level is MaturityLevel.PROXY for module in modules)
     notes = (
-        "Current task maturity is alpha/lite; professional hardening is tracked in "
-        "the root TODO.md.",
+        "Maturity is computed from the exact runtime modules used by this task; "
+        "professional-candidate does not imply industrial validation.",
     )
     return TaskMaturitySpec(
         modules=tuple(modules),
@@ -576,7 +607,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         episode_mode="campaign",
         allowed_operations=FLOW_REACTION_ALLOWED,
         success_metrics=("score", "flow_conversion", "yield", "safety_risk"),
-        description="Optimize a continuous-flow projection of the shared reaction law.",
+        description="Optimize a geometry-resolved PFR using the shared reaction network.",
         tags=("reaction", "continuous-flow", "optimization", "year2"),
     ),
     "electrochemical-conversion": _task(

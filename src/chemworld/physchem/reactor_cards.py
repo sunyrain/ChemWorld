@@ -108,6 +108,173 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
             ),
         ),
         ModelCard(
+            model_id="dynamic_cstr_startup_shutdown",
+            module_id="reactors",
+            title="Dynamic CSTR Startup, Shutdown, And Residence-Time Slice",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Constant-volume dynamic CSTR with coupled species and energy balances, "
+                "explicit residence time, common inlet/outlet flow programs for startup "
+                "and shutdown, and auditable material/energy ledgers."
+            ),
+            equations=(
+                "dn_i/dt = V sum_j nu_ij r_j + s(t) F_i,in - s(t) q_out n_i/V",
+                "tau = V/q_in",
+                "rhoCp V dT/dt = Q_jacket + s(t) rhoCp q_in(T_in-T) - Q_loss - Q_rxn",
+                "s(t) = step or linear flow-program interpolation",
+            ),
+            assumptions=(
+                "well-mixed constant-volume liquid CSTR",
+                "inlet and outlet share one flow scale so hydraulic volume remains fixed",
+                "constant density heat-capacity basis",
+                "reaction rates use the declared mechanism and current reactor temperature",
+            ),
+            validity_limits=(
+                "no level dynamics when inlet and outlet nominal flows differ",
+                "no pressure controller, vapor holdup, or wall thermal inertia",
+                "flow-program scale is finite and nonnegative",
+                "steady-state multiplicity is validated by a separate first-order reference slice",
+            ),
+            failure_modes=(
+                "negative or nonfinite flow-program values raise ValueError",
+                "unsorted program times raise ValueError",
+                "ODE failure raises RuntimeError with solver-policy diagnostics",
+            ),
+            units={
+                "amount": "mol",
+                "volume": "L",
+                "volumetric_flow": "L/s",
+                "residence_time": "s",
+                "temperature": "K",
+                "heat_duty": "W",
+                "energy_ledger": "J",
+            },
+            reference_reading=(
+                "Cantera continuous_reactor.py: stirred-reactor inlet/outlet controller semantics.",
+                "IDAES cstr.py: dynamic 0D material, energy, and reaction-extent balances.",
+                "Levenspiel, Chemical Reaction Engineering: ideal CSTR transient response.",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="cstr-startup-analytical-limit",
+                    evidence_type="analytical_test",
+                    description=(
+                        "No-reaction startup matches the closed-form dilution response using "
+                        "the time integral of the linear flow scale."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reactor_models.py",
+                    tolerance="2e-6 relative and material balance < 1e-8 mol",
+                ),
+                ValidationEvidence(
+                    evidence_id="cstr-shutdown-hold-test",
+                    evidence_type="analytical_test",
+                    description=(
+                        "No-reaction shutdown matches the integrated washout response and "
+                        "holds material constant after flow reaches zero."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reactor_models.py",
+                    tolerance="2e-6 relative and material balance < 1e-8 mol",
+                ),
+            ),
+            model_limit_notes=(
+                (
+                    "The flow program models controlled constant-volume "
+                    "startup/shutdown, not tank filling."
+                ),
+                (
+                    "Hydraulic level control and pressure-controller dynamics "
+                    "remain separate equipment slices."
+                ),
+            ),
+            intended_use=(
+                "startup and shutdown policy benchmarks",
+                "residence-time and thermal-transient reasoning",
+                "CSTR controller and safety task design",
+            ),
+        ),
+        ModelCard(
+            model_id="pfr_axial_hydraulics_heat_boundary",
+            module_id="reactors",
+            title="PFR Axial Reaction, Pressure Drop, And Heat-Transfer Slice",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "Steady incompressible tubular PFR with residence-time/axial mapping, "
+                "mechanism-based reaction integration, Darcy-Weisbach pressure loss, "
+                "and a distributed thermal boundary."
+            ),
+            equations=(
+                "z = L tau/tau_res and tau_res = V/q",
+                "dC_i/dtau = sum_j nu_ij r_j(C,T)",
+                "dP/dz = -f_D rho u^2/(2D)",
+                "rhoCp V dT/dtau = UA(T_boundary-T) - Q_loss - Q_rxn",
+            ),
+            assumptions=(
+                "steady one-dimensional plug flow with no axial dispersion",
+                "constant incompressible volumetric flow, density, and viscosity",
+                "Darcy friction factor uses the declared roughness and Reynolds number",
+                "thermal boundary is represented by distributed UA per unit length",
+            ),
+            validity_limits=(
+                "single-phase incompressible flow only",
+                "geometry volume must match the declared reactor volume",
+                "no compressible acceleration, two-phase multiplier, or catalyst-bed pressure drop",
+                "absolute pressure must remain positive over the reactor length",
+            ),
+            failure_modes=(
+                "inconsistent geometry and reactor volume raise ValueError",
+                "axial evaluation points outside the tube raise ValueError",
+                "nonpositive predicted absolute pressure raises RuntimeError",
+            ),
+            units={
+                "axial_position": "m",
+                "pressure": "Pa",
+                "pressure_gradient": "Pa/m",
+                "volumetric_flow": "L/s",
+                "temperature": "K",
+                "boundary_ua": "W/(m*K)",
+            },
+            reference_reading=(
+                "Levenspiel, Chemical Reaction Engineering: ideal tubular-reactor design equation.",
+                "Darcy-Weisbach equation with laminar/Colebrook friction-factor governance.",
+                "IDAES PFR control-volume material and energy balance organization.",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="pfr-darcy-pressure-profile",
+                    evidence_type="analytical_test",
+                    description=(
+                        "Incompressible constant-property pressure loss equals the declared "
+                        "Darcy gradient times tube length."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reactor_models.py",
+                    tolerance="pytest.approx local tolerance",
+                ),
+                ValidationEvidence(
+                    evidence_id="pfr-heat-boundary-analytical-limit",
+                    evidence_type="analytical_test",
+                    description=(
+                        "A no-reaction tube approaches the boundary temperature according to "
+                        "the closed-form constant-UA plug-flow solution."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reactor_models.py",
+                    tolerance="2e-6 relative",
+                ),
+            ),
+            model_limit_notes=(
+                "This closes the single-phase tubular slice, not a compressible or packed-bed PFR.",
+                "Two-phase and Ergun pressure-drop models remain separate explicit tasks.",
+            ),
+            intended_use=(
+                "PFR hotspot and residence-time benchmark design",
+                "axial thermal and hydraulic constraint reasoning",
+                "single-phase tubular reactor validation cases",
+            ),
+        ),
+        ModelCard(
             model_id="cstr_exothermic_multiplicity_reference",
             module_id="reactors",
             title="Exothermic CSTR Multiple-Steady-State Reference Slice",
@@ -172,10 +339,7 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
                     "cstr.py builds a 0D control volume with material, energy, "
                     "and reaction extent balances."
                 ),
-                (
-                    "IDAES: cstr_performance_eqn sets rate_reaction_extent = "
-                    "volume * reaction_rate."
-                ),
+                ("IDAES: cstr_performance_eqn sets rate_reaction_extent = volume * reaction_rate."),
             ),
             validation_evidence=(
                 ValidationEvidence(
@@ -218,8 +382,6 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
             ),
         ),
     )
-
-
 
 
 __all__ = [

@@ -87,3 +87,22 @@ task_id + seed + scenario/mechanism/task/profile/scoring hash + action sequence
 ```
 
 重新创建环境并逐步执行 action，然后比较 reward、public observation、terminated/truncated、contract hashes、kernel metadata、affected ledgers、world events、state patch summary 和 transaction status。
+
+## Verified Result Chain
+
+正式结果只允许通过以下单向链路产生：
+
+```text
+trajectory JSONL
+  -> schema validation
+  -> deterministic replay verification
+  -> metric recomputation
+  -> trajectory SHA-256 binding
+  -> verified evaluation-result JSON
+  -> leaderboard replay and metric recomputation
+```
+
+`chemworld evaluate` 默认执行完整 replay，不再为未验证轨迹生成结果。结果文件必须携带
+`result_schema_version`、`verified=true`、verification report、`evaluation_threshold`、
+`trajectory_path` 和 `trajectory_sha256`。leaderboard 会校验 digest，并从轨迹重算指标；直接
+修改 result JSON 中的分数会被拒绝。详细合同见[结果与发布完整性](release_integrity.md)。

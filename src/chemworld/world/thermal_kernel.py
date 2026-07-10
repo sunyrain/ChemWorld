@@ -13,6 +13,7 @@ def pressure_and_risk(
     *,
     state: WorldState,
     solvent_risks: np.ndarray,
+    pressure_override_Pa: float | None = None,
 ) -> tuple[float, float]:
     reactor_settings = equipment_settings(state.equipment, "batch_reactor")
     solvent = int(reactor_settings.get("solvent", 0))
@@ -20,7 +21,13 @@ def pressure_and_risk(
         value for key, value in state.species_amounts.items() if not key.startswith("Cat")
     )
     concentration = 0.0 if state.volume_L <= 0 else total_amount / state.volume_L
-    pressure = 101_325.0 * (state.temperature_K / 298.15) * (1.0 + 0.025 * concentration)
+    pressure = (
+        101_325.0 * (state.temperature_K / 298.15) * (1.0 + 0.025 * concentration)
+        if pressure_override_Pa is None
+        else float(pressure_override_Pa)
+    )
+    if pressure <= 0.0 or not np.isfinite(pressure):
+        raise ValueError("pressure_override_Pa must be positive and finite")
     exotherm_risk = min(1.0, abs(state.ledger.heat_reaction_J) / 2500.0)
     temperature_risk = 1.0 / (1.0 + np.exp(-(state.temperature_K - 405.0) / 13.0))
     concentration_risk = 1.0 / (1.0 + np.exp(-(concentration - 0.8) / 0.22))

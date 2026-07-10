@@ -5,6 +5,17 @@ from chemworld.foundation.constitution import (
     ConstitutionReport,
     PhysicalConstitution,
 )
+from chemworld.foundation.dimensions import (
+    DimensionCheckReport,
+    DimensionContract,
+    DimensionDefinition,
+    DimensionVector,
+    canonical_dimensions,
+    check_unit_dimension,
+    core_dimension_contracts,
+    dimension_definition,
+    unmapped_supported_unit_dimensions,
+)
 from chemworld.foundation.kernels import ObservationKernel, TransitionKernel
 from chemworld.foundation.ledger_audit import (
     LedgerAuditFinding,
@@ -49,6 +60,10 @@ __all__ = [
     "PUBLIC_SPECIES_SUFFIX",
     "CheckResult",
     "ConstitutionReport",
+    "DimensionCheckReport",
+    "DimensionContract",
+    "DimensionDefinition",
+    "DimensionVector",
     "Instrument",
     "Ledger",
     "LedgerAuditFinding",
@@ -70,7 +85,11 @@ __all__ = [
     "WorldState",
     "audit_ledger_single_source_of_truth",
     "audit_public_payload",
+    "canonical_dimensions",
+    "check_unit_dimension",
     "convert_value",
+    "core_dimension_contracts",
+    "dimension_definition",
     "equipment_settings",
     "equipment_status",
     "has_phase_system",
@@ -82,5 +101,6 @@ __all__ = [
     "scale_phase_ledger",
     "selected_phase_id",
     "species_with_added_initial_amounts",
+    "unmapped_supported_unit_dimensions",
     "upsert_equipment_record",
 ]

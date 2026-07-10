@@ -10,12 +10,15 @@ from chemworld.world.operations import CRYSTALLIZATION_OPERATIONS
 @dataclass(frozen=True)
 class CrystallizationModuleSpec:
     module_id: str = "crystallization"
-    version: str = "0.1"
+    version: str = "0.2"
     operations: tuple[str, ...] = CRYSTALLIZATION_OPERATIONS
     laws: tuple[str, ...] = (
-        "cooling_driven_supersaturation_proxy",
-        "seeded_nucleation_quality_factor",
-        "filtration_recovery_loss",
+        "vanthoff_solubility_curve",
+        "explicit_seed_mass",
+        "primary_nucleation_and_growth_cohorts",
+        "impurity_occlusion",
+        "crystal_size_distribution",
+        "filtration_recovery_ledger",
     )
 
     def to_dict(self) -> dict[str, object]:

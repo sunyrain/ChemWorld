@@ -746,7 +746,25 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
             writer.writerow(payload)
 
 
-def main() -> None:
+AUDIT_FAILURE_KEYS = (
+    "verify_failures",
+    "spectra_failures",
+    "invalid_steps",
+    "constitution_failures",
+    "ledger_single_source_failures",
+    "public_leakage_failures",
+)
+
+
+def audit_passed(aggregate: dict[str, Any]) -> bool:
+    """Return whether every release-blocking environment audit check passed."""
+
+    return bool(aggregate.get("hash_coverage_complete")) and all(
+        int(aggregate.get(key, 0)) == 0 for key in AUDIT_FAILURE_KEYS
+    )
+
+
+def main() -> int:
     args = parse_args()
     output_dir: Path = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -807,7 +825,8 @@ def main() -> None:
     print(json.dumps(to_builtin(summary["aggregate"]), indent=2, ensure_ascii=False))
     print(f"Wrote {json_path}")
     print(f"Wrote {csv_path}")
+    return 0 if audit_passed(summary["aggregate"]) else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

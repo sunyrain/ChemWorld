@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 
@@ -26,6 +25,7 @@ from chemworld.physchem.reactor_solvers import (
     _segment_evaluation_times,
     _solve_interval,
 )
+from chemworld.physchem.solver_backend import ODESolveReport
 from chemworld.physchem.thermochemistry import NASA7SpeciesThermo
 
 
@@ -156,11 +156,12 @@ class DynamicBatchReactorModel:
         current_time = 0.0
         material_out = dict.fromkeys(self.network.species_ids, 0.0)
         sample_records: list[dict[str, object]] = []
+        solver_diagnostics: list[dict[str, object]] = []
         times: list[float] = []
         states: list[np.ndarray] = []
         volumes: list[float] = []
 
-        def append_solution(segment: Any) -> None:
+        def append_solution(segment: ODESolveReport) -> None:
             for idx, time_value in enumerate(segment.t):
                 if times and abs(float(time_value) - times[-1]) < 1e-12:
                     times[-1] = float(time_value)
@@ -226,6 +227,7 @@ class DynamicBatchReactorModel:
                     ),
                 )
                 append_solution(segment)
+                solver_diagnostics.append(segment.diagnostic.to_dict())
                 y_current = np.array(segment.y[:, -1], dtype=float)
                 current_time = next_time
             elif not times:
@@ -233,11 +235,7 @@ class DynamicBatchReactorModel:
                 states.append(y_current.copy())
                 volumes.append(current_volume)
 
-            events_at_time = [
-                event
-                for event in events
-                if abs(event.time_s - current_time) < 1e-12
-            ]
+            events_at_time = [event for event in events if abs(event.time_s - current_time) < 1e-12]
             for event in events_at_time:
                 if event.volume_L >= current_volume:
                     raise ValueError("sampling volume cannot remove all reactor volume")
@@ -268,9 +266,7 @@ class DynamicBatchReactorModel:
 
         state_matrix = np.vstack(states).T
         amounts_timeseries = {
-            species_id: tuple(
-                max(float(value), 0.0) for value in state_matrix[index]
-            )
+            species_id: tuple(max(float(value), 0.0) for value in state_matrix[index])
             for index, species_id in enumerate(self.network.species_ids)
         }
         initial_state = ReactorState(
@@ -311,12 +307,11 @@ class DynamicBatchReactorModel:
             ),
             metadata={
                 "heat_source": (
-                    "nasa7_reaction_enthalpy"
-                    if species_thermo is not None
-                    else "reaction_delta_h"
+                    "nasa7_reaction_enthalpy" if species_thermo is not None else "reaction_delta_h"
                 ),
                 "sample_events": sample_records,
                 "volume_L_timeseries": tuple(volumes),
+                "solver_diagnostics": solver_diagnostics,
                 "jacket_program": (
                     jacket_program.to_dict() if jacket_program is not None else None
                 ),

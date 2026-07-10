@@ -135,6 +135,42 @@ def test_env_task_info_exposes_maturity_metadata() -> None:
         env.close()
 
 
+@pytest.mark.parametrize(
+    ("task_id", "module_id", "model_id"),
+    (
+        (
+            "reaction-to-crystallization",
+            "crystallization",
+            "cooling_crystallization_population_balance_v1",
+        ),
+        ("flow-reaction-optimization", "continuous_flow", "pfr"),
+        (
+            "partition-discovery",
+            "phase_equilibrium",
+            "activity_corrected_extraction_train_v1",
+        ),
+    ),
+)
+def test_professional_runtime_adapters_are_not_declared_as_proxy(
+    task_id: str,
+    module_id: str,
+    model_id: str,
+) -> None:
+    payload = get_task(task_id).to_dict()
+
+    assert payload["proxy_allowed"] is False
+    assert all(
+        module["level"] != "proxy"
+        for module in payload["kernel_maturity"]["modules"]
+    )
+    assert any(
+        module["module_id"] == module_id
+        and module["level"] == "professional_candidate"
+        and model_id in module["model_ids"]
+        for module in payload["kernel_maturity"]["modules"]
+    )
+
+
 def test_task_maturity_manifest_is_json_friendly_and_grouped() -> None:
     manifest = task_maturity_manifest(
         ("reaction-to-assay", "reaction-to-purification")

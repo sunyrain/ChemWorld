@@ -16,7 +16,7 @@
 
 ## 当前结论
 
-ChemWorld 已完成公开预发布与 AAAI 实验准备所需的 P0/P1/P2/P4。当前主线进入 P3：专业物理化学模块深化。AAAI 6 任务 preset、`equilibrium-characterization`、reference-baseline reports、solver/provenance manifest 和 artifact smoke 已完成。
+ChemWorld 已完成公开预发布、AAAI 实验准备和 P3 专业物理化学深化任务。AAAI 6 任务 preset、`equilibrium-characterization`、reference-baseline reports、solver/provenance manifest、artifact smoke 与三项数据基础设施均已完成。
 
 ## 当前统计
 
@@ -25,11 +25,11 @@ ChemWorld 已完成公开预发布与 AAAI 实验准备所需的 P0/P1/P2/P4。�
 | P0 | 预发布 benchmark hardening | 12 | 12 | 0 | 0 | 0 | 0 |
 | P1 | runtime 与环境自洽性 | 8 | 8 | 0 | 0 | 0 | 0 |
 | P2 | agent-facing 交互与数据集 | 6 | 6 | 0 | 0 | 0 | 0 |
-| P3 | 专业物理化学深化 | 27 | 7 | 3 | 17 | 0 | 20 |
+| P3 | 专业物理化学深化 | 27 | 27 | 0 | 0 | 0 | 0 |
 | P4 | 文档、notebook、站点与发布包装 | 5 | 5 | 0 | 0 | 0 | 0 |
-| **合计** |  | **58** | **38** | **3** | **17** | **0** | **20** |
+| **合计** |  | **58** | **58** | **0** | **0** | **0** | **0** |
 
-还需完成 **20 项**，全部属于 P3 长期专业化深化。其中 3 项已由 `liyijun` 认领，Codex 暂不处理。
+当前任务板 **58 项已全部完成**。后续新增工作必须作为新任务登记，不回写或模糊既有完成标准。
 
 ## Cutline
 
@@ -38,7 +38,7 @@ ChemWorld 已完成公开预发布与 AAAI 实验准备所需的 P0/P1/P2/P4。�
 | 最小可信 benchmark | 0 | P0/P1 全部完成。任务、runtime、ledger、observation、scoring、replay 和公开边界通过审计。 |
 | 可公开预发布包 | 0 | P2/P4 完成。外部用户能安装、运行、提交、阅读文档、复现实验并理解限制。 |
 | AAAI 投稿实验包 | 0 | 6 任务 preset、`equilibrium-characterization`、baseline report、solver/provenance manifest 和 artifact smoke 已完成。 |
-| 全部可见路线图 | 20 | 完成 P3 专业物理化学深化。 |
+| 全部可见路线图 | 0 | P3 专业物理化学深化的既定 27 项已全部完成。 |
 
 ## P0 - 预发布 Benchmark Hardening
 
@@ -86,38 +86,38 @@ ChemWorld 已完成公开预发布与 AAAI 实验准备所需的 P0/P1/P2/P4。�
 规则：
 
 - P3 不阻塞第一版公开预发布。
-- `liyijun` 已认领的三项不得重复实现，除非重新分配。
+- 原由 `liyijun` 认领的 D1A/D1B/D1C 已在其退出协作后由用户重新分配给 Codex。
 - 每个 P3 任务必须包含 maturity label、适用范围、验证算例和失败边界。
 
 | ID | Owner | Status | Task | Exit Criteria |
 | --- | --- | --- | --- | --- |
-| DEEP-D1A | liyijun | Claimed | Component identity registry | Aliases, CAS/InChI-like placeholders, formula, charge, molecular weight, provenance, duplicate checks, JSON round-trip. |
-| DEEP-D1B | liyijun | Claimed | Unit-dimension checker | Canonical dimensions for amount, mass, volume, temperature, pressure, energy, transport properties, and instrument response. |
-| DEEP-D1C | liyijun | Claimed | Data conflict policy | Deterministic source priority, uncertainty fields, warning vs hard-fail reports, dataset-card provenance. |
+| DEEP-D1A | Codex | Done | Component identity registry | Added versioned immutable registry, aliases, checksum-validated CAS, InChI/InChIKey, formula/charge/formula-checked molecular weight, provenance, collision checks, canonical SHA-256, curated identities, exact JSON round-trip, tests, and a professional-candidate model card. |
+| DEEP-D1B | Codex | Done | Unit-dimension checker | Added canonical exponent vectors and semantic dimensions for amount/mass/volume/temperature/pressure/energy, thermodynamic and transport properties, electrochemistry and instrument responses; added field contracts, strict mismatch reports, complete unit-catalog closure tests, and a professional-candidate model card. |
+| DEEP-D1C | Codex | Done | Data conflict policy | Added deterministic source-ranked multi-field audits, scalar tolerances, required uncertainty policy, warning versus hard-fail findings, source provenance, canonical report/card digests, dataset-card provenance schema 0.3, round-trip/tamper tests, and a professional-candidate model card. |
 | DEEP-D4B | Codex | Done | LLE phase-split solver | Added TPD-style diagnostic, runtime partition split, initialization policy, phase-stability metadata, and mass-balance tests. |
 | DEEP-D4C | Codex | Done | Aqueous acid-base equilibrium | Added public pH-meter observation, charge-balance-compatible acid/base result, precipitation hooks, model-card evidence, and tests. |
 | DEEP-D4D | Codex | Done | Gibbs-minimization toy solver hardening | Added diagnostics, KKT-style residual, rank/DOF checks, reference cases, model-card evidence, and documentation. |
 | DEEP-D5A | Codex | Done | Thermochemistry-coupled reversibility | NASA7 species Gibbs energy now drives K_eq, concentration standard-state conversion, reverse Arrhenius detailed balance, reversible batch ODE equilibrium tests, and model-card evidence. |
 | DEEP-D5B | Codex | Done | Pressure-dependent and falloff kinetics | Added third-body collision efficiencies, Lindemann low/high-pressure limits, Troe broadening, bath-gas-sensitive ODE validation, mechanism schema support, and model-card evidence. |
-| DEEP-D6B |  | Open | CSTR dynamics | Dynamic mass/energy balance, residence time, stability, startup/shutdown, multiple steady states. |
-| DEEP-D6C |  | Open | PFR/plug-flow slice | Axial integration, pressure-drop coupling, heat-transfer boundary, validation cases. |
-| DEEP-D6D |  | Open | Solver backend interface | Deterministic tolerances, event handling, failure diagnostics, replay verification. |
-| DEEP-D7A |  | Open | Rigorous flash unit | Material and energy balance, vapor-liquid split, enthalpy duty, nonideal hooks. |
-| DEEP-D7C |  | Open | Extraction unit | Distribution coefficients from activity/partition model, entrainment, wash sequence, recovery/purity metrics. |
-| DEEP-D7D |  | Open | Crystallization unit | Solubility curve, supersaturation, nucleation/growth compact model, impurity occlusion, CSD metadata. |
-| DEEP-D8A |  | Open | Phase-change and equipment heat transfer | Boiling/condensation warnings, jacket/coil/shell corrections, fouling evolution, energy-ledger validation. |
-| DEEP-D8B |  | Open | Two-phase pressure drop | Documented correlation slice with validity limits replacing homogeneous proxy. |
-| DEEP-D8C |  | Open | Relief and safety envelope | Pressure/temperature hazard envelopes, runaway indicators, safety-cost integration. |
-| DEEP-D8D |  | Open | Equipment cards | Vessel, pump, mixer, condenser, heat exchanger, and column specs with constraints. |
-| DEEP-D9A |  | Open | Empirical HPLC/GC method sensitivity | Retention-index examples, temperature/mobile-phase sensitivity, detector response calibration, asymmetric peak flags. |
-| DEEP-D9C |  | Open | NMR slice | Chemical shift anchors, multiplicity/coupling metadata, integration, solvent reference, failure modes. |
-| DEEP-D9D |  | Open | MS slice | Simple fragmentation metadata, isotope envelopes for small formulas, detector response uncertainty. |
+| DEEP-D6B | Codex | Done | CSTR dynamics | Added dynamic material/energy balances, residence-time metadata, linear/step startup and shutdown flow programs, analytical transient tests, multiple steady states, stability classification, and model-card evidence. |
+| DEEP-D6C | Codex | Done | PFR/plug-flow slice | Added axial position mapping, geometry contract, Darcy pressure-drop profile, distributed heat-transfer boundary, analytical validation cases, solver diagnostics, and model-card evidence. |
+| DEEP-D6D | Codex | Done | Solver backend interface | Added versioned policies, deterministic tolerances, named event contracts, failure diagnostics, policy hashes, provenance integration, cross-reactor adoption, and dedicated tests. |
+| DEEP-D7A | Codex | Done | Rigorous flash unit | Added iterative fixed-TP gamma-phi flash, per-component material split, enthalpy-duty ledger, nonideal fugacity/Poynting hooks, convergence diagnostics, professional-candidate model card, and analytical/reference-backed tests. |
+| DEEP-D7C | Codex | Done | Extraction unit | Added activity-corrected distribution coefficients, fresh-solvent extraction stages, explicit entrainment, aqueous wash sequences, stage convergence reports, recovery/purity/rejection metrics, analytical tests, and a professional-candidate model card. |
+| DEEP-D7D | Codex | Done | Crystallization unit | Added provenance-tagged van't Hoff solubility curves, cooling-ramp supersaturation, capped primary-nucleation/growth cohort integration, explicit seed mass, impurity occlusion, D10/D50/D90/CV/fines metadata, analytical tests, and a professional-candidate model card. |
+| DEEP-D8A | Codex | Done | Phase-change and equipment heat transfer | Added explicit jacket/coil/shell corrections, asymptotic fouling resistance, lumped sensible heating/cooling, boiling/condensation plateaus, phase-crossing warnings, signed phase inventory, exact sensible/latent energy ledgers, tests, and a professional-candidate model card. |
+| DEEP-D8B | Codex | Done | Two-phase pressure drop | Added a horizontal smooth-pipe Lockhart-Martinelli/Chisholm separated-flow model with phase Reynolds/friction anchors, regime-specific multipliers, explicit validity failures/warnings, exact `fluids` reference comparison, tests, and a reference-validated model card; retained the homogeneous rollout model as an explicit proxy. |
+| DEEP-D8C | Codex | Done | Relief and safety envelope | Added ordered pressure/temperature/relief/MAWP envelopes, Arrhenius/Semenov runaway indicators, MTSR and time-to-limit projections, relief capacity ratios, emergency flags, auditable risk/cost composition, Gym constraint adapters, tests, and a professional-candidate model card. |
+| DEEP-D8D | Codex | Done | Equipment cards | Added versioned JSON equipment cards for vessel/pump/mixer/condenser/heat-exchanger/column types, provenance-tagged rated parameters, shared unit-bearing min/max constraints, margin/utilization reports, warning vs hard feasibility, round-trip tests, and a professional-candidate model card. |
+| DEEP-D9A | Codex | Done | Empirical HPLC/GC method sensitivity | Added HPLC mobile-phase/temperature log-k sensitivity, GC van't Hoff retention, logarithmic n-alkane retention-index interpolation, detector slope/intercept/R²/LOD/LOQ calibration, fronting/tailing severity flags, tests, and a professional-candidate model card. |
+| DEEP-D9C | Codex | Done | NMR slice | Added provenance-tagged 1H shift anchors, first-order s/d/t/q/quint/dd/m splitting, J-coupling stick lines, amount/proton/response integration, solvent/reference correction, overlap/second-order/exchange warnings, tests, and a professional-candidate model card. |
+| DEEP-D9D | Codex | Done | MS slice | Added natural-abundance isotope convolution for common small-formula elements, nominal/exact-mass/m-z envelopes, curated fragment/neutral-loss metadata, detector mean/RSD uncertainty, Cl/Br/C analytical patterns, failure warnings, tests, and a professional-candidate model card. |
 | DEEP-D10C | Codex | Done | Reference-baseline reports | Added AAAI preset baseline reporting, task-level summary rows, equilibrium metrics, Codex replay baseline, and smoke tests. |
 | DEEP-D10D | Codex | Done | Solver/provenance manifest | Added solver/provenance manifest with commit hash, dependency versions, solver tolerances, maturity labels, salt policy, and artifact integration. |
-| DEEP-D11B |  | Open | Mass-transfer limiting-current slice | Diffusion-layer approximation, limiting current, depletion, current-efficiency loss, analytical plateau checks. |
-| DEEP-D11C |  | Open | Potentiostatic and galvanostatic controllers | Controller semantics, clipping, ramp/hold recipes, operation logs, replay contracts. |
-| DEEP-D11D |  | Open | Double-layer and capacitive-current slice | RC transient, non-Faradaic current, startup artifacts, current-trace observations. |
-| DEEP-D11E |  | Open | Electrochemical scenario cards | Redox metadata, electrode area, electrolyte window, side-reaction thresholds, hidden-parameter generation. |
+| DEEP-D11B | Codex | Done | Mass-transfer limiting-current slice | Added planar diffusion-layer i_lim, surface depletion, finite-reservoir piecewise linear/exponential bulk depletion, kinetic/transport caps, signed useful current, useful/side charge and efficiency ledgers, analytical plateau tests, and a professional-candidate model card. |
+| DEEP-D11C | Codex | Done | Potentiostatic and galvanostatic controllers | Added versioned potentiostatic/galvanostatic ramp/hold recipes, range/slew clipping, mode-state semantics, sampled traces, operation logs, canonical recipe/execution SHA-256, exact replay verification, tests, and a professional-candidate model card. |
+| DEEP-D11D | Codex | Done | Double-layer and capacitive-current slice | Added Randles Rs-(Rct||Cdl) potential/current step analytics, capacitive/Faradaic/total current traces, interfacial/terminal potential, exact charge ledgers, 5τ/startup-artifact warnings, observation arrays, tests, and a professional-candidate model card. |
+| DEEP-D11E | Codex | Done | Electrochemical scenario cards | Added versioned public redox/geometry/window/onset cards, private range policies, salted split-aware deterministic hidden generation, hidden digests, side-reaction severity, direct reaction/ohmic/diffusion/double-layer model bundles, tests, and a professional-candidate model card. |
 
 ## P4 - 文档、Notebook、站点与发布包装
 

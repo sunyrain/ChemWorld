@@ -17,6 +17,7 @@ MATERIAL_DELTA_ALLOWED_OPERATIONS = frozenset(
         "measure",
         "add_phase",
         "add_extractant",
+        "seed_crystals",
         "mix",
         "settle",
         "separate_phase",

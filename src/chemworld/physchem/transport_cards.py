@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+from chemworld.physchem.heat_transfer_cards import equipment_heat_transfer_model_cards
 from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
+from chemworld.physchem.two_phase_flow_cards import two_phase_flow_model_cards
 
 
 def transport_model_cards() -> tuple[ModelCard, ...]:
     """Return model-card records for transport kernels with validation status."""
 
     return (
+        *equipment_heat_transfer_model_cards(),
+        *two_phase_flow_model_cards(),
         ModelCard(
             model_id="pipe_friction_and_single_phase_pressure_drop",
             module_id="transport",
@@ -143,8 +147,7 @@ def transport_model_cards() -> tuple[ModelCard, ...]:
                     evidence_id="fluids-nusselt-definition",
                     evidence_type="optional_reference_test",
                     description=(
-                        "Compare ChemWorld h = Nu k / D round-trip against "
-                        "fluids.core.Nusselt."
+                        "Compare ChemWorld h = Nu k / D round-trip against fluids.core.Nusselt."
                     ),
                     status="implemented",
                     reference_backend="fluids",
@@ -165,7 +168,8 @@ def transport_model_cards() -> tuple[ModelCard, ...]:
             ),
             model_limit_notes=(
                 "This slice does not model boiling or condensation.",
-                "Shell-and-tube correction factors and fouling time dynamics remain future work.",
+                "Shell corrections, fouling dynamics, and phase-change ledgers are "
+                "implemented by the separate equipment heat-transfer model card.",
             ),
             intended_use=(
                 "Reference-validated heat-duty and thermal-cost ledgers.",
@@ -173,8 +177,6 @@ def transport_model_cards() -> tuple[ModelCard, ...]:
             ),
         ),
     )
-
-
 
 
 __all__ = [

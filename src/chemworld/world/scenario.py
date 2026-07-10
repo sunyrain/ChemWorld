@@ -9,9 +9,13 @@ from typing import Protocol
 
 from chemworld.foundation import WorldState
 from chemworld.runtime.mechanisms import CompiledMechanism, compile_mechanism_for_scenario
-from chemworld.world.parameters import ChemWorldParameters, load_chemworld_parameters
+from chemworld.world.parameters import (
+    WORLD_FAMILY_VERSION,
+    ChemWorldParameters,
+    load_chemworld_parameters,
+)
 
-WORLD_LAW_ID = "chemworld-physical-chemistry"
+WORLD_LAW_ID = WORLD_FAMILY_VERSION
 
 
 @dataclass(frozen=True)

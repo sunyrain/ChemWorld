@@ -67,6 +67,7 @@ from chemworld.world import (
 )
 from chemworld.world.observation_kernel import raw_signal
 from chemworld.world.operations import OPERATION_TYPES
+from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.phase_kernel import partition_split
 from chemworld.world.reaction_kernel import (
     integrate_compiled_reaction_ode,
@@ -81,7 +82,7 @@ from chemworld.world.thermal_kernel import pressure_and_risk
 
 def test_world_law_contains_professional_contracts() -> None:
     spec = world_law_spec().to_dict()
-    assert spec["law_version"] == "chemworld-physical-chemistry"
+    assert spec["law_version"] == WORLD_FAMILY_VERSION
     assert spec["ontology_registry"]["substance_registry_policy"] == (
         "scenario_compiled_mechanism"
     )
@@ -566,7 +567,9 @@ def test_runtime_flow_service_is_separate_from_domain_services() -> None:
     assert "def run_flow" in flow_services
     assert "flow_rate_mL_min" in flow_services
     assert "flow_conversion" in flow_services
-    assert "reaction_thermal.integrate" in flow_services
+    assert "PFRModel" in flow_services
+    assert "PFRGeometrySpec" in flow_services
+    assert "reaction_thermal.integrate" not in flow_services
 
 
 def test_runtime_primitive_service_is_separate_from_domain_services() -> None:
@@ -681,7 +684,7 @@ def test_runtime_profile_requires_current_task_kernels_only() -> None:
     profile = TaskRuntimeProfile.from_task(task)
     registry = OperationKernelRegistry.default()
 
-    assert profile.world_law_id == "chemworld-physical-chemistry"
+    assert profile.world_law_id == WORLD_FAMILY_VERSION
     assert "measure" in profile.required_kernels
     assert "add_extractant" not in profile.required_kernels
     assert "instrument_cost" in profile.required_domain_services
@@ -1266,10 +1269,30 @@ def test_runtime_phase_separation_uses_typed_phase_ledger_as_primary_state() -> 
         assert state.phases.phases["organic"].settled is True
         assert state.phases.phases["aqueous"].settled is True
         assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
+        assert state.metadata["extraction_model_id"] == (
+            "activity_corrected_extraction_train_v1"
+        )
+        assert state.metadata["extraction_converged"] is True
+        assert state.metadata["extraction_material_balance_error_mol"] < 1.0e-10
         assert state.vessels is not None
         assert set(state.vessels.vessels[state.vessel_id].phase_ids) == set(
             state.phases.phases
         )
+        assert env.unwrapped.constitution.check_state(state).passed
+
+        _, _, _, _, wash_info = env.step(
+            {"operation": "wash", "wash_volume_L": 0.008}
+        )
+        state = env.unwrapped._state
+        assert wash_info["transaction_status"] == "committed"
+        assert state.metadata["wash_model_id"] == (
+            "activity_corrected_extraction_train_v1"
+        )
+        assert state.metadata["wash_converged"] is True
+        assert state.metadata["wash_material_balance_error_mol"] < 1.0e-10
+        assert state.phases is not None
+        assert "wash_aqueous" in state.phases.phases
+        assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
         assert env.unwrapped.constitution.check_state(state).passed
 
         env.step({"operation": "terminate"})
@@ -1594,6 +1617,15 @@ def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> 
         assert flow_state.process is not None
         assert flow_state.process.metrics["flow_conversion"] >= 0.0
         assert flow_state.process.metrics["flow_campaign_time_s"] == pytest.approx(1800.0)
+        flow_settings = equipment_settings(flow_state.equipment, "flow_reactor")
+        assert flow_settings["flow_model_id"] == "pfr"
+        assert flow_settings["runtime_adapter_id"] == (
+            "chemworld_geometry_resolved_pfr_v1"
+        )
+        assert flow_settings["pressure_drop_Pa"] >= 0.0
+        assert flow_settings["reynolds_number"] > 0.0
+        assert flow_settings["material_balance_error_mol"] < 1.0e-9
+        assert flow_settings["solver_diagnostic"]["success"] is True
         assert flow_env.unwrapped.constitution.check_state(flow_state).passed
 
         electro_env.reset(seed=0)
@@ -1741,6 +1773,7 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
 
         assert seed_info["transaction_status"] == "committed"
+        assert seed_info["constraint_flags"]["constitution_failed"] is False
         assert "equipment" in seed_info["affected_ledgers"]
         assert crystallizer_settings["crystal_seeded"] is True
         assert crystallizer_settings["crystal_seed_mass_g"] == pytest.approx(0.006)
@@ -1756,7 +1789,18 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
             }
         )
         state = env.unwrapped._state
+        crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
         assert cool_info["transaction_status"] == "committed"
+        assert crystallizer_settings["crystallization_model_id"] == (
+            "cooling_crystallization_population_balance_v1"
+        )
+        assert crystallizer_settings["solubility_model_id"] == (
+            "runtime_vanthoff_target_solubility_v1"
+        )
+        assert crystallizer_settings["material_balance_error_mol"] < 1.0e-10
+        assert crystallizer_settings["csd_d10_m"] > 0.0
+        assert crystallizer_settings["csd_d50_m"] >= crystallizer_settings["csd_d10_m"]
+        assert crystallizer_settings["csd_d90_m"] >= crystallizer_settings["csd_d50_m"]
         assert state.phases is not None
         assert {"solid", "mother_liquor"} <= set(state.phases.phases)
         solid_before_filter = state.phases.phases["solid"]
@@ -2061,16 +2105,14 @@ def test_compiled_reaction_kernel_rejects_missing_mechanism() -> None:
 def test_scenarios_are_first_class_and_share_world_law() -> None:
     scenarios = list_scenarios()
     assert scenarios
-    assert {scenario.world_law_id for scenario in scenarios} == {
-        "chemworld-physical-chemistry"
-    }
+    assert {scenario.world_law_id for scenario in scenarios} == {WORLD_FAMILY_VERSION}
     card = get_scenario_card("reaction-to-purification")
     assert card["family"] == "reaction_separation"
     assert "separation" in card["allowed_module_tags"]
     crystallization_card = get_scenario_card("reaction-to-crystallization")
     assert crystallization_card["family"] == "reaction_crystallization"
     assert "crystallization" in crystallization_card["allowed_module_tags"]
-    assert {task.world_law_id for task in list_tasks()} == {"chemworld-physical-chemistry"}
+    assert {task.world_law_id for task in list_tasks()} == {WORLD_FAMILY_VERSION}
 
 
 def test_instrument_contracts_expose_observation_layers() -> None:
@@ -2352,7 +2394,7 @@ def test_cli_scenarios_validation_render_and_dataset(tmp_path, capsys) -> None:
     card = dataset_card(exported)
     flattened = export_dataset(trajectory, output=tmp_path / "copy.jsonl", format="jsonl")
     assert card["record_count"] == len(records)
-    assert card["schema_version"] == "chemworld-dataset-card-0.2"
+    assert card["schema_version"] == "chemworld-dataset-card-0.3"
     assert card["trajectory_schema_versions"] == ["chemworld-trajectory-0.1"]
     assert card["protocol_hashes"]["task_contract_hashes"] == [
         records[0]["task_contract_hash"]
@@ -2370,6 +2412,9 @@ def test_cli_scenarios_validation_render_and_dataset(tmp_path, capsys) -> None:
     assert card["replay_verification"]["verified"]
     assert card["replay_verification"]["checked_steps"] == len(records)
     assert card["privacy"]["status"] == "synthetic_or_submission_provided"
+    assert card["provenance"]["generator"] == "ChemWorld"
+    assert card["provenance"]["replay_verified"] is True
+    assert card["provenance"]["protocol_hashes"] == card["protocol_hashes"]
     assert flattened.record_count == len(records)
     flattened_record = flatten_record(records[0])
     assert flattened_record["task_contract_hash"] == records[0]["task_contract_hash"]

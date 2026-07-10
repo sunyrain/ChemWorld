@@ -11,9 +11,15 @@ from typing import Any
 from chemworld import __version__
 from chemworld.data.submission import git_commit
 from chemworld.eval.seed_suite import private_eval_salt_policy
+from chemworld.physchem.solver_backend import (
+    DEFAULT_REACTION_ODE_POLICY,
+    DEFAULT_REACTOR_ODE_POLICY,
+    REFERENCE_REACTION_ODE_POLICY,
+    RUNTIME_REACTION_KERNEL_ODE_POLICY,
+)
 from chemworld.tasks import get_task
 
-PROVENANCE_SCHEMA_VERSION = "chemworld-solver-provenance-0.1"
+PROVENANCE_SCHEMA_VERSION = "chemworld-solver-provenance-0.2"
 
 
 def build_solver_provenance_manifest(
@@ -52,11 +58,34 @@ def build_solver_provenance_manifest(
         },
         "solver_tolerances": {
             "trajectory_verify_default_tolerance": 1.0e-5,
-            "ode_solver": "scipy.integrate.solve_ivp where applicable",
             "acid_base_root_xtol": 1.0e-14,
             "acid_base_root_rtol": 1.0e-12,
             "precipitation_hook_max_passes": 3,
             "equilibrium_residual_public_metric": "normalized charge-balance proxy",
+        },
+        "ode_solver_backend": {
+            "backend_module": "chemworld.physchem.solver_backend",
+            "scipy_entrypoint": "scipy.integrate.solve_ivp",
+            "policies": [
+                DEFAULT_REACTION_ODE_POLICY.to_dict(),
+                DEFAULT_REACTOR_ODE_POLICY.to_dict(),
+                RUNTIME_REACTION_KERNEL_ODE_POLICY.to_dict(),
+                REFERENCE_REACTION_ODE_POLICY.to_dict(),
+            ],
+            "diagnostic_contract": {
+                "records": [
+                    "success",
+                    "message",
+                    "status",
+                    "nfev",
+                    "njev",
+                    "nlu",
+                    "event_count",
+                    "final_time_s",
+                    "policy_hash",
+                ],
+                "failure_policy": "callers raise RuntimeError after recording solver diagnostics",
+            },
         },
         "tasks": [
             {

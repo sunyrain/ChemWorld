@@ -1,95 +1,130 @@
-# 架构
+# 系统架构
 
-ChemWorld 的架构目标是提供一个统一的、可交互的虚拟化学世界。任务只是同一世界律的
-不同切片；agent 面对的是连续的实验决策过程，而不是一组互不相干的 toy task。
+ChemWorld 把任务、物理模型、观测与评测组织为一个版本化虚拟世界。任务只是同一世界律的
+不同切片，因此操作语义、守恒规则和轨迹合同不会因任务而暗中改变。
 
-## 基础层
+## 分层结构
 
-基础层包含：
-
-- ontology：物种、相、操作、仪器、任务和约束的概念定义；
-- physical constitution：质量、电荷、相组成和 ledger 守恒；
-- mechanism schema：反应网络和参数的机器可读描述；
-- task registry：任务卡、maturity、预算、指标和可见接口；
-- action/observation schema：agent 与环境交互的稳定合同。
-
-这些模块共同定义 `world_law_id = chemworld-physical-chemistry`。
-
-## Runtime V2 运行时
-
-Runtime V2 把每个 step 拆成可追踪 transaction：
-
-1. 校验 action schema。
-2. 检查任务阶段和操作前置条件。
-3. 调用 domain services 更新状态。
-4. 写入 typed ledger 和 transaction record。
-5. 生成 observation、instrument readout、reward 和 constraint flags。
-6. 判断 termination/truncation。
-
-这条链路让环境既能服务 RL，也能服务 audit、replay 和课程教学。
-
-## 领域服务
-
-Domain services 处理具体物理化学语义：
-
-- reaction service；
-- phase/partition service；
-- separation service；
-- spectroscopy/instrument service；
-- safety/cost service；
-- scoring service。
-
-服务之间通过 typed state 和 ledger 交互，避免把所有逻辑塞进一个巨大的 `step()`。
-
-## 任务注册表
-
-Task registry 是 benchmark contract 的中心。每个任务应声明：
-
-- `task_id`
-- `world_law_id`
-- maturity；
-- allowed operations；
-- observation channels；
-- budget；
-- metrics；
-- hidden scenario policy。
-
-任务卡应从 registry 生成或至少与 registry 保持一致。
-
-## Gym API
-
-正式入口：
-
-```python
-env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=1)
-obs, info = env.reset(seed=1)
-obs, reward, terminated, truncated, info = env.step(action)
+```text
+Agent / Optimizer / CLI
+          │
+          ▼
+Gymnasium API ── Task + Scenario contracts
+          │
+          ▼
+Transactional Runtime
+  validation → operation kernel → domain service → constitution → commit
+          │
+          ├── observation + instruments
+          ├── reward + final scoring
+          └── trajectory + replay hashes
+          │
+          ▼
+World + Physchem + Foundation
+  mechanisms · reactors · phases · equipment · ledgers · model cards
 ```
 
-Gym API 是 agent 的公共面；内部 runtime 可以复杂，但对外合同必须稳定。
+| 包 | 对外职责 |
+| --- | --- |
+| `chemworld.envs` | Gymnasium 注册、reset/step 编排和稳定 observation space。 |
+| `chemworld.tasks` | 任务目标、预算、操作、仪器、成熟度和冻结合同。 |
+| `chemworld.runtime` | 事务、操作路由、领域服务、回滚和记录。 |
+| `chemworld.world` | 世界律、场景、操作卡、观测和评分合同。 |
+| `chemworld.physchem` | 物性、平衡、反应器、分离、传递、仪器和安全模型。 |
+| `chemworld.foundation` | ontology、typed state、单位、constitution 和协议接口。 |
+| `chemworld.eval` / `data` | 运行、验证、指标、leaderboard、trajectory 和 dataset。 |
 
-## 观测服务
+## 公共交互合同
 
-Observation 不应泄露 hidden state。仪器读数、谱图、final assay 和 phase probe 都应通过
-独立服务生成，并记录 noise、cost、unit 和 visibility boundary。
+```python
+import gymnasium as gym
+import chemworld
 
-## Agent 类型
+env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=1)
+observation, info = env.reset(seed=1)
+observation, reward, terminated, truncated, info = env.step(action)
+```
 
-支持的 agent 类型包括：
+Agent 只依赖任务允许的 action、observation 和 `info`。hidden mechanism parameters、真实物种
+账本以及私有评测条件不会通过公共观测泄漏。未观测值使用 `NaN`/`null` 与显式 mask，而不是
+伪造为零。
 
-- 固定 recipe；
-- 规则 baseline；
-- black-box optimizer；
-- RL agent；
-- tool-using LLM agent；
-- world-model learner。
+## 一次 step 如何执行
 
-## 评测层
+1. action 被 canonicalize，并通过 schema、task 权限、payload 与前置条件校验；
+2. operation kernel 选择任务所需的领域服务；
+3. 服务调用版本化物理模型，生成 world event 与 state patch；
+4. transaction manager 在临时状态上应用 patch；
+5. physical constitution 检查物料、相、容器、设备、热量和过程账；
+6. 检查通过才提交，否则回滚并返回可审计失败原因；
+7. 独立 observation 与 scoring 服务生成可见结果、reward 和 final score；
+8. recorder 写入操作、诊断、合同 hash、状态差异和成熟度。
 
-评测层负责 score、constraint summary、trajectory validation、baseline table 和
-leaderboard artifact。它不应修改环境语义。
+这一事务边界保证失败动作不会留下半更新状态，也让 replay 可以逐步比较。
 
-## 数据层
+## 状态与单一事实源
 
-数据层保存 trajectory、task card、manifest、score 和 report。正式发布时，数据包必须
-能说明生成命令、commit、seeds 和 maturity metadata。
+`WorldState` 使用 typed ledgers：
+
+| Ledger | 记录内容 |
+| --- | --- |
+| Species | 物种 identity、组成、角色和公开标签。 |
+| Phase | 各相组分量、体积、相型、选择与容器归属。 |
+| Vessel | 容量、温度、压力和相引用。 |
+| Equipment | 反应器、柱、结晶器、电化学池和仪器配置/诊断。 |
+| Thermal | 外部热、反应热、热损失和能量闭合。 |
+| Process | 时间、成本、风险、样品消耗和过程指标。 |
+
+主物料状态由 phase/species ledger 管理；metadata 只保存非主状态的诊断与 provenance。
+constitution 会审计聚合视图与单一事实源是否一致。
+
+## 领域服务与物理模块
+
+Runtime 按能力拆分服务，而不是把所有逻辑放进 `env.step()`：
+
+- 反应与热：共享 compiled mechanism 的 batch/CSTR/PFR 推进、热账和风险投影；
+- 相与分离：相 ledger、活度修正萃取、TPD-style 诊断、洗涤和有界降级单元；
+- 结晶：溶解度曲线、显式晶种、粒度群体平衡、固/液相和过滤；
+- 蒸馏：VLE shortcut、馏分、能量和回收率；
+- 连续流：几何解析 PFR、停留时间、压降、Reynolds 数和求解诊断；
+- 电化学：电位/电流、传质、动力学、控制、双电层和能耗；
+- 仪器：采样、成本、可见信号、处理结果与不确定度；
+- 评分：严格根据任务 scoring contract 生成在线 reward 和最终榜单分数。
+
+每个模块通过 model card 声明单位、适用域、失败模式、provenance 和成熟度。详见
+[物理化学模型](physchem_core_design.md)和[模型成熟度](model_maturity.md)。
+
+## World、Scenario、Task、Campaign
+
+```text
+World Law  共享且版本化的物理/交互规则
+Scenario   hidden parameters、初态、机制和随机种子
+Task       目标、预算、允许操作/仪器、指标和可见策略
+Campaign   agent 在 task/split/seeds 上的一次评测
+Experiment campaign 中的一条完整实验流程
+Operation  单步实验动作
+```
+
+`single_experiment` 任务在合法 final assay 后结束 episode；`campaign` 任务可以在预算内完成
+多次 experiment，适合 BO、LHS 或 world-model learner。
+
+## 观测、轨迹与回放
+
+仪器输出分为 `raw_signal`、`processed_estimate` 和 `uncertainty`。trajectory 还记录任务、
+世界律、场景、机制、runtime profile、observation/scoring contract、maturity、操作前置条件、
+constitution checks 和状态差异摘要。
+
+`chemworld verify` 在同一合同下重新执行 trajectory，并拒绝 hash 漂移、非法动作、状态不一致
+或分数篡改。评测层读取环境结果，不修改环境语义。
+
+## 扩展原则
+
+新增能力时应选择正确扩展点：
+
+- 新任务：注册 task/scenario，不复制环境；
+- 新操作：扩展 action schema、operation card、kernel 和服务；
+- 新物理：增加 model card、独立 kernel、适用域与参考测试；
+- 新仪器：增加 instrument contract、可见边界和 raw/processed/uncertainty 输出；
+- 新 backend：保持相同输入输出合同，并公开 backend id 与 maturity。
+
+任何会改变可观察物理或评分的修改都必须提升相应合同/世界律版本并重建冻结轨迹。

@@ -10,12 +10,14 @@ from chemworld.world.operations import FLOW_OPERATIONS
 @dataclass(frozen=True)
 class ContinuousFlowModuleSpec:
     module_id: str = "continuous_flow"
-    version: str = "0.1"
+    version: str = "0.2"
     operations: tuple[str, ...] = FLOW_OPERATIONS
     laws: tuple[str, ...] = (
-        "residence_time_controls_conversion",
-        "flow_temperature_controls_safety",
-        "semi_batch_state_projection",
+        "compiled_network_pfr_residence_time",
+        "geometry_resolved_axial_profile",
+        "darcy_weisbach_pressure_drop",
+        "distributed_thermal_boundary",
+        "material_and_energy_ledgers",
     )
 
     def to_dict(self) -> dict[str, object]:

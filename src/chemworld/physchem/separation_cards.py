@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from chemworld.physchem.crystallization_cards import crystallization_unit_model_cards
+from chemworld.physchem.extraction_cards import extraction_unit_model_cards
 from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
 
 
 def separation_model_cards() -> tuple[ModelCard, ...]:
     return (
+        *crystallization_unit_model_cards(),
+        *extraction_unit_model_cards(),
         ModelCard(
             model_id="lle_tpd_style_phase_stability",
             module_id="separations",
@@ -79,9 +83,7 @@ def separation_model_cards() -> tuple[ModelCard, ...]:
                         "runtime integration."
                     ),
                     status="implemented",
-                    command_or_path=(
-                        "tests/test_phase_equilibrium.py; tests/test_separations.py"
-                    ),
+                    command_or_path=("tests/test_phase_equilibrium.py; tests/test_separations.py"),
                     tolerance="pytest.approx and exact balance checks",
                 ),
             ),

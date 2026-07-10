@@ -15,7 +15,7 @@ from chemworld.data.logging import load_jsonl, to_builtin
 from chemworld.data.submission import git_commit
 from chemworld.data.validation import validate_records
 
-DATASET_CARD_SCHEMA_VERSION = "chemworld-dataset-card-0.2"
+DATASET_CARD_SCHEMA_VERSION = "chemworld-dataset-card-0.3"
 
 
 @dataclass(frozen=True)
@@ -302,6 +302,14 @@ def dataset_card(path: str | Path) -> dict[str, Any]:
     env_versions = sorted({str(record.get("env_version")) for record in records})
     replay_summary = _replay_verification_summary(path)
     privacy = _privacy_summary(records)
+    commit_hash = git_commit()
+    protocol_hashes = _protocol_hashes(records)
+    agent_manifests = sorted(
+        {
+            str(record.get("agent_metadata", {}).get("agent_name", "unknown"))
+            for record in records
+        }
+    )
     return {
         "schema_version": DATASET_CARD_SCHEMA_VERSION,
         "dataset_id": f"chemworld-dataset-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}",
@@ -309,17 +317,23 @@ def dataset_card(path: str | Path) -> dict[str, Any]:
         "world_law_version": world_law_versions,
         "env_version": env_versions,
         "trajectory_schema_versions": _unique_nonempty(records, "schema_version"),
-        "protocol_hashes": _protocol_hashes(records),
+        "protocol_hashes": protocol_hashes,
         "replay_verification": replay_summary,
-        "commit_hash": git_commit(),
+        "commit_hash": commit_hash,
         "seeds": seeds,
         "record_count": len(records),
-        "agent_manifests": sorted(
-            {
-                str(record.get("agent_metadata", {}).get("agent_name", "unknown"))
-                for record in records
-            }
-        ),
+        "agent_manifests": agent_manifests,
+        "provenance": {
+            "generator": "ChemWorld",
+            "commit_hash": commit_hash,
+            "source_trajectory_files": [
+                trajectory_path.name for trajectory_path in _trajectory_paths(path)
+            ],
+            "source_schema_versions": _unique_nonempty(records, "schema_version"),
+            "agent_manifests": agent_manifests,
+            "protocol_hashes": protocol_hashes,
+            "replay_verified": replay_summary["verified"],
+        },
         "license": "MIT for generated benchmark traces unless submission declares otherwise",
         "privacy_anonymization_status": privacy["status"],
         "privacy": privacy,

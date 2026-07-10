@@ -10,6 +10,7 @@ import pytest
 
 import chemworld  # noqa: F401
 from chemworld.tasks import get_task, list_tasks
+from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.wrappers import valid_operations
 
 
@@ -52,7 +53,26 @@ def test_task_info_exposes_consistency_contract_fields() -> None:
             assert set(valid_operations(env)).issubset(set(info["allowed_operations"]))
         finally:
             env.close()
-    assert world_law_ids == {"chemworld-physical-chemistry"}
+    assert world_law_ids == {WORLD_FAMILY_VERSION}
+
+
+def test_environment_audit_exit_policy_blocks_reported_failures() -> None:
+    audit = _audit_module()
+    aggregate = {
+        "hash_coverage_complete": True,
+        "verify_failures": 0,
+        "spectra_failures": 0,
+        "invalid_steps": 0,
+        "constitution_failures": 0,
+        "ledger_single_source_failures": 0,
+        "public_leakage_failures": 0,
+    }
+
+    assert audit.audit_passed(aggregate)
+    for key in audit.AUDIT_FAILURE_KEYS:
+        failed = {**aggregate, key: 1}
+        assert not audit.audit_passed(failed), key
+    assert not audit.audit_passed({**aggregate, "hash_coverage_complete": False})
 
 
 def test_audit_smoke_generates_replay_verified_trajectory(tmp_path: Path) -> None:

@@ -25,6 +25,7 @@ from chemworld.physchem import (
     ideal_gas_molar_volume,
     import_reference_module,
     internal_heat_transfer_coefficient,
+    lockhart_martinelli_pressure_drop,
     pipe_pressure_drop,
     prandtl_number,
     raoult_k_values,
@@ -117,6 +118,45 @@ def test_fluids_dimensionless_number_reference() -> None:
     )
     summary = summarize_reference_comparisons(comparisons)
     assert summary["all_passed"], summary
+
+
+def test_fluids_lockhart_martinelli_reference() -> None:
+    fluids_two_phase = _reference_module("fluids.two_phase")
+    inputs = {
+        "mass_flow_kg_s": 0.6,
+        "vapor_quality": 0.1,
+        "liquid_density_kg_m3": 915.0,
+        "vapor_density_kg_m3": 2.67,
+        "liquid_viscosity_Pa_s": 180.0e-6,
+        "vapor_viscosity_Pa_s": 14.0e-6,
+        "diameter_m": 0.05,
+        "length_m": 1.0,
+    }
+    chemworld = lockhart_martinelli_pressure_drop(**inputs)
+    reference = fluids_two_phase.Lockhart_Martinelli(
+        m=inputs["mass_flow_kg_s"],
+        x=inputs["vapor_quality"],
+        rhol=inputs["liquid_density_kg_m3"],
+        rhog=inputs["vapor_density_kg_m3"],
+        mul=inputs["liquid_viscosity_Pa_s"],
+        mug=inputs["vapor_viscosity_Pa_s"],
+        D=inputs["diameter_m"],
+        L=inputs["length_m"],
+    )
+    comparison = compare_scalar(
+        check_id="fluids-lockhart-martinelli-pressure-drop",
+        backend_id="fluids",
+        quantity="two_phase_frictional_pressure_drop",
+        chemworld_value=chemworld.pressure_drop_Pa,
+        reference_value=reference,
+        unit="Pa",
+        rtol=1e-12,
+        note=(
+            "Horizontal smooth-pipe Lockhart-Martinelli/Chisholm comparison "
+            "using the original transition and friction-factor conventions."
+        ),
+    )
+    assert comparison.passed, comparison.to_dict()
 
 
 def test_fluids_nusselt_definition_reference() -> None:
@@ -473,7 +513,7 @@ def test_cantera_arrhenius_rate_reference() -> None:
     cantera_rate = cantera.ArrheniusRate(
         rate_parameters["A"],
         rate_parameters["b"],
-        rate_parameters["Ea_J_per_mol"],
+        rate_parameters["Ea_J_per_mol"] * 1000.0,
     )(temperature_K)
 
     comparison = compare_scalar(
@@ -484,7 +524,10 @@ def test_cantera_arrhenius_rate_reference() -> None:
         reference_value=cantera_rate,
         unit="1/s for unit concentration first-order case",
         rtol=1e-12,
-        note="Cantera ct.ArrheniusRate formula for a unit-concentration A=>B case.",
+        note=(
+            "Cantera ct.ArrheniusRate formula for a unit-concentration A=>B case; "
+            "ChemWorld J/mol activation energy is converted to Cantera J/kmol."
+        ),
     )
     assert comparison.passed, comparison.to_dict()
 

@@ -1,19 +1,53 @@
-site_name: ChemWorld-Bench 文档
-site_description: 面向闭环虚拟化学实验与 agent world model 研究的 benchmark 文档。
+site_name: ChemWorld-Bench
+site_description: 面向闭环虚拟化学实验、智能体评测与世界模型研究的可复现 benchmark。
 site_url: https://sunyrain.github.io/ChemWorld/
+repo_url: https://github.com/sunyrain/ChemWorld
+repo_name: sunyrain/ChemWorld
+edit_uri: edit/main/docs/
+copyright: ChemWorld-Bench · 虚拟研究环境，不用于指导真实实验
 
 theme:
   name: material
   language: zh
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: 切换到深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到浅色模式
   features:
     - navigation.instant
     - navigation.instant.prefetch
     - navigation.instant.progress
+    - navigation.sections
     - navigation.top
     - navigation.tracking
     - toc.follow
     - search.highlight
+    - search.suggest
     - content.code.copy
+    - content.tabs.link
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
 
 plugins:
   - search:
@@ -32,70 +66,57 @@ extra:
 
 extra_css:
   - assets/stylesheets/language-switch.css
+  - assets/stylesheets/site.css
 
 extra_javascript:
   - assets/javascripts/outline-toggle-v4.js
 
 nav:
   - 首页: index.md
-  - English Home: en/index.md
-  - 项目状态:
-      - 项目总览: chemworld_overview_zh.md
-      - 当前进展: current_progress.md
-      - 架构快照: architecture_report.md
-      - 演示: demos.md
+  - 快速开始:
+      - 安装与首次运行: getting_started.md
+      - 演示与示例: demos.md
       - 教程课程图: tutorial_curriculum_zh.md
-      - API 参考: api_reference.md
-  - Benchmark 合同:
+      - English overview: en/index.md
+  - 使用 Benchmark:
       - 评测协议: benchmark_protocol.md
-      - AAAI 实验计划: aaai_experiment_plan.md
-      - AAAI 结果模板: aaai_results_template.md
       - 任务列表: tasks.md
-      - 任务卡: task_cards.md
+      - 任务卡与冻结合同: task_cards.md
+      - 环境卡: env_cards.md
+      - 任务分类: task_taxonomy.md
       - Official Seed Suite: seed_suite.md
       - Baseline 参考: baseline_reference.md
-      - 提交包: submission.md
-      - 本地评测机: local_eval_machine.md
-      - 发布检查表: release_checklist.md
-      - 预发布限制: pre_release_limitations.md
-  - Agent 接入:
+      - 提交与验证: submission.md
+      - 本地评测服务: local_eval_machine.md
+  - 构建 Agent:
       - Agent 交互接口: agent_interface.md
       - 操作协议: operations.md
-      - Action 协议: action_schema.md
+      - Action Schema: action_schema.md
       - Wrapper 与合法性: wrappers.md
+      - 交互示例: agent_interaction_examples.md
       - LLM Agent Harness: llm_agent_harness.md
-      - Agent 交互示例: agent_interaction_examples.md
-      - 安全与成本: safety_cost.md
-  - 数据与产物:
-      - 数据集层: dataset_layer.md
-      - 论文产物: paper_artifact.md
-      - 榜单蓝图: leaderboard_project_blueprint.md
-      - 伦理与数据: ethics_and_data.md
-  - 环境底座:
-      - 环境卡: env_cards.md
-      - 世界律: world_law.md
-      - 任务分类: task_taxonomy.md
-      - 场景生成: scenario_generation.md
       - Campaign 模型: campaign_model.md
-      - 反应与分离任务: reaction_separation_tasks.md
-      - 架构设计: architecture.md
-      - 技术架构: technical_architecture_zh.md
-      - 物理化学核心设计: physchem_core_design.md
+  - 理解 ChemWorld:
+      - 系统架构: architecture.md
+      - 世界律: world_law.md
       - Mechanism 协议: mechanism_schema.md
+      - 物理化学模型: physchem_core_design.md
+      - 计算后端: backends.md
+      - 反应与分离任务: reaction_separation_tasks.md
+      - 场景生成: scenario_generation.md
       - 仪器合同: instrument_contracts.md
       - 虚拟光谱: spectroscopy.md
-      - Backend 后端: backends.md
       - World Model 学习: world_model_learning.md
-  - 审计与状态:
-      - 环境自洽性审计: environment_self_consistency_audit_zh.md
-      - 物化成熟度审计: physchem_maturity_audit.md
-      - SOTA Agent 环境差距审计: sota_agent_environment_gap_audit.md
-      - 代码审计: code_review_audit.md
-      - 站点审计: site_audit_zh.md
-      - 站点层级规划: site_structure_zh.md
-      - Codex 5.5 Medium 行为报告: codex55_medium_behavior_report.md
-  - 开发与发布:
-      - 路线图: roadmap.md
-      - 项目管理: project_management.md
-      - 本地参考仓库: reference_repos.md
-      - 统一任务板: todo.md
+  - 数据与复现:
+      - 数据集层: dataset_layer.md
+      - 论文与发布产物: paper_artifact.md
+      - 结果完整性: release_integrity.md
+      - 验证与质量保证: validation.md
+      - 发布说明: release_notes.md
+      - 发布检查表: release_checklist.md
+  - 边界与责任:
+      - 安全与成本: safety_cost.md
+      - 模型成熟度: model_maturity.md
+      - 适用范围与限制: pre_release_limitations.md
+      - 伦理与数据: ethics_and_data.md
+  - API 参考: api_reference.md

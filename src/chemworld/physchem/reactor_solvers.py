@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import Any
 
 import numpy as np
-from scipy.integrate import solve_ivp
 
 from chemworld.physchem.reaction_network import ReactionNetworkSpec, ReactionSpec
 from chemworld.physchem.reactor_shared import (
@@ -14,6 +12,11 @@ from chemworld.physchem.reactor_shared import (
     ReactorResult,
     ReactorState,
     SemiBatchFeedSpec,
+)
+from chemworld.physchem.solver_backend import (
+    DEFAULT_REACTOR_ODE_POLICY,
+    ODESolveReport,
+    solve_ode,
 )
 from chemworld.physchem.thermochemistry import (
     NASA7SpeciesThermo,
@@ -93,6 +96,7 @@ def _integrate_result(
             initial_state,
             final_state,
         ),
+        metadata={"solver_diagnostic": result.diagnostic.to_dict()},
     )
 
 
@@ -102,21 +106,15 @@ def _solve(
     *,
     duration_s: float,
     evaluation_times_s: Sequence[float] | None,
-) -> Any:
-    t_eval = None
-    if evaluation_times_s is not None:
-        t_eval = np.array(tuple(evaluation_times_s), dtype=float)
-    result = solve_ivp(
+) -> ODESolveReport:
+    result = solve_ode(
         rhs,
-        (0.0, duration_s),
         y0,
-        t_eval=t_eval,
-        method="LSODA",
-        rtol=1e-8,
-        atol=1e-12,
+        time_span_s=(0.0, duration_s),
+        evaluation_times_s=evaluation_times_s,
+        policy=DEFAULT_REACTOR_ODE_POLICY,
     )
-    if not result.success:
-        raise RuntimeError(f"Reactor integration failed: {result.message}")
+    result.raise_for_failure("Reactor integration")
     return result
 
 
@@ -127,19 +125,15 @@ def _solve_interval(
     start_s: float,
     end_s: float,
     evaluation_times_s: Sequence[float],
-) -> Any:
-    t_eval = np.array(tuple(evaluation_times_s), dtype=float)
-    result = solve_ivp(
+) -> ODESolveReport:
+    result = solve_ode(
         rhs,
-        (start_s, end_s),
         y0,
-        t_eval=t_eval,
-        method="LSODA",
-        rtol=1e-8,
-        atol=1e-12,
+        time_span_s=(start_s, end_s),
+        evaluation_times_s=evaluation_times_s,
+        policy=DEFAULT_REACTOR_ODE_POLICY,
     )
-    if not result.success:
-        raise RuntimeError(f"Reactor integration failed: {result.message}")
+    result.raise_for_failure("Reactor integration")
     return result
 
 
@@ -151,9 +145,7 @@ def _segment_evaluation_times(
     if requested_times_s is None:
         return (start_s, end_s) if end_s > start_s else (start_s,)
     selected = [
-        float(time_s)
-        for time_s in requested_times_s
-        if start_s - 1e-12 <= time_s <= end_s + 1e-12
+        float(time_s) for time_s in requested_times_s if start_s - 1e-12 <= time_s <= end_s + 1e-12
     ]
     selected.extend([start_s, end_s])
     return tuple(sorted(set(selected)))
@@ -164,8 +156,7 @@ def _amount_vector(
     amounts_mol: Mapping[str, float],
 ) -> tuple[float, ...]:
     return tuple(
-        max(float(amounts_mol.get(species_id, 0.0)), 0.0)
-        for species_id in network.species_ids
+        max(float(amounts_mol.get(species_id, 0.0)), 0.0) for species_id in network.species_ids
     )
 
 
@@ -284,10 +275,7 @@ def _material_balance_error(
     _add_element_totals(right, network, final.material_out_mol, sign=1.0)
     elements = set(left) | set(right)
     return max(
-        (
-            abs(left.get(element, 0.0) - right.get(element, 0.0))
-            for element in elements
-        ),
+        (abs(left.get(element, 0.0) - right.get(element, 0.0)) for element in elements),
         default=0.0,
     )
 

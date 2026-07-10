@@ -93,6 +93,22 @@ EQUILIBRIUM_OBSERVATION_KEYS = (
     "equilibrium_residual",
     "equilibrium_confidence",
 )
+CORE_OBSERVATION_KEYS = (
+    "yield",
+    "selectivity",
+    "conversion",
+    "cost",
+    "safety_risk",
+    "score",
+    "byproduct_signal",
+    "degradation_warning",
+    "virtual_spectrum_summary",
+)
+PUBLIC_OBSERVATION_KEYS = (
+    *CORE_OBSERVATION_KEYS,
+    *DOWNSTREAM_OBSERVATION_KEYS,
+    *EQUILIBRIUM_OBSERVATION_KEYS,
+)
 
 
 @dataclass(frozen=True)
@@ -291,6 +307,7 @@ def instrument_name(value: Any) -> str:
 
 
 __all__ = [
+    "CORE_OBSERVATION_KEYS",
     "CRYSTALLIZATION_OPERATIONS",
     "DISTILLATION_OPERATIONS",
     "DOMAIN_OPERATIONS",
@@ -303,6 +320,7 @@ __all__ = [
     "OPERATION_TYPES",
     "PRIMITIVE_OPERATIONS",
     "PROCESS_OPERATIONS",
+    "PUBLIC_OBSERVATION_KEYS",
     "REACTION_OPERATIONS",
     "SEPARATION_OPERATIONS",
     "TERMINAL_OPERATIONS",

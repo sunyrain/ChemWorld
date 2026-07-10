@@ -26,6 +26,7 @@ from chemworld.world.operations import (
     REACTION_OPERATIONS,
     SEPARATION_OPERATIONS,
 )
+from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.scoring import (
     TaskScoringContract,
     score_observation,
@@ -56,14 +57,14 @@ def test_builtin_tasks_are_instantiable() -> None:
     } <= task_ids
     task = get_task("reaction-optimization-standard")
     assert task.env_id == "ChemWorld"
-    assert task.world_law_id == "chemworld-physical-chemistry"
+    assert task.world_law_id == WORLD_FAMILY_VERSION
     assert task.episode_mode == "campaign"
     assert task.termination_policy == "budget"
     assert task.env_kwargs(seed=7)["seed"] == 7
     assert "hplc" in task.allowed_instruments
     card = get_task_card("reaction-optimization-standard")
     assert card["task_id"] == "reaction-optimization-standard"
-    assert card["world_law_id"] == "chemworld-physical-chemistry"
+    assert card["world_law_id"] == WORLD_FAMILY_VERSION
     assert "baseline_reference_scores" in card
     assert "failure_modes" in card
     assay_task = get_task("reaction-to-assay")
@@ -131,7 +132,7 @@ def test_pre_release_task_cards_are_complete_release_contracts() -> None:
         task = get_task(task_id)
         contract = card["benchmark_contract"]
         assert card["release_status"] == "pre-release-core"
-        assert card["task_contract_version"] == "chemworld-task-contract-0.2"
+        assert card["task_contract_version"] == "chemworld-task-contract-0.3"
         assert card["task_contract_hash"] == task.contract_hash
         assert len(card["task_contract_hash"]) == 64
         assert contract["objective"] == task.objective
@@ -151,7 +152,7 @@ def test_pre_release_task_cards_are_complete_release_contracts() -> None:
 def test_all_tasks_share_one_world_law() -> None:
     tasks = list_tasks()
     assert {task.env_id for task in tasks} == {"ChemWorld"}
-    assert {task.world_law_id for task in tasks} == {"chemworld-physical-chemistry"}
+    assert {task.world_law_id for task in tasks} == {WORLD_FAMILY_VERSION}
     assert "reaction-to-purification" in {task.task_id for task in tasks}
     assert "partition-discovery" in {task.task_id for task in tasks}
     assert "purity-yield-tradeoff" in {task.task_id for task in tasks}

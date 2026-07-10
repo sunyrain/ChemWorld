@@ -6,19 +6,13 @@ from typing import Any
 
 from chemworld.data.schema import TRAJECTORY_SCHEMA_VERSION
 from chemworld.schemas.validation import TRAJECTORY_REQUIRED_KEYS
+from chemworld.world.operations import PUBLIC_OBSERVATION_KEYS
 
 REQUIRED_RECORD_KEYS = TRAJECTORY_REQUIRED_KEYS
 
 EVENT_ACTION_KEYS = {"operation"}
 
-REQUIRED_OBSERVATION_KEYS = {
-    "yield",
-    "selectivity",
-    "conversion",
-    "cost",
-    "safety_risk",
-    "score",
-}
+REQUIRED_OBSERVATION_KEYS = set(PUBLIC_OBSERVATION_KEYS)
 
 MATURITY_LEVELS = {
     "proxy",

@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from chemworld.world.parameters import WORLD_FAMILY_VERSION
+
 
 @dataclass(frozen=True)
 class BackendSpec:
@@ -40,10 +42,10 @@ def semi_mechanistic_backend_spec() -> BackendSpec:
             "electrochemistry",
             "instrument_cost",
         ),
-        supported_world_laws=("chemworld-physical-chemistry",),
+        supported_world_laws=(WORLD_FAMILY_VERSION,),
         description=(
-            "Default ChemWorld backend using Arrhenius reaction ODEs, simplified "
-            "energy balance, phase partition heuristics, downstream process "
-            "modules, and instrument-cost ledgers."
+            "Default ChemWorld backend using compiled reaction networks, typed "
+            "material and energy ledgers, maturity-labeled process modules, and "
+            "instrument-cost contracts."
         ),
     )

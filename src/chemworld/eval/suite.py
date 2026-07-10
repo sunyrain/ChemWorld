@@ -7,8 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from chemworld.data.logging import load_jsonl
-from chemworld.data.validation import validate_records
-from chemworld.eval.metrics import evaluate_records
+from chemworld.eval.result_artifacts import build_verified_evaluation_result
 from chemworld.eval.runner import make_agent, run_agent
 
 
@@ -50,14 +49,16 @@ def run_suite(
                 output_path=trajectory_path,
             )
             records = load_jsonl(trajectory_path)
-            validate_records(records)
-            result = evaluate_records(records, threshold=threshold).to_dict()
+            result = build_verified_evaluation_result(
+                records,
+                trajectory_path=trajectory_path,
+                threshold=threshold,
+            )
             result.update(_maturity_payload(records[0]))
-            result["trajectory_path"] = str(trajectory_path)
             result_path = result_dir / (trajectory_path.stem + ".json")
+            result["result_path"] = str(result_path.resolve())
             with result_path.open("w", encoding="utf-8") as handle:
                 json.dump(result, handle, indent=2, sort_keys=True)
-            result["result_path"] = str(result_path)
             results.append(result)
 
     manifest_path = root / "suite_results.json"

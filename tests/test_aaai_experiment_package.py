@@ -10,6 +10,7 @@ from chemworld.eval.baseline_report import AAAI_BASELINE_AGENTS, generate_baseli
 from chemworld.eval.paper_artifact import create_paper_artifact
 from chemworld.eval.runner import make_agent, run_agent
 from chemworld.tasks import AAAI_TASK_IDS, get_task
+from chemworld.world.parameters import WORLD_FAMILY_VERSION
 
 
 def test_aaai_task_set_is_frozen() -> None:
@@ -24,7 +25,7 @@ def test_aaai_task_set_is_frozen() -> None:
     for task_id in AAAI_TASK_IDS:
         task = get_task(task_id)
         assert task.env_id == "ChemWorld"
-        assert task.world_law_id == "chemworld-physical-chemistry"
+        assert task.world_law_id == WORLD_FAMILY_VERSION
         assert task.contract_hash
 
 
@@ -53,13 +54,18 @@ def test_equilibrium_characterization_exposes_public_ph_meter_only() -> None:
             {"operation": "add_reagent", "amount_mol": 0.006},
         ):
             env.step(action)
-        _, reward, terminated, truncated, info = env.step(
+        observation, reward, terminated, truncated, info = env.step(
             {"operation": "measure", "instrument": "ph_meter"}
         )
         assert not terminated
         assert not truncated
         assert reward > 0.0
         assert "pH_normalized" in info["observed_keys"]
+        assert "pH_normalized" in observation
+        assert "pH_normalized" in env.observation_space.spaces
+        assert float(observation["pH_normalized"][0]) == pytest.approx(
+            float(info["processed_estimate"]["pH_normalized"])
+        )
         assert "equilibrium_confidence" in info["processed_estimate"]
         assert info["raw_signal"]["kind"] == "ph_meter_signal"
         assert "pH" in info["raw_signal"]
@@ -121,7 +127,7 @@ def test_aaai_baseline_report_smoke_contains_equilibrium_metrics(tmp_path) -> No
         output_dir=tmp_path / "baseline",
     )
     assert report.result_count == 2
-    assert report.solver_provenance["schema_version"] == "chemworld-solver-provenance-0.1"
+    assert report.solver_provenance["schema_version"] == "chemworld-solver-provenance-0.2"
     assert "codex_subagent_replay" in AAAI_BASELINE_AGENTS
     rows = report.summary_rows
     assert {row["agent_name"] for row in rows} == {
@@ -131,6 +137,7 @@ def test_aaai_baseline_report_smoke_contains_equilibrium_metrics(tmp_path) -> No
     for row in rows:
         assert "mean_equilibrium_confidence" in row
         assert "mean_equilibrium_residual" in row
+        assert float(row["mean_equilibrium_confidence"]) > 0.0
 
 
 def test_aaai_artifact_smoke_includes_solver_provenance(tmp_path) -> None:

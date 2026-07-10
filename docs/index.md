@@ -1,63 +1,97 @@
 # ChemWorld-Bench
 
-<p class="cw-site-version">当前站点版本：中文发布版 · 2026-07-09</p>
+<p class="cw-site-version">发布文档 · World Law v0.2 · 2026-07-10</p>
 
-ChemWorld-Bench 是面向闭环虚拟化学实验的研究级 benchmark。正式的
-Gymnasium 入口是 `ChemWorld`：所有任务都来自同一个物理化学世界律的切片，
-而不是彼此独立的小游戏。
+ChemWorld-Bench 是一个机制驱动、可回放的闭环虚拟化学实验 benchmark。智能体通过统一的
+Gymnasium 环境执行投料、反应、分离、测量和终止操作，在有限预算、部分可观测、带成本与
+安全约束的世界中学习并决策。
 
-## 预发布状态
+<div class="cw-hero-grid" markdown>
 
-| 项目 | 当前状态 |
-| --- | --- |
-| 稳定入口 | `gym.make("ChemWorld", task_id=...)` |
-| 核心任务 | `reaction-to-assay`、`reaction-to-purification`、`partition-discovery` |
-| Agent 接口 | task prompt、available actions、action validation、RL/tool-json/lab-report observation view |
-| 评测链路 | official seeds、baseline report、submission bundle、replay verify、environment audit |
-| 发布边界 | 虚拟半机理环境；不是现实反应预测软件、DFT wrapper、流程模拟器或机器人控制器 |
+<div class="cw-hero-card" markdown>
 
-当前覆盖范围：
+### 运行任务
 
-- 一个共享的 `world_law_id`：`chemworld-physical-chemistry`；
-- 14 个已注册任务切片，覆盖反应优化、安全、机理解释、表征、纯化、分配发现、
-  结晶、蒸馏、连续流、电化学和 tool-agent 规划；
-- 机制驱动的运行时服务、typed ledger、transaction record、带噪仪器观测、
-  虚拟光谱、replay verification 和任务级评测指标；
-- 显式成熟度元数据，避免把 proxy、lite、reference-validated 和
-  professional-candidate 组件混在一起声明。
+安装环境、完成第一次 episode，并理解 observation 与 `info`。
 
-## 快速入口
+[五分钟开始 →](getting_started.md)
 
-| 目标 | 入口 |
-| --- | --- |
-| 先理解 ChemWorld 是什么 | [项目总览](chemworld_overview_zh.md)、[当前进展](current_progress.md)、[架构快照](architecture_report.md) |
-| 直接运行环境和任务 | [任务列表](tasks.md)、[任务卡](task_cards.md)、[环境卡](env_cards.md) |
-| 准备 benchmark 提交 | [评测协议](benchmark_protocol.md)、[Official Seed Suite](seed_suite.md)、[提交包](submission.md)、[本地评测机](local_eval_machine.md) |
-| 给 agent / optimizer 接入 | [Agent 交互接口](agent_interface.md)、[操作协议](operations.md)、[Action Schema](action_schema.md)、[Wrappers](wrappers.md) |
-| 查看官方 baseline 和数据产物 | [Baseline 参考](baseline_reference.md)、[数据集层](dataset_layer.md)、[论文产物](paper_artifact.md) |
-| 理解世界模型底座 | [架构设计](architecture.md)、[世界律](world_law.md)、[物理化学核心设计](physchem_core_design.md) |
-| 检查环境是否自洽 | [环境自一致性审计](environment_self_consistency_audit_zh.md)、[物化成熟度审计](physchem_maturity_audit.md) |
-| 使用课程和示例材料 | [教程课程图](tutorial_curriculum_zh.md)、[演示](demos.md)、[Agent 交互示例](agent_interaction_examples.md) |
-| 准备 release | [发布检查表](release_checklist.md)、[预发布限制](pre_release_limitations.md)、[路线图](roadmap.md) |
+</div>
 
-## 当前闸门
+<div class="cw-hero-card" markdown>
 
-当前文档和实现预期通过：
+### 评测 Agent
 
-```bash
-python -m ruff check .
-python -m mypy src/chemworld
-python -m pytest
-python -m mkdocs build --strict
-python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
-```
+使用冻结任务合同、official seeds、replay verifier 和提交清单。
 
-最近一次本地 self-consistency audit 对已注册任务集报告：零 replay failure、零
-spectra failure、零 invalid smoke step、零 constitution failure。
+[查看评测协议 →](benchmark_protocol.md)
 
-## 边界说明
+</div>
 
-ChemWorld 不是现实反应预测器、DFT wrapper、流程模拟器或机器人控制器。它是一个
-面向 agent、学生和 optimizer 的可控虚拟交互环境。物理模块只应在声明的成熟度边界
-内使用，benchmark 声明必须携带 registry 产出的 task maturity metadata。正式边界见
-[预发布限制声明](pre_release_limitations.md)。
+<div class="cw-hero-card" markdown>
+
+### 接入工具或模型
+
+了解操作协议、Action Schema、wrapper 与 LLM tool adapter。
+
+[阅读 Agent 接口 →](agent_interface.md)
+
+</div>
+
+<div class="cw-hero-card" markdown>
+
+### 理解物理边界
+
+查看世界律、物化模型、成熟度和明确限制。
+
+[查看模型成熟度 →](model_maturity.md)
+
+</div>
+
+</div>
+
+## 你将获得什么
+
+- 一个稳定入口：`gym.make("ChemWorld", task_id=..., seed=...)`；
+- 15 个共享 `chemworld-physical-chemistry-v0.2` 世界律的任务切片；
+- 事务化运行时、typed ledgers、physical constitution checks 与可重放轨迹；
+- 受预算约束的 HPLC、GC、UV-vis、IR、NMR、MS 和 final assay 等虚拟仪器；
+- 任务级成熟度元数据，明确区分 `proxy`、`lite`、`reference_validated` 与
+  `professional_candidate`；
+- 从 baseline、suite、verify、evaluate 到 leaderboard artifact 的完整本地评测链路。
+
+## 最短路径
+
+=== "第一次使用"
+
+    1. 按[安装与首次运行](getting_started.md)创建环境。
+    2. 从[任务列表](tasks.md)选择任务。
+    3. 运行[演示](demos.md)，检查 trajectory 和 final assay。
+
+=== "提交 Benchmark"
+
+    1. 阅读[评测协议](benchmark_protocol.md)和[任务卡](task_cards.md)。
+    2. 使用[Official Seed Suite](seed_suite.md)运行 agent。
+    3. 按[提交与验证](submission.md)生成并验证提交包。
+
+=== "开发 Agent"
+
+    1. 阅读[Agent 交互接口](agent_interface.md)。
+    2. 对照[操作协议](operations.md)和[Action Schema](action_schema.md)。
+    3. 选用[Wrapper](wrappers.md)或[LLM Agent Harness](llm_agent_harness.md)。
+
+## 当前可信边界
+
+ChemWorld 是虚拟研究环境，不是现实反应预测器、商业流程模拟器、DFT/分子动力学 wrapper
+或实验机器人控制器。`reaction-to-purification` 等任务仍包含没有专业等价模块的干燥、浓缩、
+转移降级模型；这些表面继续公开标为 proxy。结晶、连续流和萃取运行时已升级为专业候选模型，
+但 `professional_candidate` 仍不代表工业验证。
+
+在引用结果前，请阅读[适用范围与限制](pre_release_limitations.md)和
+[模型成熟度](model_maturity.md)。
+
+## 发布质量
+
+发布版本通过统一门禁检查 lint、类型、测试、文档、冻结轨迹、参考后端和环境自洽性。验证
+方法与可复现命令见[验证与质量保证](validation.md)，本次模型与合同变更见
+[发布说明](release_notes.md)。

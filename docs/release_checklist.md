@@ -1,6 +1,6 @@
 # 发布检查表
 
-本页定义 ChemWorld-Bench 公开预发布前必须满足的检查项。它不是长期专业物理模型路线图；P3 的专业深化可以继续排队，但不阻塞当前 benchmark 预发布。
+本页定义 ChemWorld-Bench 公开版本必须满足的可复现检查项。
 
 当前发布目标是：外部研究者能够安装包、读取任务合同、运行 `ChemWorld` 环境、提交 agent、复现实验轨迹、理解成熟度边界，并引用当前预发布 artifact。
 
@@ -30,8 +30,11 @@
 2. `python -m mypy src/chemworld`
 3. `python -m pytest`
 4. `python -m mkdocs build --strict`
-5. `python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2`
-6. `python -m chemworld.cli baselines report --tasks reaction-to-assay --agents scripted_chemistry --seeds 0`
+5. `python scripts/smoke_test_wheel.py`
+6. `python scripts/run_reference_validation.py`
+7. `python scripts/audit_runtime_boundary.py`
+8. `python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2`
+9. `python -m chemworld.cli baselines report --tasks reaction-to-assay --agents scripted_chemistry --seeds 0`
 
 输出摘要写入 `runs/release_gate/release_gate_summary.json`。每个 release candidate 必须记录：
 
@@ -41,6 +44,23 @@
 - gate 命令和运行日期；
 - 是否使用 `CHEMWORLD_PRIVATE_EVAL_SALT`；
 - 任何跳过项及原因。
+
+2026-07-10 的发布门禁使用 `runs/release_gate_final/` 保存本地证据；全量测试为
+633 passed、11 skipped、90% coverage，reference gate 为 11/11，环境审计覆盖 15 tasks ×
+3 seeds 且所有 release-blocking counter 为 0。审计脚本会在 replay、谱图、非法步骤、
+constitution、ledger 或 public leakage 出现非零计数时返回失败。
+
+`run_reference_validation.py` 不允许用 skip 冒充通过。运行 release gate 前必须安装
+`.[dev,docs,physchem-ref]`；外部参考门禁覆盖 Cantera、chemicals、fluids 和 thermo。
+
+## 安装包与结果完整性 Gate
+
+- wheel 必须在临时目录中以非 editable 方式安装；
+- 安装后的 `gym.make("ChemWorld", task_id="reaction-to-assay")` 必须能独立加载打包机制资源；
+- `evaluate` 必须 replay trajectory 并写入 SHA-256；
+- leaderboard 必须拒绝未验证结果、digest 不匹配和重算指标不一致；
+- private-eval HMAC 必须覆盖 schema、commit、result count 和 payload 的完整 envelope；
+- 本地学生 subprocess 只允许可信代码，不得被描述为不可信代码沙箱。
 
 ## 环境自洽性 Gate
 
@@ -223,7 +243,8 @@ chemworld artifact create `
 - 当前不连接真实机器人、真实实验仪器、DFT 或分子动力学后端；
 - private-eval 仍是维护者运行的本机隐藏评测流程，尚不是云端防作弊系统；
 - LLM baseline 以 deterministic stub / replay 为主，不代表在线 SOTA LLM 的充分能力；
-- P3 专业物理化学深化仍在路线图中，未完成项不应被宣传为正式 professional backend。
+- P3 既定切片已实现，但其中的 `professional-candidate` 不应被宣传为生产级
+  `professional` backend；其适用域和失败边界仍必须随发布物公开。
 
 ## Citation 和复用说明
 

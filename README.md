@@ -21,6 +21,14 @@ python -m pip install -e ".[dev]"
 If `python` is a Windows app alias, install a real Python 3.11+ interpreter and
 make sure it appears first on `PATH`.
 
+For release and scientific-reference validation, install the complete gate
+dependencies and run the release command:
+
+```bash
+python -m pip install -e ".[dev,docs,physchem-ref]"
+python scripts/run_release_gate.py
+```
+
 ## Quick Start
 
 ```python
@@ -60,7 +68,8 @@ manifest also records the current commit hash.
 
 ## Architecture
 
-- `chemworld.core`: reaction, phase/separation, objectives, action specs.
+- `chemworld.world`: operation, scenario, observation, scoring, and world-law contracts.
+- `chemworld.runtime`: transactional kernels and domain-service orchestration.
 - `chemworld.physchem`: local physical-chemistry kernels for properties,
   EOS, equilibrium, reactors, separations, transport, spectroscopy, and
   thermochemistry.
@@ -98,5 +107,7 @@ jupyter notebook notebooks/physics_sanity_check.ipynb
 jupyter notebook notebooks/tutorials/day_01_enter_virtual_lab.ipynb
 ```
 
-See `docs/current_progress.md` for the current platform status and
-`docs/demos.md` for demo details.
+The published documentation is available at
+<https://sunyrain.github.io/ChemWorld/>. See `docs/getting_started.md` for the
+first-run guide, `docs/demos.md` for examples, and `docs/model_maturity.md` for
+the scientific validity boundaries.

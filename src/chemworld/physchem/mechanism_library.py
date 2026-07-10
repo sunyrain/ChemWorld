@@ -84,7 +84,12 @@ class MechanismScenarioCard:
 
     @property
     def resolved_mechanism_path(self) -> Path:
-        return repository_root() / self.mechanism_path
+        path = Path(self.mechanism_path)
+        if path.is_absolute():
+            return path
+        if path.parts and path.parts[0] == "configs":
+            return configuration_root().joinpath(*path.parts[1:])
+        return repository_root() / path
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -97,9 +102,7 @@ class MechanismScenarioCard:
             "module_tags": list(self.module_tags),
             "initial_amounts_mol": dict(self.initial_amounts_mol),
             "default_conditions": dict(self.default_conditions),
-            "operating_window": {
-                key: dict(value) for key, value in self.operating_window.items()
-            },
+            "operating_window": {key: dict(value) for key, value in self.operating_window.items()},
             "target_species": list(self.target_species),
             "impurity_species": list(self.impurity_species),
             "recommended_tasks": list(self.recommended_tasks),
@@ -153,12 +156,25 @@ def repository_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
+def packaged_configuration_root() -> Path:
+    """Return the wheel-installed configuration resource directory."""
+
+    return Path(__file__).resolve().parents[1] / "resources" / "configs"
+
+
+def configuration_root() -> Path:
+    """Resolve packaged resources first, with a source-checkout fallback."""
+
+    packaged = packaged_configuration_root()
+    return packaged if packaged.is_dir() else repository_root() / "configs"
+
+
 def mechanism_library_root() -> Path:
-    return repository_root() / "configs" / "mechanisms"
+    return configuration_root() / "mechanisms"
 
 
 def mechanism_scenario_library_path() -> Path:
-    return repository_root() / "configs" / "scenarios" / "mechanism_scenarios.yaml"
+    return configuration_root() / "scenarios" / "mechanism_scenarios.yaml"
 
 
 def list_mechanism_paths() -> list[Path]:
@@ -322,12 +338,14 @@ __all__ = [
     "MECHANISM_SCENARIO_SCHEMA_VERSION",
     "MechanismLibraryValidationReport",
     "MechanismScenarioCard",
+    "configuration_root",
     "get_mechanism_card",
     "list_mechanism_cards",
     "list_mechanism_paths",
     "load_library_mechanism",
     "mechanism_library_root",
     "mechanism_scenario_library_path",
+    "packaged_configuration_root",
     "repository_root",
     "validate_mechanism_library",
 ]

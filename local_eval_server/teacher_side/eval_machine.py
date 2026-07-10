@@ -13,6 +13,7 @@ import contextlib
 import csv
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -37,8 +38,7 @@ import gymnasium as gym
 import chemworld  # noqa: F401
 from chemworld.data.logging import TrajectoryLogger, load_jsonl, observation_to_json
 from chemworld.eval.leaderboard import aggregate_leaderboard
-from chemworld.eval.metrics import evaluate_records
-from chemworld.eval.verify import verify_records
+from chemworld.eval.result_artifacts import build_verified_evaluation_result
 from chemworld.tasks import get_task
 
 
@@ -47,6 +47,20 @@ PRIVATE_ENV_KEYS = {
     "CHEMWORLD_PRIVATE_SEEDS",
     "CHEMWORLD_PRIVATE_CONFIG",
 }
+STUDENT_ENV_ALLOWLIST = {
+    "LANG",
+    "LC_ALL",
+    "PATH",
+    "PATHEXT",
+    "SYSTEMROOT",
+    "TEMP",
+    "TMP",
+    "TMPDIR",
+    "WINDIR",
+}
+TEAM_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
+MODULE_PATTERN = re.compile(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\Z")
+ATTRIBUTE_PATTERN = re.compile(r"[A-Za-z_]\w*\Z")
 SANITIZED_TASK_KEYS = {
     "world_id",
     "world_provider",
@@ -91,6 +105,12 @@ def load_config(path: Path) -> dict[str, Any]:
     config.setdefault("tasks", [{"task_id": "reaction-to-assay", "seeds": [0]}])
     config.setdefault("student_timeout_s", 10.0)
     config.setdefault("runtime_python", None)
+    config.setdefault("execution_mode", "trusted-local-subprocess")
+    if config["execution_mode"] != "trusted-local-subprocess":
+        raise ValueError(
+            "This evaluator only implements execution_mode='trusted-local-subprocess'; "
+            "run untrusted submissions in a separately configured container sandbox"
+        )
     return config
 
 
@@ -113,11 +133,49 @@ def init_workspace(workspace: Path, config_path: Path) -> None:
     shutil.copy2(config_path, paths["private"] / "eval_config.json")
     target = paths["incoming"] / DEMO_SUBMISSION.name
     if target.exists():
-        shutil.rmtree(target)
+        _remove_tree_within(target, root=paths["incoming"])
     shutil.copytree(DEMO_SUBMISSION, target)
 
 
+def _contained_path(root: Path, relative: str, *, field: str) -> Path:
+    candidate = Path(relative)
+    if candidate.is_absolute():
+        raise ValueError(f"{field} must be relative to the submission directory")
+    root_resolved = root.resolve()
+    resolved = (root / candidate).resolve()
+    if not resolved.is_relative_to(root_resolved):
+        raise ValueError(f"{field} escapes the submission directory")
+    return resolved
+
+
+def _validated_entrypoint_path(path: Path, entrypoint: object) -> Path:
+    entrypoint_text = str(entrypoint)
+    module_name, separator, attribute = entrypoint_text.partition(":")
+    if (
+        separator != ":"
+        or not MODULE_PATTERN.fullmatch(module_name)
+        or not ATTRIBUTE_PATTERN.fullmatch(attribute)
+    ):
+        raise ValueError(
+            "entrypoint must use the form 'python.module:function_or_object'"
+        )
+    module_relative = str(Path(*module_name.split(".")).with_suffix(".py"))
+    return _contained_path(path, module_relative, field="entrypoint")
+
+
+def _remove_tree_within(path: Path, *, root: Path) -> None:
+    resolved = path.resolve()
+    root_resolved = root.resolve()
+    if resolved == root_resolved or not resolved.is_relative_to(root_resolved):
+        raise ValueError(f"Refusing to remove path outside managed root: {resolved}")
+    if path.is_symlink():
+        raise ValueError(f"Refusing to recursively remove symlink: {path}")
+    shutil.rmtree(path)
+
+
 def validate_submission(path: Path) -> Submission:
+    if path.is_symlink():
+        raise ValueError(f"Submission directory cannot be a symlink: {path}")
     manifest_path = path / "manifest.json"
     if not manifest_path.exists():
         raise ValueError(f"{path} is missing manifest.json")
@@ -136,13 +194,22 @@ def validate_submission(path: Path) -> Submission:
         raise ValueError(f"{manifest_path} missing required keys: {missing}")
     if bool(manifest.get("allowed_network")):
         raise ValueError(f"{manifest_path} requests network access")
-    entry_module = str(manifest["entrypoint"]).split(":", maxsplit=1)[0]
-    if not (path / f"{entry_module}.py").exists():
-        raise ValueError(f"{path} missing entrypoint module {entry_module}.py")
-    dependency_file = path / str(manifest["dependency_file"])
-    if not dependency_file.exists():
+    team_id = str(manifest["team_id"])
+    if not TEAM_ID_PATTERN.fullmatch(team_id):
+        raise ValueError(
+            "team_id must be 1-64 ASCII letters, digits, underscores, or hyphens"
+        )
+    entrypoint_path = _validated_entrypoint_path(path, manifest["entrypoint"])
+    if not entrypoint_path.is_file():
+        raise ValueError(f"{path} missing entrypoint module {entrypoint_path.name}")
+    dependency_file = _contained_path(
+        path,
+        str(manifest["dependency_file"]),
+        field="dependency_file",
+    )
+    if not dependency_file.is_file():
         raise ValueError(f"{path} missing dependency file {dependency_file.name}")
-    return Submission(team_id=str(manifest["team_id"]), path=path, manifest=manifest)
+    return Submission(team_id=team_id, path=path.resolve(), manifest=manifest)
 
 
 def accept_submissions(workspace: Path) -> list[Submission]:
@@ -156,13 +223,13 @@ def accept_submissions(workspace: Path) -> list[Submission]:
         except ValueError as exc:
             rejected = paths["rejected"] / incoming.name
             if rejected.exists():
-                shutil.rmtree(rejected)
+                _remove_tree_within(rejected, root=paths["rejected"])
             shutil.move(str(incoming), rejected)
             (rejected / "rejection_reason.txt").write_text(str(exc), encoding="utf-8")
             continue
         destination = paths["accepted"] / submission.team_id
         if destination.exists():
-            shutil.rmtree(destination)
+            _remove_tree_within(destination, root=paths["accepted"])
         shutil.move(str(incoming), destination)
         accepted.append(validate_submission(destination))
     accepted.extend(
@@ -176,6 +243,27 @@ def accept_submissions(workspace: Path) -> list[Submission]:
 
 def _sanitize_mapping(payload: dict[str, Any], blocked: set[str]) -> dict[str, Any]:
     return {key: value for key, value in payload.items() if key not in blocked}
+
+
+def student_process_environment(submission: Submission) -> dict[str, str]:
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if key in STUDENT_ENV_ALLOWLIST and key not in PRIVATE_ENV_KEYS
+    }
+    env.update(
+        {
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONIOENCODING": "utf-8",
+            "PYTHONNOUSERSITE": "1",
+            "PYTHONUNBUFFERED": "1",
+            "PYTHONUTF8": "1",
+            "PYTHONPATH": os.pathsep.join(
+                [str(submission.path), str(STUDENT_RUNTIME.parent)]
+            ),
+        }
+    )
+    return env
 
 
 class StudentProcess:
@@ -196,16 +284,7 @@ class StudentProcess:
         self._process: subprocess.Popen[str] | None = None
 
     def __enter__(self) -> StudentProcess:
-        env = os.environ.copy()
-        for key in PRIVATE_ENV_KEYS:
-            env.pop(key, None)
-        env["PYTHONPATH"] = os.pathsep.join(
-            [
-                str(self.submission.path),
-                str(STUDENT_RUNTIME.parent),
-                env.get("PYTHONPATH", ""),
-            ]
-        )
+        env = student_process_environment(self.submission)
         self.stderr_path.parent.mkdir(parents=True, exist_ok=True)
         self._stderr_handle = self.stderr_path.open("w", encoding="utf-8")
         self._process = subprocess.Popen(
@@ -317,6 +396,7 @@ def run_trajectory(
         "agent_family": submission.agent_family,
         "team_id": submission.team_id,
         "execution_model": "teacher_env_student_jsonl_subprocess",
+        "security_boundary": "trusted-local-subprocess-not-a-sandbox",
     }
 
     with (
@@ -390,8 +470,11 @@ def run_trajectory(
             env.close()
 
     records = load_jsonl(trajectory_path)
-    result = evaluate_records(records).to_dict()
-    verification = verify_records(records).to_dict()
+    result = build_verified_evaluation_result(
+        records,
+        trajectory_path=trajectory_path,
+    )
+    verification = dict(result["verification"])
     verification["official_verifier"] = True
     result.update(
         {

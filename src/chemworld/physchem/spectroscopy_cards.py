@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+from chemworld.physchem.chromatography_method_cards import (
+    chromatography_method_model_cards,
+)
+from chemworld.physchem.mass_spectrometry_cards import mass_spectrometry_model_cards
 from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
+from chemworld.physchem.nmr_cards import proton_nmr_model_cards
 
 
 def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
     return (
+        *chromatography_method_model_cards(),
+        *mass_spectrometry_model_cards(),
+        *proton_nmr_model_cards(),
         ModelCard(
             model_id="beer_lambert_uvvis",
             module_id="spectroscopy_instruments",
@@ -268,8 +276,6 @@ def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
             ),
         ),
     )
-
-
 
 
 __all__ = [

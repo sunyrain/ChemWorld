@@ -11,13 +11,13 @@ from typing import Any
 
 import numpy as np
 import yaml
-from scipy.integrate import solve_ivp
 
 from chemworld.physchem import reaction_network_specs as network_specs
 from chemworld.physchem import reaction_rate_laws as rate_laws
 from chemworld.physchem import reaction_reference_cases as reference_cases
 from chemworld.physchem import reaction_sensitivity as sensitivity
 from chemworld.physchem.elements import element_matrix
+from chemworld.physchem.solver_backend import DEFAULT_REACTION_ODE_POLICY, solve_ode
 
 Arrow = network_specs.Arrow
 RateLawSpec = network_specs.RateLawSpec
@@ -43,18 +43,12 @@ AnalyticalODECase = reference_cases.AnalyticalODECase
 ReactionODEReferenceCase = reference_cases.ReactionODEReferenceCase
 ReactionODEReferenceResult = reference_cases.ReactionODEReferenceResult
 cantera_comparable_reaction_cases = reference_cases.cantera_comparable_reaction_cases
-integrate_reaction_ode_reference_case = (
-    reference_cases.integrate_reaction_ode_reference_case
-)
+integrate_reaction_ode_reference_case = reference_cases.integrate_reaction_ode_reference_case
 evaluate_reaction_ode_reference_case = reference_cases.evaluate_reaction_ode_reference_case
 ReactionSensitivityEntry = sensitivity.ReactionSensitivityEntry
 ReactionSensitivityReport = sensitivity.ReactionSensitivityReport
-finite_difference_reaction_sensitivities = (
-    sensitivity.finite_difference_reaction_sensitivities
-)
-kinetic_sensitivity_parameter_candidates = (
-    sensitivity.kinetic_sensitivity_parameter_candidates
-)
+finite_difference_reaction_sensitivities = sensitivity.finite_difference_reaction_sensitivities
+kinetic_sensitivity_parameter_candidates = sensitivity.kinetic_sensitivity_parameter_candidates
 
 
 @dataclass(frozen=True)
@@ -207,17 +201,15 @@ class ReactionNetworkSpec:
             t_eval = None
         else:
             t_eval = np.array(tuple(evaluation_times_s), dtype=float)
-        result = solve_ivp(
+        report = solve_ode(
             rhs,
-            (0.0, duration_s),
             y0,
-            t_eval=t_eval,
-            method="LSODA",
-            rtol=1e-8,
-            atol=1e-12,
+            time_span_s=(0.0, duration_s),
+            evaluation_times_s=t_eval,
+            policy=DEFAULT_REACTION_ODE_POLICY,
         )
-        if not result.success:
-            raise RuntimeError(f"Reaction-network integration failed: {result.message}")
+        report.raise_for_failure("Reaction-network integration")
+        result = report.raw_result
         final = {
             species_id: max(float(result.y[idx, -1]), 0.0)
             for idx, species_id in enumerate(self.species_ids)
@@ -231,6 +223,7 @@ class ReactionNetworkSpec:
                 for idx in range(len(self.species_ids))
             ),
             final_amounts_mol=final,
+            solver_diagnostic=report.diagnostic.to_dict(),
         )
 
     @classmethod
@@ -268,9 +261,7 @@ class ReactionNetworkSpec:
         for species_id in self.species_ids:
             amount = float(amounts_mol.get(species_id, 0.0))
             if amount < -1e-15:
-                raise ValueError(
-                    f"Species amount cannot be negative: {species_id}={amount}"
-                )
+                raise ValueError(f"Species amount cannot be negative: {species_id}={amount}")
             concentrations[species_id] = max(amount, 0.0) / volume_L
         return concentrations
 
@@ -282,6 +273,7 @@ class BatchIntegrationResult:
     times_s: tuple[float, ...]
     amounts_mol: tuple[tuple[float, ...], ...]
     final_amounts_mol: dict[str, float]
+    solver_diagnostic: dict[str, object] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -290,6 +282,7 @@ class BatchIntegrationResult:
             "times_s": list(self.times_s),
             "amounts_mol": [list(row) for row in self.amounts_mol],
             "final_amounts_mol": dict(self.final_amounts_mol),
+            "solver_diagnostic": dict(self.solver_diagnostic),
         }
 
 
@@ -314,12 +307,8 @@ class ThermochemicalDetailedBalanceResult:
             "temperature_K": self.temperature_K,
             "forward_rate_constant": self.forward_rate_constant,
             "reverse_rate_constant": self.reverse_rate_constant,
-            "concentration_equilibrium_constant": (
-                self.concentration_equilibrium_constant
-            ),
-            "dimensionless_equilibrium_constant": (
-                self.dimensionless_equilibrium_constant
-            ),
+            "concentration_equilibrium_constant": (self.concentration_equilibrium_constant),
+            "dimensionless_equilibrium_constant": (self.dimensionless_equilibrium_constant),
             "delta_g_J_mol": self.delta_g_J_mol,
             "reaction_order_delta": self.reaction_order_delta,
             "standard_concentration_mol_L": self.standard_concentration_mol_L,
@@ -394,9 +383,7 @@ def thermochemical_concentration_equilibrium_constant(
         thermo_result.equilibrium_constant
         * standard_concentration_mol_L ** _reaction_order_delta(reaction)
     )
-    if concentration_equilibrium_constant <= 0 or not isfinite(
-        concentration_equilibrium_constant
-    ):
+    if concentration_equilibrium_constant <= 0 or not isfinite(concentration_equilibrium_constant):
         raise ValueError("thermochemical concentration equilibrium constant is invalid")
     return (
         concentration_equilibrium_constant,

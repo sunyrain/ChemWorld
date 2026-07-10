@@ -36,6 +36,12 @@ def test_baseline_report_private_signature_and_paper_artifact(tmp_path: Path) ->
         tmp_path / "private_eval" / "signed.json",
         salt="teacher-secret",
     )
+    signed_path = tmp_path / "private_eval" / "signed.json"
+    signed_payload = json.loads(signed_path.read_text(encoding="utf-8"))
+    assert signed_payload["schema_version"] == "chemworld-private-eval-signed-0.2"
+    signed_payload["commit_hash"] = "tampered-commit"
+    signed_path.write_text(json.dumps(signed_payload), encoding="utf-8")
+    assert not verify_private_eval_artifact(signed_path, salt="teacher-secret")
 
     artifact = create_paper_artifact(
         output_dir=tmp_path / "paper_artifact",

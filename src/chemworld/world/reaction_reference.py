@@ -12,9 +12,9 @@ from collections.abc import Mapping
 from typing import Any
 
 import numpy as np
-from scipy.integrate import solve_ivp
 
 from chemworld.foundation import Reaction, WorldState, equipment_settings
+from chemworld.physchem.solver_backend import REFERENCE_REACTION_ODE_POLICY, solve_ode
 from chemworld.world.reaction_kernel import R_GAS, ReactionIntegrationResult
 
 REFERENCE_REACTION_SPECIES = ("A", "P", "B", "D", "E", "Cat_active", "Cat_dead")
@@ -64,7 +64,7 @@ def integrate_seven_slot_reference_ode(
         ]
         + [state.temperature_K, 0.0, 0.0, 0.0],
     )
-    result = solve_ivp(
+    report = solve_ode(
         lambda _t, y: seven_slot_reference_ode_rhs(
             y=y,
             state=state,
@@ -73,12 +73,12 @@ def integrate_seven_slot_reference_ode(
             heat=heat,
             stirring_speed_rpm=stirring_speed,
         ),
-        (0.0, duration),
         y0,
-        method="RK45",
-        rtol=1.0e-6,
-        atol=1.0e-10,
+        time_span_s=(0.0, duration),
+        policy=REFERENCE_REACTION_ODE_POLICY,
     )
+    report.raise_for_failure("Seven-slot reference integration")
+    result = report.raw_result
     y = np.maximum(result.y[:, -1], 0.0)
     species_amounts = state.species_amounts.copy()
     for index, canonical_species in enumerate(REFERENCE_REACTION_SPECIES):
@@ -93,6 +93,7 @@ def integrate_seven_slot_reference_ode(
         heat_reaction_J=float(y[9]),
         heat_loss_J=float(y[10]),
         stirring_speed_rpm=stirring_speed,
+        solver_diagnostic=report.diagnostic.to_dict(),
     )
 
 

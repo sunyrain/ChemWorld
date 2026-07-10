@@ -10,6 +10,7 @@ from typing import Any
 from chemworld.runtime.domain_service_registry import DomainServiceRegistry
 from chemworld.tasks import TaskSpec
 from chemworld.world.operations import OPERATION_TYPES, operation_contracts
+from chemworld.world.parameters import WORLD_FAMILY_VERSION
 
 
 @dataclass(frozen=True)
@@ -37,11 +38,7 @@ class TaskRuntimeProfile:
             contracts[operation].module for operation in allowed if operation in contracts
         )
         return cls(
-            world_law_id=(
-                "chemworld-physical-chemistry"
-                if task is None
-                else task.world_law_id
-            ),
+            world_law_id=(WORLD_FAMILY_VERSION if task is None else task.world_law_id),
             allowed_operations=allowed,
             required_kernels=allowed,
             optional_kernels=frozenset(OPERATION_TYPES) - allowed,

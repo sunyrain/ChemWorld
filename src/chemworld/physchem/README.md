@@ -9,7 +9,18 @@ Current scope:
 - element metadata for benchmark-relevant elements;
 - formula parsing with element conservation support;
 - molecular-weight and elemental-fraction utilities;
-- JSON-friendly `ComponentSpec` with optional checksum-validated CAS identity;
+- JSON-friendly `ComponentSpec` with checksum-validated CAS, optional
+  InChI/InChIKey, formula/charge/molecular-weight validation, provenance, and
+  uncertainty metadata;
+- versioned immutable `ComponentIdentityRegistry` with identifier/alias/CAS/
+  InChI/InChIKey collision checks, canonical SHA-256, curated identities, and
+  exact JSON readback;
+- canonical semantic dimension catalog and exponent algebra covering process,
+  thermodynamic, transport, electrochemical, spectroscopy/NMR/MS detector,
+  cost, and risk quantities, plus strict field-unit contracts;
+- deterministic source-ranked data conflict audits with scalar tolerance,
+  required uncertainty, warning/hard-fail findings, source provenance,
+  tamper-evident dataset cards, and trajectory dataset provenance;
 - self-contained `MixtureSpec`;
 - explicit-unit `PropertyCorrelation` records.
 - local property evaluators for vapor pressure, heat capacity, enthalpy,
@@ -52,8 +63,23 @@ Current scope:
 - an HPLC/GC chromatography retention slice with dead time, retention factor,
   theoretical plates, baseline peak width, adjacent resolution, calibration
   uncertainty, and model-card evidence.
+- an empirical chromatography method layer with HPLC organic-fraction and
+  temperature sensitivity, GC van't Hoff retention, n-alkane retention-index
+  interpolation, detector response calibration with LOD/LOQ, and asymmetric
+  peak fronting/tailing flags.
+- a first-order proton NMR evidence layer with provenance-tagged shift anchors,
+  s/d/t/q/quint/dd/m multiplicity and J metadata, Pascal stick intensities,
+  amount-weighted integration, solvent/reference correction, and overlap,
+  second-order, exchangeable, and unresolved-multiplet warnings.
+- a small-formula mass-spectrometry layer with natural-abundance H/C/N/O/F/
+  Si/P/S/Cl/Br isotope convolution, nominal and probability-weighted exact-mass
+  envelopes, curated fragment/neutral-loss metadata, and detector response RSD.
 - mechanism-backed reactor kernels for batch, semi-batch, CSTR, and PFR
   calculations with material and energy ledgers.
+- dynamic CSTR startup/shutdown flow programs with residence-time metadata,
+  analytical wash-in/wash-out limits, and multiple-steady-state stability evidence.
+- tubular PFR axial profiles with geometry consistency, Darcy-Weisbach pressure
+  loss, distributed thermal boundaries, and analytical hydraulic/thermal checks.
 - dynamic batch reactor heat-release/sampling slice with NASA7 reaction
   enthalpy coupling, step/linear jacket temperature programs, destructive
   sampling events, and material/energy ledger evidence.
@@ -69,6 +95,10 @@ Current scope:
   reports backed by pure saturation reports, gamma-phi K-value reports, binary
   relative-volatility crossing diagnostics, Rachford-Rice diagnostics, and
   liquid-liquid extraction splits.
+- a professional-candidate fixed-TP gamma-phi flash unit with iterated liquid
+  composition, per-component vapor/liquid material ledgers, caller-supplied
+  phase enthalpies, heat duty, convergence status, and explicit fugacity and
+  Poynting-factor hooks.
 - reaction-equilibrium and electrolyte utilities for mass-action reaction
   extents, van't Hoff equilibrium constants, fixed-TP ideal Gibbs minimization,
   weak-acid pH, water ion product, precipitation, charge balance, ionic
@@ -76,14 +106,51 @@ Current scope:
 - electrochemical thermodynamics and charge accounting for Nernst equilibrium
   potentials, Butler-Volmer currents, Faraday charge-to-extent conversion,
   Faradaic efficiency, and electrical-work ledgers.
+- a professional-candidate planar diffusion-layer current model with
+  `i_lim=nFADC/delta`, surface depletion, finite-reservoir linear/exponential
+  bulk depletion, kinetic/transport current caps, transition time, and
+  useful-versus-side charge/current-efficiency ledgers.
+- a deterministic potentiostatic/galvanostatic setpoint controller with
+  versioned ramp/hold recipes, range/slew clipping, sampled traces, segment
+  operation logs, canonical recipe/execution SHA-256, and exact replay checks.
+- a Randles double-layer RC transient with potential/current step modes,
+  terminal/interfacial potential, capacitive/Faradaic/total current traces,
+  exact integrated charge ledgers, and startup/short-trace warnings.
+- versioned electrochemical scenario cards with public redox/geometry/window/
+  side-reaction metadata, private hidden-parameter ranges, salted split-aware
+  generation, public digests, and direct reaction/ohmic/diffusion/RC bundles.
 - downstream separation unit operations for multistage extraction,
   evaporation, VLE-coupled shortcut distillation, crystallization, filtration,
   drying, and purity/recovery/cost/risk scoring.
+- a professional-candidate extraction-train model with intrinsic partition
+  provenance, aqueous/organic activity corrections, fresh-solvent stages,
+  aqueous wash sequences, mass-conserving entrainment, and stage-level
+  recovery, purity, rejection, convergence, and balance reports.
+- a professional-candidate cooling-crystallization model with a van't Hoff
+  solubility curve, supersaturation history, power-law primary nucleation and
+  growth, explicit seed mass, impurity occlusion, capped material transfer,
+  and number-based D10/D50/D90/CV/fines CSD metadata.
 - fluid-mechanics and heat-transfer kernels for Reynolds/Prandtl/Peclet/Nusselt
   numbers, explicit Nusselt branch metadata, Darcy friction factors, pipe
   pressure drop, pump work, mixing power, jacket heat transfer, counterflow heat
   exchangers with hot/cold duty-balance checks, packed-bed pressure drop, and
   homogeneous two-phase pressure-drop proxies.
+- a reference-validated horizontal Lockhart-Martinelli/Chisholm separated-flow
+  pressure-drop model exposing phase Reynolds numbers, original friction
+  factors, single-phase anchors, Martinelli parameter, multiplier, Chisholm
+  regime constant, and endpoint/microchannel validity warnings.
+- a professional-candidate equipment heat-transfer ledger for jacket, coil,
+  and shell surfaces with declared geometry corrections, time-evolving fouling,
+  lumped sensible dynamics, boiling/condensation plateaus, phase-crossing
+  warnings, and signed sensible/latent energy closure.
+- a professional-candidate pressure/temperature safety envelope with relief
+  set and MAWP thresholds, Arrhenius/Semenov runaway slope indicators, MTSR,
+  projected time-to-limit, relief-load capacity, explicit risk/cost components,
+  and Gym-ready constraint flags.
+- versioned JSON equipment cards for vessels, pumps, mixers, condensers, heat
+  exchangers, and columns with provenance-tagged ratings, shared unit-bearing
+  min/max constraints, normalized margins, utilization, warning/hard severity,
+  and deterministic feasibility reports.
 - optional reference-backend validation helpers for locally comparing selected
   ChemWorld formulas against `chemicals`, `fluids`, and later heavier
   scientific backends without making them runtime dependencies.
@@ -110,7 +177,8 @@ Design rules:
   selection, fugacity outputs, residual properties, and departure metadata
   inspectable;
 - keep phase-equilibrium models explicit about activity assumptions,
-  vapor-pressure inputs, partition coefficients, and mass-balance errors;
+  vapor-pressure inputs, partition coefficients, mass-balance errors, flash
+  convergence, caller-supplied enthalpy data, and heat-duty sign conventions;
 - keep reaction-equilibrium and electrolyte models explicit about fixed
   constraints, supplied Gibbs energies, activity proxies, charge balance, phase
   restrictions, saturation state, and nonnegative extents or species amounts;
@@ -121,9 +189,18 @@ Design rules:
   own validated slice;
 - keep unit-operation results as named outlet streams plus cost, risk,
   heat-duty, solvent-loss, and material-balance ledgers;
+- keep extraction models explicit about intrinsic versus composition-corrected
+  distribution coefficients, fresh-phase staging, wash order, entrained phase
+  volume, stage efficiency, and target loss during cleanup;
+- keep crystallization models explicit about solubility provenance, thermal
+  path, seed mass, kinetic parameters, supersaturation, impurity occlusion,
+  crystal population basis, and whether the runtime task has adopted the model;
 - keep transport/equipment calculations explicit about SI units, flow regime,
   pressure-drop components, heat-duty sign conventions, Nusselt-correlation
   validity limits, exchanger duty residuals, and equipment metadata;
+- keep phase-aware heat transfer explicit about surface correction provenance,
+  elapsed fouling time, saturation boundary, available phase inventory, and
+  sensible-versus-latent duty signs;
 - declare property units and validity ranges on every correlation;
 - reject unbalanced reaction networks before simulation;
 - add optional reference-backend comparisons only as skipped tests or adapters;

@@ -54,6 +54,7 @@ notebooks = [
   "matplotlib>=3.8,<3.11",
 ]
 physchem-ref = [
+  "cantera>=3.0,<4.0",
   "chemicals>=1.3",
   "fluids>=1.1",
   "thermo>=0.4",
@@ -63,12 +64,15 @@ physchem-ref = [
 chemworld = "chemworld.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/chemworld-bench/chemworld-bench"
-Documentation = "https://github.com/chemworld-bench/chemworld-bench/tree/main/docs"
-Issues = "https://github.com/chemworld-bench/chemworld-bench/issues"
+Homepage = "https://github.com/sunyrain/ChemWorld"
+Documentation = "https://sunyrain.github.io/ChemWorld/"
+Issues = "https://github.com/sunyrain/ChemWorld/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/chemworld"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"configs" = "chemworld/resources/configs"
 
 [tool.ruff]
 line-length = 100

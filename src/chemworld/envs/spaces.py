@@ -6,20 +6,9 @@ import numpy as np
 from gymnasium import spaces
 
 from chemworld.world.actions import CATALYSTS, SOLVENTS
-from chemworld.world.operations import DOWNSTREAM_OBSERVATION_KEYS, INSTRUMENTS, OPERATION_TYPES
+from chemworld.world.operations import INSTRUMENTS, OPERATION_TYPES, PUBLIC_OBSERVATION_KEYS
 
-OBSERVATION_KEYS = (
-    "yield",
-    "selectivity",
-    "conversion",
-    "cost",
-    "safety_risk",
-    "score",
-    "byproduct_signal",
-    "degradation_warning",
-    "virtual_spectrum_summary",
-    *DOWNSTREAM_OBSERVATION_KEYS,
-)
+OBSERVATION_KEYS = PUBLIC_OBSERVATION_KEYS
 
 
 class NullableScalarBox(spaces.Box):

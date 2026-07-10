@@ -45,6 +45,9 @@ def test_cli_evaluate_and_leaderboard(tmp_path) -> None:
     assert result.exists()
     result_payload = json.loads(result.read_text(encoding="utf-8"))
     assert 0.0 <= result_payload["total_score"] <= 1.0
+    assert result_payload["verified"] is True
+    assert result_payload["verification"]["verified"] is True
+    assert len(result_payload["trajectory_sha256"]) == 64
     assert leaderboard.exists()
     assert "sem_total_score" in leaderboard.read_text(encoding="utf-8")
 

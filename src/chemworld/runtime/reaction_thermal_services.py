@@ -81,9 +81,16 @@ class ChemWorldReactionThermalServices:
         )
 
     def with_risk_and_pressure(self, state: WorldState) -> WorldState:
+        flow_settings = equipment_settings(state.equipment, "flow_reactor")
+        pressure_override = flow_settings.get("outlet_pressure_Pa")
         pressure, risk = pressure_and_risk(
             state=state,
             solvent_risks=self.world.solvent_risks,
+            pressure_override_Pa=(
+                float(pressure_override)
+                if isinstance(pressure_override, int | float)
+                else None
+            ),
         )
         return state.replace(pressure_Pa=pressure, ledger=state.ledger.with_updates(risk=risk))
 
