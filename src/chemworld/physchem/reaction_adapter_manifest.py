@@ -23,6 +23,7 @@ OWNED_PATHS = (
     "src/chemworld/physchem/reaction_rate_contracts.py",
     "src/chemworld/physchem/reaction_adapter_manifest.py",
     "tests/test_reaction_rate_contracts.py",
+    "workstreams/world_foundation/adapters/wf-10-rate-law-unit-contracts.json",
 )
 INTEGRATION_OPERATIONS = ("heat", "wait", "run_flow")
 
@@ -129,7 +130,7 @@ def reaction_rate_adapter_manifest() -> ModelAdapterManifest:
     return ModelAdapterManifest(
         adapter_id="wf-10-arrhenius-unit-contract",
         adapter_version="0.1",
-        owner_workstream="wf-10-reaction-core",
+        owner_workstream="wf-10-rate-law-unit-contracts",
         provider_contract=reaction_rate_provider_contract(),
         owned_paths=OWNED_PATHS,
         integration_operations=INTEGRATION_OPERATIONS,
