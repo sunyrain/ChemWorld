@@ -56,11 +56,12 @@ def _staging_record(
 ) -> dict[str, Any]:
     integration_class = classify_adapter(manifest)
     claim_status = str(intake_record.get("claim_status") or "missing")
-    blockers: list[dict[str, str]] = []
+    readiness_blockers: list[dict[str, str]] = []
+    planning_errors: list[dict[str, str]] = []
     warnings: list[dict[str, str]] = []
 
     if claim_status != "completed":
-        blockers.append(
+        readiness_blockers.append(
             {
                 "check_id": "delivery_claim_incomplete",
                 "message": (
@@ -73,7 +74,7 @@ def _staging_record(
         integration_class is AdapterIntegrationClass.DIAGNOSTIC_ADDITION
         and manifest.replaces_model_ids
     ):
-        blockers.append(
+        planning_errors.append(
             {
                 "check_id": "diagnostic_replacement_forbidden",
                 "message": (
@@ -98,6 +99,7 @@ def _staging_record(
     else:
         maturity_effect = "candidate_requires_world_law_and_route_review"
 
+    blockers = [*readiness_blockers, *planning_errors]
     integration_ready = not blockers
     return {
         "adapter_id": manifest.adapter_id,
@@ -119,6 +121,8 @@ def _staging_record(
         "runtime_maturity_effect": maturity_effect,
         "runtime_maturity_upgrade_allowed": False,
         "can_remove_replaced_models": False,
+        "readiness_blockers": readiness_blockers,
+        "planning_errors": planning_errors,
         "blockers": blockers,
         "warnings": warnings,
     }
@@ -201,7 +205,9 @@ def build_vnext_integration_plan(
         == AdapterIntegrationClass.RUNTIME_REPLACEMENT.value
         for record in staging_records
     )
-    planning_error_count = sum(len(record["blockers"]) for record in staging_records)
+    planning_error_count = sum(
+        len(record["planning_errors"]) for record in staging_records
+    )
     plan_integrity_passed = bool(intake["passed"] and planning_error_count == 0)
     return {
         "schema_version": VNEXT_STAGING_SCHEMA_VERSION,

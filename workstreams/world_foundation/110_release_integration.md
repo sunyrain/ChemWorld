@@ -48,8 +48,10 @@
 - `runtime_replacement`：使用新 model id 明确替代旧 model，仍需完成 runtime/reference evidence 后
   才能删除旧实现或修改成熟度。
 
-只有 claim 已完成、intake 通过且不存在分类冲突的 proposal 才标记为 `integration_ready`。staging
-自身永远不修改 v0.3、不删除旧模型，也不允许直接提升 task maturity。
+只有 claim 已完成、intake 通过且不存在分类冲突的 proposal 才标记为 `integration_ready`。active
+claim 对应的 proposal 会保持 `readiness_blockers`，但不会令默认结构门禁失败；这样模块团队可以先
+运行完整 release gate，再按纪律关闭 claim。`--require-integration-ready` 仍会拒绝尚未完成的交付。
+staging 自身永远不修改 v0.3、不删除旧模型，也不允许直接提升 task maturity。
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\build_vnext_integration_plan.py `
