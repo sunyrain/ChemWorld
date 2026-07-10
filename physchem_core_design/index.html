@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="面向闭环虚拟化学实验与 agent world model 研究的 benchmark 文档。">
+        <meta name="description" content="面向闭环虚拟化学实验、智能体评测与世界模型研究的可复现 benchmark。">
       
       
       
         <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/physchem_core_design/">
       
       
-        <link rel="prev" href="../technical_architecture_zh/">
+        <link rel="prev" href="../mechanism_schema/">
       
       
-        <link rel="next" href="../mechanism_schema/">
+        <link rel="next" href="../backends/">
       
       
         
@@ -31,11 +31,14 @@
     
     
       
-        <title>物理化学核心设计 - ChemWorld-Bench 文档</title>
+        <title>物理化学模型 - ChemWorld-Bench</title>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -56,6 +59,8 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/language-switch.css">
     
+      <link rel="stylesheet" href="../assets/stylesheets/site.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -65,7 +70,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="cyan">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -90,7 +102,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="页眉">
-    <a href=".." title="ChemWorld-Bench 文档" class="md-header__button md-logo" aria-label="ChemWorld-Bench 文档" data-md-component="logo">
+    <a href=".." title="ChemWorld-Bench" class="md-header__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -104,18 +116,44 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            ChemWorld-Bench 文档
+            ChemWorld-Bench
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              物理化学核心设计
+              物理化学模型
             
           </span>
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="cyan"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="cyan"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -173,6 +211,8 @@
         </button>
       </nav>
       
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
     </form>
     <div class="md-search__output">
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
@@ -188,6 +228,18 @@
 </div>
       
     
+    
+      <div class="md-header__source">
+        <a href="https://github.com/sunyrain/ChemWorld" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sunyrain/ChemWorld
+  </div>
+</a>
+      </div>
     
   </nav>
   
@@ -214,14 +266,26 @@
 
 <nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="ChemWorld-Bench 文档" class="md-nav__button md-logo" aria-label="ChemWorld-Bench 文档" data-md-component="logo">
+    <a href=".." title="ChemWorld-Bench" class="md-nav__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
 
     </a>
-    ChemWorld-Bench 文档
+    ChemWorld-Bench
   </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/sunyrain/ChemWorld" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sunyrain/ChemWorld
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -258,53 +322,31 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../en/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    English Home
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
     
     
     
     
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    项目状态
+    快速开始
   
 
     
@@ -315,12 +357,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
   
-    项目状态
+    快速开始
   
 
           </label>
@@ -333,70 +375,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../chemworld_overview_zh/" class="md-nav__link">
+      <a href="../getting_started/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    项目总览
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../current_progress/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    当前进展
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture_report/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    架构快照
+    安装与首次运行
   
 
     
@@ -424,7 +410,7 @@
   <span class="md-ellipsis">
     
   
-    演示
+    演示与示例
   
 
     
@@ -473,14 +459,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../api_reference/" class="md-nav__link">
+      <a href="../en/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    API 参考
+    English overview
   
 
     
@@ -511,22 +497,27 @@
     
     
     
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    Benchmark 合同
+    使用 Benchmark
   
 
     
@@ -537,12 +528,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Benchmark 合同
+    使用 Benchmark
   
 
           </label>
@@ -563,62 +554,6 @@
     
   
     评测协议
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../aaai_experiment_plan/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    AAAI 实验计划
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../aaai_results_template/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    AAAI 结果模板
   
 
     
@@ -674,7 +609,63 @@
   <span class="md-ellipsis">
     
   
-    任务卡
+    任务卡与冻结合同
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    环境卡
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_taxonomy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    任务分类
   
 
     
@@ -758,7 +749,7 @@
   <span class="md-ellipsis">
     
   
-    提交包
+    提交与验证
   
 
     
@@ -786,63 +777,7 @@
   <span class="md-ellipsis">
     
   
-    本地评测机
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_checklist/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布检查表
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../pre_release_limitations/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    预发布限制
+    本地评测服务
   
 
     
@@ -873,22 +808,27 @@
     
     
     
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    Agent 接入
+    构建 Agent
   
 
     
@@ -899,12 +839,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Agent 接入
+    构建 Agent
   
 
           </label>
@@ -980,7 +920,7 @@
   <span class="md-ellipsis">
     
   
-    Action 协议
+    Action Schema
   
 
     
@@ -1029,6 +969,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../agent_interaction_examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    交互示例
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../llm_agent_harness/" class="md-nav__link">
         
   
@@ -1057,208 +1025,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../agent_interaction_examples/" class="md-nav__link">
+      <a href="../campaign_model/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Agent 交互示例
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../safety_cost/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    安全与成本
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
-        
-          
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    数据与产物
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    数据与产物
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../dataset_layer/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    数据集层
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../paper_artifact/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    论文产物
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../leaderboard_project_blueprint/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    榜单蓝图
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ethics_and_data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    伦理与数据
+    Campaign 模型
   
 
     
@@ -1291,22 +1065,27 @@
     
     
     
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    环境底座
+    理解 ChemWorld
   
 
     
@@ -1317,12 +1096,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_7">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
-    环境底座
+    理解 ChemWorld
   
 
           </label>
@@ -1335,14 +1114,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../env_cards/" class="md-nav__link">
+      <a href="../architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    环境卡
+    系统架构
   
 
     
@@ -1391,154 +1170,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../task_taxonomy/" class="md-nav__link">
+      <a href="../mechanism_schema/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    任务分类
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../scenario_generation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    场景生成
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../campaign_model/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Campaign 模型
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../reaction_separation_tasks/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    反应与分离任务
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    架构设计
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../technical_architecture_zh/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    技术架构
+    Mechanism 协议
   
 
     
@@ -1575,7 +1214,7 @@
   <span class="md-ellipsis">
     
   
-    物理化学核心设计
+    物理化学模型
   
 
     
@@ -1593,7 +1232,7 @@
   <span class="md-ellipsis">
     
   
-    物理化学核心设计
+    物理化学模型
   
 
     
@@ -1644,7 +1283,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        反应网络核心
+        数据基础与单位治理
       
     </span>
   </a>
@@ -1655,7 +1294,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        热化学核心
+        反应网络核心
       
     </span>
   </a>
@@ -1666,7 +1305,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        物性核心
+        热化学核心
       
     </span>
   </a>
@@ -1677,7 +1316,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        相平衡与分离
+        物性核心
       
     </span>
   </a>
@@ -1688,7 +1327,7 @@
   <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
-        平衡化学核心
+        相平衡与分离
       
     </span>
   </a>
@@ -1699,7 +1338,7 @@
   <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        仪器与谱图
+        设备换热与相变
       
     </span>
   </a>
@@ -1710,7 +1349,7 @@
   <a href="#_10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        电化学与流动切片
+        安全包络与失控指标
       
     </span>
   </a>
@@ -1721,7 +1360,7 @@
   <a href="#_11" class="md-nav__link">
     <span class="md-ellipsis">
       
-        成熟度与验证
+        设备卡与约束
       
     </span>
   </a>
@@ -1730,6 +1369,50 @@
       
         <li class="md-nav__item">
   <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        平衡化学核心
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        仪器与谱图
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        电化学与流动切片
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        成熟度与验证
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
     <span class="md-ellipsis">
       
         验证规则
@@ -1755,14 +1438,70 @@
   
   
     <li class="md-nav__item">
-      <a href="../mechanism_schema/" class="md-nav__link">
+      <a href="../backends/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Mechanism 协议
+    计算后端
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reaction_separation_tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    反应与分离任务
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario_generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    场景生成
   
 
     
@@ -1839,34 +1578,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../backends/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backend 后端
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../world_model_learning/" class="md-nav__link">
         
   
@@ -1905,22 +1616,27 @@
     
     
     
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
         
           
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    审计与状态
+    数据与复现
   
 
     
@@ -1931,12 +1647,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_8">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
-    审计与状态
+    数据与复现
   
 
           </label>
@@ -1949,14 +1665,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../environment_self_consistency_audit_zh/" class="md-nav__link">
+      <a href="../dataset_layer/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    环境自洽性审计
+    数据集层
   
 
     
@@ -1977,14 +1693,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../physchem_maturity_audit/" class="md-nav__link">
+      <a href="../paper_artifact/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    物化成熟度审计
+    论文与发布产物
   
 
     
@@ -2005,14 +1721,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../sota_agent_environment_gap_audit/" class="md-nav__link">
+      <a href="../release_integrity/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SOTA Agent 环境差距审计
+    结果完整性
   
 
     
@@ -2033,14 +1749,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../code_review_audit/" class="md-nav__link">
+      <a href="../validation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    代码审计
+    验证与质量保证
   
 
     
@@ -2061,14 +1777,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../site_audit_zh/" class="md-nav__link">
+      <a href="../release_notes/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    站点审计
+    发布说明
   
 
     
@@ -2089,42 +1805,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../site_structure_zh/" class="md-nav__link">
+      <a href="../release_checklist/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    站点层级规划
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../codex55_medium_behavior_report/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Codex 5.5 Medium 行为报告
+    发布检查表
   
 
     
@@ -2155,22 +1843,27 @@
     
     
     
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    开发与发布
+    边界与责任
   
 
     
@@ -2181,12 +1874,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_9">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
-    开发与发布
+    边界与责任
   
 
           </label>
@@ -2199,14 +1892,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../roadmap/" class="md-nav__link">
+      <a href="../safety_cost/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    路线图
+    安全与成本
   
 
     
@@ -2227,14 +1920,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../project_management/" class="md-nav__link">
+      <a href="../model_maturity/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    项目管理
+    模型成熟度
   
 
     
@@ -2255,14 +1948,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference_repos/" class="md-nav__link">
+      <a href="../pre_release_limitations/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    本地参考仓库
+    适用范围与限制
   
 
     
@@ -2283,14 +1976,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../todo/" class="md-nav__link">
+      <a href="../ethics_and_data/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    统一任务板
+    伦理与数据
   
 
     
@@ -2307,6 +2000,33 @@
           </ul>
         </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 参考
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2363,7 +2083,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        反应网络核心
+        数据基础与单位治理
       
     </span>
   </a>
@@ -2374,7 +2094,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        热化学核心
+        反应网络核心
       
     </span>
   </a>
@@ -2385,7 +2105,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        物性核心
+        热化学核心
       
     </span>
   </a>
@@ -2396,7 +2116,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        相平衡与分离
+        物性核心
       
     </span>
   </a>
@@ -2407,7 +2127,7 @@
   <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
-        平衡化学核心
+        相平衡与分离
       
     </span>
   </a>
@@ -2418,7 +2138,7 @@
   <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        仪器与谱图
+        设备换热与相变
       
     </span>
   </a>
@@ -2429,7 +2149,7 @@
   <a href="#_10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        电化学与流动切片
+        安全包络与失控指标
       
     </span>
   </a>
@@ -2440,7 +2160,7 @@
   <a href="#_11" class="md-nav__link">
     <span class="md-ellipsis">
       
-        成熟度与验证
+        设备卡与约束
       
     </span>
   </a>
@@ -2449,6 +2169,50 @@
       
         <li class="md-nav__item">
   <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        平衡化学核心
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        仪器与谱图
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        电化学与流动切片
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        成熟度与验证
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
     <span class="md-ellipsis">
       
         验证规则
@@ -2474,10 +2238,13 @@
                   
 
 
+  
+  
 
-<h1 id="_1">物理化学核心设计</h1>
-<p>本页描述 ChemWorld <code>physchem</code> 层的当前稳定结构。更细的开发任务记录放在仓库根目录 <code>TODO.md</code> 中；站点文档只保留模块边界、当前能力、成熟度和限制。</p>
-<h2 id="_2">设计目标</h2>
+
+<h1 id="_1">物理化学核心设计<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>本页描述 ChemWorld <code>physchem</code> 层的发布能力、模型合同、成熟度和限制。</p>
+<h2 id="_2">设计目标<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p><code>physchem</code> 层不是外部专业软件的复制品，也不是松散的 proxy 集合。它的目标是提供一套可审计、可序列化、可测试的轻量物理化学核心，让 ChemWorld 的交互任务具备明确的物理合同。</p>
 <p>核心原则：</p>
 <ul>
@@ -2486,7 +2253,7 @@
 <li>数值内核、任务评分、观测生成和文档声明必须一致。</li>
 <li>参考库只用于设计对照和验证思路，不直接复制实现。</li>
 </ul>
-<h2 id="_3">当前范围</h2>
+<h2 id="_3">当前范围<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p>当前实现覆盖 foundation/lite 主线，并包含若干 <code>reference_validated</code> slice。它足以支撑虚拟实验 benchmark 的可解释交互，但不是完整商业流程模拟器、真实反应预测软件或数据驱动性质数据库。</p>
 <p>已稳定接入的核心方向包括：</p>
 <ul>
@@ -2499,7 +2266,25 @@
 <li>acid-base、Ksp、reaction equilibrium 和小规模 Gibbs minimization diagnostic；</li>
 <li>electrochemistry、flow、crystallization 等面向任务的轻量交互切片。</li>
 </ul>
-<h2 id="_4">反应网络核心</h2>
+<h2 id="_4">数据基础与单位治理<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>三个数据基础设施切片共同提供模型输入的 identity → dimension → provenance 闭环：</p>
+<ul>
+<li><code>ComponentIdentityRegistry</code> 以版本化不可变记录保存 canonical id、aliases、CAS、InChI、
+  InChIKey、formula、charge、formula-checked molecular weight 和 provenance；identifier、alias、
+  CAS、InChI 或 InChIKey 的任何跨组件碰撞都会拒绝构造，canonical JSON 使用 SHA-256 固化；</li>
+<li><code>foundation.dimensions</code> 为 amount、mass、volume、temperature、pressure、energy、molar
+  thermodynamics、transport、electrochemistry、NMR/MS/chromatography detector response、cost 和
+  risk 提供语义维度与整数指数向量；field contract 可把“维度兼容”进一步收紧到允许单位集；</li>
+<li><code>audit_component_data_conflicts()</code> 按显式 source priority 解析多来源字段，数值一致性使用
+  <code>atol + rtol*|selected|</code>，结构化值使用 exact equality；required uncertainty、undefined source、
+  warning/hard-fail finding、resolution 和 source citation 全部进入可摘要、可验 digest 的报告；</li>
+<li><code>DatasetProvenanceCard</code> 将 registry digest、source records、policy、resolution 和 finding 固化；
+  通用 trajectory <code>dataset_card()</code> 的 schema 0.3 也记录源 trajectory、commit、agent manifest、
+  protocol hashes 和 replay verification。</li>
+</ul>
+<p>这些能力标记为 <code>professional_candidate</code>：它们提供严格的 benchmark 数据治理合同，但不是广域
+化学结构数据库、任意单位表达式解析器或自动决定科学权威性的数据库融合系统。</p>
+<h2 id="_5">反应网络核心<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>反应网络层包含 <code>SpeciesSpec</code>、<code>ReactionSpec</code>、<code>RateLawSpec</code>、化学计量矩阵、元素守恒检查、ODE 积分入口和局部 analytical validation。</p>
 <p>设计边界：</p>
 <ul>
@@ -2517,7 +2302,7 @@
 <li>反应网络有限差分敏感性报告。</li>
 </ul>
 <p>仍未完成的专业化方向包括 chemically activated pressure dependence、表面覆盖、反应器能量方程与大型刚性网络求解策略。</p>
-<h2 id="_5">热化学核心</h2>
+<h2 id="_6">热化学核心<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <p>热化学层提供 NASA7 物种 Cp/H/S/G、Cantera-style YAML thermo 解析、连续性诊断、反应热化学和 <code>K = exp(-Delta G/RT)</code>。</p>
 <p>当前完成的关键能力：</p>
 <ul>
@@ -2527,7 +2312,7 @@
 <li>在反应网络 ODE 中验证平衡组成趋向。</li>
 </ul>
 <p>边界：这不是完整 NASA9/Shomate/group-additivity 数据库，也没有自动热化学估算。缺少物种热化学时，相关计算应 fail fast。</p>
-<h2 id="_6">物性核心</h2>
+<h2 id="_7">物性核心<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
 <p>物性层提供蒸气压、热容、密度、摩尔体积、输运性质、EOS 相关报告和 curated component 数据。</p>
 <p>设计重点：</p>
 <ul>
@@ -2538,8 +2323,13 @@
 <li>separation、reactor、instrument 共享同一报告风格。</li>
 </ul>
 <p>边界：当前不是完整物性数据库；只覆盖 curated compounds、compact correlations 和 benchmark 所需的局部物性。</p>
-<h2 id="_7">相平衡与分离</h2>
+<h2 id="_8">相平衡与分离<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
 <p>相平衡层覆盖 Raoult-style VLE、activity coefficient 入口、UNIQUAC slice、flash/VLE 报告和 LLE 诊断。</p>
+<p>固定 TP 闪蒸切片通过 <code>tp_flash_with_energy_balance()</code> 迭代 liquid composition 与 gamma-phi
+K 值，使用 Rachford-Rice 求相分率，并显式返回逐组分液/汽相数量、进料/产品焓、热负荷、
+收敛状态和物料/能量残差。activity、vapor fugacity、liquid-reference fugacity 与 Poynting
+factor 都是可审计输入。该模型标为 <code>professional_candidate</code>：它适合受控 benchmark，但不包含
+自动物性数据库、EOS 相稳定性、临界区治理、反应闪蒸或未知温度的绝热闪蒸。</p>
 <p>当前 LLE 切片已从单纯分配系数 proxy 推进到可审计诊断层：</p>
 <ul>
 <li><code>lle_phase_stability_diagnostic()</code> 生成 TPD-style phase-stability report；</li>
@@ -2548,8 +2338,76 @@
 <li><code>liquid_liquid_split()</code> 在保持组分物料守恒的同时返回 <code>stability_diagnostic</code>；</li>
 <li>runtime <code>partition_split()</code> 复用同一诊断，并将 <code>lle_phase_status</code>、<code>lle_minimum_tpd_like</code> 和 <code>lle_partition_log_spread</code> 写入 phase metadata。</li>
 </ul>
+<p>专业候选 extraction train 在此诊断层之外增加可执行的工艺序列：</p>
+<ul>
+<li><code>DistributionCoefficientModelSpec</code> 保存 intrinsic partition coefficient 与 provenance；</li>
+<li>每级通过 <code>D_i = K_i^0 gamma_i^aq / gamma_i^org</code> 迭代 composition-corrected distribution ratio；</li>
+<li>extraction stage 使用新鲜 organic contact，wash stage 使用新鲜 aqueous contact；</li>
+<li>stage efficiency 对平衡相分配做显式 approach-to-equilibrium，entrainment 同时记录夹带组分和水相体积；</li>
+<li>最终报告 target recovery、solute-basis purity、impurity rejection、逐级收敛和全流程组分守恒。</li>
+</ul>
+<p>该模型不预测 bulk solvent amount、密度、互溶度、乳化或速率控制传质，因此仍是
+<code>professional_candidate</code>，不是严格 electrolyte LLE flowsheet。</p>
+<p>冷却结晶专业候选切片由 <code>SolubilityCurveSpec</code>、<code>CrystallizationKineticsSpec</code> 和
+<code>cooling_crystallization()</code> 组成：</p>
+<ul>
+<li>van't Hoff 曲线提供带温区和 provenance 的 <code>C*(T)</code>；</li>
+<li>线性 cooling ramp 逐步报告 <code>S=C/C*</code>、relative supersaturation、primary nucleation 与 growth rate；</li>
+<li>每个时间步形成 size cohort，成核/生长都受可用过饱和目标物上限约束；</li>
+<li>seed mass 作为外加目标物进入总账，避免把晶种“免费”计入 recovery；</li>
+<li>impurity occlusion 随新结晶量和 supersaturation 变化；</li>
+<li>CSD 报告 number-basis D10/D50/D90、mean、standard deviation、CV、fines fraction 与 cohort count。</li>
+</ul>
+<p>该紧凑 PBM 不含 secondary nucleation、agglomeration、breakage、polymorph、shape、CFD 或
+heat-balance coupling。World Law v0.2 已将其接入 Gym crystallization task，并重新冻结 task
+contract 与 golden trajectories；它仍只在上述适用域内标为 <code>professional_candidate</code>。</p>
+<h2 id="_9">设备换热与相变<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
+<p><code>equipment_heat_transfer()</code> 将设备几何、污垢、集总显热和相变账合为一个可审计报告：</p>
+<ul>
+<li><code>HeatTransferEquipmentSpec</code> 区分 jacket、coil、shell，jacket coverage 与几何修正均显式；</li>
+<li><code>FoulingEvolutionSpec</code> 用渐近热阻记录 elapsed-time degradation，并通过
+  <code>1/U_fouled = 1/U_clean + R_f(t)</code> 更新 U；</li>
+<li>无相变时使用固定 utility 的 lumped-capacitance 解析解；</li>
+<li>boiling/condensation 在 <code>T_sat</code> 处分段消耗/释放潜热，phase inventory 用尽后才继续显热；</li>
+<li>输出清洁/有效 U、UA、平均 duty、显热、潜热、相变量、最终温度和 energy residual；</li>
+<li>若调用方提供饱和边界但 <code>mode=none</code>，跨越边界只产生 warning，不会隐式生成相变。</li>
+</ul>
+<p>该切片不包含 critical heat flux、film boiling、流型换热系数、分布参数壁温或 CFD，因此标记为
+<code>professional_candidate</code>。</p>
+<p>两相压降同时保留两种明确分层的模型：</p>
+<ul>
+<li><code>homogeneous_two_phase_pressure_drop()</code> 是平滑、轻量的 rollout proxy；</li>
+<li><code>lockhart_martinelli_pressure_drop()</code> 是水平光滑圆管的 reference-validated separated-flow slice。</li>
+</ul>
+<p>后者使用两相表观速度分别计算 Re 和原始 Lockhart-Martinelli 摩阻，按 laminar/turbulent 组合选取
+Chisholm <code>C=5/12/10/20</code>，再报告 <code>X</code>、<code>phi_l^2</code> 和 frictional pressure drop。它与
+<code>fluids.two_phase.Lockhart_Martinelli</code> 做 <code>rtol=1e-12</code> 对照。倾斜管直接失败；近单相端点、微通道和
+低气液密度比会产生适用域 warning；static head、acceleration、roughness、dryout 和 critical flow
+不在该 slice 内。</p>
+<h2 id="_10">安全包络与失控指标<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h2>
+<p><code>assess_safety_envelope()</code> 将设备阈值与瞬时过程状态分离：</p>
+<ul>
+<li>envelope card 声明 temperature warning/maximum、pressure warning、relief set、MAWP、
+  relief capacity 和 risk/event cost；</li>
+<li><code>RunawayStateInput</code> 声明 heat generation/removal、removal slope、activation energy、
+  process heat capacity、remaining exotherm、pressure rate 和 vapor generation；</li>
+<li>计算 <code>dT/dt</code>、Arrhenius <code>dQ_gen/dT</code>、Semenov slope margin、adiabatic rise、MTSR、
+  relief load ratio 与到 temperature/relief limit 的局部预测时间；</li>
+<li>输出 <code>normal/warning/relief_required/emergency_shutdown</code>、逐项 severity、risk、cost 和 flags；</li>
+<li><code>constraint_flags()</code> 可被 Gym adapter 转成 <code>unsafe</code>、relief、shutdown、risk 和 cost。</li>
+</ul>
+<p>这是可解释的 process-safety screening slice，不是 relief-device sizing、vent-network solve、HAZOP、
+LOPA 或真实装置保护层认证。</p>
+<h2 id="_11">设备卡与约束<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h2>
+<p><code>EquipmentCardSpec</code> 使用 <code>chemworld-equipment-card-0.1</code> schema，把设备额定参数、provenance 与
+unit-bearing scalar constraints 分开保存。标准工厂覆盖 vessel、pump、mixer、condenser、heat
+exchanger 和 column。<code>evaluate_equipment_constraints()</code> 对每项返回 operating value、limit、
+min/max relation、margin、normalized margin、utilization、severity 和 violated；只有 hard violation
+令 <code>feasible=false</code>，warning 仍保留为规划信号。</p>
+<p>当前卡适合 Gym action validation、scenario generation 和 trajectory audit，不执行 ASME stress、
+pump curve interpolation、coupled P-T derating、compressor map 或完整 column hydraulics。</p>
 <p>边界：这不是严格 LLE flash、tie-line tracing 或全局 Gibbs minimization。它适合 extraction / partition-discovery benchmark，让 agent 看到稳定、可解释、可回放的相分配规律。</p>
-<h2 id="_8">平衡化学核心</h2>
+<h2 id="_12">平衡化学核心<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h2>
 <p>平衡化学层提供小规模 reaction equilibrium、acid-base、precipitation 和 fixed-TP ideal Gibbs minimization slice。它适合隐藏 equilibrium scenario 和 analytical checks，不是数据库驱动的 aqueous speciation solver。</p>
 <p>当前 Gibbs minimization diagnostic 包括：</p>
 <ul>
@@ -2560,7 +2418,7 @@
 <li>result 和 metadata 中可读取的 diagnostic 信息。</li>
 </ul>
 <p>已验证的小算例包括 A/B 理想异构化、H2/O2/H2O 小化学计量体系、Na+/Cl-/NaCl(s) 相限制案例。</p>
-<h2 id="_9">仪器与谱图</h2>
+<h2 id="_13">仪器与谱图<a class="headerlink" href="#_13" title="Permanent link">&para;</a></h2>
 <p>虚拟仪器层生成 UV-vis、HPLC/GC、IR、NMR 等 benchmark-oriented signals。目标不是数据库级谱图预测，而是让 agent 在有限测量预算下进行合理规划。</p>
 <p>仪器输出应携带：</p>
 <ul>
@@ -2572,10 +2430,64 @@
 <li>visibility boundary。</li>
 </ul>
 <p>所有 public observation 与 lab report 必须从可见观测派生，不得读取 hidden rate constants、hidden species amount 或 hidden mechanism parameters。</p>
-<h2 id="_10">电化学与流动切片</h2>
+<p>色谱方法层在原有虚拟 chromatogram 之上增加 <code>EmpiricalChromatographyAnalyteSpec</code>：HPLC 使用
+local <code>log10(k)</code> mobile-phase/temperature slopes，GC 使用 signed retention enthalpy 的 van't Hoff
+温度关系；<code>gc_linear_retention_index()</code> 用相邻 n-alkane 的 logarithmic adjusted retention 做插值；
+detector calibration 返回 slope、intercept、standard error、residual standard deviation、R²、LOD
+和 LOQ；tailing factor 被分类为 symmetric/fronting/tailing/severe 并写入 warning。</p>
+<p>这些系数必须带 method/analyte provenance，不能被解释成全局 retention database 或 ab initio
+retention prediction。</p>
+<p>NMR 专业候选切片使用 provenance-tagged <code>ProtonNMRSignalSpec</code> 与 <code>ProtonNMRMethodSpec</code>：</p>
+<ul>
+<li>shift anchor 经 expected/observed reference ppm 修正；</li>
+<li>d/t/q/quint 用 Pascal intensity，dd 用 sequential doublet splitting，J 通过场强转换成 ppm；</li>
+<li>integral 按 species amount × proton count × response factor 计算并归一化；</li>
+<li>solvent residual、line-width overlap、<code>Delta nu/J &lt; 10</code>、exchangeable proton 和 unresolved
+  multiplet 都进入显式 warning。</li>
+</ul>
+<p>它是 first-order 1H stick/assignment layer，不包括 quantum shift prediction、dynamic exchange、
+relaxation、NOE、shimming、phase/baseline processing 或 2D NMR。</p>
+<p>MS 专业候选切片对 H/C/N/O/F/Si/P/S/Cl/Br 的自然丰度做 repeated convolution，将同一 nominal
+shift 的 isobar 合并为 probability-weighted exact-mass center，并报告 abundance、base-peak intensity
+和 m/z。fragment 由 provenance-tagged formula、charge、relative intensity、assignment 与 neutral loss
+显式声明；detector response 同时给 mean、RSD 和 standard deviation。Cl/Br/C 的解析 isotope pattern
+构成回归基准。</p>
+<p>该模型不自动加入 proton/electron/adduct mass correction，也不预测 fragmentation、ion-source
+competition、metastable ions、high-resolution lineshape 或 library match。</p>
+<h2 id="_14">电化学与流动切片<a class="headerlink" href="#_14" title="Permanent link">&para;</a></h2>
 <p>当前电化学 slice 关注 equilibrium potential、measured cell potential、overpotential、resistance、selectivity 和 energy efficiency。它适合 <code>electrochemical-conversion</code> benchmark 交互，不是完整电池、电解槽或电化学反应器模拟器。</p>
-<p>当前 flow slice 提供小范围 flow setup、residence-time style observation 和轻量运行报告。后续 P3 会逐步补足 limiting current、potentiostatic/galvanostatic controllers、double-layer transient 和 electrochemical scenario cards。</p>
-<h2 id="_11">成熟度与验证</h2>
+<p>World Law v0.2 的 flow runtime 使用共享 compiled mechanism 的几何解析 PFR：由流量与停留时间
+确定反应器体积，显式声明管长、管径、粗糙度、流体性质和轴向热边界，并输出 Reynolds 数、
+Darcy 压降、能量账、物料残差和求解器诊断。该切片不包含多相流、轴向弥散、径向梯度、
+复杂换热网络或 CFD，因此标为 <code>professional_candidate</code>。电化学层同时提供 limiting current、
+potentiostatic/galvanostatic controllers、double-layer transient 和 electrochemical scenario cards。</p>
+<p>电化学传质专业候选切片使用 <code>DiffusionLayerSpec</code>：</p>
+<ul>
+<li><code>i_lim = n F A D C_bulk / delta</code>；</li>
+<li>请求电流低于平台时 bulk concentration 按恒流线性下降；</li>
+<li>达到平台后或初始即超限时，按 <code>dC/dt = -(AD/(delta V))C</code> 指数下降；</li>
+<li>报告 surface/bulk concentration、initial/final i_lim、transition time、signed useful current、
+  applied/useful/side charge、depletion 和 current efficiency。</li>
+</ul>
+<p>该解析 slice 不包含 migration、convection、porous electrode、multiple reactants 或动态 diffusion layer。</p>
+<p>电化学 controller 使用 versioned <code>ElectrochemicalControlRecipe</code>：segment 明确声明
+potentiostatic/galvanostatic 与 ramp/hold。执行器分别维护 potential/current state，对 ramp 应用
+range 与 slew clipping，对 hold 的突变标记 sample-slew warning；输出逐点 trace、逐段 operation log、
+final state 和 clipping count。canonical recipe+limits+initial state 与完整 execution 分别计算 SHA-256，
+<code>verify_electrochemical_control_replay()</code> 通过重新执行做逐字段比对。</p>
+<p>该组件是 deterministic setpoint engine，不包含 PID、noisy feedback、hardware latency 或 plant response。</p>
+<p>double-layer slice 使用 <code>R_s-(R_ct || C_dl)</code> Randles RC：potential step 下电流从 <code>DeltaE/R_s</code>
+衰减到 <code>DeltaE/(R_s+R_ct)</code>；current step 下 capacitive current 指数衰减、Faradaic current 互补上升。
+每个 trace point 同时报告 terminal/interfacial potential 和三类 current，解析积分满足
+<code>Q_total = Q_F + Q_C</code>。少于 5 time constants 与 startup capacitive dominance 都进入 observation warning。</p>
+<p>该模型不含 Warburg/CPE、nonlinear Butler-Volmer、adsorption、porous electrode 或 aging。</p>
+<p>电化学 scenario card 使用公开/私有双视图：公开视图包含 redox metadata、electrode area/gap/volume、
+electrolyte window、cathodic/anodic side-reaction onset、qualitative behavior 和 hidden parameter 的
+distribution family；range endpoints 与生成值仅存在私有视图。<code>public-dev/public-test/private-eval</code>
+使用 schema/scenario/split/seed/salt 的稳定 hash seed，private-eval 强制 salt，公开实例只携带不泄密的
+hidden-parameter digest。生成实例可直接构造 reaction、electrolyte resistance、diffusion layer 和
+double-layer model bundle。</p>
+<h2 id="_15">成熟度与验证<a class="headerlink" href="#_15" title="Permanent link">&para;</a></h2>
 <p>所有模型卡必须说明 maturity：</p>
 <ul>
 <li><code>proxy</code>：只用于交互占位或定性趋势；</li>
@@ -2584,7 +2496,7 @@
 <li><code>professional-candidate</code>：结构接近专业后端，但仍需更广泛验证。</li>
 </ul>
 <p>当前文档不会把任何 lightweight slice 描述成完整专业模拟器。任务、artifact 和论文写作中也必须保留这一边界。</p>
-<h2 id="_12">验证规则</h2>
+<h2 id="_16">验证规则<a class="headerlink" href="#_16" title="Permanent link">&para;</a></h2>
 <p>核心层应在以下情况快速失败：</p>
 <ul>
 <li>单位或参数缺失；</li>
@@ -2611,6 +2523,8 @@
             </div>
           
           
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
         
@@ -2627,6 +2541,10 @@
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
       <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      ChemWorld-Bench · 虚拟研究环境，不用于指导真实实验
+    </div>
   
   
     Made with
@@ -2651,7 +2569,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.top", "navigation.tracking", "toc.follow", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.sections", "navigation.top", "navigation.tracking", "toc.follow", "search.highlight", "search.suggest", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

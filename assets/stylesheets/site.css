@@ -1,0 +1,42 @@
+:root {
+  --cw-card-border: color-mix(in srgb, var(--md-primary-fg-color) 24%, transparent);
+  --cw-card-surface: color-mix(in srgb, var(--md-default-bg-color) 92%, var(--md-primary-fg-color));
+}
+
+.md-grid {
+  max-width: 76rem;
+}
+
+.cw-hero-grid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 1.5rem 0 2rem;
+}
+
+.cw-hero-card {
+  background: var(--cw-card-surface);
+  border: 1px solid var(--cw-card-border);
+  border-radius: 0.65rem;
+  padding: 1rem 1.1rem 0.8rem;
+}
+
+.cw-hero-card h3 {
+  margin-top: 0;
+}
+
+.cw-hero-card p:last-child {
+  margin-bottom: 0;
+}
+
+.md-typeset table:not([class]) {
+  border-radius: 0.35rem;
+  box-shadow: 0 0 0 1px var(--md-default-fg-color--lightest);
+  overflow: hidden;
+}
+
+@media screen and (max-width: 44.9375em) {
+  .cw-hero-grid {
+    grid-template-columns: 1fr;
+  }
+}

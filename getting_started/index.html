@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="面向闭环虚拟化学实验与 agent world model 研究的 benchmark 文档。">
+        <meta name="description" content="面向闭环虚拟化学实验、智能体评测与世界模型研究的可复现 benchmark。">
       
       
       
-        <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/roadmap/">
+        <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/getting_started/">
       
       
-        <link rel="prev" href="../codex55_medium_behavior_report/">
+        <link rel="prev" href="..">
       
       
-        <link rel="next" href="../project_management/">
+        <link rel="next" href="../demos/">
       
       
         
@@ -31,11 +31,14 @@
     
     
       
-        <title>路线图 - ChemWorld-Bench 文档</title>
+        <title>安装与首次运行 - ChemWorld-Bench</title>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -56,6 +59,8 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/language-switch.css">
     
+      <link rel="stylesheet" href="../assets/stylesheets/site.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -65,7 +70,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="cyan">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -90,7 +102,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="页眉">
-    <a href=".." title="ChemWorld-Bench 文档" class="md-header__button md-logo" aria-label="ChemWorld-Bench 文档" data-md-component="logo">
+    <a href=".." title="ChemWorld-Bench" class="md-header__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -104,18 +116,44 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            ChemWorld-Bench 文档
+            ChemWorld-Bench
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              路线图
+              安装与首次运行
             
           </span>
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="cyan"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="cyan"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -173,6 +211,8 @@
         </button>
       </nav>
       
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
     </form>
     <div class="md-search__output">
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
@@ -188,6 +228,18 @@
 </div>
       
     
+    
+      <div class="md-header__source">
+        <a href="https://github.com/sunyrain/ChemWorld" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sunyrain/ChemWorld
+  </div>
+</a>
+      </div>
     
   </nav>
   
@@ -214,14 +266,26 @@
 
 <nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="ChemWorld-Bench 文档" class="md-nav__button md-logo" aria-label="ChemWorld-Bench 文档" data-md-component="logo">
+    <a href=".." title="ChemWorld-Bench" class="md-nav__button md-logo" aria-label="ChemWorld-Bench" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
 
     </a>
-    ChemWorld-Bench 文档
+    ChemWorld-Bench
   </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/sunyrain/ChemWorld" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sunyrain/ChemWorld
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -256,32 +320,7 @@
       
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../en/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
     
-  
-    English Home
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
   
   
   
@@ -289,22 +328,27 @@
     
     
     
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    项目状态
+    快速开始
   
 
     
@@ -315,12 +359,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
   
-    项目状态
+    快速开始
   
 
           </label>
@@ -330,17 +374,44 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../chemworld_overview_zh/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    安装与首次运行
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
   <span class="md-ellipsis">
     
   
-    项目总览
+    安装与首次运行
   
 
     
@@ -349,62 +420,81 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../current_progress/" class="md-nav__link">
+      
         
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
   
   
-  <span class="md-ellipsis">
+  
     
   
-    当前进展
   
-
-    
-  </span>
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        安装
+      
+    </span>
+  </a>
   
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        创建环境
+      
+    </span>
+  </a>
   
-
-      </a>
-    </li>
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        运行第一个合法流程
+      
+    </span>
+  </a>
   
-
-              
-            
-              
-                
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        使用 CLI
+      
+    </span>
+  </a>
   
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        下一步
+      
+    </span>
+  </a>
   
+</li>
+      
+    </ul>
   
-  
-    <li class="md-nav__item">
-      <a href="../architecture_report/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    架构快照
-  
-
-    
-  </span>
-  
-  
-
-      </a>
+</nav>
+      
     </li>
   
 
@@ -424,7 +514,7 @@
   <span class="md-ellipsis">
     
   
-    演示
+    演示与示例
   
 
     
@@ -473,14 +563,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../api_reference/" class="md-nav__link">
+      <a href="../en/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    API 参考
+    English overview
   
 
     
@@ -511,22 +601,27 @@
     
     
     
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    Benchmark 合同
+    使用 Benchmark
   
 
     
@@ -537,12 +632,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Benchmark 合同
+    使用 Benchmark
   
 
           </label>
@@ -563,62 +658,6 @@
     
   
     评测协议
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../aaai_experiment_plan/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    AAAI 实验计划
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../aaai_results_template/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    AAAI 结果模板
   
 
     
@@ -674,7 +713,63 @@
   <span class="md-ellipsis">
     
   
-    任务卡
+    任务卡与冻结合同
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../env_cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    环境卡
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../task_taxonomy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    任务分类
   
 
     
@@ -758,7 +853,7 @@
   <span class="md-ellipsis">
     
   
-    提交包
+    提交与验证
   
 
     
@@ -786,63 +881,7 @@
   <span class="md-ellipsis">
     
   
-    本地评测机
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../release_checklist/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    发布检查表
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../pre_release_limitations/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    预发布限制
+    本地评测服务
   
 
     
@@ -873,22 +912,27 @@
     
     
     
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    Agent 接入
+    构建 Agent
   
 
     
@@ -899,12 +943,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Agent 接入
+    构建 Agent
   
 
           </label>
@@ -980,7 +1024,7 @@
   <span class="md-ellipsis">
     
   
-    Action 协议
+    Action Schema
   
 
     
@@ -1029,6 +1073,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../agent_interaction_examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    交互示例
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../llm_agent_harness/" class="md-nav__link">
         
   
@@ -1057,42 +1129,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../agent_interaction_examples/" class="md-nav__link">
+      <a href="../campaign_model/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Agent 交互示例
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../safety_cost/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    安全与成本
+    Campaign 模型
   
 
     
@@ -1123,22 +1167,27 @@
     
     
     
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    数据与产物
+    理解 ChemWorld
   
 
     
@@ -1149,12 +1198,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
-    数据与产物
+    理解 ChemWorld
   
 
           </label>
@@ -1167,180 +1216,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../dataset_layer/" class="md-nav__link">
+      <a href="../architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    数据集层
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../paper_artifact/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    论文产物
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../leaderboard_project_blueprint/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    榜单蓝图
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ethics_and_data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    伦理与数据
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
-        
-          
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    环境底座
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    环境底座
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../env_cards/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    环境卡
+    系统架构
   
 
     
@@ -1389,14 +1272,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../task_taxonomy/" class="md-nav__link">
+      <a href="../mechanism_schema/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    任务分类
+    Mechanism 协议
   
 
     
@@ -1417,14 +1300,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../scenario_generation/" class="md-nav__link">
+      <a href="../physchem_core_design/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    场景生成
+    物理化学模型
   
 
     
@@ -1445,14 +1328,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../campaign_model/" class="md-nav__link">
+      <a href="../backends/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Campaign 模型
+    计算后端
   
 
     
@@ -1501,98 +1384,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
+      <a href="../scenario_generation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    架构设计
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../technical_architecture_zh/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    技术架构
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../physchem_core_design/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    物理化学核心设计
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../mechanism_schema/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Mechanism 协议
+    场景生成
   
 
     
@@ -1669,34 +1468,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../backends/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Backend 后端
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../world_model_learning/" class="md-nav__link">
         
   
@@ -1735,22 +1506,27 @@
     
     
     
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
         
           
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    审计与状态
+    数据与复现
   
 
     
@@ -1761,12 +1537,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_8">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
-    审计与状态
+    数据与复现
   
 
           </label>
@@ -1779,14 +1555,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../environment_self_consistency_audit_zh/" class="md-nav__link">
+      <a href="../dataset_layer/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    环境自洽性审计
+    数据集层
   
 
     
@@ -1807,14 +1583,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../physchem_maturity_audit/" class="md-nav__link">
+      <a href="../paper_artifact/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    物化成熟度审计
+    论文与发布产物
   
 
     
@@ -1835,14 +1611,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../sota_agent_environment_gap_audit/" class="md-nav__link">
+      <a href="../release_integrity/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SOTA Agent 环境差距审计
+    结果完整性
   
 
     
@@ -1863,14 +1639,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../code_review_audit/" class="md-nav__link">
+      <a href="../validation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    代码审计
+    验证与质量保证
   
 
     
@@ -1891,14 +1667,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../site_audit_zh/" class="md-nav__link">
+      <a href="../release_notes/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    站点审计
+    发布说明
   
 
     
@@ -1919,42 +1695,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../site_structure_zh/" class="md-nav__link">
+      <a href="../release_checklist/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    站点层级规划
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../codex55_medium_behavior_report/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Codex 5.5 Medium 行为报告
+    发布检查表
   
 
     
@@ -1979,30 +1727,33 @@
       
   
   
-    
   
   
-  
     
     
     
     
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    开发与发布
+    边界与责任
   
 
     
@@ -2013,12 +1764,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_9">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
-    开发与发布
+    边界与责任
   
 
           </label>
@@ -2028,147 +1779,17 @@
                 
   
   
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    路线图
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    路线图
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="目录">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      目录
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#p0" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        P0：当前预发布收束
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#p1benchmark" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        P1：Benchmark 合同加固
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#p2-agent" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        P2：数据与 Agent 研究层
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#p3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        P3：专业物理深化
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#p4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        P4：托管评测
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
   
   
     <li class="md-nav__item">
-      <a href="../project_management/" class="md-nav__link">
+      <a href="../safety_cost/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    项目管理
+    安全与成本
   
 
     
@@ -2189,14 +1810,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference_repos/" class="md-nav__link">
+      <a href="../model_maturity/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    本地参考仓库
+    模型成熟度
   
 
     
@@ -2217,14 +1838,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../todo/" class="md-nav__link">
+      <a href="../pre_release_limitations/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    统一任务板
+    适用范围与限制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ethics_and_data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    伦理与数据
   
 
     
@@ -2241,6 +1890,33 @@
           </ul>
         </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 参考
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2272,10 +1948,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#p0" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        P0：当前预发布收束
+        安装
       
     </span>
   </a>
@@ -2283,10 +1959,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#p1benchmark" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        P1：Benchmark 合同加固
+        创建环境
       
     </span>
   </a>
@@ -2294,10 +1970,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#p2-agent" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        P2：数据与 Agent 研究层
+        运行第一个合法流程
       
     </span>
   </a>
@@ -2305,10 +1981,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#p3" class="md-nav__link">
+  <a href="#cli" class="md-nav__link">
     <span class="md-ellipsis">
       
-        P3：专业物理深化
+        使用 CLI
       
     </span>
   </a>
@@ -2316,10 +1992,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#p4" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        P4：托管评测
+        下一步
       
     </span>
   </a>
@@ -2342,42 +2018,71 @@
                   
 
 
+  
+  
 
-<h1 id="_1">路线图</h1>
-<p>本路线图按发布优先级组织，而不是按理想研究愿景展开。</p>
-<h2 id="p0">P0：当前预发布收束</h2>
+
+<h1 id="_1">安装与首次运行<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>本页带你从源码安装 ChemWorld，运行一次合法 episode，并验证生成的轨迹。推荐 Python 3.11
+或更高版本。</p>
+<h2 id="_2">安装<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/sunyrain/ChemWorld.git
+<span class="nb">cd</span><span class="w"> </span>ChemWorld
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+</code></pre></div>
+<p>需要构建文档或执行完整科学参考门禁时：</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev,docs,physchem-ref]&quot;</span>
+</code></pre></div>
+<h2 id="_3">创建环境<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">chemworld</span>  <span class="c1"># 注册 ChemWorld 环境</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
+    <span class="s2">&quot;ChemWorld&quot;</span><span class="p">,</span>
+    <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;reaction-to-assay&quot;</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">observation</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">],</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;physics_maturity&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p>未测量的 observation 字段使用 <code>NaN</code>；JSONL 轨迹中对应值为 <code>null</code>。请始终结合
+<code>observed_mask</code> 或 <code>observed_keys</code> 判断信息是否真正可见。</p>
+<h2 id="_4">运行第一个合法流程<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">actions</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;operation&quot;</span><span class="p">:</span> <span class="s2">&quot;add_solvent&quot;</span><span class="p">,</span> <span class="s2">&quot;volume_L&quot;</span><span class="p">:</span> <span class="mf">0.025</span><span class="p">,</span> <span class="s2">&quot;solvent&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;operation&quot;</span><span class="p">:</span> <span class="s2">&quot;add_reagent&quot;</span><span class="p">,</span> <span class="s2">&quot;amount_mol&quot;</span><span class="p">:</span> <span class="mf">0.010</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;operation&quot;</span><span class="p">:</span> <span class="s2">&quot;heat&quot;</span><span class="p">,</span> <span class="s2">&quot;target_temperature_K&quot;</span><span class="p">:</span> <span class="mf">360.0</span><span class="p">,</span> <span class="s2">&quot;duration_s&quot;</span><span class="p">:</span> <span class="mf">600.0</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;operation&quot;</span><span class="p">:</span> <span class="s2">&quot;terminate&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;operation&quot;</span><span class="p">:</span> <span class="s2">&quot;measure&quot;</span><span class="p">,</span> <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="s2">&quot;final_assay&quot;</span><span class="p">},</span>
+<span class="p">]</span>
+
+<span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
+    <span class="n">observation</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminated</span><span class="p">,</span> <span class="n">truncated</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;constraint_flags&quot;</span><span class="p">][</span><span class="s2">&quot;precondition_failed&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;invalid_reasons&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">terminated</span> <span class="ow">or</span> <span class="n">truncated</span><span class="p">:</span>
+        <span class="k">break</span>
+
+<span class="n">env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div>
+<p>不同任务允许的操作、仪器、预算和终止条件不同。不要硬编码一套流程到所有任务；从 reset
+返回的任务信息或<a href="../task_cards/">任务卡</a>读取合同。</p>
+<h2 id="cli">使用 CLI<a class="headerlink" href="#cli" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>chemworld<span class="w"> </span>run<span class="w"> </span>--task<span class="w"> </span>reaction-to-assay<span class="w"> </span>--agent<span class="w"> </span>random<span class="w"> </span>--seed<span class="w"> </span><span class="m">0</span>
+chemworld<span class="w"> </span>run<span class="w"> </span>--task<span class="w"> </span>reaction-to-purification<span class="w"> </span>--agent<span class="w"> </span>scripted_chemistry<span class="w"> </span>--seed<span class="w"> </span><span class="m">0</span>
+chemworld<span class="w"> </span>verify<span class="w"> </span>--constitution<span class="w"> </span>--submission<span class="w"> </span>runs/&lt;trajectory&gt;.jsonl
+</code></pre></div>
+<p>执行 official suite：</p>
+<div class="highlight"><pre><span></span><code>chemworld<span class="w"> </span>suite<span class="w"> </span>--agent<span class="w"> </span>gp_bo<span class="w"> </span>--world-splits<span class="w"> </span>public-test<span class="w"> </span>private-eval<span class="w"> </span>--seeds<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2</span>
+</code></pre></div>
+<h2 id="_5">下一步<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <ul>
-<li>中文化 <code>site/</code> 发布站点。</li>
-<li>固定首页、导航、任务卡和 release checklist。</li>
-<li>确保 <code>python -m mkdocs build --strict</code> 通过。</li>
-<li>确保环境自洽性审计通过。</li>
-<li>对 <code>reward=0</code>、precondition 和 phase workflow 的常见问题补文档。</li>
-</ul>
-<h2 id="p1benchmark">P1：Benchmark 合同加固</h2>
-<ul>
-<li>冻结 action schema、observation schema 和 task cards。</li>
-<li>补全 baseline table 和 trajectory manifest。</li>
-<li>明确每个任务的 maturity、budget、metrics 和 failure flags。</li>
-<li>建立最小 submission bundle。</li>
-</ul>
-<h2 id="p2-agent">P2：数据与 Agent 研究层</h2>
-<ul>
-<li>接近 Minari 风格的数据集打包。</li>
-<li>增加 rule baseline、optimizer baseline 和 tool-agent baseline。</li>
-<li>增加 world-model learning 接口。</li>
-<li>建立本地 leaderboard prototype。</li>
-</ul>
-<h2 id="p3">P3：专业物理深化</h2>
-<ul>
-<li>逐步强化物性、相平衡、反应网络、单元操作和仪器模型。</li>
-<li>引入参考 backend 校准，但保持默认环境轻量。</li>
-<li>所有专业模块必须携带 maturity metadata。</li>
-</ul>
-<h2 id="p4">P4：托管评测</h2>
-<ul>
-<li>隔离执行第三方提交。</li>
-<li>隐藏 evaluation split。</li>
-<li>自动生成 score report、failure report 和公开榜单。</li>
+<li>选择能力切片：<a href="../tasks/">任务列表</a></li>
+<li>编写 agent：<a href="../agent_interface/">Agent 交互接口</a></li>
+<li>理解动作合法性：<a href="../operations/">操作协议</a></li>
+<li>生成可发布结果：<a href="../submission/">提交与验证</a></li>
+<li>复现完整门禁：<a href="../validation/">验证与质量保证</a></li>
 </ul>
 
 
@@ -2396,6 +2101,8 @@
             </div>
           
           
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
         
@@ -2412,6 +2119,10 @@
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
       <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      ChemWorld-Bench · 虚拟研究环境，不用于指导真实实验
+    </div>
   
   
     Made with
@@ -2436,7 +2147,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.top", "navigation.tracking", "toc.follow", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.sections", "navigation.top", "navigation.tracking", "toc.follow", "search.highlight", "search.suggest", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
