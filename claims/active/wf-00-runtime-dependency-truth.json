@@ -2,7 +2,7 @@
   "branch": "team/wf-00-runtime-dependency-truth",
   "claimed_at": "2026-07-10T17:51:11.273985+00:00",
   "expires_at": "2026-07-17T17:51:11.273985+00:00",
-  "notes": "WF-00 integration authority owns tasks.py for dependency truth. No operation behavior, World Law, observation/scoring, golden trajectory, benchmark threshold, or WF-30 drying path changes. If task contract hashes change, only the corresponding serious_validation.json hash bindings may be refreshed after validating unchanged baseline evidence; no baseline values, thresholds, metrics, or scoring logic may change. WF-30 drying paths remain out of scope.",
+  "notes": "WF-00 integration authority owns tasks.py for dependency truth. No operation behavior, World Law, observation/scoring, or WF-30 drying path changes. If task contract hashes change, only corresponding serious_validation.json and core golden task-contract hash bindings may be refreshed after validating unchanged baseline/trajectory values; no baseline values, thresholds, metrics, scoring logic, or trajectory actions may change. WF-30 drying paths remain out of scope.",
   "owned_paths": [
     "src/chemworld/tasks.py",
     "tests/test_maturity.py",
@@ -10,7 +10,8 @@
     "tests/test_maturity_audit.py",
     "workstreams/world_foundation/00_maturity_audit.md",
     "workstreams/world_foundation/reports/wf-00-maturity-audit.json",
-    "configs/benchmark/serious_validation.json"
+    "configs/benchmark/serious_validation.json",
+    "tests/fixtures/golden/core_scripted_trajectories.json"
   ],
   "owner": "knitua",
   "schema_version": "chemworld-task-claim-0.1",
