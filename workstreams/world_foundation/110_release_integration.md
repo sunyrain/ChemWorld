@@ -16,3 +16,25 @@
 
 验收：共享文件无跨团队冲突，正式 runtime 不存在隐式双路由，wheel 可复现新 World Law，所有
 成熟度声明均由实际调用与证据自动生成。
+
+## Adapter intake 门禁
+
+专业模块在请求修改共享 runtime 前，将 `ModelAdapterManifest.to_dict()` 生成的 JSON 放入
+`workstreams/world_foundation/adapters/`。intake 只接受满足以下条件的 proposal：
+
+- `manifest_hash` 与全部字段一致；
+- `owner_workstream` 存在对应的 active 或 completed claim；
+- manifest 的 `owned_paths` 完全落在该 claim 范围内，普通模块不占用共享 integration path；
+- provider symbol 已可导入，model id 不覆盖现有 provider；
+- integration operation 已注册且属于 provider contract；
+- replacement model id 已存在或由同批 proposal 提供；
+- 目标是 `chemworld-physical-chemistry-vnext`，而不是冻结的 v0.3。
+
+运行：
+
+```powershell
+.\.venv\Scripts\python.exe scripts\validate_model_adapters.py --require-manifests
+```
+
+本地发布门禁也会自动扫描该目录。目录为空时门禁通过；集成负责人开始模块接入前使用
+`--require-manifests`，防止在没有交付物时误报完成。
