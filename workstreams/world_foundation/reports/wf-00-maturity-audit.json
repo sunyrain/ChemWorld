@@ -1,0 +1,3773 @@
+{
+  "contract_integrity_passed": true,
+  "declaration_alignment_status": "gaps_detected",
+  "declaration_gap_count": 9,
+  "evidence_paths": [
+    "scripts/audit_model_reachability.py",
+    "src/chemworld/physchem/equilibrium.py",
+    "src/chemworld/runtime/domain_service_registry.py",
+    "src/chemworld/runtime/kernel_registry.py",
+    "src/chemworld/runtime/model_reachability.py",
+    "src/chemworld/runtime/profiles.py",
+    "src/chemworld/tasks.py",
+    "src/chemworld/world/spectra.py"
+  ],
+  "provider_count": 16,
+  "report_hash": "1e59d1cb1d9eba62a9a61f4039fd4bd493cf9ef41e222ef89abb7f6b3f58f2af",
+  "route_count": 28,
+  "schema_version": "chemworld-maturity-audit-0.1",
+  "source_reachability_schema_version": "chemworld-model-reachability-0.1",
+  "structural_findings": [],
+  "task_count": 15,
+  "tasks": [
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "electrochemistry",
+          "instrument_cost",
+          "primitive_operations"
+        ],
+        "kernels": [
+          "add_reagent",
+          "add_solvent",
+          "electrolyze",
+          "measure",
+          "set_potential",
+          "terminate"
+        ],
+        "models": [
+          "beer_lambert_uvvis",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "nernst_butler_volmer_faradaic_v1"
+        ],
+        "operations": [
+          "add_reagent",
+          "add_solvent",
+          "electrolyze",
+          "measure",
+          "set_potential",
+          "terminate"
+        ]
+      },
+      "actual_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "nernst_butler_volmer_faradaic_v1"
+      ],
+      "alignment_status": "gaps_detected",
+      "declared_but_unreachable": [
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite"
+      ],
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "nernst_butler_volmer_faradaic_v1"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "reference_validated",
+            "model_ids": [
+              "nernst_butler_volmer_faradaic_v1"
+            ],
+            "module_id": "electrochemistry",
+            "notes": [
+              "Electrochemistry uses Nernst potential, Butler-Volmer current, Faraday charge accounting, and electrical work ledgers."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "beer_lambert_uvvis": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite",
+        "nernst_butler_volmer_faradaic_v1": "reference_validated"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.electrolyze",
+          "model_free_reason": null,
+          "model_ids": [
+            "nernst_butler_volmer_faradaic_v1"
+          ],
+          "operation_type": "electrolyze",
+          "service_id": "electrochemistry"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.set_potential",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "set_potential",
+          "service_id": "electrochemistry"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        }
+      ],
+      "runtime_profile_hash": "aab61b748241da929990acaa7caca3e05a7f2155316a933c0dec87c71934b1f5",
+      "task_contract_hash": "c00666ffaa02b2d17a9b5c8d486d8e807502b85db293521fc09fe2cb2206d5bb",
+      "task_id": "electrochemical-conversion",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "instrument_cost",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ],
+        "models": [
+          "aqueous_acid_base_ph_observation",
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "ph_meter_public_signal"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ]
+      },
+      "actual_model_ids": [
+        "aqueous_acid_base_ph_observation",
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "ph_meter_public_signal"
+      ],
+      "alignment_status": "gaps_detected",
+      "declared_but_unreachable": [
+        "fixed_tp_ideal_gibbs_minimization"
+      ],
+      "declared_model_ids": [
+        "aqueous_acid_base_ph_observation",
+        "chemworld_synthetic_instruments",
+        "fixed_tp_ideal_gibbs_minimization",
+        "ph_meter_public_signal"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "reference_validated",
+            "model_ids": [
+              "aqueous_acid_base_ph_observation",
+              "fixed_tp_ideal_gibbs_minimization"
+            ],
+            "module_id": "equilibrium_chemistry",
+            "notes": [
+              "D4 equilibrium slice: weak-acid charge balance, public pH-meter observation, sequential Ksp hooks, and Gibbs diagnostic metadata."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "ph_meter_public_signal",
+              "chemworld_synthetic_instruments"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "pH-meter signal is instrument-facing and benchmark-calibrated."
+            ]
+          }
+        ],
+        "notes": [
+          "Equilibrium characterization is a bounded D4 task, not a general aqueous speciation engine."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "aqueous_acid_base_ph_observation": "reference_validated",
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "ph_meter_public_signal": "lite"
+      },
+      "reachable_but_undeclared": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite"
+      ],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        }
+      ],
+      "runtime_profile_hash": "39b115ed097ccb2dcafeb819f8cde8ac9b7e2c89296836e3717189398558eeeb",
+      "task_contract_hash": "a4ac08cff7eab9bf7c37c10dc08ed4ef133a39801afe12f7efa2a1e2a886fca3",
+      "task_id": "equilibrium-characterization",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "continuous_flow",
+          "instrument_cost",
+          "primitive_operations"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "measure",
+          "run_flow",
+          "set_flow_rate",
+          "terminate"
+        ],
+        "models": [
+          "beer_lambert_uvvis",
+          "chemworld_geometry_resolved_pfr_v1",
+          "chemworld_reaction_network_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "pfr"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "measure",
+          "run_flow",
+          "set_flow_rate",
+          "terminate"
+        ]
+      },
+      "actual_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_geometry_resolved_pfr_v1",
+        "chemworld_reaction_network_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "pfr"
+      ],
+      "alignment_status": "gaps_detected",
+      "declared_but_unreachable": [
+        "chemworld_reactor_lite"
+      ],
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_geometry_resolved_pfr_v1",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "pfr"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "pfr",
+              "chemworld_geometry_resolved_pfr_v1"
+            ],
+            "module_id": "continuous_flow",
+            "notes": [
+              "Runtime flow uses the shared compiled reaction network in a geometry-resolved PFR with residence time, distributed thermal boundary, Darcy pressure drop, solver diagnostics, and ledgers."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "beer_lambert_uvvis": "lite",
+        "chemworld_geometry_resolved_pfr_v1": "professional_candidate",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite",
+        "pfr": "professional_candidate"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.run_flow",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "pfr",
+            "chemworld_geometry_resolved_pfr_v1"
+          ],
+          "operation_type": "run_flow",
+          "service_id": "continuous_flow"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.set_flow_rate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "set_flow_rate",
+          "service_id": "continuous_flow"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        }
+      ],
+      "runtime_profile_hash": "4f327b5f65ec9b8e329181b07da602debd2b8e356e9d30be2ccba5c5f890bd00",
+      "task_contract_hash": "527a226016ba153b1c60ce0db476e47f1b7c47cc1498bbdd93bed5d663fa4e86",
+      "task_id": "flow-reaction-optimization",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "instrument_cost",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ],
+        "models": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ]
+      },
+      "actual_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        }
+      ],
+      "runtime_profile_hash": "aabdf49b1a675fd799cb9816a7318af49e08a2aa3c0043ee827b8958a4f3db29",
+      "task_contract_hash": "7cc191c9c97fcfffe8d214fb539d6be6de30e72a5b0a8c83098fd32f411eaae5",
+      "task_id": "low-budget-characterization",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "instrument_cost",
+          "phase_separation",
+          "primitive_operations"
+        ],
+        "kernels": [
+          "add_extractant",
+          "add_phase",
+          "add_reagent",
+          "add_solvent",
+          "measure",
+          "mix",
+          "separate_phase",
+          "settle",
+          "terminate"
+        ],
+        "models": [
+          "activity_corrected_extraction_train_v1",
+          "beer_lambert_uvvis",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "lle_phase_stability_diagnostic_v1"
+        ],
+        "operations": [
+          "add_extractant",
+          "add_phase",
+          "add_reagent",
+          "add_solvent",
+          "measure",
+          "mix",
+          "separate_phase",
+          "settle",
+          "terminate"
+        ]
+      },
+      "actual_model_ids": [
+        "activity_corrected_extraction_train_v1",
+        "beer_lambert_uvvis",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "lle_phase_stability_diagnostic_v1"
+      ],
+      "alignment_status": "gaps_detected",
+      "declared_but_unreachable": [
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite"
+      ],
+      "declared_model_ids": [
+        "activity_corrected_extraction_train_v1",
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "lle_phase_stability_diagnostic_v1"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "activity_corrected_extraction_train_v1",
+              "lle_phase_stability_diagnostic_v1"
+            ],
+            "module_id": "phase_equilibrium",
+            "notes": [
+              "Runtime phase contact uses the activity-corrected extraction train with explicit entrainment and TPD-style diagnostics; intrinsic distribution coefficients remain benchmark-calibrated."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/physchem/equilibrium.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "activity_corrected_extraction_train_v1": "professional_candidate",
+        "beer_lambert_uvvis": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite",
+        "lle_phase_stability_diagnostic_v1": "professional_candidate"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_extractant",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_extractant",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_phase",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_phase",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.mix",
+          "model_free_reason": null,
+          "model_ids": [
+            "activity_corrected_extraction_train_v1",
+            "lle_phase_stability_diagnostic_v1"
+          ],
+          "operation_type": "mix",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.separate_phase",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "separate_phase",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.settle",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "settle",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        }
+      ],
+      "runtime_profile_hash": "64a670ed84e0de4c7a6961e438305f83dbcc03d78da0640cb8473b4d2e1e3851",
+      "task_contract_hash": "d05e2a9dfa77f8c843a6543779febb17bd8d4b3c563947afe7a02d28e25f83fc",
+      "task_id": "partition-discovery",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "instrument_cost",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ],
+        "models": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ]
+      },
+      "actual_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        }
+      ],
+      "runtime_profile_hash": "aabdf49b1a675fd799cb9816a7318af49e08a2aa3c0043ee827b8958a4f3db29",
+      "task_contract_hash": "b26e017a7065930860fdd35d9602df0858b35a35342b9336610d96f75d4bf1e0",
+      "task_id": "public-private-generalization",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "instrument_cost",
+          "phase_separation",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_extractant",
+          "add_phase",
+          "add_reagent",
+          "add_solvent",
+          "concentrate",
+          "dry",
+          "heat",
+          "measure",
+          "mix",
+          "quench",
+          "sample",
+          "separate_phase",
+          "settle",
+          "terminate",
+          "transfer",
+          "wait",
+          "wash"
+        ],
+        "models": [
+          "activity_corrected_extraction_train_v1",
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_separation_proxy",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "lle_phase_stability_diagnostic_v1"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_extractant",
+          "add_phase",
+          "add_reagent",
+          "add_solvent",
+          "concentrate",
+          "dry",
+          "heat",
+          "measure",
+          "mix",
+          "quench",
+          "sample",
+          "separate_phase",
+          "settle",
+          "terminate",
+          "transfer",
+          "wait",
+          "wash"
+        ]
+      },
+      "actual_model_ids": [
+        "activity_corrected_extraction_train_v1",
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_separation_proxy",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "lle_phase_stability_diagnostic_v1"
+      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
+      "declared_model_ids": [
+        "activity_corrected_extraction_train_v1",
+        "activity_corrected_extraction_train_v1",
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_separation_proxy",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "lle_phase_stability_diagnostic_v1"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "proxy",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "activity_corrected_extraction_train_v1",
+              "lle_phase_stability_diagnostic_v1"
+            ],
+            "module_id": "phase_equilibrium",
+            "notes": [
+              "Runtime phase contact uses the activity-corrected extraction train with explicit entrainment and TPD-style diagnostics; intrinsic distribution coefficients remain benchmark-calibrated."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "activity_corrected_extraction_train_v1"
+            ],
+            "module_id": "extraction_wash",
+            "notes": [
+              "Aqueous wash contacts use the same distribution, convergence, entrainment, and material-balance contract as extraction stages."
+            ]
+          },
+          {
+            "level": "proxy",
+            "model_ids": [
+              "chemworld_separation_proxy"
+            ],
+            "module_id": "separations",
+            "notes": [
+              "Drying, concentration, and transfer remain bounded material-ledger operations without a general equipment/phase-equilibrium backend."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": true
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/physchem/equilibrium.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "proxy",
+      "minimum_declared_maturity": "proxy",
+      "provider_maturity": {
+        "activity_corrected_extraction_train_v1": "professional_candidate",
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_separation_proxy": "proxy",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite",
+        "lle_phase_stability_diagnostic_v1": "professional_candidate"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_extractant",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_extractant",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_phase",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_phase",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.concentrate",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_separation_proxy"
+          ],
+          "operation_type": "concentrate",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.dry",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_separation_proxy"
+          ],
+          "operation_type": "dry",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.mix",
+          "model_free_reason": null,
+          "model_ids": [
+            "activity_corrected_extraction_train_v1",
+            "lle_phase_stability_diagnostic_v1"
+          ],
+          "operation_type": "mix",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.separate_phase",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "separate_phase",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.settle",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "settle",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.transfer",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_separation_proxy"
+          ],
+          "operation_type": "transfer",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wash",
+          "model_free_reason": null,
+          "model_ids": [
+            "activity_corrected_extraction_train_v1",
+            "lle_phase_stability_diagnostic_v1"
+          ],
+          "operation_type": "wash",
+          "service_id": "phase_separation"
+        }
+      ],
+      "runtime_profile_hash": "3c3f4a7dccad0a7b8fcf520e34834ff1e7566a661895a014d6040b877fa4427e",
+      "task_contract_hash": "37b1079072d8dc06cfabac65ac3d9d379ebc7a28372f69e9f406822949228f74",
+      "task_id": "purity-yield-tradeoff",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "instrument_cost",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ],
+        "models": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ]
+      },
+      "actual_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        }
+      ],
+      "runtime_profile_hash": "aabdf49b1a675fd799cb9816a7318af49e08a2aa3c0043ee827b8958a4f3db29",
+      "task_contract_hash": "1308a2ce2e77b61c6bbfa76d210bd473c67dafe21a0e4325ebb9a43d63d2eea6",
+      "task_id": "reaction-mechanism-explanation",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "instrument_cost",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ],
+        "models": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ]
+      },
+      "actual_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        }
+      ],
+      "runtime_profile_hash": "aabdf49b1a675fd799cb9816a7318af49e08a2aa3c0043ee827b8958a4f3db29",
+      "task_contract_hash": "1c15e569cc856a47f789b71c2975ff8158d665a157522a3e9d339cee680581eb",
+      "task_id": "reaction-optimization-standard",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "instrument_cost",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ],
+        "models": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ]
+      },
+      "actual_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        }
+      ],
+      "runtime_profile_hash": "aabdf49b1a675fd799cb9816a7318af49e08a2aa3c0043ee827b8958a4f3db29",
+      "task_contract_hash": "a568cc999f3e6b0c6e5a7263355b4ee20132d65ee4c9f56d07bce57cfc0cfa75",
+      "task_id": "reaction-safety-constrained",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "instrument_cost",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ],
+        "models": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ]
+      },
+      "actual_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        }
+      ],
+      "runtime_profile_hash": "aabdf49b1a675fd799cb9816a7318af49e08a2aa3c0043ee827b8958a4f3db29",
+      "task_contract_hash": "38f7ac716703754a16ad3caa147271a5c2374a618c4a2be29a521d5f4c377512",
+      "task_id": "reaction-to-assay",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "crystallization",
+          "instrument_cost",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "cool_crystallize",
+          "filter_crystals",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "seed_crystals",
+          "terminate",
+          "wait"
+        ],
+        "models": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "cooling_crystallization_population_balance_v1"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "cool_crystallize",
+          "filter_crystals",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "seed_crystals",
+          "terminate",
+          "wait"
+        ]
+      },
+      "actual_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "cooling_crystallization_population_balance_v1"
+      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "cooling_crystallization_population_balance_v1"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "cooling_crystallization_population_balance_v1"
+            ],
+            "module_id": "crystallization",
+            "notes": [
+              "Runtime cooling crystallization uses van't Hoff solubility, explicit seed mass, nucleation/growth cohorts, impurity occlusion, material closure, and CSD diagnostics."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite",
+        "cooling_crystallization_population_balance_v1": "professional_candidate"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.cool_crystallize",
+          "model_free_reason": null,
+          "model_ids": [
+            "cooling_crystallization_population_balance_v1"
+          ],
+          "operation_type": "cool_crystallize",
+          "service_id": "crystallization"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.filter_crystals",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "filter_crystals",
+          "service_id": "crystallization"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.seed_crystals",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "seed_crystals",
+          "service_id": "crystallization"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        }
+      ],
+      "runtime_profile_hash": "391d2abf3d0f09665d81bbff843207b12c45fcd16ad45fe2b7223a144d61ae11",
+      "task_contract_hash": "4fed9ffd7c693867cd3057e81d798bb56e9b90cf79c6410135558d3770ec5307",
+      "task_id": "reaction-to-crystallization",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "distillation",
+          "instrument_cost",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "collect_fraction",
+          "distill",
+          "evaporate",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ],
+        "models": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "vle_shortcut_distillation"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_reagent",
+          "add_solvent",
+          "collect_fraction",
+          "distill",
+          "evaporate",
+          "heat",
+          "measure",
+          "quench",
+          "sample",
+          "terminate",
+          "wait"
+        ]
+      },
+      "actual_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "vle_shortcut_distillation"
+      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "vle_shortcut_distillation"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "reference_validated",
+            "model_ids": [
+              "vle_shortcut_distillation"
+            ],
+            "module_id": "distillation",
+            "notes": [
+              "Distillation uses a VLE-coupled constant-relative-volatility shortcut model with analytical Fenske identity tests."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "lite",
+      "minimum_declared_maturity": "lite",
+      "provider_maturity": {
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite",
+        "vle_shortcut_distillation": "reference_validated"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.collect_fraction",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "collect_fraction",
+          "service_id": "distillation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.distill",
+          "model_free_reason": null,
+          "model_ids": [
+            "vle_shortcut_distillation"
+          ],
+          "operation_type": "distill",
+          "service_id": "distillation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.evaporate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "evaporate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        }
+      ],
+      "runtime_profile_hash": "81b01457e79242164136fea6e135aabd076eb39e85fe71d3e220fe1bfcb4701c",
+      "task_contract_hash": "d9fc1b09d21f746af8e238979a8561d4e9a5a12491d4366e3af3f73e234d5fd5",
+      "task_id": "reaction-to-distillation",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "instrument_cost",
+          "phase_separation",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_extractant",
+          "add_phase",
+          "add_reagent",
+          "add_solvent",
+          "concentrate",
+          "dry",
+          "heat",
+          "measure",
+          "mix",
+          "quench",
+          "sample",
+          "separate_phase",
+          "settle",
+          "terminate",
+          "transfer",
+          "wait",
+          "wash"
+        ],
+        "models": [
+          "activity_corrected_extraction_train_v1",
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_separation_proxy",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "lle_phase_stability_diagnostic_v1"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_extractant",
+          "add_phase",
+          "add_reagent",
+          "add_solvent",
+          "concentrate",
+          "dry",
+          "heat",
+          "measure",
+          "mix",
+          "quench",
+          "sample",
+          "separate_phase",
+          "settle",
+          "terminate",
+          "transfer",
+          "wait",
+          "wash"
+        ]
+      },
+      "actual_model_ids": [
+        "activity_corrected_extraction_train_v1",
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_separation_proxy",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "lle_phase_stability_diagnostic_v1"
+      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
+      "declared_model_ids": [
+        "activity_corrected_extraction_train_v1",
+        "activity_corrected_extraction_train_v1",
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_separation_proxy",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "lle_phase_stability_diagnostic_v1"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "proxy",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "activity_corrected_extraction_train_v1",
+              "lle_phase_stability_diagnostic_v1"
+            ],
+            "module_id": "phase_equilibrium",
+            "notes": [
+              "Runtime phase contact uses the activity-corrected extraction train with explicit entrainment and TPD-style diagnostics; intrinsic distribution coefficients remain benchmark-calibrated."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "activity_corrected_extraction_train_v1"
+            ],
+            "module_id": "extraction_wash",
+            "notes": [
+              "Aqueous wash contacts use the same distribution, convergence, entrainment, and material-balance contract as extraction stages."
+            ]
+          },
+          {
+            "level": "proxy",
+            "model_ids": [
+              "chemworld_separation_proxy"
+            ],
+            "module_id": "separations",
+            "notes": [
+              "Drying, concentration, and transfer remain bounded material-ledger operations without a general equipment/phase-equilibrium backend."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": true
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/physchem/equilibrium.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "proxy",
+      "minimum_declared_maturity": "proxy",
+      "provider_maturity": {
+        "activity_corrected_extraction_train_v1": "professional_candidate",
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_separation_proxy": "proxy",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite",
+        "lle_phase_stability_diagnostic_v1": "professional_candidate"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_extractant",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_extractant",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_phase",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_phase",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.concentrate",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_separation_proxy"
+          ],
+          "operation_type": "concentrate",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.dry",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_separation_proxy"
+          ],
+          "operation_type": "dry",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.mix",
+          "model_free_reason": null,
+          "model_ids": [
+            "activity_corrected_extraction_train_v1",
+            "lle_phase_stability_diagnostic_v1"
+          ],
+          "operation_type": "mix",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.separate_phase",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "separate_phase",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.settle",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "settle",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.transfer",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_separation_proxy"
+          ],
+          "operation_type": "transfer",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wash",
+          "model_free_reason": null,
+          "model_ids": [
+            "activity_corrected_extraction_train_v1",
+            "lle_phase_stability_diagnostic_v1"
+          ],
+          "operation_type": "wash",
+          "service_id": "phase_separation"
+        }
+      ],
+      "runtime_profile_hash": "3c3f4a7dccad0a7b8fcf520e34834ff1e7566a661895a014d6040b877fa4427e",
+      "task_contract_hash": "063e4fa6e4fba21b9cdf98130fe7e5ebf8e2ecda19126af6e4c7c9e331675b32",
+      "task_id": "reaction-to-purification",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    },
+    {
+      "actual_dependencies": {
+        "domain_services": [
+          "instrument_cost",
+          "phase_separation",
+          "primitive_operations",
+          "reaction_thermal"
+        ],
+        "kernels": [
+          "add_catalyst",
+          "add_extractant",
+          "add_phase",
+          "add_reagent",
+          "add_solvent",
+          "concentrate",
+          "dry",
+          "heat",
+          "measure",
+          "mix",
+          "quench",
+          "sample",
+          "separate_phase",
+          "settle",
+          "terminate",
+          "transfer",
+          "wait",
+          "wash"
+        ],
+        "models": [
+          "activity_corrected_extraction_train_v1",
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_separation_proxy",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "lle_phase_stability_diagnostic_v1"
+        ],
+        "operations": [
+          "add_catalyst",
+          "add_extractant",
+          "add_phase",
+          "add_reagent",
+          "add_solvent",
+          "concentrate",
+          "dry",
+          "heat",
+          "measure",
+          "mix",
+          "quench",
+          "sample",
+          "separate_phase",
+          "settle",
+          "terminate",
+          "transfer",
+          "wait",
+          "wash"
+        ]
+      },
+      "actual_model_ids": [
+        "activity_corrected_extraction_train_v1",
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_separation_proxy",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "lle_phase_stability_diagnostic_v1"
+      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
+      "declared_model_ids": [
+        "activity_corrected_extraction_train_v1",
+        "activity_corrected_extraction_train_v1",
+        "beer_lambert_uvvis",
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_separation_proxy",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "lle_phase_stability_diagnostic_v1"
+      ],
+      "declared_module_maturity": {
+        "lowest_level": "proxy",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "activity_corrected_extraction_train_v1",
+              "lle_phase_stability_diagnostic_v1"
+            ],
+            "module_id": "phase_equilibrium",
+            "notes": [
+              "Runtime phase contact uses the activity-corrected extraction train with explicit entrainment and TPD-style diagnostics; intrinsic distribution coefficients remain benchmark-calibrated."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "activity_corrected_extraction_train_v1"
+            ],
+            "module_id": "extraction_wash",
+            "notes": [
+              "Aqueous wash contacts use the same distribution, convergence, entrainment, and material-balance contract as extraction stages."
+            ]
+          },
+          {
+            "level": "proxy",
+            "model_ids": [
+              "chemworld_separation_proxy"
+            ],
+            "module_id": "separations",
+            "notes": [
+              "Drying, concentration, and transfer remain bounded material-ledger operations without a general equipment/phase-equilibrium backend."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": true
+      },
+      "evidence_paths": [
+        "scripts/audit_model_reachability.py",
+        "src/chemworld/physchem/equilibrium.py",
+        "src/chemworld/runtime/domain_service_registry.py",
+        "src/chemworld/runtime/kernel_registry.py",
+        "src/chemworld/runtime/model_reachability.py",
+        "src/chemworld/runtime/profiles.py",
+        "src/chemworld/tasks.py",
+        "src/chemworld/world/spectra.py"
+      ],
+      "minimum_actual_maturity": "proxy",
+      "minimum_declared_maturity": "proxy",
+      "provider_maturity": {
+        "activity_corrected_extraction_train_v1": "professional_candidate",
+        "beer_lambert_uvvis": "lite",
+        "chemworld_reaction_network_lite": "lite",
+        "chemworld_reactor_lite": "lite",
+        "chemworld_separation_proxy": "proxy",
+        "chemworld_synthetic_instruments": "lite",
+        "chromatography_retention_plate": "lite",
+        "lle_phase_stability_diagnostic_v1": "professional_candidate"
+      },
+      "reachable_but_undeclared": [],
+      "routes": [
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_catalyst",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_catalyst",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_extractant",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_extractant",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_phase",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_phase",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_reagent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_reagent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.add_solvent",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "add_solvent",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.concentrate",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_separation_proxy"
+          ],
+          "operation_type": "concentrate",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.dry",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_separation_proxy"
+          ],
+          "operation_type": "dry",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.heat",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "heat",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {
+            "final_assay": [],
+            "gc": [
+              "chromatography_retention_plate"
+            ],
+            "hplc": [
+              "chromatography_retention_plate"
+            ],
+            "ph_meter": [
+              "aqueous_acid_base_ph_observation",
+              "ph_meter_public_signal"
+            ],
+            "uvvis": [
+              "beer_lambert_uvvis"
+            ]
+          },
+          "kernel_id": "chemworld.operation.measure",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_synthetic_instruments"
+          ],
+          "operation_type": "measure",
+          "service_id": "instrument_cost"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.mix",
+          "model_free_reason": null,
+          "model_ids": [
+            "activity_corrected_extraction_train_v1",
+            "lle_phase_stability_diagnostic_v1"
+          ],
+          "operation_type": "mix",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.quench",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "quench",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.sample",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "sample",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.separate_phase",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "separate_phase",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.settle",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "settle",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.terminate",
+          "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+          "model_ids": [],
+          "operation_type": "terminate",
+          "service_id": "primitive_operations"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.transfer",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_separation_proxy"
+          ],
+          "operation_type": "transfer",
+          "service_id": "phase_separation"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wait",
+          "model_free_reason": null,
+          "model_ids": [
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite"
+          ],
+          "operation_type": "wait",
+          "service_id": "reaction_thermal"
+        },
+        {
+          "instrument_model_ids": {},
+          "kernel_id": "chemworld.operation.wash",
+          "model_free_reason": null,
+          "model_ids": [
+            "activity_corrected_extraction_train_v1",
+            "lle_phase_stability_diagnostic_v1"
+          ],
+          "operation_type": "wash",
+          "service_id": "phase_separation"
+        }
+      ],
+      "runtime_profile_hash": "3c3f4a7dccad0a7b8fcf520e34834ff1e7566a661895a014d6040b877fa4427e",
+      "task_contract_hash": "8939d78696301b9707b411435f0531d3e2509171f174b7f36df035c8a09a48c5",
+      "task_id": "tool-agent-planning",
+      "world_law_id": "chemworld-physical-chemistry-v0.3"
+    }
+  ],
+  "world_law_id": "chemworld-physical-chemistry-v0.3"
+}
