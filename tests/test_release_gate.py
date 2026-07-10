@@ -31,6 +31,7 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
         "reference_validation",
         "runtime_boundary_audit",
         "model_reachability_audit",
+        "model_adapter_intake",
         "environment_audit",
         "baseline_smoke",
         "frozen_benchmark",
@@ -44,6 +45,7 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
     assert any("smoke_test_wheel.py" in command for command in flat_commands)
     assert any("run_reference_validation.py" in command for command in flat_commands)
     assert any("audit_model_reachability.py" in command for command in flat_commands)
+    assert any("validate_model_adapters.py" in command for command in flat_commands)
     assert any("audit_environment_consistency.py" in command for command in flat_commands)
     assert any("baselines report" in command for command in flat_commands)
     assert any("check_frozen_benchmark.py" in command for command in flat_commands)

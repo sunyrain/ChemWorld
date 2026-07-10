@@ -62,6 +62,15 @@ def release_gate_commands(
             ],
         ),
         GateCommand(
+            "model_adapter_intake",
+            [
+                python,
+                "scripts/validate_model_adapters.py",
+                "--output",
+                str(output_dir / "model_adapter_intake_report.json"),
+            ],
+        ),
+        GateCommand(
             "environment_audit",
             [
                 python,
