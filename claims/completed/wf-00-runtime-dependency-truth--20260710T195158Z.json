@@ -1,6 +1,8 @@
 {
   "branch": "team/wf-00-runtime-dependency-truth",
   "claimed_at": "2026-07-10T17:51:11.273985+00:00",
+  "completed_at": "2026-07-10T19:51:58.548375+00:00",
+  "completion_summary": "Implemented WF-00.1 dependency truth: default_kernel_maturity now derives physical modules from actual operation routes, so ledger-only tasks no longer inherit reaction, reactor, or instrument declarations. Updated the fixed 15-task audit from 9 to 4 declaration gaps, refreshed only serious_validation.json and core golden task-contract hash bindings (no baseline values, thresholds, metrics, scoring logic, or trajectory actions changed), and added route-derivation regressions. Validated by 886 passed/11 skipped standalone full suite, 48 targeted maturity/golden/benchmark tests, 897-test release-gate test phase with 886 passed/11 skipped, tasks readiness 6/6 validated, Ruff, mypy, claim check, and core golden trajectories. Release-gate docs phase remains environment-blocked because mkdocs is not installed (No module named mkdocs). Implementation commit b12b0d0716a3265496feff0a052eb349b9b12c32; integrated main b12b0d0716a3265496feff0a052eb349b9b12c32.",
   "expires_at": "2026-07-17T17:51:11.273985+00:00",
   "notes": "WF-00 integration authority owns tasks.py for dependency truth. No operation behavior, World Law, observation/scoring, or WF-30 drying path changes. If task contract hashes change, only corresponding serious_validation.json and core golden task-contract hash bindings may be refreshed after validating unchanged baseline/trajectory values; no baseline values, thresholds, metrics, scoring logic, or trajectory actions may change. WF-30 drying paths remain out of scope.",
   "owned_paths": [
@@ -16,6 +18,6 @@
   "owner": "knitua",
   "schema_version": "chemworld-task-claim-0.1",
   "scope": "WF-00.1 derive task maturity modules from actual operation dependency paths instead of unconditional reaction/reactor/instrument declarations, preserving v0.3 behavior while updating audit evidence and tests",
-  "status": "active",
+  "status": "completed",
   "task_id": "wf-00-runtime-dependency-truth"
 }
