@@ -28,3 +28,12 @@ target 与 line final inventory，并对物料和体积执行硬闭合。
 该 proposal 使用 `chemworld_sorbent_drying_vnext`，同样保持 `runtime_addition`。它不声称代表任意
 真实干燥剂，也不覆盖真空或热干燥；参数必须来自后续带 provenance 的 sorbent/property card。
 在 concentrate slice 和 WF-110 路由/基准重冻结完成前，共享 v0.3 proxy 仍不得删除。
+
+`wf-30-vacuum-concentration` 补齐 concentrate 的 reference slice：在声明的物性求值温度下使用
+gamma-Raoult 瞬时蒸气组成，显热升温后由加热功率与设备最大蒸发速率共同限制差分批式蒸发。
+溶剂终点、产品回收下限、最低残液体积与泡点压力均为事件边界；蒸出物显式拆分为冷凝回收和
+vent loss，并逐组分关闭液相/冷凝/放空以及等效液体体积和显热/潜热账本。
+
+单挥发组分对照解析功率-潜热极限，二元理想体系对照闭式 Rayleigh 恒等式，多组分域扫描验证
+设备与守恒边界。至此 dry、concentrate、transfer 三个独立 vNext proposal 均已有候选实现；共享
+`chemworld_separation_proxy` 仍只允许由 WF-110 在新 World Law 路由接管和 benchmark 重冻结后移除。
