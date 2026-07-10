@@ -44,6 +44,33 @@ def test_each_task_report_contains_hashes_routes_maturity_and_evidence() -> None
         assert all((root / path).is_file() for path in item["evidence_paths"])
 
 
+def test_role_audit_separates_runtime_diagnostic_and_reference_models() -> None:
+    root = Path(__file__).parents[1]
+    report = build_maturity_audit(repository_root=root)
+
+    assert report["role_boundary_passed"]
+    assert set(report["provider_role_catalog"].values()) >= {
+        "runtime",
+        "runtime_fallback",
+        "diagnostic",
+        "reference",
+    }
+    for item in report["tasks"]:
+        actual_roles = item["actual_provider_roles"]
+        assert item["actual_role_partition"]["reference"] == []
+        assert set(actual_roles) == set(item["actual_model_ids"])
+        assert all(
+            item["declared_provider_roles"][model_id] for model_id in item["declared_model_ids"]
+        )
+    equilibrium = next(
+        item for item in report["tasks"] if item["task_id"] == "equilibrium-characterization"
+    )
+    assert equilibrium["declared_provider_roles"]["fixed_tp_ideal_gibbs_minimization"] == (
+        "reference"
+    )
+    assert "fixed_tp_ideal_gibbs_minimization" not in equilibrium["actual_model_ids"]
+
+
 def test_report_is_deterministic_and_fixed_json_round_trips(tmp_path: Path) -> None:
     root = Path(__file__).parents[1]
     first = build_maturity_audit(repository_root=root)

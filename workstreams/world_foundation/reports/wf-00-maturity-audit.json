@@ -13,7 +13,26 @@
     "src/chemworld/world/spectra.py"
   ],
   "provider_count": 16,
-  "report_hash": "1e59d1cb1d9eba62a9a61f4039fd4bd493cf9ef41e222ef89abb7f6b3f58f2af",
+  "provider_role_catalog": {
+    "activity_corrected_extraction_train_v1": "runtime",
+    "aqueous_acid_base_ph_observation": "runtime",
+    "beer_lambert_uvvis": "runtime",
+    "chemworld_geometry_resolved_pfr_v1": "runtime",
+    "chemworld_reaction_network_lite": "runtime",
+    "chemworld_reactor_lite": "runtime",
+    "chemworld_separation_proxy": "runtime_fallback",
+    "chemworld_synthetic_instruments": "runtime",
+    "chromatography_retention_plate": "runtime",
+    "cooling_crystallization_population_balance_v1": "runtime",
+    "fixed_tp_ideal_gibbs_minimization": "reference",
+    "lle_phase_stability_diagnostic_v1": "diagnostic",
+    "nernst_butler_volmer_faradaic_v1": "runtime",
+    "pfr": "runtime",
+    "ph_meter_public_signal": "runtime",
+    "vle_shortcut_distillation": "runtime"
+  },
+  "report_hash": "13c8b11895c334365590a267d5a165f683bb33d59cb216e8b6e6b0ce36d4b097",
+  "role_boundary_passed": true,
   "route_count": 28,
   "schema_version": "chemworld-maturity-audit-0.1",
   "source_reachability_schema_version": "chemworld-model-reachability-0.1",
@@ -56,6 +75,23 @@
         "chromatography_retention_plate",
         "nernst_butler_volmer_faradaic_v1"
       ],
+      "actual_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "nernst_butler_volmer_faradaic_v1": "runtime"
+      },
+      "actual_role_partition": {
+        "diagnostic": [],
+        "reference": [],
+        "runtime": [
+          "beer_lambert_uvvis",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "nernst_butler_volmer_faradaic_v1"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "gaps_detected",
       "declared_but_unreachable": [
         "chemworld_reaction_network_lite",
@@ -119,6 +155,14 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "nernst_butler_volmer_faradaic_v1": "runtime"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -258,6 +302,27 @@
         "chemworld_synthetic_instruments",
         "ph_meter_public_signal"
       ],
+      "actual_provider_roles": {
+        "aqueous_acid_base_ph_observation": "runtime",
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "ph_meter_public_signal": "runtime"
+      },
+      "actual_role_partition": {
+        "diagnostic": [],
+        "reference": [],
+        "runtime": [
+          "aqueous_acid_base_ph_observation",
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "ph_meter_public_signal"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "gaps_detected",
       "declared_but_unreachable": [
         "fixed_tp_ideal_gibbs_minimization"
@@ -298,6 +363,12 @@
           "Equilibrium characterization is a bounded D4 task, not a general aqueous speciation engine."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "aqueous_acid_base_ph_observation": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "fixed_tp_ideal_gibbs_minimization": "reference",
+        "ph_meter_public_signal": "runtime"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -467,6 +538,27 @@
         "chromatography_retention_plate",
         "pfr"
       ],
+      "actual_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_geometry_resolved_pfr_v1": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "pfr": "runtime"
+      },
+      "actual_role_partition": {
+        "diagnostic": [],
+        "reference": [],
+        "runtime": [
+          "beer_lambert_uvvis",
+          "chemworld_geometry_resolved_pfr_v1",
+          "chemworld_reaction_network_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "pfr"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "gaps_detected",
       "declared_but_unreachable": [
         "chemworld_reactor_lite"
@@ -531,6 +623,15 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_geometry_resolved_pfr_v1": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "pfr": "runtime"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -680,6 +781,25 @@
         "chemworld_synthetic_instruments",
         "chromatography_retention_plate"
       ],
+      "actual_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
+      },
+      "actual_role_partition": {
+        "diagnostic": [],
+        "reference": [],
+        "runtime": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "aligned",
       "declared_but_unreachable": [],
       "declared_model_ids": [
@@ -729,6 +849,13 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -895,6 +1022,26 @@
         "chromatography_retention_plate",
         "lle_phase_stability_diagnostic_v1"
       ],
+      "actual_provider_roles": {
+        "activity_corrected_extraction_train_v1": "runtime",
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "lle_phase_stability_diagnostic_v1": "diagnostic"
+      },
+      "actual_role_partition": {
+        "diagnostic": [
+          "lle_phase_stability_diagnostic_v1"
+        ],
+        "reference": [],
+        "runtime": [
+          "activity_corrected_extraction_train_v1",
+          "beer_lambert_uvvis",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "gaps_detected",
       "declared_but_unreachable": [
         "chemworld_reaction_network_lite",
@@ -960,6 +1107,15 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "activity_corrected_extraction_train_v1": "runtime",
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "lle_phase_stability_diagnostic_v1": "diagnostic"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -1124,6 +1280,25 @@
         "chemworld_synthetic_instruments",
         "chromatography_retention_plate"
       ],
+      "actual_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
+      },
+      "actual_role_partition": {
+        "diagnostic": [],
+        "reference": [],
+        "runtime": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "aligned",
       "declared_but_unreachable": [],
       "declared_model_ids": [
@@ -1173,6 +1348,13 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -1364,6 +1546,33 @@
         "chromatography_retention_plate",
         "lle_phase_stability_diagnostic_v1"
       ],
+      "actual_provider_roles": {
+        "activity_corrected_extraction_train_v1": "runtime",
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_separation_proxy": "runtime_fallback",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "lle_phase_stability_diagnostic_v1": "diagnostic"
+      },
+      "actual_role_partition": {
+        "diagnostic": [
+          "lle_phase_stability_diagnostic_v1"
+        ],
+        "reference": [],
+        "runtime": [
+          "activity_corrected_extraction_train_v1",
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "runtime_fallback": [
+          "chemworld_separation_proxy"
+        ]
+      },
       "alignment_status": "aligned",
       "declared_but_unreachable": [],
       "declared_model_ids": [
@@ -1448,6 +1657,16 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": true
+      },
+      "declared_provider_roles": {
+        "activity_corrected_extraction_train_v1": "runtime",
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_separation_proxy": "runtime_fallback",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "lle_phase_stability_diagnostic_v1": "diagnostic"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -1702,6 +1921,25 @@
         "chemworld_synthetic_instruments",
         "chromatography_retention_plate"
       ],
+      "actual_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
+      },
+      "actual_role_partition": {
+        "diagnostic": [],
+        "reference": [],
+        "runtime": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "aligned",
       "declared_but_unreachable": [],
       "declared_model_ids": [
@@ -1751,6 +1989,13 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -1917,6 +2162,25 @@
         "chemworld_synthetic_instruments",
         "chromatography_retention_plate"
       ],
+      "actual_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
+      },
+      "actual_role_partition": {
+        "diagnostic": [],
+        "reference": [],
+        "runtime": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "aligned",
       "declared_but_unreachable": [],
       "declared_model_ids": [
@@ -1966,6 +2230,13 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -2132,6 +2403,25 @@
         "chemworld_synthetic_instruments",
         "chromatography_retention_plate"
       ],
+      "actual_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
+      },
+      "actual_role_partition": {
+        "diagnostic": [],
+        "reference": [],
+        "runtime": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "aligned",
       "declared_but_unreachable": [],
       "declared_model_ids": [
@@ -2181,6 +2471,13 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -2347,6 +2644,25 @@
         "chemworld_synthetic_instruments",
         "chromatography_retention_plate"
       ],
+      "actual_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
+      },
+      "actual_role_partition": {
+        "diagnostic": [],
+        "reference": [],
+        "runtime": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "aligned",
       "declared_but_unreachable": [],
       "declared_model_ids": [
@@ -2396,6 +2712,13 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -2571,6 +2894,27 @@
         "chromatography_retention_plate",
         "cooling_crystallization_population_balance_v1"
       ],
+      "actual_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "cooling_crystallization_population_balance_v1": "runtime"
+      },
+      "actual_role_partition": {
+        "diagnostic": [],
+        "reference": [],
+        "runtime": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "cooling_crystallization_population_balance_v1"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "aligned",
       "declared_but_unreachable": [],
       "declared_model_ids": [
@@ -2631,6 +2975,14 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "cooling_crystallization_population_balance_v1": "runtime"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -2833,6 +3185,27 @@
         "chromatography_retention_plate",
         "vle_shortcut_distillation"
       ],
+      "actual_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "vle_shortcut_distillation": "runtime"
+      },
+      "actual_role_partition": {
+        "diagnostic": [],
+        "reference": [],
+        "runtime": [
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "vle_shortcut_distillation"
+        ],
+        "runtime_fallback": []
+      },
       "alignment_status": "aligned",
       "declared_but_unreachable": [],
       "declared_model_ids": [
@@ -2893,6 +3266,14 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": false
+      },
+      "declared_provider_roles": {
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "vle_shortcut_distillation": "runtime"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -3111,6 +3492,33 @@
         "chromatography_retention_plate",
         "lle_phase_stability_diagnostic_v1"
       ],
+      "actual_provider_roles": {
+        "activity_corrected_extraction_train_v1": "runtime",
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_separation_proxy": "runtime_fallback",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "lle_phase_stability_diagnostic_v1": "diagnostic"
+      },
+      "actual_role_partition": {
+        "diagnostic": [
+          "lle_phase_stability_diagnostic_v1"
+        ],
+        "reference": [],
+        "runtime": [
+          "activity_corrected_extraction_train_v1",
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "runtime_fallback": [
+          "chemworld_separation_proxy"
+        ]
+      },
       "alignment_status": "aligned",
       "declared_but_unreachable": [],
       "declared_model_ids": [
@@ -3195,6 +3603,16 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": true
+      },
+      "declared_provider_roles": {
+        "activity_corrected_extraction_train_v1": "runtime",
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_separation_proxy": "runtime_fallback",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "lle_phase_stability_diagnostic_v1": "diagnostic"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",
@@ -3474,6 +3892,33 @@
         "chromatography_retention_plate",
         "lle_phase_stability_diagnostic_v1"
       ],
+      "actual_provider_roles": {
+        "activity_corrected_extraction_train_v1": "runtime",
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_separation_proxy": "runtime_fallback",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "lle_phase_stability_diagnostic_v1": "diagnostic"
+      },
+      "actual_role_partition": {
+        "diagnostic": [
+          "lle_phase_stability_diagnostic_v1"
+        ],
+        "reference": [],
+        "runtime": [
+          "activity_corrected_extraction_train_v1",
+          "beer_lambert_uvvis",
+          "chemworld_reaction_network_lite",
+          "chemworld_reactor_lite",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate"
+        ],
+        "runtime_fallback": [
+          "chemworld_separation_proxy"
+        ]
+      },
       "alignment_status": "aligned",
       "declared_but_unreachable": [],
       "declared_model_ids": [
@@ -3558,6 +4003,16 @@
           "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
         ],
         "proxy_allowed": true
+      },
+      "declared_provider_roles": {
+        "activity_corrected_extraction_train_v1": "runtime",
+        "beer_lambert_uvvis": "runtime",
+        "chemworld_reaction_network_lite": "runtime",
+        "chemworld_reactor_lite": "runtime",
+        "chemworld_separation_proxy": "runtime_fallback",
+        "chemworld_synthetic_instruments": "runtime",
+        "chromatography_retention_plate": "runtime",
+        "lle_phase_stability_diagnostic_v1": "diagnostic"
       },
       "evidence_paths": [
         "scripts/audit_model_reachability.py",

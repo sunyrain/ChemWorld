@@ -12,6 +12,13 @@ raise maturity. `minimum_actual_maturity` is the lowest provider maturity among
 the models reachable from the task. A task with no physical provider route is
 reported as `not_applicable`.
 
+The WF-00.4 role audit also records `actual_provider_roles`,
+`declared_provider_roles`, and `actual_role_partition` for `runtime`,
+`runtime_fallback`, `diagnostic`, and `reference` providers. Reference-only
+providers must never appear in an actual runtime partition; a violation fails
+the role boundary audit. A diagnostic provider may be reachable for an
+explicit diagnostic route but does not raise task maturity by itself.
+
 Reference boundary:
 
 - ChemWorld `TaskSpec`, `TaskRuntimeProfile`, `DomainServiceRegistry`,

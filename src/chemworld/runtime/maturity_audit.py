@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from chemworld.physchem.maturity import ModelExecutionRole
 from chemworld.runtime.model_reachability import (
     MODEL_REACHABILITY_SCHEMA_VERSION,
     ModelReachabilityRegistry,
@@ -59,6 +60,13 @@ def build_maturity_audit(
         "contract_integrity_passed": not any(
             finding["severity"] == "error" for finding in structural_findings
         ),
+        "role_boundary_passed": not any(
+            finding["check_id"] == "reference_runtime_separation" for finding in structural_findings
+        ),
+        "provider_role_catalog": {
+            provider.model_id: provider.role.value
+            for provider in sorted(registry.providers.providers, key=lambda item: item.model_id)
+        },
         "declaration_alignment_status": (
             "aligned" if declaration_gap_count == 0 else "gaps_detected"
         ),
@@ -137,6 +145,33 @@ def validate_maturity_audit_report(
         expected_minimum = _minimum_maturity(registry, expected_model_ids)
         if item.get("minimum_actual_maturity") != expected_minimum:
             errors.append(f"minimum actual maturity mismatch: {task_id}")
+        expected_roles = {
+            model_id: registry.providers.get(model_id).role.value for model_id in expected_model_ids
+        }
+        if item.get("actual_provider_roles") != expected_roles:
+            errors.append(f"actual provider role mismatch: {task_id}")
+        actual_partition = item.get("actual_role_partition")
+        if not isinstance(actual_partition, dict):
+            errors.append(f"missing actual role partition: {task_id}")
+        else:
+            for role in ModelExecutionRole:
+                expected_role_ids = sorted(
+                    model_id for model_id, value in expected_roles.items() if value == role.value
+                )
+                if actual_partition.get(role.value) != expected_role_ids:
+                    errors.append(f"actual role partition mismatch: {task_id}:{role.value}")
+        declared_roles = item.get("declared_provider_roles")
+        if not isinstance(declared_roles, dict):
+            errors.append(f"missing declared provider roles: {task_id}")
+        else:
+            for model_id in item.get("declared_model_ids", ()):
+                provider_role = (
+                    registry.providers.get(model_id).role.value
+                    if model_id in {provider.model_id for provider in registry.providers.providers}
+                    else "unregistered"
+                )
+                if declared_roles.get(model_id) != provider_role:
+                    errors.append(f"declared provider role mismatch: {task_id}:{model_id}")
     if report.get("report_hash") != _report_hash({**report, "report_hash": None}):
         errors.append("report_hash mismatch")
     for path in report.get("evidence_paths", ()):
@@ -177,8 +212,31 @@ def _task_report(
         registry.route_for_operation(operation).to_dict()
         for operation in sorted(profile.allowed_operations)
     ]
+    declared_model_ids = sorted(
+        model_id for module in task.kernel_maturity.modules for model_id in module.model_ids
+    )
+    registered_model_ids = {provider.model_id for provider in registry.providers.providers}
     provider_maturity = {
         model_id: registry.providers.get(model_id).maturity.value for model_id in actual_model_ids
+    }
+    actual_provider_roles = {
+        model_id: registry.providers.get(model_id).role.value for model_id in actual_model_ids
+    }
+    declared_provider_roles = {
+        model_id: (
+            registry.providers.get(model_id).role.value
+            if model_id in registered_model_ids
+            else "unregistered"
+        )
+        for model_id in declared_model_ids
+    }
+    actual_role_partition = {
+        role.value: sorted(
+            model_id
+            for model_id, provider_role in actual_provider_roles.items()
+            if provider_role == role.value
+        )
+        for role in ModelExecutionRole
     }
     evidence_paths = set(_CORE_EVIDENCE_PATHS)
     for model_id in actual_model_ids:
@@ -187,9 +245,6 @@ def _task_report(
         source_path = "src/" + module_name.replace(".", "/") + ".py"
         if (repository_root / source_path).is_file():
             evidence_paths.add(source_path)
-    declared_model_ids = sorted(
-        model_id for module in task.kernel_maturity.modules for model_id in module.model_ids
-    )
     return {
         "task_id": task.task_id,
         "world_law_id": task.world_law_id,
@@ -205,6 +260,9 @@ def _task_report(
         },
         "actual_model_ids": actual_model_ids,
         "provider_maturity": provider_maturity,
+        "actual_provider_roles": actual_provider_roles,
+        "declared_provider_roles": declared_provider_roles,
+        "actual_role_partition": actual_role_partition,
         "minimum_declared_maturity": task.kernel_maturity.lowest_level.value,
         "minimum_actual_maturity": _minimum_maturity(registry, set(actual_model_ids)),
         "declared_but_unreachable": sorted(set(declared_model_ids) - set(actual_model_ids)),
