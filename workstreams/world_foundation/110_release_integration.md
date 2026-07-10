@@ -38,3 +38,23 @@
 
 本地发布门禁也会自动扫描该目录。目录为空时门禁通过；集成负责人开始模块接入前使用
 `--require-manifests`，防止在没有交付物时误报完成。
+
+## vNext staging plan
+
+通过 intake 仍不等于可以修改 runtime。核心集成负责人使用 staging plan 区分三类交付：
+
+- `diagnostic_addition`：只增加校验或诊断证据，不替代 runtime model，也不传播成熟度；
+- `runtime_addition`：新增 runtime 能力，需要 World Law、路由和任务边界审查；
+- `runtime_replacement`：使用新 model id 明确替代旧 model，仍需完成 runtime/reference evidence 后
+  才能删除旧实现或修改成熟度。
+
+只有 claim 已完成、intake 通过且不存在分类冲突的 proposal 才标记为 `integration_ready`。staging
+自身永远不修改 v0.3、不删除旧模型，也不允许直接提升 task maturity。
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_vnext_integration_plan.py `
+  --require-integration-ready
+```
+
+正式开始 runtime 替换前再增加 `--require-runtime-replacement`。该开关能防止把纯诊断模块误当成
+物理底座替换已经完成。

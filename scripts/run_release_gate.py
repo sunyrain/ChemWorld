@@ -71,6 +71,15 @@ def release_gate_commands(
             ],
         ),
         GateCommand(
+            "vnext_staging_plan",
+            [
+                python,
+                "scripts/build_vnext_integration_plan.py",
+                "--output",
+                str(output_dir / "vnext_integration_plan.json"),
+            ],
+        ),
+        GateCommand(
             "environment_audit",
             [
                 python,
