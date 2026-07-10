@@ -57,7 +57,7 @@ def test_env_exposes_agent_facing_methods() -> None:
         env.close()
 
 
-def test_pre_release_task_prompts_are_structured_and_public() -> None:
+def test_core_task_prompts_are_structured_and_public() -> None:
     expectations = {
         "reaction-to-assay": {
             "must_include": [

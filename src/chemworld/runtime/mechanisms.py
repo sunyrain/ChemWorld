@@ -1,4 +1,4 @@
-"""Mechanism compilation facade for ChemWorld runtime v2."""
+"""Mechanism compilation facade for the ChemWorld transactional runtime."""
 
 from __future__ import annotations
 

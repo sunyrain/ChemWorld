@@ -1,7 +1,7 @@
 """Explicit seven-slot reaction reference fixture.
 
 This module preserves the original A/P/B/D/E semi-mechanistic batch reaction as
-an auditable reference case. Runtime v2 reaction advancement is mechanism
+an auditable reference case. Transactional reaction advancement is mechanism
 compiled and lives in :mod:`chemworld.world.reaction_kernel`; new runtime code
 must not import this module.
 """

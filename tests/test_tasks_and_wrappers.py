@@ -10,11 +10,11 @@ from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.operation_validator import OperationValidator
 from chemworld.runtime import TaskRuntimeProfile, make_chemworld_constitution
 from chemworld.tasks import (
-    PRE_RELEASE_TASK_IDS,
+    CORE_TASK_IDS,
     get_task,
     get_task_card,
-    list_pre_release_task_cards,
-    list_pre_release_tasks,
+    list_core_task_cards,
+    list_core_tasks,
     list_tasks,
 )
 from chemworld.world.operations import (
@@ -72,9 +72,9 @@ def test_builtin_tasks_are_instantiable() -> None:
     assert assay_task.termination_policy == "final-assay-or-budget"
 
 
-def test_pre_release_task_contracts_are_frozen() -> None:
-    tasks = {task.task_id: task for task in list_pre_release_tasks()}
-    assert tuple(tasks) == PRE_RELEASE_TASK_IDS
+def test_core_task_contracts_are_frozen() -> None:
+    tasks = {task.task_id: task for task in list_core_tasks()}
+    assert tuple(tasks) == CORE_TASK_IDS
 
     assay = tasks["reaction-to-assay"]
     assert assay.world_split == "public-dev"
@@ -124,15 +124,15 @@ def test_pre_release_task_contracts_are_frozen() -> None:
     assert partition.safety_limit == 0.65
 
 
-def test_pre_release_task_cards_are_complete_release_contracts() -> None:
-    cards = {card["task_id"]: card for card in list_pre_release_task_cards()}
-    assert tuple(cards) == PRE_RELEASE_TASK_IDS
+def test_core_task_cards_are_complete_release_contracts() -> None:
+    cards = {card["task_id"]: card for card in list_core_task_cards()}
+    assert tuple(cards) == CORE_TASK_IDS
 
     for task_id, card in cards.items():
         task = get_task(task_id)
         contract = card["benchmark_contract"]
-        assert card["release_status"] == "pre-release-core"
-        assert card["task_contract_version"] == "chemworld-task-contract-0.3"
+        assert "core" in card["suite_memberships"]
+        assert card["task_contract_version"] == "chemworld-task-contract-0.4"
         assert card["task_contract_hash"] == task.contract_hash
         assert len(card["task_contract_hash"]) == 64
         assert contract["objective"] == task.objective

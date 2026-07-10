@@ -1,4 +1,4 @@
-"""Crystallization state-update helpers for ChemWorld Runtime v2."""
+"""Crystallization state-update services for the transactional runtime."""
 
 from __future__ import annotations
 

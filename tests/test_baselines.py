@@ -72,7 +72,7 @@ def test_llm_replay_runner_smoke(tmp_path) -> None:
     assert any(record.get("instrument") == "final_assay" for record in records)
 
 
-def test_baseline_report_summary_rows_include_pre_release_metrics(tmp_path) -> None:
+def test_baseline_report_summary_rows_include_core_metrics(tmp_path) -> None:
     report = generate_baseline_report(
         task_ids=["reaction-to-assay"],
         agents=["random", "llm_replay"],

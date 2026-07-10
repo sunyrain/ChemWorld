@@ -1,108 +1,68 @@
 # Benchmark 协议
 
-本协议定义 ChemWorld 任务如何划分、提交、评分和发布。
+本协议定义 ChemWorld 任务的划分、运行、评分、验证和发布规则。任务必须保持逐任务报告，
+不能用一个总分掩盖不同物理域、成熟度或失败模式。
+
+## 套件
+
+- `core`：三个紧凑任务，用于 API、回放和发布链路回归；
+- `serious`：六个无 proxy 的严肃任务候选，用于开始难度校准和研究评测；
+- 显式 `--tasks`：用户自选任务，不自动获得正式套件声明。
+
+```bash
+chemworld baselines report --preset core
+chemworld baselines report --preset serious
+chemworld tasks readiness
+```
+
+严肃候选的准入和提升规则见[严肃任务设计](task_design.md)。
 
 ## 数据划分
 
-- `train`：公开任务和公开 scenario，用于开发 agent；
-- `validation`：公开但固定的检查集，用于调参和报告；
-- `private_eval`：隐藏 scenario 或隐藏任务切片，用于 leaderboard。
+- `public-dev`：接口调试、教学和 smoke；
+- `public-test`：冻结任务与 seeds，用于可复现比较；
+- `private-eval`：维护者控制的隐藏参数与 seeds，用于泛化评测。
 
-所有 split 共享同一个 `world_law_id`，但隐藏参数和评测 seed 不应泄露。
+所有 split 共享同一版本化世界律。私有参数、salt、隐藏物种量和机理参数不得进入公开
+observation、trajectory 或 agent trace。
 
-## AAAI Preset Protocol
+## 评测单位
 
-AAAI preset 是面向投稿实验的冻结协议：
+`single_experiment` 任务以一条完整实验流程为单位；`campaign` 任务以固定总预算内的多条
+experiment 为单位。报告至少包含：
 
-- 任务集合由 `AAAI_TASK_IDS` 给出；
-- baseline agent 集合由 `AAAI_BASELINE_AGENTS` 给出；
-- 自动报告入口是 `chemworld baselines report --preset aaai`；
-- artifact 入口是 `chemworld artifact create --preset aaai`；
-- 快速烟测入口是 `python scripts/run_aaai_experiments.py --smoke`。
+- final-assay 分数与 best-so-far AUC；
+- primary/secondary task metrics；
+- invalid action、precondition、safety 与 cost；
+- instrument 使用和 sample efficiency；
+- task/scenario/mechanism/runtime/scoring/observation hashes；
+- maturity、agent manifest 和 solver provenance。
 
-AAAI 结果必须按任务分别报告，不使用单一总分覆盖所有任务。每条结果至少记录：
+## Baseline 与统计
 
-- task id；
-- seed；
-- scenario id；
-- mechanism hash；
-- scoring contract hash；
-- observation contract hash；
-- runtime profile hash；
-- maturity label；
-- agent manifest；
-- solver/provenance manifest。
-
-`equilibrium-characterization` 是 AAAI 任务集中新增的平衡表征任务。它只暴露 pH-meter、UV-vis 和 final assay 等 public observation，不泄露 hidden pKa、Ksp 或 hidden species amounts。
-
-## Seed Suite
-
-正式报告必须声明使用哪一组 seed：
-
-```bash
-chemworld seeds show
-```
-
-规则：
-
-- `public-dev` seeds 可用于教学、调试和 smoke test；
-- `public-test` seeds 公开且冻结，用于 baseline 表和外部复现实验；
-- `private-eval` hidden seeds 和 salt 由维护者控制；
-- 显式 `--seeds` 是 smoke/debug override，不能冒充完整官方结果。
-
-## 提交要求
-
-提交包应包含 agent 入口、依赖、配置和 manifest。评测端负责创建环境、运行 episode、保存 trajectory 并计算分数。
-
-提交包不得：
-
-- 读取 hidden scenario；
-- 根据文件名或 seed 表作弊；
-- 写入评测目录以外的位置；
-- 访问未授权网络资源；
-- 修改环境代码。
-
-## 指标
-
-指标应按任务声明，常见维度包括：
-
-- yield；
-- purity；
-- selectivity；
-- information gain；
-- mechanism accuracy；
-- safety penalty；
-- cost penalty；
-- invalid-action penalty；
-- sample efficiency。
-
-总分可以是加权组合，但每个子指标都应单独报告，便于诊断。
-
-## Replay Verifier
-
-`chemworld.eval.verify_records(records)` 是提交轨迹进入评测前的 replay gate。它会用：
-
-```text
-task_id + seed + scenario/mechanism/task/profile/scoring hash + action sequence
-```
-
-重新创建环境并逐步执行 action，然后比较 reward、public observation、terminated/truncated、contract hashes、kernel metadata、affected ledgers、world events、state patch summary 和 transaction status。
+每个严肃任务至少运行 random、可解释 scripted baseline、优化 baseline 和安全感知 baseline。
+正式比较使用任务冻结 seeds，报告逐任务均值、标准误或 bootstrap confidence interval。smoke
+override 只能验证管线，不能用于性能声明。
 
 ## Verified Result Chain
-
-正式结果只允许通过以下单向链路产生：
 
 ```text
 trajectory JSONL
   -> schema validation
-  -> deterministic replay verification
+  -> deterministic replay
   -> metric recomputation
   -> trajectory SHA-256 binding
-  -> verified evaluation-result JSON
-  -> leaderboard replay and metric recomputation
+  -> verified result JSON
+  -> per-task leaderboard
 ```
 
-`chemworld evaluate` 默认执行完整 replay，不再为未验证轨迹生成结果。结果文件必须携带
-`result_schema_version`、`verified=true`、verification report、`evaluation_threshold`、
-`trajectory_path` 和 `trajectory_sha256`。leaderboard 会校验 digest，并从轨迹重算指标；直接
-修改 result JSON 中的分数会被拒绝。详细合同见[结果与发布完整性](release_integrity.md)。
+`chemworld evaluate` 默认执行 replay。leaderboard 会校验 digest 并从轨迹重算指标；直接修改
+result JSON、合同 hash、reward 或 observation 会被拒绝。
+
+## 反作弊规则
+
+提交不得读取 hidden scenario、`env.unwrapped._state`、私有 salt、隐藏 seed 表或 oracle state；
+不得修改环境代码、写出评测目录或访问未授权网络。LLM trace 只保存 reasoning summary 和
+decision evidence，不保存或要求完整 chain-of-thought。
+
+提交格式和命令见[提交与验证](submission.md)，结果证据链见[结果完整性](release_integrity.md)。

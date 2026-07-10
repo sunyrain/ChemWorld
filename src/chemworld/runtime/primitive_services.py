@@ -1,4 +1,4 @@
-"""Primitive operation helpers for ChemWorld Runtime v2."""
+"""Primitive operation services for the transactional runtime."""
 
 from __future__ import annotations
 

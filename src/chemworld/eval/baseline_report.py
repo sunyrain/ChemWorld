@@ -15,7 +15,7 @@ from chemworld.eval.leaderboard import aggregate_leaderboard
 from chemworld.eval.provenance import build_solver_provenance_manifest
 from chemworld.eval.seed_suite import task_seed_plan
 from chemworld.eval.suite import run_suite
-from chemworld.tasks import AAAI_TASK_IDS, PRE_RELEASE_TASK_IDS, get_task
+from chemworld.tasks import CORE_TASK_IDS, SERIOUS_TASK_IDS, get_task
 
 DEFAULT_BASELINE_AGENTS = (
     "random",
@@ -25,7 +25,7 @@ DEFAULT_BASELINE_AGENTS = (
     "safe_gp_bo",
     "tool_using_llm_stub",
 )
-PRE_RELEASE_BASELINE_AGENTS = (
+CORE_BASELINE_AGENTS = (
     "random",
     "scripted_chemistry",
     "gp_bo",
@@ -33,7 +33,7 @@ PRE_RELEASE_BASELINE_AGENTS = (
     "tool_using_llm_stub",
     "llm_replay",
 )
-AAAI_BASELINE_AGENTS = (
+SERIOUS_BASELINE_AGENTS = (
     "random",
     "lhs",
     "scripted_chemistry",
@@ -174,33 +174,33 @@ def generate_baseline_report(
     return report
 
 
-def generate_pre_release_baseline_report(
+def generate_core_baseline_report(
     *,
     agents: list[str] | None = None,
     seeds: list[int] | None = None,
     output_dir: str | Path,
 ) -> BaselineReport:
-    """Generate the official baseline table for the pre-release task set."""
+    """Generate the baseline table for the compact core task set."""
 
     return generate_baseline_report(
-        task_ids=list(PRE_RELEASE_TASK_IDS),
-        agents=agents or list(PRE_RELEASE_BASELINE_AGENTS),
+        task_ids=list(CORE_TASK_IDS),
+        agents=agents or list(CORE_BASELINE_AGENTS),
         seeds=seeds,
         output_dir=output_dir,
     )
 
 
-def generate_aaai_baseline_report(
+def generate_serious_baseline_report(
     *,
     agents: list[str] | None = None,
     seeds: list[int] | None = None,
     output_dir: str | Path,
 ) -> BaselineReport:
-    """Generate the AAAI 6-task baseline table."""
+    """Generate the baseline table for serious task candidates."""
 
     return generate_baseline_report(
-        task_ids=list(AAAI_TASK_IDS),
-        agents=agents or list(AAAI_BASELINE_AGENTS),
+        task_ids=list(SERIOUS_TASK_IDS),
+        agents=agents or list(SERIOUS_BASELINE_AGENTS),
         seeds=seeds,
         output_dir=output_dir,
     )
@@ -211,7 +211,7 @@ def summarize_baseline_results(results: list[dict[str, Any]]) -> list[dict[str, 
 
     This table is the artifact intended for papers, docs, and release notes. It
     keeps each task separate and reports the agent-facing metrics required by
-    the pre-release benchmark contract.
+    the benchmark contract.
     """
 
     groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
@@ -369,13 +369,13 @@ def maturity_summary_for_results(results: list[dict[str, Any]]) -> dict[str, Any
 
 
 __all__ = [
-    "AAAI_BASELINE_AGENTS",
+    "CORE_BASELINE_AGENTS",
     "DEFAULT_BASELINE_AGENTS",
-    "PRE_RELEASE_BASELINE_AGENTS",
+    "SERIOUS_BASELINE_AGENTS",
     "BaselineReport",
-    "generate_aaai_baseline_report",
     "generate_baseline_report",
-    "generate_pre_release_baseline_report",
+    "generate_core_baseline_report",
+    "generate_serious_baseline_report",
     "maturity_summary_for_results",
     "summarize_baseline_results",
     "validate_result_maturity_consistency",

@@ -45,7 +45,7 @@ examples/fixtures/llm_replay/reaction_to_assay_public_trace.jsonl
 
 ## Codex Subagent Baseline
 
-AAAI preset 定义两层 Codex baseline：
+可复现评测定义两层 Codex baseline：
 
 - `codex_subagent_online`：在线运行协议。它使用 `task_prompt()`、`available_actions()`、`validate_action()`、`lab_report` 和 `campaign_state()`，每一步先验证 action，再执行环境 step。在线结果应记录模型名、日期、配置、prompt 摘要、动作、验证结果、观测摘要和假设更新。
 - `codex_subagent_replay`：可复现 replay agent。它读取或生成固定 action trace，用于 artifact、CI 和本地复现。

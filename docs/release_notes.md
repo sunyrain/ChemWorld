@@ -3,7 +3,7 @@
 ## World Law v0.2
 
 当前发布使用 `chemworld-physical-chemistry-v0.2` 和
-`chemworld-task-contract-0.3`。世界律版本提升表示运行时物理语义发生了可观察变化；旧轨迹
+`chemworld-task-contract-0.4`。世界律版本提升表示运行时物理语义发生了可观察变化；旧轨迹
 不会被静默解释为新合同。
 
 ### 专业模块接入
@@ -31,3 +31,11 @@
 
 迁移旧结果时，请在旧环境版本完成复现，或在新版本重新运行；不要跨版本直接比较未经重新
 生成的 trajectory score。
+
+## Task Contract v0.4
+
+- 通用 `core` / `serious` preset 替代投稿专用命名；
+- 新增机器可读 serious-task readiness contract 和 `chemworld tasks readiness`；
+- 严肃候选套件排除所有 proxy task，并区分 `contract_ready` 与 `benchmark_ready`；
+- task JSON schema 从四个必填字段扩展为完整可执行合同；
+- 删除完成后只做重导出的 runtime kernel facade，运行时直接依赖 contracts、registry 与 profile。

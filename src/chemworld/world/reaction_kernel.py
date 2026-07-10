@@ -41,13 +41,13 @@ def integrate_compiled_reaction_ode(
 ) -> ReactionIntegrationResult | None:
     """Integrate a mechanism-compiled reaction network and thermal balance.
 
-    Runtime v2 treats mechanism YAML as the owner of species and reactions. The
+    The transactional runtime treats mechanism YAML as the owner of species and reactions. The
     seven-slot ODE remains available only as an explicit reference fixture in
     :mod:`chemworld.world.reaction_reference`.
     """
 
     if compiled_mechanism is None:
-        raise ValueError("compiled_mechanism is required for Runtime v2 reaction integration")
+        raise ValueError("compiled_mechanism is required for reaction integration")
 
     duration = float(np.clip(duration_s, 0.0, 14_400.0))
     if duration <= 0.0 or state.volume_L <= 0.0:

@@ -27,6 +27,15 @@
 合成仪器层仍为 `lite`，所以任务整体为 `lite`。纯化任务仍使用 dry/concentrate/transfer proxy，
 因此整体保持 `proxy`。
 
+## 套件角色
+
+- `core` 用于 API、回放和发布链路回归；
+- `serious` 是六个无 proxy 的研究任务候选；
+- 其它任务保持 registered/exploratory 状态，不能仅因已注册就视为正式主榜。
+
+严肃候选还没有自动获得论文级验证状态。准入检查、研究问题和待补证据见
+[严肃任务设计](task_design.md)。
+
 ## Episode 模式
 
 - `single_experiment`：一次 Gym episode 只包含一条完整实验流程，合法 final assay 后终止；
@@ -46,6 +55,12 @@ for task in list_tasks():
 card = get_task("reaction-to-crystallization").to_dict()
 print(card["allowed_operations"])
 print(card["kernel_maturity"])
+```
+
+检查严肃候选 readiness：
+
+```bash
+chemworld tasks readiness
 ```
 
 正式评测前请阅读[任务卡与冻结合同](task_cards.md)、[评测协议](benchmark_protocol.md)和

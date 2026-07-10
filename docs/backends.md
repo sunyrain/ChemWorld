@@ -17,8 +17,8 @@ Backend 应回答：
 
 ## 参考校准
 
-未来可以逐步引入 RMG-Py、IDAES、teqp、thermopack 等参考工具作为校准层。但这些工具
-不应突然替换 benchmark 语义；它们应作为独立 backend 接入，并通过任务卡标注 maturity。
+RMG-Py、IDAES、teqp、thermopack 等只适合作为独立校准层，不是 benchmark 的强制依赖。
+新增 backend 必须保持公共语义，并公开依赖、适用域和 maturity。
 
 ## 当前边界
 

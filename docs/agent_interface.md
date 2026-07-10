@@ -46,7 +46,7 @@ env.campaign_state()
 | `hidden_information_policy` | 明确说明不可见的 hidden state / mechanism 信息 |
 | `submission_requirements` | trajectory、manifest 和复现实验命令要求 |
 
-三项预发布任务已有专门 prompt profile：
+三项 core 任务已有专门 prompt profile：
 
 | Task | Prompt 重点 |
 | --- | --- |

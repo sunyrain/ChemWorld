@@ -1,7 +1,7 @@
 """Run the local ChemWorld release gate.
 
 This script is intentionally CI-like but local-first. It runs the same command
-sequence a maintainer should use before tagging or publishing a pre-release.
+sequence a maintainer should use before publishing a versioned release.
 """
 
 from __future__ import annotations

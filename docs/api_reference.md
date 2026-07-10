@@ -33,6 +33,16 @@ env.campaign_state()
 agent-facing 方法是推荐的交互入口；它们只聚合公开 task、validator、observation 和
 campaign bookkeeping，不读取 hidden truth。
 
+任务 registry 与严肃任务 readiness：
+
+```python
+from chemworld.task_design import serious_task_readiness_manifest
+from chemworld.tasks import get_task, list_tasks
+
+task = get_task("flow-reaction-optimization")
+manifest = serious_task_readiness_manifest()
+```
+
 ## Wrapper
 
 常用 wrapper：

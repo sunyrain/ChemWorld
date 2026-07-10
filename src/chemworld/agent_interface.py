@@ -78,7 +78,7 @@ OPERATION_GROUPS: dict[str, tuple[str, ...]] = {
     "equilibrium_characterization": ("measure", "terminate"),
 }
 
-PRE_RELEASE_TASK_PROMPT_PROFILES: dict[str, dict[str, Any]] = {
+TASK_PROMPT_PROFILES: dict[str, dict[str, Any]] = {
     "reaction-to-assay": {
         "task_goal": (
             "Run one complete reaction experiment from charging the reactor to a "
@@ -431,8 +431,8 @@ def _default_task_prompt_profile(info: dict[str, Any], base: Any) -> dict[str, A
 
 def _task_prompt_profile(info: dict[str, Any], base: Any) -> dict[str, Any]:
     task_id = str(info.get("task_id") or "")
-    if task_id in PRE_RELEASE_TASK_PROMPT_PROFILES:
-        return PRE_RELEASE_TASK_PROMPT_PROFILES[task_id]
+    if task_id in TASK_PROMPT_PROFILES:
+        return TASK_PROMPT_PROFILES[task_id]
     return _default_task_prompt_profile(info, base)
 
 

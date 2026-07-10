@@ -120,7 +120,7 @@ debug 信息塞进同一页。
 
 ## 端到端闭环 Notebook
 
-预发布包现在提供三份完整闭环 notebook，位置在 `notebooks/end_to_end/`：
+仓库提供三份完整闭环 notebook，位置在 `notebooks/end_to_end/`：
 
 | Notebook | 任务 | 覆盖内容 |
 | --- | --- | --- |

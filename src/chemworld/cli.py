@@ -24,8 +24,8 @@ from chemworld.data.submission import (
     write_submission_manifest,
 )
 from chemworld.eval.baseline_report import (
-    AAAI_BASELINE_AGENTS,
-    PRE_RELEASE_BASELINE_AGENTS,
+    CORE_BASELINE_AGENTS,
+    SERIOUS_BASELINE_AGENTS,
     generate_baseline_report,
 )
 from chemworld.eval.leaderboard import aggregate_leaderboard, load_results
@@ -39,7 +39,8 @@ from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.seed_suite import official_seed_suite, official_seeds_for_task
 from chemworld.eval.suite import run_suite
 from chemworld.eval.verify import verify_records
-from chemworld.tasks import AAAI_TASK_IDS, PRE_RELEASE_TASK_IDS, get_task, get_task_card, list_tasks
+from chemworld.task_design import serious_task_readiness_manifest
+from chemworld.tasks import CORE_TASK_IDS, SERIOUS_TASK_IDS, get_task, get_task_card, list_tasks
 from chemworld.world.recipes import compile_recipe, validate_recipe
 from chemworld.world.scenario import get_scenario_card, list_scenarios
 from chemworld.wrappers import validate_event_action
@@ -281,17 +282,17 @@ def _artifact_create(args: argparse.Namespace) -> None:
 def _resolve_task_preset(preset: str | None, tasks: list[str] | None) -> list[str]:
     if tasks:
         return tasks
-    if preset == "aaai":
-        return list(AAAI_TASK_IDS)
-    return list(PRE_RELEASE_TASK_IDS)
+    if preset == "serious":
+        return list(SERIOUS_TASK_IDS)
+    return list(CORE_TASK_IDS)
 
 
 def _resolve_agent_preset(preset: str | None, agents: list[str] | None) -> list[str]:
     if agents:
         return agents
-    if preset == "aaai":
-        return list(AAAI_BASELINE_AGENTS)
-    return list(PRE_RELEASE_BASELINE_AGENTS)
+    if preset == "serious":
+        return list(SERIOUS_BASELINE_AGENTS)
+    return list(CORE_BASELINE_AGENTS)
 
 
 def _resolve_artifact_agent_preset(
@@ -300,8 +301,8 @@ def _resolve_artifact_agent_preset(
 ) -> list[str]:
     if agents:
         return agents
-    if preset == "aaai":
-        return list(AAAI_BASELINE_AGENTS)
+    if preset == "serious":
+        return list(SERIOUS_BASELINE_AGENTS)
     return ["scripted_chemistry"]
 
 
@@ -316,6 +317,11 @@ def _tasks_show(args: argparse.Namespace) -> None:
 
 def _tasks_card(args: argparse.Namespace) -> None:
     print(json.dumps(get_task_card(args.task_id), indent=2, sort_keys=True))
+
+
+def _tasks_readiness(args: argparse.Namespace) -> None:
+    del args
+    print(json.dumps(serious_task_readiness_manifest(), indent=2, sort_keys=True))
 
 
 def _scenarios_list(args: argparse.Namespace) -> None:
@@ -521,8 +527,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     baselines_report_parser.add_argument(
         "--preset",
-        choices=["pre_release", "aaai"],
-        default="pre_release",
+        choices=["core", "serious"],
+        default="core",
         help="Use a frozen task/agent preset unless --tasks or --agents override it.",
     )
     baselines_report_parser.add_argument(
@@ -577,8 +583,8 @@ def build_parser() -> argparse.ArgumentParser:
     artifact_create_parser.add_argument("--output-dir", default="artifact")
     artifact_create_parser.add_argument(
         "--preset",
-        choices=["pre_release", "aaai"],
-        default="pre_release",
+        choices=["core", "serious"],
+        default="core",
         help="Use a frozen artifact preset unless --tasks or --agents override it.",
     )
     artifact_create_parser.add_argument(
@@ -602,12 +608,17 @@ def build_parser() -> argparse.ArgumentParser:
     tasks_card_parser = tasks_subparsers.add_parser("card", help="Show one task card.")
     tasks_card_parser.add_argument("task_id")
     tasks_card_parser.set_defaults(func=_tasks_card)
+    tasks_readiness_parser = tasks_subparsers.add_parser(
+        "readiness",
+        help="Review serious task candidate contracts.",
+    )
+    tasks_readiness_parser.set_defaults(func=_tasks_readiness)
 
     seeds_parser = subparsers.add_parser("seeds", help="Inspect official seed suites.")
     seeds_subparsers = seeds_parser.add_subparsers(dest="seeds_command", required=True)
     seeds_show_parser = seeds_subparsers.add_parser(
         "show",
-        help="Show the official pre-release seed suite.",
+        help="Show the official core seed suite.",
     )
     seeds_show_parser.add_argument("--tasks", nargs="+")
     seeds_show_parser.add_argument("--all-tasks", action="store_true")

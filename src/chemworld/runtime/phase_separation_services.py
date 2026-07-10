@@ -1,4 +1,4 @@
-"""Phase-ledger and downstream separation helpers for ChemWorld Runtime v2."""
+"""Phase-ledger and downstream separation services for the transactional runtime."""
 
 from __future__ import annotations
 

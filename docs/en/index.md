@@ -32,7 +32,7 @@ observation, scoring, trajectory, and replay contracts.
 | Build an agent | [Agent Interface](../agent_interface.md), [Operations](../operations.md), [Wrappers](../wrappers.md) |
 | Understand the system | [Architecture](../architecture.md), [World Law](../world_law.md), [Physchem Models](../physchem_core_design.md) |
 | Reproduce a release | [Validation](../validation.md), [Submission](../submission.md), [Release Integrity](../release_integrity.md) |
-| Interpret scientific limits | [Model Maturity](../model_maturity.md), [Limitations](../pre_release_limitations.md) |
+| Interpret scientific limits | [Model Maturity](../model_maturity.md), [Limitations](../limitations.md) |
 
 ## Scope
 

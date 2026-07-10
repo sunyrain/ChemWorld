@@ -166,8 +166,8 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
             ),
             model_limit_notes=(
                 (
-                    "This closes the first reaction ODE validation slice; it does "
-                    "not close the broader professional kinetics roadmap."
+                    "This validates the bounded reaction-ODE slice represented by "
+                    "this model card; broader kinetics remain outside its scope."
                 ),
                 (
                     "Future tasks must add falloff, pressure dependence, and "

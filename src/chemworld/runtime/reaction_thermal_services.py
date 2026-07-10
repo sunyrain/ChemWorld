@@ -1,4 +1,4 @@
-"""Reaction advancement and thermal-risk helpers for ChemWorld Runtime v2."""
+"""Reaction advancement and thermal-risk services for the transactional runtime."""
 
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ class ChemWorldReactionThermalServices:
         )
         compiled_mechanism = self.species_view.mechanism
         if compiled_mechanism is None:
-            raise RuntimeError("Runtime v2 reaction advancement requires a compiled mechanism")
+            raise RuntimeError("Reaction advancement requires a compiled mechanism")
         result = integrate_compiled_reaction_ode(
             state=state,
             world=self.world,

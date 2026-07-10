@@ -97,7 +97,7 @@ def validate_compiled_role_contract(
     if not card.target_species:
         errors.append("target_species cannot be empty")
     if require_runtime_roles and not card.impurity_species:
-        errors.append("impurity_species cannot be empty for Runtime v2 scoring")
+        errors.append("impurity_species cannot be empty for runtime scoring")
     if initial_limiting_species is None:
         errors.append("initial_amounts_mol must contain at least one positive species")
 
@@ -130,7 +130,7 @@ def validate_compiled_role_contract(
 
     if errors:
         raise ValueError(
-            f"Mechanism {card.mechanism_id!r} does not satisfy Runtime v2 role contract: "
+            f"Mechanism {card.mechanism_id!r} does not satisfy the runtime role contract: "
             + "; ".join(errors)
         )
 

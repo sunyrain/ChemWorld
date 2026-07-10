@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from chemworld.data.logging import load_jsonl
-from chemworld.eval.golden import pre_release_golden_targets
+from chemworld.eval.golden import core_golden_targets
 from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.scoring_audit import audit_scoring_contract
 from chemworld.tasks import TASK_REGISTRY
@@ -13,10 +13,10 @@ from chemworld.tasks import TASK_REGISTRY
 
 @pytest.mark.parametrize(
     "target",
-    pre_release_golden_targets(),
+    core_golden_targets(),
     ids=lambda target: target.task_id,
 )
-def test_pre_release_scoring_contracts_recompute(target, tmp_path: Path) -> None:
+def test_core_scoring_contracts_recompute(target, tmp_path: Path) -> None:
     task = TASK_REGISTRY[target.task_id]
     path = tmp_path / f"{target.task_id}_seed{target.seed}.jsonl"
     run_agent(

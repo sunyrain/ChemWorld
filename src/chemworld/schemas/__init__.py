@@ -16,6 +16,7 @@ from chemworld.schemas.validation import (
     validate_manifest_schema,
     validate_mechanism_schema,
     validate_recipe_schema,
+    validate_task_schema,
 )
 
 __all__ = [
@@ -35,4 +36,5 @@ __all__ = [
     "validate_manifest_schema",
     "validate_mechanism_schema",
     "validate_recipe_schema",
+    "validate_task_schema",
 ]

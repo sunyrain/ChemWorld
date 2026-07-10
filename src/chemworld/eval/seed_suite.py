@@ -6,11 +6,11 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from chemworld.tasks import AAAI_TASK_IDS, PRE_RELEASE_TASK_IDS, get_task
+from chemworld.tasks import CORE_TASK_IDS, SERIOUS_TASK_IDS, get_task
 
 SEED_SUITE_SCHEMA_VERSION = "chemworld-seed-suite-0.1"
-PRE_RELEASE_SEED_SUITE_ID = "chemworld-pre-release-core-0.1"
-AAAI_SEED_SUITE_ID = "chemworld-aaai-2027-0.1"
+CORE_SEED_SUITE_ID = "chemworld-core-0.2"
+SERIOUS_SEED_SUITE_ID = "chemworld-serious-task-candidates-0.1"
 PRIVATE_EVAL_SALT_ENV = "CHEMWORLD_PRIVATE_EVAL_SALT"
 
 
@@ -94,14 +94,14 @@ def seed_entry_for_task(task_id: str) -> SeedSuiteEntry:
 def official_seed_entries(
     task_ids: Sequence[str] | None = None,
 ) -> tuple[SeedSuiteEntry, ...]:
-    resolved_task_ids = tuple(PRE_RELEASE_TASK_IDS if task_ids is None else task_ids)
+    resolved_task_ids = tuple(CORE_TASK_IDS if task_ids is None else task_ids)
     return tuple(seed_entry_for_task(task_id) for task_id in resolved_task_ids)
 
 
 def official_seed_suite(
     task_ids: Sequence[str] | None = None,
     *,
-    suite_id: str = PRE_RELEASE_SEED_SUITE_ID,
+    suite_id: str = CORE_SEED_SUITE_ID,
 ) -> dict[str, Any]:
     entries = official_seed_entries(task_ids)
     return {
@@ -124,10 +124,10 @@ def official_seed_suite(
     }
 
 
-def aaai_seed_suite() -> dict[str, Any]:
-    """Return the frozen AAAI 6-task public seed suite."""
+def serious_seed_suite() -> dict[str, Any]:
+    """Return the frozen seed plan for serious task candidates."""
 
-    return official_seed_suite(AAAI_TASK_IDS, suite_id=AAAI_SEED_SUITE_ID)
+    return official_seed_suite(SERIOUS_TASK_IDS, suite_id=SERIOUS_SEED_SUITE_ID)
 
 
 def official_seeds_for_task(task_id: str) -> list[int]:
@@ -146,16 +146,16 @@ def task_seed_plan(
 
 
 __all__ = [
-    "AAAI_SEED_SUITE_ID",
-    "PRE_RELEASE_SEED_SUITE_ID",
+    "CORE_SEED_SUITE_ID",
     "PRIVATE_EVAL_SALT_ENV",
     "SEED_SUITE_SCHEMA_VERSION",
+    "SERIOUS_SEED_SUITE_ID",
     "SeedSuiteEntry",
-    "aaai_seed_suite",
     "official_seed_entries",
     "official_seed_suite",
     "official_seeds_for_task",
     "private_eval_salt_policy",
     "seed_entry_for_task",
+    "serious_seed_suite",
     "task_seed_plan",
 ]

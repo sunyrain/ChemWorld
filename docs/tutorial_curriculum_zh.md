@@ -62,7 +62,7 @@ env.unwrapped.observation_view("lab_report")
 | Day 10 | `day_10_public_leaderboard_challenge.ipynb` | 在 public-test 上组织一次标准提交 | 不鼓励手工刷榜 | public 结果 JSON、验证日志、策略说明 |
 | Day 11 | `day_11_private_generalization.ipynb` | 诊断 public/private gap 和过拟合 | 不追求泄露 private 参数 | 泛化差距表、失败分析、下一版策略 |
 | Day 12 | `day_12_demo_day_artifact.ipynb` | 形成最终展示：性能、机理、风险、复现性并重 | 不只展示最高分 | Demo Day 报告骨架、项目摘要、可复现证据 |
-| Day 13 | `day_13_year2_process_modules.ipynb` | 理解同一 world law 下如何扩展到结晶、蒸馏、连续流、电化学 | 不要求所有模块达到专业库精度 | 一个跨过程 task 的最小闭环和后续开发计划 |
+| Day 13 | `day_13_year2_process_modules.ipynb` | 理解同一 world law 下如何扩展到结晶、蒸馏、连续流、电化学 | 不要求所有模块达到专业库精度 | 一个跨过程 task 的最小闭环和扩展设计 |
 | 项目 | `project_leaderboard_blueprint.ipynb` | 设计本机教师端/学生端 leaderboard 与项目制提交 | 不做云端账号系统 | 课程评测机流程、榜单指标、提交协议 |
 
 ## 每天的 3 小时节奏

@@ -7,7 +7,7 @@ from typing import Any
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.golden import (
     GOLDEN_SUMMARY_SCHEMA_VERSION,
-    pre_release_golden_targets,
+    core_golden_targets,
     summarize_golden_records,
 )
 from chemworld.eval.runner import make_agent, run_agent
@@ -18,7 +18,7 @@ FIXTURE_PATH = (
     Path(__file__).resolve().parent
     / "fixtures"
     / "golden"
-    / "pre_release_scripted_trajectories.json"
+    / "core_scripted_trajectories.json"
 )
 
 
@@ -42,26 +42,26 @@ def _assert_summary_close(actual: Any, expected: Any, path: str = "$") -> None:
     assert actual == expected, path
 
 
-def test_pre_release_golden_fixture_covers_core_tasks() -> None:
+def test_golden_fixture_covers_core_tasks() -> None:
     payload = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
     summaries = payload["summaries"]
 
     assert payload["fixture_schema_version"] == "chemworld-golden-fixture-0.1"
     assert {summary["task_id"] for summary in summaries} == {
-        target.task_id for target in pre_release_golden_targets()
+        target.task_id for target in core_golden_targets()
     }
     assert {
         summary["summary_schema_version"] for summary in summaries
     } == {GOLDEN_SUMMARY_SCHEMA_VERSION}
 
 
-def test_pre_release_scripted_golden_trajectories_are_locked(tmp_path: Path) -> None:
+def test_core_scripted_golden_trajectories_are_locked(tmp_path: Path) -> None:
     expected_payload = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
     expected_by_task = {
         str(summary["task_id"]): summary for summary in expected_payload["summaries"]
     }
 
-    for target in pre_release_golden_targets():
+    for target in core_golden_targets():
         task = TASK_REGISTRY[target.task_id]
         trajectory_path = tmp_path / f"{target.task_id}_seed{target.seed}.jsonl"
         run_agent(

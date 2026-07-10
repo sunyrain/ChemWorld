@@ -54,6 +54,8 @@ chemworld verify --submission runs/random_ChemWorld_public-dev_balanced_seed42.j
 chemworld evaluate --submission runs/random_ChemWorld_public-dev_balanced_seed42.jsonl
 chemworld leaderboard --results results/*.json
 chemworld suite --agent gp_bo --world-splits public-test private-eval --seeds 0 1 2
+chemworld tasks readiness
+chemworld baselines report --preset serious --output-dir runs/serious_baselines
 
 chemworld inspect-constitution --env ChemWorld
 chemworld run --task reaction-to-assay --agent random

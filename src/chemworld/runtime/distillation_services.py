@@ -1,4 +1,4 @@
-"""Distillation state-update helpers for ChemWorld Runtime v2."""
+"""Distillation state-update services for the transactional runtime."""
 
 from __future__ import annotations
 

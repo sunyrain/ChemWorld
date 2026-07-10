@@ -34,14 +34,14 @@ from chemworld.runtime.domain_services import (
     DomainServiceRegistry,
     make_chemworld_constitution,
 )
-from chemworld.runtime.kernels import (
+from chemworld.runtime.kernel_contracts import RuntimeContext
+from chemworld.runtime.kernel_registry import (
     OperationKernelRegistry,
-    RuntimeContext,
     ServiceOperationKernel,
-    TaskRuntimeProfile,
 )
 from chemworld.runtime.mechanisms import compile_mechanism, compile_mechanism_for_scenario
 from chemworld.runtime.observation_services import ChemWorldObservationKernel
+from chemworld.runtime.profiles import TaskRuntimeProfile
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.runtime.transactions import TransactionManager
 from chemworld.schemas import (
@@ -288,7 +288,7 @@ def test_runtime_reaction_thermal_requires_compiled_mechanism_without_fallback_m
 
     assert "reaction_backend_species_map" not in reaction_thermal_services
     assert "def reaction_backend_species_map" not in species_services
-    assert "Runtime v2 reaction advancement requires a compiled mechanism" in (
+    assert "Reaction advancement requires a compiled mechanism" in (
         reaction_thermal_services
     )
     assert "compiled_mechanism is required" in reaction_kernel
@@ -381,7 +381,6 @@ def test_runtime_mechanism_manifest_and_validation_are_separate_from_compiler_fa
 
 
 def test_runtime_kernel_profile_contracts_and_registry_are_separate() -> None:
-    kernels_source = Path("src/chemworld/runtime/kernels.py").read_text(encoding="utf-8")
     profiles_source = Path("src/chemworld/runtime/profiles.py").read_text(encoding="utf-8")
     contracts_source = Path("src/chemworld/runtime/kernel_contracts.py").read_text(
         encoding="utf-8"
@@ -390,10 +389,7 @@ def test_runtime_kernel_profile_contracts_and_registry_are_separate() -> None:
         encoding="utf-8"
     )
 
-    assert "class TaskRuntimeProfile" not in kernels_source
-    assert "class RuntimeContext" not in kernels_source
-    assert "class ServiceOperationKernel" not in kernels_source
-    assert "class OperationKernelRegistry" not in kernels_source
+    assert not Path("src/chemworld/runtime/kernels.py").exists()
     assert "class TaskRuntimeProfile" in profiles_source
     assert "def profile_hash" in profiles_source
     assert "class RuntimeContext" in contracts_source

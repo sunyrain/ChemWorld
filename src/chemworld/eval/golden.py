@@ -1,4 +1,4 @@
-"""Golden trajectory summaries for pre-release benchmark contracts."""
+"""Golden trajectory summaries for core benchmark contracts."""
 
 from __future__ import annotations
 
@@ -7,14 +7,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from chemworld.eval.metrics import evaluate_records
-from chemworld.tasks import TASK_REGISTRY
+from chemworld.tasks import CORE_TASK_IDS, TASK_REGISTRY
 
 GOLDEN_SUMMARY_SCHEMA_VERSION = "chemworld-golden-summary-0.1"
-PRE_RELEASE_CORE_TASKS: tuple[str, ...] = (
-    "reaction-to-assay",
-    "reaction-to-purification",
-    "partition-discovery",
-)
+CORE_GOLDEN_TASKS = CORE_TASK_IDS
 
 FLOAT_DIGITS = 12
 FINAL_METRIC_KEYS: tuple[str, ...] = (
@@ -47,12 +43,12 @@ class GoldenTrajectoryTarget:
     agent_name: str = "scripted_chemistry"
 
 
-def pre_release_golden_targets() -> tuple[GoldenTrajectoryTarget, ...]:
+def core_golden_targets() -> tuple[GoldenTrajectoryTarget, ...]:
     """Return canonical scripted trajectory targets for the frozen core tasks."""
 
     return tuple(
         GoldenTrajectoryTarget(task_id=task_id, seed=TASK_REGISTRY[task_id].seeds[0])
-        for task_id in PRE_RELEASE_CORE_TASKS
+        for task_id in CORE_GOLDEN_TASKS
     )
 
 

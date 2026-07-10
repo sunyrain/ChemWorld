@@ -333,7 +333,7 @@ def _release_checklist_markdown(checklist: dict[str, Any]) -> str:
 
 def _limitations_markdown(task_contracts: list[dict[str, Any]]) -> str:
     lines = [
-        "# Pre-Release Limitations",
+        "# Limitations",
         "",
         "ChemWorld-Bench is a virtual physical-chemistry interaction benchmark for "
         "agents, optimizers, and students. It is not a real reaction predictor, "

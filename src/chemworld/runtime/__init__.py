@@ -1,4 +1,4 @@
-"""Runtime v2 public surface for ChemWorld.
+"""Transactional runtime public surface for ChemWorld.
 
 The package exports a stable facade, but imports are intentionally lazy. Scenario
 generation only needs the mechanism compiler; eager importing the full runtime
@@ -126,14 +126,19 @@ def __getattr__(name: str) -> Any:
         "KernelPlan",
         "KernelResult",
         "OperationKernel",
-        "OperationKernelRegistry",
         "RuntimeContext",
-        "ServiceOperationKernel",
-        "TaskRuntimeProfile",
     }:
-        from chemworld.runtime import kernels
+        from chemworld.runtime import kernel_contracts
 
-        return getattr(kernels, name)
+        return getattr(kernel_contracts, name)
+    if name in {"OperationKernelRegistry", "ServiceOperationKernel"}:
+        from chemworld.runtime import kernel_registry
+
+        return getattr(kernel_registry, name)
+    if name == "TaskRuntimeProfile":
+        from chemworld.runtime import profiles
+
+        return getattr(profiles, name)
     if name in {"ChemWorldRuntime", "RuntimeStepResult"}:
         from chemworld.runtime import engine
 

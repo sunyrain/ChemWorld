@@ -1,4 +1,4 @@
-"""Operation-kernel data contracts for Runtime v2."""
+"""Operation-kernel contracts for the transactional runtime."""
 
 from __future__ import annotations
 

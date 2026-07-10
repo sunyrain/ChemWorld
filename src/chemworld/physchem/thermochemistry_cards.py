@@ -94,7 +94,7 @@ def thermochemistry_model_cards() -> tuple[ModelCard, ...]:
                 "This closes a thermochemistry polynomial slice, not a full "
                 "Cantera/RMG thermochemistry database or group-additivity engine.",
                 "It also closes the compact thermochemistry-coupled reversibility "
-                "slice used by the professional deepening TODO; broader falloff "
+                "slice used by the validated reaction-network contract; broader falloff "
                 "and pressure-dependent kinetics remain separate work.",
             ),
             intended_use=(

@@ -1,4 +1,4 @@
-"""Regenerate pre-release golden trajectory fixtures."""
+"""Regenerate core-task golden trajectory fixtures."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.golden import (
-    pre_release_golden_targets,
+    core_golden_targets,
     summarize_golden_records,
 )
 from chemworld.eval.runner import make_agent, run_agent
@@ -17,14 +17,14 @@ from chemworld.tasks import TASK_REGISTRY
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
     fixture_path = root / "tests" / "fixtures" / "golden" / (
-        "pre_release_scripted_trajectories.json"
+        "core_scripted_trajectories.json"
     )
     scratch = root / "runs" / "golden"
     scratch.mkdir(parents=True, exist_ok=True)
     fixture_path.parent.mkdir(parents=True, exist_ok=True)
 
     summaries: list[dict[str, object]] = []
-    for target in pre_release_golden_targets():
+    for target in core_golden_targets():
         task = TASK_REGISTRY[target.task_id]
         trajectory_path = scratch / f"{target.task_id}_seed{target.seed}.jsonl"
         run_agent(
@@ -42,7 +42,7 @@ def main() -> None:
     payload = {
         "fixture_schema_version": "chemworld-golden-fixture-0.1",
         "description": (
-            "Canonical scripted trajectories for the three pre-release "
+            "Canonical scripted trajectories for the three compact core "
             "ChemWorld benchmark tasks."
         ),
         "summaries": summaries,

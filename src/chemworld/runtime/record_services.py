@@ -1,4 +1,4 @@
-"""Operation-record assembly for ChemWorld Runtime v2."""
+"""Operation-record assembly for the transactional runtime."""
 
 from __future__ import annotations
 

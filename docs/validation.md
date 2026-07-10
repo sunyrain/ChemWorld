@@ -50,5 +50,5 @@ python -m mkdocs build --strict
 chemworld verify --constitution --submission runs/<trajectory>.jsonl
 ```
 
-正式发布应使用完整门禁。详细产物要求见[发布检查表](release_checklist.md)和
+正式发布应使用完整门禁。轨迹、榜单、签名与 wheel 的产物要求见
 [结果完整性](release_integrity.md)。

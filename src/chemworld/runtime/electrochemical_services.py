@@ -1,4 +1,4 @@
-"""Electrochemical setup and conversion helpers for ChemWorld Runtime v2."""
+"""Electrochemical setup and conversion services for the transactional runtime."""
 
 from __future__ import annotations
 

@@ -27,7 +27,8 @@ World + Physchem + Foundation
 | 包 | 对外职责 |
 | --- | --- |
 | `chemworld.envs` | Gymnasium 注册、reset/step 编排和稳定 observation space。 |
-| `chemworld.tasks` | 任务目标、预算、操作、仪器、成熟度和冻结合同。 |
+| `chemworld.tasks` | 可执行任务目标、预算、操作、仪器、成熟度和冻结合同。 |
+| `chemworld.task_design` | 严肃任务的研究问题、指标对齐、泛化轴、证据与 readiness 审查。 |
 | `chemworld.runtime` | 事务、操作路由、领域服务、回滚和记录。 |
 | `chemworld.world` | 世界律、场景、操作卡、观测和评分合同。 |
 | `chemworld.physchem` | 物性、平衡、反应器、分离、传递、仪器和安全模型。 |
@@ -104,6 +105,10 @@ Campaign   agent 在 task/split/seeds 上的一次评测
 Experiment campaign 中的一条完整实验流程
 Operation  单步实验动作
 ```
+
+`TaskSpec` 只描述环境能够执行什么；`SeriousTaskDesign` 描述这个任务是否足以支撑研究 claim。
+两者分离可避免“已注册”被误解为“已验证”。readiness review 会检查指标实现、proxy policy、
+seed 深度、决策预算、baseline、泛化轴、证据和反作弊边界。
 
 `single_experiment` 任务在合法 final assay 后结束 episode；`campaign` 任务可以在预算内完成
 多次 experiment，适合 BO、LHS 或 world-model learner。

@@ -121,3 +121,12 @@ def test_cli_seeds_show(capsys) -> None:
     assert payload["private_eval_salt_policy"]["salt_environment_variable"] == (
         "CHEMWORLD_PRIVATE_EVAL_SALT"
     )
+
+
+def test_cli_serious_task_readiness(capsys) -> None:
+    main(["tasks", "readiness"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["suite_status"] == "candidate"
+    assert payload["contract_ready_count"] == len(payload["task_ids"])
+    assert payload["benchmark_ready_count"] == 0

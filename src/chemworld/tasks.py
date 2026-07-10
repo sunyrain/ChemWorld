@@ -27,17 +27,17 @@ from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.scenario import get_scenario_card
 
 WORLD_LAW_ID = WORLD_FAMILY_VERSION
-TASK_CONTRACT_VERSION = "chemworld-task-contract-0.3"
-PRE_RELEASE_TASK_IDS = (
+TASK_CONTRACT_VERSION = "chemworld-task-contract-0.4"
+CORE_TASK_IDS = (
     "reaction-to-assay",
     "reaction-to-purification",
     "partition-discovery",
 )
-AAAI_TASK_IDS = (
-    "reaction-optimization-standard",
-    "reaction-to-purification",
+SERIOUS_TASK_IDS = (
     "partition-discovery",
+    "reaction-to-crystallization",
     "reaction-to-distillation",
+    "flow-reaction-optimization",
     "electrochemical-conversion",
     "equilibrium-characterization",
 )
@@ -172,6 +172,14 @@ class TaskSpec:
             tags=self.tags,
             maturity=self.kernel_maturity,
         )
+        from chemworld.schemas.validation import validate_task_schema
+
+        schema_result = validate_task_schema(self.to_dict())
+        if not schema_result.valid:
+            raise ValueError(
+                f"invalid task contract for {self.task_id!r}: "
+                + "; ".join(schema_result.errors)
+            )
 
     def env_kwargs(self, *, seed: int | None = None) -> dict[str, Any]:
         return {
@@ -184,15 +192,28 @@ class TaskSpec:
 
     def to_card(self) -> dict[str, Any]:
         scenario_card = get_scenario_card(self.scenario_id, split=self.world_split)
+        suite_memberships = [
+            suite
+            for suite, task_ids in (
+                ("core", CORE_TASK_IDS),
+                ("serious", SERIOUS_TASK_IDS),
+            )
+            if self.task_id in task_ids
+        ]
         return {
             "task_contract_version": TASK_CONTRACT_VERSION,
             "task_id": self.task_id,
             "task_contract_hash": self.contract_hash,
             "release_status": (
-                "pre-release-core"
-                if self.task_id in PRE_RELEASE_TASK_IDS
-                else "registered-task"
+                "serious-task-candidate"
+                if self.task_id in SERIOUS_TASK_IDS
+                else (
+                    "core"
+                    if self.task_id in CORE_TASK_IDS
+                    else "registered-task"
+                )
             ),
+            "suite_memberships": suite_memberships,
             "scientific_motivation": self.description,
             "world_law_id": self.world_law_id,
             "scenario_id": self.scenario_id,
@@ -649,7 +670,12 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
             "Characterize a bounded aqueous-equilibrium slice using public pH-meter "
             "and final-assay observations."
         ),
-        tags=("equilibrium", "characterization", "world-model-learning", "aaai"),
+        tags=(
+            "equilibrium",
+            "characterization",
+            "world-model-learning",
+            "serious-task-candidate",
+        ),
         kernel_maturity=equilibrium_kernel_maturity(),
     ),
     "partition-discovery": _task(
@@ -732,20 +758,20 @@ def list_task_cards() -> list[dict[str, Any]]:
     return [task.to_card() for task in list_tasks()]
 
 
-def list_pre_release_tasks() -> list[TaskSpec]:
-    return [get_task(task_id) for task_id in PRE_RELEASE_TASK_IDS]
+def list_core_tasks() -> list[TaskSpec]:
+    return [get_task(task_id) for task_id in CORE_TASK_IDS]
 
 
-def list_pre_release_task_cards() -> list[dict[str, Any]]:
-    return [task.to_card() for task in list_pre_release_tasks()]
+def list_core_task_cards() -> list[dict[str, Any]]:
+    return [task.to_card() for task in list_core_tasks()]
 
 
-def list_aaai_tasks() -> list[TaskSpec]:
-    return [get_task(task_id) for task_id in AAAI_TASK_IDS]
+def list_serious_tasks() -> list[TaskSpec]:
+    return [get_task(task_id) for task_id in SERIOUS_TASK_IDS]
 
 
-def list_aaai_task_cards() -> list[dict[str, Any]]:
-    return [task.to_card() for task in list_aaai_tasks()]
+def list_serious_task_cards() -> list[dict[str, Any]]:
+    return [task.to_card() for task in list_serious_tasks()]
 
 
 def task_maturity_manifest(task_ids: tuple[str, ...] | None = None) -> dict[str, Any]:

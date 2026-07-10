@@ -1,4 +1,4 @@
-"""Typed phase-ledger helpers for ChemWorld Runtime v2."""
+"""Typed phase-ledger helpers for the transactional runtime."""
 
 from __future__ import annotations
 

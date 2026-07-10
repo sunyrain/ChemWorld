@@ -1,4 +1,4 @@
-"""Observation and scoring services for ChemWorld Runtime v2."""
+"""Observation and scoring services for the transactional runtime."""
 
 from __future__ import annotations
 

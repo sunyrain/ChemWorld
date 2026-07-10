@@ -1,4 +1,4 @@
-"""Runtime v2 engine facade used by ChemWorldEnv."""
+"""Transactional runtime engine used by ChemWorldEnv."""
 
 from __future__ import annotations
 
@@ -9,13 +9,10 @@ from chemworld.foundation import OperationRecord, PhysicalConstitution, WorldSta
 from chemworld.operation_validator import OperationValidation
 from chemworld.runtime.domain_service_registry import DomainServiceRegistry
 from chemworld.runtime.domain_services import ChemWorldDomainServices
-from chemworld.runtime.kernels import (
-    KernelResult,
-    OperationKernelRegistry,
-    RuntimeContext,
-    TaskRuntimeProfile,
-)
+from chemworld.runtime.kernel_contracts import KernelResult, RuntimeContext
+from chemworld.runtime.kernel_registry import OperationKernelRegistry
 from chemworld.runtime.mechanisms import CompiledMechanism
+from chemworld.runtime.profiles import TaskRuntimeProfile
 from chemworld.runtime.transactions import StatePatch, TransactionManager, WorldEvent
 from chemworld.tasks import TaskSpec
 from chemworld.world.parameters import ChemWorldParameters

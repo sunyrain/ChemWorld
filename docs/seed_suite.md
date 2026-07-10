@@ -1,6 +1,6 @@
 # Official Seed Suite
 
-ChemWorld 的正式评测不应临时挑 seed。预发布阶段使用一个公开的 seed suite，所有
+ChemWorld 的正式评测不应临时挑 seed。core 和 serious 套件使用公开、冻结的 seed plan，所有
 baseline、submission 示例和本地教师端评测都应引用同一份计划。
 
 ## 查看 seed suite
@@ -26,13 +26,13 @@ chemworld seeds show --tasks reaction-to-assay reaction-to-purification
 | 字段 | 含义 |
 | --- | --- |
 | `schema_version` | 当前为 `chemworld-seed-suite-0.1` |
-| `suite_id` | 当前预发布 suite 标识 |
+| `suite_id` | 当前 suite 标识 |
 | `task_seed_plan` | runner 实际使用的 seed 列表 |
 | `published_seed_plan` | 可公开声明的 seed 列表 |
 | `entries` | 每个 task 的 split、role、seed 和 hidden-eval policy |
 | `private_eval_salt_policy` | private-eval salt 和隐藏 seed 的公开政策 |
 
-## 当前预发布核心任务
+## Core 任务
 
 | Task | Split | Public seeds |
 | --- | --- | --- |

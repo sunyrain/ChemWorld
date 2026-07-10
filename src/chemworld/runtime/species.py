@@ -1,4 +1,4 @@
-"""Mechanism-aware species role helpers for Runtime v2."""
+"""Mechanism-aware species role helpers for the transactional runtime."""
 
 from __future__ import annotations
 

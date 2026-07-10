@@ -1,6 +1,6 @@
-# 预发布限制声明
+# 适用范围与限制
 
-本页是 ChemWorld-Bench 公开预发布阶段的正式边界声明。任何 benchmark、论文、课程或
+本页是 ChemWorld-Bench 的正式边界声明。任何 benchmark、论文、课程或
 leaderboard 叙述都应遵守这里的表述。
 
 ## 一句话边界
@@ -23,7 +23,7 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 - 这是一个可交互、可复现、可评测的虚拟化学实验 benchmark；
 - task、scenario、mechanism、scoring 和 trajectory 带有版本化合同和 hash；
 - agent 只能通过公开 observation、instrument result、cost/risk signal 和日志学习；
-- 预发布核心任务已经有 frozen task contract、golden trajectory、baseline report、
+- core 任务已经有 frozen task contract、golden trajectory、baseline report、
   replay verifier 和本地 release gate。
 
 不可声明：
@@ -36,7 +36,7 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 
 ## 任务成熟度
 
-每个任务必须携带 `physics_maturity` 和 `kernel_maturity`。预发布核心任务当前边界是：
+每个任务必须携带 `physics_maturity` 和 `kernel_maturity`。core 任务当前边界是：
 
 | Task | Maturity | 边界 |
 | --- | --- | --- |
@@ -45,6 +45,8 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 | `partition-discovery` | `lite` | 相接触使用专业候选 extraction train，但分配参数仍为 benchmark 校准值，不等同于真实溶剂体系热力学。 |
 
 所有图表、论文 artifact、baseline table 和课程报告都应显示 maturity，而不能只展示最高分。
+serious 套件当前仍是 `candidate`；在多 seed 难度校准、置信区间和失败分析完成前，不得称为
+已经验证的正式主榜。
 
 ## 已知 proxy/lite 表面
 
@@ -65,9 +67,9 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 - 任何真实实验、真实机器人、外部数据库或危险化学流程接入，都需要独立安全审查和领域专家审核；
 - benchmark 输出不能作为真实实验操作建议。
 
-## 预发布验收口径
+## 验收口径
 
-预发布目标不是“完成通用 chemical world model”，而是提供一个小而可信的 benchmark 核心。
+目标不是“完成通用 chemical world model”，而是提供一个小而可信的 benchmark 核心。
 当前 release gate 是：
 
 ```powershell
@@ -76,4 +78,4 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 
 该 gate 覆盖 lint、type check、全量测试、文档构建、环境自洽性审计和 baseline smoke。只有通过
 该 gate，并在 artifact 中包含任务合同、baseline report、dataset card、replay manifest、
-release checklist 和本限制声明时，才能发布预发布 benchmark claim。
+release checklist 和本限制声明时，才能发布 benchmark claim。

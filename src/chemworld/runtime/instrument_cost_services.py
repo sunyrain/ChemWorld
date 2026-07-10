@@ -1,4 +1,4 @@
-"""Instrument cost and destructive sampling helpers for ChemWorld Runtime v2."""
+"""Instrument cost and destructive-sampling services for the transactional runtime."""
 
 from __future__ import annotations
 

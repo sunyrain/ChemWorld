@@ -145,7 +145,99 @@ TASK_SCHEMA: dict[str, Any] = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "ChemWorld task spec",
     "type": "object",
-    "required": ["task_id", "world_law_id", "scenario_id", "budget"],
+    "required": [
+        "task_contract_version",
+        "task_id",
+        "env_id",
+        "world_law_id",
+        "scenario_id",
+        "initial_state_id",
+        "world_split",
+        "objective",
+        "budget",
+        "seeds",
+        "threshold",
+        "episode_mode",
+        "allowed_operations",
+        "allowed_instruments",
+        "observation_policy",
+        "termination_policy",
+        "success_metrics",
+        "safety_limit",
+        "difficulty",
+        "description",
+        "tags",
+        "kernel_maturity",
+        "physics_maturity",
+        "proxy_allowed",
+        "contract_hash",
+    ],
+    "properties": {
+        "task_contract_version": {"type": "string"},
+        "task_id": {"type": "string", "minLength": 1},
+        "env_id": {"type": "string", "const": "ChemWorld"},
+        "world_law_id": {"type": "string", "minLength": 1},
+        "scenario_id": {"type": "string", "minLength": 1},
+        "initial_state_id": {"type": "string", "minLength": 1},
+        "world_split": {
+            "type": "string",
+            "enum": ["public-dev", "public-test", "private-eval"],
+        },
+        "objective": {"type": "string", "minLength": 1},
+        "budget": {"type": "integer", "minimum": 1},
+        "seeds": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": True,
+            "items": {"type": "integer", "minimum": 0},
+        },
+        "threshold": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "episode_mode": {
+            "type": "string",
+            "enum": ["single_experiment", "campaign"],
+        },
+        "allowed_operations": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": True,
+            "items": {"type": "string", "enum": list(OPERATION_TYPES)},
+        },
+        "allowed_instruments": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": True,
+            "items": {"type": "string", "enum": list(INSTRUMENTS)},
+        },
+        "observation_policy": {"type": "string", "minLength": 1},
+        "termination_policy": {"type": "string", "minLength": 1},
+        "success_metrics": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": True,
+            "items": {"type": "string", "minLength": 1},
+        },
+        "safety_limit": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "difficulty": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "kernel_maturity": {
+            "type": "object",
+            "required": ["modules", "lowest_level", "proxy_allowed", "notes"],
+        },
+        "physics_maturity": {
+            "type": "string",
+            "enum": [
+                "proxy",
+                "lite",
+                "reference_validated",
+                "professional_candidate",
+                "professional",
+            ],
+        },
+        "proxy_allowed": {"type": "boolean"},
+        "contract_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    },
+    "additionalProperties": False,
 }
 
 SCENARIO_SCHEMA: dict[str, Any] = {
@@ -312,6 +404,75 @@ def validate_manifest_schema(manifest: dict[str, Any]) -> SchemaValidationResult
     return SchemaValidationResult(not errors, tuple(errors))
 
 
+def validate_task_schema(task: object) -> SchemaValidationResult:
+    """Validate the executable fields required by a benchmark task contract."""
+
+    if not isinstance(task, dict):
+        return SchemaValidationResult(False, ("task must be an object",))
+    payload = cast(dict[str, Any], task)
+    errors = [
+        f"missing required field: {key}"
+        for key in TASK_SCHEMA["required"]
+        if key not in payload
+    ]
+    budget = payload.get("budget")
+    if not isinstance(budget, int) or isinstance(budget, bool) or budget <= 0:
+        errors.append("budget must be a positive integer")
+    seeds = payload.get("seeds")
+    if (
+        not isinstance(seeds, list)
+        or not seeds
+        or any(not isinstance(seed, int) or isinstance(seed, bool) or seed < 0 for seed in seeds)
+        or len(seeds) != len(set(seeds))
+    ):
+        errors.append("seeds must be a non-empty unique list of nonnegative integers")
+    for key in ("threshold", "safety_limit"):
+        value = payload.get(key)
+        in_unit_interval = _is_number(value) and 0.0 <= float(
+            cast(int | float, value)
+        ) <= 1.0
+        if not in_unit_interval:
+            errors.append(f"{key} must be a number in [0, 1]")
+    if payload.get("episode_mode") not in {"single_experiment", "campaign"}:
+        errors.append("episode_mode must be single_experiment or campaign")
+    operations = payload.get("allowed_operations")
+    if (
+        not isinstance(operations, list)
+        or not operations
+        or len(operations) != len(set(operations))
+        or any(operation not in OPERATION_TYPES for operation in operations)
+    ):
+        errors.append("allowed_operations must be unique registered operations")
+    instruments = payload.get("allowed_instruments")
+    if (
+        not isinstance(instruments, list)
+        or not instruments
+        or len(instruments) != len(set(instruments))
+        or any(instrument not in INSTRUMENTS for instrument in instruments)
+    ):
+        errors.append("allowed_instruments must be unique registered instruments")
+    success_metrics = payload.get("success_metrics")
+    if (
+        not isinstance(success_metrics, list)
+        or not success_metrics
+        or any(not isinstance(metric, str) or not metric for metric in success_metrics)
+    ):
+        errors.append("success_metrics must be a non-empty string list")
+    contract_hash = payload.get("contract_hash")
+    if (
+        not isinstance(contract_hash, str)
+        or len(contract_hash) != 64
+        or any(character not in "0123456789abcdef" for character in contract_hash)
+    ):
+        errors.append("contract_hash must be a lowercase SHA-256 digest")
+    maturity = payload.get("kernel_maturity")
+    if not isinstance(maturity, dict) or not maturity.get("modules"):
+        errors.append("kernel_maturity must declare at least one module")
+    elif bool(maturity.get("proxy_allowed")) != bool(payload.get("proxy_allowed")):
+        errors.append("proxy_allowed must match kernel_maturity.proxy_allowed")
+    return SchemaValidationResult(not errors, tuple(errors))
+
+
 def validate_mechanism_schema(mechanism: object) -> SchemaValidationResult:
     errors: list[str] = []
     warnings: list[str] = []
@@ -428,4 +589,5 @@ __all__ = [
     "validate_manifest_schema",
     "validate_mechanism_schema",
     "validate_recipe_schema",
+    "validate_task_schema",
 ]

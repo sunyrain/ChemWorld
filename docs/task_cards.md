@@ -4,10 +4,10 @@
 中的 registry 保持一致。若任务的 action space、budget、metrics、maturity、
 hidden scenario policy 或 scoring contract 改变，应视为 benchmark contract 变更。
 
-当前预发布阶段只冻结三个核心任务。其它已注册任务仍可用于研发、教学或扩展实验，但不作为
-pre-release benchmark claim 的主依据。
+三个 core 任务用于冻结 API、回放和发布链路。它们不等同于严肃研究主榜；严肃候选任务及
+准入条件见[严肃任务设计](task_design.md)。
 
-## 预发布核心任务
+## Core 任务
 
 | Task ID | 作用 | Split | Budget | Seeds | Episode | Threshold | Maturity |
 | --- | --- | --- | ---: | --- | --- | ---: | --- |
@@ -22,9 +22,9 @@ artifact 审计。
 
 | Task ID | Contract Hash |
 | --- | --- |
-| `reaction-to-assay` | `1da420e2636c9eeeed286efb34be3cfdd3c0ba9441d6080bbde36dc0d47761c5` |
-| `reaction-to-purification` | `b13ea85f8e00bb5a14ce253e8e7ee5ca76c216dd47bc7413e07ae03d6c47da57` |
-| `partition-discovery` | `50b342f6fd2582d7f27b79e793b8aecca6e1c2b131a7225cdfdbc0f4cb2cf3b9` |
+| `reaction-to-assay` | `84711c106b1926aa3357acde2e58ff7a0f10d2bc3c2586c8ec9ee486d2f42e94` |
+| `reaction-to-purification` | `b0b4bc2d0a35301815690c2c40eb4942989ef22969a9d690e522ebbf5e9b9e17` |
+| `partition-discovery` | `e2438d481bddbf604cb4fd60b993ab1d7004fbbf806e981d7c59bef0d11589f8` |
 
 ## `reaction-to-assay`
 
@@ -103,8 +103,8 @@ artifact 审计。
 
 ## 发布规则
 
-- pre-release benchmark 只引用上面三个任务。
-- 任务合同版本：`chemworld-task-contract-0.3`。
+- core 回归套件引用上面三个任务；严肃候选套件另行审查。
+- 任务合同版本：`chemworld-task-contract-0.4`。
 - 每个 task card 必须暴露 `task_contract_hash`、`kernel_maturity`、`physics_maturity`
   和 `proxy_allowed`。
 - `reaction-to-purification` 仍含 dry/concentrate/transfer proxy；`partition-discovery`

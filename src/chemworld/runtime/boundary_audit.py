@@ -1,4 +1,4 @@
-"""Static runtime-boundary checks for ChemWorld Runtime v2."""
+"""Static boundary checks for the ChemWorld transactional runtime."""
 
 from __future__ import annotations
 

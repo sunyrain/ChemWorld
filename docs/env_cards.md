@@ -52,8 +52,8 @@ flag，而不是让状态静默损坏。
 
 ## 渲染
 
-当前 rendering 以结构化文本和数据为主。未来可以加入更直观的实验状态图、相分布、
-谱图和 campaign 进度视图。
+当前 rendering 合同是结构化文本、实验状态、谱图 packet 和 campaign 进度数据。可视化层
+应从这些公开字段派生，不能读取 hidden ledger。
 
 ## 检查说明
 

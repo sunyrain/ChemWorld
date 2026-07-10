@@ -1,6 +1,6 @@
 """Operation composition services for ChemWorld runtime v2.
 
-This module wires primitive helpers to focused Runtime v2 services. It is
+This module wires primitive helpers to focused transactional runtime services. It is
 intentionally called by operation kernels rather than by ``ChemWorldEnv``
 directly.
 """

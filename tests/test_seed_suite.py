@@ -8,15 +8,15 @@ from chemworld.eval.seed_suite import (
     private_eval_salt_policy,
     task_seed_plan,
 )
-from chemworld.tasks import PRE_RELEASE_TASK_IDS, get_task
+from chemworld.tasks import CORE_TASK_IDS, get_task
 
 
-def test_pre_release_seed_suite_matches_task_registry() -> None:
+def test_core_seed_suite_matches_task_registry() -> None:
     suite = official_seed_suite()
 
     assert suite["schema_version"] == SEED_SUITE_SCHEMA_VERSION
-    assert tuple(suite["task_ids"]) == PRE_RELEASE_TASK_IDS
-    for task_id in PRE_RELEASE_TASK_IDS:
+    assert tuple(suite["task_ids"]) == CORE_TASK_IDS
+    for task_id in CORE_TASK_IDS:
         assert suite["task_seed_plan"][task_id] == list(get_task(task_id).seeds)
         assert official_seeds_for_task(task_id) == list(get_task(task_id).seeds)
 

@@ -1,4 +1,4 @@
-"""Continuous-flow state-update helpers for ChemWorld Runtime v2."""
+"""Continuous-flow state-update services for the transactional runtime."""
 
 from __future__ import annotations
 

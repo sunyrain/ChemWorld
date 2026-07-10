@@ -24,7 +24,7 @@ class OperationValidation:
 
     @property
     def dispatchable_to_runtime(self) -> bool:
-        """Return whether the action can enter Runtime v2 transaction handling.
+        """Return whether the action can enter transactional runtime handling.
 
         Schema, task-policy, instrument-policy, and payload-shape failures are
         rejected before runtime dispatch. Stateful physical precondition

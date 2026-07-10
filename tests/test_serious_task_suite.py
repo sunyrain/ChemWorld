@@ -6,31 +6,34 @@ import gymnasium as gym
 import pytest
 
 import chemworld  # noqa: F401
-from chemworld.eval.baseline_report import AAAI_BASELINE_AGENTS, generate_baseline_report
+from chemworld.eval.baseline_report import SERIOUS_BASELINE_AGENTS, generate_baseline_report
 from chemworld.eval.paper_artifact import create_paper_artifact
 from chemworld.eval.runner import make_agent, run_agent
-from chemworld.tasks import AAAI_TASK_IDS, get_task
+from chemworld.tasks import SERIOUS_TASK_IDS, get_task
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 
 
-def test_aaai_task_set_is_frozen() -> None:
-    assert AAAI_TASK_IDS == (
-        "reaction-optimization-standard",
-        "reaction-to-purification",
+def test_serious_task_candidate_set_is_frozen() -> None:
+    assert SERIOUS_TASK_IDS == (
         "partition-discovery",
+        "reaction-to-crystallization",
         "reaction-to-distillation",
+        "flow-reaction-optimization",
         "electrochemical-conversion",
         "equilibrium-characterization",
     )
-    for task_id in AAAI_TASK_IDS:
+    for task_id in SERIOUS_TASK_IDS:
         task = get_task(task_id)
         assert task.env_id == "ChemWorld"
         assert task.world_law_id == WORLD_FAMILY_VERSION
         assert task.contract_hash
+        assert task.kernel_maturity.proxy_allowed is False
+        assert task.to_card()["release_status"] == "serious-task-candidate"
+        assert "serious" in task.to_card()["suite_memberships"]
 
 
-@pytest.mark.parametrize("task_id", AAAI_TASK_IDS)
-def test_aaai_tasks_reset_with_public_contracts(task_id: str) -> None:
+@pytest.mark.parametrize("task_id", SERIOUS_TASK_IDS)
+def test_serious_tasks_reset_with_public_contracts(task_id: str) -> None:
     task = get_task(task_id)
     env = gym.make("ChemWorld", task_id=task.task_id, seed=task.seeds[0])
     try:
@@ -119,7 +122,7 @@ def test_codex_subagent_replay_agent_runs_equilibrium_trace(tmp_path) -> None:
     assert records[-1]["agent_metadata"]["requires_online_model"] is False
 
 
-def test_aaai_baseline_report_smoke_contains_equilibrium_metrics(tmp_path) -> None:
+def test_serious_baseline_report_smoke_contains_equilibrium_metrics(tmp_path) -> None:
     report = generate_baseline_report(
         task_ids=["equilibrium-characterization"],
         agents=["scripted_chemistry", "codex_subagent_replay"],
@@ -128,7 +131,7 @@ def test_aaai_baseline_report_smoke_contains_equilibrium_metrics(tmp_path) -> No
     )
     assert report.result_count == 2
     assert report.solver_provenance["schema_version"] == "chemworld-solver-provenance-0.2"
-    assert "codex_subagent_replay" in AAAI_BASELINE_AGENTS
+    assert "codex_subagent_replay" in SERIOUS_BASELINE_AGENTS
     rows = report.summary_rows
     assert {row["agent_name"] for row in rows} == {
         "scripted_chemistry",
@@ -140,7 +143,7 @@ def test_aaai_baseline_report_smoke_contains_equilibrium_metrics(tmp_path) -> No
         assert float(row["mean_equilibrium_confidence"]) > 0.0
 
 
-def test_aaai_artifact_smoke_includes_solver_provenance(tmp_path) -> None:
+def test_serious_artifact_smoke_includes_solver_provenance(tmp_path) -> None:
     summary = create_paper_artifact(
         output_dir=tmp_path / "artifact",
         task_ids=["equilibrium-characterization"],

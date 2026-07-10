@@ -19,7 +19,7 @@ def initial_chemworld_state(
 
     The material amounts start at zero because ChemWorld tasks begin from an
     empty virtual lab. The mechanism/scenario layer owns the species namespace
-    and recipe-scale initial-amount policy; Runtime v2 records actual charged
+    and recipe-scale initial-amount policy; the transactional runtime records charged
     initial amounts in ``SpeciesLedger.initial_amounts_mol``.
     """
 

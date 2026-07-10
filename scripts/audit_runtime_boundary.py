@@ -1,4 +1,4 @@
-"""Audit ChemWorld Runtime v2 source boundaries."""
+"""Audit ChemWorld transactional runtime source boundaries."""
 
 from __future__ import annotations
 

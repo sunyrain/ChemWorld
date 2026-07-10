@@ -92,7 +92,7 @@ def separation_model_cards() -> tuple[ModelCard, ...]:
                 "solver, not a rigorous LLE flash package.",
                 "Tie-line tracing, TPD minimization over arbitrary trial "
                 "compositions, electrolyte LLE, density-coupled volume "
-                "prediction, and parameter-estimation workflows remain open P3 work.",
+                "prediction and parameter-estimation workflows remain outside this model's scope.",
             ),
             intended_use=(
                 "reaction-to-purification extraction steps",
