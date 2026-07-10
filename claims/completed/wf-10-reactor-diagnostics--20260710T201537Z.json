@@ -1,6 +1,8 @@
 {
   "branch": "team/wf-10-reactor-diagnostics",
   "claimed_at": "2026-07-10T20:12:01.203545+00:00",
+  "completed_at": "2026-07-10T20:15:37.121919+00:00",
+  "completion_summary": "Added ReactorResult.diagnostics with deterministic nonnegativity, material-balance residual, signed jacket/reaction/loss energy-ledger, and explicit warning statuses; serialized diagnostics for auditability and added corrupted-trajectory failure coverage. Tests: reactor, reaction-network, and batch-reaction suites 46 passed; Ruff and mypy passed; claim check passed. Reference evidence: ChemWorld reactor state/ledger contracts and existing ODE policy; no external runtime implementation copied. Known limitation: energy output is a signed ledger net, not a thermal-capacity closure; independent backend comparison remains required before maturity promotion. Final implementation commit: 09b85c4.",
   "expires_at": "2026-07-17T20:12:01.203545+00:00",
   "notes": "WF-00 contracts and route audit are complete. This slice is physchem-only: no task contract, runtime service/registry, World Law v0.3, benchmark evidence, or golden trajectory changes.",
   "owned_paths": [
@@ -12,6 +14,6 @@
   "owner": "knitua",
   "schema_version": "chemworld-task-claim-0.1",
   "scope": "WF-01 add explicit reactor conservation, nonnegativity, and energy-closure diagnostics for bounded batch/semibatch/CSTR/PFR solver results without changing frozen runtime routes",
-  "status": "active",
+  "status": "completed",
   "task_id": "wf-10-reactor-diagnostics"
 }
