@@ -158,14 +158,14 @@ def test_task_report_exposes_current_maturity_declaration_gaps() -> None:
     assert assay["alignment_status"] == "aligned"
 
     partition = report["tasks"]["partition-discovery"]
-    assert "chemworld_reactor_lite" in partition["declared_but_unreachable"]
-    assert "chemworld_reaction_network_lite" in partition["declared_but_unreachable"]
+    assert partition["declared_but_unreachable"] == []
+    assert partition["reachable_but_undeclared"] == []
 
     equilibrium = report["tasks"]["equilibrium-characterization"]
-    assert "fixed_tp_ideal_gibbs_minimization" in (
-        equilibrium["declared_but_unreachable"]
-    )
+    assert "fixed_tp_ideal_gibbs_minimization" in (equilibrium["declared_but_unreachable"])
     assert "beer_lambert_uvvis" in equilibrium["reachable_but_undeclared"]
+    assert "chemworld_reaction_network_lite" in equilibrium["reachable_but_undeclared"]
+    assert "chemworld_reactor_lite" in equilibrium["reachable_but_undeclared"]
 
 
 def test_adapter_manifest_round_trip_is_hash_bound() -> None:

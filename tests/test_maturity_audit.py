@@ -24,7 +24,7 @@ def test_full_report_covers_all_fifteen_tasks_and_actual_dependencies() -> None:
     assert {item["task_id"] for item in report["tasks"]} == {task.task_id for task in list_tasks()}
     assert report["contract_integrity_passed"]
     assert report["declaration_alignment_status"] == "gaps_detected"
-    assert report["declaration_gap_count"] == 9
+    assert report["declaration_gap_count"] == 4
     assert validate_maturity_audit_report(report, repository_root=root) == []
 
 

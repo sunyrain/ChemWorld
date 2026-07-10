@@ -41,9 +41,7 @@ SERIOUS_TASK_IDS = (
     "electrochemical-conversion",
     "equilibrium-characterization",
 )
-STANDARD_INSTRUMENTS = tuple(
-    instrument for instrument in INSTRUMENTS if instrument != "ph_meter"
-)
+STANDARD_INSTRUMENTS = tuple(instrument for instrument in INSTRUMENTS if instrument != "ph_meter")
 REACTION_ALLOWED = REACTION_OPERATIONS
 REACTION_SEPARATION_ALLOWED = (*REACTION_OPERATIONS, *SEPARATION_OPERATIONS)
 REACTION_CRYSTALLIZATION_ALLOWED = (*REACTION_OPERATIONS, *CRYSTALLIZATION_OPERATIONS)
@@ -177,8 +175,7 @@ class TaskSpec:
         schema_result = validate_task_schema(self.to_dict())
         if not schema_result.valid:
             raise ValueError(
-                f"invalid task contract for {self.task_id!r}: "
-                + "; ".join(schema_result.errors)
+                f"invalid task contract for {self.task_id!r}: " + "; ".join(schema_result.errors)
             )
 
     def env_kwargs(self, *, seed: int | None = None) -> dict[str, Any]:
@@ -207,11 +204,7 @@ class TaskSpec:
             "release_status": (
                 "serious-benchmark-v1"
                 if self.task_id in SERIOUS_TASK_IDS
-                else (
-                    "core"
-                    if self.task_id in CORE_TASK_IDS
-                    else "registered-task"
-                )
+                else ("core" if self.task_id in CORE_TASK_IDS else "registered-task")
             ),
             "suite_memberships": suite_memberships,
             "scientific_motivation": self.description,
@@ -250,9 +243,7 @@ class TaskSpec:
             "reference_baselines": list(REFERENCE_BASELINES),
             "recommended_agent_families": self._recommended_agent_families(),
             "scenario_card": scenario_card,
-            "expected_qualitative_behavior": scenario_card[
-                "expected_qualitative_behavior"
-            ],
+            "expected_qualitative_behavior": scenario_card["expected_qualitative_behavior"],
             "kernel_maturity": self.kernel_maturity.to_dict(),
             "physics_maturity": self.kernel_maturity.lowest_level.value,
             "proxy_allowed": self.kernel_maturity.proxy_allowed,
@@ -320,13 +311,10 @@ def _task(
         if termination_policy is not None
         else ("budget" if episode_mode == "campaign" else "final-assay-or-budget")
     )
-    resolved_kernel_maturity = kernel_maturity or default_kernel_maturity(
-        allowed_operations
-    )
+    resolved_kernel_maturity = kernel_maturity or default_kernel_maturity(allowed_operations)
     resolved_tags = ("chemworld", *tags)
-    if (
-        resolved_kernel_maturity.contains_proxy
-        and not set(resolved_tags).intersection({"teaching", "smoke", "exploratory"})
+    if resolved_kernel_maturity.contains_proxy and not set(resolved_tags).intersection(
+        {"teaching", "smoke", "exploratory"}
     ):
         resolved_tags = (*resolved_tags, "exploratory")
     return TaskSpec(
@@ -358,38 +346,49 @@ def default_kernel_maturity(
     allowed_operations: tuple[str, ...],
 ) -> TaskMaturitySpec:
     operations = set(allowed_operations)
-    modules = [
-        ModuleMaturity(
-            "reaction_kinetics",
-            MaturityLevel.LITE,
-            model_ids=("chemworld_reaction_network_lite",),
-            notes=(
-                "Local stoichiometric reaction-network and rate-law engine; "
-                "not yet Cantera-comparable.",
-            ),
-        ),
-        ModuleMaturity(
-            "reactors",
-            MaturityLevel.LITE,
-            model_ids=("chemworld_reactor_lite",),
-            notes=("Batch/CSTR/PFR kernels are benchmark ODE models.",),
-        ),
-        ModuleMaturity(
-            "spectroscopy_instruments",
-            MaturityLevel.LITE,
-            model_ids=(
-                "chemworld_synthetic_instruments",
-                "beer_lambert_uvvis",
-                "chromatography_retention_plate",
-            ),
-            notes=(
-                "State-coupled synthetic observations with reference-validated "
-                "Beer-Lambert UV-vis and chromatography retention/plate-count "
-                "slices; not empirical spectral prediction.",
-            ),
-        ),
-    ]
-    if operations.intersection({"add_phase", "add_extractant", "mix", "settle"}):
+    modules: list[ModuleMaturity] = []
+    # These operation sets mirror the physical-model routes in
+    # runtime.model_reachability. Ledger-only operations do not acquire a
+    # physical maturity declaration merely because they share a task.
+    if operations.intersection({"heat", "wait", "run_flow"}):
+        modules.append(
+            ModuleMaturity(
+                "reaction_kinetics",
+                MaturityLevel.LITE,
+                model_ids=("chemworld_reaction_network_lite",),
+                notes=(
+                    "Local stoichiometric reaction-network and rate-law engine; "
+                    "not yet Cantera-comparable.",
+                ),
+            )
+        )
+    if operations.intersection({"heat", "wait"}):
+        modules.append(
+            ModuleMaturity(
+                "reactors",
+                MaturityLevel.LITE,
+                model_ids=("chemworld_reactor_lite",),
+                notes=("Batch/CSTR/PFR kernels are benchmark ODE models.",),
+            )
+        )
+    if "measure" in operations:
+        modules.append(
+            ModuleMaturity(
+                "spectroscopy_instruments",
+                MaturityLevel.LITE,
+                model_ids=(
+                    "chemworld_synthetic_instruments",
+                    "beer_lambert_uvvis",
+                    "chromatography_retention_plate",
+                ),
+                notes=(
+                    "State-coupled synthetic observations with reference-validated "
+                    "Beer-Lambert UV-vis and chromatography retention/plate-count "
+                    "slices; not empirical spectral prediction.",
+                ),
+            )
+        )
+    if "mix" in operations:
         modules.append(
             ModuleMaturity(
                 "phase_equilibrium",
@@ -405,7 +404,7 @@ def default_kernel_maturity(
                 ),
             )
         )
-    if operations.intersection(CRYSTALLIZATION_OPERATIONS):
+    if "cool_crystallize" in operations:
         modules.append(
             ModuleMaturity(
                 "crystallization",
@@ -418,7 +417,7 @@ def default_kernel_maturity(
                 ),
             )
         )
-    if operations.intersection(DISTILLATION_OPERATIONS):
+    if "distill" in operations:
         modules.append(
             ModuleMaturity(
                 "distillation",
@@ -430,7 +429,7 @@ def default_kernel_maturity(
                 ),
             )
         )
-    if operations.intersection(FLOW_OPERATIONS):
+    if "run_flow" in operations:
         modules.append(
             ModuleMaturity(
                 "continuous_flow",
@@ -443,7 +442,7 @@ def default_kernel_maturity(
                 ),
             )
         )
-    if operations.intersection(ELECTROCHEMISTRY_OPERATIONS):
+    if "electrolyze" in operations:
         modules.append(
             ModuleMaturity(
                 "electrochemistry",
@@ -476,6 +475,17 @@ def default_kernel_maturity(
                 notes=(
                     "Drying, concentration, and transfer remain bounded material-ledger "
                     "operations without a general equipment/phase-equilibrium backend.",
+                ),
+            )
+        )
+    if not modules:
+        modules.append(
+            ModuleMaturity(
+                "ledger_operations",
+                MaturityLevel.REFERENCE_VALIDATED,
+                notes=(
+                    "This operation set reaches only typed ledger/equipment "
+                    "transitions and has no declared physical model provider.",
                 ),
             )
         )
@@ -742,8 +752,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         allowed_operations=REACTION_SEPARATION_ALLOWED,
         success_metrics=("trajectory_validity", "validator_use", "score", "explanation"),
         description=(
-            "Task slice for LLM/tool agents that use validators, instruments, "
-            "and surrogates."
+            "Task slice for LLM/tool agents that use validators, instruments, and surrogates."
         ),
         tags=("llm-agent", "tool-use", "planning"),
     ),
@@ -777,11 +786,7 @@ def list_serious_task_cards() -> list[dict[str, Any]]:
 def task_maturity_manifest(task_ids: tuple[str, ...] | None = None) -> dict[str, Any]:
     """Return a JSON-friendly maturity manifest for benchmark tasks."""
 
-    tasks = (
-        list_tasks()
-        if task_ids is None
-        else [get_task(task_id) for task_id in task_ids]
-    )
+    tasks = list_tasks() if task_ids is None else [get_task(task_id) for task_id in task_ids]
     by_task: dict[str, dict[str, Any]] = {}
     by_level: dict[str, dict[str, Any]] = {}
     proxy_allowed_task_ids: list[str] = []

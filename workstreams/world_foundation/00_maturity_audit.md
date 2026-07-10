@@ -19,6 +19,13 @@ providers must never appear in an actual runtime partition; a violation fails
 the role boundary audit. A diagnostic provider may be reachable for an
 explicit diagnostic route but does not raise task maturity by itself.
 
+WF-00.1 derives default task maturity modules from physical model operation
+routes. Ledger-only operations no longer inherit reaction, reactor, or
+instrument declarations merely because they occur in the same task. Remaining
+declaration gaps in the JSON are therefore actionable differences between
+task-specific contracts and actual reachability, rather than unconditional
+shared-module noise.
+
 Reference boundary:
 
 - ChemWorld `TaskSpec`, `TaskRuntimeProfile`, `DomainServiceRegistry`,

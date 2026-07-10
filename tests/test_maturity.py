@@ -64,9 +64,7 @@ def test_model_card_validation_blocks_unsupported_professional_claims() -> None:
         maturity=MaturityLevel.PROXY,
         summary="Qualitative proxy.",
     )
-    assert validate_model_card(proxy_card) == [
-        "proxy model cards must include model_limit_notes"
-    ]
+    assert validate_model_card(proxy_card) == ["proxy model cards must include model_limit_notes"]
 
     professional_card = ModelCard(
         model_id="validated_ideal_vle",
@@ -98,8 +96,7 @@ def test_task_maturity_metadata_is_public_and_policy_checked() -> None:
     assert reaction_payload["physics_maturity"] == "lite"
     assert reaction_payload["proxy_allowed"] is False
     assert all(
-        module["level"] != "proxy"
-        for module in reaction_payload["kernel_maturity"]["modules"]
+        module["level"] != "proxy" for module in reaction_payload["kernel_maturity"]["modules"]
     )
 
     distillation = get_task("reaction-to-distillation")
@@ -119,6 +116,24 @@ def test_task_maturity_metadata_is_public_and_policy_checked() -> None:
             assert set(payload["tags"]).intersection(
                 {"teaching", "smoke", "exploratory", "education"}
             )
+
+
+def test_default_maturity_follows_actual_physical_operation_routes() -> None:
+    partition_modules = {
+        module.module_id
+        for module in get_task("partition-discovery").kernel_maturity.modules
+    }
+    assay_modules = {
+        module.module_id
+        for module in get_task("reaction-to-assay").kernel_maturity.modules
+    }
+
+    assert partition_modules == {"phase_equilibrium", "spectroscopy_instruments"}
+    assert "reaction_kinetics" not in partition_modules
+    assert "reactors" not in partition_modules
+    assert {"reaction_kinetics", "reactors", "spectroscopy_instruments"}.issubset(
+        assay_modules
+    )
 
 
 def test_env_task_info_exposes_maturity_metadata() -> None:
@@ -159,10 +174,7 @@ def test_professional_runtime_adapters_are_not_declared_as_proxy(
     payload = get_task(task_id).to_dict()
 
     assert payload["proxy_allowed"] is False
-    assert all(
-        module["level"] != "proxy"
-        for module in payload["kernel_maturity"]["modules"]
-    )
+    assert all(module["level"] != "proxy" for module in payload["kernel_maturity"]["modules"])
     assert any(
         module["module_id"] == module_id
         and module["level"] == "professional_candidate"
@@ -172,9 +184,7 @@ def test_professional_runtime_adapters_are_not_declared_as_proxy(
 
 
 def test_task_maturity_manifest_is_json_friendly_and_grouped() -> None:
-    manifest = task_maturity_manifest(
-        ("reaction-to-assay", "reaction-to-purification")
-    )
+    manifest = task_maturity_manifest(("reaction-to-assay", "reaction-to-purification"))
 
     assert manifest["schema_version"] == "chemworld-task-maturity-manifest-0.1"
     assert manifest["task_count"] == 2

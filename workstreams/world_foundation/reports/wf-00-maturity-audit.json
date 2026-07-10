@@ -1,7 +1,7 @@
 {
   "contract_integrity_passed": true,
   "declaration_alignment_status": "gaps_detected",
-  "declaration_gap_count": 9,
+  "declaration_gap_count": 4,
   "evidence_paths": [
     "scripts/audit_model_reachability.py",
     "src/chemworld/physchem/equilibrium.py",
@@ -31,7 +31,7 @@
     "ph_meter_public_signal": "runtime",
     "vle_shortcut_distillation": "runtime"
   },
-  "report_hash": "13c8b11895c334365590a267d5a165f683bb33d59cb216e8b6e6b0ce36d4b097",
+  "report_hash": "6c5a53ab7595ec46555e10488b73adf4e6adc51633c315ec8f9b0520dbba8b5d",
   "role_boundary_passed": true,
   "route_count": 28,
   "schema_version": "chemworld-maturity-audit-0.1",
@@ -92,15 +92,10 @@
         ],
         "runtime_fallback": []
       },
-      "alignment_status": "gaps_detected",
-      "declared_but_unreachable": [
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite"
-      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_synthetic_instruments",
         "chromatography_retention_plate",
         "nernst_butler_volmer_faradaic_v1"
@@ -108,26 +103,6 @@
       "declared_module_maturity": {
         "lowest_level": "lite",
         "modules": [
-          {
-            "level": "lite",
-            "model_ids": [
-              "chemworld_reaction_network_lite"
-            ],
-            "module_id": "reaction_kinetics",
-            "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
-            ]
-          },
-          {
-            "level": "lite",
-            "model_ids": [
-              "chemworld_reactor_lite"
-            ],
-            "module_id": "reactors",
-            "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
-            ]
-          },
           {
             "level": "lite",
             "model_ids": [
@@ -158,8 +133,6 @@
       },
       "declared_provider_roles": {
         "beer_lambert_uvvis": "runtime",
-        "chemworld_reaction_network_lite": "runtime",
-        "chemworld_reactor_lite": "runtime",
         "chemworld_synthetic_instruments": "runtime",
         "chromatography_retention_plate": "runtime",
         "nernst_butler_volmer_faradaic_v1": "runtime"
@@ -252,7 +225,7 @@
         }
       ],
       "runtime_profile_hash": "aab61b748241da929990acaa7caca3e05a7f2155316a933c0dec87c71934b1f5",
-      "task_contract_hash": "c00666ffaa02b2d17a9b5c8d486d8e807502b85db293521fc09fe2cb2206d5bb",
+      "task_contract_hash": "feabb866a6e0d5d08d45c02729b522065a107b42710e786f7bd9397cb35cbdab",
       "task_id": "electrochemical-conversion",
       "world_law_id": "chemworld-physical-chemistry-v0.3"
     },
@@ -559,15 +532,12 @@
         ],
         "runtime_fallback": []
       },
-      "alignment_status": "gaps_detected",
-      "declared_but_unreachable": [
-        "chemworld_reactor_lite"
-      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
       "declared_model_ids": [
         "beer_lambert_uvvis",
         "chemworld_geometry_resolved_pfr_v1",
         "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_synthetic_instruments",
         "chromatography_retention_plate",
         "pfr"
@@ -583,16 +553,6 @@
             "module_id": "reaction_kinetics",
             "notes": [
               "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
-            ]
-          },
-          {
-            "level": "lite",
-            "model_ids": [
-              "chemworld_reactor_lite"
-            ],
-            "module_id": "reactors",
-            "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
             ]
           },
           {
@@ -628,7 +588,6 @@
         "beer_lambert_uvvis": "runtime",
         "chemworld_geometry_resolved_pfr_v1": "runtime",
         "chemworld_reaction_network_lite": "runtime",
-        "chemworld_reactor_lite": "runtime",
         "chemworld_synthetic_instruments": "runtime",
         "chromatography_retention_plate": "runtime",
         "pfr": "runtime"
@@ -733,7 +692,7 @@
         }
       ],
       "runtime_profile_hash": "4f327b5f65ec9b8e329181b07da602debd2b8e356e9d30be2ccba5c5f890bd00",
-      "task_contract_hash": "527a226016ba153b1c60ce0db476e47f1b7c47cc1498bbdd93bed5d663fa4e86",
+      "task_contract_hash": "a808410defa34c927f1945f380d8c2a04dcc1c365ab68a216bde57b8915494c5",
       "task_id": "flow-reaction-optimization",
       "world_law_id": "chemworld-physical-chemistry-v0.3"
     },
@@ -1042,16 +1001,11 @@
         ],
         "runtime_fallback": []
       },
-      "alignment_status": "gaps_detected",
-      "declared_but_unreachable": [
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite"
-      ],
+      "alignment_status": "aligned",
+      "declared_but_unreachable": [],
       "declared_model_ids": [
         "activity_corrected_extraction_train_v1",
         "beer_lambert_uvvis",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_synthetic_instruments",
         "chromatography_retention_plate",
         "lle_phase_stability_diagnostic_v1"
@@ -1059,26 +1013,6 @@
       "declared_module_maturity": {
         "lowest_level": "lite",
         "modules": [
-          {
-            "level": "lite",
-            "model_ids": [
-              "chemworld_reaction_network_lite"
-            ],
-            "module_id": "reaction_kinetics",
-            "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
-            ]
-          },
-          {
-            "level": "lite",
-            "model_ids": [
-              "chemworld_reactor_lite"
-            ],
-            "module_id": "reactors",
-            "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
-            ]
-          },
           {
             "level": "lite",
             "model_ids": [
@@ -1111,8 +1045,6 @@
       "declared_provider_roles": {
         "activity_corrected_extraction_train_v1": "runtime",
         "beer_lambert_uvvis": "runtime",
-        "chemworld_reaction_network_lite": "runtime",
-        "chemworld_reactor_lite": "runtime",
         "chemworld_synthetic_instruments": "runtime",
         "chromatography_retention_plate": "runtime",
         "lle_phase_stability_diagnostic_v1": "diagnostic"
@@ -1232,7 +1164,7 @@
         }
       ],
       "runtime_profile_hash": "64a670ed84e0de4c7a6961e438305f83dbcc03d78da0640cb8473b4d2e1e3851",
-      "task_contract_hash": "d05e2a9dfa77f8c843a6543779febb17bd8d4b3c563947afe7a02d28e25f83fc",
+      "task_contract_hash": "30df2991c08116ca323a683f8cd4d87e7f58c43850468ce3cfdd66b1c18222ee",
       "task_id": "partition-discovery",
       "world_law_id": "chemworld-physical-chemistry-v0.3"
     },
