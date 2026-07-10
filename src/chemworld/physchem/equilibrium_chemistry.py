@@ -522,12 +522,28 @@ class PrecipitationHookResult:
         _nonnegative(self.total_precipitated_mol, "total_precipitated_mol")
         _nonnegative(self.material_balance_error_mol, "material_balance_error_mol")
 
+    @property
+    def converged(self) -> bool:
+        """Whether every configured precipitation hook reached a fixed point."""
+
+        return self.metadata.get("status") == "converged"
+
+    @property
+    def warnings(self) -> tuple[str, ...]:
+        """Return explicit warnings for incomplete hook passes."""
+
+        if self.converged:
+            return ()
+        return ("max_passes_reached",)
+
     def to_dict(self) -> dict[str, object]:
         return {
             "final_amounts_mol": dict(self.final_amounts_mol),
             "precipitation_events": [dict(event) for event in self.precipitation_events],
             "total_precipitated_mol": self.total_precipitated_mol,
             "material_balance_error_mol": self.material_balance_error_mol,
+            "converged": self.converged,
+            "warnings": list(self.warnings),
             "metadata": dict(self.metadata),
         }
 

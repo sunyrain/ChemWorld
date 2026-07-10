@@ -333,6 +333,25 @@ def test_precipitation_hooks_apply_multiple_solubility_specs() -> None:
     assert hooks.final_amounts_mol["AgCl(s)"] > 9e-4
     assert hooks.final_amounts_mol["BaSO4(s)"] > 1.9e-3
     assert hooks.to_dict()["precipitation_events"]
+    assert hooks.converged
+    assert hooks.warnings == ()
+
+
+def test_precipitation_hooks_report_max_pass_failure_explicitly() -> None:
+    hooks = apply_precipitation_hooks(
+        {"Ag+": 1e-3, "Cl-": 1e-3},
+        (
+            SolubilityProductSpec("AgCl(s)", "Ag+", "Cl-", ksp=1e-6),
+            SolubilityProductSpec("AgCl(s)", "Ag+", "Cl-", ksp=1e-10),
+        ),
+        volume_L=1.0,
+        max_passes=1,
+    )
+
+    assert hooks.metadata["status"] == "max_passes_reached"
+    assert hooks.converged is False
+    assert hooks.warnings == ("max_passes_reached",)
+    assert hooks.to_dict()["converged"] is False
 
 
 def test_charge_balance_adjusts_selected_ion_to_electroneutrality() -> None:
