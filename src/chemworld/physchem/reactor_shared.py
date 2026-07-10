@@ -210,6 +210,29 @@ class ReactorResult:
     material_balance_error_mol: float
     metadata: dict[str, object] = field(default_factory=dict)
 
+    @property
+    def diagnostics(self) -> ReactorDiagnostics:
+        """Return deterministic conservation, positivity, and energy-ledger checks."""
+
+        trajectory_values = [value for values in self.amounts_mol.values() for value in values]
+        minimum_amount = min(trajectory_values, default=0.0)
+        warnings: list[str] = []
+        if minimum_amount < -1.0e-10:
+            warnings.append("negative_species_amount")
+        if self.material_balance_error_mol > 1.0e-8:
+            warnings.append("material_balance_residual_exceeds_tolerance")
+        return ReactorDiagnostics(
+            material_balance_error_mol=self.material_balance_error_mol,
+            minimum_species_amount_mol=float(minimum_amount),
+            nonnegative_species=minimum_amount >= -1.0e-10,
+            energy_ledger_net_J=(
+                self.final_state.energy_jacket_J
+                + self.final_state.heat_reaction_J
+                - self.final_state.heat_loss_J
+            ),
+            warnings=tuple(warnings),
+        )
+
     def conversion(self, reactant_id: str) -> float:
         initial = self.initial_state.amounts_mol.get(reactant_id, 0.0)
         final = self.final_state.amounts_mol.get(reactant_id, 0.0)
@@ -238,7 +261,28 @@ class ReactorResult:
             },
             "temperatures_K": list(self.temperatures_K),
             "material_balance_error_mol": self.material_balance_error_mol,
+            "diagnostics": self.diagnostics.to_dict(),
             "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class ReactorDiagnostics:
+    """Machine-readable checks attached to every reactor result."""
+
+    material_balance_error_mol: float
+    minimum_species_amount_mol: float
+    nonnegative_species: bool
+    energy_ledger_net_J: float
+    warnings: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "material_balance_error_mol": self.material_balance_error_mol,
+            "minimum_species_amount_mol": self.minimum_species_amount_mol,
+            "nonnegative_species": self.nonnegative_species,
+            "energy_ledger_net_J": self.energy_ledger_net_J,
+            "warnings": list(self.warnings),
         }
 
 
@@ -252,6 +296,7 @@ __all__ = [
     "HeatTransferSpec",
     "JacketInterpolationMode",
     "JacketTemperatureProgram",
+    "ReactorDiagnostics",
     "ReactorResult",
     "ReactorState",
     "SamplingEventSpec",

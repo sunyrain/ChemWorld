@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from itertools import pairwise
 
 import numpy as np
@@ -99,6 +100,16 @@ def test_dynamic_batch_uses_nasa7_reaction_enthalpy_for_adiabatic_temperature_ri
         },
         evaluation_times_s=(0.0, 60.0, 120.0),
     )
+    assert result.diagnostics.nonnegative_species
+    assert result.diagnostics.warnings == ()
+    assert result.diagnostics.energy_ledger_net_J == pytest.approx(
+        result.final_state.heat_reaction_J
+        + result.final_state.energy_jacket_J
+        - result.final_state.heat_loss_J
+    )
+    corrupted = replace(result, amounts_mol={"A": (-1.0e-3,), "P": (0.0,)})
+    assert corrupted.diagnostics.nonnegative_species is False
+    assert "negative_species_amount" in corrupted.diagnostics.warnings
 
     assert result.metadata["heat_source"] == "nasa7_reaction_enthalpy"
     assert result.final_state.amounts_mol["P"] > 0.9
