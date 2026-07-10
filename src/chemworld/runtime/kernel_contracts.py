@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Protocol
 
 from chemworld.foundation import OperationRecord, WorldState
 from chemworld.operation_validator import OperationValidation
+from chemworld.physchem.maturity import ModelProviderContract
 from chemworld.runtime.domain_services import ChemWorldDomainServices
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.profiles import TaskRuntimeProfile
@@ -57,6 +59,49 @@ class KernelResult:
     rollback_reason: str | None
 
 
+@dataclass(frozen=True)
+class ModelProviderResult:
+    """Provider-neutral result used by independently implemented physical models."""
+
+    outputs: Mapping[str, Any]
+    diagnostics: Mapping[str, Any]
+    warnings: tuple[str, ...] = ()
+    success: bool = True
+    failure_reason: str | None = None
+    provenance: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if self.success and self.failure_reason is not None:
+            raise ValueError("successful provider result cannot include failure_reason")
+        if not self.success and not str(self.failure_reason or "").strip():
+            raise ValueError("failed provider result requires failure_reason")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "outputs": dict(self.outputs),
+            "diagnostics": dict(self.diagnostics),
+            "warnings": list(self.warnings),
+            "success": self.success,
+            "failure_reason": self.failure_reason,
+            "provenance": list(self.provenance),
+        }
+
+
+class PhysicalModelProvider(Protocol):
+    """Minimum contract that parallel model teams implement before runtime wiring."""
+
+    @property
+    def model_contract(self) -> ModelProviderContract:
+        ...
+
+    def validate_domain(self, inputs: Mapping[str, Any]) -> tuple[str, ...]:
+        """Return domain violations; an empty tuple means the input is supported."""
+        ...
+
+    def evaluate(self, inputs: Mapping[str, Any]) -> ModelProviderResult:
+        ...
+
+
 class OperationKernel(Protocol):
     @property
     def operation_type(self) -> str:
@@ -102,6 +147,8 @@ class OperationKernel(Protocol):
 __all__ = [
     "KernelPlan",
     "KernelResult",
+    "ModelProviderResult",
     "OperationKernel",
+    "PhysicalModelProvider",
     "RuntimeContext",
 ]

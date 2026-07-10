@@ -140,11 +140,13 @@ class DomainServiceRegistry:
             )
 
     def service_id_for_operation(self, operation: str) -> str:
-        operation_map = self.operation_map()
-        try:
-            return operation_map[operation]
-        except KeyError as exc:
-            raise ValueError(f"No domain service registered for operation {operation!r}") from exc
+        return self.contract_for_operation(operation).service_id
+
+    def contract_for_operation(self, operation: str) -> DomainServiceContract:
+        for contract in self.contracts:
+            if operation in contract.operations:
+                return contract
+        raise ValueError(f"No domain service registered for operation {operation!r}")
 
     def service_ids_for_operations(self, operations: Iterable[str]) -> frozenset[str]:
         operation_map = self.operation_map()

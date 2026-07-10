@@ -204,6 +204,9 @@ class OperationKernelRegistry:
         except KeyError as exc:
             raise ValueError(f"No operation kernel registered for {operation_type!r}") from exc
 
+    def kernel_id_for_operation(self, operation_type: str) -> str:
+        return self.get(operation_type).kernel_id
+
     def to_dict(self) -> dict[str, Any]:
         return {
             operation_type: {

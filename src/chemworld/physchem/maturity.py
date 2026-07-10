@@ -7,6 +7,8 @@ auditable by tasks, docs, and tests.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
@@ -32,6 +34,27 @@ class MaturityLevel(StrEnum):
     @property
     def rank(self) -> int:
         return _MATURITY_RANK[self]
+
+
+class ModelExecutionRole(StrEnum):
+    """How a model participates in a runtime or validation path."""
+
+    RUNTIME = "runtime"
+    RUNTIME_FALLBACK = "runtime_fallback"
+    DIAGNOSTIC = "diagnostic"
+    REFERENCE = "reference"
+
+    @classmethod
+    def normalize(cls, value: str | ModelExecutionRole) -> ModelExecutionRole:
+        if isinstance(value, cls):
+            return value
+        try:
+            return cls(value)
+        except ValueError as exc:
+            allowed = ", ".join(role.value for role in cls)
+            raise ValueError(
+                f"unknown model execution role {value!r}; allowed={allowed}"
+            ) from exc
 
 
 _MATURITY_RANK = {
@@ -76,6 +99,185 @@ class ValidationEvidence:
             "command_or_path": self.command_or_path,
             "tolerance": self.tolerance,
         }
+
+
+@dataclass(frozen=True)
+class ModelProviderContract:
+    """Stable metadata contract implemented by independently owned model modules."""
+
+    model_id: str
+    module_id: str
+    maturity: MaturityLevel
+    role: ModelExecutionRole
+    provider_path: str
+    input_fields: tuple[str, ...]
+    output_fields: tuple[str, ...]
+    units: dict[str, str]
+    validity_checks: tuple[str, ...]
+    diagnostic_fields: tuple[str, ...]
+    failure_policy: str
+    provenance: tuple[str, ...]
+    intended_operations: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "maturity", MaturityLevel.normalize(self.maturity))
+        object.__setattr__(self, "role", ModelExecutionRole.normalize(self.role))
+        for field_name in ("model_id", "module_id", "provider_path", "failure_policy"):
+            if not str(getattr(self, field_name)).strip():
+                raise ValueError(f"{field_name} cannot be empty")
+        if "." not in self.provider_path:
+            raise ValueError("provider_path must be a dotted import or symbol path")
+        for field_name in (
+            "input_fields",
+            "output_fields",
+            "validity_checks",
+            "diagnostic_fields",
+            "provenance",
+        ):
+            if not getattr(self, field_name):
+                raise ValueError(f"{field_name} cannot be empty")
+        if not self.units or any(
+            not str(field).strip() or not str(unit).strip()
+            for field, unit in self.units.items()
+        ):
+            raise ValueError("units must contain explicit non-empty field/unit entries")
+        if self.role is not ModelExecutionRole.REFERENCE and not self.intended_operations:
+            raise ValueError("runtime and diagnostic providers require intended_operations")
+
+    @property
+    def runtime_reachable(self) -> bool:
+        return self.role is not ModelExecutionRole.REFERENCE
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "model_id": self.model_id,
+            "module_id": self.module_id,
+            "maturity": self.maturity.value,
+            "role": self.role.value,
+            "provider_path": self.provider_path,
+            "input_fields": list(self.input_fields),
+            "output_fields": list(self.output_fields),
+            "units": dict(self.units),
+            "validity_checks": list(self.validity_checks),
+            "diagnostic_fields": list(self.diagnostic_fields),
+            "failure_policy": self.failure_policy,
+            "provenance": list(self.provenance),
+            "intended_operations": list(self.intended_operations),
+            "runtime_reachable": self.runtime_reachable,
+        }
+
+
+@dataclass(frozen=True)
+class ModelAdapterManifest:
+    """Claim-bound proposal handed from a model team to runtime integration."""
+
+    adapter_id: str
+    adapter_version: str
+    owner_workstream: str
+    provider_contract: ModelProviderContract
+    owned_paths: tuple[str, ...]
+    integration_operations: tuple[str, ...]
+    target_world_law: str
+    status: str = "proposal"
+    replaces_model_ids: tuple[str, ...] = ()
+    schema_version: str = "chemworld-model-adapter-manifest-0.1"
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "adapter_id",
+            "adapter_version",
+            "owner_workstream",
+            "target_world_law",
+        ):
+            if not str(getattr(self, field_name)).strip():
+                raise ValueError(f"{field_name} cannot be empty")
+        if self.schema_version != "chemworld-model-adapter-manifest-0.1":
+            raise ValueError("unsupported model adapter manifest schema")
+        if self.status not in {"proposal", "validated", "integrated", "rejected"}:
+            raise ValueError("invalid model adapter manifest status")
+        if not self.owned_paths:
+            raise ValueError("adapter manifest requires owned_paths")
+        if not self.integration_operations:
+            raise ValueError("adapter manifest requires integration_operations")
+        unknown_operations = sorted(
+            set(self.integration_operations) - set(self.provider_contract.intended_operations)
+        )
+        if unknown_operations:
+            raise ValueError(
+                "adapter integration operations exceed provider contract: "
+                f"{unknown_operations}"
+            )
+
+    @property
+    def manifest_hash(self) -> str:
+        encoded = json.dumps(
+            self._payload(), sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+        return hashlib.sha256(encoded).hexdigest()
+
+    def _payload(self) -> dict[str, Any]:
+        return {
+            "schema_version": self.schema_version,
+            "adapter_id": self.adapter_id,
+            "adapter_version": self.adapter_version,
+            "owner_workstream": self.owner_workstream,
+            "provider_contract": self.provider_contract.to_dict(),
+            "owned_paths": list(self.owned_paths),
+            "integration_operations": list(self.integration_operations),
+            "target_world_law": self.target_world_law,
+            "status": self.status,
+            "replaces_model_ids": list(self.replaces_model_ids),
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        return {**self._payload(), "manifest_hash": self.manifest_hash}
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> ModelAdapterManifest:
+        provider_payload = payload.get("provider_contract")
+        if not isinstance(provider_payload, dict):
+            raise ValueError("adapter manifest requires provider_contract")
+        provider = ModelProviderContract(
+            model_id=str(provider_payload["model_id"]),
+            module_id=str(provider_payload["module_id"]),
+            maturity=MaturityLevel.normalize(str(provider_payload["maturity"])),
+            role=ModelExecutionRole.normalize(str(provider_payload["role"])),
+            provider_path=str(provider_payload["provider_path"]),
+            input_fields=tuple(str(value) for value in provider_payload["input_fields"]),
+            output_fields=tuple(str(value) for value in provider_payload["output_fields"]),
+            units={str(key): str(value) for key, value in provider_payload["units"].items()},
+            validity_checks=tuple(
+                str(value) for value in provider_payload["validity_checks"]
+            ),
+            diagnostic_fields=tuple(
+                str(value) for value in provider_payload["diagnostic_fields"]
+            ),
+            failure_policy=str(provider_payload["failure_policy"]),
+            provenance=tuple(str(value) for value in provider_payload["provenance"]),
+            intended_operations=tuple(
+                str(value) for value in provider_payload["intended_operations"]
+            ),
+        )
+        manifest = cls(
+            schema_version=str(payload["schema_version"]),
+            adapter_id=str(payload["adapter_id"]),
+            adapter_version=str(payload["adapter_version"]),
+            owner_workstream=str(payload["owner_workstream"]),
+            provider_contract=provider,
+            owned_paths=tuple(str(value) for value in payload["owned_paths"]),
+            integration_operations=tuple(
+                str(value) for value in payload["integration_operations"]
+            ),
+            target_world_law=str(payload["target_world_law"]),
+            status=str(payload.get("status", "proposal")),
+            replaces_model_ids=tuple(
+                str(value) for value in payload.get("replaces_model_ids", ())
+            ),
+        )
+        expected_hash = payload.get("manifest_hash")
+        if expected_hash is not None and expected_hash != manifest.manifest_hash:
+            raise ValueError("model adapter manifest hash mismatch")
+        return manifest
 
 
 @dataclass(frozen=True)
