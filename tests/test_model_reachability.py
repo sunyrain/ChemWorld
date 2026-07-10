@@ -12,7 +12,11 @@ from chemworld.physchem.maturity import (
     ModelExecutionRole,
     ModelProviderContract,
 )
-from chemworld.runtime.kernel_contracts import ModelProviderResult, PhysicalModelProvider
+from chemworld.runtime.kernel_contracts import (
+    ContractModelProviderStub,
+    ModelProviderResult,
+    PhysicalModelProvider,
+)
 from chemworld.runtime.model_reachability import (
     ModelReachabilityRegistry,
     audit_model_reachability,
@@ -78,6 +82,40 @@ def test_parallel_provider_protocol_has_typed_success_and_failure_results() -> N
     assert failure.failure_reason == "x is required"
     with pytest.raises(ValueError, match="failure_reason"):
         ModelProviderResult(outputs={}, diagnostics={}, success=False)
+
+
+def test_contract_provider_stub_is_shape_checked_and_deterministic() -> None:
+    contract = _ProviderFixture().model_contract
+    provider = ContractModelProviderStub(
+        model_contract=contract,
+        outputs={"y": 4.25},
+        diagnostics={"residual": 0.0},
+    )
+
+    first = _evaluate(provider, 1.0)
+    second = _evaluate(provider, 99.0)
+    assert first == second
+    assert first.outputs == {"y": 4.25}
+    assert first.provenance[-1] == "contract-stub"
+    assert "no physical model" in first.warnings[0]
+
+    failure = provider.evaluate({})
+    assert failure.success is False
+    assert failure.failure_reason == "missing required input: x"
+    assert failure.diagnostics == {"residual": None}
+
+    with pytest.raises(ValueError, match=r"missing=\['y'\]"):
+        ContractModelProviderStub(
+            model_contract=contract,
+            outputs={},
+            diagnostics={"residual": 0.0},
+        )
+    with pytest.raises(ValueError, match=r"unexpected=\['extra'\]"):
+        ContractModelProviderStub(
+            model_contract=contract,
+            outputs={"y": 1.0},
+            diagnostics={"residual": 0.0, "extra": 1.0},
+        )
 
 
 def test_default_registry_covers_every_operation_and_provider_route() -> None:

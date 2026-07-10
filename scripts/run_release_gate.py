@@ -53,6 +53,15 @@ def release_gate_commands(
             ],
         ),
         GateCommand(
+            "model_reachability_audit",
+            [
+                python,
+                "scripts/audit_model_reachability.py",
+                "--output",
+                str(output_dir / "model_reachability_report.json"),
+            ],
+        ),
+        GateCommand(
             "environment_audit",
             [
                 python,

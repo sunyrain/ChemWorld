@@ -102,6 +102,79 @@ class PhysicalModelProvider(Protocol):
         ...
 
 
+@dataclass(frozen=True)
+class ContractModelProviderStub:
+    """Deterministic contract fixture for model teams before runtime integration.
+
+    The stub deliberately performs no physical calculation. It verifies the
+    provider result shape and makes that limitation visible in every result.
+    """
+
+    model_contract: ModelProviderContract
+    outputs: Mapping[str, Any]
+    diagnostics: Mapping[str, Any]
+    warnings: tuple[str, ...] = (
+        "contract stub only; no physical model evaluation was performed",
+    )
+
+    def __post_init__(self) -> None:
+        self._require_exact_fields(
+            label="outputs",
+            expected=self.model_contract.output_fields,
+            actual=self.outputs,
+        )
+        self._require_exact_fields(
+            label="diagnostics",
+            expected=self.model_contract.diagnostic_fields,
+            actual=self.diagnostics,
+        )
+        object.__setattr__(self, "outputs", dict(self.outputs))
+        object.__setattr__(self, "diagnostics", dict(self.diagnostics))
+
+    @staticmethod
+    def _require_exact_fields(
+        *,
+        label: str,
+        expected: tuple[str, ...],
+        actual: Mapping[str, Any],
+    ) -> None:
+        missing = sorted(set(expected) - set(actual))
+        unexpected = sorted(set(actual) - set(expected))
+        if missing or unexpected:
+            raise ValueError(
+                f"stub {label} do not match provider contract: "
+                f"missing={missing}, unexpected={unexpected}"
+            )
+
+    def validate_domain(self, inputs: Mapping[str, Any]) -> tuple[str, ...]:
+        return tuple(
+            f"missing required input: {field_name}"
+            for field_name in self.model_contract.input_fields
+            if field_name not in inputs
+        )
+
+    def evaluate(self, inputs: Mapping[str, Any]) -> ModelProviderResult:
+        violations = self.validate_domain(inputs)
+        if violations:
+            return ModelProviderResult(
+                outputs={},
+                diagnostics=dict.fromkeys(
+                    self.model_contract.diagnostic_fields,
+                    None,
+                ),
+                warnings=self.warnings,
+                success=False,
+                failure_reason="; ".join(violations),
+                provenance=(*self.model_contract.provenance, "contract-stub"),
+            )
+        return ModelProviderResult(
+            outputs=dict(self.outputs),
+            diagnostics=dict(self.diagnostics),
+            warnings=self.warnings,
+            provenance=(*self.model_contract.provenance, "contract-stub"),
+        )
+
+
 class OperationKernel(Protocol):
     @property
     def operation_type(self) -> str:
@@ -145,6 +218,7 @@ class OperationKernel(Protocol):
 
 
 __all__ = [
+    "ContractModelProviderStub",
     "KernelPlan",
     "KernelResult",
     "ModelProviderResult",
