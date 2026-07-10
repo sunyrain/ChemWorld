@@ -1,0 +1,64 @@
+{
+  "adapter_id": "wf-30-drying-sorbent",
+  "adapter_version": "0.1",
+  "integration_operations": [
+    "dry"
+  ],
+  "manifest_hash": "64f7fb0b02938daf9abe01f2140b71efbe2f67f4dc759918d24768c3f63ef1d8",
+  "owned_paths": [
+    "src/chemworld/physchem/drying_units.py",
+    "src/chemworld/physchem/drying_adapter_manifest.py",
+    "tests/test_drying_units.py",
+    "workstreams/world_foundation/adapters/wf-30-drying-sorbent.json"
+  ],
+  "owner_workstream": "wf-30-drying-sorbent",
+  "provider_contract": {
+    "diagnostic_fields": [
+      "material_balance_error_mol",
+      "volume_balance_error_L",
+      "equilibrium_residual",
+      "equilibrium_iterations",
+      "residual_drying_component_fraction",
+      "endpoint_met",
+      "product_recovery",
+      "warnings"
+    ],
+    "failure_policy": "reject invalid domain inputs or return a failed result; never discard initial loading, sorbed material, retained liquid, or dried-liquid inventory",
+    "input_fields": [
+      "request"
+    ],
+    "intended_operations": [
+      "dry"
+    ],
+    "maturity": "reference_validated",
+    "model_id": "chemworld_sorbent_drying_vnext",
+    "module_id": "separations",
+    "output_fields": [
+      "drying_result"
+    ],
+    "provenance": [
+      "WF-30 competitive shared-site sorbent and explicit spent-solid ledger",
+      "single-component quadratic and SciPy nonlinear reference checks",
+      "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models_extra/temperature_swing_adsorption/fixed_bed_tsa0d.py extended-isotherm convention boundary; not an IDAES liquid-drying backend"
+    ],
+    "provider_path": "chemworld.physchem.drying_adapter_manifest.SorbentDryingProvider",
+    "role": "runtime",
+    "runtime_reachable": true,
+    "units": {
+      "drying_result": "JSON liquid/sorbent material ledger",
+      "request": "SorbentDryingRequest with explicit L, mol, kg, and s units"
+    },
+    "validity_checks": [
+      "request is a SorbentDryingRequest",
+      "wet-liquid and sorbent inventories are finite, nonnegative, and component explicit",
+      "initial loading does not exceed the shared site capacity",
+      "liquid and retained volumes remain within the declared contactor capacity",
+      "the residual drying-component endpoint lies in the closed unit interval",
+      "competitive equilibrium converges and component/volume closure remains within tolerance"
+    ]
+  },
+  "replaces_model_ids": [],
+  "schema_version": "chemworld-model-adapter-manifest-0.1",
+  "status": "proposal",
+  "target_world_law": "chemworld-physical-chemistry-vnext"
+}
