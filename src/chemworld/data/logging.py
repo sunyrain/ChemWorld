@@ -95,7 +95,9 @@ class TrajectoryLogger:
             "world_provider": task_info.get("world_provider"),
             "objective": task_info["objective"],
             "budget": int(task_info["budget"]),
+            "official_budget": int(task_info.get("official_budget", task_info["budget"])),
             "episode_mode": task_info.get("episode_mode", "single_experiment"),
+            "contract_profile": task_info.get("contract_profile", "official"),
             "safety_limit": float(task_info.get("safety_limit", 0.65)),
             "task_contract_hash": info.get(
                 "task_contract_hash",

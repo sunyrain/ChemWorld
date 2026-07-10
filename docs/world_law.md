@@ -6,7 +6,7 @@
 当前正式标识：
 
 ```text
-chemworld-physical-chemistry-v0.2
+chemworld-physical-chemistry-v0.3
 ```
 
 ## 版本语义
@@ -32,9 +32,9 @@ chemworld-physical-chemistry-v0.2
 - safety/cost signals 与 scoring interface；
 - maturity、provenance、hash 和 replay policy。
 
-## v0.2 的运行时物理
+## v0.3 的运行时物理
 
-v0.2 将三个已有专业候选模块接入正式运行时：
+v0.3 将三个已有专业候选模块接入正式运行时，并冻结 serious v1 的任务感知实验空间：
 
 - 冷却结晶：van't Hoff 溶解度、晶种质量、紧凑 PBM、CSD 和物料闭合；
 - 连续流：共享 compiled mechanism 的几何解析 PFR、热边界、压降和求解诊断；

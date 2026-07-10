@@ -26,7 +26,7 @@ class RecipeSequenceMixin(BaseAgent):
 
     def _start_recipe(self, recipe: dict[str, Any]) -> dict[str, Any]:
         self._active_recipe = dict(recipe)
-        self._pending_events = compile_recipe(recipe)
+        self._pending_events = compile_recipe(recipe, task_info=self.task_info)
         event = self._pop_pending_event()
         if event is None:
             raise RuntimeError("compile_recipe returned no executable events")

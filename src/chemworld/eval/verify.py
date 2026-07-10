@@ -158,6 +158,9 @@ def verify_records(
             "task_id": str(benchmark_task_id),
             "seed": int(first["seed"]),
         }
+        if first.get("contract_profile") == "extended-research":
+            env_kwargs["budget_override"] = int(first["budget"])
+            env_kwargs["episode_mode_override"] = str(first["episode_mode"])
     else:
         env_kwargs = {
             "world_split": first["world_split"],

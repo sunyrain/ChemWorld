@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent Observatory · ChemWorld</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="app-body agent-theme">
+  <header class="app-nav">
+    <a class="brand" href="/"><span class="brand-mark"><i></i><i></i><i></i></span><span><strong>ChemWorld</strong><small>Agent Observatory</small></span></a>
+    <nav><a class="active" href="/agent/">Agent Observatory</a><a href="/student/">Student Lab</a></nav>
+    <div class="system-state"><span class="live-dot"></span><span id="apiState">Local runtime online</span></div>
+  </header>
+
+  <div class="observatory-layout">
+    <aside class="control-rail">
+      <div class="rail-heading"><p class="overline">RUN CONTROL</p><h1>Evaluation scope</h1></div>
+      <div class="preset-row">
+        <button class="preset active" data-preset="all">全部 15</button>
+        <button class="preset" data-preset="serious">严肃任务</button>
+        <button class="preset" data-preset="quick">快速双任务</button>
+      </div>
+      <label class="field-label">筛选任务<input id="taskSearch" type="search" placeholder="task id / title"></label>
+      <div class="scope-summary"><span><b id="selectedCount">0</b> selected</span><button id="toggleTasks" class="text-button">反选</button></div>
+      <div id="taskChecklist" class="task-checklist"></div>
+
+      <div class="rail-divider"></div>
+      <div class="config-grid">
+        <label class="field-label">Agent 后端<select id="agentBackend"><option value="deepseek" selected>DeepSeek V4 Pro · 谱图驱动发现</option><option value="random_recipe">Random recipe · 随机对照</option><option value="latin_hypercube">Latin hypercube · 空间填充</option><option value="greedy_local">Greedy local · 局部搜索</option><option value="gp_pi">Gaussian Process · Probability of Improvement</option><option value="gp_ucb">Gaussian Process · Upper Confidence Bound</option><option value="gp_bo">Gaussian Process · Expected Improvement</option><option value="rf_ei">Random Forest · Expected Improvement</option><option value="safe_gp_bo">Safety-constrained GP · Expected Improvement</option></select></label>
+        <label class="field-label">决策模式<select id="runMode"><option value="adaptive" selected>多轮观测—决策 · 推荐</option><option value="plan">一次性规划 · 基线对照</option></select></label>
+        <label class="field-label">模型<input id="modelName" value="deepseek-v4-pro"></label>
+        <label class="field-label">推理强度<select id="reasoningEffort"><option value="high">High</option><option value="max" selected>Max · 复杂发现</option></select></label>
+        <label class="field-label">谱图披露<select id="spectrumDisclosure"><option value="raw">Raw · 仅曲线</option><option value="unassigned" selected>Unassigned · 默认</option><option value="assigned">Assigned · 教学</option></select></label>
+        <label class="field-label">单任务步数上限<input id="maxSteps" type="number" min="1" max="360" value="36"></label>
+        <label class="field-label">实验预算<select id="budgetMultiplier"><option value="1">1× · 官方预算</option><option value="2" selected>2× · 扩展研究</option><option value="3">3× · 扩展研究</option><option value="4">4× · 扩展研究</option></select></label>
+        <label class="field-label">Seed<input id="runSeed" type="number" min="0" placeholder="任务默认 seed"></label>
+      </div>
+      <label class="thinking-toggle"><input id="campaignOverride" type="checkbox" checked><span><b>连续实验 Campaign</b><small>终检后保留经验并开始下一次实验；扩展结果不进入官方榜单</small></span></label>
+      <label class="thinking-toggle"><input id="thinkingMode" type="checkbox" checked><span><b>模型侧强化推理</b><small>仅展示结构化审计摘要，不公开隐藏思维链</small></span></label>
+      <p id="contractNotice" class="contract-notice">EXTENDED RESEARCH · 2× budget · non-official score</p>
+      <button id="startRun" class="cta-button"><span>启动评测</span><b>Run →</b></button>
+      <p class="security-note"><span>◆</span> API key 仅存在于服务端进程；浏览器和轨迹不可见。</p>
+    </aside>
+
+    <main class="observatory-main">
+      <section class="page-heading">
+        <div><p class="overline">REAL-TIME MODEL EVALUATION</p><h2>Agent performance observatory</h2><p>从决策事件到 replay-verified final assay 的完整证据链。</p></div>
+        <div class="run-badge"><span id="runPulse"></span><strong id="runStatus">IDLE</strong><small id="runModel">deepseek-v4-pro</small></div>
+      </section>
+
+      <section class="kpi-strip">
+        <article><span>任务完成</span><strong id="kpiCompleted">0 / 0</strong><small id="kpiCoverage">等待运行</small></article>
+        <article><span id="kpiScoreLabel">平均 Research</span><strong id="kpiAverage">—</strong><small id="kpiScoreNote">扩展结果与官方榜单隔离</small></article>
+        <article><span>Token usage</span><strong id="kpiTokens">0</strong><small id="kpiCalls">0 model calls</small></article>
+        <article><span>协议有效率</span><strong id="kpiValidity">—</strong><small>无被拒绝的模型动作</small></article>
+      </section>
+
+      <section class="live-grid">
+        <article class="surface live-stage">
+          <div class="surface-heading"><div><p class="overline">CURRENT TASK</p><h3 id="currentTask">尚未开始</h3></div><span id="currentTaskId" class="mono-tag">—</span></div>
+          <div class="stage-content">
+            <div class="progress-orb" id="progressOrb"><div><strong id="orbStep">0</strong><span id="orbLimit">/ 0 steps</span></div></div>
+            <div class="decision-panel">
+              <span class="decision-label">LATEST OPERATION</span><strong id="currentAction">Waiting for agent</strong>
+              <p id="currentRationale">启动后，模型计划、验证结果与公开实验反馈将在这里实时出现。</p>
+              <div class="decision-meta"><span>Best <b id="liveBest">—</b></span><span>Assays <b id="liveAssays">0</b></span><span>Budget <b id="liveBudget">—</b></span></div>
+            </div>
+          </div>
+          <div class="chart-heading"><span>Best-score trajectory</span><span id="chartTask">No data</span></div>
+          <canvas id="agentChart" width="920" height="250"></canvas>
+        </article>
+
+        <article class="surface event-surface">
+          <div class="surface-heading"><div><p class="overline">EVENT STREAM</p><h3>Decision telemetry</h3></div><span id="eventCount" class="mono-tag">0 events</span></div>
+          <div id="agentTimeline" class="telemetry"><div class="empty-state"><span>⌁</span><p>等待 Agent 事件</p></div></div>
+        </article>
+      </section>
+
+      <section class="observability-grid">
+        <article class="surface spectrum-surface dark-spectrum">
+          <div class="surface-heading"><div><p class="overline">PUBLIC INSTRUMENT SIGNAL</p><h3>实时谱图工作台</h3></div><span id="agentSpectrumInstrument" class="mono-tag">No signal</span></div>
+          <div id="agentSpectrumTabs" class="spectrum-tabs"></div>
+          <div class="spectrum-canvas-shell"><canvas id="agentSpectrum" width="980" height="300"></canvas><div id="agentSpectrumEmpty" class="spectrum-empty">等待 HPLC、GC、UV-Vis、IR、NMR 或终点检测信号</div></div>
+          <div id="agentSpectrumMeta" class="spectrum-meta">No public signal</div>
+          <div id="agentSpectrumPeaks" class="spectrum-peaks"></div>
+        </article>
+        <article class="surface audit-surface">
+          <div class="surface-heading"><div><p class="overline">AUDITABLE DECISION RECORD</p><h3>证据与决策摘要</h3></div><span class="mono-tag">NO HIDDEN COT</span></div>
+          <div class="audit-content">
+            <div><span>公开证据</span><ul id="decisionEvidence"><li>等待模型读取公开观测</li></ul></div>
+            <div><span>谱图解读</span><p id="decisionSpectrum">尚无谱图解读。</p></div>
+            <div><span>当前假设</span><p id="decisionHypothesis">尚未建立实验假设。</p></div>
+            <div><span>动作依据</span><p id="decisionRationale">启动多轮评测后显示。</p></div>
+            <div class="uncertainty-row"><span>不确定性</span><div><i id="decisionUncertaintyBar"></i></div><b id="decisionUncertainty">—</b></div>
+            <small id="decisionUncertaintyNote">模型将报告主要不确定性来源。</small>
+          </div>
+        </article>
+      </section>
+
+      <section class="analysis-grid">
+        <article class="surface leaderboard-surface">
+          <div class="surface-heading"><div><p class="overline">CROSS-TASK RESULTS</p><h3>Verified score board</h3></div><button id="exportResults" class="ghost-button" disabled>导出 JSON</button></div>
+          <div class="table-shell"><table><thead><tr><th>#</th><th>Task</th><th>Official</th><th>Research</th><th>Total</th><th>Experiments</th><th>Steps</th><th>Tokens</th><th>Validity</th><th>Status</th></tr></thead><tbody id="scoreTable"><tr><td colspan="10"><div class="empty-table">运行后显示逐任务成绩</div></td></tr></tbody></table></div>
+        </article>
+        <article class="surface dossier-surface">
+          <div class="surface-heading"><div><p class="overline">TASK DOSSIER</p><h3 id="dossierTitle">选择一个任务</h3></div><span id="dossierMaturity" class="mono-tag">—</span></div>
+          <p id="dossierBackground" class="dossier-lead">任务背景、研究目标和评分解释将在这里显示。</p>
+          <dl class="dossier-list"><div><dt>学习目标</dt><dd id="dossierGoal">—</dd></div><div><dt>主要挑战</dt><dd id="dossierChallenge">—</dd></div><div><dt>评分口径</dt><dd id="dossierScore">—</dd></div></dl>
+          <div id="dossierMetrics" class="chip-row"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script src="/spectra.js" defer></script>
+  <script src="/agent.js" defer></script>
+</body>
+</html>

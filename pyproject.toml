@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "chemworld-bench"
-version = "0.1.0"
+version = "0.2.0"
 description = "A reproducible benchmark for closed-loop virtual chemical experimentation."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -85,6 +85,7 @@ ignore = ["N803", "N806", "N815"]
 
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = ["E501", "RUF001"]
+"apps/task_lab/*.py" = ["RUF001"]
 
 [tool.mypy]
 python_version = "3.11"

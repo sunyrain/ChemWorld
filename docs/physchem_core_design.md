@@ -136,7 +136,7 @@ factor 都是可审计输入。该模型标为 `professional_candidate`：它适
 - CSD 报告 number-basis D10/D50/D90、mean、standard deviation、CV、fines fraction 与 cohort count。
 
 该紧凑 PBM 不含 secondary nucleation、agglomeration、breakage、polymorph、shape、CFD 或
-heat-balance coupling。World Law v0.2 已将其接入 Gym crystallization task，并重新冻结 task
+heat-balance coupling。World Law v0.3 已将其接入 Gym crystallization task，并重新冻结 task
 contract 与 golden trajectories；它仍只在上述适用域内标为 `professional_candidate`。
 
 ## 设备换热与相变
@@ -256,7 +256,7 @@ competition、metastable ions、high-resolution lineshape 或 library match。
 
 当前电化学 slice 关注 equilibrium potential、measured cell potential、overpotential、resistance、selectivity 和 energy efficiency。它适合 `electrochemical-conversion` benchmark 交互，不是完整电池、电解槽或电化学反应器模拟器。
 
-World Law v0.2 的 flow runtime 使用共享 compiled mechanism 的几何解析 PFR：由流量与停留时间
+World Law v0.3 的 flow runtime 使用共享 compiled mechanism 的几何解析 PFR：由流量与停留时间
 确定反应器体积，显式声明管长、管径、粗糙度、流体性质和轴向热边界，并输出 Reynolds 数、
 Darcy 压降、能量账、物料残差和求解器诊断。该切片不包含多相流、轴向弥散、径向梯度、
 复杂换热网络或 CFD，因此标为 `professional_candidate`。电化学层同时提供 limiting current、

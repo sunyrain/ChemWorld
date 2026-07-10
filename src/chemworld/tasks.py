@@ -27,7 +27,7 @@ from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.scenario import get_scenario_card
 
 WORLD_LAW_ID = WORLD_FAMILY_VERSION
-TASK_CONTRACT_VERSION = "chemworld-task-contract-0.4"
+TASK_CONTRACT_VERSION = "chemworld-task-contract-0.5"
 CORE_TASK_IDS = (
     "reaction-to-assay",
     "reaction-to-purification",
@@ -205,7 +205,7 @@ class TaskSpec:
             "task_id": self.task_id,
             "task_contract_hash": self.contract_hash,
             "release_status": (
-                "serious-task-candidate"
+                "serious-benchmark-v1"
                 if self.task_id in SERIOUS_TASK_IDS
                 else (
                     "core"
@@ -597,9 +597,9 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         scenario_id="reaction-to-crystallization",
         world_split="public-test",
         budget=72,
-        seeds=(0, 1, 2),
-        threshold=0.66,
-        episode_mode="single_experiment",
+        seeds=(0, 1, 2, 3, 4),
+        threshold=0.60,
+        episode_mode="campaign",
         allowed_operations=REACTION_CRYSTALLIZATION_ALLOWED,
         success_metrics=("score", "crystal_yield", "crystal_purity", "crystal_size"),
         description="Run a reaction and isolate product through seeded cooling crystallization.",
@@ -610,9 +610,9 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         scenario_id="reaction-to-distillation",
         world_split="public-test",
         budget=72,
-        seeds=(0, 1, 2),
-        threshold=0.64,
-        episode_mode="single_experiment",
+        seeds=(0, 1, 2, 3, 4),
+        threshold=0.29,
+        episode_mode="campaign",
         allowed_operations=REACTION_DISTILLATION_ALLOWED,
         success_metrics=("score", "distillate_purity", "distillate_recovery", "solvent_loss"),
         description="Run a reaction and evaluate volatile-product recovery through distillation.",
@@ -623,8 +623,8 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         scenario_id="flow-reaction-optimization",
         world_split="public-test",
         budget=60,
-        seeds=(0, 1, 2),
-        threshold=0.64,
+        seeds=(0, 1, 2, 3, 4),
+        threshold=0.075,
         episode_mode="campaign",
         allowed_operations=FLOW_REACTION_ALLOWED,
         success_metrics=("score", "flow_conversion", "yield", "safety_risk"),
@@ -636,7 +636,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         scenario_id="electrochemical-conversion",
         world_split="public-test",
         budget=48,
-        seeds=(0, 1, 2),
+        seeds=(0, 1, 2, 3, 4),
         threshold=0.58,
         episode_mode="campaign",
         allowed_operations=ELECTROCHEMISTRY_ALLOWED,
@@ -654,8 +654,8 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         scenario_id="equilibrium-characterization",
         world_split="public-test",
         budget=24,
-        seeds=(0, 1, 2),
-        threshold=0.62,
+        seeds=(0, 1, 2, 3, 4),
+        threshold=0.28,
         episode_mode="campaign",
         allowed_operations=REACTION_ALLOWED,
         instruments=("ph_meter", "uvvis", "final_assay"),
@@ -674,7 +674,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
             "equilibrium",
             "characterization",
             "world-model-learning",
-            "serious-task-candidate",
+            "serious-benchmark-v1",
         ),
         kernel_maturity=equilibrium_kernel_maturity(),
     ),
@@ -683,7 +683,7 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         scenario_id="partition-discovery",
         world_split="public-test",
         budget=48,
-        seeds=(0, 1, 2),
+        seeds=(0, 1, 2, 3, 4),
         threshold=0.60,
         episode_mode="campaign",
         allowed_operations=PARTITION_ALLOWED,

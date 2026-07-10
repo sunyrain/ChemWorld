@@ -14,11 +14,14 @@ from chemworld.agents import (
     CodexSubagentOnlineAgent,
     CodexSubagentReplayAgent,
     GaussianProcessBOAgent,
+    GaussianProcessPIAgent,
+    GaussianProcessUCBAgent,
     GreedyLocalAgent,
     LatinHypercubeAgent,
     LLMReplayAgent,
     RandomAgent,
     RandomForestEIAgent,
+    RandomRecipeAgent,
     SafetyConstrainedBOAgent,
     ScriptedChemistryAgent,
     ToolUsingLLMStubAgent,
@@ -34,8 +37,11 @@ AGENT_REGISTRY: dict[str, Callable[[], Agent]] = {
     "greedy": GreedyLocalAgent,
     "greedy_local": GreedyLocalAgent,
     "gp_bo": GaussianProcessBOAgent,
+    "gp_pi": GaussianProcessPIAgent,
+    "gp_ucb": GaussianProcessUCBAgent,
     "rf_ei": RandomForestEIAgent,
     "safe_gp_bo": SafetyConstrainedBOAgent,
+    "random_recipe": RandomRecipeAgent,
     "scripted_chemistry": ScriptedChemistryAgent,
     "scripted_reaction_to_purification": ScriptedChemistryAgent,
     "partition_discovery_heuristic": ScriptedChemistryAgent,
@@ -64,6 +70,9 @@ def run_agent(
     seed: int,
     task_id: str | None = None,
     output_path: str | Path | None = None,
+    budget_override: int | None = None,
+    episode_mode_override: str | None = None,
+    step_callback: Callable[[HistoryRecord, list[dict[str, Any]]], None] | None = None,
 ) -> list[HistoryRecord]:
     """Run one benchmark episode and optionally write a JSONL trajectory."""
 
@@ -75,6 +84,10 @@ def run_agent(
     }
     if task_id is not None:
         env_kwargs["task_id"] = task_id
+    if budget_override is not None:
+        env_kwargs["budget_override"] = budget_override
+    if episode_mode_override is not None:
+        env_kwargs["episode_mode_override"] = episode_mode_override
     env = gym.make(
         env_id,
         **env_kwargs,
@@ -106,11 +119,9 @@ def run_agent(
                 info=info,
             )
             history.append(record)
+            agent_trace_factory = getattr(agent, "agent_trace", None)
+            agent_trace = agent_trace_factory() if callable(agent_trace_factory) else []
             if logger is not None:
-                agent_trace_factory = getattr(agent, "agent_trace", None)
-                agent_trace = (
-                    agent_trace_factory() if callable(agent_trace_factory) else []
-                )
                 logger.log(
                     task_info=task_info,
                     step=step,
@@ -124,6 +135,8 @@ def run_agent(
                     agent_view=agent_view_bundle(env, observation, info),
                     agent_trace=agent_trace,
                 )
+            if step_callback is not None:
+                step_callback(record, agent_trace)
             if terminated or truncated:
                 break
     finally:

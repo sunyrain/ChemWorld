@@ -4,7 +4,7 @@
 中的 registry 保持一致。若任务的 action space、budget、metrics、maturity、
 hidden scenario policy 或 scoring contract 改变，应视为 benchmark contract 变更。
 
-三个 core 任务用于冻结 API、回放和发布链路。它们不等同于严肃研究主榜；严肃候选任务及
+三个 core 任务用于冻结 API、回放和发布链路。它们不等同于 serious v1 研究主榜；正式任务及
 准入条件见[严肃任务设计](task_design.md)。
 
 ## Core 任务
@@ -103,8 +103,8 @@ artifact 审计。
 
 ## 发布规则
 
-- core 回归套件引用上面三个任务；严肃候选套件另行审查。
-- 任务合同版本：`chemworld-task-contract-0.4`。
+- core 回归套件引用上面三个任务；serious v1 套件使用独立的经验有效性门禁。
+- 任务合同版本：`chemworld-task-contract-0.5`。
 - 每个 task card 必须暴露 `task_contract_hash`、`kernel_maturity`、`physics_maturity`
   和 `proxy_allowed`。
 - `reaction-to-purification` 仍含 dry/concentrate/transfer proxy；`partition-discovery`

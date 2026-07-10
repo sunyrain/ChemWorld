@@ -6,7 +6,7 @@
 ## 套件
 
 - `core`：三个紧凑任务，用于 API、回放和发布链路回归；
-- `serious`：六个无 proxy 的严肃任务候选，用于开始难度校准和研究评测；
+- `serious`：六个已通过合同、经验有效性与回放门禁的正式研究任务；
 - 显式 `--tasks`：用户自选任务，不自动获得正式套件声明。
 
 ```bash
@@ -15,7 +15,8 @@ chemworld baselines report --preset serious
 chemworld tasks readiness
 ```
 
-严肃候选的准入和提升规则见[严肃任务设计](task_design.md)。
+正式套件的准入和冻结规则见[严肃任务设计](task_design.md)与
+[Benchmark v1](benchmark_release.md)。
 
 ## 数据划分
 
@@ -40,9 +41,12 @@ experiment 为单位。报告至少包含：
 
 ## Baseline 与统计
 
-每个严肃任务至少运行 random、可解释 scripted baseline、优化 baseline 和安全感知 baseline。
-正式比较使用任务冻结 seeds，报告逐任务均值、标准误或 bootstrap confidence interval。smoke
-override 只能验证管线，不能用于性能声明。
+每个严肃任务使用 5 个冻结 seeds，并运行 task-aware random、LHS、可解释 scripted、GP-BO、
+safe GP-BO 和离线 tool-agent stub。正式报告逐任务均值、标准误和置信区间；不发布掩盖领域
+差异的跨任务总分。smoke override 只能验证管线，不能用于性能声明。
+
+正式 evidence gate 还要求所有 baseline 无非法动作、每个 campaign 完成多轮实验、GP 进入
+acquisition、成功阈值非饱和，并且 total score 与 primary metric 都能区分策略。
 
 ## Verified Result Chain
 

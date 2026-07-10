@@ -8,6 +8,7 @@ from random import Random
 from typing import Protocol
 
 from chemworld.foundation import WorldState
+from chemworld.foundation.state import SpeciesLedger
 from chemworld.runtime.mechanisms import CompiledMechanism, compile_mechanism_for_scenario
 from chemworld.world.parameters import (
     WORLD_FAMILY_VERSION,
@@ -105,6 +106,35 @@ class DefaultScenarioGenerator:
             initial_amounts_mol=compiled_mechanism.initial_amount_policy,
             initial_limiting_species=compiled_mechanism.score_spec.initial_limiting_species,
         )
+        if spec.family == "partition":
+            feed_rng = Random(parameter_seed ^ 0x8A17_2D41)
+            feed_amounts = initial_state.species_amounts.copy()
+            target_species = compiled_mechanism.score_spec.target_species
+            impurity_species = compiled_mechanism.score_spec.impurity_species
+            target_amount = feed_rng.uniform(0.006, 0.014)
+            impurity_amount = feed_rng.uniform(0.001, 0.004)
+            if target_species:
+                feed_amounts[target_species[0]] = target_amount
+            if impurity_species:
+                feed_amounts[impurity_species[0]] = impurity_amount
+            initial_state = initial_state.replace(
+                species_amounts=feed_amounts,
+                species=SpeciesLedger(
+                    species_roles=compiled_mechanism.species_roles,
+                    initial_amounts_mol={
+                        **(
+                            {target_species[0]: target_amount}
+                            if target_species
+                            else {}
+                        ),
+                        **(
+                            {impurity_species[0]: impurity_amount}
+                            if impurity_species
+                            else {}
+                        ),
+                    },
+                ),
+            )
         metadata = initial_state.metadata.copy()
         metadata.update(
             {
@@ -113,6 +143,15 @@ class DefaultScenarioGenerator:
                 "initial_state_seed": spec.initial_state_seed,
             }
         )
+        if spec.family == "equilibrium_characterization":
+            equilibrium_rng = Random(parameter_seed ^ 0xC4E9_51B3)
+            metadata.update(
+                {
+                    "hidden_equilibrium_pka": equilibrium_rng.uniform(3.8, 5.4),
+                    "hidden_equilibrium_ksp": 10.0
+                    ** equilibrium_rng.uniform(-10.4, -9.2),
+                }
+            )
         if spec.initial_state_seed:
             rng = Random(initial_seed)
             initial_state = initial_state.replace(

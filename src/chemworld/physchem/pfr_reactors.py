@@ -128,7 +128,14 @@ class PFRModel:
             if any(value < 0.0 or value > self.geometry.length_m for value in positions):
                 raise ValueError("axial_positions_m must lie inside the PFR length")
             evaluation_times_s = tuple(
-                self.residence_time_s * value / self.geometry.length_m for value in positions
+                float(
+                    np.clip(
+                        self.residence_time_s * value / self.geometry.length_m,
+                        0.0,
+                        self.residence_time_s,
+                    )
+                )
+                for value in positions
             )
         thermal = HeatTransferSpec() if heat_transfer is None else heat_transfer
         initial_amounts = {

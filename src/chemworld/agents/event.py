@@ -20,14 +20,16 @@ class ScriptedChemistryAgent(BaseAgent):
         distillation_enabled = "distill" in allowed_operations
         flow_enabled = "run_flow" in allowed_operations
         electrochemistry_enabled = "electrolyze" in allowed_operations
+        partition_only = "add_phase" in allowed_operations and "heat" not in allowed_operations
         allowed_instruments = set(self.task_info.get("allowed_instruments", []))
         if "ph_meter" in allowed_instruments:
             equilibrium_sequence: list[dict[str, Any]] = [
-                {"operation": "add_solvent", "volume_L": 0.030, "solvent": 0},
-                {"operation": "add_reagent", "amount_mol": 0.006},
+                {"operation": "add_solvent", "volume_L": 0.034, "solvent": 0},
+                {"operation": "add_reagent", "amount_mol": 0.0045},
                 {"operation": "measure", "instrument": "ph_meter"},
-                {"operation": "add_reagent", "amount_mol": 0.004},
+                {"operation": "add_reagent", "amount_mol": 0.0075},
                 {"operation": "measure", "instrument": "ph_meter"},
+                {"operation": "measure", "instrument": "uvvis"},
                 {"operation": "terminate"},
                 {"operation": "measure", "instrument": "final_assay"},
             ]
@@ -39,10 +41,10 @@ class ScriptedChemistryAgent(BaseAgent):
                 {"operation": "add_catalyst", "catalyst_amount_mol": 0.00022, "catalyst": 1},
                 {
                     "operation": "set_flow_rate",
-                    "flow_rate_mL_min": 1.2,
-                    "residence_time_s": 900.0,
+                    "flow_rate_mL_min": 0.85,
+                    "residence_time_s": 1250.0,
                 },
-                {"operation": "run_flow", "target_temperature_K": 382.0, "duration_s": 1800.0},
+                {"operation": "run_flow", "target_temperature_K": 395.0, "duration_s": 2100.0},
                 {"operation": "measure", "instrument": "uvvis"},
                 {"operation": "terminate"},
                 {"operation": "measure", "instrument": "final_assay"},
@@ -52,13 +54,27 @@ class ScriptedChemistryAgent(BaseAgent):
             electrochemistry_sequence: list[dict[str, Any]] = [
                 {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
                 {"operation": "add_reagent", "amount_mol": 0.010},
-                {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0},
-                {"operation": "electrolyze", "duration_s": 1800.0},
+                {"operation": "set_potential", "potential_V": 1.35, "current_mA": 92.0},
+                {"operation": "electrolyze", "duration_s": 2100.0},
                 {"operation": "measure", "instrument": "uvvis"},
                 {"operation": "terminate"},
                 {"operation": "measure", "instrument": "final_assay"},
             ]
             return self._sequence_action(electrochemistry_sequence, step)
+        if partition_only:
+            partition_sequence: list[dict[str, Any]] = [
+                {"operation": "add_solvent", "volume_L": 0.018, "solvent": 2},
+                {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.018},
+                {"operation": "add_extractant", "extractant": 3, "volume_L": 0.024},
+                {"operation": "mix", "duration_s": 360.0, "stirring_speed_rpm": 920.0},
+                {"operation": "settle", "duration_s": 720.0},
+                {"operation": "measure", "instrument": "hplc"},
+                {"operation": "separate_phase", "target_phase": "organic"},
+                {"operation": "measure", "instrument": "hplc"},
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
+            return self._sequence_action(partition_sequence, step)
         sequence: list[dict[str, Any]] = [
             {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
             {"operation": "add_reagent", "amount_mol": 0.010},

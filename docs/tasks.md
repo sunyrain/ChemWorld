@@ -1,6 +1,6 @@
 # Benchmark 任务
 
-当前发布注册 15 个任务。它们共享 `chemworld-physical-chemistry-v0.2`，但在目标、预算、允许
+当前发布注册 15 个任务。它们共享 `chemworld-physical-chemistry-v0.3`，但在目标、预算、允许
 操作、仪器、episode 模式和隐藏场景上形成不同能力切片。
 
 ## 任务目录
@@ -30,11 +30,11 @@
 ## 套件角色
 
 - `core` 用于 API、回放和发布链路回归；
-- `serious` 是六个无 proxy 的研究任务候选；
+- `serious` 是六个无 proxy、按合同冻结的 v1 研究任务；
 - 其它任务保持 registered/exploratory 状态，不能仅因已注册就视为正式主榜。
 
-严肃候选还没有自动获得论文级验证状态。准入检查、研究问题和待补证据见
-[严肃任务设计](task_design.md)。
+它们只有在仓库内经验验证证据与当前 task contract hash 一致时才显示 `validated`。准入检查、
+研究问题和冻结证据见[严肃任务设计](task_design.md)。
 
 ## Episode 模式
 
@@ -57,7 +57,7 @@ print(card["allowed_operations"])
 print(card["kernel_maturity"])
 ```
 
-检查严肃候选 readiness：
+检查 serious v1 readiness：
 
 ```bash
 chemworld tasks readiness

@@ -98,3 +98,30 @@ def test_campaign_final_assay_ends_experiment_but_not_episode() -> None:
         assert not next_info["constraint_flags"]["precondition_failed"]
     finally:
         env.close()
+
+
+def test_extended_research_profile_overrides_budget_and_episode_mode() -> None:
+    env = gym.make(
+        "ChemWorld",
+        task_id="reaction-to-assay",
+        seed=0,
+        budget_override=36,
+        episode_mode_override="campaign",
+    )
+    try:
+        _, task_info = env.reset(seed=0)
+        assert task_info["budget"] == 36
+        assert task_info["official_budget"] == 18
+        assert task_info["episode_mode"] == "campaign"
+        assert task_info["contract_profile"] == "extended-research"
+        final_info = {}
+        for action in FINAL_ASSAY_RECIPE:
+            _, _, terminated, truncated, final_info = env.step(action)
+        assert not terminated
+        assert not truncated
+        state = env.unwrapped.campaign_state()
+        assert state["experiment_index"] == 1
+        assert len(state["experiment_summaries"]) == 1
+        assert final_info["next_experiment_ready"] is True
+    finally:
+        env.close()

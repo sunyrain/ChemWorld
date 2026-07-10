@@ -33,6 +33,10 @@ def test_env_exposes_agent_facing_methods() -> None:
         assert "final_assay" in prompt["text"]
         assert "hplc" in prompt["allowed_instruments"]
         assert "purity" in prompt["success_metrics"]
+        assert prompt["material_catalog"]["solvents"][0]["display_name"] == "Water"
+        assert "categorical benchmark effects" in prompt["material_catalog"][
+            "interpretation_policy"
+        ]
 
         actions = env.unwrapped.available_actions()
         operations = {entry["operation"] for entry in actions}
@@ -47,6 +51,12 @@ def test_env_exposes_agent_facing_methods() -> None:
         }["target_temperature_K"]
         assert temperature_field["unit"] == "K"
         assert temperature_field["bounds"]["low"] == 250.0
+
+        solvent_schema = env.unwrapped.action_schema("add_solvent")
+        solvent_field = {
+            field["field"]: field for field in solvent_schema["fields"]
+        }["solvent"]
+        assert solvent_field["choice_labels"]["0"].startswith("Water · H2O")
 
         before = env.unwrapped.campaign_state()
         validation = env.unwrapped.validate_action({"operation": "heat", "duration_s": 1.0})

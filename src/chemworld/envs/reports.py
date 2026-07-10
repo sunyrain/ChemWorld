@@ -10,6 +10,7 @@ from chemworld import __version__
 from chemworld.backends import semi_mechanistic_backend_spec
 from chemworld.envs.spaces import OBSERVATION_KEYS, value_or_default
 from chemworld.foundation.state import OperationRecord
+from chemworld.materials import public_material_catalog
 from chemworld.world.instruments import instrument_contracts
 from chemworld.world.operations import (
     OPERATION_TYPES,
@@ -34,7 +35,9 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "world_provider": env.world.provider,
         "objective": env.objective,
         "budget": env.budget,
+        "official_budget": env.official_budget,
         "episode_mode": env.episode_mode,
+        "contract_profile": env.contract_profile,
         "safety_limit": env.safety_limit,
         "seed": env.seed,
         "world_id": env.world.world_id,
@@ -56,6 +59,7 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "operation_types": list(OPERATION_TYPES),
         "allowed_operations": sorted(env.allowed_operations),
         "allowed_instruments": sorted(env.allowed_instruments),
+        "material_catalog": public_material_catalog(),
         "kernel_maturity": env.kernel_maturity.to_dict(),
         "physics_maturity": env.kernel_maturity.lowest_level.value,
         "proxy_allowed": env.kernel_maturity.proxy_allowed,

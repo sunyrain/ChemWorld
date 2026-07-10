@@ -13,7 +13,7 @@ from chemworld.tasks import SERIOUS_TASK_IDS, get_task
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 
 
-def test_serious_task_candidate_set_is_frozen() -> None:
+def test_serious_benchmark_v1_set_is_frozen() -> None:
     assert SERIOUS_TASK_IDS == (
         "partition-discovery",
         "reaction-to-crystallization",
@@ -28,7 +28,7 @@ def test_serious_task_candidate_set_is_frozen() -> None:
         assert task.world_law_id == WORLD_FAMILY_VERSION
         assert task.contract_hash
         assert task.kernel_maturity.proxy_allowed is False
-        assert task.to_card()["release_status"] == "serious-task-candidate"
+        assert task.to_card()["release_status"] == "serious-benchmark-v1"
         assert "serious" in task.to_card()["suite_memberships"]
 
 
@@ -131,7 +131,9 @@ def test_serious_baseline_report_smoke_contains_equilibrium_metrics(tmp_path) ->
     )
     assert report.result_count == 2
     assert report.solver_provenance["schema_version"] == "chemworld-solver-provenance-0.2"
-    assert "codex_subagent_replay" in SERIOUS_BASELINE_AGENTS
+    # Replay traces remain available as diagnostics, but are not an official
+    # cross-task baseline because their fixed action plan is task-specific.
+    assert "codex_subagent_replay" not in SERIOUS_BASELINE_AGENTS
     rows = report.summary_rows
     assert {row["agent_name"] for row in rows} == {
         "scripted_chemistry",

@@ -20,7 +20,7 @@ observation, info = env.reset(seed=0)
 ```
 
 The current release contains 15 task slices under
-`chemworld-physical-chemistry-v0.2`, with versioned task, scenario, mechanism,
+`chemworld-physical-chemistry-v0.3`, with versioned task, scenario, mechanism,
 observation, scoring, trajectory, and replay contracts.
 
 ## Documentation Map

@@ -22,6 +22,7 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
     plan = json.loads(completed.stdout)
     names = [item["name"] for item in plan]
     assert names == [
+        "claims",
         "lint",
         "type_check",
         "tests",
@@ -31,8 +32,10 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
         "runtime_boundary_audit",
         "environment_audit",
         "baseline_smoke",
+        "frozen_benchmark",
     ]
     flat_commands = [" ".join(item["command"]) for item in plan]
+    assert any("manage_claims.py check" in command for command in flat_commands)
     assert any("ruff check ." in command for command in flat_commands)
     assert any("mypy src/chemworld" in command for command in flat_commands)
     assert any("pytest" in command for command in flat_commands)
@@ -41,6 +44,7 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
     assert any("run_reference_validation.py" in command for command in flat_commands)
     assert any("audit_environment_consistency.py" in command for command in flat_commands)
     assert any("baselines report" in command for command in flat_commands)
+    assert any("check_frozen_benchmark.py" in command for command in flat_commands)
 
 
 def test_reference_gate_requires_every_backend_used_by_reference_tests() -> None:

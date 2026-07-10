@@ -26,6 +26,6 @@
 - 物理成熟度是什么；
 - 是否需要新的 operation 或 instrument contract。
 
-新任务注册后默认只是可运行切片。若要进入严肃候选套件，还必须满足
+新任务注册后默认只是可运行切片。若要进入后续 serious benchmark 版本，还必须满足
 [严肃任务设计](task_design.md)中的指标可执行性、无 proxy、seed 深度、泛化轴、baseline、
 证据和反作弊要求。

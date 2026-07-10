@@ -13,7 +13,7 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 
 当前版本支持受控虚拟任务：
 
-- 在同一个 `world_law_id=chemworld-physical-chemistry-v0.2` 下运行任务切片；
+- 在同一个 `world_law_id=chemworld-physical-chemistry-v0.3` 下运行任务切片；
 - 使用半机理或轻量物理模型生成 hidden scenario；
 - 通过 Gymnasium API、CLI、trajectory、replay verifier 和 baseline report 评测 agent；
 - 比较有限预算实验设计、仪器观测使用、局部 world model 学习、约束处理和可复现提交。
@@ -23,7 +23,7 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 - 这是一个可交互、可复现、可评测的虚拟化学实验 benchmark；
 - task、scenario、mechanism、scoring 和 trajectory 带有版本化合同和 hash；
 - agent 只能通过公开 observation、instrument result、cost/risk signal 和日志学习；
-- core 任务已经有 frozen task contract、golden trajectory、baseline report、
+- serious v1 任务已经有 frozen task contract、golden trajectory、baseline report、
   replay verifier 和本地 release gate。
 
 不可声明：
@@ -45,8 +45,8 @@ ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学
 | `partition-discovery` | `lite` | 相接触使用专业候选 extraction train，但分配参数仍为 benchmark 校准值，不等同于真实溶剂体系热力学。 |
 
 所有图表、论文 artifact、baseline table 和课程报告都应显示 maturity，而不能只展示最高分。
-serious 套件当前仍是 `candidate`；在多 seed 难度校准、置信区间和失败分析完成前，不得称为
-已经验证的正式主榜。
+serious v1 已在 ChemWorld 虚拟环境的声明范围内通过经验有效性门禁。这只表示任务与策略在
+冻结 seeds 上可运行、可区分、可重放；不表示其物理模型达到真实化学或工业验证水平。
 
 ## 已知 proxy/lite 表面
 
@@ -76,6 +76,7 @@ serious 套件当前仍是 `candidate`；在多 seed 难度校准、置信区间
 .\.venv\Scripts\python.exe scripts\run_release_gate.py
 ```
 
-该 gate 覆盖 lint、type check、全量测试、文档构建、环境自洽性审计和 baseline smoke。只有通过
+该 gate 覆盖 lint、type check、全量测试、文档构建、wheel 安装、环境自洽性审计、baseline
+smoke 和冻结证据检查。只有通过
 该 gate，并在 artifact 中包含任务合同、baseline report、dataset card、replay manifest、
 release checklist 和本限制声明时，才能发布 benchmark claim。

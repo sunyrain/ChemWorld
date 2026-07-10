@@ -265,7 +265,7 @@ class ChemWorldObservationKernel:
                     precipitate_id="AgCl_public",
                     cation_id="Ag+",
                     anion_id="Cl-",
-                    ksp=1.8e-10,
+                    ksp=float(state.metadata.get("hidden_equilibrium_ksp", 1.8e-10)),
                 ),
             ),
             volume_L=volume_L,
@@ -280,11 +280,18 @@ class ChemWorldObservationKernel:
                 1.0,
             )
         )
+        identifiability = 1.0 - min(
+            abs(acid.acid_dissociation_fraction - 0.5) / 0.5,
+            1.0,
+        )
+        concentration = acid_total / volume_L
+        concentration_quality = 1.0 - min(abs(concentration - 0.25) / 0.25, 1.0)
         confidence = float(
             np.clip(
-                0.55 * (1.0 - residual)
-                + 0.25 * acid.acid_dissociation_fraction
-                + 0.20 * (1.0 - min(abs(acid.pH - 4.5) / 4.5, 1.0)),
+                0.25 * (1.0 - residual)
+                + 0.40 * identifiability
+                + 0.20 * concentration_quality
+                + 0.15 * (1.0 - min(abs(acid.pH - pka) / 2.0, 1.0)),
                 0.0,
                 1.0,
             )
@@ -301,6 +308,9 @@ class ChemWorldObservationKernel:
 
     @staticmethod
     def _hidden_acid_pka(state: WorldState) -> float:
+        configured = state.metadata.get("hidden_equilibrium_pka")
+        if configured is not None:
+            return float(configured)
         scenario_id = str(state.metadata.get("scenario_id", "equilibrium-characterization"))
         jitter = (sum(ord(char) for char in scenario_id) % 13) / 100.0
         temperature_shift = np.clip((state.temperature_K - 298.15) / 600.0, -0.25, 0.25)

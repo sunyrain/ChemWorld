@@ -79,7 +79,7 @@ def test_baseline_report_summary_rows_include_core_metrics(tmp_path) -> None:
         seeds=[0],
         output_dir=tmp_path / "baseline_report",
     )
-    assert report.schema_version == "chemworld-baseline-report-0.2"
+    assert report.schema_version == "chemworld-baseline-report-0.3"
     assert report.task_seed_plan == {"reaction-to-assay": [0]}
     assert (tmp_path / "baseline_report" / "baseline_summary_table.json").exists()
     summary_rows = {

@@ -10,7 +10,7 @@ from chemworld.tasks import CORE_TASK_IDS, SERIOUS_TASK_IDS, get_task
 
 SEED_SUITE_SCHEMA_VERSION = "chemworld-seed-suite-0.1"
 CORE_SEED_SUITE_ID = "chemworld-core-0.2"
-SERIOUS_SEED_SUITE_ID = "chemworld-serious-task-candidates-0.1"
+SERIOUS_SEED_SUITE_ID = "chemworld-serious-v1"
 PRIVATE_EVAL_SALT_ENV = "CHEMWORLD_PRIVATE_EVAL_SALT"
 
 
@@ -125,7 +125,7 @@ def official_seed_suite(
 
 
 def serious_seed_suite() -> dict[str, Any]:
-    """Return the frozen seed plan for serious task candidates."""
+    """Return the frozen seed plan for the serious v1 benchmark."""
 
     return official_seed_suite(SERIOUS_TASK_IDS, suite_id=SERIOUS_SEED_SUITE_ID)
 

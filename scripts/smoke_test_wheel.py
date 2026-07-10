@@ -55,10 +55,16 @@ def main() -> int:
 
         smoke = (
             "import json, pathlib, chemworld, gymnasium as gym; "
+            "from chemworld.task_design import serious_task_readiness_manifest; "
+            "from chemworld.eval.benchmark_validation import official_validation_path; "
             "env=gym.make('ChemWorld', task_id='reaction-to-assay', seed=0); "
             "obs,info=env.reset(seed=0); "
+            "readiness=serious_task_readiness_manifest(); "
             "print(json.dumps({'package': chemworld.__file__, "
-            "'task_id': info['task_id'], 'observation_keys': sorted(obs)})); "
+            "'task_id': info['task_id'], 'observation_keys': sorted(obs), "
+            "'serious_suite_status': readiness['suite_status'], "
+            "'benchmark_ready_count': readiness['benchmark_ready_count'], "
+            "'official_validation_path': str(official_validation_path())})); "
             "env.close()"
         )
         env = os.environ.copy()
@@ -77,6 +83,13 @@ def main() -> int:
             raise RuntimeError(f"Smoke imported editable source instead of wheel: {imported_path}")
         if payload["task_id"] != "reaction-to-assay":
             raise RuntimeError(f"Unexpected wheel smoke task payload: {payload}")
+        if payload["serious_suite_status"] != "validated":
+            raise RuntimeError(f"Wheel does not carry validated benchmark evidence: {payload}")
+        if payload["benchmark_ready_count"] != 6:
+            raise RuntimeError(f"Wheel benchmark evidence is incomplete: {payload}")
+        validation_path = Path(str(payload["official_validation_path"])).resolve()
+        if not validation_path.is_relative_to(install_dir.resolve()):
+            raise RuntimeError(f"Wheel used validation outside installed resources: {payload}")
         print(json.dumps({"wheel_smoke": "passed", **payload}, indent=2, sort_keys=True))
     return 0
 

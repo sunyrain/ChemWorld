@@ -105,10 +105,12 @@ def test_cli_tasks_and_run_task(tmp_path, capsys) -> None:
         json.loads(line) for line in explicit.read_text(encoding="utf-8").splitlines()
     ]
     assert len(task_records) == len(explicit_records)
-    for task_record, explicit_record in zip(task_records, explicit_records, strict=True):
-        assert task_record["action"] == explicit_record["action"]
-        assert task_record["observation"] == explicit_record["observation"]
-        assert task_record["reward"] == explicit_record["reward"]
+    # A named task supplies its task-aware recipe space; an anonymous explicit
+    # environment uses the generic reaction space. Both paths must remain legal,
+    # but they are intentionally no longer action-for-action aliases.
+    assert task_records[0]["action"] != explicit_records[0]["action"]
+    for record in (*task_records, *explicit_records):
+        assert not record["constraint_flags"].get("precondition_failed", False)
 
 
 def test_cli_seeds_show(capsys) -> None:
@@ -127,6 +129,6 @@ def test_cli_serious_task_readiness(capsys) -> None:
     main(["tasks", "readiness"])
     payload = json.loads(capsys.readouterr().out)
 
-    assert payload["suite_status"] == "candidate"
+    assert payload["suite_status"] == "validated"
     assert payload["contract_ready_count"] == len(payload["task_ids"])
-    assert payload["benchmark_ready_count"] == 0
+    assert payload["benchmark_ready_count"] == len(payload["task_ids"])

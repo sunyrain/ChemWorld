@@ -3,6 +3,8 @@
 from chemworld.agents.base import Agent, HistoryRecord
 from chemworld.agents.bo import (
     GaussianProcessBOAgent,
+    GaussianProcessPIAgent,
+    GaussianProcessUCBAgent,
     RandomForestEIAgent,
     SafetyConstrainedBOAgent,
 )
@@ -17,13 +19,15 @@ from chemworld.agents.llm import (
     ReplayLLMAgent,
     ToolUsingLLMStubAgent,
 )
-from chemworld.agents.random import RandomAgent
+from chemworld.agents.random import RandomAgent, RandomRecipeAgent
 
 __all__ = [
     "Agent",
     "CodexSubagentOnlineAgent",
     "CodexSubagentReplayAgent",
     "GaussianProcessBOAgent",
+    "GaussianProcessPIAgent",
+    "GaussianProcessUCBAgent",
     "GreedyLocalAgent",
     "HistoryRecord",
     "LLMPlannerAgent",
@@ -31,6 +35,7 @@ __all__ = [
     "LatinHypercubeAgent",
     "RandomAgent",
     "RandomForestEIAgent",
+    "RandomRecipeAgent",
     "ReplayLLMAgent",
     "SafetyConstrainedBOAgent",
     "ScriptedChemistryAgent",

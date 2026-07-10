@@ -61,6 +61,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         objective: str = "balanced",
         seed: int = 0,
         task_id: str | None = None,
+        budget_override: int | None = None,
+        episode_mode_override: str | None = None,
         debug_truth: bool = False,
         render_mode: str | None = None,
     ) -> None:
@@ -73,11 +75,18 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             world_split = self.task_spec.world_split
             budget = self.task_spec.budget
             objective = self.task_spec.objective
+        if budget_override is not None:
+            budget = int(budget_override)
         if budget <= 0:
             raise ValueError("budget must be positive")
+        if episode_mode_override not in {None, "single_experiment", "campaign"}:
+            raise ValueError(
+                "episode_mode_override must be single_experiment, campaign, or None"
+            )
 
         self.world_split = world_split
         self.budget = budget
+        self.official_budget = self.task_spec.budget if self.task_spec is not None else budget
         self.objective = objective
         self.seed = seed
         self.debug_truth = debug_truth
@@ -99,6 +108,13 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         self.episode_mode = (
             self.task_spec.episode_mode if self.task_spec is not None else "single_experiment"
+        )
+        if episode_mode_override is not None:
+            self.episode_mode = episode_mode_override
+        self.contract_profile = (
+            "extended-research"
+            if budget_override is not None or episode_mode_override is not None
+            else "official"
         )
         self.safety_limit = self.task_spec.safety_limit if self.task_spec is not None else 0.65
         self.scoring_contract = TaskScoringContract.from_success_metrics(

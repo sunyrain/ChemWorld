@@ -12,7 +12,7 @@ from chemworld.task_design import (
 from chemworld.tasks import SERIOUS_TASK_IDS, get_task
 
 
-def test_serious_task_designs_cover_candidate_suite() -> None:
+def test_serious_task_designs_cover_frozen_suite() -> None:
     assert tuple(SERIOUS_TASK_DESIGNS) == SERIOUS_TASK_IDS
     assert all(not get_task(task_id).kernel_maturity.proxy_allowed for task_id in SERIOUS_TASK_IDS)
     assert all(
@@ -24,13 +24,13 @@ def test_serious_task_designs_cover_candidate_suite() -> None:
 def test_serious_task_contracts_pass_machine_readable_review() -> None:
     manifest = serious_task_readiness_manifest()
 
-    assert manifest["suite_status"] == "candidate"
+    assert manifest["suite_status"] == "validated"
     assert manifest["contract_ready_count"] == len(SERIOUS_TASK_IDS)
-    assert manifest["benchmark_ready_count"] == 0
+    assert manifest["benchmark_ready_count"] == len(SERIOUS_TASK_IDS)
     for task_id in SERIOUS_TASK_IDS:
         review = manifest["reviews"][task_id]
         assert review["contract_ready"] is True
-        assert review["benchmark_ready"] is False
+        assert review["benchmark_ready"] is True
         assert all(check["passed"] for check in review["checks"])
 
 

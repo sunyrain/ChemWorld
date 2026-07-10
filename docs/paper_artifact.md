@@ -25,8 +25,8 @@ chemworld artifact create --preset core --output-dir runs/core_artifact
 chemworld artifact create --preset serious --output-dir runs/serious_artifact
 ```
 
-`serious` 仍是候选套件。只有 readiness manifest 显示 `benchmark_ready=true`、完成多 seed 难度
-校准并冻结 threshold 后，产物才能声称是正式严肃 benchmark 结果。
+`serious` 对应 `chemworld-serious-v1`。正式产物必须使 readiness manifest 显示六个任务全部
+`benchmark_ready=true`，并携带与当前合同一致的多 seed 校准、threshold 与 replay 证据。
 
 ## 必备证据
 

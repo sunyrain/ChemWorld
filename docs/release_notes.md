@@ -1,41 +1,29 @@
 # 发布说明
 
-## World Law v0.2
+## ChemWorld-Bench 0.2.0
 
-当前发布使用 `chemworld-physical-chemistry-v0.2` 和
-`chemworld-task-contract-0.4`。世界律版本提升表示运行时物理语义发生了可观察变化；旧轨迹
-不会被静默解释为新合同。
+本版本冻结 `chemworld-physical-chemistry-v0.3`、`chemworld-task-contract-0.5` 和
+`chemworld-serious-v1`。改变任务转移、观测、评分或 seed 的后续修改必须提升合同版本；旧轨迹
+不会被静默解释为新结果。
 
-### 专业模块接入
+### Serious benchmark
 
-- 冷却结晶运行时改用 van't Hoff 溶解度曲线、显式晶种质量和紧凑粒度群体平衡，输出
-  D10/D50/D90、过饱和度、纯度、回收率和物料残差；
-- 连续流运行时改用几何解析 PFR，记录体积、管径、轴向温度边界、Reynolds 数、压降、
-  求解器诊断和能量账；
-- 相接触和洗涤改用活度修正萃取 train，记录逐级收敛、夹带、TPD-style 稳定性诊断和
-  组分物料守恒；
-- 上述任务模块标为 `professional_candidate`，不再标为 proxy。
+- 六个正式任务统一采用 campaign 语义和 5 个冻结 seeds；
+- 结晶与蒸馏任务允许 Agent 在一次实验后使用反馈选择后续实验；
+- random、LHS、GP-BO 与 safe GP-BO 使用六类 task-aware 搜索空间；
+- 分配任务从隐藏世界生成非零产物/杂质进料，不再对零产物和仪器噪声评分；
+- 水相平衡任务的隐藏 pKa/Ksp 随世界变化，表征质量对实验组成有可测响应；
+- 自动经验门禁检查合法动作、多轮实验、acquisition、策略区分、primary metric 灵敏度和成功
+  阈值校准。
 
-### 保留的降级边界
+### 科学边界
 
-干燥、浓缩和转移仍使用有界、可解释的 benchmark 降级模型，因为当前没有覆盖同一运行时
-语义的专业模块。包含这些动作的任务继续公开 `proxy_allowed=true`。合成仪器信号和部分安全/
-压力关系也保持其声明的轻量边界。
+本版本评估虚拟环境中的实验决策和主动探索，不预测真实反应产率。结晶、连续流和相接触使用
+专业候选轻量模型；反应与合成仪器仍保持公开的 `lite` 边界。干燥、浓缩和转移 proxy 任务不
+进入 serious suite。
 
-### 合同与复现
+### 复现与完整性
 
-- 所有任务合同 hash 和冻结 scripted trajectories 已按 v0.2 重建；
-- replay verifier 会拒绝 world law、mechanism、runtime profile 或 scoring contract 不匹配；
-- 任务的 `kernel_maturity`、`physics_maturity` 与 `proxy_allowed` 随 reset 信息、trajectory、
-  dataset card 和 submission manifest 一同发布。
-
-迁移旧结果时，请在旧环境版本完成复现，或在新版本重新运行；不要跨版本直接比较未经重新
-生成的 trajectory score。
-
-## Task Contract v0.4
-
-- 通用 `core` / `serious` preset 替代投稿专用命名；
-- 新增机器可读 serious-task readiness contract 和 `chemworld tasks readiness`；
-- 严肃候选套件排除所有 proxy task，并区分 `contract_ready` 与 `benchmark_ready`；
-- task JSON schema 从四个必填字段扩展为完整可执行合同；
-- 删除完成后只做重导出的 runtime kernel facade，运行时直接依赖 contracts、registry 与 profile。
+正式证据包括 5-seed baseline、响应面/近似上界审计、冻结任务合同、轨迹 replay、solver
+provenance 和 wheel smoke。`python scripts/check_frozen_benchmark.py` 会拒绝缺少证据或合同
+hash 已漂移的安装。

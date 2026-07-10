@@ -14,6 +14,7 @@ import numpy as np
 
 from chemworld.data.logging import to_builtin
 from chemworld.envs.spaces import OBSERVATION_KEYS
+from chemworld.materials import material_choice_labels
 from chemworld.world.actions import CATALYSTS, SOLVENTS
 from chemworld.world.operations import INSTRUMENTS, OPERATION_TYPES, operation_contracts
 
@@ -274,6 +275,9 @@ def _field_schema(field: str) -> dict[str, Any]:
         payload["recommended_range"] = {"low": low, "high": high}
     if field in FIELD_CHOICES:
         payload["choices"] = FIELD_CHOICES[field]
+        labels = material_choice_labels(field)
+        if labels:
+            payload["choice_labels"] = labels
     return payload
 
 
@@ -538,6 +542,7 @@ def task_prompt(env: Any) -> dict[str, Any]:
             "operation_groups": operation_groups,
             "instruments": allowed_instruments,
         },
+        "material_catalog": info.get("material_catalog", {}),
         "measurement_policy": profile["measurement_policy"],
         "recommended_strategy": list(profile["recommended_strategy"]),
         "failure_modes": list(profile["failure_modes"]),
@@ -582,6 +587,7 @@ def campaign_state(env: Any) -> dict[str, Any]:
         + (1 if current_score is not None and not current_score_already_summarized else 0),
         "best_score": best_score,
         "last_terminal_summary": summaries[-1] if summaries else None,
+        "experiment_summaries": to_builtin(summaries),
         "done": bool(getattr(base, "_done", False)),
     }
 

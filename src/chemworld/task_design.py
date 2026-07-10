@@ -11,6 +11,80 @@ from chemworld.world.operations import PUBLIC_OBSERVATION_KEYS
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 
 TASK_DESIGN_VERSION = "chemworld-serious-task-design-0.1"
+SERIOUS_GENERALIZATION_CONTRACTS: dict[str, tuple[dict[str, Any], ...]] = {
+    "partition-discovery": (
+        {
+            "label": "distribution coefficient",
+            "hidden_drivers": ("solvent family", "partition-law seed"),
+            "evaluation": "frozen-seed stratification and private-salt shift",
+        },
+        {
+            "label": "phase-volume ratio",
+            "hidden_drivers": ("aqueous volume", "organic volume"),
+            "evaluation": "task-recipe response-surface audit",
+        },
+    ),
+    "reaction-to-crystallization": (
+        {
+            "label": "kinetic profile",
+            "hidden_drivers": ("rate constants", "catalyst and solvent effects"),
+            "evaluation": "frozen-seed stratification and private-salt shift",
+        },
+        {
+            "label": "solubility and cooling profile",
+            "hidden_drivers": ("solubility curve", "cooling duration and endpoint"),
+            "evaluation": "task-recipe response-surface audit",
+        },
+    ),
+    "reaction-to-distillation": (
+        {
+            "label": "relative volatility",
+            "hidden_drivers": ("VLE policy", "temperature and reflux"),
+            "evaluation": "frozen-seed stratification and response-surface audit",
+        },
+        {
+            "label": "reaction selectivity",
+            "hidden_drivers": ("rate constants", "catalyst and solvent effects"),
+            "evaluation": "frozen-seed stratification and private-salt shift",
+        },
+    ),
+    "flow-reaction-optimization": (
+        {
+            "label": "reaction kinetics",
+            "hidden_drivers": ("rate constants", "activation energies"),
+            "evaluation": "frozen-seed stratification and private-salt shift",
+        },
+        {
+            "label": "residence time and thermal boundary",
+            "hidden_drivers": ("flow rate", "residence time", "heat transfer"),
+            "evaluation": "task-recipe response-surface audit",
+        },
+    ),
+    "electrochemical-conversion": (
+        {
+            "label": "redox kinetics",
+            "hidden_drivers": ("redox scenario seed", "potential and current"),
+            "evaluation": "frozen-seed stratification and private-salt shift",
+        },
+        {
+            "label": "mass-transfer and resistance regime",
+            "hidden_drivers": ("transport policy", "cell resistance"),
+            "evaluation": "task-recipe response-surface audit",
+        },
+    ),
+    "equilibrium-characterization": (
+        {
+            "label": "acid-base constants",
+            "hidden_drivers": ("hidden pKa", "solution composition"),
+            "evaluation": "frozen-seed stratification and private-salt shift",
+        },
+        {
+            "label": "solubility-product regime",
+            "hidden_drivers": ("hidden Ksp", "concentration"),
+            "evaluation": "task-recipe response-surface audit",
+        },
+    ),
+}
 EXECUTABLE_EVALUATION_METRICS = frozenset(
     {
         *PUBLIC_OBSERVATION_KEYS,
@@ -108,7 +182,12 @@ class TaskDesignReview:
         }
 
 
-def review_task_design(task: TaskSpec, design: SeriousTaskDesign) -> TaskDesignReview:
+def review_task_design(
+    task: TaskSpec,
+    design: SeriousTaskDesign,
+    *,
+    empirical_status: str | None = None,
+) -> TaskDesignReview:
     """Evaluate whether a task has an executable, non-proxy research contract."""
 
     success_metrics = set(task.success_metrics)
@@ -116,6 +195,7 @@ def review_task_design(task: TaskSpec, design: SeriousTaskDesign) -> TaskDesignR
     unsupported_metrics = sorted(success_metrics - EXECUTABLE_EVALUATION_METRICS)
     missing_declared_metrics = sorted(declared_metrics - success_metrics)
     maturity = task.kernel_maturity.lowest_level
+    generalization_contract = SERIOUS_GENERALIZATION_CONTRACTS.get(task.task_id, ())
     checks = (
         TaskDesignCheck(
             "identity",
@@ -134,13 +214,18 @@ def review_task_design(task: TaskSpec, design: SeriousTaskDesign) -> TaskDesignR
         ),
         TaskDesignCheck(
             "seed_depth",
-            len(task.seeds) >= 3,
-            "at least three frozen seeds are required",
+            len(task.seeds) >= 5,
+            "at least five frozen seeds are required for the serious suite",
         ),
         TaskDesignCheck(
             "decision_horizon",
             task.budget >= 24,
             "budget must support a non-trivial decision horizon",
+        ),
+        TaskDesignCheck(
+            "campaign_learning",
+            task.episode_mode == "campaign",
+            "serious tasks must permit observation, learning, and a later experiment",
         ),
         TaskDesignCheck(
             "metric_implementation",
@@ -183,6 +268,14 @@ def review_task_design(task: TaskSpec, design: SeriousTaskDesign) -> TaskDesignR
             "at least two explicit generalization axes are required",
         ),
         TaskDesignCheck(
+            "generalization_contract",
+            tuple(item.get("label") for item in generalization_contract)
+            == design.generalization_axes
+            and all(item.get("hidden_drivers") for item in generalization_contract)
+            and all(item.get("evaluation") for item in generalization_contract),
+            "generalization axes require hidden drivers and an executable audit mode",
+        ),
+        TaskDesignCheck(
             "evidence_plan",
             len(design.required_evidence) >= 3,
             "task design requires baseline, replay, and failure-analysis evidence",
@@ -193,7 +286,11 @@ def review_task_design(task: TaskSpec, design: SeriousTaskDesign) -> TaskDesignR
             "at least two anti-gaming checks are required",
         ),
     )
-    return TaskDesignReview(task.task_id, checks, design.status)
+    return TaskDesignReview(
+        task.task_id,
+        checks,
+        design.status if empirical_status is None else empirical_status,
+    )
 
 
 _COMMON_BASELINES = ("random", "scripted_chemistry", "gp_bo", "safe_gp_bo")
@@ -283,18 +380,38 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
 
 
 def serious_task_readiness_manifest() -> dict[str, Any]:
+    from chemworld.eval.benchmark_validation import official_empirical_statuses
+
+    empirical_statuses = official_empirical_statuses()
     reviews = {
-        task_id: review_task_design(get_task(task_id), SERIOUS_TASK_DESIGNS[task_id])
+        task_id: review_task_design(
+            get_task(task_id),
+            SERIOUS_TASK_DESIGNS[task_id],
+            empirical_status=empirical_statuses[task_id],
+        )
         for task_id in SERIOUS_TASK_IDS
     }
+    benchmark_ready_count = sum(review.benchmark_ready for review in reviews.values())
     return {
         "schema_version": TASK_DESIGN_VERSION,
-        "suite_status": "candidate",
+        "suite_status": (
+            "validated" if benchmark_ready_count == len(SERIOUS_TASK_IDS) else "candidate"
+        ),
         "task_ids": list(SERIOUS_TASK_IDS),
         "contract_ready_count": sum(review.contract_ready for review in reviews.values()),
-        "benchmark_ready_count": sum(review.benchmark_ready for review in reviews.values()),
+        "benchmark_ready_count": benchmark_ready_count,
         "designs": {
-            task_id: SERIOUS_TASK_DESIGNS[task_id].to_dict()
+            task_id: {
+                **SERIOUS_TASK_DESIGNS[task_id].to_dict(),
+                "status": reviews[task_id].empirical_status,
+                "generalization_contract": [
+                    {
+                        **axis,
+                        "hidden_drivers": list(axis["hidden_drivers"]),
+                    }
+                    for axis in SERIOUS_GENERALIZATION_CONTRACTS[task_id]
+                ],
+            }
             for task_id in SERIOUS_TASK_IDS
         },
         "reviews": {
@@ -305,6 +422,7 @@ def serious_task_readiness_manifest() -> dict[str, Any]:
 
 __all__ = [
     "EXECUTABLE_EVALUATION_METRICS",
+    "SERIOUS_GENERALIZATION_CONTRACTS",
     "SERIOUS_TASK_DESIGNS",
     "TASK_DESIGN_VERSION",
     "SeriousTaskDesign",

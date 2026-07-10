@@ -33,6 +33,7 @@ def release_gate_commands(
     audit_dir = output_dir / "audit"
     baseline_dir = output_dir / "baseline_smoke"
     return [
+        GateCommand("claims", [python, "scripts/manage_claims.py", "check"]),
         GateCommand("lint", [python, "-m", "ruff", "check", "."]),
         GateCommand("type_check", [python, "-m", "mypy", "src/chemworld"]),
         GateCommand("tests", [python, "-m", "pytest"]),
@@ -83,6 +84,10 @@ def release_gate_commands(
                 "--output-dir",
                 str(baseline_dir),
             ],
+        ),
+        GateCommand(
+            "frozen_benchmark",
+            [python, "scripts/check_frozen_benchmark.py"],
         ),
     ]
 

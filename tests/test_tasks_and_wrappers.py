@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import gymnasium as gym
 import numpy as np
+import pytest
 
 import chemworld  # noqa: F401
 from chemworld.action_codec import ActionCodec
@@ -114,7 +115,7 @@ def test_core_task_contracts_are_frozen() -> None:
     partition = tasks["partition-discovery"]
     assert partition.world_split == "public-test"
     assert partition.budget == 48
-    assert partition.seeds == (0, 1, 2)
+    assert partition.seeds == (0, 1, 2, 3, 4)
     assert partition.episode_mode == "campaign"
     assert partition.success_metrics == (
         "phase_ratio",
@@ -132,7 +133,7 @@ def test_core_task_cards_are_complete_release_contracts() -> None:
         task = get_task(task_id)
         contract = card["benchmark_contract"]
         assert "core" in card["suite_memberships"]
-        assert card["task_contract_version"] == "chemworld-task-contract-0.4"
+        assert card["task_contract_version"] == "chemworld-task-contract-0.5"
         assert card["task_contract_hash"] == task.contract_hash
         assert len(card["task_contract_hash"]) == 64
         assert contract["objective"] == task.objective
@@ -430,6 +431,20 @@ def test_action_codec_accepts_common_recipe_aliases() -> None:
 
     phase_action = codec.canonicalize({"operation": "separate_phase", "phase": "organic"})
     assert phase_action["target_phase"] == "organic"
+
+    solvent_action = codec.canonicalize(
+        {"operation": "add_solvent", "volume_L": 0.02, "solvent": "ethanol"}
+    )
+    assert solvent_action["solvent"] == 1
+    named_catalyst = codec.canonicalize(
+        {"operation": "add_catalyst", "catalyst_amount_mol": 0.0002, "catalyst": "cat_c"}
+    )
+    assert named_catalyst["catalyst"] == 2
+
+    with pytest.raises(ValueError, match="Unknown material choice"):
+        codec.canonicalize(
+            {"operation": "add_solvent", "volume_L": 0.02, "solvent": "unobtainium"}
+        )
 
 
 def test_action_mask_is_task_aware() -> None:

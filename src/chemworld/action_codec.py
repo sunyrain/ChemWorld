@@ -65,6 +65,13 @@ class ActionCodec:
             canonical = payload
         canonical["operation"] = operation_name(canonical["operation"])
         canonical = self._apply_aliases(canonical)
+        if "solvent" in canonical:
+            canonical["solvent"] = self._choice_index(canonical["solvent"], self.solvents)
+        if "catalyst" in canonical:
+            canonical["catalyst"] = self._choice_index(
+                canonical["catalyst"],
+                self.catalysts,
+            )
         if "instrument" in canonical:
             canonical["instrument"] = instrument_name(canonical["instrument"])
         if "phase" in canonical:
@@ -204,3 +211,19 @@ class ActionCodec:
         if isinstance(value, str) and value in choices:
             return choices.index(value)
         return int(np.clip(int(np.asarray(value).reshape(-1)[0]), 0, len(choices) - 1))
+
+    @staticmethod
+    def _choice_index(value: Any, choices: tuple[str, ...]) -> int:
+        if isinstance(value, str):
+            normalized = value.strip().lower().replace("-", "_").replace(" ", "_")
+            if normalized in choices:
+                return choices.index(normalized)
+            if normalized.isdigit():
+                value = int(normalized)
+            else:
+                allowed = ", ".join(choices)
+                raise ValueError(f"Unknown material choice {value!r}; allowed: {allowed}")
+        index = int(np.asarray(value).reshape(-1)[0])
+        if not 0 <= index < len(choices):
+            raise ValueError(f"Material choice index {index} is outside [0, {len(choices) - 1}]")
+        return index

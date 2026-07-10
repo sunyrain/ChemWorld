@@ -505,7 +505,6 @@ class ToolUsingLLMStubAgent(BaseAgent):
         if "add_phase" in allowed_operations and "heat" not in allowed_operations:
             return [
                 {"operation": "add_solvent", "volume_L": 0.024, "solvent": 2},
-                {"operation": "add_reagent", "amount_mol": 0.010},
                 {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.014},
                 {"operation": "add_extractant", "extractant": "organic", "volume_L": 0.020},
                 {"operation": "mix", "duration_s": 240.0, "stirring_speed_rpm": 850.0},

@@ -610,7 +610,7 @@ def build_parser() -> argparse.ArgumentParser:
     tasks_card_parser.set_defaults(func=_tasks_card)
     tasks_readiness_parser = tasks_subparsers.add_parser(
         "readiness",
-        help="Review serious task candidate contracts.",
+        help="Review serious benchmark task contracts and evidence.",
     )
     tasks_readiness_parser.set_defaults(func=_tasks_readiness)
 

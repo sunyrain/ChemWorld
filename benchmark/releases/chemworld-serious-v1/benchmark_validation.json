@@ -1,0 +1,579 @@
+{
+  "baseline_agents": [
+    "random",
+    "lhs",
+    "scripted_chemistry",
+    "gp_bo",
+    "safe_gp_bo",
+    "tool_using_llm_stub"
+  ],
+  "baseline_report_schema_version": "chemworld-baseline-report-0.3",
+  "baseline_report_sha256": "2a26929210a7dcdc3c6cb8cf692b2a273799610d944b8d9837023c5fc2e33563",
+  "schema_version": "chemworld-benchmark-validation-0.1",
+  "suite_id": "chemworld-serious-v1",
+  "task_count": 6,
+  "task_evidence": {
+    "electrochemical-conversion": {
+      "checks": [
+        {
+          "check_id": "required_agents",
+          "message": "all official task-valid baselines must be present",
+          "passed": true,
+          "value": []
+        },
+        {
+          "check_id": "seed_coverage",
+          "message": "every official baseline must cover the frozen task seed suite",
+          "passed": true,
+          "value": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          ]
+        },
+        {
+          "check_id": "valid_actions",
+          "message": "official task-aware baselines must not rely on invalid actions",
+          "passed": true,
+          "value": 0.0
+        },
+        {
+          "check_id": "repeated_experiments",
+          "message": "serious campaign baselines must complete more than one experiment",
+          "passed": true,
+          "value": 6.0
+        },
+        {
+          "check_id": "active_learning_phase",
+          "message": "GP baselines must apply their learned surrogate in later experiments",
+          "passed": true,
+          "value": {
+            "entered": [
+              1.0,
+              1.0
+            ],
+            "mean_acquisition_recipes": [
+              3.0,
+              3.0
+            ]
+          }
+        },
+        {
+          "check_id": "score_range",
+          "message": "scores must avoid universal floor and ceiling saturation",
+          "passed": true,
+          "value": {
+            "maximum": 0.5684515920115649,
+            "minimum": 0.5323360580778398
+          }
+        },
+        {
+          "check_id": "strategy_separation",
+          "message": "official baselines must produce at least three distinguishable outcomes",
+          "passed": true,
+          "value": {
+            "distinct_scores": 6,
+            "spread": 0.03611553393372513
+          }
+        },
+        {
+          "check_id": "success_threshold_calibration",
+          "message": "the frozen success threshold must be reachable without saturation",
+          "passed": true,
+          "value": {
+            "maximum_success_rate": 0.8,
+            "minimum_success_rate": 0.0
+          }
+        },
+        {
+          "check_id": "primary_metric_sensitivity",
+          "message": "the primary metric must be reported and respond to strategy changes",
+          "passed": true,
+          "value": {
+            "field": "mean_electrochemical_selectivity",
+            "spread": 0.06419416864713046
+          }
+        }
+      ],
+      "primary_metric_field": "mean_electrochemical_selectivity",
+      "primary_metric_spread": 0.06419416864713046,
+      "score_spread": 0.03611553393372513,
+      "task_contract_hash": "c00666ffaa02b2d17a9b5c8d486d8e807502b85db293521fc09fe2cb2206d5bb",
+      "validated": true
+    },
+    "equilibrium-characterization": {
+      "checks": [
+        {
+          "check_id": "required_agents",
+          "message": "all official task-valid baselines must be present",
+          "passed": true,
+          "value": []
+        },
+        {
+          "check_id": "seed_coverage",
+          "message": "every official baseline must cover the frozen task seed suite",
+          "passed": true,
+          "value": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          ]
+        },
+        {
+          "check_id": "valid_actions",
+          "message": "official task-aware baselines must not rely on invalid actions",
+          "passed": true,
+          "value": 0.0
+        },
+        {
+          "check_id": "repeated_experiments",
+          "message": "serious campaign baselines must complete more than one experiment",
+          "passed": true,
+          "value": 3.0
+        },
+        {
+          "check_id": "active_learning_phase",
+          "message": "GP baselines must apply their learned surrogate in later experiments",
+          "passed": true,
+          "value": {
+            "entered": [
+              1.0,
+              1.0
+            ],
+            "mean_acquisition_recipes": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        {
+          "check_id": "score_range",
+          "message": "scores must avoid universal floor and ceiling saturation",
+          "passed": true,
+          "value": {
+            "maximum": 0.40537813079778473,
+            "minimum": 0.24885369501558113
+          }
+        },
+        {
+          "check_id": "strategy_separation",
+          "message": "official baselines must produce at least three distinguishable outcomes",
+          "passed": true,
+          "value": {
+            "distinct_scores": 5,
+            "spread": 0.1565244357822036
+          }
+        },
+        {
+          "check_id": "success_threshold_calibration",
+          "message": "the frozen success threshold must be reachable without saturation",
+          "passed": true,
+          "value": {
+            "maximum_success_rate": 1.0,
+            "minimum_success_rate": 0.2
+          }
+        },
+        {
+          "check_id": "primary_metric_sensitivity",
+          "message": "the primary metric must be reported and respond to strategy changes",
+          "passed": true,
+          "value": {
+            "field": "mean_equilibrium_confidence",
+            "spread": 0.0922539200633764
+          }
+        }
+      ],
+      "primary_metric_field": "mean_equilibrium_confidence",
+      "primary_metric_spread": 0.0922539200633764,
+      "score_spread": 0.1565244357822036,
+      "task_contract_hash": "a4ac08cff7eab9bf7c37c10dc08ed4ef133a39801afe12f7efa2a1e2a886fca3",
+      "validated": true
+    },
+    "flow-reaction-optimization": {
+      "checks": [
+        {
+          "check_id": "required_agents",
+          "message": "all official task-valid baselines must be present",
+          "passed": true,
+          "value": []
+        },
+        {
+          "check_id": "seed_coverage",
+          "message": "every official baseline must cover the frozen task seed suite",
+          "passed": true,
+          "value": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          ]
+        },
+        {
+          "check_id": "valid_actions",
+          "message": "official task-aware baselines must not rely on invalid actions",
+          "passed": true,
+          "value": 0.0
+        },
+        {
+          "check_id": "repeated_experiments",
+          "message": "serious campaign baselines must complete more than one experiment",
+          "passed": true,
+          "value": 7.0
+        },
+        {
+          "check_id": "active_learning_phase",
+          "message": "GP baselines must apply their learned surrogate in later experiments",
+          "passed": true,
+          "value": {
+            "entered": [
+              1.0,
+              1.0
+            ],
+            "mean_acquisition_recipes": [
+              4.0,
+              4.0
+            ]
+          }
+        },
+        {
+          "check_id": "score_range",
+          "message": "scores must avoid universal floor and ceiling saturation",
+          "passed": true,
+          "value": {
+            "maximum": 0.1319443489873445,
+            "minimum": 0.03429432405035204
+          }
+        },
+        {
+          "check_id": "strategy_separation",
+          "message": "official baselines must produce at least three distinguishable outcomes",
+          "passed": true,
+          "value": {
+            "distinct_scores": 6,
+            "spread": 0.09765002493699246
+          }
+        },
+        {
+          "check_id": "success_threshold_calibration",
+          "message": "the frozen success threshold must be reachable without saturation",
+          "passed": true,
+          "value": {
+            "maximum_success_rate": 0.6,
+            "minimum_success_rate": 0.0
+          }
+        },
+        {
+          "check_id": "primary_metric_sensitivity",
+          "message": "the primary metric must be reported and respond to strategy changes",
+          "passed": true,
+          "value": {
+            "field": "mean_flow_conversion",
+            "spread": 0.012143236833036919
+          }
+        }
+      ],
+      "primary_metric_field": "mean_flow_conversion",
+      "primary_metric_spread": 0.012143236833036919,
+      "score_spread": 0.09765002493699246,
+      "task_contract_hash": "527a226016ba153b1c60ce0db476e47f1b7c47cc1498bbdd93bed5d663fa4e86",
+      "validated": true
+    },
+    "partition-discovery": {
+      "checks": [
+        {
+          "check_id": "required_agents",
+          "message": "all official task-valid baselines must be present",
+          "passed": true,
+          "value": []
+        },
+        {
+          "check_id": "seed_coverage",
+          "message": "every official baseline must cover the frozen task seed suite",
+          "passed": true,
+          "value": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          ]
+        },
+        {
+          "check_id": "valid_actions",
+          "message": "official task-aware baselines must not rely on invalid actions",
+          "passed": true,
+          "value": 0.0
+        },
+        {
+          "check_id": "repeated_experiments",
+          "message": "serious campaign baselines must complete more than one experiment",
+          "passed": true,
+          "value": 4.0
+        },
+        {
+          "check_id": "active_learning_phase",
+          "message": "GP baselines must apply their learned surrogate in later experiments",
+          "passed": true,
+          "value": {
+            "entered": [
+              1.0,
+              1.0
+            ],
+            "mean_acquisition_recipes": [
+              2.0,
+              2.0
+            ]
+          }
+        },
+        {
+          "check_id": "score_range",
+          "message": "scores must avoid universal floor and ceiling saturation",
+          "passed": true,
+          "value": {
+            "maximum": 0.5906118985402786,
+            "minimum": 0.5553016166359029
+          }
+        },
+        {
+          "check_id": "strategy_separation",
+          "message": "official baselines must produce at least three distinguishable outcomes",
+          "passed": true,
+          "value": {
+            "distinct_scores": 6,
+            "spread": 0.035310281904375684
+          }
+        },
+        {
+          "check_id": "success_threshold_calibration",
+          "message": "the frozen success threshold must be reachable without saturation",
+          "passed": true,
+          "value": {
+            "maximum_success_rate": 0.4,
+            "minimum_success_rate": 0.2
+          }
+        },
+        {
+          "check_id": "primary_metric_sensitivity",
+          "message": "the primary metric must be reported and respond to strategy changes",
+          "passed": true,
+          "value": {
+            "field": "mean_product_in_organic",
+            "spread": 0.06060789078474049
+          }
+        }
+      ],
+      "primary_metric_field": "mean_product_in_organic",
+      "primary_metric_spread": 0.06060789078474049,
+      "score_spread": 0.035310281904375684,
+      "task_contract_hash": "d05e2a9dfa77f8c843a6543779febb17bd8d4b3c563947afe7a02d28e25f83fc",
+      "validated": true
+    },
+    "reaction-to-crystallization": {
+      "checks": [
+        {
+          "check_id": "required_agents",
+          "message": "all official task-valid baselines must be present",
+          "passed": true,
+          "value": []
+        },
+        {
+          "check_id": "seed_coverage",
+          "message": "every official baseline must cover the frozen task seed suite",
+          "passed": true,
+          "value": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          ]
+        },
+        {
+          "check_id": "valid_actions",
+          "message": "official task-aware baselines must not rely on invalid actions",
+          "passed": true,
+          "value": 0.0
+        },
+        {
+          "check_id": "repeated_experiments",
+          "message": "serious campaign baselines must complete more than one experiment",
+          "passed": true,
+          "value": 4.0
+        },
+        {
+          "check_id": "active_learning_phase",
+          "message": "GP baselines must apply their learned surrogate in later experiments",
+          "passed": true,
+          "value": {
+            "entered": [
+              1.0,
+              1.0
+            ],
+            "mean_acquisition_recipes": [
+              3.0,
+              3.0
+            ]
+          }
+        },
+        {
+          "check_id": "score_range",
+          "message": "scores must avoid universal floor and ceiling saturation",
+          "passed": true,
+          "value": {
+            "maximum": 0.5825606971117772,
+            "minimum": 0.4089296487101036
+          }
+        },
+        {
+          "check_id": "strategy_separation",
+          "message": "official baselines must produce at least three distinguishable outcomes",
+          "passed": true,
+          "value": {
+            "distinct_scores": 6,
+            "spread": 0.17363104840167354
+          }
+        },
+        {
+          "check_id": "success_threshold_calibration",
+          "message": "the frozen success threshold must be reachable without saturation",
+          "passed": true,
+          "value": {
+            "maximum_success_rate": 0.8,
+            "minimum_success_rate": 0.0
+          }
+        },
+        {
+          "check_id": "primary_metric_sensitivity",
+          "message": "the primary metric must be reported and respond to strategy changes",
+          "passed": true,
+          "value": {
+            "field": "mean_crystal_yield",
+            "spread": 0.4066933472951253
+          }
+        }
+      ],
+      "primary_metric_field": "mean_crystal_yield",
+      "primary_metric_spread": 0.4066933472951253,
+      "score_spread": 0.17363104840167354,
+      "task_contract_hash": "4fed9ffd7c693867cd3057e81d798bb56e9b90cf79c6410135558d3770ec5307",
+      "validated": true
+    },
+    "reaction-to-distillation": {
+      "checks": [
+        {
+          "check_id": "required_agents",
+          "message": "all official task-valid baselines must be present",
+          "passed": true,
+          "value": []
+        },
+        {
+          "check_id": "seed_coverage",
+          "message": "every official baseline must cover the frozen task seed suite",
+          "passed": true,
+          "value": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          ]
+        },
+        {
+          "check_id": "valid_actions",
+          "message": "official task-aware baselines must not rely on invalid actions",
+          "passed": true,
+          "value": 0.0
+        },
+        {
+          "check_id": "repeated_experiments",
+          "message": "serious campaign baselines must complete more than one experiment",
+          "passed": true,
+          "value": 4.0
+        },
+        {
+          "check_id": "active_learning_phase",
+          "message": "GP baselines must apply their learned surrogate in later experiments",
+          "passed": true,
+          "value": {
+            "entered": [
+              1.0,
+              1.0
+            ],
+            "mean_acquisition_recipes": [
+              3.0,
+              3.0
+            ]
+          }
+        },
+        {
+          "check_id": "score_range",
+          "message": "scores must avoid universal floor and ceiling saturation",
+          "passed": true,
+          "value": {
+            "maximum": 0.17410379155792716,
+            "minimum": 0.1059644051974089
+          }
+        },
+        {
+          "check_id": "strategy_separation",
+          "message": "official baselines must produce at least three distinguishable outcomes",
+          "passed": true,
+          "value": {
+            "distinct_scores": 6,
+            "spread": 0.06813938636051825
+          }
+        },
+        {
+          "check_id": "success_threshold_calibration",
+          "message": "the frozen success threshold must be reachable without saturation",
+          "passed": true,
+          "value": {
+            "maximum_success_rate": 0.6,
+            "minimum_success_rate": 0.0
+          }
+        },
+        {
+          "check_id": "primary_metric_sensitivity",
+          "message": "the primary metric must be reported and respond to strategy changes",
+          "passed": true,
+          "value": {
+            "field": "mean_distillate_purity",
+            "spread": 0.09564508110792799
+          }
+        }
+      ],
+      "primary_metric_field": "mean_distillate_purity",
+      "primary_metric_spread": 0.09564508110792799,
+      "score_spread": 0.06813938636051825,
+      "task_contract_hash": "d9fc1b09d21f746af8e238979a8561d4e9a5a12491d4366e3af3f73e234d5fd5",
+      "validated": true
+    }
+  },
+  "task_ids": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization",
+    "electrochemical-conversion",
+    "equilibrium-characterization"
+  ],
+  "validated": true,
+  "validated_task_count": 6
+}

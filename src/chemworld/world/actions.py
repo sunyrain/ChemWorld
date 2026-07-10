@@ -20,7 +20,7 @@ class ContinuousBound:
 
 ACTION_BOUNDS: dict[str, ContinuousBound] = {
     "temperature": ContinuousBound(40.0, 160.0, "degC"),
-    "time": ContinuousBound(0.25, 8.0, "h"),
+    "time": ContinuousBound(0.25, 4.0, "h"),
     "initial_concentration": ContinuousBound(0.10, 2.00, "mol/L"),
     "stirring_speed": ContinuousBound(100.0, 1200.0, "rpm"),
 }

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student Lab · ChemWorld</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="app-body student-theme">
+  <header class="app-nav student-nav">
+    <a class="brand" href="/"><span class="brand-mark"><i></i><i></i><i></i></span><span><strong>ChemWorld</strong><small>Student Lab</small></span></a>
+    <nav><a href="/agent/">Agent Observatory</a><a class="active" href="/student/">Student Lab</a></nav>
+    <div class="system-state"><span class="live-dot amber"></span> Safe virtual workspace</div>
+  </header>
+
+  <main class="student-main">
+    <section class="student-hero">
+      <div><p class="overline">GUIDED VIRTUAL EXPERIMENTATION</p><h1>让每一步操作，都变成看得见的化学反馈。</h1><p>选择任务、配置操作、观察仪器与指标；错误在执行前被拦截，不消耗实验预算。</p></div>
+      <div class="lesson-progress"><span>SESSION</span><strong id="sessionCode">NOT STARTED</strong><small id="sessionState">选择任务开始实验</small></div>
+    </section>
+
+    <section class="student-workbench">
+      <aside class="mission-panel surface light-surface">
+        <div class="surface-heading"><div><p class="overline">01 · MISSION</p><h2>实验任务</h2></div><span id="missionMaturity" class="soft-tag">—</span></div>
+        <label class="field-label dark-label">选择任务<select id="studentTask"></select></label>
+        <div class="seed-line"><label class="field-label dark-label">Seed<input id="studentSeed" type="number" min="0" value="0"></label><button id="createSession" class="student-cta">开始 / 重置</button></div>
+        <div id="studentBackground" class="mission-brief"><div class="brief-placeholder">选择任务后查看任务背景与学习目标。</div></div>
+        <div class="mission-steps"><div class="active"><b>1</b><span>理解目标<small>阅读背景与评分</small></span></div><div><b>2</b><span>设计操作<small>选择合法动作</small></span></div><div><b>3</b><span>分析反馈<small>更新实验假设</small></span></div></div>
+      </aside>
+
+      <section class="digital-twin surface light-surface">
+        <div class="surface-heading"><div><p class="overline">02 · DIGITAL TWIN</p><h2>虚拟实验状态</h2></div><span id="experimentBadge" class="soft-tag">Experiment —</span></div>
+        <div class="twin-stage" id="twinStage" data-operation="idle">
+          <div class="apparatus">
+            <div class="neck"><span></span></div>
+            <div class="vessel"><div id="vesselLiquid" class="vessel-liquid"></div><div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div><div class="stir-bar"></div></div>
+            <div class="hotplate"><span></span></div>
+          </div>
+          <div class="twin-readout left"><span>Operation</span><strong id="twinOperation">idle</strong><small id="twinStatus">Ready for setup</small></div>
+          <div class="twin-readout right"><span>Public score</span><strong id="twinScore">—</strong><small>Final assay only</small></div>
+          <div class="process-rings"><i></i><i></i><i></i></div>
+        </div>
+        <div class="budget-row"><div><span>实验预算</span><strong id="studentStep">0 / 0</strong></div><div class="budget-track"><i id="studentProgress"></i></div><span id="remainingBudget">— remaining</span></div>
+        <div class="student-kpis"><article><span>Best score</span><strong id="studentBest">—</strong></article><article><span>Safety risk</span><strong id="studentRisk">—</strong></article><article><span>Cost</span><strong id="studentCost">—</strong></article><article><span>Final assays</span><strong id="studentAssays">0</strong></article></div>
+      </section>
+
+      <aside class="composer-panel surface light-surface">
+        <div class="surface-heading"><div><p class="overline">03 · COMPOSE</p><h2>操作编排器</h2></div><span id="validActionCount" class="soft-tag">0 valid</span></div>
+        <label class="field-label dark-label">当前合法操作<select id="operationSelect" disabled></select></label>
+        <div id="operationFields" class="operation-fields light-fields"></div>
+        <details class="json-inspector"><summary>检查操作 JSON</summary><pre id="actionPreview">{}</pre></details>
+        <button id="submitAction" class="student-cta full" disabled>验证并执行操作 <span>→</span></button>
+        <div id="actionValidation" class="validation-card neutral"><span class="validation-icon">i</span><p>创建实验后，系统会只展示当前合法操作。</p></div>
+      </aside>
+    </section>
+
+    <section class="student-analysis">
+      <article class="surface light-surface report-panel">
+        <div class="surface-heading"><div><p class="overline">LAB REPORT</p><h2>即时实验报告</h2></div><span id="reportInstrument" class="soft-tag">No instrument</span></div>
+        <div id="labFeedback" class="report-copy"><div class="brief-placeholder">执行操作后，公开观测与恢复建议会显示在这里。</div></div>
+        <div id="visibleMetricBars" class="metric-bars-light"></div>
+      </article>
+      <article class="surface light-surface learning-chart">
+        <div class="surface-heading"><div><p class="overline">LEARNING CURVE</p><h2>得分与探索轨迹</h2></div><span id="historyCount" class="soft-tag">0 operations</span></div>
+        <canvas id="studentChart" width="760" height="270"></canvas>
+      </article>
+      <article class="surface light-surface student-spectrum-panel">
+        <div class="surface-heading"><div><p class="overline">PUBLIC SPECTRUM</p><h2>仪器谱图与峰表</h2></div><span id="studentSpectrumInstrument" class="soft-tag">No signal</span></div>
+        <div id="studentSpectrumTabs" class="spectrum-tabs light-tabs"></div>
+        <div class="spectrum-canvas-shell light-spectrum-shell"><canvas id="studentSpectrum" width="1100" height="300"></canvas><div id="studentSpectrumEmpty" class="spectrum-empty light-empty">执行测量操作后，在这里分析公开曲线和峰指认。</div></div>
+        <div id="studentSpectrumMeta" class="spectrum-meta light-meta">No public signal</div>
+        <div id="studentSpectrumPeaks" class="spectrum-peaks light-peaks"></div>
+      </article>
+    </section>
+
+    <section class="surface light-surface history-panel">
+      <div class="surface-heading"><div><p class="overline">EXPERIMENT NOTEBOOK</p><h2>操作与观测记录</h2></div><button id="downloadNotebook" class="outline-button" disabled>下载记录</button></div>
+      <div class="light-table-shell"><table><thead><tr><th>Step</th><th>Operation</th><th>状态</th><th>Reward</th><th>Official</th><th>公开观测</th></tr></thead><tbody id="studentHistory"><tr><td colspan="6"><div class="empty-table">尚未开始实验</div></td></tr></tbody></table></div>
+    </section>
+  </main>
+  <script src="/spectra.js" defer></script>
+  <script src="/student.js" defer></script>
+</body>
+</html>

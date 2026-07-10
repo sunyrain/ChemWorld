@@ -56,6 +56,7 @@ chemworld leaderboard --results results/*.json
 chemworld suite --agent gp_bo --world-splits public-test private-eval --seeds 0 1 2
 chemworld tasks readiness
 chemworld baselines report --preset serious --output-dir runs/serious_baselines
+python scripts/check_frozen_benchmark.py
 
 chemworld inspect-constitution --env ChemWorld
 chemworld run --task reaction-to-assay --agent random
@@ -67,6 +68,25 @@ chemworld verify --constitution --submission runs/random_ChemWorld_public-dev_ba
 with the agent metadata, dependency versions, platform, source digest, and
 reproducible command. If the package is inside a real git repository, the
 manifest also records the current commit hash.
+
+Start the local Agent progress and student-feedback interface:
+
+```bash
+python -m apps.task_lab.server --port 8876
+```
+
+Open `/agent/` for the Agent Observatory or `/student/` for the Student Lab. The
+student experience works offline. Agent evaluations support DeepSeek V4 Pro plus
+random recipe, Latin hypercube, local search, GP-PI, GP-UCB, GP-EI, RF-EI, and
+safety-constrained GP active-learning backends. Extended 1–4× campaign
+budgets are kept separate from official scores, and every result is replay verified
+under `runs/task_lab/`. See `apps/task_lab/README.md` for secure key setup, commands,
+and score semantics.
+
+Material actions retain stable numeric protocol values while the public interfaces show
+semantic solvent and catalyst labels. Named solvents identify real components, but the
+current reaction-task effects remain calibrated benchmark categories; anonymous
+catalysts are never presented as real formulations. See `docs/material_identity.md`.
 
 ## Architecture
 
@@ -84,7 +104,7 @@ manifest also records the current commit hash.
 - `chemworld.data`: trajectory schema, logging, anonymization utilities.
 
 See `docs/architecture.md` and `docs/benchmark_protocol.md` for the research
-protocol.
+protocol. The frozen serious suite is described in `docs/benchmark_release.md`.
 
 Observations are partial by design. Unmeasured quantities are represented as
 `NaN` in Gym arrays and `null` in trajectory JSONL, with `observed_mask` and
@@ -113,3 +133,6 @@ The published documentation is available at
 <https://sunyrain.github.io/ChemWorld/>. See `docs/getting_started.md` for the
 first-run guide, `docs/demos.md` for examples, and `docs/model_maturity.md` for
 the scientific validity boundaries.
+
+Collaborative development follows a mandatory [claim-before-work](claims/README.md)
+protocol. Active claims are checked by the local release gate.

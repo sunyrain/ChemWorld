@@ -148,6 +148,6 @@ def test_release_artifact_cli_commands(tmp_path: Path, capsys) -> None:
         ]
     )
     output = capsys.readouterr().out
-    assert "chemworld-baseline-report-0.2" in output
+    assert "chemworld-baseline-report-0.3" in output
     assert "signature_valid" in output
     assert "chemworld-paper-artifact-0.1" in output

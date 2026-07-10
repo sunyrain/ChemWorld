@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from statistics import fmean, pstdev
 from typing import Any
+
+import numpy as np
 
 from chemworld import __version__
 from chemworld.data.submission import git_commit
@@ -40,7 +43,6 @@ SERIOUS_BASELINE_AGENTS = (
     "gp_bo",
     "safe_gp_bo",
     "tool_using_llm_stub",
-    "codex_subagent_replay",
 )
 
 
@@ -142,7 +144,7 @@ def generate_baseline_report(
         json.dump(summary_rows, handle, indent=2, sort_keys=True)
 
     report = BaselineReport(
-        schema_version="chemworld-baseline-report-0.2",
+        schema_version="chemworld-baseline-report-0.3",
         generated_at=datetime.now(UTC).isoformat(),
         chemworld_version=__version__,
         commit_hash=git_commit(),
@@ -196,7 +198,7 @@ def generate_serious_baseline_report(
     seeds: list[int] | None = None,
     output_dir: str | Path,
 ) -> BaselineReport:
-    """Generate the baseline table for serious task candidates."""
+    """Generate the baseline table for the frozen serious benchmark."""
 
     return generate_baseline_report(
         task_ids=list(SERIOUS_TASK_IDS),
@@ -235,6 +237,16 @@ def summarize_baseline_results(results: list[dict[str, Any]]) -> list[dict[str, 
         "bo_initial_recipe_count": "bo_initial_recipe_count",
         "bo_acquisition_recipe_count": "bo_acquisition_recipe_count",
         "bo_entered_acquisition": "bo_entered_acquisition",
+        "phase_ratio": "mean_phase_ratio",
+        "product_in_organic": "mean_product_in_organic",
+        "product_in_aqueous": "mean_product_in_aqueous",
+        "crystal_yield": "mean_crystal_yield",
+        "crystal_purity": "mean_crystal_purity",
+        "distillate_purity": "mean_distillate_purity",
+        "distillate_recovery": "mean_distillate_recovery",
+        "flow_conversion": "mean_flow_conversion",
+        "electrochemical_selectivity": "mean_electrochemical_selectivity",
+        "energy_efficiency": "mean_energy_efficiency",
         "pH_normalized": "mean_pH_normalized",
         "acid_dissociation_fraction": "mean_acid_dissociation_fraction",
         "precipitation_signal": "mean_precipitation_signal",
@@ -252,12 +264,35 @@ def summarize_baseline_results(results: list[dict[str, Any]]) -> list[dict[str, 
             values = [float(item.get(result_key, 0.0)) for item in items]
             row[f"mean_{public_name}"] = fmean(values) if values else 0.0
             row[f"stderr_{public_name}"] = _stderr(values)
+            ci_lower, ci_upper = _bootstrap_mean_ci(values)
+            row[f"ci95_lower_{public_name}"] = ci_lower
+            row[f"ci95_upper_{public_name}"] = ci_upper
+        row["success_rate"] = fmean(
+            1.0 if item.get("sample_efficiency_step") is not None else 0.0
+            for item in items
+        )
         rows.append(row)
     return rows
 
 
 def _stderr(values: list[float]) -> float:
     return pstdev(values) / (len(values) ** 0.5) if len(values) > 1 else 0.0
+
+
+def _bootstrap_mean_ci(values: list[float]) -> tuple[float, float]:
+    """Return a deterministic percentile-bootstrap 95% CI for a seed mean."""
+
+    if not values:
+        return 0.0, 0.0
+    if len(values) == 1:
+        return values[0], values[0]
+    encoded = json.dumps(values, separators=(",", ":")).encode("utf-8")
+    seed = int.from_bytes(hashlib.sha256(encoded).digest()[:8], "big")
+    rng = np.random.default_rng(seed)
+    samples = rng.choice(np.asarray(values, dtype=float), size=(5000, len(values)), replace=True)
+    means = np.mean(samples, axis=1)
+    lower, upper = np.quantile(means, (0.025, 0.975))
+    return float(lower), float(upper)
 
 
 def _aggregate_task_leaderboards(results: list[dict[str, Any]]) -> list[dict[str, Any]]:

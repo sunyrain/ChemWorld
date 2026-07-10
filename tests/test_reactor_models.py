@@ -428,6 +428,31 @@ def test_pfr_geometry_volume_and_axial_grid_are_validated() -> None:
         )
 
 
+def test_pfr_runtime_geometry_clamps_axial_endpoint_roundoff() -> None:
+    flow_rate_mL_min = 1.2
+    residence_time_s = 120.0
+    volumetric_flow_L_s = flow_rate_mL_min / 1000.0 / 60.0
+    reactor_volume_L = volumetric_flow_L_s * residence_time_s
+    inner_diameter_m = 0.004
+    cross_section_area_m2 = np.pi * inner_diameter_m**2 / 4.0
+    geometry = PFRGeometrySpec(
+        length_m=(reactor_volume_L / 1000.0) / cross_section_area_m2,
+        inner_diameter_m=inner_diameter_m,
+    )
+    model = PFRModel(
+        _isomerization_network(k=0.0),
+        reactor_volume_L=reactor_volume_L,
+        volumetric_flow_L_s=volumetric_flow_L_s,
+        geometry=geometry,
+    )
+    result = model.simulate(
+        {"A": 1.0},
+        temperature_K=360.0,
+        axial_positions_m=(0.0, geometry.length_m * 0.5, geometry.length_m),
+    )
+    assert result.final_state.time_s == pytest.approx(residence_time_s)
+
+
 def test_reactor_models_reject_invalid_specs() -> None:
     network = _isomerization_network()
     with pytest.raises(ValueError, match="volume_L must be positive"):

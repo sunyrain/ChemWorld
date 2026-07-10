@@ -33,6 +33,9 @@ class EvaluationResult:
     mean_safety_risk: float
     mean_purity: float
     mean_recovery: float
+    mean_phase_ratio: float
+    mean_product_in_organic: float
+    mean_product_in_aqueous: float
     purification_score: float
     mean_crystal_yield: float
     mean_crystal_purity: float
@@ -135,6 +138,21 @@ def evaluate_records(
     recoveries = [
         _obs_float(obs, "recovery") for obs in observations if obs.get("recovery") is not None
     ]
+    phase_ratios = [
+        _obs_float(obs, "phase_ratio")
+        for obs in observations
+        if obs.get("phase_ratio") is not None
+    ]
+    products_in_organic = [
+        _obs_float(obs, "product_in_organic")
+        for obs in observations
+        if obs.get("product_in_organic") is not None
+    ]
+    products_in_aqueous = [
+        _obs_float(obs, "product_in_aqueous")
+        for obs in observations
+        if obs.get("product_in_aqueous") is not None
+    ]
     crystal_yields = [
         _obs_float(obs, "crystal_yield")
         for obs in observations
@@ -215,6 +233,13 @@ def evaluate_records(
     mean_risk = float(fmean(risks))
     mean_purity = float(fmean(purities)) if purities else 0.0
     mean_recovery = float(fmean(recoveries)) if recoveries else 0.0
+    mean_phase_ratio = float(fmean(phase_ratios)) if phase_ratios else 0.0
+    mean_product_in_organic = (
+        float(fmean(products_in_organic)) if products_in_organic else 0.0
+    )
+    mean_product_in_aqueous = (
+        float(fmean(products_in_aqueous)) if products_in_aqueous else 0.0
+    )
     mean_crystal_yield = float(fmean(crystal_yields)) if crystal_yields else 0.0
     mean_crystal_purity = float(fmean(crystal_purities)) if crystal_purities else 0.0
     mean_distillate_purity = (
@@ -338,6 +363,9 @@ def evaluate_records(
         mean_safety_risk=mean_risk,
         mean_purity=mean_purity,
         mean_recovery=mean_recovery,
+        mean_phase_ratio=mean_phase_ratio,
+        mean_product_in_organic=mean_product_in_organic,
+        mean_product_in_aqueous=mean_product_in_aqueous,
         purification_score=purification_score,
         mean_crystal_yield=mean_crystal_yield,
         mean_crystal_purity=mean_crystal_purity,

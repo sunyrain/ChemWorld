@@ -1,4 +1,4 @@
-"""Run the ChemWorld serious-task candidate experiment package."""
+"""Run the ChemWorld serious benchmark experiment package."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from chemworld.eval.baseline_report import (
     SERIOUS_BASELINE_AGENTS,
     generate_baseline_report,
 )
+from chemworld.eval.benchmark_validation import write_validation_artifact
 from chemworld.eval.paper_artifact import create_paper_artifact
 from chemworld.task_design import serious_task_readiness_manifest
 from chemworld.tasks import SERIOUS_TASK_IDS
@@ -40,6 +41,10 @@ def main() -> None:
         seeds=seeds,
         output_dir=root / "baseline_report",
     )
+    validation = write_validation_artifact(
+        baseline_report.to_dict(),
+        root / "benchmark_validation.json",
+    )
     artifact_summary = create_paper_artifact(
         output_dir=root / "artifact",
         task_ids=tasks,
@@ -48,7 +53,7 @@ def main() -> None:
     )
     manifest = {
         "schema_version": "chemworld-serious-task-suite-run-0.1",
-        "suite_status": "candidate",
+        "suite_status": "validated" if validation["validated"] else "candidate",
         "tasks": tasks,
         "agents": agents,
         "seeds": seeds,
@@ -58,12 +63,15 @@ def main() -> None:
         "artifact_summary": str(root / "artifact" / "artifact_summary.json"),
         "baseline_result_count": baseline_report.result_count,
         "artifact_replay_verified": artifact_summary["replay_verified"],
+        "empirical_validation": validation,
     }
     (root / "serious_task_suite_manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True),
         encoding="utf-8",
     )
     print(json.dumps(manifest, indent=2, sort_keys=True))
+    if not args.smoke and not validation["validated"]:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
