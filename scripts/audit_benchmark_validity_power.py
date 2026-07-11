@@ -38,6 +38,7 @@ def main() -> int:
     )
     parser.add_argument("--practical-effect", type=float, default=0.05)
     parser.add_argument("--planned-seeds", type=int, default=20)
+    parser.add_argument("--tasks", nargs="+", default=list(SERIOUS_TASK_IDS))
     parser.add_argument(
         "--adaptive-methods",
         nargs="+",
@@ -53,6 +54,7 @@ def main() -> int:
     if not isinstance(results, list):
         raise ValueError("baseline results must be a JSON list")
     audit_kwargs = {
+        "task_ids": tuple(args.tasks),
         "practical_effect": args.practical_effect,
         "planned_seed_count": args.planned_seeds,
     }
@@ -74,7 +76,7 @@ def main() -> int:
         "baseline_results_sha256": _sha256(args.baseline_results),
         "baseline_result_count": len(results),
         "task_contract_hashes": {
-            task_id: get_task(task_id).contract_hash for task_id in SERIOUS_TASK_IDS
+            task_id: get_task(task_id).contract_hash for task_id in args.tasks
         },
         "diagnostic_only": True,
         "paper_claim_allowed": False,

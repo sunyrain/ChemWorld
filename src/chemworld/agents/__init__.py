@@ -7,6 +7,7 @@ from chemworld.agents.bo import (
     GaussianProcessUCBAgent,
     RandomForestEIAgent,
     SafetyConstrainedBOAgent,
+    StructuredGaussianProcessBOAgent,
 )
 from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.agents.greedy import GreedyLocalAgent
@@ -39,5 +40,6 @@ __all__ = [
     "ReplayLLMAgent",
     "SafetyConstrainedBOAgent",
     "ScriptedChemistryAgent",
+    "StructuredGaussianProcessBOAgent",
     "ToolUsingLLMStubAgent",
 ]

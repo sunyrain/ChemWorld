@@ -96,6 +96,30 @@ def task_recipe_to_vector(recipe: dict[str, Any]) -> np.ndarray:
     return values
 
 
+def task_recipe_to_model_vector(
+    task_info: dict[str, Any],
+    recipe: dict[str, Any],
+) -> np.ndarray:
+    """Encode a recipe without imposing ordinal distance on material choices."""
+
+    values = task_recipe_to_vector(recipe)
+    categorical_coordinates = {
+        "equilibrium": (),
+        "flow": ((0, 4), (2, 4)),
+        "electrochemical": ((0, 4),),
+        "partition": ((0, 4), (2, 4)),
+        "reaction_crystallization": ((4, 4), (5, 4)),
+        "reaction_distillation": ((4, 4), (5, 4)),
+        "reaction": ((4, 4), (5, 4)),
+    }[task_recipe_kind(task_info)]
+    encoded = [values]
+    for coordinate, category_count in categorical_coordinates:
+        one_hot = np.zeros(category_count, dtype=float)
+        one_hot[_choice(float(values[coordinate]), category_count)] = 1.0
+        encoded.append(one_hot)
+    return np.concatenate(encoded)
+
+
 def task_recipe_event_count(task_info: dict[str, Any]) -> int:
     vector = np.full(task_recipe_dimension(task_info), 0.5, dtype=float)
     return len(task_recipe_from_unit_vector(task_info, vector)["steps"])
@@ -288,5 +312,6 @@ __all__ = [
     "task_recipe_event_count",
     "task_recipe_from_unit_vector",
     "task_recipe_kind",
+    "task_recipe_to_model_vector",
     "task_recipe_to_vector",
 ]

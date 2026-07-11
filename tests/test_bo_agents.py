@@ -8,6 +8,7 @@ from chemworld.agents.bo import (
     GaussianProcessUCBAgent,
     RandomForestEIAgent,
     SafetyConstrainedBOAgent,
+    StructuredGaussianProcessBOAgent,
 )
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.metrics import evaluate_records
@@ -28,6 +29,7 @@ def test_surrogate_baselines_smoke(tmp_path) -> None:
         GaussianProcessUCBAgent(n_initial=2, n_candidates=16),
         RandomForestEIAgent(n_initial=2, n_candidates=16, n_estimators=8),
         SafetyConstrainedBOAgent(n_initial=2, n_candidates=16),
+        StructuredGaussianProcessBOAgent(n_initial=2, n_candidates=16),
     ]
     for index, agent in enumerate(agents):
         history = run_agent(

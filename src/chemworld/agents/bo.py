@@ -14,6 +14,7 @@ from chemworld.agents.recipe_sequence import RecipeSequenceMixin
 from chemworld.agents.task_recipes import (
     sample_task_recipe,
     task_recipe_event_count,
+    task_recipe_to_model_vector,
     task_recipe_to_vector,
 )
 
@@ -89,9 +90,12 @@ class CandidateSurrogateMixin:
         return [sample_task_recipe(self.task_info, self.rng) for _ in range(count)]
 
     def _xy(self, history: list[HistoryRecord]) -> tuple[np.ndarray, np.ndarray]:
-        x = np.vstack([task_recipe_to_vector(record.action) for record in history])
+        x = np.vstack([self._model_vector(record.action) for record in history])
         y = np.asarray([record.reward for record in history], dtype=float)
         return x, y
+
+    def _model_vector(self, action: dict[str, Any]) -> np.ndarray:
+        return task_recipe_to_vector(action)
 
 
 class GaussianProcessBOAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgent):
@@ -158,7 +162,7 @@ class GaussianProcessBOAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseA
             warnings.simplefilter("ignore", ConvergenceWarning)
             model.fit(x_train, y_train)
         candidates = self._candidate_actions(self.n_candidates)
-        x_candidates = np.vstack([task_recipe_to_vector(action) for action in candidates])
+        x_candidates = np.vstack([self._model_vector(action) for action in candidates])
         mu, sigma = model.predict(x_candidates, return_std=True)
         return candidates, y_train, mu, sigma
 
@@ -217,6 +221,20 @@ class GaussianProcessPIAgent(GaussianProcessBOAgent):
     def manifest(self) -> dict[str, Any]:
         manifest = super().manifest()
         manifest.update({"acquisition_function": "probability_improvement", "xi": self.xi})
+        return manifest
+
+
+class StructuredGaussianProcessBOAgent(GaussianProcessBOAgent):
+    """GP-EI with one-hot material choices and continuous process coordinates."""
+
+    name = "structured_gp_bo"
+
+    def _model_vector(self, action: dict[str, Any]) -> np.ndarray:
+        return task_recipe_to_model_vector(self.task_info, action)
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update({"recipe_encoding": "continuous_plus_material_one_hot"})
         return manifest
 
 
@@ -323,7 +341,7 @@ class RandomForestEIAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgen
         model.fit(x_train, y_train)
 
         candidates = self._candidate_actions(self.n_candidates)
-        x_candidates = np.vstack([task_recipe_to_vector(action) for action in candidates])
+        x_candidates = np.vstack([self._model_vector(action) for action in candidates])
         tree_predictions = np.vstack([tree.predict(x_candidates) for tree in model.estimators_])
         mu = tree_predictions.mean(axis=0)
         sigma = tree_predictions.std(axis=0)

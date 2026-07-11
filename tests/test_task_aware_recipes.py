@@ -7,6 +7,7 @@ from chemworld.agents.task_recipes import (
     task_recipe_dimension,
     task_recipe_from_unit_vector,
     task_recipe_kind,
+    task_recipe_to_model_vector,
     task_recipe_to_vector,
 )
 from chemworld.eval.runner import make_agent, run_agent
@@ -41,6 +42,19 @@ def test_task_recipe_compiles_only_allowed_operations(task_id: str) -> None:
 )
 def test_serious_tasks_have_distinct_search_spaces(task_id: str, expected_kind: str) -> None:
     assert task_recipe_kind(get_task(task_id).to_dict()) == expected_kind
+
+
+def test_model_vector_one_hot_encodes_electrochemical_solvent() -> None:
+    task_info = get_task("electrochemical-conversion").to_dict()
+    recipe = task_recipe_from_unit_vector(
+        task_info,
+        np.asarray([0.62, 0.3, 0.4, 0.5, 0.6]),
+    )
+
+    encoded = task_recipe_to_model_vector(task_info, recipe)
+
+    assert encoded.shape == (9,)
+    assert encoded[-4:].tolist() == [0.0, 0.0, 1.0, 0.0]
 
 
 @pytest.mark.parametrize("agent_name", ("random", "lhs", "gp_bo", "safe_gp_bo"))

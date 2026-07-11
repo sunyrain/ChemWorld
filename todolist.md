@@ -142,6 +142,9 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
 - [x] 已增加显式完整实验数和 4/8/12/20/40 在线前缀审计；40-experiment pilot 证明五个任务
   存在正向学习信号，但 0/6 达到 0.05 SESOI，且电化学 GP 显著为负。下一步按任务校准预算，
   并单独审计电化学搜索表示/安全目标，不能再用统一 `dimension + 2` 作为正式预算。
+- [x] 已实现连续坐标 + material one-hot 的结构化 GP 探针；电化学 40-experiment 配对效应从
+  -0.076 翻转为 +0.032，但尚未达到 SESOI。冻结前须扩展到 20 seeds，并审计全部任务的类别
+  坐标与耦合坐标。
 - [ ] 固定每个任务的 baseline reference table，并将冻结结果绑定 commit、合同 hash、solver
   provenance 和 trajectory digest。
 
