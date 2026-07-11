@@ -1,0 +1,20 @@
+{
+  "branch": "team/benchmark-vnext-classic-policy-distinctness",
+  "claimed_at": "2026-07-11T14:05:32.643883+00:00",
+  "completed_at": "2026-07-11T14:13:24.861170+00:00",
+  "completion_summary": "Implemented a fail-closed candidate classic-policy distinctness audit for all eight required baseline roles. Verified unique concrete classes, resolved act implementations, and semantic fingerprints; typed one-hot encoding for all five surrogate methods; task-aware greedy behavior; and a distinct safe-risk path. Added five adversarial probes covering implementation aliasing, ordinal encoding, acquisition collapse, unconstrained safe behavior, and missing methods. The generated control report is deterministic and explicitly keeps parent_task_complete, formal_results_present, formal_classic_matrix_ready, benchmark_ready, and publication_ready false. Validation: 6 related tests passed before integration, 4 dedicated tests passed after merging latest main, Ruff passed, mypy passed, claim check passed, diff check passed, and the audit report reproduced identically. No external reference repositories used. Known limits: the formal confirmatory classic matrix, trajectory-level decision fingerprints, reference-regret search, and performance/publication evidence remain pending. Implementation commit: 58ac0fc171ded0baa59bc052804f567a312d759b. Integration commit: 73b2676b3db1120a2a159dfeb85ad916e4221a73.",
+  "expires_at": "2026-07-18T14:05:32.643883+00:00",
+  "notes": "Control-layer slice of benchmark-vnext-classic-baselines. Adds only new paths; does not modify agents, runner, method protocol, active risk-policy paths, frozen evidence, or release artifacts. No performance or publication claim.",
+  "owned_paths": [
+    "src/chemworld/eval/classic_distinctness.py",
+    "scripts/audit_classic_distinctness.py",
+    "tests/test_classic_distinctness.py",
+    "configs/benchmark/classic_distinctness_vnext.json",
+    "workstreams/benchmark_v1/reports/classic-distinctness-controls.json"
+  ],
+  "owner": "knitua",
+  "schema_version": "chemworld-task-claim-0.1",
+  "scope": "Add a fail-closed candidate audit proving the eight required classic baseline roles have distinct implementation, action-policy, typed-encoding, surrogate, acquisition, and risk-control identities before formal confirmatory evaluation",
+  "status": "completed",
+  "task_id": "benchmark-vnext-classic-policy-distinctness"
+}
