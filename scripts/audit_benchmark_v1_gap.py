@@ -647,13 +647,18 @@ def build_audit(root: Path, *, generalization_report: Path | None = None) -> dic
         "benchmark/releases/chemworld-serious-v1",
     )
     checker_text = (root / "scripts" / "check_frozen_benchmark.py").read_text(encoding="utf-8")
+    checker_verifies_manifest = "manifest.json" in checker_text and "sha256" in checker_text
     _check(
         checks,
         "evidence_chain",
         "frozen_checker_verifies_release_manifest",
         "blocker",
-        "manifest.json" in checker_text and "sha256" in checker_text,
-        "checker only evaluates readiness metadata",
+        checker_verifies_manifest,
+        (
+            "manifest and SHA-256 verification implemented"
+            if checker_verifies_manifest
+            else "checker only evaluates readiness metadata"
+        ),
         "The frozen checker must validate current task hashes and every release digest.",
         "Make stale contracts or modified evidence fail check_frozen_benchmark.py.",
         "scripts/check_frozen_benchmark.py",

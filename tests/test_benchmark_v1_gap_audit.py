@@ -17,7 +17,7 @@ def test_gap_audit_distinguishes_pipeline_readiness_from_scientific_readiness() 
     assert checks["per_task_reporting"]["passed"] is True
     assert checks["public_observation_leakage_tests"]["passed"] is True
     assert checks["release_contract_hashes_current"]["passed"] is False
-    assert checks["frozen_checker_verifies_release_manifest"]["passed"] is False
+    assert checks["frozen_checker_verifies_release_manifest"]["passed"] is True
     assert checks["reinforcement_learning_baseline"]["passed"] is False
     assert checks["real_llm_agent_baseline"]["passed"] is False
 

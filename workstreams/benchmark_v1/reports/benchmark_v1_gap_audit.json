@@ -1,6 +1,6 @@
 {
   "audit_scope": "scientific-claim readiness, not merely executable pipeline readiness",
-  "blocker_count": 18,
+  "blocker_count": 17,
   "blockers": [
     "oracle_is_valid_upper_reference",
     "adaptive_methods_show_broad_value",
@@ -18,7 +18,6 @@
     "release_contract_hashes_current",
     "release_commit_binding",
     "complete_trajectory_evidence",
-    "frozen_checker_verifies_release_manifest",
     "separate_train_world_generator"
   ],
   "categories": {
@@ -51,11 +50,10 @@
       "blockers": [
         "release_contract_hashes_current",
         "release_commit_binding",
-        "complete_trajectory_evidence",
-        "frozen_checker_verifies_release_manifest"
+        "complete_trajectory_evidence"
       ],
-      "passed": 1,
-      "readiness_percent": 16.1,
+      "passed": 2,
+      "readiness_percent": 32.3,
       "total": 7
     },
     "generalization_security": {
@@ -600,8 +598,8 @@
       "evidence": [
         "scripts/check_frozen_benchmark.py"
       ],
-      "observed": "checker only evaluates readiness metadata",
-      "passed": false,
+      "observed": "manifest and SHA-256 verification implemented",
+      "passed": true,
       "remediation": "Make stale contracts or modified evidence fail check_frozen_benchmark.py.",
       "required": "The frozen checker must validate current task hashes and every release digest.",
       "severity": "blocker"
@@ -706,8 +704,8 @@
     }
   ],
   "generalization_report_sha256": "d40c88c2c5003dc7bafe893f323e836fe3b9e70b0396aa2c9f1db965ddccb282",
-  "passed_check_count": 13,
-  "readiness_percent": 31.4,
+  "passed_check_count": 14,
+  "readiness_percent": 34.3,
   "release_recommendation": "candidate_only_do_not_submit_final_claim",
   "required_sequence": [
     "invalidate stale v1 evidence and make the frozen checker fail closed",

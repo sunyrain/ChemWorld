@@ -35,7 +35,7 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
         "vnext_staging_plan",
         "environment_audit",
         "baseline_smoke",
-        "frozen_benchmark",
+        "benchmark_candidate_integrity",
     ]
     flat_commands = [" ".join(item["command"]) for item in plan]
     assert any("manage_claims.py check" in command for command in flat_commands)
@@ -51,6 +51,26 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
     assert any("audit_environment_consistency.py" in command for command in flat_commands)
     assert any("baselines report" in command for command in flat_commands)
     assert any("check_frozen_benchmark.py" in command for command in flat_commands)
+    assert any("--allow-candidate" in command for command in flat_commands)
+
+
+def test_release_gate_can_require_strict_frozen_benchmark(tmp_path) -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/run_release_gate.py",
+            "--dry-run",
+            "--require-frozen-benchmark",
+            "--output-dir",
+            str(tmp_path / "gate"),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    plan = json.loads(completed.stdout)
+    frozen = next(item for item in plan if item["name"] == "frozen_benchmark")
+    assert "--allow-candidate" not in frozen["command"]
 
 
 def test_reference_gate_requires_every_backend_used_by_reference_tests() -> None:

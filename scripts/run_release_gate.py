@@ -14,6 +14,7 @@ import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,7 @@ def release_gate_commands(
     *,
     python: str,
     output_dir: Path,
+    require_frozen_benchmark: bool = False,
 ) -> list[GateCommand]:
     audit_dir = output_dir / "audit"
     baseline_dir = output_dir / "baseline_smoke"
@@ -113,8 +115,14 @@ def release_gate_commands(
             ],
         ),
         GateCommand(
-            "frozen_benchmark",
-            [python, "scripts/check_frozen_benchmark.py"],
+            "frozen_benchmark" if require_frozen_benchmark else "benchmark_candidate_integrity",
+            [
+                python,
+                "scripts/check_frozen_benchmark.py",
+                *([] if require_frozen_benchmark else ["--allow-candidate"]),
+                "--output",
+                str(output_dir / "benchmark_release_integrity.json"),
+            ],
         ),
     ]
 
@@ -136,22 +144,33 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Run remaining commands even if one gate fails.",
     )
+    parser.add_argument(
+        "--require-frozen-benchmark",
+        action="store_true",
+        help="Require a current immutable benchmark bundle instead of candidate integrity only.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
     output_dir = Path(args.output_dir)
-    commands = release_gate_commands(python=sys.executable, output_dir=output_dir)
+    commands = release_gate_commands(
+        python=sys.executable,
+        output_dir=output_dir,
+        require_frozen_benchmark=args.require_frozen_benchmark,
+    )
     if args.dry_run:
         print(json.dumps([command.to_dict() for command in commands], indent=2))
         return 0
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    summary: dict[str, object] = {
+    summary: dict[str, Any] = {
         "schema_version": "chemworld-release-gate-0.1",
         "started_at": datetime.now(UTC).isoformat(),
         "output_dir": str(output_dir),
+        "benchmark_mode": ("strict_frozen" if args.require_frozen_benchmark else "candidate"),
+        "release_claim_ready": False,
         "commands": [],
     }
     overall_success = True
@@ -162,7 +181,7 @@ def main() -> int:
         elapsed_s = time.perf_counter() - started
         success = completed.returncode == 0
         overall_success = overall_success and success
-        summary["commands"].append(  # type: ignore[union-attr]
+        summary["commands"].append(
             {
                 "name": gate.name,
                 "command": gate.command,
@@ -180,6 +199,7 @@ def main() -> int:
 
     summary["finished_at"] = datetime.now(UTC).isoformat()
     summary["success"] = overall_success
+    summary["release_claim_ready"] = bool(overall_success and args.require_frozen_benchmark)
     (output_dir / "release_gate_summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True),
         encoding="utf-8",

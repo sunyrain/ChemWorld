@@ -70,4 +70,13 @@ python scripts/run_release_gate.py
 ```
 
 门禁覆盖 lint、typing、全量测试、文档、wheel smoke、外部参考后端、runtime boundary、
-环境自洽审计和 baseline smoke。任何失败都阻止 release claim。
+环境自洽审计和 baseline smoke。默认开发门禁允许一个结构完整但明确不能用于发布声明的 candidate
+bundle，并在 summary 中记录 `release_claim_ready=false`。正式发布必须显式运行：
+
+```bash
+python scripts/run_release_gate.py --require-frozen-benchmark
+```
+
+严格 frozen 检查会重新核验公开 manifest、内嵌证据 SHA-256、当前 task contract hash、source
+commit、clean tree、release status 和完整 trajectory archive。任何失败都阻止 release claim；
+`validated=true` 或 readiness 计数本身不构成冻结证据。
