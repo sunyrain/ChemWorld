@@ -17,6 +17,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from dataclasses import dataclass
@@ -320,11 +321,25 @@ class StudentProcess:
             if self._process and self._process.poll() is None:
                 with contextlib.suppress(RuntimeError):
                     self.request(close_request(self.policy))
-                self._process.terminate()
+                if self._process.poll() is None:
+                    self._process.terminate()
+                try:
+                    self._process.wait(timeout=min(max(self.timeout_s, 0.1), 2.0))
+                except subprocess.TimeoutExpired:
+                    self._process.kill()
+                    self._process.wait(timeout=2.0)
         finally:
-            self._executor.shutdown(wait=False, cancel_futures=True)
+            self._executor.shutdown(wait=True, cancel_futures=True)
+            if self._process is not None:
+                for stream in (self._process.stdin, self._process.stdout):
+                    if stream is not None:
+                        stream.close()
             if self._stderr_handle is not None:
                 self._stderr_handle.close()
+                _wait_for_path_release(
+                    self.stderr_path,
+                    timeout_s=min(max(self.timeout_s, 0.1), 2.0),
+                )
 
     def request(self, payload: dict[str, Any]) -> dict[str, Any]:
         if self._process is None or self._process.stdin is None or self._process.stdout is None:
@@ -357,6 +372,26 @@ class StudentProcess:
             request_type=str(payload.get("type", "")),
             policy=self.policy,
         )
+
+
+def _wait_for_path_release(path: Path, *, timeout_s: float) -> None:
+    """Wait until Windows releases a recently inherited log-file handle."""
+
+    if not path.exists():
+        return
+    probe = path.with_name(f".{path.name}.release-probe")
+    deadline = time.monotonic() + timeout_s
+    while True:
+        try:
+            path.replace(probe)
+            probe.replace(path)
+            return
+        except PermissionError as error:
+            if time.monotonic() >= deadline:
+                raise RuntimeError(
+                    "student stderr handle remained locked after process exit"
+                ) from error
+            time.sleep(0.01)
 
 
 def _task_entries(

@@ -4,6 +4,11 @@ import json
 from pathlib import Path
 
 import pytest
+from local_eval_server.teacher_side.eval_machine import (
+    DEMO_SUBMISSION,
+    StudentProcess,
+    validate_submission,
+)
 from scripts.audit_public_harness import build_public_harness_report
 
 from chemworld.envs.chemworld_env import ChemWorldEnv
@@ -114,6 +119,23 @@ def test_public_harness_report_runs_real_subprocess_without_sandbox_claim() -> N
     assert report["sandbox_ready"] is False
     assert report["benchmark_claim_allowed"] is False
     assert report["publication_ready"] is False
+
+
+def test_student_process_releases_stderr_handle(tmp_path: Path) -> None:
+    stderr_path = tmp_path / "student.stderr.log"
+    submission = validate_submission(DEMO_SUBMISSION)
+
+    with StudentProcess(
+        submission,
+        timeout_s=2.0,
+        runtime_python=None,
+        stderr_path=stderr_path,
+        policy=HarnessPolicy(),
+    ) as student:
+        assert student.pid is not None
+
+    stderr_path.unlink()
+    assert not stderr_path.exists()
 
 
 def test_committed_public_harness_report_matches_runtime_audit() -> None:
