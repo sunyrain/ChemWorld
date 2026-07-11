@@ -38,7 +38,7 @@ from chemworld.agents.interaction import (
     DecisionAuditRecord,
     build_decision_context,
 )
-from chemworld.data.logging import TrajectoryLogger, observation_to_json
+from chemworld.data.logging import TrajectoryLogger, action_payload, observation_to_json
 from chemworld.data.submission import git_commit
 from chemworld.eval.method_protocol import (
     MethodResourceLedger,
@@ -199,6 +199,10 @@ def run_agent(
             else:
                 action = agent.act(history)
             decision_elapsed_s = perf_counter() - decision_started
+            normalized_action = action_payload(action)
+            if not isinstance(normalized_action, dict):
+                raise TypeError("agent action must normalize to a JSON object")
+            action = normalized_action
             usage_factory = getattr(agent, "method_resource_usage", None)
             agent_usage = usage_factory() if callable(usage_factory) else {}
             resource_ledger.record_decision(
