@@ -1,140 +1,139 @@
 # Benchmark 协议
 
-本协议定义 ChemWorld 任务的划分、运行、评分、验证和发布规则。任务必须保持逐任务报告，
-不能用一个总分掩盖不同物理域、成熟度或失败模式。
+本协议定义任务、数据划分、资源、交互证据、统计和发布规则。ChemWorld 不发布跨物理域的单一
+性能总分；每个任务保留自己的主指标、单位、约束和失败模式。
 
-## 套件
+## 套件与用途
 
-- `core`：三个紧凑任务，用于 API、回放和发布链路回归；
-- `serious`：六个已通过结构合同与回放门禁、但仍在经验有效性审查中的候选研究任务；
-- 显式 `--tasks`：用户自选任务，不自动获得正式套件声明。
+- `core`：API、轨迹、回放和发布链路的紧凑回归套件；
+- `serious`：六个研究候选任务，不自动构成已验证 benchmark；
+- 显式任务列表：用户自选实验，不继承套件级主张。
 
 ```bash
-chemworld baselines report --preset core
-chemworld baselines report --preset serious
+chemworld tasks list
 chemworld tasks readiness
+chemworld baselines report --preset core
 ```
-
-正式套件的准入、证据边界和剩余冻结条件见[当前科学状态](benchmark_release.md)。
 
 ## 数据划分
 
-- `public-dev`：接口调试、教学和 smoke；
-- `public-test`：冻结任务与 seeds，用于可复现比较；
-- `private-eval`：维护者控制的隐藏参数与 seeds，用于泛化评测。
+| Split | 用途 | 是否用于选模型 |
+| --- | --- | --- |
+| `public-dev` | 调试接口、训练与开发 | 可以 |
+| `public-test` | 冻结的公开诊断和回归 | 不应反复调参 |
+| `private-eval` | 隐藏世界和泛化评测 | 不可以 |
 
-所有 split 共享同一版本化世界律。私有参数、salt、隐藏物种量和机理参数不得进入公开
-observation、trajectory 或 agent trace。
+所有 split 共享同一世界律和公共操作语义。私有 salt、机理参数、隐藏物种量和评测 seeds 不进入
+observation、Agent trace 或公开结果。正式训练方法必须在 Train 上学习、在 Dev 上选择，并只在
+Bench/Private 上执行一次冻结评测。
 
 ## 评测单位
 
-`single_experiment` 任务以一条完整实验流程为单位；`campaign` 任务以固定总预算内的多条
-experiment 为单位。报告至少包含：
-
-- final-assay 分数与 best-so-far AUC；
-- primary/secondary task metrics；
-- invalid action、precondition、safety 与 cost；
-- instrument 使用和 sample efficiency；
-- task/scenario/mechanism/runtime/scoring/observation hashes；
-- maturity、agent manifest 和 solver provenance。
-
-## Baseline 与统计
-
-历史 v0.1 比较由 `configs/benchmark/publication_protocol_v0.1.json` 记录，并由
-`scripts/audit_publication_protocol.py` 失败关闭校验。它固定六个 serious task、20 个配对 seeds
-和每个 task-seed-method 40 次完整实验；不允许按中间结果提前停止或改变方法。历史协议使用统一
-0.05 SESOI，vNext 确认协议将使用冻结的任务特异阈值。
-报告逐任务配对效应、paired bootstrap 置信区间、符号翻转检验、标准差和逐 seed 结果，不发布
-掩盖领域差异的跨任务总分；同一指标族跨六任务采用 Holm 校正。smoke override 只能验证管线，
-不能用于性能声明。
-
-候选确认性主比较是 typed categorical encoding 的 `structured_gp_bo` 对 `random`。`lhs` 是非自适应
-空间填充对照，原始 `gp_bo` 是表示消融，`structured_safe_gp_bo` 是安全约束次要方法。stub、
-replay trace 和脚本轨迹只做协议回归，不作为科学 baseline。每次运行同时记录墙钟、进程 CPU、
-步骤数和完整实验数；正式 runner 会拒绝实验数不足、脏工作树或回放失败的结果。
-
-```powershell
-python scripts/audit_publication_protocol.py
-python scripts/run_publication_protocol.py --stage confirmatory
-python scripts/run_publication_protocol.py --stage full
+```text
+Campaign  一次 task × world × seed × method 运行
+└── Experiment  一条从初态到合法终检的实验流程
+    └── Operation  单步操作、测量或控制动作
 ```
 
-随机配方探针的最大值只能称为 sampled recipe ceiling，不能称为 oracle，也不能直接用于 regret。
-诊断阶段可报告“逐 seed 观测到的 best-known reference”，但未来方法允许超过它；正式 regret
-必须绑定独立、可更新且逐 seed 的 reference 协议。
+方法预算以**完整实验数**为主，操作数、测量数、墙钟、CPU/GPU、模型请求、token、费用和训练
+环境步数作为并列资源记录。提前结束、失败请求、JSON 修复和重试都计入账本。
 
-正式 evidence gate 还要求所有 baseline 无非法动作、每个 campaign 完成多轮实验、GP 进入
-acquisition、成功阈值非饱和，并且 total score 与 primary metric 都能区分策略。
-对以主动探索为主张的任务，还必须证明增加实验机会后至少一种可信自适应策略在部分任务上产生
-达到 SESOI 的稳定收益；仅仅“进入 acquisition 阶段”不构成有效性证据。
+## 四层评价
 
-实验预算必须用在线轨迹的预算—收益曲线校准，不能仅用搜索维度加常数。先导 40-experiment
-diagnostic 表明部分 7–10 维任务在 8–12 个实验时仍处于冷启动，直到约 20–40 个实验才出现
-正向 GP 相对收益；因此 40 次完整实验被固定为发表候选协议的统一学习预算。先导结果本身仍不
-构成论文结果。
+每条运行分别产生四类证据：
 
-物料选择必须作为类别变量编码；数字 ID 只是序列化标识，不代表材料间具有欧氏顺序。连续过程
-变量与 material one-hot/embedding 应分别进入 surrogate，正式比较必须披露该表示。
+1. **任务目标**：逐任务主指标、best-so-far 和预算—收益曲线；
+2. **约束**：逐实验最大 operational risk、风险预算超限、成本和非法动作；
+3. **资源**：完整实验、操作、测量、计算、模型调用和费用；
+4. **有效性**：策略是否真的更新、是否使用观测、是否完成预算、结果是否可回放。
 
-## 历史诊断证据
+在线 reward 只用于学习和诊断，不是主终点。正式结果从轨迹终检记录重算。
 
-2026-07-11 的 v0.1 经典方法矩阵在干净提交上运行 6 tasks × 5 methods × 20 paired seeds，得到
-600 条 replay-verified 结果，每条 40 次完整实验。结构化 GP 相对 random 的 total score 在六项
-任务均为正且 Holm 校正后显著，4/6 达到 0.05 SESOI；但任务主指标只有结晶和蒸馏达到 SESOI，
-分配和流动方向为正但较小，电化学和平衡未显示主指标改善。
+## 完整决策规则
 
-因此当前版本仍是 benchmark candidate，不是 validated benchmark。尤其不能把电化学复合总分
-提升解释成 selectivity 提升；也不能报告安全 BO 优势。早期汇总器曾误读风险字段；修正后正式
-矩阵存在非零连续风险，但 600 条结果没有一次 safety violation，安全约束从未激活。泛化、轴级
-OOD、真实 LLM 和独立复现门禁仍未关闭。机器摘要可用以下命令从本地正式结果重建：
+目标改善不是充分条件。未来确认协议必须在看见新 cohort 结果前逐任务冻结：
+
+- 主指标方向和最小有意义效应（SESOI）；
+- 安全非劣界限；
+- 成本或资源非劣界限；
+- 配对 seeds、实验预算和停止规则；
+- bootstrap 样本数、显著性水平和 Holm 校正族；
+- 缺失、失败、超时和非有限值的处理方式。
+
+完整主比较只在目标、约束、资源、公平性和回放门禁同时通过时成立。任何一层缺失都必须保留为
+失败或“不可判定”，不能只报告成功运行。
+
+## 经典方法
+
+候选方法覆盖随机、空间填充、局部搜索、类型化 GP/RF acquisition 和风险约束方法。物料是类别
+变量；数字 action 值只是序列化 ID，不能作为连续距离直接输入 surrogate。
+
+当前 0.2 冻结诊断比较 `structured_gp_bo` 与 `random`，每任务 20 个配对 seeds、每次 40 个完整
+实验。它的 objective-only 规则在四任务通过，但安全/成本非劣规则没有预注册，且三任务观察到
+更高候选风险超限率。因此该 cohort 已用于发现评价问题，不会在新增规则后被重新包装成确认结果；
+升级协议必须使用未触碰的新 seeds。
 
 ```powershell
-python scripts/build_publication_evidence.py `
-  --run-dir runs/publication/protocol-v0.1/full
-python scripts/audit_agent_interactions.py `
-  --results runs/publication/protocol-v0.1/full/baseline_results.json
+python scripts/run_vnext_primary.py --dry-run
+python scripts/run_vnext_primary.py --workers 4 --output-dir runs/benchmark-vnext/primary
+python scripts/audit_vnext_primary.py --run-root runs/benchmark-vnext/primary --workers 4
 ```
 
-## 交互证据
+## RL 方法
 
-最终分数不能说明 Agent 是否真正使用了交互通道。正式报告同时区分：实验间 recipe 更新、实验内
-动作调整、intermediate instrument 使用、谱图消费、约束激活、无效动作和资源消耗。当前五个正式
-经典方法均为 recipe-level：random/LHS 不更新，三个 GP 方法根据已完成实验的 final score 更新；
-没有方法把公开谱图作为特征，也没有方法在同一次实验中根据中间测量改变后续操作。
+RL 结果至少保留：算法与库版本、网络和观测封装、训练 world 分配、随机种子、环境步数、计算设备、
+checkpoint 摘要、Dev 选择规则和无学习评测轨迹。PPO/SAC 等方法不能只运行未训练策略或短 smoke
+后进入方法排名。
 
-GP-PI、GP-UCB、RF-EI 和 greedy 已有类型化候选实现，但尚无 vNext 多 seed 确认证据。未来正式
-方法矩阵必须把轨迹、模型/prompt、
-token/费用、修复次数、谱图依据、实验设计比较和 replay 状态一起保留。
+## LLM 与 tool agent
 
-当前基础 exploit 探针覆盖未知操作、提前 final assay、提前 terminate、非有限数值、重复 final
-assay 和 action key 重排。world-family 轴与语义不变性控制也已有可执行实现，但公开独立进程边界、
-扩展 exploit matrix 和 score-only-from-replay 门禁仍需共同关闭。因此已有 OOD 与 private-salt 结果
-仍属于分布诊断，不是完整安全或泛化认证。
+正式 LLM 角色采用 operation-level adaptive 交互：每个逻辑决策读取最新公开观测、可用动作、
+测量和谱图证据，再返回结构化 evidence、spectrum interpretation、hypothesis、uncertainty 与
+rationale。系统不请求、保存或展示私有逐字思维链。
 
-20-seed public OOD（seeds 100–119）和 salted private-eval（seeds 200–219）已按相同 40-experiment
-预算运行。结晶、蒸馏、流动、分配在两种 shift 下均保持 total score 与任务主指标的正 bootstrap
-区间；电化学的 selectivity 区间仍跨零，平衡任务的 total 与主指标区间均跨零。因此两种 shift
-都只有 4/6 任务通过。私有 salt 原值只存在于运行进程中，发布摘要仅保留 SHA-256。
+每个操作只允许一个最终逻辑决策；provider 请求和 JSON 修复可重试，但所有尝试、失败、token 和
+费用都计入资源账本。正式运行冻结 provider、model ID、prompt hash、请求参数和价格快照。stub、
+replay trace 或手写计划只能验证管线，不能冒充在线模型结果。
 
-## Verified Result Chain
+## 谱图与交互消融
+
+若主张 Agent 使用了表征反馈，必须执行配对消融：
+
+- `raw`：只给原始曲线；
+- `unassigned`：给曲线和未指认峰；
+- `assigned`：给教学用指认峰，作为信息上限；
+- masked：不提供该表征通道。
+
+同时区分实验间 recipe 更新与实验内操作调整。只根据 final assay 选择下一配方的方法属于
+recipe-level active learning，不能描述为实验内闭环控制。
+
+## 统计与报告
+
+- 逐任务使用配对效应和确定性 bootstrap 区间；
+- 多任务同一假设族使用 Holm 校正；
+- 报告 SESOI、约束差值、资源差值和全部失败；
+- 不将不同单位的任务主指标平均成一个“总能力分”；
+- 同时发布逐 seed 结果、预算—收益曲线和方法资源前沿；
+- 参考 regret 只使用独立搜索并冻结的逐 cell reference，不使用被评方法自身最好值。
+
+## 可信结果链
 
 ```text
 trajectory JSONL
-  -> schema validation
+  -> schema and constitution validation
   -> deterministic replay
-  -> metric recomputation
-  -> trajectory SHA-256 binding
-  -> verified result JSON
-  -> per-task leaderboard
+  -> metric and constraint recomputation
+  -> trajectory SHA-256 + score binding
+  -> verified result
+  -> paired task-level statistics
+  -> signed/private or public release artifact
 ```
 
-`chemworld evaluate` 默认执行 replay。leaderboard 会校验 digest 并从轨迹重算指标；直接修改
-result JSON、合同 hash、reward 或 observation 会被拒绝。
+## 反作弊与发布
 
-## 反作弊规则
+Agent 不得读取 hidden state、私有 salt、评测 seed 表、oracle 参数或评测输出目录，不得修改环境代码
+或访问未授权网络。正式第三方代码必须运行在无网络、只读挂载、低权限和资源受限的独立沙箱中；
+本地 trusted subprocess 只适合可信代码。
 
-提交不得读取 hidden scenario、`env.unwrapped._state`、私有 salt、隐藏 seed 表或 oracle state；
-不得修改环境代码、写出评测目录或访问未授权网络。LLM trace 只保存 reasoning summary 和
-decision evidence，不保存或要求完整 chain-of-thought。
-
-提交格式和命令见[提交与验证](submission.md)，结果证据链见[结果完整性](release_integrity.md)。
+完整发布还要求 salted private evaluation、独立复现、干净 wheel 安装和所有协议/轨迹摘要固定。
+提交格式见[提交与验证](submission.md)，当前证据见[科学状态](benchmark_release.md)。

@@ -1,18 +1,16 @@
 # ChemWorld-Bench
 
-ChemWorld-Bench is a replayable environment for studying closed-loop decision
-making in virtual chemical experiments. Agents choose operations, request
-measurements, manage finite budgets, and improve later experiments from earlier
-observations. The environment combines reaction, phase, separation, instrument,
-cost, and safety models behind one versioned Gymnasium interface.
+ChemWorld-Bench is a replayable Gymnasium environment for studying how agents plan,
+measure, and adapt across virtual chemical experiments. It exposes one versioned
+interaction contract across classical optimization, active learning, reinforcement
+learning, LLM tool agents, and human learners.
 
-ChemWorld is a research environment, not a real-reaction predictor, process
-design package, or laboratory controller. Numerical outputs describe the
-versioned virtual world only.
+ChemWorld is not a reaction predictor, process simulator, laboratory controller, or
+safety system. Its outputs are properties of a controlled virtual world.
 
-## Install
+## Start in five minutes
 
-ChemWorld requires Python 3.11 or newer.
+ChemWorld supports Python 3.11 and 3.12.
 
 ```bash
 git clone https://github.com/sunyrain/ChemWorld.git
@@ -20,36 +18,7 @@ cd ChemWorld
 python -m pip install -e ".[dev]"
 ```
 
-Install the documentation and scientific-reference dependencies when you need
-the complete local quality gate:
-
-```bash
-python -m pip install -e ".[dev,docs,physchem-ref]"
-```
-
-## Run an episode
-
-```python
-import gymnasium as gym
-import chemworld
-
-env = gym.make(
-    "ChemWorld",
-    task_id="reaction-to-assay",
-    seed=0,
-)
-
-observation, info = env.reset(seed=0)
-observation, reward, terminated, truncated, info = env.step(
-    {"operation": "add_reagent", "amount_mol": 0.01}
-)
-env.close()
-```
-
-Unmeasured array fields are `NaN`; their JSONL representation is `null`.
-Always use `observed_mask` or `observed_keys` before consuming a field.
-
-## Run and verify an agent
+Run and independently verify a complete trajectory:
 
 ```bash
 chemworld tasks list
@@ -58,52 +27,80 @@ chemworld verify --constitution --submission runs/<trajectory>.jsonl
 chemworld evaluate --submission runs/<trajectory>.jsonl
 ```
 
-`chemworld run` writes a trajectory and a manifest containing the task and
-environment contracts, agent metadata, dependencies, source digest, and a
-reproducible command. Evaluation replays the trajectory instead of trusting a
-submitted score.
+`chemworld evaluate` replays the trajectory and recomputes metrics. It does not trust a
+score supplied by the agent.
 
-## Choose an entry point
+## Use the environment
 
-| Goal | Start here |
-| --- | --- |
-| Learn the API | [Getting started](https://sunyrain.github.io/ChemWorld/getting_started/) |
-| Select a task | [Task catalogue](https://sunyrain.github.io/ChemWorld/tasks/) |
-| Build an agent | [Agent interface](https://sunyrain.github.io/ChemWorld/agent_interface/) |
-| Run the benchmark | [Evaluation protocol](https://sunyrain.github.io/ChemWorld/benchmark_protocol/) |
-| Use the visual lab | [Task Lab](https://sunyrain.github.io/ChemWorld/interactive_task_lab/) |
-| Interpret results | [Scientific status](https://sunyrain.github.io/ChemWorld/benchmark_release/) |
+```python
+import gymnasium as gym
+import chemworld
 
-Start the local visual interface with:
+env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
+observation, info = env.reset(seed=0)
+
+action = {"operation": "add_reagent", "amount_mol": 0.01}
+check = env.unwrapped.validate_action(action)
+if check["valid"]:
+    observation, reward, terminated, truncated, info = env.step(action)
+
+env.close()
+```
+
+Unmeasured array values are `NaN` (`null` in JSONL). Read `observed_mask` or
+`observed_keys` before using an observation field.
+
+## Visual interfaces
 
 ```bash
 python -m apps.task_lab.server --port 8876
 ```
 
-Open <http://127.0.0.1:8876/agent/> for the Agent Observatory or
-<http://127.0.0.1:8876/student/> for the Student Lab. Classical agents run
-offline. Online model adapters require provider credentials supplied through
-environment variables; credentials must never be committed to the repository.
+- Agent Observatory: <http://127.0.0.1:8876/agent/>
+- Student Lab: <http://127.0.0.1:8876/student/>
 
-## Scientific status
+Classical agents work offline. Online model credentials are read only from process
+environment variables and must not be committed or included in evaluation artifacts.
 
-The runtime, contracts, replay chain, and local release checks are operational.
-The six-task research suite remains a benchmark candidate: current evidence
-supports a provisional four-task core, while confirmatory vNext runs, RL and
-live-LLM comparisons, complete security checks, and independent reproduction
-are still required before a validated leaderboard or state-of-the-art claim.
+## Current evidence status
 
-The public documentation distinguishes structural readiness from empirical
-validity and lists supported, exploratory, and prohibited claims. See
-[Benchmark status](https://sunyrain.github.io/ChemWorld/benchmark_release/) and
-[Limitations](https://sunyrain.github.io/ChemWorld/limitations/) before citing
-results.
+The runtime, task contracts, resource accounting, trajectory replay, score binding, and
+public evaluation controls are operational. The complete benchmark is not yet validated.
 
-## Local quality gate
+A frozen 160-run diagnostic compared structured GP optimization with random search over
+four core research tasks (20 paired seeds, 40 experiments per run). Every trajectory
+replayed successfully. The objective-only rule passed on all four tasks, but structured
+GP produced a higher observed risk-budget exceedance rate on three tasks. Because the
+frozen rule did not pre-register safety and cost non-inferiority margins, this run does
+not support a complete method claim or leaderboard.
+
+RL training results, live-LLM comparisons, mechanism-family generalization, a searched
+reference portfolio, salted private evaluation, and independent reproduction remain
+open evidence gates. See the [scientific status](https://sunyrain.github.io/ChemWorld/benchmark_release/)
+and [limitations](https://sunyrain.github.io/ChemWorld/limitations/) before citing results.
+
+## Documentation map
+
+| Goal | Documentation |
+| --- | --- |
+| Install and run an episode | [Getting started](https://sunyrain.github.io/ChemWorld/getting_started/) |
+| Choose a task | [Task catalogue](https://sunyrain.github.io/ChemWorld/tasks/) |
+| Build an agent | [Agent interface](https://sunyrain.github.io/ChemWorld/agent_interface/) |
+| Run a fair comparison | [Benchmark protocol](https://sunyrain.github.io/ChemWorld/benchmark_protocol/) |
+| Inspect the architecture | [Architecture](https://sunyrain.github.io/ChemWorld/architecture/) |
+| Use the visual lab | [Task Lab](https://sunyrain.github.io/ChemWorld/interactive_task_lab/) |
+| Interpret evidence | [Scientific status](https://sunyrain.github.io/ChemWorld/benchmark_release/) |
+
+## Quality gates
+
+Install the complete development surface and run the release checks:
 
 ```bash
+python -m pip install -e ".[dev,docs,physchem-ref]"
 python scripts/run_release_gate.py
 ```
 
-The gate checks formatting, typing, tests, documentation, frozen contracts,
-replay integrity, and reference-backed physical-chemistry slices.
+The standard gate verifies formatting, typing, tests, documentation, wheel resources,
+runtime integration, replay, and reference-backed physical-chemistry slices. Passing it
+establishes software integrity; it does not by itself authorize a scientific benchmark
+claim.

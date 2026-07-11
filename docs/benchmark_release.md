@@ -1,86 +1,100 @@
-# 当前科学状态
+# 科学状态与证据
 
-ChemWorld 的 backend、任务合同、轨迹、回放与本地评测链路已经可以使用；六任务研究套件仍处于
-`candidate`，不是已经验证的正式 leaderboard。本页把“软件能运行”和“科学主张已成立”分开说明。
+ChemWorld 的环境、任务合同、轨迹回放和本地评测链可以用于研究开发。完整 benchmark 仍未通过
+经验有效性、跨方法比较、隐藏世界泛化和独立复现的联合门禁。
 
-## 一句话结论
+## 当前结论
 
-当前系统适合开发和诊断闭环实验智能体，也适合生成可审计的候选证据；在 vNext 确认实验、完整
-方法矩阵、安全门禁和独立复现完成前，不应声称 ChemWorld 已验证六任务 benchmark、给出 SOTA
-排名，或证明了真实化学发现能力。
+!!! info "可用，但不可过度解释"
+    当前版本可以支持 Agent 开发、课程、协议研究和诊断实验。它尚不支持正式 leaderboard、SOTA
+    排名、RL/LLM 优劣结论或现实化学发现主张。
 
-## 套件层级
+## 三种状态不要混淆
 
-| 层级 | 用途 | 当前状态 |
+| 状态 | 含义 | 当前情况 |
 | --- | --- | --- |
-| `core` | API、轨迹、回放和发布链路回归 | 可使用 |
-| provisional research core | 分配、结晶、蒸馏、流动四项 campaign | 候选；待 vNext 确认 |
-| exploratory | 电化学转化、平衡表征 | 探索性；主指标学习信号不足 |
-| 其余注册任务 | 教学、接口实验和能力切片 | 不进入研究主排名 |
+| 软件就绪 | API、操作、任务、账本、回放和验证器按合同工作 | 已建立 |
+| 诊断证据 | 运行能暴露方法差异、失败模式和评价缺陷 | 已建立一部分 |
+| 科学验证 | 预注册比较、全部方法家族、隐藏泛化与独立复现共同通过 | 未完成 |
 
-六个研究候选任务分别是：
+## 2026-07 vNext 经典诊断
 
-| Task | 主要问题 | 当前证据判断 |
+最新冻结运行比较 `structured_gp_bo` 与 `random`：
+
+- 4 个研究核心任务；
+- 每个任务 20 个配对 seeds；
+- 每个 seed-method 40 个完整实验；
+- 共 160 个结果和 6,400 个完整实验；
+- 160 条轨迹均通过独立 digest 检查、回放和指标重算；
+- 无作业失败，资源账本全部闭合。
+
+目标指标结果如下。效应为 structured GP 减 random；区间为配对 bootstrap 区间。
+
+| 任务 | 主指标 | 平均效应 | 95% 区间 | SESOI | 目标规则 |
+| --- | --- | ---: | ---: | ---: | --- |
+| 分配发现 | organic product fraction | +0.0566 | [0.0505, 0.0631] | 0.0292 | 通过 |
+| 反应—结晶 | crystal yield | +0.1455 | [0.1310, 0.1606] | 0.038827 | 通过 |
+| 反应—蒸馏 | distillate purity | +0.1319 | [0.1224, 0.1419] | 0.0200 | 通过 |
+| 连续流优化 | flow conversion | +0.0302 | [0.0278, 0.0327] | 0.0200 | 通过 |
+
+四项任务的目标方向、SESOI 和 Holm 校正均通过。但风险诊断改变了结论：
+
+| 任务 | random 风险超限率 | structured GP 风险超限率 | 差值 |
+| --- | ---: | ---: | ---: |
+| 分配发现 | 16.6% | 6.8% | −9.9 pp |
+| 反应—结晶 | 21.0% | 49.6% | +28.6 pp |
+| 反应—蒸馏 | 22.3% | 56.4% | +34.1 pp |
+| 连续流优化 | 18.6% | 36.9% | +18.3 pp |
+
+原冻结规则只预注册了任务目标的方向、效应阈值和多重比较，没有预注册安全与成本非劣界限。
+因此客观表述是：**结构化 GP 在这一批运行中提高了任务目标，同时在三项任务中观察到更高的风险
+预算超限率。** 这批结果是发现评价缺陷的诊断证据，不是完整方法胜负结论。
+
+## 任务层级
+
+| 层级 | 任务 | 当前用途 |
 | --- | --- | --- |
-| `partition-discovery` | 能否用有限实验学习隐藏分配行为 | core-confirmed，待新协议复核 |
-| `reaction-to-crystallization` | 能否联合选择反应与结晶条件 | core-confirmed，待新协议复核 |
-| `reaction-to-distillation` | 能否联合选择反应与馏分切割 | core-confirmed，待新协议复核 |
-| `flow-reaction-optimization` | 能否权衡转化、热与风险 | core-candidate |
-| `electrochemical-conversion` | 能否提高选择性并控制能耗 | exploratory |
-| `equilibrium-characterization` | 能否高效辨识隐藏平衡 | exploratory |
+| 软件回归 core | assay、purification、partition | API、回放和发布链路检查 |
+| 研究核心候选 | partition、crystallization、distillation、flow | 新约束协议下重新确认 |
+| 探索任务 | electrochemical、equilibrium | 继续校准可辨识主指标与机理族 |
+| 其余注册任务 | 教学与能力切片 | 不进入研究主排名 |
 
-这里的 `core-confirmed` 是任务有效性审计中的分类，不代表整个 benchmark 已经发布。
+`core` 是软件套件标签，不等于科学结论。任务被注册、无 proxy 路由或通过单元测试，也不自动获得
+benchmark 有效性。
 
-## 已建立的可信基础
+## 已建立的基础
 
-- 任务、世界律、观测、评分和 trajectory 都有版本化合同与摘要；
-- 正式运行时使用显式物理化学 provider，不经过旧的通用 proxy/fallback 路由；
-- runner 对合同漂移、脏工作树、实验不足、非法值和 replay 失败执行 fail closed；
-- final-assay objective、任务主指标、在线 shaping、约束、资源和有效性分层重算；
-- 每个实验记录峰值运行风险，以及 total/process/measurement 成本账本；
-- world-family 控制、机理族控制和语义不变性已有可执行探针；
-- 经典方法资源、墙钟、模型调用、token、费用和训练步数使用统一账本；
-- typed GP-EI/PI/UCB、typed RF-EI 与 constrained GP 使用类别物料表示，不把数字 ID 当成连续距离。
+- 版本化 task、scenario、mechanism、observation 和 scoring 合同；
+- 事务式操作执行、失败回滚与 constitution 检查；
+- 显式物理化学 provider，正式运行路由不依赖旧通用 fallback；
+- campaign、experiment、operation 三层资源账本；
+- final objective、任务主指标、在线 shaping、安全和成本分层评测；
+- 轨迹 SHA-256、确定性 replay、score/replay 绑定和失败关闭；
+- 类型化材料表示和可区分的经典 acquisition 实现；
+- RL、LLM、机理扰动、reference search 和私有评测的控制协议骨架。
 
-## 已有结果应如何解释
+## 尚未关闭的门禁
 
-历史 v0.1 经典矩阵覆盖 6 tasks × 5 methods × 20 paired seeds，每条 campaign 含 40 次完整实验
-并通过回放。结构化 GP 相对 random 的复合分数在六任务上为正，但任务主指标只有结晶和蒸馏达到
-当时统一设置的 0.05 SESOI。分配和流动方向为正但较小；电化学与平衡主指标不支持稳定改善。
+1. 预注册逐任务安全与成本非劣界限，并在未使用的新 seed cohort 上复跑经典主比较。
+2. 完成 full-budget PPO、SAC 训练与评测，保留 checkpoint、训练步数和计算摘要。
+3. 完成两个冻结 live-LLM 角色的配对运行，记录失败、重试、token、费用、谱图证据与回放。
+4. 校准机理族扰动强度，冻结不重叠的 Train/Dev/Bench 世界分配。
+5. 完成独立 reference portfolio 搜索，避免用被评方法自己的最好值充当 oracle。
+6. 完成 salted private evaluation，只发布签名聚合结果。
+7. 从干净 wheel 由独立执行者复现全部主结果。
 
-这些结果说明环境能够暴露方法差异，也同时暴露了任务有效性、指标敏感度和表示选择的问题。
-它们是下一版确认协议的诊断依据，不能直接作为最终论文排名。统一 SESOI 也将被任务特异、预注册
-阈值替代。
+## 支持与不支持的主张
 
-## 仍需关闭的硬门禁
-
-1. 冻结 provisional core 的任务特异 SESOI、world severity 网格与 Train/Dev/Bench 分配。
-2. 完成公开进程边界、扩展 exploit matrix、score/replay 只读重算门禁。
-3. 在同一资源协议下加入 PPO、连续控制 RL 和至少两类 live LLM agent。
-4. 使用新 seeds 完成 vNext 确认性矩阵，保留所有失败、资源和约束结果。
-5. 运行谱图可见/不可见配对消融，确认模型是否真正使用表征反馈。
-6. 从干净 wheel 和公开命令完成独立复现，再冻结图表、版本与引用产物。
-
-## 主张矩阵
-
-| 结论 | 当前是否支持 |
+| 主张 | 状态 |
 | --- | --- |
-| 提供预算受限、部分可观测、可回放的多轮虚拟实验环境 | 支持 |
-| 能用统一合同比较不同智能体的交互和资源使用 | 支持软件层能力；完整方法比较待确认 |
-| 结构化主动学习在部分任务上显示稳定候选收益 | 支持，限历史诊断证据 |
-| 六任务 benchmark 已完成科学验证 | 不支持 |
-| safe BO 已被证明有效 | 不支持，历史安全约束未充分激活 |
-| 已完成 RL、live LLM 或 SOTA 排名 | 不支持 |
-| 数值结果代表真实反应产率、安全性或工业性能 | 不支持 |
+| 提供预算受限、部分可观测、可回放的虚拟实验环境 | 支持 |
+| 能统一记录不同 Agent 的交互与资源使用 | 支持软件能力 |
+| 最新运行显示 structured GP 的目标收益 | 支持，限四任务诊断切片 |
+| structured GP 在完整约束下优于 random | 不支持 |
+| safe BO、PPO、SAC 或 live LLM 已完成正式比较 | 不支持 |
+| 已验证跨机理或私有世界泛化 | 不支持 |
+| 数值可预测真实反应、设备或危险 | 不支持 |
+| ChemWorld 是已发布的 SOTA benchmark | 不支持 |
 
-## 机器可读检查
-
-```bash
-chemworld tasks readiness
-python scripts/audit_task_validity.py
-python scripts/audit_method_protocol.py
-python scripts/run_release_gate.py
-```
-
-发表或引用结果时，应同时报告 commit、任务合同摘要、方法 manifest、seeds、完整实验预算、回放状态
-和适用边界。详细运行规则见[评测协议](benchmark_protocol.md)，科学限制见[适用范围与限制](limitations.md)。
+运行自己的比较前请阅读[评测协议](benchmark_protocol.md)、[安全与成本](safety_cost.md)和
+[适用范围与限制](limitations.md)。

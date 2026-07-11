@@ -1,81 +1,59 @@
-# Official Seed Suite
+# Seed 与数据划分
 
-ChemWorld 的正式评测不应临时挑 seed。core 和 serious 套件使用公开、冻结的 seed plan，所有
-baseline、submission 示例和本地教师端评测都应引用同一份计划。
+Seed 决定可复现的世界实例，但 seed 变化不等同于机理族或真实分布变化。ChemWorld 将软件回归
+seed、研究 cohort 和私有世界分开管理。
 
-## 查看 seed suite
+## 查看内置 seed plan
 
 ```bash
 chemworld seeds show
-```
-
-查看全部已注册任务：
-
-```bash
 chemworld seeds show --all-tasks
+chemworld seeds show --tasks reaction-to-assay partition-discovery
 ```
 
-查看指定任务：
+输出包含 suite、task、split、公开 seed 和 private-eval policy。内置 plan 用于示例、回归和本地
+一致性，不自动授权方法排名。
 
-```bash
-chemworld seeds show --tasks reaction-to-assay reaction-to-purification
-```
+## 软件回归 seeds
 
-输出字段：
+| Task | Split | Seeds | 用途 |
+| --- | --- | --- | --- |
+| `reaction-to-assay` | `public-dev` | `0` | 最小合法闭环 |
+| `reaction-to-purification` | `public-test` | `0–4` | 下游与 replay 回归 |
+| `partition-discovery` | `public-test` | `0–4` | campaign 回归 |
 
-| 字段 | 含义 |
-| --- | --- |
-| `schema_version` | 当前为 `chemworld-seed-suite-0.1` |
-| `suite_id` | 当前 suite 标识 |
-| `task_seed_plan` | runner 实际使用的 seed 列表 |
-| `published_seed_plan` | 可公开声明的 seed 列表 |
-| `entries` | 每个 task 的 split、role、seed 和 hidden-eval policy |
-| `private_eval_salt_policy` | private-eval salt 和隐藏 seed 的公开政策 |
+六个 serious 候选任务的历史 v1 plan 也使用 `0–4`。这些 seeds 已被广泛查看和调试，应视为开发
+数据，不再充当未触碰的最终确认 cohort。
 
-## Core 任务
+## 协议特异 cohort
 
-| Task | Split | Public seeds |
+正式方法协议必须单独冻结 paired seeds，并记录它们是否已用于调参。2026-07 的四任务经典诊断
+使用公开 seeds `20–39`；运行后发现安全/成本规则缺失，因此这组 seeds 已被消费为诊断数据。加入
+新决策规则后必须换用未触碰的 cohort，不能对同一数据追补门槛再称为确认实验。
+
+## 三类泛化证据
+
+| 变化 | 能证明什么 | 不能证明什么 |
 | --- | --- | --- |
-| `reaction-to-assay` | `public-dev` | `0` |
-| `reaction-to-purification` | `public-test` | `0, 1, 2, 3, 4` |
-| `partition-discovery` | `public-test` | `0, 1, 2, 3, 4` |
+| 同任务换 seed | 对实例随机性的稳定性 | 机理外推 |
+| 换 world/mechanism family | 对预注册机制轴的适应 | 现实化学迁移 |
+| salted private cells | 对隐藏虚拟世界的泛化 | 实验室有效性 |
 
-## Serious v1
+Train、Dev 和 Bench 的 mechanism cells 必须不重叠。Dev 可用于选择超参数；Bench 和 Private 不得
+继续训练或调 prompt。
 
-六个研究候选任务均使用公开冻结 seeds `0, 1, 2, 3, 4`。显式传入其它 seeds 时，结果属于
-smoke、研究或公开 OOD 诊断，不进入 v1 排名。
+## Private-eval policy
 
-## Split 语义
-
-| Split | 用途 | Seed 政策 |
-| --- | --- | --- |
-| `public-dev` | 开发、教学、smoke test | seed 公开，可用于调试 |
-| `public-test` | 正式公开 benchmark 报告 | seed 公开且固定 |
-| `private-eval` | 维护者侧 leaderboard | hidden seeds 由维护者控制 |
-
-## Private-Eval Salt Policy
-
-private eval 使用环境变量：
+维护者通过进程环境提供高熵 secret，例如：
 
 ```bash
 CHEMWORLD_PRIVATE_EVAL_SALT=<secret>
 ```
 
-规则：
+- raw salt、隐藏 seeds 和可逆世界参数不发布；
+- 没有 secret 时，`private-eval` 只是本地占位，不代表正式私有榜单；
+- Agent 进程不接收世界 seed 或 salt，只接收独立 public agent seed；
+- 对外只发布签名聚合 envelope、协议摘要和允许公开的统计；
+- 私有数据不能用于事后选择方法、模型或 prompt。
 
-- raw salt 永不发布；
-- public repo 只暴露本地 placeholder seeds；
-- 没有 `CHEMWORLD_PRIVATE_EVAL_SALT` 时，`private-eval` 只是 public placeholder，不代表正式榜单；
-- 维护者发布 signed result artifact，包含 salt hash、commit、task、seed policy 和聚合结果；
-- 第三方提交包不能直接访问 hidden salt 或 hidden scenario 参数。
-
-## CLI 加载
-
-以下命令在指定 `--task` 时会读取 official seed suite：
-
-```bash
-chemworld suite --task reaction-to-purification --agent tool_using_llm_stub
-chemworld baselines report --tasks reaction-to-purification --agents tool_using_llm_stub
-```
-
-如果显式传入 `--seeds`，则进入 smoke/debug override；正式报告应说明这一点。
+显式 `--seeds` 适合 smoke 和研究运行；报告必须同时给出 seed 来源、是否预注册以及是否用于开发。

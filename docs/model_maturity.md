@@ -33,5 +33,6 @@ for module in card["kernel_maturity"]["modules"]:
     print(module["module_id"], module["level"], module["model_ids"])
 ```
 
-模型成熟度和 benchmark 经验有效性是两道不同门禁。v0.4 后端已通过集成审计，但新合同的
-多 seed 有效性、功效、泛化与方法对比尚未冻结，因此当前只能称为 backend candidate。
+模型成熟度和 benchmark 经验有效性是两道不同门禁。v0.4 后端已通过集成审计，四任务经典诊断
+也已完成多 seed 回放；但该运行暴露了目标收益与风险退化的冲突，RL/LLM、机理泛化、私有评测和
+独立复现仍缺失，因此当前仍是 benchmark candidate。

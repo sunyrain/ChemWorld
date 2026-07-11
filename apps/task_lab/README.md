@@ -30,12 +30,11 @@ python -m apps.task_lab.server --port 8876
 
 ## 配置 DeepSeek
 
-不要把 key 写进 Python、前端或运行结果。仓库根目录的 `deepseek_api.md` 已被
-`.gitignore` 排除。PowerShell 中可以将它只读入当前终端的环境变量：
+不要把 key 写进 Python、Markdown、前端或运行结果。PowerShell 中只为当前终端设置环境变量：
 
 ```powershell
-$env:DEEPSEEK_API_KEY = (Get-Content .\deepseek_api.md -Raw).Trim()
-$env:DEEPSEEK_MODEL = "deepseek-v4-pro"
+$env:DEEPSEEK_API_KEY = "<your-api-key>"
+$env:DEEPSEEK_MODEL = "<provider-supported-model-id>"
 ```
 
 默认 API 地址是 `https://api.deepseek.com`，可用 `DEEPSEEK_BASE_URL` 覆盖。API key
@@ -144,8 +143,9 @@ GP、RF 和安全约束代理先完成 4 个随机初始配方，从第 5 个配
 初始设计/采集阶段、采集函数值、历史最优值和下一配方。经典基线只学习配方到 final assay
 的响应；谱图仍会展示用于审计，但不会被伪装成算法输入。
 
-80 次多 seed 对照结果、V4 Pro 谱图审计和失败案例见
-[`docs/discovery_benchmark.md`](../../docs/discovery_benchmark.md)。
+经典算法的正式比较必须使用统一完整实验预算、任务特异目标与约束规则。当前四任务 GP 对 random
+诊断显示目标收益与风险退化可以同时出现，因此界面分数只用于探索，不应单独作为方法优越性证据。
+当前证据边界见[科学状态](../../docs/benchmark_release.md)。
 
 ## 材料名称
 

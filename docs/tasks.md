@@ -11,23 +11,22 @@ ChemWorld 注册 15 个任务，全部使用 `chemworld-physical-chemistry-v0.4`
 | `reaction-mechanism-explanation` | 其它注册任务 | 机理表征与解释 | `lite` |
 | `reaction-to-assay` | core | 投料到最终检测 | `lite` |
 | `reaction-to-purification` | core | 反应、LLE、洗涤、干燥、浓缩与转移 | `lite` |
-| `partition-discovery` | core + serious candidate | 预算内学习隐藏分配规律 | `lite` |
+| `partition-discovery` | core + research candidate | 预算内学习隐藏分配规律 | `lite` |
 | `purity-yield-tradeoff` | 其它注册任务 | 纯度、回收率和成本权衡 | `lite` |
 | `public-private-generalization` | 其它注册任务 | 场景泛化 | `lite` |
 | `low-budget-characterization` | 其它注册任务 | 低预算仪器规划 | `lite` |
 | `tool-agent-planning` | 其它注册任务 | 长程工具调用 | `lite` |
-| `reaction-to-crystallization` | serious candidate | 晶种、冷却结晶与过滤 | `lite` |
-| `reaction-to-distillation` | serious candidate | 反应后蒸馏与切割 | `lite` |
-| `flow-reaction-optimization` | serious candidate | 几何解析 PFR 优化 | `lite` |
-| `electrochemical-conversion` | serious candidate | 电化学转化与能效 | `lite` |
-| `equilibrium-characterization` | serious candidate | 水相平衡表征 | `lite` |
+| `reaction-to-crystallization` | research candidate | 晶种、冷却结晶与过滤 | `lite` |
+| `reaction-to-distillation` | research candidate | 反应后蒸馏与切割 | `lite` |
+| `flow-reaction-optimization` | research candidate | 几何解析 PFR 优化 | `lite` |
+| `electrochemical-conversion` | exploratory research | 电化学转化与能效 | `lite` |
+| `equilibrium-characterization` | exploratory research | 水相平衡表征 | `lite` |
 
-`core` 套件用于 API、回放和发布回归。六个 `serious` 任务定义研究候选边界。其历史 v1 证据
-对应旧 World Law；当前 v0.4 合同在新的有效性与统计证据完成前显示 `candidate`，即使所有结构
-合同均通过也不会自动显示 `validated`。
+`core` 套件用于 API、回放和发布回归。六个 `serious` 任务定义研究候选边界，其中四项进入下一版
+研究核心，两项保持探索性。`core` 和 `serious` 都是用途标签，不表示经验有效性已经通过。
 
-发表候选协议只包含这六个 `serious candidate`，并逐任务固定能力主张、主指标和不可声称范围。
-其余注册任务不进入论文主结果，也不与 serious task 聚合成总分。
+最新四任务经典诊断的目标规则通过，但安全/成本联合规则不完整，因此这些任务仍是候选而不是正式
+排名。其余注册任务不进入研究主结果，也不与 serious task 聚合成总分。
 
 ```python
 from chemworld.tasks import get_task, list_tasks

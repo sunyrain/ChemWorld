@@ -1,94 +1,65 @@
-# 结果与发布完整性
+# 结果可信链
 
-本页定义 ChemWorld 从安装包、轨迹到榜单的可信链。它是正式 benchmark 协议的一部分，
-不是可选的运维建议。
+ChemWorld 的可信链从源代码、合同和轨迹延伸到统计结果。软件门禁、科学证据和发布授权是三个
+不同层级；通过前者不会自动获得后者。
 
 ## 信任链
 
 ```text
-source commit
-  -> non-editable wheel smoke
-  -> versioned task/scenario/mechanism/scoring contracts
+source commit + clean tracked tree
+  -> isolated wheel smoke
+  -> versioned task/scenario/mechanism/evaluation contracts
   -> trajectory JSONL
-  -> replay verifier
-  -> verified result + trajectory SHA-256
-  -> metric recomputation
-  -> leaderboard
-  -> signed private-eval envelope / paper artifact
+  -> schema + constitution + deterministic replay
+  -> verified result + trajectory SHA-256 + score/replay binding
+  -> task-level paired statistics
+  -> signed private aggregate / public release artifact
 ```
 
-任一箭头无法验证时，产物不得用于正式排名或论文主结果。
+任何一环失败，结果都不能进入正式排名。
 
-## Wheel 资源合同
+## Evaluation Result 0.3
 
-机制和场景 YAML 会被打包到 `chemworld/resources/configs`。源码 checkout 可以使用仓库根目录
-`configs/`，非 editable 安装优先使用 wheel 内资源。`scripts/smoke_test_wheel.py` 会在临时目录
-构建 wheel、安装到隔离 target，并从仓库外创建和 reset 环境，以防 editable install 掩盖资源遗漏。
+`chemworld-evaluation-result-0.3` 至少包含：
 
-## Evaluation Result 0.2
-
-`chemworld-evaluation-result-0.2` 至少包含：
-
-- 完整 `EvaluationResult` 指标；
+- 完整任务和评测指标；
 - `verified=true` 与 replay report；
 - `evaluation_threshold`；
-- 绝对 `trajectory_path`；
-- `trajectory_sha256`。
+- `trajectory_path` 与 `trajectory_sha256`；
+- `score_replay` 绑定，包括指标版本、源记录数和 layered evaluation；
+- 任务风险语义、完整实验数和资源账本。
 
-`chemworld evaluate` 只在 replay 通过后生成该产物。榜单再次检查 trajectory digest、执行 replay，
-并用记录的 threshold 重算所有指标。这样既防止轨迹被替换，也防止只修改 result JSON 中的分数。
+验证器重新计算轨迹摘要、回放状态、指标和 score binding。修改轨迹、result JSON、threshold、合同
+或评测字段都会失败。运行包中的绝对路径不作为唯一身份；可搬移审计器通过包内相对结构重新绑定
+轨迹，再比较 SHA-256。
 
-## Private Eval 签名
+## 资源完整性
 
-`chemworld-private-eval-signed-0.2` 使用 HMAC-SHA256 签署除 `signature` 外的完整 envelope，包括：
+每种方法都必须声明并记录适用资源：完整实验、操作、测量、墙钟、CPU/GPU、训练步数、模型请求、
+输入/输出 token 和费用。LLM 的失败请求、重试和结构修复计入调用；RL 的训练步数和 checkpoint
+必须与无学习评测分开。
 
-- schema version；
-- generation time；
-- ChemWorld version 与 commit；
-- signing-secret hash；
-- result count；
-- verified results 和 run log。
+## Private Eval
 
-验证时同时检查 schema、result count、secret hash 和 HMAC。签名密钥必须是维护者持有的高熵密钥，
-不得使用可猜测口令，也不得提交到仓库。
+私有评测使用维护者持有的高熵 secret 生成 salted worlds，并签署只包含允许公开字段的聚合 envelope。
+验证同时检查 schema、result count、secret hash 和 HMAC。secret、salt 原值、隐藏 seeds、逐条私有
+轨迹和可逆参数不得进入仓库或网页。
 
-## 学生代码威胁模型
+## 第三方代码
 
-仓库自带 local evaluator 是 `trusted-local-subprocess`：它有路径边界、环境白名单、响应超时和
-公开信息清理，但没有操作系统级文件、网络或进程隔离。因此：
+本地评测机采用 `trusted-local-subprocess`，具备路径边界、环境白名单和超时，但不提供操作系统级
+隔离。它只适合可信代码、课程和协议开发。未知第三方提交必须在无网络、只读挂载、低权限且限制
+CPU、内存、PID 和时间的容器或沙箱中运行。
 
-- 可用于 demo、课程中教师审阅过的 agent 和协议开发；
-- 不得直接运行未知第三方代码；
-- 正式第三方评测必须在无网络、只读挂载、低权限、有限 CPU/内存/PID 的容器中运行；
-- `allowed_network=false` 是声明，不是安全控制。
-
-## Release Gate
+## 本地质量门禁
 
 ```bash
 python -m pip install -e ".[dev,docs,physchem-ref]"
 python scripts/run_release_gate.py
 ```
 
-门禁覆盖 lint、typing、全量测试、文档、wheel smoke、外部参考后端、runtime boundary、
-环境自洽审计和 baseline smoke。默认开发门禁允许一个结构完整但明确不能用于发布声明的 candidate
-bundle，并在 summary 中记录 `release_claim_ready=false`。正式发布必须显式运行：
+门禁覆盖 lint、typing、测试、文档、wheel 资源、runtime integration、回放和参考切片。它证明
+当前 checkout 的工程完整性，不证明方法有效性或 benchmark 已发布。
 
-```bash
-python scripts/run_release_gate.py --require-frozen-benchmark
-```
-
-严格 frozen 检查会重新核验公开 manifest、内嵌证据 SHA-256、当前 task contract hash、source
-commit、clean tree、release status 和完整 trajectory archive。任何失败都阻止 release claim；
-`validated=true` 或 readiness 计数本身不构成冻结证据。
-
-### Legacy serious-v1 换行兼容
-
-历史 `chemworld-serious-v1` manifest 的三项内嵌 evidence SHA-256 来自 Windows CRLF
-工作树；仓库随后通过 `.gitattributes` 固定为 LF checkout。验证器先比较原始 bytes，仅对该
-release/schema 的三份 JSON evidence 允许把换行恢复为 Git 的 CRLF text checkout 后比较历史
-digest，并在检查结果中记录 `match_mode=legacy_git_crlf_text`。该兼容路径不重新序列化 JSON，
-不忽略空白、字段顺序、数值或任何其它字节，因此内容篡改仍然属于 structural failure。
-
-这个兼容只证明 stale candidate bundle 的文件内容未因 Git 换行规范化而损坏，不会豁免 task
-contract、source commit、clean tree、release status 或 trajectory archive freshness，也不会把
-serious-v1 提升为 frozen release。
+严格冻结发布还需核验 source commit、clean tree、task contract、完整 trajectory archive、统计摘要、
+私有签名和独立复现。候选 bundle 或历史换行兼容只能证明文件没有损坏，不能提升科学状态。

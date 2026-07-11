@@ -30,7 +30,7 @@ python scripts/run_serious_task_suite.py --output-dir runs/serious_release
 | 局部搜索 | `greedy_local` | 简单自适应对照 |
 | 类型化 GP | `structured_gp_bo`, `structured_gp_pi`, `structured_gp_ucb` | EI/PI/UCB 主动学习 |
 | 类型化树模型 | `structured_rf_ei` | 非 GP surrogate 对照 |
-| 安全约束 GP | `structured_safe_gp_bo` | 仅在风险约束被激活时解释 |
+| 安全约束 GP | `structured_safe_gp_bo` | 风险代理与约束 acquisition；需单独证明约束有效 |
 | LLM 工程探针 | `tool_using_llm_stub` | 协议回归，不是 live LLM 证据 |
 
 旧 ordinal 表示变体只用于兼容或消融。正式候选方法必须把材料选择编码为类别变量；数字代号只是稳定
@@ -38,8 +38,8 @@ python scripts/run_serious_task_suite.py --output-dir runs/serious_release
 
 ## 公平资源合同
 
-候选 vNext 协议为每个 task-seed-method 固定 40 次完整实验，并在 4、8、12、20、40 次实验处记录
-checkpoint。每次运行还记录：
+候选协议为每个 task-seed-method 固定完整实验预算，并在预注册 checkpoint 记录学习曲线。当前经典
+诊断使用 40 次完整实验和 4、8、12、20、40 checkpoints。每次运行还记录：
 
 - 决策、模型更新和总墙钟；
 - CPU/GPU 使用与训练环境步数；
@@ -49,6 +49,13 @@ checkpoint。每次运行还记录：
 
 live LLM 还必须冻结 provider、模型标识、prompt hash、请求参数和 token 来源。replay 或 stub 不得
 冒充在线模型结果。
+
+## 当前经典诊断
+
+160 条最新结果显示，`structured_gp_bo` 相对 `random` 在分配、结晶、蒸馏和流动主指标上达到
+预设 objective SESOI；但候选在其中三项任务的风险预算超限率更高。由于安全和成本非劣规则没有
+在该 cohort 前冻结，这一运行不构成完整 baseline 胜负。下一版比较必须使用新 seeds，并将约束
+差值与目标效应共同纳入决策。
 
 ## 最低报告字段
 

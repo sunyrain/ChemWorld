@@ -1,7 +1,19 @@
 # 系统架构
 
-ChemWorld 把任务、物理模型、观测与评测组织为一个版本化虚拟世界。任务只是同一世界律的
-不同切片，因此操作语义、守恒规则和轨迹合同不会因任务而暗中改变。
+ChemWorld 把世界生成、Agent 交互和证据评测分成三个可独立版本化的系统。任务是同一世界律的
+不同切片，因此操作语义、守恒规则和轨迹合同不会因任务而暗中改变；评价规则也不写回环境。
+
+## 三层研究架构
+
+| 层 | 负责什么 | 不负责什么 |
+| --- | --- | --- |
+| World | 机理、物性、设备、场景、仪器与隐藏参数 | 方法排名和论文结论 |
+| Interaction | Gym API、动作验证、campaign、公开观测和资源使用 | 读取 hidden truth |
+| Evaluation | replay、任务主指标、约束、资源、公平性与统计 | 改变运行时物理 |
+
+这种分离让 ChemWorld 同时成为测试环境和训练环境：Agent 可在公开 Train worlds 上训练，但 Bench
+worlds、评价合同和私有参数保持不可见。只要 World 或 Evaluation 合同改变，就生成新版本证据，
+不会用新评分解释旧轨迹。
 
 ## 分层结构
 
@@ -15,13 +27,16 @@ Gymnasium API ── Task + Scenario contracts
 Transactional Runtime
   validation → operation kernel → domain service → constitution → commit
           │
-          ├── observation + instruments
-          ├── reward + final scoring
+          ├── public observation + instruments
+          ├── online learning reward
           └── trajectory + replay hashes
           │
           ▼
 World + Physchem + Foundation
   mechanisms · reactors · phases · equipment · ledgers · model cards
+
+Verified Evaluation
+  replay · task objective · constraints · resources · paired statistics
 ```
 
 | 包 | 对外职责 |
@@ -33,7 +48,7 @@ World + Physchem + Foundation
 | `chemworld.world` | 世界律、场景、操作卡、观测和评分合同。 |
 | `chemworld.physchem` | 物性、平衡、反应器、分离、传递、仪器和安全模型。 |
 | `chemworld.foundation` | ontology、typed state、单位、constitution 和协议接口。 |
-| `chemworld.eval` / `data` | 运行、验证、指标、leaderboard、trajectory 和 dataset。 |
+| `chemworld.eval` / `data` | 运行、验证、分层指标、资源账本、trajectory 和 dataset。 |
 
 ## 公共交互合同
 
@@ -95,6 +110,25 @@ Runtime 按能力拆分服务，而不是把所有逻辑放进 `env.step()`：
 每个模块通过 model card 声明单位、适用域、失败模式、provenance 和成熟度。详见
 [物理化学模型](physchem_core_design.md)和[模型成熟度](model_maturity.md)。
 
+## 机理族与世界分配
+
+固定 seed 只能改变同一世界实例中的随机量，不足以证明 Agent 能适应不同机理。ChemWorld 将可干预
+世界参数组织为机理族，例如分配本构关系、反应速率律、结晶动力学、蒸馏分离行为和流动拓扑。
+每个干预都产生新的 mechanism hash，并保持公共任务语义不变。
+
+正式训练/泛化实验需要在机理族层面冻结不重叠的 Train、Dev 和 Bench cells，同时校准扰动强度：
+过弱的 shift 无法辨识泛化，过强的 shift 会把任务变成不可解。当前运行时已能执行核心机理干预，
+但多 seed 适应性证据仍未完成。
+
+## 评价系统
+
+Evaluation 从只读轨迹产生四层结果：任务目标、风险/成本约束、方法资源和交互有效性。在线 reward
+不能替代任务主指标，目标改善也不能覆盖约束退化。完整主比较采用逐任务联合规则，不生成跨物理域
+混合总分。
+
+结果通过 trajectory digest 与 score/replay payload 绑定。评测器重新加载轨迹、执行 replay、重算
+指标和约束，再生成 verified result；方法自报的 score 不进入可信链。
+
 ## World、Scenario、Task、Campaign
 
 ```text
@@ -106,9 +140,9 @@ Experiment campaign 中的一条完整实验流程
 Operation  单步实验动作
 ```
 
-`TaskSpec` 只描述环境能够执行什么；`SeriousTaskDesign` 描述这个任务是否足以支撑研究 claim。
-两者分离可避免“已注册”被误解为“已验证”。readiness review 会检查指标实现、proxy policy、
-seed 深度、决策预算、baseline、泛化轴、证据和反作弊边界。
+`TaskSpec` 只描述环境能够执行什么；研究设计卡描述任务是否足以支撑科学比较。两者分离可避免
+“已注册”被误解为“已验证”。准入检查覆盖指标实现、成熟度、seed 深度、决策预算、baseline、
+泛化轴、证据和反作弊边界。
 
 `single_experiment` 任务在合法 final assay 后结束 episode；`campaign` 任务可以在预算内完成
 多次 experiment，适合 BO、LHS 或 world-model learner。

@@ -1,17 +1,20 @@
-# ChemWorld Serious Benchmark v1
+# ChemWorld Serious v1 (historical candidate)
 
-This directory is the public evidence bundle for `chemworld-serious-v1`.
+This directory preserves the candidate evidence bundle created for the earlier World Law v0.3
+and task contract 0.5. It is retained for provenance and regression testing; it is not the
+current World Law v0.4 release and must not be presented as a validated leaderboard.
 
-- `manifest.json` freezes versions, task hashes, seeds, agents, and evidence digests.
-- `baseline_summary.json` reports all official baselines per task.
-- `benchmark_validation.json` contains the machine-readable empirical gate.
-- `response_surface_audit.json` records deterministic response-surface probes.
+- `manifest.json` records versions, task hashes, seeds, methods, and artifact digests.
+- `baseline_summary.json` stores the historical baseline summary.
+- `benchmark_validation.json` stores the gate used at the time.
+- `response_surface_audit.json` stores deterministic response-surface probes.
 
-Validate an installed source tree with:
+Validate bundle integrity with:
 
 ```bash
 python scripts/check_frozen_benchmark.py
 ```
 
-Scores compare experimental strategies inside ChemWorld. They are not predictions of
-real chemical yields, material properties, or plant safety.
+Integrity only proves that the historical files still match their manifest. Scores describe
+strategies inside the matching ChemWorld version and are not predictions of real yields,
+material properties, process performance, or safety.

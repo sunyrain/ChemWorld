@@ -24,6 +24,13 @@ Windows 如果把 `python` 解析为 Microsoft Store 别名，请使用真实 Py
 python -m pip install -e ".[dev,docs,physchem-ref]"
 ```
 
+若仓库已经包含 `.venv`，可直接使用它，避免“界面脚本能找到但 `chemworld` 包未安装”的错误：
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m apps.task_lab.server --port 8876
+```
+
 ## 创建环境
 
 ```python

@@ -1,5 +1,6 @@
 (function () {
   var tocStorageKey = "chemworld.toc.collapsed.v5";
+  var primaryStorageKey = "chemworld.primary.collapsed.v6";
 
   function readFlag(key) {
     try {
@@ -28,19 +29,33 @@
     var button = document.createElement("button");
     button.type = "button";
     button.className = "cw-nav-collapse";
-    button.textContent = "全部折叠";
-    button.setAttribute("aria-label", "折叠左侧全部目录分组");
+    function sectionToggles() {
+      return Array.from(nav.querySelectorAll("input.md-toggle"));
+    }
+
+    function render(collapsed) {
+      button.textContent = collapsed ? "全部展开" : "全部折叠";
+      button.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      button.setAttribute("aria-label", collapsed ? "展开左侧全部目录分组" : "折叠左侧全部目录分组");
+    }
+
+    var collapsed = readFlag(primaryStorageKey);
+    if (collapsed) {
+      sectionToggles().forEach(function (toggle) {
+        toggle.checked = false;
+      });
+    }
+    render(collapsed);
 
     button.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
-      nav.querySelectorAll("input.md-toggle").forEach(function (toggle) {
-        toggle.checked = false;
+      collapsed = !collapsed;
+      sectionToggles().forEach(function (toggle) {
+        toggle.checked = !collapsed;
       });
-      button.textContent = "已折叠";
-      window.setTimeout(function () {
-        button.textContent = "全部折叠";
-      }, 900);
+      writeFlag(primaryStorageKey, collapsed);
+      render(collapsed);
     });
 
     title.appendChild(button);
