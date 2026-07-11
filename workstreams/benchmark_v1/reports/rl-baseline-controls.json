@@ -1,0 +1,118 @@
+{
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "action_key_order_frozen": true,
+    "all_core_task_probes_pass": true,
+    "bench_finetuning_forbidden": true,
+    "candidate_is_non_claiming": true,
+    "fixed_action_semantics": true,
+    "ppo_and_sac_declared": true,
+    "schema": true,
+    "shared_action_contract": true,
+    "train_dev_bench_seed_disjoint": true
+  },
+  "controls_ready": true,
+  "formal_bench_evaluation_complete": false,
+  "formal_training_complete": false,
+  "protocol_id": "chemworld-vnext-rl-baselines-candidate-0.1",
+  "publication_ready": false,
+  "remaining_release_gates": [
+    "all task-algorithm-model-seed checkpoints consume the frozen training budget",
+    "checkpoint and compute manifests pass digest and allocation audit",
+    "zero Bench fine-tuning",
+    "paired replay-verified Bench evaluation retains failures",
+    "per-task and per-axis statistics are reported without scalarization"
+  ],
+  "schema_version": "chemworld-rl-baseline-audit-0.1",
+  "status": "controls_ready_training_missing",
+  "task_probes": {
+    "flow-reaction-optimization": {
+      "allocation": {
+        "cell_count": 16,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "train",
+        "seed_count": 100,
+        "seed_max": 1099,
+        "seed_min": 1000,
+        "task_id": "flow-reaction-optimization"
+      },
+      "box_action": true,
+      "constraint_flags_retained": true,
+      "finite_observation": true,
+      "finite_step": true,
+      "hidden_axis_identity_absent": true,
+      "terminated_or_truncated_is_boolean": true,
+      "world_cell_exposed_to_audit": true
+    },
+    "partition-discovery": {
+      "allocation": {
+        "cell_count": 16,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "train",
+        "seed_count": 100,
+        "seed_max": 1099,
+        "seed_min": 1000,
+        "task_id": "partition-discovery"
+      },
+      "box_action": true,
+      "constraint_flags_retained": true,
+      "finite_observation": true,
+      "finite_step": true,
+      "hidden_axis_identity_absent": true,
+      "terminated_or_truncated_is_boolean": true,
+      "world_cell_exposed_to_audit": true
+    },
+    "reaction-to-crystallization": {
+      "allocation": {
+        "cell_count": 16,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "train",
+        "seed_count": 100,
+        "seed_max": 1099,
+        "seed_min": 1000,
+        "task_id": "reaction-to-crystallization"
+      },
+      "box_action": true,
+      "constraint_flags_retained": true,
+      "finite_observation": true,
+      "finite_step": true,
+      "hidden_axis_identity_absent": true,
+      "terminated_or_truncated_is_boolean": true,
+      "world_cell_exposed_to_audit": true
+    },
+    "reaction-to-distillation": {
+      "allocation": {
+        "cell_count": 16,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "train",
+        "seed_count": 100,
+        "seed_max": 1099,
+        "seed_min": 1000,
+        "task_id": "reaction-to-distillation"
+      },
+      "box_action": true,
+      "constraint_flags_retained": true,
+      "finite_observation": true,
+      "finite_step": true,
+      "hidden_axis_identity_absent": true,
+      "terminated_or_truncated_is_boolean": true,
+      "world_cell_exposed_to_audit": true
+    }
+  }
+}
