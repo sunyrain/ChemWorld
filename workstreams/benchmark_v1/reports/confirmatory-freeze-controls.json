@@ -1,0 +1,154 @@
+{
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "all_serious_tasks_classified": true,
+    "bench_axis_identity_hidden": true,
+    "bench_covers_all_shift_modes": true,
+    "bench_finetuning_forbidden": true,
+    "candidate_is_non_claiming": true,
+    "complete_experiment_budget_matches": true,
+    "confirmatory_seed_count": true,
+    "confirmatory_seeds_match_method_protocol": true,
+    "confirmatory_seeds_unique": true,
+    "core_matches_task_validity": true,
+    "decision_rule_is_joint": true,
+    "exploratory_scope": true,
+    "extrapolation_reserved_for_bench": true,
+    "freeze_is_versioned": true,
+    "method_resource_controls": true,
+    "public_harness_controls": true,
+    "schema": true,
+    "score_replay_controls": true,
+    "sesoi_derivation_matches": true,
+    "sesoi_excludes_method_effects": true,
+    "sesoi_parameters_valid": true,
+    "sesoi_primary_metrics_match": true,
+    "sesoi_scope": true,
+    "sesoi_source_spreads_match": true,
+    "task_roles_disjoint": true,
+    "task_validity_controls": true,
+    "two_axes_per_core_task": true,
+    "world_cells_pairwise_disjoint": true,
+    "world_family_controls": true,
+    "world_interventions_valid": true,
+    "world_seed_roles_disjoint": true
+  },
+  "confirmatory_rerun_ready": false,
+  "confirmatory_seeds": [
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39
+  ],
+  "controls_ready": true,
+  "evidence_sha256": {
+    "method_protocol": "bf27a6fe5f9aa65aee77173d9688269147fd99ecd74c13262f8921a38cb7c7c7",
+    "public_harness_controls": "2fc52ad6f9f02524124382249d10971ca28b736d25927f115e3edbb254944b8b",
+    "score_replay_controls": "68d1fee35712b688cb09590bc94c15dc45134bdd998dc1d258066da3b9d53629",
+    "task_validity": "6b9cb313aa229bc151678694e69632f9175b68cf66eb194687eab9847745d6b1",
+    "world_family_controls": "3835d20f5375cd1ae78bf00fc815feda247abc078e1cf6f4016321763f39737d"
+  },
+  "exploit_matrix_complete": false,
+  "known_blockers": [
+    "PPO, SAC, and two live LLM adapters are not yet eligible for the formal matrix.",
+    "The expanded exploit matrix is not yet complete.",
+    "No post-freeze confirmatory result may be interpreted before every method and failure is retained."
+  ],
+  "missing_required_methods": [
+    "ppo",
+    "sac",
+    "live_llm_a",
+    "live_llm_b"
+  ],
+  "protocol_frozen": true,
+  "protocol_id": "chemworld-vnext-confirmatory-freeze-0.1",
+  "protocol_sha256": "d17387fb98c8f93f15d685a5086557447e1c5327272394236f79566d16dc5bdb",
+  "publication_ready": false,
+  "remaining_release_gates": [
+    "implement PPO and the continuous-control RL comparator",
+    "freeze two live LLM adapters and model snapshots",
+    "complete the exploit matrix",
+    "run the frozen primary and generalization comparisons",
+    "complete independent clean-wheel reproduction"
+  ],
+  "schema_version": "chemworld-confirmatory-freeze-audit-0.1",
+  "sesoi": {
+    "flow-reaction-optimization": {
+      "absolute_floor": 0.02,
+      "derivation_uses_method_effect": false,
+      "primary_metric": "flow_conversion",
+      "response_surface_fraction": 0.05,
+      "response_surface_spread": 0.10529933124780655,
+      "sesoi": 0.02
+    },
+    "partition-discovery": {
+      "absolute_floor": 0.02,
+      "derivation_uses_method_effect": false,
+      "primary_metric": "product_in_organic",
+      "response_surface_fraction": 0.05,
+      "response_surface_spread": 0.5840065777301788,
+      "sesoi": 0.0292
+    },
+    "reaction-to-crystallization": {
+      "absolute_floor": 0.02,
+      "derivation_uses_method_effect": false,
+      "primary_metric": "crystal_yield",
+      "response_surface_fraction": 0.05,
+      "response_surface_spread": 0.7765336632728577,
+      "sesoi": 0.038827
+    },
+    "reaction-to-distillation": {
+      "absolute_floor": 0.02,
+      "derivation_uses_method_effect": false,
+      "primary_metric": "distillate_purity",
+      "response_surface_fraction": 0.05,
+      "response_surface_spread": 0.3538937596604228,
+      "sesoi": 0.02
+    }
+  },
+  "status": "frozen_waiting_for_methods_and_exploit_gate",
+  "task_roles": {
+    "core": [
+      "partition-discovery",
+      "reaction-to-crystallization",
+      "reaction-to-distillation",
+      "flow-reaction-optimization"
+    ],
+    "exploratory": [
+      "electrochemical-conversion",
+      "equilibrium-characterization"
+    ]
+  },
+  "world_family_allocation": {
+    "cell_counts_per_axis": {
+      "bench": 7,
+      "dev": 5,
+      "train": 8
+    },
+    "core_axis_count": 8,
+    "paired_world_policy": "all compared methods receive identical task-axis-mode-severity-seed cells",
+    "seed_counts": {
+      "bench": 20,
+      "bench_generalization": 5,
+      "dev": 20,
+      "train": 100
+    },
+    "train_dev_extrapolation_cells": 0
+  }
+}
