@@ -134,32 +134,32 @@
     },
     "structured_gp_pi": {
       "family": "bayesian_optimization",
-      "implementation": "gp_pi",
+      "implementation": "structured_gp_pi",
       "formal_role": "required",
-      "current_eligibility": "diagnostic_only",
+      "current_eligibility": "candidate",
       "required_recipe_encoding": "continuous_plus_material_one_hot",
       "blockers": [
-        "current implementation encodes categorical materials as ordinal scalars"
+        "must rerun under frozen vNext task and risk-cost policies"
       ]
     },
     "structured_gp_ucb": {
       "family": "bayesian_optimization",
-      "implementation": "gp_ucb",
+      "implementation": "structured_gp_ucb",
       "formal_role": "required",
-      "current_eligibility": "diagnostic_only",
+      "current_eligibility": "candidate",
       "required_recipe_encoding": "continuous_plus_material_one_hot",
       "blockers": [
-        "current implementation encodes categorical materials as ordinal scalars"
+        "must rerun under frozen vNext task and risk-cost policies"
       ]
     },
     "structured_rf_ei": {
       "family": "bayesian_optimization",
-      "implementation": "rf_ei",
+      "implementation": "structured_rf_ei",
       "formal_role": "required",
-      "current_eligibility": "diagnostic_only",
+      "current_eligibility": "candidate",
       "required_recipe_encoding": "continuous_plus_material_one_hot",
       "blockers": [
-        "current implementation encodes categorical materials as ordinal scalars"
+        "must rerun under frozen vNext task and risk-cost policies"
       ]
     },
     "structured_safe_gp_ei": {
@@ -293,9 +293,10 @@
     {
       "failure_id": "ordinal_material_encoding",
       "severity": "high",
+      "status": "resolved_in_candidate_implementation",
       "evidence": "GP-PI, GP-UCB and RF-EI use scalar material coordinates",
       "consequence": "arbitrary material numbering induces false neighborhood structure",
-      "remediation": "add typed categorical encodings before formal inclusion"
+      "remediation": "typed variants are now manifest-gated; retain old variants for compatibility only"
     },
     {
       "failure_id": "pilot_budget_curve_underpowered",
@@ -329,7 +330,6 @@
   "remaining_release_gates": [
     "freeze task-specific SESOI and the provisional core task set",
     "freeze world-family Train/Dev/Bench assignments and severity grids",
-    "implement typed GP-PI, GP-UCB and RF-EI variants",
     "implement PPO and SAC with train-only worlds and compute ledgers",
     "freeze two live LLM model snapshots and prompt hashes",
     "run spectra-enabled versus spectra-masked paired LLM ablations",

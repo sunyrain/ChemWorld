@@ -9,6 +9,9 @@ from chemworld.agents.bo import (
     RandomForestEIAgent,
     SafetyConstrainedBOAgent,
     StructuredGaussianProcessBOAgent,
+    StructuredGaussianProcessPIAgent,
+    StructuredGaussianProcessUCBAgent,
+    StructuredRandomForestEIAgent,
     StructuredSafetyConstrainedBOAgent,
 )
 from chemworld.data.logging import load_jsonl
@@ -31,6 +34,9 @@ def test_surrogate_baselines_smoke(tmp_path) -> None:
         RandomForestEIAgent(n_initial=2, n_candidates=16, n_estimators=8),
         SafetyConstrainedBOAgent(n_initial=2, n_candidates=16),
         StructuredGaussianProcessBOAgent(n_initial=2, n_candidates=16),
+        StructuredGaussianProcessPIAgent(n_initial=2, n_candidates=16),
+        StructuredGaussianProcessUCBAgent(n_initial=2, n_candidates=16),
+        StructuredRandomForestEIAgent(n_initial=2, n_candidates=16, n_estimators=8),
         StructuredSafetyConstrainedBOAgent(n_initial=2, n_candidates=16),
     ]
     for index, agent in enumerate(agents):
@@ -62,6 +68,19 @@ def test_structured_safe_bo_declares_typed_recipe_encoding() -> None:
     manifest = agent.manifest()
     assert manifest["recipe_encoding"] == "continuous_plus_material_one_hot"
     assert manifest["surrogate_family"] == "safe_gaussian_process"
+
+
+def test_all_formal_acquisition_variants_declare_typed_recipe_encoding() -> None:
+    agents = (
+        StructuredGaussianProcessBOAgent(),
+        StructuredGaussianProcessPIAgent(),
+        StructuredGaussianProcessUCBAgent(),
+        StructuredRandomForestEIAgent(),
+        StructuredSafetyConstrainedBOAgent(),
+    )
+    for agent in agents:
+        manifest = agent.manifest()
+        assert manifest["recipe_encoding"] == "continuous_plus_material_one_hot"
 
 
 def test_bo_campaign_runs_multiple_recipes(tmp_path) -> None:
