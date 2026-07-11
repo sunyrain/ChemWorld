@@ -12,7 +12,40 @@ from typing import Any
 
 import numpy as np
 
-TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-0.1"
+TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-0.2"
+
+_CONSERVATIVE_BASE_VECTORS = {
+    "equilibrium": (0.5, 0.12, 0.12, 0.5),
+    "flow": (0.0, 0.15, 0.0, 0.15, 0.70, 0.15, 0.10, 0.12),
+    "electrochemical": (0.0, 0.15, 0.10, 0.10, 0.12),
+    "partition": (0.0, 0.35, 0.50, 0.0, 0.35, 0.15, 0.65, 0.15),
+    "reaction_crystallization": (
+        0.10,
+        0.15,
+        0.15,
+        0.30,
+        0.0,
+        0.10,
+        0.0,
+        0.50,
+        0.50,
+        0.30,
+    ),
+    "reaction_distillation": (
+        0.10,
+        0.15,
+        0.15,
+        0.30,
+        0.0,
+        0.10,
+        0.0,
+        0.20,
+        0.20,
+        0.50,
+        0.60,
+    ),
+    "reaction": (0.10, 0.15, 0.15, 0.30, 0.0, 0.10, 0.0),
+}
 
 
 def task_recipe_kind(task_info: dict[str, Any]) -> str:
@@ -36,12 +69,12 @@ def task_recipe_kind(task_info: dict[str, Any]) -> str:
 def task_recipe_dimension(task_info: dict[str, Any]) -> int:
     return {
         "equilibrium": 4,
-        "flow": 7,
+        "flow": 8,
         "electrochemical": 5,
-        "partition": 6,
-        "reaction_crystallization": 9,
-        "reaction_distillation": 10,
-        "reaction": 6,
+        "partition": 8,
+        "reaction_crystallization": 10,
+        "reaction_distillation": 11,
+        "reaction": 7,
     }[task_recipe_kind(task_info)]
 
 
@@ -51,6 +84,21 @@ def sample_task_recipe(
 ) -> dict[str, Any]:
     vector = rng.random(task_recipe_dimension(task_info))
     return task_recipe_from_unit_vector(task_info, vector)
+
+
+def sample_conservative_task_recipe(
+    task_info: dict[str, Any],
+    rng: np.random.Generator,
+    *,
+    perturbation_scale: float = 0.06,
+) -> dict[str, Any]:
+    """Sample around a public low-intensity starting design for safe exploration."""
+
+    if not 0.0 <= perturbation_scale <= 0.25:
+        raise ValueError("perturbation_scale must be between zero and 0.25")
+    base = np.asarray(_CONSERVATIVE_BASE_VECTORS[task_recipe_kind(task_info)], dtype=float)
+    perturbation = rng.normal(0.0, perturbation_scale, size=base.shape)
+    return task_recipe_from_unit_vector(task_info, np.clip(base + perturbation, 0.0, 1.0))
 
 
 def task_recipe_from_unit_vector(
@@ -107,12 +155,17 @@ def task_recipe_to_model_vector(
         "equilibrium": (),
         "flow": ((0, 4), (2, 4)),
         "electrochemical": ((0, 4),),
-        "partition": ((0, 4), (2, 4)),
-        "reaction_crystallization": ((4, 4), (5, 4)),
-        "reaction_distillation": ((4, 4), (5, 4)),
-        "reaction": ((4, 4), (5, 4)),
+        "partition": ((0, 4), (3, 4)),
+        "reaction_crystallization": ((4, 4), (6, 4)),
+        "reaction_distillation": ((4, 4), (6, 4)),
+        "reaction": ((4, 4), (6, 4)),
     }[task_recipe_kind(task_info)]
-    encoded = [values]
+    categorical_indices = {coordinate for coordinate, _ in categorical_coordinates}
+    continuous = np.asarray(
+        [value for index, value in enumerate(values) if index not in categorical_indices],
+        dtype=float,
+    )
+    encoded = [continuous]
     for coordinate, category_count in categorical_coordinates:
         one_hot = np.zeros(category_count, dtype=float)
         one_hot[_choice(float(values[coordinate]), category_count)] = 1.0
@@ -139,13 +192,13 @@ def _reaction_charge_steps(values: np.ndarray) -> list[dict[str, Any]]:
     amount_mol = _scale(values[2], 0.003, 0.030)
     stirring_speed_rpm = _scale(values[3], 300.0, 1050.0)
     catalyst = _choice(values[4], 4)
-    solvent = _choice(values[5], 4)
+    solvent = _choice(values[6], 4)
     return [
         {"operation": "add_solvent", "volume_L": 0.025, "solvent": solvent},
         {"operation": "add_reagent", "amount_mol": amount_mol},
         {
             "operation": "add_catalyst",
-            "catalyst_amount_mol": _scale(values[4], 0.00008, 0.00055),
+            "catalyst_amount_mol": _scale(values[5], 0.00008, 0.00055),
             "catalyst": catalyst,
         },
         {
@@ -165,12 +218,12 @@ def _reaction_steps(values: np.ndarray, *, kind: str) -> list[dict[str, Any]]:
             [
                 {
                     "operation": "seed_crystals",
-                    "seed_mass_g": _scale(values[6], 0.001, 0.015),
+                    "seed_mass_g": _scale(values[7], 0.001, 0.015),
                 },
                 {
                     "operation": "cool_crystallize",
-                    "target_temperature_K": _scale(values[7], 273.15, 296.15),
-                    "duration_s": _scale(values[8], 600.0, 4200.0),
+                    "target_temperature_K": _scale(values[8], 273.15, 296.15),
+                    "duration_s": _scale(values[9], 600.0, 4200.0),
                 },
                 {"operation": "filter_crystals"},
                 {"operation": "measure", "instrument": "hplc"},
@@ -181,18 +234,18 @@ def _reaction_steps(values: np.ndarray, *, kind: str) -> list[dict[str, Any]]:
             [
                 {
                     "operation": "evaporate",
-                    "target_temperature_K": _scale(values[6], 315.0, 350.0),
-                    "duration_s": _scale(values[7], 300.0, 1500.0),
+                    "target_temperature_K": _scale(values[7], 315.0, 350.0),
+                    "duration_s": _scale(values[8], 300.0, 1500.0),
                 },
                 {
                     "operation": "distill",
-                    "target_temperature_K": _scale(values[6], 345.0, 395.0),
-                    "duration_s": _scale(values[7], 900.0, 3600.0),
-                    "reflux_ratio": _scale(values[8], 0.5, 5.0),
+                    "target_temperature_K": _scale(values[7], 345.0, 395.0),
+                    "duration_s": _scale(values[8], 900.0, 3600.0),
+                    "reflux_ratio": _scale(values[9], 0.5, 5.0),
                 },
                 {
                     "operation": "collect_fraction",
-                    "transfer_fraction": _scale(values[9], 0.55, 0.99),
+                    "transfer_fraction": _scale(values[10], 0.55, 0.99),
                 },
                 {"operation": "measure", "instrument": "gc"},
             ]
@@ -212,25 +265,25 @@ def _partition_steps(values: np.ndarray) -> list[dict[str, Any]]:
     return [
         {
             "operation": "add_solvent",
-            "volume_L": _scale(values[0], 0.012, 0.028),
+            "volume_L": _scale(values[1], 0.012, 0.028),
             "solvent": _choice(values[0], 4),
         },
         {
             "operation": "add_phase",
             "phase": "aqueous",
-            "volume_L": _scale(values[1], 0.006, 0.024),
+            "volume_L": _scale(values[2], 0.006, 0.024),
         },
         {
             "operation": "add_extractant",
-            "extractant": _choice(values[2], 4),
-            "volume_L": _scale(values[2], 0.008, 0.030),
+            "extractant": _choice(values[3], 4),
+            "volume_L": _scale(values[4], 0.008, 0.030),
         },
         {
             "operation": "mix",
-            "duration_s": _scale(values[3], 60.0, 600.0),
-            "stirring_speed_rpm": _scale(values[5], 300.0, 1100.0),
+            "duration_s": _scale(values[5], 60.0, 600.0),
+            "stirring_speed_rpm": _scale(values[7], 300.0, 1100.0),
         },
-        {"operation": "settle", "duration_s": _scale(values[4], 120.0, 1200.0)},
+        {"operation": "settle", "duration_s": _scale(values[6], 120.0, 1200.0)},
         {"operation": "measure", "instrument": "hplc"},
         {"operation": "separate_phase", "target_phase": "organic"},
         {"operation": "measure", "instrument": "hplc"},
@@ -249,18 +302,18 @@ def _flow_steps(values: np.ndarray) -> list[dict[str, Any]]:
         {"operation": "add_reagent", "amount_mol": _scale(values[1], 0.003, 0.030)},
         {
             "operation": "add_catalyst",
-            "catalyst_amount_mol": _scale(values[2], 0.00008, 0.00055),
+            "catalyst_amount_mol": _scale(values[3], 0.00008, 0.00055),
             "catalyst": _choice(values[2], 4),
         },
         {
             "operation": "set_flow_rate",
-            "flow_rate_mL_min": _scale(values[3], 0.2, 4.0),
-            "residence_time_s": _scale(values[4], 180.0, 2400.0),
+            "flow_rate_mL_min": _scale(values[4], 0.2, 4.0),
+            "residence_time_s": _scale(values[5], 180.0, 2400.0),
         },
         {
             "operation": "run_flow",
-            "target_temperature_K": _scale(values[5], 330.0, 430.0),
-            "duration_s": _scale(values[6], 600.0, 3600.0),
+            "target_temperature_K": _scale(values[6], 330.0, 430.0),
+            "duration_s": _scale(values[7], 600.0, 3600.0),
         },
         {"operation": "measure", "instrument": "uvvis"},
         {"operation": "terminate"},
@@ -307,6 +360,7 @@ def _equilibrium_steps(values: np.ndarray) -> list[dict[str, Any]]:
 
 __all__ = [
     "TASK_RECIPE_SPACE_VERSION",
+    "sample_conservative_task_recipe",
     "sample_task_recipe",
     "task_recipe_dimension",
     "task_recipe_event_count",

@@ -13,6 +13,7 @@ from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.interaction import InteractionCapabilities
 from chemworld.agents.recipe_sequence import RecipeSequenceMixin
 from chemworld.agents.task_recipes import (
+    sample_conservative_task_recipe,
     sample_task_recipe,
     task_recipe_event_count,
     task_recipe_to_model_vector,
@@ -69,19 +70,21 @@ class CandidateSurrogateMixin:
         best_observed_score: float | None = None,
         acquisition_value: float | None = None,
         selected_policy: str,
+        decision_diagnostics: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        self._decision_trace.append(
-            {
-                "trace_type": "surrogate_recipe_decision",
-                "phase": phase,
-                "trained_recipe_count": trained_recipe_count,
-                "used_surrogate": phase == "acquisition",
-                "selected_policy": selected_policy,
-                "best_observed_score": best_observed_score,
-                "acquisition_value": acquisition_value,
-                "selected_recipe": dict(action),
-            }
-        )
+        trace = {
+            "trace_type": "surrogate_recipe_decision",
+            "phase": phase,
+            "trained_recipe_count": trained_recipe_count,
+            "used_surrogate": phase == "acquisition",
+            "selected_policy": selected_policy,
+            "best_observed_score": best_observed_score,
+            "acquisition_value": acquisition_value,
+            "selected_recipe": dict(action),
+        }
+        if decision_diagnostics:
+            trace["decision_diagnostics"] = dict(decision_diagnostics)
+        self._decision_trace.append(trace)
         return self._start_recipe(action)
 
     def agent_trace(self) -> list[dict[str, Any]]:
@@ -443,9 +446,15 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
         n_initial: int = 4,
         n_candidates: int = 768,
         risk_threshold: float = 0.65,
+        risk_confidence_beta: float = 2.0,
+        initial_perturbation_scale: float = 0.06,
     ) -> None:
         super().__init__(n_initial=n_initial, n_candidates=n_candidates)
+        if risk_confidence_beta < 0.0:
+            raise ValueError("risk_confidence_beta must be non-negative")
         self.risk_threshold = risk_threshold
+        self.risk_confidence_beta = risk_confidence_beta
+        self.initial_perturbation_scale = initial_perturbation_scale
         self.effective_risk_threshold = risk_threshold
 
     def reset(self, task_info: dict[str, Any], seed: int) -> None:
@@ -462,10 +471,18 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
         recipe_history = self._recipe_history
         if len(recipe_history) < self.effective_n_initial:
             return self._start_surrogate_recipe(
-                sample_task_recipe(self.task_info, self.rng),
+                sample_conservative_task_recipe(
+                    self.task_info,
+                    self.rng,
+                    perturbation_scale=self.initial_perturbation_scale,
+                ),
                 phase="initial",
                 trained_recipe_count=len(recipe_history),
-                selected_policy="random_initial_design",
+                selected_policy="conservative_initial_design",
+                decision_diagnostics={
+                    "risk_label": "experiment_peak_safety_risk",
+                    "risk_threshold": self.effective_risk_threshold,
+                },
             )
 
         from sklearn.gaussian_process import GaussianProcessRegressor
@@ -473,7 +490,13 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
 
         x_train, y_train = self._xy(recipe_history)
         risk_train = np.asarray(
-            [record.observation.get("safety_risk", 1.0) for record in recipe_history],
+            [
+                record.observation.get(
+                    "experiment_peak_safety_risk",
+                    record.observation.get("safety_risk", 1.0),
+                )
+                for record in recipe_history
+            ],
             dtype=float,
         )
         kernel = Matern(length_scale=np.ones(x_train.shape[1]), nu=2.5) + WhiteKernel(
@@ -499,9 +522,15 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
         x_candidates = np.vstack([self._model_vector(action) for action in candidates])
         mu, sigma = score_model.predict(x_candidates, return_std=True)
         risk_mu, risk_sigma = risk_model.predict(x_candidates, return_std=True)
-        acquisition = _expected_improvement(mu, sigma, best=float(np.max(y_train)))
+        observed_safe = risk_train <= self.effective_risk_threshold
+        best_safe_score = (
+            float(np.max(y_train[observed_safe]))
+            if np.any(observed_safe)
+            else float(np.min(y_train))
+        )
+        acquisition = _expected_improvement(mu, sigma, best=best_safe_score)
 
-        safety_margin = risk_mu + 0.5 * risk_sigma
+        safety_margin = risk_mu + self.risk_confidence_beta * risk_sigma
         safe_mask = safety_margin <= self.effective_risk_threshold
         if np.any(safe_mask):
             acquisition = np.where(safe_mask, acquisition, -np.inf)
@@ -510,9 +539,19 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
                 candidates[selected_index],
                 phase="acquisition",
                 trained_recipe_count=len(recipe_history),
-                best_observed_score=float(np.max(y_train)),
+                best_observed_score=best_safe_score,
                 acquisition_value=float(acquisition[selected_index]),
                 selected_policy="safe_gp_expected_improvement",
+                decision_diagnostics={
+                    "risk_label": "experiment_peak_safety_risk",
+                    "risk_threshold": self.effective_risk_threshold,
+                    "risk_confidence_beta": self.risk_confidence_beta,
+                    "predicted_risk_mean": float(risk_mu[selected_index]),
+                    "predicted_risk_std": float(risk_sigma[selected_index]),
+                    "predicted_risk_upper": float(safety_margin[selected_index]),
+                    "safe_candidate_count": int(np.count_nonzero(safe_mask)),
+                    "candidate_count": len(candidates),
+                },
             )
 
         selected_index = int(np.argmin(safety_margin))
@@ -520,9 +559,19 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
             candidates[selected_index],
             phase="acquisition",
             trained_recipe_count=len(recipe_history),
-            best_observed_score=float(np.max(y_train)),
+            best_observed_score=best_safe_score,
             acquisition_value=float(acquisition[selected_index]),
             selected_policy="safe_gp_risk_fallback",
+            decision_diagnostics={
+                "risk_label": "experiment_peak_safety_risk",
+                "risk_threshold": self.effective_risk_threshold,
+                "risk_confidence_beta": self.risk_confidence_beta,
+                "predicted_risk_mean": float(risk_mu[selected_index]),
+                "predicted_risk_std": float(risk_sigma[selected_index]),
+                "predicted_risk_upper": float(safety_margin[selected_index]),
+                "safe_candidate_count": 0,
+                "candidate_count": len(candidates),
+            },
         )
 
     def manifest(self) -> dict[str, Any]:
@@ -532,6 +581,10 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
                 "surrogate_family": "safe_gaussian_process",
                 "configured_risk_threshold": self.risk_threshold,
                 "risk_threshold": self.effective_risk_threshold,
+                "risk_observation": "experiment_peak_safety_risk",
+                "risk_confidence_beta": self.risk_confidence_beta,
+                "initial_design": "public_conservative_low_intensity",
+                "initial_perturbation_scale": self.initial_perturbation_scale,
             }
         )
         return manifest

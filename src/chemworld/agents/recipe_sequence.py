@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from chemworld.agents.base import BaseAgent, HistoryRecord
@@ -18,6 +19,7 @@ class RecipeSequenceMixin(BaseAgent):
         super().reset(task_info, seed)
         self._pending_events: list[dict[str, Any]] = []
         self._active_recipe: dict[str, Any] | None = None
+        self._active_recipe_peak_safety_risk = 0.0
         self._recipe_history: list[HistoryRecord] = []
 
     def _pop_pending_event(self) -> dict[str, Any] | None:
@@ -27,6 +29,7 @@ class RecipeSequenceMixin(BaseAgent):
 
     def _start_recipe(self, recipe: dict[str, Any]) -> dict[str, Any]:
         self._active_recipe = dict(recipe)
+        self._active_recipe_peak_safety_risk = 0.0
         self._pending_events = compile_recipe(recipe, task_info=self.task_info)
         event = self._pop_pending_event()
         if event is None:
@@ -40,21 +43,41 @@ class RecipeSequenceMixin(BaseAgent):
         reward: float,
         info: dict[str, Any],
     ) -> None:
+        observed_risk = observation.get("safety_risk")
+        if (
+            self._active_recipe is not None
+            and isinstance(observed_risk, int | float)
+            and math.isfinite(float(observed_risk))
+        ):
+            self._active_recipe_peak_safety_risk = max(
+                self._active_recipe_peak_safety_risk,
+                float(observed_risk),
+            )
         if (
             self._active_recipe is not None
             and action.get("operation") == "measure"
             and action.get("instrument") == "final_assay"
         ):
+            terminal_observation = dict(observation)
+            terminal_observation["experiment_peak_safety_risk"] = (
+                self._active_recipe_peak_safety_risk
+            )
+            terminal_info = dict(info)
+            terminal_info["experiment_peak_safety_risk"] = (
+                self._active_recipe_peak_safety_risk
+            )
+            terminal_info["experiment_risk_limit"] = self.task_info.get("safety_limit")
             self._recipe_history.append(
                 HistoryRecord(
                     step=len(self._recipe_history) + 1,
                     action=dict(self._active_recipe),
-                    observation=dict(observation),
+                    observation=terminal_observation,
                     reward=float(reward),
-                    info=dict(info),
+                    info=terminal_info,
                 )
             )
             self._active_recipe = None
+            self._active_recipe_peak_safety_risk = 0.0
 
     def interaction_capabilities(self) -> InteractionCapabilities:
         return InteractionCapabilities(

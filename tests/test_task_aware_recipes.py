@@ -53,7 +53,7 @@ def test_model_vector_one_hot_encodes_electrochemical_solvent() -> None:
 
     encoded = task_recipe_to_model_vector(task_info, recipe)
 
-    assert encoded.shape == (9,)
+    assert encoded.shape == (8,)
     assert encoded[-4:].tolist() == [0.0, 0.0, 1.0, 0.0]
 
 
