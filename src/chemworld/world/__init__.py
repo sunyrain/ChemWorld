@@ -5,6 +5,11 @@ from chemworld.world.crystallization import CrystallizationModuleSpec
 from chemworld.world.distillation import DistillationModuleSpec
 from chemworld.world.electrochemistry import ElectrochemistryModuleSpec
 from chemworld.world.instruments import InstrumentContract, instrument_contracts
+from chemworld.world.mechanism_family import (
+    MECHANISM_FAMILY_INTERVENTION_VERSION,
+    MECHANISM_REACHABLE_TASKS,
+    MechanismFamilyIntervention,
+)
 from chemworld.world.parameters import (
     SUPPORTED_SPLITS,
     WORLD_FAMILY_VERSION,
@@ -43,6 +48,8 @@ from chemworld.world.world_law import (
 )
 
 __all__ = [
+    "MECHANISM_FAMILY_INTERVENTION_VERSION",
+    "MECHANISM_REACHABLE_TASKS",
     "MODULE_VERSIONS",
     "SUPPORTED_SPLITS",
     "WORLD_AXIS_REGISTRY",
@@ -54,6 +61,7 @@ __all__ = [
     "DistillationModuleSpec",
     "ElectrochemistryModuleSpec",
     "InstrumentContract",
+    "MechanismFamilyIntervention",
     "ScenarioFamilySpec",
     "ScenarioGenerator",
     "ScenarioInstance",

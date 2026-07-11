@@ -85,6 +85,12 @@ class ScenarioInstance:
                 "world_family_intervention_version"
             ),
             "world_family_intervention_hash": intervention_hash,
+            "mechanism_family_intervention_version": self.initial_state.metadata.get(
+                "mechanism_family_intervention_version"
+            ),
+            "mechanism_family_intervention_hash": self.initial_state.metadata.get(
+                "mechanism_family_intervention_hash"
+            ),
             "mechanism": self.compiled_mechanism.to_dict(),
         }
 
@@ -115,6 +121,21 @@ class DefaultScenarioGenerator:
         initial_seed = seed + spec.initial_state_seed + profile_offset
         parameters = load_chemworld_parameters(spec.split, parameter_seed)
         compiled_mechanism = compile_mechanism_for_scenario(spec.scenario_id)
+        mechanism_payloads = tuple(
+            item for item in interventions if item.get("kind") == "mechanism_family"
+        )
+        if len(mechanism_payloads) > 1:
+            raise ValueError("only one mechanism-family intervention is allowed")
+        if mechanism_payloads:
+            from chemworld.world.mechanism_family import (
+                MechanismFamilyIntervention,
+                derive_mechanism_family,
+            )
+
+            compiled_mechanism = derive_mechanism_family(
+                compiled_mechanism,
+                MechanismFamilyIntervention.from_dict(mechanism_payloads[0]),
+            )
         initial_state = initial_chemworld_state(
             species_ids=tuple(compiled_mechanism.species_index),
             species_roles=compiled_mechanism.species_roles,
@@ -185,14 +206,29 @@ class DefaultScenarioGenerator:
             initial_state=initial_state,
             compiled_mechanism=compiled_mechanism,
         )
-        if not interventions:
+        axis_payloads = tuple(
+            item for item in interventions if item.get("kind") != "mechanism_family"
+        )
+        if not mechanism_payloads and not axis_payloads:
+            return instance
+        if mechanism_payloads:
+            from chemworld.world.mechanism_family import (
+                MechanismFamilyIntervention,
+                apply_mechanism_family_intervention,
+            )
+
+            instance = apply_mechanism_family_intervention(
+                instance,
+                MechanismFamilyIntervention.from_dict(mechanism_payloads[0]),
+            )
+        if not axis_payloads:
             return instance
         from chemworld.world.world_family import (
             AxisIntervention,
             apply_axis_interventions,
         )
 
-        parsed = tuple(AxisIntervention.from_dict(item) for item in interventions)
+        parsed = tuple(AxisIntervention.from_dict(item) for item in axis_payloads)
         return apply_axis_interventions(instance, parsed)
 
 
