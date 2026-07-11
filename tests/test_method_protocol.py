@@ -60,8 +60,10 @@ def test_method_protocol_report_exposes_current_cross_family_gaps() -> None:
         "live_llm_a",
         "live_llm_b",
     ]
-    assert "structured_gp_pi" in report["required_but_ineligible_methods"]
-    assert report["methods"]["structured_gp_pi"]["implementation_contract_ready"] is False
+    assert "structured_gp_pi" not in report["required_but_ineligible_methods"]
+    assert report["methods"]["structured_gp_pi"]["implementation_contract_ready"] is True
+    assert report["methods"]["structured_gp_ucb"]["implementation_contract_ready"] is True
+    assert report["methods"]["structured_rf_ei"]["implementation_contract_ready"] is True
     assert report["methods"]["structured_gp_ei"]["implementation_contract_ready"] is True
     assert report["methods"]["llm_replay"]["formal_role"] == "excluded"
     assert len(report["interaction_failures"]) == 7

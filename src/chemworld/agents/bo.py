@@ -236,6 +236,20 @@ class GaussianProcessPIAgent(GaussianProcessBOAgent):
         return manifest
 
 
+class StructuredGaussianProcessPIAgent(GaussianProcessPIAgent):
+    """GP probability-of-improvement with typed categorical coordinates."""
+
+    name = "structured_gp_pi"
+
+    def _model_vector(self, action: dict[str, Any]) -> np.ndarray:
+        return task_recipe_to_model_vector(self.task_info, action)
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update({"recipe_encoding": "continuous_plus_material_one_hot"})
+        return manifest
+
+
 class StructuredGaussianProcessBOAgent(GaussianProcessBOAgent):
     """GP-EI with one-hot material choices and continuous process coordinates."""
 
@@ -297,6 +311,20 @@ class GaussianProcessUCBAgent(GaussianProcessBOAgent):
                 "exploration_weight": self.exploration_weight,
             }
         )
+        return manifest
+
+
+class StructuredGaussianProcessUCBAgent(GaussianProcessUCBAgent):
+    """GP upper-confidence-bound search with typed categorical coordinates."""
+
+    name = "structured_gp_ucb"
+
+    def _model_vector(self, action: dict[str, Any]) -> np.ndarray:
+        return task_recipe_to_model_vector(self.task_info, action)
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update({"recipe_encoding": "continuous_plus_material_one_hot"})
         return manifest
 
 
@@ -390,6 +418,20 @@ class RandomForestEIAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgen
                 "n_estimators": self.n_estimators,
             }
         )
+        return manifest
+
+
+class StructuredRandomForestEIAgent(RandomForestEIAgent):
+    """Random-forest expected improvement with typed categorical coordinates."""
+
+    name = "structured_rf_ei"
+
+    def _model_vector(self, action: dict[str, Any]) -> np.ndarray:
+        return task_recipe_to_model_vector(self.task_info, action)
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update({"recipe_encoding": "continuous_plus_material_one_hot"})
         return manifest
 
 

@@ -42,7 +42,7 @@ chemworld seeds show --tasks reaction-to-assay reaction-to-purification
 
 ## Serious v1
 
-六个正式任务均使用公开冻结 seeds `0, 1, 2, 3, 4`。显式传入其它 seeds 时，结果属于
+六个研究候选任务均使用公开冻结 seeds `0, 1, 2, 3, 4`。显式传入其它 seeds 时，结果属于
 smoke、研究或公开 OOD 诊断，不进入 v1 排名。
 
 ## Split 语义

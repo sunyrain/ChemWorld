@@ -26,6 +26,6 @@
 - 物理成熟度是什么；
 - 是否需要新的 operation 或 instrument contract。
 
-新任务注册后默认只是可运行切片。若要进入后续 serious benchmark 版本，还必须满足
-[严肃任务设计](task_design.md)中的指标可执行性、无 proxy、seed 深度、泛化轴、baseline、
-证据和反作弊要求。
+新任务注册后默认只是可运行切片。若要进入后续 research suite，还必须通过指标可执行性、
+无正式 proxy、seed 深度、world-family 泛化、baseline、回放证据和反作弊门禁。当前准入状态见
+[科学状态页](benchmark_release.md)。

@@ -21,7 +21,7 @@ Windows 下即使尚未激活虚拟环境，仓库也会自动使用 `.venv\Scri
 | 入口 | 地址 | 是否需要模型 API |
 | --- | --- | --- |
 | 产品首页 | `http://127.0.0.1:8876/` | 否 |
-| Agent Observatory | `http://127.0.0.1:8876/agent/` | DeepSeek 需要；经典算法不需要 |
+| Agent Observatory | `http://127.0.0.1:8876/agent/` | 在线模型需要；经典算法不需要 |
 | Student Lab | `http://127.0.0.1:8876/student/` | 否 |
 
 !!! warning "仅在本机使用"
@@ -97,13 +97,13 @@ GP、RF 和安全约束代理先做 4 个初始配方，第 5 个配方起使用
 展示训练样本数、采集阶段、采集函数值、历史最优和选中配方。经典配方编译器只适用于兼容的
 反应任务，界面会禁用不兼容任务。运行经典算法不需要模型 API key。
 
-### 配置 DeepSeek
+### 配置在线模型
 
 === "PowerShell"
 
     ```powershell
-    $env:DEEPSEEK_API_KEY = (Get-Content .\deepseek_api.md -Raw).Trim()
-    $env:DEEPSEEK_MODEL = "deepseek-v4-pro"
+    $env:DEEPSEEK_API_KEY = "<your-api-key>"
+    $env:DEEPSEEK_MODEL = "<provider-model-id>"
     python -m apps.task_lab.server --port 8876
     ```
 
@@ -111,17 +111,16 @@ GP、RF 和安全约束代理先做 4 个初始配方，第 5 个配方起使用
 
     ```bash
     export DEEPSEEK_API_KEY="..."
-    export DEEPSEEK_MODEL="deepseek-v4-pro"
+    export DEEPSEEK_MODEL="<provider-model-id>"
     python -m apps.task_lab.server --port 8876
     ```
 
 API key 只由本地 Python 服务读取，不进入浏览器、prompt artifact、trajectory 或
 `evaluation_result.json`。
 
-当前默认使用 V4 Pro、thinking 和 `reasoning_effort=max`。CLI 可用
-`--reasoning-effort high` 降低推理强度。DeepSeek 的当前模型名称与参数以
-[官方 API 文档](https://api-docs.deepseek.com/)和
-[thinking mode 指南](https://api-docs.deepseek.com/guides/thinking_mode/)为准。
+模型标识和可用推理参数可能随 provider 更新。请使用 provider 当前 API 文档列出的模型 ID；
+正式比较必须把 provider、模型 ID、请求参数、prompt hash、token 来源和调用时间写入方法账本。
+密钥只通过进程环境变量传入，不要保存在仓库、轨迹、prompt artifact 或提交包中。
 
 ### 材料标签
 
