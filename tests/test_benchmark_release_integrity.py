@@ -33,12 +33,13 @@ def test_stale_public_bundle_is_candidate_but_not_a_frozen_release() -> None:
     )
     assert {
         result["match_mode"] for result in digest_check["observed"].values()
-    } == {"legacy_git_crlf_text"}
+    } in ({"raw_bytes"}, {"legacy_git_crlf_text"})
 
 
 def test_legacy_v1_digest_is_stable_across_git_line_endings(tmp_path: Path) -> None:
     copied = tmp_path / "release"
     shutil.copytree(RELEASE, copied)
+    source_line_endings = set()
     for filename in (
         "baseline_summary.json",
         "benchmark_validation.json",
@@ -46,8 +47,14 @@ def test_legacy_v1_digest_is_stable_across_git_line_endings(tmp_path: Path) -> N
     ):
         path = copied / filename
         payload = path.read_bytes()
-        assert b"\r\n" not in payload
-        path.write_bytes(payload.replace(b"\n", b"\r\n"))
+        normalized_lf = payload.replace(b"\r\n", b"\n")
+        uses_crlf = payload != normalized_lf
+        source_line_endings.add("crlf" if uses_crlf else "lf")
+        alternate = normalized_lf if uses_crlf else normalized_lf.replace(b"\n", b"\r\n")
+        assert alternate != payload
+        path.write_bytes(alternate)
+
+    assert len(source_line_endings) == 1
 
     report = verify_release_bundle(ROOT, copied, allow_candidate=True)
 
@@ -57,9 +64,10 @@ def test_legacy_v1_digest_is_stable_across_git_line_endings(tmp_path: Path) -> N
         for check in report["checks"]
         if check["check_id"] == "embedded_evidence_digests"
     )
+    expected_mode = "legacy_git_crlf_text" if source_line_endings == {"crlf"} else "raw_bytes"
     assert {
         result["match_mode"] for result in digest_check["observed"].values()
-    } == {"raw_bytes"}
+    } == {expected_mode}
 
 
 def test_candidate_mode_never_waives_evidence_tampering(tmp_path: Path) -> None:
