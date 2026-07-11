@@ -96,6 +96,53 @@ def test_layered_evaluator_accepts_costless_incomplete_tail() -> None:
     assert result["validity"]["invalid_operation_count"] == 1
 
 
+def test_layered_evaluator_reports_interaction_stratum_and_resources_without_scalarizing() -> None:
+    contract = TaskEvaluationContract.for_task("partition-discovery")
+    records = [
+        _record(score=None, primary=0.3, cost=0.1, reward=0.1),
+        _record(score=0.6, primary=0.7, cost=0.2, reward=0.6),
+    ]
+    metadata = {
+        "interaction_capabilities": {
+            "decision_scope": "operation",
+            "consumes_intermediate_observations": True,
+            "consumes_spectra": True,
+            "adapts_within_experiment": True,
+            "adapts_across_experiments": True,
+            "emits_structured_decision_audit": True,
+        },
+        "official_runner_policy": {
+            "one_agent_decision_per_operation": True,
+            "automatic_action_repair": False,
+            "automatic_terminate": False,
+            "automatic_final_assay": False,
+            "failed_or_invalid_actions_retained": True,
+        },
+    }
+    for index, record in enumerate(records):
+        record["agent_metadata"] = metadata
+        record["explanation"] = {
+            "decision_audit": {
+                "status": "provided",
+                "adaptation_source": "spectrum" if index else "none",
+            },
+            "outcome": {"has_spectral_packet": index == 1},
+        }
+    records[-1]["method_resources"] = {
+        "accounting_complete": True,
+        "agent_usage": {"model_call_count": 2},
+    }
+
+    result = evaluate_layered_records(records, contract=contract)
+
+    assert result["interaction"]["capability_stratum"] == "operation_closed_loop"
+    assert result["interaction"]["observed_within_experiment_adaptation"] is True
+    assert result["interaction"]["harness_assistance_absent"] is True
+    assert result["interaction"]["interaction_diagnostics_scalarized_into_endpoint"] is False
+    assert result["resources"]["method_resource_accounting_complete"] is True
+    assert result["resources"]["resource_axes_scalarized_into_endpoint"] is False
+
+
 def test_frozen_evaluation_report_keeps_signal_blocker_visible() -> None:
     report = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
     assert report["controls_ready"] is True

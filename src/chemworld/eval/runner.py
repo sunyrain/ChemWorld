@@ -155,6 +155,13 @@ def run_agent(
     agent_metadata["risk_policy_hash"] = (
         risk_policy.policy_hash if risk_policy is not None else None
     )
+    agent_metadata["official_runner_policy"] = {
+        "one_agent_decision_per_operation": True,
+        "automatic_action_repair": False,
+        "automatic_terminate": False,
+        "automatic_final_assay": False,
+        "failed_or_invalid_actions_retained": True,
+    }
     requires_online_model = bool(agent_metadata.get("requires_online_model", False))
     resource_limits = (
         MethodResourceLimits.from_payload(

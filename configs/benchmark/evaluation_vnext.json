@@ -1,7 +1,7 @@
 {
-  "schema_version": "chemworld-evaluation-protocol-0.2",
-  "protocol_id": "chemworld-vnext-layered-evaluation-candidate-0.2",
-  "evaluation_contract_version": "chemworld-layered-evaluation-0.2",
+  "schema_version": "chemworld-evaluation-protocol-0.3",
+  "protocol_id": "chemworld-vnext-layered-evaluation-candidate-0.3",
+  "evaluation_contract_version": "chemworld-layered-evaluation-0.3",
   "status": "candidate_controls_only",
   "benchmark_claim_allowed": false,
   "layers": [
@@ -11,6 +11,11 @@
     "constraints",
     "resources",
     "validity"
+  ],
+  "diagnostics": [
+    "interaction",
+    "method_resources",
+    "harness_assistance"
   ],
   "tasks": {
     "partition-discovery": "product_in_organic",
@@ -29,7 +34,10 @@
     "campaign_total_cost": "sum_last_observed_total_cost_per_attempt",
     "campaign_process_cost": "campaign_total_cost_minus_measurement_cost",
     "measurement_cost": "sum_per_operation_measurement_cost",
-    "constraint_activation_reported_separately": true
+    "constraint_activation_reported_separately": true,
+    "cross_interaction_stratum_comparison": "system_level_only_not_algorithm_only",
+    "automatic_action_repair_or_closeout": "forbidden",
+    "method_resource_axes_scalarized": false
   },
   "remaining_release_gates": [
     "rerun all methods after exposing the calibrated task-specific risk policy",

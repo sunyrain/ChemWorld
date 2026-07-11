@@ -11,7 +11,7 @@ from typing import Any, Literal
 from chemworld.task_design import SERIOUS_TASK_DESIGNS
 from chemworld.tasks import get_task
 
-LAYERED_EVALUATION_VERSION = "chemworld-layered-evaluation-0.2"
+LAYERED_EVALUATION_VERSION = "chemworld-layered-evaluation-0.3"
 
 
 @dataclass(frozen=True)
@@ -76,6 +76,11 @@ class TaskEvaluationContract:
                 "resource": self.cost_aggregation,
                 "validity": "precondition and constitution flags",
             },
+            "diagnostics": {
+                "interaction": "declared capability stratum plus observed decision evidence",
+                "method_resources": "external model/training ledger; never scalarized into score",
+                "harness_assistance": "official runner assistance policy",
+            },
         }
 
 
@@ -126,6 +131,10 @@ def evaluate_layered_records(
     maximize = contract.direction == "maximize"
     select = max if maximize else min
     completed = bool(terminal_records)
+    interaction = _interaction_diagnostics(records)
+    final_method_resources = records[-1].get("method_resources", {})
+    if not isinstance(final_method_resources, dict):
+        final_method_resources = {}
     return {
         "schema_version": LAYERED_EVALUATION_VERSION,
         "task_id": contract.task_id,
@@ -176,11 +185,89 @@ def evaluate_layered_records(
             "operation_count": len(records),
             "complete_experiment_count": len(terminal_records),
             "incomplete_experiment_count": sum(not attempt["complete"] for attempt in attempts),
+            "method_resource_ledger": final_method_resources,
+            "method_resource_accounting_complete": bool(
+                final_method_resources.get("accounting_complete")
+                or final_method_resources.get("agent_usage", {}).get("accounting_complete")
+            ),
+            "resource_axes_scalarized_into_endpoint": False,
         },
         "validity": {
             "invalid_operation_count": invalid_count,
             "invalid_operation_rate": invalid_count / len(records),
         },
+        "interaction": interaction,
+    }
+
+
+def _interaction_diagnostics(records: list[dict[str, Any]]) -> dict[str, Any]:
+    first_metadata = records[0].get("agent_metadata", {})
+    if not isinstance(first_metadata, dict):
+        first_metadata = {}
+    capabilities = first_metadata.get("interaction_capabilities", {})
+    if not isinstance(capabilities, dict):
+        capabilities = {}
+    decision_scope = str(capabilities.get("decision_scope", "unknown"))
+    if decision_scope == "experiment_recipe":
+        stratum = "recipe_search"
+    elif decision_scope == "operation" and bool(capabilities.get("adapts_within_experiment")):
+        stratum = "operation_closed_loop"
+    elif decision_scope == "operation":
+        stratum = "operation_open_loop"
+    else:
+        stratum = "undeclared"
+
+    audits: list[dict[str, Any]] = []
+    spectral_packet_decisions = 0
+    for record in records:
+        explanation = record.get("explanation", {})
+        if not isinstance(explanation, dict):
+            continue
+        audit = explanation.get("decision_audit", {})
+        if isinstance(audit, dict):
+            audits.append(audit)
+        outcome = explanation.get("outcome", {})
+        if isinstance(outcome, dict) and bool(outcome.get("has_spectral_packet")):
+            spectral_packet_decisions += 1
+    provided = [audit for audit in audits if audit.get("status") == "provided"]
+    adaptation_counts: dict[str, int] = {}
+    for audit in provided:
+        source = str(audit.get("adaptation_source", "none"))
+        adaptation_counts[source] = adaptation_counts.get(source, 0) + 1
+
+    runner_policy = first_metadata.get("official_runner_policy", {})
+    if not isinstance(runner_policy, dict):
+        runner_policy = {}
+    unassisted = bool(runner_policy) and all(
+        runner_policy.get(field) is False
+        for field in (
+            "automatic_action_repair",
+            "automatic_terminate",
+            "automatic_final_assay",
+        )
+    )
+    return {
+        "capability_stratum": stratum,
+        "declared_capabilities": capabilities,
+        "decision_audit_count": len(audits),
+        "provided_decision_audit_count": len(provided),
+        "adaptation_source_counts": adaptation_counts,
+        "spectral_packet_decision_count": spectral_packet_decisions,
+        "observed_within_experiment_adaptation": any(
+            adaptation_counts.get(source, 0) > 0
+            for source in ("measurement", "spectrum", "validator")
+        ),
+        "observed_across_experiment_adaptation": adaptation_counts.get(
+            "experiment_memory", 0
+        )
+        > 0,
+        "official_runner_policy": runner_policy,
+        "harness_assistance_absent": unassisted,
+        "cross_stratum_interpretation": (
+            "system-level comparison only; algorithm-only effects require the same "
+            "interaction capability stratum"
+        ),
+        "interaction_diagnostics_scalarized_into_endpoint": False,
     }
 
 

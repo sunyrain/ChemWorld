@@ -3,9 +3,13 @@
   "checks": {
     "candidate_is_non_claiming": true,
     "contract_version": true,
+    "cross_stratum_algorithm_claims_forbidden": true,
     "formal_methods_rerun_with_vnext_policy": false,
     "formal_safety_constraint_active": false,
+    "harness_assistance_must_be_absent": true,
+    "interaction_and_resource_diagnostics_required": true,
     "layers_are_disjoint": true,
+    "method_resources_not_scalarized": true,
     "missing_primary_fails_closed": true,
     "online_reward_excluded_from_primary": true,
     "primary_metrics_match_task_design": true,
@@ -17,6 +21,11 @@
     "electrochemical-conversion": {
       "contract_hash": "efcc3e57a72c17f60a9242a138522c018d9919f220932cb654d7f398d1714441",
       "cost_aggregation": "terminal_total_minus_measurement_cost",
+      "diagnostics": {
+        "harness_assistance": "official runner assistance policy",
+        "interaction": "declared capability stratum plus observed decision evidence",
+        "method_resources": "external model/training ledger; never scalarized into score"
+      },
       "direction": "maximize",
       "layers": {
         "constraint": "max_operation_risk_per_experiment",
@@ -33,13 +42,18 @@
       "risk_aggregation": "max_operation_risk_per_experiment",
       "risk_limit_semantics": "benchmark_operational_risk_budget",
       "safety_limit": 0.19632664322853094,
-      "schema_version": "chemworld-layered-evaluation-0.2",
+      "schema_version": "chemworld-layered-evaluation-0.3",
       "task_id": "electrochemical-conversion",
       "terminal_selector": "successful_final_assay"
     },
     "equilibrium-characterization": {
       "contract_hash": "fed280b3020fb1a32a2058a59778a96a3fc9876ae22b1b316e229d79dea007f9",
       "cost_aggregation": "terminal_total_minus_measurement_cost",
+      "diagnostics": {
+        "harness_assistance": "official runner assistance policy",
+        "interaction": "declared capability stratum plus observed decision evidence",
+        "method_resources": "external model/training ledger; never scalarized into score"
+      },
       "direction": "maximize",
       "layers": {
         "constraint": "max_operation_risk_per_experiment",
@@ -56,13 +70,18 @@
       "risk_aggregation": "max_operation_risk_per_experiment",
       "risk_limit_semantics": "benchmark_operational_risk_budget",
       "safety_limit": 0.1631310492753983,
-      "schema_version": "chemworld-layered-evaluation-0.2",
+      "schema_version": "chemworld-layered-evaluation-0.3",
       "task_id": "equilibrium-characterization",
       "terminal_selector": "successful_final_assay"
     },
     "flow-reaction-optimization": {
       "contract_hash": "2054cfa31c73766d55192e6530b5cab01fb66926399b631c6d7ba4089fa5c933",
       "cost_aggregation": "terminal_total_minus_measurement_cost",
+      "diagnostics": {
+        "harness_assistance": "official runner assistance policy",
+        "interaction": "declared capability stratum plus observed decision evidence",
+        "method_resources": "external model/training ledger; never scalarized into score"
+      },
       "direction": "maximize",
       "layers": {
         "constraint": "max_operation_risk_per_experiment",
@@ -79,13 +98,18 @@
       "risk_aggregation": "max_operation_risk_per_experiment",
       "risk_limit_semantics": "benchmark_operational_risk_budget",
       "safety_limit": 0.32665647864341746,
-      "schema_version": "chemworld-layered-evaluation-0.2",
+      "schema_version": "chemworld-layered-evaluation-0.3",
       "task_id": "flow-reaction-optimization",
       "terminal_selector": "successful_final_assay"
     },
     "partition-discovery": {
       "contract_hash": "cb5ececba90c28d652245ae7fe6946a3e524e60ca6ed63f1bae9d3d3ddd947a5",
       "cost_aggregation": "terminal_total_minus_measurement_cost",
+      "diagnostics": {
+        "harness_assistance": "official runner assistance policy",
+        "interaction": "declared capability stratum plus observed decision evidence",
+        "method_resources": "external model/training ledger; never scalarized into score"
+      },
       "direction": "maximize",
       "layers": {
         "constraint": "max_operation_risk_per_experiment",
@@ -102,13 +126,18 @@
       "risk_aggregation": "max_operation_risk_per_experiment",
       "risk_limit_semantics": "benchmark_operational_risk_budget",
       "safety_limit": 0.21225822269916542,
-      "schema_version": "chemworld-layered-evaluation-0.2",
+      "schema_version": "chemworld-layered-evaluation-0.3",
       "task_id": "partition-discovery",
       "terminal_selector": "successful_final_assay"
     },
     "reaction-to-crystallization": {
       "contract_hash": "8e68f23cb274f57e006d97b95df5a65871e9385bdf131d110ea7447d0376bd11",
       "cost_aggregation": "terminal_total_minus_measurement_cost",
+      "diagnostics": {
+        "harness_assistance": "official runner assistance policy",
+        "interaction": "declared capability stratum plus observed decision evidence",
+        "method_resources": "external model/training ledger; never scalarized into score"
+      },
       "direction": "maximize",
       "layers": {
         "constraint": "max_operation_risk_per_experiment",
@@ -125,13 +154,18 @@
       "risk_aggregation": "max_operation_risk_per_experiment",
       "risk_limit_semantics": "benchmark_operational_risk_budget",
       "safety_limit": 0.257127845287323,
-      "schema_version": "chemworld-layered-evaluation-0.2",
+      "schema_version": "chemworld-layered-evaluation-0.3",
       "task_id": "reaction-to-crystallization",
       "terminal_selector": "successful_final_assay"
     },
     "reaction-to-distillation": {
       "contract_hash": "554b40314163238272468ab8dc6f9dfad785623d7291829f4826f3ef90e4f7ab",
       "cost_aggregation": "terminal_total_minus_measurement_cost",
+      "diagnostics": {
+        "harness_assistance": "official runner assistance policy",
+        "interaction": "declared capability stratum plus observed decision evidence",
+        "method_resources": "external model/training ledger; never scalarized into score"
+      },
       "direction": "maximize",
       "layers": {
         "constraint": "max_operation_risk_per_experiment",
@@ -148,7 +182,7 @@
       "risk_aggregation": "max_operation_risk_per_experiment",
       "risk_limit_semantics": "benchmark_operational_risk_budget",
       "safety_limit": 0.3852870047092439,
-      "schema_version": "chemworld-layered-evaluation-0.2",
+      "schema_version": "chemworld-layered-evaluation-0.3",
       "task_id": "reaction-to-distillation",
       "terminal_selector": "successful_final_assay"
     }
@@ -158,7 +192,7 @@
   "known_blockers": [
     "The vNext operational-risk and process-cost controls are calibrated, but retained methods received the legacy 0.65 limit. Safe-method effects remain unidentified until every method is rerun."
   ],
-  "protocol_id": "chemworld-vnext-layered-evaluation-candidate-0.2",
+  "protocol_id": "chemworld-vnext-layered-evaluation-candidate-0.3",
   "publication_ready": false,
   "remaining_release_gates": [
     "rerun all methods after exposing the calibrated task-specific risk policy",
@@ -167,6 +201,6 @@
     "rerun every formal method under the layered evaluator",
     "bind evaluator output to replay and tamper detection"
   ],
-  "schema_version": "chemworld-evaluation-identifiability-audit-0.2",
+  "schema_version": "chemworld-evaluation-identifiability-audit-0.3",
   "status": "controls_ready_method_rerun_blocked"
 }

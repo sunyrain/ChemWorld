@@ -15,8 +15,8 @@ from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.task_design import SERIOUS_TASK_DESIGNS
 from chemworld.tasks import SERIOUS_TASK_IDS
 
-EVALUATION_AUDIT_VERSION = "chemworld-evaluation-identifiability-audit-0.2"
-EVALUATION_PROTOCOL_VERSION = "chemworld-evaluation-protocol-0.2"
+EVALUATION_AUDIT_VERSION = "chemworld-evaluation-identifiability-audit-0.3"
+EVALUATION_PROTOCOL_VERSION = "chemworld-evaluation-protocol-0.3"
 DEFAULT_EVALUATION_PROTOCOL_PATH = configuration_root() / "benchmark" / "evaluation_vnext.json"
 DEFAULT_PUBLICATION_SUMMARY_PATH = (
     Path(__file__).resolve().parents[3]
@@ -88,6 +88,20 @@ def audit_evaluation_identifiability(
             "resources",
             "validity",
         ],
+        "interaction_and_resource_diagnostics_required": protocol.get("diagnostics")
+        == ["interaction", "method_resources", "harness_assistance"],
+        "cross_stratum_algorithm_claims_forbidden": protocol.get("policies", {}).get(
+            "cross_interaction_stratum_comparison"
+        )
+        == "system_level_only_not_algorithm_only",
+        "harness_assistance_must_be_absent": protocol.get("policies", {}).get(
+            "automatic_action_repair_or_closeout"
+        )
+        == "forbidden",
+        "method_resources_not_scalarized": protocol.get("policies", {}).get(
+            "method_resource_axes_scalarized"
+        )
+        is False,
         "online_reward_excluded_from_primary": protocol.get("policies", {}).get(
             "online_reward_is_primary"
         )
