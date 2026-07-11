@@ -1,13 +1,13 @@
 {
-  "active_issue_count": 8,
+  "active_issue_count": 11,
   "active_issues": [
     {
       "active": true,
-      "impact": "safe optimization cannot be distinguished from unconstrained optimization",
+      "impact": "the legacy formal cohort cannot distinguish safe from unconstrained optimization because it predates the calibrated task-specific risk policy",
       "issue_id": "inactive_operational_risk_constraint",
       "observed": false,
       "problem_value": false,
-      "remediation": "calibrate task-specific operational-risk budgets before any constrained-method rerun",
+      "remediation": "rerun every compared method on fresh paired seeds with the vNext risk policy exposed before decisions",
       "report": "workstreams/benchmark_v1/reports/agent-interaction-audit.json",
       "report_sha256": "92bff9148cabfef370e14a273837c1dde7e6bca08431ea054c0442a344c6fffa",
       "severity": "critical"
@@ -29,20 +29,20 @@
       "issue_id": "no_formal_within_experiment_adaptation",
       "observed": false,
       "problem_value": false,
-      "remediation": "report recipe-level and operation-level capability strata separately",
+      "remediation": "run and report recipe-search and operation-closed-loop methods in separate strata; use cross-stratum results only as system-level comparisons",
       "report": "workstreams/benchmark_v1/reports/agent-interaction-audit.json",
       "report_sha256": "92bff9148cabfef370e14a273837c1dde7e6bca08431ea054c0442a344c6fffa",
       "severity": "critical"
     },
     {
       "active": true,
-      "impact": "Gym training claims have no full-budget PPO or SAC evidence",
+      "impact": "one exact 100k SAC development run passed, but the task-algorithm-model-seed training matrix and Bench evaluation are absent",
       "issue_id": "rl_training_matrix_missing",
       "observed": false,
       "problem_value": false,
-      "remediation": "train on frozen Train cells, select on Dev only, and retain checkpoint/compute digests",
+      "remediation": "resolve checkpoint instability on pooled multi-seed Dev, then train the frozen core task matrix and access Bench only once",
       "report": "workstreams/benchmark_v1/reports/rl-baseline-controls.json",
-      "report_sha256": "ff81170e314a3333c1b63931496f654b48a61ca0ca5c108af48bce095bd62d6d",
+      "report_sha256": "707e7ab268dc064a3631570edce8ccacc702a6a6c67c3d2f67f30d6830195489",
       "severity": "critical"
     },
     {
@@ -53,7 +53,7 @@
       "problem_value": false,
       "remediation": "run both frozen model roles and retain failures, tokens, cost, spectra and replay evidence",
       "report": "workstreams/benchmark_v1/reports/live-llm-controls.json",
-      "report_sha256": "83514791dbb51fb02dd26e59fe6ba6b365cdcdef82d4db3115dee796dc16bbae",
+      "report_sha256": "3f5baac9a348bf14eb58b6ae10faf4022b7f85ea7177bf0b7059e4c2202ce433",
       "severity": "critical"
     },
     {
@@ -62,9 +62,9 @@
       "issue_id": "mechanism_adaptation_missing",
       "observed": false,
       "problem_value": false,
-      "remediation": "calibrate severity and freeze disjoint Train/Dev/Bench mechanism-family allocations",
+      "remediation": "severity calibration and replay binding pass; freeze disjoint Train/Dev/Bench family allocations and measure agent identification/adaptation",
       "report": "workstreams/benchmark_v1/reports/mechanism-family-controls.json",
-      "report_sha256": "2eccb5e4046e8a4f715e631f2e65a143f8cb0839edea5cfbc80621f043072b19",
+      "report_sha256": "a0426d53174c1e95621a69f737de63cd642d03ef8adc2a9739f1be03bc3b5a2b",
       "severity": "high"
     },
     {
@@ -76,6 +76,39 @@
       "remediation": "complete the frozen reference search without sharing its cells with evaluated agents",
       "report": "workstreams/benchmark_v1/reports/reference-regret-controls.json",
       "report_sha256": "6ac2eda18cc8d30ca1215daebf65b536bb2e8290080102a786357c2c41fa04f1",
+      "severity": "high"
+    },
+    {
+      "active": true,
+      "impact": "structured GP improves every primary endpoint but materially increases operational-risk exceedance in three of four core tasks",
+      "issue_id": "unconstrained_bo_risk_regression",
+      "observed": false,
+      "problem_value": false,
+      "remediation": "do not claim a universally better optimizer; retain joint objective-safety-cost decisions and compare against the constrained policy",
+      "report": "workstreams/benchmark_v1/reports/vnext-primary-classical-summary.json",
+      "report_sha256": "e7422113c75df59d5e7fa0119ee4636a095c83a5a53e66f869f94ada287ab898",
+      "severity": "critical"
+    },
+    {
+      "active": true,
+      "impact": "the constrained policy improves risk and cost across the core tasks but misses the flow-task objective SESOI",
+      "issue_id": "safe_gp_joint_rule_incomplete",
+      "observed": false,
+      "problem_value": false,
+      "remediation": "report the flow result as below-SESOI and test a frozen constrained-policy revision on fresh Dev before any new confirmation",
+      "report": "workstreams/benchmark_v1/reports/safe-policy-confirmatory.json",
+      "report_sha256": "58f789e4f9daf491f2ac32dfbfc4a7e827813c57566616d9457e903577d5d668",
+      "severity": "high"
+    },
+    {
+      "active": true,
+      "impact": "the 100k SAC checkpoint retains only 44% of the 80k Dev mean episode-best score in the single-seed development run",
+      "issue_id": "rl_checkpoint_selection_unstable",
+      "observed": false,
+      "problem_value": false,
+      "remediation": "pre-register pooled multi-seed 80k-versus-100k Dev selection; never assume the largest training budget is best",
+      "report": "workstreams/benchmark_v1/reports/rl-100k-development.json",
+      "report_sha256": "1390d50b6d6c5db860d201cf0a36842fe810443d787b84eb534c519fc8e8a6f4",
       "severity": "high"
     },
     {
@@ -111,7 +144,7 @@
       "passed": true,
       "report": "workstreams/benchmark_v1/reports/confirmatory-freeze-controls.json",
       "report_exists": true,
-      "sha256": "f9f44504b129fe23ee4fe795425092cf56bb883c982182604abee2743fe481b2"
+      "sha256": "2c876b359bb77231586f118056b3950cff24a30aa5dfd60e0116ddbcc83742e4"
     },
     "exploit_matrix": {
       "expected": true,
@@ -138,7 +171,7 @@
       "passed": true,
       "report": "workstreams/benchmark_v1/reports/live-llm-controls.json",
       "report_exists": true,
-      "sha256": "83514791dbb51fb02dd26e59fe6ba6b365cdcdef82d4db3115dee796dc16bbae"
+      "sha256": "3f5baac9a348bf14eb58b6ae10faf4022b7f85ea7177bf0b7059e4c2202ce433"
     },
     "mechanism_families": {
       "expected": true,
@@ -147,7 +180,7 @@
       "passed": true,
       "report": "workstreams/benchmark_v1/reports/mechanism-family-controls.json",
       "report_exists": true,
-      "sha256": "2eccb5e4046e8a4f715e631f2e65a143f8cb0839edea5cfbc80621f043072b19"
+      "sha256": "a0426d53174c1e95621a69f737de63cd642d03ef8adc2a9739f1be03bc3b5a2b"
     },
     "method_protocol": {
       "expected": true,
@@ -156,7 +189,7 @@
       "passed": true,
       "report": "workstreams/benchmark_v1/reports/method-protocol-vnext.json",
       "report_exists": true,
-      "sha256": "2fe72c7444be7d7aab1d598fef930dd84055231b2ca0ef0ab50b1820863083f6"
+      "sha256": "2b1a15d4a4eec7e7b52a935f33c6b6c84da29ced1afba1a21ed764921186e7f8"
     },
     "public_harness": {
       "expected": true,
@@ -192,7 +225,7 @@
       "passed": true,
       "report": "workstreams/benchmark_v1/reports/rl-baseline-controls.json",
       "report_exists": true,
-      "sha256": "ff81170e314a3333c1b63931496f654b48a61ca0ca5c108af48bce095bd62d6d"
+      "sha256": "707e7ab268dc064a3631570edce8ccacc702a6a6c67c3d2f67f30d6830195489"
     },
     "score_replay": {
       "expected": true,
@@ -309,7 +342,7 @@
       "passed": false,
       "report": "workstreams/benchmark_v1/reports/confirmatory-freeze-controls.json",
       "report_exists": true,
-      "sha256": "f9f44504b129fe23ee4fe795425092cf56bb883c982182604abee2743fe481b2"
+      "sha256": "2c876b359bb77231586f118056b3950cff24a30aa5dfd60e0116ddbcc83742e4"
     },
     "exploit_resistance_results": {
       "expected": true,
@@ -336,7 +369,7 @@
       "passed": false,
       "report": "workstreams/benchmark_v1/reports/live-llm-controls.json",
       "report_exists": true,
-      "sha256": "83514791dbb51fb02dd26e59fe6ba6b365cdcdef82d4db3115dee796dc16bbae"
+      "sha256": "3f5baac9a348bf14eb58b6ae10faf4022b7f85ea7177bf0b7059e4c2202ce433"
     },
     "mechanism_adaptation": {
       "expected": true,
@@ -345,7 +378,7 @@
       "passed": false,
       "report": "workstreams/benchmark_v1/reports/mechanism-family-controls.json",
       "report_exists": true,
-      "sha256": "2eccb5e4046e8a4f715e631f2e65a143f8cb0839edea5cfbc80621f043072b19"
+      "sha256": "a0426d53174c1e95621a69f737de63cd642d03ef8adc2a9739f1be03bc3b5a2b"
     },
     "method_matrix": {
       "expected": true,
@@ -354,7 +387,7 @@
       "passed": false,
       "report": "workstreams/benchmark_v1/reports/method-protocol-vnext.json",
       "report_exists": true,
-      "sha256": "2fe72c7444be7d7aab1d598fef930dd84055231b2ca0ef0ab50b1820863083f6"
+      "sha256": "2b1a15d4a4eec7e7b52a935f33c6b6c84da29ced1afba1a21ed764921186e7f8"
     },
     "reference_regret_results": {
       "expected": true,
@@ -372,7 +405,7 @@
       "passed": false,
       "report": "workstreams/benchmark_v1/reports/rl-baseline-controls.json",
       "report_exists": true,
-      "sha256": "ff81170e314a3333c1b63931496f654b48a61ca0ca5c108af48bce095bd62d6d"
+      "sha256": "707e7ab268dc064a3631570edce8ccacc702a6a6c67c3d2f67f30d6830195489"
     },
     "score_replay_results": {
       "expected": true,

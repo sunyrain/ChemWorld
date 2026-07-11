@@ -25,7 +25,10 @@ def test_architecture_graph_separates_controls_from_formal_evidence() -> None:
         "no_formal_within_experiment_adaptation",
         "private_generalization_missing",
         "reference_regret_search_missing",
+        "rl_checkpoint_selection_unstable",
         "rl_training_matrix_missing",
+        "safe_gp_joint_rule_incomplete",
+        "unconstrained_bo_risk_regression",
     }
     assert {item["component"] for item in report["critical_path"]} == set(
         report["formal_evidence_components"]

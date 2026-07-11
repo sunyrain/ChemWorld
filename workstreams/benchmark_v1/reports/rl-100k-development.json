@@ -3,6 +3,16 @@
   "benchmark_claim_allowed": false,
   "claim_boundary": "A repaired-source, one-task, one-model-seed 100k Train/Dev study. It can justify multi-seed development but cannot support a formal RL ranking.",
   "eligible_for_multiseed_development": true,
+  "learning_curve_diagnostics": {
+    "checkpoint_selection_stable": false,
+    "best_dev_checkpoint_steps": 80000,
+    "best_dev_mean_episode_best_score": 0.023781835321277582,
+    "final_checkpoint_steps": 100000,
+    "final_checkpoint_mean_episode_best_score": 0.010551688916576324,
+    "final_to_best_score_ratio": 0.4436869053220522,
+    "relative_regression_from_best": 0.5563130946779478,
+    "interpretation": "More training was not monotonically beneficial; pooled multi-seed Dev checkpoint selection is required before any formal scaling."
+  },
   "evaluated_source_commit": "2bb46eab9826c901992a4e1aeabcdf1c48e6042e",
   "evaluation_source_tree_dirty": false,
   "postrun_manifest_corrections": [

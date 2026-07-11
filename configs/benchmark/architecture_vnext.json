@@ -135,8 +135,8 @@
       "report": "workstreams/benchmark_v1/reports/agent-interaction-audit.json",
       "field": "gates.safety_constraint_active",
       "problem_value": false,
-      "impact": "safe optimization cannot be distinguished from unconstrained optimization",
-      "remediation": "calibrate task-specific operational-risk budgets before any constrained-method rerun"
+      "impact": "the legacy formal cohort cannot distinguish safe from unconstrained optimization because it predates the calibrated task-specific risk policy",
+      "remediation": "rerun every compared method on fresh paired seeds with the vNext risk policy exposed before decisions"
     },
     {
       "issue_id": "no_formal_spectral_policy",
@@ -154,7 +154,7 @@
       "field": "gates.within_experiment_adaptation_formally_evaluated",
       "problem_value": false,
       "impact": "current classical results measure recipe search, not closed-loop laboratory control",
-      "remediation": "report recipe-level and operation-level capability strata separately"
+      "remediation": "run and report recipe-search and operation-closed-loop methods in separate strata; use cross-stratum results only as system-level comparisons"
     },
     {
       "issue_id": "rl_training_matrix_missing",
@@ -162,8 +162,8 @@
       "report": "workstreams/benchmark_v1/reports/rl-baseline-controls.json",
       "field": "formal_training_complete",
       "problem_value": false,
-      "impact": "Gym training claims have no full-budget PPO or SAC evidence",
-      "remediation": "train on frozen Train cells, select on Dev only, and retain checkpoint/compute digests"
+      "impact": "one exact 100k SAC development run passed, but the task-algorithm-model-seed training matrix and Bench evaluation are absent",
+      "remediation": "resolve checkpoint instability on pooled multi-seed Dev, then train the frozen core task matrix and access Bench only once"
     },
     {
       "issue_id": "live_llm_matrix_missing",
@@ -181,7 +181,7 @@
       "field": "publication_ready",
       "problem_value": false,
       "impact": "mechanism perturbations are executable but agent identification and adaptation are unmeasured",
-      "remediation": "calibrate severity and freeze disjoint Train/Dev/Bench mechanism-family allocations"
+      "remediation": "severity calibration and replay binding pass; freeze disjoint Train/Dev/Bench family allocations and measure agent identification/adaptation"
     },
     {
       "issue_id": "reference_regret_search_missing",
@@ -191,6 +191,33 @@
       "problem_value": false,
       "impact": "scores lack an independently searched per-cell opportunity baseline",
       "remediation": "complete the frozen reference search without sharing its cells with evaluated agents"
+    },
+    {
+      "issue_id": "unconstrained_bo_risk_regression",
+      "severity": "critical",
+      "report": "workstreams/benchmark_v1/reports/vnext-primary-classical-summary.json",
+      "field": "comparison.all_task_constraint_rule_passed",
+      "problem_value": false,
+      "impact": "structured GP improves every primary endpoint but materially increases operational-risk exceedance in three of four core tasks",
+      "remediation": "do not claim a universally better optimizer; retain joint objective-safety-cost decisions and compare against the constrained policy"
+    },
+    {
+      "issue_id": "safe_gp_joint_rule_incomplete",
+      "severity": "high",
+      "report": "workstreams/benchmark_v1/reports/safe-policy-confirmatory.json",
+      "field": "primary_comparison.complete_primary_rule_passed",
+      "problem_value": false,
+      "impact": "the constrained policy improves risk and cost across the core tasks but misses the flow-task objective SESOI",
+      "remediation": "report the flow result as below-SESOI and test a frozen constrained-policy revision on fresh Dev before any new confirmation"
+    },
+    {
+      "issue_id": "rl_checkpoint_selection_unstable",
+      "severity": "high",
+      "report": "workstreams/benchmark_v1/reports/rl-100k-development.json",
+      "field": "learning_curve_diagnostics.checkpoint_selection_stable",
+      "problem_value": false,
+      "impact": "the 100k SAC checkpoint retains only 44% of the 80k Dev mean episode-best score in the single-seed development run",
+      "remediation": "pre-register pooled multi-seed 80k-versus-100k Dev selection; never assume the largest training budget is best"
     },
     {
       "issue_id": "private_generalization_missing",
