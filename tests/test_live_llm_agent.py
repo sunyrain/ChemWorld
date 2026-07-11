@@ -116,6 +116,33 @@ def _public_view() -> dict[str, Any]:
     }
 
 
+def _composite_public_view() -> dict[str, Any]:
+    return {
+        "tool_json": {
+            "available_actions": [{"operation": "terminate"}],
+            "raw_signal": {
+                "kind": "final_assay_packet",
+                "channels": ["hplc", "nmr"],
+                "spectra": {"hplc": {"peaks": [{"assignment": "target"}]}},
+                "mass_balance": {"process_mass_balance_error": 0.0},
+                "energy_efficiency": 0.72,
+            },
+            "processed_estimate": {
+                "yield": 0.41,
+                "peak_count": 3,
+                "spectrum_assignment_confidence": 0.8,
+            },
+            "constraints": {"unsafe": False},
+            "cost": 0.2,
+            "lab_report": {
+                "visible_metrics": {"yield": 0.41},
+                "spectra_summary": {"has_spectral_packet": True},
+                "campaign_state": {"remaining_budget": 4},
+            },
+        }
+    }
+
+
 def test_live_llm_consumes_spectra_and_carries_experiment_memory() -> None:
     client = FakeClient(
         [
@@ -167,6 +194,31 @@ def test_masked_spectral_ablation_removes_raw_and_processed_spectral_features() 
     assert "peak_count" not in prompt["public_tool_view"]["processed_estimate"]
     assert "spectra_summary" not in prompt["public_tool_view"]["lab_report"]
     assert agent.interaction_capabilities().consumes_spectra is False
+
+
+def test_masked_ablation_preserves_non_spectral_composite_evidence() -> None:
+    client = FakeClient([_decision({"operation": "terminate"})])
+    agent = LiveLLMAgent(client, role_id="live_llm_a", spectrum_disclosure="masked")
+    agent.reset({"task_id": "flow-reaction-optimization"}, seed=2)
+
+    agent.act_with_public_view(
+        _context(step=1, previous="measurement_result"),
+        _composite_public_view(),
+    )
+
+    tool_view = client.prompts[0]["public_tool_view"]
+    assert tool_view["raw_signal"] == {
+        "kind": "final_assay_packet",
+        "mass_balance": {"process_mass_balance_error": 0.0},
+        "energy_efficiency": 0.72,
+    }
+    assert tool_view["processed_estimate"] == {"yield": 0.41}
+    assert tool_view["constraints"] == {"unsafe": False}
+    assert tool_view["cost"] == 0.2
+    assert tool_view["lab_report"] == {
+        "visible_metrics": {"yield": 0.41},
+        "campaign_state": {"remaining_budget": 4},
+    }
 
 
 def test_provider_failure_is_redacted_retained_and_counted() -> None:

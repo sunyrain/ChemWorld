@@ -59,7 +59,7 @@ def build_report() -> dict[str, Any]:
     interaction = protocol["interaction_requirements"]
     resources = protocol["resource_requirements"]
     checks = {
-        "schema": protocol.get("schema_version") == "chemworld-live-llm-protocol-0.2",
+        "schema": protocol.get("schema_version") == "chemworld-live-llm-protocol-0.3",
         "candidate_is_non_claiming": protocol.get("benchmark_claim_allowed") is False,
         "two_independent_model_ids": len({card["model_id"] for card in roles.values()}) == 2,
         "no_deprecated_model_alias": all(not item["legacy_alias"] for item in pricing.values()),
@@ -109,6 +109,19 @@ def build_report() -> dict[str, Any]:
                 "non_spectral_public_observations_held_constant"
             ]
             is True
+        ),
+        "spectral_ablation_preserves_non_spectral_evidence": (
+            all(
+                condition["non_spectral_public_fields"] is True
+                for condition in protocol["spectral_ablation"]["conditions"].values()
+            )
+            and protocol["official_adapter_contract"]["spectral_masking_policy"].startswith(
+                "remove spectral packets"
+            )
+            and protocol["official_adapter_contract"][
+                "non_spectral_pairing_regression_test"
+            ]
+            == "test_masked_ablation_preserves_non_spectral_composite_evidence"
         ),
         "cost_examples_positive": all(
             card["estimated_cost_usd"] > 0.0 for card in resource_examples.values()

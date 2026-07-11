@@ -25,7 +25,27 @@ Provide only a concise public audit: evidence, spectrum interpretation, hypothes
 uncertainty, rationale, and the selected action using exact schema field names.
 """
 
-PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.1"
+PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.2"
+
+_PURE_SPECTRAL_PACKET_KINDS = {
+    "gc_chromatogram",
+    "hplc_chromatogram",
+    "ir_spectrum",
+    "nmr_1h_spectrum",
+    "uvvis_spectrum",
+}
+_SPECTRAL_FIELD_MARKERS = (
+    "assignment",
+    "channel",
+    "chemical_shift",
+    "chromatogram",
+    "peak",
+    "retention",
+    "spectra",
+    "spectrum",
+    "wavelength",
+    "wavenumber",
+)
 
 
 class JsonCompletionLike(Protocol):
@@ -264,16 +284,7 @@ class LiveLLMAgent(BaseAgent):
                 "masked": True,
                 "reason": "paired spectral-information ablation",
             }
-            tool_json = dict(tool_json)
-            tool_json.pop("raw_signal", None)
-            processed = dict(tool_json.get("processed_estimate", {}))
-            for key in list(processed):
-                if "peak" in key or "spectrum" in key or "spectra" in key:
-                    processed.pop(key, None)
-            tool_json["processed_estimate"] = processed
-            lab_report = dict(tool_json.get("lab_report", {}))
-            lab_report.pop("spectra_summary", None)
-            tool_json["lab_report"] = lab_report
+            tool_json = _mask_spectral_tool_view(tool_json)
         prompt_payload = {
             "instruction": (
                 "Choose exactly one next operation. Use observations and experiment memory "
@@ -386,6 +397,45 @@ def _prompt_hash() -> str:
     return hashlib.sha256(
         (SYSTEM_PROMPT + "|" + PROMPT_CONTRACT_VERSION).encode("utf-8")
     ).hexdigest()
+
+
+def _mask_spectral_tool_view(tool_json: dict[str, Any]) -> dict[str, Any]:
+    """Remove spectral evidence while preserving every non-spectral public field."""
+
+    masked = dict(tool_json)
+    raw_signal = masked.get("raw_signal")
+    if isinstance(raw_signal, dict):
+        kind = str(raw_signal.get("kind", ""))
+        if kind in _PURE_SPECTRAL_PACKET_KINDS:
+            masked.pop("raw_signal", None)
+        else:
+            masked["raw_signal"] = _redact_spectral_fields(raw_signal)
+    processed = masked.get("processed_estimate")
+    if isinstance(processed, dict):
+        masked["processed_estimate"] = _redact_spectral_fields(processed)
+    lab_report = masked.get("lab_report")
+    if isinstance(lab_report, dict):
+        public_report = dict(lab_report)
+        public_report.pop("spectra_summary", None)
+        masked["lab_report"] = public_report
+    return masked
+
+
+def _redact_spectral_fields(payload: Any) -> Any:
+    if isinstance(payload, dict):
+        return {
+            str(key): _redact_spectral_fields(value)
+            for key, value in payload.items()
+            if not _is_spectral_field(str(key))
+        }
+    if isinstance(payload, list):
+        return [_redact_spectral_fields(item) for item in payload]
+    return to_builtin(payload)
+
+
+def _is_spectral_field(key: str) -> bool:
+    normalized = key.lower()
+    return any(marker in normalized for marker in _SPECTRAL_FIELD_MARKERS)
 
 
 def _empty_usage() -> dict[str, int]:

@@ -1,6 +1,6 @@
 {
-  "schema_version": "chemworld-live-llm-protocol-0.2",
-  "protocol_id": "chemworld-vnext-live-llm-candidate-0.2",
+  "schema_version": "chemworld-live-llm-protocol-0.3",
+  "protocol_id": "chemworld-vnext-live-llm-candidate-0.3",
   "benchmark_claim_allowed": false,
   "publication_ready": false,
   "provider": "DeepSeek",
@@ -64,21 +64,25 @@
     "provider_or_output_failure_policy": "retain_as_invalid_model_failure_operation",
     "cumulative_resource_ledger": "chemworld-method-resource-usage-0.1",
     "trace_retention": "one_current_public_audit_per_trajectory_step",
-    "fake_client_end_to_end_test": "tests/test_live_llm_agent.py"
+    "fake_client_end_to_end_test": "tests/test_live_llm_agent.py",
+    "spectral_masking_policy": "remove spectral packets and recursively redact spectral fields from composite packets while preserving all non-spectral public evidence",
+    "non_spectral_pairing_regression_test": "test_masked_ablation_preserves_non_spectral_composite_evidence"
   },
   "spectral_ablation": {
     "required": true,
     "paired_on_task_world_and_model_seed": true,
     "conditions": {
       "assigned": {
-        "public_raw_signal": true,
+        "public_spectral_raw_signal": true,
         "public_processed_spectral_features": true,
-        "public_assignments": true
+        "public_assignments": true,
+        "non_spectral_public_fields": true
       },
       "masked": {
-        "public_raw_signal": false,
+        "public_spectral_raw_signal": false,
         "public_processed_spectral_features": false,
-        "public_assignments": false
+        "public_assignments": false,
+        "non_spectral_public_fields": true
       }
     },
     "non_spectral_public_observations_held_constant": true
