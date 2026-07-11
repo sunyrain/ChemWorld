@@ -2157,6 +2157,10 @@ chemworld<span class="w"> </span>seeds<span class="w"> </span>show<span class="w
 <p>正式方法协议必须单独冻结 paired seeds，并记录它们是否已用于调参。2026-07 的四任务经典诊断
 使用公开 seeds <code>20–39</code>；运行后发现安全/成本规则缺失，因此这组 seeds 已被消费为诊断数据。加入
 新决策规则后必须换用未触碰的 cohort，不能对同一数据追补门槛再称为确认实验。</p>
+<p>约束协议 0.3 使用 seeds <code>300–319</code>，暴露普通 GP 的三任务安全失败。Safe-GP 只在 Dev seeds
+<code>1100–1119</code> 上修复与选择，再使用未触碰 seeds <code>500–519</code> 做冻结确认。后者四任务 safety/cost
+通过但连续流未达到 SESOI，因此 <code>500–519</code> 也已消费为正式边界证据。不能在这些结果上修改策略
+后继续称为同一次确认；新候选必须重新冻结新的 paired seeds。</p>
 <h2 id="_1">三类泛化证据<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <table>
 <thead>

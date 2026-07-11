@@ -767,7 +767,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前经典诊断
+        当前经典证据
       
     </span>
   </a>
@@ -2094,7 +2094,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前经典诊断
+        当前经典证据
       
     </span>
   </a>
@@ -2179,7 +2179,7 @@ python<span class="w"> </span>scripts/run_serious_task_suite.py<span class="w"> 
 <tr>
 <td>安全约束 GP</td>
 <td><code>structured_safe_gp_bo</code></td>
-<td>风险代理与约束 acquisition；需单独证明约束有效</td>
+<td>峰值风险代理与约束 acquisition；已有四任务边界确认，尚未通过联合主规则</td>
 </tr>
 <tr>
 <td>LLM 工程探针</td>
@@ -2202,11 +2202,15 @@ python<span class="w"> </span>scripts/run_serious_task_suite.py<span class="w"> 
 </ul>
 <p>live LLM 还必须冻结 provider、模型标识、prompt hash、请求参数和 token 来源。replay 或 stub 不得
 冒充在线模型结果。</p>
-<h2 id="_5">当前经典诊断<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
-<p>160 条新 cohort 结果显示，<code>structured_gp_bo</code> 相对 <code>random</code> 在分配、结晶、蒸馏和流动主指标上
-达到预设 objective SESOI，且成本非劣通过；但候选在三项任务未通过预注册安全非劣界限。因此
-完整 baseline 主比较失败。后续风险感知方法只能在 Train/Dev worlds 开发，并使用另一个未触碰
-cohort 确认。</p>
+<h2 id="_5">当前经典证据<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p>0.3 诊断的 160 条新 cohort 结果显示，<code>structured_gp_bo</code> 相对 <code>random</code> 达到四项 objective SESOI，
+但在三项任务未通过安全非劣。随后 <code>structured_safe_gp_bo</code> 仅在 Dev seeds 1100–1119 上修复和选择：
+风险标签改为单次实验的操作峰值，低强度初始设计与不确定性约束进入 acquisition，材料类别与连续
+用量解耦为 recipe space 0.2。</p>
+<p>修复策略在运行前绑定实现摘要，并在未触碰 seeds 500–519 上完成 240 条确认运行与独立回放。
+它相对 <code>random</code> 通过四项 safety 与 cost 规则，四项目标方向均为正；分配、结晶和蒸馏达到 SESOI，
+连续流效应 0.018752 略低于 SESOI 0.020000。因此完整 baseline 主比较仍失败，不能用这批 Bench
+结果继续调参；任何新策略都需要新的 Dev 选择和未触碰确认 cohort。</p>
 <h2 id="_6">最低报告字段<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <ul>
 <li>逐任务 paired effect、bootstrap 置信区间和多重比较校正；</li>

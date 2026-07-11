@@ -2128,7 +2128,7 @@
 <li><code>reference_validated</code> 或 <code>professional_candidate</code> 等于工业、法规或实验验证；</li>
 <li>无 proxy route 等于全部物理模块已达到专业精度；</li>
 <li>四任务目标改善证明 structured GP 在完整约束下优于 random；</li>
-<li>当前已完成 safe BO、PPO、SAC、live LLM 或 SOTA 排名；</li>
+<li>Safe-GP 的一次边界确认等于已证明完整方法优越性，或 PPO、SAC、live LLM 已完成正式排名；</li>
 <li>public seeds 上的结果证明跨机理或私有世界泛化；</li>
 <li>当前候选包是正式发表级 benchmark release。</li>
 </ul>
@@ -2143,13 +2143,14 @@
 <li>电化学和平衡任务尚未证明主指标对自适应探索具有稳定可辨识性。</li>
 </ul>
 <h2 id="_5">评价边界<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
-<p>最新 0.3 经典比较在新数据前预注册了安全和成本非劣界限。目标与成本规则通过，但三项安全规则
-失败，完整比较被正确拒绝。评价系统现在能识别这一冲突；项目仍缺少能在该规则下通过的风险感知
-方法和独立复现。</p>
+<p>0.3 经典比较在新数据前预注册了安全和成本非劣界限。普通 GP 的目标与成本通过但三项安全失败。
+随后 Safe-GP 在另一未触碰 cohort 上使四项 safety/cost 全部通过，说明峰值风险标签与约束
+acquisition 修复了已观察到的安全退化；但连续流目标效应 0.018752 未达到 SESOI 0.020000，完整
+比较仍被正确拒绝。项目仍缺少四任务联合通过、跨机理/私有世界验证和独立外部复现。</p>
 <p>现有经典方法主要根据完整实验的 final assay 更新下一配方。它们不使用谱图特征，也不在同一次
 实验内根据中间测量调整动作，因此应称为 recipe-level active learning，而不是闭环实验室控制。</p>
 <h2 id="_6">发布边界<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
-<p>当前状态是 <code>benchmark_candidate</code>。正式发布仍需：新 cohort 上的约束确认、完整 RL/LLM 矩阵、
+<p>当前状态是 <code>benchmark_candidate</code>。正式发布仍需：改进策略后的新未触碰 cohort 联合通过、完整 RL/LLM 矩阵、
 机理族 Train/Dev/Bench、独立 reference search、salted private evaluation、第三方复现和干净 wheel
 验证。任何环境、观测、评分或约束变化都会提升合同版本并触发新运行；历史证据不会被静默改写。</p>
 

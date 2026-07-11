@@ -2341,10 +2341,21 @@ Bench/Private 上执行一次冻结评测。</p>
 <p>0.2 冻结诊断使用 seeds 20–39，objective-only 规则通过但暴露三任务风险退化。0.3 随后在运行前
 冻结 seeds 300–319、5 个百分点安全非劣界限、5% 相对成本非劣界限和 Bonferroni 同时上界。
 0.3 的四任务 objective 与 cost 规则通过，但三任务 safety 规则失败，因此完整主比较失败。
-这两个 cohort 都已消费；任何方法整改后的新确认实验必须再次使用未触碰 seeds。</p>
+这两个 cohort 都已消费。</p>
+<p>Safe-GP 随后仅在 Dev seeds 1100–1119 上修复和选择。确认协议 0.1 在看见结果前冻结实现文件摘要、
+recipe space 0.2、峰值风险标签、seeds 500–519、四任务 SESOI 和相同的安全/成本非劣规则。240 条
+确认轨迹及独立回放显示四任务 safety/cost 全部通过，但连续流平均效应 0.018752 未达到 SESOI
+0.020000，故联合规则失败。seeds 500–519 同样已消费；任何方法修改都必须再次使用未触碰 seeds。</p>
 <div class="highlight"><pre><span></span><code><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">run_vnext_primary</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-dry-run</span>
 <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">run_vnext_primary</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-workers</span> <span class="n">4</span> <span class="p">-</span><span class="n">-output-dir</span> <span class="n">runs</span><span class="p">/</span><span class="n">benchmark-vnext</span><span class="p">/</span><span class="n">primary</span>
 <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">audit_vnext_primary</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-run-root</span> <span class="n">runs</span><span class="p">/</span><span class="n">benchmark-vnext</span><span class="p">/</span><span class="n">primary</span> <span class="p">-</span><span class="n">-workers</span> <span class="n">4</span>
+</code></pre></div>
+<p>Safe-GP 冻结确认链为：</p>
+<div class="highlight"><pre><span></span><code><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">run_safe_policy_confirmatory</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-dry-run</span>
+<span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">run_safe_policy_confirmatory</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-workers</span> <span class="n">4</span>
+<span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">audit_safe_policy_confirmatory</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
+  <span class="p">-</span><span class="n">-run-root</span> <span class="n">runs</span><span class="p">/</span><span class="n">benchmark-vnext</span><span class="p">/</span><span class="n">safe-policy-confirmatory</span><span class="p">-</span><span class="n">0</span><span class="p">.</span><span class="n">1</span> <span class="p">`</span>
+  <span class="p">-</span><span class="n">-output</span> <span class="n">workstreams</span><span class="p">/</span><span class="n">benchmark_v1</span><span class="p">/</span><span class="n">reports</span><span class="p">/</span><span class="n">safe-policy-confirmatory</span><span class="p">.</span><span class="n">json</span>
 </code></pre></div>
 <h2 id="rl">RL 方法<a class="headerlink" href="#rl" title="Permanent link">&para;</a></h2>
 <p>RL 结果至少保留：算法与库版本、网络和观测封装、训练 world 分配、随机种子、环境步数、计算设备、

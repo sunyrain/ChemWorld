@@ -686,10 +686,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2026-07-vnext" class="md-nav__link">
+  <a href="#2026-07-safe-gp-cohort" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2026-07 vNext 约束确认候选
+        2026-07 Safe-GP 未触碰 cohort 确认
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#03-gp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        此前的 0.3 无约束 GP 诊断
       
     </span>
   </a>
@@ -2080,10 +2091,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2026-07-vnext" class="md-nav__link">
+  <a href="#2026-07-safe-gp-cohort" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2026-07 vNext 约束确认候选
+        2026-07 Safe-GP 未触碰 cohort 确认
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#03-gp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        此前的 0.3 无约束 GP 诊断
       
     </span>
   </a>
@@ -2190,7 +2212,76 @@
 </tr>
 </tbody>
 </table>
-<h2 id="2026-07-vnext">2026-07 vNext 约束确认候选<a class="headerlink" href="#2026-07-vnext" title="Permanent link">&para;</a></h2>
+<h2 id="2026-07-safe-gp-cohort">2026-07 Safe-GP 未触碰 cohort 确认<a class="headerlink" href="#2026-07-safe-gp-cohort" title="Permanent link">&para;</a></h2>
+<p>0.3 诊断发现普通 structured GP 在三个任务上提高目标的同时显著增加风险。随后只使用 Dev seeds
+1100–1119 修复并选择 Safe-GP：风险模型改为学习每次实验的操作峰值风险，初始设计采用公开的
+保守低强度配方，acquisition 使用风险不确定性上界；recipe space 0.2 将材料类别与连续用量解耦，
+不再把数字材料 ID 当成连续距离。</p>
+<p>策略实现摘要、开发证据和判决规则在新结果产生前冻结。确认运行使用此前从未观察的 seeds
+500–519：4 个任务 × 3 个方法 × 20 seeds，共 240 条 campaign、9,600 个完整实验。240 条轨迹均通过
+第二次独立回放，轨迹摘要互不重复，资源账本、代理元数据、配方版本和统计重算全部通过。</p>
+<p>主比较为 Safe-GP 减 random。目标区间为配对 bootstrap 区间；安全列给出平均风险超限率。</p>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th style="text-align: right;">平均目标效应</th>
+<th style="text-align: right;">区间</th>
+<th style="text-align: right;">SESOI</th>
+<th style="text-align: right;">Safe-GP 风险</th>
+<th style="text-align: right;">random 风险</th>
+<th>safety/cost</th>
+<th>完整任务规则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分配发现</td>
+<td style="text-align: right;">+0.036579</td>
+<td style="text-align: right;">[0.026105, 0.047188]</td>
+<td style="text-align: right;">0.0292</td>
+<td style="text-align: right;">5.75%</td>
+<td style="text-align: right;">16.88%</td>
+<td>通过 / 通过</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>反应—结晶</td>
+<td style="text-align: right;">+0.102475</td>
+<td style="text-align: right;">[0.082343, 0.122691]</td>
+<td style="text-align: right;">0.038827</td>
+<td style="text-align: right;">4.75%</td>
+<td style="text-align: right;">18.13%</td>
+<td>通过 / 通过</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>反应—蒸馏</td>
+<td style="text-align: right;">+0.049918</td>
+<td style="text-align: right;">[0.034127, 0.066079]</td>
+<td style="text-align: right;">0.0200</td>
+<td style="text-align: right;">10.63%</td>
+<td style="text-align: right;">18.63%</td>
+<td>通过 / 通过</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>连续流优化</td>
+<td style="text-align: right;">+0.018752</td>
+<td style="text-align: right;">[0.013144, 0.023698]</td>
+<td style="text-align: right;">0.0200</td>
+<td style="text-align: right;">3.75%</td>
+<td style="text-align: right;">20.75%</td>
+<td>通过 / 通过</td>
+<td><strong>失败</strong></td>
+</tr>
+</tbody>
+</table>
+<p>四项安全与成本非劣规则全部通过，四项目标方向均显著为正；但是协议同时要求平均效应达到逐任务
+SESOI。连续流差 0.001248，故四任务联合主规则必须判为失败。该结果支持“修复消除了此前观察到的
+约束失败”这一有限切片描述，但不支持 Safe-GP 完整优于 random、benchmark 已验证或论文就绪。
+seeds 500–519 已被消费，不得继续用于策略修改。</p>
+<h2 id="03-gp">此前的 0.3 无约束 GP 诊断<a class="headerlink" href="#03-gp" title="Permanent link">&para;</a></h2>
 <p>最新冻结运行比较 <code>structured_gp_bo</code> 与 <code>random</code>：</p>
 <ul>
 <li>4 个研究核心任务；</li>
@@ -2337,13 +2428,13 @@ benchmark 有效性。</p>
 </ul>
 <h2 id="_6">尚未关闭的门禁<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <ol>
-<li>只在 Train/Dev worlds 开发真正风险感知的策略；当前 Bench cohort 不再用于调参。</li>
+<li>只在 Train/Dev worlds 改进连续流上的安全—目标前沿；seeds 500–519 不再用于调参。</li>
 <li>完成 full-budget PPO、SAC 训练与评测，保留 checkpoint、训练步数和计算摘要。</li>
 <li>完成两个冻结 live-LLM 角色的配对运行，记录失败、重试、token、费用、谱图证据与回放。</li>
 <li>校准机理族扰动强度，冻结不重叠的 Train/Dev/Bench 世界分配。</li>
 <li>完成独立 reference portfolio 搜索，避免用被评方法自己的最好值充当 oracle。</li>
 <li>完成 salted private evaluation，只发布签名聚合结果。</li>
-<li>若风险感知方法形成新主比较，冻结另一个未触碰 cohort，并由独立执行者复现。</li>
+<li>若风险感知方法发生任何修改，冻结另一个未触碰 cohort，并由独立执行者复现。</li>
 </ol>
 <h2 id="_7">支持与不支持的主张<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
 <table>
@@ -2371,7 +2462,15 @@ benchmark 有效性。</p>
 <td>不支持</td>
 </tr>
 <tr>
-<td>safe BO、PPO、SAC 或 live LLM 已完成正式比较</td>
+<td>修复后 Safe-GP 在四任务确认中满足 safety 与 cost 非劣</td>
+<td>支持，限 seeds 500–519 切片</td>
+</tr>
+<tr>
+<td>Safe-GP 在完整四任务规则下优于 random</td>
+<td>不支持；连续流未达到 SESOI</td>
+</tr>
+<tr>
+<td>PPO、SAC 或 live LLM 已完成正式比较</td>
 <td>不支持</td>
 </tr>
 <tr>
