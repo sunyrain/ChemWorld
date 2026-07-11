@@ -13,6 +13,7 @@ from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.interaction import InteractionCapabilities
 from chemworld.agents.recipe_sequence import RecipeSequenceMixin
 from chemworld.agents.task_recipes import (
+    TASK_RECIPE_SPACE_VERSION,
     sample_conservative_task_recipe,
     sample_task_recipe,
     task_recipe_event_count,
@@ -189,6 +190,7 @@ class GaussianProcessBOAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseA
                 "n_initial": self.n_initial,
                 "effective_n_initial": self.effective_n_initial,
                 "n_candidates": self.n_candidates,
+                "search_space_version": TASK_RECIPE_SPACE_VERSION,
             }
         )
         return manifest
@@ -419,6 +421,7 @@ class RandomForestEIAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgen
                 "effective_n_initial": self.effective_n_initial,
                 "n_candidates": self.n_candidates,
                 "n_estimators": self.n_estimators,
+                "search_space_version": TASK_RECIPE_SPACE_VERSION,
             }
         )
         return manifest
@@ -452,6 +455,8 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
         super().__init__(n_initial=n_initial, n_candidates=n_candidates)
         if risk_confidence_beta < 0.0:
             raise ValueError("risk_confidence_beta must be non-negative")
+        if not 0.0 <= initial_perturbation_scale <= 0.25:
+            raise ValueError("initial_perturbation_scale must be between zero and 0.25")
         self.risk_threshold = risk_threshold
         self.risk_confidence_beta = risk_confidence_beta
         self.initial_perturbation_scale = initial_perturbation_scale
