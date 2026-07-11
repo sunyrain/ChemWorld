@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from statistics import fmean
 from typing import Any
 
 import numpy as np
+
+EVALUATION_METRICS_VERSION = "chemworld-evaluation-metrics-0.3"
 
 
 @dataclass(frozen=True)
@@ -74,7 +77,16 @@ def _agent_name(records: list[dict[str, Any]]) -> str:
 
 def _obs_float(observation: dict[str, Any], key: str, default: float = 0.0) -> float:
     value = observation.get(key)
-    return default if value is None else float(value)
+    return default if value is None else _finite_float(value, f"observation.{key}")
+
+
+def _finite_float(value: Any, field: str) -> float:
+    if isinstance(value, bool):
+        raise ValueError(f"{field} must be a finite number")
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError(f"{field} must be finite")
+    return number
 
 
 def _latest_agent_trace(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -94,10 +106,23 @@ def evaluate_records(
 
     if not records:
         raise ValueError("Cannot evaluate an empty trajectory")
+    threshold = _finite_float(threshold, "threshold")
+    if not 0.0 <= threshold <= 1.0:
+        raise ValueError("threshold must be in [0, 1]")
 
     leaderboard_values = [record.get("leaderboard_score") for record in records]
+    finite_leaderboard_values = [
+        _finite_float(value, "leaderboard_score")
+        for value in leaderboard_values
+        if value is not None
+    ]
+    if any(not 0.0 <= value <= 1.0 for value in finite_leaderboard_values):
+        raise ValueError("leaderboard_score must be in [0, 1]")
     official_scores = np.asarray(
-        [0.0 if value is None else float(value) for value in leaderboard_values],
+        [
+            0.0 if value is None else _finite_float(value, "leaderboard_score")
+            for value in leaderboard_values
+        ],
         dtype=float,
     )
     scored_mask = np.asarray([value is not None for value in leaderboard_values])
@@ -139,9 +164,7 @@ def evaluate_records(
         _obs_float(obs, "recovery") for obs in observations if obs.get("recovery") is not None
     ]
     phase_ratios = [
-        _obs_float(obs, "phase_ratio")
-        for obs in observations
-        if obs.get("phase_ratio") is not None
+        _obs_float(obs, "phase_ratio") for obs in observations if obs.get("phase_ratio") is not None
     ]
     products_in_organic = [
         _obs_float(obs, "product_in_organic")
@@ -234,20 +257,12 @@ def evaluate_records(
     mean_purity = float(fmean(purities)) if purities else 0.0
     mean_recovery = float(fmean(recoveries)) if recoveries else 0.0
     mean_phase_ratio = float(fmean(phase_ratios)) if phase_ratios else 0.0
-    mean_product_in_organic = (
-        float(fmean(products_in_organic)) if products_in_organic else 0.0
-    )
-    mean_product_in_aqueous = (
-        float(fmean(products_in_aqueous)) if products_in_aqueous else 0.0
-    )
+    mean_product_in_organic = float(fmean(products_in_organic)) if products_in_organic else 0.0
+    mean_product_in_aqueous = float(fmean(products_in_aqueous)) if products_in_aqueous else 0.0
     mean_crystal_yield = float(fmean(crystal_yields)) if crystal_yields else 0.0
     mean_crystal_purity = float(fmean(crystal_purities)) if crystal_purities else 0.0
-    mean_distillate_purity = (
-        float(fmean(distillate_purities)) if distillate_purities else 0.0
-    )
-    mean_distillate_recovery = (
-        float(fmean(distillate_recoveries)) if distillate_recoveries else 0.0
-    )
+    mean_distillate_purity = float(fmean(distillate_purities)) if distillate_purities else 0.0
+    mean_distillate_recovery = float(fmean(distillate_recoveries)) if distillate_recoveries else 0.0
     mean_flow_conversion = float(fmean(flow_conversions)) if flow_conversions else 0.0
     mean_electrochemical_selectivity = (
         float(fmean(electrochemical_selectivities)) if electrochemical_selectivities else 0.0
@@ -257,9 +272,7 @@ def evaluate_records(
     mean_acid_dissociation_fraction = (
         float(fmean(acid_dissociation_values)) if acid_dissociation_values else 0.0
     )
-    mean_precipitation_signal = (
-        float(fmean(precipitation_values)) if precipitation_values else 0.0
-    )
+    mean_precipitation_signal = float(fmean(precipitation_values)) if precipitation_values else 0.0
     mean_equilibrium_residual = (
         float(fmean(equilibrium_residuals)) if equilibrium_residuals else 0.0
     )
@@ -274,13 +287,10 @@ def evaluate_records(
             1.0,
         )
     )
-    process_mass_balance_violation_count = int(
-        sum(error > 0.05 for error in mass_balance_errors)
-    )
+    process_mass_balance_violation_count = int(sum(error > 0.05 for error in mass_balance_errors))
     precondition_recovery_count = int(
         sum(
-            bool(precondition_failures[index])
-            and not bool(precondition_failures[index + 1])
+            bool(precondition_failures[index]) and not bool(precondition_failures[index + 1])
             for index in range(max(len(precondition_failures) - 1, 0))
         )
     )
@@ -299,9 +309,7 @@ def evaluate_records(
     }
     agent_trace = _latest_agent_trace(records)
     surrogate_decisions = [
-        entry
-        for entry in agent_trace
-        if entry.get("trace_type") == "surrogate_recipe_decision"
+        entry for entry in agent_trace if entry.get("trace_type") == "surrogate_recipe_decision"
     ]
     bo_initial_recipe_count = sum(
         1 for entry in surrogate_decisions if entry.get("phase") == "initial"
@@ -393,3 +401,10 @@ def evaluate_records(
         observation_use_summary=observation_use_summary,
         total_score=total_score,
     )
+
+
+__all__ = [
+    "EVALUATION_METRICS_VERSION",
+    "EvaluationResult",
+    "evaluate_records",
+]

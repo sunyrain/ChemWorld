@@ -1,0 +1,82 @@
+{
+  "adversarial_probes": {
+    "binding_tamper": true,
+    "missing_terminal_primary": true,
+    "nonfinite_objective": true,
+    "online_reward_decoy": true,
+    "record_source_mismatch": true,
+    "reported_metric_tamper": true,
+    "trajectory_byte_tamper": true
+  },
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "binding_schema": true,
+    "candidate_is_non_claiming": true,
+    "directions_explicit": true,
+    "exact_source_binding": true,
+    "metrics_versioned": true,
+    "missing_primary_fails_closed": true,
+    "nonfinite_fails_closed": true,
+    "online_reward_excluded": true,
+    "primary_metrics": true,
+    "replay_required": true,
+    "required_probes_declared": true,
+    "result_schema": true,
+    "schema": true,
+    "task_scope": true,
+    "trajectory_is_metric_source": true
+  },
+  "controls_ready": true,
+  "known_blockers": [
+    "No vNext formal method result has yet been frozen under result schema 0.3.",
+    "Independent reproduction of frozen result and trajectory digests is pending."
+  ],
+  "protocol_id": "chemworld-vnext-score-replay-candidate-0.1",
+  "publication_ready": false,
+  "remaining_release_gates": [
+    "complete the public subprocess harness",
+    "complete the expanded exploit matrix",
+    "run all formal methods under the vNext result schema",
+    "independently reproduce frozen result digests"
+  ],
+  "schema_version": "chemworld-score-replay-audit-0.1",
+  "source_digests": {
+    "leaderboard": "642712e9bbc10f71eafc35506400ccd1f7f10a540d1826e9344d165fff528488",
+    "metrics": "b5b3da1c2649549c357274dbee52f43b985df0c35e3f26924882425d53d34423",
+    "protocol": "2c6e72098a24f2b9e7bc7ea1c26a66d8c9b6edafe05d3647259598b468300507",
+    "result_artifacts": "b6be86b4011855d66d8b7cb9ccd2fc158b3930c846d7b984d356c35cf278a2c4"
+  },
+  "status": "controls_ready_formal_rerun_blocked",
+  "task_contracts": {
+    "electrochemical-conversion": {
+      "direction": "maximize",
+      "missing_primary_policy": "fail",
+      "primary_metric": "electrochemical_selectivity"
+    },
+    "equilibrium-characterization": {
+      "direction": "maximize",
+      "missing_primary_policy": "fail",
+      "primary_metric": "equilibrium_confidence"
+    },
+    "flow-reaction-optimization": {
+      "direction": "maximize",
+      "missing_primary_policy": "fail",
+      "primary_metric": "flow_conversion"
+    },
+    "partition-discovery": {
+      "direction": "maximize",
+      "missing_primary_policy": "fail",
+      "primary_metric": "product_in_organic"
+    },
+    "reaction-to-crystallization": {
+      "direction": "maximize",
+      "missing_primary_policy": "fail",
+      "primary_metric": "crystal_yield"
+    },
+    "reaction-to-distillation": {
+      "direction": "maximize",
+      "missing_primary_policy": "fail",
+      "primary_metric": "distillate_purity"
+    }
+  }
+}

@@ -3,16 +3,23 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 from pathlib import Path
 from typing import Any
 
 from chemworld.data.logging import load_jsonl
 from chemworld.data.validation import validate_records
-from chemworld.eval.metrics import evaluate_records
+from chemworld.eval.layered_evaluation import TaskEvaluationContract, evaluate_layered_records
+from chemworld.eval.metrics import EVALUATION_METRICS_VERSION, evaluate_records
+from chemworld.eval.risk_cost_signal_audit import RiskCostTaskPolicy
 from chemworld.eval.verify import verify_records
+from chemworld.physchem.mechanism_library import configuration_root
+from chemworld.tasks import SERIOUS_TASK_IDS
 
-EVALUATION_RESULT_SCHEMA_VERSION = "chemworld-evaluation-result-0.2"
+EVALUATION_RESULT_SCHEMA_VERSION = "chemworld-evaluation-result-0.3"
+V02_EVALUATION_RESULT_SCHEMA_VERSION = "chemworld-evaluation-result-0.2"
+SCORE_REPLAY_BINDING_VERSION = "chemworld-score-replay-binding-0.1"
 
 
 def trajectory_sha256(path: str | Path) -> str:
@@ -33,11 +40,15 @@ def build_verified_evaluation_result(
 
     path = Path(trajectory_path).resolve()
     validate_records(records)
+    persisted_records = load_jsonl(path)
+    if persisted_records != records:
+        raise ValueError("Evaluation records do not match the bound trajectory source")
     verification = verify_records(records).to_dict()
     if not bool(verification["verified"]):
         raise ValueError(
             "Trajectory replay verification failed; refusing to produce an evaluation result"
         )
+    digest = trajectory_sha256(path)
     result = evaluate_records(records, threshold=threshold).to_dict()
     result.update(
         {
@@ -46,7 +57,12 @@ def build_verified_evaluation_result(
             "verification": verification,
             "evaluation_threshold": float(threshold),
             "trajectory_path": str(path),
-            "trajectory_sha256": trajectory_sha256(path),
+            "trajectory_sha256": digest,
+            "score_replay": _score_replay_payload(
+                records,
+                threshold=threshold,
+                trajectory_digest=digest,
+            ),
         }
     )
     return result
@@ -59,10 +75,12 @@ def validate_verified_evaluation_result(
 ) -> None:
     """Validate result metadata, trajectory digest, and optionally replay it."""
 
-    if result.get("result_schema_version") != EVALUATION_RESULT_SCHEMA_VERSION:
-        raise ValueError(
-            "Leaderboard input must use a supported verified evaluation-result schema"
-        )
+    schema_version = result.get("result_schema_version")
+    if schema_version not in {
+        EVALUATION_RESULT_SCHEMA_VERSION,
+        V02_EVALUATION_RESULT_SCHEMA_VERSION,
+    }:
+        raise ValueError("Leaderboard input must use a supported verified evaluation-result schema")
     if result.get("verified") is not True:
         raise ValueError("Leaderboard input is not replay verified")
     verification = result.get("verification")
@@ -80,6 +98,14 @@ def validate_verified_evaluation_result(
     actual_digest = trajectory_sha256(trajectory)
     if actual_digest != expected_digest:
         raise ValueError("Leaderboard trajectory digest does not match evaluation result")
+    if schema_version == EVALUATION_RESULT_SCHEMA_VERSION:
+        binding = result.get("score_replay")
+        if not isinstance(binding, dict):
+            raise ValueError("Leaderboard input is missing the score/replay binding")
+        if binding.get("schema_version") != SCORE_REPLAY_BINDING_VERSION:
+            raise ValueError("Leaderboard input has an unsupported score/replay binding")
+        if binding.get("trajectory_sha256") != actual_digest:
+            raise ValueError("Score/replay binding does not match trajectory digest")
     if replay:
         records = load_jsonl(trajectory)
         replay_result = verify_records(records)
@@ -101,13 +127,56 @@ def validate_verified_evaluation_result(
             else:
                 matches = actual_value == expected_value
             if not matches:
+                raise ValueError(f"Leaderboard metric {key!r} does not match trajectory evaluation")
+        if schema_version == EVALUATION_RESULT_SCHEMA_VERSION:
+            expected_binding = _score_replay_payload(
+                records,
+                threshold=float(threshold),
+                trajectory_digest=actual_digest,
+            )
+            if result.get("score_replay") != expected_binding:
                 raise ValueError(
-                    f"Leaderboard metric {key!r} does not match trajectory evaluation"
+                    "Leaderboard score/replay binding does not match trajectory evaluation"
                 )
+
+
+def _score_replay_payload(
+    records: list[dict[str, Any]],
+    *,
+    threshold: float,
+    trajectory_digest: str,
+) -> dict[str, Any]:
+    first = records[0]
+    task_id = str(first.get("benchmark_task_id") or "")
+    payload: dict[str, Any] = {
+        "schema_version": SCORE_REPLAY_BINDING_VERSION,
+        "evaluation_metrics_version": EVALUATION_METRICS_VERSION,
+        "metric_source": "exact_trajectory_replay",
+        "trajectory_sha256": trajectory_digest,
+        "source_record_count": len(records),
+        "evaluation_threshold": float(threshold),
+        "nonfinite_numeric_policy": "fail",
+        "online_reward_is_primary": False,
+    }
+    if task_id not in SERIOUS_TASK_IDS:
+        payload["layered_evaluation"] = None
+        payload["task_evaluation_contract"] = None
+        return payload
+
+    risk_protocol = json.loads(
+        (configuration_root() / "benchmark" / "risk_cost_vnext.json").read_text(encoding="utf-8")
+    )
+    risk_limit = RiskCostTaskPolicy.from_protocol(task_id, risk_protocol).risk_limit
+    contract = TaskEvaluationContract.for_task(task_id, risk_limit=risk_limit)
+    payload["task_evaluation_contract"] = contract.to_dict()
+    payload["layered_evaluation"] = evaluate_layered_records(records, contract=contract)
+    return payload
 
 
 __all__ = [
     "EVALUATION_RESULT_SCHEMA_VERSION",
+    "SCORE_REPLAY_BINDING_VERSION",
+    "V02_EVALUATION_RESULT_SCHEMA_VERSION",
     "build_verified_evaluation_result",
     "trajectory_sha256",
     "validate_verified_evaluation_result",

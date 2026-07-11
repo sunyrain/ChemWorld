@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from collections import defaultdict
 from collections.abc import Sequence
 from pathlib import Path
@@ -10,6 +11,18 @@ from statistics import fmean, pstdev
 from typing import Any
 
 from chemworld.eval.result_artifacts import validate_verified_evaluation_result
+
+
+def _finite_score(item: dict[str, Any], key: str) -> float:
+    value = item.get(key)
+    if value is None or isinstance(value, bool):
+        raise ValueError(f"Leaderboard metric {key!r} must be numeric")
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError(f"Leaderboard metric {key!r} must be finite")
+    if not 0.0 <= number <= 1.0:
+        raise ValueError(f"Leaderboard metric {key!r} must be in [0, 1]")
+    return number
 
 
 def load_results(
@@ -44,9 +57,9 @@ def aggregate_leaderboard(
     rows: list[dict[str, Any]] = []
     split_means: dict[tuple[str, str], float] = {}
     for (agent_name, split), items in grouped.items():
-        scores = [float(item["total_score"]) for item in items]
-        performance = [float(item["final_best_score"]) for item in items]
-        safety = [float(item["safety_aware_score"]) for item in items]
+        scores = [_finite_score(item, "total_score") for item in items]
+        performance = [_finite_score(item, "final_best_score") for item in items]
+        safety = [_finite_score(item, "safety_aware_score") for item in items]
         mean_total = fmean(scores)
         std_total = pstdev(scores) if len(scores) > 1 else 0.0
         sem_total = std_total / (len(scores) ** 0.5) if len(scores) > 1 else 0.0
