@@ -1,0 +1,19 @@
+{
+  "branch": "team/benchmark-v1-release-portable-digests",
+  "claimed_at": "2026-07-11T11:19:39.780131+00:00",
+  "completed_at": "2026-07-11T11:56:35.618997+00:00",
+  "completion_summary": "Implemented raw-first legacy serious-v1 evidence digest verification with an audited Git-CRLF-only compatibility mode; added LF/CRLF and tamper regression coverage plus release documentation. Tests: 965 passed, 11 skipped full suite; 7 post-integration release tests passed; Ruff and mypy passed; candidate structural integrity passes while release_claim_allowed remains false and strict frozen verification still fails freshness as designed. Reference evidence: none required for byte-integrity repair. Known limitations: stale task/source/status/trajectory freshness is intentionally unresolved; no v0.1 evidence or manifest was rewritten. Implementation commit 44a9aa5; integration commit 29c1323.",
+  "expires_at": "2026-07-18T11:19:39.780131+00:00",
+  "notes": "",
+  "owned_paths": [
+    "scripts/check_frozen_benchmark.py",
+    "tests/test_benchmark_release_integrity.py",
+    "docs/release_integrity.md",
+    "workstreams/benchmark_v1/release_integrity.md"
+  ],
+  "owner": "knitua",
+  "schema_version": "chemworld-task-claim-0.1",
+  "scope": "Make legacy serious-v1 embedded evidence digest verification portable across Git LF/CRLF checkout normalization without modifying frozen v0.1 evidence semantics; retain fail-closed content tamper detection and document the audited compatibility mode",
+  "status": "completed",
+  "task_id": "benchmark-v1-release-portable-digests"
+}
