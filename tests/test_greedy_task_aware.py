@@ -8,6 +8,7 @@ import pytest
 from chemworld.agents.greedy import GreedyLocalAgent
 from chemworld.agents.task_recipes import (
     TASK_RECIPE_SPACE_VERSION,
+    task_recipe_dimension,
     task_recipe_event_count,
     task_recipe_to_vector,
 )
@@ -37,14 +38,16 @@ def test_greedy_executes_legal_campaign_on_every_serious_task(
 
     assert history
     assert not any(
-        record.info["constraint_flags"].get("precondition_failed", False)
-        for record in history
+        record.info["constraint_flags"].get("precondition_failed", False) for record in history
     )
-    assert sum(
-        record.action.get("operation") == "measure"
-        and record.action.get("instrument") == "final_assay"
-        for record in history
-    ) >= 1
+    assert (
+        sum(
+            record.action.get("operation") == "measure"
+            and record.action.get("instrument") == "final_assay"
+            for record in history
+        )
+        >= 1
+    )
 
 
 def test_greedy_local_candidate_stays_in_task_recipe_space() -> None:
@@ -66,7 +69,7 @@ def test_greedy_local_candidate_stays_in_task_recipe_space() -> None:
 
     initial = task_recipe_to_vector(initial_recipe)
     candidate = task_recipe_to_vector(candidate_recipe)
-    assert initial.shape == candidate.shape == (6,)
+    assert initial.shape == candidate.shape == (task_recipe_dimension(task_info),)
     assert np.all((candidate >= 0.0) & (candidate <= 1.0))
     assert not np.array_equal(initial, candidate)
     assert all(

@@ -62,6 +62,16 @@ live LLM 还必须冻结 provider、模型标识、prompt hash、请求参数和
 连续流效应 0.018752 略低于 SESOI 0.020000。因此完整 baseline 主比较仍失败，不能用这批 Bench
 结果继续调参；任何新策略都需要新的 Dev 选择和未触碰确认 cohort。
 
+后续在新的五世界开发切片中比较了风险置信系数 2.0、1.5 和 1.0。2.0 同时得到最高平均连续流
+转换率、最低风险超限率和最低单实验成本；较低系数对 incumbent 的配对目标效应为负，成本回退也
+超过 5%。因此保留原策略，不用这一小样本诊断改写确认结论。
+
+## 强化学习开发状态
+
+SAC 已在连续流 Train 环境精确完成 100,000 步并保留五个 checkpoint。20 个开发 episodes 与 10 条
+标准轨迹通过完成率、非法动作和回放门禁；但 80k checkpoint 明显优于 100k，且只有一个模型 seed。
+正式 RL baseline 必须先进行 pooled multi-seed checkpoint 选择，再扩展任务并访问冻结评测世界。
+
 ## 最低报告字段
 
 - 逐任务 paired effect、bootstrap 置信区间和多重比较校正；

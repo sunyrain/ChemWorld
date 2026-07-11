@@ -27,7 +27,12 @@ replay. Safe-GP passed every safety and cost rule and improved the objective on 
 but its flow effect (0.018752) missed the pre-registered SESOI (0.020000). The complete joint
 rule therefore failed and does not support a method claim.
 
-Full-budget RL, paired live-LLM evaluation, mechanism-family generalization, independent
+A single-seed SAC development run completed exactly 100,000 training steps, but its 80k
+checkpoint outperformed the 100k checkpoint and therefore requires pooled multi-seed selection.
+All six research tasks now expose executable, calibrated mechanism or constitutive-law families;
+agent identification and transfer have not been measured. Operation-level Pro/Flash adapters and
+a causally isolated assigned-versus-masked spectrum condition pass offline controls, but no real
+provider trajectories exist. Multi-seed RL, live-LLM evaluation, mechanism adaptation, independent
 reference search, salted private evaluation, and independent reproduction remain open.
 
 ## Documentation map

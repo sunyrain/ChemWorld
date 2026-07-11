@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from chemworld.agents.task_recipes import task_recipe_dimension, task_recipe_event_count
 from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.validity_power import (
     audit_validity_power,
@@ -74,8 +75,11 @@ def test_validity_power_rejects_unpaired_seed_coverage() -> None:
 def test_calibrated_budget_provides_dimension_aware_learning_opportunity() -> None:
     task_info = get_task("partition-discovery").to_dict()
 
-    assert minimum_learning_capacity(task_info) == 8
-    assert calibrated_validity_budget(task_info) == 80
+    expected_capacity = task_recipe_dimension(task_info) + 2
+    assert minimum_learning_capacity(task_info) == expected_capacity == 10
+    assert calibrated_validity_budget(task_info) == (
+        task_recipe_event_count(task_info) * expected_capacity
+    )
 
 
 def test_runner_budget_override_reaches_agent_and_execution_loop(tmp_path) -> None:

@@ -91,7 +91,7 @@ python scripts/run_safe_policy_confirmatory.py --dry-run
 python scripts/run_safe_policy_confirmatory.py --workers 4
 python scripts/audit_safe_policy_confirmatory.py `
   --run-root runs/benchmark-vnext/safe-policy-confirmatory-0.1 `
-  --output workstreams/benchmark_v1/reports/safe-policy-confirmatory.json
+  --output runs/benchmark-vnext/safe-policy-confirmatory-0.1/audit.json
 ```
 
 ## RL 方法
@@ -99,6 +99,10 @@ python scripts/audit_safe_policy_confirmatory.py `
 RL 结果至少保留：算法与库版本、网络和观测封装、训练 world 分配、随机种子、环境步数、计算设备、
 checkpoint 摘要、Dev 选择规则和无学习评测轨迹。PPO/SAC 等方法不能只运行未训练策略或短 smoke
 后进入方法排名。
+
+当前 SAC 开发证据只有连续流任务的单模型 seed。它精确完成 100,000 步并通过开发回放门禁，但
+80k checkpoint 的开发结果高于 100k。正式协议必须在多个训练 seed 上汇总 checkpoint 选择，不能
+默认使用训练步数最大的模型。
 
 ## LLM 与 tool agent
 

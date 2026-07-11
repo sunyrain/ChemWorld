@@ -1,42 +1,54 @@
 {
-  "schema_version": "chemworld-manuscript-claims-0.1",
+  "schema_version": "chemworld-manuscript-claims-0.2",
   "publication_ready": false,
   "claims": [
     {
       "id": "C1-contract",
       "status": "allowed",
-      "assertion": "ChemWorld implements a typed closed-loop interface that records experiments, measurements, resources and structured decision evidence.",
+      "assertion": "ChemWorld implements a typed closed-loop interface with replay-bound evaluation and explicit interaction capability strata.",
       "source": "workstreams/benchmark_v1/reports/agent-interaction-contract.json"
     },
     {
-      "id": "C2-diagnostic-discrimination",
-      "status": "allowed_diagnostic_only",
-      "assertion": "In the retained legacy diagnostic matrix, adaptive optimization improved the declared primary metric on four of six tasks, while electrochemistry and equilibrium remained unresolved.",
-      "source": "workstreams/benchmark_v1/reports/task-validity-vnext.json"
+      "id": "C2-safe-gp-slice",
+      "status": "allowed_bounded",
+      "assertion": "In the frozen four-task slice, Safe-GP improved every primary endpoint, risk rate and cost relative to random search but failed the conjunctive rule because the flow effect was below its SESOI.",
+      "source": "workstreams/benchmark_v1/reports/safe-policy-confirmatory.json"
     },
     {
-      "id": "C3-score-replay",
+      "id": "C3-rl-development",
+      "status": "allowed_development_only",
+      "assertion": "A single-seed 100,000-step SAC development run peaked at 80,000 steps and regressed at the final checkpoint.",
+      "source": "workstreams/benchmark_v1/reports/rl-100k-development.json"
+    },
+    {
+      "id": "C4-mechanism-controls",
       "status": "allowed_control_only",
-      "assertion": "The vNext evaluator binds reported scores to replayed source records, trajectory bytes, evaluator version and task contracts.",
-      "source": "workstreams/benchmark_v1/reports/score-replay-controls.json"
+      "assertion": "Nine task-family mechanism controls were detectable, bounded, deterministic and mass conserving in the calibration probes.",
+      "source": "workstreams/benchmark_v1/reports/mechanism-family-controls.json"
     },
     {
-      "id": "C4-confirmatory-superiority",
+      "id": "C5-llm-controls",
+      "status": "allowed_control_only",
+      "assertion": "The operation-level language-model adapter and causally isolated spectral masking pass offline controls, but no real-provider result is available.",
+      "source": "workstreams/benchmark_v1/reports/live-llm-controls.json"
+    },
+    {
+      "id": "C6-complete-ranking",
       "status": "blocked",
       "assertion": "ChemWorld establishes a confirmatory ranking of classical, reinforcement-learning and language-model agents.",
-      "source": "workstreams/benchmark_v1/reports/confirmatory-freeze-controls.json"
+      "source": "workstreams/benchmark_v1/reports/architecture-readiness.json"
     },
     {
-      "id": "C5-training-transfer",
+      "id": "C7-training-transfer",
       "status": "blocked",
       "assertion": "Training in ChemWorld improves transfer to unseen virtual or real chemical systems.",
-      "source": "workstreams/benchmark_v1/reports/confirmatory-freeze-controls.json"
+      "source": "workstreams/benchmark_v1/reports/architecture-readiness.json"
     },
     {
-      "id": "C6-real-world-validity",
+      "id": "C8-real-world-validity",
       "status": "blocked",
       "assertion": "Performance in ChemWorld predicts autonomous-agent performance in a physical laboratory.",
-      "source": "workstreams/benchmark_v1/reports/confirmatory-freeze-controls.json"
+      "source": "workstreams/benchmark_v1/reports/architecture-readiness.json"
     }
   ]
 }

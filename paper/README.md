@@ -1,16 +1,21 @@
-# ChemWorld Nature-style review manuscript
+# ChemWorld Nature-style submission draft
 
-This directory contains an evidence-gated **review draft**, not a submission-ready manuscript.
-The prose and figures distinguish three evidence classes:
+This directory contains a rendered **Nature Article-style submission draft for author review**.
+It is deliberately not labelled publication-ready: the architecture controls pass, but the full
+method matrix, multi-seed RL evaluation, real-provider LLM runs, hidden-world generalization,
+mechanism adaptation, exploit resistance and independent reproduction remain open.
 
-1. implemented and audited controls;
-2. retained legacy diagnostic experiments;
-3. blocked claims awaiting the frozen vNext method matrix, confirmatory rerun, exploit audit,
-   independent reproduction and Train-to-Bench/Bridge transfer.
+The manuscript separates four evidence classes:
 
-`claims.json` is the machine-readable claim ledger. `source_data/` is regenerated only from retained
-reports, and `manuscript-audit.json` fails closed if blocked claims appear verbatim or upstream
-publication readiness is false.
+1. a bounded, frozen Safe-GP confirmatory slice;
+2. SAC and Safe-GP development diagnostics;
+3. environment and adapter controls;
+4. blocked benchmark, transfer and real-world claims.
+
+`claims.json` is the machine-readable claim ledger. `source_data/manifest.json` binds each figure to
+retained evidence reports by SHA-256. `manuscript-audit.json` fails closed if a blocked claim appears
+verbatim, a digest changes, a current result disappears, or upstream evidence is presented as
+publication-ready.
 
 ## Build
 
@@ -20,10 +25,11 @@ From the repository root on Windows:
 .\paper\build.ps1
 ```
 
-The build requires the project virtual environment and Tectonic 0.16 or newer. It regenerates all
-figures, audits the draft before rendering, writes `build/main.pdf`, copies the review artifact to
-`main.pdf`, and audits the rendered artifact again.
+The build regenerates all five figures and their source tables, audits the draft before rendering,
+renders with Tectonic, copies the author-review artifact to `paper/main.pdf`, and audits the final
+PDF.
 
-Submission metadata remains intentionally incomplete: authors, affiliations, corresponding author,
-acknowledgements, competing interests, contributions and repository DOI must be supplied by the
-project owner before external submission.
+Before external submission, the project owner must provide authors, affiliations, corresponding
+author, acknowledgements, contributions, competing interests, funding and an archival repository
+DOI. Scientific submission also requires closing the formal evidence gates listed in the manuscript
+and machine-readable audit.

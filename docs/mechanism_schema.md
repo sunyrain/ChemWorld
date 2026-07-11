@@ -27,14 +27,20 @@ Compiler 将声明式 mechanism 转为 runtime kernels、初始 ledger 和 instr
 
 同一任务可以在保持公共 action/observation schema 不变的前提下改变隐藏机理族，例如：
 
-- 反应速率律或网络拓扑；
-- 分配本构指数与相选择行为；
-- 成核/生长动力学；
-- 蒸馏相对挥发度或设备约束；
-- 流动反应的速率与传递轴。
+- 结晶前反应、蒸馏前反应和连续流反应的速率律或网络拓扑；
+- 分配任务的活度修正构成律指数；
+- 电化学任务的标准电位、传递系数与过电位—选择性响应；
+- 平衡任务的活度系数比与电荷平衡响应。
 
-每个干预产生独立 mechanism digest，并记录父机制、干预轴和强度。正式泛化实验按机理族划分
-Train、Dev 和 Bench，而不是只换随机 seed。
+每个干预产生独立 opaque digest。公开轨迹只披露版本与 hash；维护者回放需要另行提供精确干预
+上下文，缺失或篡改时失败关闭。正式泛化实验按机理族划分 Train、Dev 和 Bench，而不是只换随机
+seed。
+
+## 当前控制证据
+
+六个研究任务都已有实际 provider 消费的机理或构成律族。控制审计使用 5 个世界和 5 个代表性配方，
+共检查 9 个任务—模式组合。全部组合满足确定性、行为可辨识、90 分位响应不过强和质量守恒要求。
+这些阈值服务于 benchmark 可辨识性，不应解释为真实化学常数或物理精度验证。
 
 ## Public 与 hidden 边界
 
@@ -44,8 +50,9 @@ rate constant、partition coefficient、机理族标签、私有扰动幅度或 
 
 ## 回放与证据
 
-Replay 使用相同 world law、mechanism、scenario、seed 和 action sequence。结果漂移时，验证器会检查
+Replay 使用相同 world law、mechanism、scenario、seed、精确干预上下文和 action sequence。结果漂移时，验证器会检查
 随机流、浮点容忍、transaction、instrument noise、合同 hash 和 runtime provider。机理可执行并不
-代表 Agent 已学会识别它；正式机制适应主张还需要多 seed、强度校准和未见 family 评测。
+代表 Agent 已学会识别它；正式机制适应主张还需要不重叠的 family 分配、Agent 识别指标和未见
+family 迁移评测。
 
 模型成熟度见[模型成熟度](model_maturity.md)，整体分层见[系统架构](architecture.md)。

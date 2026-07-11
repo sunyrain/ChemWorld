@@ -71,16 +71,20 @@ A first fresh-cohort comparison showed that unconstrained structured GP improved
 task objectives but failed safety non-inferiority in flow, crystallization, and distillation.
 Safe-GP was then repaired on development worlds to learn experiment-peak risk and use a
 categorical recipe space without ordinal leakage. Its policy and analysis were frozen before
-an untouched 240-run confirmation (four tasks, three methods, 20 paired seeds, 40 experiments
-per run). All 240 trajectories passed an independent second replay. Safe-GP passed every
-safety and cost rule and had a positive objective effect against random on every task, but the
-flow effect was 0.018752 against a pre-registered SESOI of 0.020000. The all-task joint rule
-therefore still failed and does not support a method claim or leaderboard.
+an untouched 240-run confirmation. Every trajectory passed independent replay. Safe-GP passed
+all safety and cost rules and improved every task objective, but the flow effect was 0.018752
+against a pre-registered SESOI of 0.020000. The all-task joint rule therefore failed. A later
+fresh development diagnostic found that simply lowering the risk-confidence coefficient made
+the objective--risk--cost profile worse, so the failed confirmation was not tuned away.
 
-RL training results, live-LLM comparisons, mechanism-family generalization, a searched
-reference portfolio, salted private evaluation, and independent reproduction remain
-open evidence gates. See the [scientific status](https://sunyrain.github.io/ChemWorld/benchmark_release/)
-and [limitations](https://sunyrain.github.io/ChemWorld/limitations/) before citing results.
+The current control layer also includes six-task executable mechanism families, an exact
+100,000-step single-seed SAC development run, operation-level Pro/Flash LLM adapters, causal
+assigned-versus-masked spectrum handling, and layered resource/replay accounting. These are
+development or control results, not a completed cross-method benchmark. Multi-seed RL, real
+LLM trajectories, mechanism adaptation, a searched reference portfolio, salted private
+evaluation, and independent reproduction remain open evidence gates. See the
+[scientific status](https://sunyrain.github.io/ChemWorld/benchmark_release/) and
+[limitations](https://sunyrain.github.io/ChemWorld/limitations/) before citing results.
 
 ## Documentation map
 

@@ -26,25 +26,23 @@ public task + history + spectra
 模型只接收 public task view、合法动作、公开历史和经过披露策略处理的谱图，不接收 hidden state、
 机理参数或 private salt。系统不请求、保存或向网页展示私有逐字思维链。
 
-## 多轮与单次计划
+## 多轮闭环
 
-- `adaptive`：每一步根据最新观测重新决策；这是闭环能力的主测试模式。
-- `plan`：开始时生成整段动作，仅用于低调用成本对照。
-
-两者必须分开报告。一次性计划成功不能证明模型读取了新观测；多轮调用次数本身也不能证明有效
-适应，轨迹还需显示动作或假设随证据发生可解释变化。
+正式 adapter 每个 environment operation 调用一次模型。模型必须根据最新公开观测、约束、谱图和
+已完成实验记忆重新选择动作。一次性整段计划只能作为 operation-open-loop 对照；它与逐操作闭环
+属于不同交互层级，不能据此作算法优劣归因。多轮调用次数本身也不证明适应，轨迹还需显示证据、
+假设或动作随新观测发生变化。
 
 ## 谱图披露
 
 | 模式 | 模型输入 | 用途 |
 | --- | --- | --- |
-| `raw` | 降采样曲线 | 原始信号读取下限 |
-| `unassigned` | 曲线与未指认峰 | 默认研究候选设置 |
-| `assigned` | 带标签峰表 | 教学与信息上限 |
-| masked | 无该谱图通道 | 配对消融 |
+| `assigned` | 公开曲线、峰表和允许披露的 assignment | 信息可用条件 |
+| `masked` | 删除谱图、色谱、峰、通道与 assignment | 配对因果消融 |
 
-如果声明模型会“读谱”，必须比较相同任务、seed、预算和模型下的可见/屏蔽运行，并保留模型引用的
-峰、动作变化和最终效应。仅把曲线画在网页上不构成使用证据。
+masked 条件必须保留端点、质量衡算、成本、预算、约束和其它非谱图公开证据。若声明模型会“读谱”，
+必须比较相同任务、世界、预算和模型 seed 下的 assigned/masked 运行，并保留模型引用的峰、动作
+变化和最终效应。仅把曲线画在网页上不构成使用证据。
 
 ## 请求、重试与费用
 
@@ -62,7 +60,7 @@ public task + history + spectra
 
 ```powershell
 $env:DEEPSEEK_API_KEY = "<your-api-key>"
-$env:DEEPSEEK_MODEL = "<provider-supported-model-id>"
+$env:DEEPSEEK_MODEL = "deepseek-v4-pro"
 python -m apps.task_lab.server --port 8876
 ```
 
@@ -80,9 +78,10 @@ python examples/demo_llm_replay_harness.py
 
 ## 当前证据边界
 
-在线客户端、结构化 trace、谱图披露、token/费用账本和失败重试规则已经实现。两个冻结 live-LLM
-角色尚未在四任务新 cohort 上完成配对、回放验证的正式矩阵，因此当前不能发布 LLM 排名、模型
-优劣或“LLM 学会化学机理”的结论。
+在线客户端、结构化 trace、因果隔离谱图消融、token/费用账本和失败保留规则已经实现。冻结角色为
+V4 Pro（thinking、`max` effort）与 V4 Flash（non-thinking）。当前仓库没有真实 provider 轨迹；两个
+角色尚未在四任务新 cohort 上完成配对、回放验证的正式矩阵，因此不能发布 LLM 排名、模型优劣或
+“LLM 学会化学机理”的结论。
 
 界面使用见[Agent Observatory 与 Student Lab](interactive_task_lab.md)，统一资源规则见
 [Benchmark 协议](benchmark_protocol.md)。

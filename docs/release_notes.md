@@ -1,5 +1,16 @@
 # 发布说明
 
+## 2026-07-12 · Architecture, mechanism, RL and LLM evidence refresh
+
+- 分层评价增加 recipe-search、operation-open-loop、operation-closed-loop 能力层，交互与资源诊断不进入端点总分；
+- 六个研究任务均接入实际 provider 消费的机理/构成律族，9/9 任务—模式组合通过多世界、多配方校准；
+- 机理干预版本和 opaque hash 进入轨迹，精确上下文缺失或篡改时回放失败关闭；
+- SAC 单 seed 开发运行精确完成 100,000 步并保留五个 checkpoint；80k 明显优于 100k，正式矩阵继续关闭；
+- 新 SafeGP β 诊断拒绝通过降低风险置信系数追逐确认阈值，原确认失败不变；
+- live-LLM adapter 冻结 Pro/Flash 角色、费用账本和失败策略；assigned/masked 消融保持所有非谱图证据不变；
+- 全局架构控制层一致，正式证据层仍有 11 项活动问题，完整 benchmark 与 publication 主张保持关闭；
+- 公开文档改为用户旅程导航，删除维护者执行路径与内部认领信息。
+
 ## 2026-07-12 · Safe-GP development and untouched confirmation
 
 - 修复风险代理误学 final-assay 末态风险的问题，改为实验内操作峰值风险；
