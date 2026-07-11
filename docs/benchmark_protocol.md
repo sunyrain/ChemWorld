@@ -93,6 +93,13 @@ python scripts/build_publication_evidence.py `
   --run-dir runs/publication/protocol-v0.1/full
 ```
 
+当前 exploit 探针已覆盖未知操作、提前 final assay、提前 terminate、非有限数值、重复 final assay
+和 action key 重排；六任务全部拒绝得分捷径，且 key 重排不改变轨迹。但这只关闭基础协议捷径，
+不等于关闭完整反作弊门禁。当前每任务声明两个 generalization axis，却没有任何一个轴同时提供
+interpolation、extrapolation、composition 和 observation-noise 的独立控制；material code remap、
+observation field reorder 与等价动作序列接口也不可执行。因此 seed OOD 或整体 private-salt shift
+只能报告为分布诊断，不能冒充轴级泛化证据。
+
 ## Verified Result Chain
 
 ```text

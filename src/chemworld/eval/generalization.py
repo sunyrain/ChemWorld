@@ -8,9 +8,11 @@ import numpy as np
 
 from chemworld.eval.baseline_report import SERIOUS_BASELINE_AGENTS
 from chemworld.eval.benchmark_validation import PRIMARY_METRIC_FIELDS
+from chemworld.eval.validity_power import audit_validity_power
 from chemworld.tasks import SERIOUS_TASK_IDS, get_task
 
 GENERALIZATION_AUDIT_VERSION = "chemworld-generalization-audit-0.1"
+PUBLICATION_SHIFT_AUDIT_VERSION = "chemworld-publication-shift-audit-0.1"
 
 
 def compare_public_and_ood_reports(
@@ -91,6 +93,132 @@ def compare_public_and_ood_reports(
     }
 
 
+def compare_publication_distribution_shift(
+    reference_results: list[dict[str, Any]],
+    shifted_results: list[dict[str, Any]],
+    *,
+    shift_id: str,
+    practical_effect: float = 0.05,
+    bootstrap_samples: int = 10_000,
+) -> dict[str, Any]:
+    """Compare adaptive value and task metrics across independent seed regimes."""
+
+    methods = {"random", "structured_gp_bo"}
+    reference = [row for row in reference_results if row.get("baseline_agent") in methods]
+    shifted = [row for row in shifted_results if row.get("baseline_agent") in methods]
+    reference_total = audit_validity_power(
+        reference,
+        task_ids=tuple(SERIOUS_TASK_IDS),
+        method_pairs=(("structured_gp_bo", "random"),),
+        adaptive_method_pairs=(("structured_gp_bo", "random"),),
+        practical_effect=practical_effect,
+        planned_seed_count=20,
+        bootstrap_samples=bootstrap_samples,
+    )
+    shifted_total = audit_validity_power(
+        shifted,
+        task_ids=tuple(SERIOUS_TASK_IDS),
+        method_pairs=(("structured_gp_bo", "random"),),
+        adaptive_method_pairs=(("structured_gp_bo", "random"),),
+        practical_effect=practical_effect,
+        planned_seed_count=20,
+        bootstrap_samples=bootstrap_samples,
+    )
+    tasks: dict[str, dict[str, Any]] = {}
+    for task_id in SERIOUS_TASK_IDS:
+        primary_field = PRIMARY_METRIC_FIELDS[task_id]
+        reference_task = [row for row in reference if row["task_id"] == task_id]
+        shifted_task = [row for row in shifted if row["task_id"] == task_id]
+        reference_primary = audit_validity_power(
+            reference_task,
+            task_ids=(task_id,),
+            method_pairs=(("structured_gp_bo", "random"),),
+            adaptive_method_pairs=(("structured_gp_bo", "random"),),
+            metric=primary_field,
+            practical_effect=practical_effect,
+            planned_seed_count=20,
+            bootstrap_samples=bootstrap_samples,
+        )
+        shifted_primary = audit_validity_power(
+            shifted_task,
+            task_ids=(task_id,),
+            method_pairs=(("structured_gp_bo", "random"),),
+            adaptive_method_pairs=(("structured_gp_bo", "random"),),
+            metric=primary_field,
+            practical_effect=practical_effect,
+            planned_seed_count=20,
+            bootstrap_samples=bootstrap_samples,
+        )
+        comparison_key = "structured_gp_bo__minus__random"
+        reference_score_effect = reference_total["tasks"][task_id]["comparisons"][
+            comparison_key
+        ]
+        shifted_score_effect = shifted_total["tasks"][task_id]["comparisons"][
+            comparison_key
+        ]
+        reference_primary_effect = reference_primary["tasks"][task_id]["comparisons"][
+            comparison_key
+        ]
+        shifted_primary_effect = shifted_primary["tasks"][task_id]["comparisons"][
+            comparison_key
+        ]
+        checks = {
+            "total_effect_direction_preserved": reference_score_effect[
+                "mean_paired_effect"
+            ]
+            > 0.0
+            and shifted_score_effect["mean_paired_effect"] > 0.0,
+            "primary_effect_direction_preserved": reference_primary_effect[
+                "mean_paired_effect"
+            ]
+            > 0.0
+            and shifted_primary_effect["mean_paired_effect"] > 0.0,
+            "shifted_actions_valid": max(
+                float(row.get("invalid_action_rate", 1.0)) for row in shifted_task
+            )
+            <= 1.0e-12,
+            "shifted_experiment_count_complete": min(
+                int(row.get("resource_usage", {}).get("complete_experiment_count", 0))
+                for row in shifted_task
+            )
+            == 40,
+        }
+        tasks[task_id] = {
+            "primary_result_field": primary_field,
+            "reference_total_score_effect": reference_score_effect,
+            "shifted_total_score_effect": shifted_score_effect,
+            "total_score_effect_shift": shifted_score_effect["mean_paired_effect"]
+            - reference_score_effect["mean_paired_effect"],
+            "reference_primary_effect": reference_primary_effect,
+            "shifted_primary_effect": shifted_primary_effect,
+            "primary_effect_shift": shifted_primary_effect["mean_paired_effect"]
+            - reference_primary_effect["mean_paired_effect"],
+            "method_mean_score_shift": {
+                method: _method_mean(shifted_task, method, "total_score")
+                - _method_mean(reference_task, method, "total_score")
+                for method in sorted(methods)
+            },
+            "checks": checks,
+            "ready": all(checks.values()),
+        }
+    return {
+        "schema_version": PUBLICATION_SHIFT_AUDIT_VERSION,
+        "shift_id": shift_id,
+        "methods": sorted(methods),
+        "task_count": len(tasks),
+        "ready_task_count": sum(task["ready"] for task in tasks.values()),
+        "passed": all(task["ready"] for task in tasks.values()),
+        "tasks": tasks,
+    }
+
+
+def _method_mean(rows: list[dict[str, Any]], method: str, metric: str) -> float:
+    values = [float(row[metric]) for row in rows if row["baseline_agent"] == method]
+    if len(values) != 20:
+        raise ValueError(f"Expected 20 {method!r} rows for {metric!r}, got {len(values)}")
+    return float(np.mean(values))
+
+
 def _index_rows(report: dict[str, Any]) -> dict[tuple[str, str], dict[str, Any]]:
     rows = report.get("summary_rows")
     if not isinstance(rows, list):
@@ -147,5 +275,7 @@ def _pairwise_agreement(left: list[float], right: list[float]) -> float:
 
 __all__ = [
     "GENERALIZATION_AUDIT_VERSION",
+    "PUBLICATION_SHIFT_AUDIT_VERSION",
     "compare_public_and_ood_reports",
+    "compare_publication_distribution_shift",
 ]

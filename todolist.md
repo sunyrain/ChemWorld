@@ -161,15 +161,19 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
 
 ### 1.4 泛化、稳健性和反作弊
 
-- [ ] 将当前“两个 generalization axes 的文字声明”变成机器可执行的参数切片和报告。
+- [x] 已将 6 tasks × 2 axes 与 interpolation/extrapolation/composition/noise 四种必需模式写入
+  机器协议并失败关闭审计；当前 0/12 轴具有完整控制，因此只完成“缺口机器化”，未通过门禁。
 - [ ] 对每个任务分别测试 public-test 内 seed 泛化、参数区间外推、组合变化和 observation noise
   扰动。
 - [ ] 建立真正的 maintainer-side private-eval 配置；无私有 salt 时继续明确失败或标记为
   placeholder，绝不产生正式榜单声明。
 - [ ] 检查 public/private 排名相关性和性能下降，而不只报告一个平均 gap。
-- [ ] 增加策略不变性测试：物料代号重映射、无关字段重排、等价动作序列和观测格式轻微变化不应
-  显著改变结果。
-- [ ] 增加 simulator exploit 审计：重复 final assay、无成本测量、非法动作刷 reward、提前
+- [ ] 增加策略不变性测试：action key 重排已通过；物料代号重映射、无关字段重排、等价动作序列
+  和观测格式轻微变化仍应实现，并确保不会显著改变结果。
+- [x] 已完成首轮 simulator exploit 矩阵：未知操作、提前 final assay、提前 terminate、NaN amount、
+  重复 final assay 均不能得分，action key 重排保持轨迹；无成本测量、预算边界与外部 harness
+  仍在后续扩展门禁中。
+- [ ] 扩展 simulator exploit 审计：无成本测量、非法动作刷 reward、提前
   terminate、预算边界、浮点异常和回放差异均不能获利。
 - [ ] 使用仅公开 observation 的独立 agent harness 运行正式候选，确认无法通过 Python 对象、
   debug info、文件路径或异常消息读取 hidden state。

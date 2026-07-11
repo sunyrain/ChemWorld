@@ -40,6 +40,18 @@ one-hot 相对原始 GP 的主要 total-score 改善集中在电化学（约 +0.
 也尚不能作为安全结论：600 条结果的 `mean_risk` 与 safety violations 全为零，其风险模型没有
 可学习信号。下一门禁必须修复主指标对齐和安全信息量，而不是继续增加方法名称。
 
+## 泛化与 exploit 门禁状态
+
+`configs/benchmark/generalization_security_v0.1.json` 将当前六任务的 12 个声明轴与四种必需模式
+（interpolation、extrapolation、composition、observation noise）逐项绑定。当前 0/12 轴具有
+完整可执行控制；四项语义/协议不变性中只有 action key order 可执行。seed OOD 与 salted private
+shift 将继续用于发现退化，但它们只联合改变隐藏世界，不能替代轴级干预。
+
+基础 exploit 矩阵已在六任务上通过：未知操作、提前 final assay、提前 terminate、NaN amount、
+重复 final assay 均不能得分，action key 重排保持轨迹不变。机器摘要位于
+`reports/publication-generalization-security-summary.json`。总体状态仍为 `blocked`，因为轴级控制、
+material remap、observation reorder 和等价动作序列尚不可执行。
+
 ## 2026-07-11 validity/power 先导审计
 
 早期 10-seed、最小预算和 acquisition-family 中间报告已经由长程预算曲线取代并删除。当前保留：

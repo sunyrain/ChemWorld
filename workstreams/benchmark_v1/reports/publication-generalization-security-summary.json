@@ -1,0 +1,292 @@
+{
+  "controls": {
+    "axis_generalization_ready": false,
+    "checks": {
+      "learning_horizon": true,
+      "method_scope": true,
+      "paired_seed_modes": true,
+      "publication_protocol_binding": true,
+      "schema": true,
+      "task_scope": true
+    },
+    "generalization_ready": false,
+    "invariance_probes": {
+      "action_key_order": "executable",
+      "equivalent_action_sequence": "unavailable",
+      "material_code_remap": "unavailable",
+      "observation_field_order": "unavailable"
+    },
+    "invariance_ready": false,
+    "known_scope": {
+      "public_seed_ood": "tests new seeds but does not isolate a declared axis",
+      "salted_private_eval": "shifts the hidden world jointly but does not isolate an axis"
+    },
+    "protocol_id": "chemworld-serious-v0.4-generalization-security-0.1",
+    "protocol_valid": true,
+    "schema_version": "chemworld-generalization-security-protocol-0.1",
+    "tasks": {
+      "electrochemical-conversion": {
+        "axes": {
+          "mass-transfer and resistance regime": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          },
+          "redox kinetics": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          }
+        },
+        "configured_axes_match": true,
+        "declared_axes": [
+          "redox kinetics",
+          "mass-transfer and resistance regime"
+        ],
+        "ready": false
+      },
+      "equilibrium-characterization": {
+        "axes": {
+          "acid-base constants": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          },
+          "solubility-product regime": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          }
+        },
+        "configured_axes_match": true,
+        "declared_axes": [
+          "acid-base constants",
+          "solubility-product regime"
+        ],
+        "ready": false
+      },
+      "flow-reaction-optimization": {
+        "axes": {
+          "reaction kinetics": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          },
+          "residence time and thermal boundary": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          }
+        },
+        "configured_axes_match": true,
+        "declared_axes": [
+          "reaction kinetics",
+          "residence time and thermal boundary"
+        ],
+        "ready": false
+      },
+      "partition-discovery": {
+        "axes": {
+          "distribution coefficient": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          },
+          "phase-volume ratio": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          }
+        },
+        "configured_axes_match": true,
+        "declared_axes": [
+          "distribution coefficient",
+          "phase-volume ratio"
+        ],
+        "ready": false
+      },
+      "reaction-to-crystallization": {
+        "axes": {
+          "kinetic profile": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          },
+          "solubility and cooling profile": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          }
+        },
+        "configured_axes_match": true,
+        "declared_axes": [
+          "kinetic profile",
+          "solubility and cooling profile"
+        ],
+        "ready": false
+      },
+      "reaction-to-distillation": {
+        "axes": {
+          "reaction selectivity": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          },
+          "relative volatility": {
+            "implemented_modes": [],
+            "missing_modes": [
+              "composition",
+              "extrapolation",
+              "interpolation",
+              "observation_noise"
+            ],
+            "ready": false
+          }
+        },
+        "configured_axes_match": true,
+        "declared_axes": [
+          "relative volatility",
+          "reaction selectivity"
+        ],
+        "ready": false
+      }
+    }
+  },
+  "exploit_resistance": {
+    "passed": true,
+    "schema_version": "chemworld-exploit-resistance-audit-0.1",
+    "task_count": 6,
+    "tasks": {
+      "electrochemical-conversion": {
+        "passed": true,
+        "probes": {
+          "action_key_order": true,
+          "nonfinite_amount": true,
+          "premature_final_assay": true,
+          "premature_terminate": true,
+          "repeated_final_assay": true,
+          "unknown_operation": true
+        },
+        "task_contract_hash": "8d023408b2feb46b4570fa9b5fbeba4e0ccb7982811f934cca55e1c063d1297d"
+      },
+      "equilibrium-characterization": {
+        "passed": true,
+        "probes": {
+          "action_key_order": true,
+          "nonfinite_amount": true,
+          "premature_final_assay": true,
+          "premature_terminate": true,
+          "repeated_final_assay": true,
+          "unknown_operation": true
+        },
+        "task_contract_hash": "07b336d22933068a6b45cee7c56b80bbcfdfddcf31ff0967030f831eb219ebb7"
+      },
+      "flow-reaction-optimization": {
+        "passed": true,
+        "probes": {
+          "action_key_order": true,
+          "nonfinite_amount": true,
+          "premature_final_assay": true,
+          "premature_terminate": true,
+          "repeated_final_assay": true,
+          "unknown_operation": true
+        },
+        "task_contract_hash": "dec8fc2ba017b4cc55010bc8636f17f18969e23b054665f72481f58cebdf2fc0"
+      },
+      "partition-discovery": {
+        "passed": true,
+        "probes": {
+          "action_key_order": true,
+          "nonfinite_amount": true,
+          "premature_final_assay": true,
+          "premature_terminate": true,
+          "repeated_final_assay": true,
+          "unknown_operation": true
+        },
+        "task_contract_hash": "2fbe9ddbd3dd23720ea657ddae0b07421c735aeca208cebe70fd73dd7db58472"
+      },
+      "reaction-to-crystallization": {
+        "passed": true,
+        "probes": {
+          "action_key_order": true,
+          "nonfinite_amount": true,
+          "premature_final_assay": true,
+          "premature_terminate": true,
+          "repeated_final_assay": true,
+          "unknown_operation": true
+        },
+        "task_contract_hash": "59747a3feb94707cd414d122745494ae4f5ceb338c889f37e8b1f82716e8511c"
+      },
+      "reaction-to-distillation": {
+        "passed": true,
+        "probes": {
+          "action_key_order": true,
+          "nonfinite_amount": true,
+          "premature_final_assay": true,
+          "premature_terminate": true,
+          "repeated_final_assay": true,
+          "unknown_operation": true
+        },
+        "task_contract_hash": "30e63cc01a57ce20fb12139e6c98e854d9ac250ab91b949af603b0ddf17a97b4"
+      }
+    }
+  },
+  "publication_ready": false,
+  "schema_version": "chemworld-publication-generalization-security-audit-0.1",
+  "status": "blocked"
+}

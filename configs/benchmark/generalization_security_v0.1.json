@@ -1,0 +1,67 @@
+{
+  "schema_version": "chemworld-generalization-security-protocol-0.1",
+  "protocol_id": "chemworld-serious-v0.4-generalization-security-0.1",
+  "publication_protocol_sha256": "1a0789f5ffae2222e0235e9b36ca6bbae5888aace4b3bf405b78492e69a1742a",
+  "methods": ["random", "structured_gp_bo"],
+  "complete_experiments_per_task_seed": 40,
+  "evaluation_modes": {
+    "public_seed_ood": {
+      "world_split": "public-test",
+      "seeds": [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119],
+      "role": "new-seed generalization only"
+    },
+    "salted_private_eval": {
+      "world_split": "private-eval",
+      "seeds": [200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219],
+      "salt_environment_variable": "CHEMWORLD_PRIVATE_EVAL_SALT",
+      "publish_raw_salt": false,
+      "role": "maintainer-controlled whole-world shift"
+    }
+  },
+  "required_generalization_modes": [
+    "interpolation",
+    "extrapolation",
+    "composition",
+    "observation_noise"
+  ],
+  "axis_control_status": {
+    "partition-discovery": {
+      "distribution coefficient": [],
+      "phase-volume ratio": []
+    },
+    "reaction-to-crystallization": {
+      "kinetic profile": [],
+      "solubility and cooling profile": []
+    },
+    "reaction-to-distillation": {
+      "relative volatility": [],
+      "reaction selectivity": []
+    },
+    "flow-reaction-optimization": {
+      "reaction kinetics": [],
+      "residence time and thermal boundary": []
+    },
+    "electrochemical-conversion": {
+      "redox kinetics": [],
+      "mass-transfer and resistance regime": []
+    },
+    "equilibrium-characterization": {
+      "acid-base constants": [],
+      "solubility-product regime": []
+    }
+  },
+  "invariance_probes": {
+    "action_key_order": "executable",
+    "material_code_remap": "unavailable",
+    "observation_field_order": "unavailable",
+    "equivalent_action_sequence": "unavailable"
+  },
+  "exploit_probes": [
+    "unknown_operation",
+    "premature_final_assay",
+    "premature_terminate",
+    "nonfinite_amount",
+    "repeated_final_assay",
+    "action_key_order"
+  ]
+}
