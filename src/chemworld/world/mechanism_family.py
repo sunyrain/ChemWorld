@@ -20,16 +20,28 @@ MechanismFamilyMode = Literal[
     "topology_family",
     "constitutive_law_family",
 ]
-MECHANISM_FAMILY_INTERVENTION_VERSION = "chemworld-mechanism-family-intervention-0.3"
+MECHANISM_FAMILY_INTERVENTION_VERSION = "chemworld-mechanism-family-intervention-0.4"
 REACTION_MECHANISM_TASKS = (
     "reaction-to-crystallization",
     "reaction-to-distillation",
     "flow-reaction-optimization",
 )
 PARTITION_MECHANISM_TASKS = ("partition-discovery",)
-MECHANISM_REACHABLE_TASKS = (*PARTITION_MECHANISM_TASKS, *REACTION_MECHANISM_TASKS)
+ELECTROCHEMICAL_MECHANISM_TASKS = ("electrochemical-conversion",)
+EQUILIBRIUM_MECHANISM_TASKS = ("equilibrium-characterization",)
+CONSTITUTIVE_MECHANISM_TASKS = (
+    *PARTITION_MECHANISM_TASKS,
+    *ELECTROCHEMICAL_MECHANISM_TASKS,
+    *EQUILIBRIUM_MECHANISM_TASKS,
+)
+MECHANISM_REACHABLE_TASKS = (
+    *PARTITION_MECHANISM_TASKS,
+    *REACTION_MECHANISM_TASKS,
+    *ELECTROCHEMICAL_MECHANISM_TASKS,
+    *EQUILIBRIUM_MECHANISM_TASKS,
+)
 MECHANISM_TASK_MODES: dict[str, tuple[MechanismFamilyMode, ...]] = {
-    "partition-discovery": ("constitutive_law_family",),
+    **dict.fromkeys(CONSTITUTIVE_MECHANISM_TASKS, ("constitutive_law_family",)),
     **dict.fromkeys(REACTION_MECHANISM_TASKS, ("rate_law_family", "topology_family")),
 }
 
@@ -91,7 +103,20 @@ def apply_mechanism_family_intervention(
     )
     domain_parameters = dict(instance.parameters.domain_parameters)
     if intervention.mode == "constitutive_law_family":
-        domain_parameters["partition_coefficient_exponent"] = 1.0 + 0.75 * intervention.severity
+        if task_id == "partition-discovery":
+            domain_parameters["partition_coefficient_exponent"] = (
+                1.0 + 0.75 * intervention.severity
+            )
+        elif task_id == "electrochemical-conversion":
+            domain_parameters["electro_transfer_asymmetry_multiplier"] = (
+                1.0 + 0.40 * intervention.severity
+            )
+            domain_parameters["electro_selectivity_decay_multiplier"] = (
+                1.0 + 2.00 * intervention.severity
+            )
+            domain_parameters["electro_standard_potential_multiplier"] = (
+                1.0 + 0.25 * intervention.severity
+            )
     parameters = replace(
         instance.parameters,
         world_id=f"{instance.parameters.world_id}:mechanism-{contract_hash[:12]}",
@@ -105,6 +130,10 @@ def apply_mechanism_family_intervention(
         "mechanism_family_intervention_version": MECHANISM_FAMILY_INTERVENTION_VERSION,
         "mechanism_family_intervention_hash": contract_hash,
     }
+    if task_id == "equilibrium-characterization":
+        metadata["equilibrium_activity_coefficient_ratio"] = exp(
+            log(6.0) * intervention.severity
+        )
     return replace(
         instance,
         parameters=parameters,
@@ -282,6 +311,9 @@ def _topology_variant(base: CompiledMechanism, severity: float) -> ReactionNetwo
 
 
 __all__ = [
+    "CONSTITUTIVE_MECHANISM_TASKS",
+    "ELECTROCHEMICAL_MECHANISM_TASKS",
+    "EQUILIBRIUM_MECHANISM_TASKS",
     "MECHANISM_FAMILY_INTERVENTION_VERSION",
     "MECHANISM_REACHABLE_TASKS",
     "MECHANISM_TASK_MODES",

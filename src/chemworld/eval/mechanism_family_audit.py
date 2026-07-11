@@ -23,8 +23,8 @@ from chemworld.world.mechanism_family import (
 )
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
-MECHANISM_FAMILY_AUDIT_VERSION = "chemworld-mechanism-family-control-audit-0.3"
-MECHANISM_FAMILY_PROTOCOL_VERSION = "chemworld-mechanism-family-protocol-0.3"
+MECHANISM_FAMILY_AUDIT_VERSION = "chemworld-mechanism-family-control-audit-0.4"
+MECHANISM_FAMILY_PROTOCOL_VERSION = "chemworld-mechanism-family-protocol-0.4"
 MECHANISM_FAMILY_MODES = (
     "rate_law_family",
     "topology_family",
@@ -89,6 +89,33 @@ def audit_mechanism_families(protocol: dict[str, Any]) -> dict[str, Any]:
             second_hash = second.initial_state.metadata.get("mechanism_family_intervention_hash")
             base_exponent = base.parameters.domain_parameter("partition_coefficient_exponent")
             shifted_exponent = first.parameters.domain_parameter("partition_coefficient_exponent")
+            base_transfer = base.parameters.domain_parameter(
+                "electro_transfer_asymmetry_multiplier"
+            )
+            shifted_transfer = first.parameters.domain_parameter(
+                "electro_transfer_asymmetry_multiplier"
+            )
+            base_selectivity_decay = base.parameters.domain_parameter(
+                "electro_selectivity_decay_multiplier"
+            )
+            shifted_selectivity_decay = first.parameters.domain_parameter(
+                "electro_selectivity_decay_multiplier"
+            )
+            base_standard_potential = base.parameters.domain_parameter(
+                "electro_standard_potential_multiplier"
+            )
+            shifted_standard_potential = first.parameters.domain_parameter(
+                "electro_standard_potential_multiplier"
+            )
+            base_activity_ratio = float(
+                base.initial_state.metadata.get("equilibrium_activity_coefficient_ratio", 1.0)
+            )
+            shifted_activity_ratio = float(
+                first.initial_state.metadata.get(
+                    "equilibrium_activity_coefficient_ratio",
+                    1.0,
+                )
+            )
             mode_reports[mode] = {
                 "deterministic": bool(first_hash) and first_hash == second_hash,
                 "intervention_hash": first_hash,
@@ -108,6 +135,18 @@ def audit_mechanism_families(protocol: dict[str, Any]) -> dict[str, Any]:
                 ],
                 "partition_coefficient_exponent": shifted_exponent,
                 "constitutive_exponent_changed": shifted_exponent != base_exponent,
+                "electro_transfer_asymmetry_multiplier": shifted_transfer,
+                "electro_selectivity_decay_multiplier": shifted_selectivity_decay,
+                "electro_standard_potential_multiplier": shifted_standard_potential,
+                "electro_transfer_family_changed": (
+                    shifted_transfer != base_transfer
+                    and shifted_selectivity_decay != base_selectivity_decay
+                    and shifted_standard_potential != base_standard_potential
+                ),
+                "equilibrium_activity_coefficient_ratio": shifted_activity_ratio,
+                "equilibrium_activity_family_changed": (
+                    shifted_activity_ratio != base_activity_ratio
+                ),
                 "calibration": {
                     "severity": severity,
                     "seed_count": len(seeds),
@@ -142,8 +181,7 @@ def audit_mechanism_families(protocol: dict[str, Any]) -> dict[str, Any]:
         "candidate_is_non_claiming": protocol.get("benchmark_claim_allowed") is False,
         "reachable_task_scope": tuple(protocol.get("reachable_tasks", ()))
         == MECHANISM_REACHABLE_TASKS,
-        "excluded_task_scope_explicit": set(protocol.get("excluded_tasks", {}))
-        == {"electrochemical-conversion", "equilibrium-characterization"},
+        "all_core_tasks_reachable": not protocol.get("excluded_tasks"),
         "all_intervention_hashes_deterministic": all(
             report["deterministic"]
             for task in task_reports.values()
@@ -167,7 +205,11 @@ def audit_mechanism_families(protocol: dict[str, Any]) -> dict[str, Any]:
         "reaction_network_hashes_change": all(
             report["network_hash_changed"]
             for task_id, task in task_reports.items()
-            if task_id != "partition-discovery"
+            if task_id in {
+                "reaction-to-crystallization",
+                "reaction-to-distillation",
+                "flow-reaction-optimization",
+            }
             for report in task["modes"].values()
         ),
         "partition_constitutive_family_changes": (
@@ -179,6 +221,26 @@ def audit_mechanism_families(protocol: dict[str, Any]) -> dict[str, Any]:
             task_reports["partition-discovery"]["modes"]["constitutive_law_family"][
                 "network_hash_changed"
             ]
+        ),
+        "electrochemistry_constitutive_family_changes": (
+            task_reports["electrochemical-conversion"]["modes"][
+                "constitutive_law_family"
+            ]["electro_transfer_family_changed"]
+        ),
+        "equilibrium_constitutive_family_changes": (
+            task_reports["equilibrium-characterization"]["modes"][
+                "constitutive_law_family"
+            ]["equilibrium_activity_family_changed"]
+        ),
+        "constitutive_families_preserve_reaction_network_identity": all(
+            not task_reports[task_id]["modes"]["constitutive_law_family"][
+                "network_hash_changed"
+            ]
+            for task_id in (
+                "partition-discovery",
+                "electrochemical-conversion",
+                "equilibrium-characterization",
+            )
         ),
         "mechanism_families_behaviorally_distinguishable": all(
             report["calibration"]["behaviorally_distinguishable"]
@@ -224,8 +286,10 @@ def audit_mechanism_families(protocol: dict[str, Any]) -> dict[str, Any]:
                 "Effect-size calibration targets benchmark identifiability, "
                 "not real chemical constants."
             ),
-            "Core coverage includes reaction-network and partition constitutive-law families.",
-            "Electrochemistry and equilibrium still lack dedicated constitutive-law families.",
+            (
+                "Core coverage includes reaction-network, partition, electrochemical, "
+                "and equilibrium constitutive-law families."
+            ),
             "Disjoint Train/Dev/Bench allocation and agent adaptation comparisons remain pending.",
         ],
         "remaining_release_gates": list(protocol.get("remaining_release_gates", ())),

@@ -259,6 +259,9 @@ class ChemWorldObservationKernel:
             temperature_K=state.temperature_K,
             strong_cation_mol=strong_cation,
             strong_anion_mol=strong_anion,
+            activity_coefficient_ratio=float(
+                state.metadata.get("equilibrium_activity_coefficient_ratio", 1.0)
+            ),
         )
         precipitation = apply_precipitation_hooks(
             {

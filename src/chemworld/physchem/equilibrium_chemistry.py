@@ -951,6 +951,7 @@ def solve_monoprotic_acid_base(
     temperature_K: float = 298.15,
     strong_cation_mol: float = 0.0,
     strong_anion_mol: float = 0.0,
+    activity_coefficient_ratio: float = 1.0,
     acid_id: str = "HA",
     conjugate_base_id: str = "A-",
     proton_id: str = "H+",
@@ -958,7 +959,11 @@ def solve_monoprotic_acid_base(
     cation_id: str = "M+",
     anion_id: str = "X-",
 ) -> AcidBaseResult:
-    """Solve a monoprotic weak-acid equilibrium with electroneutrality."""
+    """Solve a monoprotic weak-acid equilibrium with electroneutrality.
+
+    ``activity_coefficient_ratio`` is ``gamma_H * gamma_A / gamma_HA``;
+    the default of one recovers the concentration-activity model.
+    """
 
     _nonnegative(acid_total_mol, "acid_total_mol")
     _positive(volume_L, "volume_L")
@@ -966,6 +971,7 @@ def solve_monoprotic_acid_base(
     _positive(temperature_K, "temperature_K")
     _nonnegative(strong_cation_mol, "strong_cation_mol")
     _nonnegative(strong_anion_mol, "strong_anion_mol")
+    _positive(activity_coefficient_ratio, "activity_coefficient_ratio")
 
     total_acid_conc = acid_total_mol / volume_L
     strong_cation_conc = strong_cation_mol / volume_L
@@ -974,7 +980,11 @@ def solve_monoprotic_acid_base(
     kw = water_ion_product(temperature_K)
 
     def residual(hydrogen: float) -> float:
-        conjugate_base = total_acid_conc * ka / (ka + hydrogen) if total_acid_conc else 0.0
+        conjugate_base = (
+            total_acid_conc * ka / (ka + activity_coefficient_ratio * hydrogen)
+            if total_acid_conc
+            else 0.0
+        )
         hydroxide = kw / hydrogen
         return hydrogen + strong_cation_conc - (
             hydroxide + conjugate_base + strong_anion_conc
@@ -988,7 +998,11 @@ def solve_monoprotic_acid_base(
             raise ValueError("Could not bracket acid/base hydrogen concentration")
     hydrogen = brentq(residual, low, high, xtol=1e-14, rtol=1e-12, maxiter=200)
     hydroxide = kw / hydrogen
-    conjugate_base = total_acid_conc * ka / (ka + hydrogen) if total_acid_conc else 0.0
+    conjugate_base = (
+        total_acid_conc * ka / (ka + activity_coefficient_ratio * hydrogen)
+        if total_acid_conc
+        else 0.0
+    )
     acid = max(total_acid_conc - conjugate_base, 0.0)
     pH = -log10(hydrogen)
     pOH = -log10(hydroxide)
@@ -1028,6 +1042,7 @@ def solve_monoprotic_acid_base(
             "Kw": kw,
             "temperature_K": temperature_K,
             "volume_L": volume_L,
+            "activity_coefficient_ratio": activity_coefficient_ratio,
         },
     )
 

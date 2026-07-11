@@ -279,6 +279,25 @@ def test_monoprotic_acid_base_solves_ph_and_charge_balance() -> None:
     assert "species_amounts_mol" not in payload["processed_estimate"]
 
 
+def test_monoprotic_activity_coefficient_ratio_changes_executed_equilibrium() -> None:
+    ideal = solve_monoprotic_acid_base(
+        acid_total_mol=0.1,
+        volume_L=1.0,
+        pka=4.76,
+    )
+    nonideal = solve_monoprotic_acid_base(
+        acid_total_mol=0.1,
+        volume_L=1.0,
+        pka=4.76,
+        activity_coefficient_ratio=4.0,
+    )
+
+    assert nonideal.pH > ideal.pH
+    assert nonideal.acid_dissociation_fraction < ideal.acid_dissociation_fraction
+    assert nonideal.metadata["activity_coefficient_ratio"] == 4.0
+    assert abs(nonideal.charge_balance_error_eq) < 1e-10
+
+
 def test_water_ion_product_changes_with_temperature() -> None:
     cold = water_ion_product(273.15)
     room = water_ion_product(298.15)

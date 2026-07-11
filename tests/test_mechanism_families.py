@@ -19,6 +19,7 @@ from chemworld.eval.mechanism_family_audit import (
 )
 from chemworld.tasks import get_task
 from chemworld.world.mechanism_family import (
+    CONSTITUTIVE_MECHANISM_TASKS,
     REACTION_MECHANISM_TASKS,
 )
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
@@ -123,14 +124,35 @@ def test_partition_constitutive_family_changes_executed_law_not_reaction_network
     assert float(shifted_observation["_audit_mass_balance_error"][0]) <= 1.0e-8
 
 
+@pytest.mark.parametrize("task_id", CONSTITUTIVE_MECHANISM_TASKS)
+def test_constitutive_family_changes_executed_provider_without_network_rewrite(
+    task_id: str,
+) -> None:
+    generator = DefaultScenarioGenerator()
+    scenario = get_scenario(task_id)
+    base = generator.generate(scenario, 0)
+    shifted = generator.generate(
+        scenario,
+        0,
+        (_intervention("constitutive_law_family"),),
+    )
+    assert shifted.compiled_mechanism.mechanism_hash == base.compiled_mechanism.mechanism_hash
+    assert shifted.initial_state.metadata["mechanism_family_intervention_hash"]
+    base_score, _ = _run_midpoint(task_id, None)
+    shifted_score, shifted_observation = _run_midpoint(
+        task_id,
+        "constitutive_law_family",
+    )
+    assert abs(shifted_score - base_score) > 1.0e-8
+    assert float(shifted_observation["_audit_mass_balance_error"][0]) <= 1.0e-8
+
+
 @pytest.mark.parametrize(
     "task_id",
     ["electrochemical-conversion", "equilibrium-characterization"],
 )
-def test_mechanism_family_rejects_tasks_without_reaction_network_reachability(
-    task_id: str,
-) -> None:
-    with pytest.raises(ValueError, match="does not expose"):
+def test_nonreaction_tasks_reject_reaction_network_modes(task_id: str) -> None:
+    with pytest.raises(ValueError, match="not causally reachable"):
         DefaultScenarioGenerator().generate(
             get_scenario(task_id),
             0,
@@ -178,6 +200,9 @@ def test_frozen_mechanism_family_report_is_ready_but_non_claiming() -> None:
     assert report["checks"]["replay_requires_separate_exact_intervention_context"] is True
     assert report["checks"]["partition_constitutive_family_changes"] is True
     assert report["checks"]["partition_preserves_reaction_network_identity"] is True
+    assert report["checks"]["electrochemistry_constitutive_family_changes"] is True
+    assert report["checks"]["equilibrium_constitutive_family_changes"] is True
+    assert report["checks"]["constitutive_families_preserve_reaction_network_identity"] is True
     assert report["checks"]["mass_balance_preserved"] is True
     assert report["benchmark_claim_allowed"] is False
     assert report["publication_ready"] is False

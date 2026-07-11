@@ -25,6 +25,9 @@ DEFAULT_DOMAIN_PARAMETERS: dict[str, float] = {
     "flow_boundary_ua_multiplier": 1.0,
     "electro_exchange_current_multiplier": 1.0,
     "electro_resistance_multiplier": 1.0,
+    "electro_selectivity_decay_multiplier": 1.0,
+    "electro_standard_potential_multiplier": 1.0,
+    "electro_transfer_asymmetry_multiplier": 1.0,
     "observation_noise_multiplier": 1.0,
 }
 

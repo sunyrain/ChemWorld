@@ -101,16 +101,29 @@ class ChemWorldElectrochemicalServices:
         exchange_current_density *= self.world.domain_parameter(
             "electro_exchange_current_multiplier"
         )
+        transfer_asymmetry = self.world.domain_parameter(
+            "electro_transfer_asymmetry_multiplier"
+        )
+        alpha_anodic = 0.5 * transfer_asymmetry
+        alpha_cathodic = 1.0 - alpha_anodic
+        selectivity_decay = self.world.domain_parameter(
+            "electro_selectivity_decay_multiplier"
+        )
+        standard_potential_multiplier = self.world.domain_parameter(
+            "electro_standard_potential_multiplier"
+        )
         electrochemical_spec = ElectrodeReactionSpec(
             reaction_id=f"{reactant}_to_{product}_electrochemical",
             electrons_transferred=2.0,
-            standard_potential_V=1.05,
+            standard_potential_V=1.05 * standard_potential_multiplier,
             reaction_quotient_exponents={product: 1.0, reactant: -1.0},
             exchange_current_density_A_m2=exchange_current_density,
             electrode_area_m2=0.004,
+            alpha_anodic=alpha_anodic,
+            alpha_cathodic=alpha_cathodic,
             faradaic_efficiency_ref=0.91,
             product_selectivity_ref=0.90,
-            overpotential_selectivity_sensitivity_V_inv=0.45,
+            overpotential_selectivity_sensitivity_V_inv=0.45 * selectivity_decay,
         )
         activities = {
             reactant: max(a_mol / volume, 1.0e-12),
