@@ -126,16 +126,21 @@ class DefaultScenarioGenerator:
         )
         if len(mechanism_payloads) > 1:
             raise ValueError("only one mechanism-family intervention is allowed")
+        parsed_mechanism_intervention = None
         if mechanism_payloads:
             from chemworld.world.mechanism_family import (
                 MechanismFamilyIntervention,
                 derive_mechanism_family,
             )
 
-            compiled_mechanism = derive_mechanism_family(
-                compiled_mechanism,
-                MechanismFamilyIntervention.from_dict(mechanism_payloads[0]),
+            parsed_mechanism_intervention = MechanismFamilyIntervention.from_dict(
+                mechanism_payloads[0]
             )
+            if parsed_mechanism_intervention.mode != "constitutive_law_family":
+                compiled_mechanism = derive_mechanism_family(
+                    compiled_mechanism,
+                    parsed_mechanism_intervention,
+                )
         initial_state = initial_chemworld_state(
             species_ids=tuple(compiled_mechanism.species_index),
             species_roles=compiled_mechanism.species_roles,
@@ -212,14 +217,13 @@ class DefaultScenarioGenerator:
         if not mechanism_payloads and not axis_payloads:
             return instance
         if mechanism_payloads:
-            from chemworld.world.mechanism_family import (
-                MechanismFamilyIntervention,
-                apply_mechanism_family_intervention,
-            )
+            from chemworld.world.mechanism_family import apply_mechanism_family_intervention
 
+            if parsed_mechanism_intervention is None:
+                raise RuntimeError("mechanism-family intervention was not parsed")
             instance = apply_mechanism_family_intervention(
                 instance,
-                MechanismFamilyIntervention.from_dict(mechanism_payloads[0]),
+                parsed_mechanism_intervention,
             )
         if not axis_payloads:
             return instance

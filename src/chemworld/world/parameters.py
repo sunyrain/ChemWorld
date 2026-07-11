@@ -15,6 +15,7 @@ SUPPORTED_SPLITS = ("public-dev", "public-test", "private-eval")
 
 DEFAULT_DOMAIN_PARAMETERS: dict[str, float] = {
     "partition_coefficient_multiplier": 1.0,
+    "partition_coefficient_exponent": 1.0,
     "partition_phase_volume_multiplier": 1.0,
     "crystallization_nucleation_multiplier": 1.0,
     "crystallization_solubility_multiplier": 1.0,

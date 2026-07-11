@@ -119,6 +119,9 @@ class ChemWorldPhaseSeparationServices:
             coefficient_multiplier=self.world.domain_parameter(
                 "partition_coefficient_multiplier"
             ),
+            coefficient_exponent=self.world.domain_parameter(
+                "partition_coefficient_exponent"
+            ),
             phase_volume_multiplier=self.world.domain_parameter(
                 "partition_phase_volume_multiplier"
             ),
