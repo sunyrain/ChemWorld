@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/task_design/">
       
       
-        <link rel="prev" href="../tasks/">
+        <link rel="prev" href="../discovery_benchmark/">
       
       
         <link rel="next" href="../task_cards/">
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../interactive_task_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    交互式任务实验室
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorial_curriculum_zh/" class="md-nav__link">
         
   
@@ -538,6 +566,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../benchmark_release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark v1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -574,6 +630,34 @@
     
   
     任务列表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery_benchmark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    闭环发现测试
   
 
     
@@ -665,10 +749,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#serious" class="md-nav__link">
     <span class="md-ellipsis">
       
-        首批候选任务
+        Serious 候选任务
       
     </span>
   </a>
@@ -676,7 +760,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         暂不准入
@@ -687,10 +771,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validated" class="md-nav__link">
+  <a href="#v1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        提升到 validated
+        历史 v1 冻结证据
       
     </span>
   </a>
@@ -1221,6 +1305,34 @@
     
   
     系统架构
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../material_identity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    材料身份与真实化学边界
   
 
     
@@ -1918,10 +2030,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#serious" class="md-nav__link">
     <span class="md-ellipsis">
       
-        首批候选任务
+        Serious 候选任务
       
     </span>
   </a>
@@ -1929,7 +2041,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         暂不准入
@@ -1940,10 +2052,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validated" class="md-nav__link">
+  <a href="#v1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        提升到 validated
+        历史 v1 冻结证据
       
     </span>
   </a>
@@ -1974,7 +2086,7 @@
 <p>严肃任务不是“操作更多”或“模型更复杂”的同义词。它必须提出可证伪的研究问题，使用可执行
 指标，在足够的隐藏变化与决策预算下区分 agent，并提供反作弊、基线和失败分析证据。</p>
 <h2 id="_2">准入标准<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>ChemWorld 使用 <code>chemworld-serious-task-design-0.1</code> readiness contract 检查候选任务：</p>
+<p>ChemWorld 使用 <code>chemworld-serious-task-design-0.1</code> readiness contract 检查正式任务：</p>
 <table>
 <thead>
 <tr>
@@ -1993,7 +2105,7 @@
 </tr>
 <tr>
 <td>决策深度</td>
-<td>至少 24 步预算和 3 个冻结 seeds。</td>
+<td>至少 24 步预算、campaign 学习机会和 5 个冻结 seeds。</td>
 </tr>
 <tr>
 <td>指标</td>
@@ -2005,7 +2117,7 @@
 </tr>
 <tr>
 <td>物理成熟度</td>
-<td>整体至少 <code>lite</code>，严肃候选任务不允许 proxy。</td>
+<td>整体至少 <code>lite</code>，正式 serious 任务不允许 proxy。</td>
 </tr>
 <tr>
 <td>泛化</td>
@@ -2030,7 +2142,7 @@
 </code></pre></div>
 <p><code>contract_ready=true</code> 只表示任务合同可执行；只有完成冻结 baseline、难度校准和失败分析后，
 <code>empirical_status</code> 才能从 <code>candidate</code> 提升到 <code>validated</code>，届时 <code>benchmark_ready</code> 才为真。</p>
-<h2 id="_3">首批候选任务<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h2 id="serious">Serious 候选任务<a class="headerlink" href="#serious" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -2079,27 +2191,31 @@
 </tr>
 </tbody>
 </table>
-<p>这些任务当前状态统一为 <code>candidate</code>，不是已经完成论文级难度校准的正式榜单。</p>
-<h2 id="_4">暂不准入<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>六个任务的历史 v1 证据对应 World Law v0.3。v0.4 改变了 task hash 和部分状态转移，因此当前
+readiness 正确返回 <code>candidate</code>；只有重新完成有效性、功效、泛化和资源匹配实验后才能恢复
+<code>validated</code>。</p>
+<h2 id="_3">暂不准入<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>reaction-to-purification</code>、<code>purity-yield-tradeoff</code> 和 <code>tool-agent-planning</code> 含
-  dry/concentrate/transfer proxy，继续用于核心回归或探索，不进入严肃候选集；</li>
+<li><code>reaction-to-purification</code>、<code>purity-yield-tradeoff</code> 和 <code>tool-agent-planning</code> 已无正式 proxy
+  route，但仍因研究问题与主榜六任务重叠或偏协议/长程规划而保持 registered/exploratory；</li>
 <li><code>reaction-to-assay</code> 是协议 smoke task，决策深度和 seed 数不足；</li>
 <li>包含 <code>mechanism_explanation</code>、<code>local_model_quality</code>、<code>public_private_gap</code> 等尚未形成独立
   evaluator 字段的任务，在补齐可执行评分前不得作为主榜任务。</li>
 </ul>
-<h2 id="validated">提升到 validated<a class="headerlink" href="#validated" title="Permanent link">&para;</a></h2>
-<p>每个候选任务还需完成：</p>
+<h2 id="v1">历史 v1 冻结证据<a class="headerlink" href="#v1" title="Permanent link">&para;</a></h2>
+<p>历史 v1 曾机器验证以下条件；这些结果不能迁移为 v0.4 结论：</p>
 <ol>
 <li>运行完整 <code>serious</code> baseline preset，并报告均值、标准误和置信区间；</li>
 <li>检查 random 与 informed baseline 的可分离性，避免地板/天花板效应；</li>
-<li>执行 seed/scenario 扰动和 public/private generalization 测试；</li>
+<li>在冻结 seeds 上执行响应面与隐藏场景扰动；公开 OOD 工具可另行报告策略漂移，但 OOD 与
+   private eval 都不属于 v1 排名声明；</li>
 <li>发布按任务拆分的失败类型、约束违反、仪器使用和成本曲线；</li>
 <li>冻结 threshold、task contract、seed suite 与 golden/replay artifact。</li>
 </ol>
-<p>运行候选套件：</p>
+<p>重建和检查冻结套件：</p>
 <div class="highlight"><pre><span></span><code>chemworld<span class="w"> </span>baselines<span class="w"> </span>report<span class="w"> </span>--preset<span class="w"> </span>serious<span class="w"> </span>--output-dir<span class="w"> </span>runs/serious_baselines
-python<span class="w"> </span>scripts/run_serious_task_suite.py<span class="w"> </span>--smoke
+python<span class="w"> </span>scripts/run_serious_task_suite.py<span class="w"> </span>--output-dir<span class="w"> </span>runs/serious_release
+python<span class="w"> </span>scripts/check_frozen_benchmark.py
 </code></pre></div>
 
 

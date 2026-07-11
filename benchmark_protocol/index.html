@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://sunyrain.github.io/ChemWorld/benchmark_protocol/">
       
       
-        <link rel="prev" href="../en/">
+        <link rel="prev" href="../benchmark_release/">
       
       
         <link rel="next" href="../tasks/">
@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../interactive_task_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    交互式任务实验室
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorial_curriculum_zh/" class="md-nav__link">
         
   
@@ -530,6 +558,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmark_release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark v1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -687,6 +743,34 @@
     
   
     任务列表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery_benchmark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    闭环发现测试
   
 
     
@@ -1243,6 +1327,34 @@
     
   
     系统架构
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../material_identity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    材料身份与真实化学边界
   
 
     
@@ -2020,14 +2132,15 @@
 <h2 id="_1">套件<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>core</code>：三个紧凑任务，用于 API、回放和发布链路回归；</li>
-<li><code>serious</code>：六个无 proxy 的严肃任务候选，用于开始难度校准和研究评测；</li>
+<li><code>serious</code>：六个已通过合同、经验有效性与回放门禁的正式研究任务；</li>
 <li>显式 <code>--tasks</code>：用户自选任务，不自动获得正式套件声明。</li>
 </ul>
 <div class="highlight"><pre><span></span><code>chemworld<span class="w"> </span>baselines<span class="w"> </span>report<span class="w"> </span>--preset<span class="w"> </span>core
 chemworld<span class="w"> </span>baselines<span class="w"> </span>report<span class="w"> </span>--preset<span class="w"> </span>serious
 chemworld<span class="w"> </span>tasks<span class="w"> </span>readiness
 </code></pre></div>
-<p>严肃候选的准入和提升规则见<a href="../task_design/">严肃任务设计</a>。</p>
+<p>正式套件的准入和冻结规则见<a href="../task_design/">严肃任务设计</a>与
+<a href="../benchmark_release/">Benchmark v1</a>。</p>
 <h2 id="_2">数据划分<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>public-dev</code>：接口调试、教学和 smoke；</li>
@@ -2048,9 +2161,11 @@ experiment 为单位。报告至少包含：</p>
 <li>maturity、agent manifest 和 solver provenance。</li>
 </ul>
 <h2 id="baseline">Baseline 与统计<a class="headerlink" href="#baseline" title="Permanent link">&para;</a></h2>
-<p>每个严肃任务至少运行 random、可解释 scripted baseline、优化 baseline 和安全感知 baseline。
-正式比较使用任务冻结 seeds，报告逐任务均值、标准误或 bootstrap confidence interval。smoke
-override 只能验证管线，不能用于性能声明。</p>
+<p>每个严肃任务使用 5 个冻结 seeds，并运行 task-aware random、LHS、可解释 scripted、GP-BO、
+safe GP-BO 和离线 tool-agent stub。正式报告逐任务均值、标准误和置信区间；不发布掩盖领域
+差异的跨任务总分。smoke override 只能验证管线，不能用于性能声明。</p>
+<p>正式 evidence gate 还要求所有 baseline 无非法动作、每个 campaign 完成多轮实验、GP 进入
+acquisition、成功阈值非饱和，并且 total score 与 primary metric 都能区分策略。</p>
 <h2 id="verified-result-chain">Verified Result Chain<a class="headerlink" href="#verified-result-chain" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>trajectory JSONL
   -&gt; schema validation

@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../interactive_task_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    交互式任务实验室
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorial_curriculum_zh/" class="md-nav__link">
         
   
@@ -538,6 +566,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../benchmark_release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark v1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -574,6 +630,34 @@
     
   
     任务列表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery_benchmark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    闭环发现测试
   
 
     
@@ -1221,6 +1305,34 @@
     
   
     系统架构
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../material_identity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    材料身份与真实化学边界
   
 
     
@@ -1978,17 +2090,17 @@
 <div class="highlight"><pre><span></span><code>chemworld<span class="w"> </span>baselines<span class="w"> </span>report<span class="w"> </span>--preset<span class="w"> </span>core<span class="w"> </span>--output-dir<span class="w"> </span>runs/core_baselines
 </code></pre></div>
 <h2 id="serious-preset">Serious preset<a class="headerlink" href="#serious-preset" title="Permanent link">&para;</a></h2>
-<p><code>serious</code> 只包含无 proxy、指标可执行并通过机器合同审查的六个候选任务：</p>
+<p><code>serious</code> 只包含无 proxy、指标可执行并通过机器合同和经验有效性审查的六个正式任务：</p>
 <div class="highlight"><pre><span></span><code>chemworld<span class="w"> </span>baselines<span class="w"> </span>report<span class="w"> </span>--preset<span class="w"> </span>serious<span class="w"> </span>--output-dir<span class="w"> </span>runs/serious_baselines
-python<span class="w"> </span>scripts/run_serious_task_suite.py<span class="w"> </span>--smoke
+python<span class="w"> </span>scripts/run_serious_task_suite.py<span class="w"> </span>--output-dir<span class="w"> </span>runs/serious_release
 </code></pre></div>
-<p>默认 baseline 包括 <code>random</code>、<code>lhs</code>、<code>scripted_chemistry</code>、<code>gp_bo</code>、<code>safe_gp_bo</code>、
-<code>tool_using_llm_stub</code> 和 <code>codex_subagent_replay</code>。replay agent 用于可复现 artifact，不应被描述
-为在线模型能力。</p>
+<p>默认 baseline 包括 <code>random</code>、<code>lhs</code>、<code>scripted_chemistry</code>、<code>gp_bo</code>、<code>safe_gp_bo</code> 和
+<code>tool_using_llm_stub</code>。它们使用按任务定义的搜索空间，不会把通用反应 recipe 错用于分配、
+连续流、电化学或平衡任务。固定 replay trace 仍可用于诊断，但不作为跨任务官方 baseline。</p>
 <h2 id="_1">汇总字段<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <p>Baseline 表按 <code>task_id + agent_name</code> 分组，至少报告：</p>
 <ul>
-<li>runs、seeds、mean/stderr total score；</li>
+<li>runs、seeds、mean/stderr 与 bootstrap 95% CI total score；</li>
 <li>final best score、best-valid score 与 AUC；</li>
 <li>invalid-action rate、final-assay count；</li>
 <li>safety-aware 与 cost-aware score；</li>
@@ -1996,14 +2108,15 @@ python<span class="w"> </span>scripts/run_serious_task_suite.py<span class="w"> 
 <li>当前任务的领域指标，例如 crystallization、flow、electrochemistry 或 equilibrium metrics。</li>
 </ul>
 <h2 id="_2">难度校准<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>候选任务提升为 validated 前必须满足：</p>
+<p>任务进入正式套件前必须满足：</p>
 <ul>
 <li>random 不接近满分，informed baseline 不长期停在零分；</li>
-<li>至少一个 informed baseline 显著优于 random；</li>
+<li>至少三个策略产生可区分结果，primary metric 对策略变化有响应；</li>
 <li>baseline 排名在 seeds 上不由单个异常场景决定；</li>
 <li>invalid action 和 safety penalty 不应成为唯一分数差异来源；</li>
 <li>campaign optimizer 必须真正进入 acquisition，而非只执行初始化 recipe。</li>
 </ul>
+<p>这些条件由 <code>scripts/validate_serious_benchmark.py</code> 自动检查，而不是靠文档声明。</p>
 <p>如果这些条件不满足，应调整任务隐藏变化、预算或评分合同，而不是选择性报告 seeds。</p>
 
 

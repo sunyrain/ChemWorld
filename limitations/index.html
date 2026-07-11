@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../interactive_task_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    交互式任务实验室
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorial_curriculum_zh/" class="md-nav__link">
         
   
@@ -536,6 +564,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../benchmark_release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark v1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -572,6 +628,34 @@
     
   
     任务列表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery_benchmark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    闭环发现测试
   
 
     
@@ -1128,6 +1212,34 @@
     
   
     系统架构
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../material_identity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    材料身份与真实化学边界
   
 
     
@@ -1769,7 +1881,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        一句话边界
+        可以声明
       
     </span>
   </a>
@@ -1780,7 +1892,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前适用范围
+        不可声明
       
     </span>
   </a>
@@ -1791,18 +1903,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        任务成熟度
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#proxylite" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        已知 proxy/lite 表面
+        仍然有限的表面
       
     </span>
   </a>
@@ -1813,18 +1914,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        数据和安全边界
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        验收口径
+        发布状态
       
     </span>
   </a>
@@ -1932,7 +2022,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        一句话边界
+        可以声明
       
     </span>
   </a>
@@ -1943,7 +2033,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        当前适用范围
+        不可声明
       
     </span>
   </a>
@@ -1954,18 +2044,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        任务成熟度
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#proxylite" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        已知 proxy/lite 表面
+        仍然有限的表面
       
     </span>
   </a>
@@ -1976,18 +2055,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        数据和安全边界
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        验收口径
+        发布状态
       
     </span>
   </a>
@@ -2015,93 +2083,44 @@
 
 
 <h1 id="_1">适用范围与限制<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>本页是 ChemWorld-Bench 的正式边界声明。任何 benchmark、论文、课程或
-leaderboard 叙述都应遵守这里的表述。</p>
-<h2 id="_2">一句话边界<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学交互环境。它不是
-真实反应预测软件，不是 DFT 或分子动力学 wrapper，不是商业流程模拟器，也不是实验机器人
-控制系统。</p>
-<h2 id="_3">当前适用范围<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
-<p>当前版本支持受控虚拟任务：</p>
+<p>ChemWorld-Bench 是评估 agent 在部分可观测、实验有成本、存在约束的虚拟环境中进行多轮探索、
+调度和证据更新的研究平台。它不是现实产率预测器、分子模拟器、商业流程模拟器、实验机器人
+控制软件或安全决策系统。</p>
+<h2 id="_2">可以声明<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <ul>
-<li>在同一个 <code>world_law_id=chemworld-physical-chemistry-v0.2</code> 下运行任务切片；</li>
-<li>使用半机理或轻量物理模型生成 hidden scenario；</li>
-<li>通过 Gymnasium API、CLI、trajectory、replay verifier 和 baseline report 评测 agent；</li>
-<li>比较有限预算实验设计、仪器观测使用、局部 world model 学习、约束处理和可复现提交。</li>
+<li>task、scenario、mechanism、provider、scoring 与 trajectory 有版本化合同和 hash；</li>
+<li>agent 通过公开 observation、instrument result、cost/risk 与历史轨迹作决策；</li>
+<li>v0.4 runtime 已接入显式的 LLE、干燥、浓缩、转移、结晶、蒸馏、流动和电化学窄域模型；</li>
+<li>WF-110 机器审计证明旧正式 proxy/fallback route 已移除，且实际事务执行与声明 provider 一致；</li>
+<li>当前 v0.4 产物是 backend candidate，可用于后续有效性和方法实验。</li>
 </ul>
-<p>可以声明：</p>
+<h2 id="_3">不可声明<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <ul>
-<li>这是一个可交互、可复现、可评测的虚拟化学实验 benchmark；</li>
-<li>task、scenario、mechanism、scoring 和 trajectory 带有版本化合同和 hash；</li>
-<li>agent 只能通过公开 observation、instrument result、cost/risk signal 和日志学习；</li>
-<li>core 任务已经有 frozen task contract、golden trajectory、baseline report、
-  replay verifier 和本地 release gate。</li>
+<li>输出能够预测或指导真实反应、分离、谱图、装置设计或危险实验；</li>
+<li><code>reference_validated</code> 或 <code>professional_candidate</code> 等于工业、法规或实验室验证；</li>
+<li>历史 v1 结果可直接代表 v0.4；</li>
+<li>当前 v0.4 已有论文级方法排名、统计功效、私评泛化或 SOTA 结论；</li>
+<li>leaderboard 分数代表现实实验成功概率。</li>
 </ul>
-<p>不可声明：</p>
+<h2 id="_4">仍然有限的表面<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <ul>
-<li>ChemWorld 能预测真实反应产率、选择性、纯度、谱图或工艺表现；</li>
-<li>当前参数可以直接指导真实实验；</li>
-<li>proxy/lite 模块等同于工业验证的热力学、动力学、传递或设备模型；</li>
-<li>leaderboard 分数代表真实实验室成功概率；</li>
-<li>当前 LLM/tool agent baseline 代表真实最强化学智能体能力。</li>
+<li>reaction kinetics 是局部机制和速率律，不是数据库级真实反应预测；</li>
+<li>分配系数、设备参数和物性切片为 benchmark 校准值，真实物料名不改变这一事实；</li>
+<li>合成 HPLC、GC、UV–vis、IR、NMR、MS 与 final assay 是状态耦合观测模型，不是真实谱图预测；</li>
+<li>水相平衡、电化学、结晶、流动和蒸馏均只覆盖模型卡声明的窄域；</li>
+<li>cost/risk 是任务约束信号，不是采购报价或安全合规结论；</li>
+<li>private-eval 无 maintainer salt 时仍是 placeholder，不能用于正式泛化声明。</li>
 </ul>
-<h2 id="_4">任务成熟度<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
-<p>每个任务必须携带 <code>physics_maturity</code> 和 <code>kernel_maturity</code>。core 任务当前边界是：</p>
-<table>
-<thead>
-<tr>
-<th>Task</th>
-<th>Maturity</th>
-<th>边界</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>reaction-to-assay</code></td>
-<td><code>lite</code></td>
-<td>有半机理反应网络、物料/能量约束和合成仪器观测；不是真实反应预测器。</td>
-</tr>
-<tr>
-<td><code>reaction-to-purification</code></td>
-<td><code>proxy</code></td>
-<td>萃取/洗涤使用专业候选模型；干燥、浓缩和转移仍为有界 proxy。</td>
-</tr>
-<tr>
-<td><code>partition-discovery</code></td>
-<td><code>lite</code></td>
-<td>相接触使用专业候选 extraction train，但分配参数仍为 benchmark 校准值，不等同于真实溶剂体系热力学。</td>
-</tr>
-</tbody>
-</table>
-<p>所有图表、论文 artifact、baseline table 和课程报告都应显示 maturity，而不能只展示最高分。
-serious 套件当前仍是 <code>candidate</code>；在多 seed 难度校准、置信区间和失败分析完成前，不得称为
-已经验证的正式主榜。</p>
-<h2 id="proxylite">已知 proxy/lite 表面<a class="headerlink" href="#proxylite" title="Permanent link">&para;</a></h2>
-<p>当前仍需明确标注的低成熟度表面包括：</p>
-<ul>
-<li>reaction kinetics：局部反应网络与速率律，未系统对齐真实机理数据库；</li>
-<li>downstream separation：萃取/洗涤已接入活度修正 extraction train、TPD-style diagnostic、夹带和物料守恒；干燥、浓缩、转移仍为可解释 proxy；</li>
-<li>aqueous chemistry：D4C 已提供 pH observation 和 Ksp precipitation hooks，但不是完整 electrolyte speciation solver；</li>
-<li>Gibbs equilibrium：D4D 已提供 fixed-TP ideal-mixture solver diagnostics，但不是数据库驱动的 multiphase Gibbs minimizer；</li>
-<li>crystallization 与 flow：运行时已接入专业候选 PBM/PFR；distillation 有 reference-validated shortcut slice，electrochemistry 含多个专业候选子模块；它们仍不应作为工业高保真流程模型宣传；</li>
-<li>spectroscopy/instruments：生成合成 HPLC/GC/UV-vis/final assay 信号，用于 agent 观测与教学，不是真实仪器谱图预测；</li>
-<li>safety/cost：是 benchmark 约束信号，不是法律、工业或实验室安全合规结论。</li>
-</ul>
-<h2 id="_5">数据和安全边界<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
-<ul>
-<li>公开 trajectory 是虚拟数据，不能伪装成真实实验数据；</li>
-<li>学生或 human pilot 日志用于研究前必须匿名化，并分离教学评分与科研使用；</li>
-<li>任何真实实验、真实机器人、外部数据库或危险化学流程接入，都需要独立安全审查和领域专家审核；</li>
-<li>benchmark 输出不能作为真实实验操作建议。</li>
-</ul>
-<h2 id="_6">验收口径<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
-<p>目标不是“完成通用 chemical world model”，而是提供一个小而可信的 benchmark 核心。
-当前 release gate 是：</p>
-<div class="highlight"><pre><span></span><code><span class="p">.\.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">scripts</span><span class="p">\</span><span class="n">run_release_gate</span><span class="p">.</span><span class="n">py</span>
+<h2 id="_5">发布状态<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p><code>benchmark/releases/chemworld-serious-vnext</code> 明确写入
+<code>release_status=candidate_backend_only</code>、<code>benchmark_claim_allowed=false</code>。它没有包含新的 baseline
+结果。必须先完成任务有效性/功效、泛化/反作弊、统一资源协议和多类方法实验，才能创建新的
+冻结 benchmark release。历史 <code>chemworld-serious-v1</code> 不会被 v0.4 产物覆盖。</p>
+<p>本地验证：</p>
+<div class="highlight"><pre><span></span><code><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">audit_vnext_runtime_integration</span><span class="p">.</span><span class="n">py</span>
+<span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">build_vnext_backend_candidate</span><span class="p">.</span><span class="n">py</span>
+<span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">run_release_gate</span><span class="p">.</span><span class="n">py</span>
 </code></pre></div>
-<p>该 gate 覆盖 lint、type check、全量测试、文档构建、环境自洽性审计和 baseline smoke。只有通过
-该 gate，并在 artifact 中包含任务合同、baseline report、dataset card、replay manifest、
-release checklist 和本限制声明时，才能发布 benchmark claim。</p>
 
 
 

@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../interactive_task_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    交互式任务实验室
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorial_curriculum_zh/" class="md-nav__link">
         
   
@@ -536,6 +564,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../benchmark_release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark v1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -572,6 +628,34 @@
     
   
     任务列表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery_benchmark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    闭环发现测试
   
 
     
@@ -1148,6 +1232,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../material_identity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    材料身份与真实化学边界
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../world_law/" class="md-nav__link">
         
   
@@ -1687,24 +1799,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    模型成熟度
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1721,58 +1815,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="目录">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      目录
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        等级定义
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        当前运行时边界
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        如何读取任务声明
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -1889,47 +1931,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      目录
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        等级定义
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        当前运行时边界
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        如何读取任务声明
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1949,9 +1950,8 @@
 
 
 <h1 id="_1">模型成熟度<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>成熟度描述模型在声明适用域内的证据强度，不是对整个任务或项目的笼统评级。每个任务都会
-公开 <code>physics_maturity</code>、<code>kernel_maturity</code> 和 <code>proxy_allowed</code>。</p>
-<h2 id="_2">等级定义<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>成熟度表示模型在声明适用域内的证据强度，不代表 ChemWorld 能预测真实化学。每个任务公开
+<code>physics_maturity</code>、逐模块 <code>kernel_maturity</code> 和 <code>proxy_allowed</code>。</p>
 <table>
 <thead>
 <tr>
@@ -1962,94 +1962,79 @@
 <tbody>
 <tr>
 <td><code>proxy</code></td>
-<td>用于稳定交互语义的有界近似；不能作为现实预测。</td>
+<td>只维持交互语义的有界近似；不能进入正式无-proxy 套件。</td>
 </tr>
 <tr>
 <td><code>lite</code></td>
-<td>满足基本物理趋势与守恒合同，但参考校准范围有限。</td>
+<td>满足基本趋势、单位和守恒合同，参考校准仍有限。</td>
 </tr>
 <tr>
 <td><code>reference_validated</code></td>
-<td>在明确小范围内通过解析解、文献值或独立参考后端对照。</td>
+<td>在明确小范围内通过解析、文献或独立参考对照。</td>
 </tr>
 <tr>
 <td><code>professional_candidate</code></td>
-<td>具备单位、适用域、诊断、守恒、provenance 和参考证据，可进入更专业验证。</td>
+<td>具备适用域、诊断、守恒、provenance 与参考证据，仍未达到工业验证。</td>
 </tr>
 <tr>
 <td><code>professional</code></td>
-<td>已达到模型卡声明的广泛专业验证要求；当前正式任务不依赖此标签。</td>
+<td>达到模型卡声明的广泛专业验证；当前任务不依赖此标签。</td>
 </tr>
 </tbody>
 </table>
-<p>任务整体成熟度采用最保守聚合：任何必需模块为 proxy，任务就不会被描述为更高成熟度。</p>
-<h2 id="_3">当前运行时边界<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>任务整体采用最保守聚合。当前 15 个任务整体均为 <code>lite</code> 且 <code>proxy_allowed=false</code>，因为反应或
+合成观测仍是最弱必需模块；局部 provider 可以是 <code>reference_validated</code> 或
+<code>professional_candidate</code>。</p>
 <table>
 <thead>
 <tr>
 <th>运行时表面</th>
 <th>当前等级</th>
-<th>说明</th>
+<th>解释边界</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>反应网络与 batch runtime</td>
 <td><code>lite</code></td>
-<td>机制驱动、守恒、带热账；不是数据库级真实反应预测。</td>
-</tr>
-<tr>
-<td>冷却结晶</td>
-<td><code>professional_candidate</code></td>
-<td>van't Hoff 溶解度、PBM、晶种、CSD 与物料闭合。</td>
-</tr>
-<tr>
-<td>连续流 PFR</td>
-<td><code>professional_candidate</code></td>
-<td>几何、停留时间、轴向热边界、压降和求解器诊断。</td>
-</tr>
-<tr>
-<td>萃取与洗涤</td>
-<td><code>professional_candidate</code></td>
-<td>活度修正分配、逐级收敛、夹带、TPD-style 诊断与守恒。</td>
-</tr>
-<tr>
-<td>蒸馏</td>
-<td><code>reference_validated</code></td>
-<td>受控 VLE shortcut 切片；不是完整精馏塔设计。</td>
-</tr>
-<tr>
-<td>电化学任务运行时</td>
-<td><code>professional_candidate</code> 子模块 + <code>lite</code> 任务</td>
-<td>Nernst/Butler-Volmer、传质、控制和双电层均有明确适用域。</td>
-</tr>
-<tr>
-<td>干燥、浓缩、转移</td>
-<td><code>proxy</code></td>
-<td>尚无覆盖相同任务语义的专业实现，继续显式标记。</td>
+<td>机制驱动、守恒、带热账；不是反应数据库预测器。</td>
 </tr>
 <tr>
 <td>合成仪器与谱图</td>
-<td><code>lite</code>/局部候选</td>
-<td>用于部分可观测 benchmark，不预测真实样品谱图。</td>
+<td><code>lite</code></td>
+<td>状态耦合、可复现的部分观测；不预测真实样品谱图。</td>
 </tr>
 <tr>
-<td>安全与成本</td>
-<td><code>lite</code>/候选 screening</td>
-<td>作为约束信号；不是法规合规或装置安全认证。</td>
+<td>LLE 与 wash</td>
+<td><code>professional_candidate</code></td>
+<td>稳定性门控、活度修正、夹带和物料闭合。</td>
+</tr>
+<tr>
+<td>冷却结晶、连续流、蒸馏</td>
+<td><code>professional_candidate</code></td>
+<td>有设备/求解/守恒诊断；不是工业流程设计模型。</td>
+</tr>
+<tr>
+<td>干燥、真空浓缩、转移</td>
+<td><code>reference_validated</code></td>
+<td>有限容量或有限设备的窄域 provider 与显式物料/能量账。</td>
+</tr>
+<tr>
+<td>电化学</td>
+<td><code>reference_validated</code> runtime + 候选子模块</td>
+<td>Nernst、Butler–Volmer、传质与电功账。</td>
 </tr>
 </tbody>
 </table>
-<h2 id="_4">如何读取任务声明<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">chemworld.tasks</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_task</span>
 
-<span class="n">card</span> <span class="o">=</span> <span class="n">get_task</span><span class="p">(</span><span class="s2">&quot;flow-reaction-optimization&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">card</span><span class="p">[</span><span class="s2">&quot;physics_maturity&quot;</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">card</span><span class="p">[</span><span class="s2">&quot;proxy_allowed&quot;</span><span class="p">])</span>
+<span class="n">card</span> <span class="o">=</span> <span class="n">get_task</span><span class="p">(</span><span class="s2">&quot;reaction-to-purification&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">card</span><span class="p">[</span><span class="s2">&quot;physics_maturity&quot;</span><span class="p">],</span> <span class="n">card</span><span class="p">[</span><span class="s2">&quot;proxy_allowed&quot;</span><span class="p">])</span>
 <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">card</span><span class="p">[</span><span class="s2">&quot;kernel_maturity&quot;</span><span class="p">][</span><span class="s2">&quot;modules&quot;</span><span class="p">]:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">module</span><span class="p">[</span><span class="s2">&quot;module_id&quot;</span><span class="p">],</span> <span class="n">module</span><span class="p">[</span><span class="s2">&quot;level&quot;</span><span class="p">],</span> <span class="n">module</span><span class="p">[</span><span class="s2">&quot;model_ids&quot;</span><span class="p">])</span>
 </code></pre></div>
-<p>发布结果时必须保留这些字段。只展示分数而省略模型成熟度，会让结果失去正确的解释边界。</p>
+<p>模型成熟度和 benchmark 经验有效性是两道不同门禁。v0.4 后端已通过集成审计，但新合同的
+多 seed 有效性、功效、泛化与方法对比尚未冻结，因此当前只能称为 backend candidate。</p>
 
 
 

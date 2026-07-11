@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../interactive_task_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    交互式任务实验室
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorial_curriculum_zh/" class="md-nav__link">
         
   
@@ -536,6 +564,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../benchmark_release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark v1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -572,6 +628,34 @@
     
   
     任务列表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery_benchmark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    闭环发现测试
   
 
     
@@ -1128,6 +1212,34 @@
     
   
     系统架构
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../material_identity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    材料身份与真实化学边界
   
 
     
@@ -2070,7 +2182,13 @@
 python<span class="w"> </span>scripts/run_release_gate.py
 </code></pre></div>
 <p>门禁覆盖 lint、typing、全量测试、文档、wheel smoke、外部参考后端、runtime boundary、
-环境自洽审计和 baseline smoke。任何失败都阻止 release claim。</p>
+环境自洽审计和 baseline smoke。默认开发门禁允许一个结构完整但明确不能用于发布声明的 candidate
+bundle，并在 summary 中记录 <code>release_claim_ready=false</code>。正式发布必须显式运行：</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>scripts/run_release_gate.py<span class="w"> </span>--require-frozen-benchmark
+</code></pre></div>
+<p>严格 frozen 检查会重新核验公开 manifest、内嵌证据 SHA-256、当前 task contract hash、source
+commit、clean tree、release status 和完整 trajectory archive。任何失败都阻止 release claim；
+<code>validated=true</code> 或 readiness 计数本身不构成冻结证据。</p>
 
 
 

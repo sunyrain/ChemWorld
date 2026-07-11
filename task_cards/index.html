@@ -426,6 +426,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../interactive_task_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    交互式任务实验室
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorial_curriculum_zh/" class="md-nav__link">
         
   
@@ -538,6 +566,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../benchmark_release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark v1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../benchmark_protocol/" class="md-nav__link">
         
   
@@ -574,6 +630,34 @@
     
   
     任务列表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery_benchmark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    闭环发现测试
   
 
     
@@ -1254,6 +1338,34 @@
     
   
     系统架构
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../material_identity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    材料身份与真实化学边界
   
 
     
@@ -2040,7 +2152,7 @@
 <p>任务卡是 ChemWorld benchmark 的发布合同。它必须与 <code>src/chemworld/tasks.py</code>
 中的 registry 保持一致。若任务的 action space、budget、metrics、maturity、
 hidden scenario policy 或 scoring contract 改变，应视为 benchmark contract 变更。</p>
-<p>三个 core 任务用于冻结 API、回放和发布链路。它们不等同于严肃研究主榜；严肃候选任务及
+<p>三个 core 任务用于冻结 API、回放和发布链路。它们不等同于 serious v1 研究主榜；正式任务及
 准入条件见<a href="../task_design/">严肃任务设计</a>。</p>
 <h2 id="core">Core 任务<a class="headerlink" href="#core" title="Permanent link">&para;</a></h2>
 <table>
@@ -2075,14 +2187,14 @@ hidden scenario policy 或 scoring contract 改变，应视为 benchmark contrac
 <td><code>0,1,2,3,4</code></td>
 <td><code>single_experiment</code></td>
 <td style="text-align: right;">0.70</td>
-<td><code>proxy</code></td>
+<td><code>lite</code></td>
 </tr>
 <tr>
 <td><code>partition-discovery</code></td>
 <td>学习未知溶剂/萃取体系的分配规律</td>
 <td><code>public-test</code></td>
 <td style="text-align: right;">48</td>
-<td><code>0,1,2</code></td>
+<td><code>0,1,2,3,4</code></td>
 <td><code>campaign</code></td>
 <td style="text-align: right;">0.60</td>
 <td><code>lite</code></td>
@@ -2102,15 +2214,15 @@ artifact 审计。</p>
 <tbody>
 <tr>
 <td><code>reaction-to-assay</code></td>
-<td><code>84711c106b1926aa3357acde2e58ff7a0f10d2bc3c2586c8ec9ee486d2f42e94</code></td>
+<td><code>bb4921642e59db7a7ffb82d2336e3320c1f2203ab1dd641a3778dbc5003db128</code></td>
 </tr>
 <tr>
 <td><code>reaction-to-purification</code></td>
-<td><code>b0b4bc2d0a35301815690c2c40eb4942989ef22969a9d690e522ebbf5e9b9e17</code></td>
+<td><code>ab189932ce1c3ee2fd271c572ae4a5ad43f59a3ab24ea388009cacf934ea6102</code></td>
 </tr>
 <tr>
 <td><code>partition-discovery</code></td>
-<td><code>e2438d481bddbf604cb4fd60b993ab1d7004fbbf806e981d7c59bef0d11589f8</code></td>
+<td><code>2fbe9ddbd3dd23720ea657ddae0b07421c735aeca208cebe70fd73dd7db58472</code></td>
 </tr>
 </tbody>
 </table>
@@ -2175,12 +2287,12 @@ artifact 审计。</p>
 </ul>
 <h2 id="_3">发布规则<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <ul>
-<li>core 回归套件引用上面三个任务；严肃候选套件另行审查。</li>
-<li>任务合同版本：<code>chemworld-task-contract-0.4</code>。</li>
+<li>core 回归套件引用上面三个任务；serious v1 套件使用独立的经验有效性门禁。</li>
+<li>任务合同版本：<code>chemworld-task-contract-0.6</code>。</li>
 <li>每个 task card 必须暴露 <code>task_contract_hash</code>、<code>kernel_maturity</code>、<code>physics_maturity</code>
   和 <code>proxy_allowed</code>。</li>
-<li><code>reaction-to-purification</code> 仍含 dry/concentrate/transfer proxy；<code>partition-discovery</code>
-  的相接触已升级为 <code>professional_candidate</code>，但任务整体仍受 <code>lite</code> 反应/仪器层约束。</li>
+<li><code>reaction-to-purification</code> 的 dry/concentrate/transfer 已接入显式 provider；所有 core task
+  整体仍受 <code>lite</code> 反应或仪器层约束。</li>
 <li>任何合同字段变更都需要更新测试、文档和 release artifact。</li>
 </ul>
 <h2 id="baseline">Baseline 行<a class="headerlink" href="#baseline" title="Permanent link">&para;</a></h2>
