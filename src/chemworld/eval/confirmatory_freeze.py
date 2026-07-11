@@ -122,7 +122,10 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
         "known_blockers": [
             "PPO, SAC, and two live LLM adapters are not yet eligible for the formal matrix.",
             "The expanded exploit matrix is not yet complete.",
-            "No post-freeze confirmatory result may be interpreted before every method and failure is retained.",
+            (
+                "No post-freeze confirmatory result may be interpreted before every "
+                "method and failure is retained."
+            ),
         ],
         "remaining_release_gates": list(protocol.get("remaining_release_gates", ())),
     }
@@ -186,9 +189,9 @@ def _audit_world_allocation(
     allocation = protocol.get("world_family_allocation", {})
     splits = {name: allocation.get(name, {}) for name in ("train", "dev", "bench")}
     seed_sets = {name: _split_seeds(payload) for name, payload in splits.items()}
-    generalization_seeds = set(
+    generalization_seeds = {
         int(seed) for seed in splits["bench"].get("generalization_seeds", ())
-    )
+    }
     cells = {
         name: {
             (str(mode), float(severity))
