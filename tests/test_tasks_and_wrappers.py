@@ -567,6 +567,27 @@ def test_task_safety_limit_reaches_constraint_flags() -> None:
         env.close()
 
 
+def test_safety_limit_override_is_explicit_and_validated() -> None:
+    env = gym.make(
+        "ChemWorld",
+        task_id="partition-discovery",
+        safety_limit_override=0.2,
+        seed=0,
+    )
+    try:
+        _, info = env.reset(seed=0)
+        assert info["safety_limit"] == pytest.approx(0.2)
+        assert env.unwrapped.task_info()["safety_limit"] == pytest.approx(0.2)
+    finally:
+        env.close()
+    with pytest.raises(ValueError, match="safety_limit_override"):
+        gym.make(
+            "ChemWorld",
+            task_id="partition-discovery",
+            safety_limit_override=float("nan"),
+        )
+
+
 def test_operation_validator_enforces_instrument_policy() -> None:
     validator = OperationValidator(
         constitution=make_chemworld_constitution(),

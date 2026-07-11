@@ -5,19 +5,21 @@ from __future__ import annotations
 import json
 import math
 from collections import defaultdict
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 from scipy.stats import spearmanr
 
-from chemworld.physchem.mechanism_library import configuration_root
+from chemworld.eval.risk_policy import (
+    DEFAULT_RISK_COST_PROTOCOL_PATH,
+    RISK_COST_PROTOCOL_VERSION,
+    RiskCostTaskPolicy,
+    load_risk_cost_protocol,
+)
 from chemworld.tasks import SERIOUS_TASK_IDS
 
-RISK_COST_PROTOCOL_VERSION = "chemworld-risk-cost-protocol-0.1"
 RISK_COST_AUDIT_VERSION = "chemworld-risk-cost-signal-audit-0.1"
-DEFAULT_RISK_COST_PROTOCOL_PATH = configuration_root() / "benchmark" / "risk_cost_vnext.json"
 DEFAULT_FORMAL_RESULTS_PATH = (
     Path(__file__).resolve().parents[3]
     / "runs"
@@ -26,59 +28,6 @@ DEFAULT_FORMAL_RESULTS_PATH = (
     / "full"
     / "baseline_results.json"
 )
-
-
-@dataclass(frozen=True)
-class RiskCostTaskPolicy:
-    task_id: str
-    risk_limit: float
-    process_cost_limit: float
-    risk_semantics: str = "benchmark_operational_risk_budget_not_real_world_safety"
-
-    def __post_init__(self) -> None:
-        if self.task_id not in SERIOUS_TASK_IDS:
-            raise ValueError(f"unsupported serious task: {self.task_id}")
-        if not math.isfinite(self.risk_limit) or not 0.0 < self.risk_limit < 1.0:
-            raise ValueError("risk_limit must be finite and in (0, 1)")
-        if not math.isfinite(self.process_cost_limit) or self.process_cost_limit <= 0.0:
-            raise ValueError("process_cost_limit must be finite and positive")
-
-    @classmethod
-    def from_protocol(
-        cls,
-        task_id: str,
-        protocol: dict[str, Any],
-    ) -> RiskCostTaskPolicy:
-        tasks = protocol.get("tasks", {})
-        if not isinstance(tasks, dict) or not isinstance(tasks.get(task_id), dict):
-            raise ValueError(f"risk-cost protocol is missing task {task_id!r}")
-        payload = tasks[task_id]
-        return cls(
-            task_id=task_id,
-            risk_limit=float(payload["risk_limit"]),
-            process_cost_limit=float(payload["process_cost_limit"]),
-            risk_semantics=str(protocol.get("risk_semantics", "")),
-        )
-
-    def task_info_overlay(self) -> dict[str, Any]:
-        """Return the explicit public policy that a vNext runner gives every agent."""
-
-        return {
-            "safety_limit": self.risk_limit,
-            "risk_limit": self.risk_limit,
-            "risk_limit_semantics": self.risk_semantics,
-            "risk_aggregation": "max_operation_risk_per_experiment",
-            "process_cost_limit": self.process_cost_limit,
-        }
-
-
-def load_risk_cost_protocol(
-    path: str | Path = DEFAULT_RISK_COST_PROTOCOL_PATH,
-) -> dict[str, Any]:
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
-    if not isinstance(payload, dict):
-        raise ValueError("risk-cost protocol must be a JSON object")
-    return payload
 
 
 def audit_risk_cost_signal(
@@ -194,6 +143,15 @@ def audit_risk_cost_signal(
     checks = {
         "schema": protocol.get("schema_version") == RISK_COST_PROTOCOL_VERSION,
         "candidate_is_non_claiming": protocol.get("benchmark_claim_allowed") is False,
+        "runner_binding_declared": protocol.get("runner_binding")
+        == {
+            "mode": "vnext_risk_cost",
+            "legacy_default_unchanged": True,
+            "binds_environment_constraint_flags": True,
+            "binds_public_agent_context": True,
+            "binds_trajectory_safety_limit": True,
+            "policy_hash_required": True,
+        },
         "task_scope": tuple(protocol.get("tasks", {})) == tuple(SERIOUS_TASK_IDS),
         "formal_result_count": len(results) == 600,
         "formal_scope": {str(row["task_id"]) for row in results} == set(SERIOUS_TASK_IDS)

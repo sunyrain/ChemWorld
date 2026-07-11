@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from pathlib import Path
 from time import perf_counter
-from typing import Any
+from typing import Any, Literal
 
 import gymnasium as gym
 
@@ -46,6 +46,12 @@ from chemworld.eval.method_protocol import (
     evaluation_resource_limits,
     load_method_protocol,
 )
+from chemworld.eval.risk_policy import (
+    RiskCostTaskPolicy,
+    load_risk_cost_protocol,
+)
+
+EvaluationPolicy = Literal["task_contract", "vnext_risk_cost"]
 
 AGENT_REGISTRY: dict[str, Callable[[], Agent]] = {
     "random": RandomAgent,
@@ -96,8 +102,20 @@ def run_agent(
     episode_mode_override: str | None = None,
     step_callback: Callable[[HistoryRecord, list[dict[str, Any]]], None] | None = None,
     method_resource_limits: dict[str, Any] | None = None,
+    evaluation_policy: EvaluationPolicy = "task_contract",
 ) -> list[HistoryRecord]:
     """Run one benchmark episode and optionally write a JSONL trajectory."""
+
+    if evaluation_policy not in {"task_contract", "vnext_risk_cost"}:
+        raise ValueError("evaluation_policy must be task_contract or vnext_risk_cost")
+    risk_policy: RiskCostTaskPolicy | None = None
+    if evaluation_policy == "vnext_risk_cost":
+        if task_id is None:
+            raise ValueError("vnext_risk_cost requires a registered serious task_id")
+        risk_policy = RiskCostTaskPolicy.from_protocol(
+            task_id,
+            load_risk_cost_protocol(),
+        )
 
     env_kwargs: dict[str, Any] = {
         "world_split": world_split,
@@ -107,6 +125,8 @@ def run_agent(
     }
     if task_id is not None:
         env_kwargs["task_id"] = task_id
+    if risk_policy is not None:
+        env_kwargs["safety_limit_override"] = risk_policy.risk_limit
     if budget_override is not None:
         env_kwargs["budget_override"] = budget_override
     if episode_mode_override is not None:
@@ -121,10 +141,17 @@ def run_agent(
         raise RuntimeError(f"{env_id} does not expose task_info()")
     base_env: Any = env.unwrapped
     task_info = base_env.task_info()
+    if risk_policy is not None:
+        task_info.update(risk_policy.task_info_overlay())
+        task_info["risk_policy_hash"] = risk_policy.policy_hash
 
     agent.reset(task_info, seed)
     agent_metadata = agent.manifest()
     agent_metadata["git_commit"] = git_commit()
+    agent_metadata["evaluation_policy"] = evaluation_policy
+    agent_metadata["risk_policy_hash"] = (
+        risk_policy.policy_hash if risk_policy is not None else None
+    )
     requires_online_model = bool(agent_metadata.get("requires_online_model", False))
     resource_limits = (
         MethodResourceLimits.from_payload(
