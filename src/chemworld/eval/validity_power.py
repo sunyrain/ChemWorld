@@ -33,6 +33,27 @@ ADAPTIVE_METHOD_PAIRS = (
 )
 
 
+def campaign_record_prefix(
+    records: Sequence[dict[str, Any]],
+    complete_experiments: int,
+) -> list[dict[str, Any]]:
+    """Return records through the requested successful final assay."""
+
+    if complete_experiments < 1:
+        raise ValueError("complete_experiments must be positive")
+    terminal_indices = [
+        index
+        for index, record in enumerate(records)
+        if record.get("leaderboard_score") is not None
+    ]
+    if len(terminal_indices) < complete_experiments:
+        raise ValueError(
+            f"Campaign has {len(terminal_indices)} complete experiments; "
+            f"requested {complete_experiments}"
+        )
+    return [dict(record) for record in records[: terminal_indices[complete_experiments - 1] + 1]]
+
+
 def minimum_learning_capacity(task_info: dict[str, Any]) -> int:
     """Return the minimum complete experiments for a learning diagnostic."""
 
@@ -383,5 +404,6 @@ __all__ = [
     "VALIDITY_POWER_SCHEMA_VERSION",
     "audit_validity_power",
     "calibrated_validity_budget",
+    "campaign_record_prefix",
     "minimum_learning_capacity",
 ]

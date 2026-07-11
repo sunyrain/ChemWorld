@@ -8,12 +8,12 @@ import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
+from chemworld.agents.task_recipes import task_recipe_event_count
 from chemworld.data.submission import git_commit
 from chemworld.eval.seed_suite import task_seed_plan
 from chemworld.eval.suite import run_suite
 from chemworld.eval.validity_power import (
     audit_validity_power,
-    calibrated_validity_budget,
     minimum_learning_capacity,
 )
 from chemworld.tasks import SERIOUS_TASK_IDS, get_task
@@ -38,11 +38,21 @@ def main() -> int:
     parser.add_argument("--agents", nargs="+", default=list(DEFAULT_AGENTS))
     parser.add_argument("--seeds", nargs="+", type=int, default=list(range(5)))
     parser.add_argument(
+        "--complete-experiments",
+        type=int,
+        help=(
+            "Use this many complete experiments for every task instead of the "
+            "dimension-aware minimum. Intended for long-horizon diagnostics."
+        ),
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=Path("runs/validity_power/calibrated_budget_pilot"),
     )
     args = parser.parse_args()
+    if args.complete_experiments is not None and args.complete_experiments < 2:
+        parser.error("--complete-experiments must be at least two")
 
     root = args.output_dir
     root.mkdir(parents=True, exist_ok=True)
@@ -52,11 +62,18 @@ def main() -> int:
     for task_id in args.tasks:
         task = get_task(task_id)
         task_info = task.to_dict()
-        diagnostic_budget = calibrated_validity_budget(task_info)
+        minimum_experiments = minimum_learning_capacity(task_info)
+        complete_experiments = (
+            args.complete_experiments
+            if args.complete_experiments is not None
+            else minimum_experiments
+        )
+        diagnostic_budget = task_recipe_event_count(task_info) * complete_experiments
         budgets[task_id] = {
             "official_budget_steps": task.budget,
             "diagnostic_budget_steps": diagnostic_budget,
-            "minimum_complete_experiments": minimum_learning_capacity(task_info),
+            "minimum_complete_experiments": minimum_experiments,
+            "evaluated_complete_experiments": complete_experiments,
         }
         for agent in args.agents:
             task_results = run_suite(
@@ -109,6 +126,7 @@ def main() -> int:
         "tasks": list(args.tasks),
         "agents": list(args.agents),
         "seeds": list(args.seeds),
+        "requested_complete_experiments": args.complete_experiments,
         "budgets": budgets,
         "result_count": len(results),
         "baseline_results": str(result_path),

@@ -6,6 +6,7 @@ from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.validity_power import (
     audit_validity_power,
     calibrated_validity_budget,
+    campaign_record_prefix,
     minimum_learning_capacity,
 )
 from chemworld.tasks import get_task
@@ -89,3 +90,19 @@ def test_runner_budget_override_reaches_agent_and_execution_loop(tmp_path) -> No
 
     assert len(history) == 64
     assert history[-1].info["budget"] == 64
+
+
+def test_campaign_record_prefix_stops_at_requested_final_assay() -> None:
+    records = [
+        {"step": 1, "leaderboard_score": None},
+        {"step": 2, "leaderboard_score": 0.4},
+        {"step": 3, "leaderboard_score": None},
+        {"step": 4, "leaderboard_score": 0.6},
+        {"step": 5, "leaderboard_score": None},
+    ]
+
+    prefix = campaign_record_prefix(records, 2)
+
+    assert [record["step"] for record in prefix] == [1, 2, 3, 4]
+    with pytest.raises(ValueError, match="has 2 complete experiments"):
+        campaign_record_prefix(records, 3)
