@@ -173,6 +173,14 @@ def compare_publication_distribution_shift(
             ]
             > 0.0
             and shifted_primary_effect["mean_paired_effect"] > 0.0,
+            "shifted_total_effect_ci_positive": shifted_score_effect[
+                "paired_bootstrap_ci"
+            ][0]
+            > 0.0,
+            "shifted_primary_effect_ci_positive": shifted_primary_effect[
+                "paired_bootstrap_ci"
+            ][0]
+            > 0.0,
             "shifted_actions_valid": max(
                 float(row.get("invalid_action_rate", 1.0)) for row in shifted_task
             )

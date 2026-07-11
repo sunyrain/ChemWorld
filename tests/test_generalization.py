@@ -52,3 +52,5 @@ def test_publication_shift_audit_tracks_adaptive_effect_persistence() -> None:
         assert task["total_score_effect_shift"] < 0.0
         assert task["checks"]["total_effect_direction_preserved"] is True
         assert task["checks"]["primary_effect_direction_preserved"] is True
+        assert task["checks"]["shifted_total_effect_ci_positive"] is True
+        assert task["checks"]["shifted_primary_effect_ci_positive"] is True
