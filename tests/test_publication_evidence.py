@@ -44,6 +44,15 @@ def test_publication_evidence_records_positive_signal_and_blockers() -> None:
     assert gates["primary_direction_supported_task_count"] == 4
     assert gates["primary_sesoi_task_count"] == 2
     assert gates["primary_claims_validated_all_tasks"] is False
+    assert gates["safety_risk_signal_observed"] is True
+    assert gates["safety_constraint_active"] is False
     assert gates["safety_risk_signal_informative"] is False
+
+    method_risks = [
+        method["mean_safety_risk"]
+        for task in summary["tasks"].values()
+        for method in task["methods"].values()
+    ]
+    assert min(method_risks) > 0.0
     assert gates["generalization_evidence_complete"] is False
     assert gates["exploit_audit_complete"] is False

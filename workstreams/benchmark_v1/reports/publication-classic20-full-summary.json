@@ -9,7 +9,9 @@
     "primary_claims_validated_all_tasks": false,
     "primary_direction_supported_task_count": 4,
     "primary_sesoi_task_count": 2,
+    "safety_constraint_active": false,
     "safety_risk_signal_informative": false,
+    "safety_risk_signal_observed": true,
     "total_score_holm_significant_all_tasks": true,
     "total_score_positive_all_tasks": true,
     "total_score_sesoi_task_count": 4,
@@ -23,7 +25,7 @@
   },
   "limitations": [
     "Electrochemical and equilibrium total-score gains do not establish gains in their declared primary metrics.",
-    "The formal matrix contains no non-zero safety-risk observations, so the safety-constrained baseline is not an informative safety test.",
+    "The formal matrix contains non-zero continuous risk observations, but no safety-limit violations. The constraint is inactive, so the safety-constrained baseline is not an informative safety test.",
     "No generalization, private-evaluation, exploit-resistance, or independent-reproduction evidence is attached.",
     "Regret is not reported because no independent reference protocol is frozen."
   ],
@@ -71,7 +73,7 @@
   "protocol_id": "chemworld-serious-v0.4-publication-candidate-0.1",
   "protocol_sha256": "1a0789f5ffae2222e0235e9b36ca6bbae5888aace4b3bf405b78492e69a1742a",
   "publication_ready": false,
-  "schema_version": "chemworld-publication-evidence-0.1",
+  "schema_version": "chemworld-publication-evidence-0.2",
   "status": "blocked",
   "tasks": {
     "electrochemical-conversion": {
@@ -88,7 +90,7 @@
           "mean_process_cpu_time_s": 6.1765625,
           "mean_run_wall_time_s": 4.898514015000546,
           "mean_safety_aware_score": 0.6749914950118862,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.12505516041336315,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.7165944435219251
         },
@@ -99,7 +101,7 @@
           "mean_process_cpu_time_s": 5.62734375,
           "mean_run_wall_time_s": 4.424465285002952,
           "mean_safety_aware_score": 0.6470857329355029,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.1290999933225768,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.6953972051816721
         },
@@ -110,7 +112,7 @@
           "mean_process_cpu_time_s": 5.62109375,
           "mean_run_wall_time_s": 4.423745590011822,
           "mean_safety_aware_score": 0.6296512399242754,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.12869587366535726,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.6880752014403747
         },
@@ -121,7 +123,7 @@
           "mean_process_cpu_time_s": 6.28828125,
           "mean_run_wall_time_s": 5.02363245501183,
           "mean_safety_aware_score": 0.6938118004544281,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.12408964667801878,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.7420890686182603
         },
@@ -132,7 +134,7 @@
           "mean_process_cpu_time_s": 7.0671875,
           "mean_run_wall_time_s": 5.771143015002599,
           "mean_safety_aware_score": 0.6417015379646223,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.12608140395355544,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.6909075014775804
         }
@@ -347,7 +349,7 @@
           "mean_process_cpu_time_s": 5.24140625,
           "mean_run_wall_time_s": 4.188143670011778,
           "mean_safety_aware_score": 0.2957821354684973,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.09009117835958022,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.4459653812209268
         },
@@ -358,7 +360,7 @@
           "mean_process_cpu_time_s": 4.6453125,
           "mean_run_wall_time_s": 3.7117866849992422,
           "mean_safety_aware_score": 0.29699597973547787,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.08877581584791187,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.4461060745448787
         },
@@ -369,7 +371,7 @@
           "mean_process_cpu_time_s": 4.6375,
           "mean_run_wall_time_s": 3.7120387400034813,
           "mean_safety_aware_score": 0.29498378185856294,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.0912874117429601,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.4226857016856479
         },
@@ -380,7 +382,7 @@
           "mean_process_cpu_time_s": 5.24921875,
           "mean_run_wall_time_s": 4.235557899996638,
           "mean_safety_aware_score": 0.2957821354684973,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.09009117835958022,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.4459653812209268
         },
@@ -391,7 +393,7 @@
           "mean_process_cpu_time_s": 5.75859375,
           "mean_run_wall_time_s": 4.7166832150134725,
           "mean_safety_aware_score": 0.29752383207582805,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.08901502531720326,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.44402827684176344
         }
@@ -606,7 +608,7 @@
           "mean_process_cpu_time_s": 13.03984375,
           "mean_run_wall_time_s": 10.484172380022937,
           "mean_safety_aware_score": 0.02788152761685464,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.1905507958465023,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.26981735125338
         },
@@ -617,7 +619,7 @@
           "mean_process_cpu_time_s": 11.8109375,
           "mean_run_wall_time_s": 9.464305505010998,
           "mean_safety_aware_score": 0.005380340116770822,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.17174862536019647,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.22919470463683417
         },
@@ -628,7 +630,7 @@
           "mean_process_cpu_time_s": 11.82734375,
           "mean_run_wall_time_s": 9.47719391999999,
           "mean_safety_aware_score": 0.009530641880494338,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.17487633495242333,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.2083142762955203
         },
@@ -639,7 +641,7 @@
           "mean_process_cpu_time_s": 13.43125,
           "mean_run_wall_time_s": 10.849134439992486,
           "mean_safety_aware_score": 0.03314430544493852,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.19095864818023983,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.2772912279674122
         },
@@ -650,7 +652,7 @@
           "mean_process_cpu_time_s": 14.5,
           "mean_run_wall_time_s": 11.942470989987488,
           "mean_safety_aware_score": 0.03505872613306518,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.1861528143292526,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.2847165129407343
         }
@@ -865,7 +867,7 @@
           "mean_process_cpu_time_s": 8.9203125,
           "mean_run_wall_time_s": 7.245185014989692,
           "mean_safety_aware_score": 0.6572537580158313,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.1080477573890239,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.7254293610870428
         },
@@ -876,7 +878,7 @@
           "mean_process_cpu_time_s": 8.096875,
           "mean_run_wall_time_s": 6.531457354978192,
           "mean_safety_aware_score": 0.634005472145159,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.11623296444164591,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.7012040752416822
         },
@@ -887,7 +889,7 @@
           "mean_process_cpu_time_s": 7.65234375,
           "mean_run_wall_time_s": 6.152438249986153,
           "mean_safety_aware_score": 0.6303707589628833,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.11632200468704104,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.6991130102091462
         },
@@ -898,7 +900,7 @@
           "mean_process_cpu_time_s": 9.31484375,
           "mean_run_wall_time_s": 7.638068690011278,
           "mean_safety_aware_score": 0.656003166259304,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.10895732628181576,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.7255579951266229
         },
@@ -909,7 +911,7 @@
           "mean_process_cpu_time_s": 10.31484375,
           "mean_run_wall_time_s": 8.55320264499169,
           "mean_safety_aware_score": 0.6566084960375222,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.10843328230455518,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.7250417201540853
         }
@@ -1124,7 +1126,7 @@
           "mean_process_cpu_time_s": 11.45546875,
           "mean_run_wall_time_s": 8.661265110003296,
           "mean_safety_aware_score": 0.13074866159267595,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.10450375385074454,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.6287708234444722
         },
@@ -1135,7 +1137,7 @@
           "mean_process_cpu_time_s": 10.29140625,
           "mean_run_wall_time_s": 7.573063524998725,
           "mean_safety_aware_score": 0.05548013714364566,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.11683183182454245,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.561793101670647
         },
@@ -1146,7 +1148,7 @@
           "mean_process_cpu_time_s": 10.34765625,
           "mean_run_wall_time_s": 7.606522549997317,
           "mean_safety_aware_score": 0.07956750832444279,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.11671137800059198,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.5711163268829336
         },
@@ -1157,7 +1159,7 @@
           "mean_process_cpu_time_s": 11.7890625,
           "mean_run_wall_time_s": 9.012248204997741,
           "mean_safety_aware_score": 0.17936142415479484,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.10125829146116634,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.6373626621996985
         },
@@ -1168,7 +1170,7 @@
           "mean_process_cpu_time_s": 13.1203125,
           "mean_run_wall_time_s": 10.250642109982437,
           "mean_safety_aware_score": 0.12504692744794393,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.10445565559139305,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.6226573548216321
         }
@@ -1383,7 +1385,7 @@
           "mean_process_cpu_time_s": 11.6265625,
           "mean_run_wall_time_s": 8.692357185005676,
           "mean_safety_aware_score": 0.0,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.28062408849131315,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.4494463669241645
         },
@@ -1394,7 +1396,7 @@
           "mean_process_cpu_time_s": 9.7578125,
           "mean_run_wall_time_s": 7.2546454299998,
           "mean_safety_aware_score": 0.0,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.25143523134460505,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.3788242996420966
         },
@@ -1405,7 +1407,7 @@
           "mean_process_cpu_time_s": 9.803125,
           "mean_run_wall_time_s": 7.297184139984893,
           "mean_safety_aware_score": 0.0,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.2518098200751807,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.3864386042372167
         },
@@ -1416,7 +1418,7 @@
           "mean_process_cpu_time_s": 11.840625,
           "mean_run_wall_time_s": 8.943665455002337,
           "mean_safety_aware_score": 0.0,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.2767556883377785,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.450762122106097
         },
@@ -1427,7 +1429,7 @@
           "mean_process_cpu_time_s": 13.11328125,
           "mean_run_wall_time_s": 10.100519889994757,
           "mean_safety_aware_score": 0.0,
-          "mean_safety_risk": 0.0,
+          "mean_safety_risk": 0.2800477543333545,
           "mean_safety_violations": 0.0,
           "mean_total_score": 0.4554634008951644
         }

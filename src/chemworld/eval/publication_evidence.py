@@ -17,7 +17,7 @@ from chemworld.eval.publication_protocol import (
 from chemworld.eval.validity_power import audit_validity_power
 from chemworld.tasks import SERIOUS_TASK_IDS
 
-PUBLICATION_EVIDENCE_SCHEMA_VERSION = "chemworld-publication-evidence-0.1"
+PUBLICATION_EVIDENCE_SCHEMA_VERSION = "chemworld-publication-evidence-0.2"
 PUBLICATION_COMPARISONS = (
     ("structured_gp_bo", "random"),
     ("lhs", "random"),
@@ -112,10 +112,12 @@ def build_publication_evidence_summary(
         for task_id in SERIOUS_TASK_IDS
     ]
     risk_signal_observed = any(
-        abs(float(row.get("mean_risk", 0.0))) > 1.0e-12
-        or int(row.get("safety_violations", 0)) > 0
-        for row in results
+        abs(float(row["mean_safety_risk"])) > 1.0e-12 for row in results
     )
+    safety_constraint_active = any(
+        int(row.get("safety_violations", 0)) > 0 for row in results
+    )
+    safety_risk_signal_informative = risk_signal_observed and safety_constraint_active
     gates = {
         "formal_matrix_complete": True,
         "trajectory_results_verified": all(row.get("verified") is True for row in results),
@@ -132,7 +134,9 @@ def build_publication_evidence_summary(
         "primary_direction_supported_task_count": primary_positive_count,
         "primary_sesoi_task_count": primary_sesoi_count,
         "primary_claims_validated_all_tasks": primary_sesoi_count == len(SERIOUS_TASK_IDS),
-        "safety_risk_signal_informative": risk_signal_observed,
+        "safety_risk_signal_observed": risk_signal_observed,
+        "safety_constraint_active": safety_constraint_active,
+        "safety_risk_signal_informative": safety_risk_signal_informative,
         "generalization_evidence_complete": False,
         "exploit_audit_complete": False,
         "independent_reproduction_complete": False,
@@ -181,8 +185,9 @@ def build_publication_evidence_summary(
                 "gains in their declared primary metrics."
             ),
             (
-                "The formal matrix contains no non-zero safety-risk observations, so "
-                "the safety-constrained baseline is not an informative safety test."
+                "The formal matrix contains non-zero continuous risk observations, but "
+                "no safety-limit violations. The constraint is inactive, so the "
+                "safety-constrained baseline is not an informative safety test."
             ),
             (
                 "No generalization, private-evaluation, exploit-resistance, or "
@@ -236,6 +241,8 @@ def _validate_matrix(
             raise ValueError("result row does not contain the frozen experiment count")
         if row.get("verified") is not True:
             raise ValueError("result row is not replay verified")
+        if not isinstance(row.get("mean_safety_risk"), int | float):
+            raise ValueError("result row is missing numeric mean_safety_risk")
 
 
 def _method_summaries(
@@ -254,7 +261,7 @@ def _method_summaries(
                 float(row["safety_aware_score"]) for row in rows
             ),
             "mean_cost_aware_score": fmean(float(row["cost_aware_score"]) for row in rows),
-            "mean_safety_risk": fmean(float(row.get("mean_risk", 0.0)) for row in rows),
+            "mean_safety_risk": fmean(float(row["mean_safety_risk"]) for row in rows),
             "mean_safety_violations": fmean(
                 float(row.get("safety_violations", 0.0)) for row in rows
             ),

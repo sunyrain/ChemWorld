@@ -34,7 +34,10 @@ ChemWorld-Bench 评估 Agent 在未知、部分可观测、实验有成本的虚
   不能支持自适应能力改善；
 - 12 个声明的 world-family 轴尚不具备完整的插值、外推、组合变化和观测噪声控制；
 - 除 action key order 外，物料重映射、observation 重排和等价动作序列不变性尚未实现；
-- 正式经典方法矩阵中的风险观测全为零，因此当前结果不能证明 safe BO 或约束学习有效；
+- 正式经典方法矩阵有连续风险观测，但 600 条结果没有一次 safety violation，约束从未激活；
+  structured safe GP 也没有一致降低风险，因此当前结果不能证明 safe BO 或约束学习有效；
+- 正式五方法只在完整实验之间更新 recipe，不消费中间谱图；扩展经典方法和真实 LLM 缺少保留的
+  多 seed replay artifact；
 - 尚缺统一资源预算下的 RL、真实 LLM、独立复现和最终论文 artifact。
 
 因此，当前 `benchmark/releases/chemworld-serious-vnext` 标记为
