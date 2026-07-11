@@ -313,6 +313,28 @@ def test_precipitation_removes_ions_only_after_saturation() -> None:
     assert supersaturated.material_balance_error_mol < 1e-12
 
 
+def test_precipitation_bracket_reaches_exact_stoichiometric_limit() -> None:
+    """An inward-shifted upper bracket stays supersaturated in this regime."""
+
+    spec = SolubilityProductSpec(
+        precipitate_id="XY(s)",
+        cation_id="X+",
+        anion_id="Y-",
+        ksp=1e-30,
+    )
+    result = precipitate_if_supersaturated(
+        {"X+": 1.0, "Y-": 1e-6},
+        spec,
+        volume_L=1.0,
+    )
+
+    assert result.precipitated_mol == pytest.approx(1e-6, abs=1e-14)
+    assert result.final_amounts_mol["Y-"] == pytest.approx(0.0, abs=1e-14)
+    assert result.ion_product <= spec.ksp
+    assert result.material_balance_error_mol < 1e-12
+    assert result.metadata["solver_status"] in {"brentq", "stoichiometric_limit"}
+
+
 def test_precipitation_hooks_apply_multiple_solubility_specs() -> None:
     hooks = apply_precipitation_hooks(
         {"Ag+": 1e-3, "Cl-": 1e-3, "Ba2+": 2e-3, "SO4--": 2e-3},

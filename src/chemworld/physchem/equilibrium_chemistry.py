@@ -1152,8 +1152,26 @@ def precipitate_if_supersaturated(
         anion = max(initial_anion - spec.anion_stoich * precipitated, 0.0)
         return _ion_product(cation, anion, spec=spec, volume_L=volume_L) - spec.ksp
 
-    upper = max_precip * (1.0 - 1e-12)
-    precipitated = brentq(residual, 0.0, upper, xtol=1e-14, rtol=1e-12, maxiter=200)
+    # The exact stoichiometric limit is a valid closed endpoint: at least one
+    # limiting ion is zero and the ion product is therefore no greater than
+    # Ksp.  Pulling the endpoint inward by a fixed relative epsilon can leave
+    # both residuals positive for very small Ksp or strongly imbalanced ion
+    # inventories, which violates Brent's sign-change requirement.
+    upper = max_precip
+    upper_residual = residual(upper)
+    if upper_residual >= 0.0:
+        precipitated = upper
+        solver_status = "stoichiometric_limit"
+    else:
+        precipitated = brentq(
+            residual,
+            0.0,
+            upper,
+            xtol=1e-14,
+            rtol=1e-12,
+            maxiter=200,
+        )
+        solver_status = "brentq"
     final = dict(amounts)
     final[spec.cation_id] = max(initial_cation - spec.cation_stoich * precipitated, 0.0)
     final[spec.anion_id] = max(initial_anion - spec.anion_stoich * precipitated, 0.0)
@@ -1182,6 +1200,7 @@ def precipitate_if_supersaturated(
             "status": "precipitated",
             "initial_ion_product": initial_product,
             "initial_saturation_index": initial_saturation_index,
+            "solver_status": solver_status,
             "spec": spec.to_dict(),
         },
     )
