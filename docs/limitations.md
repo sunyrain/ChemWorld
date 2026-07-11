@@ -1,45 +1,43 @@
 # 适用范围与限制
 
-ChemWorld-Bench 是评估 agent 在部分可观测、实验有成本、存在约束的虚拟环境中进行多轮探索、
-调度和证据更新的研究平台。它不是现实产率预测器、分子模拟器、商业流程模拟器、实验机器人
-控制软件或安全决策系统。
+ChemWorld-Bench 面向部分可观测、预算受限的闭环实验决策研究。它不是现实产率预测器、分子模拟
+器、商业流程模拟器、实验机器人控制软件或安全决策系统。
 
-## 可以声明
+## 当前可以声明
 
-- task、scenario、mechanism、provider、scoring 与 trajectory 有版本化合同和 hash；
-- agent 通过公开 observation、instrument result、cost/risk 与历史轨迹作决策；
-- v0.4 runtime 已接入显式的 LLE、干燥、浓缩、转移、结晶、蒸馏、流动和电化学窄域模型；
-- WF-110 机器审计证明旧正式 proxy/fallback route 已移除，且实际事务执行与声明 provider 一致；
-- 当前 v0.4 产物是 backend candidate，可用于后续有效性和方法实验。
+- task、scenario、mechanism、provider、scoring 与 trajectory 有版本化合同和摘要；
+- Agent 只能通过公开 observation、instrument result、cost/risk 与历史轨迹作决策；
+- v0.4 runtime 已接入 LLE、干燥、浓缩、转移、结晶、蒸馏、流动和电化学窄域 provider，旧正式
+  proxy/fallback route 已移除；
+- 经典方法正式矩阵可回放，结构化 GP 在分配、结晶、蒸馏和流动任务上显示跨公开新 seed 与
+  salted private shift 一致的正向证据；
+- 基础 exploit 检查通过，private salt 原值不进入报告或版本库。
 
-## 不可声明
+## 当前不可声明
 
 - 输出能够预测或指导真实反应、分离、谱图、装置设计或危险实验；
-- `reference_validated` 或 `professional_candidate` 等于工业、法规或实验室验证；
-- 历史 v1 结果可直接代表 v0.4；
-- 当前 v0.4 已有论文级方法排名、统计功效、私评泛化或 SOTA 结论；
+- `reference_validated`、`professional_candidate` 或 provider 接入等于工业、法规或实验室验证；
+- 六个 serious task 已全部通过科学有效性验证；
+- 当前安全风险信号足以评价 safe BO 或真实安全决策；
+- seed shift 等同于独立的参数外推、组成变化或观测噪声泛化；
+- 已完成 RL、真实 LLM、SOTA 排名、第三方复现或发表级 release；
 - leaderboard 分数代表现实实验成功概率。
 
-## 仍然有限的表面
+## 模型与观测限制
 
 - reaction kinetics 是局部机制和速率律，不是数据库级真实反应预测；
-- 分配系数、设备参数和物性切片为 benchmark 校准值，真实物料名不改变这一事实；
-- 合成 HPLC、GC、UV–vis、IR、NMR、MS 与 final assay 是状态耦合观测模型，不是真实谱图预测；
-- 水相平衡、电化学、结晶、流动和蒸馏均只覆盖模型卡声明的窄域；
-- cost/risk 是任务约束信号，不是采购报价或安全合规结论；
-- private-eval 无 maintainer salt 时仍是 placeholder，不能用于正式泛化声明。
+- 分配系数、设备参数和物性切片为 benchmark 校准值，使用真实物料名不会自动提高真实性；
+- 合成 HPLC、GC、UV–vis、IR、NMR、MS 与 final assay 是状态耦合观测，不是真实谱图预测；
+- 水相平衡、电化学、结晶、流动和蒸馏只覆盖各模型卡声明的窄域；
+- cost/risk 是虚拟任务约束，不是采购报价、职业健康或安全合规结论；
+- 当前 world-family 缺少可独立控制的完整 OOD 轴，不能把不同 seed 的稳定性扩大解释为机制泛化；
+- 电化学与平衡任务的主指标尚未显示稳定的自适应收益；安全风险在正式经典矩阵中退化为零。
 
 ## 发布状态
 
-`benchmark/releases/chemworld-serious-vnext` 明确写入
-`release_status=candidate_backend_only`、`benchmark_claim_allowed=false`。它没有包含新的 baseline
-结果。必须先完成任务有效性/功效、泛化/反作弊、统一资源协议和多类方法实验，才能创建新的
-冻结 benchmark release。历史 `chemworld-serious-v1` 不会被 v0.4 产物覆盖。
+当前公开状态是 `candidate_backend_only`，不是 `validated benchmark`。冻结 v0.1 方法证据不会因
+后续任务整改而被覆盖；任何会改变环境、观测、评分或风险信号的修订都进入新合同和新协议。
 
-本地验证：
-
-```powershell
-python scripts/audit_vnext_runtime_integration.py
-python scripts/build_vnext_backend_candidate.py
-python scripts/run_release_gate.py
-```
+在正式发布前，项目仍需完成任务接受/降级决策、独立 world-family 轴、语义不变性、公开接口
+harness、扩展 exploit、资源对齐的方法矩阵和第三方干净安装复现。达到这些门禁后，发布包才会
+获得可引用 tag 和明确的 benchmark claim。

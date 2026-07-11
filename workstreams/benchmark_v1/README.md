@@ -1,113 +1,82 @@
-# Benchmark v1 科学有效性收束
+# Benchmark 科学有效性工作流
 
-本工作流把“代码和发布管线可以运行”与“benchmark 足以支持论文结论”分开验收。当前正式
-readiness 只证明 6 个任务在 5 个冻结 seeds 上可执行、可重放且存在一定策略差异；它不能替代
-统计功效、跨分布稳定性、真实方法覆盖、私评、反作弊和完整证据链。
+本目录保存 ChemWorld benchmark 的评测协议、紧凑机器摘要和审计结论。它明确区分三件事：
 
-## 审计口径
+1. 环境可以运行并回放；
+2. 方法在某个得分上存在差异；
+3. benchmark 足以支持预先声明的科学结论。
 
-当前工作流只保留可重放的任务级证据：paired-seed 效应、预算曲线、类别表示对照和 provenance。
-任何经验有效性 blocker 未关闭时只能称为 candidate，不能发布最终 benchmark 或论文结论。
+前两项不能自动推出第三项。当前 backend 是 candidate，六任务 benchmark 总体状态是 `blocked`。
 
-## 已冻结的发表候选协议
+## 冻结协议与证据
 
-`configs/benchmark/publication_protocol_v0.1.json` 已固定研究问题、六任务边界、逐任务主指标、
-不可声称内容、20 个配对 seeds、40 次完整实验、确认性比较、SESOI、bootstrap、符号翻转检验、
-Holm 校正和资源账本。`scripts/audit_publication_protocol.py` 会核对当前 World Law、任务合同哈希
-和 agent registry；任何漂移均失败。该协议有效只代表预注册完整，不代表经验结果已经通过。
+`configs/benchmark/publication_protocol_v0.1.json` 固定了六个候选任务、逐任务主指标、20 个配对
+seeds、40 次完整实验、确认性比较、0.05 SESOI、paired bootstrap、符号翻转检验、Holm 校正、
+负结果报告和资源账本。该协议及结果保持不可变；后续任务整改必须升级版本。
 
-确认性实验使用 `structured_gp_bo` 对 `random`。LHS、原始编码 GP 和结构化安全 GP 是预声明的
-次要比较/消融。stub 与 replay agent 已从科学 baseline 中排除。正式运行必须来自干净 commit，
-每条轨迹回放通过，并完成恰好 40 次实验；结果仍需通过泛化、反作弊和独立复现门禁后才能进入
-论文主张。
+正式经典矩阵在干净提交 `6c5182c1393f5920b3fd37722328080549ea6168` 上运行：
 
-## 2026-07-11 正式经典方法矩阵
+- 6 tasks × 5 methods × 20 seeds = 600 条 replay-verified 结果；
+- 方法为 random、LHS、raw GP-BO、structured GP-BO、structured safe GP-BO；
+- 每条运行完成恰好 40 次实验；
+- 紧凑摘要为 `reports/publication-classic20-full-summary.json`。
 
-正式矩阵在干净提交 `6c5182c1393f5920b3fd37722328080549ea6168` 上完成：6 tasks × 5 methods ×
-20 paired seeds，共 600 条 replay-verified 结果，每条 40 次完整实验。紧凑、失败关闭的机器摘要为
-`reports/publication-classic20-full-summary.json`；它绑定协议哈希、结果摘要和原始 validity report
-摘要，原始大轨迹不纳入 Git。
+`structured_gp_bo - random` 的结果如下：
 
-`structured_gp_bo - random` 的 total-score 配对效应在分配、结晶、蒸馏、连续流、电化学和平衡
-任务分别为 +0.026、+0.066、+0.064、+0.069、+0.054、+0.023；六项 Holm 校正后均显著，
-其中 4/6 达到 0.05 SESOI。任务主指标效应分别为 +0.049、+0.149、+0.120、+0.033、
-+0.0002、+0.0026；只有结晶和蒸馏达到预注册 SESOI，前四项的 bootstrap 区间方向为正，
-电化学和平衡不支持任务主指标改善。因此 suite 继续为 `blocked`，不能仅凭 total score 升级。
+| Task | Total effect | Primary effect | 结论 |
+| --- | ---: | ---: | --- |
+| partition | +0.026 | +0.049 | 正向稳定，primary 略低于 SESOI |
+| crystallization | +0.066 | +0.149 | primary 达到 SESOI |
+| distillation | +0.064 | +0.120 | primary 达到 SESOI |
+| flow | +0.069 | +0.033 | 正向稳定，primary 低于 SESOI |
+| electrochemistry | +0.054 | +0.0002 | 复合得分改善，主指标不成立 |
+| equilibrium | +0.023 | +0.0026 | 主指标不成立 |
 
-五方法对照进一步表明：LHS 大多接近 random，GP 系列在结晶、蒸馏和流动任务产生明确收益；
-one-hot 相对原始 GP 的主要 total-score 改善集中在电化学（约 +0.026），但电化学 selectivity
-主指标反而约 -0.003，说明表示修复改善的是复合奖励而非已声明的选择性能力。结构化安全 GP
-也尚不能作为安全结论：600 条结果的 `mean_risk` 与 safety violations 全为零，其风险模型没有
-可学习信号。下一门禁必须修复主指标对齐和安全信息量，而不是继续增加方法名称。
+六项 total effect 经 Holm 校正后均显著，4/6 达到 total-score SESOI。主指标只有结晶和蒸馏
+达到 SESOI，前四项的 bootstrap 区间方向为正，电化学和平衡跨零或接近零。因此不能用复合得分
+替代任务主张。
 
-## 泛化与 exploit 门禁状态
+one-hot 表示相对 raw GP 的主要 total-score 改善集中在电化学（约 +0.026），但 selectivity 主指标
+约 -0.003。这说明类别表示影响搜索，却没有修复已声明的电化学能力。正式 600 条结果中的
+`mean_risk` 与 safety violations 全为零，structured safe GP 没有可学习风险信号，也不能形成
+安全结论。
 
-`configs/benchmark/generalization_security_v0.1.json` 将当前六任务的 12 个声明轴与四种必需模式
-（interpolation、extrapolation、composition、observation noise）逐项绑定。当前 0/12 轴具有
-完整可执行控制；四项语义/协议不变性中只有 action key order 可执行。seed OOD 与 salted private
-shift 将继续用于发现退化，但它们只联合改变隐藏世界，不能替代轴级干预。
+## 泛化与安全审计
 
-基础 exploit 矩阵已在六任务上通过：未知操作、提前 final assay、提前 terminate、NaN amount、
-重复 final assay 均不能得分，action key 重排保持轨迹不变。机器摘要位于
-`reports/publication-generalization-security-summary.json`。总体状态仍为 `blocked`，因为轴级控制、
-material remap、observation reorder 和等价动作序列尚不可执行。
+`configs/benchmark/generalization_security_v0.1.json` 声明每个任务两个 world-family 轴，并要求
+interpolation、extrapolation、composition 和 observation noise 四种控制。当前结果是：
 
-此外已完成两组正式 20-seed shift 矩阵：public-test 新 seeds 100–119 与 salted private-eval seeds
-200–219，均比较 random/structured GP、每条 40 次实验，共 480 条额外 replay-verified 结果。
-两组矩阵都只有 4/6 任务通过“total 与主指标 bootstrap 下界均为正”的收紧门禁：结晶、蒸馏、
-流动、分配通过；电化学主指标跨零，平衡任务 total 与主指标均跨零。private salt 原值未写盘，
-提交摘要只保存 64 位十六进制 SHA-256。该结果支持四项任务的 seed/整体隐藏世界稳定性，但仍不
-替代 12 个声明轴的独立干预证据。
+- 0/12 声明轴具备完整独立控制；
+- 1/4 不变性可执行：action key order 已通过；
+- 6 tasks × 6 基础 exploit probes = 36 项通过；
+- public seeds 100–119 与 salted private seeds 200–219 各产生 240 条 replay-verified 结果；
+- 两组 shift 均只有分配、结晶、蒸馏、流动通过 total 与 primary 置信区间为正的门禁；
+- 电化学 primary 与平衡 total/primary 未通过。
 
-## 2026-07-11 validity/power 先导审计
+紧凑摘要为 `reports/publication-generalization-security-summary.json`。salt 原值只存在于运行进程，
+报告仅保存 SHA-256。seed/private shift 用于检验整体隐藏世界变化，不能替代轴级 OOD 证据。
 
-早期 10-seed、最小预算和 acquisition-family 中间报告已经由长程预算曲线取代并删除。当前保留：
+## 当前科学判定
 
-- `reports/campaign-budget-curve-pilot5.json`：4/8/12/20/40 完整实验的在线前缀曲线；
-- `reports/validity-power-electro-structured40-pilot5.json`：电化学类别表示受控对照。
+- **工程底座**：足以继续严肃实验；合同、回放、运行时 provenance 和失败关闭机制扎实。
+- **可信任务子集**：分配、结晶、蒸馏、流动已有一致的主动探索证据，但仍需轴级 OOD 和独立复现。
+- **待整改任务**：电化学与平衡的主指标不支持当前能力主张，应在新协议中修复或降为 exploratory。
+- **安全评测**：当前风险信号退化，不能评价安全/约束方法。
+- **发表状态**：尚缺 RL、真实 LLM、资源公平性、完整不变性、第三方复现、冻结图表与论文。
 
-已确认：旧 response-surface maximum 不是 oracle；正式比较必须使用 paired seed；以 0.05
-total-score 为 SESOI 时，当前方差支持先采用 20 seeds 作为正式实验起点。原任务预算只容纳
-3–7 次完整实验，低于 `max(8, dimension + 2)`；修复 budget override 传递后，校准预算可提供
-4–8 次 acquisition，但 EI/PI/UCB/RF-EI 仍没有任何任务达到 +0.05 的自适应收益。当前 blocker
-因此是任务/搜索表示与自适应策略的联合分辨率，不是单纯 seed 数或 acquisition 名称。
+项目的合理定位是“预算受限、部分可观测的闭环虚拟实验智能”，不是静态化学问答、真实产率预测
+或工业级流程模拟。完整任务包、依赖与验收标准统一维护在仓库根目录 `todolist.md`。
 
-正式 20-seed 矩阵已经证明可信、非特权的自适应策略在部分任务上形成可重复实际收益；当前新的
-阻塞项是六任务主指标一致性、安全风险信号、泛化、反作弊和独立复现，故仍不得升级 readiness。
-
-追加的 40-complete-experiment、5-seed paired diagnostic 显示，GP 相对 random 的 total-score
-效应在平衡、流动、结晶、蒸馏、分配任务分别达到约 +0.045、+0.048、+0.049、+0.040、
-+0.022，电化学为 -0.076。4/8/12/20/40 实验前缀曲线进一步显示流动与蒸馏在 20 个实验前
-仍可能为负，到 40 个实验才转正。因此先前 `dimension + 2` 只能作为管线最低容量，不能作为
-正式学习预算；后续应分别整改电化学表示，并以任务级预算曲线冻结协议。
-
-电化学受控表示探针进一步确认了这一点：将溶剂 ID 从伪连续距离改为 one-hot 后，40-experiment
-GP/random 配对效应由 -0.076 翻转到 +0.032（5 seeds，3 胜 2 负）。该结果仍低于 0.05 SESOI，
-但说明首要缺陷在搜索表示而不是世界物理；下一轮须以 20 paired seeds 复核，并把类别编码纳入
-正式 agent contract。
-
-## 与近期公开工作的定位差异
-
-ChemWorld 的合理定位是预算受限、部分可观测、闭环虚拟实验中的策略评测与训练研究，不是静态
-化学问答，也不是实际产率预测。相关公开工作给出的最低比较维度包括：
+## 与近期工作的比较维度
 
 - [ScienceAgentBench (ICLR 2025)](https://openreview.net/forum?id=6z4YKr0GK6)：可执行、可验证的
-  科学任务与端到端 agent 评价；
+  科学任务和端到端 agent 评价；
 - [SciAgentGym (ICML 2026)](https://openreview.net/forum?id=0Moj0YgFEF)：多步科学工具调用、长程
   退化与可训练轨迹；
-- [MADE (ICML 2026)](https://openreview.net/forum?id=nrXxVDYMMF)：预算约束闭环发现、可交换组件
-  和随搜索空间扩大的自适应收益；
-- [ChemCost (2026)](https://arxiv.org/abs/2605.07251)：冻结数据快照、无需 LLM judge 的标量评分、
-  阶段级失败诊断和受控噪声鲁棒性。
+- [MADE (ICML 2026)](https://openreview.net/forum?id=nrXxVDYMMF)：预算约束闭环发现、组件可交换
+  和搜索空间扩展下的自适应收益；
+- [ChemCost (2026)](https://arxiv.org/abs/2605.07251)：冻结评分、无需 LLM judge、阶段失败诊断和
+  受控噪声鲁棒性。
 
-因此 ChemWorld 的论文主张必须由真实闭环策略排序、跨 world-family 泛化、资源匹配和逐轨迹证据
-支撑，而不能只依赖任务能运行或不同 agent 得分不完全相同。
-
-## 阶段顺序
-
-1. 先让冻结检查器验证 release manifest、当前 task hash 与所有证据摘要，失配必须失败；
-2. 统一接入已经通过 intake 的 vNext 物理模块并重冻结任务；
-3. 修复低分辨率/不稳定任务，完成 paired-seed 功效分析；
-4. 建立轴级 OOD、私评、metamorphic invariance 和 exploit 审计；
-5. 在相同实验与资源预算下运行传统优化、主动学习、RL 和真实 LLM；
-6. 从冻结摘要生成统计表、矢量图、AAAI LaTeX、PDF 与不可变 release tag。
+ChemWorld 要形成有说服力的差异化，必须同时给出可训练 world-family、冻结 Bench、外部分布
+Bridge，以及训练前后迁移收益；仅增加虚拟化学任务数量不足以构成 gym 贡献。

@@ -1,290 +1,172 @@
-# ChemWorld 工作清单
+# ChemWorld 主路线图
 
 最后更新：2026-07-11
 
-本文件是 ChemWorld 的长期维护清单。当前唯一主线是先完成并冻结一个完整、可信、可复现的
-benchmark backend；在 benchmark 冻结前，不把训练环境、三层架构或更多展示功能作为阻塞项。
-本文件不加入 MkDocs 导航，也不作为面向使用者的发布文档。
+这是仓库内唯一的执行级路线图。它服务于维护者与协作者，不加入公开站点导航。面向使用者的
+状态、运行方法和限制以 `docs/benchmark_release.md` 与 `docs/limitations.md` 为准。
 
-## 维护规则
+## 维护与认领规则
 
-- 开始任何任务前必须先 claim；未在远端 `claims/active/` 登记的任务不得实施。完整流程见
-  [`claims/README.md`](claims/README.md)。
-- claim 必须声明 owner、branch、scope、owned paths 和过期时间；路径不得与其它 active claim
-  重叠。扩大范围、阻塞交接或完成任务时都必须先更新 claim 状态。
-- `[ ]` 表示尚未完成，`[x]` 表示已经有可复核证据并满足验收标准。
-- 不能因为“代码已经存在”就标记完成；必须同时记录测试、报告或冻结产物。
-- 修改 task、scenario、mechanism、observation、scoring 或 replay 合同时，必须更新对应版本和
-  hash，并重新执行冻结流程。
-- 正式 benchmark 冻结后，只允许兼容性修复；任何会改变轨迹或得分的修改进入下一个版本。
-- 发布门禁保持本地执行，不依赖 CI 或 GitHub Actions。
+- 所有代码、实验、文档和发布任务都必须先按 `claims/README.md` 创建并推送 active claim。
+- 一个 claim 只对应下文一个任务包；环境合同、方法实现、实验结果和论文写作不得混在同一 claim。
+- `[x]` 仅表示验收证据已生成且门禁通过；代码存在、任务可运行或报告生成均不等于科学结论成立。
+- 修改 task、scenario、world law、observation、scoring 或 replay 语义时，必须升级合同版本并重跑证据。
+- `publication_protocol_v0.1` 及其结果保持不可变。任何针对任务的整改进入下一协议版本，禁止事后
+  调整旧协议以改善结果。
+- 发布门禁在本地执行，不依赖 CI 或 GitHub Actions。
 
-## 当前工程基线快照
+## 当前结论
 
-以下项目说明管线和历史候选证据已经存在，不表示 scientific benchmark 已经最终冻结。
+ChemWorld 已经具备扎实的 benchmark 工程底座和可审计的正式实验管线，但六任务整体还不能称为
+“科学验证完成”或“发表就绪”。最准确的状态是：
 
-- [x] 15 个注册任务可以完成环境一致性审计。
-- [x] 6 个 serious task 均通过机器合同审查，`contract_ready_count = 6`。
-- [x] 6 个 serious task 已完成机器经验验证，`benchmark_ready_count = 6`。
-- [x] serious 正式评测已完成 6 tasks × 6 agents × 5 seeds，共 180 次运行，artifact replay 通过。
-- [x] 2026-07-10 本地发布检查通过：Ruff、mypy、全量测试、MkDocs
-  strict、wheel smoke、11 个参考验证测试、runtime boundary、15 tasks × 3 seeds 环境审计和
-  baseline smoke。
-- [x] 已生成 serious baseline、bootstrap 95% CI、响应面、近似 oracle、难度校准、失败检查和
-  可重放 release bundle；正式结果只逐任务报告，不发布跨任务总分。
+- backend：`candidate_backend_only`；
+- benchmark：`blocked`；
+- 可靠的初步能力证据：4/6 个 serious task；
+- 可发布论文主张：尚未解锁。
 
-历史候选发布包位于 `benchmark/releases/chemworld-serious-v1/`；临时运行证据位于
-`runs/benchmark_freeze/release_v1/`。该候选包已被 2026-07-11 科学有效性审计判定为 stale，不能再
-作为当前 `main` 的不可变冻结发布。
+当前瓶颈不是继续堆更多 agent 名称，而是让任务主指标、风险信号、独立分布轴和外部复现共同
+闭环。工程 ready 与科学 validated 必须继续分开报告。
 
-World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vnext/`。WF-110 已
-接入 8 个 adapter，移除正式 runtime fallback/proxy 路由，重建 task/scenario/core golden 与集成
-证据。该包明确不含新 baseline 结论，`benchmark_claim_allowed=false`；v0.4 readiness 保持
-`candidate`，等待后续有效性和功效工作流。
+## 可复核成熟度记分卡
 
-## 2026-07-11 科学有效性审计
+| 维度 | 当前证据 | 判定 |
+| --- | --- | --- |
+| 工程合同与运行时 | 6/6 serious task 合同可审计；World Law v0.4 接入 8 个正式 provider，旧正式 proxy/fallback 已移除 | 已完成候选底座 |
+| 正式经典方法实验 | 6 tasks × 5 methods × 20 paired seeds = 600 条结果；每条 40 次完整实验并通过 replay | 已完成 v0.1 |
+| 主比较 total score | structured GP 相对 random 为 6/6 正向且 Holm 显著，4/6 达到 0.05 SESOI | 支持复合得分收益 |
+| 任务主指标 | 2/6 达到 SESOI，4/6 置信区间方向为正；电化学、平衡不成立 | 阻塞六任务统一主张 |
+| public/private seed shift | 两组各 240 条结果；分配、结晶、蒸馏、流动为 4/6 稳定 | 部分通过 |
+| 独立分布轴 | 6 tasks × 2 declared axes 中 0/12 具备 interpolation、extrapolation、composition、noise 全套控制 | 未通过 |
+| 不变性 | 4 项中仅 action key order 可执行并通过 | 1/4，未通过 |
+| 基础 exploit | 6 tasks × 6 probes = 36 项通过 | 基础门禁通过 |
+| 安全学习信号 | 正式 600 条结果的 `mean_risk` 与 safety violations 全为零 | 退化，不支持 safe BO 主张 |
+| 方法覆盖 | 5 个经典方法；尚无正式 RL、真实 LLM 和完整资源公平性对照 | 不完整 |
+| 独立复现 | 尚无第三方从干净 wheel 重现冻结摘要 | 未完成 |
+| 论文产物 | 尚无冻结图表、AAAI LaTeX、PDF 与可引用 release tag | 未开始 |
 
-当前有效机器证据位于：
+机器证据以以下摘要为准：
 
-- `workstreams/benchmark_v1/reports/campaign-budget-curve-pilot5.json`；
-- `workstreams/benchmark_v1/reports/validity-power-electro-structured40-pilot5.json`。
+- `workstreams/benchmark_v1/reports/publication-classic20-full-summary.json`；
+- `workstreams/benchmark_v1/reports/publication-generalization-security-summary.json`；
+- `configs/benchmark/publication_protocol_v0.1.json`；
+- `configs/benchmark/generalization_security_v0.1.json`。
 
-它们确认旧随机采样最大值不是 oracle，8–12 个完整实验不足以支撑多数主动学习任务，且类别
-物料不能按连续数字距离编码。这些先导结果本身仍是 diagnostic-only；当时尚缺 20 paired seeds、
-轴级 OOD/私评、资源匹配、RL、真实 LLM 和冻结论文证据链。
+## 论文主张边界
 
-正式 20-seed 经典方法矩阵现已完成，取代上述“尚缺 20 paired seeds”的旧状态：6 tasks ×
-5 methods × 20 seeds = 600 条 replay-verified 结果，每条 40 次完整实验。结构化 GP 相对 random
-的 total score 为 6/6 正向且 Holm 后显著、4/6 达到 SESOI；任务主指标只有 2/6 达到 SESOI，
-4/6 的区间方向为正。安全风险观测在整套矩阵中退化为零。机器摘要位于
-`workstreams/benchmark_v1/reports/publication-classic20-full-summary.json`，总体状态仍为 `blocked`。
+| 状态 | 可以或不可以声称 |
+| --- | --- |
+| 已支持 | ChemWorld 提供预算受限、部分可观测、可回放的多轮虚拟实验任务；结构化 GP 在四个任务上显示跨 seed/public/private shift 一致的自适应收益；所有结果可从冻结轨迹审计 |
+| 仅探索性 | 六任务 total-score 均有统计差异；one-hot 表示改善电化学复合得分；当前虚拟物理足以用于方法诊断 |
+| 禁止 | 六任务 benchmark 已验证；safe BO 有效；结果代表真实化学产率、安全性或工业性能；已达到 agent benchmark SOTA；在没有 RL/真实 LLM/资源对齐时声称全面方法排名 |
 
-## 下一阶段互不重叠认领队列
+论文的最小可信故事应是“受控虚拟化学世界中的闭环实验智能”，而不是“LLM 发现真实化学”。其
+贡献必须落在可交换的环境合同、主动探索效应、分布外评测、反作弊和训练迁移，而不是物理数值
+与现实一一对应。
 
-每项必须单独 claim、单独门禁和单独关闭；不得用一次大提交同时修改环境、评测和论文结论。
+## 发布决策门禁
 
-1. [x] `benchmark-v1-release-integrity`：让 frozen checker 校验 task hash、commit、dirty tree、全部
-   evidence digest 和轨迹索引；旧包失配时必须失败。
-2. [x] `wf-110-vnext-runtime-integration`：统一接入已通过 intake 的 runtime additions/replacements，
-   删除被替代路由，升级 World Law，并重冻结 task/scenario/golden，不在此任务内跑论文结论。
-3. `benchmark-v1-validity-power`（进行中）：修复 oracle 定义、任务地板/天花板与策略不分辨问题，使用 paired
-   seeds 和功效分析确定正式 seed 数。
-4. `benchmark-v1-generalization-security`：实现每任务轴级 interpolation/extrapolation/composition/
-   noise、私评、语义重映射、metamorphic invariance 和 exploit matrix。
-5. `benchmark-v1-method-protocol`：冻结统一 method adapter、实验调用/墙钟/token/费用资源账本、
-   checkpoint 与 prompt/model provenance。
-6. `benchmark-v1-classic-active-learning`：运行 random/LHS/greedy、GP-EI/PI/UCB、RF-EI、safe BO
-   等传统优化与主动学习，不修改任务。
-7. `benchmark-v1-rl`：建设独立 Train world-family、向量环境和 PPO/SAC 等训练基线，只在冻结
-   Bench worlds 上评测。
-8. `benchmark-v1-llm`：运行至少两类真实 LLM，固定 prompt、temperature、最大轮数、token/
-   monetary budget 和结构化 decision summary；stub 仅保留为协议回归。
-9. `benchmark-v1-statistics-figures`：汇总 paired effect、bootstrap CI、rank stability、regret、
-   sample efficiency、constraint violation 与 resource frontier，图表只能从冻结摘要生成。
-10. `paper-aaai-chemworld`：在前述结果冻结后撰写 AAAI LaTeX、生成 PDF、执行匿名性/引用/图表/
-    页数检查；论文不得反向修改 benchmark 以美化结论。
+1. **G0 — Backend candidate（已通过）**：正式运行时、合同、回放和基础 provider provenance
+   可审计，但不授予 benchmark 科学有效性。
+2. **G1 — Task validity**：每个正式任务的主指标存在非退化学习信号，风险/成本字段真实影响决策，
+   且最低合理策略、random、强策略形成可解释排序。
+3. **G2 — Generalization/security**：每个正式任务至少两个独立 world-family 轴可控制，四种 shift
+   模式、不变性、仅公开 observation harness 和扩展 exploit 门禁通过。
+4. **G3 — Method fairness**：经典优化、RL、真实 LLM 使用冻结 adapter 和清晰的实验/墙钟/token/
+   费用账本；失败与负结果完整报告。
+5. **G4 — Reproduction/release**：第三方从干净 wheel 重建公开摘要，冻结图表和论文只读取签名
+   摘要，候选包通过本地 release gate 并打不可变 tag。
 
-## Phase 1：完成并冻结 Benchmark Backend
+若电化学与平衡在下一协议的两轮定向整改后仍不能通过 G1/G2，默认发布通过门禁的四任务 core
+suite，并把这两个任务降为 exploratory。不得为了保留“六任务”而降低门禁。
 
-### 1.1 固定 v1 的研究主张和任务边界
+## 可并行认领的任务包
 
-- [x] 冻结 v1 benchmark 的核心主张：评估部分可观测、实验有成本条件下的主动探索、实验
-  决策和证据更新能力；不主张真实化学产率预测或工业装置设计。
-- [x] 默认以当前 6 个 serious task 为 v1 候选集；若某任务无法通过可辨识性或有效性审查，
-  将其降级为 exploratory，而不是为了数量强行进入正式套件。
-- [x] 为每个正式任务写出唯一 primary claim、primary metric、secondary diagnostics 和明确的
-  非主张范围。
-- [x] 决定正式结果只逐任务报告还是同时发布聚合分数。默认逐任务报告；如保留聚合分数，必须
-  固定归一化、权重和缺失任务处理规则。
-- [x] 明确 benchmark 与 smoke/teaching/exploratory 任务的发布边界，避免用户把 15 个注册任务
-  全部理解为正式榜单任务。
+表中任务包在 owned paths 不重叠时可以并行。`依赖` 是开始正式实验前必须满足的门禁，不是认领
+文档或设计工作的限制。
 
-验收标准：`SERIOUS_TASK_IDS`、任务卡、benchmark protocol、README 和发布产物对正式任务范围
-及能力主张完全一致。
+### P0：决定正式任务集
 
-### 1.2 六个 serious task 的逐任务有效性审查
+| Task ID | 负责面 | 交付与验收 | 依赖 |
+| --- | --- | --- | --- |
+| `benchmark-vnext-task-validity` | 核心评测 | 六个逐任务有效性卡：响应面、主指标对齐、最低合理策略、失败案例、接受/降级决定；明确 core-4 或 core-6 | 无 |
+| `wf-vnext-risk-cost-signal` | 世界基座团队 | 为正式候选任务引入非退化且可校准的 risk/cost；风险发生率既非全零也非饱和，策略改变会改变结果 | 无 |
+| `wf-vnext-world-family-axes` | 世界基座团队 | 每任务至少两个有物理解释的独立轴，支持插值、外推、组合变化和观测噪声；生成器与 Bench seed 隔离 | 无 |
+| `benchmark-vnext-semantic-invariance` | 核心评测 | 物料代号重映射、observation 字段重排、等价动作序列和格式扰动可执行；定义配对容差并通过 | world-family 合同 |
+| `benchmark-vnext-public-harness` | 安全/评测 | 独立进程仅通过公开 action/observation 交互；隐藏状态、debug、异常、路径和任务文本泄漏扫描通过 | task validity |
+| `benchmark-vnext-exploit-matrix` | 安全/评测 | 覆盖无成本测量、预算边界、非法动作刷分、NaN/Inf、重复 assay、提前结束和 replay 差异；全部 fail closed | public harness |
 
-- [ ] `partition-discovery`：证明不同接触、相体积与测量选择能够提供不同信息量；确认重复无效
-  操作不会获得异常高分，且 informed strategy 显著优于 random。
-- [ ] `reaction-to-crystallization`：验证反应质量、收率、纯度与 CSD 的真实权衡；确认终点测量
-  不能被单一固定配方轻易饱和。
-- [ ] `reaction-to-distillation`：优先调查当前 smoke 低分；验证反应条件和馏分切割确实需要联合
-  决策，并排除整体地板效应。
-- [ ] `flow-reaction-optimization`：优先调查当前 smoke 低分；验证停留时间、热边界、压降和安全
-  风险形成可探索但非退化的响应面。
-- [ ] `electrochemical-conversion`：检查当前 scripted 与 LLM stub 同分现象；确认电压/电流、传质
-  与能效控制能够区分策略，而非由固定流程决定结果。
-- [ ] `equilibrium-characterization`：检查当前 scripted 与 LLM stub 同分现象；证明多轮选择测量和
-  干预会提高平衡参数识别质量。
-- [x] 停止把随机配方最大值称为 oracle；已建立逐 seed best-known diagnostic reference，正式
-  regret 仍需在冻结前绑定独立、可更新的 reference 协议。
-- [ ] 对每个任务建立最低合理策略和随机下界，用于发现地板、奖励泄漏和协议捷径。
+P0 退出条件：正式任务全部通过 G1/G2，或明确形成 core suite + exploratory suite；生成新的协议版本，
+旧 v0.1 结果不被覆盖。
 
-验收标准：每个任务均有独立有效性报告，至少包含响应面/状态切片、策略排序、失败案例和是否
-接受进入正式套件的结论。
+### P1：冻结评测与方法公平性
 
-### 1.3 完整 Baseline 与统计校准
+| Task ID | 负责面 | 交付与验收 | 依赖 |
+| --- | --- | --- | --- |
+| `benchmark-vnext-score-replay` | 核心评测 | primary score 与在线 reward 分离；单位、方向、缺失值、异常值固定；结果只能从初始轨迹重算，篡改被拒绝 | P0 |
+| `benchmark-vnext-method-protocol` | 方法协议 | 统一 adapter、checkpoint、随机性、实验次数、墙钟、CPU/GPU、token、费用、prompt/model provenance；资源超限 fail closed | P0 |
+| `benchmark-vnext-classic-baselines` | 经典方法 | random、LHS、greedy、GP-EI/PI/UCB、RF-EI、约束/安全方法；验证行为不退化为同一策略 | method protocol |
+| `benchmark-vnext-rl-baselines` | RL | 独立 Train world-family、向量环境、至少 PPO 与一个连续控制/离线对照；只在冻结 Bench worlds 评测 | world-family axes、method protocol |
+| `benchmark-vnext-llm-baselines` | LLM agent | 至少两类真实模型，多轮读谱/实验/更新；只保存结构化 hypothesis/evidence/uncertainty/decision summary，不要求私有 chain-of-thought | method protocol、public harness |
+| `benchmark-vnext-reference-regret` | 评测统计 | 冻结独立 best-known/reference 协议，给出 coverage 与不确定性；不得再把随机采样最大值称为 oracle | score replay |
 
-- [x] 冻结 `publication_protocol_v0.1.json`：20 paired seeds、40 次完整实验、逐任务报告、0.05
-  SESOI、paired bootstrap、符号翻转检验、Holm 校正、负结果全报告和干净 commit/replay 要求。
-- [x] 将类别物料 one-hot 扩展到结构化安全 BO，并为每次运行记录墙钟、CPU、步骤数和完整实验数；
-  正式 runner 对实验数不足、脏树、合同漂移和回放失败执行失败关闭。
+P1 退出条件：所有方法使用同一任务合同和资源账本；逐任务报告 effect、sample efficiency、regret、
+约束违反和资源前沿，任何方法失败不得静默丢弃。
 
-- [x] 跑完预注册经典矩阵：`random`、`lhs`、`gp_bo`、`structured_gp_bo`、
-  `structured_safe_gp_bo`，6 tasks × 20 paired seeds 共 600 次；stub/replay/scripted 仅作协议回归，
-  不再伪装成科学 baseline。
-- [ ] 检查每个 baseline 是否真正适配任务动作空间；不允许多个“不同”baseline 实际退化为同一
-  固定配方或相同行为序列。
-- [x] 已用 10-seed paired pilot 和 0.05 SESOI 完成功效初估，暂定正式起点为每任务 20 seeds；
-  冻结前用最终任务合同复核。
-- [x] 机器报告已包含均值、配对标准差、paired bootstrap 置信区间、符号翻转检验、功效估计和
-  逐 seed 紧凑指标。
-- [ ] 校准任务 budget、threshold、噪声和惩罚，排除 random 也高分、所有策略都低分、所有强策略
-  同分等地板/天花板情况。
-- [x] 已修复 `budget_override` 未贯通 runner/suite 的协议错误，并验证 BO 在校准预算下执行
-  4–8 次 acquisition；但尚未观察到达到 0.05 SESOI 的稳定自适应收益。
-- [x] 已增加显式完整实验数和 4/8/12/20/40 在线前缀审计；40-experiment pilot 证明五个任务
-  存在正向学习信号，但 0/6 达到 0.05 SESOI，且电化学 GP 显著为负。下一步按任务校准预算，
-  并单独审计电化学搜索表示/安全目标，不能再用统一 `dimension + 2` 作为正式预算。
-- [x] 已实现连续坐标 + material one-hot 的结构化 GP 探针；早期电化学 5-seed 配对效应从
-  -0.076 翻转为 +0.032。该先导判断已由下项 20-seed 正式审计取代。
-- [x] 已完成最终 20-seed 表示审计：one-hot 相对原始 GP 的 total-score 主要增益集中在电化学
-  （约 +0.026），但电化学 selectivity 主指标约 -0.003；这证明表示影响复合奖励，却不能证明
-  电化学主能力已改善。
-- [ ] 修复或重定义 serious task 的安全门禁：当前 600 次正式运行的 `mean_risk` 与 safety
-  violations 全为零，`structured_safe_gp_bo` 没有可学习风险信号，不能作为安全方法证据。
-- [ ] 固定每个任务的 baseline reference table，并将冻结结果绑定 commit、合同 hash、solver
-  provenance 和 trajectory digest。
+### P2：复现、论文与发布
 
-验收标准：不同能力层级的策略在大多数正式任务上形成稳定、可解释的排序，置信区间和异常任务
-均被公开说明。
+| Task ID | 负责面 | 交付与验收 | 依赖 |
+| --- | --- | --- | --- |
+| `benchmark-vnext-independent-reproduction` | 独立复现者 | 从干净 wheel 和公开命令重跑指定 seeds；摘要、合同 hash、trajectory digest 与容差一致 | P1 |
+| `benchmark-vnext-statistics-figures` | 统计/绘图 | paired bootstrap、Holm、rank stability、预算曲线、OOD、constraint/resource frontier；矢量图只从冻结摘要生成 | P1 |
+| `paper-aaai-chemworld` | 论文 | AAAI LaTeX、PDF、匿名性、引用、页数和 artifact checklist；结论严格服从主张矩阵 | figures、independent reproduction |
+| `benchmark-vnext-release` | 发布 | wheel、公开合同、seed suite、报告、golden trajectory、验证命令、限制说明和私评摘要；本地门禁通过并打不可变 tag | 论文结果冻结 |
 
-### 1.4 泛化、稳健性和反作弊
+## 已完成并关闭的任务包
 
-- [x] 已将 6 tasks × 2 axes 与 interpolation/extrapolation/composition/noise 四种必需模式写入
-  机器协议并失败关闭审计；当前 0/12 轴具有完整控制，因此只完成“缺口机器化”，未通过门禁。
-- [ ] 已完成 20-seed public-test 新 seed 泛化：4/6 任务保持 total 与主指标正区间；参数区间外推、
-  组合变化和 observation noise 仍因轴控制缺失而未完成。
-- [x] 已完成 maintainer-side salted private-eval：salt 原值仅在运行进程中存在，摘要只发布
-  SHA-256；6 tasks × 2 methods × 20 seeds 共 240 条 verified 结果。
-- [x] 已逐任务检查 public/private adaptive effect、置信区间与两方法各自 score shift，而非只报
-  平均 gap；private shift 下结晶、蒸馏、流动、分配通过，电化学与平衡失败。
-- [ ] 增加策略不变性测试：action key 重排已通过；物料代号重映射、无关字段重排、等价动作序列
-  和观测格式轻微变化仍应实现，并确保不会显著改变结果。
-- [x] 已完成首轮 simulator exploit 矩阵：未知操作、提前 final assay、提前 terminate、NaN amount、
-  重复 final assay 均不能得分，action key 重排保持轨迹；无成本测量、预算边界与外部 harness
-  仍在后续扩展门禁中。
-- [ ] 扩展 simulator exploit 审计：无成本测量、非法动作刷 reward、提前
-  terminate、预算边界、浮点异常和回放差异均不能获利。
-- [ ] 使用仅公开 observation 的独立 agent harness 运行正式候选，确认无法通过 Python 对象、
-  debug info、文件路径或异常消息读取 hidden state。
-- [ ] 对 action、observation 和任务文本做泄漏扫描，确保参数名、物种名、谱峰 assignment 或
-  scenario id 不直接编码最优答案。
+- [x] `benchmark-v1-release-integrity`：release manifest、task hash、commit、dirty tree、evidence digest
+  与轨迹索引执行失败关闭。
+- [x] `wf-110-vnext-runtime-integration`：8 个 World Law v0.4 provider 接入正式运行时，旧 proxy/
+  fallback 路由移除，重建 candidate backend 证据。
+- [x] `benchmark-v1-validity-power`：冻结 v0.1 的 paired-seed、SESOI、功效与正式经典方法矩阵；
+  结论为部分通过、suite blocked。
+- [x] `benchmark-v1-generalization-security`：完成 seed OOD、salted private shift、基础 exploit 以及
+  轴/不变性缺口的机器化审计；结论为 4/6 稳定、suite blocked。
 
-验收标准：正式报告包含泛化矩阵、反作弊结果和已知失败边界；private-eval 产物可验证但不能反推
-私有参数。
+## Phase 2：Bench 冻结后的 Train / Bench / Bridge
 
-### 1.5 Backend 科学与数值可信度
+Phase 2 不阻塞当前 benchmark 冻结，但接口约束应在 P0/P1 中预留。
 
-- [ ] 为每个 serious task 建立“运行时实际调用模块”到 model card、参考验证和适用域的可追踪
-  映射，防止存在专业模块却未真正接入 runtime。
-- [ ] 对反应、结晶、蒸馏、连续流、电化学、相平衡和水相平衡分别冻结守恒、极限行为、单调性、
-  数值收敛和失败策略。
-- [ ] 对当前 skipped 的 11 个 optional reference backend 测试作出发布决定：要么在正式验证
-  环境安装并通过，要么明确它们不属于 v1 证据，不能让 skip 被解释为通过。
-- [ ] 审查 `lite` 与 `professional_candidate` 的命名和证据是否匹配；v1 不以“professional”
-  为必要条件，但每个限制必须准确公开。
-- [ ] 审核合成 HPLC、GC、UV-vis、IR、NMR、MS 和 pH observation：观测必须与 hidden state
-  因果耦合、噪声可复现、成本有效、不可直接泄漏真值。
-- [ ] 为谱图增加任务级可辨识性检查：不同关键状态应产生可区分观测，同一状态的噪声分布应稳定，
-  仪器选择应影响决策价值。
-- [ ] 检查安全与成本不是纯展示字段：改变策略时必须实际改变 episode 结果或正式诊断指标。
-- [ ] 对所有正式任务执行多平台或至少 Python 3.11/3.12 的数值重放一致性检查，并冻结允许误差。
+- **ChemWorld-Bench**：只评测、版本化、可回放；公开测试与私评使用同协议、不同隐藏世界族。
+- **ChemWorld-Train**：程序化 world generator、向量化 reset/step、课程难度和 train/dev/OOD split；
+  禁止在冻结 Bench worlds 上训练。
+- **ChemWorld-Bridge**：对接真实 HTE 数据、外部优化 benchmark、数字孪生或设备抽象；以策略排序
+  一致性和训练前后迁移提升证明外部有效性，不要求模拟值精确复现现实。
+- **共同合同**：typed action、observation、trajectory、provenance、verifier；物料同时支持中性代号
+  与真实语义 skin，用配对实验分离预训练知识和主动探索能力。
 
-验收标准：每个正式任务都有完整的 backend evidence card；不存在未声明 proxy、未接入专业模块、
-非确定性回放或无效仪器信号。
+Phase 2 的第一个研究里程碑不是扩大任务数量，而是证明“在 Train world-family 学习后，在未见
+Bench worlds 或外部 data-replay 上显著优于同预算从零开始的 agent”。这才回答 ChemWorld 能否
+作为 gym 让 agent 变强。
 
-### 1.6 评分、回放与发布证据链
+## 当前建议的执行顺序
 
-- [ ] 冻结 primary score 与在线 reward 的分离规则；正式排名只依赖 final-assay 或 evaluator 可
-  重算字段。
-- [ ] 审计所有 primary/secondary metric 的方向、范围、单位、缺失值和异常值处理。
-- [ ] 验证 trajectory 从初始状态完整重放，而不是隐式依赖运行结束后的内存状态。
-- [ ] 验证 result、leaderboard 和 paper artifact 均从轨迹重算，手工修改 JSON 会被拒绝。
-- [ ] 增加旧合同轨迹在新版本上的明确兼容/拒绝测试，避免静默漂移。
-- [ ] 冻结 task、scenario、mechanism、world-law、observation、scoring、solver 和 runtime profile
-  的版本与 hash 清单。
-- [ ] 定义正式 benchmark release bundle：wheel、公开任务合同、seed suite、baseline 报告、
-  golden trajectories、验证命令、限制说明和签名私评格式。
+1. 并行认领 `benchmark-vnext-task-validity`、`wf-vnext-risk-cost-signal` 和
+   `wf-vnext-world-family-axes`。
+2. 根据逐任务卡作 core-4/core-6 决策，冻结新合同与协议版本。
+3. 并行完成 semantic invariance、public harness、exploit matrix 和 score/replay。
+4. 冻结 method protocol 后再并行跑经典、RL 和真实 LLM；先跑方法后改任务的结果全部作废。
+5. 独立复现通过后生成图表、AAAI 论文和 release；论文不得反向驱动调参。
 
-验收标准：从干净 wheel 安装开始，第三方能够复现公开分数、验证轨迹并检测任何合同或结果篡改。
-
-### 1.7 冻结前最终门禁
-
-- [ ] 将“6 个任务均有完整经验验证”变成 readiness 的机器条件，不能只手工把 status 改为
-  `validated`。
-- [ ] `benchmark_ready_count == 正式 serious task 数量`。
-- [ ] 完整 local release gate 通过，且报告对应冻结 commit，而不是脏工作区或旧 commit。
-- [ ] 完整 serious baseline 和 paper artifact 在冻结 commit 上重新生成并 replay verified。
-- [ ] 文档、JSON、YAML 和生成报告统一 UTF-8；在 Windows 和静态站点中检查中文无乱码。
-- [ ] 清理或忽略临时 audit、pytest cache、实验 runs、密钥文件和本地 site 输出；确保发布包不含
-  `deepseek_api.md` 或任何私密信息。
-- [ ] 发布候选版本并打不可变 tag；记录后续变更只能进入下一个 benchmark contract version。
-
-验收标准：形成一个可引用的冻结版本，完整说明任务、数据划分、评分、基线、验证、限制和复现
-方式；此时 Phase 1 才算完成。
-
-## Phase 2：Benchmark 冻结后的三层系统
-
-以下内容暂不阻塞 Phase 1，只维护设计边界。
-
-### 2.1 ChemWorld-Bench
-
-- [ ] 将冻结 benchmark 保持为只评测、版本化、可回放的独立层。
-- [ ] 公共测试与维护者私评使用相同协议、不同隐藏世界族。
-- [ ] 后续训练功能不得修改冻结任务的转移、观测或评分语义。
-
-### 2.2 ChemWorld-Train
-
-- [ ] 设计程序化 world generator，而不是复制冻结测试 seed。
-- [ ] 支持大量并行 `reset/step`、课程难度和可验证 reward。
-- [ ] 在机制拓扑、参数、传感器、噪声、资源和失败模式上产生训练多样性。
-- [ ] 建立 train/dev/OOD world-family split，防止在 Bench 上训练。
-- [ ] 支持非 LLM RL、LLM trajectory learning 和混合 Agent。
-
-### 2.3 ChemWorld-Bridge
-
-- [ ] 定义与真实 HTE 数据、外部优化 benchmark、数字孪生和真实设备之间的抽象操作协议。
-- [ ] 建立 data-replay backend，测试 ChemWorld 训练是否迁移到外部数据分布。
-- [ ] 以策略排序一致性和训练前后迁移提升作为外部有效性证据，不要求精确复现真实产率。
-
-### 2.4 三层共同约束
-
-- [ ] 共用 typed action、observation、trajectory、provenance 和 verifier 协议。
-- [ ] Train 可持续扩展，Bench 必须冻结，Bridge 负责外部证据；三者不得共享隐藏测试世界。
-- [ ] 物料同时支持中性代号和真实语义 skin，用配对实验分离预训练知识与主动探索能力。
-- [ ] Agent 记录结构化 hypothesis/evidence/uncertainty/decision summary，不要求或保存完整私有
-  chain-of-thought。
-
-## 后续讨论队列
-
-以下问题需要讨论后再改变实现：
-
-1. v1 是否默认尝试冻结全部 6 个 serious task，还是先冻结通过有效性审查的子集？当前建议是
-   全部进入审查，但允许不合格任务降级。
-2. 正式 benchmark 的核心能力名称采用“experimental intelligence”“active scientific
-   exploration”还是更窄的“closed-loop chemical experimentation”？
-3. 是否完全取消跨任务总分，只发布逐任务结果和能力画像？
-4. public-test 是否允许持续公开比较，private-eval 由本地维护者运行还是未来提供服务端？
-5. 谱图在 v1 中应只是观测通道，还是必须至少有一个任务把“选择并解释谱图”作为核心决策？
-6. 正式任务使用中性物料代号、真实名称，还是同时发布 paired semantic skins？
-7. Phase 1 完成后，优先建设程序化 Train generator，还是先建设真实数据 replay Bridge？
-
-## 常用检查命令
+## 本地常用门禁
 
 ```powershell
-.\.venv\Scripts\python.exe -m chemworld.cli tasks readiness
-.\.venv\Scripts\python.exe scripts/run_serious_task_suite.py --smoke
-.\.venv\Scripts\python.exe scripts/run_serious_task_suite.py
-.\.venv\Scripts\python.exe scripts/run_release_gate.py
+python scripts/manage_claims.py check
+python scripts/audit_publication_protocol.py
+python scripts/audit_publication_generalization_security.py
+python scripts/run_release_gate.py
+python -m pytest
+python -m ruff check .
+python -m mypy src
+python -m mkdocs build --strict
 ```

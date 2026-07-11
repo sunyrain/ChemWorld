@@ -104,7 +104,8 @@ catalysts are never presented as real formulations. See `docs/material_identity.
 - `chemworld.data`: trajectory schema, logging, anonymization utilities.
 
 See `docs/architecture.md` and `docs/benchmark_protocol.md` for the research
-protocol. The frozen serious suite is described in `docs/benchmark_release.md`.
+protocol. The current candidate status and remaining release gates are described in
+`docs/benchmark_release.md`.
 
 Observations are partial by design. Unmeasured quantities are represented as
 `NaN` in Gym arrays and `null` in trajectory JSONL, with `observed_mask` and

@@ -1,51 +1,70 @@
-# Benchmark v1
+# Benchmark 状态与发布协议
 
-`chemworld-serious-v1` 是 ChemWorld 的冻结研究套件。它评估 Agent 在未知、部分可观测、实验
-有成本的虚拟化学系统中，能否通过多轮实验改进后续决策。它不用于预测真实物料、产率或装置
-安全性。
+ChemWorld-Bench 评估 Agent 在未知、部分可观测、实验有成本的虚拟化学系统中，能否通过多轮
+实验改进后续决策。当前版本是可审计的 backend candidate，不是已经完成科学验证的正式榜单。
 
-## 正式任务
+## 候选任务
 
-| Task | 核心能力 | Primary metric | Budget | Seeds |
-| --- | --- | --- | ---: | --- |
-| `partition-discovery` | 主动探索未知分配行为 | `product_in_organic` | 48 | 0–4 |
-| `reaction-to-crystallization` | 反应–结晶联合决策 | `crystal_yield` | 72 | 0–4 |
-| `reaction-to-distillation` | 反应–馏分联合决策 | `distillate_purity` | 72 | 0–4 |
-| `flow-reaction-optimization` | 流动、热与风险权衡 | `flow_conversion` | 60 | 0–4 |
-| `electrochemical-conversion` | 电化学选择性与能效权衡 | `electrochemical_selectivity` | 48 | 0–4 |
-| `equilibrium-characterization` | 有限仪器预算下的平衡表征 | `equilibrium_confidence` | 24 | 0–4 |
+| Task | 核心能力 | Primary metric |
+| --- | --- | --- |
+| `partition-discovery` | 主动探索未知分配行为 | `product_in_organic` |
+| `reaction-to-crystallization` | 反应–结晶联合决策 | `crystal_yield` |
+| `reaction-to-distillation` | 反应–馏分联合决策 | `distillate_purity` |
+| `flow-reaction-optimization` | 流动、热与风险权衡 | `flow_conversion` |
+| `electrochemical-conversion` | 电化学选择性与能效权衡 | `electrochemical_selectivity` |
+| `equilibrium-characterization` | 有限仪器预算下的平衡表征 | `equilibrium_confidence` |
 
-所有任务都是 campaign：一次 final assay 结束当前实验，但只要总预算未耗尽，Agent 就能根据
-反馈启动下一次实验。
+这些任务采用 campaign 形式：一次 final assay 结束当前实验，但 Agent 可以在总预算内根据反馈启动
+下一次实验。正式结果逐任务解释，不用任意权重合成跨任务总排名。
 
-## 冻结条件
+## 已经验证的能力
 
-正式证据要求：
+- task、scenario、world law、observation、scoring 和 trajectory 具有版本化合同与摘要；
+- 正式 runner 对合同漂移、脏工作区、实验不足和 replay 失败执行失败关闭；
+- World Law v0.4 的正式运行时使用显式 provider，已经替代旧 proxy/fallback 路由；
+- 冻结的 v0.1 发表候选协议完成了 6 tasks × 5 methods × 20 paired seeds，共 600 条经典方法
+  结果，每条包含 40 次完整实验并通过回放；
+- 结构化 GP 相对 random 的复合得分在六个任务上均为正且经多重比较校正后显著；分配、结晶、
+  蒸馏和流动四个任务同时显示较稳定的主指标与新 seed/private shift 收益；
+- 基础非法动作、提前结束、重复 assay、非有限数值和 action key 重排检查已经通过。
 
-- 六种官方 baseline 覆盖全部 5 个 seeds；
-- 官方 baseline 不依赖非法动作；
-- 每个任务完成多次独立实验；
-- GP-BO 与 safe GP-BO 在初始化后进入 acquisition；
-- 分数不存在全体地板或天花板，且至少三个策略可区分；
-- primary metric 对策略变化有响应；
-- success threshold 可达到但不饱和；
-- 轨迹、结果和发布产物均可重放验证。
+## 尚未通过的发布门禁
 
-这些条件由机器读取冻结证据并核对当前 task contract hash。任何合同变化都会使任务自动退回
-candidate，而不是沿用旧的 validated 标签。
+- 六个任务中只有两个任务的主指标收益达到预注册的 0.05 SESOI；电化学和平衡的主指标区间
+  不能支持自适应能力改善；
+- 12 个声明的 world-family 轴尚不具备完整的插值、外推、组合变化和观测噪声控制；
+- 除 action key order 外，物料重映射、observation 重排和等价动作序列不变性尚未实现；
+- 正式经典方法矩阵中的风险观测全为零，因此当前结果不能证明 safe BO 或约束学习有效；
+- 尚缺统一资源预算下的 RL、真实 LLM、独立复现和最终论文 artifact。
 
-## 运行与验证
+因此，当前 `benchmark/releases/chemworld-serious-vnext` 标记为
+`release_status=candidate_backend_only`、`benchmark_claim_allowed=false`。历史
+`chemworld-serious-v1` 只保留为旧候选证据，不代表当前运行时的冻结结论。
+
+## 运行候选任务
+
+安装后可以列出任务并运行本地交互或基线：
 
 ```bash
+chemworld tasks list
+chemworld tasks readiness
 chemworld baselines report --preset serious --output-dir runs/serious
-python scripts/run_serious_task_suite.py --output-dir runs/serious_release
-python scripts/check_frozen_benchmark.py
 ```
 
-结果必须逐任务报告。ChemWorld 不定义跨任务总分，因为不同物理域、量纲和失败方式不应被一个
-任意权重掩盖。
+维护者可以验证当前候选包与发表协议：
 
-## 解释边界
+```bash
+python scripts/audit_vnext_runtime_integration.py
+python scripts/audit_publication_protocol.py
+python scripts/audit_publication_generalization_security.py
+python scripts/run_release_gate.py
+```
 
-任务中的物料、仪器和物理模块构成可审计的虚拟实验世界。分数支持比较 Agent 的实验策略，
-不支持把数值当作现实化学预测。模块成熟度、限制和参考证据随任务卡与结果一起发布。
+这些命令通过表示合同、证据和运行时一致，不表示所有科学门禁已经通过。正式 release 还要求
+主指标有效性、独立 world-family 泛化、资源公平的方法矩阵和第三方复现同时成立。
+
+## 如何解释分数
+
+分数用于比较 Agent 在同一冻结虚拟世界合同中的实验策略。它不预测真实物料产率、装置安全或
+工业性能，也不应跨合同版本直接比较。任务中的物料名称、仪器输出和物理模块是可审计的虚拟
+实验接口；其适用域和已知限制应与结果一同引用。
