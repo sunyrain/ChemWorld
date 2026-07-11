@@ -1,0 +1,150 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\usepackage{authblk}
+\usepackage{lineno}
+\usepackage{caption}
+\usepackage{enumitem}
+\definecolor{navy}{HTML}{173B57}
+\definecolor{blocked}{HTML}{9B2C2C}
+\captionsetup{font=small,labelfont=bf}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\emergencystretch=1em
+\linenumbers
+
+\title{\textbf{ChemWorld: an evidence-gated virtual laboratory for evaluating adaptive chemical agents}}
+\author{\textbf{AUTHORS AND AFFILIATIONS TO BE FINALIZED}}
+\date{Review draft, 11 July 2026\\\textcolor{blocked}{Not submission-ready; confirmatory evidence gates remain open}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Autonomous chemical agents must choose experiments, interpret measurements and revise decisions under limited resources, yet they are commonly evaluated using static questions, single optimization surfaces or costly physical laboratories. We introduce ChemWorld, a virtual laboratory designed to test this closed loop across six chemical tasks. It separates public observations from hidden, intervention-controlled world families and records spectra, operations, resource use and structured decision evidence in replayable trajectories. A layered evaluator recomputes endpoint quality, constraints and cost without treating online rewards as ground truth. In a retained legacy diagnostic matrix of 600 runs, adaptive optimization improved the declared primary metric on four tasks, while electrochemistry and equilibrium exposed objective--capability misalignment. These results motivate the frozen confirmatory protocol but do not replace it. Score--replay binding and failure-closed gates expose absent reinforcement-learning, live language-model, security and transfer evidence. ChemWorld is presented as an auditable experimental substrate; comparative agent and training-transfer claims remain prospective.
+\end{abstract}
+
+\section*{Main}
+
+Scientific autonomy is not equivalent to chemical recall. An agent operating a laboratory must decide what to measure, allocate a finite experimental budget, interpret partial and noisy evidence, and alter subsequent actions. Physical self-driving laboratories have demonstrated closed-loop materials synthesis and reaction optimization \citep{szymanski2023alab,shields2021bo}, while language-model systems can plan experiments and call specialist tools \citep{boiko2023coscientist,bran2024chemcrow}. These systems establish feasibility, but their diversity and cost make controlled comparison and repeated training difficult. Conversely, chemistry question-answering benchmarks probe knowledge rather than adaptive experimentation \citep{schneider2024chembench,jablonka2024predictive}.
+
+Virtual laboratories can fill part of this methodological gap, but only if their scope is stated precisely. ChemGymRL established that reinforcement-learning agents can operate connected simulated chemistry benches \citep{beeler2024chemgymrl}. ChemWorld does not claim to be the first chemical Gym. It instead targets a narrower unresolved problem: comparing heterogeneous agents---classical optimizers, reinforcement-learning policies and tool-using language models---under the same multi-step experimental contract, with explicit hidden-world shifts and replay-verifiable evaluation.
+
+\subsection*{A contract for adaptive experimentation}
+
+ChemWorld separates five components (Fig.~\ref{fig:system}): the agent, a typed public interface, a hidden chemical world, a layered evaluator and an evidence layer. At each decision point an agent receives only public state, available operations, resource availability and released measurements. Measurements can include structured spectral peaks rather than a privileged latent state. The agent selects an experiment or operation, observes the result and may adapt within and across experiments. The trajectory records actions, observations, costs and structured fields for hypothesis, evidence, uncertainty and decision summary. The contract does not require or score private chain-of-thought; this is both a privacy boundary and a practical interface for proprietary models.
+
+The current task suite spans liquid--liquid partition, reaction--crystallization, reaction--distillation, flow-reaction optimization, electrochemical conversion and equilibrium characterization. Each task has a declared primary endpoint rather than relying only on a composite reward. The environment implements mechanism, transport, phase-equilibrium and observation perturbations only where the underlying provider executes the corresponding constitutive model. This prevents an intervention label from masquerading as a physical change.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/figure1_system.pdf}
+  \caption{\textbf{ChemWorld closed-loop architecture.} The agent interacts through a typed public interface; hidden world-family cells alter executable chemical and measurement models. Endpoint, constraint and resource quantities are recomputed from trajectories. Replay and digests bind the reported score to the executed record.}
+  \label{fig:system}
+\end{figure}
+
+\subsection*{Hidden worlds without pretending to reproduce reality}
+
+A simulator can teach policies that exploit its errors. ChemWorld therefore treats simulation fidelity and benchmark validity as distinct questions. Its immediate criterion is not numerical identity with a physical plant, but whether agents face stable causal semantics across disjoint hidden worlds. Train, development and Bench partitions use the same action and observation contract while allocating different world-family cells. Interpolation, extrapolation, composition and observation-noise modes are explicit. Axis identities and hidden parameters are withheld from agents in Bench evaluation.
+
+This design makes two claims falsifiable. First, benchmark discrimination can be tested by whether agents with different adaptive capabilities produce separable outcomes under a frozen budget. Second, utility as a training environment can eventually be tested by whether training on generated worlds improves performance on unseen Bench worlds or external data-replay and physical-laboratory bridges. The second claim is central but currently unproven; simulator-only improvement is insufficient evidence of real-world transfer.
+
+\subsection*{Diagnostic experiments expose both signal and invalid tasks}
+
+Before freezing vNext, five classical strategies were run for 20 paired seeds on six tasks, with 40 complete experiments per task--method--seed combination (600 runs). We retain these results as a legacy diagnostic, not as confirmatory evidence. Against random search, Gaussian-process Bayesian optimization improved the declared primary endpoint with a positive bootstrap interval on partition, crystallization, distillation and flow reaction. It did not resolve electrochemistry or equilibrium (Fig.~\ref{fig:effects}). The latter tasks remain exploratory because aggregate score changes were not matched by a validated change in the declared scientific capability.
+
+This failure is informative. A benchmark that rewards an optimizer while its primary endpoint is unchanged measures its scoring construction more strongly than the claimed capability. ChemWorld consequently separates terminal objective, task primary metric, online shaping reward, operational constraints, process cost and measurement cost. The vNext core is provisionally restricted to four tasks and uses task-specific smallest effects of interest fixed before confirmatory evaluation. No retained v0.1 result is reinterpreted as passing the new rule.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.83\textwidth]{figures/figure2_diagnostic_effects.pdf}
+  \caption{\textbf{Declared primary-metric effects in retained diagnostic runs.} Points show the paired mean effect of GP Bayesian optimization relative to random search; bars show 95\% paired-bootstrap intervals over 20 seeds. Colours encode the post-audit role (core-confirmed, core-candidate or exploratory). These legacy results selected failure cases and froze the next protocol; they are not vNext confirmatory comparisons. Source data are provided in \texttt{source\_data/figure2\_diagnostic\_primary\_effects.csv}.}
+  \label{fig:effects}
+\end{figure}
+
+\subsection*{Evidence gating is part of the benchmark}
+
+Benchmark scores are vulnerable to stale summaries, altered trajectories, non-finite values and information leakage. ChemWorld's vNext result format binds the reported metric to exact source records, trajectory bytes, evaluator version and task contract. Evaluation rejects non-finite and out-of-range quantities; online reward is excluded as a score authority. Public submissions communicate with the teacher process through a size-limited message protocol. This is a message boundary, not an operating-system sandbox: untrusted code still requires a no-network, read-only, resource-limited container.
+
+The distinction between implemented controls and completed scientific evidence is shown in Fig.~\ref{fig:gates}. The confirmatory protocol, layered evaluator, replay binding and public message boundary are implemented. The full exploit matrix, required method matrix, independent reproduction and confirmatory rerun are not. In particular, retained artifacts do not yet contain eligible PPO, SAC or two independent live language-model baselines. ChemWorld therefore cannot currently establish their comparative ranking.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.88\textwidth]{figures/figure3_evidence_gates.pdf}
+  \caption{\textbf{Machine-audited evidence status at manuscript generation.} Green gates are implemented controls; red gates block comparative or publication claims. A passed control does not imply a successful method result. Source data are provided in \texttt{source\_data/figure3\_evidence\_gates.csv}.}
+  \label{fig:gates}
+\end{figure}
+
+\subsection*{What would make a virtual chemistry gym scientifically useful?}
+
+The value of a virtual environment cannot rest on visual realism or task count. It should instead provide an intervention contract, detect shortcut policies, retain failures, expose resource use and support a transfer experiment whose outcome could be negative. ChemWorld's architecture now supports these tests, but architecture is not their result. The decisive experiment will train agents only on generated Train families, select on disjoint development cells and compare zero-shot performance on frozen Bench and Bridge targets against equal-budget agents trained from scratch. Per-axis effects, constraints and resource frontiers must be reported without collapsing them into a single leaderboard number.
+
+This evidence-gated presentation changes the role of the benchmark. It is neither a surrogate for chemical truth nor a claim that virtual discovery equals physical discovery. It is an instrument for studying adaptive scientific decision-making under controlled uncertainty. If later transfer tests fail, ChemWorld may remain useful as an evaluation stress test while being unsuitable as a training substrate. If they succeed across independent bridges, the same contracts will allow the claim to be upgraded without changing the benchmark after results are observed.
+
+\section*{Methods}
+
+\subsection*{Environment and task contract}
+
+Tasks expose typed operations, materials, instruments, measurements and budgets. A trajectory contains the public decision context, chosen action, environment response, measurement payload, resource delta and structured decision evidence. Task contracts declare the primary endpoint and direction, supported world-family interventions and evaluator version. Internal material codes are neutral identifiers; semantic skins can be paired with the same hidden world to measure how pretrained chemical knowledge changes exploration.
+
+\subsection*{World families and splits}
+
+World-family interventions are deterministic functions of a public protocol, hidden cell identifier and seed. The frozen design allocates seeds 1000--1099 to Train, 1100--1119 to development, 20--39 to confirmatory Bench evaluation and 200--204 to generalization cells. Train excludes the Bench extrapolation cells. Interpolation, extrapolation, composition and observation-noise shifts are evaluated separately. These allocations describe the frozen protocol; the confirmatory matrix has not yet been executed.
+
+\subsection*{Diagnostic method matrix}
+
+The retained v0.1 matrix contains random search, Latin-hypercube sampling, Gaussian-process Bayesian optimization, structured Gaussian-process Bayesian optimization and a structured constrained variant. Each method used 20 paired seeds and 40 completed experiments for each of six tasks. The paired primary-metric comparisons reported here were generated by the repository's retained validity audit. Bootstrap intervals and multiplicity-adjusted sign-flip tests are descriptive of this legacy diagnostic matrix. They are not reused to accept the vNext confirmatory hypotheses.
+
+\subsection*{Frozen confirmatory design}
+
+The primary comparison is structured Gaussian-process Bayesian optimization against random search on the provisional core tasks. A task passes only if the paired-bootstrap lower bound exceeds zero, the Holm-adjusted test is below 0.05 and the mean effect reaches its predeclared task-specific smallest effect of interest. Failed, rejected and truncated runs remain in the analysis. Frozen smallest effects are 0.0292 for partition, 0.038827 for crystallization and 0.02 for both distillation and flow reaction. The method study additionally requires eligible classical, PPO, SAC and two live language-model agents under the same cumulative resource ledger.
+
+\subsection*{Layered evaluation and replay}
+
+The evaluator independently reports terminal objective, declared task primary metric, online shaping reward, constraints, process cost, measurement cost and validity. Score replay uses exact trajectory source records and validates their content, a SHA-256 digest of trajectory bytes, evaluator identity and task evaluation contract. Non-finite values, missing primaries, digest mismatches and reward-only score substitutions fail closed. Candidate tasks cannot enter the formal core merely because a composite total score improves.
+
+\subsection*{Agent evidence and privacy}
+
+Language-model agents receive the same public decision context and spectra available to other compatible agents. Formal artifacts must come from live model calls; deterministic stubs and response replays are excluded. The trajectory retains a concise hypothesis, supporting evidence, uncertainty and decision summary. Private chain-of-thought is neither requested nor required. Provider identity, model identity, token counts, cost and call failures are recorded by the resource ledger for eligible live runs.
+
+\subsection*{Security boundary}
+
+The public harness places student code in a subprocess and exchanges bounded JSON messages. It validates message size and non-finite numerical input, applies wall-time controls and releases process handles deterministically. This boundary protects the evaluator protocol from malformed messages but does not constitute isolation for hostile code. Formal private evaluation requires an external low-privilege container with network disabled, read-only benchmark assets, and CPU, memory, process and wall-time limits.
+
+\subsection*{Evidence provenance and manuscript generation}
+
+Figures are generated by \texttt{scripts/build\_nature\_figures.py} from versioned JSON reports. Figure source tables, a source-data manifest and the machine-readable claim ledger are retained with the manuscript. \texttt{scripts/audit\_manuscript\_claims.py} verifies upstream readiness, evidence paths, diagnostic labelling, limitation text and the rendered PDF. The manuscript audit always reports \texttt{publication\_ready=false} while the upstream confirmatory audit remains blocked.
+
+\section*{Limitations}
+
+ChemWorld is a simulated environment and has not been shown to preserve agent rankings in a physical laboratory. The diagnostic comparison predates the vNext freeze and contains no eligible reinforcement-learning or live language-model result. Two tasks fail the current capability-validity test, operational risk is a benchmark quantity rather than a real-world safety guarantee, and the public subprocess boundary is not a security sandbox. The work does not yet demonstrate Train-to-Bench or Train-to-Bridge improvement, axis-wise generalization, independent reproduction or a complete adversarial audit. These are claim-changing experiments rather than optional extensions.
+
+\section*{Data availability}
+
+The review draft uses only versioned diagnostic and control reports in the repository. Figure source tables are retained in \texttt{paper/source\_data}. A permanent archive DOI and immutable release tag have not yet been assigned and must be added before submission.
+
+\section*{Code availability}
+
+Environment, evaluators, audits and manuscript-generation code are available in the ChemWorld repository. The submission must cite an immutable release rather than a mutable branch. Formal private-world parameters and secrets will not be included in public artifacts.
+
+\section*{Acknowledgements}
+
+To be supplied by the authors. No funding statement has been inferred.
+
+\section*{Author contributions}
+
+To be supplied and approved by all authors before submission.
+
+\section*{Competing interests}
+
+To be declared by the authors before submission.
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+\end{document}
