@@ -1,0 +1,45 @@
+.cw-site-version {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.8rem;
+  margin: 0 0 1.5rem;
+}
+
+.cw-toc-title {
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+}
+
+.cw-outline-toggle {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 0.2rem;
+  color: var(--md-default-fg-color--light);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.7rem;
+  height: 1.1rem;
+  justify-content: center;
+  line-height: 1;
+  margin-left: auto;
+  padding: 0;
+  transition:
+    background-color 125ms,
+    border-color 125ms,
+    color 125ms;
+  width: 1.1rem;
+}
+
+.cw-outline-toggle:hover,
+.cw-outline-toggle:focus-visible {
+  background: var(--md-accent-fg-color--transparent);
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-accent-fg-color);
+  outline: none;
+}
+
+.md-nav--secondary.cw-toc-collapsed [data-md-component="toc"] {
+  display: none;
+}
