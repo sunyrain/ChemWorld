@@ -93,15 +93,21 @@ def main() -> int:
             "import json, pathlib, chemworld, gymnasium as gym; "
             "from chemworld.task_design import serious_task_readiness_manifest; "
             "from chemworld.eval.benchmark_validation import official_validation_path; "
+            "from chemworld.eval.publication_protocol import ("
+            "DEFAULT_PUBLICATION_PROTOCOL_PATH, load_publication_protocol, "
+            "publication_protocol_manifest); "
             "env=gym.make('ChemWorld', task_id='reaction-to-assay', seed=0); "
             "obs,info=env.reset(seed=0); "
             "readiness=serious_task_readiness_manifest(); "
+            "protocol=publication_protocol_manifest(load_publication_protocol()); "
             "print(json.dumps({'package': chemworld.__file__, "
             "'task_id': info['task_id'], 'observation_keys': sorted(obs), "
             "'serious_suite_status': readiness['suite_status'], "
             "'serious_task_count': len(readiness['task_ids']), "
             "'contract_ready_count': readiness['contract_ready_count'], "
             "'benchmark_ready_count': readiness['benchmark_ready_count'], "
+            "'publication_protocol_valid': protocol['valid'], "
+            "'publication_protocol_path': str(DEFAULT_PUBLICATION_PROTOCOL_PATH), "
             "'official_validation_path': str(official_validation_path())})); "
             "env.close()"
         )
@@ -121,6 +127,8 @@ def main() -> int:
             raise RuntimeError(f"Smoke imported editable source instead of wheel: {imported_path}")
         if payload["task_id"] != "reaction-to-assay":
             raise RuntimeError(f"Unexpected wheel smoke task payload: {payload}")
+        if payload["publication_protocol_valid"] is not True:
+            raise RuntimeError(f"Wheel publication protocol is invalid: {payload}")
         _validate_readiness_payload(
             payload,
             require_validated_benchmark=args.require_validated_benchmark,
@@ -128,6 +136,11 @@ def main() -> int:
         validation_path = Path(str(payload["official_validation_path"])).resolve()
         if not validation_path.is_relative_to(install_dir.resolve()):
             raise RuntimeError(f"Wheel used validation outside installed resources: {payload}")
+        protocol_path = Path(str(payload["publication_protocol_path"])).resolve()
+        if not protocol_path.is_relative_to(install_dir.resolve()):
+            raise RuntimeError(
+                f"Wheel used publication protocol outside installed resources: {payload}"
+            )
         print(json.dumps({"wheel_smoke": "passed", **payload}, indent=2, sort_keys=True))
     return 0
 

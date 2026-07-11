@@ -9,6 +9,18 @@ readiness 只证明 6 个任务在 5 个冻结 seeds 上可执行、可重放且
 当前工作流只保留可重放的任务级证据：paired-seed 效应、预算曲线、类别表示对照和 provenance。
 任何经验有效性 blocker 未关闭时只能称为 candidate，不能发布最终 benchmark 或论文结论。
 
+## 已冻结的发表候选协议
+
+`configs/benchmark/publication_protocol_v0.1.json` 已固定研究问题、六任务边界、逐任务主指标、
+不可声称内容、20 个配对 seeds、40 次完整实验、确认性比较、SESOI、bootstrap、符号翻转检验、
+Holm 校正和资源账本。`scripts/audit_publication_protocol.py` 会核对当前 World Law、任务合同哈希
+和 agent registry；任何漂移均失败。该协议有效只代表预注册完整，不代表经验结果已经通过。
+
+确认性实验使用 `structured_gp_bo` 对 `random`。LHS、原始编码 GP 和结构化安全 GP 是预声明的
+次要比较/消融。stub 与 replay agent 已从科学 baseline 中排除。正式运行必须来自干净 commit，
+每条轨迹回放通过，并完成恰好 40 次实验；结果仍需通过泛化、反作弊和独立复现门禁后才能进入
+论文主张。
+
 ## 2026-07-11 validity/power 先导审计
 
 早期 10-seed、最小预算和 acquisition-family 中间报告已经由长程预算曲线取代并删除。当前保留：

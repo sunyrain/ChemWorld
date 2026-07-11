@@ -48,9 +48,12 @@ def test_validity_power_uses_paired_effects_and_non_oracle_reference() -> None:
     assert effect["mean_paired_effect"] == pytest.approx(0.10)
     assert effect["wins"] == 8
     assert effect["sign_flip_p_value"] == pytest.approx(2 / 256)
+    assert effect["holm_adjusted_p_value"] == pytest.approx(2 / 256)
+    assert effect["significant_after_holm"] is True
     assert task["best_known_reference"]["is_oracle"] is False
     assert task["best_known_reference"]["mean_gap_by_method"]["gp_bo"] == pytest.approx(0.0)
     assert report["oracle_policy"]["random_sample_maximum_is_oracle"] is False
+    assert report["multiple_comparison_policy"] == "holm_within_comparison_family"
 
 
 def test_validity_power_rejects_unpaired_seed_coverage() -> None:

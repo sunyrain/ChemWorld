@@ -9,6 +9,7 @@ from chemworld.agents.bo import (
     RandomForestEIAgent,
     SafetyConstrainedBOAgent,
     StructuredGaussianProcessBOAgent,
+    StructuredSafetyConstrainedBOAgent,
 )
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.metrics import evaluate_records
@@ -30,6 +31,7 @@ def test_surrogate_baselines_smoke(tmp_path) -> None:
         RandomForestEIAgent(n_initial=2, n_candidates=16, n_estimators=8),
         SafetyConstrainedBOAgent(n_initial=2, n_candidates=16),
         StructuredGaussianProcessBOAgent(n_initial=2, n_candidates=16),
+        StructuredSafetyConstrainedBOAgent(n_initial=2, n_candidates=16),
     ]
     for index, agent in enumerate(agents):
         history = run_agent(
@@ -44,6 +46,22 @@ def test_surrogate_baselines_smoke(tmp_path) -> None:
         assert 1 <= len(history) <= 12
         assert history[-1].action == {"operation": "measure", "instrument": "final_assay"}
         assert max(record.reward for record in history) >= 0.0
+
+
+def test_structured_safe_bo_declares_typed_recipe_encoding() -> None:
+    agent = StructuredSafetyConstrainedBOAgent(n_initial=2, n_candidates=16)
+    agent.reset(
+        {
+            "budget": 24,
+            "task_id": "electrochemical-conversion",
+            "safety_limit": 0.4,
+        },
+        seed=0,
+    )
+
+    manifest = agent.manifest()
+    assert manifest["recipe_encoding"] == "continuous_plus_material_one_hot"
+    assert manifest["surrogate_family"] == "safe_gaussian_process"
 
 
 def test_bo_campaign_runs_multiple_recipes(tmp_path) -> None:

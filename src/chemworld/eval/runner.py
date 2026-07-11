@@ -25,6 +25,7 @@ from chemworld.agents import (
     SafetyConstrainedBOAgent,
     ScriptedChemistryAgent,
     StructuredGaussianProcessBOAgent,
+    StructuredSafetyConstrainedBOAgent,
     ToolUsingLLMStubAgent,
 )
 from chemworld.agents.base import Agent, HistoryRecord
@@ -43,6 +44,7 @@ AGENT_REGISTRY: dict[str, Callable[[], Agent]] = {
     "rf_ei": RandomForestEIAgent,
     "safe_gp_bo": SafetyConstrainedBOAgent,
     "structured_gp_bo": StructuredGaussianProcessBOAgent,
+    "structured_safe_gp_bo": StructuredSafetyConstrainedBOAgent,
     "random_recipe": RandomRecipeAgent,
     "scripted_chemistry": ScriptedChemistryAgent,
     "scripted_reaction_to_purification": ScriptedChemistryAgent,

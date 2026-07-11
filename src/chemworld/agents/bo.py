@@ -431,7 +431,7 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
             risk_model.fit(x_train, risk_train)
 
         candidates = self._candidate_actions(self.n_candidates)
-        x_candidates = np.vstack([task_recipe_to_vector(action) for action in candidates])
+        x_candidates = np.vstack([self._model_vector(action) for action in candidates])
         mu, sigma = score_model.predict(x_candidates, return_std=True)
         risk_mu, risk_sigma = risk_model.predict(x_candidates, return_std=True)
         acquisition = _expected_improvement(mu, sigma, best=float(np.max(y_train)))
@@ -469,4 +469,18 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
                 "risk_threshold": self.effective_risk_threshold,
             }
         )
+        return manifest
+
+
+class StructuredSafetyConstrainedBOAgent(SafetyConstrainedBOAgent):
+    """Safety-constrained GP-EI with typed categorical material coordinates."""
+
+    name = "structured_safe_gp_bo"
+
+    def _model_vector(self, action: dict[str, Any]) -> np.ndarray:
+        return task_recipe_to_model_vector(self.task_info, action)
+
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update({"recipe_encoding": "continuous_plus_material_one_hot"})
         return manifest

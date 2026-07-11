@@ -293,7 +293,13 @@ def review_task_design(
     )
 
 
-_COMMON_BASELINES = ("random", "scripted_chemistry", "gp_bo", "safe_gp_bo")
+_COMMON_BASELINES = (
+    "random",
+    "lhs",
+    "gp_bo",
+    "structured_gp_bo",
+    "structured_safe_gp_bo",
+)
 _COMMON_EVIDENCE = (
     "multi-seed baseline confidence intervals",
     "deterministic replay verification",

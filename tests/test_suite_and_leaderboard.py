@@ -23,6 +23,17 @@ def test_suite_runs_and_reports_public_private_gap(tmp_path) -> None:
     assert all("ci95_total_score_low" in row for row in rows)
     assert all("sem_total_score" in row for row in rows)
     assert all(result["verified"] for result in results)
+    assert all(
+        result["resource_usage"]["schema_version"]
+        == "chemworld-resource-usage-0.1"
+        for result in results
+    )
+    assert all(result["resource_usage"]["run_wall_time_s"] >= 0.0 for result in results)
+    assert all(
+        result["resource_usage"]["complete_experiment_count"]
+        == result["final_assay_count"]
+        for result in results
+    )
 
 
 def test_leaderboard_rejects_unverified_result() -> None:

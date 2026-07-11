@@ -61,7 +61,7 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
    evidence digest 和轨迹索引；旧包失配时必须失败。
 2. [x] `wf-110-vnext-runtime-integration`：统一接入已通过 intake 的 runtime additions/replacements，
    删除被替代路由，升级 World Law，并重冻结 task/scenario/golden，不在此任务内跑论文结论。
-3. `benchmark-v1-validity-power`：修复 oracle 定义、任务地板/天花板与策略不分辨问题，使用 paired
+3. `benchmark-v1-validity-power`（进行中）：修复 oracle 定义、任务地板/天花板与策略不分辨问题，使用 paired
    seeds 和功效分析确定正式 seed 数。
 4. `benchmark-v1-generalization-security`：实现每任务轴级 interpolation/extrapolation/composition/
    noise、私评、语义重映射、metamorphic invariance 和 exploit matrix。
@@ -82,15 +82,15 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
 
 ### 1.1 固定 v1 的研究主张和任务边界
 
-- [ ] 冻结 v1 benchmark 的核心主张：评估部分可观测、实验有成本条件下的主动探索、实验
+- [x] 冻结 v1 benchmark 的核心主张：评估部分可观测、实验有成本条件下的主动探索、实验
   决策和证据更新能力；不主张真实化学产率预测或工业装置设计。
-- [ ] 默认以当前 6 个 serious task 为 v1 候选集；若某任务无法通过可辨识性或有效性审查，
+- [x] 默认以当前 6 个 serious task 为 v1 候选集；若某任务无法通过可辨识性或有效性审查，
   将其降级为 exploratory，而不是为了数量强行进入正式套件。
-- [ ] 为每个正式任务写出唯一 primary claim、primary metric、secondary diagnostics 和明确的
+- [x] 为每个正式任务写出唯一 primary claim、primary metric、secondary diagnostics 和明确的
   非主张范围。
-- [ ] 决定正式结果只逐任务报告还是同时发布聚合分数。默认逐任务报告；如保留聚合分数，必须
+- [x] 决定正式结果只逐任务报告还是同时发布聚合分数。默认逐任务报告；如保留聚合分数，必须
   固定归一化、权重和缺失任务处理规则。
-- [ ] 明确 benchmark 与 smoke/teaching/exploratory 任务的发布边界，避免用户把 15 个注册任务
+- [x] 明确 benchmark 与 smoke/teaching/exploratory 任务的发布边界，避免用户把 15 个注册任务
   全部理解为正式榜单任务。
 
 验收标准：`SERIOUS_TASK_IDS`、任务卡、benchmark protocol、README 和发布产物对正式任务范围
@@ -118,6 +118,11 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
 接受进入正式套件的结论。
 
 ### 1.3 完整 Baseline 与统计校准
+
+- [x] 冻结 `publication_protocol_v0.1.json`：20 paired seeds、40 次完整实验、逐任务报告、0.05
+  SESOI、paired bootstrap、符号翻转检验、Holm 校正、负结果全报告和干净 commit/replay 要求。
+- [x] 将类别物料 one-hot 扩展到结构化安全 BO，并为每次运行记录墙钟、CPU、步骤数和完整实验数；
+  正式 runner 对实验数不足、脏树、合同漂移和回放失败执行失败关闭。
 
 - [ ] 跑完整 serious baseline：`random`、`lhs`、`scripted_chemistry`、`gp_bo`、`safe_gp_bo`、
   `tool_using_llm_stub`；将不可复现或依赖外部在线服务的 agent 与官方冻结基线分开。

@@ -1,0 +1,140 @@
+{
+  "schema_version": "chemworld-publication-protocol-0.1",
+  "protocol_id": "chemworld-serious-v0.4-publication-candidate-0.1",
+  "world_law_id": "chemworld-physical-chemistry-v0.4",
+  "research_question": "Can an agent use observations from costly virtual experiments to improve subsequent experimental decisions across heterogeneous chemical-process tasks?",
+  "claim_boundaries": {
+    "primary_claim": "ChemWorld evaluates budgeted, closed-loop experimental decision making under partial observability, typed actions, measurement costs, and safety constraints.",
+    "supported_claims": [
+      "Task-level paired comparisons can measure whether an adaptive method improves final and anytime performance over resource-matched non-adaptive designs.",
+      "Replay-bound trajectories support reproducible analysis of decisions, observations, constraints, and resource use."
+    ],
+    "prohibited_claims": [
+      "ChemWorld predicts real experimental yields or industrial process performance.",
+      "Success in ChemWorld demonstrates autonomous discovery of new chemistry.",
+      "A cross-task aggregate establishes general scientific intelligence.",
+      "Public-test performance alone establishes transfer to hidden or real-world distributions."
+    ]
+  },
+  "experimental_design": {
+    "world_split": "public-test",
+    "seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+    "complete_experiments_per_task_seed": 40,
+    "same_budget_for_every_method": true,
+    "paired_seed_initialization": true,
+    "require_clean_tracked_tree": true,
+    "require_trajectory_replay": true,
+    "early_stopping": "not_allowed",
+    "failed_run_policy": "report_and_rerun_only_after_documented_infrastructure_failure"
+  },
+  "methods": [
+    {
+      "method_id": "random",
+      "family": "non_adaptive_random_design",
+      "paper_role": "confirmatory_comparator"
+    },
+    {
+      "method_id": "lhs",
+      "family": "non_adaptive_space_filling_design",
+      "paper_role": "secondary_comparator"
+    },
+    {
+      "method_id": "gp_bo",
+      "family": "gaussian_process_expected_improvement",
+      "paper_role": "representation_ablation"
+    },
+    {
+      "method_id": "structured_gp_bo",
+      "family": "typed_gaussian_process_expected_improvement",
+      "paper_role": "confirmatory_method"
+    },
+    {
+      "method_id": "structured_safe_gp_bo",
+      "family": "typed_safety_constrained_gaussian_process_expected_improvement",
+      "paper_role": "safety_secondary_method"
+    }
+  ],
+  "confirmatory_contrasts": [
+    {
+      "method": "structured_gp_bo",
+      "comparator": "random",
+      "metric": "total_score",
+      "direction": "higher_is_better",
+      "scope": "each_task_separately"
+    }
+  ],
+  "statistics": {
+    "unit_of_analysis": "paired_task_seed",
+    "alpha": 0.05,
+    "confidence_level": 0.95,
+    "sesoi_total_score": 0.05,
+    "sesoi_primary_normalized_metric": 0.05,
+    "bootstrap_samples": 10000,
+    "interval": "paired_percentile_bootstrap",
+    "hypothesis_test": "paired_sign_flip",
+    "effect_size": "cohen_dz",
+    "multiple_comparison_policy": "holm_within_metric_family",
+    "report_wins_ties_losses": true,
+    "prospective_seed_count": 20
+  },
+  "reporting": {
+    "primary_reporting": "per_task",
+    "cross_task_aggregate_score": null,
+    "primary_metrics": ["total_score", "primary_task_metric"],
+    "anytime_metrics": ["campaign_area_under_best_score", "final_best_score"],
+    "constraint_metrics": ["safety_aware_score", "cost_aware_score", "invalid_action_rate"],
+    "resource_metrics": ["run_wall_time_s", "process_cpu_time_s", "step_count", "complete_experiment_count"],
+    "regret_policy": "prohibited_until_an_independent_reference_protocol_is_frozen",
+    "negative_results": "report_all_pre_registered_task_method_pairs"
+  },
+  "tasks": [
+    {
+      "task_id": "partition-discovery",
+      "task_contract_hash": "2fbe9ddbd3dd23720ea657ddae0b07421c735aeca208cebe70fd73dd7db58472",
+      "capability_claim": "active phase-equilibrium characterization under a budget",
+      "primary_metric": "product_in_organic",
+      "primary_result_field": "mean_product_in_organic",
+      "non_claims": ["real solvent-system partition coefficients"]
+    },
+    {
+      "task_id": "reaction-to-crystallization",
+      "task_contract_hash": "59747a3feb94707cd414d122745494ae4f5ceb338c889f37e8b1f82716e8511c",
+      "capability_claim": "closed-loop reaction and cooling-crystallization planning",
+      "primary_metric": "crystal_yield",
+      "primary_result_field": "mean_crystal_yield",
+      "non_claims": ["industrial crystal-size-distribution prediction"]
+    },
+    {
+      "task_id": "reaction-to-distillation",
+      "task_contract_hash": "30e63cc01a57ce20fb12139e6c98e854d9ac250ab91b949af603b0ddf17a97b4",
+      "capability_claim": "reaction-distillation trade-off reasoning",
+      "primary_metric": "distillate_purity",
+      "primary_result_field": "mean_distillate_purity",
+      "non_claims": ["plant-scale column design"]
+    },
+    {
+      "task_id": "flow-reaction-optimization",
+      "task_contract_hash": "dec8fc2ba017b4cc55010bc8636f17f18969e23b054665f72481f58cebdf2fc0",
+      "capability_claim": "geometry-aware continuous-flow optimization",
+      "primary_metric": "flow_conversion",
+      "primary_result_field": "mean_flow_conversion",
+      "non_claims": ["validated reactor scale-up"]
+    },
+    {
+      "task_id": "electrochemical-conversion",
+      "task_contract_hash": "8d023408b2feb46b4570fa9b5fbeba4e0ccb7982811f934cca55e1c063d1297d",
+      "capability_claim": "electrochemical control under transport and energy constraints",
+      "primary_metric": "electrochemical_selectivity",
+      "primary_result_field": "mean_electrochemical_selectivity",
+      "non_claims": ["quantitative prediction for a named electrochemical system"]
+    },
+    {
+      "task_id": "equilibrium-characterization",
+      "task_contract_hash": "07b336d22933068a6b45cee7c56b80bbcfdfddcf31ff0967030f831eb219ebb7",
+      "capability_claim": "instrument-budgeted equilibrium identification",
+      "primary_metric": "equilibrium_confidence",
+      "primary_result_field": "mean_equilibrium_confidence",
+      "non_claims": ["recovery of real named-solution equilibrium constants"]
+    }
+  ]
+}

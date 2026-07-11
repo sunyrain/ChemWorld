@@ -254,6 +254,7 @@ def audit_validity_power(
         bool(report["checks"]["learning_opportunity_adequate"])
         for report in reports.values()
     )
+    _apply_holm_correction(reports, alpha=alpha)
     return {
         "schema_version": VALIDITY_POWER_SCHEMA_VERSION,
         "status": (
@@ -268,6 +269,7 @@ def audit_validity_power(
         "planned_seed_count": planned_seed_count,
         "adaptive_method_pairs": [list(pair) for pair in adaptive_method_pairs],
         "paired_design_required": True,
+        "multiple_comparison_policy": "holm_within_comparison_family",
         "oracle_policy": {
             "random_sample_maximum_is_oracle": False,
             "reported_reference": "paired_seed_hindsight_best_observed",
@@ -279,6 +281,45 @@ def audit_validity_power(
         "tasks": reports,
         "compact_seed_metrics": compact_rows,
     }
+
+
+def _apply_holm_correction(
+    reports: dict[str, dict[str, Any]],
+    *,
+    alpha: float,
+) -> None:
+    comparison_keys = sorted(
+        {
+            key
+            for report in reports.values()
+            for key in report["comparisons"]
+        }
+    )
+    for comparison_key in comparison_keys:
+        family = [
+            (task_id, float(report["comparisons"][comparison_key]["sign_flip_p_value"]))
+            for task_id, report in reports.items()
+            if comparison_key in report["comparisons"]
+        ]
+        adjusted = _holm_adjusted_p_values(family)
+        for task_id, adjusted_p_value in adjusted.items():
+            comparison = reports[task_id]["comparisons"][comparison_key]
+            comparison["holm_adjusted_p_value"] = adjusted_p_value
+            comparison["significant_after_holm"] = adjusted_p_value <= alpha
+            comparison["multiplicity_family_size"] = len(family)
+
+
+def _holm_adjusted_p_values(family: list[tuple[str, float]]) -> dict[str, float]:
+    if not family:
+        return {}
+    ordered = sorted(family, key=lambda item: (item[1], item[0]))
+    count = len(ordered)
+    running_max = 0.0
+    adjusted: dict[str, float] = {}
+    for rank, (identity, p_value) in enumerate(ordered):
+        running_max = max(running_max, (count - rank) * p_value)
+        adjusted[identity] = min(1.0, running_max)
+    return adjusted
 
 
 def _index_results(
