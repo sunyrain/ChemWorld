@@ -1,0 +1,162 @@
+{
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "all_paired_runs_pass": true,
+    "candidate_is_non_claiming": true,
+    "invalid_material_code_fail_closed": true,
+    "paired_run_count": true,
+    "paired_tolerance": true,
+    "probe_contract": true,
+    "recipe_coordinate": true,
+    "schema": true,
+    "seed_scope": true,
+    "task_scope": true
+  },
+  "configuration_error": null,
+  "controls_ready": true,
+  "limitations": [
+    "The material probe validates a reversible opaque boundary-code adapter; it does not claim that exchanging physical material identities leaves chemistry unchanged.",
+    "The paired controls use deterministic median recipes and two declared seeds, not formal method comparisons.",
+    "The controls do not update or overwrite publication_protocol_v0.1 or its retained results.",
+    "Public harness isolation and the expanded exploit matrix remain separate release gates."
+  ],
+  "paired_run_count": 12,
+  "protocol_id": "chemworld-vnext-semantic-invariance-candidate-0.1",
+  "protocol_sha256": "d5f3919e8659f9fe04e31d48f26959e3e36389516023f9b21ec517db94604a90",
+  "publication_ready": false,
+  "remaining_release_gates": [
+    "bind the controls to the frozen vNext public harness and method protocol",
+    "run paired formal methods under the frozen Train/Dev/Bench world-family splits",
+    "complete public-harness leakage and exploit audits"
+  ],
+  "schema_version": "chemworld-semantic-invariance-audit-0.1",
+  "status": "semantic_invariance_controls_ready",
+  "tasks": {
+    "electrochemical-conversion": {
+      "max_observation_delta": 0.0,
+      "max_reward_delta": 0.0,
+      "paired_run_count": 2,
+      "passed": true,
+      "probes": {
+        "action_key_order": true,
+        "equivalent_action_sequence": true,
+        "format_perturbation": true,
+        "material_code_remap": true,
+        "observation_field_reorder": true
+      },
+      "seeds": [
+        0,
+        1
+      ],
+      "step_counts": [
+        7,
+        7
+      ]
+    },
+    "equilibrium-characterization": {
+      "max_observation_delta": 0.0,
+      "max_reward_delta": 0.0,
+      "paired_run_count": 2,
+      "passed": true,
+      "probes": {
+        "action_key_order": true,
+        "equivalent_action_sequence": true,
+        "format_perturbation": true,
+        "material_code_remap": true,
+        "observation_field_reorder": true
+      },
+      "seeds": [
+        0,
+        1
+      ],
+      "step_counts": [
+        8,
+        8
+      ]
+    },
+    "flow-reaction-optimization": {
+      "max_observation_delta": 0.0,
+      "max_reward_delta": 0.0,
+      "paired_run_count": 2,
+      "passed": true,
+      "probes": {
+        "action_key_order": true,
+        "equivalent_action_sequence": true,
+        "format_perturbation": true,
+        "material_code_remap": true,
+        "observation_field_reorder": true
+      },
+      "seeds": [
+        0,
+        1
+      ],
+      "step_counts": [
+        8,
+        8
+      ]
+    },
+    "partition-discovery": {
+      "max_observation_delta": 0.0,
+      "max_reward_delta": 0.0,
+      "paired_run_count": 2,
+      "passed": true,
+      "probes": {
+        "action_key_order": true,
+        "equivalent_action_sequence": true,
+        "format_perturbation": true,
+        "material_code_remap": true,
+        "observation_field_reorder": true
+      },
+      "seeds": [
+        0,
+        1
+      ],
+      "step_counts": [
+        10,
+        10
+      ]
+    },
+    "reaction-to-crystallization": {
+      "max_observation_delta": 0.0,
+      "max_reward_delta": 0.0,
+      "paired_run_count": 2,
+      "passed": true,
+      "probes": {
+        "action_key_order": true,
+        "equivalent_action_sequence": true,
+        "format_perturbation": true,
+        "material_code_remap": true,
+        "observation_field_reorder": true
+      },
+      "seeds": [
+        0,
+        1
+      ],
+      "step_counts": [
+        11,
+        11
+      ]
+    },
+    "reaction-to-distillation": {
+      "max_observation_delta": 0.0,
+      "max_reward_delta": 0.0,
+      "paired_run_count": 2,
+      "passed": true,
+      "probes": {
+        "action_key_order": true,
+        "equivalent_action_sequence": true,
+        "format_perturbation": true,
+        "material_code_remap": true,
+        "observation_field_reorder": true
+      },
+      "seeds": [
+        0,
+        1
+      ],
+      "step_counts": [
+        11,
+        11
+      ]
+    }
+  }
+}
