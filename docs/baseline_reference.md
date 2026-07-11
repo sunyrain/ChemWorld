@@ -52,10 +52,10 @@ live LLM 还必须冻结 provider、模型标识、prompt hash、请求参数和
 
 ## 当前经典诊断
 
-160 条最新结果显示，`structured_gp_bo` 相对 `random` 在分配、结晶、蒸馏和流动主指标上达到
-预设 objective SESOI；但候选在其中三项任务的风险预算超限率更高。由于安全和成本非劣规则没有
-在该 cohort 前冻结，这一运行不构成完整 baseline 胜负。下一版比较必须使用新 seeds，并将约束
-差值与目标效应共同纳入决策。
+160 条新 cohort 结果显示，`structured_gp_bo` 相对 `random` 在分配、结晶、蒸馏和流动主指标上
+达到预设 objective SESOI，且成本非劣通过；但候选在三项任务未通过预注册安全非劣界限。因此
+完整 baseline 主比较失败。后续风险感知方法只能在 Train/Dev worlds 开发，并使用另一个未触碰
+cohort 确认。
 
 ## 最低报告字段
 

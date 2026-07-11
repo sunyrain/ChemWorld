@@ -105,10 +105,9 @@ chemworld evaluate --submission runs/<trajectory>.jsonl
 
 ## 当前最重要的证据结论
 
-最新冻结经典切片覆盖四个任务、两种方法、20 个配对 seeds，每次 40 个完整实验。结构化 GP 的
-任务主指标在四项任务上都优于 random，并通过 objective-only 规则；但它在三项任务上的风险预算
-超限率更高。原协议没有预注册安全和成本非劣门槛，因此这批结果被保留为诊断证据，不发布方法
-胜负或完整 benchmark 主张。详情见[科学状态与证据](benchmark_release.md)。
+最新新 cohort 经典切片覆盖四个任务、两种方法、20 个配对 seeds，每次 40 个完整实验。结构化 GP
+通过四项 objective 与 cost 非劣规则，但在流动、结晶和蒸馏任务上未通过预注册 safety 非劣规则。
+完整联合结论因此为失败，不发布方法胜负或 benchmark 主张。详情见[科学状态与证据](benchmark_release.md)。
 
 ## 阅读路线
 

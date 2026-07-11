@@ -34,9 +34,9 @@ Pareto trade-off 或失败，而不是发布单一“更优”结论。
 
 ## 当前诊断
 
-四任务 structured GP 对 random 的 objective-only 规则通过，但候选在结晶、蒸馏和流动任务上的
-风险预算超限率更高。由于该 cohort 的冻结协议没有预注册安全/成本非劣界限，它只能用于诊断和
-设计下一版协议，不能用于 safe optimization 或完整方法排名。
+四任务 0.3 协议在新 seeds 上预注册了安全与成本非劣界限。structured GP 的 objective 和 cost
+规则全部通过，但结晶、蒸馏和流动未通过 safety 非劣，因此完整比较失败。这一结果证明约束评价
+能够拒绝只追求目标的策略；它不证明现有 safe BO 已有效。
 
 ## 报告最小字段
 

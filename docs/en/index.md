@@ -20,11 +20,10 @@ observation, scoring, and replay contracts.
 ## Evidence status
 
 ChemWorld is an operational research environment and a benchmark candidate, not a validated
-leaderboard. The latest frozen classical diagnostic contains 160 replay-verified runs over
-four tasks, two methods, and twenty paired seeds. Structured GP passed the objective-only rule
-on all four tasks, but had a higher observed risk-budget exceedance rate on three tasks. The
-protocol had not pre-registered safety and cost non-inferiority margins, so the run does not
-support a complete method claim.
+leaderboard. A fresh-cohort protocol pre-registered objective, safety, and cost rules for 160
+runs over four tasks, two methods, and twenty paired seeds. Structured GP passed all objective
+and cost rules, but failed safety non-inferiority in flow, crystallization, and distillation.
+The complete joint rule therefore failed and does not support a method claim.
 
 Full-budget RL, paired live-LLM evaluation, mechanism-family generalization, independent
 reference search, salted private evaluation, and independent reproduction remain open.

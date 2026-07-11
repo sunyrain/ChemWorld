@@ -67,12 +67,11 @@ environment variables and must not be committed or included in evaluation artifa
 The runtime, task contracts, resource accounting, trajectory replay, score binding, and
 public evaluation controls are operational. The complete benchmark is not yet validated.
 
-A frozen 160-run diagnostic compared structured GP optimization with random search over
-four core research tasks (20 paired seeds, 40 experiments per run). Every trajectory
-replayed successfully. The objective-only rule passed on all four tasks, but structured
-GP produced a higher observed risk-budget exceedance rate on three tasks. Because the
-frozen rule did not pre-register safety and cost non-inferiority margins, this run does
-not support a complete method claim or leaderboard.
+A fresh-cohort 160-run comparison evaluated structured GP optimization against random
+search over four core research tasks (20 paired seeds, 40 experiments per run). Every
+trajectory replayed successfully. All objective and cost non-inferiority rules passed,
+but safety non-inferiority failed in flow, crystallization, and distillation. The complete
+pre-registered joint rule therefore failed and does not support a method claim or leaderboard.
 
 RL training results, live-LLM comparisons, mechanism-family generalization, a searched
 reference portfolio, salted private evaluation, and independent reproduction remain

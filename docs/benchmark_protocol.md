@@ -68,10 +68,10 @@ Campaign  一次 task × world × seed × method 运行
 候选方法覆盖随机、空间填充、局部搜索、类型化 GP/RF acquisition 和风险约束方法。物料是类别
 变量；数字 action 值只是序列化 ID，不能作为连续距离直接输入 surrogate。
 
-当前 0.2 冻结诊断比较 `structured_gp_bo` 与 `random`，每任务 20 个配对 seeds、每次 40 个完整
-实验。它的 objective-only 规则在四任务通过，但安全/成本非劣规则没有预注册，且三任务观察到
-更高候选风险超限率。因此该 cohort 已用于发现评价问题，不会在新增规则后被重新包装成确认结果；
-升级协议必须使用未触碰的新 seeds。
+0.2 冻结诊断使用 seeds 20–39，objective-only 规则通过但暴露三任务风险退化。0.3 随后在运行前
+冻结 seeds 300–319、5 个百分点安全非劣界限、5% 相对成本非劣界限和 Bonferroni 同时上界。
+0.3 的四任务 objective 与 cost 规则通过，但三任务 safety 规则失败，因此完整主比较失败。
+这两个 cohort 都已消费；任何方法整改后的新确认实验必须再次使用未触碰 seeds。
 
 ```powershell
 python scripts/run_vnext_primary.py --dry-run
