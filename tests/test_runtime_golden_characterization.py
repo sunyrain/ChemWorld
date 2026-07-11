@@ -131,7 +131,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "low-budget-characterization": {
         "mechanism_id": "autocatalytic_reaction",
         "steps": 7,
-        "score": 0.17500021072111496,
+        "score": 0.1961714265656368,
     },
     "partition-discovery": {
         "mechanism_id": "reaction_extraction",
@@ -141,52 +141,52 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "public-private-generalization": {
         "mechanism_id": "parallel_series_reaction",
         "steps": 7,
-        "score": 0.19333470253757754,
+        "score": 0.12251657061280785,
     },
     "purity-yield-tradeoff": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.34360586767115353,
+        "score": 0.3084869338765923,
     },
     "reaction-mechanism-explanation": {
         "mechanism_id": "autocatalytic_reaction",
         "steps": 7,
-        "score": 0.18273657468714774,
+        "score": 0.2258381870833157,
     },
     "reaction-optimization-standard": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 7,
-        "score": 0.2962409016317406,
+        "score": 0.3848489126750431,
     },
     "reaction-safety-constrained": {
         "mechanism_id": "catalyst_deactivation",
         "steps": 7,
-        "score": 0.23876852869176518,
+        "score": 0.12343662095931893,
     },
     "reaction-to-assay": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 7,
-        "score": 0.41704134719384794,
+        "score": 0.2791402673009467,
     },
     "reaction-to-crystallization": {
         "mechanism_id": "simple_batch_reaction",
         "steps": 10,
-        "score": 0.5289396240856161,
+        "score": 0.6017330069149004,
     },
     "reaction-to-distillation": {
         "mechanism_id": "reactive_distillation_lite",
         "steps": 10,
-        "score": 0.1856266600242293,
+        "score": 0.2114233208353351,
     },
     "reaction-to-purification": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.36033576713495513,
+        "score": 0.35553311266345095,
     },
     "tool-agent-planning": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.1291068836790512,
+        "score": 0.1249749244407519,
     },
 }
 

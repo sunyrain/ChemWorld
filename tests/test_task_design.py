@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+from chemworld.physchem.maturity import MaturityLevel, ModuleMaturity, TaskMaturitySpec
 from chemworld.schemas import validate_task_schema
 from chemworld.task_design import (
     SERIOUS_TASK_DESIGNS,
@@ -24,18 +25,32 @@ def test_serious_task_designs_cover_frozen_suite() -> None:
 def test_serious_task_contracts_pass_machine_readable_review() -> None:
     manifest = serious_task_readiness_manifest()
 
-    assert manifest["suite_status"] == "validated"
+    assert manifest["suite_status"] == "candidate"
     assert manifest["contract_ready_count"] == len(SERIOUS_TASK_IDS)
-    assert manifest["benchmark_ready_count"] == len(SERIOUS_TASK_IDS)
+    assert manifest["benchmark_ready_count"] == 0
     for task_id in SERIOUS_TASK_IDS:
         review = manifest["reviews"][task_id]
         assert review["contract_ready"] is True
-        assert review["benchmark_ready"] is True
+        assert review["benchmark_ready"] is False
+        assert review["empirical_status"] == "candidate"
         assert all(check["passed"] for check in review["checks"])
 
 
 def test_serious_task_review_rejects_proxy_and_unimplemented_metric() -> None:
-    proxy_task = get_task("reaction-to-purification")
+    proxy_task = replace(
+        get_task("reaction-to-purification"),
+        tags=("chemworld", "exploratory"),
+        kernel_maturity=TaskMaturitySpec(
+            modules=(
+                ModuleMaturity(
+                    "separations",
+                    MaturityLevel.PROXY,
+                    model_ids=("test_proxy",),
+                ),
+            ),
+            proxy_allowed=True,
+        ),
+    )
     proxy_design = SeriousTaskDesign(
         task_id=proxy_task.task_id,
         research_question="Can an agent purify a virtual product?",

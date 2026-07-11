@@ -51,10 +51,10 @@ def test_role_audit_separates_runtime_diagnostic_and_reference_models() -> None:
     assert report["role_boundary_passed"]
     assert set(report["provider_role_catalog"].values()) >= {
         "runtime",
-        "runtime_fallback",
         "diagnostic",
         "reference",
     }
+    assert "runtime_fallback" not in set(report["provider_role_catalog"].values())
     for item in report["tasks"]:
         actual_roles = item["actual_provider_roles"]
         assert item["actual_role_partition"]["reference"] == []

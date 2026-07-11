@@ -40,7 +40,18 @@ def release_gate_commands(
         GateCommand("type_check", [python, "-m", "mypy", "src/chemworld"]),
         GateCommand("tests", [python, "-m", "pytest"]),
         GateCommand("docs", [python, "-m", "mkdocs", "build", "--strict"]),
-        GateCommand("wheel_smoke", [python, "scripts/smoke_test_wheel.py"]),
+        GateCommand(
+            "wheel_smoke",
+            [
+                python,
+                "scripts/smoke_test_wheel.py",
+                *(
+                    ["--require-validated-benchmark"]
+                    if require_frozen_benchmark
+                    else []
+                ),
+            ],
+        ),
         GateCommand(
             "reference_validation",
             [python, "scripts/run_reference_validation.py"],

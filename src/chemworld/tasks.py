@@ -27,7 +27,7 @@ from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.scenario import get_scenario_card
 
 WORLD_LAW_ID = WORLD_FAMILY_VERSION
-TASK_CONTRACT_VERSION = "chemworld-task-contract-0.5"
+TASK_CONTRACT_VERSION = "chemworld-task-contract-0.6"
 CORE_TASK_IDS = (
     "reaction-to-assay",
     "reaction-to-purification",
@@ -355,7 +355,10 @@ def default_kernel_maturity(
             ModuleMaturity(
                 "reaction_kinetics",
                 MaturityLevel.LITE,
-                model_ids=("chemworld_reaction_network_lite",),
+                model_ids=(
+                    "chemworld_reaction_network_lite",
+                    "chemworld_arrhenius_unit_contract_vnext",
+                ),
                 notes=(
                     "Local stoichiometric reaction-network and rate-law engine; "
                     "not yet Cantera-comparable.",
@@ -380,6 +383,7 @@ def default_kernel_maturity(
                     "chemworld_synthetic_instruments",
                     "beer_lambert_uvvis",
                     "chromatography_retention_plate",
+                    "chemworld_spectral_identifiability_audit_vnext",
                 ),
                 notes=(
                     "State-coupled synthetic observations with reference-validated "
@@ -394,12 +398,11 @@ def default_kernel_maturity(
                 "phase_equilibrium",
                 MaturityLevel.PROFESSIONAL_CANDIDATE,
                 model_ids=(
-                    "activity_corrected_extraction_train_v1",
-                    "lle_phase_stability_diagnostic_v1",
+                    "chemworld_stability_aware_lle_vnext",
                 ),
                 notes=(
-                    "Runtime phase contact uses the activity-corrected extraction "
-                    "train with explicit entrainment and TPD-style diagnostics; "
+                    "Runtime phase contact uses the stability-gated, activity-corrected "
+                    "extraction train with explicit entrainment and TPD-style diagnostics; "
                     "intrinsic distribution coefficients remain benchmark-calibrated.",
                 ),
             )
@@ -409,7 +412,10 @@ def default_kernel_maturity(
             ModuleMaturity(
                 "crystallization",
                 MaturityLevel.PROFESSIONAL_CANDIDATE,
-                model_ids=("cooling_crystallization_population_balance_v1",),
+                model_ids=(
+                    "cooling_crystallization_population_balance_v1",
+                    "chemworld_crystallization_convergence_audit_vnext",
+                ),
                 notes=(
                     "Runtime cooling crystallization uses van't Hoff solubility, "
                     "explicit seed mass, nucleation/growth cohorts, impurity "
@@ -421,11 +427,11 @@ def default_kernel_maturity(
         modules.append(
             ModuleMaturity(
                 "distillation",
-                MaturityLevel.REFERENCE_VALIDATED,
-                model_ids=("vle_shortcut_distillation",),
+                MaturityLevel.PROFESSIONAL_CANDIDATE,
+                model_ids=("chemworld_duty_limited_distillation_vnext",),
                 notes=(
-                    "Distillation uses a VLE-coupled constant-relative-volatility "
-                    "shortcut model with analytical Fenske identity tests.",
+                    "Distillation uses a bubble-gated, equipment- and duty-limited "
+                    "VLE/Fenske engine with explicit material and energy ledgers.",
                 ),
             )
         )
@@ -434,7 +440,11 @@ def default_kernel_maturity(
             ModuleMaturity(
                 "continuous_flow",
                 MaturityLevel.PROFESSIONAL_CANDIDATE,
-                model_ids=("pfr", "chemworld_geometry_resolved_pfr_v1"),
+                model_ids=(
+                    "chemworld_arrhenius_unit_contract_vnext",
+                    "pfr",
+                    "chemworld_geometry_resolved_pfr_v1",
+                ),
                 notes=(
                     "Runtime flow uses the shared compiled reaction network in a "
                     "geometry-resolved PFR with residence time, distributed thermal "
@@ -459,22 +469,31 @@ def default_kernel_maturity(
             ModuleMaturity(
                 "extraction_wash",
                 MaturityLevel.PROFESSIONAL_CANDIDATE,
-                model_ids=("activity_corrected_extraction_train_v1",),
+                model_ids=("chemworld_stability_aware_lle_vnext",),
                 notes=(
                     "Aqueous wash contacts use the same distribution, convergence, "
                     "entrainment, and material-balance contract as extraction stages.",
                 ),
             )
         )
-    if operations.intersection({"dry", "concentrate", "transfer"}):
+    downstream_models = {
+        "dry": "chemworld_sorbent_drying_vnext",
+        "concentrate": "chemworld_vacuum_concentration_vnext",
+        "transfer": "chemworld_transfer_holdup_vnext",
+    }
+    reached_downstream = tuple(
+        model_id for operation, model_id in downstream_models.items() if operation in operations
+    )
+    if reached_downstream:
         modules.append(
             ModuleMaturity(
                 "separations",
-                MaturityLevel.PROXY,
-                model_ids=("chemworld_separation_proxy",),
+                MaturityLevel.REFERENCE_VALIDATED,
+                model_ids=reached_downstream,
                 notes=(
-                    "Drying, concentration, and transfer remain bounded material-ledger "
-                    "operations without a general equipment/phase-equilibrium backend.",
+                    "Drying, vacuum concentration, and transfer use explicit finite-capacity "
+                    "equipment, material, volume, and energy ledgers. Their bounded runtime "
+                    "parameterization is not an industrial process-design claim.",
                 ),
             )
         )
@@ -519,7 +538,10 @@ def equilibrium_kernel_maturity() -> TaskMaturitySpec:
             ModuleMaturity(
                 "reaction_kinetics",
                 MaturityLevel.LITE,
-                model_ids=("chemworld_reaction_network_lite",),
+                model_ids=(
+                    "chemworld_reaction_network_lite",
+                    "chemworld_arrhenius_unit_contract_vnext",
+                ),
                 notes=("Heat and wait operations use the bounded reaction-network slice.",),
             ),
             ModuleMaturity(
@@ -534,6 +556,7 @@ def equilibrium_kernel_maturity() -> TaskMaturitySpec:
                 model_ids=(
                     "beer_lambert_uvvis",
                     "chemworld_synthetic_instruments",
+                    "chemworld_spectral_identifiability_audit_vnext",
                     "ph_meter_public_signal",
                 ),
                 notes=(

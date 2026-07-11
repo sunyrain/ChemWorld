@@ -542,7 +542,7 @@ def test_runtime_distillation_service_is_separate_from_domain_services() -> None
     assert "class ChemWorldDistillationServices" in distillation_services
     assert "def distill" in distillation_services
     assert "def collect_fraction" in distillation_services
-    assert "vle_shortcut_distillation" in distillation_services
+    assert "run_duty_limited_distillation" in distillation_services
     assert "distillate_product_mol" not in distillation_services
 
 
@@ -1266,7 +1266,7 @@ def test_runtime_phase_separation_uses_typed_phase_ledger_as_primary_state() -> 
         assert state.phases.phases["aqueous"].settled is True
         assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
         assert state.metadata["extraction_model_id"] == (
-            "activity_corrected_extraction_train_v1"
+            "chemworld_stability_aware_lle_vnext"
         )
         assert state.metadata["extraction_converged"] is True
         assert state.metadata["extraction_material_balance_error_mol"] < 1.0e-10
@@ -1282,7 +1282,7 @@ def test_runtime_phase_separation_uses_typed_phase_ledger_as_primary_state() -> 
         state = env.unwrapped._state
         assert wash_info["transaction_status"] == "committed"
         assert state.metadata["wash_model_id"] == (
-            "activity_corrected_extraction_train_v1"
+            "chemworld_stability_aware_lle_vnext"
         )
         assert state.metadata["wash_converged"] is True
         assert state.metadata["wash_material_balance_error_mol"] < 1.0e-10
@@ -1922,7 +1922,9 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert "solvent_loss" not in state.metadata
         assert "distillation_model" not in state.metadata
         assert "distillation_kernel" not in state.metadata
-        assert distillation_settings["distillation_model"] == "vle_shortcut_distillation"
+        assert distillation_settings["distillation_model"] == (
+            "chemworld_duty_limited_distillation_vnext"
+        )
         assert "distillation_kernel" in distillation_settings
         assert state.process.metrics["pre_separation_product_mol"] > 0.0
         assert state.process.metrics["solvent_loss"] > 0.0

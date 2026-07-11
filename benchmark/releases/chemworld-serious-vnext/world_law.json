@@ -1,0 +1,958 @@
+{
+  "backend": {
+    "backend_id": "semi_mechanistic",
+    "description": "Default ChemWorld backend using compiled reaction networks, typed material and energy ledgers, maturity-labeled process modules, and instrument-cost contracts.",
+    "external_dependencies": [],
+    "fidelity": "qualitative-semi-mechanistic",
+    "supported_world_laws": [
+      "chemworld-physical-chemistry-v0.4"
+    ],
+    "transition_modules": [
+      "reaction_ode",
+      "phase_partition",
+      "separation",
+      "crystallization",
+      "distillation",
+      "continuous_flow",
+      "electrochemistry",
+      "instrument_cost"
+    ]
+  },
+  "constitution_rules": [
+    "material_conservation",
+    "nonnegative_state",
+    "unit_consistency",
+    "yield_upper_bound",
+    "energy_balance",
+    "phase_mass_balance",
+    "observation_non_omniscient",
+    "measurement_has_cost",
+    "action_preconditions",
+    "safety_constraints",
+    "public_private_reproducibility",
+    "single_declared_runtime_provider_path",
+    "provider_diagnostics_do_not_inflate_runtime_maturity"
+  ],
+  "instrument_registry": {
+    "final_assay": {
+      "calibration_profile": "leaderboard_grade_calibration",
+      "cost": 0.16,
+      "destructive": true,
+      "instrument_id": "final_assay",
+      "latency_s": 1200.0,
+      "noise_model": {
+        "acid_dissociation_fraction": 0.006,
+        "byproduct_signal": 0.008,
+        "conversion": 0.008,
+        "crystal_purity": 0.01,
+        "crystal_size": 0.025,
+        "crystal_yield": 0.01,
+        "degradation_warning": 0.008,
+        "distillate_purity": 0.01,
+        "distillate_recovery": 0.012,
+        "electrochemical_selectivity": 0.012,
+        "energy_efficiency": 0.016,
+        "equilibrium_confidence": 0.006,
+        "equilibrium_residual": 0.004,
+        "flow_conversion": 0.012,
+        "impurity_signal": 0.008,
+        "pH_normalized": 0.002,
+        "phase_ratio": 0.012,
+        "precipitation_signal": 0.006,
+        "process_mass_balance_error": 0.004,
+        "product_in_aqueous": 0.01,
+        "product_in_organic": 0.01,
+        "purity": 0.008,
+        "recovery": 0.01,
+        "selectivity": 0.01,
+        "solvent_loss": 0.012,
+        "yield": 0.006
+      },
+      "observable_keys": [
+        "yield",
+        "selectivity",
+        "conversion",
+        "byproduct_signal",
+        "degradation_warning",
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "solvent_loss",
+        "process_mass_balance_error",
+        "crystal_yield",
+        "crystal_purity",
+        "crystal_size",
+        "distillate_purity",
+        "distillate_recovery",
+        "flow_conversion",
+        "electrochemical_selectivity",
+        "energy_efficiency",
+        "pH_normalized",
+        "acid_dissociation_fraction",
+        "precipitation_signal",
+        "equilibrium_residual",
+        "equilibrium_confidence"
+      ],
+      "processed_estimate_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "acid_dissociation_fraction": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "byproduct_signal": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "conversion": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "crystal_purity": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "crystal_size": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "crystal_yield": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "degradation_warning": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "distillate_purity": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "distillate_recovery": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "electrochemical_selectivity": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "energy_efficiency": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "equilibrium_confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "equilibrium_residual": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "flow_conversion": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "impurity_signal": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "pH_normalized": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "phase_ratio": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "precipitation_signal": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "process_mass_balance_error": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "product_in_aqueous": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "product_in_organic": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "purity": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "recovery": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "selectivity": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "solvent_loss": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "yield": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "raw_signal_schema": {
+        "additionalProperties": true,
+        "properties": {
+          "channels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "kind": {
+            "const": "final_assay_packet"
+          },
+          "mass_balance": {
+            "type": "object"
+          },
+          "spectra": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "kind",
+          "channels",
+          "spectra",
+          "mass_balance"
+        ],
+        "type": "object"
+      },
+      "requires_terminated": true,
+      "sample_consumption_L": 0.0003,
+      "uncertainty_model": "instrument_noise_std_plus_process_proxy"
+    },
+    "gc": {
+      "calibration_profile": "volatile_byproduct_public_calibration",
+      "cost": 0.06,
+      "destructive": true,
+      "instrument_id": "gc",
+      "latency_s": 480.0,
+      "noise_model": {
+        "byproduct_signal": 0.018,
+        "degradation_warning": 0.018,
+        "distillate_purity": 0.02
+      },
+      "observable_keys": [
+        "byproduct_signal",
+        "degradation_warning",
+        "distillate_purity"
+      ],
+      "processed_estimate_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "byproduct_signal": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "degradation_warning": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "distillate_purity": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "raw_signal_schema": {
+        "additionalProperties": true,
+        "properties": {
+          "bands": {
+            "type": "array"
+          },
+          "intensity": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "peaks": {
+            "type": "array"
+          },
+          "processed_estimates": {
+            "type": "object"
+          },
+          "replicate_count": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "replicate_signals": {
+            "type": "array"
+          },
+          "time_min": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "uncertainty": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "kind",
+          "time_min",
+          "intensity"
+        ],
+        "type": "object"
+      },
+      "requires_terminated": false,
+      "sample_consumption_L": 0.00015,
+      "uncertainty_model": "instrument_noise_std_plus_process_proxy"
+    },
+    "hplc": {
+      "calibration_profile": "chromatography_public_calibration",
+      "cost": 0.08,
+      "destructive": true,
+      "instrument_id": "hplc",
+      "latency_s": 600.0,
+      "noise_model": {
+        "byproduct_signal": 0.012,
+        "crystal_purity": 0.018,
+        "distillate_purity": 0.014,
+        "impurity_signal": 0.015,
+        "purity": 0.015,
+        "selectivity": 0.018,
+        "yield": 0.012
+      },
+      "observable_keys": [
+        "yield",
+        "selectivity",
+        "byproduct_signal",
+        "purity",
+        "impurity_signal",
+        "crystal_purity",
+        "distillate_purity"
+      ],
+      "processed_estimate_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "byproduct_signal": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "crystal_purity": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "distillate_purity": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "impurity_signal": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "purity": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "selectivity": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "yield": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "raw_signal_schema": {
+        "additionalProperties": true,
+        "properties": {
+          "bands": {
+            "type": "array"
+          },
+          "intensity": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "peaks": {
+            "type": "array"
+          },
+          "processed_estimates": {
+            "type": "object"
+          },
+          "replicate_count": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "replicate_signals": {
+            "type": "array"
+          },
+          "time_min": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "uncertainty": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "kind",
+          "time_min",
+          "intensity"
+        ],
+        "type": "object"
+      },
+      "requires_terminated": false,
+      "sample_consumption_L": 0.0002,
+      "uncertainty_model": "instrument_noise_std_plus_process_proxy"
+    },
+    "ph_meter": {
+      "calibration_profile": "potentiometric_public_ph_calibration",
+      "cost": 0.018,
+      "destructive": true,
+      "instrument_id": "ph_meter",
+      "latency_s": 45.0,
+      "noise_model": {
+        "acid_dissociation_fraction": 0.015,
+        "equilibrium_confidence": 0.012,
+        "equilibrium_residual": 0.01,
+        "pH_normalized": 0.004,
+        "precipitation_signal": 0.02
+      },
+      "observable_keys": [
+        "pH_normalized",
+        "acid_dissociation_fraction",
+        "precipitation_signal",
+        "equilibrium_residual",
+        "equilibrium_confidence"
+      ],
+      "processed_estimate_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "acid_dissociation_fraction": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "equilibrium_confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "equilibrium_residual": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "pH_normalized": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "precipitation_signal": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "raw_signal_schema": {
+        "additionalProperties": true,
+        "properties": {
+          "electrode_mV": {
+            "type": "number"
+          },
+          "hydrogen_mol_L": {
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "kind": {
+            "const": "ph_meter_signal"
+          },
+          "pH": {
+            "maximum": 14.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "processed_estimates": {
+            "type": "object"
+          },
+          "replicate_pH": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "uncertainty": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "kind",
+          "pH",
+          "electrode_mV",
+          "processed_estimates"
+        ],
+        "type": "object"
+      },
+      "requires_terminated": false,
+      "sample_consumption_L": 3e-05,
+      "uncertainty_model": "instrument_noise_std_plus_process_proxy"
+    },
+    "uvvis": {
+      "calibration_profile": "coarse_proxy_public_calibration",
+      "cost": 0.025,
+      "destructive": true,
+      "instrument_id": "uvvis",
+      "latency_s": 90.0,
+      "noise_model": {
+        "conversion": 0.035,
+        "energy_efficiency": 0.045,
+        "flow_conversion": 0.04,
+        "phase_ratio": 0.04,
+        "yield": 0.045
+      },
+      "observable_keys": [
+        "yield",
+        "conversion",
+        "phase_ratio",
+        "flow_conversion",
+        "energy_efficiency"
+      ],
+      "processed_estimate_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "conversion": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "energy_efficiency": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "flow_conversion": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "phase_ratio": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "yield": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "raw_signal_schema": {
+        "additionalProperties": true,
+        "properties": {
+          "absorbance": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "bands": {
+            "type": "array"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "peaks": {
+            "type": "array"
+          },
+          "processed_estimates": {
+            "type": "object"
+          },
+          "replicate_count": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "replicate_signals": {
+            "type": "array"
+          },
+          "uncertainty": {
+            "type": "object"
+          },
+          "wavelength_nm": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "wavelength_nm",
+          "absorbance"
+        ],
+        "type": "object"
+      },
+      "requires_terminated": false,
+      "sample_consumption_L": 5e-05,
+      "uncertainty_model": "instrument_noise_std_plus_process_proxy"
+    }
+  },
+  "law_version": "chemworld-physical-chemistry-v0.4",
+  "module_versions": {
+    "continuous_flow": "0.2",
+    "crystallization": "0.2",
+    "distillation": "0.1",
+    "electrochemistry": "0.2",
+    "observation": "0.4",
+    "phase_partition": "0.5",
+    "reaction": "0.3",
+    "separation": "0.4",
+    "thermal": "0.3"
+  },
+  "observation_kernel_registry": [
+    "instrument_observation"
+  ],
+  "ontology_registry": {
+    "instruments": [
+      "hplc",
+      "gc",
+      "uvvis",
+      "ph_meter",
+      "final_assay"
+    ],
+    "modules": [
+      {
+        "gas_constant_J_per_mol_K": 8.31446261815324,
+        "laws": [
+          "arrhenius_kinetics",
+          "catalyst_solvent_effects",
+          "byproduct_formation",
+          "product_degradation",
+          "catalyst_deactivation"
+        ],
+        "mechanism_contract": {
+          "rate_laws": "enumerated rate-law evaluators from mechanism YAML",
+          "species": "loaded from CompiledMechanism.network.species_ids",
+          "stoichiometry": "loaded from CompiledMechanism.network.reactions"
+        },
+        "module_id": "reaction",
+        "runtime": "compiled_mechanism",
+        "version": "0.3"
+      },
+      {
+        "laws": [
+          "jacket_heat_input",
+          "heat_loss_to_environment",
+          "reaction_enthalpy",
+          "temperature_pressure_risk_proxy"
+        ],
+        "module_id": "thermal",
+        "state_ledgers": [
+          "energy_jacket_J",
+          "heat_reaction_J",
+          "heat_loss_J",
+          "temperature_K",
+          "pressure_Pa",
+          "risk"
+        ],
+        "version": "0.3"
+      },
+      {
+        "laws": [
+          "aqueous_organic_phase_volume_balance",
+          "benchmark_calibrated_intrinsic_distribution_coefficients",
+          "stability_gated_activity_corrected_extraction_train",
+          "explicit_aqueous_entrainment_ledger",
+          "tpd_style_phase_stability_diagnostic"
+        ],
+        "module_id": "phase_partition",
+        "observable_proxies": [
+          "phase_ratio",
+          "product_in_organic",
+          "product_in_aqueous",
+          "solvent_loss",
+          "process_mass_balance_error"
+        ],
+        "phases": [
+          "reactor_liquid",
+          "aqueous",
+          "organic",
+          "solid"
+        ],
+        "version": "0.5"
+      },
+      {
+        "laws": [
+          "activity_corrected_extraction_and_wash",
+          "explicit_entrainment_and_material_balance",
+          "selected_phase_recovery_and_purity",
+          "bounded_dry_concentrate_transfer_fallbacks"
+        ],
+        "module_id": "separation",
+        "operations": [
+          "add_phase",
+          "add_extractant",
+          "mix",
+          "settle",
+          "separate_phase",
+          "wash",
+          "dry",
+          "concentrate",
+          "transfer"
+        ],
+        "tracked_metrics": [
+          "purity",
+          "recovery",
+          "phase_ratio",
+          "process_mass_balance_error"
+        ],
+        "version": "0.4"
+      },
+      {
+        "laws": [
+          "vanthoff_solubility_curve",
+          "explicit_seed_mass",
+          "primary_nucleation_and_growth_cohorts",
+          "impurity_occlusion",
+          "crystal_size_distribution",
+          "filtration_recovery_ledger"
+        ],
+        "module_id": "crystallization",
+        "operations": [
+          "seed_crystals",
+          "cool_crystallize",
+          "filter_crystals"
+        ],
+        "tracked_metrics": [
+          "crystal_yield",
+          "crystal_purity",
+          "crystal_size"
+        ],
+        "version": "0.2"
+      },
+      {
+        "laws": [
+          "raoult_activity_vle_k_values",
+          "constant_relative_volatility_shortcut",
+          "fenske_distribution_ratio_identity",
+          "thermal_risk_and_energy_cost"
+        ],
+        "module_id": "distillation",
+        "operations": [
+          "evaporate",
+          "distill",
+          "collect_fraction"
+        ],
+        "tracked_metrics": [
+          "distillate_purity",
+          "distillate_recovery",
+          "solvent_loss"
+        ],
+        "version": "0.1"
+      },
+      {
+        "laws": [
+          "compiled_network_pfr_residence_time",
+          "geometry_resolved_axial_profile",
+          "darcy_weisbach_pressure_drop",
+          "distributed_thermal_boundary",
+          "material_and_energy_ledgers"
+        ],
+        "module_id": "continuous_flow",
+        "operations": [
+          "set_flow_rate",
+          "run_flow"
+        ],
+        "tracked_metrics": [
+          "flow_conversion",
+          "yield",
+          "safety_risk"
+        ],
+        "version": "0.2"
+      },
+      {
+        "laws": [
+          "nernst_equilibrium_potential",
+          "butler_volmer_current",
+          "faradaic_charge_to_extent",
+          "electrical_work_accounting"
+        ],
+        "module_id": "electrochemistry",
+        "operations": [
+          "set_potential",
+          "electrolyze"
+        ],
+        "tracked_metrics": [
+          "electrochemical_selectivity",
+          "faradaic_efficiency",
+          "energy_efficiency",
+          "charge_C",
+          "yield"
+        ],
+        "version": "0.2"
+      },
+      {
+        "downstream_keys": [
+          "purity",
+          "recovery",
+          "phase_ratio",
+          "product_in_organic",
+          "product_in_aqueous",
+          "impurity_signal",
+          "solvent_loss",
+          "process_mass_balance_error",
+          "crystal_yield",
+          "crystal_purity",
+          "crystal_size",
+          "distillate_purity",
+          "distillate_recovery",
+          "flow_conversion",
+          "electrochemical_selectivity",
+          "energy_efficiency"
+        ],
+        "equilibrium_keys": [
+          "pH_normalized",
+          "acid_dissociation_fraction",
+          "precipitation_signal",
+          "equilibrium_residual",
+          "equilibrium_confidence"
+        ],
+        "layers": [
+          "raw_signal",
+          "processed_estimate",
+          "uncertainty"
+        ],
+        "module_id": "instrument_observation",
+        "partial_observation": true,
+        "version": "0.4"
+      }
+    ],
+    "phases": [
+      "reactor_liquid",
+      "aqueous",
+      "organic",
+      "solid"
+    ],
+    "substance_registry_policy": "scenario_compiled_mechanism",
+    "vessels": [
+      "batch_reactor",
+      "separator",
+      "assay_vial"
+    ]
+  },
+  "operation_registry": [
+    "add_reagent",
+    "add_solvent",
+    "add_catalyst",
+    "heat",
+    "wait",
+    "sample",
+    "quench",
+    "add_phase",
+    "add_extractant",
+    "mix",
+    "settle",
+    "separate_phase",
+    "wash",
+    "dry",
+    "concentrate",
+    "transfer",
+    "seed_crystals",
+    "cool_crystallize",
+    "filter_crystals",
+    "evaporate",
+    "distill",
+    "collect_fraction",
+    "set_flow_rate",
+    "run_flow",
+    "set_potential",
+    "electrolyze",
+    "terminate",
+    "measure"
+  ],
+  "physical_constitution": "PhysicalConstitutionChecklist",
+  "scenario_generators": [
+    "chemworld.scenario.default"
+  ],
+  "transition_kernel_registry": [
+    "reaction_ode",
+    "thermal_energy_balance",
+    "phase_partition",
+    "separation",
+    "crystallization",
+    "distillation",
+    "continuous_flow",
+    "electrochemistry",
+    "instrument_cost"
+  ]
+}

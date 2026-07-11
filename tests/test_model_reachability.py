@@ -125,7 +125,30 @@ def test_default_registry_covers_every_operation_and_provider_route() -> None:
     assert registry.route_for_operation("heat").model_ids == (
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
+        "chemworld_arrhenius_unit_contract_vnext",
     )
+    assert registry.route_for_operation("dry").model_ids == (
+        "chemworld_sorbent_drying_vnext",
+    )
+    assert registry.route_for_operation("concentrate").model_ids == (
+        "chemworld_vacuum_concentration_vnext",
+    )
+    assert registry.route_for_operation("transfer").model_ids == (
+        "chemworld_transfer_holdup_vnext",
+    )
+    assert registry.route_for_operation("mix").model_ids == (
+        "chemworld_stability_aware_lle_vnext",
+    )
+    assert registry.route_for_operation("distill").model_ids == (
+        "chemworld_duty_limited_distillation_vnext",
+    )
+    provider_ids = {provider.model_id for provider in registry.providers.providers}
+    assert not {
+        "chemworld_separation_proxy",
+        "activity_corrected_extraction_train_v1",
+        "lle_phase_stability_diagnostic_v1",
+        "vle_shortcut_distillation",
+    }.intersection(provider_ids)
     measure = registry.route_for_operation("measure")
     assert "beer_lambert_uvvis" in measure.instrument_model_ids["uvvis"]
     assert registry.providers.get("fixed_tp_ideal_gibbs_minimization").role is (

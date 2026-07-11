@@ -71,6 +71,8 @@ def test_release_gate_can_require_strict_frozen_benchmark(tmp_path) -> None:
     plan = json.loads(completed.stdout)
     frozen = next(item for item in plan if item["name"] == "frozen_benchmark")
     assert "--allow-candidate" not in frozen["command"]
+    wheel_smoke = next(item for item in plan if item["name"] == "wheel_smoke")
+    assert "--require-validated-benchmark" in wheel_smoke["command"]
 
 
 def test_reference_gate_requires_every_backend_used_by_reference_tests() -> None:

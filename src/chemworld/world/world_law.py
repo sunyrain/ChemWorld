@@ -43,6 +43,8 @@ def constitution_rules() -> tuple[str, ...]:
         "action_preconditions",
         "safety_constraints",
         "public_private_reproducibility",
+        "single_declared_runtime_provider_path",
+        "provider_diagnostics_do_not_inflate_runtime_maturity",
     )
 
 

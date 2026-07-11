@@ -129,6 +129,6 @@ def test_cli_serious_task_readiness(capsys) -> None:
     main(["tasks", "readiness"])
     payload = json.loads(capsys.readouterr().out)
 
-    assert payload["suite_status"] == "validated"
+    assert payload["suite_status"] == "candidate"
     assert payload["contract_ready_count"] == len(payload["task_ids"])
-    assert payload["benchmark_ready_count"] == len(payload["task_ids"])
+    assert payload["benchmark_ready_count"] == 0

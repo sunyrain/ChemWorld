@@ -12,8 +12,8 @@ hidden scenario policy 或 scoring contract 改变，应视为 benchmark contrac
 | Task ID | 作用 | Split | Budget | Seeds | Episode | Threshold | Maturity |
 | --- | --- | --- | ---: | --- | --- | ---: | --- |
 | `reaction-to-assay` | 从投料到 final assay 的最小合法闭环 | `public-dev` | 18 | `0` | `single_experiment` | 0.55 | `lite` |
-| `reaction-to-purification` | 反应、萃取/相分离、纯化、最终检测 | `public-test` | 90 | `0,1,2,3,4` | `single_experiment` | 0.70 | `proxy` |
-| `partition-discovery` | 学习未知溶剂/萃取体系的分配规律 | `public-test` | 48 | `0,1,2` | `campaign` | 0.60 | `lite` |
+| `reaction-to-purification` | 反应、萃取/相分离、纯化、最终检测 | `public-test` | 90 | `0,1,2,3,4` | `single_experiment` | 0.70 | `lite` |
+| `partition-discovery` | 学习未知溶剂/萃取体系的分配规律 | `public-test` | 48 | `0,1,2,3,4` | `campaign` | 0.60 | `lite` |
 
 ## 合同哈希
 
@@ -22,9 +22,9 @@ artifact 审计。
 
 | Task ID | Contract Hash |
 | --- | --- |
-| `reaction-to-assay` | `84711c106b1926aa3357acde2e58ff7a0f10d2bc3c2586c8ec9ee486d2f42e94` |
-| `reaction-to-purification` | `b0b4bc2d0a35301815690c2c40eb4942989ef22969a9d690e522ebbf5e9b9e17` |
-| `partition-discovery` | `e2438d481bddbf604cb4fd60b993ab1d7004fbbf806e981d7c59bef0d11589f8` |
+| `reaction-to-assay` | `bb4921642e59db7a7ffb82d2336e3320c1f2203ab1dd641a3778dbc5003db128` |
+| `reaction-to-purification` | `ab189932ce1c3ee2fd271c572ae4a5ad43f59a3ab24ea388009cacf934ea6102` |
+| `partition-discovery` | `2fbe9ddbd3dd23720ea657ddae0b07421c735aeca208cebe70fd73dd7db58472` |
 
 ## `reaction-to-assay`
 
@@ -104,11 +104,11 @@ artifact 审计。
 ## 发布规则
 
 - core 回归套件引用上面三个任务；serious v1 套件使用独立的经验有效性门禁。
-- 任务合同版本：`chemworld-task-contract-0.5`。
+- 任务合同版本：`chemworld-task-contract-0.6`。
 - 每个 task card 必须暴露 `task_contract_hash`、`kernel_maturity`、`physics_maturity`
   和 `proxy_allowed`。
-- `reaction-to-purification` 仍含 dry/concentrate/transfer proxy；`partition-discovery`
-  的相接触已升级为 `professional_candidate`，但任务整体仍受 `lite` 反应/仪器层约束。
+- `reaction-to-purification` 的 dry/concentrate/transfer 已接入显式 provider；所有 core task
+  整体仍受 `lite` 反应或仪器层约束。
 - 任何合同字段变更都需要更新测试、文档和 release artifact。
 
 ## Baseline 行

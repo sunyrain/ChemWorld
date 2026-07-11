@@ -1,51 +1,38 @@
 # 世界律
 
-世界律定义 ChemWorld 中物质、相、反应、设备、操作、测量、安全、成本和评分必须共同遵守
-的规则。任务是世界律上的不同切片，不是拥有独立隐藏规则的小游戏。
-
-当前正式标识：
+世界律定义所有任务共同遵守的物质、相、反应、设备、操作、观测、安全、成本与评分语义。
+当前代码使用：
 
 ```text
-chemworld-physical-chemistry-v0.3
+chemworld-physical-chemistry-v0.4
 ```
 
-## 版本语义
+任务是同一世界律上的能力切片，不会为单个任务暗中更换物理规则。世界律 ID 会写入 task
+contract、scenario、trajectory 与 replay；改变状态转移、操作成本、观测可见性、评分或正式
+provider 路由时必须提升版本，旧轨迹不会被静默解释为新版本结果。
 
-世界律版本会进入 task contract、scenario、trajectory、submission manifest 和 replay 检查。
-下列变化必须提升版本并重建冻结轨迹：
+## v0.4 运行时
 
-- 状态转移、相分配、反应、仪器或安全模型改变可观察行为；
-- 操作的前置条件、成本、风险或物料语义改变；
-- observation visibility 或 final scoring contract 改变；
-- 原 proxy 被新的专业模块替代。
+v0.4 将八个经过合同与证据审查的 provider 接入统一运行时：
 
-只修正文案或不改变合同的内部优化不需要提升世界律版本。
+- `mix`、`wash`：稳定性门控、活度修正、显式夹带与逐组分守恒的 LLE；
+- `dry`：有限容量竞争吸附与 spent-sorbent 物料账；
+- `concentrate`：受加热功率、真空、冷凝回收与目标回收率约束的差分蒸发；
+- `transfer`：源容器 heel、管线 hold-up 与交付物流的显式账本；
+- `distill`：泡点、设备容量、热负荷、VLE/Fenske 与可用 FUG 诊断共同约束的蒸馏；
+- reaction、spectroscopy、crystallization 的三个诊断 provider 只提供证据，不会抬高运行时
+  成熟度。
 
-## 共享合同
+上述操作每项只有一个声明的正式 runtime route。旧 `chemworld_separation_proxy`、旧 LLE 双路由
+和旧 distillation route 已从 provider registry 移除；底层解析或参考函数仍可作为新 provider
+的验证组件，但不能被 runtime 隐式调用。
 
-- ontology 与 component identity；
-- mechanism schema 与 compiled reaction network；
-- typed species/phase/vessel/equipment/thermal/process ledgers；
-- physical constitution 与 transaction rollback；
-- operation/action schema 与任务前置条件；
-- instrument raw signal、processed estimate 和 uncertainty；
-- safety/cost signals 与 scoring interface；
-- maturity、provenance、hash 和 replay policy。
+## 可审计合同
 
-## v0.3 的运行时物理
+世界律共同冻结：ontology、compiled mechanism、typed ledgers、transaction rollback、operation
+schema、instrument observation、cost/risk、maturity、provider provenance 与 replay policy。
+下游操作产生的 spent sorbent、condensate、vent、source heel 和 line hold-up 都保存在 typed phase
+ledger 中，不以“损失系数”隐藏物料去向。
 
-v0.3 将三个已有专业候选模块接入正式运行时，并冻结 serious v1 的任务感知实验空间：
-
-- 冷却结晶：van't Hoff 溶解度、晶种质量、紧凑 PBM、CSD 和物料闭合；
-- 连续流：共享 compiled mechanism 的几何解析 PFR、热边界、压降和求解诊断；
-- 萃取/洗涤：活度修正分配、逐级收敛、夹带和 TPD-style 稳定性诊断。
-
-没有等价专业实现的干燥、浓缩和转移仍保持显式 proxy。世界律升级不会把局部
-`professional_candidate` 误称为工业验证模型。
-
-## 一致性规则
-
-若任务需要特殊初态、隐藏参数或观测权限，应写入 scenario/task contract。若需要新的物理行为，
-应增加带版本和模型卡的 kernel。不得在单个任务分支中悄悄改变公共操作的物料、能量或可见语义。
-
-完整执行结构见[系统架构](architecture.md)，模型证据边界见[模型成熟度](model_maturity.md)。
+执行 `python scripts/audit_vnext_runtime_integration.py` 可同时验证 provider route、任务声明和真实
+事务执行。系统结构见[架构](architecture.md)，证据含义见[模型成熟度](model_maturity.md)。

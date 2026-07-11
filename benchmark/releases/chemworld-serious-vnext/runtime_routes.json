@@ -1,0 +1,1117 @@
+{
+  "providers": {
+    "aqueous_acid_base_ph_observation": {
+      "diagnostic_fields": [
+        "charge_balance_residual",
+        "precipitation_events"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "aqueous_composition",
+        "temperature_K",
+        "acid_constant"
+      ],
+      "intended_operations": [
+        "measure"
+      ],
+      "maturity": "reference_validated",
+      "model_id": "aqueous_acid_base_ph_observation",
+      "module_id": "equilibrium_chemistry",
+      "output_fields": [
+        "pH",
+        "acid_dissociation_fraction",
+        "precipitation_signal"
+      ],
+      "provenance": [
+        "aqueous-acid-base-ph-observation"
+      ],
+      "provider_path": "chemworld.runtime.observation_services.ChemWorldObservationKernel._equilibrium_truth_values",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "aqueous_composition": "mol/L",
+        "pH": "1",
+        "temperature_K": "K"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
+    "beer_lambert_uvvis": {
+      "diagnostic_fields": [
+        "peak_count",
+        "spectrum_model_id"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "public_species_amounts",
+        "wavelength_nm",
+        "path_length_cm"
+      ],
+      "intended_operations": [
+        "measure"
+      ],
+      "maturity": "lite",
+      "model_id": "beer_lambert_uvvis",
+      "module_id": "spectroscopy_instruments",
+      "output_fields": [
+        "absorbance",
+        "spectrum"
+      ],
+      "provenance": [
+        "beer-lambert-public-slice"
+      ],
+      "provider_path": "chemworld.world.spectra.uvvis_spectrum",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "absorbance": "1",
+        "path_length_cm": "cm",
+        "wavelength_nm": "nm"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
+    "chemworld_arrhenius_unit_contract_vnext": {
+      "diagnostic_fields": [
+        "passed",
+        "equation_id",
+        "forward_order",
+        "effective_forward_order",
+        "violations"
+      ],
+      "failure_policy": "return an unsuccessful ModelProviderResult with explicit declaration violations; never infer missing units or mutate the mechanism",
+      "input_fields": [
+        "reaction"
+      ],
+      "intended_operations": [
+        "heat",
+        "wait",
+        "run_flow"
+      ],
+      "maturity": "reference_validated",
+      "model_id": "chemworld_arrhenius_unit_contract_vnext",
+      "module_id": "reaction_kinetics",
+      "output_fields": [
+        "contract"
+      ],
+      "provenance": [
+        "Cantera ddb114abdbe5170420b475eac3bb2ffa6e19d05b: Arrhenius and falloff unit conventions",
+        "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: Arrhenius quantity schema",
+        "WF-10 analytical dimensional identities"
+      ],
+      "provider_path": "chemworld.physchem.reaction_adapter_manifest.ReactionRateContractProvider",
+      "role": "diagnostic",
+      "runtime_reachable": true,
+      "units": {
+        "contract": "JSON dimension contract",
+        "reaction": "ReactionSpec"
+      },
+      "validity_checks": [
+        "reaction is a ReactionSpec",
+        "rate law is in the supported Arrhenius family",
+        "pre-exponential factors are finite and positive",
+        "temperature exponents and activation energies are finite",
+        "reversible, third-body, and falloff declarations are complete"
+      ]
+    },
+    "chemworld_crystallization_convergence_audit_vnext": {
+      "diagnostic_fields": [
+        "passed",
+        "grid_converged",
+        "material_closed",
+        "step_ledger_closed",
+        "particle_count_ledger_closed",
+        "warnings"
+      ],
+      "failure_policy": "reject invalid cases or policies with an explicit unsuccessful result; valid non-converged grids return a successful diagnostic whose passed field is false",
+      "input_fields": [
+        "case",
+        "audit_spec"
+      ],
+      "intended_operations": [
+        "cool_crystallize"
+      ],
+      "maturity": "reference_validated",
+      "model_id": "chemworld_crystallization_convergence_audit_vnext",
+      "module_id": "separations",
+      "output_fields": [
+        "report"
+      ],
+      "provenance": [
+        "ChemWorld cooling_crystallization deterministic refinement ladder",
+        "analytical component, step-transfer, and particle-count ledgers",
+        "IDAES eed7cebc3d99be616ee7ead203cecaee9f81ac01:idaes/core/base/control_volume0d.py convention boundary; not a crystallization kinetics backend"
+      ],
+      "provider_path": "chemworld.physchem.crystallization_adapter_manifest.CrystallizationConvergenceProvider",
+      "role": "diagnostic",
+      "runtime_reachable": true,
+      "units": {
+        "audit_spec": "grid and dimensioned residual policy",
+        "case": "CrystallizationGridCase with explicit SI/L/mol units",
+        "report": "JSON numerical convergence and closure audit"
+      },
+      "validity_checks": [
+        "case is a complete CrystallizationGridCase",
+        "audit_spec declares at least two strictly increasing grid levels",
+        "all underlying PBM inputs pass cooling_crystallization domain checks",
+        "all convergence and ledger thresholds are finite and positive"
+      ]
+    },
+    "chemworld_duty_limited_distillation_vnext": {
+      "diagnostic_fields": [
+        "material_balance_error_mol",
+        "energy_balance_error_J",
+        "requested_distillate_cut_fraction",
+        "actual_distillate_cut_fraction",
+        "cut_endpoint_met",
+        "limiting_constraint",
+        "bubble_pressure_margin_Pa",
+        "minimum_thermal_margin_K",
+        "light_key_distillate_purity",
+        "light_key_recovery",
+        "heavy_key_bottoms_purity",
+        "heavy_key_recovery",
+        "total_reboiler_duty_J",
+        "condenser_duty_J",
+        "internal_vapor_rate_mol_s",
+        "fenske_stage_residual",
+        "minimum_reflux_ratio",
+        "required_theoretical_stages",
+        "installed_equilibrium_stage_margin",
+        "warnings"
+      ],
+      "failure_policy": "reject invalid property or equipment domains; return explicit no-cut results for incomplete heating or below-bubble operation; reduce a feasible cut to the tightest declared capacity without losing material, energy, key-recovery, or convergence diagnostics",
+      "input_fields": [
+        "request"
+      ],
+      "intended_operations": [
+        "distill"
+      ],
+      "maturity": "professional_candidate",
+      "model_id": "chemworld_duty_limited_distillation_vnext",
+      "module_id": "separations",
+      "output_fields": [
+        "distillation_result"
+      ],
+      "provenance": [
+        "ChemWorld reference-validated VLE/Fenske shortcut split engine",
+        "WF-60 sensible/latent, total-condenser, and internal-vapor capacity envelope",
+        "binary Fenske/Underwood diagnostics when their declared domain is satisfied",
+        "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models_extra/column_models/tray_column.py, idaes/models_extra/column_models/condenser.py, and idaes/models_extra/column_models/reboiler.py convention boundary"
+      ],
+      "provider_path": "chemworld.physchem.distillation_adapter_manifest.DutyLimitedDistillationProvider",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "distillation_result": "JSON distillate/bottoms, VLE/FUG, energy, vapor, and capacity ledger",
+        "request": "DutyLimitedDistillationRequest with explicit mol/Pa/K/s/W units"
+      },
+      "validity_checks": [
+        "request is a DutyLimitedDistillationRequest",
+        "feed and temperature-evaluated component profiles have exact matching ids",
+        "light key is more volatile than heavy key under the supplied VLE condition",
+        "pressure, temperature, reflux, duration, batch amount, cut, and residual bottoms satisfy the column card",
+        "operating condition reaches the declared feed-composition bubble pressure before vapor production",
+        "reboiler, condenser, and internal vapor traffic remain within installed capacities",
+        "component and sensible/latent energy ledgers close within tolerance"
+      ]
+    },
+    "chemworld_geometry_resolved_pfr_v1": {
+      "diagnostic_fields": [
+        "pressure_drop_Pa",
+        "reynolds_number",
+        "solver_diagnostic"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "geometry",
+        "flow_rate",
+        "thermal_boundary"
+      ],
+      "intended_operations": [
+        "run_flow"
+      ],
+      "maturity": "professional_candidate",
+      "model_id": "chemworld_geometry_resolved_pfr_v1",
+      "module_id": "continuous_flow",
+      "output_fields": [
+        "pressure_profile",
+        "reynolds_number",
+        "energy_ledger"
+      ],
+      "provenance": [
+        "chemworld-geometry-resolved-pfr-v1"
+      ],
+      "provider_path": "chemworld.runtime.flow_services.ChemWorldFlowServices.run_flow",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "flow_rate": "L/s",
+        "geometry": "m",
+        "pressure_profile": "Pa"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
+    "chemworld_reaction_network_lite": {
+      "diagnostic_fields": [
+        "solver_diagnostic",
+        "material_balance_error_mol"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "species_amounts_mol",
+        "temperature_K",
+        "volume_L",
+        "duration_s"
+      ],
+      "intended_operations": [
+        "heat",
+        "wait",
+        "run_flow"
+      ],
+      "maturity": "lite",
+      "model_id": "chemworld_reaction_network_lite",
+      "module_id": "reaction_kinetics",
+      "output_fields": [
+        "species_amounts_mol",
+        "reaction_heat_J"
+      ],
+      "provenance": [
+        "chemworld-physical-chemistry-v0.4"
+      ],
+      "provider_path": "chemworld.runtime.reaction_thermal_services.ChemWorldReactionThermalServices.integrate",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "duration_s": "s",
+        "reaction_heat_J": "J",
+        "species_amounts_mol": "mol",
+        "temperature_K": "K",
+        "volume_L": "L"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
+    "chemworld_reactor_lite": {
+      "diagnostic_fields": [
+        "energy_residual_J",
+        "solver_diagnostic"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "species_amounts_mol",
+        "temperature_K",
+        "volume_L",
+        "duration_s",
+        "target_temperature_K"
+      ],
+      "intended_operations": [
+        "heat",
+        "wait"
+      ],
+      "maturity": "lite",
+      "model_id": "chemworld_reactor_lite",
+      "module_id": "reactors",
+      "output_fields": [
+        "temperature_K",
+        "pressure_Pa",
+        "species_amounts_mol"
+      ],
+      "provenance": [
+        "chemworld-physical-chemistry-v0.4"
+      ],
+      "provider_path": "chemworld.runtime.reaction_thermal_services.ChemWorldReactionThermalServices.integrate",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "duration_s": "s",
+        "pressure_Pa": "Pa",
+        "species_amounts_mol": "mol",
+        "target_temperature_K": "K",
+        "temperature_K": "K",
+        "volume_L": "L"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
+    "chemworld_sorbent_drying_vnext": {
+      "diagnostic_fields": [
+        "material_balance_error_mol",
+        "volume_balance_error_L",
+        "equilibrium_residual",
+        "equilibrium_iterations",
+        "residual_drying_component_fraction",
+        "endpoint_met",
+        "product_recovery",
+        "warnings"
+      ],
+      "failure_policy": "reject invalid domain inputs or return a failed result; never discard initial loading, sorbed material, retained liquid, or dried-liquid inventory",
+      "input_fields": [
+        "request"
+      ],
+      "intended_operations": [
+        "dry"
+      ],
+      "maturity": "reference_validated",
+      "model_id": "chemworld_sorbent_drying_vnext",
+      "module_id": "separations",
+      "output_fields": [
+        "drying_result"
+      ],
+      "provenance": [
+        "WF-30 competitive shared-site sorbent and explicit spent-solid ledger",
+        "single-component quadratic and SciPy nonlinear reference checks",
+        "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models_extra/temperature_swing_adsorption/fixed_bed_tsa0d.py extended-isotherm convention boundary; not an IDAES liquid-drying backend"
+      ],
+      "provider_path": "chemworld.physchem.drying_adapter_manifest.SorbentDryingProvider",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "drying_result": "JSON liquid/sorbent material ledger",
+        "request": "SorbentDryingRequest with explicit L, mol, kg, and s units"
+      },
+      "validity_checks": [
+        "request is a SorbentDryingRequest",
+        "wet-liquid and sorbent inventories are finite, nonnegative, and component explicit",
+        "initial loading does not exceed the shared site capacity",
+        "liquid and retained volumes remain within the declared contactor capacity",
+        "the residual drying-component endpoint lies in the closed unit interval",
+        "competitive equilibrium converges and component/volume closure remains within tolerance"
+      ]
+    },
+    "chemworld_spectral_identifiability_audit_vnext": {
+      "diagnostic_fields": [
+        "identifiable",
+        "replicate_stable",
+        "states_distinct",
+        "between_state_rmse",
+        "separation_ratio",
+        "warnings"
+      ],
+      "failure_policy": "reject invalid signal pairs with an explicit unsuccessful result; valid but indistinguishable pairs return a successful diagnostic whose identifiable field is false",
+      "input_fields": [
+        "reference",
+        "alternative",
+        "audit_spec"
+      ],
+      "intended_operations": [
+        "measure"
+      ],
+      "maturity": "reference_validated",
+      "model_id": "chemworld_spectral_identifiability_audit_vnext",
+      "module_id": "spectroscopy_instruments",
+      "output_fields": [
+        "report"
+      ],
+      "provenance": [
+        "ChemWorld public replicate-signal RMSE identities",
+        "chemicals 82faef900dcf2b48537c31bcf1ab56c35bb79a1e: non-instrument reference boundary",
+        "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: non-instrument reference boundary"
+      ],
+      "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.SpectralIdentifiabilityProvider",
+      "role": "diagnostic",
+      "runtime_reachable": true,
+      "units": {
+        "alternative": "SpectralMeasurement",
+        "audit_spec": "dimensionless policy",
+        "reference": "SpectralMeasurement",
+        "report": "JSON signal-level audit"
+      },
+      "validity_checks": [
+        "measurements use the same instrument and public signal contract",
+        "measurement axes are identical",
+        "each state supplies the configured minimum replicate count",
+        "replicate arrays are finite and match the public axis"
+      ]
+    },
+    "chemworld_stability_aware_lle_vnext": {
+      "diagnostic_fields": [
+        "material_balance_error_mol",
+        "maximum_stage_material_balance_error_mol",
+        "minimum_tpd_like",
+        "maximum_distribution_residual",
+        "target_recovery",
+        "target_purity",
+        "impurity_rejection",
+        "entrained_volume_L",
+        "all_stages_two_liquid",
+        "all_stages_converged",
+        "warnings"
+      ],
+      "failure_policy": "return an explicit failed provider result for invalid, single-liquid, non-converged, out-of-domain, or non-conservative contacts; never fabricate a split or silently accept an incomplete ledger",
+      "input_fields": [
+        "request"
+      ],
+      "intended_operations": [
+        "mix",
+        "wash"
+      ],
+      "maturity": "professional_candidate",
+      "model_id": "chemworld_stability_aware_lle_vnext",
+      "module_id": "separations",
+      "output_fields": [
+        "phase_equilibrium_result"
+      ],
+      "provenance": [
+        "WF-40 analytical ideal-contact and multistage recovery identities",
+        "coupled TPD-style stability, gamma-corrected distribution, and directional entrainment ledgers",
+        "PhasePy 9376df19c9ddf6723d10639d11cad64ee0b54047:phasepy/equilibrium/stability.py and phasepy/equilibrium/lle.py convention boundary"
+      ],
+      "provider_path": "chemworld.physchem.phase_equilibrium_adapter_manifest.StabilityAwareLLEProvider",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "phase_equilibrium_result": "JSON stage stability, phase allocation, entrainment, and material ledger",
+        "request": "StabilityAwareExtractionRequest with explicit mol/L/K units"
+      },
+      "validity_checks": [
+        "request is a StabilityAwareExtractionRequest",
+        "feed, distribution, and optional stability activity models share exact component ids",
+        "intrinsic and activity-corrected distribution coefficients remain in [1e-12, 1e12]",
+        "every contact lies within the declared volume, stage-count, and temperature domain",
+        "every contact passes the two-liquid TPD-style stability gate",
+        "distribution iterations converge and stage/train component ledgers close"
+      ]
+    },
+    "chemworld_synthetic_instruments": {
+      "diagnostic_fields": [
+        "observed_keys",
+        "measurement_provenance"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "public_species_amounts",
+        "instrument_id",
+        "measurement_seed"
+      ],
+      "intended_operations": [
+        "measure"
+      ],
+      "maturity": "lite",
+      "model_id": "chemworld_synthetic_instruments",
+      "module_id": "spectroscopy_instruments",
+      "output_fields": [
+        "raw_signal",
+        "processed_estimate",
+        "uncertainty"
+      ],
+      "provenance": [
+        "chemworld-instrument-model-v0.3"
+      ],
+      "provider_path": "chemworld.runtime.observation_services.ChemWorldObservationKernel.observe",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "public_species_amounts": "mol",
+        "uncertainty": "instrument-specific"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
+    "chemworld_transfer_holdup_vnext": {
+      "diagnostic_fields": [
+        "material_balance_error_mol",
+        "volume_balance_error_L",
+        "withdrawn_source_volume_L",
+        "target_delivered_volume_L",
+        "final_line_volume_L",
+        "source_delivery_fraction_of_withdrawn",
+        "warnings"
+      ],
+      "failure_policy": "reject invalid domain inputs or return a failed result; never discard source, target, flush, or line inventory",
+      "input_fields": [
+        "request"
+      ],
+      "intended_operations": [
+        "transfer"
+      ],
+      "maturity": "reference_validated",
+      "model_id": "chemworld_transfer_holdup_vnext",
+      "module_id": "separations",
+      "output_fields": [
+        "transfer_result"
+      ],
+      "provenance": [
+        "WF-30 finite-volume FIFO transfer identities",
+        "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8 component material-balance convention"
+      ],
+      "provider_path": "chemworld.physchem.transfer_adapter_manifest.TransferUnitProvider",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "request": "TransferRequest",
+        "transfer_result": "JSON material ledger"
+      },
+      "validity_checks": [
+        "request is a TransferRequest",
+        "source and equipment volumes are finite and within declared capacity",
+        "component amounts are finite, nonnegative, and explicitly tracked",
+        "initial line and flush inventories match positive declared volumes",
+        "component and volume closure remain within request tolerance"
+      ]
+    },
+    "chemworld_vacuum_concentration_vnext": {
+      "diagnostic_fields": [
+        "material_balance_error_mol",
+        "volume_balance_error_L",
+        "energy_balance_error_J",
+        "solvent_remaining_fraction",
+        "endpoint_met",
+        "target_recovery",
+        "heat_duty_J",
+        "termination_reason",
+        "warnings"
+      ],
+      "failure_policy": "reject invalid domains or return a failed result; never discard liquid, recovered condensate, vent loss, sensible heat, latent heat, endpoint, or volatile-target diagnostics",
+      "input_fields": [
+        "request"
+      ],
+      "intended_operations": [
+        "concentrate"
+      ],
+      "maturity": "reference_validated",
+      "model_id": "chemworld_vacuum_concentration_vnext",
+      "module_id": "separations",
+      "output_fields": [
+        "concentration_result"
+      ],
+      "provenance": [
+        "WF-30 differential batch gamma-Raoult and Rayleigh identities",
+        "power/rate constrained sensible-latent energy ledger",
+        "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models/unit_models/flash.py material, energy, heat-duty, and pressure convention boundary"
+      ],
+      "provider_path": "chemworld.physchem.concentration_adapter_manifest.VacuumConcentrationProvider",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "concentration_result": "JSON liquid/condensate/vent and energy ledger",
+        "request": "VacuumConcentrationRequest with explicit mol/L/K/Pa/W/s units"
+      },
+      "validity_checks": [
+        "request is a VacuumConcentrationRequest",
+        "feed and component property profiles have exactly matching component ids",
+        "every property profile evaluation temperature equals the operating temperature",
+        "pressure, temperature, power, duration, and volume satisfy equipment limits",
+        "operating temperature remains within every present component thermal limit",
+        "ODE succeeds without heater overspend and component/volume/energy ledgers close"
+      ]
+    },
+    "chromatography_retention_plate": {
+      "diagnostic_fields": [
+        "resolution",
+        "plate_count"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "public_species_amounts",
+        "method",
+        "flow_rate"
+      ],
+      "intended_operations": [
+        "measure"
+      ],
+      "maturity": "lite",
+      "model_id": "chromatography_retention_plate",
+      "module_id": "spectroscopy_instruments",
+      "output_fields": [
+        "retention_times",
+        "peak_areas",
+        "chromatogram"
+      ],
+      "provenance": [
+        "chromatography-retention-plate-slice"
+      ],
+      "provider_path": "chemworld.runtime.observation_services.ChemWorldObservationKernel.observe",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "flow_rate": "mL/min",
+        "peak_areas": "a.u.",
+        "retention_times": "min"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
+    "cooling_crystallization_population_balance_v1": {
+      "diagnostic_fields": [
+        "material_balance_error_mol",
+        "maximum_supersaturation_ratio"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "solution_composition",
+        "temperature_profile",
+        "seed_mass_g"
+      ],
+      "intended_operations": [
+        "cool_crystallize"
+      ],
+      "maturity": "professional_candidate",
+      "model_id": "cooling_crystallization_population_balance_v1",
+      "module_id": "crystallization",
+      "output_fields": [
+        "solid_composition",
+        "crystal_size_distribution",
+        "mother_liquor"
+      ],
+      "provenance": [
+        "cooling-crystallization-population-balance-v1"
+      ],
+      "provider_path": "chemworld.runtime.crystallization_services.ChemWorldCrystallizationServices.cool_crystallize",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "seed_mass_g": "g",
+        "solid_composition": "mol",
+        "temperature_profile": "K,s"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
+    "fixed_tp_ideal_gibbs_minimization": {
+      "diagnostic_fields": [
+        "kkt_residual",
+        "element_residual",
+        "charge_residual"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "species",
+        "element_matrix",
+        "temperature_K",
+        "pressure_Pa"
+      ],
+      "intended_operations": [],
+      "maturity": "reference_validated",
+      "model_id": "fixed_tp_ideal_gibbs_minimization",
+      "module_id": "equilibrium_chemistry",
+      "output_fields": [
+        "equilibrium_amounts",
+        "total_gibbs_J"
+      ],
+      "provenance": [
+        "fixed-tp-ideal-gibbs-minimization"
+      ],
+      "provider_path": "chemworld.physchem.equilibrium_chemistry.solve_gibbs_minimization",
+      "role": "reference",
+      "runtime_reachable": false,
+      "units": {
+        "pressure_Pa": "Pa",
+        "temperature_K": "K",
+        "total_gibbs_J": "J"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
+    "nernst_butler_volmer_faradaic_v1": {
+      "diagnostic_fields": [
+        "overpotential_V",
+        "faradaic_efficiency",
+        "ohmic_loss_J"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "activities",
+        "potential_V",
+        "current_A",
+        "duration_s"
+      ],
+      "intended_operations": [
+        "electrolyze"
+      ],
+      "maturity": "reference_validated",
+      "model_id": "nernst_butler_volmer_faradaic_v1",
+      "module_id": "electrochemistry",
+      "output_fields": [
+        "converted_mol",
+        "selectivity",
+        "electrical_work_J"
+      ],
+      "provenance": [
+        "nernst-butler-volmer-faradaic-v1"
+      ],
+      "provider_path": "chemworld.runtime.electrochemical_services.ChemWorldElectrochemicalServices.electrolyze",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "current_A": "A",
+        "duration_s": "s",
+        "potential_V": "V"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
+    "pfr": {
+      "diagnostic_fields": [
+        "solver_diagnostic",
+        "material_balance_error_mol"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "inlet_concentrations",
+        "geometry",
+        "flow_rate"
+      ],
+      "intended_operations": [
+        "run_flow"
+      ],
+      "maturity": "professional_candidate",
+      "model_id": "pfr",
+      "module_id": "continuous_flow",
+      "output_fields": [
+        "outlet_concentrations",
+        "temperature_K",
+        "pressure_Pa"
+      ],
+      "provenance": [
+        "chemworld-runtime-pfr-v1"
+      ],
+      "provider_path": "chemworld.physchem.pfr_reactors.PFRModel.simulate",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "flow_rate": "L/s",
+        "inlet_concentrations": "mol/L",
+        "pressure_Pa": "Pa"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
+    "ph_meter_public_signal": {
+      "diagnostic_fields": [
+        "instrument_id",
+        "calibration_metadata"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "pH",
+        "instrument_noise",
+        "measurement_seed"
+      ],
+      "intended_operations": [
+        "measure"
+      ],
+      "maturity": "lite",
+      "model_id": "ph_meter_public_signal",
+      "module_id": "spectroscopy_instruments",
+      "output_fields": [
+        "raw_signal",
+        "processed_pH",
+        "uncertainty"
+      ],
+      "provenance": [
+        "ph-meter-public-signal"
+      ],
+      "provider_path": "chemworld.world.spectra.ph_meter_signal",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "instrument_noise": "pH",
+        "pH": "1",
+        "uncertainty": "pH"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    }
+  },
+  "routes": [
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.add_reagent",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "add_reagent",
+      "service_id": "primitive_operations"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.add_solvent",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "add_solvent",
+      "service_id": "primitive_operations"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.add_catalyst",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "add_catalyst",
+      "service_id": "primitive_operations"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.heat",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_arrhenius_unit_contract_vnext"
+      ],
+      "operation_type": "heat",
+      "service_id": "reaction_thermal"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.wait",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_reaction_network_lite",
+        "chemworld_reactor_lite",
+        "chemworld_arrhenius_unit_contract_vnext"
+      ],
+      "operation_type": "wait",
+      "service_id": "reaction_thermal"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.sample",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "sample",
+      "service_id": "primitive_operations"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.quench",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "quench",
+      "service_id": "primitive_operations"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.add_phase",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "add_phase",
+      "service_id": "phase_separation"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.add_extractant",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "add_extractant",
+      "service_id": "phase_separation"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.mix",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_stability_aware_lle_vnext"
+      ],
+      "operation_type": "mix",
+      "service_id": "phase_separation"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.settle",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "settle",
+      "service_id": "phase_separation"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.separate_phase",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "separate_phase",
+      "service_id": "phase_separation"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.wash",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_stability_aware_lle_vnext"
+      ],
+      "operation_type": "wash",
+      "service_id": "phase_separation"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.dry",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_sorbent_drying_vnext"
+      ],
+      "operation_type": "dry",
+      "service_id": "phase_separation"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.concentrate",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_vacuum_concentration_vnext"
+      ],
+      "operation_type": "concentrate",
+      "service_id": "phase_separation"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.transfer",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_transfer_holdup_vnext"
+      ],
+      "operation_type": "transfer",
+      "service_id": "phase_separation"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.seed_crystals",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "seed_crystals",
+      "service_id": "crystallization"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.cool_crystallize",
+      "model_free_reason": null,
+      "model_ids": [
+        "cooling_crystallization_population_balance_v1",
+        "chemworld_crystallization_convergence_audit_vnext"
+      ],
+      "operation_type": "cool_crystallize",
+      "service_id": "crystallization"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.filter_crystals",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "filter_crystals",
+      "service_id": "crystallization"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.evaporate",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "evaporate",
+      "service_id": "primitive_operations"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.distill",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_duty_limited_distillation_vnext"
+      ],
+      "operation_type": "distill",
+      "service_id": "distillation"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.collect_fraction",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "collect_fraction",
+      "service_id": "distillation"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.set_flow_rate",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "set_flow_rate",
+      "service_id": "continuous_flow"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.run_flow",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_reaction_network_lite",
+        "chemworld_arrhenius_unit_contract_vnext",
+        "pfr",
+        "chemworld_geometry_resolved_pfr_v1"
+      ],
+      "operation_type": "run_flow",
+      "service_id": "continuous_flow"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.set_potential",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "set_potential",
+      "service_id": "electrochemistry"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.electrolyze",
+      "model_free_reason": null,
+      "model_ids": [
+        "nernst_butler_volmer_faradaic_v1"
+      ],
+      "operation_type": "electrolyze",
+      "service_id": "electrochemistry"
+    },
+    {
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.terminate",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "terminate",
+      "service_id": "primitive_operations"
+    },
+    {
+      "instrument_model_ids": {
+        "final_assay": [],
+        "gc": [
+          "chromatography_retention_plate"
+        ],
+        "hplc": [
+          "chromatography_retention_plate"
+        ],
+        "ph_meter": [
+          "aqueous_acid_base_ph_observation",
+          "ph_meter_public_signal"
+        ],
+        "uvvis": [
+          "beer_lambert_uvvis"
+        ]
+      },
+      "kernel_id": "chemworld.operation.measure",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_synthetic_instruments",
+        "chemworld_spectral_identifiability_audit_vnext"
+      ],
+      "operation_type": "measure",
+      "service_id": "instrument_cost"
+    }
+  ],
+  "schema_version": "chemworld-vnext-runtime-routes-0.1"
+}

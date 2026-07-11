@@ -1,0 +1,621 @@
+{
+  "schema_version": "chemworld-vnext-task-contract-set-0.1",
+  "tasks": [
+    {
+      "allowed_instruments": [
+        "hplc",
+        "gc",
+        "uvvis",
+        "final_assay"
+      ],
+      "allowed_operations": [
+        "add_solvent",
+        "add_reagent",
+        "add_phase",
+        "add_extractant",
+        "mix",
+        "settle",
+        "separate_phase",
+        "measure",
+        "terminate"
+      ],
+      "budget": 48,
+      "contract_hash": "2fbe9ddbd3dd23720ea657ddae0b07421c735aeca208cebe70fd73dd7db58472",
+      "description": "Learn unknown solvent/product partition behavior through instruments.",
+      "difficulty": "standard",
+      "env_id": "ChemWorld",
+      "episode_mode": "campaign",
+      "initial_state_id": "partition-discovery:default",
+      "kernel_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate",
+              "chemworld_spectral_identifiability_audit_vnext"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "chemworld_stability_aware_lle_vnext"
+            ],
+            "module_id": "phase_equilibrium",
+            "notes": [
+              "Runtime phase contact uses the stability-gated, activity-corrected extraction train with explicit entrainment and TPD-style diagnostics; intrinsic distribution coefficients remain benchmark-calibrated."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "objective": "balanced",
+      "observation_policy": "partial-instrument-observation",
+      "physics_maturity": "lite",
+      "proxy_allowed": false,
+      "safety_limit": 0.65,
+      "scenario_id": "partition-discovery",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "success_metrics": [
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous"
+      ],
+      "tags": [
+        "chemworld",
+        "phase",
+        "partition",
+        "world-model-learning"
+      ],
+      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_id": "partition-discovery",
+      "termination_policy": "budget",
+      "threshold": 0.6,
+      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "world_split": "public-test"
+    },
+    {
+      "allowed_instruments": [
+        "hplc",
+        "gc",
+        "uvvis",
+        "final_assay"
+      ],
+      "allowed_operations": [
+        "add_reagent",
+        "add_solvent",
+        "add_catalyst",
+        "heat",
+        "wait",
+        "sample",
+        "quench",
+        "terminate",
+        "measure",
+        "seed_crystals",
+        "cool_crystallize",
+        "filter_crystals"
+      ],
+      "budget": 72,
+      "contract_hash": "59747a3feb94707cd414d122745494ae4f5ceb338c889f37e8b1f82716e8511c",
+      "description": "Run a reaction and isolate product through seeded cooling crystallization.",
+      "difficulty": "standard",
+      "env_id": "ChemWorld",
+      "episode_mode": "campaign",
+      "initial_state_id": "reaction-to-crystallization:default",
+      "kernel_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite",
+              "chemworld_arrhenius_unit_contract_vnext"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate",
+              "chemworld_spectral_identifiability_audit_vnext"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "cooling_crystallization_population_balance_v1",
+              "chemworld_crystallization_convergence_audit_vnext"
+            ],
+            "module_id": "crystallization",
+            "notes": [
+              "Runtime cooling crystallization uses van't Hoff solubility, explicit seed mass, nucleation/growth cohorts, impurity occlusion, material closure, and CSD diagnostics."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "objective": "balanced",
+      "observation_policy": "partial-instrument-observation",
+      "physics_maturity": "lite",
+      "proxy_allowed": false,
+      "safety_limit": 0.65,
+      "scenario_id": "reaction-to-crystallization",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "success_metrics": [
+        "score",
+        "crystal_yield",
+        "crystal_purity",
+        "crystal_size"
+      ],
+      "tags": [
+        "chemworld",
+        "reaction",
+        "crystallization",
+        "purification",
+        "year2"
+      ],
+      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_id": "reaction-to-crystallization",
+      "termination_policy": "budget",
+      "threshold": 0.6,
+      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "world_split": "public-test"
+    },
+    {
+      "allowed_instruments": [
+        "hplc",
+        "gc",
+        "uvvis",
+        "final_assay"
+      ],
+      "allowed_operations": [
+        "add_reagent",
+        "add_solvent",
+        "add_catalyst",
+        "heat",
+        "wait",
+        "sample",
+        "quench",
+        "terminate",
+        "measure",
+        "evaporate",
+        "distill",
+        "collect_fraction"
+      ],
+      "budget": 72,
+      "contract_hash": "30e63cc01a57ce20fb12139e6c98e854d9ac250ab91b949af603b0ddf17a97b4",
+      "description": "Run a reaction and evaluate volatile-product recovery through distillation.",
+      "difficulty": "standard",
+      "env_id": "ChemWorld",
+      "episode_mode": "campaign",
+      "initial_state_id": "reaction-to-distillation:default",
+      "kernel_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite",
+              "chemworld_arrhenius_unit_contract_vnext"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Batch/CSTR/PFR kernels are benchmark ODE models."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate",
+              "chemworld_spectral_identifiability_audit_vnext"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "chemworld_duty_limited_distillation_vnext"
+            ],
+            "module_id": "distillation",
+            "notes": [
+              "Distillation uses a bubble-gated, equipment- and duty-limited VLE/Fenske engine with explicit material and energy ledgers."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "objective": "balanced",
+      "observation_policy": "partial-instrument-observation",
+      "physics_maturity": "lite",
+      "proxy_allowed": false,
+      "safety_limit": 0.65,
+      "scenario_id": "reaction-to-distillation",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "success_metrics": [
+        "score",
+        "distillate_purity",
+        "distillate_recovery",
+        "solvent_loss"
+      ],
+      "tags": [
+        "chemworld",
+        "reaction",
+        "distillation",
+        "purification",
+        "year2"
+      ],
+      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_id": "reaction-to-distillation",
+      "termination_policy": "budget",
+      "threshold": 0.29,
+      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "world_split": "public-test"
+    },
+    {
+      "allowed_instruments": [
+        "hplc",
+        "gc",
+        "uvvis",
+        "final_assay"
+      ],
+      "allowed_operations": [
+        "add_solvent",
+        "add_reagent",
+        "add_catalyst",
+        "set_flow_rate",
+        "run_flow",
+        "measure",
+        "terminate"
+      ],
+      "budget": 60,
+      "contract_hash": "dec8fc2ba017b4cc55010bc8636f17f18969e23b054665f72481f58cebdf2fc0",
+      "description": "Optimize a geometry-resolved PFR using the shared reaction network.",
+      "difficulty": "standard",
+      "env_id": "ChemWorld",
+      "episode_mode": "campaign",
+      "initial_state_id": "flow-reaction-optimization:default",
+      "kernel_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite",
+              "chemworld_arrhenius_unit_contract_vnext"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate",
+              "chemworld_spectral_identifiability_audit_vnext"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "professional_candidate",
+            "model_ids": [
+              "chemworld_arrhenius_unit_contract_vnext",
+              "pfr",
+              "chemworld_geometry_resolved_pfr_v1"
+            ],
+            "module_id": "continuous_flow",
+            "notes": [
+              "Runtime flow uses the shared compiled reaction network in a geometry-resolved PFR with residence time, distributed thermal boundary, Darcy pressure drop, solver diagnostics, and ledgers."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "objective": "balanced",
+      "observation_policy": "partial-instrument-observation",
+      "physics_maturity": "lite",
+      "proxy_allowed": false,
+      "safety_limit": 0.65,
+      "scenario_id": "flow-reaction-optimization",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "success_metrics": [
+        "score",
+        "flow_conversion",
+        "yield",
+        "safety_risk"
+      ],
+      "tags": [
+        "chemworld",
+        "reaction",
+        "continuous-flow",
+        "optimization",
+        "year2"
+      ],
+      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_id": "flow-reaction-optimization",
+      "termination_policy": "budget",
+      "threshold": 0.075,
+      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "world_split": "public-test"
+    },
+    {
+      "allowed_instruments": [
+        "hplc",
+        "gc",
+        "uvvis",
+        "final_assay"
+      ],
+      "allowed_operations": [
+        "add_solvent",
+        "add_reagent",
+        "set_potential",
+        "electrolyze",
+        "measure",
+        "terminate"
+      ],
+      "budget": 48,
+      "contract_hash": "8d023408b2feb46b4570fa9b5fbeba4e0ccb7982811f934cca55e1c063d1297d",
+      "description": "Probe potential/current choices for a virtual electrochemical conversion.",
+      "difficulty": "standard",
+      "env_id": "ChemWorld",
+      "episode_mode": "campaign",
+      "initial_state_id": "electrochemical-conversion:default",
+      "kernel_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_synthetic_instruments",
+              "beer_lambert_uvvis",
+              "chromatography_retention_plate",
+              "chemworld_spectral_identifiability_audit_vnext"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+            ]
+          },
+          {
+            "level": "reference_validated",
+            "model_ids": [
+              "nernst_butler_volmer_faradaic_v1"
+            ],
+            "module_id": "electrochemistry",
+            "notes": [
+              "Electrochemistry uses Nernst potential, Butler-Volmer current, Faraday charge accounting, and electrical work ledgers."
+            ]
+          }
+        ],
+        "notes": [
+          "Maturity is computed from the exact runtime modules used by this task; professional-candidate does not imply industrial validation."
+        ],
+        "proxy_allowed": false
+      },
+      "objective": "balanced",
+      "observation_policy": "partial-instrument-observation",
+      "physics_maturity": "lite",
+      "proxy_allowed": false,
+      "safety_limit": 0.65,
+      "scenario_id": "electrochemical-conversion",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "success_metrics": [
+        "score",
+        "electrochemical_selectivity",
+        "energy_efficiency",
+        "safety_risk"
+      ],
+      "tags": [
+        "chemworld",
+        "reaction",
+        "electrochemistry",
+        "optimization",
+        "year2"
+      ],
+      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_id": "electrochemical-conversion",
+      "termination_policy": "budget",
+      "threshold": 0.58,
+      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "world_split": "public-test"
+    },
+    {
+      "allowed_instruments": [
+        "ph_meter",
+        "uvvis",
+        "final_assay"
+      ],
+      "allowed_operations": [
+        "add_reagent",
+        "add_solvent",
+        "add_catalyst",
+        "heat",
+        "wait",
+        "sample",
+        "quench",
+        "terminate",
+        "measure"
+      ],
+      "budget": 24,
+      "contract_hash": "07b336d22933068a6b45cee7c56b80bbcfdfddcf31ff0967030f831eb219ebb7",
+      "description": "Characterize a bounded aqueous-equilibrium slice using public pH-meter and final-assay observations.",
+      "difficulty": "standard",
+      "env_id": "ChemWorld",
+      "episode_mode": "campaign",
+      "initial_state_id": "equilibrium-characterization:default",
+      "kernel_maturity": {
+        "lowest_level": "lite",
+        "modules": [
+          {
+            "level": "reference_validated",
+            "model_ids": [
+              "aqueous_acid_base_ph_observation"
+            ],
+            "module_id": "equilibrium_chemistry",
+            "notes": [
+              "D4 equilibrium slice: weak-acid charge balance, public pH-meter observation and sequential Ksp hooks. The fixed-T,P Gibbs solver remains reference-only and is not a runtime task dependency."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reaction_network_lite",
+              "chemworld_arrhenius_unit_contract_vnext"
+            ],
+            "module_id": "reaction_kinetics",
+            "notes": [
+              "Heat and wait operations use the bounded reaction-network slice."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "chemworld_reactor_lite"
+            ],
+            "module_id": "reactors",
+            "notes": [
+              "Heat and wait operations use the bounded reactor slice."
+            ]
+          },
+          {
+            "level": "lite",
+            "model_ids": [
+              "beer_lambert_uvvis",
+              "chemworld_synthetic_instruments",
+              "chemworld_spectral_identifiability_audit_vnext",
+              "ph_meter_public_signal"
+            ],
+            "module_id": "spectroscopy_instruments",
+            "notes": [
+              "pH-meter and UV/Vis signals are instrument-facing and benchmark-calibrated."
+            ]
+          }
+        ],
+        "notes": [
+          "Equilibrium characterization is a bounded D4 task, not a general aqueous speciation engine."
+        ],
+        "proxy_allowed": false
+      },
+      "objective": "balanced",
+      "observation_policy": "partial-instrument-observation",
+      "physics_maturity": "lite",
+      "proxy_allowed": false,
+      "safety_limit": 0.65,
+      "scenario_id": "equilibrium-characterization",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "success_metrics": [
+        "pH_normalized",
+        "acid_dissociation_fraction",
+        "precipitation_signal",
+        "equilibrium_residual",
+        "equilibrium_confidence"
+      ],
+      "tags": [
+        "chemworld",
+        "equilibrium",
+        "characterization",
+        "world-model-learning",
+        "serious-benchmark-v1"
+      ],
+      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_id": "equilibrium-characterization",
+      "termination_policy": "budget",
+      "threshold": 0.28,
+      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "world_split": "public-test"
+    }
+  ]
+}

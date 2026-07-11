@@ -1,67 +1,42 @@
 # Benchmark 任务
 
-当前发布注册 15 个任务。它们共享 `chemworld-physical-chemistry-v0.3`，但在目标、预算、允许
-操作、仪器、episode 模式和隐藏场景上形成不同能力切片。
-
-## 任务目录
+ChemWorld 注册 15 个任务，全部使用 `chemworld-physical-chemistry-v0.4` 和
+`chemworld-task-contract-0.6`。任务之间只改变目标、预算、允许操作、仪器、episode 模式与
+场景切片，不改变公共操作语义。
 
 | Task ID | 主要能力 | 整体成熟度 |
 | --- | --- | --- |
 | `reaction-optimization-standard` | 反应条件优化 | `lite` |
-| `reaction-safety-constrained` | 安全约束下的反应控制 | `lite` |
-| `reaction-mechanism-explanation` | 机理辨识与解释 | `lite` |
-| `reaction-to-assay` | 从投料到最终检测的最小闭环 | `lite` |
-| `reaction-to-purification` | 反应、萃取、纯化和 final assay | `proxy` |
-| `partition-discovery` | 有限预算下学习隐藏分配规律 | `lite` |
-| `purity-yield-tradeoff` | 纯度、回收率、成本的多目标权衡 | `proxy` |
-| `public-private-generalization` | 跨公开/私有场景泛化 | `lite` |
+| `reaction-safety-constrained` | 安全约束控制 | `lite` |
+| `reaction-mechanism-explanation` | 机理表征与解释 | `lite` |
+| `reaction-to-assay` | 投料到最终检测 | `lite` |
+| `reaction-to-purification` | 反应、LLE、洗涤、干燥、浓缩与转移 | `lite` |
+| `partition-discovery` | 预算内学习隐藏分配规律 | `lite` |
+| `purity-yield-tradeoff` | 纯度、回收率和成本权衡 | `lite` |
+| `public-private-generalization` | 场景泛化 | `lite` |
 | `low-budget-characterization` | 低预算仪器规划 | `lite` |
-| `tool-agent-planning` | tool-using agent 长程规划 | `proxy` |
+| `tool-agent-planning` | 长程工具调用 | `lite` |
 | `reaction-to-crystallization` | 晶种、冷却结晶与过滤 | `lite` |
 | `reaction-to-distillation` | 反应后蒸馏与切割 | `lite` |
-| `flow-reaction-optimization` | 几何解析 PFR 条件优化 | `lite` |
+| `flow-reaction-optimization` | 几何解析 PFR 优化 | `lite` |
 | `electrochemical-conversion` | 电化学转化与能效 | `lite` |
-| `equilibrium-characterization` | 平衡体系表征 | `lite` |
+| `equilibrium-characterization` | 水相平衡表征 | `lite` |
 
-任务整体等级按最弱必需模块聚合。例如 flow 任务包含 `professional_candidate` PFR，但其反应和
-合成仪器层仍为 `lite`，所以任务整体为 `lite`。纯化任务仍使用 dry/concentrate/transfer proxy，
-因此整体保持 `proxy`。
-
-## 套件角色
-
-- `core` 用于 API、回放和发布链路回归；
-- `serious` 是六个无 proxy、按合同冻结的 v1 研究任务；
-- 其它任务保持 registered/exploratory 状态，不能仅因已注册就视为正式主榜。
-
-它们只有在仓库内经验验证证据与当前 task contract hash 一致时才显示 `validated`。准入检查、
-研究问题和冻结证据见[严肃任务设计](task_design.md)。
-
-## Episode 模式
-
-- `single_experiment`：一次 Gym episode 只包含一条完整实验流程，合法 final assay 后终止；
-- `campaign`：一次 episode 可在总预算内完成多条 experiment，适合 BO、LHS、greedy 或
-  world-model learner。
-
-交互式 step、固定 recipe、LLM tool call 和 replay 是运行方式，可作用于任一 episode 模式。
-
-## 选择任务
+`core` 套件用于 API、回放和发布回归。六个 `serious` 任务定义研究候选边界。其历史 v1 证据
+对应旧 World Law；当前 v0.4 合同在新的有效性与统计证据完成前显示 `candidate`，即使所有结构
+合同均通过也不会自动显示 `validated`。
 
 ```python
-from chemworld.tasks import list_tasks, get_task
+from chemworld.tasks import get_task, list_tasks
 
 for task in list_tasks():
     print(task.task_id, task.to_dict()["physics_maturity"])
 
-card = get_task("reaction-to-crystallization").to_dict()
-print(card["allowed_operations"])
-print(card["kernel_maturity"])
+task = get_task("reaction-to-distillation")
+print(task.contract_hash)
+print(task.allowed_operations)
 ```
 
-检查 serious v1 readiness：
-
-```bash
-chemworld tasks readiness
-```
-
-正式评测前请阅读[任务卡与冻结合同](task_cards.md)、[评测协议](benchmark_protocol.md)和
-[Official Seed Suite](seed_suite.md)。
+`single_experiment` 表示一条完整实验流程；`campaign` 允许在总预算内完成多次实验并用前次观测
+选择后续实验。运行 `chemworld tasks readiness` 查看当前合同与经验状态。正式比较方法前阅读
+[评测协议](benchmark_protocol.md)和[限制](limitations.md)。

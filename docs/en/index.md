@@ -20,7 +20,7 @@ observation, info = env.reset(seed=0)
 ```
 
 The current release contains 15 task slices under
-`chemworld-physical-chemistry-v0.3`, with versioned task, scenario, mechanism,
+`chemworld-physical-chemistry-v0.4`, with versioned task, scenario, mechanism,
 observation, scoring, trajectory, and replay contracts.
 
 ## Documentation Map
@@ -38,7 +38,8 @@ observation, scoring, trajectory, and replay contracts.
 
 ChemWorld is not a real reaction predictor, commercial process simulator, DFT
 wrapper, or robot controller. It is a controllable virtual research environment.
-Every benchmark claim must preserve the task maturity metadata. Runtime
-crystallization, continuous-flow PFR, and extraction/wash are professional
-candidates in their stated domains; remaining bounded fallbacks such as drying,
-concentration, and transfer stay explicitly labeled as proxies.
+Every benchmark claim must preserve task maturity metadata. World Law v0.4 has
+no formal runtime fallback route: drying, vacuum concentration, transfer, LLE,
+crystallization, flow, and distillation execute explicit bounded providers. This
+does not make them real-chemistry predictors. The v0.4 bundle is a backend
+candidate and contains no publishable method ranking yet.

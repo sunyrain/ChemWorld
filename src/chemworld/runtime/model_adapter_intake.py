@@ -197,9 +197,11 @@ def validate_adapter_manifests(
 
     root = repository_root.resolve()
     paths = sorted({path.resolve() for path in manifest_paths}, key=str)
-    registered_model_ids = {
-        provider.model_id for provider in default_model_provider_registry().providers
+    registered_providers = {
+        provider.model_id: provider
+        for provider in default_model_provider_registry().providers
     }
+    registered_model_ids = set(registered_providers)
     records: list[dict[str, Any]] = []
     manifests: list[ModelAdapterManifest | None] = []
 
@@ -235,6 +237,8 @@ def validate_adapter_manifests(
             "claim_path": None,
             "claim_status": None,
             "manifest_hash": payload.get("manifest_hash"),
+            "integration_state": "unresolved",
+            "_provider_integrated": False,
             "findings": findings,
         }
         records.append(record)
@@ -249,6 +253,14 @@ def validate_adapter_manifests(
                 "owner_workstream": manifest.owner_workstream,
                 "manifest_hash": manifest.manifest_hash,
             }
+        )
+        registered_provider = registered_providers.get(
+            manifest.provider_contract.model_id
+        )
+        provider_integrated = registered_provider == manifest.provider_contract
+        record["_provider_integrated"] = provider_integrated
+        record["integration_state"] = (
+            "integrated" if provider_integrated else "proposal"
         )
         if not _IDENTIFIER_PATTERN.fullmatch(manifest.adapter_id):
             findings.append(
@@ -311,13 +323,21 @@ def validate_adapter_manifests(
                     f"provider path does not resolve: {manifest.provider_contract.provider_path}",
                 )
             )
-        if manifest.provider_contract.model_id in registered_model_ids:
+        if registered_provider is not None and not provider_integrated:
             findings.append(
                 AdapterIntakeFinding(
                     "provider_model_id_conflict",
                     "error",
                     "provider model_id already exists; replacement providers "
                     "require a new model_id",
+                )
+            )
+        elif provider_integrated:
+            findings.append(
+                AdapterIntakeFinding(
+                    "provider_already_integrated",
+                    "warning",
+                    "registered provider exactly matches this hash-bound proposal",
                 )
             )
         if manifest.provider_contract.model_id in manifest.replaces_model_ids:
@@ -401,7 +421,7 @@ def validate_adapter_manifests(
         unknown_replacements = sorted(
             set(manifest.replaces_model_ids) - known_replacement_ids
         )
-        if unknown_replacements:
+        if unknown_replacements and not bool(record["_provider_integrated"]):
             record["findings"].append(
                 AdapterIntakeFinding(
                     "unknown_replacement_model",
@@ -416,6 +436,7 @@ def validate_adapter_manifests(
             finding.severity == "error" for finding in finding_objects
         )
         record["findings"] = [finding.to_dict() for finding in finding_objects]
+        record.pop("_provider_integrated", None)
 
     accepted_count = sum(bool(record["passed"]) for record in records)
     return {

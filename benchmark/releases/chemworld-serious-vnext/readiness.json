@@ -1,0 +1,859 @@
+{
+  "benchmark_ready_count": 0,
+  "contract_ready_count": 6,
+  "designs": {
+    "electrochemical-conversion": {
+      "allow_proxy": false,
+      "anti_gaming_checks": [
+        "reject hidden-state access and contract-hash drift",
+        "score final-assay results separately from intermediate observations"
+      ],
+      "capability_claim": "electrochemical control under transport and energy constraints",
+      "design_version": "chemworld-serious-task-design-0.1",
+      "generalization_axes": [
+        "redox kinetics",
+        "mass-transfer and resistance regime"
+      ],
+      "generalization_contract": [
+        {
+          "evaluation": "frozen-seed stratification and private-salt shift",
+          "hidden_drivers": [
+            "redox scenario seed",
+            "potential and current"
+          ],
+          "label": "redox kinetics"
+        },
+        {
+          "evaluation": "task-recipe response-surface audit",
+          "hidden_drivers": [
+            "transport policy",
+            "cell resistance"
+          ],
+          "label": "mass-transfer and resistance regime"
+        }
+      ],
+      "minimum_maturity": "lite",
+      "primary_metric": "electrochemical_selectivity",
+      "required_baselines": [
+        "random",
+        "scripted_chemistry",
+        "gp_bo",
+        "safe_gp_bo"
+      ],
+      "required_evidence": [
+        "multi-seed baseline confidence intervals",
+        "deterministic replay verification",
+        "per-task failure and constraint analysis"
+      ],
+      "research_question": "Can an agent trade selectivity against electrical efficiency?",
+      "secondary_metrics": [
+        "score",
+        "energy_efficiency",
+        "safety_risk"
+      ],
+      "status": "candidate",
+      "task_id": "electrochemical-conversion"
+    },
+    "equilibrium-characterization": {
+      "allow_proxy": false,
+      "anti_gaming_checks": [
+        "reject hidden-state access and contract-hash drift",
+        "score final-assay results separately from intermediate observations"
+      ],
+      "capability_claim": "instrument-budgeted equilibrium identification",
+      "design_version": "chemworld-serious-task-design-0.1",
+      "generalization_axes": [
+        "acid-base constants",
+        "solubility-product regime"
+      ],
+      "generalization_contract": [
+        {
+          "evaluation": "frozen-seed stratification and private-salt shift",
+          "hidden_drivers": [
+            "hidden pKa",
+            "solution composition"
+          ],
+          "label": "acid-base constants"
+        },
+        {
+          "evaluation": "task-recipe response-surface audit",
+          "hidden_drivers": [
+            "hidden Ksp",
+            "concentration"
+          ],
+          "label": "solubility-product regime"
+        }
+      ],
+      "minimum_maturity": "lite",
+      "primary_metric": "equilibrium_confidence",
+      "required_baselines": [
+        "random",
+        "scripted_chemistry",
+        "gp_bo",
+        "safe_gp_bo"
+      ],
+      "required_evidence": [
+        "multi-seed baseline confidence intervals",
+        "deterministic replay verification",
+        "per-task failure and constraint analysis"
+      ],
+      "research_question": "Can an agent characterize hidden aqueous equilibrium efficiently?",
+      "secondary_metrics": [
+        "pH_normalized",
+        "acid_dissociation_fraction",
+        "precipitation_signal",
+        "equilibrium_residual"
+      ],
+      "status": "candidate",
+      "task_id": "equilibrium-characterization"
+    },
+    "flow-reaction-optimization": {
+      "allow_proxy": false,
+      "anti_gaming_checks": [
+        "reject hidden-state access and contract-hash drift",
+        "score final-assay results separately from intermediate observations"
+      ],
+      "capability_claim": "geometry-aware continuous-flow optimization",
+      "design_version": "chemworld-serious-task-design-0.1",
+      "generalization_axes": [
+        "reaction kinetics",
+        "residence time and thermal boundary"
+      ],
+      "generalization_contract": [
+        {
+          "evaluation": "frozen-seed stratification and private-salt shift",
+          "hidden_drivers": [
+            "rate constants",
+            "activation energies"
+          ],
+          "label": "reaction kinetics"
+        },
+        {
+          "evaluation": "task-recipe response-surface audit",
+          "hidden_drivers": [
+            "flow rate",
+            "residence time",
+            "heat transfer"
+          ],
+          "label": "residence time and thermal boundary"
+        }
+      ],
+      "minimum_maturity": "lite",
+      "primary_metric": "flow_conversion",
+      "required_baselines": [
+        "random",
+        "scripted_chemistry",
+        "gp_bo",
+        "safe_gp_bo"
+      ],
+      "required_evidence": [
+        "multi-seed baseline confidence intervals",
+        "deterministic replay verification",
+        "per-task failure and constraint analysis"
+      ],
+      "research_question": "Can an agent optimize conversion without ignoring flow risk?",
+      "secondary_metrics": [
+        "score",
+        "yield",
+        "safety_risk"
+      ],
+      "status": "candidate",
+      "task_id": "flow-reaction-optimization"
+    },
+    "partition-discovery": {
+      "allow_proxy": false,
+      "anti_gaming_checks": [
+        "reject hidden-state access and contract-hash drift",
+        "score final-assay results separately from intermediate observations"
+      ],
+      "capability_claim": "active phase-equilibrium characterization under a budget",
+      "design_version": "chemworld-serious-task-design-0.1",
+      "generalization_axes": [
+        "distribution coefficient",
+        "phase-volume ratio"
+      ],
+      "generalization_contract": [
+        {
+          "evaluation": "frozen-seed stratification and private-salt shift",
+          "hidden_drivers": [
+            "solvent family",
+            "partition-law seed"
+          ],
+          "label": "distribution coefficient"
+        },
+        {
+          "evaluation": "task-recipe response-surface audit",
+          "hidden_drivers": [
+            "aqueous volume",
+            "organic volume"
+          ],
+          "label": "phase-volume ratio"
+        }
+      ],
+      "minimum_maturity": "lite",
+      "primary_metric": "product_in_organic",
+      "required_baselines": [
+        "random",
+        "scripted_chemistry",
+        "gp_bo",
+        "safe_gp_bo"
+      ],
+      "required_evidence": [
+        "multi-seed baseline confidence intervals",
+        "deterministic replay verification",
+        "per-task failure and constraint analysis"
+      ],
+      "research_question": "Can an agent identify a hidden partition law with few contacts?",
+      "secondary_metrics": [
+        "phase_ratio",
+        "product_in_aqueous"
+      ],
+      "status": "candidate",
+      "task_id": "partition-discovery"
+    },
+    "reaction-to-crystallization": {
+      "allow_proxy": false,
+      "anti_gaming_checks": [
+        "reject hidden-state access and contract-hash drift",
+        "score final-assay results separately from intermediate observations"
+      ],
+      "capability_claim": "closed-loop reaction and cooling-crystallization planning",
+      "design_version": "chemworld-serious-task-design-0.1",
+      "generalization_axes": [
+        "kinetic profile",
+        "solubility and cooling profile"
+      ],
+      "generalization_contract": [
+        {
+          "evaluation": "frozen-seed stratification and private-salt shift",
+          "hidden_drivers": [
+            "rate constants",
+            "catalyst and solvent effects"
+          ],
+          "label": "kinetic profile"
+        },
+        {
+          "evaluation": "task-recipe response-surface audit",
+          "hidden_drivers": [
+            "solubility curve",
+            "cooling duration and endpoint"
+          ],
+          "label": "solubility and cooling profile"
+        }
+      ],
+      "minimum_maturity": "lite",
+      "primary_metric": "crystal_yield",
+      "required_baselines": [
+        "random",
+        "scripted_chemistry",
+        "gp_bo",
+        "safe_gp_bo"
+      ],
+      "required_evidence": [
+        "multi-seed baseline confidence intervals",
+        "deterministic replay verification",
+        "per-task failure and constraint analysis"
+      ],
+      "research_question": "Can an agent balance reaction quality, recovery, purity, and CSD?",
+      "secondary_metrics": [
+        "score",
+        "crystal_purity",
+        "crystal_size"
+      ],
+      "status": "candidate",
+      "task_id": "reaction-to-crystallization"
+    },
+    "reaction-to-distillation": {
+      "allow_proxy": false,
+      "anti_gaming_checks": [
+        "reject hidden-state access and contract-hash drift",
+        "score final-assay results separately from intermediate observations"
+      ],
+      "capability_claim": "reaction-distillation trade-off reasoning",
+      "design_version": "chemworld-serious-task-design-0.1",
+      "generalization_axes": [
+        "relative volatility",
+        "reaction selectivity"
+      ],
+      "generalization_contract": [
+        {
+          "evaluation": "frozen-seed stratification and response-surface audit",
+          "hidden_drivers": [
+            "VLE policy",
+            "temperature and reflux"
+          ],
+          "label": "relative volatility"
+        },
+        {
+          "evaluation": "frozen-seed stratification and private-salt shift",
+          "hidden_drivers": [
+            "rate constants",
+            "catalyst and solvent effects"
+          ],
+          "label": "reaction selectivity"
+        }
+      ],
+      "minimum_maturity": "lite",
+      "primary_metric": "distillate_purity",
+      "required_baselines": [
+        "random",
+        "scripted_chemistry",
+        "gp_bo",
+        "safe_gp_bo"
+      ],
+      "required_evidence": [
+        "multi-seed baseline confidence intervals",
+        "deterministic replay verification",
+        "per-task failure and constraint analysis"
+      ],
+      "research_question": "Can an agent choose reaction and cut conditions jointly?",
+      "secondary_metrics": [
+        "score",
+        "distillate_recovery",
+        "solvent_loss"
+      ],
+      "status": "candidate",
+      "task_id": "reaction-to-distillation"
+    }
+  },
+  "reviews": {
+    "electrochemical-conversion": {
+      "benchmark_ready": false,
+      "checks": [
+        {
+          "check_id": "identity",
+          "message": "design and task ids must match",
+          "passed": true
+        },
+        {
+          "check_id": "world_law",
+          "message": "task must use the current frozen world law",
+          "passed": true
+        },
+        {
+          "check_id": "public_evaluation_split",
+          "message": "candidate tasks require a reproducible public-test split",
+          "passed": true
+        },
+        {
+          "check_id": "seed_depth",
+          "message": "at least five frozen seeds are required for the serious suite",
+          "passed": true
+        },
+        {
+          "check_id": "decision_horizon",
+          "message": "budget must support a non-trivial decision horizon",
+          "passed": true
+        },
+        {
+          "check_id": "campaign_learning",
+          "message": "serious tasks must permit observation, learning, and a later experiment",
+          "passed": true
+        },
+        {
+          "check_id": "metric_implementation",
+          "message": "unsupported success metrics: []",
+          "passed": true
+        },
+        {
+          "check_id": "metric_alignment",
+          "message": "design metrics absent from task contract: []",
+          "passed": true
+        },
+        {
+          "check_id": "final_assay",
+          "message": "serious tasks require a final hidden-state assay boundary",
+          "passed": true
+        },
+        {
+          "check_id": "maturity_floor",
+          "message": "task maturity lite must meet lite",
+          "passed": true
+        },
+        {
+          "check_id": "proxy_policy",
+          "message": "proxy modules are excluded from the serious candidate suite",
+          "passed": true
+        },
+        {
+          "check_id": "baseline_diversity",
+          "message": "require random plus at least two informative baselines",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_axes",
+          "message": "at least two explicit generalization axes are required",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_contract",
+          "message": "generalization axes require hidden drivers and an executable audit mode",
+          "passed": true
+        },
+        {
+          "check_id": "evidence_plan",
+          "message": "task design requires baseline, replay, and failure-analysis evidence",
+          "passed": true
+        },
+        {
+          "check_id": "anti_gaming",
+          "message": "at least two anti-gaming checks are required",
+          "passed": true
+        }
+      ],
+      "contract_ready": true,
+      "empirical_status": "candidate",
+      "task_id": "electrochemical-conversion"
+    },
+    "equilibrium-characterization": {
+      "benchmark_ready": false,
+      "checks": [
+        {
+          "check_id": "identity",
+          "message": "design and task ids must match",
+          "passed": true
+        },
+        {
+          "check_id": "world_law",
+          "message": "task must use the current frozen world law",
+          "passed": true
+        },
+        {
+          "check_id": "public_evaluation_split",
+          "message": "candidate tasks require a reproducible public-test split",
+          "passed": true
+        },
+        {
+          "check_id": "seed_depth",
+          "message": "at least five frozen seeds are required for the serious suite",
+          "passed": true
+        },
+        {
+          "check_id": "decision_horizon",
+          "message": "budget must support a non-trivial decision horizon",
+          "passed": true
+        },
+        {
+          "check_id": "campaign_learning",
+          "message": "serious tasks must permit observation, learning, and a later experiment",
+          "passed": true
+        },
+        {
+          "check_id": "metric_implementation",
+          "message": "unsupported success metrics: []",
+          "passed": true
+        },
+        {
+          "check_id": "metric_alignment",
+          "message": "design metrics absent from task contract: []",
+          "passed": true
+        },
+        {
+          "check_id": "final_assay",
+          "message": "serious tasks require a final hidden-state assay boundary",
+          "passed": true
+        },
+        {
+          "check_id": "maturity_floor",
+          "message": "task maturity lite must meet lite",
+          "passed": true
+        },
+        {
+          "check_id": "proxy_policy",
+          "message": "proxy modules are excluded from the serious candidate suite",
+          "passed": true
+        },
+        {
+          "check_id": "baseline_diversity",
+          "message": "require random plus at least two informative baselines",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_axes",
+          "message": "at least two explicit generalization axes are required",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_contract",
+          "message": "generalization axes require hidden drivers and an executable audit mode",
+          "passed": true
+        },
+        {
+          "check_id": "evidence_plan",
+          "message": "task design requires baseline, replay, and failure-analysis evidence",
+          "passed": true
+        },
+        {
+          "check_id": "anti_gaming",
+          "message": "at least two anti-gaming checks are required",
+          "passed": true
+        }
+      ],
+      "contract_ready": true,
+      "empirical_status": "candidate",
+      "task_id": "equilibrium-characterization"
+    },
+    "flow-reaction-optimization": {
+      "benchmark_ready": false,
+      "checks": [
+        {
+          "check_id": "identity",
+          "message": "design and task ids must match",
+          "passed": true
+        },
+        {
+          "check_id": "world_law",
+          "message": "task must use the current frozen world law",
+          "passed": true
+        },
+        {
+          "check_id": "public_evaluation_split",
+          "message": "candidate tasks require a reproducible public-test split",
+          "passed": true
+        },
+        {
+          "check_id": "seed_depth",
+          "message": "at least five frozen seeds are required for the serious suite",
+          "passed": true
+        },
+        {
+          "check_id": "decision_horizon",
+          "message": "budget must support a non-trivial decision horizon",
+          "passed": true
+        },
+        {
+          "check_id": "campaign_learning",
+          "message": "serious tasks must permit observation, learning, and a later experiment",
+          "passed": true
+        },
+        {
+          "check_id": "metric_implementation",
+          "message": "unsupported success metrics: []",
+          "passed": true
+        },
+        {
+          "check_id": "metric_alignment",
+          "message": "design metrics absent from task contract: []",
+          "passed": true
+        },
+        {
+          "check_id": "final_assay",
+          "message": "serious tasks require a final hidden-state assay boundary",
+          "passed": true
+        },
+        {
+          "check_id": "maturity_floor",
+          "message": "task maturity lite must meet lite",
+          "passed": true
+        },
+        {
+          "check_id": "proxy_policy",
+          "message": "proxy modules are excluded from the serious candidate suite",
+          "passed": true
+        },
+        {
+          "check_id": "baseline_diversity",
+          "message": "require random plus at least two informative baselines",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_axes",
+          "message": "at least two explicit generalization axes are required",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_contract",
+          "message": "generalization axes require hidden drivers and an executable audit mode",
+          "passed": true
+        },
+        {
+          "check_id": "evidence_plan",
+          "message": "task design requires baseline, replay, and failure-analysis evidence",
+          "passed": true
+        },
+        {
+          "check_id": "anti_gaming",
+          "message": "at least two anti-gaming checks are required",
+          "passed": true
+        }
+      ],
+      "contract_ready": true,
+      "empirical_status": "candidate",
+      "task_id": "flow-reaction-optimization"
+    },
+    "partition-discovery": {
+      "benchmark_ready": false,
+      "checks": [
+        {
+          "check_id": "identity",
+          "message": "design and task ids must match",
+          "passed": true
+        },
+        {
+          "check_id": "world_law",
+          "message": "task must use the current frozen world law",
+          "passed": true
+        },
+        {
+          "check_id": "public_evaluation_split",
+          "message": "candidate tasks require a reproducible public-test split",
+          "passed": true
+        },
+        {
+          "check_id": "seed_depth",
+          "message": "at least five frozen seeds are required for the serious suite",
+          "passed": true
+        },
+        {
+          "check_id": "decision_horizon",
+          "message": "budget must support a non-trivial decision horizon",
+          "passed": true
+        },
+        {
+          "check_id": "campaign_learning",
+          "message": "serious tasks must permit observation, learning, and a later experiment",
+          "passed": true
+        },
+        {
+          "check_id": "metric_implementation",
+          "message": "unsupported success metrics: []",
+          "passed": true
+        },
+        {
+          "check_id": "metric_alignment",
+          "message": "design metrics absent from task contract: []",
+          "passed": true
+        },
+        {
+          "check_id": "final_assay",
+          "message": "serious tasks require a final hidden-state assay boundary",
+          "passed": true
+        },
+        {
+          "check_id": "maturity_floor",
+          "message": "task maturity lite must meet lite",
+          "passed": true
+        },
+        {
+          "check_id": "proxy_policy",
+          "message": "proxy modules are excluded from the serious candidate suite",
+          "passed": true
+        },
+        {
+          "check_id": "baseline_diversity",
+          "message": "require random plus at least two informative baselines",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_axes",
+          "message": "at least two explicit generalization axes are required",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_contract",
+          "message": "generalization axes require hidden drivers and an executable audit mode",
+          "passed": true
+        },
+        {
+          "check_id": "evidence_plan",
+          "message": "task design requires baseline, replay, and failure-analysis evidence",
+          "passed": true
+        },
+        {
+          "check_id": "anti_gaming",
+          "message": "at least two anti-gaming checks are required",
+          "passed": true
+        }
+      ],
+      "contract_ready": true,
+      "empirical_status": "candidate",
+      "task_id": "partition-discovery"
+    },
+    "reaction-to-crystallization": {
+      "benchmark_ready": false,
+      "checks": [
+        {
+          "check_id": "identity",
+          "message": "design and task ids must match",
+          "passed": true
+        },
+        {
+          "check_id": "world_law",
+          "message": "task must use the current frozen world law",
+          "passed": true
+        },
+        {
+          "check_id": "public_evaluation_split",
+          "message": "candidate tasks require a reproducible public-test split",
+          "passed": true
+        },
+        {
+          "check_id": "seed_depth",
+          "message": "at least five frozen seeds are required for the serious suite",
+          "passed": true
+        },
+        {
+          "check_id": "decision_horizon",
+          "message": "budget must support a non-trivial decision horizon",
+          "passed": true
+        },
+        {
+          "check_id": "campaign_learning",
+          "message": "serious tasks must permit observation, learning, and a later experiment",
+          "passed": true
+        },
+        {
+          "check_id": "metric_implementation",
+          "message": "unsupported success metrics: []",
+          "passed": true
+        },
+        {
+          "check_id": "metric_alignment",
+          "message": "design metrics absent from task contract: []",
+          "passed": true
+        },
+        {
+          "check_id": "final_assay",
+          "message": "serious tasks require a final hidden-state assay boundary",
+          "passed": true
+        },
+        {
+          "check_id": "maturity_floor",
+          "message": "task maturity lite must meet lite",
+          "passed": true
+        },
+        {
+          "check_id": "proxy_policy",
+          "message": "proxy modules are excluded from the serious candidate suite",
+          "passed": true
+        },
+        {
+          "check_id": "baseline_diversity",
+          "message": "require random plus at least two informative baselines",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_axes",
+          "message": "at least two explicit generalization axes are required",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_contract",
+          "message": "generalization axes require hidden drivers and an executable audit mode",
+          "passed": true
+        },
+        {
+          "check_id": "evidence_plan",
+          "message": "task design requires baseline, replay, and failure-analysis evidence",
+          "passed": true
+        },
+        {
+          "check_id": "anti_gaming",
+          "message": "at least two anti-gaming checks are required",
+          "passed": true
+        }
+      ],
+      "contract_ready": true,
+      "empirical_status": "candidate",
+      "task_id": "reaction-to-crystallization"
+    },
+    "reaction-to-distillation": {
+      "benchmark_ready": false,
+      "checks": [
+        {
+          "check_id": "identity",
+          "message": "design and task ids must match",
+          "passed": true
+        },
+        {
+          "check_id": "world_law",
+          "message": "task must use the current frozen world law",
+          "passed": true
+        },
+        {
+          "check_id": "public_evaluation_split",
+          "message": "candidate tasks require a reproducible public-test split",
+          "passed": true
+        },
+        {
+          "check_id": "seed_depth",
+          "message": "at least five frozen seeds are required for the serious suite",
+          "passed": true
+        },
+        {
+          "check_id": "decision_horizon",
+          "message": "budget must support a non-trivial decision horizon",
+          "passed": true
+        },
+        {
+          "check_id": "campaign_learning",
+          "message": "serious tasks must permit observation, learning, and a later experiment",
+          "passed": true
+        },
+        {
+          "check_id": "metric_implementation",
+          "message": "unsupported success metrics: []",
+          "passed": true
+        },
+        {
+          "check_id": "metric_alignment",
+          "message": "design metrics absent from task contract: []",
+          "passed": true
+        },
+        {
+          "check_id": "final_assay",
+          "message": "serious tasks require a final hidden-state assay boundary",
+          "passed": true
+        },
+        {
+          "check_id": "maturity_floor",
+          "message": "task maturity lite must meet lite",
+          "passed": true
+        },
+        {
+          "check_id": "proxy_policy",
+          "message": "proxy modules are excluded from the serious candidate suite",
+          "passed": true
+        },
+        {
+          "check_id": "baseline_diversity",
+          "message": "require random plus at least two informative baselines",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_axes",
+          "message": "at least two explicit generalization axes are required",
+          "passed": true
+        },
+        {
+          "check_id": "generalization_contract",
+          "message": "generalization axes require hidden drivers and an executable audit mode",
+          "passed": true
+        },
+        {
+          "check_id": "evidence_plan",
+          "message": "task design requires baseline, replay, and failure-analysis evidence",
+          "passed": true
+        },
+        {
+          "check_id": "anti_gaming",
+          "message": "at least two anti-gaming checks are required",
+          "passed": true
+        }
+      ],
+      "contract_ready": true,
+      "empirical_status": "candidate",
+      "task_id": "reaction-to-distillation"
+    }
+  },
+  "schema_version": "chemworld-serious-task-design-0.1",
+  "suite_status": "candidate",
+  "task_ids": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization",
+    "electrochemical-conversion",
+    "equilibrium-characterization"
+  ]
+}

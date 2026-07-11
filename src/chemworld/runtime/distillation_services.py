@@ -8,8 +8,8 @@ import numpy as np
 
 from chemworld.foundation import WorldState, process_with_metrics, upsert_equipment_record
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
-from chemworld.physchem.separations import vle_shortcut_distillation
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.runtime.vnext_downstream import run_duty_limited_distillation
 
 
 def _action_float(action: dict[str, Any], key: str, default: float) -> float:
@@ -144,27 +144,26 @@ class ChemWorldDistillationServices:
             distillation_cost = 0.045 + duration / 3600.0 * (0.065 + 0.012 * reflux)
             distillation_risk = 0.035 + 0.06 * ((target_temperature - 298.15) / 132.0)
         else:
-            distillation = vle_shortcut_distillation(
+            distillation = run_duty_limited_distillation(
                 {"product": p_mol, "impurity": impurity_mol},
-                vapor_pressures_Pa={"product": 78_000.0, "impurity": 18_000.0},
                 pressure_Pa=max(state.pressure_Pa, 1.0),
-                temperature_K=target_temperature,
-                light_key="product",
-                heavy_key="impurity",
-                distillate_cut_fraction=distillate_cut,
-                theoretical_stages=theoretical_stages,
+                initial_temperature_K=min(state.temperature_K, target_temperature),
+                operating_temperature_K=target_temperature,
+                duration_s=duration,
                 reflux_ratio=reflux,
-                stage_efficiency=0.62,
-                latent_heats_J_mol={"product": 38_000.0, "impurity": 55_000.0},
+                requested_cut_fraction=distillate_cut,
             )
             distillate = distillation.outlet("distillate")
             distillate_product = distillate.get("product", 0.0)
             distillate_impurity = distillate.get("impurity", 0.0)
-            distillate_purity = distillation.purity("product", "distillate")
-            distillation_metadata = distillation.ledger.metadata
-            heat_duty = distillation.ledger.heat_duty_J
-            distillation_cost = distillation.ledger.cost
-            distillation_risk = distillation.ledger.risk
+            distillate_purity = distillation.light_key_distillate_purity
+            distillate_cut = distillation.actual_distillate_cut_fraction
+            distillation_metadata = distillation.to_dict()
+            heat_duty = distillation.total_reboiler_duty_J
+            distillation_cost = 0.045 + duration / 3600.0 * (0.065 + 0.012 * reflux)
+            distillation_risk = 0.03 + 0.04 * min(
+                distillation.average_reboiler_power_W / 420.0, 1.0
+            )
         process_metrics = {} if state.process is None else state.process.metrics
         initial_p = max(
             float(process_metrics.get("pre_separation_product_mol", p_mol)),
@@ -178,7 +177,7 @@ class ChemWorldDistillationServices:
             attached_vessel_id=state.vessel_id,
             status="distilled",
             settings={
-                "distillation_model": "vle_shortcut_distillation",
+                "distillation_model": "chemworld_duty_limited_distillation_vnext",
                 "distillation_kernel": distillation_metadata,
                 "distillate_cut_fraction": distillate_cut,
                 "theoretical_stages": theoretical_stages,

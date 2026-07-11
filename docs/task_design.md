@@ -29,7 +29,7 @@ chemworld tasks readiness
 `contract_ready=true` 只表示任务合同可执行；只有完成冻结 baseline、难度校准和失败分析后，
 `empirical_status` 才能从 `candidate` 提升到 `validated`，届时 `benchmark_ready` 才为真。
 
-## v1 正式任务
+## Serious 候选任务
 
 | Task | 核心问题 | Primary metric | 泛化轴 |
 | --- | --- | --- | --- |
@@ -40,21 +40,21 @@ chemworld tasks readiness
 | `electrochemical-conversion` | 能否权衡电化学选择性与能效？ | `electrochemical_selectivity` | 氧化还原动力学、传质/电阻 |
 | `equilibrium-characterization` | 能否高效表征隐藏水相平衡？ | `equilibrium_confidence` | 酸碱常数、溶度积区间 |
 
-六个任务均已完成五 seed baseline、响应面、策略分离、阈值、主动学习阶段和 replay 机器审查。
-当前 task contract hash 与仓库内冻结证据一致时，readiness 返回 `validated`；合同变化会自动将
-对应任务退回 `candidate`。
+六个任务的历史 v1 证据对应 World Law v0.3。v0.4 改变了 task hash 和部分状态转移，因此当前
+readiness 正确返回 `candidate`；只有重新完成有效性、功效、泛化和资源匹配实验后才能恢复
+`validated`。
 
 ## 暂不准入
 
-- `reaction-to-purification`、`purity-yield-tradeoff` 和 `tool-agent-planning` 含
-  dry/concentrate/transfer proxy，继续用于核心回归或探索，不进入 v1 正式套件；
+- `reaction-to-purification`、`purity-yield-tradeoff` 和 `tool-agent-planning` 已无正式 proxy
+  route，但仍因研究问题与主榜六任务重叠或偏协议/长程规划而保持 registered/exploratory；
 - `reaction-to-assay` 是协议 smoke task，决策深度和 seed 数不足；
 - 包含 `mechanism_explanation`、`local_model_quality`、`public_private_gap` 等尚未形成独立
   evaluator 字段的任务，在补齐可执行评分前不得作为主榜任务。
 
-## 冻结证据
+## 历史 v1 冻结证据
 
-v1 已机器验证以下条件：
+历史 v1 曾机器验证以下条件；这些结果不能迁移为 v0.4 结论：
 
 1. 运行完整 `serious` baseline preset，并报告均值、标准误和置信区间；
 2. 检查 random 与 informed baseline 的可分离性，避免地板/天花板效应；

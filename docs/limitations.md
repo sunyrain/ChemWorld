@@ -1,82 +1,45 @@
 # 适用范围与限制
 
-本页是 ChemWorld-Bench 的正式边界声明。任何 benchmark、论文、课程或
-leaderboard 叙述都应遵守这里的表述。
+ChemWorld-Bench 是评估 agent 在部分可观测、实验有成本、存在约束的虚拟环境中进行多轮探索、
+调度和证据更新的研究平台。它不是现实产率预测器、分子模拟器、商业流程模拟器、实验机器人
+控制软件或安全决策系统。
 
-## 一句话边界
+## 可以声明
 
-ChemWorld-Bench 是一个面向 agent、optimizer 和学生的虚拟物理化学交互环境。它不是
-真实反应预测软件，不是 DFT 或分子动力学 wrapper，不是商业流程模拟器，也不是实验机器人
-控制系统。
+- task、scenario、mechanism、provider、scoring 与 trajectory 有版本化合同和 hash；
+- agent 通过公开 observation、instrument result、cost/risk 与历史轨迹作决策；
+- v0.4 runtime 已接入显式的 LLE、干燥、浓缩、转移、结晶、蒸馏、流动和电化学窄域模型；
+- WF-110 机器审计证明旧正式 proxy/fallback route 已移除，且实际事务执行与声明 provider 一致；
+- 当前 v0.4 产物是 backend candidate，可用于后续有效性和方法实验。
 
-## 当前适用范围
+## 不可声明
 
-当前版本支持受控虚拟任务：
+- 输出能够预测或指导真实反应、分离、谱图、装置设计或危险实验；
+- `reference_validated` 或 `professional_candidate` 等于工业、法规或实验室验证；
+- 历史 v1 结果可直接代表 v0.4；
+- 当前 v0.4 已有论文级方法排名、统计功效、私评泛化或 SOTA 结论；
+- leaderboard 分数代表现实实验成功概率。
 
-- 在同一个 `world_law_id=chemworld-physical-chemistry-v0.3` 下运行任务切片；
-- 使用半机理或轻量物理模型生成 hidden scenario；
-- 通过 Gymnasium API、CLI、trajectory、replay verifier 和 baseline report 评测 agent；
-- 比较有限预算实验设计、仪器观测使用、局部 world model 学习、约束处理和可复现提交。
+## 仍然有限的表面
 
-可以声明：
+- reaction kinetics 是局部机制和速率律，不是数据库级真实反应预测；
+- 分配系数、设备参数和物性切片为 benchmark 校准值，真实物料名不改变这一事实；
+- 合成 HPLC、GC、UV–vis、IR、NMR、MS 与 final assay 是状态耦合观测模型，不是真实谱图预测；
+- 水相平衡、电化学、结晶、流动和蒸馏均只覆盖模型卡声明的窄域；
+- cost/risk 是任务约束信号，不是采购报价或安全合规结论；
+- private-eval 无 maintainer salt 时仍是 placeholder，不能用于正式泛化声明。
 
-- 这是一个可交互、可复现、可评测的虚拟化学实验 benchmark；
-- task、scenario、mechanism、scoring 和 trajectory 带有版本化合同和 hash；
-- agent 只能通过公开 observation、instrument result、cost/risk signal 和日志学习；
-- serious v1 任务已经有 frozen task contract、golden trajectory、baseline report、
-  replay verifier 和本地 release gate。
+## 发布状态
 
-不可声明：
+`benchmark/releases/chemworld-serious-vnext` 明确写入
+`release_status=candidate_backend_only`、`benchmark_claim_allowed=false`。它没有包含新的 baseline
+结果。必须先完成任务有效性/功效、泛化/反作弊、统一资源协议和多类方法实验，才能创建新的
+冻结 benchmark release。历史 `chemworld-serious-v1` 不会被 v0.4 产物覆盖。
 
-- ChemWorld 能预测真实反应产率、选择性、纯度、谱图或工艺表现；
-- 当前参数可以直接指导真实实验；
-- proxy/lite 模块等同于工业验证的热力学、动力学、传递或设备模型；
-- leaderboard 分数代表真实实验室成功概率；
-- 当前 LLM/tool agent baseline 代表真实最强化学智能体能力。
-
-## 任务成熟度
-
-每个任务必须携带 `physics_maturity` 和 `kernel_maturity`。core 任务当前边界是：
-
-| Task | Maturity | 边界 |
-| --- | --- | --- |
-| `reaction-to-assay` | `lite` | 有半机理反应网络、物料/能量约束和合成仪器观测；不是真实反应预测器。 |
-| `reaction-to-purification` | `proxy` | 萃取/洗涤使用专业候选模型；干燥、浓缩和转移仍为有界 proxy。 |
-| `partition-discovery` | `lite` | 相接触使用专业候选 extraction train，但分配参数仍为 benchmark 校准值，不等同于真实溶剂体系热力学。 |
-
-所有图表、论文 artifact、baseline table 和课程报告都应显示 maturity，而不能只展示最高分。
-serious v1 已在 ChemWorld 虚拟环境的声明范围内通过经验有效性门禁。这只表示任务与策略在
-冻结 seeds 上可运行、可区分、可重放；不表示其物理模型达到真实化学或工业验证水平。
-
-## 已知 proxy/lite 表面
-
-当前仍需明确标注的低成熟度表面包括：
-
-- reaction kinetics：局部反应网络与速率律，未系统对齐真实机理数据库；
-- downstream separation：萃取/洗涤已接入活度修正 extraction train、TPD-style diagnostic、夹带和物料守恒；干燥、浓缩、转移仍为可解释 proxy；
-- aqueous chemistry：D4C 已提供 pH observation 和 Ksp precipitation hooks，但不是完整 electrolyte speciation solver；
-- Gibbs equilibrium：D4D 已提供 fixed-TP ideal-mixture solver diagnostics，但不是数据库驱动的 multiphase Gibbs minimizer；
-- crystallization 与 flow：运行时已接入专业候选 PBM/PFR；distillation 有 reference-validated shortcut slice，electrochemistry 含多个专业候选子模块；它们仍不应作为工业高保真流程模型宣传；
-- spectroscopy/instruments：生成合成 HPLC/GC/UV-vis/final assay 信号，用于 agent 观测与教学，不是真实仪器谱图预测；
-- safety/cost：是 benchmark 约束信号，不是法律、工业或实验室安全合规结论。
-
-## 数据和安全边界
-
-- 公开 trajectory 是虚拟数据，不能伪装成真实实验数据；
-- 学生或 human pilot 日志用于研究前必须匿名化，并分离教学评分与科研使用；
-- 任何真实实验、真实机器人、外部数据库或危险化学流程接入，都需要独立安全审查和领域专家审核；
-- benchmark 输出不能作为真实实验操作建议。
-
-## 验收口径
-
-目标不是“完成通用 chemical world model”，而是提供一个小而可信的 benchmark 核心。
-当前 release gate 是：
+本地验证：
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\run_release_gate.py
+python scripts/audit_vnext_runtime_integration.py
+python scripts/build_vnext_backend_candidate.py
+python scripts/run_release_gate.py
 ```
-
-该 gate 覆盖 lint、type check、全量测试、文档构建、wheel 安装、环境自洽性审计、baseline
-smoke 和冻结证据检查。只有通过
-该 gate，并在 artifact 中包含任务合同、baseline report、dataset card、replay manifest、
-release checklist 和本限制声明时，才能发布 benchmark claim。

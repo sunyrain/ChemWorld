@@ -1,5 +1,23 @@
 # WF-110 Runtime 接入与下一版冻结
 
+## v0.4 集成结果
+
+World Law 已提升为 `chemworld-physical-chemistry-v0.4`，task contract 提升为 0.6。八个 proposal
+均以原始 hash-bound provider contract 注册；intake 报告为 `integration_state=integrated`。
+
+- dry/concentrate/transfer 分别使用 sorbent drying、vacuum concentration 和 finite-holdup
+  transfer，旧 separation proxy 已退出 registry；
+- mix/wash 使用唯一 stability-aware LLE provider；
+- distill 使用唯一 duty-limited provider；
+- reaction、spectroscopy、crystallization 诊断 provider 不传播 runtime maturity；
+- 物料去向写入 spent sorbent、condensate、vent、source heel 和 line-holdup typed phases；
+- `workstreams/world_foundation/reports/wf-110-runtime-integration.json` 的七项机器检查全部通过；
+- `benchmark/releases/chemworld-serious-vnext/` 是 hash-bound backend candidate，不包含 baseline
+  结论，也不覆盖历史 v1。
+
+本工作流只完成 backend 固定。任务有效性、功效、泛化、方法协议和论文结论必须由后续独立
+claim 完成，当前 `benchmark_claim_allowed=false`。
+
 本模块是共享文件的唯一所有者；在物理模块开发期间不与其它团队并行修改 shared files。
 
 独占 paths：`tasks.py`、World Law、runtime registry/profile/domain services、world kernels、顶层 exports、

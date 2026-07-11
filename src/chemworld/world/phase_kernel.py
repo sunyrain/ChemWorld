@@ -7,10 +7,11 @@ from typing import TypedDict
 
 import numpy as np
 
-from chemworld.physchem.equilibrium import lle_phase_stability_diagnostic
-from chemworld.physchem.extraction_units import (
-    DistributionCoefficientModelSpec,
-    activity_corrected_extraction_train,
+from chemworld.physchem.extraction_units import DistributionCoefficientModelSpec
+from chemworld.physchem.phase_equilibrium_units import (
+    LLEContactorSpec,
+    StabilityAwareExtractionRequest,
+    simulate_stability_aware_extraction,
 )
 
 
@@ -59,7 +60,7 @@ def partition_split(
                 "product": partition,
                 "impurity": impurity_partition,
             },
-            provenance_id="chemworld-world-law-v0.2-partition-policy",
+            provenance_id="chemworld-world-law-vnext-partition-policy",
         )
         entrainment_fraction = float(
             np.clip(
@@ -72,16 +73,21 @@ def partition_split(
                 0.04,
             )
         )
-        extraction = activity_corrected_extraction_train(
-            feed,
-            distribution_model=distribution_model,
-            target_component="product",
-            aqueous_volume_L=v_aq,
-            organic_volume_L=v_org,
-            extraction_stages=1,
-            extraction_stage_efficiency=float(np.clip(mix_factor, 0.0, 1.0)),
-            extraction_entrainment_fraction=entrainment_fraction,
-            temperature_K=temperature_K,
+        extraction = simulate_stability_aware_extraction(
+            StabilityAwareExtractionRequest(
+                feed_amounts_mol=feed,
+                distribution_model=distribution_model,
+                target_component="product",
+                contactor=LLEContactorSpec(
+                    aqueous_volume_L=v_aq,
+                    organic_volume_L=v_org,
+                    extraction_stages=1,
+                    extraction_stage_efficiency=float(np.clip(mix_factor, 0.0, 1.0)),
+                    extraction_entrainment_fraction=entrainment_fraction,
+                    maximum_contact_volume_L=max(v_aq + v_org, 0.10),
+                ),
+                temperature_K=temperature_K,
+            )
         )
         organic = extraction.outlet("extract")
         aqueous = extraction.outlet("raffinate")
@@ -89,21 +95,12 @@ def partition_split(
         aqueous_product_mol = aqueous["product"]
         organic_impurity_mol = organic["impurity"]
         aqueous_impurity_mol = aqueous["impurity"]
-        diagnostic = lle_phase_stability_diagnostic(
-            feed,
-            partition_coefficients=distribution_model.intrinsic_partition_coefficients,
-            aqueous_volume_L=v_aq,
-            organic_volume_L=v_org,
-            temperature_K=temperature_K,
-            initialization_policy="partition_weighted_runtime_v0.2",
-            stage_efficiency=float(np.clip(mix_factor, 0.0, 1.0)),
-        ).to_dict()
+        first_stage = extraction.stage_reports[0]
+        diagnostic = first_stage.stability_diagnostic
         extraction_model_id = extraction.model_id
-        extraction_converged = all(
-            report.converged for report in extraction.stage_reports
-        )
+        extraction_converged = extraction.all_stages_converged
         extraction_balance_error = extraction.material_balance_error_mol
-        extraction_entrained_volume = extraction.entrained_aqueous_volume_L
+        extraction_entrained_volume = extraction.entrained_volume_L
     else:
         organic_product_mol = aqueous_product_mol = 0.0
         organic_impurity_mol = aqueous_impurity_mol = 0.0
@@ -112,7 +109,7 @@ def partition_split(
             "minimum_tpd_like": 0.0,
             "partition_log_spread": 0.0,
         }
-        extraction_model_id = "activity_corrected_extraction_train_v1"
+        extraction_model_id = "chemworld_stability_aware_lle_vnext"
         extraction_converged = True
         extraction_balance_error = 0.0
         extraction_entrained_volume = 0.0
@@ -140,11 +137,11 @@ def partition_split(
 @dataclass(frozen=True)
 class PhaseModuleSpec:
     module_id: str = "phase_partition"
-    version: str = "0.4"
+    version: str = "0.5"
     laws: tuple[str, ...] = (
         "aqueous_organic_phase_volume_balance",
         "benchmark_calibrated_intrinsic_distribution_coefficients",
-        "activity_corrected_extraction_train",
+        "stability_gated_activity_corrected_extraction_train",
         "explicit_aqueous_entrainment_ledger",
         "tpd_style_phase_stability_diagnostic",
     )

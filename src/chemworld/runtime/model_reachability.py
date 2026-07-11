@@ -1,4 +1,4 @@
-"""Auditable operation-to-model reachability contracts for World Law v0.3."""
+"""Auditable operation-to-model reachability contracts for the current World Law."""
 
 from __future__ import annotations
 
@@ -8,11 +8,29 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from chemworld.physchem.concentration_adapter_manifest import (
+    vacuum_concentration_provider_contract,
+)
+from chemworld.physchem.crystallization_adapter_manifest import (
+    crystallization_convergence_provider_contract,
+)
+from chemworld.physchem.distillation_adapter_manifest import (
+    duty_limited_distillation_provider_contract,
+)
+from chemworld.physchem.drying_adapter_manifest import sorbent_drying_provider_contract
 from chemworld.physchem.maturity import (
     MaturityLevel,
     ModelExecutionRole,
     ModelProviderContract,
 )
+from chemworld.physchem.phase_equilibrium_adapter_manifest import (
+    stability_aware_lle_provider_contract,
+)
+from chemworld.physchem.reaction_adapter_manifest import reaction_rate_provider_contract
+from chemworld.physchem.spectroscopy_adapter_manifest import (
+    spectroscopy_identifiability_provider_contract,
+)
+from chemworld.physchem.transfer_adapter_manifest import transfer_provider_contract
 from chemworld.runtime.domain_service_registry import DomainServiceRegistry
 from chemworld.runtime.kernel_registry import OperationKernelRegistry
 from chemworld.runtime.profiles import TaskRuntimeProfile
@@ -429,7 +447,7 @@ def default_model_provider_registry() -> ModelProviderRegistry:
             outputs=("species_amounts_mol", "reaction_heat_J"),
             units={**state_units, "duration_s": "s", "reaction_heat_J": "J"},
             diagnostics=("solver_diagnostic", "material_balance_error_mol"),
-            provenance=("chemworld-physical-chemistry-v0.3",),
+            provenance=("chemworld-physical-chemistry-v0.4",),
         ),
         _provider(
             "chemworld_reactor_lite",
@@ -447,8 +465,9 @@ def default_model_provider_registry() -> ModelProviderRegistry:
                 "pressure_Pa": "Pa",
             },
             diagnostics=("energy_residual_J", "solver_diagnostic"),
-            provenance=("chemworld-physical-chemistry-v0.3",),
+            provenance=("chemworld-physical-chemistry-v0.4",),
         ),
+        reaction_rate_provider_contract(),
         _provider(
             "chemworld_synthetic_instruments",
             "spectroscopy_instruments",
@@ -488,45 +507,11 @@ def default_model_provider_registry() -> ModelProviderRegistry:
             diagnostics=("resolution", "plate_count"),
             provenance=("chromatography-retention-plate-slice",),
         ),
-        _provider(
-            "activity_corrected_extraction_train_v1",
-            "phase_equilibrium",
-            MaturityLevel.PROFESSIONAL_CANDIDATE,
-            ModelExecutionRole.RUNTIME,
-            "chemworld.runtime.phase_separation_services.ChemWorldPhaseSeparationServices.mix_phases",
-            ("mix", "wash"),
-            inputs=("phase_compositions", "phase_volumes_L", "distribution_parameters"),
-            outputs=("phase_compositions", "entrainment", "material_balance_error_mol"),
-            units={"phase_volumes_L": "L", "material_balance_error_mol": "mol"},
-            diagnostics=("converged", "iteration_count", "material_balance_error_mol"),
-            provenance=("activity-corrected-extraction-train-v1",),
-        ),
-        _provider(
-            "lle_phase_stability_diagnostic_v1",
-            "phase_equilibrium",
-            MaturityLevel.PROFESSIONAL_CANDIDATE,
-            ModelExecutionRole.DIAGNOSTIC,
-            "chemworld.physchem.equilibrium.lle_phase_stability_diagnostic",
-            ("mix", "wash"),
-            inputs=("phase_compositions", "temperature_K"),
-            outputs=("stability_class", "tpd_metric"),
-            units={"temperature_K": "K", "tpd_metric": "J/mol"},
-            diagnostics=("stability_class", "warning_flags"),
-            provenance=("lle-phase-stability-diagnostic-v1",),
-        ),
-        _provider(
-            "chemworld_separation_proxy",
-            "separations",
-            MaturityLevel.PROXY,
-            ModelExecutionRole.RUNTIME_FALLBACK,
-            "chemworld.runtime.phase_separation_services.ChemWorldPhaseSeparationServices.dry_phase",
-            ("dry", "concentrate", "transfer"),
-            inputs=("phase_ledger", "operation_parameters"),
-            outputs=("phase_ledger", "purity", "recovery"),
-            units={"phase_ledger": "mol,L", "purity": "1", "recovery": "1"},
-            diagnostics=("process_mass_balance_error", "fallback_policy"),
-            provenance=("bounded-dry-concentrate-transfer-fallbacks",),
-        ),
+        spectroscopy_identifiability_provider_contract(),
+        stability_aware_lle_provider_contract(),
+        sorbent_drying_provider_contract(),
+        vacuum_concentration_provider_contract(),
+        transfer_provider_contract(),
         _provider(
             "cooling_crystallization_population_balance_v1",
             "crystallization",
@@ -540,19 +525,8 @@ def default_model_provider_registry() -> ModelProviderRegistry:
             diagnostics=("material_balance_error_mol", "maximum_supersaturation_ratio"),
             provenance=("cooling-crystallization-population-balance-v1",),
         ),
-        _provider(
-            "vle_shortcut_distillation",
-            "distillation",
-            MaturityLevel.REFERENCE_VALIDATED,
-            ModelExecutionRole.RUNTIME,
-            "chemworld.runtime.distillation_services.ChemWorldDistillationServices.distill",
-            ("distill",),
-            inputs=("feed_composition", "temperature_K", "reflux_ratio"),
-            outputs=("distillate_composition", "bottoms_composition", "heat_duty_J"),
-            units={"temperature_K": "K", "reflux_ratio": "1", "heat_duty_J": "J"},
-            diagnostics=("material_balance_error_mol", "theoretical_stages"),
-            provenance=("vle-shortcut-distillation",),
-        ),
+        crystallization_convergence_provider_contract(),
+        duty_limited_distillation_provider_contract(),
         _provider(
             "pfr",
             "continuous_flow",
@@ -639,28 +613,37 @@ def default_model_reachability_registry() -> ModelReachabilityRegistry:
     services = DomainServiceRegistry.default()
     kernels = OperationKernelRegistry.default()
     model_ids_by_operation: dict[str, tuple[str, ...]] = {
-        "heat": ("chemworld_reaction_network_lite", "chemworld_reactor_lite"),
-        "wait": ("chemworld_reaction_network_lite", "chemworld_reactor_lite"),
-        "mix": (
-            "activity_corrected_extraction_train_v1",
-            "lle_phase_stability_diagnostic_v1",
+        "heat": (
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite",
+            "chemworld_arrhenius_unit_contract_vnext",
         ),
-        "wash": (
-            "activity_corrected_extraction_train_v1",
-            "lle_phase_stability_diagnostic_v1",
+        "wait": (
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite",
+            "chemworld_arrhenius_unit_contract_vnext",
         ),
-        "dry": ("chemworld_separation_proxy",),
-        "concentrate": ("chemworld_separation_proxy",),
-        "transfer": ("chemworld_separation_proxy",),
-        "cool_crystallize": ("cooling_crystallization_population_balance_v1",),
-        "distill": ("vle_shortcut_distillation",),
+        "mix": ("chemworld_stability_aware_lle_vnext",),
+        "wash": ("chemworld_stability_aware_lle_vnext",),
+        "dry": ("chemworld_sorbent_drying_vnext",),
+        "concentrate": ("chemworld_vacuum_concentration_vnext",),
+        "transfer": ("chemworld_transfer_holdup_vnext",),
+        "cool_crystallize": (
+            "cooling_crystallization_population_balance_v1",
+            "chemworld_crystallization_convergence_audit_vnext",
+        ),
+        "distill": ("chemworld_duty_limited_distillation_vnext",),
         "run_flow": (
             "chemworld_reaction_network_lite",
+            "chemworld_arrhenius_unit_contract_vnext",
             "pfr",
             "chemworld_geometry_resolved_pfr_v1",
         ),
         "electrolyze": ("nernst_butler_volmer_faradaic_v1",),
-        "measure": ("chemworld_synthetic_instruments",),
+        "measure": (
+            "chemworld_synthetic_instruments",
+            "chemworld_spectral_identifiability_audit_vnext",
+        ),
     }
     instrument_models = {
         "hplc": ("chromatography_retention_plate",),

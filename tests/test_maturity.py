@@ -105,8 +105,8 @@ def test_task_maturity_metadata_is_public_and_policy_checked() -> None:
     assert distillation_payload["proxy_allowed"] is False
     assert any(
         module["module_id"] == "distillation"
-        and module["level"] == "reference_validated"
-        and "vle_shortcut_distillation" in module["model_ids"]
+        and module["level"] == "professional_candidate"
+        and "chemworld_duty_limited_distillation_vnext" in module["model_ids"]
         for module in distillation_payload["kernel_maturity"]["modules"]
     )
 
@@ -140,10 +140,11 @@ def test_env_task_info_exposes_maturity_metadata() -> None:
     env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
     try:
         _, info = env.reset(seed=0)
-        assert info["physics_maturity"] == "proxy"
-        assert info["proxy_allowed"] is True
+        assert info["physics_maturity"] == "lite"
+        assert info["proxy_allowed"] is False
         assert any(
-            module["module_id"] == "separations" and module["level"] == "proxy"
+            module["module_id"] == "separations"
+            and module["level"] == "reference_validated"
             for module in info["kernel_maturity"]["modules"]
         )
     finally:
@@ -162,7 +163,7 @@ def test_env_task_info_exposes_maturity_metadata() -> None:
         (
             "partition-discovery",
             "phase_equilibrium",
-            "activity_corrected_extraction_train_v1",
+            "chemworld_stability_aware_lle_vnext",
         ),
     ),
 )
@@ -189,7 +190,7 @@ def test_task_maturity_manifest_is_json_friendly_and_grouped() -> None:
     assert manifest["schema_version"] == "chemworld-task-maturity-manifest-0.1"
     assert manifest["task_count"] == 2
     assert manifest["by_task"]["reaction-to-assay"]["physics_maturity"] == "lite"
-    assert manifest["by_task"]["reaction-to-purification"]["physics_maturity"] == "proxy"
-    assert "reaction-to-purification" in manifest["proxy_allowed_task_ids"]
-    assert "proxy" in manifest["by_physics_maturity"]
+    assert manifest["by_task"]["reaction-to-purification"]["physics_maturity"] == "lite"
+    assert "reaction-to-purification" not in manifest["proxy_allowed_task_ids"]
+    assert "proxy" not in manifest["by_physics_maturity"]
     assert "lite" in manifest["by_physics_maturity"]

@@ -133,7 +133,7 @@ def test_core_task_cards_are_complete_release_contracts() -> None:
         task = get_task(task_id)
         contract = card["benchmark_contract"]
         assert "core" in card["suite_memberships"]
-        assert card["task_contract_version"] == "chemworld-task-contract-0.5"
+        assert card["task_contract_version"] == "chemworld-task-contract-0.6"
         assert card["task_contract_hash"] == task.contract_hash
         assert len(card["task_contract_hash"]) == 64
         assert contract["objective"] == task.objective
