@@ -5,7 +5,7 @@
 hidden scenario policy 或 scoring contract 改变，应视为 benchmark contract 变更。
 
 三个 core 任务用于冻结 API、回放和发布链路。它们不等同于 serious v1 研究主榜；正式任务及
-准入条件见[严肃任务设计](task_design.md)。
+准入状态、证据边界与确认门禁见[当前科学状态](benchmark_release.md)。
 
 ## Core 任务
 
