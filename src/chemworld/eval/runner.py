@@ -88,6 +88,7 @@ def run_agent(
         env_kwargs["budget_override"] = budget_override
     if episode_mode_override is not None:
         env_kwargs["episode_mode_override"] = episode_mode_override
+    effective_budget = budget_override if budget_override is not None else budget
     env = gym.make(
         env_id,
         **env_kwargs,
@@ -106,7 +107,7 @@ def run_agent(
     logger_context = TrajectoryLogger(output_path) if output_path is not None else None
     try:
         logger = logger_context.__enter__() if logger_context is not None else None
-        for step in range(1, budget + 1):
+        for step in range(1, effective_budget + 1):
             action = agent.act(history)
             observation, reward, terminated, truncated, info = env.step(action)
             obs_json = observation_to_json(observation)

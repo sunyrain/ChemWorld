@@ -22,6 +22,7 @@ def run_suite(
     output_dir: str | Path,
     threshold: float = 0.75,
     task_id: str | None = None,
+    budget_override: int | None = None,
 ) -> list[dict[str, Any]]:
     """Run an agent across a matrix of splits and seeds, then evaluate runs."""
 
@@ -47,6 +48,7 @@ def run_suite(
                 seed=seed,
                 task_id=task_id,
                 output_path=trajectory_path,
+                budget_override=budget_override,
             )
             records = load_jsonl(trajectory_path)
             result = build_verified_evaluation_result(

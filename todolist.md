@@ -118,7 +118,8 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
   与能效控制能够区分策略，而非由固定流程决定结果。
 - [ ] `equilibrium-characterization`：检查当前 scripted 与 LLM stub 同分现象；证明多轮选择测量和
   干预会提高平衡参数识别质量。
-- [ ] 对每个任务建立 oracle 或近似上界，用于测量 regret、天花板和可达阈值。
+- [x] 停止把随机配方最大值称为 oracle；已建立逐 seed best-known diagnostic reference，正式
+  regret 仍需在冻结前绑定独立、可更新的 reference 协议。
 - [ ] 对每个任务建立最低合理策略和随机下界，用于发现地板、奖励泄漏和协议捷径。
 
 验收标准：每个任务均有独立有效性报告，至少包含响应面/状态切片、策略排序、失败案例和是否
@@ -130,12 +131,14 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
   `tool_using_llm_stub`；将不可复现或依赖外部在线服务的 agent 与官方冻结基线分开。
 - [ ] 检查每个 baseline 是否真正适配任务动作空间；不允许多个“不同”baseline 实际退化为同一
   固定配方或相同行为序列。
-- [ ] 扩大 seed 数，并依据方差或功效分析决定正式 seed 数，不能仅依赖当前每任务 3–5 个 seed
-  的最低合同要求。
-- [ ] 报告均值、标准差、标准误、bootstrap 置信区间和逐 seed 结果。
+- [x] 已用 10-seed paired pilot 和 0.05 SESOI 完成功效初估，暂定正式起点为每任务 20 seeds；
+  冻结前用最终任务合同复核。
+- [x] 机器报告已包含均值、配对标准差、paired bootstrap 置信区间、符号翻转检验、功效估计和
+  逐 seed 紧凑指标。
 - [ ] 校准任务 budget、threshold、噪声和惩罚，排除 random 也高分、所有策略都低分、所有强策略
   同分等地板/天花板情况。
-- [ ] 验证 BO 确实进入 acquisition 阶段，并分别报告初始化实验和主动选择实验的贡献。
+- [x] 已修复 `budget_override` 未贯通 runner/suite 的协议错误，并验证 BO 在校准预算下执行
+  4–8 次 acquisition；但尚未观察到达到 0.05 SESOI 的稳定自适应收益。
 - [ ] 固定每个任务的 baseline reference table，并将冻结结果绑定 commit、合同 hash、solver
   provenance 和 trajectory digest。
 

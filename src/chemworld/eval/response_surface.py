@@ -12,7 +12,7 @@ from chemworld.agents.task_recipes import sample_task_recipe
 from chemworld.tasks import SERIOUS_TASK_IDS, get_task
 from chemworld.world.recipes import compile_recipe
 
-RESPONSE_SURFACE_AUDIT_VERSION = "chemworld-response-surface-audit-0.1"
+RESPONSE_SURFACE_AUDIT_VERSION = "chemworld-response-surface-audit-0.2"
 PRIMARY_OBSERVATION_FIELDS = {
     "partition-discovery": "product_in_organic",
     "reaction-to-crystallization": "crystal_yield",
@@ -37,7 +37,10 @@ def audit_serious_response_surfaces(
         primary_values: list[float] = []
         invalid_steps = 0
         final_assays = 0
+        seed_reports: dict[str, dict[str, Any]] = {}
         for seed in task.seeds:
+            seed_scores: list[float] = []
+            seed_primary_values: list[float] = []
             rng = np.random.default_rng(91_003 + 10_007 * task_index + seed)
             for _ in range(samples_per_seed):
                 env = gym.make(
@@ -65,12 +68,22 @@ def audit_serious_response_surfaces(
                         raise RuntimeError(f"{task_id} recipe did not produce a final assay")
                     final_assays += 1
                     scores.append(float(score))
+                    seed_scores.append(float(score))
                     primary_field = PRIMARY_OBSERVATION_FIELDS[task_id]
                     primary_value = final_observation.get(primary_field)
                     if primary_value is not None:
-                        primary_values.append(float(np.asarray(primary_value).reshape(-1)[0]))
+                        scalar_primary = float(np.asarray(primary_value).reshape(-1)[0])
+                        primary_values.append(scalar_primary)
+                        seed_primary_values.append(scalar_primary)
                 finally:
                     env.close()
+            seed_score_array = np.asarray(seed_scores, dtype=float)
+            seed_primary_array = np.asarray(seed_primary_values, dtype=float)
+            seed_reports[str(seed)] = {
+                "score": _distribution_summary(seed_score_array),
+                "primary_metric_distribution": _distribution_summary(seed_primary_array),
+                "sampled_recipe_ceiling_score": float(np.max(seed_score_array)),
+            }
         score_array = np.asarray(scores, dtype=float)
         primary_array = np.asarray(primary_values, dtype=float)
         task_reports[task_id] = {
@@ -83,12 +96,19 @@ def audit_serious_response_surfaces(
             "score": _distribution_summary(score_array),
             "primary_metric": PRIMARY_OBSERVATION_FIELDS[task_id],
             "primary_metric_distribution": _distribution_summary(primary_array),
-            "approximate_oracle_score": float(np.max(score_array)),
+            "sampled_recipe_ceiling_score": float(np.max(score_array)),
+            "seed_reports": seed_reports,
         }
     return {
         "schema_version": RESPONSE_SURFACE_AUDIT_VERSION,
         "task_ids": list(task_ids),
         "samples_per_seed": samples_per_seed,
+        "reference_semantics": {
+            "kind": "deterministic_random_recipe_probe",
+            "is_oracle": False,
+            "may_be_exceeded_by_future_methods": True,
+            "regret_reference_allowed": False,
+        },
         "passed": all(
             report["invalid_step_count"] == 0
             and report["score"]["spread"] >= 0.01

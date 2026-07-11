@@ -6,7 +6,7 @@
 ## 套件
 
 - `core`：三个紧凑任务，用于 API、回放和发布链路回归；
-- `serious`：六个已通过合同、经验有效性与回放门禁的正式研究任务；
+- `serious`：六个已通过结构合同与回放门禁、但仍在经验有效性审查中的候选研究任务；
 - 显式 `--tasks`：用户自选任务，不自动获得正式套件声明。
 
 ```bash
@@ -41,12 +41,19 @@ experiment 为单位。报告至少包含：
 
 ## Baseline 与统计
 
-每个严肃任务使用 5 个冻结 seeds，并运行 task-aware random、LHS、可解释 scripted、GP-BO、
-safe GP-BO 和离线 tool-agent stub。正式报告逐任务均值、标准误和置信区间；不发布掩盖领域
-差异的跨任务总分。smoke override 只能验证管线，不能用于性能声明。
+正式比较必须使用相同 task-seed 对。当前 v0.4 先导功效分析把 0.05 total-score 差异定义为
+最小实际重要差异（SESOI），据此暂定每任务 20 个配对 seeds；冻结前仍须用扩展 pilot 复核。
+报告逐任务配对效应、paired bootstrap 置信区间、符号翻转检验、标准差和逐 seed 结果，不发布
+掩盖领域差异的跨任务总分。smoke override 只能验证管线，不能用于性能声明。
+
+随机配方探针的最大值只能称为 sampled recipe ceiling，不能称为 oracle，也不能直接用于 regret。
+诊断阶段可报告“逐 seed 观测到的 best-known reference”，但未来方法允许超过它；正式 regret
+必须绑定独立、可更新且逐 seed 的 reference 协议。
 
 正式 evidence gate 还要求所有 baseline 无非法动作、每个 campaign 完成多轮实验、GP 进入
 acquisition、成功阈值非饱和，并且 total score 与 primary metric 都能区分策略。
+对以主动探索为主张的任务，还必须证明增加实验机会后至少一种可信自适应策略在部分任务上产生
+达到 SESOI 的稳定收益；仅仅“进入 acquisition 阶段”不构成有效性证据。
 
 ## Verified Result Chain
 
