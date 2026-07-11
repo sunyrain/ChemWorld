@@ -1,0 +1,124 @@
+{
+  "schema_version": "chemworld-classic-distinctness-protocol-0.1",
+  "protocol_id": "chemworld-vnext-classic-distinctness-candidate-0.1",
+  "status": "candidate_controls_only",
+  "benchmark_claim_allowed": false,
+  "formal_results_present": false,
+  "required_methods": {
+    "random": {
+      "implementation": "random",
+      "class_name": "RandomAgent",
+      "agent_name": "random",
+      "policy_family": "uniform_random",
+      "source_tokens": ["sample_task_recipe"]
+    },
+    "lhs": {
+      "implementation": "lhs",
+      "class_name": "LatinHypercubeAgent",
+      "agent_name": "latin_hypercube",
+      "policy_family": "latin_hypercube_design",
+      "source_tokens": ["_actions", "_recipe_history"]
+    },
+    "greedy_local": {
+      "implementation": "greedy",
+      "class_name": "GreedyLocalAgent",
+      "agent_name": "greedy_local",
+      "policy_family": "task_recipe_local_perturbation",
+      "manifest": {
+        "search_policy": "task_recipe_local_perturbation",
+        "recipe_encoding": "task_specific_unit_hypercube"
+      },
+      "source_tokens": ["task_recipe_to_vector", "perturbation_scale"]
+    },
+    "structured_gp_ei": {
+      "implementation": "structured_gp_bo",
+      "class_name": "StructuredGaussianProcessBOAgent",
+      "agent_name": "structured_gp_bo",
+      "policy_family": "bayesian_optimization",
+      "manifest": {
+        "surrogate_family": "gaussian_process",
+        "recipe_encoding": "continuous_plus_material_one_hot"
+      },
+      "acquisition": "expected_improvement",
+      "source_tokens": ["_expected_improvement", "gp_expected_improvement"]
+    },
+    "structured_gp_pi": {
+      "implementation": "structured_gp_pi",
+      "class_name": "StructuredGaussianProcessPIAgent",
+      "agent_name": "structured_gp_pi",
+      "policy_family": "bayesian_optimization",
+      "manifest": {
+        "surrogate_family": "gaussian_process",
+        "recipe_encoding": "continuous_plus_material_one_hot",
+        "acquisition_function": "probability_improvement"
+      },
+      "acquisition": "probability_improvement",
+      "source_tokens": ["_probability_improvement", "gp_probability_improvement"]
+    },
+    "structured_gp_ucb": {
+      "implementation": "structured_gp_ucb",
+      "class_name": "StructuredGaussianProcessUCBAgent",
+      "agent_name": "structured_gp_ucb",
+      "policy_family": "bayesian_optimization",
+      "manifest": {
+        "surrogate_family": "gaussian_process",
+        "recipe_encoding": "continuous_plus_material_one_hot",
+        "acquisition_function": "upper_confidence_bound"
+      },
+      "acquisition": "upper_confidence_bound",
+      "source_tokens": ["exploration_weight", "gp_upper_confidence_bound"]
+    },
+    "structured_rf_ei": {
+      "implementation": "structured_rf_ei",
+      "class_name": "StructuredRandomForestEIAgent",
+      "agent_name": "structured_rf_ei",
+      "policy_family": "bayesian_optimization",
+      "manifest": {
+        "surrogate_family": "random_forest",
+        "recipe_encoding": "continuous_plus_material_one_hot"
+      },
+      "acquisition": "expected_improvement",
+      "source_tokens": ["RandomForestRegressor", "rf_expected_improvement"]
+    },
+    "structured_safe_gp_ei": {
+      "implementation": "structured_safe_gp_bo",
+      "class_name": "StructuredSafetyConstrainedBOAgent",
+      "agent_name": "structured_safe_gp_bo",
+      "policy_family": "constrained_bayesian_optimization",
+      "manifest": {
+        "surrogate_family": "safe_gaussian_process",
+        "recipe_encoding": "continuous_plus_material_one_hot"
+      },
+      "acquisition": "risk_constrained_expected_improvement",
+      "constraint": "upper_confidence_risk_mask_with_minimum_risk_fallback",
+      "source_tokens": ["safe_mask", "safe_gp_risk_fallback"]
+    }
+  },
+  "policies": {
+    "unique_class_per_role": true,
+    "unique_act_implementation_per_role": true,
+    "unique_semantic_fingerprint_per_role": true,
+    "typed_material_encoding_required_for_surrogates": true,
+    "ordinal_material_encoding_allowed": false,
+    "constrained_method_must_have_distinct_risk_path": true,
+    "formal_performance_claim_requires_confirmatory_matrix": true
+  },
+  "dependencies": {
+    "method_protocol_report": "workstreams/benchmark_v1/reports/method-protocol-vnext.json",
+    "typed_acquisitions_claim": "claims/completed/wf-110-benchmark-vnext-classic-typed-acquisitions--20260711T122419Z.json",
+    "task_aware_greedy_claim": "claims/completed/benchmark-vnext-greedy-task-aware--20260711T140334Z.json"
+  },
+  "required_adversarial_probes": [
+    "implementation_alias_rejected",
+    "ordinal_encoding_rejected",
+    "acquisition_collapse_rejected",
+    "unconstrained_safe_method_rejected",
+    "missing_method_rejected"
+  ],
+  "remaining_release_gates": [
+    "run every classic method on the frozen confirmatory task-seed matrix",
+    "verify per-task action and decision fingerprints on retained trajectories",
+    "report negative results and any method failures without exclusion",
+    "bind formal classic results to score replay and reference regret"
+  ]
+}
