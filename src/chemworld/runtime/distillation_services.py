@@ -10,6 +10,7 @@ from chemworld.foundation import WorldState, process_with_metrics, upsert_equipm
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.runtime.vnext_downstream import run_duty_limited_distillation
+from chemworld.world.parameters import ChemWorldParameters
 
 
 def _action_float(action: dict[str, Any], key: str, default: float) -> float:
@@ -44,8 +45,7 @@ def _allocated_amounts(
     total_mol: float,
 ) -> dict[str, float]:
     source_total = sum(
-        max(float(source_amounts.get(species_id, 0.0)), 0.0)
-        for species_id in species_ids
+        max(float(source_amounts.get(species_id, 0.0)), 0.0) for species_id in species_ids
     )
     allocated_total = min(max(float(total_mol), 0.0), source_total)
     if source_total <= 1.0e-12 or allocated_total <= 0.0:
@@ -120,7 +120,12 @@ def _distillation_phases(
 class ChemWorldDistillationServices:
     """Apply shortcut distillation and fraction collection updates."""
 
-    def __init__(self, species_view: MechanismSpeciesView) -> None:
+    def __init__(
+        self,
+        world: ChemWorldParameters,
+        species_view: MechanismSpeciesView,
+    ) -> None:
+        self.world = world
         self.species_view = species_view
 
     def distill(self, state: WorldState, action: dict[str, Any]) -> WorldState:
@@ -152,6 +157,9 @@ class ChemWorldDistillationServices:
                 duration_s=duration,
                 reflux_ratio=reflux,
                 requested_cut_fraction=distillate_cut,
+                relative_volatility_multiplier=self.world.domain_parameter(
+                    "distillation_relative_volatility_multiplier"
+                ),
             )
             distillate = distillation.outlet("distillate")
             distillate_product = distillate.get("product", 0.0)

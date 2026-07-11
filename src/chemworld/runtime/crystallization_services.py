@@ -20,6 +20,7 @@ from chemworld.physchem.crystallization_units import (
 )
 from chemworld.physchem.elements import molecular_weight
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.world.parameters import ChemWorldParameters
 
 
 def _action_float(action: dict[str, Any], key: str, default: float) -> float:
@@ -101,7 +102,12 @@ def _crystallization_phases(
 class ChemWorldCrystallizationServices:
     """Apply seed, cooling crystallization, and filtration updates."""
 
-    def __init__(self, species_view: MechanismSpeciesView) -> None:
+    def __init__(
+        self,
+        world: ChemWorldParameters,
+        species_view: MechanismSpeciesView,
+    ) -> None:
+        self.world = world
         self.species_view = species_view
 
     def _target_molecular_weight_kg_mol(self) -> float:
@@ -117,9 +123,7 @@ class ChemWorldCrystallizationServices:
         impurity_species = self.species_view.primary_impurity_species
         seed_target_mol = seed_mass / 1000.0 / self._target_molecular_weight_kg_mol()
         species_amounts = state.species_amounts.copy()
-        species_amounts[target_species] = (
-            species_amounts.get(target_species, 0.0) + seed_target_mol
-        )
+        species_amounts[target_species] = species_amounts.get(target_species, 0.0) + seed_target_mol
         augmented_state = state.replace(species_amounts=species_amounts)
         phases = _crystallization_phases(
             augmented_state,
@@ -187,14 +191,18 @@ class ChemWorldCrystallizationServices:
             model_id="runtime_vanthoff_target_solubility_v1",
             reference_solubility_mol_L=max(initial_concentration, 1.0e-9),
             reference_temperature_K=state.temperature_K,
-            dissolution_enthalpy_J_mol=20_000.0,
+            dissolution_enthalpy_J_mol=(
+                20_000.0 * self.world.domain_parameter("crystallization_solubility_multiplier")
+            ),
             minimum_temperature_K=250.0,
             maximum_temperature_K=430.0,
             provenance_id="chemworld-world-law-v0.2-solubility-policy",
         )
         kinetics = CrystallizationKineticsSpec(
             model_id="runtime_cooling_population_balance_v1",
-            primary_nucleation_coefficient_per_L_s=2.0e7,
+            primary_nucleation_coefficient_per_L_s=(
+                2.0e7 * self.world.domain_parameter("crystallization_nucleation_multiplier")
+            ),
             primary_nucleation_exponent=2.0,
             growth_coefficient_m_s=2.0e-8,
             growth_exponent=1.0,
@@ -240,9 +248,7 @@ class ChemWorldCrystallizationServices:
                 np.clip(result.crystal_size_distribution.d50_m / 250.0e-6, 0.0, 1.0)
             ),
         )
-        cooling_depth = float(
-            np.clip((state.temperature_K - target_temperature) / 55.0, 0.0, 1.0)
-        )
+        cooling_depth = float(np.clip((state.temperature_K - target_temperature) / 55.0, 0.0, 1.0))
         ledger = state.ledger.with_updates(
             time_s=state.ledger.time_s + duration,
             cost=state.ledger.cost + 0.018 + duration / 3600.0 * 0.018,

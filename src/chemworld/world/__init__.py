@@ -30,6 +30,12 @@ from chemworld.world.spectra import (
     uvvis_spectrum,
 )
 from chemworld.world.state_factory import initial_chemworld_state
+from chemworld.world.world_family import (
+    WORLD_AXIS_REGISTRY,
+    AxisIntervention,
+    WorldAxisSpec,
+    axes_for_task,
+)
 from chemworld.world.world_law import (
     MODULE_VERSIONS,
     constitution_rules,
@@ -39,7 +45,9 @@ from chemworld.world.world_law import (
 __all__ = [
     "MODULE_VERSIONS",
     "SUPPORTED_SPLITS",
+    "WORLD_AXIS_REGISTRY",
     "WORLD_FAMILY_VERSION",
+    "AxisIntervention",
     "ChemWorldParameters",
     "ContinuousFlowModuleSpec",
     "CrystallizationModuleSpec",
@@ -50,6 +58,8 @@ __all__ = [
     "ScenarioGenerator",
     "ScenarioInstance",
     "ScenarioSpec",
+    "WorldAxisSpec",
+    "axes_for_task",
     "compile_recipe",
     "constitution_rules",
     "expand_macro_action",

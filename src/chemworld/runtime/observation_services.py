@@ -38,6 +38,8 @@ class ChemWorldObservationKernel:
         compiled_mechanism: CompiledMechanism,
         scoring_contract: TaskScoringContract | None = None,
         observation_contract: TaskObservationContract | None = None,
+        *,
+        observation_noise_multiplier: float = 1.0,
     ) -> None:
         self.constitution = constitution
         self.objective = objective
@@ -46,6 +48,9 @@ class ChemWorldObservationKernel:
             objective=objective,
         )
         self.observation_contract = observation_contract
+        if not np.isfinite(observation_noise_multiplier) or observation_noise_multiplier <= 0.0:
+            raise ValueError("observation_noise_multiplier must be positive and finite")
+        self.observation_noise_multiplier = float(observation_noise_multiplier)
         self.species_view = MechanismSpeciesView(compiled_mechanism)
 
     def observe(
@@ -91,7 +96,7 @@ class ChemWorldObservationKernel:
         )
         selected_keys = set(observable_keys)
         for key in instrument.observable_keys:
-            std = instrument.noise_std.get(key, 0.0)
+            std = instrument.noise_std.get(key, 0.0) * self.observation_noise_multiplier
             value = float(np.clip(truth_values[key] + rng.normal(0.0, std), 0.0, 1.0))
             if key in selected_keys:
                 noisy[key] = value
@@ -131,7 +136,7 @@ class ChemWorldObservationKernel:
             ),
             processed_estimate=self._processed_estimate(noisy, observed_mask),
             uncertainty={
-                f"{key}_std": float(std)
+                f"{key}_std": float(std) * self.observation_noise_multiplier
                 for key, std in instrument.noise_std.items()
                 if observed_mask.get(key, False)
             },
@@ -298,9 +303,7 @@ class ChemWorldObservationKernel:
         )
         return {
             "pH_normalized": float(np.clip(acid.pH / 14.0, 0.0, 1.0)),
-            "acid_dissociation_fraction": float(
-                np.clip(acid.acid_dissociation_fraction, 0.0, 1.0)
-            ),
+            "acid_dissociation_fraction": float(np.clip(acid.acid_dissociation_fraction, 0.0, 1.0)),
             "precipitation_signal": precipitation_signal,
             "equilibrium_residual": residual,
             "equilibrium_confidence": confidence,
@@ -377,9 +380,7 @@ class ChemWorldObservationKernel:
         if "degradation_warning" in keys:
             public_amounts["degradation_public"] = self.species_view.degradation_amount(state)
         return {
-            species_id: amount
-            for species_id, amount in public_amounts.items()
-            if amount > 0.0
+            species_id: amount for species_id, amount in public_amounts.items() if amount > 0.0
         } or None
 
     def _selected_phase_public_species_amounts(
@@ -420,9 +421,7 @@ class ChemWorldObservationKernel:
             self.species_view.degradation_species,
         )
         impurity_amount = self._phase_amount(phase_amounts, self.species_view.impurity_species)
-        reactant_amount = float(
-            phase_amounts.get(self.species_view.reactant_species(state), 0.0)
-        )
+        reactant_amount = float(phase_amounts.get(self.species_view.reactant_species(state), 0.0))
 
         public_amounts: dict[str, float] = {}
         if reactant_amount > 0.0:

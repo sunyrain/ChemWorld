@@ -13,6 +13,20 @@ from chemworld.world.actions import CATALYSTS, SOLVENTS
 WORLD_FAMILY_VERSION = "chemworld-physical-chemistry-v0.4"
 SUPPORTED_SPLITS = ("public-dev", "public-test", "private-eval")
 
+DEFAULT_DOMAIN_PARAMETERS: dict[str, float] = {
+    "partition_coefficient_multiplier": 1.0,
+    "partition_phase_volume_multiplier": 1.0,
+    "crystallization_nucleation_multiplier": 1.0,
+    "crystallization_solubility_multiplier": 1.0,
+    "distillation_relative_volatility_multiplier": 1.0,
+    "flow_rate_multiplier": 1.0,
+    "flow_residence_multiplier": 1.0,
+    "flow_boundary_ua_multiplier": 1.0,
+    "electro_exchange_current_multiplier": 1.0,
+    "electro_resistance_multiplier": 1.0,
+    "observation_noise_multiplier": 1.0,
+}
+
 
 @dataclass(frozen=True)
 class ChemWorldParameters:
@@ -31,6 +45,33 @@ class ChemWorldParameters:
     ua_W_per_K: float
     rho_cp_J_per_L_K: float
     environment_temperature_K: float
+    domain_parameters: dict[str, float]
+
+    def __post_init__(self) -> None:
+        domain_parameters = {
+            str(key): float(value) for key, value in self.domain_parameters.items()
+        }
+        missing = sorted(set(DEFAULT_DOMAIN_PARAMETERS) - set(domain_parameters))
+        unknown = sorted(set(domain_parameters) - set(DEFAULT_DOMAIN_PARAMETERS))
+        invalid = sorted(
+            key
+            for key, value in domain_parameters.items()
+            if not np.isfinite(value) or value <= 0.0
+        )
+        if missing or unknown or invalid:
+            raise ValueError(
+                "invalid domain parameters: "
+                f"missing={missing}, unknown={unknown}, nonpositive_or_nonfinite={invalid}"
+            )
+        object.__setattr__(self, "domain_parameters", domain_parameters)
+
+    def domain_parameter(self, key: str) -> float:
+        """Return a typed vNext provider parameter and fail on unknown keys."""
+
+        try:
+            return float(self.domain_parameters[key])
+        except KeyError as exc:
+            raise KeyError(f"Unknown domain parameter: {key}") from exc
 
 
 def stable_parameter_seed(split: str, seed: int, private_salt: str = "") -> int:
@@ -93,10 +134,12 @@ def load_chemworld_parameters(
         ua_W_per_K=float(rng.uniform(0.05, 0.12)),
         rho_cp_J_per_L_K=float(rng.uniform(3800.0, 4300.0)),
         environment_temperature_K=298.15,
+        domain_parameters=dict(DEFAULT_DOMAIN_PARAMETERS),
     )
 
 
 __all__ = [
+    "DEFAULT_DOMAIN_PARAMETERS",
     "SUPPORTED_SPLITS",
     "WORLD_FAMILY_VERSION",
     "ChemWorldParameters",

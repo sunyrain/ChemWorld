@@ -58,8 +58,8 @@ class ChemWorldDomainServices:
         self.primitive = ChemWorldPrimitiveOperationServices(world, self.species_view)
         self.reaction_thermal = ChemWorldReactionThermalServices(world, self.species_view)
         self.phase_separation = ChemWorldPhaseSeparationServices(world, self.species_view)
-        self.crystallization = ChemWorldCrystallizationServices(self.species_view)
-        self.distillation = ChemWorldDistillationServices(self.species_view)
+        self.crystallization = ChemWorldCrystallizationServices(world, self.species_view)
+        self.distillation = ChemWorldDistillationServices(world, self.species_view)
         self.flow = ChemWorldFlowServices(self.species_view, self.reaction_thermal)
         self.electrochemical = ChemWorldElectrochemicalServices(world, self.species_view)
         self.instrument_cost = ChemWorldInstrumentCostServices(constitution)
@@ -103,9 +103,7 @@ class ChemWorldDomainServices:
             "add_reagent": self.primitive.add_reagent,
             "add_solvent": self.primitive.add_solvent,
             "add_catalyst": self.primitive.add_catalyst,
-            "heat": lambda state, action: self.reaction_thermal.integrate(
-                state, action, heat=True
-            ),
+            "heat": lambda state, action: self.reaction_thermal.integrate(state, action, heat=True),
             "wait": lambda state, action: self.reaction_thermal.integrate(
                 state, action, heat=False
             ),

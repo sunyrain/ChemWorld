@@ -90,6 +90,7 @@ class PFRModel:
     geometry: PFRGeometrySpec | None = None
     inlet_pressure_Pa: float = 101_325.0
     reactor_id: str = "pfr"
+    rate_multiplier: float = 1.0
 
     def __post_init__(self) -> None:
         if self.reactor_volume_L <= 0:
@@ -98,6 +99,8 @@ class PFRModel:
             raise ValueError("volumetric_flow_L_s must be positive")
         if self.inlet_pressure_Pa <= 0.0:
             raise ValueError("inlet_pressure_Pa must be positive")
+        if self.rate_multiplier <= 0.0 or not np.isfinite(self.rate_multiplier):
+            raise ValueError("rate_multiplier must be positive and finite")
         if self.geometry is not None and not np.isclose(
             self.geometry.volume_l,
             self.reactor_volume_L,
@@ -171,11 +174,11 @@ class PFRModel:
             )
             dconcentrations = dict.fromkeys(self.network.species_ids, 0.0)
             for reaction in self.network.reactions:
-                rate = rates[reaction.reaction_id]
+                rate = rates[reaction.reaction_id] * self.rate_multiplier
                 for species_id, coefficient in reaction.stoichiometry.items():
                     dconcentrations[species_id] += coefficient * rate
             heat_reaction_per_L_W = sum(
-                reaction.delta_h_J_per_mol * rates[reaction.reaction_id]
+                reaction.delta_h_J_per_mol * rates[reaction.reaction_id] * self.rate_multiplier
                 for reaction in self.network.reactions
             )
             boundary_heat_W = 0.0
@@ -274,6 +277,7 @@ class PFRModel:
             metadata={
                 "residence_time_s": self.residence_time_s,
                 "volumetric_flow_L_s": self.volumetric_flow_L_s,
+                "rate_multiplier": self.rate_multiplier,
                 "geometry": geometry_payload,
                 "axial_positions_m": axial_positions,
                 "pressures_Pa": pressures,

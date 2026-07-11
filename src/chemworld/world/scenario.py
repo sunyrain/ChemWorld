@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from hashlib import sha256
 from random import Random
-from typing import Protocol
+from typing import Any, Protocol
 
 from chemworld.foundation import WorldState
 from chemworld.foundation.state import SpeciesLedger
@@ -75,24 +75,39 @@ class ScenarioInstance:
     compiled_mechanism: CompiledMechanism
 
     def to_card(self) -> dict[str, object]:
+        intervention_hash = self.initial_state.metadata.get("world_family_intervention_hash")
         return {
             **self.spec.to_dict(),
             "world_id": self.parameters.world_id,
             "world_provider": self.parameters.provider,
             "world_family_version": self.parameters.family_version,
+            "world_family_intervention_version": self.initial_state.metadata.get(
+                "world_family_intervention_version"
+            ),
+            "world_family_intervention_hash": intervention_hash,
             "mechanism": self.compiled_mechanism.to_dict(),
         }
 
 
 class ScenarioGenerator(Protocol):
-    def generate(self, spec: ScenarioSpec, seed: int) -> ScenarioInstance:
+    def generate(
+        self,
+        spec: ScenarioSpec,
+        seed: int,
+        interventions: tuple[dict[str, Any], ...] = (),
+    ) -> ScenarioInstance:
         """Generate a reproducible scenario instance."""
 
 
 class DefaultScenarioGenerator:
     """Generate ChemWorld scenarios from split, seed, and initial-state policy."""
 
-    def generate(self, spec: ScenarioSpec, seed: int) -> ScenarioInstance:
+    def generate(
+        self,
+        spec: ScenarioSpec,
+        seed: int,
+        interventions: tuple[dict[str, Any], ...] = (),
+    ) -> ScenarioInstance:
         from chemworld.world.state_factory import initial_chemworld_state
 
         profile_offset = _profile_offset(spec.parameter_profile)
@@ -122,16 +137,8 @@ class DefaultScenarioGenerator:
                 species=SpeciesLedger(
                     species_roles=compiled_mechanism.species_roles,
                     initial_amounts_mol={
-                        **(
-                            {target_species[0]: target_amount}
-                            if target_species
-                            else {}
-                        ),
-                        **(
-                            {impurity_species[0]: impurity_amount}
-                            if impurity_species
-                            else {}
-                        ),
+                        **({target_species[0]: target_amount} if target_species else {}),
+                        **({impurity_species[0]: impurity_amount} if impurity_species else {}),
                     },
                 ),
             )
@@ -148,8 +155,7 @@ class DefaultScenarioGenerator:
             metadata.update(
                 {
                     "hidden_equilibrium_pka": equilibrium_rng.uniform(3.8, 5.4),
-                    "hidden_equilibrium_ksp": 10.0
-                    ** equilibrium_rng.uniform(-10.4, -9.2),
+                    "hidden_equilibrium_ksp": 10.0 ** equilibrium_rng.uniform(-10.4, -9.2),
                 }
             )
         if spec.initial_state_seed:
@@ -173,12 +179,21 @@ class DefaultScenarioGenerator:
             "mechanism_hash": compiled_mechanism.mechanism_hash,
         }
         initial_state = initial_state.replace(metadata=mechanism_metadata)
-        return ScenarioInstance(
+        instance = ScenarioInstance(
             spec=spec,
             parameters=parameters,
             initial_state=initial_state,
             compiled_mechanism=compiled_mechanism,
         )
+        if not interventions:
+            return instance
+        from chemworld.world.world_family import (
+            AxisIntervention,
+            apply_axis_interventions,
+        )
+
+        parsed = tuple(AxisIntervention.from_dict(item) for item in interventions)
+        return apply_axis_interventions(instance, parsed)
 
 
 def _profile_offset(parameter_profile: str) -> int:

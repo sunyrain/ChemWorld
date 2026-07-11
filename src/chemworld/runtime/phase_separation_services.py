@@ -116,6 +116,12 @@ class ChemWorldPhaseSeparationServices:
             stirring_speed_rpm=stirring,
             organic_volume_L=organic["volume_L"],
             aqueous_volume_L=aqueous["volume_L"],
+            coefficient_multiplier=self.world.domain_parameter(
+                "partition_coefficient_multiplier"
+            ),
+            phase_volume_multiplier=self.world.domain_parameter(
+                "partition_phase_volume_multiplier"
+            ),
         )
         organic[PHASE_PRODUCT_AMOUNT_KEY] = split["organic_product_mol"]
         aqueous[PHASE_PRODUCT_AMOUNT_KEY] = split["aqueous_product_mol"]

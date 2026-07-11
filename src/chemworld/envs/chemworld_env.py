@@ -63,6 +63,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         task_id: str | None = None,
         budget_override: int | None = None,
         episode_mode_override: str | None = None,
+        world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
         debug_truth: bool = False,
         render_mode: str | None = None,
     ) -> None:
@@ -80,9 +81,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         if budget <= 0:
             raise ValueError("budget must be positive")
         if episode_mode_override not in {None, "single_experiment", "campaign"}:
-            raise ValueError(
-                "episode_mode_override must be single_experiment, campaign, or None"
-            )
+            raise ValueError("episode_mode_override must be single_experiment, campaign, or None")
 
         self.world_split = world_split
         self.budget = budget
@@ -90,6 +89,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.objective = objective
         self.seed = seed
         self.debug_truth = debug_truth
+        self.world_interventions = tuple(world_interventions or ())
         self.render_mode = render_mode
         self.allowed_operations = (
             set(self.task_spec.allowed_operations)
@@ -130,11 +130,13 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             if self.task_spec is not None
             else get_scenario(DEFAULT_SCENARIO_ID, split=world_split)
         )
-        self.scenario_instance = self.scenario_generator.generate(self.scenario_spec, seed)
-        self.world = self.scenario_instance.parameters
-        self.constitution = make_chemworld_constitution(
-            self.scenario_instance.compiled_mechanism
+        self.scenario_instance = self.scenario_generator.generate(
+            self.scenario_spec,
+            seed,
+            self.world_interventions,
         )
+        self.world = self.scenario_instance.parameters
+        self.constitution = make_chemworld_constitution(self.scenario_instance.compiled_mechanism)
         self.observation_contract = self._make_observation_contract()
         self.operation_validator = OperationValidator(
             constitution=self.constitution,
@@ -149,6 +151,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.scenario_instance.compiled_mechanism,
             self.scoring_contract,
             self.observation_contract,
+            observation_noise_multiplier=self.world.domain_parameter(
+                "observation_noise_multiplier"
+            ),
         )
         self._rng = np.random.default_rng(seed)
         self._step_count = 0
@@ -177,12 +182,14 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self._rng = np.random.default_rng(seed)
         if options and options.get("scenario_id"):
             self.scenario_spec = get_scenario(str(options["scenario_id"]), split=self.world_split)
-        self.scenario_instance = self.scenario_generator.generate(self.scenario_spec, self.seed)
+        self.scenario_instance = self.scenario_generator.generate(
+            self.scenario_spec,
+            self.seed,
+            self.world_interventions,
+        )
         self.world = self.scenario_instance.parameters
         self._state = self.scenario_instance.initial_state
-        self.constitution = make_chemworld_constitution(
-            self.scenario_instance.compiled_mechanism
-        )
+        self.constitution = make_chemworld_constitution(self.scenario_instance.compiled_mechanism)
         self.operation_validator = OperationValidator(
             constitution=self.constitution,
             allowed_operations=self.allowed_operations,
@@ -197,6 +204,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.scenario_instance.compiled_mechanism,
             self.scoring_contract,
             self.observation_contract,
+            observation_noise_multiplier=self.world.domain_parameter(
+                "observation_noise_multiplier"
+            ),
         )
         self._step_count = 0
         self._experiment_index = 0
@@ -271,10 +281,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
 
         self._step_count += 1
         self._operation_id += 1
-        successful_final_assay = (
-            preconditions_passed
-            and operation_record.is_final_assay
-        )
+        successful_final_assay = preconditions_passed and operation_record.is_final_assay
         truncated = self._step_count >= self.budget
         campaign_final_assay = successful_final_assay and self.episode_mode == "campaign"
         terminated = successful_final_assay and not campaign_final_assay

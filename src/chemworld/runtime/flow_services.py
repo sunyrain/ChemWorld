@@ -33,6 +33,7 @@ class ChemWorldFlowServices:
     ) -> None:
         self.species_view = species_view
         self.reaction_thermal = reaction_thermal
+        self.world = reaction_thermal.world
 
     def set_flow_rate(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         flow_rate = float(np.clip(_action_float(action, "flow_rate_mL_min", 1.0), 0.01, 20.0))
@@ -58,7 +59,7 @@ class ChemWorldFlowServices:
                 "residence_time_s",
                 _action_float(action, "duration_s", 600.0),
             )
-        )
+        ) * self.world.domain_parameter("flow_residence_multiplier")
         flow_rate = float(flow_settings.get("flow_rate_mL_min", 1.0))
         duration = float(
             np.clip(_action_float(action, "duration_s", residence), residence, 14_400.0)
@@ -76,7 +77,9 @@ class ChemWorldFlowServices:
             roughness_m=1.0e-6,
             fluid_density_kg_m3=950.0,
             fluid_viscosity_Pa_s=1.2e-3,
-            boundary_ua_W_per_m_K=5.0,
+            boundary_ua_W_per_m_K=(
+                5.0 * self.world.domain_parameter("flow_boundary_ua_multiplier")
+            ),
             boundary_temperature_K=target_temperature,
         )
         model = PFRModel(
@@ -86,6 +89,7 @@ class ChemWorldFlowServices:
             geometry=geometry,
             inlet_pressure_Pa=max(state.pressure_Pa, 101_325.0),
             reactor_id="chemworld_runtime_pfr_v1",
+            rate_multiplier=self.world.domain_parameter("flow_rate_multiplier"),
         )
         inlet_concentrations = {
             species_id: max(state.species_amounts.get(species_id, 0.0), 0.0)
@@ -113,17 +117,12 @@ class ChemWorldFlowServices:
             time_s=state.ledger.time_s + duration,
             cost=state.ledger.cost + duration / 3600.0 * 0.030,
             energy_jacket_J=(
-                state.ledger.energy_jacket_J
-                + result.final_state.energy_jacket_J * state_scale
+                state.ledger.energy_jacket_J + result.final_state.energy_jacket_J * state_scale
             ),
             heat_reaction_J=(
-                state.ledger.heat_reaction_J
-                + result.final_state.heat_reaction_J * state_scale
+                state.ledger.heat_reaction_J + result.final_state.heat_reaction_J * state_scale
             ),
-            heat_loss_J=(
-                state.ledger.heat_loss_J
-                + result.final_state.heat_loss_J * state_scale
-            ),
+            heat_loss_J=(state.ledger.heat_loss_J + result.final_state.heat_loss_J * state_scale),
             risk=min(1.0, state.ledger.risk + 0.015 * (target_temperature > 390.0)),
         )
         pressure_payload = result.metadata.get("pressures_Pa")

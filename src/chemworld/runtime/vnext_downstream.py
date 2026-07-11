@@ -116,16 +116,37 @@ def run_vacuum_concentration(
     }
     specifications = {
         _PRODUCT_ID: ConcentrationComponentSpec(
-            _PRODUCT_ID, 120.0, 1.0, 52_000.0, 155.0, 0.018,
-            operating_temperature, 465.0, "runtime-vnext-bounded-product",
+            _PRODUCT_ID,
+            120.0,
+            1.0,
+            52_000.0,
+            155.0,
+            0.018,
+            operating_temperature,
+            465.0,
+            "runtime-vnext-bounded-product",
         ),
         _IMPURITY_ID: ConcentrationComponentSpec(
-            _IMPURITY_ID, 4_500.0, 1.0, 48_000.0, 130.0, 0.018,
-            operating_temperature, 455.0, "runtime-vnext-bounded-impurity",
+            _IMPURITY_ID,
+            4_500.0,
+            1.0,
+            48_000.0,
+            130.0,
+            0.018,
+            operating_temperature,
+            455.0,
+            "runtime-vnext-bounded-impurity",
         ),
         _CARRIER_ID: ConcentrationComponentSpec(
-            _CARRIER_ID, 82_000.0, 1.0, 40_700.0, 75.0, 0.018,
-            operating_temperature, 500.0, "runtime-vnext-bounded-carrier",
+            _CARRIER_ID,
+            82_000.0,
+            1.0,
+            40_700.0,
+            75.0,
+            0.018,
+            operating_temperature,
+            500.0,
+            "runtime-vnext-bounded-carrier",
         ),
     }
     equipment = VacuumConcentratorSpec(
@@ -191,9 +212,12 @@ def run_duty_limited_distillation(
     duration_s: float,
     reflux_ratio: float,
     requested_cut_fraction: float,
+    relative_volatility_multiplier: float = 1.0,
 ) -> DutyLimitedDistillationResult:
     """Map the compact target/impurity cut to the bounded column provider."""
 
+    if relative_volatility_multiplier <= 0.0:
+        raise ValueError("relative_volatility_multiplier must be positive")
     feed = {
         _PRODUCT_ID: max(float(feed_amounts_mol.get(_PRODUCT_ID, 0.0)), 0.0),
         _IMPURITY_ID: max(float(feed_amounts_mol.get(_IMPURITY_ID, 0.0)), 0.0),
@@ -201,12 +225,22 @@ def run_duty_limited_distillation(
     operating_temperature = max(initial_temperature_K, operating_temperature_K)
     specs = {
         _PRODUCT_ID: DistillationComponentSpec(
-            _PRODUCT_ID, 650_000.0, 38_000.0, 145.0,
-            operating_temperature, 470.0, "runtime-vnext-light-key",
+            _PRODUCT_ID,
+            650_000.0 * relative_volatility_multiplier,
+            38_000.0,
+            145.0,
+            operating_temperature,
+            470.0,
+            "runtime-vnext-light-key",
         ),
         _IMPURITY_ID: DistillationComponentSpec(
-            _IMPURITY_ID, 150_000.0, 55_000.0, 165.0,
-            operating_temperature, 465.0, "runtime-vnext-heavy-key",
+            _IMPURITY_ID,
+            150_000.0 / relative_volatility_multiplier**0.25,
+            55_000.0,
+            165.0,
+            operating_temperature,
+            465.0,
+            "runtime-vnext-heavy-key",
         ),
     }
     total = sum(feed.values())

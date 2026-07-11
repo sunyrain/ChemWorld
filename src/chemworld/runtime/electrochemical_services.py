@@ -48,9 +48,7 @@ class ChemWorldElectrochemicalServices:
         contact_resistance = float(
             np.clip(_action_float(action, "contact_resistance_ohm", 0.20), 0.0, 100.0)
         )
-        voltage_window = float(
-            np.clip(_action_float(action, "voltage_window_V", 2.5), 0.1, 10.0)
-        )
+        voltage_window = float(np.clip(_action_float(action, "voltage_window_V", 2.5), 0.1, 10.0))
         equipment = upsert_equipment_record(
             state.equipment,
             equipment_id="electrochemical_cell",
@@ -76,13 +74,17 @@ class ChemWorldElectrochemicalServices:
         cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
         potential = float(cell_settings.get("potential_V", 1.20))
         current_mA = float(cell_settings.get("current_mA", 50.0))
+        resistance_multiplier = self.world.domain_parameter("electro_resistance_multiplier")
         resistance = ElectrolyteResistanceSpec(
             electrolyte_conductivity_S_m=float(
                 cell_settings.get("electrolyte_conductivity_S_m", 8.0)
-            ),
+            )
+            / resistance_multiplier,
             electrode_gap_m=float(cell_settings.get("electrode_gap_m", 0.004)),
             electrode_area_m2=float(cell_settings.get("electrode_area_m2", 0.004)),
-            contact_resistance_ohm=float(cell_settings.get("contact_resistance_ohm", 0.20)),
+            contact_resistance_ohm=(
+                float(cell_settings.get("contact_resistance_ohm", 0.20)) * resistance_multiplier
+            ),
             voltage_window_V=float(cell_settings.get("voltage_window_V", 2.5)),
         )
         species = state.species_amounts.copy()
@@ -96,6 +98,9 @@ class ChemWorldElectrochemicalServices:
         solvent = int(reactor_settings.get("solvent", 0))
         exchange_current_density = 28.0 * float(self.world.catalyst_effects[catalyst, 0])
         exchange_current_density *= float(self.world.solvent_effects[solvent, 0])
+        exchange_current_density *= self.world.domain_parameter(
+            "electro_exchange_current_multiplier"
+        )
         electrochemical_spec = ElectrodeReactionSpec(
             reaction_id=f"{reactant}_to_{product}_electrochemical",
             electrons_transferred=2.0,

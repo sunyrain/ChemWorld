@@ -1,0 +1,68 @@
+{
+  "schema_version": "chemworld-generalization-security-protocol-0.2",
+  "protocol_id": "chemworld-vnext-axis-intervention-candidate-0.1",
+  "base_world_law_id": "chemworld-physical-chemistry-v0.4",
+  "intervention_contract_version": "chemworld-world-family-intervention-0.1",
+  "status": "candidate_controls_only",
+  "benchmark_claim_allowed": false,
+  "required_modes": [
+    "interpolation",
+    "extrapolation",
+    "composition",
+    "observation_noise"
+  ],
+  "tasks": {
+    "partition-discovery": {
+      "axes": [
+        "partition.distribution-coefficient",
+        "partition.phase-volume-ratio"
+      ]
+    },
+    "reaction-to-crystallization": {
+      "axes": [
+        "crystallization.kinetic-profile",
+        "crystallization.solubility-cooling-profile"
+      ]
+    },
+    "reaction-to-distillation": {
+      "axes": [
+        "distillation.relative-volatility",
+        "distillation.reaction-selectivity"
+      ]
+    },
+    "flow-reaction-optimization": {
+      "axes": [
+        "flow.reaction-kinetics",
+        "flow.residence-thermal-boundary"
+      ]
+    },
+    "electrochemical-conversion": {
+      "axes": [
+        "electrochem.redox-kinetics",
+        "electrochem.mass-transfer-resistance"
+      ]
+    },
+    "equilibrium-characterization": {
+      "axes": [
+        "equilibrium.acid-base-constants",
+        "equilibrium.solubility-product"
+      ]
+    }
+  },
+  "control_requirements": {
+    "deterministic_given_seed_and_intervention": true,
+    "intervention_hash_required": true,
+    "single_axis_probe_changes_task_response": true,
+    "zero_intervention_preserves_base_contract": true,
+    "train_dev_bench_intervention_sets_disjoint": true,
+    "axis_identity_hidden_from_agent": true,
+    "source_data_must_report_negative_results": true
+  },
+  "remaining_release_gates": [
+    "freeze intervention grids and disjoint train/dev/bench allocation",
+    "run paired multi-seed method comparisons for every axis and mode",
+    "calibrate severity so shifts are neither trivial nor solver-breaking",
+    "verify agent-facing observations do not reveal axis identifiers",
+    "bind results to a new publication protocol and clean source commit"
+  ]
+}

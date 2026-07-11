@@ -41,16 +41,29 @@ def partition_split(
     stirring_speed_rpm: float,
     organic_volume_L: float,
     aqueous_volume_L: float,
+    coefficient_multiplier: float = 1.0,
+    phase_volume_multiplier: float = 1.0,
 ) -> PartitionSplitResult:
+    if coefficient_multiplier <= 0.0 or phase_volume_multiplier <= 0.0:
+        raise ValueError("partition intervention multipliers must be positive")
     partition_base = np.array([0.65, 1.25, 2.20, 1.55])
     temperature_factor = 1.0 + 0.0025 * (temperature_K - 298.15)
     mix_factor = 0.75 + 0.25 * (1.0 - np.exp(-duration_s / 240.0)) * (
         0.70 + 0.30 * stirring_speed_rpm / 1200.0
     )
-    partition = max(0.05, float(partition_base[solvent] * temperature_factor * mix_factor))
-    v_org = max(organic_volume_L, 1.0e-9)
-    v_aq = max(aqueous_volume_L, 1.0e-9)
-    impurity_partition = max(0.05, float(0.18 * partition + 0.08 * (solvent + 1)))
+    partition = max(
+        0.05,
+        float(partition_base[solvent] * temperature_factor * mix_factor * coefficient_multiplier),
+    )
+    v_org = max(organic_volume_L * phase_volume_multiplier, 1.0e-9)
+    v_aq = max(aqueous_volume_L / phase_volume_multiplier, 1.0e-9)
+    impurity_partition = max(
+        0.05,
+        float(
+            (0.18 * partition / coefficient_multiplier + 0.08 * (solvent + 1))
+            / coefficient_multiplier**0.25
+        ),
+    )
     feed = {"product": max(product_mol, 0.0), "impurity": max(impurity_mol, 0.0)}
     if sum(feed.values()) > 0.0:
         distribution_model = DistributionCoefficientModelSpec(
@@ -64,11 +77,7 @@ def partition_split(
         )
         entrainment_fraction = float(
             np.clip(
-                0.01
-                + 0.015
-                * stirring_speed_rpm
-                / 1200.0
-                * (1.0 - np.exp(-duration_s / 120.0)),
+                0.01 + 0.015 * stirring_speed_rpm / 1200.0 * (1.0 - np.exp(-duration_s / 120.0)),
                 0.0,
                 0.04,
             )
@@ -121,12 +130,8 @@ def partition_split(
         "organic_impurity_mol": organic_impurity_mol,
         "aqueous_impurity_mol": aqueous_impurity_mol,
         "lle_phase_status": str(diagnostic.get("phase_status", "single_liquid")),
-        "lle_minimum_tpd_like": _diagnostic_float(
-            diagnostic.get("minimum_tpd_like", 0.0)
-        ),
-        "lle_partition_log_spread": _diagnostic_float(
-            diagnostic.get("partition_log_spread", 0.0)
-        ),
+        "lle_minimum_tpd_like": _diagnostic_float(diagnostic.get("minimum_tpd_like", 0.0)),
+        "lle_partition_log_spread": _diagnostic_float(diagnostic.get("partition_log_spread", 0.0)),
         "extraction_model_id": extraction_model_id,
         "extraction_converged": extraction_converged,
         "extraction_material_balance_error_mol": extraction_balance_error,
