@@ -1,0 +1,86 @@
+{
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "adaptive_spectra_and_memory_required": true,
+    "candidate_is_non_claiming": true,
+    "cost_examples_positive": true,
+    "no_deprecated_model_alias": true,
+    "pricing_matches_frozen_protocol": true,
+    "private_reasoning_excluded": true,
+    "resource_accounting_complete_by_contract": true,
+    "schema": true,
+    "structured_public_audit_required": true,
+    "two_independent_model_ids": true
+  },
+  "controls_ready": true,
+  "formal_run_matrix_complete": false,
+  "pricing_snapshots": {
+    "live_llm_a": {
+      "access_date": "2026-07-11",
+      "input_cache_hit_per_million_usd": 0.003625,
+      "input_cache_miss_per_million_usd": 0.435,
+      "legacy_alias": false,
+      "model_id": "deepseek-v4-pro",
+      "output_per_million_usd": 0.87,
+      "requested_model_id": "deepseek-v4-pro",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing"
+    },
+    "live_llm_b": {
+      "access_date": "2026-07-11",
+      "input_cache_hit_per_million_usd": 0.0028,
+      "input_cache_miss_per_million_usd": 0.14,
+      "legacy_alias": false,
+      "model_id": "deepseek-v4-flash",
+      "output_per_million_usd": 0.28,
+      "requested_model_id": "deepseek-v4-flash",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing"
+    }
+  },
+  "protocol_id": "chemworld-vnext-live-llm-candidate-0.1",
+  "publication_ready": false,
+  "remaining_release_gates": [
+    "run both frozen model roles over all paired confirmatory seeds and core tasks",
+    "retain replay-verified trajectories and failures",
+    "pass provider usage and pricing reconciliation",
+    "complete independent reproduction without API-key disclosure",
+    "report per-task effects and resource frontiers without a scalar aggregate"
+  ],
+  "resource_examples": {
+    "live_llm_a": {
+      "estimated_cost_usd": 0.00043645,
+      "usage": {
+        "completion_tokens": 200,
+        "prompt_cache_hit_tokens": 400,
+        "prompt_cache_miss_tokens": 600,
+        "prompt_tokens": 1000,
+        "total_tokens": 1200
+      }
+    },
+    "live_llm_b": {
+      "estimated_cost_usd": 0.00014112000000000003,
+      "usage": {
+        "completion_tokens": 200,
+        "prompt_cache_hit_tokens": 400,
+        "prompt_cache_miss_tokens": 600,
+        "prompt_tokens": 1000,
+        "total_tokens": 1200
+      }
+    }
+  },
+  "roles": {
+    "live_llm_a": {
+      "model_id": "deepseek-v4-pro",
+      "reasoning_effort": "max",
+      "response_format": "json_object",
+      "thinking": true
+    },
+    "live_llm_b": {
+      "model_id": "deepseek-v4-flash",
+      "reasoning_effort": null,
+      "response_format": "json_object",
+      "thinking": false
+    }
+  },
+  "schema_version": "chemworld-live-llm-audit-0.1",
+  "status": "controls_ready_formal_runs_missing"
+}

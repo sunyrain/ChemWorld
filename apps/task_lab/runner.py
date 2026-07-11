@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
@@ -49,7 +50,8 @@ class TaskRunResult:
     invalid_plan_actions: int
     model_call_count: int
     verified: bool
-    usage: dict[str, int]
+    usage: dict[str, Any]
+    method_resources: dict[str, Any]
     agent_backend: str
     contract_profile: str
     official_budget: int
@@ -186,6 +188,11 @@ def run_task(
             "api_key_source": "DEEPSEEK_API_KEY environment variable",
             "usage": usage,
         }
+        agent_metadata["method_resources"] = _method_resources(
+            client=client,
+            usage=usage,
+            model_call_count=model_call_count,
+        )
         executed_steps = 0
         plan_index = 0
         last_final_assay_step = 0
@@ -409,6 +416,12 @@ def run_task(
                         }
                     )
                 agent_metadata["usage"] = dict(usage)
+                method_resources = _method_resources(
+                    client=client,
+                    usage=usage,
+                    model_call_count=model_call_count,
+                )
+                agent_metadata["method_resources"] = method_resources
                 logger.log(
                     task_info=task_info,
                     step=executed_steps,
@@ -431,6 +444,7 @@ def run_task(
                     },
                     agent_view=agent_view_bundle(env, observation, info),
                     agent_trace=trace,
+                    method_resources=method_resources,
                 )
                 emit(
                     {
@@ -513,6 +527,11 @@ def run_task(
         model_call_count=model_call_count,
         verified=bool(verified and verified.get("verified")),
         usage=usage,
+        method_resources=_method_resources(
+            client=client,
+            usage=usage,
+            model_call_count=model_call_count,
+        ),
         agent_backend="deepseek",
         contract_profile=contract_profile,
         official_budget=task.budget,
@@ -844,7 +863,13 @@ def _disclose_spectra_summary(
 
 
 def _empty_usage() -> dict[str, int]:
-    return {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    return {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 0,
+    }
 
 
 def _add_usage(total: dict[str, int], usage: dict[str, Any]) -> None:
@@ -852,6 +877,50 @@ def _add_usage(total: dict[str, int], usage: dict[str, Any]) -> None:
         value = usage.get(key, 0)
         if isinstance(value, int) and not isinstance(value, bool):
             total[key] += value
+
+
+def _method_resources(
+    *,
+    client: JsonPlannerClient,
+    usage: dict[str, Any],
+    model_call_count: int,
+) -> dict[str, Any]:
+    pricing_factory = getattr(client, "pricing_snapshot", None)
+    cost_factory = getattr(client, "estimate_cost_usd", None)
+    pricing = pricing_factory() if callable(pricing_factory) else None
+    accounting_complete = isinstance(pricing, dict) and callable(cost_factory)
+    cost = float(cost_factory(usage)) if accounting_complete else 0.0
+    prompt_hash = hashlib.sha256(
+        (SYSTEM_PROMPT + "|chemworld-task-lab-adaptive-json-0.2").encode("utf-8")
+    ).hexdigest()
+    return {
+        "schema_version": "chemworld-method-resource-usage-0.1",
+        "accounting_complete": accounting_complete,
+        "usage_source": "provider_usage_and_frozen_price_snapshot",
+        "model_call_count": int(model_call_count),
+        "input_token_count": int(usage.get("prompt_tokens", 0)),
+        "output_token_count": int(usage.get("completion_tokens", 0)),
+        "monetary_cost_usd": cost,
+        "training_environment_step_count": 0,
+        "cpu_time_s": 0.0,
+        "gpu_time_s": 0.0,
+        "model_provenance": {
+            "provider": "DeepSeek",
+            "model_id": client.model,
+            "model_snapshot_or_access_date": (
+                pricing.get("access_date") if isinstance(pricing, dict) else None
+            ),
+            "prompt_hash": prompt_hash,
+            "request_parameters": {
+                "response_format": "json_object",
+                "thinking": bool(getattr(client, "thinking", False)),
+                "reasoning_effort": getattr(client, "reasoning_effort", None),
+            },
+            "tokenizer_or_provider_usage_source": "DeepSeek response.usage",
+            "pricing": pricing,
+            "private_reasoning_retained": False,
+        },
+    }
 
 
 __all__ = ["RunMode", "TaskRunResult", "run_task"]

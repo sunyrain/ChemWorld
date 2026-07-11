@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,7 @@ from apps.task_lab.runner import run_task
 from apps.task_lab.spectral_payload import spectral_payload
 from apps.task_lab.student_session import StudentSessionManager
 
+from chemworld.data.logging import load_jsonl
 from chemworld.tasks import list_tasks
 
 
@@ -111,7 +113,14 @@ class FlakyJsonClient(DeepSeekClient):
         envelope = {
             "id": f"request-{self.request_count}",
             "model": self.model,
-            "choices": [{"message": {"content": content}}],
+            "choices": [
+                {
+                    "message": {
+                        "content": content,
+                        "reasoning_content": "PRIVATE_REASONING_MUST_NOT_BE_RETAINED",
+                    }
+                }
+            ],
             "usage": {"prompt_tokens": 3, "completion_tokens": 2, "total_tokens": 5},
         }
         return json.dumps(envelope), None
@@ -360,9 +369,15 @@ def test_deepseek_json_client_retries_empty_output_and_aggregates_usage() -> Non
         "prompt_tokens": 6,
         "completion_tokens": 4,
         "total_tokens": 10,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 0,
     }
     assert client.bodies[0]["thinking"] == {"type": "enabled"}
     assert client.bodies[0]["reasoning_effort"] == "max"
+    assert "PRIVATE_REASONING_MUST_NOT_BE_RETAINED" not in json.dumps(
+        asdict(completion),
+        sort_keys=True,
+    )
 
 
 def test_adaptive_runner_reads_public_spectrum_and_emits_audit_record(
@@ -387,6 +402,14 @@ def test_adaptive_runner_reads_public_spectrum_and_emits_audit_record(
     assert len(decisions) == 8
     assert decisions[0]["evidence"] == ["The latest public report was reviewed."]
     assert decisions[0]["uncertainty"] == pytest.approx(0.35)
+    assert result.method_resources["accounting_complete"] is False
+    assert result.method_resources["model_provenance"]["private_reasoning_retained"] is False
+    records = load_jsonl(result.trajectory_path)
+    assert records[-1]["method_resources"]["model_call_count"] == 8
+    assert "PRIVATE_REASONING_MUST_NOT_BE_RETAINED" not in json.dumps(
+        records,
+        sort_keys=True,
+    )
     spectral_steps = [
         event
         for event in events
@@ -562,6 +585,8 @@ def test_adaptive_runner_preserves_scoring_when_a_late_model_call_fails(
         "prompt_tokens": 100,
         "completion_tokens": 41,
         "total_tokens": 141,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 0,
     }
     assert any(event["type"] == "model_call_failed" for event in events)
     assert any(event["type"] == "closeout_action" for event in events)

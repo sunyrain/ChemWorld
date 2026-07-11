@@ -11,7 +11,35 @@ from typing import Any, Literal, Protocol
 
 DEFAULT_BASE_URL = "https://api.deepseek.com"
 DEFAULT_MODEL = "deepseek-v4-pro"
+PRICING_ACCESS_DATE = "2026-07-11"
+PRICING_SOURCE = "https://api-docs.deepseek.com/quick_start/pricing"
 ReasoningEffort = Literal["high", "max"]
+
+
+@dataclass(frozen=True)
+class DeepSeekPricing:
+    model_id: str
+    input_cache_hit_per_million_usd: float
+    input_cache_miss_per_million_usd: float
+    output_per_million_usd: float
+    access_date: str = PRICING_ACCESS_DATE
+    source: str = PRICING_SOURCE
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "model_id": self.model_id,
+            "input_cache_hit_per_million_usd": self.input_cache_hit_per_million_usd,
+            "input_cache_miss_per_million_usd": self.input_cache_miss_per_million_usd,
+            "output_per_million_usd": self.output_per_million_usd,
+            "access_date": self.access_date,
+            "source": self.source,
+        }
+
+
+_PRICING = {
+    "deepseek-v4-flash": DeepSeekPricing("deepseek-v4-flash", 0.0028, 0.14, 0.28),
+    "deepseek-v4-pro": DeepSeekPricing("deepseek-v4-pro", 0.003625, 0.435, 0.87),
+}
 
 
 class JsonPlannerClient(Protocol):
@@ -78,6 +106,35 @@ class DeepSeekClient:
             raise ValueError("reasoning_effort must be high or max")
         self.reasoning_effort = reasoning_effort
 
+    def pricing_snapshot(self) -> dict[str, Any]:
+        model_id = {
+            "deepseek-chat": "deepseek-v4-flash",
+            "deepseek-reasoner": "deepseek-v4-flash",
+        }.get(self.model, self.model)
+        try:
+            pricing = _PRICING[model_id]
+        except KeyError as exc:
+            raise DeepSeekAPIError(f"No frozen pricing snapshot for model {self.model!r}") from exc
+        payload = pricing.to_dict()
+        payload["requested_model_id"] = self.model
+        payload["legacy_alias"] = self.model != model_id
+        return payload
+
+    def estimate_cost_usd(self, usage: dict[str, Any]) -> float:
+        pricing = self.pricing_snapshot()
+        prompt_tokens = _nonnegative_int(usage.get("prompt_tokens"))
+        cache_hit = _nonnegative_int(usage.get("prompt_cache_hit_tokens"))
+        cache_miss = _nonnegative_int(usage.get("prompt_cache_miss_tokens"))
+        accounted_prompt = cache_hit + cache_miss
+        if accounted_prompt < prompt_tokens:
+            cache_miss += prompt_tokens - accounted_prompt
+        completion = _nonnegative_int(usage.get("completion_tokens"))
+        return (
+            cache_hit * float(pricing["input_cache_hit_per_million_usd"])
+            + cache_miss * float(pricing["input_cache_miss_per_million_usd"])
+            + completion * float(pricing["output_per_million_usd"])
+        ) / 1_000_000.0
+
     def complete_json(
         self,
         *,
@@ -89,6 +146,8 @@ class DeepSeekClient:
             "prompt_tokens": 0,
             "completion_tokens": 0,
             "total_tokens": 0,
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 0,
         }
         last_error: Exception | None = None
         for attempt in range(1, 4):
@@ -187,11 +246,18 @@ def _merge_usage(total: dict[str, int], usage: object) -> None:
             total[key] += value
 
 
+def _nonnegative_int(value: object) -> int:
+    if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+        return value
+    return 0
+
+
 __all__ = [
     "DEFAULT_BASE_URL",
     "DEFAULT_MODEL",
     "DeepSeekAPIError",
     "DeepSeekClient",
+    "DeepSeekPricing",
     "JsonCompletion",
     "JsonPlannerClient",
     "ReasoningEffort",

@@ -1,0 +1,73 @@
+{
+  "schema_version": "chemworld-live-llm-protocol-0.1",
+  "protocol_id": "chemworld-vnext-live-llm-candidate-0.1",
+  "benchmark_claim_allowed": false,
+  "publication_ready": false,
+  "provider": "DeepSeek",
+  "base_url": "https://api.deepseek.com",
+  "access_date": "2026-07-11",
+  "official_documentation": {
+    "models": "https://api-docs.deepseek.com/",
+    "thinking": "https://api-docs.deepseek.com/guides/thinking_mode/",
+    "json_output": "https://api-docs.deepseek.com/guides/json_mode/",
+    "pricing": "https://api-docs.deepseek.com/quick_start/pricing"
+  },
+  "agent_roles": {
+    "live_llm_a": {
+      "model_id": "deepseek-v4-pro",
+      "thinking": true,
+      "reasoning_effort": "max",
+      "response_format": "json_object"
+    },
+    "live_llm_b": {
+      "model_id": "deepseek-v4-flash",
+      "thinking": false,
+      "reasoning_effort": null,
+      "response_format": "json_object"
+    }
+  },
+  "pricing_usd_per_million_tokens": {
+    "deepseek-v4-pro": {
+      "input_cache_hit": 0.003625,
+      "input_cache_miss": 0.435,
+      "output": 0.87
+    },
+    "deepseek-v4-flash": {
+      "input_cache_hit": 0.0028,
+      "input_cache_miss": 0.14,
+      "output": 0.28
+    }
+  },
+  "interaction_requirements": {
+    "mode": "adaptive",
+    "decision_scope": "operation",
+    "one_live_call_per_model_decision": true,
+    "reads_public_spectra": true,
+    "adapts_within_experiment": true,
+    "adapts_across_experiments": true,
+    "structured_decision_fields": [
+      "evidence",
+      "spectrum_interpretation",
+      "hypothesis",
+      "uncertainty",
+      "rationale"
+    ],
+    "private_chain_of_thought_requested": false,
+    "private_reasoning_retained": false
+  },
+  "resource_requirements": {
+    "provider_usage_required": true,
+    "cache_token_breakdown_retained": true,
+    "frozen_price_snapshot_required": true,
+    "monetary_cost_required": true,
+    "model_and_prompt_provenance_required": true,
+    "failures_and_retries_count_as_calls": true
+  },
+  "formal_readiness_requirements": [
+    "run both frozen model roles over all paired confirmatory seeds and core tasks",
+    "retain replay-verified trajectories and failures",
+    "pass provider usage and pricing reconciliation",
+    "complete independent reproduction without API-key disclosure",
+    "report per-task effects and resource frontiers without a scalar aggregate"
+  ]
+}
