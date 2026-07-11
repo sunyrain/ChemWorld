@@ -1,6 +1,8 @@
 {
   "branch": "core/mechanism-constitutive-core6",
   "claimed_at": "2026-07-11T21:16:26.340612+00:00",
+  "completed_at": "2026-07-11T21:29:30.788697Z",
+  "completion_summary": "Extended the opaque, replay-bound mechanism-family contract from four to all six benchmark tasks. Electrochemistry now executes a calibrated redox-potential, transfer-coefficient, and overpotential-selectivity constitutive family through the Butler-Volmer/Nernst provider; equilibrium now executes an activity-coefficient-ratio family inside the weak-acid charge-balance solver. Neither rewrites the unrelated ReactionNetwork. Across 5 seeds x 5 recipe probes, all 9 task-mode combinations are behaviorally distinguishable, noncatastrophic, deterministic, and mass-balanced. Electrochemistry median/p90 absolute score shifts are 0.04363/0.14895; equilibrium 0.02526/0.02537; both are detectable in 25/25 pairs. Architecture remains control-consistent and formal-evidence-incomplete. Relevant mechanism, equilibrium, electrochemistry, world-family, architecture, and replay tests plus Ruff/mypy passed; one broad coverage-enabled pytest process was terminated after assertions completed because Windows coverage teardown did not exit.",
   "expires_at": "2026-07-18T21:16:26.343649+00:00",
   "notes": "Extend the existing opaque, replay-bound mechanism-family contract through the actual electrochemical and equilibrium providers; calibrate for benchmark identifiability without presenting constants as real chemistry.",
   "owned_paths": [
@@ -22,6 +24,6 @@
   "owner": "core",
   "schema_version": "chemworld-task-claim-0.1",
   "scope": "Add causally executed electrochemical transfer-coefficient and equilibrium activity-coefficient constitutive-law families, extend multiseed calibration and replay controls to all six benchmark tasks, and update readiness evidence",
-  "status": "active",
+  "status": "completed",
   "task_id": "mechanism-constitutive-core6"
 }
