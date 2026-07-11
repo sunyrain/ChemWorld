@@ -58,4 +58,7 @@ def test_backend_candidate_is_hash_bound_and_cannot_claim_benchmark_readiness() 
     assert manifest["baseline_results_included"] is False
     assert manifest["frozen_v1_rewritten"] is False
     for filename, expected in manifest["artifact_sha256"].items():
-        assert hashlib.sha256((CANDIDATE / filename).read_bytes()).hexdigest() == expected
+        artifact = (CANDIDATE / filename).read_bytes()
+        assert hashlib.sha256(artifact).hexdigest() == expected
+        if filename.endswith(".json"):
+            assert b"\r\n" not in artifact

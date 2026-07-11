@@ -18,7 +18,8 @@ SCHEMA_VERSION = "chemworld-backend-candidate-bundle-0.1"
 
 
 def _write_json(path: Path, payload: Any) -> None:
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    canonical = json.dumps(payload, indent=2, sort_keys=True) + "\n"
+    path.write_bytes(canonical.encode("utf-8"))
 
 
 def _sha256(path: Path) -> str:
