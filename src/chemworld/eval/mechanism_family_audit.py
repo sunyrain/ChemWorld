@@ -23,8 +23,8 @@ from chemworld.world.mechanism_family import (
 )
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
-MECHANISM_FAMILY_AUDIT_VERSION = "chemworld-mechanism-family-control-audit-0.2"
-MECHANISM_FAMILY_PROTOCOL_VERSION = "chemworld-mechanism-family-protocol-0.2"
+MECHANISM_FAMILY_AUDIT_VERSION = "chemworld-mechanism-family-control-audit-0.3"
+MECHANISM_FAMILY_PROTOCOL_VERSION = "chemworld-mechanism-family-protocol-0.3"
 MECHANISM_FAMILY_MODES = (
     "rate_law_family",
     "topology_family",
@@ -46,17 +46,45 @@ def load_mechanism_family_protocol(
 
 def audit_mechanism_families(protocol: dict[str, Any]) -> dict[str, Any]:
     declared_modes = tuple(str(item) for item in protocol.get("modes", ()))
+    calibration = protocol["behavioral_calibration"]
+    severity = float(calibration["severity"])
+    seeds = tuple(int(item) for item in calibration["seeds"])
+    probe_ids = tuple(str(item) for item in calibration["recipe_probes"])
+    minimum_shift = float(calibration["minimum_abs_score_shift"])
+    minimum_fraction = float(calibration["minimum_detectable_fraction"])
+    maximum_p90 = float(calibration["maximum_p90_abs_score_shift"])
+    balance_tolerance = float(calibration["mass_balance_tolerance"])
     task_reports: dict[str, Any] = {}
     for task_id in MECHANISM_REACHABLE_TASKS:
         scenario = get_scenario(task_id)
         base = DefaultScenarioGenerator().generate(scenario, 0)
-        base_run = _run_midpoint(task_id, None)
+        base_runs = {
+            (seed, probe_id): _run_probe(task_id, seed, probe_id, None, severity)
+            for seed in seeds
+            for probe_id in probe_ids
+        }
         mode_reports: dict[str, Any] = {}
         for mode in MECHANISM_TASK_MODES[task_id]:
-            payload = (_intervention(mode),)
+            payload = (_intervention(mode, severity),)
             first = DefaultScenarioGenerator().generate(scenario, 0, payload)
             second = DefaultScenarioGenerator().generate(scenario, 0, payload)
-            shifted_run = _run_midpoint(task_id, mode)
+            shifted_runs = {
+                (seed, probe_id): _run_probe(task_id, seed, probe_id, mode, severity)
+                for seed in seeds
+                for probe_id in probe_ids
+            }
+            signed_deltas = [
+                shifted_runs[key]["score"] - base_runs[key]["score"]
+                for key in base_runs
+            ]
+            absolute_deltas = np.abs(np.asarray(signed_deltas, dtype=float))
+            balance_errors = np.asarray(
+                [item["mass_balance_error"] for item in shifted_runs.values()],
+                dtype=float,
+            )
+            detectable_fraction = float(np.mean(absolute_deltas >= minimum_shift))
+            median_abs_delta = float(np.median(absolute_deltas))
+            p90_abs_delta = float(np.quantile(absolute_deltas, 0.9))
             first_hash = first.initial_state.metadata.get("mechanism_family_intervention_hash")
             second_hash = second.initial_state.metadata.get("mechanism_family_intervention_hash")
             base_exponent = base.parameters.domain_parameter("partition_coefficient_exponent")
@@ -80,10 +108,25 @@ def audit_mechanism_families(protocol: dict[str, Any]) -> dict[str, Any]:
                 ],
                 "partition_coefficient_exponent": shifted_exponent,
                 "constitutive_exponent_changed": shifted_exponent != base_exponent,
-                "score_delta": shifted_run["score"] - base_run["score"],
-                "task_response_changed": abs(shifted_run["score"] - base_run["score"]) > 1.0e-8,
-                "process_mass_balance_error": shifted_run["mass_balance_error"],
-                "mass_balance_preserved": shifted_run["mass_balance_error"] <= 1.0e-8,
+                "calibration": {
+                    "severity": severity,
+                    "seed_count": len(seeds),
+                    "recipe_probe_count": len(probe_ids),
+                    "paired_response_count": len(signed_deltas),
+                    "minimum_abs_score_shift": minimum_shift,
+                    "detectable_fraction": detectable_fraction,
+                    "median_abs_score_delta": median_abs_delta,
+                    "p90_abs_score_delta": p90_abs_delta,
+                    "maximum_abs_score_delta": float(np.max(absolute_deltas)),
+                    "mean_signed_score_delta": float(np.mean(signed_deltas)),
+                    "behaviorally_distinguishable": median_abs_delta >= minimum_shift
+                    and detectable_fraction >= minimum_fraction,
+                    "noncatastrophic": p90_abs_delta <= maximum_p90,
+                },
+                "process_mass_balance_error_max": float(np.max(balance_errors)),
+                "mass_balance_preserved": bool(
+                    np.all(balance_errors <= balance_tolerance)
+                ),
             }
         task_reports[task_id] = {
             "base_mechanism_hash": base.compiled_mechanism.mechanism_hash,
@@ -137,8 +180,13 @@ def audit_mechanism_families(protocol: dict[str, Any]) -> dict[str, Any]:
                 "network_hash_changed"
             ]
         ),
-        "task_responses_change": all(
-            report["task_response_changed"]
+        "mechanism_families_behaviorally_distinguishable": all(
+            report["calibration"]["behaviorally_distinguishable"]
+            for task in task_reports.values()
+            for report in task["modes"].values()
+        ),
+        "mechanism_shifts_are_noncatastrophic": all(
+            report["calibration"]["noncatastrophic"]
             for task in task_reports.values()
             for report in task["modes"].values()
         ),
@@ -147,6 +195,16 @@ def audit_mechanism_families(protocol: dict[str, Any]) -> dict[str, Any]:
             for task in task_reports.values()
             for report in task["modes"].values()
         ),
+        "calibration_design_is_multiseed_multiprobe": len(seeds) >= 5
+        and len(probe_ids) >= 5,
+        "replay_requires_separate_exact_intervention_context": protocol.get(
+            "replay_binding", {}
+        ).get("exact_intervention_payload_required")
+        is True,
+        "public_trajectory_retains_only_opaque_hash": protocol.get(
+            "replay_binding", {}
+        ).get("public_trajectory_payload_policy")
+        == "opaque_intervention_version_and_hash_only",
     }
     controls_ready = all(checks.values())
     return {
@@ -159,31 +217,43 @@ def audit_mechanism_families(protocol: dict[str, Any]) -> dict[str, Any]:
         "checks": checks,
         "tasks": task_reports,
         "excluded_tasks": protocol.get("excluded_tasks", {}),
+        "behavioral_calibration": calibration,
         "limitations": [
             "The controls prove causal execution, not agent adaptation or scientific realism.",
-            "Core coverage now includes reaction-network and partition constitutive-law families.",
+            (
+                "Effect-size calibration targets benchmark identifiability, "
+                "not real chemical constants."
+            ),
+            "Core coverage includes reaction-network and partition constitutive-law families.",
             "Electrochemistry and equilibrium still lack dedicated constitutive-law families.",
-            "Multi-seed severity calibration and method comparisons remain pending.",
+            "Disjoint Train/Dev/Bench allocation and agent adaptation comparisons remain pending.",
         ],
         "remaining_release_gates": list(protocol.get("remaining_release_gates", ())),
     }
 
 
-def _intervention(mode: str) -> dict[str, Any]:
-    return {"kind": "mechanism_family", "mode": mode, "severity": 0.8}
+def _intervention(mode: str, severity: float) -> dict[str, Any]:
+    return {"kind": "mechanism_family", "mode": mode, "severity": severity}
 
 
-def _run_midpoint(task_id: str, mode: str | None) -> dict[str, float]:
-    kwargs = get_task(task_id).env_kwargs(seed=0)
+def _run_probe(
+    task_id: str,
+    seed: int,
+    probe_id: str,
+    mode: str | None,
+    severity: float,
+) -> dict[str, float]:
+    kwargs = get_task(task_id).env_kwargs(seed=seed)
     if mode is not None:
-        kwargs["world_interventions"] = [_intervention(mode)]
+        kwargs["world_interventions"] = [_intervention(mode, severity)]
     env = gym.make("ChemWorld", **kwargs)
     try:
-        env.reset(seed=0)
+        env.reset(seed=seed)
         task_info = cast(Any, env.unwrapped).task_info()
+        dimension = task_recipe_dimension(task_info)
         recipe = task_recipe_from_unit_vector(
             task_info,
-            np.full(task_recipe_dimension(task_info), 0.5),
+            _probe_vector(probe_id, dimension),
         )
         info: dict[str, Any] = {}
         for action in recipe["steps"]:
@@ -206,6 +276,20 @@ def _run_midpoint(task_id: str, mode: str | None) -> dict[str, float]:
         }
     finally:
         env.close()
+
+
+def _probe_vector(probe_id: str, dimension: int) -> np.ndarray:
+    if probe_id == "low":
+        return np.full(dimension, 0.2)
+    if probe_id == "midpoint":
+        return np.full(dimension, 0.5)
+    if probe_id == "high":
+        return np.full(dimension, 0.8)
+    if probe_id == "ascending":
+        return np.linspace(0.1, 0.9, dimension)
+    if probe_id == "descending":
+        return np.linspace(0.9, 0.1, dimension)
+    raise ValueError(f"unknown mechanism calibration probe: {probe_id}")
 
 
 __all__ = [

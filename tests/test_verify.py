@@ -89,6 +89,46 @@ def test_verify_records_rejects_mechanism_hash_mismatch(tmp_path) -> None:
     )
 
 
+def test_intervention_trajectory_requires_exact_replay_context(tmp_path) -> None:
+    path = tmp_path / "mechanism_intervention.jsonl"
+    intervention = {
+        "kind": "mechanism_family",
+        "mode": "topology_family",
+        "severity": 0.8,
+    }
+    run_agent(
+        env_id="ChemWorld",
+        agent=make_agent("random"),
+        world_split="public-dev",
+        budget=3,
+        objective="balanced",
+        seed=17,
+        task_id="flow-reaction-optimization",
+        output_path=path,
+        budget_override=3,
+        world_interventions=[intervention],
+    )
+    records = load_jsonl(path)
+
+    assert records[0]["mechanism_family_intervention_hash"]
+    assert "world_interventions" not in records[0]
+    missing_context = verify_records(records)
+    exact_context = verify_records(records, world_interventions=[intervention])
+    wrong_context = verify_records(
+        records,
+        world_interventions=[{**intervention, "severity": 0.7}],
+    )
+
+    assert not missing_context.verified
+    assert any(item["field"] == "world_interventions" for item in missing_context.mismatches)
+    assert exact_context.verified, exact_context.mismatches
+    assert not wrong_context.verified
+    assert any(
+        item["field"] in {"mechanism_hash", "mechanism_family_intervention_hash"}
+        for item in wrong_context.mismatches
+    )
+
+
 def test_verify_records_rejects_contract_hash_mismatch(tmp_path) -> None:
     path = tmp_path / "contract_hash.jsonl"
     run_agent(

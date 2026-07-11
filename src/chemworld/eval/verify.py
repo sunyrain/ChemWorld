@@ -147,6 +147,7 @@ def verify_records(
     records: list[dict[str, Any]],
     *,
     tolerance: float = 1.0e-5,
+    world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
 ) -> VerificationResult:
     """Replay trajectory actions and compare deterministic observations/rewards."""
 
@@ -168,6 +169,8 @@ def verify_records(
             "objective": _objective_from_record(first),
             "seed": int(first["seed"]),
         }
+    if world_interventions:
+        env_kwargs["world_interventions"] = list(world_interventions)
     env = gym.make(
         first["env_id"],
         **env_kwargs,
@@ -176,6 +179,25 @@ def verify_records(
     recorded_mechanism_hash = first.get("mechanism_hash")
     replay_mechanism_hash = reset_info.get("mechanism_hash")
     early_mismatches: list[dict[str, Any]] = []
+    recorded_intervention_hashes = {
+        field: first.get(field)
+        for field in (
+            "world_family_intervention_hash",
+            "mechanism_family_intervention_hash",
+        )
+        if first.get(field)
+    }
+    if recorded_intervention_hashes and not world_interventions:
+        early_mismatches.append(
+            {
+                "step": 0,
+                "field": "world_interventions",
+                "recorded": recorded_intervention_hashes,
+                "replayed": None,
+                "abs_error": None,
+                "reason": "exact intervention payload is required for replay",
+            }
+        )
     for field, recorded, replayed in (
         (
             "task_contract_hash",
@@ -197,6 +219,16 @@ def verify_records(
             "observation_contract_hash",
             first.get("observation_contract_hash"),
             reset_info.get("observation_contract_hash"),
+        ),
+        (
+            "world_family_intervention_hash",
+            first.get("world_family_intervention_hash"),
+            reset_info.get("world_family_intervention_hash"),
+        ),
+        (
+            "mechanism_family_intervention_hash",
+            first.get("mechanism_family_intervention_hash"),
+            reset_info.get("mechanism_family_intervention_hash"),
         ),
     ):
         if recorded and replayed != recorded:
@@ -298,6 +330,8 @@ def verify_records(
                 "mechanism_hash",
                 "scoring_contract_hash",
                 "observation_contract_hash",
+                "world_family_intervention_hash",
+                "mechanism_family_intervention_hash",
                 "kernel_id",
                 "kernel_version",
                 "affected_ledgers",

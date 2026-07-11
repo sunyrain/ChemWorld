@@ -172,7 +172,10 @@ def test_protocol_mode_drift_fails_closed_without_skipping_controls() -> None:
 def test_frozen_mechanism_family_report_is_ready_but_non_claiming() -> None:
     report = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
     assert report["controls_ready"] is True
-    assert report["checks"]["task_responses_change"] is True
+    assert report["checks"]["mechanism_families_behaviorally_distinguishable"] is True
+    assert report["checks"]["mechanism_shifts_are_noncatastrophic"] is True
+    assert report["checks"]["calibration_design_is_multiseed_multiprobe"] is True
+    assert report["checks"]["replay_requires_separate_exact_intervention_context"] is True
     assert report["checks"]["partition_constitutive_family_changes"] is True
     assert report["checks"]["partition_preserves_reaction_network_identity"] is True
     assert report["checks"]["mass_balance_preserved"] is True

@@ -1,21 +1,48 @@
 {
+  "behavioral_calibration": {
+    "mass_balance_tolerance": 1e-08,
+    "maximum_p90_abs_score_shift": 0.15,
+    "minimum_abs_score_shift": 0.005,
+    "minimum_detectable_fraction": 0.5,
+    "recipe_probes": [
+      "low",
+      "midpoint",
+      "high",
+      "ascending",
+      "descending"
+    ],
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "severity": 0.8,
+    "status": "development_control_not_formal_result",
+    "threshold_rationale": "detect at least one tenth of the 0.05 benchmark SESOI on a majority of representative recipes while keeping the 90th-percentile shift below three SESOI"
+  },
   "benchmark_claim_allowed": false,
   "checks": {
     "all_intervention_hashes_deterministic": true,
+    "calibration_design_is_multiseed_multiprobe": true,
     "candidate_is_non_claiming": true,
     "contract_version": true,
     "excluded_task_scope_explicit": true,
     "mass_balance_preserved": true,
+    "mechanism_families_behaviorally_distinguishable": true,
+    "mechanism_shifts_are_noncatastrophic": true,
     "mode_scope": true,
     "partition_constitutive_family_changes": true,
     "partition_preserves_reaction_network_identity": true,
     "public_ids_opaque": true,
+    "public_trajectory_retains_only_opaque_hash": true,
     "rate_law_family_changes": true,
     "reachable_task_scope": true,
     "reaction_network_hashes_change": true,
+    "replay_requires_separate_exact_intervention_context": true,
     "schema": true,
     "task_mode_scope": true,
-    "task_responses_change": true,
     "topology_graph_changes": true
   },
   "controls_ready": true,
@@ -25,52 +52,76 @@
   },
   "limitations": [
     "The controls prove causal execution, not agent adaptation or scientific realism.",
-    "Core coverage now includes reaction-network and partition constitutive-law families.",
+    "Effect-size calibration targets benchmark identifiability, not real chemical constants.",
+    "Core coverage includes reaction-network and partition constitutive-law families.",
     "Electrochemistry and equilibrium still lack dedicated constitutive-law families.",
-    "Multi-seed severity calibration and method comparisons remain pending."
+    "Disjoint Train/Dev/Bench allocation and agent adaptation comparisons remain pending."
   ],
-  "protocol_id": "chemworld-vnext-mechanism-family-candidate-0.2",
+  "protocol_id": "chemworld-vnext-mechanism-family-candidate-0.3",
   "publication_ready": false,
   "remaining_release_gates": [
-    "calibrate mechanism severity over multiple seeds",
     "freeze disjoint Train/Dev/Bench mechanism-family allocations",
     "measure whether agents identify and adapt to mechanism-family shifts",
     "add dedicated constitutive-law families for electrochemistry and equilibrium",
     "bind mechanism-family results to the vNext replay and method protocols"
   ],
-  "schema_version": "chemworld-mechanism-family-control-audit-0.2",
+  "schema_version": "chemworld-mechanism-family-control-audit-0.3",
   "status": "controls_ready_experiments_pending",
   "tasks": {
     "flow-reaction-optimization": {
       "base_mechanism_hash": "c87ba98ea671bacc2a8787c4ac589e87e9d9f5bfb15ddd6690a1823fa3b042f0",
       "modes": {
         "rate_law_family": {
+          "calibration": {
+            "behaviorally_distinguishable": true,
+            "detectable_fraction": 0.8,
+            "maximum_abs_score_delta": 0.07348918736603494,
+            "mean_signed_score_delta": -0.02853128643721282,
+            "median_abs_score_delta": 0.029338209685376555,
+            "minimum_abs_score_shift": 0.005,
+            "noncatastrophic": true,
+            "p90_abs_score_delta": 0.06822782336988845,
+            "paired_response_count": 25,
+            "recipe_probe_count": 5,
+            "seed_count": 5,
+            "severity": 0.8
+          },
           "constitutive_exponent_changed": false,
           "deterministic": true,
-          "intervention_hash": "035d249827ff36f05ef6e41a7f49ce6d9744bd12630cb19898debd66147eb7a2",
+          "intervention_hash": "c35725ce57aca568d6f4b91bc109f1b9dcac6299f98ea2d3df3150d59441481c",
           "mass_balance_preserved": true,
           "network_hash_changed": true,
           "opaque_public_id": true,
           "partition_coefficient_exponent": 1.0,
-          "process_mass_balance_error": 0.0,
+          "process_mass_balance_error_max": 0.0,
           "rate_law_families_changed": true,
-          "reaction_count_delta": 0,
-          "score_delta": -0.0007502953662804901,
-          "task_response_changed": true
+          "reaction_count_delta": 0
         },
         "topology_family": {
+          "calibration": {
+            "behaviorally_distinguishable": true,
+            "detectable_fraction": 0.6,
+            "maximum_abs_score_delta": 0.019726174104711502,
+            "mean_signed_score_delta": -0.010070883779931643,
+            "median_abs_score_delta": 0.012019057625642517,
+            "minimum_abs_score_shift": 0.005,
+            "noncatastrophic": true,
+            "p90_abs_score_delta": 0.019726174104711475,
+            "paired_response_count": 25,
+            "recipe_probe_count": 5,
+            "seed_count": 5,
+            "severity": 0.8
+          },
           "constitutive_exponent_changed": false,
           "deterministic": true,
-          "intervention_hash": "49a09e910c0c9baa45972f034a147e06e0ef0da40e9544ae064638227fff7659",
+          "intervention_hash": "1a098a96ef1a832cc586119dd69260d096dafdf017822166726198d5739b32b4",
           "mass_balance_preserved": true,
           "network_hash_changed": true,
           "opaque_public_id": true,
           "partition_coefficient_exponent": 1.0,
-          "process_mass_balance_error": 0.0,
+          "process_mass_balance_error_max": 0.0,
           "rate_law_families_changed": true,
-          "reaction_count_delta": 1,
-          "score_delta": -0.012019057625642517,
-          "task_response_changed": true
+          "reaction_count_delta": 1
         }
       }
     },
@@ -78,18 +129,30 @@
       "base_mechanism_hash": "26e029387db8a32f66d52789a3ccfa939baa1d6e469424dbb596f1813d81e437",
       "modes": {
         "constitutive_law_family": {
+          "calibration": {
+            "behaviorally_distinguishable": true,
+            "detectable_fraction": 1.0,
+            "maximum_abs_score_delta": 0.021969086935151594,
+            "mean_signed_score_delta": -0.0005357520030427198,
+            "median_abs_score_delta": 0.013653593743976233,
+            "minimum_abs_score_shift": 0.005,
+            "noncatastrophic": true,
+            "p90_abs_score_delta": 0.02131883636487374,
+            "paired_response_count": 25,
+            "recipe_probe_count": 5,
+            "seed_count": 5,
+            "severity": 0.8
+          },
           "constitutive_exponent_changed": true,
           "deterministic": true,
-          "intervention_hash": "5d10a7d00a8ced0163fe36436a4166a0c6d95ffdab18ec49724c845a0cacf995",
+          "intervention_hash": "e310c36eb42e5792b425992e5e0109ae4145e87a0acb33bfae3da86bd6aa450f",
           "mass_balance_preserved": true,
           "network_hash_changed": false,
           "opaque_public_id": true,
           "partition_coefficient_exponent": 1.6,
-          "process_mass_balance_error": 0.0,
+          "process_mass_balance_error_max": 0.0,
           "rate_law_families_changed": false,
-          "reaction_count_delta": 0,
-          "score_delta": 0.011546632155026715,
-          "task_response_changed": true
+          "reaction_count_delta": 0
         }
       }
     },
@@ -97,32 +160,56 @@
       "base_mechanism_hash": "f437e1b8b8d100562751fe45b209ab4208e46e097fcedc637d3a476959f2203b",
       "modes": {
         "rate_law_family": {
+          "calibration": {
+            "behaviorally_distinguishable": true,
+            "detectable_fraction": 0.6,
+            "maximum_abs_score_delta": 0.010621343443094622,
+            "mean_signed_score_delta": -0.005394200947814616,
+            "median_abs_score_delta": 0.005395930374447633,
+            "minimum_abs_score_shift": 0.005,
+            "noncatastrophic": true,
+            "p90_abs_score_delta": 0.008988664365448143,
+            "paired_response_count": 25,
+            "recipe_probe_count": 5,
+            "seed_count": 5,
+            "severity": 0.8
+          },
           "constitutive_exponent_changed": false,
           "deterministic": true,
-          "intervention_hash": "af8eded9c3a67fe18dd4d42c1ac5f4bd7955807b6b550ae142aa10055b3915ac",
+          "intervention_hash": "9b32f1e822dad39e3d25027006d2ea91d974b7746186d928c79361b7a53cac0a",
           "mass_balance_preserved": true,
           "network_hash_changed": true,
           "opaque_public_id": true,
           "partition_coefficient_exponent": 1.0,
-          "process_mass_balance_error": 0.0,
+          "process_mass_balance_error_max": 0.0,
           "rate_law_families_changed": true,
-          "reaction_count_delta": 0,
-          "score_delta": -3.9465202248401e-05,
-          "task_response_changed": true
+          "reaction_count_delta": 0
         },
         "topology_family": {
+          "calibration": {
+            "behaviorally_distinguishable": true,
+            "detectable_fraction": 1.0,
+            "maximum_abs_score_delta": 0.05163537439289312,
+            "mean_signed_score_delta": -0.025754705231094067,
+            "median_abs_score_delta": 0.024971755624650593,
+            "minimum_abs_score_shift": 0.005,
+            "noncatastrophic": true,
+            "p90_abs_score_delta": 0.04556116506596497,
+            "paired_response_count": 25,
+            "recipe_probe_count": 5,
+            "seed_count": 5,
+            "severity": 0.8
+          },
           "constitutive_exponent_changed": false,
           "deterministic": true,
-          "intervention_hash": "94abea009f0decfcc9fc4b2c65b632df48ed622e8809be76c551c64684f6c0b9",
+          "intervention_hash": "9dda461c0c5547eabdcf932d0b050a5c409176dddaea5ccbc706c099e409bb57",
           "mass_balance_preserved": true,
           "network_hash_changed": true,
           "opaque_public_id": true,
           "partition_coefficient_exponent": 1.0,
-          "process_mass_balance_error": 0.0,
+          "process_mass_balance_error_max": 0.0,
           "rate_law_families_changed": true,
-          "reaction_count_delta": 1,
-          "score_delta": -0.04997884563897026,
-          "task_response_changed": true
+          "reaction_count_delta": 1
         }
       }
     },
@@ -130,32 +217,56 @@
       "base_mechanism_hash": "ad680134230e34a2330447cacb71ee78648b736b2d9e5f2edf2afdad510b1bab",
       "modes": {
         "rate_law_family": {
+          "calibration": {
+            "behaviorally_distinguishable": true,
+            "detectable_fraction": 0.52,
+            "maximum_abs_score_delta": 0.0355309569664819,
+            "mean_signed_score_delta": -0.010898755805629762,
+            "median_abs_score_delta": 0.005724089535387111,
+            "minimum_abs_score_shift": 0.005,
+            "noncatastrophic": true,
+            "p90_abs_score_delta": 0.026859883844542302,
+            "paired_response_count": 25,
+            "recipe_probe_count": 5,
+            "seed_count": 5,
+            "severity": 0.8
+          },
           "constitutive_exponent_changed": false,
           "deterministic": true,
-          "intervention_hash": "f53a3282eb689f25d403450edf4678e66d2964968a03b1c6c26c22b05577519a",
+          "intervention_hash": "8e5b176fddf7b239399512cc92d9b6286f5e305bf70fb7ae7678782a9bbc101d",
           "mass_balance_preserved": true,
           "network_hash_changed": true,
           "opaque_public_id": true,
           "partition_coefficient_exponent": 1.0,
-          "process_mass_balance_error": 0.0,
+          "process_mass_balance_error_max": 0.0,
           "rate_law_families_changed": true,
-          "reaction_count_delta": 0,
-          "score_delta": -4.529962838403789e-05,
-          "task_response_changed": true
+          "reaction_count_delta": 0
         },
         "topology_family": {
+          "calibration": {
+            "behaviorally_distinguishable": true,
+            "detectable_fraction": 0.52,
+            "maximum_abs_score_delta": 0.07290714701760753,
+            "mean_signed_score_delta": -0.021036186823892664,
+            "median_abs_score_delta": 0.006669382228034565,
+            "minimum_abs_score_shift": 0.005,
+            "noncatastrophic": true,
+            "p90_abs_score_delta": 0.0584084436175883,
+            "paired_response_count": 25,
+            "recipe_probe_count": 5,
+            "seed_count": 5,
+            "severity": 0.8
+          },
           "constitutive_exponent_changed": false,
           "deterministic": true,
-          "intervention_hash": "fc4ba0c3965dbf943c9a9d0ca9f2bff268b55041c65dd822b523ea2a7da74b4d",
+          "intervention_hash": "8feabac3fca21db973e55aecf42fe1b33bb6d2624079d25354acf254dd320d2e",
           "mass_balance_preserved": true,
           "network_hash_changed": true,
           "opaque_public_id": true,
           "partition_coefficient_exponent": 1.0,
-          "process_mass_balance_error": 0.0,
+          "process_mass_balance_error_max": 0.0,
           "rate_law_families_changed": true,
-          "reaction_count_delta": 1,
-          "score_delta": -0.006669382228034565,
-          "task_response_changed": true
+          "reaction_count_delta": 1
         }
       }
     }

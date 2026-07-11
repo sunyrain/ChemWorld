@@ -24,6 +24,7 @@ from chemworld.world.world_law import world_law_spec
 
 def build_task_info(env: Any) -> dict[str, Any]:
     compiled_mechanism = env.scenario_instance.compiled_mechanism
+    scenario_metadata = env.scenario_instance.initial_state.metadata
     payload = {
         "env_id": "ChemWorld",
         "task_id": env.task_id,
@@ -55,6 +56,18 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "observation_contract_hash": env.observation_contract.contract_hash,
         "env_version": __version__,
         "world_family_version": env.world.family_version,
+        "world_family_intervention_version": scenario_metadata.get(
+            "world_family_intervention_version"
+        ),
+        "world_family_intervention_hash": scenario_metadata.get(
+            "world_family_intervention_hash"
+        ),
+        "mechanism_family_intervention_version": scenario_metadata.get(
+            "mechanism_family_intervention_version"
+        ),
+        "mechanism_family_intervention_hash": scenario_metadata.get(
+            "mechanism_family_intervention_hash"
+        ),
         "runtime": env.runtime.to_dict(include_debug_truth=env.debug_truth),
         "operation_types": list(OPERATION_TYPES),
         "allowed_operations": sorted(env.allowed_operations),
@@ -243,6 +256,7 @@ def build_step_info(
         ),
     }
     cost_signal, cost_components = safety_cost_from_flags(constraint_flags)
+    scenario_metadata = env.scenario_instance.initial_state.metadata
     return {
         "step": env._step_count,
         "budget": env.budget,
@@ -306,6 +320,18 @@ def build_step_info(
         "constraint_flags": constraint_flags,
         "env_version": __version__,
         "world_family_version": env.world.family_version,
+        "world_family_intervention_version": scenario_metadata.get(
+            "world_family_intervention_version"
+        ),
+        "world_family_intervention_hash": scenario_metadata.get(
+            "world_family_intervention_hash"
+        ),
+        "mechanism_family_intervention_version": scenario_metadata.get(
+            "mechanism_family_intervention_version"
+        ),
+        "mechanism_family_intervention_hash": scenario_metadata.get(
+            "mechanism_family_intervention_hash"
+        ),
     }
 
 

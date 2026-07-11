@@ -20,7 +20,7 @@ MechanismFamilyMode = Literal[
     "topology_family",
     "constitutive_law_family",
 ]
-MECHANISM_FAMILY_INTERVENTION_VERSION = "chemworld-mechanism-family-intervention-0.2"
+MECHANISM_FAMILY_INTERVENTION_VERSION = "chemworld-mechanism-family-intervention-0.3"
 REACTION_MECHANISM_TASKS = (
     "reaction-to-crystallization",
     "reaction-to-distillation",
@@ -208,13 +208,27 @@ def _rate_law_variant(network: ReactionNetworkSpec, severity: float) -> Reaction
     parameters = dict(reaction.rate_law.parameters)
     reference_temperature = 350.0
     if reaction.rate_law.equation_id == "arrhenius":
-        exponent = 0.35 * severity
+        # A mechanism-family shift must be observable over the task's practical
+        # temperature/concentration range, not merely have a different equation id.
+        # The activity factor is deliberately bounded (<= 8) and calibrated by
+        # the multi-seed response audit rather than interpreted as real chemistry.
+        exponent = 0.75 * severity
+        activity_factor = exp(log(8.0) * severity)
         parameters["b"] = exponent
-        parameters["A"] = float(parameters["A"]) / reference_temperature**exponent
+        parameters["A"] = (
+            float(parameters["A"])
+            * activity_factor
+            / reference_temperature**exponent
+        )
         equation_id = "modified_arrhenius"
     else:
         exponent = float(parameters.pop("b", 0.0))
-        parameters["A"] = float(parameters["A"]) * reference_temperature**exponent
+        activity_factor = exp(log(8.0) * severity)
+        parameters["A"] = (
+            float(parameters["A"])
+            * reference_temperature**exponent
+            / activity_factor
+        )
         equation_id = "arrhenius"
     reactions[selected_index] = replace(
         reaction,

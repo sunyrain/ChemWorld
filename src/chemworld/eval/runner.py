@@ -103,6 +103,7 @@ def run_agent(
     step_callback: Callable[[HistoryRecord, list[dict[str, Any]]], None] | None = None,
     method_resource_limits: dict[str, Any] | None = None,
     evaluation_policy: EvaluationPolicy = "task_contract",
+    world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
 ) -> list[HistoryRecord]:
     """Run one benchmark episode and optionally write a JSONL trajectory."""
 
@@ -125,6 +126,8 @@ def run_agent(
     }
     if task_id is not None:
         env_kwargs["task_id"] = task_id
+    if world_interventions:
+        env_kwargs["world_interventions"] = list(world_interventions)
     if risk_policy is not None:
         env_kwargs["safety_limit_override"] = risk_policy.risk_limit
     if budget_override is not None:

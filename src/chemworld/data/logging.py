@@ -86,6 +86,22 @@ class TrajectoryLogger:
                 "world_family_version",
                 task_info.get("world_family_version"),
             ),
+            "world_family_intervention_version": info.get(
+                "world_family_intervention_version",
+                task_info.get("world_family_intervention_version"),
+            ),
+            "world_family_intervention_hash": info.get(
+                "world_family_intervention_hash",
+                task_info.get("world_family_intervention_hash"),
+            ),
+            "mechanism_family_intervention_version": info.get(
+                "mechanism_family_intervention_version",
+                task_info.get("mechanism_family_intervention_version"),
+            ),
+            "mechanism_family_intervention_hash": info.get(
+                "mechanism_family_intervention_hash",
+                task_info.get("mechanism_family_intervention_hash"),
+            ),
             "task_id": (
                 f"{task_info['env_id']}:{task_info['world_split']}:"
                 f"{task_info['objective']}:seed-{task_info['seed']}"

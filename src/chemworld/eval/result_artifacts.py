@@ -35,6 +35,7 @@ def build_verified_evaluation_result(
     *,
     trajectory_path: str | Path,
     threshold: float = 0.75,
+    world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Replay a trajectory and return an integrity-bound evaluation result."""
 
@@ -43,7 +44,10 @@ def build_verified_evaluation_result(
     persisted_records = load_jsonl(path)
     if persisted_records != records:
         raise ValueError("Evaluation records do not match the bound trajectory source")
-    verification = verify_records(records).to_dict()
+    verification = verify_records(
+        records,
+        world_interventions=world_interventions,
+    ).to_dict()
     if not bool(verification["verified"]):
         raise ValueError(
             "Trajectory replay verification failed; refusing to produce an evaluation result"
@@ -72,6 +76,7 @@ def validate_verified_evaluation_result(
     result: dict[str, Any],
     *,
     replay: bool = False,
+    world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
 ) -> None:
     """Validate result metadata, trajectory digest, and optionally replay it."""
 
@@ -108,7 +113,10 @@ def validate_verified_evaluation_result(
             raise ValueError("Score/replay binding does not match trajectory digest")
     if replay:
         records = load_jsonl(trajectory)
-        replay_result = verify_records(records)
+        replay_result = verify_records(
+            records,
+            world_interventions=world_interventions,
+        )
         if not replay_result.verified:
             raise ValueError("Leaderboard trajectory no longer passes replay verification")
         threshold = result.get("evaluation_threshold")
