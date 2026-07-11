@@ -1,0 +1,256 @@
+{
+  "adversarial_probes": {
+    "acquisition_collapse_rejected": true,
+    "implementation_alias_rejected": true,
+    "missing_method_rejected": true,
+    "ordinal_encoding_rejected": true,
+    "unconstrained_safe_method_rejected": true
+  },
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "act_implementations_unique": true,
+    "all_method_contracts_match": true,
+    "candidate_is_nonclaiming": true,
+    "classes_unique": true,
+    "dependencies_ready": true,
+    "formal_results_absent": true,
+    "greedy_is_task_aware": true,
+    "ordinal_encoding_forbidden": true,
+    "required_method_count": true,
+    "required_probes_declared": true,
+    "safe_method_has_distinct_constraint": true,
+    "schema": true,
+    "semantic_fingerprints_unique": true,
+    "surrogates_use_typed_encoding": true
+  },
+  "controls_ready": true,
+  "dependencies": {
+    "method_protocol_report": {
+      "exists": true,
+      "path": "workstreams/benchmark_v1/reports/method-protocol-vnext.json",
+      "ready": true,
+      "sha256": "bb010f14b0802e01e6449ead124dc6f1da21851a2fe5ffee9b556e3b48a7346d"
+    },
+    "task_aware_greedy_claim": {
+      "exists": true,
+      "path": "claims/completed/benchmark-vnext-greedy-task-aware--20260711T140334Z.json",
+      "ready": true,
+      "sha256": "4d11bfc9f68381803de71ab159415ea8f4548fb87b9079d651076fd972b1ee07"
+    },
+    "typed_acquisitions_claim": {
+      "exists": true,
+      "path": "claims/completed/wf-110-benchmark-vnext-classic-typed-acquisitions--20260711T122419Z.json",
+      "ready": true,
+      "sha256": "9d76b4c96b10a1108bc0b96130f4f684e76ee5136052a5aa56007ae160f49de2"
+    }
+  },
+  "formal_classic_matrix_ready": false,
+  "formal_results_present": false,
+  "method_checks": {
+    "greedy_local": true,
+    "lhs": true,
+    "random": true,
+    "structured_gp_ei": true,
+    "structured_gp_pi": true,
+    "structured_gp_ucb": true,
+    "structured_rf_ei": true,
+    "structured_safe_gp_ei": true
+  },
+  "methods": {
+    "greedy_local": {
+      "acquisition": null,
+      "act_owner": "chemworld.agents.greedy.GreedyLocalAgent.act",
+      "act_sha256": "bb48e45475af8f300270e35c100aa785c55bb65b5cf8b61ce24e77332c95d8ff",
+      "agent_name": "greedy_local",
+      "class_id": "chemworld.agents.greedy.GreedyLocalAgent",
+      "class_name": "GreedyLocalAgent",
+      "constraint": null,
+      "contract_matches": true,
+      "implementation": "greedy",
+      "manifest_contract_matches": true,
+      "policy_family": "task_recipe_local_perturbation",
+      "recipe_encoding": "task_specific_unit_hypercube",
+      "role": "greedy_local",
+      "search_policy": "task_recipe_local_perturbation",
+      "semantic_fingerprint_sha256": "55efdee92091c46336ed8929ef9f02d6cf1022f4a3e9f480085f96053d8fd961",
+      "source_tokens": [
+        "task_recipe_to_vector",
+        "perturbation_scale"
+      ],
+      "source_tokens_match": true,
+      "surrogate": null
+    },
+    "lhs": {
+      "acquisition": null,
+      "act_owner": "chemworld.agents.lhs.LatinHypercubeAgent.act",
+      "act_sha256": "44a62af6e9096a194809cbb690298e3bb84b4ce45475185f412c21734ee0dea5",
+      "agent_name": "latin_hypercube",
+      "class_id": "chemworld.agents.lhs.LatinHypercubeAgent",
+      "class_name": "LatinHypercubeAgent",
+      "constraint": null,
+      "contract_matches": true,
+      "implementation": "lhs",
+      "manifest_contract_matches": true,
+      "policy_family": "latin_hypercube_design",
+      "recipe_encoding": null,
+      "role": "lhs",
+      "search_policy": null,
+      "semantic_fingerprint_sha256": "91056c685d2ecb8a847be71432c1ee383db59a0b803aee23ee21193f949d8305",
+      "source_tokens": [
+        "_actions",
+        "_recipe_history"
+      ],
+      "source_tokens_match": true,
+      "surrogate": null
+    },
+    "random": {
+      "acquisition": null,
+      "act_owner": "chemworld.agents.random.RandomAgent.act",
+      "act_sha256": "5d529091d237d9c437c30c410f265563f6fb3edeb15643950e61e9c0202156d1",
+      "agent_name": "random",
+      "class_id": "chemworld.agents.random.RandomAgent",
+      "class_name": "RandomAgent",
+      "constraint": null,
+      "contract_matches": true,
+      "implementation": "random",
+      "manifest_contract_matches": true,
+      "policy_family": "uniform_random",
+      "recipe_encoding": null,
+      "role": "random",
+      "search_policy": null,
+      "semantic_fingerprint_sha256": "e7141ff4e7a0a62caf83bc844714bc80421eb8ecdeb041f9ae2007ce68c3722a",
+      "source_tokens": [
+        "sample_task_recipe"
+      ],
+      "source_tokens_match": true,
+      "surrogate": null
+    },
+    "structured_gp_ei": {
+      "acquisition": "expected_improvement",
+      "act_owner": "chemworld.agents.bo.GaussianProcessBOAgent.act",
+      "act_sha256": "a72c9dbe144e11147ba1f64fbc622dd491ed9896b0617a83f2016309b813d136",
+      "agent_name": "structured_gp_bo",
+      "class_id": "chemworld.agents.bo.StructuredGaussianProcessBOAgent",
+      "class_name": "StructuredGaussianProcessBOAgent",
+      "constraint": null,
+      "contract_matches": true,
+      "implementation": "structured_gp_bo",
+      "manifest_contract_matches": true,
+      "policy_family": "bayesian_optimization",
+      "recipe_encoding": "continuous_plus_material_one_hot",
+      "role": "structured_gp_ei",
+      "search_policy": null,
+      "semantic_fingerprint_sha256": "85cec8aff7690b049e31b6e2a7bcdb9e46c6c75a4daec8eab21b580154e7caf7",
+      "source_tokens": [
+        "_expected_improvement",
+        "gp_expected_improvement"
+      ],
+      "source_tokens_match": true,
+      "surrogate": "gaussian_process"
+    },
+    "structured_gp_pi": {
+      "acquisition": "probability_improvement",
+      "act_owner": "chemworld.agents.bo.GaussianProcessPIAgent.act",
+      "act_sha256": "2d127cc3b81a9904619a22db42d0f97c0f5a4bf28085b2fdea868fdf53860950",
+      "agent_name": "structured_gp_pi",
+      "class_id": "chemworld.agents.bo.StructuredGaussianProcessPIAgent",
+      "class_name": "StructuredGaussianProcessPIAgent",
+      "constraint": null,
+      "contract_matches": true,
+      "implementation": "structured_gp_pi",
+      "manifest_contract_matches": true,
+      "policy_family": "bayesian_optimization",
+      "recipe_encoding": "continuous_plus_material_one_hot",
+      "role": "structured_gp_pi",
+      "search_policy": null,
+      "semantic_fingerprint_sha256": "8c8c18c6b8bf83de08746246cabd14b19407d1079a9ef785f1c3649427e35e8b",
+      "source_tokens": [
+        "_probability_improvement",
+        "gp_probability_improvement"
+      ],
+      "source_tokens_match": true,
+      "surrogate": "gaussian_process"
+    },
+    "structured_gp_ucb": {
+      "acquisition": "upper_confidence_bound",
+      "act_owner": "chemworld.agents.bo.GaussianProcessUCBAgent.act",
+      "act_sha256": "6ba2cb2c5c91f5dfb0109686a5025f9a1097e286f95f32fa51b285f765c70b5c",
+      "agent_name": "structured_gp_ucb",
+      "class_id": "chemworld.agents.bo.StructuredGaussianProcessUCBAgent",
+      "class_name": "StructuredGaussianProcessUCBAgent",
+      "constraint": null,
+      "contract_matches": true,
+      "implementation": "structured_gp_ucb",
+      "manifest_contract_matches": true,
+      "policy_family": "bayesian_optimization",
+      "recipe_encoding": "continuous_plus_material_one_hot",
+      "role": "structured_gp_ucb",
+      "search_policy": null,
+      "semantic_fingerprint_sha256": "b3181ed6590bd2dad2484316c44ef90aae4fc32c19d84395de55a23794f0a116",
+      "source_tokens": [
+        "exploration_weight",
+        "gp_upper_confidence_bound"
+      ],
+      "source_tokens_match": true,
+      "surrogate": "gaussian_process"
+    },
+    "structured_rf_ei": {
+      "acquisition": "expected_improvement",
+      "act_owner": "chemworld.agents.bo.RandomForestEIAgent.act",
+      "act_sha256": "44c51a52f106eb6ac514db83bf3bda216264d0d02e1332e5bf832f0668feb550",
+      "agent_name": "structured_rf_ei",
+      "class_id": "chemworld.agents.bo.StructuredRandomForestEIAgent",
+      "class_name": "StructuredRandomForestEIAgent",
+      "constraint": null,
+      "contract_matches": true,
+      "implementation": "structured_rf_ei",
+      "manifest_contract_matches": true,
+      "policy_family": "bayesian_optimization",
+      "recipe_encoding": "continuous_plus_material_one_hot",
+      "role": "structured_rf_ei",
+      "search_policy": null,
+      "semantic_fingerprint_sha256": "2091cf2997b1fd1c16627636129e7568bc0f45d6be7f9b9ed7e53339f7ac8581",
+      "source_tokens": [
+        "RandomForestRegressor",
+        "rf_expected_improvement"
+      ],
+      "source_tokens_match": true,
+      "surrogate": "random_forest"
+    },
+    "structured_safe_gp_ei": {
+      "acquisition": "risk_constrained_expected_improvement",
+      "act_owner": "chemworld.agents.bo.SafetyConstrainedBOAgent.act",
+      "act_sha256": "2e7f7ab7b728e4417caca89da77db82c19ed31b4dbf31b33de3461a0f782ce29",
+      "agent_name": "structured_safe_gp_bo",
+      "class_id": "chemworld.agents.bo.StructuredSafetyConstrainedBOAgent",
+      "class_name": "StructuredSafetyConstrainedBOAgent",
+      "constraint": "upper_confidence_risk_mask_with_minimum_risk_fallback",
+      "contract_matches": true,
+      "implementation": "structured_safe_gp_bo",
+      "manifest_contract_matches": true,
+      "policy_family": "constrained_bayesian_optimization",
+      "recipe_encoding": "continuous_plus_material_one_hot",
+      "role": "structured_safe_gp_ei",
+      "search_policy": null,
+      "semantic_fingerprint_sha256": "66d9a046af27d27365dff45205c102b9e9794130d95eaf4aa1d664243845f293",
+      "source_tokens": [
+        "safe_mask",
+        "safe_gp_risk_fallback"
+      ],
+      "source_tokens_match": true,
+      "surrogate": "safe_gaussian_process"
+    }
+  },
+  "parent_task_complete": false,
+  "probe_count": 5,
+  "protocol_id": "chemworld-vnext-classic-distinctness-candidate-0.1",
+  "publication_ready": false,
+  "remaining_release_gates": [
+    "run every classic method on the frozen confirmatory task-seed matrix",
+    "verify per-task action and decision fingerprints on retained trajectories",
+    "report negative results and any method failures without exclusion",
+    "bind formal classic results to score replay and reference regret"
+  ],
+  "schema_version": "chemworld-classic-distinctness-audit-0.1",
+  "status": "controls_ready_formal_matrix_pending"
+}
