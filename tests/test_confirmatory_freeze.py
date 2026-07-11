@@ -6,6 +6,7 @@ from pathlib import Path
 
 from chemworld.eval.confirmatory_freeze import (
     audit_confirmatory_freeze,
+    canonical_json_file_sha256,
     load_confirmatory_freeze,
 )
 
@@ -64,3 +65,12 @@ def test_frozen_confirmatory_report_preserves_blockers() -> None:
     assert report["publication_ready"] is False
     assert "ppo" in report["missing_required_methods"]
     assert report["exploit_matrix_complete"] is False
+
+
+def test_evidence_digest_is_json_semantic_and_line_ending_neutral(tmp_path: Path) -> None:
+    left = tmp_path / "left.json"
+    right = tmp_path / "right.json"
+    left.write_bytes(b'{"b": 2,\n"a": 1}\n')
+    right.write_bytes(b'{\r\n  "a": 1,\r\n  "b": 2\r\n}\r\n')
+
+    assert canonical_json_file_sha256(left) == canonical_json_file_sha256(right)

@@ -189,9 +189,7 @@ def _audit_world_allocation(
     allocation = protocol.get("world_family_allocation", {})
     splits = {name: allocation.get(name, {}) for name in ("train", "dev", "bench")}
     seed_sets = {name: _split_seeds(payload) for name, payload in splits.items()}
-    generalization_seeds = {
-        int(seed) for seed in splits["bench"].get("generalization_seeds", ())
-    }
+    generalization_seeds = {int(seed) for seed in splits["bench"].get("generalization_seeds", ())}
     cells = {
         name: {
             (str(mode), float(severity))
@@ -286,7 +284,16 @@ def _canonical_sha256(payload: dict[str, Any]) -> str:
 
 
 def _file_sha256(path: Path) -> str:
+    if path.suffix.lower() == ".json":
+        return canonical_json_file_sha256(path)
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def canonical_json_file_sha256(path: str | Path) -> str:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("canonical evidence JSON must be an object")
+    return _canonical_sha256(payload)
 
 
 __all__ = [
@@ -294,5 +301,6 @@ __all__ = [
     "CONFIRMATORY_FREEZE_PROTOCOL_VERSION",
     "DEFAULT_CONFIRMATORY_FREEZE_PATH",
     "audit_confirmatory_freeze",
+    "canonical_json_file_sha256",
     "load_confirmatory_freeze",
 ]
