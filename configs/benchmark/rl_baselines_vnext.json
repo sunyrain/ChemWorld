@@ -1,0 +1,91 @@
+{
+  "schema_version": "chemworld-rl-baseline-protocol-0.1",
+  "protocol_id": "chemworld-vnext-rl-baselines-candidate-0.1",
+  "benchmark_claim_allowed": false,
+  "publication_ready": false,
+  "source_freeze_protocol": "configs/benchmark/confirmatory_freeze_vnext.json",
+  "core_tasks": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization"
+  ],
+  "algorithms": {
+    "ppo": {
+      "implementation": "stable_baselines3.PPO",
+      "policy": "MlpPolicy",
+      "hyperparameters": {
+        "learning_rate": 0.0003,
+        "n_steps": 2048,
+        "batch_size": 64,
+        "gamma": 0.99,
+        "gae_lambda": 0.95,
+        "ent_coef": 0.01
+      }
+    },
+    "sac": {
+      "implementation": "stable_baselines3.SAC",
+      "policy": "MlpPolicy",
+      "hyperparameters": {
+        "learning_rate": 0.0003,
+        "buffer_size": 1000000,
+        "learning_starts": 10000,
+        "batch_size": 256,
+        "gamma": 0.99,
+        "tau": 0.005,
+        "train_freq": 1
+      }
+    }
+  },
+  "training": {
+    "environment_steps_per_task_seed": 1000000,
+    "model_seeds": [0, 1, 2, 3, 4],
+    "checkpoint_steps": [100000, 250000, 500000, 750000, 1000000],
+    "allowed_allocation": "train",
+    "dev_selection_only": true,
+    "bench_finetuning_allowed": false
+  },
+  "action_contract": {
+    "space": "Box(-1, 1, 22)",
+    "keys": [
+      "amount_mol",
+      "catalyst",
+      "catalyst_amount_mol",
+      "current_mA",
+      "duration_s",
+      "extractant",
+      "flow_rate_mL_min",
+      "instrument",
+      "operation",
+      "phase",
+      "potential_V",
+      "reflux_ratio",
+      "residence_time_s",
+      "sample_volume_L",
+      "seed_mass_g",
+      "solvent",
+      "stirring_speed_rpm",
+      "target_phase",
+      "target_temperature_K",
+      "transfer_fraction",
+      "volume_L",
+      "wash_volume_L"
+    ],
+    "fixed_global_operation_semantics": true,
+    "invalid_operation_policy": "execute_and_retain_failure; never remap to a valid operation",
+    "shared_by_algorithms": ["ppo", "sac"]
+  },
+  "observation_contract": {
+    "nan_safe_values_and_masks": true,
+    "operation_affordance_mask_in_observation": true,
+    "campaign_progress_in_observation": true,
+    "hidden_axis_identity_visible": false
+  },
+  "formal_readiness_requirements": [
+    "all task-algorithm-model-seed checkpoints consume the frozen training budget",
+    "checkpoint and compute manifests pass digest and allocation audit",
+    "zero Bench fine-tuning",
+    "paired replay-verified Bench evaluation retains failures",
+    "per-task and per-axis statistics are reported without scalarization"
+  ]
+}
