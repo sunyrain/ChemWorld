@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-from scripts.run_vnext_primary import build_primary_jobs, build_primary_statistics
+import pytest
+from scripts.run_vnext_primary import (
+    PrimaryJob,
+    _validate_result,
+    build_primary_jobs,
+    build_primary_statistics,
+)
 
 from chemworld.agents.task_recipes import task_recipe_event_count
 from chemworld.eval.benchmark_validation import PRIMARY_METRIC_FIELDS
@@ -88,3 +94,32 @@ def test_suite_can_bind_vnext_risk_policy(tmp_path) -> None:
     assert results[0]["resource_usage"]["complete_experiment_count"] == 1
     contract = results[0]["score_replay"]["task_evaluation_contract"]
     assert contract["risk_limit_semantics"] == "benchmark_operational_risk_budget"
+
+
+def test_primary_result_validation_uses_verified_result_schema_field(tmp_path) -> None:
+    job = PrimaryJob(
+        task_id="partition-discovery",
+        method_id="random",
+        seeds=(20,),
+        complete_experiments=40,
+        operation_budget=160,
+        output_dir=str(tmp_path),
+        protocol_id="confirmatory-vnext-0.2",
+        protocol_sha256="a" * 64,
+        evaluated_source_commit="b" * 40,
+    )
+    result = {
+        "result_schema_version": "chemworld-evaluation-result-0.3",
+        "verified": True,
+        "resource_usage": {
+            "complete_experiment_count": 40,
+            "method_ledger": {"accounting_complete": True},
+        },
+    }
+    _validate_result(result, job)
+
+    wrong_field = dict(result)
+    wrong_field.pop("result_schema_version")
+    wrong_field["schema_version"] = "chemworld-evaluation-result-0.3"
+    with pytest.raises(RuntimeError, match=r"result schema 0\.3"):
+        _validate_result(wrong_field, job)

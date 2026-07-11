@@ -109,7 +109,7 @@ def _run_job(job: PrimaryJob) -> list[dict[str, Any]]:
 
 def _validate_result(result: dict[str, Any], job: PrimaryJob) -> None:
     usage = result.get("resource_usage", {})
-    if result.get("schema_version") != "chemworld-evaluation-result-0.3":
+    if result.get("result_schema_version") != "chemworld-evaluation-result-0.3":
         raise RuntimeError(f"{job.task_id}/{job.method_id} did not emit result schema 0.3")
     if result.get("verified") is not True:
         raise RuntimeError(f"{job.task_id}/{job.method_id} result did not replay-verify")
