@@ -12,11 +12,13 @@
     "confirmatory_seeds_unique": true,
     "core_matches_task_validity": true,
     "decision_rule_is_joint": true,
+    "exploit_matrix_controls": true,
     "exploratory_scope": true,
     "extrapolation_reserved_for_bench": true,
     "freeze_is_versioned": true,
     "method_resource_controls": true,
     "public_harness_controls": true,
+    "risk_cost_controls": true,
     "schema": true,
     "score_replay_controls": true,
     "sesoi_derivation_matches": true,
@@ -58,17 +60,18 @@
   ],
   "controls_ready": true,
   "evidence_sha256": {
-    "method_protocol": "96e4b8551c060b7841fdbf8758496e60de28b20b0d961364cd42ed885ec4c640",
+    "exploit_matrix_controls": "703daf30b30df3ad843b1eba798e21e5e4e2652d2484495dd0ad1aae655a875d",
+    "method_protocol": "9ed4444fbaad3fc08158ff38e07211ac77d39e40a1208c9eb2ebec9890b929cb",
     "public_harness_controls": "3b7f642816102c25755f580f54832b920561b91976e66edcbc83169641e6f9cd",
+    "risk_cost_controls": "e397d08ad4c661604f4a25c6213e0267b9a2cef073149652b46814750c940004",
     "score_replay_controls": "f38735a83cbab4db33a07f3af48e19292823a280f460f4b08f91cd4b3352125d",
     "task_validity": "0155d317b7dd47f7748e1e840945b56ed9e112226b96ecdc292c567a3b9ff682",
     "world_family_controls": "0e748ac789b79ea3c7190bbab80d02fe43d59e7c5c660b2213180a2c087bd21a"
   },
-  "exploit_matrix_complete": false,
+  "exploit_matrix_complete": true,
   "known_blockers": [
     "PPO, SAC, and two live LLM adapters are not yet eligible for the formal matrix.",
-    "The expanded exploit matrix is not yet complete.",
-    "No post-freeze confirmatory result may be interpreted before every method and failure is retained."
+    "The primary classical slice may run, but no cross-family claim is allowed before PPO, SAC, both live LLM roles, and every failure are retained."
   ],
   "missing_required_methods": [
     "ppo",
@@ -76,9 +79,15 @@
     "live_llm_a",
     "live_llm_b"
   ],
+  "primary_classical_rerun_ready": true,
+  "primary_method_ids": [
+    "structured_gp_bo",
+    "random"
+  ],
+  "primary_methods_ready": true,
   "protocol_frozen": true,
-  "protocol_id": "chemworld-vnext-confirmatory-freeze-0.1",
-  "protocol_sha256": "d17387fb98c8f93f15d685a5086557447e1c5327272394236f79566d16dc5bdb",
+  "protocol_id": "chemworld-vnext-confirmatory-freeze-0.2",
+  "protocol_sha256": "ef653acef513f0d1b8bfec7de553d080b044e128e70794ca4d3c11cd1263ba77",
   "publication_ready": false,
   "remaining_release_gates": [
     "implement PPO and the continuous-control RL comparator",
@@ -87,7 +96,7 @@
     "run the frozen primary and generalization comparisons",
     "complete independent clean-wheel reproduction"
   ],
-  "schema_version": "chemworld-confirmatory-freeze-audit-0.1",
+  "schema_version": "chemworld-confirmatory-freeze-audit-0.2",
   "sesoi": {
     "flow-reaction-optimization": {
       "absolute_floor": 0.02,
@@ -122,7 +131,7 @@
       "sesoi": 0.02
     }
   },
-  "status": "frozen_waiting_for_methods_and_exploit_gate",
+  "status": "primary_classical_rerun_ready_full_matrix_pending",
   "task_roles": {
     "core": [
       "partition-discovery",

@@ -18,7 +18,9 @@ from chemworld.eval.mechanism_family_audit import (
     load_mechanism_family_protocol,
 )
 from chemworld.tasks import get_task
-from chemworld.world.mechanism_family import MECHANISM_REACHABLE_TASKS
+from chemworld.world.mechanism_family import (
+    REACTION_MECHANISM_TASKS,
+)
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
 FROZEN_REPORT = (
@@ -50,12 +52,15 @@ def _run_midpoint(task_id: str, mode: str | None) -> tuple[float, dict]:
         info: dict = {}
         for action in recipe["steps"]:
             observation, _, _, _, info = env.step(action)
+        observation["_audit_mass_balance_error"] = np.asarray(
+            [info["raw_signal"]["mass_balance"]["process_mass_balance_error"]]
+        )
         return float(info["leaderboard_score"]), observation
     finally:
         env.close()
 
 
-@pytest.mark.parametrize("task_id", MECHANISM_REACHABLE_TASKS)
+@pytest.mark.parametrize("task_id", REACTION_MECHANISM_TASKS)
 @pytest.mark.parametrize("mode", ["rate_law_family", "topology_family"])
 def test_mechanism_family_changes_hash_structure_and_task_response(
     task_id: str,
@@ -93,14 +98,39 @@ def test_mechanism_family_changes_hash_structure_and_task_response(
     assert max(deltas) > 1.0e-8
 
 
+def test_partition_constitutive_family_changes_executed_law_not_reaction_network() -> None:
+    generator = DefaultScenarioGenerator()
+    scenario = get_scenario("partition-discovery")
+    base = generator.generate(scenario, 0)
+    intervention = (_intervention("constitutive_law_family"),)
+    shifted = generator.generate(scenario, 0, intervention)
+    repeated = generator.generate(scenario, 0, intervention)
+    assert shifted.compiled_mechanism.mechanism_hash == base.compiled_mechanism.mechanism_hash
+    assert shifted.parameters.domain_parameter(
+        "partition_coefficient_exponent"
+    ) > base.parameters.domain_parameter("partition_coefficient_exponent")
+    assert (
+        shifted.initial_state.metadata["mechanism_family_intervention_hash"]
+        == (repeated.initial_state.metadata["mechanism_family_intervention_hash"])
+    )
+    assert ":mechanism-" in shifted.parameters.world_id
+    base_score, _ = _run_midpoint("partition-discovery", None)
+    shifted_score, shifted_observation = _run_midpoint(
+        "partition-discovery",
+        "constitutive_law_family",
+    )
+    assert abs(shifted_score - base_score) > 1.0e-8
+    assert float(shifted_observation["_audit_mass_balance_error"][0]) <= 1.0e-8
+
+
 @pytest.mark.parametrize(
     "task_id",
-    ["partition-discovery", "electrochemical-conversion", "equilibrium-characterization"],
+    ["electrochemical-conversion", "equilibrium-characterization"],
 )
 def test_mechanism_family_rejects_tasks_without_reaction_network_reachability(
     task_id: str,
 ) -> None:
-    with pytest.raises(ValueError, match="does not causally execute"):
+    with pytest.raises(ValueError, match="does not expose"):
         DefaultScenarioGenerator().generate(
             get_scenario(task_id),
             0,
@@ -115,11 +145,12 @@ def test_zero_intervention_preserves_frozen_mechanism() -> None:
     empty = generator.generate(scenario, 0, ())
     assert empty.compiled_mechanism.mechanism_hash == base.compiled_mechanism.mechanism_hash
     assert empty.parameters.world_id == base.parameters.world_id
+    assert empty.parameters.domain_parameter("partition_coefficient_exponent") == 1.0
 
 
 def test_protocol_scope_drift_fails_closed() -> None:
     protocol = deepcopy(load_mechanism_family_protocol())
-    protocol["reachable_tasks"].append("partition-discovery")
+    protocol["reachable_tasks"].append("reaction-to-assay")
     report = audit_mechanism_families(protocol)
     assert report["checks"]["reachable_task_scope"] is False
     assert report["controls_ready"] is False
@@ -135,11 +166,15 @@ def test_protocol_mode_drift_fails_closed_without_skipping_controls() -> None:
         "rate_law_family",
         "topology_family",
     }
+    assert set(report["tasks"]["partition-discovery"]["modes"]) == {"constitutive_law_family"}
 
 
 def test_frozen_mechanism_family_report_is_ready_but_non_claiming() -> None:
     report = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
     assert report["controls_ready"] is True
     assert report["checks"]["task_responses_change"] is True
+    assert report["checks"]["partition_constitutive_family_changes"] is True
+    assert report["checks"]["partition_preserves_reaction_network_identity"] is True
+    assert report["checks"]["mass_balance_preserved"] is True
     assert report["benchmark_claim_allowed"] is False
     assert report["publication_ready"] is False

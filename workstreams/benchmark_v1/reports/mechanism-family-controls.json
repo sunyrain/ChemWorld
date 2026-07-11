@@ -1,60 +1,94 @@
 {
   "benchmark_claim_allowed": false,
   "checks": {
-    "all_hashes_deterministic_and_changed": true,
+    "all_intervention_hashes_deterministic": true,
     "candidate_is_non_claiming": true,
     "contract_version": true,
     "excluded_task_scope_explicit": true,
+    "mass_balance_preserved": true,
     "mode_scope": true,
+    "partition_constitutive_family_changes": true,
+    "partition_preserves_reaction_network_identity": true,
     "public_ids_opaque": true,
     "rate_law_family_changes": true,
     "reachable_task_scope": true,
+    "reaction_network_hashes_change": true,
     "schema": true,
+    "task_mode_scope": true,
     "task_responses_change": true,
     "topology_graph_changes": true
   },
   "controls_ready": true,
   "excluded_tasks": {
     "electrochemical-conversion": "executes the dedicated electrode/transport provider, not ReactionNetworkSpec",
-    "equilibrium-characterization": "executes acid-base and precipitation solvers, not ReactionNetworkSpec",
-    "partition-discovery": "executes phase-partition constitutive laws, not ReactionNetworkSpec"
+    "equilibrium-characterization": "executes acid-base and precipitation solvers, not ReactionNetworkSpec"
   },
   "limitations": [
     "The controls prove causal execution, not agent adaptation or scientific realism.",
-    "Mechanism families currently cover only tasks that execute ReactionNetworkSpec.",
+    "Core coverage now includes reaction-network and partition constitutive-law families.",
+    "Electrochemistry and equilibrium still lack dedicated constitutive-law families.",
     "Multi-seed severity calibration and method comparisons remain pending."
   ],
-  "protocol_id": "chemworld-vnext-mechanism-family-candidate-0.1",
+  "protocol_id": "chemworld-vnext-mechanism-family-candidate-0.2",
   "publication_ready": false,
   "remaining_release_gates": [
     "calibrate mechanism severity over multiple seeds",
     "freeze disjoint Train/Dev/Bench mechanism-family allocations",
     "measure whether agents identify and adapt to mechanism-family shifts",
-    "add dedicated constitutive-law families for partition, electrochemistry, and equilibrium",
+    "add dedicated constitutive-law families for electrochemistry and equilibrium",
     "bind mechanism-family results to the vNext replay and method protocols"
   ],
-  "schema_version": "chemworld-mechanism-family-control-audit-0.1",
+  "schema_version": "chemworld-mechanism-family-control-audit-0.2",
   "status": "controls_ready_experiments_pending",
   "tasks": {
     "flow-reaction-optimization": {
       "base_mechanism_hash": "c87ba98ea671bacc2a8787c4ac589e87e9d9f5bfb15ddd6690a1823fa3b042f0",
       "modes": {
         "rate_law_family": {
+          "constitutive_exponent_changed": false,
           "deterministic": true,
-          "hash_changed": true,
+          "intervention_hash": "035d249827ff36f05ef6e41a7f49ce6d9744bd12630cb19898debd66147eb7a2",
+          "mass_balance_preserved": true,
+          "network_hash_changed": true,
           "opaque_public_id": true,
+          "partition_coefficient_exponent": 1.0,
+          "process_mass_balance_error": 0.0,
           "rate_law_families_changed": true,
           "reaction_count_delta": 0,
           "score_delta": -0.0007502953662804901,
           "task_response_changed": true
         },
         "topology_family": {
+          "constitutive_exponent_changed": false,
           "deterministic": true,
-          "hash_changed": true,
+          "intervention_hash": "49a09e910c0c9baa45972f034a147e06e0ef0da40e9544ae064638227fff7659",
+          "mass_balance_preserved": true,
+          "network_hash_changed": true,
           "opaque_public_id": true,
+          "partition_coefficient_exponent": 1.0,
+          "process_mass_balance_error": 0.0,
           "rate_law_families_changed": true,
           "reaction_count_delta": 1,
           "score_delta": -0.012019057625642517,
+          "task_response_changed": true
+        }
+      }
+    },
+    "partition-discovery": {
+      "base_mechanism_hash": "26e029387db8a32f66d52789a3ccfa939baa1d6e469424dbb596f1813d81e437",
+      "modes": {
+        "constitutive_law_family": {
+          "constitutive_exponent_changed": true,
+          "deterministic": true,
+          "intervention_hash": "5d10a7d00a8ced0163fe36436a4166a0c6d95ffdab18ec49724c845a0cacf995",
+          "mass_balance_preserved": true,
+          "network_hash_changed": false,
+          "opaque_public_id": true,
+          "partition_coefficient_exponent": 1.6,
+          "process_mass_balance_error": 0.0,
+          "rate_law_families_changed": false,
+          "reaction_count_delta": 0,
+          "score_delta": 0.011546632155026715,
           "task_response_changed": true
         }
       }
@@ -63,18 +97,28 @@
       "base_mechanism_hash": "f437e1b8b8d100562751fe45b209ab4208e46e097fcedc637d3a476959f2203b",
       "modes": {
         "rate_law_family": {
+          "constitutive_exponent_changed": false,
           "deterministic": true,
-          "hash_changed": true,
+          "intervention_hash": "af8eded9c3a67fe18dd4d42c1ac5f4bd7955807b6b550ae142aa10055b3915ac",
+          "mass_balance_preserved": true,
+          "network_hash_changed": true,
           "opaque_public_id": true,
+          "partition_coefficient_exponent": 1.0,
+          "process_mass_balance_error": 0.0,
           "rate_law_families_changed": true,
           "reaction_count_delta": 0,
           "score_delta": -3.9465202248401e-05,
           "task_response_changed": true
         },
         "topology_family": {
+          "constitutive_exponent_changed": false,
           "deterministic": true,
-          "hash_changed": true,
+          "intervention_hash": "94abea009f0decfcc9fc4b2c65b632df48ed622e8809be76c551c64684f6c0b9",
+          "mass_balance_preserved": true,
+          "network_hash_changed": true,
           "opaque_public_id": true,
+          "partition_coefficient_exponent": 1.0,
+          "process_mass_balance_error": 0.0,
           "rate_law_families_changed": true,
           "reaction_count_delta": 1,
           "score_delta": -0.04997884563897026,
@@ -86,18 +130,28 @@
       "base_mechanism_hash": "ad680134230e34a2330447cacb71ee78648b736b2d9e5f2edf2afdad510b1bab",
       "modes": {
         "rate_law_family": {
+          "constitutive_exponent_changed": false,
           "deterministic": true,
-          "hash_changed": true,
+          "intervention_hash": "f53a3282eb689f25d403450edf4678e66d2964968a03b1c6c26c22b05577519a",
+          "mass_balance_preserved": true,
+          "network_hash_changed": true,
           "opaque_public_id": true,
+          "partition_coefficient_exponent": 1.0,
+          "process_mass_balance_error": 0.0,
           "rate_law_families_changed": true,
           "reaction_count_delta": 0,
           "score_delta": -4.529962838403789e-05,
           "task_response_changed": true
         },
         "topology_family": {
+          "constitutive_exponent_changed": false,
           "deterministic": true,
-          "hash_changed": true,
+          "intervention_hash": "fc4ba0c3965dbf943c9a9d0ca9f2bff268b55041c65dd822b523ea2a7da74b4d",
+          "mass_balance_preserved": true,
+          "network_hash_changed": true,
           "opaque_public_id": true,
+          "partition_coefficient_exponent": 1.0,
+          "process_mass_balance_error": 0.0,
           "rate_law_families_changed": true,
           "reaction_count_delta": 1,
           "score_delta": -0.006669382228034565,

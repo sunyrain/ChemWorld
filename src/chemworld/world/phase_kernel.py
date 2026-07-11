@@ -42,9 +42,14 @@ def partition_split(
     organic_volume_L: float,
     aqueous_volume_L: float,
     coefficient_multiplier: float = 1.0,
+    coefficient_exponent: float = 1.0,
     phase_volume_multiplier: float = 1.0,
 ) -> PartitionSplitResult:
-    if coefficient_multiplier <= 0.0 or phase_volume_multiplier <= 0.0:
+    if (
+        coefficient_multiplier <= 0.0
+        or coefficient_exponent <= 0.0
+        or phase_volume_multiplier <= 0.0
+    ):
         raise ValueError("partition intervention multipliers must be positive")
     partition_base = np.array([0.65, 1.25, 2.20, 1.55])
     temperature_factor = 1.0 + 0.0025 * (temperature_K - 298.15)
@@ -53,7 +58,12 @@ def partition_split(
     )
     partition = max(
         0.05,
-        float(partition_base[solvent] * temperature_factor * mix_factor * coefficient_multiplier),
+        float(
+            partition_base[solvent] ** coefficient_exponent
+            * temperature_factor
+            * mix_factor
+            * coefficient_multiplier
+        ),
     )
     v_org = max(organic_volume_L * phase_volume_multiplier, 1.0e-9)
     v_aq = max(aqueous_volume_L / phase_volume_multiplier, 1.0e-9)

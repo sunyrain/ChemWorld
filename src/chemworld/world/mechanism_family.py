@@ -15,13 +15,23 @@ from chemworld.physchem.reaction_network_specs import RateLawSpec, ReactionSpec
 from chemworld.runtime.mechanism_manifest import CompiledMechanism
 from chemworld.world.scenario import ScenarioInstance
 
-MechanismFamilyMode = Literal["rate_law_family", "topology_family"]
-MECHANISM_FAMILY_INTERVENTION_VERSION = "chemworld-mechanism-family-intervention-0.1"
-MECHANISM_REACHABLE_TASKS = (
+MechanismFamilyMode = Literal[
+    "rate_law_family",
+    "topology_family",
+    "constitutive_law_family",
+]
+MECHANISM_FAMILY_INTERVENTION_VERSION = "chemworld-mechanism-family-intervention-0.2"
+REACTION_MECHANISM_TASKS = (
     "reaction-to-crystallization",
     "reaction-to-distillation",
     "flow-reaction-optimization",
 )
+PARTITION_MECHANISM_TASKS = ("partition-discovery",)
+MECHANISM_REACHABLE_TASKS = (*PARTITION_MECHANISM_TASKS, *REACTION_MECHANISM_TASKS)
+MECHANISM_TASK_MODES: dict[str, tuple[MechanismFamilyMode, ...]] = {
+    "partition-discovery": ("constitutive_law_family",),
+    **dict.fromkeys(REACTION_MECHANISM_TASKS, ("rate_law_family", "topology_family")),
+}
 
 
 @dataclass(frozen=True)
@@ -30,7 +40,11 @@ class MechanismFamilyIntervention:
     severity: float
 
     def __post_init__(self) -> None:
-        if self.mode not in {"rate_law_family", "topology_family"}:
+        if self.mode not in {
+            "rate_law_family",
+            "topology_family",
+            "constitutive_law_family",
+        }:
             raise ValueError(f"unsupported mechanism-family mode: {self.mode}")
         if not np.isfinite(self.severity) or not 0.0 < self.severity <= 1.0:
             raise ValueError("mechanism-family severity must be finite and in (0, 1]")
@@ -58,9 +72,12 @@ def apply_mechanism_family_intervention(
 ) -> ScenarioInstance:
     """Bind a derived compiled mechanism and opaque provenance to a world."""
 
-    if instance.spec.scenario_id not in MECHANISM_REACHABLE_TASKS:
+    task_id = instance.spec.scenario_id
+    if task_id not in MECHANISM_REACHABLE_TASKS:
+        raise ValueError(f"task {task_id!r} does not expose a mechanism-family intervention")
+    if intervention.mode not in MECHANISM_TASK_MODES[task_id]:
         raise ValueError(
-            f"task {instance.spec.scenario_id!r} does not causally execute CompiledMechanism"
+            f"mode {intervention.mode!r} is not causally reachable for task {task_id!r}"
         )
     base_hash = str(
         instance.compiled_mechanism.network.metadata.get(
@@ -72,10 +89,14 @@ def apply_mechanism_family_intervention(
         base_mechanism_hash=base_hash,
         intervention=intervention,
     )
+    domain_parameters = dict(instance.parameters.domain_parameters)
+    if intervention.mode == "constitutive_law_family":
+        domain_parameters["partition_coefficient_exponent"] = 1.0 + 0.75 * intervention.severity
     parameters = replace(
         instance.parameters,
         world_id=f"{instance.parameters.world_id}:mechanism-{contract_hash[:12]}",
         provider=f"{instance.parameters.provider}+mechanism-family",
+        domain_parameters=domain_parameters,
     )
     metadata = {
         **instance.initial_state.metadata,
@@ -95,6 +116,10 @@ def derive_mechanism_family(
     base: CompiledMechanism,
     intervention: MechanismFamilyIntervention,
 ) -> CompiledMechanism:
+    if intervention.mode == "constitutive_law_family":
+        raise ValueError(
+            "constitutive-law families modify executed world laws, not ReactionNetworkSpec"
+        )
     network = (
         _rate_law_variant(base.network, intervention.severity)
         if intervention.mode == "rate_law_family"
@@ -245,6 +270,9 @@ def _topology_variant(base: CompiledMechanism, severity: float) -> ReactionNetwo
 __all__ = [
     "MECHANISM_FAMILY_INTERVENTION_VERSION",
     "MECHANISM_REACHABLE_TASKS",
+    "MECHANISM_TASK_MODES",
+    "PARTITION_MECHANISM_TASKS",
+    "REACTION_MECHANISM_TASKS",
     "MechanismFamilyIntervention",
     "apply_mechanism_family_intervention",
     "derive_mechanism_family",

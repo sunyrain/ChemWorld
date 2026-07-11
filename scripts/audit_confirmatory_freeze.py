@@ -32,6 +32,7 @@ def main() -> int:
                 "controls_ready": report["controls_ready"],
                 "protocol_frozen": report["protocol_frozen"],
                 "confirmatory_rerun_ready": report["confirmatory_rerun_ready"],
+                "primary_classical_rerun_ready": report["primary_classical_rerun_ready"],
                 "missing_required_methods": report["missing_required_methods"],
                 "output": str(args.output),
             },

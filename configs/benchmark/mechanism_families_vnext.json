@@ -1,20 +1,38 @@
 {
-  "schema_version": "chemworld-mechanism-family-protocol-0.1",
-  "protocol_id": "chemworld-vnext-mechanism-family-candidate-0.1",
-  "intervention_contract_version": "chemworld-mechanism-family-intervention-0.1",
+  "schema_version": "chemworld-mechanism-family-protocol-0.2",
+  "protocol_id": "chemworld-vnext-mechanism-family-candidate-0.2",
+  "intervention_contract_version": "chemworld-mechanism-family-intervention-0.2",
   "status": "candidate_controls_only",
   "benchmark_claim_allowed": false,
   "reachable_tasks": [
+    "partition-discovery",
     "reaction-to-crystallization",
     "reaction-to-distillation",
     "flow-reaction-optimization"
   ],
   "modes": [
     "rate_law_family",
-    "topology_family"
+    "topology_family",
+    "constitutive_law_family"
   ],
+  "task_modes": {
+    "partition-discovery": [
+      "constitutive_law_family"
+    ],
+    "reaction-to-crystallization": [
+      "rate_law_family",
+      "topology_family"
+    ],
+    "reaction-to-distillation": [
+      "rate_law_family",
+      "topology_family"
+    ],
+    "flow-reaction-optimization": [
+      "rate_law_family",
+      "topology_family"
+    ]
+  },
   "excluded_tasks": {
-    "partition-discovery": "executes phase-partition constitutive laws, not ReactionNetworkSpec",
     "electrochemical-conversion": "executes the dedicated electrode/transport provider, not ReactionNetworkSpec",
     "equilibrium-characterization": "executes acid-base and precipitation solvers, not ReactionNetworkSpec"
   },
@@ -23,6 +41,9 @@
     "public_mechanism_id_opaque": true,
     "topology_changes_reaction_graph": true,
     "rate_law_changes_equation_family": true,
+    "partition_changes_constitutive_exponent": true,
+    "partition_preserves_reaction_network_identity": true,
+    "mass_balance_preserved": true,
     "single_intervention_changes_task_response": true,
     "zero_intervention_preserves_v0_4": true
   },
@@ -30,7 +51,7 @@
     "calibrate mechanism severity over multiple seeds",
     "freeze disjoint Train/Dev/Bench mechanism-family allocations",
     "measure whether agents identify and adapt to mechanism-family shifts",
-    "add dedicated constitutive-law families for partition, electrochemistry, and equilibrium",
+    "add dedicated constitutive-law families for electrochemistry and equilibrium",
     "bind mechanism-family results to the vNext replay and method protocols"
   ]
 }
