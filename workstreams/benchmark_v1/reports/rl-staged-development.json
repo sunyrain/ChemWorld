@@ -1,0 +1,1233 @@
+{
+  "algorithm_cards": {
+    "ppo": {
+      "checkpoint_sha256": "5b158b643743554eafbff108848037d8dd0373d17fec910606ed94f08de2d08b",
+      "eligible_for_100k_train_dev_scaling": false,
+      "standard_replay_evaluation": {
+        "all_replay_verified": true,
+        "complete_experiment_count": 6,
+        "episode_completion_rate": 0.8,
+        "final_best_scores": [
+          0.0,
+          0.00098830180757952,
+          0.0056910178578236876,
+          0.00017440635883787117,
+          0.004546422779805631
+        ],
+        "formal_evidence": false,
+        "invalid_action_rate": 0.02,
+        "mean_final_best_score_including_failures": 0.002280029760809342,
+        "trajectory_count": 5
+      },
+      "training_manifest": {
+        "action_contract": {
+          "action_keys": [
+            "amount_mol",
+            "catalyst",
+            "catalyst_amount_mol",
+            "current_mA",
+            "duration_s",
+            "extractant",
+            "flow_rate_mL_min",
+            "instrument",
+            "operation",
+            "phase",
+            "potential_V",
+            "reflux_ratio",
+            "residence_time_s",
+            "sample_volume_L",
+            "seed_mass_g",
+            "solvent",
+            "stirring_speed_rpm",
+            "target_phase",
+            "target_temperature_K",
+            "transfer_fraction",
+            "volume_L",
+            "wash_volume_L"
+          ],
+          "empty_operation_mask_policy": "retain global argmax and record the resulting failure",
+          "execution_numeric_policy": "normalize numpy values to their JSON trajectory representation before execution",
+          "high": 1.0,
+          "invalid_payload_policy": "retain environment precondition or domain failure",
+          "low": -1.0,
+          "operation_logit_count": 28,
+          "operation_mapping": "fixed global logits decoded by argmax after public affordance mask",
+          "operation_types": [
+            "add_reagent",
+            "add_solvent",
+            "add_catalyst",
+            "heat",
+            "wait",
+            "sample",
+            "quench",
+            "add_phase",
+            "add_extractant",
+            "mix",
+            "settle",
+            "separate_phase",
+            "wash",
+            "dry",
+            "concentrate",
+            "transfer",
+            "seed_crystals",
+            "cool_crystallize",
+            "filter_crystals",
+            "evaporate",
+            "distill",
+            "collect_fraction",
+            "set_flow_rate",
+            "run_flow",
+            "set_potential",
+            "electrolyze",
+            "terminate",
+            "measure"
+          ],
+          "parameter_discrete_mapping": "fixed global index; floor(unit_coordinate * n)",
+          "parameter_keys": [
+            "amount_mol",
+            "catalyst",
+            "catalyst_amount_mol",
+            "current_mA",
+            "duration_s",
+            "extractant",
+            "flow_rate_mL_min",
+            "instrument",
+            "phase",
+            "potential_V",
+            "reflux_ratio",
+            "residence_time_s",
+            "sample_volume_L",
+            "seed_mass_g",
+            "solvent",
+            "stirring_speed_rpm",
+            "target_phase",
+            "target_temperature_K",
+            "transfer_fraction",
+            "volume_L",
+            "wash_volume_L"
+          ],
+          "schema_version": "chemworld-continuous-event-action-0.3",
+          "shape": [
+            49
+          ]
+        },
+        "algorithm": "ppo",
+        "allocation": {
+          "cell_count": 16,
+          "modes": [
+            "composition",
+            "interpolation",
+            "observation_noise"
+          ],
+          "name": "train",
+          "seed_count": 100,
+          "seed_max": 1099,
+          "seed_min": 1000,
+          "task_id": "flow-reaction-optimization"
+        },
+        "checkpoint": "ppo-flow-reaction-optimization-seed0.zip",
+        "checkpoint_sha256": "5b158b643743554eafbff108848037d8dd0373d17fec910606ed94f08de2d08b",
+        "cpu_time_s": 359.109375,
+        "device": "cpu",
+        "formal_evidence": false,
+        "gpu_time_s": 0.0,
+        "limitations": [
+          "This checkpoint is diagnostic until the full frozen training budget is consumed.",
+          "Formal eligibility also requires replay-verified Bench evaluation and paired statistics."
+        ],
+        "model_seed": 0,
+        "observation_shape": [
+          93
+        ],
+        "operation_budget": 40,
+        "schema_version": "chemworld-rl-checkpoint-0.1",
+        "task_id": "flow-reaction-optimization",
+        "training_diagnostics": {
+          "completed_experiment_count": 609,
+          "completed_experiments_per_1000_steps": 29.736328125,
+          "episode_count": 513,
+          "high_cost_step_count": 7448,
+          "invalid_action_count": 2182,
+          "invalid_action_rate": 0.10654296875,
+          "measurement_count": 1965,
+          "newly_unlocked_operation_count": 4698,
+          "raw_reward_sum": 22.9291989120286,
+          "runtime_domain_failure_count": 0,
+          "shaped_reward_sum": 29.269198912033193,
+          "step_count": 20480,
+          "unsafe_step_count": 10
+        },
+        "training_environment_step_count": 20000,
+        "training_reward_contract": {
+          "benchmark_evaluation_uses_shaped_reward": false,
+          "components": {
+            "completed_experiment": 1.0,
+            "high_cost_step": -0.05,
+            "invalid_precondition": -0.25,
+            "newly_unlocked_operation": 0.02,
+            "raw_environment_reward": 1.0,
+            "unsafe_step": -0.1,
+            "valid_measurement": 0.02,
+            "valid_operation": 0.01
+          },
+          "public_signals_only": true,
+          "schema_version": "chemworld-rl-training-reward-0.1"
+        },
+        "versions": {
+          "platform": "Windows-11-10.0.26200-SP0",
+          "python": "3.12.10",
+          "stable_baselines3": "2.9.0",
+          "torch": "2.13.0+cpu"
+        },
+        "wall_time_s": 257.23522510007024
+      },
+      "world_family_dev_evaluation": {
+        "algorithm": "ppo",
+        "allocation": {
+          "cell_count": 10,
+          "modes": [
+            "composition",
+            "interpolation",
+            "observation_noise"
+          ],
+          "name": "dev",
+          "seed_count": 20,
+          "seed_max": 1119,
+          "seed_min": 1100,
+          "task_id": "flow-reaction-optimization"
+        },
+        "claim_boundary": "Dev-only checkpoint selection diagnostic; no replay trajectory or Bench result, therefore not benchmark evidence.",
+        "episode_cards": [
+          {
+            "best_final_score": 0.0,
+            "complete_experiment_count": 0,
+            "episode_index": 0,
+            "final_scores": [],
+            "high_cost_step_count": 39,
+            "invalid_action_count": 1,
+            "measurement_count": 0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0,
+            "complete_experiment_count": 0,
+            "episode_index": 1,
+            "final_scores": [],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0020550640637976656,
+            "complete_experiment_count": 2,
+            "episode_index": 2,
+            "final_scores": [
+              0.0020550640637976656,
+              0.0006461188235496844
+            ],
+            "high_cost_step_count": 13,
+            "invalid_action_count": 3,
+            "measurement_count": 4,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.02032705717807518,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0031057292593117377,
+            "complete_experiment_count": 1,
+            "episode_index": 3,
+            "final_scores": [
+              0.0031057292593117377
+            ],
+            "high_cost_step_count": 9,
+            "invalid_action_count": 0,
+            "measurement_count": 3,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.02168809086007074,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.00098899489876153,
+            "complete_experiment_count": 3,
+            "episode_index": 4,
+            "final_scores": [
+              0.0,
+              0.00098899489876153,
+              0.0
+            ],
+            "high_cost_step_count": 15,
+            "invalid_action_count": 3,
+            "measurement_count": 11,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.018854863925899582,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.013530885489150494,
+            "complete_experiment_count": 2,
+            "episode_index": 5,
+            "final_scores": [
+              0.013530885489150494,
+              0.001240051037966468
+            ],
+            "high_cost_step_count": 10,
+            "invalid_action_count": 5,
+            "measurement_count": 9,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.09111907681460005,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0009050943599548137,
+            "complete_experiment_count": 2,
+            "episode_index": 6,
+            "final_scores": [
+              0.0009050943599548137,
+              0.0
+            ],
+            "high_cost_step_count": 13,
+            "invalid_action_count": 2,
+            "measurement_count": 8,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.09477557389648396,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.003953447540614775,
+            "complete_experiment_count": 1,
+            "episode_index": 7,
+            "final_scores": [
+              0.003953447540614775
+            ],
+            "high_cost_step_count": 30,
+            "invalid_action_count": 2,
+            "measurement_count": 2,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.003953447540614775,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0,
+            "complete_experiment_count": 0,
+            "episode_index": 8,
+            "final_scores": [],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.08824009835599564,
+            "complete_experiment_count": 3,
+            "episode_index": 9,
+            "final_scores": [
+              0.04401105431814502,
+              0.010820051918843632,
+              0.08824009835599564
+            ],
+            "high_cost_step_count": 17,
+            "invalid_action_count": 4,
+            "measurement_count": 12,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.4661050078897735,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0,
+            "complete_experiment_count": 0,
+            "episode_index": 10,
+            "final_scores": [],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.008619475576894915,
+            "complete_experiment_count": 3,
+            "episode_index": 11,
+            "final_scores": [
+              0.0,
+              0.00026462617526118047,
+              0.008619475576894915
+            ],
+            "high_cost_step_count": 19,
+            "invalid_action_count": 3,
+            "measurement_count": 7,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.015457465688254084,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0010110641933357466,
+            "complete_experiment_count": 2,
+            "episode_index": 12,
+            "final_scores": [
+              0.0009312928804662289,
+              0.0010110641933357466
+            ],
+            "high_cost_step_count": 19,
+            "invalid_action_count": 0,
+            "measurement_count": 3,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.0019423570738019754,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0,
+            "complete_experiment_count": 0,
+            "episode_index": 13,
+            "final_scores": [],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 1,
+            "measurement_count": 0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.004025826225238711,
+            "complete_experiment_count": 1,
+            "episode_index": 14,
+            "final_scores": [
+              0.004025826225238711
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 4,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.04849000904498085,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.001821238383319721,
+            "complete_experiment_count": 1,
+            "episode_index": 15,
+            "final_scores": [
+              0.001821238383319721
+            ],
+            "high_cost_step_count": 8,
+            "invalid_action_count": 2,
+            "measurement_count": 2,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.04631732417598734,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.008463224087287509,
+            "complete_experiment_count": 2,
+            "episode_index": 16,
+            "final_scores": [
+              0.008463224087287509,
+              0.002784547738851797
+            ],
+            "high_cost_step_count": 18,
+            "invalid_action_count": 10,
+            "measurement_count": 12,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.0998571574709746,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0033169928269464483,
+            "complete_experiment_count": 1,
+            "episode_index": 17,
+            "final_scores": [
+              0.0033169928269464483
+            ],
+            "high_cost_step_count": 14,
+            "invalid_action_count": 3,
+            "measurement_count": 2,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.0033169928269464483,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0,
+            "complete_experiment_count": 0,
+            "episode_index": 18,
+            "final_scores": [],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 1,
+            "measurement_count": 0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0,
+            "complete_experiment_count": 0,
+            "episode_index": 19,
+            "final_scores": [],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          }
+        ],
+        "episodes": 20,
+        "formal_evidence": false,
+        "operation_budget_per_episode": 40,
+        "policy_mode": "stochastic_frozen_seed",
+        "policy_seed": 223,
+        "sampler_seed": 199,
+        "schema_version": "chemworld-rl-development-evaluation-0.1",
+        "summary": {
+          "complete_experiment_count": 24,
+          "complete_experiments_per_episode": 1.2,
+          "episode_completion_rate": 0.65,
+          "high_cost_step_rate": 0.28,
+          "invalid_action_rate": 0.05,
+          "mean_episode_best_score": 0.007001856763030485,
+          "mean_final_score": 0.008363953256403904,
+          "observation_domain_failure_count": 0,
+          "operation_count": 800,
+          "operation_counts": {
+            "add_catalyst": 30,
+            "add_reagent": 71,
+            "add_solvent": 40,
+            "measure": 79,
+            "run_flow": 5,
+            "set_flow_rate": 40,
+            "terminate": 535
+          },
+          "runtime_domain_failure_count": 0,
+          "unsafe_step_rate": 0.0
+        },
+        "task_id": "flow-reaction-optimization",
+        "training_reward_used": false
+      }
+    },
+    "sac": {
+      "checkpoint_sha256": "32cb3aee4c5f771ef922f37be2b50adb8d31fdd09e54ae41cdda02dd765cb699",
+      "eligible_for_100k_train_dev_scaling": true,
+      "standard_replay_evaluation": {
+        "all_replay_verified": true,
+        "complete_experiment_count": 37,
+        "episode_completion_rate": 1.0,
+        "final_best_scores": [
+          0.006428668777220844,
+          0.008876225968003963,
+          0.0056910178578236876,
+          0.008473326806994261,
+          0.0016082554473963247
+        ],
+        "formal_evidence": false,
+        "invalid_action_rate": 0.0,
+        "mean_final_best_score_including_failures": 0.006215498971487816,
+        "trajectory_count": 5
+      },
+      "training_manifest": {
+        "action_contract": {
+          "action_keys": [
+            "amount_mol",
+            "catalyst",
+            "catalyst_amount_mol",
+            "current_mA",
+            "duration_s",
+            "extractant",
+            "flow_rate_mL_min",
+            "instrument",
+            "operation",
+            "phase",
+            "potential_V",
+            "reflux_ratio",
+            "residence_time_s",
+            "sample_volume_L",
+            "seed_mass_g",
+            "solvent",
+            "stirring_speed_rpm",
+            "target_phase",
+            "target_temperature_K",
+            "transfer_fraction",
+            "volume_L",
+            "wash_volume_L"
+          ],
+          "empty_operation_mask_policy": "retain global argmax and record the resulting failure",
+          "execution_numeric_policy": "normalize numpy values to their JSON trajectory representation before execution",
+          "high": 1.0,
+          "invalid_payload_policy": "retain environment precondition or domain failure",
+          "low": -1.0,
+          "operation_logit_count": 28,
+          "operation_mapping": "fixed global logits decoded by argmax after public affordance mask",
+          "operation_types": [
+            "add_reagent",
+            "add_solvent",
+            "add_catalyst",
+            "heat",
+            "wait",
+            "sample",
+            "quench",
+            "add_phase",
+            "add_extractant",
+            "mix",
+            "settle",
+            "separate_phase",
+            "wash",
+            "dry",
+            "concentrate",
+            "transfer",
+            "seed_crystals",
+            "cool_crystallize",
+            "filter_crystals",
+            "evaporate",
+            "distill",
+            "collect_fraction",
+            "set_flow_rate",
+            "run_flow",
+            "set_potential",
+            "electrolyze",
+            "terminate",
+            "measure"
+          ],
+          "parameter_discrete_mapping": "fixed global index; floor(unit_coordinate * n)",
+          "parameter_keys": [
+            "amount_mol",
+            "catalyst",
+            "catalyst_amount_mol",
+            "current_mA",
+            "duration_s",
+            "extractant",
+            "flow_rate_mL_min",
+            "instrument",
+            "phase",
+            "potential_V",
+            "reflux_ratio",
+            "residence_time_s",
+            "sample_volume_L",
+            "seed_mass_g",
+            "solvent",
+            "stirring_speed_rpm",
+            "target_phase",
+            "target_temperature_K",
+            "transfer_fraction",
+            "volume_L",
+            "wash_volume_L"
+          ],
+          "schema_version": "chemworld-continuous-event-action-0.3",
+          "shape": [
+            49
+          ]
+        },
+        "algorithm": "sac",
+        "allocation": {
+          "cell_count": 16,
+          "modes": [
+            "composition",
+            "interpolation",
+            "observation_noise"
+          ],
+          "name": "train",
+          "seed_count": 100,
+          "seed_max": 1099,
+          "seed_min": 1000,
+          "task_id": "flow-reaction-optimization"
+        },
+        "checkpoint": "sac-flow-reaction-optimization-seed0.zip",
+        "checkpoint_sha256": "32cb3aee4c5f771ef922f37be2b50adb8d31fdd09e54ae41cdda02dd765cb699",
+        "cpu_time_s": 6633.796875,
+        "device": "cpu",
+        "formal_evidence": false,
+        "gpu_time_s": 0.0,
+        "limitations": [
+          "This checkpoint is diagnostic until the full frozen training budget is consumed.",
+          "Formal eligibility also requires replay-verified Bench evaluation and paired statistics."
+        ],
+        "model_seed": 0,
+        "observation_shape": [
+          93
+        ],
+        "operation_budget": 40,
+        "schema_version": "chemworld-rl-checkpoint-0.1",
+        "task_id": "flow-reaction-optimization",
+        "training_diagnostics": {
+          "completed_experiment_count": 1231,
+          "completed_experiments_per_1000_steps": 61.55,
+          "episode_count": 501,
+          "high_cost_step_count": 5772,
+          "invalid_action_count": 1253,
+          "invalid_action_rate": 0.06265,
+          "measurement_count": 2510,
+          "newly_unlocked_operation_count": 8447,
+          "raw_reward_sum": 48.669214951119486,
+          "runtime_domain_failure_count": 0,
+          "shaped_reward_sum": 1083.6292149510584,
+          "step_count": 20000,
+          "unsafe_step_count": 8
+        },
+        "training_environment_step_count": 20000,
+        "training_reward_contract": {
+          "benchmark_evaluation_uses_shaped_reward": false,
+          "components": {
+            "completed_experiment": 1.0,
+            "high_cost_step": -0.05,
+            "invalid_precondition": -0.25,
+            "newly_unlocked_operation": 0.02,
+            "raw_environment_reward": 1.0,
+            "unsafe_step": -0.1,
+            "valid_measurement": 0.02,
+            "valid_operation": 0.01
+          },
+          "public_signals_only": true,
+          "schema_version": "chemworld-rl-training-reward-0.1"
+        },
+        "versions": {
+          "platform": "Windows-11-10.0.26200-SP0",
+          "python": "3.12.10",
+          "stable_baselines3": "2.9.0",
+          "torch": "2.13.0+cpu"
+        },
+        "wall_time_s": 430.5115278000012
+      },
+      "world_family_dev_evaluation": {
+        "algorithm": "sac",
+        "allocation": {
+          "cell_count": 10,
+          "modes": [
+            "composition",
+            "interpolation",
+            "observation_noise"
+          ],
+          "name": "dev",
+          "seed_count": 20,
+          "seed_max": 1119,
+          "seed_min": 1100,
+          "task_id": "flow-reaction-optimization"
+        },
+        "claim_boundary": "Dev-only checkpoint selection diagnostic; no replay trajectory or Bench result, therefore not benchmark evidence.",
+        "episode_cards": [
+          {
+            "best_final_score": 0.005618863242948,
+            "complete_experiment_count": 6,
+            "episode_index": 0,
+            "final_scores": [
+              0.0011677716365733938,
+              0.0008423415388517779,
+              0.0005481926899251254,
+              0.0054788988525474045,
+              0.005618863242948,
+              0.0007075622730848154
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 9,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.020687782905724057,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.005662797804283674,
+            "complete_experiment_count": 7,
+            "episode_index": 1,
+            "final_scores": [
+              0.0,
+              0.0,
+              0.0,
+              0.005662797804283674,
+              0.004112183849593578,
+              0.001278848163080271,
+              0.005495888414021185
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 9,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.01671304174893563,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.007820797125424404,
+            "complete_experiment_count": 6,
+            "episode_index": 2,
+            "final_scores": [
+              0.0,
+              0.003167540840574098,
+              0.007820797125424404,
+              0.0,
+              0.0,
+              0.0011649549365584748
+            ],
+            "high_cost_step_count": 6,
+            "invalid_action_count": 0,
+            "measurement_count": 10,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.014979035045443264,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.004027146587608076,
+            "complete_experiment_count": 7,
+            "episode_index": 3,
+            "final_scores": [
+              0.0,
+              0.0,
+              0.0013853571525850792,
+              0.0002109538214999394,
+              0.0005533267069507704,
+              0.0,
+              0.004027146587608076
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 13,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.01655278024349134,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.0,
+            "complete_experiment_count": 1,
+            "episode_index": 4,
+            "final_scores": [
+              0.0
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 31,
+            "measurement_count": 33,
+            "observation_domain_failure_count": 31,
+            "operation_count": 40,
+            "raw_environment_return": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.023262718806160012,
+            "complete_experiment_count": 5,
+            "episode_index": 5,
+            "final_scores": [
+              0.0,
+              0.0,
+              0.002568904220322821,
+              0.023262718806160012,
+              0.0
+            ],
+            "high_cost_step_count": 8,
+            "invalid_action_count": 1,
+            "measurement_count": 8,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.48603537638456695,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.00474240491571303,
+            "complete_experiment_count": 7,
+            "episode_index": 6,
+            "final_scores": [
+              0.0011988843145825454,
+              0.00474240491571303,
+              0.001181770093938994,
+              0.0007726150006930906,
+              0.0011615932109888267,
+              0.0,
+              0.0022577212260623506
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 14,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.020273449218142073,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.006264304698693131,
+            "complete_experiment_count": 7,
+            "episode_index": 7,
+            "final_scores": [
+              0.003953447540614775,
+              0.0,
+              0.006264304698693131,
+              0.0008648027375992162,
+              0.0,
+              0.00046710036154048746,
+              0.000254179833821701
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 9,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.015093705224342108,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.00283356439292821,
+            "complete_experiment_count": 9,
+            "episode_index": 8,
+            "final_scores": [
+              0.0014494233737716627,
+              0.0,
+              0.00042655992511155574,
+              0.0012860021099483354,
+              0.0,
+              0.0007161150974760655,
+              0.00032160802189069285,
+              0.00283356439292821,
+              0.0011926634086067206
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 12,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.009066247319784042,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.00830149123419337,
+            "complete_experiment_count": 7,
+            "episode_index": 9,
+            "final_scores": [
+              0.00018676979482173446,
+              0.004090684212289006,
+              0.003903463046869956,
+              0.0,
+              0.0004591745221020084,
+              0.003656775574930632,
+              0.00830149123419337
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 10,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.020598358385206707,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.010276746433320135,
+            "complete_experiment_count": 7,
+            "episode_index": 10,
+            "final_scores": [
+              0.0010245013719933022,
+              0.00511608921499545,
+              0.003852844804432134,
+              0.004576871039693969,
+              0.010276746433320135,
+              0.007931695777302286,
+              0.0
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 11,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.04822097991857613,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.012329589017480044,
+            "complete_experiment_count": 7,
+            "episode_index": 11,
+            "final_scores": [
+              0.0,
+              0.0020649405167472257,
+              0.0009099636944864233,
+              0.00414998320722223,
+              0.012329589017480044,
+              0.008047164581799743,
+              0.00999102620847411
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 12,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.07218542070995669,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.005308035647719743,
+            "complete_experiment_count": 7,
+            "episode_index": 12,
+            "final_scores": [
+              0.0009312928804662289,
+              0.00012956985843225687,
+              0.0037218601438938183,
+              0.0018668983603502835,
+              0.005308035647719743,
+              0.002100478519161845,
+              0.0021540126100890442
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 11,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.019694896804576967,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.007150333889854241,
+            "complete_experiment_count": 6,
+            "episode_index": 13,
+            "final_scores": [
+              0.004580417562988956,
+              0.00511608921499545,
+              0.003852844804432134,
+              0.006451950291200799,
+              0.002285908025216854,
+              0.007150333889854241
+            ],
+            "high_cost_step_count": 4,
+            "invalid_action_count": 1,
+            "measurement_count": 10,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.09903516026994659,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.005840941733816748,
+            "complete_experiment_count": 7,
+            "episode_index": 14,
+            "final_scores": [
+              0.00031584104272415947,
+              0.005840941733816748,
+              0.00021085977055532577,
+              0.0028068946030570877,
+              1.4117845506219265e-05,
+              0.0014103542376116814,
+              0.0
+            ],
+            "high_cost_step_count": 6,
+            "invalid_action_count": 0,
+            "measurement_count": 10,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.01786490646193543,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.003953447540614775,
+            "complete_experiment_count": 6,
+            "episode_index": 15,
+            "final_scores": [
+              0.003953447540614775,
+              0.0,
+              0.0,
+              0.0026366678476489732,
+              0.001276838491794539,
+              0.002545038572532559
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 9,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.01760025346340799,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.008463224087287509,
+            "complete_experiment_count": 7,
+            "episode_index": 16,
+            "final_scores": [
+              0.008463224087287509,
+              0.0036198710134135535,
+              0.0,
+              0.0015350416564132163,
+              0.0,
+              0.0009539794488715858,
+              0.0
+            ],
+            "high_cost_step_count": 5,
+            "invalid_action_count": 0,
+            "measurement_count": 8,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.03274737569901561,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.008666164023364922,
+            "complete_experiment_count": 8,
+            "episode_index": 17,
+            "final_scores": [
+              0.0011988843145825454,
+              0.002832992891667132,
+              0.008666164023364922,
+              0.0005408534176958863,
+              0.0014152317207735624,
+              0.0,
+              0.0067278222310646575,
+              0.005940286614571373
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 12,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.03379372461745069,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.011246035055320331,
+            "complete_experiment_count": 7,
+            "episode_index": 18,
+            "final_scores": [
+              0.008074298408804595,
+              0.0036198710134135535,
+              0.0,
+              0.0,
+              0.003110003628119775,
+              0.011246035055320331,
+              0.006600470223639743
+            ],
+            "high_cost_step_count": 7,
+            "invalid_action_count": 0,
+            "measurement_count": 10,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.032650678329297994,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          },
+          {
+            "best_final_score": 0.004998771416577572,
+            "complete_experiment_count": 8,
+            "episode_index": 19,
+            "final_scores": [
+              0.0022427261952123433,
+              0.0005404251254853395,
+              0.0003349828349378581,
+              0.004998771416577572,
+              0.0,
+              0.0,
+              0.003624050208738612,
+              0.002267451099332341
+            ],
+            "high_cost_step_count": 0,
+            "invalid_action_count": 0,
+            "measurement_count": 10,
+            "observation_domain_failure_count": 0,
+            "operation_count": 40,
+            "raw_environment_return": 0.020551584780048798,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_count": 0
+          }
+        ],
+        "episodes": 20,
+        "formal_evidence": false,
+        "operation_budget_per_episode": 40,
+        "policy_mode": "stochastic_frozen_seed",
+        "policy_seed": 223,
+        "sampler_seed": 199,
+        "schema_version": "chemworld-rl-development-evaluation-0.1",
+        "summary": {
+          "complete_experiment_count": 132,
+          "complete_experiments_per_episode": 6.6,
+          "episode_completion_rate": 1.0,
+          "high_cost_step_rate": 0.045,
+          "invalid_action_rate": 0.04125,
+          "mean_episode_best_score": 0.007338368882665397,
+          "mean_final_score": 0.0026704826765430287,
+          "observation_domain_failure_count": 31,
+          "operation_count": 800,
+          "operation_counts": {
+            "add_catalyst": 10,
+            "add_reagent": 265,
+            "add_solvent": 155,
+            "measure": 230,
+            "set_flow_rate": 5,
+            "terminate": 135
+          },
+          "runtime_domain_failure_count": 0,
+          "unsafe_step_rate": 0.0
+        },
+        "task_id": "flow-reaction-optimization",
+        "training_reward_used": false
+      }
+    }
+  },
+  "at_least_one_algorithm_eligible": true,
+  "benchmark_claim_allowed": false,
+  "claim_boundary": "A 20k one-seed Train/Dev screening stage; it can stop or escalate development compute but cannot support an RL benchmark ranking.",
+  "eligible_algorithms_for_100k": [
+    "sac"
+  ],
+  "evaluated_source_commit": "9e1ccb42bae69ce5eb87ce5fdc25cb5dd6701d10",
+  "evaluation_source_tree_dirty": false,
+  "formal_bench_evaluation_complete": false,
+  "formal_training_complete": false,
+  "generated_at": "2026-07-11T20:20:39.484596+00:00",
+  "protocol_id": "chemworld-rl-staged-development-0.1",
+  "protocol_sha256": "01bc9f8dd3485e31164021b7ab1f337a876d5239f4f103418b4bdd12e133bba1",
+  "publication_ready": false,
+  "schema_version": "chemworld-rl-staged-development-report-0.1",
+  "status": "development_complete",
+  "task_id": "flow-reaction-optimization"
+}
