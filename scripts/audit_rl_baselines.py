@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RL_PROTOCOL = ROOT / "configs/benchmark/rl_baselines_vnext.json"
 FREEZE_PROTOCOL = ROOT / "configs/benchmark/confirmatory_freeze_vnext.json"
 OUTPUT = ROOT / "workstreams/benchmark_v1/reports/rl-baseline-controls.json"
+DEVELOPMENT_REPORT = ROOT / "workstreams/benchmark_v1/reports/rl-interaction-development.json"
 
 
 def build_report() -> dict[str, Any]:
@@ -89,16 +90,50 @@ def build_report() -> dict[str, Any]:
         ),
     }
     controls_ready = all(checks.values())
+    development_evidence: dict[str, Any] | None = None
+    if DEVELOPMENT_REPORT.is_file():
+        development = load_rl_protocol(DEVELOPMENT_REPORT)
+        development_checks = {
+            "schema": development.get("schema_version")
+            == "chemworld-rl-interaction-development-report-0.1",
+            "nonclaiming": development.get("benchmark_claim_allowed") is False,
+            "source_commit_bound": isinstance(
+                development.get("evaluated_source_commit"), str
+            )
+            and len(development["evaluated_source_commit"]) == 40,
+            "ppo_and_sac_present": set(development.get("algorithm_cards", {}))
+            == {"ppo", "sac"},
+            "formal_training_still_open": development.get("formal_training_complete")
+            is False,
+            "formal_bench_still_open": development.get(
+                "formal_bench_evaluation_complete"
+            )
+            is False,
+        }
+        development_evidence = {
+            "report_path": str(DEVELOPMENT_REPORT.relative_to(ROOT)),
+            "checks": development_checks,
+            "eligible_algorithms": development.get("eligible_algorithms", []),
+            "all_algorithms_eligible": development.get("all_algorithms_eligible", False),
+            "passed": all(development_checks.values()),
+        }
     return {
         "schema_version": "chemworld-rl-baseline-audit-0.1",
         "protocol_id": rl_protocol["protocol_id"],
-        "status": "controls_ready_training_missing" if controls_ready else "controls_failed",
+        "status": (
+            "controls_ready_development_completed_formal_training_missing"
+            if controls_ready and development_evidence is not None
+            else "controls_ready_training_missing"
+            if controls_ready
+            else "controls_failed"
+        ),
         "controls_ready": controls_ready,
         "formal_training_complete": False,
         "formal_bench_evaluation_complete": False,
         "benchmark_claim_allowed": False,
         "publication_ready": False,
         "checks": checks,
+        "development_evidence": development_evidence,
         "task_probes": task_probes,
         "remaining_release_gates": rl_protocol["formal_readiness_requirements"],
     }

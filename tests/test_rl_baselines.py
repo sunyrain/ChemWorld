@@ -176,6 +176,9 @@ def test_rl_protocol_keeps_formal_claims_closed() -> None:
     assert report["controls_ready"] is True
     assert report["formal_training_complete"] is False
     assert report["publication_ready"] is False
+    if report["development_evidence"] is not None:
+        assert report["development_evidence"]["passed"] is True
+        assert set(report["development_evidence"]["eligible_algorithms"]) == {"ppo", "sac"}
 
 
 def test_rl_extra_is_declared_without_becoming_core_dependency() -> None:
