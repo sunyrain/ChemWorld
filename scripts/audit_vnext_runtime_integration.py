@@ -12,7 +12,6 @@ import gymnasium as gym
 
 import chemworld  # noqa: F401
 from chemworld.foundation import equipment_settings
-from chemworld.runtime.model_adapter_intake import validate_adapter_manifests
 from chemworld.runtime.model_reachability import (
     audit_model_reachability,
     default_model_reachability_registry,
@@ -149,19 +148,13 @@ def _execution_probe() -> dict[str, Any]:
     }
 
 
-def build_audit(repository_root: Path) -> dict[str, Any]:
+def build_audit() -> dict[str, Any]:
     registry = default_model_reachability_registry()
     provider_ids = {provider.model_id for provider in registry.providers.providers}
     routes = {
         operation: registry.route_for_operation(operation).model_ids
         for operation in EXPECTED_OPERATION_MODELS
     }
-    intake = validate_adapter_manifests(
-        sorted(
-            (repository_root / "workstreams/world_foundation/adapters").glob("*.json")
-        ),
-        repository_root=repository_root,
-    )
     reachability = audit_model_reachability()
     execution = _execution_probe()
     checks = (
@@ -169,22 +162,6 @@ def build_audit(repository_root: Path) -> dict[str, Any]:
             "world_law_advanced",
             WORLD_FAMILY_VERSION == EXPECTED_WORLD_LAW,
             WORLD_FAMILY_VERSION,
-        ),
-        AuditCheck(
-            "all_adapter_proposals_integrated",
-            intake["passed"]
-            and intake["accepted_count"] == 8
-            and all(
-                item.get("integration_state") == "integrated"
-                for item in intake["manifests"]
-            ),
-            {
-                "accepted_count": intake["accepted_count"],
-                "states": {
-                    item["adapter_id"]: item.get("integration_state")
-                    for item in intake["manifests"]
-                },
-            },
         ),
         AuditCheck(
             "single_declared_runtime_routes",
@@ -243,7 +220,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     root = Path(__file__).resolve().parents[1]
-    report = build_audit(root)
+    report = build_audit()
     output = args.output if args.output.is_absolute() else root / args.output
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")

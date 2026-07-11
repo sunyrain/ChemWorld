@@ -6,29 +6,15 @@ readiness 只证明 6 个任务在 5 个冻结 seeds 上可执行、可重放且
 
 ## 审计口径
 
-机器审计覆盖八类证据：研究主张、逐任务有效性、方法覆盖、泛化与安全、backend 可信度、发布
-证据链、训练环境就绪度和论文就绪度。`blocker` 采用 fail-closed：任何 blocker 未关闭时只能称为
-candidate，不能发布“完整且有意义的 benchmark”或最终论文结论。
-
-先生成 held-out seed 诊断，再生成缺口报告：
-
-```powershell
-.\.venv\Scripts\python.exe scripts\audit_serious_generalization.py `
-  --output-dir runs/benchmark_v1_gap_audit/generalization_runs `
-  --output runs/benchmark_v1_gap_audit/generalization_audit.json
-
-.\.venv\Scripts\python.exe scripts\audit_benchmark_v1_gap.py
-```
-
-`--require-ready` 用于最终门禁；在整改完成前它应返回非零，而不是制造虚假的绿色状态。
+当前工作流只保留可重放的任务级证据：paired-seed 效应、预算曲线、类别表示对照和 provenance。
+任何经验有效性 blocker 未关闭时只能称为 candidate，不能发布最终 benchmark 或论文结论。
 
 ## 2026-07-11 validity/power 先导审计
 
-当前已生成三份 diagnostic-only、禁止论文主张的机器报告：
+早期 10-seed、最小预算和 acquisition-family 中间报告已经由长程预算曲线取代并删除。当前保留：
 
-- `reports/validity-power-pilot10.json`：6 任务 × 6 基线 × 10 配对 seeds；
-- `reports/validity-power-calibrated-budget-pilot5.json`：按搜索维度校准完整实验机会；
-- `reports/validity-power-acquisition-family-pilot5.json`：PI、UCB、RF-EI acquisition-family 探针。
+- `reports/campaign-budget-curve-pilot5.json`：4/8/12/20/40 完整实验的在线前缀曲线；
+- `reports/validity-power-electro-structured40-pilot5.json`：电化学类别表示受控对照。
 
 已确认：旧 response-surface maximum 不是 oracle；正式比较必须使用 paired seed；以 0.05
 total-score 为 SESOI 时，当前方差支持先采用 20 seeds 作为正式实验起点。原任务预算只容纳

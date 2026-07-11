@@ -17,7 +17,7 @@ from chemworld.runtime.profiles import TaskRuntimeProfile
 from chemworld.tasks import TaskSpec, get_task, list_tasks
 
 MATURITY_AUDIT_SCHEMA_VERSION = "chemworld-maturity-audit-0.1"
-DEFAULT_MATURITY_AUDIT_PATH = Path("workstreams/world_foundation/reports/wf-00-maturity-audit.json")
+DEFAULT_MATURITY_AUDIT_PATH = Path("runs/audits/maturity-audit.json")
 _CORE_EVIDENCE_PATHS = (
     "src/chemworld/tasks.py",
     "src/chemworld/runtime/profiles.py",

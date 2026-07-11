@@ -44,22 +44,14 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
 
 ## 2026-07-11 科学有效性审计
 
-机器报告：`workstreams/benchmark_v1/reports/benchmark_v1_gap_audit.json`。
+当前有效机器证据位于：
 
-- 当前科学主张 readiness：`34.3%`（按 blocker/major/minor 加权）；
-- 41 项检查通过 14 项，存在 17 个 blocker；
-- 研究主张边界为 100%，说明“评估虚拟闭环实验智能、而非真实化学预测”的故事已经清楚；
-- 经验有效性为 28.6%，方法覆盖为 14.3%，泛化/安全为 15.2%，证据链为 16.1%；
-- 公开 release manifest 有 4/6 task contract hash 与当前 `main` 不一致；严格 frozen checker 现已
-  能拒绝该 stale bundle，默认开发门禁只能以 `release_claim_ready=false` 的 candidate 模式继续；
-- public→held-out seed 的策略秩相关在 electrochem、crystallization 接近 0，partition 为负；
-- `approximate_oracle` 在 flow 和 equilibrium 上低于已运行 baseline，不能用于 regret；
-- 现有 5 seeds 无法稳定区分多数 top methods，且 adaptive method 只在少数任务显示明确优势；
-- 尚无正式 RL、真实 LLM、完整主动学习族、资源匹配、轴级 OOD、真实私评、exploit report、
-  完整 180 轨迹、release commit/tag/wheel 绑定或 AAAI 论文源文件。
+- `workstreams/benchmark_v1/reports/campaign-budget-curve-pilot5.json`；
+- `workstreams/benchmark_v1/reports/validity-power-electro-structured40-pilot5.json`。
 
-在这 17 个 blocker 关闭前，正式口径是 `candidate_only_do_not_submit_final_claim`。现有
-`benchmark_ready_count=6` 只能解释为旧经验合同通过，不能解释为论文级科学有效性通过。
+它们确认旧随机采样最大值不是 oracle，8–12 个完整实验不足以支撑多数主动学习任务，且类别
+物料不能按连续数字距离编码。现有结果仍是 diagnostic-only：六任务均未稳定达到 0.05 SESOI，
+尚缺 20 paired seeds、轴级 OOD/私评、资源匹配、RL、真实 LLM 和冻结论文证据链。
 
 ## 下一阶段互不重叠认领队列
 

@@ -23,7 +23,7 @@ def _load_script() -> ModuleType:
 
 
 def test_vnext_runtime_integration_executes_only_declared_providers() -> None:
-    report = _load_script().build_audit(ROOT)
+    report = _load_script().build_audit()
 
     assert report["passed"] is True
     checks = {item["check_id"]: item for item in report["checks"]}

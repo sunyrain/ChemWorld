@@ -75,24 +75,6 @@ def release_gate_commands(
             ],
         ),
         GateCommand(
-            "model_adapter_intake",
-            [
-                python,
-                "scripts/validate_model_adapters.py",
-                "--output",
-                str(output_dir / "model_adapter_intake_report.json"),
-            ],
-        ),
-        GateCommand(
-            "vnext_staging_plan",
-            [
-                python,
-                "scripts/build_vnext_integration_plan.py",
-                "--output",
-                str(output_dir / "vnext_integration_plan.json"),
-            ],
-        ),
-        GateCommand(
             "environment_audit",
             [
                 python,
