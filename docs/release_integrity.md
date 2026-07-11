@@ -80,3 +80,15 @@ python scripts/run_release_gate.py --require-frozen-benchmark
 严格 frozen 检查会重新核验公开 manifest、内嵌证据 SHA-256、当前 task contract hash、source
 commit、clean tree、release status 和完整 trajectory archive。任何失败都阻止 release claim；
 `validated=true` 或 readiness 计数本身不构成冻结证据。
+
+### Legacy serious-v1 换行兼容
+
+历史 `chemworld-serious-v1` manifest 的三项内嵌 evidence SHA-256 来自 Windows CRLF
+工作树；仓库随后通过 `.gitattributes` 固定为 LF checkout。验证器先比较原始 bytes，仅对该
+release/schema 的三份 JSON evidence 允许把换行恢复为 Git 的 CRLF text checkout 后比较历史
+digest，并在检查结果中记录 `match_mode=legacy_git_crlf_text`。该兼容路径不重新序列化 JSON，
+不忽略空白、字段顺序、数值或任何其它字节，因此内容篡改仍然属于 structural failure。
+
+这个兼容只证明 stale candidate bundle 的文件内容未因 Git 换行规范化而损坏，不会豁免 task
+contract、source commit、clean tree、release status 或 trajectory archive freshness，也不会把
+serious-v1 提升为 frozen release。

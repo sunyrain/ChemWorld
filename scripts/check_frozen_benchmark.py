@@ -44,6 +44,51 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _legacy_git_crlf_sha256(path: Path) -> str:
+    """Hash text bytes as the legacy Windows checkout that created v1 did.
+
+    The serious-v1 manifest was generated from CRLF working-tree files before
+    the repository enforced LF checkouts.  Git now materializes those JSON
+    files with LF, so a raw-byte digest cannot reproduce the frozen manifest.
+    This transformation changes line endings only: existing CRLF is collapsed
+    first to avoid doubling carriage returns, while lone carriage returns and
+    every other byte remain significant.
+    """
+
+    payload = path.read_bytes()
+    crlf_payload = payload.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+    return hashlib.sha256(crlf_payload).hexdigest()
+
+
+def _embedded_digest_result(
+    path: Path,
+    declared: Any,
+    *,
+    allow_legacy_git_crlf: bool,
+) -> dict[str, Any]:
+    raw_digest = _sha256(path)
+    legacy_digest = _legacy_git_crlf_sha256(path) if allow_legacy_git_crlf else None
+    raw_matches = isinstance(declared, str) and declared == raw_digest
+    legacy_matches = (
+        isinstance(declared, str)
+        and legacy_digest is not None
+        and declared == legacy_digest
+    )
+    return {
+        "declared": declared,
+        "actual": raw_digest,
+        "legacy_git_crlf_actual": legacy_digest,
+        "match_mode": (
+            "raw_bytes"
+            if raw_matches
+            else "legacy_git_crlf_text"
+            if legacy_matches
+            else None
+        ),
+        "matches": raw_matches or legacy_matches,
+    }
+
+
 def _git_value(root: Path, *args: str) -> str | None:
     try:
         completed = subprocess.run(
@@ -211,12 +256,16 @@ def verify_release_bundle(
         "benchmark_validation_sha256": required_files["benchmark_validation"],
         "response_surface_audit_sha256": required_files["response_surface_audit"],
     }
+    allow_legacy_git_crlf = (
+        manifest.get("schema_version") == RELEASE_SCHEMA_VERSION
+        and manifest.get("release_id") == RELEASE_ID
+    )
     digest_results = {
-        key: {
-            "declared": evidence_map.get(key),
-            "actual": _sha256(path),
-            "matches": evidence_map.get(key) == _sha256(path),
-        }
+        key: _embedded_digest_result(
+            path,
+            evidence_map.get(key),
+            allow_legacy_git_crlf=allow_legacy_git_crlf,
+        )
         for key, path in embedded.items()
     }
     _add(
@@ -225,7 +274,10 @@ def verify_release_bundle(
         all(item["matches"] for item in digest_results.values()),
         "structural",
         digest_results,
-        "Every embedded evidence file must match the SHA-256 declared by the manifest.",
+        (
+            "Every embedded evidence file must match the raw SHA-256 declared by the "
+            "manifest, or the audited legacy serious-v1 Git-CRLF text digest."
+        ),
     )
 
     release_hashes = manifest.get("task_contract_hashes")

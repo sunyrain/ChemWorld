@@ -26,6 +26,40 @@ def test_stale_public_bundle_is_candidate_but_not_a_frozen_release() -> None:
     assert candidate["structural_integrity_passed"] is True
     assert candidate["release_claim_allowed"] is False
     assert candidate["candidate_waivers"] == candidate["freshness_failures"]
+    digest_check = next(
+        check
+        for check in candidate["checks"]
+        if check["check_id"] == "embedded_evidence_digests"
+    )
+    assert {
+        result["match_mode"] for result in digest_check["observed"].values()
+    } == {"legacy_git_crlf_text"}
+
+
+def test_legacy_v1_digest_is_stable_across_git_line_endings(tmp_path: Path) -> None:
+    copied = tmp_path / "release"
+    shutil.copytree(RELEASE, copied)
+    for filename in (
+        "baseline_summary.json",
+        "benchmark_validation.json",
+        "response_surface_audit.json",
+    ):
+        path = copied / filename
+        payload = path.read_bytes()
+        assert b"\r\n" not in payload
+        path.write_bytes(payload.replace(b"\n", b"\r\n"))
+
+    report = verify_release_bundle(ROOT, copied, allow_candidate=True)
+
+    assert report["passed"] is True
+    digest_check = next(
+        check
+        for check in report["checks"]
+        if check["check_id"] == "embedded_evidence_digests"
+    )
+    assert {
+        result["match_mode"] for result in digest_check["observed"].values()
+    } == {"raw_bytes"}
 
 
 def test_candidate_mode_never_waives_evidence_tampering(tmp_path: Path) -> None:
