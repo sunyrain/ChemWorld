@@ -29,7 +29,13 @@ def test_confirmatory_freeze_is_pre_result_and_fail_closed() -> None:
     assert report["primary_methods_ready"] is True
     assert report["benchmark_claim_allowed"] is False
     assert report["publication_ready"] is False
-    assert report["confirmatory_seeds"] == list(range(20, 40))
+    assert report["confirmatory_seeds"] == list(range(300, 320))
+    assert report["checks"]["confirmatory_seeds_are_fresh"] is True
+    assert report["checks"]["bench_seeds_match_primary_cohort"] is True
+    assert report["checks"]["decision_rule_is_joint"] is True
+    assert report["constraint_noninferiority"]["safety"][
+        "maximum_noninferiority_margin"
+    ] == 0.05
     assert report["task_roles"]["core"] == [
         "partition-discovery",
         "reaction-to-crystallization",
@@ -56,6 +62,12 @@ def test_freeze_rejects_posthoc_sesoi_and_overlapping_world_cells() -> None:
     overlap_report = audit_confirmatory_freeze(overlapping)
     assert overlap_report["checks"]["world_cells_pairwise_disjoint"] is False
     assert overlap_report["controls_ready"] is False
+
+    objective_only = copy.deepcopy(protocol)
+    del objective_only["primary_comparison"]["decision_rule"]["constraint_noninferiority"]
+    objective_only_report = audit_confirmatory_freeze(objective_only)
+    assert objective_only_report["checks"]["decision_rule_is_joint"] is False
+    assert objective_only_report["controls_ready"] is False
 
 
 def test_frozen_confirmatory_report_preserves_blockers() -> None:

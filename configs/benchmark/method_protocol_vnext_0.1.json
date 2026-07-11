@@ -1,8 +1,6 @@
 {
-  "schema_version": "chemworld-method-protocol-0.2",
-  "protocol_id": "chemworld-vnext-method-protocol-candidate-0.2",
-  "supersedes_protocol_id": "chemworld-vnext-method-protocol-candidate-0.1",
-  "superseded_seed_policy": "seeds_20_39_are_diagnostic_only_and_must_not_be_reused",
+  "schema_version": "chemworld-method-protocol-0.1",
+  "protocol_id": "chemworld-vnext-method-protocol-candidate-0.1",
   "status": "candidate_controls_only",
   "benchmark_claim_allowed": false,
   "pre_freeze_result_policy": "diagnostic_only",
@@ -14,32 +12,27 @@
   ],
   "paired_seed_count": 20,
   "confirmatory_seed_ids": [
-    300,
-    301,
-    302,
-    303,
-    304,
-    305,
-    306,
-    307,
-    308,
-    309,
-    310,
-    311,
-    312,
-    313,
-    314,
-    315,
-    316,
-    317,
-    318,
-    319
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39
   ],
-  "confirmatory_decision_contract": {
-    "protocol_id": "chemworld-vnext-confirmatory-freeze-0.3",
-    "objective_safety_and_cost_joint_rule_required": true,
-    "prior_objective_only_cohort_is_diagnostic": true
-  },
   "evaluation_budget": {
     "complete_experiments": 40,
     "operation_limit_source": "frozen_task_contract",
@@ -296,18 +289,9 @@
     {
       "failure_id": "inactive_legacy_safety_threshold",
       "severity": "critical",
-      "status": "resolved_by_task_specific_operational_risk_policy",
       "evidence": "600 legacy formal runs contain zero threshold violations",
       "consequence": "safe optimization effectiveness is not identifiable",
       "remediation": "rerun constrained methods with calibrated task-level operational-risk budgets"
-    },
-    {
-      "failure_id": "objective_only_primary_decision",
-      "severity": "critical",
-      "status": "resolved_in_protocol_0.2_pending_fresh_cohort",
-      "evidence": "the 0.2 objective rule passed while candidate risk exceedance rates increased in three of four tasks",
-      "consequence": "objective-only inference can label a risk-regressing method as successful",
-      "remediation": "require pre-registered safety and cost noninferiority bounds on fresh seeds 300-319"
     },
     {
       "failure_id": "ordinal_material_encoding",
@@ -355,3 +339,4 @@
     "retain and replay-verify every confirmatory trajectory"
   ]
 }
+

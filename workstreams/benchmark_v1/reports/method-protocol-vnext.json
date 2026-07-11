@@ -6,16 +6,48 @@
     "checkpoint_schedule_sorted_unique": true,
     "checkpoint_schedule_within_budget": true,
     "complete_experiment_budget_positive": true,
+    "confirmatory_seed_ids_are_fresh": true,
+    "confirmatory_seed_ids_unique": true,
     "declared_eligibility_matches_manifests": true,
     "evidence_sources_exist": true,
+    "joint_constraint_decision_required": true,
+    "paired_seed_count_matches_ids": true,
     "paired_seed_count_positive": true,
     "pre_freeze_runs_are_diagnostic": true,
     "private_chain_of_thought_not_required": true,
     "provider_retries_are_bounded_and_counted": true,
     "resource_overrun_fails_closed": true,
     "schema": true,
-    "stub_methods_excluded": true
+    "stub_methods_excluded": true,
+    "superseded_seed_policy_is_fail_closed": true
   },
+  "confirmatory_decision_contract": {
+    "objective_safety_and_cost_joint_rule_required": true,
+    "prior_objective_only_cohort_is_diagnostic": true,
+    "protocol_id": "chemworld-vnext-confirmatory-freeze-0.3"
+  },
+  "confirmatory_seed_ids": [
+    300,
+    301,
+    302,
+    303,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    314,
+    315,
+    316,
+    317,
+    318,
+    319
+  ],
   "controls_ready": true,
   "diagnostic_or_excluded_methods": [
     "ppo",
@@ -39,7 +71,7 @@
     "risk_cost_calibration": {
       "exists": true,
       "path": "workstreams/benchmark_v1/reports/risk-cost-signal-controls.json",
-      "sha256": "9ec8d84b890b29d0975a086b90b224b26d8d641730fb3322e714e2ad17358d1b"
+      "sha256": "ed0d89313252a50d02dc1b438750835fa8177df239c0e70256314c30f12d452b"
     },
     "task_validity_cards": {
       "exists": true,
@@ -71,7 +103,16 @@
       "evidence": "600 legacy formal runs contain zero threshold violations",
       "failure_id": "inactive_legacy_safety_threshold",
       "remediation": "rerun constrained methods with calibrated task-level operational-risk budgets",
-      "severity": "critical"
+      "severity": "critical",
+      "status": "resolved_by_task_specific_operational_risk_policy"
+    },
+    {
+      "consequence": "objective-only inference can label a risk-regressing method as successful",
+      "evidence": "the 0.2 objective rule passed while candidate risk exceedance rates increased in three of four tasks",
+      "failure_id": "objective_only_primary_decision",
+      "remediation": "require pre-registered safety and cost noninferiority bounds on fresh seeds 300-319",
+      "severity": "critical",
+      "status": "resolved_in_protocol_0.2_pending_fresh_cohort"
     },
     {
       "consequence": "arbitrary material numbering induces false neighborhood structure",
@@ -437,7 +478,7 @@
     "live_llm_a",
     "live_llm_b"
   ],
-  "protocol_id": "chemworld-vnext-method-protocol-candidate-0.1",
+  "protocol_id": "chemworld-vnext-method-protocol-candidate-0.2",
   "publication_ready": false,
   "remaining_release_gates": [
     "freeze task-specific SESOI and the provisional core task set",
@@ -453,6 +494,6 @@
     "live_llm_a",
     "live_llm_b"
   ],
-  "schema_version": "chemworld-method-protocol-audit-0.1",
+  "schema_version": "chemworld-method-protocol-audit-0.2",
   "status": "controls_ready_methods_pending"
 }

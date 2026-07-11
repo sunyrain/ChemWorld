@@ -14,7 +14,7 @@ from typing import Any
 from chemworld.data.logging import to_builtin
 from chemworld.physchem.mechanism_library import configuration_root
 
-METHOD_PROTOCOL_VERSION = "chemworld-method-protocol-0.1"
+METHOD_PROTOCOL_VERSION = "chemworld-method-protocol-0.2"
 METHOD_RESOURCE_USAGE_VERSION = "chemworld-method-resource-usage-0.1"
 METHOD_RESOURCE_LEDGER_VERSION = "chemworld-method-resource-ledger-0.1"
 DEFAULT_METHOD_PROTOCOL_PATH = configuration_root() / "benchmark" / "method_protocol_vnext.json"
@@ -309,6 +309,19 @@ def audit_method_protocol(
         "checkpoint_schedule_within_budget": bool(checkpoints)
         and checkpoints[-1] == int(evaluation.get("complete_experiments", 0)),
         "paired_seed_count_positive": int(protocol.get("paired_seed_count", 0)) > 0,
+        "paired_seed_count_matches_ids": int(protocol.get("paired_seed_count", 0))
+        == len(protocol.get("confirmatory_seed_ids", ())),
+        "confirmatory_seed_ids_unique": len(set(protocol.get("confirmatory_seed_ids", ())))
+        == len(protocol.get("confirmatory_seed_ids", ())),
+        "confirmatory_seed_ids_are_fresh": not (
+            set(protocol.get("confirmatory_seed_ids", ())) & set(range(20, 40))
+        ),
+        "superseded_seed_policy_is_fail_closed": protocol.get("superseded_seed_policy")
+        == "seeds_20_39_are_diagnostic_only_and_must_not_be_reused",
+        "joint_constraint_decision_required": protocol.get(
+            "confirmatory_decision_contract", {}
+        ).get("objective_safety_and_cost_joint_rule_required")
+        is True,
         "all_required_families_represented": required_families <= represented_families,
         "stub_methods_excluded": all(
             spec.get("formal_role") == "excluded"
@@ -361,7 +374,7 @@ def audit_method_protocol(
     controls_ready = all(checks.values())
     formal_matrix_ready = controls_ready and not missing_required and not required_ineligible
     return {
-        "schema_version": "chemworld-method-protocol-audit-0.1",
+        "schema_version": "chemworld-method-protocol-audit-0.2",
         "protocol_id": protocol.get("protocol_id"),
         "status": "controls_ready_methods_pending" if controls_ready else "controls_failed",
         "controls_ready": controls_ready,
@@ -375,6 +388,10 @@ def audit_method_protocol(
         "required_but_ineligible_methods": required_ineligible,
         "diagnostic_or_excluded_methods": diagnostic_only,
         "interaction_failures": list(protocol.get("observed_interaction_failures", ())),
+        "confirmatory_seed_ids": list(protocol.get("confirmatory_seed_ids", ())),
+        "confirmatory_decision_contract": dict(
+            protocol.get("confirmatory_decision_contract", {})
+        ),
         "evidence": evidence,
         "remaining_release_gates": list(protocol.get("remaining_release_gates", ())),
     }

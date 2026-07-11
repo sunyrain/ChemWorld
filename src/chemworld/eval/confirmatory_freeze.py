@@ -12,8 +12,8 @@ from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.tasks import SERIOUS_TASK_IDS
 from chemworld.world.world_family import AxisIntervention, axes_for_task
 
-CONFIRMATORY_FREEZE_PROTOCOL_VERSION = "chemworld-confirmatory-freeze-protocol-0.2"
-CONFIRMATORY_FREEZE_AUDIT_VERSION = "chemworld-confirmatory-freeze-audit-0.2"
+CONFIRMATORY_FREEZE_PROTOCOL_VERSION = "chemworld-confirmatory-freeze-protocol-0.3"
+CONFIRMATORY_FREEZE_AUDIT_VERSION = "chemworld-confirmatory-freeze-audit-0.3"
 DEFAULT_CONFIRMATORY_FREEZE_PATH = (
     configuration_root() / "benchmark" / "confirmatory_freeze_vnext.json"
 )
@@ -55,7 +55,9 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
     method_seeds = tuple(int(seed) for seed in method_protocol.get("confirmatory_seed_ids", ()))
 
     sesoi_checks, sesoi_cards = _audit_sesoi(protocol, task_validity, core_tasks)
-    split_checks, split_summary = _audit_world_allocation(protocol, core_tasks)
+    split_checks, split_summary = _audit_world_allocation(
+        protocol, core_tasks, confirmation_seeds
+    )
     dependency_checks = {
         "task_validity_controls": task_validity.get("controls_ready") is True,
         "method_resource_controls": method_report.get("controls_ready") is True,
@@ -70,6 +72,10 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
         "candidate_is_non_claiming": protocol.get("benchmark_claim_allowed") is False,
         "freeze_is_versioned": protocol.get("freeze_rule")
         == "changes_require_new_protocol_id_and_discard_prechange_results",
+        "supersedes_objective_only_protocol": protocol.get("supersedes_protocol_id")
+        == "chemworld-vnext-confirmatory-freeze-0.2",
+        "superseded_cohort_is_diagnostic": protocol.get("superseded_cohort_policy")
+        == "seeds_20_39_are_diagnostic_only_and_must_not_be_reused",
         "core_matches_task_validity": core_tasks
         == tuple(recommendation.get("recommended_core_tasks", ())),
         "exploratory_scope": exploratory_tasks
@@ -79,10 +85,17 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
         "task_roles_disjoint": not (set(core_tasks) & set(exploratory_tasks)),
         "confirmatory_seed_count": len(confirmation_seeds) == 20,
         "confirmatory_seeds_unique": len(set(confirmation_seeds)) == len(confirmation_seeds),
+        "confirmatory_seeds_are_fresh": not (set(confirmation_seeds) & set(range(20, 40))),
         "confirmatory_seeds_match_method_protocol": confirmation_seeds == method_seeds,
+        "method_protocol_requires_joint_constraints": method_protocol.get(
+            "confirmatory_decision_contract", {}
+        ).get("objective_safety_and_cost_joint_rule_required")
+        is True,
         "complete_experiment_budget_matches": primary.get("complete_experiments_per_run")
         == method_protocol.get("evaluation_budget", {}).get("complete_experiments"),
-        "decision_rule_is_joint": _decision_rule_is_joint(primary.get("decision_rule", {})),
+        "decision_rule_is_joint": _decision_rule_is_joint(
+            primary.get("decision_rule", {}), task_count=len(core_tasks)
+        ),
         **sesoi_checks,
         **split_checks,
         **dependency_checks,
@@ -128,6 +141,9 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
         "sesoi": sesoi_cards,
         "world_family_allocation": split_summary,
         "confirmatory_seeds": list(confirmation_seeds),
+        "constraint_noninferiority": primary.get("decision_rule", {}).get(
+            "constraint_noninferiority", {}
+        ),
         "missing_required_methods": missing_methods,
         "exploit_matrix_complete": exploit_matrix_complete,
         "evidence_sha256": {
@@ -142,6 +158,10 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
             "exploit_matrix_controls": _file_sha256(REPORT_ROOT / "exploit-matrix-controls.json"),
         },
         "known_blockers": [
+            (
+                "The objective-only 0.2 cohort is diagnostic and cannot be reused after "
+                "adding safety and cost noninferiority gates."
+            ),
             "PPO, SAC, and two live LLM adapters are not yet eligible for the formal matrix.",
             (
                 "The primary classical slice may run, but no cross-family claim is allowed "
@@ -205,7 +225,9 @@ def _audit_sesoi(
 
 
 def _audit_world_allocation(
-    protocol: dict[str, Any], core_tasks: tuple[str, ...]
+    protocol: dict[str, Any],
+    core_tasks: tuple[str, ...],
+    confirmation_seeds: tuple[int, ...],
 ) -> tuple[dict[str, bool], dict[str, Any]]:
     allocation = protocol.get("world_family_allocation", {})
     splits = {name: allocation.get(name, {}) for name in ("train", "dev", "bench")}
@@ -259,6 +281,7 @@ def _audit_world_allocation(
         "world_interventions_valid": interventions_valid,
         "world_cells_pairwise_disjoint": pairwise_cell_disjoint,
         "world_seed_roles_disjoint": seed_roles_disjoint,
+        "bench_seeds_match_primary_cohort": seed_sets["bench"] == set(confirmation_seeds),
         "bench_covers_all_shift_modes": all_bench_modes,
         "extrapolation_reserved_for_bench": no_train_dev_extrapolation,
         "bench_axis_identity_hidden": allocation.get("axis_identity_visible_to_agent") is False,
@@ -284,12 +307,40 @@ def _split_seeds(payload: dict[str, Any]) -> set[int]:
     return set(range(start, stop + 1)) if stop >= start else set()
 
 
-def _decision_rule_is_joint(rule: dict[str, Any]) -> bool:
+def _decision_rule_is_joint(rule: dict[str, Any], *, task_count: int) -> bool:
+    constraints = rule.get("constraint_noninferiority", {})
+    safety = constraints.get("safety", {})
+    cost = constraints.get("cost", {})
+    comparison_count = int(constraints.get("comparison_count", 0))
+    familywise_alpha = float(constraints.get("familywise_alpha", math.nan))
+    expected_quantile = 1.0 - familywise_alpha / comparison_count if comparison_count else math.nan
     return (
         float(rule.get("paired_bootstrap_ci_low_above", math.nan)) == 0.0
         and int(rule.get("deterministic_bootstrap_samples", 0)) >= 5_000
         and float(rule.get("holm_adjusted_alpha", math.nan)) == 0.05
         and rule.get("mean_effect_must_reach_task_sesoi") is True
+        and rule.get("objective_safety_and_cost_must_all_pass_per_task") is True
+        and constraints.get("simultaneous_method")
+        == "bonferroni_percentile_upper_bound"
+        and familywise_alpha == 0.05
+        and comparison_count == task_count * 2
+        and constraints.get("uses_prior_candidate_constraint_effects") is False
+        and math.isclose(
+            float(constraints.get("upper_quantile", math.nan)),
+            expected_quantile,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        )
+        and safety.get("metric") == "risk_budget_exceedance_rate"
+        and safety.get("effect") == "candidate_minus_comparator_absolute_rate"
+        and float(safety.get("maximum_noninferiority_margin", math.nan)) == 0.05
+        and safety.get("margin_rationale")
+        == "at most two additional exceedances per 40-experiment campaign"
+        and cost.get("metric") == "campaign_total_cost_per_complete_experiment"
+        and cost.get("effect") == "candidate_minus_comparator_relative_to_comparator"
+        and float(cost.get("maximum_noninferiority_margin", math.nan)) == 0.05
+        and cost.get("margin_rationale")
+        == "task-independent five-percent relative resource tolerance"
         and rule.get("all_runs_must_pass_replay") is True
         and rule.get("failed_runs_are_reported_not_dropped") is True
     )

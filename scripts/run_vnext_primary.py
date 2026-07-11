@@ -19,11 +19,12 @@ from chemworld.eval.confirmatory_freeze import (
     audit_confirmatory_freeze,
     load_confirmatory_freeze,
 )
+from chemworld.eval.constrained_inference import paired_constraint_decisions
 from chemworld.eval.suite import run_suite
 from chemworld.eval.validity_power import audit_validity_power
 from chemworld.tasks import get_task
 
-PRIMARY_RESULT_SCHEMA_VERSION = "chemworld-vnext-primary-run-0.1"
+PRIMARY_RESULT_SCHEMA_VERSION = "chemworld-vnext-primary-run-0.2"
 
 
 @dataclass(frozen=True)
@@ -152,6 +153,18 @@ def build_primary_statistics(
         bootstrap_samples=bootstrap_samples,
     )
     comparison_key = f"{candidate}__minus__{comparator}"
+    constraint_rule = primary["decision_rule"]["constraint_noninferiority"]
+    constraint_audit = paired_constraint_decisions(
+        results,
+        task_ids=task_ids,
+        candidate=candidate,
+        comparator=comparator,
+        paired_seeds=tuple(int(seed) for seed in primary["paired_confirmatory_seeds"]),
+        bootstrap_samples=bootstrap_samples,
+        upper_quantile=float(constraint_rule["upper_quantile"]),
+        safety_margin=float(constraint_rule["safety"]["maximum_noninferiority_margin"]),
+        cost_margin=float(constraint_rule["cost"]["maximum_noninferiority_margin"]),
+    )
     decisions: dict[str, Any] = {}
     for task_id in task_ids:
         sesoi = float(protocol["sesoi"]["tasks"][task_id]["sesoi"])
@@ -173,14 +186,29 @@ def build_primary_statistics(
             decisions[task_id][key]
             for key in ("direction_passed", "multiplicity_passed", "sesoi_passed")
         )
+        decisions[task_id]["objective_rule_passed"] = decisions[task_id].pop(
+            "joint_rule_passed"
+        )
+        decisions[task_id]["constraints"] = constraint_audit["task_decisions"][task_id]
+        decisions[task_id]["complete_joint_rule_passed"] = bool(
+            decisions[task_id]["objective_rule_passed"]
+            and decisions[task_id]["constraints"]["constraints_passed"]
+        )
+    all_objectives_passed = all(card["objective_rule_passed"] for card in decisions.values())
+    all_constraints_passed = bool(constraint_audit["all_task_constraints_passed"])
     return {
-        "schema_version": "chemworld-vnext-primary-statistics-0.1",
+        "schema_version": "chemworld-vnext-primary-statistics-0.2",
         "metric_policy": "per_task_primary_metric_normalized_only_for_joint_inference",
         "cross_task_performance_score": None,
         "comparison": comparison_key,
         "bootstrap_samples": bootstrap_samples,
         "task_decisions": decisions,
-        "all_task_joint_rule_passed": all(card["joint_rule_passed"] for card in decisions.values()),
+        "all_task_objective_rule_passed": all_objectives_passed,
+        "all_task_constraint_rule_passed": all_constraints_passed,
+        "all_task_joint_rule_passed": all(
+            card["complete_joint_rule_passed"] for card in decisions.values()
+        ),
+        "constraint_inference": constraint_audit,
         "validity_power_audit": audit,
         "benchmark_claim_allowed": False,
         "publication_ready": False,
@@ -265,7 +293,10 @@ def main() -> int:
         ),
         "benchmark_claim_allowed": False,
         "publication_ready": False,
-        "remaining_gate": "full cross-family matrix and independent reproduction",
+        "remaining_gate": (
+            "complete constrained primary rule, full cross-family matrix, private "
+            "generalization, and independent reproduction"
+        ),
     }
     _write_json(args.output_dir / "manifest.json", manifest)
     print(json.dumps(manifest, indent=2, sort_keys=True))

@@ -25,7 +25,7 @@ def test_primary_job_plan_matches_frozen_core_method_seed_matrix(tmp_path) -> No
     assert len(jobs) == 8
     assert {job.task_id for job in jobs} == set(protocol["task_roles"]["core"])
     assert {job.method_id for job in jobs} == {"structured_gp_bo", "random"}
-    assert all(job.seeds == tuple(range(20, 40)) for job in jobs)
+    assert all(job.seeds == tuple(range(300, 320)) for job in jobs)
     assert all(job.complete_experiments == 40 for job in jobs)
     assert all(
         job.operation_budget == task_recipe_event_count(get_task(job.task_id).to_dict()) * 40
@@ -40,11 +40,20 @@ def test_primary_statistics_apply_task_sesoi_and_holm_without_scalarization() ->
         field = PRIMARY_METRIC_FIELDS[task_id]
         sesoi = float(protocol["sesoi"]["tasks"][task_id]["sesoi"])
         budget = task_recipe_event_count(get_task(task_id).to_dict()) * 40
-        for seed in range(20, 40):
+        for seed in protocol["primary_comparison"]["paired_confirmatory_seeds"]:
             common = {
                 "task_id": task_id,
                 "seed": seed,
                 "evaluation_budget_steps": budget,
+                "score_replay": {
+                    "layered_evaluation": {
+                        "constraints": {"risk_budget_exceedance_rate": 0.1},
+                        "resources": {
+                            "campaign_total_cost": 100.0,
+                            "complete_experiment_count": 40,
+                        },
+                    }
+                },
             }
             results.append(
                 {
@@ -62,9 +71,14 @@ def test_primary_statistics_apply_task_sesoi_and_holm_without_scalarization() ->
             )
     statistics = build_primary_statistics(results, protocol=protocol)
     assert statistics["cross_task_performance_score"] is None
+    assert statistics["all_task_objective_rule_passed"] is True
+    assert statistics["all_task_constraint_rule_passed"] is True
     assert statistics["all_task_joint_rule_passed"] is True
     assert all(
-        card["direction_passed"] and card["multiplicity_passed"] and card["sesoi_passed"]
+        card["direction_passed"]
+        and card["multiplicity_passed"]
+        and card["sesoi_passed"]
+        and card["complete_joint_rule_passed"]
         for card in statistics["task_decisions"].values()
     )
     assert all(
@@ -104,7 +118,7 @@ def test_primary_result_validation_uses_verified_result_schema_field(tmp_path) -
         complete_experiments=40,
         operation_budget=160,
         output_dir=str(tmp_path),
-        protocol_id="confirmatory-vnext-0.2",
+        protocol_id="chemworld-vnext-confirmatory-freeze-0.3",
         protocol_sha256="a" * 64,
         evaluated_source_commit="b" * 40,
     )

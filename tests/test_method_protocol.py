@@ -44,7 +44,10 @@ def test_method_protocol_freezes_nonclaiming_fairness_controls() -> None:
     assert protocol["benchmark_claim_allowed"] is False
     assert protocol["pre_freeze_result_policy"] == "diagnostic_only"
     assert protocol["paired_seed_count"] == 20
-    assert protocol["confirmatory_seed_ids"] == list(range(20, 40))
+    assert protocol["confirmatory_seed_ids"] == list(range(300, 320))
+    assert protocol["confirmatory_decision_contract"][
+        "objective_safety_and_cost_joint_rule_required"
+    ] is True
     assert protocol["checkpoints"] == [4, 8, 12, 20, 40]
     assert protocol["llm_evidence_policy"]["private_chain_of_thought_required"] is False
 
@@ -69,7 +72,8 @@ def test_method_protocol_report_exposes_current_cross_family_gaps() -> None:
     assert any("now-bound" in blocker for blocker in safe_blockers)
     assert not any("must consume" in blocker for blocker in safe_blockers)
     assert report["methods"]["llm_replay"]["formal_role"] == "excluded"
-    assert len(report["interaction_failures"]) == 7
+    assert len(report["interaction_failures"]) == 8
+    assert report["confirmatory_seed_ids"] == list(range(300, 320))
     assert set(report["evidence"]) == {
         "legacy_agent_interaction_audit",
         "five_seed_campaign_budget_curve",
