@@ -1,6 +1,6 @@
 {
-  "schema_version": "chemworld-confirmatory-freeze-protocol-0.1",
-  "protocol_id": "chemworld-vnext-confirmatory-freeze-0.1",
+  "schema_version": "chemworld-confirmatory-freeze-protocol-0.2",
+  "protocol_id": "chemworld-vnext-confirmatory-freeze-0.2",
   "status": "frozen_candidate_protocol",
   "benchmark_claim_allowed": false,
   "freeze_rule": "changes_require_new_protocol_id_and_discard_prechange_results",
@@ -44,6 +44,7 @@
     "complete_experiments_per_run": 40,
     "decision_rule": {
       "paired_bootstrap_ci_low_above": 0.0,
+      "deterministic_bootstrap_samples": 20000,
       "holm_adjusted_alpha": 0.05,
       "mean_effect_must_reach_task_sesoi": true,
       "all_runs_must_pass_replay": true,

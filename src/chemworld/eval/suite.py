@@ -9,7 +9,7 @@ from typing import Any
 
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.result_artifacts import build_verified_evaluation_result
-from chemworld.eval.runner import make_agent, run_agent
+from chemworld.eval.runner import EvaluationPolicy, make_agent, run_agent
 
 
 def run_suite(
@@ -24,6 +24,7 @@ def run_suite(
     threshold: float = 0.75,
     task_id: str | None = None,
     budget_override: int | None = None,
+    evaluation_policy: EvaluationPolicy = "task_contract",
 ) -> list[dict[str, Any]]:
     """Run an agent across a matrix of splits and seeds, then evaluate runs."""
 
@@ -52,6 +53,7 @@ def run_suite(
                 task_id=task_id,
                 output_path=trajectory_path,
                 budget_override=budget_override,
+                evaluation_policy=evaluation_policy,
             )
             run_wall_time = time.perf_counter() - run_wall_start
             evaluation_wall_start = time.perf_counter()

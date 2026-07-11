@@ -25,6 +25,8 @@ def test_confirmatory_freeze_is_pre_result_and_fail_closed() -> None:
     assert report["controls_ready"] is True
     assert report["protocol_frozen"] is True
     assert report["confirmatory_rerun_ready"] is False
+    assert report["primary_classical_rerun_ready"] is True
+    assert report["primary_methods_ready"] is True
     assert report["benchmark_claim_allowed"] is False
     assert report["publication_ready"] is False
     assert report["confirmatory_seeds"] == list(range(20, 40))
@@ -62,9 +64,10 @@ def test_frozen_confirmatory_report_preserves_blockers() -> None:
     assert report["controls_ready"] is True
     assert report["protocol_frozen"] is True
     assert report["confirmatory_rerun_ready"] is False
+    assert report["primary_classical_rerun_ready"] is True
     assert report["publication_ready"] is False
     assert "ppo" in report["missing_required_methods"]
-    assert report["exploit_matrix_complete"] is False
+    assert report["exploit_matrix_complete"] is True
 
 
 def test_evidence_digest_is_json_semantic_and_line_ending_neutral(tmp_path: Path) -> None:

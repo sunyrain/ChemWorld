@@ -12,8 +12,8 @@ from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.tasks import SERIOUS_TASK_IDS
 from chemworld.world.world_family import AxisIntervention, axes_for_task
 
-CONFIRMATORY_FREEZE_PROTOCOL_VERSION = "chemworld-confirmatory-freeze-protocol-0.1"
-CONFIRMATORY_FREEZE_AUDIT_VERSION = "chemworld-confirmatory-freeze-audit-0.1"
+CONFIRMATORY_FREEZE_PROTOCOL_VERSION = "chemworld-confirmatory-freeze-protocol-0.2"
+CONFIRMATORY_FREEZE_AUDIT_VERSION = "chemworld-confirmatory-freeze-audit-0.2"
 DEFAULT_CONFIRMATORY_FREEZE_PATH = (
     configuration_root() / "benchmark" / "confirmatory_freeze_vnext.json"
 )
@@ -38,6 +38,8 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
     world_report = _load_report("world-family-axis-controls.json")
     harness_report = _load_report("public-harness-controls.json")
     score_replay_report = _load_report("score-replay-controls.json")
+    risk_cost_report = _load_report("risk-cost-signal-controls.json")
+    exploit_report = _load_report("exploit-matrix-controls.json")
     method_protocol = json.loads(
         (configuration_root() / "benchmark" / "method_protocol_vnext.json").read_text(
             encoding="utf-8"
@@ -60,6 +62,8 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
         "world_family_controls": world_report.get("controls_ready") is True,
         "public_harness_controls": harness_report.get("controls_ready") is True,
         "score_replay_controls": score_replay_report.get("controls_ready") is True,
+        "risk_cost_controls": risk_cost_report.get("controls_ready") is True,
+        "exploit_matrix_controls": exploit_report.get("controls_ready") is True,
     }
     checks = {
         "schema": protocol.get("schema_version") == CONFIRMATORY_FREEZE_PROTOCOL_VERSION,
@@ -85,15 +89,28 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
     }
     controls_ready = all(checks.values())
     missing_methods = list(method_report.get("missing_required_methods", ()))
-    exploit_report_exists = (REPORT_ROOT / "exploit-matrix-controls.json").is_file()
-    confirmatory_rerun_ready = controls_ready and not missing_methods and exploit_report_exists
+    primary_method_ids = (
+        str(primary.get("candidate_method", "")),
+        str(primary.get("comparator", "")),
+    )
+    method_cards = method_report.get("methods", {})
+    primary_methods_ready = bool(all(primary_method_ids)) and all(
+        _method_implementation_ready(method_cards, method_id) for method_id in primary_method_ids
+    )
+    exploit_matrix_complete = exploit_report.get("controls_ready") is True
+    primary_classical_rerun_ready = (
+        controls_ready and primary_methods_ready and exploit_matrix_complete
+    )
+    confirmatory_rerun_ready = primary_classical_rerun_ready and not missing_methods
     return {
         "schema_version": CONFIRMATORY_FREEZE_AUDIT_VERSION,
         "protocol_id": protocol.get("protocol_id"),
         "protocol_sha256": _canonical_sha256(protocol),
         "status": (
-            "frozen_waiting_for_methods_and_exploit_gate"
-            if controls_ready and not confirmatory_rerun_ready
+            "primary_classical_rerun_ready_full_matrix_pending"
+            if primary_classical_rerun_ready and not confirmatory_rerun_ready
+            else "frozen_waiting_for_primary_dependencies"
+            if controls_ready and not primary_classical_rerun_ready
             else "confirmatory_rerun_ready"
             if confirmatory_rerun_ready
             else "freeze_controls_failed"
@@ -101,6 +118,9 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
         "controls_ready": controls_ready,
         "protocol_frozen": controls_ready,
         "confirmatory_rerun_ready": confirmatory_rerun_ready,
+        "primary_classical_rerun_ready": primary_classical_rerun_ready,
+        "primary_methods_ready": primary_methods_ready,
+        "primary_method_ids": list(primary_method_ids),
         "benchmark_claim_allowed": False,
         "publication_ready": False,
         "checks": checks,
@@ -109,7 +129,7 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
         "world_family_allocation": split_summary,
         "confirmatory_seeds": list(confirmation_seeds),
         "missing_required_methods": missing_methods,
-        "exploit_matrix_complete": exploit_report_exists,
+        "exploit_matrix_complete": exploit_matrix_complete,
         "evidence_sha256": {
             "task_validity": _file_sha256(REPORT_ROOT / "task-validity-vnext.json"),
             "method_protocol": _file_sha256(
@@ -118,13 +138,14 @@ def audit_confirmatory_freeze(protocol: dict[str, Any]) -> dict[str, Any]:
             "world_family_controls": _file_sha256(REPORT_ROOT / "world-family-axis-controls.json"),
             "public_harness_controls": _file_sha256(REPORT_ROOT / "public-harness-controls.json"),
             "score_replay_controls": _file_sha256(REPORT_ROOT / "score-replay-controls.json"),
+            "risk_cost_controls": _file_sha256(REPORT_ROOT / "risk-cost-signal-controls.json"),
+            "exploit_matrix_controls": _file_sha256(REPORT_ROOT / "exploit-matrix-controls.json"),
         },
         "known_blockers": [
             "PPO, SAC, and two live LLM adapters are not yet eligible for the formal matrix.",
-            "The expanded exploit matrix is not yet complete.",
             (
-                "No post-freeze confirmatory result may be interpreted before every "
-                "method and failure is retained."
+                "The primary classical slice may run, but no cross-family claim is allowed "
+                "before PPO, SAC, both live LLM roles, and every failure are retained."
             ),
         ],
         "remaining_release_gates": list(protocol.get("remaining_release_gates", ())),
@@ -266,11 +287,24 @@ def _split_seeds(payload: dict[str, Any]) -> set[int]:
 def _decision_rule_is_joint(rule: dict[str, Any]) -> bool:
     return (
         float(rule.get("paired_bootstrap_ci_low_above", math.nan)) == 0.0
+        and int(rule.get("deterministic_bootstrap_samples", 0)) >= 5_000
         and float(rule.get("holm_adjusted_alpha", math.nan)) == 0.05
         and rule.get("mean_effect_must_reach_task_sesoi") is True
         and rule.get("all_runs_must_pass_replay") is True
         and rule.get("failed_runs_are_reported_not_dropped") is True
     )
+
+
+def _method_implementation_ready(method_cards: object, implementation: str) -> bool:
+    if not isinstance(method_cards, dict):
+        return False
+    matching = [
+        card
+        for method_id, card in method_cards.items()
+        if method_id == implementation
+        or (isinstance(card, dict) and card.get("implementation") == implementation)
+    ]
+    return len(matching) == 1 and matching[0].get("implementation_contract_ready") is True
 
 
 def _load_report(filename: str) -> dict[str, Any]:
