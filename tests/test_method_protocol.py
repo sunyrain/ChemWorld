@@ -91,7 +91,7 @@ def test_protocol_translates_to_family_aware_hard_limits() -> None:
     assert classic.complete_experiment_limit == 40
     assert classic.checkpoint_complete_experiments == (4, 8, 12, 20, 40)
     assert classic.model_call_limit is None
-    assert llm.model_call_limit == 400
+    assert llm.model_call_limit == 2400
     assert llm.input_token_limit == 1_000_000
 
 
@@ -115,8 +115,14 @@ def test_resource_ledger_tracks_checkpoints_and_fails_closed() -> None:
 
 
 def test_online_model_usage_requires_complete_provenance() -> None:
+    with pytest.raises(ValueError, match="explicit provider request limit"):
+        MethodResourceLedger(
+            MethodResourceLimits(operation_limit=2),
+            requires_online_model=True,
+        )
+
     ledger = MethodResourceLedger(
-        MethodResourceLimits(operation_limit=2),
+        MethodResourceLimits(operation_limit=2, model_call_limit=12),
         requires_online_model=True,
     )
     with pytest.raises(ValueError, match="provenance"):
@@ -126,7 +132,7 @@ def test_online_model_usage_requires_complete_provenance() -> None:
         )
 
     valid = MethodResourceLedger(
-        MethodResourceLimits(operation_limit=2),
+        MethodResourceLimits(operation_limit=2, model_call_limit=12),
         requires_online_model=True,
     )
     valid.record_decision(
@@ -147,6 +153,36 @@ def test_online_model_usage_requires_complete_provenance() -> None:
         ),
     )
     assert valid.snapshot()["agent_usage"]["model_call_count"] == 1
+
+
+def test_online_model_ledger_allows_counted_retries_within_explicit_limit() -> None:
+    ledger = MethodResourceLedger(
+        MethodResourceLimits(operation_limit=2, model_call_limit=6),
+        requires_online_model=True,
+    )
+    provenance = {
+        "provider": "test-provider",
+        "model_id": "test-model",
+        "model_snapshot_or_access_date": "2026-07-11",
+        "prompt_hash": "abc123",
+        "request_parameters": {"max_attempts": 3},
+        "tokenizer_or_provider_usage_source": "provider",
+    }
+    ledger.record_decision(
+        elapsed_s=0.01,
+        agent_usage=_usage(model_call_count=3, model_provenance=provenance),
+    )
+    ledger.record_outcome(experiment_ended=False, update_elapsed_s=0.01)
+    ledger.record_decision(
+        elapsed_s=0.01,
+        agent_usage=_usage(model_call_count=6, model_provenance=provenance),
+    )
+    assert ledger.snapshot()["agent_usage"]["model_call_count"] == 6
+    with pytest.raises(MethodResourceLimitError, match="model_call_count"):
+        ledger.record_decision(
+            elapsed_s=0.01,
+            agent_usage=_usage(model_call_count=7, model_provenance=provenance),
+        )
 
 
 def test_runner_retains_method_resource_ledger(tmp_path: Path) -> None:

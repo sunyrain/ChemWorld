@@ -1,0 +1,402 @@
+{
+  "active_issue_count": 8,
+  "active_issues": [
+    {
+      "active": true,
+      "impact": "safe optimization cannot be distinguished from unconstrained optimization",
+      "issue_id": "inactive_operational_risk_constraint",
+      "observed": false,
+      "problem_value": false,
+      "remediation": "calibrate task-specific operational-risk budgets before any constrained-method rerun",
+      "report": "workstreams/benchmark_v1/reports/agent-interaction-audit.json",
+      "report_sha256": "92bff9148cabfef370e14a273837c1dde7e6bca08431ea054c0442a344c6fffa",
+      "severity": "critical"
+    },
+    {
+      "active": true,
+      "impact": "spectra are exposed but their decision value is not measured",
+      "issue_id": "no_formal_spectral_policy",
+      "observed": false,
+      "problem_value": false,
+      "remediation": "run paired spectra-enabled and spectra-masked operation-level agents",
+      "report": "workstreams/benchmark_v1/reports/agent-interaction-audit.json",
+      "report_sha256": "92bff9148cabfef370e14a273837c1dde7e6bca08431ea054c0442a344c6fffa",
+      "severity": "critical"
+    },
+    {
+      "active": true,
+      "impact": "current classical results measure recipe search, not closed-loop laboratory control",
+      "issue_id": "no_formal_within_experiment_adaptation",
+      "observed": false,
+      "problem_value": false,
+      "remediation": "report recipe-level and operation-level capability strata separately",
+      "report": "workstreams/benchmark_v1/reports/agent-interaction-audit.json",
+      "report_sha256": "92bff9148cabfef370e14a273837c1dde7e6bca08431ea054c0442a344c6fffa",
+      "severity": "critical"
+    },
+    {
+      "active": true,
+      "impact": "Gym training claims have no full-budget PPO or SAC evidence",
+      "issue_id": "rl_training_matrix_missing",
+      "observed": false,
+      "problem_value": false,
+      "remediation": "train on frozen Train cells, select on Dev only, and retain checkpoint/compute digests",
+      "report": "workstreams/benchmark_v1/reports/rl-baseline-controls.json",
+      "report_sha256": "ff81170e314a3333c1b63931496f654b48a61ca0ca5c108af48bce095bd62d6d",
+      "severity": "critical"
+    },
+    {
+      "active": true,
+      "impact": "LLM interaction claims remain unsupported by paired replay-verified trajectories",
+      "issue_id": "live_llm_matrix_missing",
+      "observed": false,
+      "problem_value": false,
+      "remediation": "run both frozen model roles and retain failures, tokens, cost, spectra and replay evidence",
+      "report": "workstreams/benchmark_v1/reports/live-llm-controls.json",
+      "report_sha256": "83514791dbb51fb02dd26e59fe6ba6b365cdcdef82d4db3115dee796dc16bbae",
+      "severity": "critical"
+    },
+    {
+      "active": true,
+      "impact": "mechanism perturbations are executable but agent identification and adaptation are unmeasured",
+      "issue_id": "mechanism_adaptation_missing",
+      "observed": false,
+      "problem_value": false,
+      "remediation": "calibrate severity and freeze disjoint Train/Dev/Bench mechanism-family allocations",
+      "report": "workstreams/benchmark_v1/reports/mechanism-family-controls.json",
+      "report_sha256": "71fea8db6d1a1d836183a6ab8eaf54e101bd06d6bb3c33c66e29dbb369bd2a70",
+      "severity": "high"
+    },
+    {
+      "active": true,
+      "impact": "scores lack an independently searched per-cell opportunity baseline",
+      "issue_id": "reference_regret_search_missing",
+      "observed": false,
+      "problem_value": false,
+      "remediation": "complete the frozen reference search without sharing its cells with evaluated agents",
+      "report": "workstreams/benchmark_v1/reports/reference-regret-controls.json",
+      "report_sha256": "6ac2eda18cc8d30ca1215daebf65b536bb2e8290080102a786357c2c41fa04f1",
+      "severity": "high"
+    },
+    {
+      "active": true,
+      "impact": "public-seed performance cannot establish hidden-world generalization",
+      "issue_id": "private_generalization_missing",
+      "observed": false,
+      "problem_value": false,
+      "remediation": "run salted private evaluation and release only signed aggregate artifacts",
+      "report": "workstreams/benchmark_v1/reports/publication-generalization-security-summary.json",
+      "report_sha256": "f5bb43020186d7e1ceea85dd3ac51e10680720ecb9492b3c16535a02f4a3c341",
+      "severity": "critical"
+    }
+  ],
+  "architecture_consistent": true,
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "all_component_reports_exist": true,
+    "all_report_digests_retained": true,
+    "candidate_is_nonclaiming": true,
+    "control_components_declared": true,
+    "cross_contracts_consistent": true,
+    "declared_cross_contracts_match": true,
+    "formal_components_declared": true,
+    "publication_gate_is_conjunctive": true,
+    "schema": true
+  },
+  "control_components": {
+    "confirmatory_freeze": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/confirmatory-freeze-controls.json",
+      "report_exists": true,
+      "sha256": "8ac66698430e2e5b892d1f93cb38ecaba9554475ca97f0c82916c37b928179cf"
+    },
+    "exploit_matrix": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/exploit-matrix-controls.json",
+      "report_exists": true,
+      "sha256": "393eba209356b4b121cce67d54aa7f861a5def451ac41dd30183cd27432aa667"
+    },
+    "interaction_contract": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/agent-interaction-contract.json",
+      "report_exists": true,
+      "sha256": "a01f6c25840d21c6ff0f7701d55e2bc4380c361536519f549f9cb1b1ff76a950"
+    },
+    "live_llm": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/live-llm-controls.json",
+      "report_exists": true,
+      "sha256": "83514791dbb51fb02dd26e59fe6ba6b365cdcdef82d4db3115dee796dc16bbae"
+    },
+    "mechanism_families": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/mechanism-family-controls.json",
+      "report_exists": true,
+      "sha256": "71fea8db6d1a1d836183a6ab8eaf54e101bd06d6bb3c33c66e29dbb369bd2a70"
+    },
+    "method_protocol": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/method-protocol-vnext.json",
+      "report_exists": true,
+      "sha256": "5c8d62c54c7f76f12672baea544e09bb263465fbd9083cedcb0002d4647e9437"
+    },
+    "public_harness": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/public-harness-controls.json",
+      "report_exists": true,
+      "sha256": "6442e2bbb3acbd918b445f8d6f5f3bb316b66458080123bccb65b5cc3fa466f3"
+    },
+    "reference_regret": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/reference-regret-controls.json",
+      "report_exists": true,
+      "sha256": "6ac2eda18cc8d30ca1215daebf65b536bb2e8290080102a786357c2c41fa04f1"
+    },
+    "risk_cost": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/risk-cost-signal-controls.json",
+      "report_exists": true,
+      "sha256": "a5654480f782cd6a61ae3218b86997650ff54385c7c79bdd528f2ca652573911"
+    },
+    "rl_substrate": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/rl-baseline-controls.json",
+      "report_exists": true,
+      "sha256": "ff81170e314a3333c1b63931496f654b48a61ca0ca5c108af48bce095bd62d6d"
+    },
+    "score_replay": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/score-replay-controls.json",
+      "report_exists": true,
+      "sha256": "68d1fee35712b688cb09590bc94c15dc45134bdd998dc1d258066da3b9d53629"
+    },
+    "semantic_invariance": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/semantic-invariance-controls.json",
+      "report_exists": true,
+      "sha256": "52d70c85de3cc333775f77e05a8766344c970045212ca200348ba43e7e866cd2"
+    },
+    "task_validity": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/task-validity-vnext.json",
+      "report_exists": true,
+      "sha256": "6b9cb313aa229bc151678694e69632f9175b68cf66eb194687eab9847745d6b1"
+    },
+    "world_family_axes": {
+      "expected": true,
+      "field": "controls_ready",
+      "observed": true,
+      "passed": true,
+      "report": "workstreams/benchmark_v1/reports/world-family-axis-controls.json",
+      "report_exists": true,
+      "sha256": "3835d20f5375cd1ae78bf00fc815feda247abc078e1cf6f4016321763f39737d"
+    }
+  },
+  "controls_ready": true,
+  "critical_path": [
+    {
+      "component": "method_matrix",
+      "observed": false,
+      "report": "workstreams/benchmark_v1/reports/method-protocol-vnext.json",
+      "required": true
+    },
+    {
+      "component": "confirmatory_results",
+      "observed": false,
+      "report": "workstreams/benchmark_v1/reports/confirmatory-freeze-controls.json",
+      "required": true
+    },
+    {
+      "component": "task_validity_confirmation",
+      "observed": false,
+      "report": "workstreams/benchmark_v1/reports/task-validity-vnext.json",
+      "required": true
+    },
+    {
+      "component": "mechanism_adaptation",
+      "observed": false,
+      "report": "workstreams/benchmark_v1/reports/mechanism-family-controls.json",
+      "required": true
+    },
+    {
+      "component": "score_replay_results",
+      "observed": false,
+      "report": "workstreams/benchmark_v1/reports/score-replay-controls.json",
+      "required": true
+    },
+    {
+      "component": "generalization_security",
+      "observed": false,
+      "report": "workstreams/benchmark_v1/reports/publication-generalization-security-summary.json",
+      "required": true
+    },
+    {
+      "component": "rl_results",
+      "observed": false,
+      "report": "workstreams/benchmark_v1/reports/rl-baseline-controls.json",
+      "required": true
+    },
+    {
+      "component": "live_llm_results",
+      "observed": false,
+      "report": "workstreams/benchmark_v1/reports/live-llm-controls.json",
+      "required": true
+    },
+    {
+      "component": "reference_regret_results",
+      "observed": false,
+      "report": "workstreams/benchmark_v1/reports/reference-regret-controls.json",
+      "required": true
+    },
+    {
+      "component": "exploit_resistance_results",
+      "observed": false,
+      "report": "workstreams/benchmark_v1/reports/exploit-matrix-controls.json",
+      "required": true
+    }
+  ],
+  "cross_contracts": {
+    "all_referenced_claim_flags_false": true,
+    "core_task_sets_match": true,
+    "llm_role_ids_match": true,
+    "provider_retries_bounded": true,
+    "rl_algorithm_roles_match": true
+  },
+  "formal_evidence_components": {
+    "confirmatory_results": {
+      "expected": true,
+      "field": "publication_ready",
+      "observed": false,
+      "passed": false,
+      "report": "workstreams/benchmark_v1/reports/confirmatory-freeze-controls.json",
+      "report_exists": true,
+      "sha256": "8ac66698430e2e5b892d1f93cb38ecaba9554475ca97f0c82916c37b928179cf"
+    },
+    "exploit_resistance_results": {
+      "expected": true,
+      "field": "publication_ready",
+      "observed": false,
+      "passed": false,
+      "report": "workstreams/benchmark_v1/reports/exploit-matrix-controls.json",
+      "report_exists": true,
+      "sha256": "393eba209356b4b121cce67d54aa7f861a5def451ac41dd30183cd27432aa667"
+    },
+    "generalization_security": {
+      "expected": true,
+      "field": "publication_ready",
+      "observed": false,
+      "passed": false,
+      "report": "workstreams/benchmark_v1/reports/publication-generalization-security-summary.json",
+      "report_exists": true,
+      "sha256": "f5bb43020186d7e1ceea85dd3ac51e10680720ecb9492b3c16535a02f4a3c341"
+    },
+    "live_llm_results": {
+      "expected": true,
+      "field": "publication_ready",
+      "observed": false,
+      "passed": false,
+      "report": "workstreams/benchmark_v1/reports/live-llm-controls.json",
+      "report_exists": true,
+      "sha256": "83514791dbb51fb02dd26e59fe6ba6b365cdcdef82d4db3115dee796dc16bbae"
+    },
+    "mechanism_adaptation": {
+      "expected": true,
+      "field": "publication_ready",
+      "observed": false,
+      "passed": false,
+      "report": "workstreams/benchmark_v1/reports/mechanism-family-controls.json",
+      "report_exists": true,
+      "sha256": "71fea8db6d1a1d836183a6ab8eaf54e101bd06d6bb3c33c66e29dbb369bd2a70"
+    },
+    "method_matrix": {
+      "expected": true,
+      "field": "formal_method_matrix_ready",
+      "observed": false,
+      "passed": false,
+      "report": "workstreams/benchmark_v1/reports/method-protocol-vnext.json",
+      "report_exists": true,
+      "sha256": "5c8d62c54c7f76f12672baea544e09bb263465fbd9083cedcb0002d4647e9437"
+    },
+    "reference_regret_results": {
+      "expected": true,
+      "field": "publication_ready",
+      "observed": false,
+      "passed": false,
+      "report": "workstreams/benchmark_v1/reports/reference-regret-controls.json",
+      "report_exists": true,
+      "sha256": "6ac2eda18cc8d30ca1215daebf65b536bb2e8290080102a786357c2c41fa04f1"
+    },
+    "rl_results": {
+      "expected": true,
+      "field": "publication_ready",
+      "observed": false,
+      "passed": false,
+      "report": "workstreams/benchmark_v1/reports/rl-baseline-controls.json",
+      "report_exists": true,
+      "sha256": "ff81170e314a3333c1b63931496f654b48a61ca0ca5c108af48bce095bd62d6d"
+    },
+    "score_replay_results": {
+      "expected": true,
+      "field": "publication_ready",
+      "observed": false,
+      "passed": false,
+      "report": "workstreams/benchmark_v1/reports/score-replay-controls.json",
+      "report_exists": true,
+      "sha256": "68d1fee35712b688cb09590bc94c15dc45134bdd998dc1d258066da3b9d53629"
+    },
+    "task_validity_confirmation": {
+      "expected": true,
+      "field": "publication_ready",
+      "observed": false,
+      "passed": false,
+      "report": "workstreams/benchmark_v1/reports/task-validity-vnext.json",
+      "report_exists": true,
+      "sha256": "6b9cb313aa229bc151678694e69632f9175b68cf66eb194687eab9847745d6b1"
+    }
+  },
+  "formal_evidence_ready": false,
+  "protocol_id": "chemworld-vnext-architecture-candidate-0.1",
+  "publication_ready": false,
+  "release_rule": "publication readiness requires every control, formal-evidence, cross-contract, and independent-reproduction gate; no weighted aggregate may override a failed gate",
+  "schema_version": "chemworld-benchmark-architecture-audit-0.1",
+  "status": "controls_ready_formal_evidence_missing"
+}
