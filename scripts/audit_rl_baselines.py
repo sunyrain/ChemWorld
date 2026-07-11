@@ -66,7 +66,7 @@ def build_report() -> dict[str, Any]:
         finally:
             env.close()
     checks = {
-        "schema": rl_protocol.get("schema_version") == "chemworld-rl-baseline-protocol-0.2",
+        "schema": rl_protocol.get("schema_version") == "chemworld-rl-baseline-protocol-0.3",
         "candidate_is_non_claiming": rl_protocol.get("benchmark_claim_allowed") is False,
         "ppo_and_sac_declared": set(rl_protocol["algorithms"]) == {"ppo", "sac"},
         "shared_action_contract": set(rl_protocol["action_contract"]["shared_by_algorithms"])
@@ -91,6 +91,17 @@ def build_report() -> dict[str, Any]:
             or seed_sets["dev"] & seed_sets["bench"]
         ),
         "bench_finetuning_forbidden": rl_protocol["training"]["bench_finetuning_allowed"] is False,
+        "exact_training_step_budget": rl_protocol["training"].get(
+            "actual_environment_steps_must_equal_budget"
+        )
+        is True
+        and 1_000_000 % int(rl_protocol["algorithms"]["ppo"]["hyperparameters"]["n_steps"])
+        == 0,
+        "periodic_checkpointing_required": int(
+            rl_protocol["training"].get("periodic_checkpoint_interval_steps", 0)
+        )
+        > 0
+        and rl_protocol["training"].get("sac_replay_buffer_checkpoint_required") is True,
         "all_core_task_probes_pass": all(
             all(value for key, value in card.items() if key != "allocation")
             for card in task_probes.values()

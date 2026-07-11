@@ -1,0 +1,59 @@
+{
+  "schema_version": "chemworld-rl-100k-development-0.1",
+  "protocol_id": "chemworld-rl-100k-development-0.1",
+  "status": "development_only",
+  "benchmark_claim_allowed": false,
+  "publication_ready": false,
+  "selection_source": "workstreams/benchmark_v1/reports/rl-staged-development.json",
+  "required_backend_repair_audit": "workstreams/benchmark_v1/reports/rl-precipitation-boundary-audit.json",
+  "task_id": "flow-reaction-optimization",
+  "algorithm": "sac",
+  "training": {
+    "allocation": "train",
+    "requested_environment_steps": 100000,
+    "actual_environment_steps_must_equal_requested": true,
+    "model_seed": 0,
+    "operation_budget": 40,
+    "checkpoint_interval_steps": 20000,
+    "save_replay_buffer": true,
+    "hyperparameter_overrides": {
+      "buffer_size": 100000,
+      "learning_starts": 1000
+    }
+  },
+  "learning_curve_dev": {
+    "allocation": "dev",
+    "checkpoint_steps": [20000, 40000, 60000, 80000, 100000],
+    "episodes_per_checkpoint": 10,
+    "operation_budget": 40,
+    "sampler_seed": 499,
+    "policy_seed": 523,
+    "policy_mode": "stochastic_frozen_seed"
+  },
+  "final_dev": {
+    "allocation": "dev",
+    "episodes": 20,
+    "operation_budget": 40,
+    "sampler_seed": 599,
+    "policy_seed": 623,
+    "policy_mode": "stochastic_frozen_seed"
+  },
+  "standard_replay": {
+    "world_family_allocation": null,
+    "seeds": [1200, 1201, 1202, 1203, 1204, 1205, 1206, 1207, 1208, 1209],
+    "operation_budget": 40,
+    "policy_seed_base": 723,
+    "exact_replay_required": true,
+    "failed_runs_retained": true
+  },
+  "evidence_gate": {
+    "final_dev_minimum_episode_completion_rate": 0.95,
+    "final_dev_maximum_invalid_action_rate": 0.02,
+    "final_dev_maximum_domain_failure_count": 0,
+    "standard_replay_minimum_episode_completion_rate": 0.8,
+    "standard_replay_maximum_invalid_action_rate": 0.02,
+    "standard_replay_minimum_mean_final_best_score_including_failures": 0.005,
+    "all_standard_trajectories_must_replay": true
+  },
+  "claim_boundary": "A repaired-source, one-task, one-model-seed 100k Train/Dev study. It can justify multi-seed development but cannot support a formal RL ranking."
+}

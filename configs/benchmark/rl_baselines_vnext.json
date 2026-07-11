@@ -1,7 +1,7 @@
 {
-  "schema_version": "chemworld-rl-baseline-protocol-0.2",
-  "protocol_id": "chemworld-vnext-rl-baselines-candidate-0.2",
-  "supersedes_protocol_id": "chemworld-vnext-rl-baselines-candidate-0.1",
+  "schema_version": "chemworld-rl-baseline-protocol-0.3",
+  "protocol_id": "chemworld-vnext-rl-baselines-candidate-0.3",
+  "supersedes_protocol_id": "chemworld-vnext-rl-baselines-candidate-0.2",
   "benchmark_claim_allowed": false,
   "publication_ready": false,
   "source_freeze_protocol": "configs/benchmark/confirmatory_freeze_vnext.json",
@@ -17,8 +17,8 @@
       "policy": "MlpPolicy",
       "hyperparameters": {
         "learning_rate": 0.0003,
-        "n_steps": 2048,
-        "batch_size": 64,
+        "n_steps": 2000,
+        "batch_size": 50,
         "gamma": 0.99,
         "gae_lambda": 0.95,
         "ent_coef": 0.01
@@ -44,7 +44,10 @@
     "checkpoint_steps": [100000, 250000, 500000, 750000, 1000000],
     "allowed_allocation": "train",
     "dev_selection_only": true,
-    "bench_finetuning_allowed": false
+    "bench_finetuning_allowed": false,
+    "actual_environment_steps_must_equal_budget": true,
+    "periodic_checkpoint_interval_steps": 20000,
+    "sac_replay_buffer_checkpoint_required": true
   },
   "action_contract": {
     "space": "Box(-1, 1, 49)",

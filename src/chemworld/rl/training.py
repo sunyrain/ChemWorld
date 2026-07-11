@@ -49,6 +49,8 @@ def train_sb3_baseline(
     output_dir: str | Path,
     algorithm_kwargs: dict[str, Any] | None = None,
     operation_budget: int | None = None,
+    checkpoint_interval_steps: int | None = None,
+    save_replay_buffer: bool = False,
 ) -> dict[str, Any]:
     """Train one baseline and retain the model plus a complete compute manifest."""
 
@@ -56,11 +58,14 @@ def train_sb3_baseline(
         raise ValueError("algorithm must be ppo or sac")
     if total_timesteps <= 0:
         raise ValueError("total_timesteps must be positive")
+    if checkpoint_interval_steps is not None and checkpoint_interval_steps <= 0:
+        raise ValueError("checkpoint_interval_steps must be positive")
     if allocation.name != "train":
         raise ValueError("formal RL training accepts only the train allocation")
     try:
         import stable_baselines3 as sb3
         import torch
+        from stable_baselines3.common.callbacks import CheckpointCallback
     except ImportError as exc:
         raise RuntimeError("install ChemWorld with the 'rl' extra to train PPO or SAC") from exc
 
@@ -75,11 +80,22 @@ def train_sb3_baseline(
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     checkpoint_stem = output / f"{algorithm}-{task_id}-seed{model_seed}"
+    periodic_dir = output / "checkpoints"
     action_contract = _action_contract(env)
     observation_shape = list(env.observation_space.shape or ())
     wall_started = perf_counter()
     cpu_started = process_time()
     try:
+        callback = None
+        if checkpoint_interval_steps is not None:
+            periodic_dir.mkdir(parents=True, exist_ok=True)
+            callback = CheckpointCallback(
+                save_freq=checkpoint_interval_steps,
+                save_path=str(periodic_dir),
+                name_prefix=checkpoint_stem.name,
+                save_replay_buffer=save_replay_buffer,
+                save_vecnormalize=False,
+            )
         model = algorithm_class(
             "MlpPolicy",
             env,
@@ -88,8 +104,13 @@ def train_sb3_baseline(
             device="auto",
             **dict(algorithm_kwargs or {}),
         )
-        model.learn(total_timesteps=total_timesteps, progress_bar=False)
+        model.learn(
+            total_timesteps=total_timesteps,
+            progress_bar=False,
+            callback=callback,
+        )
         model.save(checkpoint_stem)
+        actual_timesteps = int(model.num_timesteps)
         device = str(model.device)
         training_diagnostics = _optional_wrapper_payload(env, "training_diagnostics")
     finally:
@@ -97,6 +118,22 @@ def train_sb3_baseline(
     wall_time_s = perf_counter() - wall_started
     cpu_time_s = process_time() - cpu_started
     checkpoint = checkpoint_stem.with_suffix(".zip")
+    if training_diagnostics is not None and int(
+        training_diagnostics.get("step_count", -1)
+    ) != actual_timesteps:
+        raise RuntimeError("SB3 and environment training-step ledgers disagree")
+    periodic_artifacts = [
+        {
+            "path": str(path.relative_to(output)),
+            "size_bytes": path.stat().st_size,
+            "sha256": _sha256(path),
+            "artifact_type": (
+                "replay_buffer" if path.name.endswith("replay_buffer.pkl") else "checkpoint"
+            ),
+        }
+        for path in sorted(periodic_dir.glob("*"))
+        if path.is_file()
+    ]
     manifest = {
         "schema_version": "chemworld-rl-checkpoint-0.1",
         "formal_evidence": False,
@@ -108,7 +145,12 @@ def train_sb3_baseline(
         "training_reward_contract": _optional_wrapper_payload(env, "reward_contract"),
         "training_diagnostics": training_diagnostics,
         "observation_shape": observation_shape,
-        "training_environment_step_count": total_timesteps,
+        "requested_training_environment_step_count": total_timesteps,
+        "training_environment_step_count": actual_timesteps,
+        "step_budget_exact": actual_timesteps == total_timesteps,
+        "checkpoint_interval_steps": checkpoint_interval_steps,
+        "periodic_checkpoint_artifacts": periodic_artifacts,
+        "replay_buffer_checkpointed": bool(save_replay_buffer),
         "operation_budget": operation_budget,
         "wall_time_s": wall_time_s,
         "cpu_time_s": cpu_time_s,
