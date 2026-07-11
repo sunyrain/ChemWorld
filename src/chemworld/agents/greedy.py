@@ -9,11 +9,17 @@ import numpy as np
 from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.interaction import InteractionCapabilities
 from chemworld.agents.recipe_sequence import RecipeSequenceMixin
-from chemworld.world.actions import ACTION_BOUNDS, CATALYSTS, SOLVENTS, sample_random_action
+from chemworld.agents.task_recipes import (
+    TASK_RECIPE_SPACE_VERSION,
+    sample_task_recipe,
+    task_recipe_from_unit_vector,
+    task_recipe_to_vector,
+)
 
 
 class GreedyLocalAgent(RecipeSequenceMixin, BaseAgent):
     name = "greedy_local"
+    exploration_probability = 0.20
 
     def __init__(self, warmup: int = 5, perturbation_scale: float = 0.18) -> None:
         self.warmup = warmup
@@ -42,22 +48,34 @@ class GreedyLocalAgent(RecipeSequenceMixin, BaseAgent):
 
         recipe_history = self._recipe_history
         if len(recipe_history) < self.warmup:
-            return self._start_recipe(sample_random_action(self.rng))
+            return self._start_recipe(sample_task_recipe(self.task_info, self.rng))
 
         best = max(recipe_history, key=lambda item: item.reward)
-        action = dict(best.action)
-        for key, bound in ACTION_BOUNDS.items():
-            width = bound.high - bound.low
-            action[key] = float(
-                np.clip(
-                    float(action[key]) + self.rng.normal(0.0, self.perturbation_scale * width),
-                    bound.low,
-                    bound.high,
-                )
-            )
+        vector = task_recipe_to_vector(best.action)
+        candidate = np.asarray(
+            np.clip(
+                vector + self.rng.normal(0.0, self.perturbation_scale, size=vector.shape),
+                0.0,
+                1.0,
+            ),
+            dtype=float,
+        )
+        if self.rng.random() < self.exploration_probability:
+            coordinate = int(self.rng.integers(0, candidate.size))
+            candidate[coordinate] = float(self.rng.random())
+        recipe = task_recipe_from_unit_vector(self.task_info, candidate)
+        return self._start_recipe(recipe)
 
-        if self.rng.random() < 0.20:
-            action["catalyst"] = int(self.rng.integers(0, len(CATALYSTS)))
-        if self.rng.random() < 0.20:
-            action["solvent"] = int(self.rng.integers(0, len(SOLVENTS)))
-        return self._start_recipe(action)
+    def manifest(self) -> dict[str, Any]:
+        manifest = super().manifest()
+        manifest.update(
+            {
+                "search_policy": "task_recipe_local_perturbation",
+                "search_space_version": TASK_RECIPE_SPACE_VERSION,
+                "recipe_encoding": "task_specific_unit_hypercube",
+                "warmup": self.warmup,
+                "perturbation_scale": self.perturbation_scale,
+                "exploration_probability": self.exploration_probability,
+            }
+        )
+        return manifest
