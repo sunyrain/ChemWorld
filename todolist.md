@@ -50,8 +50,14 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
 - `workstreams/benchmark_v1/reports/validity-power-electro-structured40-pilot5.json`。
 
 它们确认旧随机采样最大值不是 oracle，8–12 个完整实验不足以支撑多数主动学习任务，且类别
-物料不能按连续数字距离编码。现有结果仍是 diagnostic-only：六任务均未稳定达到 0.05 SESOI，
-尚缺 20 paired seeds、轴级 OOD/私评、资源匹配、RL、真实 LLM 和冻结论文证据链。
+物料不能按连续数字距离编码。这些先导结果本身仍是 diagnostic-only；当时尚缺 20 paired seeds、
+轴级 OOD/私评、资源匹配、RL、真实 LLM 和冻结论文证据链。
+
+正式 20-seed 经典方法矩阵现已完成，取代上述“尚缺 20 paired seeds”的旧状态：6 tasks ×
+5 methods × 20 seeds = 600 条 replay-verified 结果，每条 40 次完整实验。结构化 GP 相对 random
+的 total score 为 6/6 正向且 Holm 后显著、4/6 达到 SESOI；任务主指标只有 2/6 达到 SESOI，
+4/6 的区间方向为正。安全风险观测在整套矩阵中退化为零。机器摘要位于
+`workstreams/benchmark_v1/reports/publication-classic20-full-summary.json`，总体状态仍为 `blocked`。
 
 ## 下一阶段互不重叠认领队列
 
@@ -124,8 +130,9 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
 - [x] 将类别物料 one-hot 扩展到结构化安全 BO，并为每次运行记录墙钟、CPU、步骤数和完整实验数；
   正式 runner 对实验数不足、脏树、合同漂移和回放失败执行失败关闭。
 
-- [ ] 跑完整 serious baseline：`random`、`lhs`、`scripted_chemistry`、`gp_bo`、`safe_gp_bo`、
-  `tool_using_llm_stub`；将不可复现或依赖外部在线服务的 agent 与官方冻结基线分开。
+- [x] 跑完预注册经典矩阵：`random`、`lhs`、`gp_bo`、`structured_gp_bo`、
+  `structured_safe_gp_bo`，6 tasks × 20 paired seeds 共 600 次；stub/replay/scripted 仅作协议回归，
+  不再伪装成科学 baseline。
 - [ ] 检查每个 baseline 是否真正适配任务动作空间；不允许多个“不同”baseline 实际退化为同一
   固定配方或相同行为序列。
 - [x] 已用 10-seed paired pilot 和 0.05 SESOI 完成功效初估，暂定正式起点为每任务 20 seeds；
@@ -139,9 +146,13 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
 - [x] 已增加显式完整实验数和 4/8/12/20/40 在线前缀审计；40-experiment pilot 证明五个任务
   存在正向学习信号，但 0/6 达到 0.05 SESOI，且电化学 GP 显著为负。下一步按任务校准预算，
   并单独审计电化学搜索表示/安全目标，不能再用统一 `dimension + 2` 作为正式预算。
-- [x] 已实现连续坐标 + material one-hot 的结构化 GP 探针；电化学 40-experiment 配对效应从
-  -0.076 翻转为 +0.032，但尚未达到 SESOI。冻结前须扩展到 20 seeds，并审计全部任务的类别
-  坐标与耦合坐标。
+- [x] 已实现连续坐标 + material one-hot 的结构化 GP 探针；早期电化学 5-seed 配对效应从
+  -0.076 翻转为 +0.032。该先导判断已由下项 20-seed 正式审计取代。
+- [x] 已完成最终 20-seed 表示审计：one-hot 相对原始 GP 的 total-score 主要增益集中在电化学
+  （约 +0.026），但电化学 selectivity 主指标约 -0.003；这证明表示影响复合奖励，却不能证明
+  电化学主能力已改善。
+- [ ] 修复或重定义 serious task 的安全门禁：当前 600 次正式运行的 `mean_risk` 与 safety
+  violations 全为零，`structured_safe_gp_bo` 没有可学习风险信号，不能作为安全方法证据。
 - [ ] 固定每个任务的 baseline reference table，并将冻结结果绑定 commit、合同 hash、solver
   provenance 和 trajectory digest。
 
