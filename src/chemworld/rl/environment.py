@@ -17,6 +17,7 @@ from chemworld.wrappers import (
     ContinuousEventActionWrapper,
     RLControlObservationWrapper,
     RLObservationWrapper,
+    RLTrainingRewardWrapper,
 )
 
 AllocationName = Literal["train", "dev", "bench"]
@@ -128,6 +129,7 @@ def build_rl_environment(
     allocation: RLWorldAllocation,
     sampler_seed: int,
     operation_budget: int | None = None,
+    training_reward: bool = False,
 ) -> gym.Env[np.ndarray, np.ndarray]:
     """Construct the same finite Box observation/action contract for PPO and SAC."""
 
@@ -142,6 +144,8 @@ def build_rl_environment(
     env = ContinuousEventActionWrapper(env)
     env = RLObservationWrapper(env, include_mask=True, include_cost=True)
     env = RLControlObservationWrapper(env)
+    if training_reward:
+        env = RLTrainingRewardWrapper(env)
     return env
 
 

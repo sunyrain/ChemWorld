@@ -281,12 +281,12 @@ class RLObservationWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArg
 
 
 class ContinuousEventActionWrapper(gym.ActionWrapper[Any, Any, Any], RecordConstructorArgs):
-    """Map a stationary normalized Box onto the complete typed event action.
+    """Map masked operation logits plus parameters onto a typed event action.
 
-    Discrete fields retain fixed global semantics. Invalid operations are not
-    silently replaced with a currently legal action; the public action mask is
-    supplied by :class:`RLControlObservationWrapper` so the policy can learn the
-    precondition structure without changing the meaning of an action coordinate.
+    Operation coordinates retain fixed global semantics and are filtered by the
+    same public affordance mask exposed in the observation. This avoids imposing
+    a false ordinal geometry on operation categories while keeping a Box action
+    space shared by PPO and SAC. Parameter coordinates remain stationary.
     """
 
     def __init__(self, env: gym.Env[Any, Any]) -> None:
@@ -296,22 +296,32 @@ class ContinuousEventActionWrapper(gym.ActionWrapper[Any, Any, Any], RecordConst
             raise TypeError("ContinuousEventActionWrapper requires a Dict action space")
         self.event_action_space = env.action_space
         self.action_keys = tuple(self.event_action_space.spaces)
+        self.parameter_keys = tuple(key for key in self.action_keys if key != "operation")
+        self.operation_types = tuple(OPERATION_TYPES)
+        self.operation_logit_count = len(self.operation_types)
         self.action_space = gym.spaces.Box(
             low=-1.0,
             high=1.0,
-            shape=(len(self.action_keys),),
+            shape=(self.operation_logit_count + len(self.parameter_keys),),
             dtype=np.float32,
         )
 
     def action_contract(self) -> dict[str, Any]:
         return {
-            "schema_version": "chemworld-continuous-event-action-0.1",
+            "schema_version": "chemworld-continuous-event-action-0.2",
             "action_keys": list(self.action_keys),
+            "operation_types": list(self.operation_types),
+            "operation_logit_count": self.operation_logit_count,
+            "parameter_keys": list(self.parameter_keys),
             "shape": list(self.action_space.shape or ()),
             "low": -1.0,
             "high": 1.0,
-            "discrete_mapping": "fixed global index; floor(unit_coordinate * n)",
-            "invalid_operation_policy": "retain environment precondition failure",
+            "operation_mapping": (
+                "fixed global logits decoded by argmax after public affordance mask"
+            ),
+            "parameter_discrete_mapping": "fixed global index; floor(unit_coordinate * n)",
+            "empty_operation_mask_policy": "retain global argmax and record the resulting failure",
+            "invalid_payload_policy": "retain environment precondition or domain failure",
         }
 
     def action(self, action: Any) -> dict[str, Any]:
@@ -321,9 +331,19 @@ class ContinuousEventActionWrapper(gym.ActionWrapper[Any, Any, Any], RecordConst
             raise ValueError(
                 f"continuous event action must be a finite vector with shape {expected_shape}"
             )
-        unit = np.clip((vector + 1.0) / 2.0, 0.0, 1.0)
-        payload: dict[str, Any] = {}
-        for index, key in enumerate(self.action_keys):
+        operation_logits = vector[: self.operation_logit_count]
+        public_mask = np.asarray(action_mask(self.env), dtype=bool)
+        if public_mask.shape != (self.operation_logit_count,):
+            raise ValueError("public operation mask does not match the frozen operation registry")
+        if np.any(public_mask):
+            masked_logits = np.where(public_mask, operation_logits, -np.inf)
+            operation_index = int(np.argmax(masked_logits))
+        else:
+            operation_index = int(np.argmax(operation_logits))
+        payload: dict[str, Any] = {"operation": operation_index}
+        parameter_vector = vector[self.operation_logit_count :]
+        unit = np.clip((parameter_vector + 1.0) / 2.0, 0.0, 1.0)
+        for index, key in enumerate(self.parameter_keys):
             space = self.event_action_space[key]
             coordinate = float(unit[index])
             if isinstance(space, gym.spaces.Discrete):
@@ -374,6 +394,122 @@ class RLControlObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordC
         if not self.observation_space.contains(combined):
             raise ValueError("RL control observation escaped its declared finite bounds")
         return combined
+
+
+class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):
+    """Add auditable public-signal shaping for operation-level RL training.
+
+    The wrapper never changes observations, actions, termination, or the raw
+    benchmark score. Frozen-policy evaluation must omit this wrapper and use
+    replayed task metrics. Shaping exists only to make invalid preconditions and
+    completed experiments distinguishable to a learner.
+    """
+
+    SCHEMA_VERSION = "chemworld-rl-training-reward-0.1"
+
+    def __init__(self, env: gym.Env[Any, Any]) -> None:
+        RecordConstructorArgs.__init__(self)
+        super().__init__(env)
+        self._previous_valid_operations: set[str] = set()
+        self._diagnostics = self._empty_diagnostics()
+
+    def reset(self, **kwargs: Any) -> tuple[Any, dict[str, Any]]:
+        observation, info = self.env.reset(**kwargs)
+        self._previous_valid_operations = self._valid_operations()
+        self._diagnostics["episode_count"] += 1
+        return observation, info
+
+    def step(self, action: Any) -> tuple[Any, float, bool, bool, dict[str, Any]]:
+        observation, raw_reward, terminated, truncated, info = self.env.step(action)
+        flags = dict(info.get("constraint_flags", {}))
+        invalid = bool(flags.get("precondition_failed", False))
+        current_valid = self._valid_operations()
+        newly_unlocked = len(current_valid.difference(self._previous_valid_operations))
+        operation = str(info.get("operation_type", ""))
+        experiment_ended = bool(info.get("experiment_ended", False))
+        shaped_reward = float(raw_reward)
+        shaped_reward += -0.25 if invalid else 0.01
+        shaped_reward += 0.02 * newly_unlocked
+        if not invalid and operation == "measure":
+            shaped_reward += 0.02
+        if experiment_ended:
+            shaped_reward += 1.0
+        if bool(flags.get("unsafe_by_task_limit", False)):
+            shaped_reward -= 0.10
+        if bool(flags.get("high_cost", False)):
+            shaped_reward -= 0.05
+
+        self._previous_valid_operations = current_valid
+        self._diagnostics["step_count"] += 1
+        self._diagnostics["invalid_action_count"] += int(invalid)
+        self._diagnostics["runtime_domain_failure_count"] += int(
+            info.get("preconditions", {}).get("runtime_domain_valid") is False
+        )
+        self._diagnostics["measurement_count"] += int(not invalid and operation == "measure")
+        self._diagnostics["completed_experiment_count"] += int(experiment_ended)
+        self._diagnostics["newly_unlocked_operation_count"] += newly_unlocked
+        self._diagnostics["unsafe_step_count"] += int(
+            bool(flags.get("unsafe_by_task_limit", False))
+        )
+        self._diagnostics["high_cost_step_count"] += int(bool(flags.get("high_cost", False)))
+        self._diagnostics["raw_reward_sum"] += float(raw_reward)
+        self._diagnostics["shaped_reward_sum"] += shaped_reward
+        payload = dict(info)
+        payload["rl_training_reward"] = {
+            "schema_version": self.SCHEMA_VERSION,
+            "raw_reward": float(raw_reward),
+            "shaped_reward": shaped_reward,
+            "invalid_action": invalid,
+            "newly_unlocked_operations": newly_unlocked,
+            "experiment_ended": experiment_ended,
+        }
+        return observation, shaped_reward, terminated, truncated, payload
+
+    def reward_contract(self) -> dict[str, Any]:
+        return {
+            "schema_version": self.SCHEMA_VERSION,
+            "public_signals_only": True,
+            "benchmark_evaluation_uses_shaped_reward": False,
+            "components": {
+                "raw_environment_reward": 1.0,
+                "valid_operation": 0.01,
+                "invalid_precondition": -0.25,
+                "newly_unlocked_operation": 0.02,
+                "valid_measurement": 0.02,
+                "completed_experiment": 1.0,
+                "unsafe_step": -0.10,
+                "high_cost_step": -0.05,
+            },
+        }
+
+    def training_diagnostics(self) -> dict[str, Any]:
+        payload = dict(self._diagnostics)
+        steps = max(int(payload["step_count"]), 1)
+        payload["invalid_action_rate"] = payload["invalid_action_count"] / steps
+        payload["completed_experiments_per_1000_steps"] = (
+            1000.0 * payload["completed_experiment_count"] / steps
+        )
+        return payload
+
+    def _valid_operations(self) -> set[str]:
+        base = _base_env(self.env)
+        return set(base.operation_validator.valid_operations(base._state))
+
+    @staticmethod
+    def _empty_diagnostics() -> dict[str, Any]:
+        return {
+            "step_count": 0,
+            "episode_count": 0,
+            "invalid_action_count": 0,
+            "runtime_domain_failure_count": 0,
+            "measurement_count": 0,
+            "completed_experiment_count": 0,
+            "newly_unlocked_operation_count": 0,
+            "unsafe_step_count": 0,
+            "high_cost_step_count": 0,
+            "raw_reward_sum": 0.0,
+            "shaped_reward_sum": 0.0,
+        }
 
 
 class ActionSuggestionWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):

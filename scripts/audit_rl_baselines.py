@@ -46,9 +46,11 @@ def build_report() -> dict[str, Any]:
             observed_action_keys = list(action_contract.get("action_keys", []))
             task_probes[task_id] = {
                 "allocation": allocation.public_manifest(),
-                "box_action": env.action_space.shape == (22,),
+                "box_action": env.action_space.shape == (49,),
                 "finite_observation": bool(np.all(np.isfinite(observation))),
-                "finite_step": bool(np.all(np.isfinite(next_observation)) and np.isfinite(reward)),
+                "finite_step": bool(
+                    np.all(np.isfinite(next_observation)) and np.isfinite(float(reward))
+                ),
                 "world_cell_exposed_to_audit": "rl_world_cell" in info,
                 "hidden_axis_identity_absent": info.get("rl_world_cell", {}).get(
                     "axis_identity_visible"
@@ -69,6 +71,10 @@ def build_report() -> dict[str, Any]:
         "shared_action_contract": set(rl_protocol["action_contract"]["shared_by_algorithms"])
         == {"ppo", "sac"},
         "fixed_action_semantics": rl_protocol["action_contract"]["fixed_global_operation_semantics"]
+        is True,
+        "public_affordance_masked_decoding": rl_protocol["action_contract"][
+            "public_affordance_masked_decoding"
+        ]
         is True,
         "action_key_order_frozen": observed_action_keys == rl_protocol["action_contract"]["keys"],
         "train_dev_bench_seed_disjoint": not (

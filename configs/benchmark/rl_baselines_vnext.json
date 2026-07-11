@@ -46,7 +46,9 @@
     "bench_finetuning_allowed": false
   },
   "action_contract": {
-    "space": "Box(-1, 1, 22)",
+    "space": "Box(-1, 1, 49)",
+    "schema_version": "chemworld-continuous-event-action-0.2",
+    "layout": "28 fixed global operation logits followed by 21 stationary parameter coordinates",
     "keys": [
       "amount_mol",
       "catalyst",
@@ -72,7 +74,8 @@
       "wash_volume_L"
     ],
     "fixed_global_operation_semantics": true,
-    "invalid_operation_policy": "execute_and_retain_failure; never remap to a valid operation",
+    "public_affordance_masked_decoding": true,
+    "invalid_operation_policy": "mask impossible operation logits using public affordances; retain payload and numerical-domain failures",
     "shared_by_algorithms": ["ppo", "sac"]
   },
   "observation_contract": {
@@ -80,6 +83,12 @@
     "operation_affordance_mask_in_observation": true,
     "campaign_progress_in_observation": true,
     "hidden_axis_identity_visible": false
+  },
+  "training_reward_contract": {
+    "schema_version": "chemworld-rl-training-reward-0.1",
+    "public_signals_only": true,
+    "benchmark_evaluation_uses_shaped_reward": false,
+    "purpose": "distinguish invalid preconditions, public progress, measurements, completed experiments, risk, and cost during training without changing replayed benchmark endpoints"
   },
   "formal_readiness_requirements": [
     "all task-algorithm-model-seed checkpoints consume the frozen training budget",

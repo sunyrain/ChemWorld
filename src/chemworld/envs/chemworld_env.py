@@ -30,7 +30,7 @@ from chemworld.foundation.state import (
     WorldState,
     process_with_last_observation,
 )
-from chemworld.operation_validator import OperationValidator
+from chemworld.operation_validator import OperationValidation, OperationValidator
 from chemworld.runtime import (
     ChemWorldObservationKernel,
     ChemWorldRuntime,
@@ -239,7 +239,23 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         previous_state = self._state
         validation = self.operation_validator.validate(action, self._state)
         if validation.dispatchable_to_runtime:
-            runtime_result = self.runtime.apply_transaction(self._state, action)
+            try:
+                runtime_result = self.runtime.apply_transaction(self._state, action)
+            except (ArithmeticError, ValueError):
+                # Physically undefined proposals are part of an exploratory agent's
+                # action distribution, not a reason to terminate the entire Gym job.
+                # Convert only domain/numerical errors into a replayable failed
+                # transaction. Programming errors such as KeyError and TypeError
+                # remain visible to developers.
+                validation = self._domain_failure_validation(
+                    validation,
+                    "runtime_domain_valid",
+                )
+                runtime_result = self.runtime.apply_invalid_transaction(
+                    self._state,
+                    action,
+                    validation,
+                )
         else:
             runtime_result = self.runtime.apply_invalid_transaction(
                 self._state,
@@ -251,7 +267,23 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         runtime_info = runtime_result.info_payload()
         preconditions_passed = all(operation_record.preconditions.values())
         if preconditions_passed:
-            observation = self.observation_kernel.observe(self._state, action, self._rng)
+            try:
+                observation = self.observation_kernel.observe(self._state, action, self._rng)
+            except (ArithmeticError, ValueError):
+                validation = self._domain_failure_validation(
+                    validation,
+                    "observation_domain_valid",
+                )
+                runtime_result = self.runtime.apply_invalid_transaction(
+                    previous_state,
+                    action,
+                    validation,
+                )
+                self._state = runtime_result.state
+                operation_record = runtime_result.operation_record
+                runtime_info = runtime_result.info_payload()
+                preconditions_passed = False
+                observation = self.observation_kernel.failed_observation()
         else:
             observation = self.observation_kernel.failed_observation()
         observation_report = self.constitution.check_observation(
@@ -377,6 +409,26 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             task_spec=self.task_spec,
             compiled_mechanism=self.scenario_instance.compiled_mechanism,
             debug_truth=self.debug_truth,
+        )
+
+    @staticmethod
+    def _domain_failure_validation(
+        validation: OperationValidation,
+        failure_key: str,
+    ) -> OperationValidation:
+        return replace(
+            validation,
+            is_valid=False,
+            preconditions={**validation.preconditions, failure_key: False},
+            invalid_reasons=tuple(
+                dict.fromkeys((*validation.invalid_reasons, failure_key))
+            ),
+            cost_penalty=max(validation.cost_penalty, 0.10),
+            safety_flags={
+                **validation.safety_flags,
+                "precondition_failed": True,
+                failure_key: False,
+            },
         )
 
     def _make_observation_contract(self) -> TaskObservationContract:

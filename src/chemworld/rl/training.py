@@ -29,6 +29,16 @@ def _action_contract(env: Any) -> dict[str, Any]:
     raise RuntimeError("RL environment is missing its continuous action contract")
 
 
+def _optional_wrapper_payload(env: Any, method: str) -> dict[str, Any] | None:
+    current = env
+    while current is not None:
+        factory = getattr(current, method, None)
+        if callable(factory):
+            return dict(factory())
+        current = getattr(current, "env", None)
+    return None
+
+
 def train_sb3_baseline(
     *,
     algorithm: AlgorithmName,
@@ -60,6 +70,7 @@ def train_sb3_baseline(
         allocation=allocation,
         sampler_seed=model_seed,
         operation_budget=operation_budget,
+        training_reward=True,
     )
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
@@ -80,6 +91,7 @@ def train_sb3_baseline(
         model.learn(total_timesteps=total_timesteps, progress_bar=False)
         model.save(checkpoint_stem)
         device = str(model.device)
+        training_diagnostics = _optional_wrapper_payload(env, "training_diagnostics")
     finally:
         env.close()
     wall_time_s = perf_counter() - wall_started
@@ -93,6 +105,8 @@ def train_sb3_baseline(
         "model_seed": model_seed,
         "allocation": allocation.public_manifest(),
         "action_contract": action_contract,
+        "training_reward_contract": _optional_wrapper_payload(env, "reward_contract"),
+        "training_diagnostics": training_diagnostics,
         "observation_shape": observation_shape,
         "training_environment_step_count": total_timesteps,
         "operation_budget": operation_budget,
