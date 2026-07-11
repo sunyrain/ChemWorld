@@ -1,0 +1,38 @@
+{
+  "schema_version": "chemworld-evaluation-protocol-0.1",
+  "protocol_id": "chemworld-vnext-layered-evaluation-candidate-0.1",
+  "evaluation_contract_version": "chemworld-layered-evaluation-0.1",
+  "status": "candidate_controls_only",
+  "benchmark_claim_allowed": false,
+  "layers": [
+    "objective",
+    "task_primary",
+    "online_shaping",
+    "constraints",
+    "resources",
+    "validity"
+  ],
+  "tasks": {
+    "partition-discovery": "product_in_organic",
+    "reaction-to-crystallization": "crystal_yield",
+    "reaction-to-distillation": "distillate_purity",
+    "flow-reaction-optimization": "flow_conversion",
+    "electrochemical-conversion": "electrochemical_selectivity",
+    "equilibrium-characterization": "equilibrium_confidence"
+  },
+  "policies": {
+    "primary_and_objective_source": "successful_final_assay_only",
+    "online_reward_is_primary": false,
+    "missing_primary": "fail",
+    "campaign_process_cost": "sum_terminal_experiment_costs",
+    "measurement_cost": "sum_per_operation_measurement_cost",
+    "constraint_activation_reported_separately": true
+  },
+  "remaining_release_gates": [
+    "calibrate task safety thresholds so constraints activate without saturation",
+    "validate primary-metric direction and sensitivity on frozen response surfaces",
+    "freeze regret references and resource-normalized comparisons",
+    "rerun every formal method under the layered evaluator",
+    "bind evaluator output to replay and tamper detection"
+  ]
+}

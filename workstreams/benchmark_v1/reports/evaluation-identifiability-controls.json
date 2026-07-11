@@ -1,0 +1,158 @@
+{
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "candidate_is_non_claiming": true,
+    "contract_version": true,
+    "formal_safety_constraint_active": false,
+    "layers_are_disjoint": true,
+    "missing_primary_fails_closed": true,
+    "online_reward_excluded_from_primary": true,
+    "primary_metrics_match_task_design": true,
+    "schema": true,
+    "task_scope": true
+  },
+  "contracts": {
+    "electrochemical-conversion": {
+      "contract_hash": "a3144eba751f1623e2d177c61a0d764c706211ed1112442fb7effb81c90407e3",
+      "cost_aggregation": "sum_terminal_experiment_costs",
+      "direction": "maximize",
+      "layers": {
+        "constraint": "safety_risk and unsafe flag",
+        "objective": "leaderboard_score",
+        "online_shaping": "diagnostic_shaping_only",
+        "resource": "sum_terminal_experiment_costs",
+        "task_primary": "electrochemical_selectivity",
+        "validity": "precondition and constitution flags"
+      },
+      "missing_primary_policy": "fail",
+      "objective_metric": "leaderboard_score",
+      "online_reward_role": "diagnostic_shaping_only",
+      "primary_task_metric": "electrochemical_selectivity",
+      "safety_limit": 0.65,
+      "schema_version": "chemworld-layered-evaluation-0.1",
+      "task_id": "electrochemical-conversion",
+      "terminal_selector": "successful_final_assay"
+    },
+    "equilibrium-characterization": {
+      "contract_hash": "4c1469ceefe68a31172cfe0a9faebfc60837d33a1d8dada415d1f2d4748a0ee3",
+      "cost_aggregation": "sum_terminal_experiment_costs",
+      "direction": "maximize",
+      "layers": {
+        "constraint": "safety_risk and unsafe flag",
+        "objective": "leaderboard_score",
+        "online_shaping": "diagnostic_shaping_only",
+        "resource": "sum_terminal_experiment_costs",
+        "task_primary": "equilibrium_confidence",
+        "validity": "precondition and constitution flags"
+      },
+      "missing_primary_policy": "fail",
+      "objective_metric": "leaderboard_score",
+      "online_reward_role": "diagnostic_shaping_only",
+      "primary_task_metric": "equilibrium_confidence",
+      "safety_limit": 0.65,
+      "schema_version": "chemworld-layered-evaluation-0.1",
+      "task_id": "equilibrium-characterization",
+      "terminal_selector": "successful_final_assay"
+    },
+    "flow-reaction-optimization": {
+      "contract_hash": "eb91ce88a57a40644c4305fde53b4d5ead8e07dd2d651a5b2888d5c3d49afe4e",
+      "cost_aggregation": "sum_terminal_experiment_costs",
+      "direction": "maximize",
+      "layers": {
+        "constraint": "safety_risk and unsafe flag",
+        "objective": "leaderboard_score",
+        "online_shaping": "diagnostic_shaping_only",
+        "resource": "sum_terminal_experiment_costs",
+        "task_primary": "flow_conversion",
+        "validity": "precondition and constitution flags"
+      },
+      "missing_primary_policy": "fail",
+      "objective_metric": "leaderboard_score",
+      "online_reward_role": "diagnostic_shaping_only",
+      "primary_task_metric": "flow_conversion",
+      "safety_limit": 0.65,
+      "schema_version": "chemworld-layered-evaluation-0.1",
+      "task_id": "flow-reaction-optimization",
+      "terminal_selector": "successful_final_assay"
+    },
+    "partition-discovery": {
+      "contract_hash": "e4cd02d819e2f01f66a49c4dad4cd906b5550aebfb9518cafaf612f3e86b4179",
+      "cost_aggregation": "sum_terminal_experiment_costs",
+      "direction": "maximize",
+      "layers": {
+        "constraint": "safety_risk and unsafe flag",
+        "objective": "leaderboard_score",
+        "online_shaping": "diagnostic_shaping_only",
+        "resource": "sum_terminal_experiment_costs",
+        "task_primary": "product_in_organic",
+        "validity": "precondition and constitution flags"
+      },
+      "missing_primary_policy": "fail",
+      "objective_metric": "leaderboard_score",
+      "online_reward_role": "diagnostic_shaping_only",
+      "primary_task_metric": "product_in_organic",
+      "safety_limit": 0.65,
+      "schema_version": "chemworld-layered-evaluation-0.1",
+      "task_id": "partition-discovery",
+      "terminal_selector": "successful_final_assay"
+    },
+    "reaction-to-crystallization": {
+      "contract_hash": "54d235855f259f6fa17d22c7dc6738d998d3afda09f34116ed8f77e39cb29c8d",
+      "cost_aggregation": "sum_terminal_experiment_costs",
+      "direction": "maximize",
+      "layers": {
+        "constraint": "safety_risk and unsafe flag",
+        "objective": "leaderboard_score",
+        "online_shaping": "diagnostic_shaping_only",
+        "resource": "sum_terminal_experiment_costs",
+        "task_primary": "crystal_yield",
+        "validity": "precondition and constitution flags"
+      },
+      "missing_primary_policy": "fail",
+      "objective_metric": "leaderboard_score",
+      "online_reward_role": "diagnostic_shaping_only",
+      "primary_task_metric": "crystal_yield",
+      "safety_limit": 0.65,
+      "schema_version": "chemworld-layered-evaluation-0.1",
+      "task_id": "reaction-to-crystallization",
+      "terminal_selector": "successful_final_assay"
+    },
+    "reaction-to-distillation": {
+      "contract_hash": "1e162a48405cbc3b2fcd3f0fae0bdb79c76bf9745e23a5c02e8c426f2d03eab7",
+      "cost_aggregation": "sum_terminal_experiment_costs",
+      "direction": "maximize",
+      "layers": {
+        "constraint": "safety_risk and unsafe flag",
+        "objective": "leaderboard_score",
+        "online_shaping": "diagnostic_shaping_only",
+        "resource": "sum_terminal_experiment_costs",
+        "task_primary": "distillate_purity",
+        "validity": "precondition and constitution flags"
+      },
+      "missing_primary_policy": "fail",
+      "objective_metric": "leaderboard_score",
+      "online_reward_role": "diagnostic_shaping_only",
+      "primary_task_metric": "distillate_purity",
+      "safety_limit": 0.65,
+      "schema_version": "chemworld-layered-evaluation-0.1",
+      "task_id": "reaction-to-distillation",
+      "terminal_selector": "successful_final_assay"
+    }
+  },
+  "controls_ready": true,
+  "evaluation_identifiable": false,
+  "known_blockers": [
+    "The frozen 600-run evidence contains continuous risk but zero safety violations; constrained-method effects are not identifiable."
+  ],
+  "protocol_id": "chemworld-vnext-layered-evaluation-candidate-0.1",
+  "publication_ready": false,
+  "remaining_release_gates": [
+    "calibrate task safety thresholds so constraints activate without saturation",
+    "validate primary-metric direction and sensitivity on frozen response surfaces",
+    "freeze regret references and resource-normalized comparisons",
+    "rerun every formal method under the layered evaluator",
+    "bind evaluator output to replay and tamper detection"
+  ],
+  "schema_version": "chemworld-evaluation-identifiability-audit-0.1",
+  "status": "controls_ready_signal_calibration_blocked"
+}
