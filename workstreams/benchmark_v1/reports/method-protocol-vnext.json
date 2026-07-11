@@ -39,7 +39,7 @@
     "risk_cost_calibration": {
       "exists": true,
       "path": "workstreams/benchmark_v1/reports/risk-cost-signal-controls.json",
-      "sha256": "a5654480f782cd6a61ae3218b86997650ff54385c7c79bdd528f2ca652573911"
+      "sha256": "9ec8d84b890b29d0975a086b90b224b26d8d641730fb3322e714e2ad17358d1b"
     },
     "task_validity_cards": {
       "exists": true,
@@ -130,7 +130,7 @@
         "decision_scope": "experiment_recipe",
         "emits_structured_decision_audit": false
       },
-      "observed_recipe_encoding": null,
+      "observed_recipe_encoding": "task_specific_unit_hypercube",
       "required_capabilities": {},
       "required_recipe_encoding": null,
       "requires_online_model": false
@@ -383,8 +383,8 @@
     },
     "structured_safe_gp_ei": {
       "blockers": [
-        "legacy runs used an inactive 0.65 threshold",
-        "must consume the frozen task-level operational-risk policy"
+        "legacy runs used an inactive 0.65 threshold and remain diagnostic only",
+        "no retained formal rerun under the now-bound task-level operational-risk policy"
       ],
       "current_eligibility": "candidate",
       "family": "constrained_optimization",

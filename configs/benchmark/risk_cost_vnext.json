@@ -7,6 +7,14 @@
   "risk_aggregation": "max_operation_risk_per_experiment",
   "process_cost_aggregation": "terminal_total_cost_minus_measurement_cost",
   "measurement_cost_aggregation": "sum_operation_measurement_cost",
+  "runner_binding": {
+    "mode": "vnext_risk_cost",
+    "legacy_default_unchanged": true,
+    "binds_environment_constraint_flags": true,
+    "binds_public_agent_context": true,
+    "binds_trajectory_safety_limit": true,
+    "policy_hash_required": true
+  },
   "calibration": {
     "methods": [
       "random",
@@ -89,7 +97,6 @@
     }
   },
   "remaining_release_gates": [
-    "expose the frozen vNext risk policy to agents without changing v0.4 defaults",
     "rerun all methods after they receive the same task-specific risk policy",
     "add adaptive measurement policies before claiming measurement efficiency",
     "validate operational risk budgets against dedicated physical hazard envelopes",

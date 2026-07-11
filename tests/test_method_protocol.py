@@ -65,6 +65,9 @@ def test_method_protocol_report_exposes_current_cross_family_gaps() -> None:
     assert report["methods"]["structured_gp_ucb"]["implementation_contract_ready"] is True
     assert report["methods"]["structured_rf_ei"]["implementation_contract_ready"] is True
     assert report["methods"]["structured_gp_ei"]["implementation_contract_ready"] is True
+    safe_blockers = report["methods"]["structured_safe_gp_ei"]["blockers"]
+    assert any("now-bound" in blocker for blocker in safe_blockers)
+    assert not any("must consume" in blocker for blocker in safe_blockers)
     assert report["methods"]["llm_replay"]["formal_role"] == "excluded"
     assert len(report["interaction_failures"]) == 7
     assert set(report["evidence"]) == {

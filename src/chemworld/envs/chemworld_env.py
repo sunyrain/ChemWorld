@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from math import isfinite
 from typing import Any
 
 import gymnasium as gym
@@ -63,6 +64,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         task_id: str | None = None,
         budget_override: int | None = None,
         episode_mode_override: str | None = None,
+        safety_limit_override: float | None = None,
         world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
         debug_truth: bool = False,
         render_mode: str | None = None,
@@ -82,6 +84,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             raise ValueError("budget must be positive")
         if episode_mode_override not in {None, "single_experiment", "campaign"}:
             raise ValueError("episode_mode_override must be single_experiment, campaign, or None")
+        if safety_limit_override is not None and (
+            not isfinite(float(safety_limit_override))
+            or not 0.0 < float(safety_limit_override) <= 1.0
+        ):
+            raise ValueError("safety_limit_override must be finite and in (0, 1]")
 
         self.world_split = world_split
         self.budget = budget
@@ -117,6 +124,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             else "official"
         )
         self.safety_limit = self.task_spec.safety_limit if self.task_spec is not None else 0.65
+        if safety_limit_override is not None:
+            self.safety_limit = float(safety_limit_override)
         self.scoring_contract = TaskScoringContract.from_success_metrics(
             objective=objective,
             success_metrics=(
