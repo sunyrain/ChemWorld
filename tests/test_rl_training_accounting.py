@@ -43,6 +43,35 @@ def test_manifest_records_actual_ppo_rollout_steps_and_periodic_checkpoint(
     assert all(len(item["sha256"]) == 64 for item in artifacts)
 
 
+def test_sac_periodic_manifest_distinguishes_model_and_replay_buffer(
+    tmp_path: Path,
+) -> None:
+    pytest.importorskip("stable_baselines3")
+    manifest = train_sb3_baseline(
+        algorithm="sac",
+        task_id="flow-reaction-optimization",
+        allocation=_allocation(),
+        total_timesteps=2,
+        model_seed=72,
+        output_dir=tmp_path,
+        algorithm_kwargs={
+            "buffer_size": 10,
+            "learning_starts": 1,
+            "batch_size": 1,
+            "train_freq": 1,
+            "gradient_steps": 1,
+        },
+        operation_budget=2,
+        checkpoint_interval_steps=2,
+        save_replay_buffer=True,
+    )
+    artifact_types = {
+        Path(item["path"]).suffix: item["artifact_type"]
+        for item in manifest["periodic_checkpoint_artifacts"]
+    }
+    assert artifact_types == {".zip": "checkpoint", ".pkl": "replay_buffer"}
+
+
 def test_100k_protocol_requires_exact_steps_checkpoints_and_no_bench() -> None:
     protocol = load_100k_protocol()
     assert protocol["algorithm"] == "sac"

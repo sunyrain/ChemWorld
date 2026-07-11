@@ -15,6 +15,7 @@ RL_PROTOCOL = ROOT / "configs/benchmark/rl_baselines_vnext.json"
 FREEZE_PROTOCOL = ROOT / "configs/benchmark/confirmatory_freeze_vnext.json"
 OUTPUT = ROOT / "workstreams/benchmark_v1/reports/rl-baseline-controls.json"
 DEVELOPMENT_REPORT = ROOT / "workstreams/benchmark_v1/reports/rl-interaction-development.json"
+HUNDRED_K_REPORT = ROOT / "workstreams/benchmark_v1/reports/rl-100k-development.json"
 
 
 def build_report() -> dict[str, Any]:
@@ -135,11 +136,48 @@ def build_report() -> dict[str, Any]:
             "all_algorithms_eligible": development.get("all_algorithms_eligible", False),
             "passed": all(development_checks.values()),
         }
+    hundred_k_evidence: dict[str, Any] | None = None
+    if HUNDRED_K_REPORT.is_file():
+        hundred_k = load_rl_protocol(HUNDRED_K_REPORT)
+        manifest = hundred_k.get("training_manifest", {})
+        hundred_k_checks = {
+            "schema": hundred_k.get("schema_version")
+            == "chemworld-rl-100k-development-report-0.1",
+            "nonclaiming": hundred_k.get("benchmark_claim_allowed") is False,
+            "source_commit_bound": isinstance(hundred_k.get("evaluated_source_commit"), str)
+            and len(hundred_k["evaluated_source_commit"]) == 40,
+            "exact_100k_steps": manifest.get("training_environment_step_count") == 100_000
+            and manifest.get("requested_training_environment_step_count") == 100_000
+            and manifest.get("step_budget_exact") is True,
+            "all_development_gates_pass": all(
+                hundred_k.get("evidence_gate", {}).values()
+            ),
+            "eligible_for_multiseed_development": hundred_k.get(
+                "eligible_for_multiseed_development"
+            )
+            is True,
+            "formal_training_still_open": hundred_k.get("formal_training_complete")
+            is False,
+            "formal_bench_still_open": hundred_k.get(
+                "formal_bench_evaluation_complete"
+            )
+            is False,
+        }
+        hundred_k_evidence = {
+            "report_path": str(HUNDRED_K_REPORT.relative_to(ROOT)),
+            "checks": hundred_k_checks,
+            "learning_curve_checkpoint_count": len(
+                hundred_k.get("learning_curve_dev", [])
+            ),
+            "passed": all(hundred_k_checks.values()),
+        }
     return {
         "schema_version": "chemworld-rl-baseline-audit-0.1",
         "protocol_id": rl_protocol["protocol_id"],
         "status": (
-            "controls_ready_development_completed_formal_training_missing"
+            "controls_ready_100k_development_passed_formal_training_missing"
+            if controls_ready and hundred_k_evidence is not None
+            else "controls_ready_development_completed_formal_training_missing"
             if controls_ready and development_evidence is not None
             else "controls_ready_training_missing"
             if controls_ready
@@ -152,6 +190,7 @@ def build_report() -> dict[str, Any]:
         "publication_ready": False,
         "checks": checks,
         "development_evidence": development_evidence,
+        "hundred_k_development_evidence": hundred_k_evidence,
         "task_probes": task_probes,
         "remaining_release_gates": rl_protocol["formal_readiness_requirements"],
     }

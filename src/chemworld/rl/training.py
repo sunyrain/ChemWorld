@@ -128,7 +128,7 @@ def train_sb3_baseline(
             "size_bytes": path.stat().st_size,
             "sha256": _sha256(path),
             "artifact_type": (
-                "replay_buffer" if path.name.endswith("replay_buffer.pkl") else "checkpoint"
+                "replay_buffer" if "_replay_buffer_" in path.name else "checkpoint"
             ),
         }
         for path in sorted(periodic_dir.glob("*"))
