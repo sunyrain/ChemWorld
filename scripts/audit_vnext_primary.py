@@ -27,9 +27,9 @@ from chemworld.eval.result_artifacts import (  # noqa: E402
     validate_verified_evaluation_result,
 )
 
-AUDIT_SCHEMA_VERSION = "chemworld-vnext-primary-evidence-0.1"
+AUDIT_SCHEMA_VERSION = "chemworld-vnext-primary-evidence-0.2"
 EXPECTED_RESULT_SCHEMA_VERSION = "chemworld-evaluation-result-0.3"
-EXPECTED_RUN_SCHEMA_VERSION = "chemworld-vnext-primary-run-0.1"
+EXPECTED_RUN_SCHEMA_VERSION = "chemworld-vnext-primary-run-0.2"
 
 
 def audit_primary_run(
@@ -238,11 +238,13 @@ def _build_summary(
         }
         for task_id, methods in cells.items()
     }
-    objective_rule_passed = bool(recorded_statistics["all_task_joint_rule_passed"])
+    objective_rule_passed = bool(recorded_statistics["all_task_objective_rule_passed"])
+    constraint_rule_passed = bool(recorded_statistics["all_task_constraint_rule_passed"])
+    complete_rule_passed = bool(recorded_statistics["all_task_joint_rule_passed"])
     return {
         "schema_version": AUDIT_SCHEMA_VERSION,
         "status": "audited",
-        "evidence_scope": "frozen_primary_classical_slice_only",
+        "evidence_scope": "fresh_cohort_constrained_primary_classical_slice",
         "source": {
             "run_schema_version": manifest["schema_version"],
             "run_generated_at": manifest["generated_at"],
@@ -269,9 +271,10 @@ def _build_summary(
             "paired_seed_count_per_task": 20,
             "task_decisions": recorded_statistics["task_decisions"],
             "all_task_objective_rule_passed": objective_rule_passed,
-            "safety_noninferiority_rule_prespecified": False,
-            "cost_noninferiority_rule_prespecified": False,
-            "complete_primary_rule_passed": False,
+            "all_task_constraint_rule_passed": constraint_rule_passed,
+            "safety_noninferiority_rule_prespecified": True,
+            "cost_noninferiority_rule_prespecified": True,
+            "complete_primary_rule_passed": complete_rule_passed,
             "cross_task_performance_score": None,
         },
         "diagnostics": {
@@ -284,15 +287,19 @@ def _build_summary(
         },
         "claim_boundary": {
             "objective_only_slice_supported": bool(replay and objective_rule_passed),
-            "primary_classical_slice_supported": False,
+            "constraint_complete_slice_supported": bool(replay and constraint_rule_passed),
+            "primary_classical_slice_supported": bool(replay and complete_rule_passed),
             "benchmark_claim_allowed": False,
             "publication_ready": False,
             "independent_reproduction_complete": False,
             "full_cross_family_matrix_complete": False,
-            "evaluation_design_issue_detected": True,
-            "required_protocol_upgrade": (
-                "Pre-register paired task-level safety and cost noninferiority margins, include "
-                "them in the joint decision rule, and collect a new untouched seed cohort."
+            "evaluation_design_issue_detected": False,
+            "candidate_constraint_failure_detected": bool(
+                objective_rule_passed and not constraint_rule_passed
+            ),
+            "required_method_remediation": (
+                "Develop risk-aware policies on train/dev worlds without tuning on this bench "
+                "cohort; any new confirmatory comparison requires another untouched cohort."
             ),
             "missing_families": [
                 "full_budget_ppo",
@@ -301,11 +308,10 @@ def _build_summary(
                 "live_llm_flash",
             ],
             "interpretation": (
-                "The frozen structured-GP versus random comparison passes its objective-only "
-                "rule, but the protocol omitted pre-specified safety and cost noninferiority "
-                "gates. Observed risk-budget exceedance rates are higher for the candidate in "
-                "three of four tasks, so this run is diagnostic and cannot support the complete "
-                "primary classical claim."
+                "The fresh-cohort structured-GP versus random comparison passes all four "
+                "objective rules and all cost noninferiority rules, but fails safety "
+                "noninferiority in three tasks. The complete constrained primary comparison "
+                "therefore fails and does not support a method-superiority claim."
             ),
         },
     }

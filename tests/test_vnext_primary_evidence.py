@@ -19,7 +19,7 @@ def test_expected_primary_matrix_is_exactly_core_four_by_two_by_twenty() -> None
         load_confirmatory_freeze()["task_roles"]["core"]
     )
     assert {method_id for _, method_id, _ in keys} == {"structured_gp_bo", "random"}
-    assert {seed for _, _, seed in keys} == set(range(20, 40))
+    assert {seed for _, _, seed in keys} == set(range(300, 320))
 
 
 def test_result_contract_rejects_unbound_risk_policy() -> None:
@@ -31,7 +31,7 @@ def test_result_contract_rejects_unbound_risk_policy() -> None:
     result = {
         "task_id": "partition-discovery",
         "baseline_agent": "random",
-        "seed": 20,
+        "seed": 300,
         "result_schema_version": "chemworld-evaluation-result-0.3",
         "verified": True,
         "evaluation_policy": "vnext_risk_cost",
@@ -58,7 +58,8 @@ def test_result_contract_rejects_unbound_risk_policy() -> None:
 
 def test_summary_preserves_nonclaiming_boundary() -> None:
     decision = {
-        "joint_rule_passed": True,
+        "objective_rule_passed": True,
+        "complete_joint_rule_passed": False,
         "primary_metric": "product_in_organic",
         "sesoi": 0.02,
     }
@@ -79,10 +80,10 @@ def test_summary_preserves_nonclaiming_boundary() -> None:
     }
     summary = _build_summary(
         manifest={
-            "schema_version": "chemworld-vnext-primary-run-0.1",
+            "schema_version": "chemworld-vnext-primary-run-0.2",
             "generated_at": "2026-07-11T00:00:00+00:00",
             "evaluated_source_commit": "a" * 40,
-            "confirmatory_protocol_id": "chemworld-vnext-confirmatory-freeze-0.2",
+            "confirmatory_protocol_id": "chemworld-vnext-confirmatory-freeze-0.3",
             "confirmatory_protocol_sha256": "b" * 64,
             "primary_results_sha256": "c" * 64,
             "primary_statistics_sha256": "d" * 64,
@@ -90,12 +91,15 @@ def test_summary_preserves_nonclaiming_boundary() -> None:
         results=[result, {**result, "baseline_agent": "structured_gp_bo"}],
         recorded_statistics={
             "task_decisions": {"partition-discovery": decision},
-            "all_task_joint_rule_passed": True,
+            "all_task_objective_rule_passed": True,
+            "all_task_constraint_rule_passed": False,
+            "all_task_joint_rule_passed": False,
         },
         replay=True,
         distinct_trajectory_count=2,
     )
     assert summary["claim_boundary"]["objective_only_slice_supported"] is True
+    assert summary["claim_boundary"]["constraint_complete_slice_supported"] is False
     assert summary["claim_boundary"]["primary_classical_slice_supported"] is False
     assert summary["comparison"]["complete_primary_rule_passed"] is False
     assert summary["claim_boundary"]["benchmark_claim_allowed"] is False
