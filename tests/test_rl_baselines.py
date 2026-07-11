@@ -41,10 +41,14 @@ def test_continuous_action_adapter_has_stationary_fixed_semantics() -> None:
         masked = env.action(impossible)
         assert masked["operation"] != env.operation_types.index("cool_crystallize")
         low = env.action(np.full(49, -1.0, dtype=np.float32))
-        assert float(low["potential_V"][0]) == pytest.approx(-3.0)
+        assert float(low["potential_V"]) == pytest.approx(-3.0)
         high_parameters = np.ones(49, dtype=np.float32)
         high = env.action(high_parameters)
-        assert float(high["potential_V"][0]) == pytest.approx(3.0)
+        assert float(high["potential_V"]) == pytest.approx(3.0)
+        assert env.action_contract()["schema_version"] == (
+            "chemworld-continuous-event-action-0.3"
+        )
+        assert env.action_contract()["execution_numeric_policy"]
         with pytest.raises(ValueError, match="finite vector"):
             env.action(np.full(49, np.nan, dtype=np.float32))
     finally:

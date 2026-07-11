@@ -9,6 +9,7 @@ import numpy as np
 from gymnasium.utils import RecordConstructorArgs
 
 from chemworld.agent_interface import observation_view, rl_observation_spec, rl_observation_view
+from chemworld.data.logging import to_builtin
 from chemworld.world.operations import OPERATION_TYPES
 from chemworld.world.scoring import safety_cost_from_flags
 
@@ -83,7 +84,7 @@ def decode_continuous_event_action(
             payload[key] = min(int(coordinate * space.n), space.n - 1)
         elif isinstance(space, gym.spaces.Box):
             value = space.low + coordinate * (space.high - space.low)
-            payload[key] = np.asarray(value, dtype=space.dtype)
+            payload[key] = to_builtin(np.asarray(value, dtype=space.dtype))
         else:
             raise TypeError(f"unsupported event action component: {key}={type(space).__name__}")
     return payload
@@ -354,7 +355,7 @@ class ContinuousEventActionWrapper(gym.ActionWrapper[Any, Any, Any], RecordConst
 
     def action_contract(self) -> dict[str, Any]:
         return {
-            "schema_version": "chemworld-continuous-event-action-0.2",
+            "schema_version": "chemworld-continuous-event-action-0.3",
             "action_keys": list(self.action_keys),
             "operation_types": list(self.operation_types),
             "operation_logit_count": self.operation_logit_count,
@@ -368,6 +369,9 @@ class ContinuousEventActionWrapper(gym.ActionWrapper[Any, Any, Any], RecordConst
             "parameter_discrete_mapping": "fixed global index; floor(unit_coordinate * n)",
             "empty_operation_mask_policy": "retain global argmax and record the resulting failure",
             "invalid_payload_policy": "retain environment precondition or domain failure",
+            "execution_numeric_policy": (
+                "normalize numpy values to their JSON trajectory representation before execution"
+            ),
         }
 
     def action(self, action: Any) -> dict[str, Any]:

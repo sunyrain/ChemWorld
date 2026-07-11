@@ -66,7 +66,7 @@ def build_report() -> dict[str, Any]:
         finally:
             env.close()
     checks = {
-        "schema": rl_protocol.get("schema_version") == "chemworld-rl-baseline-protocol-0.1",
+        "schema": rl_protocol.get("schema_version") == "chemworld-rl-baseline-protocol-0.2",
         "candidate_is_non_claiming": rl_protocol.get("benchmark_claim_allowed") is False,
         "ppo_and_sac_declared": set(rl_protocol["algorithms"]) == {"ppo", "sac"},
         "shared_action_contract": set(rl_protocol["action_contract"]["shared_by_algorithms"])
@@ -78,6 +78,13 @@ def build_report() -> dict[str, Any]:
         ]
         is True,
         "action_key_order_frozen": observed_action_keys == rl_protocol["action_contract"]["keys"],
+        "json_stable_action_execution": rl_protocol["action_contract"].get(
+            "execution_numeric_policy"
+        )
+        == (
+            "normalize numpy values to their JSON trajectory representation before "
+            "environment execution"
+        ),
         "train_dev_bench_seed_disjoint": not (
             seed_sets["train"] & seed_sets["dev"]
             or seed_sets["train"] & seed_sets["bench"]

@@ -1,6 +1,7 @@
 {
-  "schema_version": "chemworld-rl-baseline-protocol-0.1",
-  "protocol_id": "chemworld-vnext-rl-baselines-candidate-0.1",
+  "schema_version": "chemworld-rl-baseline-protocol-0.2",
+  "protocol_id": "chemworld-vnext-rl-baselines-candidate-0.2",
+  "supersedes_protocol_id": "chemworld-vnext-rl-baselines-candidate-0.1",
   "benchmark_claim_allowed": false,
   "publication_ready": false,
   "source_freeze_protocol": "configs/benchmark/confirmatory_freeze_vnext.json",
@@ -47,7 +48,7 @@
   },
   "action_contract": {
     "space": "Box(-1, 1, 49)",
-    "schema_version": "chemworld-continuous-event-action-0.2",
+    "schema_version": "chemworld-continuous-event-action-0.3",
     "layout": "28 fixed global operation logits followed by 21 stationary parameter coordinates",
     "keys": [
       "amount_mol",
@@ -76,7 +77,8 @@
     "fixed_global_operation_semantics": true,
     "public_affordance_masked_decoding": true,
     "invalid_operation_policy": "mask impossible operation logits using public affordances; retain payload and numerical-domain failures",
-    "shared_by_algorithms": ["ppo", "sac"]
+    "shared_by_algorithms": ["ppo", "sac"],
+    "execution_numeric_policy": "normalize numpy values to their JSON trajectory representation before environment execution"
   },
   "observation_contract": {
     "nan_safe_values_and_masks": true,
