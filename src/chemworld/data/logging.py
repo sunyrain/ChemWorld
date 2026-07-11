@@ -77,6 +77,7 @@ class TrajectoryLogger:
         explanation: dict[str, Any] | None = None,
         agent_view: dict[str, Any] | None = None,
         agent_trace: list[dict[str, Any]] | None = None,
+        method_resources: dict[str, Any] | None = None,
     ) -> None:
         payload = {
             "schema_version": TRAJECTORY_SCHEMA_VERSION,
@@ -163,6 +164,7 @@ class TrajectoryLogger:
             "agent_metadata": to_builtin(agent_metadata),
             "agent_view": to_builtin(agent_view or {}),
             "agent_trace": to_builtin(agent_trace or []),
+            "method_resources": to_builtin(method_resources or {}),
             "timestamp": datetime.now(UTC).isoformat(),
             "explanation": explanation or {},
         }

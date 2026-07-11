@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 
 import gymnasium as gym
@@ -36,6 +37,12 @@ from chemworld.agents.interaction import (
 )
 from chemworld.data.logging import TrajectoryLogger, observation_to_json
 from chemworld.data.submission import git_commit
+from chemworld.eval.method_protocol import (
+    MethodResourceLedger,
+    MethodResourceLimits,
+    evaluation_resource_limits,
+    load_method_protocol,
+)
 
 AGENT_REGISTRY: dict[str, Callable[[], Agent]] = {
     "random": RandomAgent,
@@ -82,6 +89,7 @@ def run_agent(
     budget_override: int | None = None,
     episode_mode_override: str | None = None,
     step_callback: Callable[[HistoryRecord, list[dict[str, Any]]], None] | None = None,
+    method_resource_limits: dict[str, Any] | None = None,
 ) -> list[HistoryRecord]:
     """Run one benchmark episode and optionally write a JSONL trajectory."""
 
@@ -111,6 +119,26 @@ def run_agent(
     agent.reset(task_info, seed)
     agent_metadata = agent.manifest()
     agent_metadata["git_commit"] = git_commit()
+    requires_online_model = bool(agent_metadata.get("requires_online_model", False))
+    resource_limits = (
+        MethodResourceLimits.from_payload(
+            method_resource_limits,
+            operation_limit=effective_budget,
+        )
+        if method_resource_limits is not None
+        else evaluation_resource_limits(
+            load_method_protocol(),
+            operation_limit=effective_budget,
+            requires_online_model=requires_online_model,
+        )
+    )
+    resource_ledger = MethodResourceLedger(
+        limits=resource_limits,
+        requires_online_model=requires_online_model,
+    )
+    agent_metadata["method_resource_contract_version"] = resource_ledger.snapshot()[
+        "schema_version"
+    ]
 
     history: list[HistoryRecord] = []
     current_observation = initial_obs
@@ -129,7 +157,15 @@ def run_agent(
                 previous_event_type=previous_event_type,
             )
             context_act = getattr(agent, "act_with_context", None)
+            decision_started = perf_counter()
             action = context_act(decision_context) if callable(context_act) else agent.act(history)
+            decision_elapsed_s = perf_counter() - decision_started
+            usage_factory = getattr(agent, "method_resource_usage", None)
+            agent_usage = usage_factory() if callable(usage_factory) else {}
+            resource_ledger.record_decision(
+                elapsed_s=decision_elapsed_s,
+                agent_usage=agent_usage,
+            )
             decision_audit_factory = getattr(agent, "decision_audit", None)
             decision_audit = DecisionAuditRecord.from_payload(
                 decision_audit_factory() if callable(decision_audit_factory) else None,
@@ -137,7 +173,9 @@ def run_agent(
             )
             observation, reward, terminated, truncated, info = env.step(action)
             obs_json = observation_to_json(observation)
+            update_started = perf_counter()
             agent.update(action, obs_json, float(reward), info)
+            update_elapsed_s = perf_counter() - update_started
             public_view = agent_view_bundle(env, observation, info)
             final_assay_ended = bool(
                 terminated
@@ -150,6 +188,11 @@ def run_agent(
                 event_type = "measurement_result"
             else:
                 event_type = "operation_result"
+            resource_ledger.record_outcome(
+                experiment_ended=event_type == "experiment_end",
+                update_elapsed_s=update_elapsed_s,
+            )
+            method_resources = resource_ledger.snapshot()
             interaction_evidence = {
                 "interaction_contract_version": INTERACTION_CONTRACT_VERSION,
                 "decision_context": decision_context.to_dict(),
@@ -167,6 +210,7 @@ def run_agent(
                     ),
                     "constraint_flags": info.get("constraint_flags", {}),
                 },
+                "method_resources": method_resources,
             }
             record = HistoryRecord(
                 step=step,
@@ -178,6 +222,7 @@ def run_agent(
                 decision_context=decision_context.to_dict(),
                 decision_audit=decision_audit.to_dict(),
                 event_type=event_type,
+                method_resources=method_resources,
             )
             history.append(record)
             agent_trace_factory = getattr(agent, "agent_trace", None)
@@ -196,6 +241,7 @@ def run_agent(
                     explanation=interaction_evidence,
                     agent_view=public_view,
                     agent_trace=agent_trace,
+                    method_resources=method_resources,
                 )
             if step_callback is not None:
                 step_callback(record, agent_trace)
