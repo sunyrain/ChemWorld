@@ -1,0 +1,388 @@
+{
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "calibration_holdout_disjoint": true,
+    "candidate_is_non_claiming": true,
+    "cost_decomposition_nonnegative": true,
+    "experiment_matrix_complete": true,
+    "formal_result_count": true,
+    "formal_scope": true,
+    "process_cost_activation_nonzero_nonsaturated": true,
+    "risk_activation_nonzero_nonsaturated": true,
+    "risk_tradeoff_scope_empirically_separated": true,
+    "schema": true,
+    "task_scope": true,
+    "thresholds_reproduce": true
+  },
+  "controls_ready": true,
+  "formal_method_comparison_ready": false,
+  "limitations": [
+    "The calibrated limit is a benchmark operational-risk budget, not a real-world safety threshold.",
+    "The retained methods received the legacy 0.65 limit, so retrospective activation cannot rank safe methods.",
+    "Classic recipes use fixed measurement schedules within each task, so measurement efficiency is not identified.",
+    "Only flow, crystallization, and distillation exhibit a positive performance-risk tradeoff on the holdout slice."
+  ],
+  "measurement_policy_identifiable": false,
+  "protocol_id": "chemworld-vnext-risk-cost-candidate-0.1",
+  "publication_ready": false,
+  "remaining_release_gates": [
+    "expose the frozen vNext risk policy to agents without changing v0.4 defaults",
+    "rerun all methods after they receive the same task-specific risk policy",
+    "add adaptive measurement policies before claiming measurement efficiency",
+    "validate operational risk budgets against dedicated physical hazard envelopes",
+    "bind risk and cost summaries to replay and method protocol hashes"
+  ],
+  "risk_process_signal_identifiable": true,
+  "schema_version": "chemworld-risk-cost-signal-audit-0.1",
+  "status": "risk_process_controls_ready_method_rerun_pending",
+  "tasks": {
+    "electrochemical-conversion": {
+      "calibration_experiment_count": 400,
+      "classic_measurement_policy_varies": false,
+      "experiment_count": 4000,
+      "holdout_experiment_count": 3000,
+      "holdout_process_cost_activation_rate": 0.091,
+      "holdout_risk_activation_rate": 0.19866666666666666,
+      "holdout_score_risk_spearman": -0.4076815959099584,
+      "measurement_cost_unique_count": 1,
+      "method_reports": {
+        "gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.13425199606145422,
+          "mean_score": 0.508483612985487,
+          "process_cost_exceedance_rate": 0.095,
+          "risk_budget_exceedance_rate": 0.21
+        },
+        "lhs": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.13961958046381673,
+          "mean_score": 0.48740332816510584,
+          "process_cost_exceedance_rate": 0.09,
+          "risk_budget_exceedance_rate": 0.20666666666666667
+        },
+        "random": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.1399063354668518,
+          "mean_score": 0.4853354806061024,
+          "process_cost_exceedance_rate": 0.08333333333333333,
+          "risk_budget_exceedance_rate": 0.19
+        },
+        "structured_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.13436653561890124,
+          "mean_score": 0.508585964284913,
+          "process_cost_exceedance_rate": 0.09333333333333334,
+          "risk_budget_exceedance_rate": 0.2
+        },
+        "structured_safe_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.13528098182131848,
+          "mean_score": 0.4956907682999137,
+          "process_cost_exceedance_rate": 0.09333333333333334,
+          "risk_budget_exceedance_rate": 0.18666666666666668
+        }
+      },
+      "policy": {
+        "process_cost_limit": 0.13271164238452915,
+        "risk_limit": 0.19632664322853094,
+        "risk_semantics": "benchmark_operational_risk_budget_not_real_world_safety"
+      },
+      "process_cost_limit_matches_calibration": true,
+      "recomputed_process_cost_limit": 0.13271164238452912,
+      "recomputed_risk_limit": 0.19632664322853094,
+      "risk_limit_matches_calibration": true,
+      "risk_tradeoff_task": false,
+      "tradeoff_direction_matches_scope": true
+    },
+    "equilibrium-characterization": {
+      "calibration_experiment_count": 400,
+      "classic_measurement_policy_varies": false,
+      "experiment_count": 4000,
+      "holdout_experiment_count": 3000,
+      "holdout_process_cost_activation_rate": 0.08933333333333333,
+      "holdout_risk_activation_rate": 0.19566666666666666,
+      "holdout_score_risk_spearman": -0.5992702366890404,
+      "measurement_cost_unique_count": 1,
+      "method_reports": {
+        "gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.11258254226918021,
+          "mean_score": 0.24303596238853112,
+          "process_cost_exceedance_rate": 0.09833333333333333,
+          "risk_budget_exceedance_rate": 0.19666666666666666
+        },
+        "lhs": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.11085806053131819,
+          "mean_score": 0.24236197535498089,
+          "process_cost_exceedance_rate": 0.08333333333333333,
+          "risk_budget_exceedance_rate": 0.185
+        },
+        "random": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.1128751972441872,
+          "mean_score": 0.24209031487422986,
+          "process_cost_exceedance_rate": 0.085,
+          "risk_budget_exceedance_rate": 0.2
+        },
+        "structured_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.11258254226918021,
+          "mean_score": 0.24303596238853112,
+          "process_cost_exceedance_rate": 0.09833333333333333,
+          "risk_budget_exceedance_rate": 0.19666666666666666
+        },
+        "structured_safe_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.11124013346930345,
+          "mean_score": 0.24392655201293995,
+          "process_cost_exceedance_rate": 0.08166666666666667,
+          "risk_budget_exceedance_rate": 0.2
+        }
+      },
+      "policy": {
+        "process_cost_limit": 0.09409476006031041,
+        "risk_limit": 0.1631310492753983,
+        "risk_semantics": "benchmark_operational_risk_budget_not_real_world_safety"
+      },
+      "process_cost_limit_matches_calibration": true,
+      "recomputed_process_cost_limit": 0.0940947600603104,
+      "recomputed_risk_limit": 0.1631310492753983,
+      "risk_limit_matches_calibration": true,
+      "risk_tradeoff_task": false,
+      "tradeoff_direction_matches_scope": true
+    },
+    "flow-reaction-optimization": {
+      "calibration_experiment_count": 400,
+      "classic_measurement_policy_varies": false,
+      "experiment_count": 4000,
+      "holdout_experiment_count": 3000,
+      "holdout_process_cost_activation_rate": 0.09666666666666666,
+      "holdout_risk_activation_rate": 0.2876666666666667,
+      "holdout_score_risk_spearman": 0.4344550472566549,
+      "measurement_cost_unique_count": 1,
+      "method_reports": {
+        "gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.2855003589205444,
+          "mean_score": 0.07468079540550908,
+          "process_cost_exceedance_rate": 0.09,
+          "risk_budget_exceedance_rate": 0.37666666666666665
+        },
+        "lhs": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.22220245072618128,
+          "mean_score": 0.031991126689073966,
+          "process_cost_exceedance_rate": 0.115,
+          "risk_budget_exceedance_rate": 0.19
+        },
+        "random": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.22508679177612068,
+          "mean_score": 0.03023486937047335,
+          "process_cost_exceedance_rate": 0.12833333333333333,
+          "risk_budget_exceedance_rate": 0.19833333333333333
+        },
+        "structured_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.281102504953742,
+          "mean_score": 0.06669484872512346,
+          "process_cost_exceedance_rate": 0.07666666666666666,
+          "risk_budget_exceedance_rate": 0.355
+        },
+        "structured_safe_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.2745128517473737,
+          "mean_score": 0.07000017893870056,
+          "process_cost_exceedance_rate": 0.07333333333333333,
+          "risk_budget_exceedance_rate": 0.31833333333333336
+        }
+      },
+      "policy": {
+        "process_cost_limit": 0.5389897429943085,
+        "risk_limit": 0.32665647864341746,
+        "risk_semantics": "benchmark_operational_risk_budget_not_real_world_safety"
+      },
+      "process_cost_limit_matches_calibration": true,
+      "recomputed_process_cost_limit": 0.5389897429943085,
+      "recomputed_risk_limit": 0.32665647864341746,
+      "risk_limit_matches_calibration": true,
+      "risk_tradeoff_task": true,
+      "tradeoff_direction_matches_scope": true
+    },
+    "partition-discovery": {
+      "calibration_experiment_count": 400,
+      "classic_measurement_policy_varies": false,
+      "experiment_count": 4000,
+      "holdout_experiment_count": 3000,
+      "holdout_process_cost_activation_rate": 0.14833333333333334,
+      "holdout_risk_activation_rate": 0.149,
+      "holdout_score_risk_spearman": -0.4916298489746172,
+      "measurement_cost_unique_count": 1,
+      "method_reports": {
+        "gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.15252433945735297,
+          "mean_score": 0.6303471567505128,
+          "process_cost_exceedance_rate": 0.19333333333333333,
+          "risk_budget_exceedance_rate": 0.08833333333333333
+        },
+        "lhs": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.17375690954426926,
+          "mean_score": 0.5559724474488514,
+          "process_cost_exceedance_rate": 0.065,
+          "risk_budget_exceedance_rate": 0.225
+        },
+        "random": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.17480042635152737,
+          "mean_score": 0.554998248768584,
+          "process_cost_exceedance_rate": 0.08833333333333333,
+          "risk_budget_exceedance_rate": 0.21666666666666667
+        },
+        "structured_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.1570167056346933,
+          "mean_score": 0.6208767670302415,
+          "process_cost_exceedance_rate": 0.18833333333333332,
+          "risk_budget_exceedance_rate": 0.11833333333333333
+        },
+        "structured_safe_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.1555235775311788,
+          "mean_score": 0.6250660511878796,
+          "process_cost_exceedance_rate": 0.20666666666666667,
+          "risk_budget_exceedance_rate": 0.09666666666666666
+        }
+      },
+      "policy": {
+        "process_cost_limit": 0.12955081641674043,
+        "risk_limit": 0.21225822269916542,
+        "risk_semantics": "benchmark_operational_risk_budget_not_real_world_safety"
+      },
+      "process_cost_limit_matches_calibration": true,
+      "recomputed_process_cost_limit": 0.1295508164167404,
+      "recomputed_risk_limit": 0.21225822269916542,
+      "risk_limit_matches_calibration": true,
+      "risk_tradeoff_task": false,
+      "tradeoff_direction_matches_scope": true
+    },
+    "reaction-to-crystallization": {
+      "calibration_experiment_count": 400,
+      "classic_measurement_policy_varies": false,
+      "experiment_count": 4000,
+      "holdout_experiment_count": 3000,
+      "holdout_process_cost_activation_rate": 0.08466666666666667,
+      "holdout_risk_activation_rate": 0.37966666666666665,
+      "holdout_score_risk_spearman": 0.40608451765413744,
+      "measurement_cost_unique_count": 1,
+      "method_reports": {
+        "gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.24214215857287247,
+          "mean_score": 0.5927406315960083,
+          "process_cost_exceedance_rate": 0.06833333333333333,
+          "risk_budget_exceedance_rate": 0.49166666666666664
+        },
+        "lhs": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.19159727349256475,
+          "mean_score": 0.4884639577652818,
+          "process_cost_exceedance_rate": 0.09666666666666666,
+          "risk_budget_exceedance_rate": 0.19333333333333333
+        },
+        "random": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.1972313856271406,
+          "mean_score": 0.49400682586012046,
+          "process_cost_exceedance_rate": 0.12833333333333333,
+          "risk_budget_exceedance_rate": 0.225
+        },
+        "structured_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.2401385338107745,
+          "mean_score": 0.5973222116615423,
+          "process_cost_exceedance_rate": 0.06166666666666667,
+          "risk_budget_exceedance_rate": 0.49333333333333335
+        },
+        "structured_safe_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.24058819792543848,
+          "mean_score": 0.5912261162542964,
+          "process_cost_exceedance_rate": 0.06833333333333333,
+          "risk_budget_exceedance_rate": 0.495
+        }
+      },
+      "policy": {
+        "process_cost_limit": 0.6453835582733157,
+        "risk_limit": 0.257127845287323,
+        "risk_semantics": "benchmark_operational_risk_budget_not_real_world_safety"
+      },
+      "process_cost_limit_matches_calibration": true,
+      "recomputed_process_cost_limit": 0.6453835582733156,
+      "recomputed_risk_limit": 0.257127845287323,
+      "risk_limit_matches_calibration": true,
+      "risk_tradeoff_task": true,
+      "tradeoff_direction_matches_scope": true
+    },
+    "reaction-to-distillation": {
+      "calibration_experiment_count": 400,
+      "classic_measurement_policy_varies": false,
+      "experiment_count": 4000,
+      "holdout_experiment_count": 3000,
+      "holdout_process_cost_activation_rate": 0.10133333333333333,
+      "holdout_risk_activation_rate": 0.43333333333333335,
+      "holdout_score_risk_spearman": 0.6471927738851104,
+      "measurement_cost_unique_count": 1,
+      "method_reports": {
+        "gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.41310209364940725,
+          "mean_score": 0.3012885817131562,
+          "process_cost_exceedance_rate": 0.135,
+          "risk_budget_exceedance_rate": 0.6
+        },
+        "lhs": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.3347808815042178,
+          "mean_score": 0.20629545561498436,
+          "process_cost_exceedance_rate": 0.06833333333333333,
+          "risk_budget_exceedance_rate": 0.20166666666666666
+        },
+        "random": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.33416276693344116,
+          "mean_score": 0.2046795613258546,
+          "process_cost_exceedance_rate": 0.08333333333333333,
+          "risk_budget_exceedance_rate": 0.22
+        },
+        "structured_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.3997563185915351,
+          "mean_score": 0.3017755898086308,
+          "process_cost_exceedance_rate": 0.11166666666666666,
+          "risk_budget_exceedance_rate": 0.5483333333333333
+        },
+        "structured_safe_gp_bo": {
+          "experiment_count": 600,
+          "mean_max_risk": 0.41007939135034877,
+          "mean_score": 0.314252030433232,
+          "process_cost_exceedance_rate": 0.10833333333333334,
+          "risk_budget_exceedance_rate": 0.5966666666666667
+        }
+      },
+      "policy": {
+        "process_cost_limit": 0.7245063233375549,
+        "risk_limit": 0.3852870047092439,
+        "risk_semantics": "benchmark_operational_risk_budget_not_real_world_safety"
+      },
+      "process_cost_limit_matches_calibration": true,
+      "recomputed_process_cost_limit": 0.7245063233375549,
+      "recomputed_risk_limit": 0.3852870047092439,
+      "risk_limit_matches_calibration": true,
+      "risk_tradeoff_task": true,
+      "tradeoff_direction_matches_scope": true
+    }
+  }
+}

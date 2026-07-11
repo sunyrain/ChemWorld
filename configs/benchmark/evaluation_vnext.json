@@ -1,7 +1,7 @@
 {
-  "schema_version": "chemworld-evaluation-protocol-0.1",
-  "protocol_id": "chemworld-vnext-layered-evaluation-candidate-0.1",
-  "evaluation_contract_version": "chemworld-layered-evaluation-0.1",
+  "schema_version": "chemworld-evaluation-protocol-0.2",
+  "protocol_id": "chemworld-vnext-layered-evaluation-candidate-0.2",
+  "evaluation_contract_version": "chemworld-layered-evaluation-0.2",
   "status": "candidate_controls_only",
   "benchmark_claim_allowed": false,
   "layers": [
@@ -24,12 +24,15 @@
     "primary_and_objective_source": "successful_final_assay_only",
     "online_reward_is_primary": false,
     "missing_primary": "fail",
-    "campaign_process_cost": "sum_terminal_experiment_costs",
+    "risk_aggregation": "max_operation_risk_per_experiment",
+    "risk_limit_semantics": "benchmark_operational_risk_budget_not_real_world_safety",
+    "campaign_total_cost": "sum_last_observed_total_cost_per_attempt",
+    "campaign_process_cost": "campaign_total_cost_minus_measurement_cost",
     "measurement_cost": "sum_per_operation_measurement_cost",
     "constraint_activation_reported_separately": true
   },
   "remaining_release_gates": [
-    "calibrate task safety thresholds so constraints activate without saturation",
+    "rerun all methods after exposing the calibrated task-specific risk policy",
     "validate primary-metric direction and sensitivity on frozen response surfaces",
     "freeze regret references and resource-normalized comparisons",
     "rerun every formal method under the layered evaluator",

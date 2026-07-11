@@ -53,9 +53,23 @@ def test_layered_evaluator_keeps_endpoints_shaping_constraints_and_cost_separate
     assert result["objective"]["best"] == pytest.approx(0.6)
     assert result["task_primary"]["terminal_values"] == pytest.approx([0.5, 0.7])
     assert result["online_shaping"]["eligible_as_primary_endpoint"] is False
-    assert result["constraints"]["unsafe_operation_count"] == 1
-    assert result["resources"]["campaign_process_cost"] == pytest.approx(0.5)
+    assert result["constraints"]["legacy_unsafe_operation_count"] == 1
+    assert result["constraints"]["experiment_max_risks"] == pytest.approx([0.2, 0.2])
+    assert result["resources"]["campaign_total_cost"] == pytest.approx(0.5)
+    assert result["resources"]["campaign_process_cost"] == pytest.approx(0.44)
     assert result["resources"]["measurement_cost"] == pytest.approx(0.06)
+
+
+def test_layered_evaluator_uses_peak_experiment_risk_for_constraint() -> None:
+    contract = TaskEvaluationContract.for_task("partition-discovery", risk_limit=0.3)
+    records = [
+        _record(score=None, primary=0.2, cost=0.1, reward=0.1, risk=0.4),
+        _record(score=0.5, primary=0.6, cost=0.2, reward=0.5, risk=0.1),
+    ]
+    result = evaluate_layered_records(records, contract=contract)
+    assert result["constraints"]["max_observed_safety_risk"] == pytest.approx(0.4)
+    assert result["constraints"]["risk_budget_exceedance_count"] == 1
+    assert result["constraints"]["constraint_activated"] is True
 
 
 def test_layered_evaluator_fails_on_missing_terminal_primary() -> None:
