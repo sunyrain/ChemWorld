@@ -5,6 +5,9 @@
     "candidate_is_non_claiming": true,
     "cost_examples_positive": true,
     "no_deprecated_model_alias": true,
+    "official_adapter_forbids_harness_assistance": true,
+    "official_adapter_is_operation_level": true,
+    "paired_spectral_ablation_is_frozen": true,
     "pricing_matches_frozen_protocol": true,
     "private_reasoning_excluded": true,
     "resource_accounting_complete_by_contract": true,
@@ -14,6 +17,52 @@
   },
   "controls_ready": true,
   "formal_run_matrix_complete": false,
+  "official_adapter_manifests": {
+    "live_llm_a": {
+      "agent_family": "LiveLLMAgent",
+      "agent_name": "live_llm",
+      "failure_policy": "retain_as_invalid_operation_without_harness_closeout",
+      "interaction_capabilities": {
+        "adapts_across_experiments": true,
+        "adapts_within_experiment": true,
+        "consumes_intermediate_observations": true,
+        "consumes_spectra": true,
+        "contract_version": "chemworld-agent-interaction-0.1",
+        "decision_scope": "operation",
+        "emits_structured_decision_audit": true
+      },
+      "private_reasoning_retained": false,
+      "prompt_contract_version": "chemworld-live-llm-operation-json-0.1",
+      "prompt_hash": "41e6560a66202650e3d3b08d02e09492f2e76e75a41e815e8b0c0e4103af0b73",
+      "provider_model": "deepseek-v4-pro",
+      "requires_online_model": true,
+      "role_id": "live_llm_a",
+      "seed": null,
+      "spectrum_disclosure": "assigned"
+    },
+    "live_llm_b": {
+      "agent_family": "LiveLLMAgent",
+      "agent_name": "live_llm",
+      "failure_policy": "retain_as_invalid_operation_without_harness_closeout",
+      "interaction_capabilities": {
+        "adapts_across_experiments": true,
+        "adapts_within_experiment": true,
+        "consumes_intermediate_observations": true,
+        "consumes_spectra": true,
+        "contract_version": "chemworld-agent-interaction-0.1",
+        "decision_scope": "operation",
+        "emits_structured_decision_audit": true
+      },
+      "private_reasoning_retained": false,
+      "prompt_contract_version": "chemworld-live-llm-operation-json-0.1",
+      "prompt_hash": "41e6560a66202650e3d3b08d02e09492f2e76e75a41e815e8b0c0e4103af0b73",
+      "provider_model": "deepseek-v4-flash",
+      "requires_online_model": true,
+      "role_id": "live_llm_b",
+      "seed": null,
+      "spectrum_disclosure": "assigned"
+    }
+  },
   "pricing_snapshots": {
     "live_llm_a": {
       "access_date": "2026-07-11",
@@ -36,9 +85,11 @@
       "source": "https://api-docs.deepseek.com/quick_start/pricing"
     }
   },
-  "protocol_id": "chemworld-vnext-live-llm-candidate-0.1",
+  "protocol_id": "chemworld-vnext-live-llm-candidate-0.2",
   "publication_ready": false,
   "remaining_release_gates": [
+    "launch both frozen roles through the official adapter rather than the Task Lab harness",
+    "run paired assigned-spectrum and masked-spectrum conditions",
     "run both frozen model roles over all paired confirmatory seeds and core tasks",
     "retain replay-verified trajectories and failures",
     "pass provider usage and pricing reconciliation",

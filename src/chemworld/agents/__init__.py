@@ -22,6 +22,7 @@ from chemworld.agents.interaction import (
     InteractionCapabilities,
 )
 from chemworld.agents.lhs import LatinHypercubeAgent
+from chemworld.agents.live_llm import LiveLLMAgent
 from chemworld.agents.llm import (
     CodexSubagentOnlineAgent,
     CodexSubagentReplayAgent,
@@ -50,6 +51,7 @@ __all__ = [
     "LLMPlannerAgent",
     "LLMReplayAgent",
     "LatinHypercubeAgent",
+    "LiveLLMAgent",
     "RandomAgent",
     "RandomForestEIAgent",
     "RandomRecipeAgent",

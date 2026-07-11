@@ -1,6 +1,6 @@
 {
-  "schema_version": "chemworld-live-llm-protocol-0.1",
-  "protocol_id": "chemworld-vnext-live-llm-candidate-0.1",
+  "schema_version": "chemworld-live-llm-protocol-0.2",
+  "protocol_id": "chemworld-vnext-live-llm-candidate-0.2",
   "benchmark_claim_allowed": false,
   "publication_ready": false,
   "provider": "DeepSeek",
@@ -55,6 +55,34 @@
     "private_chain_of_thought_requested": false,
     "private_reasoning_retained": false
   },
+  "official_adapter_contract": {
+    "implementation": "chemworld.agents.live_llm.LiveLLMAgent",
+    "runner": "chemworld.eval.runner.run_agent",
+    "one_logical_decision_per_operation": true,
+    "automatic_action_repair": false,
+    "automatic_terminate_or_final_assay": false,
+    "provider_or_output_failure_policy": "retain_as_invalid_model_failure_operation",
+    "cumulative_resource_ledger": "chemworld-method-resource-usage-0.1",
+    "trace_retention": "one_current_public_audit_per_trajectory_step",
+    "fake_client_end_to_end_test": "tests/test_live_llm_agent.py"
+  },
+  "spectral_ablation": {
+    "required": true,
+    "paired_on_task_world_and_model_seed": true,
+    "conditions": {
+      "assigned": {
+        "public_raw_signal": true,
+        "public_processed_spectral_features": true,
+        "public_assignments": true
+      },
+      "masked": {
+        "public_raw_signal": false,
+        "public_processed_spectral_features": false,
+        "public_assignments": false
+      }
+    },
+    "non_spectral_public_observations_held_constant": true
+  },
   "resource_requirements": {
     "provider_usage_required": true,
     "cache_token_breakdown_retained": true,
@@ -64,6 +92,8 @@
     "failures_and_retries_count_as_calls": true
   },
   "formal_readiness_requirements": [
+    "launch both frozen roles through the official adapter rather than the Task Lab harness",
+    "run paired assigned-spectrum and masked-spectrum conditions",
     "run both frozen model roles over all paired confirmatory seeds and core tasks",
     "retain replay-verified trajectories and failures",
     "pass provider usage and pricing reconciliation",
