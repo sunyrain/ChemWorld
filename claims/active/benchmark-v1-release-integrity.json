@@ -1,0 +1,20 @@
+{
+  "branch": "core/benchmark-v1-release-integrity",
+  "claimed_at": "2026-07-11T01:10:02.849107+00:00",
+  "expires_at": "2026-07-18T01:10:02.849107+00:00",
+  "notes": "No changes to task behavior, scenarios, scoring, agents, baseline results, current release JSON, World Law, runtime routing, golden trajectories, or paper claims. The stale public bundle remains untouched and must be reported as stale; rebuilding it belongs to the later integration/freeze claim.",
+  "owned_paths": [
+    "scripts/check_frozen_benchmark.py",
+    "scripts/build_benchmark_release.py",
+    "scripts/run_release_gate.py",
+    "tests/test_benchmark_release_integrity.py",
+    "tests/test_release_gate.py",
+    "docs/release_integrity.md",
+    "workstreams/benchmark_v1/release_integrity.md"
+  ],
+  "owner": "core-maintainers",
+  "schema_version": "chemworld-task-claim-0.1",
+  "scope": "Make serious benchmark release verification fail closed by validating the public manifest schema, embedded evidence digests, current task contract hashes, source commit binding, dirty-tree policy, result coverage, and release status; explicitly support a non-claiming candidate mode in the local release gate until WF-110 and full evidence regeneration produce a new immutable release.",
+  "status": "active",
+  "task_id": "benchmark-v1-release-integrity"
+}
