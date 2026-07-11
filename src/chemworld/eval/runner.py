@@ -189,9 +189,15 @@ def run_agent(
                 public_view=pre_decision_view,
                 previous_event_type=previous_event_type,
             )
+            public_view_act = getattr(agent, "act_with_public_view", None)
             context_act = getattr(agent, "act_with_context", None)
             decision_started = perf_counter()
-            action = context_act(decision_context) if callable(context_act) else agent.act(history)
+            if callable(public_view_act):
+                action = public_view_act(decision_context, pre_decision_view)
+            elif callable(context_act):
+                action = context_act(decision_context)
+            else:
+                action = agent.act(history)
             decision_elapsed_s = perf_counter() - decision_started
             usage_factory = getattr(agent, "method_resource_usage", None)
             agent_usage = usage_factory() if callable(usage_factory) else {}

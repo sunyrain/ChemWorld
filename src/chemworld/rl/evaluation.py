@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import statistics
+import time
 from collections import Counter
 from pathlib import Path
 from typing import Any, Literal
@@ -163,4 +165,164 @@ def evaluate_sb3_checkpoint(
     }
 
 
-__all__ = ["evaluate_sb3_checkpoint"]
+def evaluate_replay_verified_sb3_checkpoint(
+    *,
+    algorithm: AlgorithmName,
+    checkpoint: str | Path,
+    checkpoint_manifest: str | Path | dict[str, Any],
+    task_id: str,
+    seeds: list[int],
+    operation_budget: int,
+    output_dir: str | Path,
+    policy_seed: int,
+    deterministic: bool = False,
+) -> dict[str, Any]:
+    """Evaluate a frozen policy through official logging and exact action replay.
+
+    This bridge intentionally uses ordinary registered task seeds.  World-family
+    Dev/Bench cells require a separate intervention-bound replay contract and
+    are not silently represented as standard trajectories here.
+    """
+
+    if not seeds or len(set(seeds)) != len(seeds):
+        raise ValueError("replay evaluation seeds must be non-empty and unique")
+    if operation_budget <= 0:
+        raise ValueError("operation_budget must be positive")
+    from chemworld.agents.rl import FrozenSB3Agent
+    from chemworld.data.logging import load_jsonl
+    from chemworld.eval.result_artifacts import (
+        build_verified_evaluation_result,
+        validate_verified_evaluation_result,
+    )
+    from chemworld.eval.runner import run_agent
+
+    root = Path(output_dir)
+    trajectory_dir = root / "trajectories"
+    result_dir = root / "results"
+    trajectory_dir.mkdir(parents=True, exist_ok=True)
+    result_dir.mkdir(parents=True, exist_ok=True)
+    results: list[dict[str, Any]] = []
+    for seed in seeds:
+        trajectory_path = trajectory_dir / f"{algorithm}_{task_id}_seed{seed}.jsonl"
+        agent = FrozenSB3Agent(
+            algorithm=algorithm,
+            checkpoint=checkpoint,
+            checkpoint_manifest=checkpoint_manifest,
+            task_id=task_id,
+            deterministic=deterministic,
+            policy_seed=policy_seed + seed,
+        )
+        wall_started = time.perf_counter()
+        cpu_started = time.process_time()
+        run_agent(
+            env_id="ChemWorld",
+            agent=agent,
+            world_split="public-dev",
+            budget=operation_budget,
+            objective="balanced",
+            seed=seed,
+            task_id=task_id,
+            output_path=trajectory_path,
+            budget_override=operation_budget,
+            episode_mode_override="campaign",
+        )
+        run_wall_time = time.perf_counter() - wall_started
+        records = load_jsonl(trajectory_path)
+        evaluation_started = time.perf_counter()
+        result = build_verified_evaluation_result(
+            records,
+            trajectory_path=trajectory_path,
+        )
+        evaluation_wall_time = time.perf_counter() - evaluation_started
+        result["resource_usage"] = _replay_resource_usage(
+            records=records,
+            result=result,
+            run_wall_time_s=run_wall_time,
+            evaluation_wall_time_s=evaluation_wall_time,
+            process_cpu_time_s=time.process_time() - cpu_started,
+        )
+        result["rl_evaluation"] = {
+            "schema_version": "chemworld-rl-replay-evaluation-0.1",
+            "algorithm": algorithm,
+            "policy_mode": (
+                "deterministic" if deterministic else "stochastic_frozen_seed"
+            ),
+            "policy_seed": policy_seed + seed,
+            "training_reward_used": False,
+            "standard_registered_task_seed": True,
+            "world_family_allocation": None,
+            "formal_evidence": False,
+        }
+        result_path = result_dir / f"{algorithm}_{task_id}_seed{seed}.json"
+        result["result_path"] = str(result_path.resolve())
+        validate_verified_evaluation_result(result, replay=True)
+        result_path.write_text(
+            json.dumps(result, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        results.append(result)
+    manifest = {
+        "schema_version": "chemworld-rl-replay-evaluation-report-0.1",
+        "algorithm": algorithm,
+        "task_id": task_id,
+        "seed_count": len(seeds),
+        "seeds": list(seeds),
+        "operation_budget": operation_budget,
+        "policy_mode": "deterministic" if deterministic else "stochastic_frozen_seed",
+        "all_replay_verified": all(result["verified"] is True for result in results),
+        "result_count": len(results),
+        "results": results,
+        "formal_evidence": False,
+        "claim_boundary": (
+            "Replay-verified standard-seed development evidence only; this does not execute "
+            "the frozen world-family Dev or Bench allocation and cannot support an RL ranking."
+        ),
+    }
+    (root / "evaluation_report.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return manifest
+
+
+def _replay_resource_usage(
+    *,
+    records: list[dict[str, Any]],
+    result: dict[str, Any],
+    run_wall_time_s: float,
+    evaluation_wall_time_s: float,
+    process_cpu_time_s: float,
+) -> dict[str, Any]:
+    ledger = records[-1].get("method_resources", {})
+    if ledger.get("schema_version") != "chemworld-method-resource-ledger-0.1":
+        raise ValueError("RL trajectory is missing the method resource ledger")
+    if ledger.get("accounting_complete") is not True:
+        raise ValueError("RL trajectory resource accounting is incomplete")
+    if int(ledger.get("operation_count", -1)) != int(result["steps"]):
+        raise ValueError("RL resource ledger does not match verified operations")
+    if int(ledger.get("complete_experiment_count", -1)) != int(result["final_assay_count"]):
+        raise ValueError("RL resource ledger does not match verified experiments")
+    usage = ledger.get("agent_usage", {})
+    return {
+        "schema_version": "chemworld-resource-usage-0.2",
+        "run_wall_time_s": float(ledger["run_wall_time_s"]),
+        "orchestration_wall_time_s": run_wall_time_s,
+        "evaluation_wall_time_s": evaluation_wall_time_s,
+        "total_wall_time_s": run_wall_time_s + evaluation_wall_time_s,
+        "process_cpu_time_s": process_cpu_time_s,
+        "step_count": int(ledger["operation_count"]),
+        "complete_experiment_count": int(ledger["complete_experiment_count"]),
+        "model_call_count": 0,
+        "input_token_count": 0,
+        "output_token_count": 0,
+        "monetary_cost_usd": 0.0,
+        "training_environment_step_count": int(
+            usage.get("training_environment_step_count", 0)
+        ),
+        "cpu_time_s": float(usage.get("cpu_time_s", 0.0)),
+        "gpu_time_s": float(usage.get("gpu_time_s", 0.0)),
+        "method_ledger": ledger,
+    }
+
+
+__all__ = ["evaluate_replay_verified_sb3_checkpoint", "evaluate_sb3_checkpoint"]

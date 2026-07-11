@@ -31,6 +31,7 @@ from chemworld.agents.llm import (
     ToolUsingLLMStubAgent,
 )
 from chemworld.agents.random import RandomAgent, RandomRecipeAgent
+from chemworld.agents.rl import FrozenSB3Agent
 
 __all__ = [
     "INTERACTION_CONTRACT_VERSION",
@@ -39,6 +40,7 @@ __all__ = [
     "CodexSubagentOnlineAgent",
     "CodexSubagentReplayAgent",
     "DecisionAuditRecord",
+    "FrozenSB3Agent",
     "GaussianProcessBOAgent",
     "GaussianProcessPIAgent",
     "GaussianProcessUCBAgent",

@@ -43,6 +43,52 @@ def validate_operation_affordance(operation: str, env: gym.Env[Any, Any]) -> dic
     return base.operation_validator.operation_affordance(operation, base._state).to_dict()
 
 
+def decode_continuous_event_action(
+    action: Any,
+    *,
+    event_action_space: gym.spaces.Dict,
+    operation_mask: list[bool] | np.ndarray,
+) -> dict[str, Any]:
+    """Decode the frozen RL vector contract using public operation affordances.
+
+    This function is deliberately independent of an environment instance.  It
+    lets frozen-policy evaluators use exactly the same mapping as the Gym
+    wrapper while supplying only the public affordance mask available to every
+    benchmark agent.
+    """
+
+    action_keys = tuple(event_action_space.spaces)
+    parameter_keys = tuple(key for key in action_keys if key != "operation")
+    operation_logit_count = len(OPERATION_TYPES)
+    expected_shape = (operation_logit_count + len(parameter_keys),)
+    vector = np.asarray(action, dtype=np.float32).reshape(-1)
+    if vector.shape != expected_shape or not np.all(np.isfinite(vector)):
+        raise ValueError(
+            f"continuous event action must be a finite vector with shape {expected_shape}"
+        )
+    public_mask = np.asarray(operation_mask, dtype=bool)
+    if public_mask.shape != (operation_logit_count,):
+        raise ValueError("public operation mask does not match the frozen operation registry")
+    operation_logits = vector[:operation_logit_count]
+    if np.any(public_mask):
+        operation_index = int(np.argmax(np.where(public_mask, operation_logits, -np.inf)))
+    else:
+        operation_index = int(np.argmax(operation_logits))
+    payload: dict[str, Any] = {"operation": operation_index}
+    unit = np.clip((vector[operation_logit_count:] + 1.0) / 2.0, 0.0, 1.0)
+    for index, key in enumerate(parameter_keys):
+        space = event_action_space[key]
+        coordinate = float(unit[index])
+        if isinstance(space, gym.spaces.Discrete):
+            payload[key] = min(int(coordinate * space.n), space.n - 1)
+        elif isinstance(space, gym.spaces.Box):
+            value = space.low + coordinate * (space.high - space.low)
+            payload[key] = np.asarray(value, dtype=space.dtype)
+        else:
+            raise TypeError(f"unsupported event action component: {key}={type(space).__name__}")
+    return payload
+
+
 class ActionMaskWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):
     """Add operation validity signals to reset/step info."""
 
@@ -325,35 +371,11 @@ class ContinuousEventActionWrapper(gym.ActionWrapper[Any, Any, Any], RecordConst
         }
 
     def action(self, action: Any) -> dict[str, Any]:
-        vector = np.asarray(action, dtype=np.float32).reshape(-1)
-        if vector.shape != self.action_space.shape or not np.all(np.isfinite(vector)):
-            expected_shape = self.action_space.shape
-            raise ValueError(
-                f"continuous event action must be a finite vector with shape {expected_shape}"
-            )
-        operation_logits = vector[: self.operation_logit_count]
-        public_mask = np.asarray(action_mask(self.env), dtype=bool)
-        if public_mask.shape != (self.operation_logit_count,):
-            raise ValueError("public operation mask does not match the frozen operation registry")
-        if np.any(public_mask):
-            masked_logits = np.where(public_mask, operation_logits, -np.inf)
-            operation_index = int(np.argmax(masked_logits))
-        else:
-            operation_index = int(np.argmax(operation_logits))
-        payload: dict[str, Any] = {"operation": operation_index}
-        parameter_vector = vector[self.operation_logit_count :]
-        unit = np.clip((parameter_vector + 1.0) / 2.0, 0.0, 1.0)
-        for index, key in enumerate(self.parameter_keys):
-            space = self.event_action_space[key]
-            coordinate = float(unit[index])
-            if isinstance(space, gym.spaces.Discrete):
-                payload[key] = min(int(coordinate * space.n), space.n - 1)
-            elif isinstance(space, gym.spaces.Box):
-                value = space.low + coordinate * (space.high - space.low)
-                payload[key] = np.asarray(value, dtype=space.dtype)
-            else:
-                raise TypeError(f"unsupported event action component: {key}={type(space).__name__}")
-        return payload
+        return decode_continuous_event_action(
+            action,
+            event_action_space=self.event_action_space,
+            operation_mask=action_mask(self.env),
+        )
 
 
 class RLControlObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordConstructorArgs):

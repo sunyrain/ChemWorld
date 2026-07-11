@@ -90,8 +90,6 @@ def evaluate_layered_records(
         raise ValueError("cannot evaluate an empty trajectory")
     attempts = _attempt_summaries(records)
     terminal_records = [attempt["terminal_record"] for attempt in attempts if attempt["complete"]]
-    if not terminal_records:
-        raise ValueError("trajectory has no successful final assay")
     primary_values = [
         _required_observation(record, contract.primary_task_metric) for record in terminal_records
     ]
@@ -127,22 +125,27 @@ def evaluate_layered_records(
     risk_exceedance_count = sum(risk >= contract.safety_limit for risk in max_risks)
     maximize = contract.direction == "maximize"
     select = max if maximize else min
+    completed = bool(terminal_records)
     return {
         "schema_version": LAYERED_EVALUATION_VERSION,
         "task_id": contract.task_id,
         "evaluation_contract_hash": contract.contract_hash,
-        "status": "evaluated",
+        "status": "evaluated" if completed else "failed_no_successful_final_assay",
+        "endpoint_available": completed,
+        "failure_reason": None if completed else "no_successful_final_assay",
         "objective": {
             "metric": contract.objective_metric,
-            "best": select(objective_values),
-            "last": objective_values[-1],
+            "best": select(objective_values) if completed else 0.0,
+            "last": objective_values[-1] if completed else 0.0,
             "terminal_values": objective_values,
+            "missing_endpoint_policy": "fail_closed_zero",
         },
         "task_primary": {
             "metric": contract.primary_task_metric,
-            "best": select(primary_values),
-            "last": primary_values[-1],
+            "best": select(primary_values) if completed else 0.0,
+            "last": primary_values[-1] if completed else 0.0,
             "terminal_values": primary_values,
+            "missing_endpoint_policy": "fail_closed_zero",
         },
         "online_shaping": {
             "role": contract.online_reward_role,
