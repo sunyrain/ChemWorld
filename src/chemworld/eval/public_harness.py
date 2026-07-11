@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -147,7 +148,21 @@ class HarnessPolicy:
             raise ValueError("public harness byte limits must be positive")
 
 
+def _contains_nonfinite(value: Any) -> bool:
+    if isinstance(value, Mapping):
+        return any(_contains_nonfinite(item) for item in value.values())
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        return any(_contains_nonfinite(item) for item in value)
+    if isinstance(value, np.ndarray):
+        return _contains_nonfinite(value.tolist())
+    if isinstance(value, np.generic):
+        return _contains_nonfinite(value.item())
+    return isinstance(value, float) and not math.isfinite(value)
+
+
 def _json_bytes(payload: Any) -> bytes:
+    if _contains_nonfinite(payload):
+        raise PublicHarnessError("public payload is not finite JSON")
     try:
         return json.dumps(
             to_builtin(payload),
