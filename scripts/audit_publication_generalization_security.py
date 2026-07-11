@@ -68,10 +68,23 @@ def main() -> int:
         type=Path,
         default=Path("runs/publication/generalization-security-v0.1"),
     )
+    parser.add_argument(
+        "--combine-evidence",
+        action="store_true",
+        help="Combine existing public-OOD and salted-private formal runs.",
+    )
     args = parser.parse_args()
 
     protocol = load_generalization_security_protocol(args.protocol)
     controls = audit_generalization_controls(protocol)
+    if args.combine_evidence:
+        return _combine_evidence(
+            protocol=protocol,
+            controls=controls,
+            reference_results_path=args.reference_results,
+            run_root=args.output_dir,
+            output_path=args.output,
+        )
     if args.run_evaluation_mode is not None:
         return _run_distribution_shift(
             mode_id=args.run_evaluation_mode,
@@ -98,6 +111,91 @@ def main() -> int:
                 "axis_generalization_ready": controls["axis_generalization_ready"],
                 "invariance_ready": controls["invariance_ready"],
                 "exploit_resistance_passed": exploits["passed"],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _load_json(path: Path) -> object:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _combine_evidence(
+    *,
+    protocol: dict,
+    controls: dict,
+    reference_results_path: Path,
+    run_root: Path,
+    output_path: Path,
+) -> int:
+    reference = _load_json(reference_results_path)
+    if not isinstance(reference, list):
+        raise ValueError("reference results must be a JSON list")
+    shifts: dict[str, dict] = {}
+    manifests: dict[str, dict] = {}
+    for mode_id in ("public_seed_ood", "salted_private_eval"):
+        root = run_root / mode_id
+        manifest = _load_json(root / "manifest.json")
+        shifted = _load_json(root / "baseline_results.json")
+        if not isinstance(manifest, dict) or not isinstance(shifted, list):
+            raise ValueError(f"{mode_id} formal artifacts have invalid JSON shapes")
+        actual_digest = hashlib.sha256(
+            (root / "baseline_results.json").read_bytes()
+        ).hexdigest()
+        if actual_digest != manifest.get("baseline_results_sha256"):
+            raise ValueError(f"{mode_id} result digest does not match its manifest")
+        if manifest.get("generalization_security_protocol_sha256") != payload_sha256(
+            protocol
+        ):
+            raise ValueError(f"{mode_id} run does not match the active protocol")
+        shifts[mode_id] = compare_publication_distribution_shift(
+            reference,
+            shifted,
+            shift_id=mode_id,
+        )
+        manifests[mode_id] = {
+            "evaluated_source_commit": manifest["evaluated_source_commit"],
+            "evaluation_source_tree_dirty": manifest["evaluation_source_tree_dirty"],
+            "baseline_results_sha256": manifest["baseline_results_sha256"],
+            "result_count": manifest["result_count"],
+            "private_salt_sha256": manifest.get("private_salt_sha256"),
+            "raw_private_salt_published": manifest["raw_private_salt_published"],
+        }
+    exploits = audit_exploit_resistance()
+    shift_ready = all(shift["passed"] for shift in shifts.values())
+    publication_ready = (
+        controls["generalization_ready"] and exploits["passed"] and shift_ready
+    )
+    report = {
+        "schema_version": "chemworld-publication-generalization-security-audit-0.1",
+        "status": "ready" if publication_ready else "blocked",
+        "publication_ready": publication_ready,
+        "controls": controls,
+        "exploit_resistance": exploits,
+        "distribution_shifts": shifts,
+        "formal_run_manifests": manifests,
+        "gates": {
+            "axis_generalization_ready": controls["axis_generalization_ready"],
+            "invariance_ready": controls["invariance_ready"],
+            "exploit_resistance_passed": exploits["passed"],
+            "public_seed_ood_passed": shifts["public_seed_ood"]["passed"],
+            "salted_private_eval_passed": shifts["salted_private_eval"]["passed"],
+        },
+    }
+    _write_json(output_path, report)
+    print(
+        json.dumps(
+            {
+                "output": str(output_path),
+                "status": report["status"],
+                "publication_ready": publication_ready,
+                "gates": report["gates"],
+                "ready_task_counts": {
+                    mode: shift["ready_task_count"] for mode, shift in shifts.items()
+                },
             },
             indent=2,
             sort_keys=True,

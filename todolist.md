@@ -163,11 +163,12 @@ World Law v0.4 backend candidate 位于 `benchmark/releases/chemworld-serious-vn
 
 - [x] 已将 6 tasks × 2 axes 与 interpolation/extrapolation/composition/noise 四种必需模式写入
   机器协议并失败关闭审计；当前 0/12 轴具有完整控制，因此只完成“缺口机器化”，未通过门禁。
-- [ ] 对每个任务分别测试 public-test 内 seed 泛化、参数区间外推、组合变化和 observation noise
-  扰动。
-- [ ] 建立真正的 maintainer-side private-eval 配置；无私有 salt 时继续明确失败或标记为
-  placeholder，绝不产生正式榜单声明。
-- [ ] 检查 public/private 排名相关性和性能下降，而不只报告一个平均 gap。
+- [ ] 已完成 20-seed public-test 新 seed 泛化：4/6 任务保持 total 与主指标正区间；参数区间外推、
+  组合变化和 observation noise 仍因轴控制缺失而未完成。
+- [x] 已完成 maintainer-side salted private-eval：salt 原值仅在运行进程中存在，摘要只发布
+  SHA-256；6 tasks × 2 methods × 20 seeds 共 240 条 verified 结果。
+- [x] 已逐任务检查 public/private adaptive effect、置信区间与两方法各自 score shift，而非只报
+  平均 gap；private shift 下结晶、蒸馏、流动、分配通过，电化学与平衡失败。
 - [ ] 增加策略不变性测试：action key 重排已通过；物料代号重映射、无关字段重排、等价动作序列
   和观测格式轻微变化仍应实现，并确保不会显著改变结果。
 - [x] 已完成首轮 simulator exploit 矩阵：未知操作、提前 final assay、提前 terminate、NaN amount、

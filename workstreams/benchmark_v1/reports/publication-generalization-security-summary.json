@@ -207,6 +207,1162 @@
       }
     }
   },
+  "distribution_shifts": {
+    "public_seed_ood": {
+      "methods": [
+        "random",
+        "structured_gp_bo"
+      ],
+      "passed": false,
+      "ready_task_count": 4,
+      "schema_version": "chemworld-publication-shift-audit-0.1",
+      "shift_id": "public_seed_ood",
+      "task_count": 6,
+      "tasks": {
+        "electrochemical-conversion": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": false,
+            "shifted_total_effect_ci_positive": true,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": -0.05126424238216276,
+            "structured_gp_bo": 0.002233614440173004
+          },
+          "primary_effect_shift": 0.00023458272218704335,
+          "primary_result_field": "mean_electrochemical_selectivity",
+          "ready": false,
+          "reference_primary_effect": {
+            "cohen_dz": 0.021149708757897193,
+            "holm_adjusted_p_value": 0.928203589820509,
+            "losses": 11,
+            "mean_paired_effect": 0.0002430521696805854,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              -0.004662060298025616,
+              0.00526524452120065
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.011491986601935166,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.928203589820509,
+            "significant_after_holm": false,
+            "ties": 0,
+            "wins": 9
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 0.8271711264491867,
+            "holm_adjusted_p_value": 0.003899805009749513,
+            "losses": 5,
+            "mean_paired_effect": 0.05401386717788561,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.027001729741223203,
+              0.08203358918522526
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 14,
+            "sample_std_paired_effect": 0.06529950750306285,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.0012999350032498376,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 15
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 0.044632787499791146,
+            "holm_adjusted_p_value": 0.8434578271086446,
+            "losses": 9,
+            "mean_paired_effect": 0.00047763489186762874,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              -0.004110588189214486,
+              0.005067713271826476
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.01070143539365234,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.8434578271086446,
+            "significant_after_holm": false,
+            "ties": 0,
+            "wins": 11
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 1.037870930631121,
+            "holm_adjusted_p_value": 0.0007499625018749063,
+            "losses": 4,
+            "mean_paired_effect": 0.10751172400022133,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.06299628493953247,
+              0.15020260351016654
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 34,
+            "sample_std_paired_effect": 0.10358872266982593,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.00034998250087495624,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 16
+          },
+          "total_score_effect_shift": 0.05349785682233572
+        },
+        "equilibrium-characterization": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": false,
+            "shifted_total_effect_ci_positive": false,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": -0.00757797823577705,
+            "structured_gp_bo": -0.009659278269555316
+          },
+          "primary_effect_shift": -0.0006996788363903802,
+          "primary_result_field": "mean_equilibrium_confidence",
+          "ready": false,
+          "reference_primary_effect": {
+            "cohen_dz": 0.2708501528012861,
+            "holm_adjusted_p_value": 0.24183790810459477,
+            "losses": 7,
+            "mean_paired_effect": 0.0026331170462071925,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              -0.0015688615539111227,
+              0.006717783485772094
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.00972167458269453,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.24183790810459477,
+            "significant_after_holm": false,
+            "ties": 0,
+            "wins": 13
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 0.5286480646653114,
+            "holm_adjusted_p_value": 0.02279886005699715,
+            "losses": 7,
+            "mean_paired_effect": 0.02327967953527895,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.006048144086074043,
+              0.04313777059346417
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 7,
+            "sample_std_paired_effect": 0.04403625226551691,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.02279886005699715,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 13
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 0.20199142474001816,
+            "holm_adjusted_p_value": 0.3696315184240788,
+            "losses": 10,
+            "mean_paired_effect": 0.0019334382098168124,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              -0.002132025289116432,
+              0.006052877062931656
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.009571882629697414,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.3696315184240788,
+            "significant_after_holm": false,
+            "ties": 0,
+            "wins": 10
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 0.375335866116052,
+            "holm_adjusted_p_value": 0.10679466026698665,
+            "losses": 8,
+            "mean_paired_effect": 0.02119837950150056,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              -0.002904425088804923,
+              0.045877061240806274
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 11,
+            "sample_std_paired_effect": 0.056478427497110344,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.10679466026698665,
+            "significant_after_holm": false,
+            "ties": 0,
+            "wins": 12
+          },
+          "total_score_effect_shift": -0.002081300033778391
+        },
+        "flow-reaction-optimization": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": true,
+            "shifted_total_effect_ci_positive": true,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": 0.008342581177223501,
+            "structured_gp_bo": 0.006381936569259172
+          },
+          "primary_effect_shift": -0.0013961081430099997,
+          "primary_result_field": "mean_flow_conversion",
+          "ready": true,
+          "reference_primary_effect": {
+            "cohen_dz": 5.204271693807056,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.033412873910347876,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.030608018741867055,
+              0.03614294786372922
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.006420278547353379,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 0.8081300382841413,
+            "holm_adjusted_p_value": 0.003899805009749513,
+            "losses": 3,
+            "mean_paired_effect": 0.06897695167189191,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.03285547624919439,
+              0.10548565328384009
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 23,
+            "sample_std_paired_effect": 0.08535377773897247,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.0016499175041247937,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 17
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 5.704352849286721,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.032016765767337876,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.029632122237355563,
+              0.03445578275753997
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.005612690275872624,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 0.9573746436365878,
+            "holm_adjusted_p_value": 0.0002999850007499625,
+            "losses": 0,
+            "mean_paired_effect": 0.06701630706392761,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.03969168520716676,
+              0.09843491608764278
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 16,
+            "sample_std_paired_effect": 0.07000008566068364,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "total_score_effect_shift": -0.0019606446079643014
+        },
+        "partition-discovery": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": true,
+            "shifted_total_effect_ci_positive": true,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": -0.004671137408995607,
+            "structured_gp_bo": -0.013025290157814506
+          },
+          "primary_effect_shift": -0.0017427711188792994,
+          "primary_result_field": "mean_product_in_organic",
+          "ready": true,
+          "reference_primary_effect": {
+            "cohen_dz": 3.464200406360657,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.049331511929631214,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.043376724615693085,
+              0.055616611820645624
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.014240374730934468,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 1.1442614127426325,
+            "holm_adjusted_p_value": 0.0002999850007499625,
+            "losses": 1,
+            "mean_paired_effect": 0.026444984917476773,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.017429620957493112,
+              0.037015886366175255
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.02311096452522321,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 19
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 3.1139526983672736,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.047588740810751914,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.04105489154998214,
+              0.054224147529341286
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.015282422509405468,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 0.9939259076568485,
+            "holm_adjusted_p_value": 0.0007499625018749063,
+            "losses": 1,
+            "mean_paired_effect": 0.018090832168657627,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.010551675289134038,
+              0.026219191757148763
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.01820138908674414,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.00024998750062496874,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 19
+          },
+          "total_score_effect_shift": -0.008354152748819146
+        },
+        "reaction-to-crystallization": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": true,
+            "shifted_total_effect_ci_positive": true,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": -0.01736886927441028,
+            "structured_gp_bo": -0.01178469693512696
+          },
+          "primary_effect_shift": 0.00953808844991727,
+          "primary_result_field": "mean_crystal_yield",
+          "ready": true,
+          "reference_primary_effect": {
+            "cohen_dz": 4.743634338377742,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.14894322741078214,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.13584824830677827,
+              0.1626225346520077
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 4,
+            "sample_std_paired_effect": 0.03139854735551111,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 1.4679036451074905,
+            "holm_adjusted_p_value": 0.0002999850007499625,
+            "losses": 2,
+            "mean_paired_effect": 0.066246335316765,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.04764391549889007,
+              0.08571226030613785
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 7,
+            "sample_std_paired_effect": 0.045129893598645554,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 18
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 4.050889550127651,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.1584813158606994,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.14218371549357836,
+              0.1757682223004522
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 5,
+            "sample_std_paired_effect": 0.039122596135879685,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 1.2194357517608423,
+            "holm_adjusted_p_value": 0.0002999850007499625,
+            "losses": 1,
+            "mean_paired_effect": 0.07183050765604819,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.047680999941292004,
+              0.09813304496370538
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 11,
+            "sample_std_paired_effect": 0.058904708634568315,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 19
+          },
+          "total_score_effect_shift": 0.005584172339283183
+        },
+        "reaction-to-distillation": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": true,
+            "shifted_total_effect_ci_positive": true,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": 0.03413183468057185,
+            "structured_gp_bo": 0.01910242034613946
+          },
+          "primary_effect_shift": 0.01248481020646372,
+          "primary_result_field": "mean_distillate_purity",
+          "ready": true,
+          "reference_primary_effect": {
+            "cohen_dz": 5.0215439583053305,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.1195158145602454,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.10949528470922577,
+              0.12943874438844327
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.02380061103768164,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 1.0952262230535836,
+            "holm_adjusted_p_value": 0.0002999850007499625,
+            "losses": 2,
+            "mean_paired_effect": 0.06432351786888023,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.04041805707384188,
+              0.08992036421162321
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 11,
+            "sample_std_paired_effect": 0.05873080512037121,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 18
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 4.214945055482817,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.13200062476670912,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.11870107735911309,
+              0.1454338625024878
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 4,
+            "sample_std_paired_effect": 0.0313172824388309,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 1.1061241530100154,
+            "holm_adjusted_p_value": 0.0002999850007499625,
+            "losses": 2,
+            "mean_paired_effect": 0.04929410353444789,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.0329946475767572,
+              0.07087015363298985
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 7,
+            "sample_std_paired_effect": 0.044564711294213605,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 18
+          },
+          "total_score_effect_shift": -0.01502941433443234
+        }
+      }
+    },
+    "salted_private_eval": {
+      "methods": [
+        "random",
+        "structured_gp_bo"
+      ],
+      "passed": false,
+      "ready_task_count": 4,
+      "schema_version": "chemworld-publication-shift-audit-0.1",
+      "shift_id": "salted_private_eval",
+      "task_count": 6,
+      "tasks": {
+        "electrochemical-conversion": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": false,
+            "shifted_total_effect_ci_positive": true,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": -0.008503834099956475,
+            "structured_gp_bo": -0.00564064017981869
+          },
+          "primary_effect_shift": 0.0006343515217304418,
+          "primary_result_field": "mean_electrochemical_selectivity",
+          "ready": false,
+          "reference_primary_effect": {
+            "cohen_dz": 0.021149708757897193,
+            "holm_adjusted_p_value": 0.928203589820509,
+            "losses": 11,
+            "mean_paired_effect": 0.0002430521696805854,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              -0.004662060298025616,
+              0.00526524452120065
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.011491986601935166,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.928203589820509,
+            "significant_after_holm": false,
+            "ties": 0,
+            "wins": 9
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 0.8271711264491867,
+            "holm_adjusted_p_value": 0.003899805009749513,
+            "losses": 5,
+            "mean_paired_effect": 0.05401386717788561,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.027001729741223203,
+              0.08203358918522526
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 14,
+            "sample_std_paired_effect": 0.06529950750306285,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.0012999350032498376,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 15
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 0.08918806297119346,
+            "holm_adjusted_p_value": 0.6950152492375381,
+            "losses": 11,
+            "mean_paired_effect": 0.0008774036914110273,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              -0.003274395853281019,
+              0.005171647295355826
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.009837680763337318,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.6950152492375381,
+            "significant_after_holm": false,
+            "ties": 0,
+            "wins": 9
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 0.6861206047999157,
+            "holm_adjusted_p_value": 0.014099295035248238,
+            "losses": 5,
+            "mean_paired_effect": 0.056877061098023374,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.02152930413743324,
+              0.09061634126443871
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 22,
+            "sample_std_paired_effect": 0.08289659383514605,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.007049647517624119,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 15
+          },
+          "total_score_effect_shift": 0.0028631939201377646
+        },
+        "equilibrium-characterization": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": false,
+            "shifted_total_effect_ci_positive": false,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": -0.015845930856098367,
+            "structured_gp_bo": -0.025971874713048737
+          },
+          "primary_effect_shift": -0.002620295714586979,
+          "primary_result_field": "mean_equilibrium_confidence",
+          "ready": false,
+          "reference_primary_effect": {
+            "cohen_dz": 0.2708501528012861,
+            "holm_adjusted_p_value": 0.24183790810459477,
+            "losses": 7,
+            "mean_paired_effect": 0.0026331170462071925,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              -0.0015688615539111227,
+              0.006717783485772094
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.00972167458269453,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.24183790810459477,
+            "significant_after_holm": false,
+            "ties": 0,
+            "wins": 13
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 0.5286480646653114,
+            "holm_adjusted_p_value": 0.02279886005699715,
+            "losses": 7,
+            "mean_paired_effect": 0.02327967953527895,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.006048144086074043,
+              0.04313777059346417
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 7,
+            "sample_std_paired_effect": 0.04403625226551691,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.02279886005699715,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 13
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 0.0022208103623131293,
+            "holm_adjusted_p_value": 0.992150392480376,
+            "losses": 12,
+            "mean_paired_effect": 1.2821331620213594e-05,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              -0.0024093386353924973,
+              0.0025093760893214524
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.005773267199122432,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.992150392480376,
+            "significant_after_holm": false,
+            "ties": 0,
+            "wins": 8
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 0.22882129490237266,
+            "holm_adjusted_p_value": 0.31793410329483524,
+            "losses": 10,
+            "mean_paired_effect": 0.013153735678328508,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              -0.011378583887340175,
+              0.0374202568594401
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 11,
+            "sample_std_paired_effect": 0.057484753261013544,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.31793410329483524,
+            "significant_after_holm": false,
+            "ties": 0,
+            "wins": 10
+          },
+          "total_score_effect_shift": -0.010125943856950443
+        },
+        "flow-reaction-optimization": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": true,
+            "shifted_total_effect_ci_positive": true,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": 0.04930127226513881,
+            "structured_gp_bo": 0.00801847725780086
+          },
+          "primary_effect_shift": 0.0012283580029626706,
+          "primary_result_field": "mean_flow_conversion",
+          "ready": true,
+          "reference_primary_effect": {
+            "cohen_dz": 5.204271693807056,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.033412873910347876,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.030608018741867055,
+              0.03614294786372922
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.006420278547353379,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 0.8081300382841413,
+            "holm_adjusted_p_value": 0.003899805009749513,
+            "losses": 3,
+            "mean_paired_effect": 0.06897695167189191,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.03285547624919439,
+              0.10548565328384009
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 23,
+            "sample_std_paired_effect": 0.08535377773897247,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.0016499175041247937,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 17
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 5.112136889121659,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.03464123191331055,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.03181718515085322,
+              0.03761895919857344
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.006776272362155471,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 0.72157779193852,
+            "holm_adjusted_p_value": 0.0025498725063746812,
+            "losses": 3,
+            "mean_paired_effect": 0.02769415666455388,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.012585604169582765,
+              0.045437594247392576
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 5,
+            "sample_std_paired_effect": 0.03838000139964602,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.0008499575021248938,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 17
+          },
+          "total_score_effect_shift": -0.04128279500733803
+        },
+        "partition-discovery": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": true,
+            "shifted_total_effect_ci_positive": true,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": -0.008912185912524073,
+            "structured_gp_bo": -0.006109652030283463
+          },
+          "primary_effect_shift": -0.006744641847908482,
+          "primary_result_field": "mean_product_in_organic",
+          "ready": true,
+          "reference_primary_effect": {
+            "cohen_dz": 3.464200406360657,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.049331511929631214,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.043376724615693085,
+              0.055616611820645624
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.014240374730934468,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 1.1442614127426325,
+            "holm_adjusted_p_value": 0.0002999850007499625,
+            "losses": 1,
+            "mean_paired_effect": 0.026444984917476773,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.017429620957493112,
+              0.037015886366175255
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.02311096452522321,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 19
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 2.475469637443379,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.04258687008172273,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.03511394598335027,
+              0.04986442939192058
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.017203551777635898,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 1.035131135431708,
+            "holm_adjusted_p_value": 0.0002999850007499625,
+            "losses": 1,
+            "mean_paired_effect": 0.029247518799717383,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.01815241164326973,
+              0.04213649131262351
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 3,
+            "sample_std_paired_effect": 0.028254892349962514,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 19
+          },
+          "total_score_effect_shift": 0.00280253388224061
+        },
+        "reaction-to-crystallization": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": true,
+            "shifted_total_effect_ci_positive": true,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": 0.002247326868970889,
+            "structured_gp_bo": -0.012485028752851735
+          },
+          "primary_effect_shift": 0.014425757725257421,
+          "primary_result_field": "mean_crystal_yield",
+          "ready": true,
+          "reference_primary_effect": {
+            "cohen_dz": 4.743634338377742,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.14894322741078214,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.13584824830677827,
+              0.1626225346520077
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 4,
+            "sample_std_paired_effect": 0.03139854735551111,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 1.4679036451074905,
+            "holm_adjusted_p_value": 0.0002999850007499625,
+            "losses": 2,
+            "mean_paired_effect": 0.066246335316765,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.04764391549889007,
+              0.08571226030613785
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 7,
+            "sample_std_paired_effect": 0.045129893598645554,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 18
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 4.453920384630479,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.16336898513603956,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.14759669037355344,
+              0.1792440865751705
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 5,
+            "sample_std_paired_effect": 0.03667981711118833,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 1.155468893786575,
+            "holm_adjusted_p_value": 0.001399930003499825,
+            "losses": 3,
+            "mean_paired_effect": 0.05151397969494216,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.03200562305721628,
+              0.07048837868301991
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 7,
+            "sample_std_paired_effect": 0.04458274902245637,
+            "seed_count": 20,
+            "sign_flip_p_value": 0.00034998250087495624,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 17
+          },
+          "total_score_effect_shift": -0.014732355621822846
+        },
+        "reaction-to-distillation": {
+          "checks": {
+            "primary_effect_direction_preserved": true,
+            "shifted_actions_valid": true,
+            "shifted_experiment_count_complete": true,
+            "shifted_primary_effect_ci_positive": true,
+            "shifted_total_effect_ci_positive": true,
+            "total_effect_direction_preserved": true
+          },
+          "method_mean_score_shift": {
+            "random": 0.036185831180786776,
+            "structured_gp_bo": 0.01600782097414233
+          },
+          "primary_effect_shift": 0.01048879495742766,
+          "primary_result_field": "mean_distillate_purity",
+          "ready": true,
+          "reference_primary_effect": {
+            "cohen_dz": 5.0215439583053305,
+            "holm_adjusted_p_value": 4.999750012499375e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.1195158145602454,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.10949528470922577,
+              0.12943874438844327
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.02380061103768164,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "reference_total_score_effect": {
+            "cohen_dz": 1.0952262230535836,
+            "holm_adjusted_p_value": 0.0002999850007499625,
+            "losses": 2,
+            "mean_paired_effect": 0.06432351786888023,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.04041805707384188,
+              0.08992036421162321
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 11,
+            "sample_std_paired_effect": 0.05873080512037121,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 18
+          },
+          "shifted_primary_effect": {
+            "cohen_dz": 4.4908883579999905,
+            "holm_adjusted_p_value": 9.99950002499875e-05,
+            "losses": 0,
+            "mean_paired_effect": 0.13000460951767306,
+            "multiplicity_family_size": 1,
+            "paired_bootstrap_ci": [
+              0.11753796868258509,
+              0.1420386190077713
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 3,
+            "sample_std_paired_effect": 0.028948528476795715,
+            "seed_count": 20,
+            "sign_flip_p_value": 9.99950002499875e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "shifted_total_score_effect": {
+            "cohen_dz": 1.9741812999772286,
+            "holm_adjusted_p_value": 0.0002999850007499625,
+            "losses": 0,
+            "mean_paired_effect": 0.044145507662235996,
+            "multiplicity_family_size": 6,
+            "paired_bootstrap_ci": [
+              0.03490847091456116,
+              0.05403481245171451
+            ],
+            "power_approximation": "two-sided paired normal approximation",
+            "required_seed_count_for_practical_effect": 2,
+            "sample_std_paired_effect": 0.022361425297030824,
+            "seed_count": 20,
+            "sign_flip_p_value": 4.999750012499375e-05,
+            "significant_after_holm": true,
+            "ties": 0,
+            "wins": 20
+          },
+          "total_score_effect_shift": -0.020178010206644233
+        }
+      }
+    }
+  },
   "exploit_resistance": {
     "passed": true,
     "schema_version": "chemworld-exploit-resistance-audit-0.1",
@@ -285,6 +1441,31 @@
         "task_contract_hash": "30e63cc01a57ce20fb12139e6c98e854d9ac250ab91b949af603b0ddf17a97b4"
       }
     }
+  },
+  "formal_run_manifests": {
+    "public_seed_ood": {
+      "baseline_results_sha256": "11d680cda4c6ea31a1807ff8d93f89bce8adccb4b97c7cb683958cddf5bc84a2",
+      "evaluated_source_commit": "d43247b5c5d93647183ab6150e3d91cad19c4172",
+      "evaluation_source_tree_dirty": false,
+      "private_salt_sha256": null,
+      "raw_private_salt_published": false,
+      "result_count": 240
+    },
+    "salted_private_eval": {
+      "baseline_results_sha256": "8cedd8e2341591d1539a65acff22783ba8848186c817805a6eda9c37fe80735d",
+      "evaluated_source_commit": "4f37ba0b777e58e4f527ce4d138da74b7c2a4adf",
+      "evaluation_source_tree_dirty": false,
+      "private_salt_sha256": "cc167ab46fa2bf0d0b845d7e65b3833474c4db26c7847d9c02b00f9ff9a822e6",
+      "raw_private_salt_published": false,
+      "result_count": 240
+    }
+  },
+  "gates": {
+    "axis_generalization_ready": false,
+    "exploit_resistance_passed": true,
+    "invariance_ready": false,
+    "public_seed_ood_passed": false,
+    "salted_private_eval_passed": false
   },
   "publication_ready": false,
   "schema_version": "chemworld-publication-generalization-security-audit-0.1",
