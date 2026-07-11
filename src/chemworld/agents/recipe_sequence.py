@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from chemworld.agents.base import BaseAgent, HistoryRecord
+from chemworld.agents.interaction import InteractionCapabilities
 from chemworld.world.recipes import compile_recipe
 
 DEFAULT_RECIPE_EVENT_COUNT = 6
@@ -54,3 +55,13 @@ class RecipeSequenceMixin(BaseAgent):
                 )
             )
             self._active_recipe = None
+
+    def interaction_capabilities(self) -> InteractionCapabilities:
+        return InteractionCapabilities(
+            decision_scope="experiment_recipe",
+            consumes_intermediate_observations=False,
+            consumes_spectra=False,
+            adapts_within_experiment=False,
+            adapts_across_experiments=False,
+            emits_structured_decision_audit=False,
+        )

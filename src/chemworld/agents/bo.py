@@ -10,6 +10,7 @@ import numpy as np
 from sklearn.exceptions import ConvergenceWarning
 
 from chemworld.agents.base import BaseAgent, HistoryRecord
+from chemworld.agents.interaction import InteractionCapabilities
 from chemworld.agents.recipe_sequence import RecipeSequenceMixin
 from chemworld.agents.task_recipes import (
     sample_task_recipe,
@@ -105,6 +106,17 @@ class GaussianProcessBOAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseA
         self.n_initial = n_initial
         self.n_candidates = n_candidates
         self.effective_n_initial = n_initial
+
+    def interaction_capabilities(self) -> InteractionCapabilities:
+        capabilities = super().interaction_capabilities()
+        return InteractionCapabilities(
+            decision_scope=capabilities.decision_scope,
+            consumes_intermediate_observations=capabilities.consumes_intermediate_observations,
+            consumes_spectra=capabilities.consumes_spectra,
+            adapts_within_experiment=capabilities.adapts_within_experiment,
+            adapts_across_experiments=True,
+            emits_structured_decision_audit=capabilities.emits_structured_decision_audit,
+        )
 
     def reset(self, task_info: dict[str, Any], seed: int) -> None:
         super().reset(task_info, seed)
@@ -290,6 +302,17 @@ class GaussianProcessUCBAgent(GaussianProcessBOAgent):
 
 class RandomForestEIAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgent):
     name = "rf_ei"
+
+    def interaction_capabilities(self) -> InteractionCapabilities:
+        capabilities = super().interaction_capabilities()
+        return InteractionCapabilities(
+            decision_scope=capabilities.decision_scope,
+            consumes_intermediate_observations=capabilities.consumes_intermediate_observations,
+            consumes_spectra=capabilities.consumes_spectra,
+            adapts_within_experiment=capabilities.adapts_within_experiment,
+            adapts_across_experiments=True,
+            emits_structured_decision_audit=capabilities.emits_structured_decision_audit,
+        )
 
     def __init__(
         self,

@@ -1,0 +1,50 @@
+{
+  "schema_version": "chemworld-agent-interaction-protocol-0.1",
+  "protocol_id": "chemworld-vnext-agent-interaction-candidate-0.1",
+  "interaction_contract_version": "chemworld-agent-interaction-0.1",
+  "status": "candidate_controls_only",
+  "benchmark_claim_allowed": false,
+  "decision_hierarchy": [
+    "campaign",
+    "experiment",
+    "operation"
+  ],
+  "required_public_context": [
+    "campaign_state",
+    "remaining_operations",
+    "visible_metrics",
+    "latest_spectra",
+    "uncertainty",
+    "constraint_flags",
+    "available_operations"
+  ],
+  "required_decision_audit": [
+    "action",
+    "evidence",
+    "hypothesis",
+    "uncertainty",
+    "rationale",
+    "adaptation_source"
+  ],
+  "evidence_policy": {
+    "private_chain_of_thought_requested": false,
+    "structured_public_decision_record_required_for_llm": true,
+    "raw_and_processed_public_spectra_available": true,
+    "hidden_state_access_allowed": false
+  },
+  "capability_declarations": [
+    "decision_scope",
+    "consumes_intermediate_observations",
+    "consumes_spectra",
+    "adapts_within_experiment",
+    "adapts_across_experiments",
+    "emits_structured_decision_audit"
+  ],
+  "remaining_release_gates": [
+    "bind model calls, tokens, wall time, and monetary cost to the method protocol",
+    "run retained multi-seed classic, RL, and real-LLM trajectories",
+    "demonstrate that spectra-aware adaptation changes decisions and improves held-out outcomes",
+    "freeze campaign, experiment, measurement, and operation budget accounting",
+    "verify the independent-process public harness exposes the same context"
+  ]
+}

@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Protocol
+
+from chemworld.agents.interaction import InteractionCapabilities
 
 
 @dataclass(frozen=True)
@@ -13,6 +15,10 @@ class HistoryRecord:
     observation: dict[str, float | None]
     reward: float
     info: dict[str, Any]
+    public_view: dict[str, Any] = field(default_factory=dict)
+    decision_context: dict[str, Any] = field(default_factory=dict)
+    decision_audit: dict[str, Any] = field(default_factory=dict)
+    event_type: str = "operation_result"
 
 
 class Agent(Protocol):
@@ -58,8 +64,13 @@ class BaseAgent:
         del action, observation, reward, info
 
     def manifest(self) -> dict[str, Any]:
+        capabilities = self.interaction_capabilities()
         return {
             "agent_name": self.name,
             "agent_family": self.__class__.__name__,
             "seed": getattr(self, "seed", None),
+            "interaction_capabilities": capabilities.to_dict(),
         }
+
+    def interaction_capabilities(self) -> InteractionCapabilities:
+        return InteractionCapabilities()

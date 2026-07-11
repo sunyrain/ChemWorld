@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 
 from chemworld.agents.base import BaseAgent, HistoryRecord
+from chemworld.agents.interaction import InteractionCapabilities
 from chemworld.agents.recipe_sequence import RecipeSequenceMixin
 from chemworld.world.actions import ACTION_BOUNDS, CATALYSTS, SOLVENTS, sample_random_action
 
@@ -17,6 +18,17 @@ class GreedyLocalAgent(RecipeSequenceMixin, BaseAgent):
     def __init__(self, warmup: int = 5, perturbation_scale: float = 0.18) -> None:
         self.warmup = warmup
         self.perturbation_scale = perturbation_scale
+
+    def interaction_capabilities(self) -> InteractionCapabilities:
+        capabilities = super().interaction_capabilities()
+        return InteractionCapabilities(
+            decision_scope=capabilities.decision_scope,
+            consumes_intermediate_observations=capabilities.consumes_intermediate_observations,
+            consumes_spectra=capabilities.consumes_spectra,
+            adapts_within_experiment=capabilities.adapts_within_experiment,
+            adapts_across_experiments=True,
+            emits_structured_decision_audit=capabilities.emits_structured_decision_audit,
+        )
 
     def reset(self, task_info: dict[str, Any], seed: int) -> None:
         super().reset(task_info, seed)

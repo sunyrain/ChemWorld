@@ -12,6 +12,12 @@ from chemworld.agents.bo import (
 )
 from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.agents.greedy import GreedyLocalAgent
+from chemworld.agents.interaction import (
+    INTERACTION_CONTRACT_VERSION,
+    AgentDecisionContext,
+    DecisionAuditRecord,
+    InteractionCapabilities,
+)
 from chemworld.agents.lhs import LatinHypercubeAgent
 from chemworld.agents.llm import (
     CodexSubagentOnlineAgent,
@@ -24,14 +30,18 @@ from chemworld.agents.llm import (
 from chemworld.agents.random import RandomAgent, RandomRecipeAgent
 
 __all__ = [
+    "INTERACTION_CONTRACT_VERSION",
     "Agent",
+    "AgentDecisionContext",
     "CodexSubagentOnlineAgent",
     "CodexSubagentReplayAgent",
+    "DecisionAuditRecord",
     "GaussianProcessBOAgent",
     "GaussianProcessPIAgent",
     "GaussianProcessUCBAgent",
     "GreedyLocalAgent",
     "HistoryRecord",
+    "InteractionCapabilities",
     "LLMPlannerAgent",
     "LLMReplayAgent",
     "LatinHypercubeAgent",
