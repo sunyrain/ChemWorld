@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 from collections.abc import Callable, Mapping
@@ -17,6 +18,7 @@ METHOD_PROTOCOL_VERSION = "chemworld-method-protocol-0.1"
 METHOD_RESOURCE_USAGE_VERSION = "chemworld-method-resource-usage-0.1"
 METHOD_RESOURCE_LEDGER_VERSION = "chemworld-method-resource-ledger-0.1"
 DEFAULT_METHOD_PROTOCOL_PATH = configuration_root() / "benchmark" / "method_protocol_vnext.json"
+ROOT = Path(__file__).resolve().parents[3]
 
 _AGENT_COUNTER_FIELDS = (
     "model_call_count",
@@ -254,13 +256,28 @@ def audit_method_protocol(
         manifest: dict[str, Any] = {}
         if implemented:
             manifest = agent_registry[implementation]().manifest()
+        required_encoding = spec.get("required_recipe_encoding")
+        encoding_ready = required_encoding is None or manifest.get("recipe_encoding") == (
+            required_encoding
+        )
+        capabilities = manifest.get("interaction_capabilities", {})
+        required_capabilities = spec.get("required_capabilities", {})
+        capabilities_ready = all(
+            capabilities.get(name) == expected
+            for name, expected in required_capabilities.items()
+        )
+        implementation_contract_ready = implemented and encoding_ready and capabilities_ready
         methods[str(method_id)] = {
             "family": spec.get("family"),
             "implementation": implementation,
             "implemented": implemented,
             "formal_role": spec.get("formal_role"),
             "current_eligibility": spec.get("current_eligibility"),
-            "interaction_capabilities": manifest.get("interaction_capabilities"),
+            "interaction_capabilities": capabilities or None,
+            "required_recipe_encoding": required_encoding,
+            "observed_recipe_encoding": manifest.get("recipe_encoding"),
+            "required_capabilities": required_capabilities,
+            "implementation_contract_ready": implementation_contract_ready,
             "requires_online_model": manifest.get("requires_online_model", False),
             "blockers": list(spec.get("blockers", ())),
         }
@@ -311,7 +328,30 @@ def audit_method_protocol(
         "pre_freeze_runs_are_diagnostic": (
             protocol.get("pre_freeze_result_policy") == "diagnostic_only"
         ),
+        "declared_eligibility_matches_manifests": all(
+            (
+                card["current_eligibility"] == "candidate"
+                and card["implementation_contract_ready"]
+            )
+            or (
+                card["current_eligibility"] != "candidate"
+                and not card["implementation_contract_ready"]
+            )
+            or card["formal_role"] == "excluded"
+            for card in methods.values()
+        ),
     }
+    evidence: dict[str, Any] = {}
+    for evidence_id, relative_path in protocol.get("evidence_sources", {}).items():
+        path = ROOT / str(relative_path)
+        evidence[str(evidence_id)] = {
+            "path": str(relative_path),
+            "exists": path.is_file(),
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None,
+        }
+    checks["evidence_sources_exist"] = bool(evidence) and all(
+        item["exists"] for item in evidence.values()
+    )
     controls_ready = all(checks.values())
     formal_matrix_ready = controls_ready and not missing_required and not required_ineligible
     return {
@@ -329,6 +369,7 @@ def audit_method_protocol(
         "required_but_ineligible_methods": required_ineligible,
         "diagnostic_or_excluded_methods": diagnostic_only,
         "interaction_failures": list(protocol.get("observed_interaction_failures", ())),
+        "evidence": evidence,
         "remaining_release_gates": list(protocol.get("remaining_release_gates", ())),
     }
 

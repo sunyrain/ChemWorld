@@ -92,6 +92,12 @@
     "reinforcement_learning",
     "llm"
   ],
+  "evidence_sources": {
+    "legacy_agent_interaction_audit": "workstreams/benchmark_v1/reports/agent-interaction-audit.json",
+    "five_seed_campaign_budget_curve": "workstreams/benchmark_v1/reports/campaign-budget-curve-pilot5.json",
+    "risk_cost_calibration": "workstreams/benchmark_v1/reports/risk-cost-signal-controls.json",
+    "task_validity_cards": "workstreams/benchmark_v1/reports/task-validity-vnext.json"
+  },
   "methods": {
     "random": {
       "family": "design",
@@ -121,6 +127,7 @@
       "implementation": "structured_gp_bo",
       "formal_role": "required",
       "current_eligibility": "candidate",
+      "required_recipe_encoding": "continuous_plus_material_one_hot",
       "blockers": [
         "must rerun under frozen vNext task and risk-cost policies"
       ]
@@ -130,6 +137,7 @@
       "implementation": "gp_pi",
       "formal_role": "required",
       "current_eligibility": "diagnostic_only",
+      "required_recipe_encoding": "continuous_plus_material_one_hot",
       "blockers": [
         "current implementation encodes categorical materials as ordinal scalars"
       ]
@@ -139,6 +147,7 @@
       "implementation": "gp_ucb",
       "formal_role": "required",
       "current_eligibility": "diagnostic_only",
+      "required_recipe_encoding": "continuous_plus_material_one_hot",
       "blockers": [
         "current implementation encodes categorical materials as ordinal scalars"
       ]
@@ -148,6 +157,7 @@
       "implementation": "rf_ei",
       "formal_role": "required",
       "current_eligibility": "diagnostic_only",
+      "required_recipe_encoding": "continuous_plus_material_one_hot",
       "blockers": [
         "current implementation encodes categorical materials as ordinal scalars"
       ]
@@ -157,6 +167,7 @@
       "implementation": "structured_safe_gp_bo",
       "formal_role": "required",
       "current_eligibility": "candidate",
+      "required_recipe_encoding": "continuous_plus_material_one_hot",
       "blockers": [
         "legacy runs used an inactive 0.65 threshold",
         "must consume the frozen task-level operational-risk policy"
@@ -187,6 +198,14 @@
       "implementation": null,
       "formal_role": "required",
       "current_eligibility": "missing",
+      "required_capabilities": {
+        "decision_scope": "operation",
+        "consumes_intermediate_observations": true,
+        "consumes_spectra": true,
+        "adapts_within_experiment": true,
+        "adapts_across_experiments": true,
+        "emits_structured_decision_audit": true
+      },
       "blockers": [
         "provider and model snapshot not frozen",
         "no multi-seed replay-verified live trajectories"
@@ -197,6 +216,14 @@
       "implementation": null,
       "formal_role": "required",
       "current_eligibility": "missing",
+      "required_capabilities": {
+        "decision_scope": "operation",
+        "consumes_intermediate_observations": true,
+        "consumes_spectra": true,
+        "adapts_within_experiment": true,
+        "adapts_across_experiments": true,
+        "emits_structured_decision_audit": true
+      },
       "blockers": [
         "second independently configured model class not frozen",
         "no multi-seed replay-verified live trajectories"
