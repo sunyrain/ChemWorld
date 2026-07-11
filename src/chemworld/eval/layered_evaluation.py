@@ -11,7 +11,7 @@ from typing import Any, Literal
 from chemworld.task_design import SERIOUS_TASK_DESIGNS
 from chemworld.tasks import get_task
 
-LAYERED_EVALUATION_VERSION = "chemworld-layered-evaluation-0.1"
+LAYERED_EVALUATION_VERSION = "chemworld-layered-evaluation-0.2"
 
 
 @dataclass(frozen=True)
@@ -23,7 +23,9 @@ class TaskEvaluationContract:
     terminal_selector: Literal["successful_final_assay"]
     online_reward_role: Literal["diagnostic_shaping_only"]
     safety_limit: float
-    cost_aggregation: Literal["sum_terminal_experiment_costs"]
+    risk_aggregation: Literal["max_operation_risk_per_experiment"]
+    risk_limit_semantics: Literal["benchmark_operational_risk_budget"]
+    cost_aggregation: Literal["terminal_total_minus_measurement_cost"]
     missing_primary_policy: Literal["fail"] = "fail"
 
     def __post_init__(self) -> None:
@@ -33,7 +35,12 @@ class TaskEvaluationContract:
             raise ValueError("primary_task_metric cannot be empty")
 
     @classmethod
-    def for_task(cls, task_id: str) -> TaskEvaluationContract:
+    def for_task(
+        cls,
+        task_id: str,
+        *,
+        risk_limit: float | None = None,
+    ) -> TaskEvaluationContract:
         task = get_task(task_id)
         design = SERIOUS_TASK_DESIGNS[task_id]
         return cls(
@@ -43,8 +50,10 @@ class TaskEvaluationContract:
             direction="maximize",
             terminal_selector="successful_final_assay",
             online_reward_role="diagnostic_shaping_only",
-            safety_limit=task.safety_limit,
-            cost_aggregation="sum_terminal_experiment_costs",
+            safety_limit=task.safety_limit if risk_limit is None else risk_limit,
+            risk_aggregation="max_operation_risk_per_experiment",
+            risk_limit_semantics="benchmark_operational_risk_budget",
+            cost_aggregation="terminal_total_minus_measurement_cost",
         )
 
     @property
@@ -63,7 +72,7 @@ class TaskEvaluationContract:
                 "objective": self.objective_metric,
                 "task_primary": self.primary_task_metric,
                 "online_shaping": self.online_reward_role,
-                "constraint": "safety_risk and unsafe flag",
+                "constraint": self.risk_aggregation,
                 "resource": self.cost_aggregation,
                 "validity": "precondition and constitution flags",
             },
@@ -75,26 +84,22 @@ def evaluate_layered_records(
     *,
     contract: TaskEvaluationContract,
 ) -> dict[str, Any]:
-    """Recompute five disjoint evaluation layers from a public trajectory."""
+    """Recompute six disjoint evaluation layers from a public trajectory."""
 
     if not records:
         raise ValueError("cannot evaluate an empty trajectory")
-    terminal_records = [
-        record for record in records if record.get("leaderboard_score") is not None
-    ]
+    attempts = _attempt_summaries(records)
+    terminal_records = [attempt["terminal_record"] for attempt in attempts if attempt["complete"]]
     if not terminal_records:
         raise ValueError("trajectory has no successful final assay")
     primary_values = [
-        _required_observation(record, contract.primary_task_metric)
-        for record in terminal_records
+        _required_observation(record, contract.primary_task_metric) for record in terminal_records
     ]
     objective_values = [
         _finite_float(record["leaderboard_score"], "leaderboard_score")
         for record in terminal_records
     ]
-    terminal_costs = [
-        _required_observation(record, "cost") for record in terminal_records
-    ]
+    terminal_costs = [float(attempt["total_cost"]) for attempt in attempts if attempt["complete"]]
     observed_risks = [
         _finite_float(record["observation"]["safety_risk"], "safety_risk")
         for record in records
@@ -114,10 +119,12 @@ def evaluate_layered_records(
         for item in flags
     )
     rewards = [_finite_float(record.get("reward", 0.0), "reward") for record in records]
-    measurement_cost = sum(
-        _finite_float(record.get("measurement_cost", 0.0), "measurement_cost")
-        for record in records
-    )
+    measurement_cost = sum(float(attempt["measurement_cost"]) for attempt in attempts)
+    process_costs = [float(attempt["process_cost"]) for attempt in attempts]
+    max_risks = [
+        float(attempt["max_risk"]) for attempt in attempts if attempt["max_risk"] is not None
+    ]
+    risk_exceedance_count = sum(risk >= contract.safety_limit for risk in max_risks)
     maximize = contract.direction == "maximize"
     select = max if maximize else min
     return {
@@ -145,23 +152,82 @@ def evaluate_layered_records(
         },
         "constraints": {
             "safety_limit": contract.safety_limit,
+            "risk_limit_semantics": contract.risk_limit_semantics,
+            "risk_aggregation": contract.risk_aggregation,
             "max_observed_safety_risk": max(observed_risks) if observed_risks else None,
-            "unsafe_operation_count": unsafe_count,
+            "experiment_max_risks": max_risks,
+            "risk_budget_exceedance_count": risk_exceedance_count,
+            "risk_budget_exceedance_rate": risk_exceedance_count / len(max_risks)
+            if max_risks
+            else 0.0,
+            "legacy_unsafe_operation_count": unsafe_count,
             "high_cost_operation_count": high_cost_count,
-            "constraint_activated": unsafe_count > 0,
+            "constraint_activated": risk_exceedance_count > 0,
         },
         "resources": {
-            "campaign_process_cost": sum(terminal_costs),
+            "campaign_total_cost": sum(float(attempt["total_cost"]) for attempt in attempts),
+            "campaign_process_cost": sum(process_costs),
             "terminal_experiment_costs": terminal_costs,
             "measurement_cost": measurement_cost,
+            "attempt_process_costs": process_costs,
             "operation_count": len(records),
             "complete_experiment_count": len(terminal_records),
+            "incomplete_experiment_count": sum(not attempt["complete"] for attempt in attempts),
         },
         "validity": {
             "invalid_operation_count": invalid_count,
             "invalid_operation_rate": invalid_count / len(records),
         },
     }
+
+
+def _attempt_summaries(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    attempts: list[dict[str, Any]] = []
+    current: list[dict[str, Any]] = []
+    for record in records:
+        current.append(record)
+        if record.get("leaderboard_score") is not None:
+            attempts.append(_summarize_attempt(current, complete=True))
+            current = []
+    if current:
+        attempts.append(_summarize_attempt(current, complete=False))
+    return attempts
+
+
+def _summarize_attempt(
+    records: list[dict[str, Any]],
+    *,
+    complete: bool,
+) -> dict[str, Any]:
+    risks = [
+        _finite_float(record["observation"]["safety_risk"], "safety_risk")
+        for record in records
+        if isinstance(record.get("observation"), dict)
+        and record["observation"].get("safety_risk") is not None
+    ]
+    total_cost = _last_observed_value(records, "cost")
+    measurement_cost = sum(
+        _finite_float(record.get("measurement_cost", 0.0), "measurement_cost") for record in records
+    )
+    process_cost = total_cost - measurement_cost
+    if process_cost < -1.0e-9:
+        raise ValueError("measurement cost exceeds the experiment total cost")
+    return {
+        "complete": complete,
+        "terminal_record": records[-1],
+        "total_cost": total_cost,
+        "measurement_cost": measurement_cost,
+        "process_cost": max(process_cost, 0.0),
+        "max_risk": max(risks) if risks else None,
+    }
+
+
+def _last_observed_value(records: list[dict[str, Any]], key: str) -> float:
+    for record in reversed(records):
+        observation = record.get("observation")
+        if isinstance(observation, dict) and observation.get(key) is not None:
+            return _finite_float(observation[key], key)
+    raise ValueError(f"experiment has no observed {key!r}")
 
 
 def _required_observation(record: dict[str, Any], key: str) -> float:

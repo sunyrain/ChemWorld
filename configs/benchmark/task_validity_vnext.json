@@ -1,0 +1,23 @@
+{
+  "schema_version": "chemworld-task-validity-protocol-0.1",
+  "protocol_id": "chemworld-vnext-task-validity-candidate-0.1",
+  "status": "candidate_evidence_review",
+  "benchmark_claim_allowed": false,
+  "primary_comparator": "gp_bo__minus__random",
+  "direction_alpha": 0.05,
+  "comparator_absolute_sesoi": 0.05,
+  "minimum_surface_normalized_effect": 0.05,
+  "minimum_primary_surface_spread": 0.05,
+  "role_policy": {
+    "core_confirmed": "positive primary direction and comparator-level absolute SESOI",
+    "core_candidate": "positive primary direction and surface-normalized effect threshold",
+    "exploratory": "primary direction unsupported"
+  },
+  "remaining_release_gates": [
+    "freeze task-specific SESOI values before a vNext confirmatory run",
+    "rerun the proposed core-4 under frozen world and risk-cost policies",
+    "redesign electrochemical and equilibrium objectives around their declared capabilities",
+    "require a second directional round before promoting any exploratory task",
+    "bind final task roles to the immutable vNext release manifest"
+  ]
+}
