@@ -11,6 +11,7 @@
     "paired_seed_count_positive": true,
     "pre_freeze_runs_are_diagnostic": true,
     "private_chain_of_thought_not_required": true,
+    "provider_retries_are_bounded_and_counted": true,
     "resource_overrun_fails_closed": true,
     "schema": true,
     "stub_methods_excluded": true
@@ -158,10 +159,10 @@
     },
     "live_llm_a": {
       "blockers": [
-        "provider and model snapshot not frozen",
+        "DeepSeek V4 Pro role, thinking mode, prompt contract and pricing snapshot are frozen",
         "no multi-seed replay-verified live trajectories"
       ],
-      "current_eligibility": "missing",
+      "current_eligibility": "controls_ready_not_registered",
       "family": "llm",
       "formal_role": "required",
       "implementation": null,
@@ -182,10 +183,10 @@
     },
     "live_llm_b": {
       "blockers": [
-        "second independently configured model class not frozen",
+        "independent DeepSeek V4 Flash non-thinking role and pricing snapshot are frozen",
         "no multi-seed replay-verified live trajectories"
       ],
-      "current_eligibility": "missing",
+      "current_eligibility": "controls_ready_not_registered",
       "family": "llm",
       "formal_role": "required",
       "implementation": null,
@@ -230,10 +231,10 @@
     },
     "ppo": {
       "blockers": [
-        "no train-only world-family implementation",
-        "no retained checkpoint and compute ledger"
+        "train-only environment and PPO substrate exist but are not registered as a formal evaluation adapter",
+        "no retained full-budget checkpoint and compute ledger"
       ],
-      "current_eligibility": "missing",
+      "current_eligibility": "controls_ready_not_registered",
       "family": "reinforcement_learning",
       "formal_role": "required",
       "implementation": null,
@@ -269,10 +270,10 @@
     },
     "sac": {
       "blockers": [
-        "no continuous-control adapter",
-        "no retained checkpoint and compute ledger"
+        "continuous-control adapter and SAC substrate exist but are not registered as a formal evaluation adapter",
+        "no retained full-budget checkpoint and compute ledger"
       ],
-      "current_eligibility": "missing",
+      "current_eligibility": "controls_ready_not_registered",
       "family": "reinforcement_learning",
       "formal_role": "required",
       "implementation": null,
@@ -441,8 +442,8 @@
   "remaining_release_gates": [
     "freeze task-specific SESOI and the provisional core task set",
     "freeze world-family Train/Dev/Bench assignments and severity grids",
-    "implement PPO and SAC with train-only worlds and compute ledgers",
-    "freeze two live LLM model snapshots and prompt hashes",
+    "complete full-budget PPO and SAC training on train-only worlds and retain compute ledgers",
+    "register frozen PPO, SAC, DeepSeek V4 Pro and DeepSeek V4 Flash formal adapters",
     "run spectra-enabled versus spectra-masked paired LLM ablations",
     "retain and replay-verify every confirmatory trajectory"
   ],

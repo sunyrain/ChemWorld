@@ -66,7 +66,10 @@
       "gpu_time_s"
     ],
     "llm_hard_limits_per_evaluation_run": {
-      "model_calls": "at_most_one_new_call_per_operation",
+      "logical_decisions_per_operation": 1,
+      "provider_request_limit_per_operation": 6,
+      "failed_requests_count_toward_limit": true,
+      "provider_request_rationale": "one decision plus at most one repair, each with up to three JSON attempts",
       "input_tokens": 1000000,
       "output_tokens": 200000,
       "monetary_cost_usd": 50.0
@@ -177,27 +180,27 @@
       "family": "reinforcement_learning",
       "implementation": null,
       "formal_role": "required",
-      "current_eligibility": "missing",
+      "current_eligibility": "controls_ready_not_registered",
       "blockers": [
-        "no train-only world-family implementation",
-        "no retained checkpoint and compute ledger"
+        "train-only environment and PPO substrate exist but are not registered as a formal evaluation adapter",
+        "no retained full-budget checkpoint and compute ledger"
       ]
     },
     "sac": {
       "family": "reinforcement_learning",
       "implementation": null,
       "formal_role": "required",
-      "current_eligibility": "missing",
+      "current_eligibility": "controls_ready_not_registered",
       "blockers": [
-        "no continuous-control adapter",
-        "no retained checkpoint and compute ledger"
+        "continuous-control adapter and SAC substrate exist but are not registered as a formal evaluation adapter",
+        "no retained full-budget checkpoint and compute ledger"
       ]
     },
     "live_llm_a": {
       "family": "llm",
       "implementation": null,
       "formal_role": "required",
-      "current_eligibility": "missing",
+      "current_eligibility": "controls_ready_not_registered",
       "required_capabilities": {
         "decision_scope": "operation",
         "consumes_intermediate_observations": true,
@@ -207,7 +210,7 @@
         "emits_structured_decision_audit": true
       },
       "blockers": [
-        "provider and model snapshot not frozen",
+        "DeepSeek V4 Pro role, thinking mode, prompt contract and pricing snapshot are frozen",
         "no multi-seed replay-verified live trajectories"
       ]
     },
@@ -215,7 +218,7 @@
       "family": "llm",
       "implementation": null,
       "formal_role": "required",
-      "current_eligibility": "missing",
+      "current_eligibility": "controls_ready_not_registered",
       "required_capabilities": {
         "decision_scope": "operation",
         "consumes_intermediate_observations": true,
@@ -225,7 +228,7 @@
         "emits_structured_decision_audit": true
       },
       "blockers": [
-        "second independently configured model class not frozen",
+        "independent DeepSeek V4 Flash non-thinking role and pricing snapshot are frozen",
         "no multi-seed replay-verified live trajectories"
       ]
     },
@@ -330,8 +333,8 @@
   "remaining_release_gates": [
     "freeze task-specific SESOI and the provisional core task set",
     "freeze world-family Train/Dev/Bench assignments and severity grids",
-    "implement PPO and SAC with train-only worlds and compute ledgers",
-    "freeze two live LLM model snapshots and prompt hashes",
+    "complete full-budget PPO and SAC training on train-only worlds and retain compute ledgers",
+    "register frozen PPO, SAC, DeepSeek V4 Pro and DeepSeek V4 Flash formal adapters",
     "run spectra-enabled versus spectra-masked paired LLM ablations",
     "retain and replay-verify every confirmatory trajectory"
   ]

@@ -112,6 +112,10 @@ class MethodResourceLedger:
     agent_usage: dict[str, Any] = field(default_factory=dict)
     reached_checkpoints: list[int] = field(default_factory=list)
 
+    def __post_init__(self) -> None:
+        if self.requires_online_model and self.limits.model_call_limit is None:
+            raise ValueError("online model ledgers require an explicit provider request limit")
+
     def record_decision(
         self,
         *,
@@ -226,16 +230,10 @@ class MethodResourceLedger:
             ("gpu_time_s", usage["gpu_time_s"], self.limits.gpu_time_limit_s),
         )
         exceeded = [
-            name
-            for name, observed, limit in checks
-            if limit is not None and observed > limit
+            name for name, observed, limit in checks if limit is not None and observed > limit
         ]
-        if self.requires_online_model and usage["model_call_count"] > self.operation_count:
-            exceeded.append("model_call_count_per_operation")
         if exceeded:
-            raise MethodResourceLimitError(
-                "method resource limit exceeded: " + ", ".join(exceeded)
-            )
+            raise MethodResourceLimitError("method resource limit exceeded: " + ", ".join(exceeded))
 
 
 def audit_method_protocol(
@@ -263,8 +261,7 @@ def audit_method_protocol(
         capabilities = manifest.get("interaction_capabilities", {})
         required_capabilities = spec.get("required_capabilities", {})
         capabilities_ready = all(
-            capabilities.get(name) == expected
-            for name, expected in required_capabilities.items()
+            capabilities.get(name) == expected for name, expected in required_capabilities.items()
         )
         implementation_contract_ready = implemented and encoding_ready and capabilities_ready
         methods[str(method_id)] = {
@@ -325,14 +322,23 @@ def audit_method_protocol(
         "resource_overrun_fails_closed": (
             protocol.get("resource_policy", {}).get("overrun_policy") == "fail_closed"
         ),
+        "provider_retries_are_bounded_and_counted": (
+            int(
+                protocol.get("resource_policy", {})
+                .get("llm_hard_limits_per_evaluation_run", {})
+                .get("provider_request_limit_per_operation", 0)
+            )
+            >= 1
+            and protocol.get("resource_policy", {})
+            .get("llm_hard_limits_per_evaluation_run", {})
+            .get("failed_requests_count_toward_limit")
+            is True
+        ),
         "pre_freeze_runs_are_diagnostic": (
             protocol.get("pre_freeze_result_policy") == "diagnostic_only"
         ),
         "declared_eligibility_matches_manifests": all(
-            (
-                card["current_eligibility"] == "candidate"
-                and card["implementation_contract_ready"]
-            )
+            (card["current_eligibility"] == "candidate" and card["implementation_contract_ready"])
             or (
                 card["current_eligibility"] != "candidate"
                 and not card["implementation_contract_ready"]
@@ -395,9 +401,12 @@ def evaluation_resource_limits(
     }
     if requires_online_model:
         llm_limits = resource_policy["llm_hard_limits_per_evaluation_run"]
+        request_multiplier = int(llm_limits["provider_request_limit_per_operation"])
+        if request_multiplier < 1:
+            raise ValueError("provider_request_limit_per_operation must be positive")
         payload.update(
             {
-                "model_call_limit": operation_limit,
+                "model_call_limit": operation_limit * request_multiplier,
                 "input_token_limit": int(llm_limits["input_tokens"]),
                 "output_token_limit": int(llm_limits["output_tokens"]),
                 "monetary_cost_limit_usd": float(llm_limits["monetary_cost_usd"]),
