@@ -18,6 +18,18 @@ teacher runner owns env.reset/env.step
 student process only receives sanitized task_info/history/observation and returns action
 ```
 
+The teacher now constructs reset/act/update messages from explicit public-field allowlists,
+recursively rejects hidden/debug/private-task-text/traceback/absolute-path content, limits
+message and response sizes, and validates student responses against the request-specific JSON
+schema. Student tracebacks remain teacher-private and are reduced to a generic protocol error.
+The world/evaluation seed is not included in public task metadata; student randomness receives
+a separately configured public agent seed (zero by default).
+
+These controls minimize the JSONL interaction surface; they do not change the threat model.
+The local subprocess can still access host resources allowed by the operating system. Unknown
+third-party code requires an external no-network, read-only, low-privilege container with CPU,
+memory, PID, and wall-time limits.
+
 ## Demo
 
 From the repository root:

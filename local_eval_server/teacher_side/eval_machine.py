@@ -38,6 +38,18 @@ import gymnasium as gym
 import chemworld  # noqa: F401
 from chemworld.data.logging import TrajectoryLogger, load_jsonl, observation_to_json
 from chemworld.eval.leaderboard import aggregate_leaderboard
+from chemworld.eval.public_harness import (
+    HarnessPolicy,
+    act_request,
+    close_request,
+    history_entry,
+    public_step_info,
+    public_task_info,
+    reset_request,
+    update_request,
+    validate_public_payload,
+    validate_student_response,
+)
 from chemworld.eval.result_artifacts import build_verified_evaluation_result
 from chemworld.tasks import get_task
 
@@ -61,15 +73,6 @@ STUDENT_ENV_ALLOWLIST = {
 TEAM_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
 MODULE_PATTERN = re.compile(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\Z")
 ATTRIBUTE_PATTERN = re.compile(r"[A-Za-z_]\w*\Z")
-SANITIZED_TASK_KEYS = {
-    "world_id",
-    "world_provider",
-}
-SANITIZED_INFO_KEYS = {
-    "world_id",
-    "world_provider",
-    "truth",
-}
 
 
 @dataclass(frozen=True)
@@ -106,11 +109,24 @@ def load_config(path: Path) -> dict[str, Any]:
     config.setdefault("student_timeout_s", 10.0)
     config.setdefault("runtime_python", None)
     config.setdefault("execution_mode", "trusted-local-subprocess")
+    config.setdefault("public_message_limit_bytes", 1_000_000)
+    config.setdefault("student_response_limit_bytes", 100_000)
+    config.setdefault("public_agent_seed", 0)
     if config["execution_mode"] != "trusted-local-subprocess":
         raise ValueError(
             "This evaluator only implements execution_mode='trusted-local-subprocess'; "
             "run untrusted submissions in a separately configured container sandbox"
         )
+    message_limit = config["public_message_limit_bytes"]
+    response_limit = config["student_response_limit_bytes"]
+    public_agent_seed = config["public_agent_seed"]
+    if not isinstance(message_limit, int) or isinstance(message_limit, bool):
+        raise ValueError("public_message_limit_bytes must be an integer")
+    if not isinstance(response_limit, int) or isinstance(response_limit, bool):
+        raise ValueError("student_response_limit_bytes must be an integer")
+    if not isinstance(public_agent_seed, int) or isinstance(public_agent_seed, bool):
+        raise ValueError("public_agent_seed must be an integer")
+    HarnessPolicy(message_limit_bytes=message_limit, response_limit_bytes=response_limit)
     return config
 
 
@@ -156,9 +172,7 @@ def _validated_entrypoint_path(path: Path, entrypoint: object) -> Path:
         or not MODULE_PATTERN.fullmatch(module_name)
         or not ATTRIBUTE_PATTERN.fullmatch(attribute)
     ):
-        raise ValueError(
-            "entrypoint must use the form 'python.module:function_or_object'"
-        )
+        raise ValueError("entrypoint must use the form 'python.module:function_or_object'")
     module_relative = str(Path(*module_name.split(".")).with_suffix(".py"))
     return _contained_path(path, module_relative, field="entrypoint")
 
@@ -196,9 +210,7 @@ def validate_submission(path: Path) -> Submission:
         raise ValueError(f"{manifest_path} requests network access")
     team_id = str(manifest["team_id"])
     if not TEAM_ID_PATTERN.fullmatch(team_id):
-        raise ValueError(
-            "team_id must be 1-64 ASCII letters, digits, underscores, or hyphens"
-        )
+        raise ValueError("team_id must be 1-64 ASCII letters, digits, underscores, or hyphens")
     entrypoint_path = _validated_entrypoint_path(path, manifest["entrypoint"])
     if not entrypoint_path.is_file():
         raise ValueError(f"{path} missing entrypoint module {entrypoint_path.name}")
@@ -233,16 +245,10 @@ def accept_submissions(workspace: Path) -> list[Submission]:
         shutil.move(str(incoming), destination)
         accepted.append(validate_submission(destination))
     accepted.extend(
-        validate_submission(path)
-        for path in sorted(paths["accepted"].iterdir())
-        if path.is_dir()
+        validate_submission(path) for path in sorted(paths["accepted"].iterdir()) if path.is_dir()
     )
     unique: dict[str, Submission] = {submission.team_id: submission for submission in accepted}
     return [unique[key] for key in sorted(unique)]
-
-
-def _sanitize_mapping(payload: dict[str, Any], blocked: set[str]) -> dict[str, Any]:
-    return {key: value for key, value in payload.items() if key not in blocked}
 
 
 def student_process_environment(submission: Submission) -> dict[str, str]:
@@ -258,9 +264,7 @@ def student_process_environment(submission: Submission) -> dict[str, str]:
             "PYTHONNOUSERSITE": "1",
             "PYTHONUNBUFFERED": "1",
             "PYTHONUTF8": "1",
-            "PYTHONPATH": os.pathsep.join(
-                [str(submission.path), str(STUDENT_RUNTIME.parent)]
-            ),
+            "PYTHONPATH": os.pathsep.join([str(submission.path), str(STUDENT_RUNTIME.parent)]),
         }
     )
     return env
@@ -274,14 +278,20 @@ class StudentProcess:
         timeout_s: float,
         runtime_python: str | None,
         stderr_path: Path,
+        policy: HarnessPolicy,
     ) -> None:
         self.submission = submission
         self.timeout_s = timeout_s
         self.runtime_python = runtime_python or sys.executable
         self.stderr_path = stderr_path
+        self.policy = policy
         self._stderr_handle: TextIO | None = None
         self._executor = ThreadPoolExecutor(max_workers=1)
         self._process: subprocess.Popen[str] | None = None
+
+    @property
+    def pid(self) -> int | None:
+        return None if self._process is None else self._process.pid
 
     def __enter__(self) -> StudentProcess:
         env = student_process_environment(self.submission)
@@ -309,7 +319,7 @@ class StudentProcess:
         try:
             if self._process and self._process.poll() is None:
                 with contextlib.suppress(RuntimeError):
-                    self.request({"type": "close"})
+                    self.request(close_request(self.policy))
                 self._process.terminate()
         finally:
             self._executor.shutdown(wait=False, cancel_futures=True)
@@ -321,22 +331,32 @@ class StudentProcess:
             raise RuntimeError("student process is not running")
         if self._process.poll() is not None:
             raise RuntimeError(f"student process exited with code {self._process.returncode}")
+        validate_public_payload(payload, max_bytes=self.policy.message_limit_bytes)
         self._process.stdin.write(json.dumps(payload, sort_keys=True) + "\n")
         self._process.stdin.flush()
-        future = self._executor.submit(self._process.stdout.readline)
+        future = self._executor.submit(
+            self._process.stdout.readline,
+            self.policy.response_limit_bytes + 1,
+        )
         try:
             line = future.result(timeout=self.timeout_s)
         except TimeoutError as exc:
             self._process.kill()
-            raise RuntimeError(
-                f"student process timed out after {self.timeout_s:.1f}s"
-            ) from exc
+            raise RuntimeError(f"student process timed out after {self.timeout_s:.1f}s") from exc
         if not line:
             raise RuntimeError("student process closed stdout")
-        response = json.loads(line)
-        if not bool(response.get("ok", False)):
-            raise RuntimeError(str(response.get("error", response)))
-        return response
+        if len(line.encode("utf-8")) > self.policy.response_limit_bytes:
+            self._process.kill()
+            raise RuntimeError("student_protocol_response_too_large")
+        try:
+            response = json.loads(line)
+        except json.JSONDecodeError as error:
+            raise RuntimeError("student_protocol_invalid_json") from error
+        return validate_student_response(
+            response,
+            request_type=str(payload.get("type", "")),
+            policy=self.policy,
+        )
 
 
 def _task_entries(
@@ -368,9 +388,7 @@ def run_trajectory(
     run_root: Path,
 ) -> dict[str, Any]:
     team_root = run_root / submission.team_id
-    trajectory_path = (
-        team_root / "trajectories" / f"{task_id}_seed{seed}.jsonl"
-    )
+    trajectory_path = team_root / "trajectories" / f"{task_id}_seed{seed}.jsonl"
     result_path = team_root / "results" / f"{task_id}_seed{seed}.json"
     verify_path = team_root / "verify" / f"{task_id}_seed{seed}.json"
     stderr_path = team_root / "logs" / f"{task_id}_seed{seed}.stderr.log"
@@ -389,7 +407,17 @@ def run_trajectory(
 
     env = gym.make("ChemWorld", task_id=task_id, seed=seed)
     observation, task_info = env.reset(seed=seed)
-    safe_task_info = _sanitize_mapping(task_info, SANITIZED_TASK_KEYS)
+    base_env: Any = env.unwrapped
+    hidden_species = set(base_env.scenario_instance.compiled_mechanism.species_index)
+    policy = HarnessPolicy(
+        message_limit_bytes=int(config["public_message_limit_bytes"]),
+        response_limit_bytes=int(config["student_response_limit_bytes"]),
+    )
+    safe_task_info = public_task_info(
+        task_info,
+        hidden_species_ids=hidden_species,
+        policy=policy,
+    )
     history: list[dict[str, Any]] = []
     metadata = {
         "agent_name": submission.agent_name,
@@ -406,19 +434,37 @@ def run_trajectory(
             timeout_s=float(config["student_timeout_s"]),
             runtime_python=config.get("runtime_python"),
             stderr_path=stderr_path,
+            policy=policy,
         ) as student,
         TrajectoryLogger(trajectory_path) as logger,
     ):
         stdout_log.write(json.dumps({"event": "reset", "task_id": task_id, "seed": seed}) + "\n")
-        student.request({"type": "reset", "task_info": safe_task_info, "seed": seed})
+        student.request(
+            reset_request(
+                safe_task_info,
+                int(config["public_agent_seed"]),
+                hidden_species_ids=hidden_species,
+                policy=policy,
+            )
+        )
         terminated = False
         truncated = False
         try:
             for step in range(1, int(task_info["budget"]) + 1):
-                action = student.request({"type": "act", "history": history})["action"]
+                action = student.request(
+                    act_request(
+                        history,
+                        hidden_species_ids=hidden_species,
+                        policy=policy,
+                    )
+                )["action"]
                 observation, reward, terminated, truncated, info = env.step(action)
                 observation_json = observation_to_json(observation)
-                safe_info = _sanitize_mapping(info, SANITIZED_INFO_KEYS)
+                safe_info = public_step_info(
+                    info,
+                    hidden_species_ids=hidden_species,
+                    policy=policy,
+                )
                 logger.log(
                     task_info=task_info,
                     step=step,
@@ -431,22 +477,25 @@ def run_trajectory(
                     agent_metadata=metadata,
                 )
                 student.request(
-                    {
-                        "type": "update",
-                        "action": action,
-                        "observation": observation_json,
-                        "reward": float(reward),
-                        "info": safe_info,
-                    }
+                    update_request(
+                        action=action,
+                        observation=observation_json,
+                        reward=float(reward),
+                        info=safe_info,
+                        hidden_species_ids=hidden_species,
+                        policy=policy,
+                    )
                 )
                 history.append(
-                    {
-                        "step": step,
-                        "action": action,
-                        "observation": observation_json,
-                        "reward": float(reward),
-                        "info": safe_info,
-                    }
+                    history_entry(
+                        step=step,
+                        action=action,
+                        observation=observation_json,
+                        reward=float(reward),
+                        info=safe_info,
+                        hidden_species_ids=hidden_species,
+                        policy=policy,
+                    )
                 )
                 stdout_log.write(
                     json.dumps(
