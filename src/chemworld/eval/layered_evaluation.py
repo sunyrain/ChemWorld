@@ -205,10 +205,18 @@ def _summarize_attempt(
         if isinstance(record.get("observation"), dict)
         and record["observation"].get("safety_risk") is not None
     ]
-    total_cost = _last_observed_value(records, "cost")
     measurement_cost = sum(
         _finite_float(record.get("measurement_cost", 0.0), "measurement_cost") for record in records
     )
+    try:
+        total_cost = _last_observed_value(records, "cost")
+    except ValueError:
+        if complete:
+            raise
+        # A rejected or truncated tail can contain no public cost observation.
+        # It adds no process cost, but any explicitly charged measurement cost
+        # remains part of the resource ledger.
+        total_cost = measurement_cost
     process_cost = total_cost - measurement_cost
     if process_cost < -1.0e-9:
         raise ValueError("measurement cost exceeds the experiment total cost")

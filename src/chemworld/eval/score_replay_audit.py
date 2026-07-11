@@ -227,6 +227,7 @@ def _source_digests() -> dict[str, str]:
         "metrics": ROOT / "src" / "chemworld" / "eval" / "metrics.py",
         "result_artifacts": ROOT / "src" / "chemworld" / "eval" / "result_artifacts.py",
         "leaderboard": ROOT / "src" / "chemworld" / "eval" / "leaderboard.py",
+        "layered_evaluation": ROOT / "src" / "chemworld" / "eval" / "layered_evaluation.py",
     }
     return {name: hashlib.sha256(path.read_bytes()).hexdigest() for name, path in paths.items()}
 

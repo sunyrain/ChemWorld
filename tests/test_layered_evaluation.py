@@ -81,6 +81,21 @@ def test_layered_evaluator_fails_on_missing_terminal_primary() -> None:
         )
 
 
+def test_layered_evaluator_accepts_costless_incomplete_tail() -> None:
+    contract = TaskEvaluationContract.for_task("partition-discovery")
+    records = [
+        _record(score=0.4, primary=0.5, cost=0.2, reward=0.4),
+        _record(score=None, primary=None, cost=None, reward=0.0),
+    ]
+    records[-1]["constraint_flags"]["precondition_failed"] = True
+
+    result = evaluate_layered_records(records, contract=contract)
+
+    assert result["resources"]["campaign_total_cost"] == pytest.approx(0.2)
+    assert result["resources"]["incomplete_experiment_count"] == 1
+    assert result["validity"]["invalid_operation_count"] == 1
+
+
 def test_frozen_evaluation_report_keeps_signal_blocker_visible() -> None:
     report = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
     assert report["controls_ready"] is True
