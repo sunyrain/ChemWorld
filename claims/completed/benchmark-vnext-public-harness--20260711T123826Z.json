@@ -1,0 +1,22 @@
+{
+  "branch": "team/benchmark-vnext-public-harness",
+  "claimed_at": "2026-07-11T12:20:52.759391+00:00",
+  "completed_at": "2026-07-11T12:38:26.150837+00:00",
+  "completion_summary": "Implemented and integrated a candidate-only public JSONL subprocess boundary with explicit task/info allowlists, recursive hidden/debug/private-task-text/traceback/absolute-path rejection, finite message and response limits enforced during stdout reads, request-typed student response schemas, generic non-reflecting student errors, and a public agent RNG seed decoupled from hidden world/evaluation seeds. Evidence: all six serious tasks passed real reset/act/update/history message audits; hidden/text/path/traceback negative probes failed closed; an actual separate student subprocess passed reset/act; 27 public-harness/local-eval/public-leakage tests passed; Ruff, core/script mypy, teacher mypy, and claim check passed. Reference evidence: none required for the message-boundary contract. Known limitations: trusted local subprocess is not an OS sandbox and cannot safely run unknown third-party code without an external no-network/read-only/low-privilege resource-limited container; exploit matrix, formal private evaluation, benchmark, and publication claims remain closed. Implementation commit a70bb40; integration commit 126813c.",
+  "expires_at": "2026-07-18T12:20:52.759391+00:00",
+  "notes": "",
+  "owned_paths": [
+    "src/chemworld/eval/public_harness.py",
+    "local_eval_server/teacher_side/eval_machine.py",
+    "local_eval_server/README.md",
+    "scripts/audit_public_harness.py",
+    "tests/test_public_harness.py",
+    "configs/benchmark/public_harness_vnext.json",
+    "workstreams/benchmark_v1/reports/public-harness-controls.json"
+  ],
+  "owner": "knitua",
+  "schema_version": "chemworld-task-claim-0.1",
+  "scope": "Enforce and audit a candidate-only independent JSONL public interaction boundary: allowlisted reset/act/update messages, recursive hidden/debug/private-text/traceback/path leakage rejection, bounded and request-typed student responses, real subprocess probing, and explicit trusted-local-not-sandbox semantics across all six serious tasks",
+  "status": "completed",
+  "task_id": "benchmark-vnext-public-harness"
+}
