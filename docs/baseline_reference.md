@@ -30,7 +30,7 @@ python scripts/run_serious_task_suite.py --output-dir runs/serious_release
 | 局部搜索 | `greedy_local` | 简单自适应对照 |
 | 类型化 GP | `structured_gp_bo`, `structured_gp_pi`, `structured_gp_ucb` | EI/PI/UCB 主动学习 |
 | 类型化树模型 | `structured_rf_ei` | 非 GP surrogate 对照 |
-| 安全约束 GP | `structured_safe_gp_bo` | 风险代理与约束 acquisition；需单独证明约束有效 |
+| 安全约束 GP | `structured_safe_gp_bo` | 峰值风险代理与约束 acquisition；已有四任务边界确认，尚未通过联合主规则 |
 | LLM 工程探针 | `tool_using_llm_stub` | 协议回归，不是 live LLM 证据 |
 
 旧 ordinal 表示变体只用于兼容或消融。正式候选方法必须把材料选择编码为类别变量；数字代号只是稳定
@@ -50,12 +50,17 @@ python scripts/run_serious_task_suite.py --output-dir runs/serious_release
 live LLM 还必须冻结 provider、模型标识、prompt hash、请求参数和 token 来源。replay 或 stub 不得
 冒充在线模型结果。
 
-## 当前经典诊断
+## 当前经典证据
 
-160 条新 cohort 结果显示，`structured_gp_bo` 相对 `random` 在分配、结晶、蒸馏和流动主指标上
-达到预设 objective SESOI，且成本非劣通过；但候选在三项任务未通过预注册安全非劣界限。因此
-完整 baseline 主比较失败。后续风险感知方法只能在 Train/Dev worlds 开发，并使用另一个未触碰
-cohort 确认。
+0.3 诊断的 160 条新 cohort 结果显示，`structured_gp_bo` 相对 `random` 达到四项 objective SESOI，
+但在三项任务未通过安全非劣。随后 `structured_safe_gp_bo` 仅在 Dev seeds 1100–1119 上修复和选择：
+风险标签改为单次实验的操作峰值，低强度初始设计与不确定性约束进入 acquisition，材料类别与连续
+用量解耦为 recipe space 0.2。
+
+修复策略在运行前绑定实现摘要，并在未触碰 seeds 500–519 上完成 240 条确认运行与独立回放。
+它相对 `random` 通过四项 safety 与 cost 规则，四项目标方向均为正；分配、结晶和蒸馏达到 SESOI，
+连续流效应 0.018752 略低于 SESOI 0.020000。因此完整 baseline 主比较仍失败，不能用这批 Bench
+结果继续调参；任何新策略都需要新的 Dev 选择和未触碰确认 cohort。
 
 ## 最低报告字段
 

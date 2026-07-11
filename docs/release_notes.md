@@ -1,5 +1,16 @@
 # 发布说明
 
+## 2026-07-12 · Safe-GP development and untouched confirmation
+
+- 修复风险代理误学 final-assay 末态风险的问题，改为实验内操作峰值风险；
+- recipe space 升至 0.2，类别材料使用 one-hot，连续用量与类别选择解耦；
+- Dev seeds 1100–1119 上完成 240 条策略选择运行和独立回放，开发证据不得用于 benchmark 主张；
+- 在结果产生前绑定策略实现摘要、seeds 500–519、SESOI、安全/成本界限与统计规则；
+- 完成 240/240 条确认运行和第二次独立 replay，失败 0、轨迹摘要 240 个且互不重复；
+- Safe-GP 相对 random 的四项 safety/cost 规则与四项目标方向通过；
+- 连续流平均目标效应 0.018752 低于 SESOI 0.020000，完整联合规则为 `false`；
+- benchmark、publication 与方法优越性主张继续关闭，seeds 500–519 不得用于后续调参。
+
 ## 2026-07-12 · Constrained fresh-cohort evidence
 
 - 归档 0.2 objective-only 协议与证据，不复用其 seeds 20–39；

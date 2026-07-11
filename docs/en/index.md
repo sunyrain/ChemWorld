@@ -20,10 +20,12 @@ observation, scoring, and replay contracts.
 ## Evidence status
 
 ChemWorld is an operational research environment and a benchmark candidate, not a validated
-leaderboard. A fresh-cohort protocol pre-registered objective, safety, and cost rules for 160
-runs over four tasks, two methods, and twenty paired seeds. Structured GP passed all objective
-and cost rules, but failed safety non-inferiority in flow, crystallization, and distillation.
-The complete joint rule therefore failed and does not support a method claim.
+leaderboard. After an unconstrained GP diagnostic exposed safety regressions, Safe-GP was
+repaired on development worlds and frozen before an untouched 240-run confirmation over four
+tasks, three methods, and twenty paired seeds. All trajectories passed a second independent
+replay. Safe-GP passed every safety and cost rule and improved the objective on every task,
+but its flow effect (0.018752) missed the pre-registered SESOI (0.020000). The complete joint
+rule therefore failed and does not support a method claim.
 
 Full-budget RL, paired live-LLM evaluation, mechanism-family generalization, independent
 reference search, salted private evaluation, and independent reproduction remain open.

@@ -67,11 +67,15 @@ environment variables and must not be committed or included in evaluation artifa
 The runtime, task contracts, resource accounting, trajectory replay, score binding, and
 public evaluation controls are operational. The complete benchmark is not yet validated.
 
-A fresh-cohort 160-run comparison evaluated structured GP optimization against random
-search over four core research tasks (20 paired seeds, 40 experiments per run). Every
-trajectory replayed successfully. All objective and cost non-inferiority rules passed,
-but safety non-inferiority failed in flow, crystallization, and distillation. The complete
-pre-registered joint rule therefore failed and does not support a method claim or leaderboard.
+A first fresh-cohort comparison showed that unconstrained structured GP improved all four
+task objectives but failed safety non-inferiority in flow, crystallization, and distillation.
+Safe-GP was then repaired on development worlds to learn experiment-peak risk and use a
+categorical recipe space without ordinal leakage. Its policy and analysis were frozen before
+an untouched 240-run confirmation (four tasks, three methods, 20 paired seeds, 40 experiments
+per run). All 240 trajectories passed an independent second replay. Safe-GP passed every
+safety and cost rule and had a positive objective effect against random on every task, but the
+flow effect was 0.018752 against a pre-registered SESOI of 0.020000. The all-task joint rule
+therefore still failed and does not support a method claim or leaderboard.
 
 RL training results, live-LLM comparisons, mechanism-family generalization, a searched
 reference portfolio, salted private evaluation, and independent reproduction remain

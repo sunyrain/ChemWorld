@@ -71,12 +71,27 @@ Campaign  一次 task × world × seed × method 运行
 0.2 冻结诊断使用 seeds 20–39，objective-only 规则通过但暴露三任务风险退化。0.3 随后在运行前
 冻结 seeds 300–319、5 个百分点安全非劣界限、5% 相对成本非劣界限和 Bonferroni 同时上界。
 0.3 的四任务 objective 与 cost 规则通过，但三任务 safety 规则失败，因此完整主比较失败。
-这两个 cohort 都已消费；任何方法整改后的新确认实验必须再次使用未触碰 seeds。
+这两个 cohort 都已消费。
+
+Safe-GP 随后仅在 Dev seeds 1100–1119 上修复和选择。确认协议 0.1 在看见结果前冻结实现文件摘要、
+recipe space 0.2、峰值风险标签、seeds 500–519、四任务 SESOI 和相同的安全/成本非劣规则。240 条
+确认轨迹及独立回放显示四任务 safety/cost 全部通过，但连续流平均效应 0.018752 未达到 SESOI
+0.020000，故联合规则失败。seeds 500–519 同样已消费；任何方法修改都必须再次使用未触碰 seeds。
 
 ```powershell
 python scripts/run_vnext_primary.py --dry-run
 python scripts/run_vnext_primary.py --workers 4 --output-dir runs/benchmark-vnext/primary
 python scripts/audit_vnext_primary.py --run-root runs/benchmark-vnext/primary --workers 4
+```
+
+Safe-GP 冻结确认链为：
+
+```powershell
+python scripts/run_safe_policy_confirmatory.py --dry-run
+python scripts/run_safe_policy_confirmatory.py --workers 4
+python scripts/audit_safe_policy_confirmatory.py `
+  --run-root runs/benchmark-vnext/safe-policy-confirmatory-0.1 `
+  --output workstreams/benchmark_v1/reports/safe-policy-confirmatory.json
 ```
 
 ## RL 方法
