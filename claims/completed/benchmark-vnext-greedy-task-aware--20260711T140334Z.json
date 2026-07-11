@@ -1,0 +1,17 @@
+{
+  "branch": "team/benchmark-vnext-greedy-task-aware",
+  "claimed_at": "2026-07-11T13:52:00.810310+00:00",
+  "completed_at": "2026-07-11T14:03:34.230980+00:00",
+  "completion_summary": "Replaced the required greedy-local baseline legacy universal reaction recipe with the existing task-aware recipe-space contract. Warmup now samples each task-specific unit hypercube; exploitation perturbs the best completed task recipe, clips every coordinate to [0,1], retains deterministic single-coordinate exploration, and recompiles through the task contract. The manifest now records search policy, recipe-space version, encoding, warmup, perturbation scale, and exploration probability. This fixes the reproduced partition-discovery crash on disallowed add_catalyst/heat operations and keeps all six serious-task campaigns legal and deterministic. Validation: 9 new tests passed on full task budgets (221.79 s), then the minimized one-warmup/one-local regression suite passed twice including after merging current main; 12 related baseline/task-recipe tests passed; greedy.py reached 100% coverage in its dedicated suite; Ruff, mypy, claim check, and diff checks passed. One existing pytest-cache permission warning remains. Reference evidence: no external repository used; implementation consumes chemworld-task-recipe-space-0.1. Known limitations: no confirmatory performance matrix was run and no method ranking or benchmark/publication claim is made; classic policy distinctness and formal paired evaluation remain pending. Implementation commit 5d1ee22cc9787a5112e81fa93dbe66c9dab7e184; integration commit c9121c9b371871e97ebd1267daf547abb279f7bb.",
+  "expires_at": "2026-07-18T13:52:00.810310+00:00",
+  "notes": "Unblocks the benchmark-vnext-classic-baselines formal matrix after a diagnostic showed the legacy generic reaction recipe crashes on partition-discovery. Narrow agent-only fix plus new tests; no existing shared tests, registry, formal evidence, or release artifacts are owned.",
+  "owned_paths": [
+    "src/chemworld/agents/greedy.py",
+    "tests/test_greedy_task_aware.py"
+  ],
+  "owner": "knitua",
+  "schema_version": "chemworld-task-claim-0.1",
+  "scope": "Make the required greedy-local classic baseline use each task task-recipe search space for warmup and local perturbation so all serious tasks execute legal deterministic campaigns without changing task, world, scoring, runner, or frozen benchmark contracts",
+  "status": "completed",
+  "task_id": "benchmark-vnext-greedy-task-aware"
+}
