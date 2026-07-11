@@ -25,7 +25,7 @@ def test_suite_runs_and_reports_public_private_gap(tmp_path) -> None:
     assert all(result["verified"] for result in results)
     assert all(
         result["resource_usage"]["schema_version"]
-        == "chemworld-resource-usage-0.1"
+        == "chemworld-resource-usage-0.2"
         for result in results
     )
     assert all(result["resource_usage"]["run_wall_time_s"] >= 0.0 for result in results)
@@ -34,6 +34,12 @@ def test_suite_runs_and_reports_public_private_gap(tmp_path) -> None:
         == result["final_assay_count"]
         for result in results
     )
+    assert all(
+        result["resource_usage"]["method_ledger"]["operation_count"]
+        == result["steps"]
+        for result in results
+    )
+    assert all(result["resource_usage"]["model_call_count"] == 0 for result in results)
 
 
 def test_leaderboard_rejects_unverified_result() -> None:

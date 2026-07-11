@@ -6,6 +6,8 @@
     "checkpoint_schedule_sorted_unique": true,
     "checkpoint_schedule_within_budget": true,
     "complete_experiment_budget_positive": true,
+    "declared_eligibility_matches_manifests": true,
+    "evidence_sources_exist": true,
     "paired_seed_count_positive": true,
     "pre_freeze_runs_are_diagnostic": true,
     "private_chain_of_thought_not_required": true,
@@ -25,6 +27,28 @@
     "llm_replay",
     "tool_using_llm_stub"
   ],
+  "evidence": {
+    "five_seed_campaign_budget_curve": {
+      "exists": true,
+      "path": "workstreams/benchmark_v1/reports/campaign-budget-curve-pilot5.json",
+      "sha256": "6a286226c558110804608db65595c89ffb4338060a550529f10d445af9754a90"
+    },
+    "legacy_agent_interaction_audit": {
+      "exists": true,
+      "path": "workstreams/benchmark_v1/reports/agent-interaction-audit.json",
+      "sha256": "92bff9148cabfef370e14a273837c1dde7e6bca08431ea054c0442a344c6fffa"
+    },
+    "risk_cost_calibration": {
+      "exists": true,
+      "path": "workstreams/benchmark_v1/reports/risk-cost-signal-controls.json",
+      "sha256": "a5654480f782cd6a61ae3218b86997650ff54385c7c79bdd528f2ca652573911"
+    },
+    "task_validity_cards": {
+      "exists": true,
+      "path": "workstreams/benchmark_v1/reports/task-validity-vnext.json",
+      "sha256": "6b9cb313aa229bc151678694e69632f9175b68cf66eb194687eab9847745d6b1"
+    }
+  },
   "formal_candidate_methods": [
     "random",
     "lhs",
@@ -93,6 +117,7 @@
       "family": "local_search",
       "formal_role": "required",
       "implementation": "greedy",
+      "implementation_contract_ready": true,
       "implemented": true,
       "interaction_capabilities": {
         "adapts_across_experiments": true,
@@ -103,6 +128,9 @@
         "decision_scope": "experiment_recipe",
         "emits_structured_decision_audit": false
       },
+      "observed_recipe_encoding": null,
+      "required_capabilities": {},
+      "required_recipe_encoding": null,
       "requires_online_model": false
     },
     "lhs": {
@@ -111,6 +139,7 @@
       "family": "design",
       "formal_role": "required",
       "implementation": "lhs",
+      "implementation_contract_ready": true,
       "implemented": true,
       "interaction_capabilities": {
         "adapts_across_experiments": false,
@@ -121,6 +150,9 @@
         "decision_scope": "experiment_recipe",
         "emits_structured_decision_audit": false
       },
+      "observed_recipe_encoding": null,
+      "required_capabilities": {},
+      "required_recipe_encoding": null,
       "requires_online_model": false
     },
     "live_llm_a": {
@@ -132,8 +164,19 @@
       "family": "llm",
       "formal_role": "required",
       "implementation": null,
+      "implementation_contract_ready": false,
       "implemented": false,
       "interaction_capabilities": null,
+      "observed_recipe_encoding": null,
+      "required_capabilities": {
+        "adapts_across_experiments": true,
+        "adapts_within_experiment": true,
+        "consumes_intermediate_observations": true,
+        "consumes_spectra": true,
+        "decision_scope": "operation",
+        "emits_structured_decision_audit": true
+      },
+      "required_recipe_encoding": null,
       "requires_online_model": false
     },
     "live_llm_b": {
@@ -145,8 +188,19 @@
       "family": "llm",
       "formal_role": "required",
       "implementation": null,
+      "implementation_contract_ready": false,
       "implemented": false,
       "interaction_capabilities": null,
+      "observed_recipe_encoding": null,
+      "required_capabilities": {
+        "adapts_across_experiments": true,
+        "adapts_within_experiment": true,
+        "consumes_intermediate_observations": true,
+        "consumes_spectra": true,
+        "decision_scope": "operation",
+        "emits_structured_decision_audit": true
+      },
+      "required_recipe_encoding": null,
       "requires_online_model": false
     },
     "llm_replay": {
@@ -157,6 +211,7 @@
       "family": "stub",
       "formal_role": "excluded",
       "implementation": "llm_replay",
+      "implementation_contract_ready": true,
       "implemented": true,
       "interaction_capabilities": {
         "adapts_across_experiments": false,
@@ -167,6 +222,9 @@
         "decision_scope": "operation",
         "emits_structured_decision_audit": false
       },
+      "observed_recipe_encoding": null,
+      "required_capabilities": {},
+      "required_recipe_encoding": null,
       "requires_online_model": false
     },
     "ppo": {
@@ -178,8 +236,12 @@
       "family": "reinforcement_learning",
       "formal_role": "required",
       "implementation": null,
+      "implementation_contract_ready": false,
       "implemented": false,
       "interaction_capabilities": null,
+      "observed_recipe_encoding": null,
+      "required_capabilities": {},
+      "required_recipe_encoding": null,
       "requires_online_model": false
     },
     "random": {
@@ -188,6 +250,7 @@
       "family": "design",
       "formal_role": "required",
       "implementation": "random",
+      "implementation_contract_ready": true,
       "implemented": true,
       "interaction_capabilities": {
         "adapts_across_experiments": false,
@@ -198,6 +261,9 @@
         "decision_scope": "experiment_recipe",
         "emits_structured_decision_audit": false
       },
+      "observed_recipe_encoding": null,
+      "required_capabilities": {},
+      "required_recipe_encoding": null,
       "requires_online_model": false
     },
     "sac": {
@@ -209,8 +275,12 @@
       "family": "reinforcement_learning",
       "formal_role": "required",
       "implementation": null,
+      "implementation_contract_ready": false,
       "implemented": false,
       "interaction_capabilities": null,
+      "observed_recipe_encoding": null,
+      "required_capabilities": {},
+      "required_recipe_encoding": null,
       "requires_online_model": false
     },
     "structured_gp_ei": {
@@ -221,6 +291,7 @@
       "family": "bayesian_optimization",
       "formal_role": "required",
       "implementation": "structured_gp_bo",
+      "implementation_contract_ready": true,
       "implemented": true,
       "interaction_capabilities": {
         "adapts_across_experiments": true,
@@ -231,6 +302,9 @@
         "decision_scope": "experiment_recipe",
         "emits_structured_decision_audit": false
       },
+      "observed_recipe_encoding": "continuous_plus_material_one_hot",
+      "required_capabilities": {},
+      "required_recipe_encoding": "continuous_plus_material_one_hot",
       "requires_online_model": false
     },
     "structured_gp_pi": {
@@ -241,6 +315,7 @@
       "family": "bayesian_optimization",
       "formal_role": "required",
       "implementation": "gp_pi",
+      "implementation_contract_ready": false,
       "implemented": true,
       "interaction_capabilities": {
         "adapts_across_experiments": true,
@@ -251,6 +326,9 @@
         "decision_scope": "experiment_recipe",
         "emits_structured_decision_audit": false
       },
+      "observed_recipe_encoding": null,
+      "required_capabilities": {},
+      "required_recipe_encoding": "continuous_plus_material_one_hot",
       "requires_online_model": false
     },
     "structured_gp_ucb": {
@@ -261,6 +339,7 @@
       "family": "bayesian_optimization",
       "formal_role": "required",
       "implementation": "gp_ucb",
+      "implementation_contract_ready": false,
       "implemented": true,
       "interaction_capabilities": {
         "adapts_across_experiments": true,
@@ -271,6 +350,9 @@
         "decision_scope": "experiment_recipe",
         "emits_structured_decision_audit": false
       },
+      "observed_recipe_encoding": null,
+      "required_capabilities": {},
+      "required_recipe_encoding": "continuous_plus_material_one_hot",
       "requires_online_model": false
     },
     "structured_rf_ei": {
@@ -281,6 +363,7 @@
       "family": "bayesian_optimization",
       "formal_role": "required",
       "implementation": "rf_ei",
+      "implementation_contract_ready": false,
       "implemented": true,
       "interaction_capabilities": {
         "adapts_across_experiments": true,
@@ -291,6 +374,9 @@
         "decision_scope": "experiment_recipe",
         "emits_structured_decision_audit": false
       },
+      "observed_recipe_encoding": null,
+      "required_capabilities": {},
+      "required_recipe_encoding": "continuous_plus_material_one_hot",
       "requires_online_model": false
     },
     "structured_safe_gp_ei": {
@@ -302,6 +388,7 @@
       "family": "constrained_optimization",
       "formal_role": "required",
       "implementation": "structured_safe_gp_bo",
+      "implementation_contract_ready": true,
       "implemented": true,
       "interaction_capabilities": {
         "adapts_across_experiments": true,
@@ -312,6 +399,9 @@
         "decision_scope": "experiment_recipe",
         "emits_structured_decision_audit": false
       },
+      "observed_recipe_encoding": "continuous_plus_material_one_hot",
+      "required_capabilities": {},
+      "required_recipe_encoding": "continuous_plus_material_one_hot",
       "requires_online_model": false
     },
     "tool_using_llm_stub": {
@@ -322,6 +412,7 @@
       "family": "stub",
       "formal_role": "excluded",
       "implementation": "tool_using_llm_stub",
+      "implementation_contract_ready": true,
       "implemented": true,
       "interaction_capabilities": {
         "adapts_across_experiments": false,
@@ -332,6 +423,9 @@
         "decision_scope": "operation",
         "emits_structured_decision_audit": false
       },
+      "observed_recipe_encoding": null,
+      "required_capabilities": {},
+      "required_recipe_encoding": null,
       "requires_online_model": false
     }
   },

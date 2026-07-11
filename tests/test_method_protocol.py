@@ -61,8 +61,17 @@ def test_method_protocol_report_exposes_current_cross_family_gaps() -> None:
         "live_llm_b",
     ]
     assert "structured_gp_pi" in report["required_but_ineligible_methods"]
+    assert report["methods"]["structured_gp_pi"]["implementation_contract_ready"] is False
+    assert report["methods"]["structured_gp_ei"]["implementation_contract_ready"] is True
     assert report["methods"]["llm_replay"]["formal_role"] == "excluded"
     assert len(report["interaction_failures"]) == 7
+    assert set(report["evidence"]) == {
+        "legacy_agent_interaction_audit",
+        "five_seed_campaign_budget_curve",
+        "risk_cost_calibration",
+        "task_validity_cards",
+    }
+    assert all(item["sha256"] for item in report["evidence"].values())
 
 
 def test_protocol_translates_to_family_aware_hard_limits() -> None:
