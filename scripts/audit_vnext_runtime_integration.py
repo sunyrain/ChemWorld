@@ -44,6 +44,7 @@ EXPECTED_OPERATION_MODELS = {
     "dry": ("chemworld_sorbent_drying_vnext",),
     "concentrate": ("chemworld_vacuum_concentration_vnext",),
     "transfer": ("chemworld_transfer_holdup_vnext",),
+    "cool_crystallize": ("cooling_crystallization_population_balance_v1",),
     "distill": ("chemworld_duty_limited_distillation_vnext",),
     "electrolyze": (
         "nernst_butler_volmer_faradaic_v1",
@@ -162,6 +163,18 @@ def _execution_probe() -> dict[str, Any]:
             {"operation": "electrolyze", "duration_s": 1800.0},
         ),
     )
+    crystallization_state, crystallization_statuses = _run_actions(
+        "reaction-to-crystallization",
+        (
+            *reaction,
+            {"operation": "seed_crystals", "seed_mass_g": 0.006},
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 278.15,
+                "duration_s": 1800.0,
+            },
+        ),
+    )
     instrument_settings = {
         instrument_id: equipment_settings(
             (ph_state if instrument_id == "ph_meter" else assay_state).equipment,
@@ -185,6 +198,9 @@ def _execution_probe() -> dict[str, Any]:
         "electrochem": equipment_settings(
             electro_state.equipment, "electrochemical_cell"
         ),
+        "crystallization": equipment_settings(
+            crystallization_state.equipment, "crystallizer"
+        ),
     }
     model_ids = {
         "heat": [
@@ -200,6 +216,9 @@ def _execution_probe() -> dict[str, Any]:
         "dry": equipment["dry"].get("drying_model_id"),
         "concentrate": equipment["concentrate"].get("concentration_model_id"),
         "transfer": equipment["transfer"].get("transfer_model_id"),
+        "cool_crystallize": equipment["crystallization"].get(
+            "crystallization_model_id"
+        ),
         "distill": equipment["distill"].get("distillation_model"),
         "electrolyze": list(equipment["electrochem"].get("runtime_model_ids", ())),
         "measure": instrument_settings["uvvis"].get("model_id"),
@@ -225,6 +244,7 @@ def _execution_probe() -> dict[str, Any]:
         and all(status == "committed" for status in assay_statuses)
         and all(status == "committed" for status in ph_statuses)
         and all(status == "committed" for status in electro_statuses)
+        and all(status == "committed" for status in crystallization_statuses)
         and model_ids
         == expected_execution_model_ids
         and all(
@@ -242,6 +262,7 @@ def _execution_probe() -> dict[str, Any]:
             "ph": ph_statuses,
         },
         "electrochemical_transaction_statuses": electro_statuses,
+        "crystallization_transaction_statuses": crystallization_statuses,
         "typed_inventory_phases": sorted(purification_state.phases.phases),
         "provider_diagnostics": equipment,
     }

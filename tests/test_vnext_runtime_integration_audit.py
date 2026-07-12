@@ -32,6 +32,9 @@ def test_vnext_runtime_integration_executes_only_declared_providers() -> None:
     assert checks["task_route_declarations_aligned"]["evidence"]["gap_count"] == 0
     execution = checks["providers_execute_in_transactions"]["evidence"]
     assert execution["passed"] is True
+    assert execution["model_ids"]["cool_crystallize"] == (
+        "cooling_crystallization_population_balance_v1"
+    )
     assert {
         "spent_sorbent",
         "concentrate_condensate",

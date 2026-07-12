@@ -12,7 +12,7 @@ from chemworld.physchem.concentration_adapter_manifest import (
     vacuum_concentration_provider_contract,
 )
 from chemworld.physchem.crystallization_adapter_manifest import (
-    crystallization_convergence_provider_contract,
+    crystallization_runtime_provider_contract,
 )
 from chemworld.physchem.distillation_adapter_manifest import (
     duty_limited_distillation_provider_contract,
@@ -558,20 +558,7 @@ def default_model_provider_registry() -> ModelProviderRegistry:
         sorbent_drying_provider_contract(),
         vacuum_concentration_provider_contract(),
         transfer_provider_contract(),
-        _provider(
-            "cooling_crystallization_population_balance_v1",
-            "crystallization",
-            MaturityLevel.PROFESSIONAL_CANDIDATE,
-            ModelExecutionRole.RUNTIME,
-            "chemworld.runtime.crystallization_services.ChemWorldCrystallizationServices.cool_crystallize",
-            ("cool_crystallize",),
-            inputs=("solution_composition", "temperature_profile", "seed_mass_g"),
-            outputs=("solid_composition", "crystal_size_distribution", "mother_liquor"),
-            units={"temperature_profile": "K,s", "seed_mass_g": "g", "solid_composition": "mol"},
-            diagnostics=("material_balance_error_mol", "maximum_supersaturation_ratio"),
-            provenance=("cooling-crystallization-population-balance-v1",),
-        ),
-        crystallization_convergence_provider_contract(),
+        crystallization_runtime_provider_contract(),
         duty_limited_distillation_provider_contract(),
         _provider(
             "pfr",
@@ -710,7 +697,6 @@ def default_model_reachability_registry() -> ModelReachabilityRegistry:
         "transfer": ("chemworld_transfer_holdup_vnext",),
         "cool_crystallize": (
             "cooling_crystallization_population_balance_v1",
-            "chemworld_crystallization_convergence_audit_vnext",
         ),
         "distill": ("chemworld_duty_limited_distillation_vnext",),
         "run_flow": (

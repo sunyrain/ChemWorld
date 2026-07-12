@@ -408,10 +408,7 @@ def default_kernel_maturity(
             ModuleMaturity(
                 "crystallization",
                 MaturityLevel.PROFESSIONAL_CANDIDATE,
-                model_ids=(
-                    "cooling_crystallization_population_balance_v1",
-                    "chemworld_crystallization_convergence_audit_vnext",
-                ),
+                model_ids=("cooling_crystallization_population_balance_v1",),
                 notes=(
                     "Runtime cooling crystallization uses van't Hoff solubility, "
                     "explicit seed mass, nucleation/growth cohorts, impurity "

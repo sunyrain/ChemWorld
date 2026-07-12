@@ -52,7 +52,8 @@ def test_truthful_report_is_valid_but_blocks_unsupported_publication() -> None:
     assert report["provider_assessments"][
         "chemworld_stability_aware_lle_vnext"
     ]["executed_in_runtime_evidence"] is True
-    assert "manifest_runtime_state_mismatch" in _finding_ids(report)
+    assert "manifest_runtime_state_mismatch" not in _finding_ids(report)
+    assert "high_provider_missing_model_card" in _finding_ids(report)
     assert "high_provider_not_executed" in _finding_ids(report)
 
 
