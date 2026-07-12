@@ -129,6 +129,21 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
                     command_or_path="tests/test_reactor_reference.py",
                     tolerance="deterministic ValueError",
                 ),
+                ValidationEvidence(
+                    evidence_id="formal-runtime-reaction-reactor-integration",
+                    evidence_type="end_to_end_runtime_test",
+                    description=(
+                        "Formal heat/wait operations invoke the validated compiled reaction "
+                        "network through DynamicBatchReactorModel, publish solver and "
+                        "conservation diagnostics, and roll back failed domains."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reaction_reactor_runtime_integration.py",
+                    tolerance=(
+                        "material/element/charge <= 1e-8 mol; invariant drift <= 1e-7 mol; "
+                        "energy residual <= 1e-5 relative"
+                    ),
+                ),
             ),
             model_limit_notes=(
                 (
@@ -146,6 +161,7 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
                 "heat-release-aware campaign simulation",
                 "safe-operation benchmark scenarios with explicit material and energy ledgers",
                 "semibatch feed-rate, quench, and residence-history reasoning",
+                "formal transactional heat/wait runtime advancement",
             ),
         ),
         ModelCard(

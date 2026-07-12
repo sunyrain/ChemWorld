@@ -94,6 +94,13 @@ def integrate_seven_slot_reference_ode(
         heat_loss_J=float(y[10]),
         stirring_speed_rpm=stirring_speed,
         solver_diagnostic=report.diagnostic.to_dict(),
+        model_id="seven_slot_reference_fixture_v1",
+        provider_id="chemworld_reference_fixture_only",
+        provenance={
+            "execution_role": "reference_fixture",
+            "runtime_reachable": False,
+            "species_contract": list(REFERENCE_REACTION_SPECIES),
+        },
     )
 
 

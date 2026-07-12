@@ -26,6 +26,15 @@ OWNED_PATHS = (
     "workstreams/world_foundation/adapters/wf-10-rate-law-unit-contracts.json",
 )
 INTEGRATION_OPERATIONS = ("heat", "wait", "run_flow")
+RUNTIME_INTEGRATION_OWNED_PATHS = (
+    "src/chemworld/runtime/reaction_thermal_services.py",
+    "src/chemworld/world/reaction_kernel.py",
+    "src/chemworld/world/reaction_reference.py",
+    "src/chemworld/physchem/reaction_adapter_manifest.py",
+    "src/chemworld/physchem/reactor_cards.py",
+    "tests/test_reaction_reactor_runtime_integration.py",
+    "workstreams/world_foundation/reports/reaction-reactor-runtime-integration.json",
+)
 
 
 def reaction_rate_provider_contract() -> ModelProviderContract:
@@ -144,10 +153,97 @@ def reaction_rate_adapter_manifest() -> ModelAdapterManifest:
     )
 
 
+def reaction_reactor_runtime_provider_contract() -> ModelProviderContract:
+    """Return the validated mechanism-plus-dynamic-batch runtime contract."""
+
+    return ModelProviderContract(
+        model_id="chemworld_validated_reaction_reactor_runtime_v1",
+        module_id="reaction_reactor_runtime",
+        maturity=MaturityLevel.REFERENCE_VALIDATED,
+        role=ModelExecutionRole.RUNTIME,
+        provider_path="chemworld.world.reaction_kernel.integrate_compiled_reaction_ode",
+        input_fields=(
+            "world_state",
+            "compiled_mechanism",
+            "duration_s",
+            "target_temperature_K",
+            "heat_boundary",
+            "stirring_speed_rpm",
+        ),
+        output_fields=(
+            "species_amounts",
+            "temperature_K",
+            "material_energy_ledgers",
+            "solver_diagnostic",
+            "reactor_diagnostic",
+            "trajectory_digest",
+        ),
+        units={
+            "species_amounts": "mol",
+            "temperature_K": "K",
+            "duration_s": "s",
+            "material_energy_ledgers": "mol; J",
+            "solver_diagnostic": "JSON",
+            "reactor_diagnostic": "JSON",
+            "trajectory_digest": "sha256",
+        },
+        validity_checks=(
+            "compiled mechanism passes element and charge conservation",
+            "duration, temperature, stirring, volume, pressure, and amounts are finite and bounded",
+            "dynamic batch solver converges under the declared tolerance policy",
+            "trajectory remains nonnegative and inside temperature/pressure/runaway domain",
+            "material, invariant, element, charge, and energy residuals close",
+        ),
+        diagnostic_fields=(
+            "provider_id",
+            "reactor_model_id",
+            "network_id",
+            "mechanism_hash",
+            "termination_reason",
+            "material_balance_error_mol",
+            "maximum_conservation_drift_mol",
+            "element_inventory_residuals_mol",
+            "charge_inventory_residual_mol",
+            "energy_balance_residual_J",
+            "trajectory_digest",
+        ),
+        failure_policy=(
+            "raise before commit on invalid domain, solver failure, nonnegativity, "
+            "runaway, or conservation/energy drift; the transaction manager rolls back"
+        ),
+        provenance=(
+            "chemworld.physchem.reaction_network.ReactionNetworkSpec",
+            "chemworld.physchem.batch_reactors.DynamicBatchReactorModel",
+            "chemworld.physchem.reactor_shared reactor validity and ledger contracts",
+        ),
+        intended_operations=("heat", "wait"),
+    )
+
+
+def reaction_reactor_runtime_adapter_manifest() -> ModelAdapterManifest:
+    return ModelAdapterManifest(
+        adapter_id="foundation-reaction-reactor-runtime-integration",
+        adapter_version="1.0",
+        owner_workstream="foundation-reaction-reactor-runtime-integration",
+        provider_contract=reaction_reactor_runtime_provider_contract(),
+        owned_paths=RUNTIME_INTEGRATION_OWNED_PATHS,
+        integration_operations=("heat", "wait"),
+        target_world_law="chemworld-physical-chemistry-v0.4",
+        status="integrated",
+        replaces_model_ids=(
+            "chemworld_reaction_network_lite",
+            "chemworld_reactor_lite",
+        ),
+    )
+
+
 __all__ = [
     "INTEGRATION_OPERATIONS",
     "OWNED_PATHS",
+    "RUNTIME_INTEGRATION_OWNED_PATHS",
     "ReactionRateContractProvider",
     "reaction_rate_adapter_manifest",
     "reaction_rate_provider_contract",
+    "reaction_reactor_runtime_adapter_manifest",
+    "reaction_reactor_runtime_provider_contract",
 ]
