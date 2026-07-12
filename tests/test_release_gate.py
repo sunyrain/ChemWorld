@@ -80,3 +80,13 @@ def test_reference_gate_requires_every_backend_used_by_reference_tests() -> None
         "fluids",
         "thermo",
     }
+
+
+def test_release_gate_binds_the_candidate_backend_without_enabling_claims() -> None:
+    namespace = runpy.run_path("scripts/run_release_gate.py", run_name="release_gate")
+    evidence = namespace["_backend_evidence"]()
+
+    assert evidence["status"] == "candidate_backend_frozen"
+    assert evidence["backend_freeze_allowed"] is True
+    assert evidence["benchmark_claim_allowed"] is False
+    assert len(evidence["file_sha256"]) == 64

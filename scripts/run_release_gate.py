@@ -7,6 +7,7 @@ sequence a maintainer should use before publishing a versioned release.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
@@ -15,6 +16,9 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+BACKEND_REPORT = ROOT / "workstreams/world_foundation/reports/backend-v0.5.json"
 
 
 @dataclass(frozen=True)
@@ -142,7 +146,50 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Require a current immutable benchmark bundle instead of candidate integrity only.",
     )
+    parser.add_argument(
+        "--summary-path",
+        type=Path,
+        help="Optional stable path for the final machine-readable summary.",
+    )
     return parser.parse_args()
+
+
+def _git_commit() -> str:
+    completed = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout.strip()
+
+
+def _tracked_tree_dirty() -> bool:
+    completed = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=no"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return bool(completed.stdout.strip())
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _backend_evidence() -> dict[str, Any]:
+    report = json.loads(BACKEND_REPORT.read_text(encoding="utf-8"))
+    return {
+        "path": BACKEND_REPORT.relative_to(ROOT).as_posix(),
+        "file_sha256": _sha256(BACKEND_REPORT),
+        "schema_version": report.get("schema_version"),
+        "backend_id": report.get("backend_id"),
+        "report_hash": report.get("report_hash"),
+        "status": report.get("status"),
+        "backend_freeze_allowed": report.get("backend_freeze_allowed"),
+        "benchmark_claim_allowed": report.get("benchmark_claim_allowed"),
+    }
 
 
 def main() -> int:
@@ -158,12 +205,21 @@ def main() -> int:
         return 0
 
     output_dir.mkdir(parents=True, exist_ok=True)
+    source_commit = _git_commit()
+    dirty_at_start = _tracked_tree_dirty()
+    if dirty_at_start:
+        raise RuntimeError("release gate requires a clean tracked source tree")
     summary: dict[str, Any] = {
-        "schema_version": "chemworld-release-gate-0.1",
+        "schema_version": "chemworld-release-gate-0.2",
         "started_at": datetime.now(UTC).isoformat(),
+        "source_commit": source_commit,
+        "source_tree_dirty_at_start": dirty_at_start,
+        "backend_evidence": _backend_evidence(),
         "output_dir": str(output_dir),
         "benchmark_mode": ("strict_frozen" if args.require_frozen_benchmark else "candidate"),
+        "backend_candidate_gate_ready": False,
         "release_claim_ready": False,
+        "benchmark_claim_allowed": False,
         "commands": [],
     }
     overall_success = True
@@ -190,13 +246,18 @@ def main() -> int:
         if not success and not args.continue_on_failure:
             break
 
+    dirty_at_finish = _tracked_tree_dirty()
+    overall_success = overall_success and not dirty_at_finish
     summary["finished_at"] = datetime.now(UTC).isoformat()
+    summary["source_tree_dirty_at_finish"] = dirty_at_finish
     summary["success"] = overall_success
+    summary["backend_candidate_gate_ready"] = overall_success
     summary["release_claim_ready"] = bool(overall_success and args.require_frozen_benchmark)
-    (output_dir / "release_gate_summary.json").write_text(
-        json.dumps(summary, indent=2, sort_keys=True),
-        encoding="utf-8",
-    )
+    encoded = json.dumps(summary, indent=2, sort_keys=True) + "\n"
+    (output_dir / "release_gate_summary.json").write_text(encoded, encoding="utf-8")
+    if args.summary_path is not None:
+        args.summary_path.parent.mkdir(parents=True, exist_ok=True)
+        args.summary_path.write_text(encoded, encoding="utf-8")
     return 0 if overall_success else 1
 
 
