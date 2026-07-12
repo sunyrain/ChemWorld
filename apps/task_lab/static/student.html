@@ -31,14 +31,35 @@
       <section class="digital-twin surface light-surface">
         <div class="surface-heading"><div><p class="overline">02 · DIGITAL TWIN</p><h2>虚拟实验状态</h2></div><span id="experimentBadge" class="soft-tag">Experiment —</span></div>
         <div class="twin-stage" id="twinStage" data-operation="idle">
+          <div class="stage-caption"><span>PUBLIC-STATE ANIMATION</span><small>示意已执行操作，不推断未观测组分</small></div>
           <div class="apparatus">
+            <div class="feed-line"><i></i><b></b></div>
+            <div class="sample-probe"><i></i></div>
             <div class="neck"><span></span></div>
-            <div class="vessel"><div id="vesselLiquid" class="vessel-liquid"></div><div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div><div class="stir-bar"></div></div>
+            <div class="vessel">
+              <div id="vesselLiquid" class="vessel-liquid"></div>
+              <div class="phase-layer organic"></div><div class="phase-layer aqueous"></div>
+              <div class="crystal-bed"><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div>
+              <div class="electrode e1"></div><div class="electrode e2"></div>
+              <div class="stir-bar"></div>
+            </div>
             <div class="hotplate"><span></span></div>
+            <div class="thermal-waves"><i></i><i></i><i></i></div>
           </div>
+          <div class="process-module condenser"><i></i><span>CONDENSE</span></div>
+          <div class="process-module receiver"><i></i><span>COLLECT</span></div>
+          <div class="process-module flow-loop"><i></i><span>FLOW</span></div>
+          <div class="process-module filter-unit"><i></i><span>FILTER</span></div>
+          <div class="instrument-beam"><i></i><span id="twinInstrument">INSTRUMENT</span></div>
           <div class="twin-readout left"><span>Operation</span><strong id="twinOperation">idle</strong><small id="twinStatus">Ready for setup</small></div>
           <div class="twin-readout right"><span>Public score</span><strong id="twinScore">—</strong><small>Final assay only</small></div>
           <div class="process-rings"><i></i><i></i><i></i></div>
+        </div>
+        <div class="state-effect-panel">
+          <div class="effect-identity"><span id="effectType">等待操作</span><strong id="effectTitle">当前实验尚未改变</strong><small id="effectSummary">动画只反映公开动作与事务增量。</small></div>
+          <div id="effectDeltas" class="effect-deltas"><span>Δt —</span><span>ΔV —</span><span>sample —</span></div>
+          <div class="vessel-ledger"><span id="vesselRelation">FRESH VESSEL</span><small id="vesselLedgerSummary">公开增量将在这里累计</small></div>
         </div>
         <div class="budget-row"><div><span>实验预算</span><strong id="studentStep">0 / 0</strong></div><div class="budget-track"><i id="studentProgress"></i></div><span id="remainingBudget">— remaining</span></div>
         <div class="student-kpis"><article><span>Best score</span><strong id="studentBest">—</strong></article><article><span>Safety risk</span><strong id="studentRisk">—</strong></article><article><span>Cost</span><strong id="studentCost">—</strong></article><article><span>Final assays</span><strong id="studentAssays">0</strong></article></div>
@@ -47,6 +68,7 @@
       <aside class="composer-panel surface light-surface">
         <div class="surface-heading"><div><p class="overline">03 · COMPOSE</p><h2>操作编排器</h2></div><span id="validActionCount" class="soft-tag">0 valid</span></div>
         <label class="field-label dark-label">当前合法操作<select id="operationSelect" disabled></select></label>
+        <div id="operationEffect" class="operation-effect"><span>操作效果</span><strong>创建实验后查看</strong><p>输入范围会与当前运行时的有效范围保持一致。</p></div>
         <div id="operationFields" class="operation-fields light-fields"></div>
         <details class="json-inspector"><summary>检查操作 JSON</summary><pre id="actionPreview">{}</pre></details>
         <button id="submitAction" class="student-cta full" disabled>验证并执行操作 <span>→</span></button>
@@ -82,7 +104,7 @@
 
     <section class="surface light-surface history-panel">
       <div class="surface-heading"><div><p class="overline">EXPERIMENT NOTEBOOK</p><h2>操作与观测记录</h2></div><button id="downloadNotebook" class="outline-button" disabled>下载记录</button></div>
-      <div class="light-table-shell"><table><thead><tr><th>Step</th><th>Operation</th><th>状态</th><th>Reward</th><th>Official</th><th>公开观测</th></tr></thead><tbody id="studentHistory"><tr><td colspan="6"><div class="empty-table">尚未开始实验</div></td></tr></tbody></table></div>
+      <div class="light-table-shell"><table><thead><tr><th>Step</th><th>Experiment</th><th>Operation</th><th>状态变化</th><th>Reward</th><th>Official</th><th>公开观测</th></tr></thead><tbody id="studentHistory"><tr><td colspan="7"><div class="empty-table">尚未开始实验</div></td></tr></tbody></table></div>
     </section>
   </main>
   <script src="/spectra.js" defer></script>

@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const session = await api(`/api/student-sessions/${encodeURIComponent(sessionId)}`);
       $("#studentTask").value = session.task_id;
       $("#studentSeed").value = session.seed;
-      renderSession(session);
+  renderSession(session);
     }
   } catch (error) {
     showValidation(false, error.message);
@@ -129,6 +129,7 @@ function renderSession(session) {
 function renderStudentSpectrumHistory(history) {
   lab.spectrumHistory = history.filter((item) => item.spectrum?.available).map((item) => ({
     step: Number(item.step || 0),
+    experimentIndex: Number(item.experiment_index || 0),
     instrument: item.spectrum.instrument || item.spectrum.kind || "Public signal",
     spectrum: item.spectrum,
   }));
@@ -145,7 +146,7 @@ function renderStudentSpectrumHistory(history) {
     return;
   }
   select.disabled = false;
-  select.innerHTML = lab.spectrumHistory.map((entry, index) => `<option value="${index}">Step ${entry.step} · ${esc(entry.instrument)}</option>`).join("");
+  select.innerHTML = lab.spectrumHistory.map((entry, index) => `<option value="${index}">E${entry.experimentIndex + 1} · Step ${entry.step} · ${esc(entry.instrument)}</option>`).join("");
   showStudentSpectrumSnapshot(lab.spectrumHistory.length - 1);
 }
 
@@ -163,13 +164,33 @@ function showStudentSpectrumSnapshot(index) {
 }
 
 function updateDigitalTwin(latest) {
-  const operation = latest?.action?.operation || "idle";
+  const vessel = lab.session?.public_vessel || {};
+  const currentExperiment = Number(vessel.experiment_index || 0);
+  const currentLatest = Number(latest?.experiment_index ?? -1) === currentExperiment ? latest : null;
+  const effect = currentLatest?.state_effects || {};
+  const operation = currentLatest?.action?.operation || (latest ? "reset" : "idle");
+  const visual = effect.visual || (operation === "reset" ? "reset" : "idle");
   $("#twinStage").dataset.operation = operation;
+  $("#twinStage").dataset.visual = visual;
+  $("#twinStage").dataset.phase = vessel.phase_active ? "active" : "inactive";
+  $("#twinStage").dataset.solid = vessel.solid_active ? "active" : "inactive";
   $("#twinOperation").textContent = operation;
-  $("#twinStatus").textContent = latest ? latest.status || "operation applied" : "Ready for setup";
-  const materialSteps = (lab.session?.history || []).filter((item) => ["add_solvent", "add_reagent", "add_phase", "add_extractant"].includes(item.action.operation)).length;
-  const top = Math.max(25, 58 - materialSteps * 7);
+  $("#twinStatus").textContent = currentLatest ? currentLatest.status || "operation applied" : latest ? "New vessel ready" : "Ready for setup";
+  $("#twinInstrument").textContent = currentLatest?.spectrum?.instrument || currentLatest?.action?.instrument || "INSTRUMENT";
+  const netVolume = Number(vessel.net_volume_delta_L || 0);
+  const top = Math.max(22, Math.min(70, 64 - netVolume / 0.1 * 38));
   $("#vesselLiquid").style.inset = `${top}% 4px 4px`;
+  $("#effectType").textContent = effect.label_zh || (latest ? "实验边界" : "等待操作");
+  $("#effectTitle").textContent = effect.type ? effectTypeLabel(effect.type) : latest ? "新实验使用初始容器" : "当前实验尚未改变";
+  $("#effectSummary").textContent = effect.summary_zh || (latest ? "上一实验已完成；当前动画已切换到新容器。" : "动画只反映公开动作与事务增量。");
+  $("#effectDeltas").innerHTML = effect.type ? [
+    `Δt ${signed(effect.delta_time_s, "s", 0)}`,
+    `ΔV ${signed(effect.delta_volume_L, "L", 4)}`,
+    `sample ${signed(-Number(effect.sample_delta_L || 0), "L", 4)}`,
+    `Δrisk ${signed(effect.delta_risk, "", 3)}`,
+  ].map((item) => `<span>${esc(item)}</span>`).join("") : "<span>Δt —</span><span>ΔV —</span><span>sample —</span>";
+  $("#vesselRelation").textContent = vessel.vessel_relation === "cumulative" ? `E${currentExperiment + 1} · CUMULATIVE` : `E${currentExperiment + 1} · FRESH VESSEL`;
+  $("#vesselLedgerSummary").textContent = `${Number(vessel.operation_count || 0)} actions · visible ΔV ${signed(netVolume, "L", 4)} · elapsed ${fmtDuration(vessel.elapsed_time_delta_s)} · sampled ${Number(vessel.sampled_volume_L || 0).toFixed(4)} L`;
 }
 
 function renderActions(actions, done) {
@@ -187,9 +208,19 @@ function renderOperationFields() {
   const index = Number($("#operationSelect").value || 0);
   lab.affordance = lab.session.available_actions[index];
   const fields = lab.affordance?.fields || [];
+  renderOperationEffect(lab.affordance?.effect);
   $("#operationFields").innerHTML = fields.map((field) => fieldControl(field)).join("");
   document.querySelectorAll("[data-action-field]").forEach((input) => input.addEventListener("input", updatePreview));
   updatePreview();
+}
+
+function renderOperationEffect(effect) {
+  const card = $("#operationEffect");
+  if (!effect) {
+    card.innerHTML = "<span>操作效果</span><strong>暂无可执行操作</strong><p>当前状态没有公开的动作语义。</p>";
+    return;
+  }
+  card.innerHTML = `<span>${esc(effect.label_zh || "操作效果")}</span><strong>${esc(effectTypeLabel(effect.type))}</strong><p>${esc(effect.summary_zh || effect.summary || "更新当前实验状态。")}</p>`;
 }
 
 function fieldControl(field) {
@@ -235,7 +266,36 @@ function renderMetrics(metrics) {
 }
 
 function renderHistory(history) {
-  $("#studentHistory").innerHTML = history.length ? history.map((item) => `<tr><td>${item.step}</td><td><code>${esc(item.action.operation)}</code></td><td>${esc(item.status)}</td><td>${fmt(item.reward)}</td><td>${fmt(item.leaderboard_score)}</td><td>${esc(Object.entries(item.visible_metrics || {}).map(([key, value]) => `${key}=${fmt(value, 3)}`).join(" · "))}</td></tr>`).join("") : '<tr><td colspan="6"><div class="empty-table">尚未开始实验</div></td></tr>';
+  $("#studentHistory").innerHTML = history.length ? history.map((item) => {
+    const effect = item.state_effects || {};
+    const delta = `Δt ${signed(effect.delta_time_s, "s", 0)} · ΔV ${signed(effect.delta_volume_L, "L", 4)}${Number(effect.sample_delta_L || 0) ? ` · sample −${Number(effect.sample_delta_L).toFixed(4)} L` : ""}`;
+    return `<tr><td>${item.step}</td><td>E${Number(item.experiment_index || 0) + 1}</td><td><code>${esc(item.action.operation)}</code></td><td><span class="effect-table-label">${esc(effect.label_zh || item.status)}</span><small>${esc(delta)}</small></td><td>${fmt(item.reward)}</td><td>${fmt(item.leaderboard_score)}</td><td>${esc(Object.entries(item.visible_metrics || {}).map(([key, value]) => `${key}=${fmt(value, 3)}`).join(" · "))}</td></tr>`;
+  }).join("") : '<tr><td colspan="7"><div class="empty-table">尚未开始实验</div></td></tr>';
+}
+
+function effectTypeLabel(type) {
+  return ({
+    additive_charge: "物料进入当前容器",
+    cumulative_process: "从当前状态继续演化",
+    destructive_withdrawal: "从当前库存扣除",
+    destructive_measurement: "取样后获得观测",
+    destructive_transfer: "转移并保留损失",
+    configuration_update: "更新设备配置",
+    inventory_selection: "切换工作库存",
+    inventory_split: "拆分当前库存",
+    state_change: "更新当前状态",
+  })[type] || "更新当前状态";
+}
+
+function signed(value, unit = "", digits = 3) {
+  const number = Number(value || 0);
+  const sign = number > 0 ? "+" : number < 0 ? "−" : "";
+  return `${sign}${Math.abs(number).toFixed(digits)}${unit ? ` ${unit}` : ""}`;
+}
+
+function fmtDuration(value) {
+  const seconds = Number(value || 0);
+  return seconds >= 3600 ? `${(seconds / 3600).toFixed(2)} h` : `${seconds.toFixed(0)} s`;
 }
 
 function downloadNotebook() {

@@ -10,13 +10,20 @@ from apps.task_lab.catalog import TASK_BACKGROUNDS, task_catalog
 from apps.task_lab.classic_runner import run_classic_task
 from apps.task_lab.deepseek_client import DeepSeekAPIError, DeepSeekClient, JsonCompletion
 from apps.task_lab.experiment_audit import audit_experiment_design
-from apps.task_lab.runner import _categorical_recipe_conflicts, run_task
+from apps.task_lab.interaction_semantics import (
+    aligned_affordance,
+    categorical_recipe_conflicts,
+    operation_semantics,
+    semantic_conflicts,
+)
+from apps.task_lab.runner import run_task
 from apps.task_lab.server import RunJobManager, _read_api_key_file
 from apps.task_lab.spectral_payload import spectral_payload
 from apps.task_lab.student_session import StudentSessionManager
 
 from chemworld.data.logging import load_jsonl
 from chemworld.tasks import list_tasks
+from chemworld.world.operations import OPERATION_TYPES
 
 
 class FakePlannerClient:
@@ -132,6 +139,7 @@ class AdaptiveAuditClient:
 
     def __init__(self) -> None:
         self.prompts: list[dict[str, Any]] = []
+        self.action_index = 0
         self.actions = [
             {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
             {"operation": "add_reagent", "amount_mol": 0.010},
@@ -162,16 +170,30 @@ class AdaptiveAuditClient:
         del system_prompt, max_tokens
         prompt = json.loads(user_prompt)
         self.prompts.append(prompt)
-        action = self.actions[len(self.prompts) - 1]
-        spectrum = prompt["latest_public_spectrum"]
+        if (
+            self.action_index == 5
+            and prompt["available_spectra"]
+            and not prompt["retrieved_spectra"]
+        ):
+            return JsonCompletion(
+                payload={"spectrum_request_id": prompt["available_spectra"][-1]["spectrum_id"]},
+                model=self.model,
+                usage={"prompt_tokens": 4, "completion_tokens": 2, "total_tokens": 6},
+            )
+        action = self.actions[self.action_index]
+        self.action_index += 1
+        spectrum = next(
+            (item for item in reversed(prompt["retrieved_spectra"]) if item.get("available")),
+            None,
+        )
         return JsonCompletion(
             payload={
                 "action": action,
                 "evidence": ["The latest public report was reviewed."],
                 "spectrum_interpretation": (
                     "The HPLC trace contains a dominant reactant peak."
-                    if spectrum["available"]
-                    else "No spectrum is available yet."
+                    if spectrum
+                    else "No spectrum was inspected for this decision."
                 ),
                 "rationale": "Choose the next valid operation from public evidence.",
                 "hypothesis": "The next observation will reduce uncertainty.",
@@ -337,6 +359,11 @@ def test_student_session_rejects_invalid_action_without_spending_budget() -> Non
         assert accepted["accepted"] is True
         assert accepted["state"]["campaign_state"]["operation_count"] == 1
         assert accepted["state"]["history"][0]["action"]["operation"] == "add_solvent"
+        assert accepted["state"]["history"][0]["state_effects"]["delta_volume_L"] == (
+            pytest.approx(0.028)
+        )
+        assert accepted["state"]["public_vessel"]["vessel_relation"] == "cumulative"
+        assert accepted["state"]["public_vessel"]["net_volume_delta_L"] == pytest.approx(0.028)
         solvent_affordance = next(
             item
             for item in accepted["state"]["available_actions"]
@@ -351,6 +378,42 @@ def test_student_session_rejects_invalid_action_without_spending_budget() -> Non
         assert switched["accepted"] is False
         assert "categorical_recipe_locked:solvent" in switched["validation"]["invalid_reasons"]
         assert switched["state"]["campaign_state"]["operation_count"] == 1
+    finally:
+        manager.close_all()
+
+
+def test_student_session_exposes_measurement_withdrawal_for_animation() -> None:
+    manager = StudentSessionManager()
+    try:
+        session = manager.create("reaction-to-assay", seed=0)
+        actions = [
+            {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.00025,
+                "catalyst": 1,
+            },
+            {
+                "operation": "heat",
+                "target_temperature_K": 360.0,
+                "duration_s": 600.0,
+                "stirring_speed_rpm": 720.0,
+            },
+            {"operation": "measure", "instrument": "hplc"},
+        ]
+        result: dict[str, Any] = {}
+        for action in actions:
+            result = session.step(action)
+            assert result["accepted"] is True
+        effects = result["record"]["state_effects"]
+        assert effects["type"] == "destructive_measurement"
+        assert effects["visual"] == "measure"
+        assert effects["sample_delta_L"] == pytest.approx(0.0002)
+        assert effects["delta_volume_L"] == pytest.approx(-0.0002)
+        assert result["state"]["public_vessel"]["sampled_volume_L"] == pytest.approx(0.0002)
+        assert result["state"]["lab_report"]["spectra_summary"]["channel_count"] == 1
+        assert "1 displayed channel(s)" in result["state"]["lab_report"]["text"]
     finally:
         manager.close_all()
 
@@ -409,22 +472,31 @@ def test_adaptive_runner_reads_public_spectrum_and_emits_audit_record(
         event_callback=events.append,
     )
     assert result.status == "scored"
-    assert result.model_call_count == 8
-    assert client.prompts[0]["latest_public_spectrum"]["available"] is False
+    assert result.model_call_count == 9
+    assert client.prompts[0]["available_spectra"] == []
+    assert client.prompts[0]["retrieved_spectra"] == []
     semantics = client.prompts[0]["state_semantics"]
-    assert semantics["current_vessel_policy"] == ("cumulative_until_successful_final_assay")
-    assert "duration, conversion, energy" in semantics["operation_effects"]["heat_or_wait"]
-    assert "Do not default to another heat step" in client.prompts[0]["instruction"]
-    assert client.prompts[5]["latest_public_spectrum"]["available"] is True
-    assert client.prompts[6]["latest_public_spectrum"]["available"] is True
+    assert "current state" in semantics["current_vessel"]
+    assert "spectrum_request_id" in client.prompts[0]["instruction"]
+    assert "Do not default" not in client.prompts[0]["instruction"]
+    assert client.prompts[5]["available_spectra"]
+    assert client.prompts[5]["retrieved_spectra"] == []
+    assert client.prompts[5]["latest_lab_report"]["spectra_summary"] == {
+        "has_spectral_packet": True,
+        "instrument": "hplc",
+        "retrieval_required": True,
+    }
+    assert client.prompts[6]["retrieved_spectra"][0]["available"] is True
+    assert client.prompts[7]["available_spectra"]
+    assert client.prompts[7]["retrieved_spectra"] == []
     decisions = [event for event in events if event["type"] == "decision_ready"]
     assert len(decisions) == 8
     assert decisions[0]["evidence"] == ["The latest public report was reviewed."]
     assert decisions[0]["uncertainty"] == pytest.approx(0.35)
-    assert all(
-        decision["spectrum_input"] == prompt["latest_public_spectrum"]
-        for decision, prompt in zip(decisions, client.prompts, strict=True)
-    )
+    requested = [event for event in events if event["type"] == "spectrum_requested"]
+    retrieved = [event for event in events if event["type"] == "spectrum_retrieved"]
+    assert len(requested) == len(retrieved) == 1
+    assert requested[0]["spectrum_id"] == retrieved[0]["spectrum_id"]
     assert decisions[5]["spectrum_input"]["available"] is True
     assert decisions[5]["spectrum_input"]["provenance"] == {
         "source": "measurement_output",
@@ -436,10 +508,11 @@ def test_adaptive_runner_reads_public_spectrum_and_emits_audit_record(
     assert decisions[5]["vessel_state"] == "cumulative_same_experiment"
     assert decisions[5]["experiment_index"] == 0
     assert decisions[5]["analysis"]["spectrum_interpretation"].startswith("The HPLC trace")
+    assert decisions[6]["spectrum_input"]["available"] is False
     assert result.method_resources["accounting_complete"] is False
     assert result.method_resources["model_provenance"]["private_reasoning_retained"] is False
     records = load_jsonl(result.trajectory_path)
-    assert records[-1]["method_resources"]["model_call_count"] == 8
+    assert records[-1]["method_resources"]["model_call_count"] == 9
     assert "PRIVATE_REASONING_MUST_NOT_BE_RETAINED" not in json.dumps(
         records,
         sort_keys=True,
@@ -473,12 +546,20 @@ def test_task_lab_static_ui_exposes_model_input_and_public_analysis() -> None:
     assert "event.spectrum_input" in javascript
     assert "recordSpectrumSnapshot" in javascript
     assert "showSpectrumSnapshot" in javascript
+    assert 'event.type === "spectrum_requested"' in javascript
+    assert 'event.type === "spectrum_retrieved"' in javascript
     assert "spectrum_history" in javascript
     assert 'id="studentSpectrumHistory"' in student_html
     assert 'id="studentSpectrumHistoryPrev"' in student_html
     assert 'id="studentSpectrumHistoryNext"' in student_html
     assert "renderStudentSpectrumHistory" in student_javascript
     assert "showStudentSpectrumSnapshot" in student_javascript
+    assert 'class="thermal-waves"' in student_html
+    assert 'class="instrument-beam"' in student_html
+    assert 'class="crystal-bed"' in student_html
+    assert 'id="effectDeltas"' in student_html
+    assert "state_effects" in student_javascript
+    assert "public_vessel" in student_javascript
     assert "reasoning_content" not in javascript
 
 
@@ -520,12 +601,12 @@ def test_task_lab_locks_categorical_recipe_choices_within_one_experiment() -> No
         {"selected_action": {"operation": "add_solvent", "solvent": 1}},
         {"selected_action": {"operation": "add_catalyst", "catalyst": 0}},
     ]
-    assert _categorical_recipe_conflicts(
+    assert categorical_recipe_conflicts(
         Base(),
         {"operation": "add_catalyst", "catalyst": 1},
         trace,
     ) == ["categorical_recipe_locked:catalyst"]
-    assert not _categorical_recipe_conflicts(
+    assert not categorical_recipe_conflicts(
         Base(),
         {"operation": "add_catalyst", "catalyst": 0},
         trace,
@@ -541,10 +622,95 @@ def test_task_lab_locks_categorical_recipe_choices_within_one_experiment() -> No
             }
         },
     ]
-    assert not _categorical_recipe_conflicts(
+    assert not categorical_recipe_conflicts(
         Base(),
         {"operation": "add_catalyst", "catalyst": 1},
         completed_trace,
+    )
+
+
+def test_task_lab_aligns_public_inputs_with_effective_runtime_semantics() -> None:
+    assert all(
+        operation_semantics(operation)["visual"] != "generic" for operation in OPERATION_TYPES
+    )
+    seed = aligned_affordance(
+        {
+            "operation": "seed_crystals",
+            "schema": {
+                "operation": "seed_crystals",
+                "required_fields": ["seed_mass_g"],
+                "fields": [
+                    {
+                        "field": "seed_mass_g",
+                        "bounds": {"low": 0.0, "high": 1.0},
+                        "recommended_range": {"low": 0.0, "high": 1.0},
+                    }
+                ],
+            },
+        },
+        [],
+    )
+    assert seed["fields"][0]["bounds"] == {"low": 0.0, "high": 0.05}
+    assert seed["effect"]["visual"] == "seed"
+
+    phase = aligned_affordance(
+        {
+            "operation": "add_phase",
+            "schema": {
+                "operation": "add_phase",
+                "fields": [
+                    {"field": "phase", "choices": ["aqueous", "organic", "solid"]},
+                    {"field": "volume_L", "bounds": {"low": 0.0, "high": 0.08}},
+                ],
+            },
+        },
+        [],
+    )
+    assert phase["fields"][0]["choices"] == ["aqueous", "organic"]
+    assert phase["fields"][1]["bounds"] == {"low": 0.0, "high": 0.06}
+
+    selection = aligned_affordance(
+        {
+            "operation": "separate_phase",
+            "schema": {
+                "operation": "separate_phase",
+                "fields": [
+                    {
+                        "field": "target_phase",
+                        "choices": ["aqueous", "organic", "solid"],
+                    }
+                ],
+            },
+        },
+        [],
+    )
+    assert selection["fields"][0]["choices"] == ["aqueous", "organic"]
+
+
+def test_task_lab_rejects_inputs_the_runtime_would_silently_reinterpret() -> None:
+    class IdentityCodec:
+        @staticmethod
+        def canonicalize(action: dict[str, Any]) -> dict[str, Any]:
+            return dict(action)
+
+    class Base:
+        action_codec = IdentityCodec()
+
+    assert "unsupported_runtime_choice:phase" in semantic_conflicts(
+        Base(), {"operation": "add_phase", "phase": "solid", "volume_L": 0.02}, []
+    )
+    assert "unsupported_runtime_choice:extractant" in semantic_conflicts(
+        Base(),
+        {"operation": "add_extractant", "extractant": "toluene", "volume_L": 0.02},
+        [],
+    )
+    assert "effective_runtime_bounds:seed_mass_g:0.0:0.05" in semantic_conflicts(
+        Base(), {"operation": "seed_crystals", "seed_mass_g": 0.5}, []
+    )
+    assert "single_seed_charge_per_experiment" in semantic_conflicts(
+        Base(),
+        {"operation": "seed_crystals", "seed_mass_g": 0.01},
+        [{"selected_action": {"operation": "seed_crystals", "seed_mass_g": 0.005}}],
     )
 
 
@@ -568,10 +734,11 @@ def test_adaptive_campaign_reuses_compact_completed_experiment_memory(
     assert client.prompts[6]["completed_experiment_memory"][0]["conditions"]
     assert client.prompts[6]["state_semantics"]["current_experiment_index"] == 1
     assert (
-        client.prompts[6]["latest_public_spectrum"]["provenance"]["vessel_relation"]
+        client.prompts[6]["available_spectra"][0]["provenance"]["vessel_relation"]
         == "completed_previous_experiment"
     )
-    assert client.prompts[6]["latest_public_spectrum"]["provenance"]["experiment_index"] == 0
+    assert client.prompts[6]["available_spectra"][0]["provenance"]["experiment_index"] == 0
+    assert client.prompts[6]["retrieved_spectra"] == []
     learned = [event for event in events if event["type"] == "experiment_learned"]
     assert len(learned) == 2
     assert learned[0]["final_score"] is not None
@@ -674,7 +841,8 @@ def test_raw_spectrum_mode_redacts_prompt_peak_assignments(tmp_path: Path) -> No
         spectrum_disclosure="raw",
     )
     assert result.spectrum_disclosure == "raw"
-    public_spectrum = client.prompts[5]["latest_public_spectrum"]
+    assert client.prompts[5]["retrieved_spectra"] == []
+    public_spectrum = client.prompts[6]["retrieved_spectra"][0]
     assert public_spectrum["disclosure"] == "raw"
     assert public_spectrum["series"][0]["peaks"] == []
     spectra_summary = client.prompts[5]["latest_lab_report"]["spectra_summary"]
@@ -715,11 +883,11 @@ def test_adaptive_runner_preserves_scoring_when_a_late_model_call_fails(
     )
     assert result.status == "scored"
     assert result.final_assay_count == 1
-    assert result.model_call_count == 10
+    assert result.model_call_count == 11
     assert result.usage == {
-        "prompt_tokens": 100,
-        "completion_tokens": 41,
-        "total_tokens": 141,
+        "prompt_tokens": 104,
+        "completion_tokens": 43,
+        "total_tokens": 147,
         "prompt_cache_hit_tokens": 0,
         "prompt_cache_miss_tokens": 0,
     }

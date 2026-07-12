@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import threading
 import uuid
-from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -12,7 +11,12 @@ import gymnasium as gym
 
 import chemworld  # noqa: F401
 from apps.task_lab.catalog import TASK_BACKGROUNDS
-from apps.task_lab.runner import _validate_decision
+from apps.task_lab.interaction_semantics import (
+    aligned_affordance,
+    public_state_effects,
+    public_vessel_summary,
+    validate_interactive_action,
+)
 from apps.task_lab.spectral_payload import spectral_payload
 from chemworld.data.logging import observation_to_json, to_builtin
 from chemworld.materials import action_material_display
@@ -39,6 +43,8 @@ class StudentSession:
     def state(self) -> dict[str, Any]:
         with self._lock:
             base: Any = self._env.unwrapped
+            campaign = base.campaign_state()
+            report = _student_lab_report(base.observation_view("lab_report"), self._history)
             return {
                 "session_id": self.session_id,
                 "task_id": self.task_id,
@@ -46,13 +52,14 @@ class StudentSession:
                 "background": TASK_BACKGROUNDS[self.task_id].to_dict(),
                 "task_prompt": base.task_prompt(),
                 "material_catalog": base.task_info().get("material_catalog", {}),
-                "campaign_state": base.campaign_state(),
-                "lab_report": base.observation_view("lab_report"),
+                "campaign_state": campaign,
+                "lab_report": report,
                 "available_actions": [
-                    _student_affordance(item, self._history) for item in base.available_actions()
+                    aligned_affordance(item, self._history) for item in base.available_actions()
                 ],
                 "history": list(self._history),
-                "done": bool(base.campaign_state().get("done")),
+                "public_vessel": public_vessel_summary(self._history, campaign),
+                "done": bool(campaign.get("done")),
             }
 
     def step(self, action: dict[str, Any]) -> dict[str, Any]:
@@ -61,7 +68,7 @@ class StudentSession:
             trace = [
                 {"selected_action": dict(record.get("action") or {})} for record in self._history
             ]
-            validation = _validate_decision(base, action, trace)
+            validation = validate_interactive_action(base, action, trace)
             if not validation.get("valid", False):
                 return {
                     "accepted": False,
@@ -73,15 +80,34 @@ class StudentSession:
                     },
                     "state": self.state(),
                 }
+            campaign_before = base.campaign_state()
             observation, reward, terminated, truncated, info = self._env.step(action)
             report = base.observation_view("lab_report")
             campaign = base.campaign_state()
+            canonical_action = dict(validation.get("canonical_action", action))
+            spectrum = spectral_payload(
+                info.get("raw_signal", {}),
+                instrument=report.get("instrument_summary", {}).get("instrument"),
+            )
+            if spectrum["available"]:
+                spectrum = {
+                    **spectrum,
+                    "spectrum_id": (
+                        f"experiment-{int(campaign_before.get('experiment_index', 0)) + 1}:"
+                        f"step-{len(self._history) + 1}:"
+                        f"{spectrum.get('instrument') or spectrum.get('kind') or 'signal'}"
+                    ),
+                    "provenance": {
+                        "source": "measurement_output",
+                        "measurement_step": len(self._history) + 1,
+                        "experiment_index": int(campaign_before.get("experiment_index", 0)),
+                    },
+                }
             record = {
                 "step": len(self._history) + 1,
-                "action": to_builtin(validation.get("canonical_action", action)),
-                "action_display": action_material_display(
-                    dict(validation.get("canonical_action", action))
-                ),
+                "experiment_index": int(campaign_before.get("experiment_index", 0)),
+                "action": to_builtin(canonical_action),
+                "action_display": action_material_display(canonical_action),
                 "reward": float(reward),
                 "leaderboard_score": info.get("leaderboard_score"),
                 "best_score": campaign.get("best_score"),
@@ -89,10 +115,12 @@ class StudentSession:
                 "constraint_flags": to_builtin(info.get("constraint_flags", {})),
                 "observation": observation_to_json(observation),
                 "status": report.get("status"),
-                "spectrum": spectral_payload(
-                    info.get("raw_signal", {}),
-                    instrument=report.get("instrument_summary", {}).get("instrument"),
+                "state_effects": public_state_effects(
+                    canonical_action,
+                    info,
+                    experiment_index=int(campaign_before.get("experiment_index", 0)),
                 ),
+                "spectrum": spectrum,
                 "spectra_summary": report.get("spectra_summary", {}),
                 "terminated": bool(terminated),
                 "truncated": bool(truncated),
@@ -143,58 +171,36 @@ class StudentSessionManager:
             session.close()
 
 
-def _student_affordance(
-    entry: dict[str, Any],
-    history: list[dict[str, Any]],
-) -> dict[str, Any]:
-    schema = dict(entry.get("schema") or {})
-    fields = deepcopy(schema.get("fields", []))
-    operation = str(entry.get("operation") or "")
-    category_field = {
-        "add_solvent": "solvent",
-        "add_catalyst": "catalyst",
-    }.get(operation)
-    locked_value = _current_recipe_category(history, operation, category_field)
-    if category_field is not None and locked_value is not None:
-        for field in fields:
-            if field.get("field") != category_field:
-                continue
-            if "choices" in field:
-                field["choices"] = [locked_value]
-            if "allowed_values" in field:
-                field["allowed_values"] = [locked_value]
-    return {
-        "operation": entry.get("operation"),
-        "required_fields": schema.get("required_fields", []),
-        "fields": fields,
-        "preconditions": schema.get("preconditions", []),
-        "recipe_lock": (
-            None if locked_value is None else {"field": category_field, "value": locked_value}
-        ),
-    }
-
-
-def _current_recipe_category(
-    history: list[dict[str, Any]],
-    operation: str,
-    category_field: str | None,
-) -> Any:
-    if category_field is None:
-        return None
-    for record in reversed(history):
-        action = dict(record.get("action") or {})
-        if action.get("operation") == "measure" and action.get("instrument") == "final_assay":
-            break
-        if action.get("operation") == operation:
-            return action.get(category_field)
-    return None
-
-
 def _recovery_text(base: Any) -> str:
     operations = [str(item["operation"]) for item in base.available_actions()]
     if not operations:
         return "当前没有合法动作，请重置任务。"
     return "可尝试当前合法动作：" + "、".join(operations[:6])
+
+
+def _student_lab_report(report: dict[str, Any], history: list[dict[str, Any]]) -> dict[str, Any]:
+    """Align the report count with the rendered public spectrum series."""
+
+    disclosed = dict(report)
+    latest_spectrum = dict(history[-1].get("spectrum") or {}) if history else {}
+    if not latest_spectrum.get("available"):
+        return disclosed
+    series = [item for item in latest_spectrum.get("series", []) if isinstance(item, dict)]
+    summary = dict(disclosed.get("spectra_summary") or {})
+    summary["channel_count"] = len(series)
+    summary["channels"] = [str(item.get("id") or item.get("kind") or "signal") for item in series]
+    disclosed["spectra_summary"] = summary
+    text = str(disclosed.get("text") or "")
+    disclosed["text"] = "\n".join(
+        (
+            f"Public spectrum: {latest_spectrum.get('kind') or 'signal'} with "
+            f"{len(series)} displayed channel(s)."
+            if line.startswith("Spectra packet:")
+            else line
+        )
+        for line in text.splitlines()
+    )
+    return disclosed
 
 
 __all__ = ["StudentSession", "StudentSessionManager"]

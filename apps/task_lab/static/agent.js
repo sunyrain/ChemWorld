@@ -176,6 +176,20 @@ function handleEvent(event, source, button) {
     $("#currentAction").textContent = `${event.planned_action_count} operations planned`;
     $("#currentRationale").textContent = event.strategy_summary || "Plan accepted by orchestrator.";
     addTelemetry("plan", "规划已生成", `${event.planned_action_count} steps · ${event.strategy_summary || "ready"}`);
+  } else if (event.type === "spectrum_requested") {
+    $("#currentAction").textContent = "Requesting spectrum";
+    $("#currentRationale").textContent = `模型主动请求 ${event.spectrum_id}`;
+    addTelemetry("decision", `谱图请求 ${event.request_index}`, event.spectrum_id);
+  } else if (event.type === "spectrum_retrieved") {
+    recordSpectrumSnapshot({
+      event,
+      spectrum: event.spectrum,
+      source: "model-input",
+      context: `MODEL RETRIEVAL · DECISION ${event.step}`,
+    });
+    addTelemetry("decision", "谱图已按需提供", `${event.spectrum_id} · 未自动附带其他历史谱图`);
+  } else if (event.type === "spectrum_unavailable") {
+    addTelemetry("warn", "谱图请求无效", `${event.spectrum_id} 不在可获取目录中`);
   } else if (event.type === "decision_ready") {
     $("#currentAction").textContent = event.action.operation;
     $("#currentRationale").textContent = event.rationale;
@@ -301,7 +315,8 @@ function renderModelInputSpectrum(event) {
 
 function recordSpectrumSnapshot({ event, spectrum, source, context }) {
   if (!spectrum?.available) return;
-  const key = `${event.task_id || app.currentTask?.task_id || "task"}:${event.index ?? app.eventCount}:${source}`;
+  const identity = spectrum.spectrum_id || `${event.index ?? app.eventCount}`;
+  const key = `${event.task_id || app.currentTask?.task_id || "task"}:${identity}:${source}`;
   if (app.spectrumHistoryKeys.has(key)) return;
   app.spectrumHistoryKeys.add(key);
   app.spectrumHistory.push({

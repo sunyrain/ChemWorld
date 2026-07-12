@@ -16,6 +16,13 @@ import chemworld  # noqa: F401
 from apps.task_lab.catalog import TASK_BACKGROUNDS
 from apps.task_lab.deepseek_client import JsonCompletion, JsonPlannerClient
 from apps.task_lab.experiment_audit import audit_experiment_design
+from apps.task_lab.interaction_semantics import (
+    aligned_affordance,
+    operation_semantics,
+)
+from apps.task_lab.interaction_semantics import (
+    validate_interactive_action as _validate_decision,
+)
 from apps.task_lab.spectral_payload import SpectrumDisclosure, spectral_payload
 from chemworld.agent_interface import agent_view_bundle
 from chemworld.data.logging import TrajectoryLogger, load_jsonl, observation_to_json, to_builtin
@@ -27,13 +34,13 @@ RunMode = Literal["plan", "adaptive"]
 EventCallback = Callable[[dict[str, Any]], None]
 
 SYSTEM_PROMPT = """You are a ChemWorld virtual-laboratory agent.
-Use only the public task contract, public observations, and listed action schemas.
-Never claim access to hidden chemistry. Return one valid JSON object.
-Do not reveal private chain-of-thought. Instead provide a concise, evidence-grounded audit record:
-public evidence, spectrum interpretation, current hypothesis, uncertainty, and action rationale.
-Actions must use the exact operation names and field names from the schemas.
-Treat the current reactor as a cumulative state, not a sequence of independent trials.
+Work from the public task contract, observations, and listed action schemas.
+Return one JSON object using the operation and field names in those schemas.
+Private chain-of-thought is not part of the response; provide a concise audit record with public
+evidence, any inspected-spectrum interpretation, hypothesis, uncertainty, and action rationale.
 """
+
+MAX_SPECTRUM_RETRIEVALS_PER_DECISION = 3
 
 
 @dataclass(frozen=True)
@@ -102,7 +109,7 @@ def run_task(
     trace: list[dict[str, Any]] = []
     experiment_memory: list[dict[str, Any]] = []
     experiment_trace_start = 0
-    last_spectrum = spectral_payload({}, disclosure=spectrum_disclosure)
+    spectrum_archive: list[dict[str, Any]] = []
     invalid_plan_actions = 0
     model_call_count = 0
     task_info: dict[str, Any] = {}
@@ -239,23 +246,76 @@ def run_task(
                     plan_index += 1
                 else:
                     try:
-                        completion, decision_spectrum = _request_adaptive_decision(
-                            client=client,
-                            base=base,
-                            task_prompt=prompt,
-                            background=background,
-                            trace=trace,
-                            experiment_memory=experiment_memory,
-                            last_spectrum=last_spectrum,
-                            spectrum_disclosure=spectrum_disclosure,
-                        )
-                        model_call_count += completion.attempts
-                        _add_usage(usage, completion.usage)
-                        decision = _normalize_decision(completion.payload)
+                        retrieved_spectra: list[dict[str, Any]] = []
+                        retrieval_count = 0
+                        while True:
+                            completion = _request_adaptive_decision(
+                                client=client,
+                                base=base,
+                                task_prompt=prompt,
+                                background=background,
+                                trace=trace,
+                                experiment_memory=experiment_memory,
+                                spectrum_archive=spectrum_archive,
+                                retrieved_spectra=retrieved_spectra,
+                                spectrum_disclosure=spectrum_disclosure,
+                            )
+                            model_call_count += completion.attempts
+                            _add_usage(usage, completion.usage)
+                            requested_spectrum_id = _requested_spectrum_id(completion.payload)
+                            if requested_spectrum_id is None:
+                                decision = _normalize_decision(completion.payload)
+                                break
+                            if retrieval_count >= MAX_SPECTRUM_RETRIEVALS_PER_DECISION:
+                                raise ValueError(
+                                    "Model exceeded the per-decision spectrum retrieval limit"
+                                )
+                            retrieval_count += 1
+                            emit(
+                                {
+                                    "type": "spectrum_requested",
+                                    "task_id": task_id,
+                                    "step": executed_steps + 1,
+                                    "spectrum_id": requested_spectrum_id,
+                                    "request_index": retrieval_count,
+                                }
+                            )
+                            retrieved = _spectrum_by_id(spectrum_archive, requested_spectrum_id)
+                            if retrieved is None:
+                                retrieved_spectra.append(
+                                    {
+                                        "available": False,
+                                        "requested_spectrum_id": requested_spectrum_id,
+                                        "request_error": "unknown_spectrum_id",
+                                    }
+                                )
+                                emit(
+                                    {
+                                        "type": "spectrum_unavailable",
+                                        "task_id": task_id,
+                                        "step": executed_steps + 1,
+                                        "spectrum_id": requested_spectrum_id,
+                                    }
+                                )
+                                continue
+                            decision_spectrum = retrieved
+                            retrieved_spectra.append(retrieved)
+                            emit(
+                                {
+                                    "type": "spectrum_retrieved",
+                                    "task_id": task_id,
+                                    "step": executed_steps + 1,
+                                    "spectrum_id": requested_spectrum_id,
+                                    "request_index": retrieval_count,
+                                    "spectrum": to_builtin(retrieved),
+                                }
+                            )
                         decision_origin = "online_model"
                     except Exception as exc:
-                        model_call_count += max(int(getattr(exc, "attempts", 1)), 1)
-                        _add_usage(usage, getattr(exc, "usage", {}))
+                        failed_attempts = max(int(getattr(exc, "attempts", 0)), 0)
+                        if failed_attempts:
+                            model_call_count += failed_attempts
+                            _add_usage(usage, getattr(exc, "usage", {}))
                         emit(
                             {
                                 "type": "model_call_failed",
@@ -298,6 +358,7 @@ def run_task(
                         rejected=decision,
                         validation=validation,
                         spectrum=decision_spectrum,
+                        trace=trace,
                     )
                     model_call_count += repair.attempts
                     _add_usage(usage, repair.usage)
@@ -386,6 +447,11 @@ def run_task(
                 done = bool(terminated or truncated)
                 obs_json = observation_to_json(observation)
                 report = base.observation_view("lab_report")
+                completed_final_assay = (
+                    decision["action"].get("operation") == "measure"
+                    and decision["action"].get("instrument") == "final_assay"
+                    and info.get("leaderboard_score") is not None
+                )
                 spectrum = spectral_payload(
                     info.get("raw_signal", {}),
                     instrument=report.get("instrument_summary", {}).get("instrument"),
@@ -394,20 +460,30 @@ def run_task(
                 if spectrum["available"]:
                     spectrum = {
                         **spectrum,
+                        "spectrum_id": _spectrum_id(
+                            task_id=task_id,
+                            experiment_index=int(campaign_before.get("experiment_index", 0)),
+                            measurement_step=executed_steps,
+                            instrument=str(
+                                spectrum.get("instrument") or spectrum.get("kind") or "signal"
+                            ),
+                        ),
                         "provenance": {
                             "source": "measurement_output",
                             "measurement_step": executed_steps,
                             "experiment_index": int(campaign_before.get("experiment_index", 0)),
-                            "vessel_relation": "current_experiment",
+                            "vessel_relation": (
+                                "completed_previous_experiment"
+                                if completed_final_assay
+                                and campaign_before.get("episode_mode") == "campaign"
+                                else "completed_experiment"
+                                if completed_final_assay
+                                else "current_experiment"
+                            ),
                         },
                     }
-                    last_spectrum = spectrum
+                    spectrum_archive.append(spectrum)
                 campaign = base.campaign_state()
-                completed_final_assay = (
-                    decision["action"].get("operation") == "measure"
-                    and decision["action"].get("instrument") == "final_assay"
-                    and info.get("leaderboard_score") is not None
-                )
                 if completed_final_assay:
                     last_final_assay_step = executed_steps
                 trace_item = {
@@ -611,24 +687,33 @@ def _request_plan(
     max_steps: int,
 ) -> JsonCompletion:
     schemas = [
-        _compact_schema(base.action_schema(name)) for name in task_prompt["allowed_operations"]
+        _compact_schema(
+            aligned_affordance(
+                {"operation": name, "schema": base.action_schema(name)},
+                [],
+            )
+        )
+        for name in task_prompt["allowed_operations"]
     ]
     user_prompt = json.dumps(
         {
             "instruction": (
-                "Create a complete executable plan. Include terminate followed by a "
-                "final_assay measurement so the task receives an official score. For a "
-                "campaign you may run multiple experiments, but at least one final assay "
-                "is required. Every action before a successful final assay mutates the same "
-                "reactor state: material additions accumulate and repeated heat extends the "
-                "same batch. Never describe an in-vessel change as a new experiment. Treat "
-                "solvent and catalyst categories as fixed recipe choices within one experiment."
+                "Create one executable plan that satisfies the public task contract. "
+                "Use the supplied state semantics and action effects when interpreting "
+                "what each operation changes."
             ),
             "max_actions": max_steps,
             "task_background": background,
             "task_contract": task_prompt,
             "state_semantics": _state_semantics(base),
             "action_schemas": schemas,
+            "operation_effects": {
+                name: {
+                    "type": operation_semantics(name)["type"],
+                    "summary": operation_semantics(name)["summary"],
+                }
+                for name in task_prompt["allowed_operations"]
+            },
             "required_json_shape": {
                 "strategy_summary": "short string",
                 "actions": [
@@ -657,50 +742,20 @@ def _request_adaptive_decision(
     background: dict[str, str],
     trace: list[dict[str, Any]],
     experiment_memory: list[dict[str, Any]],
-    last_spectrum: dict[str, Any],
+    spectrum_archive: list[dict[str, Any]],
+    retrieved_spectra: list[dict[str, Any]],
     spectrum_disclosure: SpectrumDisclosure,
-) -> tuple[JsonCompletion, dict[str, Any]]:
+) -> JsonCompletion:
     lab_report = _disclose_lab_report(
         base.observation_view("lab_report"),
         spectrum_disclosure,
     )
-    tool_view = base.observation_view("tool_json")
-    spectrum = spectral_payload(
-        tool_view.get("raw_signal", {}),
-        instrument=lab_report.get("instrument_summary", {}).get("instrument"),
-        disclosure=spectrum_disclosure,
-    )
-    if spectrum["available"]:
-        spectrum = {
-            **spectrum,
-            "provenance": _spectrum_provenance(base, lab_report),
-        }
-    else:
-        spectrum = last_spectrum
     user_prompt = json.dumps(
         {
             "instruction": (
-                "Choose exactly one currently valid next action. Work as a repeated "
-                "observe-interpret-hypothesize-act loop. When a public instrument trace "
-                "is available, explicitly interpret its axes and dominant peaks before "
-                "choosing the action. Prefer an informative intermediate measurement "
-                "before final assay when it can reduce uncertainty. Never invent spectral "
-                "features that are absent from the supplied public packet. In campaign "
-                "mode, complete multiple scored experiments when budget permits. After "
-                "each final assay, compare all experiment_summaries, vary controllable "
-                "conditions, and apply the evidence instead of repeating the same recipe. "
-                "Work like a reproducible discovery campaign: identify whether the next "
-                "experiment is exploration, exploitation, or replication; when feasible "
-                "change one major factor relative to a named prior experiment; distinguish "
-                "instrument evidence from chemical intuition; and do not infer real reaction "
-                "or catalyst identity from anonymous benchmark labels. Every action before a "
-                "successful final assay changes the same vessel: additions accumulate, repeated "
-                "heat extends total thermal exposure, and an intermediate measurement does not "
-                "start a new experiment. Do not switch categorical solvent or catalyst inside an "
-                "active experiment. Do not default to another heat step: justify it from measured "
-                "evidence and cumulative exposure, or choose a more informative action. Only a "
-                "successful final assay in campaign mode resets the vessel for a true recipe "
-                "comparison."
+                "Return either one spectrum_request_id from available_spectra or one "
+                "currently valid action. A spectrum is supplied only after you request its "
+                "exact id. Base the concise audit fields on public information actually supplied."
             ),
             "task_background": background,
             "task_contract": task_prompt,
@@ -709,16 +764,18 @@ def _request_adaptive_decision(
             "spectrum_disclosure": spectrum_disclosure,
             "completed_experiment_memory": experiment_memory,
             "latest_lab_report": lab_report,
-            "latest_public_spectrum": spectrum,
+            "available_spectra": [_spectrum_catalog_entry(item) for item in spectrum_archive],
+            "retrieved_spectra": to_builtin(retrieved_spectra),
             "recent_trace": trace[-6:],
             "currently_valid_actions": [
-                _compact_affordance(item) for item in base.available_actions()
+                _compact_affordance(item, trace) for item in base.available_actions()
             ],
             "required_json_shape": {
-                "action": {"operation": "exact operation plus required fields"},
+                "spectrum_request_id": "available id when requesting a spectrum, otherwise null",
+                "action": "exact operation object when acting, otherwise null",
                 "evidence": ["short public observation or spectral feature"],
                 "spectrum_interpretation": (
-                    "concise reading of the supplied trace, or 'no spectrum available'"
+                    "concise reading of a requested trace, or 'not inspected'"
                 ),
                 "rationale": "concise evidence-to-action justification",
                 "hypothesis": "short testable expectation",
@@ -735,7 +792,7 @@ def _request_adaptive_decision(
         user_prompt=user_prompt,
         max_tokens=8000 if bool(getattr(client, "thinking", False)) else 2000,
     )
-    return completion, spectrum
+    return completion
 
 
 def _request_repair(
@@ -745,6 +802,7 @@ def _request_repair(
     rejected: dict[str, Any],
     validation: dict[str, Any],
     spectrum: dict[str, Any],
+    trace: list[dict[str, Any]],
 ) -> JsonCompletion:
     user_prompt = json.dumps(
         {
@@ -755,11 +813,11 @@ def _request_repair(
             ),
             "rejected_decision": rejected,
             "invalid_reasons": validation.get("invalid_reasons", []),
-            "latest_public_spectrum": spectrum,
+            "retrieved_spectrum": spectrum,
             "campaign_state": base.campaign_state(),
             "state_semantics": _state_semantics(base),
             "currently_valid_actions": [
-                _compact_affordance(item) for item in base.available_actions()
+                _compact_affordance(item, trace) for item in base.available_actions()
             ],
             "required_json_shape": {
                 "action": {"operation": "exact operation plus required fields"},
@@ -810,23 +868,46 @@ def _spectrum_input_summary(
     }
 
 
-def _spectrum_provenance(base: Any, lab_report: dict[str, Any]) -> dict[str, Any]:
-    campaign = base.campaign_state()
-    current_experiment = int(campaign.get("experiment_index", 0))
-    final_assay = lab_report.get("final_assay_summary", {})
-    previous_experiment = bool(
-        isinstance(final_assay, dict)
-        and final_assay.get("experiment_ended")
-        and current_experiment > 0
+def _requested_spectrum_id(payload: dict[str, Any]) -> str | None:
+    requested = payload.get("spectrum_request_id")
+    if not isinstance(requested, str) or not requested.strip():
+        return None
+    return requested.strip()
+
+
+def _spectrum_by_id(archive: list[dict[str, Any]], spectrum_id: str) -> dict[str, Any] | None:
+    return next(
+        (dict(item) for item in archive if str(item.get("spectrum_id") or "") == spectrum_id),
+        None,
     )
+
+
+def _spectrum_catalog_entry(spectrum: dict[str, Any]) -> dict[str, Any]:
     return {
-        "source": "measurement_output",
-        "measurement_step": int(campaign.get("operation_count", 0)),
-        "experiment_index": current_experiment - 1 if previous_experiment else current_experiment,
-        "vessel_relation": (
-            "completed_previous_experiment" if previous_experiment else "current_experiment"
-        ),
+        "spectrum_id": spectrum.get("spectrum_id"),
+        "instrument": spectrum.get("instrument"),
+        "kind": spectrum.get("kind"),
+        "disclosure": spectrum.get("disclosure"),
+        "provenance": to_builtin(spectrum.get("provenance", {})),
+        "channel_count": len(spectrum.get("series") or []),
     }
+
+
+def _spectrum_id(
+    *,
+    task_id: str,
+    experiment_index: int,
+    measurement_step: int,
+    instrument: str,
+) -> str:
+    safe_instrument = "".join(
+        character if character.isalnum() or character in {"-", "_"} else "-"
+        for character in instrument.lower()
+    ).strip("-")
+    return (
+        f"{task_id}:experiment-{experiment_index + 1}:"
+        f"step-{measurement_step}:{safe_instrument or 'signal'}"
+    )
 
 
 def _state_semantics(base: Any) -> dict[str, Any]:
@@ -835,79 +916,13 @@ def _state_semantics(base: Any) -> dict[str, Any]:
     return {
         "episode_mode": episode_mode,
         "current_experiment_index": int(campaign.get("experiment_index", 0)),
-        "current_vessel_policy": "cumulative_until_successful_final_assay",
-        "operation_effects": {
-            "material_addition": (
-                "Adds to the current vessel; it does not replace material already charged. "
-                "Keep categorical solvent and catalyst choices fixed within one experiment."
-            ),
-            "heat_or_wait": (
-                "Integrates the current composition forward; duration, conversion, energy, "
-                "and risk accumulate across repeated actions."
-            ),
-            "intermediate_measurement": (
-                "Observes the current experiment and may consume sample or budget; it does not "
-                "reset the vessel."
-            ),
-            "successful_final_assay": (
-                "Ends the episode in single_experiment mode; in campaign mode it scores the "
-                "current experiment and resets the vessel before incrementing the experiment."
-            ),
-        },
-        "comparison_rule": (
-            "Only completed experiments separated by a successful final assay are independent "
-            "recipe comparisons. Multiple heat or material actions inside one experiment are "
-            "one cumulative trajectory."
+        "current_vessel": "operations apply to the current state until an experiment boundary",
+        "experiment_boundary": (
+            "successful final_assay ends a single experiment; in campaign mode it also "
+            "starts the next experiment from its initial state"
         ),
+        "measurement_effect": "instrument measurements can consume sample volume and budget",
     }
-
-
-def _validate_decision(
-    base: Any,
-    action: dict[str, Any],
-    trace: list[dict[str, Any]],
-) -> dict[str, Any]:
-    validation = dict(base.validate_action(action))
-    conflicts = _categorical_recipe_conflicts(base, action, trace)
-    if not conflicts:
-        return validation
-    validation["valid"] = False
-    validation["dispatchable_to_runtime"] = False
-    validation["invalid_reasons"] = list(
-        dict.fromkeys([*validation.get("invalid_reasons", []), *conflicts])
-    )
-    return validation
-
-
-def _categorical_recipe_conflicts(
-    base: Any,
-    action: dict[str, Any],
-    trace: list[dict[str, Any]],
-) -> list[str]:
-    operation = str(action.get("operation") or "")
-    category_field = {
-        "add_solvent": "solvent",
-        "add_catalyst": "catalyst",
-    }.get(operation)
-    if category_field is None:
-        return []
-    try:
-        proposed = base.action_codec.canonicalize(action).get(category_field)
-    except (TypeError, ValueError):
-        proposed = action.get(category_field)
-    for item in reversed(trace):
-        previous = dict(item.get("selected_action") or {})
-        if previous.get("operation") == "measure" and previous.get("instrument") == "final_assay":
-            break
-        if previous.get("operation") != operation:
-            continue
-        try:
-            selected = base.action_codec.canonicalize(previous).get(category_field)
-        except (TypeError, ValueError):
-            selected = previous.get(category_field)
-        if selected != proposed:
-            return [f"categorical_recipe_locked:{category_field}"]
-    return []
 
 
 def _experiment_memory_record(
@@ -1029,10 +1044,19 @@ def _compact_schema(schema: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _compact_affordance(affordance: dict[str, Any]) -> dict[str, Any]:
+def _compact_affordance(
+    affordance: dict[str, Any],
+    trace: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    aligned = aligned_affordance(affordance, trace or [])
     return {
-        "operation": affordance.get("operation"),
-        "schema": _compact_schema(dict(affordance.get("schema") or {})),
+        "operation": aligned.get("operation"),
+        "schema": _compact_schema(aligned),
+        "recipe_lock": aligned.get("recipe_lock"),
+        "effect": {
+            "type": aligned.get("effect", {}).get("type"),
+            "summary": aligned.get("effect", {}).get("summary"),
+        },
     }
 
 
@@ -1041,10 +1065,12 @@ def _disclose_lab_report(
     disclosure: SpectrumDisclosure,
 ) -> dict[str, Any]:
     disclosed = dict(report)
-    disclosed["spectra_summary"] = _disclose_spectra_summary(
-        report.get("spectra_summary", {}),
-        disclosure,
-    )
+    summary = _disclose_spectra_summary(report.get("spectra_summary", {}), disclosure)
+    disclosed["spectra_summary"] = {
+        "has_spectral_packet": bool(summary.get("has_spectral_packet")),
+        "instrument": summary.get("instrument"),
+        "retrieval_required": bool(summary.get("has_spectral_packet")),
+    }
     return disclosed
 
 
