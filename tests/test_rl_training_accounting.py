@@ -40,6 +40,10 @@ def test_manifest_records_actual_ppo_rollout_steps_and_periodic_checkpoint(
     assert manifest["schema_version"] == "chemworld-rl-checkpoint-0.2"
     assert len(manifest["action_contract_hash"]) == 64
     assert len(manifest["training_reward_contract_hash"]) == 64
+    assert len(manifest["policy_distribution_contract_hash"]) == 64
+    assert manifest["policy_distribution_contract"][
+        "irrelevant_parameter_log_prob"
+    ] is False
     artifacts = manifest["periodic_checkpoint_artifacts"]
     assert len(artifacts) == 2
     assert all(item["artifact_type"] == "checkpoint" for item in artifacts)

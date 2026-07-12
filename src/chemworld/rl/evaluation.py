@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from chemworld.rl.environment import RLWorldAllocation, build_rl_environment
+from chemworld.rl.hybrid_policy import policy_distribution_contract
 from chemworld.rl.rewards import reward_contract
 from chemworld.tasks import get_task
 
@@ -82,6 +83,11 @@ def evaluate_sb3_checkpoint(
         raise ValueError("unsupported RL checkpoint contract manifest")
     expected_action = _environment_action_contract(env)
     expected_reward = reward_contract(get_task(task_id).allowed_operations)
+    parameter_keys = tuple(
+        str(item)
+        for item in expected_action["training_adapter"]["parameter_coordinate_keys"]
+    )
+    expected_policy_distribution = policy_distribution_contract(parameter_keys)
     digest = hashlib.sha256(checkpoint_path.read_bytes()).hexdigest()
     compatibility = {
         "checkpoint_digest": contract_manifest.get("checkpoint_sha256") == digest,
@@ -91,6 +97,9 @@ def evaluate_sb3_checkpoint(
         == expected_action["contract_hash"],
         "reward_contract": contract_manifest.get("training_reward_contract_hash")
         == expected_reward["contract_hash"],
+        "policy_distribution_contract": algorithm != "ppo"
+        or contract_manifest.get("policy_distribution_contract_hash")
+        == expected_policy_distribution["contract_hash"],
     }
     if not all(compatibility.values()):
         env.close()
@@ -180,6 +189,9 @@ def evaluate_sb3_checkpoint(
         "checkpoint_contract_compatibility": compatibility,
         "action_contract_hash": expected_action["contract_hash"],
         "training_reward_contract_hash": expected_reward["contract_hash"],
+        "policy_distribution_contract_hash": expected_policy_distribution[
+            "contract_hash"
+        ],
         "episode_cards": episode_cards,
         "summary": {
             "operation_count": total_steps,

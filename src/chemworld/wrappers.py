@@ -522,6 +522,9 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
         behavior_complete = bool(self._core_requirements) and (
             satisfied_count == len(self._core_requirements)
         )
+        newly_behavior_complete = behavior_complete and (
+            self._satisfied_requirement_count < len(self._core_requirements)
+        )
         quick_close = experiment_ended and not behavior_complete
         shaped_reward = float(raw_reward)
         if invalid:
@@ -532,6 +535,8 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
         shaped_reward += (
             REWARD_COMPONENTS["newly_satisfied_core_requirement"] * newly_satisfied
         )
+        if newly_behavior_complete:
+            shaped_reward += REWARD_COMPONENTS["behavioral_core_completion"]
         if quick_close:
             shaped_reward += REWARD_COMPONENTS["quick_close_incomplete"]
         if bool(flags.get("unsafe_by_task_limit", False)):
@@ -580,6 +585,7 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
                 )
             ),
             "behavior_complete": behavior_complete,
+            "newly_behavior_complete": newly_behavior_complete,
             "quick_close_incomplete": quick_close,
             "experiment_ended": experiment_ended,
         }

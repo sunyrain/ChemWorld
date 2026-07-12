@@ -11,10 +11,11 @@ REWARD_SCHEMA_VERSION = "chemworld-rl-training-reward-0.2"
 
 REWARD_COMPONENTS = {
     "raw_environment_reward": 1.0,
-    "valid_nonterminal_operation": 0.005,
+    "valid_nonterminal_operation": 0.0,
     "invalid_precondition": -0.25,
     "newly_unlocked_operation": 0.02,
-    "newly_satisfied_core_requirement": 0.25,
+    "newly_satisfied_core_requirement": 0.0,
+    "behavioral_core_completion": 1.0,
     "measurement": 0.0,
     "experiment_ended": 0.0,
     "quick_close_incomplete": -0.50,

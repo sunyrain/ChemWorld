@@ -21,6 +21,7 @@ from chemworld.rl.environment import (
 )
 from chemworld.rl.evaluation import evaluate_replay_verified_sb3_checkpoint
 from chemworld.rl.hybrid_actions import conditional_hybrid_action_contract
+from chemworld.rl.hybrid_policy import policy_distribution_contract
 from chemworld.rl.rewards import reward_contract
 from chemworld.tasks import get_task
 from chemworld.wrappers import ContinuousEventActionWrapper, decode_continuous_event_action
@@ -180,6 +181,9 @@ def test_frozen_policy_produces_official_replay_verified_trajectory(
         "action_contract_hash": action_contract["contract_hash"],
         "training_reward_contract_hash": reward_contract(
             get_task(task_id).allowed_operations
+        )["contract_hash"],
+        "policy_distribution_contract_hash": policy_distribution_contract(
+            tuple(action_contract["training_adapter"]["parameter_coordinate_keys"])
         )["contract_hash"],
     }
     report = evaluate_replay_verified_sb3_checkpoint(

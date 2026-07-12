@@ -12,6 +12,10 @@ from time import perf_counter, process_time
 from typing import Any, Literal
 
 from chemworld.rl.environment import RLWorldAllocation, build_rl_environment
+from chemworld.rl.hybrid_policy import (
+    ConditionalHybridActorCriticPolicy,
+    policy_distribution_contract,
+)
 
 AlgorithmName = Literal["ppo", "sac"]
 
@@ -92,6 +96,27 @@ def train_sb3_baseline(
     ) != 64:
         raise RuntimeError("RL training reward contract is missing its compatibility hash")
     observation_shape = list(env.observation_space.shape or ())
+    parameter_keys = tuple(
+        str(item)
+        for item in action_contract["training_adapter"]["parameter_coordinate_keys"]
+    )
+    if algorithm == "ppo":
+        policy: Any = ConditionalHybridActorCriticPolicy
+        policy_kwargs = dict((algorithm_kwargs or {}).get("policy_kwargs", {}))
+        policy_kwargs["parameter_keys"] = parameter_keys
+        resolved_algorithm_kwargs = dict(algorithm_kwargs or {})
+        resolved_algorithm_kwargs.pop("policy_kwargs", None)
+        distribution_contract = policy_distribution_contract(parameter_keys)
+    else:
+        policy = "MlpPolicy"
+        policy_kwargs = dict((algorithm_kwargs or {}).get("policy_kwargs", {}))
+        resolved_algorithm_kwargs = dict(algorithm_kwargs or {})
+        resolved_algorithm_kwargs.pop("policy_kwargs", None)
+        distribution_contract = {
+            "schema_version": "chemworld-sac-box-gaussian-diagnostic-0.1",
+            "native_hybrid_distribution": False,
+            "contract_hash": None,
+        }
     wall_started = perf_counter()
     cpu_started = process_time()
     try:
@@ -106,12 +131,13 @@ def train_sb3_baseline(
                 save_vecnormalize=False,
             )
         model = algorithm_class(
-            "MlpPolicy",
+            policy,
             env,
             seed=model_seed,
             verbose=0,
             device="auto",
-            **dict(algorithm_kwargs or {}),
+            policy_kwargs=policy_kwargs,
+            **resolved_algorithm_kwargs,
         )
         model.learn(
             total_timesteps=total_timesteps,
@@ -158,6 +184,9 @@ def train_sb3_baseline(
             "checkpoint_sha256": artifact["sha256"],
             "action_contract_hash": action_contract_hash,
             "training_reward_contract_hash": training_reward_contract["contract_hash"],
+            "policy_distribution_contract_hash": distribution_contract.get(
+                "contract_hash"
+            ),
             "legacy_checkpoint_compatible": False,
         }
         sidecar_path = periodic_checkpoint.with_suffix(".manifest.json")
@@ -181,6 +210,8 @@ def train_sb3_baseline(
         "action_contract_hash": action_contract_hash,
         "training_reward_contract": training_reward_contract,
         "training_reward_contract_hash": training_reward_contract["contract_hash"],
+        "policy_distribution_contract": distribution_contract,
+        "policy_distribution_contract_hash": distribution_contract.get("contract_hash"),
         "checkpoint_compatibility": {
             "policy": "exact_contract_hash_match",
             "legacy_checkpoint_compatible": False,

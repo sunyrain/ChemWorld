@@ -131,6 +131,7 @@ def check_operation_preconditions(
         "run_flow",
         "set_potential",
         "electrolyze",
+        "terminate",
     }
     return {
         "instrument_available": operation_type != "measure" or instrument is not None,

@@ -5,16 +5,21 @@ from pathlib import Path
 
 import gymnasium as gym
 import numpy as np
+import torch as th
 
 import chemworld  # noqa: F401
 from chemworld.rl.hybrid_actions import (
     conditional_hybrid_action_contract,
     decode_conditional_hybrid_action,
 )
+from chemworld.rl.hybrid_policy import (
+    ConditionalHybridDistribution,
+    policy_distribution_contract,
+)
 from chemworld.rl.rewards import core_operation_requirements, reward_contract
 from chemworld.tasks import get_task
 from chemworld.world.operations import OPERATION_TYPES, operation_contracts
-from chemworld.wrappers import RLTrainingRewardWrapper
+from chemworld.wrappers import RLTrainingRewardWrapper, action_mask
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "configs" / "foundation" / "rl_contract_vnext.json"
@@ -34,6 +39,9 @@ def test_protocol_is_nonclaiming_and_keeps_native_distribution_gap_visible() -> 
     assert protocol["action_contract"]["stable_baselines_adapter"][
         "native_hybrid_distribution"
     ] is False
+    assert protocol["action_contract"]["ppo_policy_distribution"][
+        "native_hybrid_distribution"
+    ] is True
     assert protocol["development_gate"]["training_seeds"] == [101, 102, 103, 104, 105]
     assert protocol["development_gate"]["dev_episodes_per_seed"] == 20
 
@@ -95,6 +103,41 @@ def test_action_and_reward_contract_hashes_are_stable_and_semantic() -> None:
     )
 
 
+def test_native_distribution_masks_operations_and_ignores_inactive_log_prob() -> None:
+    env = gym.make("ChemWorld", task_id="flow-reaction-optimization")
+    try:
+        assert isinstance(env.action_space, gym.spaces.Dict)
+        action_contract = conditional_hybrid_action_contract(env.action_space)
+    finally:
+        env.close()
+    parameter_keys = tuple(
+        action_contract["training_adapter"]["parameter_coordinate_keys"]
+    )
+    distribution = ConditionalHybridDistribution(parameter_keys)
+    logits = th.zeros((1, len(OPERATION_TYPES)))
+    means = th.zeros((1, len(parameter_keys)))
+    log_std = th.zeros(len(parameter_keys))
+    mask = th.zeros((1, len(OPERATION_TYPES)), dtype=th.bool)
+    run_flow_index = OPERATION_TYPES.index("run_flow")
+    mask[0, run_flow_index] = True
+    distribution.proba_distribution(logits, means, log_std, mask)
+    action = distribution.mode()
+    assert int(action[0, : len(OPERATION_TYPES)].argmax()) == run_flow_index
+
+    inactive = action.clone()
+    potential_index = parameter_keys.index("potential_V")
+    inactive[0, len(OPERATION_TYPES) + potential_index] = 0.75
+    assert distribution.log_prob(inactive) == distribution.log_prob(action)
+
+    active = action.clone()
+    duration_index = parameter_keys.index("duration_s")
+    active[0, len(OPERATION_TYPES) + duration_index] = 0.75
+    assert distribution.log_prob(active) < distribution.log_prob(action)
+    contract = policy_distribution_contract(parameter_keys)
+    assert contract["irrelevant_parameter_log_prob"] is False
+    assert len(contract["contract_hash"]) == 64
+
+
 def test_campaign_behavior_ledger_resets_between_experiments() -> None:
     env = RLTrainingRewardWrapper(
         gym.make(
@@ -133,5 +176,30 @@ def test_campaign_behavior_ledger_resets_between_experiments() -> None:
         )
         assert second_info["rl_training_reward"]["behavior_complete"] is False
         assert second_info["rl_training_reward"]["quick_close_incomplete"] is True
+    finally:
+        env.close()
+
+
+def test_repeated_terminate_is_not_an_affordance_and_fails_closed() -> None:
+    env = gym.make("ChemWorld", task_id="flow-reaction-optimization", budget_override=5)
+    try:
+        env.reset(seed=0)
+        env.step({"operation": "add_reagent", "amount_mol": 0.02})
+        env.step({"operation": "add_solvent", "volume_L": 0.05, "solvent": 0})
+        _, _, _, _, first = env.step({"operation": "terminate"})
+        assert first["transaction_status"] == "committed"
+        valid = {
+            operation
+            for operation, is_valid in zip(OPERATION_TYPES, action_mask(env), strict=True)
+            if is_valid
+        }
+        assert valid == {"measure"}
+        _, reward, terminated, truncated, repeated = env.step({"operation": "terminate"})
+        assert reward == 0.0
+        assert terminated is False
+        assert truncated is False
+        assert repeated["transaction_status"] == "rolled_back"
+        assert repeated["constraint_flags"]["precondition_failed"] is True
+        assert repeated["preconditions"]["not_terminated"] is False
     finally:
         env.close()

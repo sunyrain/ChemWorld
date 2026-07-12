@@ -14,6 +14,13 @@
       "shape": [49],
       "native_hybrid_distribution": false,
       "claim_boundary": "Compatibility adapter only; it is not evidence of a native hybrid policy distribution."
+    },
+    "ppo_policy_distribution": {
+      "schema_version": "chemworld-masked-conditional-ppo-0.1",
+      "masked_categorical_operation": true,
+      "conditional_parameter_log_prob": true,
+      "irrelevant_parameter_log_prob": false,
+      "native_hybrid_distribution": true
     }
   },
   "reward_contract": {
@@ -21,6 +28,9 @@
     "terminal_bonus": false,
     "measurement_bonus": false,
     "quick_close_incomplete_penalty": -0.5,
+    "valid_operation_reward": 0.0,
+    "partial_core_requirement_reward": 0.0,
+    "first_behavioral_core_completion_reward": 1.0,
     "behavioral_completion_requirements": [
       ["set_flow_rate"],
       ["run_flow"]

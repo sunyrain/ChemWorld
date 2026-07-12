@@ -17,6 +17,7 @@ from chemworld.rl.hybrid_actions import (
     conditional_hybrid_action_contract,
     decode_conditional_hybrid_action,
 )
+from chemworld.rl.hybrid_policy import policy_distribution_contract
 from chemworld.rl.rewards import reward_contract
 from chemworld.tasks import get_task
 from chemworld.world.operations import OPERATION_TYPES
@@ -128,6 +129,17 @@ class FrozenSB3Agent(BaseAgent):
             "training_reward_contract_hash"
         ) != self.reward_contract["contract_hash"]:
             raise ValueError("RL checkpoint reward contract hash is incompatible")
+        parameter_keys = tuple(
+            str(item)
+            for item in self.action_contract["training_adapter"][
+                "parameter_coordinate_keys"
+            ]
+        )
+        self.policy_distribution_contract = policy_distribution_contract(parameter_keys)
+        if algorithm == "ppo" and self.checkpoint_manifest.get(
+            "policy_distribution_contract_hash"
+        ) != self.policy_distribution_contract["contract_hash"]:
+            raise ValueError("RL checkpoint policy distribution contract hash is incompatible")
         try:
             import stable_baselines3 as sb3
         except ImportError as exc:  # pragma: no cover - optional dependency
@@ -218,6 +230,9 @@ class FrozenSB3Agent(BaseAgent):
                 "checkpoint_manifest_schema": self.checkpoint_manifest["schema_version"],
                 "action_contract_hash": self.action_contract["contract_hash"],
                 "training_reward_contract_hash": self.reward_contract["contract_hash"],
+                "policy_distribution_contract_hash": self.policy_distribution_contract[
+                    "contract_hash"
+                ],
                 "training_allocation": self.checkpoint_manifest.get("allocation", {}),
                 "uses_training_reward_at_evaluation": False,
                 "public_view_only": True,

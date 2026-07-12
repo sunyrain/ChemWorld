@@ -267,7 +267,7 @@ def chemworld_operations() -> tuple[Operation, ...]:
             ("duration_s",),
             ("has_volume", "has_material", "electrolyze_requires_potential"),
         ),
-        Operation("terminate", "Terminate", (), ("has_material",)),
+        Operation("terminate", "Terminate", (), ("has_material", "not_terminated")),
         Operation("measure", "Measure", ("instrument",), ("has_volume", "instrument_specific")),
     )
 
