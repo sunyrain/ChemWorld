@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from math import exp
+from math import exp, isfinite, log
 from typing import Any, Literal, Protocol
 
 import numpy as np
@@ -35,6 +35,9 @@ class BatchIntegrationResultLike(Protocol):
 
 class ReactionNetworkReference(Protocol):
     @property
+    def network_id(self) -> str: ...
+
+    @property
     def species_ids(self) -> tuple[str, ...]: ...
 
     def integrate_batch(
@@ -58,6 +61,188 @@ class ReactionNetworkReference(Protocol):
         temperature_K: float,
         species_thermo: Mapping[str, Any] | None = None,
     ) -> dict[str, float]: ...
+
+
+@dataclass(frozen=True)
+class ThresholdMeasurementStrategy:
+    """Executable sampling decision derived from a declared mechanism.
+
+    The rule is deliberately small and auditable: select the earliest candidate
+    time at which the chosen observable crosses a predeclared amount threshold.
+    It is reference evidence that mechanism assumptions can change an agent's
+    measurement schedule, not a claim of a generally optimal experiment design.
+    """
+
+    mechanism_id: str
+    observable_species_id: str
+    threshold_mol: float
+    candidate_times_s: tuple[float, ...]
+    predicted_amounts_mol: tuple[float, ...]
+    selected_time_s: float | None
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "mechanism_id": self.mechanism_id,
+            "observable_species_id": self.observable_species_id,
+            "threshold_mol": self.threshold_mol,
+            "candidate_times_s": list(self.candidate_times_s),
+            "predicted_amounts_mol": list(self.predicted_amounts_mol),
+            "selected_time_s": self.selected_time_s,
+            "decision_rule": "earliest candidate at or above threshold",
+        }
+
+
+def product_inhibition_reference_network(
+    *,
+    rate_constant_s: float = 0.08,
+    product_inhibition_L_per_mol: float = 12.0,
+) -> ReactionNetworkReference:
+    """Return a bounded A -> P product-inhibited reference mechanism.
+
+    The existing Langmuir-Hinshelwood law is used with product adsorption in
+    the denominator,
+
+    ``r = k C_A / (1 + K_P C_P)``.
+
+    Setting ``K_P=0`` recovers the first-order reference exactly.  This helper
+    is additive reference evidence and is not installed into the formal runtime
+    registry or any task contract.
+    """
+
+    if rate_constant_s <= 0.0 or not isfinite(rate_constant_s):
+        raise ValueError("rate_constant_s must be finite and positive")
+    if product_inhibition_L_per_mol < 0.0 or not isfinite(product_inhibition_L_per_mol):
+        raise ValueError("product_inhibition_L_per_mol must be finite and nonnegative")
+
+    from chemworld.physchem.reaction_network import ReactionNetworkSpec
+
+    species = (
+        SpeciesSpec("A", "C2H4O2"),
+        SpeciesSpec("P", "C2H4O2"),
+    )
+    reaction = ReactionSpec.from_equation(
+        reaction_id="product_inhibited_target",
+        equation="A => P",
+        rate_law=RateLawSpec(
+            "bounded_product_inhibition",
+            "langmuir_hinshelwood",
+            {
+                "A": rate_constant_s,
+                "Ea_J_per_mol": 0.0,
+                "adsorption": {"P": product_inhibition_L_per_mol},
+                "denominator_power": 1.0,
+            },
+        ),
+        metadata={
+            "reference_role": "bounded_product_inhibition",
+            "inhibition_parameter_unit": "L/mol",
+        },
+    )
+    return ReactionNetworkSpec(
+        network_id=(f"bounded_product_inhibition_Kp_{product_inhibition_L_per_mol:g}_L_per_mol"),
+        species=species,
+        reactions=(reaction,),
+        metadata={
+            "reference_family": "constant-volume product-inhibited batch",
+            "claim_boundary": (
+                "single irreversible liquid-phase A-to-P reaction with a "
+                "fixed empirical product-adsorption coefficient"
+            ),
+        },
+    )
+
+
+def product_inhibition_implicit_time_s(
+    *,
+    product_amount_mol: float,
+    initial_reactant_mol: float,
+    volume_L: float,
+    rate_constant_s: float,
+    product_inhibition_L_per_mol: float,
+) -> float:
+    """Analytical implicit time for the bounded product-inhibition case.
+
+    For ``P(0)=0`` and ``A+P=A0``, integration of
+    ``dP/dt = k(A0-P)/(1 + K_P P/V)`` gives
+
+    ``t(P) = (1 + K_P A0/V) ln(A0/(A0-P))/k - K_P P/(kV)``.
+    """
+
+    values = (
+        product_amount_mol,
+        initial_reactant_mol,
+        volume_L,
+        rate_constant_s,
+        product_inhibition_L_per_mol,
+    )
+    if not all(isfinite(value) for value in values):
+        raise ValueError("product-inhibition reference inputs must be finite")
+    if initial_reactant_mol <= 0.0:
+        raise ValueError("initial_reactant_mol must be positive")
+    if product_amount_mol < 0.0 or product_amount_mol >= initial_reactant_mol:
+        raise ValueError("product_amount_mol must lie in [0, initial_reactant_mol)")
+    if volume_L <= 0.0:
+        raise ValueError("volume_L must be positive")
+    if rate_constant_s <= 0.0:
+        raise ValueError("rate_constant_s must be positive")
+    if product_inhibition_L_per_mol < 0.0:
+        raise ValueError("product_inhibition_L_per_mol cannot be negative")
+
+    concentration_factor = product_inhibition_L_per_mol / volume_L
+    return (1.0 + concentration_factor * initial_reactant_mol) * log(
+        initial_reactant_mol / (initial_reactant_mol - product_amount_mol)
+    ) / rate_constant_s - concentration_factor * product_amount_mol / rate_constant_s
+
+
+def select_threshold_measurement_strategy(
+    network: ReactionNetworkReference,
+    initial_amounts_mol: Mapping[str, float],
+    *,
+    volume_L: float,
+    temperature_K: float,
+    observable_species_id: str,
+    threshold_mol: float,
+    candidate_times_s: Sequence[float],
+) -> ThresholdMeasurementStrategy:
+    """Select an executable threshold-triggered measurement schedule."""
+
+    candidates = tuple(float(value) for value in candidate_times_s)
+    if not candidates:
+        raise ValueError("candidate_times_s cannot be empty")
+    if any(value < 0.0 or not isfinite(value) for value in candidates):
+        raise ValueError("candidate_times_s must be finite and nonnegative")
+    if tuple(sorted(set(candidates))) != candidates:
+        raise ValueError("candidate_times_s must be strictly increasing")
+    if threshold_mol <= 0.0 or not isfinite(threshold_mol):
+        raise ValueError("threshold_mol must be finite and positive")
+    if observable_species_id not in network.species_ids:
+        raise ValueError(f"unknown observable species: {observable_species_id}")
+
+    result = network.integrate_batch(
+        initial_amounts_mol,
+        volume_L=volume_L,
+        temperature_K=temperature_K,
+        duration_s=candidates[-1],
+        evaluation_times_s=candidates,
+    )
+    observable_index = result.species_ids.index(observable_species_id)
+    predicted = tuple(result.amounts_mol[observable_index])
+    selected = next(
+        (
+            time_s
+            for time_s, amount_mol in zip(candidates, predicted, strict=True)
+            if amount_mol >= threshold_mol
+        ),
+        None,
+    )
+    return ThresholdMeasurementStrategy(
+        mechanism_id=network.network_id,
+        observable_species_id=observable_species_id,
+        threshold_mol=threshold_mol,
+        candidate_times_s=candidates,
+        predicted_amounts_mol=predicted,
+        selected_time_s=selected,
+    )
 
 
 @dataclass(frozen=True)
