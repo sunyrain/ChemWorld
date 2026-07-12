@@ -2010,6 +2010,12 @@
 <td>校准的类别效应</td>
 </tr>
 <tr>
+<td>extractant <code>0..3</code></td>
+<td>与 solvent <code>0..3</code> 相同的材料目录</td>
+<td>相同身份边界</td>
+<td>驱动分配系数与萃取风险</td>
+</tr>
+<tr>
 <td>catalyst <code>0..3</code></td>
 <td>Catalyst A..D</td>
 <td>匿名 benchmark 配方</td>
@@ -2026,6 +2032,9 @@
 <p>这里的关键区别是：<code>Ethanol</code> 确实标识乙醇，但当前反应任务中“溶剂 1 对速率的影响”仍来自
 任务校准的类别参数，并不是从乙醇物性自动推导出来的。Catalyst A 也不能解释成 Pd/C、
 Ni 或任何现实催化剂。</p>
+<p>萃取剂复用同一稳定材料目录，但拥有独立于反应溶剂的设备状态。其代码会进入液液分配与风险模型，
+不是仅供显示的标签；同一实验内追加萃取剂时类别保持不变，体积累计。这里的分配效应仍是经过校准的
+benchmark 类别规律，不等同于从完整混合物物性预测出的真实萃取数据。</p>
 <h2 id="_3">动作如何填写<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p>JSON 轨迹和 Gym 向量使用稳定数字值，避免改名导致历史结果失效：</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">&quot;operation&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;add_solvent&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;solvent&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;volume_L&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.04</span><span class="p">}</span>
