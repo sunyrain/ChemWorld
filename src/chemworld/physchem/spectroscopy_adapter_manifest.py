@@ -9,8 +9,10 @@ from typing import Any
 from chemworld.physchem.maturity import (
     MaturityLevel,
     ModelAdapterManifest,
+    ModelCard,
     ModelExecutionRole,
     ModelProviderContract,
+    ValidationEvidence,
 )
 from chemworld.physchem.spectroscopy import SpectralMeasurement
 from chemworld.physchem.spectroscopy_identifiability import (
@@ -232,6 +234,85 @@ def instrument_runtime_adapter_manifest() -> ModelAdapterManifest:
     )
 
 
+def instrument_runtime_model_card() -> ModelCard:
+    """Return the evidence-bound card for the formal public instrument runtime."""
+
+    return ModelCard(
+        model_id=INSTRUMENT_RUNTIME_MODEL_ID,
+        module_id="spectroscopy_instruments",
+        title="Validated Synthetic Instrument Runtime",
+        maturity=MaturityLevel.REFERENCE_VALIDATED,
+        summary=(
+            "A bounded synthetic measurement runtime that dispatches UV-vis, HPLC, "
+            "GC, pH, and final-assay observations through explicit public packet, "
+            "calibration, uncertainty, sample, and transaction contracts."
+        ),
+        equations=(
+            "public packet = calibrated_signal(public aggregate sample, instrument, seed)",
+            "sample_out = sample_in - exact_declared_consumption",
+            "measurement failure => atomic rollback(cost, sample, signal, history)",
+        ),
+        assumptions=(
+            "only anonymous task-public aggregate species channels enter the provider",
+            "each instrument uses its declared bounded synthetic reference model",
+            "replicate noise is deterministic under the declared measurement seed",
+        ),
+        validity_limits=(
+            "virtual liquid samples and declared instrument contracts only",
+            "not a predictor of real samples or a physical-device emulator",
+            "identity-bearing hidden state and provider metadata never enter public packets",
+        ),
+        failure_modes=(
+            "unknown instruments, nonfinite inputs, or private species channels fail closed",
+            "insufficient sample volume fails before charging or consuming sample",
+            "invalid packets and provider exceptions atomically roll back the measurement",
+        ),
+        units={
+            "sample volume": "L",
+            "species amount": "mol",
+            "axis and signal": "instrument contract specific",
+            "uncertainty": "instrument contract specific",
+        },
+        reference_reading=INSTRUMENT_RUNTIME_PROVENANCE,
+        validation_evidence=(
+            ValidationEvidence(
+                evidence_id="validated-instrument-runtime-dynamic-dispatch",
+                evidence_type="runtime_integration_test",
+                description=(
+                    "All five formal instruments dynamically execute the provider, record "
+                    "contract-bound provenance, and preserve layered anonymous packets."
+                ),
+                status="implemented",
+                command_or_path="tests/test_instrument_runtime_integration.py",
+                tolerance="exact seeded replay and strict public packet schema",
+            ),
+            ValidationEvidence(
+                evidence_id="validated-instrument-runtime-reference-closures",
+                evidence_type="analytical_and_integration_test",
+                description=(
+                    "Beer-Lambert, retention/plate, potentiometric, calibration, "
+                    "identifiability, sample consumption, and failure rollback checks."
+                ),
+                status="implemented",
+                command_or_path=(
+                    "tests/test_instruments_reference.py; "
+                    "tests/test_instrument_runtime_integration.py"
+                ),
+                tolerance="declared analytical tolerances and atomic state equality",
+            ),
+        ),
+        model_limit_notes=(
+            "Reference-validated applies to the synthetic observation contract only.",
+            "No real compound identity or empirical instrument accuracy is claimed.",
+        ),
+        intended_use=(
+            "formal ChemWorld measure operations",
+            "agent reasoning over bounded spectra and calibrated estimates",
+            "deterministic replay and public/private boundary testing",
+        ),
+    )
+
+
 def spectroscopy_identifiability_provider_contract() -> ModelProviderContract:
     """Return the WF-00-compatible diagnostic provider contract."""
 
@@ -239,7 +320,7 @@ def spectroscopy_identifiability_provider_contract() -> ModelProviderContract:
         model_id="chemworld_spectral_identifiability_audit_vnext",
         module_id="spectroscopy_instruments",
         maturity=MaturityLevel.REFERENCE_VALIDATED,
-        role=ModelExecutionRole.DIAGNOSTIC,
+        role=ModelExecutionRole.REFERENCE,
         provider_path=(
             "chemworld.physchem.spectroscopy_adapter_manifest.SpectralIdentifiabilityProvider"
         ),
@@ -500,6 +581,7 @@ __all__ = [
     "SpectralIdentifiabilityProvider",
     "ValidatedInstrumentRuntimeProvider",
     "instrument_runtime_adapter_manifest",
+    "instrument_runtime_model_card",
     "instrument_runtime_provider_contract",
     "spectroscopy_identifiability_adapter_manifest",
     "spectroscopy_identifiability_provider_contract",

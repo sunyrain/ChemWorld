@@ -11,12 +11,13 @@ from typing import Any
 import gymnasium as gym
 
 import chemworld  # noqa: F401
-from chemworld.foundation import equipment_settings
+from chemworld.foundation import equipment_settings, instrument_equipment_id
 from chemworld.runtime.model_reachability import (
     audit_model_reachability,
     default_model_reachability_registry,
 )
 from chemworld.tasks import list_tasks
+from chemworld.world.instruments import INSTRUMENT_RUNTIME_MODEL_ID
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 
 SCHEMA_VERSION = "chemworld-vnext-runtime-integration-audit-0.1"
@@ -36,6 +37,7 @@ EXPECTED_OPERATION_MODELS = {
     "concentrate": ("chemworld_vacuum_concentration_vnext",),
     "transfer": ("chemworld_transfer_holdup_vnext",),
     "distill": ("chemworld_duty_limited_distillation_vnext",),
+    "measure": (INSTRUMENT_RUNTIME_MODEL_ID,),
 }
 
 
@@ -117,6 +119,33 @@ def _execution_probe() -> dict[str, Any]:
             },
         ),
     )
+    assay_state, assay_statuses = _run_actions(
+        "reaction-to-assay",
+        (
+            {"operation": "add_solvent", "volume_L": 0.026, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "measure", "instrument": "uvvis"},
+            {"operation": "measure", "instrument": "hplc"},
+            {"operation": "measure", "instrument": "gc"},
+            {"operation": "terminate"},
+            {"operation": "measure", "instrument": "final_assay"},
+        ),
+    )
+    ph_state, ph_statuses = _run_actions(
+        "equilibrium-characterization",
+        (
+            {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "measure", "instrument": "ph_meter"},
+        ),
+    )
+    instrument_settings = {
+        instrument_id: equipment_settings(
+            (ph_state if instrument_id == "ph_meter" else assay_state).equipment,
+            instrument_equipment_id(instrument_id),
+        )
+        for instrument_id in ("uvvis", "hplc", "gc", "ph_meter", "final_assay")
+    }
     equipment = {
         "dry": equipment_settings(purification_state.equipment, "sorbent_dryer"),
         "concentrate": equipment_settings(
@@ -126,6 +155,7 @@ def _execution_probe() -> dict[str, Any]:
         "distill": equipment_settings(
             distillation_state.equipment, "distillation_column"
         ),
+        "instruments": instrument_settings,
     }
     model_ids = {
         "mix": purification_state.metadata.get("extraction_model_id"),
@@ -134,15 +164,40 @@ def _execution_probe() -> dict[str, Any]:
         "concentrate": equipment["concentrate"].get("concentration_model_id"),
         "transfer": equipment["transfer"].get("transfer_model_id"),
         "distill": equipment["distill"].get("distillation_model"),
+        "measure": instrument_settings["uvvis"].get("model_id"),
+    }
+    instrument_model_ids = {
+        "uvvis": [INSTRUMENT_RUNTIME_MODEL_ID, "beer_lambert_uvvis"],
+        "hplc": [INSTRUMENT_RUNTIME_MODEL_ID, "chromatography_retention_plate"],
+        "gc": [INSTRUMENT_RUNTIME_MODEL_ID, "chromatography_retention_plate"],
+        "ph_meter": [
+            INSTRUMENT_RUNTIME_MODEL_ID,
+            "aqueous_acid_base_ph_observation",
+            "potentiometric_ph_public_reference",
+        ],
+        "final_assay": [INSTRUMENT_RUNTIME_MODEL_ID],
     }
     return {
         "passed": all(status == "committed" for status in purification_statuses)
         and all(status == "committed" for status in distillation_statuses)
+        and all(status == "committed" for status in assay_statuses)
+        and all(status == "committed" for status in ph_statuses)
         and model_ids
-        == {operation: models[0] for operation, models in EXPECTED_OPERATION_MODELS.items()},
+        == {operation: models[0] for operation, models in EXPECTED_OPERATION_MODELS.items()}
+        and all(
+            settings.get("model_id") == INSTRUMENT_RUNTIME_MODEL_ID
+            and settings.get("provider_path")
+            and settings.get("execution_history")
+            for settings in instrument_settings.values()
+        ),
         "model_ids": model_ids,
+        "instrument_model_ids": instrument_model_ids,
         "purification_transaction_statuses": purification_statuses,
         "distillation_transaction_statuses": distillation_statuses,
+        "instrument_transaction_statuses": {
+            "assay": assay_statuses,
+            "ph": ph_statuses,
+        },
         "typed_inventory_phases": sorted(purification_state.phases.phases),
         "provider_diagnostics": equipment,
     }

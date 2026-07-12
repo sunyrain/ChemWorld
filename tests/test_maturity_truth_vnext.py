@@ -34,8 +34,8 @@ def test_protocol_collects_unique_cards_and_claim_bound_manifests() -> None:
     cards = collect_model_cards(protocol)
     manifests = collect_adapter_manifests(protocol)
 
-    assert len(cards) == 56
-    assert len(manifests) == 8
+    assert len(cards) == 57
+    assert len(manifests) == 9
     assert set(manifests) <= set(cards)
     assert all(manifest.manifest_hash for manifest in manifests.values())
 

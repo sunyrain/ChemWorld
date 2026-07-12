@@ -1,26 +1,9 @@
 {
-  "check_count": 7,
+  "check_count": 6,
   "checks": [
     {
       "check_id": "world_law_advanced",
       "evidence": "chemworld-physical-chemistry-v0.4",
-      "passed": true
-    },
-    {
-      "check_id": "all_adapter_proposals_integrated",
-      "evidence": {
-        "accepted_count": 8,
-        "states": {
-          "wf-10-arrhenius-unit-contract": "integrated",
-          "wf-20-spectral-identifiability": "integrated",
-          "wf-30-drying-sorbent": "integrated",
-          "wf-30-transfer-holdup": "integrated",
-          "wf-30-vacuum-concentration": "integrated",
-          "wf-40-lle-stability-coupling": "integrated",
-          "wf-50-crystallization-convergence": "integrated",
-          "wf-60-duty-limited-distillation": "integrated"
-        }
-      },
       "passed": true
     },
     {
@@ -34,6 +17,9 @@
         ],
         "dry": [
           "chemworld_sorbent_drying_vnext"
+        ],
+        "measure": [
+          "chemworld_validated_synthetic_instruments_v1"
         ],
         "mix": [
           "chemworld_stability_aware_lle_vnext"
@@ -79,10 +65,49 @@
           "committed",
           "committed"
         ],
+        "instrument_model_ids": {
+          "final_assay": [
+            "chemworld_validated_synthetic_instruments_v1"
+          ],
+          "gc": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "hplc": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "ph_meter": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "aqueous_acid_base_ph_observation",
+            "potentiometric_ph_public_reference"
+          ],
+          "uvvis": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis"
+          ]
+        },
+        "instrument_transaction_statuses": {
+          "assay": [
+            "committed",
+            "committed",
+            "committed",
+            "committed",
+            "committed",
+            "committed",
+            "committed"
+          ],
+          "ph": [
+            "committed",
+            "committed",
+            "committed"
+          ]
+        },
         "model_ids": {
           "concentrate": "chemworld_vacuum_concentration_vnext",
           "distill": "chemworld_duty_limited_distillation_vnext",
           "dry": "chemworld_sorbent_drying_vnext",
+          "measure": "chemworld_validated_synthetic_instruments_v1",
           "mix": "chemworld_stability_aware_lle_vnext",
           "transfer": "chemworld_transfer_holdup_vnext",
           "wash": "chemworld_stability_aware_lle_vnext"
@@ -94,8 +119,15 @@
             "concentration_energy_balance_error_J": 0.0,
             "concentration_material_balance_error_mol": 0.0,
             "concentration_model_id": "chemworld_vacuum_concentration_vnext",
+            "concentration_provenance": [
+              "differential batch Rayleigh evaporation with fixed declared activity coefficients",
+              "heater-power and equipment-rate constrained latent-energy ledger",
+              "explicit recovered-condensate and unrecovered-vent material ledgers",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models/unit_models/flash.py component material, energy, heat-duty, and pressure-balance convention boundary"
+            ],
+            "concentration_provider_path": "chemworld.physchem.concentration_adapter_manifest.VacuumConcentrationProvider",
             "concentration_skipped_empty_phase": false,
-            "concentration_target_recovery": 0.998832134638052,
+            "concentration_target_recovery": 0.998832134638053,
             "concentration_termination_reason": "solvent_endpoint",
             "concentration_warnings": [
               "volatile target loss is explicit in condensate and vent ledgers",
@@ -104,6 +136,7 @@
           },
           "distill": {
             "distillate_cut_fraction": 0.41666666666666663,
+            "distillation_adapter_id": "wf-60-duty-limited-distillation",
             "distillation_kernel": {
               "actual_distillate_cut_fraction": 0.41666666666666663,
               "average_condenser_power_W": 1.0069014388266233,
@@ -184,6 +217,16 @@
               ]
             },
             "distillation_model": "chemworld_duty_limited_distillation_vnext",
+            "distillation_provenance": [
+              "ChemWorld VLE-derived constant-relative-volatility/Fenske split engine",
+              "explicit sensible, reboiler, total-condenser, and internal-vapor ledgers",
+              "binary Fenske and Underwood diagnostic when both key products are nonempty",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models_extra/column_models/tray_column.py column configuration boundary",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models_extra/column_models/condenser.py condenser/reflux boundary",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models_extra/column_models/reboiler.py reboiler duty boundary",
+              "column profile chemworld-runtime-vnext-duty-limited-column"
+            ],
+            "distillation_provider_path": "chemworld.physchem.distillation_adapter_manifest.DutyLimitedDistillationProvider",
             "reflux_ratio": 2.0,
             "theoretical_stages": 3.666666666666667
           },
@@ -191,20 +234,413 @@
             "drying_endpoint_met": true,
             "drying_material_balance_error_mol": 0.0,
             "drying_model_id": "chemworld_sorbent_drying_vnext",
-            "drying_product_recovery": 0.972566778850543,
+            "drying_product_recovery": 0.9725613545860832,
+            "drying_provenance": [
+              "extended-Langmuir shared-site equilibrium with exact component inventory",
+              "linear-driving-force approach using one rate for capacity-preserving transients",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models_extra/temperature_swing_adsorption/fixed_bed_tsa0d.py extended-isotherm convention; ChemWorld uses an independent bounded liquid-contact ledger"
+            ],
+            "drying_provider_path": "chemworld.physchem.drying_adapter_manifest.SorbentDryingProvider",
             "drying_skipped_empty_phase": false,
             "drying_volume_balance_error_L": 0.0,
             "drying_warnings": [
               "product loss is explicit in sorption and retained-liquid ledgers"
             ]
           },
+          "instruments": {
+            "final_assay": {
+              "diagnostics": {
+                "calibration_profile": "synthetic_multichannel_public_calibration_v2",
+                "detection_contract": {
+                  "below_lod": "null_processed_estimate_with_missingness_reason",
+                  "lod_mol_L": null,
+                  "loq_mol_L": null
+                },
+                "final_assay_repeat_guard": true,
+                "instrument_contract_loaded": true,
+                "instrument_id": "final_assay",
+                "missingness_contract": {
+                  "below_lod": "processed value is null; raw trace remains available",
+                  "failed_measurement": "no signal packet and no instrument charge",
+                  "masking": "removes spectral evidence only; does not alter world state"
+                },
+                "sample_volume_exact": true,
+                "sample_volume_sufficient": true,
+                "saturation_contract": {
+                  "policy": "clip_and_flag_outside_declared_linear_range",
+                  "upper_linear_range_mol_L": null
+                }
+              },
+              "execution_history": [
+                {
+                  "diagnostics": {
+                    "calibration_profile": "synthetic_multichannel_public_calibration_v2",
+                    "detection_contract": {
+                      "below_lod": "null_processed_estimate_with_missingness_reason",
+                      "lod_mol_L": null,
+                      "loq_mol_L": null
+                    },
+                    "final_assay_repeat_guard": true,
+                    "instrument_contract_loaded": true,
+                    "instrument_id": "final_assay",
+                    "missingness_contract": {
+                      "below_lod": "processed value is null; raw trace remains available",
+                      "failed_measurement": "no signal packet and no instrument charge",
+                      "masking": "removes spectral evidence only; does not alter world state"
+                    },
+                    "sample_volume_exact": true,
+                    "sample_volume_sufficient": true,
+                    "saturation_contract": {
+                      "policy": "clip_and_flag_outside_declared_linear_range",
+                      "upper_linear_range_mol_L": null
+                    }
+                  },
+                  "maturity": "reference_validated",
+                  "measurement_index": 1,
+                  "model_id": "chemworld_validated_synthetic_instruments_v1",
+                  "provenance": [
+                    "ChemWorld bounded public synthetic instrument contracts v1",
+                    "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                    "tests/test_instruments_reference.py",
+                    "tests/test_instrument_runtime_integration.py"
+                  ],
+                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+                  "role": "runtime"
+                }
+              ],
+              "instrument_id": "final_assay",
+              "last_cost": 0.16,
+              "last_sample_consumed_L": 0.0003,
+              "last_time_s": 0.0,
+              "model_id": "chemworld_validated_synthetic_instruments_v1",
+              "provenance": [
+                "ChemWorld bounded public synthetic instrument contracts v1",
+                "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                "tests/test_instruments_reference.py",
+                "tests/test_instrument_runtime_integration.py"
+              ],
+              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+              "use_count": 1
+            },
+            "gc": {
+              "diagnostics": {
+                "calibration_profile": "retention_plate_public_calibration_v2",
+                "detection_contract": {
+                  "below_lod": "null_processed_estimate_with_missingness_reason",
+                  "lod_mol_L": 0.0012,
+                  "loq_mol_L": 0.003636363636363636
+                },
+                "final_assay_repeat_guard": false,
+                "instrument_contract_loaded": true,
+                "instrument_id": "gc",
+                "missingness_contract": {
+                  "below_lod": "processed value is null; raw trace remains available",
+                  "failed_measurement": "no signal packet and no instrument charge",
+                  "masking": "removes spectral evidence only; does not alter world state"
+                },
+                "sample_volume_exact": true,
+                "sample_volume_sufficient": true,
+                "saturation_contract": {
+                  "policy": "clip_and_flag_outside_declared_linear_range",
+                  "upper_linear_range_mol_L": 5.0
+                }
+              },
+              "execution_history": [
+                {
+                  "diagnostics": {
+                    "calibration_profile": "retention_plate_public_calibration_v2",
+                    "detection_contract": {
+                      "below_lod": "null_processed_estimate_with_missingness_reason",
+                      "lod_mol_L": 0.0012,
+                      "loq_mol_L": 0.003636363636363636
+                    },
+                    "final_assay_repeat_guard": false,
+                    "instrument_contract_loaded": true,
+                    "instrument_id": "gc",
+                    "missingness_contract": {
+                      "below_lod": "processed value is null; raw trace remains available",
+                      "failed_measurement": "no signal packet and no instrument charge",
+                      "masking": "removes spectral evidence only; does not alter world state"
+                    },
+                    "sample_volume_exact": true,
+                    "sample_volume_sufficient": true,
+                    "saturation_contract": {
+                      "policy": "clip_and_flag_outside_declared_linear_range",
+                      "upper_linear_range_mol_L": 5.0
+                    }
+                  },
+                  "maturity": "reference_validated",
+                  "measurement_index": 1,
+                  "model_id": "chemworld_validated_synthetic_instruments_v1",
+                  "provenance": [
+                    "ChemWorld bounded public synthetic instrument contracts v1",
+                    "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                    "tests/test_instruments_reference.py",
+                    "tests/test_instrument_runtime_integration.py"
+                  ],
+                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+                  "role": "runtime"
+                }
+              ],
+              "instrument_id": "gc",
+              "last_cost": 0.06,
+              "last_sample_consumed_L": 0.00015,
+              "last_time_s": 0.0,
+              "model_id": "chemworld_validated_synthetic_instruments_v1",
+              "provenance": [
+                "ChemWorld bounded public synthetic instrument contracts v1",
+                "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                "tests/test_instruments_reference.py",
+                "tests/test_instrument_runtime_integration.py"
+              ],
+              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+              "use_count": 1
+            },
+            "hplc": {
+              "diagnostics": {
+                "calibration_profile": "retention_plate_public_calibration_v2",
+                "detection_contract": {
+                  "below_lod": "null_processed_estimate_with_missingness_reason",
+                  "lod_mol_L": 0.0008,
+                  "loq_mol_L": 0.0024242424242424242
+                },
+                "final_assay_repeat_guard": false,
+                "instrument_contract_loaded": true,
+                "instrument_id": "hplc",
+                "missingness_contract": {
+                  "below_lod": "processed value is null; raw trace remains available",
+                  "failed_measurement": "no signal packet and no instrument charge",
+                  "masking": "removes spectral evidence only; does not alter world state"
+                },
+                "sample_volume_exact": true,
+                "sample_volume_sufficient": true,
+                "saturation_contract": {
+                  "policy": "clip_and_flag_outside_declared_linear_range",
+                  "upper_linear_range_mol_L": 5.0
+                }
+              },
+              "execution_history": [
+                {
+                  "diagnostics": {
+                    "calibration_profile": "retention_plate_public_calibration_v2",
+                    "detection_contract": {
+                      "below_lod": "null_processed_estimate_with_missingness_reason",
+                      "lod_mol_L": 0.0008,
+                      "loq_mol_L": 0.0024242424242424242
+                    },
+                    "final_assay_repeat_guard": false,
+                    "instrument_contract_loaded": true,
+                    "instrument_id": "hplc",
+                    "missingness_contract": {
+                      "below_lod": "processed value is null; raw trace remains available",
+                      "failed_measurement": "no signal packet and no instrument charge",
+                      "masking": "removes spectral evidence only; does not alter world state"
+                    },
+                    "sample_volume_exact": true,
+                    "sample_volume_sufficient": true,
+                    "saturation_contract": {
+                      "policy": "clip_and_flag_outside_declared_linear_range",
+                      "upper_linear_range_mol_L": 5.0
+                    }
+                  },
+                  "maturity": "reference_validated",
+                  "measurement_index": 1,
+                  "model_id": "chemworld_validated_synthetic_instruments_v1",
+                  "provenance": [
+                    "ChemWorld bounded public synthetic instrument contracts v1",
+                    "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                    "tests/test_instruments_reference.py",
+                    "tests/test_instrument_runtime_integration.py"
+                  ],
+                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+                  "role": "runtime"
+                }
+              ],
+              "instrument_id": "hplc",
+              "last_cost": 0.08,
+              "last_sample_consumed_L": 0.0002,
+              "last_time_s": 0.0,
+              "model_id": "chemworld_validated_synthetic_instruments_v1",
+              "provenance": [
+                "ChemWorld bounded public synthetic instrument contracts v1",
+                "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                "tests/test_instruments_reference.py",
+                "tests/test_instrument_runtime_integration.py"
+              ],
+              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+              "use_count": 1
+            },
+            "ph_meter": {
+              "diagnostics": {
+                "calibration_profile": "nernstian_public_ph_calibration_v2",
+                "detection_contract": {
+                  "below_lod": "null_processed_estimate_with_missingness_reason",
+                  "lod_mol_L": null,
+                  "loq_mol_L": null
+                },
+                "final_assay_repeat_guard": false,
+                "instrument_contract_loaded": true,
+                "instrument_id": "ph_meter",
+                "missingness_contract": {
+                  "below_lod": "processed value is null; raw trace remains available",
+                  "failed_measurement": "no signal packet and no instrument charge",
+                  "masking": "removes spectral evidence only; does not alter world state"
+                },
+                "sample_volume_exact": true,
+                "sample_volume_sufficient": true,
+                "saturation_contract": {
+                  "policy": "clip_and_flag_outside_declared_linear_range",
+                  "upper_linear_range_mol_L": null
+                }
+              },
+              "execution_history": [
+                {
+                  "diagnostics": {
+                    "calibration_profile": "nernstian_public_ph_calibration_v2",
+                    "detection_contract": {
+                      "below_lod": "null_processed_estimate_with_missingness_reason",
+                      "lod_mol_L": null,
+                      "loq_mol_L": null
+                    },
+                    "final_assay_repeat_guard": false,
+                    "instrument_contract_loaded": true,
+                    "instrument_id": "ph_meter",
+                    "missingness_contract": {
+                      "below_lod": "processed value is null; raw trace remains available",
+                      "failed_measurement": "no signal packet and no instrument charge",
+                      "masking": "removes spectral evidence only; does not alter world state"
+                    },
+                    "sample_volume_exact": true,
+                    "sample_volume_sufficient": true,
+                    "saturation_contract": {
+                      "policy": "clip_and_flag_outside_declared_linear_range",
+                      "upper_linear_range_mol_L": null
+                    }
+                  },
+                  "maturity": "reference_validated",
+                  "measurement_index": 1,
+                  "model_id": "chemworld_validated_synthetic_instruments_v1",
+                  "provenance": [
+                    "ChemWorld bounded public synthetic instrument contracts v1",
+                    "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                    "tests/test_instruments_reference.py",
+                    "tests/test_instrument_runtime_integration.py"
+                  ],
+                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+                  "role": "runtime"
+                }
+              ],
+              "instrument_id": "ph_meter",
+              "last_cost": 0.018,
+              "last_sample_consumed_L": 3e-05,
+              "last_time_s": 0.0,
+              "model_id": "chemworld_validated_synthetic_instruments_v1",
+              "provenance": [
+                "ChemWorld bounded public synthetic instrument contracts v1",
+                "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                "tests/test_instruments_reference.py",
+                "tests/test_instrument_runtime_integration.py"
+              ],
+              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+              "use_count": 1
+            },
+            "uvvis": {
+              "diagnostics": {
+                "calibration_profile": "beer_lambert_public_calibration_v2",
+                "detection_contract": {
+                  "below_lod": "null_processed_estimate_with_missingness_reason",
+                  "lod_mol_L": 0.0025,
+                  "loq_mol_L": 0.007575757575757576
+                },
+                "final_assay_repeat_guard": false,
+                "instrument_contract_loaded": true,
+                "instrument_id": "uvvis",
+                "missingness_contract": {
+                  "below_lod": "processed value is null; raw trace remains available",
+                  "failed_measurement": "no signal packet and no instrument charge",
+                  "masking": "removes spectral evidence only; does not alter world state"
+                },
+                "sample_volume_exact": true,
+                "sample_volume_sufficient": true,
+                "saturation_contract": {
+                  "policy": "clip_and_flag_outside_declared_linear_range",
+                  "upper_linear_range_mol_L": 5.0
+                }
+              },
+              "execution_history": [
+                {
+                  "diagnostics": {
+                    "calibration_profile": "beer_lambert_public_calibration_v2",
+                    "detection_contract": {
+                      "below_lod": "null_processed_estimate_with_missingness_reason",
+                      "lod_mol_L": 0.0025,
+                      "loq_mol_L": 0.007575757575757576
+                    },
+                    "final_assay_repeat_guard": false,
+                    "instrument_contract_loaded": true,
+                    "instrument_id": "uvvis",
+                    "missingness_contract": {
+                      "below_lod": "processed value is null; raw trace remains available",
+                      "failed_measurement": "no signal packet and no instrument charge",
+                      "masking": "removes spectral evidence only; does not alter world state"
+                    },
+                    "sample_volume_exact": true,
+                    "sample_volume_sufficient": true,
+                    "saturation_contract": {
+                      "policy": "clip_and_flag_outside_declared_linear_range",
+                      "upper_linear_range_mol_L": 5.0
+                    }
+                  },
+                  "maturity": "reference_validated",
+                  "measurement_index": 1,
+                  "model_id": "chemworld_validated_synthetic_instruments_v1",
+                  "provenance": [
+                    "ChemWorld bounded public synthetic instrument contracts v1",
+                    "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                    "tests/test_instruments_reference.py",
+                    "tests/test_instrument_runtime_integration.py"
+                  ],
+                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+                  "role": "runtime"
+                }
+              ],
+              "instrument_id": "uvvis",
+              "last_cost": 0.025,
+              "last_sample_consumed_L": 5e-05,
+              "last_time_s": 0.0,
+              "model_id": "chemworld_validated_synthetic_instruments_v1",
+              "provenance": [
+                "ChemWorld bounded public synthetic instrument contracts v1",
+                "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                "tests/test_instruments_reference.py",
+                "tests/test_instrument_runtime_integration.py"
+              ],
+              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+              "use_count": 1
+            }
+          },
           "transfer": {
-            "transfer_delivery_fraction": 0.965,
-            "transfer_line_holdup_volume_L": 4.073444950023625e-05,
+            "transfer_delivery_fraction": 0.9649999999999999,
+            "transfer_line_holdup_volume_L": 4.0727063325668444e-05,
             "transfer_material_balance_error_mol": 0.0,
             "transfer_model_id": "chemworld_transfer_holdup_vnext",
+            "transfer_provenance": [
+              "finite-volume FIFO slug displacement with explicit line inventory",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8: component material-balance and control-volume holdup conventions"
+            ],
+            "transfer_provider_path": "chemworld.physchem.transfer_adapter_manifest.TransferUnitProvider",
             "transfer_skipped_empty_phase": false,
-            "transfer_source_heel_volume_L": 0.00024440669700142095,
+            "transfer_source_heel_volume_L": 0.0002443623799540124,
             "transfer_volume_balance_error_L": 0.0,
             "transfer_warnings": [
               "line retains material inventory that must persist between transfers"

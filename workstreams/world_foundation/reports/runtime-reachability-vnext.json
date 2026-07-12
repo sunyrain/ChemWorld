@@ -26,11 +26,12 @@
       "concentrate": "chemworld_vacuum_concentration_vnext",
       "distill": "chemworld_duty_limited_distillation_vnext",
       "dry": "chemworld_sorbent_drying_vnext",
+      "measure": "chemworld_validated_synthetic_instruments_v1",
       "mix": "chemworld_stability_aware_lle_vnext",
       "transfer": "chemworld_transfer_holdup_vnext",
       "wash": "chemworld_stability_aware_lle_vnext"
     },
-    "report_sha256": "9b6284470d3d37cf74760c74986ee6ead863f0b3cf354863d598dfb4fcac0eef",
+    "report_sha256": "318466977622e32502528c65003f1b559b91fee36847bd486fe1eb61b1cfb1bb",
     "schema_version": "chemworld-vnext-runtime-integration-audit-0.1"
   },
   "forbidden_runtime_models": [],
@@ -249,12 +250,6 @@
     ],
     "reactors": [
       "chemworld_reactor_lite"
-    ],
-    "spectroscopy_instruments": [
-      "beer_lambert_uvvis",
-      "chemworld_synthetic_instruments",
-      "chromatography_retention_plate",
-      "ph_meter_public_signal"
     ]
   },
   "operation_count": 28,
@@ -795,14 +790,12 @@
       "all_model_ids": [
         "aqueous_acid_base_ph_observation",
         "beer_lambert_uvvis",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "ph_meter_public_signal"
+        "potentiometric_ph_public_reference"
       ],
       "base_model_ids": [
-        "chemworld_synthetic_instruments",
-        "chemworld_spectral_identifiability_audit_vnext"
+        "chemworld_validated_synthetic_instruments_v1"
       ],
       "instrument_model_ids": {
         "final_assay": [],
@@ -814,7 +807,7 @@
         ],
         "ph_meter": [
           "aqueous_acid_base_ph_observation",
-          "ph_meter_public_signal"
+          "potentiometric_ph_public_reference"
         ],
         "uvvis": [
           "beer_lambert_uvvis"
@@ -1331,7 +1324,7 @@
   },
   "orphan_runtime_providers": [],
   "protocol_id": "foundation-runtime-reachability-vnext",
-  "protocol_sha256": "0e8590c5affe5b877d269ca9612c3eaa66b60a79e1fe9077bb4c784447aa2135",
+  "protocol_sha256": "f37d27552fff69aff88e7db9f05c4b0600d4188f2db82e70f3e1ba6f6c0fa17e",
   "provider_catalog": {
     "aqueous_acid_base_ph_observation": {
       "diagnostic_fields": [
@@ -1385,7 +1378,7 @@
       "intended_operations": [
         "measure"
       ],
-      "maturity": "lite",
+      "maturity": "reference_validated",
       "model_id": "beer_lambert_uvvis",
       "module_id": "spectroscopy_instruments",
       "output_fields": [
@@ -1414,6 +1407,7 @@
         "equation_id",
         "forward_order",
         "effective_forward_order",
+        "kinetic_basis",
         "violations"
       ],
       "failure_policy": "return an unsuccessful ModelProviderResult with explicit declaration violations; never infer missing units or mutate the mechanism",
@@ -1448,6 +1442,8 @@
         "rate law is in the supported Arrhenius family",
         "pre-exponential factors are finite and positive",
         "temperature exponents and activation energies are finite",
+        "concentration/activity basis and standard concentration are explicit",
+        "explicit reaction orders are finite and nonnegative",
         "reversible, third-body, and falloff declarations are complete"
       ]
     },
@@ -1753,8 +1749,8 @@
         "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: non-instrument reference boundary"
       ],
       "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.SpectralIdentifiabilityProvider",
-      "role": "diagnostic",
-      "runtime_reachable": true,
+      "role": "reference",
+      "runtime_reachable": false,
       "units": {
         "alternative": "SpectralMeasurement",
         "audit_spec": "dimensionless policy",
@@ -1815,43 +1811,6 @@
         "every contact lies within the declared volume, stage-count, and temperature domain",
         "every contact passes the two-liquid TPD-style stability gate",
         "distribution iterations converge and stage/train component ledgers close"
-      ]
-    },
-    "chemworld_synthetic_instruments": {
-      "diagnostic_fields": [
-        "observed_keys",
-        "measurement_provenance"
-      ],
-      "failure_policy": "raise a typed failure or trigger transactional rollback",
-      "input_fields": [
-        "public_species_amounts",
-        "instrument_id",
-        "measurement_seed"
-      ],
-      "intended_operations": [
-        "measure"
-      ],
-      "maturity": "lite",
-      "model_id": "chemworld_synthetic_instruments",
-      "module_id": "spectroscopy_instruments",
-      "output_fields": [
-        "raw_signal",
-        "processed_estimate",
-        "uncertainty"
-      ],
-      "provenance": [
-        "chemworld-instrument-model-v0.3"
-      ],
-      "provider_path": "chemworld.runtime.observation_services.ChemWorldObservationKernel.observe",
-      "role": "runtime",
-      "runtime_reachable": true,
-      "units": {
-        "public_species_amounts": "mol",
-        "uncertainty": "instrument-specific"
-      },
-      "validity_checks": [
-        "typed input schema",
-        "declared operating-domain bounds"
       ]
     },
     "chemworld_transfer_holdup_vnext": {
@@ -1942,6 +1901,66 @@
         "ODE succeeds without heater overspend and component/volume/energy ledgers close"
       ]
     },
+    "chemworld_validated_synthetic_instruments_v1": {
+      "diagnostic_fields": [
+        "instrument_id",
+        "packet_schema_valid",
+        "layered_packet",
+        "identity_safe",
+        "finite_signal",
+        "calibration_profile",
+        "replicate_count",
+        "missingness_count",
+        "saturation_count"
+      ],
+      "failure_policy": "fail closed before returning an observation when the instrument, numerical domain, public identity boundary, or layered packet contract is invalid",
+      "input_fields": [
+        "instrument_id",
+        "public_values",
+        "public_species_amounts_mol",
+        "sample_basis_volume_L",
+        "seed",
+        "replicate_count"
+      ],
+      "intended_operations": [
+        "measure"
+      ],
+      "maturity": "reference_validated",
+      "model_id": "chemworld_validated_synthetic_instruments_v1",
+      "module_id": "spectroscopy_instruments",
+      "output_fields": [
+        "packet",
+        "processed_estimates",
+        "uncertainty"
+      ],
+      "provenance": [
+        "ChemWorld bounded public synthetic instrument contracts v1",
+        "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+        "tests/test_instruments_reference.py",
+        "tests/test_instrument_runtime_integration.py"
+      ],
+      "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "instrument_id": "dimensionless id",
+        "packet": "instrument-specific public signal",
+        "processed_estimates": "instrument-specific public estimates",
+        "public_species_amounts_mol": "mol",
+        "public_values": "normalized public estimates",
+        "replicate_count": "count",
+        "sample_basis_volume_L": "L",
+        "seed": "dimensionless integer",
+        "uncertainty": "instrument-specific public uncertainty"
+      },
+      "validity_checks": [
+        "instrument id has a declared bounded synthetic contract",
+        "sample volume, public values, and public aggregate amounts are finite",
+        "only anonymous task-public aggregate species channels enter the provider",
+        "packet exposes raw signal, peaks, anonymous assignments, processed estimates, uncertainty, calibration, and missingness",
+        "packet contains no hidden identity, private seed, provider path, or model id"
+      ]
+    },
     "chromatography_retention_plate": {
       "diagnostic_fields": [
         "resolution",
@@ -1956,7 +1975,7 @@
       "intended_operations": [
         "measure"
       ],
-      "maturity": "lite",
+      "maturity": "reference_validated",
       "model_id": "chromatography_retention_plate",
       "module_id": "spectroscopy_instruments",
       "output_fields": [
@@ -2133,7 +2152,7 @@
         "declared operating-domain bounds"
       ]
     },
-    "ph_meter_public_signal": {
+    "potentiometric_ph_public_reference": {
       "diagnostic_fields": [
         "instrument_id",
         "calibration_metadata"
@@ -2147,8 +2166,8 @@
       "intended_operations": [
         "measure"
       ],
-      "maturity": "lite",
-      "model_id": "ph_meter_public_signal",
+      "maturity": "reference_validated",
+      "model_id": "potentiometric_ph_public_reference",
       "module_id": "spectroscopy_instruments",
       "output_fields": [
         "raw_signal",
@@ -2179,7 +2198,7 @@
     "run state-transition and public-boundary audits",
     "complete domain coupling probes before changing task maturity labels"
   ],
-  "report_hash": "07951908b30a062826c6a1a2c2c57a264f7c9d7274d9e7638b8a383d1c32f714",
+  "report_hash": "917833ba12582da85e7c0aae01b55bf72fcd55e01a89681fb319bf7c9ce10b33",
   "schema_version": "chemworld-foundation-runtime-reachability-report-0.1",
   "service_catalog": {
     "operation_service_map": {
@@ -2323,23 +2342,22 @@
       }
     }
   },
-  "source_commit": "e4184bc8fbb38f5b5f1ee8f54c40fe3ae5220021",
-  "source_tree_dirty": false,
+  "source_commit": "70cec992d917da8b7d345740dd334e804a5aafca",
+  "source_tree_dirty": true,
   "status": "controls_ready_upgrade_targets_found",
   "task_count": 15,
   "task_paths": {
     "electrochemical-conversion": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -2364,8 +2382,7 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
         "nernst_butler_volmer_faradaic_v1"
       ],
@@ -2418,8 +2435,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -2448,8 +2464,7 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
         "nernst_butler_volmer_faradaic_v1"
       ],
@@ -2513,7 +2528,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "8d023408b2feb46b4570fa9b5fbeba4e0ccb7982811f934cca55e1c063d1297d"
+      "task_contract_hash": "0f6610616a69415943e353e3a7a6306ea4f153bad8e82a81af4e2311af66ebe3"
     },
     "equilibrium-characterization": {
       "declared_but_unreachable": [],
@@ -2552,12 +2567,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
               "beer_lambert_uvvis",
-              "chemworld_synthetic_instruments",
-              "chemworld_spectral_identifiability_audit_vnext",
-              "ph_meter_public_signal"
+              "chemworld_validated_synthetic_instruments_v1",
+              "potentiometric_ph_public_reference"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -2576,9 +2590,8 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
-        "ph_meter_public_signal"
+        "chemworld_validated_synthetic_instruments_v1",
+        "potentiometric_ph_public_reference"
       ],
       "operation_paths": [
         {
@@ -2646,9 +2659,8 @@
           "model_ids": [
             "aqueous_acid_base_ph_observation",
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
-            "ph_meter_public_signal"
+            "chemworld_validated_synthetic_instruments_v1",
+            "potentiometric_ph_public_reference"
           ],
           "operation": "measure",
           "service_id": "instrument_cost"
@@ -2710,9 +2722,8 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
-        "ph_meter_public_signal"
+        "chemworld_validated_synthetic_instruments_v1",
+        "potentiometric_ph_public_reference"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -2775,7 +2786,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "07b336d22933068a6b45cee7c56b80bbcfdfddcf31ff0967030f831eb219ebb7"
+      "task_contract_hash": "a832b5f1c4e19de7a9e537066cc0a84a1cc878b384e795583489b165ce1b7eb4"
     },
     "flow-reaction-optimization": {
       "declared_but_unreachable": [],
@@ -2794,12 +2805,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -2830,8 +2840,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_geometry_resolved_pfr_v1",
         "chemworld_reaction_network_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
         "pfr"
       ],
@@ -2882,8 +2891,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -2933,8 +2941,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_geometry_resolved_pfr_v1",
         "chemworld_reaction_network_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
         "pfr"
       ],
@@ -2999,7 +3006,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "dec8fc2ba017b4cc55010bc8636f17f18969e23b054665f72481f58cebdf2fc0"
+      "task_contract_hash": "4447a631d53fed20d126d9835d1fe918983c16a8bad7a679eac24db8a17ede77"
     },
     "low-budget-characterization": {
       "declared_but_unreachable": [],
@@ -3028,12 +3035,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -3051,8 +3057,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "operation_paths": [
@@ -3120,8 +3125,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -3183,8 +3187,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "runtime_profile": {
@@ -3249,20 +3252,19 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "eac510cc9300b00f186ebf3e8d09bc0ed8e8fa7af5fbb06ea047677d57000335"
+      "task_contract_hash": "b06b6fb9d6282003a065cf430aad9dee0ac1d2bd916d6c334e8e90dc04ebb91e"
     },
     "partition-discovery": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -3287,9 +3289,8 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_spectral_identifiability_audit_vnext",
         "chemworld_stability_aware_lle_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "operation_paths": [
@@ -3349,8 +3350,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -3405,9 +3405,8 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_spectral_identifiability_audit_vnext",
         "chemworld_stability_aware_lle_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "runtime_profile": {
@@ -3473,7 +3472,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "2fbe9ddbd3dd23720ea657ddae0b07421c735aeca208cebe70fd73dd7db58472"
+      "task_contract_hash": "ce378e7bc5e725ed266db2bb639194c05f5f615ba0795b158c3c976cc787117e"
     },
     "public-private-generalization": {
       "declared_but_unreachable": [],
@@ -3502,12 +3501,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -3525,8 +3523,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "operation_paths": [
@@ -3594,8 +3591,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -3657,8 +3653,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "runtime_profile": {
@@ -3723,7 +3718,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "31f04ab143b3e7445a464dc833afd450b008f6662a8c163b83c5f54ed60bff83"
+      "task_contract_hash": "8b43491753ab6c34039a29b37159db5dd1fc78635af4cb047869754f865e020f"
     },
     "purity-yield-tradeoff": {
       "declared_but_unreachable": [],
@@ -3752,12 +3747,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -3808,12 +3802,11 @@
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
-        "chemworld_spectral_identifiability_audit_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_stability_aware_lle_vnext",
-        "chemworld_synthetic_instruments",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "operation_paths": [
@@ -3929,8 +3922,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -4055,11 +4047,10 @@
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
-        "chemworld_spectral_identifiability_audit_vnext",
         "chemworld_stability_aware_lle_vnext",
-        "chemworld_synthetic_instruments",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "runtime_profile": {
@@ -4135,7 +4126,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "e5bd1b4a8d5a085a6a412623a9e94fb6bbf216a788b4bc8caf735f8cedee85ec"
+      "task_contract_hash": "5aadbf887dd382ae3bc2fc6efa7a55e8117a7870b6cb636855dfc1f199efbfb9"
     },
     "reaction-mechanism-explanation": {
       "declared_but_unreachable": [],
@@ -4164,12 +4155,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -4187,8 +4177,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "operation_paths": [
@@ -4256,8 +4245,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -4319,8 +4307,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "runtime_profile": {
@@ -4385,7 +4372,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "612e9aca94749b7cc052fef3d718f17d8bb7d5dbfc984b896a7107f75b91a6a7"
+      "task_contract_hash": "2f7858642e3ce4ffe796d1cf0dbc6af4a4b9d88cd31c130494ad52abfec5fc74"
     },
     "reaction-optimization-standard": {
       "declared_but_unreachable": [],
@@ -4414,12 +4401,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -4437,8 +4423,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "operation_paths": [
@@ -4506,8 +4491,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -4569,8 +4553,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "runtime_profile": {
@@ -4635,7 +4618,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "076673cdcb23a5fe54b39bc7dbe8d0f31453dd4eab12970b41e46dc3b5a69556"
+      "task_contract_hash": "ccc18b683f0140bf1295a0c74c0a516b921543207491d2974a6a98b06f9f41c6"
     },
     "reaction-safety-constrained": {
       "declared_but_unreachable": [],
@@ -4664,12 +4647,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -4687,8 +4669,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "operation_paths": [
@@ -4756,8 +4737,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -4819,8 +4799,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "runtime_profile": {
@@ -4885,7 +4864,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "cc0f1991370c305dffca359c5ed6b3de6f2a9cae5d516a1d8988685ced1baa6c"
+      "task_contract_hash": "ef961e455150abc6fc7362d78e70562ff82a03a5a68d32b16589fbdfe0fbef03"
     },
     "reaction-to-assay": {
       "declared_but_unreachable": [],
@@ -4914,12 +4893,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -4937,8 +4915,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "operation_paths": [
@@ -5006,8 +4983,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -5069,8 +5045,7 @@
         "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "runtime_profile": {
@@ -5135,7 +5110,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "bb4921642e59db7a7ffb82d2336e3320c1f2203ab1dd641a3778dbc5003db128"
+      "task_contract_hash": "1bb2636c268ce4fd55da929a48976b2781a4c4a3ef43d507ac6d54b3b899c930"
     },
     "reaction-to-crystallization": {
       "declared_but_unreachable": [],
@@ -5164,12 +5139,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -5199,8 +5173,7 @@
         "chemworld_crystallization_convergence_audit_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
         "cooling_crystallization_population_balance_v1"
       ],
@@ -5294,8 +5267,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -5370,8 +5342,7 @@
         "chemworld_crystallization_convergence_audit_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
         "cooling_crystallization_population_balance_v1"
       ],
@@ -5442,7 +5413,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "59747a3feb94707cd414d122745494ae4f5ceb338c889f37e8b1f82716e8511c"
+      "task_contract_hash": "0ec9564d231af1d119a3d234bd7f3cce95cbd4455fdb3d443c9fe72e8626111b"
     },
     "reaction-to-distillation": {
       "declared_but_unreachable": [],
@@ -5471,12 +5442,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -5505,8 +5475,7 @@
         "chemworld_duty_limited_distillation_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "operation_paths": [
@@ -5614,8 +5583,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -5678,8 +5646,7 @@
         "chemworld_duty_limited_distillation_vnext",
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
-        "chemworld_spectral_identifiability_audit_vnext",
-        "chemworld_synthetic_instruments",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "runtime_profile": {
@@ -5749,7 +5716,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "30e63cc01a57ce20fb12139e6c98e854d9ac250ab91b949af603b0ddf17a97b4"
+      "task_contract_hash": "ac5a1c57f3339accaed72c8a0c43c818912c207eb164b4b69a747a6745b2015e"
     },
     "reaction-to-purification": {
       "declared_but_unreachable": [],
@@ -5778,12 +5745,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -5834,12 +5800,11 @@
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
-        "chemworld_spectral_identifiability_audit_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_stability_aware_lle_vnext",
-        "chemworld_synthetic_instruments",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "operation_paths": [
@@ -5955,8 +5920,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -6081,11 +6045,10 @@
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
-        "chemworld_spectral_identifiability_audit_vnext",
         "chemworld_stability_aware_lle_vnext",
-        "chemworld_synthetic_instruments",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "runtime_profile": {
@@ -6161,7 +6124,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "ab189932ce1c3ee2fd271c572ae4a5ad43f59a3ab24ea388009cacf934ea6102"
+      "task_contract_hash": "0cb117e9779d04839e7eaba6f49c8b9a7b5acfa9411e4dfb502eb9800a2af3b3"
     },
     "tool-agent-planning": {
       "declared_but_unreachable": [],
@@ -6190,12 +6153,11 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_synthetic_instruments",
+              "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate",
-              "chemworld_spectral_identifiability_audit_vnext"
+              "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
@@ -6246,12 +6208,11 @@
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
-        "chemworld_spectral_identifiability_audit_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_stability_aware_lle_vnext",
-        "chemworld_synthetic_instruments",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "operation_paths": [
@@ -6367,8 +6328,7 @@
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
             "beer_lambert_uvvis",
-            "chemworld_spectral_identifiability_audit_vnext",
-            "chemworld_synthetic_instruments",
+            "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
           "operation": "measure",
@@ -6493,11 +6453,10 @@
         "chemworld_reaction_network_lite",
         "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
-        "chemworld_spectral_identifiability_audit_vnext",
         "chemworld_stability_aware_lle_vnext",
-        "chemworld_synthetic_instruments",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate"
       ],
       "runtime_profile": {
@@ -6573,7 +6532,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "114c5a8b7f51807b57cf25c2b36a60593757d2c9c3746903e57123c4e531733a"
+      "task_contract_hash": "ea987d6f7947aa9e12e4261e866715c4afc151ca1ee1f228a555135187b4663c"
     }
   }
 }

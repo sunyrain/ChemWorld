@@ -43,12 +43,6 @@ def test_report_identifies_only_the_current_shared_lite_upgrade_targets() -> Non
     assert report["lite_upgrade_targets"] == {
         "reaction_kinetics": ["chemworld_reaction_network_lite"],
         "reactors": ["chemworld_reactor_lite"],
-        "spectroscopy_instruments": [
-            "beer_lambert_uvvis",
-            "chemworld_synthetic_instruments",
-            "chromatography_retention_plate",
-            "ph_meter_public_signal",
-        ],
     }
     assert report["orphan_runtime_providers"] == []
     assert report["reference_providers_routed"] == []
@@ -63,6 +57,9 @@ def test_report_uses_transactional_provider_execution_as_dynamic_evidence() -> N
     assert evidence["provider_model_ids"]["mix"] == "chemworld_stability_aware_lle_vnext"
     assert evidence["provider_model_ids"]["distill"] == (
         "chemworld_duty_limited_distillation_vnext"
+    )
+    assert evidence["provider_model_ids"]["measure"] == (
+        "chemworld_validated_synthetic_instruments_v1"
     )
 
 

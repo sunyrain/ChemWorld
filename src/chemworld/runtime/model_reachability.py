@@ -28,6 +28,7 @@ from chemworld.physchem.phase_equilibrium_adapter_manifest import (
 )
 from chemworld.physchem.reaction_adapter_manifest import reaction_rate_provider_contract
 from chemworld.physchem.spectroscopy_adapter_manifest import (
+    instrument_runtime_provider_contract,
     spectroscopy_identifiability_provider_contract,
 )
 from chemworld.physchem.transfer_adapter_manifest import transfer_provider_contract
@@ -508,23 +509,11 @@ def default_model_provider_registry() -> ModelProviderRegistry:
             provenance=("chemworld-physical-chemistry-v0.4",),
         ),
         reaction_rate_provider_contract(),
-        _provider(
-            "chemworld_synthetic_instruments",
-            "spectroscopy_instruments",
-            MaturityLevel.LITE,
-            ModelExecutionRole.RUNTIME,
-            "chemworld.runtime.observation_services.ChemWorldObservationKernel.observe",
-            ("measure",),
-            inputs=("public_species_amounts", "instrument_id", "measurement_seed"),
-            outputs=("raw_signal", "processed_estimate", "uncertainty"),
-            units={"public_species_amounts": "mol", "uncertainty": "instrument-specific"},
-            diagnostics=("observed_keys", "measurement_provenance"),
-            provenance=("chemworld-instrument-model-v0.3",),
-        ),
+        instrument_runtime_provider_contract(),
         _provider(
             "beer_lambert_uvvis",
             "spectroscopy_instruments",
-            MaturityLevel.LITE,
+            MaturityLevel.REFERENCE_VALIDATED,
             ModelExecutionRole.RUNTIME,
             "chemworld.world.spectra.uvvis_spectrum",
             ("measure",),
@@ -537,7 +526,7 @@ def default_model_provider_registry() -> ModelProviderRegistry:
         _provider(
             "chromatography_retention_plate",
             "spectroscopy_instruments",
-            MaturityLevel.LITE,
+            MaturityLevel.REFERENCE_VALIDATED,
             ModelExecutionRole.RUNTIME,
             "chemworld.runtime.observation_services.ChemWorldObservationKernel.observe",
             ("measure",),
@@ -633,9 +622,9 @@ def default_model_provider_registry() -> ModelProviderRegistry:
             provenance=("fixed-tp-ideal-gibbs-minimization",),
         ),
         _provider(
-            "ph_meter_public_signal",
+            "potentiometric_ph_public_reference",
             "spectroscopy_instruments",
-            MaturityLevel.LITE,
+            MaturityLevel.REFERENCE_VALIDATED,
             ModelExecutionRole.RUNTIME,
             "chemworld.world.spectra.ph_meter_signal",
             ("measure",),
@@ -681,8 +670,7 @@ def default_model_reachability_registry() -> ModelReachabilityRegistry:
         ),
         "electrolyze": ("nernst_butler_volmer_faradaic_v1",),
         "measure": (
-            "chemworld_synthetic_instruments",
-            "chemworld_spectral_identifiability_audit_vnext",
+            "chemworld_validated_synthetic_instruments_v1",
         ),
     }
     instrument_models = {
@@ -691,7 +679,7 @@ def default_model_reachability_registry() -> ModelReachabilityRegistry:
         "uvvis": ("beer_lambert_uvvis",),
         "ph_meter": (
             "aqueous_acid_base_ph_observation",
-            "ph_meter_public_signal",
+            "potentiometric_ph_public_reference",
         ),
         "final_assay": (),
     }

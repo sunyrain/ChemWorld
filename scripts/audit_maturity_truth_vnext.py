@@ -264,7 +264,8 @@ def build_report(
         manifest_state_valid = bool(
             manifest
             and (
-                not provider.runtime_reachable
+                not routed
+                or not provider.runtime_reachable
                 or manifest.status == expected_manifest_status
             )
         )
@@ -714,7 +715,7 @@ def _executed_model_ids(payload: Mapping[str, Any]) -> set[str]:
     model_ids: set[str] = set()
 
     def visit(value: Any, key: str = "", *, model_context: bool = False) -> None:
-        model_context = model_context or key == "model_ids"
+        model_context = model_context or key == "model_ids" or key.endswith("_model_ids")
         if isinstance(value, Mapping):
             for child_key, child in value.items():
                 visit(child, str(child_key), model_context=model_context)

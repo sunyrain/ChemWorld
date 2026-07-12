@@ -378,12 +378,11 @@ def default_kernel_maturity(
         modules.append(
             ModuleMaturity(
                 "spectroscopy_instruments",
-                MaturityLevel.LITE,
+                MaturityLevel.REFERENCE_VALIDATED,
                 model_ids=(
-                    "chemworld_synthetic_instruments",
+                    "chemworld_validated_synthetic_instruments_v1",
                     "beer_lambert_uvvis",
                     "chromatography_retention_plate",
-                    "chemworld_spectral_identifiability_audit_vnext",
                 ),
                 notes=(
                     "State-coupled synthetic observations with reference-validated "
@@ -552,12 +551,11 @@ def equilibrium_kernel_maturity() -> TaskMaturitySpec:
             ),
             ModuleMaturity(
                 "spectroscopy_instruments",
-                MaturityLevel.LITE,
+                MaturityLevel.REFERENCE_VALIDATED,
                 model_ids=(
                     "beer_lambert_uvvis",
-                    "chemworld_synthetic_instruments",
-                    "chemworld_spectral_identifiability_audit_vnext",
-                    "ph_meter_public_signal",
+                    "chemworld_validated_synthetic_instruments_v1",
+                    "potentiometric_ph_public_reference",
                 ),
                 notes=(
                     "pH-meter and UV/Vis signals are instrument-facing and "
