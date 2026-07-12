@@ -314,6 +314,10 @@ class ChemWorldFlowServices:
                 "flow_model_id": "pfr",
                 "runtime_adapter_id": "chemworld_geometry_resolved_pfr_v1",
                 "runtime_provider_id": "chemworld_geometry_resolved_pfr_v2",
+                "runtime_model_ids": [
+                    "reaction_ode_mass_action_arrhenius_reference_slice",
+                    "chemworld_geometry_resolved_pfr_v2",
+                ],
                 "configuration_revision": int(configuration["configuration_revision"]),
                 "flow_experiment_index": experiment_count,
                 "run_semantic": "advance_one_new_configured_experiment",

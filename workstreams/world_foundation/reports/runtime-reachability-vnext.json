@@ -39,6 +39,10 @@
       ],
       "measure": "chemworld_validated_synthetic_instruments_v1",
       "mix": "chemworld_stability_aware_lle_vnext",
+      "run_flow": [
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "chemworld_geometry_resolved_pfr_v2"
+      ],
       "transfer": "chemworld_transfer_holdup_vnext",
       "wait": [
         "reaction_ode_mass_action_arrhenius_reference_slice",
@@ -46,7 +50,7 @@
       ],
       "wash": "chemworld_stability_aware_lle_vnext"
     },
-    "report_sha256": "f52d68fdfc6914dcf279f5094011d7e36627693b1c0dcf1718b1e97c3a7e642a",
+    "report_sha256": "d67b749d2ece681323872b3615d2ab5b462de6224f0a4bb913488477dcf61dd6",
     "schema_version": "chemworld-vnext-runtime-integration-audit-0.1"
   },
   "forbidden_runtime_models": [],
@@ -932,14 +936,12 @@
         "vessels"
       ],
       "all_model_ids": [
-        "chemworld_geometry_resolved_pfr_v1",
-        "pfr",
+        "chemworld_geometry_resolved_pfr_v2",
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "base_model_ids": [
         "reaction_ode_mass_action_arrhenius_reference_slice",
-        "pfr",
-        "chemworld_geometry_resolved_pfr_v1"
+        "chemworld_geometry_resolved_pfr_v2"
       ],
       "instrument_model_ids": {},
       "kernel": {
@@ -1513,7 +1515,7 @@
         "component and sensible/latent energy ledgers close within tolerance"
       ]
     },
-    "chemworld_geometry_resolved_pfr_v1": {
+    "chemworld_geometry_resolved_pfr_v2": {
       "diagnostic_fields": [
         "pressure_drop_Pa",
         "reynolds_number",
@@ -1528,8 +1530,8 @@
       "intended_operations": [
         "run_flow"
       ],
-      "maturity": "professional_candidate",
-      "model_id": "chemworld_geometry_resolved_pfr_v1",
+      "maturity": "reference_validated",
+      "model_id": "chemworld_geometry_resolved_pfr_v2",
       "module_id": "continuous_flow",
       "output_fields": [
         "pressure_profile",
@@ -1537,7 +1539,7 @@
         "energy_ledger"
       ],
       "provenance": [
-        "chemworld-geometry-resolved-pfr-v1"
+        "chemworld-geometry-resolved-pfr-v2"
       ],
       "provider_path": "chemworld.runtime.flow_services.ChemWorldFlowServices.run_flow",
       "role": "runtime",
@@ -2093,44 +2095,6 @@
         "declared operating-domain bounds"
       ]
     },
-    "pfr": {
-      "diagnostic_fields": [
-        "solver_diagnostic",
-        "material_balance_error_mol"
-      ],
-      "failure_policy": "raise a typed failure or trigger transactional rollback",
-      "input_fields": [
-        "inlet_concentrations",
-        "geometry",
-        "flow_rate"
-      ],
-      "intended_operations": [
-        "run_flow"
-      ],
-      "maturity": "professional_candidate",
-      "model_id": "pfr",
-      "module_id": "continuous_flow",
-      "output_fields": [
-        "outlet_concentrations",
-        "temperature_K",
-        "pressure_Pa"
-      ],
-      "provenance": [
-        "chemworld-runtime-pfr-v1"
-      ],
-      "provider_path": "chemworld.physchem.pfr_reactors.PFRModel.simulate",
-      "role": "runtime",
-      "runtime_reachable": true,
-      "units": {
-        "flow_rate": "L/s",
-        "inlet_concentrations": "mol/L",
-        "pressure_Pa": "Pa"
-      },
-      "validity_checks": [
-        "typed input schema",
-        "declared operating-domain bounds"
-      ]
-    },
     "potentiometric_ph_public_reference": {
       "diagnostic_fields": [
         "instrument_id",
@@ -2252,14 +2216,14 @@
       ]
     }
   },
-  "provider_count": 21,
+  "provider_count": 20,
   "reference_providers_routed": [],
   "remaining_gates": [
     "upgrade reaction_kinetics, reactors, and spectroscopy_instruments",
     "run state-transition and public-boundary audits",
     "complete domain coupling probes before changing task maturity labels"
   ],
-  "report_hash": "941726f5fd1fced297bfcbe1778fcea412a9824ac0581cb904d3415472ae77f2",
+  "report_hash": "d1b9732a591344f273998e3bb253d8eef2f3796af21ad34c55437fde7cc109b1",
   "schema_version": "chemworld-foundation-runtime-reachability-report-0.1",
   "service_catalog": {
     "operation_service_map": {
@@ -2403,7 +2367,7 @@
       }
     }
   },
-  "source_commit": "69b5377621d1ff0d3726ac566f86d1c05511b4fe",
+  "source_commit": "3406c464ae78f71f24db205c5e68c3d9bf5ba2b4",
   "source_tree_dirty": true,
   "status": "controls_ready_no_lite_targets",
   "task_count": 15,
@@ -2893,10 +2857,9 @@
             ]
           },
           {
-            "level": "professional_candidate",
+            "level": "reference_validated",
             "model_ids": [
-              "pfr",
-              "chemworld_geometry_resolved_pfr_v1"
+              "chemworld_geometry_resolved_pfr_v2"
             ],
             "module_id": "continuous_flow",
             "notes": [
@@ -2911,10 +2874,9 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_geometry_resolved_pfr_v1",
+        "chemworld_geometry_resolved_pfr_v2",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "pfr",
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
@@ -2980,8 +2942,7 @@
           ],
           "kernel_id": "chemworld.operation.run_flow",
           "model_ids": [
-            "chemworld_geometry_resolved_pfr_v1",
-            "pfr",
+            "chemworld_geometry_resolved_pfr_v2",
             "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "run_flow",
@@ -3010,10 +2971,9 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_geometry_resolved_pfr_v1",
+        "chemworld_geometry_resolved_pfr_v2",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "pfr",
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
@@ -3077,7 +3037,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "85343ef77c4c2044db0b6b09f76745dc68a71ee6a4ec16e188109629244ef21d"
+      "task_contract_hash": "aa47c74db1753f062a3e5f59208db8278c25db778390607892e20eaaeb30cdc9"
     },
     "low-budget-characterization": {
       "declared_but_unreachable": [],

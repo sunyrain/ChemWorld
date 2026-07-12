@@ -27,7 +27,7 @@ def test_report_maps_every_task_operation_service_kernel_and_provider() -> None:
 
     assert report["task_count"] == 15
     assert report["operation_count"] == 28
-    assert report["provider_count"] == 21
+    assert report["provider_count"] == 20
     assert set(report["operation_paths"]) == set(OPERATION_TYPES)
     for task_id, task_path in report["task_paths"].items():
         assert task_id in protocol["expected_task_ids"]

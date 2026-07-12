@@ -45,6 +45,10 @@ EXPECTED_OPERATION_MODELS = {
     "concentrate": ("chemworld_vacuum_concentration_vnext",),
     "transfer": ("chemworld_transfer_holdup_vnext",),
     "cool_crystallize": ("cooling_crystallization_population_balance_v1",),
+    "run_flow": (
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "chemworld_geometry_resolved_pfr_v2",
+    ),
     "distill": ("chemworld_duty_limited_distillation_vnext",),
     "electrolyze": (
         "nernst_butler_volmer_faradaic_v1",
@@ -175,6 +179,28 @@ def _execution_probe() -> dict[str, Any]:
             },
         ),
     )
+    flow_state, flow_statuses = _run_actions(
+        "flow-reaction-optimization",
+        (
+            {"operation": "add_solvent", "volume_L": 0.026, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.00022,
+                "catalyst": 1,
+            },
+            {
+                "operation": "set_flow_rate",
+                "flow_rate_mL_min": 1.2,
+                "residence_time_s": 900.0,
+            },
+            {
+                "operation": "run_flow",
+                "target_temperature_K": 382.0,
+                "duration_s": 1800.0,
+            },
+        ),
+    )
     instrument_settings = {
         instrument_id: equipment_settings(
             (ph_state if instrument_id == "ph_meter" else assay_state).equipment,
@@ -201,6 +227,7 @@ def _execution_probe() -> dict[str, Any]:
         "crystallization": equipment_settings(
             crystallization_state.equipment, "crystallizer"
         ),
+        "flow": equipment_settings(flow_state.equipment, "flow_reactor"),
     }
     model_ids = {
         "heat": [
@@ -219,6 +246,7 @@ def _execution_probe() -> dict[str, Any]:
         "cool_crystallize": equipment["crystallization"].get(
             "crystallization_model_id"
         ),
+        "run_flow": list(equipment["flow"].get("runtime_model_ids", ())),
         "distill": equipment["distill"].get("distillation_model"),
         "electrolyze": list(equipment["electrochem"].get("runtime_model_ids", ())),
         "measure": instrument_settings["uvvis"].get("model_id"),
@@ -245,6 +273,7 @@ def _execution_probe() -> dict[str, Any]:
         and all(status == "committed" for status in ph_statuses)
         and all(status == "committed" for status in electro_statuses)
         and all(status == "committed" for status in crystallization_statuses)
+        and all(status == "committed" for status in flow_statuses)
         and model_ids
         == expected_execution_model_ids
         and all(
@@ -263,6 +292,7 @@ def _execution_probe() -> dict[str, Any]:
         },
         "electrochemical_transaction_statuses": electro_statuses,
         "crystallization_transaction_statuses": crystallization_statuses,
+        "flow_transaction_statuses": flow_statuses,
         "typed_inventory_phases": sorted(purification_state.phases.phases),
         "provider_diagnostics": equipment,
     }

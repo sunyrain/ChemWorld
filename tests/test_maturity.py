@@ -152,25 +152,33 @@ def test_env_task_info_exposes_maturity_metadata() -> None:
 
 
 @pytest.mark.parametrize(
-    ("task_id", "module_id", "model_id"),
+    ("task_id", "module_id", "model_id", "expected_level"),
     (
         (
             "reaction-to-crystallization",
             "crystallization",
             "cooling_crystallization_population_balance_v1",
+            "professional_candidate",
         ),
-        ("flow-reaction-optimization", "continuous_flow", "pfr"),
+        (
+            "flow-reaction-optimization",
+            "continuous_flow",
+            "chemworld_geometry_resolved_pfr_v2",
+            "reference_validated",
+        ),
         (
             "partition-discovery",
             "phase_equilibrium",
             "chemworld_stability_aware_lle_vnext",
+            "professional_candidate",
         ),
     ),
 )
-def test_professional_runtime_adapters_are_not_declared_as_proxy(
+def test_validated_runtime_adapters_are_not_declared_as_proxy(
     task_id: str,
     module_id: str,
     model_id: str,
+    expected_level: str,
 ) -> None:
     payload = get_task(task_id).to_dict()
 
@@ -178,7 +186,7 @@ def test_professional_runtime_adapters_are_not_declared_as_proxy(
     assert all(module["level"] != "proxy" for module in payload["kernel_maturity"]["modules"])
     assert any(
         module["module_id"] == module_id
-        and module["level"] == "professional_candidate"
+        and module["level"] == expected_level
         and model_id in module["model_ids"]
         for module in payload["kernel_maturity"]["modules"]
     )

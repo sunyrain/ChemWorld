@@ -432,11 +432,8 @@ def default_kernel_maturity(
         modules.append(
             ModuleMaturity(
                 "continuous_flow",
-                MaturityLevel.PROFESSIONAL_CANDIDATE,
-                model_ids=(
-                    "pfr",
-                    "chemworld_geometry_resolved_pfr_v1",
-                ),
+                MaturityLevel.REFERENCE_VALIDATED,
+                model_ids=("chemworld_geometry_resolved_pfr_v2",),
                 notes=(
                     "Runtime flow uses the shared compiled reaction network in a "
                     "geometry-resolved PFR with residence time, distributed thermal "

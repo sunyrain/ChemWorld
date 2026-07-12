@@ -561,22 +561,9 @@ def default_model_provider_registry() -> ModelProviderRegistry:
         crystallization_runtime_provider_contract(),
         duty_limited_distillation_provider_contract(),
         _provider(
-            "pfr",
+            "chemworld_geometry_resolved_pfr_v2",
             "continuous_flow",
-            MaturityLevel.PROFESSIONAL_CANDIDATE,
-            ModelExecutionRole.RUNTIME,
-            "chemworld.physchem.pfr_reactors.PFRModel.simulate",
-            ("run_flow",),
-            inputs=("inlet_concentrations", "geometry", "flow_rate"),
-            outputs=("outlet_concentrations", "temperature_K", "pressure_Pa"),
-            units={"inlet_concentrations": "mol/L", "flow_rate": "L/s", "pressure_Pa": "Pa"},
-            diagnostics=("solver_diagnostic", "material_balance_error_mol"),
-            provenance=("chemworld-runtime-pfr-v1",),
-        ),
-        _provider(
-            "chemworld_geometry_resolved_pfr_v1",
-            "continuous_flow",
-            MaturityLevel.PROFESSIONAL_CANDIDATE,
+            MaturityLevel.REFERENCE_VALIDATED,
             ModelExecutionRole.RUNTIME,
             "chemworld.runtime.flow_services.ChemWorldFlowServices.run_flow",
             ("run_flow",),
@@ -584,7 +571,7 @@ def default_model_provider_registry() -> ModelProviderRegistry:
             outputs=("pressure_profile", "reynolds_number", "energy_ledger"),
             units={"geometry": "m", "flow_rate": "L/s", "pressure_profile": "Pa"},
             diagnostics=("pressure_drop_Pa", "reynolds_number", "solver_diagnostic"),
-            provenance=("chemworld-geometry-resolved-pfr-v1",),
+            provenance=("chemworld-geometry-resolved-pfr-v2",),
         ),
         _provider(
             "nernst_butler_volmer_faradaic_v1",
@@ -701,8 +688,7 @@ def default_model_reachability_registry() -> ModelReachabilityRegistry:
         "distill": ("chemworld_duty_limited_distillation_vnext",),
         "run_flow": (
             "reaction_ode_mass_action_arrhenius_reference_slice",
-            "pfr",
-            "chemworld_geometry_resolved_pfr_v1",
+            "chemworld_geometry_resolved_pfr_v2",
         ),
         "electrolyze": (
             "nernst_butler_volmer_faradaic_v1",

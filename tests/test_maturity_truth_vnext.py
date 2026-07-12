@@ -34,27 +34,26 @@ def test_protocol_collects_unique_cards_and_claim_bound_manifests() -> None:
     cards = collect_model_cards(protocol)
     manifests = collect_adapter_manifests(protocol)
 
-    assert len(cards) == 57
+    assert len(cards) == 58
     assert len(manifests) == 9
     assert set(manifests) <= set(cards)
     assert all(manifest.manifest_hash for manifest in manifests.values())
 
 
-def test_truthful_report_is_valid_but_blocks_unsupported_publication() -> None:
+def test_truthful_report_is_valid_and_allows_evidence_backed_release() -> None:
     protocol = load_protocol()
     report = build_report(protocol)
 
     assert validate_report(report, protocol) == []
     assert report["audit_integrity_valid"] is True
-    assert report["release_allowed"] is False
-    assert report["status"] == "maturity_claims_blocked"
+    assert report["release_allowed"] is True
+    assert report["status"] == "release_allowed"
     assert report["checks"]["task_routes_exact"] is True
     assert report["provider_assessments"][
         "chemworld_stability_aware_lle_vnext"
     ]["executed_in_runtime_evidence"] is True
     assert "manifest_runtime_state_mismatch" not in _finding_ids(report)
-    assert "high_provider_missing_model_card" in _finding_ids(report)
-    assert "high_provider_not_executed" in _finding_ids(report)
+    assert _finding_ids(report) == set()
 
 
 def test_task_maturity_is_the_minimum_of_reachable_verified_providers() -> None:
@@ -147,15 +146,21 @@ def test_runtime_route_tampering_is_detected() -> None:
 
 
 def test_registered_but_unexecuted_high_model_cannot_raise_task_maturity() -> None:
-    report = build_report(load_protocol())
-    row = report["provider_assessments"]["pfr"]
+    protocol = load_protocol()
+    protocol["runtime_execution_evidence"] = (
+        "workstreams/world_foundation/reports/does-not-exist.json"
+    )
+    report = build_report(protocol)
+    row = report["provider_assessments"][
+        "cooling_crystallization_population_balance_v1"
+    ]
 
     assert row["declared_maturity"] == "professional_candidate"
     assert row["routed"] is True
     assert row["executed_in_runtime_evidence"] is False
     assert row["effective_maturity"] == "lite"
-    flow_task = report["task_assessments"]["flow-reaction-optimization"]
-    assert flow_task["effective_runtime_maturity"] == "lite"
+    crystallization_task = report["task_assessments"]["reaction-to-crystallization"]
+    assert crystallization_task["effective_runtime_maturity"] == "lite"
 
 
 def test_public_document_and_runtime_evidence_are_hash_bound() -> None:

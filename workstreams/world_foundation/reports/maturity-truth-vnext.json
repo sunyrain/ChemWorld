@@ -1084,6 +1084,70 @@
         "required_card_fields_present": true
       }
     },
+    "chemworld_geometry_resolved_pfr_v2": {
+      "card_fields_present": {
+        "equations": true,
+        "failure_modes": true,
+        "reference_reading": true,
+        "validation_evidence": true,
+        "validity_limits": true
+      },
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
+      "effective_evidence_maturity": "reference_validated",
+      "evidence": [
+        {
+          "command_or_path": "tests/test_flow_coupling.py",
+          "description": "Checks analytical V=Q tau geometry, plug-flow residence response, Darcy-Weisbach pressure ordering, and material/energy closure.",
+          "evidence_id": "pfr-analytical-geometry-hydraulic-identities",
+          "evidence_type": "analytical_test",
+          "existing_repository_paths": [
+            "tests/test_flow_coupling.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_flow_coupling.py"
+          ],
+          "status": "implemented",
+          "tolerance": "material < 1e-8 mol; relative energy residual < 1e-5"
+        },
+        {
+          "command_or_path": "tests/test_flow_coupling.py",
+          "description": "Checks invalid and stale configuration, insufficient duration, pressure and solver failure domains, fresh-run semantics, provenance, and atomic rollback.",
+          "evidence_id": "pfr-runtime-domain-and-rollback",
+          "evidence_type": "failure_domain_test",
+          "existing_repository_paths": [
+            "tests/test_flow_coupling.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_flow_coupling.py"
+          ],
+          "status": "implemented",
+          "tolerance": "exact transaction rollback and unchanged physical state"
+        }
+      ],
+      "model_id": "chemworld_geometry_resolved_pfr_v2",
+      "module_id": "continuous_flow",
+      "professional_candidate_checks": {
+        "conservation_evidence": true,
+        "coupling_evidence": true,
+        "cross_reference_cases": true,
+        "failure_domain_evidence": true,
+        "reference_validated_checks": true,
+        "runtime_diagnostics": true,
+        "runtime_provenance": true
+      },
+      "reference_validated_checks": {
+        "analytical_literature_or_independent_reference": true,
+        "completed_evidence_present": true,
+        "failure_domain_evidence": true,
+        "numerical_tolerance_and_repository_path": true,
+        "required_card_fields_present": true
+      }
+    },
     "chemworld_sorbent_drying_vnext": {
       "card_fields_present": {
         "equations": true,
@@ -4424,69 +4488,25 @@
     }
   },
   "checks": {
-    "all_high_claims_verified": false,
-    "public_claims_runtime_verified": false,
+    "all_high_claims_verified": true,
+    "public_claims_runtime_verified": true,
     "public_document_contract_present": true,
     "runtime_execution_evidence_available": true,
     "runtime_registry_structurally_valid": true,
     "task_count_exact": true,
     "task_routes_exact": true
   },
-  "error_count": 6,
-  "finding_count": 6,
-  "findings": [
-    {
-      "check_id": "high_provider_missing_model_card",
-      "message": "high maturity provider has no same-id model card",
-      "model_id": "chemworld_geometry_resolved_pfr_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "high_provider_missing_model_card",
-      "message": "high maturity provider has no same-id model card",
-      "model_id": "pfr",
-      "severity": "error"
-    },
-    {
-      "check_id": "high_provider_not_executed",
-      "message": "high maturity provider is registered/routed but absent from runtime execution evidence",
-      "model_id": "chemworld_geometry_resolved_pfr_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "high_provider_not_executed",
-      "message": "high maturity provider is registered/routed but absent from runtime execution evidence",
-      "model_id": "pfr",
-      "severity": "error"
-    },
-    {
-      "check_id": "public_claim_exceeds_verified_maturity",
-      "claim_id": "crystallization-flow-distillation-runtime",
-      "message": "public maturity claim exceeds runtime-backed verified maturity",
-      "model_ids": [
-        "chemworld_duty_limited_distillation_vnext",
-        "chemworld_geometry_resolved_pfr_v1",
-        "cooling_crystallization_population_balance_v1",
-        "pfr"
-      ],
-      "severity": "error"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "continuous_flow",
-      "severity": "error",
-      "task_id": "flow-reaction-optimization"
-    }
-  ],
+  "error_count": 0,
+  "finding_count": 0,
+  "findings": [],
   "limitations": [
     "A registered or statically routed provider is not treated as executed.",
     "A truthful blocked report does not silently rewrite model or task maturity labels.",
     "Professional is not awarded by this candidate-stage protocol."
   ],
-  "model_card_count": 57,
+  "model_card_count": 58,
   "protocol_id": "foundation-maturity-truth-vnext",
-  "protocol_sha256": "3a32355c08999ad947ce385514639998c2666b3a1b34b3cc50780b5a44dd0cf2",
+  "protocol_sha256": "7ed862f95125793a88df544aad99f3c55936327fbdf356bed2610d2075f84c1d",
   "provider_assessments": {
     "aqueous_acid_base_ph_observation": {
       "card_maturity_matches": true,
@@ -4569,21 +4589,21 @@
       "role": "runtime",
       "routed": true
     },
-    "chemworld_geometry_resolved_pfr_v1": {
-      "card_maturity_matches": false,
-      "card_present": false,
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
-      "effective_maturity": "lite",
-      "executed_in_runtime_evidence": false,
+    "chemworld_geometry_resolved_pfr_v2": {
+      "card_maturity_matches": true,
+      "card_present": true,
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
+      "effective_maturity": "reference_validated",
+      "executed_in_runtime_evidence": true,
       "manifest_contract_matches": false,
       "manifest_present": false,
       "manifest_state_valid": false,
       "manifest_status": null,
-      "model_id": "chemworld_geometry_resolved_pfr_v1",
+      "model_id": "chemworld_geometry_resolved_pfr_v2",
       "module_id": "continuous_flow",
       "provenance": [
-        "chemworld-geometry-resolved-pfr-v1"
+        "chemworld-geometry-resolved-pfr-v2"
       ],
       "role": "runtime",
       "routed": true
@@ -4834,25 +4854,6 @@
       "role": "runtime",
       "routed": true
     },
-    "pfr": {
-      "card_maturity_matches": false,
-      "card_present": false,
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
-      "effective_maturity": "lite",
-      "executed_in_runtime_evidence": false,
-      "manifest_contract_matches": false,
-      "manifest_present": false,
-      "manifest_state_valid": false,
-      "manifest_status": null,
-      "model_id": "pfr",
-      "module_id": "continuous_flow",
-      "provenance": [
-        "chemworld-runtime-pfr-v1"
-      ],
-      "role": "runtime",
-      "routed": true
-    },
     "potentiometric_ph_public_reference": {
       "card_maturity_matches": true,
       "card_present": true,
@@ -4913,22 +4914,31 @@
       "routed": true
     }
   },
-  "provider_count": 21,
+  "provider_count": 20,
   "public_document": {
     "claim_assessments": {
-      "crystallization-flow-distillation-runtime": {
+      "continuous-flow-runtime": {
+        "claimed_maturity": "reference_validated",
+        "declared_source_matches": true,
+        "document_token": "\u8fde\u7eed\u6d41",
+        "document_token_present": true,
+        "model_ids": [
+          "chemworld_geometry_resolved_pfr_v2"
+        ],
+        "unknown_model_ids": [],
+        "verified_source_matches": true
+      },
+      "crystallization-distillation-runtime": {
         "claimed_maturity": "professional_candidate",
         "declared_source_matches": true,
-        "document_token": "\u51b7\u5374\u7ed3\u6676\u3001\u8fde\u7eed\u6d41\u3001\u84b8\u998f",
+        "document_token": "\u51b7\u5374\u7ed3\u6676\u3001\u84b8\u998f",
         "document_token_present": true,
         "model_ids": [
           "chemworld_duty_limited_distillation_vnext",
-          "chemworld_geometry_resolved_pfr_v1",
-          "cooling_crystallization_population_balance_v1",
-          "pfr"
+          "cooling_crystallization_population_balance_v1"
         ],
         "unknown_model_ids": [],
-        "verified_source_matches": false
+        "verified_source_matches": true
       },
       "drying-concentration-transfer-runtime": {
         "claimed_maturity": "reference_validated",
@@ -4968,15 +4978,16 @@
     },
     "missing_required_statements": [],
     "path": "docs/model_maturity.md",
-    "sha256": "65ecddef66ce91b21258294c627f9bafa70543d37f208b2be6fd63e4cbeb6baa"
+    "sha256": "70aff12c2340fc3e1f1338dba685666aa52ebfd0ed131c6a20c9491ab28f9684"
   },
-  "release_allowed": false,
-  "report_hash": "14355c093b2ae91b89328217d8c343ea0ba5a1c7d0afea42e96527b20e4611e9",
+  "release_allowed": true,
+  "report_hash": "12112f06720a2e8d34c721273d677f78404c6c52a8746c919c09313a6a731261",
   "runtime_execution_evidence": {
     "executed_model_ids": [
       "aqueous_acid_base_ph_observation",
       "beer_lambert_uvvis",
       "chemworld_duty_limited_distillation_vnext",
+      "chemworld_geometry_resolved_pfr_v2",
       "chemworld_sorbent_drying_vnext",
       "chemworld_stability_aware_lle_vnext",
       "chemworld_transfer_holdup_vnext",
@@ -4988,22 +4999,25 @@
       "dynamic_batch_heat_release_jacket_sampling",
       "dynamic_batch_reaction_runtime_v1",
       "explicit_target_seed_mass_v1",
+      "geometry_resolved_pfr_v2",
       "nernst_butler_volmer_faradaic_v1",
+      "pfr",
       "potentiometric_ph_public_reference",
       "randles_double_layer_transient_v1",
       "reaction_ode_mass_action_arrhenius_reference_slice",
       "runtime_cooling_population_balance_v1",
       "runtime_vanthoff_target_solubility_v1",
+      "single_phase_straight_tube_darcy_weisbach_v1",
       "vle_shortcut_distillation"
     ],
     "path": "workstreams/world_foundation/reports/wf-110-runtime-integration.json",
-    "sha256": "f52d68fdfc6914dcf279f5094011d7e36627693b1c0dcf1718b1e97c3a7e642a"
+    "sha256": "d67b749d2ece681323872b3615d2ab5b462de6224f0a4bb913488477dcf61dd6"
   },
   "runtime_structural_findings": [],
   "schema_version": "chemworld-foundation-maturity-truth-report-0.1",
-  "source_commit": "69b5377621d1ff0d3726ac566f86d1c05511b4fe",
+  "source_commit": "3406c464ae78f71f24db205c5e68c3d9bf5ba2b4",
   "source_tree_dirty": true,
-  "status": "maturity_claims_blocked",
+  "status": "release_allowed",
   "task_assessments": {
     "electrochemical-conversion": {
       "declared_but_unreachable": [],
@@ -5133,13 +5147,12 @@
       "declared_lowest_maturity": "reference_validated",
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_geometry_resolved_pfr_v1",
+        "chemworld_geometry_resolved_pfr_v2",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "pfr",
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
-      "effective_runtime_maturity": "lite",
+      "effective_runtime_maturity": "reference_validated",
       "module_claims": [
         {
           "claim_verified": true,
@@ -5162,27 +5175,25 @@
           "verified_level": "reference_validated"
         },
         {
-          "claim_verified": false,
-          "declared_level": "professional_candidate",
+          "claim_verified": true,
+          "declared_level": "reference_validated",
           "model_ids": [
-            "pfr",
-            "chemworld_geometry_resolved_pfr_v1"
+            "chemworld_geometry_resolved_pfr_v2"
           ],
           "module_id": "continuous_flow",
-          "verified_level": "lite"
+          "verified_level": "reference_validated"
         }
       ],
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_geometry_resolved_pfr_v1",
+        "chemworld_geometry_resolved_pfr_v2",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "pfr",
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "b453a4c81eba3ac230202b9833cb6d7d6aaee84387d87f58acfc3c974242b8cf",
-      "task_contract_hash": "85343ef77c4c2044db0b6b09f76745dc68a71ee6a4ec16e188109629244ef21d"
+      "task_contract_hash": "aa47c74db1753f062a3e5f59208db8278c25db778390607892e20eaaeb30cdc9"
     },
     "low-budget-characterization": {
       "declared_but_unreachable": [],

@@ -8,6 +8,7 @@ from math import pi
 
 import numpy as np
 
+from chemworld.physchem.maturity import MaturityLevel, ModelCard, ValidationEvidence
 from chemworld.physchem.reaction_network import ReactionNetworkSpec
 from chemworld.physchem.reactor_shared import HeatTransferSpec, ReactorResult, ReactorState
 from chemworld.physchem.reactor_solvers import _material_balance_error, _solve
@@ -442,4 +443,89 @@ def _nonnegative_finite(value: float, name: str) -> None:
         raise ValueError(f"{name} must be finite and nonnegative")
 
 
-__all__ = ["PFRGeometrySpec", "PFRModel"]
+def geometry_resolved_pfr_model_card() -> ModelCard:
+    """Return the bounded reference card used by the formal flow runtime."""
+
+    return ModelCard(
+        model_id="chemworld_geometry_resolved_pfr_v2",
+        module_id="continuous_flow",
+        title="Geometry-Resolved Single-Phase Tubular PFR Runtime",
+        maturity=MaturityLevel.REFERENCE_VALIDATED,
+        summary=(
+            "A single-phase incompressible tubular plug-flow slice coupling the shared "
+            "reaction network to residence time, distributed wall heat transfer, "
+            "Darcy-Weisbach pressure loss, and axial diagnostics."
+        ),
+        equations=(
+            "V = Q tau; A_c = pi D^2/4; L = V/A_c",
+            "dF_i/dV = r_i; rho Cp Q dT/dV = q_reaction + U P_w (T_wall-T)",
+            "Delta P = f (L/D) rho u^2/2",
+            "material, thermal, and hydraulic ledgers close on one configured run",
+        ),
+        assumptions=(
+            "The flowing phase is single, incompressible, and radially well mixed.",
+            "Axial dispersion, multiphase slip, compressibility, and catalyst aging are absent.",
+            "Fluid properties, tube geometry, wall boundary, and feed remain fixed per run.",
+        ),
+        validity_limits=(
+            "Positive bounded flow, residence time, geometry, density, and viscosity are required.",
+            "The run duration must span at least one configured residence time.",
+            "The configured feed signature must match the feed at execution.",
+        ),
+        failure_modes=(
+            "Stale configuration, invalid pressure, nonfinite or negative species, solver "
+            "failure, and material or energy non-closure fail closed with transaction rollback.",
+            "Pressure-drop or thermal-boundary values outside the equipment domain are rejected.",
+        ),
+        units={
+            "flow rate": "mL/min",
+            "residence time": "s",
+            "geometry": "m",
+            "temperature": "K",
+            "pressure/pressure drop": "Pa",
+            "energy": "J",
+        },
+        reference_reading=(
+            "Ideal plug-flow material and energy balances for tubular reactors.",
+            "Darcy-Weisbach straight-tube pressure loss with laminar/turbulent friction factors.",
+            "Distributed U-times-wetted-perimeter wall heat-transfer boundary.",
+        ),
+        validation_evidence=(
+            ValidationEvidence(
+                evidence_id="pfr-analytical-geometry-hydraulic-identities",
+                evidence_type="analytical_test",
+                description=(
+                    "Checks analytical V=Q tau geometry, plug-flow residence response, "
+                    "Darcy-Weisbach pressure ordering, and material/energy closure."
+                ),
+                status="implemented",
+                command_or_path="tests/test_flow_coupling.py",
+                tolerance="material < 1e-8 mol; relative energy residual < 1e-5",
+            ),
+            ValidationEvidence(
+                evidence_id="pfr-runtime-domain-and-rollback",
+                evidence_type="failure_domain_test",
+                description=(
+                    "Checks invalid and stale configuration, insufficient duration, pressure "
+                    "and solver failure domains, fresh-run semantics, provenance, "
+                    "and atomic rollback."
+                ),
+                status="implemented",
+                command_or_path="tests/test_flow_coupling.py",
+                tolerance="exact transaction rollback and unchanged physical state",
+            ),
+        ),
+        model_limit_notes=(
+            "Reference validation is limited to a compact single-phase tubular benchmark slice.",
+            "It is not a general continuous-flow platform or an industrial reactor design model.",
+        ),
+        intended_use=(
+            "Agent exploration of residence-time, wall-temperature, flow, and "
+            "pressure-drop tradeoffs.",
+            "Replayable continuous-flow benchmark trajectories with explicit "
+            "ledgers and provenance.",
+        ),
+    )
+
+
+__all__ = ["PFRGeometrySpec", "PFRModel", "geometry_resolved_pfr_model_card"]

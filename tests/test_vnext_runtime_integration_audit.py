@@ -35,6 +35,10 @@ def test_vnext_runtime_integration_executes_only_declared_providers() -> None:
     assert execution["model_ids"]["cool_crystallize"] == (
         "cooling_crystallization_population_balance_v1"
     )
+    assert execution["model_ids"]["run_flow"] == [
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "chemworld_geometry_resolved_pfr_v2",
+    ]
     assert {
         "spent_sorbent",
         "concentrate_condensate",

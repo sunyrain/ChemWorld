@@ -10,7 +10,12 @@ import pytest
 
 import chemworld  # noqa: F401
 from chemworld.foundation import equipment_settings, equipment_status
-from chemworld.physchem.pfr_reactors import PFRGeometrySpec, PFRModel
+from chemworld.physchem.maturity import MaturityLevel, validate_model_card
+from chemworld.physchem.pfr_reactors import (
+    PFRGeometrySpec,
+    PFRModel,
+    geometry_resolved_pfr_model_card,
+)
 
 
 def _charged_flow_env(*, seed: int = 0) -> gym.Env:
@@ -116,6 +121,15 @@ def test_flow_configuration_is_not_a_hidden_experiment() -> None:
         )
     finally:
         env.close()
+
+
+def test_formal_flow_model_card_is_reference_validated_and_bounded() -> None:
+    card = geometry_resolved_pfr_model_card()
+
+    assert card.model_id == "chemworld_geometry_resolved_pfr_v2"
+    assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
+    assert validate_model_card(card) == []
+    assert any("single-phase" in note for note in card.model_limit_notes)
 
 
 def test_configuration_can_precede_charge_but_feed_changes_require_reconfiguration() -> None:
