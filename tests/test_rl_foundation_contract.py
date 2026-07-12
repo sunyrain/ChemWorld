@@ -18,6 +18,13 @@ from chemworld.wrappers import RLTrainingRewardWrapper
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "configs" / "foundation" / "rl_contract_vnext.json"
+REPORT = (
+    ROOT
+    / "workstreams"
+    / "world_foundation"
+    / "reports"
+    / "rl-contract-vnext.json"
+)
 
 
 def test_protocol_is_nonclaiming_and_keeps_native_distribution_gap_visible() -> None:
@@ -29,6 +36,16 @@ def test_protocol_is_nonclaiming_and_keeps_native_distribution_gap_visible() -> 
     ] is False
     assert protocol["development_gate"]["training_seeds"] == [101, 102, 103, 104, 105]
     assert protocol["development_gate"]["dev_episodes_per_seed"] == 20
+
+
+def test_control_report_retains_failed_learning_gate() -> None:
+    report = json.loads(REPORT.read_text(encoding="utf-8"))
+    assert report["status"] == "contract_remediated_learning_gate_failed"
+    assert report["validation"]["targeted_rl_tests_passed"] == 31
+    assert report["checks"]["native_hybrid_policy_distribution"] is False
+    assert report["checks"]["five_seed_twenty_episode_gate"] is False
+    assert report["gate_summary"]["passed_training_seed_count"] == 0
+    assert report["benchmark_claim_allowed"] is False
 
 
 def test_every_conditional_action_uses_the_operation_registry_fields_only() -> None:

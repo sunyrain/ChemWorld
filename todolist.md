@@ -59,12 +59,17 @@
 - [ ] **`foundation-rl-contract-remediation` — 49 维动作与 quick-close 漏洞修复**
   - 默认 owned_paths：`src/chemworld/rl/hybrid_actions.py`、`src/chemworld/rl/rewards.py`、`src/chemworld/rl/environment.py`、`src/chemworld/rl/training.py`、`src/chemworld/rl/evaluation.py`、`src/chemworld/wrappers.py`、`tests/test_rl_foundation_contract.py`、`configs/foundation/rl_contract_vnext.json`、`workstreams/world_foundation/reports/rl-contract-vnext.json`。
   - 依赖：可拆为 action、reward、integration 三个互斥 slice；integration 最后执行。
-  - [ ] 用 categorical operation + conditional parameters 替代正式 49 维全局连续合同。
+  - [x] 用 categorical operation + conditional parameters 替代正式 49 维全局连续合同；SB3 的 49 维 `Box` 仅保留为明确标注的兼容 latent，不再冒充语义 action space。
   - [ ] 无关参数不执行、不进入损失、不改变 digest；affordance mask 在训练、评估和回放中一致。
-  - [ ] 删除可支配策略的完成实验 `+1`，分离 training shaping 与冻结 endpoint。
-  - [ ] quick-close、只加料、只测量和未执行核心物理操作不得获得行为完成。
-  - [ ] 旧 checkpoint 和旧 action/reward hash 标记为 incompatible diagnostic。
+    - [x] 无关参数不执行、不进入 trajectory digest，训练与冻结回放使用同一 public affordance mask。
+    - [ ] 当前 SB3 Gaussian adapter 仍会让未选参数坐标进入 policy loss；需实现原生 masked categorical operation distribution + conditional parameter heads，或迁移到原生支持混合分布的框架。
+  - [x] 删除可支配策略的完成实验 `+1` 与 measurement bonus，隔离 training shaping 与冻结 endpoint，并禁止 final-assay 后自动重置产生的 affordance 奖励。
+  - [x] quick-close、只加料、只测量和未执行核心物理操作不得获得行为完成；campaign 每次实验结束后独立重置行为账本。
+  - [x] 旧 checkpoint 和旧 action/reward hash 标记为 incompatible diagnostic；v0.2 manifest 与周期 checkpoint sidecar 在加载模型前做精确 hash 校验。
   - [ ] 使用 5 个训练 seeds × 20 Dev episodes 验证 flow 实验实际包含 `set_flow_rate`、`run_flow` 和 final assay。
+    - 当前负结果：seed 102、10,112 training steps 后，44 个训练完成中仅 1 个满足行为完成；20 个 Dev episodes 为 0 次完成、0 次 `run_flow`。seed 101 使用已被后续修订替代的 reward hash，仅保留为失败诊断。
+    - 不允许用 scripted policy 代替学习门禁；在单 seed 通过前不浪费计算扩展到五 seed。
+  - 控制报告：`workstreams/world_foundation/reports/rl-contract-vnext.json`；合同/回放相关测试 31/31 通过，但 native hybrid distribution 与五种子学习门禁未通过，因此主任务保持未勾选。
   - 验收：策略不再收敛为“加料—终止—测量”；所有通过的 flow 实验执行核心操作，完整 RL 与回放测试通过。
 
 - [ ] **`foundation-public-boundary-security` — 公共边界、泄漏与回放安全收口**
