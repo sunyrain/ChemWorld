@@ -31,6 +31,92 @@ AzeotropeScanStatus = Literal[
     "no_crossing",
 ]
 
+AQUEOUS_ACTIVITY_TEMPERATURE_RANGE_K = (273.15, 373.15)
+DAVIES_MAX_IONIC_STRENGTH_MOL_KG = 0.5
+
+
+@dataclass(frozen=True)
+class AqueousActivityCoefficientResult:
+    """Davies activity coefficient with an explicit applicability contract."""
+
+    ionic_strength_mol_kg: float
+    charge: float
+    temperature_K: float
+    activity_coefficient: float
+    model_id: str = "davies_aqueous_activity_v1"
+
+    def to_dict(self) -> dict[str, float | str]:
+        return {
+            "model_id": self.model_id,
+            "ionic_strength_mol_kg": self.ionic_strength_mol_kg,
+            "charge": self.charge,
+            "temperature_K": self.temperature_K,
+            "activity_coefficient": self.activity_coefficient,
+        }
+
+
+def davies_aqueous_activity_coefficient(
+    *,
+    ionic_strength_mol_kg: float,
+    charge: float,
+    temperature_K: float = 298.15,
+) -> AqueousActivityCoefficientResult:
+    """Return ``gamma`` from the Davies equation and fail outside its domain."""
+
+    if not isfinite(ionic_strength_mol_kg) or ionic_strength_mol_kg < 0.0:
+        raise ValueError("ionic_strength_mol_kg must be finite and nonnegative")
+    if ionic_strength_mol_kg > DAVIES_MAX_IONIC_STRENGTH_MOL_KG:
+        raise ValueError("Davies activity model is outside its ionic-strength applicability domain")
+    lower_temperature, upper_temperature = AQUEOUS_ACTIVITY_TEMPERATURE_RANGE_K
+    if (
+        not isfinite(temperature_K)
+        or temperature_K < lower_temperature
+        or temperature_K > upper_temperature
+    ):
+        raise ValueError("Davies activity model is outside its temperature applicability domain")
+    if not isfinite(charge):
+        raise ValueError("charge must be finite")
+    if charge == 0.0 or ionic_strength_mol_kg == 0.0:
+        coefficient = 1.0
+    else:
+        sqrt_ionic_strength = sqrt(ionic_strength_mol_kg)
+        # The 298 K Davies coefficient is temperature-scaled as a transparent
+        # bounded approximation; this is not a Pitzer replacement.
+        debye_huckel_a = 0.5092 * (298.15 / temperature_K) ** 1.5
+        log10_gamma = (
+            -debye_huckel_a
+            * charge
+            * charge
+            * (sqrt_ionic_strength / (1.0 + sqrt_ionic_strength) - 0.3 * ionic_strength_mol_kg)
+        )
+        coefficient = 10.0**log10_gamma
+    return AqueousActivityCoefficientResult(
+        ionic_strength_mol_kg=ionic_strength_mol_kg,
+        charge=charge,
+        temperature_K=temperature_K,
+        activity_coefficient=coefficient,
+    )
+
+
+def weak_acid_davies_activity_ratio(
+    *,
+    ionic_strength_mol_kg: float,
+    temperature_K: float = 298.15,
+) -> float:
+    """Return ``gamma_H+ gamma_A- / gamma_HA`` for a monoprotic weak acid."""
+
+    cation = davies_aqueous_activity_coefficient(
+        ionic_strength_mol_kg=ionic_strength_mol_kg,
+        charge=1.0,
+        temperature_K=temperature_K,
+    )
+    anion = davies_aqueous_activity_coefficient(
+        ionic_strength_mol_kg=ionic_strength_mol_kg,
+        charge=-1.0,
+        temperature_K=temperature_K,
+    )
+    return cation.activity_coefficient * anion.activity_coefficient
+
 
 @dataclass(frozen=True)
 class ActivityModelSpec:
@@ -91,10 +177,8 @@ class RachfordRiceDiagnosticReport:
     phase_status: FlashPhaseStatus
     warnings: tuple[str, ...] = ()
     reference_reading: tuple[str, ...] = (
-        "reference_repos/chemicals/chemicals/rachford_rice.py: "
-        "Rachford-Rice objective conventions",
-        "reference_repos/thermo/thermo/flash/flash_base.py: "
-        "ideal flash workflow notes",
+        "reference_repos/chemicals/chemicals/rachford_rice.py: Rachford-Rice objective conventions",
+        "reference_repos/thermo/thermo/flash/flash_base.py: ideal flash workflow notes",
     )
 
     def __post_init__(self) -> None:
@@ -149,10 +233,8 @@ class VLETemperatureReport:
     saturation_reports: dict[str, PureSaturationReport]
     warnings: tuple[str, ...] = ()
     reference_reading: tuple[str, ...] = (
-        "reference_repos/thermo/thermo/flash/flash_base.py: ideal bubble/dew "
-        "temperature workflow",
-        "reference_repos/chemicals/chemicals/rachford_rice.py: phase split "
-        "diagnostic conventions",
+        "reference_repos/thermo/thermo/flash/flash_base.py: ideal bubble/dew temperature workflow",
+        "reference_repos/chemicals/chemicals/rachford_rice.py: phase split diagnostic conventions",
     )
 
     def __post_init__(self) -> None:
@@ -211,10 +293,8 @@ class GammaPhiKValueReport:
     relative_volatilities: dict[str, float]
     reference_component_id: str
     reference_reading: tuple[str, ...] = (
-        "reference_repos/chemicals/chemicals/flash_basic.py: K_value "
-        "gamma-phi equation hierarchy",
-        "reference_repos/thermo/thermo/phases/phase.py: fugacity coefficient "
-        "reporting conventions",
+        "reference_repos/chemicals/chemicals/flash_basic.py: K_value gamma-phi equation hierarchy",
+        "reference_repos/thermo/thermo/phases/phase.py: fugacity coefficient reporting conventions",
     )
 
     def __post_init__(self) -> None:
@@ -396,8 +476,7 @@ class UNIQUACActivityReport:
         if any(value <= 0.0 or not isfinite(value) for value in self.q_parameters.values()):
             raise ValueError("UNIQUAC q parameters must be positive and finite")
         if any(
-            value <= 0.0 or not isfinite(value)
-            for value in self.activity_coefficients.values()
+            value <= 0.0 or not isfinite(value) for value in self.activity_coefficients.values()
         ):
             raise ValueError("UNIQUAC activity coefficients must be positive and finite")
         object.__setattr__(self, "reference_reading", tuple(self.reference_reading))
@@ -409,9 +488,7 @@ class UNIQUACActivityReport:
             "composition": dict(self.composition),
             "r_parameters": dict(self.r_parameters),
             "q_parameters": dict(self.q_parameters),
-            "tau_matrix": {
-                row_id: dict(row) for row_id, row in self.tau_matrix.items()
-            },
+            "tau_matrix": {row_id: dict(row) for row_id, row in self.tau_matrix.items()},
             "volume_fractions": dict(self.volume_fractions),
             "surface_fractions": dict(self.surface_fractions),
             "combinatorial_log_terms": dict(self.combinatorial_log_terms),
@@ -641,10 +718,7 @@ def uniquac_activity_report(
         r_parameters=dict(zip(spec.component_ids, r_values, strict=True)),
         q_parameters=dict(zip(spec.component_ids, q_values, strict=True)),
         tau_matrix={
-            left: {
-                right: tau[i][j]
-                for j, right in enumerate(spec.component_ids)
-            }
+            left: {right: tau[i][j] for j, right in enumerate(spec.component_ids)}
             for i, left in enumerate(spec.component_ids)
         },
         volume_fractions=dict(zip(spec.component_ids, phi, strict=True)),
@@ -938,9 +1012,7 @@ def rachford_rice_diagnostic_report(
 
     def objective(beta: float) -> float:
         return sum(
-            z[component_id]
-            * (k[component_id] - 1.0)
-            / (1.0 + beta * (k[component_id] - 1.0))
+            z[component_id] * (k[component_id] - 1.0) / (1.0 + beta * (k[component_id] - 1.0))
             for component_id in z
         )
 
@@ -972,18 +1044,12 @@ def rachford_rice_diagnostic_report(
             else:
                 high = beta
         else:
-            warnings.append(
-                "Rachford-Rice bisection reached max_iterations before tolerance"
-            )
+            warnings.append("Rachford-Rice bisection reached max_iterations before tolerance")
     liquid = {
-        component_id: z[component_id] / (1.0 + beta * (k[component_id] - 1.0))
-        for component_id in z
+        component_id: z[component_id] / (1.0 + beta * (k[component_id] - 1.0)) for component_id in z
     }
     liquid = _normalize_composition(liquid)
-    vapor = {
-        component_id: k[component_id] * liquid[component_id]
-        for component_id in z
-    }
+    vapor = {component_id: k[component_id] * liquid[component_id] for component_id in z}
     vapor = _normalize_composition(vapor)
     return RachfordRiceDiagnosticReport(
         overall_composition=z,
@@ -1008,15 +1074,11 @@ def flash_isothermal(
     _validate_k_values(z, k_values)
     beta = rachford_rice_vapor_fraction(z, k_values)
     liquid = {
-        component_id: z[component_id]
-        / (1.0 + beta * (k_values[component_id] - 1.0))
+        component_id: z[component_id] / (1.0 + beta * (k_values[component_id] - 1.0))
         for component_id in z
     }
     liquid = _normalize_composition(liquid)
-    vapor = {
-        component_id: k_values[component_id] * liquid[component_id]
-        for component_id in z
-    }
+    vapor = {component_id: k_values[component_id] * liquid[component_id] for component_id in z}
     vapor = _normalize_composition(vapor)
     return FlashResult(
         vapor_fraction=beta,
@@ -1190,10 +1252,7 @@ def dew_temperature_report(
         temperature_K=solve.temperature_K,
     )
     vapor = _normalize_composition(
-        {
-            component_id: k_values[component_id] * liquid[component_id]
-            for component_id in liquid
-        }
+        {component_id: k_values[component_id] * liquid[component_id] for component_id in liquid}
     )
     return VLETemperatureReport(
         solve_mode="dew_temperature",
@@ -1486,6 +1545,7 @@ def _solve_vle_temperature(
         (f"{residual_label} solve reached max_iterations before tolerance",),
     )
 
+
 def _evaluate_temperature_residual(
     evaluator: Callable[
         [float],
@@ -1560,9 +1620,7 @@ def _mixture_temperature_bounds_k(
     lower = max(lower_candidates)
     upper = min(upper_candidates)
     if lower >= upper:
-        raise ValueError(
-            "vapor-pressure correlations do not have an overlapping temperature range"
-        )
+        raise ValueError("vapor-pressure correlations do not have an overlapping temperature range")
     return lower, upper
 
 
@@ -1602,20 +1660,12 @@ def _dew_pressure_and_liquid_composition(
     liquid = dict(y)
     for _ in range(iterations):
         gamma = activity_coefficients(activity_model, liquid, temperature_K=temperature_K)
-        denominator = sum(
-            y[key] / (gamma[key] * float(vapor_pressures_Pa[key]))
-            for key in y
-        )
+        denominator = sum(y[key] / (gamma[key] * float(vapor_pressures_Pa[key])) for key in y)
         if denominator <= 0.0 or not isfinite(denominator):
             raise ValueError("dew pressure denominator must be positive and finite")
         pressure = 1.0 / denominator
         liquid = _normalize_composition(
-            {
-                key: y[key]
-                * pressure
-                / (gamma[key] * float(vapor_pressures_Pa[key]))
-                for key in y
-            }
+            {key: y[key] * pressure / (gamma[key] * float(vapor_pressures_Pa[key])) for key in y}
         )
     return pressure, liquid
 
@@ -1628,13 +1678,9 @@ def _validate_vapor_pressure_values(
     extra = sorted(set(vapor_pressures_Pa) - set(composition))
     if missing or extra:
         raise ValueError(
-            "vapor pressure keys must match composition: "
-            f"missing={missing}, extra={extra}"
+            f"vapor pressure keys must match composition: missing={missing}, extra={extra}"
         )
-    if any(
-        value <= 0 or not isfinite(float(value))
-        for value in vapor_pressures_Pa.values()
-    ):
+    if any(value <= 0 or not isfinite(float(value)) for value in vapor_pressures_Pa.values()):
         raise ValueError("vapor pressures must be finite and positive")
 
 
@@ -1650,8 +1696,7 @@ def _factor_mapping(
     extra = sorted(set(values) - set(component_ids))
     if missing or extra:
         raise ValueError(
-            f"{field_name} keys must match components: "
-            f"missing={missing}, extra={extra}"
+            f"{field_name} keys must match components: missing={missing}, extra={extra}"
         )
     result = {component_id: float(values[component_id]) for component_id in component_ids}
     if any(value <= 0 or not isfinite(value) for value in result.values()):
@@ -1664,12 +1709,15 @@ def _find_azeotrope_crossing(
     *,
     light_component_id: str,
     residual_tolerance: float,
-) -> tuple[
-    AzeotropeScanStatus,
-    tuple[float, float],
-    dict[str, float],
-    float,
-] | None:
+) -> (
+    tuple[
+        AzeotropeScanStatus,
+        tuple[float, float],
+        dict[str, float],
+        float,
+    ]
+    | None
+):
     for point in scan_points:
         if abs(point.residual) <= residual_tolerance:
             fraction = point.composition[light_component_id]
@@ -1688,14 +1736,12 @@ def _find_azeotrope_crossing(
         if abs(denominator) <= 1e-300:
             estimate = 0.5 * (left_fraction + right_fraction)
         else:
-            estimate = left_fraction - left.residual * (
-                right_fraction - left_fraction
-            ) / denominator
+            estimate = (
+                left_fraction - left.residual * (right_fraction - left_fraction) / denominator
+            )
         estimate = min(max(estimate, left_fraction), right_fraction)
         other_component = next(
-            component_id
-            for component_id in left.composition
-            if component_id != light_component_id
+            component_id for component_id in left.composition if component_id != light_component_id
         )
         return (
             "relative_volatility_crossing",
@@ -1775,12 +1821,7 @@ def _nrtl_gamma(
             weighted_tau = sum(x[m] * tau[m][j] * g[m][j] for m in range(n))
             if denominator <= 0.0 or not isfinite(denominator):
                 raise ValueError("NRTL denominator must be positive")
-            second += (
-                x[j]
-                * g[i][j]
-                / denominator
-                * (tau[i][j] - weighted_tau / denominator)
-            )
+            second += x[j] * g[i][j] / denominator * (tau[i][j] - weighted_tau / denominator)
         gamma[component_id] = exp(first + second)
     return gamma
 
@@ -1814,16 +1855,11 @@ def _wilson_lambda(
         return direct
     exponent = (
         _directional_value(spec, "lambda_a", left, right, default=0.0)
-        + _directional_value(spec, "lambda_b", left, right, default=0.0)
-        / temperature_K
-        + _directional_value(spec, "lambda_c", left, right, default=0.0)
-        * log(temperature_K)
-        + _directional_value(spec, "lambda_d", left, right, default=0.0)
-        * temperature_K
-        + _directional_value(spec, "lambda_e", left, right, default=0.0)
-        / temperature_K**2
-        + _directional_value(spec, "lambda_f", left, right, default=0.0)
-        * temperature_K**2
+        + _directional_value(spec, "lambda_b", left, right, default=0.0) / temperature_K
+        + _directional_value(spec, "lambda_c", left, right, default=0.0) * log(temperature_K)
+        + _directional_value(spec, "lambda_d", left, right, default=0.0) * temperature_K
+        + _directional_value(spec, "lambda_e", left, right, default=0.0) / temperature_K**2
+        + _directional_value(spec, "lambda_f", left, right, default=0.0) * temperature_K**2
     )
     return exp(exponent)
 
@@ -1839,16 +1875,11 @@ def _nrtl_tau(
         return direct
     return (
         _directional_value(spec, "tau_a", left, right, default=0.0)
-        + _directional_value(spec, "tau_b", left, right, default=0.0)
-        / temperature_K
-        + _directional_value(spec, "tau_e", left, right, default=0.0)
-        * log(temperature_K)
-        + _directional_value(spec, "tau_f", left, right, default=0.0)
-        * temperature_K
-        + _directional_value(spec, "tau_g", left, right, default=0.0)
-        / temperature_K**2
-        + _directional_value(spec, "tau_h", left, right, default=0.0)
-        * temperature_K**2
+        + _directional_value(spec, "tau_b", left, right, default=0.0) / temperature_K
+        + _directional_value(spec, "tau_e", left, right, default=0.0) * log(temperature_K)
+        + _directional_value(spec, "tau_f", left, right, default=0.0) * temperature_K
+        + _directional_value(spec, "tau_g", left, right, default=0.0) / temperature_K**2
+        + _directional_value(spec, "tau_h", left, right, default=0.0) * temperature_K**2
     )
 
 
@@ -1863,8 +1894,7 @@ def _nrtl_alpha(
         return direct
     return (
         _directional_value(spec, "alpha_c", left, right, default=0.0)
-        + _directional_value(spec, "alpha_d", left, right, default=0.0)
-        * temperature_K
+        + _directional_value(spec, "alpha_d", left, right, default=0.0) * temperature_K
     )
 
 
@@ -1897,16 +1927,11 @@ def _uniquac_tau(
         return direct
     exponent = (
         _directional_value(spec, "tau_a", left, right, default=0.0)
-        + _directional_value(spec, "tau_b", left, right, default=0.0)
-        / temperature_K
-        + _directional_value(spec, "tau_c", left, right, default=0.0)
-        * log(temperature_K)
-        + _directional_value(spec, "tau_d", left, right, default=0.0)
-        * temperature_K
-        + _directional_value(spec, "tau_e", left, right, default=0.0)
-        / temperature_K**2
-        + _directional_value(spec, "tau_f", left, right, default=0.0)
-        * temperature_K**2
+        + _directional_value(spec, "tau_b", left, right, default=0.0) / temperature_K
+        + _directional_value(spec, "tau_c", left, right, default=0.0) * log(temperature_K)
+        + _directional_value(spec, "tau_d", left, right, default=0.0) * temperature_K
+        + _directional_value(spec, "tau_e", left, right, default=0.0) / temperature_K**2
+        + _directional_value(spec, "tau_f", left, right, default=0.0) * temperature_K**2
     )
     if not isfinite(exponent):
         raise ValueError("UNIQUAC tau exponent must be finite")
@@ -2009,9 +2034,7 @@ def _validate_pair_has_any(
 ) -> None:
     if not any(_has_directional_parameter(spec, prefix, left, right) for prefix in prefixes):
         allowed = ", ".join(prefixes)
-        raise ValueError(
-            f"{spec.model} requires one of {{{allowed}}} for pair {left}|{right}"
-        )
+        raise ValueError(f"{spec.model} requires one of {{{allowed}}} for pair {left}|{right}")
 
 
 def _has_directional_parameter(
@@ -2192,8 +2215,11 @@ def _validate_k_values(
 
 
 __all__ = [
+    "AQUEOUS_ACTIVITY_TEMPERATURE_RANGE_K",
+    "DAVIES_MAX_IONIC_STRENGTH_MOL_KG",
     "ActivityModel",
     "ActivityModelSpec",
+    "AqueousActivityCoefficientResult",
     "AzeotropeScanPoint",
     "AzeotropeScanStatus",
     "BinaryAzeotropeDiagnosticReport",
@@ -2211,6 +2237,7 @@ __all__ = [
     "binary_azeotrope_diagnostic_report",
     "bubble_pressure_pa",
     "bubble_temperature_report",
+    "davies_aqueous_activity_coefficient",
     "dew_pressure_pa",
     "dew_temperature_report",
     "flash_isothermal",
@@ -2221,4 +2248,5 @@ __all__ = [
     "rachford_rice_vapor_fraction",
     "raoult_k_values",
     "uniquac_activity_report",
+    "weak_acid_davies_activity_ratio",
 ]

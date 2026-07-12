@@ -12,10 +12,24 @@ from chemworld.foundation import (
     process_with_metrics,
     upsert_equipment_record,
 )
+from chemworld.physchem.electrochem_double_layer import (
+    DoubleLayerRCSpec,
+    simulate_double_layer_current_step,
+)
+from chemworld.physchem.electrochem_transport import (
+    DiffusionLayerSpec,
+    diffusion_layer_current_response,
+)
 from chemworld.physchem.electrochemistry import (
+    FARADAY_C_PER_MOL,
+    R_J_PER_MOL_K,
     ElectrodeReactionSpec,
     ElectrolyteResistanceSpec,
     run_electrolysis,
+)
+from chemworld.physchem.equilibrium_chemistry import (
+    SolubilityProductSpec,
+    solve_aqueous_electrolyte_equilibrium,
 )
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
@@ -26,6 +40,23 @@ def _action_float(action: dict[str, Any], key: str, default: float) -> float:
     return float(np.asarray(value).reshape(-1)[0])
 
 
+def _bounded_action_float(
+    action: dict[str, Any],
+    key: str,
+    default: float,
+    *,
+    low: float,
+    high: float,
+    inclusive_low: bool = True,
+) -> float:
+    value = _action_float(action, key, default)
+    lower_ok = value >= low if inclusive_low else value > low
+    if not np.isfinite(value) or not lower_ok or value > high:
+        comparator = "<=" if inclusive_low else "<"
+        raise ValueError(f"{key} must satisfy {low} {comparator} value <= {high}")
+    return value
+
+
 class ChemWorldElectrochemicalServices:
     """Apply electrochemical operating conditions and faradaic conversion."""
 
@@ -34,21 +65,107 @@ class ChemWorldElectrochemicalServices:
         self.species_view = species_view
 
     def set_potential(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        potential = float(np.clip(_action_float(action, "potential_V", 1.20), -3.0, 3.0))
-        current = float(np.clip(_action_float(action, "current_mA", 50.0), 0.0, 500.0))
-        conductivity = float(
-            np.clip(_action_float(action, "electrolyte_conductivity_S_m", 8.0), 0.05, 100.0)
+        potential = _bounded_action_float(action, "potential_V", 1.20, low=-3.0, high=3.0)
+        current = _bounded_action_float(action, "current_mA", 50.0, low=1.0e-3, high=500.0)
+        conductivity = _bounded_action_float(
+            action,
+            "electrolyte_conductivity_S_m",
+            8.0,
+            low=0.0,
+            high=100.0,
+            inclusive_low=False,
         )
-        electrode_gap = float(
-            np.clip(_action_float(action, "electrode_gap_m", 0.004), 1.0e-5, 0.050)
+        electrode_gap = _bounded_action_float(
+            action,
+            "electrode_gap_m",
+            0.004,
+            low=1.0e-5,
+            high=0.050,
         )
-        electrode_area = float(
-            np.clip(_action_float(action, "electrode_area_m2", 0.004), 1.0e-5, 0.20)
+        electrode_area = _bounded_action_float(
+            action,
+            "electrode_area_m2",
+            0.004,
+            low=1.0e-5,
+            high=0.20,
         )
-        contact_resistance = float(
-            np.clip(_action_float(action, "contact_resistance_ohm", 0.20), 0.0, 100.0)
+        contact_resistance = _bounded_action_float(
+            action,
+            "contact_resistance_ohm",
+            0.20,
+            low=0.0,
+            high=100.0,
         )
-        voltage_window = float(np.clip(_action_float(action, "voltage_window_V", 2.5), 0.1, 10.0))
+        voltage_window = _bounded_action_float(action, "voltage_window_V", 2.5, low=0.1, high=10.0)
+        diffusivity = _bounded_action_float(
+            action,
+            "diffusivity_m2_s",
+            1.0e-9,
+            low=1.0e-12,
+            high=1.0e-7,
+        )
+        diffusion_layer = _bounded_action_float(
+            action,
+            "diffusion_layer_thickness_m",
+            1.0e-4,
+            low=1.0e-7,
+            high=1.0e-2,
+        )
+        capacitance = _bounded_action_float(
+            action,
+            "double_layer_capacitance_F_m2",
+            0.20,
+            low=1.0e-5,
+            high=100.0,
+        )
+        acid_total = _bounded_action_float(
+            action,
+            "electrolyte_acid_total_mol",
+            0.005 * state.volume_L,
+            low=0.0,
+            high=max(state.volume_L, 1.0e-6),
+        )
+        supporting_electrolyte = _bounded_action_float(
+            action,
+            "supporting_electrolyte_mol",
+            0.020 * state.volume_L,
+            low=0.0,
+            high=0.50 * state.volume_L,
+        )
+        precipitating_salt = _bounded_action_float(
+            action,
+            "precipitating_salt_mol",
+            0.002 * state.volume_L,
+            low=0.0,
+            high=0.10 * state.volume_L,
+        )
+        acid_pka = _bounded_action_float(action, "electrolyte_acid_pka", 4.76, low=-2.0, high=16.0)
+        solubility_product = _bounded_action_float(
+            action, "electrolyte_ksp", 1.0e-8, low=1.0e-30, high=1.0
+        )
+        activity_iterations_raw = _bounded_action_float(
+            action,
+            "equilibrium_max_activity_iterations",
+            64.0,
+            low=1.0,
+            high=128.0,
+        )
+        precipitation_passes_raw = _bounded_action_float(
+            action,
+            "equilibrium_max_precipitation_passes",
+            3.0,
+            low=1.0,
+            high=16.0,
+        )
+        if not activity_iterations_raw.is_integer() or not precipitation_passes_raw.is_integer():
+            raise ValueError("equilibrium iteration/pass limits must be integers")
+        activity_tolerance = _bounded_action_float(
+            action,
+            "equilibrium_activity_tolerance",
+            1.0e-10,
+            low=1.0e-14,
+            high=1.0e-3,
+        )
         equipment = upsert_equipment_record(
             state.equipment,
             equipment_id="electrochemical_cell",
@@ -63,6 +180,17 @@ class ChemWorldElectrochemicalServices:
                 "electrode_area_m2": electrode_area,
                 "contact_resistance_ohm": contact_resistance,
                 "voltage_window_V": voltage_window,
+                "diffusivity_m2_s": diffusivity,
+                "diffusion_layer_thickness_m": diffusion_layer,
+                "double_layer_capacitance_F_m2": capacitance,
+                "electrolyte_acid_total_mol": acid_total,
+                "electrolyte_acid_pka": acid_pka,
+                "supporting_electrolyte_mol": supporting_electrolyte,
+                "precipitating_salt_mol": precipitating_salt,
+                "electrolyte_ksp": solubility_product,
+                "equilibrium_max_activity_iterations": int(activity_iterations_raw),
+                "equilibrium_max_precipitation_passes": int(precipitation_passes_raw),
+                "equilibrium_activity_tolerance": activity_tolerance,
             },
         )
         risk = min(1.0, state.ledger.risk + 0.02 * max(abs(potential) - 1.5, 0.0))
@@ -70,16 +198,42 @@ class ChemWorldElectrochemicalServices:
         return state.replace(ledger=ledger, equipment=equipment)
 
     def electrolyze(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        duration = float(np.clip(_action_float(action, "duration_s", 900.0), 0.0, 14_400.0))
+        duration = _bounded_action_float(action, "duration_s", 900.0, low=1.0, high=14_400.0)
         cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
-        potential = float(cell_settings.get("potential_V", 1.20))
-        current_mA = float(cell_settings.get("current_mA", 50.0))
+        if not cell_settings:
+            raise ValueError("electrolyze requires a configured electrochemical cell")
+        potential = float(cell_settings["potential_V"])
+        current_mA = float(cell_settings["current_mA"])
+        conductivity = float(cell_settings["electrolyte_conductivity_S_m"])
+        if conductivity <= 0.0 or not np.isfinite(conductivity):
+            raise ValueError("electrolyze requires a finite positive electrolyte conductivity")
+        voltage_window = float(cell_settings["voltage_window_V"])
+        if abs(potential) > voltage_window:
+            raise ValueError("electrode potential exceeds the configured voltage window")
+
+        try:
+            aqueous = solve_aqueous_electrolyte_equilibrium(
+                acid_total_mol=float(cell_settings["electrolyte_acid_total_mol"]),
+                volume_L=state.volume_L,
+                pka=float(cell_settings["electrolyte_acid_pka"]),
+                temperature_K=state.temperature_K,
+                supporting_electrolyte_mol=float(cell_settings["supporting_electrolyte_mol"]),
+                precipitating_salt_mol=float(cell_settings["precipitating_salt_mol"]),
+                solubility_product=SolubilityProductSpec(
+                    precipitate_id="ElectrolyteSalt(s)",
+                    cation_id="Salt+",
+                    anion_id="Salt-",
+                    ksp=float(cell_settings["electrolyte_ksp"]),
+                ),
+                max_precipitation_passes=int(cell_settings["equilibrium_max_precipitation_passes"]),
+                max_activity_iterations=int(cell_settings["equilibrium_max_activity_iterations"]),
+                activity_tolerance=float(cell_settings["equilibrium_activity_tolerance"]),
+            )
+        except RuntimeError as error:
+            raise ValueError(f"electrolyte equilibrium failed closed: {error}") from error
         resistance_multiplier = self.world.domain_parameter("electro_resistance_multiplier")
         resistance = ElectrolyteResistanceSpec(
-            electrolyte_conductivity_S_m=float(
-                cell_settings.get("electrolyte_conductivity_S_m", 8.0)
-            )
-            / resistance_multiplier,
+            electrolyte_conductivity_S_m=float(conductivity / resistance_multiplier),
             electrode_gap_m=float(cell_settings.get("electrode_gap_m", 0.004)),
             electrode_area_m2=float(cell_settings.get("electrode_area_m2", 0.004)),
             contact_resistance_ohm=(
@@ -92,6 +246,8 @@ class ChemWorldElectrochemicalServices:
         product = self.species_view.primary_target_species
         impurity = self.species_view.primary_impurity_species
         a_mol = species.get(reactant, 0.0)
+        if a_mol <= 0.0 or not np.isfinite(a_mol):
+            raise ValueError("electrolyze requires positive finite reactant inventory")
         volume = max(state.volume_L, 1.0e-9)
         reactor_settings = equipment_settings(state.equipment, "batch_reactor")
         catalyst = int(reactor_settings.get("catalyst", 0))
@@ -101,14 +257,10 @@ class ChemWorldElectrochemicalServices:
         exchange_current_density *= self.world.domain_parameter(
             "electro_exchange_current_multiplier"
         )
-        transfer_asymmetry = self.world.domain_parameter(
-            "electro_transfer_asymmetry_multiplier"
-        )
+        transfer_asymmetry = self.world.domain_parameter("electro_transfer_asymmetry_multiplier")
         alpha_anodic = 0.5 * transfer_asymmetry
         alpha_cathodic = 1.0 - alpha_anodic
-        selectivity_decay = self.world.domain_parameter(
-            "electro_selectivity_decay_multiplier"
-        )
+        selectivity_decay = self.world.domain_parameter("electro_selectivity_decay_multiplier")
         standard_potential_multiplier = self.world.domain_parameter(
             "electro_standard_potential_multiplier"
         )
@@ -118,18 +270,19 @@ class ChemWorldElectrochemicalServices:
             standard_potential_V=1.05 * standard_potential_multiplier,
             reaction_quotient_exponents={product: 1.0, reactant: -1.0},
             exchange_current_density_A_m2=exchange_current_density,
-            electrode_area_m2=0.004,
+            electrode_area_m2=float(cell_settings["electrode_area_m2"]),
             alpha_anodic=alpha_anodic,
             alpha_cathodic=alpha_cathodic,
             faradaic_efficiency_ref=0.91,
             product_selectivity_ref=0.90,
             overpotential_selectivity_sensitivity_V_inv=0.45 * selectivity_decay,
         )
+        redox_activity_coefficient = aqueous.activity_coefficient_ratio**0.5
         activities = {
-            reactant: max(a_mol / volume, 1.0e-12),
+            reactant: max(a_mol / volume * redox_activity_coefficient, 1.0e-12),
             product: max(species.get(product, 0.0) / volume, 1.0e-12),
         }
-        result = run_electrolysis(
+        preliminary = run_electrolysis(
             electrochemical_spec,
             electrode_potential_V=potential,
             duration_s=duration,
@@ -139,9 +292,73 @@ class ChemWorldElectrochemicalServices:
             applied_current_A=current_mA / 1000.0,
             electrolyte_resistance=resistance,
         )
+        if abs(preliminary.actual_current_A) <= 1.0e-12:
+            raise ValueError("electrochemical driving force produced no executable current")
+        charge_transfer_resistance = (
+            R_J_PER_MOL_K
+            * state.temperature_K
+            / (
+                electrochemical_spec.electrons_transferred
+                * FARADAY_C_PER_MOL
+                * max(electrochemical_spec.exchange_current_a, 1.0e-12)
+            )
+        )
+        double_layer = simulate_double_layer_current_step(
+            DoubleLayerRCSpec(
+                model_id="runtime_randles_double_layer",
+                double_layer_capacitance_F_m2=float(cell_settings["double_layer_capacitance_F_m2"]),
+                electrode_area_m2=float(cell_settings["electrode_area_m2"]),
+                series_resistance_ohm=resistance.total_resistance_ohm,
+                charge_transfer_resistance_ohm=charge_transfer_resistance,
+                provenance_id="chemworld_runtime_electrochemical_services",
+            ),
+            current_step_A=preliminary.actual_current_A,
+            duration_s=duration,
+            sample_interval_s=max(duration / 20.0, 1.0e-6),
+        )
+        transport = diffusion_layer_current_response(
+            DiffusionLayerSpec(
+                model_id="runtime_planar_diffusion_layer",
+                electrons_transferred=electrochemical_spec.electrons_transferred,
+                electrode_area_m2=float(cell_settings["electrode_area_m2"]),
+                diffusivity_m2_s=float(cell_settings["diffusivity_m2_s"]),
+                diffusion_layer_thickness_m=float(cell_settings["diffusion_layer_thickness_m"]),
+                electrolyte_volume_m3=state.volume_L * 1.0e-3,
+                provenance_id="chemworld_runtime_electrochemical_services",
+            ),
+            bulk_concentration_mol_m3=a_mol / (state.volume_L * 1.0e-3),
+            applied_current_A=preliminary.actual_current_A,
+            duration_s=duration,
+            kinetic_current_A=preliminary.kinetic_current_A,
+        )
+        useful_charge_limit = min(
+            abs(double_layer.faradaic_charge_C),
+            transport.useful_charge_C,
+        )
+        result = run_electrolysis(
+            electrochemical_spec,
+            electrode_potential_V=potential,
+            duration_s=duration,
+            activities=activities,
+            available_substrate_mol=a_mol,
+            temperature_K=state.temperature_K,
+            applied_current_A=current_mA / 1000.0,
+            electrolyte_resistance=resistance,
+            useful_charge_limit_C=useful_charge_limit,
+            capacitive_charge_C=abs(double_layer.capacitive_charge_C),
+        )
         species[reactant] = a_mol - result.converted_mol
         species[product] = species.get(product, 0.0) + result.product_mol
         species[impurity] = species.get(impurity, 0.0) + result.byproduct_mol
+        material_balance_residual = abs(
+            result.converted_mol - result.product_mol - result.byproduct_mol
+        )
+        if material_balance_residual > 1.0e-12:
+            raise RuntimeError("electrolysis material ledger did not close")
+        if abs(result.charge_balance_residual_C) > 1.0e-9:
+            raise RuntimeError("electrolysis charge ledger did not close")
+        if abs(result.energy_balance_residual_J) > 1.0e-8:
+            raise RuntimeError("electrolysis energy ledger did not close")
         process = process_with_metrics(
             state.process,
             electrochemical_selectivity=result.product_selectivity,
@@ -163,6 +380,24 @@ class ChemWorldElectrochemicalServices:
             total_resistance_ohm=result.total_resistance_ohm,
             uncompensated_voltage_drop_V=result.uncompensated_voltage_drop_V,
             voltage_window_exceeded=float(result.voltage_window_exceeded),
+            capacitive_charge_C=result.capacitive_charge_C,
+            side_reaction_charge_C=result.side_reaction_charge_C,
+            charge_balance_residual_C=result.charge_balance_residual_C,
+            material_balance_residual_mol=material_balance_residual,
+            energy_balance_residual_J=result.energy_balance_residual_J,
+            signed_terminal_work_J=result.signed_terminal_work_J,
+            signed_interfacial_work_J=result.signed_interfacial_work_J,
+            transport_useful_charge_C=transport.useful_charge_C,
+            transport_current_efficiency=transport.current_efficiency,
+            limiting_current_A=transport.initial_limiting_current_A,
+            mass_transfer_limited=float(transport.mass_transfer_limited_initially),
+            double_layer_time_constant_s=double_layer.time_constant_s,
+            electrolyte_pH=aqueous.acid_base.pH,
+            electrolyte_ionic_strength_mol_kg=(aqueous.acid_base.ionic_strength_mol_kg),
+            electrolyte_charge_balance_error_eq=aqueous.charge_balance_error_eq,
+            electrolyte_material_balance_error_mol=aqueous.material_balance_error_mol,
+            electrolyte_precipitated_mol=(aqueous.precipitation.total_precipitated_mol),
+            redox_activity_coefficient=redox_activity_coefficient,
         )
         overpotential_risk = max(abs(result.overpotential_V) - 0.35, 0.0)
         ledger = state.ledger.with_updates(
@@ -178,7 +413,57 @@ class ChemWorldElectrochemicalServices:
             ),
             energy_jacket_J=state.ledger.energy_jacket_J + result.electrical_work_J,
         )
-        return state.replace(species_amounts=species, ledger=ledger, process=process)
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="electrochemical_cell",
+            equipment_type="electrochemical_cell",
+            attached_vessel_id=state.vessel_id,
+            status="configured",
+            settings={
+                **cell_settings,
+                "runtime_model_ids": (
+                    "nernst_butler_volmer_faradaic_v1",
+                    transport.model_id,
+                    double_layer.model_id,
+                    "aqueous_electrolyte_equilibrium_v1",
+                ),
+                "mechanism_id": self.species_view.mechanism.mechanism_id,
+                "mechanism_hash": self.species_view.mechanism.mechanism_hash,
+                "transport_diagnostic": {
+                    "model_id": transport.model_id,
+                    "limiting_current_A": transport.initial_limiting_current_A,
+                    "current_efficiency": transport.current_efficiency,
+                    "charge_balance_residual_C": transport.charge_balance_residual_C,
+                    "material_balance_residual_mol": (transport.material_balance_residual_mol),
+                    "warnings": transport.warnings,
+                },
+                "double_layer_diagnostic": {
+                    "model_id": double_layer.model_id,
+                    "time_constant_s": double_layer.time_constant_s,
+                    "faradaic_charge_C": double_layer.faradaic_charge_C,
+                    "capacitive_charge_C": double_layer.capacitive_charge_C,
+                    "charge_balance_residual_C": (double_layer.charge_balance_residual_C),
+                    "warnings": double_layer.warnings,
+                },
+                "aqueous_equilibrium_diagnostic": {
+                    "model_id": "aqueous_electrolyte_equilibrium_v1",
+                    "converged": aqueous.converged,
+                    "iterations": aqueous.iterations,
+                    "pH": aqueous.acid_base.pH,
+                    "ionic_strength_mol_kg": (aqueous.acid_base.ionic_strength_mol_kg),
+                    "charge_balance_error_eq": aqueous.charge_balance_error_eq,
+                    "material_balance_error_mol": aqueous.material_balance_error_mol,
+                    "precipitated_mol": aqueous.precipitation.total_precipitated_mol,
+                    "applicability": aqueous.applicability,
+                },
+            },
+        )
+        return state.replace(
+            species_amounts=species,
+            ledger=ledger,
+            process=process,
+            equipment=equipment,
+        )
 
 
 __all__ = ["ChemWorldElectrochemicalServices"]

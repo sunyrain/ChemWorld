@@ -150,8 +150,7 @@ class EquilibriumResult:
         if any(not isfinite(value) for value in self.extents_mol.values()):
             raise ValueError("extents must be finite")
         if any(
-            value <= 0.0 or not isfinite(value)
-            for value in self.equilibrium_constants.values()
+            value <= 0.0 or not isfinite(value) for value in self.equilibrium_constants.values()
         ):
             raise ValueError("equilibrium constants must be positive and finite")
         if any(value <= 0.0 or not isfinite(value) for value in self.reaction_quotients.values()):
@@ -255,11 +254,7 @@ class GibbsMinimizationSpec:
     def element_ids(self) -> tuple[str, ...]:
         return tuple(
             sorted(
-                {
-                    element_id
-                    for species in self.species
-                    for element_id in species.element_counts
-                }
+                {element_id for species in self.species for element_id in species.element_counts}
             )
         )
 
@@ -578,6 +573,160 @@ class ChargeBalanceResult:
         }
 
 
+@dataclass(frozen=True)
+class AqueousElectrolyteEquilibriumResult:
+    """Coupled weak-acid, ionic-activity, and Ksp-hook result."""
+
+    acid_base: AcidBaseResult
+    precipitation: PrecipitationHookResult
+    activity_coefficient_ratio: float
+    iterations: int
+    converged: bool
+    material_balance_error_mol: float
+    charge_balance_error_eq: float
+    applicability: dict[str, float | str]
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "acid_base": self.acid_base.to_dict(),
+            "precipitation": self.precipitation.to_dict(),
+            "activity_coefficient_ratio": self.activity_coefficient_ratio,
+            "iterations": self.iterations,
+            "converged": self.converged,
+            "material_balance_error_mol": self.material_balance_error_mol,
+            "charge_balance_error_eq": self.charge_balance_error_eq,
+            "applicability": dict(self.applicability),
+        }
+
+
+def solve_aqueous_electrolyte_equilibrium(
+    *,
+    acid_total_mol: float,
+    volume_L: float,
+    pka: float,
+    temperature_K: float = 298.15,
+    supporting_electrolyte_mol: float = 0.0,
+    precipitating_salt_mol: float = 0.0,
+    solubility_product: SolubilityProductSpec | None = None,
+    max_precipitation_passes: int = 3,
+    max_activity_iterations: int = 64,
+    activity_tolerance: float = 1.0e-10,
+) -> AqueousElectrolyteEquilibriumResult:
+    """Solve a bounded aqueous electrolyte state and fail closed on invalidity.
+
+    The strong supporting electrolyte and binary precipitating salt are both
+    treated as 1:1 electrolytes.  Davies activity corrections are iterated with
+    the weak-acid electroneutrality solve; optional Ksp hooks are applied first.
+    """
+
+    _nonnegative(acid_total_mol, "acid_total_mol")
+    _positive(volume_L, "volume_L")
+    _finite(pka, "pka")
+    _positive(temperature_K, "temperature_K")
+    _nonnegative(supporting_electrolyte_mol, "supporting_electrolyte_mol")
+    _nonnegative(precipitating_salt_mol, "precipitating_salt_mol")
+    if max_precipitation_passes <= 0:
+        raise ValueError("max_precipitation_passes must be positive")
+    if max_activity_iterations <= 0:
+        raise ValueError("max_activity_iterations must be positive")
+    _positive(activity_tolerance, "activity_tolerance")
+    if solubility_product is not None and (
+        solubility_product.cation_stoich != 1.0 or solubility_product.anion_stoich != 1.0
+    ):
+        raise ValueError("aqueous coupling currently requires a 1:1 Ksp hook")
+
+    salt_cation_id = "Salt+" if solubility_product is None else solubility_product.cation_id
+    salt_anion_id = "Salt-" if solubility_product is None else solubility_product.anion_id
+    salt_amounts = {
+        salt_cation_id: precipitating_salt_mol,
+        salt_anion_id: precipitating_salt_mol,
+    }
+    precipitation = apply_precipitation_hooks(
+        salt_amounts,
+        () if solubility_product is None else (solubility_product,),
+        volume_L=volume_L,
+        max_passes=max_precipitation_passes,
+    )
+    if not precipitation.converged:
+        raise RuntimeError("aqueous Ksp hooks did not converge")
+    remaining_cation = precipitation.final_amounts_mol.get(salt_cation_id, 0.0)
+    remaining_anion = precipitation.final_amounts_mol.get(salt_anion_id, 0.0)
+    strong_cation = supporting_electrolyte_mol + remaining_cation
+    strong_anion = supporting_electrolyte_mol + remaining_anion
+
+    from chemworld.physchem.equilibrium import (
+        AQUEOUS_ACTIVITY_TEMPERATURE_RANGE_K,
+        DAVIES_MAX_IONIC_STRENGTH_MOL_KG,
+        weak_acid_davies_activity_ratio,
+    )
+
+    initial_ionic_strength = (strong_cation + strong_anion) / (2.0 * volume_L)
+    ionic_strength_value = initial_ionic_strength
+    acid_base: AcidBaseResult | None = None
+    ratio = 1.0
+    converged = False
+    iterations = 0
+    for iteration in range(1, max_activity_iterations + 1):
+        iterations = iteration
+        ratio = weak_acid_davies_activity_ratio(
+            ionic_strength_mol_kg=ionic_strength_value,
+            temperature_K=temperature_K,
+        )
+        acid_base = solve_monoprotic_acid_base(
+            acid_total_mol=acid_total_mol,
+            volume_L=volume_L,
+            pka=pka,
+            temperature_K=temperature_K,
+            strong_cation_mol=strong_cation,
+            strong_anion_mol=strong_anion,
+            activity_coefficient_ratio=ratio,
+        )
+        next_ionic_strength = acid_base.ionic_strength_mol_kg
+        if abs(next_ionic_strength - ionic_strength_value) <= activity_tolerance:
+            converged = True
+            break
+        ionic_strength_value = 0.5 * (ionic_strength_value + next_ionic_strength)
+    if acid_base is None or not converged:
+        raise RuntimeError("aqueous activity/electroneutrality iteration did not converge")
+
+    acid_balance_error = abs(
+        acid_base.species_amounts_mol.get("HA", 0.0)
+        + acid_base.species_amounts_mol.get("A-", 0.0)
+        - acid_total_mol
+    )
+    salt_balance_error = max(
+        abs(remaining_cation + precipitation.total_precipitated_mol - precipitating_salt_mol),
+        abs(remaining_anion + precipitation.total_precipitated_mol - precipitating_salt_mol),
+    )
+    material_error = max(
+        acid_balance_error,
+        salt_balance_error,
+        precipitation.material_balance_error_mol,
+    )
+    charge_error = abs(acid_base.charge_balance_error_eq)
+    if material_error > 1.0e-9 or charge_error > 1.0e-9:
+        raise RuntimeError(
+            "aqueous equilibrium ledger did not close: "
+            f"material={material_error:.6g}, charge={charge_error:.6g}"
+        )
+    return AqueousElectrolyteEquilibriumResult(
+        acid_base=acid_base,
+        precipitation=precipitation,
+        activity_coefficient_ratio=ratio,
+        iterations=iterations,
+        converged=True,
+        material_balance_error_mol=material_error,
+        charge_balance_error_eq=charge_error,
+        applicability={
+            "activity_model": "davies_aqueous_activity_v1",
+            "temperature_min_K": AQUEOUS_ACTIVITY_TEMPERATURE_RANGE_K[0],
+            "temperature_max_K": AQUEOUS_ACTIVITY_TEMPERATURE_RANGE_K[1],
+            "ionic_strength_max_mol_kg": DAVIES_MAX_IONIC_STRENGTH_MOL_KG,
+            "ionic_strength_mol_kg": acid_base.ionic_strength_mol_kg,
+        },
+    )
+
+
 def equilibrium_constant_vant_hoff(
     *,
     log10_k_ref: float,
@@ -732,8 +881,7 @@ def solve_gibbs_minimization(
     ]
     if disallowed_initial:
         raise ValueError(
-            "phase restrictions exclude nonzero initial species: "
-            f"{sorted(disallowed_initial)}"
+            f"phase restrictions exclude nonzero initial species: {sorted(disallowed_initial)}"
         )
 
     target_elements = (
@@ -763,8 +911,7 @@ def solve_gibbs_minimization(
     ]
     constraint_rows = _independent_constraint_rows(species, target_elements, charge_target)
     constraints = [
-        {"type": "eq", "fun": _linear_constraint(row, target)}
-        for _, row, target in constraint_rows
+        {"type": "eq", "fun": _linear_constraint(row, target)} for _, row, target in constraint_rows
     ]
 
     solved = minimize(
@@ -777,8 +924,7 @@ def solve_gibbs_minimization(
     )
     final_array = _project_array_nonnegative(solved.x)
     final = {
-        item.species_id: float(final_array[species_index[item.species_id]])
-        for item in species
+        item.species_id: float(final_array[species_index[item.species_id]]) for item in species
     }
     residuals = _element_residuals(species, final, target_elements)
     charge_residual = _charge_total(species, final) - charge_target
@@ -986,9 +1132,7 @@ def solve_monoprotic_acid_base(
             else 0.0
         )
         hydroxide = kw / hydrogen
-        return hydrogen + strong_cation_conc - (
-            hydroxide + conjugate_base + strong_anion_conc
-        )
+        return hydrogen + strong_cation_conc - (hydroxide + conjugate_base + strong_anion_conc)
 
     low = 1e-14
     high = max(1.0, 10.0 * (total_acid_conc + strong_cation_conc + strong_anion_conc + ka))
@@ -1020,9 +1164,7 @@ def solve_monoprotic_acid_base(
         amounts[anion_id] = strong_anion_mol
         charges[anion_id] = -1
     charge_error = net_charge_equivalents(amounts, charges)
-    acid_dissociation_fraction = (
-        0.0 if total_acid_conc <= 0.0 else conjugate_base / total_acid_conc
-    )
+    acid_dissociation_fraction = 0.0 if total_acid_conc <= 0.0 else conjugate_base / total_acid_conc
     ionic_strength_value = ionic_strength_from_amounts(
         amounts,
         charges,
@@ -1076,13 +1218,9 @@ def aqueous_ph_observation(
     measured_pH = max(0.0, min(14.0, measured_pH))
     temperature_raw = result.metadata.get("temperature_K", 298.15)
     temperature_K = (
-        float(temperature_raw)
-        if isinstance(temperature_raw, int | float | str)
-        else 298.15
+        float(temperature_raw) if isinstance(temperature_raw, int | float | str) else 298.15
     )
-    nernst_slope_mV_pH = (
-        1000.0 * R_J_PER_MOL_K * temperature_K * log(10.0) / 96485.33212
-    )
+    nernst_slope_mV_pH = 1000.0 * R_J_PER_MOL_K * temperature_K * log(10.0) / 96485.33212
     electrode_mV = -nernst_slope_mV_pH * (measured_pH - 7.0)
     hydrogen = 10.0 ** (-measured_pH)
     return PHObservationResult(
@@ -1292,8 +1430,7 @@ def net_charge_equivalents(
 
     amounts = _amounts(amounts_mol)
     return sum(
-        amounts.get(species_id, 0.0) * float(charges.get(species_id, 0.0))
-        for species_id in amounts
+        amounts.get(species_id, 0.0) * float(charges.get(species_id, 0.0)) for species_id in amounts
     )
 
 
@@ -1458,11 +1595,13 @@ def _independent_constraint_rows(
             dtype=float,
         )
         rows.append((f"element:{element_id}", row, float(target)))
-    rows.append((
-        "charge",
-        np.asarray([float(item.charge) for item in species], dtype=float),
-        float(charge_target),
-    ))
+    rows.append(
+        (
+            "charge",
+            np.asarray([float(item.charge) for item in species], dtype=float),
+            float(charge_target),
+        )
+    )
 
     selected: list[tuple[str, np.ndarray, float]] = []
     selected_rows: list[np.ndarray] = []
@@ -1540,9 +1679,7 @@ def _gibbs_minimization_diagnostic(
         else np.zeros((0, len(species)))
     )
     constraint_rank = (
-        int(np.linalg.matrix_rank(constraint_matrix, tol=1e-12))
-        if constraint_matrix.size
-        else 0
+        int(np.linalg.matrix_rank(constraint_matrix, tol=1e-12)) if constraint_matrix.size else 0
     )
     degrees_of_freedom = max(0, len(allowed_indices) - constraint_rank)
     stationarity_residual = _gibbs_stationarity_residual(
@@ -1563,8 +1700,7 @@ def _gibbs_minimization_diagnostic(
     if max_element_residual <= residual_limit and abs(charge_residual) <= residual_limit:
         status: Literal["ok", "warning", "failed"] = (
             "ok"
-            if max_bound_violation <= residual_limit
-            and stationarity_residual <= stationarity_limit
+            if max_bound_violation <= residual_limit and stationarity_residual <= stationarity_limit
             else "warning"
         )
     else:
@@ -1622,8 +1758,8 @@ def _gibbs_chemical_potentials(
         if not _pure_condensed_phase(item.phase):
             amount = max(float(values[index]), _ACTIVITY_FLOOR)
             phase_total = max(phase_totals.get(item.phase, 0.0), _ACTIVITY_FLOOR)
-            potential += R_J_PER_MOL_K * temperature_K * log(
-                max(amount / phase_total, _ACTIVITY_FLOOR)
+            potential += (
+                R_J_PER_MOL_K * temperature_K * log(max(amount / phase_total, _ACTIVITY_FLOOR))
             )
         potentials[index] = potential
     return potentials
@@ -1794,8 +1930,7 @@ def _build_equilibrium_result(
         initial_amounts_mol=dict(initial),
         final_amounts_mol={key: amounts.get(key, 0.0) for key in sorted(amounts)},
         extents_mol={
-            reaction.reaction_id: extents[index]
-            for index, reaction in enumerate(system.reactions)
+            reaction.reaction_id: extents[index] for index, reaction in enumerate(system.reactions)
         },
         equilibrium_constants=constants,
         reaction_quotients=quotients,

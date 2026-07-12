@@ -122,9 +122,7 @@ class ElectrolyteResistanceSpec:
 
     @property
     def electrolyte_resistance_ohm(self) -> float:
-        return self.electrode_gap_m / (
-            self.electrolyte_conductivity_S_m * self.electrode_area_m2
-        )
+        return self.electrode_gap_m / (self.electrolyte_conductivity_S_m * self.electrode_area_m2)
 
     @property
     def total_resistance_ohm(self) -> float:
@@ -202,7 +200,44 @@ class ElectrolysisResult:
     total_resistance_ohm: float
     uncompensated_voltage_drop_V: float
     voltage_window_exceeded: bool
+    capacitive_charge_C: float = 0.0
+    side_reaction_charge_C: float = 0.0
+    charge_balance_residual_C: float = 0.0
+    energy_balance_residual_J: float = 0.0
+    signed_terminal_work_J: float = 0.0
+    signed_interfacial_work_J: float = 0.0
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        for name, value in (
+            ("charge_C", self.charge_C),
+            ("faradaic_charge_C", self.faradaic_charge_C),
+            ("capacitive_charge_C", self.capacitive_charge_C),
+            ("side_reaction_charge_C", self.side_reaction_charge_C),
+            ("extent_mol", self.extent_mol),
+            ("converted_mol", self.converted_mol),
+            ("product_mol", self.product_mol),
+            ("byproduct_mol", self.byproduct_mol),
+            ("electrical_work_J", self.electrical_work_J),
+            ("ohmic_loss_J", self.ohmic_loss_J),
+        ):
+            _nonnegative(value, name)
+        _finite(self.charge_balance_residual_C, "charge_balance_residual_C")
+        _finite(self.energy_balance_residual_J, "energy_balance_residual_J")
+        _finite(self.signed_terminal_work_J, "signed_terminal_work_J")
+        _finite(self.signed_interfacial_work_J, "signed_interfacial_work_J")
+        if abs(self.product_mol + self.byproduct_mol - self.converted_mol) > 1.0e-12:
+            raise ValueError("electrolysis material balance does not close")
+        if (
+            abs(
+                self.charge_C
+                - self.faradaic_charge_C
+                - self.capacitive_charge_C
+                - self.side_reaction_charge_C
+            )
+            > 1.0e-9
+        ):
+            raise ValueError("electrolysis charge balance does not close")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -231,6 +266,12 @@ class ElectrolysisResult:
             "total_resistance_ohm": self.total_resistance_ohm,
             "uncompensated_voltage_drop_V": self.uncompensated_voltage_drop_V,
             "voltage_window_exceeded": self.voltage_window_exceeded,
+            "capacitive_charge_C": self.capacitive_charge_C,
+            "side_reaction_charge_C": self.side_reaction_charge_C,
+            "charge_balance_residual_C": self.charge_balance_residual_C,
+            "energy_balance_residual_J": self.energy_balance_residual_J,
+            "signed_terminal_work_J": self.signed_terminal_work_J,
+            "signed_interfacial_work_J": self.signed_interfacial_work_J,
             "metadata": dict(self.metadata),
         }
 
@@ -286,9 +327,10 @@ def nernst_potential(
         activities,
         spec.reaction_quotient_exponents,
     )
-    return spec.standard_potential_V - (
-        R_J_PER_MOL_K * temperature_K / (spec.electrons_transferred * FARADAY_C_PER_MOL)
-    ) * log_q
+    return (
+        spec.standard_potential_V
+        - (R_J_PER_MOL_K * temperature_K / (spec.electrons_transferred * FARADAY_C_PER_MOL)) * log_q
+    )
 
 
 def butler_volmer_current(
@@ -304,9 +346,7 @@ def butler_volmer_current(
     _positive(temperature_K, "temperature_K")
     equilibrium_potential = nernst_potential(spec, activities, temperature_K=temperature_K)
     overpotential = electrode_potential_V - equilibrium_potential
-    coefficient = spec.electrons_transferred * FARADAY_C_PER_MOL / (
-        R_J_PER_MOL_K * temperature_K
-    )
+    coefficient = spec.electrons_transferred * FARADAY_C_PER_MOL / (R_J_PER_MOL_K * temperature_K)
     anodic = exp(
         _clamp(
             spec.alpha_anodic * coefficient * overpotential,
@@ -402,6 +442,8 @@ def run_electrolysis(
     temperature_K: float = 298.15,
     applied_current_A: float | None = None,
     electrolyte_resistance: ElectrolyteResistanceSpec | None = None,
+    useful_charge_limit_C: float | None = None,
+    capacitive_charge_C: float = 0.0,
 ) -> ElectrolysisResult:
     """Run a terminal electrolysis accounting step.
 
@@ -417,6 +459,9 @@ def run_electrolysis(
     _positive(temperature_K, "temperature_K")
     if applied_current_A is not None:
         _finite(applied_current_A, "applied_current_A")
+    if useful_charge_limit_C is not None:
+        _nonnegative(useful_charge_limit_C, "useful_charge_limit_C")
+    _nonnegative(capacitive_charge_C, "capacitive_charge_C")
 
     equilibrium_potential = nernst_potential(spec, activities, temperature_K=temperature_K)
     actual_current = 0.0 if applied_current_A is None else float(applied_current_A)
@@ -467,7 +512,7 @@ def run_electrolysis(
     )
 
     overpotential_stress = max(abs(overpotential) - 0.15, 0.0)
-    faradaic_efficiency = _clip01(
+    intrinsic_faradaic_efficiency = _clip01(
         spec.faradaic_efficiency_ref
         * exp(-spec.overpotential_selectivity_sensitivity_V_inv * overpotential_stress)
     )
@@ -475,19 +520,30 @@ def run_electrolysis(
         spec.product_selectivity_ref
         * exp(-0.5 * spec.overpotential_selectivity_sensitivity_V_inv * overpotential_stress)
     )
-    extent = faradaic_extent_mol(
-        current_A=actual_current,
-        duration_s=duration_s,
-        electrons_transferred=spec.electrons_transferred,
-        faradaic_efficiency=faradaic_efficiency,
+    charge = abs(actual_current) * duration_s
+    if capacitive_charge_C > charge + 1.0e-12:
+        raise ValueError("capacitive_charge_C cannot exceed total charge")
+    productive_charge = charge * intrinsic_faradaic_efficiency
+    productive_charge = min(
+        productive_charge,
+        max(charge - capacitive_charge_C, 0.0),
+        available_substrate_mol * spec.electrons_transferred * FARADAY_C_PER_MOL,
     )
-    converted = min(available_substrate_mol, extent)
+    if useful_charge_limit_C is not None:
+        productive_charge = min(productive_charge, useful_charge_limit_C)
+    faradaic_efficiency = 0.0 if charge <= 0.0 else productive_charge / charge
+    extent = productive_charge / (spec.electrons_transferred * FARADAY_C_PER_MOL)
+    converted = extent
     product_mol = converted * product_selectivity
     byproduct_mol = converted - product_mol
-    charge = abs(actual_current) * duration_s
-    faradaic_charge = charge * faradaic_efficiency
+    faradaic_charge = productive_charge
+    side_reaction_charge = max(charge - capacitive_charge_C - faradaic_charge, 0.0)
+    charge_balance_residual = charge - faradaic_charge - capacitive_charge_C - side_reaction_charge
     electrical_work = abs(electrode_potential_V * actual_current * duration_s)
     interfacial_work = abs(interfacial_potential * actual_current * duration_s)
+    signed_terminal_work = electrode_potential_V * actual_current * duration_s
+    signed_interfacial_work = interfacial_potential * actual_current * duration_s
+    energy_balance_residual = signed_terminal_work - signed_interfacial_work - drop.ohmic_loss_J
     reversible_work = min(
         abs(equilibrium_potential) * faradaic_charge,
         max(electrical_work - drop.ohmic_loss_J, 0.0),
@@ -521,6 +577,12 @@ def run_electrolysis(
         total_resistance_ohm=drop.total_resistance_ohm,
         uncompensated_voltage_drop_V=drop.uncompensated_voltage_drop_V,
         voltage_window_exceeded=drop.voltage_window_exceeded,
+        capacitive_charge_C=capacitive_charge_C,
+        side_reaction_charge_C=side_reaction_charge,
+        charge_balance_residual_C=charge_balance_residual,
+        energy_balance_residual_J=energy_balance_residual,
+        signed_terminal_work_J=signed_terminal_work,
+        signed_interfacial_work_J=signed_interfacial_work,
         metadata={
             "model_id": "nernst_butler_volmer_faradaic_v1",
             "ohmic_drop_model_id": drop.metadata["model_id"],
@@ -530,6 +592,8 @@ def run_electrolysis(
                 applied_current_A is not None and abs(applied_current_A) > abs(kinetic_current)
             ),
             "ohmic_iteration_count": iteration_count,
+            "intrinsic_faradaic_efficiency": intrinsic_faradaic_efficiency,
+            "useful_charge_limit_C": useful_charge_limit_C,
         },
     )
 

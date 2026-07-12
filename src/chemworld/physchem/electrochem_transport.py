@@ -71,6 +71,8 @@ class MassTransferLimitedCurrentResult:
     applied_charge_C: float
     useful_charge_C: float
     side_reaction_charge_C: float
+    charge_balance_residual_C: float
+    material_balance_residual_mol: float
     current_efficiency: float
     depletion_fraction: float
     transition_to_limiting_time_s: float | None
@@ -94,6 +96,8 @@ class MassTransferLimitedCurrentResult:
             "applied_charge_C": self.applied_charge_C,
             "useful_charge_C": self.useful_charge_C,
             "side_reaction_charge_C": self.side_reaction_charge_C,
+            "charge_balance_residual_C": self.charge_balance_residual_C,
+            "material_balance_residual_mol": self.material_balance_residual_mol,
             "current_efficiency": self.current_efficiency,
             "depletion_fraction": self.depletion_fraction,
             "transition_to_limiting_time_s": self.transition_to_limiting_time_s,
@@ -168,6 +172,11 @@ def diffusion_layer_current_response(
     useful_charge = min(useful_charge, applied_charge)
     average_useful_magnitude = 0.0 if duration_s <= 0.0 else useful_charge / duration_s
     current_efficiency = 1.0 if applied_charge <= 0.0 else useful_charge / applied_charge
+    side_reaction_charge = max(applied_charge - useful_charge, 0.0)
+    charge_balance_residual = applied_charge - useful_charge - side_reaction_charge
+    depleted_mol = spec.electrolyte_volume_m3 * (bulk_concentration_mol_m3 - final_concentration)
+    charge_implied_mol = useful_charge / (spec.electrons_transferred * FARADAY_C_PER_MOL)
+    material_balance_residual = depleted_mol - charge_implied_mol
     final_surface = final_concentration
     if final_limiting > 0.0:
         final_surface *= max(1.0 - target_magnitude / final_limiting, 0.0)
@@ -198,7 +207,9 @@ def diffusion_layer_current_response(
         average_useful_current_A=sign * average_useful_magnitude,
         applied_charge_C=applied_charge,
         useful_charge_C=useful_charge,
-        side_reaction_charge_C=max(applied_charge - useful_charge, 0.0),
+        side_reaction_charge_C=side_reaction_charge,
+        charge_balance_residual_C=charge_balance_residual,
+        material_balance_residual_mol=material_balance_residual,
         current_efficiency=current_efficiency,
         depletion_fraction=depletion_fraction,
         transition_to_limiting_time_s=transition_time,
