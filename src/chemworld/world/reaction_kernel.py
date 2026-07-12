@@ -266,6 +266,9 @@ def integrate_compiled_reaction_ode(
     )
     provenance = {
         "provider_id": "chemworld_validated_reaction_reactor_runtime_v1",
+        "reaction_network_model_id": (
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+        ),
         "reactor_model_id": "dynamic_batch_heat_release_jacket_sampling",
         "reactor_class": "chemworld.physchem.batch_reactors.DynamicBatchReactorModel",
         "reaction_network_class": "chemworld.physchem.reaction_network.ReactionNetworkSpec",

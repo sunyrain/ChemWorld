@@ -44,7 +44,7 @@ def reaction_rate_provider_contract() -> ModelProviderContract:
         model_id="chemworld_arrhenius_unit_contract_vnext",
         module_id="reaction_kinetics",
         maturity=MaturityLevel.REFERENCE_VALIDATED,
-        role=ModelExecutionRole.DIAGNOSTIC,
+        role=ModelExecutionRole.REFERENCE,
         provider_path=("chemworld.physchem.reaction_adapter_manifest.ReactionRateContractProvider"),
         input_fields=("reaction",),
         output_fields=("contract",),

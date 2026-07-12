@@ -191,7 +191,11 @@ def build_report(
         "source_commit": source_commit,
         "source_tree_dirty": source_tree_dirty,
         "status": (
-            "controls_ready_upgrade_targets_found"
+            (
+                "controls_ready_no_lite_targets"
+                if not actual_lite_groups
+                else "controls_ready_upgrade_targets_found"
+            )
             if all(checks.values())
             else "controls_failed"
         ),

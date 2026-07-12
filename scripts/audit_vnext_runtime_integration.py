@@ -31,6 +31,14 @@ RETIRED_ROUTE_MODEL_IDS = frozenset(
     }
 )
 EXPECTED_OPERATION_MODELS = {
+    "heat": (
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "dynamic_batch_heat_release_jacket_sampling",
+    ),
+    "wait": (
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "dynamic_batch_heat_release_jacket_sampling",
+    ),
     "mix": ("chemworld_stability_aware_lle_vnext",),
     "wash": ("chemworld_stability_aware_lle_vnext",),
     "dry": ("chemworld_sorbent_drying_vnext",),
@@ -147,6 +155,9 @@ def _execution_probe() -> dict[str, Any]:
         for instrument_id in ("uvvis", "hplc", "gc", "ph_meter", "final_assay")
     }
     equipment = {
+        "reaction_reactor": equipment_settings(
+            purification_state.equipment, "batch_reactor"
+        ),
         "dry": equipment_settings(purification_state.equipment, "sorbent_dryer"),
         "concentrate": equipment_settings(
             purification_state.equipment, "vacuum_concentrator"
@@ -158,6 +169,14 @@ def _execution_probe() -> dict[str, Any]:
         "instruments": instrument_settings,
     }
     model_ids = {
+        "heat": [
+            equipment["reaction_reactor"].get("reaction_model_id"),
+            equipment["reaction_reactor"].get("reactor_model_id"),
+        ],
+        "wait": [
+            equipment["reaction_reactor"].get("reaction_model_id"),
+            equipment["reaction_reactor"].get("reactor_model_id"),
+        ],
         "mix": purification_state.metadata.get("extraction_model_id"),
         "wash": purification_state.metadata.get("wash_model_id"),
         "dry": equipment["dry"].get("drying_model_id"),
@@ -177,13 +196,17 @@ def _execution_probe() -> dict[str, Any]:
         ],
         "final_assay": [INSTRUMENT_RUNTIME_MODEL_ID],
     }
+    expected_execution_model_ids = {
+        operation: models[0] if len(models) == 1 else list(models)
+        for operation, models in EXPECTED_OPERATION_MODELS.items()
+    }
     return {
         "passed": all(status == "committed" for status in purification_statuses)
         and all(status == "committed" for status in distillation_statuses)
         and all(status == "committed" for status in assay_statuses)
         and all(status == "committed" for status in ph_statuses)
         and model_ids
-        == {operation: models[0] for operation, models in EXPECTED_OPERATION_MODELS.items()}
+        == expected_execution_model_ids
         and all(
             settings.get("model_id") == INSTRUMENT_RUNTIME_MODEL_ID
             and settings.get("provider_path")

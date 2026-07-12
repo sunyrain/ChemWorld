@@ -40,10 +40,7 @@ def test_report_maps_every_task_operation_service_kernel_and_provider() -> None:
 
 def test_report_identifies_only_the_current_shared_lite_upgrade_targets() -> None:
     report = build_report(load_protocol())
-    assert report["lite_upgrade_targets"] == {
-        "reaction_kinetics": ["chemworld_reaction_network_lite"],
-        "reactors": ["chemworld_reactor_lite"],
-    }
+    assert report["lite_upgrade_targets"] == {}
     assert report["orphan_runtime_providers"] == []
     assert report["reference_providers_routed"] == []
     assert report["forbidden_runtime_models"] == []

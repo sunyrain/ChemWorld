@@ -18,6 +18,10 @@
         "dry": [
           "chemworld_sorbent_drying_vnext"
         ],
+        "heat": [
+          "reaction_ode_mass_action_arrhenius_reference_slice",
+          "dynamic_batch_heat_release_jacket_sampling"
+        ],
         "measure": [
           "chemworld_validated_synthetic_instruments_v1"
         ],
@@ -26,6 +30,10 @@
         ],
         "transfer": [
           "chemworld_transfer_holdup_vnext"
+        ],
+        "wait": [
+          "reaction_ode_mass_action_arrhenius_reference_slice",
+          "dynamic_batch_heat_release_jacket_sampling"
         ],
         "wash": [
           "chemworld_stability_aware_lle_vnext"
@@ -107,9 +115,17 @@
           "concentrate": "chemworld_vacuum_concentration_vnext",
           "distill": "chemworld_duty_limited_distillation_vnext",
           "dry": "chemworld_sorbent_drying_vnext",
+          "heat": [
+            "reaction_ode_mass_action_arrhenius_reference_slice",
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
           "measure": "chemworld_validated_synthetic_instruments_v1",
           "mix": "chemworld_stability_aware_lle_vnext",
           "transfer": "chemworld_transfer_holdup_vnext",
+          "wait": [
+            "reaction_ode_mass_action_arrhenius_reference_slice",
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
           "wash": "chemworld_stability_aware_lle_vnext"
         },
         "passed": true,
@@ -127,7 +143,7 @@
             ],
             "concentration_provider_path": "chemworld.physchem.concentration_adapter_manifest.VacuumConcentrationProvider",
             "concentration_skipped_empty_phase": false,
-            "concentration_target_recovery": 0.998832134638053,
+            "concentration_target_recovery": 0.9988321346380531,
             "concentration_termination_reason": "solvent_endpoint",
             "concentration_warnings": [
               "volatile target loss is explicit in condensate and vent ledgers",
@@ -139,41 +155,41 @@
             "distillation_adapter_id": "wf-60-duty-limited-distillation",
             "distillation_kernel": {
               "actual_distillate_cut_fraction": 0.41666666666666663,
-              "average_condenser_power_W": 1.0069014388266233,
-              "average_reboiler_power_W": 1.0684988679209306,
-              "bubble_pressure_Pa": 168504.72704618733,
-              "bubble_pressure_margin_Pa": 52002.85299028618,
-              "condenser_duty_J": 1510.352158239935,
+              "average_condenser_power_W": 1.008777095897981,
+              "average_reboiler_power_W": 1.070396108080473,
+              "bubble_pressure_Pa": 167065.85450053474,
+              "bubble_pressure_margin_Pa": 50563.98044463359,
+              "condenser_duty_J": 1513.1656438469713,
               "cut_endpoint_met": true,
               "effective_stages": 1.5155555555555555,
               "elapsed_time_s": 1500.0,
               "energy_balance_error_J": 0.0,
               "engine_model_id": "vle_shortcut_distillation",
               "feed_amounts_mol": {
-                "impurity": 0.021667287282921582,
-                "product": 0.0008327127170784302
+                "impurity": 0.021732036547475936,
+                "product": 0.0007679634525240633
               },
-              "fenske_minimum_stages": 1.5155555555555553,
+              "fenske_minimum_stages": 1.5155555555555555,
               "fenske_stage_residual": 0.0,
               "final_temperature_K": 360.0,
               "fug_available": false,
               "gilliland_x": null,
               "gilliland_y": null,
               "heavy_key": "impurity",
-              "heavy_key_bottoms_purity": 0.9911178236251218,
-              "heavy_key_recovery": 0.6003714846820315,
+              "heavy_key_bottoms_purity": 0.9918479478234192,
+              "heavy_key_recovery": 0.5990236711935933,
               "initial_temperature_K": 335.0,
               "installed_equilibrium_stage_margin": null,
-              "internal_vapor_mol": 0.028125000000000015,
-              "internal_vapor_rate_mol_s": 1.875000000000001e-05,
+              "internal_vapor_mol": 0.028124999999999994,
+              "internal_vapor_rate_mol_s": 1.8749999999999995e-05,
               "k_values": {
                 "impurity": 1.2875329364060308,
                 "product": 5.579309391092801
               },
-              "latent_reboiler_duty_J": 1510.352158239935,
+              "latent_reboiler_duty_J": 1513.1656438469713,
               "light_key": "product",
-              "light_key_distillate_purity": 0.0763876428968697,
-              "light_key_recovery": 0.8600014596519051,
+              "light_key_distillate_purity": 0.0705032285553537,
+              "light_key_recovery": 0.8606760719329023,
               "limiting_constraint": "requested_cut",
               "material_balance_error_mol": 0.0,
               "minimum_reflux_ratio": null,
@@ -183,12 +199,12 @@
               "operating_temperature_K": 360.0,
               "outlets": {
                 "bottoms": {
-                  "impurity": 0.013008421435079732,
-                  "product": 0.00011657856492027635
+                  "impurity": 0.013018004315182378,
+                  "product": 0.00010699568481762256
                 },
                 "distillate": {
-                  "impurity": 0.00865886584784185,
-                  "product": 0.0007161341521581538
+                  "impurity": 0.008714032232293558,
+                  "product": 0.0006609677677064408
                 }
               },
               "pressure_Pa": 116501.87405590115,
@@ -209,8 +225,8 @@
               },
               "requested_distillate_cut_fraction": 0.41666666666666663,
               "required_theoretical_stages": null,
-              "sensible_heat_J": 92.39614364146084,
-              "total_reboiler_duty_J": 1602.748301881396,
+              "sensible_heat_J": 92.42851827373796,
+              "total_reboiler_duty_J": 1605.5941621207094,
               "underwood_theta": null,
               "warnings": [
                 "binary Underwood diagnostic unavailable: minimum reflux ratio is not physically positive"
@@ -234,7 +250,7 @@
             "drying_endpoint_met": true,
             "drying_material_balance_error_mol": 0.0,
             "drying_model_id": "chemworld_sorbent_drying_vnext",
-            "drying_product_recovery": 0.9725613545860832,
+            "drying_product_recovery": 0.972557135980505,
             "drying_provenance": [
               "extended-Langmuir shared-site equilibrium with exact component inventory",
               "linear-driving-force approach using one rate for capacity-preserving transients",
@@ -629,9 +645,82 @@
               "use_count": 1
             }
           },
+          "reaction_reactor": {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.00025,
+            "charge_inventory_residual_mol": 0.0,
+            "element_inventory_residuals_mol": {
+              "C": 1.0408340855860843e-17,
+              "H": 2.0816681711721685e-17,
+              "O": 1.0408340855860843e-17
+            },
+            "energy_balance_residual_J": -2.4556356947869062e-11,
+            "last_operation": "wait",
+            "last_operation_semantic": "advance",
+            "material_balance_error_mol": 2.0816681711721685e-17,
+            "maximum_conservation_drift_mol": 2.168404344971009e-18,
+            "mechanism_hash": "26e029387db8a32f66d52789a3ccfa939baa1d6e469424dbb596f1813d81e437",
+            "mechanism_id": "reaction_extraction",
+            "mechanism_version": "chemworld_mechanism_v1",
+            "reaction_advance_index": 2,
+            "reaction_model_id": "reaction_ode_mass_action_arrhenius_reference_slice",
+            "reaction_network_id": "reaction_extraction",
+            "reaction_runtime_model_id": "dynamic_batch_reaction_runtime_v1",
+            "reactor_diagnostic": {
+              "energy_ledger_net_J": -5090.7562647444265,
+              "material_balance_closed": true,
+              "material_balance_error_mol": 2.0816681711721685e-17,
+              "maximum_temperature_K": 377.2434363473308,
+              "maximum_temperature_rate_K_s": 0.06719432270203267,
+              "minimum_species_amount_mol": 3.2339528875870533e-06,
+              "minimum_temperature_K": 334.2763676378883,
+              "nonnegative_species": true,
+              "sensible_energy_input_J": -5068.026563142697,
+              "warnings": [],
+              "within_validity_domain": true
+            },
+            "reactor_model_id": "dynamic_batch_heat_release_jacket_sampling",
+            "repeat_semantic": "each committed repeat advances additional physical time",
+            "runtime_provider_id": "chemworld_validated_reaction_reactor_runtime_v1",
+            "solvent": 2,
+            "solvent_volume_L": 0.028,
+            "solver_diagnostic": {
+              "evaluation_count": 17,
+              "event_count": 0,
+              "failure_reason": "",
+              "final_time_s": 900.0,
+              "maximum_conservation_drift_mol": 2.168404344971009e-18,
+              "message": "The solver successfully reached the end of the integration interval.",
+              "nfev": 104,
+              "njev": 0,
+              "nlu": 0,
+              "nonnegative_passed": true,
+              "policy": {
+                "atol": 1e-12,
+                "backend": "scipy.integrate.solve_ivp",
+                "dense_output": false,
+                "event_names": [],
+                "first_step_s": null,
+                "max_step_s": null,
+                "method": "LSODA",
+                "policy_hash": "d489af009514ec12",
+                "rtol": 1e-08,
+                "solver_id": "chemworld_reactor_lsoda_v1",
+                "vectorized": false
+              },
+              "status": 0,
+              "success": true,
+              "t_end_s": 900.0,
+              "t_start_s": 0.0,
+              "termination_reason": "duration_reached"
+            },
+            "stirring_speed_rpm": 720.0,
+            "termination_reason": "duration_reached",
+            "trajectory_digest": "a8be35c848b2007bd9b8314a435e626935b2a60a447ffb33f4ee4422320627db"
+          },
           "transfer": {
-            "transfer_delivery_fraction": 0.9649999999999999,
-            "transfer_line_holdup_volume_L": 4.0727063325668444e-05,
+            "transfer_delivery_fraction": 0.965,
+            "transfer_line_holdup_volume_L": 4.072310096120413e-05,
             "transfer_material_balance_error_mol": 0.0,
             "transfer_model_id": "chemworld_transfer_holdup_vnext",
             "transfer_provenance": [
@@ -640,7 +729,7 @@
             ],
             "transfer_provider_path": "chemworld.physchem.transfer_adapter_manifest.TransferUnitProvider",
             "transfer_skipped_empty_phase": false,
-            "transfer_source_heel_volume_L": 0.0002443623799540124,
+            "transfer_source_heel_volume_L": 0.00024433860576722304,
             "transfer_volume_balance_error_L": 0.0,
             "transfer_warnings": [
               "line retains material inventory that must persist between transfers"

@@ -123,9 +123,8 @@ def test_default_registry_covers_every_operation_and_provider_route() -> None:
     assert {route.operation_type for route in registry.routes} == set(OPERATION_TYPES)
     assert registry.structural_findings() == ()
     assert registry.route_for_operation("heat").model_ids == (
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
-        "chemworld_arrhenius_unit_contract_vnext",
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "dynamic_batch_heat_release_jacket_sampling",
     )
     assert registry.route_for_operation("dry").model_ids == (
         "chemworld_sorbent_drying_vnext",

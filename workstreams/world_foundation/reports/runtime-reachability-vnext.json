@@ -26,12 +26,20 @@
       "concentrate": "chemworld_vacuum_concentration_vnext",
       "distill": "chemworld_duty_limited_distillation_vnext",
       "dry": "chemworld_sorbent_drying_vnext",
+      "heat": [
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "dynamic_batch_heat_release_jacket_sampling"
+      ],
       "measure": "chemworld_validated_synthetic_instruments_v1",
       "mix": "chemworld_stability_aware_lle_vnext",
       "transfer": "chemworld_transfer_holdup_vnext",
+      "wait": [
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "dynamic_batch_heat_release_jacket_sampling"
+      ],
       "wash": "chemworld_stability_aware_lle_vnext"
     },
-    "report_sha256": "318466977622e32502528c65003f1b559b91fee36847bd486fe1eb61b1cfb1bb",
+    "report_sha256": "61f4a08e34443cf3d7a3bc2c68adf9a5bb819d1cc8f0ba73883517ff6922aac1",
     "schema_version": "chemworld-vnext-runtime-integration-audit-0.1"
   },
   "forbidden_runtime_models": [],
@@ -244,14 +252,7 @@
     "Static reachability does not replace domain-specific perturbation and reference validation.",
     "Legacy shared-claim prefix policy is intentionally superseded by the current claim checker."
   ],
-  "lite_upgrade_targets": {
-    "reaction_kinetics": [
-      "chemworld_reaction_network_lite"
-    ],
-    "reactors": [
-      "chemworld_reactor_lite"
-    ]
-  },
+  "lite_upgrade_targets": {},
   "operation_count": 28,
   "operation_paths": {
     "add_catalyst": {
@@ -749,14 +750,12 @@
         "equipment"
       ],
       "all_model_ids": [
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite"
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "base_model_ids": [
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
-        "chemworld_arrhenius_unit_contract_vnext"
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "dynamic_batch_heat_release_jacket_sampling"
       ],
       "instrument_model_ids": {},
       "kernel": {
@@ -922,14 +921,12 @@
         "vessels"
       ],
       "all_model_ids": [
-        "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_geometry_resolved_pfr_v1",
-        "chemworld_reaction_network_lite",
-        "pfr"
+        "pfr",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "base_model_ids": [
-        "chemworld_reaction_network_lite",
-        "chemworld_arrhenius_unit_contract_vnext",
+        "reaction_ode_mass_action_arrhenius_reference_slice",
         "pfr",
         "chemworld_geometry_resolved_pfr_v1"
       ],
@@ -1247,14 +1244,12 @@
         "equipment"
       ],
       "all_model_ids": [
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite"
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "base_model_ids": [
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
-        "chemworld_arrhenius_unit_contract_vnext"
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "dynamic_batch_heat_release_jacket_sampling"
       ],
       "instrument_model_ids": {},
       "kernel": {
@@ -1324,7 +1319,7 @@
   },
   "orphan_runtime_providers": [],
   "protocol_id": "foundation-runtime-reachability-vnext",
-  "protocol_sha256": "f37d27552fff69aff88e7db9f05c4b0600d4188f2db82e70f3e1ba6f6c0fa17e",
+  "protocol_sha256": "3595909ebe6790024cead1a6c109988fd0d669fd081bbe6a12520532e25f58c3",
   "provider_catalog": {
     "aqueous_acid_base_ph_observation": {
       "diagnostic_fields": [
@@ -1431,8 +1426,8 @@
         "WF-10 analytical dimensional identities"
       ],
       "provider_path": "chemworld.physchem.reaction_adapter_manifest.ReactionRateContractProvider",
-      "role": "diagnostic",
-      "runtime_reachable": true,
+      "role": "reference",
+      "runtime_reachable": false,
       "units": {
         "contract": "JSON dimension contract",
         "reaction": "ReactionSpec"
@@ -1582,92 +1577,6 @@
         "flow_rate": "L/s",
         "geometry": "m",
         "pressure_profile": "Pa"
-      },
-      "validity_checks": [
-        "typed input schema",
-        "declared operating-domain bounds"
-      ]
-    },
-    "chemworld_reaction_network_lite": {
-      "diagnostic_fields": [
-        "solver_diagnostic",
-        "material_balance_error_mol"
-      ],
-      "failure_policy": "raise a typed failure or trigger transactional rollback",
-      "input_fields": [
-        "species_amounts_mol",
-        "temperature_K",
-        "volume_L",
-        "duration_s"
-      ],
-      "intended_operations": [
-        "heat",
-        "wait",
-        "run_flow"
-      ],
-      "maturity": "lite",
-      "model_id": "chemworld_reaction_network_lite",
-      "module_id": "reaction_kinetics",
-      "output_fields": [
-        "species_amounts_mol",
-        "reaction_heat_J"
-      ],
-      "provenance": [
-        "chemworld-physical-chemistry-v0.4"
-      ],
-      "provider_path": "chemworld.runtime.reaction_thermal_services.ChemWorldReactionThermalServices.integrate",
-      "role": "runtime",
-      "runtime_reachable": true,
-      "units": {
-        "duration_s": "s",
-        "reaction_heat_J": "J",
-        "species_amounts_mol": "mol",
-        "temperature_K": "K",
-        "volume_L": "L"
-      },
-      "validity_checks": [
-        "typed input schema",
-        "declared operating-domain bounds"
-      ]
-    },
-    "chemworld_reactor_lite": {
-      "diagnostic_fields": [
-        "energy_residual_J",
-        "solver_diagnostic"
-      ],
-      "failure_policy": "raise a typed failure or trigger transactional rollback",
-      "input_fields": [
-        "species_amounts_mol",
-        "temperature_K",
-        "volume_L",
-        "duration_s",
-        "target_temperature_K"
-      ],
-      "intended_operations": [
-        "heat",
-        "wait"
-      ],
-      "maturity": "lite",
-      "model_id": "chemworld_reactor_lite",
-      "module_id": "reactors",
-      "output_fields": [
-        "temperature_K",
-        "pressure_Pa",
-        "species_amounts_mol"
-      ],
-      "provenance": [
-        "chemworld-physical-chemistry-v0.4"
-      ],
-      "provider_path": "chemworld.runtime.reaction_thermal_services.ChemWorldReactionThermalServices.integrate",
-      "role": "runtime",
-      "runtime_reachable": true,
-      "units": {
-        "duration_s": "s",
-        "pressure_Pa": "Pa",
-        "species_amounts_mol": "mol",
-        "target_temperature_K": "K",
-        "temperature_K": "K",
-        "volume_L": "L"
       },
       "validity_checks": [
         "typed input schema",
@@ -2037,6 +1946,53 @@
         "declared operating-domain bounds"
       ]
     },
+    "dynamic_batch_heat_release_jacket_sampling": {
+      "diagnostic_fields": [
+        "energy_balance_residual_J",
+        "solver_diagnostic",
+        "maximum_conservation_drift_mol"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "species_amounts_mol",
+        "temperature_K",
+        "volume_L",
+        "duration_s",
+        "target_temperature_K"
+      ],
+      "intended_operations": [
+        "heat",
+        "wait"
+      ],
+      "maturity": "reference_validated",
+      "model_id": "dynamic_batch_heat_release_jacket_sampling",
+      "module_id": "reactors",
+      "output_fields": [
+        "temperature_K",
+        "pressure_Pa",
+        "species_amounts_mol"
+      ],
+      "provenance": [
+        "chemworld.physchem.batch_reactors.DynamicBatchReactorModel",
+        "tests/test_reactor_reference.py",
+        "tests/test_reaction_reactor_runtime_integration.py"
+      ],
+      "provider_path": "chemworld.physchem.batch_reactors.DynamicBatchReactorModel.simulate",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "duration_s": "s",
+        "pressure_Pa": "Pa",
+        "species_amounts_mol": "mol",
+        "target_temperature_K": "K",
+        "temperature_K": "K",
+        "volume_L": "L"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
     "fixed_tp_ideal_gibbs_minimization": {
       "diagnostic_fields": [
         "kkt_residual",
@@ -2189,6 +2145,48 @@
         "typed input schema",
         "declared operating-domain bounds"
       ]
+    },
+    "reaction_ode_mass_action_arrhenius_reference_slice": {
+      "diagnostic_fields": [
+        "network_id",
+        "conservation_laws",
+        "rate_basis"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "amounts_mol",
+        "volume_L",
+        "temperature_K"
+      ],
+      "intended_operations": [
+        "heat",
+        "wait",
+        "run_flow"
+      ],
+      "maturity": "reference_validated",
+      "model_id": "reaction_ode_mass_action_arrhenius_reference_slice",
+      "module_id": "reaction_kinetics",
+      "output_fields": [
+        "reaction_rates_mol_s"
+      ],
+      "provenance": [
+        "chemworld.physchem.reaction_network.ReactionNetworkSpec",
+        "tests/test_reaction_kinetics_reference.py",
+        "tests/test_reaction_reactor_runtime_integration.py"
+      ],
+      "provider_path": "chemworld.physchem.reaction_network.ReactionNetworkSpec.reaction_rates",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "amounts_mol": "mol",
+        "reaction_rates_mol_s": "mol/s",
+        "temperature_K": "K",
+        "volume_L": "L"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
     }
   },
   "provider_count": 20,
@@ -2198,7 +2196,7 @@
     "run state-transition and public-boundary audits",
     "complete domain coupling probes before changing task maturity labels"
   ],
-  "report_hash": "917833ba12582da85e7c0aae01b55bf72fcd55e01a89681fb319bf7c9ce10b33",
+  "report_hash": "c51f77436f1b877e4b320adf4b3130b6a4e95faf3ef402c5f9f7af17f9d8c4f8",
   "schema_version": "chemworld-foundation-runtime-reachability-report-0.1",
   "service_catalog": {
     "operation_service_map": {
@@ -2342,9 +2340,9 @@
       }
     }
   },
-  "source_commit": "70cec992d917da8b7d345740dd334e804a5aafca",
+  "source_commit": "ed6ac1d375a36deae830fd8899d9eab172ffc398",
   "source_tree_dirty": true,
-  "status": "controls_ready_upgrade_targets_found",
+  "status": "controls_ready_no_lite_targets",
   "task_count": 15,
   "task_paths": {
     "electrochemical-conversion": {
@@ -2533,7 +2531,7 @@
     "equilibrium-characterization": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
             "level": "reference_validated",
@@ -2546,24 +2544,23 @@
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Heat and wait operations use the bounded reaction-network slice."
+              "Heat and wait use the validated reaction-network runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Heat and wait operations use the bounded reactor slice."
+              "Heat and wait use the validated dynamic batch runtime slice."
             ]
           },
           {
@@ -2587,11 +2584,10 @@
       "declared_model_ids": [
         "aqueous_acid_base_ph_observation",
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "potentiometric_ph_public_reference"
+        "dynamic_batch_heat_release_jacket_sampling",
+        "potentiometric_ph_public_reference",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -2642,9 +2638,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -2707,9 +2702,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -2719,11 +2713,10 @@
       "reachable_model_ids": [
         "aqueous_acid_base_ph_observation",
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "potentiometric_ph_public_reference"
+        "dynamic_batch_heat_release_jacket_sampling",
+        "potentiometric_ph_public_reference",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -2786,22 +2779,21 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "a832b5f1c4e19de7a9e537066cc0a84a1cc878b384e795583489b165ce1b7eb4"
+      "task_contract_hash": "64393d1da00e28101f71246ef13c1b69e03b0b213542e97afcb1add8f52eaa62"
     },
     "flow-reaction-optimization": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
@@ -2819,7 +2811,6 @@
           {
             "level": "professional_candidate",
             "model_ids": [
-              "chemworld_arrhenius_unit_contract_vnext",
               "pfr",
               "chemworld_geometry_resolved_pfr_v1"
             ],
@@ -2836,13 +2827,11 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_geometry_resolved_pfr_v1",
-        "chemworld_reaction_network_lite",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "pfr"
+        "pfr",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -2907,10 +2896,9 @@
           ],
           "kernel_id": "chemworld.operation.run_flow",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
             "chemworld_geometry_resolved_pfr_v1",
-            "chemworld_reaction_network_lite",
-            "pfr"
+            "pfr",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "run_flow",
           "service_id": "continuous_flow"
@@ -2938,12 +2926,11 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_geometry_resolved_pfr_v1",
-        "chemworld_reaction_network_lite",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "pfr"
+        "pfr",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -3006,32 +2993,31 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "4447a631d53fed20d126d9835d1fe918983c16a8bad7a679eac24db8a17ede77"
+      "task_contract_hash": "85343ef77c4c2044db0b6b09f76745dc68a71ee6a4ec16e188109629244ef21d"
     },
     "low-budget-characterization": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
+              "Validated dynamic batch runtime for heat and wait."
             ]
           },
           {
@@ -3054,11 +3040,10 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -3109,9 +3094,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -3173,9 +3157,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -3184,11 +3167,10 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -3252,7 +3234,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "b06b6fb9d6282003a065cf430aad9dee0ac1d2bd916d6c334e8e90dc04ebb91e"
+      "task_contract_hash": "3d8bb180e63016b49b0f2c09694ad4f2d965d8096c9c615d021c987204283a29"
     },
     "partition-discovery": {
       "declared_but_unreachable": [],
@@ -3477,27 +3459,26 @@
     "public-private-generalization": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
+              "Validated dynamic batch runtime for heat and wait."
             ]
           },
           {
@@ -3520,11 +3501,10 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -3575,9 +3555,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -3639,9 +3618,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -3650,11 +3628,10 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -3718,32 +3695,31 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "8b43491753ab6c34039a29b37159db5dd1fc78635af4cb047869754f865e020f"
+      "task_contract_hash": "d2a07d58a7c09d317239794eb5757fdcd5ea68514fc531bd2ece6436b08aa3fd"
     },
     "purity-yield-tradeoff": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
+              "Validated dynamic batch runtime for heat and wait."
             ]
           },
           {
@@ -3798,16 +3774,15 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -3906,9 +3881,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -4019,9 +3993,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -4043,15 +4016,14 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -4126,32 +4098,31 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "5aadbf887dd382ae3bc2fc6efa7a55e8117a7870b6cb636855dfc1f199efbfb9"
+      "task_contract_hash": "931d1c9c2364888a9cf390557614f78c042d3e166a8ae495d57cd1fdacd1ee0f"
     },
     "reaction-mechanism-explanation": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
+              "Validated dynamic batch runtime for heat and wait."
             ]
           },
           {
@@ -4174,11 +4145,10 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -4229,9 +4199,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -4293,9 +4262,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -4304,11 +4272,10 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -4372,32 +4339,31 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "2f7858642e3ce4ffe796d1cf0dbc6af4a4b9d88cd31c130494ad52abfec5fc74"
+      "task_contract_hash": "4b69716dcd93cc32eb82beb335fea7f53062e5785496daecfc1530ddcdc39006"
     },
     "reaction-optimization-standard": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
+              "Validated dynamic batch runtime for heat and wait."
             ]
           },
           {
@@ -4420,11 +4386,10 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -4475,9 +4440,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -4539,9 +4503,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -4550,11 +4513,10 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -4618,32 +4580,31 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "ccc18b683f0140bf1295a0c74c0a516b921543207491d2974a6a98b06f9f41c6"
+      "task_contract_hash": "0c80793551675a61dbde5f3e2456929e6e6c92574ca2f3d5fa967a97ddcdb1a5"
     },
     "reaction-safety-constrained": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
+              "Validated dynamic batch runtime for heat and wait."
             ]
           },
           {
@@ -4666,11 +4627,10 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -4721,9 +4681,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -4785,9 +4744,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -4796,11 +4754,10 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -4864,32 +4821,31 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "ef961e455150abc6fc7362d78e70562ff82a03a5a68d32b16589fbdfe0fbef03"
+      "task_contract_hash": "780ac2c552c7652b1afb8581d76bb2884bb99a334f7b85dffe73cf4c35834263"
     },
     "reaction-to-assay": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
+              "Validated dynamic batch runtime for heat and wait."
             ]
           },
           {
@@ -4912,11 +4868,10 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -4967,9 +4922,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -5031,9 +4985,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -5042,11 +4995,10 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -5110,32 +5062,31 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "1bb2636c268ce4fd55da929a48976b2781a4c4a3ef43d507ac6d54b3b899c930"
+      "task_contract_hash": "395402a224b27cdbd070470ab1d0131e01c3bd472b773170bdcf4ba4f5a1bc96"
     },
     "reaction-to-crystallization": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
+              "Validated dynamic batch runtime for heat and wait."
             ]
           },
           {
@@ -5169,13 +5120,12 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_crystallization_convergence_audit_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "cooling_crystallization_population_balance_v1"
+        "cooling_crystallization_population_balance_v1",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -5251,9 +5201,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -5327,9 +5276,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -5338,13 +5286,12 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_crystallization_convergence_audit_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "cooling_crystallization_population_balance_v1"
+        "cooling_crystallization_population_balance_v1",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -5413,32 +5360,31 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "0ec9564d231af1d119a3d234bd7f3cce95cbd4455fdb3d443c9fe72e8626111b"
+      "task_contract_hash": "c1f7f0ebf97c1d3a0cbe364c8b61316fd01b6a19568a8e09c5932bfd275d7fd4"
     },
     "reaction-to-distillation": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
+              "Validated dynamic batch runtime for heat and wait."
             ]
           },
           {
@@ -5471,12 +5417,11 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_duty_limited_distillation_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -5567,9 +5512,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -5631,9 +5575,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -5642,12 +5585,11 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
         "chemworld_duty_limited_distillation_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -5716,32 +5658,31 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "ac5a1c57f3339accaed72c8a0c43c818912c207eb164b4b69a747a6745b2015e"
+      "task_contract_hash": "939b171d164139699d94c78250a937ab637be201f23bd62fddc47a864becaba7"
     },
     "reaction-to-purification": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
+              "Validated dynamic batch runtime for heat and wait."
             ]
           },
           {
@@ -5796,16 +5737,15 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -5904,9 +5844,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -6017,9 +5956,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -6041,15 +5979,14 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -6124,32 +6061,31 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "0cb117e9779d04839e7eaba6f49c8b9a7b5acfa9411e4dfb502eb9800a2af3b3"
+      "task_contract_hash": "ee5d6b82178abeaaa6975680f2a469cbdad43f6b655bb65d6e437294a55e052d"
     },
     "tool-agent-planning": {
       "declared_but_unreachable": [],
       "declared_maturity": {
-        "lowest_level": "lite",
+        "lowest_level": "reference_validated",
         "modules": [
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reaction_network_lite",
-              "chemworld_arrhenius_unit_contract_vnext"
+              "reaction_ode_mass_action_arrhenius_reference_slice"
             ],
             "module_id": "reaction_kinetics",
             "notes": [
-              "Local stoichiometric reaction-network and rate-law engine; not yet Cantera-comparable."
+              "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
             ]
           },
           {
-            "level": "lite",
+            "level": "reference_validated",
             "model_ids": [
-              "chemworld_reactor_lite"
+              "dynamic_batch_heat_release_jacket_sampling"
             ],
             "module_id": "reactors",
             "notes": [
-              "Batch/CSTR/PFR kernels are benchmark ODE models."
+              "Validated dynamic batch runtime for heat and wait."
             ]
           },
           {
@@ -6204,16 +6140,15 @@
       },
       "declared_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "operation_paths": [
         {
@@ -6312,9 +6247,8 @@
           ],
           "kernel_id": "chemworld.operation.heat",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "heat",
           "service_id": "reaction_thermal"
@@ -6425,9 +6359,8 @@
           ],
           "kernel_id": "chemworld.operation.wait",
           "model_ids": [
-            "chemworld_arrhenius_unit_contract_vnext",
-            "chemworld_reaction_network_lite",
-            "chemworld_reactor_lite"
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
           ],
           "operation": "wait",
           "service_id": "reaction_thermal"
@@ -6449,15 +6382,14 @@
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
         "beer_lambert_uvvis",
-        "chemworld_arrhenius_unit_contract_vnext",
-        "chemworld_reaction_network_lite",
-        "chemworld_reactor_lite",
         "chemworld_sorbent_drying_vnext",
         "chemworld_stability_aware_lle_vnext",
         "chemworld_transfer_holdup_vnext",
         "chemworld_vacuum_concentration_vnext",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate"
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -6532,7 +6464,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "ea987d6f7947aa9e12e4261e866715c4afc151ca1ee1f228a555135187b4663c"
+      "task_contract_hash": "9752398c5b05a0d3a20df7df811ebb59e46a1c7f1e52ab6340fed9c5526c3ee9"
     }
   }
 }

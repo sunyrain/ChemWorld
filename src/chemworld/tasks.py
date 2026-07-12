@@ -354,14 +354,11 @@ def default_kernel_maturity(
         modules.append(
             ModuleMaturity(
                 "reaction_kinetics",
-                MaturityLevel.LITE,
-                model_ids=(
-                    "chemworld_reaction_network_lite",
-                    "chemworld_arrhenius_unit_contract_vnext",
-                ),
+                MaturityLevel.REFERENCE_VALIDATED,
+                model_ids=("reaction_ode_mass_action_arrhenius_reference_slice",),
                 notes=(
-                    "Local stoichiometric reaction-network and rate-law engine; "
-                    "not yet Cantera-comparable.",
+                    "Reference-validated stoichiometric reaction-network and "
+                    "Arrhenius runtime slice.",
                 ),
             )
         )
@@ -369,9 +366,9 @@ def default_kernel_maturity(
         modules.append(
             ModuleMaturity(
                 "reactors",
-                MaturityLevel.LITE,
-                model_ids=("chemworld_reactor_lite",),
-                notes=("Batch/CSTR/PFR kernels are benchmark ODE models.",),
+                MaturityLevel.REFERENCE_VALIDATED,
+                model_ids=("dynamic_batch_heat_release_jacket_sampling",),
+                notes=("Validated dynamic batch runtime for heat and wait.",),
             )
         )
     if "measure" in operations:
@@ -440,7 +437,6 @@ def default_kernel_maturity(
                 "continuous_flow",
                 MaturityLevel.PROFESSIONAL_CANDIDATE,
                 model_ids=(
-                    "chemworld_arrhenius_unit_contract_vnext",
                     "pfr",
                     "chemworld_geometry_resolved_pfr_v1",
                 ),
@@ -536,18 +532,15 @@ def equilibrium_kernel_maturity() -> TaskMaturitySpec:
             ),
             ModuleMaturity(
                 "reaction_kinetics",
-                MaturityLevel.LITE,
-                model_ids=(
-                    "chemworld_reaction_network_lite",
-                    "chemworld_arrhenius_unit_contract_vnext",
-                ),
-                notes=("Heat and wait operations use the bounded reaction-network slice.",),
+                MaturityLevel.REFERENCE_VALIDATED,
+                model_ids=("reaction_ode_mass_action_arrhenius_reference_slice",),
+                notes=("Heat and wait use the validated reaction-network runtime slice.",),
             ),
             ModuleMaturity(
                 "reactors",
-                MaturityLevel.LITE,
-                model_ids=("chemworld_reactor_lite",),
-                notes=("Heat and wait operations use the bounded reactor slice.",),
+                MaturityLevel.REFERENCE_VALIDATED,
+                model_ids=("dynamic_batch_heat_release_jacket_sampling",),
+                notes=("Heat and wait use the validated dynamic batch runtime slice.",),
             ),
             ModuleMaturity(
                 "spectroscopy_instruments",
