@@ -1,0 +1,205 @@
+{
+  "backend_freeze_allowed": true,
+  "checks": {
+    "candidate_gate": true,
+    "dependency_bindings": true,
+    "fail_closed_policy": true,
+    "probe_groups_declared": true,
+    "probe_scope_exact": true,
+    "public_harness_runtime": true,
+    "schema": true,
+    "task_scope": true
+  },
+  "controls_ready": true,
+  "dependency_bindings": {
+    "exploit_matrix": {
+      "actual_sha256": "5a358448acb4934e8764b723b00c0abc732793868d7eddc3193602bf914a6bb1",
+      "expected_sha256": "5a358448acb4934e8764b723b00c0abc732793868d7eddc3193602bf914a6bb1",
+      "passed": true,
+      "path": "configs/benchmark/exploit_matrix_vnext.json"
+    },
+    "public_harness": {
+      "actual_sha256": "0ca4c0669694fb24ab6c9095901b47154b81e47c34e622004fdb940f668977d2",
+      "expected_sha256": "0ca4c0669694fb24ab6c9095901b47154b81e47c34e622004fdb940f668977d2",
+      "passed": true,
+      "path": "configs/benchmark/public_harness_vnext.json"
+    },
+    "score_replay": {
+      "actual_sha256": "2c6e72098a24f2b9e7bc7ea1c26a66d8c9b6edafe05d3647259598b468300507",
+      "expected_sha256": "2c6e72098a24f2b9e7bc7ea1c26a66d8c9b6edafe05d3647259598b468300507",
+      "passed": true,
+      "path": "configs/benchmark/score_replay_vnext.json"
+    },
+    "semantic_invariance": {
+      "actual_sha256": "6d29a229f6d602c62bf22140a860d1d2c02715ac83f351533bea5766a5602f42",
+      "expected_sha256": "6d29a229f6d602c62bf22140a860d1d2c02715ac83f351533bea5766a5602f42",
+      "passed": true,
+      "path": "configs/benchmark/semantic_invariance_vnext.json"
+    }
+  },
+  "details": {
+    "adversarial": {
+      "exploit_controls_ready": true,
+      "historical_exploit_bindings_rebound_to_current_bytes": true,
+      "public_harness_probe_count": 9,
+      "public_harness_probes": {
+        "absolute_path_rejected": true,
+        "nonfinite_teacher_payload_rejected": true,
+        "oversized_student_response_rejected": true,
+        "oversized_teacher_payload_rejected": true,
+        "private_task_text_rejected": true,
+        "student_extra_fields_rejected": true,
+        "student_nonfinite_action_rejected": true,
+        "student_reported_error_not_reflected": true,
+        "traceback_rejected": true
+      },
+      "task_count": 6,
+      "task_probe_count": 48
+    },
+    "execution": {
+      "security_boundary": "trusted-local-subprocess-not-an-os-sandbox",
+      "source_child": {
+        "package_version": "0.2.0",
+        "passed": true,
+        "platform": "win32",
+        "probes": {
+          "illegal_enum_fails_closed": true,
+          "student_schema_fails_closed": true,
+          "teacher_payloads_fail_closed": true
+        },
+        "source_import": true,
+        "wheel_import": false
+      },
+      "wheel_child": {
+        "package_version": "0.2.0",
+        "passed": true,
+        "platform": "win32",
+        "probes": {
+          "illegal_enum_fails_closed": true,
+          "student_schema_fails_closed": true,
+          "teacher_payloads_fail_closed": true
+        },
+        "source_import": false,
+        "wheel_import": true
+      }
+    },
+    "invariance": {
+      "controls_ready": true,
+      "paired_run_count": 12,
+      "task_count": 6
+    },
+    "public_messages": {
+      "max_public_payload_bytes": 25271,
+      "tasks": {
+        "electrochemical-conversion": {
+          "identity_findings": [],
+          "max_payload_bytes": 24785,
+          "passed": true,
+          "payloads_scanned": 6
+        },
+        "equilibrium-characterization": {
+          "identity_findings": [],
+          "max_payload_bytes": 25192,
+          "passed": true,
+          "payloads_scanned": 6
+        },
+        "flow-reaction-optimization": {
+          "identity_findings": [],
+          "max_payload_bytes": 24968,
+          "passed": true,
+          "payloads_scanned": 6
+        },
+        "partition-discovery": {
+          "identity_findings": [],
+          "max_payload_bytes": 24811,
+          "passed": true,
+          "payloads_scanned": 6
+        },
+        "reaction-to-crystallization": {
+          "identity_findings": [],
+          "max_payload_bytes": 25271,
+          "passed": true,
+          "payloads_scanned": 6
+        },
+        "reaction-to-distillation": {
+          "identity_findings": [],
+          "max_payload_bytes": 25220,
+          "passed": true,
+          "payloads_scanned": 6
+        }
+      }
+    },
+    "replay": {
+      "score_replay_probes": {
+        "binding_tamper": true,
+        "missing_terminal_primary": true,
+        "nonfinite_objective": true,
+        "online_reward_decoy": true,
+        "record_source_mismatch": true,
+        "reported_metric_tamper": true,
+        "trajectory_byte_tamper": true
+      },
+      "strict_replay_step_count": 11,
+      "terminal_kind": "terminated"
+    }
+  },
+  "limitations": [
+    "This gate secures the public message and replay boundary; it is not a chemistry safety certification.",
+    "The independent student process is a trusted local subprocess, not an operating-system sandbox.",
+    "Untrusted submissions still require an external no-network, read-only, resource-limited container."
+  ],
+  "probe_count": 35,
+  "probe_groups": {
+    "adversarial": {
+      "budget_exhaustion_blocked": true,
+      "illegal_enum_rejected": true,
+      "nan_rejected": true,
+      "negative_inf_rejected": true,
+      "oversized_payload_rejected": true,
+      "positive_inf_rejected": true,
+      "repeated_assay_blocked": true
+    },
+    "allowlist_schema": {
+      "message_schema_exact": true,
+      "observation_schema_exact": true,
+      "source_allowlists_exact": true,
+      "unknown_student_field_rejected": true,
+      "unknown_teacher_field_stripped": true
+    },
+    "execution": {
+      "clean_wheel_fail_closed": true,
+      "clean_wheel_import": true,
+      "independent_process": true,
+      "independent_process_fail_closed": true,
+      "windows_source_process": true
+    },
+    "invariance": {
+      "action_key_order": true,
+      "equivalent_action_sequence": true,
+      "format_perturbation": true,
+      "material_code_remap": true,
+      "observation_field_reorder": true
+    },
+    "leakage": {
+      "absolute_path_rejected": true,
+      "all_task_payloads_clean": true,
+      "debug_rejected": true,
+      "exception_rejected": true,
+      "hidden_state_rejected": true,
+      "model_identity_detected": true,
+      "private_seed_rejected": true,
+      "provider_parameters_detected": true,
+      "task_text_rejected": true
+    },
+    "replay": {
+      "score_replay_adversarial_probes": true,
+      "trajectory_digest_tamper_rejected": true,
+      "trajectory_truncation_rejected": true,
+      "valid_trajectory_verified": true
+    }
+  },
+  "protocol_id": "chemworld-foundation-public-boundary-security-vnext-0.1",
+  "protocol_sha256": "6a07b42cbb5b1dcbb57801aaa2ba1fb9557f191f5b3023fb4f3add9aba18fa86",
+  "schema_version": "chemworld-foundation-public-boundary-security-audit-0.1",
+  "status": "controls_ready"
+}

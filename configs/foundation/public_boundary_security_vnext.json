@@ -1,0 +1,166 @@
+{
+  "schema_version": "chemworld-foundation-public-boundary-security-protocol-0.1",
+  "protocol_id": "chemworld-foundation-public-boundary-security-vnext-0.1",
+  "status": "candidate_gate",
+  "freeze_policy": "all_declared_checks_must_pass",
+  "task_ids": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization",
+    "electrochemical-conversion",
+    "equilibrium-characterization"
+  ],
+  "limits": {
+    "teacher_message_bytes": 1000000,
+    "student_response_bytes": 100000
+  },
+  "public_task_info_allowlist": [
+    "allowed_instruments",
+    "allowed_operations",
+    "budget",
+    "contract_profile",
+    "env_id",
+    "episode_mode",
+    "initial_state_id",
+    "instruments",
+    "kernel_maturity",
+    "material_catalog",
+    "mechanism_hash",
+    "mechanism_id",
+    "mechanism_summary",
+    "mechanism_version",
+    "objective",
+    "observation_contract",
+    "observation_contract_hash",
+    "observation_keys",
+    "official_budget",
+    "operation_contracts",
+    "operation_types",
+    "operations",
+    "physics_maturity",
+    "proxy_allowed",
+    "runtime_profile_hash",
+    "safety_limit",
+    "scenario_id",
+    "scoring_contract",
+    "scoring_contract_hash",
+    "task_contract_hash",
+    "task_id",
+    "world_split"
+  ],
+  "public_step_info_allowlist": [
+    "budget",
+    "constraint_flags",
+    "cost",
+    "cost_components",
+    "episode_mode",
+    "experiment_ended",
+    "experiment_index",
+    "instrument",
+    "instrument_allowed_by_task",
+    "instrument_source",
+    "mechanism_hash",
+    "mechanism_id",
+    "objective",
+    "observation_contract_hash",
+    "observed_keys",
+    "observed_mask",
+    "operation_allowed_by_task",
+    "operation_id",
+    "operation_type",
+    "preconditions",
+    "processed_estimate",
+    "raw_signal",
+    "remaining_budget",
+    "reward_source",
+    "runtime_profile_hash",
+    "safety_limit",
+    "scenario_id",
+    "scoring_contract_hash",
+    "state_delta_summary",
+    "step",
+    "task_contract_hash",
+    "task_id",
+    "transaction_status",
+    "uncertainty"
+  ],
+  "forbidden_identity_keys": [
+    "debug",
+    "model_id",
+    "model_identity",
+    "model_name",
+    "private_seed",
+    "provider",
+    "provider_parameters",
+    "provider_path",
+    "world_provider"
+  ],
+  "required_probe_groups": {
+    "allowlist_schema": [
+      "source_allowlists_exact",
+      "message_schema_exact",
+      "unknown_teacher_field_stripped",
+      "unknown_student_field_rejected",
+      "observation_schema_exact"
+    ],
+    "leakage": [
+      "all_task_payloads_clean",
+      "hidden_state_rejected",
+      "private_seed_rejected",
+      "debug_rejected",
+      "exception_rejected",
+      "absolute_path_rejected",
+      "task_text_rejected",
+      "provider_parameters_detected",
+      "model_identity_detected"
+    ],
+    "adversarial": [
+      "nan_rejected",
+      "positive_inf_rejected",
+      "negative_inf_rejected",
+      "oversized_payload_rejected",
+      "illegal_enum_rejected",
+      "repeated_assay_blocked",
+      "budget_exhaustion_blocked"
+    ],
+    "replay": [
+      "valid_trajectory_verified",
+      "trajectory_truncation_rejected",
+      "trajectory_digest_tamper_rejected",
+      "score_replay_adversarial_probes"
+    ],
+    "invariance": [
+      "action_key_order",
+      "equivalent_action_sequence",
+      "format_perturbation",
+      "material_code_remap",
+      "observation_field_reorder"
+    ],
+    "execution": [
+      "windows_source_process",
+      "independent_process",
+      "independent_process_fail_closed",
+      "clean_wheel_import",
+      "clean_wheel_fail_closed"
+    ]
+  },
+  "dependency_bindings": {
+    "public_harness": {
+      "path": "configs/benchmark/public_harness_vnext.json",
+      "sha256": "0ca4c0669694fb24ab6c9095901b47154b81e47c34e622004fdb940f668977d2"
+    },
+    "exploit_matrix": {
+      "path": "configs/benchmark/exploit_matrix_vnext.json",
+      "sha256": "5a358448acb4934e8764b723b00c0abc732793868d7eddc3193602bf914a6bb1"
+    },
+    "score_replay": {
+      "path": "configs/benchmark/score_replay_vnext.json",
+      "sha256": "2c6e72098a24f2b9e7bc7ea1c26a66d8c9b6edafe05d3647259598b468300507"
+    },
+    "semantic_invariance": {
+      "path": "configs/benchmark/semantic_invariance_vnext.json",
+      "sha256": "6d29a229f6d602c62bf22140a860d1d2c02715ac83f351533bea5766a5602f42"
+    }
+  }
+}
