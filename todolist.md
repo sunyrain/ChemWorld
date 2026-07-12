@@ -33,14 +33,15 @@
 
 ## P0：先修 Bug、漏洞和合同错误
 
-- [ ] **`foundation-runtime-reachability-audit` — 正式运行时可达性与残留路径审计**
+- [x] **`foundation-runtime-reachability-audit` — 正式运行时可达性与残留路径审计**
   - 默认 owned_paths：`configs/foundation/runtime_reachability_vnext.json`、`scripts/audit_runtime_reachability_vnext.py`、`tests/test_runtime_reachability_vnext.py`、`workstreams/world_foundation/reports/runtime-reachability-vnext.json`。
   - 依赖：无，可立即认领。
-  - [ ] 枚举 15 tasks × allowed operations × service × kernel × provider × model ID × maturity。
-  - [ ] 检查声明的高等级 provider 是否真的改变状态、诊断、ledger 和 replay provenance。
-  - [ ] 检查旧 `lite`、legacy、proxy、fallback、重复 dispatcher 和不可达专业模块。
-  - [ ] 检查 operation registry、domain service registry、task maturity 和实际 runtime reachability 一致。
-  - [ ] 对每个不一致生成精确 fix slice，不在审计任务中顺手改共享运行时。
+  - [x] 枚举 15 tasks × allowed operations × service × kernel × provider × model ID × maturity。
+  - [x] 检查声明的高等级 provider 是否真的改变状态、诊断、ledger 和 replay provenance。
+  - [x] 检查旧 `lite`、legacy、proxy、fallback、重复 dispatcher 和不可达专业模块。
+  - [x] 检查 operation registry、domain service registry、task maturity 和实际 runtime reachability 一致。
+  - [x] 对每个不一致生成精确 fix slice，不在审计任务中顺手改共享运行时。
+  - 结果：15 tasks、28 operations、20 providers 对齐；无 orphan/reference 误路由或禁用 runtime model；六个 `lite` providers 精确归入三个共享升级模块。动态耦合的剩余证据由 P2 任务完成。
   - 验收：15 个任务全部有机器可读 reachability 图；任何未声明路径、孤儿 provider 或隐式 fallback 都令报告失败。
 
 - [ ] **`foundation-state-transition-invariants` — 28 类操作状态语义与事务漏洞审计**
