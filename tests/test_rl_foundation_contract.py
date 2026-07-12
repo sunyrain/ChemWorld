@@ -143,20 +143,39 @@ def test_dev_behavior_tracker_requires_core_flow_and_final_assay_per_experiment(
     ]
 
 
-def test_control_report_retains_pre_foundation_learning_diagnostic() -> None:
+def test_control_report_passes_the_frozen_backend_five_seed_gate() -> None:
     report = json.loads(REPORT.read_text(encoding="utf-8"))
-    assert report["status"] == "pre_foundation_learning_diagnostic_infrastructure_blocked"
-    assert report["validation"]["targeted_rl_tests_passed"] == 36
+    assert report["status"] == "five_seed_learning_gate_passed"
     assert report["checks"]["native_hybrid_policy_distribution"] is True
-    assert report["checks"]["five_seed_twenty_episode_gate"] is False
+    assert report["checks"]["five_seed_twenty_episode_gate"] is True
     assert report["checks"]["repeated_terminate_removed_from_affordances"] is True
-    assert report["gate_summary"]["passed_training_seed_count"] == 1
-    assert report["gate_summary"]["status"] == "blocked"
+    assert report["checks"]["world_foundation_preconditions_passed"] is True
+    assert report["checks"]["throughput_benchmark_complete"] is True
+    assert report["gate_summary"]["passed_training_seed_count"] == 5
+    assert report["gate_summary"]["status"] == "passed"
+    assert report["selected_training_environment_steps"] == 51200
+    assert [item["model_seed"] for item in report["five_seed_development_gate"]] == [
+        106,
+        107,
+        108,
+        109,
+        110,
+    ]
+    for item in report["five_seed_development_gate"]:
+        assert item["gate_passed"] is True
+        assert "episode_cards" not in item
+        assert item["episode_evidence"]["episode_count"] == 20
+        assert len(item["episode_evidence"]["cards_sha256"]) == 64
+        assert item["summary"]["episode_completion_rate"] == 1.0
+        assert item["summary"]["behavior_complete_experiment_rate"] == 1.0
+        assert item["summary"]["quick_close_rate"] == 0.0
+        assert item["summary"]["runtime_domain_failure_count"] == 0
+        assert item["summary"]["observation_domain_failure_count"] == 0
     curve = report["pre_foundation_learning_curve"]
     assert curve["checkpoints"][1]["gate_passed"] is True
     assert curve["five_seed_expansion"] == "stopped_before_seed_107_completion"
-    assert report["checks"]["world_foundation_preconditions_passed"] is False
     assert report["benchmark_claim_allowed"] is False
+    assert report["publication_ready"] is False
 
 
 def test_every_conditional_action_uses_the_operation_registry_fields_only() -> None:

@@ -1,6 +1,6 @@
 # ChemWorld 基座强化专项 Todo
 
-最后更新：2026-07-12
+最后更新：2026-07-13
 
 ## 专项范围
 
@@ -14,12 +14,12 @@
 
 ## 当前诊断
 
-- 15 个注册任务当前全部聚合为 `lite`，但并非 15 套独立后端都需要重写。
-- 真正共同拉低成熟度的是三个共享运行时模块：`reaction_kinetics`、`reactors`、`spectroscopy_instruments`。
-- LLE/wash、冷却结晶、连续流和蒸馏已是 `professional_candidate`；干燥、浓缩、转移、电化学与部分平衡实现已达 `reference_validated`。
-- 因此本专项先升级三个共享 `lite` 模块，再验证高等级 provider 确实被正式 runtime 消费，最后重算 15 个任务成熟度。
+- 三个共享正式运行时模块 `reaction_kinetics`、`reactors`、`spectroscopy_instruments` 已完成有界 `reference_validated` 升级并接入正式 runtime；完整工业反应器平台仍不在当前主张范围内。
+- 当前 15 个注册任务的必需路径均至少为 `reference_validated`，`proxy_allowed=false`，runtime reachability 中 `lite_upgrade_targets={}`。
+- LLE/wash、冷却结晶、连续流和蒸馏正式 provider 已完成动态耦合；干燥、浓缩、转移、电化学和平衡已有窄域参考实现。
+- backend v0.5 candidate 已冻结；旧经典、Safe-GP、SAC 与 LLM 结果均绑定升级前后端，只能作为历史诊断，不能用于 v0.5 排名。
 - 成熟度不能靠修改标签升级。每个升级都必须有适用域、模型卡、解析或独立参考、容差、失败域、运行时 provenance 和回放证据。
-- 已确认但未修复的关键漏洞仍包括：RL 49 维混合动作被当作连续 `Box`、完成实验 `+1` shaping、flow quick-close 和不执行 `run_flow`。
+- RL 条件混合动作、奖励泄漏、flow quick-close 和核心 `run_flow` 漏洞已修复；冻结 backend 上 5 seeds × 20 Dev episodes 门禁已通过，但仍不构成 Bench 排名。
 
 ## 统一完成要求
 
@@ -56,7 +56,7 @@
   - 结果：28/28 正向、重复、同 seed 回放、失败原子性、守恒和 typed-state 控制通过；负量全部拒绝，15 个零效果字段已由 `foundation-state-fix--zero-effect-actions` 统一收口并与条件 action schema 对齐。
   - 验收：28/28 operation 均有状态差分、守恒、事务和重复调用证据。
 
-- [ ] **`foundation-rl-contract-remediation` — 49 维动作与 quick-close 漏洞修复**
+- [x] **`foundation-rl-contract-remediation` — 49 维动作与 quick-close 漏洞修复**
   - 默认 owned_paths：`src/chemworld/rl/hybrid_actions.py`、`src/chemworld/rl/rewards.py`、`src/chemworld/rl/environment.py`、`src/chemworld/rl/training.py`、`src/chemworld/rl/evaluation.py`、`src/chemworld/wrappers.py`、`tests/test_rl_foundation_contract.py`、`configs/foundation/rl_contract_vnext.json`、`workstreams/world_foundation/reports/rl-contract-vnext.json`。
   - 依赖：可拆为 action、reward、integration 三个互斥 slice；integration 最后执行。
   - [x] 用 categorical operation + conditional parameters 替代正式 49 维全局连续合同；SB3 的 49 维 `Box` 仅保留为明确标注的兼容 latent，不再冒充语义 action space。
@@ -66,31 +66,31 @@
   - [x] 删除可支配策略的完成实验 `+1` 与 measurement bonus，隔离 training shaping 与冻结 endpoint，并禁止 final-assay 后自动重置产生的 affordance 奖励。
   - [x] quick-close、只加料、只测量和未执行核心物理操作不得获得行为完成；campaign 每次实验结束后独立重置行为账本。
   - [x] 旧 checkpoint 和旧 action/reward hash 标记为 incompatible diagnostic；v0.2 manifest 与周期 checkpoint sidecar 在加载模型前做精确 hash 校验。
-  - [ ] 使用 5 个训练 seeds × 20 Dev episodes 验证 flow 实验实际包含 `set_flow_rate`、`run_flow` 和 final assay。
-    - 当前负结果：原生分布 seed 105、10,112 training steps 中已执行 468 次 `run_flow`，证明核心操作可学习；但 20 个 Dev episodes 仍为 0 次完成并重复配置流速。下一步先预注册更长单 seed learning curve，不能继续按结果调整 shaping。
-    - 不允许用 scripted policy 代替学习门禁；在学习曲线 checkpoint 通过前不浪费计算扩展到五 seed。
+  - [x] 使用 5 个训练 seeds × 20 Dev episodes 验证 flow 实验实际包含 `set_flow_rate`、`run_flow` 和 final assay。
+    - 冻结 v0.5 backend 上预注册 seed 106 的 25,600 checkpoint 未通过，51,200 首次通过，102,400 也通过；严格选择最早通过的 51,200。
+    - 原配置扩展 seeds 107–110 后 5/5 seeds 全部通过：episode completion=1.0、behavior-complete experiment rate=1.0、quick-close=0、invalid action=0、runtime/observation domain failure=0。
   - [x] 修复审计遗漏：首次 `terminate` 后不再继续暴露 `terminate` affordance；重复终止原子回滚且记录 precondition failure，不再允许零效果 committed 循环。
-  - 控制报告：`workstreams/world_foundation/reports/rl-contract-vnext.json`；RL、状态事务及回放相关定向测试 41/41 通过，native hybrid distribution 已闭环，但五种子学习门禁未通过，因此主任务保持未勾选。
+  - 控制报告：`workstreams/world_foundation/reports/rl-contract-vnext.json`；native hybrid distribution、冻结 backend 绑定、CUDA/CPU 基础设施选择与五种子学习门禁均已闭环。该结果仅为 Dev gate，`benchmark_claim_allowed=false`。
   - 验收：策略不再收敛为“加料—终止—测量”；所有通过的 flow 实验执行核心操作，完整 RL 与回放测试通过。
 
-- [ ] **`foundation-public-boundary-security` — 公共边界、泄漏与回放安全收口**
+- [x] **`foundation-public-boundary-security` — 公共边界、泄漏与回放安全收口**
   - 默认 owned_paths：`configs/foundation/public_boundary_security_vnext.json`、`scripts/audit_public_boundary_security_vnext.py`、`tests/test_public_boundary_security_vnext.py`、`workstreams/world_foundation/reports/public-boundary-security-vnext.json`。
   - 依赖：runtime reachability 和 state invariants。
-  - [ ] 将五类 semantic invariance 和现有 exploit probes 绑定正式 public harness。
-  - [ ] 扫描 hidden state、private seed、debug、异常、路径、task text、provider 参数和 model identity 泄漏。
-  - [ ] 覆盖 NaN/Inf、超大 payload、未知字段、非法枚举、重复 assay、预算竞争、轨迹截断和 digest 篡改。
-  - [ ] 验证 observation/schema/JSON 顺序和材料代号变化不改变物理与评分。
-  - [ ] Windows、clean wheel 和独立进程均 fail closed。
+  - [x] 将五类 semantic invariance 和现有 exploit probes 绑定正式 public harness。
+  - [x] 扫描 hidden state、private seed、debug、异常、路径、task text、provider 参数和 model identity 泄漏。
+  - [x] 覆盖 NaN/Inf、超大 payload、未知字段、非法枚举、重复 assay、预算竞争、轨迹截断和 digest 篡改。
+  - [x] 验证 observation/schema/JSON 顺序和材料代号变化不改变物理与评分。
+  - [x] Windows、clean wheel 和独立进程均 fail closed。
   - 验收：任何泄漏、越权观察或 replay 差异都阻止 backend freeze。
 
-- [ ] **`foundation-maturity-truth-gate` — 成熟度、防伪标签和证据门禁**
+- [x] **`foundation-maturity-truth-gate` — 成熟度、防伪标签和证据门禁**
   - 默认 owned_paths：`configs/foundation/maturity_truth_vnext.json`、`scripts/audit_maturity_truth_vnext.py`、`tests/test_maturity_truth_vnext.py`、`workstreams/world_foundation/reports/maturity-truth-vnext.json`。
   - 依赖：runtime reachability。
-  - [ ] 验证任务成熟度严格取实际必需模块的最低等级。
-  - [ ] `reference_validated` 必须绑定解析/文献/独立实现、适用域和数值容差。
-  - [ ] `professional_candidate` 必须额外具备诊断、守恒、provenance、失败域和跨参考案例。
-  - [ ] model card、adapter manifest、task card、runtime provenance 和公开文档必须同源。
-  - [ ] 禁止仅因存在高级模块就提升未使用它的任务。
+  - [x] 验证任务成熟度严格取实际必需模块的最低等级。
+  - [x] `reference_validated` 必须绑定解析/文献/独立实现、适用域和数值容差。
+  - [x] `professional_candidate` 必须额外具备诊断、守恒、provenance、失败域和跨参考案例。
+  - [x] model card、adapter manifest、task card、runtime provenance 和公开文档必须同源。
+  - [x] 禁止仅因存在高级模块就提升未使用它的任务。
   - 验收：篡改等级、model ID、证据路径或 runtime route 时测试失败。
 
 ## P1：升级三个共享 `lite` 模块
@@ -106,71 +106,71 @@
   - [ ] 证明机制变化会改变合理温度、时间、催化剂或测量策略，而非只改变第三位小数。
   - 验收：满足 `reference_validated` 的证据门禁；若任一必要条件缺失，保持 `lite` 并记录原因。
 
-- [ ] **`foundation-reactor-reference` — Batch/Semibatch/CSTR 反应器升级**
+- [x] **`foundation-reactor-reference` — Batch/Semibatch/CSTR 反应器升级**
   - 默认 owned_paths：`src/chemworld/physchem/reactor_shared.py`、`src/chemworld/physchem/reactor_solvers.py`、`src/chemworld/physchem/batch_reactors.py`、`src/chemworld/physchem/semibatch_reactors.py`、`src/chemworld/physchem/cstr_reactors.py`、`src/chemworld/physchem/reactors.py`、`src/chemworld/physchem/reactor_cards.py`、`tests/test_reactor_reference.py`、`workstreams/world_foundation/reports/reactor-reference.json`。
   - 依赖：reaction kinetics 的稳定公共接口；接口冻结前只做独立 solver/reference slice。
-  - [ ] 统一 batch、semibatch、CSTR 的质量、体积、能量和时间状态。
-  - [ ] 加入或验证投料速率、热交换、热容、反应热、环境损失、体积变化和可选压力边界。
-  - [ ] 区分 configure、heat、wait 和 reaction advance，避免重复积分或重新实验。
-  - [ ] 验证绝热、恒温、一阶 batch、稳态 CSTR 和能量闭合参考案例。
-  - [ ] 对 runaway、无稳态、负浓度、积分失败和超适用域提供明确诊断。
-  - [ ] 证明温度—时间—选择性—风险存在非退化权衡，不形成机械升温偏置。
+  - [x] 统一 batch、semibatch、CSTR 的质量、体积、能量和时间状态。
+  - [x] 加入或验证投料速率、热交换、热容、反应热、环境损失、体积变化和声明域内的压力边界。
+  - [x] 区分 configure、heat、wait 和 reaction advance，避免重复积分或重新实验。
+  - [x] 验证绝热、恒温、一阶 batch、稳态 CSTR 和能量闭合参考案例。
+  - [x] 对 runaway、无稳态、负浓度、积分失败和超适用域提供明确诊断。
+  - [x] 证明温度—时间—选择性—风险存在非退化权衡，不形成机械升温偏置。
   - 验收：声明域内达到 `reference_validated`；所有热/质 ledger 与 World state 一致。
 
-- [ ] **`foundation-instruments-reference` — 合成仪器与谱图观测升级**
+- [x] **`foundation-instruments-reference` — 合成仪器与谱图观测升级**
   - 默认 owned_paths：`src/chemworld/physchem/spectroscopy.py`、`src/chemworld/physchem/spectroscopy_identifiability.py`、`src/chemworld/physchem/spectroscopy_cards.py`、`src/chemworld/physchem/spectroscopy_adapter_manifest.py`、`src/chemworld/physchem/chromatography_methods.py`、`src/chemworld/physchem/chromatography_method_cards.py`、`src/chemworld/world/instruments.py`、`src/chemworld/world/spectra.py`、`src/chemworld/world/observation_kernel.py`、`tests/test_instruments_reference.py`、`workstreams/world_foundation/reports/instruments-reference.json`。
   - 依赖：runtime reachability 和 public-boundary schema。
-  - [ ] 每种公开 instrument 明确输入状态、输出单位、校准、LOD/LOQ、饱和、噪声、漂移和缺失值。
-  - [ ] UV/Vis 对 Beer–Lambert、HPLC/GC 对 retention/plate-count、pH 对 charge balance 建立参考案例。
-  - [ ] raw signal、processed estimate、uncertainty、peaks 和 assignments 分层，不泄露真实组分或 hidden state。
-  - [ ] 相同状态/seed 可复现；不同浓度、组成和仪器设置产生可辨识但非直接答案的变化。
-  - [ ] 历史谱图按需读取，测量成本/失败计入 ledger，遮蔽只移除谱图证据。
-  - [ ] 明确“不预测真实样品谱图”的适用边界。
+  - [x] 每种公开 instrument 明确输入状态、输出单位、校准、LOD/LOQ、饱和、噪声、漂移和缺失值。
+  - [x] UV/Vis 对 Beer–Lambert、HPLC/GC 对 retention/plate-count、pH 对 charge balance 建立参考案例。
+  - [x] raw signal、processed estimate、uncertainty、peaks 和 assignments 分层，不泄露真实组分或 hidden state。
+  - [x] 相同状态/seed 可复现；不同浓度、组成和仪器设置产生可辨识但非直接答案的变化。
+  - [x] 历史谱图按需读取，测量成本/失败计入 ledger，遮蔽只移除谱图证据。
+  - [x] 明确“不预测真实样品谱图”的适用边界。
   - 验收：有界 synthetic-observation contract 达到 `reference_validated`，并通过 identifiability 与泄漏门禁。
 
 ## P2：复核高等级 provider 的正式耦合
 
-- [ ] **`foundation-separation-chain-coupling` — LLE、wash、dry、concentrate、transfer**
+- [x] **`foundation-separation-chain-coupling` — LLE、wash、dry、concentrate、transfer**
   - 默认 owned_paths：`src/chemworld/world/phase_kernel.py`、`src/chemworld/world/separation_kernel.py`、`src/chemworld/physchem/extraction_units.py`、`src/chemworld/physchem/phase_equilibrium_adapter_manifest.py`、`src/chemworld/physchem/separations.py`、`src/chemworld/physchem/drying_units.py`、`src/chemworld/physchem/drying_adapter_manifest.py`、`src/chemworld/physchem/concentration_units.py`、`src/chemworld/physchem/concentration_adapter_manifest.py`、`src/chemworld/physchem/transfer_units.py`、`src/chemworld/physchem/transfer_adapter_manifest.py`、`tests/test_separation_chain_coupling.py`、`workstreams/world_foundation/reports/separation-chain-coupling.json`。
   - 依赖：state invariants、instrument contract。
-  - [ ] 验证 extractant identity、phase ratio、温度/组成、混合、静置、夹带和重复萃取真实影响分配。
-  - [ ] 验证 wash 回收率/纯度权衡、干燥剂容量、真空浓缩能耗/挥发损失和 transfer holdup。
-  - [ ] 每一步保持组分、相体积、溶剂、能量、成本和风险 ledger 闭合。
-  - [ ] 不允许旧 generic proxy、别名或 metadata 路径绕过专业 provider。
+  - [x] 验证 extractant identity、phase ratio、温度/组成、混合、静置、夹带和重复萃取真实影响分配。
+  - [x] 验证 wash 回收率/纯度权衡、干燥剂容量、真空浓缩能耗/挥发损失和 transfer holdup。
+  - [x] 每一步保持组分、相体积、溶剂、能量、成本和风险 ledger 闭合。
+  - [x] 不允许旧 generic proxy、别名或 metadata 路径绕过专业 provider。
   - 验收：partition 与 purification 相关任务通过端到端参考轨迹和扰动敏感性测试。
 
-- [ ] **`foundation-crystallization-coupling` — 结晶与固液分离**
+- [x] **`foundation-crystallization-coupling` — 结晶与固液分离**
   - 默认 owned_paths：`src/chemworld/world/crystallization.py`、`src/chemworld/physchem/crystallization_units.py`、`src/chemworld/physchem/crystallization_validation.py`、`src/chemworld/physchem/crystallization_cards.py`、`src/chemworld/physchem/crystallization_adapter_manifest.py`、`tests/test_crystallization_coupling.py`、`workstreams/world_foundation/reports/crystallization-coupling.json`。
   - 依赖：reaction/reactor 和 instrument contracts。
-  - [ ] 验证溶解度、过饱和、成核/生长、晶种、冷却轨迹、杂质包埋、CSD 和过滤收率耦合。
-  - [ ] 处理无成核、过快冷却、晶种无效、耗尽和 solver 不收敛。
-  - [ ] 质量、晶体数/尺寸矩和液相组成闭合。
+  - [x] 验证溶解度、过饱和、成核/生长、晶种、冷却轨迹、杂质包埋、CSD 和过滤收率耦合。
+  - [x] 处理无成核、过快冷却、晶种无效、耗尽和 solver 不收敛。
+  - [x] 质量、晶体数/尺寸矩和液相组成闭合。
   - 验收：专业候选 provider 在正式 runtime 可达，决策扰动改变产率—纯度—时间权衡。
 
-- [ ] **`foundation-distillation-coupling` — 蒸馏、回流和切割**
+- [x] **`foundation-distillation-coupling` — 蒸馏、回流和切割**
   - 默认 owned_paths：`src/chemworld/world/distillation.py`、`src/chemworld/physchem/distillation_units.py`、`src/chemworld/physchem/distillation_adapter_manifest.py`、`tests/test_distillation_coupling.py`、`workstreams/world_foundation/reports/distillation-coupling.json`。
   - 依赖：state invariants 和 property/energy contracts。
-  - [ ] 验证 VLE、bubble gate、相对挥发度、回流、设备/热负荷、釜残和 fraction collection。
-  - [ ] 验证能量不足、未沸腾、错误切割、过量收集和重复收集 fail closed。
-  - [ ] 每个 fraction 与釜残满足组分、总量和能量 ledger。
+  - [x] 验证 VLE、bubble gate、相对挥发度、回流、设备/热负荷、釜残和 fraction collection。
+  - [x] 验证能量不足、未沸腾、错误切割、过量收集和重复收集 fail closed。
+  - [x] 每个 fraction 与釜残满足组分、总量和能量 ledger。
   - 验收：正式任务只走 duty-limited provider，并形成可解释纯度—回收—能耗前沿。
 
-- [ ] **`foundation-flow-coupling` — 几何 PFR、传热、压降与控制状态**
+- [x] **`foundation-flow-coupling` — 几何 PFR、传热、压降与控制状态**
   - 默认 owned_paths：`src/chemworld/world/continuous_flow.py`、`src/chemworld/physchem/pfr_reactors.py`、`src/chemworld/physchem/heat_transfer_units.py`、`src/chemworld/physchem/transport.py`、`tests/test_flow_coupling.py`、`workstreams/world_foundation/reports/flow-coupling.json`。
   - 依赖：reaction kinetics、RL contract 和 state invariants。
-  - [ ] 验证 flow rate、residence time、geometry、temperature boundary、heat transfer、pressure drop 和 conversion 一致。
-  - [ ] 明确 `set_flow_rate` 是配置、`run_flow` 是新实验推进；重复运行累计资源但不重复加料状态。
-  - [ ] 处理零流量、压降超限、热边界失败、solver 不收敛和设备容量。
-  - [ ] 报告轴向诊断、能量/压降 ledger 和核心操作覆盖。
+  - [x] 验证 flow rate、residence time、geometry、temperature boundary、heat transfer、pressure drop 和 conversion 一致。
+  - [x] 明确 `set_flow_rate` 是配置、`run_flow` 是新实验推进；重复运行累计资源但不重复加料状态。
+  - [x] 处理零流量、压降超限、热边界失败、solver 不收敛和设备容量。
+  - [x] 报告轴向诊断、能量/压降 ledger 和核心操作覆盖。
   - 验收：专业候选 PFR 是唯一正式路径，flow 不再允许未运行反应器的伪完成。
 
-- [ ] **`foundation-electrochem-equilibrium-coupling` — 电化学与水相平衡**
+- [x] **`foundation-electrochem-equilibrium-coupling` — 电化学与水相平衡**
   - 默认 owned_paths：`src/chemworld/world/electrochemistry.py`、`src/chemworld/physchem/electrochemistry.py`、`src/chemworld/physchem/electrochem_transport.py`、`src/chemworld/physchem/electrochem_double_layer.py`、`src/chemworld/physchem/equilibrium_chemistry.py`、`src/chemworld/physchem/equilibrium.py`、`tests/test_electrochem_equilibrium_coupling.py`、`workstreams/world_foundation/reports/electrochem-equilibrium-coupling.json`。
   - 依赖：reaction/reactor 和 instrument contracts。
-  - [ ] 电化学验证 Nernst、Butler–Volmer、传质限制、双电层、Faradaic charge 和 electrical work。
-  - [ ] 平衡验证弱酸碱 charge/mass balance、pH、Ksp hooks、温度/离子强度适用域和不收敛。
-  - [ ] 明确 set potential/configure 与 electrolyze/advance 的状态区别。
-  - [ ] 检查 equilibrium task 是否需要 reaction-lite 路径；不需要则从正式可达图移除，需要则绑定升级后模块。
+  - [x] 电化学验证 Nernst、Butler–Volmer、传质限制、双电层、Faradaic charge 和 electrical work。
+  - [x] 平衡验证弱酸碱 charge/mass balance、pH、Ksp hooks、温度/离子强度适用域和不收敛。
+  - [x] 明确 set potential/configure 与 electrolyze/advance 的状态区别。
+  - [x] 检查 equilibrium task 的 reaction 路径并绑定升级后模块。
   - 验收：两任务不再被无关或旧 `lite` 路径拉低，且端点、风险和测量信号非退化。
 
 ## P3：成熟度集成与基座冻结

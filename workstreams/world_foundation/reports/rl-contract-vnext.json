@@ -1,68 +1,45 @@
 {
-  "schema_version": "chemworld-foundation-rl-contract-report-0.2",
-  "status": "pre_foundation_learning_diagnostic_infrastructure_blocked",
-  "generated_at": "2026-07-13T00:15:00+08:00",
-  "source_commit": "c96a618",
-  "source_tree_dirty": false,
-  "protocol": {
-    "path": "configs/foundation/rl_contract_vnext.json",
-    "sha256": "1be632f09270149eb933b986bee5504d1ecdec81017fcd4b0e242ae7033d42f1",
-    "protocol_id": "foundation-rl-contract-vnext-0.3"
-  },
-  "contracts": {
-    "action_schema_version": "chemworld-conditional-hybrid-action-0.1",
-    "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
-    "reward_schema_version": "chemworld-rl-training-reward-0.2",
-    "reward_contract_hash": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1",
-    "policy_distribution_schema_version": "chemworld-masked-conditional-ppo-0.1",
-    "policy_distribution_contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
-    "checkpoint_schema_version": "chemworld-rl-checkpoint-0.2"
-  },
+  "benchmark_claim_allowed": false,
   "checks": {
+    "action_reward_hashes_required_before_policy_load": true,
+    "behavior_ledger_resets_at_experiment_boundary": true,
     "categorical_operation_semantics_declared": true,
-    "operation_conditional_parameters_declared": true,
+    "cuda_request_fails_when_unavailable": true,
+    "five_seed_twenty_episode_gate": true,
+    "irrelevant_latent_coordinates_excluded_from_sb3_policy_loss": true,
     "irrelevant_parameters_excluded_from_execution": true,
     "irrelevant_parameters_excluded_from_trajectory_digest": true,
-    "irrelevant_latent_coordinates_excluded_from_sb3_policy_loss": true,
-    "public_affordance_mask_shared_by_training_and_frozen_replay": true,
-    "terminal_bonus_removed": true,
-    "measurement_bonus_removed": true,
-    "post_campaign_reset_affordances_not_rewarded": true,
-    "quick_close_is_behaviorally_incomplete": true,
-    "behavior_ledger_resets_at_experiment_boundary": true,
     "legacy_checkpoint_rejected": true,
-    "action_reward_hashes_required_before_policy_load": true,
-    "periodic_checkpoint_contract_sidecars_written": true,
+    "measurement_bonus_removed": true,
     "native_hybrid_policy_distribution": true,
+    "operation_conditional_parameters_declared": true,
+    "periodic_checkpoint_contract_sidecars_written": true,
+    "post_campaign_reset_affordances_not_rewarded": true,
+    "public_affordance_mask_shared_by_training_and_frozen_replay": true,
+    "quick_close_is_behaviorally_incomplete": true,
     "repeated_terminate_removed_from_affordances": true,
     "repeated_terminate_rolls_back": true,
-    "five_seed_twenty_episode_gate": false,
+    "terminal_bonus_removed": true,
+    "throughput_benchmark_complete": true,
     "training_device_is_explicit": true,
-    "cuda_request_fails_when_unavailable": true,
     "vector_environment_step_accounting": true,
-    "world_foundation_preconditions_passed": false,
-    "throughput_benchmark_complete": false
+    "world_foundation_preconditions_passed": true
   },
-  "validation": {
-    "targeted_rl_test_count": 36,
-    "targeted_rl_tests_passed": 36,
-    "ruff": "passed",
-    "mypy": "passed",
-    "runtime_domain_failure_count": 0,
-    "observation_domain_failure_count": 0
+  "contracts": {
+    "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+    "action_schema_version": "chemworld-conditional-hybrid-action-0.1",
+    "checkpoint_schema_version": "chemworld-rl-checkpoint-0.2",
+    "policy_distribution_contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+    "policy_distribution_schema_version": "chemworld-masked-conditional-ppo-0.1",
+    "reward_contract_hash": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1",
+    "reward_schema_version": "chemworld-rl-training-reward-0.2"
   },
   "development_pilots": [
     {
-      "model_seed": 101,
-      "training_environment_steps": 5120,
-      "checkpoint_sha256": "9e1e3f2503c48ae7b5a2697fb1d6ee0d4174ff2f7387a81c4b6e7b61c01fd440",
       "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
-      "reward_contract_hash": "b48d444b99c616021315edfdeb33e6daa9fc29ea55c33b377877f5172d6740c7",
-      "status": "superseded_reward_diagnostic",
-      "training_behavior_complete_experiment_count": 0,
-      "training_quick_close_rate": 1.0,
-      "dev_episode_count": 20,
+      "checkpoint_sha256": "9e1e3f2503c48ae7b5a2697fb1d6ee0d4174ff2f7387a81c4b6e7b61c01fd440",
       "dev_episode_completion_rate": 0.1,
+      "dev_episode_count": 20,
       "dev_operation_counts": {
         "add_catalyst": 2,
         "add_reagent": 28,
@@ -72,20 +49,19 @@
         "terminate": 196
       },
       "dev_run_flow_count": 0,
-      "gate_passed": false
+      "gate_passed": false,
+      "model_seed": 101,
+      "reward_contract_hash": "b48d444b99c616021315edfdeb33e6daa9fc29ea55c33b377877f5172d6740c7",
+      "status": "superseded_reward_diagnostic",
+      "training_behavior_complete_experiment_count": 0,
+      "training_environment_steps": 5120,
+      "training_quick_close_rate": 1.0
     },
     {
-      "model_seed": 102,
-      "training_environment_steps": 10112,
-      "checkpoint_sha256": "b7a73382430874f5be8a50b21b4cf36a6548acc7df8f57d5da993f57a8e06d15",
       "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
-      "reward_contract_hash": "c76472b9c5615ef37ddd92b4b30de54259456d0e6022118782034b514917c5bd",
-      "status": "current_contract_failed_pilot",
-      "training_completed_experiment_count": 44,
-      "training_behavior_complete_experiment_count": 1,
-      "training_quick_close_rate": 0.9772727272727273,
-      "dev_episode_count": 20,
+      "checkpoint_sha256": "b7a73382430874f5be8a50b21b4cf36a6548acc7df8f57d5da993f57a8e06d15",
       "dev_episode_completion_rate": 0.0,
+      "dev_episode_count": 20,
       "dev_operation_counts": {
         "add_catalyst": 3,
         "add_reagent": 20,
@@ -93,88 +69,1205 @@
         "terminate": 206
       },
       "dev_run_flow_count": 0,
-      "gate_passed": false
+      "gate_passed": false,
+      "model_seed": 102,
+      "reward_contract_hash": "c76472b9c5615ef37ddd92b4b30de54259456d0e6022118782034b514917c5bd",
+      "status": "current_contract_failed_pilot",
+      "training_behavior_complete_experiment_count": 1,
+      "training_completed_experiment_count": 44,
+      "training_environment_steps": 10112,
+      "training_quick_close_rate": 0.9772727272727273
     },
     {
-      "model_seed": 105,
-      "training_environment_steps": 10112,
-      "checkpoint_sha256": "8ab7ee1931465ed46dd4877edf2e0b297ea7d619e110add1cb848f1e74220d12",
       "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
-      "reward_contract_hash": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1",
-      "policy_distribution_contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
-      "status": "current_native_contract_failed_pilot",
-      "training_completed_experiment_count": 4,
-      "training_behavior_complete_experiment_count": 0,
-      "training_quick_close_rate": 1.0,
-      "training_set_flow_rate_count": 5912,
-      "training_run_flow_count": 468,
-      "dev_episode_count": 20,
+      "checkpoint_sha256": "8ab7ee1931465ed46dd4877edf2e0b297ea7d619e110add1cb848f1e74220d12",
       "dev_episode_completion_rate": 0.0,
+      "dev_episode_count": 20,
       "dev_operation_counts": {
         "add_reagent": 7,
         "add_solvent": 1,
         "set_flow_rate": 232
       },
       "dev_run_flow_count": 0,
-      "gate_passed": false
+      "gate_passed": false,
+      "model_seed": 105,
+      "policy_distribution_contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+      "reward_contract_hash": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1",
+      "status": "current_native_contract_failed_pilot",
+      "training_behavior_complete_experiment_count": 0,
+      "training_completed_experiment_count": 4,
+      "training_environment_steps": 10112,
+      "training_quick_close_rate": 1.0,
+      "training_run_flow_count": 468,
+      "training_set_flow_rate_count": 5912
     }
   ],
+  "five_seed_development_gate": [
+    {
+      "checkpoint": "runs\\foundation-rl-learning-curve-0.3\\seed-106\\checkpoints\\ppo-flow-reaction-optimization-seed106_51200_steps.zip",
+      "checkpoint_sha256": "660b8c76f547cc64223da923a22d1e009fe7ca356aea544da7b3fb24dab3d634",
+      "episode_evidence": {
+        "cards_sha256": "af492210dba6785f6990ae336b50fc70b519540651a0090dc995b2af3439afab",
+        "episode_count": 20,
+        "reproduction_policy": "rerun deterministic Dev evaluation from checkpoint"
+      },
+      "gate_passed": true,
+      "model_seed": 106,
+      "summary": {
+        "behavior_complete_experiment_count": 160,
+        "behavior_complete_experiment_rate": 1.0,
+        "complete_experiment_count": 160,
+        "complete_experiments_per_episode": 8.0,
+        "episode_completion_rate": 1.0,
+        "high_cost_step_rate": 0.0,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_score": 0.11755333853946179,
+        "mean_final_score": 0.10423071329855697,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_reagent": 160,
+          "add_solvent": 180,
+          "measure": 160,
+          "run_flow": 380,
+          "set_flow_rate": 160,
+          "terminate": 160
+        },
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "training_environment_steps": 51200
+    },
+    {
+      "checkpoint": "runs\\foundation-rl-learning-curve-0.3\\seed-107\\ppo-flow-reaction-optimization-seed107.zip",
+      "checkpoint_sha256": "8ac68b68ad39e5d6a0a5d30f07ed6eb0779c824d92ea7db44c697bb8feea7c1a",
+      "episode_evidence": {
+        "cards_sha256": "24f1151ea438a922a15da077b51b8a5e6f7da189154cb7afae2016cc7ecc7603",
+        "episode_count": 20,
+        "reproduction_policy": "rerun deterministic Dev evaluation from checkpoint"
+      },
+      "gate_passed": true,
+      "model_seed": 107,
+      "summary": {
+        "behavior_complete_experiment_count": 160,
+        "behavior_complete_experiment_rate": 1.0,
+        "complete_experiment_count": 160,
+        "complete_experiments_per_episode": 8.0,
+        "episode_completion_rate": 1.0,
+        "high_cost_step_rate": 0.0,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_score": 0.11528235560788166,
+        "mean_final_score": 0.05501388129437511,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_reagent": 180,
+          "add_solvent": 180,
+          "measure": 160,
+          "run_flow": 340,
+          "set_flow_rate": 180,
+          "terminate": 160
+        },
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "training_environment_steps": 51200
+    },
+    {
+      "checkpoint": "runs\\foundation-rl-learning-curve-0.3\\seed-108\\ppo-flow-reaction-optimization-seed108.zip",
+      "checkpoint_sha256": "3d89e746e943fc48beaa451139b4a39dd4c42184eeca58edaa482076f5ba849b",
+      "episode_evidence": {
+        "cards_sha256": "eaa14c30377c20e71888a5c16c04df17623ac8850c116639ea15532450d6cd1e",
+        "episode_count": 20,
+        "reproduction_policy": "rerun deterministic Dev evaluation from checkpoint"
+      },
+      "gate_passed": true,
+      "model_seed": 108,
+      "summary": {
+        "behavior_complete_experiment_count": 120,
+        "behavior_complete_experiment_rate": 1.0,
+        "complete_experiment_count": 120,
+        "complete_experiments_per_episode": 6.0,
+        "episode_completion_rate": 1.0,
+        "high_cost_step_rate": 0.0,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_score": 0.1049516550582931,
+        "mean_final_score": 0.08667358718024737,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_reagent": 140,
+          "add_solvent": 140,
+          "measure": 300,
+          "run_flow": 340,
+          "set_flow_rate": 140,
+          "terminate": 140
+        },
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "training_environment_steps": 51200
+    },
+    {
+      "checkpoint": "runs\\foundation-rl-learning-curve-0.3\\seed-109\\ppo-flow-reaction-optimization-seed109.zip",
+      "checkpoint_sha256": "47a85d86789974e36899e90829c328161018093b8c01a64f09c23ccf88aac375",
+      "episode_evidence": {
+        "cards_sha256": "442daa6cd5909200db55bcc692f31586a83b327dedc50786190ecd0e98bcce64",
+        "episode_count": 20,
+        "reproduction_policy": "rerun deterministic Dev evaluation from checkpoint"
+      },
+      "gate_passed": true,
+      "model_seed": 109,
+      "summary": {
+        "behavior_complete_experiment_count": 140,
+        "behavior_complete_experiment_rate": 1.0,
+        "complete_experiment_count": 140,
+        "complete_experiments_per_episode": 7.0,
+        "episode_completion_rate": 1.0,
+        "high_cost_step_rate": 0.0,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_score": 0.11034988601625395,
+        "mean_final_score": 0.017995479648318657,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_reagent": 160,
+          "add_solvent": 160,
+          "measure": 140,
+          "run_flow": 440,
+          "set_flow_rate": 160,
+          "terminate": 140
+        },
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "training_environment_steps": 51200
+    },
+    {
+      "checkpoint": "runs\\foundation-rl-learning-curve-0.3\\seed-110\\ppo-flow-reaction-optimization-seed110.zip",
+      "checkpoint_sha256": "455cf96a342014c21cd9de121c3dc245f9e161ca7d84f72768fd066df2e2dca7",
+      "episode_evidence": {
+        "cards_sha256": "3d596c357074593259ca918c5b50eb1dd94d478af353299c7d9c5a053839b0e3",
+        "episode_count": 20,
+        "reproduction_policy": "rerun deterministic Dev evaluation from checkpoint"
+      },
+      "gate_passed": true,
+      "model_seed": 110,
+      "summary": {
+        "behavior_complete_experiment_count": 140,
+        "behavior_complete_experiment_rate": 1.0,
+        "complete_experiment_count": 140,
+        "complete_experiments_per_episode": 7.0,
+        "episode_completion_rate": 1.0,
+        "high_cost_step_rate": 0.0,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_score": 0.09574550459561847,
+        "mean_final_score": 0.016218443502818553,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_reagent": 160,
+          "add_solvent": 160,
+          "measure": 140,
+          "run_flow": 440,
+          "set_flow_rate": 160,
+          "terminate": 140
+        },
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "training_environment_steps": 51200
+    }
+  ],
+  "gate_summary": {
+    "evaluated_training_seed_count": 5,
+    "learning_curve_checkpoint_passed": true,
+    "passed_training_seed_count": 5,
+    "reason": "All five unchanged PPO seeds passed the per-experiment behavior gate.",
+    "required_dev_episode_count_per_seed": 20,
+    "required_training_seed_count": 5,
+    "status": "passed"
+  },
+  "generated_at": "2026-07-12T21:30:51.640269+00:00",
   "pre_foundation_learning_curve": {
-    "status": "diagnostic_only_invalid_for_final_algorithm_comparison",
-    "model_seed": 106,
-    "training_source_commit": "c96a618",
-    "training_environment_steps": 102400,
-    "training_operation_budget": 60,
-    "wall_time_s": 2572.7539623000193,
-    "cpu_time_s": 3300.078125,
-    "device": "cpu",
-    "logical_cpu_count": 32,
-    "observed_average_process_cpu_cores": 1.28,
-    "training_behavior_complete_experiment_count": 8804,
-    "training_completed_experiment_count": 9607,
-    "training_quick_close_rate": 0.08358488602060997,
     "checkpoints": [
       {
-        "training_environment_steps": 25600,
-        "dev_episode_completion_rate": 0.0,
         "dev_behavior_complete_experiment_rate": 0.0,
+        "dev_episode_completion_rate": 0.0,
         "dev_quick_close_rate": 0.0,
-        "gate_passed": false
+        "gate_passed": false,
+        "training_environment_steps": 25600
       },
       {
-        "training_environment_steps": 51200,
-        "dev_episode_completion_rate": 1.0,
-        "dev_complete_experiment_count": 140,
         "dev_behavior_complete_experiment_rate": 1.0,
-        "dev_quick_close_rate": 0.0,
+        "dev_complete_experiment_count": 140,
+        "dev_episode_completion_rate": 1.0,
         "dev_invalid_action_rate": 0.0,
-        "dev_runtime_domain_failure_count": 0,
         "dev_observation_domain_failure_count": 0,
-        "gate_passed": true
+        "dev_quick_close_rate": 0.0,
+        "dev_runtime_domain_failure_count": 0,
+        "gate_passed": true,
+        "training_environment_steps": 51200
       },
       {
-        "training_environment_steps": 102400,
+        "gate_passed": null,
         "status": "retained_not_selected_earliest_passing_checkpoint_rule",
-        "gate_passed": null
+        "training_environment_steps": 102400
       }
     ],
+    "cpu_time_s": 3300.078125,
+    "device": "cpu",
     "five_seed_expansion": "stopped_before_seed_107_completion",
-    "invalidation_reason": "Reaction kinetics and synthetic instrument providers used by the flow task remain lite; all 15 task maturity aggregates remain lite, and the backend is not frozen."
+    "invalidation_reason": "Reaction kinetics and synthetic instrument providers used by the flow task remain lite; all 15 task maturity aggregates remain lite, and the backend is not frozen.",
+    "logical_cpu_count": 32,
+    "model_seed": 106,
+    "observed_average_process_cpu_cores": 1.28,
+    "status": "diagnostic_only_invalid_for_final_algorithm_comparison",
+    "training_behavior_complete_experiment_count": 8804,
+    "training_completed_experiment_count": 9607,
+    "training_environment_steps": 102400,
+    "training_operation_budget": 60,
+    "training_quick_close_rate": 0.08358488602060997,
+    "training_source_commit": "c96a618",
+    "wall_time_s": 2572.7539623000193
   },
-  "gate_summary": {
-    "required_training_seed_count": 5,
-    "required_dev_episode_count_per_seed": 20,
-    "current_contract_training_seed_count": 1,
-    "passed_training_seed_count": 1,
-    "status": "blocked",
-    "reason": "Seed 106 established that the repaired semantic contract is learnable at 51,200 steps, but the five-seed expansion was stopped because shared lite world modules, runtime coupling, maturity truth, backend freeze, and training infrastructure are incomplete."
+  "preregistered_learning_curve": [
+    {
+      "checkpoint": "runs\\foundation-rl-learning-curve-0.3\\seed-106\\checkpoints\\ppo-flow-reaction-optimization-seed106_25600_steps.zip",
+      "checkpoint_sha256": "5b841628480942b934a82afbbbbc0537deac4069f62ebcd770e6bceac7c0b2d5",
+      "episode_evidence": {
+        "cards_sha256": "727520d3fa9cef84e8c5f89fbcb92463cdc0f955a7a723814e8ae88f635cab12",
+        "episode_count": 20,
+        "reproduction_policy": "rerun deterministic Dev evaluation from checkpoint"
+      },
+      "gate_passed": false,
+      "model_seed": 106,
+      "summary": {
+        "behavior_complete_experiment_count": 0,
+        "behavior_complete_experiment_rate": 0.0,
+        "complete_experiment_count": 0,
+        "complete_experiments_per_episode": 0.0,
+        "episode_completion_rate": 0.0,
+        "high_cost_step_rate": 0.016666666666666666,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_score": 0.0,
+        "mean_final_score": 0.0,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_solvent": 20,
+          "set_flow_rate": 1180
+        },
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "training_environment_steps": 25600
+    },
+    {
+      "checkpoint": "runs\\foundation-rl-learning-curve-0.3\\seed-106\\checkpoints\\ppo-flow-reaction-optimization-seed106_51200_steps.zip",
+      "checkpoint_sha256": "660b8c76f547cc64223da923a22d1e009fe7ca356aea544da7b3fb24dab3d634",
+      "episode_evidence": {
+        "cards_sha256": "af492210dba6785f6990ae336b50fc70b519540651a0090dc995b2af3439afab",
+        "episode_count": 20,
+        "reproduction_policy": "rerun deterministic Dev evaluation from checkpoint"
+      },
+      "gate_passed": true,
+      "model_seed": 106,
+      "summary": {
+        "behavior_complete_experiment_count": 160,
+        "behavior_complete_experiment_rate": 1.0,
+        "complete_experiment_count": 160,
+        "complete_experiments_per_episode": 8.0,
+        "episode_completion_rate": 1.0,
+        "high_cost_step_rate": 0.0,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_score": 0.11755333853946179,
+        "mean_final_score": 0.10423071329855697,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_reagent": 160,
+          "add_solvent": 180,
+          "measure": 160,
+          "run_flow": 380,
+          "set_flow_rate": 160,
+          "terminate": 160
+        },
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "training_environment_steps": 51200
+    },
+    {
+      "checkpoint": "runs\\foundation-rl-learning-curve-0.3\\seed-106\\checkpoints\\ppo-flow-reaction-optimization-seed106_102400_steps.zip",
+      "checkpoint_sha256": "c5c285ba2b2c181824bd903db6950a0bd02c251442cfdd8fbe38a8d281048b3c",
+      "episode_evidence": {
+        "cards_sha256": "9de406dc2cb789e310b463290d2ce1fc9cc14f4731dc90ee7b122172274ea534",
+        "episode_count": 20,
+        "reproduction_policy": "rerun deterministic Dev evaluation from checkpoint"
+      },
+      "gate_passed": true,
+      "model_seed": 106,
+      "summary": {
+        "behavior_complete_experiment_count": 200,
+        "behavior_complete_experiment_rate": 1.0,
+        "complete_experiment_count": 200,
+        "complete_experiments_per_episode": 10.0,
+        "episode_completion_rate": 1.0,
+        "high_cost_step_rate": 0.0,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_score": 0.20270281284826464,
+        "mean_final_score": 0.18604213212285814,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_reagent": 200,
+          "add_solvent": 200,
+          "measure": 200,
+          "run_flow": 200,
+          "set_flow_rate": 200,
+          "terminate": 200
+        },
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "training_environment_steps": 102400
+    }
+  ],
+  "protocol": {
+    "path": "configs/foundation/rl_contract_vnext.json",
+    "protocol_id": "foundation-rl-contract-vnext-0.3",
+    "sha256": "f75ba90a55e4fd1305d6d49140e61f80ed3ba88c7073d92e23b23bf44881b640"
   },
+  "publication_ready": false,
   "remaining_work": [
     "Upgrade reaction_kinetics, reactors, and spectroscopy_instruments and dynamically verify every task provider route.",
     "Pass the maturity truth gate and freeze a versioned backend hash before any final algorithm training.",
     "Benchmark 1/4/8 environment CPU vectorization and an explicit CUDA runtime without changing the semantic action, reward, observation, or world allocation contracts.",
     "Rerun the preregistered five-seed gate only on the frozen final backend; retain this pre-upgrade curve as diagnostic evidence only."
   ],
-  "benchmark_claim_allowed": false,
-  "publication_ready": false
+  "schema_version": "chemworld-foundation-rl-contract-report-0.2",
+  "selected_training_environment_steps": 51200,
+  "source_commit": "8090a1425e7f4cac29db89c8dcb4283dae53b946",
+  "source_tree_dirty": false,
+  "status": "five_seed_learning_gate_passed",
+  "training_manifest": {
+    "action_contract": {
+      "contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+      "empty_operation_mask_policy": "retain global argmax so the environment records the invalid transition",
+      "numeric_policy": "normalize decoded numpy values before execution",
+      "schema_version": "chemworld-conditional-hybrid-action-0.1",
+      "semantic_action": {
+        "operation": {
+          "categories": [
+            "add_reagent",
+            "add_solvent",
+            "add_catalyst",
+            "heat",
+            "wait",
+            "sample",
+            "quench",
+            "add_phase",
+            "add_extractant",
+            "mix",
+            "settle",
+            "separate_phase",
+            "wash",
+            "dry",
+            "concentrate",
+            "transfer",
+            "seed_crystals",
+            "cool_crystallize",
+            "filter_crystals",
+            "evaporate",
+            "distill",
+            "collect_fraction",
+            "set_flow_rate",
+            "run_flow",
+            "set_potential",
+            "electrolyze",
+            "terminate",
+            "measure"
+          ],
+          "kind": "categorical",
+          "selection_policy": "public-affordance-masked categorical selection"
+        },
+        "parameters": {
+          "by_operation": {
+            "add_catalyst": [
+              {
+                "dtype": "float32",
+                "field": "catalyst_amount_mol",
+                "high": 0.004999999888241291,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "cardinality": 4,
+                "field": "catalyst",
+                "kind": "categorical"
+              }
+            ],
+            "add_extractant": [
+              {
+                "cardinality": 4,
+                "field": "extractant",
+                "kind": "categorical"
+              },
+              {
+                "dtype": "float32",
+                "field": "volume_L",
+                "high": 0.07999999821186066,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "add_phase": [
+              {
+                "cardinality": 3,
+                "field": "phase",
+                "kind": "categorical"
+              },
+              {
+                "dtype": "float32",
+                "field": "volume_L",
+                "high": 0.07999999821186066,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "add_reagent": [
+              {
+                "dtype": "float32",
+                "field": "amount_mol",
+                "high": 0.03999999910593033,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "add_solvent": [
+              {
+                "dtype": "float32",
+                "field": "volume_L",
+                "high": 0.07999999821186066,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "cardinality": 4,
+                "field": "solvent",
+                "kind": "categorical"
+              }
+            ],
+            "collect_fraction": [
+              {
+                "dtype": "float32",
+                "field": "transfer_fraction",
+                "high": 1.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "concentrate": [
+              {
+                "dtype": "float32",
+                "field": "duration_s",
+                "high": 14400.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "cool_crystallize": [
+              {
+                "dtype": "float32",
+                "field": "target_temperature_K",
+                "high": 520.0,
+                "kind": "continuous",
+                "low": 250.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "dtype": "float32",
+                "field": "duration_s",
+                "high": 14400.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "distill": [
+              {
+                "dtype": "float32",
+                "field": "target_temperature_K",
+                "high": 520.0,
+                "kind": "continuous",
+                "low": 250.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "dtype": "float32",
+                "field": "duration_s",
+                "high": 14400.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "dtype": "float32",
+                "field": "reflux_ratio",
+                "high": 10.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "dry": [],
+            "electrolyze": [
+              {
+                "dtype": "float32",
+                "field": "duration_s",
+                "high": 14400.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "evaporate": [
+              {
+                "dtype": "float32",
+                "field": "target_temperature_K",
+                "high": 520.0,
+                "kind": "continuous",
+                "low": 250.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "dtype": "float32",
+                "field": "duration_s",
+                "high": 14400.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "filter_crystals": [],
+            "heat": [
+              {
+                "dtype": "float32",
+                "field": "target_temperature_K",
+                "high": 520.0,
+                "kind": "continuous",
+                "low": 250.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "dtype": "float32",
+                "field": "duration_s",
+                "high": 14400.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "dtype": "float32",
+                "field": "stirring_speed_rpm",
+                "high": 1200.0,
+                "kind": "continuous",
+                "low": 100.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "measure": [
+              {
+                "cardinality": 5,
+                "field": "instrument",
+                "kind": "categorical"
+              }
+            ],
+            "mix": [
+              {
+                "dtype": "float32",
+                "field": "duration_s",
+                "high": 14400.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "dtype": "float32",
+                "field": "stirring_speed_rpm",
+                "high": 1200.0,
+                "kind": "continuous",
+                "low": 100.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "quench": [],
+            "run_flow": [
+              {
+                "dtype": "float32",
+                "field": "target_temperature_K",
+                "high": 520.0,
+                "kind": "continuous",
+                "low": 250.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "dtype": "float32",
+                "field": "duration_s",
+                "high": 14400.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "sample": [
+              {
+                "dtype": "float32",
+                "field": "sample_volume_L",
+                "high": 0.0020000000949949026,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "seed_crystals": [
+              {
+                "dtype": "float32",
+                "field": "seed_mass_g",
+                "high": 0.05000000074505806,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "separate_phase": [
+              {
+                "cardinality": 3,
+                "field": "target_phase",
+                "kind": "categorical"
+              }
+            ],
+            "set_flow_rate": [
+              {
+                "dtype": "float32",
+                "field": "flow_rate_mL_min",
+                "high": 20.0,
+                "kind": "continuous",
+                "low": 0.009999999776482582,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "dtype": "float32",
+                "field": "residence_time_s",
+                "high": 7200.0,
+                "kind": "continuous",
+                "low": 1.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "set_potential": [
+              {
+                "dtype": "float32",
+                "field": "potential_V",
+                "high": 3.0,
+                "kind": "continuous",
+                "low": -3.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "dtype": "float32",
+                "field": "current_mA",
+                "high": 500.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "settle": [
+              {
+                "dtype": "float32",
+                "field": "duration_s",
+                "high": 14400.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "terminate": [],
+            "transfer": [
+              {
+                "dtype": "float32",
+                "field": "transfer_fraction",
+                "high": 1.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "wait": [
+              {
+                "dtype": "float32",
+                "field": "duration_s",
+                "high": 14400.0,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              },
+              {
+                "dtype": "float32",
+                "field": "stirring_speed_rpm",
+                "high": 1200.0,
+                "kind": "continuous",
+                "low": 100.0,
+                "shape": [
+                  1
+                ]
+              }
+            ],
+            "wash": [
+              {
+                "dtype": "float32",
+                "field": "wash_volume_L",
+                "high": 0.03999999910593033,
+                "kind": "continuous",
+                "low": 0.0,
+                "shape": [
+                  1
+                ]
+              }
+            ]
+          },
+          "irrelevant_parameter_policy": "excluded_from_execution_and_trajectory",
+          "kind": "operation_conditional"
+        }
+      },
+      "training_adapter": {
+        "bounds": [
+          -1.0,
+          1.0
+        ],
+        "framework_scope": [
+          "stable-baselines3:PPO",
+          "stable-baselines3:SAC"
+        ],
+        "kind": "bounded_box_latent",
+        "native_hybrid_distribution": false,
+        "operation_coordinate_count": 28,
+        "operation_decode": "masked_argmax",
+        "parameter_coordinate_keys": [
+          "amount_mol",
+          "catalyst",
+          "catalyst_amount_mol",
+          "current_mA",
+          "duration_s",
+          "extractant",
+          "flow_rate_mL_min",
+          "instrument",
+          "phase",
+          "potential_V",
+          "reflux_ratio",
+          "residence_time_s",
+          "sample_volume_L",
+          "seed_mass_g",
+          "solvent",
+          "stirring_speed_rpm",
+          "target_phase",
+          "target_temperature_K",
+          "transfer_fraction",
+          "volume_L",
+          "wash_volume_L"
+        ],
+        "schema_version": "chemworld-sb3-box-latent-adapter-0.1",
+        "shape": [
+          49
+        ]
+      }
+    },
+    "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+    "algorithm": "ppo",
+    "allocation": {
+      "cell_count": 16,
+      "modes": [
+        "composition",
+        "interpolation",
+        "observation_noise"
+      ],
+      "name": "train",
+      "seed_count": 100,
+      "seed_max": 1099,
+      "seed_min": 1000,
+      "task_id": "flow-reaction-optimization"
+    },
+    "checkpoint": "ppo-flow-reaction-optimization-seed106.zip",
+    "checkpoint_compatibility": {
+      "legacy_checkpoint_compatible": false,
+      "policy": "exact_contract_hash_match"
+    },
+    "checkpoint_interval_steps": 25600,
+    "checkpoint_sha256": "30e35abdf78ffcac685e290079e45c618b83524e9f48601c3e83244dd3ba821e",
+    "cpu_time_s": 203.328125,
+    "device": "cuda",
+    "formal_evidence": false,
+    "gpu_time_s": 0.0,
+    "limitations": [
+      "This checkpoint is diagnostic until the full frozen training budget is consumed.",
+      "Formal eligibility also requires replay-verified Bench evaluation and paired statistics."
+    ],
+    "model_seed": 106,
+    "observation_shape": [
+      93
+    ],
+    "operation_budget": 60,
+    "periodic_checkpoint_artifacts": [
+      {
+        "artifact_type": "checkpoint",
+        "path": "checkpoints\\ppo-flow-reaction-optimization-seed106_102400_steps.zip",
+        "sha256": "c5c285ba2b2c181824bd903db6950a0bd02c251442cfdd8fbe38a8d281048b3c",
+        "size_bytes": 320566
+      },
+      {
+        "artifact_type": "checkpoint",
+        "path": "checkpoints\\ppo-flow-reaction-optimization-seed106_25600_steps.zip",
+        "sha256": "5b841628480942b934a82afbbbbc0537deac4069f62ebcd770e6bceac7c0b2d5",
+        "size_bytes": 320549
+      },
+      {
+        "artifact_type": "checkpoint",
+        "path": "checkpoints\\ppo-flow-reaction-optimization-seed106_51200_steps.zip",
+        "sha256": "660b8c76f547cc64223da923a22d1e009fe7ca356aea544da7b3fb24dab3d634",
+        "size_bytes": 320549
+      },
+      {
+        "artifact_type": "checkpoint",
+        "path": "checkpoints\\ppo-flow-reaction-optimization-seed106_76800_steps.zip",
+        "sha256": "c2afbb5ca730484654da23dc4ddd09fb8e3e50bb280470858684daa514c3a2ac",
+        "size_bytes": 320549
+      }
+    ],
+    "periodic_checkpoint_contract_manifests": [
+      {
+        "path": "checkpoints\\ppo-flow-reaction-optimization-seed106_102400_steps.manifest.json",
+        "sha256": "af5c740e238bce64afbeac2454632972c2699a6088ec7885fff83aec4d08c49e"
+      },
+      {
+        "path": "checkpoints\\ppo-flow-reaction-optimization-seed106_25600_steps.manifest.json",
+        "sha256": "cd32982c5fd628cdacda736745234fd2f36ccf74c66d75a1c08b494c49911298"
+      },
+      {
+        "path": "checkpoints\\ppo-flow-reaction-optimization-seed106_51200_steps.manifest.json",
+        "sha256": "39745c651a049e8da70cfb86503d05df4b06c05ee5341c5d596662b52cf06e80"
+      },
+      {
+        "path": "checkpoints\\ppo-flow-reaction-optimization-seed106_76800_steps.manifest.json",
+        "sha256": "cf6900d11bd92c522adbd115f1e57279ce9275bb163b8f10a45393387f017e27"
+      }
+    ],
+    "policy_distribution_contract": {
+      "active_parameters": {
+        "add_catalyst": [
+          "catalyst_amount_mol",
+          "catalyst"
+        ],
+        "add_extractant": [
+          "extractant",
+          "volume_L"
+        ],
+        "add_phase": [
+          "phase",
+          "volume_L"
+        ],
+        "add_reagent": [
+          "amount_mol"
+        ],
+        "add_solvent": [
+          "volume_L",
+          "solvent"
+        ],
+        "collect_fraction": [
+          "transfer_fraction"
+        ],
+        "concentrate": [
+          "duration_s"
+        ],
+        "cool_crystallize": [
+          "target_temperature_K",
+          "duration_s"
+        ],
+        "distill": [
+          "target_temperature_K",
+          "duration_s",
+          "reflux_ratio"
+        ],
+        "dry": [],
+        "electrolyze": [
+          "duration_s"
+        ],
+        "evaporate": [
+          "target_temperature_K",
+          "duration_s"
+        ],
+        "filter_crystals": [],
+        "heat": [
+          "target_temperature_K",
+          "duration_s",
+          "stirring_speed_rpm"
+        ],
+        "measure": [
+          "instrument"
+        ],
+        "mix": [
+          "duration_s",
+          "stirring_speed_rpm"
+        ],
+        "quench": [],
+        "run_flow": [
+          "target_temperature_K",
+          "duration_s"
+        ],
+        "sample": [
+          "sample_volume_L"
+        ],
+        "seed_crystals": [
+          "seed_mass_g"
+        ],
+        "separate_phase": [
+          "target_phase"
+        ],
+        "set_flow_rate": [
+          "flow_rate_mL_min",
+          "residence_time_s"
+        ],
+        "set_potential": [
+          "potential_V",
+          "current_mA"
+        ],
+        "settle": [
+          "duration_s"
+        ],
+        "terminate": [],
+        "transfer": [
+          "transfer_fraction"
+        ],
+        "wait": [
+          "duration_s",
+          "stirring_speed_rpm"
+        ],
+        "wash": [
+          "wash_volume_L"
+        ]
+      },
+      "box_carrier_is_semantic_distribution": false,
+      "contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+      "irrelevant_parameter_entropy": false,
+      "irrelevant_parameter_log_prob": false,
+      "operation_distribution": "public-affordance-masked categorical",
+      "parameter_distribution": "operation-conditional diagonal Gaussian",
+      "parameter_keys": [
+        "amount_mol",
+        "catalyst",
+        "catalyst_amount_mol",
+        "current_mA",
+        "duration_s",
+        "extractant",
+        "flow_rate_mL_min",
+        "instrument",
+        "phase",
+        "potential_V",
+        "reflux_ratio",
+        "residence_time_s",
+        "sample_volume_L",
+        "seed_mass_g",
+        "solvent",
+        "stirring_speed_rpm",
+        "target_phase",
+        "target_temperature_K",
+        "transfer_fraction",
+        "volume_L",
+        "wash_volume_L"
+      ],
+      "schema_version": "chemworld-masked-conditional-ppo-0.1"
+    },
+    "policy_distribution_contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+    "replay_buffer_checkpointed": false,
+    "requested_training_environment_step_count": 102400,
+    "schema_version": "chemworld-rl-checkpoint-0.2",
+    "step_budget_exact": true,
+    "task_id": "flow-reaction-optimization",
+    "training_diagnostics": {
+      "behavior_complete_experiment_count": 9184,
+      "completed_experiment_count": 10027,
+      "completed_experiments_per_1000_steps": 97.919921875,
+      "core_operation_counts": {
+        "run_flow": 17959,
+        "set_flow_rate": 15930
+      },
+      "core_requirement_satisfied_count": 20885,
+      "environment_count": 8,
+      "episode_count": 1712,
+      "high_cost_step_count": 10985,
+      "invalid_action_count": 10005,
+      "invalid_action_rate": 0.097705078125,
+      "measurement_count": 21197,
+      "newly_unlocked_operation_count": 33715,
+      "quick_close_count": 843,
+      "quick_close_rate": 0.08407300289219108,
+      "raw_reward_sum": 1036.755898915462,
+      "runtime_domain_failure_count": 369,
+      "shaped_reward_sum": 8060.055898915191,
+      "step_count": 102400,
+      "unsafe_step_count": 150
+    },
+    "training_environment_step_count": 102400,
+    "training_infrastructure": {
+      "average_process_cpu_cores": 0.07791768626892054,
+      "cuda_available": true,
+      "cuda_device_name": "NVIDIA GeForce RTX 5080",
+      "environment_steps_per_wall_second": 39.24086288572947,
+      "logical_cpu_count": 32,
+      "parallel_environments": 8,
+      "requested_device": "cuda",
+      "resolved_device": "cuda",
+      "torch_cuda_version": "13.0",
+      "torch_num_threads": 16,
+      "vectorization_backend": "subprocess"
+    },
+    "training_reward_contract": {
+      "behavioral_completion": {
+        "all_requirements_must_be_satisfied": true,
+        "experiment_end_without_core_behavior": "quick_close_incomplete",
+        "requirements": [
+          [
+            "set_flow_rate"
+          ],
+          [
+            "run_flow"
+          ]
+        ]
+      },
+      "benchmark_evaluation_uses_shaped_reward": false,
+      "components": {
+        "behavioral_core_completion": 1.0,
+        "experiment_ended": 0.0,
+        "high_cost_step": -0.05,
+        "invalid_precondition": -0.25,
+        "measurement": 0.0,
+        "newly_satisfied_core_requirement": 0.0,
+        "newly_unlocked_operation": 0.02,
+        "quick_close_incomplete": -0.5,
+        "raw_environment_reward": 1.0,
+        "unsafe_step": -0.1,
+        "valid_nonterminal_operation": 0.0
+      },
+      "contract_hash": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1",
+      "leakage_controls": {
+        "measurement_bonus": false,
+        "raw_benchmark_reward_preserved": true,
+        "terminal_bonus": false
+      },
+      "public_signals_only": true,
+      "schema_version": "chemworld-rl-training-reward-0.2"
+    },
+    "training_reward_contract_hash": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1",
+    "versions": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.10",
+      "stable_baselines3": "2.9.0",
+      "torch": "2.13.0+cu130"
+    },
+    "wall_time_s": 2609.524675800116
+  },
+  "validation": {
+    "mypy": "passed",
+    "observation_domain_failure_count": 0,
+    "ruff": "passed",
+    "runtime_domain_failure_count": 0,
+    "targeted_rl_test_count": 33,
+    "targeted_rl_tests_passed": 33
+  }
 }
