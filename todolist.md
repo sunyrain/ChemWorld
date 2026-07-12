@@ -142,7 +142,7 @@ suite，并把这两个任务降为 exploratory。不得为了保留“六任务
 表中任务包在 owned paths 不重叠时可以并行。`依赖` 是开始正式实验前必须满足的门禁，不是认领
 文档或设计工作的限制。
 
-### P0：决定正式任务集
+### P0：冻结科学问题、任务集与关键合同
 
 | Task ID | 负责面 | 交付与验收 | 依赖 |
 | --- | --- | --- | --- |
@@ -161,8 +161,9 @@ suite，并把这两个任务降为 exploratory。不得为了保留“六任务
 | `benchmark-vnext-public-harness` | 安全/评测 | 独立进程仅通过公开 action/observation 交互；隐藏状态、debug、异常、路径和任务文本泄漏扫描通过 | task validity |
 | `benchmark-vnext-exploit-matrix` | 安全/评测 | 覆盖无成本测量、预算边界、非法动作刷分、NaN/Inf、重复 assay、提前结束和 replay 差异；全部 fail closed | public harness |
 
-P0 退出条件：正式任务全部通过 G1/G2，或明确形成 core suite + exploratory suite；生成新的协议版本，
-旧 v0.1 结果不被覆盖。
+P0 退出条件：科学定位与 H1–H4 终点冻结；正式任务全部通过 G1/G2，或明确形成 core suite +
+exploratory suite；RL hybrid action/reward 通过防捷径门禁；机制适应和先验披露协议完成版本化。
+所有变更生成新协议版本，旧 v0.1 结果不被覆盖。
 
 ### P1：冻结评测与方法公平性
 
