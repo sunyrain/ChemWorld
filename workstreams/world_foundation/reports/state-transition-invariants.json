@@ -13,76 +13,7 @@
   },
   "control_failures": [],
   "controls_complete": true,
-  "defect_inventory": [
-    {
-      "defect_id": "state-zero-effect-actions-accepted",
-      "evidence": [
-        {
-          "field": "duration_s",
-          "operation": "heat"
-        },
-        {
-          "field": "duration_s",
-          "operation": "wait"
-        },
-        {
-          "field": "duration_s",
-          "operation": "mix"
-        },
-        {
-          "field": "duration_s",
-          "operation": "settle"
-        },
-        {
-          "field": "wash_volume_L",
-          "operation": "wash"
-        },
-        {
-          "field": "duration_s",
-          "operation": "concentrate"
-        },
-        {
-          "field": "transfer_fraction",
-          "operation": "transfer"
-        },
-        {
-          "field": "seed_mass_g",
-          "operation": "seed_crystals"
-        },
-        {
-          "field": "duration_s",
-          "operation": "cool_crystallize"
-        },
-        {
-          "field": "duration_s",
-          "operation": "evaporate"
-        },
-        {
-          "field": "duration_s",
-          "operation": "distill"
-        },
-        {
-          "field": "transfer_fraction",
-          "operation": "collect_fraction"
-        },
-        {
-          "field": "duration_s",
-          "operation": "run_flow"
-        },
-        {
-          "field": "current_mA",
-          "operation": "set_potential"
-        },
-        {
-          "field": "duration_s",
-          "operation": "electrolyze"
-        }
-      ],
-      "recommended_slice": "foundation-state-fix--zero-effect-actions",
-      "severity": "P0",
-      "summary": "Zero-effect process payloads are accepted for one or more operations, allowing budget-consuming no-op transactions."
-    }
-  ],
+  "defect_inventory": [],
   "failure_policy": {
     "allowed_cost_penalties": [
       0.01,
@@ -793,12 +724,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "transfer_fraction",
-            "operation": "collect_fraction"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "transfer_fraction"
         ]
@@ -947,12 +873,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "duration_s",
-            "operation": "concentrate"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "duration_s"
         ]
@@ -1098,12 +1019,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "duration_s",
-            "operation": "cool_crystallize"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "duration_s"
         ]
@@ -1258,12 +1174,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "duration_s",
-            "operation": "distill"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "duration_s"
         ]
@@ -1558,12 +1469,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "duration_s",
-            "operation": "electrolyze"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "duration_s"
         ]
@@ -1704,12 +1610,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "duration_s",
-            "operation": "evaporate"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "duration_s"
         ]
@@ -1983,12 +1884,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "duration_s",
-            "operation": "heat"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "duration_s"
         ]
@@ -2257,12 +2153,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "duration_s",
-            "operation": "mix"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "duration_s"
         ]
@@ -2528,12 +2419,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "duration_s",
-            "operation": "run_flow"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "duration_s"
         ]
@@ -2810,12 +2696,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "seed_mass_g",
-            "operation": "seed_crystals"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "seed_mass_g"
         ]
@@ -3200,12 +3081,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "current_mA",
-            "operation": "set_potential"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "current_mA"
         ]
@@ -3327,12 +3203,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "duration_s",
-            "operation": "settle"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "duration_s"
         ]
@@ -3579,12 +3450,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "transfer_fraction",
-            "operation": "transfer"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "transfer_fraction"
         ]
@@ -3731,12 +3597,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "duration_s",
-            "operation": "wait"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "duration_s"
         ]
@@ -3882,12 +3743,7 @@
       },
       "numeric_boundary_probe": {
         "accepted_negative": [],
-        "accepted_zero": [
-          {
-            "field": "wash_volume_L",
-            "operation": "wash"
-          }
-        ],
+        "accepted_zero": [],
         "probed_fields": [
           "wash_volume_L"
         ]
@@ -4003,71 +3859,10 @@
   },
   "protocol_id": "foundation-state-transition-invariants-vnext",
   "protocol_sha256": "3b692fad06faac89940f37a53470696ead2cc96b3ba35281d363d300f648dcca",
-  "report_hash": "7df13388adff2672adf48bbae26576dcdbc23532321c0f94bcaf40618f6aec75",
+  "report_hash": "c6eecaa506e7fc5dfdeae7e526279e394c0e75bbc548653e698f8fa1941cc323",
   "schema_version": "chemworld-foundation-state-transition-report-0.1",
-  "source_commit": "a534c630d4dfc7af6a3bce6d19c8c1e2eb96df9c",
-  "source_tree_dirty": false,
-  "status": "audit_complete_defects_found",
-  "zero_effect_acceptances": [
-    {
-      "field": "duration_s",
-      "operation": "heat"
-    },
-    {
-      "field": "duration_s",
-      "operation": "wait"
-    },
-    {
-      "field": "duration_s",
-      "operation": "mix"
-    },
-    {
-      "field": "duration_s",
-      "operation": "settle"
-    },
-    {
-      "field": "wash_volume_L",
-      "operation": "wash"
-    },
-    {
-      "field": "duration_s",
-      "operation": "concentrate"
-    },
-    {
-      "field": "transfer_fraction",
-      "operation": "transfer"
-    },
-    {
-      "field": "seed_mass_g",
-      "operation": "seed_crystals"
-    },
-    {
-      "field": "duration_s",
-      "operation": "cool_crystallize"
-    },
-    {
-      "field": "duration_s",
-      "operation": "evaporate"
-    },
-    {
-      "field": "duration_s",
-      "operation": "distill"
-    },
-    {
-      "field": "transfer_fraction",
-      "operation": "collect_fraction"
-    },
-    {
-      "field": "duration_s",
-      "operation": "run_flow"
-    },
-    {
-      "field": "current_mA",
-      "operation": "set_potential"
-    },
-    {
-      "field": "duration_s",
-      "operation": "electrolyze"
-    }
-  ]
+  "source_commit": "85a8b13fe8a7ece1c3db1a66015c5ec8342f13aa",
+  "source_tree_dirty": true,
+  "status": "audit_complete_no_defects_found",
+  "zero_effect_acceptances": []
 }
