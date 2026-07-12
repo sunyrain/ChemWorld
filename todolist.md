@@ -187,13 +187,14 @@
   - 结果：历史 15 个 lite task/6 个共享 lite provider；当前 15/15 至少 `reference_validated`、28 routes 对齐，4 个旧 ID retired/replaced、2 个 ID 原位升级。
   - 验收：代码、模型卡、任务卡、文档、轨迹 provenance 和机器报告完全一致。
 
-- [ ] **`foundation-backend-v05-freeze` — 基座候选冻结与全量回归**
+- [x] **`foundation-backend-v05-freeze` — 基座候选冻结与全量回归**
   - 默认 owned_paths：`configs/foundation/backend_v0.5.json`、`scripts/audit_backend_v05.py`、`tests/test_backend_v05_freeze.py`、`workstreams/world_foundation/reports/backend-v0.5.json`、`docs/backends.md`、`docs/world_law.md`、`docs/limitations.md`。
   - 依赖：lite elimination integration、所有缺陷 fix slices。
-  - [ ] 运行 15 tasks 的合法最小轨迹、扰动轨迹、失败轨迹和 replay。
-  - [ ] 运行守恒、单位、确定性、provider provenance、漏洞、资源账本和 semantic invariance 总门禁。
-  - [ ] 运行完整 pytest、ruff、mypy、strict MkDocs、release gate 和 clean-wheel smoke test。
-  - [ ] 冻结 backend contract/hash，但不运行正式算法排名，不写论文结论。
+  - [x] 运行 15 tasks 的合法最小轨迹、扰动轨迹、失败轨迹和 replay。
+  - [x] 运行守恒、单位、确定性、provider provenance、漏洞、资源账本和 semantic invariance 总门禁。
+  - [x] 运行完整 pytest、Ruff、mypy、strict MkDocs、release gate 和 clean-wheel smoke test。
+  - [x] 冻结 backend contract/hash，但不运行正式算法排名，不写论文结论。
+  - 最终报告：`workstreams/world_foundation/reports/backend-v0.5-release-gates.json`；clean source `f629d98` 上 12/12 commands 通过，pytest 1256 passed/14 skipped、coverage 89%，45 个 task×seed 环境单元无验证/谱图/ledger/泄漏失败。
   - 验收：生成 `candidate_backend_only` v0.5 报告；任何失败都保留并阻止冻结。
 
 ## 建议执行顺序
@@ -217,9 +218,10 @@
 
 ## 本地总门禁
 
-- [ ] `.\.venv\Scripts\python.exe scripts\manage_claims.py check`
-- [ ] `.\.venv\Scripts\python.exe -m pytest`
-- [ ] `.\.venv\Scripts\python.exe -m ruff check .`
-- [ ] `.\.venv\Scripts\python.exe -m mypy src`
-- [ ] `.\.venv\Scripts\python.exe -m mkdocs build --strict`
-- [ ] `.\.venv\Scripts\python.exe scripts\run_release_gate.py`
+- [x] `.\.venv\Scripts\python.exe scripts\manage_claims.py check`
+- [x] `.\.venv\Scripts\python.exe -m pytest`
+- [x] `.\.venv\Scripts\python.exe -m ruff check .`
+- [x] `.\.venv\Scripts\python.exe -m mypy src`
+- [x] `.\.venv\Scripts\python.exe -m mkdocs build --strict`
+- [x] `.\.venv\Scripts\python.exe scripts\smoke_test_wheel.py`
+- [x] `.\.venv\Scripts\python.exe scripts\run_release_gate.py --continue-on-failure`

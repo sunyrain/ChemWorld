@@ -1,0 +1,182 @@
+{
+  "backend_candidate_gate_ready": true,
+  "backend_evidence": {
+    "backend_freeze_allowed": true,
+    "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
+    "benchmark_claim_allowed": false,
+    "file_sha256": "fcd4f6d547cca6b862c923f7cf8881e75d7d5c6cce4f76a94845ae7f8da849f4",
+    "path": "workstreams/world_foundation/reports/backend-v0.5.json",
+    "report_hash": "ef5381ae2c345cfe995b8bf0ccea6464e3c81943518ed84bb083db2b9696a6de",
+    "schema_version": "chemworld-foundation-backend-freeze-audit-0.1",
+    "status": "candidate_backend_frozen"
+  },
+  "benchmark_claim_allowed": false,
+  "benchmark_mode": "candidate",
+  "commands": [
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "scripts/manage_claims.py",
+        "check"
+      ],
+      "elapsed_s": 0.051911900052800775,
+      "name": "claims",
+      "returncode": 0,
+      "success": true
+    },
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "."
+      ],
+      "elapsed_s": 0.11825910001061857,
+      "name": "lint",
+      "returncode": 0,
+      "success": true
+    },
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "-m",
+        "mypy",
+        "src/chemworld"
+      ],
+      "elapsed_s": 0.42568570002913475,
+      "name": "type_check",
+      "returncode": 0,
+      "success": true
+    },
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest"
+      ],
+      "elapsed_s": 1123.2919713000301,
+      "name": "tests",
+      "returncode": 0,
+      "success": true
+    },
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "-m",
+        "mkdocs",
+        "build",
+        "--strict"
+      ],
+      "elapsed_s": 0.7342244000174105,
+      "name": "docs",
+      "returncode": 0,
+      "success": true
+    },
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "scripts/smoke_test_wheel.py"
+      ],
+      "elapsed_s": 5.4140469001140445,
+      "name": "wheel_smoke",
+      "returncode": 0,
+      "success": true
+    },
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "scripts/run_reference_validation.py"
+      ],
+      "elapsed_s": 1.3291156999766827,
+      "name": "reference_validation",
+      "returncode": 0,
+      "success": true
+    },
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "scripts/audit_runtime_boundary.py",
+        "--output",
+        "runs\\release_gate_backend_v05_final2\\runtime_boundary_report.json"
+      ],
+      "elapsed_s": 0.9555934998206794,
+      "name": "runtime_boundary_audit",
+      "returncode": 0,
+      "success": true
+    },
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "scripts/audit_model_reachability.py",
+        "--output",
+        "runs\\release_gate_backend_v05_final2\\model_reachability_report.json"
+      ],
+      "elapsed_s": 0.5908047999255359,
+      "name": "model_reachability_audit",
+      "returncode": 0,
+      "success": true
+    },
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "scripts/audit_environment_consistency.py",
+        "--tasks",
+        "all",
+        "--seeds",
+        "0",
+        "1",
+        "2",
+        "--output-dir",
+        "runs\\release_gate_backend_v05_final2\\audit"
+      ],
+      "elapsed_s": 43.1926607999485,
+      "name": "environment_audit",
+      "returncode": 0,
+      "success": true
+    },
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "-m",
+        "chemworld.cli",
+        "baselines",
+        "report",
+        "--tasks",
+        "reaction-to-assay",
+        "--agents",
+        "scripted_chemistry",
+        "--seeds",
+        "0",
+        "--output-dir",
+        "runs\\release_gate_backend_v05_final2\\baseline_smoke"
+      ],
+      "elapsed_s": 2.8665885000955313,
+      "name": "baseline_smoke",
+      "returncode": 0,
+      "success": true
+    },
+    {
+      "command": [
+        "D:\\Projects\\ChemWorld\\.venv\\Scripts\\python.exe",
+        "scripts/check_frozen_benchmark.py",
+        "--allow-candidate",
+        "--output",
+        "runs\\release_gate_backend_v05_final2\\benchmark_release_integrity.json"
+      ],
+      "elapsed_s": 2.278827300062403,
+      "name": "benchmark_candidate_integrity",
+      "returncode": 0,
+      "success": true
+    }
+  ],
+  "finished_at": "2026-07-12T22:48:15.270628+00:00",
+  "output_dir": "runs\\release_gate_backend_v05_final2",
+  "release_claim_ready": false,
+  "schema_version": "chemworld-release-gate-0.2",
+  "source_commit": "f629d9849ab9ef1d07520bfcab497592c781e12b",
+  "source_tree_dirty_at_finish": false,
+  "source_tree_dirty_at_start": false,
+  "started_at": "2026-07-12T22:28:33.928582+00:00",
+  "success": true
+}
