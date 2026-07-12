@@ -17,14 +17,18 @@ SUMMARY_PATH = (
     / "reports"
     / "publication-classic20-full-summary.json"
 )
+HISTORICAL_PROTOCOL_SHA256 = (
+    "1a0789f5ffae2222e0235e9b36ca6bbae5888aace4b3bf405b78492e69a1742a"
+)
 
 
-def test_formal_publication_evidence_is_complete_but_fail_closed() -> None:
+def test_historical_publication_evidence_remains_bound_and_fail_closed() -> None:
     summary = json.loads(SUMMARY_PATH.read_text(encoding="utf-8"))
     protocol = load_publication_protocol()
 
     assert summary["schema_version"] == PUBLICATION_EVIDENCE_SCHEMA_VERSION
-    assert summary["protocol_sha256"] == canonical_protocol_sha256(protocol)
+    assert summary["protocol_sha256"] == HISTORICAL_PROTOCOL_SHA256
+    assert summary["protocol_sha256"] != canonical_protocol_sha256(protocol)
     assert summary["status"] == "blocked"
     assert summary["publication_ready"] is False
     assert summary["matrix"]["result_count"] == 600
