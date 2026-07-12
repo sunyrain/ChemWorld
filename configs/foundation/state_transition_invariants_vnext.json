@@ -1,0 +1,175 @@
+{
+  "schema_version": "chemworld-foundation-state-transition-protocol-0.1",
+  "protocol_id": "foundation-state-transition-invariants-vnext",
+  "expected_operation_count": 28,
+  "allowed_semantics": [
+    "additive",
+    "replace",
+    "configure",
+    "observe",
+    "terminal"
+  ],
+  "failure_policy": {
+    "attempt_consumed": true,
+    "allowed_state_changes": [
+      "ledger.cost",
+      "ledger.risk",
+      "process.cost",
+      "process.risk"
+    ],
+    "allowed_cost_penalties": [0.01, 0.03],
+    "expected_risk_penalty": 0.08,
+    "observation_policy": "failed_observation_without_history_commit"
+  },
+  "legacy_constraints": {
+    "frozen_protocol_compatibility": "not_required",
+    "provenance_retention": "required"
+  },
+  "setup_fixtures": {
+    "empty": [],
+    "material_only": [
+      {"operation": "add_reagent", "amount_mol": 0.01}
+    ],
+    "volume_only": [
+      {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1}
+    ],
+    "charged": [
+      {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+      {"operation": "add_reagent", "amount_mol": 0.01},
+      {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1}
+    ],
+    "charged_basic": [
+      {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+      {"operation": "add_reagent", "amount_mol": 0.01}
+    ],
+    "phase_system": [
+      {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1},
+      {"operation": "add_reagent", "amount_mol": 0.008},
+      {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.015},
+      {"operation": "add_extractant", "extractant": 1, "volume_L": 0.018}
+    ],
+    "phase_base": [
+      {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1},
+      {"operation": "add_reagent", "amount_mol": 0.008},
+      {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.015}
+    ],
+    "phase_mixed": [
+      {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1},
+      {"operation": "add_reagent", "amount_mol": 0.008},
+      {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.015},
+      {"operation": "add_extractant", "extractant": 1, "volume_L": 0.018},
+      {"operation": "mix", "duration_s": 240.0, "stirring_speed_rpm": 700.0}
+    ],
+    "phase_settled": [
+      {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1},
+      {"operation": "add_reagent", "amount_mol": 0.008},
+      {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.015},
+      {"operation": "add_extractant", "extractant": 1, "volume_L": 0.018},
+      {"operation": "mix", "duration_s": 240.0, "stirring_speed_rpm": 700.0},
+      {"operation": "settle", "duration_s": 420.0}
+    ],
+    "phase_separated": [
+      {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1},
+      {"operation": "add_reagent", "amount_mol": 0.008},
+      {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.015},
+      {"operation": "add_extractant", "extractant": 1, "volume_L": 0.018},
+      {"operation": "mix", "duration_s": 240.0, "stirring_speed_rpm": 700.0},
+      {"operation": "settle", "duration_s": 420.0},
+      {"operation": "separate_phase", "target_phase": "organic"}
+    ],
+    "crystallized": [
+      {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+      {"operation": "add_reagent", "amount_mol": 0.01},
+      {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
+      {"operation": "heat", "target_temperature_K": 385.0, "duration_s": 1500.0, "stirring_speed_rpm": 720.0},
+      {"operation": "seed_crystals", "seed_mass_g": 0.006},
+      {"operation": "cool_crystallize", "target_temperature_K": 278.15, "duration_s": 1800.0}
+    ],
+    "crystallization_ready": [
+      {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+      {"operation": "add_reagent", "amount_mol": 0.01},
+      {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
+      {"operation": "heat", "target_temperature_K": 385.0, "duration_s": 1500.0, "stirring_speed_rpm": 720.0},
+      {"operation": "seed_crystals", "seed_mass_g": 0.006}
+    ],
+    "distilled": [
+      {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+      {"operation": "add_reagent", "amount_mol": 0.01},
+      {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
+      {"operation": "heat", "target_temperature_K": 385.0, "duration_s": 1500.0, "stirring_speed_rpm": 720.0},
+      {"operation": "evaporate", "target_temperature_K": 335.0, "duration_s": 600.0},
+      {"operation": "distill", "target_temperature_K": 360.0, "duration_s": 1500.0, "reflux_ratio": 2.0}
+    ],
+    "reacted_distillation": [
+      {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+      {"operation": "add_reagent", "amount_mol": 0.01},
+      {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
+      {"operation": "heat", "target_temperature_K": 385.0, "duration_s": 1500.0, "stirring_speed_rpm": 720.0},
+      {"operation": "evaporate", "target_temperature_K": 335.0, "duration_s": 600.0}
+    ],
+    "flow_configured": [
+      {"operation": "add_solvent", "volume_L": 0.026, "solvent": 2},
+      {"operation": "add_reagent", "amount_mol": 0.01},
+      {"operation": "set_flow_rate", "flow_rate_mL_min": 1.2, "residence_time_s": 900.0}
+    ],
+    "electro_configured": [
+      {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+      {"operation": "add_reagent", "amount_mol": 0.01},
+      {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0}
+    ]
+  },
+  "operations": {
+    "add_reagent": {"task_id": "reaction-to-assay", "setup": "empty", "semantic": "additive", "conservation": "external_input", "required_effect_any": ["material"], "action": {"operation": "add_reagent", "amount_mol": 0.01}},
+    "add_solvent": {"task_id": "reaction-to-assay", "setup": "empty", "semantic": "additive", "conservation": "external_input", "required_effect_any": ["volume"], "action": {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1}},
+    "add_catalyst": {"task_id": "reaction-to-assay", "setup": "empty", "semantic": "additive", "conservation": "external_input", "required_effect_any": ["material", "configuration"], "action": {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1}},
+    "heat": {"task_id": "reaction-to-assay", "setup": "charged", "semantic": "additive", "conservation": "internal_transform", "required_effect_any": ["time", "temperature", "material"], "action": {"operation": "heat", "target_temperature_K": 365.0, "duration_s": 900.0, "stirring_speed_rpm": 700.0}},
+    "wait": {"task_id": "reaction-to-assay", "setup": "charged", "semantic": "additive", "conservation": "internal_transform", "required_effect_any": ["time", "material"], "action": {"operation": "wait", "duration_s": 600.0, "stirring_speed_rpm": 700.0}},
+    "sample": {"task_id": "reaction-to-assay", "setup": "charged", "semantic": "additive", "conservation": "external_output", "required_effect_any": ["volume", "material", "sample"], "action": {"operation": "sample", "sample_volume_L": 0.0002}},
+    "quench": {"task_id": "reaction-to-assay", "setup": "volume_only", "semantic": "replace", "conservation": "internal_transform", "required_effect_any": ["temperature", "quenched"], "action": {"operation": "quench"}},
+    "add_phase": {"task_id": "partition-discovery", "setup": "empty", "semantic": "additive", "conservation": "external_input", "required_effect_any": ["volume", "phase"], "action": {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.015}},
+    "add_extractant": {"task_id": "partition-discovery", "setup": "phase_base", "semantic": "additive", "conservation": "external_input", "required_effect_any": ["volume", "phase"], "action": {"operation": "add_extractant", "extractant": 1, "volume_L": 0.018}},
+    "mix": {"task_id": "partition-discovery", "setup": "phase_system", "semantic": "additive", "conservation": "internal_transform", "required_effect_any": ["time", "phase"], "action": {"operation": "mix", "duration_s": 240.0, "stirring_speed_rpm": 700.0}},
+    "settle": {"task_id": "partition-discovery", "setup": "phase_mixed", "semantic": "additive", "conservation": "internal_transform", "required_effect_any": ["time", "phase"], "action": {"operation": "settle", "duration_s": 420.0}},
+    "separate_phase": {"task_id": "partition-discovery", "setup": "phase_settled", "semantic": "replace", "conservation": "external_output", "required_effect_any": ["phase", "volume"], "action": {"operation": "separate_phase", "target_phase": "organic"}},
+    "wash": {"task_id": "reaction-to-purification", "setup": "phase_separated", "semantic": "additive", "conservation": "external_input_output", "required_effect_any": ["phase", "volume", "cost"], "action": {"operation": "wash", "wash_volume_L": 0.008}},
+    "dry": {"task_id": "reaction-to-purification", "setup": "phase_separated", "semantic": "additive", "conservation": "external_output", "required_effect_any": ["phase", "cost"], "action": {"operation": "dry"}},
+    "concentrate": {"task_id": "reaction-to-purification", "setup": "phase_separated", "semantic": "additive", "conservation": "external_output", "required_effect_any": ["phase", "volume", "time"], "action": {"operation": "concentrate", "duration_s": 600.0}},
+    "transfer": {"task_id": "reaction-to-purification", "setup": "phase_separated", "semantic": "replace", "conservation": "external_output", "required_effect_any": ["phase", "volume", "cost"], "action": {"operation": "transfer", "transfer_fraction": 0.8}},
+    "seed_crystals": {"task_id": "reaction-to-crystallization", "setup": "volume_only", "semantic": "additive", "conservation": "external_input", "required_effect_any": ["phase", "material", "cost"], "action": {"operation": "seed_crystals", "seed_mass_g": 0.006}},
+    "cool_crystallize": {"task_id": "reaction-to-crystallization", "setup": "crystallization_ready", "semantic": "additive", "conservation": "internal_transform", "required_effect_any": ["phase", "time", "temperature"], "action": {"operation": "cool_crystallize", "target_temperature_K": 278.15, "duration_s": 1800.0}},
+    "filter_crystals": {"task_id": "reaction-to-crystallization", "setup": "crystallized", "semantic": "replace", "conservation": "external_output", "required_effect_any": ["phase", "volume", "cost"], "action": {"operation": "filter_crystals"}},
+    "evaporate": {"task_id": "reaction-to-distillation", "setup": "volume_only", "semantic": "additive", "conservation": "external_output", "required_effect_any": ["volume", "time", "temperature"], "action": {"operation": "evaporate", "target_temperature_K": 335.0, "duration_s": 600.0}},
+    "distill": {"task_id": "reaction-to-distillation", "setup": "reacted_distillation", "semantic": "additive", "conservation": "internal_transform", "required_effect_any": ["phase", "time", "temperature"], "action": {"operation": "distill", "target_temperature_K": 360.0, "duration_s": 1500.0, "reflux_ratio": 2.0}},
+    "collect_fraction": {"task_id": "reaction-to-distillation", "setup": "distilled", "semantic": "replace", "conservation": "external_output", "required_effect_any": ["phase", "volume", "cost"], "action": {"operation": "collect_fraction", "transfer_fraction": 0.8}},
+    "set_flow_rate": {"task_id": "flow-reaction-optimization", "setup": "empty", "semantic": "configure", "conservation": "configuration_only", "required_effect_any": ["configuration", "cost"], "action": {"operation": "set_flow_rate", "flow_rate_mL_min": 1.2, "residence_time_s": 900.0}},
+    "run_flow": {"task_id": "flow-reaction-optimization", "setup": "flow_configured", "semantic": "additive", "conservation": "internal_transform", "required_effect_any": ["material", "time", "temperature"], "action": {"operation": "run_flow", "target_temperature_K": 382.0, "duration_s": 1800.0}},
+    "set_potential": {"task_id": "electrochemical-conversion", "setup": "charged_basic", "semantic": "configure", "conservation": "configuration_only", "required_effect_any": ["configuration", "cost"], "action": {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0}},
+    "electrolyze": {"task_id": "electrochemical-conversion", "setup": "electro_configured", "semantic": "additive", "conservation": "internal_transform", "required_effect_any": ["material", "time", "cost"], "action": {"operation": "electrolyze", "duration_s": 1800.0}},
+    "terminate": {"task_id": "reaction-to-assay", "setup": "material_only", "semantic": "terminal", "conservation": "terminal_only", "required_effect_any": ["termination"], "action": {"operation": "terminate"}},
+    "measure": {"task_id": "reaction-to-assay", "setup": "volume_only", "semantic": "observe", "conservation": "observation_only", "required_effect_any": ["measurement", "cost", "sample"], "action": {"operation": "measure", "instrument": "uvvis"}}
+  },
+  "zero_effect_fields": {
+    "add_reagent": ["amount_mol"],
+    "add_solvent": ["volume_L"],
+    "add_catalyst": ["catalyst_amount_mol"],
+    "heat": ["duration_s"],
+    "wait": ["duration_s"],
+    "sample": ["sample_volume_L"],
+    "add_phase": ["volume_L"],
+    "add_extractant": ["volume_L"],
+    "mix": ["duration_s"],
+    "settle": ["duration_s"],
+    "wash": ["wash_volume_L"],
+    "concentrate": ["duration_s"],
+    "transfer": ["transfer_fraction"],
+    "seed_crystals": ["seed_mass_g"],
+    "cool_crystallize": ["duration_s"],
+    "evaporate": ["duration_s"],
+    "distill": ["duration_s"],
+    "collect_fraction": ["transfer_fraction"],
+    "set_flow_rate": ["flow_rate_mL_min", "residence_time_s"],
+    "run_flow": ["duration_s"],
+    "set_potential": ["current_mA"],
+    "electrolyze": ["duration_s"]
+  }
+}

@@ -44,15 +44,16 @@
   - 结果：15 tasks、28 operations、20 providers 对齐；无 orphan/reference 误路由或禁用 runtime model；六个 `lite` providers 精确归入三个共享升级模块。动态耦合的剩余证据由 P2 任务完成。
   - 验收：15 个任务全部有机器可读 reachability 图；任何未声明路径、孤儿 provider 或隐式 fallback 都令报告失败。
 
-- [ ] **`foundation-state-transition-invariants` — 28 类操作状态语义与事务漏洞审计**
+- [x] **`foundation-state-transition-invariants` — 28 类操作状态语义与事务漏洞审计**
   - 默认 owned_paths：`configs/foundation/state_transition_invariants_vnext.json`、`scripts/audit_state_transition_invariants.py`、`tests/test_state_transition_invariants.py`、`workstreams/world_foundation/reports/state-transition-invariants.json`。
   - 依赖：runtime reachability audit 的 operation 清单。
-  - [ ] 为每个 operation 声明 additive、replace、configure、observe 或 terminal 语义。
-  - [ ] 验证加热、等待、流动、电解、加料、加溶剂、萃取、洗涤、分相、转移和测量不会错误叠加或重置。
-  - [ ] 验证失败操作原子回滚，state、ledger、cost、risk、step 和 observation 不发生部分提交。
-  - [ ] 验证重复测量、终止后操作、重复 final assay、零量/负量和预算边界 fail closed。
-  - [ ] 验证真实状态只存在于 typed state，不由 metadata、缓存 observation 或 UI 状态覆盖。
-  - [ ] 对发现的每个缺陷创建独立 `foundation-state-fix--<operation>` slice。
+  - [x] 为每个 operation 声明 additive、replace、configure、observe 或 terminal 语义。
+  - [x] 验证加热、等待、流动、电解、加料、加溶剂、萃取、洗涤、分相、转移和测量不会错误叠加或重置。
+  - [x] 验证失败操作原子回滚；失败显式消耗一次 attempt 且只允许固定 process cost/risk 惩罚，不提交物料、相态、设备、热、时间、样品或 observation 历史。
+  - [x] 验证重复测量、终止后操作、重复 final assay、零量/负量和预算边界 fail closed。
+  - [x] 验证真实状态只存在于 typed state，不由 metadata、缓存 observation 或 UI 状态覆盖。
+  - [x] 对发现的缺陷建立独立 `foundation-state-fix--zero-effect-actions` slice。
+  - 结果：28/28 正向、重复、同 seed 回放、失败原子性、守恒和 typed-state 控制通过；负量全部拒绝，发现 15 个零效果字段仍接受 0，交由上述 P0 fix slice 收口。
   - 验收：28/28 operation 均有状态差分、守恒、事务和重复调用证据。
 
 - [ ] **`foundation-rl-contract-remediation` — 49 维动作与 quick-close 漏洞修复**
