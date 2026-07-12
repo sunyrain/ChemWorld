@@ -1,4 +1,4 @@
-"""WF-30 provider and vNext proposal for finite-capacity sorbent drying."""
+"""Integrated WF-30 provider for finite-capacity sorbent drying."""
 
 from __future__ import annotations
 
@@ -156,13 +156,13 @@ class SorbentDryingProvider:
 def sorbent_drying_adapter_manifest() -> ModelAdapterManifest:
     return ModelAdapterManifest(
         adapter_id="wf-30-drying-sorbent",
-        adapter_version="0.1",
+        adapter_version="0.2",
         owner_workstream=OWNER_WORKSTREAM,
         provider_contract=sorbent_drying_provider_contract(),
         owned_paths=OWNED_PATHS,
         integration_operations=("dry",),
         target_world_law="chemworld-physical-chemistry-vnext",
-        status="proposal",
+        status="integrated",
         replaces_model_ids=(),
     )
 

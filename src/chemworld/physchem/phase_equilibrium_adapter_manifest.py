@@ -1,4 +1,4 @@
-"""WF-40 provider and vNext replacement proposal for stability-aware LLE."""
+"""Integrated WF-40 provider for stability-aware LLE."""
 
 from __future__ import annotations
 
@@ -136,13 +136,13 @@ class StabilityAwareLLEProvider:
 def stability_aware_lle_adapter_manifest() -> ModelAdapterManifest:
     return ModelAdapterManifest(
         adapter_id=OWNER_WORKSTREAM,
-        adapter_version="0.1",
+        adapter_version="0.2",
         owner_workstream=OWNER_WORKSTREAM,
         provider_contract=stability_aware_lle_provider_contract(),
         owned_paths=OWNED_PATHS,
         integration_operations=INTEGRATION_OPERATIONS,
         target_world_law="chemworld-physical-chemistry-vnext",
-        status="proposal",
+        status="integrated",
         replaces_model_ids=REPLACED_MODEL_IDS,
     )
 

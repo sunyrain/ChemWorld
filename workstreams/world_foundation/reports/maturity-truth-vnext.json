@@ -212,11 +212,11 @@
     },
     "chemworld_sorbent_drying_vnext": {
       "adapter_id": "wf-30-drying-sorbent",
-      "adapter_version": "0.1",
+      "adapter_version": "0.2",
       "integration_operations": [
         "dry"
       ],
-      "manifest_hash": "64f7fb0b02938daf9abe01f2140b71efbe2f67f4dc759918d24768c3f63ef1d8",
+      "manifest_hash": "a5d326c398f572bf20b7daf099a79ab91fd6bb2eaf20e77d00a6ac735d2dd7bf",
       "owned_paths": [
         "src/chemworld/physchem/drying_units.py",
         "src/chemworld/physchem/drying_adapter_manifest.py",
@@ -271,7 +271,7 @@
       },
       "replaces_model_ids": [],
       "schema_version": "chemworld-model-adapter-manifest-0.1",
-      "status": "proposal",
+      "status": "integrated",
       "target_world_law": "chemworld-physical-chemistry-vnext"
     },
     "chemworld_spectral_identifiability_audit_vnext": {
@@ -340,12 +340,12 @@
     },
     "chemworld_stability_aware_lle_vnext": {
       "adapter_id": "wf-40-lle-stability-coupling",
-      "adapter_version": "0.1",
+      "adapter_version": "0.2",
       "integration_operations": [
         "mix",
         "wash"
       ],
-      "manifest_hash": "90aee3c6b5513bdf0335ea364aea31c2f4766826b420c46c526bcbc623d8848b",
+      "manifest_hash": "92bde7b71b53245f4a7ce0477eeee6b6325cba649f7c76f9b01cc58ccfa07993",
       "owned_paths": [
         "src/chemworld/physchem/phase_equilibrium_units.py",
         "src/chemworld/physchem/phase_equilibrium_adapter_manifest.py",
@@ -407,16 +407,16 @@
         "lle_phase_stability_diagnostic_v1"
       ],
       "schema_version": "chemworld-model-adapter-manifest-0.1",
-      "status": "proposal",
+      "status": "integrated",
       "target_world_law": "chemworld-physical-chemistry-vnext"
     },
     "chemworld_transfer_holdup_vnext": {
       "adapter_id": "wf-30-transfer-holdup",
-      "adapter_version": "0.1",
+      "adapter_version": "0.2",
       "integration_operations": [
         "transfer"
       ],
-      "manifest_hash": "0f2c33a39fff6f1b6a8f36530522a5629805475b1c1517fd45fdcacd8726896d",
+      "manifest_hash": "b7a7a43c3c96c5c076daa8cfca5b0ee9860e4c068bc50bb95f6cdb411cea218e",
       "owned_paths": [
         "src/chemworld/physchem/transfer_units.py",
         "src/chemworld/physchem/transfer_adapter_manifest.py",
@@ -469,16 +469,16 @@
       },
       "replaces_model_ids": [],
       "schema_version": "chemworld-model-adapter-manifest-0.1",
-      "status": "proposal",
+      "status": "integrated",
       "target_world_law": "chemworld-physical-chemistry-vnext"
     },
     "chemworld_vacuum_concentration_vnext": {
       "adapter_id": "wf-30-vacuum-concentration",
-      "adapter_version": "0.1",
+      "adapter_version": "0.2",
       "integration_operations": [
         "concentrate"
       ],
-      "manifest_hash": "797fa5e67651fb59a67eb3032f634ab4e487d2970862e0ce199b96f44d155935",
+      "manifest_hash": "7487138b856f41f549abc05f643fd361e7e928d16c08b114ca2f770e09f52c1c",
       "owned_paths": [
         "src/chemworld/physchem/concentration_units.py",
         "src/chemworld/physchem/concentration_adapter_manifest.py",
@@ -534,7 +534,7 @@
       },
       "replaces_model_ids": [],
       "schema_version": "chemworld-model-adapter-manifest-0.1",
-      "status": "proposal",
+      "status": "integrated",
       "target_world_law": "chemworld-physical-chemistry-vnext"
     }
   },
@@ -4174,8 +4174,8 @@
     "task_count_exact": true,
     "task_routes_exact": true
   },
-  "error_count": 64,
-  "finding_count": 64,
+  "error_count": 48,
+  "finding_count": 48,
   "findings": [
     {
       "check_id": "high_provider_missing_model_card",
@@ -4262,35 +4262,7 @@
       "check_id": "manifest_runtime_state_mismatch",
       "manifest_status": "proposal",
       "message": "runtime-reachable provider is backed by a non-integrated manifest",
-      "model_id": "chemworld_sorbent_drying_vnext",
-      "severity": "error"
-    },
-    {
-      "check_id": "manifest_runtime_state_mismatch",
-      "manifest_status": "proposal",
-      "message": "runtime-reachable provider is backed by a non-integrated manifest",
       "model_id": "chemworld_spectral_identifiability_audit_vnext",
-      "severity": "error"
-    },
-    {
-      "check_id": "manifest_runtime_state_mismatch",
-      "manifest_status": "proposal",
-      "message": "runtime-reachable provider is backed by a non-integrated manifest",
-      "model_id": "chemworld_stability_aware_lle_vnext",
-      "severity": "error"
-    },
-    {
-      "check_id": "manifest_runtime_state_mismatch",
-      "manifest_status": "proposal",
-      "message": "runtime-reachable provider is backed by a non-integrated manifest",
-      "model_id": "chemworld_transfer_holdup_vnext",
-      "severity": "error"
-    },
-    {
-      "check_id": "manifest_runtime_state_mismatch",
-      "manifest_status": "proposal",
-      "message": "runtime-reachable provider is backed by a non-integrated manifest",
-      "model_id": "chemworld_vacuum_concentration_vnext",
       "severity": "error"
     },
     {
@@ -4311,15 +4283,6 @@
     },
     {
       "check_id": "public_claim_exceeds_verified_maturity",
-      "claim_id": "lle-wash-runtime",
-      "message": "public maturity claim exceeds runtime-backed verified maturity",
-      "model_ids": [
-        "chemworld_stability_aware_lle_vnext"
-      ],
-      "severity": "error"
-    },
-    {
-      "check_id": "public_claim_exceeds_verified_maturity",
       "claim_id": "crystallization-flow-distillation-runtime",
       "message": "public maturity claim exceeds runtime-backed verified maturity",
       "model_ids": [
@@ -4327,17 +4290,6 @@
         "chemworld_geometry_resolved_pfr_v1",
         "cooling_crystallization_population_balance_v1",
         "pfr"
-      ],
-      "severity": "error"
-    },
-    {
-      "check_id": "public_claim_exceeds_verified_maturity",
-      "claim_id": "drying-concentration-transfer-runtime",
-      "message": "public maturity claim exceeds runtime-backed verified maturity",
-      "model_ids": [
-        "chemworld_sorbent_drying_vnext",
-        "chemworld_transfer_holdup_vnext",
-        "chemworld_vacuum_concentration_vnext"
       ],
       "severity": "error"
     },
@@ -4374,34 +4326,6 @@
     {
       "check_id": "task_module_maturity_exceeds_runtime_evidence",
       "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "phase_equilibrium",
-      "severity": "error",
-      "task_id": "partition-discovery"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "phase_equilibrium",
-      "severity": "error",
-      "task_id": "purity-yield-tradeoff"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "extraction_wash",
-      "severity": "error",
-      "task_id": "purity-yield-tradeoff"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "separations",
-      "severity": "error",
-      "task_id": "purity-yield-tradeoff"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
       "module_id": "crystallization",
       "severity": "error",
       "task_id": "reaction-to-crystallization"
@@ -4412,48 +4336,6 @@
       "module_id": "distillation",
       "severity": "error",
       "task_id": "reaction-to-distillation"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "phase_equilibrium",
-      "severity": "error",
-      "task_id": "reaction-to-purification"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "extraction_wash",
-      "severity": "error",
-      "task_id": "reaction-to-purification"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "separations",
-      "severity": "error",
-      "task_id": "reaction-to-purification"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "phase_equilibrium",
-      "severity": "error",
-      "task_id": "tool-agent-planning"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "extraction_wash",
-      "severity": "error",
-      "task_id": "tool-agent-planning"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "separations",
-      "severity": "error",
-      "task_id": "tool-agent-planning"
     },
     {
       "check_id": "unsupported_model_card_maturity",
@@ -4827,14 +4709,14 @@
     "chemworld_sorbent_drying_vnext": {
       "card_maturity_matches": true,
       "card_present": true,
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "reference_validated",
-      "effective_maturity": "lite",
+      "effective_maturity": "reference_validated",
       "executed_in_runtime_evidence": true,
       "manifest_contract_matches": true,
       "manifest_present": true,
-      "manifest_state_valid": false,
-      "manifest_status": "proposal",
+      "manifest_state_valid": true,
+      "manifest_status": "integrated",
       "model_id": "chemworld_sorbent_drying_vnext",
       "module_id": "separations",
       "provenance": [
@@ -4869,14 +4751,14 @@
     "chemworld_stability_aware_lle_vnext": {
       "card_maturity_matches": true,
       "card_present": true,
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "professional_candidate",
-      "effective_maturity": "lite",
+      "effective_maturity": "professional_candidate",
       "executed_in_runtime_evidence": true,
       "manifest_contract_matches": true,
       "manifest_present": true,
-      "manifest_state_valid": false,
-      "manifest_status": "proposal",
+      "manifest_state_valid": true,
+      "manifest_status": "integrated",
       "model_id": "chemworld_stability_aware_lle_vnext",
       "module_id": "separations",
       "provenance": [
@@ -4909,14 +4791,14 @@
     "chemworld_transfer_holdup_vnext": {
       "card_maturity_matches": true,
       "card_present": true,
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "reference_validated",
-      "effective_maturity": "lite",
+      "effective_maturity": "reference_validated",
       "executed_in_runtime_evidence": true,
       "manifest_contract_matches": true,
       "manifest_present": true,
-      "manifest_state_valid": false,
-      "manifest_status": "proposal",
+      "manifest_state_valid": true,
+      "manifest_status": "integrated",
       "model_id": "chemworld_transfer_holdup_vnext",
       "module_id": "separations",
       "provenance": [
@@ -4929,14 +4811,14 @@
     "chemworld_vacuum_concentration_vnext": {
       "card_maturity_matches": true,
       "card_present": true,
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "reference_validated",
-      "effective_maturity": "lite",
+      "effective_maturity": "reference_validated",
       "executed_in_runtime_evidence": true,
       "manifest_contract_matches": true,
       "manifest_present": true,
-      "manifest_state_valid": false,
-      "manifest_status": "proposal",
+      "manifest_state_valid": true,
+      "manifest_status": "integrated",
       "model_id": "chemworld_vacuum_concentration_vnext",
       "module_id": "separations",
       "provenance": [
@@ -5090,7 +4972,7 @@
           "chemworld_vacuum_concentration_vnext"
         ],
         "unknown_model_ids": [],
-        "verified_source_matches": false
+        "verified_source_matches": true
       },
       "electrochem-runtime": {
         "claimed_maturity": "reference_validated",
@@ -5112,7 +4994,7 @@
           "chemworld_stability_aware_lle_vnext"
         ],
         "unknown_model_ids": [],
-        "verified_source_matches": false
+        "verified_source_matches": true
       }
     },
     "missing_required_statements": [],
@@ -5120,7 +5002,7 @@
     "sha256": "65ecddef66ce91b21258294c627f9bafa70543d37f208b2be6fd63e4cbeb6baa"
   },
   "release_allowed": false,
-  "report_hash": "a4a029411c609b7e541229ddd7367b13a921f7ad9f5a1d951adc4aaf8f86e497",
+  "report_hash": "7b715ddd29ba0e19263367237b79c3226b69879b16236df8ad1c9e51608f93b8",
   "runtime_execution_evidence": {
     "executed_model_ids": [
       "chemworld_duty_limited_distillation_vnext",
@@ -5135,7 +5017,7 @@
   },
   "runtime_structural_findings": [],
   "schema_version": "chemworld-foundation-maturity-truth-report-0.1",
-  "source_commit": "0022bc21e2924efa3af03b675041d54e67c18ad0",
+  "source_commit": "ec6ee4345df08f57fa205c43d8eddbd80057cd84",
   "source_tree_dirty": true,
   "status": "maturity_claims_blocked",
   "task_assessments": {
@@ -5402,13 +5284,13 @@
           "verified_level": "lite"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "professional_candidate",
           "model_ids": [
             "chemworld_stability_aware_lle_vnext"
           ],
           "module_id": "phase_equilibrium",
-          "verified_level": "lite"
+          "verified_level": "professional_candidate"
         }
       ],
       "reachable_but_undeclared": [],
@@ -5532,25 +5414,25 @@
           "verified_level": "lite"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "professional_candidate",
           "model_ids": [
             "chemworld_stability_aware_lle_vnext"
           ],
           "module_id": "phase_equilibrium",
-          "verified_level": "lite"
+          "verified_level": "professional_candidate"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "professional_candidate",
           "model_ids": [
             "chemworld_stability_aware_lle_vnext"
           ],
           "module_id": "extraction_wash",
-          "verified_level": "lite"
+          "verified_level": "professional_candidate"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "reference_validated",
           "model_ids": [
             "chemworld_sorbent_drying_vnext",
@@ -5558,7 +5440,7 @@
             "chemworld_transfer_holdup_vnext"
           ],
           "module_id": "separations",
-          "verified_level": "lite"
+          "verified_level": "reference_validated"
         }
       ],
       "reachable_but_undeclared": [],
@@ -6008,25 +5890,25 @@
           "verified_level": "lite"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "professional_candidate",
           "model_ids": [
             "chemworld_stability_aware_lle_vnext"
           ],
           "module_id": "phase_equilibrium",
-          "verified_level": "lite"
+          "verified_level": "professional_candidate"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "professional_candidate",
           "model_ids": [
             "chemworld_stability_aware_lle_vnext"
           ],
           "module_id": "extraction_wash",
-          "verified_level": "lite"
+          "verified_level": "professional_candidate"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "reference_validated",
           "model_ids": [
             "chemworld_sorbent_drying_vnext",
@@ -6034,7 +5916,7 @@
             "chemworld_transfer_holdup_vnext"
           ],
           "module_id": "separations",
-          "verified_level": "lite"
+          "verified_level": "reference_validated"
         }
       ],
       "reachable_but_undeclared": [],
@@ -6105,25 +5987,25 @@
           "verified_level": "lite"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "professional_candidate",
           "model_ids": [
             "chemworld_stability_aware_lle_vnext"
           ],
           "module_id": "phase_equilibrium",
-          "verified_level": "lite"
+          "verified_level": "professional_candidate"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "professional_candidate",
           "model_ids": [
             "chemworld_stability_aware_lle_vnext"
           ],
           "module_id": "extraction_wash",
-          "verified_level": "lite"
+          "verified_level": "professional_candidate"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "reference_validated",
           "model_ids": [
             "chemworld_sorbent_drying_vnext",
@@ -6131,7 +6013,7 @@
             "chemworld_transfer_holdup_vnext"
           ],
           "module_id": "separations",
-          "verified_level": "lite"
+          "verified_level": "reference_validated"
         }
       ],
       "reachable_but_undeclared": [],

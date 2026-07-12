@@ -180,6 +180,7 @@ class ChemWorldPhaseSeparationServices:
                 "extraction_entrained_aqueous_volume_L": split[
                     "extraction_entrained_aqueous_volume_L"
                 ],
+                "extraction_provenance": list(split["extraction_provenance"]),
             },
             phase_settled=False,
             ledger=ledger,
@@ -335,6 +336,7 @@ class ChemWorldPhaseSeparationServices:
                 "wash_entrained_aqueous_volume_L": (
                     result.entrained_volume_L
                 ),
+                "wash_provenance": list(result.provenance),
             },
             selected_phase=target,
             ledger=ledger,
@@ -388,6 +390,11 @@ class ChemWorldPhaseSeparationServices:
                     "drying_volume_balance_error_L": result.volume_balance_error_L,
                     "drying_product_recovery": result.product_recovery,
                     "drying_warnings": list(result.warnings),
+                    "drying_provenance": list(result.provenance),
+                    "drying_provider_path": (
+                        "chemworld.physchem.drying_adapter_manifest."
+                        "SorbentDryingProvider"
+                    ),
                 }
             )
         ledger = state.ledger.with_updates(
@@ -469,6 +476,11 @@ class ChemWorldPhaseSeparationServices:
                     "concentration_energy_balance_error_J": result.energy_balance_error_J,
                     "concentration_target_recovery": result.target_recovery,
                     "concentration_warnings": list(result.warnings),
+                    "concentration_provenance": list(result.provenance),
+                    "concentration_provider_path": (
+                        "chemworld.physchem.concentration_adapter_manifest."
+                        "VacuumConcentrationProvider"
+                    ),
                 }
             )
         ledger = state.ledger.with_updates(
@@ -553,6 +565,11 @@ class ChemWorldPhaseSeparationServices:
                     "transfer_line_holdup_volume_L": result.final_line_volume_L,
                     "transfer_delivery_fraction": delivered_fraction,
                     "transfer_warnings": list(result.warnings),
+                    "transfer_provenance": list(result.provenance),
+                    "transfer_provider_path": (
+                        "chemworld.physchem.transfer_adapter_manifest."
+                        "TransferUnitProvider"
+                    ),
                 }
             )
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.01)

@@ -107,7 +107,11 @@ def downstream_truth_values(
     )
     organic_volume = float(organic.get("volume_L", 0.0))
     aqueous_volume = float(aqueous.get("volume_L", max(state.volume_L - organic_volume, 0.0)))
-    total_phase_product = product_in_organic + product_in_aqueous
+    # Numerical closure is a control-volume property of every typed phase,
+    # including waste, condensate, spent sorbent, source heel, and line hold-up.
+    # Restricting this sum to the two contact phases turns explicit downstream
+    # inventories into a fictitious mass-balance error.
+    total_phase_product = phase_product_total
     purity = selected_product / max(selected_product + selected_impurity, 1.0e-12)
     recovery = selected_product / initial_p
     phase_ratio = organic_volume / max(organic_volume + aqueous_volume, 1.0e-12)

@@ -29,6 +29,7 @@ class PartitionSplitResult(TypedDict):
     extraction_converged: bool
     extraction_material_balance_error_mol: float
     extraction_entrained_aqueous_volume_L: float
+    extraction_provenance: tuple[str, ...]
 
 
 def partition_split(
@@ -120,6 +121,7 @@ def partition_split(
         extraction_converged = extraction.all_stages_converged
         extraction_balance_error = extraction.material_balance_error_mol
         extraction_entrained_volume = extraction.entrained_volume_L
+        extraction_provenance = extraction.provenance
     else:
         organic_product_mol = aqueous_product_mol = 0.0
         organic_impurity_mol = aqueous_impurity_mol = 0.0
@@ -132,6 +134,9 @@ def partition_split(
         extraction_converged = True
         extraction_balance_error = 0.0
         extraction_entrained_volume = 0.0
+        extraction_provenance = (
+            "ChemWorld stability-aware LLE empty-feed identity",
+        )
     return {
         "partition_coefficient": partition,
         "impurity_partition_coefficient": impurity_partition,
@@ -146,6 +151,7 @@ def partition_split(
         "extraction_converged": extraction_converged,
         "extraction_material_balance_error_mol": extraction_balance_error,
         "extraction_entrained_aqueous_volume_L": extraction_entrained_volume,
+        "extraction_provenance": extraction_provenance,
     }
 
 

@@ -1,4 +1,4 @@
-"""WF-30 provider and vNext adapter proposal for bounded liquid transfer."""
+"""Integrated WF-30 provider for bounded liquid transfer."""
 
 from __future__ import annotations
 
@@ -121,13 +121,13 @@ class TransferUnitProvider:
 def transfer_adapter_manifest() -> ModelAdapterManifest:
     return ModelAdapterManifest(
         adapter_id="wf-30-transfer-holdup",
-        adapter_version="0.1",
+        adapter_version="0.2",
         owner_workstream=OWNER_WORKSTREAM,
         provider_contract=transfer_provider_contract(),
         owned_paths=OWNED_PATHS,
         integration_operations=("transfer",),
         target_world_law="chemworld-physical-chemistry-vnext",
-        status="proposal",
+        status="integrated",
         replaces_model_ids=(),
     )
 

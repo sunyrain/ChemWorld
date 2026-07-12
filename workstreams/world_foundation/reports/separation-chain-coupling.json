@@ -1,0 +1,107 @@
+{
+  "schema_version": "chemworld-foundation-coupling-report-0.1",
+  "task_id": "foundation-separation-chain-coupling",
+  "status": "passed",
+  "runtime_task": "reaction-to-purification",
+  "providers": {
+    "mix_and_wash": {
+      "model_id": "chemworld_stability_aware_lle_vnext",
+      "manifest_status": "integrated",
+      "declared_maturity": "professional_candidate",
+      "dynamic_call_verified": true
+    },
+    "dry": {
+      "model_id": "chemworld_sorbent_drying_vnext",
+      "manifest_status": "integrated",
+      "declared_maturity": "reference_validated",
+      "dynamic_call_verified": true
+    },
+    "concentrate": {
+      "model_id": "chemworld_vacuum_concentration_vnext",
+      "manifest_status": "integrated",
+      "declared_maturity": "reference_validated",
+      "dynamic_call_verified": true
+    },
+    "transfer": {
+      "model_id": "chemworld_transfer_holdup_vnext",
+      "manifest_status": "integrated",
+      "declared_maturity": "reference_validated",
+      "dynamic_call_verified": true
+    }
+  },
+  "checks": {
+    "exact_provider_call_graph": true,
+    "typed_phase_inventory": true,
+    "provider_provenance_recorded": true,
+    "extractant_identity_sensitive": true,
+    "phase_ratio_sensitive": true,
+    "contact_time_sensitive": true,
+    "wash_purity_recovery_tradeoff": true,
+    "invalid_sequence_fail_closed": true,
+    "all_phase_material_balance": true,
+    "legacy_proxy_or_fallback_observed": false
+  },
+  "perturbation_cases": [
+    {
+      "extractant": 0,
+      "extractant_volume_L": 0.012,
+      "mixing_duration_s": 60.0,
+      "partition_coefficient": 0.5202996963851932,
+      "purity": 0.7841144469970729,
+      "recovery": 0.2842416511036837,
+      "process_mass_balance_error": 0.0
+    },
+    {
+      "extractant": 3,
+      "extractant_volume_L": 0.024,
+      "mixing_duration_s": 480.0,
+      "partition_coefficient": 1.468240039693054,
+      "purity": 0.6961341790649226,
+      "recovery": 0.7126113844617917,
+      "process_mass_balance_error": 0.0
+    }
+  ],
+  "full_chain_case": {
+    "operations": [
+      "mix",
+      "settle",
+      "separate_phase",
+      "wash",
+      "dry",
+      "concentrate",
+      "transfer"
+    ],
+    "phase_ids": [
+      "aqueous",
+      "concentrate_condensate",
+      "concentrate_vent",
+      "organic",
+      "spent_sorbent",
+      "transfer_line_holdup",
+      "transfer_source_heel",
+      "wash_aqueous"
+    ],
+    "purity": 0.7897050464650327,
+    "recovery": 0.39243639083539344,
+    "process_mass_balance_error": 1.2281604656652382e-16,
+    "ledger_cost": 0.44197333333333344,
+    "ledger_time_s": 3960.0
+  },
+  "verification": {
+    "command": "python -m pytest tests/test_separation_chain_coupling.py tests/test_separations.py tests/test_extraction_units.py tests/test_drying_units.py tests/test_concentration_units.py tests/test_transfer_units.py -q",
+    "passed": 85,
+    "failed": 0,
+    "ruff": "passed",
+    "mypy": "passed"
+  },
+  "claim_boundary": {
+    "implementation_slice": "runtime_coupling_verified",
+    "benchmark_release_allowed_by_this_report": false,
+    "remaining_dependencies": [
+      "shared reaction/reactor runtime integration",
+      "shared instrument runtime integration",
+      "central maturity truth recalculation",
+      "backend freeze"
+    ]
+  }
+}

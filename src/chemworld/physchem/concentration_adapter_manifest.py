@@ -1,4 +1,4 @@
-"""WF-30 provider and vNext proposal for bounded vacuum concentration."""
+"""Integrated WF-30 provider for bounded vacuum concentration."""
 
 from __future__ import annotations
 
@@ -122,13 +122,13 @@ class VacuumConcentrationProvider:
 def vacuum_concentration_adapter_manifest() -> ModelAdapterManifest:
     return ModelAdapterManifest(
         adapter_id="wf-30-vacuum-concentration",
-        adapter_version="0.1",
+        adapter_version="0.2",
         owner_workstream=OWNER_WORKSTREAM,
         provider_contract=vacuum_concentration_provider_contract(),
         owned_paths=OWNED_PATHS,
         integration_operations=("concentrate",),
         target_world_law="chemworld-physical-chemistry-vnext",
-        status="proposal",
+        status="integrated",
         replaces_model_ids=(),
     )
 
