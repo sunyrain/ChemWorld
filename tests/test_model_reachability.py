@@ -207,7 +207,9 @@ def test_adapter_manifest_round_trip_is_hash_bound() -> None:
         ModelAdapterManifest.from_dict(payload)
 
 
-def test_shared_path_claims_require_core_integration_authority(tmp_path) -> None:
+def test_shared_path_claims_use_exact_non_overlap_instead_of_task_prefixes(
+    tmp_path,
+) -> None:
     active = tmp_path / "claims" / "active"
     active.mkdir(parents=True)
     claim = {
@@ -217,9 +219,17 @@ def test_shared_path_claims_require_core_integration_authority(tmp_path) -> None
     claim_path = active / "wf-20-instruments.json"
     claim_path.write_text(json.dumps(claim), encoding="utf-8")
     report = audit_shared_claim_ownership(tmp_path)
-    assert report["passed"] is False
-    assert report["findings"][0]["check_id"] == "shared_path_claim_authority"
+    assert report["passed"] is True
+    assert report["policy_version"] == "chemworld-exact-active-claim-ownership-0.1"
+    assert report["legacy_prefix_policy"]["status"] == "superseded_diagnostic_only"
 
-    claim["task_id"] = "wf-110-release-integration"
-    claim_path.write_text(json.dumps(claim), encoding="utf-8")
-    assert audit_shared_claim_ownership(tmp_path)["passed"] is True
+    overlapping = {
+        "task_id": "benchmark-vnext-independent-slice",
+        "owned_paths": ["src/chemworld/runtime"],
+    }
+    (active / "overlapping.json").write_text(
+        json.dumps(overlapping), encoding="utf-8"
+    )
+    overlap_report = audit_shared_claim_ownership(tmp_path)
+    assert overlap_report["passed"] is False
+    assert overlap_report["findings"][0]["check_id"] == "active_claim_path_overlap"

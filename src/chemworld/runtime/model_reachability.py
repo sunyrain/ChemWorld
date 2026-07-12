@@ -381,12 +381,20 @@ def _path_overlaps(left: str, right: str) -> bool:
 
 
 def audit_shared_claim_ownership(project_root: str | Path) -> dict[str, Any]:
-    """Require core integration authority for shared task/runtime/release paths."""
+    """Validate exact active-claim ownership without legacy task-id privileges.
+
+    The former WF-00/WF-110/release prefix allow-list blocked legitimate work in
+    broad shared directories even when claims owned distinct files.  The active
+    claim contract is now path-based: every claim may own any path, while exact
+    file/directory overlap between active claims fails closed.
+    """
 
     root = Path(project_root)
     claim_dir = root / "claims" / "active"
     findings: list[ReachabilityFinding] = []
     checked_claims = 0
+    owned: list[tuple[str, str]] = []
+    task_ids: set[str] = set()
     for path in sorted(claim_dir.glob("*.json")):
         checked_claims += 1
         try:
@@ -401,29 +409,61 @@ def audit_shared_claim_ownership(project_root: str | Path) -> dict[str, Any]:
             )
             continue
         task_id = str(payload.get("task_id", ""))
-        authorized = task_id.startswith(AUTHORIZED_SHARED_CLAIM_PREFIXES)
+        if not task_id:
+            findings.append(
+                ReachabilityFinding(
+                    "claim_identity_missing",
+                    "error",
+                    f"active claim {path.name!r} has no task_id",
+                )
+            )
+            continue
+        if task_id in task_ids:
+            findings.append(
+                ReachabilityFinding(
+                    "duplicate_active_task_id",
+                    "error",
+                    f"active task_id {task_id!r} is duplicated",
+                    task_id=task_id,
+                )
+            )
+        task_ids.add(task_id)
         for owned_path in payload.get("owned_paths", ()):
             normalized = _normalized_path(str(owned_path))
-            shared_matches = [
-                shared
-                for shared in SHARED_INTEGRATION_PATHS
-                if _path_overlaps(normalized, shared)
-            ]
-            if shared_matches and not authorized:
+            if not normalized or normalized.startswith("../") or "/../" in normalized:
                 findings.append(
                     ReachabilityFinding(
-                        "shared_path_claim_authority",
+                        "invalid_owned_path",
                         "error",
-                        f"claim {task_id!r} reserves shared path {normalized!r} "
-                        "without WF-00/WF-110/release authority",
+                        f"claim {task_id!r} has invalid owned path {normalized!r}",
                         task_id=task_id,
                     )
                 )
+                continue
+            for other_task_id, other_path in owned:
+                if _path_overlaps(normalized, other_path):
+                    findings.append(
+                        ReachabilityFinding(
+                            "active_claim_path_overlap",
+                            "error",
+                            f"claim {task_id!r} path {normalized!r} overlaps "
+                            f"claim {other_task_id!r} path {other_path!r}",
+                            task_id=task_id,
+                        )
+                    )
+            owned.append((task_id, normalized))
     return {
         "passed": not findings,
+        "policy_version": "chemworld-exact-active-claim-ownership-0.1",
         "checked_active_claim_count": checked_claims,
-        "shared_integration_paths": list(SHARED_INTEGRATION_PATHS),
-        "authorized_claim_prefixes": list(AUTHORIZED_SHARED_CLAIM_PREFIXES),
+        "checked_owned_path_count": len(owned),
+        "legacy_prefix_policy": {
+            "status": "superseded_diagnostic_only",
+            "shared_integration_paths": list(SHARED_INTEGRATION_PATHS),
+            "formerly_authorized_claim_prefixes": list(
+                AUTHORIZED_SHARED_CLAIM_PREFIXES
+            ),
+        },
         "findings": [finding.to_dict() for finding in findings],
     }
 
