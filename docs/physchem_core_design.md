@@ -20,7 +20,10 @@
 
 ## 先看能力地图
 
-当前实现覆盖 foundation/lite 主线，并包含若干 `reference_validated` slice。它足以支撑虚拟实验 benchmark 的可解释交互，但不是完整商业流程模拟器、真实反应预测软件或数据驱动性质数据库。
+backend v0.5 candidate 已把 15 个任务的正式必需路径统一提升到 `reference_validated`，并关闭正式
+proxy route。底层仍保留不同成熟度的诊断和参考函数，但它们不能替代正式 runtime provider，也不会
+因为存在于源码中就提高任务等级。当前实现足以支撑可解释的虚拟实验交互，不是完整商业流程模拟器、
+真实反应预测软件或数据驱动物性数据库。
 
 已稳定接入的核心方向包括：
 

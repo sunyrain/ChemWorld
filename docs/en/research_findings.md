@@ -1,5 +1,8 @@
 # Research Findings
 
+!!! warning "Pre-v0.5 diagnostic results"
+    The classical, Safe-GP, and early SAC numbers on this page predate the v0.5 candidate backend. They document protocols and failure modes; they are not rankings for the current 15-task release candidate.
+
 > **ChemWorld has produced useful failures and control results, but not a completed benchmark release.**
 
 ## Evidence levels

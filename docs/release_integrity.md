@@ -46,16 +46,12 @@ salt 原值、隐藏 seeds、逐条私有轨迹或可逆世界参数。
 本地评测机使用 `trusted-local-subprocess`，适合课程与可信代码。面对未知提交时，还需要外部容器或
 沙箱提供无网络、只读挂载、低权限以及 CPU、内存、PID 和时间限制。
 
-## 当前仓库可以运行的门禁
+## 发布候选必须公开什么
 
-```bash
-python -m pip install -e ".[dev,docs,physchem-ref]"
-python scripts/run_release_gate.py
-```
-
-该门禁验证当前 checkout 的工程完整性，包括 claims、lint、核心 typing、测试、文档、wheel、参考
-切片、runtime/model 审计、环境一致性、baseline smoke 与 benchmark bundle integrity。
+发布页应绑定 source commit、clean-tree 状态、backend/world-law/task-contract 版本、逐任务哈希、完整
+trajectory archive、统计摘要、依赖快照和独立复现状态。使用者可以据此确认下载内容与结果表属于
+同一候选版本，而不需要运行仓库维护脚本。
 
 !!! warning "工程全绿不等于论文结论成立"
-    软件门禁、科学证据和正式发布是三个层级。严格冻结发布还需要绑定 source commit、clean tree、
+    软件门禁、科学证据和正式发布是三个层级。严格冻结发布必须绑定 source commit、clean tree、
     当前 task contract、完整 trajectory archive、统计摘要、私有签名与独立复现。

@@ -1,5 +1,8 @@
 # 研究发现与证据
 
+!!! warning "Pre-v0.5 diagnostic"
+    本页的经典优化、Safe-GP 与早期 SAC 数值来自后端 v0.5 候选冻结前，只用于解释协议和失败模式，不能作为当前 15 任务的算法排名。当前后端事实见[任务与版本](tasks.md)。
+
 > **ChemWorld 已经产生了有价值的失败与控制结果，但完整 benchmark 仍未达到正式发布状态。**
 
 这一页按“发现”组织证据，而不是按算法或代码模块罗列功能。每项结果都说明证据等级、支持什么，
@@ -73,9 +76,9 @@ benchmark 排名。
 
 ## Finding 4：现有 RL 结果首先暴露了动作与训练合同问题
 
-**Evidence level：Agent-demonstrated engineering diagnostic**
+**Evidence level：Pre-v0.5 agent-demonstrated engineering diagnostic**
 
-早期 SAC 链完成了精确 100,000 Train 步、checkpoint 保存、开发评测与回放。但旧开发轨迹大量集中
+后端 v0.5 前的早期 SAC 链完成了精确 100,000 Train 步、checkpoint 保存、开发评测与回放。但旧开发轨迹大量集中
 在加料、测量和终止，开发评测中的 `run_flow` 计数为 0；因此 80k 与 100k checkpoint 的分数差首先
 反映动作覆盖、奖励与行为完成合同问题，而不是关于训练尺度的一般发现。
 

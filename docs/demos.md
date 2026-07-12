@@ -70,7 +70,6 @@ python examples/demo_llm_replay_harness.py
 python examples/demo_rl_vector_wrapper.py
 python examples/demo_dataset_agent_trace_export.py
 python examples/demo_submission_bundle.py
-python scripts/probe_tool_agent_rounds.py --seeds 0 1 2 --budget 18 --min-rounds 12
 ```
 
 ## 比较几个 Baseline
@@ -86,19 +85,12 @@ python scripts/probe_tool_agent_rounds.py --seeds 0 1 2 --budget 18 --min-rounds
 ## 验证轨迹与安装
 
 ```bash
-python -m pytest
-python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
-python -m mkdocs build --strict
+chemworld verify --constitution --submission runs/<trajectory>.jsonl
+chemworld evaluate --submission runs/<trajectory>.jsonl
 ```
 
-## 使用命令行完成同样流程
-
-未来可把 notebook 示例收束成 CLI：
-
-```bash
-chemworld run --task reaction-to-purification --agent baseline_recipe --seed 1
-chemworld score --run artifacts/runs/example.jsonl
-```
+这些命令会检查合同、回放和指标重算。运行 Agent 的完整公开入口见[本地评测机](local_eval_machine.md)，
+不要依赖尚未发布的占位命令。
 
 ## 模拟教师端评测
 

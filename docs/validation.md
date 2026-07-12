@@ -1,7 +1,7 @@
 # 验证安装与结果
 
-验证分成三个尺度：快速检查单条轨迹、运行开发测试、执行完整发布门禁。日常开发不必每次都跑最重
-的一组，但准备发布时不能只依赖局部测试。
+验证分成三个尺度：检查单条轨迹、检查提交包、确认发布证据。使用者只需通过公开 CLI 完成前两层；
+发布候选的工程与科学门禁由发布方在版本证据中声明。
 
 ## 我刚跑完一条轨迹
 
@@ -12,31 +12,21 @@ chemworld evaluate --submission runs/<trajectory>.jsonl
 
 这会检查 schema、合同、状态守恒与 replay，并从轨迹重算指标。
 
-## 我修改了代码或文档
+## 我要检查提交包
 
 ```bash
-python -m ruff check .
-python -m mypy src/chemworld
-python -m pytest
-python -m mkdocs build --strict
+chemworld submission validate runs/example_submission
+chemworld submission summarize runs/example_submission
 ```
 
-当前 release gate 执行 Ruff lint，但**没有自动执行 `ruff format --check`**。准备合并或发布时建议额外
-运行：
+提交包验证会检查 manifest、轨迹、结果、解释和依赖说明是否互相绑定。摘要只读取公开证据，不会
+暴露隐藏 world state。
 
-```bash
-python -m ruff format --check .
-```
+## 我要判断一个发布候选是否可信
 
-## 我要准备一个发布候选
-
-```bash
-python -m pip install -e ".[dev,docs,physchem-ref]"
-python scripts/run_release_gate.py
-```
-
-完整入口串联核心 typing、pytest、严格文档构建、wheel smoke、参考验证、runtime/model 审计、环境
-一致性、baseline smoke 与 benchmark bundle integrity。任一阶段失败，发布候选都不应被标为全绿。
+检查发布页是否同时给出 source commit、clean-tree 状态、backend/world-law/task-contract 版本、15 个任务
+哈希、轨迹归档、统计摘要和独立复现状态。软件检查、科学证据和正式 benchmark 声明是三个不同层级；
+缺少任一层时，都不应把“可运行”升级为“方法优越”。
 
 ## 物理与数值证据如何分层
 

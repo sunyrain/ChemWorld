@@ -1,5 +1,8 @@
 # 选择 Baseline
 
+!!! warning "旧结果不参与当前排名"
+    下文的经典优化、Safe-GP 与 SAC 数值是 pre-v0.5 diagnostic。使用当前候选后端比较方法时，应重新生成同合同、同预算、同信息条件的轨迹。
+
 Baseline 不只是“一个较弱的方法”。它可以帮助你确认任务有没有信号、Agent 是否真的更新，以及
 性能提升是否值得额外实验和计算成本。ChemWorld 逐任务比较，不把不同物理域压成一个总榜。
 
@@ -20,7 +23,6 @@ chemworld baselines report --preset core --output-dir runs/core_baselines
 
 ```bash
 chemworld baselines report --preset serious --output-dir runs/serious_baselines
-python scripts/run_serious_task_suite.py --output-dir runs/serious_release
 ```
 
 `serious` 是六任务研究候选 preset，不等于已验证 leaderboard。其当前用途是运行诊断和确认协议。
@@ -72,7 +74,7 @@ live LLM 还必须冻结 provider、模型标识、prompt hash、请求参数和
 
 ## RL Baseline 目前到哪一步
 
-SAC 已在连续流 Train 环境精确完成 100,000 步并保留五个 checkpoint。20 个开发 episodes 与 10 条
+Pre-v0.5 SAC 已在连续流 Train 环境精确完成 100,000 步并保留五个 checkpoint。20 个开发 episodes 与 10 条
 标准轨迹通过完成率、非法动作和回放门禁；但 80k checkpoint 明显优于 100k，且只有一个模型 seed。
 正式 RL baseline 必须先进行 pooled multi-seed checkpoint 选择，再扩展任务并访问冻结评测世界。
 

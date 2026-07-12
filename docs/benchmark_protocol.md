@@ -1,5 +1,8 @@
 # 设计一场公平评测
 
+!!! warning "旧数值只作诊断"
+    本页引用的经典优化、Safe-GP 与 SAC 数值均为 pre-v0.5 diagnostic。它们展示如何冻结规则和解释失败，不是当前后端上的正式排名。
+
 这一页回答的是：**怎样比较两个 Agent，才不会把更多预算、更多信息或更高风险误写成算法进步。**
 协议覆盖任务选择、数据划分、资源、统计、回放与发布。ChemWorld 逐任务报告结果，不用一个跨物理
 域的总分掩盖指标单位和失败模式的差异。
@@ -82,21 +85,7 @@ recipe space 0.2、峰值风险标签、seeds 500–519、四任务 SESOI 和相
 确认轨迹及独立回放显示四任务 safety/cost 全部通过，但连续流平均效应 0.018752 未达到 SESOI
 0.020000，故联合规则失败。seeds 500–519 同样已消费；任何方法修改都必须再次使用未触碰 seeds。
 
-```powershell
-python scripts/run_vnext_primary.py --dry-run
-python scripts/run_vnext_primary.py --workers 4 --output-dir runs/benchmark-vnext/primary
-python scripts/audit_vnext_primary.py --run-root runs/benchmark-vnext/primary --workers 4
-```
-
-Safe-GP 冻结确认链为：
-
-```powershell
-python scripts/run_safe_policy_confirmatory.py --dry-run
-python scripts/run_safe_policy_confirmatory.py --workers 4
-python scripts/audit_safe_policy_confirmatory.py `
-  --run-root runs/benchmark-vnext/safe-policy-confirmatory-0.1 `
-  --output runs/benchmark-vnext/safe-policy-confirmatory-0.1/audit.json
-```
+这些历史 cohort 的冻结清单、运行清单和审计报告应随研究工件保存；公开结果只引用工件摘要、协议版本和摘要哈希，不要求使用者执行仓库维护脚本。
 
 ## RL 还要记录训练过程
 
@@ -104,7 +93,7 @@ RL 结果至少保留：算法与库版本、网络和观测封装、训练 worl
 checkpoint 摘要、Dev 选择规则和无学习评测轨迹。PPO/SAC 等方法不能只运行未训练策略或短 smoke
 后进入方法排名。
 
-当前 SAC 开发证据只有连续流任务的单模型 seed。它精确完成 100,000 步并通过开发回放门禁，但
+Pre-v0.5 SAC 开发证据只有连续流任务的单模型 seed。它精确完成 100,000 步并通过开发回放门禁，但
 80k checkpoint 的开发结果高于 100k。正式协议必须在多个训练 seed 上汇总 checkpoint 选择，不能
 默认使用训练步数最大的模型。
 

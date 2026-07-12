@@ -3,6 +3,20 @@
 这里记录用户可感知的接口、任务、世界律和证据状态变化。正在开发但尚未进入正式 runtime 的候选
 能力不会被写成已经发布的功能。
 
+## 2026-07-13 · Backend v0.5 candidate freeze
+
+- 15 个任务的正式必需路径统一为 `reference_validated`，全部 `proxy_allowed=false`；
+- backend ID 为 `chemworld-physical-chemistry-v0.5-candidate`，继续绑定 World Law v0.4 与 Task Contract 0.6；
+- reaction/reactor/instrument 旧 lite 路径和旧通用 proxy 已从正式可达图移除；
+- 当前 task contract hash 以[任务目录](tasks.md#current-task-contracts)为准；
+- post-freeze 五种子 PPO Train/Dev 学习门通过，但正式四任务 Bench 与真实 LLM 矩阵仍未完成；
+- 本节之前产生的经典优化、Safe-GP、SAC、RL 和 LLM 结果全部标记为 **pre-v0.5 diagnostic**，不得用于
+  当前后端算法排名。
+
+!!! warning "历史结果边界"
+    下列旧版本记录保留用于解释设计演进。数值没有被事后改写，但它们绑定升级前的 backend contract，
+    不是 v0.5 benchmark evidence。
+
 ## 2026-07-13 · Research narrative and information architecture
 
 - 站点主品牌由 ChemWorld-Bench 调整为 ChemWorld，Bench 成为任务与评价子层；
@@ -66,7 +80,8 @@
 - 干燥、浓缩、转移、LLE、洗涤、蒸馏、结晶、连续流和电化学使用显式 provider route；
 - spent sorbent、condensate、vent、source heel 和 line hold-up 进入 typed ledger；
 - 正式路由不使用旧通用 separation proxy/fallback；
-- 15 个任务均为 `proxy_allowed=false`，整体成熟度仍按最弱必需模块聚合为 `lite`；
+- 该历史快照中 15 个任务已经 `proxy_allowed=false`，但当时整体成熟度仍聚合为 `lite`；当前 v0.5
+  candidate 已重新审计为 `reference_validated`；
 - 世界律、任务、场景、机理、观测和评分摘要进入轨迹。
 
 无 proxy route 只说明运行时路径明确，不代表模型达到现实工业验证。

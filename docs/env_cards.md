@@ -63,13 +63,10 @@ flag，而不是让状态静默损坏。
 环境自洽性检查应覆盖注册任务、reset/step、replay、spectra、constitution 和 smoke
 trajectory。检查结果应进入 release checklist。
 
-## 环境自一致性检查
+## 环境自一致性证据
 
-发布前至少运行：
-
-```bash
-python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
-```
+发布候选应说明注册任务、reset/step、replay、spectra、constitution 与 smoke trajectory 的检查状态，
+并把失败项保留在发布说明中。使用者可通过[验证安装与结果](validation.md)检查自己的轨迹和提交包。
 
 ## 如何理解成熟度
 

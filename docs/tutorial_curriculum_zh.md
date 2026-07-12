@@ -104,14 +104,8 @@ env.unwrapped.observation_view("lab_report")
 
 建议教师把“新增实验数量”和“解释质量”作为课堂检查点。示例阈值：Day 4 至少 20 个机制扫描实验，Day 5 至少 30 条建模样本，Day 6 至少 5 类 baseline 各 3 个 seed，Day 9 至少让 BO 进入 3 次 acquisition 决策。
 
-教程工作量现在可以被自动审计：
-
-```bash
-python scripts/audit_tutorial_workload.py --output-dir runs/tutorial_audit
-python -m pytest tests/test_tutorial_notebooks.py
-```
-
-审计会检查 Day 1-12 是否都有 30 分钟时间盒、三小时实验工单、学生工作区、最低实验数量或提交数量、图表/验证/解释证据，以及是否残留乱码或旧的可视化 checkpoint helper。
+教师检查表应确认 Day 1-12 都有 30 分钟时间盒、三小时实验工单、学生工作区、最低实验数量或提交数量，
+以及图表、验证和解释证据。课程页面只描述可观察的学习产出，不要求学生执行仓库维护工具。
 
 ## 如何评价学生项目
 

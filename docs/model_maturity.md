@@ -35,6 +35,6 @@ for module in card["kernel_maturity"]["modules"]:
     print(module["module_id"], module["level"], module["model_ids"])
 ```
 
-模型成熟度和 benchmark 经验有效性是两道不同门禁。v0.4 后端的正式 provider 路由已通过动态
-事务审计，但完整回归、golden 重建、任务区分度/可学习性、算法公平矩阵、私有评测和独立复现仍需
-在 backend freeze 后执行。因此目前仍是 benchmark candidate，不能从模型等级直接推导论文结论。
+模型成熟度和 benchmark 经验有效性是两道不同门禁。backend v0.5 candidate 已冻结正式 provider
+路由、15 个任务合同和核心证据；完整算法公平矩阵、私有评测和独立复现仍未完成。因此当前仍是
+benchmark candidate，不能从模型等级直接推导论文结论。

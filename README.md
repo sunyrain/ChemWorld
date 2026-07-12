@@ -81,16 +81,19 @@ credentials are read from the local process environment and must not enter the r
 
 ## Evidence status
 
-The Engine, task contracts, resource accounting, trajectory replay, score binding, and public evaluation controls are
-operational. **The complete benchmark is not yet validated.**
+The `chemworld-physical-chemistry-v0.5-candidate` backend is frozen: all 15 registered tasks have
+`reference_validated` required paths, `proxy_allowed=false`, exact task-contract hashes, replay-bound state
+transitions, and public-boundary controls. This is a backend contract, not an algorithm ranking or real-chemistry
+validation. **The complete benchmark is not yet validated.**
 
 Current evidence has established several useful boundaries:
 
-- unconstrained objective optimization can hide operational-risk regressions;
-- a frozen Safe-GP confirmation improved all four task objectives and passed safety/cost rules, but one effect missed
-  its pre-registered practical threshold, so the joint method claim remained failed;
-- executable mechanism and constitutive-law shifts are control-validated, while agent adaptation remains untested;
-- the existing single-seed RL run is an action/reward/training-contract diagnostic, not a stable method ranking;
+- pre-v0.5 classical and Safe-GP runs exposed objective/risk trade-offs, but are historical diagnostics and cannot rank
+  methods on the frozen backend;
+- the post-freeze five-seed PPO Train/Dev learning gate passed at 51,200 environment steps, but it is still development
+  evidence rather than a four-task Bench result;
+- executable mechanism and constitutive-law shifts are control-validated, while formal cross-family adaptation remains
+  untested;
 - LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
 
 See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.
@@ -107,16 +110,8 @@ See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/)
 | Design an evaluation | [Benchmark Design](https://sunyrain.github.io/ChemWorld/benchmark_overview/) |
 | Understand the real-world roadmap | [Real-world Bridge](https://sunyrain.github.io/ChemWorld/real_world_bridge/) |
 
-## Quality gates
+## Status boundary
 
-```bash
-python -m pip install -e ".[dev,docs,physchem-ref]"
-python scripts/run_release_gate.py
-```
-
-The standard gate checks claims, lint, core typing, tests, documentation, wheel resources, runtime/model audits,
-environment consistency, replay, and reference slices. Run `python -m ruff format --check .` separately; formatting
-is not currently part of the release-gate command list.
-
-Passing software gates establishes checkout integrity. It does not authorize a scientific benchmark or real-world
-claim.
+Software quality gates and backend audits establish checkout integrity; they do not authorize a scientific benchmark
+or real-world claim. Maintainer-only release procedures are intentionally kept out of this user guide. Contributors
+should use the repository development guide for project maintenance workflows.

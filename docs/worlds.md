@@ -89,7 +89,8 @@
 | 教学与能力切片 | mechanism explanation、low-budget characterization、tool planning 等 | 课程、接口和诊断 |
 | 软件回归 | assay、purification、partition 等稳定切片 | API、状态账本、回放和发布链检查 |
 
-物理成熟度属于每张任务卡的证据字段，不是任务的第一句价值描述。当前注册任务整体仍按最弱必需
-模块聚合为 `lite`；这不会被隐藏，但也不与“这个任务研究什么”混为一个概念。
+物理成熟度属于每张任务卡的证据字段，不是任务的第一句价值描述。backend v0.5 candidate 冻结后，
+15 个注册任务的最弱必需路径均为 `reference_validated`，且 `proxy_allowed=false`。这一等级仍只适用于
+各模型卡的窄域，不会被包装为真实化学或工业验证。
 
 完整 15 任务目录、Task ID 与合同字段见[完整任务目录](tasks.md)和[任务卡](task_cards.md)。

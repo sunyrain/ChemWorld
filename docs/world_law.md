@@ -11,7 +11,7 @@ chemworld-physical-chemistry-v0.4
 contract、scenario、trajectory 与 replay；改变状态转移、操作成本、观测可见性、评分或正式
 provider 路由时必须提升版本，旧轨迹不会被静默解释为新版本结果。
 
-## v0.4 当前正式运行路径
+## v0.5 candidate 冻结的正式运行路径
 
 v0.4 的正式运行时已经把下列窄域 provider 接入统一事务：
 
@@ -37,6 +37,6 @@ schema、instrument observation、cost/risk、maturity、provider provenance 与
 下游操作产生的 spent sorbent、condensate、vent、source heel 和 line hold-up 都保存在 typed phase
 ledger 中，不以“损失系数”隐藏物料去向。
 
-执行 `python scripts/audit_vnext_runtime_integration.py` 可同时验证 provider route、任务声明和真实
-事务执行；`python scripts/audit_backend_v05.py` 在干净树上绑定任务合同与全部核心证据。系统结构见
-[架构](architecture.md)，证据含义见[模型成熟度](model_maturity.md)。
+backend v0.5 candidate 已把 provider route、任务声明、真实事务、任务合同与核心证据绑定为固定
+候选后端。用户可通过[任务目录](tasks.md)查看当前 task hash，通过[模型成熟度](model_maturity.md)
+理解证据含义，通过[架构](architecture.md)理解系统结构；维护者审计命令不属于公开使用流程。
