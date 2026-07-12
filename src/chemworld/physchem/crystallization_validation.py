@@ -11,6 +11,7 @@ from typing import Any
 
 from chemworld.physchem.crystallization_units import (
     CoolingCrystallizationResult,
+    CrystallizationExecutionSpec,
     CrystallizationKineticsSpec,
     SolubilityCurveSpec,
     cooling_crystallization,
@@ -37,7 +38,12 @@ class CrystallizationGridCase:
     seed_mass_g: float = 0.0
     seed_diameter_m: float = 100.0e-6
 
-    def run(self, time_steps: int) -> CoolingCrystallizationResult:
+    def run(
+        self,
+        time_steps: int,
+        *,
+        execution_spec: CrystallizationExecutionSpec | None = None,
+    ) -> CoolingCrystallizationResult:
         """Run the existing PBM without changing its runtime implementation."""
 
         return cooling_crystallization(
@@ -53,6 +59,7 @@ class CrystallizationGridCase:
             seed_mass_g=self.seed_mass_g,
             seed_diameter_m=self.seed_diameter_m,
             time_steps=time_steps,
+            execution_spec=execution_spec,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -85,6 +92,7 @@ class CrystallizationConvergenceSpec:
     max_material_balance_error_mol: float = 1.0e-10
     max_step_ledger_error_mol: float = 1.0e-10
     max_particle_count_relative_error: float = 1.0e-12
+    max_particle_target_balance_error_mol: float = 1.0e-10
     relative_floor: float = 1.0e-15
 
     def __post_init__(self) -> None:
@@ -105,6 +113,7 @@ class CrystallizationConvergenceSpec:
             "max_material_balance_error_mol",
             "max_step_ledger_error_mol",
             "max_particle_count_relative_error",
+            "max_particle_target_balance_error_mol",
             "relative_floor",
         ):
             value = float(getattr(self, field_name))
@@ -121,6 +130,7 @@ class CrystallizationConvergenceSpec:
             "max_material_balance_error_mol": self.max_material_balance_error_mol,
             "max_step_ledger_error_mol": self.max_step_ledger_error_mol,
             "max_particle_count_relative_error": (self.max_particle_count_relative_error),
+            "max_particle_target_balance_error_mol": (self.max_particle_target_balance_error_mol),
             "relative_floor": self.relative_floor,
         }
 
@@ -138,6 +148,7 @@ class CrystallizationGridPoint:
     target_step_ledger_error_mol: float
     impurity_step_ledger_error_mol: float
     particle_count_ledger_relative_error: float
+    particle_target_balance_error_mol: float
     result_sha256: str
 
     def to_dict(self) -> dict[str, Any]:
@@ -151,6 +162,7 @@ class CrystallizationGridPoint:
             "target_step_ledger_error_mol": self.target_step_ledger_error_mol,
             "impurity_step_ledger_error_mol": self.impurity_step_ledger_error_mol,
             "particle_count_ledger_relative_error": (self.particle_count_ledger_relative_error),
+            "particle_target_balance_error_mol": self.particle_target_balance_error_mol,
             "result_sha256": self.result_sha256,
         }
 
@@ -167,6 +179,7 @@ class CrystallizationConvergenceReport:
     material_closed: bool
     step_ledger_closed: bool
     particle_count_ledger_closed: bool
+    particle_size_moment_closed: bool
     grid_converged: bool
     passed: bool
     thresholds: CrystallizationConvergenceSpec
@@ -184,6 +197,7 @@ class CrystallizationConvergenceReport:
             "material_closed": self.material_closed,
             "step_ledger_closed": self.step_ledger_closed,
             "particle_count_ledger_closed": self.particle_count_ledger_closed,
+            "particle_size_moment_closed": self.particle_size_moment_closed,
             "grid_converged": self.grid_converged,
             "passed": self.passed,
             "thresholds": self.thresholds.to_dict(),
@@ -236,6 +250,10 @@ def audit_crystallization_convergence(
         point.particle_count_ledger_relative_error <= policy.max_particle_count_relative_error
         for point in points
     )
+    particle_size_moment_closed = all(
+        point.particle_target_balance_error_mol <= policy.max_particle_target_balance_error_mol
+        for point in points
+    )
     grid_converged = (
         recovery_delta <= policy.max_recovery_relative_delta
         and crystallized_delta <= policy.max_crystallized_relative_delta
@@ -248,6 +266,8 @@ def audit_crystallization_convergence(
         warnings.append("step_transfer_ledger_not_closed")
     if not particle_count_closed:
         warnings.append("particle_count_ledger_not_closed")
+    if not particle_size_moment_closed:
+        warnings.append("particle_size_moment_ledger_not_closed")
     if not grid_converged:
         warnings.append("time_grid_not_converged")
     if finest.total_particle_count == 0.0:
@@ -261,9 +281,14 @@ def audit_crystallization_convergence(
         material_closed=material_closed,
         step_ledger_closed=step_ledger_closed,
         particle_count_ledger_closed=particle_count_closed,
+        particle_size_moment_closed=particle_size_moment_closed,
         grid_converged=grid_converged,
         passed=(
-            material_closed and step_ledger_closed and particle_count_closed and grid_converged
+            material_closed
+            and step_ledger_closed
+            and particle_count_closed
+            and particle_size_moment_closed
+            and grid_converged
         ),
         thresholds=policy,
         warnings=tuple(warnings),
@@ -296,6 +321,7 @@ def crystallization_convergence_model_card() -> ModelCard:
             "sum(Delta n_target,step) = n_target,crystallized",
             "sum(Delta n_impurity,step) = n_impurity,occluded",
             "N_final = N_seed + sum(N_nucleated,step) when aggregation and breakage are absent",
+            "n_target,solid = rho pi M3 / (6 MW)",
         ),
         assumptions=(
             "the audited cooling_crystallization implementation is deterministic",
@@ -376,6 +402,7 @@ def _grid_point(
         target_step_ledger_error_mol=abs(target_step_total - result.crystallized_from_solution_mol),
         impurity_step_ledger_error_mol=abs(impurity_step_total - result.impurity_occluded_mol),
         particle_count_ledger_relative_error=count_error,
+        particle_target_balance_error_mol=result.particle_target_balance_error_mol,
         result_sha256=_sha256(result.to_dict()),
     )
 

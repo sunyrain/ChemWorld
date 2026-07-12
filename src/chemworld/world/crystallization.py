@@ -10,7 +10,7 @@ from chemworld.world.operations import CRYSTALLIZATION_OPERATIONS
 @dataclass(frozen=True)
 class CrystallizationModuleSpec:
     module_id: str = "crystallization"
-    version: str = "0.2"
+    version: str = "0.3"
     operations: tuple[str, ...] = CRYSTALLIZATION_OPERATIONS
     laws: tuple[str, ...] = (
         "vanthoff_solubility_curve",
@@ -19,6 +19,10 @@ class CrystallizationModuleSpec:
         "impurity_occlusion",
         "crystal_size_distribution",
         "filtration_recovery_ledger",
+        "validated_runtime_provider",
+        "temperature_and_supersaturation_history",
+        "component_and_particle_moment_closure",
+        "fail_closed_runtime_domain",
     )
 
     def to_dict(self) -> dict[str, object]:
@@ -27,7 +31,17 @@ class CrystallizationModuleSpec:
             "version": self.version,
             "operations": list(self.operations),
             "laws": list(self.laws),
-            "tracked_metrics": ["crystal_yield", "crystal_purity", "crystal_size"],
+            "tracked_metrics": [
+                "crystal_yield",
+                "crystal_purity",
+                "crystal_size",
+                "supersaturation_history",
+                "nucleation_history",
+                "growth_history",
+                "component_balance",
+                "particle_size_moments",
+            ],
+            "runtime_policy": "validated_provider_fail_closed",
         }
 
 

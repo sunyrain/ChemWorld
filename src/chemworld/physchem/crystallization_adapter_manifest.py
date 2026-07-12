@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from itertools import pairwise
 from typing import Any
 
+from chemworld.physchem.crystallization_units import (
+    CoolingCrystallizationResult,
+    CrystallizationExecutionSpec,
+)
 from chemworld.physchem.crystallization_validation import (
     IDAES_BALANCE_PATH,
     IDAES_COMMIT,
@@ -27,6 +32,146 @@ OWNED_PATHS = (
     "workstreams/world_foundation/adapters/wf-50-crystallization-convergence.json",
 )
 INTEGRATION_OPERATIONS = ("cool_crystallize",)
+RUNTIME_MODEL_ID = "cooling_crystallization_population_balance_v1"
+
+
+def crystallization_runtime_provider_contract() -> ModelProviderContract:
+    """Return the validated population-balance runtime contract."""
+
+    return ModelProviderContract(
+        model_id=RUNTIME_MODEL_ID,
+        module_id="separations",
+        maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+        role=ModelExecutionRole.RUNTIME,
+        provider_path=(
+            "chemworld.physchem.crystallization_adapter_manifest."
+            "ValidatedCrystallizationRuntimeProvider"
+        ),
+        input_fields=("case", "time_steps", "execution_spec"),
+        output_fields=("result",),
+        units={
+            "case": "CrystallizationGridCase with explicit K/s/L/mol inputs",
+            "time_steps": "count",
+            "execution_spec": "dimensioned runtime acceptance policy",
+            "result": "CoolingCrystallizationResult",
+        },
+        validity_checks=(
+            "target feed and any seed population exceed declared effective minima",
+            "cooling rate remains inside the declared linear-ramp domain",
+            "temperature history is monotonic and reaches the requested endpoint",
+            "component and crystal-size-moment ledgers close within tolerance",
+            "growth-cap solver converges and a nonzero solution-to-solid transfer occurs",
+        ),
+        diagnostic_fields=(
+            "runtime_validated",
+            "temperature_history_valid",
+            "material_closed",
+            "liquid_composition_closed",
+            "particle_size_moment_closed",
+            "growth_solver_converged",
+            "crystal_population_formed",
+            "meaningful_transfer",
+            "cooling_rate_K_s",
+            "warnings",
+        ),
+        failure_policy=(
+            "fail closed without a runtime output for invalid feed or seed, excessive "
+            "cooling rate, absent population or transfer, solver non-convergence, or "
+            "component/particle ledger failure"
+        ),
+        provenance=(
+            "ChemWorld cooling_crystallization population-balance cohort model v1",
+            "ChemWorld van't Hoff solubility and primary nucleation/growth contracts",
+            "tests/test_crystallization_units.py",
+            "tests/test_crystallization_validation.py",
+            "tests/test_crystallization_coupling.py",
+        ),
+        intended_operations=INTEGRATION_OPERATIONS,
+    )
+
+
+class ValidatedCrystallizationRuntimeProvider:
+    """Fail-closed provider used by the formal cooling-crystallization runtime."""
+
+    @property
+    def model_contract(self) -> ModelProviderContract:
+        return crystallization_runtime_provider_contract()
+
+    def validate_domain(self, inputs: Mapping[str, Any]) -> tuple[str, ...]:
+        violations: list[str] = []
+        if not isinstance(inputs.get("case"), CrystallizationGridCase):
+            violations.append("case must be a CrystallizationGridCase")
+        time_steps = inputs.get("time_steps")
+        if isinstance(time_steps, bool) or not isinstance(time_steps, int) or time_steps < 2:
+            violations.append("time_steps must be an integer of at least two")
+        if not isinstance(inputs.get("execution_spec"), CrystallizationExecutionSpec):
+            violations.append("execution_spec must be a CrystallizationExecutionSpec")
+        return tuple(violations)
+
+    def evaluate(self, inputs: Mapping[str, Any]) -> ModelProviderResult:
+        violations = self.validate_domain(inputs)
+        if violations:
+            return _runtime_failed_result("; ".join(violations))
+        case = inputs["case"]
+        time_steps = inputs["time_steps"]
+        execution_spec = inputs["execution_spec"]
+        assert isinstance(case, CrystallizationGridCase)
+        assert isinstance(time_steps, int)
+        assert isinstance(execution_spec, CrystallizationExecutionSpec)
+        try:
+            result = case.run(time_steps, execution_spec=execution_spec)
+        except (ArithmeticError, ValueError) as error:
+            return _runtime_failed_result(str(error))
+        diagnostics = _runtime_diagnostics(result, execution_spec)
+        failures = [
+            key
+            for key in (
+                "temperature_history_valid",
+                "material_closed",
+                "liquid_composition_closed",
+                "particle_size_moment_closed",
+                "growth_solver_converged",
+                "crystal_population_formed",
+                "meaningful_transfer",
+            )
+            if diagnostics[key] is not True
+        ]
+        if failures:
+            return _runtime_failed_result(
+                "runtime crystallization acceptance failed: " + ", ".join(failures),
+                diagnostics=diagnostics,
+            )
+        diagnostics["runtime_validated"] = True
+        return ModelProviderResult(
+            outputs={"result": result},
+            diagnostics=diagnostics,
+            warnings=result.warnings,
+            provenance=self.model_contract.provenance,
+        )
+
+
+def crystallization_runtime_adapter_manifest() -> ModelAdapterManifest:
+    """Return the integrated adapter manifest for formal crystallization."""
+
+    return ModelAdapterManifest(
+        adapter_id="foundation-crystallization-coupling",
+        adapter_version="1.0",
+        owner_workstream="foundation-crystallization-coupling",
+        provider_contract=crystallization_runtime_provider_contract(),
+        owned_paths=(
+            "src/chemworld/world/crystallization.py",
+            "src/chemworld/physchem/crystallization_units.py",
+            "src/chemworld/physchem/crystallization_validation.py",
+            "src/chemworld/physchem/crystallization_cards.py",
+            "src/chemworld/physchem/crystallization_adapter_manifest.py",
+            "src/chemworld/runtime/crystallization_services.py",
+            "tests/test_crystallization_coupling.py",
+            "workstreams/world_foundation/reports/crystallization-coupling.json",
+        ),
+        integration_operations=INTEGRATION_OPERATIONS,
+        target_world_law="chemworld-physical-chemistry-vnext",
+        status="integrated",
+    )
 
 
 def crystallization_convergence_provider_contract() -> ModelProviderContract:
@@ -59,6 +204,7 @@ def crystallization_convergence_provider_contract() -> ModelProviderContract:
             "material_closed",
             "step_ledger_closed",
             "particle_count_ledger_closed",
+            "particle_size_moment_closed",
             "warnings",
         ),
         failure_policy=(
@@ -115,6 +261,7 @@ class CrystallizationConvergenceProvider:
             "material_closed": report.material_closed,
             "step_ledger_closed": report.step_ledger_closed,
             "particle_count_ledger_closed": report.particle_count_ledger_closed,
+            "particle_size_moment_closed": report.particle_size_moment_closed,
             "warnings": list(report.warnings),
         }
         return ModelProviderResult(
@@ -152,6 +299,7 @@ def _failed_result(
             "material_closed": False,
             "step_ledger_closed": False,
             "particle_count_ledger_closed": False,
+            "particle_size_moment_closed": False,
             "warnings": [failure_reason],
         },
         warnings=(failure_reason,),
@@ -161,10 +309,85 @@ def _failed_result(
     )
 
 
+def _runtime_diagnostics(
+    result: CoolingCrystallizationResult,
+    policy: CrystallizationExecutionSpec,
+) -> dict[str, Any]:
+    temperatures = [
+        result.initial_temperature_K,
+        *[report.temperature_K for report in result.step_reports],
+    ]
+    temperature_history_valid = (
+        bool(result.step_reports)
+        and all(right <= left for left, right in pairwise(temperatures))
+        and abs(temperatures[-1] - result.final_temperature_K) <= 1.0e-9
+    )
+    liquid_closed = all(
+        error <= policy.material_balance_tolerance_mol
+        for error in result.component_balance_errors_mol.values()
+    )
+    return {
+        "runtime_validated": False,
+        "temperature_history_valid": temperature_history_valid,
+        "material_closed": (
+            result.material_balance_error_mol <= policy.material_balance_tolerance_mol
+        ),
+        "liquid_composition_closed": liquid_closed,
+        "particle_size_moment_closed": (
+            result.particle_target_balance_error_mol <= policy.particle_target_balance_tolerance_mol
+        ),
+        "growth_solver_converged": result.growth_solver_converged,
+        "crystal_population_formed": (result.crystal_size_distribution.total_particle_count > 0.0),
+        "meaningful_transfer": (
+            result.crystallized_from_solution_mol >= policy.minimum_crystallized_from_solution_mol
+        ),
+        "cooling_rate_K_s": result.cooling_rate_K_s,
+        "warnings": list(result.warnings),
+    }
+
+
+def _runtime_failed_result(
+    failure_reason: str,
+    *,
+    diagnostics: Mapping[str, Any] | None = None,
+) -> ModelProviderResult:
+    failed_diagnostics: dict[str, Any] = {
+        "runtime_validated": False,
+        "temperature_history_valid": False,
+        "material_closed": False,
+        "liquid_composition_closed": False,
+        "particle_size_moment_closed": False,
+        "growth_solver_converged": False,
+        "crystal_population_formed": False,
+        "meaningful_transfer": False,
+        "cooling_rate_K_s": None,
+        "warnings": [failure_reason],
+    }
+    if diagnostics is not None:
+        failed_diagnostics.update(dict(diagnostics))
+        failed_diagnostics["runtime_validated"] = False
+        failed_diagnostics["warnings"] = [
+            *list(failed_diagnostics.get("warnings", ())),
+            failure_reason,
+        ]
+    return ModelProviderResult(
+        outputs={},
+        diagnostics=failed_diagnostics,
+        warnings=(failure_reason,),
+        success=False,
+        failure_reason=failure_reason,
+        provenance=crystallization_runtime_provider_contract().provenance,
+    )
+
+
 __all__ = [
     "INTEGRATION_OPERATIONS",
     "OWNED_PATHS",
+    "RUNTIME_MODEL_ID",
     "CrystallizationConvergenceProvider",
+    "ValidatedCrystallizationRuntimeProvider",
     "crystallization_convergence_adapter_manifest",
     "crystallization_convergence_provider_contract",
+    "crystallization_runtime_adapter_manifest",
+    "crystallization_runtime_provider_contract",
 ]

@@ -50,6 +50,9 @@ def crystallization_unit_model_cards() -> tuple[ModelCard, ...]:
                 "no-crystal-population warning.",
                 "A final supersaturation above 1.05 produces a kinetic "
                 "incompletion warning rather than forcing equilibrium.",
+                "The formal runtime additionally rejects ineffective seeds, target "
+                "depletion, excessive cooling rate, absent crystallization transfer, "
+                "solver non-convergence, and component or particle-moment non-closure.",
             ),
             units={
                 "temperature": "K",
@@ -93,6 +96,22 @@ def crystallization_unit_model_cards() -> tuple[ModelCard, ...]:
                     status="implemented",
                     command_or_path="tests/test_crystallization_units.py",
                     tolerance="component material residual < 1e-10",
+                ),
+                ValidationEvidence(
+                    evidence_id="cooling-crystallization-runtime-coupling",
+                    evidence_type="dynamic_runtime_test",
+                    description=(
+                        "Proves the formal operation calls the validated provider, "
+                        "records temperature/supersaturation/nucleation/growth history, "
+                        "closes component and M0-M3 ledgers, responds to cooling/seed/time "
+                        "perturbations, couples filtration, and rolls back failed domains."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_crystallization_coupling.py",
+                    tolerance=(
+                        "component and particle target residual <= 1e-10 mol; "
+                        "failure cases commit no crystallization state"
+                    ),
                 ),
             ),
             model_limit_notes=(

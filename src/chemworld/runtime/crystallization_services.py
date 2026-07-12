@@ -14,10 +14,12 @@ from chemworld.foundation import (
 )
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.physchem.crystallization_units import (
+    CoolingCrystallizationResult,
+    CrystallizationExecutionSpec,
     CrystallizationKineticsSpec,
     SolubilityCurveSpec,
-    cooling_crystallization,
 )
+from chemworld.physchem.crystallization_validation import CrystallizationGridCase
 from chemworld.physchem.elements import molecular_weight
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
@@ -51,7 +53,6 @@ def _crystallization_phases(
     product_mol: float,
     impurity_mol: float,
     mother_liquor_volume_L: float | None = None,
-    solvent_loss: float = 0.0,
     solid_selected: bool = True,
 ) -> PhaseLedger:
     mother_liquor_volume = (
@@ -109,6 +110,8 @@ class ChemWorldCrystallizationServices:
     ) -> None:
         self.world = world
         self.species_view = species_view
+        self.runtime_provider: Any | None = None
+        self.last_provider_execution: dict[str, Any] = {}
 
     def _target_molecular_weight_kg_mol(self) -> float:
         target = self.species_view.primary_target_species
@@ -224,8 +227,8 @@ class ChemWorldCrystallizationServices:
             fines_threshold_m=20.0e-6,
             provenance_id="chemworld-world-law-v0.2-crystallization-kinetics",
         )
-        result = cooling_crystallization(
-            {
+        case = CrystallizationGridCase(
+            feed_amounts_mol={
                 target_species: dissolved_product_mol,
                 impurity_species: impurity_mol,
             },
@@ -239,8 +242,46 @@ class ChemWorldCrystallizationServices:
             kinetics=kinetics,
             seed_mass_g=seed_mass_g,
             seed_diameter_m=100.0e-6,
-            time_steps=max(24, min(120, round(duration / 30.0))),
         )
+        execution_spec = CrystallizationExecutionSpec.strict_runtime()
+        provider = self.runtime_provider
+        if provider is None:
+            from chemworld.physchem.crystallization_adapter_manifest import (
+                ValidatedCrystallizationRuntimeProvider,
+            )
+
+            provider = ValidatedCrystallizationRuntimeProvider()
+        time_steps = max(24, min(120, round(duration / 30.0)))
+        provider_result = provider.evaluate(
+            {
+                "case": case,
+                "time_steps": time_steps,
+                "execution_spec": execution_spec,
+            }
+        )
+        contract = provider.model_contract
+        self.last_provider_execution = {
+            "model_id": contract.model_id,
+            "provider_path": contract.provider_path,
+            "maturity": contract.maturity.value,
+            "role": contract.role.value,
+            "success": provider_result.success,
+            "failure_reason": provider_result.failure_reason,
+            "diagnostics": dict(provider_result.diagnostics),
+            "provenance": list(provider_result.provenance),
+        }
+        if not provider_result.success:
+            raise ValueError(
+                provider_result.failure_reason or "crystallization runtime provider failed"
+            )
+        result = provider_result.outputs.get("result")
+        if not isinstance(result, CoolingCrystallizationResult):
+            raise ValueError("crystallization runtime provider returned no validated result")
+        from chemworld.physchem.crystallization_adapter_manifest import (
+            crystallization_runtime_adapter_manifest,
+        )
+
+        provider_manifest_hash = crystallization_runtime_adapter_manifest().manifest_hash
         crystallized = result.crystals_amounts_mol[target_species]
         occluded_impurity = result.crystals_amounts_mol[impurity_species]
         process_metrics = {} if state.process is None else state.process.metrics
@@ -271,6 +312,24 @@ class ChemWorldCrystallizationServices:
             product_mol=crystallized,
             impurity_mol=occluded_impurity,
         )
+        execution_history = list(crystallizer_settings.get("execution_history", ()))
+        execution_history.append(
+            {
+                "execution_index": len(execution_history) + 1,
+                "model_id": contract.model_id,
+                "provider_path": contract.provider_path,
+                "provider_manifest_hash": provider_manifest_hash,
+                "initial_temperature_K": state.temperature_K,
+                "final_temperature_K": target_temperature,
+                "duration_s": duration,
+                "seed_mass_g": seed_mass_g,
+                "target_recovery": result.target_recovery,
+                "crystal_purity": result.crystal_purity,
+                "csd_d50_m": result.crystal_size_distribution.d50_m,
+                "diagnostics": dict(provider_result.diagnostics),
+                "provenance": list(provider_result.provenance),
+            }
+        )
         equipment = upsert_equipment_record(
             state.equipment,
             equipment_id="crystallizer",
@@ -279,9 +338,23 @@ class ChemWorldCrystallizationServices:
             status="completed",
             settings={
                 "crystallization_model_id": result.model_id,
+                "provider_path": contract.provider_path,
+                "provider_manifest_hash": provider_manifest_hash,
+                "provider_maturity": contract.maturity.value,
+                "provider_role": contract.role.value,
+                "provider_diagnostics": dict(provider_result.diagnostics),
+                "provider_provenance": list(provider_result.provenance),
+                "execution_history": execution_history,
+                "execution_spec": execution_spec.to_dict(),
                 "solubility_model_id": solubility.model_id,
                 "kinetics_model_id": kinetics.model_id,
                 "material_balance_error_mol": result.material_balance_error_mol,
+                "component_balance_errors_mol": result.component_balance_errors_mol,
+                "particle_target_balance_error_mol": (result.particle_target_balance_error_mol),
+                "growth_solver_converged": result.growth_solver_converged,
+                "growth_solver_iterations": result.growth_solver_iterations,
+                "growth_solver_max_residual_mol": result.growth_solver_max_residual_mol,
+                "cooling_rate_K_s": result.cooling_rate_K_s,
                 "maximum_supersaturation_ratio": result.maximum_supersaturation_ratio,
                 "final_supersaturation_ratio": result.final_supersaturation_ratio,
                 "csd_d10_m": result.crystal_size_distribution.d10_m,
@@ -291,6 +364,22 @@ class ChemWorldCrystallizationServices:
                 "csd_fines_number_fraction": (
                     result.crystal_size_distribution.fines_number_fraction
                 ),
+                "csd_total_particle_count": (result.crystal_size_distribution.total_particle_count),
+                "csd_number_moment_0": result.crystal_size_distribution.number_moment_0,
+                "csd_length_moment_1_m": (result.crystal_size_distribution.length_moment_1_m),
+                "csd_area_moment_2_m2": (result.crystal_size_distribution.area_moment_2_m2),
+                "csd_volume_moment_3_m3": (result.crystal_size_distribution.volume_moment_3_m3),
+                "temperature_history_K": [
+                    state.temperature_K,
+                    *[step.temperature_K for step in result.step_reports],
+                ],
+                "supersaturation_history": [
+                    step.supersaturation_ratio for step in result.step_reports
+                ],
+                "nucleation_history_per_L_s": [
+                    step.nucleation_rate_per_L_s for step in result.step_reports
+                ],
+                "growth_history_m_s": [step.growth_rate_m_s for step in result.step_reports],
                 "model_warnings": list(result.warnings),
                 "provenance": result.provenance,
             },
@@ -325,19 +414,6 @@ class ChemWorldCrystallizationServices:
             1.0,
             float(process_metrics.get("solvent_loss", 0.0)) + 0.04,
         )
-        equipment = upsert_equipment_record(
-            state.equipment,
-            equipment_id="crystal_filter",
-            equipment_type="solid_liquid_filter",
-            attached_vessel_id=state.vessel_id,
-            status="completed",
-            settings={
-                "crystals_filtered": True,
-                "filtered_product_mol": product,
-                "filtered_impurity_mol": impurity,
-                "filter_purity": purity,
-            },
-        )
         process = process_with_metrics(
             state.process,
             pre_separation_product_mol=initial_p,
@@ -358,7 +434,36 @@ class ChemWorldCrystallizationServices:
             product_mol=product,
             impurity_mol=impurity,
             mother_liquor_volume_L=state.volume_L * 0.92,
-            solvent_loss=solvent_loss,
+        )
+        phase_totals = phases.total_amounts_mol()
+        filter_balance_error = max(
+            (
+                abs(state.species_amounts.get(species_id, 0.0) - amount_mol)
+                for species_id, amount_mol in phase_totals.items()
+            ),
+            default=0.0,
+        )
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="crystal_filter",
+            equipment_type="solid_liquid_filter",
+            attached_vessel_id=state.vessel_id,
+            status="completed",
+            settings={
+                "crystals_filtered": True,
+                "filtered_product_mol": product,
+                "filtered_impurity_mol": impurity,
+                "filter_purity": purity,
+                "target_solid_retention_fraction": 0.96,
+                "impurity_solid_retention_fraction": 0.92,
+                "target_returned_to_filtrate_mol": solid_product - product,
+                "impurity_returned_to_filtrate_mol": solid_impurity - impurity,
+                "component_balance_error_mol": filter_balance_error,
+                "provenance": [
+                    "ChemWorld solid-liquid filtration retention ledger v1",
+                    "coupled to cooling_crystallization_population_balance_v1 solid phase",
+                ],
+            },
         )
         return state.replace(
             ledger=ledger,
