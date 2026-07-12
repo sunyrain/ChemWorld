@@ -9,6 +9,8 @@
 - 现有 `benchmark-vnext-reference-portfolio-substrate` active claim 可继续完成，但不阻塞本专项。
 - 所有实现继续遵守 `claims/README.md`：先 claim、单一 Task ID、精确 `owned_paths`、独立提交并推送 `main`。
 - 一个任务超过约两天时，用 `原-task-id--slice-序号-名称` 拆分；共享文件最后由 integration slice 顺序合并。
+- 旧冻结协议只作为历史 provenance，不是兼容性硬约束。若旧 action、reward、task、score、physics 或 replay 合同妨碍更好的基座，可直接建立新版本并重跑。
+- 重建时不修改或伪装旧结果；保留旧 artifact 的版本/commit 标识，新报告明确写出 supersedes 关系即可。
 
 ## 当前诊断
 
@@ -87,7 +89,7 @@
 
 - [ ] **`foundation-reaction-kinetics-reference` — 反应网络与速率律升级**
   - 默认 owned_paths：`src/chemworld/physchem/reaction_network.py`、`src/chemworld/physchem/reaction_network_specs.py`、`src/chemworld/physchem/reaction_rate_contracts.py`、`src/chemworld/physchem/reaction_rate_laws.py`、`src/chemworld/physchem/reaction_reference_cases.py`、`src/chemworld/physchem/reaction_sensitivity.py`、`src/chemworld/physchem/reaction_network_cards.py`、`src/chemworld/physchem/reaction_adapter_manifest.py`、`tests/test_reaction_kinetics_reference.py`、`workstreams/world_foundation/reports/reaction-kinetics-reference.json`。
-  - 依赖：runtime reachability；不得改变旧冻结协议结果。
+  - 依赖：runtime reachability；允许用新版本替代旧反应合同并重建受影响证据。
   - [ ] 统一浓度、活度、速率常数、反应级数和 Arrhenius 单位合同。
   - [ ] 支持并验证可逆、平行/竞争、连续反应、产物抑制和催化剂失活的有界机制族。
   - [ ] 从 stoichiometric matrix 自动检查元素/物料守恒和不可生成物种。
