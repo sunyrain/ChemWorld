@@ -6,6 +6,7 @@ from pathlib import Path
 import gymnasium as gym
 import numpy as np
 import torch as th
+from scripts.benchmark_rl_infrastructure import candidate_matrix
 
 import chemworld  # noqa: F401
 from chemworld.rl.evaluation import _ExperimentBehaviorTracker
@@ -31,6 +32,26 @@ REPORT = (
     / "reports"
     / "rl-contract-vnext.json"
 )
+
+
+def test_infrastructure_matrix_covers_cpu_cuda_and_vectorization_choices() -> None:
+    cpu_only = candidate_matrix(cuda_available=False)
+    assert len(cpu_only) == 5
+    assert {item["device"] for item in cpu_only} == {"cpu"}
+    full = candidate_matrix(cuda_available=True)
+    assert len(full) == 10
+    assert {item["device"] for item in full} == {"cpu", "cuda"}
+    assert {
+        (item["parallel_environments"], item["vectorization_backend"])
+        for item in full
+        if item["device"] == "cpu"
+    } == {
+        (1, "dummy"),
+        (4, "dummy"),
+        (8, "dummy"),
+        (4, "subprocess"),
+        (8, "subprocess"),
+    }
 
 
 def test_protocol_is_nonclaiming_and_keeps_native_distribution_gap_visible() -> None:
