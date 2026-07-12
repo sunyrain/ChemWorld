@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 import uuid
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -11,6 +12,7 @@ import gymnasium as gym
 
 import chemworld  # noqa: F401
 from apps.task_lab.catalog import TASK_BACKGROUNDS
+from apps.task_lab.runner import _validate_decision
 from apps.task_lab.spectral_payload import spectral_payload
 from chemworld.data.logging import observation_to_json, to_builtin
 from chemworld.materials import action_material_display
@@ -47,7 +49,7 @@ class StudentSession:
                 "campaign_state": base.campaign_state(),
                 "lab_report": base.observation_view("lab_report"),
                 "available_actions": [
-                    _student_affordance(item) for item in base.available_actions()
+                    _student_affordance(item, self._history) for item in base.available_actions()
                 ],
                 "history": list(self._history),
                 "done": bool(base.campaign_state().get("done")),
@@ -56,7 +58,10 @@ class StudentSession:
     def step(self, action: dict[str, Any]) -> dict[str, Any]:
         with self._lock:
             base: Any = self._env.unwrapped
-            validation = base.validate_action(action)
+            trace = [
+                {"selected_action": dict(record.get("action") or {})} for record in self._history
+            ]
+            validation = _validate_decision(base, action, trace)
             if not validation.get("valid", False):
                 return {
                     "accepted": False,
@@ -138,14 +143,51 @@ class StudentSessionManager:
             session.close()
 
 
-def _student_affordance(entry: dict[str, Any]) -> dict[str, Any]:
+def _student_affordance(
+    entry: dict[str, Any],
+    history: list[dict[str, Any]],
+) -> dict[str, Any]:
     schema = dict(entry.get("schema") or {})
+    fields = deepcopy(schema.get("fields", []))
+    operation = str(entry.get("operation") or "")
+    category_field = {
+        "add_solvent": "solvent",
+        "add_catalyst": "catalyst",
+    }.get(operation)
+    locked_value = _current_recipe_category(history, operation, category_field)
+    if category_field is not None and locked_value is not None:
+        for field in fields:
+            if field.get("field") != category_field:
+                continue
+            if "choices" in field:
+                field["choices"] = [locked_value]
+            if "allowed_values" in field:
+                field["allowed_values"] = [locked_value]
     return {
         "operation": entry.get("operation"),
         "required_fields": schema.get("required_fields", []),
-        "fields": schema.get("fields", []),
+        "fields": fields,
         "preconditions": schema.get("preconditions", []),
+        "recipe_lock": (
+            None if locked_value is None else {"field": category_field, "value": locked_value}
+        ),
     }
+
+
+def _current_recipe_category(
+    history: list[dict[str, Any]],
+    operation: str,
+    category_field: str | None,
+) -> Any:
+    if category_field is None:
+        return None
+    for record in reversed(history):
+        action = dict(record.get("action") or {})
+        if action.get("operation") == "measure" and action.get("instrument") == "final_assay":
+            break
+        if action.get("operation") == operation:
+            return action.get(category_field)
+    return None
 
 
 def _recovery_text(base: Any) -> str:

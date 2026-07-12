@@ -10,7 +10,7 @@ from apps.task_lab.catalog import TASK_BACKGROUNDS, task_catalog
 from apps.task_lab.classic_runner import run_classic_task
 from apps.task_lab.deepseek_client import DeepSeekAPIError, DeepSeekClient, JsonCompletion
 from apps.task_lab.experiment_audit import audit_experiment_design
-from apps.task_lab.runner import run_task
+from apps.task_lab.runner import _categorical_recipe_conflicts, run_task
 from apps.task_lab.server import RunJobManager, _read_api_key_file
 from apps.task_lab.spectral_payload import spectral_payload
 from apps.task_lab.student_session import StudentSessionManager
@@ -337,6 +337,20 @@ def test_student_session_rejects_invalid_action_without_spending_budget() -> Non
         assert accepted["accepted"] is True
         assert accepted["state"]["campaign_state"]["operation_count"] == 1
         assert accepted["state"]["history"][0]["action"]["operation"] == "add_solvent"
+        solvent_affordance = next(
+            item
+            for item in accepted["state"]["available_actions"]
+            if item["operation"] == "add_solvent"
+        )
+        assert solvent_affordance["recipe_lock"] == {"field": "solvent", "value": 2}
+        solvent_field = next(
+            field for field in solvent_affordance["fields"] if field["field"] == "solvent"
+        )
+        assert solvent_field["choices"] == [2]
+        switched = session.step({"operation": "add_solvent", "volume_L": 0.005, "solvent": 1})
+        assert switched["accepted"] is False
+        assert "categorical_recipe_locked:solvent" in switched["validation"]["invalid_reasons"]
+        assert switched["state"]["campaign_state"]["operation_count"] == 1
     finally:
         manager.close_all()
 
@@ -397,6 +411,10 @@ def test_adaptive_runner_reads_public_spectrum_and_emits_audit_record(
     assert result.status == "scored"
     assert result.model_call_count == 8
     assert client.prompts[0]["latest_public_spectrum"]["available"] is False
+    semantics = client.prompts[0]["state_semantics"]
+    assert semantics["current_vessel_policy"] == ("cumulative_until_successful_final_assay")
+    assert "duration, conversion, energy" in semantics["operation_effects"]["heat_or_wait"]
+    assert "Do not default to another heat step" in client.prompts[0]["instruction"]
     assert client.prompts[5]["latest_public_spectrum"]["available"] is True
     assert client.prompts[6]["latest_public_spectrum"]["available"] is True
     decisions = [event for event in events if event["type"] == "decision_ready"]
@@ -408,7 +426,15 @@ def test_adaptive_runner_reads_public_spectrum_and_emits_audit_record(
         for decision, prompt in zip(decisions, client.prompts, strict=True)
     )
     assert decisions[5]["spectrum_input"]["available"] is True
+    assert decisions[5]["spectrum_input"]["provenance"] == {
+        "source": "measurement_output",
+        "measurement_step": 5,
+        "experiment_index": 0,
+        "vessel_relation": "current_experiment",
+    }
     assert decisions[5]["decision_origin"] == "online_model"
+    assert decisions[5]["vessel_state"] == "cumulative_same_experiment"
+    assert decisions[5]["experiment_index"] == 0
     assert decisions[5]["analysis"]["spectrum_interpretation"].startswith("The HPLC trace")
     assert result.method_resources["accounting_complete"] is False
     assert result.method_resources["model_provenance"]["private_reasoning_retained"] is False
@@ -432,13 +458,27 @@ def test_task_lab_static_ui_exposes_model_input_and_public_analysis() -> None:
     static_root = Path(__file__).resolve().parents[1] / "apps" / "task_lab" / "static"
     html = (static_root / "agent.html").read_text(encoding="utf-8")
     javascript = (static_root / "agent.js").read_text(encoding="utf-8")
+    student_html = (static_root / "student.html").read_text(encoding="utf-8")
+    student_javascript = (static_root / "student.js").read_text(encoding="utf-8")
 
     assert "MODEL INPUT / MEASUREMENT OUTPUT" in html
     assert 'id="agentSpectrumContext"' in html
     assert 'id="decisionIntent"' in html
     assert 'id="decisionComparison"' in html
+    assert 'id="agentSpectrumHistory"' in html
+    assert 'id="spectrumHistoryPrev"' in html
+    assert 'id="spectrumHistoryNext"' in html
+    assert 'id="liveVessel"' in html
     assert "PUBLIC MODEL ANALYSIS" in html
     assert "event.spectrum_input" in javascript
+    assert "recordSpectrumSnapshot" in javascript
+    assert "showSpectrumSnapshot" in javascript
+    assert "spectrum_history" in javascript
+    assert 'id="studentSpectrumHistory"' in student_html
+    assert 'id="studentSpectrumHistoryPrev"' in student_html
+    assert 'id="studentSpectrumHistoryNext"' in student_html
+    assert "renderStudentSpectrumHistory" in student_javascript
+    assert "showStudentSpectrumSnapshot" in student_javascript
     assert "reasoning_content" not in javascript
 
 
@@ -467,6 +507,47 @@ def test_repository_ignores_local_api_key_file() -> None:
     assert "/api.md" in gitignore.splitlines()
 
 
+def test_task_lab_locks_categorical_recipe_choices_within_one_experiment() -> None:
+    class IdentityCodec:
+        @staticmethod
+        def canonicalize(action: dict[str, Any]) -> dict[str, Any]:
+            return dict(action)
+
+    class Base:
+        action_codec = IdentityCodec()
+
+    trace = [
+        {"selected_action": {"operation": "add_solvent", "solvent": 1}},
+        {"selected_action": {"operation": "add_catalyst", "catalyst": 0}},
+    ]
+    assert _categorical_recipe_conflicts(
+        Base(),
+        {"operation": "add_catalyst", "catalyst": 1},
+        trace,
+    ) == ["categorical_recipe_locked:catalyst"]
+    assert not _categorical_recipe_conflicts(
+        Base(),
+        {"operation": "add_catalyst", "catalyst": 0},
+        trace,
+    )
+
+    completed_trace = [
+        *trace,
+        {"selected_action": {"operation": "terminate"}},
+        {
+            "selected_action": {
+                "operation": "measure",
+                "instrument": "final_assay",
+            }
+        },
+    ]
+    assert not _categorical_recipe_conflicts(
+        Base(),
+        {"operation": "add_catalyst", "catalyst": 1},
+        completed_trace,
+    )
+
+
 def test_adaptive_campaign_reuses_compact_completed_experiment_memory(
     tmp_path: Path,
 ) -> None:
@@ -485,6 +566,12 @@ def test_adaptive_campaign_reuses_compact_completed_experiment_memory(
     assert result.status == "scored_extended"
     assert result.final_assay_count == 2
     assert client.prompts[6]["completed_experiment_memory"][0]["conditions"]
+    assert client.prompts[6]["state_semantics"]["current_experiment_index"] == 1
+    assert (
+        client.prompts[6]["latest_public_spectrum"]["provenance"]["vessel_relation"]
+        == "completed_previous_experiment"
+    )
+    assert client.prompts[6]["latest_public_spectrum"]["provenance"]["experiment_index"] == 0
     learned = [event for event in events if event["type"] == "experiment_learned"]
     assert len(learned) == 2
     assert learned[0]["final_score"] is not None

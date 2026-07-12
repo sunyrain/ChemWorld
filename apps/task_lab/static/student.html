@@ -66,6 +66,13 @@
       </article>
       <article class="surface light-surface student-spectrum-panel">
         <div class="surface-heading"><div><p class="overline">PUBLIC SPECTRUM</p><h2>仪器谱图与峰表</h2></div><span id="studentSpectrumInstrument" class="soft-tag">No signal</span></div>
+        <div class="spectrum-history-bar light-spectrum-history">
+          <button id="studentSpectrumHistoryPrev" type="button" aria-label="查看上一张历史谱图" disabled>←</button>
+          <label for="studentSpectrumHistory">谱图历史</label>
+          <select id="studentSpectrumHistory" aria-label="选择历史谱图" disabled><option value="">尚无谱图</option></select>
+          <span id="studentSpectrumHistoryCount">0 / 0</span>
+          <button id="studentSpectrumHistoryNext" type="button" aria-label="查看下一张历史谱图" disabled>→</button>
+        </div>
         <div id="studentSpectrumTabs" class="spectrum-tabs light-tabs"></div>
         <div class="spectrum-canvas-shell light-spectrum-shell"><canvas id="studentSpectrum" width="1100" height="300"></canvas><div id="studentSpectrumEmpty" class="spectrum-empty light-empty">执行测量操作后，在这里分析公开曲线和峰指认。</div></div>
         <div id="studentSpectrumMeta" class="spectrum-meta light-meta">No public signal</div>

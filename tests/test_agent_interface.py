@@ -5,6 +5,7 @@ from pathlib import Path
 
 import gymnasium as gym
 import numpy as np
+import pytest
 from examples.demo_dataset_agent_trace_export import build_demo
 
 import chemworld  # noqa: F401
@@ -34,9 +35,9 @@ def test_env_exposes_agent_facing_methods() -> None:
         assert "hplc" in prompt["allowed_instruments"]
         assert "purity" in prompt["success_metrics"]
         assert prompt["material_catalog"]["solvents"][0]["display_name"] == "Water"
-        assert "categorical benchmark effects" in prompt["material_catalog"][
-            "interpretation_policy"
-        ]
+        assert (
+            "categorical benchmark effects" in prompt["material_catalog"]["interpretation_policy"]
+        )
 
         actions = env.unwrapped.available_actions()
         operations = {entry["operation"] for entry in actions}
@@ -46,16 +47,14 @@ def test_env_exposes_agent_facing_methods() -> None:
         heat_schema = env.unwrapped.action_schema("heat")
         assert heat_schema["fields"]
         assert "target_temperature_K" in heat_schema["required_fields"]
-        temperature_field = {
-            field["field"]: field for field in heat_schema["fields"]
-        }["target_temperature_K"]
+        temperature_field = {field["field"]: field for field in heat_schema["fields"]}[
+            "target_temperature_K"
+        ]
         assert temperature_field["unit"] == "K"
         assert temperature_field["bounds"]["low"] == 250.0
 
         solvent_schema = env.unwrapped.action_schema("add_solvent")
-        solvent_field = {
-            field["field"]: field for field in solvent_schema["fields"]
-        }["solvent"]
+        solvent_field = {field["field"]: field for field in solvent_schema["fields"]}["solvent"]
         assert solvent_field["choice_labels"]["0"].startswith("Water · H2O")
 
         before = env.unwrapped.campaign_state()
@@ -257,6 +256,7 @@ def test_campaign_state_updates_after_campaign_final_assay() -> None:
     env = gym.make("ChemWorld", task_id="reaction-optimization-standard", seed=0)
     try:
         env.reset(seed=0)
+        initial_state = env.unwrapped._state
         sequence = [
             {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
             {"operation": "add_reagent", "amount_mol": 0.010},
@@ -287,6 +287,62 @@ def test_campaign_state_updates_after_campaign_final_assay() -> None:
         assert report["campaign_progress"]["final_assay_count"] == 1
         assert "Final assay" in report["text"]
         assert "Best score so far" in report["text"]
+        fresh_state = env.unwrapped._state
+        assert fresh_state.volume_L == initial_state.volume_L
+        assert fresh_state.species_amounts == initial_state.species_amounts
+    finally:
+        env.close()
+
+
+def test_reaction_heat_and_material_actions_accumulate_in_one_vessel() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
+    try:
+        env.reset(seed=0)
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.00025,
+                "catalyst": 1,
+            },
+        ):
+            env.step(action)
+
+        env.step(
+            {
+                "operation": "heat",
+                "target_temperature_K": 360.0,
+                "duration_s": 600.0,
+                "stirring_speed_rpm": 720.0,
+            }
+        )
+        after_first_heat = env.unwrapped._state
+        env.step(
+            {
+                "operation": "heat",
+                "target_temperature_K": 360.0,
+                "duration_s": 600.0,
+                "stirring_speed_rpm": 720.0,
+            }
+        )
+        after_second_heat = env.unwrapped._state
+
+        assert after_first_heat.ledger.time_s == pytest.approx(600.0)
+        assert after_second_heat.ledger.time_s == pytest.approx(1200.0)
+        assert any(
+            after_second_heat.species_amounts[key]
+            != pytest.approx(after_first_heat.species_amounts[key])
+            for key in after_second_heat.species_amounts
+        )
+
+        before_solvent = after_second_heat
+        env.step({"operation": "add_solvent", "volume_L": 0.010, "solvent": 2})
+        after_solvent = env.unwrapped._state
+        assert after_solvent.volume_L == pytest.approx(before_solvent.volume_L + 0.010)
+        assert after_solvent.species_amounts == before_solvent.species_amounts
+        assert after_solvent.ledger.time_s == before_solvent.ledger.time_s
+        assert env.unwrapped.campaign_state()["experiment_index"] == 0
     finally:
         env.close()
 

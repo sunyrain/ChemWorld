@@ -3,6 +3,8 @@ const lab = {
   session: null,
   affordance: null,
   spectrum: null,
+  spectrumHistory: [],
+  spectrumHistoryIndex: -1,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -36,6 +38,9 @@ function wireLab() {
   $("#operationSelect").addEventListener("change", renderOperationFields);
   $("#submitAction").addEventListener("click", submitAction);
   $("#downloadNotebook").addEventListener("click", downloadNotebook);
+  $("#studentSpectrumHistoryPrev").addEventListener("click", () => showStudentSpectrumSnapshot(lab.spectrumHistoryIndex - 1));
+  $("#studentSpectrumHistoryNext").addEventListener("click", () => showStudentSpectrumSnapshot(lab.spectrumHistoryIndex + 1));
+  $("#studentSpectrumHistory").addEventListener("change", (event) => showStudentSpectrumSnapshot(Number(event.target.value)));
 }
 
 function currentTask() {
@@ -114,13 +119,47 @@ function renderSession(session) {
   renderMetrics(visible);
   renderHistory(history);
   drawLearningCurve(history.map((item) => Number(item.best_score ?? item.reward ?? 0)));
-  const latestSpectrum = [...history].reverse().find((item) => item.spectrum?.available)?.spectrum;
-  lab.spectrum?.render(latestSpectrum);
-  $("#studentSpectrumInstrument").textContent = latestSpectrum?.instrument || latestSpectrum?.kind || "No signal";
+  renderStudentSpectrumHistory(history);
   const report = session.lab_report || {};
   if (report.text) $("#labFeedback").textContent = report.text;
   const instrument = report.instrument_summary?.instrument;
   $("#reportInstrument").textContent = instrument || "No instrument";
+}
+
+function renderStudentSpectrumHistory(history) {
+  lab.spectrumHistory = history.filter((item) => item.spectrum?.available).map((item) => ({
+    step: Number(item.step || 0),
+    instrument: item.spectrum.instrument || item.spectrum.kind || "Public signal",
+    spectrum: item.spectrum,
+  }));
+  const select = $("#studentSpectrumHistory");
+  if (!lab.spectrumHistory.length) {
+    lab.spectrumHistoryIndex = -1;
+    lab.spectrum?.render(null);
+    $("#studentSpectrumInstrument").textContent = "No signal";
+    select.innerHTML = '<option value="">尚无谱图</option>';
+    select.disabled = true;
+    $("#studentSpectrumHistoryPrev").disabled = true;
+    $("#studentSpectrumHistoryNext").disabled = true;
+    $("#studentSpectrumHistoryCount").textContent = "0 / 0";
+    return;
+  }
+  select.disabled = false;
+  select.innerHTML = lab.spectrumHistory.map((entry, index) => `<option value="${index}">Step ${entry.step} · ${esc(entry.instrument)}</option>`).join("");
+  showStudentSpectrumSnapshot(lab.spectrumHistory.length - 1);
+}
+
+function showStudentSpectrumSnapshot(index) {
+  if (!lab.spectrumHistory.length) return;
+  const bounded = Math.max(0, Math.min(lab.spectrumHistory.length - 1, Number(index)));
+  const entry = lab.spectrumHistory[bounded];
+  lab.spectrumHistoryIndex = bounded;
+  lab.spectrum?.render(entry.spectrum);
+  $("#studentSpectrumInstrument").textContent = entry.instrument;
+  $("#studentSpectrumHistory").value = String(bounded);
+  $("#studentSpectrumHistoryCount").textContent = `${bounded + 1} / ${lab.spectrumHistory.length}`;
+  $("#studentSpectrumHistoryPrev").disabled = bounded === 0;
+  $("#studentSpectrumHistoryNext").disabled = bounded === lab.spectrumHistory.length - 1;
 }
 
 function updateDigitalTwin(latest) {

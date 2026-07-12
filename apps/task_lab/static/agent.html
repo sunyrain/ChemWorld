@@ -64,7 +64,7 @@
             <div class="decision-panel">
               <span class="decision-label">LATEST OPERATION</span><strong id="currentAction">Waiting for agent</strong>
               <p id="currentRationale">启动后，模型计划、验证结果与公开实验反馈将在这里实时出现。</p>
-              <div class="decision-meta"><span>Best <b id="liveBest">—</b></span><span>Assays <b id="liveAssays">0</b></span><span>Budget <b id="liveBudget">—</b></span></div>
+              <div class="decision-meta"><span>Best <b id="liveBest">—</b></span><span>Assays <b id="liveAssays">0</b></span><span>Budget <b id="liveBudget">—</b></span><span>Vessel <b id="liveVessel">Awaiting task</b></span></div>
             </div>
           </div>
           <div class="chart-heading"><span>Best-score trajectory</span><span id="chartTask">No data</span></div>
@@ -80,6 +80,13 @@
       <section class="observability-grid">
         <article class="surface spectrum-surface dark-spectrum">
           <div class="surface-heading"><div><p class="overline">MODEL INPUT / MEASUREMENT OUTPUT</p><h3>实时谱图工作台</h3></div><div class="signal-tags"><span id="agentSpectrumContext" class="mono-tag signal-context">Awaiting signal</span><span id="agentSpectrumInstrument" class="mono-tag">No signal</span></div></div>
+          <div class="spectrum-history-bar">
+            <button id="spectrumHistoryPrev" type="button" aria-label="查看上一张历史谱图" disabled>←</button>
+            <label for="agentSpectrumHistory">谱图历史</label>
+            <select id="agentSpectrumHistory" aria-label="选择历史谱图" disabled><option value="">尚无谱图</option></select>
+            <span id="spectrumHistoryCount">0 / 0</span>
+            <button id="spectrumHistoryNext" type="button" aria-label="查看下一张历史谱图" disabled>→</button>
+          </div>
           <div id="agentSpectrumTabs" class="spectrum-tabs"></div>
           <div class="spectrum-canvas-shell"><canvas id="agentSpectrum" width="980" height="300"></canvas><div id="agentSpectrumEmpty" class="spectrum-empty">等待 HPLC、GC、UV-Vis、IR、NMR 或终点检测信号</div></div>
           <div id="agentSpectrumMeta" class="spectrum-meta">No public signal</div>

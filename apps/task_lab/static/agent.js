@@ -7,6 +7,9 @@ const app = {
   eventCount: 0,
   job: null,
   spectrum: null,
+  spectrumHistory: [],
+  spectrumHistoryIndex: -1,
+  spectrumHistoryKeys: new Set(),
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -41,6 +44,9 @@ function wireControls() {
   $("#agentBackend").addEventListener("change", updateBackendControls);
   $("#budgetMultiplier").addEventListener("change", updateContractNotice);
   $("#campaignOverride").addEventListener("change", updateContractNotice);
+  $("#spectrumHistoryPrev").addEventListener("click", () => showSpectrumSnapshot(app.spectrumHistoryIndex - 1));
+  $("#spectrumHistoryNext").addEventListener("click", () => showSpectrumSnapshot(app.spectrumHistoryIndex + 1));
+  $("#agentSpectrumHistory").addEventListener("change", (event) => showSpectrumSnapshot(Number(event.target.value)));
 }
 
 function renderTaskChecklist() {
@@ -125,9 +131,14 @@ function resetRun(taskCount) {
   app.series = {};
   app.currentTask = null;
   app.eventCount = 0;
+  app.spectrumHistory = [];
+  app.spectrumHistoryIndex = -1;
+  app.spectrumHistoryKeys = new Set();
   app.spectrum?.render(null);
   $("#agentSpectrumContext").textContent = "Awaiting signal";
   $("#agentSpectrumInstrument").textContent = "No signal";
+  $("#liveVessel").textContent = "Awaiting task";
+  renderSpectrumHistoryControls();
   renderDecisionAudit(null);
   $("#agentTimeline").innerHTML = "";
   $("#scoreTable").innerHTML = '<tr><td colspan="10"><div class="empty-table">评测运行中...</div></td></tr>';
@@ -157,6 +168,7 @@ function handleEvent(event, source, button) {
     $("#currentRationale").textContent = event.background.background;
     showDossier(app.currentTask);
     updateLiveProgress(0, event.step_limit, null, 0, event.budget);
+    renderVesselState({ episode_mode: event.episode_mode, experiment_index: 0 });
     drawLineChart([]);
     const profile = event.contract_profile === "official" ? "official" : "extended research";
     addTelemetry("task", event.background.title, `seed ${event.seed} · ${profile} · budget ${event.official_budget} → ${event.budget}`);
@@ -169,6 +181,7 @@ function handleEvent(event, source, button) {
     $("#currentRationale").textContent = event.rationale;
     renderDecisionAudit(event);
     renderModelInputSpectrum(event);
+    renderVesselState(event);
     const inputSeries = event.spectrum_input?.series?.length || 0;
     addTelemetry("decision", `Decision ${event.step} · ${event.action.operation}`, `${event.experiment_intent || "decision"} · ${inputSeries ? `${inputSeries} supplied signal channel(s)` : "no spectrum supplied"} · ${event.evidence?.[0] || "public evidence reviewed"} · uncertainty ${fmt(event.uncertainty, 2)}`);
   } else if (event.type === "surrogate_decision") {
@@ -200,10 +213,14 @@ function handleEvent(event, source, button) {
     $("#currentAction").textContent = event.action.operation;
     $("#currentRationale").textContent = event.rationale;
     if (event.spectrum?.available) {
-      app.spectrum?.render(event.spectrum);
-      $("#agentSpectrumInstrument").textContent = event.spectrum.instrument || event.spectrum.kind || "Public signal";
-      $("#agentSpectrumContext").textContent = `MEASUREMENT OUTPUT · STEP ${event.step}`;
+      recordSpectrumSnapshot({
+        event,
+        spectrum: event.spectrum,
+        source: "measurement",
+        context: `MEASUREMENT OUTPUT · STEP ${event.step}`,
+      });
     }
+    renderVesselState(event);
     updateLiveProgress(event.step, event.step_limit, event.best_score, event.final_assay_count, event.remaining_budget);
     drawLineChart(app.series[event.task_id]);
     addTelemetry(event.status === "accepted" ? "step" : "warn", `Step ${event.step} · ${event.action.operation}`, `reward ${fmt(event.reward)} · best ${fmt(event.best_score)} · ${event.hypothesis}`);
@@ -268,13 +285,76 @@ function renderDecisionAudit(event) {
 
 function renderModelInputSpectrum(event) {
   const spectrum = event?.spectrum_input;
-  app.spectrum?.render(spectrum?.available ? spectrum : null);
-  $("#agentSpectrumContext").textContent = spectrum?.available
-    ? `MODEL INPUT · DECISION ${event.step}`
-    : `MODEL INPUT · NO SPECTRUM · DECISION ${event.step}`;
-  $("#agentSpectrumInstrument").textContent = spectrum?.available
-    ? (spectrum.instrument || spectrum.kind || "Public signal")
-    : "No signal supplied";
+  if (spectrum?.available) {
+    recordSpectrumSnapshot({
+      event,
+      spectrum,
+      source: "model-input",
+      context: `MODEL INPUT · DECISION ${event.step}`,
+    });
+    return;
+  }
+  app.spectrum?.render(null);
+  $("#agentSpectrumContext").textContent = `MODEL INPUT · NO SPECTRUM · DECISION ${event.step}`;
+  $("#agentSpectrumInstrument").textContent = "No signal supplied";
+}
+
+function recordSpectrumSnapshot({ event, spectrum, source, context }) {
+  if (!spectrum?.available) return;
+  const key = `${event.task_id || app.currentTask?.task_id || "task"}:${event.index ?? app.eventCount}:${source}`;
+  if (app.spectrumHistoryKeys.has(key)) return;
+  app.spectrumHistoryKeys.add(key);
+  app.spectrumHistory.push({
+    key,
+    taskId: event.task_id || app.currentTask?.task_id || "task",
+    step: Number(event.step || 0),
+    experimentIndex: Number(spectrum.provenance?.experiment_index ?? event.action_experiment_index ?? event.experiment_index ?? 0),
+    source,
+    context,
+    instrument: spectrum.instrument || spectrum.kind || "Public signal",
+    spectrum,
+  });
+  renderSpectrumHistoryControls();
+  showSpectrumSnapshot(app.spectrumHistory.length - 1);
+}
+
+function showSpectrumSnapshot(index) {
+  if (!app.spectrumHistory.length) return;
+  const bounded = Math.max(0, Math.min(app.spectrumHistory.length - 1, Number(index)));
+  const entry = app.spectrumHistory[bounded];
+  app.spectrumHistoryIndex = bounded;
+  app.spectrum?.render(entry.spectrum);
+  $("#agentSpectrumContext").textContent = entry.context;
+  $("#agentSpectrumInstrument").textContent = entry.instrument;
+  $("#agentSpectrumHistory").value = String(bounded);
+  $("#spectrumHistoryCount").textContent = `${bounded + 1} / ${app.spectrumHistory.length}`;
+  $("#spectrumHistoryPrev").disabled = bounded === 0;
+  $("#spectrumHistoryNext").disabled = bounded === app.spectrumHistory.length - 1;
+}
+
+function renderSpectrumHistoryControls() {
+  const select = $("#agentSpectrumHistory");
+  if (!app.spectrumHistory.length) {
+    select.innerHTML = '<option value="">尚无谱图</option>';
+    select.disabled = true;
+    $("#spectrumHistoryPrev").disabled = true;
+    $("#spectrumHistoryNext").disabled = true;
+    $("#spectrumHistoryCount").textContent = "0 / 0";
+    return;
+  }
+  select.disabled = false;
+  select.innerHTML = app.spectrumHistory.map((entry, index) => {
+    const source = entry.source === "model-input" ? "模型输入" : "测量输出";
+    const experiment = `E${entry.experimentIndex + 1}`;
+    return `<option value="${index}">${esc(entry.taskId)} · ${experiment} · Step ${entry.step} · ${source} · ${esc(entry.instrument)}</option>`;
+  }).join("");
+}
+
+function renderVesselState(event) {
+  const experiment = Number(event?.experiment_index ?? 0) + 1;
+  const fresh = event?.experiment_transition === "reset_for_next_experiment";
+  const mode = event?.episode_mode === "campaign" ? "campaign" : "single";
+  $("#liveVessel").textContent = `E${experiment} · ${fresh ? "fresh vessel" : "cumulative"} · ${mode}`;
 }
 
 function decisionOriginLabel(origin) {
@@ -341,7 +421,12 @@ function showDossier(task) {
 }
 
 function exportResults() {
-  const payload = { generated_at: new Date().toISOString(), job: app.job, results: app.results };
+  const payload = {
+    generated_at: new Date().toISOString(),
+    job: app.job,
+    results: app.results,
+    spectrum_history: app.spectrumHistory,
+  };
   const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
   const link = document.createElement("a");
   link.href = url;

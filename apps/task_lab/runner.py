@@ -32,6 +32,7 @@ Never claim access to hidden chemistry. Return one valid JSON object.
 Do not reveal private chain-of-thought. Instead provide a concise, evidence-grounded audit record:
 public evidence, spectrum interpretation, current hypothesis, uncertainty, and action rationale.
 Actions must use the exact operation names and field names from the schemas.
+Treat the current reactor as a cumulative state, not a sequence of independent trials.
 """
 
 
@@ -132,6 +133,8 @@ def run_task(
                 "step_limit": step_limit,
                 "background": background,
                 "success_metrics": list(task.success_metrics),
+                "episode_mode": base.campaign_state().get("episode_mode"),
+                "state_semantics": _state_semantics(base),
             }
         )
 
@@ -185,7 +188,7 @@ def run_task(
             "effective_budget": effective_budget,
             "seed": selected_seed,
             "git_commit": git_commit(),
-            "api_key_source": "DEEPSEEK_API_KEY environment variable",
+            "api_key_source": "process-local DeepSeek client configuration",
             "usage": usage,
         }
         agent_metadata["method_resources"] = _method_resources(
@@ -277,7 +280,7 @@ def run_task(
                             }
                         )
 
-                validation = base.validate_action(decision["action"])
+                validation = _validate_decision(base, decision["action"], trace)
                 if not validation.get("valid", False):
                     invalid_plan_actions += 1
                     emit(
@@ -300,7 +303,7 @@ def run_task(
                     _add_usage(usage, repair.usage)
                     decision = _normalize_decision(repair.payload)
                     decision_origin = "online_model_repair"
-                    validation = base.validate_action(decision["action"])
+                    validation = _validate_decision(base, decision["action"], trace)
                     if not validation.get("valid", False):
                         consecutive_unrepaired_actions += 1
                         emit(
@@ -328,7 +331,7 @@ def run_task(
                             break
                         decision = fallback
                         decision_origin = "protocol_fallback_after_invalid_model"
-                        validation = base.validate_action(decision["action"])
+                        validation = _validate_decision(base, decision["action"], trace)
                         consecutive_unrepaired_actions = 0
                         emit(
                             {
@@ -361,6 +364,9 @@ def run_task(
                         "uncertainty": decision["uncertainty"],
                         "uncertainty_note": decision["uncertainty_note"],
                         "decision_origin": decision_origin,
+                        "experiment_index": campaign_before.get("experiment_index"),
+                        "episode_mode": campaign_before.get("episode_mode"),
+                        "vessel_state": "cumulative_same_experiment",
                         "spectrum_input": to_builtin(decision_spectrum),
                         "analysis": {
                             "evidence": decision["evidence"],
@@ -386,6 +392,15 @@ def run_task(
                     disclosure=spectrum_disclosure,
                 )
                 if spectrum["available"]:
+                    spectrum = {
+                        **spectrum,
+                        "provenance": {
+                            "source": "measurement_output",
+                            "measurement_step": executed_steps,
+                            "experiment_index": int(campaign_before.get("experiment_index", 0)),
+                            "vessel_relation": "current_experiment",
+                        },
+                    }
                     last_spectrum = spectrum
                 campaign = base.campaign_state()
                 completed_final_assay = (
@@ -503,11 +518,19 @@ def run_task(
                         "best_score": campaign.get("best_score"),
                         "remaining_budget": campaign.get("remaining_budget"),
                         "experiment_index": campaign.get("experiment_index"),
+                        "action_experiment_index": campaign_before.get("experiment_index"),
+                        "episode_mode": campaign.get("episode_mode"),
                         "final_assay_count": campaign.get("final_assay_count"),
                         "visible_metrics": report.get("visible_metrics", {}),
                         "constraint_flags": to_builtin(info.get("constraint_flags", {})),
                         "recovery_suggestion": report.get("recovery_suggestion"),
                         "status": report.get("status"),
+                        "experiment_transition": (
+                            "reset_for_next_experiment"
+                            if completed_final_assay
+                            and campaign_before.get("episode_mode") == "campaign"
+                            else "cumulative_same_experiment"
+                        ),
                     }
                 )
     finally:
@@ -596,11 +619,15 @@ def _request_plan(
                 "Create a complete executable plan. Include terminate followed by a "
                 "final_assay measurement so the task receives an official score. For a "
                 "campaign you may run multiple experiments, but at least one final assay "
-                "is required."
+                "is required. Every action before a successful final assay mutates the same "
+                "reactor state: material additions accumulate and repeated heat extends the "
+                "same batch. Never describe an in-vessel change as a new experiment. Treat "
+                "solvent and catalyst categories as fixed recipe choices within one experiment."
             ),
             "max_actions": max_steps,
             "task_background": background,
             "task_contract": task_prompt,
+            "state_semantics": _state_semantics(base),
             "action_schemas": schemas,
             "required_json_shape": {
                 "strategy_summary": "short string",
@@ -643,7 +670,12 @@ def _request_adaptive_decision(
         instrument=lab_report.get("instrument_summary", {}).get("instrument"),
         disclosure=spectrum_disclosure,
     )
-    if not spectrum["available"]:
+    if spectrum["available"]:
+        spectrum = {
+            **spectrum,
+            "provenance": _spectrum_provenance(base, lab_report),
+        }
+    else:
         spectrum = last_spectrum
     user_prompt = json.dumps(
         {
@@ -661,11 +693,19 @@ def _request_adaptive_decision(
                 "experiment is exploration, exploitation, or replication; when feasible "
                 "change one major factor relative to a named prior experiment; distinguish "
                 "instrument evidence from chemical intuition; and do not infer real reaction "
-                "or catalyst identity from anonymous benchmark labels."
+                "or catalyst identity from anonymous benchmark labels. Every action before a "
+                "successful final assay changes the same vessel: additions accumulate, repeated "
+                "heat extends total thermal exposure, and an intermediate measurement does not "
+                "start a new experiment. Do not switch categorical solvent or catalyst inside an "
+                "active experiment. Do not default to another heat step: justify it from measured "
+                "evidence and cumulative exposure, or choose a more informative action. Only a "
+                "successful final assay in campaign mode resets the vessel for a true recipe "
+                "comparison."
             ),
             "task_background": background,
             "task_contract": task_prompt,
             "campaign_state": base.campaign_state(),
+            "state_semantics": _state_semantics(base),
             "spectrum_disclosure": spectrum_disclosure,
             "completed_experiment_memory": experiment_memory,
             "latest_lab_report": lab_report,
@@ -717,6 +757,7 @@ def _request_repair(
             "invalid_reasons": validation.get("invalid_reasons", []),
             "latest_public_spectrum": spectrum,
             "campaign_state": base.campaign_state(),
+            "state_semantics": _state_semantics(base),
             "currently_valid_actions": [
                 _compact_affordance(item) for item in base.available_actions()
             ],
@@ -752,6 +793,7 @@ def _spectrum_input_summary(
         "disclosure": spectrum.get("disclosure"),
         "instrument": spectrum.get("instrument"),
         "kind": spectrum.get("kind"),
+        "provenance": to_builtin(spectrum.get("provenance", {})),
         "series": [
             {
                 "id": item.get("id"),
@@ -766,6 +808,106 @@ def _spectrum_input_summary(
             if isinstance(item, dict)
         ],
     }
+
+
+def _spectrum_provenance(base: Any, lab_report: dict[str, Any]) -> dict[str, Any]:
+    campaign = base.campaign_state()
+    current_experiment = int(campaign.get("experiment_index", 0))
+    final_assay = lab_report.get("final_assay_summary", {})
+    previous_experiment = bool(
+        isinstance(final_assay, dict)
+        and final_assay.get("experiment_ended")
+        and current_experiment > 0
+    )
+    return {
+        "source": "measurement_output",
+        "measurement_step": int(campaign.get("operation_count", 0)),
+        "experiment_index": current_experiment - 1 if previous_experiment else current_experiment,
+        "vessel_relation": (
+            "completed_previous_experiment" if previous_experiment else "current_experiment"
+        ),
+    }
+
+
+def _state_semantics(base: Any) -> dict[str, Any]:
+    campaign = base.campaign_state()
+    episode_mode = str(campaign.get("episode_mode") or "single_experiment")
+    return {
+        "episode_mode": episode_mode,
+        "current_experiment_index": int(campaign.get("experiment_index", 0)),
+        "current_vessel_policy": "cumulative_until_successful_final_assay",
+        "operation_effects": {
+            "material_addition": (
+                "Adds to the current vessel; it does not replace material already charged. "
+                "Keep categorical solvent and catalyst choices fixed within one experiment."
+            ),
+            "heat_or_wait": (
+                "Integrates the current composition forward; duration, conversion, energy, "
+                "and risk accumulate across repeated actions."
+            ),
+            "intermediate_measurement": (
+                "Observes the current experiment and may consume sample or budget; it does not "
+                "reset the vessel."
+            ),
+            "successful_final_assay": (
+                "Ends the episode in single_experiment mode; in campaign mode it scores the "
+                "current experiment and resets the vessel before incrementing the experiment."
+            ),
+        },
+        "comparison_rule": (
+            "Only completed experiments separated by a successful final assay are independent "
+            "recipe comparisons. Multiple heat or material actions inside one experiment are "
+            "one cumulative trajectory."
+        ),
+    }
+
+
+def _validate_decision(
+    base: Any,
+    action: dict[str, Any],
+    trace: list[dict[str, Any]],
+) -> dict[str, Any]:
+    validation = dict(base.validate_action(action))
+    conflicts = _categorical_recipe_conflicts(base, action, trace)
+    if not conflicts:
+        return validation
+    validation["valid"] = False
+    validation["dispatchable_to_runtime"] = False
+    validation["invalid_reasons"] = list(
+        dict.fromkeys([*validation.get("invalid_reasons", []), *conflicts])
+    )
+    return validation
+
+
+def _categorical_recipe_conflicts(
+    base: Any,
+    action: dict[str, Any],
+    trace: list[dict[str, Any]],
+) -> list[str]:
+    operation = str(action.get("operation") or "")
+    category_field = {
+        "add_solvent": "solvent",
+        "add_catalyst": "catalyst",
+    }.get(operation)
+    if category_field is None:
+        return []
+    try:
+        proposed = base.action_codec.canonicalize(action).get(category_field)
+    except (TypeError, ValueError):
+        proposed = action.get(category_field)
+    for item in reversed(trace):
+        previous = dict(item.get("selected_action") or {})
+        if previous.get("operation") == "measure" and previous.get("instrument") == "final_assay":
+            break
+        if previous.get("operation") != operation:
+            continue
+        try:
+            selected = base.action_codec.canonicalize(previous).get(category_field)
+        except (TypeError, ValueError):
+            selected = previous.get(category_field)
+        if selected != proposed:
+            return [f"categorical_recipe_locked:{category_field}"]
+    return []
 
 
 def _experiment_memory_record(
