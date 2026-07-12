@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
-from math import isfinite
+from math import isclose, isfinite
 from typing import Literal
 
 import numpy as np
@@ -13,7 +13,9 @@ from chemworld.physchem.reaction_network import ReactionNetworkSpec
 from chemworld.physchem.reactor_shared import (
     FeedStreamSpec,
     HeatTransferSpec,
+    PressureBoundarySpec,
     ReactorResult,
+    ReactorValidityDomain,
 )
 from chemworld.physchem.reactor_solvers import (
     _amount_vector,
@@ -98,6 +100,15 @@ class CSTRModel:
             raise ValueError("volume_L must be positive")
         if self.outlet_volumetric_flow_L_s is not None and self.outlet_volumetric_flow_L_s < 0:
             raise ValueError("outlet_volumetric_flow_L_s cannot be negative")
+        if self.outlet_volumetric_flow_L_s is not None and not isclose(
+            self.outlet_volumetric_flow_L_s,
+            self.inlet.volumetric_flow_L_s,
+            rel_tol=1.0e-12,
+            abs_tol=1.0e-12,
+        ):
+            raise ValueError(
+                "constant-volume CSTR requires equal inlet and outlet volumetric flow"
+            )
 
     @property
     def outlet_flow_l_s(self) -> float:
@@ -113,10 +124,14 @@ class CSTRModel:
         duration_s: float,
         heat_transfer: HeatTransferSpec | None = None,
         flow_program: CSTRFlowProgram | None = None,
+        pressure_boundary: PressureBoundarySpec | None = None,
+        validity_domain: ReactorValidityDomain | None = None,
         evaluation_times_s: Sequence[float] | None = None,
     ) -> ReactorResult:
         if duration_s < 0:
             raise ValueError("duration_s cannot be negative")
+        if temperature_K <= 0:
+            raise ValueError("temperature_K must be positive")
         thermal = HeatTransferSpec() if heat_transfer is None else heat_transfer
         n_species = len(self.network.species_ids)
         y0 = np.array(
@@ -196,8 +211,14 @@ class CSTRModel:
             rhs=rhs,
             volume_getter=lambda _time_s, _y: self.volume_L,
             evaluation_times_s=evaluation_times_s,
+            temperature_index=n_species,
+            energy_jacket_index=n_species + 1,
+            heat_reaction_index=n_species + 2,
+            heat_loss_index=n_species + 3,
             material_in_slice=slice(n_species + 4, n_species + 4 + n_species),
             material_out_slice=slice(n_species + 4 + n_species, n_species + 4 + 2 * n_species),
+            pressure_boundary=pressure_boundary,
+            validity_domain=validity_domain,
         )
         resolved_program = flow_program or CSTRFlowProgram(((0.0, 1.0),))
         return replace(
@@ -222,9 +243,16 @@ class CSTRModel:
         temperature_K: float,
         heat_transfer: HeatTransferSpec | None = None,
         residence_times: float = 12.0,
+        convergence_tolerance_mol_s: float = 1.0e-8,
+        pressure_boundary: PressureBoundarySpec | None = None,
+        validity_domain: ReactorValidityDomain | None = None,
     ) -> ReactorResult:
         if self.inlet.volumetric_flow_L_s <= 0:
             raise ValueError("CSTR steady state requires positive inlet volumetric flow")
+        if residence_times <= 0:
+            raise ValueError("residence_times must be positive")
+        if convergence_tolerance_mol_s <= 0:
+            raise ValueError("convergence_tolerance_mol_s must be positive")
         duration_s = residence_times * self.volume_L / self.inlet.volumetric_flow_L_s
         initial = {
             species_id: self.inlet.flow_for(species_id)
@@ -232,13 +260,49 @@ class CSTRModel:
             * self.volume_L
             for species_id in self.network.species_ids
         }
-        return self.simulate_dynamic(
+        result = self.simulate_dynamic(
             initial,
             temperature_K=temperature_K,
             duration_s=duration_s,
             heat_transfer=heat_transfer,
+            pressure_boundary=pressure_boundary,
+            validity_domain=validity_domain,
             evaluation_times_s=(0.0, duration_s / 2.0, duration_s),
         )
+        final = result.final_state
+        derivatives = self.network.amount_derivatives(
+            final.amounts_mol,
+            volume_L=self.volume_L,
+            temperature_K=final.temperature_K,
+        )
+        residuals = {
+            species_id: derivatives[species_id]
+            + self.inlet.flow_for(species_id)
+            - final.concentrations_mol_L[species_id] * self.outlet_flow_l_s
+            for species_id in self.network.species_ids
+        }
+        maximum_residual = max((abs(value) for value in residuals.values()), default=0.0)
+        converged = maximum_residual <= convergence_tolerance_mol_s
+        resolved = replace(
+            result,
+            metadata={
+                **result.metadata,
+                "steady_state": {
+                    "converged": converged,
+                    "species_residuals_mol_s": residuals,
+                    "maximum_species_residual_mol_s": maximum_residual,
+                    "tolerance_mol_s": convergence_tolerance_mol_s,
+                    "residence_times_integrated": residence_times,
+                },
+            },
+        )
+        if not converged:
+            raise RuntimeError(
+                "CSTR steady-state convergence failed: "
+                f"residual={maximum_residual:.6g} mol/s, "
+                f"tolerance={convergence_tolerance_mol_s:.6g} mol/s"
+            )
+        return resolved
 
 
 __all__ = ["CSTRFlowInterpolationMode", "CSTRFlowProgram", "CSTRModel"]

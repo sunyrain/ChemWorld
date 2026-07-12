@@ -9,8 +9,10 @@ import numpy as np
 from chemworld.physchem.reaction_network import ReactionNetworkSpec, ReactionSpec
 from chemworld.physchem.reactor_shared import (
     HeatTransferSpec,
+    PressureBoundarySpec,
     ReactorResult,
     ReactorState,
+    ReactorValidityDomain,
     SemiBatchFeedSpec,
 )
 from chemworld.physchem.solver_backend import (
@@ -37,45 +39,61 @@ def _integrate_result(
     rhs: Callable[[float, np.ndarray], np.ndarray],
     volume_getter: Callable[[float, np.ndarray], float],
     evaluation_times_s: Sequence[float] | None,
+    temperature_index: int,
+    energy_jacket_index: int,
+    heat_reaction_index: int,
+    heat_loss_index: int,
     material_in_slice: slice | None = None,
     material_out_slice: slice | None = None,
+    pressure_boundary: PressureBoundarySpec | None = None,
+    validity_domain: ReactorValidityDomain | None = None,
 ) -> ReactorResult:
+    _validate_initial_state(
+        network,
+        initial_amounts_mol,
+        volume_L=initial_volume_L,
+        temperature_K=initial_temperature_K,
+    )
     result = _solve(
         rhs,
         y0,
         duration_s=duration_s,
         evaluation_times_s=evaluation_times_s,
     )
-    n_species = len(network.species_ids)
     amounts = {
-        species_id: tuple(max(float(value), 0.0) for value in result.y[idx])
+        species_id: tuple(_validated_amount(float(value), species_id) for value in result.y[idx])
         for idx, species_id in enumerate(network.species_ids)
     }
     final_amounts = {species_id: values[-1] for species_id, values in amounts.items()}
     final_y = result.y[:, -1]
-    final_volume = float(volume_getter(float(result.t[-1]), final_y))
+    volumes = tuple(
+        float(volume_getter(float(time_s), result.y[:, idx]))
+        for idx, time_s in enumerate(result.t)
+    )
+    if any(volume <= 0 for volume in volumes):
+        raise RuntimeError("Reactor integration crossed a nonpositive-volume boundary")
+    final_volume = volumes[-1]
     material_in = _ledger_from_slice(network, final_y, material_in_slice)
     material_out = _ledger_from_slice(network, final_y, material_out_slice)
     initial_state = ReactorState(
         amounts_mol={
-            species_id: max(float(initial_amounts_mol.get(species_id, 0.0)), 0.0)
+            species_id: float(initial_amounts_mol.get(species_id, 0.0))
             for species_id in network.species_ids
         },
         volume_L=initial_volume_L,
         temperature_K=initial_temperature_K,
         time_s=0.0,
+        pressure_Pa=(pressure_boundary.pressure_Pa if pressure_boundary is not None else None),
     )
     final_state = ReactorState(
         amounts_mol=final_amounts,
         volume_L=max(final_volume, 1e-12),
-        temperature_K=max(
-            float(final_y[n_species if model_id != "semi_batch" else n_species + 1]),
-            1.0,
-        ),
+        temperature_K=float(final_y[temperature_index]),
         time_s=duration_s,
-        energy_jacket_J=float(final_y[n_species + (2 if model_id == "semi_batch" else 1)]),
-        heat_reaction_J=float(final_y[n_species + (3 if model_id == "semi_batch" else 2)]),
-        heat_loss_J=float(final_y[n_species + (4 if model_id == "semi_batch" else 3)]),
+        pressure_Pa=(pressure_boundary.pressure_Pa if pressure_boundary is not None else None),
+        energy_jacket_J=float(final_y[energy_jacket_index]),
+        heat_reaction_J=float(final_y[heat_reaction_index]),
+        heat_loss_J=float(final_y[heat_loss_index]),
         material_in_mol=material_in,
         material_out_mol=material_out,
     )
@@ -87,16 +105,30 @@ def _integrate_result(
         final_state=final_state,
         times_s=tuple(float(value) for value in result.t),
         amounts_mol=amounts,
-        temperatures_K=tuple(
-            float(value)
-            for value in result.y[n_species if model_id != "semi_batch" else n_species + 1]
-        ),
+        temperatures_K=tuple(float(value) for value in result.y[temperature_index]),
         material_balance_error_mol=_material_balance_error(
             network,
             initial_state,
             final_state,
         ),
-        metadata={"solver_diagnostic": result.diagnostic.to_dict()},
+        volumes_L=volumes,
+        pressures_Pa=(
+            tuple(pressure_boundary.pressure_Pa for _ in result.t)
+            if pressure_boundary is not None
+            else ()
+        ),
+        validity_domain=validity_domain,
+        metadata={
+            "solver_diagnostic": result.diagnostic.to_dict(),
+            "pressure_boundary": (
+                {
+                    "mode": pressure_boundary.mode,
+                    "pressure_Pa": pressure_boundary.pressure_Pa,
+                }
+                if pressure_boundary is not None
+                else None
+            ),
+        },
     )
 
 
@@ -155,9 +187,15 @@ def _amount_vector(
     network: ReactionNetworkSpec,
     amounts_mol: Mapping[str, float],
 ) -> tuple[float, ...]:
-    return tuple(
-        max(float(amounts_mol.get(species_id, 0.0)), 0.0) for species_id in network.species_ids
-    )
+    unknown = sorted(set(amounts_mol) - set(network.species_ids))
+    if unknown:
+        raise ValueError(f"initial state contains unknown species: {unknown}")
+    values = tuple(float(amounts_mol.get(species_id, 0.0)) for species_id in network.species_ids)
+    if any(not np.isfinite(value) for value in values):
+        raise ValueError("initial species amounts must be finite")
+    if any(value < 0.0 for value in values):
+        raise ValueError("initial species amounts cannot be negative")
+    return values
 
 
 def _amounts_from_vector(
@@ -165,7 +203,7 @@ def _amounts_from_vector(
     values: Sequence[float] | np.ndarray,
 ) -> dict[str, float]:
     return {
-        species_id: max(float(value), 0.0)
+        species_id: _rhs_amount(float(value), species_id)
         for species_id, value in zip(network.species_ids, values, strict=True)
     }
 
@@ -247,7 +285,7 @@ def _ledger_from_slice(
         return {}
     values = y[ledger_slice]
     return {
-        species_id: max(float(value), 0.0)
+        species_id: _validated_amount(float(value), species_id)
         for species_id, value in zip(network.species_ids, values, strict=True)
     }
 
@@ -258,7 +296,7 @@ def _element_totals(
 ) -> dict[str, float]:
     totals: dict[str, float] = {}
     for species in network.species:
-        amount = max(float(amounts_mol.get(species.species_id, 0.0)), 0.0)
+        amount = float(amounts_mol.get(species.species_id, 0.0))
         for element, count in species.composition.items():
             totals[element] = totals.get(element, 0.0) + count * amount
     return totals
@@ -290,6 +328,45 @@ def _add_element_totals(
     increment = _element_totals(network, amounts_mol)
     for element, value in increment.items():
         totals[element] = totals.get(element, 0.0) + sign * value
+
+
+def _validate_initial_state(
+    network: ReactionNetworkSpec,
+    amounts_mol: Mapping[str, float],
+    *,
+    volume_L: float,
+    temperature_K: float,
+) -> None:
+    if volume_L <= 0:
+        raise ValueError("volume_L must be positive")
+    if temperature_K <= 0:
+        raise ValueError("temperature_K must be positive")
+    unknown = sorted(set(amounts_mol) - set(network.species_ids))
+    if unknown:
+        raise ValueError(f"initial state contains unknown species: {unknown}")
+    values = [float(value) for value in amounts_mol.values()]
+    if any(not np.isfinite(value) for value in values):
+        raise ValueError("initial species amounts must be finite")
+    if any(value < 0 for value in values):
+        raise ValueError("initial species amounts cannot be negative")
+
+
+def _rhs_amount(value: float, species_id: str) -> float:
+    if not np.isfinite(value):
+        raise RuntimeError(f"nonfinite amount encountered for species {species_id}")
+    # Adaptive ODE methods can overshoot a positive boundary by roundoff.  A
+    # larger excursion is a failed physical integration, not a value to hide.
+    if value < -1.0e-8:
+        raise RuntimeError(f"negative amount encountered for species {species_id}: {value}")
+    return max(value, 0.0)
+
+
+def _validated_amount(value: float, species_id: str) -> float:
+    if not np.isfinite(value):
+        raise RuntimeError(f"nonfinite amount encountered for species {species_id}")
+    if value < -1.0e-8:
+        raise RuntimeError(f"negative amount encountered for species {species_id}: {value}")
+    return max(value, 0.0)
 
 
 __all__ = [

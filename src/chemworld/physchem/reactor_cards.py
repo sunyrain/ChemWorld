@@ -10,10 +10,10 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
         ModelCard(
             model_id="dynamic_batch_heat_release_jacket_sampling",
             module_id="reactors",
-            title="Dynamic Batch Reactor With Heat Release And Sampling",
+            title="Dynamic Batch And Semibatch Reactor Reference Slice",
             maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
-                "Event-driven dynamic batch reactor slice with material "
+                "Dynamic batch and prescribed-flow semibatch reactor slice with material "
                 "balances, thermochemistry-derived reaction heat, wall/jacket "
                 "heat transfer, destructive sampling events, and auditable "
                 "material/energy ledgers."
@@ -24,22 +24,31 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
                 "Q_jacket = UA_jacket (T_jacket(t) - T) + Q_fixed",
                 "Q_loss = UA_env (T - T_env)",
                 "sample event: n_j <- n_j(1 - V_sample/V), V <- V - V_sample",
+                "C_j = n_j/V; fixed-liquid P(t) = P_boundary when pressure is declared",
+                "semibatch: dn_i/dt = V sum_j nu_ij r_j + F_i,in - q_out n_i/V",
+                "semibatch: dV/dt = q_in - q_out",
             ),
             assumptions=(
                 "well-mixed liquid-phase batch reactor",
                 "constant density heat-capacity basis rhoCp V",
                 "sampling removes a representative well-mixed fraction",
+                "semibatch withdrawal composition equals instantaneous reactor composition",
                 "reaction enthalpy uses supplied NASA7 species thermochemistry when available",
             ),
             validity_limits=(
-                "no pressure dynamics, vapor-liquid equilibrium, or wall thermal inertia",
+                (
+                    "pressure support is a fixed-liquid boundary only; no gas-headspace "
+                    "dynamics, vapor-liquid equilibrium, or wall thermal inertia"
+                ),
                 "sample events must leave positive reactor volume",
+                "prescribed semibatch schedules must leave positive reactor volume",
                 "NASA7 reaction enthalpy requires thermochemistry for every reacting species",
             ),
             failure_modes=(
                 "negative duration, volume, sample volume, or temperature raises errors",
                 "missing species thermochemistry raises a KeyError when NASA7 heat is requested",
                 "ODE solver failure raises RuntimeError instead of silently clipping",
+                "a semibatch schedule that exhausts volume fails before integration",
             ),
             units={
                 "amount": "mol",
@@ -76,7 +85,7 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
                         "reaction-heat ledger."
                     ),
                     status="implemented",
-                    command_or_path="tests/test_reactor_models.py",
+                    command_or_path="tests/test_reactor_models.py; tests/test_reactor_reference.py",
                     tolerance="pytest.approx local tolerances",
                 ),
                 ValidationEvidence(
@@ -87,8 +96,38 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
                         "and preserves elemental material balance."
                     ),
                     status="implemented",
-                    command_or_path="tests/test_reactor_models.py",
+                    command_or_path="tests/test_reactor_models.py; tests/test_reactor_reference.py",
                     tolerance="material balance error < 1e-8 mol",
+                ),
+                ValidationEvidence(
+                    evidence_id="batch-first-order-and-idempotent-advance-test",
+                    evidence_type="analytical_test",
+                    description=(
+                        "First-order isothermal batch conversion matches exp(-kt), and "
+                        "a retried operation id does not advance time or energy twice."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reactor_reference.py",
+                    tolerance="2e-6 relative; exact retry state equality",
+                ),
+                ValidationEvidence(
+                    evidence_id="semibatch-feed-withdrawal-ledger-closure",
+                    evidence_type="analytical_test",
+                    description=(
+                        "Matched volumetric feed/withdrawal holds volume while material-in, "
+                        "material-out, inventory, and elemental balance close."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reactor_reference.py",
+                    tolerance="material balance error < 1e-8 mol",
+                ),
+                ValidationEvidence(
+                    evidence_id="semibatch-volume-exhaustion-failure",
+                    evidence_type="failure_injection",
+                    description="An exhaustive withdrawal schedule fails before ODE integration.",
+                    status="implemented",
+                    command_or_path="tests/test_reactor_reference.py",
+                    tolerance="deterministic ValueError",
                 ),
             ),
             model_limit_notes=(
@@ -100,11 +139,13 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
                     "Pressure dynamics, gas expansion work, variable Cp mixtures, "
                     "and vapor-liquid phase change remain explicit future slices."
                 ),
+                "Prescribed semibatch flow is validated; closed-loop level control is not.",
             ),
             intended_use=(
                 "reaction calorimetry task design",
                 "heat-release-aware campaign simulation",
                 "safe-operation benchmark scenarios with explicit material and energy ledgers",
+                "semibatch feed-rate, quench, and residence-history reasoning",
             ),
         ),
         ModelCard(
@@ -130,7 +171,7 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
                 "reaction rates use the declared mechanism and current reactor temperature",
             ),
             validity_limits=(
-                "no level dynamics when inlet and outlet nominal flows differ",
+                "constant volume requires equal nominal inlet and outlet volumetric flow",
                 "no pressure controller, vapor holdup, or wall thermal inertia",
                 "flow-program scale is finite and nonnegative",
                 "steady-state multiplicity is validated by a separate first-order reference slice",
@@ -163,7 +204,7 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
                         "the time integral of the linear flow scale."
                     ),
                     status="implemented",
-                    command_or_path="tests/test_reactor_models.py",
+                    command_or_path="tests/test_reactor_models.py; tests/test_reactor_reference.py",
                     tolerance="2e-6 relative and material balance < 1e-8 mol",
                 ),
                 ValidationEvidence(
@@ -176,6 +217,17 @@ def reactor_model_cards() -> tuple[ModelCard, ...]:
                     status="implemented",
                     command_or_path="tests/test_reactor_models.py",
                     tolerance="2e-6 relative and material balance < 1e-8 mol",
+                ),
+                ValidationEvidence(
+                    evidence_id="cstr-first-order-design-and-residual-gate",
+                    evidence_type="analytical_test",
+                    description=(
+                        "The first-order steady state matches C_Af/(1+k tau), and the "
+                        "generic dynamic solve must pass an explicit species-residual gate."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reactor_reference.py",
+                    tolerance="2e-6 relative; residual <= 1e-8 mol/s",
                 ),
             ),
             model_limit_notes=(

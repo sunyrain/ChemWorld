@@ -1,6 +1,12 @@
 """Mechanism-backed reactor model facade for ChemWorld."""
 
-from chemworld.physchem.batch_reactors import BatchReactorModel, DynamicBatchReactorModel
+from chemworld.physchem.batch_reactors import (
+    BatchOperationRecord,
+    BatchOperationType,
+    BatchReactorModel,
+    BatchReactorSession,
+    DynamicBatchReactorModel,
+)
 from chemworld.physchem.cstr_multiplicity import (
     CSTRMultiplicityResult,
     CSTRMultiplicitySpec,
@@ -15,15 +21,21 @@ from chemworld.physchem.reactor_shared import (
     FeedStreamSpec,
     HeatTransferSpec,
     JacketTemperatureProgram,
+    PressureBoundarySpec,
     ReactorResult,
     ReactorState,
+    ReactorValidityDomain,
     SamplingEventSpec,
     SemiBatchFeedSpec,
+    WithdrawalSpec,
 )
 from chemworld.physchem.semibatch_reactors import SemiBatchReactorModel
 
 __all__ = [
+    "BatchOperationRecord",
+    "BatchOperationType",
     "BatchReactorModel",
+    "BatchReactorSession",
     "CSTRFlowProgram",
     "CSTRModel",
     "CSTRMultiplicityResult",
@@ -35,11 +47,14 @@ __all__ = [
     "JacketTemperatureProgram",
     "PFRGeometrySpec",
     "PFRModel",
+    "PressureBoundarySpec",
     "ReactorResult",
     "ReactorState",
+    "ReactorValidityDomain",
     "SamplingEventSpec",
     "SemiBatchFeedSpec",
     "SemiBatchReactorModel",
+    "WithdrawalSpec",
     "cstr_multiple_steady_state_reference_case",
     "reactor_model_cards",
     "solve_cstr_multiple_steady_states",
