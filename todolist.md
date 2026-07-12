@@ -6,7 +6,7 @@
 
 - 当前阶段只处理 backend、公共合同、状态转移、物理化学 provider、仪器观测、漏洞和成熟度证据。
 - 暂停新增算法榜单、LLM 正式矩阵、H1–H4 主实验、Train/Bridge、实体设备、论文和最终发布。
-- 现有 `benchmark-vnext-reference-portfolio-substrate` active claim 可继续完成，但不阻塞本专项。
+- `benchmark-vnext-reference-portfolio-substrate` 控制层 claim 已由核心维护者接管并完成；正式 reference search 证据仍属于后续方法评测阶段，不在本基座专项范围内。
 - 所有实现继续遵守 `claims/README.md`：先 claim、单一 Task ID、精确 `owned_paths`、独立提交并推送 `main`。
 - 一个任务超过约两天时，用 `原-task-id--slice-序号-名称` 拆分；共享文件最后由 integration slice 顺序合并。
 - 旧冻结协议只作为历史 provenance，不是兼容性硬约束。若旧 action、reward、task、score、physics 或 replay 合同妨碍更好的基座，可直接建立新版本并重跑。
@@ -202,7 +202,7 @@
 1. 第一批：runtime reachability、state invariants、RL contract、public boundary、maturity truth（已完成）。
 2. 第二批：reaction kinetics、reactor、instruments 有界参考实现（已完成）。
 3. 第三批：separation、crystallization、distillation、flow、electrochem/equilibrium 正式耦合（已完成）。
-4. 第四批：lite elimination integration 与 backend v0.5 candidate freeze（功能冻结已完成；最终发布门禁报告运行中）。
+4. 第四批：lite elimination integration 与 backend v0.5 candidate freeze（已完成；最终发布门禁 12/12 commands 通过）。
 
 ## 已完成且继续保留
 
