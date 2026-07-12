@@ -13,6 +13,9 @@ from chemworld.physchem.equilibrium_chemistry import (
     apply_precipitation_hooks,
     solve_monoprotic_acid_base,
 )
+from chemworld.physchem.spectroscopy_adapter_manifest import (
+    ValidatedInstrumentRuntimeProvider,
+)
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.observation_contracts import TaskObservationContract
@@ -21,7 +24,6 @@ from chemworld.world.observation_kernel import (
     base_public_values,
     observation_units,
     processed_estimate,
-    raw_signal,
 )
 from chemworld.world.operations import instrument_name, operation_name
 from chemworld.world.scoring import TaskScoringContract, task_score_observation
@@ -40,6 +42,7 @@ class ChemWorldObservationKernel:
         observation_contract: TaskObservationContract | None = None,
         *,
         observation_noise_multiplier: float = 1.0,
+        instrument_provider: ValidatedInstrumentRuntimeProvider | None = None,
     ) -> None:
         self.constitution = constitution
         self.objective = objective
@@ -52,6 +55,8 @@ class ChemWorldObservationKernel:
             raise ValueError("observation_noise_multiplier must be positive and finite")
         self.observation_noise_multiplier = float(observation_noise_multiplier)
         self.species_view = MechanismSpeciesView(compiled_mechanism)
+        self.instrument_provider = instrument_provider or ValidatedInstrumentRuntimeProvider()
+        self.last_provider_execution: dict[str, Any] = {}
 
     def observe(
         self,
@@ -178,14 +183,33 @@ class ChemWorldObservationKernel:
         species_amounts_mol: dict[str, float] | None = None,
     ) -> dict[str, Any]:
         replicate_count = 3 if instrument_id == "final_assay" else 2
-        packet = raw_signal(
-            instrument_id,
-            values,
-            species_amounts_mol=species_amounts_mol,
-            volume_L=state.volume_L,
-            seed=int(rng.integers(0, 2**31 - 1)),
-            replicate_count=replicate_count,
+        provider_seed = int(rng.integers(0, 2**31 - 1))
+        provider_result = self.instrument_provider.evaluate(
+            {
+                "instrument_id": instrument_id,
+                "public_values": values,
+                "public_species_amounts_mol": species_amounts_mol,
+                "sample_basis_volume_L": state.volume_L,
+                "seed": provider_seed,
+                "replicate_count": replicate_count,
+            }
         )
+        contract = self.instrument_provider.model_contract
+        self.last_provider_execution = {
+            "model_id": contract.model_id,
+            "provider_path": contract.provider_path,
+            "maturity": contract.maturity.value,
+            "role": contract.role.value,
+            "success": provider_result.success,
+            "failure_reason": provider_result.failure_reason,
+            "diagnostics": dict(provider_result.diagnostics),
+            "provenance": list(provider_result.provenance),
+        }
+        if not provider_result.success:
+            raise ValueError(provider_result.failure_reason or "instrument runtime provider failed")
+        packet = provider_result.outputs.get("packet")
+        if not isinstance(packet, dict):
+            raise ValueError("instrument runtime provider returned no public packet")
         if species_amounts_mol is not None:
             packet["source"] = "task_public_species_calibration"
             packet["visibility"] = "task_observation_contract"

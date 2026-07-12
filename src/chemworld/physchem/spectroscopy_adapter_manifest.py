@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from math import isfinite
 from typing import Any
 
 from chemworld.physchem.maturity import (
@@ -19,6 +20,13 @@ from chemworld.physchem.spectroscopy_identifiability import (
     evaluate_spectral_identifiability,
 )
 from chemworld.runtime.kernel_contracts import ModelProviderResult
+from chemworld.world.instruments import (
+    INSTRUMENT_RUNTIME_MODEL_ID,
+    INSTRUMENT_RUNTIME_PROVENANCE,
+    INSTRUMENT_RUNTIME_PROVIDER_PATH,
+    instrument_contracts,
+)
+from chemworld.world.observation_kernel import raw_signal
 
 OWNED_PATHS = (
     "src/chemworld/physchem/spectroscopy_identifiability.py",
@@ -27,6 +35,201 @@ OWNED_PATHS = (
     "workstreams/world_foundation/adapters/wf-20-spectral-identifiability.json",
 )
 INTEGRATION_OPERATIONS = ("measure",)
+PUBLIC_SPECIES_CHANNELS = frozenset(
+    {
+        "reactant_public",
+        "target_public",
+        "impurity_public",
+        "degradation_public",
+    }
+)
+FORBIDDEN_PACKET_KEYS = frozenset(
+    {
+        "debug",
+        "hidden_parameters",
+        "model_id",
+        "model_ids",
+        "private_seed",
+        "provider",
+        "provider_parameters",
+        "provider_path",
+        "world_provider",
+    }
+)
+
+
+def instrument_runtime_provider_contract() -> ModelProviderContract:
+    """Return the provider contract consumed by the formal measure runtime."""
+
+    return ModelProviderContract(
+        model_id=INSTRUMENT_RUNTIME_MODEL_ID,
+        module_id="spectroscopy_instruments",
+        maturity=MaturityLevel.REFERENCE_VALIDATED,
+        role=ModelExecutionRole.RUNTIME,
+        provider_path=INSTRUMENT_RUNTIME_PROVIDER_PATH,
+        input_fields=(
+            "instrument_id",
+            "public_values",
+            "public_species_amounts_mol",
+            "sample_basis_volume_L",
+            "seed",
+            "replicate_count",
+        ),
+        output_fields=("packet", "processed_estimates", "uncertainty"),
+        units={
+            "instrument_id": "dimensionless id",
+            "public_values": "normalized public estimates",
+            "public_species_amounts_mol": "mol",
+            "sample_basis_volume_L": "L",
+            "seed": "dimensionless integer",
+            "replicate_count": "count",
+            "packet": "instrument-specific public signal",
+            "processed_estimates": "instrument-specific public estimates",
+            "uncertainty": "instrument-specific public uncertainty",
+        },
+        validity_checks=(
+            "instrument id has a declared bounded synthetic contract",
+            "sample volume, public values, and public aggregate amounts are finite",
+            "only anonymous task-public aggregate species channels enter the provider",
+            "packet exposes raw signal, peaks, anonymous assignments, processed estimates, "
+            "uncertainty, calibration, and missingness",
+            "packet contains no hidden identity, private seed, provider path, or model id",
+        ),
+        diagnostic_fields=(
+            "instrument_id",
+            "packet_schema_valid",
+            "layered_packet",
+            "identity_safe",
+            "finite_signal",
+            "calibration_profile",
+            "replicate_count",
+            "missingness_count",
+            "saturation_count",
+        ),
+        failure_policy=(
+            "fail closed before returning an observation when the instrument, numerical "
+            "domain, public identity boundary, or layered packet contract is invalid"
+        ),
+        provenance=INSTRUMENT_RUNTIME_PROVENANCE,
+        intended_operations=INTEGRATION_OPERATIONS,
+    )
+
+
+class ValidatedInstrumentRuntimeProvider:
+    """Validated public-signal provider used by every formal measurement."""
+
+    @property
+    def model_contract(self) -> ModelProviderContract:
+        return instrument_runtime_provider_contract()
+
+    def validate_domain(self, inputs: Mapping[str, Any]) -> tuple[str, ...]:
+        violations: list[str] = []
+        instrument_id = inputs.get("instrument_id")
+        if instrument_id not in instrument_contracts():
+            violations.append("instrument_id has no declared runtime contract")
+        public_values = inputs.get("public_values")
+        if not isinstance(public_values, Mapping):
+            violations.append("public_values must be a mapping")
+        elif not _finite_optional_mapping(public_values):
+            violations.append("public_values must contain only finite numbers or null")
+        public_amounts = inputs.get("public_species_amounts_mol")
+        if public_amounts is not None:
+            if not isinstance(public_amounts, Mapping):
+                violations.append("public_species_amounts_mol must be a mapping or null")
+            else:
+                unexpected = sorted(set(map(str, public_amounts)) - PUBLIC_SPECIES_CHANNELS)
+                if unexpected:
+                    violations.append(f"non-public species channels: {unexpected}")
+                if not _finite_nonnegative_mapping(public_amounts):
+                    violations.append("public species amounts must be finite and nonnegative")
+        volume = inputs.get("sample_basis_volume_L")
+        if not isinstance(volume, int | float) or not isfinite(float(volume)) or volume <= 0:
+            violations.append("sample_basis_volume_L must be positive and finite")
+        seed = inputs.get("seed")
+        if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+            violations.append("seed must be a nonnegative integer")
+        replicates = inputs.get("replicate_count")
+        if isinstance(replicates, bool) or not isinstance(replicates, int) or replicates < 1:
+            violations.append("replicate_count must be a positive integer")
+        return tuple(violations)
+
+    def evaluate(self, inputs: Mapping[str, Any]) -> ModelProviderResult:
+        violations = self.validate_domain(inputs)
+        if violations:
+            return _runtime_failed_result("; ".join(violations))
+        instrument_id = str(inputs["instrument_id"])
+        public_values = dict(inputs["public_values"])
+        public_amounts_value = inputs.get("public_species_amounts_mol")
+        public_amounts = None if public_amounts_value is None else dict(public_amounts_value)
+        packet = raw_signal(
+            instrument_id,
+            public_values,
+            species_amounts_mol=public_amounts,
+            volume_L=float(inputs["sample_basis_volume_L"]),
+            seed=int(inputs["seed"]),
+            replicate_count=int(inputs["replicate_count"]),
+        )
+        layered = _is_layered_packet(instrument_id, packet)
+        identity_safe = not (_nested_keys(packet) & FORBIDDEN_PACKET_KEYS)
+        finite_signal = _all_numeric_values_finite(packet)
+        if not packet or not layered or not identity_safe or not finite_signal:
+            failures = []
+            if not packet:
+                failures.append("empty signal packet")
+            if not layered:
+                failures.append("layered public packet contract failed")
+            if not identity_safe:
+                failures.append("private identity field detected")
+            if not finite_signal:
+                failures.append("non-finite public signal detected")
+            return _runtime_failed_result("; ".join(failures))
+        contract = instrument_contracts()[instrument_id]
+        processed = packet.get("processed_estimates", {})
+        uncertainty = packet.get("uncertainty", {})
+        diagnostics = {
+            "instrument_id": instrument_id,
+            "packet_schema_valid": True,
+            "layered_packet": layered,
+            "identity_safe": identity_safe,
+            "finite_signal": finite_signal,
+            "calibration_profile": contract.calibration_profile,
+            "replicate_count": int(inputs["replicate_count"]),
+            "missingness_count": _missingness_count(packet),
+            "saturation_count": _saturation_count(packet),
+        }
+        return ModelProviderResult(
+            outputs={
+                "packet": packet,
+                "processed_estimates": dict(processed) if isinstance(processed, Mapping) else {},
+                "uncertainty": dict(uncertainty) if isinstance(uncertainty, Mapping) else {},
+            },
+            diagnostics=diagnostics,
+            provenance=self.model_contract.provenance,
+        )
+
+
+def instrument_runtime_adapter_manifest() -> ModelAdapterManifest:
+    """Return the formal runtime adapter manifest for public instruments."""
+
+    return ModelAdapterManifest(
+        adapter_id="foundation-instrument-runtime-integration",
+        adapter_version="1.0",
+        owner_workstream="foundation-instrument-runtime-integration",
+        provider_contract=instrument_runtime_provider_contract(),
+        owned_paths=(
+            "src/chemworld/runtime/observation_services.py",
+            "src/chemworld/runtime/instrument_cost_services.py",
+            "src/chemworld/world/instruments.py",
+            "src/chemworld/world/spectra.py",
+            "src/chemworld/world/observation_kernel.py",
+            "src/chemworld/physchem/spectroscopy_adapter_manifest.py",
+            "tests/test_instrument_runtime_integration.py",
+            "workstreams/world_foundation/reports/instrument-runtime-integration.json",
+        ),
+        integration_operations=INTEGRATION_OPERATIONS,
+        target_world_law="chemworld-physical-chemistry-vnext",
+        status="integrated",
+    )
 
 
 def spectroscopy_identifiability_provider_contract() -> ModelProviderContract:
@@ -167,10 +370,137 @@ def _failed_result(
     )
 
 
+def _runtime_failed_result(failure_reason: str) -> ModelProviderResult:
+    return ModelProviderResult(
+        outputs={},
+        diagnostics={
+            "instrument_id": None,
+            "packet_schema_valid": False,
+            "layered_packet": False,
+            "identity_safe": False,
+            "finite_signal": False,
+            "calibration_profile": None,
+            "replicate_count": 0,
+            "missingness_count": 0,
+            "saturation_count": 0,
+        },
+        warnings=(failure_reason,),
+        success=False,
+        failure_reason=failure_reason,
+        provenance=INSTRUMENT_RUNTIME_PROVENANCE,
+    )
+
+
+def _finite_optional_mapping(values: Mapping[Any, Any]) -> bool:
+    return all(
+        value is None
+        or (
+            isinstance(value, int | float)
+            and not isinstance(value, bool)
+            and isfinite(float(value))
+        )
+        for value in values.values()
+    )
+
+
+def _finite_nonnegative_mapping(values: Mapping[Any, Any]) -> bool:
+    return all(
+        isinstance(value, int | float)
+        and not isinstance(value, bool)
+        and isfinite(float(value))
+        and float(value) >= 0.0
+        for value in values.values()
+    )
+
+
+def _nested_keys(payload: Any) -> set[str]:
+    keys: set[str] = set()
+    if isinstance(payload, Mapping):
+        for key, value in payload.items():
+            keys.add(str(key).lower())
+            keys.update(_nested_keys(value))
+    elif isinstance(payload, list | tuple):
+        for value in payload:
+            keys.update(_nested_keys(value))
+    return keys
+
+
+def _all_numeric_values_finite(payload: Any) -> bool:
+    if isinstance(payload, Mapping):
+        return all(_all_numeric_values_finite(value) for value in payload.values())
+    if isinstance(payload, list | tuple):
+        return all(_all_numeric_values_finite(value) for value in payload)
+    if isinstance(payload, float):
+        return isfinite(payload)
+    return True
+
+
+def _layered_signal(packet: Mapping[str, Any]) -> bool:
+    return {
+        "sample_state",
+        "raw_signal",
+        "peaks",
+        "assignments",
+        "processed_estimates",
+        "uncertainty",
+        "calibration",
+        "missingness",
+        "metadata",
+    } <= set(packet)
+
+
+def _is_layered_packet(instrument_id: str, packet: Mapping[str, Any]) -> bool:
+    if instrument_id != "final_assay":
+        return _layered_signal(packet)
+    spectra = packet.get("spectra")
+    if not isinstance(spectra, Mapping):
+        return False
+    required = {"hplc", "gc", "uvvis", "ph_meter"}
+    return required <= set(spectra) and all(
+        isinstance(spectra[channel], Mapping) and _layered_signal(spectra[channel])
+        for channel in required
+    )
+
+
+def _missingness_count(packet: Mapping[str, Any]) -> int:
+    missingness = packet.get("missingness")
+    count = 0
+    if isinstance(missingness, Mapping):
+        entries = missingness.get("entries", ())
+        if isinstance(entries, list | tuple):
+            count += len(entries)
+    spectra = packet.get("spectra")
+    if isinstance(spectra, Mapping):
+        count += sum(
+            _missingness_count(value) for value in spectra.values() if isinstance(value, Mapping)
+        )
+    return count
+
+
+def _saturation_count(packet: Mapping[str, Any]) -> int:
+    count = 0
+    peaks = packet.get("peaks", ())
+    if isinstance(peaks, list | tuple):
+        count += sum(
+            bool(peak.get("saturated", False)) for peak in peaks if isinstance(peak, Mapping)
+        )
+    spectra = packet.get("spectra")
+    if isinstance(spectra, Mapping):
+        count += sum(
+            _saturation_count(value) for value in spectra.values() if isinstance(value, Mapping)
+        )
+    return count
+
+
 __all__ = [
+    "FORBIDDEN_PACKET_KEYS",
     "INTEGRATION_OPERATIONS",
     "OWNED_PATHS",
+    "PUBLIC_SPECIES_CHANNELS",
     "SpectralIdentifiabilityProvider",
+    "ValidatedInstrumentRuntimeProvider",
+    "instrument_runtime_adapter_manifest",
+    "instrument_runtime_provider_contract",
     "spectroscopy_identifiability_adapter_manifest",
     "spectroscopy_identifiability_provider_contract",
 ]

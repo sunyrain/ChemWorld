@@ -2,11 +2,24 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass
 from typing import Any
 
 from chemworld.foundation import Instrument
 from chemworld.world.spectra import raw_signal_schema
+
+INSTRUMENT_RUNTIME_MODEL_ID = "chemworld_validated_synthetic_instruments_v1"
+INSTRUMENT_RUNTIME_PROVIDER_PATH = (
+    "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider"
+)
+INSTRUMENT_RUNTIME_PROVENANCE = (
+    "ChemWorld bounded public synthetic instrument contracts v1",
+    "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+    "tests/test_instruments_reference.py",
+    "tests/test_instrument_runtime_integration.py",
+)
 
 
 def chemworld_instruments() -> dict[str, Instrument]:
@@ -301,4 +314,28 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
     return contracts
 
 
-__all__ = ["InstrumentContract", "chemworld_instruments", "instrument_contracts"]
+def instrument_runtime_contract_hash() -> str:
+    """Return a stable fingerprint of the exact runtime instrument contract."""
+
+    payload = {
+        "model_id": INSTRUMENT_RUNTIME_MODEL_ID,
+        "provider_path": INSTRUMENT_RUNTIME_PROVIDER_PATH,
+        "provenance": list(INSTRUMENT_RUNTIME_PROVENANCE),
+        "instruments": {
+            instrument_id: contract.to_dict()
+            for instrument_id, contract in sorted(instrument_contracts().items())
+        },
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+__all__ = [
+    "INSTRUMENT_RUNTIME_MODEL_ID",
+    "INSTRUMENT_RUNTIME_PROVENANCE",
+    "INSTRUMENT_RUNTIME_PROVIDER_PATH",
+    "InstrumentContract",
+    "chemworld_instruments",
+    "instrument_contracts",
+    "instrument_runtime_contract_hash",
+]
