@@ -519,7 +519,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        谱图证据档位
+        反应器与实验边界
       
     </span>
   </a>
@@ -530,7 +530,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        实验条件差异审计
+        谱图证据档位
       
     </span>
   </a>
@@ -541,7 +541,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        扩展研究档位
+        实验条件差异审计
       
     </span>
   </a>
@@ -552,7 +552,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        经典主动学习后端
+        扩展研究档位
       
     </span>
   </a>
@@ -563,7 +563,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        配置在线模型
+        经典主动学习后端
       
     </span>
   </a>
@@ -574,7 +574,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        材料标签
+        配置在线模型
       
     </span>
   </a>
@@ -583,6 +583,17 @@
         
           <li class="md-nav__item">
   <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        材料标签
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         全任务命令行评测
@@ -609,7 +620,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_9" class="md-nav__link">
+  <a href="#_10" class="md-nav__link">
     <span class="md-ellipsis">
       
         分数含义
@@ -2016,7 +2027,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        谱图证据档位
+        反应器与实验边界
       
     </span>
   </a>
@@ -2027,7 +2038,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        实验条件差异审计
+        谱图证据档位
       
     </span>
   </a>
@@ -2038,7 +2049,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        扩展研究档位
+        实验条件差异审计
       
     </span>
   </a>
@@ -2049,7 +2060,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        经典主动学习后端
+        扩展研究档位
       
     </span>
   </a>
@@ -2060,7 +2071,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        配置在线模型
+        经典主动学习后端
       
     </span>
   </a>
@@ -2071,7 +2082,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        材料标签
+        配置在线模型
       
     </span>
   </a>
@@ -2080,6 +2091,17 @@
         
           <li class="md-nav__item">
   <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        材料标签
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         全任务命令行评测
@@ -2106,7 +2128,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_9" class="md-nav__link">
+  <a href="#_10" class="md-nav__link">
     <span class="md-ellipsis">
       
         分数含义
@@ -2189,6 +2211,7 @@
 <li>动作是否合法、修正过程和剩余预算；</li>
 <li>HPLC、GC、UV-Vis、IR、NMR 原始公开曲线与峰表；</li>
 <li>每轮决策实际发送给模型的谱图载荷，并与刚完成的实验输出分栏标识；</li>
+<li>可按任务、实验、步骤和来源回看全部历史谱图，并用前后按钮逐张比较；</li>
 <li>模型对公开峰形、主要峰组和不确定性的结构化解读；</li>
 <li>公开指标、最佳分数和 final assay 状态；</li>
 <li>模型调用数、token 用量和动作有效率；</li>
@@ -2204,7 +2227,15 @@
 历史对照、动作依据和不确定性。<code>MEASUREMENT OUTPUT</code> 表示刚完成实验的输出，
 <code>MODEL INPUT · DECISION N</code> 表示该轮决策真正发送给在线模型的谱图载荷。模型侧可以开启强化推理，
 但隐藏逐字思维链不会写入轨迹或发送到浏览器。</p>
-<h3 id="_2">谱图证据档位<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<h3 id="_2">反应器与实验边界<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>一次实验内的操作共享同一个反应器状态。加料会进入当前釜并累积体积或物料量；连续 <code>heat</code>/<code>wait</code>
+会从当前组成和温度继续积分，因此反应时间、转化、能耗与风险都会累计。HPLC 等中间测量读取当前实验，
+不会自动生成一个新的配方实验。</p>
+<p>只有成功完成 <code>final_assay</code> 才形成一个可独立比较的已完成实验。在 <code>single_experiment</code> 模式下这会结束
+episode；在 <code>campaign</code> 模式下系统记录终检结果、增加 experiment index，并以相同世界参数恢复一只
+全新的初始反应器。因而，同一釜内继续升温或追加物料不能被描述为独立对照实验；溶剂和催化剂类别也
+应在单次实验内保持为同一配方选择。Agent prompt 会显式收到这些状态语义。</p>
+<h3 id="_3">谱图证据档位<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
 <p>Agent 端可选择三种可复现实验条件：</p>
 <table>
 <thead>
@@ -2234,18 +2265,18 @@
 </table>
 <p>选择 <code>raw</code> 或 <code>unassigned</code> 时，prompt 中的 lab-report 峰组汇总也会同步删除，避免从另一字段泄露
 target/reactant/byproduct。Student Lab 保留已指认教学视图，不受 Agent 消融设置影响。</p>
-<h3 id="_3">实验条件差异审计<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h3 id="_4">实验条件差异审计<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
 <p>每次 final assay 后，系统从实际执行的溶剂、投料、催化剂和温度程序中建立条件签名，并选择条件
 距离最近的历史实验作为参考。事件流和结果 JSON 会标记：初始基线、完全重复、单因素对照或多因素
 变化，并列出真实变化字段与分数差。该指标描述设计结构，不把 BO 的多变量选点错误判为失败；但当
 模型声称单因素因果结论时，多因素变化会成为可直接检查的归因风险。</p>
-<h3 id="_4">扩展研究档位<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<h3 id="_5">扩展研究档位<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
 <p>面板中的“实验预算”可选择 1× 到 4×，“连续实验 Campaign”允许原本的单实验任务在终检后
 开始下一轮。系统会把每轮公开条件、仪器、谱图结论、终检指标和分数压缩为实验记忆，下一轮
 明确接收这些记录。剩余预算不足一个最小完整反应配方时，调度器停止启动新实验。</p>
 <p>1× 且不覆盖 campaign 时使用冻结的官方任务合同。预算放大或 campaign override 都会切换为
 <code>extended-research</code>，只产生 <code>research_score</code>；该分数与 <code>official_score</code> 和官方榜单严格隔离。</p>
-<h3 id="_5">经典主动学习后端<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<h3 id="_6">经典主动学习后端<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
 <p>Agent 后端可切换为：</p>
 <ul>
 <li><code>random_recipe</code>：随机完整配方对照；</li>
@@ -2262,7 +2293,7 @@ target/reactant/byproduct。Student Lab 保留已指认教学视图，不受 Age
 随机、LHS 与局部搜索按各自规则直接选点。事件流会
 展示训练样本数、采集阶段、采集函数值、历史最优和选中配方。经典配方编译器只适用于兼容的
 反应任务，界面会禁用不兼容任务。运行经典算法不需要模型 API key。</p>
-<h3 id="_6">配置在线模型<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<h3 id="_7">配置在线模型<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">本地 key 文件</label><label for="__tabbed_1_2">PowerShell</label><label for="__tabbed_1_3">bash</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -2288,11 +2319,11 @@ python<span class="w"> </span>-m<span class="w"> </span>apps.task_lab.server<spa
 <p>模型标识和可用推理参数可能随 provider 更新。请使用 provider 当前 API 文档列出的模型 ID；
 正式比较必须把 provider、模型 ID、请求参数、prompt hash、token 来源和调用时间写入方法账本。
 密钥只通过进程环境变量传入，不要保存在仓库、轨迹、prompt artifact 或提交包中。</p>
-<h3 id="_7">材料标签<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<h3 id="_8">材料标签<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
 <p>界面把稳定数字 action 值同时显示为 Water、Ethanol、Acetonitrile、Toluene 或 Catalyst A–D。
 真实溶剂名称表示身份，不表示当前任务的动力学已经由该物料的参考物性预测；Catalyst A–D 仍是
 匿名 benchmark 配方。详见<a href="../material_identity/">材料身份与真实化学边界</a>。</p>
-<h3 id="_8">全任务命令行评测<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<h3 id="_9">全任务命令行评测<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">python</span> <span class="n">-m</span> <span class="n">apps</span><span class="p">.</span><span class="n">task_lab</span><span class="p">.</span><span class="n">run_evaluation</span> <span class="p">-</span><span class="n">-all-tasks</span> <span class="p">-</span><span class="n">-mode</span> <span class="n">adaptive</span> <span class="p">-</span><span class="n">-max-steps</span> <span class="n">24</span>
 </code></pre></div>
 <p>每次运行会生成 <code>evaluation_summary.json</code>，并为每个任务保存模型计划、完整轨迹和经过回放验证的
@@ -2314,11 +2345,12 @@ python<span class="w"> </span>-m<span class="w"> </span>apps.task_lab.server<spa
 <li>可见分数、产率、风险、成本或表征指标；</li>
 <li>数字反应器、仪器摘要和最佳得分学习曲线；</li>
 <li>可切换通道的 HPLC、GC、UV-Vis、IR、NMR 曲线与公开峰指认；</li>
+<li>可从 session 操作记录重建并前后切换的历史谱图；</li>
 <li>可下载的完整操作—观测实验记录。</li>
 </ol>
 <p>非法动作会在执行前被拒绝，不消耗预算，也不会改变世界状态。学生可将验证器作为实验前检查，
 而不需要通过失败来猜测环境规则。</p>
-<h2 id="_9">分数含义<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
+<h2 id="_10">分数含义<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h2>
 <p><code>official_score</code> 只属于冻结合同下的合法 final assay；扩展研究终检写入 <code>research_score</code>。
 <code>total_score</code> 是评测层的综合值，还会反映安全、成本、
 非法动作和样本效率。没有 final assay 时，页面明确显示“未评分”，不会把中间 reward 当作正式
