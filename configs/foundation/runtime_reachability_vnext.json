@@ -1,0 +1,64 @@
+{
+  "schema_version": "chemworld-foundation-runtime-reachability-protocol-0.1",
+  "protocol_id": "foundation-runtime-reachability-vnext",
+  "expected_task_count": 15,
+  "expected_operation_count": 28,
+  "expected_task_ids": [
+    "electrochemical-conversion",
+    "equilibrium-characterization",
+    "flow-reaction-optimization",
+    "low-budget-characterization",
+    "partition-discovery",
+    "public-private-generalization",
+    "purity-yield-tradeoff",
+    "reaction-mechanism-explanation",
+    "reaction-optimization-standard",
+    "reaction-safety-constrained",
+    "reaction-to-assay",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "reaction-to-purification",
+    "tool-agent-planning"
+  ],
+  "required_provider_contract_fields": [
+    "model_id",
+    "module_id",
+    "maturity",
+    "role",
+    "provider_path",
+    "input_fields",
+    "output_fields",
+    "units",
+    "validity_checks",
+    "diagnostic_fields",
+    "failure_policy",
+    "provenance",
+    "intended_operations",
+    "runtime_reachable"
+  ],
+  "forbidden_runtime_model_id_tokens": [
+    "fallback",
+    "legacy",
+    "proxy"
+  ],
+  "expected_lite_provider_groups": {
+    "reaction_kinetics": [
+      "chemworld_reaction_network_lite"
+    ],
+    "reactors": [
+      "chemworld_reactor_lite"
+    ],
+    "spectroscopy_instruments": [
+      "beer_lambert_uvvis",
+      "chemworld_synthetic_instruments",
+      "chromatography_retention_plate",
+      "ph_meter_public_signal"
+    ]
+  },
+  "legacy_constraints": {
+    "shared_claim_prefix_policy": "diagnostic_only_superseded",
+    "frozen_protocol_compatibility": "not_required",
+    "provenance_retention": "required"
+  },
+  "dynamic_integration_evidence": "workstreams/world_foundation/reports/wf-110-runtime-integration.json"
+}
