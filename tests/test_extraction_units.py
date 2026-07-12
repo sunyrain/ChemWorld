@@ -149,11 +149,11 @@ def test_extraction_contract_rejects_component_and_control_errors() -> None:
         )
 
 
-def test_extraction_model_card_is_professional_candidate_and_auditable() -> None:
+def test_extraction_model_card_is_reference_validated_and_auditable() -> None:
     card = {
         item.model_id: item for item in separation_model_cards()
     }["activity_corrected_extraction_train_v1"]
 
-    assert card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(card) == []
     assert any("entrainment" in equation for equation in card.equations)

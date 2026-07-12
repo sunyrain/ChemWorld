@@ -44,17 +44,14 @@ def test_each_task_report_contains_hashes_routes_maturity_and_evidence() -> None
         assert all((root / path).is_file() for path in item["evidence_paths"])
 
 
-def test_role_audit_separates_runtime_diagnostic_and_reference_models() -> None:
+def test_role_audit_separates_routed_runtime_and_offline_reference_models() -> None:
     root = Path(__file__).parents[1]
     report = build_maturity_audit(repository_root=root)
 
     assert report["role_boundary_passed"]
-    assert set(report["provider_role_catalog"].values()) >= {
-        "runtime",
-        "diagnostic",
-        "reference",
-    }
-    assert "runtime_fallback" not in set(report["provider_role_catalog"].values())
+    registered_roles = set(report["provider_role_catalog"].values())
+    assert registered_roles == {"runtime", "reference"}
+    assert "runtime_fallback" not in registered_roles
     for item in report["tasks"]:
         actual_roles = item["actual_provider_roles"]
         assert item["actual_role_partition"]["reference"] == []
