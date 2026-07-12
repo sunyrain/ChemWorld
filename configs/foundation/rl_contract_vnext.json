@@ -2,7 +2,7 @@
   "schema_version": "chemworld-foundation-rl-contract-protocol-0.3",
   "protocol_id": "foundation-rl-contract-vnext-0.3",
   "supersedes_protocol_id": "foundation-rl-contract-vnext-0.2",
-  "status": "infrastructure_candidate_blocked_by_world_foundation",
+  "status": "development_learning_gate_ready_on_backend_v0.5",
   "benchmark_claim_allowed": false,
   "task_id": "flow-reaction-optimization",
   "action_contract": {
@@ -45,7 +45,7 @@
     "periodic_checkpoint_sidecar_required": true
   },
   "development_gate": {
-    "execution_status": "blocked_until_world_foundation_and_backend_freeze",
+    "execution_status": "ready_on_frozen_backend_v0.5",
     "algorithm": "ppo",
     "training_seeds": [106, 107, 108, 109, 110],
     "preregistered_learning_curve_seed": 106,
@@ -59,7 +59,7 @@
     "deterministic_policy": true,
     "hyperparameters": {
       "learning_rate": 0.0003,
-      "n_steps": 1024,
+      "n_steps": 128,
       "batch_size": 64,
       "gamma": 0.99,
       "gae_lambda": 0.95,
@@ -84,12 +84,22 @@
     "total_environment_step_accounting_required": true,
     "checkpoint_step_accounting_required": true,
     "throughput_and_hardware_manifest_required": true,
+    "selected_configuration": {
+      "evidence_path": "workstreams/world_foundation/reports/rl-infrastructure-vnext.json",
+      "evidence_sha256": "6e82f4828ea29a8012ec65d8983508f0bc061606311a4f7164499905055adac7",
+      "device": "cuda",
+      "parallel_environments": 8,
+      "vectorization_backend": "subprocess",
+      "aggregate_rollout_environment_steps": 1024,
+      "n_steps_per_environment": 128
+    },
     "current_local_runtime": {
-      "torch": "2.13.0+cpu",
-      "cuda_available": false,
+      "torch": "2.13.0+cu130",
+      "cuda_available": true,
+      "cuda_device_name": "NVIDIA GeForce RTX 5080",
       "logical_cpu_count": 32,
-      "observed_average_process_cpu_cores": 1.28,
-      "formal_training_eligible": false
+      "confirmed_environment_steps_per_wall_second": 108.97645773678079,
+      "formal_training_eligible": true
     }
   },
   "world_foundation_preconditions": {
@@ -102,7 +112,16 @@
     "runtime_coupling_must_be_dynamically_verified": true,
     "maturity_truth_gate_release_allowed": true,
     "backend_version_and_hash_must_be_frozen": true,
-    "formal_training_allowed": false
+    "backend_freeze_evidence": {
+      "protocol_path": "configs/foundation/backend_v0.5.json",
+      "protocol_file_sha256": "97de59e3ec8e4f5159575fb1221d296e928efa5103a900d22186fc59e0c34c1e",
+      "protocol_canonical_sha256": "fd6889cc4de98ed3c772126f8511bbc3a453a7bae951258d67e07dc51dd42550",
+      "report_path": "workstreams/world_foundation/reports/backend-v0.5.json",
+      "report_file_sha256": "a39ac2e6d267baba4ca29655d71ee0bf8ac221e5918af03b675c5064da6085ae",
+      "report_hash": "8b68dd30f31447f62e77abd0d59035274695e330fffe3d5bd982523af8ed4d4b",
+      "backend_id": "chemworld-physical-chemistry-v0.5-candidate"
+    },
+    "formal_training_allowed": true
   },
   "evidence_policy": {
     "failed_pilots_retained": true,

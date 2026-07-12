@@ -1,0 +1,55 @@
+{
+  "schema_version": "chemworld-rl-infrastructure-evidence-0.1",
+  "status": "selected",
+  "research_result": false,
+  "source_commit": "11876efb1eebae44b6567dbfa3ebf9c53d35fcd7",
+  "generated_at": "2026-07-12T19:25:33.894433+00:00",
+  "task_id": "flow-reaction-optimization",
+  "hardware": {
+    "logical_cpu_count": 32,
+    "gpu": "NVIDIA GeForce RTX 5080",
+    "torch": "2.13.0+cu130",
+    "torch_cuda_version": "13.0"
+  },
+  "controls": {
+    "diagnostic_seed": 9100,
+    "same_seed_for_every_candidate": true,
+    "aggregate_rollout_environment_steps": 1024,
+    "screening_environment_steps_per_candidate": 2048,
+    "confirmation_environment_steps_per_candidate": 8192,
+    "step_accounting_exact_for_every_candidate": true,
+    "selection_criterion": "maximum_confirmatory_environment_steps_per_wall_second"
+  },
+  "screening": [
+    {"candidate_id": "cpu-dummy-n1", "steps_per_second": 73.59172831265239, "wall_time_s": 27.829214600031264},
+    {"candidate_id": "cpu-dummy-n4", "steps_per_second": 72.92133540782709, "wall_time_s": 28.085058900061995},
+    {"candidate_id": "cpu-dummy-n8", "steps_per_second": 90.12049061171732, "wall_time_s": 22.7251315000467},
+    {"candidate_id": "cpu-subprocess-n4", "steps_per_second": 133.61724911089013, "wall_time_s": 15.327362399897538},
+    {"candidate_id": "cpu-subprocess-n8", "steps_per_second": 251.66693709295367, "wall_time_s": 8.137739600031637},
+    {"candidate_id": "cuda-dummy-n1", "steps_per_second": 59.82615343575891, "wall_time_s": 34.232520100078546},
+    {"candidate_id": "cuda-dummy-n4", "steps_per_second": 70.54905949219018, "wall_time_s": 29.02944439998828},
+    {"candidate_id": "cuda-dummy-n8", "steps_per_second": 75.93816879968504, "wall_time_s": 26.969309799955226},
+    {"candidate_id": "cuda-subprocess-n4", "steps_per_second": 114.78150634130691, "wall_time_s": 17.842595599940978},
+    {"candidate_id": "cuda-subprocess-n8", "steps_per_second": 149.1072006140869, "wall_time_s": 13.735084500047378}
+  ],
+  "confirmation": [
+    {"candidate_id": "cpu-subprocess-n4", "steps_per_second": 99.48859377306368, "wall_time_s": 82.3410974999424},
+    {"candidate_id": "cpu-subprocess-n8", "steps_per_second": 94.7928261705488, "wall_time_s": 86.42004180001095},
+    {"candidate_id": "cuda-subprocess-n8", "steps_per_second": 108.97645773678079, "wall_time_s": 75.17219930002466}
+  ],
+  "selected_candidate": {
+    "candidate_id": "cuda-subprocess-n8",
+    "device": "cuda",
+    "parallel_environments": 8,
+    "vectorization_backend": "subprocess",
+    "aggregate_rollout_environment_steps": 1024,
+    "n_steps_per_environment": 128,
+    "confirmatory_steps_per_second": 108.97645773678079,
+    "runner_up_relative_speed_advantage": 0.09536634325641158
+  },
+  "limitations": [
+    "This selects local training infrastructure only; it is not an algorithm result.",
+    "Runtime-domain failures came from untrained diagnostic policies and do not enter the throughput selection rule; the frozen development evaluation still requires zero domain failures.",
+    "The selected configuration is specific to this machine and must be re-benchmarked on materially different hardware."
+  ]
+}

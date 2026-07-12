@@ -38,6 +38,7 @@ def load_protocol(path: str | Path = PROTOCOL_PATH) -> dict[str, Any]:
             "RL training is blocked until shared lite modules, runtime coupling, "
             "maturity truth, and backend freeze all pass"
         )
+    _validate_foundation_evidence(protocol)
     gate = protocol["development_gate"]
     seeds = [int(seed) for seed in gate["training_seeds"]]
     checkpoints = [int(step) for step in gate["training_environment_step_checkpoints"]]
@@ -49,7 +50,12 @@ def load_protocol(path: str | Path = PROTOCOL_PATH) -> dict[str, Any]:
         gate["maximum_training_environment_steps"]
     ):
         raise ValueError("learning-curve checkpoints must be unique and end at the maximum")
-    if any(step % int(gate["hyperparameters"]["n_steps"]) for step in checkpoints):
+    aggregate_rollout = int(
+        protocol["training_infrastructure"]["selected_configuration"][
+            "aggregate_rollout_environment_steps"
+        ]
+    )
+    if any(step % aggregate_rollout for step in checkpoints):
         raise ValueError("PPO checkpoints must align with complete rollout batches")
     return protocol
 
@@ -57,6 +63,87 @@ def load_protocol(path: str | Path = PROTOCOL_PATH) -> dict[str, Any]:
 def _canonical_sha256(payload: Any) -> str:
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
     return hashlib.sha256(encoded.encode()).hexdigest()
+
+
+def _file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _bound_path(value: Any) -> Path:
+    path = (ROOT / str(value)).resolve()
+    if ROOT.resolve() not in path.parents:
+        raise ValueError("foundation evidence path escapes the repository")
+    return path
+
+
+def _validate_foundation_evidence(protocol: dict[str, Any]) -> None:
+    """Fail closed if the backend or infrastructure evidence drifts."""
+
+    preconditions = protocol["world_foundation_preconditions"]
+    backend_binding = preconditions["backend_freeze_evidence"]
+    backend_protocol_path = _bound_path(backend_binding["protocol_path"])
+    backend_report_path = _bound_path(backend_binding["report_path"])
+    if _file_sha256(backend_protocol_path) != backend_binding["protocol_file_sha256"]:
+        raise RuntimeError("bound backend protocol file has drifted")
+    if _file_sha256(backend_report_path) != backend_binding["report_file_sha256"]:
+        raise RuntimeError("bound backend freeze report file has drifted")
+    backend_protocol = json.loads(backend_protocol_path.read_text(encoding="utf-8"))
+    backend_report = json.loads(backend_report_path.read_text(encoding="utf-8"))
+    if _canonical_sha256(backend_protocol) != backend_binding[
+        "protocol_canonical_sha256"
+    ]:
+        raise RuntimeError("bound backend protocol canonical hash has drifted")
+    if backend_report.get("protocol_sha256") != backend_binding[
+        "protocol_canonical_sha256"
+    ]:
+        raise RuntimeError("backend report does not bind the selected protocol")
+    if backend_report.get("report_hash") != backend_binding["report_hash"]:
+        raise RuntimeError("backend report hash does not match the RL binding")
+    if backend_report.get("backend_id") != backend_binding["backend_id"]:
+        raise RuntimeError("backend identity does not match the RL binding")
+    if (
+        backend_report.get("status") != "candidate_backend_frozen"
+        or backend_report.get("backend_freeze_allowed") is not True
+        or backend_report.get("source_tree_dirty") is not False
+        or backend_report.get("benchmark_claim_allowed") is not False
+        or not all(backend_report.get("checks", {}).values())
+    ):
+        raise RuntimeError("backend freeze evidence does not pass every required gate")
+
+    infrastructure = protocol["training_infrastructure"]["selected_configuration"]
+    infrastructure_path = _bound_path(infrastructure["evidence_path"])
+    if _file_sha256(infrastructure_path) != infrastructure["evidence_sha256"]:
+        raise RuntimeError("bound RL infrastructure evidence has drifted")
+    infrastructure_report = json.loads(
+        infrastructure_path.read_text(encoding="utf-8")
+    )
+    selected = infrastructure_report.get("selected_candidate", {})
+    for key in (
+        "device",
+        "parallel_environments",
+        "vectorization_backend",
+        "aggregate_rollout_environment_steps",
+        "n_steps_per_environment",
+    ):
+        if selected.get(key) != infrastructure.get(key):
+            raise RuntimeError(f"RL infrastructure selection mismatch for {key}")
+
+
+def _training_configuration(
+    protocol: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    gate = protocol["development_gate"]
+    infrastructure = dict(protocol["training_infrastructure"]["selected_configuration"])
+    kwargs = dict(gate["hyperparameters"])
+    environments = int(infrastructure["parallel_environments"])
+    n_steps = int(kwargs["n_steps"])
+    if n_steps * environments != int(
+        infrastructure["aggregate_rollout_environment_steps"]
+    ):
+        raise ValueError("per-environment PPO rollout does not match aggregate contract")
+    if n_steps != int(infrastructure["n_steps_per_environment"]):
+        raise ValueError("PPO n_steps does not match the selected infrastructure evidence")
+    return kwargs, infrastructure
 
 
 def _tracked_tree_dirty() -> bool:
@@ -140,6 +227,7 @@ def run_learning_gate(
     )
     seeds = [int(seed) for seed in gate["training_seeds"]]
     checkpoints = [int(step) for step in gate["training_environment_step_checkpoints"]]
+    algorithm_kwargs, infrastructure = _training_configuration(protocol)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     curve_root = output_dir / f"seed-{seeds[0]}"
@@ -154,9 +242,12 @@ def run_learning_gate(
         total_timesteps=checkpoints[-1],
         model_seed=seeds[0],
         output_dir=curve_root,
-        algorithm_kwargs=dict(gate["hyperparameters"]),
+        algorithm_kwargs=algorithm_kwargs,
         operation_budget=int(gate["training_operation_budget"]),
         checkpoint_interval_steps=checkpoints[0],
+        parallel_environments=int(infrastructure["parallel_environments"]),
+        vectorization_backend=str(infrastructure["vectorization_backend"]),
+        device=str(infrastructure["device"]),
     )
     curve: list[dict[str, Any]] = []
     for checkpoint_steps in checkpoints:
@@ -186,8 +277,11 @@ def run_learning_gate(
                 total_timesteps=selected_steps,
                 model_seed=model_seed,
                 output_dir=seed_root,
-                algorithm_kwargs=dict(gate["hyperparameters"]),
+                algorithm_kwargs=algorithm_kwargs,
                 operation_budget=int(gate["training_operation_budget"]),
+                parallel_environments=int(infrastructure["parallel_environments"]),
+                vectorization_backend=str(infrastructure["vectorization_backend"]),
+                device=str(infrastructure["device"]),
             )
             checkpoint = seed_root / str(manifest["checkpoint"])
             print(f"evaluating expansion seed {model_seed}", flush=True)

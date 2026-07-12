@@ -5,8 +5,15 @@ from pathlib import Path
 
 import gymnasium as gym
 import numpy as np
+import pytest
 import torch as th
 from scripts.benchmark_rl_infrastructure import candidate_matrix
+from scripts.run_foundation_rl_learning_curve import (
+    _validate_foundation_evidence,
+)
+from scripts.run_foundation_rl_learning_curve import (
+    load_protocol as load_learning_protocol,
+)
 
 import chemworld  # noqa: F401
 from chemworld.rl.evaluation import _ExperimentBehaviorTracker
@@ -75,8 +82,23 @@ def test_protocol_is_nonclaiming_and_keeps_native_distribution_gap_visible() -> 
     assert protocol["evidence_policy"][
         "post_result_reward_or_hyperparameter_tuning_allowed"
     ] is False
-    assert protocol["world_foundation_preconditions"]["formal_training_allowed"] is False
+    assert protocol["world_foundation_preconditions"]["formal_training_allowed"] is True
     assert protocol["training_infrastructure"]["device_must_be_explicit"] is True
+    selected = protocol["training_infrastructure"]["selected_configuration"]
+    assert selected["device"] == "cuda"
+    assert selected["parallel_environments"] == 8
+    assert selected["n_steps_per_environment"] == 128
+    assert selected["aggregate_rollout_environment_steps"] == 1024
+    assert load_learning_protocol() == protocol
+
+
+def test_learning_gate_fails_closed_when_foundation_evidence_drifts() -> None:
+    protocol = json.loads(PROTOCOL.read_text(encoding="utf-8"))
+    protocol["world_foundation_preconditions"]["backend_freeze_evidence"][
+        "report_file_sha256"
+    ] = "0" * 64
+    with pytest.raises(RuntimeError, match="freeze report file has drifted"):
+        _validate_foundation_evidence(protocol)
 
 
 def test_dev_behavior_tracker_requires_core_flow_and_final_assay_per_experiment() -> None:
