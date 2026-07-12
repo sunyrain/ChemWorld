@@ -1,0 +1,1872 @@
+{
+  "after_snapshot": {
+    "operation_count": 28,
+    "promoted_in_place_provider_ids": [
+      "beer_lambert_uvvis",
+      "chromatography_retention_plate"
+    ],
+    "provider_count": 20,
+    "proxy_allowed_false_task_count": 15,
+    "retired_lite_provider_ids_present": [],
+    "shared_module_task_counts": {
+      "reaction_kinetics": 13,
+      "reactors": 12,
+      "spectroscopy_instruments": 15
+    },
+    "shared_runtime_provider_ids": [
+      "beer_lambert_uvvis",
+      "chemworld_validated_synthetic_instruments_v1",
+      "chromatography_retention_plate",
+      "dynamic_batch_heat_release_jacket_sampling",
+      "potentiometric_ph_public_reference",
+      "reaction_ode_mass_action_arrhenius_reference_slice"
+    ],
+    "task_count": 15,
+    "task_maturity_counts": {
+      "reference_validated": 15
+    }
+  },
+  "before_after_manifest_id": "foundation-lite-elimination-before-after-vnext",
+  "before_after_manifest_sha256": "2966fe9c0c245ea5263b5c1e86bf548a11ce9f3270b94a514618baf7ad40efe1",
+  "before_snapshot": {
+    "operation_count": 28,
+    "provider_count": 20,
+    "proxy_allowed_false_task_count": 15,
+    "runtime_source_commit": "e4184bc8fbb38f5b5f1ee8f54c40fe3ae5220021",
+    "shared_lite_runtime_providers": {
+      "reaction_kinetics": [
+        "chemworld_reaction_network_lite"
+      ],
+      "reactors": [
+        "chemworld_reactor_lite"
+      ],
+      "spectroscopy_instruments": [
+        "beer_lambert_uvvis",
+        "chemworld_synthetic_instruments",
+        "chromatography_retention_plate",
+        "ph_meter_public_signal"
+      ]
+    },
+    "shared_module_task_counts": {
+      "reaction_kinetics": 13,
+      "reactors": 12,
+      "spectroscopy_instruments": 15
+    },
+    "snapshot_report_commit": "5e4bcc09afd7e8aad1d239636d42f758475156c1",
+    "task_count": 15,
+    "task_maturity_counts": {
+      "lite": 15
+    }
+  },
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "all_tasks_disallow_proxy": true,
+    "all_tasks_meet_minimum_maturity": true,
+    "before_snapshot_records_six_shared_lite_providers": true,
+    "historical_before_snapshot_matches_manifest": true,
+    "in_place_models_are_promoted_and_evidence_bound": true,
+    "manifest_boundary_nonclaiming": true,
+    "maturity_truth_gate_passed": true,
+    "no_shared_formal_provider_is_proxy_or_lite": true,
+    "operation_count_exact": true,
+    "provider_transition_coverage_exact": true,
+    "provider_transition_targets_match_after_contract": true,
+    "proxy_count_matches_after_contract": true,
+    "replaced_lite_models_absent_from_registry_and_routes": true,
+    "required_after_models_exact": true,
+    "shared_module_sets_exact": true,
+    "shared_module_task_counts_match_before_and_after": true,
+    "shared_runtime_evidence_complete": true,
+    "task_count_exact": true,
+    "task_declarations_match_runtime_routes": true,
+    "task_maturity_counts_match_after_contract": true,
+    "task_set_exact": true
+  },
+  "historical_before_evidence": {
+    "available": true,
+    "historical_report_hash": "07951908b30a062826c6a1a2c2c57a264f7c9d7274d9e7638b8a383d1c32f714",
+    "historical_report_path": "workstreams/world_foundation/reports/runtime-reachability-vnext.json",
+    "matches_manifest": true,
+    "observed": {
+      "operation_count": 28,
+      "provider_count": 20,
+      "proxy_allowed_false_task_count": 15,
+      "runtime_source_commit": "e4184bc8fbb38f5b5f1ee8f54c40fe3ae5220021",
+      "shared_lite_runtime_providers": {
+        "reaction_kinetics": [
+          "chemworld_reaction_network_lite"
+        ],
+        "reactors": [
+          "chemworld_reactor_lite"
+        ],
+        "spectroscopy_instruments": [
+          "beer_lambert_uvvis",
+          "chemworld_synthetic_instruments",
+          "chromatography_retention_plate",
+          "ph_meter_public_signal"
+        ]
+      },
+      "shared_module_task_counts": {
+        "reaction_kinetics": 13,
+        "reactors": 12,
+        "spectroscopy_instruments": 15
+      },
+      "task_count": 15,
+      "task_maturity_counts": {
+        "lite": 15
+      }
+    },
+    "snapshot_report_commit": "5e4bcc09afd7e8aad1d239636d42f758475156c1"
+  },
+  "integration_verified": true,
+  "limitations": [
+    "This report verifies the current bounded formal runtime paths; it does not relabel models.",
+    "Reference-validated maturity is limited to each model card's declared domain.",
+    "The integration audit does not authorize algorithm, benchmark, publication, or real-world claims."
+  ],
+  "operation_route_matrix": {
+    "add_catalyst": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.add_catalyst",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "add_catalyst",
+      "service_id": "primitive_operations",
+      "shared_model_ids": []
+    },
+    "add_extractant": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.add_extractant",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "add_extractant",
+      "service_id": "phase_separation",
+      "shared_model_ids": []
+    },
+    "add_phase": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.add_phase",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "add_phase",
+      "service_id": "phase_separation",
+      "shared_model_ids": []
+    },
+    "add_reagent": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.add_reagent",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "add_reagent",
+      "service_id": "primitive_operations",
+      "shared_model_ids": []
+    },
+    "add_solvent": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.add_solvent",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "add_solvent",
+      "service_id": "primitive_operations",
+      "shared_model_ids": []
+    },
+    "collect_fraction": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.collect_fraction",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "collect_fraction",
+      "service_id": "distillation",
+      "shared_model_ids": []
+    },
+    "concentrate": {
+      "all_model_ids": [
+        "chemworld_vacuum_concentration_vnext"
+      ],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.concentrate",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_vacuum_concentration_vnext"
+      ],
+      "operation_type": "concentrate",
+      "service_id": "phase_separation",
+      "shared_model_ids": []
+    },
+    "cool_crystallize": {
+      "all_model_ids": [
+        "cooling_crystallization_population_balance_v1"
+      ],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.cool_crystallize",
+      "model_free_reason": null,
+      "model_ids": [
+        "cooling_crystallization_population_balance_v1"
+      ],
+      "operation_type": "cool_crystallize",
+      "service_id": "crystallization",
+      "shared_model_ids": []
+    },
+    "distill": {
+      "all_model_ids": [
+        "chemworld_duty_limited_distillation_vnext"
+      ],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.distill",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_duty_limited_distillation_vnext"
+      ],
+      "operation_type": "distill",
+      "service_id": "distillation",
+      "shared_model_ids": []
+    },
+    "dry": {
+      "all_model_ids": [
+        "chemworld_sorbent_drying_vnext"
+      ],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.dry",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_sorbent_drying_vnext"
+      ],
+      "operation_type": "dry",
+      "service_id": "phase_separation",
+      "shared_model_ids": []
+    },
+    "electrolyze": {
+      "all_model_ids": [
+        "aqueous_acid_base_ph_observation",
+        "diffusion_layer_limiting_current_v1",
+        "nernst_butler_volmer_faradaic_v1",
+        "randles_double_layer_transient_v1"
+      ],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.electrolyze",
+      "model_free_reason": null,
+      "model_ids": [
+        "nernst_butler_volmer_faradaic_v1",
+        "diffusion_layer_limiting_current_v1",
+        "randles_double_layer_transient_v1",
+        "aqueous_acid_base_ph_observation"
+      ],
+      "operation_type": "electrolyze",
+      "service_id": "electrochemistry",
+      "shared_model_ids": []
+    },
+    "evaporate": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.evaporate",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "evaporate",
+      "service_id": "primitive_operations",
+      "shared_model_ids": []
+    },
+    "filter_crystals": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.filter_crystals",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "filter_crystals",
+      "service_id": "crystallization",
+      "shared_model_ids": []
+    },
+    "heat": {
+      "all_model_ids": [
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.heat",
+      "model_free_reason": null,
+      "model_ids": [
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "dynamic_batch_heat_release_jacket_sampling"
+      ],
+      "operation_type": "heat",
+      "service_id": "reaction_thermal",
+      "shared_model_ids": [
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ]
+    },
+    "measure": {
+      "all_model_ids": [
+        "aqueous_acid_base_ph_observation",
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "potentiometric_ph_public_reference"
+      ],
+      "instrument_model_ids": {
+        "final_assay": [],
+        "gc": [
+          "chromatography_retention_plate"
+        ],
+        "hplc": [
+          "chromatography_retention_plate"
+        ],
+        "ph_meter": [
+          "aqueous_acid_base_ph_observation",
+          "potentiometric_ph_public_reference"
+        ],
+        "uvvis": [
+          "beer_lambert_uvvis"
+        ]
+      },
+      "kernel_id": "chemworld.operation.measure",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_validated_synthetic_instruments_v1"
+      ],
+      "operation_type": "measure",
+      "service_id": "instrument_cost",
+      "shared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "potentiometric_ph_public_reference"
+      ]
+    },
+    "mix": {
+      "all_model_ids": [
+        "chemworld_stability_aware_lle_vnext"
+      ],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.mix",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_stability_aware_lle_vnext"
+      ],
+      "operation_type": "mix",
+      "service_id": "phase_separation",
+      "shared_model_ids": []
+    },
+    "quench": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.quench",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "quench",
+      "service_id": "primitive_operations",
+      "shared_model_ids": []
+    },
+    "run_flow": {
+      "all_model_ids": [
+        "chemworld_geometry_resolved_pfr_v2",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.run_flow",
+      "model_free_reason": null,
+      "model_ids": [
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "chemworld_geometry_resolved_pfr_v2"
+      ],
+      "operation_type": "run_flow",
+      "service_id": "continuous_flow",
+      "shared_model_ids": [
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ]
+    },
+    "sample": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.sample",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "sample",
+      "service_id": "primitive_operations",
+      "shared_model_ids": []
+    },
+    "seed_crystals": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.seed_crystals",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "seed_crystals",
+      "service_id": "crystallization",
+      "shared_model_ids": []
+    },
+    "separate_phase": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.separate_phase",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "separate_phase",
+      "service_id": "phase_separation",
+      "shared_model_ids": []
+    },
+    "set_flow_rate": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.set_flow_rate",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "set_flow_rate",
+      "service_id": "continuous_flow",
+      "shared_model_ids": []
+    },
+    "set_potential": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.set_potential",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "set_potential",
+      "service_id": "electrochemistry",
+      "shared_model_ids": []
+    },
+    "settle": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.settle",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "settle",
+      "service_id": "phase_separation",
+      "shared_model_ids": []
+    },
+    "terminate": {
+      "all_model_ids": [],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.terminate",
+      "model_free_reason": "typed ledger/equipment transition with no declared physical model",
+      "model_ids": [],
+      "operation_type": "terminate",
+      "service_id": "primitive_operations",
+      "shared_model_ids": []
+    },
+    "transfer": {
+      "all_model_ids": [
+        "chemworld_transfer_holdup_vnext"
+      ],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.transfer",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_transfer_holdup_vnext"
+      ],
+      "operation_type": "transfer",
+      "service_id": "phase_separation",
+      "shared_model_ids": []
+    },
+    "wait": {
+      "all_model_ids": [
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.wait",
+      "model_free_reason": null,
+      "model_ids": [
+        "reaction_ode_mass_action_arrhenius_reference_slice",
+        "dynamic_batch_heat_release_jacket_sampling"
+      ],
+      "operation_type": "wait",
+      "service_id": "reaction_thermal",
+      "shared_model_ids": [
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ]
+    },
+    "wash": {
+      "all_model_ids": [
+        "chemworld_stability_aware_lle_vnext"
+      ],
+      "instrument_model_ids": {},
+      "kernel_id": "chemworld.operation.wash",
+      "model_free_reason": null,
+      "model_ids": [
+        "chemworld_stability_aware_lle_vnext"
+      ],
+      "operation_type": "wash",
+      "service_id": "phase_separation",
+      "shared_model_ids": []
+    }
+  },
+  "protocol_id": "foundation-lite-elimination-integration-vnext",
+  "protocol_sha256": "8023ffd7a98d6b71806a05e3e5fabc1a50812f44f29bfdb0a3736e93841aacb7",
+  "provider_transitions": [
+    {
+      "after_model_id": "reaction_ode_mass_action_arrhenius_reference_slice",
+      "before_model_id": "chemworld_reaction_network_lite",
+      "module_id": "reaction_kinetics",
+      "transition_type": "replaced"
+    },
+    {
+      "after_model_id": "dynamic_batch_heat_release_jacket_sampling",
+      "before_model_id": "chemworld_reactor_lite",
+      "module_id": "reactors",
+      "transition_type": "replaced"
+    },
+    {
+      "after_model_id": "beer_lambert_uvvis",
+      "before_model_id": "beer_lambert_uvvis",
+      "module_id": "spectroscopy_instruments",
+      "transition_type": "promoted_in_place"
+    },
+    {
+      "after_model_id": "chemworld_validated_synthetic_instruments_v1",
+      "before_model_id": "chemworld_synthetic_instruments",
+      "module_id": "spectroscopy_instruments",
+      "transition_type": "replaced"
+    },
+    {
+      "after_model_id": "chromatography_retention_plate",
+      "before_model_id": "chromatography_retention_plate",
+      "module_id": "spectroscopy_instruments",
+      "transition_type": "promoted_in_place"
+    },
+    {
+      "after_model_id": "potentiometric_ph_public_reference",
+      "before_model_id": "ph_meter_public_signal",
+      "module_id": "spectroscopy_instruments",
+      "transition_type": "replaced"
+    }
+  ],
+  "report_hash": "3447e15e88e2f95acdb468c0bdec939d5f2643c3441b4e3c25808e34de9bb2e4",
+  "schema_version": "chemworld-foundation-lite-elimination-report-0.1",
+  "shared_provider_evidence_matrix": {
+    "beer_lambert_uvvis": {
+      "card_present": true,
+      "claim_verified": true,
+      "effective_maturity": "reference_validated",
+      "executed_in_runtime_evidence": true,
+      "maturity": "reference_validated",
+      "module_id": "spectroscopy_instruments",
+      "provenance": [
+        "beer-lambert-public-slice"
+      ],
+      "role": "runtime",
+      "routed": true,
+      "runtime_reachable": true,
+      "task_ids": [
+        "electrochemical-conversion",
+        "equilibrium-characterization",
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "partition-discovery",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    "chemworld_validated_synthetic_instruments_v1": {
+      "card_present": true,
+      "claim_verified": true,
+      "effective_maturity": "reference_validated",
+      "executed_in_runtime_evidence": true,
+      "maturity": "reference_validated",
+      "module_id": "spectroscopy_instruments",
+      "provenance": [
+        "ChemWorld bounded public synthetic instrument contracts v1",
+        "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+        "tests/test_instruments_reference.py",
+        "tests/test_instrument_runtime_integration.py"
+      ],
+      "role": "runtime",
+      "routed": true,
+      "runtime_reachable": true,
+      "task_ids": [
+        "electrochemical-conversion",
+        "equilibrium-characterization",
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "partition-discovery",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    "chromatography_retention_plate": {
+      "card_present": true,
+      "claim_verified": true,
+      "effective_maturity": "reference_validated",
+      "executed_in_runtime_evidence": true,
+      "maturity": "reference_validated",
+      "module_id": "spectroscopy_instruments",
+      "provenance": [
+        "chromatography-retention-plate-slice"
+      ],
+      "role": "runtime",
+      "routed": true,
+      "runtime_reachable": true,
+      "task_ids": [
+        "electrochemical-conversion",
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "partition-discovery",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    "dynamic_batch_heat_release_jacket_sampling": {
+      "card_present": true,
+      "claim_verified": true,
+      "effective_maturity": "reference_validated",
+      "executed_in_runtime_evidence": true,
+      "maturity": "reference_validated",
+      "module_id": "reactors",
+      "provenance": [
+        "chemworld.physchem.batch_reactors.DynamicBatchReactorModel",
+        "tests/test_reactor_reference.py",
+        "tests/test_reaction_reactor_runtime_integration.py"
+      ],
+      "role": "runtime",
+      "routed": true,
+      "runtime_reachable": true,
+      "task_ids": [
+        "equilibrium-characterization",
+        "low-budget-characterization",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    },
+    "potentiometric_ph_public_reference": {
+      "card_present": true,
+      "claim_verified": true,
+      "effective_maturity": "reference_validated",
+      "executed_in_runtime_evidence": true,
+      "maturity": "reference_validated",
+      "module_id": "spectroscopy_instruments",
+      "provenance": [
+        "ph-meter-public-signal"
+      ],
+      "role": "runtime",
+      "routed": true,
+      "runtime_reachable": true,
+      "task_ids": [
+        "equilibrium-characterization"
+      ]
+    },
+    "reaction_ode_mass_action_arrhenius_reference_slice": {
+      "card_present": true,
+      "claim_verified": true,
+      "effective_maturity": "reference_validated",
+      "executed_in_runtime_evidence": true,
+      "maturity": "reference_validated",
+      "module_id": "reaction_kinetics",
+      "provenance": [
+        "chemworld.physchem.reaction_network.ReactionNetworkSpec",
+        "tests/test_reaction_kinetics_reference.py",
+        "tests/test_reaction_reactor_runtime_integration.py"
+      ],
+      "role": "runtime",
+      "routed": true,
+      "runtime_reachable": true,
+      "task_ids": [
+        "equilibrium-characterization",
+        "flow-reaction-optimization",
+        "low-budget-characterization",
+        "public-private-generalization",
+        "purity-yield-tradeoff",
+        "reaction-mechanism-explanation",
+        "reaction-optimization-standard",
+        "reaction-safety-constrained",
+        "reaction-to-assay",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "reaction-to-purification",
+        "tool-agent-planning"
+      ]
+    }
+  },
+  "source_commit": "55ffc0cddfb6804766967777cf935d2da533c4c5",
+  "source_tree_dirty": true,
+  "status": "lite_elimination_verified",
+  "task_evidence_matrix": {
+    "electrochemical-conversion": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "aqueous_acid_base_ph_observation",
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "diffusion_layer_limiting_current_v1",
+        "nernst_butler_volmer_faradaic_v1",
+        "randles_double_layer_transient_v1"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "aqueous_acid_base_ph_observation",
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "diffusion_layer_limiting_current_v1",
+        "nernst_butler_volmer_faradaic_v1",
+        "randles_double_layer_transient_v1"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        }
+      ],
+      "task_contract_hash": "9f86e8550be9f8de98f4152104ef981c075697bf8cf378f040f5af4593235d09"
+    },
+    "equilibrium-characterization": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "aqueous_acid_base_ph_observation",
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "potentiometric_ph_public_reference",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "aqueous_acid_base_ph_observation",
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "potentiometric_ph_public_reference",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Heat and wait use the validated reaction-network runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Heat and wait use the validated dynamic batch runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "potentiometric_ph_public_reference"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "pH-meter and UV/Vis signals are instrument-facing and benchmark-calibrated."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "potentiometric_ph_public_reference"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "64393d1da00e28101f71246ef13c1b69e03b0b213542e97afcb1add8f52eaa62"
+    },
+    "flow-reaction-optimization": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_geometry_resolved_pfr_v2",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_geometry_resolved_pfr_v2",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "run_flow"
+        }
+      ],
+      "task_contract_hash": "aa47c74db1753f062a3e5f59208db8278c25db778390607892e20eaaeb30cdc9"
+    },
+    "low-budget-characterization": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Validated dynamic batch runtime for heat and wait."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "3d8bb180e63016b49b0f2c09694ad4f2d965d8096c9c615d021c987204283a29"
+    },
+    "partition-discovery": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_stability_aware_lle_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_stability_aware_lle_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        }
+      ],
+      "task_contract_hash": "ce378e7bc5e725ed266db2bb639194c05f5f615ba0795b158c3c976cc787117e"
+    },
+    "public-private-generalization": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Validated dynamic batch runtime for heat and wait."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "d2a07d58a7c09d317239794eb5757fdcd5ea68514fc531bd2ece6436b08aa3fd"
+    },
+    "purity-yield-tradeoff": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_sorbent_drying_vnext",
+        "chemworld_stability_aware_lle_vnext",
+        "chemworld_stability_aware_lle_vnext",
+        "chemworld_transfer_holdup_vnext",
+        "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_sorbent_drying_vnext",
+        "chemworld_stability_aware_lle_vnext",
+        "chemworld_transfer_holdup_vnext",
+        "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Validated dynamic batch runtime for heat and wait."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "931d1c9c2364888a9cf390557614f78c042d3e166a8ae495d57cd1fdacd1ee0f"
+    },
+    "reaction-mechanism-explanation": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Validated dynamic batch runtime for heat and wait."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "4b69716dcd93cc32eb82beb335fea7f53062e5785496daecfc1530ddcdc39006"
+    },
+    "reaction-optimization-standard": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Validated dynamic batch runtime for heat and wait."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "0c80793551675a61dbde5f3e2456929e6e6c92574ca2f3d5fa967a97ddcdb1a5"
+    },
+    "reaction-safety-constrained": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Validated dynamic batch runtime for heat and wait."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "780ac2c552c7652b1afb8581d76bb2884bb99a334f7b85dffe73cf4c35834263"
+    },
+    "reaction-to-assay": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Validated dynamic batch runtime for heat and wait."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "395402a224b27cdbd070470ab1d0131e01c3bd472b773170bdcf4ba4f5a1bc96"
+    },
+    "reaction-to-crystallization": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "cooling_crystallization_population_balance_v1",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "cooling_crystallization_population_balance_v1",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Validated dynamic batch runtime for heat and wait."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "f15de7356ab11588028bb0add31b3461e9b90bf273de6dcdb4e123ce6b2f65ac"
+    },
+    "reaction-to-distillation": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_duty_limited_distillation_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_duty_limited_distillation_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Validated dynamic batch runtime for heat and wait."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "939b171d164139699d94c78250a937ab637be201f23bd62fddc47a864becaba7"
+    },
+    "reaction-to-purification": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_sorbent_drying_vnext",
+        "chemworld_stability_aware_lle_vnext",
+        "chemworld_stability_aware_lle_vnext",
+        "chemworld_transfer_holdup_vnext",
+        "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_sorbent_drying_vnext",
+        "chemworld_stability_aware_lle_vnext",
+        "chemworld_transfer_holdup_vnext",
+        "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Validated dynamic batch runtime for heat and wait."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "ee5d6b82178abeaaa6975680f2a469cbdad43f6b655bb65d6e437294a55e052d"
+    },
+    "tool-agent-planning": {
+      "declared_but_unreachable": [],
+      "declared_maturity": "reference_validated",
+      "declared_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_sorbent_drying_vnext",
+        "chemworld_stability_aware_lle_vnext",
+        "chemworld_stability_aware_lle_vnext",
+        "chemworld_transfer_holdup_vnext",
+        "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "effective_runtime_maturity": "reference_validated",
+      "proxy_allowed": false,
+      "reachable_but_undeclared": [],
+      "reachable_model_ids": [
+        "beer_lambert_uvvis",
+        "chemworld_sorbent_drying_vnext",
+        "chemworld_stability_aware_lle_vnext",
+        "chemworld_transfer_holdup_vnext",
+        "chemworld_vacuum_concentration_vnext",
+        "chemworld_validated_synthetic_instruments_v1",
+        "chromatography_retention_plate",
+        "dynamic_batch_heat_release_jacket_sampling",
+        "reaction_ode_mass_action_arrhenius_reference_slice"
+      ],
+      "shared_module_claims": [
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "module_id": "reaction_kinetics",
+          "notes": [
+            "Reference-validated stoichiometric reaction-network and Arrhenius runtime slice."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "module_id": "reactors",
+          "notes": [
+            "Validated dynamic batch runtime for heat and wait."
+          ]
+        },
+        {
+          "level": "reference_validated",
+          "model_ids": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis",
+            "chromatography_retention_plate"
+          ],
+          "module_id": "spectroscopy_instruments",
+          "notes": [
+            "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+          ]
+        }
+      ],
+      "shared_operation_routes": [
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "heat"
+        },
+        {
+          "model_ids": [
+            "beer_lambert_uvvis",
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "operation": "measure"
+        },
+        {
+          "model_ids": [
+            "dynamic_batch_heat_release_jacket_sampling",
+            "reaction_ode_mass_action_arrhenius_reference_slice"
+          ],
+          "operation": "wait"
+        }
+      ],
+      "task_contract_hash": "9752398c5b05a0d3a20df7df811ebb59e46a1c7f1e52ab6340fed9c5526c3ee9"
+    }
+  }
+}
