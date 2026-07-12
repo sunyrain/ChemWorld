@@ -1,18 +1,20 @@
 {
   "schema_version": "chemworld-foundation-rl-contract-report-0.1",
-  "status": "contract_remediated_learning_gate_failed",
-  "generated_at": "2026-07-12T15:05:00+08:00",
-  "source_commit": "a866e86",
+  "status": "native_contract_remediated_learning_gate_failed",
+  "generated_at": "2026-07-12T23:20:00+08:00",
+  "source_commit": "b268320",
   "source_tree_dirty": false,
   "protocol": {
     "path": "configs/foundation/rl_contract_vnext.json",
-    "sha256": "b2666400dac1912b611ee7d5db159db92057d1ec16f784a0c8bb80c305e3382a"
+    "sha256": "03128b71c8fd60a077c478bc6b02ed5ae25c69a1968fd390331b1e8880890b7c"
   },
   "contracts": {
     "action_schema_version": "chemworld-conditional-hybrid-action-0.1",
     "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
     "reward_schema_version": "chemworld-rl-training-reward-0.2",
-    "reward_contract_hash": "c76472b9c5615ef37ddd92b4b30de54259456d0e6022118782034b514917c5bd",
+    "reward_contract_hash": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1",
+    "policy_distribution_schema_version": "chemworld-masked-conditional-ppo-0.1",
+    "policy_distribution_contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
     "checkpoint_schema_version": "chemworld-rl-checkpoint-0.2"
   },
   "checks": {
@@ -20,7 +22,7 @@
     "operation_conditional_parameters_declared": true,
     "irrelevant_parameters_excluded_from_execution": true,
     "irrelevant_parameters_excluded_from_trajectory_digest": true,
-    "irrelevant_latent_coordinates_excluded_from_sb3_policy_loss": false,
+    "irrelevant_latent_coordinates_excluded_from_sb3_policy_loss": true,
     "public_affordance_mask_shared_by_training_and_frozen_replay": true,
     "terminal_bonus_removed": true,
     "measurement_bonus_removed": true,
@@ -30,12 +32,14 @@
     "legacy_checkpoint_rejected": true,
     "action_reward_hashes_required_before_policy_load": true,
     "periodic_checkpoint_contract_sidecars_written": true,
-    "native_hybrid_policy_distribution": false,
+    "native_hybrid_policy_distribution": true,
+    "repeated_terminate_removed_from_affordances": true,
+    "repeated_terminate_rolls_back": true,
     "five_seed_twenty_episode_gate": false
   },
   "validation": {
-    "targeted_rl_test_count": 31,
-    "targeted_rl_tests_passed": 31,
+    "targeted_rl_test_count": 41,
+    "targeted_rl_tests_passed": 41,
     "ruff": "passed",
     "mypy": "passed",
     "runtime_domain_failure_count": 0,
@@ -84,6 +88,29 @@
       },
       "dev_run_flow_count": 0,
       "gate_passed": false
+    },
+    {
+      "model_seed": 105,
+      "training_environment_steps": 10112,
+      "checkpoint_sha256": "8ab7ee1931465ed46dd4877edf2e0b297ea7d619e110add1cb848f1e74220d12",
+      "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+      "reward_contract_hash": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1",
+      "policy_distribution_contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+      "status": "current_native_contract_failed_pilot",
+      "training_completed_experiment_count": 4,
+      "training_behavior_complete_experiment_count": 0,
+      "training_quick_close_rate": 1.0,
+      "training_set_flow_rate_count": 5912,
+      "training_run_flow_count": 468,
+      "dev_episode_count": 20,
+      "dev_episode_completion_rate": 0.0,
+      "dev_operation_counts": {
+        "add_reagent": 7,
+        "add_solvent": 1,
+        "set_flow_rate": 232
+      },
+      "dev_run_flow_count": 0,
+      "gate_passed": false
     }
   ],
   "gate_summary": {
@@ -92,12 +119,11 @@
     "current_contract_training_seed_count": 1,
     "passed_training_seed_count": 0,
     "status": "failed",
-    "reason": "The SB3 Gaussian Box latent remains difficult to optimize and is not a native categorical-plus-conditional distribution. The current policy still collapses toward terminate."
+    "reason": "The native distribution and repeated-terminate defect are fixed, but the 10k-step pilot still converges to repeated configuration and does not complete Dev experiments. A predeclared longer learning-curve budget is required before multiseed expansion."
   },
   "remaining_work": [
-    "Implement a native masked categorical operation distribution with conditional parameter heads, or use an RL framework that supports this hybrid distribution directly.",
-    "Ensure irrelevant parameter heads are absent from the selected-action policy loss rather than merely excluded from execution.",
-    "Repeat the five independent training seeds and twenty Dev episodes only after a single-seed pilot passes the behavioral gate.",
+    "Run a preregistered single-seed learning curve at materially larger budgets without further reward tuning.",
+    "Repeat the five independent training seeds and twenty Dev episodes only after a learning-curve checkpoint passes the behavioral gate.",
     "Do not use a scripted policy as a substitute for the learning gate."
   ],
   "benchmark_claim_allowed": false,

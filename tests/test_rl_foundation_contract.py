@@ -48,10 +48,11 @@ def test_protocol_is_nonclaiming_and_keeps_native_distribution_gap_visible() -> 
 
 def test_control_report_retains_failed_learning_gate() -> None:
     report = json.loads(REPORT.read_text(encoding="utf-8"))
-    assert report["status"] == "contract_remediated_learning_gate_failed"
-    assert report["validation"]["targeted_rl_tests_passed"] == 31
-    assert report["checks"]["native_hybrid_policy_distribution"] is False
+    assert report["status"] == "native_contract_remediated_learning_gate_failed"
+    assert report["validation"]["targeted_rl_tests_passed"] == 41
+    assert report["checks"]["native_hybrid_policy_distribution"] is True
     assert report["checks"]["five_seed_twenty_episode_gate"] is False
+    assert report["checks"]["repeated_terminate_removed_from_affordances"] is True
     assert report["gate_summary"]["passed_training_seed_count"] == 0
     assert report["benchmark_claim_allowed"] is False
 
