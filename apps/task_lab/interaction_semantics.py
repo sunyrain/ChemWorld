@@ -1,7 +1,6 @@
 """Public interaction semantics shared by the agent and student workspaces.
 
-This module does not change the frozen world law.  It aligns interactive inputs
-with the effective ranges of the current runtime and describes state changes
+This module presents the core world-law contract and describes state changes
 without exposing hidden composition.
 """
 
@@ -229,28 +228,6 @@ _OPERATION_EFFECTS: dict[str, dict[str, str]] = {
 }
 
 
-# Public schemas are intentionally broad across tasks.  Task Lab narrows them to
-# the effective bounds of the currently frozen runtime so accepted inputs are
-# never silently clipped to a different value.
-_EFFECTIVE_BOUNDS: dict[tuple[str, str], tuple[float, float]] = {
-    ("add_phase", "volume_L"): (0.0, 0.060),
-    ("add_extractant", "volume_L"): (0.0, 0.060),
-    ("seed_crystals", "seed_mass_g"): (0.0, 0.050),
-    ("cool_crystallize", "target_temperature_K"): (250.0, 330.0),
-    ("evaporate", "target_temperature_K"): (298.15, 390.0),
-    ("distill", "target_temperature_K"): (298.15, 430.0),
-    ("run_flow", "target_temperature_K"): (298.15, 430.0),
-}
-
-_SUPPORTED_CHOICES: dict[tuple[str, str], tuple[Any, ...]] = {
-    ("add_phase", "phase"): ("aqueous", "organic"),
-    # The frozen runtime records other names but does not couple them to
-    # identity-specific partition physics.  Expose the physically active role.
-    ("add_extractant", "extractant"): ("organic",),
-    ("separate_phase", "target_phase"): ("aqueous", "organic"),
-}
-
-
 def operation_semantics(operation: str) -> dict[str, str]:
     """Return a JSON-safe factual effect description for one operation."""
 
@@ -272,41 +249,16 @@ def aligned_affordance(
     entry: dict[str, Any],
     history: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Align an agent affordance with effective runtime semantics."""
+    """Attach presentation semantics to a core agent affordance."""
 
     schema = dict(entry.get("schema") or entry)
     operation = str(entry.get("operation") or schema.get("operation") or "")
     fields = deepcopy(schema.get("fields", []))
-    category_field = {
-        "add_solvent": "solvent",
-        "add_catalyst": "catalyst",
-    }.get(operation)
-    locked_value = current_recipe_category(
-        history,
-        operation,
-        category_field,
-        trace_shape=any("selected_action" in item for item in history),
+    del history
+    locked_field = next(
+        (field for field in fields if field.get("locked_for_current_experiment")),
+        None,
     )
-    for field in fields:
-        field_name = str(field.get("field") or "")
-        effective_bounds = _EFFECTIVE_BOUNDS.get((operation, field_name))
-        if effective_bounds is not None:
-            low, high = effective_bounds
-            field["bounds"] = {"low": low, "high": high}
-            field["recommended_range"] = {"low": low, "high": high}
-            field["runtime_aligned"] = True
-        supported = _SUPPORTED_CHOICES.get((operation, field_name))
-        if supported is not None:
-            if "choices" in field:
-                field["choices"] = list(supported)
-            if "allowed_values" in field:
-                field["allowed_values"] = list(supported)
-            field["runtime_aligned"] = True
-        if category_field == field_name and locked_value is not None:
-            if "choices" in field:
-                field["choices"] = [locked_value]
-            if "allowed_values" in field:
-                field["allowed_values"] = [locked_value]
     return {
         "operation": operation,
         "required_fields": schema.get("required_fields", []),
@@ -314,8 +266,11 @@ def aligned_affordance(
         "preconditions": schema.get("preconditions", []),
         "recipe_lock": (
             None
-            if locked_value is None
-            else {"field": category_field, "value": to_builtin(locked_value)}
+            if locked_field is None
+            else {
+                "field": str(locked_field.get("field")),
+                "value": to_builtin((locked_field.get("choices") or [None])[0]),
+            }
         ),
         "effect": operation_semantics(operation),
     }
@@ -326,92 +281,10 @@ def validate_interactive_action(
     action: dict[str, Any],
     trace: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Apply core validation plus fail-closed interactive semantic checks."""
+    """Delegate interactive validation to the core Gym contract."""
 
-    validation = dict(base.validate_action(action))
-    conflicts = semantic_conflicts(base, action, trace)
-    if not conflicts:
-        return validation
-    validation["valid"] = False
-    validation["dispatchable_to_runtime"] = False
-    validation["invalid_reasons"] = list(
-        dict.fromkeys([*validation.get("invalid_reasons", []), *conflicts])
-    )
-    return validation
-
-
-def semantic_conflicts(
-    base: Any,
-    action: dict[str, Any],
-    trace: list[dict[str, Any]],
-) -> list[str]:
-    """Find public/runtime semantic mismatches before state mutation."""
-
-    try:
-        canonical = dict(base.action_codec.canonicalize(action))
-    except (TypeError, ValueError):
-        canonical = dict(action)
-    operation = str(canonical.get("operation") or "")
-    conflicts = categorical_recipe_conflicts(base, canonical, trace)
-    for (candidate_operation, field), (low, high) in _EFFECTIVE_BOUNDS.items():
-        if operation != candidate_operation or field not in canonical:
-            continue
-        value = canonical.get(field)
-        if (
-            not isinstance(value, int | float)
-            or isinstance(value, bool)
-            or not low <= value <= high
-        ):
-            conflicts.append(f"effective_runtime_bounds:{field}:{low}:{high}")
-    for (candidate_operation, field), supported in _SUPPORTED_CHOICES.items():
-        if operation == candidate_operation and canonical.get(field) not in supported:
-            conflicts.append(f"unsupported_runtime_choice:{field}")
-    if operation == "seed_crystals" and _operation_seen_in_current_experiment(
-        trace, "seed_crystals"
-    ):
-        conflicts.append("single_seed_charge_per_experiment")
-    return list(dict.fromkeys(conflicts))
-
-
-def categorical_recipe_conflicts(
-    base: Any,
-    action: dict[str, Any],
-    trace: list[dict[str, Any]],
-) -> list[str]:
-    operation = str(action.get("operation") or "")
-    category_field = {
-        "add_solvent": "solvent",
-        "add_catalyst": "catalyst",
-    }.get(operation)
-    if category_field is None:
-        return []
-    try:
-        proposed = base.action_codec.canonicalize(action).get(category_field)
-    except (TypeError, ValueError):
-        proposed = action.get(category_field)
-    selected = current_recipe_category(trace, operation, category_field, trace_shape=True)
-    if selected is not None and selected != proposed:
-        return [f"categorical_recipe_locked:{category_field}"]
-    return []
-
-
-def current_recipe_category(
-    history: list[dict[str, Any]],
-    operation: str,
-    category_field: str | None,
-    *,
-    trace_shape: bool = False,
-) -> Any:
-    if category_field is None:
-        return None
-    for record in reversed(history):
-        action_key = "selected_action" if trace_shape else "action"
-        action = dict(record.get(action_key) or {})
-        if action.get("operation") == "measure" and action.get("instrument") == "final_assay":
-            break
-        if action.get("operation") == operation:
-            return action.get(category_field)
-    return None
+    del trace
+    return dict(base.validate_action(action))
 
 
 def public_state_effects(
@@ -480,23 +353,10 @@ def public_vessel_summary(
     }
 
 
-def _operation_seen_in_current_experiment(trace: list[dict[str, Any]], operation: str) -> bool:
-    for item in reversed(trace):
-        previous = dict(item.get("selected_action") or {})
-        if previous.get("operation") == "measure" and previous.get("instrument") == "final_assay":
-            return False
-        if previous.get("operation") == operation:
-            return True
-    return False
-
-
 __all__ = [
     "aligned_affordance",
-    "categorical_recipe_conflicts",
-    "current_recipe_category",
     "operation_semantics",
     "public_state_effects",
     "public_vessel_summary",
-    "semantic_conflicts",
     "validate_interactive_action",
 ]

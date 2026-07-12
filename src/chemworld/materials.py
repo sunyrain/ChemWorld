@@ -78,7 +78,13 @@ def material_choice_labels(field: str) -> dict[str, str]:
     """Map stable numeric action values to honest user-facing labels."""
 
     catalog = public_material_catalog()
-    key = "solvents" if field == "solvent" else "catalysts" if field == "catalyst" else None
+    key = (
+        "solvents"
+        if field in {"solvent", "extractant"}
+        else "catalysts"
+        if field == "catalyst"
+        else None
+    )
     if key is None:
         return {}
     labels: dict[str, str] = {}
@@ -95,7 +101,11 @@ def action_material_display(action: dict[str, Any]) -> dict[str, Any]:
 
     display = dict(action)
     catalog = public_material_catalog()
-    for field, key in (("solvent", "solvents"), ("catalyst", "catalysts")):
+    for field, key in (
+        ("solvent", "solvents"),
+        ("extractant", "solvents"),
+        ("catalyst", "catalysts"),
+    ):
         value = action.get(field)
         if not isinstance(value, int) or isinstance(value, bool):
             continue

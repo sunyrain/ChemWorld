@@ -699,7 +699,7 @@ def test_purification_recipe_accepts_user_facing_aliases() -> None:
             },
             {"operation": "quench"},
             {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012},
-            {"operation": "add_extractant", "volume_L": 0.02, "solvent": 2},
+            {"operation": "add_extractant", "volume_L": 0.02, "extractant": "organic"},
             {"operation": "mix", "duration_s": 120.0, "stirring_rpm": 600.0},
             {"operation": "settle", "duration_s": 300.0},
             {"operation": "separate_phase", "phase": "organic"},

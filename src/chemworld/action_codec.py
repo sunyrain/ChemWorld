@@ -16,6 +16,7 @@ from chemworld.world.operations import (
 )
 
 PHASES = ("reactor_liquid", "aqueous", "organic")
+EXTRACTANTS = SOLVENTS
 GYM_ACTION_KEYS = (
     "operation",
     "amount_mol",
@@ -51,6 +52,7 @@ class ActionCodec:
     catalysts: tuple[str, ...] = CATALYSTS
     solvents: tuple[str, ...] = SOLVENTS
     phases: tuple[str, ...] = PHASES
+    extractants: tuple[str, ...] = EXTRACTANTS
 
     def canonicalize(self, action: dict[str, Any]) -> dict[str, Any]:
         """Normalize event-action JSON into canonical names and flat payload."""
@@ -78,6 +80,8 @@ class ActionCodec:
             canonical["phase"] = self.phase_name(canonical["phase"])
         if "target_phase" in canonical:
             canonical["target_phase"] = self.phase_name(canonical["target_phase"])
+        if "extractant" in canonical:
+            canonical["extractant"] = self.extractant_name(canonical["extractant"])
         return canonical
 
     def _apply_aliases(self, action: dict[str, Any]) -> dict[str, Any]:
@@ -146,7 +150,7 @@ class ActionCodec:
             self._float(action, "solvent", 0.0),
             self._index(action.get("phase", "reactor_liquid"), self.phases),
             self._index(action.get("target_phase", "organic"), self.phases),
-            self._float(action, "extractant", 0.0),
+            self._index(action.get("extractant", 0), self.extractants),
             self._float(action, "wash_volume_L", 0.0),
             self._float(action, "transfer_fraction", 1.0),
             self._float(action, "seed_mass_g", 0.0),
@@ -184,7 +188,7 @@ class ActionCodec:
             "solvent": int(np.clip(round(array[10]), 0, len(self.solvents) - 1)),
             "phase": self.phases[phase_index],
             "target_phase": self.phases[target_phase_index],
-            "extractant": int(np.clip(round(array[13]), 0, 3)),
+            "extractant": int(np.clip(round(array[13]), 0, len(self.extractants) - 1)),
             "wash_volume_L": float(array[14]),
             "transfer_fraction": float(array[15]),
             "seed_mass_g": float(array[16]),
@@ -197,9 +201,19 @@ class ActionCodec:
 
     def phase_name(self, value: Any) -> str:
         if isinstance(value, str):
-            return value if value in self.phases else "organic"
+            # Keep unknown strings intact so validation rejects them atomically
+            # instead of silently converting them to the organic phase.
+            return value
         index = int(np.asarray(value).reshape(-1)[0])
         return self.phases[int(np.clip(index, 0, len(self.phases) - 1))]
+
+    def extractant_name(self, value: Any) -> int:
+        if isinstance(value, str):
+            normalized = value.strip().lower().replace("-", "_").replace(" ", "_")
+            # Backward-compatible role alias used by early event recipes.
+            if normalized == "organic":
+                return self.extractants.index("toluene")
+        return self._choice_index(value, self.extractants)
 
     @staticmethod
     def _float(action: dict[str, Any], key: str, default: float) -> float:

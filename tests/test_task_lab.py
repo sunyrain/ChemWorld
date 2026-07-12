@@ -12,9 +12,8 @@ from apps.task_lab.deepseek_client import DeepSeekAPIError, DeepSeekClient, Json
 from apps.task_lab.experiment_audit import audit_experiment_design
 from apps.task_lab.interaction_semantics import (
     aligned_affordance,
-    categorical_recipe_conflicts,
     operation_semantics,
-    semantic_conflicts,
+    validate_interactive_action,
 )
 from apps.task_lab.runner import run_task
 from apps.task_lab.server import RunJobManager, _read_api_key_file
@@ -376,7 +375,7 @@ def test_student_session_rejects_invalid_action_without_spending_budget() -> Non
         assert solvent_field["choices"] == [2]
         switched = session.step({"operation": "add_solvent", "volume_L": 0.005, "solvent": 1})
         assert switched["accepted"] is False
-        assert "categorical_recipe_locked:solvent" in switched["validation"]["invalid_reasons"]
+        assert "payload_locked:solvent" in switched["validation"]["invalid_reasons"]
         assert switched["state"]["campaign_state"]["operation_count"] == 1
     finally:
         manager.close_all()
@@ -478,7 +477,9 @@ def test_adaptive_runner_reads_public_spectrum_and_emits_audit_record(
     semantics = client.prompts[0]["state_semantics"]
     assert "current state" in semantics["current_vessel"]
     assert "spectrum_request_id" in client.prompts[0]["instruction"]
-    assert "Do not default" not in client.prompts[0]["instruction"]
+    assert client.prompts[0]["instruction"].startswith(
+        "Return either one spectrum_request_id"
+    )
     assert client.prompts[5]["available_spectra"]
     assert client.prompts[5]["retrieved_spectra"] == []
     assert client.prompts[5]["latest_lab_report"]["spectra_summary"] == {
@@ -588,48 +589,7 @@ def test_repository_ignores_local_api_key_file() -> None:
     assert "/api.md" in gitignore.splitlines()
 
 
-def test_task_lab_locks_categorical_recipe_choices_within_one_experiment() -> None:
-    class IdentityCodec:
-        @staticmethod
-        def canonicalize(action: dict[str, Any]) -> dict[str, Any]:
-            return dict(action)
-
-    class Base:
-        action_codec = IdentityCodec()
-
-    trace = [
-        {"selected_action": {"operation": "add_solvent", "solvent": 1}},
-        {"selected_action": {"operation": "add_catalyst", "catalyst": 0}},
-    ]
-    assert categorical_recipe_conflicts(
-        Base(),
-        {"operation": "add_catalyst", "catalyst": 1},
-        trace,
-    ) == ["categorical_recipe_locked:catalyst"]
-    assert not categorical_recipe_conflicts(
-        Base(),
-        {"operation": "add_catalyst", "catalyst": 0},
-        trace,
-    )
-
-    completed_trace = [
-        *trace,
-        {"selected_action": {"operation": "terminate"}},
-        {
-            "selected_action": {
-                "operation": "measure",
-                "instrument": "final_assay",
-            }
-        },
-    ]
-    assert not categorical_recipe_conflicts(
-        Base(),
-        {"operation": "add_catalyst", "catalyst": 1},
-        completed_trace,
-    )
-
-
-def test_task_lab_aligns_public_inputs_with_effective_runtime_semantics() -> None:
+def test_task_lab_preserves_core_input_contract_and_adds_effect_semantics() -> None:
     assert all(
         operation_semantics(operation)["visual"] != "generic" for operation in OPERATION_TYPES
     )
@@ -642,8 +602,8 @@ def test_task_lab_aligns_public_inputs_with_effective_runtime_semantics() -> Non
                 "fields": [
                     {
                         "field": "seed_mass_g",
-                        "bounds": {"low": 0.0, "high": 1.0},
-                        "recommended_range": {"low": 0.0, "high": 1.0},
+                        "bounds": {"low": 0.0, "high": 0.05},
+                        "recommended_range": {"low": 0.0, "high": 0.05},
                     }
                 ],
             },
@@ -659,8 +619,8 @@ def test_task_lab_aligns_public_inputs_with_effective_runtime_semantics() -> Non
             "schema": {
                 "operation": "add_phase",
                 "fields": [
-                    {"field": "phase", "choices": ["aqueous", "organic", "solid"]},
-                    {"field": "volume_L", "bounds": {"low": 0.0, "high": 0.08}},
+                    {"field": "phase", "choices": ["aqueous", "organic"]},
+                    {"field": "volume_L", "bounds": {"low": 0.0, "high": 0.06}},
                 ],
             },
         },
@@ -677,7 +637,7 @@ def test_task_lab_aligns_public_inputs_with_effective_runtime_semantics() -> Non
                 "fields": [
                     {
                         "field": "target_phase",
-                        "choices": ["aqueous", "organic", "solid"],
+                        "choices": ["aqueous", "organic"],
                     }
                 ],
             },
@@ -687,31 +647,18 @@ def test_task_lab_aligns_public_inputs_with_effective_runtime_semantics() -> Non
     assert selection["fields"][0]["choices"] == ["aqueous", "organic"]
 
 
-def test_task_lab_rejects_inputs_the_runtime_would_silently_reinterpret() -> None:
-    class IdentityCodec:
-        @staticmethod
-        def canonicalize(action: dict[str, Any]) -> dict[str, Any]:
-            return dict(action)
-
+def test_task_lab_delegates_input_validation_to_core_contract() -> None:
     class Base:
-        action_codec = IdentityCodec()
+        @staticmethod
+        def validate_action(action: dict[str, Any]) -> dict[str, Any]:
+            return {"valid": False, "canonical_action": action, "invalid_reasons": ["core"]}
 
-    assert "unsupported_runtime_choice:phase" in semantic_conflicts(
-        Base(), {"operation": "add_phase", "phase": "solid", "volume_L": 0.02}, []
-    )
-    assert "unsupported_runtime_choice:extractant" in semantic_conflicts(
-        Base(),
-        {"operation": "add_extractant", "extractant": "toluene", "volume_L": 0.02},
-        [],
-    )
-    assert "effective_runtime_bounds:seed_mass_g:0.0:0.05" in semantic_conflicts(
-        Base(), {"operation": "seed_crystals", "seed_mass_g": 0.5}, []
-    )
-    assert "single_seed_charge_per_experiment" in semantic_conflicts(
-        Base(),
-        {"operation": "seed_crystals", "seed_mass_g": 0.01},
-        [{"selected_action": {"operation": "seed_crystals", "seed_mass_g": 0.005}}],
-    )
+    action = {"operation": "seed_crystals", "seed_mass_g": 0.01}
+    assert validate_interactive_action(Base(), action, [{"ignored": True}]) == {
+        "valid": False,
+        "canonical_action": action,
+        "invalid_reasons": ["core"],
+    }
 
 
 def test_adaptive_campaign_reuses_compact_completed_experiment_memory(

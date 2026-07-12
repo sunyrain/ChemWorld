@@ -8,6 +8,7 @@ import numpy as np
 
 from chemworld.foundation import (
     WorldState,
+    equipment_settings,
     process_with_metrics,
     scale_phase_ledger,
     upsert_equipment_record,
@@ -53,13 +54,18 @@ class ChemWorldPrimitiveOperationServices:
     def add_solvent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         volume = float(np.clip(_action_float(action, "volume_L", 0.025), 0.0, 0.080))
         solvent = _action_index(action, "solvent", 0, len(SOLVENTS))
+        previous_settings = equipment_settings(state.equipment, "batch_reactor")
         equipment = upsert_equipment_record(
             state.equipment,
             equipment_id="batch_reactor",
             equipment_type="batch_reactor",
             attached_vessel_id=state.vessel_id,
             status="configured",
-            settings={"solvent": solvent},
+            settings={
+                "solvent": solvent,
+                "solvent_volume_L": float(previous_settings.get("solvent_volume_L", 0.0))
+                + volume,
+            },
         )
         ledger = state.ledger.with_updates(
             cost=state.ledger.cost + volume * 8.0 * float(self.world.solvent_costs[solvent])
@@ -69,6 +75,7 @@ class ChemWorldPrimitiveOperationServices:
     def add_catalyst(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         amount = float(np.clip(_action_float(action, "catalyst_amount_mol", 0.00020), 0.0, 0.005))
         catalyst = _action_index(action, "catalyst", 0, len(CATALYSTS))
+        previous_settings = equipment_settings(state.equipment, "batch_reactor")
         species = state.species_amounts.copy()
         active_catalyst = self.species_view.active_catalyst_species(state)
         if active_catalyst is not None:
@@ -79,7 +86,13 @@ class ChemWorldPrimitiveOperationServices:
             equipment_type="batch_reactor",
             attached_vessel_id=state.vessel_id,
             status="configured",
-            settings={"catalyst": catalyst},
+            settings={
+                "catalyst": catalyst,
+                "catalyst_amount_mol": float(
+                    previous_settings.get("catalyst_amount_mol", 0.0)
+                )
+                + amount,
+            },
         )
         ledger = state.ledger.with_updates(
             cost=state.ledger.cost

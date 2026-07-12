@@ -14,9 +14,16 @@ import numpy as np
 
 from chemworld.data.logging import to_builtin
 from chemworld.envs.spaces import OBSERVATION_KEYS
+from chemworld.foundation import equipment_settings
 from chemworld.materials import material_choice_labels
 from chemworld.world.actions import CATALYSTS, SOLVENTS
-from chemworld.world.operations import INSTRUMENTS, OPERATION_TYPES, operation_contracts
+from chemworld.world.operations import (
+    INSTRUMENTS,
+    OPERATION_FIELD_BOUNDS,
+    OPERATION_FIELD_CHOICES,
+    OPERATION_TYPES,
+    operation_contracts,
+)
 
 FIELD_UNITS: dict[str, str] = {
     "amount_mol": "mol",
@@ -64,9 +71,9 @@ FIELD_CHOICES: dict[str, list[Any]] = {
     "instrument": list(INSTRUMENTS),
     "catalyst": list(range(len(CATALYSTS))),
     "solvent": list(range(len(SOLVENTS))),
-    "phase": ["aqueous", "organic", "solid"],
-    "target_phase": ["aqueous", "organic", "solid"],
-    "extractant": ["organic", "aqueous", "toluene", "ethyl_acetate"],
+    "phase": ["aqueous", "organic"],
+    "target_phase": ["aqueous", "organic"],
+    "extractant": list(range(len(SOLVENTS))),
 }
 
 OPERATION_GROUPS: dict[str, tuple[str, ...]] = {
@@ -263,22 +270,52 @@ def _observed_float(value: Any) -> tuple[float, bool]:
     return (scalar, True) if math.isfinite(scalar) else (-1.0, False)
 
 
-def _field_schema(field: str) -> dict[str, Any]:
+def _field_schema(field: str, *, operation: str | None = None) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "field": field,
         "unit": FIELD_UNITS.get(field, "unitless"),
         "required": True,
     }
-    if field in FIELD_RANGES:
-        low, high = FIELD_RANGES[field]
+    bounds = OPERATION_FIELD_BOUNDS.get((operation, field))
+    if bounds is None:
+        bounds = FIELD_RANGES.get(field)
+    if bounds is not None:
+        low, high = bounds
         payload["bounds"] = {"low": low, "high": high}
         payload["recommended_range"] = {"low": low, "high": high}
-    if field in FIELD_CHOICES:
-        payload["choices"] = FIELD_CHOICES[field]
+    choices = OPERATION_FIELD_CHOICES.get((operation, field))
+    if choices is None:
+        choices = FIELD_CHOICES.get(field)
+    if choices is not None:
+        payload["choices"] = list(choices)
         labels = material_choice_labels(field)
         if labels:
             payload["choice_labels"] = labels
     return payload
+
+
+def _locked_recipe_choice(base: Any, operation: str, field: str) -> Any | None:
+    lock_contract = {
+        "add_solvent": ("solvent", "batch_reactor", "solvent_volume_L"),
+        "add_catalyst": ("catalyst", "batch_reactor", "catalyst_amount_mol"),
+        "add_extractant": (
+            "extractant",
+            "liquid_liquid_extractor",
+            "extractant_volume_L",
+        ),
+    }.get(operation)
+    if lock_contract is None:
+        return None
+    category_field, equipment_id, charged_key = lock_contract
+    if field != category_field:
+        return None
+    state = getattr(base, "_state", None)
+    if state is None:
+        return None
+    settings = equipment_settings(state.equipment, equipment_id)
+    if float(settings.get(charged_key, 0.0)) <= 0.0:
+        return None
+    return settings.get(field)
 
 
 def action_schema(env: Any, operation: str) -> dict[str, Any]:
@@ -293,11 +330,17 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
             "error": f"Unknown operation {operation!r}",
         }
     contract = contracts[operation]
-    fields = [_field_schema(field) for field in contract.required_fields]
+    fields = [_field_schema(field, operation=operation) for field in contract.required_fields]
+    for field in fields:
+        field_name = str(field["field"])
+        locked = _locked_recipe_choice(base, operation, field_name)
+        if locked is not None:
+            field["choices"] = [locked]
+            field["locked_for_current_experiment"] = True
     if operation == "measure":
         fields = [
             {
-                **_field_schema("instrument"),
+                **_field_schema("instrument", operation=operation),
                 "choices": sorted(getattr(base, "allowed_instruments", set(INSTRUMENTS))),
             }
         ]

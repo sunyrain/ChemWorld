@@ -66,6 +66,94 @@ def test_env_exposes_agent_facing_methods() -> None:
         env.close()
 
 
+def test_core_action_contract_matches_effective_runtime_semantics() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        env.reset(seed=0)
+        schemas = {
+            operation: env.unwrapped.action_schema(operation)
+            for operation in (
+                "add_phase",
+                "add_extractant",
+                "separate_phase",
+                "seed_crystals",
+                "cool_crystallize",
+                "evaporate",
+            )
+        }
+
+        def field(operation: str, field_name: str) -> dict[str, object]:
+            return next(
+                item for item in schemas[operation]["fields"] if item["field"] == field_name
+            )
+
+        assert field("add_phase", "phase")["choices"] == ["aqueous", "organic"]
+        assert field("add_phase", "volume_L")["bounds"] == {"low": 0.0, "high": 0.06}
+        assert field("add_extractant", "extractant")["choices"] == [0, 1, 2, 3]
+        assert field("add_extractant", "extractant")["choice_labels"]["3"].startswith(
+            "Toluene"
+        )
+        assert field("separate_phase", "target_phase")["choices"] == [
+            "aqueous",
+            "organic",
+        ]
+        assert field("seed_crystals", "seed_mass_g")["bounds"] == {
+            "low": 0.0,
+            "high": 0.05,
+        }
+        assert field("cool_crystallize", "target_temperature_K")["bounds"] == {
+            "low": 250.0,
+            "high": 330.0,
+        }
+        assert field("evaporate", "target_temperature_K")["bounds"] == {
+            "low": 298.15,
+            "high": 390.0,
+        }
+
+        invalid_phase = env.unwrapped.validate_action(
+            {"operation": "add_phase", "phase": "solid", "volume_L": 0.02}
+        )
+        invalid_extractant = env.unwrapped.validate_action(
+            {"operation": "add_extractant", "extractant": 4, "volume_L": 0.02}
+        )
+        invalid_seed = env.unwrapped.validate_action(
+            {"operation": "seed_crystals", "seed_mass_g": 0.5}
+        )
+        assert not invalid_phase["valid"]
+        assert not invalid_phase["dispatchable_to_runtime"]
+        assert not invalid_extractant["valid"]
+        assert not invalid_extractant["dispatchable_to_runtime"]
+        assert "outside [0, 3]" in invalid_extractant["invalid_reasons"][0]
+        assert not invalid_seed["valid"]
+        assert "payload_bounds:seed_mass_g" in invalid_seed["invalid_reasons"]
+    finally:
+        env.close()
+
+
+def test_core_locks_material_category_for_current_experiment() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
+    try:
+        env.reset(seed=0)
+        env.step({"operation": "add_solvent", "volume_L": 0.02, "solvent": 1})
+        schema = env.unwrapped.action_schema("add_solvent")
+        solvent_field = next(field for field in schema["fields"] if field["field"] == "solvent")
+        assert solvent_field["choices"] == [1]
+        assert solvent_field["locked_for_current_experiment"] is True
+
+        same = env.unwrapped.validate_action(
+            {"operation": "add_solvent", "volume_L": 0.005, "solvent": 1}
+        )
+        switched = env.unwrapped.validate_action(
+            {"operation": "add_solvent", "volume_L": 0.005, "solvent": 2}
+        )
+        assert same["valid"]
+        assert not switched["valid"]
+        assert not switched["dispatchable_to_runtime"]
+        assert "payload_locked:solvent" in switched["invalid_reasons"]
+    finally:
+        env.close()
+
+
 def test_core_task_prompts_are_structured_and_public() -> None:
     expectations = {
         "reaction-to-assay": {

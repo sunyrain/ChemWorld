@@ -6,9 +6,13 @@ from dataclasses import dataclass
 from typing import Any
 
 from chemworld.action_codec import ActionCodec
-from chemworld.foundation import PhysicalConstitution, WorldState
+from chemworld.foundation import PhysicalConstitution, WorldState, equipment_settings
 from chemworld.schemas import validate_action_schema
-from chemworld.world.operations import OPERATION_TYPES
+from chemworld.world.operations import (
+    OPERATION_FIELD_BOUNDS,
+    OPERATION_FIELD_CHOICES,
+    OPERATION_TYPES,
+)
 
 
 @dataclass(frozen=True)
@@ -37,10 +41,9 @@ class OperationValidation:
             "operation_allowed_by_task",
             "instrument_allowed_by_task",
         }
-        return not any(
+        return self.preconditions.get("action_schema_valid", True) and not any(
             reason in blocking_reasons
-            or reason.startswith("payload_has:")
-            or reason.startswith("payload_bounds:")
+            or reason.startswith("payload_")
             for reason in self.invalid_reasons
         )
 
@@ -253,6 +256,31 @@ class OperationValidator:
         for field in required_fields:
             checks[f"payload_has:{field}"] = field in payload
 
+        for (candidate_operation, field), choices in OPERATION_FIELD_CHOICES.items():
+            if operation_type == candidate_operation and field in payload:
+                checks[f"payload_choice:{field}"] = payload.get(field) in choices
+
+        lock_contract = {
+            "add_solvent": ("solvent", "batch_reactor", "solvent_volume_L"),
+            "add_catalyst": ("catalyst", "batch_reactor", "catalyst_amount_mol"),
+            "add_extractant": (
+                "extractant",
+                "liquid_liquid_extractor",
+                "extractant_volume_L",
+            ),
+        }.get(operation_type)
+        if lock_contract is not None and lock_contract[0] in payload:
+            locked_field, equipment_id, charged_key = lock_contract
+            settings = equipment_settings(state.equipment, equipment_id)
+            selected = (
+                settings.get(locked_field)
+                if float(settings.get(charged_key, 0.0)) > 0.0
+                else None
+            )
+            checks[f"payload_locked:{locked_field}"] = (
+                selected is None or payload.get(locked_field) == selected
+            )
+
         if operation_type == "add_reagent" and "amount_mol" in payload:
             checks["payload_bounds:amount_mol"] = self._in_range(
                 payload,
@@ -265,11 +293,15 @@ class OperationValidator:
             and "volume_L" in payload
         ):
             added_volume = self._float(payload.get("volume_L"))
+            low, high = OPERATION_FIELD_BOUNDS.get(
+                (operation_type, "volume_L"),
+                (0.0, 0.080),
+            )
             checks["payload_bounds:volume_L"] = self._in_range(
                 payload,
                 "volume_L",
-                0.0,
-                0.080,
+                low,
+                high,
             )
             checks["payload_bounds:total_volume_L"] = (
                 added_volume is not None
@@ -286,11 +318,16 @@ class OperationValidator:
             operation_type in {"heat", "cool_crystallize", "evaporate", "distill", "run_flow"}
             and "target_temperature_K" in payload
         ):
+            low, high = OPERATION_FIELD_BOUNDS.get(
+                (operation_type, "target_temperature_K"),
+                (250.0, self._max_temperature_k(state)),
+            )
+            high = min(high, self._max_temperature_k(state))
             checks["payload_bounds:target_temperature_K"] = self._in_range(
                 payload,
                 "target_temperature_K",
-                250.0,
-                self._max_temperature_k(state),
+                low,
+                high,
             )
         if (
             operation_type
@@ -353,11 +390,12 @@ class OperationValidator:
                 inclusive_low=True,
             )
         if operation_type == "seed_crystals" and "seed_mass_g" in payload:
+            low, high = OPERATION_FIELD_BOUNDS[("seed_crystals", "seed_mass_g")]
             checks["payload_bounds:seed_mass_g"] = self._in_range(
                 payload,
                 "seed_mass_g",
-                0.0,
-                1.0,
+                low,
+                high,
                 inclusive_low=True,
             )
         if operation_type == "distill" and "reflux_ratio" in payload:

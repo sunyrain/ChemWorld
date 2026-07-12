@@ -8,6 +8,7 @@ from typing import Any
 import numpy as np
 
 from chemworld.foundation import Operation
+from chemworld.world.actions import SOLVENTS
 from chemworld.world.ontology import chemworld_state_variables
 
 REACTION_OPERATIONS = (
@@ -68,6 +69,25 @@ OPERATION_TYPES = (
     "measure",
 )
 INSTRUMENTS = ("hplc", "gc", "uvvis", "ph_meter", "final_assay")
+
+# Operation-specific input contracts are the single source of truth for values
+# whose effective runtime domain is narrower than the shared Gym field space.
+# Services may retain defensive clipping, but validated actions must never be
+# silently reinterpreted by those guards.
+OPERATION_FIELD_BOUNDS: dict[tuple[str, str], tuple[float, float]] = {
+    ("add_phase", "volume_L"): (0.0, 0.060),
+    ("add_extractant", "volume_L"): (0.0, 0.060),
+    ("seed_crystals", "seed_mass_g"): (0.0, 0.050),
+    ("cool_crystallize", "target_temperature_K"): (250.0, 330.0),
+    ("evaporate", "target_temperature_K"): (298.15, 390.0),
+    ("distill", "target_temperature_K"): (298.15, 430.0),
+    ("run_flow", "target_temperature_K"): (298.15, 430.0),
+}
+OPERATION_FIELD_CHOICES: dict[tuple[str, str], tuple[Any, ...]] = {
+    ("add_phase", "phase"): ("aqueous", "organic"),
+    ("add_extractant", "extractant"): tuple(range(len(SOLVENTS))),
+    ("separate_phase", "target_phase"): ("aqueous", "organic"),
+}
 DOWNSTREAM_OBSERVATION_KEYS = (
     "purity",
     "recovery",
@@ -317,6 +337,8 @@ __all__ = [
     "FLOW_OPERATIONS",
     "INSTRUMENTS",
     "MACRO_OPERATIONS",
+    "OPERATION_FIELD_BOUNDS",
+    "OPERATION_FIELD_CHOICES",
     "OPERATION_TYPES",
     "PRIMITIVE_OPERATIONS",
     "PROCESS_OPERATIONS",

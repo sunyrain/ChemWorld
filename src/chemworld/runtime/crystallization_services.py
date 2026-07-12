@@ -122,6 +122,16 @@ class ChemWorldCrystallizationServices:
         target_species = self.species_view.primary_target_species
         impurity_species = self.species_view.primary_impurity_species
         seed_target_mol = seed_mass / 1000.0 / self._target_molecular_weight_kg_mol()
+        previous_settings = equipment_settings(state.equipment, "crystallizer")
+        cumulative_seed_mass = float(previous_settings.get("crystal_seed_mass_g", 0.0)) + seed_mass
+        cumulative_seed_target = (
+            float(previous_settings.get("seed_target_mol", 0.0)) + seed_target_mol
+        )
+        existing_solid_product, existing_solid_impurity = _solid_phase_amounts(
+            state,
+            target_species=target_species,
+            impurity_species=impurity_species,
+        )
         species_amounts = state.species_amounts.copy()
         species_amounts[target_species] = species_amounts.get(target_species, 0.0) + seed_target_mol
         augmented_state = state.replace(species_amounts=species_amounts)
@@ -129,8 +139,8 @@ class ChemWorldCrystallizationServices:
             augmented_state,
             target_species=target_species,
             impurity_species=impurity_species,
-            product_mol=seed_target_mol,
-            impurity_mol=0.0,
+            product_mol=existing_solid_product + seed_target_mol,
+            impurity_mol=existing_solid_impurity,
             solid_selected=False,
         )
         equipment = upsert_equipment_record(
@@ -141,8 +151,9 @@ class ChemWorldCrystallizationServices:
             status="seeded" if seed_mass > 0.0 else "configured",
             settings={
                 "crystal_seeded": seed_mass > 0.0,
-                "crystal_seed_mass_g": seed_mass,
-                "seed_target_mol": seed_target_mol,
+                "crystal_seed_mass_g": cumulative_seed_mass,
+                "seed_target_mol": cumulative_seed_target,
+                "seed_charge_count": int(previous_settings.get("seed_charge_count", 0)) + 1,
                 "last_seed_time_s": augmented_state.ledger.time_s,
                 "seed_model_id": "explicit_target_seed_mass_v1",
             },
@@ -155,7 +166,6 @@ class ChemWorldCrystallizationServices:
                     self.species_view.target_amount(state),
                 )
             ),
-            self.species_view.target_amount(state),
             1.0e-12,
         )
         process = process_with_metrics(

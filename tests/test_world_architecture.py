@@ -1703,6 +1703,12 @@ def test_runtime_reactor_settings_use_typed_equipment_ledger() -> None:
 
         env.step({"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012})
         env.step({"operation": "add_extractant", "extractant": "organic", "volume_L": 0.018})
+        extractor_settings = equipment_settings(
+            env.unwrapped._state.equipment,
+            "liquid_liquid_extractor",
+        )
+        assert extractor_settings["extractant"] == 3
+        assert extractor_settings["extractant_volume_L"] == pytest.approx(0.018)
         _, _, _, _, mix_info = env.step(
             {"operation": "mix", "duration_s": 240.0, "stirring_speed_rpm": 850.0}
         )
@@ -1775,6 +1781,21 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         assert crystallizer_settings["crystal_seed_mass_g"] == pytest.approx(0.006)
         assert "crystal_seeded" not in state.metadata
         assert "crystal_seed_mass_g" not in state.metadata
+        assert env.unwrapped.constitution.check_state(state).passed
+
+        first_seed_target_mol = crystallizer_settings["seed_target_mol"]
+        first_solid_target_mol = state.phases.phases["solid"].species_amounts_mol["P"]
+        _, _, _, _, second_seed_info = env.step(
+            {"operation": "seed_crystals", "seed_mass_g": 0.004}
+        )
+        state = env.unwrapped._state
+        crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
+        assert second_seed_info["transaction_status"] == "committed"
+        assert crystallizer_settings["crystal_seed_mass_g"] == pytest.approx(0.010)
+        assert crystallizer_settings["seed_charge_count"] == 2
+        assert crystallizer_settings["seed_target_mol"] > first_seed_target_mol
+        assert state.phases.phases["solid"].species_amounts_mol["P"] > first_solid_target_mol
+        assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
         assert env.unwrapped.constitution.check_state(state).passed
 
         _, _, _, _, cool_info = env.step(

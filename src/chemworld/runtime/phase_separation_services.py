@@ -32,6 +32,7 @@ from chemworld.runtime.vnext_downstream import (
     run_sorbent_drying,
     run_vacuum_concentration,
 )
+from chemworld.world.actions import SOLVENTS
 from chemworld.world.parameters import ChemWorldParameters
 from chemworld.world.phase_kernel import partition_split
 from chemworld.world.species_roles import PHASE_PRODUCT_AMOUNT_KEY
@@ -65,13 +66,30 @@ class ChemWorldPhaseSeparationServices:
 
     def add_extractant(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         volume = float(np.clip(action_float(action, "volume_L", 0.018), 0.0, 0.060))
-        extractant = str(action.get("extractant", "organic"))
+        extractant = int(np.clip(action_float(action, "extractant", 3.0), 0, len(SOLVENTS) - 1))
         phase_ledger = self.phase_ledgers.phase_ledger(state)
         organic = phase_ledger.setdefault("organic", empty_phase())
         organic["volume_L"] += volume
-        reactor_settings = equipment_settings(state.equipment, "batch_reactor")
-        solvent = int(reactor_settings.get("solvent", 0))
-        risk = min(1.0, state.ledger.risk + 0.04 + 0.05 * float(self.world.solvent_risks[solvent]))
+        extractor_settings = equipment_settings(state.equipment, "liquid_liquid_extractor")
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="liquid_liquid_extractor",
+            equipment_type="liquid_liquid_extractor",
+            attached_vessel_id=state.vessel_id,
+            settings={
+                "extractant": extractant,
+                "extractant_volume_L": float(
+                    extractor_settings.get("extractant_volume_L", 0.0)
+                )
+                + volume,
+            },
+        )
+        risk = min(
+            1.0,
+            state.ledger.risk
+            + 0.04
+            + 0.05 * float(self.world.solvent_risks[extractant]),
+        )
         ledger = state.ledger.with_updates(
             cost=state.ledger.cost + 0.025 + 0.80 * volume,
             risk=risk,
@@ -84,6 +102,7 @@ class ChemWorldPhaseSeparationServices:
             selected_phase=None,
             ledger=ledger,
             volume_L=state.volume_L + volume,
+            equipment=equipment,
         )
 
     def mix_phases(self, state: WorldState, action: dict[str, Any]) -> WorldState:
@@ -105,8 +124,9 @@ class ChemWorldPhaseSeparationServices:
         aqueous = phase_ledger["aqueous"]
         p_total = self.phase_ledgers.phase_product_amount(state)
         impurity_total = self.phase_ledgers.phase_impurity_amount(state)
+        extractor_settings = equipment_settings(state.equipment, "liquid_liquid_extractor")
         reactor_settings = equipment_settings(state.equipment, "batch_reactor")
-        solvent = int(reactor_settings.get("solvent", 0))
+        solvent = int(extractor_settings.get("extractant", reactor_settings.get("solvent", 0)))
         split = partition_split(
             product_mol=p_total,
             impurity_mol=impurity_total,
