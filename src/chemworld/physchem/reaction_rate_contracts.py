@@ -297,6 +297,19 @@ def reaction_rate_contract_model_card() -> ModelCard:
                 command_or_path="tests/test_reaction_rate_contracts.py",
                 tolerance="exact symbolic unit identity",
             ),
+            ValidationEvidence(
+                evidence_id="arrhenius-invalid-declaration-domain-tests",
+                evidence_type="unit_test",
+                description=(
+                    "Failure-domain tests reject missing or nonpositive rate "
+                    "parameters, invalid third-body efficiencies, and out-of-bound "
+                    "Troe declarations with auditable violations."
+                ),
+                status="implemented",
+                reference_backend="ChemWorld declared Arrhenius contract bounds",
+                command_or_path="tests/test_reaction_rate_contracts.py",
+                tolerance="exact violation category and message match",
+            ),
         ),
         model_limit_notes=(
             "This reference-validated label applies only to dimensional and declaration checks.",

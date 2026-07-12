@@ -231,6 +231,11 @@ def test_model_card_limits_reference_validated_claim_to_unit_contract() -> None:
     assert validate_model_card(card) == []
     assert card.model_id == "chemworld_arrhenius_unit_contract_vnext"
     assert any("only" in note.lower() for note in card.model_limit_notes)
+    assert any(
+        evidence.evidence_id == "arrhenius-invalid-declaration-domain-tests"
+        and evidence.status == "implemented"
+        for evidence in card.validation_evidence
+    )
 
 
 def test_contract_serialization_and_provenance_are_deterministic() -> None:
