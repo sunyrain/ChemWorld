@@ -59,7 +59,9 @@ def _tracked_tree_dirty() -> bool:
     return bool(completed.stdout.strip())
 
 
-def run_benchmark(*, output_dir: Path, total_steps: int) -> dict[str, Any]:
+def run_benchmark(
+    *, output_dir: Path, total_steps: int, candidate_ids: set[str] | None = None
+) -> dict[str, Any]:
     if total_steps <= 0 or total_steps % ROLLOUT_ENVIRONMENT_STEPS:
         raise ValueError("total steps must be a positive multiple of 1024")
     source_commit = git_commit()
@@ -78,8 +80,22 @@ def run_benchmark(*, output_dir: Path, total_steps: int) -> dict[str, Any]:
         allocation_protocol, task_id=TASK_ID, name="train"
     )
     matrix = candidate_matrix(cuda_available=bool(torch.cuda.is_available()))
+    available_ids = {
+        f"{item['device']}-{item['vectorization_backend']}-n{item['parallel_environments']}"
+        for item in matrix
+    }
+    if candidate_ids:
+        unknown = sorted(candidate_ids - available_ids)
+        if unknown:
+            raise ValueError(f"unknown infrastructure candidates: {unknown}")
+        matrix = [
+            item
+            for item in matrix
+            if f"{item['device']}-{item['vectorization_backend']}-n{item['parallel_environments']}"
+            in candidate_ids
+        ]
     results: list[dict[str, Any]] = []
-    for index, candidate in enumerate(matrix):
+    for candidate in matrix:
         environments = int(candidate["parallel_environments"])
         candidate_id = (
             f"{candidate['device']}-{candidate['vectorization_backend']}-n{environments}"
@@ -91,7 +107,7 @@ def run_benchmark(*, output_dir: Path, total_steps: int) -> dict[str, Any]:
                 task_id=TASK_ID,
                 allocation=allocation,
                 total_timesteps=total_steps,
-                model_seed=DIAGNOSTIC_SEED_BASE + index,
+                model_seed=DIAGNOSTIC_SEED_BASE,
                 output_dir=output_dir / candidate_id,
                 algorithm_kwargs={
                     "learning_rate": 0.0003,
@@ -159,6 +175,7 @@ def run_benchmark(*, output_dir: Path, total_steps: int) -> dict[str, Any]:
         "source_commit": source_commit,
         "task_id": TASK_ID,
         "diagnostic_seed_base": DIAGNOSTIC_SEED_BASE,
+        "same_diagnostic_seed_for_every_candidate": True,
         "total_environment_steps_per_candidate": total_steps,
         "aggregate_rollout_environment_steps": ROLLOUT_ENVIRONMENT_STEPS,
         "hardware": {
@@ -183,9 +200,18 @@ def main() -> int:
         default=Path("runs/rl-infrastructure-benchmark-0.1"),
     )
     parser.add_argument("--report", type=Path)
+    parser.add_argument(
+        "--candidates",
+        nargs="*",
+        help="Optional candidate IDs such as cpu-subprocess-n4 cuda-subprocess-n4.",
+    )
     args = parser.parse_args()
     report_path = args.report or args.output_dir / "report.json"
-    report = run_benchmark(output_dir=args.output_dir, total_steps=args.steps)
+    report = run_benchmark(
+        output_dir=args.output_dir,
+        total_steps=args.steps,
+        candidate_ids=set(args.candidates) if args.candidates else None,
+    )
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
