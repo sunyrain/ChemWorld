@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import threading
 import uuid
 from dataclasses import dataclass, field
@@ -74,10 +75,23 @@ class RunJob:
 
 
 class RunJobManager:
-    def __init__(self, output_root: Path) -> None:
+    def __init__(self, output_root: Path, *, api_key: str | None = None) -> None:
         self.output_root = output_root
+        self._api_key = (api_key or "").strip() or None
         self._jobs: dict[str, RunJob] = {}
         self._lock = threading.RLock()
+
+    @property
+    def deepseek_configured(self) -> bool:
+        return bool(self._api_key or os.environ.get("DEEPSEEK_API_KEY", "").strip())
+
+    @property
+    def credential_source(self) -> str:
+        if self._api_key:
+            return "api-key-file"
+        if os.environ.get("DEEPSEEK_API_KEY", "").strip():
+            return "environment"
+        return "missing"
 
     def create(
         self,
@@ -97,6 +111,7 @@ class RunJobManager:
         client: DeepSeekClient | None
         if agent_backend == "deepseek":
             deepseek_client = DeepSeekClient(
+                api_key=self._api_key,
                 model=model,
                 thinking=thinking,
                 reasoning_effort=reasoning_effort,
@@ -210,9 +225,15 @@ class RunJobManager:
 
 
 class TaskLabServer(ThreadingHTTPServer):
-    def __init__(self, address: tuple[str, int], output_root: Path) -> None:
+    def __init__(
+        self,
+        address: tuple[str, int],
+        output_root: Path,
+        *,
+        api_key: str | None = None,
+    ) -> None:
         super().__init__(address, TaskLabHandler)
-        self.jobs = RunJobManager(output_root)
+        self.jobs = RunJobManager(output_root, api_key=api_key)
         self.student_sessions = StudentSessionManager()
 
     def server_close(self) -> None:
@@ -230,6 +251,14 @@ class TaskLabHandler(BaseHTTPRequestHandler):
                 {
                     "tasks": task_catalog(),
                     "quick_tasks": list(DEFAULT_TASKS),
+                }
+            )
+            return
+        if path == "/api/status":
+            self._json(
+                {
+                    "deepseek_configured": self.server.jobs.deepseek_configured,
+                    "credential_source": self.server.jobs.credential_source,
                 }
             )
             return
@@ -411,14 +440,24 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8876)
     parser.add_argument("--output-dir", default="runs/task_lab/web")
+    parser.add_argument(
+        "--api-key-file",
+        type=Path,
+        help="Read a local API key file into memory; the key is never sent to the browser.",
+    )
     return parser
 
 
 def main() -> int:
     args = build_parser().parse_args()
-    server = TaskLabServer((args.host, args.port), Path(args.output_dir))
+    api_key = _read_api_key_file(args.api_key_file) if args.api_key_file else None
+    server = TaskLabServer(
+        (args.host, args.port),
+        Path(args.output_dir),
+        api_key=api_key,
+    )
     print(f"ChemWorld Task Lab: http://{args.host}:{args.port}")
-    print("学生实验台无需 API key；启动 DeepSeek 评测前需设置 DEEPSEEK_API_KEY。")
+    print(f"学生实验台无需 API key；DeepSeek 凭据状态：{server.jobs.credential_source}。")
     try:
         server.serve_forever(poll_interval=0.2)
     except KeyboardInterrupt:
@@ -427,6 +466,16 @@ def main() -> int:
         server.shutdown()
         server.server_close()
     return 0
+
+
+def _read_api_key_file(path: Path) -> str:
+    resolved = path.expanduser().resolve()
+    if not resolved.is_file():
+        raise ValueError(f"API key file does not exist: {resolved}")
+    value = resolved.read_text(encoding="utf-8").strip()
+    if not value or "\n" in value or "\r" in value:
+        raise ValueError("API key file must contain exactly one non-empty line")
+    return value
 
 
 if __name__ == "__main__":

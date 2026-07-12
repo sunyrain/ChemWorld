@@ -79,21 +79,23 @@
 
       <section class="observability-grid">
         <article class="surface spectrum-surface dark-spectrum">
-          <div class="surface-heading"><div><p class="overline">PUBLIC INSTRUMENT SIGNAL</p><h3>实时谱图工作台</h3></div><span id="agentSpectrumInstrument" class="mono-tag">No signal</span></div>
+          <div class="surface-heading"><div><p class="overline">MODEL INPUT / MEASUREMENT OUTPUT</p><h3>实时谱图工作台</h3></div><div class="signal-tags"><span id="agentSpectrumContext" class="mono-tag signal-context">Awaiting signal</span><span id="agentSpectrumInstrument" class="mono-tag">No signal</span></div></div>
           <div id="agentSpectrumTabs" class="spectrum-tabs"></div>
           <div class="spectrum-canvas-shell"><canvas id="agentSpectrum" width="980" height="300"></canvas><div id="agentSpectrumEmpty" class="spectrum-empty">等待 HPLC、GC、UV-Vis、IR、NMR 或终点检测信号</div></div>
           <div id="agentSpectrumMeta" class="spectrum-meta">No public signal</div>
           <div id="agentSpectrumPeaks" class="spectrum-peaks"></div>
         </article>
         <article class="surface audit-surface">
-          <div class="surface-heading"><div><p class="overline">AUDITABLE DECISION RECORD</p><h3>证据与决策摘要</h3></div><span class="mono-tag">NO HIDDEN COT</span></div>
+          <div class="surface-heading"><div><p class="overline">PUBLIC MODEL ANALYSIS</p><h3>证据与决策摘要</h3></div><span id="decisionOrigin" class="mono-tag">AWAITING MODEL</span></div>
           <div class="audit-content">
             <div><span>公开证据</span><ul id="decisionEvidence"><li>等待模型读取公开观测</li></ul></div>
             <div><span>谱图解读</span><p id="decisionSpectrum">尚无谱图解读。</p></div>
             <div><span>当前假设</span><p id="decisionHypothesis">尚未建立实验假设。</p></div>
             <div><span>动作依据</span><p id="decisionRationale">启动多轮评测后显示。</p></div>
+            <div><span>实验意图</span><p id="decisionIntent">尚未分类。</p></div>
+            <div><span>与既往实验比较</span><p id="decisionComparison">尚无可比较实验。</p></div>
             <div class="uncertainty-row"><span>不确定性</span><div><i id="decisionUncertaintyBar"></i></div><b id="decisionUncertainty">—</b></div>
-            <small id="decisionUncertaintyNote">模型将报告主要不确定性来源。</small>
+            <small id="decisionUncertaintyNote">模型将报告主要不确定性来源；隐藏逐字思维链不会被采集。</small>
           </div>
         </article>
       </section>

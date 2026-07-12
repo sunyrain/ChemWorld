@@ -210,10 +210,13 @@ def run_task(
                     executed_steps >= max(step_limit - 2, 0)
                     or (mode == "plan" and plan_index >= len(planned))
                 )
+                decision_spectrum = spectral_payload({}, disclosure=spectrum_disclosure)
+                decision_origin = "protocol"
                 if closeout_required:
                     decision = _closeout_decision(base)
                     if decision is None:
                         break
+                    decision_origin = "protocol_closeout"
                     emit(
                         {
                             "type": "closeout_action",
@@ -229,10 +232,11 @@ def run_task(
                     if plan_index >= len(planned):
                         break
                     decision = _normalize_decision(planned[plan_index])
+                    decision_origin = "model_plan"
                     plan_index += 1
                 else:
                     try:
-                        completion = _request_adaptive_decision(
+                        completion, decision_spectrum = _request_adaptive_decision(
                             client=client,
                             base=base,
                             task_prompt=prompt,
@@ -245,6 +249,7 @@ def run_task(
                         model_call_count += completion.attempts
                         _add_usage(usage, completion.usage)
                         decision = _normalize_decision(completion.payload)
+                        decision_origin = "online_model"
                     except Exception as exc:
                         model_call_count += max(int(getattr(exc, "attempts", 1)), 1)
                         _add_usage(usage, getattr(exc, "usage", {}))
@@ -259,6 +264,7 @@ def run_task(
                         decision = _closeout_decision(base)
                         if decision is None:
                             break
+                        decision_origin = "protocol_closeout_after_model_failure"
                         emit(
                             {
                                 "type": "closeout_action",
@@ -288,10 +294,12 @@ def run_task(
                         base=base,
                         rejected=decision,
                         validation=validation,
+                        spectrum=decision_spectrum,
                     )
                     model_call_count += repair.attempts
                     _add_usage(usage, repair.usage)
                     decision = _normalize_decision(repair.payload)
+                    decision_origin = "online_model_repair"
                     validation = base.validate_action(decision["action"])
                     if not validation.get("valid", False):
                         consecutive_unrepaired_actions += 1
@@ -319,6 +327,7 @@ def run_task(
                             )
                             break
                         decision = fallback
+                        decision_origin = "protocol_fallback_after_invalid_model"
                         validation = base.validate_action(decision["action"])
                         consecutive_unrepaired_actions = 0
                         emit(
@@ -351,6 +360,18 @@ def run_task(
                         "comparison_to_prior": decision["comparison_to_prior"],
                         "uncertainty": decision["uncertainty"],
                         "uncertainty_note": decision["uncertainty_note"],
+                        "decision_origin": decision_origin,
+                        "spectrum_input": to_builtin(decision_spectrum),
+                        "analysis": {
+                            "evidence": decision["evidence"],
+                            "spectrum_interpretation": decision["spectrum_interpretation"],
+                            "hypothesis": decision["hypothesis"],
+                            "rationale": decision["rationale"],
+                            "experiment_intent": decision["experiment_intent"],
+                            "comparison_to_prior": decision["comparison_to_prior"],
+                            "uncertainty": decision["uncertainty"],
+                            "uncertainty_note": decision["uncertainty_note"],
+                        },
                     }
                 )
 
@@ -385,6 +406,11 @@ def run_task(
                     "comparison_to_prior": decision["comparison_to_prior"],
                     "uncertainty": decision["uncertainty"],
                     "uncertainty_note": decision["uncertainty_note"],
+                    "decision_origin": decision_origin,
+                    "spectrum_input_summary": _spectrum_input_summary(
+                        decision_spectrum,
+                        decision_origin=decision_origin,
+                    ),
                     "validator_result": {
                         "valid": True,
                         "constraint_flags": to_builtin(info.get("constraint_flags", {})),
@@ -441,6 +467,11 @@ def run_task(
                         "spectrum_interpretation": decision["spectrum_interpretation"],
                         "uncertainty": decision["uncertainty"],
                         "uncertainty_note": decision["uncertainty_note"],
+                        "decision_origin": decision_origin,
+                        "spectrum_input_summary": _spectrum_input_summary(
+                            decision_spectrum,
+                            decision_origin=decision_origin,
+                        ),
                     },
                     agent_view=agent_view_bundle(env, observation, info),
                     agent_trace=trace,
@@ -460,6 +491,8 @@ def run_task(
                         "spectrum_interpretation": decision["spectrum_interpretation"],
                         "uncertainty": decision["uncertainty"],
                         "uncertainty_note": decision["uncertainty_note"],
+                        "decision_origin": decision_origin,
+                        "spectrum_input": to_builtin(decision_spectrum),
                         "spectrum": spectrum,
                         "spectra_summary": _disclose_spectra_summary(
                             report.get("spectra_summary", {}),
@@ -599,7 +632,7 @@ def _request_adaptive_decision(
     experiment_memory: list[dict[str, Any]],
     last_spectrum: dict[str, Any],
     spectrum_disclosure: SpectrumDisclosure,
-) -> JsonCompletion:
+) -> tuple[JsonCompletion, dict[str, Any]]:
     lab_report = _disclose_lab_report(
         base.observation_view("lab_report"),
         spectrum_disclosure,
@@ -657,11 +690,12 @@ def _request_adaptive_decision(
         },
         ensure_ascii=False,
     )
-    return client.complete_json(
+    completion = client.complete_json(
         system_prompt=SYSTEM_PROMPT,
         user_prompt=user_prompt,
         max_tokens=8000 if bool(getattr(client, "thinking", False)) else 2000,
     )
+    return completion, spectrum
 
 
 def _request_repair(
@@ -670,6 +704,7 @@ def _request_repair(
     base: Any,
     rejected: dict[str, Any],
     validation: dict[str, Any],
+    spectrum: dict[str, Any],
 ) -> JsonCompletion:
     user_prompt = json.dumps(
         {
@@ -680,6 +715,7 @@ def _request_repair(
             ),
             "rejected_decision": rejected,
             "invalid_reasons": validation.get("invalid_reasons", []),
+            "latest_public_spectrum": spectrum,
             "campaign_state": base.campaign_state(),
             "currently_valid_actions": [
                 _compact_affordance(item) for item in base.available_actions()
@@ -701,6 +737,35 @@ def _request_repair(
         user_prompt=user_prompt,
         max_tokens=6000 if bool(getattr(client, "thinking", False)) else 1200,
     )
+
+
+def _spectrum_input_summary(
+    spectrum: dict[str, Any],
+    *,
+    decision_origin: str,
+) -> dict[str, Any]:
+    series = spectrum.get("series")
+    safe_series = series if isinstance(series, list) else []
+    return {
+        "available": bool(spectrum.get("available")),
+        "decision_origin": decision_origin,
+        "disclosure": spectrum.get("disclosure"),
+        "instrument": spectrum.get("instrument"),
+        "kind": spectrum.get("kind"),
+        "series": [
+            {
+                "id": item.get("id"),
+                "kind": item.get("kind"),
+                "point_count": min(
+                    len(item.get("x", [])),
+                    len(item.get("y", [])),
+                ),
+                "peak_count": len(item.get("peaks", [])),
+            }
+            for item in safe_series
+            if isinstance(item, dict)
+        ],
+    }
 
 
 def _experiment_memory_record(

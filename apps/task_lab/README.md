@@ -13,6 +13,15 @@ Task Lab 提供两个彼此独立的本地产品界面：
 python -m apps.task_lab.server --port 8876
 ```
 
+如果凭据保存在仓库根目录的本地 `api.md`，可直接运行：
+
+```powershell
+python -m apps.task_lab.server --port 8876 --api-key-file .\api.md
+```
+
+`api.md` 已被 Git 忽略。密钥只保存在本地服务进程内存中；浏览器状态接口只会返回
+`api-key-file`、`environment` 或 `missing`，不会返回密钥内容。
+
 即使当前 `python` 不是项目虚拟环境，该命令也会在 Windows 上自动转交给
 `.venv\Scripts\python.exe`。如果项目尚未安装依赖，请先运行：
 
@@ -30,7 +39,7 @@ python -m apps.task_lab.server --port 8876
 
 ## 配置 DeepSeek
 
-不要把 key 写进 Python、Markdown、前端或运行结果。PowerShell 中只为当前终端设置环境变量：
+不要把 key 写进受版本控制的 Python、Markdown、前端或运行结果。PowerShell 中也可以只为当前终端设置环境变量：
 
 ```powershell
 $env:DEEPSEEK_API_KEY = "<your-api-key>"
@@ -72,6 +81,10 @@ python -m apps.task_lab.run_evaluation --tasks partition-discovery --resume `
 `max`；`--no-thinking` 可关闭。无论是否开启，系统都不会保存或展示
 模型的隐藏逐字思维链，而是要求模型返回可审计的结构化记录：公开证据、谱图解读、当前假设、
 不确定性和动作依据。
+
+Agent Observatory 会明确区分 `MEASUREMENT OUTPUT` 与 `MODEL INPUT · DECISION N`：前者是
+刚完成实验的公开输出，后者是下一轮决策时实际序列化并发送给模型的谱图载荷。公开分析区同步展示
+证据、谱图解读、假设、实验意图、历史对照、依据和不确定性，不采集或展示隐藏逐字思维链。
 
 ## 谱图消融与实验设计审计
 

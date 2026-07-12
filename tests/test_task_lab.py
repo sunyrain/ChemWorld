@@ -11,6 +11,7 @@ from apps.task_lab.classic_runner import run_classic_task
 from apps.task_lab.deepseek_client import DeepSeekAPIError, DeepSeekClient, JsonCompletion
 from apps.task_lab.experiment_audit import audit_experiment_design
 from apps.task_lab.runner import run_task
+from apps.task_lab.server import RunJobManager, _read_api_key_file
 from apps.task_lab.spectral_payload import spectral_payload
 from apps.task_lab.student_session import StudentSessionManager
 
@@ -402,6 +403,13 @@ def test_adaptive_runner_reads_public_spectrum_and_emits_audit_record(
     assert len(decisions) == 8
     assert decisions[0]["evidence"] == ["The latest public report was reviewed."]
     assert decisions[0]["uncertainty"] == pytest.approx(0.35)
+    assert all(
+        decision["spectrum_input"] == prompt["latest_public_spectrum"]
+        for decision, prompt in zip(decisions, client.prompts, strict=True)
+    )
+    assert decisions[5]["spectrum_input"]["available"] is True
+    assert decisions[5]["decision_origin"] == "online_model"
+    assert decisions[5]["analysis"]["spectrum_interpretation"].startswith("The HPLC trace")
     assert result.method_resources["accounting_complete"] is False
     assert result.method_resources["model_provenance"]["private_reasoning_retained"] is False
     records = load_jsonl(result.trajectory_path)
@@ -417,6 +425,46 @@ def test_adaptive_runner_reads_public_spectrum_and_emits_audit_record(
     ]
     assert spectral_steps
     assert spectral_steps[0]["spectrum"]["series"][0]["kind"] == "hplc_chromatogram"
+    assert spectral_steps[0]["decision_origin"] == "online_model"
+
+
+def test_task_lab_static_ui_exposes_model_input_and_public_analysis() -> None:
+    static_root = Path(__file__).resolve().parents[1] / "apps" / "task_lab" / "static"
+    html = (static_root / "agent.html").read_text(encoding="utf-8")
+    javascript = (static_root / "agent.js").read_text(encoding="utf-8")
+
+    assert "MODEL INPUT / MEASUREMENT OUTPUT" in html
+    assert 'id="agentSpectrumContext"' in html
+    assert 'id="decisionIntent"' in html
+    assert 'id="decisionComparison"' in html
+    assert "PUBLIC MODEL ANALYSIS" in html
+    assert "event.spectrum_input" in javascript
+    assert "reasoning_content" not in javascript
+
+
+def test_local_api_key_file_is_private_and_status_is_redacted(tmp_path: Path) -> None:
+    key_path = tmp_path / "api.md"
+    secret = "sk-private-test-value"
+    key_path.write_text(secret + "\n", encoding="utf-8")
+
+    api_key = _read_api_key_file(key_path)
+    manager = RunJobManager(output_root=tmp_path / "runs", api_key=api_key)
+    public_status = {
+        "deepseek_configured": manager.deepseek_configured,
+        "credential_source": manager.credential_source,
+    }
+
+    assert api_key == secret
+    assert public_status == {
+        "deepseek_configured": True,
+        "credential_source": "api-key-file",
+    }
+    assert secret not in json.dumps(public_status)
+
+
+def test_repository_ignores_local_api_key_file() -> None:
+    gitignore = (Path(__file__).resolve().parents[1] / ".gitignore").read_text(encoding="utf-8")
+    assert "/api.md" in gitignore.splitlines()
 
 
 def test_adaptive_campaign_reuses_compact_completed_experiment_memory(

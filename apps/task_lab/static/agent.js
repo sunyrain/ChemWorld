@@ -19,13 +19,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   drawLineChart([]);
   app.spectrum = ChemWorldSpectra.mount({ canvas: $("#agentSpectrum"), tabs: $("#agentSpectrumTabs"), peaks: $("#agentSpectrumPeaks"), empty: $("#agentSpectrumEmpty"), meta: $("#agentSpectrumMeta"), theme: "dark" });
   try {
-    const payload = await api("/api/tasks");
+    const [payload, runtime] = await Promise.all([api("/api/tasks"), api("/api/status")]);
     app.tasks = payload.tasks;
     app.quickTasks = payload.quick_tasks;
     renderTaskChecklist();
     applyPreset("all");
     updateBackendControls();
     showDossier(app.tasks[0]);
+    renderRuntimeStatus(runtime);
   } catch (error) {
     $("#apiState").textContent = `Runtime error: ${error.message}`;
   }
@@ -125,6 +126,7 @@ function resetRun(taskCount) {
   app.currentTask = null;
   app.eventCount = 0;
   app.spectrum?.render(null);
+  $("#agentSpectrumContext").textContent = "Awaiting signal";
   $("#agentSpectrumInstrument").textContent = "No signal";
   renderDecisionAudit(null);
   $("#agentTimeline").innerHTML = "";
@@ -166,7 +168,9 @@ function handleEvent(event, source, button) {
     $("#currentAction").textContent = event.action.operation;
     $("#currentRationale").textContent = event.rationale;
     renderDecisionAudit(event);
-    addTelemetry("decision", `Decision ${event.step} · ${event.action.operation}`, `${event.experiment_intent || "decision"} · ${event.evidence?.[0] || "public evidence reviewed"} · uncertainty ${fmt(event.uncertainty, 2)}`);
+    renderModelInputSpectrum(event);
+    const inputSeries = event.spectrum_input?.series?.length || 0;
+    addTelemetry("decision", `Decision ${event.step} · ${event.action.operation}`, `${event.experiment_intent || "decision"} · ${inputSeries ? `${inputSeries} supplied signal channel(s)` : "no spectrum supplied"} · ${event.evidence?.[0] || "public evidence reviewed"} · uncertainty ${fmt(event.uncertainty, 2)}`);
   } else if (event.type === "surrogate_decision") {
     $("#currentAction").textContent = `${event.phase} · ${event.selected_policy}`;
     $("#currentRationale").textContent = event.rationale;
@@ -198,6 +202,7 @@ function handleEvent(event, source, button) {
     if (event.spectrum?.available) {
       app.spectrum?.render(event.spectrum);
       $("#agentSpectrumInstrument").textContent = event.spectrum.instrument || event.spectrum.kind || "Public signal";
+      $("#agentSpectrumContext").textContent = `MEASUREMENT OUTPUT · STEP ${event.step}`;
     }
     updateLiveProgress(event.step, event.step_limit, event.best_score, event.final_assay_count, event.remaining_budget);
     drawLineChart(app.series[event.task_id]);
@@ -246,15 +251,48 @@ function addTelemetry(kind, title, detail) {
 }
 
 function renderDecisionAudit(event) {
-  const evidence = event?.evidence?.length ? event.evidence : ["等待模型读取公开观测"];
+  const analysis = event?.analysis || event || {};
+  const evidence = analysis?.evidence?.length ? analysis.evidence : ["等待模型读取公开观测"];
   $("#decisionEvidence").innerHTML = evidence.map((item) => `<li>${esc(item)}</li>`).join("");
-  $("#decisionSpectrum").textContent = event?.spectrum_interpretation || "尚无谱图解读。";
-  $("#decisionHypothesis").textContent = event?.hypothesis || "尚未建立实验假设。";
-  $("#decisionRationale").textContent = event?.rationale || "启动多轮评测后显示。";
-  const uncertainty = event?.uncertainty;
+  $("#decisionSpectrum").textContent = analysis?.spectrum_interpretation || "尚无谱图解读。";
+  $("#decisionHypothesis").textContent = analysis?.hypothesis || "尚未建立实验假设。";
+  $("#decisionRationale").textContent = analysis?.rationale || "启动多轮评测后显示。";
+  $("#decisionIntent").textContent = analysis?.experiment_intent || "尚未分类。";
+  $("#decisionComparison").textContent = analysis?.comparison_to_prior || "尚无可比较实验。";
+  $("#decisionOrigin").textContent = decisionOriginLabel(event?.decision_origin);
+  const uncertainty = analysis?.uncertainty;
   $("#decisionUncertainty").textContent = uncertainty === undefined || uncertainty === null ? "—" : `${(Number(uncertainty) * 100).toFixed(0)}%`;
   $("#decisionUncertaintyBar").style.width = `${Math.max(0, Math.min(1, Number(uncertainty ?? 0))) * 100}%`;
-  $("#decisionUncertaintyNote").textContent = event?.uncertainty_note || "模型将报告主要不确定性来源。";
+  $("#decisionUncertaintyNote").textContent = analysis?.uncertainty_note || "模型将报告主要不确定性来源；隐藏逐字思维链不会被采集。";
+}
+
+function renderModelInputSpectrum(event) {
+  const spectrum = event?.spectrum_input;
+  app.spectrum?.render(spectrum?.available ? spectrum : null);
+  $("#agentSpectrumContext").textContent = spectrum?.available
+    ? `MODEL INPUT · DECISION ${event.step}`
+    : `MODEL INPUT · NO SPECTRUM · DECISION ${event.step}`;
+  $("#agentSpectrumInstrument").textContent = spectrum?.available
+    ? (spectrum.instrument || spectrum.kind || "Public signal")
+    : "No signal supplied";
+}
+
+function decisionOriginLabel(origin) {
+  return {
+    online_model: "MODEL RESPONSE",
+    online_model_repair: "MODEL REPAIR",
+    model_plan: "MODEL PLAN",
+    protocol_closeout: "PROTOCOL CLOSEOUT",
+    protocol_closeout_after_model_failure: "MODEL FAILURE · CLOSEOUT",
+    protocol_fallback_after_invalid_model: "INVALID MODEL · FALLBACK",
+  }[origin] || "AWAITING MODEL";
+}
+
+function renderRuntimeStatus(runtime) {
+  const configured = Boolean(runtime?.deepseek_configured);
+  $("#apiState").textContent = configured
+    ? `Local runtime · DeepSeek ready (${runtime.credential_source})`
+    : "Local runtime · DeepSeek key missing";
 }
 
 function updateEventCount() {
