@@ -11,7 +11,7 @@ def extraction_unit_model_cards() -> tuple[ModelCard, ...]:
             model_id="activity_corrected_extraction_train_v1",
             module_id="separations",
             title="Activity-Corrected Multistage Extraction And Wash Train",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Fresh-solvent extraction stages and aqueous wash contacts "
                 "with composition-dependent distribution coefficients, "
@@ -93,7 +93,7 @@ def extraction_unit_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "Professional-candidate identifies a mass-balanced extraction "
+                "Reference validation covers the mass-balanced extraction "
                 "train, not a rigorous electrolyte/multiphase flowsheet model.",
                 "Hydrodynamics, emulsion formation, solvent saturation, and "
                 "rate-based mass transfer remain outside this slice.",

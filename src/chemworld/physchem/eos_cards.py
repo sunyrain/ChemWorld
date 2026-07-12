@@ -105,7 +105,7 @@ def eos_model_cards() -> tuple[ModelCard, ...]:
             model_id="cubic_eos_volume_translation_root_governance",
             module_id="eos",
             title="Volume-Translated Cubic EOS And Root Governance Diagnostics",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Peneloux-style volume-translation reporting and root-governance "
                 "diagnostics layered on the compact PR/SRK cubic EOS. The slice "

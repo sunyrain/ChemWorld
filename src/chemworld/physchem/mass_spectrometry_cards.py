@@ -11,7 +11,7 @@ def mass_spectrometry_model_cards() -> tuple[ModelCard, ...]:
             model_id="small_formula_isotope_fragment_ms_v1",
             module_id="spectroscopy_instruments",
             title="Small-Formula Isotope Envelopes And Fragment Metadata",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Natural-abundance nominal isotope envelopes for common "
                 "small-molecule elements, curated fragment-ion assignments, "
@@ -86,7 +86,7 @@ def mass_spectrometry_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "Professional-candidate denotes an auditable isotope/fragment "
+                "Reference validation denotes an auditable isotope/fragment "
                 "evidence contract, not a quantum fragmentation predictor.",
                 "Adduct chemistry, ion-source competition, metastable ions, "
                 "high-resolution peak shapes, and library matching are absent.",

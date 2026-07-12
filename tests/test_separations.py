@@ -289,7 +289,7 @@ def test_separation_model_cards_document_vle_shortcut_distillation() -> None:
     assert any("thermo" in note for note in card.reference_reading)
     assert any("phasepy" in note for note in card.reference_reading)
     fug_card = cards["fenske_underwood_gilliland_sizing"]
-    assert fug_card.maturity.value == "professional_candidate"
+    assert fug_card.maturity.value == "reference_validated"
     assert validate_model_card(fug_card) == []
     assert any("Underwood" in equation for equation in fug_card.equations)
     assert any("IDAES tray_column.py" in note for note in fug_card.reference_reading)

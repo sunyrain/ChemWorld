@@ -89,6 +89,19 @@ def curated_property_model_cards() -> tuple[ModelCard, ...]:
                     ),
                     tolerance="rtol=1e-12",
                 ),
+                ValidationEvidence(
+                    evidence_id="curated-property-temperature-domain-guards",
+                    evidence_type="failure_domain_test",
+                    description=(
+                        "Checks that every curated DIPPR101 and Poling correlation "
+                        "fails closed outside its declared temperature bounds when "
+                        "the strict validity policy is selected."
+                    ),
+                    status="implemented",
+                    reference_backend="chemicals",
+                    command_or_path="tests/test_physchem_properties.py",
+                    tolerance="exact outside-validity-domain rejection",
+                ),
             ),
             model_limit_notes=(
                 "This is a reference-validated curated slice, not a vendored "

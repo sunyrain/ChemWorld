@@ -76,7 +76,8 @@ def separation_model_cards() -> tuple[ModelCard, ...]:
                     evidence_id="lle-tpd-diagnostic-phase-split",
                     evidence_type="unit_test",
                     description=(
-                        "Tests verify ideal single-liquid classification, "
+                        "Tests verify the analytical uniform-partition identity "
+                        "for ideal single-liquid classification, "
                         "partition-driven two-liquid classification, "
                         "initialization composition normalization, material "
                         "balance, metadata propagation, and extraction-task "
@@ -196,7 +197,7 @@ def separation_model_cards() -> tuple[ModelCard, ...]:
             model_id="fenske_underwood_gilliland_sizing",
             module_id="separations",
             title="Binary Fenske-Underwood-Gilliland Distillation Sizing",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Binary shortcut column-sizing report that combines Fenske "
                 "minimum stages, Underwood minimum reflux for a saturated "

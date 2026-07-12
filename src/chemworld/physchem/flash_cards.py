@@ -13,7 +13,7 @@ def flash_unit_model_cards() -> tuple[ModelCard, ...]:
             model_id="tp_gamma_phi_flash_energy_balance_v1",
             module_id="separations",
             title="Fixed-TP Gamma-Phi Flash With Enthalpy Ledger",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Iterated fixed-temperature, fixed-pressure gamma-phi flash "
                 "with an explicit component material split and feed/product "
@@ -101,7 +101,7 @@ def flash_unit_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "Professional-candidate denotes an auditable benchmark unit, "
+                "Reference validation denotes an auditable benchmark unit, "
                 "not a general EOS/GE flash package.",
                 "Temperature-dependent enthalpy integration, phase stability, "
                 "and automatic property-database selection remain external.",

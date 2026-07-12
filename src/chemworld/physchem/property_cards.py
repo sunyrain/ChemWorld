@@ -134,7 +134,7 @@ def property_correlation_model_cards() -> tuple[ModelCard, ...]:
             model_id="pure_fluid_saturation_solver",
             module_id="properties",
             title="Pure-Fluid Saturation Solver",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Auditable pure-fluid saturation reports built on explicit "
                 "vapor-pressure correlations, analytic pressure slopes, "
@@ -210,7 +210,7 @@ def property_correlation_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "This is a professional-candidate numerical contract for "
+                "This is a reference-validated numerical contract for "
                 "benchmark saturation calls, not a replacement for CoolProp "
                 "or full EOS phase-envelope tracing.",
             ),
@@ -226,7 +226,7 @@ def property_correlation_model_cards() -> tuple[ModelCard, ...]:
             model_id="phase_heat_capacity_enthalpy_package",
             module_id="properties",
             title="Phase-Aware Heat Capacity And Enthalpy Package",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Phase-tagged molar heat-capacity evaluation, analytic "
                 "sensible-enthalpy integrals, signed latent-heat transitions, "
@@ -313,7 +313,7 @@ def property_correlation_model_cards() -> tuple[ModelCard, ...]:
             model_id="density_molar_volume_package",
             module_id="properties",
             title="Density And Molar-Volume Package",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Liquid Rackett molar volume, ideal-gas and second-virial gas "
                 "volume reports, density/molar-volume conversion helpers, and "
@@ -400,7 +400,7 @@ def property_correlation_model_cards() -> tuple[ModelCard, ...]:
             model_id="transport_property_package",
             module_id="properties",
             title="Transport Property Package",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Pure-component viscosity and thermal-conductivity reports, "
                 "Wilke gas-mixture viscosity ledgers, DIPPR9H liquid-mixture "

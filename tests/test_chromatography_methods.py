@@ -145,5 +145,5 @@ def test_empirical_chromatography_model_card_is_auditable() -> None:
         item.model_id: item for item in spectroscopy_model_cards()
     }["empirical_chromatography_method_sensitivity_v1"]
 
-    assert card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(card) == []

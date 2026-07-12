@@ -631,8 +631,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -855,8 +855,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "lite",
       "effective_evidence_maturity": "lite",
       "evidence": [
         {
@@ -903,9 +903,9 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "reference_validated",
-      "effective_evidence_maturity": "lite",
+      "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
           "command_or_path": "tests/test_reaction_rate_contracts.py",
@@ -922,6 +922,22 @@
           ],
           "status": "implemented",
           "tolerance": "exact symbolic unit identity"
+        },
+        {
+          "command_or_path": "tests/test_reaction_rate_contracts.py",
+          "description": "Failure-domain tests reject missing or nonpositive rate parameters, invalid third-body efficiencies, and out-of-bound Troe declarations with auditable violations.",
+          "evidence_id": "arrhenius-invalid-declaration-domain-tests",
+          "evidence_type": "unit_test",
+          "existing_repository_paths": [
+            "tests/test_reaction_rate_contracts.py"
+          ],
+          "path_valid": true,
+          "reference_backend": "ChemWorld declared Arrhenius contract bounds",
+          "repository_paths": [
+            "tests/test_reaction_rate_contracts.py"
+          ],
+          "status": "implemented",
+          "tolerance": "exact violation category and message match"
         }
       ],
       "model_id": "chemworld_arrhenius_unit_contract_vnext",
@@ -929,16 +945,16 @@
       "professional_candidate_checks": {
         "conservation_evidence": false,
         "coupling_evidence": true,
-        "cross_reference_cases": false,
-        "failure_domain_evidence": false,
-        "reference_validated_checks": false,
+        "cross_reference_cases": true,
+        "failure_domain_evidence": true,
+        "reference_validated_checks": true,
         "runtime_diagnostics": true,
         "runtime_provenance": true
       },
       "reference_validated_checks": {
         "analytical_literature_or_independent_reference": true,
         "completed_evidence_present": true,
-        "failure_domain_evidence": false,
+        "failure_domain_evidence": true,
         "numerical_tolerance_and_repository_path": true,
         "required_card_fields_present": true
       }
@@ -1545,8 +1561,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -1785,8 +1801,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -1833,9 +1849,9 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "reference_validated",
-      "effective_evidence_maturity": "lite",
+      "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
           "command_or_path": "tests/reference/test_optional_reference_backends.py",
@@ -1868,6 +1884,22 @@
           ],
           "status": "implemented",
           "tolerance": "rtol=1e-12"
+        },
+        {
+          "command_or_path": "tests/test_physchem_properties.py",
+          "description": "Checks that every curated DIPPR101 and Poling correlation fails closed outside its declared temperature bounds when the strict validity policy is selected.",
+          "evidence_id": "curated-property-temperature-domain-guards",
+          "evidence_type": "failure_domain_test",
+          "existing_repository_paths": [
+            "tests/test_physchem_properties.py"
+          ],
+          "path_valid": true,
+          "reference_backend": "chemicals",
+          "repository_paths": [
+            "tests/test_physchem_properties.py"
+          ],
+          "status": "implemented",
+          "tolerance": "exact outside-validity-domain rejection"
         }
       ],
       "model_id": "curated_dippr101_poling_property_subset",
@@ -1876,15 +1908,15 @@
         "conservation_evidence": false,
         "coupling_evidence": true,
         "cross_reference_cases": true,
-        "failure_domain_evidence": false,
-        "reference_validated_checks": false,
+        "failure_domain_evidence": true,
+        "reference_validated_checks": true,
         "runtime_diagnostics": false,
         "runtime_provenance": false
       },
       "reference_validated_checks": {
         "analytical_literature_or_independent_reference": true,
         "completed_evidence_present": true,
-        "failure_domain_evidence": false,
+        "failure_domain_evidence": true,
         "numerical_tolerance_and_repository_path": true,
         "required_card_fields_present": true
       }
@@ -1897,8 +1929,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -1961,8 +1993,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "lite",
       "effective_evidence_maturity": "lite",
       "evidence": [
         {
@@ -2287,8 +2319,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "lite",
       "effective_evidence_maturity": "lite",
       "evidence": [
         {
@@ -2351,8 +2383,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -2415,8 +2447,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -2479,8 +2511,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -2543,8 +2575,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -2591,8 +2623,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -2991,13 +3023,13 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "reference_validated",
-      "effective_evidence_maturity": "lite",
+      "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
           "command_or_path": "tests/test_phase_equilibrium.py; tests/test_separations.py",
-          "description": "Tests verify ideal single-liquid classification, partition-driven two-liquid classification, initialization composition normalization, material balance, metadata propagation, and extraction-task runtime integration.",
+          "description": "Tests verify the analytical uniform-partition identity for ideal single-liquid classification, partition-driven two-liquid classification, initialization composition normalization, material balance, metadata propagation, and extraction-task runtime integration.",
           "evidence_id": "lle-tpd-diagnostic-phase-split",
           "evidence_type": "unit_test",
           "existing_repository_paths": [
@@ -3021,12 +3053,12 @@
         "coupling_evidence": true,
         "cross_reference_cases": false,
         "failure_domain_evidence": true,
-        "reference_validated_checks": false,
+        "reference_validated_checks": true,
         "runtime_diagnostics": false,
         "runtime_provenance": false
       },
       "reference_validated_checks": {
-        "analytical_literature_or_independent_reference": false,
+        "analytical_literature_or_independent_reference": true,
         "completed_evidence_present": true,
         "failure_domain_evidence": true,
         "numerical_tolerance_and_repository_path": true,
@@ -3329,8 +3361,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -3505,8 +3537,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -3569,8 +3601,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -3873,8 +3905,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -3937,8 +3969,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -4017,8 +4049,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
@@ -4081,8 +4113,8 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
-      "declared_maturity": "professional_candidate",
+      "claim_verified": true,
+      "declared_maturity": "lite",
       "effective_evidence_maturity": "lite",
       "evidence": [
         {
@@ -4371,8 +4403,8 @@
     "task_count_exact": true,
     "task_routes_exact": true
   },
-  "error_count": 33,
-  "finding_count": 33,
+  "error_count": 11,
+  "finding_count": 11,
   "findings": [
     {
       "check_id": "high_provider_missing_model_card",
@@ -4448,183 +4480,7 @@
       "declared": "professional_candidate",
       "effective": "reference_validated",
       "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "activity_corrected_extraction_train_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "lite",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "canonical_dimension_checker_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "reference_validated",
-      "effective": "lite",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "chemworld_arrhenius_unit_contract_vnext",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "component_identity_registry_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
       "model_id": "cooling_crystallization_population_balance_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "cubic_eos_volume_translation_root_governance",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "reference_validated",
-      "effective": "lite",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "curated_dippr101_poling_property_subset",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "density_molar_volume_package",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "lite",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "deterministic_data_conflict_policy_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "lite",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "electrochemical_scenario_card_generation_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "electrochemical_setpoint_recipe_controller_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "empirical_chromatography_method_sensitivity_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "equipment_phase_change_heat_transfer_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "fenske_underwood_gilliland_sizing",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "first_order_proton_nmr_assignments_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "reference_validated",
-      "effective": "lite",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "lle_tpd_style_phase_stability",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "phase_heat_capacity_enthalpy_package",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "pressure_temperature_runaway_safety_envelope_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "pure_fluid_saturation_solver",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "small_formula_isotope_fragment_ms_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "tp_gamma_phi_flash_energy_balance_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "transport_property_package",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "lite",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "typed_equipment_card_constraints_v1",
       "severity": "error"
     }
   ],
@@ -4678,9 +4534,9 @@
     "chemworld_arrhenius_unit_contract_vnext": {
       "card_maturity_matches": true,
       "card_present": true,
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "reference_validated",
-      "effective_maturity": "lite",
+      "effective_maturity": "reference_validated",
       "executed_in_runtime_evidence": false,
       "manifest_contract_matches": true,
       "manifest_present": true,
@@ -5137,7 +4993,7 @@
     "sha256": "65ecddef66ce91b21258294c627f9bafa70543d37f208b2be6fd63e4cbeb6baa"
   },
   "release_allowed": false,
-  "report_hash": "961361a2c1e26b8887f59063a4d32a1895d222981fa33c640d6511c5d0135961",
+  "report_hash": "ebffad352994612ecb38716059b347a8db49c57a402de9fdfb3511965e2c6386",
   "runtime_execution_evidence": {
     "executed_model_ids": [
       "aqueous_acid_base_ph_observation",
@@ -5163,7 +5019,7 @@
   },
   "runtime_structural_findings": [],
   "schema_version": "chemworld-foundation-maturity-truth-report-0.1",
-  "source_commit": "b5ad5c5f762e6412e56eae9a6280a0a95cfc018a",
+  "source_commit": "2a0e130afd7bc842ba3526f3341669bc7c4120b3",
   "source_tree_dirty": true,
   "status": "maturity_claims_blocked",
   "task_assessments": {
@@ -5224,7 +5080,7 @@
         "randles_double_layer_transient_v1"
       ],
       "runtime_profile_hash": "88aac1045562b0b14d687f059a8a725a807dac3b3ca48882e62dfca616871b59",
-      "task_contract_hash": "c60aee3152ca873cfa95a4c39bf368f421c2db842851030a7934be12e79c6fc1"
+      "task_contract_hash": "9f86e8550be9f8de98f4152104ef981c075697bf8cf378f040f5af4593235d09"
     },
     "equilibrium-characterization": {
       "declared_but_unreachable": [],

@@ -185,5 +185,5 @@ def test_equipment_heat_transfer_model_card_is_auditable() -> None:
         item.model_id: item for item in transport_model_cards()
     }["equipment_phase_change_heat_transfer_v1"]
 
-    assert card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(card) == []

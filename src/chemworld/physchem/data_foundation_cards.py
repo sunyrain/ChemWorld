@@ -11,7 +11,7 @@ def data_foundation_model_cards() -> tuple[ModelCard, ...]:
             model_id="component_identity_registry_v1",
             module_id="data_foundation",
             title="Versioned Component Identity Registry",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Immutable component registry with canonical identifiers, aliases, "
                 "checksum-validated CAS numbers, InChI/InChIKey identities, formula, "
@@ -66,7 +66,7 @@ def data_foundation_model_cards() -> tuple[ModelCard, ...]:
             model_id="canonical_dimension_checker_v1",
             module_id="data_foundation",
             title="Canonical Unit-Dimension Checker",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.LITE,
             summary=(
                 "Semantic dimension catalog and exponent algebra spanning base process "
                 "quantities, thermodynamic/transport properties, electrochemistry, "
@@ -121,7 +121,7 @@ def data_foundation_model_cards() -> tuple[ModelCard, ...]:
             model_id="deterministic_data_conflict_policy_v1",
             module_id="data_foundation",
             title="Deterministic Data Conflict And Provenance Policy",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.LITE,
             summary=(
                 "Source-ranked field resolution with absolute/relative tolerance, "
                 "uncertainty requirements, warning versus hard-fail findings, "

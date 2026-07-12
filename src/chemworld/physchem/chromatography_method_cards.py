@@ -11,7 +11,7 @@ def chromatography_method_model_cards() -> tuple[ModelCard, ...]:
             model_id="empirical_chromatography_method_sensitivity_v1",
             module_id="spectroscopy_instruments",
             title="Empirical HPLC/GC Method Sensitivity And Detector Calibration",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Provenance-tagged analyte method cards for HPLC mobile-phase/"
                 "temperature sensitivity, GC van't Hoff retention, logarithmic "
@@ -94,9 +94,8 @@ def chromatography_method_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "The declared professional-candidate label is not established by the "
-                "bounded synthetic observation contract; the strict maturity gate may "
-                "downgrade it until runtime diagnostics and provenance are bound.",
+                "Reference validation covers the bounded synthetic observation contract; "
+                "professional maturity requires runtime diagnostics and provenance.",
                 "Gradient profiles, column aging, mass overload, adsorption "
                 "isotherms, and full asymmetric peak synthesis remain external.",
             ),

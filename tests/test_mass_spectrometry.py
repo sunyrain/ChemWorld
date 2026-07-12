@@ -125,10 +125,10 @@ def test_fragment_heavier_than_parent_is_rejected() -> None:
         simulate_mass_spectrum(analyte, analyte_amount_mol=1.0)
 
 
-def test_mass_spectrometry_model_card_is_professional_candidate() -> None:
+def test_mass_spectrometry_model_card_is_reference_validated() -> None:
     card = {
         item.model_id: item for item in spectroscopy_model_cards()
     }["small_formula_isotope_fragment_ms_v1"]
 
-    assert card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(card) == []

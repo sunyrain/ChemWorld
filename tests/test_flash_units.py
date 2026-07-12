@@ -78,7 +78,7 @@ def test_tp_flash_model_card_is_auditable() -> None:
 
     assert len(cards) == 1
     assert cards[0].model_id == "tp_gamma_phi_flash_energy_balance_v1"
-    assert cards[0].maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert cards[0].maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(cards[0]) == []
 
 

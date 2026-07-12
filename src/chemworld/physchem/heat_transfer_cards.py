@@ -11,7 +11,7 @@ def equipment_heat_transfer_model_cards() -> tuple[ModelCard, ...]:
             model_id="equipment_phase_change_heat_transfer_v1",
             module_id="transport",
             title="Phase-Aware Jacket, Coil, And Shell Heat Transfer",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Lumped equipment heat transfer with explicit jacket coverage "
                 "or coil/shell geometry factors, asymptotic fouling resistance, "
@@ -93,7 +93,7 @@ def equipment_heat_transfer_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "Professional-candidate denotes an auditable equipment ledger, "
+                "Reference validation denotes an auditable equipment ledger, "
                 "not a detailed boiling/condensation correlation package.",
                 "Film coefficients, critical heat flux, flow regime maps, "
                 "maldistribution, and distributed wall dynamics are external.",

@@ -149,9 +149,9 @@ def test_envelope_validation_rejects_misordered_limits() -> None:
         )
 
 
-def test_safety_envelope_model_card_is_professional_candidate() -> None:
+def test_safety_envelope_model_card_is_reference_validated() -> None:
     card = safety_envelope_model_cards()[0]
 
     assert card.model_id == "pressure_temperature_runaway_safety_envelope_v1"
-    assert card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(card) == []

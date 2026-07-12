@@ -186,10 +186,10 @@ def test_multiplicity_contract_rejects_missing_coupling() -> None:
         )
 
 
-def test_proton_nmr_model_card_is_professional_candidate() -> None:
+def test_proton_nmr_model_card_is_reference_validated() -> None:
     card = {
         item.model_id: item for item in spectroscopy_model_cards()
     }["first_order_proton_nmr_assignments_v1"]
 
-    assert card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(card) == []

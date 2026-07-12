@@ -11,7 +11,7 @@ def safety_envelope_model_cards() -> tuple[ModelCard, ...]:
             model_id="pressure_temperature_runaway_safety_envelope_v1",
             module_id="safety_constraints",
             title="Pressure, Temperature, Relief, And Runaway Safety Envelope",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Auditable process safety assessment combining current and "
                 "projected pressure/temperature limits, MTSR, Arrhenius heat "
@@ -94,7 +94,7 @@ def safety_envelope_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "Professional-candidate means the envelope is structured and "
+                "Reference validation means the envelope is structured and "
                 "auditable, not that it substitutes for a process hazard review.",
                 "Two-phase relief hydrodynamics, vent-network backpressure, "
                 "decomposition kinetics, and validated plant safeguards are absent.",

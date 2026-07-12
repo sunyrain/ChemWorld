@@ -11,7 +11,7 @@ def proton_nmr_model_cards() -> tuple[ModelCard, ...]:
             model_id="first_order_proton_nmr_assignments_v1",
             module_id="spectroscopy_instruments",
             title="First-Order Proton NMR Assignments And Integrals",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Provenance-tagged proton shift anchors with first-order "
                 "multiplicity/J splitting, amount-weighted integration, solvent "
@@ -87,7 +87,7 @@ def proton_nmr_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "Professional-candidate describes a structured NMR evidence "
+                "Reference validation describes a structured NMR evidence "
                 "layer, not quantum-chemical shift prediction or spin simulation.",
                 "NOE, relaxation, phase/baseline correction, shimming, dynamic "
                 "exchange, decoupling, and 2D correlations remain outside scope.",

@@ -150,10 +150,10 @@ def test_controller_contract_rejects_duplicate_segment_ids() -> None:
         )
 
 
-def test_electrochemical_controller_model_card_is_professional_candidate() -> None:
+def test_electrochemical_controller_model_card_is_reference_validated() -> None:
     card = {
         item.model_id: item for item in electrochemistry_model_cards()
     }["electrochemical_setpoint_recipe_controller_v1"]
 
-    assert card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert card.maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(card) == []

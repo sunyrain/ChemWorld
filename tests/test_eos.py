@@ -360,7 +360,7 @@ def test_eos_model_card_documents_residual_slice() -> None:
         for card in eos_model_cards()
         if card.model_id == "cubic_eos_volume_translation_root_governance"
     )
-    assert translation_card.maturity.value == "professional_candidate"
+    assert translation_card.maturity.value == "reference_validated"
     assert validate_model_card(translation_card) == []
     assert any("Z>B-C" in equation for equation in translation_card.equations)
 

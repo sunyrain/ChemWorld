@@ -1084,6 +1084,27 @@ def test_curated_property_package_accepts_aliases() -> None:
         curated_property_package("unobtainium")
 
 
+def test_curated_property_packages_fail_closed_outside_temperature_domains() -> None:
+    for package in list_curated_property_packages():
+        for property_id in ("vapor_pressure", "ideal_gas_heat_capacity"):
+            correlation = package.by_property(property_id)[0]
+            minimum_temperature_K, maximum_temperature_K = correlation.validity_ranges[
+                "temperature"
+            ]
+            with pytest.raises(ValueError, match="outside validity range"):
+                package.evaluate(
+                    property_id,
+                    temperature_K=minimum_temperature_K - 1.0,
+                    validity_policy="raise",
+                )
+            with pytest.raises(ValueError, match="outside validity range"):
+                package.evaluate(
+                    property_id,
+                    temperature_K=maximum_temperature_K + 1.0,
+                    validity_policy="raise",
+                )
+
+
 def test_curated_property_model_card_is_auditable() -> None:
     cards = curated_property_model_cards()
     assert len(cards) == 1
@@ -1115,7 +1136,7 @@ def test_property_correlation_model_card_is_auditable() -> None:
         "dippr101-vapor-pressure-derivative-test",
     }
     saturation_card = card_map["pure_fluid_saturation_solver"]
-    assert saturation_card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert saturation_card.maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(saturation_card) == []
     assert any("ln(P_sat" in equation for equation in saturation_card.equations)
     assert {
@@ -1125,7 +1146,7 @@ def test_property_correlation_model_card_is_auditable() -> None:
         "pure-saturation-critical-guard-test",
     }
     enthalpy_card = card_map["phase_heat_capacity_enthalpy_package"]
-    assert enthalpy_card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert enthalpy_card.maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(enthalpy_card) == []
     assert any("Delta H" in equation for equation in enthalpy_card.equations)
     assert {
@@ -1135,7 +1156,7 @@ def test_property_correlation_model_card_is_auditable() -> None:
         "phase-transition-ledger-test",
     }
     volume_card = card_map["density_molar_volume_package"]
-    assert volume_card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert volume_card.maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(volume_card) == []
     assert any("Rackett" in equation for equation in volume_card.equations)
     assert {
@@ -1145,7 +1166,7 @@ def test_property_correlation_model_card_is_auditable() -> None:
         "virial-gas-volume-root-test",
     }
     transport_card = card_map["transport_property_package"]
-    assert transport_card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert transport_card.maturity is MaturityLevel.REFERENCE_VALIDATED
     assert validate_model_card(transport_card) == []
     assert any("Wilke" in equation for equation in transport_card.equations)
     assert {

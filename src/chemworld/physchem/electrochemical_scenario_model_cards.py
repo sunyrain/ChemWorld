@@ -11,7 +11,7 @@ def electrochemical_scenario_model_cards() -> tuple[ModelCard, ...]:
             model_id="electrochemical_scenario_card_generation_v1",
             module_id="electrochemistry",
             title="Electrochemical Scenario Cards And Hidden-Parameter Generation",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.LITE,
             summary=(
                 "Versioned public redox/equipment/window cards with private "
                 "parameter ranges, split-aware deterministic sampling, side-"
@@ -87,7 +87,7 @@ def electrochemical_scenario_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "Professional-candidate applies to the scenario-generation and "
+                "Lite maturity applies to the scenario-generation and "
                 "visibility contract, not universal electrochemical chemistry.",
                 "Multi-reaction mechanisms, correlated posteriors, electrode "
                 "morphology, electrolyte speciation, and validated parameter "

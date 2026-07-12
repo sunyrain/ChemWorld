@@ -109,10 +109,10 @@ def test_side_reaction_thresholds_distinguish_selective_risk_and_window_breach()
     assert "electrolyte_window_exceeded" in outside.flags
 
 
-def test_electrochemical_scenario_model_card_is_professional_candidate() -> None:
+def test_electrochemical_scenario_model_card_is_lite_until_runtime_bound() -> None:
     card = {
         item.model_id: item for item in electrochemistry_model_cards()
     }["electrochemical_scenario_card_generation_v1"]
 
-    assert card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert card.maturity is MaturityLevel.LITE
     assert validate_model_card(card) == []

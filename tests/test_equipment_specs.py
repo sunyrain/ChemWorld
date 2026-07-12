@@ -170,9 +170,9 @@ def test_constraint_evaluator_rejects_missing_operating_fields() -> None:
         evaluate_equipment_constraints(card, {"volumetric_flow_m3_s": 0.005})
 
 
-def test_equipment_card_model_card_is_professional_candidate() -> None:
+def test_equipment_card_model_card_is_lite_until_runtime_bound() -> None:
     card = equipment_spec_model_cards()[0]
 
     assert card.model_id == "typed_equipment_card_constraints_v1"
-    assert card.maturity is MaturityLevel.PROFESSIONAL_CANDIDATE
+    assert card.maturity is MaturityLevel.LITE
     assert validate_model_card(card) == []

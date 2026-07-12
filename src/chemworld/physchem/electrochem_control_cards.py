@@ -11,7 +11,7 @@ def electrochem_control_model_cards() -> tuple[ModelCard, ...]:
             model_id="electrochemical_setpoint_recipe_controller_v1",
             module_id="electrochemistry",
             title="Replayable Potentiostatic And Galvanostatic Setpoint Controller",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Versioned potentiostatic/galvanostatic ramp and hold recipes "
                 "with range/slew clipping, sampled traces, operation logs, and "
@@ -82,7 +82,7 @@ def electrochem_control_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "Professional-candidate applies to the reproducible control "
+                "Reference validation applies to the reproducible control "
                 "contract, not closed-loop hardware-control performance.",
                 "Double-layer/plant response, PID tuning, noisy feedback, and "
                 "instrument latency are separate concerns.",

@@ -11,7 +11,7 @@ def equipment_spec_model_cards() -> tuple[ModelCard, ...]:
             model_id="typed_equipment_card_constraints_v1",
             module_id="equipment",
             title="Typed Equipment Cards And Operating Constraints",
-            maturity=MaturityLevel.PROFESSIONAL_CANDIDATE,
+            maturity=MaturityLevel.LITE,
             summary=(
                 "Versioned JSON equipment cards for vessels, pumps, mixers, "
                 "condensers, heat exchangers, and columns with shared, "
@@ -90,7 +90,7 @@ def equipment_spec_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "Professional-candidate describes the equipment-card contract, "
+                "Lite maturity describes the equipment-card schema only, "
                 "not the fidelity of every downstream equipment calculation.",
                 "Mechanical design codes, material selection, fatigue, controls, "
                 "and vendor guarantees remain outside this schema.",
