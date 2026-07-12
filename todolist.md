@@ -53,7 +53,7 @@
   - [x] 验证重复测量、终止后操作、重复 final assay、零量/负量和预算边界 fail closed。
   - [x] 验证真实状态只存在于 typed state，不由 metadata、缓存 observation 或 UI 状态覆盖。
   - [x] 对发现的缺陷建立独立 `foundation-state-fix--zero-effect-actions` slice。
-  - 结果：28/28 正向、重复、同 seed 回放、失败原子性、守恒和 typed-state 控制通过；负量全部拒绝，发现 15 个零效果字段仍接受 0，交由上述 P0 fix slice 收口。
+  - 结果：28/28 正向、重复、同 seed 回放、失败原子性、守恒和 typed-state 控制通过；负量全部拒绝，15 个零效果字段已由 `foundation-state-fix--zero-effect-actions` 统一收口并与条件 action schema 对齐。
   - 验收：28/28 operation 均有状态差分、守恒、事务和重复调用证据。
 
 - [ ] **`foundation-rl-contract-remediation` — 49 维动作与 quick-close 漏洞修复**
@@ -197,6 +197,7 @@
 
 ## 已完成且继续保留
 
+- [x] 15 个零时长、零洗液、零转移、零晶种和零电流 no-op 入口已 fail closed；正的最小有效量由 operation-specific schema 与 validator 共用。
 - [x] Agent 公共字段 schema 已修复可选 operation 键与 choice 容器的类型漂移；全量 `mypy src` 恢复通过。
 - [x] World Law v0.4、8 个正式 provider 与 domain service registry。
 - [x] 旧正式 proxy/fallback 路由清理，当前 15 tasks 均 `proxy_allowed=false`。

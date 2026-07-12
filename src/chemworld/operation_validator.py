@@ -345,11 +345,15 @@ class OperationValidator:
             }
             and "duration_s" in payload
         ):
+            low, high = OPERATION_FIELD_BOUNDS.get(
+                (operation_type, "duration_s"),
+                (0.0, 14_400.0),
+            )
             checks["payload_bounds:duration_s"] = self._in_range(
                 payload,
                 "duration_s",
-                0.0,
-                14_400.0,
+                low,
+                high,
                 inclusive_low=True,
             )
         if operation_type in {"heat", "wait", "mix"} and "stirring_speed_rpm" in payload:
@@ -366,27 +370,33 @@ class OperationValidator:
                 sample_volume is not None and 0.0 < sample_volume <= state.volume_L
             )
         if operation_type == "wash" and "wash_volume_L" in payload:
+            low, high = OPERATION_FIELD_BOUNDS[("wash", "wash_volume_L")]
             checks["payload_bounds:wash_volume_L"] = self._in_range(
                 payload,
                 "wash_volume_L",
-                0.0,
-                0.040,
+                low,
+                high,
                 inclusive_low=True,
             )
         if operation_type == "transfer" and "transfer_fraction" in payload:
+            low, high = OPERATION_FIELD_BOUNDS[("transfer", "transfer_fraction")]
             checks["payload_bounds:transfer_fraction"] = self._in_range(
                 payload,
                 "transfer_fraction",
-                0.0,
-                1.0,
+                low,
+                high,
                 inclusive_low=True,
             )
         if operation_type == "collect_fraction" and "transfer_fraction" in payload:
+            low, high = OPERATION_FIELD_BOUNDS[(
+                "collect_fraction",
+                "transfer_fraction",
+            )]
             checks["payload_bounds:transfer_fraction"] = self._in_range(
                 payload,
                 "transfer_fraction",
-                0.0,
-                1.0,
+                low,
+                high,
                 inclusive_low=True,
             )
         if operation_type == "seed_crystals" and "seed_mass_g" in payload:
@@ -433,11 +443,12 @@ class OperationValidator:
                     inclusive_low=True,
                 )
             if "current_mA" in payload:
+                low, high = OPERATION_FIELD_BOUNDS[("set_potential", "current_mA")]
                 checks["payload_bounds:current_mA"] = self._in_range(
                     payload,
                     "current_mA",
-                    0.0,
-                    500.0,
+                    low,
+                    high,
                     inclusive_low=True,
                 )
             if "electrolyte_conductivity_S_m" in payload:

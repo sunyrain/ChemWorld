@@ -61,16 +61,12 @@ def test_terminal_and_final_assay_boundaries_fail_closed(
     assert all(terminal["operations"].values())
 
 
-def test_numeric_probe_rejects_negatives_and_reports_zero_effect_gaps(
+def test_numeric_probe_rejects_negative_and_zero_effect_payloads(
     report: dict[str, object],
 ) -> None:
     assert report["negative_value_acceptances"] == []
-    accepted_zero = report["zero_effect_acceptances"]
-    defects = {item["defect_id"]: item for item in report["defect_inventory"]}
-    if accepted_zero:
-        assert defects["state-zero-effect-actions-accepted"]["evidence"] == accepted_zero
-    else:
-        assert "state-zero-effect-actions-accepted" not in defects
+    assert report["zero_effect_acceptances"] == []
+    assert report["defect_inventory"] == []
 
 
 def test_report_is_complete_and_tamper_evident(

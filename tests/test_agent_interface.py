@@ -75,10 +75,12 @@ def test_core_action_contract_matches_effective_runtime_semantics() -> None:
             for operation in (
                 "add_phase",
                 "add_extractant",
+                "heat",
                 "separate_phase",
                 "seed_crystals",
                 "cool_crystallize",
                 "evaporate",
+                "transfer",
             )
         }
 
@@ -98,8 +100,16 @@ def test_core_action_contract_matches_effective_runtime_semantics() -> None:
             "organic",
         ]
         assert field("seed_crystals", "seed_mass_g")["bounds"] == {
-            "low": 0.0,
+            "low": 1.0e-6,
             "high": 0.05,
+        }
+        assert field("heat", "duration_s")["bounds"] == {
+            "low": 1.0,
+            "high": 14_400.0,
+        }
+        assert field("transfer", "transfer_fraction")["bounds"] == {
+            "low": 1.0e-4,
+            "high": 1.0,
         }
         assert field("cool_crystallize", "target_temperature_K")["bounds"] == {
             "low": 250.0,

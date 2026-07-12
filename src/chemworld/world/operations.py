@@ -75,13 +75,27 @@ INSTRUMENTS = ("hplc", "gc", "uvvis", "ph_meter", "final_assay")
 # Services may retain defensive clipping, but validated actions must never be
 # silently reinterpreted by those guards.
 OPERATION_FIELD_BOUNDS: dict[tuple[str, str], tuple[float, float]] = {
+    ("heat", "duration_s"): (1.0, 14_400.0),
+    ("wait", "duration_s"): (1.0, 14_400.0),
     ("add_phase", "volume_L"): (0.0, 0.060),
     ("add_extractant", "volume_L"): (0.0, 0.060),
-    ("seed_crystals", "seed_mass_g"): (0.0, 0.050),
+    ("mix", "duration_s"): (1.0, 14_400.0),
+    ("settle", "duration_s"): (1.0, 14_400.0),
+    ("wash", "wash_volume_L"): (1.0e-6, 0.040),
+    ("concentrate", "duration_s"): (1.0, 14_400.0),
+    ("transfer", "transfer_fraction"): (1.0e-4, 1.0),
+    ("seed_crystals", "seed_mass_g"): (1.0e-6, 0.050),
     ("cool_crystallize", "target_temperature_K"): (250.0, 330.0),
+    ("cool_crystallize", "duration_s"): (1.0, 14_400.0),
     ("evaporate", "target_temperature_K"): (298.15, 390.0),
+    ("evaporate", "duration_s"): (1.0, 14_400.0),
     ("distill", "target_temperature_K"): (298.15, 430.0),
+    ("distill", "duration_s"): (1.0, 14_400.0),
+    ("collect_fraction", "transfer_fraction"): (1.0e-4, 1.0),
     ("run_flow", "target_temperature_K"): (298.15, 430.0),
+    ("run_flow", "duration_s"): (1.0, 14_400.0),
+    ("set_potential", "current_mA"): (1.0e-3, 500.0),
+    ("electrolyze", "duration_s"): (1.0, 14_400.0),
 }
 OPERATION_FIELD_CHOICES: dict[tuple[str, str], tuple[Any, ...]] = {
     ("add_phase", "phase"): ("aqueous", "organic"),
