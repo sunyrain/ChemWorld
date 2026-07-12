@@ -1,277 +1,417 @@
-# ChemWorld 主路线图
+# ChemWorld 多团队执行清单
 
 最后更新：2026-07-12
 
-这是仓库内唯一的执行级路线图。它服务于维护者与协作者，不加入公开站点导航。面向使用者的
-状态、运行方法和限制以 `docs/benchmark_release.md` 与 `docs/limitations.md` 为准。
+## 0. 所有成员开始工作前
 
-## 维护与认领规则
+- [ ] 阅读 `claims/README.md`、本文件和目标模块附近的测试。
+- [ ] 执行 `git pull --ff-only origin main`。
+- [ ] 执行 `.\.venv\Scripts\python.exe scripts\manage_claims.py list`，确认任务尚未被认领。
+- [ ] 只认领下文一个 Task ID；不得把协议、实现、正式实验和论文写作塞进同一 claim。
+- [ ] 在 claim 中列出精确 `owned_paths`；不得使用仓库根目录、`src`、`tests` 等宽泛路径。
+- [ ] 将 active claim 作为独立提交先推送到 `main`，再开始修改。
+- [ ] 依赖未完成时可以认领并开展不依赖最终输入的设计/单元实现，但不得冻结协议、启动正式实验或关闭任务。
+- [ ] 发现需要修改未认领文件时，先更新并推送 claim；不得先改后补。
+- [ ] 不提交 API key、模型私有思维链、真实设备凭证、未脱敏路径或私有 Bench 数据。
 
-- 所有代码、实验、文档和发布任务都必须先按 `claims/README.md` 创建并推送 active claim。
-- 一个 claim 只对应下文一个任务包；环境合同、方法实现、实验结果和论文写作不得混在同一 claim。
-- `[x]` 仅表示验收证据已生成且门禁通过；代码存在、任务可运行或报告生成均不等于科学结论成立。
-- 修改 task、scenario、world law、observation、scoring 或 replay 语义时，必须升级合同版本并重跑证据。
-- `publication_protocol_v0.1` 及其结果保持不可变。任何针对任务的整改进入下一协议版本，禁止事后
-  调整旧协议以改善结果。
-- 发布门禁在本地执行，不依赖 CI 或 GitHub Actions。
+## 1. 每项任务的统一完成要求
 
-## 当前结论
+- [ ] 实现只修改 claim 的 `owned_paths`，且与其他 active claim 不重叠。
+- [ ] 新合同具有 schema/version、单位、边界、缺失值、异常值和 fail-closed 语义。
+- [ ] 新随机过程声明 seed；相同合同、seed 和 action 必须得到可回放结果。
+- [ ] 新评价同时区分 objective、constraint、resource、validity 和 training shaping。
+- [ ] 新实验保留失败、超时、非法动作和零结果，不允许静默过滤。
+- [ ] 报告包含协议 hash、代码 commit、dirty-tree 状态、轨迹摘要、资源账本和主张边界。
+- [ ] 单元测试覆盖正常路径、边界、非法输入、回放篡改和至少一个反作弊案例。
+- [ ] 运行任务专属测试和 `python -m ruff check`；共享运行时或发布任务还必须运行完整 `pytest`、`mypy` 和严格文档构建。
+- [ ] 生成机器可读验收报告；“代码存在”或“脚本跑完”不等于科学门禁通过。
+- [ ] 更新使用者可见行为对应的发布文档；内部路线、claim 和诊断不得进入公开站点。
+- [ ] 执行 `.\.venv\Scripts\python.exe scripts\manage_claims.py check`。
+- [ ] 使用 `manage_claims.py complete` 关闭认领，提交 completed claim、实现、测试和证据并推送 `main`。
 
-ChemWorld 已经具备扎实的 benchmark 工程底座和可审计的正式实验管线，但六任务整体还不能称为
-“科学验证完成”或“发表就绪”。最准确的状态是：
+## 2. 核心主张与硬边界
 
-- backend：`candidate_backend_only`；
-- benchmark：`blocked`；
-- 可靠的初步能力证据：4/6 个 serious task；
-- 可发布论文主张：尚未解锁。
+- [ ] Core 只主张 V0 软件有效性、V1 结构有效性和 V2 因果有效性。
+- [ ] 独立 backend/Dataset Bridge 只在证据通过后主张 V3 行为有效性。
+- [ ] 实体 Bridge 只在预注册迁移实验通过后主张 V4 迁移有效性。
+- [ ] 不主张 V5 命名化学体系的通用数值预测有效性。
+- [ ] 不使用“通用数字孪生”“真实产率预测器”或“零样本 sim-to-real”表述。
+- [ ] H1–H4 均作为待检验假设，不提前写成结论。
+- [ ] 旧 `publication_protocol_v0.1` 及其结果保持不可变；整改必须进入新协议版本。
+- [ ] 默认正式任务为 provisional core-4：partition、crystallization、distillation、flow。
+- [ ] electrochemistry 和 equilibrium 在通过独立 G1/G2 前保持 exploratory。
 
-当前瓶颈不是继续堆更多 agent 名称，而是让任务主指标、风险信号、独立分布轴和外部复现共同
-闭环。工程 ready 与科学 validated 必须继续分开报告。
+## 3. P0：冻结科学问题、任务集和关键合同
 
-下一阶段的北极星问题冻结为：
+- [ ] **`benchmark-vnext-scientific-positioning` — 冻结科学定位**
+  - 建议团队：核心科学/协议组。
+  - 建议独占路径：`workstreams/benchmark_v1/protocols/scientific-positioning-vnext.md`、`configs/benchmark/scientific_positioning_vnext.json`、`tests/test_scientific_positioning.py`。
+  - 依赖：无。
+  - [ ] 将 H1 固定世界高估、H2 知识与实验智能分离、H3 显式适应有益、H4 虚拟训练迁移写成可反驳假设。
+  - [ ] 为每个假设指定 primary endpoint、SESOI、失败条件和允许的主张。
+  - [ ] 固定 V0–V5、Core/Benchmark/Bridge 和禁用表述。
+  - [ ] 明确 H1–H3 属于核心 benchmark，H4 属于 Bridge。
+  - [ ] 机器测试拒绝缺少终点、SESOI 或 claim boundary 的协议。
+  - 验收：定位协议可由后续配置引用；不得包含预设实验结论。
 
-> 在固定世界中取得高分的实验智能体，是否真的学会了可迁移的规律，还是只利用了当前后端的
-> 稳定相关性；显式建模和跨机制训练能否降低它在未知世界中的适应成本？
+- [ ] **`benchmark-vnext-core4-sesoi-freeze` — 冻结 core-4 任务有效性**
+  - 建议团队：任务有效性组。
+  - 建议独占路径：`configs/benchmark/core4_task_validity_vnext.json`、`scripts/audit_core4_task_validity.py`、`tests/test_core4_task_validity.py`、`workstreams/benchmark_v1/reports/core4-task-validity-freeze.json`。
+  - 依赖：`benchmark-vnext-scientific-positioning`。
+  - [ ] 分任务冻结 primary metric、单位、方向、absolute SESOI、风险阈值和成本阈值。
+  - [ ] 给出最低合理策略、legal-random、强策略的预期可识别排序。
+  - [ ] 冻结 confirmatory seeds，不使用已有诊断结果调阈值。
+  - [ ] 明确 flow 的 core-candidate 升级/降级规则。
+  - [ ] 保持 electrochemistry/equilibrium exploratory，不为六任务叙事降低阈值。
+  - 验收：core-4 每项均有独立有效性卡；阈值来源和冻结时间可审计。
 
-ChemWorld Core 的目标是 V0 软件有效性、V1 结构有效性和 V2 因果有效性；独立 backend 与
-Dataset Bridge 用于检验 V3 行为有效性；窄域实体 Bridge Pack 用于检验 V4 迁移有效性。核心项目
-不主张 V5 命名体系的数值预测有效性，也不使用“通用数字孪生”或“零样本 sim-to-real”表述。
+- [ ] **`benchmark-vnext-rl-hybrid-action-contract` — 混合动作合同**
+  - 建议团队：RL 动作组。
+  - 建议独占路径：`src/chemworld/rl/hybrid_actions.py`、`tests/test_rl_hybrid_actions.py`、`configs/benchmark/rl_hybrid_action_vnext.json`、`workstreams/benchmark_v1/reports/rl-hybrid-action-controls.json`。
+  - 依赖：现有 typed public action contract。
+  - [ ] 定义 categorical operation head。
+  - [ ] 为每个 operation 定义 conditional parameter heads、类型、单位和边界。
+  - [ ] 无关参数不得执行、不得进入损失、不得影响动作 digest。
+  - [ ] 公共 affordance mask 在训练、评估和回放中语义一致。
+  - [ ] 覆盖 operation/parameter 编解码 round-trip、非法 mask、NaN/Inf 和稳定序列化。
+  - [ ] 明确 PPO、混合动作算法和 process-control SAC 分别使用的动作子合同。
+  - 验收：不再把 28 个操作和 21 个全局参数当作一个 49 维连续控制量。
 
-## Nature 编辑意见复核与吸收决议
+- [ ] **`benchmark-vnext-rl-reward-contract` — 训练奖励与防捷径合同**
+  - 建议团队：RL 奖励/评测组。
+  - 建议独占路径：`src/chemworld/rl/rewards.py`、`tests/test_rl_rewards.py`、`configs/benchmark/rl_reward_vnext.json`、`workstreams/benchmark_v1/reports/rl-reward-controls.json`。
+  - 依赖：`benchmark-vnext-core4-sesoi-freeze`。
+  - [ ] 删除或重构可支配策略的“完成实验 +1”奖励。
+  - [ ] training shaping 与冻结评测 endpoint 完全分离。
+  - [ ] 固定可比的完整实验、operation、measurement 和资源预算。
+  - [ ] 添加 quick-close、重复测量、非法动作刷分、无核心操作完成和 reward scaling sensitivity 探针。
+  - [ ] 证明 shaping 不改变冻结评测器，不通过 shaping return 选择最终主张。
+  - [ ] flow 策略未执行 `run_flow` 时不得通过行为有效性门禁。
+  - 验收：legal-random、捷径策略和任务合理策略形成可解释的训练/评测差异。
 
-这份意见有较高价值，因为它没有要求继续堆任务或提高表面仿真精度，而是指出了当前证据链中
-真正阻塞论文说服力的三件事：固定世界得分不等于实验智能、现有 RL 合同可能奖励错误代理、
-Bridge 应检验适应成本而不是虚拟值与真实值的一一对应。其外部工作和“Nature 级”判断仍须在
-正式写作前逐项核源，不能把编辑判断本身当作新颖性证据。
+- [ ] **`benchmark-vnext-rl-contract-integration` — RL 共享运行时集成**
+  - 建议团队：核心集成人；RL 动作组和奖励组不得同时修改这些文件。
+  - 建议独占路径：`src/chemworld/rl/environment.py`、`src/chemworld/rl/training.py`、`src/chemworld/rl/evaluation.py`、`src/chemworld/wrappers.py`、`tests/test_rl_contract_integration.py`。
+  - 依赖：hybrid action 和 reward 两项控制报告通过。
+  - [ ] 移除正式训练对旧 `ContinuousEventActionWrapper` 的依赖；旧接口只保留显式 legacy 路径。
+  - [ ] 训练 manifest 绑定动作/奖励合同 hash。
+  - [ ] 冻结评估禁用 training shaping。
+  - [ ] checkpoint、replay buffer、资源账本和轨迹验证保持兼容。
+  - [ ] 旧 100k checkpoint 标记为 incompatible/diagnostic，不可进入正式排名。
+  - 验收：完整 RL 测试、完整 `pytest`、ruff、mypy 全部通过。
 
-| 决议 | 吸收内容 | 执行边界 |
-| --- | --- | --- |
-| 立即采纳 | 因果世界引擎定位、V0–V5 有效性阶梯、core/benchmark/bridge 三层、机制变化下的适应性能作为主问题 | 先形成可反驳结果，再决定标题和期刊；不预设一定发生排名反转 |
-| 立即采纳 | RL 改为“操作类别 + 条件参数”的混合动作合同，并重审训练 reward | 旧 49 维 Box 与 80k/100k 结果只作合同失效诊断，不再解释为训练越久越差 |
-| 立即采纳 | core-4 集中深化；普通 seed、参数外推、噪声、机制/拓扑/构成律变化分开报告 | 不把所有变化统称 OOD，不为保留六任务降低门禁 |
-| 受控采纳 | Opaque/Descriptor/Named-Retrieval/Oracle 先验通道、谱图/记忆因果消融、一个显式上下文或 world-model baseline | Oracle 只作上界；命名材料是实验条件而非默认合同；采用预注册的不完全因子设计 |
-| 分阶段采纳 | Dataset Bridge、独立高保真 backend、窄域 partition/flow 实体桥接 | 先做 Dataset Bridge，再做独立 backend；实体设备不阻塞 core benchmark 冻结 |
-| 暂不采纳 | 同时实现 DreamerV3、TD-MPC2、PEARL、VariBAD、RL2 和大规模 LLM 型号榜单 | 每个能力轴先选一个可复核代表；证明现象后再扩算法覆盖 |
-| 明确拒绝 | 把 Core 描述成真实化学预测器，或以虚拟—真实产率相关性作为唯一现实指标 | Bridge 的主要终点是 transfer-vs-scratch、adaptation regret、实验节省和安全代价 |
+- [ ] **`benchmark-vnext-mechanism-adaptation-protocol` — 机制适应协议**
+  - 建议团队：世界族/因果评测组。
+  - 建议独占路径：`configs/benchmark/mechanism_adaptation_vnext.json`、`scripts/audit_mechanism_adaptation_protocol.py`、`tests/test_mechanism_adaptation_protocol.py`、`workstreams/benchmark_v1/reports/mechanism-adaptation-protocol.json`。
+  - 依赖：scientific positioning、core-4 SESOI、已有 mechanism-family controls。
+  - [ ] 冻结 core-4 的 mechanism-family Train/Dev/Bench 分配。
+  - [ ] 将 seed、参数插值/外推、composition、noise 与 rate-law/topology/constitutive-law shift 分开。
+  - [ ] 定义 stationary、episode-boundary shift 和 within-campaign change point。
+  - [ ] 定义 detection delay、adaptation regret、experiments-to-recovery、transfer-vs-scratch、风险和成本。
+  - [ ] 机制分类准确率只能作诊断，不能替代决策终点。
+  - [ ] 冻结 severity，确保非灾难、可辨识且会改变合理行动。
+  - 验收：协议可在不泄露 family identity 的情况下生成确定性世界分配。
 
-需要预注册并由实验判定、不能提前写成结论的四个假设是：
+- [ ] **`benchmark-vnext-prior-disclosure-protocol` — 材料先验与谱图干预协议**
+  - 建议团队：Agent 因果实验组。
+  - 建议独占路径：`configs/benchmark/prior_disclosure_vnext.json`、`src/chemworld/agents/prior_disclosure.py`、`tests/test_prior_disclosure.py`、`workstreams/benchmark_v1/reports/prior-disclosure-controls.json`。
+  - 依赖：scientific positioning、现有 live-LLM 谱图边界。
+  - [ ] 同一隐藏世界支持 Opaque、Descriptor、Named/Retrieval 和 diagnostic-only Oracle。
+  - [ ] Descriptor 带不确定性，不泄露隐藏 provider 参数。
+  - [ ] 加入 material-label permutation 和 semantic-prior conflict。
+  - [ ] 加入 assigned/masked/peak-permuted spectra 与 memory retained/deleted 配对条件。
+  - [ ] 所有配对条件保持非干预公共状态一致。
+  - [ ] Oracle 永不进入正式排行榜。
+  - 验收：测试证明披露条件只改变指定信息，不改变 world law、预算或评分。
 
-- **H1 固定世界高估**：IID 排名不能可靠预测机制变化后的得分、风险和恢复速度。
-- **H2 知识与实验能力可分离**：语义先验提高初始效率，但在先验与隐藏规律冲突时可能造成锚定。
-- **H3 显式适应有益**：上下文推断或 world model 在相同实验预算下减少 adaptation regret 和恢复实验数。
-- **H4 虚拟训练可迁移**：跨因果世界预训练相对同架构从零学习，减少独立 backend 或实体桥接中的适应成本。
+- [ ] **`benchmark-vnext-security-freeze-integration` — 安全与不变性正式绑定**
+  - 建议团队：安全/评测组。
+  - 建议独占路径：`configs/benchmark/security_freeze_vnext.json`、`scripts/audit_security_freeze.py`、`tests/test_security_freeze.py`、`workstreams/benchmark_v1/reports/security-freeze-controls.json`。
+  - 依赖：core-4 SESOI、已有 public harness/exploit/semantic-invariance controls。
+  - [ ] 将 12 组已通过的 semantic invariance 绑定冻结 public harness。
+  - [ ] 绑定隐藏状态、debug、异常、路径、任务文本和私有 seed 泄漏扫描。
+  - [ ] 绑定无成本测量、预算边界、非法刷分、NaN/Inf、重复 assay、提前结束和 replay 篡改探针。
+  - [ ] Windows 和 clean-wheel 环境均 fail closed。
+  - 验收：任何 probe 失败均阻止正式方法运行和 release。
 
-H1–H3 是下一版 benchmark 的核心科学目标；H4 是 Bridge 目标。任何一个假设失败都必须保留为
-结果，不能通过更换指标、世界族或后端追求预设故事。
+## 4. P1：最小可识别方法矩阵
 
-## 可复核成熟度记分卡
+- [ ] **`benchmark-vnext-reference-portfolio-substrate` — 独立参考组合底座（已被 knitua 认领）**
+  - [ ] 其他团队不得修改该 active claim 的五个 owned paths。
+  - [ ] 完成 candidate substrate、失败关闭、回放验证和非正式主张边界。
+  - 验收：以该 claim 的完成报告为准；当前仍不能称 oracle。
 
-| 维度 | 当前证据 | 判定 |
-| --- | --- | --- |
-| 工程合同与运行时 | 6/6 serious task 合同可审计；World Law v0.4 接入 8 个正式 provider，旧正式 proxy/fallback 已移除 | 已完成候选底座 |
-| 正式经典方法实验 | 6 tasks × 5 methods × 20 paired seeds = 600 条结果；每条 40 次完整实验并通过 replay | 已完成 v0.1 |
-| 主比较 total score | structured GP 相对 random 为 6/6 正向且 Holm 显著，4/6 达到 0.05 SESOI | 支持复合得分收益 |
-| 任务主指标 | 新 task-validity 协议下分配/结晶/蒸馏达到 absolute SESOI，流动仅尺度归一化通过；旧 publication gate 仍为 2/6；电化学/平衡不成立 | 建议 provisional core-4；冻结 task-specific SESOI 后重跑确认 |
-| public/private seed shift | 两组各 240 条结果；分配、结晶、蒸馏、流动为 4/6 稳定 | 部分通过 |
-| 独立分布轴 | 6 tasks × 2 axes 已具备可执行 interpolation、extrapolation、composition、observation-noise 控制；12/12 单轴探针改变真实任务响应 | 控制层通过；严重度校准、split 冻结和方法实验未完成 |
-| 机理族 | 六任务均有实际 provider 消费的机理/构成律族：三类反应任务使用速率律/拓扑族，分配、电化学、平衡使用专属 constitutive-law 族；5 seeds × 5 配方下 9/9 任务-模式组合可区分、非灾难且守恒 | core-6 控制层通过；agent 机理识别、适应与跨族迁移未测 |
-| 不变性 | action key order、物料代号重映射、observation 字段重排、等价动作序列和格式扰动均已可执行；6 tasks × 2 seeds = 12 组配对运行全部通过 | 控制层通过；尚未绑定冻结 public harness 与正式方法运行 |
-| 基础 exploit | 6 tasks × 6 probes = 36 项通过 | 基础门禁通过 |
-| 风险与成本信号 | 600 runs / 24,000 experiments 已按 calibration/holdout 重算；任务级峰值风险触发率 14.9%–43.3%，过程成本触发率 8.5%–14.8% | 控制层可辨识；旧方法未收到新策略，仍不支持 safe BO 主张 |
-| 评价分层 | vNext 0.3 分离 final-assay objective、task primary、在线 shaping、constraint、resource 与 validity，并增加不入总分的交互层级、实际适应证据、外部资源账本和脚手架协助诊断 | 控制层通过；旧正式方法未统一接收 vNext 风险策略，评价结论仍不可识别 |
-| 方法交互覆盖 | recipe-search / operation-open-loop / operation-closed-loop 已分层；live-LLM adapter 的谱图消融、跨实验记忆、失败计费与公开审计已就绪；本地在线模型可用性已由 Task Lab 验证，但不属于正式矩阵 | LLM 正式配对运行仍缺；RL 现合同失效：49 维 Box、完成实验 `+1` shaping，flow Dev 策略未调用 `run_flow`，须修复后重训 |
-| 独立复现 | 尚无第三方从干净 wheel 重现冻结摘要 | 未完成 |
-| 论文产物 | 尚无冻结图表、Nature Article 稿件、PDF 与可引用 release tag | 未开始，按门禁暂缓 |
+- [ ] **`benchmark-vnext-reference-portfolio-search` — 正式 best-known/reference 搜索**
+  - 建议团队：独立参考搜索组。
+  - 建议独占路径：新的 reference search 配置、运行脚本、轨迹目录和正式摘要；不得覆盖 substrate 文件。
+  - 依赖：reference substrate、core-4 freeze、score/replay。
+  - [ ] 预注册搜索方法、预算、seeds 和停止条件。
+  - [ ] 搜索轨迹通过统一 replay evaluator。
+  - [ ] 报告 coverage 和不确定性，不把有限搜索最大值命名为真实 oracle。
+  - 验收：reference 只用于 regret 分母和覆盖诊断，不泄露给 agent。
 
-机器证据以以下摘要为准：
+- [ ] **`benchmark-vnext-classic-confirmatory` — 经典方法正式矩阵**
+  - 建议团队：经典优化组。
+  - 建议独占路径：新的 confirmatory 配置、运行脚本、轨迹目录和摘要。
+  - 依赖：全部 P0 门禁、reference protocol。
+  - [ ] 运行 random、LHS、greedy、typed GP-EI、typed constrained GP；扩展方法只作 secondary。
+  - [ ] 每任务使用相同完整实验预算、paired seeds 和公共 observation。
+  - [ ] 验证方法行为不退化为同一候选序列。
+  - [ ] 报告 primary、risk、cost、regret 和资源前沿，不只报告 total score。
+  - [ ] 保留 Safe-GP 在 flow 未达 SESOI 的负结果。
+  - 验收：所有轨迹 replay 通过；统计计划在看结果前冻结。
 
-- `workstreams/benchmark_v1/reports/publication-classic20-full-summary.json`；
-- `workstreams/benchmark_v1/reports/publication-generalization-security-summary.json`；
-- `workstreams/benchmark_v1/reports/world-family-axis-controls.json`；
-- `workstreams/benchmark_v1/reports/agent-interaction-contract.json`；
-- `workstreams/benchmark_v1/reports/evaluation-identifiability-controls.json`；
-- `workstreams/benchmark_v1/reports/mechanism-family-controls.json`；
-- `workstreams/benchmark_v1/reports/risk-cost-signal-controls.json`；
-- `workstreams/benchmark_v1/reports/task-validity-vnext.json`；
-- `workstreams/benchmark_v1/reports/semantic-invariance-controls.json`；
-- `workstreams/benchmark_v1/reports/method-protocol-vnext.json`；
-- `workstreams/benchmark_v1/reports/rl-100k-development.json`；
-- `workstreams/benchmark_v1/reports/live-llm-controls.json`；
-- `workstreams/benchmark_v1/reports/safe-policy-confirmatory.json`；
-- `workstreams/benchmark_v1/reports/safe-gp-failure-diagnostic.json`；
-- `configs/benchmark/publication_protocol_v0.1.json`；
-- `configs/benchmark/generalization_security_v0.1.json`；
-- `configs/benchmark/generalization_security_vnext.json`；
-- `configs/benchmark/agent_interaction_vnext.json`；
-- `configs/benchmark/evaluation_vnext.json`；
-- `configs/benchmark/mechanism_families_vnext.json`。
-- `configs/benchmark/risk_cost_vnext.json`。
-- `configs/benchmark/task_validity_vnext.json`。
-- `configs/benchmark/method_protocol_vnext.json`。
+- [ ] **`benchmark-vnext-procedure-rl-baselines` — Procedure Execution RL**
+  - 建议团队：RL procedure 组。
+  - 建议独占路径：新的 recurrent PPO/混合动作方法模块、测试、配置、checkpoint manifest 和报告。
+  - 依赖：RL contract integration、mechanism adaptation protocol。
+  - [ ] 实现 legal-random、recurrent PPO 和一个 parameterized hybrid-action 方法。
+  - [ ] history/recurrent state 只接收公共 observation。
+  - [ ] 先在单任务多 seed 上超过 legal-random，再扩 core-4。
+  - [ ] operation coverage 必须包含任务核心操作。
+  - [ ] checkpoint 只用 pooled Dev 选择；Bench 在冻结前不可访问。
+  - 验收：多 seed、重放、资源账本和 adaptation endpoint 全部报告。
 
-## 论文主张边界
+- [ ] **`benchmark-vnext-flow-control-baselines` — Process Control 基线**
+  - 建议团队：控制/MPC 组。
+  - 建议独占路径：`src/chemworld/control/` 下新模块、对应测试、控制协议和报告。
+  - 依赖：独立 process-control 子合同、RL integration。
+  - [ ] 实现规则/PID 下界、system identification + MPC 和 SAC。
+  - [ ] 三者使用相同状态、执行器、延迟、噪声、风险和控制周期。
+  - [ ] SAC 只用于连续控制参数，不负责离散实验流程。
+  - [ ] 报告 tracking/endpoint、constraint、energy/resource、adaptation 和计算成本。
+  - 验收：不得与 campaign design 方法通过一个无解释总分直接排名。
 
-| 状态 | 可以或不可以声称 |
-| --- | --- |
-| 已支持 | ChemWorld 提供预算受限、部分可观测、可回放的多轮虚拟实验任务；结构化 GP 在四个任务上显示跨 seed/public/private shift 一致的自适应收益；所有结果可从冻结轨迹审计 |
-| 仅探索性 | 六任务 total-score 均有统计差异；one-hot 表示改善电化学复合得分；当前虚拟物理足以用于方法诊断 |
-| 禁止 | 六任务 benchmark 已验证；safe BO 有效；结果代表真实化学产率、安全性或工业性能；已达到 agent benchmark SOTA；在没有 RL/真实 LLM/资源对齐时声称全面方法排名 |
+- [ ] **`benchmark-vnext-context-model-baseline` — 显式上下文/world-model 基线**
+  - 建议团队：适应学习组。
+  - 建议独占路径：`src/chemworld/adaptation/` 下新模块、测试、配置和报告。
+  - 依赖：mechanism adaptation protocol。
+  - [ ] 只选择一个可审计的 context encoder 或 latent world-model + planning 代表。
+  - [ ] 输出 belief/context、不确定性和用于选择实验的公开摘要。
+  - [ ] 与同架构无记忆、随机 context 和错误 context 做配对。
+  - [ ] 评估 H3 的 adaptation regret 和 experiments-to-recovery。
+  - 验收：先证明能力轴，再决定是否扩展 Dreamer/TD-MPC/PEARL/VariBAD 等方法。
 
-论文的最小可信故事应是“受控虚拟化学世界中的闭环实验智能”，而不是“LLM 发现真实化学”。其
-贡献必须落在可交换的环境合同、主动探索效应、分布外评测、反作弊和训练迁移，而不是物理数值
-与现实一一对应。
+- [ ] **`benchmark-vnext-live-llm-confirmatory` — 真实 LLM 冻结矩阵**
+  - 建议团队：LLM 运行组。
+  - 建议独占路径：新的 live-LLM confirmatory 配置、运行脚本、脱敏轨迹索引和报告。
+  - 依赖：prior disclosure、method protocol、P0 security。
+  - [ ] 只通过官方 operation-level adapter 调用，不使用 Task Lab 代替正式 runner。
+  - [ ] 运行冻结模型角色、paired seeds 和 core tasks。
+  - [ ] 保留 API 失败、重试、非法输出、token、费用、墙钟和模型版本。
+  - [ ] 不保存私有思维链；只保存结构化假设、证据引用、行动理由和置信度。
+  - [ ] masked/assigned 条件必须保持非谱图证据一致。
+  - 验收：轨迹 replay、provider usage 和费用 reconciliation 全部通过。
 
-## 发布决策门禁
+- [ ] **`benchmark-vnext-llm-causal-ablation` — LLM 证据使用因果实验**
+  - 建议团队：LLM 因果评测组；不得与 live 运行组共用输出路径。
+  - 建议独占路径：新的配对干预脚本、统计配置、报告和测试。
+  - 依赖：live-LLM confirmatory、prior disclosure。
+  - [ ] 在相同公共状态比较谱图可见/遮蔽/峰置换。
+  - [ ] 比较记忆保留/删除和语义一致/冲突。
+  - [ ] 测量行动变化、后续结果、change-detection delay 和锚定恢复。
+  - [ ] `adaptation_source` 和自然语言解释只能作诊断，不能作为因果使用证据。
+  - 验收：预注册配对统计支持或反驳 H2；不做型号数量竞赛。
 
-1. **G0 — Backend candidate（已通过）**：正式运行时、合同、回放和基础 provider provenance
-   可审计，但不授予 benchmark 科学有效性。
-2. **G1 — Task validity**：每个正式任务的主指标存在非退化学习信号，风险/成本字段真实影响决策，
-   且最低合理策略、random、强策略形成可解释排序。
-3. **G2 — Generalization/security**：每个正式任务至少两个独立 world-family 轴可控制，四种 shift
-   模式、不变性、仅公开 observation harness 和扩展 exploit 门禁通过。
-4. **G3 — Method fairness**：经典优化、RL、真实 LLM 使用冻结 adapter 和清晰的实验/墙钟/token/
-   费用账本；失败与负结果完整报告。
-5. **G4 — Reproduction/release**：第三方从干净 wheel 重建公开摘要，冻结图表和论文只读取签名
-   摘要，候选包通过本地 release gate 并打不可变 tag。
+- [ ] **`benchmark-vnext-method-matrix-integration` — 跨方法公平性集成**
+  - 建议团队：核心评测集成人。
+  - 建议独占路径：冻结总协议、统一 runner 入口、矩阵摘要和集成测试。
+  - 依赖：classic、procedure RL、flow control、context model、live LLM 各自产出。
+  - [ ] 检查任务合同、seeds、实验预算、公共 observation 和资源账本一致。
+  - [ ] campaign、procedure、process-control 分轨报告。
+  - [ ] 只在相同交互层级内做算法归因。
+  - [ ] 失败方法和缺失单元显式进入矩阵。
+  - 验收：任何合同 hash 不一致均拒绝汇总。
 
-若电化学与平衡在下一协议的两轮定向整改后仍不能通过 G1/G2，默认发布通过门禁的四任务 core
-suite，并把这两个任务降为 exploratory。不得为了保留“六任务”而降低门禁。
+## 5. P2：机制适应主实验与统计
 
-## 可并行认领的任务包
+- [ ] **`benchmark-vnext-h1-fixed-vs-shift` — H1 固定世界与机制变化**
+  - 建议团队：主实验 A 组。
+  - 依赖：method matrix integration。
+  - [ ] 比较 IID、参数 shift、机制 shift 下的 primary/risk/cost 排名。
+  - [ ] 报告 rank correlation、rank inversion 和安全性变化。
+  - [ ] 不预设必须发生排名反转。
+  - 验收：paired bootstrap、Holm 和 SESOI 同时报告。
 
-表中任务包在 owned paths 不重叠时可以并行。`依赖` 是开始正式实验前必须满足的门禁，不是认领
-文档或设计工作的限制。
+- [ ] **`benchmark-vnext-h2-prior-anchoring` — H2 先验与实验智能**
+  - 建议团队：主实验 B 组。
+  - 依赖：LLM causal ablation，可加入非 LLM 对照。
+  - [ ] 比较 Opaque/Descriptor/Named-Retrieval。
+  - [ ] 比较 congruent、label-permuted 和 semantic-conflict worlds。
+  - [ ] 报告初始样本效率、证据更新、锚定恢复和行动质量。
+  - 验收：将化学知识收益与证据驱动适应分开。
 
-### P0：冻结科学问题、任务集与关键合同
+- [ ] **`benchmark-vnext-h3-adaptation` — H3 显式世界模型适应**
+  - 建议团队：主实验 C 组。
+  - 依赖：context model、procedure/control baselines。
+  - [ ] 比较显式适应、无记忆、model-free 和经典局部模型。
+  - [ ] 报告 change-detection delay、adaptation regret、恢复实验数、风险和成本。
+  - [ ] 报告任务和机制族异质性。
+  - 验收：结论必须来自冻结 endpoint，不使用解释文本代替行为结果。
 
-| Task ID | 负责面 | 交付与验收 | 依赖 |
-| --- | --- | --- | --- |
-| `benchmark-vnext-task-validity` | 核心评测 | 六张有效性卡已完成：分配/结晶/蒸馏 core-confirmed，流动 core-candidate，电化学/平衡 exploratory；建议 provisional core-4；旧 publication gate 的 2/6 历史结论保持不变 | 控制实现完成；冻结 task-specific SESOI 后确认重跑 |
-| `benchmark-vnext-scientific-positioning` | 核心总负责 | 冻结因果世界引擎定位、V0–V5 主张阶梯、H1–H4、core/benchmark/bridge 边界和禁用表述；为每个假设绑定可反驳终点 | 本路线图决议；在新协议或论文写作前完成 |
-| `benchmark-vnext-rl-hybrid-action-contract` | RL/环境 | 用显式 categorical operation head 与按操作激活的 conditional parameter heads 替代 49 维全局 Box；无关参数不执行、不计损失，mask、序列化、回放和失败语义一致 | 冻结 typed action 公共语义；不兼容变更必须升级协议 |
-| `benchmark-vnext-rl-reward-contract` | RL/评测 | 删除可被快速终止支配的完成奖励；分离训练 shaping 与正式端点，固定可比实验预算；加入 quick-close、操作覆盖、shaping sensitivity 和 reward-hacking 探针 | hybrid action contract；正式 RL 扩算力前必须通过 |
-| `benchmark-vnext-mechanism-adaptation-protocol` | 世界族/评测 | 冻结 core-4 mechanism-family Train/Dev/Bench、change point 与 adaptation episode；报告 detection delay、adaptation regret、experiments-to-recovery、transfer-vs-scratch、风险和成本 | task validity、mechanism-family 控制 |
-| `benchmark-vnext-prior-disclosure-protocol` | Agent/评测 | 同一隐藏世界提供 Opaque、Descriptor、Named/Retrieval 和 diagnostic-only Oracle；加入标签置换与语义冲突，冻结谱图/记忆干预的配对状态 | 不改变默认匿名任务合同；先设计后运行 |
-| `wf-vnext-risk-cost-signal` | 世界基座团队 | 任务级 operational-risk budget 与 process-cost limit 已由独立校准切片冻结；评价使用实验全过程峰值风险并拆分 total/process/measurement 三账 | 控制实现完成；方法重跑待 method protocol |
-| `wf-vnext-world-family-axes` | 世界基座团队 | 每任务两个轴及四模式的可执行控制已完成；下一步冻结严重度网格与 Train/Dev/Bench 分配，并运行配对方法实验 | 控制实现完成 |
-| `wf-vnext-mechanism-families` | 世界基座团队 | ReactionNetwork 三任务与分配/电化学/平衡专属 constitutive-law family 已完成多 seed/多配方强度校准、opaque hash 和精确回放绑定；下一步为 Train/Dev/Bench 机理迁移实验 | core-6 控制实现完成 |
-| `benchmark-vnext-agent-interaction-contract` | Agent/环境 | 逐操作公共上下文、谱图递交、显式能力声明和结构化 decision audit 已完成；三层资源预算冻结与正式方法重跑仍待 method protocol | 控制实现完成 |
-| `benchmark-vnext-evaluation-identifiability` | 核心评测 | 六层端点评价、交互能力分层、适应证据、脚手架协助 provenance、实验峰值风险与环境/模型/训练资源账本已绑定 replay；跨层只允许系统级解释 | 控制实现完成；全方法新风险策略重跑待 method protocol |
-| `benchmark-vnext-semantic-invariance` | 核心评测 | 五类 probe 已执行，12 组配对全部通过；下一步绑定冻结 public harness、method protocol 和正式方法运行 | 控制已完成；public harness |
-| `benchmark-vnext-public-harness` | 安全/评测 | 独立进程仅通过公开 action/observation 交互；隐藏状态、debug、异常、路径和任务文本泄漏扫描通过 | task validity |
-| `benchmark-vnext-exploit-matrix` | 安全/评测 | 覆盖无成本测量、预算边界、非法动作刷分、NaN/Inf、重复 assay、提前结束和 replay 差异；全部 fail closed | public harness |
+- [ ] **`benchmark-vnext-statistics-figures` — 冻结统计与图形**
+  - 建议团队：统计/可视化组。
+  - 建议独占路径：新统计脚本、figure specs、矢量图和 source-data 表。
+  - 依赖：H1–H3 冻结摘要。
+  - [ ] paired bootstrap、Holm、SESOI、rank stability 和预算曲线齐全。
+  - [ ] 图只读取签名摘要，不读取临时轨迹或手工数值。
+  - [ ] 每张图有 source data、生成命令和 digest。
+  - [ ] 负结果和未通过门禁以同等可见度展示。
+  - 验收：从干净环境可确定性重建全部图。
 
-P0 退出条件：科学定位与 H1–H4 终点冻结；正式任务全部通过 G1/G2，或明确形成 core suite +
-exploratory suite；RL hybrid action/reward 通过防捷径门禁；机制适应和先验披露协议完成版本化。
-所有变更生成新协议版本，旧 v0.1 结果不被覆盖。
+## 6. P3：Train / Bench / Bridge
 
-### P1：冻结评测与方法公平性
+- [ ] **`chemworld-train-generator` — Train 世界生成器**
+  - 建议团队：训练环境组。
+  - [ ] 程序化生成机制族、难度课程和向量化 reset/step。
+  - [ ] Train/Dev 不包含冻结 Bench worlds。
+  - [ ] 生成分布、seed 空间和 curriculum 可审计。
+  - 验收：训练吞吐、确定性和隔离测试通过。
 
-| Task ID | 负责面 | 交付与验收 | 依赖 |
-| --- | --- | --- | --- |
-| `benchmark-vnext-score-replay` | 核心评测 | primary score 与在线 reward 分离；单位、方向、缺失值、异常值固定；结果只能从初始轨迹重算，篡改被拒绝 | evaluation identifiability |
-| `benchmark-vnext-method-protocol` | 方法协议 | 统一资源账本已接入 runner；冻结 40 次完整实验、20 个新 paired seeds、5 个 checkpoint，并对墙钟、CPU/GPU、模型调用、token、费用和 provenance 执行 fail closed | 控制实现完成；P0 冻结与缺失方法实现后才能正式重跑 |
-| `benchmark-vnext-classic-baselines` | 经典方法 | random、LHS、greedy、typed GP-EI/PI/UCB、typed RF-EI 与 typed constrained GP 均已实现；正式矩阵须验证行为不退化为同一策略 | method protocol 已完成；P0 冻结后重跑 |
-| `benchmark-vnext-rl-baselines` | RL | 旧 SAC 100k 仅保留为 action/reward 合同失效诊断；修复后按轨道重建：procedure execution 用 recurrent PPO + 一个混合动作方法，process control 才使用 SAC，并先在多 seed 上超过 legal-random | hybrid action、reward 与 adaptation protocol |
-| `benchmark-vnext-process-control-baselines` | 控制 | 对 flow 的连续控制子任务实现 system identification + MPC，并保留 PID/规则控制下界；与 SAC 使用同一状态、执行器、延迟、风险和预算 | 独立 process-control 合同；不得与 campaign score 直接混排 |
-| `benchmark-vnext-context-model-baseline` | 适应方法 | 先实现一个显式上下文推断或 latent world-model + planning 代表，输出可审计 belief/context；与无记忆版本配对，不一次性铺开全部元 RL/world-model 算法 | mechanism adaptation protocol |
-| `benchmark-vnext-llm-baselines` | LLM agent | 官方逐操作 adapter、谱图/遮蔽配对、记忆、token/费用/重试账本已通过控制审计；本地在线调用已可用，正式矩阵仍须通过官方 adapter 在冻结 seeds 上重跑并保留全部失败 | prior disclosure、method protocol 与独立复现 |
-| `benchmark-vnext-llm-causal-ablation` | LLM/评测 | 在相同公共状态配对比较谱图可见/遮蔽/峰置换、记忆保留/删除、语义一致/冲突；用后续行动和结果检验因果使用，不把 `adaptation_source` 或文字解释当证据 | live LLM baseline、prior disclosure protocol |
-| `benchmark-vnext-reference-regret` | 评测统计 | 冻结独立 best-known/reference 协议，给出 coverage 与不确定性；不得再把随机采样最大值称为 oracle | score replay |
+- [ ] **`benchmark-vnext-dataset-bridge` — DatasetOracle Bridge**
+  - 建议团队：数据桥接组。
+  - [ ] 选择一个授权清晰、任务同构的 partition 或 flow 数据集。
+  - [ ] 实现 Train/Calibration/Test 隔离、缺失值 fail-closed 和不确定性。
+  - [ ] 禁止 agent 查询 held-out 真值。
+  - [ ] 比较 virtual-pretrained 与同架构 scratch 的少样本适应。
+  - 验收：报告 transfer advantage、实验节省和失败模式，不要求数值完美相关。
 
-P1 退出条件：所有方法使用同一任务合同和资源账本；逐任务报告 effect、sample efficiency、regret、
-约束违反和资源前沿，任何方法失败不得静默丢弃。
+- [ ] **`benchmark-vnext-independent-backend` — 独立高保真后端**
+  - 建议团队：外部后端组。
+  - [ ] 为 partition 或 flow 实现训练期不可见、代码和参数来源独立的 backend。
+  - [ ] 保持公共 action/observation/trajectory 合同。
+  - [ ] 不针对某个方法调后端。
+  - [ ] 报告跨后端排名、适应收益和 core-specific failure。
+  - 验收：形成 V3 行为有效性证据或明确失败。
 
-### P2：复现、论文与发布
+- [ ] **`benchmark-vnext-h4-transfer` — H4 虚拟预训练迁移**
+  - 建议团队：迁移实验组。
+  - 依赖：Train generator、Dataset Bridge 或 independent backend。
+  - [ ] 冻结相同架构、相同现实/外部数据预算和 checkpoint 选择规则。
+  - [ ] 比较 virtual-pretrained、scratch、BO/Safe-BO 和固定 DOE。
+  - [ ] 报告 k-shot transfer curve、adaptation regret、实验节省、安全和不确定性。
+  - 验收：无显著迁移收益时明确反驳 H4，不更换主终点。
 
-| Task ID | 负责面 | 交付与验收 | 依赖 |
-| --- | --- | --- | --- |
-| `benchmark-vnext-independent-reproduction` | 独立复现者 | 从干净 wheel 和公开命令重跑指定 seeds；摘要、合同 hash、trajectory digest 与容差一致 | P1 |
-| `benchmark-vnext-statistics-figures` | 统计/绘图 | paired bootstrap、Holm、rank stability、预算曲线、OOD、constraint/resource frontier；矢量图只从冻结摘要生成 | P1 |
-| `benchmark-vnext-dataset-bridge` | Bridge | 优先接入一个带不确定性、缺失值 fail-closed 和 Train/Calibration/Test 隔离的 DatasetOracle；比较 virtual-pretrained 与 scratch 的少样本适应，不允许查询测试真值 | H1–H3 结果和公共 backend 抽象冻结 |
-| `benchmark-vnext-independent-backend` | Bridge | 为 partition 或 flow 提供一个训练期不可见、实现独立的后端；报告方法排名稳定性、失效模式和 transfer gain，不针对方法调整后端 | Dataset Bridge；公共操作/观测合同不变 |
-| `benchmark-vnext-physical-bridge` | Bridge/外部实验 | 先 partition 工程闭环，再评估 flow；LLM 只提出结构化意图，schema、安全、人工批准和确定性执行层负责设备操作 | 独立 backend 通过；不阻塞 core release |
-| `paper-nature-chemworld` | 论文 | 仅在训练迁移、独立复现和方法门禁通过后启动 Nature Article；正文、Methods、source data、代码/数据可用性和 PDF 严格服从主张矩阵 | figures、independent reproduction、Train→Bench/Bridge transfer |
-| `benchmark-vnext-release` | 发布 | wheel、公开合同、seed suite、报告、golden trajectory、验证命令、限制说明和私评摘要；本地门禁通过并打不可变 tag | 论文结果冻结 |
+- [ ] **`benchmark-vnext-physical-partition-bridge` — 实体 partition 工程闭环**
+  - 建议团队：外部实验组。
+  - 依赖：H4 在 Dataset/independent backend 上完成；不阻塞 Core release。
+  - [ ] LLM/Agent 只输出结构化意图。
+  - [ ] schema validation、硬安全约束、人工批准和确定性执行层独立。
+  - [ ] 冻结真实实验预算、失败记录和人工干预账本。
+  - 验收：只主张适应成本和实验节省，不把 Core 风险分数解释为现实安全。
 
-## 已完成并关闭的任务包
+- [ ] **`benchmark-vnext-physical-flow-bridge` — 实体 flow 旗舰桥接**
+  - 建议团队：外部实验/控制组。
+  - 依赖：partition 工程链和独立 flow backend。
+  - [ ] 先 shadow mode，再 supervised closed loop，再评估窄域 autonomous loop。
+  - [ ] 设备 adapter 与 LLM 决策隔离。
+  - [ ] MPC、SAC、BO 和 virtual-pretrained 使用相同真实预算。
+  - 验收：外部实验室可独立重复；否则只作工程示范。
 
-- [x] `benchmark-v1-release-integrity`：release manifest、task hash、commit、dirty tree、evidence digest
-  与轨迹索引执行失败关闭。
-- [x] `wf-110-vnext-runtime-integration`：8 个 World Law v0.4 provider 接入正式运行时，旧 proxy/
-  fallback 路由移除，重建 candidate backend 证据。
-- [x] `benchmark-v1-validity-power`：冻结 v0.1 的 paired-seed、SESOI、功效与正式经典方法矩阵；
-  结论为部分通过、suite blocked。
-- [x] `benchmark-v1-generalization-security`：完成 seed OOD、salted private shift、基础 exploit 以及
-  轴/不变性缺口的机器化审计；结论为 4/6 稳定、suite blocked。
-- [x] `benchmark-vnext-agent-interaction-audit`：更正 publication risk 字段映射；确认连续风险存在但
-  约束未激活，并机器化记录经典方法、谱图、实验内自适应和真实 LLM artifact 缺口。
-- [x] `wf-vnext-world-family-axes`：六任务共 12 个物理解释轴接入真实 provider；四种 shift、确定性
-  干预 hash、零干预兼容、公共视图隐藏和逐轴任务响应均通过机器审计，但方法泛化实验仍未开始。
-- [x] `benchmark-vnext-agent-interaction-contract`：正式 runner 向兼容 Agent 提供逐操作公共决策上下文，
-  下一决策可读取公开谱图；recipe 方法、BO/greedy 的跨/实验内适应能力被分别如实声明，结构化决策证据写入轨迹。
-- [x] `benchmark-vnext-evaluation-identifiability`：v0.3 evaluator 在六层终点之外绑定交互能力层级、
-  实际适应证据、脚手架协助 provenance 与方法资源账本；所有新增诊断不入总分，跨层不得作算法归因。
-- [x] `wf-vnext-mechanism-families`：ReactionNetwork 三任务与分配、电化学、平衡专属 constitutive
-  family 通过 5 seeds × 5 配方的可区分/非灾难/守恒校准；干预版本与 opaque hash 入轨迹，精确上下文缺失或篡改时回放失败关闭。
-- [x] `wf-vnext-risk-cost-signal`：600 条正式 run 的 24,000 次实验按 calibration/holdout 重算；
-  风险用每次实验峰值、成本拆为 total/process/measurement。六任务信号均非零非饱和，但旧方法未接收新策略，
-  且经典 recipe 的测量日程固定，因此 safe-method 与 measurement-efficiency 主张继续关闭。
-- [x] `benchmark-vnext-task-validity`：六张机器可读有效性卡绑定正式 20-seed 方法证据、响应面与风险—成本审计；
-  推荐 provisional core-4（分配、结晶、蒸馏、流动），电化学和平衡降为 exploratory。该建议不是发布结论，
-  task-specific SESOI 与 vNext confirmatory rerun 仍是硬门禁。
-- [x] `benchmark-vnext-method-protocol`：经典、RL 与真实 LLM 共用的累积资源账本已接入正式 runner；
-  pre-freeze 结果强制为 diagnostic-only，replay/stub 明确排除出 LLM 证据。当前仍缺 PPO、SAC、两类 live LLM，
-  正式方法矩阵继续关闭。
-- [x] `benchmark-vnext-classic-typed-acquisitions`：GP-PI、GP-UCB 与 RF-EI 已新增 typed categorical
-  material encoding，并由实际 manifest 门禁确认；旧 ordinal 变体只保留兼容用途，不进入正式方法矩阵。
-- [x] `live-llm-official-adapter`：逐操作官方 adapter 已实现公开谱图与遮蔽消融、跨实验记忆、公开
-  decision audit、provider 重试/token/费用账本和失败保留；无自动修复/终止/终测，fake-client 轨迹精确回放。
-- [x] `live-llm-spectral-ablation-boundary`：修复 masked 条件删除整个 raw packet 的混杂；纯谱图包完全遮蔽，
-  复合 final-assay 包只递归删除 spectra/channels/peaks/assignments，质量衡算、成本、约束和公开端点保持不变。
-- [x] `rl-100k-accounting`：修复后 SAC 在 Train 上精确完成 100,000 步，五个 checkpoint 与 replay
-  buffer 均有摘要；20 个 Dev episode 与 10 条标准回放通过工程门槛。审计确认其 49 维 Box 与完成实验
-  `+1` shaping 诱导 flow 策略走“加料—加溶剂—终止—测量”捷径且不执行 `run_flow`；该结果只证明
-  旧合同可被错误代理优化，80k/100k 性能差不再用于算法能力叙事，正式矩阵仍关闭。
-- [x] `safe-gp-failure-diagnostic`：新 Dev seeds 1300–1304 的 β=2.0/1.5/1.0 配对诊断显示
-  β=2.0 同时具有最高流动转换、最低风险超限和最低成本；拒绝为跨过确认阈值而降低 β，并单独报告经典方法的决策墙钟与进程 CPU。
+## 7. P4：独立复现、发布与论文
 
-## Phase 2：Bench 冻结后的 Train / Bench / Bridge
+- [ ] **`benchmark-vnext-independent-reproduction` — 第三方干净复现**
+  - 建议团队：未参与实现的复现组。
+  - [ ] 从 clean wheel 和公开命令重建指定 seeds。
+  - [ ] 对比协议 hash、trajectory digest、摘要和数值容差。
+  - [ ] 不访问开发者缓存、API key、私有路径或未发布数据。
+  - 验收：复现报告和全部失败公开保留。
 
-Phase 2 不阻塞当前 benchmark 冻结，但接口约束应在 P0/P1 中预留。
+- [ ] **`benchmark-vnext-private-evaluation` — 私有 Bench 评测**
+  - 建议团队：独立评测组。
+  - [ ] 私有 worlds/salts 与开发团队隔离。
+  - [ ] 使用同一公开合同和冻结 evaluator。
+  - [ ] 检查提交包的资源、依赖、超时和泄漏。
+  - 验收：私评摘要可公开，私有实例不泄露。
 
-- **ChemWorld-Bench**：只评测、版本化、可回放；公开测试与私评使用同协议、不同隐藏世界族。
-- **ChemWorld-Train**：程序化 world generator、向量化 reset/step、课程难度和 train/dev/OOD split；
-  禁止在冻结 Bench worlds 上训练。
-- **ChemWorld-Bridge**：对接真实 HTE 数据、外部优化 benchmark、数字孪生或设备抽象；以策略排序
-  一致性和训练前后迁移提升证明外部有效性，不要求模拟值精确复现现实。
-- **共同合同**：typed action、observation、trajectory、provenance、verifier；物料同时支持中性代号
-  与真实语义 skin，用配对实验分离预训练知识和主动探索能力。
+- [ ] **`benchmark-vnext-release` — 发布候选**
+  - 建议团队：发布集成人。
+  - [ ] wheel、公开合同、seed suite、报告、golden trajectory 和验证命令齐全。
+  - [ ] 本地完整门禁通过，不依赖 CI/GitHub Actions。
+  - [ ] 用户文档只包含发布级内容和真实限制。
+  - [ ] 打不可变 tag，记录 source/evidence digests。
+  - 验收：clean install、replay、docs strict build 和 release gate 全通过。
 
-Phase 2 的第一个研究里程碑不是扩大任务数量，而是证明“在 Train world-family 学习后，在未见
-Bench worlds 或外部 data-replay 上显著优于同预算从零开始的 agent”。这才回答 ChemWorld 能否
-作为 gym 让 agent 变强。
+- [ ] **`paper-chemworld-final` — 论文与 PDF**
+  - 建议团队：论文组；不得在 H1–H3 和复现冻结前认领。
+  - [ ] 标题跟随结果，不预设 Nature 叙事。
+  - [ ] 主文只写主张矩阵允许的结论。
+  - [ ] Methods、Extended Data、source data、代码/数据可用性和 limitations 完整。
+  - [ ] H4 未完成时只写 V0–V3 范围；实体 bridge 不得用模拟结果替代。
+  - [ ] LaTeX 无错误渲染 PDF，图表从冻结 source data 生成。
+  - 验收：论文、PDF、release tag 和证据 commit 一致。
 
-## 当前建议的执行顺序
+## 8. 建议的并行批次
 
-1. 完成 `benchmark-vnext-scientific-positioning`，冻结 H1–H4、V0–V5 和 core/benchmark/bridge 主张边界；同时冻结 provisional core-4 的 task-specific SESOI。
-2. 完成 RL hybrid action 与 reward 两个合同，先用单任务、多 seed、legal-random 对照证明无 quick-close、会调用任务核心操作；在此之前停止 SAC/PPO 扩算力。
-3. 冻结 core-4 mechanism-family Train/Dev/Bench、change-point、严重度和适应终点；把 seed/参数/噪声 shift 与机制/拓扑/构成律 shift 分表报告。
-4. 将已经通过的 semantic invariance 绑定 public harness；完成 leakage、exploit、score/replay，并运行 core-4 confirmatory round。
-5. 按能力轨道运行最小可识别方法矩阵：campaign 的 random/LHS/GP/Safe-GP，procedure 的 recurrent PPO/混合动作方法，flow control 的 system-ID+MPC/SAC，以及一个 context/world-model 方法。不同轨道不以单一总分强行排序。
-6. 运行 Opaque/Descriptor/Named-Retrieval、标签置换/语义冲突和谱图/记忆配对消融；真实 LLM 只从官方 adapter 运行，先证明证据对行动的因果影响，再扩型号。
-7. 先证明 Train→未见 Bench 和 Dataset Bridge 的迁移收益，再接独立 backend；实体 partition/flow bridge 是后续 V4 验证，不阻塞 core benchmark 发布。
-8. 只有 H1–H3、正式方法公平性和独立复现形成冻结证据后才生成投稿稿、图表和 release；若 H4 未完成，只能提交 V0–V3 边界内的 benchmark/method 论文。
+- [ ] **批次 A，可立即并行认领**
+  - [ ] scientific positioning。
+  - [ ] core-4 SESOI freeze。
+  - [ ] RL hybrid action contract。
+  - [ ] RL reward contract。
+  - [ ] mechanism adaptation protocol。
+  - [ ] prior disclosure protocol。
+  - [ ] security freeze integration。
+  - [ ] reference portfolio substrate 由现认领者继续完成。
 
-## 本地常用门禁
+- [ ] **批次 B，P0 各自控制报告通过后并行**
+  - [ ] RL contract integration。
+  - [ ] reference portfolio search。
+  - [ ] classic confirmatory。
+  - [ ] procedure RL。
+  - [ ] flow control。
+  - [ ] context/world-model。
+  - [ ] live LLM confirmatory。
 
-```powershell
-python scripts/manage_claims.py check
-python scripts/audit_publication_protocol.py
-python scripts/audit_publication_generalization_security.py
-python scripts/run_release_gate.py
-python -m pytest
-python -m ruff check .
-python -m mypy src
-python -m mkdocs build --strict
-```
+- [ ] **批次 C，方法矩阵冻结后并行**
+  - [ ] H1 fixed-vs-shift。
+  - [ ] H2 prior anchoring。
+  - [ ] H3 adaptation。
+  - [ ] Train generator。
+  - [ ] Dataset Bridge。
+
+- [ ] **批次 D，主实验冻结后**
+  - [ ] statistics/figures。
+  - [ ] independent backend。
+  - [ ] H4 transfer。
+  - [ ] independent reproduction。
+  - [ ] private evaluation。
+
+- [ ] **批次 E，最后执行**
+  - [ ] physical bridge。
+  - [ ] release。
+  - [ ] final paper/PDF。
+
+## 9. 已完成且不得重复认领
+
+- [x] World Law v0.4：8 个正式 provider 接入，旧正式 proxy/fallback 路由移除。
+- [x] 六任务基础合同、守恒、单位、回放和 release integrity 候选底座。
+- [x] 600 条经典方法正式旧协议运行及 public/private shift 历史证据。
+- [x] 六任务 12 个 world-family 轴和四类参数/组成/噪声控制。
+- [x] core-6 mechanism/constitutive-law family 控制、校准和回放绑定。
+- [x] 风险—成本信号校准、实验峰值风险和三类成本账本。
+- [x] 六层评价、交互能力层级、资源账本和只读 replay evaluator。
+- [x] operation-level Agent 公共上下文、谱图递交、decision audit 和能力声明。
+- [x] live-LLM 官方 adapter、跨实验记忆、失败保留和资源计费控制。
+- [x] assigned/masked 谱图边界，非谱图证据保持一致。
+- [x] semantic invariance：6 tasks × 2 seeds = 12 组配对、五类 probe 全部通过。
+- [x] public harness、基础 exploit、public-boundary 和 replay-integrity 控制。
+- [x] typed GP/RF acquisitions、task-aware greedy 和方法 distinctness 控制。
+- [x] score/replay、primary evidence、confirmatory freeze 和 method protocol 底座。
+- [x] Safe-GP 失败诊断：保留 flow 未达到预注册 SESOI 的负结果。
+- [x] SAC 100k 工程记账与回放诊断。
+- [x] 已确认旧 RL 49 维 Box 与完成实验 shaping 诱导 quick-close；旧 checkpoint 禁止用于正式能力结论。
+- [x] reactor state、操作叠加/重置、历史谱图访问和 Task Lab 学生动画审计。
+- [x] 核心 operation semantics、extractant identity coupling 和旧别名清理。
+- [x] 用户文档、站点、main/gh-pages 现有发布底座。
+- [x] Nature 稿件结构草案和 figure scaffold；仅为写作底座，不代表论文证据完成。
+
+## 10. 本地总门禁
+
+- [ ] `.\.venv\Scripts\python.exe scripts\manage_claims.py check`
+- [ ] `.\.venv\Scripts\python.exe scripts\audit_publication_protocol.py`
+- [ ] `.\.venv\Scripts\python.exe scripts\audit_publication_generalization_security.py`
+- [ ] `.\.venv\Scripts\python.exe scripts\run_release_gate.py`
+- [ ] `.\.venv\Scripts\python.exe -m pytest`
+- [ ] `.\.venv\Scripts\python.exe -m ruff check .`
+- [ ] `.\.venv\Scripts\python.exe -m mypy src`
+- [ ] `.\.venv\Scripts\python.exe -m mkdocs build --strict`
