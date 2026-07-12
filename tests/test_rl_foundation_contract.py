@@ -54,6 +54,8 @@ def test_protocol_is_nonclaiming_and_keeps_native_distribution_gap_visible() -> 
     assert protocol["evidence_policy"][
         "post_result_reward_or_hyperparameter_tuning_allowed"
     ] is False
+    assert protocol["world_foundation_preconditions"]["formal_training_allowed"] is False
+    assert protocol["training_infrastructure"]["device_must_be_explicit"] is True
 
 
 def test_dev_behavior_tracker_requires_core_flow_and_final_assay_per_experiment() -> None:
@@ -98,14 +100,19 @@ def test_dev_behavior_tracker_requires_core_flow_and_final_assay_per_experiment(
     ]
 
 
-def test_control_report_retains_failed_learning_gate() -> None:
+def test_control_report_retains_pre_foundation_learning_diagnostic() -> None:
     report = json.loads(REPORT.read_text(encoding="utf-8"))
-    assert report["status"] == "native_contract_remediated_learning_gate_failed"
-    assert report["validation"]["targeted_rl_tests_passed"] == 41
+    assert report["status"] == "pre_foundation_learning_diagnostic_infrastructure_blocked"
+    assert report["validation"]["targeted_rl_tests_passed"] == 36
     assert report["checks"]["native_hybrid_policy_distribution"] is True
     assert report["checks"]["five_seed_twenty_episode_gate"] is False
     assert report["checks"]["repeated_terminate_removed_from_affordances"] is True
-    assert report["gate_summary"]["passed_training_seed_count"] == 0
+    assert report["gate_summary"]["passed_training_seed_count"] == 1
+    assert report["gate_summary"]["status"] == "blocked"
+    curve = report["pre_foundation_learning_curve"]
+    assert curve["checkpoints"][1]["gate_passed"] is True
+    assert curve["five_seed_expansion"] == "stopped_before_seed_107_completion"
+    assert report["checks"]["world_foundation_preconditions_passed"] is False
     assert report["benchmark_claim_allowed"] is False
 
 

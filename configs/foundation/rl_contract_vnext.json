@@ -1,8 +1,8 @@
 {
-  "schema_version": "chemworld-foundation-rl-contract-protocol-0.2",
-  "protocol_id": "foundation-rl-contract-vnext-0.2",
-  "supersedes_protocol_id": "foundation-rl-contract-vnext",
-  "status": "remediation_candidate",
+  "schema_version": "chemworld-foundation-rl-contract-protocol-0.3",
+  "protocol_id": "foundation-rl-contract-vnext-0.3",
+  "supersedes_protocol_id": "foundation-rl-contract-vnext-0.2",
+  "status": "infrastructure_candidate_blocked_by_world_foundation",
   "benchmark_claim_allowed": false,
   "task_id": "flow-reaction-optimization",
   "action_contract": {
@@ -45,6 +45,7 @@
     "periodic_checkpoint_sidecar_required": true
   },
   "development_gate": {
+    "execution_status": "blocked_until_world_foundation_and_backend_freeze",
     "algorithm": "ppo",
     "training_seeds": [106, 107, 108, 109, 110],
     "preregistered_learning_curve_seed": 106,
@@ -75,6 +76,34 @@
     "runtime_domain_failure_count": 0,
     "observation_domain_failure_count": 0
   },
+  "training_infrastructure": {
+    "device_must_be_explicit": true,
+    "cuda_request_must_fail_if_unavailable": true,
+    "parallel_environment_candidates": [1, 4, 8],
+    "vectorization_candidates": ["dummy", "subprocess"],
+    "total_environment_step_accounting_required": true,
+    "checkpoint_step_accounting_required": true,
+    "throughput_and_hardware_manifest_required": true,
+    "current_local_runtime": {
+      "torch": "2.13.0+cpu",
+      "cuda_available": false,
+      "logical_cpu_count": 32,
+      "observed_average_process_cpu_cores": 1.28,
+      "formal_training_eligible": false
+    }
+  },
+  "world_foundation_preconditions": {
+    "required_shared_modules": [
+      "reaction_kinetics",
+      "reactors",
+      "spectroscopy_instruments"
+    ],
+    "shared_modules_must_not_be_lite": true,
+    "runtime_coupling_must_be_dynamically_verified": true,
+    "maturity_truth_gate_release_allowed": true,
+    "backend_version_and_hash_must_be_frozen": true,
+    "formal_training_allowed": false
+  },
   "evidence_policy": {
     "failed_pilots_retained": true,
     "five_seed_gate_may_not_be_replaced_by_a_scripted_policy": true,
@@ -82,6 +111,7 @@
     "formal_benchmark_ranking": false,
     "learning_curve_rule": "Train seed 106 once through all preregistered checkpoints. Select the earliest checkpoint satisfying every development gate. Expand unchanged to seeds 107-110 only if such a checkpoint exists.",
     "post_result_reward_or_hyperparameter_tuning_allowed": false,
-    "failed_curve_is_retained": true
+    "failed_curve_is_retained": true,
+    "pre_foundation_upgrade_learning_results": "diagnostic_only_and_invalid_for_final_algorithm_comparison"
   }
 }

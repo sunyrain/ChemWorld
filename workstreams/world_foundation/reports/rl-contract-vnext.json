@@ -1,12 +1,13 @@
 {
-  "schema_version": "chemworld-foundation-rl-contract-report-0.1",
-  "status": "native_contract_remediated_learning_gate_failed",
-  "generated_at": "2026-07-12T23:20:00+08:00",
-  "source_commit": "b268320",
+  "schema_version": "chemworld-foundation-rl-contract-report-0.2",
+  "status": "pre_foundation_learning_diagnostic_infrastructure_blocked",
+  "generated_at": "2026-07-13T00:15:00+08:00",
+  "source_commit": "c96a618",
   "source_tree_dirty": false,
   "protocol": {
     "path": "configs/foundation/rl_contract_vnext.json",
-    "sha256": "03128b71c8fd60a077c478bc6b02ed5ae25c69a1968fd390331b1e8880890b7c"
+    "sha256": "1be632f09270149eb933b986bee5504d1ecdec81017fcd4b0e242ae7033d42f1",
+    "protocol_id": "foundation-rl-contract-vnext-0.3"
   },
   "contracts": {
     "action_schema_version": "chemworld-conditional-hybrid-action-0.1",
@@ -35,11 +36,16 @@
     "native_hybrid_policy_distribution": true,
     "repeated_terminate_removed_from_affordances": true,
     "repeated_terminate_rolls_back": true,
-    "five_seed_twenty_episode_gate": false
+    "five_seed_twenty_episode_gate": false,
+    "training_device_is_explicit": true,
+    "cuda_request_fails_when_unavailable": true,
+    "vector_environment_step_accounting": true,
+    "world_foundation_preconditions_passed": false,
+    "throughput_benchmark_complete": false
   },
   "validation": {
-    "targeted_rl_test_count": 41,
-    "targeted_rl_tests_passed": 41,
+    "targeted_rl_test_count": 36,
+    "targeted_rl_tests_passed": 36,
     "ruff": "passed",
     "mypy": "passed",
     "runtime_domain_failure_count": 0,
@@ -113,18 +119,61 @@
       "gate_passed": false
     }
   ],
+  "pre_foundation_learning_curve": {
+    "status": "diagnostic_only_invalid_for_final_algorithm_comparison",
+    "model_seed": 106,
+    "training_source_commit": "c96a618",
+    "training_environment_steps": 102400,
+    "training_operation_budget": 60,
+    "wall_time_s": 2572.7539623000193,
+    "cpu_time_s": 3300.078125,
+    "device": "cpu",
+    "logical_cpu_count": 32,
+    "observed_average_process_cpu_cores": 1.28,
+    "training_behavior_complete_experiment_count": 8804,
+    "training_completed_experiment_count": 9607,
+    "training_quick_close_rate": 0.08358488602060997,
+    "checkpoints": [
+      {
+        "training_environment_steps": 25600,
+        "dev_episode_completion_rate": 0.0,
+        "dev_behavior_complete_experiment_rate": 0.0,
+        "dev_quick_close_rate": 0.0,
+        "gate_passed": false
+      },
+      {
+        "training_environment_steps": 51200,
+        "dev_episode_completion_rate": 1.0,
+        "dev_complete_experiment_count": 140,
+        "dev_behavior_complete_experiment_rate": 1.0,
+        "dev_quick_close_rate": 0.0,
+        "dev_invalid_action_rate": 0.0,
+        "dev_runtime_domain_failure_count": 0,
+        "dev_observation_domain_failure_count": 0,
+        "gate_passed": true
+      },
+      {
+        "training_environment_steps": 102400,
+        "status": "retained_not_selected_earliest_passing_checkpoint_rule",
+        "gate_passed": null
+      }
+    ],
+    "five_seed_expansion": "stopped_before_seed_107_completion",
+    "invalidation_reason": "Reaction kinetics and synthetic instrument providers used by the flow task remain lite; all 15 task maturity aggregates remain lite, and the backend is not frozen."
+  },
   "gate_summary": {
     "required_training_seed_count": 5,
     "required_dev_episode_count_per_seed": 20,
     "current_contract_training_seed_count": 1,
-    "passed_training_seed_count": 0,
-    "status": "failed",
-    "reason": "The native distribution and repeated-terminate defect are fixed, but the 10k-step pilot still converges to repeated configuration and does not complete Dev experiments. A predeclared longer learning-curve budget is required before multiseed expansion."
+    "passed_training_seed_count": 1,
+    "status": "blocked",
+    "reason": "Seed 106 established that the repaired semantic contract is learnable at 51,200 steps, but the five-seed expansion was stopped because shared lite world modules, runtime coupling, maturity truth, backend freeze, and training infrastructure are incomplete."
   },
   "remaining_work": [
-    "Run a preregistered single-seed learning curve at materially larger budgets without further reward tuning.",
-    "Repeat the five independent training seeds and twenty Dev episodes only after a learning-curve checkpoint passes the behavioral gate.",
-    "Do not use a scripted policy as a substitute for the learning gate."
+    "Upgrade reaction_kinetics, reactors, and spectroscopy_instruments and dynamically verify every task provider route.",
+    "Pass the maturity truth gate and freeze a versioned backend hash before any final algorithm training.",
+    "Benchmark 1/4/8 environment CPU vectorization and an explicit CUDA runtime without changing the semantic action, reward, observation, or world allocation contracts.",
+    "Rerun the preregistered five-seed gate only on the frozen final backend; retain this pre-upgrade curve as diagnostic evidence only."
   ],
   "benchmark_claim_allowed": false,
   "publication_ready": false

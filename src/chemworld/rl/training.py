@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import platform
 import re
 import sys
+from collections.abc import Callable
+from functools import partial
 from pathlib import Path
 from time import perf_counter, process_time
 from typing import Any, Literal
@@ -18,6 +21,8 @@ from chemworld.rl.hybrid_policy import (
 )
 
 AlgorithmName = Literal["ppo", "sac"]
+TrainingDevice = Literal["cpu", "cuda"]
+VectorizationBackend = Literal["dummy", "subprocess"]
 
 
 def _sha256(path: Path) -> str:
@@ -44,6 +49,46 @@ def _optional_wrapper_payload(env: Any, method: str) -> dict[str, Any] | None:
     return None
 
 
+def _aggregate_training_diagnostics(items: list[dict[str, Any]]) -> dict[str, Any]:
+    if not items:
+        raise RuntimeError("vectorized RL training returned no environment diagnostics")
+    count_keys = {
+        "step_count",
+        "episode_count",
+        "invalid_action_count",
+        "runtime_domain_failure_count",
+        "measurement_count",
+        "completed_experiment_count",
+        "behavior_complete_experiment_count",
+        "quick_close_count",
+        "core_requirement_satisfied_count",
+        "newly_unlocked_operation_count",
+        "unsafe_step_count",
+        "high_cost_step_count",
+    }
+    sum_keys = {"raw_reward_sum", "shaped_reward_sum"}
+    payload: dict[str, Any] = {
+        key: sum(int(item.get(key, 0)) for item in items) for key in count_keys
+    }
+    payload.update(
+        {key: sum(float(item.get(key, 0.0)) for item in items) for key in sum_keys}
+    )
+    core_counts: dict[str, int] = {}
+    for item in items:
+        for operation, count in dict(item.get("core_operation_counts", {})).items():
+            core_counts[str(operation)] = core_counts.get(str(operation), 0) + int(count)
+    payload["core_operation_counts"] = dict(sorted(core_counts.items()))
+    steps = max(int(payload["step_count"]), 1)
+    completed = max(int(payload["completed_experiment_count"]), 1)
+    payload["invalid_action_rate"] = payload["invalid_action_count"] / steps
+    payload["completed_experiments_per_1000_steps"] = (
+        1000.0 * payload["completed_experiment_count"] / steps
+    )
+    payload["quick_close_rate"] = payload["quick_close_count"] / completed
+    payload["environment_count"] = len(items)
+    return payload
+
+
 def train_sb3_baseline(
     *,
     algorithm: AlgorithmName,
@@ -56,6 +101,9 @@ def train_sb3_baseline(
     operation_budget: int | None = None,
     checkpoint_interval_steps: int | None = None,
     save_replay_buffer: bool = False,
+    parallel_environments: int = 1,
+    vectorization_backend: VectorizationBackend = "dummy",
+    device: TrainingDevice = "cpu",
 ) -> dict[str, Any]:
     """Train one baseline and retain the model plus a complete compute manifest."""
 
@@ -67,35 +115,71 @@ def train_sb3_baseline(
         raise ValueError("checkpoint_interval_steps must be positive")
     if allocation.name != "train":
         raise ValueError("formal RL training accepts only the train allocation")
+    if parallel_environments <= 0:
+        raise ValueError("parallel_environments must be positive")
+    if vectorization_backend not in {"dummy", "subprocess"}:
+        raise ValueError("vectorization_backend must be dummy or subprocess")
+    if parallel_environments == 1 and vectorization_backend == "subprocess":
+        raise ValueError("subprocess vectorization requires at least two environments")
+    if checkpoint_interval_steps is not None and (
+        checkpoint_interval_steps % parallel_environments
+    ):
+        raise ValueError(
+            "checkpoint_interval_steps must be divisible by parallel_environments"
+        )
     try:
         import stable_baselines3 as sb3
         import torch
         from stable_baselines3.common.callbacks import CheckpointCallback
+        from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
     except ImportError as exc:
         raise RuntimeError("install ChemWorld with the 'rl' extra to train PPO or SAC") from exc
 
     algorithm_class = sb3.PPO if algorithm == "ppo" else sb3.SAC
-    env = build_rl_environment(
+    if device == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA training was requested but this PyTorch runtime has no CUDA")
+    requested_device = device
+    probe_env = build_rl_environment(
         task_id=task_id,
         allocation=allocation,
         sampler_seed=model_seed,
         operation_budget=operation_budget,
         training_reward=True,
     )
+    try:
+        action_contract = _action_contract(probe_env)
+        training_reward_contract = _optional_wrapper_payload(
+            probe_env, "reward_contract"
+        )
+        observation_shape = list(probe_env.observation_space.shape or ())
+    finally:
+        probe_env.close()
+    env_factories: list[Callable[[], Any]] = [
+        partial(
+            build_rl_environment,
+            task_id=task_id,
+            allocation=allocation,
+            sampler_seed=model_seed + rank,
+            operation_budget=operation_budget,
+            training_reward=True,
+        )
+        for rank in range(parallel_environments)
+    ]
+    if vectorization_backend == "subprocess":
+        env: Any = SubprocVecEnv(env_factories, start_method="spawn")
+    else:
+        env = DummyVecEnv(env_factories)
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     checkpoint_stem = output / f"{algorithm}-{task_id}-seed{model_seed}"
     periodic_dir = output / "checkpoints"
-    action_contract = _action_contract(env)
     action_contract_hash = str(action_contract.get("contract_hash", ""))
     if len(action_contract_hash) != 64:
         raise RuntimeError("RL action contract is missing its compatibility hash")
-    training_reward_contract = _optional_wrapper_payload(env, "reward_contract")
     if training_reward_contract is None or len(
         str(training_reward_contract.get("contract_hash", ""))
     ) != 64:
         raise RuntimeError("RL training reward contract is missing its compatibility hash")
-    observation_shape = list(env.observation_space.shape or ())
     parameter_keys = tuple(
         str(item)
         for item in action_contract["training_adapter"]["parameter_coordinate_keys"]
@@ -124,7 +208,7 @@ def train_sb3_baseline(
         if checkpoint_interval_steps is not None:
             periodic_dir.mkdir(parents=True, exist_ok=True)
             callback = CheckpointCallback(
-                save_freq=checkpoint_interval_steps,
+                save_freq=checkpoint_interval_steps // parallel_environments,
                 save_path=str(periodic_dir),
                 name_prefix=checkpoint_stem.name,
                 save_replay_buffer=save_replay_buffer,
@@ -135,7 +219,7 @@ def train_sb3_baseline(
             env,
             seed=model_seed,
             verbose=0,
-            device="auto",
+            device=device,
             policy_kwargs=policy_kwargs,
             **resolved_algorithm_kwargs,
         )
@@ -146,8 +230,10 @@ def train_sb3_baseline(
         )
         model.save(checkpoint_stem)
         actual_timesteps = int(model.num_timesteps)
-        device = str(model.device)
-        training_diagnostics = _optional_wrapper_payload(env, "training_diagnostics")
+        resolved_device = str(model.device)
+        training_diagnostics = _aggregate_training_diagnostics(
+            [dict(item) for item in env.env_method("training_diagnostics")]
+        )
     finally:
         env.close()
     wall_time_s = perf_counter() - wall_started
@@ -226,10 +312,26 @@ def train_sb3_baseline(
         "periodic_checkpoint_contract_manifests": periodic_contract_manifests,
         "replay_buffer_checkpointed": bool(save_replay_buffer),
         "operation_budget": operation_budget,
+        "training_infrastructure": {
+            "parallel_environments": parallel_environments,
+            "vectorization_backend": vectorization_backend,
+            "requested_device": requested_device,
+            "resolved_device": resolved_device,
+            "logical_cpu_count": os.cpu_count(),
+            "torch_num_threads": torch.get_num_threads(),
+            "cuda_available": torch.cuda.is_available(),
+            "torch_cuda_version": torch.version.cuda,
+            "cuda_device_name": (
+                torch.cuda.get_device_name(0) if torch.cuda.is_available() else None
+            ),
+            "environment_steps_per_wall_second": actual_timesteps
+            / max(wall_time_s, 1e-12),
+            "average_process_cpu_cores": cpu_time_s / max(wall_time_s, 1e-12),
+        },
         "wall_time_s": wall_time_s,
         "cpu_time_s": cpu_time_s,
         "gpu_time_s": 0.0,
-        "device": device,
+        "device": resolved_device,
         "checkpoint": checkpoint.name,
         "checkpoint_sha256": _sha256(checkpoint),
         "versions": {

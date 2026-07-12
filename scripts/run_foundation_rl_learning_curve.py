@@ -27,10 +27,17 @@ REPORT_PATH = ROOT / "workstreams/world_foundation/reports/rl-contract-vnext.jso
 
 def load_protocol(path: str | Path = PROTOCOL_PATH) -> dict[str, Any]:
     protocol = load_rl_protocol(path)
-    if protocol.get("schema_version") != "chemworld-foundation-rl-contract-protocol-0.2":
+    if protocol.get("schema_version") != "chemworld-foundation-rl-contract-protocol-0.3":
         raise ValueError("unsupported foundation RL contract protocol")
     if protocol.get("benchmark_claim_allowed") is not False:
         raise ValueError("foundation RL learning runs must remain nonclaiming")
+    if protocol.get("world_foundation_preconditions", {}).get(
+        "formal_training_allowed"
+    ) is not True:
+        raise RuntimeError(
+            "RL training is blocked until shared lite modules, runtime coupling, "
+            "maturity truth, and backend freeze all pass"
+        )
     gate = protocol["development_gate"]
     seeds = [int(seed) for seed in gate["training_seeds"]]
     checkpoints = [int(step) for step in gate["training_environment_step_checkpoints"]]
