@@ -10,40 +10,76 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from scripts.audit_maturity_truth_vnext import (
-    build_report as build_maturity_report,
-)
-from scripts.audit_maturity_truth_vnext import (
-    load_protocol as load_maturity_protocol,
-)
-from scripts.audit_maturity_truth_vnext import (
-    validate_report as validate_maturity_report,
-)
-from scripts.audit_public_boundary_security_vnext import (
-    build_report as build_public_boundary_report,
-)
-from scripts.audit_public_boundary_security_vnext import (
-    load_protocol as load_public_boundary_protocol,
-)
-from scripts.audit_runtime_reachability_vnext import (
-    build_report as build_reachability_report,
-)
-from scripts.audit_runtime_reachability_vnext import (
-    load_protocol as load_reachability_protocol,
-)
-from scripts.audit_runtime_reachability_vnext import (
-    validate_report as validate_reachability_report,
-)
-from scripts.audit_state_transition_invariants import (
-    build_report as build_state_report,
-)
-from scripts.audit_state_transition_invariants import (
-    load_protocol as load_state_protocol,
-)
-from scripts.audit_state_transition_invariants import (
-    validate_report as validate_state_report,
-)
-from scripts.audit_vnext_runtime_integration import build_audit as build_runtime_audit
+if __package__:
+    from scripts.audit_maturity_truth_vnext import (
+        build_report as build_maturity_report,
+    )
+    from scripts.audit_maturity_truth_vnext import (
+        load_protocol as load_maturity_protocol,
+    )
+    from scripts.audit_maturity_truth_vnext import (
+        validate_report as validate_maturity_report,
+    )
+    from scripts.audit_public_boundary_security_vnext import (
+        build_report as build_public_boundary_report,
+    )
+    from scripts.audit_public_boundary_security_vnext import (
+        load_protocol as load_public_boundary_protocol,
+    )
+    from scripts.audit_runtime_reachability_vnext import (
+        build_report as build_reachability_report,
+    )
+    from scripts.audit_runtime_reachability_vnext import (
+        load_protocol as load_reachability_protocol,
+    )
+    from scripts.audit_runtime_reachability_vnext import (
+        validate_report as validate_reachability_report,
+    )
+    from scripts.audit_state_transition_invariants import (
+        build_report as build_state_report,
+    )
+    from scripts.audit_state_transition_invariants import (
+        load_protocol as load_state_protocol,
+    )
+    from scripts.audit_state_transition_invariants import (
+        validate_report as validate_state_report,
+    )
+    from scripts.audit_vnext_runtime_integration import build_audit as build_runtime_audit
+else:
+    from audit_maturity_truth_vnext import (
+        build_report as build_maturity_report,
+    )
+    from audit_maturity_truth_vnext import (
+        load_protocol as load_maturity_protocol,
+    )
+    from audit_maturity_truth_vnext import (
+        validate_report as validate_maturity_report,
+    )
+    from audit_public_boundary_security_vnext import (
+        build_report as build_public_boundary_report,
+    )
+    from audit_public_boundary_security_vnext import (
+        load_protocol as load_public_boundary_protocol,
+    )
+    from audit_runtime_reachability_vnext import (
+        build_report as build_reachability_report,
+    )
+    from audit_runtime_reachability_vnext import (
+        load_protocol as load_reachability_protocol,
+    )
+    from audit_runtime_reachability_vnext import (
+        validate_report as validate_reachability_report,
+    )
+    from audit_state_transition_invariants import (
+        build_report as build_state_report,
+    )
+    from audit_state_transition_invariants import (
+        load_protocol as load_state_protocol,
+    )
+    from audit_state_transition_invariants import (
+        validate_report as validate_state_report,
+    )
+    from audit_vnext_runtime_integration import build_audit as build_runtime_audit
 
 from chemworld.physchem.maturity import MaturityLevel
 from chemworld.tasks import list_tasks
