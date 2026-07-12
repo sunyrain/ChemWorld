@@ -9,7 +9,7 @@
         "wait",
         "run_flow"
       ],
-      "manifest_hash": "99b3bf029c9a4e34a96f5a73267a3f1ccc24951cbd263375ebb7be4f7e523ada",
+      "manifest_hash": "9372657425b2196e562bed15e8a93de6e566d58529090b343f300f86e825b894",
       "owned_paths": [
         "src/chemworld/physchem/reaction_rate_contracts.py",
         "src/chemworld/physchem/reaction_adapter_manifest.py",
@@ -23,6 +23,7 @@
           "equation_id",
           "forward_order",
           "effective_forward_order",
+          "kinetic_basis",
           "violations"
         ],
         "failure_policy": "return an unsuccessful ModelProviderResult with explicit declaration violations; never infer missing units or mutate the mechanism",
@@ -57,6 +58,8 @@
           "rate law is in the supported Arrhenius family",
           "pre-exponential factors are finite and positive",
           "temperature exponents and activation energies are finite",
+          "concentration/activity basis and standard concentration are explicit",
+          "explicit reaction orders are finite and nonnegative",
           "reversible, third-body, and falloff declarations are complete"
         ]
       },
@@ -708,14 +711,30 @@
           ],
           "status": "implemented",
           "tolerance": null
+        },
+        {
+          "command_or_path": "tests/test_instruments_reference.py",
+          "description": "Anonymous public UV-vis packets replay exactly by seed and distinguish declared concentration perturbations.",
+          "evidence_id": "uvvis-public-boundary-and-identifiability",
+          "evidence_type": "integration_test",
+          "existing_repository_paths": [
+            "tests/test_instruments_reference.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_instruments_reference.py"
+          ],
+          "status": "implemented",
+          "tolerance": "exact replay and predeclared RMSE separation thresholds"
         }
       ],
       "model_id": "beer_lambert_uvvis",
       "module_id": "spectroscopy_instruments",
       "professional_candidate_checks": {
         "conservation_evidence": false,
-        "coupling_evidence": false,
-        "cross_reference_cases": false,
+        "coupling_evidence": true,
+        "cross_reference_cases": true,
         "failure_domain_evidence": true,
         "reference_validated_checks": true,
         "runtime_diagnostics": true,
@@ -1316,14 +1335,30 @@
           ],
           "status": "implemented",
           "tolerance": null
+        },
+        {
+          "command_or_path": "tests/test_instruments_reference.py",
+          "description": "Anonymous public HPLC/GC packets preserve retention/plate closure, seeded replay, missingness, and composition sensitivity.",
+          "evidence_id": "chromatography-public-boundary-and-identifiability",
+          "evidence_type": "integration_test",
+          "existing_repository_paths": [
+            "tests/test_instruments_reference.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_instruments_reference.py"
+          ],
+          "status": "implemented",
+          "tolerance": "analytical closure and explicit leakage denylist"
         }
       ],
       "model_id": "chromatography_retention_plate",
       "module_id": "spectroscopy_instruments",
       "professional_candidate_checks": {
-        "conservation_evidence": false,
-        "coupling_evidence": false,
-        "cross_reference_cases": false,
+        "conservation_evidence": true,
+        "coupling_evidence": true,
+        "cross_reference_cases": true,
         "failure_domain_evidence": true,
         "reference_validated_checks": true,
         "runtime_diagnostics": true,
@@ -1878,36 +1913,88 @@
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
-          "command_or_path": "tests/test_reactor_models.py",
+          "command_or_path": "tests/test_reactor_models.py; tests/test_reactor_reference.py",
           "description": "Exothermic reaction with NASA7 enthalpy produces the expected adiabatic temperature rise from the integrated reaction-heat ledger.",
           "evidence_id": "dynamic-batch-adiabatic-rise-test",
           "evidence_type": "unit_test",
           "existing_repository_paths": [
-            "tests/test_reactor_models.py"
+            "tests/test_reactor_models.py",
+            "tests/test_reactor_reference.py"
           ],
           "path_valid": true,
           "reference_backend": null,
           "repository_paths": [
-            "tests/test_reactor_models.py"
+            "tests/test_reactor_models.py",
+            "tests/test_reactor_reference.py"
           ],
           "status": "implemented",
           "tolerance": "pytest.approx local tolerances"
         },
         {
-          "command_or_path": "tests/test_reactor_models.py",
+          "command_or_path": "tests/test_reactor_models.py; tests/test_reactor_reference.py",
           "description": "Destructive sampling reduces volume, records material_out, and preserves elemental material balance.",
           "evidence_id": "dynamic-batch-sampling-ledger-test",
           "evidence_type": "unit_test",
           "existing_repository_paths": [
-            "tests/test_reactor_models.py"
+            "tests/test_reactor_models.py",
+            "tests/test_reactor_reference.py"
           ],
           "path_valid": true,
           "reference_backend": null,
           "repository_paths": [
-            "tests/test_reactor_models.py"
+            "tests/test_reactor_models.py",
+            "tests/test_reactor_reference.py"
           ],
           "status": "implemented",
           "tolerance": "material balance error < 1e-8 mol"
+        },
+        {
+          "command_or_path": "tests/test_reactor_reference.py",
+          "description": "First-order isothermal batch conversion matches exp(-kt), and a retried operation id does not advance time or energy twice.",
+          "evidence_id": "batch-first-order-and-idempotent-advance-test",
+          "evidence_type": "analytical_test",
+          "existing_repository_paths": [
+            "tests/test_reactor_reference.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_reactor_reference.py"
+          ],
+          "status": "implemented",
+          "tolerance": "2e-6 relative; exact retry state equality"
+        },
+        {
+          "command_or_path": "tests/test_reactor_reference.py",
+          "description": "Matched volumetric feed/withdrawal holds volume while material-in, material-out, inventory, and elemental balance close.",
+          "evidence_id": "semibatch-feed-withdrawal-ledger-closure",
+          "evidence_type": "analytical_test",
+          "existing_repository_paths": [
+            "tests/test_reactor_reference.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_reactor_reference.py"
+          ],
+          "status": "implemented",
+          "tolerance": "material balance error < 1e-8 mol"
+        },
+        {
+          "command_or_path": "tests/test_reactor_reference.py",
+          "description": "An exhaustive withdrawal schedule fails before ODE integration.",
+          "evidence_id": "semibatch-volume-exhaustion-failure",
+          "evidence_type": "failure_injection",
+          "existing_repository_paths": [
+            "tests/test_reactor_reference.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_reactor_reference.py"
+          ],
+          "status": "implemented",
+          "tolerance": "deterministic ValueError"
         }
       ],
       "model_id": "dynamic_batch_heat_release_jacket_sampling",
@@ -1942,17 +2029,19 @@
       "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
-          "command_or_path": "tests/test_reactor_models.py",
+          "command_or_path": "tests/test_reactor_models.py; tests/test_reactor_reference.py",
           "description": "No-reaction startup matches the closed-form dilution response using the time integral of the linear flow scale.",
           "evidence_id": "cstr-startup-analytical-limit",
           "evidence_type": "analytical_test",
           "existing_repository_paths": [
-            "tests/test_reactor_models.py"
+            "tests/test_reactor_models.py",
+            "tests/test_reactor_reference.py"
           ],
           "path_valid": true,
           "reference_backend": null,
           "repository_paths": [
-            "tests/test_reactor_models.py"
+            "tests/test_reactor_models.py",
+            "tests/test_reactor_reference.py"
           ],
           "status": "implemented",
           "tolerance": "2e-6 relative and material balance < 1e-8 mol"
@@ -1972,6 +2061,22 @@
           ],
           "status": "implemented",
           "tolerance": "2e-6 relative and material balance < 1e-8 mol"
+        },
+        {
+          "command_or_path": "tests/test_reactor_reference.py",
+          "description": "The first-order steady state matches C_Af/(1+k tau), and the generic dynamic solve must pass an explicit species-residual gate.",
+          "evidence_id": "cstr-first-order-design-and-residual-gate",
+          "evidence_type": "analytical_test",
+          "existing_repository_paths": [
+            "tests/test_reactor_reference.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_reactor_reference.py"
+          ],
+          "status": "implemented",
+          "tolerance": "2e-6 relative; residual <= 1e-8 mol/s"
         }
       ],
       "model_id": "dynamic_cstr_startup_shutdown",
@@ -2641,9 +2746,9 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "reference_validated",
-      "effective_evidence_maturity": "lite",
+      "effective_evidence_maturity": "reference_validated",
       "evidence": [
         {
           "command_or_path": "tests/test_spectroscopy.py",
@@ -2659,7 +2764,7 @@
             "tests/test_spectroscopy.py"
           ],
           "status": "implemented",
-          "tolerance": null
+          "tolerance": "exact functional-region membership and positive bounded widths"
         },
         {
           "command_or_path": "tests/test_spectroscopy.py",
@@ -2675,7 +2780,7 @@
             "tests/test_spectroscopy.py"
           ],
           "status": "implemented",
-          "tolerance": null
+          "tolerance": "transmittance in [0, 1] and explicit overlap boolean"
         }
       ],
       "model_id": "ir_functional_group_bands",
@@ -2683,9 +2788,9 @@
       "professional_candidate_checks": {
         "conservation_evidence": false,
         "coupling_evidence": false,
-        "cross_reference_cases": false,
+        "cross_reference_cases": true,
         "failure_domain_evidence": true,
-        "reference_validated_checks": false,
+        "reference_validated_checks": true,
         "runtime_diagnostics": false,
         "runtime_provenance": false
       },
@@ -2693,7 +2798,7 @@
         "analytical_literature_or_independent_reference": true,
         "completed_evidence_present": true,
         "failure_domain_evidence": true,
-        "numerical_tolerance_and_repository_path": false,
+        "numerical_tolerance_and_repository_path": true,
         "required_card_fields_present": true
       }
     },
@@ -3163,6 +3268,54 @@
         "required_card_fields_present": true
       }
     },
+    "potentiometric_ph_public_reference": {
+      "card_fields_present": {
+        "equations": true,
+        "failure_modes": true,
+        "reference_reading": true,
+        "validation_evidence": true,
+        "validity_limits": true
+      },
+      "claim_verified": true,
+      "declared_maturity": "reference_validated",
+      "effective_evidence_maturity": "reference_validated",
+      "evidence": [
+        {
+          "command_or_path": "tests/test_instruments_reference.py",
+          "description": "Known hydrogen activity and balanced ion mixtures close to machine precision; public packet carries calibration and uncertainty.",
+          "evidence_id": "ph-charge-balance-reference-closure",
+          "evidence_type": "analytical_and_integration_test",
+          "existing_repository_paths": [
+            "tests/test_instruments_reference.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_instruments_reference.py"
+          ],
+          "status": "implemented",
+          "tolerance": "1e-12 pH and charge-balance closure"
+        }
+      ],
+      "model_id": "potentiometric_ph_public_reference",
+      "module_id": "spectroscopy_instruments",
+      "professional_candidate_checks": {
+        "conservation_evidence": true,
+        "coupling_evidence": true,
+        "cross_reference_cases": false,
+        "failure_domain_evidence": true,
+        "reference_validated_checks": true,
+        "runtime_diagnostics": false,
+        "runtime_provenance": false
+      },
+      "reference_validated_checks": {
+        "analytical_literature_or_independent_reference": true,
+        "completed_evidence_present": true,
+        "failure_domain_evidence": true,
+        "numerical_tolerance_and_repository_path": true,
+        "required_card_fields_present": true
+      }
+    },
     "pressure_temperature_runaway_safety_envelope_v1": {
       "card_fields_present": {
         "equations": true,
@@ -3384,6 +3537,22 @@
           "tolerance": "rtol=1e-7, atol=1e-9 mol"
         },
         {
+          "command_or_path": "tests/test_reaction_kinetics_reference.py",
+          "description": "ChemWorld LSODA trajectories are compared with a separately invoked tight-tolerance SciPy DOP853 boundary for both analytical cases.",
+          "evidence_id": "independent-scipy-method-cross-check",
+          "evidence_type": "reference_test",
+          "existing_repository_paths": [
+            "tests/test_reaction_kinetics_reference.py"
+          ],
+          "path_valid": true,
+          "reference_backend": "scipy.integrate.solve_ivp",
+          "repository_paths": [
+            "tests/test_reaction_kinetics_reference.py"
+          ],
+          "status": "implemented",
+          "tolerance": "comparison rtol=2e-7, atol=2e-9 mol"
+        },
+        {
           "command_or_path": "tests/reference/test_optional_reference_backends.py",
           "description": "If Cantera is importable, compare ChemWorld Arrhenius rate constants against ct.ArrheniusRate for the same A, b, Ea.",
           "evidence_id": "cantera-arrhenius-rate-optional",
@@ -3398,6 +3567,38 @@
           ],
           "status": "implemented_optional",
           "tolerance": "rtol=1e-12"
+        },
+        {
+          "command_or_path": "tests/test_reaction_kinetics_reference.py",
+          "description": "A Robertson-like network exercises BDF with a supplied finite-difference Jacobian, nonnegativity and invariant drift; a DOP853 case verifies terminal event localization.",
+          "evidence_id": "stiff-jacobian-conservation-event-tests",
+          "evidence_type": "unit_test",
+          "existing_repository_paths": [
+            "tests/test_reaction_kinetics_reference.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_reaction_kinetics_reference.py"
+          ],
+          "status": "implemented",
+          "tolerance": "conservation drift <1e-7 mol"
+        },
+        {
+          "command_or_path": "tests/test_reaction_kinetics_reference.py",
+          "description": "Parallel/series competition produces distinct signed kinetic sensitivities and catalyst loading/deactivation changes product response.",
+          "evidence_id": "competition-deactivation-response-tests",
+          "evidence_type": "response_test",
+          "existing_repository_paths": [
+            "tests/test_reaction_kinetics_reference.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_reaction_kinetics_reference.py"
+          ],
+          "status": "implemented",
+          "tolerance": "all declared response directions and >1e-3 sensitivity"
         },
         {
           "command_or_path": "tests/test_reaction_network.py",
@@ -3973,8 +4174,8 @@
     "task_count_exact": true,
     "task_routes_exact": true
   },
-  "error_count": 65,
-  "finding_count": 65,
+  "error_count": 64,
+  "finding_count": 64,
   "findings": [
     {
       "check_id": "high_provider_missing_model_card",
@@ -4387,14 +4588,6 @@
       "declared": "reference_validated",
       "effective": "lite",
       "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "ir_functional_group_bands",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "reference_validated",
-      "effective": "lite",
-      "message": "model card maturity exceeds its strict evidence result",
       "model_id": "lle_tpd_style_phase_stability",
       "severity": "error"
     },
@@ -4468,7 +4661,7 @@
     "A truthful blocked report does not silently rewrite model or task maturity labels.",
     "Professional is not awarded by this candidate-stage protocol."
   ],
-  "model_card_count": 55,
+  "model_card_count": 56,
   "protocol_id": "foundation-maturity-truth-vnext",
   "protocol_sha256": "6698e2c43a6fe7dc4e1b0a0facf403dca18ca2f67e1a38dd330070f84326c3c6",
   "provider_assessments": {
@@ -4927,7 +5120,7 @@
     "sha256": "65ecddef66ce91b21258294c627f9bafa70543d37f208b2be6fd63e4cbeb6baa"
   },
   "release_allowed": false,
-  "report_hash": "ff22896ebfb749854d7470c7cc1e9b19b7714aaa5decbfc63562d3d545f12f05",
+  "report_hash": "a4a029411c609b7e541229ddd7367b13a921f7ad9f5a1d951adc4aaf8f86e497",
   "runtime_execution_evidence": {
     "executed_model_ids": [
       "chemworld_duty_limited_distillation_vnext",
@@ -4942,7 +5135,7 @@
   },
   "runtime_structural_findings": [],
   "schema_version": "chemworld-foundation-maturity-truth-report-0.1",
-  "source_commit": "e38e3554ba53ee77fe6b5cd16efddcc3969a6f50",
+  "source_commit": "0022bc21e2924efa3af03b675041d54e67c18ad0",
   "source_tree_dirty": true,
   "status": "maturity_claims_blocked",
   "task_assessments": {
