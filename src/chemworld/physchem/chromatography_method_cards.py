@@ -21,6 +21,7 @@ def chromatography_method_model_cards() -> tuple[ModelCard, ...]:
                 "HPLC: log10(k) = log10(k_ref) - S_phi(phi-phi_ref) + S_T(T-T_ref)",
                 "GC: ln(k/k_ref) = -DeltaH_ret/R (1/T - 1/T_ref)",
                 "t_R = t_M(1 + k)",
+                "w_b = 4 t_R / sqrt(N)",
                 "I = 100[n + (N-n)(ln t'_R - ln t'_n)/(ln t'_N - ln t'_n)]",
                 "detector response = intercept + slope concentration",
                 "LOD = 3.3 sigma/slope; LOQ = 10 sigma/slope",
@@ -34,6 +35,7 @@ def chromatography_method_model_cards() -> tuple[ModelCard, ...]:
                 "and column conditions.",
                 "Detector calibration is linear over the declared standards.",
                 "Peak asymmetry is classified from a supplied tailing factor.",
+                "Plate count is a declared synthetic method parameter, not fitted column data.",
             ),
             validity_limits=(
                 "HPLC mobile-phase fraction is restricted to [0, 1].",
@@ -41,6 +43,7 @@ def chromatography_method_model_cards() -> tuple[ModelCard, ...]:
                 "strictly bracketed by two n-alkane anchors.",
                 "At least three concentration-response standards are required.",
                 "The model does not extrapolate a global retention database.",
+                "No claim is made that the synthetic trace predicts a real sample or column.",
             ),
             failure_modes=(
                 "Instrument/method mismatches and invalid fractions fail early.",
@@ -91,8 +94,9 @@ def chromatography_method_model_cards() -> tuple[ModelCard, ...]:
                 ),
             ),
             model_limit_notes=(
-                "Professional-candidate refers to the method-card and "
-                "calibration contract, not ab initio retention prediction.",
+                "The declared professional-candidate label is not established by the "
+                "bounded synthetic observation contract; the strict maturity gate may "
+                "downgrade it until runtime diagnostics and provenance are bound.",
                 "Gradient profiles, column aging, mass overload, adsorption "
                 "isotherms, and full asymmetric peak synthesis remain external.",
             ),

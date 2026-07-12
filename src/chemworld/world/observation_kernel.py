@@ -40,6 +40,13 @@ def raw_signal(
     seed: int = 0,
     replicate_count: int = 1,
 ) -> dict[str, Any]:
+    """Synthesize one bounded public signal packet.
+
+    ``species_amounts_mol`` may contain only task-public aggregate channels at
+    the runtime boundary.  The returned packet is explicitly synthetic and
+    carries anonymous assignments rather than mechanism species identities.
+    """
+
     if instrument_id == "uvvis":
         return uvvis_spectrum(
             values,
@@ -131,7 +138,16 @@ def base_observed_mask() -> dict[str, bool]:
 class ObservationModuleSpec:
     module_id: str = "instrument_observation"
     version: str = "0.4"
-    layers: tuple[str, ...] = ("raw_signal", "processed_estimate", "uncertainty")
+    layers: tuple[str, ...] = (
+        "sample_state",
+        "raw_signal",
+        "peaks",
+        "assignments",
+        "processed_estimate",
+        "uncertainty",
+        "calibration",
+        "missingness",
+    )
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -139,6 +155,13 @@ class ObservationModuleSpec:
             "version": self.version,
             "layers": list(self.layers),
             "partial_observation": True,
+            "history_access": "on_demand_by_public_spectrum_id",
+            "history_delivery": "catalog_first_then_requested_packet",
+            "measurement_accounting": "cost_sample_failure_and_operation_ledger",
+            "masking_policy": "mask_spectral_evidence_only_without_world_state_mutation",
+            "synthetic_boundary": (
+                "not a real-instrument emulator and not an empirical sample-spectrum predictor"
+            ),
             "downstream_keys": list(DOWNSTREAM_OBSERVATION_KEYS),
             "equilibrium_keys": list(EQUILIBRIUM_OBSERVATION_KEYS),
         }

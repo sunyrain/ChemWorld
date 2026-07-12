@@ -1,0 +1,140 @@
+{
+  "schema_version": "chemworld-foundation-instruments-reference-report-0.1",
+  "task_id": "foundation-instruments-reference",
+  "branch": "core/foundation-instruments-reference",
+  "base_commit": "0e52100e011681b1fd0b685d3c2efc753bcca47f",
+  "completed_at": "2026-07-12T16:57:34Z",
+  "status": "bounded_synthetic_observation_contract_reference_validated",
+  "task_complete": true,
+  "scope": {
+    "public_instruments": [
+      "uvvis",
+      "ph_meter",
+      "gc",
+      "hplc",
+      "final_assay"
+    ],
+    "public_signal_schema": "chemworld-public-synthetic-signal-0.2",
+    "observation_module_version": "0.4",
+    "synthetic_boundary": "The implementation is a bounded synthetic benchmark instrument and does not predict real samples, replace empirical spectral libraries, or emulate a physical device."
+  },
+  "implemented_contracts": {
+    "instrument_contract": {
+      "passed": true,
+      "fields": [
+        "input sample state",
+        "axis and unit",
+        "calibration",
+        "LOD and LOQ",
+        "saturation",
+        "noise",
+        "baseline and drift",
+        "missingness",
+        "cost and sample consumption"
+      ]
+    },
+    "reference_closures": {
+      "passed": true,
+      "cases": [
+        "UV-vis Beer-Lambert response and calibration",
+        "HPLC/GC retention factor, retention time, theoretical plates, peak width, and condition sensitivity",
+        "pH hydrogen-activity definition, Nernstian response, and charge-balance closure"
+      ]
+    },
+    "public_layering": {
+      "passed": true,
+      "layers": [
+        "sample_state",
+        "raw_signal",
+        "peaks",
+        "assignments",
+        "processed_estimates",
+        "uncertainty",
+        "calibration",
+        "missingness"
+      ],
+      "identity_policy": "Runtime packets retain only task-public aggregate species labels and anonymous analyte ids; internal model/provider identities and hidden mechanism species remain internal."
+    },
+    "identifiability": {
+      "passed": true,
+      "properties": [
+        "same state and seed replay exactly",
+        "UV-vis public detector gain separates declared concentration/composition changes",
+        "HPLC/GC calibrated peak areas respond to concentration changes",
+        "mobile-phase settings shift the declared chromatography method response",
+        "processed estimates and peak areas include seeded uncertainty rather than evaluator truth"
+      ]
+    },
+    "history_and_ledger": {
+      "passed": true,
+      "properties": [
+        "student history retains distinct public spectrum ids",
+        "spectrum masking does not mutate world or archived packet state",
+        "committed measurements charge instrument cost and destructive sample volume",
+        "failed measurements expose no raw packet and no instrument fee",
+        "failed transactions retain their separately declared failure penalty in the ledger"
+      ]
+    }
+  },
+  "verification": {
+    "targeted_pytest": {
+      "passed": true,
+      "passed_count": 171,
+      "skipped_count": 1,
+      "command": "python -m pytest tests/test_instruments_reference.py tests/test_spectroscopy.py tests/test_spectroscopy_identifiability.py tests/test_chromatography_methods.py tests/test_public_observation_leakage.py tests/test_observation_contract_completeness.py tests/test_world_architecture.py tests/test_tasks_and_wrappers.py -q --no-cov"
+    },
+    "task_lab_history_pytest": {
+      "passed": true,
+      "passed_count": 5,
+      "deselected_count": 16,
+      "command": "python -m pytest tests/test_task_lab.py -q --no-cov -k 'spectrum or student_session'"
+    },
+    "public_boundary_gate": {
+      "passed": true,
+      "status": "controls_ready",
+      "protocol_sha256": "6a07b42cbb5b1dcbb57801aaa2ba1fb9557f191f5b3023fb4f3add9aba18fa86",
+      "task_count": 6,
+      "identity_finding_count": 0,
+      "all_task_payloads_clean": true
+    },
+    "ruff": {
+      "passed": true,
+      "checked_owned_python_paths": 10
+    },
+    "mypy": {
+      "passed": true,
+      "checked_source_files": 9
+    }
+  },
+  "maturity_truth": {
+    "gate_status": "maturity_claims_blocked_repository_wide",
+    "gate_report_sha256": "d7a2dcdd692245d4a42bb14f4051580cc723208e40d2974c184ea2e1f6c81078",
+    "bounded_contract_models": {
+      "beer_lambert_uvvis": "reference_validated",
+      "chromatography_retention_plate": "reference_validated",
+      "potentiometric_ph_public_reference": "reference_validated",
+      "ir_functional_group_bands": "reference_validated",
+      "chemworld_spectral_identifiability_audit_vnext": "reference_validated"
+    },
+    "bounded_contract_verified": true,
+    "unresolved_adjacent_claim": {
+      "model_id": "empirical_chromatography_method_sensitivity_v1",
+      "declared_maturity": "professional_candidate",
+      "effective_evidence_maturity": "reference_validated",
+      "reason": "The strict gate requires a bound provider with runtime diagnostics and provenance. The legacy test suite currently requires the professional-candidate label, so this task does not falsify the gate result or silently change that external contract."
+    }
+  },
+  "known_external_regression": {
+    "test": "tests/test_task_lab.py::test_adaptive_runner_preserves_scoring_when_a_late_model_call_fails",
+    "introduced_by_this_task": false,
+    "baseline_reproduced": true,
+    "baseline": "origin/main at 0e52100e011681b1fd0b685d3c2efc753bcca47f",
+    "failure": "The fake adaptive client assumes retrieved_spectra exists in a repair prompt after a repeated terminate closeout."
+  },
+  "limitations": [
+    "Signals are synthetic and intentionally bounded; reference validation is equation and contract validation, not real-instrument validation.",
+    "Task-public aggregate labels such as target_public remain for backward-compatible observation contracts; hidden mechanism species and exact provider identity are absent.",
+    "IR/NMR/MS channels remain qualitative synthetic evidence and are not compound-identification systems.",
+    "Repository-wide maturity release remains blocked by claims outside this bounded contract, including the explicitly recorded adjacent chromatography claim."
+  ]
+}

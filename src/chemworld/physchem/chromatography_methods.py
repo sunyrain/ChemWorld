@@ -26,6 +26,7 @@ class EmpiricalChromatographyAnalyteSpec:
     detector_response_slope: float = 1.0
     detector_response_intercept: float = 0.0
     tailing_factor: float = 1.0
+    theoretical_plates: float = 5000.0
     provenance_id: str = ""
 
     def __post_init__(self) -> None:
@@ -37,6 +38,7 @@ class EmpiricalChromatographyAnalyteSpec:
         _positive(self.reference_temperature_K, "reference_temperature_K")
         _positive(self.detector_response_slope, "detector_response_slope")
         _positive(self.tailing_factor, "tailing_factor")
+        _positive(self.theoretical_plates, "theoretical_plates")
         for name, value in (
             (
                 "hplc_log10_k_mobile_phase_slope",
@@ -71,6 +73,7 @@ class EmpiricalChromatographyAnalyteSpec:
             "detector_response_slope": self.detector_response_slope,
             "detector_response_intercept": self.detector_response_intercept,
             "tailing_factor": self.tailing_factor,
+            "theoretical_plates": self.theoretical_plates,
             "provenance_id": self.provenance_id,
         }
 
@@ -86,6 +89,8 @@ class ChromatographyMethodReport:
     retention_factor: float
     retention_time_min: float
     retention_shift_min: float
+    theoretical_plates: float
+    baseline_peak_width_min: float
     detector_concentration: float
     detector_response: float
     tailing_factor: float
@@ -105,6 +110,8 @@ class ChromatographyMethodReport:
             "retention_factor": self.retention_factor,
             "retention_time_min": self.retention_time_min,
             "retention_shift_min": self.retention_shift_min,
+            "theoretical_plates": self.theoretical_plates,
+            "baseline_peak_width_min": self.baseline_peak_width_min,
             "detector_concentration": self.detector_concentration,
             "detector_response": self.detector_response,
             "tailing_factor": self.tailing_factor,
@@ -188,6 +195,7 @@ def evaluate_chromatography_method(
             * (1.0 / temperature_K - 1.0 / analyte.reference_temperature_K)
         )
     retention_time = dead_time_min * (1.0 + retention_factor)
+    baseline_peak_width = 4.0 * retention_time / sqrt(analyte.theoretical_plates)
     response = (
         analyte.detector_response_intercept
         + analyte.detector_response_slope * detector_concentration
@@ -210,6 +218,8 @@ def evaluate_chromatography_method(
         retention_factor=retention_factor,
         retention_time_min=retention_time,
         retention_shift_min=retention_time - reference_time,
+        theoretical_plates=analyte.theoretical_plates,
+        baseline_peak_width_min=baseline_peak_width,
         detector_concentration=detector_concentration,
         detector_response=response,
         tailing_factor=analyte.tailing_factor,

@@ -6,7 +6,7 @@ import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from itertools import pairwise
-from math import isfinite, sqrt
+from math import isfinite, log10, sqrt
 from typing import Any, Literal
 
 import numpy as np
@@ -431,6 +431,7 @@ class InstrumentSignalSpec:
     baseline_drift: float
     noise_std: float
     features: tuple[SpectralFeatureSpec, ...]
+    detector_gain: float = 1.0
     normalize: bool = True
     signal_mode: Literal["positive", "transmittance"] = "positive"
 
@@ -441,6 +442,8 @@ class InstrumentSignalSpec:
             raise ValueError("Signal axis must contain at least five points")
         if self.baseline < 0.0 or self.noise_std < 0.0:
             raise ValueError("Baseline and noise must be nonnegative")
+        if self.detector_gain <= 0.0 or not isfinite(self.detector_gain):
+            raise ValueError("detector_gain must be finite and positive")
 
     @property
     def axis(self) -> np.ndarray:
@@ -459,6 +462,7 @@ class InstrumentSignalSpec:
             "baseline": self.baseline,
             "baseline_drift": self.baseline_drift,
             "noise_std": self.noise_std,
+            "detector_gain": self.detector_gain,
             "normalize": self.normalize,
             "signal_mode": self.signal_mode,
             "features": [feature.to_dict() for feature in self.features],
@@ -480,6 +484,13 @@ class SpectralMeasurement:
     metadata: dict[str, object]
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the internal validation representation.
+
+        This representation intentionally retains feature identities and model
+        diagnostics for reference tests.  Runtime observations must use
+        :meth:`to_public_dict`, which removes those evaluator-only fields.
+        """
+
         return {
             "kind": self.kind,
             self.axis_key: list(self.axis),
@@ -490,6 +501,168 @@ class SpectralMeasurement:
             "processed_estimates": dict(self.processed_estimates),
             "uncertainty": dict(self.uncertainty),
             "metadata": dict(self.metadata),
+        }
+
+    def to_public_dict(self, *, sample_volume_L: float) -> dict[str, Any]:
+        """Return a leakage-safe, layered synthetic-instrument observation.
+
+        Stable anonymous analyte and peak labels preserve longitudinal
+        comparison without revealing mechanism species, provider identity, or
+        evaluator truth.  The numerical raw trace remains available so an
+        agent must interpret evidence rather than receive a hidden answer.
+        """
+
+        if sample_volume_L <= 0.0 or not isfinite(sample_volume_L):
+            raise ValueError("sample_volume_L must be finite and positive")
+        species_order = sorted(
+            {str(peak["species_id"]) for peak in self.peaks},
+            key=lambda species_id: min(
+                _as_float(peak["center"])
+                for peak in self.peaks
+                if str(peak["species_id"]) == species_id
+            ),
+        )
+        aliases = {
+            species_id: f"analyte_{index:02d}"
+            for index, species_id in enumerate(species_order, start=1)
+        }
+        public_peaks: list[dict[str, object]] = []
+        assignments: list[dict[str, object]] = []
+        missing: list[dict[str, object]] = []
+        calibration: dict[str, dict[str, object]] = {}
+        processed: dict[str, float | None] = {}
+        public_uncertainty: dict[str, float | None] = {}
+        for index, peak in enumerate(self.peaks, start=1):
+            peak_id = f"peak_{index:03d}"
+            species_id = str(peak["species_id"])
+            analyte_id = aliases[species_id]
+            detected = bool(peak["detected"])
+            lod = _as_float(peak["detection_limit_mol_L"])
+            loq = 10.0 / 3.3 * lod
+            estimate = _as_float(peak["estimated_concentration_mol_L"])
+            saturated = estimate >= 5.0
+            uncertainty_key = f"{species_id}_std_mol_L"
+            standard_uncertainty = self.uncertainty.get(uncertainty_key)
+            error_draws = self.metadata.get("public_estimate_error_z", {})
+            error_z = (
+                _as_float(error_draws.get(species_id, 0.0))
+                if isinstance(error_draws, Mapping)
+                else 0.0
+            )
+            standard_error = 0.0 if standard_uncertainty is None else standard_uncertainty
+            reported_estimate = float(np.clip(estimate + error_z * standard_error, 0.0, 5.0))
+            relative_error = standard_error / max(estimate, 1.0e-12)
+            reported_area = max(
+                _as_float(peak["area"]) * (1.0 + error_z * relative_error),
+                0.0,
+            )
+            public_peaks.append(
+                {
+                    "peak_id": peak_id,
+                    "assignment": _public_assignment_label(str(peak["group"])),
+                    "center": _as_float(peak["center"]),
+                    "width": _as_float(peak["width"]),
+                    "area": round(reported_area, 6),
+                    "detected": detected,
+                    "saturated": saturated,
+                    "overlap_group": peak.get("overlap_group"),
+                }
+            )
+            assignments.append(
+                {
+                    "peak_id": peak_id,
+                    "analyte_id": analyte_id,
+                    "species_id": species_id,
+                    "status": (
+                        "above_linear_range"
+                        if saturated
+                        else "anonymous_calibrated_feature"
+                        if detected
+                        else "below_lod"
+                    ),
+                    "confidence": 0.70 if detected and peak.get("overlap_group") else 0.92,
+                }
+            )
+            calibration.setdefault(
+                analyte_id,
+                {
+                    "method": _public_calibration_method(self.instrument_id),
+                    "lod_mol_L": round(lod, 9),
+                    "loq_mol_L": round(loq, 9),
+                    "linear_range_mol_L": [round(lod, 9), 5.0],
+                    "saturation_policy": "clip_and_flag_above_linear_range",
+                },
+            )
+            estimate_key = f"{analyte_id}_concentration_mol_L"
+            uncertainty_public_key = f"{analyte_id}_standard_uncertainty_mol_L"
+            processed[estimate_key] = round(reported_estimate, 9) if detected else None
+            public_uncertainty[uncertainty_public_key] = (
+                None if standard_uncertainty is None else round(float(standard_uncertainty), 9)
+            )
+            if not detected:
+                missing.append(
+                    {
+                        "analyte_id": analyte_id,
+                        "reason": "below_lod",
+                        "reported_value": None,
+                    }
+                )
+            elif saturated:
+                missing.append(
+                    {
+                        "analyte_id": analyte_id,
+                        "reason": "above_linear_range",
+                        "reported_value": round(reported_estimate, 9),
+                    }
+                )
+        public_metadata = {
+            "axis_unit": str(self.metadata.get("axis_unit", "a.u.")),
+            "baseline": _as_float(self.metadata.get("baseline", 0.0)),
+            "baseline_drift": _as_float(self.metadata.get("baseline_drift", 0.0)),
+            "noise_model": "seeded_independent_gaussian",
+            "detector_gain": _as_float(self.metadata.get("detector_gain", 1.0)),
+            "synthetic": True,
+            "real_sample_prediction": False,
+            "boundary_note": (
+                "Synthetic benchmark evidence; not a real-instrument or empirical sample spectrum."
+            ),
+        }
+        return {
+            "schema_version": "chemworld-public-synthetic-signal-0.2",
+            "kind": self.kind,
+            "instrument_id": self.instrument_id,
+            self.axis_key: list(self.axis),
+            self.signal_key: list(self.signal),
+            "replicate_signals": [list(signal) for signal in self.replicate_signals],
+            "replicate_count": len(self.replicate_signals),
+            "sample_state": {
+                "sample_basis_volume_L": round(float(sample_volume_L), 9),
+                "physical_state": "virtual_liquid_sample",
+                "matrix": "task_public_aggregate",
+                "preparation": "declared_instrument_calibration",
+            },
+            "axis": {
+                "key": self.axis_key,
+                "unit": public_metadata["axis_unit"],
+                "point_count": len(self.axis),
+            },
+            "raw_signal": {
+                "key": self.signal_key,
+                "unit": _signal_unit(self.instrument_id),
+                "normalization": (
+                    "none" if self.instrument_id in {"uvvis", "ir"} else "maximum_response"
+                ),
+            },
+            "peaks": public_peaks,
+            "assignments": assignments,
+            "processed_estimates": processed,
+            "uncertainty": public_uncertainty,
+            "calibration": calibration,
+            "missingness": {
+                "policy": "below_lod_is_null; failed_measurement_has_no_signal_packet",
+                "entries": missing,
+            },
+            "metadata": public_metadata,
         }
 
 
@@ -625,6 +798,34 @@ def beer_lambert_absorbance(
         blank_absorbance
         + molar_absorptivity_L_mol_cm * path_length_cm * concentration_mol_L
     )
+
+
+def potentiometric_ph(*, hydrogen_activity_mol_L: float) -> float:
+    """Return pH from hydrogen-ion activity for the public reference case."""
+
+    if hydrogen_activity_mol_L <= 0.0 or not isfinite(hydrogen_activity_mol_L):
+        raise ValueError("hydrogen_activity_mol_L must be finite and positive")
+    return -log10(hydrogen_activity_mol_L)
+
+
+def charge_balance_residual(
+    concentrations_mol_L: Mapping[str, float],
+    charges: Mapping[str, int],
+) -> float:
+    """Return signed charge-balance closure, sum(z_i c_i), in mol/L."""
+
+    if set(concentrations_mol_L) != set(charges):
+        raise ValueError("concentrations and charges must describe the same public ions")
+    residual = 0.0
+    for species_id, concentration in concentrations_mol_L.items():
+        value = float(concentration)
+        charge = charges[species_id]
+        if value < 0.0 or not isfinite(value):
+            raise ValueError("charge-balance concentrations must be finite and nonnegative")
+        if not isinstance(charge, int):
+            raise ValueError("charge numbers must be integers")
+        residual += charge * value
+    return residual
 
 
 def fit_beer_lambert_calibration(
@@ -1049,6 +1250,10 @@ def synthesize_signal(
         detected_peaks,
         replicate_count=replicate_count,
     )
+    public_estimate_error_z = {
+        species_id: round(float(rng.normal(0.0, 1.0)), 6)
+        for species_id in processed
+    }
     model_ids = sorted(
         {
             str(feature.metadata["model_id"])
@@ -1077,6 +1282,8 @@ def synthesize_signal(
         },
         "peak_overlap": any(bool(peak["overlap_group"]) for peak in detected_peaks),
         "model_ids": model_ids,
+        "detector_gain": spec.detector_gain,
+        "public_estimate_error_z": public_estimate_error_z,
     }
     if chromatographic_resolution_summary:
         metadata["chromatographic_resolution"] = chromatographic_resolution_summary
@@ -1613,6 +1820,36 @@ def _as_float(value: object) -> float:
     raise TypeError(f"Expected a numeric value, got {type(value).__name__}")
 
 
+def _public_calibration_method(instrument_id: str) -> str:
+    return {
+        "uvvis": "Beer-Lambert linear calibration",
+        "hplc": "retention-factor and plate-count calibration",
+        "gc": "retention-factor and plate-count calibration",
+        "ir": "synthetic functional-region response calibration",
+        "nmr": "synthetic chemical-shift response calibration",
+    }.get(instrument_id, "synthetic linear calibration")
+
+
+def _signal_unit(instrument_id: str) -> str:
+    return {
+        "uvvis": "absorbance",
+        "ir": "transmittance_fraction",
+        "hplc": "relative_detector_response",
+        "gc": "relative_detector_response",
+        "nmr": "relative_intensity",
+    }.get(instrument_id, "a.u.")
+
+
+def _public_assignment_label(group: str) -> str:
+    return {
+        "reactant": "reactant_proxy",
+        "target": "target_product_proxy",
+        "byproduct": "byproduct_proxy",
+        "degradation": "degradation_proxy",
+        "catalyst": "catalyst_proxy",
+    }.get(group, "unassigned_proxy")
+
+
 __all__ = [
     "BeerLambertBandSpec",
     "BeerLambertCalibrationResult",
@@ -1628,6 +1865,7 @@ __all__ = [
     "beer_lambert_absorbance",
     "build_signal_spec",
     "build_signal_spec_from_card",
+    "charge_balance_residual",
     "chromatographic_baseline_peak_width",
     "chromatographic_resolution",
     "chromatographic_retention_factor",
@@ -1638,6 +1876,7 @@ __all__ = [
     "fit_beer_lambert_calibration",
     "fit_chromatography_calibration",
     "generate_beer_lambert_calibration",
+    "potentiometric_ph",
     "spectroscopy_model_cards",
     "synthesize_signal",
     "synthesize_signal_from_card",

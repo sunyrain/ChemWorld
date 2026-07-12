@@ -153,31 +153,47 @@ def chemworld_instruments() -> dict[str, Instrument]:
 class InstrumentContract:
     instrument_id: str
     observable_keys: tuple[str, ...]
+    input_state_schema: dict[str, Any]
+    axis_contract: dict[str, Any]
     raw_signal_schema: dict[str, Any]
     processed_estimate_schema: dict[str, Any]
     uncertainty_model: str
     noise_model: dict[str, float]
+    calibration_contract: dict[str, Any]
+    detection_contract: dict[str, Any]
+    saturation_contract: dict[str, Any]
+    baseline_drift_contract: dict[str, Any]
+    missingness_contract: dict[str, Any]
     cost: float
     latency_s: float
     sample_consumption_L: float
     destructive: bool
     requires_terminated: bool
     calibration_profile: str
+    synthetic_boundary: str
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "instrument_id": self.instrument_id,
             "observable_keys": list(self.observable_keys),
+            "input_state_schema": self.input_state_schema,
+            "axis_contract": self.axis_contract,
             "raw_signal_schema": self.raw_signal_schema,
             "processed_estimate_schema": self.processed_estimate_schema,
             "uncertainty_model": self.uncertainty_model,
             "noise_model": self.noise_model,
+            "calibration_contract": self.calibration_contract,
+            "detection_contract": self.detection_contract,
+            "saturation_contract": self.saturation_contract,
+            "baseline_drift_contract": self.baseline_drift_contract,
+            "missingness_contract": self.missingness_contract,
             "cost": self.cost,
             "latency_s": self.latency_s,
             "sample_consumption_L": self.sample_consumption_L,
             "destructive": self.destructive,
             "requires_terminated": self.requires_terminated,
             "calibration_profile": self.calibration_profile,
+            "synthetic_boundary": self.synthetic_boundary,
         }
 
 
@@ -192,21 +208,50 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
         "final_assay": 1200.0,
     }
     calibration = {
-        "uvvis": "coarse_proxy_public_calibration",
-        "ph_meter": "potentiometric_public_ph_calibration",
-        "gc": "volatile_byproduct_public_calibration",
-        "hplc": "chromatography_public_calibration",
-        "final_assay": "leaderboard_grade_calibration",
+        "uvvis": "beer_lambert_public_calibration_v2",
+        "ph_meter": "nernstian_public_ph_calibration_v2",
+        "gc": "retention_plate_public_calibration_v2",
+        "hplc": "retention_plate_public_calibration_v2",
+        "final_assay": "synthetic_multichannel_public_calibration_v2",
     }
+    axes: dict[str, dict[str, Any]] = {
+        "uvvis": {"key": "wavelength_nm", "unit": "nm", "range": [320.0, 760.0]},
+        "ph_meter": {"key": "replicate_index", "unit": "index", "range": None},
+        "gc": {"key": "time_min", "unit": "min", "range": [0.0, 4.0]},
+        "hplc": {"key": "time_min", "unit": "min", "range": [0.0, 6.0]},
+        "final_assay": {
+            "key": "channel_specific",
+            "unit": "declared_per_channel",
+            "range": None,
+        },
+    }
+    calibration_methods = {
+        "uvvis": "Beer-Lambert absorbance with blank, path length, and dilution",
+        "ph_meter": "Nernstian electrode response at declared temperature",
+        "gc": "retention factor, dead time, theoretical plates, and detector response",
+        "hplc": "retention factor, dead time, theoretical plates, and detector response",
+        "final_assay": "independent declared calibration for each synthetic channel",
+    }
+    lod = {"uvvis": 0.0025, "gc": 0.0012, "hplc": 0.0008}
     contracts: dict[str, InstrumentContract] = {}
     for instrument_id, instrument in chemworld_instruments().items():
         processed_schema = {
-            key: {"type": "number", "minimum": 0.0, "maximum": 1.0}
+            key: {"type": ["number", "null"], "minimum": 0.0, "maximum": 1.0}
             for key in instrument.observable_keys
         }
         contracts[instrument_id] = InstrumentContract(
             instrument_id=instrument_id,
             observable_keys=instrument.observable_keys,
+            input_state_schema={
+                "physical_state": "virtual_liquid_sample",
+                "required_public_fields": ["sample_basis_volume_L", "replicate_count"],
+                "forbidden_fields": [
+                    "hidden_species_amounts",
+                    "private_seed",
+                    "provider_parameters",
+                ],
+            },
+            axis_contract=dict(axes[instrument_id]),
             raw_signal_schema=raw_signal_schema(instrument_id),
             processed_estimate_schema={
                 "type": "object",
@@ -215,12 +260,43 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
             },
             uncertainty_model="instrument_noise_std_plus_process_proxy",
             noise_model=dict(instrument.noise_std),
+            calibration_contract={
+                "profile": calibration[instrument_id],
+                "method": calibration_methods[instrument_id],
+                "status": "synthetic_reference_calibration",
+            },
+            detection_contract={
+                "lod_mol_L": lod.get(instrument_id),
+                "loq_mol_L": (
+                    None if instrument_id not in lod else 10.0 / 3.3 * lod[instrument_id]
+                ),
+                "below_lod": "null_processed_estimate_with_missingness_reason",
+            },
+            saturation_contract={
+                "policy": "clip_and_flag_outside_declared_linear_range",
+                "upper_linear_range_mol_L": (
+                    5.0 if instrument_id in {"uvvis", "gc", "hplc"} else None
+                ),
+            },
+            baseline_drift_contract={
+                "baseline": "declared_in_public_packet",
+                "drift": "linear_axis_drift_declared_in_public_packet",
+            },
+            missingness_contract={
+                "below_lod": "processed value is null; raw trace remains available",
+                "failed_measurement": "no signal packet and no instrument charge",
+                "masking": "removes spectral evidence only; does not alter world state",
+            },
             cost=float(instrument.cost),
             latency_s=latency.get(instrument_id, 300.0),
             sample_consumption_L=float(instrument.sample_volume_L),
             destructive=instrument.sample_volume_L > 0.0,
             requires_terminated=bool(instrument.requires_terminated),
             calibration_profile=calibration.get(instrument_id, "public_calibration"),
+            synthetic_boundary=(
+                "Bounded synthetic benchmark instrument; it does not predict real samples, "
+                "replace an empirical spectral library, or emulate a physical device."
+            ),
         )
     return contracts
 

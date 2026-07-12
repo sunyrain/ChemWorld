@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 import numpy as np
 
-from chemworld.physchem.spectroscopy import build_signal_spec, synthesize_signal
+from chemworld.physchem.spectroscopy import (
+    build_signal_spec,
+    potentiometric_ph,
+    synthesize_signal,
+)
 
 
 @dataclass(frozen=True)
@@ -96,13 +100,23 @@ def _species_signal(
         target_species=target_species,
         impurity_species=impurity_species,
     )
+    if instrument_id == "uvvis":
+        detector_gain = 10.0
+        spec = replace(
+            spec,
+            detector_gain=detector_gain,
+            features=tuple(
+                replace(feature, response_factor=feature.response_factor * detector_gain)
+                for feature in spec.features
+            ),
+        )
     packet = synthesize_signal(
         spec,
         species_amounts_mol,
         volume_L=volume_L,
         seed=seed,
         replicate_count=replicate_count,
-    ).to_dict()
+    ).to_public_dict(sample_volume_L=volume_L)
     packet["source"] = "species_amounts_with_calibration"
     return packet
 
@@ -119,6 +133,43 @@ def _public_species_role(species_id: str) -> str:
     if species_id == "reactant_public":
         return "reactant"
     return "unassigned"
+
+
+def _public_proxy_amounts(
+    values: dict[str, float | None],
+    *,
+    volume_L: float,
+    include_reactant: bool = True,
+) -> dict[str, float]:
+    """Map public scalar evidence to anonymous aggregate signal channels."""
+
+    scale = max(float(volume_L), 1.0e-9)
+    conversion = max(
+        _observed(values, "conversion"),
+        _observed(values, "flow_conversion"),
+    )
+    target = max(
+        _observed(values, "yield"),
+        _observed(values, "purity"),
+        _observed(values, "crystal_purity"),
+        _observed(values, "distillate_purity"),
+        _observed(values, "electrochemical_selectivity"),
+    )
+    impurity = max(
+        _observed(values, "byproduct_signal"),
+        _observed(values, "impurity_signal"),
+    )
+    degradation = _observed(values, "degradation_warning")
+    amounts: dict[str, float] = {}
+    if include_reactant:
+        amounts["reactant_public"] = max(1.0 - conversion, 0.0) * scale
+    if target > 0.0:
+        amounts["target_public"] = target * scale
+    if impurity > 0.0:
+        amounts["impurity_public"] = impurity * scale
+    if degradation > 0.0:
+        amounts["degradation_public"] = degradation * scale
+    return amounts
 
 
 def hplc_chromatogram(
@@ -138,30 +189,16 @@ def hplc_chromatogram(
         seed=seed,
         replicate_count=replicate_count,
     )
-    if species_packet is not None:
-        return species_packet
-
-    product = max(
-        _observed(values, "yield"),
-        _observed(values, "purity"),
-        _observed(values, "crystal_purity"),
-        _observed(values, "distillate_purity"),
-    )
-    reactant = max(1.0 - _observed(values, "conversion"), 0.0)
-    impurity = max(_observed(values, "byproduct_signal"), _observed(values, "impurity_signal"))
-    degradation = _observed(values, "degradation_warning")
-    peaks = (
-        SignalPeak(1.15, 0.055, 260.0 * reactant, "reactant_proxy"),
-        SignalPeak(2.62, 0.075, 720.0 * product, "target_product_proxy"),
-        SignalPeak(3.36, 0.090, 380.0 * impurity, "byproduct_proxy"),
-        SignalPeak(4.18, 0.110, 240.0 * degradation, "degradation_proxy"),
-    )
-    return _chromatogram(
-        kind="hplc_chromatogram",
-        time_min=_axis(0.0, 6.0, 121),
-        peaks=peaks,
-        baseline=0.012,
-    )
+    if species_packet is None:
+        species_packet = _species_signal(
+            "hplc",
+            _public_proxy_amounts(values, volume_L=volume_L),
+            volume_L=volume_L,
+            seed=seed,
+            replicate_count=replicate_count,
+        )
+    assert species_packet is not None
+    return species_packet
 
 
 def gc_chromatogram(
@@ -181,25 +218,24 @@ def gc_chromatogram(
         seed=seed,
         replicate_count=replicate_count,
     )
-    if species_packet is not None:
-        return species_packet
-
-    volatile = _observed(values, "byproduct_signal")
-    degradation = _observed(values, "degradation_warning")
-    distillate = _observed(values, "distillate_purity")
-    solvent_loss = _observed(values, "solvent_loss")
-    peaks = (
-        SignalPeak(0.62, 0.040, 280.0 * solvent_loss, "solvent_loss_proxy"),
-        SignalPeak(1.05, 0.050, 520.0 * volatile, "volatile_byproduct_proxy"),
-        SignalPeak(1.74, 0.060, 430.0 * degradation, "degradation_proxy"),
-        SignalPeak(2.45, 0.080, 620.0 * distillate, "distillate_product_proxy"),
-    )
-    return _chromatogram(
-        kind="gc_chromatogram",
-        time_min=_axis(0.0, 4.0, 101),
-        peaks=peaks,
-        baseline=0.010,
-    )
+    if species_packet is None:
+        species_packet = _species_signal(
+            "gc",
+            _public_proxy_amounts(values, volume_L=volume_L, include_reactant=False),
+            volume_L=volume_L,
+            seed=seed,
+            replicate_count=replicate_count,
+        )
+    if species_packet is None:
+        species_packet = _species_signal(
+            "gc",
+            {"impurity_public": 0.0},
+            volume_L=volume_L,
+            seed=seed,
+            replicate_count=replicate_count,
+        )
+    assert species_packet is not None
+    return species_packet
 
 
 def uvvis_spectrum(
@@ -219,43 +255,16 @@ def uvvis_spectrum(
         seed=seed,
         replicate_count=replicate_count,
     )
-    if species_packet is not None:
-        return species_packet
-
-    wavelength = _axis(320.0, 760.0, 111)
-    bands = (
-        SignalPeak(365.0, 32.0, 0.42 * _observed(values, "conversion"), "conversion_band"),
-        SignalPeak(430.0, 38.0, 0.62 * _observed(values, "yield"), "product_band"),
-        SignalPeak(
-            515.0,
-            44.0,
-            0.36 * max(_observed(values, "byproduct_signal"), _observed(values, "impurity_signal")),
-            "impurity_band",
-        ),
-        SignalPeak(640.0, 58.0, 0.24 * _observed(values, "phase_ratio"), "phase_proxy_band"),
-        SignalPeak(
-            705.0,
-            46.0,
-            0.28
-            * max(
-                _observed(values, "flow_conversion"),
-                _observed(values, "energy_efficiency"),
-            ),
-            "process_proxy_band",
-        ),
-    )
-    absorbance = np.full_like(wavelength, 0.025, dtype=float)
-    for band in bands:
-        absorbance += _gaussian(wavelength, band)
-    return {
-        "kind": "uvvis_spectrum",
-        "wavelength_nm": _rounded(wavelength),
-        "absorbance": _rounded(absorbance),
-        "bands": [
-            band.to_dict(center_key="center_nm", width_key="width_nm") for band in bands
-        ],
-        "baseline": 0.025,
-    }
+    if species_packet is None:
+        species_packet = _species_signal(
+            "uvvis",
+            _public_proxy_amounts(values, volume_L=volume_L),
+            volume_L=volume_L,
+            seed=seed,
+            replicate_count=replicate_count,
+        )
+    assert species_packet is not None
+    return species_packet
 
 
 def ph_meter_signal(
@@ -274,7 +283,8 @@ def ph_meter_signal(
 
     rng = np.random.default_rng(seed)
     normalized = _observed(values, "pH_normalized")
-    pH = float(np.clip(14.0 * normalized, 0.0, 14.0))
+    hydrogen_activity = 10.0 ** (-float(np.clip(14.0 * normalized, 0.0, 14.0)))
+    pH = potentiometric_ph(hydrogen_activity_mol_L=hydrogen_activity)
     pH_replicates = [
         round(float(np.clip(pH + rng.normal(0.0, 0.02), 0.0, 14.0)), 3)
         for _ in range(max(int(replicate_count), 1))
@@ -288,6 +298,13 @@ def ph_meter_signal(
         "hydrogen_mol_L": round(10.0 ** (-pH), 12),
         "electrode_mV": round(electrode_mV, 3),
         "replicate_pH": pH_replicates,
+        "sample_state": {
+            "physical_state": "virtual_liquid_sample",
+            "temperature_K": 298.15,
+            "activity_basis": "dimensionless_relative_to_standard_state",
+        },
+        "axis": {"key": "replicate_index", "unit": "index", "point_count": len(pH_replicates)},
+        "raw_signal": {"key": "electrode_mV", "unit": "mV"},
         "processed_estimates": {
             "pH_normalized": round(normalized, 6),
             "acid_dissociation_fraction": round(
@@ -301,6 +318,29 @@ def ph_meter_signal(
         "uncertainty": {
             "pH_std": 0.02,
             "normalized_pH_std": round(0.02 / 14.0, 6),
+        },
+        "peaks": [],
+        "assignments": [],
+        "calibration": {
+            "method": "Nernstian hydrogen-activity response at 298.15 K",
+            "slope_mV_per_pH": -59.16,
+            "pH_range": [0.0, 14.0],
+            "lod_pH": 0.02,
+            "loq_pH": 0.06,
+        },
+        "missingness": {
+            "policy": "failed_measurement_has_no_signal_packet",
+            "entries": [],
+        },
+        "metadata": {
+            "noise_model": "seeded_independent_gaussian_pH",
+            "baseline": 0.0,
+            "baseline_drift": 0.0,
+            "synthetic": True,
+            "real_sample_prediction": False,
+            "boundary_note": (
+                "Synthetic potentiometric benchmark evidence; not a real electrode reading."
+            ),
         },
         "visibility": "public_processed_observation",
     }
@@ -323,37 +363,16 @@ def ir_spectrum(
         seed=seed,
         replicate_count=replicate_count,
     )
-    if species_packet is not None:
-        return species_packet
-
-    wavenumber = _axis(400.0, 4000.0, 121)
-    product = max(_observed(values, "yield"), _observed(values, "purity"))
-    impurity = max(_observed(values, "byproduct_signal"), _observed(values, "impurity_signal"))
-    degradation = _observed(values, "degradation_warning")
-    bands = (
-        SignalPeak(820.0, 55.0, 0.16 * impurity, "impurity_fingerprint"),
-        SignalPeak(1180.0, 70.0, 0.20 * product, "product_fingerprint"),
-        SignalPeak(1720.0, 85.0, 0.24 * degradation, "degradation_carbonyl_proxy"),
-        SignalPeak(2960.0, 120.0, 0.10 + 0.12 * product, "organic_CH_proxy"),
-        SignalPeak(
-            3360.0,
-            150.0,
-            0.18 * _observed(values, "solvent_loss"),
-            "residual_solvent_proxy",
-        ),
-    )
-    absorbance = np.zeros_like(wavenumber, dtype=float)
-    for band in bands:
-        absorbance += _gaussian(wavenumber, band)
-    transmittance = np.clip(1.0 - absorbance, 0.02, 1.0)
-    return {
-        "kind": "ir_spectrum",
-        "wavenumber_cm-1": _rounded(wavenumber),
-        "transmittance": _rounded(transmittance),
-        "bands": [
-            band.to_dict(center_key="center_cm-1", width_key="width_cm-1") for band in bands
-        ],
-    }
+    if species_packet is None:
+        species_packet = _species_signal(
+            "ir",
+            _public_proxy_amounts(values, volume_L=volume_L),
+            volume_L=volume_L,
+            seed=seed,
+            replicate_count=replicate_count,
+        )
+    assert species_packet is not None
+    return species_packet
 
 
 def nmr_spectrum(
@@ -373,34 +392,16 @@ def nmr_spectrum(
         seed=seed,
         replicate_count=replicate_count,
     )
-    if species_packet is not None:
-        return species_packet
-
-    shift = _axis(0.0, 12.0, 121)
-    product = max(_observed(values, "yield"), _observed(values, "purity"))
-    impurity = max(_observed(values, "byproduct_signal"), _observed(values, "impurity_signal"))
-    degradation = _observed(values, "degradation_warning")
-    peaks = (
-        SignalPeak(1.28, 0.045, 0.32 * product, "product_aliphatic_proxy"),
-        SignalPeak(3.72, 0.055, 0.26 * product, "product_heteroatom_proxy"),
-        SignalPeak(6.85, 0.070, 0.22 * impurity, "byproduct_aromatic_proxy"),
-        SignalPeak(9.55, 0.085, 0.18 * degradation, "degradation_aldehyde_proxy"),
-    )
-    intensity = np.full_like(shift, 0.004, dtype=float)
-    for peak in peaks:
-        intensity += _gaussian(shift, peak)
-    max_intensity = float(np.max(intensity))
-    if max_intensity > 0.0:
-        intensity = intensity / max_intensity
-    return {
-        "kind": "nmr_1h_spectrum",
-        "chemical_shift_ppm": _rounded(shift),
-        "intensity": _rounded(intensity),
-        "peaks": [
-            peak.to_dict(center_key="shift_ppm", width_key="width_ppm") for peak in peaks
-        ],
-        "reference": "TMS_0ppm_proxy",
-    }
+    if species_packet is None:
+        species_packet = _species_signal(
+            "nmr",
+            _public_proxy_amounts(values, volume_L=volume_L),
+            volume_L=volume_L,
+            seed=seed,
+            replicate_count=replicate_count,
+        )
+    assert species_packet is not None
+    return species_packet
 
 
 def final_assay_spectra(
@@ -415,7 +416,7 @@ def final_assay_spectra(
 
     return {
         "kind": "final_assay_packet",
-        "quality": "leaderboard_grade",
+        "quality": "synthetic_reference_assay",
         "channels": [
             "hplc",
             "gc",
@@ -475,6 +476,13 @@ def final_assay_spectra(
             "recovery": round(_observed(values, "recovery"), 6),
             "purity": round(_observed(values, "purity"), 6),
         },
+        "metadata": {
+            "synthetic": True,
+            "real_sample_prediction": False,
+            "boundary_note": (
+                "Synthetic multi-channel benchmark evidence; not an empirical assay report."
+            ),
+        },
     }
 
 
@@ -490,7 +498,19 @@ def raw_signal_schema(instrument_id: str) -> dict[str, Any]:
     elif instrument_id == "ph_meter":
         return {
             "type": "object",
-            "required": ["kind", "pH", "electrode_mV", "processed_estimates"],
+            "required": [
+                "kind",
+                "pH",
+                "electrode_mV",
+                "sample_state",
+                "axis",
+                "raw_signal",
+                "processed_estimates",
+                "uncertainty",
+                "calibration",
+                "missingness",
+                "metadata",
+            ],
             "properties": {
                 "kind": {"const": "ph_meter_signal"},
                 "pH": {"type": "number", "minimum": 0.0, "maximum": 14.0},
@@ -499,18 +519,31 @@ def raw_signal_schema(instrument_id: str) -> dict[str, Any]:
                 "replicate_pH": {"type": "array", "items": {"type": "number"}},
                 "processed_estimates": {"type": "object"},
                 "uncertainty": {"type": "object"},
+                "sample_state": {"type": "object"},
+                "axis": {"type": "object"},
+                "raw_signal": {"type": "object"},
+                "peaks": {"type": "array"},
+                "assignments": {"type": "array"},
+                "calibration": {"type": "object"},
+                "missingness": {"type": "object"},
+                "metadata": {"type": "object"},
+                "visibility": {"type": "string"},
+                "source": {"type": "string"},
             },
             "additionalProperties": True,
         }
     elif instrument_id == "final_assay":
         return {
             "type": "object",
-            "required": ["kind", "channels", "spectra", "mass_balance"],
+            "required": ["kind", "channels", "spectra", "mass_balance", "metadata"],
             "properties": {
                 "kind": {"const": "final_assay_packet"},
                 "channels": {"type": "array", "items": {"type": "string"}},
                 "spectra": {"type": "object"},
                 "mass_balance": {"type": "object"},
+                "metadata": {"type": "object"},
+                "visibility": {"type": "string"},
+                "source": {"type": "string"},
             },
             "additionalProperties": True,
         }
@@ -519,7 +552,23 @@ def raw_signal_schema(instrument_id: str) -> dict[str, Any]:
         signal = "y"
     return {
         "type": "object",
-        "required": ["kind", axis, signal],
+        "required": [
+            "schema_version",
+            "kind",
+            "instrument_id",
+            axis,
+            signal,
+            "sample_state",
+            "axis",
+            "raw_signal",
+            "peaks",
+            "assignments",
+            "processed_estimates",
+            "uncertainty",
+            "calibration",
+            "missingness",
+            "metadata",
+        ],
         "properties": {
             "kind": {"type": "string"},
             axis: {"type": "array", "items": {"type": "number"}},
@@ -531,6 +580,16 @@ def raw_signal_schema(instrument_id: str) -> dict[str, Any]:
             "processed_estimates": {"type": "object"},
             "uncertainty": {"type": "object"},
             "metadata": {"type": "object"},
+            "sample_state": {"type": "object"},
+            "axis": {"type": "object"},
+            "raw_signal": {"type": "object"},
+            "assignments": {"type": "array"},
+            "calibration": {"type": "object"},
+            "missingness": {"type": "object"},
+            "instrument_id": {"const": instrument_id},
+            "schema_version": {"const": "chemworld-public-synthetic-signal-0.2"},
+            "source": {"type": "string"},
+            "visibility": {"type": "string"},
         },
         "additionalProperties": True,
     }

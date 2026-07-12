@@ -24,7 +24,8 @@ def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
                 "UV-vis absorbance and species calibration are generated from "
                 "the Beer-Lambert relation with explicit path length, effective "
                 "sample dilution, blank absorbance, detection limits, and "
-                "linear calibration residuals."
+                "linear calibration residuals. Public packets use anonymous "
+                "analyte labels and retain no mechanism species or provider identity."
             ),
             equations=(
                 "Beer-Lambert: A = A_blank + epsilon * l * c_cuvette",
@@ -42,7 +43,8 @@ def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
             validity_limits=(
                 "requires finite nonnegative concentrations",
                 "requires positive molar absorptivity and optical path length",
-                "does not model scattering, stray light, saturation, or real solvent baselines",
+                "saturation is clipped and flagged rather than physically modeled",
+                "does not model scattering, stray light, or real solvent baselines",
                 "not a substitute for empirical UV-vis databases or quantum spectra",
             ),
             failure_modes=(
@@ -95,6 +97,22 @@ def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
                     status="implemented",
                     command_or_path="tests/test_spectroscopy.py",
                 ),
+                ValidationEvidence(
+                    evidence_id="uvvis-public-boundary-and-identifiability",
+                    evidence_type="integration_test",
+                    description=(
+                        "Anonymous public UV-vis packets replay exactly by seed and "
+                        "distinguish declared concentration perturbations."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_instruments_reference.py",
+                    tolerance="exact replay and predeclared RMSE separation thresholds",
+                ),
+            ),
+            model_limit_notes=(
+                "Reference-validated covers Beer-Lambert closure and the bounded synthetic packet.",
+                "It does not predict real samples, reproduce a physical spectrometer, "
+                "or supply empirical molecular spectra.",
             ),
             intended_use=(
                 "virtual UV-vis calibration in ChemWorld benchmark tasks",
@@ -129,7 +147,7 @@ def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
             validity_limits=(
                 "requires positive dead time and theoretical plate count",
                 "requires retention time at least as large as dead time",
-                "does not model gradient elution, temperature programming, tailing, or columns",
+                "does not model gradient elution, temperature programming, or column aging",
                 "not a substitute for empirical retention-index or LSER databases",
             ),
             failure_modes=(
@@ -183,11 +201,92 @@ def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
                     status="implemented",
                     command_or_path="tests/test_spectroscopy.py",
                 ),
+                ValidationEvidence(
+                    evidence_id="chromatography-public-boundary-and-identifiability",
+                    evidence_type="integration_test",
+                    description=(
+                        "Anonymous public HPLC/GC packets preserve retention/plate "
+                        "closure, seeded replay, missingness, and composition sensitivity."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_instruments_reference.py",
+                    tolerance="analytical closure and explicit leakage denylist",
+                ),
+            ),
+            model_limit_notes=(
+                "Reference-validated covers analytical retention/plate-count identities "
+                "and bounded synthetic response, not a real chromatographic method.",
+                "Anonymous peaks are designed for agent evidence interpretation, not "
+                "compound identification.",
             ),
             intended_use=(
                 "virtual HPLC/GC retention calibration in ChemWorld tasks",
                 "teaching peak width, overlap, and method resolution tradeoffs",
                 "LLM/tool-agent parsing of chromatograms and calibrated estimates",
+            ),
+        ),
+        ModelCard(
+            model_id="potentiometric_ph_public_reference",
+            module_id="spectroscopy_instruments",
+            title="Synthetic Potentiometric pH And Charge-Balance Reference",
+            maturity=MaturityLevel.REFERENCE_VALIDATED,
+            summary=(
+                "A bounded public pH packet using the hydrogen-activity definition, "
+                "a declared Nernstian electrode slope, seeded replicate noise, and "
+                "an analytical electroneutrality closure reference."
+            ),
+            equations=(
+                "pH = -log10(a_H+)",
+                "E_mV = -59.16 (pH - 7) at 298.15 K",
+                "charge-balance residual = sum_i z_i c_i",
+            ),
+            assumptions=(
+                "hydrogen activity is positive and relative to the standard state",
+                "the synthetic electrode uses a fixed 298.15 K Nernstian slope",
+                "charge-balance reference ions and charges are explicitly declared",
+            ),
+            validity_limits=(
+                "reported pH is bounded to [0, 14] in the public runtime packet",
+                "junction potentials, activity models, temperature drift, and "
+                "electrode aging are absent",
+                "not a real electrode or a substitute for experimental calibration",
+            ),
+            failure_modes=(
+                "nonpositive hydrogen activity fails",
+                "negative or nonfinite ion concentration fails",
+                "mismatched concentration and charge maps fail",
+            ),
+            units={
+                "pH": "dimensionless",
+                "hydrogen_activity": "dimensionless relative activity",
+                "electrode_response": "mV",
+                "charge_balance_residual": "mol/L equivalent charge",
+            },
+            reference_reading=(
+                "Analytical pH definition, Nernst response convention, and "
+                "electroneutrality identity.",
+                "ChemWorld world/spectra.py supplies only a synthetic public observation.",
+            ),
+            validation_evidence=(
+                ValidationEvidence(
+                    evidence_id="ph-charge-balance-reference-closure",
+                    evidence_type="analytical_and_integration_test",
+                    description=(
+                        "Known hydrogen activity and balanced ion mixtures close to "
+                        "machine precision; public packet carries calibration and uncertainty."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_instruments_reference.py",
+                    tolerance="1e-12 pH and charge-balance closure",
+                ),
+            ),
+            model_limit_notes=(
+                "Reference-validated covers equation closure and bounded synthetic signal only.",
+                "It does not establish real sample pH or real electrode performance.",
+            ),
+            intended_use=(
+                "agent reasoning over noisy public pH evidence",
+                "equilibrium-characterization reference regression",
             ),
         ),
         ModelCard(
@@ -257,6 +356,7 @@ def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
                     ),
                     status="implemented",
                     command_or_path="tests/test_spectroscopy.py",
+                    tolerance="exact functional-region membership and positive bounded widths",
                 ),
                 ValidationEvidence(
                     evidence_id="ir_signal_interference_metadata",
@@ -267,7 +367,13 @@ def spectroscopy_model_cards() -> tuple[ModelCard, ...]:
                     ),
                     status="implemented",
                     command_or_path="tests/test_spectroscopy.py",
+                    tolerance="transmittance in [0, 1] and explicit overlap boolean",
                 ),
+            ),
+            model_limit_notes=(
+                "Reference-validated covers compact functional-region rules and "
+                "signal bounds only.",
+                "It does not predict real IR samples or claim empirical peak assignments.",
             ),
             intended_use=(
                 "virtual IR functional-group reasoning in ChemWorld tasks",
