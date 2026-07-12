@@ -24,7 +24,7 @@ REQUIRED_STATUS_MARKERS = {
         "不支持",
     ),
     "docs/limitations.md": (
-        "80k checkpoint",
+        "候选 v0.5",
         "assigned/masked",
         "不能",
     ),
