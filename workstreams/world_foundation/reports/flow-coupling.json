@@ -1,0 +1,163 @@
+{
+  "schema_version": "chemworld-foundation-flow-coupling-0.1",
+  "task_id": "foundation-flow-coupling",
+  "status": "runtime_coupling_complete_golden_refresh_pending",
+  "base_commit": "b5ad5c5f762e6412e56eae9a6280a0a95cfc018a",
+  "claim_commit": "7b11001edd960f0f5ab1ef5f4567c466e4074bae",
+  "runtime_task": "flow-reaction-optimization",
+  "provider": {
+    "model_id": "geometry_resolved_pfr_v2",
+    "runtime_provider_id": "chemworld_geometry_resolved_pfr_v2",
+    "compatibility_adapter_id": "chemworld_geometry_resolved_pfr_v1",
+    "reaction_network_id": "pfr_hotspot",
+    "hydraulic_model_id": "single_phase_straight_tube_darcy_weisbach_v1",
+    "thermal_boundary_id": "chemworld_tubular_boundary_u_times_wetted_perimeter_v1",
+    "dynamic_call_verified": true,
+    "calls_per_committed_run": 1,
+    "legacy_lite_provider_on_formal_route": false
+  },
+  "operation_semantics": {
+    "set_flow_rate": "configuration_only_no_physical_advance",
+    "run_flow": "advances_one_new_configured_experiment",
+    "repeated_run_flow": "fails_closed_until_a_fresh_configuration_is_committed",
+    "feed_change_after_configuration": "fails_closed_until_reconfigured",
+    "material_basis": "representative_feed_inventory_no_implicit_material_addition",
+    "campaign_metrics_are_cumulative": true
+  },
+  "checks": {
+    "formal_runtime_calls_geometry_resolved_pfr": true,
+    "inlet_temperature_is_pre_run_state_not_wall_setpoint": true,
+    "geometry_volume_matches_flow_times_residence": true,
+    "distributed_wall_heat_transfer_active": true,
+    "darcy_weisbach_hydraulics_active": true,
+    "axial_temperature_pressure_and_composition_available": true,
+    "material_balance_closed": true,
+    "thermal_energy_balance_closed": true,
+    "hydraulic_energy_accounted": true,
+    "configuration_has_feed_signature_and_revision": true,
+    "result_has_replay_digest_and_provenance": true,
+    "invalid_solver_result_rolls_back_atomically": true,
+    "shorter_than_residence_run_rolls_back": true,
+    "invalid_and_nonfinite_inputs_fail_closed": true,
+    "action_perturbations_identifiable": true,
+    "world_axis_perturbations_identifiable": true,
+    "shared_rl_and_transaction_contracts_preserved": true
+  },
+  "default_runtime_result": {
+    "flow_rate_mL_min": 1.2,
+    "configured_residence_time_s": 900.0,
+    "campaign_duration_s": 1800.0,
+    "boundary_temperature_K": 382.0,
+    "inlet_temperature_K": 298.9069467978686,
+    "outlet_temperature_K": 382.00130902240073,
+    "conversion": 0.01761068482855575,
+    "pressure_drop_Pa": 5.471343916622573,
+    "reynolds_number": 5.039906531243353,
+    "reactor_thermal_energy_jacket_J": 5921.884956278523,
+    "campaign_hydraulic_energy_J": 0.00019696838099841262,
+    "material_balance_error_mol": 2.7755575615628914e-17,
+    "energy_balance_residual_J": 4.092726157978177e-11,
+    "axial_diagnostic_points": 9
+  },
+  "perturbation_evidence": {
+    "residence_time_s": {
+      "300": {
+        "conversion": 0.005724309926955345,
+        "pressure_drop_Pa": 1.823781305574812
+      },
+      "1200": {
+        "conversion": 0.02350047663437748,
+        "pressure_drop_Pa": 7.2951252223865595
+      }
+    },
+    "boundary_temperature_K": {
+      "330": {
+        "conversion": 0.004295621026457837,
+        "outlet_temperature_K": 330.0003203304052,
+        "energy_jacket_J": 2217.024306106951
+      },
+      "410": {
+        "conversion": 0.03240220274914557,
+        "outlet_temperature_K": 410.00239090758004,
+        "energy_jacket_J": 7913.217649419309
+      }
+    },
+    "flow_rate_mL_min": {
+      "0.5": {
+        "pressure_drop_Pa": 0.9498860968160443,
+        "reynolds_number": 2.0999610546847305
+      },
+      "3.0": {
+        "pressure_drop_Pa": 34.195899479382206,
+        "reynolds_number": 12.599766328108384
+      }
+    },
+    "world_axes": {
+      "flow.reaction-kinetics": {
+        "base_conversion": 0.01761068482855575,
+        "perturbed_conversion": 0.030615557831378034
+      },
+      "flow.residence-thermal-boundary": {
+        "base_conversion": 0.01761068482855575,
+        "perturbed_conversion": 0.03092592833547282,
+        "perturbed_pressure_drop_Pa": 9.574851854107692
+      }
+    },
+    "passed": true
+  },
+  "validation": {
+    "dedicated_suite": {
+      "command": "python -m pytest -o addopts='' tests/test_flow_coupling.py -q",
+      "passed": 9,
+      "failed": 0
+    },
+    "expanded_nonoverlapping_suite": {
+      "passed": 93,
+      "failed": 0,
+      "includes": [
+        "dedicated flow coupling",
+        "reactor models",
+        "typed flow runtime architecture",
+        "state transition invariants",
+        "environment self consistency",
+        "RL foundation contract",
+        "world-family axes",
+        "maturity truth checks"
+      ]
+    },
+    "ruff": "All checks passed",
+    "mypy": "Success: no issues found in 5 source files",
+    "locked_golden_characterization": {
+      "passed": 3,
+      "failed": 13,
+      "flow_old_score": 0.0408827840135835,
+      "flow_new_score": 0.04025939108974932,
+      "note": "The flow mismatch is an intentional response change from correcting inlet and distributed thermal semantics. Twelve additional score mismatches affect tasks outside this slice and show that the repository-wide locked fixture was already awaiting coordinated refresh after other foundation upgrades. No golden fixture was edited in this claim."
+    }
+  },
+  "maturity": {
+    "implemented_slice": "single_phase_incompressible_geometry_resolved_tubular_pfr_runtime",
+    "slice_maturity": "reference_validated",
+    "full_continuous_flow_platform_maturity": "not_claimed",
+    "central_registry_changed": false,
+    "maturity_label_changed": false,
+    "benchmark_release_allowed_by_this_report": false,
+    "truth_note": "This report validates one declared continuous-flow reference slice and its formal runtime coupling. It is not evidence for industrial validation or for every continuous-flow reactor regime."
+  },
+  "remaining_boundaries": [
+    "The reference slice is single-phase and incompressible; multiphase, gas-liquid, compressible and non-Newtonian regimes are excluded.",
+    "The reactor is an ideal axial PFR without dispersion, radial gradients, fouling, catalyst-bed deactivation or residence-time-distribution fitting.",
+    "The wall boundary uses a declared constant overall heat-transfer coefficient rather than a coupled coolant circuit or fouling evolution model.",
+    "Hydraulics cover a straight tube with Darcy-Weisbach friction; fittings, pump curves, control valves and cavitation are not runtime-controlled here.",
+    "The representative feed inventory is transformed by the outlet response; explicit reservoir depletion and continuous collection tanks are outside this slice.",
+    "The benchmark-wide golden fixture must be intentionally regenerated only after all shared foundation upgrades converge."
+  ],
+  "file_sha256": {
+    "src/chemworld/world/continuous_flow.py": "d27816bf1c288df7b04ee0b4b3af5d1bbc6082c8517502e73221cd137fe99877",
+    "src/chemworld/physchem/pfr_reactors.py": "0af3a4ee50fc0ad14076d08d14bfd8f33f2200f352e1427c919e87990038d6d4",
+    "src/chemworld/physchem/heat_transfer_units.py": "07f2c7d8cd5e183dc95b0a4c54c7720a512b1c57d919ae70347bbc5bb3ae6412",
+    "src/chemworld/physchem/transport.py": "74d65b3f8332816aa4c3fd75cbf4ec43cae3928317489274b43dcb78c324d634",
+    "src/chemworld/runtime/flow_services.py": "1ab09124a2cb707072167c8f6d8e16ef8685265d69292ad7774beabfbfc8884f",
+    "tests/test_flow_coupling.py": "16435f81b9e588d554c6625b6e558187e1a80729c07a9c166850d97bebb4f8a9"
+  }
+}

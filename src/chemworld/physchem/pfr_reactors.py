@@ -11,7 +11,11 @@ import numpy as np
 from chemworld.physchem.reaction_network import ReactionNetworkSpec
 from chemworld.physchem.reactor_shared import HeatTransferSpec, ReactorResult, ReactorState
 from chemworld.physchem.reactor_solvers import _material_balance_error, _solve
-from chemworld.physchem.transport import darcy_friction_factor
+from chemworld.physchem.transport import (
+    FlowResult,
+    darcy_friction_factor,
+    single_phase_tube_hydraulic_ledger,
+)
 
 
 @dataclass(frozen=True)
@@ -25,22 +29,25 @@ class PFRGeometrySpec:
     fluid_viscosity_Pa_s: float = 1.0e-3
     boundary_ua_W_per_m_K: float = 0.0
     boundary_temperature_K: float | None = None
+    hydraulic_provenance_id: str = "darcy_weisbach_straight_tube_v1"
+    thermal_boundary_provenance_id: str = "unspecified"
 
     def __post_init__(self) -> None:
-        if self.length_m <= 0.0:
-            raise ValueError("PFR length_m must be positive")
-        if self.inner_diameter_m <= 0.0:
-            raise ValueError("PFR inner_diameter_m must be positive")
-        if self.roughness_m < 0.0:
-            raise ValueError("PFR roughness_m cannot be negative")
-        if self.fluid_density_kg_m3 <= 0.0:
-            raise ValueError("PFR fluid_density_kg_m3 must be positive")
-        if self.fluid_viscosity_Pa_s <= 0.0:
-            raise ValueError("PFR fluid_viscosity_Pa_s must be positive")
-        if self.boundary_ua_W_per_m_K < 0.0:
-            raise ValueError("PFR boundary_ua_W_per_m_K cannot be negative")
-        if self.boundary_temperature_K is not None and self.boundary_temperature_K <= 0.0:
-            raise ValueError("PFR boundary_temperature_K must be positive")
+        _positive_finite(self.length_m, "PFR length_m")
+        _positive_finite(self.inner_diameter_m, "PFR inner_diameter_m")
+        _nonnegative_finite(self.roughness_m, "PFR roughness_m")
+        _positive_finite(self.fluid_density_kg_m3, "PFR fluid_density_kg_m3")
+        _positive_finite(self.fluid_viscosity_Pa_s, "PFR fluid_viscosity_Pa_s")
+        _nonnegative_finite(self.boundary_ua_W_per_m_K, "PFR boundary_ua_W_per_m_K")
+        if self.boundary_temperature_K is not None:
+            _positive_finite(
+                self.boundary_temperature_K,
+                "PFR boundary_temperature_K",
+            )
+        if not self.hydraulic_provenance_id.strip():
+            raise ValueError("PFR hydraulic_provenance_id cannot be empty")
+        if not self.thermal_boundary_provenance_id.strip():
+            raise ValueError("PFR thermal_boundary_provenance_id cannot be empty")
 
     @property
     def cross_section_area_m2(self) -> float:
@@ -68,7 +75,18 @@ class PFRGeometrySpec:
         )
         return friction * self.fluid_density_kg_m3 * velocity**2 / (2.0 * self.inner_diameter_m)
 
-    def to_dict(self) -> dict[str, float | None]:
+    def hydraulic_ledger(self, volumetric_flow_L_s: float) -> FlowResult:
+        return single_phase_tube_hydraulic_ledger(
+            length_m=self.length_m,
+            inner_diameter_m=self.inner_diameter_m,
+            roughness_m=self.roughness_m,
+            fluid_density_kg_m3=self.fluid_density_kg_m3,
+            fluid_viscosity_Pa_s=self.fluid_viscosity_Pa_s,
+            volumetric_flow_L_s=volumetric_flow_L_s,
+            provenance_id=self.hydraulic_provenance_id,
+        )
+
+    def to_dict(self) -> dict[str, object]:
         return {
             "length_m": self.length_m,
             "inner_diameter_m": self.inner_diameter_m,
@@ -77,6 +95,8 @@ class PFRGeometrySpec:
             "fluid_viscosity_Pa_s": self.fluid_viscosity_Pa_s,
             "boundary_ua_W_per_m_K": self.boundary_ua_W_per_m_K,
             "boundary_temperature_K": self.boundary_temperature_K,
+            "hydraulic_provenance_id": self.hydraulic_provenance_id,
+            "thermal_boundary_provenance_id": self.thermal_boundary_provenance_id,
             "cross_section_area_m2": self.cross_section_area_m2,
             "volume_L": self.volume_l,
         }
@@ -93,12 +113,12 @@ class PFRModel:
     rate_multiplier: float = 1.0
 
     def __post_init__(self) -> None:
-        if self.reactor_volume_L <= 0:
-            raise ValueError("reactor_volume_L must be positive")
-        if self.volumetric_flow_L_s <= 0:
-            raise ValueError("volumetric_flow_L_s must be positive")
-        if self.inlet_pressure_Pa <= 0.0:
-            raise ValueError("inlet_pressure_Pa must be positive")
+        _positive_finite(self.reactor_volume_L, "reactor_volume_L")
+        if self.volumetric_flow_L_s <= 0 or not np.isfinite(
+            self.volumetric_flow_L_s
+        ):
+            raise ValueError("volumetric_flow_L_s must be positive and finite")
+        _positive_finite(self.inlet_pressure_Pa, "inlet_pressure_Pa")
         if self.rate_multiplier <= 0.0 or not np.isfinite(self.rate_multiplier):
             raise ValueError("rate_multiplier must be positive and finite")
         if self.geometry is not None and not np.isclose(
@@ -122,13 +142,20 @@ class PFRModel:
         evaluation_times_s: Sequence[float] | None = None,
         axial_positions_m: Sequence[float] | None = None,
     ) -> ReactorResult:
+        if temperature_K <= 0.0 or not np.isfinite(temperature_K):
+            raise ValueError("temperature_K must be finite and positive")
         if evaluation_times_s is not None and axial_positions_m is not None:
             raise ValueError("Specify evaluation_times_s or axial_positions_m, not both")
         if axial_positions_m is not None:
             if self.geometry is None:
                 raise ValueError("axial_positions_m requires a PFR geometry")
             positions = tuple(float(value) for value in axial_positions_m)
-            if any(value < 0.0 or value > self.geometry.length_m for value in positions):
+            if any(
+                not np.isfinite(value)
+                or value < 0.0
+                or value > self.geometry.length_m
+                for value in positions
+            ):
                 raise ValueError("axial_positions_m must lie inside the PFR length")
             evaluation_times_s = tuple(
                 float(
@@ -140,16 +167,36 @@ class PFRModel:
                 )
                 for value in positions
             )
+        unknown_species = sorted(
+            set(inlet_concentrations_mol_L) - set(self.network.species_ids)
+        )
+        if unknown_species:
+            raise ValueError(f"unknown inlet species: {unknown_species}")
+        for species_id, concentration in inlet_concentrations_mol_L.items():
+            value = float(concentration)
+            if value < 0.0 or not np.isfinite(value):
+                raise ValueError(
+                    f"inlet concentration for {species_id} must be finite and nonnegative"
+                )
         thermal = HeatTransferSpec() if heat_transfer is None else heat_transfer
+        hydraulic = (
+            None
+            if self.geometry is None
+            else self.geometry.hydraulic_ledger(self.volumetric_flow_L_s)
+        )
+        if hydraulic is not None and hydraulic.pressure_drop_total_Pa >= self.inlet_pressure_Pa:
+            raise RuntimeError(
+                "PFR hydraulic boundary predicts nonpositive outlet absolute pressure"
+            )
         initial_amounts = {
-            species_id: max(float(inlet_concentrations_mol_L.get(species_id, 0.0)), 0.0)
+            species_id: float(inlet_concentrations_mol_L.get(species_id, 0.0))
             * self.reactor_volume_L
             for species_id in self.network.species_ids
         }
         y0 = np.array(
             [
                 *(
-                    max(float(inlet_concentrations_mol_L.get(species_id, 0.0)), 0.0)
+                    float(inlet_concentrations_mol_L.get(species_id, 0.0))
                     for species_id in self.network.species_ids
                 ),
                 temperature_K,
@@ -163,10 +210,12 @@ class PFRModel:
 
         def rhs(_tau_s: float, y: np.ndarray) -> np.ndarray:
             concentrations = {
-                species_id: max(float(value), 0.0)
+                species_id: _validated_concentration(float(value), species_id)
                 for species_id, value in zip(self.network.species_ids, y, strict=False)
             }
-            temperature = max(float(y[len(self.network.species_ids)]), 1.0)
+            temperature = float(y[len(self.network.species_ids)])
+            if temperature <= 0.0 or not np.isfinite(temperature):
+                raise RuntimeError("PFR integration reached a nonphysical temperature")
             rates = self.network.reaction_rates(
                 concentrations,
                 volume_L=1.0,
@@ -196,8 +245,8 @@ class PFRModel:
             ) / thermal.rho_cp_J_per_L_K
             pressure_gradient = (
                 0.0
-                if self.geometry is None
-                else self.geometry.pressure_gradient_pa_m(self.volumetric_flow_L_s)
+                if hydraulic is None or self.geometry is None
+                else hydraulic.pressure_drop_total_Pa / self.geometry.length_m
             )
             axial_speed = (
                 0.0 if self.geometry is None else self.geometry.length_m / self.residence_time_s
@@ -225,7 +274,8 @@ class PFRModel:
         pressure_index = n_species + 1
         amounts = {
             species_id: tuple(
-                max(float(value), 0.0) * self.reactor_volume_L for value in result.y[idx]
+                _validated_concentration(float(value), species_id) * self.reactor_volume_L
+                for value in result.y[idx]
             )
             for idx, species_id in enumerate(self.network.species_ids)
         }
@@ -233,8 +283,9 @@ class PFRModel:
         final_state = ReactorState(
             amounts_mol=final_amounts,
             volume_L=self.reactor_volume_L,
-            temperature_K=max(float(result.y[n_species, -1]), 1.0),
+            temperature_K=float(result.y[n_species, -1]),
             time_s=self.residence_time_s,
+            pressure_Pa=float(result.y[pressure_index, -1]),
             energy_jacket_J=float(result.y[n_species + 2, -1]),
             heat_reaction_J=float(result.y[n_species + 3, -1]),
             heat_loss_J=float(result.y[n_species + 4, -1]),
@@ -244,6 +295,7 @@ class PFRModel:
             volume_L=self.reactor_volume_L,
             temperature_K=temperature_K,
             time_s=0.0,
+            pressure_Pa=self.inlet_pressure_Pa,
         )
         pressures = tuple(float(value) for value in result.y[pressure_index])
         if min(pressures) <= 0.0:
@@ -260,20 +312,73 @@ class PFRModel:
             )
             pressure_drop = pressures[0] - pressures[-1]
             geometry_payload = dict[str, object](self.geometry.to_dict())
+        material_balance_error = _material_balance_error(
+            self.network,
+            initial_state,
+            final_state,
+        )
+        if material_balance_error > 1.0e-8:
+            raise RuntimeError(
+                "PFR material balance failed: "
+                f"residual={material_balance_error:.6g} mol"
+            )
+        times = tuple(float(value) for value in result.t)
+        temperatures = tuple(float(value) for value in result.y[n_species])
+        sensible_energy_J = (
+            thermal.rho_cp_J_per_L_K
+            * self.reactor_volume_L
+            * (final_state.temperature_K - initial_state.temperature_K)
+        )
+        expected_sensible_energy_J = (
+            final_state.energy_jacket_J
+            - final_state.heat_reaction_J
+            - final_state.heat_loss_J
+        )
+        energy_balance_residual_J = sensible_energy_J - expected_sensible_energy_J
+        axial_profile = tuple(
+            {
+                "residence_time_s": times[index],
+                "axial_position_m": (
+                    None if not axial_positions else axial_positions[index]
+                ),
+                "temperature_K": temperatures[index],
+                "pressure_Pa": pressures[index],
+                "concentrations_mol_L": {
+                    species_id: amounts[species_id][index] / self.reactor_volume_L
+                    for species_id in self.network.species_ids
+                },
+            }
+            for index in range(len(times))
+        )
+        hydraulic_payload = None if hydraulic is None else hydraulic.to_dict()
+        if hydraulic_payload is not None:
+            hydraulic_payload["inlet_pressure_Pa"] = self.inlet_pressure_Pa
+            hydraulic_payload["outlet_pressure_Pa"] = pressures[-1]
+            hydraulic_payload["hydraulic_energy_per_reactor_volume_J"] = (
+                pressure_drop * self.reactor_volume_L / 1000.0
+            )
+        hydraulic_metadata = (
+            hydraulic_payload.get("metadata")
+            if isinstance(hydraulic_payload, dict)
+            else None
+        )
+        hydraulic_model_id = (
+            hydraulic_metadata.get("model_id")
+            if isinstance(hydraulic_metadata, dict)
+            else None
+        )
         return ReactorResult(
             reactor_id=self.reactor_id,
             model_id="pfr",
             network_id=self.network.network_id,
             initial_state=initial_state,
             final_state=final_state,
-            times_s=tuple(float(value) for value in result.t),
+            times_s=times,
             amounts_mol=amounts,
-            temperatures_K=tuple(float(value) for value in result.y[n_species]),
-            material_balance_error_mol=_material_balance_error(
-                self.network,
-                initial_state,
-                final_state,
-            ),
+            temperatures_K=temperatures,
+            material_balance_error_mol=material_balance_error,
+            volumes_L=tuple(self.reactor_volume_L for _ in times),
+            pressures_Pa=pressures,
             metadata={
                 "residence_time_s": self.residence_time_s,
                 "volumetric_flow_L_s": self.volumetric_flow_L_s,
@@ -288,8 +393,53 @@ class PFRModel:
                     else self.geometry.reynolds_number(self.volumetric_flow_L_s)
                 ),
                 "solver_diagnostic": result.diagnostic.to_dict(),
+                "axial_profile": axial_profile,
+                "hydraulic_ledger": hydraulic_payload,
+                "thermal_ledger": {
+                    "energy_jacket_J": final_state.energy_jacket_J,
+                    "heat_reaction_J": final_state.heat_reaction_J,
+                    "heat_loss_J": final_state.heat_loss_J,
+                    "sensible_energy_J": sensible_energy_J,
+                    "energy_balance_residual_J": energy_balance_residual_J,
+                    "rho_cp_J_per_L_K": thermal.rho_cp_J_per_L_K,
+                },
+                "provenance": {
+                    "model_id": "geometry_resolved_pfr_v2",
+                    "reaction_network_id": self.network.network_id,
+                    "hydraulic_model_id": (
+                        hydraulic_model_id
+                    ),
+                    "hydraulic_provenance_id": (
+                        None
+                        if self.geometry is None
+                        else self.geometry.hydraulic_provenance_id
+                    ),
+                    "thermal_boundary_provenance_id": (
+                        None
+                        if self.geometry is None
+                        else self.geometry.thermal_boundary_provenance_id
+                    ),
+                },
             },
         )
+
+
+def _validated_concentration(value: float, species_id: str) -> float:
+    if not np.isfinite(value):
+        raise RuntimeError(f"PFR concentration became nonfinite for {species_id}")
+    if value < -1.0e-8:
+        raise RuntimeError(f"PFR concentration became negative for {species_id}: {value}")
+    return max(value, 0.0)
+
+
+def _positive_finite(value: float, name: str) -> None:
+    if value <= 0.0 or not np.isfinite(value):
+        raise ValueError(f"{name} must be finite and positive")
+
+
+def _nonnegative_finite(value: float, name: str) -> None:
+    if value < 0.0 or not np.isfinite(value):
+        raise ValueError(f"{name} must be finite and nonnegative")
 
 
 __all__ = ["PFRGeometrySpec", "PFRModel"]

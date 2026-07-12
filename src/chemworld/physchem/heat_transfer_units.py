@@ -3,11 +3,60 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import exp, isfinite, log
+from math import exp, isfinite, log, pi
 from typing import Literal
 
 HeatTransferSurface = Literal["jacket", "coil", "shell"]
 PhaseChangeMode = Literal["none", "boiling", "condensation"]
+
+
+@dataclass(frozen=True)
+class TubularHeatTransferBoundarySpec:
+    """Geometry-resolved single-phase tube thermal boundary.
+
+    It converts an overall heat-transfer coefficient and wetted tube perimeter
+    into the distributed ``UA/L`` contract consumed by the PFR solver.
+    """
+
+    inner_diameter_m: float
+    overall_u_W_m2_K: float
+    boundary_temperature_K: float
+    effectiveness_factor: float = 1.0
+    provenance_id: str = ""
+
+    def __post_init__(self) -> None:
+        _positive(self.inner_diameter_m, "inner_diameter_m")
+        _positive(self.overall_u_W_m2_K, "overall_u_W_m2_K")
+        _positive(self.boundary_temperature_K, "boundary_temperature_K")
+        if not 0.0 < self.effectiveness_factor <= 1.0 or not isfinite(
+            self.effectiveness_factor
+        ):
+            raise ValueError("effectiveness_factor must be finite and in (0, 1]")
+        if not self.provenance_id.strip():
+            raise ValueError("provenance_id cannot be empty")
+
+    @property
+    def wetted_perimeter_m(self) -> float:
+        return pi * self.inner_diameter_m
+
+    @property
+    def conductance_per_length_W_m_K(self) -> float:  # noqa: N802 - unit suffix
+        return (
+            self.overall_u_W_m2_K
+            * self.wetted_perimeter_m
+            * self.effectiveness_factor
+        )
+
+    def to_dict(self) -> dict[str, float | str]:
+        return {
+            "inner_diameter_m": self.inner_diameter_m,
+            "overall_u_W_m2_K": self.overall_u_W_m2_K,
+            "boundary_temperature_K": self.boundary_temperature_K,
+            "effectiveness_factor": self.effectiveness_factor,
+            "wetted_perimeter_m": self.wetted_perimeter_m,
+            "conductance_per_length_W_m_K": self.conductance_per_length_W_m_K,
+            "provenance_id": self.provenance_id,
+        }
 
 
 @dataclass(frozen=True)
@@ -427,5 +476,6 @@ __all__ = [
     "FoulingEvolutionSpec",
     "HeatTransferEquipmentSpec",
     "PhaseChangeBoundarySpec",
+    "TubularHeatTransferBoundarySpec",
     "equipment_heat_transfer",
 ]

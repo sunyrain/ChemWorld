@@ -9,7 +9,7 @@ chemical-engineering correlations, not wrappers around reference projects.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from math import exp, isfinite, log, log10, pi, sqrt
 from typing import Literal
 
@@ -713,6 +713,43 @@ def pipe_pressure_drop(
             "fluid": fluid.to_dict(),
             "dynamic_pressure_Pa": dynamic_pressure,
             "friction_factor": friction_result.to_dict(),
+        },
+    )
+
+
+def single_phase_tube_hydraulic_ledger(
+    *,
+    length_m: float,
+    inner_diameter_m: float,
+    roughness_m: float,
+    fluid_density_kg_m3: float,
+    fluid_viscosity_Pa_s: float,
+    volumetric_flow_L_s: float,
+    provenance_id: str,
+) -> FlowResult:
+    """Return the auditable straight-tube hydraulic ledger used by a PFR."""
+
+    if not provenance_id.strip():
+        raise ValueError("provenance_id cannot be empty")
+    result = pipe_pressure_drop(
+        PipeSpec(
+            length_m=length_m,
+            diameter_m=inner_diameter_m,
+            roughness_m=roughness_m,
+        ),
+        FluidState(
+            density_kg_m3=fluid_density_kg_m3,
+            viscosity_Pa_s=fluid_viscosity_Pa_s,
+        ),
+        volumetric_flow_m3_s=volumetric_flow_L_s / 1000.0,
+        pump_efficiency=1.0,
+    )
+    return replace(
+        result,
+        metadata={
+            **result.metadata,
+            "model_id": "single_phase_straight_tube_darcy_weisbach_v1",
+            "provenance_id": provenance_id,
         },
     )
 
