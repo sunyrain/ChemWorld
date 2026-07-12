@@ -1,0 +1,4073 @@
+{
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "final_assay_repeat_guarded": true,
+    "invalid_atomicity_probe_complete": true,
+    "numeric_boundary_probe_complete": true,
+    "operation_count_exact": true,
+    "operation_coverage_exact": true,
+    "positive_probe_complete": true,
+    "post_terminal_process_barrier": true,
+    "replay_probe_complete": true,
+    "semantic_declarations_complete": true
+  },
+  "control_failures": [],
+  "controls_complete": true,
+  "defect_inventory": [
+    {
+      "defect_id": "state-zero-effect-actions-accepted",
+      "evidence": [
+        {
+          "field": "duration_s",
+          "operation": "heat"
+        },
+        {
+          "field": "duration_s",
+          "operation": "wait"
+        },
+        {
+          "field": "duration_s",
+          "operation": "mix"
+        },
+        {
+          "field": "duration_s",
+          "operation": "settle"
+        },
+        {
+          "field": "wash_volume_L",
+          "operation": "wash"
+        },
+        {
+          "field": "duration_s",
+          "operation": "concentrate"
+        },
+        {
+          "field": "transfer_fraction",
+          "operation": "transfer"
+        },
+        {
+          "field": "seed_mass_g",
+          "operation": "seed_crystals"
+        },
+        {
+          "field": "duration_s",
+          "operation": "cool_crystallize"
+        },
+        {
+          "field": "duration_s",
+          "operation": "evaporate"
+        },
+        {
+          "field": "duration_s",
+          "operation": "distill"
+        },
+        {
+          "field": "transfer_fraction",
+          "operation": "collect_fraction"
+        },
+        {
+          "field": "duration_s",
+          "operation": "run_flow"
+        },
+        {
+          "field": "current_mA",
+          "operation": "set_potential"
+        },
+        {
+          "field": "duration_s",
+          "operation": "electrolyze"
+        }
+      ],
+      "recommended_slice": "foundation-state-fix--zero-effect-actions",
+      "severity": "P0",
+      "summary": "Zero-effect process payloads are accepted for one or more operations, allowing budget-consuming no-op transactions."
+    }
+  ],
+  "failure_policy": {
+    "allowed_cost_penalties": [
+      0.01,
+      0.03
+    ],
+    "allowed_state_changes": [
+      "ledger.cost",
+      "ledger.risk",
+      "process.cost",
+      "process.risk"
+    ],
+    "attempt_consumed": true,
+    "expected_risk_penalty": 0.08,
+    "observation_policy": "failed_observation_without_history_commit"
+  },
+  "final_assay_boundary": {
+    "episode_guard": true,
+    "repeated_final_assay_rejected": true,
+    "runtime_guard": true
+  },
+  "legacy_constraints": {
+    "frozen_protocol_compatibility": "not_required",
+    "provenance_retention": "required"
+  },
+  "limitations": [
+    "This artifact audits runtime controls; it is not benchmark evidence.",
+    "External-input/output operations use declared open-system conservation semantics.",
+    "An invalid action intentionally consumes one environment attempt and only the declared process penalty."
+  ],
+  "negative_value_acceptances": [],
+  "operation_count": 28,
+  "operation_results": {
+    "add_catalyst": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases",
+          "equipment"
+        ],
+        "conservation": "external_input",
+        "contract": {
+          "kind": "primitive",
+          "module": "reaction",
+          "operation_id": "add_catalyst",
+          "preconditions": [
+            "not_terminated"
+          ],
+          "required_fields": [
+            "catalyst_amount_mol",
+            "catalyst"
+          ]
+        },
+        "required_effect_any": [
+          "material",
+          "configuration"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "empty",
+        "task_id": "reaction-to-assay"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "payload_has:catalyst_amount_mol",
+          "payload_has:catalyst"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": [
+          "catalyst_amount_mol"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "phases",
+          "process",
+          "species_amounts"
+        ],
+        "constitution_checks": {
+          "count": 74,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": true,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": false
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "63ed8bb269480aaac7985b2461ab92a947f6c83403cd78c3bcb3ccfc00f91032",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "equipment",
+            "ledger",
+            "phases",
+            "process",
+            "species_amounts"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [],
+        "state_digest": "2f57acdb8efd22b29904c02f574df824f075b10311c73713e070164d3aea22f2",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 26,
+          "failures": []
+        }
+      }
+    },
+    "add_extractant": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "external_input",
+        "contract": {
+          "kind": "primitive",
+          "module": "separation",
+          "operation_id": "add_extractant",
+          "preconditions": [
+            "has_volume",
+            "has_material",
+            "not_terminated"
+          ],
+          "required_fields": [
+            "extractant",
+            "volume_L"
+          ]
+        },
+        "required_effect_any": [
+          "volume",
+          "phase"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "phase_base",
+        "task_id": "partition-discovery"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_phase_system",
+          "payload_has:extractant",
+          "payload_has:volume_L"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": [
+          "volume_L"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "metadata",
+          "phases",
+          "pressure_Pa",
+          "process",
+          "species_amounts",
+          "vessels",
+          "volume_L"
+        ],
+        "constitution_checks": {
+          "count": 118,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": true,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": true
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "104326e3cca61779176c3e2cf154a46530d1f45d842ae07ca1587bd4364110a4",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "equipment",
+            "ledger",
+            "phases",
+            "pressure_Pa",
+            "process",
+            "species_amounts",
+            "vessels",
+            "volume_L"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_phase",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "c96ebfec4162f93d374fa79d20b8b1d92a1fb54805a2fb99183987d957180299",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 49,
+          "failures": []
+        }
+      }
+    },
+    "add_phase": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "external_input",
+        "contract": {
+          "kind": "primitive",
+          "module": "separation",
+          "operation_id": "add_phase",
+          "preconditions": [
+            "not_terminated"
+          ],
+          "required_fields": [
+            "phase",
+            "volume_L"
+          ]
+        },
+        "required_effect_any": [
+          "volume",
+          "phase"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "empty",
+        "task_id": "partition-discovery"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "payload_has:phase",
+          "payload_has:volume_L"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": [
+          "volume_L"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "ledger",
+          "phases",
+          "pressure_Pa",
+          "process",
+          "vessels",
+          "volume_L"
+        ],
+        "constitution_checks": {
+          "count": 95,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": false,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": true
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "15283bd48944c0a327a02b9548ad3e4e91bfa27be0fc1a39b42811654f551892",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "phases",
+            "pressure_Pa",
+            "process",
+            "vessels",
+            "volume_L"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [],
+        "state_digest": "ea645331789ffd7c3e70fdce4245e92adb8d38e24e4e787f43069d848760be71",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 37,
+          "failures": []
+        }
+      }
+    },
+    "add_reagent": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "external_input",
+        "contract": {
+          "kind": "primitive",
+          "module": "reaction",
+          "operation_id": "add_reagent",
+          "preconditions": [
+            "not_terminated"
+          ],
+          "required_fields": [
+            "amount_mol"
+          ]
+        },
+        "required_effect_any": [
+          "material"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "empty",
+        "task_id": "reaction-to-assay"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "payload_has:amount_mol"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": [
+          "amount_mol"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "ledger",
+          "phases",
+          "process",
+          "species",
+          "species_amounts"
+        ],
+        "constitution_checks": {
+          "count": 74,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": false,
+          "cost": true,
+          "material": true,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": false
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "0911df36f2e0ad7d744d4852551111447215046394bd0b66903d4d8b3c3603f9",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "phases",
+            "process",
+            "species",
+            "species_amounts"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [],
+        "state_digest": "cd26e60562aa1dce88d35dd1b7867cd5c7fec02fa5313b44429bc01213bcbaef",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 26,
+          "failures": []
+        }
+      }
+    },
+    "add_solvent": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases",
+          "thermal",
+          "vessels",
+          "equipment"
+        ],
+        "conservation": "external_input",
+        "contract": {
+          "kind": "primitive",
+          "module": "reaction",
+          "operation_id": "add_solvent",
+          "preconditions": [
+            "not_terminated"
+          ],
+          "required_fields": [
+            "volume_L",
+            "solvent"
+          ]
+        },
+        "required_effect_any": [
+          "volume"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "empty",
+        "task_id": "reaction-to-assay"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "payload_has:volume_L",
+          "payload_has:solvent"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": [
+          "volume_L"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "phases",
+          "process",
+          "volume_L"
+        ],
+        "constitution_checks": {
+          "count": 74,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": true
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "1012d2f190a1b645766a314d229b8e59ca570dae28bd2e3c4b14c8cf02af51b6",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "equipment",
+            "ledger",
+            "phases",
+            "process",
+            "volume_L"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [],
+        "state_digest": "bbc892fbeb84e023040fffaee7c3e67dd6e12820c2f487e3345acfdb75c97c28",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 26,
+          "failures": []
+        }
+      }
+    },
+    "collect_fraction": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "external_output",
+        "contract": {
+          "kind": "domain",
+          "module": "distillation",
+          "operation_id": "collect_fraction",
+          "preconditions": [
+            "collect_fraction_requires_distillation"
+          ],
+          "required_fields": [
+            "transfer_fraction"
+          ]
+        },
+        "required_effect_any": [
+          "phase",
+          "volume",
+          "cost"
+        ],
+        "semantic": "replace",
+        "setup_fixture": "distilled",
+        "task_id": "reaction-to-distillation"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "collect_fraction_requires_distillation",
+          "payload_has:transfer_fraction"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "transfer_fraction",
+            "operation": "collect_fraction"
+          }
+        ],
+        "probed_fields": [
+          "transfer_fraction"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "phases",
+          "pressure_Pa",
+          "process",
+          "vessels",
+          "volume_L"
+        ],
+        "constitution_checks": {
+          "count": 102,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": true
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "d45caebebe892048f140d1981f31da50b74d106d291a9e23ab497702cd91668d",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "equipment",
+            "ledger",
+            "phases",
+            "pressure_Pa",
+            "process",
+            "vessels",
+            "volume_L"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_catalyst",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "heat",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "evaporate",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "distill",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "c77c16b12a30fd13c4e4e77b66d8f9cd9932145169b7a5a267909b5e5049abeb",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 40,
+          "failures": []
+        }
+      }
+    },
+    "concentrate": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "external_output",
+        "contract": {
+          "kind": "macro",
+          "module": "separation",
+          "operation_id": "concentrate",
+          "preconditions": [
+            "has_phase_system"
+          ],
+          "required_fields": [
+            "duration_s"
+          ]
+        },
+        "required_effect_any": [
+          "phase",
+          "volume",
+          "time"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "phase_separated",
+        "task_id": "reaction-to-purification"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "has_phase_system",
+          "payload_has:duration_s"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "duration_s",
+            "operation": "concentrate"
+          }
+        ],
+        "probed_fields": [
+          "duration_s"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "process"
+        ],
+        "constitution_checks": {
+          "count": 101,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": false,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": true,
+          "volume": false
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "a2f6d56144a4f17f6a86b31fb97a03e568e52734db82f527769b0c51b0b8daf5",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_phase",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_extractant",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "mix",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "settle",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "separate_phase",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "64c5ed4c8fe81deef0a29d36f1cc840f8ce817f12f198ea293751170d953610a",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 40,
+          "failures": []
+        }
+      }
+    },
+    "cool_crystallize": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "internal_transform",
+        "contract": {
+          "kind": "domain",
+          "module": "crystallization",
+          "operation_id": "cool_crystallize",
+          "preconditions": [
+            "has_volume",
+            "has_material"
+          ],
+          "required_fields": [
+            "target_temperature_K",
+            "duration_s"
+          ]
+        },
+        "required_effect_any": [
+          "phase",
+          "time",
+          "temperature"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "crystallization_ready",
+        "task_id": "reaction-to-crystallization"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "payload_has:target_temperature_K",
+          "payload_has:duration_s"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "duration_s",
+            "operation": "cool_crystallize"
+          }
+        ],
+        "probed_fields": [
+          "duration_s"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "phases",
+          "pressure_Pa",
+          "process",
+          "temperature_K",
+          "vessels"
+        ],
+        "constitution_checks": {
+          "count": 97,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": true,
+          "termination": false,
+          "time": true,
+          "volume": false
+        },
+        "internal_conservation": {
+          "message": "max element-balance error=0",
+          "name": "material_conservation",
+          "passed": true,
+          "tolerance": 5e-07,
+          "value": 0.0
+        },
+        "internal_conservation_passed": true,
+        "observation_digest": "752539ca867f944e5b216172ce2cada08e8a978c0e2a2fe4668bcf7b24381b91",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "equipment",
+            "ledger",
+            "phases",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_catalyst",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "heat",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "seed_crystals",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "5cae686dc351c2b4781d1ead07c113229ec8545208a566c4463658528c9de7af",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 38,
+          "failures": []
+        }
+      }
+    },
+    "distill": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases",
+          "thermal",
+          "vessels",
+          "equipment"
+        ],
+        "conservation": "internal_transform",
+        "contract": {
+          "kind": "domain",
+          "module": "distillation",
+          "operation_id": "distill",
+          "preconditions": [
+            "has_volume",
+            "has_material"
+          ],
+          "required_fields": [
+            "target_temperature_K",
+            "duration_s",
+            "reflux_ratio"
+          ]
+        },
+        "required_effect_any": [
+          "phase",
+          "time",
+          "temperature"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "reacted_distillation",
+        "task_id": "reaction-to-distillation"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "payload_has:target_temperature_K",
+          "payload_has:duration_s",
+          "payload_has:reflux_ratio"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "duration_s",
+            "operation": "distill"
+          }
+        ],
+        "probed_fields": [
+          "duration_s"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "phases",
+          "pressure_Pa",
+          "process",
+          "temperature_K",
+          "thermal",
+          "vessels",
+          "volume_L"
+        ],
+        "constitution_checks": {
+          "count": 102,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": true,
+          "termination": false,
+          "time": true,
+          "volume": true
+        },
+        "internal_conservation": {
+          "message": "max element-balance error=0",
+          "name": "material_conservation",
+          "passed": true,
+          "tolerance": 5e-07,
+          "value": 0.0
+        },
+        "internal_conservation_passed": true,
+        "observation_digest": "7527a4c1084d03f897333e88ef715cbd60b084b070f60cc68c263590699e917c",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "equipment",
+            "ledger",
+            "phases",
+            "pressure_Pa",
+            "process",
+            "thermal",
+            "vessels",
+            "volume_L"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_catalyst",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "heat",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "evaporate",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "9804e7bee70f7d36b6ddc84ee59184a8056dede156f624459fca091bff6bb8ff",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 40,
+          "failures": []
+        }
+      }
+    },
+    "dry": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "external_output",
+        "contract": {
+          "kind": "macro",
+          "module": "separation",
+          "operation_id": "dry",
+          "preconditions": [
+            "has_phase_system"
+          ],
+          "required_fields": []
+        },
+        "required_effect_any": [
+          "phase",
+          "cost"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "phase_separated",
+        "task_id": "reaction-to-purification"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.03,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "has_phase_system"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "precondition_failed",
+        "terminated": false,
+        "transaction_status": "rolled_back",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": []
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "process"
+        ],
+        "constitution_checks": {
+          "count": 101,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": false,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": true,
+          "volume": false
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "f5a1afc6c47a1af652d2c4defdddc5b0c7ff744e4076cc9093fe9e8540b623ea",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_phase",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_extractant",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "mix",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "settle",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "separate_phase",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "23f518e2a304deab6d7e5a26100450660263c9a867d9e586be8fe36f2c5e7c43",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 40,
+          "failures": []
+        }
+      }
+    },
+    "electrolyze": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases",
+          "equipment"
+        ],
+        "conservation": "internal_transform",
+        "contract": {
+          "kind": "domain",
+          "module": "electrochemistry",
+          "operation_id": "electrolyze",
+          "preconditions": [
+            "has_volume",
+            "has_material",
+            "electrolyze_requires_potential"
+          ],
+          "required_fields": [
+            "duration_s"
+          ]
+        },
+        "required_effect_any": [
+          "material",
+          "time",
+          "cost"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "electro_configured",
+        "task_id": "electrochemical-conversion"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "electrolyze_requires_potential",
+          "payload_has:duration_s"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "duration_s",
+            "operation": "electrolyze"
+          }
+        ],
+        "probed_fields": [
+          "duration_s"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "ledger",
+          "phases",
+          "process",
+          "species_amounts",
+          "thermal"
+        ],
+        "constitution_checks": {
+          "count": 70,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": false,
+          "cost": true,
+          "material": true,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": true,
+          "volume": false
+        },
+        "internal_conservation": {
+          "message": "max element-balance error=6.94e-18",
+          "name": "material_conservation",
+          "passed": true,
+          "tolerance": 5e-07,
+          "value": 6.938893903907228e-18
+        },
+        "internal_conservation_passed": true,
+        "observation_digest": "56ea20fff0d39e60f8f00d018acbc3a7b0959563f3445aba8878aed3de73c702",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "phases",
+            "process",
+            "species_amounts",
+            "thermal"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "set_potential",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "eca3282763ce6ad2d6231e395c8d220219468e9eea5ea71717ba86b5b27aba6c",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 25,
+          "failures": []
+        }
+      }
+    },
+    "evaporate": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases",
+          "thermal",
+          "vessels"
+        ],
+        "conservation": "external_output",
+        "contract": {
+          "kind": "domain",
+          "module": "distillation",
+          "operation_id": "evaporate",
+          "preconditions": [
+            "has_volume"
+          ],
+          "required_fields": [
+            "target_temperature_K",
+            "duration_s"
+          ]
+        },
+        "required_effect_any": [
+          "volume",
+          "time",
+          "temperature"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "volume_only",
+        "task_id": "reaction-to-distillation"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "payload_has:target_temperature_K",
+          "payload_has:duration_s"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "duration_s",
+            "operation": "evaporate"
+          }
+        ],
+        "probed_fields": [
+          "duration_s"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "ledger",
+          "phases",
+          "pressure_Pa",
+          "process",
+          "temperature_K",
+          "thermal",
+          "vessels",
+          "volume_L"
+        ],
+        "constitution_checks": {
+          "count": 77,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": false,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": true,
+          "termination": false,
+          "time": true,
+          "volume": true
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "39ba478bc37ebd7c115032053afec4cf2aa3a5d9b4251b95e0772a67fa92e105",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "phases",
+            "process",
+            "thermal",
+            "volume_L"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "740ed87c30211284e95ab381a0cc388e40292990689c2e65a4213ac3231e7fc5",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 27,
+          "failures": []
+        }
+      }
+    },
+    "filter_crystals": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "external_output",
+        "contract": {
+          "kind": "domain",
+          "module": "crystallization",
+          "operation_id": "filter_crystals",
+          "preconditions": [
+            "has_material",
+            "filter_requires_crystallization"
+          ],
+          "required_fields": []
+        },
+        "required_effect_any": [
+          "phase",
+          "volume",
+          "cost"
+        ],
+        "semantic": "replace",
+        "setup_fixture": "crystallized",
+        "task_id": "reaction-to-crystallization"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.03,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "filter_requires_crystallization"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "precondition_failed",
+        "terminated": false,
+        "transaction_status": "rolled_back",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": []
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "phases",
+          "process"
+        ],
+        "constitution_checks": {
+          "count": 99,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": true,
+          "volume": false
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "a9f7749d15f6617208b0ee925bf921bb37faa303e39678b31457316660c63c87",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "equipment",
+            "ledger",
+            "phases",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_catalyst",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "heat",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "seed_crystals",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "cool_crystallize",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "38429f6eadd149aa89dd71004bac9c05bf4556c89ca312e3e8f70fd8b6b8f13a",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 39,
+          "failures": []
+        }
+      }
+    },
+    "heat": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases",
+          "thermal",
+          "vessels",
+          "equipment"
+        ],
+        "conservation": "internal_transform",
+        "contract": {
+          "kind": "primitive",
+          "module": "reaction",
+          "operation_id": "heat",
+          "preconditions": [
+            "has_volume",
+            "has_material"
+          ],
+          "required_fields": [
+            "target_temperature_K",
+            "duration_s",
+            "stirring_speed_rpm"
+          ]
+        },
+        "required_effect_any": [
+          "time",
+          "temperature",
+          "material"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "charged",
+        "task_id": "reaction-to-assay"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "payload_has:target_temperature_K",
+          "payload_has:duration_s",
+          "payload_has:stirring_speed_rpm"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "duration_s",
+            "operation": "heat"
+          }
+        ],
+        "probed_fields": [
+          "duration_s"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "phases",
+          "pressure_Pa",
+          "process",
+          "species_amounts",
+          "temperature_K",
+          "thermal",
+          "vessels"
+        ],
+        "constitution_checks": {
+          "count": 74,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": true,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": true,
+          "termination": false,
+          "time": true,
+          "volume": false
+        },
+        "internal_conservation": {
+          "message": "max element-balance error=6.94e-18",
+          "name": "material_conservation",
+          "passed": true,
+          "tolerance": 5e-07,
+          "value": 6.938893903907228e-18
+        },
+        "internal_conservation_passed": true,
+        "observation_digest": "131c0d7a55cf2ab375da6624d6e7cab8548e4bdb93e519daa194ba7eeff53c92",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "phases",
+            "pressure_Pa",
+            "process",
+            "species_amounts",
+            "temperature_K",
+            "thermal",
+            "vessels"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_catalyst",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "9b6e9e6cab333897bd29c91e62e3e63d799e5495e420fb99c9307072842782ff",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 26,
+          "failures": []
+        }
+      }
+    },
+    "measure": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "equipment",
+          "observation"
+        ],
+        "conservation": "observation_only",
+        "contract": {
+          "kind": "primitive",
+          "module": "observation",
+          "operation_id": "measure",
+          "preconditions": [
+            "has_volume",
+            "instrument_specific"
+          ],
+          "required_fields": [
+            "instrument"
+          ]
+        },
+        "required_effect_any": [
+          "measurement",
+          "cost",
+          "sample"
+        ],
+        "semantic": "observe",
+        "setup_fixture": "volume_only",
+        "task_id": "reaction-to-assay"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "payload_has:instrument"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": []
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "phases",
+          "process",
+          "volume_L"
+        ],
+        "constitution_checks": {
+          "count": 76,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": false,
+          "measurement": true,
+          "phase": true,
+          "quenched": false,
+          "sample": true,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": true
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "4b6295bb469cbd94acd69474ce8612bf3e5610c367e262a8b78353d069ee2208",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "equipment",
+            "ledger",
+            "phases",
+            "process",
+            "volume_L"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "bec1947624ce9d80755bef7ddfc3ce6a5a61fae54371336b7640117706ee4b60",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 27,
+          "failures": []
+        }
+      }
+    },
+    "mix": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases",
+          "equipment"
+        ],
+        "conservation": "internal_transform",
+        "contract": {
+          "kind": "primitive",
+          "module": "separation",
+          "operation_id": "mix",
+          "preconditions": [
+            "has_phase_system"
+          ],
+          "required_fields": [
+            "duration_s",
+            "stirring_speed_rpm"
+          ]
+        },
+        "required_effect_any": [
+          "time",
+          "phase"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "phase_system",
+        "task_id": "partition-discovery"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_phase_system",
+          "payload_has:duration_s",
+          "payload_has:stirring_speed_rpm"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "duration_s",
+            "operation": "mix"
+          }
+        ],
+        "probed_fields": [
+          "duration_s"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "metadata",
+          "phases",
+          "process",
+          "species_amounts",
+          "vessels"
+        ],
+        "constitution_checks": {
+          "count": 99,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": true,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": true,
+          "volume": false
+        },
+        "internal_conservation": {
+          "message": "max element-balance error=0",
+          "name": "material_conservation",
+          "passed": true,
+          "tolerance": 5e-07,
+          "value": 0.0
+        },
+        "internal_conservation_passed": true,
+        "observation_digest": "651d181103f9f86a0bc1746cff50b8da3d0f8c94f465234933b9a9554446b437",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_phase",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_extractant",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "f2257ef1bebef102503e817e03e4a865311fcba2a5aa81e4cd48773380018a8a",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 39,
+          "failures": []
+        }
+      }
+    },
+    "quench": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "thermal",
+          "vessels"
+        ],
+        "conservation": "internal_transform",
+        "contract": {
+          "kind": "primitive",
+          "module": "reaction",
+          "operation_id": "quench",
+          "preconditions": [
+            "has_volume"
+          ],
+          "required_fields": []
+        },
+        "required_effect_any": [
+          "temperature",
+          "quenched"
+        ],
+        "semantic": "replace",
+        "setup_fixture": "volume_only",
+        "task_id": "reaction-to-assay"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.03,
+        "invalid_reasons": [
+          "has_volume"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "precondition_failed",
+        "terminated": false,
+        "transaction_status": "rolled_back",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": []
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "ledger",
+          "process",
+          "quenched"
+        ],
+        "constitution_checks": {
+          "count": 74,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": false,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": false,
+          "quenched": true,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": false
+        },
+        "internal_conservation": {
+          "message": "max element-balance error=0",
+          "name": "material_conservation",
+          "passed": true,
+          "tolerance": 5e-07,
+          "value": 0.0
+        },
+        "internal_conservation_passed": true,
+        "observation_digest": "32ba1e28f849cfd19390213124a45b9c9bbe026864136f9042627b2e78a20244",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "1b5fe57244b045d76b3944356b1c5ea4193872d3cefd172ddff4c6ae37796c1b",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 26,
+          "failures": []
+        }
+      }
+    },
+    "run_flow": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases",
+          "thermal",
+          "vessels"
+        ],
+        "conservation": "internal_transform",
+        "contract": {
+          "kind": "domain",
+          "module": "continuous_flow",
+          "operation_id": "run_flow",
+          "preconditions": [
+            "has_volume",
+            "has_material",
+            "run_flow_requires_flow_setup"
+          ],
+          "required_fields": [
+            "target_temperature_K",
+            "duration_s"
+          ]
+        },
+        "required_effect_any": [
+          "material",
+          "time",
+          "temperature"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "flow_configured",
+        "task_id": "flow-reaction-optimization"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "run_flow_requires_flow_setup",
+          "payload_has:target_temperature_K",
+          "payload_has:duration_s"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "duration_s",
+            "operation": "run_flow"
+          }
+        ],
+        "probed_fields": [
+          "duration_s"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "phases",
+          "pressure_Pa",
+          "process",
+          "species_amounts",
+          "temperature_K",
+          "thermal",
+          "vessels"
+        ],
+        "constitution_checks": {
+          "count": 70,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": true,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": true,
+          "termination": false,
+          "time": true,
+          "volume": false
+        },
+        "internal_conservation": {
+          "message": "max element-balance error=6.25e-17",
+          "name": "material_conservation",
+          "passed": true,
+          "tolerance": 5e-07,
+          "value": 6.245004513516506e-17
+        },
+        "internal_conservation_passed": true,
+        "observation_digest": "baa34946ee6740aeba3a0d7ec41180fddac4a7b36bcc984baf45154c90722017",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "equipment",
+            "ledger",
+            "phases",
+            "pressure_Pa",
+            "process",
+            "species_amounts",
+            "temperature_K",
+            "thermal",
+            "vessels"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "set_flow_rate",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "84c01c5e08ce541f9f9ad85738c63d80bb8c2842c285b7162b5590b5b4145057",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 25,
+          "failures": []
+        }
+      }
+    },
+    "sample": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "external_output",
+        "contract": {
+          "kind": "primitive",
+          "module": "reaction",
+          "operation_id": "sample",
+          "preconditions": [
+            "has_volume"
+          ],
+          "required_fields": [
+            "sample_volume_L"
+          ]
+        },
+        "required_effect_any": [
+          "volume",
+          "material",
+          "sample"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "charged",
+        "task_id": "reaction-to-assay"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "payload_has:sample_volume_L"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": [
+          "sample_volume_L"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "ledger",
+          "phases",
+          "process",
+          "species_amounts",
+          "volume_L"
+        ],
+        "constitution_checks": {
+          "count": 74,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": false,
+          "cost": true,
+          "material": true,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": true,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": true
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "4c3567234c79dd6db0ebfd92e41d0d38d0a2d6c6d1ec5835b4f518bea0c0fef5",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "phases",
+            "process",
+            "species_amounts",
+            "volume_L"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_catalyst",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "ffba3847a8d0ca487afd7ff2881e901250ef7fdad1b2859941b2f7b94faf2f33",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 26,
+          "failures": []
+        }
+      }
+    },
+    "seed_crystals": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases",
+          "equipment"
+        ],
+        "conservation": "external_input",
+        "contract": {
+          "kind": "domain",
+          "module": "crystallization",
+          "operation_id": "seed_crystals",
+          "preconditions": [
+            "has_volume"
+          ],
+          "required_fields": [
+            "seed_mass_g"
+          ]
+        },
+        "required_effect_any": [
+          "phase",
+          "material",
+          "cost"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "volume_only",
+        "task_id": "reaction-to-crystallization"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "payload_has:seed_mass_g"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "seed_mass_g",
+            "operation": "seed_crystals"
+          }
+        ],
+        "probed_fields": [
+          "seed_mass_g"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "phases",
+          "pressure_Pa",
+          "process",
+          "species_amounts",
+          "vessels"
+        ],
+        "constitution_checks": {
+          "count": 97,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": true,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": false
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "2a0ca798fafec568f33c3bf24c5b94d534ef250144415fd300ffa0d132949a84",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "equipment",
+            "ledger",
+            "phases",
+            "pressure_Pa",
+            "process",
+            "species_amounts",
+            "vessels"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "ca7b07f62975b7134631b3e5b4bd7227fa41c574ae9569ddb9c9d852765a6b51",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 38,
+          "failures": []
+        }
+      }
+    },
+    "separate_phase": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "external_output",
+        "contract": {
+          "kind": "primitive",
+          "module": "separation",
+          "operation_id": "separate_phase",
+          "preconditions": [
+            "has_phase_system",
+            "phase_settled"
+          ],
+          "required_fields": [
+            "target_phase"
+          ]
+        },
+        "required_effect_any": [
+          "phase",
+          "volume"
+        ],
+        "semantic": "replace",
+        "setup_fixture": "phase_settled",
+        "task_id": "partition-discovery"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_phase_system",
+          "phase_settled",
+          "payload_has:target_phase"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": []
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "ledger",
+          "phases",
+          "pressure_Pa",
+          "process",
+          "vessels",
+          "volume_L"
+        ],
+        "constitution_checks": {
+          "count": 99,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": false,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": true
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "5915b107521d0c5ae902ad30bdd55c3516c3609fc2f37e1d62bef4cda66f856d",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_phase",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_extractant",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "mix",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "settle",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "570578a32950e51cd807f12b78737509a98f195a24842be39d0e1f3ef99c620a",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 39,
+          "failures": []
+        }
+      }
+    },
+    "set_flow_rate": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "equipment"
+        ],
+        "conservation": "configuration_only",
+        "contract": {
+          "kind": "domain",
+          "module": "continuous_flow",
+          "operation_id": "set_flow_rate",
+          "preconditions": [
+            "not_terminated"
+          ],
+          "required_fields": [
+            "flow_rate_mL_min",
+            "residence_time_s"
+          ]
+        },
+        "required_effect_any": [
+          "configuration",
+          "cost"
+        ],
+        "semantic": "configure",
+        "setup_fixture": "empty",
+        "task_id": "flow-reaction-optimization"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "payload_has:flow_rate_mL_min",
+          "payload_has:residence_time_s"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": [
+          "flow_rate_mL_min",
+          "residence_time_s"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "pressure_Pa",
+          "process",
+          "vessels"
+        ],
+        "constitution_checks": {
+          "count": 70,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": false,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": false
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "9a825d19103761c914978cd0857ba3ba8513e6c6137fb1467caf60c0e2999185",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [],
+        "state_digest": "82e57b208b8904f2c50a35c1f071ffbee88228ad72a84a518e7ba5040dab685d",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 25,
+          "failures": []
+        }
+      }
+    },
+    "set_potential": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "equipment"
+        ],
+        "conservation": "configuration_only",
+        "contract": {
+          "kind": "domain",
+          "module": "electrochemistry",
+          "operation_id": "set_potential",
+          "preconditions": [
+            "has_volume",
+            "has_material"
+          ],
+          "required_fields": [
+            "potential_V",
+            "current_mA"
+          ]
+        },
+        "required_effect_any": [
+          "configuration",
+          "cost"
+        ],
+        "semantic": "configure",
+        "setup_fixture": "charged_basic",
+        "task_id": "electrochemical-conversion"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "payload_has:potential_V",
+          "payload_has:current_mA"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "current_mA",
+            "operation": "set_potential"
+          }
+        ],
+        "probed_fields": [
+          "current_mA"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "process"
+        ],
+        "constitution_checks": {
+          "count": 70,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": false,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": false
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "a3ce5feb3c88b929dfbccc0be73042336bd801939f1e06c4b33ea2473233ce05",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "0b7dbe49284ea4f2f165c782704864d433361f2b2087bbbe2af46b6c23887673",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 25,
+          "failures": []
+        }
+      }
+    },
+    "settle": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "internal_transform",
+        "contract": {
+          "kind": "primitive",
+          "module": "separation",
+          "operation_id": "settle",
+          "preconditions": [
+            "has_phase_system"
+          ],
+          "required_fields": [
+            "duration_s"
+          ]
+        },
+        "required_effect_any": [
+          "time",
+          "phase"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "phase_mixed",
+        "task_id": "partition-discovery"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_phase_system",
+          "payload_has:duration_s"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "duration_s",
+            "operation": "settle"
+          }
+        ],
+        "probed_fields": [
+          "duration_s"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "ledger",
+          "phases",
+          "process"
+        ],
+        "constitution_checks": {
+          "count": 99,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": false,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": true,
+          "volume": false
+        },
+        "internal_conservation": {
+          "message": "max element-balance error=0",
+          "name": "material_conservation",
+          "passed": true,
+          "tolerance": 5e-07,
+          "value": 0.0
+        },
+        "internal_conservation_passed": true,
+        "observation_digest": "667fb5f9f8ce3d45adb33c42ccd502aebdda41342ebc1a13e42a3f8bb14c86e5",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_phase",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_extractant",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "mix",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "0e8e0cb78aaa6f07531d55a4c77398e76abe62406ae6289a5ce6cb5af3cd8d18",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 39,
+          "failures": []
+        }
+      }
+    },
+    "terminate": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process"
+        ],
+        "conservation": "terminal_only",
+        "contract": {
+          "kind": "terminal",
+          "module": "reaction",
+          "operation_id": "terminate",
+          "preconditions": [
+            "has_material"
+          ],
+          "required_fields": []
+        },
+        "required_effect_any": [
+          "termination"
+        ],
+        "semantic": "terminal",
+        "setup_fixture": "material_only",
+        "task_id": "reaction-to-assay"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.03,
+        "invalid_reasons": [
+          "has_material",
+          "terminate_requires_material"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "precondition_failed",
+        "terminated": false,
+        "transaction_status": "rolled_back",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [],
+        "probed_fields": []
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "terminated"
+        ],
+        "constitution_checks": {
+          "count": 74,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": false,
+          "cost": false,
+          "material": false,
+          "measurement": false,
+          "phase": false,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": true,
+          "time": false,
+          "volume": false
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "0911df36f2e0ad7d744d4852551111447215046394bd0b66903d4d8b3c3603f9",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "a38019cb154acf2d0e42bfaf226628dd6912a07033642af48cb26ec2d537e433",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 26,
+          "failures": []
+        }
+      }
+    },
+    "transfer": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "external_output",
+        "contract": {
+          "kind": "primitive",
+          "module": "separation",
+          "operation_id": "transfer",
+          "preconditions": [
+            "has_phase_system"
+          ],
+          "required_fields": [
+            "transfer_fraction"
+          ]
+        },
+        "required_effect_any": [
+          "phase",
+          "volume",
+          "cost"
+        ],
+        "semantic": "replace",
+        "setup_fixture": "phase_separated",
+        "task_id": "reaction-to-purification"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "has_phase_system",
+          "payload_has:transfer_fraction"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "transfer_fraction",
+            "operation": "transfer"
+          }
+        ],
+        "probed_fields": [
+          "transfer_fraction"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "process"
+        ],
+        "constitution_checks": {
+          "count": 101,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": false,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": false
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "721d6131c9d39144acf6d1381796140194c3116cfa3bd2acebc15324b6a3c039",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_phase",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_extractant",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "mix",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "settle",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "separate_phase",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "96f0b371b2557612b7e1bb35a66bc127b72445cae89683d1d29cca18dcdb954b",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 40,
+          "failures": []
+        }
+      }
+    },
+    "wait": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases",
+          "thermal",
+          "vessels",
+          "equipment"
+        ],
+        "conservation": "internal_transform",
+        "contract": {
+          "kind": "primitive",
+          "module": "reaction",
+          "operation_id": "wait",
+          "preconditions": [
+            "has_volume",
+            "has_material"
+          ],
+          "required_fields": [
+            "duration_s",
+            "stirring_speed_rpm"
+          ]
+        },
+        "required_effect_any": [
+          "time",
+          "material"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "charged",
+        "task_id": "reaction-to-assay"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "payload_has:duration_s"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "duration_s",
+            "operation": "wait"
+          }
+        ],
+        "probed_fields": [
+          "duration_s"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "equipment",
+          "ledger",
+          "phases",
+          "pressure_Pa",
+          "process",
+          "species_amounts",
+          "temperature_K",
+          "thermal",
+          "vessels"
+        ],
+        "constitution_checks": {
+          "count": 74,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": true,
+          "cost": true,
+          "material": true,
+          "measurement": false,
+          "phase": true,
+          "quenched": false,
+          "sample": false,
+          "temperature": true,
+          "termination": false,
+          "time": true,
+          "volume": false
+        },
+        "internal_conservation": {
+          "message": "max element-balance error=6.94e-18",
+          "name": "material_conservation",
+          "passed": true,
+          "tolerance": 5e-07,
+          "value": 6.938893903907228e-18
+        },
+        "internal_conservation_passed": true,
+        "observation_digest": "44cc65701c48687cf5ba21d970039d03ff7b1bf7240214edcbee4cdf690dff91",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "phases",
+            "pressure_Pa",
+            "process",
+            "species_amounts",
+            "temperature_K",
+            "thermal",
+            "vessels"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_catalyst",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "748a03b94367506631fecbfe6a4f92a506e1038389589f441def77b808150af0",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 26,
+          "failures": []
+        }
+      }
+    },
+    "wash": {
+      "checks": {
+        "committed": true,
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "deterministic_replay": true,
+        "internal_conservation_passed": true,
+        "invalid_action_atomic": true,
+        "invalid_action_penalty_declared": true,
+        "invalid_observation_not_committed": true,
+        "negative_values_rejected": true,
+        "repeat_evidence_recorded": true,
+        "typed_state_authoritative": true
+      },
+      "declaration": {
+        "affected_ledgers": [
+          "process",
+          "species",
+          "phases"
+        ],
+        "conservation": "external_input_output",
+        "contract": {
+          "kind": "macro",
+          "module": "separation",
+          "operation_id": "wash",
+          "preconditions": [
+            "has_phase_system"
+          ],
+          "required_fields": [
+            "wash_volume_L"
+          ]
+        },
+        "required_effect_any": [
+          "phase",
+          "volume",
+          "cost"
+        ],
+        "semantic": "additive",
+        "setup_fixture": "phase_separated",
+        "task_id": "reaction-to-purification"
+      },
+      "invalid_probe": {
+        "atomic": true,
+        "attempt_consumed": true,
+        "cost_delta": 0.01,
+        "invalid_reasons": [
+          "has_volume",
+          "has_material",
+          "has_phase_system",
+          "payload_has:wash_volume_L"
+        ],
+        "observation_history_unchanged": true,
+        "penalty_declared": true,
+        "reward": 0.0,
+        "risk_delta": 0.08,
+        "rollback_reason": "validation_failed",
+        "terminated": false,
+        "transaction_status": "validation_failed",
+        "truncated": false
+      },
+      "numeric_boundary_probe": {
+        "accepted_negative": [],
+        "accepted_zero": [
+          {
+            "field": "wash_volume_L",
+            "operation": "wash"
+          }
+        ],
+        "probed_fields": [
+          "wash_volume_L"
+        ]
+      },
+      "positive_probe": {
+        "changed_roots": [
+          "ledger",
+          "process"
+        ],
+        "constitution_checks": {
+          "count": 99,
+          "failures": []
+        },
+        "constitution_passed": true,
+        "declared_effect_observed": true,
+        "effect_flags": {
+          "configuration": false,
+          "cost": true,
+          "material": false,
+          "measurement": false,
+          "phase": false,
+          "quenched": false,
+          "sample": false,
+          "temperature": false,
+          "termination": false,
+          "time": false,
+          "volume": false
+        },
+        "internal_conservation": null,
+        "internal_conservation_passed": true,
+        "observation_digest": "d1a023a9125100b11bad4e7a63ae0eb6e2ca5084b098646684e8a77eb6eb777d",
+        "repeat": {
+          "atomic_if_rejected": true,
+          "changed_roots": [
+            "ledger",
+            "process"
+          ],
+          "rollback_reason": null,
+          "status": "committed"
+        },
+        "rollback_reason": null,
+        "setup": [
+          {
+            "operation": "add_solvent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_reagent",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_phase",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "add_extractant",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "mix",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "settle",
+            "transaction_status": "committed"
+          },
+          {
+            "operation": "separate_phase",
+            "transaction_status": "committed"
+          }
+        ],
+        "state_digest": "1c2d80eb55aa75d9f644b78f64d2df04e3dc64338e0a8764b3a6378d2f2b40b8",
+        "transaction_status": "committed",
+        "typed_state_authoritative": true,
+        "typed_state_findings": {
+          "count": 39,
+          "failures": []
+        }
+      }
+    }
+  },
+  "post_terminal_boundary": {
+    "all_process_operations_rejected": true,
+    "measurement_remains_available_for_terminal_assay": true,
+    "operations": {
+      "add_catalyst": true,
+      "add_extractant": true,
+      "add_phase": true,
+      "add_reagent": true,
+      "add_solvent": true,
+      "collect_fraction": true,
+      "concentrate": true,
+      "cool_crystallize": true,
+      "distill": true,
+      "dry": true,
+      "electrolyze": true,
+      "evaporate": true,
+      "filter_crystals": true,
+      "heat": true,
+      "mix": true,
+      "quench": true,
+      "run_flow": true,
+      "sample": true,
+      "seed_crystals": true,
+      "separate_phase": true,
+      "set_flow_rate": true,
+      "set_potential": true,
+      "settle": true,
+      "transfer": true,
+      "wait": true,
+      "wash": true
+    }
+  },
+  "protocol_id": "foundation-state-transition-invariants-vnext",
+  "protocol_sha256": "3b692fad06faac89940f37a53470696ead2cc96b3ba35281d363d300f648dcca",
+  "report_hash": "7df13388adff2672adf48bbae26576dcdbc23532321c0f94bcaf40618f6aec75",
+  "schema_version": "chemworld-foundation-state-transition-report-0.1",
+  "source_commit": "a534c630d4dfc7af6a3bce6d19c8c1e2eb96df9c",
+  "source_tree_dirty": false,
+  "status": "audit_complete_defects_found",
+  "zero_effect_acceptances": [
+    {
+      "field": "duration_s",
+      "operation": "heat"
+    },
+    {
+      "field": "duration_s",
+      "operation": "wait"
+    },
+    {
+      "field": "duration_s",
+      "operation": "mix"
+    },
+    {
+      "field": "duration_s",
+      "operation": "settle"
+    },
+    {
+      "field": "wash_volume_L",
+      "operation": "wash"
+    },
+    {
+      "field": "duration_s",
+      "operation": "concentrate"
+    },
+    {
+      "field": "transfer_fraction",
+      "operation": "transfer"
+    },
+    {
+      "field": "seed_mass_g",
+      "operation": "seed_crystals"
+    },
+    {
+      "field": "duration_s",
+      "operation": "cool_crystallize"
+    },
+    {
+      "field": "duration_s",
+      "operation": "evaporate"
+    },
+    {
+      "field": "duration_s",
+      "operation": "distill"
+    },
+    {
+      "field": "transfer_fraction",
+      "operation": "collect_fraction"
+    },
+    {
+      "field": "duration_s",
+      "operation": "run_flow"
+    },
+    {
+      "field": "current_mA",
+      "operation": "set_potential"
+    },
+    {
+      "field": "duration_s",
+      "operation": "electrolyze"
+    }
+  ]
+}
