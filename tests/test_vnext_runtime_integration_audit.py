@@ -61,9 +61,17 @@ def test_backend_candidate_is_hash_bound_and_cannot_claim_benchmark_readiness() 
     manifest = json.loads((CANDIDATE / "manifest.json").read_text(encoding="utf-8"))
 
     assert manifest["release_status"] == "candidate_backend_only"
+    assert manifest["candidate_id"] == (
+        "chemworld-physical-chemistry-v0.5-backend-candidate"
+    )
     assert manifest["benchmark_claim_allowed"] is False
     assert manifest["baseline_results_included"] is False
     assert manifest["frozen_v1_rewritten"] is False
+    assert {
+        "backend_freeze.json",
+        "maturity_truth.json",
+        "public_boundary.json",
+    } <= set(manifest["artifact_sha256"])
     for filename, expected in manifest["artifact_sha256"].items():
         artifact = (CANDIDATE / filename).read_bytes()
         assert hashlib.sha256(artifact).hexdigest() == expected

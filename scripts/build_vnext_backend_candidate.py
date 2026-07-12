@@ -1,4 +1,4 @@
-"""Build the backend-only World Law v0.4 candidate evidence bundle."""
+"""Build the backend-only v0.5 candidate evidence bundle for World Law v0.4."""
 
 from __future__ import annotations
 
@@ -57,6 +57,15 @@ def build_bundle(root: Path, output: Path) -> dict[str, Any]:
         "integration_audit.json": (
             root / "workstreams/world_foundation/reports/wf-110-runtime-integration.json"
         ),
+        "backend_freeze.json": (
+            root / "workstreams/world_foundation/reports/backend-v0.5.json"
+        ),
+        "maturity_truth.json": (
+            root / "workstreams/world_foundation/reports/maturity-truth-vnext.json"
+        ),
+        "public_boundary.json": (
+            root / "workstreams/world_foundation/reports/public-boundary-security-vnext.json"
+        ),
         "core_golden_summaries.json": (
             root / "tests/fixtures/golden/core_scripted_trajectories.json"
         ),
@@ -71,7 +80,7 @@ def build_bundle(root: Path, output: Path) -> dict[str, Any]:
     )
     manifest = {
         "schema_version": SCHEMA_VERSION,
-        "candidate_id": "chemworld-physical-chemistry-v0.4-backend-candidate",
+        "candidate_id": "chemworld-physical-chemistry-v0.5-backend-candidate",
         "world_law_id": "chemworld-physical-chemistry-v0.4",
         "task_contract_version": "chemworld-task-contract-0.6",
         "release_status": "candidate_backend_only",

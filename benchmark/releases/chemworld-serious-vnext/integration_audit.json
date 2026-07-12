@@ -1,26 +1,9 @@
 {
-  "check_count": 7,
+  "check_count": 6,
   "checks": [
     {
       "check_id": "world_law_advanced",
       "evidence": "chemworld-physical-chemistry-v0.4",
-      "passed": true
-    },
-    {
-      "check_id": "all_adapter_proposals_integrated",
-      "evidence": {
-        "accepted_count": 8,
-        "states": {
-          "wf-10-arrhenius-unit-contract": "integrated",
-          "wf-20-spectral-identifiability": "integrated",
-          "wf-30-drying-sorbent": "integrated",
-          "wf-30-transfer-holdup": "integrated",
-          "wf-30-vacuum-concentration": "integrated",
-          "wf-40-lle-stability-coupling": "integrated",
-          "wf-50-crystallization-convergence": "integrated",
-          "wf-60-duty-limited-distillation": "integrated"
-        }
-      },
       "passed": true
     },
     {
@@ -29,17 +12,41 @@
         "concentrate": [
           "chemworld_vacuum_concentration_vnext"
         ],
+        "cool_crystallize": [
+          "cooling_crystallization_population_balance_v1"
+        ],
         "distill": [
           "chemworld_duty_limited_distillation_vnext"
         ],
         "dry": [
           "chemworld_sorbent_drying_vnext"
         ],
+        "electrolyze": [
+          "nernst_butler_volmer_faradaic_v1",
+          "diffusion_layer_limiting_current_v1",
+          "randles_double_layer_transient_v1",
+          "aqueous_acid_base_ph_observation"
+        ],
+        "heat": [
+          "reaction_ode_mass_action_arrhenius_reference_slice",
+          "dynamic_batch_heat_release_jacket_sampling"
+        ],
+        "measure": [
+          "chemworld_validated_synthetic_instruments_v1"
+        ],
         "mix": [
           "chemworld_stability_aware_lle_vnext"
         ],
+        "run_flow": [
+          "reaction_ode_mass_action_arrhenius_reference_slice",
+          "chemworld_geometry_resolved_pfr_v2"
+        ],
         "transfer": [
           "chemworld_transfer_holdup_vnext"
+        ],
+        "wait": [
+          "reaction_ode_mass_action_arrhenius_reference_slice",
+          "dynamic_batch_heat_release_jacket_sampling"
         ],
         "wash": [
           "chemworld_stability_aware_lle_vnext"
@@ -70,6 +77,15 @@
     {
       "check_id": "providers_execute_in_transactions",
       "evidence": {
+        "crystallization_transaction_statuses": [
+          "committed",
+          "committed",
+          "committed",
+          "committed",
+          "committed",
+          "committed",
+          "committed"
+        ],
         "distillation_transaction_statuses": [
           "committed",
           "committed",
@@ -79,12 +95,83 @@
           "committed",
           "committed"
         ],
+        "electrochemical_transaction_statuses": [
+          "committed",
+          "committed",
+          "committed",
+          "committed"
+        ],
+        "flow_transaction_statuses": [
+          "committed",
+          "committed",
+          "committed",
+          "committed",
+          "committed"
+        ],
+        "instrument_model_ids": {
+          "final_assay": [
+            "chemworld_validated_synthetic_instruments_v1"
+          ],
+          "gc": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "hplc": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "chromatography_retention_plate"
+          ],
+          "ph_meter": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "aqueous_acid_base_ph_observation",
+            "potentiometric_ph_public_reference"
+          ],
+          "uvvis": [
+            "chemworld_validated_synthetic_instruments_v1",
+            "beer_lambert_uvvis"
+          ]
+        },
+        "instrument_transaction_statuses": {
+          "assay": [
+            "committed",
+            "committed",
+            "committed",
+            "committed",
+            "committed",
+            "committed",
+            "committed"
+          ],
+          "ph": [
+            "committed",
+            "committed",
+            "committed"
+          ]
+        },
         "model_ids": {
           "concentrate": "chemworld_vacuum_concentration_vnext",
+          "cool_crystallize": "cooling_crystallization_population_balance_v1",
           "distill": "chemworld_duty_limited_distillation_vnext",
           "dry": "chemworld_sorbent_drying_vnext",
+          "electrolyze": [
+            "nernst_butler_volmer_faradaic_v1",
+            "diffusion_layer_limiting_current_v1",
+            "randles_double_layer_transient_v1",
+            "aqueous_acid_base_ph_observation"
+          ],
+          "heat": [
+            "reaction_ode_mass_action_arrhenius_reference_slice",
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
+          "measure": "chemworld_validated_synthetic_instruments_v1",
           "mix": "chemworld_stability_aware_lle_vnext",
+          "run_flow": [
+            "reaction_ode_mass_action_arrhenius_reference_slice",
+            "chemworld_geometry_resolved_pfr_v2"
+          ],
           "transfer": "chemworld_transfer_holdup_vnext",
+          "wait": [
+            "reaction_ode_mass_action_arrhenius_reference_slice",
+            "dynamic_batch_heat_release_jacket_sampling"
+          ],
           "wash": "chemworld_stability_aware_lle_vnext"
         },
         "passed": true,
@@ -94,53 +181,427 @@
             "concentration_energy_balance_error_J": 0.0,
             "concentration_material_balance_error_mol": 0.0,
             "concentration_model_id": "chemworld_vacuum_concentration_vnext",
+            "concentration_provenance": [
+              "differential batch Rayleigh evaporation with fixed declared activity coefficients",
+              "heater-power and equipment-rate constrained latent-energy ledger",
+              "explicit recovered-condensate and unrecovered-vent material ledgers",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models/unit_models/flash.py component material, energy, heat-duty, and pressure-balance convention boundary"
+            ],
+            "concentration_provider_path": "chemworld.physchem.concentration_adapter_manifest.VacuumConcentrationProvider",
             "concentration_skipped_empty_phase": false,
-            "concentration_target_recovery": 0.998832134638052,
+            "concentration_target_recovery": 0.9988321346380531,
             "concentration_termination_reason": "solvent_endpoint",
             "concentration_warnings": [
               "volatile target loss is explicit in condensate and vent ledgers",
               "unrecovered vapor is explicit in the vent-loss ledger"
             ]
           },
+          "crystallization": {
+            "component_balance_errors_mol": {
+              "B": 2.6020852139652106e-18,
+              "P": 3.469446951953614e-18
+            },
+            "cooling_rate_K_s": 0.029893274448009967,
+            "crystal_seed_mass_g": 0.006,
+            "crystal_seeded": true,
+            "crystallization_model_id": "cooling_crystallization_population_balance_v1",
+            "csd_area_moment_2_m2": 0.024438635089635414,
+            "csd_cv": 0.1977652247056549,
+            "csd_d10_m": 1.0307612328601233e-05,
+            "csd_d50_m": 1.3923409426193442e-05,
+            "csd_d90_m": 1.73853584270045e-05,
+            "csd_fines_number_fraction": 0.9999226704335464,
+            "csd_length_moment_1_m": 1704.1993211628997,
+            "csd_number_moment_0": 123488298.50553457,
+            "csd_total_particle_count": 123488298.50553457,
+            "csd_volume_moment_3_m3": 3.7121170190220235e-07,
+            "execution_history": [
+              {
+                "crystal_purity": 0.9773596704391678,
+                "csd_d50_m": 1.3923409426193442e-05,
+                "diagnostics": {
+                  "cooling_rate_K_s": 0.029893274448009967,
+                  "crystal_population_formed": true,
+                  "growth_solver_converged": true,
+                  "liquid_composition_closed": true,
+                  "material_closed": true,
+                  "meaningful_transfer": true,
+                  "particle_size_moment_closed": true,
+                  "runtime_validated": true,
+                  "temperature_history_valid": true,
+                  "warnings": [
+                    "final_mother_liquor_remains_supersaturated",
+                    "fines_dominate_number_distribution"
+                  ]
+                },
+                "duration_s": 1800.0,
+                "execution_index": 1,
+                "final_temperature_K": 278.15,
+                "initial_temperature_K": 331.9578940064179,
+                "model_id": "cooling_crystallization_population_balance_v1",
+                "provenance": [
+                  "ChemWorld cooling_crystallization population-balance cohort model v1",
+                  "ChemWorld van't Hoff solubility and primary nucleation/growth contracts",
+                  "tests/test_crystallization_units.py",
+                  "tests/test_crystallization_validation.py",
+                  "tests/test_crystallization_coupling.py"
+                ],
+                "provider_manifest_hash": "9c0211d7ceeaee3850e8f1a5eca08366d4b5f04a42d7a828d9a03fabec1ac70b",
+                "provider_path": "chemworld.physchem.crystallization_adapter_manifest.ValidatedCrystallizationRuntimeProvider",
+                "seed_mass_g": 0.006,
+                "target_recovery": 0.7398340606341753
+              }
+            ],
+            "execution_spec": {
+              "fail_on_no_population": true,
+              "fail_on_no_transfer": true,
+              "fail_on_solver_nonconvergence": true,
+              "growth_solver_tolerance_mol": 1e-12,
+              "material_balance_tolerance_mol": 1e-10,
+              "max_growth_solver_iterations": 80,
+              "maximum_cooling_rate_K_s": 0.25,
+              "minimum_crystallized_from_solution_mol": 1e-10,
+              "minimum_effective_seed_particles": 10.0,
+              "minimum_target_amount_mol": 1e-10,
+              "particle_target_balance_tolerance_mol": 1e-10
+            },
+            "final_supersaturation_ratio": 1.056904118566797,
+            "growth_history_m_s": [
+              3.9645944527143317e-10,
+              8.027065768044129e-10,
+              1.2187136534150023e-09,
+              1.6444031995470088e-09,
+              2.079635329170144e-09,
+              2.5241926759609657e-09,
+              2.9777625472402035e-09,
+              3.4399158918434125e-09,
+              3.910082660590519e-09,
+              4.38752315296159e-09,
+              4.871294999771041e-09,
+              5.360215548859371e-09,
+              5.852819624655998e-09,
+              6.347312954487885e-09,
+              6.841522031553628e-09,
+              7.33284185605771e-09,
+              7.818183898811469e-09,
+              8.293927789820801e-09,
+              8.755881644309347e-09,
+              9.199257546926166e-09,
+              9.618670390892415e-09,
+              1.000816977445827e-08,
+              1.0361315622436137e-08,
+              1.0671308119938989e-08,
+              1.0931180813449108e-08,
+              1.113406174607058e-08,
+              1.1273500823864477e-08,
+              1.1343852262949366e-08,
+              1.1340689648146078e-08,
+              1.1261219439021252e-08,
+              1.1104649138170997e-08,
+              1.087246170514019e-08,
+              1.0568550772082955e-08,
+              1.0199183122948678e-08,
+              9.772774933940473e-09,
+              9.29949323504299e-09,
+              8.79071892918673e-09,
+              8.258427060272799e-09,
+              7.714549672837703e-09,
+              7.170384919125517e-09,
+              6.636104317045355e-09,
+              6.1203917696173215e-09,
+              5.630227589735037e-09,
+              5.170812373968197e-09,
+              4.745611821482405e-09,
+              4.356495541386196e-09,
+              4.0039401856890986e-09,
+              3.687268680890443e-09,
+              3.404901403133729e-09,
+              3.154600455199961e-09,
+              2.9336936942904846e-09,
+              2.7392701488993244e-09,
+              2.5683426095270525e-09,
+              2.41797638469591e-09,
+              2.285385533413349e-09,
+              2.1679994434682603e-09,
+              2.0635035683037906e-09,
+              1.969858601976169e-09,
+              1.885302479368076e-09,
+              1.8083394321586433e-09
+            ],
+            "growth_solver_converged": true,
+            "growth_solver_iterations": 0,
+            "growth_solver_max_residual_mol": 0.0,
+            "kinetics_model_id": "runtime_cooling_population_balance_v1",
+            "last_seed_time_s": 2400.0,
+            "material_balance_error_mol": 3.469446951953614e-18,
+            "maximum_supersaturation_ratio": 1.5671926131474683,
+            "model_warnings": [
+              "final_mother_liquor_remains_supersaturated",
+              "fines_dominate_number_distribution"
+            ],
+            "nucleation_history_per_L_s": [
+              7859.004587246626,
+              32216.892422252935,
+              74263.14845100712,
+              135203.094134022,
+              216244.15511663072,
+              318577.43326874904,
+              443353.4893873233,
+              591651.0671478431,
+              764437.3206325317,
+              962517.9708887005,
+              1186475.7487397173,
+              1436595.536511688,
+              1712774.877937919,
+              2014419.087110486,
+              2340321.185411684,
+              2688528.484297594,
+              3056199.9737817445,
+              3439461.909138088,
+              3833273.168457668,
+              4231316.970733901,
+              4625941.0044315215,
+              5008173.111719003,
+              5367843.071386957,
+              5693840.84953379,
+              5974535.698815896,
+              6198366.548265614,
+              6354591.041283652,
+              6434149.208181073,
+              6430562.084778381,
+              6340753.162689508,
+              6165661.624094093,
+              5910521.176486995,
+              5584713.27110476,
+              5201166.818772058,
+              4775356.495472761,
+              4324028.721430518,
+              3863836.964598094,
+              3410080.875492302,
+              2975713.8327340153,
+              2570720.994421132,
+              2201894.0253354,
+              1872959.7706799726,
+              1584973.1356106803,
+              1336865.030339131,
+              1126041.5780096774,
+              948952.6701058904,
+              801576.8505288027,
+              679797.5162537774,
+              579667.6782531018,
+              497575.20159738994,
+              430327.93459598755,
+              375180.04743254633,
+              329819.18799561146,
+              292330.4898473552,
+              261149.35181675083,
+              235011.07934393434,
+              212902.34882012382,
+              194017.14558897528,
+              177718.27193557078,
+              163504.57509499224
+            ],
+            "particle_target_balance_error_mol": 4.336808689942018e-19,
+            "provenance": {
+              "kinetics": "chemworld-world-law-v0.2-crystallization-kinetics",
+              "solubility_curve": "chemworld-world-law-v0.2-solubility-policy"
+            },
+            "provider_diagnostics": {
+              "cooling_rate_K_s": 0.029893274448009967,
+              "crystal_population_formed": true,
+              "growth_solver_converged": true,
+              "liquid_composition_closed": true,
+              "material_closed": true,
+              "meaningful_transfer": true,
+              "particle_size_moment_closed": true,
+              "runtime_validated": true,
+              "temperature_history_valid": true,
+              "warnings": [
+                "final_mother_liquor_remains_supersaturated",
+                "fines_dominate_number_distribution"
+              ]
+            },
+            "provider_manifest_hash": "9c0211d7ceeaee3850e8f1a5eca08366d4b5f04a42d7a828d9a03fabec1ac70b",
+            "provider_maturity": "professional_candidate",
+            "provider_path": "chemworld.physchem.crystallization_adapter_manifest.ValidatedCrystallizationRuntimeProvider",
+            "provider_provenance": [
+              "ChemWorld cooling_crystallization population-balance cohort model v1",
+              "ChemWorld van't Hoff solubility and primary nucleation/growth contracts",
+              "tests/test_crystallization_units.py",
+              "tests/test_crystallization_validation.py",
+              "tests/test_crystallization_coupling.py"
+            ],
+            "provider_role": "runtime",
+            "seed_charge_count": 1,
+            "seed_model_id": "explicit_target_seed_mass_v1",
+            "seed_target_mol": 9.991340837940452e-05,
+            "solubility_model_id": "runtime_vanthoff_target_solubility_v1",
+            "supersaturation_history": [
+              1.0198229722635717,
+              1.0401353288402206,
+              1.0609356826707501,
+              1.0822201599773504,
+              1.1039817664585072,
+              1.1262096337980483,
+              1.1488881273620102,
+              1.1719957945921706,
+              1.195504133029526,
+              1.2193761576480795,
+              1.243564749988552,
+              1.2680107774429685,
+              1.2926409812328,
+              1.3173656477243942,
+              1.3420761015776814,
+              1.3666420928028855,
+              1.3909091949405734,
+              1.41469638949104,
+              1.4377940822154673,
+              1.4599628773463083,
+              1.4809335195446207,
+              1.5004084887229134,
+              1.5180657811218068,
+              1.5335654059969495,
+              1.5465590406724554,
+              1.556703087303529,
+              1.5636750411932239,
+              1.5671926131474683,
+              1.567034482407304,
+              1.5630609719510626,
+              1.5552324569085498,
+              1.5436230852570094,
+              1.5284275386041477,
+              1.509959156147434,
+              1.4886387466970237,
+              1.4649746617521495,
+              1.4395359464593365,
+              1.41292135301364,
+              1.3857274836418851,
+              1.3585192459562758,
+              1.3318052158522677,
+              1.306019588480866,
+              1.2815113794867519,
+              1.2585406186984098,
+              1.2372805910741203,
+              1.2178247770693098,
+              1.200197009284455,
+              1.1843634340445222,
+              1.1702450701566864,
+              1.157730022759998,
+              1.1466846847145242,
+              1.1369635074449662,
+              1.1284171304763526,
+              1.1208988192347955,
+              1.1142692766706674,
+              1.108399972173413,
+              1.1031751784151895,
+              1.0984929300988084,
+              1.0942651239684038,
+              1.0904169716079322
+            ],
+            "temperature_history_K": [
+              331.9578940064179,
+              331.06109577297764,
+              330.1642975395373,
+              329.267499306097,
+              328.37070107265674,
+              327.4739028392164,
+              326.5771046057761,
+              325.68030637233585,
+              324.7835081388955,
+              323.88670990545523,
+              322.98991167201496,
+              322.0931134385746,
+              321.19631520513434,
+              320.299516971694,
+              319.4027187382537,
+              318.50592050481345,
+              317.6091222713731,
+              316.71232403793283,
+              315.81552580449255,
+              314.9187275710522,
+              314.02192933761194,
+              313.12513110417166,
+              312.2283328707313,
+              311.33153463729104,
+              310.43473640385076,
+              309.5379381704104,
+              308.64113993697015,
+              307.74434170352987,
+              306.84754347008953,
+              305.95074523664925,
+              305.0539470032089,
+              304.15714876976864,
+              303.26035053632836,
+              302.363552302888,
+              301.46675406944775,
+              300.56995583600747,
+              299.67315760256713,
+              298.77635936912685,
+              297.8795611356866,
+              296.98276290224624,
+              296.08596466880596,
+              295.1891664353657,
+              294.29236820192534,
+              293.39556996848506,
+              292.4987717350448,
+              291.60197350160445,
+              290.70517526816417,
+              289.8083770347239,
+              288.91157880128355,
+              288.0147805678433,
+              287.117982334403,
+              286.22118410096266,
+              285.3243858675224,
+              284.4275876340821,
+              283.53078940064177,
+              282.6339911672015,
+              281.73719293376115,
+              280.84039470032087,
+              279.9435964668806,
+              279.04679823344026,
+              278.15
+            ]
+          },
           "distill": {
             "distillate_cut_fraction": 0.41666666666666663,
+            "distillation_adapter_id": "wf-60-duty-limited-distillation",
             "distillation_kernel": {
               "actual_distillate_cut_fraction": 0.41666666666666663,
-              "average_condenser_power_W": 1.0069014388266233,
-              "average_reboiler_power_W": 1.0684988679209306,
-              "bubble_pressure_Pa": 168504.72704618733,
-              "bubble_pressure_margin_Pa": 52002.85299028618,
-              "condenser_duty_J": 1510.352158239935,
+              "average_condenser_power_W": 1.008777095897981,
+              "average_reboiler_power_W": 1.070396108080473,
+              "bubble_pressure_Pa": 167065.85450053474,
+              "bubble_pressure_margin_Pa": 50563.98044463359,
+              "condenser_duty_J": 1513.1656438469713,
               "cut_endpoint_met": true,
               "effective_stages": 1.5155555555555555,
               "elapsed_time_s": 1500.0,
               "energy_balance_error_J": 0.0,
               "engine_model_id": "vle_shortcut_distillation",
               "feed_amounts_mol": {
-                "impurity": 0.021667287282921582,
-                "product": 0.0008327127170784302
+                "impurity": 0.021732036547475936,
+                "product": 0.0007679634525240633
               },
-              "fenske_minimum_stages": 1.5155555555555553,
+              "fenske_minimum_stages": 1.5155555555555555,
               "fenske_stage_residual": 0.0,
               "final_temperature_K": 360.0,
               "fug_available": false,
               "gilliland_x": null,
               "gilliland_y": null,
               "heavy_key": "impurity",
-              "heavy_key_bottoms_purity": 0.9911178236251218,
-              "heavy_key_recovery": 0.6003714846820315,
+              "heavy_key_bottoms_purity": 0.9918479478234192,
+              "heavy_key_recovery": 0.5990236711935933,
               "initial_temperature_K": 335.0,
               "installed_equilibrium_stage_margin": null,
-              "internal_vapor_mol": 0.028125000000000015,
-              "internal_vapor_rate_mol_s": 1.875000000000001e-05,
+              "internal_vapor_mol": 0.028124999999999994,
+              "internal_vapor_rate_mol_s": 1.8749999999999995e-05,
               "k_values": {
                 "impurity": 1.2875329364060308,
                 "product": 5.579309391092801
               },
-              "latent_reboiler_duty_J": 1510.352158239935,
+              "latent_reboiler_duty_J": 1513.1656438469713,
               "light_key": "product",
-              "light_key_distillate_purity": 0.0763876428968697,
-              "light_key_recovery": 0.8600014596519051,
+              "light_key_distillate_purity": 0.0705032285553537,
+              "light_key_recovery": 0.8606760719329023,
               "limiting_constraint": "requested_cut",
               "material_balance_error_mol": 0.0,
               "minimum_reflux_ratio": null,
@@ -150,12 +611,12 @@
               "operating_temperature_K": 360.0,
               "outlets": {
                 "bottoms": {
-                  "impurity": 0.013008421435079732,
-                  "product": 0.00011657856492027635
+                  "impurity": 0.013018004315182378,
+                  "product": 0.00010699568481762256
                 },
                 "distillate": {
-                  "impurity": 0.00865886584784185,
-                  "product": 0.0007161341521581538
+                  "impurity": 0.008714032232293558,
+                  "product": 0.0006609677677064408
                 }
               },
               "pressure_Pa": 116501.87405590115,
@@ -176,14 +637,24 @@
               },
               "requested_distillate_cut_fraction": 0.41666666666666663,
               "required_theoretical_stages": null,
-              "sensible_heat_J": 92.39614364146084,
-              "total_reboiler_duty_J": 1602.748301881396,
+              "sensible_heat_J": 92.42851827373796,
+              "total_reboiler_duty_J": 1605.5941621207094,
               "underwood_theta": null,
               "warnings": [
                 "binary Underwood diagnostic unavailable: minimum reflux ratio is not physically positive"
               ]
             },
             "distillation_model": "chemworld_duty_limited_distillation_vnext",
+            "distillation_provenance": [
+              "ChemWorld VLE-derived constant-relative-volatility/Fenske split engine",
+              "explicit sensible, reboiler, total-condenser, and internal-vapor ledgers",
+              "binary Fenske and Underwood diagnostic when both key products are nonempty",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models_extra/column_models/tray_column.py column configuration boundary",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models_extra/column_models/condenser.py condenser/reflux boundary",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models_extra/column_models/reboiler.py reboiler duty boundary",
+              "column profile chemworld-runtime-vnext-duty-limited-column"
+            ],
+            "distillation_provider_path": "chemworld.physchem.distillation_adapter_manifest.DutyLimitedDistillationProvider",
             "reflux_ratio": 2.0,
             "theoretical_stages": 3.666666666666667
           },
@@ -191,20 +662,815 @@
             "drying_endpoint_met": true,
             "drying_material_balance_error_mol": 0.0,
             "drying_model_id": "chemworld_sorbent_drying_vnext",
-            "drying_product_recovery": 0.972566778850543,
+            "drying_product_recovery": 0.972557135980505,
+            "drying_provenance": [
+              "extended-Langmuir shared-site equilibrium with exact component inventory",
+              "linear-driving-force approach using one rate for capacity-preserving transients",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8:idaes/models_extra/temperature_swing_adsorption/fixed_bed_tsa0d.py extended-isotherm convention; ChemWorld uses an independent bounded liquid-contact ledger"
+            ],
+            "drying_provider_path": "chemworld.physchem.drying_adapter_manifest.SorbentDryingProvider",
             "drying_skipped_empty_phase": false,
             "drying_volume_balance_error_L": 0.0,
             "drying_warnings": [
               "product loss is explicit in sorption and retained-liquid ledgers"
             ]
           },
+          "electrochem": {
+            "aqueous_equilibrium_diagnostic": {
+              "applicability": {
+                "activity_model": "davies_aqueous_activity_v1",
+                "ionic_strength_max_mol_kg": 0.5,
+                "ionic_strength_mol_kg": 0.02042743678626541,
+                "temperature_max_K": 373.15,
+                "temperature_min_K": 273.15
+              },
+              "charge_balance_error_eq": 2.208344952699104e-20,
+              "converged": true,
+              "ionic_strength_mol_kg": 0.02042743678626541,
+              "iterations": 23,
+              "material_balance_error_mol": 2.710505431213761e-20,
+              "model_id": "aqueous_acid_base_ph_observation",
+              "pH": 3.484872530750029,
+              "precipitated_mol": 4.940000000227306e-05
+            },
+            "contact_resistance_ohm": 0.2,
+            "current_mA": 75.0,
+            "diffusion_layer_thickness_m": 0.0001,
+            "diffusivity_m2_s": 1e-09,
+            "double_layer_capacitance_F_m2": 0.2,
+            "double_layer_diagnostic": {
+              "capacitive_charge_C": -1.1975373161057233e-05,
+              "charge_balance_residual_C": 5.7198678031413625e-15,
+              "faradaic_charge_C": -134.99998802462684,
+              "model_id": "randles_double_layer_transient_v1",
+              "time_constant_s": 0.00015967164214742978,
+              "warnings": [
+                "startup_current_dominated_by_non_faradaic_charging"
+              ]
+            },
+            "electrode_area_m2": 0.004,
+            "electrode_gap_m": 0.004,
+            "electrolyte_acid_pka": 4.76,
+            "electrolyte_acid_total_mol": 0.00013,
+            "electrolyte_conductivity_S_m": 8.0,
+            "electrolyte_ksp": 1e-08,
+            "equilibrium_activity_tolerance": 1e-10,
+            "equilibrium_max_activity_iterations": 64,
+            "equilibrium_max_precipitation_passes": 3,
+            "mechanism_hash": "691cb87f8a9b61ffb20187e6bf1ccd83996bc6223542741b70d9aa8c726660ff",
+            "mechanism_id": "electrochemical_conversion",
+            "potential_V": 1.15,
+            "precipitating_salt_mol": 5.2e-05,
+            "runtime_model_ids": [
+              "nernst_butler_volmer_faradaic_v1",
+              "diffusion_layer_limiting_current_v1",
+              "randles_double_layer_transient_v1",
+              "aqueous_acid_base_ph_observation"
+            ],
+            "supporting_electrolyte_mol": 0.00052,
+            "transport_diagnostic": {
+              "charge_balance_residual_C": 0.0,
+              "current_efficiency": 0.999999999999999,
+              "limiting_current_A": 2.9687794498461546,
+              "material_balance_residual_mol": 1.0842021724855044e-19,
+              "model_id": "diffusion_layer_limiting_current_v1",
+              "warnings": []
+            },
+            "voltage_window_V": 2.5
+          },
+          "flow": {
+            "axial_profile": [
+              {
+                "axial_position_m": 0.0,
+                "concentrations_mol_L": {
+                  "A": 0.38461538461538464,
+                  "B": 0.0,
+                  "D": 0.0,
+                  "E": 0.0,
+                  "P": 0.0
+                },
+                "pressure_Pa": 102558.99748290336,
+                "residence_time_s": 0.0,
+                "temperature_K": 298.9069467978686
+              },
+              {
+                "axial_position_m": 0.17904931097838225,
+                "concentrations_mol_L": {
+                  "A": 0.38385368897365973,
+                  "B": 2.0772482679246283e-05,
+                  "D": 4.362431024940414e-07,
+                  "E": 1.8157655779276997e-08,
+                  "P": 0.000740450600631761
+                },
+                "pressure_Pa": 102558.31356491371,
+                "residence_time_s": 112.5,
+                "temperature_K": 382.0003528285009
+              },
+              {
+                "axial_position_m": 0.3580986219567645,
+                "concentrations_mol_L": {
+                  "A": 0.38298906309287756,
+                  "B": 4.46389102075561e-05,
+                  "D": 1.9818363140497963e-06,
+                  "E": 1.7618406014031505e-07,
+                  "P": 0.0015793484078653376
+                },
+                "pressure_Pa": 102557.62964692418,
+                "residence_time_s": 225.0,
+                "temperature_K": 382.0013282573689
+              },
+              {
+                "axial_position_m": 0.5371479329351467,
+                "concentrations_mol_L": {
+                  "A": 0.38212638307784164,
+                  "B": 6.845163256032586e-05,
+                  "D": 4.6426414690048135e-06,
+                  "E": 6.315147723325041e-07,
+                  "P": 0.0024146442339691367
+                },
+                "pressure_Pa": 102556.94572893463,
+                "residence_time_s": 337.5,
+                "temperature_K": 382.001324807092
+              },
+              {
+                "axial_position_m": 0.716197243913529,
+                "concentrations_mol_L": {
+                  "A": 0.38126564631058807,
+                  "B": 9.221071479567218e-05,
+                  "D": 8.413655432259426e-06,
+                  "E": 1.5394274700185406e-06,
+                  "P": 0.0032460350796286656
+                },
+                "pressure_Pa": 102556.26181094509,
+                "residence_time_s": 450.0,
+                "temperature_K": 382.00132171947234
+              },
+              {
+                "axial_position_m": 0.8952465548919113,
+                "concentrations_mol_L": {
+                  "A": 0.38040684841203176,
+                  "B": 0.0001159162777982243,
+                  "D": 1.3289477985046167e-05,
+                  "E": 3.052840806464439e-06,
+                  "P": 0.004073224765956859
+                },
+                "pressure_Pa": 102555.57789295552,
+                "residence_time_s": 562.5,
+                "temperature_K": 382.00131848910615
+              },
+              {
+                "axial_position_m": 1.0742958658702935,
+                "concentrations_mol_L": {
+                  "A": 0.37954998501416043,
+                  "B": 0.00013956844214201315,
+                  "D": 1.9264318019896032e-05,
+                  "E": 5.3221085315472984e-06,
+                  "P": 0.0048959226239994455
+                },
+                "pressure_Pa": 102554.89397496595,
+                "residence_time_s": 675.0,
+                "temperature_K": 382.001315277457
+              },
+              {
+                "axial_position_m": 1.2533451768486759,
+                "concentrations_mol_L": {
+                  "A": 0.37869505175848717,
+                  "B": 0.000163167328139432,
+                  "D": 2.6332001037780482e-05,
+                  "E": 8.494819910678367e-06,
+                  "P": 0.005713843887899119
+                },
+                "pressure_Pa": 102554.21005697636,
+                "residence_time_s": 787.5,
+                "temperature_K": 382.0013120633362
+              },
+              {
+                "axial_position_m": 1.432394487827058,
+                "concentrations_mol_L": {
+                  "A": 0.37784204429670937,
+                  "B": 0.00018671305582025922,
+                  "D": 3.4485977370829e-05,
+                  "E": 1.2715610799757885e-05,
+                  "P": 0.00652671006388494
+                },
+                "pressure_Pa": 102553.52613898674,
+                "residence_time_s": 900.0,
+                "temperature_K": 382.00130902240073
+              }
+            ],
+            "boundary_temperature_K": 382.0,
+            "configuration_revision": 1,
+            "configured_feed_signature": "5713afc0424d5f2d62e3f387cf59cdfa02300d90885b4623645bc6b617eb6f1d",
+            "executed_feed_signature": "5713afc0424d5f2d62e3f387cf59cdfa02300d90885b4623645bc6b617eb6f1d",
+            "flow_experiment_index": 1,
+            "flow_model_id": "pfr",
+            "flow_rate_mL_min": 1.2,
+            "geometry": {
+              "boundary_temperature_K": 382.0,
+              "boundary_ua_W_per_m_K": 5.026548245743669,
+              "cross_section_area_m2": 1.2566370614359172e-05,
+              "fluid_density_kg_m3": 950.0,
+              "fluid_viscosity_Pa_s": 0.0012,
+              "hydraulic_provenance_id": "chemworld_single_phase_darcy_weisbach_v1",
+              "inner_diameter_m": 0.004,
+              "length_m": 1.432394487827058,
+              "roughness_m": 1e-06,
+              "thermal_boundary_provenance_id": "chemworld_tubular_boundary_u_times_wetted_perimeter_v1",
+              "volume_L": 0.018
+            },
+            "hydraulic_energy_J": 0.00019696838099841262,
+            "hydraulic_ledger": {
+              "friction_factor": 12.69864819977348,
+              "hydraulic_energy_per_reactor_volume_J": 9.84841904992063e-05,
+              "inlet_pressure_Pa": 102558.99748290336,
+              "mass_flow_kg_s": 1.8999999999999998e-05,
+              "metadata": {
+                "dynamic_pressure_Pa": 0.001203189055752761,
+                "fluid": {
+                  "density_kg_m3": 950.0,
+                  "heat_capacity_J_kg_K": 4180.0,
+                  "thermal_conductivity_W_m_K": 0.6,
+                  "viscosity_Pa_s": 0.0012
+                },
+                "friction_factor": {
+                  "friction_factor": 12.69864819977348,
+                  "method": "auto",
+                  "regime": "laminar",
+                  "relative_roughness": 0.00025,
+                  "reynolds": 5.039906531243353,
+                  "validity_warnings": []
+                },
+                "model_id": "single_phase_straight_tube_darcy_weisbach_v1",
+                "pipe": {
+                  "diameter_m": 0.004,
+                  "elevation_change_m": 0.0,
+                  "fittings_loss_coefficient": 0.0,
+                  "length_m": 1.432394487827058,
+                  "roughness_m": 1e-06
+                },
+                "provenance_id": "chemworld_single_phase_darcy_weisbach_v1"
+              },
+              "outlet_pressure_Pa": 102553.52613898674,
+              "pressure_drop_fittings_Pa": 0.0,
+              "pressure_drop_friction_Pa": 5.47134391668624,
+              "pressure_drop_static_Pa": 0.0,
+              "pressure_drop_total_Pa": 5.47134391668624,
+              "pump_work_W": 1.0942687833372479e-07,
+              "regime": "laminar",
+              "reynolds": 5.039906531243353,
+              "velocity_m_s": 0.0015915494309189533,
+              "volumetric_flow_m3_s": 1.9999999999999997e-08
+            },
+            "inlet_temperature_K": 298.9069467978686,
+            "material_balance_error_mol": 2.7755575615628914e-17,
+            "material_basis": "representative_feed_inventory_no_implicit_addition",
+            "outlet_pressure_Pa": 102553.52613898674,
+            "outlet_temperature_K": 382.00130902240073,
+            "pressure_drop_Pa": 5.471343916622573,
+            "provenance": {
+              "hydraulic_model_id": "single_phase_straight_tube_darcy_weisbach_v1",
+              "hydraulic_provenance_id": "chemworld_single_phase_darcy_weisbach_v1",
+              "model_id": "geometry_resolved_pfr_v2",
+              "reaction_network_id": "pfr_hotspot",
+              "thermal_boundary_provenance_id": "chemworld_tubular_boundary_u_times_wetted_perimeter_v1"
+            },
+            "reactor_diagnostic": {
+              "energy_ledger_net_J": 5913.45213102306,
+              "material_balance_closed": true,
+              "material_balance_error_mol": 2.7755575615628914e-17,
+              "maximum_temperature_K": 382.0013282573689,
+              "maximum_temperature_rate_K_s": 0.7386080536056205,
+              "minimum_species_amount_mol": 0.0,
+              "minimum_temperature_K": 298.9069467978686,
+              "nonnegative_species": true,
+              "sensible_energy_input_J": 5930.317781533985,
+              "warnings": [],
+              "within_validity_domain": true
+            },
+            "reactor_volume_L": 0.018,
+            "repeat_semantic": "run requires a fresh set_flow_rate configuration",
+            "residence_time_s": 900.0,
+            "result_digest": "723a39dd10f1ce324694680a0544976fe8f686df532ae43b2837c64e851dc53d",
+            "reynolds_number": 5.039906531243353,
+            "run_semantic": "advance_one_new_configured_experiment",
+            "runtime_adapter_id": "chemworld_geometry_resolved_pfr_v1",
+            "runtime_model_ids": [
+              "reaction_ode_mass_action_arrhenius_reference_slice",
+              "chemworld_geometry_resolved_pfr_v2"
+            ],
+            "runtime_provider_id": "chemworld_geometry_resolved_pfr_v2",
+            "solver_diagnostic": {
+              "evaluation_count": 9,
+              "event_count": 0,
+              "failure_reason": "",
+              "final_time_s": 900.0,
+              "message": "The solver successfully reached the end of the integration interval.",
+              "nfev": 398,
+              "njev": 0,
+              "nlu": 0,
+              "policy": {
+                "atol": 1e-12,
+                "backend": "scipy.integrate.solve_ivp",
+                "dense_output": false,
+                "event_names": [],
+                "first_step_s": null,
+                "max_step_s": null,
+                "method": "LSODA",
+                "policy_hash": "d489af009514ec12",
+                "rtol": 1e-08,
+                "solver_id": "chemworld_reactor_lsoda_v1",
+                "vectorized": false
+              },
+              "status": 0,
+              "success": true,
+              "t_end_s": 900.0,
+              "t_start_s": 0.0
+            },
+            "thermal_boundary": {
+              "boundary_temperature_K": 382.0,
+              "conductance_per_length_W_m_K": 5.026548245743669,
+              "effectiveness_factor": 1.0,
+              "inner_diameter_m": 0.004,
+              "overall_u_W_m2_K": 400.0,
+              "provenance_id": "chemworld_tubular_boundary_u_times_wetted_perimeter_v1",
+              "wetted_perimeter_m": 0.012566370614359173
+            },
+            "thermal_ledger": {
+              "energy_balance_residual_J": 4.092726157978177e-11,
+              "energy_jacket_J": 5921.884956278523,
+              "heat_loss_J": 0.0,
+              "heat_reaction_J": -8.432825255462815,
+              "rho_cp_J_per_L_K": 3964.9151898399764,
+              "sensible_energy_J": 5930.317781534026
+            }
+          },
+          "instruments": {
+            "final_assay": {
+              "diagnostics": {
+                "calibration_profile": "synthetic_multichannel_public_calibration_v2",
+                "detection_contract": {
+                  "below_lod": "null_processed_estimate_with_missingness_reason",
+                  "lod_mol_L": null,
+                  "loq_mol_L": null
+                },
+                "final_assay_repeat_guard": true,
+                "instrument_contract_loaded": true,
+                "instrument_id": "final_assay",
+                "missingness_contract": {
+                  "below_lod": "processed value is null; raw trace remains available",
+                  "failed_measurement": "no signal packet and no instrument charge",
+                  "masking": "removes spectral evidence only; does not alter world state"
+                },
+                "sample_volume_exact": true,
+                "sample_volume_sufficient": true,
+                "saturation_contract": {
+                  "policy": "clip_and_flag_outside_declared_linear_range",
+                  "upper_linear_range_mol_L": null
+                }
+              },
+              "execution_history": [
+                {
+                  "diagnostics": {
+                    "calibration_profile": "synthetic_multichannel_public_calibration_v2",
+                    "detection_contract": {
+                      "below_lod": "null_processed_estimate_with_missingness_reason",
+                      "lod_mol_L": null,
+                      "loq_mol_L": null
+                    },
+                    "final_assay_repeat_guard": true,
+                    "instrument_contract_loaded": true,
+                    "instrument_id": "final_assay",
+                    "missingness_contract": {
+                      "below_lod": "processed value is null; raw trace remains available",
+                      "failed_measurement": "no signal packet and no instrument charge",
+                      "masking": "removes spectral evidence only; does not alter world state"
+                    },
+                    "sample_volume_exact": true,
+                    "sample_volume_sufficient": true,
+                    "saturation_contract": {
+                      "policy": "clip_and_flag_outside_declared_linear_range",
+                      "upper_linear_range_mol_L": null
+                    }
+                  },
+                  "maturity": "reference_validated",
+                  "measurement_index": 1,
+                  "model_id": "chemworld_validated_synthetic_instruments_v1",
+                  "provenance": [
+                    "ChemWorld bounded public synthetic instrument contracts v1",
+                    "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                    "tests/test_instruments_reference.py",
+                    "tests/test_instrument_runtime_integration.py"
+                  ],
+                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+                  "role": "runtime"
+                }
+              ],
+              "instrument_id": "final_assay",
+              "last_cost": 0.16,
+              "last_sample_consumed_L": 0.0003,
+              "last_time_s": 0.0,
+              "model_id": "chemworld_validated_synthetic_instruments_v1",
+              "provenance": [
+                "ChemWorld bounded public synthetic instrument contracts v1",
+                "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                "tests/test_instruments_reference.py",
+                "tests/test_instrument_runtime_integration.py"
+              ],
+              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+              "use_count": 1
+            },
+            "gc": {
+              "diagnostics": {
+                "calibration_profile": "retention_plate_public_calibration_v2",
+                "detection_contract": {
+                  "below_lod": "null_processed_estimate_with_missingness_reason",
+                  "lod_mol_L": 0.0012,
+                  "loq_mol_L": 0.003636363636363636
+                },
+                "final_assay_repeat_guard": false,
+                "instrument_contract_loaded": true,
+                "instrument_id": "gc",
+                "missingness_contract": {
+                  "below_lod": "processed value is null; raw trace remains available",
+                  "failed_measurement": "no signal packet and no instrument charge",
+                  "masking": "removes spectral evidence only; does not alter world state"
+                },
+                "sample_volume_exact": true,
+                "sample_volume_sufficient": true,
+                "saturation_contract": {
+                  "policy": "clip_and_flag_outside_declared_linear_range",
+                  "upper_linear_range_mol_L": 5.0
+                }
+              },
+              "execution_history": [
+                {
+                  "diagnostics": {
+                    "calibration_profile": "retention_plate_public_calibration_v2",
+                    "detection_contract": {
+                      "below_lod": "null_processed_estimate_with_missingness_reason",
+                      "lod_mol_L": 0.0012,
+                      "loq_mol_L": 0.003636363636363636
+                    },
+                    "final_assay_repeat_guard": false,
+                    "instrument_contract_loaded": true,
+                    "instrument_id": "gc",
+                    "missingness_contract": {
+                      "below_lod": "processed value is null; raw trace remains available",
+                      "failed_measurement": "no signal packet and no instrument charge",
+                      "masking": "removes spectral evidence only; does not alter world state"
+                    },
+                    "sample_volume_exact": true,
+                    "sample_volume_sufficient": true,
+                    "saturation_contract": {
+                      "policy": "clip_and_flag_outside_declared_linear_range",
+                      "upper_linear_range_mol_L": 5.0
+                    }
+                  },
+                  "maturity": "reference_validated",
+                  "measurement_index": 1,
+                  "model_id": "chemworld_validated_synthetic_instruments_v1",
+                  "provenance": [
+                    "ChemWorld bounded public synthetic instrument contracts v1",
+                    "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                    "tests/test_instruments_reference.py",
+                    "tests/test_instrument_runtime_integration.py"
+                  ],
+                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+                  "role": "runtime"
+                }
+              ],
+              "instrument_id": "gc",
+              "last_cost": 0.06,
+              "last_sample_consumed_L": 0.00015,
+              "last_time_s": 0.0,
+              "model_id": "chemworld_validated_synthetic_instruments_v1",
+              "provenance": [
+                "ChemWorld bounded public synthetic instrument contracts v1",
+                "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                "tests/test_instruments_reference.py",
+                "tests/test_instrument_runtime_integration.py"
+              ],
+              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+              "use_count": 1
+            },
+            "hplc": {
+              "diagnostics": {
+                "calibration_profile": "retention_plate_public_calibration_v2",
+                "detection_contract": {
+                  "below_lod": "null_processed_estimate_with_missingness_reason",
+                  "lod_mol_L": 0.0008,
+                  "loq_mol_L": 0.0024242424242424242
+                },
+                "final_assay_repeat_guard": false,
+                "instrument_contract_loaded": true,
+                "instrument_id": "hplc",
+                "missingness_contract": {
+                  "below_lod": "processed value is null; raw trace remains available",
+                  "failed_measurement": "no signal packet and no instrument charge",
+                  "masking": "removes spectral evidence only; does not alter world state"
+                },
+                "sample_volume_exact": true,
+                "sample_volume_sufficient": true,
+                "saturation_contract": {
+                  "policy": "clip_and_flag_outside_declared_linear_range",
+                  "upper_linear_range_mol_L": 5.0
+                }
+              },
+              "execution_history": [
+                {
+                  "diagnostics": {
+                    "calibration_profile": "retention_plate_public_calibration_v2",
+                    "detection_contract": {
+                      "below_lod": "null_processed_estimate_with_missingness_reason",
+                      "lod_mol_L": 0.0008,
+                      "loq_mol_L": 0.0024242424242424242
+                    },
+                    "final_assay_repeat_guard": false,
+                    "instrument_contract_loaded": true,
+                    "instrument_id": "hplc",
+                    "missingness_contract": {
+                      "below_lod": "processed value is null; raw trace remains available",
+                      "failed_measurement": "no signal packet and no instrument charge",
+                      "masking": "removes spectral evidence only; does not alter world state"
+                    },
+                    "sample_volume_exact": true,
+                    "sample_volume_sufficient": true,
+                    "saturation_contract": {
+                      "policy": "clip_and_flag_outside_declared_linear_range",
+                      "upper_linear_range_mol_L": 5.0
+                    }
+                  },
+                  "maturity": "reference_validated",
+                  "measurement_index": 1,
+                  "model_id": "chemworld_validated_synthetic_instruments_v1",
+                  "provenance": [
+                    "ChemWorld bounded public synthetic instrument contracts v1",
+                    "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                    "tests/test_instruments_reference.py",
+                    "tests/test_instrument_runtime_integration.py"
+                  ],
+                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+                  "role": "runtime"
+                }
+              ],
+              "instrument_id": "hplc",
+              "last_cost": 0.08,
+              "last_sample_consumed_L": 0.0002,
+              "last_time_s": 0.0,
+              "model_id": "chemworld_validated_synthetic_instruments_v1",
+              "provenance": [
+                "ChemWorld bounded public synthetic instrument contracts v1",
+                "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                "tests/test_instruments_reference.py",
+                "tests/test_instrument_runtime_integration.py"
+              ],
+              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+              "use_count": 1
+            },
+            "ph_meter": {
+              "diagnostics": {
+                "calibration_profile": "nernstian_public_ph_calibration_v2",
+                "detection_contract": {
+                  "below_lod": "null_processed_estimate_with_missingness_reason",
+                  "lod_mol_L": null,
+                  "loq_mol_L": null
+                },
+                "final_assay_repeat_guard": false,
+                "instrument_contract_loaded": true,
+                "instrument_id": "ph_meter",
+                "missingness_contract": {
+                  "below_lod": "processed value is null; raw trace remains available",
+                  "failed_measurement": "no signal packet and no instrument charge",
+                  "masking": "removes spectral evidence only; does not alter world state"
+                },
+                "sample_volume_exact": true,
+                "sample_volume_sufficient": true,
+                "saturation_contract": {
+                  "policy": "clip_and_flag_outside_declared_linear_range",
+                  "upper_linear_range_mol_L": null
+                }
+              },
+              "execution_history": [
+                {
+                  "diagnostics": {
+                    "calibration_profile": "nernstian_public_ph_calibration_v2",
+                    "detection_contract": {
+                      "below_lod": "null_processed_estimate_with_missingness_reason",
+                      "lod_mol_L": null,
+                      "loq_mol_L": null
+                    },
+                    "final_assay_repeat_guard": false,
+                    "instrument_contract_loaded": true,
+                    "instrument_id": "ph_meter",
+                    "missingness_contract": {
+                      "below_lod": "processed value is null; raw trace remains available",
+                      "failed_measurement": "no signal packet and no instrument charge",
+                      "masking": "removes spectral evidence only; does not alter world state"
+                    },
+                    "sample_volume_exact": true,
+                    "sample_volume_sufficient": true,
+                    "saturation_contract": {
+                      "policy": "clip_and_flag_outside_declared_linear_range",
+                      "upper_linear_range_mol_L": null
+                    }
+                  },
+                  "maturity": "reference_validated",
+                  "measurement_index": 1,
+                  "model_id": "chemworld_validated_synthetic_instruments_v1",
+                  "provenance": [
+                    "ChemWorld bounded public synthetic instrument contracts v1",
+                    "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                    "tests/test_instruments_reference.py",
+                    "tests/test_instrument_runtime_integration.py"
+                  ],
+                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+                  "role": "runtime"
+                }
+              ],
+              "instrument_id": "ph_meter",
+              "last_cost": 0.018,
+              "last_sample_consumed_L": 3e-05,
+              "last_time_s": 0.0,
+              "model_id": "chemworld_validated_synthetic_instruments_v1",
+              "provenance": [
+                "ChemWorld bounded public synthetic instrument contracts v1",
+                "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                "tests/test_instruments_reference.py",
+                "tests/test_instrument_runtime_integration.py"
+              ],
+              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+              "use_count": 1
+            },
+            "uvvis": {
+              "diagnostics": {
+                "calibration_profile": "beer_lambert_public_calibration_v2",
+                "detection_contract": {
+                  "below_lod": "null_processed_estimate_with_missingness_reason",
+                  "lod_mol_L": 0.0025,
+                  "loq_mol_L": 0.007575757575757576
+                },
+                "final_assay_repeat_guard": false,
+                "instrument_contract_loaded": true,
+                "instrument_id": "uvvis",
+                "missingness_contract": {
+                  "below_lod": "processed value is null; raw trace remains available",
+                  "failed_measurement": "no signal packet and no instrument charge",
+                  "masking": "removes spectral evidence only; does not alter world state"
+                },
+                "sample_volume_exact": true,
+                "sample_volume_sufficient": true,
+                "saturation_contract": {
+                  "policy": "clip_and_flag_outside_declared_linear_range",
+                  "upper_linear_range_mol_L": 5.0
+                }
+              },
+              "execution_history": [
+                {
+                  "diagnostics": {
+                    "calibration_profile": "beer_lambert_public_calibration_v2",
+                    "detection_contract": {
+                      "below_lod": "null_processed_estimate_with_missingness_reason",
+                      "lod_mol_L": 0.0025,
+                      "loq_mol_L": 0.007575757575757576
+                    },
+                    "final_assay_repeat_guard": false,
+                    "instrument_contract_loaded": true,
+                    "instrument_id": "uvvis",
+                    "missingness_contract": {
+                      "below_lod": "processed value is null; raw trace remains available",
+                      "failed_measurement": "no signal packet and no instrument charge",
+                      "masking": "removes spectral evidence only; does not alter world state"
+                    },
+                    "sample_volume_exact": true,
+                    "sample_volume_sufficient": true,
+                    "saturation_contract": {
+                      "policy": "clip_and_flag_outside_declared_linear_range",
+                      "upper_linear_range_mol_L": 5.0
+                    }
+                  },
+                  "maturity": "reference_validated",
+                  "measurement_index": 1,
+                  "model_id": "chemworld_validated_synthetic_instruments_v1",
+                  "provenance": [
+                    "ChemWorld bounded public synthetic instrument contracts v1",
+                    "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                    "tests/test_instruments_reference.py",
+                    "tests/test_instrument_runtime_integration.py"
+                  ],
+                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+                  "role": "runtime"
+                }
+              ],
+              "instrument_id": "uvvis",
+              "last_cost": 0.025,
+              "last_sample_consumed_L": 5e-05,
+              "last_time_s": 0.0,
+              "model_id": "chemworld_validated_synthetic_instruments_v1",
+              "provenance": [
+                "ChemWorld bounded public synthetic instrument contracts v1",
+                "Beer-Lambert, Nernst, and retention/plate-count reference closures",
+                "tests/test_instruments_reference.py",
+                "tests/test_instrument_runtime_integration.py"
+              ],
+              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
+              "use_count": 1
+            }
+          },
+          "reaction_reactor": {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.00025,
+            "charge_inventory_residual_mol": 0.0,
+            "element_inventory_residuals_mol": {
+              "C": 1.0408340855860843e-17,
+              "H": 2.0816681711721685e-17,
+              "O": 1.0408340855860843e-17
+            },
+            "energy_balance_residual_J": -2.4556356947869062e-11,
+            "last_operation": "wait",
+            "last_operation_semantic": "advance",
+            "material_balance_error_mol": 2.0816681711721685e-17,
+            "maximum_conservation_drift_mol": 2.168404344971009e-18,
+            "mechanism_hash": "26e029387db8a32f66d52789a3ccfa939baa1d6e469424dbb596f1813d81e437",
+            "mechanism_id": "reaction_extraction",
+            "mechanism_version": "chemworld_mechanism_v1",
+            "reaction_advance_index": 2,
+            "reaction_model_id": "reaction_ode_mass_action_arrhenius_reference_slice",
+            "reaction_network_id": "reaction_extraction",
+            "reaction_runtime_model_id": "dynamic_batch_reaction_runtime_v1",
+            "reactor_diagnostic": {
+              "energy_ledger_net_J": -5090.7562647444265,
+              "material_balance_closed": true,
+              "material_balance_error_mol": 2.0816681711721685e-17,
+              "maximum_temperature_K": 377.2434363473308,
+              "maximum_temperature_rate_K_s": 0.06719432270203267,
+              "minimum_species_amount_mol": 3.2339528875870533e-06,
+              "minimum_temperature_K": 334.2763676378883,
+              "nonnegative_species": true,
+              "sensible_energy_input_J": -5068.026563142697,
+              "warnings": [],
+              "within_validity_domain": true
+            },
+            "reactor_model_id": "dynamic_batch_heat_release_jacket_sampling",
+            "repeat_semantic": "each committed repeat advances additional physical time",
+            "runtime_provider_id": "chemworld_validated_reaction_reactor_runtime_v1",
+            "solvent": 2,
+            "solvent_volume_L": 0.028,
+            "solver_diagnostic": {
+              "evaluation_count": 17,
+              "event_count": 0,
+              "failure_reason": "",
+              "final_time_s": 900.0,
+              "maximum_conservation_drift_mol": 2.168404344971009e-18,
+              "message": "The solver successfully reached the end of the integration interval.",
+              "nfev": 104,
+              "njev": 0,
+              "nlu": 0,
+              "nonnegative_passed": true,
+              "policy": {
+                "atol": 1e-12,
+                "backend": "scipy.integrate.solve_ivp",
+                "dense_output": false,
+                "event_names": [],
+                "first_step_s": null,
+                "max_step_s": null,
+                "method": "LSODA",
+                "policy_hash": "d489af009514ec12",
+                "rtol": 1e-08,
+                "solver_id": "chemworld_reactor_lsoda_v1",
+                "vectorized": false
+              },
+              "status": 0,
+              "success": true,
+              "t_end_s": 900.0,
+              "t_start_s": 0.0,
+              "termination_reason": "duration_reached"
+            },
+            "stirring_speed_rpm": 720.0,
+            "termination_reason": "duration_reached",
+            "trajectory_digest": "a8be35c848b2007bd9b8314a435e626935b2a60a447ffb33f4ee4422320627db"
+          },
           "transfer": {
             "transfer_delivery_fraction": 0.965,
-            "transfer_line_holdup_volume_L": 4.073444950023625e-05,
+            "transfer_line_holdup_volume_L": 4.072310096120413e-05,
             "transfer_material_balance_error_mol": 0.0,
             "transfer_model_id": "chemworld_transfer_holdup_vnext",
+            "transfer_provenance": [
+              "finite-volume FIFO slug displacement with explicit line inventory",
+              "IDAES 4275c45bfa76cd5b05926beaa8eee58f7b0b05e8: component material-balance and control-volume holdup conventions"
+            ],
+            "transfer_provider_path": "chemworld.physchem.transfer_adapter_manifest.TransferUnitProvider",
             "transfer_skipped_empty_phase": false,
-            "transfer_source_heel_volume_L": 0.00024440669700142095,
+            "transfer_source_heel_volume_L": 0.00024433860576722304,
             "transfer_volume_balance_error_L": 0.0,
             "transfer_warnings": [
               "line retains material inventory that must persist between transfers"

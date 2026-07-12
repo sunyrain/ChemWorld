@@ -1,0 +1,65 @@
+{
+  "artifact_sha256": {
+    "tests/fixtures/golden/core_scripted_trajectories.json": "59dc2990e11d3ae45c33fe8077e4c145b3591b8f9653bbf3c2579e417b5cc1e7",
+    "workstreams/world_foundation/reports/maturity-truth-vnext.json": "b87c4795ef92c5a7eccaf01fdcc7679e2d494a91c04b544d4f2fe7bf14a45223",
+    "workstreams/world_foundation/reports/public-boundary-security-vnext.json": "abe12472b2a58bf3b59fed7a2e709e07cce1288800875dfeeb2d360f97f15509",
+    "workstreams/world_foundation/reports/runtime-reachability-vnext.json": "fdb8f98e33a74c44deaaa2c5398575888fb8bd2a5f31e72eff7df9ce01fe9ae6",
+    "workstreams/world_foundation/reports/state-transition-invariants.json": "255100f21a4f00b6280f548d109350b6c46d3b599992f7e2bd94dc617511f7b2",
+    "workstreams/world_foundation/reports/wf-110-runtime-integration.json": "d67b749d2ece681323872b3615d2ab5b462de6224f0a4bb913488477dcf61dd6"
+  },
+  "backend_freeze_allowed": true,
+  "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "bound_artifacts_complete": true,
+    "candidate_claim_boundary": true,
+    "clean_tracked_tree": true,
+    "maturity_truth": true,
+    "operation_count_exact": true,
+    "protocol_schema": true,
+    "public_boundary": true,
+    "runtime_integration": true,
+    "runtime_reachability": true,
+    "state_transition_invariants": true,
+    "task_contracts_exact": true,
+    "task_count_exact": true,
+    "task_maturity_floor": true
+  },
+  "limitations": [
+    "This freezes a candidate virtual backend contract, not algorithm rankings.",
+    "It does not validate predictions for real materials, equipment, or experiments.",
+    "Formal benchmark claims require a later resource-matched evaluation freeze."
+  ],
+  "protocol_sha256": "fd6889cc4de98ed3c772126f8511bbc3a453a7bae951258d67e07dc51dd42550",
+  "release_status": "candidate_backend_only",
+  "report_hash": "8b68dd30f31447f62e77abd0d59035274695e330fffe3d5bd982523af8ed4d4b",
+  "required_external_gates": [
+    ".venv/Scripts/python.exe -m pytest",
+    ".venv/Scripts/python.exe -m ruff check .",
+    ".venv/Scripts/python.exe -m mypy src",
+    ".venv/Scripts/python.exe -m mkdocs build --strict",
+    ".venv/Scripts/python.exe scripts/smoke_test_wheel.py"
+  ],
+  "schema_version": "chemworld-foundation-backend-freeze-audit-0.1",
+  "source_commit": "470480f93c2a1c312d6c50439577dbf421954768",
+  "source_tree_dirty": false,
+  "status": "candidate_backend_frozen",
+  "task_contract_hashes": {
+    "electrochemical-conversion": "9f86e8550be9f8de98f4152104ef981c075697bf8cf378f040f5af4593235d09",
+    "equilibrium-characterization": "64393d1da00e28101f71246ef13c1b69e03b0b213542e97afcb1add8f52eaa62",
+    "flow-reaction-optimization": "aa47c74db1753f062a3e5f59208db8278c25db778390607892e20eaaeb30cdc9",
+    "low-budget-characterization": "3d8bb180e63016b49b0f2c09694ad4f2d965d8096c9c615d021c987204283a29",
+    "partition-discovery": "ce378e7bc5e725ed266db2bb639194c05f5f615ba0795b158c3c976cc787117e",
+    "public-private-generalization": "d2a07d58a7c09d317239794eb5757fdcd5ea68514fc531bd2ece6436b08aa3fd",
+    "purity-yield-tradeoff": "931d1c9c2364888a9cf390557614f78c042d3e166a8ae495d57cd1fdacd1ee0f",
+    "reaction-mechanism-explanation": "4b69716dcd93cc32eb82beb335fea7f53062e5785496daecfc1530ddcdc39006",
+    "reaction-optimization-standard": "0c80793551675a61dbde5f3e2456929e6e6c92574ca2f3d5fa967a97ddcdb1a5",
+    "reaction-safety-constrained": "780ac2c552c7652b1afb8581d76bb2884bb99a334f7b85dffe73cf4c35834263",
+    "reaction-to-assay": "395402a224b27cdbd070470ab1d0131e01c3bd472b773170bdcf4ba4f5a1bc96",
+    "reaction-to-crystallization": "f15de7356ab11588028bb0add31b3461e9b90bf273de6dcdb4e123ce6b2f65ac",
+    "reaction-to-distillation": "939b171d164139699d94c78250a937ab637be201f23bd62fddc47a864becaba7",
+    "reaction-to-purification": "ee5d6b82178abeaaa6975680f2a469cbdad43f6b655bb65d6e437294a55e052d",
+    "tool-agent-planning": "9752398c5b05a0d3a20df7df811ebb59e46a1c7f1e52ab6340fed9c5526c3ee9"
+  },
+  "world_law_id": "chemworld-physical-chemistry-v0.4"
+}

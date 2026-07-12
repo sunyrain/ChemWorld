@@ -35,11 +35,47 @@
   ],
   "instrument_registry": {
     "final_assay": {
-      "calibration_profile": "leaderboard_grade_calibration",
+      "axis_contract": {
+        "key": "channel_specific",
+        "range": null,
+        "unit": "declared_per_channel"
+      },
+      "baseline_drift_contract": {
+        "baseline": "declared_in_public_packet",
+        "drift": "linear_axis_drift_declared_in_public_packet"
+      },
+      "calibration_contract": {
+        "method": "independent declared calibration for each synthetic channel",
+        "profile": "synthetic_multichannel_public_calibration_v2",
+        "status": "synthetic_reference_calibration"
+      },
+      "calibration_profile": "synthetic_multichannel_public_calibration_v2",
       "cost": 0.16,
       "destructive": true,
+      "detection_contract": {
+        "below_lod": "null_processed_estimate_with_missingness_reason",
+        "lod_mol_L": null,
+        "loq_mol_L": null
+      },
+      "input_state_schema": {
+        "forbidden_fields": [
+          "hidden_species_amounts",
+          "private_seed",
+          "provider_parameters"
+        ],
+        "physical_state": "virtual_liquid_sample",
+        "required_public_fields": [
+          "sample_basis_volume_L",
+          "replicate_count"
+        ]
+      },
       "instrument_id": "final_assay",
       "latency_s": 1200.0,
+      "missingness_contract": {
+        "below_lod": "processed value is null; raw trace remains available",
+        "failed_measurement": "no signal packet and no instrument charge",
+        "masking": "removes spectral evidence only; does not alter world state"
+      },
       "noise_model": {
         "acid_dissociation_fraction": 0.006,
         "byproduct_signal": 0.008,
@@ -102,132 +138,210 @@
           "acid_dissociation_fraction": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "byproduct_signal": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "conversion": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "crystal_purity": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "crystal_size": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "crystal_yield": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "degradation_warning": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "distillate_purity": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "distillate_recovery": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "electrochemical_selectivity": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "energy_efficiency": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "equilibrium_confidence": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "equilibrium_residual": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "flow_conversion": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "impurity_signal": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "pH_normalized": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "phase_ratio": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "precipitation_signal": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "process_mass_balance_error": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "product_in_aqueous": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "product_in_organic": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "purity": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "recovery": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "selectivity": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "solvent_loss": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "yield": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "type": "object"
@@ -247,28 +361,82 @@
           "mass_balance": {
             "type": "object"
           },
+          "metadata": {
+            "type": "object"
+          },
+          "source": {
+            "type": "string"
+          },
           "spectra": {
             "type": "object"
+          },
+          "visibility": {
+            "type": "string"
           }
         },
         "required": [
           "kind",
           "channels",
           "spectra",
-          "mass_balance"
+          "mass_balance",
+          "metadata"
         ],
         "type": "object"
       },
       "requires_terminated": true,
       "sample_consumption_L": 0.0003,
+      "saturation_contract": {
+        "policy": "clip_and_flag_outside_declared_linear_range",
+        "upper_linear_range_mol_L": null
+      },
+      "synthetic_boundary": "Bounded synthetic benchmark instrument; it does not predict real samples, replace an empirical spectral library, or emulate a physical device.",
       "uncertainty_model": "instrument_noise_std_plus_process_proxy"
     },
     "gc": {
-      "calibration_profile": "volatile_byproduct_public_calibration",
+      "axis_contract": {
+        "key": "time_min",
+        "range": [
+          0.0,
+          4.0
+        ],
+        "unit": "min"
+      },
+      "baseline_drift_contract": {
+        "baseline": "declared_in_public_packet",
+        "drift": "linear_axis_drift_declared_in_public_packet"
+      },
+      "calibration_contract": {
+        "method": "retention factor, dead time, theoretical plates, and detector response",
+        "profile": "retention_plate_public_calibration_v2",
+        "status": "synthetic_reference_calibration"
+      },
+      "calibration_profile": "retention_plate_public_calibration_v2",
       "cost": 0.06,
       "destructive": true,
+      "detection_contract": {
+        "below_lod": "null_processed_estimate_with_missingness_reason",
+        "lod_mol_L": 0.0012,
+        "loq_mol_L": 0.003636363636363636
+      },
+      "input_state_schema": {
+        "forbidden_fields": [
+          "hidden_species_amounts",
+          "private_seed",
+          "provider_parameters"
+        ],
+        "physical_state": "virtual_liquid_sample",
+        "required_public_fields": [
+          "sample_basis_volume_L",
+          "replicate_count"
+        ]
+      },
       "instrument_id": "gc",
       "latency_s": 480.0,
+      "missingness_contract": {
+        "below_lod": "processed value is null; raw trace remains available",
+        "failed_measurement": "no signal packet and no instrument charge",
+        "masking": "removes spectral evidence only; does not alter world state"
+      },
       "noise_model": {
         "byproduct_signal": 0.018,
         "degradation_warning": 0.018,
@@ -285,17 +453,26 @@
           "byproduct_signal": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "degradation_warning": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "distillate_purity": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "type": "object"
@@ -303,8 +480,20 @@
       "raw_signal_schema": {
         "additionalProperties": true,
         "properties": {
+          "assignments": {
+            "type": "array"
+          },
+          "axis": {
+            "type": "object"
+          },
           "bands": {
             "type": "array"
+          },
+          "calibration": {
+            "type": "object"
+          },
+          "instrument_id": {
+            "const": "gc"
           },
           "intensity": {
             "items": {
@@ -318,10 +507,16 @@
           "metadata": {
             "type": "object"
           },
+          "missingness": {
+            "type": "object"
+          },
           "peaks": {
             "type": "array"
           },
           "processed_estimates": {
+            "type": "object"
+          },
+          "raw_signal": {
             "type": "object"
           },
           "replicate_count": {
@@ -331,6 +526,15 @@
           "replicate_signals": {
             "type": "array"
           },
+          "sample_state": {
+            "type": "object"
+          },
+          "schema_version": {
+            "const": "chemworld-public-synthetic-signal-0.2"
+          },
+          "source": {
+            "type": "string"
+          },
           "time_min": {
             "items": {
               "type": "number"
@@ -339,25 +543,84 @@
           },
           "uncertainty": {
             "type": "object"
+          },
+          "visibility": {
+            "type": "string"
           }
         },
         "required": [
+          "schema_version",
           "kind",
+          "instrument_id",
           "time_min",
-          "intensity"
+          "intensity",
+          "sample_state",
+          "axis",
+          "raw_signal",
+          "peaks",
+          "assignments",
+          "processed_estimates",
+          "uncertainty",
+          "calibration",
+          "missingness",
+          "metadata"
         ],
         "type": "object"
       },
       "requires_terminated": false,
       "sample_consumption_L": 0.00015,
+      "saturation_contract": {
+        "policy": "clip_and_flag_outside_declared_linear_range",
+        "upper_linear_range_mol_L": 5.0
+      },
+      "synthetic_boundary": "Bounded synthetic benchmark instrument; it does not predict real samples, replace an empirical spectral library, or emulate a physical device.",
       "uncertainty_model": "instrument_noise_std_plus_process_proxy"
     },
     "hplc": {
-      "calibration_profile": "chromatography_public_calibration",
+      "axis_contract": {
+        "key": "time_min",
+        "range": [
+          0.0,
+          6.0
+        ],
+        "unit": "min"
+      },
+      "baseline_drift_contract": {
+        "baseline": "declared_in_public_packet",
+        "drift": "linear_axis_drift_declared_in_public_packet"
+      },
+      "calibration_contract": {
+        "method": "retention factor, dead time, theoretical plates, and detector response",
+        "profile": "retention_plate_public_calibration_v2",
+        "status": "synthetic_reference_calibration"
+      },
+      "calibration_profile": "retention_plate_public_calibration_v2",
       "cost": 0.08,
       "destructive": true,
+      "detection_contract": {
+        "below_lod": "null_processed_estimate_with_missingness_reason",
+        "lod_mol_L": 0.0008,
+        "loq_mol_L": 0.0024242424242424242
+      },
+      "input_state_schema": {
+        "forbidden_fields": [
+          "hidden_species_amounts",
+          "private_seed",
+          "provider_parameters"
+        ],
+        "physical_state": "virtual_liquid_sample",
+        "required_public_fields": [
+          "sample_basis_volume_L",
+          "replicate_count"
+        ]
+      },
       "instrument_id": "hplc",
       "latency_s": 600.0,
+      "missingness_contract": {
+        "below_lod": "processed value is null; raw trace remains available",
+        "failed_measurement": "no signal packet and no instrument charge",
+        "masking": "removes spectral evidence only; does not alter world state"
+      },
       "noise_model": {
         "byproduct_signal": 0.012,
         "crystal_purity": 0.018,
@@ -382,37 +645,58 @@
           "byproduct_signal": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "crystal_purity": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "distillate_purity": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "impurity_signal": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "purity": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "selectivity": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "yield": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "type": "object"
@@ -420,8 +704,20 @@
       "raw_signal_schema": {
         "additionalProperties": true,
         "properties": {
+          "assignments": {
+            "type": "array"
+          },
+          "axis": {
+            "type": "object"
+          },
           "bands": {
             "type": "array"
+          },
+          "calibration": {
+            "type": "object"
+          },
+          "instrument_id": {
+            "const": "hplc"
           },
           "intensity": {
             "items": {
@@ -435,10 +731,16 @@
           "metadata": {
             "type": "object"
           },
+          "missingness": {
+            "type": "object"
+          },
           "peaks": {
             "type": "array"
           },
           "processed_estimates": {
+            "type": "object"
+          },
+          "raw_signal": {
             "type": "object"
           },
           "replicate_count": {
@@ -448,6 +750,15 @@
           "replicate_signals": {
             "type": "array"
           },
+          "sample_state": {
+            "type": "object"
+          },
+          "schema_version": {
+            "const": "chemworld-public-synthetic-signal-0.2"
+          },
+          "source": {
+            "type": "string"
+          },
           "time_min": {
             "items": {
               "type": "number"
@@ -456,25 +767,81 @@
           },
           "uncertainty": {
             "type": "object"
+          },
+          "visibility": {
+            "type": "string"
           }
         },
         "required": [
+          "schema_version",
           "kind",
+          "instrument_id",
           "time_min",
-          "intensity"
+          "intensity",
+          "sample_state",
+          "axis",
+          "raw_signal",
+          "peaks",
+          "assignments",
+          "processed_estimates",
+          "uncertainty",
+          "calibration",
+          "missingness",
+          "metadata"
         ],
         "type": "object"
       },
       "requires_terminated": false,
       "sample_consumption_L": 0.0002,
+      "saturation_contract": {
+        "policy": "clip_and_flag_outside_declared_linear_range",
+        "upper_linear_range_mol_L": 5.0
+      },
+      "synthetic_boundary": "Bounded synthetic benchmark instrument; it does not predict real samples, replace an empirical spectral library, or emulate a physical device.",
       "uncertainty_model": "instrument_noise_std_plus_process_proxy"
     },
     "ph_meter": {
-      "calibration_profile": "potentiometric_public_ph_calibration",
+      "axis_contract": {
+        "key": "replicate_index",
+        "range": null,
+        "unit": "index"
+      },
+      "baseline_drift_contract": {
+        "baseline": "declared_in_public_packet",
+        "drift": "linear_axis_drift_declared_in_public_packet"
+      },
+      "calibration_contract": {
+        "method": "Nernstian electrode response at declared temperature",
+        "profile": "nernstian_public_ph_calibration_v2",
+        "status": "synthetic_reference_calibration"
+      },
+      "calibration_profile": "nernstian_public_ph_calibration_v2",
       "cost": 0.018,
       "destructive": true,
+      "detection_contract": {
+        "below_lod": "null_processed_estimate_with_missingness_reason",
+        "lod_mol_L": null,
+        "loq_mol_L": null
+      },
+      "input_state_schema": {
+        "forbidden_fields": [
+          "hidden_species_amounts",
+          "private_seed",
+          "provider_parameters"
+        ],
+        "physical_state": "virtual_liquid_sample",
+        "required_public_fields": [
+          "sample_basis_volume_L",
+          "replicate_count"
+        ]
+      },
       "instrument_id": "ph_meter",
       "latency_s": 45.0,
+      "missingness_contract": {
+        "below_lod": "processed value is null; raw trace remains available",
+        "failed_measurement": "no signal packet and no instrument charge",
+        "masking": "removes spectral evidence only; does not alter world state"
+      },
       "noise_model": {
         "acid_dissociation_fraction": 0.015,
         "equilibrium_confidence": 0.012,
@@ -495,27 +862,42 @@
           "acid_dissociation_fraction": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "equilibrium_confidence": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "equilibrium_residual": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "pH_normalized": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "precipitation_signal": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "type": "object"
@@ -523,6 +905,15 @@
       "raw_signal_schema": {
         "additionalProperties": true,
         "properties": {
+          "assignments": {
+            "type": "array"
+          },
+          "axis": {
+            "type": "object"
+          },
+          "calibration": {
+            "type": "object"
+          },
           "electrode_mV": {
             "type": "number"
           },
@@ -533,12 +924,24 @@
           "kind": {
             "const": "ph_meter_signal"
           },
+          "metadata": {
+            "type": "object"
+          },
+          "missingness": {
+            "type": "object"
+          },
           "pH": {
             "maximum": 14.0,
             "minimum": 0.0,
             "type": "number"
           },
+          "peaks": {
+            "type": "array"
+          },
           "processed_estimates": {
+            "type": "object"
+          },
+          "raw_signal": {
             "type": "object"
           },
           "replicate_pH": {
@@ -547,28 +950,88 @@
             },
             "type": "array"
           },
+          "sample_state": {
+            "type": "object"
+          },
+          "source": {
+            "type": "string"
+          },
           "uncertainty": {
             "type": "object"
+          },
+          "visibility": {
+            "type": "string"
           }
         },
         "required": [
           "kind",
           "pH",
           "electrode_mV",
-          "processed_estimates"
+          "sample_state",
+          "axis",
+          "raw_signal",
+          "processed_estimates",
+          "uncertainty",
+          "calibration",
+          "missingness",
+          "metadata"
         ],
         "type": "object"
       },
       "requires_terminated": false,
       "sample_consumption_L": 3e-05,
+      "saturation_contract": {
+        "policy": "clip_and_flag_outside_declared_linear_range",
+        "upper_linear_range_mol_L": null
+      },
+      "synthetic_boundary": "Bounded synthetic benchmark instrument; it does not predict real samples, replace an empirical spectral library, or emulate a physical device.",
       "uncertainty_model": "instrument_noise_std_plus_process_proxy"
     },
     "uvvis": {
-      "calibration_profile": "coarse_proxy_public_calibration",
+      "axis_contract": {
+        "key": "wavelength_nm",
+        "range": [
+          320.0,
+          760.0
+        ],
+        "unit": "nm"
+      },
+      "baseline_drift_contract": {
+        "baseline": "declared_in_public_packet",
+        "drift": "linear_axis_drift_declared_in_public_packet"
+      },
+      "calibration_contract": {
+        "method": "Beer-Lambert absorbance with blank, path length, and dilution",
+        "profile": "beer_lambert_public_calibration_v2",
+        "status": "synthetic_reference_calibration"
+      },
+      "calibration_profile": "beer_lambert_public_calibration_v2",
       "cost": 0.025,
       "destructive": true,
+      "detection_contract": {
+        "below_lod": "null_processed_estimate_with_missingness_reason",
+        "lod_mol_L": 0.0025,
+        "loq_mol_L": 0.007575757575757576
+      },
+      "input_state_schema": {
+        "forbidden_fields": [
+          "hidden_species_amounts",
+          "private_seed",
+          "provider_parameters"
+        ],
+        "physical_state": "virtual_liquid_sample",
+        "required_public_fields": [
+          "sample_basis_volume_L",
+          "replicate_count"
+        ]
+      },
       "instrument_id": "uvvis",
       "latency_s": 90.0,
+      "missingness_contract": {
+        "below_lod": "processed value is null; raw trace remains available",
+        "failed_measurement": "no signal packet and no instrument charge",
+        "masking": "removes spectral evidence only; does not alter world state"
+      },
       "noise_model": {
         "conversion": 0.035,
         "energy_efficiency": 0.045,
@@ -589,27 +1052,42 @@
           "conversion": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "energy_efficiency": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "flow_conversion": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "phase_ratio": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "yield": {
             "maximum": 1.0,
             "minimum": 0.0,
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "type": "object"
@@ -623,8 +1101,20 @@
             },
             "type": "array"
           },
+          "assignments": {
+            "type": "array"
+          },
+          "axis": {
+            "type": "object"
+          },
           "bands": {
             "type": "array"
+          },
+          "calibration": {
+            "type": "object"
+          },
+          "instrument_id": {
+            "const": "uvvis"
           },
           "kind": {
             "type": "string"
@@ -632,10 +1122,16 @@
           "metadata": {
             "type": "object"
           },
+          "missingness": {
+            "type": "object"
+          },
           "peaks": {
             "type": "array"
           },
           "processed_estimates": {
+            "type": "object"
+          },
+          "raw_signal": {
             "type": "object"
           },
           "replicate_count": {
@@ -645,8 +1141,20 @@
           "replicate_signals": {
             "type": "array"
           },
+          "sample_state": {
+            "type": "object"
+          },
+          "schema_version": {
+            "const": "chemworld-public-synthetic-signal-0.2"
+          },
+          "source": {
+            "type": "string"
+          },
           "uncertainty": {
             "type": "object"
+          },
+          "visibility": {
+            "type": "string"
           },
           "wavelength_nm": {
             "items": {
@@ -656,23 +1164,40 @@
           }
         },
         "required": [
+          "schema_version",
           "kind",
+          "instrument_id",
           "wavelength_nm",
-          "absorbance"
+          "absorbance",
+          "sample_state",
+          "axis",
+          "raw_signal",
+          "peaks",
+          "assignments",
+          "processed_estimates",
+          "uncertainty",
+          "calibration",
+          "missingness",
+          "metadata"
         ],
         "type": "object"
       },
       "requires_terminated": false,
       "sample_consumption_L": 5e-05,
+      "saturation_contract": {
+        "policy": "clip_and_flag_outside_declared_linear_range",
+        "upper_linear_range_mol_L": 5.0
+      },
+      "synthetic_boundary": "Bounded synthetic benchmark instrument; it does not predict real samples, replace an empirical spectral library, or emulate a physical device.",
       "uncertainty_model": "instrument_noise_std_plus_process_proxy"
     }
   },
   "law_version": "chemworld-physical-chemistry-v0.4",
   "module_versions": {
-    "continuous_flow": "0.2",
-    "crystallization": "0.2",
+    "continuous_flow": "0.3",
+    "crystallization": "0.3",
     "distillation": "0.1",
-    "electrochemistry": "0.2",
+    "electrochemistry": "0.3",
     "observation": "0.4",
     "phase_partition": "0.5",
     "reaction": "0.3",
@@ -706,7 +1231,8 @@
           "stoichiometry": "loaded from CompiledMechanism.network.reactions"
         },
         "module_id": "reaction",
-        "runtime": "compiled_mechanism",
+        "reactor_contract": "dynamic_batch_heat_release_jacket_sampling",
+        "runtime": "chemworld_validated_reaction_reactor_runtime_v1",
         "version": "0.3"
       },
       {
@@ -785,7 +1311,11 @@
           "primary_nucleation_and_growth_cohorts",
           "impurity_occlusion",
           "crystal_size_distribution",
-          "filtration_recovery_ledger"
+          "filtration_recovery_ledger",
+          "validated_runtime_provider",
+          "temperature_and_supersaturation_history",
+          "component_and_particle_moment_closure",
+          "fail_closed_runtime_domain"
         ],
         "module_id": "crystallization",
         "operations": [
@@ -793,12 +1323,18 @@
           "cool_crystallize",
           "filter_crystals"
         ],
+        "runtime_policy": "validated_provider_fail_closed",
         "tracked_metrics": [
           "crystal_yield",
           "crystal_purity",
-          "crystal_size"
+          "crystal_size",
+          "supersaturation_history",
+          "nucleation_history",
+          "growth_history",
+          "component_balance",
+          "particle_size_moments"
         ],
-        "version": "0.2"
+        "version": "0.3"
       },
       {
         "laws": [
@@ -826,26 +1362,38 @@
           "geometry_resolved_axial_profile",
           "darcy_weisbach_pressure_drop",
           "distributed_thermal_boundary",
-          "material_and_energy_ledgers"
+          "material_and_energy_ledgers",
+          "configure_then_single_run_transaction",
+          "fail_closed_domain_and_replayable_provenance"
         ],
         "module_id": "continuous_flow",
+        "operation_semantics": {
+          "repeat_run_flow": "requires a fresh configuration",
+          "run_flow": "advance_one_new_configured_experiment",
+          "set_flow_rate": "configure_only_no_physical_advance"
+        },
         "operations": [
           "set_flow_rate",
           "run_flow"
         ],
+        "runtime_provider_id": "chemworld_geometry_resolved_pfr_v2",
         "tracked_metrics": [
           "flow_conversion",
           "yield",
           "safety_risk"
         ],
-        "version": "0.2"
+        "version": "0.3"
       },
       {
         "laws": [
           "nernst_equilibrium_potential",
           "butler_volmer_current",
           "faradaic_charge_to_extent",
-          "electrical_work_accounting"
+          "electrical_work_accounting",
+          "diffusion_layer_limiting_current",
+          "randles_double_layer_transient",
+          "aqueous_activity_charge_balance",
+          "solubility_product_hooks"
         ],
         "module_id": "electrochemistry",
         "operations": [
@@ -857,9 +1405,15 @@
           "faradaic_efficiency",
           "energy_efficiency",
           "charge_C",
+          "capacitive_charge_C",
+          "charge_balance_residual_C",
+          "material_balance_residual_mol",
+          "energy_balance_residual_J",
+          "electrolyte_pH",
+          "electrolyte_ionic_strength_mol_kg",
           "yield"
         ],
-        "version": "0.2"
+        "version": "0.3"
       },
       {
         "downstream_keys": [
@@ -887,13 +1441,23 @@
           "equilibrium_residual",
           "equilibrium_confidence"
         ],
+        "history_access": "on_demand_by_public_spectrum_id",
+        "history_delivery": "catalog_first_then_requested_packet",
         "layers": [
+          "sample_state",
           "raw_signal",
+          "peaks",
+          "assignments",
           "processed_estimate",
-          "uncertainty"
+          "uncertainty",
+          "calibration",
+          "missingness"
         ],
+        "masking_policy": "mask_spectral_evidence_only_without_world_state_mutation",
+        "measurement_accounting": "cost_sample_failure_and_operation_ledger",
         "module_id": "instrument_observation",
         "partial_observation": true,
+        "synthetic_boundary": "not a real-instrument emulator and not an empirical sample-spectrum predictor",
         "version": "0.4"
       }
     ],
