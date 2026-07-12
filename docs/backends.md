@@ -1,22 +1,28 @@
-# Backend 后端
+# 计算后端与 Provider
 
-Backend 把稳定的 task/action/observation 语义连接到具体物理实现。每个正式 provider 必须声明
-model ID、角色、输入输出单位、适用域、诊断、失败策略、provenance 和目标 operation。
+任务和 Action 定义“要做什么”，Provider 负责“这一步怎样改变世界”。这种分离让公共接口保持稳定，
+同时允许物理实现逐步升级并留下明确来源。
 
-## 当前执行模型
+## 三种 Provider 角色
 
-World Law v0.4 使用单一 provider registry。runtime route、diagnostic provider 和 reference-only
-模型分开记录：
+| 角色 | 是否改变运行时状态 | 用途 |
+| --- | --- | --- |
+| runtime provider | 是 | 正式执行 Operation |
+| diagnostic provider | 否 | 生成可审计诊断，不提高任务成熟度 |
+| reference provider | 否 | 与独立实现或专业软件做局部对照 |
 
-- runtime provider 改变状态；
-- diagnostic provider只产生可审计证据，不能抬高任务成熟度；
-- reference provider 用于独立验证，不可由正式 operation 隐式执行；
-- 当前 registry 不含 `runtime_fallback`。
+World Law v0.4 使用单一 provider registry，每个正式 Operation 只有一个声明的 runtime route，
+当前 registry 不提供静默 `runtime_fallback`。
 
-RMG-Py、IDAES、PhasePy、teqp 或其它专业软件可以作为校准与约定边界，但不是默认安装的隐式
-替代路径。引入外部 backend 必须保持公共合同，公开版本与适用域，并通过 operation-to-model
-可达性和 replay 审计。
+每个 Provider 应说明 model ID、输入输出单位、适用域、失败策略、诊断、provenance 与目标 Operation。
+RMG-Py、IDAES、PhasePy、teqp 等专业软件可以作为参考或校准边界，但不会在默认安装中被隐式调用。
 
-当前 backend 的目标是提供可控、可复现、具有物理约束的 agent 训练与评测环境，不是复制商业
-流程模拟器。运行 `python scripts/audit_model_reachability.py --strict-alignment` 查看任务声明与
-实际 provider route，运行 `python scripts/audit_vnext_runtime_integration.py` 验证真实事务调用。
+## 查看实际路由
+
+```bash
+python scripts/audit_model_reachability.py --strict-alignment
+python scripts/audit_vnext_runtime_integration.py
+```
+
+第一条检查任务声明能否到达实际 Provider，第二条确认模型路径真的进入运行时事务。当前后端服务于
+可控、可复现的 Agent 训练与评测，不等同商业流程模拟器。

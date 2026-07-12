@@ -1,87 +1,104 @@
-# LLM Agent Harness
+# 接入 LLM Agent
 
-ChemWorld 把 LLM 当作受资源约束的 tool agent，而不是直接询问一个最终配方。正式交互循环是：
+在 ChemWorld 里，LLM 不是“回答最佳配方”的聊天机器人，而是一个反复使用实验工具的 Agent：
+它读取公开证据，选择一个合法操作，观察结果，再决定下一步。
 
 ```text
-public task + history + spectra
-  -> structured model decision
-  -> action validator
-  -> environment step
-  -> public observation + experiment memory
-  -> next decision
+任务 + 实验历史 + 可用谱图
+  → 模型给出结构化决策
+  → 校验 Action
+  → 执行环境步骤
+  → 返回公开观测与实验记忆
+  → 下一次决策
 ```
 
-环境本身不依赖在线 API。没有凭据时，经典方法、学生端、stub 和 replay 仍可离线运行。
+环境本身不依赖在线 API。没有密钥时，经典算法、Student Lab、stub 和 replay 都可以离线运行。
 
-## 在线交互合同
+## 一次模型决策包含什么
 
-每个 operation-level 逻辑决策只能提交一个最终 action，并同时返回：
+每次逻辑决策只执行一个最终 Action，并可以同时记录：
 
 - 支撑动作的公开 evidence；
-- 对可见谱图或仪器结果的 interpretation；
-- 当前 hypothesis；
+- 对当前仪器或谱图结果的 interpretation；
+- 可被后续实验检验的 hypothesis；
 - uncertainty；
-- 简短 rationale。
+- 一段简短、面向审计的 rationale。
 
-模型只接收 public task view、合法动作、公开历史和经过披露策略处理的谱图，不接收 hidden state、
-机理参数或 private salt。系统不请求、保存或向网页展示私有逐字思维链。
+模型只看到 task prompt、合法动作、公开历史和当前披露策略允许的谱图。隐藏状态、机理参数与
+private salt 不进入 prompt。系统也不请求或保存私有逐字思维链。
 
-## 多轮闭环
+## 逐步决策与整段计划
 
-正式 adapter 每个 environment operation 调用一次模型。模型必须根据最新公开观测、约束、谱图和
-已完成实验记忆重新选择动作。一次性整段计划只能作为 operation-open-loop 对照；它与逐操作闭环
-属于不同交互层级，不能据此作算法优劣归因。多轮调用次数本身也不证明适应，轨迹还需显示证据、
-假设或动作随新观测发生变化。
+- **逐操作自适应**：每执行一个 operation 都重新读取最新结果，适合研究闭环调整。
+- **整段计划**：开局生成完整 recipe，适合作为低调用成本或 open-loop 对照。
 
-## 谱图披露
+调用次数多不等于真的发生了适应。轨迹还要显示：新证据是否改变了假设、谱图解释或后续动作。
 
-| 模式 | 模型输入 | 用途 |
+## 让模型按需读取谱图
+
+| 披露模式 | 模型可以获得什么 | 适合回答的问题 |
 | --- | --- | --- |
-| `assigned` | 公开曲线、峰表和允许披露的 assignment | 信息可用条件 |
-| `masked` | 删除谱图、色谱、峰、通道与 assignment | 配对因果消融 |
+| `raw` | 降采样原始曲线 | 模型能否直接读取原始信号 |
+| `unassigned` | 曲线与未指认峰 | 默认研究条件 |
+| `assigned` | 曲线与允许披露的峰指认 | 教学或信息上限 |
+| `masked` | 不提供谱图通道 | 配对因果消融 |
 
-masked 条件必须保留端点、质量衡算、成本、预算、约束和其它非谱图公开证据。若声明模型会“读谱”，
-必须比较相同任务、世界、预算和模型 seed 下的 assigned/masked 运行，并保留模型引用的峰、动作
-变化和最终效应。仅把曲线画在网页上不构成使用证据。
+Agent Observatory 会先给模型一个谱图目录；只有模型明确请求某个 `spectrum_request_id`，下一次
+调用才会携带对应曲线或峰表。这样可以区分“网页上显示了谱图”和“模型实际用到了谱图”。
 
-## 请求、重试与费用
+若要主张模型从谱图中获益，应在相同任务、世界、预算和模型 seed 下比较可见/屏蔽条件，并保留
+模型引用的峰、动作变化与最终效果。
 
-一个 environment operation 对应一个最终逻辑决策。provider 超时、空响应、JSON 修复或重试都
-作为实际请求计入资源账本。正式运行至少记录：
+## 配置在线模型
 
-- provider 与请求模型 ID；
-- prompt、工具 schema 和披露策略摘要；
-- 输入 cache-hit/cache-miss token、输出 token；
-- 请求、失败、重试和修复计数；
+=== "PowerShell"
+
+    ```powershell
+    $env:DEEPSEEK_API_KEY = "<your-api-key>"
+    $env:DEEPSEEK_MODEL = "<provider-model-id>"
+    python -m apps.task_lab.server --port 8876
+    ```
+
+=== "bash"
+
+    ```bash
+    export DEEPSEEK_API_KEY="..."
+    export DEEPSEEK_MODEL="<provider-model-id>"
+    python -m apps.task_lab.server --port 8876
+    ```
+
+模型 ID 与可用参数可能随 provider 变化，请使用 provider 当前支持的标识。密钥只通过进程环境变量
+或本地忽略文件传入，不进入浏览器、prompt artifact、trajectory 或结果文件。
+
+## 把请求成本算清楚
+
+provider 超时、空响应、JSON 修复和重试都是真实消耗。正式运行至少记录：
+
+- provider、模型 ID、客户端版本和请求参数；
+- prompt、工具 schema 与披露策略摘要；
+- 输入 cache-hit/cache-miss token 与输出 token；
+- 请求、失败、重试和修复次数；
 - 冻结价格快照与折算费用；
-- 模型和客户端版本、运行时间与轨迹摘要。
+- 运行时间、轨迹摘要和 prompt hash。
 
-本地配置示例：
+一个 environment operation 最终只能对应一个逻辑决策，但为了得到这个决策产生的所有 provider
+请求都应进入资源账本。
 
-```powershell
-$env:DEEPSEEK_API_KEY = "<your-api-key>"
-$env:DEEPSEEK_MODEL = "deepseek-v4-pro"
-python -m apps.task_lab.server --port 8876
-```
+## 不联网也能测试 Harness
 
-密钥只通过进程环境变量传入，不进入浏览器、prompt artifact、trajectory 或结果文件。
-
-## 离线测试 Agent
-
-`ToolUsingLLMStubAgent` 用确定性规则生成符合 trace schema 的行为，检查 tool-use、validator、memory
-和 replay 管线；`LLMReplayAgent` 读取固定 action trace，复现已经发生的交互。二者都不是在线 LLM
-性能证据。
+`ToolUsingLLMStubAgent` 用确定性规则检查 tool use、validator、memory 与 replay 管线；
+`LLMReplayAgent` 则重放已经保存的 Action trace。
 
 ```bash
 python examples/demo_llm_replay_harness.py
 ```
 
-## 当前证据边界
+它们适合测试工程链路，但不能代表在线 LLM 的性能。
 
-在线客户端、结构化 trace、因果隔离谱图消融、token/费用账本和失败保留规则已经实现。冻结角色为
-V4 Pro（thinking、`max` effort）与 V4 Flash（non-thinking）。当前仓库没有真实 provider 轨迹；两个
-角色尚未在四任务新 cohort 上完成配对、回放验证的正式矩阵，因此不能发布 LLM 排名、模型优劣或
-“LLM 学会化学机理”的结论。
+## 当前做到哪一步
 
-界面使用见[Agent Observatory 与 Student Lab](interactive_task_lab.md)，统一资源规则见
-[Benchmark 协议](benchmark_protocol.md)。
+在线客户端、逐操作 trace、按需谱图、token/费用账本和失败保留规则已经实现。当前正式方法矩阵仍
+缺少真实 provider 轨迹，因此还不能发布 LLM 排名、模型优劣或“模型学会化学机理”的结论。
+
+界面操作见[打开可视化实验室](interactive_task_lab.md)，方法比较口径见
+[设计公平评测](benchmark_protocol.md)。

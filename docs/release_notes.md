@@ -1,5 +1,8 @@
 # 发布说明
 
+这里记录用户可感知的接口、任务、世界律和证据状态变化。正在开发但尚未进入正式 runtime 的候选
+能力不会被写成已经发布的功能。
+
 ## 2026-07-12 · Architecture, mechanism, RL and LLM evidence refresh
 
 - 分层评价增加 recipe-search、operation-open-loop、operation-closed-loop 能力层，交互与资源诊断不进入端点总分；

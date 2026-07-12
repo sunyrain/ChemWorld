@@ -1,8 +1,13 @@
-# 物理化学核心设计
+# 物理化学核心
 
-本页描述 ChemWorld `physchem` 层的发布能力、模型合同、成熟度和限制。
+这一页面向需要理解或扩展底层模型的开发者。它不是入门教程，而是一张技术地图：ChemWorld 当前
+实现了哪些物性、反应、分离、仪器与设备切片，它们使用什么合同，又在哪些范围之外停止解释。
 
-## 设计目标
+!!! tip "只想开发 Agent？"
+    你不需要读完本页。先看[Agent 接口](agent_interface.md)和[操作语言](operations.md)；只有在新增
+    Provider、解释模型成熟度或审查物理证据时再回到这里。
+
+## 这层解决什么问题
 
 `physchem` 层不是外部专业软件的复制品，也不是松散的 proxy 集合。它的目标是提供一套可审计、可序列化、可测试的轻量物理化学核心，让 ChemWorld 的交互任务具备明确的物理合同。
 
@@ -13,7 +18,7 @@
 - 数值内核、任务评分、观测生成和文档声明必须一致。
 - 参考库只用于设计对照和验证思路，不直接复制实现。
 
-## 当前范围
+## 先看能力地图
 
 当前实现覆盖 foundation/lite 主线，并包含若干 `reference_validated` slice。它足以支撑虚拟实验 benchmark 的可解释交互，但不是完整商业流程模拟器、真实反应预测软件或数据驱动性质数据库。
 
@@ -28,7 +33,7 @@
 - acid-base、Ksp、reaction equilibrium 和小规模 Gibbs minimization diagnostic；
 - electrochemistry、flow、crystallization 等面向任务的轻量交互切片。
 
-## 数据基础与单位治理
+## 身份、单位与数据来源
 
 三个数据基础设施切片共同提供模型输入的 identity → dimension → provenance 闭环：
 
@@ -294,7 +299,7 @@ distribution family；range endpoints 与生成值仅存在私有视图。`publi
 hidden-parameter digest。生成实例可直接构造 reaction、electrolyte resistance、diffusion layer 和
 double-layer model bundle。
 
-## 成熟度与验证
+## 如何理解成熟度与验证
 
 所有模型卡必须说明 maturity：
 
@@ -305,7 +310,7 @@ double-layer model bundle。
 
 当前文档不会把任何 lightweight slice 描述成完整专业模拟器。任务、artifact 和论文写作中也必须保留这一边界。
 
-## 验证规则
+## 新模型进入运行时前要通过什么
 
 核心层应在以下情况快速失败：
 

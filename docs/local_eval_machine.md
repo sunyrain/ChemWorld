@@ -1,7 +1,7 @@
-# 本地评测机
+# 运行本地评测机
 
-本地评测机用于在不依赖托管服务的情况下模拟“教师端评测 + 学生端提交”的完整流程。
-它是未来 hosted leaderboard 的最小可运行前身。
+本地评测机让教师或维护者在一台机器上走完“接收提交—运行私有环境—回放验证—发布汇总”的流程，
+不依赖托管服务。它适合课程和可信代码，也是未来 hosted leaderboard 的最小原型。
 
 当前实现位于 `local_eval_server/`，核心入口是：
 
@@ -9,7 +9,7 @@
 python local_eval_server/teacher_side/eval_machine.py
 ```
 
-## 目录布局
+## 教师端与学生端怎样分工
 
 ```text
 local_eval_server/
@@ -31,7 +31,7 @@ history，学生端返回下一步 action。
 
 学生端不创建 `gym.make("ChemWorld", ...)`，也不直接调用 `env.step()`。
 
-## 一条命令演示
+## 一条命令跑完整演示
 
 ```bash
 python local_eval_server/teacher_side/eval_machine.py \
@@ -44,7 +44,7 @@ python local_eval_server/teacher_side/eval_machine.py \
 这个命令会初始化 demo workspace、接收一个模拟学生提交、运行教师端环境、保存轨迹、
 重放验证、计算指标并发布 leaderboard 与 summary。
 
-## 分步评测流程
+## 在课程或内部评测中分步运行
 
 推荐在正式课程或内部评测中使用分步命令：
 
@@ -81,7 +81,7 @@ python local_eval_server/teacher_side/eval_machine.py \
 `run` 阶段会调用正式的 `chemworld.eval.verify_records`，不是本地简化 verifier。因此
 本地评测机与 benchmark replay gate 使用同一套重放检查。
 
-## 输出结构
+## 去哪里找结果
 
 ```text
 runs/local_eval_machine/
@@ -114,7 +114,7 @@ runs/local_eval_machine/
 }
 ```
 
-## 安全模型
+## 先理解它的安全边界
 
 当前实现是 `trusted-local-subprocess`，只允许运行教师信任的代码；它是本机模拟
 Docker，而不是强隔离沙箱：
@@ -130,7 +130,7 @@ Docker，而不是强隔离沙箱：
 并配置只读挂载、网络禁用、环境白名单、CPU/内存/PID 限制和低权限用户。仅在 manifest
 中声明 `allowed_network=false` 不构成网络隔离。
 
-## 当前验收状态
+## 当前有哪些自动测试
 
 测试 `tests/test_local_eval_machine.py` 覆盖：
 

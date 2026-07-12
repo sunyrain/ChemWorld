@@ -1,17 +1,17 @@
-# Action 与 Recipe 协议
+# 编写 Action 与 Recipe
 
-ChemWorld 的 action schema 定义 agent 与虚拟化学世界交互时可以提交的操作。schema
-既服务 Gymnasium `env.step(action)`，也服务 recipe、trajectory replay 和提交包校验。
+Action 是一次操作，Recipe 是一组按顺序执行的 Action。两者都使用普通字典/JSON，因此同一份内容
+可以交给 Gym 环境、baseline、轨迹回放和提交验证器。
 
-## 基本形状
+## Action：提交一个动作
 
-每个 action 是一个 JSON-like dictionary，至少包含：
+最小 Action 只包含操作名：
 
 ```python
-{"operation": "heat"}
+{"operation": "terminate"}
 ```
 
-不同 `operation` 会要求不同参数。例如：
+带参数的常见例子：
 
 ```python
 {"operation": "add_solvent", "volume_L": 0.03, "solvent": 1}
@@ -19,11 +19,13 @@ ChemWorld 的 action schema 定义 agent 与虚拟化学世界交互时可以提
 {"operation": "measure", "instrument": "final_assay"}
 ```
 
-字段名保持英文，因为它们是稳定 API，不随站点语言变化。
+不要凭记忆填写范围。运行时 schema 会告诉你必填字段、单位、上下界和类别选项：
 
-## Recipe 配方序列
+```python
+schema = env.unwrapped.action_schema("heat")
+```
 
-Recipe 是 action 的有序列表，可用于 baseline、notebook、回放和教学任务：
+## Recipe：描述一条实验路线
 
 ```python
 recipe = [
@@ -34,23 +36,22 @@ recipe = [
 ]
 ```
 
-Recipe 本身不保证合法；环境会在 step 时根据任务阶段、物料状态、预算和安全约束返回
-`constraint_flags`。
+Recipe 适合固定 baseline、教程和回放。它只是动作清单，并不提前保证每一步合法：环境仍会结合
+当前任务、物料状态、预算和前置条件逐步检查。
 
-## 约束信号
+## 动作失败时看哪里
 
-常见约束包括：
+| 信号 | 含义 | Agent 通常应该做什么 |
+| --- | --- | --- |
+| `precondition_failed` | 当前状态还不能执行该操作 | 补齐前序步骤或换一个合法操作 |
+| `unsafe` / `unsafe_by_task_limit` | 触发环境或任务风险边界 | 降低强度、缩短时间或改变路线 |
+| `high_cost` | 成本超过任务阈值 | 减少测量或选择更便宜的流程 |
+| `low_selectivity` | 当前路线选择性不足 | 调整条件或先获取信息 |
+| `constitution_failed` | 状态账本或守恒检查失败 | 将运行视为环境/执行失败并保留证据 |
 
-- `precondition_failed`：当前状态不满足操作前置条件。
-- `unsafe`：操作触发环境安全边界。
-- `unsafe_by_task_limit`：超过该任务声明的安全限制。
-- `high_cost`：成本超过任务阈值。
-- `low_selectivity`：当前路线选择性不足。
-- `constitution_failed`：typed ledger 或物理守恒检查失败。
+这些信号是可学习反馈，不是可以忽略的日志。需要查看当前合法动作时，优先使用
+`available_actions()` 和 `validate_action()`。
 
-这些 flags 是 agent 学习的重要反馈，不应被当成普通日志忽略。
-
-## 设计边界
-
-Action schema 关注可交互性和可评测性，不直接等同真实实验室 SOP。真实机器人控制、
-设备驱动和安全审批应在更高成熟度的 backend 或 adapter 中处理。
+!!! note "与现实设备的边界"
+    Action schema 描述可评测的虚拟实验操作，不等同真实机器人指令。设备驱动、权限、联锁和安全
+    审批应由独立 adapter 处理。

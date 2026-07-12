@@ -34,9 +34,9 @@ REQUIRED_STATUS_MARKERS = {
         "精确干预上下文",
     ),
     "docs/llm_agent_harness.md": (
-        "deepseek-v4-pro",
-        "masked 条件必须保留端点",
-        "没有真实 provider 轨迹",
+        "真实 provider 轨迹",
+        "`masked`",
+        "私有逐字思维链",
     ),
 }
 
@@ -65,11 +65,11 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
             missing_markers[relative] = missing
     mkdocs = (root / "mkdocs.yml").read_text(encoding="utf-8")
     nav_checks = {
-        "quick_start": "  - 快速开始:" in mkdocs,
-        "build_agents": "  - 构建智能体:" in mkdocs,
-        "evaluation": "  - 评测与证据:" in mkdocs,
-        "environment": "  - 环境与任务:" in mkdocs,
-        "reference": "  - 数据与参考:" in mkdocs,
+        "getting_started": "  - 开始使用:" in mkdocs,
+        "build_agents": "  - 开发智能体:" in mkdocs,
+        "evaluation": "  - 运行与评估:" in mkdocs,
+        "environment": "  - 理解 ChemWorld:" in mkdocs,
+        "reference": "  - 数据、部署与边界:" in mkdocs,
     }
     checks = {
         "utf8_files_readable": bool(files),

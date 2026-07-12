@@ -1,7 +1,8 @@
-# 模型成熟度
+# 模型成熟度怎么读
 
-成熟度表示模型在声明适用域内的证据强度，不代表 ChemWorld 能预测真实化学。每个任务公开
-`physics_maturity`、逐模块 `kernel_maturity` 和 `proxy_allowed`。
+成熟度回答的是“这个模块在它声明的范围内经过了多少验证”，不是“它有多像现实世界”。每个任务
+都会公开整体 `physics_maturity`、逐模块 `kernel_maturity` 和 `proxy_allowed`；整体等级由最弱的
+必需模块决定。
 
 | 等级 | 含义 |
 | --- | --- |

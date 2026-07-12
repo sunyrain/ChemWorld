@@ -1,8 +1,13 @@
-# 数据集层
+# 导出与使用数据集
 
-ChemWorld 的数据集层把交互轨迹、任务合同、agent-facing 视图、agent 行为摘要和 replay metadata 整理成可复现的研究产物。它不是单纯的日志目录，而是连接 offline analysis、leaderboard 审核、教学回放和论文 artifact 的公共接口。
+ChemWorld 的数据集不是一堆运行日志，而是一组可以追溯、回放和验证的交互记录。每条记录把 Action、
+公开观测、任务合同、Agent 行为摘要和 replay metadata 绑定在一起，可用于离线分析、world-model
+训练、教学回放与论文 artifact。
 
-## 当前数据对象
+!!! tip "怎么选格式"
+    人工检查和回放优先使用 JSONL；批量统计、表格分析或离线训练优先使用 Parquet。
+
+## 数据集中有哪些对象
 
 | 对象 | 用途 |
 | --- | --- |
@@ -12,7 +17,7 @@ ChemWorld 的数据集层把交互轨迹、任务合同、agent-facing 视图、
 | dataset export | 把 trajectory 转成 JSONL copy 或 Parquet/表格友好的 flattened records |
 | dataset card | 记录 task、seeds、world law version、env version、hash、privacy status 和 replay verification |
 
-## 导出命令
+## 导出一份数据集
 
 ```bash
 chemworld datasets export \
@@ -30,7 +35,7 @@ chemworld datasets card --dataset runs/example_dataset.jsonl
 
 Parquet 导出需要本地安装 `pyarrow` 或 `fastparquet`。如果只需要审阅和回放，JSONL 足够；如果要做批量统计、offline model 训练或表格分析，优先使用 Parquet。
 
-## Agent Trace 合同
+## Agent Trace 记录了什么
 
 trajectory 原始记录保留完整 `agent_trace` 列表。flattened dataset 额外提供这些列，便于表格分析：
 
@@ -63,7 +68,7 @@ python examples/demo_dataset_agent_trace_export.py
 4. 如果本地有 Parquet backend，则导出 Parquet；
 5. 打印最终 lab report 和 agent trace 摘要字段。
 
-## Dataset Card
+## 用 Dataset Card 说明来源
 
 `dataset_card()` 会扫描数据集并输出：
 
@@ -76,7 +81,7 @@ python examples/demo_dataset_agent_trace_export.py
 
 公开发布数据集前，应检查 dataset card 中的 privacy 字段，尤其是 human pilot trajectory、explanation 文本和 agent metadata。
 
-## 质量门槛
+## 发布前检查
 
 - 每条 trajectory 必须通过 schema validation。
 - 每个公开 dataset 应能追溯到 task id、scenario id、mechanism hash、seed、commit hash 和生成命令。

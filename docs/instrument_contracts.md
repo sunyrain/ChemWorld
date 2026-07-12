@@ -1,29 +1,27 @@
-# 仪器合同
+# 仪器能看到什么
 
-仪器合同定义 agent 能从世界中观测到什么。ChemWorld 的观测不应直接泄露 hidden state，
-而应通过带噪、有限预算、任务相关的 instrument channel 暴露。
+Agent 不能直接读取隐藏状态。它要像做实验一样，通过有限、带噪且有成本的仪器通道获得证据。
 
-## 典型仪器
+## 常见仪器
 
-- `final_assay`：终点评测读数。
-- `quick_assay`：低成本但噪声较高的过程读数。
-- `spectroscopy`：虚拟光谱或特征峰。
-- `phase_probe`：相组成或分配相关观测。
-- `safety_monitor`：安全风险摘要。
+| 仪器 | 用途 |
+| --- | --- |
+| `quick_assay` | 低成本、较高噪声的过程读数 |
+| `final_assay` | 形成可评分实验结果的终检 |
+| `spectroscopy` | 虚拟曲线、特征峰或通道摘要 |
+| `phase_probe` | 相组成与分配相关观测 |
+| `safety_monitor` | 当前公开风险摘要 |
 
-## 合同字段
+## 一条仪器记录应说明
 
-仪器读数应说明：
+- 测量对象与单位；
+- noise model 与不确定性；
+- 成本、耗时和样品消耗；
+- 原始信号与处理后估计；
+- 哪些字段可以公开给 Agent。
 
-- instrument name；
-- measured quantity；
-- unit；
-- noise model；
-- cost；
-- time/budget impact；
-- visibility boundary。
+测量本身也是 Operation，会消耗预算并可能减少样品。Agent 因而需要判断“现在测量是否值得”，
+而不是免费读取所有状态。
 
-## 设计边界
-
-虚拟仪器服务 benchmark 和教学，不等同真实仪器控制。若未来接入真实设备，应把设备
-adapter、校准、权限和安全审查与当前虚拟 instrument contract 分开处理。
+!!! note "虚拟仪器不是设备驱动"
+    当前合同服务于 benchmark 与教学。真实设备还需要校准、权限、联锁、安全审查和独立 adapter。

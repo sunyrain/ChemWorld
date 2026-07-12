@@ -1,54 +1,57 @@
-# 验证与质量保证
+# 验证安装与结果
 
-ChemWorld 的发布质量由可执行门禁保证，而不是由文档中的人工状态声明保证。
+验证分成三个尺度：快速检查单条轨迹、运行开发测试、执行完整发布门禁。日常开发不必每次都跑最重
+的一组，但准备发布时不能只依赖局部测试。
 
-## 完整发布门禁
+## 我刚跑完一条轨迹
 
-安装完整依赖后运行：
+```bash
+chemworld verify --constitution --submission runs/<trajectory>.jsonl
+chemworld evaluate --submission runs/<trajectory>.jsonl
+```
+
+这会检查 schema、合同、状态守恒与 replay，并从轨迹重算指标。
+
+## 我修改了代码或文档
+
+```bash
+python -m ruff check .
+python -m mypy src/chemworld
+python -m pytest
+python -m mkdocs build --strict
+```
+
+当前 release gate 执行 Ruff lint，但**没有自动执行 `ruff format --check`**。准备合并或发布时建议额外
+运行：
+
+```bash
+python -m ruff format --check .
+```
+
+## 我要准备一个发布候选
 
 ```bash
 python -m pip install -e ".[dev,docs,physchem-ref]"
 python scripts/run_release_gate.py
 ```
 
-该入口依次检查：
+完整入口串联核心 typing、pytest、严格文档构建、wheel smoke、参考验证、runtime/model 审计、环境
+一致性、baseline smoke 与 benchmark bundle integrity。任一阶段失败，发布候选都不应被标为全绿。
 
-- Ruff lint 与源码格式；
-- `src/chemworld` 全量 mypy 类型检查；
-- pytest 单元、集成、冻结轨迹和参考后端测试；
-- MkDocs strict build 与站内链接；
-- 所有注册任务的环境自洽性、replay、谱图、操作合法性和 constitution；
-- baseline 与发布 artifact smoke tests。
+## 物理与数值证据如何分层
 
-任一阶段失败都会令发布门禁失败。
+1. 用解析解和守恒式检查简单极限。
+2. 用单元测试固定模型行为和错误边界。
+3. 用可选专业参考后端对照局部性质、动力学或传递切片。
+4. 用 runtime integration 确认模型真的进入 Gym 状态转移。
+5. 用冻结 trajectory 检查版本化世界律的端到端行为。
 
-## 物理与数值证据
+参考依赖缺失时，对应验证应显示为 skipped 或 unavailable，而不是被当作通过。
 
-验证采用分层方法：
+## 结果为什么能够复现
 
-1. 解析解和守恒式检查简单极限；
-2. 单元级回归固定模型行为和异常边界；
-3. 可选专业参考后端对照局部性质、动力学或传递切片；
-4. 运行时适配测试确认专业模型的诊断和 ledger 真正进入 Gym 环境；
-5. 冻结 trajectory 确认版本化世界律的端到端行为。
+Trajectory、submission manifest 与 dataset card 会记录任务、场景、机理、世界律、runtime profile、
+observation/scoring contract、依赖环境和源码摘要。`chemworld verify` 使用这些字段发现合同漂移或
+轨迹修改。
 
-参考后端测试要求独立依赖真实可导入；缺失依赖不会被当作通过。
-
-## 可复现性字段
-
-trajectory、submission manifest 和 dataset card 会记录任务、场景、机制、世界律、runtime
-profile、observation/scoring contract、依赖环境和源码 digest。`chemworld verify` 会重新执行并检查
-这些字段，从而检测合同漂移或轨迹修改。
-
-## 用户侧最小检查
-
-准备引用或提交结果前，至少执行：
-
-```bash
-python -m pytest
-python -m mkdocs build --strict
-chemworld verify --constitution --submission runs/<trajectory>.jsonl
-```
-
-正式发布应使用完整门禁。轨迹、榜单、签名与 wheel 的产物要求见
-[结果完整性](release_integrity.md)。
+发布 artifact 的完整要求见[验证结果可信度](release_integrity.md)。

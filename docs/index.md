@@ -1,90 +1,111 @@
 # ChemWorld-Bench
 
-<p class="cw-site-version">World Law v0.4 · evidence snapshot 2026-07-12</p>
+<p class="cw-site-version">World Law v0.4 · 2026-07-12</p>
 
-ChemWorld-Bench 是面向闭环实验智能体的可回放虚拟化学环境。经典优化、主动学习、强化学习、
-LLM tool agent 和学生程序使用同一套任务、操作、观测、预算与评价合同；结果由轨迹回放重算，
-不信任智能体自行提交的分数。
+**把一次化学实验交给 Agent：让它选择操作、读取仪器、承担成本，并用下一次实验修正判断。**
 
-!!! warning "研究边界"
-    ChemWorld 研究虚拟世界中的实验决策，不预测真实反应，不替代流程模拟、安全评估或实验室控制。
-    当前版本是可用的研究环境和 benchmark candidate，不是已经验证的 leaderboard。
-
-<div class="cw-status-grid" markdown>
-
-<div class="cw-status-card" markdown>
-
-**15**
-
-注册任务，共享版本化操作、观测和回放合同。
-
-</div>
-
-<div class="cw-status-card" markdown>
-
-**9 / 9**
-
-六任务机理/构成律控制组合通过多种子、多配方可辨识性与守恒检查。
-
-</div>
-
-<div class="cw-status-card" markdown>
-
-**0**
-
-当前获准的完整 benchmark、SOTA 或真实化学迁移主张。
-
-</div>
-
-</div>
-
-## 从这里开始
+ChemWorld-Bench 是一个可回放的虚拟化学实验环境。RL、贝叶斯优化、LLM tool agent 和学生程序
+使用同一套任务与操作接口；每次决策都会留下轨迹，最终结果由环境重新计算，而不是由 Agent
+自行报分。
 
 <div class="cw-hero-grid" markdown>
 
 <div class="cw-hero-card" markdown>
 
-### 五分钟运行
+### 我想先跑起来
 
-安装环境，完成一个 episode，并验证轨迹。
+安装项目，完成一次投料—反应—检测流程，再验证生成的轨迹。
 
-[快速开始 →](getting_started.md)
-
-</div>
-
-<div class="cw-hero-card" markdown>
-
-### 构建智能体
-
-读取 affordance、提交合法动作，并在测量后更新决策。
-
-[Agent 接口 →](agent_interface.md)
+[五分钟快速开始 →](getting_started.md)
 
 </div>
 
 <div class="cw-hero-card" markdown>
 
-### 运行公平比较
+### 我想开发 Agent
 
-固定任务、预算和资源口径，逐任务报告目标、风险、成本与失败。
+读取当前合法动作，把公开观测转换为决策，并在失败后继续恢复。
 
-[评测协议 →](benchmark_protocol.md)
+[从 Agent 接口开始 →](agent_interface.md)
 
 </div>
 
 <div class="cw-hero-card" markdown>
 
-### 判断证据强度
+### 我想做方法比较
 
-区分软件控制、开发诊断、确认实验和仍未支持的主张。
+固定任务、实验预算与资源口径，比较目标、风险、成本和样本效率。
 
-[科学状态 →](benchmark_release.md)
+[设计一场公平评测 →](benchmark_protocol.md)
+
+</div>
+
+<div class="cw-hero-card" markdown>
+
+### 我想理解证据边界
+
+快速分清哪些能力已经验证，哪些结果仍属于开发诊断。
+
+[查看当前科学状态 →](benchmark_release.md)
 
 </div>
 
 </div>
 
-## 最短可复现路径
+## ChemWorld 里的一次闭环
+
+```text
+选择任务
+  → 查看当前可执行操作
+  → 提交 Action
+  → 获得仪器与过程观测
+  → 更新策略
+  → 完成 final assay
+  → 回放并验证结果
+```
+
+这里最重要的不是“猜中一个最佳配方”，而是完整的决策过程：Agent 看到了什么、为什么测量、
+如何响应失败，以及它是否在预算内得到一个可以重放的结果。
+
+## 现在可以做什么
+
+<div class="cw-status-grid" markdown>
+
+<div class="cw-status-card" markdown>
+
+**15 个任务**
+
+从单次反应到多轮 campaign，覆盖反应、分离、结晶、流动、电化学与平衡表征。
+
+</div>
+
+<div class="cw-status-card" markdown>
+
+**统一交互合同**
+
+任务、Action、观测、预算、风险、轨迹与回放都带有明确版本。
+
+</div>
+
+<div class="cw-status-card" markdown>
+
+**候选 Benchmark**
+
+环境和控制链可用；完整跨方法排名、私有泛化与独立复现仍在补齐。
+
+</div>
+
+</div>
+
+| 使用场景 | 推荐入口 | 你会得到什么 |
+| --- | --- | --- |
+| 体验完整流程 | [可视化实验室](interactive_task_lab.md) | 可操作的 Student Lab 与实时 Agent Observatory |
+| 编写 RL / BO / LLM Agent | [Agent 接口](agent_interface.md) | 任务说明、合法动作、观测视图与恢复信号 |
+| 选择研究任务 | [任务目录](tasks.md) | 15 个任务的目标、模式和成熟度 |
+| 复现实验结果 | [提交与验证](submission.md) | trajectory、manifest、回放与评分流程 |
+| 阅读系统设计 | [系统架构](architecture.md) | 世界、任务、运行时、物理模块与证据层的关系 |
+
+## 立即运行
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -93,26 +114,33 @@ chemworld verify --constitution --submission runs/<trajectory>.jsonl
 chemworld evaluate --submission runs/<trajectory>.jsonl
 ```
 
-未测量数组使用 `NaN`（JSONL 中为 `null`）。读取数值前同时检查 `observed_mask` 或
-`observed_keys`。
+运行完成后，你会在 `runs/` 中得到一条 JSONL 轨迹和对应 manifest。未测量值写作 `NaN`
+（JSONL 中为 `null`）；读取数值时同时检查 `observed_mask` 或 `observed_keys`。
 
-## 当前证据快照
+!!! note "先从简单任务开始"
+    第一次使用建议选择 `reaction-to-assay`。它包含完整的投料、反应、测量和终检流程，
+    又不会一开始就引入多轮 campaign 与复杂后处理。
 
-| 证据 | 已知结果 | 可以如何解释 |
-| --- | --- | --- |
-| Safe-GP 确认切片 | 四任务 safety/cost 全部通过；连续流目标效应 0.018752，低于 SESOI 0.020000 | 有效失败案例，不支持完整方法优越性 |
-| SAC 开发运行 | 精确 100,000 Train 步；80k Dev 优于 100k | 证明训练链可运行，要求多 seed checkpoint 选择 |
-| 机理控制 | 六任务、9 种模式均可执行、可辨识、非灾难且守恒 | 证明环境控制成立，不证明 Agent 会识别或迁移 |
-| LLM adapter | Pro/Flash、逐操作调用、费用账本和因果隔离谱图消融通过离线控制 | 尚无真实 API 轨迹或模型排名 |
-| 全局发布门禁 | 控制层一致；正式证据层仍有 11 项活动问题 | 不发布完整 benchmark 或 SOTA 主张 |
+## 当前证据，简短版
 
-详情见[科学状态](benchmark_release.md)和[适用范围与限制](limitations.md)。
+- 软件接口、状态账本、物理路由、轨迹回放和验证器已经形成完整工作链。
+- 六个研究任务具备可执行、可辨识的隐藏机理或构成律变化。
+- Safe-GP 和单任务 SAC 已产生有价值的开发证据，也暴露了安全退化与 checkpoint 选择问题。
+- 正式 RL/LLM 排名、私有世界泛化和完整 benchmark 发布仍未完成。
 
-## 文档路线
+这意味着 ChemWorld **适合开发、教学、协议研究和诊断实验**，但还不应被描述为已经定型的
+SOTA leaderboard。详细数字与未完成项集中在[当前科学状态](benchmark_release.md)，不会散落在
+入门步骤里打断阅读。
 
-| 目标 | 建议阅读 |
+## 按目标继续阅读
+
+| 你的目标 | 阅读顺序 |
 | --- | --- |
-| 体验系统 | [快速开始](getting_started.md) → [任务目录](tasks.md) → [可视化实验室](interactive_task_lab.md) |
-| 实现 Agent | [Agent 接口](agent_interface.md) → [操作语言](operations.md) → [交互示例](agent_interaction_examples.md) |
-| 运行评测 | [科学状态](benchmark_release.md) → [评测协议](benchmark_protocol.md) → [提交与验证](submission.md) |
-| 理解环境 | [系统架构](architecture.md) → [世界律](world_law.md) → [机理协议](mechanism_schema.md) |
+| 第一次使用 | [快速开始](getting_started.md) → [选择任务](tasks.md) → [可视化实验室](interactive_task_lab.md) |
+| 开发智能体 | [Agent 接口](agent_interface.md) → [操作语言](operations.md) → [交互示例](agent_interaction_examples.md) |
+| 运行研究评测 | [当前科学状态](benchmark_release.md) → [评测协议](benchmark_protocol.md) → [选择 Baseline](baseline_reference.md) |
+| 理解环境实现 | [系统架构](architecture.md) → [世界律](world_law.md) → [物理化学核心](physchem_core_design.md) |
+
+!!! warning "现实世界边界"
+    ChemWorld 研究虚拟世界中的实验决策，不预测真实反应，也不替代流程模拟、安全评估、
+    实验室审批或设备控制。

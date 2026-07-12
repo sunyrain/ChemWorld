@@ -1,32 +1,28 @@
-# 场景生成
+# 场景如何生成
 
-Scenario generation 定义环境在 reset 时如何采样隐藏条件和可见条件。它决定任务是否能
-测试泛化，而不是让 agent 记住单个固定实例。
+Scenario 是一次 reset 得到的世界实例。它把任务合同转成具体初态、隐藏参数与公开条件，决定 Agent
+是在适应新情况，还是只记住一个固定案例。
 
-## 合同
+## Scenario 合同应说明
 
-一个 scenario generator 应说明：
+- 哪些参数对 Agent 可见，哪些保持隐藏；
+- seed 如何映射到可复现实例；
+- Train、Dev、Bench 与 Private 如何划分；
+- 参数范围、物理约束与评分关系；
+- mechanism/world family 如何分配。
 
-- 可见参数；
-- 隐藏参数；
-- seed 使用规则；
-- train/eval split；
-- 参数范围和物理约束；
-- 与 scoring 的关系。
+换 seed 主要测试实例随机性；切换 mechanism family 才能测试预先定义的机制轴变化。Private eval
+还需要独立 salt，不能把隐藏答案泄露到 observation、错误文本或公开任务卡。
 
-公开 observation 不应泄露隐藏答案。任务卡可以描述采样范围，但不应暴露 private eval
-的具体 scenario。
+## 什么样的 Scenario 才适合研究
 
-## CLI
+它应当可复现、可序列化、可审计，并让合理策略产生可辨识差异。只有一组硬编码常数的场景仍可用于
+smoke test，但不应被包装成泛化 benchmark。
 
-未来可提供：
+命令行查看 seed 计划：
 
 ```bash
-chemworld scenario sample --task reaction-to-purification --seed 1
-chemworld scenario inspect --task reaction-to-purification --public-only
+chemworld seeds show --all-tasks
 ```
 
-## 质量要求
-
-Scenario 应可复现、可序列化、可审计。若一个任务的 scenario 只是一组硬编码常数，它
-仍可用于 smoke test，但不应作为正式泛化 benchmark。
+数据划分细节见[管理 Seed 与数据划分](seed_suite.md)。

@@ -1,13 +1,12 @@
-# 任务卡
+# 阅读任务卡
 
-任务卡是 ChemWorld benchmark 的发布合同。它必须与 `src/chemworld/tasks.py`
-中的 registry 保持一致。若任务的 action space、budget、metrics、maturity、
-hidden scenario policy 或 scoring contract 改变，应视为 benchmark contract 变更。
+任务卡是每个任务的“实验说明书”：目标是什么、预算有多少、哪些操作与观测可用、结果怎样评分，
+都集中在这里。开发 Agent 时先读任务卡可以少猜规则；发布结果时，它又是检查合同漂移的依据。
 
 三个 core 任务用于 API、回放和发布链路回归。它们不等同于研究主榜；研究候选任务的准入状态、
 证据边界与确认门禁见[科学状态](benchmark_release.md)。
 
-## Core 任务
+## Core 任务适合做什么
 
 | Task ID | 作用 | Split | Budget | Seeds | Episode | Threshold | Maturity |
 | --- | --- | --- | ---: | --- | --- | ---: | --- |
@@ -15,7 +14,7 @@ hidden scenario policy 或 scoring contract 改变，应视为 benchmark contrac
 | `reaction-to-purification` | 反应、萃取/相分离、纯化、最终检测 | `public-test` | 90 | `0,1,2,3,4` | `single_experiment` | 0.70 | `lite` |
 | `partition-discovery` | 学习未知溶剂/萃取体系的分配规律 | `public-test` | 48 | `0,1,2,3,4` | `campaign` | 0.60 | `lite` |
 
-## 合同哈希
+## 为什么任务卡带有 Hash
 
 这些 hash 由 `TaskSpec.contract_hash` 生成，用于 replay、dataset、submission 和 release
 artifact 审计。
@@ -101,7 +100,7 @@ artifact 审计。
 - 相接触使用活度修正 extraction train，内禀分配系数仍是 benchmark 校准参数；
 - agent 应通过少量测量形成局部分配模型，而不是只追求单次 final assay score。
 
-## 发布规则
+## 一个任务何时能进入正式比较
 
 - core 回归套件引用上面三个任务；任何研究套件都使用独立的经验有效性门禁。
 - 任务合同版本：`chemworld-task-contract-0.6`。
@@ -111,7 +110,7 @@ artifact 审计。
   整体仍受 `lite` 反应或仪器层约束。
 - 任何合同字段变更都需要更新测试、文档和 release artifact。
 
-## Baseline 行
+## Baseline 结果应该怎样展示
 
 每张任务卡至少需要记录：
 

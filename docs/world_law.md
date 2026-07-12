@@ -1,7 +1,7 @@
-# 世界律
+# 世界律与版本
 
-世界律定义所有任务共同遵守的物质、相、反应、设备、操作、观测、安全、成本与评分语义。
-当前代码使用：
+世界律是所有任务共享的底层规则：物质怎样流动、反应怎样推进、设备怎样约束操作、仪器能看到什么，
+以及风险、成本和评分如何计算。当前版本是：
 
 ```text
 chemworld-physical-chemistry-v0.4
@@ -11,7 +11,7 @@ chemworld-physical-chemistry-v0.4
 contract、scenario、trajectory 与 replay；改变状态转移、操作成本、观测可见性、评分或正式
 provider 路由时必须提升版本，旧轨迹不会被静默解释为新版本结果。
 
-## v0.4 运行时
+## v0.4 改变了什么
 
 v0.4 将八个经过合同与证据审查的 provider 接入统一运行时：
 
@@ -27,7 +27,7 @@ v0.4 将八个经过合同与证据审查的 provider 接入统一运行时：
 和旧 distillation route 已从 provider registry 移除；底层解析或参考函数仍可作为新 provider
 的验证组件，但不能被 runtime 隐式调用。
 
-## 可审计合同
+## 为什么世界律必须可审计
 
 世界律共同冻结：ontology、compiled mechanism、typed ledgers、transaction rollback、operation
 schema、instrument observation、cost/risk、maturity、provider provenance 与 replay policy。

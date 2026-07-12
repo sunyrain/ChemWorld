@@ -1,8 +1,11 @@
-# ChemWorld 教程课程地图
+# 使用教学路线
 
-更新日期：2026-07-08
+这是一条从“第一次操作虚拟反应器”走到“独立完成可复现 Agent 项目”的十二天路线。课程不重复讲
+Python 语法，而是围绕同一个 ChemWorld 实验循环逐步增加难度：提出假设、选择操作、读取仪器、
+建立局部模型、规划下一轮实验，最后提交完整 artifact。
 
-ChemWorld-Bench 的教程不是 Python 语法课，也不是一串互不相关的小游戏。它训练的是同一套 `ChemWorld` 物理化学世界中的闭环实验能力：提出假设、设计操作、读取仪器观测、建立局部 world model、优化下一轮实验、解释机理并提交可复现 artifact。
+!!! tip "不需要一次学完"
+    Day 1–3 适合快速入门；Day 4–7 进入模型与优化；Day 8–12 面向 Agent、私有泛化和课程项目。
 
 正式入口保持一致：
 
@@ -24,7 +27,7 @@ env.unwrapped.observation_view("lab_report")
 
 这些方法把 task card、动作合法性、仪器观测和 campaign 进度变成学生/GPT/BO/RL 都能读取的公开接口。
 
-## 课程总目标
+## 学完后你应该能做什么
 
 学生完成 Day 1-12 后，应能独立完成：
 
@@ -36,7 +39,7 @@ env.unwrapped.observation_view("lab_report")
 6. 诊断 public/private generalization gap，避免只在公开世界刷分。
 7. 提交包含 trajectory、manifest、results 和 explanation 的可复现项目包。
 
-## 难度坡度
+## 三个学习阶段
 
 | 阶段 | Notebook | 难度 | 主要能力 | 典型交付 |
 | --- | --- | --- | --- | --- |
@@ -46,7 +49,7 @@ env.unwrapped.observation_view("lab_report")
 | D. 接近科研评测 | Day 10-12 | 挑战 | public/private split、泛化诊断、最终展示 | public 结果、private gap 分析、Demo Day 报告 |
 | E. 研究延展 | Day 13 + project blueprint | 研究延展 | 结晶、蒸馏、连续流、电化学和课程 leaderboard 设计 | 一个跨过程 task 的最小闭环设计 |
 
-## 每日路线
+## 十二天路线
 
 | 天数 | 文件 | 只解决什么 | 不要求什么 | 本日交付 |
 | --- | --- | --- | --- | --- |
@@ -65,7 +68,7 @@ env.unwrapped.observation_view("lab_report")
 | Day 13 | `day_13_year2_process_modules.ipynb` | 理解同一 world law 下如何扩展到结晶、蒸馏、连续流、电化学 | 不要求所有模块达到专业库精度 | 一个跨过程 task 的最小闭环和扩展设计 |
 | 项目 | `project_leaderboard_blueprint.ipynb` | 设计本机教师端/学生端 leaderboard 与项目制提交 | 不做云端账号系统 | 课程评测机流程、榜单指标、提交协议 |
 
-## 每天的 3 小时节奏
+## 每天怎样安排三小时
 
 | 时间 | 活动 | 必须留下的证据 |
 | --- | --- | --- |
@@ -78,7 +81,7 @@ env.unwrapped.observation_view("lab_report")
 
 如果课堂只有 90 分钟，建议现场完成前三段，把后三段作为课后提交。
 
-## 分层任务设计
+## 怎样逐步增加任务难度
 
 每个 notebook 现在都用同一种分层方式组织：
 
@@ -89,7 +92,7 @@ env.unwrapped.observation_view("lab_report")
 | 挑战任务 | 项目组长、研究型学生或 agent 组 | 能形成策略改进、泛化诊断或可复现提交 |
 | 反思问题 | 所有人 | 能把数值结果翻译成化工意义和下一步实验 |
 
-## 每日最小工作量
+## 每天都要留下哪些证据
 
 每个 notebook 都新增了 `三小时实验工单（必须自己完成）` 和 `学生工作区`。学生不能只运行已保存输出；每一天至少要留下：
 
@@ -110,7 +113,7 @@ python -m pytest tests/test_tutorial_notebooks.py
 
 审计会检查 Day 1-12 是否都有 30 分钟时间盒、三小时实验工单、学生工作区、最低实验数量或提交数量、图表/验证/解释证据，以及是否残留乱码或旧的可视化 checkpoint helper。
 
-## 评分建议
+## 如何评价学生项目
 
 不要只看最高分。建议课程评分分成五项：
 
@@ -122,7 +125,7 @@ python -m pytest tests/test_tutorial_notebooks.py
 | 机理解释 | 20% | 是否能把结果联系到温度、时间、催化剂、溶剂、副反应、分离损失等机制 |
 | 可复现 artifact | 15% | manifest、trajectory、results、explanation 是否完整 |
 
-## 教师端准备
+## 教师需要准备什么
 
 课前建议执行：
 
@@ -135,7 +138,7 @@ python -m mkdocs build --strict
 
 如果使用本机评测机，把学生提交集中到 `local_eval_server/teacher_server/submissions_inbox/`，由教师端统一执行 validate、verify、evaluate、summarize 和 leaderboard export。
 
-## 端到端示例
+## 先看一个端到端示例
 
 如果学习者需要完整流程样板，先运行 `notebooks/end_to_end/` 下的三份 notebook：
 

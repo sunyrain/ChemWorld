@@ -1,9 +1,9 @@
-# 提交包
+# 打包并提交结果
 
-提交包是 ChemWorld-Bench 的本地评测单位。学生、agent 或 baseline 不直接写排行榜，
-而是提交一个文件夹；教师端或维护者再执行 validate、verify、evaluate、summarize。
+ChemWorld 不接收一个手写分数，而是接收一个可以复现的文件夹。评测端会检查 manifest、回放轨迹，
+再重新计算结果。
 
-## 标准结构
+## 提交包里有什么
 
 ```text
 submission/
@@ -18,10 +18,15 @@ submission/
     └── <agent>_<task>_seed0.json
 ```
 
-`explanations/` 对普通优化任务不是强制评分项，但示例包会包含它，便于检查
-机制假设、失败分析和下一轮实验理由。
+| 内容 | 作用 |
+| --- | --- |
+| `manifest.json` | 说明 Agent、任务、seed、源码版本和复现命令 |
+| `trajectories/` | 保存每一步 Action 与公开观测，是评分的事实来源 |
+| `results/` | 本地 evaluator 生成的结果，便于自查 |
+| `explanations/` | 可选的假设、失败分析与下一轮建议 |
+| `dependency_notes.md` | 记录 Python、平台和关键依赖 |
 
-## 一键生成示例包
+## 生成一个示例包
 
 ```bash
 chemworld submission example runs/example_submission \
@@ -30,15 +35,9 @@ chemworld submission example runs/example_submission \
   --seeds 0
 ```
 
-该命令会生成：
+生成后先浏览 `README.md` 与 `manifest.json`，确认命令、task ID 和 seeds 与实际运行一致。
 
-- `manifest.json`：agent、task、seed、commit、依赖说明文件和可复现命令；
-- `trajectories/*.jsonl`：由正式 runner 写出的轨迹；
-- `results/*.json`：由正式 evaluator 重算的指标；
-- `explanations/*.json`：结构化解释字段；
-- `dependency_notes.md`：Python、平台和关键依赖版本。
-
-## 验证
+## 在提交前自检
 
 ```bash
 chemworld submission validate runs/example_submission
@@ -47,52 +46,41 @@ chemworld verify --constitution \
   --submission runs/example_submission/trajectories/tool_using_llm_stub_reaction-to-purification_seed0.jsonl
 ```
 
-有效提交包至少需要：
+验证器会检查：
 
-- `manifest.json` 使用 `chemworld-submission-bundle-0.1`；
-- `manifest.command` 是非空列表，能够说明如何复现；
-- `manifest.seeds` 是非空列表；
-- `manifest.dependency_file` 指向包内存在的依赖说明文件；
-- `README.md` 存在；
-- `trajectories/` 至少有一个 JSONL，且每条记录满足 trajectory schema；
-- `results/` 至少有一个 JSON，且包含 `total_score`；
-- 每个 trajectory 有同名 result 文件；
-- 如果提供 explanation JSON，必须包含 `hypothesis`、`learned_mechanism` 和
-  `failure_analysis`。
+- manifest 使用 `chemworld-submission-bundle-0.1`，并给出可复现命令与非空 seeds；
+- `README.md`、依赖说明、trajectory 和对应 result 都存在；
+- 每条 trajectory 满足 schema，并能通过 constitution 与 replay；
+- result 含有 `total_score`；
+- 如果提交 explanation，它包含 `hypothesis`、`learned_mechanism` 和 `failure_analysis`。
 
-## 教师端评测顺序
+## 评测端如何处理
 
 ```text
-submission bundle
-  -> chemworld submission validate
-  -> chemworld verify --constitution
-  -> chemworld evaluate
-  -> chemworld submission summarize
-  -> leaderboard aggregation
+接收文件夹
+  → validate 结构与 manifest
+  → verify 轨迹和状态守恒
+  → replay 并重新 evaluate
+  → summarize 逐任务结果
+  → 汇总到 leaderboard 或课程报告
 ```
 
-评测端不信任提交者写入的最终分数。`results/*.json` 只是本地复现实验输出，正式榜单应
-从 trajectory replay 和 evaluator 重新计算。
+`results/*.json` 不是可信分数来源。正式结果始终从 trajectory replay 重新计算。
 
-## Manifest 字段
-
-`manifest.json` 的核心字段：
+## Manifest 核心字段
 
 | 字段 | 含义 |
 | --- | --- |
-| `schema_version` | 当前为 `chemworld-submission-bundle-0.1` |
-| `agent_name` | agent 或项目名称 |
-| `agent_family` | baseline、BO、LLM replay、student project 等 |
-| `platform_version` | ChemWorld 包版本 |
-| `commit_hash` | 生成包时的 git commit |
-| `dependency_file` | 包内依赖说明文件 |
+| `schema_version` | 当前提交协议版本 |
+| `agent_name` / `agent_family` | 方法名称与家族 |
+| `platform_version` / `commit_hash` | 生成结果的软件身份 |
+| `dependency_file` | 包内依赖说明 |
 | `command` | 可复现实验命令 |
-| `task_id` | 目标 benchmark task |
-| `seeds` | 运行 seeds |
-| `llm_metadata` | 如适用，记录模型名、日期、temperature、缓存策略和成本 |
+| `task_id` / `seeds` | 任务与世界实例 |
+| `llm_metadata` | 如适用，记录模型、参数、日期、缓存与费用 |
 
-## 边界
+!!! note "本地提交包的边界"
+    这是可复现文件协议，不是云端防作弊系统。Private eval 的 salt、seeds 和最终 runner 由评测端
+    持有；公开包只能证明格式、轨迹与回放链自洽。
 
-当前提交包是本地文件夹协议，不是云端防作弊系统。private-eval 仍由教师端或维护者持有
-hidden salt、hidden seeds 和最终 runner。公开包只能证明提交格式、轨迹、评测和回放链路
-自洽。
+需要模拟教师端完整流程时，继续阅读[运行本地评测机](local_eval_machine.md)。

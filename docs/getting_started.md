@@ -1,8 +1,11 @@
-# 安装与首个回合
+# 安装并跑通第一次实验
 
-本页从源码安装 ChemWorld，运行一次合法 episode，并验证输出。推荐 Python 3.11 或更高版本。
+这一页只做一件事：**从空环境走到一条通过回放验证的 ChemWorld 轨迹**。第一次运行建议使用
+`reaction-to-assay`，整个过程通常只需要几分钟。
 
-## 安装
+## 1. 安装项目
+
+需要 Python 3.11 或更高版本。
 
 ```bash
 git clone https://github.com/sunyrain/ChemWorld.git
@@ -10,28 +13,59 @@ cd ChemWorld
 python -m pip install -e ".[dev]"
 ```
 
-验证命令是否可用：
+确认命令行入口已经安装：
 
 ```bash
 chemworld --help
 chemworld tasks list
 ```
 
-Windows 如果把 `python` 解析为 Microsoft Store 别名，请使用真实 Python 路径或先激活仓库的
-`.venv`。构建文档或执行完整科学参考门禁时，安装扩展依赖：
+=== "Windows"
+
+    如果 `python` 被解析成 Microsoft Store 别名，可以直接使用仓库虚拟环境：
+
+    ```powershell
+    .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+    ```
+
+=== "文档与参考验证"
+
+    只有在构建站点或运行扩展物理参考检查时，才需要额外依赖：
+
+    ```bash
+    python -m pip install -e ".[dev,docs,physchem-ref]"
+    ```
+
+## 2. 运行一个完整回合
+
+先让内置 Agent 完成一次实验：
 
 ```bash
-python -m pip install -e ".[dev,docs,physchem-ref]"
+chemworld run --task reaction-to-assay --agent random --seed 0
 ```
 
-若仓库已经包含 `.venv`，可直接使用它，避免“界面脚本能找到但 `chemworld` 包未安装”的错误：
+命令会把 trajectory JSONL 和 manifest 写入 `runs/`，并在终端打印实际路径。这里的 random Agent
+不是性能基线；它只是最短的端到端连通性检查。
 
-```powershell
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-.\.venv\Scripts\python.exe -m apps.task_lab.server --port 8876
+## 3. 验证结果
+
+把上一步输出的轨迹路径代入下面两条命令：
+
+```bash
+chemworld verify --constitution --submission runs/<trajectory>.jsonl
+chemworld evaluate --submission runs/<trajectory>.jsonl
 ```
 
-## 创建环境
+- `verify` 检查文件结构、合同摘要、状态守恒和确定性回放。
+- `evaluate` 从轨迹重新计算结果，不采用提交文件自带的分数。
+
+看到验证通过后，你已经跑通了 ChemWorld 最核心的链路：
+
+```text
+任务 → Agent → Action → 环境 → 轨迹 → 回放 → 评分
+```
+
+## 4. 用 Python 查看环境
 
 ```python
 import gymnasium as gym
@@ -45,61 +79,50 @@ print(info["physics_maturity"])
 print(env.unwrapped.available_actions())
 ```
 
-未测量的数组字段使用 `NaN`，JSONL 中对应 `null`。读取字段前同时检查 `observed_mask` 或
-`observed_keys`，不能把未观测状态当成零值。
+`available_actions()` 返回当前状态下真正可执行的操作。它比维护一套固定动作模板更可靠，因为不同
+任务、阶段和物料状态会开放不同操作。
 
-## 运行第一条完整轨迹
+## 5. 手动执行一个 Action
 
-最稳妥的首次运行方式是使用官方 runner：
-
-```bash
-chemworld run --task reaction-to-assay --agent random --seed 0
-```
-
-命令会在 `runs/` 下写入 trajectory JSONL 和 manifest。终端输出给出实际文件路径。随后执行：
-
-```bash
-chemworld verify --constitution --submission runs/<trajectory>.jsonl
-chemworld evaluate --submission runs/<trajectory>.jsonl
-```
-
-`verify` 检查 schema、合同摘要、回放一致性与物理构成；`evaluate` 从轨迹重算结果，不信任提交者
-写入的分数。
-
-## 手动调用动作
-
-使用当前状态的 affordance 和 schema 生成动作，不要把一套固定流程硬编码到全部任务：
+先读取 schema，再在不改变环境状态的情况下校验动作：
 
 ```python
-available = env.unwrapped.available_actions()
 schema = env.unwrapped.action_schema("add_reagent")
-check = env.unwrapped.validate_action(
-    {"operation": "add_reagent", "amount_mol": 0.01}
-)
+action = {"operation": "add_reagent", "amount_mol": 0.01}
+check = env.unwrapped.validate_action(action)
 
 if check["valid"]:
-    observation, reward, terminated, truncated, info = env.step(
-        {"operation": "add_reagent", "amount_mol": 0.01}
-    )
+    observation, reward, terminated, truncated, info = env.step(action)
+else:
+    print(check["invalid_reasons"])
 ```
 
-动作无效时，环境通过 `invalid_reasons` 和 precondition 标志提供可恢复反馈。不同任务的允许操作、
-仪器、预算、终止条件和 campaign 语义不同；以 reset 信息和任务卡为准。
+无效动作会带回 `invalid_reasons` 和前置条件提示，方便 Agent 修改后重试。任务允许哪些操作、
+仪器、预算与终止方式，以 reset 信息和任务卡为准。
 
-## 启动可视化界面
+!!! tip "正确处理未测量值"
+    数组里的未测量值是 `NaN`，写入 JSONL 后是 `null`。不要把它当成零；读取数值时同时检查
+    `observed_mask` 或 `observed_keys`。
+
+## 6. 打开可视化实验室
 
 ```bash
 python -m apps.task_lab.server --port 8876
 ```
 
-- Agent Observatory：<http://127.0.0.1:8876/agent/>
-- Student Lab：<http://127.0.0.1:8876/student/>
+启动后可以打开：
 
-经典方法无需在线凭证。在线模型密钥只应通过环境变量传入，不要写入脚本、Markdown 或提交包。
+- [Agent Observatory](http://127.0.0.1:8876/agent/)：观看 Agent 的逐步决策、谱图与资源消耗。
+- [Student Lab](http://127.0.0.1:8876/student/)：手动选择操作，观察实验状态变化。
 
-## 下一步
+经典算法和 Student Lab 不需要在线模型密钥。在线模型的配置方式见
+[接入 LLM Agent](llm_agent_harness.md)。
 
-- [选择任务](tasks.md)
-- [理解 Agent 接口](agent_interface.md)
-- [运行可复现评测](benchmark_protocol.md)
-- [查看当前科学状态](benchmark_release.md)
+## 接下来做什么
+
+| 如果你想…… | 继续阅读 |
+| --- | --- |
+| 换一个更复杂的任务 | [选择一个任务](tasks.md) |
+| 编写自己的 Agent | [从 Agent 接口开始](agent_interface.md) |
+| 理解每种操作的含义 | [认识操作语言](operations.md) |
+| 做可复现的方法比较 | [设计公平评测](benchmark_protocol.md) |

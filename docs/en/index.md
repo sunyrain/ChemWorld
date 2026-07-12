@@ -1,10 +1,23 @@
 # ChemWorld-Bench
 
-ChemWorld-Bench is a replayable Gymnasium environment for studying closed-loop decision
-making in virtual chemical experiments. Agents act under partial observability, finite
-experimental budgets, operational-risk limits, and measurement costs.
+**Give an agent a virtual chemistry lab, a finite budget, and incomplete information—then inspect every decision it makes.**
 
-## Quick start
+ChemWorld-Bench is a replayable Gymnasium environment for closed-loop experimental decision making. RL, Bayesian
+optimization, LLM tool agents, and student programs share the same tasks, actions, observations, budgets, and
+evaluation contracts. Scores are recomputed from trajectories rather than trusted from submissions.
+
+## Start here
+
+| I want to… | Read |
+| --- | --- |
+| Run my first experiment | [Getting started](../getting_started.md) |
+| Choose a task | [Task catalog](../tasks.md) |
+| Build an agent | [Agent interface](../agent_interface.md) |
+| Watch an agent or operate the lab | [Task Lab](../interactive_task_lab.md) |
+| Compare methods fairly | [Benchmark protocol](../benchmark_protocol.md) |
+| Understand current evidence | [Scientific status](../benchmark_release.md) |
+
+## Five-minute run
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -13,43 +26,29 @@ chemworld verify --constitution --submission runs/<trajectory>.jsonl
 chemworld evaluate --submission runs/<trajectory>.jsonl
 ```
 
-The evaluator replays trajectories and recomputes metrics rather than trusting a submitted
-score. Fifteen task slices share World Law v0.4 and versioned task, scenario, mechanism,
-observation, scoring, and replay contracts.
+The run writes a trajectory and manifest under `runs/`. Verification checks the schema, versioned contracts,
+physical constitution, and deterministic replay. Evaluation then recomputes the result from that trajectory.
+
+## What the environment provides
+
+- 15 task slices spanning reaction, separation, crystallization, flow, electrochemistry, and equilibrium;
+- versioned task, scenario, mechanism, observation, scoring, and replay contracts;
+- public action affordances and observation views for RL, BO, LLM, and human users;
+- explicit operational-risk, cost, measurement, and experiment budgets;
+- trajectory replay and score binding for reproducible evaluation.
 
 ## Evidence status
 
-ChemWorld is an operational research environment and a benchmark candidate, not a validated
-leaderboard. After an unconstrained GP diagnostic exposed safety regressions, Safe-GP was
-repaired on development worlds and frozen before an untouched 240-run confirmation over four
-tasks, three methods, and twenty paired seeds. All trajectories passed a second independent
-replay. Safe-GP passed every safety and cost rule and improved the objective on every task,
-but its flow effect (0.018752) missed the pre-registered SESOI (0.020000). The complete joint
-rule therefore failed and does not support a method claim.
+ChemWorld is an operational research environment and a **benchmark candidate**, not a validated leaderboard.
+Software controls and replay infrastructure are available. Safe-GP and single-task SAC experiments provide useful
+development evidence, while also exposing safety trade-offs and checkpoint-selection failures. Formal multi-method
+RL/LLM evaluation, private-world generalization, and independent reproduction remain incomplete.
 
-A single-seed SAC development run completed exactly 100,000 training steps, but its 80k
-checkpoint outperformed the 100k checkpoint and therefore requires pooled multi-seed selection.
-All six research tasks now expose executable, calibrated mechanism or constitutive-law families;
-agent identification and transfer have not been measured. Operation-level Pro/Flash adapters and
-a causally isolated assigned-versus-masked spectrum condition pass offline controls, but no real
-provider trajectories exist. Multi-seed RL, live-LLM evaluation, mechanism adaptation, independent
-reference search, salted private evaluation, and independent reproduction remain open.
-
-## Documentation map
-
-| Goal | Documentation |
-| --- | --- |
-| Install and run | [Getting Started](../getting_started.md) |
-| Select tasks | [Tasks](../tasks.md), [Task Cards](../task_cards.md) |
-| Build an agent | [Agent Interface](../agent_interface.md), [Operations](../operations.md) |
-| Run a comparison | [Benchmark Protocol](../benchmark_protocol.md), [Baselines](../baseline_reference.md) |
-| Understand the system | [Architecture](../architecture.md), [World Law](../world_law.md) |
-| Audit evidence | [Scientific Status](../benchmark_release.md), [Release Integrity](../release_integrity.md) |
-| Interpret boundaries | [Model Maturity](../model_maturity.md), [Limitations](../limitations.md) |
+That distinction is intentional: the project is ready for agent development, teaching, protocol research, and
+diagnostic experiments, but not yet for SOTA or real-chemistry claims.
 
 ## Scope
 
-ChemWorld is not a real-reaction predictor, commercial process simulator, laboratory
-controller, or safety system. Explicit provider routes and `proxy_allowed=false` describe
-software routing; they do not establish real-world predictive accuracy or industrial
-validation.
+ChemWorld studies decisions inside a versioned virtual world. It is not a real-reaction predictor, commercial
+process simulator, laboratory controller, or safety system. See [model maturity](../model_maturity.md) and
+[limitations](../limitations.md) before interpreting physical results.

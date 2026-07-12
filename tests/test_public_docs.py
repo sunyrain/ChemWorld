@@ -21,6 +21,7 @@ def test_published_docs_ship_visible_outline_and_section_folding() -> None:
     )
 
     assert "assets/javascripts/navigation-v7.js" in mkdocs
+    assert "navigation.sections" not in mkdocs
     assert "cw-toc-heading" in navigation
     assert "setupContentSections" in navigation
     assert "cw-section-toggle" in navigation

@@ -28,7 +28,8 @@ theme:
     - navigation.instant
     - navigation.instant.prefetch
     - navigation.instant.progress
-    - navigation.sections
+    # Keep top-level groups as native collapsible navigation items; Material's
+    # sections mode renders them as permanently expanded headings.
     - navigation.top
     - navigation.tracking
     - toc.follow
@@ -73,50 +74,50 @@ extra_javascript:
 
 nav:
   - 首页: index.md
-  - 快速开始:
-      - 安装与首个回合: getting_started.md
-      - 任务目录: tasks.md
-      - 可视化实验室: interactive_task_lab.md
-      - 示例与 Notebook: demos.md
+  - 开始使用:
+      - 安装并跑通第一次实验: getting_started.md
+      - 选择一个任务: tasks.md
+      - 打开可视化实验室: interactive_task_lab.md
+      - 跟着示例学习: demos.md
       - English overview: en/index.md
-  - 构建智能体:
-      - Agent 接口: agent_interface.md
-      - 操作语言: operations.md
-      - Action 与 Recipe: action_schema.md
-      - 交互示例: agent_interaction_examples.md
-      - Wrapper: wrappers.md
-      - LLM Agent: llm_agent_harness.md
-      - World Model 学习: world_model_learning.md
-  - 评测与证据:
-      - 科学状态与证据: benchmark_release.md
-      - 评测协议: benchmark_protocol.md
-      - Baseline 与资源公平: baseline_reference.md
-      - Seed 与数据划分: seed_suite.md
-      - 提交与验证: submission.md
-      - 结果可信链: release_integrity.md
-  - 环境与任务:
-      - 系统架构: architecture.md
-      - Campaign 与 Experiment: campaign_model.md
-      - 任务卡: task_cards.md
-      - 任务分类: task_taxonomy.md
-      - 环境卡: env_cards.md
-      - 材料身份: material_identity.md
-      - 安全与成本: safety_cost.md
-      - 仪器合同: instrument_contracts.md
-      - 虚拟光谱: spectroscopy.md
-      - 世界律: world_law.md
+  - 开发智能体:
+      - 从 Agent 接口开始: agent_interface.md
+      - 认识操作语言: operations.md
+      - 编写 Action 与 Recipe: action_schema.md
+      - 查看交互示例: agent_interaction_examples.md
+      - 使用 Wrapper: wrappers.md
+      - 接入 LLM Agent: llm_agent_harness.md
+      - 学习 World Model: world_model_learning.md
+  - 运行与评估:
+      - 当前科学状态: benchmark_release.md
+      - 设计公平评测: benchmark_protocol.md
+      - 选择 Baseline: baseline_reference.md
+      - 管理 Seed 与数据划分: seed_suite.md
+      - 打包并提交结果: submission.md
+      - 验证结果可信度: release_integrity.md
+  - 理解 ChemWorld:
+      - 系统如何工作: architecture.md
+      - Campaign、Experiment 与 Operation: campaign_model.md
+      - 阅读任务卡: task_cards.md
+      - 浏览任务类型: task_taxonomy.md
+      - 阅读环境卡: env_cards.md
+      - 材料名称代表什么: material_identity.md
+      - 安全与成本如何计分: safety_cost.md
+      - 仪器能看到什么: instrument_contracts.md
+      - 虚拟光谱如何生成: spectroscopy.md
+      - 世界律与版本: world_law.md
       - 模型成熟度: model_maturity.md
       - 物理化学核心: physchem_core_design.md
-      - 机理协议: mechanism_schema.md
-      - 计算后端: backends.md
-      - 反应与分离: reaction_separation_tasks.md
-      - 场景生成: scenario_generation.md
-  - 数据与参考:
-      - 数据集层: dataset_layer.md
-      - 验证与质量保证: validation.md
-      - 本地评测机: local_eval_machine.md
-      - API 参考: api_reference.md
-      - 适用范围与限制: limitations.md
-      - 伦理与数据: ethics_and_data.md
-      - 发布说明: release_notes.md
-      - 教学路线: tutorial_curriculum_zh.md
+      - 隐藏机理与世界族: mechanism_schema.md
+      - 计算后端与 Provider: backends.md
+      - 反应与分离流程: reaction_separation_tasks.md
+      - 场景如何生成: scenario_generation.md
+  - 数据、部署与边界:
+      - 导出与使用数据集: dataset_layer.md
+      - 验证安装与结果: validation.md
+      - 运行本地评测机: local_eval_machine.md
+      - 查阅 API: api_reference.md
+      - 了解适用范围: limitations.md
+      - 伦理与数据原则: ethics_and_data.md
+      - 查看发布说明: release_notes.md
+      - 使用教学路线: tutorial_curriculum_zh.md

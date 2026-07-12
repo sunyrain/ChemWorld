@@ -1,14 +1,22 @@
-# 演示
+# 跟着示例学习
 
-本页整理 ChemWorld 的最小演示路径。目标是让读者先跑通一次可解释流程，再进入自动化
-agent 或课程 notebook。
+示例按“先看懂一次实验，再逐步自动化”的顺序排列。第一次使用建议先运行手动事件序列，然后根据
+目标进入 Agent API、Baseline、提交验证或 Notebook。
 
-## 教程课程
+| 你想学习什么 | 从哪里开始 |
+| --- | --- |
+| 一条实验路线怎样执行 | 手动事件序列 |
+| Agent 怎样读取公开接口 | Agent-Facing API |
+| 多种方法怎样比较 | Baseline 对比 |
+| 怎样生成可提交结果 | 验证与提交包示例 |
+| 怎样完成系统课程 | 十二天教程 |
+
+## 先选择学习路线
 
 完整课程路线见 [ChemWorld 教程课程地图](tutorial_curriculum_zh.md)。课程从环境 reset
 和单步 action 开始，逐步进入 recipe、baseline、任务族、光谱、分离和 agent planning。
 
-## 手动事件序列
+## 运行一条手动实验路线
 
 最小示例：
 
@@ -43,7 +51,7 @@ for action in recipe:
 
 如果 reward 始终为 0，应先检查任务阶段、前置条件和最终 measurement 是否真的触发评分。
 
-## Agent-Facing API
+## 让 Agent 使用公开接口
 
 ```python
 print(env.unwrapped.task_prompt()["text"])
@@ -65,7 +73,7 @@ python examples/demo_submission_bundle.py
 python scripts/probe_tool_agent_rounds.py --seeds 0 1 2 --budget 18 --min-rounds 12
 ```
 
-## Baseline 对比
+## 比较几个 Baseline
 
 建议至少比较三类：
 
@@ -75,7 +83,7 @@ python scripts/probe_tool_agent_rounds.py --seeds 0 1 2 --budget 18 --min-rounds
 
 不要只报告平均 reward，也要报告 invalid action、safety、cost 和 selectivity flags。
 
-## 验证与检查
+## 验证轨迹与安装
 
 ```bash
 python -m pytest
@@ -83,7 +91,7 @@ python scripts/audit_environment_consistency.py --tasks all --seeds 0 1 2
 python -m mkdocs build --strict
 ```
 
-## CLI 等价入口
+## 使用命令行完成同样流程
 
 未来可把 notebook 示例收束成 CLI：
 
@@ -92,12 +100,12 @@ chemworld run --task reaction-to-purification --agent baseline_recipe --seed 1
 chemworld score --run artifacts/runs/example.jsonl
 ```
 
-## 本地评测机
+## 模拟教师端评测
 
 本地评测机接收 agent、任务和 seeds，输出 trajectory、score 和 report。见
 [本地评测机](local_eval_machine.md)。
 
-## 提交包示例
+## 生成提交包
 
 构建一个完整、可验证、可回放的 submission bundle：
 
@@ -113,12 +121,12 @@ chemworld submission summarize runs/example_submission
 该示例会生成 manifest、trajectory、results、explanations、dependency notes 和 README。
 详情见 [提交包](submission.md)。
 
-## Notebook 走读
+## 用 Notebook 逐步探索
 
 Notebook 应保持短小：每个 notebook 聚焦一个概念，避免把全部任务、全部指标和全部
 debug 信息塞进同一页。
 
-## 端到端闭环 Notebook
+## 运行端到端闭环 Notebook
 
 仓库提供三份完整闭环 notebook，位置在 `notebooks/end_to_end/`：
 
@@ -130,7 +138,7 @@ debug 信息塞进同一页。
 
 它们不是最高分策略，而是可验证流程模板：每份都包含 planning、execution、spectra、metrics 和 reflection。
 
-## 十二天教程
+## 完成十二天教程
 
 课程应先让学生理解 `reset`、`step`、`info` 和 `constraint_flags`，再逐步引入
 reaction、separation、spectroscopy、world-model learning 和 tool-agent planning。

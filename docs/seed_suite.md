@@ -1,9 +1,14 @@
-# Seed 与数据划分
+# 管理 Seed 与数据划分
 
-Seed 决定可复现的世界实例，但 seed 变化不等同于机理族或真实分布变化。ChemWorld 将软件回归
-seed、研究 cohort 和私有世界分开管理。
+Seed 让一次虚拟实验可复现，却不能自动证明泛化。换一个 seed 主要测试实例随机性；要测试机理
+迁移，还需要切换 world/mechanism family。ChemWorld 因此把回归 seed、研究 cohort 与私有世界
+分开管理。
 
-## 查看内置 seed plan
+!!! tip "最重要的规则"
+    用过结果来调参的 seeds 就是开发数据。修改方法或决策门槛后，应换一组未触碰 cohort，不能把
+    同一批结果重新命名为确认实验。
+
+## 先查看内置计划
 
 ```bash
 chemworld seeds show
@@ -14,7 +19,7 @@ chemworld seeds show --tasks reaction-to-assay partition-discovery
 输出包含 suite、task、split、公开 seed 和 private-eval policy。内置 plan 用于示例、回归和本地
 一致性，不自动授权方法排名。
 
-## 软件回归 seeds
+## 回归 Seeds：检查软件是否工作
 
 | Task | Split | Seeds | 用途 |
 | --- | --- | --- | --- |
@@ -25,7 +30,7 @@ chemworld seeds show --tasks reaction-to-assay partition-discovery
 六个 serious 候选任务的历史 v1 plan 也使用 `0–4`。这些 seeds 已被广泛查看和调试，应视为开发
 数据，不再充当未触碰的最终确认 cohort。
 
-## 协议特异 cohort
+## 研究 Cohort：检验预先写下的假设
 
 正式方法协议必须单独冻结 paired seeds，并记录它们是否已用于调参。2026-07 的四任务经典诊断
 使用公开 seeds `20–39`；运行后发现安全/成本规则缺失，因此这组 seeds 已被消费为诊断数据。加入
@@ -36,7 +41,7 @@ chemworld seeds show --tasks reaction-to-assay partition-discovery
 通过但连续流未达到 SESOI，因此 `500–519` 也已消费为正式边界证据。不能在这些结果上修改策略
 后继续称为同一次确认；新候选必须重新冻结新的 paired seeds。
 
-## 三类泛化证据
+## 三种变化，三种不同证据
 
 | 变化 | 能证明什么 | 不能证明什么 |
 | --- | --- | --- |
@@ -47,7 +52,7 @@ chemworld seeds show --tasks reaction-to-assay partition-discovery
 Train、Dev 和 Bench 的 mechanism cells 必须不重叠。Dev 可用于选择超参数；Bench 和 Private 不得
 继续训练或调 prompt。
 
-## Private-eval policy
+## Private Eval：把隐藏世界留在评测端
 
 维护者通过进程环境提供高熵 secret，例如：
 
