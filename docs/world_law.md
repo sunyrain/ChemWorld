@@ -11,21 +11,24 @@ chemworld-physical-chemistry-v0.4
 contract、scenario、trajectory 与 replay；改变状态转移、操作成本、观测可见性、评分或正式
 provider 路由时必须提升版本，旧轨迹不会被静默解释为新版本结果。
 
-## v0.4 改变了什么
+## v0.4 当前正式运行路径
 
-v0.4 将八个经过合同与证据审查的 provider 接入统一运行时：
+v0.4 的正式运行时已经把下列窄域 provider 接入统一事务：
 
 - `mix`、`wash`：稳定性门控、活度修正、显式夹带与逐组分守恒的 LLE；
 - `dry`：有限容量竞争吸附与 spent-sorbent 物料账；
 - `concentrate`：受加热功率、真空、冷凝回收与目标回收率约束的差分蒸发；
 - `transfer`：源容器 heel、管线 hold-up 与交付物流的显式账本；
 - `distill`：泡点、设备容量、热负荷、VLE/Fenske 与可用 FUG 诊断共同约束的蒸馏；
-- reaction、spectroscopy、crystallization 的三个诊断 provider 只提供证据，不会抬高运行时
-  成熟度。
+- `heat`、`wait`：共享质量作用量/Arrhenius 网络与动态 batch 热量模型；
+- `measure`：UV/Vis、HPLC、GC、pH 与 final assay 的验证合成仪器合同；
+- `cool_crystallize`：van't Hoff 溶解度、成核/生长、CSD 与粒径矩闭合的紧凑 PBM；
+- `run_flow`：共享反应网络、单相几何 PFR、分布传热与 Darcy–Weisbach 压降；
+- `electrolyze`：Nernst/Butler–Volmer、传质极限、双电层、Faraday 账和水相平衡。
 
-上述操作每项只有一个声明的正式 runtime route。旧 `chemworld_separation_proxy`、旧 LLE 双路由
-和旧 distillation route 已从 provider registry 移除；底层解析或参考函数仍可作为新 provider
-的验证组件，但不能被 runtime 隐式调用。
+旧 reaction/reactor/instrument `lite` 路径、`chemworld_separation_proxy`、旧 LLE/蒸馏双路由、
+旧 `pfr`/geometry 别名和只做离线诊断的结晶 route 均已从正式可达图移除。底层解析或参考函数仍可
+作为验证组件，但不能被 runtime 隐式调用，也不能仅凭存在就抬高任务成熟度。
 
 ## 为什么世界律必须可审计
 
@@ -35,4 +38,5 @@ schema、instrument observation、cost/risk、maturity、provider provenance 与
 ledger 中，不以“损失系数”隐藏物料去向。
 
 执行 `python scripts/audit_vnext_runtime_integration.py` 可同时验证 provider route、任务声明和真实
-事务执行。系统结构见[架构](architecture.md)，证据含义见[模型成熟度](model_maturity.md)。
+事务执行；`python scripts/audit_backend_v05.py` 在干净树上绑定任务合同与全部核心证据。系统结构见
+[架构](architecture.md)，证据含义见[模型成熟度](model_maturity.md)。
