@@ -95,15 +95,16 @@
 
 ## P1：升级三个共享 `lite` 模块
 
-- [ ] **`foundation-reaction-kinetics-reference` — 反应网络与速率律升级**
+- [x] **`foundation-reaction-kinetics-reference` — 反应网络与速率律升级**
   - 默认 owned_paths：`src/chemworld/physchem/reaction_network.py`、`src/chemworld/physchem/reaction_network_specs.py`、`src/chemworld/physchem/reaction_rate_contracts.py`、`src/chemworld/physchem/reaction_rate_laws.py`、`src/chemworld/physchem/reaction_reference_cases.py`、`src/chemworld/physchem/reaction_sensitivity.py`、`src/chemworld/physchem/reaction_network_cards.py`、`src/chemworld/physchem/reaction_adapter_manifest.py`、`tests/test_reaction_kinetics_reference.py`、`workstreams/world_foundation/reports/reaction-kinetics-reference.json`。
   - 依赖：runtime reachability；允许用新版本替代旧反应合同并重建受影响证据。
-  - [ ] 统一浓度、活度、速率常数、反应级数和 Arrhenius 单位合同。
-  - [ ] 支持并验证可逆、平行/竞争、连续反应、产物抑制和催化剂失活的有界机制族。
-  - [ ] 从 stoichiometric matrix 自动检查元素/物料守恒和不可生成物种。
-  - [ ] 处理 stiff/non-stiff、非负性、事件终止、Jacobian/容差和不收敛诊断。
-  - [ ] 与闭式解、独立 SciPy 求解和可选专业参考后端在声明域内比较。
-  - [ ] 证明机制变化会改变合理温度、时间、催化剂或测量策略，而非只改变第三位小数。
+  - [x] 统一浓度、活度、速率常数、反应级数和 Arrhenius 单位合同。
+  - [x] 支持并验证可逆、平行/竞争、连续反应、产物抑制和催化剂失活的有界机制族。
+  - [x] 从 stoichiometric matrix 自动检查元素/物料守恒和不可生成物种。
+  - [x] 处理 stiff/non-stiff、非负性、事件终止、Jacobian/容差和不收敛诊断。
+  - [x] 与闭式解、独立 SciPy 求解和可选专业参考后端在声明域内比较。
+  - [x] 证明机制变化会改变合理温度、时间、催化剂或测量策略，而非只改变第三位小数。
+  - 追加证据：Langmuir–Hinshelwood product inhibition 与解析时间闭合；强制 `solve_ivp` nonconvergence 原子失败；只改变抑制常数时预注册测量时点由 20 s 变为 80 s。
   - 验收：满足 `reference_validated` 的证据门禁；若任一必要条件缺失，保持 `lite` 并记录原因。
 
 - [x] **`foundation-reactor-reference` — Batch/Semibatch/CSTR 反应器升级**
@@ -175,14 +176,15 @@
 
 ## P3：成熟度集成与基座冻结
 
-- [ ] **`foundation-lite-elimination-integration` — 全 15 任务成熟度重算**
+- [x] **`foundation-lite-elimination-integration` — 全 15 任务成熟度重算**
   - 默认 owned_paths：`src/chemworld/tasks.py`、`src/chemworld/physchem/maturity.py`、`docs/model_maturity.md`、`docs/tasks.md`、`docs/task_cards.md`、`tests/test_task_maturity_integration.py`、`workstreams/world_foundation/reports/task-maturity-vnext.json`。
   - 依赖：P0 全部通过，三个共享模块和相关耦合报告完成。
-  - [ ] 只根据实际 runtime reachability 和已通过证据更新 module level/model IDs。
-  - [ ] 逐任务重算最低等级、proxy_allowed、适用域和限制。
-  - [ ] 目标是 15 个任务不再因共享旧 `lite` 模块降级；未达标项必须保留 `lite` 并给出精确缺口，不得强行清零。
-  - [ ] 生成 before/after manifest 和任务—模块—证据矩阵。
-  - [ ] 确认 `proxy_allowed_task_ids=[]` 且不存在旧正式 fallback。
+  - [x] 只根据实际 runtime reachability 和已通过证据更新 module level/model IDs。
+  - [x] 逐任务重算最低等级、proxy_allowed、适用域和限制。
+  - [x] 15 个任务不再因共享旧 `lite` 模块降级；结论由动态审计而非标签清零产生。
+  - [x] 生成可从历史 git blob 复算的 before/after manifest 和任务—模块—证据矩阵。
+  - [x] 确认 `proxy_allowed_task_ids=[]` 且不存在旧正式 fallback。
+  - 结果：历史 15 个 lite task/6 个共享 lite provider；当前 15/15 至少 `reference_validated`、28 routes 对齐，4 个旧 ID retired/replaced、2 个 ID 原位升级。
   - 验收：代码、模型卡、任务卡、文档、轨迹 provenance 和机器报告完全一致。
 
 - [ ] **`foundation-backend-v05-freeze` — 基座候选冻结与全量回归**
@@ -196,10 +198,10 @@
 
 ## 建议执行顺序
 
-- [ ] 第一批并行：runtime reachability、state invariants、RL contract 三个 slice、public boundary、maturity truth。
-- [ ] 第二批并行：reaction kinetics、reactor、instruments；只有稳定接口才能进入 domain coupling。
-- [ ] 第三批并行：separation、crystallization、distillation、flow、electrochem/equilibrium。
-- [ ] 第四批顺序执行：lite elimination integration → backend v0.5 freeze。
+1. 第一批：runtime reachability、state invariants、RL contract、public boundary、maturity truth（已完成）。
+2. 第二批：reaction kinetics、reactor、instruments 有界参考实现（已完成）。
+3. 第三批：separation、crystallization、distillation、flow、electrochem/equilibrium 正式耦合（已完成）。
+4. 第四批：lite elimination integration 与 backend v0.5 candidate freeze（功能冻结已完成；最终发布门禁报告运行中）。
 
 ## 已完成且继续保留
 
