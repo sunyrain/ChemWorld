@@ -109,7 +109,7 @@
     if (!content || content.dataset.cwSections === "ready") return;
     content.dataset.cwSections = "ready";
 
-    Array.from(content.querySelectorAll(":scope > h2[id]")).forEach(function (heading) {
+    Array.from(content.querySelectorAll(":scope > h2.cw-fold[id], :scope > h2[data-cw-fold][id]")).forEach(function (heading) {
       var body = document.createElement("div");
       body.className = "cw-section-body";
       body.dataset.cwSectionFor = heading.id;
