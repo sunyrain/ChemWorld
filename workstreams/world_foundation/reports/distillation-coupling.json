@@ -1,0 +1,96 @@
+{
+  "schema_version": "chemworld-foundation-coupling-report-0.1",
+  "task_id": "foundation-distillation-coupling",
+  "status": "passed",
+  "runtime_task": "reaction-to-distillation",
+  "provider": {
+    "model_id": "chemworld_duty_limited_distillation_vnext",
+    "adapter_id": "wf-60-duty-limited-distillation",
+    "manifest_status": "integrated",
+    "declared_maturity": "professional_candidate",
+    "effective_maturity_after_gate": "professional_candidate",
+    "dynamic_call_verified": true,
+    "legacy_engine_is_internal_only": "vle_shortcut_distillation"
+  },
+  "checks": {
+    "unique_runtime_provider": true,
+    "bubble_gate_exposed": true,
+    "reflux_sensitive": true,
+    "duration_and_cut_sensitive": true,
+    "reboiler_and_condenser_ledgers": true,
+    "component_material_balance": true,
+    "energy_balance": true,
+    "phase_volume_balance": true,
+    "repeated_fraction_collection_conservative": true,
+    "invalid_collection_fail_closed": true,
+    "provider_provenance_recorded": true,
+    "legacy_fixed_volume_multiplier_removed": true,
+    "uncollected_distillate_merged_into_bottoms": false
+  },
+  "tradeoff_cases": [
+    {
+      "duration_s": 1500.0,
+      "reflux_ratio": 0.0,
+      "temperature_K": 360.0,
+      "actual_cut_fraction": 0.41666666666666663,
+      "light_key_purity": 0.037009454092374654,
+      "light_key_recovery": 0.4166666666666666,
+      "reboiler_duty_J": 602.1227618954888,
+      "material_balance_error_mol": 0.0,
+      "energy_balance_error_J": 5.684341886080802e-14
+    },
+    {
+      "duration_s": 1500.0,
+      "reflux_ratio": 5.0,
+      "temperature_K": 360.0,
+      "actual_cut_fraction": 0.41666666666666663,
+      "light_key_purity": 0.08117524977120641,
+      "light_key_recovery": 0.9139021789832747,
+      "reboiler_duty_J": 3108.522311047746,
+      "material_balance_error_mol": 0.0,
+      "energy_balance_error_J": 0.0
+    },
+    {
+      "duration_s": 3600.0,
+      "reflux_ratio": 2.0,
+      "temperature_K": 390.0,
+      "actual_cut_fraction": 0.65,
+      "light_key_purity": 0.05609591676160576,
+      "light_key_recovery": 0.9852170692395154,
+      "reboiler_duty_J": 2574.5559740966523,
+      "material_balance_error_mol": 0.0,
+      "energy_balance_error_J": 0.0
+    }
+  ],
+  "fraction_collection_case": {
+    "collection_sequence": [0.6, 0.5],
+    "initial_distillate_target_mol": 0.0007161341521581539,
+    "collected_target_mol": 0.0005729073217265231,
+    "remaining_distillate_target_mol": 0.00014322683043163078,
+    "phase_ids": [
+      "bottoms",
+      "collected_fraction",
+      "distillate"
+    ],
+    "maximum_component_balance_error_mol": 1.0842021724855044e-19,
+    "total_phase_volume_L": 0.024133500000000002
+  },
+  "verification": {
+    "command": "python -m pytest tests/test_distillation_coupling.py tests/test_distillation_units.py tests/test_world_architecture.py::test_runtime_distillation_outputs_use_typed_phase_ledger -q",
+    "passed": 34,
+    "failed": 0,
+    "ruff": "passed",
+    "mypy": "passed"
+  },
+  "claim_boundary": {
+    "implementation_slice": "runtime_coupling_verified",
+    "benchmark_release_allowed_by_this_report": false,
+    "remaining_dependencies": [
+      "shared reaction/reactor runtime integration",
+      "shared instrument runtime integration",
+      "remaining domain coupling",
+      "central maturity truth recalculation",
+      "backend freeze"
+    ]
+  }
+}

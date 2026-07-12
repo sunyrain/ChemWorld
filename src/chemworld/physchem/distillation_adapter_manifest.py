@@ -1,4 +1,4 @@
-"""WF-60 provider and vNext replacement proposal for bounded distillation."""
+"""Integrated WF-60 provider for bounded distillation."""
 
 from __future__ import annotations
 
@@ -155,13 +155,13 @@ class DutyLimitedDistillationProvider:
 def duty_limited_distillation_adapter_manifest() -> ModelAdapterManifest:
     return ModelAdapterManifest(
         adapter_id=OWNER_WORKSTREAM,
-        adapter_version="0.1",
+        adapter_version="0.2",
         owner_workstream=OWNER_WORKSTREAM,
         provider_contract=duty_limited_distillation_provider_contract(),
         owned_paths=OWNED_PATHS,
         integration_operations=INTEGRATION_OPERATIONS,
         target_world_law="chemworld-physical-chemistry-vnext",
-        status="proposal",
+        status="integrated",
         replaces_model_ids=REPLACED_MODEL_IDS,
     )
 

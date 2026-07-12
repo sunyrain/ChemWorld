@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
+from dataclasses import replace
+from typing import Any, cast
 
 import numpy as np
 
@@ -37,6 +38,58 @@ def _distillate_phase_amounts(
             for species_id in impurity_species
         ),
     )
+
+
+def _collect_distillate_fraction(
+    state: WorldState,
+    *,
+    fraction: float,
+) -> PhaseLedger:
+    """Move a fraction of the current distillate into an explicit inventory."""
+
+    if state.phases is None or "distillate" not in state.phases.phases:
+        raise ValueError("distillate phase is required before fraction collection")
+    phases = state.phases.phases.copy()
+    distillate = phases["distillate"]
+    previous_collected = phases.get("collected_fraction")
+    component_ids = set(distillate.species_amounts_mol)
+    if previous_collected is not None:
+        component_ids.update(previous_collected.species_amounts_mol)
+    collected_amounts = {
+        species_id: (
+            0.0
+            if previous_collected is None
+            else float(previous_collected.species_amounts_mol.get(species_id, 0.0))
+        )
+        + fraction * float(distillate.species_amounts_mol.get(species_id, 0.0))
+        for species_id in component_ids
+    }
+    remaining_amounts = {
+        species_id: (1.0 - fraction) * float(amount)
+        for species_id, amount in distillate.species_amounts_mol.items()
+    }
+    collected_volume = (
+        0.0 if previous_collected is None else previous_collected.volume_L
+    ) + fraction * distillate.volume_L
+    phases["distillate"] = replace(
+        distillate,
+        volume_L=(1.0 - fraction) * distillate.volume_L,
+        species_amounts_mol=remaining_amounts,
+        selected=False,
+    )
+    phases["collected_fraction"] = PhaseRecord(
+        phase_id="collected_fraction",
+        vessel_id=state.vessel_id,
+        phase_type="liquid",
+        volume_L=collected_volume,
+        species_amounts_mol=collected_amounts,
+        settled=True,
+        selected=True,
+        metadata={"source_phase": "distillate"},
+    )
+    if "bottoms" in phases:
+        phases["bottoms"] = replace(phases["bottoms"], selected=False)
+    return PhaseLedger(phases)
 
 
 def _allocated_amounts(
@@ -145,6 +198,7 @@ class ChemWorldDistillationServices:
             distillate_impurity = 0.0
             distillate_purity = 0.0
             distillation_metadata: dict[str, object] = {"no_distillable_material": True}
+            executed_model_id: str | None = None
             heat_duty = (70.0 + 8.0 * reflux) * duration
             distillation_cost = 0.045 + duration / 3600.0 * (0.065 + 0.012 * reflux)
             distillation_risk = 0.035 + 0.06 * ((target_temperature - 298.15) / 132.0)
@@ -167,6 +221,7 @@ class ChemWorldDistillationServices:
             distillate_purity = distillation.light_key_distillate_purity
             distillate_cut = distillation.actual_distillate_cut_fraction
             distillation_metadata = distillation.to_dict()
+            executed_model_id = distillation.model_id
             heat_duty = distillation.total_reboiler_duty_J
             distillation_cost = 0.045 + duration / 3600.0 * (0.065 + 0.012 * reflux)
             distillation_risk = 0.03 + 0.04 * min(
@@ -185,7 +240,28 @@ class ChemWorldDistillationServices:
             attached_vessel_id=state.vessel_id,
             status="distilled",
             settings={
-                "distillation_model": "chemworld_duty_limited_distillation_vnext",
+                "distillation_model": executed_model_id,
+                "distillation_provider_path": (
+                    "chemworld.physchem.distillation_adapter_manifest."
+                    "DutyLimitedDistillationProvider"
+                    if executed_model_id is not None
+                    else None
+                ),
+                "distillation_adapter_id": (
+                    "wf-60-duty-limited-distillation"
+                    if executed_model_id is not None
+                    else None
+                ),
+                "distillation_provenance": (
+                    list(
+                        cast(
+                            list[str],
+                            distillation_metadata.get("provenance", []),
+                        )
+                    )
+                    if executed_model_id is not None
+                    else []
+                ),
                 "distillation_kernel": distillation_metadata,
                 "distillate_cut_fraction": distillate_cut,
                 "theoretical_stages": theoretical_stages,
@@ -207,19 +283,21 @@ class ChemWorldDistillationServices:
             risk=risk,
             energy_jacket_J=state.ledger.energy_jacket_J + heat_duty,
         )
-        volume_after_distill = max(state.volume_L * 0.62, 0.001)
+        feed_volume_L = max(state.volume_L, 0.0)
+        distillate_volume_L = feed_volume_L * distillate_cut
+        bottoms_volume_L = feed_volume_L - distillate_volume_L
         phases = _distillation_phases(
             state,
             target_species=target_species,
             impurity_species=impurity_species,
             product_mol=distillate_product,
             impurity_mol=distillate_impurity,
-            distillate_volume_L=volume_after_distill * distillate_cut,
-            bottoms_volume_L=volume_after_distill * max(1.0 - distillate_cut, 0.0),
+            distillate_volume_L=distillate_volume_L,
+            bottoms_volume_L=bottoms_volume_L,
             solvent_loss=solvent_loss,
         )
         return state.replace(
-            volume_L=volume_after_distill,
+            volume_L=distillate_volume_L,
             temperature_K=target_temperature,
             ledger=ledger,
             equipment=equipment,
@@ -231,13 +309,16 @@ class ChemWorldDistillationServices:
         fraction = float(np.clip(_action_float(action, "transfer_fraction", 0.90), 0.0, 1.0))
         target_species = self.species_view.target_species_for_state(state)
         impurity_species = self.species_view.impurity_species_for_state(state)
-        distillate_product, distillate_impurity = _distillate_phase_amounts(
-            state,
-            target_species=target_species,
-            impurity_species=impurity_species,
+        phases = _collect_distillate_fraction(state, fraction=fraction)
+        collected = phases.phases["collected_fraction"]
+        product = sum(
+            float(collected.species_amounts_mol.get(species_id, 0.0))
+            for species_id in target_species
         )
-        product = distillate_product * fraction
-        impurity = distillate_impurity * fraction
+        impurity = sum(
+            float(collected.species_amounts_mol.get(species_id, 0.0))
+            for species_id in impurity_species
+        )
         purity = product / max(product + impurity, 1.0e-12)
         process_metrics = {} if state.process is None else state.process.metrics
         target_amount = self.species_view.target_amount(state)
@@ -271,18 +352,8 @@ class ChemWorldDistillationServices:
             recovery=float(np.clip(product / initial_p, 0.0, 1.0)),
         )
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.018)
-        phases = _distillation_phases(
-            state,
-            target_species=target_species,
-            impurity_species=impurity_species,
-            product_mol=product,
-            impurity_mol=impurity,
-            distillate_volume_L=state.volume_L * fraction,
-            bottoms_volume_L=state.volume_L * max(1.0 - fraction, 0.0),
-            solvent_loss=solvent_loss,
-        )
         return state.replace(
-            volume_L=state.volume_L * fraction,
+            volume_L=collected.volume_L,
             ledger=ledger,
             equipment=equipment,
             process=process,

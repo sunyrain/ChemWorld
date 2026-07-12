@@ -1906,6 +1906,7 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert "solvent_loss" not in state.metadata
         assert state.process.metrics["solvent_loss"] > 0.0
         assert env.unwrapped.constitution.check_state(state).passed
+        feed_volume_before_distill = state.volume_L
 
         _, _, _, _, distill_info = env.step(
             {
@@ -1934,6 +1935,9 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert product_before_collect > 0.0
         assert distillate_before_collect.selected is True
         assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
+        assert sum(phase.volume_L for phase in state.phases.phases.values()) == pytest.approx(
+            feed_volume_before_distill
+        )
         assert "distillation_active" not in state.metadata
         assert "distillate_product_mol" not in state.metadata
         assert "distillate_impurity_mol" not in state.metadata
@@ -1963,21 +1967,38 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         )
         state = env.unwrapped._state
         distillate_after_collect = state.phases.phases["distillate"]
+        collected_fraction = state.phases.phases["collected_fraction"]
         fraction_settings = equipment_settings(state.equipment, "distillation_column")
         assert collect_info["transaction_status"] == "committed"
         assert sum(
             distillate_after_collect.species_amounts_mol[species_id]
             for species_id in target_species
         ) == pytest.approx(
-            product_before_collect * 0.92
+            product_before_collect * 0.08
         )
         assert sum(
             distillate_after_collect.species_amounts_mol[species_id]
             for species_id in impurity_species
         ) == pytest.approx(
+            impurity_before_collect * 0.08
+        )
+        assert sum(
+            collected_fraction.species_amounts_mol[species_id]
+            for species_id in target_species
+        ) == pytest.approx(
+            product_before_collect * 0.92
+        )
+        assert sum(
+            collected_fraction.species_amounts_mol[species_id]
+            for species_id in impurity_species
+        ) == pytest.approx(
             impurity_before_collect * 0.92
         )
+        assert collected_fraction.selected is True
         assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
+        assert sum(phase.volume_L for phase in state.phases.phases.values()) == pytest.approx(
+            feed_volume_before_distill
+        )
         assert "distillation_active" not in state.metadata
         assert "distillate_product_mol" not in state.metadata
         assert "distillate_impurity_mol" not in state.metadata

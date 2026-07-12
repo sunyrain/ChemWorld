@@ -132,11 +132,11 @@
     },
     "chemworld_duty_limited_distillation_vnext": {
       "adapter_id": "wf-60-duty-limited-distillation",
-      "adapter_version": "0.1",
+      "adapter_version": "0.2",
       "integration_operations": [
         "distill"
       ],
-      "manifest_hash": "fea59e8aaa9377ed6f1864c07501eb975cfee2b89cf77dffe1f0bb7b5cc77051",
+      "manifest_hash": "da699922532943a959efd5f39b97f325ea13c2b29e539cfb434652c98de26b58",
       "owned_paths": [
         "src/chemworld/physchem/distillation_units.py",
         "src/chemworld/physchem/distillation_adapter_manifest.py",
@@ -207,7 +207,7 @@
         "vle_shortcut_distillation"
       ],
       "schema_version": "chemworld-model-adapter-manifest-0.1",
-      "status": "proposal",
+      "status": "integrated",
       "target_world_law": "chemworld-physical-chemistry-vnext"
     },
     "chemworld_sorbent_drying_vnext": {
@@ -4174,8 +4174,8 @@
     "task_count_exact": true,
     "task_routes_exact": true
   },
-  "error_count": 48,
-  "finding_count": 48,
+  "error_count": 46,
+  "finding_count": 46,
   "findings": [
     {
       "check_id": "high_provider_missing_model_card",
@@ -4255,13 +4255,6 @@
       "check_id": "manifest_runtime_state_mismatch",
       "manifest_status": "proposal",
       "message": "runtime-reachable provider is backed by a non-integrated manifest",
-      "model_id": "chemworld_duty_limited_distillation_vnext",
-      "severity": "error"
-    },
-    {
-      "check_id": "manifest_runtime_state_mismatch",
-      "manifest_status": "proposal",
-      "message": "runtime-reachable provider is backed by a non-integrated manifest",
       "model_id": "chemworld_spectral_identifiability_audit_vnext",
       "severity": "error"
     },
@@ -4329,13 +4322,6 @@
       "module_id": "crystallization",
       "severity": "error",
       "task_id": "reaction-to-crystallization"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "distillation",
-      "severity": "error",
-      "task_id": "reaction-to-distillation"
     },
     {
       "check_id": "unsupported_model_card_maturity",
@@ -4630,14 +4616,14 @@
     "chemworld_duty_limited_distillation_vnext": {
       "card_maturity_matches": true,
       "card_present": true,
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "professional_candidate",
-      "effective_maturity": "lite",
+      "effective_maturity": "professional_candidate",
       "executed_in_runtime_evidence": true,
       "manifest_contract_matches": true,
       "manifest_present": true,
-      "manifest_state_valid": false,
-      "manifest_status": "proposal",
+      "manifest_state_valid": true,
+      "manifest_status": "integrated",
       "model_id": "chemworld_duty_limited_distillation_vnext",
       "module_id": "separations",
       "provenance": [
@@ -5002,7 +4988,7 @@
     "sha256": "65ecddef66ce91b21258294c627f9bafa70543d37f208b2be6fd63e4cbeb6baa"
   },
   "release_allowed": false,
-  "report_hash": "7b715ddd29ba0e19263367237b79c3226b69879b16236df8ad1c9e51608f93b8",
+  "report_hash": "21f58e1e23a79fce21ccf7175c1b15ae1cab62e6d9e013ef03c695e35c0aece6",
   "runtime_execution_evidence": {
     "executed_model_ids": [
       "chemworld_duty_limited_distillation_vnext",
@@ -5017,7 +5003,7 @@
   },
   "runtime_structural_findings": [],
   "schema_version": "chemworld-foundation-maturity-truth-report-0.1",
-  "source_commit": "ec6ee4345df08f57fa205c43d8eddbd80057cd84",
+  "source_commit": "637235a6f28273c9fc3bd6a080b9ec94330f9d04",
   "source_tree_dirty": true,
   "status": "maturity_claims_blocked",
   "task_assessments": {
@@ -5816,13 +5802,13 @@
           "verified_level": "lite"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "professional_candidate",
           "model_ids": [
             "chemworld_duty_limited_distillation_vnext"
           ],
           "module_id": "distillation",
-          "verified_level": "lite"
+          "verified_level": "professional_candidate"
         }
       ],
       "reachable_but_undeclared": [],
