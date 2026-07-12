@@ -1,0 +1,158 @@
+{
+  "schema_version": "chemworld-foundation-maturity-truth-protocol-0.1",
+  "protocol_id": "foundation-maturity-truth-vnext",
+  "expected_task_count": 15,
+  "card_factories": [
+    "chemworld.physchem.activity_model_cards",
+    "chemworld.physchem.curated_property_model_cards",
+    "chemworld.physchem.data_foundation_model_cards",
+    "chemworld.physchem.electrochemistry_model_cards",
+    "chemworld.physchem.eos_model_cards",
+    "chemworld.physchem.equilibrium_chemistry_model_cards",
+    "chemworld.physchem.equipment_spec_model_cards",
+    "chemworld.physchem.flash_unit_model_cards",
+    "chemworld.physchem.property_correlation_model_cards",
+    "chemworld.physchem.reaction_kinetics_model_cards",
+    "chemworld.physchem.reactor_model_cards",
+    "chemworld.physchem.safety_envelope_model_cards",
+    "chemworld.physchem.separation_model_cards",
+    "chemworld.physchem.spectroscopy_model_cards",
+    "chemworld.physchem.thermochemistry_model_cards",
+    "chemworld.physchem.transport_model_cards",
+    "chemworld.physchem.concentration_units.vacuum_concentration_model_card",
+    "chemworld.physchem.crystallization_validation.crystallization_convergence_model_card",
+    "chemworld.physchem.distillation_units.duty_limited_distillation_model_card",
+    "chemworld.physchem.drying_units.sorbent_drying_model_card",
+    "chemworld.physchem.phase_equilibrium_units.stability_aware_lle_model_card",
+    "chemworld.physchem.reaction_rate_contracts.reaction_rate_contract_model_card",
+    "chemworld.physchem.spectroscopy_identifiability.spectroscopy_identifiability_model_card",
+    "chemworld.physchem.transfer_units.transfer_unit_model_card"
+  ],
+  "adapter_manifest_factories": [
+    "chemworld.physchem.concentration_adapter_manifest.vacuum_concentration_adapter_manifest",
+    "chemworld.physchem.crystallization_adapter_manifest.crystallization_convergence_adapter_manifest",
+    "chemworld.physchem.distillation_adapter_manifest.duty_limited_distillation_adapter_manifest",
+    "chemworld.physchem.drying_adapter_manifest.sorbent_drying_adapter_manifest",
+    "chemworld.physchem.phase_equilibrium_adapter_manifest.stability_aware_lle_adapter_manifest",
+    "chemworld.physchem.reaction_adapter_manifest.reaction_rate_adapter_manifest",
+    "chemworld.physchem.spectroscopy_adapter_manifest.spectroscopy_identifiability_adapter_manifest",
+    "chemworld.physchem.transfer_adapter_manifest.transfer_adapter_manifest"
+  ],
+  "runtime_execution_evidence": "workstreams/world_foundation/reports/wf-110-runtime-integration.json",
+  "public_maturity_document": "docs/model_maturity.md",
+  "accepted_evidence_statuses": [
+    "implemented",
+    "implemented_optional",
+    "passing"
+  ],
+  "reference_validated_requirements": {
+    "required_card_fields": [
+      "equations",
+      "validity_limits",
+      "failure_modes",
+      "reference_reading",
+      "validation_evidence"
+    ],
+    "require_numerical_tolerance": true,
+    "require_repository_evidence_path": true,
+    "require_analytical_literature_or_independent_reference": true,
+    "require_failure_domain_evidence": true
+  },
+  "professional_candidate_requirements": {
+    "require_runtime_diagnostics": true,
+    "require_coupling_evidence": true,
+    "require_conservation_evidence": true,
+    "require_runtime_provenance": true,
+    "require_failure_domain_evidence": true,
+    "minimum_distinct_reference_cases": 2
+  },
+  "evidence_tokens": {
+    "analytical_or_reference": [
+      "analytical",
+      "reference",
+      "literature",
+      "closed-form",
+      "identity"
+    ],
+    "failure_domain": [
+      "bound",
+      "domain",
+      "fail",
+      "guard",
+      "invalid",
+      "limit",
+      "warning"
+    ],
+    "coupling": [
+      "coupl",
+      "integration",
+      "mixture",
+      "phase",
+      "reaction",
+      "shared"
+    ],
+    "conservation": [
+      "balance",
+      "charge",
+      "closure",
+      "conservation",
+      "energy",
+      "material",
+      "mass"
+    ]
+  },
+  "documentation_contract": {
+    "required_statements": [
+      "整体等级由最弱的必需模块决定",
+      "reference_validated",
+      "professional_candidate",
+      "不是工业流程设计模型"
+    ],
+    "claim_bindings": [
+      {
+        "claim_id": "lle-wash-runtime",
+        "document_token": "LLE 与 wash",
+        "maturity": "professional_candidate",
+        "model_ids": [
+          "chemworld_stability_aware_lle_vnext"
+        ]
+      },
+      {
+        "claim_id": "crystallization-flow-distillation-runtime",
+        "document_token": "冷却结晶、连续流、蒸馏",
+        "maturity": "professional_candidate",
+        "model_ids": [
+          "chemworld_duty_limited_distillation_vnext",
+          "chemworld_geometry_resolved_pfr_v1",
+          "cooling_crystallization_population_balance_v1",
+          "pfr"
+        ]
+      },
+      {
+        "claim_id": "drying-concentration-transfer-runtime",
+        "document_token": "干燥、真空浓缩、转移",
+        "maturity": "reference_validated",
+        "model_ids": [
+          "chemworld_sorbent_drying_vnext",
+          "chemworld_transfer_holdup_vnext",
+          "chemworld_vacuum_concentration_vnext"
+        ]
+      },
+      {
+        "claim_id": "electrochem-runtime",
+        "document_token": "电化学",
+        "maturity": "reference_validated",
+        "model_ids": [
+          "nernst_butler_volmer_faradaic_v1"
+        ]
+      }
+    ],
+    "forbid_unqualified_professional_claim": true
+  },
+  "policy": {
+    "runtime_provider_manifest_status": "integrated",
+    "unverified_high_claim_effective_level": "lite",
+    "registered_but_unreachable_models_do_not_raise_task_maturity": true,
+    "release_requires_every_high_claim_verified": true
+  }
+}
