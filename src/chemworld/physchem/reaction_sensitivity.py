@@ -84,9 +84,7 @@ class ReactionSensitivityEntry:
             "baseline_observable_value": self.baseline_observable_value,
             "plus_observable_value": self.plus_observable_value,
             "minus_observable_value": self.minus_observable_value,
-            "derivative_dobservable_dln_parameter": (
-                self.derivative_dobservable_dln_parameter
-            ),
+            "derivative_dobservable_dln_parameter": (self.derivative_dobservable_dln_parameter),
             "normalized_sensitivity": self.normalized_sensitivity,
             "local_observable_std": self.local_observable_std,
             "local_normalized_std": self.local_normalized_std,
@@ -129,6 +127,33 @@ class ReactionSensitivityReport:
             "relative_parameter_uncertainty": self.relative_parameter_uncertainty,
             "observable_std_estimate": observable_std,
             "normalized_std_estimate": normalized_std,
+        }
+
+    @property
+    def nondegeneracy_summary(self) -> dict[str, object]:
+        """Report whether declared perturbations produce distinguishable responses."""
+
+        threshold = 1.0e-10
+        informative = tuple(
+            entry
+            for entry in self.entries
+            if abs(entry.derivative_dobservable_dln_parameter) > threshold
+        )
+        rounded_magnitudes = {
+            round(abs(entry.derivative_dobservable_dln_parameter), 10) for entry in informative
+        }
+        return {
+            "threshold_dobservable_dln_parameter": threshold,
+            "parameter_count": len(self.entries),
+            "informative_parameter_count": len(informative),
+            "distinct_response_magnitude_count": len(rounded_magnitudes),
+            "positive_response_count": sum(
+                entry.derivative_dobservable_dln_parameter > threshold for entry in informative
+            ),
+            "negative_response_count": sum(
+                entry.derivative_dobservable_dln_parameter < -threshold for entry in informative
+            ),
+            "passed": bool(informative),
         }
 
     def ranked_entries(self, limit: int | None = None) -> tuple[ReactionSensitivityEntry, ...]:
@@ -176,6 +201,7 @@ class ReactionSensitivityReport:
             "method": self.method,
             "entries": [entry.to_dict() for entry in self.entries],
             "uncertainty_summary": self.uncertainty_summary,
+            "nondegeneracy_summary": self.nondegeneracy_summary,
             "explanation_ranking": list(self.explanation_ranking()),
         }
 

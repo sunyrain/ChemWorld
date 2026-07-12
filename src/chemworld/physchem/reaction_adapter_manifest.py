@@ -48,6 +48,8 @@ def reaction_rate_provider_contract() -> ModelProviderContract:
             "rate law is in the supported Arrhenius family",
             "pre-exponential factors are finite and positive",
             "temperature exponents and activation energies are finite",
+            "concentration/activity basis and standard concentration are explicit",
+            "explicit reaction orders are finite and nonnegative",
             "reversible, third-body, and falloff declarations are complete",
         ),
         diagnostic_fields=(
@@ -55,6 +57,7 @@ def reaction_rate_provider_contract() -> ModelProviderContract:
             "equation_id",
             "forward_order",
             "effective_forward_order",
+            "kinetic_basis",
             "violations",
         ),
         failure_policy=(
@@ -93,6 +96,7 @@ class ReactionRateContractProvider:
                     "equation_id": None,
                     "forward_order": None,
                     "effective_forward_order": None,
+                    "kinetic_basis": None,
                     "violations": list(domain_violations),
                 },
                 success=False,
@@ -107,6 +111,7 @@ class ReactionRateContractProvider:
             "equation_id": report.equation_id,
             "forward_order": report.forward_order,
             "effective_forward_order": report.effective_forward_order,
+            "kinetic_basis": report.kinetic_basis,
             "violations": list(report.violations),
         }
         if not report.passed:

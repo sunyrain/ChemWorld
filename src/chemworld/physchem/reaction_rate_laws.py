@@ -30,21 +30,32 @@ def evaluate_rate_law(
     concentrations_mol_L: Mapping[str, float],
     temperature_K: float,
     species_thermo: Mapping[str, Any] | None = None,
+    activity_coefficients: Mapping[str, float] | None = None,
     thermochemical_reverse_rate_constant: ThermochemicalReverseRate | None = None,
 ) -> float:
     if temperature_K <= 0:
         raise ValueError("temperature_K must be positive")
     params = reaction.rate_law.parameters
     equation_id = reaction.rate_law.equation_id
+    driving_quantities = rate_driving_quantities(
+        reaction,
+        concentrations_mol_L,
+        activity_coefficients=activity_coefficients,
+    )
+    forward_enabled = all(
+        concentrations_mol_L.get(species_id, 0.0) > 0.0 for species_id in reaction.reactants
+    )
+    if equation_id != "reversible_arrhenius" and not forward_enabled:
+        return 0.0
     if equation_id == "mass_action":
         return mass_action_rate(
-            reaction.reactants,
-            concentrations_mol_L,
+            reaction.kinetic_forward_orders,
+            driving_quantities,
             float(params["k"]),
         )
     if equation_id in {"arrhenius", "modified_arrhenius"}:
         k = arrhenius_k(params, temperature_K)
-        return mass_action_rate(reaction.reactants, concentrations_mol_L, k)
+        return mass_action_rate(reaction.kinetic_forward_orders, driving_quantities, k)
     if equation_id == "third_body_arrhenius":
         k = arrhenius_k(params, temperature_K)
         third_body = effective_third_body_concentration(
@@ -52,19 +63,27 @@ def evaluate_rate_law(
             efficiencies=third_body_efficiencies(params),
             default_efficiency=float_param(params, "default_efficiency", default=1.0),
         )
-        return mass_action_rate(reaction.reactants, concentrations_mol_L, k * third_body)
+        return mass_action_rate(
+            reaction.kinetic_forward_orders,
+            driving_quantities,
+            k * third_body,
+        )
     if equation_id == "lindemann_falloff":
         k = lindemann_falloff_rate_constant(params, concentrations_mol_L, temperature_K)
-        return mass_action_rate(reaction.reactants, concentrations_mol_L, k)
+        return mass_action_rate(reaction.kinetic_forward_orders, driving_quantities, k)
     if equation_id == "troe_falloff":
         k = troe_falloff_rate_constant(params, concentrations_mol_L, temperature_K)
-        return mass_action_rate(reaction.reactants, concentrations_mol_L, k)
+        return mass_action_rate(reaction.kinetic_forward_orders, driving_quantities, k)
     if equation_id == "reversible_arrhenius":
         forward_rate_constant = arrhenius_k(params, temperature_K)
-        forward = mass_action_rate(
-            reaction.reactants,
-            concentrations_mol_L,
-            forward_rate_constant,
+        forward = (
+            mass_action_rate(
+                reaction.kinetic_forward_orders,
+                driving_quantities,
+                forward_rate_constant,
+            )
+            if forward_enabled
+            else 0.0
         )
         reverse_k = reverse_rate_constant(
             reaction,
@@ -74,16 +93,23 @@ def evaluate_rate_law(
             species_thermo=species_thermo,
             thermochemical_reverse_rate_constant=thermochemical_reverse_rate_constant,
         )
-        reverse = mass_action_rate(
-            reaction.products,
-            concentrations_mol_L,
-            reverse_k,
+        reverse_enabled = all(
+            concentrations_mol_L.get(species_id, 0.0) > 0.0 for species_id in reaction.products
+        )
+        reverse = (
+            mass_action_rate(
+                reaction.kinetic_reverse_orders,
+                driving_quantities,
+                reverse_k,
+            )
+            if reverse_enabled
+            else 0.0
         )
         return forward - reverse
     if equation_id == "catalytic_activity":
         base = mass_action_rate(
-            reaction.reactants,
-            concentrations_mol_L,
+            reaction.kinetic_forward_orders,
+            driving_quantities,
             arrhenius_k(params, temperature_K),
         )
         catalyst_species = str(params.get("catalyst_species", ""))
@@ -91,7 +117,13 @@ def evaluate_rate_law(
         exponent = float(params.get("activity_order", 1.0))
         if not catalyst_species:
             raise ValueError("catalytic_activity requires catalyst_species")
-        activity = max(concentrations_mol_L.get(catalyst_species, 0.0), 0.0) / reference
+        if reference <= 0.0 or not isfinite(reference):
+            raise ValueError("reference_concentration_mol_L must be finite and positive")
+        activity = (
+            max(driving_quantities.get(catalyst_species, 0.0), 0.0)
+            if reaction.rate_law.uses_activities
+            else max(concentrations_mol_L.get(catalyst_species, 0.0), 0.0) / reference
+        )
         return base * activity**exponent
     if equation_id == "catalyst_deactivation":
         species = str(params.get("species", ""))
@@ -103,12 +135,16 @@ def evaluate_rate_law(
         )
     if equation_id == "langmuir_hinshelwood":
         k = arrhenius_k(params, temperature_K)
-        numerator = mass_action_rate(reaction.reactants, concentrations_mol_L, k)
+        numerator = mass_action_rate(
+            reaction.kinetic_forward_orders,
+            driving_quantities,
+            k,
+        )
         adsorption = params.get("adsorption", {})
         if not isinstance(adsorption, dict):
             raise ValueError("langmuir_hinshelwood adsorption must be a mapping")
         denominator = 1.0 + sum(
-            float(K) * max(concentrations_mol_L.get(str(species_id), 0.0), 0.0)
+            float(K) * max(driving_quantities.get(str(species_id), 0.0), 0.0)
             for species_id, K in adsorption.items()
         )
         power = float(params.get("denominator_power", 1.0))
@@ -134,7 +170,38 @@ def mass_action_rate(
     return rate
 
 
+def rate_driving_quantities(
+    reaction: ReactionSpec,
+    concentrations_mol_L: Mapping[str, float],
+    *,
+    activity_coefficients: Mapping[str, float] | None = None,
+) -> dict[str, float]:
+    """Return either concentration powers or dimensionless activities.
+
+    Activity-based laws use ``a_i = gamma_i C_i / C_standard``.  The explicit
+    switch prevents silently mixing activity and concentration rate constants.
+    """
+
+    quantities: dict[str, float] = {}
+    coefficients = {} if activity_coefficients is None else activity_coefficients
+    standard = reaction.rate_law.standard_concentration_mol_L
+    for species_id, concentration in concentrations_mol_L.items():
+        value = float(concentration)
+        if value < 0.0 or not isfinite(value):
+            raise ValueError(f"concentration for {species_id!r} must be finite and nonnegative")
+        if not reaction.rate_law.uses_activities:
+            quantities[species_id] = value
+            continue
+        coefficient = float(coefficients.get(species_id, 1.0))
+        if coefficient <= 0.0 or not isfinite(coefficient):
+            raise ValueError(f"activity coefficient for {species_id!r} must be finite and positive")
+        quantities[species_id] = coefficient * value / standard
+    return quantities
+
+
 def arrhenius_k(params: Mapping[str, object], temperature_K: float) -> float:
+    if temperature_K <= 0.0 or not isfinite(temperature_K):
+        raise ValueError("temperature_K must be finite and positive")
     A = float_param(params, "A", default=float_param(params, "k", default=0.0))
     b = float_param(params, "b", default=0.0)
     Ea = float_param(
@@ -142,7 +209,16 @@ def arrhenius_k(params: Mapping[str, object], temperature_K: float) -> float:
         "Ea_J_per_mol",
         default=float_param(params, "Ea", default=0.0),
     )
-    return A * temperature_K**b * exp(-Ea / (R_J_PER_MOL_K * temperature_K))
+    if A < 0.0 or not isfinite(A):
+        raise ValueError("Arrhenius A must be finite and nonnegative")
+    if not isfinite(b):
+        raise ValueError("Arrhenius b must be finite")
+    if not isfinite(Ea):
+        raise ValueError("Arrhenius activation energy must be finite")
+    value = A * temperature_K**b * exp(-Ea / (R_J_PER_MOL_K * temperature_K))
+    if value < 0.0 or not isfinite(value):
+        raise ValueError("Arrhenius rate coefficient is not finite and nonnegative")
+    return value
 
 
 def effective_third_body_concentration(
@@ -300,9 +376,7 @@ def troe_broadening_factor(
     denominator = n_value - 0.14 * (log_pr + c_value)
     if abs(denominator) < 1.0e-300:
         raise ValueError("Troe denominator is numerically singular")
-    broadening_log = log_f_cent / (
-        1.0 + ((log_pr + c_value) / denominator) ** 2
-    )
+    broadening_log = log_f_cent / (1.0 + ((log_pr + c_value) / denominator) ** 2)
     factor = 10.0**broadening_log
     if factor <= 0.0 or not isfinite(factor):
         raise ValueError("Troe broadening factor must be finite and positive")
@@ -358,6 +432,8 @@ def prefixed_arrhenius_params(
 
 
 def reaction_order_delta(reaction: ReactionSpec) -> float:
+    """Return stoichiometric ``sum(nu_i)`` for thermodynamic Kc conversion."""
+
     return sum(reaction.stoichiometry.values())
 
 
@@ -394,9 +470,7 @@ def reverse_rate_constant(
             temperature_K,
             species_thermo,
         )
-    raise ValueError(
-        "reversible_arrhenius requires A_reverse, K_eq, or K_eq_source='nasa7'"
-    )
+    raise ValueError("reversible_arrhenius requires A_reverse, K_eq, or K_eq_source='nasa7'")
 
 
 def reverse_params(params: Mapping[str, object]) -> dict[str, object]:
@@ -430,9 +504,7 @@ def reverse_rate_constant_from_equilibrium(
 
     if forward_rate_constant < 0 or not isfinite(forward_rate_constant):
         raise ValueError("forward_rate_constant must be finite and nonnegative")
-    if concentration_equilibrium_constant <= 0 or not isfinite(
-        concentration_equilibrium_constant
-    ):
+    if concentration_equilibrium_constant <= 0 or not isfinite(concentration_equilibrium_constant):
         raise ValueError("concentration_equilibrium_constant must be finite and positive")
     return forward_rate_constant / concentration_equilibrium_constant
 
@@ -447,9 +519,7 @@ def positive_reaction_parameter(
         raise ValueError(f"Reaction {reaction_id!r} has no parameter {parameter_name!r}")
     value = reaction.rate_law.parameters[parameter_name]
     if not isinstance(value, int | float | str):
-        raise ValueError(
-            f"Reaction parameter {reaction_id}.{parameter_name} must be numeric"
-        )
+        raise ValueError(f"Reaction parameter {reaction_id}.{parameter_name} must be numeric")
     numeric = float(value)
     if numeric <= 0 or not isfinite(numeric):
         raise ValueError(
@@ -474,9 +544,7 @@ def with_reaction_parameter(
             continue
         found = True
         if parameter_name not in reaction.rate_law.parameters:
-            raise ValueError(
-                f"Reaction {reaction_id!r} has no parameter {parameter_name!r}"
-            )
+            raise ValueError(f"Reaction {reaction_id!r} has no parameter {parameter_name!r}")
         params = dict(reaction.rate_law.parameters)
         params[parameter_name] = value
         reactions.append(
@@ -510,9 +578,7 @@ def float_param(
     value = params[key]
     if isinstance(value, int | float | str):
         return float(value)
-    raise ValueError(
-        f"Rate-law parameter {key} must be numeric, got {type(value).__name__}"
-    )
+    raise ValueError(f"Rate-law parameter {key} must be numeric, got {type(value).__name__}")
 
 
 __all__ = [
@@ -528,6 +594,7 @@ __all__ = [
     "mass_action_rate",
     "positive_reaction_parameter",
     "prefixed_arrhenius_params",
+    "rate_driving_quantities",
     "reaction_by_id",
     "reaction_order_delta",
     "reverse_params",

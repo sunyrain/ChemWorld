@@ -7,17 +7,17 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from math import isfinite
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import yaml
+from scipy.integrate import solve_ivp
 
 from chemworld.physchem import reaction_network_specs as network_specs
 from chemworld.physchem import reaction_rate_laws as rate_laws
 from chemworld.physchem import reaction_reference_cases as reference_cases
 from chemworld.physchem import reaction_sensitivity as sensitivity
 from chemworld.physchem.elements import element_matrix
-from chemworld.physchem.solver_backend import DEFAULT_REACTION_ODE_POLICY, solve_ode
 
 Arrow = network_specs.Arrow
 RateLawSpec = network_specs.RateLawSpec
@@ -42,13 +42,119 @@ _reaction_order_delta = rate_laws.reaction_order_delta
 AnalyticalODECase = reference_cases.AnalyticalODECase
 ReactionODEReferenceCase = reference_cases.ReactionODEReferenceCase
 ReactionODEReferenceResult = reference_cases.ReactionODEReferenceResult
+IndependentSciPyReferenceResult = reference_cases.IndependentSciPyReferenceResult
 cantera_comparable_reaction_cases = reference_cases.cantera_comparable_reaction_cases
 integrate_reaction_ode_reference_case = reference_cases.integrate_reaction_ode_reference_case
 evaluate_reaction_ode_reference_case = reference_cases.evaluate_reaction_ode_reference_case
+evaluate_against_independent_scipy = reference_cases.evaluate_against_independent_scipy
 ReactionSensitivityEntry = sensitivity.ReactionSensitivityEntry
 ReactionSensitivityReport = sensitivity.ReactionSensitivityReport
 finite_difference_reaction_sensitivities = sensitivity.finite_difference_reaction_sensitivities
 kinetic_sensitivity_parameter_candidates = sensitivity.kinetic_sensitivity_parameter_candidates
+
+SolverMethod = Literal["LSODA", "BDF", "Radau", "RK45", "DOP853"]
+
+
+@dataclass(frozen=True)
+class BatchSolverOptions:
+    """Explicit numerical contract for a batch reaction-network integration."""
+
+    method: SolverMethod = "LSODA"
+    rtol: float = 1.0e-8
+    atol_mol: float = 1.0e-12
+    max_step_s: float | None = None
+    use_jacobian: bool = False
+    nonnegative_tolerance_mol: float = 1.0e-9
+
+    def __post_init__(self) -> None:
+        if self.rtol <= 0.0 or not isfinite(self.rtol):
+            raise ValueError("rtol must be finite and positive")
+        if self.atol_mol <= 0.0 or not isfinite(self.atol_mol):
+            raise ValueError("atol_mol must be finite and positive")
+        if self.max_step_s is not None and (
+            self.max_step_s <= 0.0 or not isfinite(self.max_step_s)
+        ):
+            raise ValueError("max_step_s must be finite and positive when provided")
+        if self.nonnegative_tolerance_mol < 0.0 or not isfinite(self.nonnegative_tolerance_mol):
+            raise ValueError("nonnegative_tolerance_mol must be finite and nonnegative")
+        if self.use_jacobian and self.method not in {"LSODA", "BDF", "Radau"}:
+            raise ValueError("use_jacobian requires LSODA, BDF, or Radau")
+
+    @property
+    def stiffness_class(self) -> str:
+        if self.method in {"LSODA", "BDF", "Radau"}:
+            return "stiff_capable"
+        return "nonstiff_explicit"
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "solver_id": f"chemworld_reaction_network_{self.method.lower()}_v2",
+            "backend": "scipy.integrate.solve_ivp",
+            "method": self.method,
+            "rtol": self.rtol,
+            "atol": self.atol_mol,
+            "max_step_s": self.max_step_s,
+            "use_jacobian": self.use_jacobian,
+            "stiffness_class": self.stiffness_class,
+            "nonnegative_tolerance_mol": self.nonnegative_tolerance_mol,
+        }
+
+
+@dataclass(frozen=True)
+class BatchTerminationEvent:
+    """Terminal crossing of a named species-amount threshold."""
+
+    event_id: str
+    species_id: str
+    threshold_mol: float
+    direction: Literal[-1, 0, 1] = 0
+
+    def __post_init__(self) -> None:
+        if not self.event_id.strip():
+            raise ValueError("event_id cannot be empty")
+        if not self.species_id.strip():
+            raise ValueError("event species_id cannot be empty")
+        if self.threshold_mol < 0.0 or not isfinite(self.threshold_mol):
+            raise ValueError("event threshold_mol must be finite and nonnegative")
+
+
+@dataclass(frozen=True)
+class MechanismDiagnostic:
+    """Structural and initial-state feasibility evidence for a reaction network."""
+
+    network_id: str
+    species_count: int
+    reaction_count: int
+    stoichiometric_rank: int
+    conservation_law_dimension: int
+    element_balance_residuals: dict[str, dict[str, float]]
+    charge_balance_residuals: dict[str, float]
+    duplicate_stoichiometric_columns: tuple[tuple[str, ...], ...]
+    blocked_reactions: tuple[str, ...]
+    unreachable_species: tuple[str, ...]
+    violations: tuple[str, ...]
+
+    @property
+    def passed(self) -> bool:
+        return not self.violations
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "network_id": self.network_id,
+            "species_count": self.species_count,
+            "reaction_count": self.reaction_count,
+            "stoichiometric_rank": self.stoichiometric_rank,
+            "conservation_law_dimension": self.conservation_law_dimension,
+            "element_balance_residuals": self.element_balance_residuals,
+            "charge_balance_residuals": self.charge_balance_residuals,
+            "duplicate_stoichiometric_columns": [
+                list(group) for group in self.duplicate_stoichiometric_columns
+            ],
+            "blocked_reactions": list(self.blocked_reactions),
+            "unreachable_species": list(self.unreachable_species),
+            "violations": list(self.violations),
+            "passed": self.passed,
+        }
 
 
 @dataclass(frozen=True)
@@ -69,13 +175,21 @@ class ReactionNetworkSpec:
         if len(reaction_ids) != len(set(reaction_ids)):
             raise ValueError("Duplicate reaction_id values are not allowed")
         known = set(species_ids)
+        expected_units = {"amount": "mol", "volume": "L"}
+        if any(self.units.get(key) != value for key, value in expected_units.items()):
+            raise ValueError("reaction network units must declare amount='mol' and volume='L'")
         for reaction in self.reactions:
-            missing = sorted(set(reaction.stoichiometry) - known)
+            referenced = (
+                set(reaction.stoichiometry)
+                | set(reaction.forward_orders)
+                | set(reaction.reverse_orders)
+            )
+            missing = sorted(referenced - known)
             if missing:
                 raise ValueError(
                     f"Reaction {reaction.reaction_id} references unknown species: {missing}"
                 )
-        self.check_element_balance(raise_on_error=True)
+        self.check_conservation(raise_on_error=True)
 
     @property
     def species_ids(self) -> tuple[str, ...]:
@@ -123,6 +237,104 @@ class ReactionNetworkSpec:
             raise ValueError(f"Reaction network is not element balanced: {residuals}")
         return passed
 
+    def charge_balance_residuals(self) -> dict[str, float]:
+        stoich = self.stoichiometric_matrix()
+        charges = [float(species.charge) for species in self.species]
+        residuals: dict[str, float] = {}
+        for reaction_idx, reaction in enumerate(self.reactions):
+            residual = sum(
+                charges[species_idx] * stoich[species_idx][reaction_idx]
+                for species_idx in range(len(self.species))
+            )
+            if abs(residual) > 1.0e-12:
+                residuals[reaction.reaction_id] = residual
+        return residuals
+
+    def check_conservation(self, *, raise_on_error: bool = False) -> bool:
+        element_residuals = self.element_balance_residuals()
+        charge_residuals = self.charge_balance_residuals()
+        passed = (
+            all(not residuals for residuals in element_residuals.values()) and not charge_residuals
+        )
+        if raise_on_error and not passed:
+            raise ValueError(
+                "Reaction network is not element balanced or charge balanced: "
+                f"elements={element_residuals}, charge={charge_residuals}"
+            )
+        return passed
+
+    def diagnose_mechanism(
+        self,
+        initial_amounts_mol: Mapping[str, float] | None = None,
+    ) -> MechanismDiagnostic:
+        matrix = np.asarray(self.stoichiometric_matrix(), dtype=float)
+        rank = int(np.linalg.matrix_rank(matrix)) if matrix.size else 0
+        columns: dict[tuple[float, ...], list[str]] = {}
+        for reaction_index, reaction_id in enumerate(self.reaction_ids):
+            column = tuple(float(value) for value in matrix[:, reaction_index])
+            columns.setdefault(column, []).append(reaction_id)
+        duplicate_columns = tuple(tuple(ids) for ids in columns.values() if len(ids) > 1)
+
+        blocked: tuple[str, ...] = ()
+        unreachable: tuple[str, ...] = ()
+        if initial_amounts_mol is not None:
+            unknown = sorted(set(initial_amounts_mol) - set(self.species_ids))
+            if unknown:
+                raise ValueError(f"initial state references unknown species: {unknown}")
+            available = {
+                species_id
+                for species_id in self.species_ids
+                if float(initial_amounts_mol.get(species_id, 0.0)) > 0.0
+            }
+            changed = True
+            executable: set[str] = set()
+            while changed:
+                changed = False
+                for reaction in self.reactions:
+                    if reaction.reaction_id in executable:
+                        continue
+                    required = {
+                        species_id
+                        for species_id, order in reaction.kinetic_forward_orders.items()
+                        if order > 0.0
+                    }
+                    if required.issubset(available):
+                        executable.add(reaction.reaction_id)
+                        before = len(available)
+                        available.update(reaction.products)
+                        changed = changed or len(available) != before
+            blocked = tuple(
+                reaction_id for reaction_id in self.reaction_ids if reaction_id not in executable
+            )
+            unreachable = tuple(
+                species_id for species_id in self.species_ids if species_id not in available
+            )
+
+        element_residuals = self.element_balance_residuals()
+        charge_residuals = self.charge_balance_residuals()
+        violations: list[str] = []
+        if any(element_residuals.values()):
+            violations.append("element_balance")
+        if charge_residuals:
+            violations.append("charge_balance")
+        if any(np.all(np.abs(matrix[:, index]) <= 1.0e-15) for index in range(matrix.shape[1])):
+            violations.append("zero_stoichiometric_column")
+        if initial_amounts_mol is not None and blocked:
+            violations.append("initial_state_blocked_reactions")
+        return MechanismDiagnostic(
+            network_id=self.network_id,
+            species_count=len(self.species),
+            reaction_count=len(self.reactions),
+            stoichiometric_rank=rank,
+            conservation_law_dimension=len(self.species) - rank,
+            element_balance_residuals=element_residuals,
+            charge_balance_residuals=charge_residuals,
+            duplicate_stoichiometric_columns=duplicate_columns,
+            blocked_reactions=blocked,
+            unreachable_species=unreachable,
+            violations=tuple(violations),
+        )
+
     def reaction_rates(
         self,
         amounts_mol: Mapping[str, float],
@@ -130,6 +342,7 @@ class ReactionNetworkSpec:
         volume_L: float,
         temperature_K: float,
         species_thermo: Mapping[str, Any] | None = None,
+        activity_coefficients: Mapping[str, float] | None = None,
     ) -> dict[str, float]:
         concentrations = self._concentrations(amounts_mol, volume_L=volume_L)
         return {
@@ -138,6 +351,7 @@ class ReactionNetworkSpec:
                 concentrations_mol_L=concentrations,
                 temperature_K=temperature_K,
                 species_thermo=species_thermo,
+                activity_coefficients=activity_coefficients,
             )
             for reaction in self.reactions
         }
@@ -149,12 +363,14 @@ class ReactionNetworkSpec:
         volume_L: float,
         temperature_K: float,
         species_thermo: Mapping[str, Any] | None = None,
+        activity_coefficients: Mapping[str, float] | None = None,
     ) -> dict[str, float]:
         rates = self.reaction_rates(
             amounts_mol,
             volume_L=volume_L,
             temperature_K=temperature_K,
             species_thermo=species_thermo,
+            activity_coefficients=activity_coefficients,
         )
         derivatives = dict.fromkeys(self.species_ids, 0.0)
         for reaction in self.reactions:
@@ -172,17 +388,32 @@ class ReactionNetworkSpec:
         duration_s: float,
         evaluation_times_s: Sequence[float] | None = None,
         species_thermo: Mapping[str, Any] | None = None,
+        activity_coefficients: Mapping[str, float] | None = None,
+        solver_options: BatchSolverOptions | None = None,
+        termination_events: Sequence[BatchTerminationEvent] = (),
     ) -> BatchIntegrationResult:
-        if duration_s < 0:
+        if duration_s < 0 or not isfinite(duration_s):
             raise ValueError("duration_s cannot be negative")
-        if volume_L <= 0:
-            raise ValueError("volume_L must be positive")
-        y0 = np.array(
-            [
-                max(float(initial_amounts_mol.get(species_id, 0.0)), 0.0)
-                for species_id in self.species_ids
-            ]
-        )
+        if volume_L <= 0 or not isfinite(volume_L):
+            raise ValueError("volume_L must be finite and positive")
+        if temperature_K <= 0 or not isfinite(temperature_K):
+            raise ValueError("temperature_K must be finite and positive")
+        unknown = sorted(set(initial_amounts_mol) - set(self.species_ids))
+        if unknown:
+            raise ValueError(f"initial state references unknown species: {unknown}")
+        initial_values = [
+            float(initial_amounts_mol.get(species_id, 0.0)) for species_id in self.species_ids
+        ]
+        if any(value < 0.0 or not isfinite(value) for value in initial_values):
+            raise ValueError("initial species amounts must be finite and nonnegative")
+        y0 = np.asarray(initial_values, dtype=float)
+        options = BatchSolverOptions() if solver_options is None else solver_options
+        event_ids = [event.event_id for event in termination_events]
+        if len(event_ids) != len(set(event_ids)):
+            raise ValueError("termination event ids cannot contain duplicates")
+        for event in termination_events:
+            if event.species_id not in self.species_ids:
+                raise ValueError(f"event references unknown species: {event.species_id}")
 
         def rhs(_time_s: float, y: np.ndarray) -> np.ndarray:
             amounts = {
@@ -194,37 +425,171 @@ class ReactionNetworkSpec:
                 volume_L=volume_L,
                 temperature_K=temperature_K,
                 species_thermo=species_thermo,
+                activity_coefficients=activity_coefficients,
             )
-            return np.array([derivatives[species_id] for species_id in self.species_ids])
+            values = np.array([derivatives[species_id] for species_id in self.species_ids])
+            # Project outward derivatives at the nonnegative boundary.  This is
+            # a safeguard for zero-order/custom-order laws, not post-hoc clipping.
+            values[(y <= 0.0) & (values < 0.0)] = 0.0
+            return values
+
+        def jacobian(time_s: float, y: np.ndarray) -> np.ndarray:
+            baseline = rhs(time_s, y)
+            matrix = np.empty((len(y), len(y)), dtype=float)
+            for column in range(len(y)):
+                step = 1.0e-7 * max(1.0, abs(float(y[column])))
+                shifted = y.copy()
+                shifted[column] += step
+                matrix[:, column] = (rhs(time_s, shifted) - baseline) / step
+            return matrix
 
         if evaluation_times_s is None:
             t_eval = None
         else:
             t_eval = np.array(tuple(evaluation_times_s), dtype=float)
-        report = solve_ode(
-            rhs,
-            y0,
-            time_span_s=(0.0, duration_s),
-            evaluation_times_s=t_eval,
-            policy=DEFAULT_REACTION_ODE_POLICY,
-        )
-        report.raise_for_failure("Reaction-network integration")
-        result = report.raw_result
+            if (
+                t_eval.ndim != 1
+                or not np.all(np.isfinite(t_eval))
+                or np.any(t_eval < 0.0)
+                or np.any(t_eval > duration_s)
+                or np.any(np.diff(t_eval) < 0.0)
+            ):
+                raise ValueError("evaluation_times_s must be finite, sorted, and within duration_s")
+        if duration_s == 0.0:
+            times = np.array((0.0,), dtype=float)
+            values = y0[:, None]
+            diagnostic: dict[str, object] = {
+                "policy": options.to_dict(),
+                "success": True,
+                "message": "zero-duration initial state",
+                "status": 0,
+                "nfev": 0,
+                "njev": 0,
+                "nlu": 0,
+                "t_start_s": 0.0,
+                "t_end_s": 0.0,
+                "evaluation_count": 1,
+                "event_count": 0,
+                "triggered_events": [],
+                "final_time_s": 0.0,
+            }
+        else:
+            scipy_events = []
+            species_index = self.species_index
+            for event_spec in termination_events:
+                index = species_index[event_spec.species_id]
+
+                def threshold_event(
+                    _time_s: float,
+                    y: np.ndarray,
+                    *,
+                    _index: int = index,
+                    _threshold: float = event_spec.threshold_mol,
+                ) -> float:
+                    return float(y[_index]) - _threshold
+
+                threshold_event.terminal = True  # type: ignore[attr-defined]
+                threshold_event.direction = event_spec.direction  # type: ignore[attr-defined]
+                scipy_events.append(threshold_event)
+
+            kwargs: dict[str, object] = {
+                "method": options.method,
+                "rtol": options.rtol,
+                "atol": options.atol_mol,
+                "dense_output": bool(scipy_events),
+            }
+            if options.max_step_s is not None:
+                kwargs["max_step"] = options.max_step_s
+            if t_eval is not None and len(t_eval):
+                kwargs["t_eval"] = t_eval
+            if scipy_events:
+                kwargs["events"] = tuple(scipy_events)
+            if options.use_jacobian:
+                kwargs["jac"] = jacobian
+            result = solve_ivp(rhs, (0.0, duration_s), y0, **kwargs)
+            if not result.success:
+                raise RuntimeError(f"Reaction-network integration failed: {result.message}")
+            times = np.asarray(result.t, dtype=float)
+            values = np.asarray(result.y, dtype=float)
+            triggered_events: list[str] = []
+            event_times: list[float] = []
+            result_event_times = getattr(result, "t_events", None) or ()
+            for event_spec, crossings in zip(
+                termination_events,
+                result_event_times,
+                strict=True,
+            ):
+                if len(crossings):
+                    triggered_events.append(event_spec.event_id)
+                    event_times.extend(float(value) for value in crossings)
+            if event_times:
+                final_event_time = min(event_times)
+                if not len(times) or abs(float(times[-1]) - final_event_time) > 1.0e-12:
+                    if result.sol is None:
+                        raise RuntimeError("terminal event state is unavailable")
+                    times = np.append(times, final_event_time)
+                    values = np.column_stack((values, result.sol(final_event_time)))
+            diagnostic = {
+                "policy": options.to_dict(),
+                "success": True,
+                "message": str(result.message),
+                "status": int(result.status),
+                "nfev": int(result.nfev),
+                "njev": None if result.njev is None else int(result.njev),
+                "nlu": None if result.nlu is None else int(result.nlu),
+                "t_start_s": 0.0,
+                "t_end_s": duration_s,
+                "evaluation_count": len(times),
+                "event_count": len(triggered_events),
+                "triggered_events": triggered_events,
+                "final_time_s": float(times[-1]),
+            }
+
+        minimum_raw = float(np.min(values))
+        nonnegative_passed = minimum_raw >= -options.nonnegative_tolerance_mol
+        diagnostic["minimum_raw_amount_mol"] = minimum_raw
+        diagnostic["nonnegative_passed"] = nonnegative_passed
+        diagnostic["jacobian_used"] = options.use_jacobian
+        diagnostic["mechanism"] = self.diagnose_mechanism(initial_amounts_mol).to_dict()
+        if not nonnegative_passed:
+            raise RuntimeError(
+                "Reaction-network integration violated nonnegativity: "
+                f"minimum={minimum_raw:.6g} mol"
+            )
+        clipped_values = np.maximum(values, 0.0)
+        diagnostic["maximum_conservation_drift_mol"] = self._maximum_invariant_drift(clipped_values)
         final = {
-            species_id: max(float(result.y[idx, -1]), 0.0)
+            species_id: float(clipped_values[idx, -1])
             for idx, species_id in enumerate(self.species_ids)
         }
         return BatchIntegrationResult(
             network_id=self.network_id,
             species_ids=self.species_ids,
-            times_s=tuple(float(value) for value in result.t),
+            times_s=tuple(float(value) for value in times),
             amounts_mol=tuple(
-                tuple(max(float(value), 0.0) for value in result.y[idx])
+                tuple(float(value) for value in clipped_values[idx])
                 for idx in range(len(self.species_ids))
             ),
             final_amounts_mol=final,
-            solver_diagnostic=report.diagnostic.to_dict(),
+            solver_diagnostic=diagnostic,
         )
+
+    def _maximum_invariant_drift(self, trajectory: np.ndarray) -> float:
+        stoich = np.asarray(self.stoichiometric_matrix(), dtype=float)
+        if not stoich.size or trajectory.shape[1] <= 1:
+            return 0.0
+        left_vectors, singular_values, _right = np.linalg.svd(stoich, full_matrices=True)
+        tolerance = (
+            max(stoich.shape)
+            * np.finfo(float).eps
+            * (float(singular_values[0]) if singular_values.size else 0.0)
+        )
+        rank = int(np.sum(singular_values > tolerance))
+        invariants = left_vectors[:, rank:].T
+        if not invariants.size:
+            return 0.0
+        inventory = invariants @ trajectory
+        return float(np.max(np.abs(inventory - inventory[:, [0]])))
 
     @classmethod
     def from_dict(cls, payload: Mapping[str, Any]) -> ReactionNetworkSpec:
@@ -245,6 +610,8 @@ class ReactionNetworkSpec:
             "reactions": [reaction.to_dict() for reaction in self.reactions],
             "stoichiometric_matrix": [list(row) for row in self.stoichiometric_matrix()],
             "element_balance_residuals": self.element_balance_residuals(),
+            "charge_balance_residuals": self.charge_balance_residuals(),
+            "mechanism_diagnostic": self.diagnose_mechanism().to_dict(),
             "units": dict(self.units),
             "metadata": dict(self.metadata),
         }
@@ -333,6 +700,14 @@ def thermochemical_detailed_balance(
 
     if reaction.rate_law.equation_id != "reversible_arrhenius":
         raise ValueError("thermochemical detailed balance requires reversible_arrhenius")
+    if (
+        reaction.kinetic_forward_orders != reaction.reactants
+        or reaction.kinetic_reverse_orders != reaction.products
+    ):
+        raise ValueError(
+            "thermochemical detailed balance requires kinetic orders to match "
+            "stoichiometric reactant/product coefficients"
+        )
     forward_rate_constant = _arrhenius_k(reaction.rate_law.parameters, temperature_K)
     concentration_equilibrium_constant, dimensionless_equilibrium_constant, delta_g = (
         thermochemical_concentration_equilibrium_constant(
@@ -348,7 +723,11 @@ def thermochemical_detailed_balance(
         forward_rate_constant=forward_rate_constant,
         reverse_rate_constant=reverse_rate_constant_from_equilibrium(
             forward_rate_constant=forward_rate_constant,
-            concentration_equilibrium_constant=concentration_equilibrium_constant,
+            concentration_equilibrium_constant=(
+                dimensionless_equilibrium_constant
+                if reaction.rate_law.uses_activities
+                else concentration_equilibrium_constant
+            ),
         ),
         concentration_equilibrium_constant=concentration_equilibrium_constant,
         dimensionless_equilibrium_constant=dimensionless_equilibrium_constant,
@@ -398,12 +777,14 @@ def evaluate_rate_law(
     concentrations_mol_L: Mapping[str, float],
     temperature_K: float,
     species_thermo: Mapping[str, Any] | None = None,
+    activity_coefficients: Mapping[str, float] | None = None,
 ) -> float:
     return _evaluate_rate_law(
         reaction,
         concentrations_mol_L=concentrations_mol_L,
         temperature_K=temperature_K,
         species_thermo=species_thermo,
+        activity_coefficients=activity_coefficients,
         thermochemical_reverse_rate_constant=_thermochemical_reverse_rate_constant,
     )
 

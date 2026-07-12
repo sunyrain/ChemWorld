@@ -14,20 +14,16 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
             maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "ChemWorld-owned balanced reaction-network ODE implementation "
-                "for isothermal constant-volume batch kinetics. The validated "
-                "slice covers first-order irreversible and reversible elementary "
-                "mass-action cases with analytical solutions and Cantera/RMG-style "
-                "Arrhenius parameterization. It also includes a compact pressure-"
-                "dependent slice for third-body, Lindemann, and Troe falloff rates."
+                "for isothermal constant-volume batch kinetics. The reference "
+                "slice covers explicit concentration/activity bases, independent "
+                "reaction orders, reversible and competing networks, catalyst "
+                "deactivation, stiff/nonstiff policies, and auditable conservation."
             ),
             equations=(
                 "dn/dt = V * S * r(c, T)",
                 "r_forward = k_f prod_i c_i^nu_i",
                 "k(T) = A T^b exp(-Ea/(RT))",
-                (
-                    "r_net = k_f c_A - k_r c_B, "
-                    "k_r = k_f / K_eq for the validated reversible case"
-                ),
+                ("r_net = k_f c_A - k_r c_B, k_r = k_f / K_eq for the validated reversible case"),
                 (
                     "K_c(T) = exp(-Delta G_rxn^0/RT) * C0^(sum nu_i) "
                     "for the NASA7 detailed-balance slice"
@@ -37,31 +33,31 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                 "k_Lindemann = k_inf Pr / (1 + Pr)",
                 "k_Troe = k_Lindemann F_Troe(T, Pr, a, T1, T2, T3)",
                 "S = (1/y) d y / d ln(p) for finite-difference sensitivity reports",
+                "a_i = gamma_i C_i / C_standard for activity-basis rate laws",
             ),
             assumptions=(
                 "well-mixed homogeneous phase",
                 "constant volume",
                 "constant temperature",
-                "element-balanced stoichiometric reactions",
-                "activities approximated by concentrations for this validated slice",
+                "element- and charge-balanced stoichiometric reactions",
+                "activity coefficients are caller-supplied or ideal (gamma_i=1)",
                 "falloff tests use homogeneous gas-phase collision-efficiency proxies",
             ),
             validity_limits=(
-                "validated ODE reference cases are first-order A=>B and A<=>B networks",
+                "analytical reference cases are first-order A=>B and A<=>B networks",
                 (
                     "falloff validation is limited to compact third-body, Lindemann, "
                     "and Troe formulas; no chemically activated bimolecular pressure "
                     "dependence or surface-coverage model is included"
                 ),
                 "rate coefficient units must be consistent with mol/L concentration powers",
+                "homogeneous constant-volume systems only; transport is out of scope",
             ),
             failure_modes=(
                 "negative or nonfinite rate coefficients raise errors",
                 "unbalanced mechanisms fail at ReactionNetworkSpec construction",
-                (
-                    "very stiff large networks may require tighter solver policy "
-                    "in future professional reactor tasks"
-                ),
+                "stiff systems require an explicit stiff-capable solver policy",
+                "terminal events only support named species-amount thresholds",
                 "negative collision efficiencies and invalid Troe parameters raise errors",
             ),
             units={
@@ -116,6 +112,19 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     tolerance="rtol=1e-7, atol=1e-9 mol",
                 ),
                 ValidationEvidence(
+                    evidence_id="independent-scipy-method-cross-check",
+                    evidence_type="reference_test",
+                    description=(
+                        "ChemWorld LSODA trajectories are compared with a separately "
+                        "invoked tight-tolerance SciPy DOP853 boundary for both "
+                        "analytical cases."
+                    ),
+                    status="implemented",
+                    reference_backend="scipy.integrate.solve_ivp",
+                    command_or_path="tests/test_reaction_kinetics_reference.py",
+                    tolerance="comparison rtol=2e-7, atol=2e-9 mol",
+                ),
+                ValidationEvidence(
                     evidence_id="cantera-arrhenius-rate-optional",
                     evidence_type="optional_reference_test",
                     description=(
@@ -126,6 +135,29 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     reference_backend="Cantera",
                     command_or_path="tests/reference/test_optional_reference_backends.py",
                     tolerance="rtol=1e-12",
+                ),
+                ValidationEvidence(
+                    evidence_id="stiff-jacobian-conservation-event-tests",
+                    evidence_type="unit_test",
+                    description=(
+                        "A Robertson-like network exercises BDF with a supplied "
+                        "finite-difference Jacobian, nonnegativity and invariant drift; "
+                        "a DOP853 case verifies terminal event localization."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reaction_kinetics_reference.py",
+                    tolerance="conservation drift <1e-7 mol",
+                ),
+                ValidationEvidence(
+                    evidence_id="competition-deactivation-response-tests",
+                    evidence_type="response_test",
+                    description=(
+                        "Parallel/series competition produces distinct signed kinetic "
+                        "sensitivities and catalyst loading/deactivation changes product response."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_reaction_kinetics_reference.py",
+                    tolerance="all declared response directions and >1e-3 sensitivity",
                 ),
                 ValidationEvidence(
                     evidence_id="nasa7-detailed-balance-rate-test",
@@ -170,9 +202,10 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
                     "this model card; broader kinetics remain outside its scope."
                 ),
                 (
-                    "Future tasks must add falloff, pressure dependence, and "
-                    "adjoint/global sensitivity checks beyond the compact D5B slice."
+                    "Optional Cantera evidence is environment-dependent and is not "
+                    "counted as passed when the dependency is unavailable."
                 ),
+                "Runtime adapter promotion is separate from this implementation evidence.",
             ),
             intended_use=(
                 "benchmark reaction-network sanity checks",
@@ -182,8 +215,6 @@ def reaction_kinetics_model_cards() -> tuple[ModelCard, ...]:
             ),
         ),
     )
-
-
 
 
 __all__ = [

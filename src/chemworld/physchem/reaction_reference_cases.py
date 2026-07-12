@@ -7,6 +7,9 @@ from dataclasses import dataclass
 from math import exp
 from typing import Any, Literal, Protocol
 
+import numpy as np
+from scipy.integrate import solve_ivp
+
 from chemworld.physchem.reaction_network_specs import (
     RateLawSpec,
     ReactionSpec,
@@ -46,6 +49,15 @@ class ReactionNetworkReference(Protocol):
     ) -> BatchIntegrationResultLike: ...
 
     def to_dict(self) -> dict[str, object]: ...
+
+    def amount_derivatives(
+        self,
+        amounts_mol: Mapping[str, float],
+        *,
+        volume_L: float,
+        temperature_K: float,
+        species_thermo: Mapping[str, Any] | None = None,
+    ) -> dict[str, float]: ...
 
 
 @dataclass(frozen=True)
@@ -129,10 +141,7 @@ class ReactionODEReferenceCase:
         raise ValueError(f"Unsupported analytical ODE case: {self.analytical_case}")
 
     def analytical_trajectory_mol(self) -> tuple[dict[str, float], ...]:
-        return tuple(
-            self.analytical_amounts_mol(time_s)
-            for time_s in self.evaluation_times_s
-        )
+        return tuple(self.analytical_amounts_mol(time_s) for time_s in self.evaluation_times_s)
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -169,6 +178,31 @@ class ReactionODEReferenceResult:
             "tolerance": dict(self.tolerance),
             "final_amounts_mol": dict(self.final_amounts_mol),
             "analytical_final_amounts_mol": dict(self.analytical_final_amounts_mol),
+        }
+
+
+@dataclass(frozen=True)
+class IndependentSciPyReferenceResult:
+    """Cross-check against a separately invoked SciPy solver boundary."""
+
+    case_id: str
+    method: str
+    passed: bool
+    max_abs_error_mol: float
+    rtol: float
+    atol_mol: float
+    nfev: int
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "case_id": self.case_id,
+            "method": self.method,
+            "passed": self.passed,
+            "max_abs_error_mol": self.max_abs_error_mol,
+            "rtol": self.rtol,
+            "atol_mol": self.atol_mol,
+            "nfev": self.nfev,
+            "backend": "scipy.integrate.solve_ivp (independent invocation)",
         }
 
 
@@ -315,13 +349,78 @@ def evaluate_reaction_ode_reference_case(
     )
 
 
+def evaluate_against_independent_scipy(
+    case: ReactionODEReferenceCase,
+    *,
+    method: Literal["RK45", "DOP853", "Radau", "BDF"] = "DOP853",
+    rtol: float = 1.0e-10,
+    atol_mol: float = 1.0e-12,
+    comparison_rtol: float = 2.0e-7,
+    comparison_atol_mol: float = 2.0e-9,
+) -> IndependentSciPyReferenceResult:
+    """Compare ChemWorld integration to a direct, separately configured solve_ivp.
+
+    This does not claim an independent physics library.  It verifies the public
+    network contract across a separate solver invocation, method, and tolerance
+    policy; optional Cantera checks remain a distinct boundary.
+    """
+
+    if min(rtol, atol_mol, comparison_rtol, comparison_atol_mol) <= 0.0:
+        raise ValueError("reference and comparison tolerances must be positive")
+    species_ids = case.network.species_ids
+    y0 = np.asarray(
+        [case.initial_amounts_mol.get(species_id, 0.0) for species_id in species_ids],
+        dtype=float,
+    )
+
+    def independent_rhs(_time_s: float, y: np.ndarray) -> np.ndarray:
+        amounts = {
+            species_id: max(float(value), 0.0)
+            for species_id, value in zip(species_ids, y, strict=True)
+        }
+        derivatives = case.network.amount_derivatives(
+            amounts,
+            volume_L=case.volume_L,
+            temperature_K=case.temperature_K,
+        )
+        return np.asarray([derivatives[species_id] for species_id in species_ids])
+
+    independent = solve_ivp(
+        independent_rhs,
+        (0.0, case.duration_s),
+        y0,
+        method=method,
+        t_eval=np.asarray(case.evaluation_times_s, dtype=float),
+        rtol=rtol,
+        atol=atol_mol,
+    )
+    if not independent.success:
+        raise RuntimeError(f"independent SciPy reference failed: {independent.message}")
+    chemworld = integrate_reaction_ode_reference_case(case)
+    chemworld_values = np.asarray(chemworld.amounts_mol, dtype=float)
+    independent_values = np.asarray(independent.y, dtype=float)
+    errors = np.abs(chemworld_values - independent_values)
+    limits = comparison_atol_mol + comparison_rtol * np.abs(independent_values)
+    return IndependentSciPyReferenceResult(
+        case_id=case.case_id,
+        method=method,
+        passed=bool(np.all(errors <= limits)),
+        max_abs_error_mol=float(np.max(errors)),
+        rtol=rtol,
+        atol_mol=atol_mol,
+        nfev=int(independent.nfev),
+    )
+
+
 __all__ = [
     "AnalyticalODECase",
     "BatchIntegrationResultLike",
+    "IndependentSciPyReferenceResult",
     "ReactionNetworkReference",
     "ReactionODEReferenceCase",
     "ReactionODEReferenceResult",
     "cantera_comparable_reaction_cases",
+    "evaluate_against_independent_scipy",
     "evaluate_reaction_ode_reference_case",
     "integrate_reaction_ode_reference_case",
 ]

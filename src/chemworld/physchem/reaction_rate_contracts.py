@@ -44,6 +44,8 @@ class ReactionRateContractReport:
     reaction_id: str
     equation_id: str
     concentration_basis: str
+    kinetic_basis: str
+    standard_concentration_mol_L: float
     rate_basis: str
     forward_order: float
     effective_forward_order: float
@@ -67,6 +69,8 @@ class ReactionRateContractReport:
             "reaction_id": self.reaction_id,
             "equation_id": self.equation_id,
             "concentration_basis": self.concentration_basis,
+            "kinetic_basis": self.kinetic_basis,
+            "standard_concentration_mol_L": self.standard_concentration_mol_L,
             "rate_basis": self.rate_basis,
             "forward_order": self.forward_order,
             "effective_forward_order": self.effective_forward_order,
@@ -126,8 +130,9 @@ def audit_reaction_rate_contract(reaction: ReactionSpec) -> ReactionRateContract
     params = reaction.rate_law.parameters
     violations: list[str] = []
     diagnostics: list[str] = []
-    forward_order = sum(reaction.reactants.values())
-    reverse_order = sum(reaction.products.values()) if reaction.reversible else None
+    forward_order = sum(reaction.kinetic_forward_orders.values())
+    reverse_order = sum(reaction.kinetic_reverse_orders.values()) if reaction.reversible else None
+    uses_activities = reaction.rate_law.uses_activities
     effective_forward_order = forward_order
     forward_b = 0.0
     reverse_unit: str | None = None
@@ -146,13 +151,16 @@ def audit_reaction_rate_contract(reaction: ReactionSpec) -> ReactionRateContract
         _positive_parameter(high, "A", violations)
         _activation_energy(low, violations)
         _activation_energy(high, violations)
-        low_unit = rate_coefficient_unit(
-            forward_order + 1.0,
+        low_unit = _kinetic_rate_coefficient_unit(
+            forward_order + (0.0 if uses_activities else 1.0),
             temperature_exponent=low_b,
+            uses_activities=uses_activities,
+            extra_concentration_order=1.0,
         )
-        high_unit = rate_coefficient_unit(
+        high_unit = _kinetic_rate_coefficient_unit(
             forward_order,
             temperature_exponent=high_b,
+            uses_activities=uses_activities,
         )
         effective_forward_order = forward_order
         forward_b = high_b
@@ -178,21 +186,32 @@ def audit_reaction_rate_contract(reaction: ReactionSpec) -> ReactionRateContract
                 violations=violations,
             )
 
-    forward_unit = rate_coefficient_unit(
+    forward_unit = _kinetic_rate_coefficient_unit(
         effective_forward_order,
         temperature_exponent=forward_b,
+        uses_activities=uses_activities,
+        extra_concentration_order=(
+            1.0 if uses_activities and equation_id == "third_body_arrhenius" else 0.0
+        ),
     )
     diagnostics.extend(
         (
             f"forward concentration order={forward_order:g}",
             f"effective forward order={effective_forward_order:g}",
+            (
+                "rate powers use dimensionless activities a_i=gamma_i*C_i/C_standard"
+                if uses_activities
+                else "rate powers use concentrations in mol/L"
+            ),
             "activation energy is interpreted in J/mol",
         )
     )
     return ReactionRateContractReport(
         reaction_id=reaction.reaction_id,
         equation_id=equation_id,
-        concentration_basis=CONCENTRATION_BASIS,
+        concentration_basis=reaction.rate_law.concentration_basis,
+        kinetic_basis="activity" if uses_activities else "concentration",
+        standard_concentration_mol_L=(reaction.rate_law.standard_concentration_mol_L),
         rate_basis=RATE_BASIS,
         forward_order=forward_order,
         effective_forward_order=effective_forward_order,
@@ -313,36 +332,89 @@ def _validate_reverse_contract(
             violations=violations,
         )
         _activation_energy(params, violations, prefix="reverse")
-        return rate_coefficient_unit(reverse_order, temperature_exponent=reverse_b), None
+        return (
+            _kinetic_rate_coefficient_unit(
+                reverse_order,
+                temperature_exponent=reverse_b,
+                uses_activities=reaction.rate_law.uses_activities,
+            ),
+            None,
+        )
     if "K_eq" in params:
         _positive_parameter(params, "K_eq", violations)
-        if str(params.get("K_eq_basis", "")).lower() != "concentration":
-            violations.append("explicit K_eq requires K_eq_basis='concentration'")
+        expected_basis = "activity" if reaction.rate_law.uses_activities else "concentration"
+        if str(params.get("K_eq_basis", "")).lower() != expected_basis:
+            violations.append(f"explicit K_eq requires K_eq_basis='{expected_basis}'")
         return (
-            rate_coefficient_unit(
+            _kinetic_rate_coefficient_unit(
                 reverse_order,
                 temperature_exponent=forward_temperature_exponent,
+                uses_activities=reaction.rate_law.uses_activities,
             ),
-            concentration_equilibrium_constant_unit(reverse_order - reaction_order(reaction)),
+            (
+                "dimensionless"
+                if reaction.rate_law.uses_activities
+                else concentration_equilibrium_constant_unit(
+                    reverse_order - reaction_order(reaction)
+                )
+            ),
         )
     source = str(params.get("K_eq_source", params.get("equilibrium_source", ""))).lower()
     if source not in {"nasa7", "species_thermo", "thermochemistry"}:
         violations.append(
             "reversible_arrhenius requires A_reverse, positive K_eq, or a thermochemistry source"
         )
+    elif (
+        reaction.kinetic_forward_orders != reaction.reactants
+        or reaction.kinetic_reverse_orders != reaction.products
+    ):
+        violations.append(
+            "thermochemical detailed balance requires kinetic orders to match stoichiometry"
+        )
     return (
-        rate_coefficient_unit(
+        _kinetic_rate_coefficient_unit(
             reverse_order,
             temperature_exponent=forward_temperature_exponent,
+            uses_activities=reaction.rate_law.uses_activities,
         ),
-        concentration_equilibrium_constant_unit(reverse_order - reaction_order(reaction)),
+        (
+            "dimensionless"
+            if reaction.rate_law.uses_activities
+            else concentration_equilibrium_constant_unit(reverse_order - reaction_order(reaction))
+        ),
     )
 
 
 def reaction_order(reaction: ReactionSpec) -> float:
-    """Return the forward concentration order declared by stoichiometry."""
+    """Return the explicitly declared (or stoichiometric default) forward order."""
 
-    return sum(reaction.reactants.values())
+    return sum(reaction.kinetic_forward_orders.values())
+
+
+def _kinetic_rate_coefficient_unit(
+    overall_order: float,
+    *,
+    temperature_exponent: float,
+    uses_activities: bool,
+    extra_concentration_order: float = 0.0,
+) -> str:
+    if not uses_activities:
+        return rate_coefficient_unit(
+            overall_order,
+            temperature_exponent=temperature_exponent,
+        )
+    # Activity powers are dimensionless.  Only an explicit third-body factor
+    # contributes a concentration dimension to the rate coefficient.
+    if abs(extra_concentration_order) < 1.0e-12:
+        factors = (
+            "mol L^-1 s^-1",
+            _unit_factor("K", -temperature_exponent),
+        )
+        return " ".join(factor for factor in factors if factor)
+    return rate_coefficient_unit(
+        extra_concentration_order,
+        temperature_exponent=temperature_exponent,
+    )
 
 
 def _falloff_group(

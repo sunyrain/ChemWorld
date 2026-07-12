@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from math import isfinite
 from typing import Any, Literal
 
 from chemworld.physchem.elements import parse_formula
@@ -63,19 +64,40 @@ class RateLawSpec:
     rate_law_id: str
     equation_id: str
     parameters: dict[str, Any] = field(default_factory=dict)
+    concentration_basis: str = "mol/L"
+    rate_basis: str = "mol/(L*s)"
+    uses_activities: bool = False
+    standard_concentration_mol_L: float = 1.0
 
     def __post_init__(self) -> None:
         if not self.rate_law_id:
             raise ValueError("rate_law_id cannot be empty")
         if self.equation_id not in SUPPORTED_RATE_LAW_EQUATION_IDS:
             raise ValueError(f"Unsupported rate law: {self.equation_id}")
+        if self.concentration_basis != "mol/L":
+            raise ValueError("reaction rate laws currently require concentration_basis='mol/L'")
+        if self.rate_basis != "mol/(L*s)":
+            raise ValueError("reaction rate laws currently require rate_basis='mol/(L*s)'")
+        if self.standard_concentration_mol_L <= 0.0 or not isfinite(
+            self.standard_concentration_mol_L
+        ):
+            raise ValueError("standard_concentration_mol_L must be finite and positive")
 
     def to_dict(self) -> dict[str, object]:
-        return {
+        payload: dict[str, object] = {
             "rate_law_id": self.rate_law_id,
             "equation_id": self.equation_id,
             "parameters": dict(self.parameters),
         }
+        if self.concentration_basis != "mol/L":
+            payload["concentration_basis"] = self.concentration_basis
+        if self.rate_basis != "mol/(L*s)":
+            payload["rate_basis"] = self.rate_basis
+        if self.uses_activities:
+            payload["uses_activities"] = True
+        if self.standard_concentration_mol_L != 1.0:
+            payload["standard_concentration_mol_L"] = self.standard_concentration_mol_L
+        return payload
 
 
 @dataclass(frozen=True)
@@ -88,6 +110,8 @@ class ReactionSpec:
     delta_h_J_per_mol: float = 0.0
     equilibrium_model_id: str = ""
     metadata: dict[str, object] = field(default_factory=dict)
+    forward_orders: dict[str, float] = field(default_factory=dict)
+    reverse_orders: dict[str, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.reaction_id:
@@ -100,6 +124,22 @@ class ReactionSpec:
             raise ValueError("Reaction must contain at least one product")
         if any(value == 0 for value in self.stoichiometry.values()):
             raise ValueError("Zero stoichiometric coefficients are not stored")
+        if any(not isfinite(float(value)) for value in self.stoichiometry.values()):
+            raise ValueError("Stoichiometric coefficients must be finite")
+        self._validate_orders(self.forward_orders, direction="forward")
+        self._validate_orders(self.reverse_orders, direction="reverse")
+        if self.reverse_orders and not self.reversible:
+            raise ValueError("reverse_orders require a reversible reaction")
+
+    @staticmethod
+    def _validate_orders(orders: Mapping[str, float], *, direction: str) -> None:
+        for species_id, order in orders.items():
+            if not str(species_id).strip():
+                raise ValueError(f"{direction} reaction-order species id cannot be empty")
+            if float(order) < 0.0 or not isfinite(float(order)):
+                raise ValueError(
+                    f"{direction} reaction order for {species_id!r} must be finite and nonnegative"
+                )
 
     @classmethod
     def from_equation(
@@ -111,6 +151,8 @@ class ReactionSpec:
         delta_h_J_per_mol: float = 0.0,
         equilibrium_model_id: str = "",
         metadata: dict[str, object] | None = None,
+        forward_orders: Mapping[str, float] | None = None,
+        reverse_orders: Mapping[str, float] | None = None,
     ) -> ReactionSpec:
         stoichiometry, reversible = parse_reaction_equation(equation)
         return cls(
@@ -122,6 +164,16 @@ class ReactionSpec:
             delta_h_J_per_mol=delta_h_J_per_mol,
             equilibrium_model_id=equilibrium_model_id,
             metadata={} if metadata is None else dict(metadata),
+            forward_orders=(
+                {}
+                if forward_orders is None
+                else {str(key): float(value) for key, value in forward_orders.items()}
+            ),
+            reverse_orders=(
+                {}
+                if reverse_orders is None
+                else {str(key): float(value) for key, value in reverse_orders.items()}
+            ),
         )
 
     @property
@@ -140,8 +192,20 @@ class ReactionSpec:
             if coefficient > 0
         }
 
+    @property
+    def kinetic_forward_orders(self) -> dict[str, float]:
+        """Orders used by the forward rate law, independent of stoichiometry."""
+
+        return dict(self.forward_orders or self.reactants)
+
+    @property
+    def kinetic_reverse_orders(self) -> dict[str, float]:
+        """Orders used by the reverse rate law, independent of stoichiometry."""
+
+        return dict(self.reverse_orders or self.products)
+
     def to_dict(self) -> dict[str, object]:
-        return {
+        payload: dict[str, object] = {
             "reaction_id": self.reaction_id,
             "equation": self.equation,
             "stoichiometry": dict(self.stoichiometry),
@@ -151,6 +215,11 @@ class ReactionSpec:
             "equilibrium_model_id": self.equilibrium_model_id,
             "metadata": dict(self.metadata),
         }
+        if self.forward_orders:
+            payload["forward_orders"] = dict(self.forward_orders)
+        if self.reverse_orders:
+            payload["reverse_orders"] = dict(self.reverse_orders)
+        return payload
 
 
 def parse_reaction_equation(equation: str) -> tuple[dict[str, float], bool]:
@@ -168,11 +237,7 @@ def parse_reaction_equation(equation: str) -> tuple[dict[str, float], bool]:
     stoichiometry: dict[str, float] = {}
     _merge_side(stoichiometry, left, sign=-1.0)
     _merge_side(stoichiometry, right, sign=1.0)
-    cleaned = {
-        species_id: value
-        for species_id, value in stoichiometry.items()
-        if value != 0.0
-    }
+    cleaned = {species_id: value for species_id, value in stoichiometry.items() if value != 0.0}
     return cleaned, reversible
 
 
@@ -183,9 +248,7 @@ def species_from_dict(payload: Mapping[str, Any]) -> SpeciesSpec:
         phase=str(payload.get("phase", "liquid")),
         charge=int(payload.get("charge", 0)),
         catalyst=bool(payload.get("catalyst", False)),
-        observable_aliases=tuple(
-            str(value) for value in payload.get("observable_aliases", ())
-        ),
+        observable_aliases=tuple(str(value) for value in payload.get("observable_aliases", ())),
         metadata=dict(payload.get("metadata", {})),
     )
 
@@ -196,11 +259,13 @@ def reaction_from_dict(payload: Mapping[str, Any]) -> ReactionSpec:
         rate_law_id=str(rate_payload["rate_law_id"]),
         equation_id=str(rate_payload["equation_id"]),
         parameters=dict(rate_payload.get("parameters", {})),
+        concentration_basis=str(rate_payload.get("concentration_basis", "mol/L")),
+        rate_basis=str(rate_payload.get("rate_basis", "mol/(L*s)")),
+        uses_activities=bool(rate_payload.get("uses_activities", False)),
+        standard_concentration_mol_L=float(rate_payload.get("standard_concentration_mol_L", 1.0)),
     )
     if "stoichiometry" in payload:
-        stoichiometry = {
-            str(key): float(value) for key, value in payload["stoichiometry"].items()
-        }
+        stoichiometry = {str(key): float(value) for key, value in payload["stoichiometry"].items()}
         reversible = bool(payload.get("reversible", "<=>" in str(payload.get("equation", ""))))
         return ReactionSpec(
             reaction_id=str(payload["reaction_id"]),
@@ -211,6 +276,12 @@ def reaction_from_dict(payload: Mapping[str, Any]) -> ReactionSpec:
             delta_h_J_per_mol=float(payload.get("delta_h_J_per_mol", 0.0)),
             equilibrium_model_id=str(payload.get("equilibrium_model_id", "")),
             metadata=dict(payload.get("metadata", {})),
+            forward_orders={
+                str(key): float(value) for key, value in payload.get("forward_orders", {}).items()
+            },
+            reverse_orders={
+                str(key): float(value) for key, value in payload.get("reverse_orders", {}).items()
+            },
         )
     return ReactionSpec.from_equation(
         reaction_id=str(payload["reaction_id"]),
@@ -219,6 +290,12 @@ def reaction_from_dict(payload: Mapping[str, Any]) -> ReactionSpec:
         delta_h_J_per_mol=float(payload.get("delta_h_J_per_mol", 0.0)),
         equilibrium_model_id=str(payload.get("equilibrium_model_id", "")),
         metadata=dict(payload.get("metadata", {})),
+        forward_orders={
+            str(key): float(value) for key, value in payload.get("forward_orders", {}).items()
+        },
+        reverse_orders={
+            str(key): float(value) for key, value in payload.get("reverse_orders", {}).items()
+        },
     )
 
 
