@@ -45,6 +45,12 @@ EXPECTED_OPERATION_MODELS = {
     "concentrate": ("chemworld_vacuum_concentration_vnext",),
     "transfer": ("chemworld_transfer_holdup_vnext",),
     "distill": ("chemworld_duty_limited_distillation_vnext",),
+    "electrolyze": (
+        "nernst_butler_volmer_faradaic_v1",
+        "diffusion_layer_limiting_current_v1",
+        "randles_double_layer_transient_v1",
+        "aqueous_acid_base_ph_observation",
+    ),
     "measure": (INSTRUMENT_RUNTIME_MODEL_ID,),
 }
 
@@ -147,6 +153,15 @@ def _execution_probe() -> dict[str, Any]:
             {"operation": "measure", "instrument": "ph_meter"},
         ),
     )
+    electro_state, electro_statuses = _run_actions(
+        "electrochemical-conversion",
+        (
+            {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0},
+            {"operation": "electrolyze", "duration_s": 1800.0},
+        ),
+    )
     instrument_settings = {
         instrument_id: equipment_settings(
             (ph_state if instrument_id == "ph_meter" else assay_state).equipment,
@@ -167,6 +182,9 @@ def _execution_probe() -> dict[str, Any]:
             distillation_state.equipment, "distillation_column"
         ),
         "instruments": instrument_settings,
+        "electrochem": equipment_settings(
+            electro_state.equipment, "electrochemical_cell"
+        ),
     }
     model_ids = {
         "heat": [
@@ -183,6 +201,7 @@ def _execution_probe() -> dict[str, Any]:
         "concentrate": equipment["concentrate"].get("concentration_model_id"),
         "transfer": equipment["transfer"].get("transfer_model_id"),
         "distill": equipment["distill"].get("distillation_model"),
+        "electrolyze": list(equipment["electrochem"].get("runtime_model_ids", ())),
         "measure": instrument_settings["uvvis"].get("model_id"),
     }
     instrument_model_ids = {
@@ -205,6 +224,7 @@ def _execution_probe() -> dict[str, Any]:
         and all(status == "committed" for status in distillation_statuses)
         and all(status == "committed" for status in assay_statuses)
         and all(status == "committed" for status in ph_statuses)
+        and all(status == "committed" for status in electro_statuses)
         and model_ids
         == expected_execution_model_ids
         and all(
@@ -221,6 +241,7 @@ def _execution_probe() -> dict[str, Any]:
             "assay": assay_statuses,
             "ph": ph_statuses,
         },
+        "electrochemical_transaction_statuses": electro_statuses,
         "typed_inventory_phases": sorted(purification_state.phases.phases),
         "provider_diagnostics": equipment,
     }

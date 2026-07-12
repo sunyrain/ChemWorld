@@ -425,7 +425,7 @@ class ChemWorldElectrochemicalServices:
                     "nernst_butler_volmer_faradaic_v1",
                     transport.model_id,
                     double_layer.model_id,
-                    "aqueous_electrolyte_equilibrium_v1",
+                    "aqueous_acid_base_ph_observation",
                 ),
                 "mechanism_id": self.species_view.mechanism.mechanism_id,
                 "mechanism_hash": self.species_view.mechanism.mechanism_hash,
@@ -446,7 +446,7 @@ class ChemWorldElectrochemicalServices:
                     "warnings": double_layer.warnings,
                 },
                 "aqueous_equilibrium_diagnostic": {
-                    "model_id": "aqueous_electrolyte_equilibrium_v1",
+                    "model_id": "aqueous_acid_base_ph_observation",
                     "converged": aqueous.converged,
                     "iterations": aqueous.iterations,
                     "pH": aqueous.acid_base.pH,

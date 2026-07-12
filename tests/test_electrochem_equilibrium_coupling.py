@@ -171,7 +171,7 @@ def test_runtime_calls_every_coupled_kernel_and_closes_ledgers(
             "nernst_butler_volmer_faradaic_v1",
             "diffusion_layer_limiting_current_v1",
             "randles_double_layer_transient_v1",
-            "aqueous_electrolyte_equilibrium_v1",
+            "aqueous_acid_base_ph_observation",
         }
         assert settings["transport_diagnostic"]["charge_balance_residual_C"] == pytest.approx(0.0)
         assert settings["double_layer_diagnostic"]["charge_balance_residual_C"] == pytest.approx(

@@ -730,13 +730,29 @@
           ],
           "status": "passing",
           "tolerance": "material balance error < 1e-12 mol"
+        },
+        {
+          "command_or_path": "tests/test_electrochem_equilibrium_coupling.py",
+          "description": "Electrochemical runtime couples weak-acid charge balance, Davies activities, and Ksp hooks; nonconvergence and out-of-domain ionic strength fail before committing physical state.",
+          "evidence_id": "electrolyte-davies-runtime-coupling",
+          "evidence_type": "runtime_integration_and_failure_domain_test",
+          "existing_repository_paths": [
+            "tests/test_electrochem_equilibrium_coupling.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_electrochem_equilibrium_coupling.py"
+          ],
+          "status": "implemented",
+          "tolerance": "charge/material residual < 1e-9; exact physical rollback on failure"
         }
       ],
       "model_id": "aqueous_acid_base_ph_observation",
       "module_id": "equilibrium_chemistry",
       "professional_candidate_checks": {
         "conservation_evidence": true,
-        "coupling_evidence": false,
+        "coupling_evidence": true,
         "cross_reference_cases": true,
         "failure_domain_evidence": true,
         "reference_validated_checks": true,
@@ -1993,9 +2009,9 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "professional_candidate",
-      "effective_evidence_maturity": "reference_validated",
+      "effective_evidence_maturity": "professional_candidate",
       "evidence": [
         {
           "command_or_path": "tests/test_electrochem_transport.py",
@@ -2038,8 +2054,8 @@
         "cross_reference_cases": true,
         "failure_domain_evidence": true,
         "reference_validated_checks": true,
-        "runtime_diagnostics": false,
-        "runtime_provenance": false
+        "runtime_diagnostics": true,
+        "runtime_provenance": true
       },
       "reference_validated_checks": {
         "analytical_literature_or_independent_reference": true,
@@ -3617,9 +3633,9 @@
         "validation_evidence": true,
         "validity_limits": true
       },
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "professional_candidate",
-      "effective_evidence_maturity": "reference_validated",
+      "effective_evidence_maturity": "professional_candidate",
       "evidence": [
         {
           "command_or_path": "tests/test_electrochem_double_layer.py",
@@ -3652,18 +3668,34 @@
           ],
           "status": "implemented",
           "tolerance": "charge residual <= 1e-15 C"
+        },
+        {
+          "command_or_path": "tests/test_electrochem_equilibrium_coupling.py",
+          "description": "Exercises shared runtime integration with reaction kinetics, diffusion transport, aqueous equilibrium, and the Randles branch; verifies charge, material, and energy conservation closure, runtime provenance diagnostics, and fail-closed rollback at invalid domain limits.",
+          "evidence_id": "randles-runtime-electrochemistry-coupling",
+          "evidence_type": "runtime_integration_test",
+          "existing_repository_paths": [
+            "tests/test_electrochem_equilibrium_coupling.py"
+          ],
+          "path_valid": true,
+          "reference_backend": null,
+          "repository_paths": [
+            "tests/test_electrochem_equilibrium_coupling.py"
+          ],
+          "status": "implemented",
+          "tolerance": "charge residual < 1e-9 C; material residual < 1e-12 mol; energy residual < 1e-8 J"
         }
       ],
       "model_id": "randles_double_layer_transient_v1",
       "module_id": "electrochemistry",
       "professional_candidate_checks": {
         "conservation_evidence": true,
-        "coupling_evidence": false,
+        "coupling_evidence": true,
         "cross_reference_cases": true,
         "failure_domain_evidence": true,
         "reference_validated_checks": true,
-        "runtime_diagnostics": false,
-        "runtime_provenance": false
+        "runtime_diagnostics": true,
+        "runtime_provenance": true
       },
       "reference_validated_checks": {
         "analytical_literature_or_independent_reference": true,
@@ -4339,8 +4371,8 @@
     "task_count_exact": true,
     "task_routes_exact": true
   },
-  "error_count": 38,
-  "finding_count": 38,
+  "error_count": 33,
+  "finding_count": 33,
   "findings": [
     {
       "check_id": "high_provider_missing_model_card",
@@ -4375,12 +4407,6 @@
     {
       "check_id": "high_provider_not_executed",
       "message": "high maturity provider is registered/routed but absent from runtime execution evidence",
-      "model_id": "nernst_butler_volmer_faradaic_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "high_provider_not_executed",
-      "message": "high maturity provider is registered/routed but absent from runtime execution evidence",
       "model_id": "pfr",
       "severity": "error"
     },
@@ -4402,22 +4428,6 @@
         "pfr"
       ],
       "severity": "error"
-    },
-    {
-      "check_id": "public_claim_exceeds_verified_maturity",
-      "claim_id": "electrochem-runtime",
-      "message": "public maturity claim exceeds runtime-backed verified maturity",
-      "model_ids": [
-        "nernst_butler_volmer_faradaic_v1"
-      ],
-      "severity": "error"
-    },
-    {
-      "check_id": "task_module_maturity_exceeds_runtime_evidence",
-      "message": "task module maturity is above its reachable providers' verified level",
-      "module_id": "electrochemistry",
-      "severity": "error",
-      "task_id": "electrochemical-conversion"
     },
     {
       "check_id": "task_module_maturity_exceeds_runtime_evidence",
@@ -4508,14 +4518,6 @@
     {
       "check_id": "unsupported_model_card_maturity",
       "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "diffusion_layer_limiting_current_v1",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
       "effective": "lite",
       "message": "model card maturity exceeds its strict evidence result",
       "model_id": "electrochemical_scenario_card_generation_v1",
@@ -4591,14 +4593,6 @@
       "effective": "reference_validated",
       "message": "model card maturity exceeds its strict evidence result",
       "model_id": "pure_fluid_saturation_solver",
-      "severity": "error"
-    },
-    {
-      "check_id": "unsupported_model_card_maturity",
-      "declared": "professional_candidate",
-      "effective": "reference_validated",
-      "message": "model card maturity exceeds its strict evidence result",
-      "model_id": "randles_double_layer_transient_v1",
       "severity": "error"
     },
     {
@@ -4928,6 +4922,25 @@
       "role": "runtime",
       "routed": true
     },
+    "diffusion_layer_limiting_current_v1": {
+      "card_maturity_matches": true,
+      "card_present": true,
+      "claim_verified": true,
+      "declared_maturity": "professional_candidate",
+      "effective_maturity": "professional_candidate",
+      "executed_in_runtime_evidence": true,
+      "manifest_contract_matches": false,
+      "manifest_present": false,
+      "manifest_state_valid": false,
+      "manifest_status": null,
+      "model_id": "diffusion_layer_limiting_current_v1",
+      "module_id": "electrochemistry",
+      "provenance": [
+        "diffusion-layer-limiting-current-v1"
+      ],
+      "role": "runtime",
+      "routed": true
+    },
     "dynamic_batch_heat_release_jacket_sampling": {
       "card_maturity_matches": true,
       "card_present": true,
@@ -4971,10 +4984,10 @@
     "nernst_butler_volmer_faradaic_v1": {
       "card_maturity_matches": true,
       "card_present": true,
-      "claim_verified": false,
+      "claim_verified": true,
       "declared_maturity": "reference_validated",
-      "effective_maturity": "lite",
-      "executed_in_runtime_evidence": false,
+      "effective_maturity": "reference_validated",
+      "executed_in_runtime_evidence": true,
       "manifest_contract_matches": false,
       "manifest_present": false,
       "manifest_state_valid": false,
@@ -5025,6 +5038,25 @@
       "role": "runtime",
       "routed": true
     },
+    "randles_double_layer_transient_v1": {
+      "card_maturity_matches": true,
+      "card_present": true,
+      "claim_verified": true,
+      "declared_maturity": "professional_candidate",
+      "effective_maturity": "professional_candidate",
+      "executed_in_runtime_evidence": true,
+      "manifest_contract_matches": false,
+      "manifest_present": false,
+      "manifest_state_valid": false,
+      "manifest_status": null,
+      "model_id": "randles_double_layer_transient_v1",
+      "module_id": "electrochemistry",
+      "provenance": [
+        "randles-double-layer-transient-v1"
+      ],
+      "role": "runtime",
+      "routed": true
+    },
     "reaction_ode_mass_action_arrhenius_reference_slice": {
       "card_maturity_matches": true,
       "card_present": true,
@@ -5047,7 +5079,7 @@
       "routed": true
     }
   },
-  "provider_count": 20,
+  "provider_count": 22,
   "public_document": {
     "claim_assessments": {
       "crystallization-flow-distillation-runtime": {
@@ -5086,7 +5118,7 @@
           "nernst_butler_volmer_faradaic_v1"
         ],
         "unknown_model_ids": [],
-        "verified_source_matches": false
+        "verified_source_matches": true
       },
       "lle-wash-runtime": {
         "claimed_maturity": "professional_candidate",
@@ -5105,7 +5137,7 @@
     "sha256": "65ecddef66ce91b21258294c627f9bafa70543d37f208b2be6fd63e4cbeb6baa"
   },
   "release_allowed": false,
-  "report_hash": "c0fce3ad2e465c388ab1f5f4f6adf3ace6b901e4ef5aef1065ce66135f6c9d71",
+  "report_hash": "961361a2c1e26b8887f59063a4d32a1895d222981fa33c640d6511c5d0135961",
   "runtime_execution_evidence": {
     "executed_model_ids": [
       "aqueous_acid_base_ph_observation",
@@ -5117,18 +5149,21 @@
       "chemworld_vacuum_concentration_vnext",
       "chemworld_validated_synthetic_instruments_v1",
       "chromatography_retention_plate",
+      "diffusion_layer_limiting_current_v1",
       "dynamic_batch_heat_release_jacket_sampling",
       "dynamic_batch_reaction_runtime_v1",
+      "nernst_butler_volmer_faradaic_v1",
       "potentiometric_ph_public_reference",
+      "randles_double_layer_transient_v1",
       "reaction_ode_mass_action_arrhenius_reference_slice",
       "vle_shortcut_distillation"
     ],
     "path": "workstreams/world_foundation/reports/wf-110-runtime-integration.json",
-    "sha256": "61f4a08e34443cf3d7a3bc2c68adf9a5bb819d1cc8f0ba73883517ff6922aac1"
+    "sha256": "d610e6a1ab2d225f3242f330aa4a2b2ddb28186a5caa3ef2fc2cf37c8b2bc796"
   },
   "runtime_structural_findings": [],
   "schema_version": "chemworld-foundation-maturity-truth-report-0.1",
-  "source_commit": "ed6ac1d375a36deae830fd8899d9eab172ffc398",
+  "source_commit": "b5ad5c5f762e6412e56eae9a6280a0a95cfc018a",
   "source_tree_dirty": true,
   "status": "maturity_claims_blocked",
   "task_assessments": {
@@ -5136,12 +5171,15 @@
       "declared_but_unreachable": [],
       "declared_lowest_maturity": "reference_validated",
       "declared_model_ids": [
+        "aqueous_acid_base_ph_observation",
         "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "nernst_butler_volmer_faradaic_v1"
+        "diffusion_layer_limiting_current_v1",
+        "nernst_butler_volmer_faradaic_v1",
+        "randles_double_layer_transient_v1"
       ],
-      "effective_runtime_maturity": "lite",
+      "effective_runtime_maturity": "reference_validated",
       "module_claims": [
         {
           "claim_verified": true,
@@ -5155,24 +5193,38 @@
           "verified_level": "reference_validated"
         },
         {
-          "claim_verified": false,
+          "claim_verified": true,
           "declared_level": "reference_validated",
           "model_ids": [
-            "nernst_butler_volmer_faradaic_v1"
+            "nernst_butler_volmer_faradaic_v1",
+            "diffusion_layer_limiting_current_v1",
+            "randles_double_layer_transient_v1"
           ],
           "module_id": "electrochemistry",
-          "verified_level": "lite"
+          "verified_level": "reference_validated"
+        },
+        {
+          "claim_verified": true,
+          "declared_level": "reference_validated",
+          "model_ids": [
+            "aqueous_acid_base_ph_observation"
+          ],
+          "module_id": "equilibrium_chemistry",
+          "verified_level": "reference_validated"
         }
       ],
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
+        "aqueous_acid_base_ph_observation",
         "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "nernst_butler_volmer_faradaic_v1"
+        "diffusion_layer_limiting_current_v1",
+        "nernst_butler_volmer_faradaic_v1",
+        "randles_double_layer_transient_v1"
       ],
       "runtime_profile_hash": "88aac1045562b0b14d687f059a8a725a807dac3b3ca48882e62dfca616871b59",
-      "task_contract_hash": "0f6610616a69415943e353e3a7a6306ea4f153bad8e82a81af4e2311af66ebe3"
+      "task_contract_hash": "c60aee3152ca873cfa95a4c39bf368f421c2db842851030a7934be12e79c6fc1"
     },
     "equilibrium-characterization": {
       "declared_but_unreachable": [],

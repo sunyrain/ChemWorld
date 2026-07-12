@@ -18,6 +18,12 @@
         "dry": [
           "chemworld_sorbent_drying_vnext"
         ],
+        "electrolyze": [
+          "nernst_butler_volmer_faradaic_v1",
+          "diffusion_layer_limiting_current_v1",
+          "randles_double_layer_transient_v1",
+          "aqueous_acid_base_ph_observation"
+        ],
         "heat": [
           "reaction_ode_mass_action_arrhenius_reference_slice",
           "dynamic_batch_heat_release_jacket_sampling"
@@ -55,7 +61,7 @@
       "check_id": "task_route_declarations_aligned",
       "evidence": {
         "gap_count": 0,
-        "provider_count": 20,
+        "provider_count": 22,
         "route_count": 28,
         "task_count": 15
       },
@@ -68,6 +74,12 @@
           "committed",
           "committed",
           "committed",
+          "committed",
+          "committed",
+          "committed",
+          "committed"
+        ],
+        "electrochemical_transaction_statuses": [
           "committed",
           "committed",
           "committed",
@@ -115,6 +127,12 @@
           "concentrate": "chemworld_vacuum_concentration_vnext",
           "distill": "chemworld_duty_limited_distillation_vnext",
           "dry": "chemworld_sorbent_drying_vnext",
+          "electrolyze": [
+            "nernst_butler_volmer_faradaic_v1",
+            "diffusion_layer_limiting_current_v1",
+            "randles_double_layer_transient_v1",
+            "aqueous_acid_base_ph_observation"
+          ],
           "heat": [
             "reaction_ode_mass_action_arrhenius_reference_slice",
             "dynamic_batch_heat_release_jacket_sampling"
@@ -262,6 +280,69 @@
             "drying_warnings": [
               "product loss is explicit in sorption and retained-liquid ledgers"
             ]
+          },
+          "electrochem": {
+            "aqueous_equilibrium_diagnostic": {
+              "applicability": {
+                "activity_model": "davies_aqueous_activity_v1",
+                "ionic_strength_max_mol_kg": 0.5,
+                "ionic_strength_mol_kg": 0.02042743678626541,
+                "temperature_max_K": 373.15,
+                "temperature_min_K": 273.15
+              },
+              "charge_balance_error_eq": 2.208344952699104e-20,
+              "converged": true,
+              "ionic_strength_mol_kg": 0.02042743678626541,
+              "iterations": 23,
+              "material_balance_error_mol": 2.710505431213761e-20,
+              "model_id": "aqueous_acid_base_ph_observation",
+              "pH": 3.484872530750029,
+              "precipitated_mol": 4.940000000227306e-05
+            },
+            "contact_resistance_ohm": 0.2,
+            "current_mA": 75.0,
+            "diffusion_layer_thickness_m": 0.0001,
+            "diffusivity_m2_s": 1e-09,
+            "double_layer_capacitance_F_m2": 0.2,
+            "double_layer_diagnostic": {
+              "capacitive_charge_C": -1.1975373161057233e-05,
+              "charge_balance_residual_C": 5.7198678031413625e-15,
+              "faradaic_charge_C": -134.99998802462684,
+              "model_id": "randles_double_layer_transient_v1",
+              "time_constant_s": 0.00015967164214742978,
+              "warnings": [
+                "startup_current_dominated_by_non_faradaic_charging"
+              ]
+            },
+            "electrode_area_m2": 0.004,
+            "electrode_gap_m": 0.004,
+            "electrolyte_acid_pka": 4.76,
+            "electrolyte_acid_total_mol": 0.00013,
+            "electrolyte_conductivity_S_m": 8.0,
+            "electrolyte_ksp": 1e-08,
+            "equilibrium_activity_tolerance": 1e-10,
+            "equilibrium_max_activity_iterations": 64,
+            "equilibrium_max_precipitation_passes": 3,
+            "mechanism_hash": "691cb87f8a9b61ffb20187e6bf1ccd83996bc6223542741b70d9aa8c726660ff",
+            "mechanism_id": "electrochemical_conversion",
+            "potential_V": 1.15,
+            "precipitating_salt_mol": 5.2e-05,
+            "runtime_model_ids": [
+              "nernst_butler_volmer_faradaic_v1",
+              "diffusion_layer_limiting_current_v1",
+              "randles_double_layer_transient_v1",
+              "aqueous_acid_base_ph_observation"
+            ],
+            "supporting_electrolyte_mol": 0.00052,
+            "transport_diagnostic": {
+              "charge_balance_residual_C": 0.0,
+              "current_efficiency": 0.999999999999999,
+              "limiting_current_A": 2.9687794498461546,
+              "material_balance_residual_mol": 1.0842021724855044e-19,
+              "model_id": "diffusion_layer_limiting_current_v1",
+              "warnings": []
+            },
+            "voltage_window_V": 2.5
           },
           "instruments": {
             "final_assay": {

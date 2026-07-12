@@ -120,26 +120,28 @@ def equilibrium_chemistry_model_cards() -> tuple[ModelCard, ...]:
             maturity=MaturityLevel.REFERENCE_VALIDATED,
             summary=(
                 "Compact monoprotic acid/base equilibrium with charge balance, "
-                "temperature-dependent water ion product, pH-meter style public "
-                "observation, and sequential precipitation hooks."
+                "temperature-dependent water ion product, bounded Davies activity "
+                "corrections, pH-meter style public observation, and sequential "
+                "precipitation hooks."
             ),
             equations=(
                 "Ka = [H+][A-] / [HA]",
                 "Kw(T) = [H+][OH-] from compact tabulated interpolation",
                 "electroneutrality: [H+] + strong cations = [OH-] + [A-] + strong anions",
+                "log10(gamma_i) = -A z_i^2 (sqrt(I)/(1+sqrt(I)) - 0.3 I)",
                 "pH observation: E_mV = -2.303 R T / F * (pH_measured - 7)",
                 "precipitation hook: ion product is driven back to Ksp for binary salts",
             ),
             assumptions=(
                 "Single monoprotic acid in water.",
-                "Activities are concentration proxies.",
+                "Davies activities are used only within the declared dilute-ion domain.",
                 "Strong ions are fully dissociated.",
                 "pH-meter observation adds configurable normal pH noise and resolution rounding.",
                 "Precipitation hooks are applied sequentially to declared binary salts.",
             ),
             validity_limits=(
                 "Small aqueous benchmark cases.",
-                "No full activity-coefficient speciation model.",
+                "Davies applicability is limited to ionic strength <= 0.5 mol/kg.",
                 "No buffer mixtures, polyprotic acids, complexation, or redox basis selection.",
                 "Sequential precipitation hooks are deterministic and order-dependent.",
             ),
@@ -186,6 +188,20 @@ def equilibrium_chemistry_model_cards() -> tuple[ModelCard, ...]:
                     status="passing",
                     command_or_path="python -m pytest tests/test_equilibrium_chemistry.py",
                     tolerance="material balance error < 1e-12 mol",
+                ),
+                ValidationEvidence(
+                    evidence_id="electrolyte-davies-runtime-coupling",
+                    evidence_type="runtime_integration_and_failure_domain_test",
+                    description=(
+                        "Electrochemical runtime couples weak-acid charge balance, "
+                        "Davies activities, and Ksp hooks; nonconvergence and out-of-domain "
+                        "ionic strength fail before committing physical state."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_electrochem_equilibrium_coupling.py",
+                    tolerance=(
+                        "charge/material residual < 1e-9; exact physical rollback on failure"
+                    ),
                 ),
             ),
             model_limit_notes=(

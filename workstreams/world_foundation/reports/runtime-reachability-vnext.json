@@ -26,6 +26,12 @@
       "concentrate": "chemworld_vacuum_concentration_vnext",
       "distill": "chemworld_duty_limited_distillation_vnext",
       "dry": "chemworld_sorbent_drying_vnext",
+      "electrolyze": [
+        "nernst_butler_volmer_faradaic_v1",
+        "diffusion_layer_limiting_current_v1",
+        "randles_double_layer_transient_v1",
+        "aqueous_acid_base_ph_observation"
+      ],
       "heat": [
         "reaction_ode_mass_action_arrhenius_reference_slice",
         "dynamic_batch_heat_release_jacket_sampling"
@@ -39,7 +45,7 @@
       ],
       "wash": "chemworld_stability_aware_lle_vnext"
     },
-    "report_sha256": "61f4a08e34443cf3d7a3bc2c68adf9a5bb819d1cc8f0ba73883517ff6922aac1",
+    "report_sha256": "d610e6a1ab2d225f3242f330aa4a2b2ddb28186a5caa3ef2fc2cf37c8b2bc796",
     "schema_version": "chemworld-vnext-runtime-integration-audit-0.1"
   },
   "forbidden_runtime_models": [],
@@ -642,10 +648,16 @@
         "equipment"
       ],
       "all_model_ids": [
-        "nernst_butler_volmer_faradaic_v1"
+        "aqueous_acid_base_ph_observation",
+        "diffusion_layer_limiting_current_v1",
+        "nernst_butler_volmer_faradaic_v1",
+        "randles_double_layer_transient_v1"
       ],
       "base_model_ids": [
-        "nernst_butler_volmer_faradaic_v1"
+        "nernst_butler_volmer_faradaic_v1",
+        "diffusion_layer_limiting_current_v1",
+        "randles_double_layer_transient_v1",
+        "aqueous_acid_base_ph_observation"
       ],
       "instrument_model_ids": {},
       "kernel": {
@@ -1333,7 +1345,8 @@
         "acid_constant"
       ],
       "intended_operations": [
-        "measure"
+        "measure",
+        "electrolyze"
       ],
       "maturity": "reference_validated",
       "model_id": "aqueous_acid_base_ph_observation",
@@ -1346,7 +1359,7 @@
       "provenance": [
         "aqueous-acid-base-ph-observation"
       ],
-      "provider_path": "chemworld.runtime.observation_services.ChemWorldObservationKernel._equilibrium_truth_values",
+      "provider_path": "chemworld.physchem.equilibrium_chemistry.solve_aqueous_electrolyte_equilibrium",
       "role": "runtime",
       "runtime_reachable": true,
       "units": {
@@ -1946,6 +1959,46 @@
         "declared operating-domain bounds"
       ]
     },
+    "diffusion_layer_limiting_current_v1": {
+      "diagnostic_fields": [
+        "charge_balance_residual_C",
+        "material_balance_residual_mol"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "bulk_concentration",
+        "diffusivity",
+        "diffusion_length",
+        "area"
+      ],
+      "intended_operations": [
+        "electrolyze"
+      ],
+      "maturity": "professional_candidate",
+      "model_id": "diffusion_layer_limiting_current_v1",
+      "module_id": "electrochemistry",
+      "output_fields": [
+        "limiting_current_A",
+        "productive_charge_C",
+        "converted_mol"
+      ],
+      "provenance": [
+        "diffusion-layer-limiting-current-v1"
+      ],
+      "provider_path": "chemworld.physchem.electrochem_transport.diffusion_layer_current_response",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "area": "m^2",
+        "bulk_concentration": "mol/m^3",
+        "diffusion_length": "m",
+        "diffusivity": "m^2/s"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
     "dynamic_batch_heat_release_jacket_sampling": {
       "diagnostic_fields": [
         "energy_balance_residual_J",
@@ -2146,6 +2199,46 @@
         "declared operating-domain bounds"
       ]
     },
+    "randles_double_layer_transient_v1": {
+      "diagnostic_fields": [
+        "time_constant_s",
+        "charge_balance_residual_C"
+      ],
+      "failure_policy": "raise a typed failure or trigger transactional rollback",
+      "input_fields": [
+        "potential_step_V",
+        "duration_s",
+        "resistance_ohm",
+        "capacitance_F"
+      ],
+      "intended_operations": [
+        "electrolyze"
+      ],
+      "maturity": "professional_candidate",
+      "model_id": "randles_double_layer_transient_v1",
+      "module_id": "electrochemistry",
+      "output_fields": [
+        "faradaic_charge_C",
+        "capacitive_charge_C",
+        "current_profile"
+      ],
+      "provenance": [
+        "randles-double-layer-transient-v1"
+      ],
+      "provider_path": "chemworld.physchem.electrochem_double_layer.simulate_double_layer_potential_step",
+      "role": "runtime",
+      "runtime_reachable": true,
+      "units": {
+        "capacitance_F": "F",
+        "duration_s": "s",
+        "potential_step_V": "V",
+        "resistance_ohm": "ohm"
+      },
+      "validity_checks": [
+        "typed input schema",
+        "declared operating-domain bounds"
+      ]
+    },
     "reaction_ode_mass_action_arrhenius_reference_slice": {
       "diagnostic_fields": [
         "network_id",
@@ -2189,14 +2282,14 @@
       ]
     }
   },
-  "provider_count": 20,
+  "provider_count": 22,
   "reference_providers_routed": [],
   "remaining_gates": [
     "upgrade reaction_kinetics, reactors, and spectroscopy_instruments",
     "run state-transition and public-boundary audits",
     "complete domain coupling probes before changing task maturity labels"
   ],
-  "report_hash": "c51f77436f1b877e4b320adf4b3130b6a4e95faf3ef402c5f9f7af17f9d8c4f8",
+  "report_hash": "8f021e7744b79b155c3abff140b71c8105b7d7792a3412d1d0e42a3e07e679cd",
   "schema_version": "chemworld-foundation-runtime-reachability-report-0.1",
   "service_catalog": {
     "operation_service_map": {
@@ -2340,7 +2433,7 @@
       }
     }
   },
-  "source_commit": "ed6ac1d375a36deae830fd8899d9eab172ffc398",
+  "source_commit": "b5ad5c5f762e6412e56eae9a6280a0a95cfc018a",
   "source_tree_dirty": true,
   "status": "controls_ready_no_lite_targets",
   "task_count": 15,
@@ -2365,11 +2458,152 @@
           {
             "level": "reference_validated",
             "model_ids": [
-              "nernst_butler_volmer_faradaic_v1"
+              "nernst_butler_volmer_faradaic_v1",
+              "diffusion_layer_limiting_current_v1",
+              "randles_double_layer_transient_v1"
             ],
             "module_id": "electrochemistry",
             "notes": [
-              "Electrochemistry uses Nernst potential, Butler-Volmer current, Faraday charge accounting, and electrical work ledgers."
+              "Electrochemistry uses Nernst potential, Butler-Volmer current, mass-transfer limits, Randles double-layer response, Faraday charge accounting, and signed electrical-work ledgers."
+            ]
+          },
+          {
+            "level": "reference_validated",
+            "model_ids": [
+              "aqueous_acid_base_ph_observation"
+            ],
+            "module_id": "equilibrium_chemistry",
+            "notes": [
+              "E",
+              "l",
+              "e",
+              "c",
+              "t",
+              "r",
+              "o",
+              "l",
+              "y",
+              "t",
+              "e",
+              " ",
+              "s",
+              "t",
+              "a",
+              "t",
+              "e",
+              " ",
+              "u",
+              "s",
+              "e",
+              "s",
+              " ",
+              "w",
+              "e",
+              "a",
+              "k",
+              "-",
+              "a",
+              "c",
+              "i",
+              "d",
+              " ",
+              "c",
+              "h",
+              "a",
+              "r",
+              "g",
+              "e",
+              " ",
+              "b",
+              "a",
+              "l",
+              "a",
+              "n",
+              "c",
+              "e",
+              ",",
+              " ",
+              "b",
+              "o",
+              "u",
+              "n",
+              "d",
+              "e",
+              "d",
+              " ",
+              "D",
+              "a",
+              "v",
+              "i",
+              "e",
+              "s",
+              " ",
+              "a",
+              "c",
+              "t",
+              "i",
+              "v",
+              "i",
+              "t",
+              "i",
+              "e",
+              "s",
+              ",",
+              " ",
+              "a",
+              "n",
+              "d",
+              " ",
+              "s",
+              "e",
+              "q",
+              "u",
+              "e",
+              "n",
+              "t",
+              "i",
+              "a",
+              "l",
+              " ",
+              "K",
+              "s",
+              "p",
+              " ",
+              "h",
+              "o",
+              "o",
+              "k",
+              "s",
+              " ",
+              "w",
+              "i",
+              "t",
+              "h",
+              " ",
+              "f",
+              "a",
+              "i",
+              "l",
+              "-",
+              "c",
+              "l",
+              "o",
+              "s",
+              "e",
+              "d",
+              " ",
+              "c",
+              "o",
+              "n",
+              "v",
+              "e",
+              "r",
+              "g",
+              "e",
+              "n",
+              "c",
+              "e",
+              "."
             ]
           }
         ],
@@ -2379,10 +2613,13 @@
         "proxy_allowed": false
       },
       "declared_model_ids": [
+        "aqueous_acid_base_ph_observation",
         "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "nernst_butler_volmer_faradaic_v1"
+        "diffusion_layer_limiting_current_v1",
+        "nernst_butler_volmer_faradaic_v1",
+        "randles_double_layer_transient_v1"
       ],
       "operation_paths": [
         {
@@ -2419,7 +2656,10 @@
           ],
           "kernel_id": "chemworld.operation.electrolyze",
           "model_ids": [
-            "nernst_butler_volmer_faradaic_v1"
+            "aqueous_acid_base_ph_observation",
+            "diffusion_layer_limiting_current_v1",
+            "nernst_butler_volmer_faradaic_v1",
+            "randles_double_layer_transient_v1"
           ],
           "operation": "electrolyze",
           "service_id": "electrochemistry"
@@ -2461,10 +2701,13 @@
       ],
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
+        "aqueous_acid_base_ph_observation",
         "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
-        "nernst_butler_volmer_faradaic_v1"
+        "diffusion_layer_limiting_current_v1",
+        "nernst_butler_volmer_faradaic_v1",
+        "randles_double_layer_transient_v1"
       ],
       "runtime_profile": {
         "allowed_instruments": [
@@ -2526,7 +2769,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "0f6610616a69415943e353e3a7a6306ea4f153bad8e82a81af4e2311af66ebe3"
+      "task_contract_hash": "c60aee3152ca873cfa95a4c39bf368f421c2db842851030a7934be12e79c6fc1"
     },
     "equilibrium-characterization": {
       "declared_but_unreachable": [],

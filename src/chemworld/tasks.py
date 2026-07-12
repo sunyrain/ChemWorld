@@ -452,10 +452,26 @@ def default_kernel_maturity(
             ModuleMaturity(
                 "electrochemistry",
                 MaturityLevel.REFERENCE_VALIDATED,
-                model_ids=("nernst_butler_volmer_faradaic_v1",),
+                model_ids=(
+                    "nernst_butler_volmer_faradaic_v1",
+                    "diffusion_layer_limiting_current_v1",
+                    "randles_double_layer_transient_v1",
+                ),
                 notes=(
                     "Electrochemistry uses Nernst potential, Butler-Volmer current, "
-                    "Faraday charge accounting, and electrical work ledgers.",
+                    "mass-transfer limits, Randles double-layer response, Faraday "
+                    "charge accounting, and signed electrical-work ledgers.",
+                ),
+            )
+        )
+        modules.append(
+            ModuleMaturity(
+                "equilibrium_chemistry",
+                MaturityLevel.REFERENCE_VALIDATED,
+                model_ids=("aqueous_acid_base_ph_observation",),
+                notes=(
+                    "Electrolyte state uses weak-acid charge balance, bounded Davies "
+                    "activities, and sequential Ksp hooks with fail-closed convergence.",
                 ),
             )
         )

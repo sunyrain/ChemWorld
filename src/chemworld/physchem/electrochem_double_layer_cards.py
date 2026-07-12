@@ -82,6 +82,23 @@ def electrochem_double_layer_model_cards() -> tuple[ModelCard, ...]:
                     command_or_path="tests/test_electrochem_double_layer.py",
                     tolerance="charge residual <= 1e-15 C",
                 ),
+                ValidationEvidence(
+                    evidence_id="randles-runtime-electrochemistry-coupling",
+                    evidence_type="runtime_integration_test",
+                    description=(
+                        "Exercises shared runtime integration with reaction kinetics, "
+                        "diffusion transport, aqueous equilibrium, and the Randles "
+                        "branch; verifies charge, material, and energy conservation "
+                        "closure, runtime provenance diagnostics, and fail-closed "
+                        "rollback at invalid domain limits."
+                    ),
+                    status="implemented",
+                    command_or_path="tests/test_electrochem_equilibrium_coupling.py",
+                    tolerance=(
+                        "charge residual < 1e-9 C; material residual < 1e-12 mol; "
+                        "energy residual < 1e-8 J"
+                    ),
+                ),
             ),
             model_limit_notes=(
                 "Professional-candidate denotes a correct compact RC transient, "
