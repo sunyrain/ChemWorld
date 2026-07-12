@@ -31,7 +31,7 @@
     
     
       
-        <title>系统架构 - ChemWorld-Bench</title>
+        <title>系统如何工作 - ChemWorld-Bench</title>
       
     
     
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              系统架构
+              系统如何工作
             
           </span>
         </div>
@@ -341,7 +341,7 @@
   <span class="md-ellipsis">
     
   
-    快速开始
+    开始使用
   
 
     
@@ -357,7 +357,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    快速开始
+    开始使用
   
 
           </label>
@@ -377,7 +377,7 @@
   <span class="md-ellipsis">
     
   
-    安装与首个回合
+    安装并跑通第一次实验
   
 
     
@@ -405,7 +405,7 @@
   <span class="md-ellipsis">
     
   
-    任务目录
+    选择一个任务
   
 
     
@@ -433,7 +433,7 @@
   <span class="md-ellipsis">
     
   
-    可视化实验室
+    打开可视化实验室
   
 
     
@@ -461,7 +461,7 @@
   <span class="md-ellipsis">
     
   
-    示例与 Notebook
+    跟着示例学习
   
 
     
@@ -535,7 +535,7 @@
   <span class="md-ellipsis">
     
   
-    构建智能体
+    开发智能体
   
 
     
@@ -551,7 +551,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    构建智能体
+    开发智能体
   
 
           </label>
@@ -571,7 +571,7 @@
   <span class="md-ellipsis">
     
   
-    Agent 接口
+    从 Agent 接口开始
   
 
     
@@ -599,7 +599,7 @@
   <span class="md-ellipsis">
     
   
-    操作语言
+    认识操作语言
   
 
     
@@ -627,7 +627,7 @@
   <span class="md-ellipsis">
     
   
-    Action 与 Recipe
+    编写 Action 与 Recipe
   
 
     
@@ -655,7 +655,7 @@
   <span class="md-ellipsis">
     
   
-    交互示例
+    查看交互示例
   
 
     
@@ -683,7 +683,7 @@
   <span class="md-ellipsis">
     
   
-    Wrapper
+    使用 Wrapper
   
 
     
@@ -711,7 +711,7 @@
   <span class="md-ellipsis">
     
   
-    LLM Agent
+    接入 LLM Agent
   
 
     
@@ -739,7 +739,7 @@
   <span class="md-ellipsis">
     
   
-    World Model 学习
+    学习 World Model
   
 
     
@@ -785,7 +785,7 @@
   <span class="md-ellipsis">
     
   
-    评测与证据
+    运行与评估
   
 
     
@@ -801,7 +801,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    评测与证据
+    运行与评估
   
 
           </label>
@@ -821,7 +821,7 @@
   <span class="md-ellipsis">
     
   
-    科学状态与证据
+    当前科学状态
   
 
     
@@ -849,7 +849,7 @@
   <span class="md-ellipsis">
     
   
-    评测协议
+    设计公平评测
   
 
     
@@ -877,7 +877,7 @@
   <span class="md-ellipsis">
     
   
-    Baseline 与资源公平
+    选择 Baseline
   
 
     
@@ -905,7 +905,7 @@
   <span class="md-ellipsis">
     
   
-    Seed 与数据划分
+    管理 Seed 与数据划分
   
 
     
@@ -933,7 +933,7 @@
   <span class="md-ellipsis">
     
   
-    提交与验证
+    打包并提交结果
   
 
     
@@ -961,7 +961,7 @@
   <span class="md-ellipsis">
     
   
-    结果可信链
+    验证结果可信度
   
 
     
@@ -1009,7 +1009,7 @@
   <span class="md-ellipsis">
     
   
-    环境与任务
+    理解 ChemWorld
   
 
     
@@ -1025,7 +1025,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    环境与任务
+    理解 ChemWorld
   
 
           </label>
@@ -1054,7 +1054,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    系统如何工作
   
 
     
@@ -1072,7 +1072,7 @@
   <span class="md-ellipsis">
     
   
-    系统架构
+    系统如何工作
   
 
     
@@ -1101,7 +1101,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        三层研究架构
+        先看全景
       
     </span>
   </a>
@@ -1112,7 +1112,29 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        分层结构
+        代码与职责怎样分层
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent 实际接触的接口
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#envstep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一次 env.step() 发生了什么
       
     </span>
   </a>
@@ -1123,7 +1145,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        公共交互合同
+        状态存在哪里
       
     </span>
   </a>
@@ -1131,10 +1153,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step" class="md-nav__link">
+  <a href="#operation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        一次 step 如何执行
+        Operation 怎样到达物理模块
       
     </span>
   </a>
@@ -1145,7 +1167,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        状态与单一事实源
+        隐藏机理怎样形成不同世界
       
     </span>
   </a>
@@ -1156,7 +1178,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        领域服务与物理模块
+        结果怎样被评价
       
     </span>
   </a>
@@ -1167,7 +1189,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        机理族与世界分配
+        四个容易混淆的概念
       
     </span>
   </a>
@@ -1178,18 +1200,7 @@
   <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
-        评价系统
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#worldscenariotaskcampaign" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        World、Scenario、Task、Campaign
+        公开观测怎样变成可回放轨迹
       
     </span>
   </a>
@@ -1200,18 +1211,7 @@
   <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        观测、轨迹与回放
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        扩展原则
+        扩展系统时遵守什么
       
     </span>
   </a>
@@ -1241,7 +1241,7 @@
   <span class="md-ellipsis">
     
   
-    Campaign 与 Experiment
+    Campaign、Experiment 与 Operation
   
 
     
@@ -1269,7 +1269,7 @@
   <span class="md-ellipsis">
     
   
-    任务卡
+    阅读任务卡
   
 
     
@@ -1297,7 +1297,7 @@
   <span class="md-ellipsis">
     
   
-    任务分类
+    浏览任务类型
   
 
     
@@ -1325,7 +1325,7 @@
   <span class="md-ellipsis">
     
   
-    环境卡
+    阅读环境卡
   
 
     
@@ -1353,7 +1353,7 @@
   <span class="md-ellipsis">
     
   
-    材料身份
+    材料名称代表什么
   
 
     
@@ -1381,7 +1381,7 @@
   <span class="md-ellipsis">
     
   
-    安全与成本
+    安全与成本如何计分
   
 
     
@@ -1409,7 +1409,7 @@
   <span class="md-ellipsis">
     
   
-    仪器合同
+    仪器能看到什么
   
 
     
@@ -1437,7 +1437,7 @@
   <span class="md-ellipsis">
     
   
-    虚拟光谱
+    虚拟光谱如何生成
   
 
     
@@ -1465,7 +1465,7 @@
   <span class="md-ellipsis">
     
   
-    世界律
+    世界律与版本
   
 
     
@@ -1549,7 +1549,7 @@
   <span class="md-ellipsis">
     
   
-    机理协议
+    隐藏机理与世界族
   
 
     
@@ -1577,7 +1577,7 @@
   <span class="md-ellipsis">
     
   
-    计算后端
+    计算后端与 Provider
   
 
     
@@ -1605,7 +1605,7 @@
   <span class="md-ellipsis">
     
   
-    反应与分离
+    反应与分离流程
   
 
     
@@ -1633,7 +1633,7 @@
   <span class="md-ellipsis">
     
   
-    场景生成
+    场景如何生成
   
 
     
@@ -1679,7 +1679,7 @@
   <span class="md-ellipsis">
     
   
-    数据与参考
+    数据、部署与边界
   
 
     
@@ -1695,7 +1695,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    数据与参考
+    数据、部署与边界
   
 
           </label>
@@ -1715,7 +1715,7 @@
   <span class="md-ellipsis">
     
   
-    数据集层
+    导出与使用数据集
   
 
     
@@ -1743,7 +1743,7 @@
   <span class="md-ellipsis">
     
   
-    验证与质量保证
+    验证安装与结果
   
 
     
@@ -1771,7 +1771,7 @@
   <span class="md-ellipsis">
     
   
-    本地评测机
+    运行本地评测机
   
 
     
@@ -1799,7 +1799,7 @@
   <span class="md-ellipsis">
     
   
-    API 参考
+    查阅 API
   
 
     
@@ -1827,7 +1827,7 @@
   <span class="md-ellipsis">
     
   
-    适用范围与限制
+    了解适用范围
   
 
     
@@ -1855,7 +1855,7 @@
   <span class="md-ellipsis">
     
   
-    伦理与数据
+    伦理与数据原则
   
 
     
@@ -1883,7 +1883,7 @@
   <span class="md-ellipsis">
     
   
-    发布说明
+    查看发布说明
   
 
     
@@ -1911,7 +1911,7 @@
   <span class="md-ellipsis">
     
   
-    教学路线
+    使用教学路线
   
 
     
@@ -1962,7 +1962,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        三层研究架构
+        先看全景
       
     </span>
   </a>
@@ -1973,7 +1973,29 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        分层结构
+        代码与职责怎样分层
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent 实际接触的接口
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#envstep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一次 env.step() 发生了什么
       
     </span>
   </a>
@@ -1984,7 +2006,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        公共交互合同
+        状态存在哪里
       
     </span>
   </a>
@@ -1992,10 +2014,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step" class="md-nav__link">
+  <a href="#operation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        一次 step 如何执行
+        Operation 怎样到达物理模块
       
     </span>
   </a>
@@ -2006,7 +2028,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        状态与单一事实源
+        隐藏机理怎样形成不同世界
       
     </span>
   </a>
@@ -2017,7 +2039,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        领域服务与物理模块
+        结果怎样被评价
       
     </span>
   </a>
@@ -2028,7 +2050,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        机理族与世界分配
+        四个容易混淆的概念
       
     </span>
   </a>
@@ -2039,18 +2061,7 @@
   <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
-        评价系统
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#worldscenariotaskcampaign" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        World、Scenario、Task、Campaign
+        公开观测怎样变成可回放轨迹
       
     </span>
   </a>
@@ -2061,18 +2072,7 @@
   <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        观测、轨迹与回放
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        扩展原则
+        扩展系统时遵守什么
       
     </span>
   </a>
@@ -2099,10 +2099,11 @@
   
 
 
-<h1 id="_1">系统架构<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>ChemWorld 把世界生成、Agent 交互和证据评测分成三个可独立版本化的系统。任务是同一世界律的
-不同切片，因此操作语义、守恒规则和轨迹合同不会因任务而暗中改变；评价规则也不写回环境。</p>
-<h2 id="_2">三层研究架构<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h1 id="_1">系统如何工作<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>可以把 ChemWorld 想成一座分层实验室：世界层决定隐藏规律，交互层接收 Action 并返回公开观测，
+评价层再把轨迹变成可以复查的结果。三层分别版本化，Agent 不需要读取内部状态，评分规则也不会
+反过来修改环境。</p>
+<h2 id="_2">先看全景<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -2132,7 +2133,7 @@
 <p>这种分离让 ChemWorld 同时成为测试环境和训练环境：Agent 可在公开 Train worlds 上训练，但 Bench
 worlds、评价合同和私有参数保持不可见。只要 World 或 Evaluation 合同改变，就生成新版本证据，
 不会用新评分解释旧轨迹。</p>
-<h2 id="_3">分层结构<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h2 id="_3">代码与职责怎样分层<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>Agent / Optimizer / CLI
           │
           ▼
@@ -2195,7 +2196,7 @@ Verified Evaluation
 </tr>
 </tbody>
 </table>
-<h2 id="_4">公共交互合同<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h2 id="agent">Agent 实际接触的接口<a class="headerlink" href="#agent" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">chemworld</span>
 
@@ -2206,7 +2207,7 @@ Verified Evaluation
 <p>Agent 只依赖任务允许的 action、observation 和 <code>info</code>。hidden mechanism parameters、真实物种
 账本以及私有评测条件不会通过公共观测泄漏。未观测值使用 <code>NaN</code>/<code>null</code> 与显式 mask，而不是
 伪造为零。</p>
-<h2 id="step">一次 step 如何执行<a class="headerlink" href="#step" title="Permanent link">&para;</a></h2>
+<h2 id="envstep">一次 <code>env.step()</code> 发生了什么<a class="headerlink" href="#envstep" title="Permanent link">&para;</a></h2>
 <ol>
 <li>action 被 canonicalize，并通过 schema、task 权限、payload 与前置条件校验；</li>
 <li>operation kernel 选择任务所需的领域服务；</li>
@@ -2218,7 +2219,7 @@ Verified Evaluation
 <li>recorder 写入操作、诊断、合同 hash、状态差异和成熟度。</li>
 </ol>
 <p>这一事务边界保证失败动作不会留下半更新状态，也让 replay 可以逐步比较。</p>
-<h2 id="_5">状态与单一事实源<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<h2 id="_4">状态存在哪里<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p><code>WorldState</code> 使用 typed ledgers：</p>
 <table>
 <thead>
@@ -2256,7 +2257,7 @@ Verified Evaluation
 </table>
 <p>主物料状态由 phase/species ledger 管理；metadata 只保存非主状态的诊断与 provenance。
 constitution 会审计聚合视图与单一事实源是否一致。</p>
-<h2 id="_6">领域服务与物理模块<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<h2 id="operation">Operation 怎样到达物理模块<a class="headerlink" href="#operation" title="Permanent link">&para;</a></h2>
 <p>Runtime 按能力拆分服务，而不是把所有逻辑放进 <code>env.step()</code>：</p>
 <ul>
 <li>反应与热：共享 compiled mechanism 的 batch/CSTR/PFR 推进、热账和风险投影；</li>
@@ -2270,7 +2271,7 @@ constitution 会审计聚合视图与单一事实源是否一致。</p>
 </ul>
 <p>每个模块通过 model card 声明单位、适用域、失败模式、provenance 和成熟度。详见
 <a href="../physchem_core_design/">物理化学模型</a>和<a href="../model_maturity/">模型成熟度</a>。</p>
-<h2 id="_7">机理族与世界分配<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<h2 id="_5">隐藏机理怎样形成不同世界<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>固定 seed 只能改变同一世界实例中的随机量，不足以证明 Agent 能适应不同机理。ChemWorld 将可干预
 世界参数组织为机理族，例如分配本构关系、反应速率律、结晶动力学、蒸馏分离行为和流动拓扑。
 每个干预都产生新的 mechanism hash，并保持公共任务语义不变。</p>
@@ -2278,7 +2279,7 @@ constitution 会审计聚合视图与单一事实源是否一致。</p>
 过弱的 shift 无法辨识泛化，过强的 shift 会把任务变成不可解。当前六个研究任务共有 9 种实际
 可执行的机理/构成律模式，均通过 5 世界 × 5 配方的可辨识性、非灾难性和守恒校准。多 seed Agent
 识别与迁移证据仍未完成。</p>
-<h2 id="_8">评价系统<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<h2 id="_6">结果怎样被评价<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <p>Evaluation 从只读轨迹产生独立结果层：终点目标、任务主指标、在线 shaping、风险/成本约束、
 方法资源、有效性和交互能力。在线 reward 不能替代任务主指标，目标改善也不能覆盖约束退化。
 完整主比较采用逐任务联合规则，不生成跨物理域混合总分。</p>
@@ -2287,7 +2288,7 @@ constitution 会审计聚合视图与单一事实源是否一致。</p>
 脚手架是否代办动作、外部模型调用、token、费用、训练步数和计算时间，这些诊断不被压进端点总分。</p>
 <p>结果通过 trajectory digest 与 score/replay payload 绑定。评测器重新加载轨迹、执行 replay、重算
 指标和约束，再生成 verified result；方法自报的 score 不进入可信链。</p>
-<h2 id="worldscenariotaskcampaign">World、Scenario、Task、Campaign<a class="headerlink" href="#worldscenariotaskcampaign" title="Permanent link">&para;</a></h2>
+<h2 id="_7">四个容易混淆的概念<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>World Law  共享且版本化的物理/交互规则
 Scenario   hidden parameters、初态、机制和随机种子
 Task       目标、预算、允许操作/仪器、指标和可见策略
@@ -2300,13 +2301,13 @@ Operation  单步实验动作
 泛化轴、证据和反作弊边界。</p>
 <p><code>single_experiment</code> 任务在合法 final assay 后结束 episode；<code>campaign</code> 任务可以在预算内完成
 多次 experiment，适合 BO、LHS 或 world-model learner。</p>
-<h2 id="_9">观测、轨迹与回放<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
+<h2 id="_8">公开观测怎样变成可回放轨迹<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
 <p>仪器输出分为 <code>raw_signal</code>、<code>processed_estimate</code> 和 <code>uncertainty</code>。trajectory 还记录任务、
 世界律、场景、机制、runtime profile、observation/scoring contract、maturity、操作前置条件、
 constitution checks 和状态差异摘要。</p>
 <p><code>chemworld verify</code> 在同一合同下重新执行 trajectory，并拒绝 hash 漂移、非法动作、状态不一致
 或分数篡改。评测层读取环境结果，不修改环境语义。</p>
-<h2 id="_10">扩展原则<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h2>
+<h2 id="_9">扩展系统时遵守什么<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
 <p>新增能力时应选择正确扩展点：</p>
 <ul>
 <li>新任务：注册 task/scenario，不复制环境；</li>
