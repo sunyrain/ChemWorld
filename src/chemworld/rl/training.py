@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import platform
+import re
 import sys
 from pathlib import Path
 from time import perf_counter, process_time
@@ -82,6 +83,14 @@ def train_sb3_baseline(
     checkpoint_stem = output / f"{algorithm}-{task_id}-seed{model_seed}"
     periodic_dir = output / "checkpoints"
     action_contract = _action_contract(env)
+    action_contract_hash = str(action_contract.get("contract_hash", ""))
+    if len(action_contract_hash) != 64:
+        raise RuntimeError("RL action contract is missing its compatibility hash")
+    training_reward_contract = _optional_wrapper_payload(env, "reward_contract")
+    if training_reward_contract is None or len(
+        str(training_reward_contract.get("contract_hash", ""))
+    ) != 64:
+        raise RuntimeError("RL training reward contract is missing its compatibility hash")
     observation_shape = list(env.observation_space.shape or ())
     wall_started = perf_counter()
     cpu_started = process_time()
@@ -134,15 +143,48 @@ def train_sb3_baseline(
         for path in sorted(periodic_dir.glob("*"))
         if path.is_file()
     ]
+    periodic_contract_manifests: list[dict[str, Any]] = []
+    for artifact in periodic_artifacts:
+        if artifact["artifact_type"] != "checkpoint":
+            continue
+        periodic_checkpoint = output / str(artifact["path"])
+        match = re.search(r"_(\d+)_steps$", periodic_checkpoint.stem)
+        sidecar = {
+            "schema_version": "chemworld-rl-checkpoint-contract-sidecar-0.1",
+            "algorithm": algorithm,
+            "task_id": task_id,
+            "training_environment_step_count": int(match.group(1)) if match else None,
+            "checkpoint": periodic_checkpoint.name,
+            "checkpoint_sha256": artifact["sha256"],
+            "action_contract_hash": action_contract_hash,
+            "training_reward_contract_hash": training_reward_contract["contract_hash"],
+            "legacy_checkpoint_compatible": False,
+        }
+        sidecar_path = periodic_checkpoint.with_suffix(".manifest.json")
+        sidecar_path.write_text(
+            json.dumps(sidecar, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        periodic_contract_manifests.append(
+            {
+                "path": str(sidecar_path.relative_to(output)),
+                "sha256": _sha256(sidecar_path),
+            }
+        )
     manifest = {
-        "schema_version": "chemworld-rl-checkpoint-0.1",
+        "schema_version": "chemworld-rl-checkpoint-0.2",
         "formal_evidence": False,
         "algorithm": algorithm,
         "task_id": task_id,
         "model_seed": model_seed,
         "allocation": allocation.public_manifest(),
         "action_contract": action_contract,
-        "training_reward_contract": _optional_wrapper_payload(env, "reward_contract"),
+        "action_contract_hash": action_contract_hash,
+        "training_reward_contract": training_reward_contract,
+        "training_reward_contract_hash": training_reward_contract["contract_hash"],
+        "checkpoint_compatibility": {
+            "policy": "exact_contract_hash_match",
+            "legacy_checkpoint_compatible": False,
+        },
         "training_diagnostics": training_diagnostics,
         "observation_shape": observation_shape,
         "requested_training_environment_step_count": total_timesteps,
@@ -150,6 +192,7 @@ def train_sb3_baseline(
         "step_budget_exact": actual_timesteps == total_timesteps,
         "checkpoint_interval_steps": checkpoint_interval_steps,
         "periodic_checkpoint_artifacts": periodic_artifacts,
+        "periodic_checkpoint_contract_manifests": periodic_contract_manifests,
         "replay_buffer_checkpointed": bool(save_replay_buffer),
         "operation_budget": operation_budget,
         "wall_time_s": wall_time_s,

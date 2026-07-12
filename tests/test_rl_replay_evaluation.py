@@ -20,6 +20,9 @@ from chemworld.rl.environment import (
     load_rl_protocol,
 )
 from chemworld.rl.evaluation import evaluate_replay_verified_sb3_checkpoint
+from chemworld.rl.hybrid_actions import conditional_hybrid_action_contract
+from chemworld.rl.rewards import reward_contract
+from chemworld.tasks import get_task
 from chemworld.wrappers import ContinuousEventActionWrapper, decode_continuous_event_action
 
 
@@ -86,12 +89,41 @@ def test_checkpoint_digest_mismatch_fails_before_policy_load(tmp_path: Path) -> 
     checkpoint = tmp_path / "policy.zip"
     checkpoint.write_bytes(b"not-a-checkpoint")
     manifest = {
-        "schema_version": "chemworld-rl-checkpoint-0.1",
+        "schema_version": "chemworld-rl-checkpoint-0.2",
         "algorithm": "ppo",
         "task_id": "flow-reaction-optimization",
         "checkpoint_sha256": "0" * 64,
     }
     with pytest.raises(ValueError, match="digest"):
+        FrozenSB3Agent(
+            algorithm="ppo",
+            checkpoint=checkpoint,
+            checkpoint_manifest=manifest,
+            task_id="flow-reaction-optimization",
+        )
+
+
+def test_checkpoint_contract_mismatch_fails_before_policy_load(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sb3 = pytest.importorskip("stable_baselines3")
+    checkpoint = tmp_path / "policy.zip"
+    checkpoint.write_bytes(b"not-loaded")
+    digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+    manifest = {
+        "schema_version": "chemworld-rl-checkpoint-0.2",
+        "algorithm": "ppo",
+        "task_id": "flow-reaction-optimization",
+        "checkpoint_sha256": digest,
+        "action_contract_hash": "0" * 64,
+        "training_reward_contract_hash": "0" * 64,
+    }
+
+    def unexpected_load(*args: object, **kwargs: object) -> object:
+        raise AssertionError("incompatible checkpoint reached policy deserialization")
+
+    monkeypatch.setattr(sb3.PPO, "load", unexpected_load)
+    with pytest.raises(ValueError, match="action contract hash"):
         FrozenSB3Agent(
             algorithm="ppo",
             checkpoint=checkpoint,
@@ -113,11 +145,14 @@ def test_frozen_policy_produces_official_replay_verified_trajectory(
         operation_budget=3,
     )
     observation_space = shape_env.observation_space
+    action_space = shape_env.action_space
+    action_contract = conditional_hybrid_action_contract(shape_env.unwrapped.action_space)
     shape_env.close()
 
     class FakeModel:
         def __init__(self) -> None:
             self.observation_space = observation_space
+            self.action_space = action_space
 
         def set_random_seed(self, seed: int) -> None:
             self.seed = seed
@@ -133,7 +168,7 @@ def test_frozen_policy_produces_official_replay_verified_trajectory(
     checkpoint.write_bytes(b"frozen-policy-fixture")
     digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
     manifest: dict[str, Any] = {
-        "schema_version": "chemworld-rl-checkpoint-0.1",
+        "schema_version": "chemworld-rl-checkpoint-0.2",
         "algorithm": "ppo",
         "task_id": task_id,
         "checkpoint_sha256": digest,
@@ -142,6 +177,10 @@ def test_frozen_policy_produces_official_replay_verified_trajectory(
         "gpu_time_s": 0.0,
         "allocation": {"name": "train"},
         "versions": {"stable_baselines3": sb3.__version__},
+        "action_contract_hash": action_contract["contract_hash"],
+        "training_reward_contract_hash": reward_contract(
+            get_task(task_id).allowed_operations
+        )["contract_hash"],
     }
     report = evaluate_replay_verified_sb3_checkpoint(
         algorithm="ppo",

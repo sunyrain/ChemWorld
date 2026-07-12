@@ -1,0 +1,55 @@
+{
+  "schema_version": "chemworld-foundation-rl-contract-protocol-0.1",
+  "protocol_id": "foundation-rl-contract-vnext",
+  "status": "remediation_candidate",
+  "benchmark_claim_allowed": false,
+  "task_id": "flow-reaction-optimization",
+  "action_contract": {
+    "schema_version": "chemworld-conditional-hybrid-action-0.1",
+    "operation_semantics": "categorical",
+    "parameter_semantics": "operation_conditional",
+    "irrelevant_parameters_enter_execution": false,
+    "stable_baselines_adapter": {
+      "schema_version": "chemworld-sb3-box-latent-adapter-0.1",
+      "shape": [49],
+      "native_hybrid_distribution": false,
+      "claim_boundary": "Compatibility adapter only; it is not evidence of a native hybrid policy distribution."
+    }
+  },
+  "reward_contract": {
+    "schema_version": "chemworld-rl-training-reward-0.2",
+    "terminal_bonus": false,
+    "measurement_bonus": false,
+    "quick_close_incomplete_penalty": -0.5,
+    "behavioral_completion_requirements": [
+      ["set_flow_rate"],
+      ["run_flow"]
+    ],
+    "campaign_experiment_boundary_resets_behavior_ledger": true
+  },
+  "checkpoint_compatibility": {
+    "manifest_schema_version": "chemworld-rl-checkpoint-0.2",
+    "policy": "exact action and reward contract hash match",
+    "legacy_checkpoint_compatible": false,
+    "periodic_checkpoint_sidecar_required": true
+  },
+  "development_gate": {
+    "training_seeds": [101, 102, 103, 104, 105],
+    "dev_episodes_per_seed": 20,
+    "required_operations_in_every_completed_experiment": [
+      "set_flow_rate",
+      "run_flow",
+      "measure:final_assay"
+    ],
+    "minimum_behavior_complete_experiment_rate": 1.0,
+    "quick_close_rate": 0.0,
+    "runtime_domain_failure_count": 0,
+    "observation_domain_failure_count": 0
+  },
+  "evidence_policy": {
+    "failed_pilots_retained": true,
+    "five_seed_gate_may_not_be_replaced_by_a_scripted_policy": true,
+    "dev_only": true,
+    "formal_benchmark_ranking": false
+  }
+}

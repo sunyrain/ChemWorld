@@ -14,7 +14,7 @@ import numpy as np
 import chemworld  # noqa: F401
 from chemworld.world.world_family import axes_for_task
 from chemworld.wrappers import (
-    ContinuousEventActionWrapper,
+    ConditionalHybridActionWrapper,
     RLControlObservationWrapper,
     RLObservationWrapper,
     RLTrainingRewardWrapper,
@@ -131,7 +131,7 @@ def build_rl_environment(
     operation_budget: int | None = None,
     training_reward: bool = False,
 ) -> gym.Env[np.ndarray, np.ndarray]:
-    """Construct the same finite Box observation/action contract for PPO and SAC."""
+    """Construct the conditional hybrid contract through an SB3 Box latent adapter."""
 
     if allocation.task_id != task_id:
         raise ValueError("allocation task does not match environment task")
@@ -141,7 +141,7 @@ def build_rl_environment(
         kwargs["episode_mode_override"] = "campaign"
     env: gym.Env[Any, Any] = gym.make("ChemWorld", **kwargs)
     env = TrainWorldFamilyWrapper(env, allocation=allocation, sampler_seed=sampler_seed)
-    env = ContinuousEventActionWrapper(env)
+    env = ConditionalHybridActionWrapper(env)
     env = RLObservationWrapper(env, include_mask=True, include_cost=True)
     env = RLControlObservationWrapper(env)
     if training_reward:

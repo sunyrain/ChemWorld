@@ -37,10 +37,18 @@ def test_manifest_records_actual_ppo_rollout_steps_and_periodic_checkpoint(
     assert manifest["training_environment_step_count"] == 16
     assert manifest["step_budget_exact"] is False
     assert manifest["training_diagnostics"]["step_count"] == 16
+    assert manifest["schema_version"] == "chemworld-rl-checkpoint-0.2"
+    assert len(manifest["action_contract_hash"]) == 64
+    assert len(manifest["training_reward_contract_hash"]) == 64
     artifacts = manifest["periodic_checkpoint_artifacts"]
     assert len(artifacts) == 2
     assert all(item["artifact_type"] == "checkpoint" for item in artifacts)
     assert all(len(item["sha256"]) == 64 for item in artifacts)
+    assert len(manifest["periodic_checkpoint_contract_manifests"]) == 2
+    assert all(
+        (tmp_path / item["path"]).is_file()
+        for item in manifest["periodic_checkpoint_contract_manifests"]
+    )
 
 
 def test_sac_periodic_manifest_distinguishes_model_and_replay_buffer(

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import statistics
 import time
@@ -10,8 +11,32 @@ from pathlib import Path
 from typing import Any, Literal
 
 from chemworld.rl.environment import RLWorldAllocation, build_rl_environment
+from chemworld.rl.rewards import reward_contract
+from chemworld.tasks import get_task
 
 AlgorithmName = Literal["ppo", "sac"]
+
+
+def _checkpoint_contract_manifest(checkpoint: Path) -> dict[str, Any]:
+    path = checkpoint.with_suffix(".manifest.json")
+    if not path.is_file():
+        raise ValueError(
+            "RL checkpoint is missing its contract manifest; legacy checkpoints are incompatible"
+        )
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("RL checkpoint contract manifest must be a JSON object")
+    return payload
+
+
+def _environment_action_contract(env: Any) -> dict[str, Any]:
+    current = env
+    while current is not None:
+        factory = getattr(current, "action_contract", None)
+        if callable(factory):
+            return dict(factory())
+        current = getattr(current, "env", None)
+    raise ValueError("RL evaluation environment is missing its action contract")
 
 
 def evaluate_sb3_checkpoint(
@@ -40,9 +65,7 @@ def evaluate_sb3_checkpoint(
     except ImportError as exc:  # pragma: no cover - optional dependency
         raise RuntimeError("install ChemWorld with the 'rl' extra to evaluate PPO or SAC") from exc
 
-    model_class = sb3.PPO if algorithm == "ppo" else sb3.SAC
-    set_random_seed(policy_seed)
-    model = model_class.load(Path(checkpoint))
+    checkpoint_path = Path(checkpoint)
     env = build_rl_environment(
         task_id=task_id,
         allocation=allocation,
@@ -50,6 +73,32 @@ def evaluate_sb3_checkpoint(
         operation_budget=operation_budget,
         training_reward=False,
     )
+    contract_manifest = _checkpoint_contract_manifest(checkpoint_path)
+    if contract_manifest.get("schema_version") not in {
+        "chemworld-rl-checkpoint-0.2",
+        "chemworld-rl-checkpoint-contract-sidecar-0.1",
+    }:
+        env.close()
+        raise ValueError("unsupported RL checkpoint contract manifest")
+    expected_action = _environment_action_contract(env)
+    expected_reward = reward_contract(get_task(task_id).allowed_operations)
+    digest = hashlib.sha256(checkpoint_path.read_bytes()).hexdigest()
+    compatibility = {
+        "checkpoint_digest": contract_manifest.get("checkpoint_sha256") == digest,
+        "algorithm": contract_manifest.get("algorithm") == algorithm,
+        "task": contract_manifest.get("task_id") == task_id,
+        "action_contract": contract_manifest.get("action_contract_hash")
+        == expected_action["contract_hash"],
+        "reward_contract": contract_manifest.get("training_reward_contract_hash")
+        == expected_reward["contract_hash"],
+    }
+    if not all(compatibility.values()):
+        env.close()
+        failed = sorted(key for key, passed in compatibility.items() if not passed)
+        raise ValueError(f"RL checkpoint contract is incompatible: {', '.join(failed)}")
+    model_class = sb3.PPO if algorithm == "ppo" else sb3.SAC
+    set_random_seed(policy_seed)
+    model = model_class.load(checkpoint_path)
     episode_cards: list[dict[str, Any]] = []
     operation_counts: Counter[str] = Counter()
     try:
@@ -128,6 +177,9 @@ def evaluate_sb3_checkpoint(
         "policy_seed": policy_seed,
         "policy_mode": "deterministic" if deterministic else "stochastic_frozen_seed",
         "training_reward_used": False,
+        "checkpoint_contract_compatibility": compatibility,
+        "action_contract_hash": expected_action["contract_hash"],
+        "training_reward_contract_hash": expected_reward["contract_hash"],
         "episode_cards": episode_cards,
         "summary": {
             "operation_count": total_steps,

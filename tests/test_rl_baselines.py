@@ -14,7 +14,11 @@ from chemworld.rl.environment import (
     build_rl_environment,
     load_rl_protocol,
 )
-from chemworld.wrappers import ContinuousEventActionWrapper, RLTrainingRewardWrapper
+from chemworld.wrappers import (
+    ConditionalHybridActionWrapper,
+    ContinuousEventActionWrapper,
+    RLTrainingRewardWrapper,
+)
 
 
 def _allocation(task_id: str, name: str = "train") -> RLWorldAllocation:
@@ -51,6 +55,34 @@ def test_continuous_action_adapter_has_stationary_fixed_semantics() -> None:
         assert env.action_contract()["execution_numeric_policy"]
         with pytest.raises(ValueError, match="finite vector"):
             env.action(np.full(49, np.nan, dtype=np.float32))
+    finally:
+        env.close()
+
+
+def test_conditional_hybrid_adapter_excludes_irrelevant_coordinates() -> None:
+    env = ConditionalHybridActionWrapper(
+        gym.make("ChemWorld", task_id="flow-reaction-optimization")
+    )
+    try:
+        env.reset(seed=0)
+        contract = env.action_contract()
+        assert contract["schema_version"] == "chemworld-conditional-hybrid-action-0.1"
+        assert contract["semantic_action"]["operation"]["kind"] == "categorical"
+        assert contract["training_adapter"]["native_hybrid_distribution"] is False
+        assert len(contract["contract_hash"]) == 64
+
+        first = np.zeros(49, dtype=np.float32)
+        first[env.operation_types.index("add_reagent")] = 1.0
+        second = first.copy()
+        # Change every parameter coordinate except amount_mol. The executed
+        # conditional action must remain identical.
+        amount_index = env.parameter_keys.index("amount_mol")
+        second[len(env.operation_types) :] = 1.0
+        second[len(env.operation_types) + amount_index] = first[
+            len(env.operation_types) + amount_index
+        ]
+        assert env.action(first) == env.action(second)
+        assert set(env.action(first)) == {"operation", "amount_mol"}
     finally:
         env.close()
 
@@ -172,12 +204,86 @@ def test_training_reward_uses_public_failures_without_changing_raw_environment()
         env.close()
 
 
+def test_training_reward_marks_quick_close_without_terminal_or_measurement_bonus() -> None:
+    env = RLTrainingRewardWrapper(
+        gym.make(
+            "ChemWorld",
+            task_id="flow-reaction-optimization",
+            budget_override=8,
+            episode_mode_override="campaign",
+        )
+    )
+    try:
+        env.reset(seed=0)
+        env.step({"operation": "add_reagent", "amount_mol": 0.02})
+        env.step({"operation": "add_solvent", "volume_L": 0.05, "solvent": 0})
+        _, terminate_reward, _, _, _ = env.step({"operation": "terminate"})
+        _, assay_reward, _, _, info = env.step(
+            {"operation": "measure", "instrument": "final_assay"}
+        )
+        reward_info = info["rl_training_reward"]
+        assert terminate_reward == 0.0
+        assert assay_reward == pytest.approx(reward_info["raw_reward"] - 0.50)
+        assert reward_info["newly_unlocked_operations"] == 0
+        assert reward_info["behavior_complete"] is False
+        assert reward_info["quick_close_incomplete"] is True
+        diagnostics = env.training_diagnostics()
+        assert diagnostics["quick_close_count"] == 1
+        assert diagnostics["behavior_complete_experiment_count"] == 0
+        contract = env.reward_contract()
+        assert contract["components"]["experiment_ended"] == 0.0
+        assert contract["components"]["measurement"] == 0.0
+        assert contract["components"]["quick_close_incomplete"] == -0.50
+        assert contract["leakage_controls"]["terminal_bonus"] is False
+    finally:
+        env.close()
+
+
+def test_flow_core_operation_is_recorded_as_behavioral_completion() -> None:
+    env = RLTrainingRewardWrapper(
+        gym.make("ChemWorld", task_id="flow-reaction-optimization", budget_override=8)
+    )
+    try:
+        env.reset(seed=0)
+        env.step({"operation": "add_reagent", "amount_mol": 0.02})
+        env.step({"operation": "add_solvent", "volume_L": 0.05, "solvent": 0})
+        env.step(
+            {
+                "operation": "set_flow_rate",
+                "flow_rate_mL_min": 1.0,
+                "residence_time_s": 600.0,
+            }
+        )
+        _, _, _, _, info = env.step(
+            {
+                "operation": "run_flow",
+                "target_temperature_K": 380.0,
+                "duration_s": 600.0,
+            }
+        )
+        assert info["rl_training_reward"]["behavior_complete"] is True
+        assert info["rl_training_reward"]["executed_core_operations"] == [
+            "run_flow",
+            "set_flow_rate",
+        ]
+        assert env.training_diagnostics()["core_operation_counts"] == {
+            "run_flow": 1,
+            "set_flow_rate": 1,
+        }
+    finally:
+        env.close()
+
+
 def test_rl_protocol_keeps_formal_claims_closed() -> None:
     protocol = load_rl_protocol(RL_PROTOCOL)
     assert protocol["publication_ready"] is False
     assert protocol["benchmark_claim_allowed"] is False
     report = build_report()
-    assert report["controls_ready"] is True
+    # The historical 0.3 protocol is intentionally superseded by the
+    # conditional hybrid contract and must fail closed rather than silently
+    # validating new environments under old semantics.
+    assert report["controls_ready"] is False
+    assert report["checks"]["action_key_order_frozen"] is False
     assert report["formal_training_complete"] is False
     assert report["publication_ready"] is False
     if report["development_evidence"] is not None:

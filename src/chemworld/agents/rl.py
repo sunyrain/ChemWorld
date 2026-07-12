@@ -13,8 +13,13 @@ import numpy as np
 import chemworld  # noqa: F401
 from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.interaction import AgentDecisionContext, InteractionCapabilities
+from chemworld.rl.hybrid_actions import (
+    conditional_hybrid_action_contract,
+    decode_conditional_hybrid_action,
+)
+from chemworld.rl.rewards import reward_contract
+from chemworld.tasks import get_task
 from chemworld.world.operations import OPERATION_TYPES
-from chemworld.wrappers import decode_continuous_event_action
 
 RLAlgorithm = Literal["ppo", "sac"]
 
@@ -95,14 +100,34 @@ class FrozenSB3Agent(BaseAgent):
         self.deterministic = bool(deterministic)
         self.policy_seed = policy_seed
         self.checkpoint_sha256 = _sha256(self.checkpoint)
-        if self.checkpoint_manifest.get("schema_version") != "chemworld-rl-checkpoint-0.1":
-            raise ValueError("unsupported RL checkpoint manifest")
+        if self.checkpoint_manifest.get("schema_version") != "chemworld-rl-checkpoint-0.2":
+            raise ValueError(
+                "unsupported RL checkpoint manifest; legacy checkpoints must be retrained "
+                "under the current action and reward contracts"
+            )
         if self.checkpoint_manifest.get("algorithm") != algorithm:
             raise ValueError("RL checkpoint algorithm does not match adapter")
         if self.checkpoint_manifest.get("task_id") != task_id:
             raise ValueError("RL checkpoint task does not match adapter")
         if self.checkpoint_manifest.get("checkpoint_sha256") != self.checkpoint_sha256:
             raise ValueError("RL checkpoint digest does not match its manifest")
+        schema_env = gym.make("ChemWorld", task_id=task_id)
+        try:
+            if not isinstance(schema_env.action_space, gym.spaces.Dict):
+                raise TypeError("ChemWorld event action space must be Dict")
+            self._event_action_space = schema_env.action_space
+        finally:
+            schema_env.close()
+        self.action_contract = conditional_hybrid_action_contract(self._event_action_space)
+        self.reward_contract = reward_contract(get_task(task_id).allowed_operations)
+        if self.checkpoint_manifest.get("action_contract_hash") != self.action_contract[
+            "contract_hash"
+        ]:
+            raise ValueError("RL checkpoint action contract hash is incompatible")
+        if self.checkpoint_manifest.get(
+            "training_reward_contract_hash"
+        ) != self.reward_contract["contract_hash"]:
+            raise ValueError("RL checkpoint reward contract hash is incompatible")
         try:
             import stable_baselines3 as sb3
         except ImportError as exc:  # pragma: no cover - optional dependency
@@ -111,13 +136,11 @@ class FrozenSB3Agent(BaseAgent):
             ) from exc
         model_class = sb3.PPO if algorithm == "ppo" else sb3.SAC
         self._model = model_class.load(self.checkpoint)
-        schema_env = gym.make("ChemWorld", task_id=task_id)
-        try:
-            if not isinstance(schema_env.action_space, gym.spaces.Dict):
-                raise TypeError("ChemWorld event action space must be Dict")
-            self._event_action_space = schema_env.action_space
-        finally:
-            schema_env.close()
+        expected_action_shape = tuple(
+            self.action_contract["training_adapter"]["shape"]
+        )
+        if tuple(self._model.action_space.shape or ()) != expected_action_shape:
+            raise ValueError("RL checkpoint latent action shape is incompatible")
         self._prediction_count = 0
         self._last_trace: list[dict[str, Any]] = []
 
@@ -155,7 +178,7 @@ class FrozenSB3Agent(BaseAgent):
             observation,
             deterministic=self.deterministic,
         )
-        action = decode_continuous_event_action(
+        action = decode_conditional_hybrid_action(
             action_vector,
             event_action_space=self._event_action_space,
             operation_mask=operation_mask,
@@ -164,7 +187,7 @@ class FrozenSB3Agent(BaseAgent):
         operation_index = int(action["operation"])
         self._last_trace = [
             {
-                "trace_schema_version": "chemworld-frozen-rl-decision-0.1",
+                "trace_schema_version": "chemworld-frozen-rl-decision-0.2",
                 "policy_mode": (
                     "deterministic" if self.deterministic else "stochastic_frozen_seed"
                 ),
@@ -173,6 +196,7 @@ class FrozenSB3Agent(BaseAgent):
                 "selected_operation": OPERATION_TYPES[operation_index],
                 "public_valid_operation_count": int(sum(operation_mask)),
                 "checkpoint_sha256": self.checkpoint_sha256,
+                "action_contract_hash": self.action_contract["contract_hash"],
             }
         ]
         return action
@@ -192,6 +216,8 @@ class FrozenSB3Agent(BaseAgent):
                 "checkpoint_filename": self.checkpoint.name,
                 "checkpoint_sha256": self.checkpoint_sha256,
                 "checkpoint_manifest_schema": self.checkpoint_manifest["schema_version"],
+                "action_contract_hash": self.action_contract["contract_hash"],
+                "training_reward_contract_hash": self.reward_contract["contract_hash"],
                 "training_allocation": self.checkpoint_manifest.get("allocation", {}),
                 "uses_training_reward_at_evaluation": False,
                 "public_view_only": True,

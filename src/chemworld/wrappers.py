@@ -10,6 +10,17 @@ from gymnasium.utils import RecordConstructorArgs
 
 from chemworld.agent_interface import observation_view, rl_observation_spec, rl_observation_view
 from chemworld.data.logging import to_builtin
+from chemworld.rl.hybrid_actions import (
+    conditional_hybrid_action_contract,
+    decode_conditional_hybrid_action,
+)
+from chemworld.rl.rewards import (
+    REWARD_COMPONENTS,
+    REWARD_SCHEMA_VERSION,
+    core_operation_requirements,
+    reward_contract,
+    satisfied_requirement_count,
+)
 from chemworld.world.operations import OPERATION_TYPES
 from chemworld.world.scoring import safety_cost_from_flags
 
@@ -382,6 +393,43 @@ class ContinuousEventActionWrapper(gym.ActionWrapper[Any, Any, Any], RecordConst
         )
 
 
+class ConditionalHybridActionWrapper(
+    gym.ActionWrapper[Any, Any, Any], RecordConstructorArgs
+):
+    """SB3 adapter for the categorical, operation-conditional action contract.
+
+    The exposed Box is a framework compatibility latent, not the semantic
+    benchmark action. Only fields required by the chosen operation are decoded.
+    """
+
+    def __init__(self, env: gym.Env[Any, Any]) -> None:
+        RecordConstructorArgs.__init__(self)
+        super().__init__(env)
+        if not isinstance(env.action_space, gym.spaces.Dict):
+            raise TypeError("ConditionalHybridActionWrapper requires a Dict action space")
+        self.event_action_space = env.action_space
+        self.parameter_keys = tuple(
+            key for key in self.event_action_space.spaces if key != "operation"
+        )
+        self.operation_types = tuple(OPERATION_TYPES)
+        self.action_space = gym.spaces.Box(
+            low=-1.0,
+            high=1.0,
+            shape=(len(self.operation_types) + len(self.parameter_keys),),
+            dtype=np.float32,
+        )
+
+    def action_contract(self) -> dict[str, Any]:
+        return conditional_hybrid_action_contract(self.event_action_space)
+
+    def action(self, action: Any) -> dict[str, Any]:
+        return decode_conditional_hybrid_action(
+            action,
+            event_action_space=self.event_action_space,
+            operation_mask=action_mask(self.env),
+        )
+
+
 class RLControlObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordConstructorArgs):
     """Append operation affordances and normalized campaign progress to RL observations."""
 
@@ -431,17 +479,24 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
     completed experiments distinguishable to a learner.
     """
 
-    SCHEMA_VERSION = "chemworld-rl-training-reward-0.1"
+    SCHEMA_VERSION = REWARD_SCHEMA_VERSION
 
     def __init__(self, env: gym.Env[Any, Any]) -> None:
         RecordConstructorArgs.__init__(self)
         super().__init__(env)
         self._previous_valid_operations: set[str] = set()
+        base = _base_env(env)
+        self._allowed_operations = tuple(sorted(base.allowed_operations))
+        self._core_requirements = core_operation_requirements(self._allowed_operations)
+        self._executed_operations: set[str] = set()
+        self._satisfied_requirement_count = 0
         self._diagnostics = self._empty_diagnostics()
 
     def reset(self, **kwargs: Any) -> tuple[Any, dict[str, Any]]:
         observation, info = self.env.reset(**kwargs)
         self._previous_valid_operations = self._valid_operations()
+        self._executed_operations = set()
+        self._satisfied_requirement_count = 0
         self._diagnostics["episode_count"] += 1
         return observation, info
 
@@ -453,19 +508,39 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
         newly_unlocked = len(current_valid.difference(self._previous_valid_operations))
         operation = str(info.get("operation_type", ""))
         experiment_ended = bool(info.get("experiment_ended", False))
-        shaped_reward = float(raw_reward)
-        shaped_reward += -0.25 if invalid else 0.01
-        shaped_reward += 0.02 * newly_unlocked
-        if not invalid and operation == "measure":
-            shaped_reward += 0.02
+        # Campaign-mode final assay resets the next experiment before returning.
+        # Those post-reset affordances are not consequences worth rewarding on
+        # the terminal measurement step.
         if experiment_ended:
-            shaped_reward += 1.0
+            newly_unlocked = 0
+        if not invalid and operation:
+            self._executed_operations.add(operation)
+        satisfied_count = satisfied_requirement_count(
+            self._core_requirements, self._executed_operations
+        )
+        newly_satisfied = satisfied_count - self._satisfied_requirement_count
+        behavior_complete = bool(self._core_requirements) and (
+            satisfied_count == len(self._core_requirements)
+        )
+        quick_close = experiment_ended and not behavior_complete
+        shaped_reward = float(raw_reward)
+        if invalid:
+            shaped_reward += REWARD_COMPONENTS["invalid_precondition"]
+        elif operation not in {"measure", "terminate"}:
+            shaped_reward += REWARD_COMPONENTS["valid_nonterminal_operation"]
+        shaped_reward += REWARD_COMPONENTS["newly_unlocked_operation"] * newly_unlocked
+        shaped_reward += (
+            REWARD_COMPONENTS["newly_satisfied_core_requirement"] * newly_satisfied
+        )
+        if quick_close:
+            shaped_reward += REWARD_COMPONENTS["quick_close_incomplete"]
         if bool(flags.get("unsafe_by_task_limit", False)):
             shaped_reward -= 0.10
         if bool(flags.get("high_cost", False)):
             shaped_reward -= 0.05
 
         self._previous_valid_operations = current_valid
+        self._satisfied_requirement_count = satisfied_count
         self._diagnostics["step_count"] += 1
         self._diagnostics["invalid_action_count"] += int(invalid)
         self._diagnostics["runtime_domain_failure_count"] += int(
@@ -473,6 +548,16 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
         )
         self._diagnostics["measurement_count"] += int(not invalid and operation == "measure")
         self._diagnostics["completed_experiment_count"] += int(experiment_ended)
+        self._diagnostics["behavior_complete_experiment_count"] += int(
+            experiment_ended and behavior_complete
+        )
+        self._diagnostics["quick_close_count"] += int(quick_close)
+        self._diagnostics["core_requirement_satisfied_count"] += newly_satisfied
+        if not invalid and operation in {
+            candidate for group in self._core_requirements for candidate in group
+        }:
+            core_counts = self._diagnostics["core_operation_counts"]
+            core_counts[operation] = int(core_counts.get(operation, 0)) + 1
         self._diagnostics["newly_unlocked_operation_count"] += newly_unlocked
         self._diagnostics["unsafe_step_count"] += int(
             bool(flags.get("unsafe_by_task_limit", False))
@@ -487,26 +572,24 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
             "shaped_reward": shaped_reward,
             "invalid_action": invalid,
             "newly_unlocked_operations": newly_unlocked,
+            "newly_satisfied_core_requirements": newly_satisfied,
+            "core_operation_requirements": [list(group) for group in self._core_requirements],
+            "executed_core_operations": sorted(
+                self._executed_operations.intersection(
+                    {candidate for group in self._core_requirements for candidate in group}
+                )
+            ),
+            "behavior_complete": behavior_complete,
+            "quick_close_incomplete": quick_close,
             "experiment_ended": experiment_ended,
         }
+        if experiment_ended:
+            self._executed_operations = set()
+            self._satisfied_requirement_count = 0
         return observation, shaped_reward, terminated, truncated, payload
 
     def reward_contract(self) -> dict[str, Any]:
-        return {
-            "schema_version": self.SCHEMA_VERSION,
-            "public_signals_only": True,
-            "benchmark_evaluation_uses_shaped_reward": False,
-            "components": {
-                "raw_environment_reward": 1.0,
-                "valid_operation": 0.01,
-                "invalid_precondition": -0.25,
-                "newly_unlocked_operation": 0.02,
-                "valid_measurement": 0.02,
-                "completed_experiment": 1.0,
-                "unsafe_step": -0.10,
-                "high_cost_step": -0.05,
-            },
-        }
+        return reward_contract(self._allowed_operations)
 
     def training_diagnostics(self) -> dict[str, Any]:
         payload = dict(self._diagnostics)
@@ -514,6 +597,9 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
         payload["invalid_action_rate"] = payload["invalid_action_count"] / steps
         payload["completed_experiments_per_1000_steps"] = (
             1000.0 * payload["completed_experiment_count"] / steps
+        )
+        payload["quick_close_rate"] = payload["quick_close_count"] / max(
+            int(payload["completed_experiment_count"]), 1
         )
         return payload
 
@@ -530,6 +616,10 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
             "runtime_domain_failure_count": 0,
             "measurement_count": 0,
             "completed_experiment_count": 0,
+            "behavior_complete_experiment_count": 0,
+            "quick_close_count": 0,
+            "core_requirement_satisfied_count": 0,
+            "core_operation_counts": {},
             "newly_unlocked_operation_count": 0,
             "unsafe_step_count": 0,
             "high_cost_step_count": 0,
