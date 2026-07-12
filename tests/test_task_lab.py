@@ -226,6 +226,39 @@ class LateFailureAdaptiveClient(AdaptiveAuditClient):
         )
 
 
+class RetrievedSpectrumRepairClient(AdaptiveAuditClient):
+    """Request one spectrum, reject the associated action, then repair it."""
+
+    def complete_json(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int = 4096,
+    ) -> JsonCompletion:
+        prompt = json.loads(user_prompt)
+        if str(prompt.get("instruction", "")).startswith("Repair the rejected action"):
+            self.prompts.append(prompt)
+            return JsonCompletion(
+                payload={"action": {"operation": "quench"}},
+                model=self.model,
+                usage={"prompt_tokens": 3, "completion_tokens": 2, "total_tokens": 5},
+            )
+        if self.action_index == 5 and prompt.get("retrieved_spectra"):
+            self.prompts.append(prompt)
+            self.action_index += 1
+            return JsonCompletion(
+                payload={"action": {"operation": "measure", "instrument": "final_assay"}},
+                model=self.model,
+                usage={"prompt_tokens": 3, "completion_tokens": 2, "total_tokens": 5},
+            )
+        return super().complete_json(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            max_tokens=max_tokens,
+        )
+
+
 class RepeatedCampaignClient(AdaptiveAuditClient):
     def __init__(self) -> None:
         super().__init__()
@@ -253,6 +286,9 @@ class RepeatingInvalidClient:
     model = "fake-repeating-invalid"
     thinking = False
 
+    def __init__(self) -> None:
+        self.prompts: list[dict[str, Any]] = []
+
     def complete_json(
         self,
         *,
@@ -260,7 +296,8 @@ class RepeatingInvalidClient:
         user_prompt: str,
         max_tokens: int = 4096,
     ) -> JsonCompletion:
-        del system_prompt, user_prompt, max_tokens
+        del system_prompt, max_tokens
+        self.prompts.append(json.loads(user_prompt))
         return JsonCompletion(
             payload={
                 "action": {
@@ -801,8 +838,9 @@ def test_adaptive_runner_stops_a_repeating_unrepairable_decision_loop(
     tmp_path: Path,
 ) -> None:
     events: list[dict[str, Any]] = []
+    client = RepeatingInvalidClient()
     result = run_task(
-        client=RepeatingInvalidClient(),
+        client=client,
         task_id="reaction-to-assay",
         output_dir=tmp_path,
         mode="adaptive",
@@ -814,14 +852,23 @@ def test_adaptive_runner_stops_a_repeating_unrepairable_decision_loop(
     assert result.invalid_plan_actions == 3
     assert result.model_call_count == 6
     assert any(event["type"] == "decision_loop_stopped" for event in events)
+    repair_prompts = [
+        prompt
+        for prompt in client.prompts
+        if str(prompt.get("instruction", "")).startswith("Repair the rejected action")
+    ]
+    assert repair_prompts
+    assert all(prompt["available_spectra"] == [] for prompt in repair_prompts)
+    assert all(prompt["retrieved_spectra"] == [] for prompt in repair_prompts)
 
 
 def test_adaptive_runner_preserves_scoring_when_a_late_model_call_fails(
     tmp_path: Path,
 ) -> None:
     events: list[dict[str, Any]] = []
+    client = LateFailureAdaptiveClient()
     result = run_task(
-        client=LateFailureAdaptiveClient(),
+        client=client,
         task_id="reaction-to-assay",
         output_dir=tmp_path,
         mode="adaptive",
@@ -830,16 +877,54 @@ def test_adaptive_runner_preserves_scoring_when_a_late_model_call_fails(
     )
     assert result.status == "scored"
     assert result.final_assay_count == 1
-    assert result.model_call_count == 11
+    assert result.model_call_count == 12
     assert result.usage == {
-        "prompt_tokens": 104,
-        "completion_tokens": 43,
-        "total_tokens": 147,
+        "prompt_tokens": 114,
+        "completion_tokens": 48,
+        "total_tokens": 162,
         "prompt_cache_hit_tokens": 0,
         "prompt_cache_miss_tokens": 0,
     }
     assert any(event["type"] == "model_call_failed" for event in events)
     assert any(event["type"] == "closeout_action" for event in events)
+    repair_prompt = next(
+        prompt
+        for prompt in client.prompts
+        if str(prompt.get("instruction", "")).startswith("Repair the rejected action")
+    )
+    assert repair_prompt["available_spectra"]
+    assert repair_prompt["retrieved_spectra"] == []
+    assert all("series" not in item for item in repair_prompt["available_spectra"])
+
+
+def test_adaptive_repair_receives_only_explicitly_retrieved_spectrum(
+    tmp_path: Path,
+) -> None:
+    client = RetrievedSpectrumRepairClient()
+    events: list[dict[str, Any]] = []
+    result = run_task(
+        client=client,
+        task_id="reaction-to-assay",
+        output_dir=tmp_path,
+        mode="adaptive",
+        max_steps=10,
+        event_callback=events.append,
+    )
+
+    assert result.status == "scored"
+    repair_prompt = next(
+        prompt
+        for prompt in client.prompts
+        if str(prompt.get("instruction", "")).startswith("Repair the rejected action")
+    )
+    assert len(repair_prompt["retrieved_spectra"]) == 1
+    retrieved = repair_prompt["retrieved_spectra"][0]
+    assert retrieved["available"] is True
+    assert retrieved["series"]
+    catalog_ids = {item["spectrum_id"] for item in repair_prompt["available_spectra"]}
+    assert retrieved["spectrum_id"] in catalog_ids
+    assert all("series" not in item for item in repair_prompt["available_spectra"])
+    assert len([event for event in events if event["type"] == "spectrum_retrieved"]) == 1
 
 
 def test_adaptive_runner_reserves_two_steps_for_scoring_protocol(tmp_path: Path) -> None:

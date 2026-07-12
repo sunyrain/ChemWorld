@@ -221,6 +221,7 @@ def run_task(
                     or (mode == "plan" and plan_index >= len(planned))
                 )
                 decision_spectrum = spectral_payload({}, disclosure=spectrum_disclosure)
+                retrieved_spectra: list[dict[str, Any]] = []
                 decision_origin = "protocol"
                 if closeout_required:
                     decision = _closeout_decision(base)
@@ -246,7 +247,6 @@ def run_task(
                     plan_index += 1
                 else:
                     try:
-                        retrieved_spectra: list[dict[str, Any]] = []
                         retrieval_count = 0
                         while True:
                             completion = _request_adaptive_decision(
@@ -358,6 +358,8 @@ def run_task(
                         rejected=decision,
                         validation=validation,
                         spectrum=decision_spectrum,
+                        spectrum_archive=spectrum_archive,
+                        retrieved_spectra=retrieved_spectra,
                         trace=trace,
                     )
                     model_call_count += repair.attempts
@@ -802,6 +804,8 @@ def _request_repair(
     rejected: dict[str, Any],
     validation: dict[str, Any],
     spectrum: dict[str, Any],
+    spectrum_archive: list[dict[str, Any]],
+    retrieved_spectra: list[dict[str, Any]],
     trace: list[dict[str, Any]],
 ) -> JsonCompletion:
     user_prompt = json.dumps(
@@ -814,6 +818,8 @@ def _request_repair(
             "rejected_decision": rejected,
             "invalid_reasons": validation.get("invalid_reasons", []),
             "retrieved_spectrum": spectrum,
+            "available_spectra": [_spectrum_catalog_entry(item) for item in spectrum_archive],
+            "retrieved_spectra": to_builtin(retrieved_spectra),
             "campaign_state": base.campaign_state(),
             "state_semantics": _state_semantics(base),
             "currently_valid_actions": [
