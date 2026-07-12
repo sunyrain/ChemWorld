@@ -276,16 +276,17 @@ def _field_schema(field: str, *, operation: str | None = None) -> dict[str, Any]
         "unit": FIELD_UNITS.get(field, "unitless"),
         "required": True,
     }
-    bounds = OPERATION_FIELD_BOUNDS.get((operation, field))
+    bounds = OPERATION_FIELD_BOUNDS.get((operation, field)) if operation is not None else None
     if bounds is None:
         bounds = FIELD_RANGES.get(field)
     if bounds is not None:
         low, high = bounds
         payload["bounds"] = {"low": low, "high": high}
         payload["recommended_range"] = {"low": low, "high": high}
-    choices = OPERATION_FIELD_CHOICES.get((operation, field))
-    if choices is None:
-        choices = FIELD_CHOICES.get(field)
+    operation_choices = (
+        OPERATION_FIELD_CHOICES.get((operation, field)) if operation is not None else None
+    )
+    choices = list(operation_choices) if operation_choices is not None else FIELD_CHOICES.get(field)
     if choices is not None:
         payload["choices"] = list(choices)
         labels = material_choice_labels(field)

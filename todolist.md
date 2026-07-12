@@ -196,6 +196,7 @@
 
 ## 已完成且继续保留
 
+- [x] Agent 公共字段 schema 已修复可选 operation 键与 choice 容器的类型漂移；全量 `mypy src` 恢复通过。
 - [x] World Law v0.4、8 个正式 provider 与 domain service registry。
 - [x] 旧正式 proxy/fallback 路由清理，当前 15 tasks 均 `proxy_allowed=false`。
 - [x] LLE/wash、结晶、连续流、蒸馏专业候选实现。
