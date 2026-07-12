@@ -4,111 +4,155 @@
 
 ## 0. 所有成员开始工作前
 
-- [ ] 阅读 `claims/README.md`、本文件和目标模块附近的测试。
-- [ ] 执行 `git pull --ff-only origin main`。
-- [ ] 执行 `.\.venv\Scripts\python.exe scripts\manage_claims.py list`，确认任务尚未被认领。
-- [ ] 只认领下文一个 Task ID；不得把协议、实现、正式实验和论文写作塞进同一 claim。
-- [ ] 在 claim 中列出精确 `owned_paths`；不得使用仓库根目录、`src`、`tests` 等宽泛路径。
-- [ ] 将 active claim 作为独立提交先推送到 `main`，再开始修改。
-- [ ] 依赖未完成时可以认领并开展不依赖最终输入的设计/单元实现，但不得冻结协议、启动正式实验或关闭任务。
-- [ ] 发现需要修改未认领文件时，先更新并推送 claim；不得先改后补。
-- [ ] 不提交 API key、模型私有思维链、真实设备凭证、未脱敏路径或私有 Bench 数据。
+- 阅读 `claims/README.md`、本文件和目标模块附近的测试。
+- 执行 `git pull --ff-only origin main`。
+- 执行 `.\.venv\Scripts\python.exe scripts\manage_claims.py list`，确认任务尚未被认领。
+- 只认领下文一个 Task ID；不得把协议、实现、正式实验和论文写作塞进同一 claim。
+- 在 claim 中列出精确 `owned_paths`；不得使用仓库根目录、`src`、`tests` 等宽泛路径。
+- 将 active claim 作为独立提交先推送到 `main`，再开始修改。
+- 依赖未完成时可以认领并开展不依赖最终输入的设计/单元实现，但不得冻结协议、启动正式实验或关闭任务。
+- 发现需要修改未认领文件时，先更新并推送 claim；不得先改后补。
+- 不提交 API key、模型私有思维链、真实设备凭证、未脱敏路径或私有 Bench 数据。
 
 ## 1. 每项任务的统一完成要求
 
-- [ ] 实现只修改 claim 的 `owned_paths`，且与其他 active claim 不重叠。
-- [ ] 新合同具有 schema/version、单位、边界、缺失值、异常值和 fail-closed 语义。
-- [ ] 新随机过程声明 seed；相同合同、seed 和 action 必须得到可回放结果。
-- [ ] 新评价同时区分 objective、constraint、resource、validity 和 training shaping。
-- [ ] 新实验保留失败、超时、非法动作和零结果，不允许静默过滤。
-- [ ] 报告包含协议 hash、代码 commit、dirty-tree 状态、轨迹摘要、资源账本和主张边界。
-- [ ] 单元测试覆盖正常路径、边界、非法输入、回放篡改和至少一个反作弊案例。
-- [ ] 运行任务专属测试和 `python -m ruff check`；共享运行时或发布任务还必须运行完整 `pytest`、`mypy` 和严格文档构建。
-- [ ] 生成机器可读验收报告；“代码存在”或“脚本跑完”不等于科学门禁通过。
-- [ ] 更新使用者可见行为对应的发布文档；内部路线、claim 和诊断不得进入公开站点。
-- [ ] 执行 `.\.venv\Scripts\python.exe scripts\manage_claims.py check`。
-- [ ] 使用 `manage_claims.py complete` 关闭认领，提交 completed claim、实现、测试和证据并推送 `main`。
+- 实现只修改 claim 的 `owned_paths`，且与其他 active claim 不重叠。
+- 新合同具有 schema/version、单位、边界、缺失值、异常值和 fail-closed 语义。
+- 新随机过程声明 seed；相同合同、seed 和 action 必须得到可回放结果。
+- 新评价同时区分 objective、constraint、resource、validity 和 training shaping。
+- 新实验保留失败、超时、非法动作和零结果，不允许静默过滤。
+- 报告包含协议 hash、代码 commit、dirty-tree 状态、轨迹摘要、资源账本和主张边界。
+- 单元测试覆盖正常路径、边界、非法输入、回放篡改和至少一个反作弊案例。
+- 运行任务专属测试和 `python -m ruff check`；共享运行时或发布任务还必须运行完整 `pytest`、`mypy` 和严格文档构建。
+- 生成机器可读验收报告；“代码存在”或“脚本跑完”不等于科学门禁通过。
+- 更新使用者可见行为对应的发布文档；内部路线、claim 和诊断不得进入公开站点。
+- 执行 `.\.venv\Scripts\python.exe scripts\manage_claims.py check`。
+- 使用 `manage_claims.py complete` 关闭认领，提交 completed claim、实现、测试和证据并推送 `main`。
 
 ## 2. 小团队快速迭代补充说明
 
 ### 2.1 认领、拆分与状态
 
-- [ ] 任何人都可以自行认领任意未被占用的任务；本文件不预设固定岗位、团队或长期负责人。
-- [ ] 每次优先认领一个可在约 0.5–2 个工作日内形成独立验收物的最小切片，完成后再认领下一项。
-- [ ] 如果一个 Task ID 过大，可创建 `原-task-id--slice-序号-简短名称`；claim notes 必须写明父 Task ID、输入、输出和不处理的内容。
-- [ ] 同一父任务的多个 slice 必须拥有互不重叠的文件；需要修改共享文件的部分统一留给该父任务的 integration slice。
-- [ ] 父任务只有在所有子检查项、所有 slice 和最终集成验收都完成后才能勾选 `[x]`。
-- [ ] `[ ]` 只表示尚未完成；是否已认领必须以 `claims/active/` 为准，不能仅凭本文件判断。
-- [ ] active claim 表示有人正在实现，不表示方案已被接受；completed claim 表示交付通过当时门禁，不自动形成论文结论。
-- [ ] 依赖尚未完成时，只能实现与最终输入无关的纯模块、schema 草案和单元测试；不得冻结数值、运行正式实验或伪造上游摘要。
-- [ ] 阻塞时在 claim notes 和报告中记录具体缺失输入、尝试过的替代方案和可继续工作的边界，不降低验收条件。
-- [ ] 快速迭代仍然必须先推送 claim；“只改几行”不是跳过认领和测试的理由。
+- 任何人都可以自行认领任意未被占用的任务；本文件不预设固定岗位、团队或长期负责人。
+- 每次优先认领一个可在约 0.5–2 个工作日内形成独立验收物的最小切片，完成后再认领下一项。
+- 如果一个 Task ID 过大，可创建 `原-task-id--slice-序号-简短名称`；claim notes 必须写明父 Task ID、输入、输出和不处理的内容。
+- 同一父任务的多个 slice 必须拥有互不重叠的文件；需要修改共享文件的部分统一留给该父任务的 integration slice。
+- 父任务只有在所有子检查项、所有 slice 和最终集成验收都完成后才能勾选 `[x]`。
+- `[ ]` 只表示尚未完成；是否已认领必须以 `claims/active/` 为准，不能仅凭本文件判断。
+- active claim 表示有人正在实现，不表示方案已被接受；completed claim 表示交付通过当时门禁，不自动形成论文结论。
+- 依赖尚未完成时，只能实现与最终输入无关的纯模块、schema 草案和单元测试；不得冻结数值、运行正式实验或伪造上游摘要。
+- 阻塞时在 claim notes 和报告中记录具体缺失输入、尝试过的替代方案和可继续工作的边界，不降低验收条件。
+- 快速迭代仍然必须先推送 claim；“只改几行”不是跳过认领和测试的理由。
 
 ### 2.2 文件边界与交接
 
-- [ ] 每项任务列出的“默认 owned_paths”是推荐的冲突隔离边界；认领时必须根据实际文件写成精确路径。
-- [ ] 新功能优先放入任务独占的新模块、新配置、新测试和新报告，避免多人同时编辑中央 registry、runner 或大型测试文件。
-- [ ] `src/chemworld/wrappers.py`、RL environment/training/evaluation、task registry、正式协议、发布摘要和 golden trajectory 属于共享集成面，只能由明确的 integration/release claim 修改。
-- [ ] 上游任务交付机器可读 config/report；下游任务通过 schema version 和 SHA-256 引用，不复制粘贴数值，也不直接修改上游报告。
-- [ ] 生产者必须在报告中列出稳定输出字段；消费者只依赖这些字段，不解析日志文本、终端输出或文件名猜测状态。
-- [ ] 需要扩展上游 schema 时，先在本任务独占文件中提交提案和失败测试，再由上游或 integration claim 合并。
-- [ ] 合并时只做必要改动，不顺手格式化无关目录、不移动他人文件、不重写已有证据。
-- [ ] 如果两个任务最终必须修改同一文件，先完成各自独立模块，再顺序执行一个单独 integration claim；不得并行抢改。
+- 每项任务列出的“默认 owned_paths”是推荐的冲突隔离边界；认领时必须根据实际文件写成精确路径。
+- 新功能优先放入任务独占的新模块、新配置、新测试和新报告，避免多人同时编辑中央 registry、runner 或大型测试文件。
+- `src/chemworld/wrappers.py`、RL environment/training/evaluation、task registry、正式协议、发布摘要和 golden trajectory 属于共享集成面，只能由明确的 integration/release claim 修改。
+- 上游任务交付机器可读 config/report；下游任务通过 schema version 和 SHA-256 引用，不复制粘贴数值，也不直接修改上游报告。
+- 生产者必须在报告中列出稳定输出字段；消费者只依赖这些字段，不解析日志文本、终端输出或文件名猜测状态。
+- 需要扩展上游 schema 时，先在本任务独占文件中提交提案和失败测试，再由上游或 integration claim 合并。
+- 合并时只做必要改动，不顺手格式化无关目录、不移动他人文件、不重写已有证据。
+- 如果两个任务最终必须修改同一文件，先完成各自独立模块，再顺序执行一个单独 integration claim；不得并行抢改。
 
 ### 2.3 每个交付包必须包含什么
 
-- [ ] **协议/config**：声明 schema version、任务范围、输入、输出、seed、预算、阈值、单位、缺失/异常语义和冻结状态。
-- [ ] **实现**：公共 API 有类型、文档和确定性边界；不读取未声明的全局状态、私有路径或开发者缓存。
-- [ ] **测试**：至少包含成功、边界、非法输入、确定性/回放、篡改拒绝和一个该任务特有的反作弊案例。
-- [ ] **审计脚本**：从配置和原始产物重新计算控制结论；不得只检查报告中的布尔值。
-- [ ] **机器报告**：至少包含 `schema_version`、`protocol_id/hash`、`source_commit`、`source_tree_dirty`、检查项、限制、剩余门禁和 `benchmark_claim_allowed`。
-- [ ] **人类摘要**：在 completed claim 的 summary 中说明完成了什么、没有完成什么、负结果和下一依赖；不得使用“全面完成”代替具体证据。
-- [ ] **公开文档**：只有用户接口、安装、运行方式或公开限制改变时才更新；研究路线和内部诊断继续留在本文件或 workstreams。
-- [ ] **大文件清单**：checkpoint、轨迹和数据集必须有大小、digest、生成命令和保留策略；禁止无说明提交临时缓存。
+- **协议/config**：声明 schema version、任务范围、输入、输出、seed、预算、阈值、单位、缺失/异常语义和冻结状态。
+- **实现**：公共 API 有类型、文档和确定性边界；不读取未声明的全局状态、私有路径或开发者缓存。
+- **测试**：至少包含成功、边界、非法输入、确定性/回放、篡改拒绝和一个该任务特有的反作弊案例。
+- **审计脚本**：从配置和原始产物重新计算控制结论；不得只检查报告中的布尔值。
+- **机器报告**：至少包含 `schema_version`、`protocol_id/hash`、`source_commit`、`source_tree_dirty`、检查项、限制、剩余门禁和 `benchmark_claim_allowed`。
+- **人类摘要**：在 completed claim 的 summary 中说明完成了什么、没有完成什么、负结果和下一依赖；不得使用“全面完成”代替具体证据。
+- **公开文档**：只有用户接口、安装、运行方式或公开限制改变时才更新；研究路线和内部诊断继续留在本文件或 workstreams。
+- **大文件清单**：checkpoint、轨迹和数据集必须有大小、digest、生成命令和保留策略；禁止无说明提交临时缓存。
 
 ### 2.4 证据等级不得混用
 
-- [ ] **Control-ready**：schema、单元测试、确定性和最小控制探针通过；只说明基础设施可用。
-- [ ] **Diagnostic**：可在 Dev 或少量 seed 上发现问题和选择后续设计；不得进入正式排名或论文主结论。
-- [ ] **Frozen confirmatory**：协议、seeds、endpoint、SESOI 和统计计划在运行前冻结，完整保留失败，才可支持预注册比较。
-- [ ] **Independent reproduction**：未参与实现者从 clean wheel 重建摘要，才可解锁发布级复现主张。
-- [ ] **Bridge evidence**：使用独立数据/backend/设备和相同适应预算比较 pretrained 与 scratch，才可讨论 V3/V4。
-- [ ] 报告必须显式写出当前等级；下游不得把 control-ready 或 diagnostic 结果重命名为 formal evidence。
+- **Control-ready**：schema、单元测试、确定性和最小控制探针通过；只说明基础设施可用。
+- **Diagnostic**：可在 Dev 或少量 seed 上发现问题和选择后续设计；不得进入正式排名或论文主结论。
+- **Frozen confirmatory**：协议、seeds、endpoint、SESOI 和统计计划在运行前冻结，完整保留失败，才可支持预注册比较。
+- **Independent reproduction**：未参与实现者从 clean wheel 重建摘要，才可解锁发布级复现主张。
+- **Bridge evidence**：使用独立数据/backend/设备和相同适应预算比较 pretrained 与 scratch，才可讨论 V3/V4。
+- 报告必须显式写出当前等级；下游不得把 control-ready 或 diagnostic 结果重命名为 formal evidence。
 
 ### 2.5 关键术语的执行含义
 
-- [ ] **Freeze**：协议内容、hash、seeds、预算、endpoint 和统计计划不可再因结果修改；任何变更生成新版本。
-- [ ] **Primary endpoint**：每任务唯一预注册主终点；total score、训练 return 或解释质量不能临时替代。
-- [ ] **SESOI**：最小有科学意义的效应，不等同于 `p < 0.05`；必须给出单位、方向和来源。
-- [ ] **Paired seeds**：方法在同一隐藏世界/干预上配对，seed 分配在运行前冻结，失败对仍保留。
-- [ ] **Replay verified**：从原始 action/observation/ledger 重新执行或重算，与摘要在容差内一致；只校验文件 hash 不够。
-- [ ] **Fail closed**：缺配置、缺字段、hash 不符、NaN/Inf、越权观察或资源账本不完整时拒绝形成结果，而不是填默认值继续。
-- [ ] **Train/Dev/Bench**：Train 用于学习，Dev 只用于预注册选择，Bench 只用于冻结后评价；三者 world family 和 seed 不重叠。
-- [ ] **Core operation coverage**：策略实际执行决定任务物理结果的操作；仅合法地加料、终止、测量不算完成任务能力。
-- [ ] **Transfer-vs-scratch**：相同架构、相同外部实验预算和相同选择规则下比较预训练与从零学习。
-- [ ] **Bridge**：验证适应策略和方法排序能否迁移，不要求 Core 数值逐点预测真实化学。
+- **Freeze**：协议内容、hash、seeds、预算、endpoint 和统计计划不可再因结果修改；任何变更生成新版本。
+- **Primary endpoint**：每任务唯一预注册主终点；total score、训练 return 或解释质量不能临时替代。
+- **SESOI**：最小有科学意义的效应，不等同于 `p < 0.05`；必须给出单位、方向和来源。
+- **Paired seeds**：方法在同一隐藏世界/干预上配对，seed 分配在运行前冻结，失败对仍保留。
+- **Replay verified**：从原始 action/observation/ledger 重新执行或重算，与摘要在容差内一致；只校验文件 hash 不够。
+- **Fail closed**：缺配置、缺字段、hash 不符、NaN/Inf、越权观察或资源账本不完整时拒绝形成结果，而不是填默认值继续。
+- **Train/Dev/Bench**：Train 用于学习，Dev 只用于预注册选择，Bench 只用于冻结后评价；三者 world family 和 seed 不重叠。
+- **Core operation coverage**：策略实际执行决定任务物理结果的操作；仅合法地加料、终止、测量不算完成任务能力。
+- **Transfer-vs-scratch**：相同架构、相同外部实验预算和相同选择规则下比较预训练与从零学习。
+- **Bridge**：验证适应策略和方法排序能否迁移，不要求 Core 数值逐点预测真实化学。
 
 ### 2.6 快速自检与交接顺序
 
-- [ ] 先运行新增测试，再运行受影响模块测试；不要一开始只跑全库测试掩盖局部失败原因。
-- [ ] 控制报告通过后，检查其是否仍标记 `benchmark_claim_allowed=false`；正式主张必须等待 confirmatory task。
-- [ ] 提交前运行 `git diff --check`、claim check、ruff，并确认 `git status` 没有密钥、缓存和无关文件。
-- [ ] 共享运行时、协议集成、正式实验、发布任务再运行完整 pytest、mypy、strict docs 和 release gate。
-- [ ] 推送 completed claim 后，在下一个认领的 notes 中引用上游 completed claim、commit 和 report hash，形成可追踪交接链。
+- 先运行新增测试，再运行受影响模块测试；不要一开始只跑全库测试掩盖局部失败原因。
+- 控制报告通过后，检查其是否仍标记 `benchmark_claim_allowed=false`；正式主张必须等待 confirmatory task。
+- 提交前运行 `git diff --check`、claim check、ruff，并确认 `git status` 没有密钥、缓存和无关文件。
+- 共享运行时、协议集成、正式实验、发布任务再运行完整 pytest、mypy、strict docs 和 release gate。
+- 推送 completed claim 后，在下一个认领的 notes 中引用上游 completed claim、commit 和 report hash，形成可追踪交接链。
 
 ## 3. 核心主张与硬边界
 
-- [ ] Core 只主张 V0 软件有效性、V1 结构有效性和 V2 因果有效性。
-- [ ] 独立 backend/Dataset Bridge 只在证据通过后主张 V3 行为有效性。
-- [ ] 实体 Bridge 只在预注册迁移实验通过后主张 V4 迁移有效性。
-- [ ] 不主张 V5 命名化学体系的通用数值预测有效性。
-- [ ] 不使用“通用数字孪生”“真实产率预测器”或“零样本 sim-to-real”表述。
-- [ ] H1–H4 均作为待检验假设，不提前写成结论。
-- [ ] 旧 `publication_protocol_v0.1` 及其结果保持不可变；整改必须进入新协议版本。
-- [ ] 默认正式任务为 provisional core-4：partition、crystallization、distillation、flow。
-- [ ] electrochemistry 和 equilibrium 在通过独立 G1/G2 前保持 exploratory。
+- Core 只主张 V0 软件有效性、V1 结构有效性和 V2 因果有效性。
+- 独立 backend/Dataset Bridge 只在证据通过后主张 V3 行为有效性。
+- 实体 Bridge 只在预注册迁移实验通过后主张 V4 迁移有效性。
+- 不主张 V5 命名化学体系的通用数值预测有效性。
+- 不使用“通用数字孪生”“真实产率预测器”或“零样本 sim-to-real”表述。
+- H1–H4 均作为待检验假设，不提前写成结论。
+- 旧 `publication_protocol_v0.1` 及其结果保持不可变；整改必须进入新协议版本。
+- 默认正式任务为 provisional core-4：partition、crystallization、distillation、flow。
+- electrochemistry 和 equilibrium 在通过独立 G1/G2 前保持 exploratory。
 
-## 4. P0：冻结科学问题、任务集和关键合同
+### 审稿意见关键问题的真实状态
+
+- **已经解决或具备可靠底座**：World/Interaction/Evaluation 分层；隐藏 world-family 和实际机理族进入状态转移；只读 replay evaluator；资源账本；旧正式 proxy/fallback 清理；五类 semantic invariance 控制；公共谱图按需获取和历史访问能力。
+- **只完成诊断，尚未修复**：正式 RL 仍使用 28 个 operation logits + 21 个全局参数组成的 49 维 `Box`；训练 shaping 仍包含完成实验 `+1`；旧 flow 策略仍表现为加料—加溶剂—终止—测量且不执行 `run_flow`。
+- **只完成控制层，尚未形成科学证据**：机理/构成律 family 已可执行且可回放，但 agent 的 change detection、adaptation regret、恢复实验数和跨族迁移尚未测量。
+- **接口已完成，正式实验未完成**：live-LLM adapter、谱图遮蔽边界和记忆接口已就绪，但真实 LLM 冻结矩阵、峰置换、记忆删除、语义冲突和因果行动效应尚未运行。
+- **定位已写入路线图，正式协议未冻结**：因果世界引擎、V0–V5、H1–H4 和 Core/Benchmark/Bridge 边界已经明确，但仍缺机器可读 scientific-positioning 协议和预注册终点。
+- **尚未实现**：Descriptor/Named-Retrieval/Oracle 先验通道、机制适应 benchmark、Train generator、Dataset Bridge、独立 backend、H4 transfer 和实体 bridge。
+- **不能声称已经解决**：固定世界排名是否失效、显式 world model 是否改善适应、化学先验是否造成锚定、虚拟训练是否减少外部实验成本。这些都是待实验回答的问题。
+
+### 缺陷优先级规则
+
+- P0 的认领优先级首先是已确认的 action/reward 行为错误；完成顺序按依赖执行：action/reward 与 scientific positioning 可并行 → core-4 输入冻结 → 共享运行时集成 → flow 防回归与安全绑定 → 机制适应和先验通道。
+- 在 P0 缺陷门禁通过前，不扩大 SAC/PPO 训练步数，不运行正式方法矩阵，不以旧 checkpoint 比较算法能力。
+- 任何会让非法、捷径或不执行核心物理操作的策略通过门禁的问题，优先级高于新增算法、任务、页面、论文或实体桥接。
+- control-ready 基础设施的缺失集成视为实现不完整，不得因为已有单元测试就移出 P0。
+- P1 以后只接收通过 P0 的冻结合同；若上游修复改变 action、reward、observation、score 或 replay，所有受影响的下游 diagnostic 结果自动失效。
+
+## 4. P0：Bug、漏洞、实现缺口与冻结门禁
+
+### P0.1 已确认的 RL 行为错误
+
+- [ ] **`benchmark-vnext-rl-hybrid-action-contract` — 混合动作合同**
+  - 默认 owned_paths：`src/chemworld/rl/hybrid_actions.py`、`tests/test_rl_hybrid_actions.py`、`configs/benchmark/rl_hybrid_action_vnext.json`、`workstreams/benchmark_v1/reports/rl-hybrid-action-controls.json`。
+  - 依赖：现有 typed public action contract。
+  - [ ] 定义 categorical operation head。
+  - [ ] 为每个 operation 定义 conditional parameter heads、类型、单位和边界。
+  - [ ] 无关参数不得执行、不得进入损失、不得影响动作 digest。
+  - [ ] 公共 affordance mask 在训练、评估和回放中语义一致。
+  - [ ] 覆盖 operation/parameter 编解码 round-trip、非法 mask、NaN/Inf 和稳定序列化。
+  - [ ] 明确 PPO、混合动作算法和 process-control SAC 分别使用的动作子合同。
+  - 验收：不再把 28 个操作和 21 个全局参数当作一个 49 维连续控制量。
+
+- [ ] **`benchmark-vnext-rl-reward-contract` — 训练奖励与防捷径合同**
+  - 默认 owned_paths：`src/chemworld/rl/rewards.py`、`tests/test_rl_rewards.py`、`configs/benchmark/rl_reward_vnext.json`、`workstreams/benchmark_v1/reports/rl-reward-controls.json`。
+  - 依赖：可立即实现结构性防捷径合同；task-specific endpoint/权重只能在 `benchmark-vnext-core4-sesoi-freeze` 后冻结。
+  - [ ] 删除或重构可支配策略的“完成实验 +1”奖励。
+  - [ ] training shaping 与冻结评测 endpoint 完全分离。
+  - [ ] 固定可比的完整实验、operation、measurement 和资源预算。
+  - [ ] 添加 quick-close、重复测量、非法动作刷分、无核心操作完成和 reward scaling sensitivity 探针。
+  - [ ] 证明 shaping 不改变冻结评测器，不通过 shaping return 选择最终主张。
+  - [ ] flow 策略未执行 `run_flow` 时不得通过行为有效性门禁。
+  - 验收：legal-random、捷径策略和任务合理策略形成可解释的训练/评测差异。
+
+### P0.2 完成缺陷修复所需的最小冻结输入
 
 - [ ] **`benchmark-vnext-scientific-positioning` — 冻结科学定位**
   - 默认 owned_paths：`workstreams/benchmark_v1/protocols/scientific-positioning-vnext.md`、`configs/benchmark/scientific_positioning_vnext.json`、`tests/test_scientific_positioning.py`。
@@ -130,27 +174,7 @@
   - [ ] 保持 electrochemistry/equilibrium exploratory，不为六任务叙事降低阈值。
   - 验收：core-4 每项均有独立有效性卡；阈值来源和冻结时间可审计。
 
-- [ ] **`benchmark-vnext-rl-hybrid-action-contract` — 混合动作合同**
-  - 默认 owned_paths：`src/chemworld/rl/hybrid_actions.py`、`tests/test_rl_hybrid_actions.py`、`configs/benchmark/rl_hybrid_action_vnext.json`、`workstreams/benchmark_v1/reports/rl-hybrid-action-controls.json`。
-  - 依赖：现有 typed public action contract。
-  - [ ] 定义 categorical operation head。
-  - [ ] 为每个 operation 定义 conditional parameter heads、类型、单位和边界。
-  - [ ] 无关参数不得执行、不得进入损失、不得影响动作 digest。
-  - [ ] 公共 affordance mask 在训练、评估和回放中语义一致。
-  - [ ] 覆盖 operation/parameter 编解码 round-trip、非法 mask、NaN/Inf 和稳定序列化。
-  - [ ] 明确 PPO、混合动作算法和 process-control SAC 分别使用的动作子合同。
-  - 验收：不再把 28 个操作和 21 个全局参数当作一个 49 维连续控制量。
-
-- [ ] **`benchmark-vnext-rl-reward-contract` — 训练奖励与防捷径合同**
-  - 默认 owned_paths：`src/chemworld/rl/rewards.py`、`tests/test_rl_rewards.py`、`configs/benchmark/rl_reward_vnext.json`、`workstreams/benchmark_v1/reports/rl-reward-controls.json`。
-  - 依赖：`benchmark-vnext-core4-sesoi-freeze`。
-  - [ ] 删除或重构可支配策略的“完成实验 +1”奖励。
-  - [ ] training shaping 与冻结评测 endpoint 完全分离。
-  - [ ] 固定可比的完整实验、operation、measurement 和资源预算。
-  - [ ] 添加 quick-close、重复测量、非法动作刷分、无核心操作完成和 reward scaling sensitivity 探针。
-  - [ ] 证明 shaping 不改变冻结评测器，不通过 shaping return 选择最终主张。
-  - [ ] flow 策略未执行 `run_flow` 时不得通过行为有效性门禁。
-  - 验收：legal-random、捷径策略和任务合理策略形成可解释的训练/评测差异。
+### P0.3 共享集成、防回归与安全漏洞
 
 - [ ] **`benchmark-vnext-rl-contract-integration` — RL 共享运行时集成**
   - 集成约束：等待动作和奖励独立模块完成后再认领；其他认领不得同时修改这些共享文件。
@@ -162,6 +186,28 @@
   - [ ] checkpoint、replay buffer、资源账本和轨迹验证保持兼容。
   - [ ] 旧 100k checkpoint 标记为 incompatible/diagnostic，不可进入正式排名。
   - 验收：完整 RL 测试、完整 `pytest`、ruff、mypy 全部通过。
+
+- [ ] **`benchmark-vnext-rl-flow-behavior-gate` — flow 核心操作与防捷径回归门禁**
+  - 默认 owned_paths：`configs/benchmark/rl_flow_behavior_gate_vnext.json`、`scripts/audit_rl_flow_behavior.py`、`tests/test_rl_flow_behavior_gate.py`、`workstreams/benchmark_v1/reports/rl-flow-behavior-gate.json`。
+  - 依赖：RL contract integration；只能使用修复后的 action/reward contract。
+  - [ ] 明确定义 behaviorally complete flow experiment：至少包含有效 `set_flow_rate`、`run_flow` 和最终测量。
+  - [ ] quick-close、只加料、只测量和未运行反应器的轨迹必须判定为无效，不能仅因 episode 完成而通过。
+  - [ ] 至少运行 5 个独立训练 seeds，每个 checkpoint 在 20 个冻结 Dev episodes 上评估；保留全部失败。
+  - [ ] 报告 operation histogram、核心操作覆盖率、完整实验率、invalid rate、风险、成本和 task primary。
+  - [ ] checkpoint 选择不得读取 Bench，也不得使用 training shaped return 代替行为门禁。
+  - [ ] legal-random 和显式 quick-close policy 作为负对照；门禁必须能稳定拒绝二者的伪完成。
+  - 验收：所有通过的 flow 实验都实际执行核心流动操作，且多 seed 策略不再收敛到“加料—终止—测量”循环；结果仍标记 diagnostic。
+
+- [ ] **`benchmark-vnext-security-freeze-integration` — 安全与不变性正式绑定**
+  - 默认 owned_paths：`configs/benchmark/security_freeze_vnext.json`、`scripts/audit_security_freeze.py`、`tests/test_security_freeze.py`、`workstreams/benchmark_v1/reports/security-freeze-controls.json`。
+  - 依赖：core-4 SESOI、已有 public harness/exploit/semantic-invariance controls。
+  - [ ] 将 12 组已通过的 semantic invariance 绑定冻结 public harness。
+  - [ ] 绑定隐藏状态、debug、异常、路径、任务文本和私有 seed 泄漏扫描。
+  - [ ] 绑定无成本测量、预算边界、非法刷分、NaN/Inf、重复 assay、提前结束和 replay 篡改探针。
+  - [ ] Windows 和 clean-wheel 环境均 fail closed。
+  - 验收：任何 probe 失败均阻止正式方法运行和 release。
+
+### P0.4 审稿意见指出但尚未实现的关键能力
 
 - [ ] **`benchmark-vnext-mechanism-adaptation-protocol` — 机制适应协议**
   - 默认 owned_paths：`configs/benchmark/mechanism_adaptation_vnext.json`、`scripts/audit_mechanism_adaptation_protocol.py`、`tests/test_mechanism_adaptation_protocol.py`、`workstreams/benchmark_v1/reports/mechanism-adaptation-protocol.json`。
@@ -184,15 +230,6 @@
   - [ ] 所有配对条件保持非干预公共状态一致。
   - [ ] Oracle 永不进入正式排行榜。
   - 验收：测试证明披露条件只改变指定信息，不改变 world law、预算或评分。
-
-- [ ] **`benchmark-vnext-security-freeze-integration` — 安全与不变性正式绑定**
-  - 默认 owned_paths：`configs/benchmark/security_freeze_vnext.json`、`scripts/audit_security_freeze.py`、`tests/test_security_freeze.py`、`workstreams/benchmark_v1/reports/security-freeze-controls.json`。
-  - 依赖：core-4 SESOI、已有 public harness/exploit/semantic-invariance controls。
-  - [ ] 将 12 组已通过的 semantic invariance 绑定冻结 public harness。
-  - [ ] 绑定隐藏状态、debug、异常、路径、任务文本和私有 seed 泄漏扫描。
-  - [ ] 绑定无成本测量、预算边界、非法刷分、NaN/Inf、重复 assay、提前结束和 replay 篡改探针。
-  - [ ] Windows 和 clean-wheel 环境均 fail closed。
-  - 验收：任何 probe 失败均阻止正式方法运行和 release。
 
 ## 5. P1：最小可识别方法矩阵
 
@@ -378,6 +415,7 @@
 
 - [ ] **`benchmark-vnext-private-evaluation` — 私有 Bench 评测**
   - 默认 owned_paths：`configs/benchmark/private_evaluation_vnext.json`、`scripts/run_private_evaluation.py`、`tests/test_private_evaluation.py`、`workstreams/benchmark_v1/reports/private-evaluation-summary.json`；私有实例置于仓库外。
+  - 依赖：P0 合同、method matrix、H1–H3 协议和提交包格式全部冻结。
   - [ ] 私有 worlds/salts 与实现者隔离。
   - [ ] 使用同一公开合同和冻结 evaluator。
   - [ ] 检查提交包的资源、依赖、超时和泄漏。
@@ -385,6 +423,7 @@
 
 - [ ] **`benchmark-vnext-release` — 发布候选**
   - 默认 owned_paths：`configs/benchmark/release_vnext.json`、`scripts/run_release_vnext.py`、`tests/test_release_vnext.py`、`workstreams/benchmark_v1/reports/release-vnext.json`；需要更新公开文档时在 claim 中逐项追加。
+  - 依赖：正式主实验、独立复现和私有评测达到预注册发布门禁。
   - 集成约束：只在上游证据冻结且没有重叠 active claim 时认领。
   - [ ] wheel、公开合同、seed suite、报告、golden trajectory 和验证命令齐全。
   - [ ] 本地完整门禁通过，不依赖 CI/GitHub Actions。
@@ -404,18 +443,22 @@
 
 ## 9. 建议的并行批次
 
-- [ ] **批次 A，可立即并行认领**
-  - [ ] scientific positioning。
-  - [ ] core-4 SESOI freeze。
+- [ ] **批次 A，立即处理已确认缺陷和必要上游**
   - [ ] RL hybrid action contract。
-  - [ ] RL reward contract。
-  - [ ] mechanism adaptation protocol。
-  - [ ] prior disclosure protocol。
-  - [ ] security freeze integration。
+  - [ ] RL reward contract 的结构性防捷径实现。
+  - [ ] scientific positioning。
   - [ ] reference portfolio substrate 由现认领者继续完成。
+  - [ ] mechanism adaptation 与 prior disclosure 只做不依赖冻结数值的 schema/单元模块。
 
-- [ ] **批次 B，P0 各自控制报告通过后并行**
+- [ ] **批次 B，关闭全部 P0 缺陷门禁**
+  - [ ] core-4 SESOI freeze。
+  - [ ] RL action/reward control reports。
   - [ ] RL contract integration。
+  - [ ] RL flow behavior gate。
+  - [ ] security freeze integration。
+  - [ ] mechanism adaptation 与 prior disclosure 正式冻结。
+
+- [ ] **批次 C，P0 全部通过后运行最小方法矩阵**
   - [ ] reference portfolio search。
   - [ ] classic confirmatory。
   - [ ] procedure RL。
@@ -423,21 +466,21 @@
   - [ ] context/world-model。
   - [ ] live LLM confirmatory。
 
-- [ ] **批次 C，方法矩阵冻结后并行**
+- [ ] **批次 D，方法矩阵冻结后运行主实验**
   - [ ] H1 fixed-vs-shift。
   - [ ] H2 prior anchoring。
   - [ ] H3 adaptation。
   - [ ] Train generator。
   - [ ] Dataset Bridge。
 
-- [ ] **批次 D，主实验冻结后**
+- [ ] **批次 E，主实验冻结后验证外部有效性与复现**
   - [ ] statistics/figures。
   - [ ] independent backend。
   - [ ] H4 transfer。
   - [ ] independent reproduction。
   - [ ] private evaluation。
 
-- [ ] **批次 E，最后执行**
+- [ ] **批次 F，最后执行**
   - [ ] physical bridge。
   - [ ] release。
   - [ ] final paper/PDF。
