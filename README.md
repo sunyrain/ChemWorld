@@ -1,12 +1,30 @@
-# ChemWorld-Bench
+# ChemWorld
 
-ChemWorld-Bench is a replayable Gymnasium environment for studying how agents plan,
-measure, and adapt across virtual chemical experiments. It exposes one versioned
-interaction contract across classical optimization, active learning, reinforcement
-learning, LLM tool agents, and human learners.
+**Static benchmarks ask what a model knows. ChemWorld asks how it experiments when the answer is hidden.**
 
-ChemWorld is not a reaction predictor, process simulator, laboratory controller, or
-safety system. Its outputs are properties of a controlled virtual world.
+ChemWorld is a replayable causal virtual laboratory for training and evaluating experimental agents. Under partial
+observability, finite budgets, and operational constraints, agents choose operations and measurements, form
+hypotheses, and revise their strategies from evidence.
+
+The same public task can run across different hidden kinetic, phase-behavior, or process worlds. This makes it
+possible to test whether an agent identifies and adapts to changing rules instead of memorizing one optimal recipe.
+Bayesian optimization, reinforcement learning, world models, LLM tool agents, and humans share the same versioned
+interaction and replay contracts.
+
+ChemWorld does not claim to predict arbitrary real reactions. Its first goal is to make experimental decision making
+scalable, comparable, and falsifiable; its long-term bridge question is whether virtual training reduces the number,
+risk, and cost of experiments needed to adapt to independent models, real data, and narrow physical systems.
+
+**Website:** https://sunyrain.github.io/ChemWorld/
+
+## Research map
+
+| Layer | Role |
+| --- | --- |
+| **ChemWorld Engine** | Causal worlds, state transitions, physical providers, instruments, and replay |
+| **ChemWorld Bench** | Tasks, Train/Dev/Bench world families, resource contracts, and private evaluation |
+| **ChemWorld Lab** | Student Lab and Agent Observatory |
+| **ChemWorld Bridge** | A validation roadmap for independent backends, real datasets, and physical systems |
 
 ## Start in five minutes
 
@@ -27,8 +45,7 @@ chemworld verify --constitution --submission runs/<trajectory>.jsonl
 chemworld evaluate --submission runs/<trajectory>.jsonl
 ```
 
-`chemworld evaluate` replays the trajectory and recomputes metrics. It does not trust a
-score supplied by the agent.
+Evaluation replays the trajectory and recomputes metrics rather than trusting a score supplied by the agent.
 
 ## Use the environment
 
@@ -47,10 +64,10 @@ if check["valid"]:
 env.close()
 ```
 
-Unmeasured array values are `NaN` (`null` in JSONL). Read `observed_mask` or
-`observed_keys` before using an observation field.
+Unmeasured array values are `NaN` (`null` in JSONL). Read `observed_mask` or `observed_keys` before using an
+observation field.
 
-## Visual interfaces
+## Visual laboratory
 
 ```bash
 python -m apps.task_lab.server --port 8876
@@ -59,55 +76,47 @@ python -m apps.task_lab.server --port 8876
 - Agent Observatory: <http://127.0.0.1:8876/agent/>
 - Student Lab: <http://127.0.0.1:8876/student/>
 
-Classical agents work offline. Online model credentials are read only from process
-environment variables and must not be committed or included in evaluation artifacts.
+The documentation site is static; the laboratory currently runs locally. Classical agents work offline. Online model
+credentials are read from the local process environment and must not enter the repository or evaluation artifacts.
 
-## Current evidence status
+## Evidence status
 
-The runtime, task contracts, resource accounting, trajectory replay, score binding, and
-public evaluation controls are operational. The complete benchmark is not yet validated.
+The Engine, task contracts, resource accounting, trajectory replay, score binding, and public evaluation controls are
+operational. **The complete benchmark is not yet validated.**
 
-A first fresh-cohort comparison showed that unconstrained structured GP improved all four
-task objectives but failed safety non-inferiority in flow, crystallization, and distillation.
-Safe-GP was then repaired on development worlds to learn experiment-peak risk and use a
-categorical recipe space without ordinal leakage. Its policy and analysis were frozen before
-an untouched 240-run confirmation. Every trajectory passed independent replay. Safe-GP passed
-all safety and cost rules and improved every task objective, but the flow effect was 0.018752
-against a pre-registered SESOI of 0.020000. The all-task joint rule therefore failed. A later
-fresh development diagnostic found that simply lowering the risk-confidence coefficient made
-the objective--risk--cost profile worse, so the failed confirmation was not tuned away.
+Current evidence has established several useful boundaries:
 
-The current control layer also includes six-task executable mechanism families, an exact
-100,000-step single-seed SAC development run, operation-level Pro/Flash LLM adapters, causal
-assigned-versus-masked spectrum handling, and layered resource/replay accounting. These are
-development or control results, not a completed cross-method benchmark. Multi-seed RL, real
-LLM trajectories, mechanism adaptation, a searched reference portfolio, salted private
-evaluation, and independent reproduction remain open evidence gates. See the
-[scientific status](https://sunyrain.github.io/ChemWorld/benchmark_release/) and
-[limitations](https://sunyrain.github.io/ChemWorld/limitations/) before citing results.
+- unconstrained objective optimization can hide operational-risk regressions;
+- a frozen Safe-GP confirmation improved all four task objectives and passed safety/cost rules, but one effect missed
+  its pre-registered practical threshold, so the joint method claim remained failed;
+- executable mechanism and constitutive-law shifts are control-validated, while agent adaptation remains untested;
+- the existing single-seed RL run is an action/reward/training-contract diagnostic, not a stable method ranking;
+- LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
 
-## Documentation map
+See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.
 
-| Goal | Documentation |
+## Documentation
+
+| Goal | Page |
 | --- | --- |
-| Install and run an episode | [Getting started](https://sunyrain.github.io/ChemWorld/getting_started/) |
-| Choose a task | [Task catalogue](https://sunyrain.github.io/ChemWorld/tasks/) |
-| Build an agent | [Agent interface](https://sunyrain.github.io/ChemWorld/agent_interface/) |
-| Run a fair comparison | [Benchmark protocol](https://sunyrain.github.io/ChemWorld/benchmark_protocol/) |
-| Inspect the architecture | [Architecture](https://sunyrain.github.io/ChemWorld/architecture/) |
-| Use the visual lab | [Task Lab](https://sunyrain.github.io/ChemWorld/interactive_task_lab/) |
-| Interpret evidence | [Scientific status](https://sunyrain.github.io/ChemWorld/benchmark_release/) |
+| Understand the research thesis | [Why ChemWorld](https://sunyrain.github.io/ChemWorld/vision/) |
+| See how causal worlds change | [Causal Worlds](https://sunyrain.github.io/ChemWorld/causal_worlds/) |
+| Explore flagship tasks | [Worlds](https://sunyrain.github.io/ChemWorld/worlds/) |
+| Choose an agent interaction level | [Agent Tracks](https://sunyrain.github.io/ChemWorld/agent_tracks/) |
+| Build an agent | [Getting Started](https://sunyrain.github.io/ChemWorld/getting_started/) |
+| Design an evaluation | [Benchmark Design](https://sunyrain.github.io/ChemWorld/benchmark_overview/) |
+| Understand the real-world roadmap | [Real-world Bridge](https://sunyrain.github.io/ChemWorld/real_world_bridge/) |
 
 ## Quality gates
-
-Install the complete development surface and run the release checks:
 
 ```bash
 python -m pip install -e ".[dev,docs,physchem-ref]"
 python scripts/run_release_gate.py
 ```
 
-The standard gate verifies formatting, typing, tests, documentation, wheel resources,
-runtime integration, replay, and reference-backed physical-chemistry slices. Passing it
-establishes software integrity; it does not by itself authorize a scientific benchmark
+The standard gate checks claims, lint, core typing, tests, documentation, wheel resources, runtime/model audits,
+environment consistency, replay, and reference slices. Run `python -m ruff format --check .` separately; formatting
+is not currently part of the release-gate command list.
+
+Passing software gates establishes checkout integrity. It does not authorize a scientific benchmark or real-world
 claim.

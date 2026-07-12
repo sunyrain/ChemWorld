@@ -7,6 +7,152 @@
   max-width: 76rem;
 }
 
+.cw-home-hero {
+  background:
+    radial-gradient(circle at 88% 15%, color-mix(in srgb, var(--md-accent-fg-color) 20%, transparent), transparent 34%),
+    linear-gradient(135deg, color-mix(in srgb, var(--md-primary-fg-color) 15%, var(--md-default-bg-color)), var(--md-default-bg-color));
+  border: 1px solid var(--cw-card-border);
+  border-radius: 1rem;
+  margin: 0 0 2.3rem;
+  padding: clamp(1.4rem, 4vw, 3rem);
+}
+
+.cw-home-hero h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  margin: 0.2rem 0 0.9rem;
+  max-width: 16ch;
+}
+
+.cw-home-hero .cw-lead {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.65;
+  max-width: 48rem;
+}
+
+.cw-eyebrow {
+  color: var(--md-primary-fg-color);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cw-button-row,
+.cw-pill-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+}
+
+.cw-pill {
+  background: color-mix(in srgb, var(--md-primary-fg-color) 9%, transparent);
+  border: 1px solid var(--cw-card-border);
+  border-radius: 999px;
+  color: var(--md-default-fg-color--light);
+  font-size: 0.7rem;
+  font-weight: 650;
+  padding: 0.3rem 0.65rem;
+}
+
+.cw-capability-grid,
+.cw-world-grid,
+.cw-track-grid,
+.cw-evidence-grid {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1rem 0 1.8rem;
+}
+
+.cw-capability-grid,
+.cw-track-grid,
+.cw-evidence-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cw-world-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cw-capability-card,
+.cw-world-card,
+.cw-track-card,
+.cw-evidence-card {
+  background: var(--cw-card-surface);
+  border: 1px solid var(--cw-card-border);
+  border-radius: 0.7rem;
+  padding: 0.9rem 1rem;
+}
+
+.cw-capability-card h3,
+.cw-world-card h3,
+.cw-track-card h3,
+.cw-evidence-card h3 {
+  margin: 0 0 0.35rem;
+}
+
+.cw-capability-card p:last-child,
+.cw-world-card p:last-child,
+.cw-track-card p:last-child,
+.cw-evidence-card p:last-child {
+  margin-bottom: 0;
+}
+
+.cw-flow,
+.cw-bridge-flow {
+  align-items: stretch;
+  display: flex;
+  gap: 1.4rem;
+  margin: 1.2rem 0 2rem;
+  overflow-x: auto;
+  padding: 0.2rem 0 0.6rem;
+}
+
+.cw-flow-step,
+.cw-bridge-step {
+  background: var(--cw-card-surface);
+  border: 1px solid var(--cw-card-border);
+  border-radius: 0.65rem;
+  flex: 1 0 8rem;
+  min-width: 0;
+  padding: 0.75rem;
+  position: relative;
+  text-align: center;
+}
+
+.cw-flow-step:not(:last-child)::after,
+.cw-bridge-step:not(:last-child)::after {
+  color: var(--md-primary-fg-color);
+  content: "→";
+  font-size: 1.1rem;
+  font-weight: 800;
+  position: absolute;
+  right: -1.05rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.cw-flow-step strong,
+.cw-bridge-step strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.cw-muted {
+  color: var(--md-default-fg-color--light);
+}
+
+.cw-status-footer {
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+  color: var(--md-default-fg-color--light);
+  font-size: 0.76rem;
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+}
+
 .cw-hero-grid {
   display: grid;
   gap: 0.9rem;
@@ -144,7 +290,27 @@
 
 @media screen and (max-width: 44.9375em) {
   .cw-hero-grid,
-  .cw-status-grid {
+  .cw-status-grid,
+  .cw-capability-grid,
+  .cw-world-grid,
+  .cw-track-grid,
+  .cw-evidence-grid {
     grid-template-columns: 1fr;
+  }
+
+  .cw-flow,
+  .cw-bridge-flow {
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .cw-flow-step:not(:last-child)::after,
+  .cw-bridge-step:not(:last-child)::after {
+    bottom: -0.85rem;
+    content: "↓";
+    left: 50%;
+    right: auto;
+    top: auto;
+    transform: translateX(-50%);
   }
 }

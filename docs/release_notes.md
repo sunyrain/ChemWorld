@@ -3,6 +3,16 @@
 这里记录用户可感知的接口、任务、世界律和证据状态变化。正在开发但尚未进入正式 runtime 的候选
 能力不会被写成已经发布的功能。
 
+## 2026-07-13 · Research narrative and information architecture
+
+- 站点主品牌由 ChemWorld-Bench 调整为 ChemWorld，Bench 成为任务与评价子层；
+- 首页改为“实验经验规模瓶颈 → 实验智能 → 因果世界 → Agent Track → 评测 → Bridge”的研究主线；
+- 新增 Why、Experimental Intelligence、One Experiment、Causal Worlds、Flagship Worlds、Agent
+  Tracks、Benchmark Overview、Real-world Bridge 与 World Validity 页面；
+- 物理模型、API、数据和工程页面下沉到 Technical Reference，不删除原有技术细节；
+- 核心研究叙事补齐七个英文页面；
+- Bridge 明确为待验证路线，未实现算法与真实模型结果保持候选或开放状态。
+
 ## 2026-07-12 · Architecture, mechanism, RL and LLM evidence refresh
 
 - 分层评价增加 recipe-search、operation-open-loop、operation-closed-loop 能力层，交互与资源诊断不进入端点总分；

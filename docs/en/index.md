@@ -1,54 +1,54 @@
-# ChemWorld-Bench
+# Give experimental intelligence its own world engine
 
-**Give an agent a virtual chemistry lab, a finite budget, and incomplete information—then inspect every decision it makes.**
+**Static benchmarks ask what a model knows. ChemWorld asks how it experiments when the answer is hidden.**
 
-ChemWorld-Bench is a replayable Gymnasium environment for closed-loop experimental decision making. RL, Bayesian
-optimization, LLM tool agents, and student programs share the same tasks, actions, observations, budgets, and
-evaluation contracts. Scores are recomputed from trajectories rather than trusted from submissions.
+ChemWorld is a replayable causal virtual laboratory. Under partial observability, finite budgets, and operational
+constraints, agents choose operations and measurements, form hypotheses, and revise strategies from evidence.
+Hidden kinetics, phase behavior, and process rules can change while the public task remains stable, so memorizing one
+optimal recipe is not enough.
+
+ChemWorld is not a universal real-reaction predictor. It is a research environment for making experimental decision
+making scalable, comparable, and falsifiable.
+
+## Why a world engine
+
+Real chemical experiments are slow, costly, and risk-bearing. Static datasets test knowledge and prediction, but not
+whether an agent selects an informative experiment, interprets failure, manages resources, or adapts when its model is
+wrong.
+
+| Static chemistry benchmark | ChemWorld |
+| --- | --- |
+| Answer a given question | Decide what experiment to do next |
+| One-shot input and output | Repeated observation and action |
+| Fixed data and rules | Intervenable hidden world rules |
+| Error lowers a score | Error consumes budget and changes state |
+
+## The central experiment
+
+The same public task can run under different rate laws, reaction topologies, constitutive relations, or equipment
+boundaries. Agents are not given a world label. They must use experiments to detect which assumptions still hold and
+recover when the rules change.
+
+## Three agent tracks
+
+- **Campaign Design:** choose the next complete experiment—BO, safe BO, active learning, recipe-level LLMs.
+- **Procedure Execution:** choose the next operation—hierarchical RL, state machines, operation-level LLMs.
+- **Process Control:** continuously adjust equipment settings—SAC, MPC, system identification, world-model control.
+
+World-model adaptation cuts across all three: infer the current world from history and recover quickly after a shift.
 
 ## Start here
 
-| I want to… | Read |
+| Goal | Page |
 | --- | --- |
-| Run my first experiment | [Getting started](../getting_started.md) |
-| Choose a task | [Task catalog](../tasks.md) |
-| Build an agent | [Agent interface](../agent_interface.md) |
-| Watch an agent or operate the lab | [Task Lab](../interactive_task_lab.md) |
-| Compare methods fairly | [Benchmark protocol](../benchmark_protocol.md) |
-| Understand current evidence | [Scientific status](../benchmark_release.md) |
+| Understand the research thesis | [Why ChemWorld](vision.md) |
+| Define experimental intelligence | [Experimental Intelligence](experimental_intelligence.md) |
+| Understand changing worlds | [Causal Worlds](causal_worlds.md) |
+| Read the evaluation design | [Benchmark](benchmark_overview.md) |
+| Inspect current evidence | [Research Findings](research_findings.md) |
+| Understand the real-world path | [Real-world Bridge](real_world_bridge.md) |
 
-## Five-minute run
+For APIs and local setup, use the [Chinese technical documentation](../getting_started.md).
 
-```bash
-python -m pip install -e ".[dev]"
-chemworld run --task reaction-to-assay --agent random --seed 0
-chemworld verify --constitution --submission runs/<trajectory>.jsonl
-chemworld evaluate --submission runs/<trajectory>.jsonl
-```
-
-The run writes a trajectory and manifest under `runs/`. Verification checks the schema, versioned contracts,
-physical constitution, and deterministic replay. Evaluation then recomputes the result from that trajectory.
-
-## What the environment provides
-
-- 15 task slices spanning reaction, separation, crystallization, flow, electrochemistry, and equilibrium;
-- versioned task, scenario, mechanism, observation, scoring, and replay contracts;
-- public action affordances and observation views for RL, BO, LLM, and human users;
-- explicit operational-risk, cost, measurement, and experiment budgets;
-- trajectory replay and score binding for reproducible evaluation.
-
-## Evidence status
-
-ChemWorld is an operational research environment and a **benchmark candidate**, not a validated leaderboard.
-Software controls and replay infrastructure are available. Safe-GP and single-task SAC experiments provide useful
-development evidence, while also exposing safety trade-offs and checkpoint-selection failures. Formal multi-method
-RL/LLM evaluation, private-world generalization, and independent reproduction remain incomplete.
-
-That distinction is intentional: the project is ready for agent development, teaching, protocol research, and
-diagnostic experiments, but not yet for SOTA or real-chemistry claims.
-
-## Scope
-
-ChemWorld studies decisions inside a versioned virtual world. It is not a real-reaction predictor, commercial
-process simulator, laboratory controller, or safety system. See [model maturity](../model_maturity.md) and
-[limitations](../limitations.md) before interpreting physical results.
+> Research status: benchmark candidate. Engine and replay controls are operational; formal cross-method adaptation,
+> private evaluation, and external bridging remain incomplete.

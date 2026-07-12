@@ -39,6 +39,62 @@ REQUIRED_STATUS_MARKERS = {
         "私有逐字思维链",
     ),
 }
+REQUIRED_NARRATIVE_MARKERS = {
+    "docs/index.md": (
+        "让实验智能拥有自己的世界引擎",
+        "同一个任务",
+        "不直接迁移配方",
+    ),
+    "docs/vision.md": (
+        "实验交互的规模瓶颈",
+        "Core、Bench 与 Bridge",
+    ),
+    "docs/experimental_intelligence.md": (
+        "测量本身也是行动",
+        "失败恢复也是能力",
+    ),
+    "docs/causal_worlds.md": (
+        "World、Task 与 Scenario",
+        "为什么只换 Seed 不够",
+    ),
+    "docs/benchmark_overview.md": (
+        "适应需要自己的指标",
+        "不同 Agent Track 分开报告",
+    ),
+    "docs/real_world_bridge.md": (
+        "验证路线",
+        "Transfer advantage",
+        "Shadow Mode",
+    ),
+    "docs/en/index.md": (
+        "Give experimental intelligence its own world engine",
+        "Causal Worlds",
+    ),
+    "docs/en/vision.md": (
+        "Why not one perfect digital twin",
+        "Core, Bench, Lab, Bridge",
+    ),
+    "docs/en/experimental_intelligence.md": (
+        "Measurement is an action",
+        "Failure is part of the task",
+    ),
+    "docs/en/causal_worlds.md": (
+        "Changing a seed",
+        "The public contract stays stable",
+    ),
+    "docs/en/benchmark_overview.md": (
+        "Generalization axes are distinct",
+        "Adaptation metrics",
+    ),
+    "docs/en/research_findings.md": (
+        "Finding 4",
+        "benchmark candidate",
+    ),
+    "docs/en/real_world_bridge.md": (
+        "Validity ladder",
+        "validation roadmap",
+    ),
+}
 
 
 def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
@@ -63,19 +119,28 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         missing = [marker for marker in markers if marker not in text]
         if missing:
             missing_markers[relative] = missing
+    missing_narrative_markers: dict[str, list[str]] = {}
+    for relative, markers in REQUIRED_NARRATIVE_MARKERS.items():
+        text = (root / relative).read_text(encoding="utf-8")
+        missing = [marker for marker in markers if marker not in text]
+        if missing:
+            missing_narrative_markers[relative] = missing
     mkdocs = (root / "mkdocs.yml").read_text(encoding="utf-8")
     nav_checks = {
-        "getting_started": "  - 开始使用:" in mkdocs,
-        "build_agents": "  - 开发智能体:" in mkdocs,
-        "evaluation": "  - 运行与评估:" in mkdocs,
-        "environment": "  - 理解 ChemWorld:" in mkdocs,
-        "reference": "  - 数据、部署与边界:" in mkdocs,
+        "research_story": "  - 研究主线:" in mkdocs,
+        "worlds": "  - 探索世界:" in mkdocs,
+        "build_agents": "  - 构建智能体:" in mkdocs,
+        "benchmark": "  - 评测:" in mkdocs,
+        "reference": "  - 技术参考:" in mkdocs,
+        "english": "  - English:" in mkdocs,
     }
     checks = {
         "utf8_files_readable": bool(files),
         "no_maintainer_paths": not forbidden_hits,
         "current_evidence_markers_present": not missing_markers,
+        "research_narrative_present": not missing_narrative_markers,
         "user_journey_navigation": all(nav_checks.values()),
+        "chemworld_is_primary_brand": "site_name: ChemWorld\n" in mkdocs,
         "readme_boundary_explicit": "complete benchmark is not yet validated"
         in (root / "README.md").read_text(encoding="utf-8").lower(),
     }
@@ -86,6 +151,7 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         "file_count": len(files),
         "forbidden_hits": forbidden_hits,
         "missing_status_markers": missing_markers,
+        "missing_narrative_markers": missing_narrative_markers,
         "navigation_checks": nav_checks,
     }
 

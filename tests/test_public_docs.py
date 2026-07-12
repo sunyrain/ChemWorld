@@ -10,7 +10,9 @@ def test_public_documentation_is_user_facing_and_current() -> None:
     assert report["passed"] is True, report
     assert report["checks"]["no_maintainer_paths"] is True
     assert report["checks"]["current_evidence_markers_present"] is True
+    assert report["checks"]["research_narrative_present"] is True
     assert report["checks"]["user_journey_navigation"] is True
+    assert report["checks"]["chemworld_is_primary_brand"] is True
 
 
 def test_published_docs_ship_visible_outline_and_section_folding() -> None:
