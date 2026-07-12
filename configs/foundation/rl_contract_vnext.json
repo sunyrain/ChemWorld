@@ -1,6 +1,7 @@
 {
-  "schema_version": "chemworld-foundation-rl-contract-protocol-0.1",
-  "protocol_id": "foundation-rl-contract-vnext",
+  "schema_version": "chemworld-foundation-rl-contract-protocol-0.2",
+  "protocol_id": "foundation-rl-contract-vnext-0.2",
+  "supersedes_protocol_id": "foundation-rl-contract-vnext",
   "status": "remediation_candidate",
   "benchmark_claim_allowed": false,
   "task_id": "flow-reaction-optimization",
@@ -44,14 +45,32 @@
     "periodic_checkpoint_sidecar_required": true
   },
   "development_gate": {
-    "training_seeds": [101, 102, 103, 104, 105],
+    "algorithm": "ppo",
+    "training_seeds": [106, 107, 108, 109, 110],
+    "preregistered_learning_curve_seed": 106,
+    "training_environment_step_checkpoints": [25600, 51200, 102400],
+    "maximum_training_environment_steps": 102400,
+    "training_operation_budget": 60,
+    "dev_operation_budget": 60,
     "dev_episodes_per_seed": 20,
+    "dev_sampler_seed_base": 2100,
+    "dev_policy_seed_base": 3100,
+    "deterministic_policy": true,
+    "hyperparameters": {
+      "learning_rate": 0.0003,
+      "n_steps": 1024,
+      "batch_size": 64,
+      "gamma": 0.99,
+      "gae_lambda": 0.95,
+      "ent_coef": 0.01
+    },
     "required_operations_in_every_completed_experiment": [
       "set_flow_rate",
       "run_flow",
       "measure:final_assay"
     ],
     "minimum_behavior_complete_experiment_rate": 1.0,
+    "minimum_episode_completion_rate": 1.0,
     "quick_close_rate": 0.0,
     "runtime_domain_failure_count": 0,
     "observation_domain_failure_count": 0
@@ -60,6 +79,9 @@
     "failed_pilots_retained": true,
     "five_seed_gate_may_not_be_replaced_by_a_scripted_policy": true,
     "dev_only": true,
-    "formal_benchmark_ranking": false
+    "formal_benchmark_ranking": false,
+    "learning_curve_rule": "Train seed 106 once through all preregistered checkpoints. Select the earliest checkpoint satisfying every development gate. Expand unchanged to seeds 107-110 only if such a checkpoint exists.",
+    "post_result_reward_or_hyperparameter_tuning_allowed": false,
+    "failed_curve_is_retained": true
   }
 }

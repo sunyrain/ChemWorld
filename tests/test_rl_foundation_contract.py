@@ -8,6 +8,7 @@ import numpy as np
 import torch as th
 
 import chemworld  # noqa: F401
+from chemworld.rl.evaluation import _ExperimentBehaviorTracker
 from chemworld.rl.hybrid_actions import (
     conditional_hybrid_action_contract,
     decode_conditional_hybrid_action,
@@ -42,8 +43,59 @@ def test_protocol_is_nonclaiming_and_keeps_native_distribution_gap_visible() -> 
     assert protocol["action_contract"]["ppo_policy_distribution"][
         "native_hybrid_distribution"
     ] is True
-    assert protocol["development_gate"]["training_seeds"] == [101, 102, 103, 104, 105]
+    assert protocol["development_gate"]["training_seeds"] == [106, 107, 108, 109, 110]
     assert protocol["development_gate"]["dev_episodes_per_seed"] == 20
+    assert protocol["development_gate"]["training_environment_step_checkpoints"] == [
+        25600,
+        51200,
+        102400,
+    ]
+    assert protocol["development_gate"]["training_operation_budget"] == 60
+    assert protocol["evidence_policy"][
+        "post_result_reward_or_hyperparameter_tuning_allowed"
+    ] is False
+
+
+def test_dev_behavior_tracker_requires_core_flow_and_final_assay_per_experiment() -> None:
+    tracker = _ExperimentBehaviorTracker()
+    for operation in ("set_flow_rate", "run_flow", "terminate"):
+        tracker.observe(
+            {
+                "operation_type": operation,
+                "experiment_ended": False,
+                "constraint_flags": {"precondition_failed": False},
+            }
+        )
+    tracker.observe(
+        {
+            "operation_type": "measure",
+            "experiment_ended": True,
+            "constraint_flags": {"precondition_failed": False},
+        }
+    )
+    assert tracker.completed[0]["behavior_complete"] is True
+    assert tracker.completed[0]["operation_sequence"][-1] == "measure:final_assay"
+
+    tracker.observe(
+        {
+            "operation_type": "run_flow",
+            "experiment_ended": False,
+            "constraint_flags": {"precondition_failed": True},
+        }
+    )
+    tracker.observe(
+        {
+            "operation_type": "measure",
+            "experiment_ended": True,
+            "constraint_flags": {"precondition_failed": False},
+        }
+    )
+    assert tracker.completed[1]["behavior_complete"] is False
+    assert tracker.completed[1]["quick_close_incomplete"] is True
+    assert tracker.completed[1]["missing_required_operations"] == [
+        "run_flow",
+        "set_flow_rate",
+    ]
 
 
 def test_control_report_retains_failed_learning_gate() -> None:

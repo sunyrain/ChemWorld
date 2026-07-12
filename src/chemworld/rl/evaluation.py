@@ -18,6 +18,41 @@ from chemworld.tasks import get_task
 AlgorithmName = Literal["ppo", "sac"]
 
 
+class _ExperimentBehaviorTracker:
+    """Retain per-experiment operation evidence across campaign resets."""
+
+    def __init__(self) -> None:
+        self._operations: list[str] = []
+        self.completed: list[dict[str, Any]] = []
+
+    def observe(self, info: dict[str, Any]) -> None:
+        invalid = bool(info.get("constraint_flags", {}).get("precondition_failed", False))
+        operation = str(info.get("operation_type", ""))
+        if operation and not invalid:
+            evidence_operation = (
+                "measure:final_assay"
+                if operation == "measure" and bool(info.get("experiment_ended", False))
+                else operation
+            )
+            self._operations.append(evidence_operation)
+        if not bool(info.get("experiment_ended", False)):
+            return
+        present = set(self._operations)
+        required = {"set_flow_rate", "run_flow", "measure:final_assay"}
+        behavior_complete = required.issubset(present)
+        self.completed.append(
+            {
+                "experiment_index": len(self.completed),
+                "operation_sequence": list(self._operations),
+                "required_operations": sorted(required),
+                "missing_required_operations": sorted(required.difference(present)),
+                "behavior_complete": behavior_complete,
+                "quick_close_incomplete": not behavior_complete,
+            }
+        )
+        self._operations = []
+
+
 def _checkpoint_contract_manifest(checkpoint: Path) -> dict[str, Any]:
     path = checkpoint.with_suffix(".manifest.json")
     if not path.is_file():
@@ -113,6 +148,7 @@ def evaluate_sb3_checkpoint(
     try:
         for episode_index in range(episodes):
             observation, _ = env.reset()
+            behavior = _ExperimentBehaviorTracker()
             invalid = 0
             unsafe = 0
             high_cost = 0
@@ -125,6 +161,7 @@ def evaluate_sb3_checkpoint(
             for _step_index in range(operation_budget):
                 action, _ = model.predict(observation, deterministic=deterministic)
                 observation, reward, terminated, truncated, info = env.step(action)
+                behavior.observe(info)
                 steps_taken += 1
                 flags = info.get("constraint_flags", {})
                 preconditions = info.get("preconditions", {})
@@ -156,6 +193,13 @@ def evaluate_sb3_checkpoint(
                     "runtime_domain_failure_count": runtime_domain_failures,
                     "observation_domain_failure_count": observation_domain_failures,
                     "complete_experiment_count": len(final_scores),
+                    "experiment_behavior_cards": behavior.completed,
+                    "behavior_complete_experiment_count": sum(
+                        int(item["behavior_complete"]) for item in behavior.completed
+                    ),
+                    "quick_close_count": sum(
+                        int(item["quick_close_incomplete"]) for item in behavior.completed
+                    ),
                     "final_scores": final_scores,
                     "best_final_score": max(final_scores) if final_scores else 0.0,
                     "raw_environment_return": raw_return,
@@ -169,6 +213,10 @@ def evaluate_sb3_checkpoint(
     completed_episodes = sum(
         int(int(card["complete_experiment_count"]) > 0) for card in episode_cards
     )
+    behavior_complete = sum(
+        int(card["behavior_complete_experiment_count"]) for card in episode_cards
+    )
+    quick_close = sum(int(card["quick_close_count"]) for card in episode_cards)
     scores = [
         float(score)
         for card in episode_cards
@@ -198,6 +246,10 @@ def evaluate_sb3_checkpoint(
             "complete_experiment_count": completed,
             "episode_completion_rate": completed_episodes / episodes,
             "complete_experiments_per_episode": completed / episodes,
+            "behavior_complete_experiment_count": behavior_complete,
+            "behavior_complete_experiment_rate": behavior_complete / max(completed, 1),
+            "quick_close_count": quick_close,
+            "quick_close_rate": quick_close / max(completed, 1),
             "invalid_action_rate": sum(
                 int(card["invalid_action_count"]) for card in episode_cards
             )
