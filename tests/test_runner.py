@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import pytest
+
 from chemworld.agents.random import RandomAgent
 from chemworld.data.logging import load_jsonl
+from chemworld.eval.method_protocol import MethodResourceLimitError
 from chemworld.eval.runner import run_agent
 from chemworld.tasks import get_task
 
@@ -143,3 +146,53 @@ def test_complete_experiment_budget_stops_campaign_without_synthetic_action(
         "operation_limit": 8,
         "complete_experiment_limit": 1,
     }
+
+
+def test_resource_rejected_model_decision_is_logged_without_lab_execution(
+    tmp_path,
+) -> None:
+    class FixedAgent:
+        name = "resource-limit-test"
+
+        def reset(self, task_info, seed):
+            del task_info, seed
+
+        def act(self, history):
+            del history
+            return {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1}
+
+        def update(self, action, observation, reward, info):
+            raise AssertionError("resource-rejected action must not reach agent.update")
+
+        def manifest(self):
+            return {}
+
+    output = tmp_path / "resource-rejected.jsonl"
+    with pytest.raises(MethodResourceLimitError, match="wall_time"):
+        run_agent(
+            env_id="ChemWorld",
+            agent=FixedAgent(),
+            world_split="public-test",
+            budget=2,
+            objective="balanced",
+            seed=7,
+            task_id="partition-discovery",
+            output_path=output,
+            budget_override=2,
+            method_resource_limits={
+                "operation_limit": 2,
+                "wall_time_limit_s": 0.0,
+            },
+        )
+
+    records = load_jsonl(output)
+    assert len(records) == 1
+    assert records[0]["action"] == {
+        "operation": "add_solvent",
+        "volume_L": 0.02,
+        "solvent": 1,
+    }
+    assert records[0]["transaction_status"] == "not_executed_resource_limit"
+    assert records[0]["truncated"] is True
+    assert records[0]["method_resources"]["operation_count"] == 1
+    assert records[0]["method_resources"]["complete_experiment_count"] == 0

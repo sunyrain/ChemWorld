@@ -158,6 +158,7 @@ class SubprocessCellExecutor:
     adapter_factory: str
     python_executable: str
     cell_script: str
+    private_diagnostic_root: str | None = None
 
     def __call__(self, job: FormalMatrixJob) -> Mapping[str, Any]:
         runtime_path = Path(self.private_runtime_root) / f"{job.cell_identity_sha256}.json"
@@ -177,6 +178,10 @@ class SubprocessCellExecutor:
             "--adapter-factory",
             self.adapter_factory,
         ]
+        if self.private_diagnostic_root is not None:
+            command.extend(
+                ["--private-diagnostic-dir", self.private_diagnostic_root]
+            )
         environment = dict(os.environ)
         environment["CHEMWORLD_FORMAL_PROGRESS_PATH"] = job.progress_path
         if job.gpu_device is not None:
@@ -416,6 +421,7 @@ def run_formal_matrix(
     api_gate = _StartRateGate(plan.limits.api_cell_starts_per_minute)
     checkpoint_offsets: dict[str, int] = {}
     seen_checkpoints: dict[str, set[int]] = {}
+    last_operation_counts: dict[str, int] = {}
     infrastructure_errors: list[dict[str, Any]] = []
     worker_pids: set[int] = set()
     new_terminals = 0
@@ -511,6 +517,7 @@ def run_formal_matrix(
                 inbox=inbox,
                 offsets=checkpoint_offsets,
                 seen=seen_checkpoints,
+                last_operations=last_operation_counts,
                 emit=emit,
             )
             for future in done:
@@ -566,6 +573,7 @@ def run_formal_matrix(
         inbox=inbox,
         offsets=checkpoint_offsets,
         seen=seen_checkpoints,
+        last_operations=last_operation_counts,
         emit=emit,
     )
     elapsed_wall_time_s = time.perf_counter() - wall_start
@@ -899,6 +907,7 @@ def _drain_checkpoint_inbox(
     inbox: Path,
     offsets: dict[str, int],
     seen: dict[str, set[int]],
+    last_operations: dict[str, int],
     emit: Callable[..., None],
 ) -> None:
     by_identity = {cell.cell_identity_sha256: cell for cell in plan.cells}
@@ -925,9 +934,46 @@ def _drain_checkpoint_inbox(
             if not isinstance(payload, Mapping):
                 raise FormalMatrixError("worker progress record must be an object")
             _assert_public_progress_event(payload)
+            _assert_progress_inbox_shape(payload)
             if payload.get("cell_identity_sha256") != cell_id:
                 raise FormalMatrixError("worker progress identity mismatch")
+            event_type = payload.get("event_type", "checkpoint")
+            operation_count = payload.get("operation_count")
+            if (
+                isinstance(operation_count, bool)
+                or not isinstance(operation_count, int)
+                or operation_count < 1
+                or operation_count > cell.spec.operation_limit
+            ):
+                raise FormalMatrixError("worker reported an invalid operation count")
             checkpoint = payload.get("complete_experiment_count")
+            if event_type == "operation_progress":
+                if (
+                    isinstance(checkpoint, bool)
+                    or not isinstance(checkpoint, int)
+                    or checkpoint < 0
+                    or checkpoint > cell.spec.complete_experiments
+                ):
+                    raise FormalMatrixError(
+                        "worker operation progress has an invalid experiment count"
+                    )
+                previous = last_operations.get(cell_id, 0)
+                if operation_count <= previous:
+                    raise FormalMatrixError(
+                        "worker operation counts are not strictly increasing"
+                    )
+                last_operations[cell_id] = operation_count
+                emit(
+                    cell,
+                    "operation_progress",
+                    operation_count=operation_count,
+                    complete_experiment_count=checkpoint,
+                    operation_type=payload.get("operation_type"),
+                    transaction_status=payload.get("transaction_status"),
+                    trajectory_event_type=payload.get("trajectory_event_type"),
+                    replay_verified=False,
+                )
+                continue
             if (
                 isinstance(checkpoint, bool)
                 or not isinstance(checkpoint, int)
@@ -944,7 +990,7 @@ def _drain_checkpoint_inbox(
                 cell,
                 "checkpoint",
                 complete_experiment_count=checkpoint,
-                operation_count=payload.get("operation_count"),
+                operation_count=operation_count,
                 replay_verified=False,
             )
         offsets[cell_id] = start + consumed
@@ -983,6 +1029,39 @@ def _assert_public_progress_event(event: Mapping[str, Any]) -> None:
     encoded = json.dumps(event, allow_nan=False, sort_keys=True)
     if not encoded:
         raise FormalMatrixError("progress event is empty")
+
+
+def _assert_progress_inbox_shape(event: Mapping[str, Any]) -> None:
+    event_type = event.get("event_type", "checkpoint")
+    common = {
+        "schema_version",
+        "event_type",
+        "cell_identity_sha256",
+        "complete_experiment_count",
+        "operation_count",
+    }
+    allowed = (
+        common
+        | {
+            "operation_type",
+            "transaction_status",
+            "trajectory_event_type",
+        }
+        if event_type == "operation_progress"
+        else common
+    )
+    if event_type not in {"checkpoint", "operation_progress"}:
+        raise FormalMatrixError("worker reported an unsupported progress event")
+    if set(event) - allowed:
+        raise FormalMatrixError("worker progress contains unapproved public fields")
+    for field in ("operation_type", "transaction_status", "trajectory_event_type"):
+        value = event.get(field)
+        if value is not None and (
+            not isinstance(value, str)
+            or len(value) > 80
+            or any(ord(character) < 32 for character in value)
+        ):
+            raise FormalMatrixError("worker progress contains invalid status text")
 
 
 def _unique_text_tuple(payload: Mapping[str, Any], field: str) -> tuple[str, ...]:

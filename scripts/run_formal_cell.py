@@ -46,6 +46,7 @@ def main() -> int:
     parser.add_argument("--cell-id", required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--private-runtime", type=Path)
+    parser.add_argument("--private-diagnostic-dir", type=Path)
     parser.add_argument("--adapter-factory")
     parser.add_argument(
         "--validate-only",
@@ -90,6 +91,7 @@ def main() -> int:
             runtime=runtime,
             adapter=adapter,
             output_root=args.output_dir,
+            private_diagnostic_root=args.private_diagnostic_dir,
         )
     except (OSError, ValueError, TypeError, RuntimeError) as exc:
         parser.exit(2, f"formal cell rejected: {type(exc).__name__}: {exc}\n")

@@ -34,6 +34,7 @@ from chemworld.eval.formal_runner import (
 from chemworld.eval.method_protocol import (
     METHOD_RESOURCE_LEDGER_VERSION,
     METHOD_RESOURCE_USAGE_VERSION,
+    MethodResourceLimitError,
 )
 from chemworld.eval.runner import make_agent, run_agent
 from chemworld.tasks import get_task
@@ -197,6 +198,14 @@ class _Adapter:
             raise KeyboardInterrupt
         if self.behavior == "disk":
             raise OSError("simulated disk failure")
+        if self.behavior == "resource_limit":
+            record = _record(1, operations=1, experiments=0, spec=spec)
+            trajectory_path.write_text(
+                json.dumps(record, sort_keys=True) + "\n", encoding="utf-8"
+            )
+            raise MethodResourceLimitError(
+                "method resource limit exceeded: wall_time_s"
+            )
         if self.behavior == "bad_json":
             trajectory_path.write_text("{bad-json\n", encoding="utf-8")
             return
@@ -584,6 +593,59 @@ def test_live_llm_timeout_is_retained_as_provider_failure(tmp_path) -> None:
     )
     assert outcome.status == "failed"
     assert outcome.failure_class == "provider_or_model_failure"
+
+
+def test_method_resource_limit_is_budget_failure_with_partial_accounting(
+    tmp_path,
+) -> None:
+    runtime = _runtime()
+    spec = _spec(runtime=runtime)
+    private_diagnostics = tmp_path / "private-diagnostics"
+    public_output = tmp_path / "public-output"
+    outcome = run_formal_cell(
+        issued_cell=_issued(spec),
+        runtime=runtime,
+        adapter=_Adapter(behavior="resource_limit"),
+        output_root=public_output,
+        private_diagnostic_root=private_diagnostics,
+        replay_evaluator=_replay,
+    )
+
+    failure = json.loads(
+        (outcome.cell_dir / "failure.json").read_text(encoding="utf-8")
+    )
+    resources = json.loads(
+        (outcome.cell_dir / "resources.json").read_text(encoding="utf-8")
+    )
+    diagnostics = list(private_diagnostics.rglob("*.json"))
+    public_text = "\n".join(
+        path.read_text(encoding="utf-8") for path in outcome.cell_dir.iterdir()
+    )
+
+    assert outcome.status == "failed"
+    assert outcome.failure_class == "budget_overrun"
+    assert failure["failure_code"] == "method_resource_limit_exceeded"
+    assert resources["accounting_complete"] is True
+    assert resources["axes"]["operation_count"] == 1
+    assert resources["axes"]["complete_experiment_count"] == 0
+    assert len(diagnostics) == 1
+    raw_message = "method resource limit exceeded: wall_time_s"
+    assert raw_message in diagnostics[0].read_text(encoding="utf-8")
+    assert raw_message not in public_text
+
+
+def test_private_diagnostics_cannot_be_written_under_public_output(tmp_path) -> None:
+    runtime = _runtime()
+    spec = _spec(runtime=runtime)
+    with pytest.raises(CellIdentityError, match="outside the public"):
+        run_formal_cell(
+            issued_cell=_issued(spec),
+            runtime=runtime,
+            adapter=_Adapter(),
+            output_root=tmp_path,
+            private_diagnostic_root=tmp_path / "private-diagnostics",
+            replay_evaluator=_replay,
+        )
 
 
 def test_live_llm_without_attempt_receipts_fails_resource_accounting(tmp_path) -> None:

@@ -26,7 +26,11 @@ def _progress(event: dict[str, Any]) -> None:
             "method_id",
             "pair_id",
             "spectrum_condition",
+            "operation_count",
             "complete_experiment_count",
+            "operation_type",
+            "transaction_status",
+            "trajectory_event_type",
             "replay_verified",
             "matrix_status",
         )

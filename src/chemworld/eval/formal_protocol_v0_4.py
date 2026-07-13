@@ -23,8 +23,40 @@ from chemworld.world.world_family import WORLD_FAMILY_INTERVENTION_VERSION, axes
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_PROTOCOL_PATH = configuration_root() / "benchmark" / "formal_protocol_v0.4.json"
+
+
+def _git_common_dir() -> Path:
+    dot_git = ROOT / ".git"
+    if dot_git.is_dir():
+        return dot_git.resolve()
+    if dot_git.is_file():
+        marker = dot_git.read_text(encoding="utf-8").strip()
+        if marker.startswith("gitdir:"):
+            raw_git_dir = Path(marker.removeprefix("gitdir:").strip())
+            git_dir = (
+                raw_git_dir.resolve()
+                if raw_git_dir.is_absolute()
+                else (ROOT / raw_git_dir).resolve()
+            )
+            common_marker = git_dir / "commondir"
+            if common_marker.is_file():
+                raw_common = Path(
+                    common_marker.read_text(encoding="utf-8").strip()
+                )
+                return (
+                    raw_common.resolve()
+                    if raw_common.is_absolute()
+                    else (git_dir / raw_common).resolve()
+                )
+            return git_dir
+    return dot_git.resolve()
+
+
 DEFAULT_PRIVATE_MANIFEST_PATH = (
-    ROOT / ".git" / "chemworld-private" / "formal-protocol-v0.4" / "bench-manifest.json"
+    _git_common_dir()
+    / "chemworld-private"
+    / "formal-protocol-v0.4.2"
+    / "bench-manifest.json"
 )
 PROTOCOL_VERSION = "chemworld-formal-protocol-0.4"
 PRIVATE_MANIFEST_VERSION = "chemworld-private-bench-manifest-0.4"
@@ -491,7 +523,7 @@ def _bench_public_boundary_ready(protocol: Mapping[str, Any]) -> bool:
         == "sealed_unrun_unviewed_by_evaluated_methods"
         and _is_sha256(commitment)
         and commitment != "0" * 64
-        and path == ".git/chemworld-private/formal-protocol-v0.4/bench-manifest.json"
+        and path == ".git/chemworld-private/formal-protocol-v0.4.2/bench-manifest.json"
     )
 
 

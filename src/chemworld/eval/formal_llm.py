@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -28,8 +29,9 @@ from chemworld.tasks import get_task
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_LLM_FREEZE_PATH = ROOT / "configs/methods/llm_v0.4/llm_methods.json"
 LIVE_LLM_SOURCE_PATH = ROOT / "src/chemworld/agents/live_llm.py"
-LLM_FREEZE_VERSION = "chemworld-live-llm-method-freeze-0.4.1"
+LLM_FREEZE_VERSION = "chemworld-live-llm-method-freeze-0.4.2"
 LLM_METHOD_IDS = ("live_llm_a", "live_llm_b")
+FORMAL_CELL_PROGRESS_VERSION = "chemworld-formal-cell-progress-0.1"
 
 LLMMethodId = Literal["live_llm_a", "live_llm_b"]
 
@@ -43,6 +45,74 @@ class RunAgent(Protocol):
 
 
 ClientFactory = Callable[[Mapping[str, Any]], Any]
+
+
+def _append_progress_event(path: Path, payload: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(
+            json.dumps(
+                dict(payload),
+                ensure_ascii=True,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            + "\n"
+        )
+        handle.flush()
+
+
+def _formal_progress_callback(
+    spec: FormalCellSpec,
+    *,
+    checkpoints: tuple[int, ...],
+) -> Callable[[Any, list[dict[str, Any]]], None] | None:
+    raw_path = os.environ.get("CHEMWORLD_FORMAL_PROGRESS_PATH")
+    if not raw_path:
+        return None
+    path = Path(raw_path)
+    emitted_checkpoints: set[int] = set()
+
+    def report(record: Any, agent_trace: list[dict[str, Any]]) -> None:
+        # Progress is deliberately limited to coarse public execution metadata.
+        # Agent reasoning, action parameters, spectra, and private runtime values
+        # remain in their existing controlled artifacts and never enter the inbox.
+        del agent_trace
+        resources = getattr(record, "method_resources", {})
+        action = getattr(record, "action", {})
+        info = getattr(record, "info", {})
+        operation_count = resources.get("operation_count")
+        complete_count = resources.get("complete_experiment_count")
+        operation_type = action.get("operation") if isinstance(action, Mapping) else None
+        transaction_status = (
+            info.get("transaction_status") if isinstance(info, Mapping) else None
+        )
+        trajectory_event_type = getattr(record, "event_type", None)
+        payload: dict[str, Any] = {
+            "schema_version": FORMAL_CELL_PROGRESS_VERSION,
+            "event_type": "operation_progress",
+            "cell_identity_sha256": spec.cell_identity_sha256,
+            "operation_count": operation_count,
+            "complete_experiment_count": complete_count,
+            "operation_type": operation_type,
+            "transaction_status": transaction_status,
+            "trajectory_event_type": trajectory_event_type,
+        }
+        _append_progress_event(path, payload)
+        if complete_count in checkpoints and complete_count not in emitted_checkpoints:
+            emitted_checkpoints.add(complete_count)
+            _append_progress_event(
+                path,
+                {
+                    "schema_version": FORMAL_CELL_PROGRESS_VERSION,
+                    "event_type": "checkpoint",
+                    "cell_identity_sha256": spec.cell_identity_sha256,
+                    "operation_count": operation_count,
+                    "complete_experiment_count": complete_count,
+                },
+            )
+
+    return report
 
 
 def load_live_llm_method_freeze(
@@ -297,50 +367,61 @@ class FormalLiveLLMAdapter:
         provider_attempt_limit = int(
             resource_contract["provider_attempt_limit_per_operation"]
         )
-        self.run_agent_fn(
-            env_id=task.env_id,
-            agent=agent,
-            world_split=task.world_split,
-            budget=task.budget,
-            objective=task.objective,
-            seed=runtime.world_seed,
-            agent_seed=runtime.method_seed,
-            task_id=task.task_id,
-            output_path=trajectory_path,
-            budget_override=spec.operation_limit,
-            episode_mode_override="campaign",
-            evaluation_policy="task_contract",
-            method_resource_limits={
-                "operation_limit": spec.operation_limit,
-                "complete_experiment_limit": spec.complete_experiments,
-                "wall_time_limit_s": float(
-                    resource_contract["wall_time_limit_s_per_cell"]
-                ),
-                "model_call_limit": spec.operation_limit * provider_attempt_limit,
-                "input_token_limit": int(
-                    resource_contract["input_token_limit_per_cell"]
-                ),
-                "output_token_limit": int(
-                    resource_contract["output_token_limit_per_cell"]
-                ),
-                "monetary_cost_limit_usd": float(
-                    resource_contract["monetary_cost_usd_limit_per_cell"]
-                ),
-                "training_environment_step_limit": int(
-                    resource_contract["training_environment_step_limit"]
-                ),
-                "checkpoint_complete_experiments": tuple(
-                    point
-                    for point in (1, 2, 4, 8, 12, 20, 40)
-                    if point <= spec.complete_experiments
-                ),
-            },
-            world_interventions=runtime.world_interventions,
-            safety_limit_override=risk_limit,
+        checkpoints = tuple(
+            point
+            for point in (1, 2, 4, 8, 12, 20, 40)
+            if point <= spec.complete_experiments
         )
-        records = load_jsonl(trajectory_path)
-        if not records:
-            raise FormalLLMContractError("live-LLM adapter produced an empty trajectory")
+        execution_error: Exception | None = None
+        try:
+            self.run_agent_fn(
+                env_id=task.env_id,
+                agent=agent,
+                world_split=task.world_split,
+                budget=task.budget,
+                objective=task.objective,
+                seed=runtime.world_seed,
+                agent_seed=runtime.method_seed,
+                task_id=task.task_id,
+                output_path=trajectory_path,
+                budget_override=spec.operation_limit,
+                episode_mode_override="campaign",
+                evaluation_policy="task_contract",
+                step_callback=_formal_progress_callback(
+                    spec,
+                    checkpoints=checkpoints,
+                ),
+                method_resource_limits={
+                    "operation_limit": spec.operation_limit,
+                    "complete_experiment_limit": spec.complete_experiments,
+                    "wall_time_limit_s": float(
+                        resource_contract["wall_time_limit_s_per_cell"]
+                    ),
+                    "model_call_limit": spec.operation_limit * provider_attempt_limit,
+                    "input_token_limit": int(
+                        resource_contract["input_token_limit_per_cell"]
+                    ),
+                    "output_token_limit": int(
+                        resource_contract["output_token_limit_per_cell"]
+                    ),
+                    "monetary_cost_limit_usd": float(
+                        resource_contract["monetary_cost_usd_limit_per_cell"]
+                    ),
+                    "training_environment_step_limit": int(
+                        resource_contract["training_environment_step_limit"]
+                    ),
+                    "checkpoint_complete_experiments": checkpoints,
+                },
+                world_interventions=runtime.world_interventions,
+                safety_limit_override=risk_limit,
+            )
+        except Exception as exc:
+            # ``run_agent`` flushes its JSONL logger in ``finally``.  Preserve and
+            # bind that partial evidence before propagating the original failure,
+            # otherwise provider usage incurred before a resource limit or backend
+            # exception becomes unauditable.
+            execution_error = exc
+        records = load_jsonl(trajectory_path) if trajectory_path.is_file() else []
         for record in records:
             record.update(
                 {
@@ -354,24 +435,34 @@ class FormalLiveLLMAdapter:
             )
         pricing_factory = getattr(client, "pricing_snapshot", None)
         receipts_factory = getattr(agent, "provider_receipts", None)
-        records[-1]["formal_resource_evidence"] = {
-            "provider_receipts": (
-                receipts_factory() if callable(receipts_factory) else []
-            ),
-            "pricing_snapshot": (
-                pricing_factory() if callable(pricing_factory) else None
-            ),
-            "classic_compute_events": [],
-            "private_reasoning_retained": False,
-        }
-        trajectory_path.write_text(
-            "".join(
-                json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-                + "\n"
-                for record in records
-            ),
-            encoding="utf-8",
-        )
+        if records:
+            records[-1]["formal_resource_evidence"] = {
+                "provider_receipts": (
+                    receipts_factory() if callable(receipts_factory) else []
+                ),
+                "pricing_snapshot": (
+                    pricing_factory() if callable(pricing_factory) else None
+                ),
+                "classic_compute_events": [],
+                "private_reasoning_retained": False,
+            }
+            trajectory_path.write_text(
+                "".join(
+                    json.dumps(
+                        record,
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    )
+                    + "\n"
+                    for record in records
+                ),
+                encoding="utf-8",
+            )
+        if execution_error is not None:
+            raise execution_error
+        if not records:
+            raise FormalLLMContractError("live-LLM adapter produced an empty trajectory")
 
 
 def register_formal_live_llm_adapters(

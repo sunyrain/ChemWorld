@@ -54,16 +54,18 @@ def test_temperature_and_time_have_qualitative_effects() -> None:
     assert hot_long["safety_risk"] >= warm["safety_risk"]
 
 
-def test_missing_operation_is_rejected() -> None:
+def test_missing_operation_is_retained_as_invalid_transaction() -> None:
     env = gym.make("ChemWorld", budget=2, seed=7)
     env.reset(seed=7)
     try:
-        try:
-            env.step({"temperature": 120.0})
-        except ValueError as exc:
-            assert "operation" in str(exc)
-        else:
-            raise AssertionError("missing operation should fail")
+        _, reward, terminated, truncated, info = env.step({"temperature": 120.0})
+        assert reward == 0.0
+        assert terminated is False
+        assert truncated is False
+        assert info["transaction_status"] == "validation_failed"
+        assert info["operation_type"] == "invalid"
+        assert info["preconditions"]["action_schema_valid"] is False
+        assert info["cost_components"]["precondition_failure"] > 0.0
     finally:
         env.close()
 

@@ -100,12 +100,18 @@ class ChemWorldRuntime:
         action: dict[str, Any],
         validation: OperationValidation,
     ) -> RuntimeStepResult:
+        raw_operation = action.get("operation")
+        operation_type = (
+            raw_operation
+            if isinstance(raw_operation, str) and raw_operation.strip()
+            else "invalid"
+        )
         penalized = self.domain_services.penalize_invalid(state)
         cost_delta = penalized.ledger.cost - state.ledger.cost
         risk_delta = penalized.ledger.risk - state.ledger.risk
         sample_delta = penalized.ledger.sample_consumed_L - state.ledger.sample_consumed_L
         operation_record = self.domain_services.record_operation(
-            str(action["operation"]),
+            operation_type,
             state,
             penalized,
             validation.preconditions,
@@ -117,7 +123,7 @@ class ChemWorldRuntime:
             events=(
                 WorldEvent(
                     event_type="validation_failed",
-                    operation_type=str(action["operation"]),
+                    operation_type=operation_type,
                     payload={
                         "invalid_reasons": list(validation.invalid_reasons),
                         "cost_delta": cost_delta,

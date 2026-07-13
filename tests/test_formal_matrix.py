@@ -34,6 +34,7 @@ from chemworld.eval.formal_runner import (
 from chemworld.eval.method_protocol import (
     METHOD_RESOURCE_LEDGER_VERSION,
     METHOD_RESOURCE_USAGE_VERSION,
+    MethodResourceLimitError,
 )
 from chemworld.eval.resource_accounting_v0_4 import (
     PROVIDER_RECEIPT_VERSION,
@@ -195,6 +196,7 @@ class _SyntheticAdapter:
     kind: str
     job: FormalMatrixJob
     omit_agent_usage: bool = False
+    fail_with_resource_limit: bool = False
 
     def execute(
         self,
@@ -203,14 +205,33 @@ class _SyntheticAdapter:
         runtime: PrivateCellRuntime,
         trajectory_path: Path,
     ) -> None:
-        checkpoint = {
-            "cell_identity_sha256": spec.cell_identity_sha256,
-            "complete_experiment_count": 1,
-            "operation_count": 1,
-        }
-        progress = Path(self.job.progress_path)
-        progress.parent.mkdir(parents=True, exist_ok=True)
-        progress.write_text(json.dumps(checkpoint, sort_keys=True) + "\n", encoding="utf-8")
+        if not self.fail_with_resource_limit:
+            operation_progress = {
+                "schema_version": "chemworld-formal-cell-progress-0.1",
+                "event_type": "operation_progress",
+                "cell_identity_sha256": spec.cell_identity_sha256,
+                "complete_experiment_count": 1,
+                "operation_count": 1,
+                "operation_type": "wait",
+                "transaction_status": "committed",
+                "trajectory_event_type": "experiment_end",
+            }
+            checkpoint = {
+                "schema_version": "chemworld-formal-cell-progress-0.1",
+                "event_type": "checkpoint",
+                "cell_identity_sha256": spec.cell_identity_sha256,
+                "complete_experiment_count": 1,
+                "operation_count": 1,
+            }
+            progress = Path(self.job.progress_path)
+            progress.parent.mkdir(parents=True, exist_ok=True)
+            progress.write_text(
+                json.dumps(operation_progress, sort_keys=True)
+                + "\n"
+                + json.dumps(checkpoint, sort_keys=True)
+                + "\n",
+                encoding="utf-8",
+            )
         pricing = bind_pricing_snapshot(
             {
                 "provider": "SyntheticProvider",
@@ -237,11 +258,15 @@ class _SyntheticAdapter:
                 "schema_version": METHOD_RESOURCE_LEDGER_VERSION,
                 "accounting_complete": True,
                 "operation_count": 1,
-                "complete_experiment_count": 1,
+                "complete_experiment_count": (
+                    0 if self.fail_with_resource_limit else 1
+                ),
                 "decision_wall_time_s": 0.01,
                 "update_wall_time_s": 0.01,
                 "run_wall_time_s": 0.02,
-                "reached_checkpoints": [1],
+                "reached_checkpoints": (
+                    [] if self.fail_with_resource_limit else [1]
+                ),
                 "limits": {
                     "operation_limit": 1,
                     "complete_experiment_limit": 1,
@@ -319,6 +344,10 @@ class _SyntheticAdapter:
         if self.omit_agent_usage:
             record["method_resources"].pop("agent_usage")
         trajectory_path.write_text(json.dumps(record, sort_keys=True) + "\n", encoding="utf-8")
+        if self.fail_with_resource_limit:
+            raise MethodResourceLimitError(
+                "method resource limit exceeded: wall_time_s"
+            )
 
 
 def _synthetic_replay(
@@ -347,6 +376,7 @@ class _SyntheticExecutor:
     output_root: str
     leak_progress_seed: bool = False
     omit_agent_usage: bool = False
+    fail_cell_identity: str | None = None
 
     def __call__(self, job: FormalMatrixJob) -> dict[str, Any]:
         issued = load_issued_cell(
@@ -375,6 +405,9 @@ class _SyntheticExecutor:
             kind=issued.spec.method.kind,
             job=job,
             omit_agent_usage=self.omit_agent_usage,
+            fail_with_resource_limit=(
+                job.cell_identity_sha256 == self.fail_cell_identity
+            ),
         )
         run_formal_cell(
             issued_cell=issued,
@@ -503,9 +536,42 @@ def test_parallel_smoke_matrix_completes_with_public_progress_and_exact_audit(tm
     statuses = Counter(event["status"] for event in outcome.progress_events)
     assert statuses["queued"] == 8
     assert statuses["running"] == 8
+    assert statuses["operation_progress"] == 8
     assert statuses["checkpoint"] == 8
     assert statuses["succeeded"] == 8
     assert all("seed" not in event for event in outcome.progress_events)
+
+
+def test_accounted_resource_limit_failure_remains_aggregation_ready(tmp_path) -> None:
+    manifest = _manifest()
+    plan = build_formal_matrix_plan(manifest)
+    failed_cell = next(
+        cell.cell_identity_sha256
+        for cell in plan.cells
+        if cell.spec.method.kind == "live_llm"
+    )
+    outcome = run_formal_matrix(
+        plan=plan,
+        executor=_SyntheticExecutor(
+            manifest,
+            str(tmp_path),
+            fail_cell_identity=failed_cell,
+        ),
+        output_root=tmp_path,
+    )
+
+    audit = outcome.report["audit"]
+    failed_row = next(
+        row for row in audit["cells"] if row["cell_identity_sha256"] == failed_cell
+    )
+    assert outcome.report["status"] == "complete_aggregation_ready"
+    assert audit["aggregation_ready"] is True
+    assert audit["failure_denominator_complete"] is True
+    assert audit["failure_counts"] == {"budget_overrun": 1}
+    assert audit["resource_accounting_complete_count"] == len(plan.cells)
+    assert failed_row["status"] == "failed"
+    assert failed_row["failure_class"] == "budget_overrun"
+    assert failed_row["resource_accounting_complete"] is True
 
 
 def test_stopped_matrix_resumes_only_missing_cells(tmp_path) -> None:

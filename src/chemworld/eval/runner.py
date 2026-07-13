@@ -43,6 +43,7 @@ from chemworld.data.logging import TrajectoryLogger, action_payload, observation
 from chemworld.data.submission import git_commit
 from chemworld.eval.method_protocol import (
     MethodResourceLedger,
+    MethodResourceLimitError,
     MethodResourceLimits,
     evaluation_resource_limits,
     load_method_protocol,
@@ -277,15 +278,81 @@ def run_agent(
             action = normalized_action
             usage_factory = getattr(agent, "method_resource_usage", None)
             agent_usage = usage_factory() if callable(usage_factory) else {}
-            resource_ledger.record_decision(
-                elapsed_s=decision_elapsed_s,
-                agent_usage=agent_usage,
-            )
             decision_audit_factory = getattr(agent, "decision_audit", None)
             decision_audit = DecisionAuditRecord.from_payload(
                 decision_audit_factory() if callable(decision_audit_factory) else None,
                 action=action,
             )
+            try:
+                resource_ledger.record_decision(
+                    elapsed_s=decision_elapsed_s,
+                    agent_usage=agent_usage,
+                )
+            except MethodResourceLimitError:
+                # The provider decision is real and billable even though its lab
+                # action must not execute after the frozen resource cap is crossed.
+                # Retain it as a non-mutating trajectory event so receipts, tokens,
+                # cost, and decision count remain exactly reconcilable.
+                obs_json = observation_to_json(current_observation)
+                method_resources = resource_ledger.snapshot()
+                resource_limit_info: dict[str, Any] = {
+                    "transaction_status": "not_executed_resource_limit",
+                    "operation_type": action.get("operation"),
+                    "experiment_ended": False,
+                    "resource_limit_reached": True,
+                    "observed_keys": [],
+                    "constraint_flags": {},
+                }
+                interaction_evidence = {
+                    "interaction_contract_version": INTERACTION_CONTRACT_VERSION,
+                    "decision_context": decision_context.to_dict(),
+                    "decision_audit": decision_audit.to_dict(),
+                    "outcome": {
+                        "event_type": "resource_limit",
+                        "observed_keys": [],
+                        "has_spectral_packet": False,
+                        "experiment_ended": False,
+                        "constraint_flags": {},
+                    },
+                    "method_resources": method_resources,
+                    "historical_spectrum_retrieval": retrieval_event,
+                }
+                record = HistoryRecord(
+                    step=step,
+                    action=dict(action),
+                    observation=obs_json,
+                    reward=0.0,
+                    info=resource_limit_info,
+                    public_view=pre_decision_view,
+                    decision_context=decision_context.to_dict(),
+                    decision_audit=decision_audit.to_dict(),
+                    event_type="resource_limit",
+                    method_resources=method_resources,
+                )
+                history.append(record)
+                agent_trace_factory = getattr(agent, "agent_trace", None)
+                agent_trace = (
+                    agent_trace_factory() if callable(agent_trace_factory) else []
+                )
+                if logger is not None:
+                    logger.log(
+                        task_info=task_info,
+                        step=step,
+                        action=action,
+                        observation=obs_json,
+                        reward=0.0,
+                        terminated=False,
+                        truncated=True,
+                        info=resource_limit_info,
+                        agent_metadata=agent_metadata,
+                        explanation=interaction_evidence,
+                        agent_view=pre_decision_view,
+                        agent_trace=agent_trace,
+                        method_resources=method_resources,
+                    )
+                if step_callback is not None:
+                    step_callback(record, agent_trace)
+                raise
             observation, reward, terminated, truncated, info = env.step(action)
             obs_json = observation_to_json(observation)
             update_started = perf_counter()
@@ -319,10 +386,17 @@ def run_agent(
                 event_type = "measurement_result"
             else:
                 event_type = "operation_result"
-            resource_ledger.record_outcome(
-                experiment_ended=event_type == "experiment_end",
-                update_elapsed_s=update_elapsed_s,
-            )
+            outcome_resource_error: MethodResourceLimitError | None = None
+            try:
+                resource_ledger.record_outcome(
+                    experiment_ended=event_type == "experiment_end",
+                    update_elapsed_s=update_elapsed_s,
+                )
+            except MethodResourceLimitError as exc:
+                # The physical transaction already occurred, so log its exact
+                # outcome before propagating the resource-budget failure.
+                outcome_resource_error = exc
+                info = {**info, "resource_limit_reached": True}
             method_resources = resource_ledger.snapshot()
             interaction_evidence = {
                 "interaction_contract_version": INTERACTION_CONTRACT_VERSION,
@@ -377,6 +451,8 @@ def run_agent(
                 )
             if step_callback is not None:
                 step_callback(record, agent_trace)
+            if outcome_resource_error is not None:
+                raise outcome_resource_error
             current_observation = observation
             current_info = info
             previous_event_type = event_type

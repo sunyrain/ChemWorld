@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import copy
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
 
 from chemworld.eval.formal_protocol_v0_4 import (
+    DEFAULT_PRIVATE_MANIFEST_PATH,
     FormalProtocolError,
     audit_formal_protocol,
     initialize_private_bench_manifest,
@@ -15,6 +17,24 @@ from chemworld.eval.formal_protocol_v0_4 import (
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "workstreams" / "benchmark_v1" / "reports" / "formal-protocol-v0.4.json"
+
+
+def test_default_private_manifest_uses_git_common_directory() -> None:
+    raw = subprocess.check_output(
+        ["git", "rev-parse", "--git-common-dir"],
+        cwd=ROOT,
+        text=True,
+    ).strip()
+    common = Path(raw)
+    if not common.is_absolute():
+        common = (ROOT / common).resolve()
+    expected = (
+        common
+        / "chemworld-private"
+        / "formal-protocol-v0.4.2"
+        / "bench-manifest.json"
+    )
+    assert expected == DEFAULT_PRIVATE_MANIFEST_PATH
 
 
 @pytest.fixture()

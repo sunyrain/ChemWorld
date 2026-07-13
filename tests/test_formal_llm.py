@@ -25,7 +25,10 @@ from chemworld.eval.formal_runner import (
     private_world_commitment,
     run_formal_cell,
 )
-from chemworld.eval.method_protocol import METHOD_RESOURCE_LEDGER_VERSION
+from chemworld.eval.method_protocol import (
+    METHOD_RESOURCE_LEDGER_VERSION,
+    MethodResourceLimitError,
+)
 from chemworld.providers.deepseek import DeepSeekClient
 from chemworld.tasks import get_task
 
@@ -186,9 +189,25 @@ def _fake_run_agent(**kwargs: Any) -> None:
             "accounting_complete": True,
         },
     }
+    step_callback = kwargs.get("step_callback")
+    if callable(step_callback):
+        step_callback(
+            SimpleNamespace(
+                action=action,
+                info={"transaction_status": "committed"},
+                event_type="experiment_end",
+                method_resources=record["method_resources"],
+            ),
+            [{"private_reasoning": "must-not-enter-progress"}],
+        )
     Path(kwargs["output_path"]).write_text(
         json.dumps(record, sort_keys=True) + "\n", encoding="utf-8"
     )
+
+
+def _resource_limited_run_agent(**kwargs: Any) -> None:
+    _fake_run_agent(**kwargs)
+    raise MethodResourceLimitError("method resource limit exceeded: wall_time_s")
 
 
 def _replay(spec, runtime, records, trajectory_path):
@@ -257,3 +276,70 @@ def test_formal_live_llm_adapter_reconciles_attempt_receipt_without_reasoning(
     assert resources["axes"]["input_token_count"] == 100
     assert "private reasoning" not in trajectory_text.lower()
     assert "reasoning_content" not in trajectory_text
+
+
+def test_formal_live_llm_failure_retains_provider_receipts_and_partial_resources(
+    tmp_path: Path,
+) -> None:
+    spec = _spec()
+    manifest = issue_run_manifest([spec], metadata={"formal": False, "split": "dev"})
+    issued = load_issued_cell(manifest, cell_identity_sha256=spec.cell_identity_sha256)
+    registry = build_formal_live_llm_registry(
+        client_factory=lambda card: _Client(str(card["model_id"])),
+        run_agent_fn=_resource_limited_run_agent,
+        risk_limit_factory=lambda _: 0.3,
+    )
+
+    outcome = run_formal_cell(
+        issued_cell=issued,
+        runtime=_runtime(),
+        adapter=registry.create(spec),
+        output_root=tmp_path / "public",
+        private_diagnostic_root=tmp_path / "private",
+        replay_evaluator=_replay,
+    )
+
+    resources = json.loads(
+        (outcome.cell_dir / "resources.json").read_text(encoding="utf-8")
+    )
+    assert outcome.status == "failed"
+    assert outcome.failure_class == "budget_overrun"
+    assert resources["accounting_complete"] is True
+    assert resources["axes"]["provider_request_count"] == 1
+    assert resources["axes"]["input_token_count"] == 100
+
+
+def test_formal_live_llm_emits_public_safe_operation_progress(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    spec = _spec()
+    manifest = issue_run_manifest([spec], metadata={"formal": False, "split": "dev"})
+    issued = load_issued_cell(manifest, cell_identity_sha256=spec.cell_identity_sha256)
+    registry = build_formal_live_llm_registry(
+        client_factory=lambda card: _Client(str(card["model_id"])),
+        run_agent_fn=_fake_run_agent,
+        risk_limit_factory=lambda _: 0.3,
+    )
+    progress_path = tmp_path / "private-inbox" / "progress.jsonl"
+    monkeypatch.setenv("CHEMWORLD_FORMAL_PROGRESS_PATH", str(progress_path))
+
+    outcome = run_formal_cell(
+        issued_cell=issued,
+        runtime=_runtime(),
+        adapter=registry.create(spec),
+        output_root=tmp_path / "public",
+        replay_evaluator=_replay,
+    )
+
+    events = [json.loads(line) for line in progress_path.read_text().splitlines()]
+    assert outcome.status == "succeeded"
+    assert [event["event_type"] for event in events] == [
+        "operation_progress",
+        "checkpoint",
+    ]
+    assert events[0]["operation_count"] == 1
+    assert events[0]["complete_experiment_count"] == 1
+    assert events[0]["operation_type"] == "terminate"
+    assert events[0]["transaction_status"] == "committed"
+    assert "private_reasoning" not in progress_path.read_text(encoding="utf-8")
