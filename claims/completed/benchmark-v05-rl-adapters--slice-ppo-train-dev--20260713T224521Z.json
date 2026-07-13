@@ -1,6 +1,8 @@
 {
   "branch": "team/benchmark-v05-rl-adapters-slice-ppo-train-dev",
   "claimed_at": "2026-07-13T10:29:56.925717+00:00",
+  "completed_at": "2026-07-13T22:45:21.184005+00:00",
+  "completion_summary": "Implemented resumable, subprocess-isolated formal PPO Train/Dev execution and fail-closed selection; completed 4 formal-core tasks x 5 seeds x 102400 Train steps (20 runs, 2,048,000 steps, 60 Dev candidates). Deterministic Dev selection produced digest-bound local checkpoints for reaction-to-distillation and flow-reaction-optimization; partition-discovery and reaction-to-crystallization failed the frozen Dev gates, so ppo_method_ready=false and parent_task_complete=false. No Bench, reference repository, or SAC access/work. Resource evidence: CPU 88421.125 s, GPU 0 s, active wall 16388.260 s using interval-union accounting; parallel wall sums remain diagnostic only. Verification: 32 related tests passed; Ruff lint/format, mypy, claim check, deterministic replay, checkpoint binding, resource accounting, LF portability, and report/index SHA-256 audits passed. Known limits: checkpoint binaries remain digest-bound under the ignored controlled run tree; clean-environment distribution, missing-task PPO resolution, SAC, formal results, and parent completion remain future work. Integrated and remotely verified on origin/main at 3a258ceea2b36f3ca477e039062d2f46cecdaac0; report workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json; index configs/methods/rl_v0.4/ppo_checkpoint_index.json.",
   "expires_at": "2026-07-20T10:29:56.925717+00:00",
   "notes": "Actual PPO evidence slice: 4 formal-core tasks x 5 model seeds x 102400 Train steps, with Dev-only selection. No SAC, reference-search, Bench, or parent todo completion. Checkpoint binaries stay under ignored controlled runs; tracked manifests/digests/report are committed, and clean-environment distribution remains a later parent-task gate. SB3 2.9.0/Torch 2.13.0+cpu; reference_repos unused.",
   "owned_paths": [
@@ -22,6 +24,6 @@
   "owner": "knitua",
   "schema_version": "chemworld-task-claim-0.1",
   "scope": "Execute the preregistered four-task, five-seed PPO Train/Dev program with resumable 102400-step runs, Dev-only checkpoint selection, behavior/replay/resource evidence, and digest-bound local checkpoint artifacts.",
-  "status": "active",
+  "status": "completed",
   "task_id": "benchmark-v05-rl-adapters--slice-ppo-train-dev"
 }
