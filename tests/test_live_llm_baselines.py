@@ -112,3 +112,8 @@ def test_live_llm_controls_do_not_claim_missing_runs() -> None:
     assert report["publication_ready"] is False
     assert report["checks"]["two_independent_model_ids"] is True
     assert report["checks"]["private_reasoning_excluded"] is True
+    assert all(
+        manifest["formal_unbillable_provider_failure_policy"]
+        == "raise_resumable_infrastructure_interruption"
+        for manifest in report["official_adapter_manifests"].values()
+    )

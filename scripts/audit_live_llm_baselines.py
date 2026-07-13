@@ -36,7 +36,11 @@ def build_report() -> dict[str, Any]:
     }
     pricing = {role_id: client.pricing_snapshot() for role_id, client in clients.items()}
     adapter_manifests = {
-        role_id: LiveLLMAgent(client, role_id=role_id).manifest()
+        role_id: LiveLLMAgent(
+            client,
+            role_id=role_id,
+            fail_fast_on_unbillable_provider_failure=True,
+        ).manifest()
         for role_id, client in clients.items()
     }
     formal_freeze_audit = audit_live_llm_method_freeze()
@@ -105,6 +109,15 @@ def build_report() -> dict[str, Any]:
             is False
             and protocol["official_adapter_contract"]["provider_or_output_failure_policy"]
             == "retain_as_invalid_model_failure_operation"
+            and protocol["official_adapter_contract"][
+                "unbillable_provider_failure_policy"
+            ]
+            == "stop_resumable_without_terminal_cell"
+            and all(
+                manifest["formal_unbillable_provider_failure_policy"]
+                == "raise_resumable_infrastructure_interruption"
+                for manifest in adapter_manifests.values()
+            )
             and protocol["official_adapter_contract"]["task_lab_is_formal_launcher"]
             is False
         ),
