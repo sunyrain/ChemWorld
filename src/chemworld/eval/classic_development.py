@@ -45,6 +45,9 @@ class DevelopmentCell:
     complete_experiments: int
     risk_limit: float
     world_interventions: tuple[dict[str, Any], ...]
+    formal_protocol_sha256: str
+    method_artifact_sha256: str
+    source_commit: str
     determinism_check: bool = False
 
     @property
@@ -139,6 +142,9 @@ def _run_cell_once(cell: DevelopmentCell) -> tuple[dict[str, Any], str]:
         "method_id": cell.method_id,
         "world_seed": cell.world_seed,
         "method_seed_role": "paired_public_development_rng",
+        "formal_protocol_sha256": cell.formal_protocol_sha256,
+        "method_artifact_sha256": cell.method_artifact_sha256,
+        "source_commit": cell.source_commit,
         "complete_experiment_count": len(terminal),
         "operation_count": len(history),
         "primary_metric": primary_metric,
@@ -225,6 +231,8 @@ def build_development_cells(
 ) -> list[DevelopmentCell]:
     protocol = load_formal_protocol()
     freeze = load_classic_method_freeze()
+    protocol_sha256 = canonical_sha256(protocol)
+    source_commit = _git_commit()
     selected_methods = tuple(sorted(freeze["methods"])) if methods is None else tuple(methods)
     allowed_tasks = set(protocol["task_roles"]["formal_core"])
     allowed_methods = set(freeze["methods"])
@@ -264,6 +272,11 @@ def build_development_cells(
                             complete_experiments=complete_experiments,
                             risk_limit=risk_limit,
                             world_interventions=interventions,
+                            formal_protocol_sha256=protocol_sha256,
+                            method_artifact_sha256=str(
+                                freeze["methods"][method_id]["artifact_sha256"]
+                            ),
+                            source_commit=source_commit,
                             determinism_check=split == "train" and seed == first_train,
                         )
                     )
@@ -306,7 +319,10 @@ def _method_summary(
         "mean_dev_cpu_time_s": fmean(float(row["cpu_time_s"]) for row in dev),
         "mean_dev_wall_time_s": fmean(float(row["run_wall_time_s"]) for row in dev),
         "mean_budget_curve": curve,
-        "budget_curve_non_degenerate": len({round(value, 12) for value in curve.values()}) > 1,
+        "budget_curve_non_degenerate": any(
+            len({round(float(value), 12) for value in row["best_curve"]}) > 1
+            for row in dev
+        ),
         "determinism_check_count": len(deterministic),
         "deterministic_replay": bool(deterministic)
         and all(row["deterministic_replay"] is True for row in deterministic),
@@ -411,6 +427,8 @@ def run_classic_development_audit(
         summary["all_cells_complete"]
         and summary["accounting_complete"]
         and summary["deterministic_replay"]
+        and summary["budget_curve_non_degenerate"]
+        and int(summary["invalid_operation_count"]) == 0
         and (summary["acquisition_effective"] is not False)
         and (summary["safe_constraint_effective"] is not False)
         for summary in summaries.values()

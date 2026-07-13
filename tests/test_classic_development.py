@@ -21,6 +21,9 @@ def test_development_cells_use_only_public_ranges_and_paired_method_rng() -> Non
         assert len({cell.method_seed for cell in paired}) == 1
         assert all(cell.world_interventions for cell in paired)
         assert all(cell.world_interventions[0]["mode"] != "extrapolation" for cell in paired)
+        assert all(len(cell.formal_protocol_sha256) == 64 for cell in paired)
+        assert all(len(cell.method_artifact_sha256) == 64 for cell in paired)
+        assert all(len(cell.source_commit) == 40 for cell in paired)
 
 
 def test_development_audit_is_resumable_deterministic_and_never_formal_when_partial(
