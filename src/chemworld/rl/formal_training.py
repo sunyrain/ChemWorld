@@ -147,6 +147,10 @@ def validate_training_plan(
         and execution.get("expected_selected_checkpoint_count") == len(task_metrics),
         "cpu_execution_declared": isinstance(infrastructure, Mapping)
         and infrastructure.get("device") == "cpu",
+        "single_thread_torch_declared": isinstance(infrastructure, Mapping)
+        and infrastructure.get("torch_num_threads") == 1,
+        "progress_heartbeat_declared": isinstance(infrastructure, Mapping)
+        and infrastructure.get("progress_interval_steps") == 5_120,
         "no_bench_or_reference_feedback": isinstance(boundary, Mapping)
         and boundary.get("bench_finetuning_used") is False
         and boundary.get("reference_search_used") is False
@@ -226,6 +230,27 @@ def _next_attempt(job_root: Path) -> Path:
         if match:
             indices.append(int(match.group(1)))
     return job_root / f"attempt-{max(indices, default=0) + 1:04d}"
+
+
+def _mark_retained_incomplete_attempts(job_root: Path, *, plan_sha256: str) -> None:
+    for attempt in sorted(job_root.glob("attempt-*")):
+        if not (attempt / "attempt-start.json").is_file():
+            continue
+        terminal = (
+            (attempt / "job-summary.json").is_file()
+            or (attempt / "attempt-failure.json").is_file()
+            or (attempt / "attempt-incomplete.json").is_file()
+        )
+        if not terminal:
+            _write_json(
+                attempt / "attempt-incomplete.json",
+                {
+                    "schema_version": "chemworld-formal-ppo-attempt-incomplete-0.4",
+                    "status": "retained_incomplete",
+                    "reason": "process_ended_before_job_summary",
+                    "plan_sha256_at_classification": plan_sha256,
+                },
+            )
 
 
 def _candidate_is_eligible(evaluation: Mapping[str, Any]) -> bool:
@@ -333,7 +358,9 @@ def run_one_job(
     completed = scan_completed_jobs(root=root, plan=plan)
     if job in completed:
         return completed[job]
-    attempt = _next_attempt(_job_root(root, plan, job))
+    job_root = _job_root(root, plan, job)
+    _mark_retained_incomplete_attempts(job_root, plan_sha256=plan_sha256)
+    attempt = _next_attempt(job_root)
     attempt.mkdir(parents=True, exist_ok=False)
     _write_json(
         attempt / "attempt-start.json",
@@ -368,6 +395,8 @@ def run_one_job(
             parallel_environments=int(infrastructure["parallel_environments"]),
             vectorization_backend=cast(Any, infrastructure["vectorization_backend"]),
             device=cast(Any, infrastructure["device"]),
+            torch_num_threads=int(infrastructure["torch_num_threads"]),
+            progress_interval_steps=int(infrastructure["progress_interval_steps"]),
         )
         manifest_path = attempt / f"{job.job_id}.manifest.json"
         expected_steps = tuple(int(step) for step in training["checkpoint_steps"])
@@ -808,6 +837,25 @@ def finalize_training(
                         "summary": candidate["summary"],
                     }
                     for candidate in item["candidates"]
+                ],
+                "attempt_lineage": [
+                    {
+                        "attempt": attempt.name,
+                        "status": (
+                            "complete"
+                            if (attempt / "job-summary.json").is_file()
+                            else "failed_retained"
+                            if (attempt / "attempt-failure.json").is_file()
+                            else "incomplete_retained"
+                        ),
+                    }
+                    for attempt in sorted(
+                        _job_root(
+                            root,
+                            plan,
+                            FormalPPOJob(str(item["task_id"]), int(item["model_seed"])),
+                        ).glob("attempt-*")
+                    )
                 ],
             }
             for item in summaries

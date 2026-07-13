@@ -103,6 +103,8 @@ def train_sb3_baseline(
     parallel_environments: int = 1,
     vectorization_backend: VectorizationBackend = "dummy",
     device: TrainingDevice = "cpu",
+    torch_num_threads: int | None = None,
+    progress_interval_steps: int | None = None,
 ) -> dict[str, Any]:
     """Train one baseline and retain the model plus a complete compute manifest."""
 
@@ -127,6 +129,10 @@ def train_sb3_baseline(
         raise ValueError("formal RL training accepts only the train allocation")
     if parallel_environments <= 0:
         raise ValueError("parallel_environments must be positive")
+    if torch_num_threads is not None and torch_num_threads <= 0:
+        raise ValueError("torch_num_threads must be positive")
+    if progress_interval_steps is not None and progress_interval_steps <= 0:
+        raise ValueError("progress_interval_steps must be positive")
     if vectorization_backend not in {"dummy", "subprocess"}:
         raise ValueError("vectorization_backend must be dummy or subprocess")
     if parallel_environments == 1 and vectorization_backend == "subprocess":
@@ -137,6 +143,8 @@ def train_sb3_baseline(
         raise ValueError("checkpoint_interval_steps must be divisible by parallel_environments")
     if any(step % parallel_environments for step in exact_checkpoint_steps):
         raise ValueError("every checkpoint_steps value must be divisible by parallel_environments")
+    if progress_interval_steps is not None and (progress_interval_steps % parallel_environments):
+        raise ValueError("progress_interval_steps must be divisible by parallel_environments")
     try:
         import stable_baselines3 as sb3
         import torch
@@ -148,6 +156,10 @@ def train_sb3_baseline(
     algorithm_class = sb3.PPO if algorithm == "ppo" else sb3.SAC
     if device == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("CUDA training was requested but this PyTorch runtime has no CUDA")
+    initial_torch_num_threads = int(torch.get_num_threads())
+    if torch_num_threads is not None:
+        torch.set_num_threads(torch_num_threads)
+    resolved_torch_num_threads = int(torch.get_num_threads())
     requested_device = device
     probe_env = build_rl_environment(
         task_id=task_id,
@@ -213,7 +225,7 @@ def train_sb3_baseline(
     cpu_started = process_time()
     try:
         callback: BaseCallback | None = None
-        if exact_checkpoint_steps:
+        if exact_checkpoint_steps or progress_interval_steps is not None:
             periodic_dir.mkdir(parents=True, exist_ok=True)
 
             class _ExactCheckpointCallback(BaseCallback):
@@ -224,6 +236,27 @@ def train_sb3_baseline(
 
                 def _on_step(self) -> bool:
                     step = int(self.num_timesteps)
+                    if progress_interval_steps is not None and (
+                        step % progress_interval_steps == 0 or step == total_timesteps
+                    ):
+                        progress_path = output / "training-progress.json"
+                        progress_path.write_text(
+                            json.dumps(
+                                {
+                                    "schema_version": "chemworld-rl-training-progress-0.1",
+                                    "algorithm": algorithm,
+                                    "task_id": task_id,
+                                    "model_seed": model_seed,
+                                    "training_environment_step_count": step,
+                                    "requested_training_environment_step_count": total_timesteps,
+                                    "progress_fraction": step / total_timesteps,
+                                },
+                                indent=2,
+                                sort_keys=True,
+                            )
+                            + "\n",
+                            encoding="utf-8",
+                        )
                     if step not in self._targets or step in self._saved:
                         return True
                     checkpoint_path = periodic_dir / f"{checkpoint_stem.name}_{step}_steps"
@@ -353,7 +386,9 @@ def train_sb3_baseline(
             "requested_device": requested_device,
             "resolved_device": resolved_device,
             "logical_cpu_count": os.cpu_count(),
-            "torch_num_threads": torch.get_num_threads(),
+            "initial_torch_num_threads": initial_torch_num_threads,
+            "requested_torch_num_threads": torch_num_threads,
+            "torch_num_threads": resolved_torch_num_threads,
             "cuda_available": torch.cuda.is_available(),
             "torch_cuda_version": torch.version.cuda,
             "cuda_device_name": (
@@ -366,6 +401,7 @@ def train_sb3_baseline(
         "cpu_time_s": cpu_time_s,
         "gpu_time_s": 0.0,
         "device": resolved_device,
+        "progress_interval_steps": progress_interval_steps,
         "checkpoint": checkpoint.name,
         "checkpoint_sha256": _sha256(checkpoint),
         "versions": {

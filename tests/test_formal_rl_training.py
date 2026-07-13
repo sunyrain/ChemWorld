@@ -37,6 +37,7 @@ def test_plan_is_exactly_bound_to_formal_tasks_splits_and_ppo_budget() -> None:
     assert [job.model_seed for job in jobs[:5]] == [0, 1, 2, 3, 4]
     assert plan["evidence_boundary"]["benchmark_claim_allowed"] is False
     assert plan["evidence_boundary"]["sac_training_in_scope"] is False
+    assert plan["infrastructure"]["torch_num_threads"] == 1
 
 
 @pytest.mark.parametrize(
@@ -96,6 +97,8 @@ def test_exact_checkpoint_schedule_has_no_unregistered_intermediate(tmp_path: Pa
         operation_budget=4,
         checkpoint_steps=[8, 16],
         parallel_environments=2,
+        torch_num_threads=1,
+        progress_interval_steps=8,
     )
     checkpoint_names = sorted(
         Path(item["path"]).name
@@ -110,6 +113,14 @@ def test_exact_checkpoint_schedule_has_no_unregistered_intermediate(tmp_path: Pa
     assert manifest["checkpoint_interval_steps"] is None
     assert manifest["allocation"]["namespace_id"] == "chemworld-v0.5-train-0.4"
     assert manifest["bench_finetuning_used"] is False
+    assert manifest["training_infrastructure"]["torch_num_threads"] == 1
+    assert manifest["progress_interval_steps"] == 8
+    assert (
+        json.loads((tmp_path / "training-progress.json").read_text(encoding="utf-8"))[
+            "progress_fraction"
+        ]
+        == 1.0
+    )
     assert len(manifest["periodic_checkpoint_contract_manifests"]) == 2
 
 
