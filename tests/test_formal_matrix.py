@@ -595,6 +595,17 @@ def test_stopped_matrix_resumes_only_missing_cells(tmp_path) -> None:
     assert resumed.report["status"] == "complete_aggregation_ready"
     assert resumed.report["preexisting_terminal_count"] == terminal_before
     assert resumed.report["new_terminal_count"] == 8 - terminal_before
+    preexisting_ids = {
+        event["cell_identity_sha256"]
+        for event in first.progress_events
+        if event["status"] in {"succeeded", "failed"}
+    }
+    replayed_detail_ids = {
+        event["cell_identity_sha256"]
+        for event in resumed.progress_events
+        if event["status"] in {"operation_progress", "checkpoint"}
+    }
+    assert preexisting_ids.isdisjoint(replayed_detail_ids)
 
 
 def test_serial_and_parallel_execution_have_identical_semantic_results(tmp_path) -> None:

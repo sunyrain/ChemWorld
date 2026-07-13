@@ -229,9 +229,14 @@ class ActionCodec:
     @staticmethod
     def _choice_index(value: Any, choices: tuple[str, ...]) -> int:
         if isinstance(value, str):
-            normalized = value.strip().lower().replace("-", "_").replace(" ", "_")
-            if normalized in choices:
-                return choices.index(normalized)
+            display_name = value.split("·", 1)[0].split("路", 1)[0]
+            normalized = display_name.strip().lower().replace("-", "_").replace(" ", "_")
+            candidates = [normalized]
+            if normalized.startswith("catalyst_") and len(normalized) == len("catalyst_") + 1:
+                candidates.append(f"cat_{normalized[-1]}")
+            for candidate in candidates:
+                if candidate in choices:
+                    return choices.index(candidate)
             if normalized.isdigit():
                 value = int(normalized)
             else:

@@ -100,7 +100,31 @@ class OperationValidator:
                     "action_schema_valid": False,
                 },
             )
-        canonical = self.action_codec.canonicalize(action)
+        try:
+            canonical = self.action_codec.canonicalize(action)
+        except (TypeError, ValueError, OverflowError):
+            # Canonicalization is part of public input validation.  A user or
+            # agent supplied material label must never escape ``env.step`` as a
+            # backend exception: reject it transactionally like any other
+            # malformed payload, without exposing codec internals.
+            operation_type = str(action.get("operation", "invalid"))
+            valid_operations = self.valid_operations(state)
+            return OperationValidation(
+                operation_type=operation_type,
+                is_valid=False,
+                preconditions={"action_schema_valid": False},
+                invalid_reasons=("payload_canonicalization_failed",),
+                valid_operations=valid_operations,
+                action_mask=tuple(
+                    operation in valid_operations for operation in self.operation_types
+                ),
+                cost_penalty=0.20,
+                safety_flags={
+                    "operation_allowed_by_task": False,
+                    "precondition_failed": True,
+                    "action_schema_valid": False,
+                },
+            )
         operation_type = str(canonical["operation"])
         preconditions = self._preconditions(operation_type, canonical, state)
         preconditions["action_schema_valid"] = True

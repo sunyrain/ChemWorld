@@ -80,6 +80,10 @@ class BudgetOverrunError(TrajectoryContractError):
     """Raised when the operation or complete-experiment budget is exceeded."""
 
 
+class IncompleteExperimentBudgetError(TrajectoryContractError):
+    """Raised when a method exhausts its run without the issued experiments."""
+
+
 class IncompleteAccountingError(TrajectoryContractError):
     """Raised when required method resource accounting is absent or incoherent."""
 
@@ -898,7 +902,9 @@ def _validate_trajectory(
     if experiment_count > spec.complete_experiments:
         raise BudgetOverrunError("complete-experiment count exceeds the issued budget")
     if require_complete_experiment_budget and experiment_count < spec.complete_experiments:
-        raise TrajectoryContractError("cell ended before its complete-experiment budget")
+        raise IncompleteExperimentBudgetError(
+            "cell ended before its complete-experiment budget"
+        )
     return records
 
 
@@ -1127,6 +1133,8 @@ def _classify_failure(exc: Exception, kind: MethodKind) -> tuple[str, str]:
         return "budget_overrun", "method_resource_limit_exceeded"
     if isinstance(exc, BudgetOverrunError):
         return "budget_overrun", "issued_budget_exceeded"
+    if isinstance(exc, IncompleteExperimentBudgetError):
+        return "budget_overrun", "complete_experiment_budget_not_met"
     if isinstance(exc, IncompleteAccountingError):
         return "incomplete_resource_accounting", "required_ledger_missing_or_incoherent"
     if isinstance(exc, ReplayMismatchError):

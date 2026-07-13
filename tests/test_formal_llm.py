@@ -135,6 +135,21 @@ class _Client:
         return self._pricing_client.estimate_cost_usd(usage)
 
 
+class _PublicMaterialLabelClient(_Client):
+    def complete_json(self, **kwargs: Any) -> Any:
+        completion = super().complete_json(**kwargs)
+        completion.payload["action"] = {
+            "operation": "add_catalyst",
+            "catalyst": "Catalyst B",
+            "catalyst_amount_mol": 0.001,
+        }
+        completion.payload["hypothesis"] = "Test a public catalyst display label."
+        completion.payload["rationale"] = (
+            "The environment must validate a public label without an adapter exception."
+        )
+        return completion
+
+
 def _fake_run_agent(**kwargs: Any) -> None:
     assert kwargs["evaluation_policy"] == "task_contract"
     assert kwargs["safety_limit_override"] == 0.3
@@ -268,7 +283,9 @@ def test_formal_live_llm_adapter_reconciles_attempt_receipt_without_reasoning(
         replay_evaluator=_replay,
     )
 
-    resources = json.loads((outcome.cell_dir / "resources.json").read_text(encoding="utf-8"))
+    resources = json.loads(
+        (outcome.cell_dir / "resources.json").read_text(encoding="utf-8")
+    )
     trajectory_text = (outcome.cell_dir / "trajectory.jsonl").read_text(encoding="utf-8")
     assert outcome.status == "succeeded"
     assert resources["accounting_complete"] is True
@@ -307,6 +324,47 @@ def test_formal_live_llm_failure_retains_provider_receipts_and_partial_resources
     assert resources["accounting_complete"] is True
     assert resources["axes"]["provider_request_count"] == 1
     assert resources["axes"]["input_token_count"] == 100
+
+
+def test_formal_live_llm_invalid_public_material_label_keeps_accounting_complete(
+    tmp_path: Path,
+) -> None:
+    spec = _spec()
+    manifest = issue_run_manifest([spec], metadata={"formal": False, "split": "dev"})
+    issued = load_issued_cell(manifest, cell_identity_sha256=spec.cell_identity_sha256)
+    registry = build_formal_live_llm_registry(
+        client_factory=lambda card: _PublicMaterialLabelClient(str(card["model_id"])),
+        risk_limit_factory=lambda _: 0.3,
+    )
+
+    outcome = run_formal_cell(
+        issued_cell=issued,
+        runtime=_runtime(),
+        adapter=registry.create(spec),
+        output_root=tmp_path / "public",
+        private_diagnostic_root=tmp_path / "private",
+        replay_evaluator=_replay,
+    )
+
+    resources = json.loads(
+        (outcome.cell_dir / "resources.json").read_text(encoding="utf-8")
+    )
+    failure = json.loads(
+        (outcome.cell_dir / "failure.json").read_text(encoding="utf-8")
+    )
+    records = [
+        json.loads(line)
+        for line in (outcome.cell_dir / "trajectory.jsonl").read_text().splitlines()
+    ]
+    assert outcome.status == "failed"
+    assert outcome.failure_class == "budget_overrun"
+    assert failure["failure_code"] == "complete_experiment_budget_not_met"
+    assert records[-1]["transaction_status"] in {"committed", "validation_failed"}
+    assert records[-1]["operation_type"] == "add_catalyst"
+    assert records[-1]["method_resources"]["operation_count"] == 1
+    assert resources["accounting_complete"] is True
+    assert resources["axes"]["decision_count"] == 1
+    assert resources["axes"]["provider_request_count"] == 1
 
 
 def test_formal_live_llm_emits_public_safe_operation_progress(

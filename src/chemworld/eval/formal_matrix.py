@@ -350,6 +350,9 @@ def run_formal_matrix(
     inbox.mkdir(parents=True, exist_ok=True)
     events: list[dict[str, Any]] = []
     sequence = _last_progress_sequence(progress_path)
+    checkpoint_offsets: dict[str, int] = {}
+    seen_checkpoints: dict[str, set[int]] = {}
+    last_operation_counts: dict[str, int] = {}
 
     def emit(cell: FormalMatrixCell | None, status: str, **extra: Any) -> None:
         nonlocal sequence
@@ -395,6 +398,14 @@ def run_formal_matrix(
                 expected_cell=IssuedFormalCell(cell.spec, plan.run_manifest_sha256),
             )
             preexisting.add(cell.cell_identity_sha256)
+            prior_inbox = inbox / f"{cell.cell_identity_sha256}.jsonl"
+            if prior_inbox.is_symlink():
+                raise FormalMatrixError("progress inbox contains an unexpected cell")
+            if prior_inbox.is_file():
+                # The cell is already terminal and will never append again.  Resume
+                # after the immutable end offset so its operation/checkpoint events
+                # are not emitted a second time under fresh matrix sequence numbers.
+                checkpoint_offsets[cell.cell_identity_sha256] = prior_inbox.stat().st_size
             emit(
                 cell,
                 outcome.status,
@@ -419,9 +430,6 @@ def run_formal_matrix(
     active_by_queue: Counter[str] = Counter()
     gpu_slots = deque(plan.limits.gpu_slots)
     api_gate = _StartRateGate(plan.limits.api_cell_starts_per_minute)
-    checkpoint_offsets: dict[str, int] = {}
-    seen_checkpoints: dict[str, set[int]] = {}
-    last_operation_counts: dict[str, int] = {}
     infrastructure_errors: list[dict[str, Any]] = []
     worker_pids: set[int] = set()
     new_terminals = 0
