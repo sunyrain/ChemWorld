@@ -309,6 +309,21 @@ def test_official_runner_ledgers_live_usage_and_replays_trajectory(tmp_path: Pat
         "operation_limit": 4,
         "complete_experiment_limit": 4,
     }
+    lifecycle = prompt["task_contract"]["experiment_lifecycle"]
+    assert "does not by itself complete" in lifecycle["terminate_effect"]
+    assert "instrument=final_assay" in lifecycle["final_assay_precondition"]
+    assert "fresh experiment" in lifecycle["final_assay_effect"]
+    assert prompt["task_contract"]["termination_policy"] == "budget"
+    assert prompt["task_contract"]["success_metrics"] == [
+        "score",
+        "flow_conversion",
+        "yield",
+        "safety_risk",
+    ]
+    assert client.prompts[3]["decision_context"]["decision_stage"] == (
+        "experiment_closeout"
+    )
+    assert "recommended_strategy" not in prompt["task_contract"]
     assert "runtime" not in prompt["task_contract"]
     assert "world_law" not in prompt["task_contract"]
     assert "constitution" not in prompt["task_contract"]

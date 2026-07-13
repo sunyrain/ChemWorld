@@ -37,11 +37,11 @@ from chemworld.world.world_family import axes_for_task
 
 ROOT = Path(__file__).resolve().parents[3]
 DEVELOPMENT_PLAN_PATH = ROOT / "configs/methods/llm_v0.4/llm_development_plan.json"
-DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.3.json"
+DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.4.json"
 FORMAL_PROTOCOL_REPORT_PATH = (
     ROOT / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
 )
-LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.3"
+LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.4"
 LIVE_STAGES = ("live_pilot", "development_matrix")
 
 
@@ -53,7 +53,7 @@ def _git_common_dir() -> Path:
     return path.resolve() if path.is_absolute() else (ROOT / path).resolve()
 
 
-DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.3"
+DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.4"
 
 
 @dataclass(frozen=True)

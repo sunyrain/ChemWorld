@@ -484,6 +484,31 @@ def _task_prompt_profile(info: dict[str, Any], base: Any) -> dict[str, Any]:
     return _default_task_prompt_profile(info, base)
 
 
+def experiment_lifecycle_contract(episode_mode: Any) -> dict[str, str]:
+    """Describe experiment completion without prescribing a search strategy."""
+
+    final_effect = (
+        "A valid final_assay completes the current experiment and, while campaign "
+        "budget remains, resets the environment to a fresh experiment."
+        if episode_mode == "campaign"
+        else "A valid final_assay completes the experiment and ends the episode."
+    )
+    return {
+        "terminate_effect": (
+            "terminate marks the current process as terminated; it does not by itself "
+            "complete the experiment."
+        ),
+        "final_assay_precondition": (
+            "measure with instrument=final_assay is valid only after terminate."
+        ),
+        "final_assay_effect": final_effect,
+        "intermediate_measurement_effect": (
+            "Measurements with other instruments provide evidence but do not complete "
+            "the experiment."
+        ),
+    }
+
+
 def _render_task_prompt_text(
     *,
     task_id: str,
@@ -496,6 +521,7 @@ def _render_task_prompt_text(
     allowed_instruments: list[str],
     success_metrics: list[str],
     operation_groups: dict[str, list[str]],
+    experiment_lifecycle: dict[str, str],
 ) -> str:
     group_lines = [
         f"  - {group}: {', '.join(operations)}"
@@ -513,6 +539,8 @@ def _render_task_prompt_text(
         *[f"  - {item}" for item in profile["success_criteria"]],
         "Constraints:",
         *[f"  - {item}" for item in profile["constraints"]],
+        "Experiment lifecycle:",
+        *[f"  - {item}" for item in experiment_lifecycle.values()],
         "Allowed tools:",
         f"  - instruments: {', '.join(allowed_instruments)}",
         "  - operation groups:",
@@ -541,6 +569,7 @@ def task_prompt(env: Any) -> dict[str, Any]:
     )
     operation_groups = _allowed_operation_groups(allowed_operations)
     profile = _task_prompt_profile(info, base)
+    experiment_lifecycle = experiment_lifecycle_contract(info.get("episode_mode"))
     task_id = str(info.get("task_id") or "")
     text = _render_task_prompt_text(
         task_id=task_id,
@@ -553,6 +582,7 @@ def task_prompt(env: Any) -> dict[str, Any]:
         allowed_instruments=allowed_instruments,
         success_metrics=success_metrics,
         operation_groups=operation_groups,
+        experiment_lifecycle=experiment_lifecycle,
     )
     return {
         "text": text,
@@ -588,11 +618,12 @@ def task_prompt(env: Any) -> dict[str, Any]:
         },
         "material_catalog": info.get("material_catalog", {}),
         "measurement_policy": profile["measurement_policy"],
+        "experiment_lifecycle": experiment_lifecycle,
         "recommended_strategy": list(profile["recommended_strategy"]),
         "failure_modes": list(profile["failure_modes"]),
         "hidden_information_policy": HIDDEN_INFORMATION_POLICY,
         "submission_requirements": list(SUBMISSION_REQUIREMENTS),
-        "prompt_version": "chemworld-agent-task-prompt-0.2",
+        "prompt_version": "chemworld-agent-task-prompt-0.3",
     }
 
 

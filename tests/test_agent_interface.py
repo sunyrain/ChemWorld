@@ -202,7 +202,15 @@ def test_core_task_prompts_are_structured_and_public() -> None:
             env.reset(seed=0)
             prompt = env.unwrapped.task_prompt()
             text = prompt["text"]
-            assert prompt["prompt_version"] == "chemworld-agent-task-prompt-0.2"
+            assert prompt["prompt_version"] == "chemworld-agent-task-prompt-0.3"
+            lifecycle = prompt["experiment_lifecycle"]
+            assert "does not by itself complete" in lifecycle["terminate_effect"]
+            assert "instrument=final_assay" in lifecycle["final_assay_precondition"]
+            if prompt["episode_mode"] == "campaign":
+                assert "fresh experiment" in lifecycle["final_assay_effect"]
+            else:
+                assert "ends the episode" in lifecycle["final_assay_effect"]
+            assert "do not complete" in lifecycle["intermediate_measurement_effect"]
             assert prompt["task_id"] == task_id
             assert str(prompt["budget"]) in text
             assert "budget" in text

@@ -11,6 +11,7 @@ import hashlib
 import json
 from typing import Any, Literal, Protocol
 
+from chemworld.agent_interface import experiment_lifecycle_contract
 from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.interaction import AgentDecisionContext, InteractionCapabilities
 from chemworld.data.logging import to_builtin
@@ -25,7 +26,7 @@ Provide only a concise public audit: evidence, spectrum interpretation, hypothes
 uncertainty, rationale, and the selected action using exact schema field names.
 """
 
-PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.4"
+PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.5"
 
 _PURE_SPECTRAL_PACKET_KINDS = {
     "gc_chromatogram",
@@ -719,11 +720,19 @@ def _compact_task_contract(task_info: dict[str, Any]) -> dict[str, Any]:
     """Keep user-facing decision facts without resending backend internals."""
 
     keys = (
+        "task_goal",
+        "description",
         "task_id",
         "objective",
         "budget",
         "episode_mode",
         "safety_limit",
+        "success_metrics",
+        "constraints",
+        "termination_policy",
+        "measurement_policy",
+        "experiment_lifecycle",
+        "observation_policy",
         "allowed_operations",
         "allowed_instruments",
         "material_catalog",
@@ -731,11 +740,18 @@ def _compact_task_contract(task_info: dict[str, Any]) -> dict[str, Any]:
         "observation_keys",
         "scenario_id",
     )
-    return {
+    compact = {
         key: to_builtin(task_info[key])
         for key in keys
         if key in task_info and task_info[key] is not None
     }
+    compact.setdefault(
+        "experiment_lifecycle",
+        experiment_lifecycle_contract(task_info.get("episode_mode")),
+    )
+    if "task_goal" not in compact and compact.get("description"):
+        compact["task_goal"] = compact["description"]
+    return compact
 
 
 def _compact_tool_view(tool_json: dict[str, Any]) -> dict[str, Any]:

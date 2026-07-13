@@ -25,6 +25,7 @@ from chemworld.world.world_law import world_law_spec
 def build_task_info(env: Any) -> dict[str, Any]:
     compiled_mechanism = env.scenario_instance.compiled_mechanism
     scenario_metadata = env.scenario_instance.initial_state.metadata
+    task_spec = env.task_spec
     payload = {
         "env_id": "ChemWorld",
         "task_id": env.task_id,
@@ -43,7 +44,17 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "seed": env.seed,
         "world_id": env.world.world_id,
         "task_contract_hash": (
-            None if env.task_spec is None else env.task_spec.contract_hash
+            None if task_spec is None else task_spec.contract_hash
+        ),
+        "description": None if task_spec is None else task_spec.description,
+        "termination_policy": (
+            None if task_spec is None else task_spec.termination_policy
+        ),
+        "observation_policy": (
+            None if task_spec is None else task_spec.observation_policy
+        ),
+        "success_metrics": (
+            [] if task_spec is None else list(task_spec.success_metrics)
         ),
         "runtime_profile_hash": env.runtime.profile.profile_hash,
         "mechanism_id": compiled_mechanism.mechanism_id,

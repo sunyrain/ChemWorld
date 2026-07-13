@@ -82,5 +82,20 @@ def test_real_environment_reports_closeout_after_termination() -> None:
 
         assert context.available_operations == ("measure",)
         assert context.decision_stage == "experiment_closeout"
+
+        observation, _, _, _, info = env.step(
+            {"operation": "measure", "instrument": "gc"}
+        )
+        public_view = agent_view_bundle(env, observation, info)
+        after_intermediate_measurement = build_decision_context(
+            step=5,
+            task_info={"task_id": "reaction-to-crystallization"},
+            campaign_state=env.unwrapped.campaign_state(),
+            public_view=public_view,
+            previous_event_type="measurement_result",
+        )
+
+        assert after_intermediate_measurement.available_operations == ("measure",)
+        assert after_intermediate_measurement.decision_stage == "experiment_closeout"
     finally:
         env.close()
