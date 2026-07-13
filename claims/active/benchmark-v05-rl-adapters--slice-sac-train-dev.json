@@ -1,0 +1,23 @@
+{
+  "branch": "team/benchmark-v05-rl-adapters-slice-sac-train-dev",
+  "claimed_at": "2026-07-13T22:49:42.298384+00:00",
+  "expires_at": "2026-07-20T22:49:42.298384+00:00",
+  "notes": "SAC-only actual evidence slice. No PPO retraining, Bench, reference-search, formal result, method-freeze, or parent todo completion. The bounded continuous latent carrier must use the same public affordance/action decoder and retain its disclosed non-native comparability limitation. Controlled checkpoint/replay-buffer artifacts remain under the ignored runs tree; selected binaries are digest-bound local artifacts. SB3 2.9.0/Torch 2.13.0+cpu from uv.lock; reference_repos unused.",
+  "owned_paths": [
+    "configs/methods/rl_v0.4/sac_training_plan.json",
+    "configs/methods/rl_v0.4/sac_checkpoint_index.json",
+    "src/chemworld/rl/formal_training.py",
+    "src/chemworld/rl/training.py",
+    "scripts/run_formal_rl_training.py",
+    "tests/test_formal_rl_training.py",
+    "tests/test_formal_sac_training.py",
+    "tests/test_rl_training_accounting.py",
+    "runs/benchmark-v0.5/rl-v0.4/sac",
+    "workstreams/benchmark_v1/reports/rl-sac-dev-v0.4.json"
+  ],
+  "owner": "knitua",
+  "schema_version": "chemworld-task-claim-0.1",
+  "scope": "Generalize the resumable formal RL training matrix to SAC and execute the frozen four-task, five-seed, 100000-step Train/Dev program with five checkpoint stages, Dev-only fail-closed selection, deterministic replay, and resource evidence.",
+  "status": "active",
+  "task_id": "benchmark-v05-rl-adapters--slice-sac-train-dev"
+}
