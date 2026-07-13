@@ -1,0 +1,482 @@
+{
+  "benchmark_claim_allowed": false,
+  "controls": {
+    "all_instruments_have_explicit_degradation": true,
+    "assigned_unassigned_share_raw_curve": true,
+    "dependencies_are_ready": true,
+    "history_catalog_is_request_only": true,
+    "history_failures_and_costs_are_ledgered": true,
+    "non_spectral_context_is_paired": true,
+    "ph_signal_and_degradation_are_explicit": true,
+    "protocol_is_nonclaiming": true,
+    "public_identifiability_reports_do_not_leak_truth": true,
+    "simple_probe_finds_public_information": true,
+    "spectral_expectations_match": true,
+    "spectrum_conditions_are_exact": true
+  },
+  "controls_ready": true,
+  "formal_results_present": false,
+  "history_archive": {
+    "catalog": [
+      {
+        "experiment_index": 1,
+        "instrument_id": "hplc",
+        "kind": "hplc_chromatogram",
+        "measurement_cost": 0.08,
+        "measurement_step": 5,
+        "spectrum_id": "experiment-1:step-5:hplc"
+      },
+      {
+        "experiment_index": 2,
+        "instrument_id": "hplc",
+        "kind": "hplc_chromatogram",
+        "measurement_cost": 0.08,
+        "measurement_step": 5,
+        "spectrum_id": "experiment-2:step-5:hplc"
+      }
+    ],
+    "catalog_contains_signal": false,
+    "catalog_sha256": "45a30293f659e314e5899ab5aac2e62fa967310fbd9ec9953d8cf33041fb8889",
+    "expected_packet_sha256": "b71fedb34d303bead81b2d81983d4936cd8d9e65cf7cca34b95cc29b9f653534",
+    "ledger": [
+      {
+        "cost": 0.0,
+        "event": "historical_spectrum_retrieval",
+        "spectrum_id": "experiment-1:step-5:hplc",
+        "success": true
+      },
+      {
+        "cost": 0.0,
+        "event": "historical_spectrum_retrieval",
+        "spectrum_id": "missing-spectrum",
+        "success": false
+      }
+    ],
+    "retrieved_packet_sha256": "b71fedb34d303bead81b2d81983d4936cd8d9e65cf7cca34b95cc29b9f653534",
+    "unknown_id_rejected": true
+  },
+  "instruments": {
+    "gc": {
+      "degraded_low_signal": {
+        "alternative_detected_peak_count": 0,
+        "alternative_replicate_count": 5,
+        "alternative_signal_sha256": "b2d09ff0e619912911914b3f1f0c313201f28b1b05e646cda365d20c208dba3a",
+        "alternative_within_state_rmse": 0.13745410103580102,
+        "between_state_rmse": 0.09159544777330932,
+        "identifiable": false,
+        "instrument_id": "gc",
+        "point_count": 201,
+        "pooled_within_state_rmse": 0.13718807172987305,
+        "provenance": [
+          "paired public raw-signal replicate RMSE and between-state RMSE",
+          "analytical separation ratio = between-state RMSE / pooled within-state RMSE",
+          "chemicals 82faef900dcf2b48537c31bcf1ab56c35bb79a1e: property/data reference only; not treated as an instrument simulator",
+          "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: chemistry schema reference only; not treated as an instrument simulator"
+        ],
+        "public_boundary": "signal-level aggregate only; no species identities, hidden amounts, peak assignments, or evaluator truth",
+        "reference_detected_peak_count": 0,
+        "reference_replicate_count": 5,
+        "reference_signal_sha256": "2c03f2ccf8bd445af21a9b45a3d5bfa15736611d1ca1b76b8db95ee6382ec215",
+        "reference_within_state_rmse": 0.13692152554788964,
+        "replicate_stable": false,
+        "schema_version": "chemworld-spectral-identifiability-0.1",
+        "separation_ratio": 0.6676633516189598,
+        "states_distinct": false,
+        "thresholds": {
+          "max_within_state_rmse": 0.05,
+          "min_between_state_rmse": 0.01,
+          "min_replicates": 3,
+          "min_separation_ratio": 3.0,
+          "noise_floor": 1e-12
+        },
+        "warnings": [
+          "replicate_instability",
+          "separation_ratio_below_minimum"
+        ]
+      },
+      "expected_identifiable": true,
+      "identifiability": {
+        "alternative_detected_peak_count": 2,
+        "alternative_replicate_count": 5,
+        "alternative_signal_sha256": "236e4ceef69abea373323a39f894ac5ac403b1ac8da1d397035a0bbb88feb5a5",
+        "alternative_within_state_rmse": 5.53728916112624e-18,
+        "between_state_rmse": 0.0402607839919563,
+        "identifiable": true,
+        "instrument_id": "gc",
+        "point_count": 201,
+        "pooled_within_state_rmse": 1.995018672272634e-08,
+        "provenance": [
+          "paired public raw-signal replicate RMSE and between-state RMSE",
+          "analytical separation ratio = between-state RMSE / pooled within-state RMSE",
+          "chemicals 82faef900dcf2b48537c31bcf1ab56c35bb79a1e: property/data reference only; not treated as an instrument simulator",
+          "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: chemistry schema reference only; not treated as an instrument simulator"
+        ],
+        "public_boundary": "signal-level aggregate only; no species identities, hidden amounts, peak assignments, or evaluator truth",
+        "reference_detected_peak_count": 2,
+        "reference_replicate_count": 5,
+        "reference_signal_sha256": "8d870b3e036ce9fbcceba1ac4f10a82af67cfc1120bf9c1e7e28551eceb727da",
+        "reference_within_state_rmse": 2.821382463515524e-08,
+        "replicate_stable": true,
+        "schema_version": "chemworld-spectral-identifiability-0.1",
+        "separation_ratio": 2018065.522469174,
+        "states_distinct": true,
+        "thresholds": {
+          "max_within_state_rmse": 0.05,
+          "min_between_state_rmse": 0.01,
+          "min_replicates": 3,
+          "min_separation_ratio": 3.0,
+          "noise_floor": 1e-12
+        },
+        "warnings": []
+      },
+      "replicate_probe_accuracy": 1.0
+    },
+    "hplc": {
+      "degraded_low_signal": {
+        "alternative_detected_peak_count": 0,
+        "alternative_replicate_count": 5,
+        "alternative_signal_sha256": "99e717343f8ef951f179f73ca9d2ef53e61be9964eb47dd10b8ad6769ffd9462",
+        "alternative_within_state_rmse": 0.09964364243149235,
+        "between_state_rmse": 0.06253178403263468,
+        "identifiable": false,
+        "instrument_id": "hplc",
+        "point_count": 241,
+        "pooled_within_state_rmse": 0.10109456394184539,
+        "provenance": [
+          "paired public raw-signal replicate RMSE and between-state RMSE",
+          "analytical separation ratio = between-state RMSE / pooled within-state RMSE",
+          "chemicals 82faef900dcf2b48537c31bcf1ab56c35bb79a1e: property/data reference only; not treated as an instrument simulator",
+          "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: chemistry schema reference only; not treated as an instrument simulator"
+        ],
+        "public_boundary": "signal-level aggregate only; no species identities, hidden amounts, peak assignments, or evaluator truth",
+        "reference_detected_peak_count": 0,
+        "reference_replicate_count": 5,
+        "reference_signal_sha256": "68544cc7722eb3107883979d7a24831c4fb0adcf2fff86e7a4fb6157ee313730",
+        "reference_within_state_rmse": 0.10252495423148762,
+        "replicate_stable": false,
+        "schema_version": "chemworld-spectral-identifiability-0.1",
+        "separation_ratio": 0.6185474430514984,
+        "states_distinct": false,
+        "thresholds": {
+          "max_within_state_rmse": 0.05,
+          "min_between_state_rmse": 0.01,
+          "min_replicates": 3,
+          "min_separation_ratio": 3.0,
+          "noise_floor": 1e-12
+        },
+        "warnings": [
+          "replicate_instability",
+          "separation_ratio_below_minimum"
+        ]
+      },
+      "expected_identifiable": true,
+      "identifiability": {
+        "alternative_detected_peak_count": 3,
+        "alternative_replicate_count": 5,
+        "alternative_signal_sha256": "3713215ef7820bf53e357630d7661cfae60701251f8c4da857ce3fd174851358",
+        "alternative_within_state_rmse": 3.375500456837692e-19,
+        "between_state_rmse": 0.11457263131737681,
+        "identifiable": true,
+        "instrument_id": "hplc",
+        "point_count": 241,
+        "pooled_within_state_rmse": 4.336808827233403e-19,
+        "provenance": [
+          "paired public raw-signal replicate RMSE and between-state RMSE",
+          "analytical separation ratio = between-state RMSE / pooled within-state RMSE",
+          "chemicals 82faef900dcf2b48537c31bcf1ab56c35bb79a1e: property/data reference only; not treated as an instrument simulator",
+          "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: chemistry schema reference only; not treated as an instrument simulator"
+        ],
+        "public_boundary": "signal-level aggregate only; no species identities, hidden amounts, peak assignments, or evaluator truth",
+        "reference_detected_peak_count": 3,
+        "reference_replicate_count": 5,
+        "reference_signal_sha256": "a7a76bac4ae33533d6c7134542b1bc0fbad8857a4a6da67efa074f15903c887f",
+        "reference_within_state_rmse": 5.12072438955932e-19,
+        "replicate_stable": true,
+        "schema_version": "chemworld-spectral-identifiability-0.1",
+        "separation_ratio": 114572631317.37682,
+        "states_distinct": true,
+        "thresholds": {
+          "max_within_state_rmse": 0.05,
+          "min_between_state_rmse": 0.01,
+          "min_replicates": 3,
+          "min_separation_ratio": 3.0,
+          "noise_floor": 1e-12
+        },
+        "warnings": []
+      },
+      "replicate_probe_accuracy": 1.0
+    },
+    "ir": {
+      "degraded_low_signal": {
+        "alternative_detected_peak_count": 0,
+        "alternative_replicate_count": 5,
+        "alternative_signal_sha256": "200a6c2b979bd50800aa88b466a30f6ec1d5c4784c632841b033c01c0532fdeb",
+        "alternative_within_state_rmse": 0.000763643567221867,
+        "between_state_rmse": 0.0004694174488073686,
+        "identifiable": false,
+        "instrument_id": "ir",
+        "point_count": 241,
+        "pooled_within_state_rmse": 0.0007695426983912614,
+        "provenance": [
+          "paired public raw-signal replicate RMSE and between-state RMSE",
+          "analytical separation ratio = between-state RMSE / pooled within-state RMSE",
+          "chemicals 82faef900dcf2b48537c31bcf1ab56c35bb79a1e: property/data reference only; not treated as an instrument simulator",
+          "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: chemistry schema reference only; not treated as an instrument simulator"
+        ],
+        "public_boundary": "signal-level aggregate only; no species identities, hidden amounts, peak assignments, or evaluator truth",
+        "reference_detected_peak_count": 0,
+        "reference_replicate_count": 5,
+        "reference_signal_sha256": "540f079116ffa3e7c493e8af5a470457c06f696aa25a41170ddfc6c1e2d98003",
+        "reference_within_state_rmse": 0.0007753969509453012,
+        "replicate_stable": true,
+        "schema_version": "chemworld-spectral-identifiability-0.1",
+        "separation_ratio": 0.6099953255208472,
+        "states_distinct": false,
+        "thresholds": {
+          "max_within_state_rmse": 0.05,
+          "min_between_state_rmse": 0.01,
+          "min_replicates": 3,
+          "min_separation_ratio": 3.0,
+          "noise_floor": 1e-12
+        },
+        "warnings": [
+          "between_state_effect_below_minimum",
+          "separation_ratio_below_minimum"
+        ]
+      },
+      "expected_identifiable": false,
+      "identifiability": {
+        "alternative_detected_peak_count": 12,
+        "alternative_replicate_count": 5,
+        "alternative_signal_sha256": "d1620e6b0d771a63eccbc843fcdb1926d637a22bb444db4c4bbd74b23b00ba56",
+        "alternative_within_state_rmse": 0.0007473073696480516,
+        "between_state_rmse": 0.0005528257639719733,
+        "identifiable": false,
+        "instrument_id": "ir",
+        "point_count": 241,
+        "pooled_within_state_rmse": 0.0007532531242627662,
+        "provenance": [
+          "paired public raw-signal replicate RMSE and between-state RMSE",
+          "analytical separation ratio = between-state RMSE / pooled within-state RMSE",
+          "chemicals 82faef900dcf2b48537c31bcf1ab56c35bb79a1e: property/data reference only; not treated as an instrument simulator",
+          "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: chemistry schema reference only; not treated as an instrument simulator"
+        ],
+        "public_boundary": "signal-level aggregate only; no species identities, hidden amounts, peak assignments, or evaluator truth",
+        "reference_detected_peak_count": 12,
+        "reference_replicate_count": 5,
+        "reference_signal_sha256": "e73f6792e7632c6932b0495e92cf7a79a4cf6d8ef5c6368f91c341cdd11b4b13",
+        "reference_within_state_rmse": 0.0007591523125782774,
+        "replicate_stable": true,
+        "schema_version": "chemworld-spectral-identifiability-0.1",
+        "separation_ratio": 0.7339176515371805,
+        "states_distinct": false,
+        "thresholds": {
+          "max_within_state_rmse": 0.05,
+          "min_between_state_rmse": 0.01,
+          "min_replicates": 3,
+          "min_separation_ratio": 3.0,
+          "noise_floor": 1e-12
+        },
+        "warnings": [
+          "between_state_effect_below_minimum",
+          "separation_ratio_below_minimum"
+        ]
+      },
+      "replicate_probe_accuracy": 0.75
+    },
+    "nmr": {
+      "degraded_low_signal": {
+        "alternative_detected_peak_count": 0,
+        "alternative_replicate_count": 5,
+        "alternative_signal_sha256": "3690f18d59d5a52688bc95c8325d65ac341459b575bdff963673301e9b3e114a",
+        "alternative_within_state_rmse": 0.12354734102147584,
+        "between_state_rmse": 0.07585598121707332,
+        "identifiable": false,
+        "instrument_id": "nmr",
+        "point_count": 241,
+        "pooled_within_state_rmse": 0.1230999077063398,
+        "provenance": [
+          "paired public raw-signal replicate RMSE and between-state RMSE",
+          "analytical separation ratio = between-state RMSE / pooled within-state RMSE",
+          "chemicals 82faef900dcf2b48537c31bcf1ab56c35bb79a1e: property/data reference only; not treated as an instrument simulator",
+          "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: chemistry schema reference only; not treated as an instrument simulator"
+        ],
+        "public_boundary": "signal-level aggregate only; no species identities, hidden amounts, peak assignments, or evaluator truth",
+        "reference_detected_peak_count": 0,
+        "reference_replicate_count": 5,
+        "reference_signal_sha256": "5a3e8bba9d16be8262da863d28f9d83da9e796f5659dacbbfda7fd2afd859165",
+        "reference_within_state_rmse": 0.12265084215423026,
+        "replicate_stable": false,
+        "schema_version": "chemworld-spectral-identifiability-0.1",
+        "separation_ratio": 0.6162147692103155,
+        "states_distinct": false,
+        "thresholds": {
+          "max_within_state_rmse": 0.05,
+          "min_between_state_rmse": 0.01,
+          "min_replicates": 3,
+          "min_separation_ratio": 3.0,
+          "noise_floor": 1e-12
+        },
+        "warnings": [
+          "replicate_instability",
+          "separation_ratio_below_minimum"
+        ]
+      },
+      "expected_identifiable": true,
+      "identifiability": {
+        "alternative_detected_peak_count": 6,
+        "alternative_replicate_count": 5,
+        "alternative_signal_sha256": "be462bf698cedb6bf78e54dd691f2bd3a50784c9af3768383825cb775797aa5e",
+        "alternative_within_state_rmse": 0.001359927084938214,
+        "between_state_rmse": 0.14699719806098885,
+        "identifiable": true,
+        "instrument_id": "nmr",
+        "point_count": 241,
+        "pooled_within_state_rmse": 0.001892748149651268,
+        "provenance": [
+          "paired public raw-signal replicate RMSE and between-state RMSE",
+          "analytical separation ratio = between-state RMSE / pooled within-state RMSE",
+          "chemicals 82faef900dcf2b48537c31bcf1ab56c35bb79a1e: property/data reference only; not treated as an instrument simulator",
+          "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: chemistry schema reference only; not treated as an instrument simulator"
+        ],
+        "public_boundary": "signal-level aggregate only; no species identities, hidden amounts, peak assignments, or evaluator truth",
+        "reference_detected_peak_count": 6,
+        "reference_replicate_count": 5,
+        "reference_signal_sha256": "9906a3706de331738b2aedb0694fd57ee6e5e64a679d67e1b355a53716ff8817",
+        "reference_within_state_rmse": 0.00230555621047678,
+        "replicate_stable": true,
+        "schema_version": "chemworld-spectral-identifiability-0.1",
+        "separation_ratio": 77.66336904784323,
+        "states_distinct": true,
+        "thresholds": {
+          "max_within_state_rmse": 0.05,
+          "min_between_state_rmse": 0.01,
+          "min_replicates": 3,
+          "min_separation_ratio": 3.0,
+          "noise_floor": 1e-12
+        },
+        "warnings": []
+      },
+      "replicate_probe_accuracy": 1.0
+    },
+    "uvvis": {
+      "degraded_low_signal": {
+        "alternative_detected_peak_count": 0,
+        "alternative_replicate_count": 5,
+        "alternative_signal_sha256": "d9dcf57d39d42723c739da9ea450c6e3f60af22ca0cdc88b49f37e61ddba1c61",
+        "alternative_within_state_rmse": 0.0012921373049492957,
+        "between_state_rmse": 0.000938240999537256,
+        "identifiable": false,
+        "instrument_id": "uvvis",
+        "point_count": 221,
+        "pooled_within_state_rmse": 0.001319726061935596,
+        "provenance": [
+          "paired public raw-signal replicate RMSE and between-state RMSE",
+          "analytical separation ratio = between-state RMSE / pooled within-state RMSE",
+          "chemicals 82faef900dcf2b48537c31bcf1ab56c35bb79a1e: property/data reference only; not treated as an instrument simulator",
+          "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: chemistry schema reference only; not treated as an instrument simulator"
+        ],
+        "public_boundary": "signal-level aggregate only; no species identities, hidden amounts, peak assignments, or evaluator truth",
+        "reference_detected_peak_count": 0,
+        "reference_replicate_count": 5,
+        "reference_signal_sha256": "f331e2778cde0b3572c7fe57e3ab3572c532b33097f0fbbfcbb435055169756c",
+        "reference_within_state_rmse": 0.0013467497697280083,
+        "replicate_stable": true,
+        "schema_version": "chemworld-spectral-identifiability-0.1",
+        "separation_ratio": 0.7109361757705769,
+        "states_distinct": false,
+        "thresholds": {
+          "max_within_state_rmse": 0.05,
+          "min_between_state_rmse": 0.01,
+          "min_replicates": 3,
+          "min_separation_ratio": 3.0,
+          "noise_floor": 1e-12
+        },
+        "warnings": [
+          "between_state_effect_below_minimum",
+          "separation_ratio_below_minimum"
+        ]
+      },
+      "expected_identifiable": false,
+      "identifiability": {
+        "alternative_detected_peak_count": 3,
+        "alternative_replicate_count": 5,
+        "alternative_signal_sha256": "83fc3d35ea655d7fa42325bc2c0b11aae5d31fb932d9e63a92ad2b7335cd8541",
+        "alternative_within_state_rmse": 0.0013400388109460221,
+        "between_state_rmse": 0.0022635737958038335,
+        "identifiable": false,
+        "instrument_id": "uvvis",
+        "point_count": 221,
+        "pooled_within_state_rmse": 0.0013441657884979538,
+        "provenance": [
+          "paired public raw-signal replicate RMSE and between-state RMSE",
+          "analytical separation ratio = between-state RMSE / pooled within-state RMSE",
+          "chemicals 82faef900dcf2b48537c31bcf1ab56c35bb79a1e: property/data reference only; not treated as an instrument simulator",
+          "RMG-Py b858624649205fc8ae08aec601c4c216e9edcee0: chemistry schema reference only; not treated as an instrument simulator"
+        ],
+        "public_boundary": "signal-level aggregate only; no species identities, hidden amounts, peak assignments, or evaluator truth",
+        "reference_detected_peak_count": 3,
+        "reference_replicate_count": 5,
+        "reference_signal_sha256": "0eaf4f75c9d9a269efb7a1c188c49be22c6e5e28673369272006f9ef61b4322e",
+        "reference_within_state_rmse": 0.0013482801337611641,
+        "replicate_stable": true,
+        "schema_version": "chemworld-spectral-identifiability-0.1",
+        "separation_ratio": 1.6839989643935795,
+        "states_distinct": false,
+        "thresholds": {
+          "max_within_state_rmse": 0.05,
+          "min_between_state_rmse": 0.01,
+          "min_replicates": 3,
+          "min_separation_ratio": 3.0,
+          "noise_floor": 1e-12
+        },
+        "warnings": [
+          "between_state_effect_below_minimum",
+          "separation_ratio_below_minimum"
+        ]
+      },
+      "replicate_probe_accuracy": 1.0
+    }
+  },
+  "leakage_matches": [],
+  "limitations": [
+    "Synthetic signals are benchmark observations, not empirical sample predictions.",
+    "Pairwise identifiability is not a proof of global mechanism identifiability.",
+    "UV/Vis and IR deliberately expose weak-separation regimes under this state pair."
+  ],
+  "ph_meter": {
+    "alternative_pH": 11.2,
+    "between_state_delta_pH": 8.399999999999999,
+    "declared_loq_pH": 0.06,
+    "low_contrast_degraded": true,
+    "low_contrast_delta_pH": 0.014000000000000234,
+    "reference_pH": 2.8,
+    "state_pair_distinguishable": true
+  },
+  "protocol_id": "chemworld-v0.5-observation-identifiability-0.1",
+  "protocol_sha256": "10a591489b5f2c4aebf399ec1d07f042591960d993d5d6c71dc3cee3d9aca9a4",
+  "remaining_release_gates": [
+    "bind these spectrum conditions into the formal cell runner",
+    "run paired method-level spectrum ablations on untouched Bench cells"
+  ],
+  "schema_version": "chemworld-observation-identifiability-report-0.1",
+  "source_commit": "78ddf6ff96ee3df4c35cddb6b994afe886d4048b",
+  "source_tree_dirty": true,
+  "spectrum_conditions": {
+    "condition_sha256": {
+      "assigned": "6378e08f596d444883af544a817ce7fa9f7d447a3532d67fa403b844b26793bc",
+      "masked": "db71c5ef588065005907fa9684fd4dfde248c17f30ae63442a9fcf9965dd518c",
+      "unassigned": "610c0781caf0de40a756d1e7bd0d1da873c79070629aa1b9367022101d9347fb"
+    },
+    "non_spectral_context_sha256": {
+      "assigned": "8ac14ed89850b318f9d3579802020d31e2de882dde735233c4ba135a8ff609c6",
+      "masked": "8ac14ed89850b318f9d3579802020d31e2de882dde735233c4ba135a8ff609c6",
+      "unassigned": "8ac14ed89850b318f9d3579802020d31e2de882dde735233c4ba135a8ff609c6"
+    },
+    "raw_curve_sha256": {
+      "assigned": "9b8a035ea8892c1b252ece6acb3c1a032745db15554b0b943996551733991cc5",
+      "unassigned": "9b8a035ea8892c1b252ece6acb3c1a032745db15554b0b943996551733991cc5"
+    }
+  },
+  "status": "observation_identifiability_controls_passed"
+}

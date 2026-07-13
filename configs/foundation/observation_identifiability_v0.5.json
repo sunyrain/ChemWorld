@@ -1,0 +1,68 @@
+{
+  "schema_version": "chemworld-observation-identifiability-protocol-0.1",
+  "protocol_id": "chemworld-v0.5-observation-identifiability-0.1",
+  "status": "candidate_controls_only",
+  "benchmark_claim_allowed": false,
+  "formal_results_present": false,
+  "spectral_instruments": ["hplc", "gc", "uvvis", "ir", "nmr"],
+  "expected_identifiability": {
+    "hplc": true,
+    "gc": true,
+    "uvvis": false,
+    "ir": false,
+    "nmr": true
+  },
+  "state_pair": {
+    "species": ["reactant_secret", "target_secret", "impurity_secret"],
+    "target_species": ["target_secret"],
+    "impurity_species": ["impurity_secret"],
+    "formulas": {
+      "reactant_secret": "C2H6O",
+      "target_secret": "C4H8O2",
+      "impurity_secret": "C3H6O"
+    },
+    "reference_amounts_mol": {
+      "reactant_secret": 0.75,
+      "target_secret": 0.04,
+      "impurity_secret": 0.02
+    },
+    "alternative_amounts_mol": {
+      "reactant_secret": 0.15,
+      "target_secret": 0.62,
+      "impurity_secret": 0.08
+    },
+    "low_signal_amount_mol": 1e-8,
+    "volume_L": 1.0,
+    "replicate_count": 5,
+    "reference_seed": 11,
+    "alternative_seed": 29
+  },
+  "ph_pair": {
+    "reference_normalized": 0.2,
+    "alternative_normalized": 0.8,
+    "low_contrast_left": 0.5,
+    "low_contrast_right": 0.501,
+    "seed": 47,
+    "replicate_count": 5
+  },
+  "spectrum_conditions": ["assigned", "unassigned", "masked"],
+  "archive_policy": {
+    "catalog_exposes_signal": false,
+    "retrieval_requires_explicit_id": true,
+    "historical_retrieval_cost": 0.0,
+    "unknown_id_fails_closed": true
+  },
+  "forbidden_public_tokens": [
+    "reactant_secret",
+    "target_secret",
+    "impurity_secret",
+    "private_seed",
+    "hidden_state",
+    "provider_path"
+  ],
+  "dependencies": {
+    "instruments": "workstreams/world_foundation/reports/instruments-reference.json",
+    "public_boundary": "workstreams/world_foundation/reports/public-boundary-security-vnext.json",
+    "composed_runtime": "workstreams/world_foundation/reports/composed-runtime-stress-v0.5.json"
+  }
+}

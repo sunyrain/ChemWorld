@@ -65,13 +65,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：15 tasks、28 operations、20 providers 与 163 个允许的 task-operation pairs 全部可达；45 个 lower/nominal/upper profiles 共执行 381 steps，runtime/constitution/precondition/nonfinite-observed failure 均为 0，同 seed digest 全部一致。六条反应/纯化/结晶/蒸馏/流动/电化学/平衡组合链全部提交并回放。临时 clean wheel 在独立 Windows 进程中重跑完整矩阵，45 profiles 与六条链的 digest 和 source 运行逐项一致。
   - 验收：所有声明域内 cell 通过，声明域外均显式 fail closed；正式 core task 不存在 fallback、proxy、`lite` 或静默 clip 路径。
 
-- [ ] **`foundation-v05-observation-identifiability` — 谱图与公共观测可辨识性/泄漏验证**
+- [x] **`foundation-v05-observation-identifiability` — 谱图与公共观测可辨识性/泄漏验证**
   - 默认 owned_paths：`configs/foundation/observation_identifiability_v0.5.json`、`scripts/audit_observation_identifiability_v0.5.py`、`tests/test_observation_identifiability_v0.5.py`、`workstreams/world_foundation/reports/observation-identifiability-v0.5.json`。
   - 依赖：组合压力测试的稳定观测链。
-  - [ ] 验证 UV/Vis、IR、NMR、HPLC/GC、pH 等公开信号随相关状态变化，噪声/漂移/LOD/LOQ 下仍有合理但非完美的辨识能力。
-  - [ ] 建立 `assigned`、`unassigned`、`masked` 三种条件；除谱图字段外，配对观测必须完全相同。
-  - [ ] 用无答案泄漏的简单 probe 检查观测对任务主指标/机制族有信息，同时不能直接恢复 hidden state、private seed、provider 参数或模型身份。
-  - [ ] 验证历史谱图只在 agent 主动请求后返回，访问、失败和成本进入 ledger；不预先塞入全部历史。
+  - [x] 验证 UV/Vis、IR、NMR、HPLC/GC、pH 等公开信号随相关状态变化，噪声/漂移/LOD/LOQ 下仍有合理但非完美的辨识能力。
+  - [x] 建立 `assigned`、`unassigned`、`masked` 三种条件；除谱图字段外，配对观测必须完全相同。
+  - [x] 用无答案泄漏的简单 probe 检查观测对任务主指标/机制族有信息，同时不能直接恢复 hidden state、private seed、provider 参数或模型身份。
+  - [x] 验证历史谱图只在 agent 主动请求后返回，访问、失败和成本进入 ledger；不预先塞入全部历史。
+  - 结果：HPLC、GC、NMR 在预注册状态对上达到 pairwise identifiability，UV/Vis 与 IR 显式呈现弱分离区；五种谱图在低信号域均正确退化，pH 对 8.4 pH 状态差可分而 0.014 pH 低对比低于 0.06 LOQ。assigned/unassigned 共享完全相同 raw curve，三条件非谱图 context hash 一致且 masked 不含信号；公开报告无 secret/hidden/private/provider 泄漏。历史 archive 只公开无信号 catalog，显式 ID 请求后才返回 packet，成功和 unknown-ID 失败均写入成本 ledger。
   - 验收：每种仪器均有灵敏度、特异性、退化区和泄漏报告；assigned/masked 配对能被精确回放。
 
 - [ ] **`foundation-v05-task-validity-power` — 主指标、风险和预算的动态范围/统计功效验证**
