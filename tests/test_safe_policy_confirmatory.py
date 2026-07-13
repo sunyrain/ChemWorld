@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import json
+
+import pytest
 from scripts.run_safe_policy_confirmatory import (
+    DEFAULT_PROTOCOL,
     build_confirmatory_jobs,
     build_confirmatory_statistics,
     load_confirmatory_protocol,
@@ -35,8 +39,11 @@ def _result(task: str, method: str, seed: int, metric: str) -> dict:
     }
 
 
-def test_confirmatory_freeze_uses_untouched_bench_seeds_and_fixed_policy(tmp_path) -> None:
-    protocol = load_confirmatory_protocol()
+def test_superseded_confirmatory_freeze_rejects_changed_policy_source(tmp_path) -> None:
+    protocol = json.loads(DEFAULT_PROTOCOL.read_text(encoding="utf-8"))
+    with pytest.raises(ValueError, match="frozen policy source changed"):
+        load_confirmatory_protocol()
+
     jobs = build_confirmatory_jobs(
         protocol,
         output_dir=tmp_path,
@@ -57,7 +64,7 @@ def test_confirmatory_freeze_uses_untouched_bench_seeds_and_fixed_policy(tmp_pat
 
 
 def test_confirmatory_statistics_require_objective_safety_and_cost_on_every_task() -> None:
-    protocol = load_confirmatory_protocol()
+    protocol = json.loads(DEFAULT_PROTOCOL.read_text(encoding="utf-8"))
     metric_by_task = {
         "partition-discovery": "mean_product_in_organic",
         "reaction-to-crystallization": "mean_crystal_yield",

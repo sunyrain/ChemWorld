@@ -107,7 +107,8 @@ def test_greedy_manifest_declares_task_recipe_local_search() -> None:
 
     assert manifest["search_policy"] == "task_recipe_local_perturbation"
     assert manifest["search_space_version"] == TASK_RECIPE_SPACE_VERSION
-    assert manifest["recipe_encoding"] == "task_specific_unit_hypercube"
+    assert manifest["recipe_encoding"] == "continuous_plus_nominal_material_mutation"
+    assert manifest["material_distance_assumption"] == "none"
     assert manifest["warmup"] == 3
     assert manifest["perturbation_scale"] == 0.12
     assert manifest["interaction_capabilities"]["adapts_across_experiments"] is True

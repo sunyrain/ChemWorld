@@ -1,8 +1,19 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from chemworld.eval.classic_development import (
     build_development_cells,
     run_classic_development_audit,
+)
+
+FROZEN_REPORT = (
+    Path(__file__).resolve().parents[1]
+    / "workstreams"
+    / "benchmark_v1"
+    / "reports"
+    / "classic-dev-v0.4.json"
 )
 
 
@@ -49,3 +60,33 @@ def test_development_audit_is_resumable_deterministic_and_never_formal_when_part
     assert first["acceptance"]["all_method_controls_pass"] is True
     assert first["method_summaries"]["structured_gp_ei"]["acquisition_effective"] is True
     assert first["method_summaries"]["random"]["deterministic_replay"] is True
+
+
+def test_frozen_full_development_report_passes_without_bench_or_reference_feedback() -> None:
+    report = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
+    assert report["status"] == "formal_classic_matrix_ready"
+    assert report["formal_classic_matrix_ready"] is True
+    assert report["cell_count"] == 768
+    assert report["bench_results_present"] is False
+    assert report["reference_search_results_used"] is False
+    assert report["acceptance"] == {
+        "all_accounting_complete": True,
+        "all_cells_complete": True,
+        "all_checked_replays_deterministic": True,
+        "all_method_controls_pass": True,
+        "bench_feedback_used": False,
+        "full_preregistered_development_scope": True,
+    }
+    assert set(report["family_champions"].values()) == {
+        "lhs",
+        "greedy_local",
+        "structured_gp_ucb",
+        "structured_safe_gp_ei",
+    }
+    assert all(
+        summary["budget_curve_non_degenerate"]
+        and summary["deterministic_replay"]
+        and summary["accounting_complete"]
+        and summary["invalid_operation_count"] == 0
+        for summary in report["method_summaries"].values()
+    )
