@@ -1,6 +1,8 @@
 {
   "branch": "team/benchmark-v05-rl-adapters-slice-formal-contract",
   "claimed_at": "2026-07-13T09:47:05.716400+00:00",
+  "completed_at": "2026-07-13T10:26:20.957807+00:00",
+  "completion_summary": "Implemented dependency-free formal PPO/SAC action-policy contracts, exact task/checkpoint/split/hash verification, an executable formal adapter registry, deterministic masked-only cell binding, and explicit diagnostic-vs-formal resource scopes so training resources remain checkpoint-level. Validation: 27 focused tests, ruff, and mypy passed in the lock-bound SB3 2.9.0/Torch 2.13.0 environment; 38/38 RL regressions and 121/121 merged runner/preflight/matrix/resource/classic-RL regressions passed. Reference evidence: no reference_repos were used or modified; lockfile-bound SB3/Torch interfaces only, with licenses and applicability recorded. Limitations: no four-task training, Dev selection, or formal checkpoint is claimed; 40 preregistered training runs and 8 frozen checkpoints remain for the next slice, and the legacy flow-only gate correctly fails closed after backend-report drift. Final integrated implementation commit: fad60c42679f5fbb354f22507aeec57332c73ed6.",
   "expires_at": "2026-07-20T09:47:05.716400+00:00",
   "notes": "Slice 1 of benchmark-v05-rl-adapters. This claim freezes the formal contract and adapter boundary only; it must not mark the parent todo complete or use Bench/reference feedback. Stable-Baselines3 2.9.0 and Torch 2.13.0 are lockfile-bound runtime dependencies; reference_repos remain read-only and unused.",
   "owned_paths": [
@@ -21,6 +23,6 @@
   "owner": "knitua",
   "schema_version": "chemworld-task-claim-0.1",
   "scope": "Establish the formal PPO/SAC method, checkpoint, allocation, replay, and split resource-accounting contract before the multi-task training slice, without claiming formal performance evidence.",
-  "status": "active",
+  "status": "completed",
   "task_id": "benchmark-v05-rl-adapters--slice-formal-contract"
 }
