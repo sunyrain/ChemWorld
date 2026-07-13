@@ -149,13 +149,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：正式 cell 只能从摘要校验通过的 issued run manifest 解析，classic/RL/live-LLM 三类 adapter 分别强制绑定 method artifact、checkpoint 或 prompt/model-config hash；私有 method/world seed 与世界扰动经 commitment 校验后才进入 adapter。执行采用 OS cell 锁、隔离 staging、逐文件短名原子写入、精确 artifact 白名单与整目录发布，完成标记最后落盘；中断和磁盘错误仅留下不可聚合 staging，重复 cell 命中已校验缓存，并发重复被拒绝，已发布 digest 篡改拒绝覆盖。轨迹逐条绑定 task/method/pair/spectrum/cell/world-seed，公开 result 去除 raw seed，仅保留 opaque pair 与 commitment；真实环境轨迹即时独立 replay 通过。26 项 runner 测试和 98 项相邻协议/统计/replay 回归通过，并覆盖 API timeout、坏 JSON、nonfinite、预算越界、账本缺失、错 cell、manifest/额外文件篡改和私有值泄漏。
   - 验收：故障注入覆盖进程中断、磁盘不完整、API 超时、坏 JSON、重复 cell、digest 篡改和预算超限。
 
-- [ ] **`benchmark-v05-matrix-orchestrator` — manifest 驱动的并行矩阵编排**
+- [x] **`benchmark-v05-matrix-orchestrator` — manifest 驱动的并行矩阵编排**
   - 默认 owned_paths：`src/chemworld/eval/formal_matrix.py`、`scripts/run_formal_matrix.py`、`tests/test_formal_matrix.py`、`workstreams/benchmark_v1/reports/formal-matrix-controls-v0.4.json`。
   - 依赖：cell runner。
-  - [ ] 由冻结 manifest 展开预期 cell，不在 CLI 手写 tasks/seeds；启动前输出 cell 数、CPU/GPU/API 队列和费用上限。
-  - [ ] CPU 方法使用进程级并行；GPU 训练/推理按设备独占或声明配额；LLM 使用速率限制与可恢复队列。
-  - [ ] 进度实时展示 queued/running/succeeded/failed/replay-verified，以及每个任务、方法和预算检查点；不得显示隐藏状态或私有 seed。
-  - [ ] 聚合前检查完整笛卡尔积、成对条件、失败分母和资源账本；缺一 cell 就只产出 incomplete 报告。
+  - [x] 由冻结 manifest 展开预期 cell，不在 CLI 手写 tasks/seeds；启动前输出 cell 数、CPU/GPU/API 队列和费用上限。
+  - [x] CPU 方法使用进程级并行；GPU 训练/推理按设备独占或声明配额；LLM 使用速率限制与可恢复队列。
+  - [x] 进度实时展示 queued/running/succeeded/failed/replay-verified，以及每个任务、方法和预算检查点；不得显示隐藏状态或私有 seed。
+  - [x] 聚合前检查完整笛卡尔积、成对条件、失败分母和资源账本；缺一 cell 就只产出 incomplete 报告。
+  - 结果：矩阵只能由 digest 校验通过的 issued manifest 展开精确 task × method × opaque-pair × spectrum-condition 笛卡尔积，CLI 不接受手写任务或 seed。classic 使用 CPU 进程池，RL 使用带显式设备槽和配额校验的 GPU 进程池，live LLM 使用有并发、cell 启动速率和费用上限的可恢复线程队列；停止后只补缺失 cell。公开 JSONL 进度覆盖 queued/running/checkpoint/succeeded/failed/replay-verified，并拒绝私有 seed/world 字段。聚合逐 cell 复验 artifact、replay、配对 commitment、失败分母以及账本 schema、预算、checkpoint、时间、用量和在线模型溯源；缺失、额外或伪造账本均只产出 incomplete。11 项矩阵测试及 109 项 runner/协议/统计/replay 联合回归通过，串并行 semantic digest 一致。
   - 验收：小型 smoke matrix 可停止、恢复、并行和复算，结果与串行执行等价。
 
 - [ ] **`benchmark-v05-resource-accounting` — 方法资源与 API 成本 fail-closed**

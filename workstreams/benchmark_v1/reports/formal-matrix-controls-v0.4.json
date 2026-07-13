@@ -1,0 +1,61 @@
+{
+  "benchmark_claim_allowed": false,
+  "controls": {
+    "api_cells_use_bounded_thread_concurrency_and_manifest_rate_gate": true,
+    "api_cost_caps_are_manifest_bound_and_coherent_at_plan_time": true,
+    "cached_terminal_cells_are_integrity_checked_before_reuse": true,
+    "checkpoint_progress_is_monotonic_and_manifest_issued": true,
+    "cpu_cells_use_process_level_parallelism": true,
+    "exact_cartesian_cell_set_is_derived_only_from_issued_manifest": true,
+    "failed_cells_remain_in_the_statistical_denominator": true,
+    "gpu_cells_use_declared_devices_with_exclusive_quota_slots": true,
+    "incomplete_or_unexpected_cells_block_aggregation": true,
+    "live_llm_ledgers_require_nonzero_requests_and_model_provenance": true,
+    "matrix_cells_share_global_protocol_and_source_bindings": true,
+    "paired_conditions_share_private_seed_and_world_commitments": true,
+    "progress_events_reject_private_seed_and_world_fields": true,
+    "resource_ledgers_are_schema_count_budget_checkpoint_and_limit_checked": true,
+    "serial_and_parallel_execution_have_identical_semantic_results": true,
+    "stopped_matrices_resume_only_missing_cells": true,
+    "subprocess_failures_do_not_publish_raw_stderr_or_partial_cells": true
+  },
+  "controls_ready": true,
+  "execution_queues": {
+    "api": "bounded threads with manifest-issued cell-start rate and monetary caps",
+    "cpu": "bounded process pool",
+    "gpu": "bounded process pool with explicit device slot assignment"
+  },
+  "formal_results_present": false,
+  "limitations": [
+    "The matrix gate validates existing cell ledgers; cross-family normalization, provider-request retry reconciliation, and matrix-wide resource totals remain the dedicated P2 resource-accounting deliverable.",
+    "Cell-start rate limiting is enforced here, while request-level provider throttling and retry charging must be enforced by the live LLM adapter and resource protocol.",
+    "Formal classic, RL, and live LLM method implementations remain P3 deliverables, so this control report contains no benchmark result."
+  ],
+  "next_gates": [
+    "implement and reconcile the formal cross-family resource-accounting protocol",
+    "implement the no-bypass preflight issuer",
+    "complete the formal method adapters before issuing any retained experiment manifest"
+  ],
+  "private_runtime_values_reported_in_public_controls": false,
+  "schema_version": "chemworld-formal-matrix-controls-0.4",
+  "source_commit": "d7ddd3bc5f2a329bd818d131d703eebbbe7e8f60",
+  "source_files": {
+    "scripts/run_formal_matrix.py": "bb42bcfc8cfbc68cb14462df7eb79be190dc150c23548600957379b9276b2e76",
+    "src/chemworld/eval/formal_matrix.py": "c4b2122ebef530c1c2ca83c53a9e921c64c743e8e065f7404859c038d6f43c00",
+    "tests/test_formal_matrix.py": "ed79b879337b039d1a3933f338f11035ffcc4f8d88f6fc32ca3b23c2b43a283d"
+  },
+  "source_tree_dirty_during_validation": false,
+  "status": "formal_matrix_orchestrator_ready_no_formal_results",
+  "validation": {
+    "formal_matrix_tests": {
+      "passed": 11,
+      "result": "passed"
+    },
+    "integrated_runner_protocol_statistics_and_replay_tests": {
+      "passed": 109,
+      "result": "passed"
+    },
+    "mypy": "passed",
+    "ruff": "passed"
+  }
+}
