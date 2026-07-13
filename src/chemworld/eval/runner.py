@@ -96,6 +96,7 @@ def run_agent(
     budget: int,
     objective: str,
     seed: int,
+    agent_seed: int | None = None,
     task_id: str | None = None,
     output_path: str | Path | None = None,
     budget_override: int | None = None,
@@ -104,11 +105,19 @@ def run_agent(
     method_resource_limits: dict[str, Any] | None = None,
     evaluation_policy: EvaluationPolicy = "task_contract",
     world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
+    safety_limit_override: float | None = None,
 ) -> list[HistoryRecord]:
     """Run one benchmark episode and optionally write a JSONL trajectory."""
 
     if evaluation_policy not in {"task_contract", "vnext_risk_cost"}:
         raise ValueError("evaluation_policy must be task_contract or vnext_risk_cost")
+    if safety_limit_override is not None:
+        if evaluation_policy != "task_contract":
+            raise ValueError(
+                "safety_limit_override cannot be combined with a named evaluation policy"
+            )
+        if not 0.0 < float(safety_limit_override) < 1.0:
+            raise ValueError("safety_limit_override must be in (0, 1)")
     risk_policy: RiskCostTaskPolicy | None = None
     if evaluation_policy == "vnext_risk_cost":
         if task_id is None:
@@ -130,6 +139,8 @@ def run_agent(
         env_kwargs["world_interventions"] = list(world_interventions)
     if risk_policy is not None:
         env_kwargs["safety_limit_override"] = risk_policy.risk_limit
+    elif safety_limit_override is not None:
+        env_kwargs["safety_limit_override"] = float(safety_limit_override)
     if budget_override is not None:
         env_kwargs["budget_override"] = budget_override
     if episode_mode_override is not None:
@@ -148,12 +159,22 @@ def run_agent(
         task_info.update(risk_policy.task_info_overlay())
         task_info["risk_policy_hash"] = risk_policy.policy_hash
 
-    agent.reset(task_info, seed)
+    resolved_agent_seed = seed if agent_seed is None else int(agent_seed)
+    agent.reset(task_info, resolved_agent_seed)
     agent_metadata = agent.manifest()
+    if agent_seed is not None:
+        # Formal method RNG streams are committed privately and must not be copied
+        # into public trajectory metadata. The world seed remains in task_info for
+        # replay binding, while the policy receives only resolved_agent_seed.
+        agent_metadata.pop("seed", None)
+        agent_metadata["agent_seed_disclosure"] = "private_committed"
     agent_metadata["git_commit"] = git_commit()
     agent_metadata["evaluation_policy"] = evaluation_policy
     agent_metadata["risk_policy_hash"] = (
         risk_policy.policy_hash if risk_policy is not None else None
+    )
+    agent_metadata["safety_limit_override"] = (
+        float(safety_limit_override) if safety_limit_override is not None else None
     )
     agent_metadata["official_runner_policy"] = {
         "one_agent_decision_per_operation": True,

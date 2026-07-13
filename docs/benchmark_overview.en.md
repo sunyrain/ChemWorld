@@ -2,8 +2,8 @@
 
 > **How do we know that an agent learned to experiment rather than merely scoring well in a fixed world?**
 
-ChemWorld Bench separates task outcomes, constraints, resources, and adaptation. It does not collapse physical tasks
-and interaction levels into one intelligence score.
+ChemWorld Bench reports task outcomes, constraints, resources, and adaptation separately. It does not compress
+different physical tasks and interaction levels into a single intelligence score.
 
 ## Evaluation units
 

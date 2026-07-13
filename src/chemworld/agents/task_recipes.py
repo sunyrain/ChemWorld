@@ -151,15 +151,7 @@ def task_recipe_to_model_vector(
     """Encode a recipe without imposing ordinal distance on material choices."""
 
     values = task_recipe_to_vector(recipe)
-    categorical_coordinates = {
-        "equilibrium": (),
-        "flow": ((0, 4), (2, 4)),
-        "electrochemical": ((0, 4),),
-        "partition": ((0, 4), (3, 4)),
-        "reaction_crystallization": ((4, 4), (6, 4)),
-        "reaction_distillation": ((4, 4), (6, 4)),
-        "reaction": ((4, 4), (6, 4)),
-    }[task_recipe_kind(task_info)]
+    categorical_coordinates = task_recipe_categorical_coordinates(task_info)
     categorical_indices = {coordinate for coordinate, _ in categorical_coordinates}
     continuous = np.asarray(
         [value for index, value in enumerate(values) if index not in categorical_indices],
@@ -171,6 +163,22 @@ def task_recipe_to_model_vector(
         one_hot[_choice(float(values[coordinate]), category_count)] = 1.0
         encoded.append(one_hot)
     return np.concatenate(encoded)
+
+
+def task_recipe_categorical_coordinates(
+    task_info: dict[str, Any],
+) -> tuple[tuple[int, int], ...]:
+    """Return ``(coordinate, cardinality)`` pairs for nominal material choices."""
+
+    return {
+        "equilibrium": (),
+        "flow": ((0, 4), (2, 4)),
+        "electrochemical": ((0, 4),),
+        "partition": ((0, 4), (3, 4)),
+        "reaction_crystallization": ((4, 4), (6, 4)),
+        "reaction_distillation": ((4, 4), (6, 4)),
+        "reaction": ((4, 4), (6, 4)),
+    }[task_recipe_kind(task_info)]
 
 
 def task_recipe_event_count(task_info: dict[str, Any]) -> int:
@@ -362,6 +370,7 @@ __all__ = [
     "TASK_RECIPE_SPACE_VERSION",
     "sample_conservative_task_recipe",
     "sample_task_recipe",
+    "task_recipe_categorical_coordinates",
     "task_recipe_dimension",
     "task_recipe_event_count",
     "task_recipe_from_unit_vector",
