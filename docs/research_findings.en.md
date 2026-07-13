@@ -44,4 +44,4 @@ provider trajectory matrix exists; explanations alone do not prove that spectra 
 **Status:** benchmark candidate. No SOTA, completed RL/LLM ranking, mechanism-adaptation, or real-world transfer claim
 is supported.
 
-See the [detailed evidence page in Chinese](../benchmark_release.md).
+See the [versioned evidence page in Chinese](https://sunyrain.github.io/ChemWorld/benchmark_release/).

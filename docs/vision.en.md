@@ -2,8 +2,8 @@
 
 > **Why can experimental agents not learn only from real laboratories and static datasets?**
 
-Experimental competence comes from interaction, yet real chemistry cannot supply failures at the scale, speed, and
-safety profile available to language or game agents. ChemWorld therefore builds many controlled causal worlds in
+Experimental competence grows through interaction, yet real chemistry cannot supply failures at the scale, speed,
+or safety profile available to language or game agents. ChemWorld therefore builds controlled causal worlds in
 which experimental strategy can be trained, compared, and falsified.
 
 ## What static data leaves out

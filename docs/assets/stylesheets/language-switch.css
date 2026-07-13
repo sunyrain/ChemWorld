@@ -1,7 +1,50 @@
+.md-header__option .md-select > .md-header__button {
+  align-items: center;
+  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 0.25rem;
+  height: 1.75rem;
+  padding: 0 0.48rem;
+  width: auto;
+}
+
+.md-header__option .md-select > .md-header__button::after {
+  font-size: 0.56rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+html[lang^="zh"] .md-header__option .md-select > .md-header__button::after {
+  content: "中文";
+}
+
+html[lang^="en"] .md-header__option .md-select > .md-header__button::after {
+  content: "EN";
+}
+
 .md-header__option .md-select__inner {
   max-height: min(70vh, 28rem);
 }
 
 .md-header__option .md-select__link {
+  min-width: 7.5rem;
   white-space: nowrap;
+}
+
+.md-header__option .md-select__link[hreflang="zh"]::after,
+.md-header__option .md-select__link[hreflang="en"]::after {
+  color: var(--md-default-fg-color--light);
+  float: right;
+  font-size: 0.58rem;
+  margin-left: 1rem;
+}
+
+.md-header__option .md-select__link[hreflang="zh"]::after {
+  content: "ZH";
+}
+
+.md-header__option .md-select__link[hreflang="en"]::after {
+  content: "EN";
 }

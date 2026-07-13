@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from typing import Any
+
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 FORBIDDEN_TOKENS = (
@@ -24,7 +25,7 @@ RESULT_PAGES = (
     "docs/baseline_reference.md",
     "docs/safety_cost.md",
     "docs/world_model_learning.md",
-    "docs/en/research_findings.md",
+    "docs/research_findings.en.md",
     "docs/limitations.md",
     "docs/release_notes.md",
 )
@@ -44,8 +45,8 @@ REQUIRED_NARRATIVE_MARKERS = {
     "docs/causal_worlds.md": ("World、Task 与 Scenario", "为什么只换 Seed 不够"),
     "docs/benchmark_overview.md": ("适应需要自己的指标", "不同 Agent Track 分开报告"),
     "docs/real_world_bridge.md": ("验证路线", "Transfer advantage", "Shadow Mode"),
-    "docs/en/index.md": ("Give experimental intelligence its own world engine", "Causal Worlds"),
-    "docs/en/research_findings.md": ("Finding 4", "benchmark candidate"),
+    "docs/index.en.md": ("Give experimental intelligence its own world engine", "Causal Worlds"),
+    "docs/research_findings.en.md": ("Finding 4", "benchmark candidate"),
 }
 NAV_GROUPS = (
     "研究主线",
@@ -53,7 +54,15 @@ NAV_GROUPS = (
     "构建智能体",
     "评测",
     "技术参考",
-    "English",
+)
+ENGLISH_NAV_TARGETS = (
+    "index.md",
+    "vision.md",
+    "experimental_intelligence.md",
+    "causal_worlds.md",
+    "benchmark_overview.md",
+    "research_findings.md",
+    "real_world_bridge.md",
 )
 
 
@@ -88,30 +97,71 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
     ]
 
     mkdocs = (root / "mkdocs.yml").read_text(encoding="utf-8")
-    nav_targets = re.findall(
-        r"^[ \t]*-[ \t]+[^:\n]+:[ \t]+([^#\n]+\.md)[ \t]*$", mkdocs, flags=re.MULTILINE
-    )
-    missing_nav_targets = [
-        target for target in nav_targets if not (root / "docs" / target).is_file()
+    mkdocs_config = yaml.safe_load(mkdocs)
+    chinese_nav = mkdocs_config["nav"]
+    chinese_nav_targets = _nav_targets(chinese_nav)
+    chinese_nav_labels = _nav_labels(chinese_nav)
+    i18n_config = _plugin_config(mkdocs_config["plugins"], "i18n")
+    language_configs = {
+        language["locale"]: language for language in i18n_config.get("languages", [])
+    }
+    english_nav = language_configs.get("en", {}).get("nav", [])
+    english_nav_targets = _nav_targets(english_nav)
+    english_source_targets = [_localized_source(target, "en") for target in english_nav_targets]
+
+    missing_chinese_nav_targets = [
+        target for target in chinese_nav_targets if not (root / "docs" / target).is_file()
+    ]
+    missing_english_nav_targets = [
+        target for target in english_source_targets if not (root / "docs" / target).is_file()
+    ]
+    missing_nav_targets = missing_chinese_nav_targets + [
+        f"en:{target}" for target in missing_english_nav_targets
     ]
     public_markdown_targets = {
         path.relative_to(root / "docs").as_posix()
         for path in (root / "docs").rglob("*.md")
+        if not path.name.endswith(".en.md")
     }
-    unlisted_public_pages = sorted(public_markdown_targets - set(nav_targets))
-    duplicate_nav_targets = sorted(
-        {target for target in nav_targets if nav_targets.count(target) > 1}
-    )
-    nav_group_positions = [mkdocs.find(f"  - {group}:") for group in NAV_GROUPS]
+    public_english_targets = {
+        path.relative_to(root / "docs").as_posix()
+        for path in (root / "docs").rglob("*.en.md")
+    }
+    unlisted_public_pages = sorted(public_markdown_targets - set(chinese_nav_targets)) + [
+        f"en:{target}"
+        for target in sorted(public_english_targets - set(english_source_targets))
+    ]
+    duplicate_chinese_targets = {
+        target for target in chinese_nav_targets if chinese_nav_targets.count(target) > 1
+    }
+    duplicate_english_targets = {
+        target for target in english_nav_targets if english_nav_targets.count(target) > 1
+    }
+    duplicate_nav_targets = sorted(duplicate_chinese_targets) + [
+        f"en:{target}" for target in sorted(duplicate_english_targets)
+    ]
+    nav_group_positions = [
+        chinese_nav_labels.index(group) if group in chinese_nav_labels else -1
+        for group in NAV_GROUPS
+    ]
+    theme_features = mkdocs_config.get("theme", {}).get("features", [])
     nav_checks = {
-        "professional_narrative_groups": all(position >= 0 for position in nav_group_positions),
+        "professional_narrative_groups": all(group in chinese_nav_labels for group in NAV_GROUPS),
         "professional_narrative_order": nav_group_positions == sorted(nav_group_positions),
-        "language_switch_present": "name: English" in mkdocs and "/ChemWorld/en/" in mkdocs,
-        "english_navigation_present": "  - English:" in mkdocs
-        and "      - Home: en/index.md" in mkdocs,
+        "language_switch_present": set(language_configs) == {"zh", "en"}
+        and language_configs["zh"].get("default") is True
+        and i18n_config.get("reconfigure_material") is True,
+        "english_navigation_present": tuple(english_nav_targets) == ENGLISH_NAV_TARGETS,
+        "english_is_not_a_chinese_nav_section": "English" not in chinese_nav_labels,
+        "locale_sources_are_isolated": i18n_config.get("docs_structure") == "suffix"
+        and i18n_config.get("fallback_to_default") is False,
+        "contextual_switch_compatible": "navigation.instant" not in theme_features
+        and not mkdocs_config.get("extra", {}).get("alternate"),
         "all_public_pages_listed": not unlisted_public_pages,
         "targets_unique": not duplicate_nav_targets,
-        "targets_exist": bool(nav_targets) and not missing_nav_targets,
+        "targets_exist": bool(chinese_nav_targets)
+        and bool(english_nav_targets)
+        and not missing_nav_targets,
     }
 
     navigation_js = (root / "docs/assets/javascripts/navigation-v7.js").read_text(encoding="utf-8")
@@ -125,6 +175,8 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         "content_folding_opt_in": "h2.cw-fold[id]" in navigation_js
         and "h2[data-cw-fold][id]" in navigation_js,
         "content_folding_not_global": 'querySelectorAll(":scope > h2[id]")' not in navigation_js,
+        "navigation_controls_localized": "var isEnglish" in navigation_js
+        and 'onThisPage: "On this page"' in navigation_js,
         "collapse_css_single_owner": ".cw-outline-toggle" in site_css
         and ".cw-" not in language_css,
     }
@@ -144,7 +196,7 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         in (root / "README.md").read_text(encoding="utf-8").lower(),
     }
     return {
-        "schema_version": "chemworld-public-docs-audit-0.3",
+        "schema_version": "chemworld-public-docs-audit-0.4",
         "passed": all(checks.values()),
         "checks": checks,
         "file_count": len(files),
@@ -169,6 +221,39 @@ def _public_files(root: Path) -> list[Path]:
     for path in files:
         path.read_text(encoding="utf-8")
     return files
+
+
+def _plugin_config(plugins: list[Any], name: str) -> dict[str, Any]:
+    for plugin in plugins:
+        if isinstance(plugin, dict) and name in plugin:
+            config = plugin[name]
+            return config if isinstance(config, dict) else {}
+    return {}
+
+
+def _nav_labels(nav: list[Any]) -> list[str]:
+    return [str(next(iter(item))) for item in nav if isinstance(item, dict) and item]
+
+
+def _nav_targets(nav: list[Any]) -> list[str]:
+    targets: list[str] = []
+    for item in nav:
+        if isinstance(item, str):
+            targets.append(item)
+            continue
+        if not isinstance(item, dict):
+            continue
+        for value in item.values():
+            if isinstance(value, str):
+                targets.append(value)
+            elif isinstance(value, list):
+                targets.extend(_nav_targets(value))
+    return targets
+
+
+def _localized_source(target: str, locale: str) -> str:
+    path = Path(target)
+    return path.with_name(f"{path.stem}.{locale}{path.suffix}").as_posix()
 
 
 def _token_hits(files: list[Path], root: Path, tokens: tuple[str, ...]) -> list[dict[str, Any]]:
