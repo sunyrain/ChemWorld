@@ -92,7 +92,7 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [x] 将 backend semantic hash 与 docs/site commit 分离，避免只改文档就令正式轨迹失效，也避免语义改动逃逸版本更新。
   - [x] 在 Windows 干净环境本地运行 golden/replay；Linux clean-wheel 复核降为非阻断的后续可选验证，不作为当前 P0/P1 门禁。
   - [x] 重跑完整 pytest、ruff、mypy、strict docs、release gate、clean-wheel smoke 和 P0 控制报告。
-  - 结果：`uv.lock` 已锁定 178 个包；193 个 backend 语义文件与 docs/site 分别计算独立摘要。Windows clean wheel 在隔离目录和独立进程精确复现 45 个 profile、381 步与 6 条组合链。完整本地 release gate 12/12 通过：ruff、265 个源模块 mypy、1300 passed/14 skipped、89% coverage、strict docs、wheel smoke、reference validation、45 行环境一致性、runtime boundary、20-provider/28-route reachability、baseline smoke 与 candidate integrity 均通过。门禁还捕获并修复了 composed stress audit 对七槽参考夹具名称的越界耦合。按当前推进决策，Windows 是 P0 必需平台，Linux 作为透明记录的非阻断后续复核；manifest 可进入 `formal_candidate`，但正式算法结果仍须经过 P1–P6，`benchmark_claim_allowed` 继续为 false。
+  - 结果：`uv.lock` 已锁定 178 个包；193 个 backend 语义文件与 docs/site 分别计算独立摘要。Windows clean wheel 在隔离目录和独立进程精确复现 45 个 profile、381 步与 6 条组合链。完整本地 release gate 12/12 通过：ruff、265 个源模块 mypy、1302 passed/14 skipped、89% coverage、strict docs、wheel smoke、reference validation、45 行环境一致性、runtime boundary、20-provider/28-route reachability、baseline smoke 与 candidate integrity 均通过。门禁还捕获并修复了 composed stress audit 对七槽参考夹具名称的越界耦合，以及长门禁期间 HEAD 漂移仍被误报成功的并发漏洞；最终门禁起止均绑定 `be4e38f`、`source_commit_stable=true`、工作树干净。按当前推进决策，Windows 是 P0 必需平台，Linux 作为透明记录的非阻断后续复核；manifest 已进入 `formal_candidate`，但正式算法结果仍须经过 P1–P6，`benchmark_claim_allowed` 继续为 false。
   - 验收：生成唯一 `backend-v0.5-formal-candidate` manifest；任一门禁失败则不得进入 P1。
 
 ## P1：冻结新的正式协议与未见数据边界
