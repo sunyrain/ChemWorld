@@ -1,0 +1,27 @@
+{
+  "branch": "team/benchmark-v05-rl-adapters-slice-ppo-train-dev",
+  "claimed_at": "2026-07-13T10:29:56.925717+00:00",
+  "expires_at": "2026-07-20T10:29:56.925717+00:00",
+  "notes": "Actual PPO evidence slice: 4 formal-core tasks x 5 model seeds x 102400 Train steps, with Dev-only selection. No SAC, reference-search, Bench, or parent todo completion. Checkpoint binaries stay under ignored controlled runs; tracked manifests/digests/report are committed, and clean-environment distribution remains a later parent-task gate. SB3 2.9.0/Torch 2.13.0+cpu; reference_repos unused.",
+  "owned_paths": [
+    "configs/methods/rl_v0.4/rl_methods.json",
+    "configs/methods/rl_v0.4/ppo_training_plan.json",
+    "configs/methods/rl_v0.4/ppo_checkpoint_index.json",
+    "src/chemworld/eval/formal_rl.py",
+    "src/chemworld/rl/environment.py",
+    "src/chemworld/rl/training.py",
+    "src/chemworld/rl/evaluation.py",
+    "src/chemworld/rl/formal_training.py",
+    "scripts/run_formal_rl_training.py",
+    "tests/test_formal_rl.py",
+    "tests/test_formal_rl_training.py",
+    "tests/test_rl_training_accounting.py",
+    "runs/benchmark-v0.5/rl-v0.4/ppo",
+    "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json"
+  ],
+  "owner": "knitua",
+  "schema_version": "chemworld-task-claim-0.1",
+  "scope": "Execute the preregistered four-task, five-seed PPO Train/Dev program with resumable 102400-step runs, Dev-only checkpoint selection, behavior/replay/resource evidence, and digest-bound local checkpoint artifacts.",
+  "status": "active",
+  "task_id": "benchmark-v05-rl-adapters--slice-ppo-train-dev"
+}
