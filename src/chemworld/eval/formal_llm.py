@@ -352,6 +352,7 @@ class FormalLiveLLMAdapter:
             client,
             role_id=self.method_id,
             spectrum_disclosure=cast(SpectrumDisclosure, spec.spectrum_condition),
+            fail_fast_on_unbillable_provider_failure=True,
         )
         task = get_task(spec.task_id)
         # Formal cells are bound to the prospective limits in the formal protocol,

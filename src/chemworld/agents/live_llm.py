@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping, Sequence
 from typing import Any, Literal, Protocol
 
 from chemworld.agent_interface import experiment_lifecycle_contract
@@ -68,12 +69,24 @@ class JsonPlannerClientLike(Protocol):
     ) -> JsonCompletionLike: ...
 
 
+class LiveLLMProviderUnavailableError(OSError):
+    """Fail a formal cell without publishing a method-performance terminal."""
+
+    def __init__(self, cause: Exception) -> None:
+        super().__init__("live-LLM provider was unavailable before a billable response")
+        self.provider_error_type = type(cause).__name__
+        self.status_code = getattr(cause, "status_code", None)
+        self.retryable = bool(getattr(cause, "retryable", False))
+        self.attempts = max(int(getattr(cause, "attempts", 1)), 1)
+
+
 class LiveLLMAgent(BaseAgent):
     """Use one provider decision per operation in the official runner.
 
-    Provider and output failures are retained as invalid ``model_failure`` actions.
-    This makes completion rate and validity honest: the harness never repairs an action
-    or performs a terminal assay on the model's behalf.
+    Provider and output failures are normally retained as invalid ``model_failure``
+    actions.  Formal runs may instead fail fast when every provider attempt was rejected
+    before billing, so an external outage cannot masquerade as method performance.  The
+    harness never repairs an action or performs a terminal assay on the model's behalf.
     """
 
     name = "live_llm"
@@ -86,6 +99,7 @@ class LiveLLMAgent(BaseAgent):
         spectrum_disclosure: SpectrumDisclosure = "assigned",
         recent_decision_limit: int = 6,
         experiment_memory_limit: int = 12,
+        fail_fast_on_unbillable_provider_failure: bool = False,
     ) -> None:
         if spectrum_disclosure not in {"assigned", "unassigned", "masked"}:
             raise ValueError(
@@ -98,6 +112,9 @@ class LiveLLMAgent(BaseAgent):
         self.spectrum_disclosure = spectrum_disclosure
         self.recent_decision_limit = int(recent_decision_limit)
         self.experiment_memory_limit = int(experiment_memory_limit)
+        self.fail_fast_on_unbillable_provider_failure = bool(
+            fail_fast_on_unbillable_provider_failure
+        )
 
     def reset(self, task_info: dict[str, Any], seed: int) -> None:
         super().reset(task_info, seed)
@@ -147,6 +164,11 @@ class LiveLLMAgent(BaseAgent):
             )
             self._provider_failure_count += 1
             self._retry_count += max(attempts - 1, 0)
+            if (
+                self.fail_fast_on_unbillable_provider_failure
+                and _all_provider_attempts_failed_unbillable(exc)
+            ):
+                raise LiveLLMProviderUnavailableError(exc) from exc
             decision = self._failure_decision(context, exc)
         else:
             self._record_provider_usage(completion.attempts, completion.usage)
@@ -281,6 +303,11 @@ class LiveLLMAgent(BaseAgent):
                     "explicit_request_by_public_spectrum_id_delivered_next_decision"
                 ),
                 "failure_policy": "retain_as_invalid_operation_without_harness_closeout",
+                "formal_unbillable_provider_failure_policy": (
+                    "raise_resumable_infrastructure_interruption"
+                    if self.fail_fast_on_unbillable_provider_failure
+                    else "retain_as_invalid_operation"
+                ),
                 "private_reasoning_retained": False,
             }
         )
@@ -698,6 +725,19 @@ def _empty_usage() -> dict[str, int]:
     }
 
 
+def _all_provider_attempts_failed_unbillable(error: Exception) -> bool:
+    raw_records = getattr(error, "attempt_records", ())
+    if not isinstance(raw_records, Sequence) or isinstance(raw_records, str | bytes):
+        return False
+    records = tuple(raw_records)
+    return bool(records) and all(
+        isinstance(record, Mapping)
+        and record.get("status") == "failed"
+        and record.get("billable") is False
+        for record in records
+    )
+
+
 def _prompt_memory_decision(decision: dict[str, Any]) -> dict[str, Any]:
     return {
         key: to_builtin(decision[key])
@@ -815,5 +855,6 @@ __all__ = [
     "SYSTEM_PROMPT",
     "JsonPlannerClientLike",
     "LiveLLMAgent",
+    "LiveLLMProviderUnavailableError",
     "SpectrumDisclosure",
 ]

@@ -6,6 +6,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
+import pytest
+
 from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.eval.formal_llm import (
     audit_live_llm_method_freeze,
@@ -29,7 +31,7 @@ from chemworld.eval.method_protocol import (
     METHOD_RESOURCE_LEDGER_VERSION,
     MethodResourceLimitError,
 )
-from chemworld.providers.deepseek import DeepSeekClient
+from chemworld.providers.deepseek import DeepSeekAPIError, DeepSeekClient
 from chemworld.tasks import get_task
 
 
@@ -148,6 +150,28 @@ class _PublicMaterialLabelClient(_Client):
             "The environment must validate a public label without an adapter exception."
         )
         return completion
+
+
+class _UnavailableClient(_Client):
+    def complete_json(self, **kwargs: Any) -> Any:
+        del kwargs
+        raise DeepSeekAPIError(
+            "provider credit unavailable",
+            status_code=402,
+            retryable=False,
+            attempt_records=(
+                {
+                    "attempt_index": 1,
+                    "status": "failed",
+                    "request_id": None,
+                    "model_id": self.model,
+                    "usage": {},
+                    "usage_complete": False,
+                    "billable": False,
+                    "failure_type": "DeepSeekAPIError",
+                },
+            ),
+        )
 
 
 def _fake_run_agent(**kwargs: Any) -> None:
@@ -324,6 +348,32 @@ def test_formal_live_llm_failure_retains_provider_receipts_and_partial_resources
     assert resources["accounting_complete"] is True
     assert resources["axes"]["provider_request_count"] == 1
     assert resources["axes"]["input_token_count"] == 100
+
+
+def test_formal_live_llm_unbillable_provider_failure_publishes_no_terminal(
+    tmp_path: Path,
+) -> None:
+    spec = _spec()
+    manifest = issue_run_manifest([spec], metadata={"formal": False, "split": "dev"})
+    issued = load_issued_cell(manifest, cell_identity_sha256=spec.cell_identity_sha256)
+    registry = build_formal_live_llm_registry(
+        client_factory=lambda card: _UnavailableClient(str(card["model_id"])),
+        run_agent_fn=_fake_run_agent,
+        risk_limit_factory=lambda _: 0.3,
+    )
+    output_root = tmp_path / "public"
+
+    with pytest.raises(OSError, match="provider was unavailable"):
+        run_formal_cell(
+            issued_cell=issued,
+            runtime=_runtime(),
+            adapter=registry.create(spec),
+            output_root=output_root,
+            private_diagnostic_root=tmp_path / "private",
+            replay_evaluator=_replay,
+        )
+
+    assert not (output_root / "cells" / spec.cell_identity_sha256).exists()
 
 
 def test_formal_live_llm_invalid_public_material_label_keeps_accounting_complete(

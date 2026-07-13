@@ -5,8 +5,13 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
+import pytest
+
 from chemworld.agents.interaction import AgentDecisionContext
-from chemworld.agents.live_llm import LiveLLMAgent
+from chemworld.agents.live_llm import (
+    LiveLLMAgent,
+    LiveLLMProviderUnavailableError,
+)
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
@@ -77,6 +82,27 @@ class FakeProviderError(RuntimeError):
         super().__init__("secret transport detail must not be retained")
         self.attempts = 3
         self.usage = {"prompt_tokens": 30, "completion_tokens": 0, "total_tokens": 30}
+
+
+class FakeUnbillableProviderError(RuntimeError):
+    def __init__(self) -> None:
+        super().__init__("private provider rejection")
+        self.attempts = 1
+        self.usage: dict[str, int] = {}
+        self.status_code = 402
+        self.retryable = False
+        self.attempt_records = (
+            {
+                "attempt_index": 1,
+                "status": "failed",
+                "request_id": None,
+                "model_id": "deepseek-v4-pro",
+                "usage": {},
+                "usage_complete": False,
+                "billable": False,
+                "failure_type": "FakeUnbillableProviderError",
+            },
+        )
 
 
 def _context(*, step: int, previous: str | None, spectra: bool = True) -> AgentDecisionContext:
@@ -247,6 +273,24 @@ def test_provider_failure_is_redacted_retained_and_counted() -> None:
     serialized = json.dumps(agent.agent_trace())
     assert "secret transport detail" not in serialized
     assert "FakeProviderError" in serialized
+
+
+def test_formal_unbillable_provider_failure_raises_resumable_interruption() -> None:
+    client = FakeClient([FakeUnbillableProviderError()])
+    agent = LiveLLMAgent(
+        client,
+        role_id="live_llm_a",
+        fail_fast_on_unbillable_provider_failure=True,
+    )
+    agent.reset({"task_id": "flow-reaction-optimization"}, seed=3)
+
+    with pytest.raises(LiveLLMProviderUnavailableError) as caught:
+        agent.act_with_public_view(_context(step=1, previous=None), _public_view())
+
+    assert caught.value.status_code == 402
+    assert caught.value.retryable is False
+    assert agent.method_resource_usage()["model_provenance"]["provider_failure_count"] == 1
+    assert agent.provider_receipts()[0]["billable"] is False
 
 
 def test_invalid_model_decision_does_not_double_count_provider_attempts() -> None:

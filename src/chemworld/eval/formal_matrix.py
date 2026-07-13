@@ -454,6 +454,7 @@ def run_formal_matrix(
             }
 
         def submit_available() -> None:
+            nonlocal stop_requested
             for queue in ("cpu", "gpu", "api"):
                 while (
                     not stop_requested
@@ -500,7 +501,8 @@ def run_formal_matrix(
                             cached=False,
                             replay_verified=False,
                         )
-                        continue
+                        stop_requested = True
+                        break
                     futures[future] = (cell, job)
                     active_by_queue[queue] += 1
                     emit(
@@ -548,6 +550,7 @@ def run_formal_matrix(
                             "message": "worker raised before publishing a terminal cell",
                         }
                     )
+                    stop_requested = True
                 cell_dir = root / "cells" / cell.cell_identity_sha256
                 if cell_dir.exists():
                     outcome = validate_published_cell(
@@ -562,6 +565,18 @@ def run_formal_matrix(
                         failure_class=outcome.failure_class,
                     )
                     new_terminals += 1
+                    resource_report = _read_object(cell_dir / "resources.json")
+                    if resource_report.get("accounting_complete") is not True:
+                        infrastructure_errors.append(
+                            {
+                                "cell_identity_sha256": cell.cell_identity_sha256,
+                                "error_type": "IncompleteResourceAccounting",
+                                "message": (
+                                    "terminal cell published incomplete resource accounting"
+                                ),
+                            }
+                        )
+                        stop_requested = True
                 else:
                     emit(
                         cell,
@@ -569,6 +584,7 @@ def run_formal_matrix(
                         cached=False,
                         replay_verified=False,
                     )
+                    stop_requested = True
                 if (
                     stop_after_new_terminals is not None
                     and new_terminals >= stop_after_new_terminals
@@ -591,7 +607,7 @@ def run_formal_matrix(
         matrix_elapsed_wall_time_s=elapsed_wall_time_s,
     )
     queued_remaining = sum(len(queue) for queue in pending.values())
-    final_status = "stopped_resumable" if stop_requested and queued_remaining else audit["status"]
+    final_status = "stopped_resumable" if stop_requested else audit["status"]
     emit(None, "matrix_finished", matrix_status=final_status)
     report = {
         "schema_version": FORMAL_MATRIX_RUN_VERSION,

@@ -419,6 +419,11 @@ class _SyntheticExecutor:
         return {"worker_pid": os.getpid()}
 
 
+def _fail_before_publish(job: FormalMatrixJob) -> dict[str, Any]:
+    del job
+    raise RuntimeError("synthetic infrastructure interruption")
+
+
 def test_plan_expands_exact_manifest_grid_and_public_resource_summary() -> None:
     plan = build_formal_matrix_plan(_manifest())
     summary = plan.public_summary()
@@ -606,6 +611,27 @@ def test_stopped_matrix_resumes_only_missing_cells(tmp_path) -> None:
         if event["status"] in {"operation_progress", "checkpoint"}
     }
     assert preexisting_ids.isdisjoint(replayed_detail_ids)
+
+
+def test_infrastructure_failure_stops_new_scheduling_and_remains_resumable(
+    tmp_path,
+) -> None:
+    plan = build_formal_matrix_plan(_manifest())
+
+    outcome = run_formal_matrix(
+        plan=plan,
+        executor=_fail_before_publish,
+        output_root=tmp_path,
+        mode="diagnostic_serial",
+    )
+
+    assert outcome.report["status"] == "stopped_resumable"
+    assert outcome.report["new_terminal_count"] == 0
+    assert outcome.report["queued_remaining"] == 5
+    assert len(outcome.report["infrastructure_errors"]) == 3
+    statuses = Counter(event["status"] for event in outcome.progress_events)
+    assert statuses["running"] == 3
+    assert statuses["infrastructure_incomplete"] == 3
 
 
 def test_serial_and_parallel_execution_have_identical_semantic_results(tmp_path) -> None:
