@@ -51,6 +51,20 @@ JOINT_REQUIREMENTS = (
     "all_candidate_and_comparator_trajectories_replay_verified",
     "all_required_resource_accounting_complete",
 )
+CHAMPION_ELIGIBILITY = (
+    "all_planned_dev_cells_present",
+    "all_dev_trajectories_replay_verified",
+    "all_dev_resource_ledgers_complete",
+    "no_budget_overrun",
+    "frozen_method_or_prompt_or_checkpoint_hash",
+)
+CHAMPION_RANKING = (
+    "number_of_core_tasks_reaching_dev_sesoi_with_safety_and_cost_noninferiority",
+    "mean_normalized_primary_anytime_auc",
+    "lower_risk_exceedance_rate",
+    "lower_relative_process_cost",
+    "lower_resource_use_only_as_final_tie_breaker",
+)
 
 
 class FormalStatisticsError(RuntimeError):
@@ -145,6 +159,8 @@ def analyze_paired_contrast(
 ) -> dict[str, Any]:
     """Apply the complete joint rule while retaining every expected pair."""
 
+    if not candidate or not comparator or candidate == comparator:
+        raise FormalStatisticsError("candidate and comparator must be distinct non-empty ids")
     expected_pairs = tuple(str(pair_id) for pair_id in pair_ids)
     if len(expected_pairs) != len(set(expected_pairs)) or not expected_pairs:
         raise FormalStatisticsError("pair ids must be non-empty and unique")
@@ -182,6 +198,7 @@ def analyze_paired_contrast(
                 task_id,
                 expected_pair_count=expected_count,
                 missing_row_count=len(missing),
+                missing_pair_count=len({key[2] for key in missing}),
             )
             raw_p_values[task_id] = 1.0
             continue
@@ -335,6 +352,110 @@ def analyze_paired_contrast(
         ),
         "formal_results_present": True,
         "benchmark_claim_allowed": False,
+    }
+
+
+def select_dev_family_champion(
+    rows: Sequence[Mapping[str, Any]],
+    *,
+    protocol: Mapping[str, Any],
+    family: str,
+) -> dict[str, Any]:
+    """Select one preregistered family champion using Dev evidence only."""
+
+    policy = protocol.get("family_champion_selection")
+    if not _champion_policy_ready(policy):
+        raise FormalStatisticsError("family champion policy is not frozen")
+    assert isinstance(policy, Mapping)
+    families = policy["families"]
+    assert isinstance(families, Mapping)
+    raw_methods = families.get(family)
+    if not isinstance(raw_methods, Sequence) or isinstance(raw_methods, (str, bytes)):
+        raise FormalStatisticsError(f"unknown champion family: {family}")
+    expected_methods = tuple(str(method_id) for method_id in raw_methods)
+    indexed: dict[str, Mapping[str, Any]] = {}
+    forbidden_keys: list[str] = []
+    for row in rows:
+        method_id = str(row.get("method_id", ""))
+        split = row.get("split")
+        if split != "dev":
+            raise FormalStatisticsError("family champion selection accepts Dev rows only")
+        forbidden_keys.extend(
+            str(key) for key in row if str(key).lower().startswith("bench")
+        )
+        if method_id not in expected_methods:
+            raise FormalStatisticsError("selection row contains a method outside the family")
+        if method_id in indexed:
+            raise FormalStatisticsError("duplicate family champion selection row")
+        indexed[method_id] = row
+    if forbidden_keys:
+        raise FormalStatisticsError("Bench information is forbidden during champion selection")
+    missing = sorted(set(expected_methods) - set(indexed))
+    if missing:
+        raise FormalStatisticsError(f"family selection rows are incomplete: {missing}")
+
+    ranked: list[dict[str, Any]] = []
+    for method_id in expected_methods:
+        row = indexed[method_id]
+        eligibility = {
+            key: row.get(key) is True for key in CHAMPION_ELIGIBILITY
+        }
+        identity = str(row.get("frozen_identity_sha256", ""))
+        if not _is_sha256(identity):
+            eligibility["frozen_method_or_prompt_or_checkpoint_hash"] = False
+        tasks_reaching = _integer_in_range(
+            row.get("core_tasks_reaching_joint_sesoi"),
+            label="core_tasks_reaching_joint_sesoi",
+            lower=0,
+            upper=len(CORE_TASKS),
+        )
+        auc = _finite_number(
+            row.get("mean_normalized_primary_anytime_auc"),
+            "mean_normalized_primary_anytime_auc",
+        )
+        risk = _bounded_number(row.get("risk_exceedance_rate"), "risk_exceedance_rate")
+        cost = _nonnegative_number(row.get("relative_process_cost"), "relative_process_cost")
+        resource = _nonnegative_number(
+            row.get("resource_use_tiebreak"), "resource_use_tiebreak"
+        )
+        ranked.append(
+            {
+                "method_id": method_id,
+                "eligible": all(eligibility.values()),
+                "eligibility": eligibility,
+                "frozen_identity_sha256": identity,
+                "core_tasks_reaching_joint_sesoi": tasks_reaching,
+                "mean_normalized_primary_anytime_auc": auc,
+                "risk_exceedance_rate": risk,
+                "relative_process_cost": cost,
+                "resource_use_tiebreak": resource,
+            }
+        )
+    eligible = [item for item in ranked if item["eligible"]]
+    if not eligible:
+        raise FormalStatisticsError("no eligible Dev family champion candidate")
+    eligible.sort(
+        key=lambda item: (
+            -int(item["core_tasks_reaching_joint_sesoi"]),
+            -float(item["mean_normalized_primary_anytime_auc"]),
+            float(item["risk_exceedance_rate"]),
+            float(item["relative_process_cost"]),
+            float(item["resource_use_tiebreak"]),
+            str(item["method_id"]),
+        )
+    )
+    return {
+        "schema_version": "chemworld-dev-family-champion-selection-0.4",
+        "protocol_id": protocol.get("protocol_id"),
+        "family": family,
+        "selection_split": "dev",
+        "bench_information_used": False,
+        "expected_candidate_count": len(expected_methods),
+        "eligible_candidate_count": len(eligible),
+        "selected_method_id": eligible[0]["method_id"],
+        "selected_identity_sha256": eligible[0]["frozen_identity_sha256"],
+        "ranking": eligible,
+        "policy_sha256": _canonical_sha256(policy),
     }
 
 
@@ -570,13 +691,18 @@ def _noninferiority_card(
 
 
 def _incomplete_task_card(
-    task_id: str, *, expected_pair_count: int, missing_row_count: int
+    task_id: str,
+    *,
+    expected_pair_count: int,
+    missing_row_count: int,
+    missing_pair_count: int,
 ) -> dict[str, Any]:
     return {
         "task_id": task_id,
         "expected_pair_count": expected_pair_count,
-        "observed_pair_count": expected_pair_count - math.ceil(missing_row_count / 2),
+        "observed_pair_count": expected_pair_count - missing_pair_count,
         "missing_row_count": missing_row_count,
+        "missing_pair_count": missing_pair_count,
         "matrix_complete": False,
         "raw_sign_flip_p_value": 1.0,
         "holm_adjusted_p_value": None,
@@ -632,6 +758,7 @@ def _objective_ready(raw: Any, workspace: Path) -> bool:
     }
     return (
         raw.get("estimand") == "candidate_minus_comparator_mean_paired_primary_metric"
+        and raw.get("direction") == "higher_is_better"
         and raw.get("interval") == "paired_percentile_bootstrap"
         and raw.get("confidence_level") == 0.95
         and raw.get("bootstrap_samples") == 20_000
@@ -659,9 +786,16 @@ def _constraints_ready(raw: Any) -> bool:
         and raw.get("simultaneous_comparison_count") == 8
         and raw.get("one_sided_upper_quantile") == 0.99375
         and isinstance(safety, Mapping)
+        and safety.get("estimand")
+        == "candidate_minus_comparator_absolute_risk_exceedance_rate"
         and safety.get("noninferiority_margin") == 0.05
+        and safety.get("pass_rule")
+        == "simultaneous_upper_confidence_bound_at_or_below_margin"
         and isinstance(cost, Mapping)
+        and cost.get("estimand") == "candidate_minus_comparator_cost_relative_to_comparator"
         and cost.get("noninferiority_margin") == 0.05
+        and cost.get("pass_rule")
+        == "simultaneous_upper_confidence_bound_at_or_below_margin"
     )
 
 
@@ -677,6 +811,10 @@ def _failure_policy_ready(raw: Any) -> bool:
         and raw.get("replay_failure") == "retain_pair_and_fail_joint_rule"
         and raw.get("accounting_failure") == "retain_pair_and_fail_joint_rule"
         and raw.get("automatic_rerun_or_drop") == "forbidden"
+        and raw.get("missing_or_nonfinite_endpoint")
+        == "classify_failure_and_use_frozen_worst_case"
+        and raw.get("infrastructure_retry")
+        == "separate_attempt_lineage_only_same_cell_identity"
     )
 
 
@@ -692,8 +830,8 @@ def _champion_policy_ready(raw: Any) -> bool:
         and tuple(families.get("llm", ())) == ("live_llm_a", "live_llm_b")
         and tuple(families.get("operation_primary", ()))
         == ("rule_based", "ppo", "sac", "live_llm_a", "live_llm_b")
-        and len(tuple(raw.get("eligibility", ()))) == 5
-        and len(tuple(raw.get("lexicographic_ranking", ()))) == 5
+        and tuple(raw.get("eligibility", ())) == CHAMPION_ELIGIBILITY
+        and tuple(raw.get("lexicographic_ranking", ())) == CHAMPION_RANKING
         and raw.get("tie_breaker") == "lexicographically_smallest_frozen_method_id"
         and raw.get("selection_artifact_frozen_before_bench") is True
         and raw.get("bench_hyperparameter_prompt_checkpoint_or_seed_selection")
@@ -708,6 +846,7 @@ def _secondary_ready(raw: Any) -> bool:
         and raw.get("holm_within_each_named_secondary_family") is True
         and raw.get("negative_results_required") is True
         and raw.get("completion_and_failure_class_counts_required") is True
+        and raw.get("wins_ties_losses_required") is True
         and tuple(raw.get("anytime_checkpoints", ())) == (4, 8, 12, 20, 40)
         and raw.get("resource_frontier_reported_without_scalarization") is True
     )
@@ -816,6 +955,30 @@ def _finite_number(value: Any, label: str) -> float:
     return result
 
 
+def _bounded_number(value: Any, label: str) -> float:
+    result = _finite_number(value, label)
+    if not 0.0 <= result <= 1.0:
+        raise FormalStatisticsError(f"{label} must be in [0, 1]")
+    return result
+
+
+def _nonnegative_number(value: Any, label: str) -> float:
+    result = _finite_number(value, label)
+    if result < 0.0:
+        raise FormalStatisticsError(f"{label} must be non-negative")
+    return result
+
+
+def _integer_in_range(value: Any, *, label: str, lower: int, upper: int) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or not lower <= value <= upper:
+        raise FormalStatisticsError(f"{label} must be an integer in [{lower}, {upper}]")
+    return value
+
+
+def _is_sha256(value: str) -> bool:
+    return len(value) == 64 and all(character in "0123456789abcdef" for character in value)
+
+
 def _derived_seed(material: str) -> int:
     return int.from_bytes(hashlib.sha256(material.encode("utf-8")).digest()[:8], "big")
 
@@ -911,4 +1074,5 @@ __all__ = [
     "load_statistical_analysis_plan",
     "paired_percentile_interval",
     "paired_sign_flip_p_value",
+    "select_dev_family_champion",
 ]

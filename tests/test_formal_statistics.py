@@ -15,6 +15,7 @@ from chemworld.eval.formal_statistics import (
     load_statistical_analysis_plan,
     paired_percentile_interval,
     paired_sign_flip_p_value,
+    select_dev_family_champion,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -188,8 +189,34 @@ def test_missing_pair_yields_incomplete_no_claim_and_duplicate_is_rejected() -> 
     incomplete = _analyze(protocol, rows[1:])
     assert incomplete["benchmark_wide_joint_rule_passed"] is False
     assert incomplete["task_decisions"][TASKS[0]]["matrix_complete"] is False
+    rows = _rows(protocol, objective_multiplier=1.5)
+    two_distinct_pairs_missing = [
+        row
+        for row in rows
+        if not (
+            row["task_id"] == TASKS[0]
+            and (
+                (row["method_id"] == "candidate" and row["pair_id"] == "pair-000")
+                or (
+                    row["method_id"] == "operation_random"
+                    and row["pair_id"] == "pair-001"
+                )
+            )
+        )
+    ]
+    distinct = _analyze(protocol, two_distinct_pairs_missing)
+    assert distinct["task_decisions"][TASKS[0]]["observed_pair_count"] == 98
+    assert distinct["task_decisions"][TASKS[0]]["missing_pair_count"] == 2
     with pytest.raises(FormalStatisticsError, match="duplicate"):
         _analyze(protocol, [*rows, dict(rows[0])])
+    with pytest.raises(FormalStatisticsError, match="distinct"):
+        analyze_paired_contrast(
+            rows,
+            protocol=protocol,
+            candidate="candidate",
+            comparator="candidate",
+            pair_ids=PAIR_IDS,
+        )
 
 
 def test_malformed_failure_or_nonfinite_success_is_rejected() -> None:
@@ -198,6 +225,90 @@ def test_malformed_failure_or_nonfinite_success_is_rejected() -> None:
     rows[0]["primary_value"] = float("nan")
     with pytest.raises(FormalStatisticsError, match="finite"):
         _analyze(protocol, rows)
+
+
+@pytest.mark.parametrize(
+    "failure_class",
+    [
+        "invalid_action",
+        "provider_model_failure",
+        "runtime_failure",
+        "budget_overrun",
+        "incomplete_accounting",
+    ],
+)
+def test_each_failure_class_is_retained_and_reported(failure_class: str) -> None:
+    protocol = load_statistical_analysis_plan()
+    rows = _rows(protocol, objective_multiplier=1.5)
+    for row in rows:
+        if (
+            row["task_id"] == TASKS[0]
+            and row["method_id"] == "candidate"
+            and row["pair_id"] == "pair-000"
+        ):
+            row.update(
+                {
+                    "status": "failure",
+                    "failure_class": failure_class,
+                    "primary_value": None,
+                    "risk_exceedance_rate": None,
+                    "replay_verified": False,
+                    "accounting_complete": False,
+                }
+            )
+    card = _analyze(protocol, rows)["task_decisions"][TASKS[0]]
+    assert card["observed_pair_count"] == 100
+    assert card["failure_counts"]["candidate"] == {failure_class: 1}
+    assert card["joint_primary_rule_passed"] is False
+
+
+def _champion_rows(protocol: dict[str, Any], family: str) -> list[dict[str, Any]]:
+    methods = protocol["family_champion_selection"]["families"][family]
+    return [
+        {
+            "method_id": method_id,
+            "split": "dev",
+            "all_planned_dev_cells_present": True,
+            "all_dev_trajectories_replay_verified": True,
+            "all_dev_resource_ledgers_complete": True,
+            "no_budget_overrun": True,
+            "frozen_method_or_prompt_or_checkpoint_hash": True,
+            "frozen_identity_sha256": f"{index + 1:064x}",
+            "core_tasks_reaching_joint_sesoi": 3,
+            "mean_normalized_primary_anytime_auc": 0.6 + 0.01 * index,
+            "risk_exceedance_rate": 0.1,
+            "relative_process_cost": 1.0,
+            "resource_use_tiebreak": 10.0,
+        }
+        for index, method_id in enumerate(methods)
+    ]
+
+
+def test_dev_family_champion_selection_is_complete_and_lexicographic() -> None:
+    protocol = load_statistical_analysis_plan()
+    rows = _champion_rows(protocol, "rl")
+    selected = select_dev_family_champion(rows, protocol=protocol, family="rl")
+    assert selected["selected_method_id"] == "sac"
+    assert selected["bench_information_used"] is False
+    rows[0]["core_tasks_reaching_joint_sesoi"] = 4
+    selected = select_dev_family_champion(rows, protocol=protocol, family="rl")
+    assert selected["selected_method_id"] == "ppo"
+
+
+def test_family_champion_rejects_bench_incomplete_and_unfrozen_evidence() -> None:
+    protocol = load_statistical_analysis_plan()
+    rows = _champion_rows(protocol, "llm")
+    with pytest.raises(FormalStatisticsError, match="incomplete"):
+        select_dev_family_champion(rows[:-1], protocol=protocol, family="llm")
+    rows = _champion_rows(protocol, "llm")
+    rows[0]["bench_score"] = 0.9
+    with pytest.raises(FormalStatisticsError, match="Bench information"):
+        select_dev_family_champion(rows, protocol=protocol, family="llm")
+    rows = _champion_rows(protocol, "llm")
+    for row in rows:
+        row["frozen_identity_sha256"] = "not-a-hash"
+    with pytest.raises(FormalStatisticsError, match="no eligible"):
+        select_dev_family_champion(rows, protocol=protocol, family="llm")
     rows = _rows(protocol, objective_multiplier=1.5)
     rows[0].update({"status": "failure", "failure_class": "mystery"})
     with pytest.raises(FormalStatisticsError, match="unknown failure class"):
