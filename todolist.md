@@ -169,12 +169,13 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：正式资源协议固定 15 个不做标量化的资源轴及 count/token/USD/second/environment-step 量纲。live LLM 按每次 provider attempt 的唯一 request、逻辑决策、连续 retry index、成功/失败状态、完整 usage、cache hit/miss token、可计费状态和 digest 绑定价格逐笔重算，并与累计 ledger 精确对账；缺 usage、价格版本错、失败请求不可计价、账单不符或重复 request 时保留 cell 但金额为 null 且禁止聚合，绝不按零处理。classic 的 fit/acquisition 事件计数并声明为总 CPU/wall 的组成量，防止二次相加；RL 训练按唯一 checkpoint 单列，多个评估 cell 只引用一次，评估账本出现训练步数或无关训练 artifact 均失败。method identity 已绑定 resource profile，runner 生成独立 digest-indexed `resources.json`，matrix 强制消费全部 cell 与 checkpoint 账本并使用实测 matrix elapsed，不能把并行 cell wall time 求和冒充耗时。11 项专项、51 项 runner/matrix/resource 联合和 147 项扩展回归通过，实际 ChemWorld smoke 轨迹 15 轴无缺失精确对账。
   - 验收：合成账单和实际 smoke run 对账精确；所有 required ledger 字段非缺失且量纲正确。
 
-- [ ] **`benchmark-v05-preflight-gate` — 正式运行总门禁**
+- [x] **`benchmark-v05-preflight-gate` — 正式运行总门禁**
   - 默认 owned_paths：`scripts/run_formal_preflight.py`、`tests/test_formal_preflight.py`、`workstreams/benchmark_v1/reports/formal-preflight-v0.4.json`。
   - 依赖：P2 其他任务全部完成。
-  - [ ] 同时检查 clean source/wheel、backend manifest、协议 hashes、seed denylist/split、reference 状态、method registration、checkpoint/prompt、预算和磁盘/算力/API 配额。
-  - [ ] 生成唯一 run manifest 和不可变 run ID；正式 runner 只接受已签发 manifest。
-  - [ ] 任何缺失或不一致都返回非零并列出准确修复项，不允许 `--force` 绕过。
+  - [x] 同时检查 clean source/wheel、backend manifest、协议 hashes、seed denylist/split、reference 状态、method registration、checkpoint/prompt、预算和磁盘/算力/API 配额。
+  - [x] 生成唯一 run manifest 和不可变 run ID；正式 runner 只接受已签发 manifest。
+  - [x] 任何缺失或不一致都返回非零并列出准确修复项，不允许 `--force` 绕过。
+  - 结果：preflight 只接受 clean Git commit 对应的 digest-bound wheel 与 clean-build/dependency-lock manifest，逐项复验 backend、formal/interaction/statistics/reference/method、runner、matrix 和 resource controls，并交叉绑定 cell 的 protocol/backend/evaluator/reference hashes。方法声明必须与 hash-bound interaction registration、resource profile 和 spectrum conditions 一致；RL checkpoint 与独立训练账本、LLM prompt/model config/价格版本、classic artifact 均进入 identity 或 manifest binding。私有 pair assignment 单独输入，seed 同时对照 formal protocol 中的 train/dev/reference-search 区间和额外 denylist，公开 manifest/report 只保留 commitment；private runtime 先发布，唯一随机 issuance nonce 参与 run ID，manifest 最后发布且拒绝覆盖。门禁按 cell 数校验磁盘估算，并校验 CPU、GPU device、API credential presence、并发、cell/provider rate 和费用配额；失败仅输出具体 blocker 且不签发，CLI 无 `--force`。使用 15 个正式方法 ID 的 contract adapters 覆盖两个 track 和 LLM assigned/masked，共 17 个非正式 cell，17/17 即时 replay 且资源聚合完整；14 项专项与 161 项扩展回归通过。该 smoke 只证明门禁/调度/回放管线，不是方法性能；真实 formal Bench 仍会因 P3 method freeze 和 reference evidence 未完成而正确拒绝。
   - 验收：全方法 × 两个交互 track × assigned/masked × 小 seed 的 smoke grid 100% 轨迹回放通过；报告仍为非正式。
 
 ## P3：开发、验证并封存方法
