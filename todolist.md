@@ -55,13 +55,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：六任务合同图与 15-task runtime reachability 同源，四个 formal-core 与两个 exploratory 角色精确对齐；12 个正式方法 ID、9 个 legacy runner alias 和两个排除 stub 已分层。任务主指标、final-assay、风险/成本、资源失败、版本与成熟度控制全部通过，三份旧 seed 协议只允许从 quarantine 读取。backend semantic hash 由后续 portable-release gate 生成，在此之前仍保持 `benchmark_claim_allowed=false`。
   - 验收：所有正式配置可由同一 manifest 解析；不存在未注册 task/method/provider、悬空依赖或不一致 seed grid。
 
-- [ ] **`foundation-v05-composed-runtime-stress` — 完整基座组合压力与回放测试**
+- [x] **`foundation-v05-composed-runtime-stress` — 完整基座组合压力与回放测试**
   - 默认 owned_paths：`configs/foundation/composed_runtime_stress_v0.5.json`、`scripts/run_composed_runtime_stress.py`、`tests/test_composed_runtime_stress.py`、`workstreams/world_foundation/reports/composed-runtime-stress-v0.5.json`。
   - 依赖：合同一致性完成；不得修改 provider 实现，发现缺陷另开 fix slice。
-  - [ ] 覆盖 15 tasks × 28 operations × 所有必需 provider 的可达组合，包含标称点、边界、近边界、非法输入、重复调用和强制求解失败。
-  - [ ] 对反应—反应器—传热—相平衡—分离—仪器的组合链验证质量/能量/电荷守恒、非负性、单调趋势和 ledger 一致性。
-  - [ ] 对同 seed 同动作逐字节回放；对进程重启、批量/单次执行和 Windows/干净环境比较确定性及声明容差。
-  - [ ] 统计每个 task/world cell 的 solver failure、domain failure、NaN/Inf、回滚和超时率，不以重试掩盖失败。
+  - [x] 覆盖 15 tasks × 28 operations × 所有必需 provider 的可达组合，包含标称点、边界、近边界、非法输入、重复调用和强制求解失败。
+  - [x] 对反应—反应器—传热—相平衡—分离—仪器的组合链验证质量/能量/电荷守恒、非负性、单调趋势和 ledger 一致性。
+  - [x] 对同 seed 同动作逐字节回放；对进程重启、批量/单次执行和 Windows/干净环境比较确定性及声明容差。
+  - [x] 统计每个 task/world cell 的 solver failure、domain failure、NaN/Inf、回滚和超时率，不以重试掩盖失败。
+  - 结果：15 tasks、28 operations、20 providers 与 163 个允许的 task-operation pairs 全部可达；45 个 lower/nominal/upper profiles 共执行 381 steps，runtime/constitution/precondition/nonfinite-observed failure 均为 0，同 seed digest 全部一致。六条反应/纯化/结晶/蒸馏/流动/电化学/平衡组合链全部提交并回放。临时 clean wheel 在独立 Windows 进程中重跑完整矩阵，45 profiles 与六条链的 digest 和 source 运行逐项一致。
   - 验收：所有声明域内 cell 通过，声明域外均显式 fail closed；正式 core task 不存在 fallback、proxy、`lite` 或静默 clip 路径。
 
 - [ ] **`foundation-v05-observation-identifiability` — 谱图与公共观测可辨识性/泄漏验证**
