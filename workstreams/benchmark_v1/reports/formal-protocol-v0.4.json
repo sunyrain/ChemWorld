@@ -1,0 +1,89 @@
+{
+  "backend_semantic_sha256": "b23671b3c08d6a2d5a91d001a99c8f98592b75c13d73729989fe803cae400e48",
+  "benchmark_claim_allowed": false,
+  "checkpoints": [
+    4,
+    8,
+    12,
+    20,
+    40
+  ],
+  "controls": {
+    "all_four_namespaces_are_unique": true,
+    "all_p0_evidence_is_hash_bound_and_ready": true,
+    "backend_release_is_exact_and_ready": true,
+    "bench_access_state_is_unrun_and_untuned": true,
+    "bench_public_contract_contains_no_raw_seed_or_world_values": true,
+    "budget_checkpoints_and_stopping_are_frozen": true,
+    "core_metrics_hashes_and_thresholds_match_p0": true,
+    "estimand_families_are_explicit": true,
+    "failure_policy_is_fail_closed": true,
+    "legacy_0_1_through_0_3_are_diagnostic_only": true,
+    "private_bench_is_disjoint_and_sealed": true,
+    "private_manifest_commitment_is_verified": true,
+    "private_manifest_is_not_git_tracked": true,
+    "public_seed_splits_are_well_formed_and_disjoint": true,
+    "public_seed_splits_were_outside_quarantine_inventory": true,
+    "public_world_grids_are_disjoint": true,
+    "schema_and_state_are_preregistered": true,
+    "task_roles_are_exact": true,
+    "world_axes_and_modes_match_runtime_registry": true
+  },
+  "controls_ready": true,
+  "experiment_budget": 40,
+  "exploratory_tasks": [
+    "electrochemical-conversion",
+    "equilibrium-characterization"
+  ],
+  "formal_core_tasks": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization"
+  ],
+  "formal_results_present": false,
+  "limitations": [
+    "This freezes controls and an unseen cohort; it contains no method results.",
+    "Bench remains sealed until interaction, statistics, reference, runner, and method-freeze gates pass.",
+    "Linux clean-wheel reproduction is an optional portability follow-up, not a formal-protocol gate."
+  ],
+  "next_gates": [
+    "freeze recipe-level and operation-level interaction strata",
+    "freeze the statistical analysis and failure denominator",
+    "freeze an independent reference-search portfolio"
+  ],
+  "private_bench": {
+    "commitment_sha256": "dc7888fa960a5b139fcddd750d286c973ab390f2557190ce6577687b62b8f5b7",
+    "disjoint_and_sealed": true,
+    "not_git_tracked": true,
+    "paired_seed_count": 100,
+    "raw_seed_values_reported": false,
+    "raw_world_parameters_reported": false,
+    "task_count": 4,
+    "verified": true,
+    "world_assignments_per_seed": 32
+  },
+  "protocol_id": "chemworld-benchmark-v0.5-formal-0.4",
+  "protocol_sha256": "6c85ec8128c6e8a27c5cc63d18f9e5fc8a73bb4be58be38d4333afb097b5144c",
+  "public_split_summary": {
+    "dev": {
+      "maximum_seed": 11019,
+      "minimum_seed": 11000,
+      "seed_count": 20
+    },
+    "reference_search": {
+      "maximum_seed": 12099,
+      "minimum_seed": 12000,
+      "seed_count": 100
+    },
+    "train": {
+      "maximum_seed": 10099,
+      "minimum_seed": 10000,
+      "seed_count": 100
+    }
+  },
+  "schema_version": "chemworld-formal-protocol-audit-0.4",
+  "source_commit": "b0ed6815d795a57d67d79e56df1ac05a1e18c436",
+  "source_tree_dirty": false,
+  "status": "formal_protocol_frozen_bench_sealed"
+}

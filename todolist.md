@@ -97,13 +97,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 
 ## P1：冻结新的正式协议与未见数据边界
 
-- [ ] **`benchmark-v05-formal-protocol-0.4` — 新 cohort 与主张边界预注册**
+- [x] **`benchmark-v05-formal-protocol-0.4` — 新 cohort 与主张边界预注册**
   - 默认 owned_paths：新版本 `configs/benchmark/*_v0.4.json`、`scripts/audit_formal_protocol_v0.4.py`、`tests/test_formal_protocol_v0.4.py`、`workstreams/benchmark_v1/reports/formal-protocol-v0.4.json`。
   - 依赖：P0 全部通过。
-  - [ ] 由污染清单之外生成新的 Train/Dev/reference-search/Bench namespaces；实际 Bench base seeds 与 world parameters 只写入受控私有 manifest，公开协议只提交 commitment/hash。
-  - [ ] 四个 core task 用于正式结论；electrochemical/equilibrium 保持 exploratory，除非 P0 validity gate 单独证明可升级。
-  - [ ] 冻结 40 次完整实验预算、4/8/12/20/40 checkpoints、world axes、失败策略、停止规则和禁止 Bench 微调规则。
-  - [ ] 明确 primary、secondary、ablation 和 exploratory estimands；任何协议变更都必须升级版本并废弃变更后的旧 cohort。
+  - [x] 由污染清单之外生成新的 Train/Dev/reference-search/Bench namespaces；实际 Bench base seeds 与 world parameters 只写入受控私有 manifest，公开协议只提交 commitment/hash。
+  - [x] 四个 core task 用于正式结论；electrochemical/equilibrium 保持 exploratory，除非 P0 validity gate 单独证明可升级。
+  - [x] 冻结 40 次完整实验预算、4/8/12/20/40 checkpoints、world axes、失败策略、停止规则和禁止 Bench 微调规则。
+  - [x] 明确 primary、secondary、ablation 和 exploratory estimands；任何协议变更都必须升级版本并废弃变更后的旧 cohort。
+  - 结果：Train/Dev/reference-search 分别冻结 100/20/100 个全新公开种子且与 P0 的 280 个污染种子不相交；Bench 在 Git 私有区一次性封存 100 个配对身份，每个身份绑定四个 core task、两条任务世界轴与四种干预模式（32 个世界分配），公开仓库和审计报告只保留 SHA-256 承诺 `dc7888fa…2b8f5b7`、计数和状态，不包含 seed 或世界参数。协议同时哈希绑定六项 P0 证据、portable backend 语义、任务 SESOI/风险/成本阈值，并将 0.1–0.3 全部限定为 diagnostic；14 个篡改/泄漏/重叠/版本失配测试与 30 个相邻边界测试通过。
   - 验收：协议审计可证明所有 split 不相交、Bench 未被运行/查看、旧 0.1–0.3 全部为 diagnostic。
 
 - [ ] **`benchmark-v05-interaction-strata` — recipe 与 operation 级公平比较合同**
