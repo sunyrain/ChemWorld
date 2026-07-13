@@ -4,12 +4,16 @@
     "adaptive_spectra_and_memory_required": true,
     "candidate_is_non_claiming": true,
     "cost_examples_positive": true,
+    "formal_bindings_complete": true,
+    "formal_freeze_ready": true,
+    "historical_spectra_are_request_only": true,
     "no_deprecated_model_alias": true,
     "official_adapter_forbids_harness_assistance": true,
     "official_adapter_is_operation_level": true,
     "paired_spectral_ablation_is_frozen": true,
     "pricing_matches_frozen_protocol": true,
     "private_reasoning_excluded": true,
+    "provider_capabilities_verified": true,
     "resource_accounting_complete_by_contract": true,
     "schema": true,
     "spectral_ablation_preserves_non_spectral_evidence": true,
@@ -17,12 +21,53 @@
     "two_independent_model_ids": true
   },
   "controls_ready": true,
+  "formal_freeze_audit": {
+    "checks": {
+      "development_only": true,
+      "interaction_fail_closed": true,
+      "pricing_matches_provider_snapshot": true,
+      "private_reasoning_excluded": true,
+      "prompt_source_present": true,
+      "provider_identity": true,
+      "request_contracts_exact": true,
+      "schema": true,
+      "three_spectrum_conditions": true,
+      "two_frozen_roles": true
+    },
+    "controls_ready": true,
+    "method_ids": [
+      "live_llm_a",
+      "live_llm_b"
+    ],
+    "schema_version": "chemworld-live-llm-method-freeze-audit-0.4"
+  },
+  "formal_method_bindings": {
+    "live_llm_a": {
+      "artifact_sha256": "0ca6da0413a7ffbefe4a47f7876f29eee1836f5c729ab9caa5595a830b99ad78",
+      "checkpoint_sha256": null,
+      "kind": "live_llm",
+      "method_id": "live_llm_a",
+      "model_config_sha256": "0775a56e644d577f7d8ca31f2ed3772941df83c2ef843c56630b60e03ad444f6",
+      "prompt_sha256": "f72d2c84b45ba727a633fdc24b0e0c6712f30ebe7bdb59151b68dc967521e24f",
+      "resource_profile": "live_llm_evaluation"
+    },
+    "live_llm_b": {
+      "artifact_sha256": "dffd666440d94175bb3ed80027c2634e015cb50f72d5d6166454c18891d8a4ec",
+      "checkpoint_sha256": null,
+      "kind": "live_llm",
+      "method_id": "live_llm_b",
+      "model_config_sha256": "943dca5340b226ca52ab2bf8109f698176d46f57ffbb543ff57a0325872d8c4f",
+      "prompt_sha256": "f72d2c84b45ba727a633fdc24b0e0c6712f30ebe7bdb59151b68dc967521e24f",
+      "resource_profile": "live_llm_evaluation"
+    }
+  },
   "formal_run_matrix_complete": false,
   "official_adapter_manifests": {
     "live_llm_a": {
       "agent_family": "LiveLLMAgent",
       "agent_name": "live_llm",
       "failure_policy": "retain_as_invalid_operation_without_harness_closeout",
+      "historical_spectrum_access": "explicit_request_by_public_spectrum_id_delivered_next_decision",
       "interaction_capabilities": {
         "adapts_across_experiments": true,
         "adapts_within_experiment": true,
@@ -33,8 +78,8 @@
         "emits_structured_decision_audit": true
       },
       "private_reasoning_retained": false,
-      "prompt_contract_version": "chemworld-live-llm-operation-json-0.2",
-      "prompt_hash": "ff0791863743c19c25615c8974e7517f5f0f7f9e375fe465f178959eb3a19ee2",
+      "prompt_contract_version": "chemworld-live-llm-operation-json-0.3",
+      "prompt_hash": "af128ffa1e84b8d7d7d295ebabad83bb91b82a177161bc6118a7aadc526c0ade",
       "provider_model": "deepseek-v4-pro",
       "requires_online_model": true,
       "role_id": "live_llm_a",
@@ -45,6 +90,7 @@
       "agent_family": "LiveLLMAgent",
       "agent_name": "live_llm",
       "failure_policy": "retain_as_invalid_operation_without_harness_closeout",
+      "historical_spectrum_access": "explicit_request_by_public_spectrum_id_delivered_next_decision",
       "interaction_capabilities": {
         "adapts_across_experiments": true,
         "adapts_within_experiment": true,
@@ -55,8 +101,8 @@
         "emits_structured_decision_audit": true
       },
       "private_reasoning_retained": false,
-      "prompt_contract_version": "chemworld-live-llm-operation-json-0.2",
-      "prompt_hash": "ff0791863743c19c25615c8974e7517f5f0f7f9e375fe465f178959eb3a19ee2",
+      "prompt_contract_version": "chemworld-live-llm-operation-json-0.3",
+      "prompt_hash": "af128ffa1e84b8d7d7d295ebabad83bb91b82a177161bc6118a7aadc526c0ade",
       "provider_model": "deepseek-v4-flash",
       "requires_online_model": true,
       "role_id": "live_llm_b",
@@ -66,35 +112,47 @@
   },
   "pricing_snapshots": {
     "live_llm_a": {
-      "access_date": "2026-07-11",
+      "access_date": "2026-07-13",
+      "base_url": "https://api.deepseek.com",
+      "currency": "USD",
       "input_cache_hit_per_million_usd": 0.003625,
       "input_cache_miss_per_million_usd": 0.435,
       "legacy_alias": false,
       "model_id": "deepseek-v4-pro",
+      "model_source": "https://api-docs.deepseek.com/api/list-models",
       "output_per_million_usd": 0.87,
+      "pricing_version_sha256": "2cb091b4edd11cf4776eb967eab6fe74e5b28e5e4f6150c0e78a4e911b174881",
+      "provider": "DeepSeek",
       "requested_model_id": "deepseek-v4-pro",
-      "source": "https://api-docs.deepseek.com/quick_start/pricing"
+      "schema_version": "chemworld-provider-pricing-0.4",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/"
     },
     "live_llm_b": {
-      "access_date": "2026-07-11",
+      "access_date": "2026-07-13",
+      "base_url": "https://api.deepseek.com",
+      "currency": "USD",
       "input_cache_hit_per_million_usd": 0.0028,
       "input_cache_miss_per_million_usd": 0.14,
       "legacy_alias": false,
       "model_id": "deepseek-v4-flash",
+      "model_source": "https://api-docs.deepseek.com/api/list-models",
       "output_per_million_usd": 0.28,
+      "pricing_version_sha256": "cc0d1cb11cddd7e7358bca822028c32cf9aa996934227200a50efb06f32e9155",
+      "provider": "DeepSeek",
       "requested_model_id": "deepseek-v4-flash",
-      "source": "https://api-docs.deepseek.com/quick_start/pricing"
+      "schema_version": "chemworld-provider-pricing-0.4",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/"
     }
   },
-  "protocol_id": "chemworld-vnext-live-llm-candidate-0.3",
+  "protocol_id": "chemworld-vnext-live-llm-development-0.4",
   "publication_ready": false,
   "remaining_release_gates": [
-    "launch both frozen roles through the official adapter rather than the Task Lab harness",
-    "run paired assigned-spectrum and masked-spectrum conditions",
-    "run both frozen model roles over all paired confirmatory seeds and core tasks",
-    "retain replay-verified trajectories and failures",
-    "pass provider usage and pricing reconciliation",
-    "complete independent reproduction without API-key disclosure",
+    "pass deterministic formal-adapter transaction and accounting tests",
+    "complete a live provider pilot over both roles and three spectrum conditions",
+    "complete paired Train and Dev cells without Bench or reference-search access",
+    "retain replay-verified trajectories including all failures",
+    "pass provider usage pricing and retry reconciliation",
+    "freeze prompt source request parameters model access date and method artifacts",
     "report per-task effects and resource frontiers without a scalar aggregate"
   ],
   "resource_examples": {
@@ -109,7 +167,7 @@
       }
     },
     "live_llm_b": {
-      "estimated_cost_usd": 0.00014112000000000003,
+      "estimated_cost_usd": 0.00014112,
       "usage": {
         "completion_tokens": 200,
         "prompt_cache_hit_tokens": 400,
@@ -121,18 +179,22 @@
   },
   "roles": {
     "live_llm_a": {
+      "max_tokens": 8000,
       "model_id": "deepseek-v4-pro",
       "reasoning_effort": "max",
       "response_format": "json_object",
+      "role": "deliberative_operation_controller",
       "thinking": true
     },
     "live_llm_b": {
+      "max_tokens": 2000,
       "model_id": "deepseek-v4-flash",
       "reasoning_effort": null,
       "response_format": "json_object",
+      "role": "direct_operation_controller",
       "thinking": false
     }
   },
-  "schema_version": "chemworld-live-llm-audit-0.1",
+  "schema_version": "chemworld-live-llm-audit-0.4",
   "status": "controls_ready_formal_runs_missing"
 }

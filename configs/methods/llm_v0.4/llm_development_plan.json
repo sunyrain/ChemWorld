@@ -1,0 +1,50 @@
+{
+  "schema_version": "chemworld-live-llm-development-plan-0.4",
+  "plan_id": "chemworld-live-llm-train-dev-2026-07-13",
+  "benchmark_claim_allowed": false,
+  "bench_access_allowed": false,
+  "tasks": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization"
+  ],
+  "methods": ["live_llm_a", "live_llm_b"],
+  "spectrum_conditions": ["assigned", "unassigned", "masked"],
+  "stages": {
+    "contract_smoke": {
+      "world_split": "public-test",
+      "world_seeds_per_cell": 1,
+      "complete_experiments": 1,
+      "operation_limit": 8,
+      "live_provider_calls": false
+    },
+    "live_pilot": {
+      "world_split": "train",
+      "world_seeds_per_cell": 1,
+      "complete_experiments": 2,
+      "operation_limit": 20,
+      "live_provider_calls": true
+    },
+    "development_matrix": {
+      "world_split": "dev",
+      "world_seeds_per_cell": 4,
+      "complete_experiments": 4,
+      "operation_limit": 40,
+      "live_provider_calls": true
+    }
+  },
+  "pairing": {
+    "same_task_world_and_method_seed_across_spectrum_conditions": true,
+    "same_task_world_and_seed_across_methods": true,
+    "agent_seed_separate_from_world_seed": true
+  },
+  "retention": {
+    "retain_all_failures": true,
+    "replay_every_trajectory": true,
+    "provider_attempt_receipts_required": true,
+    "token_and_cost_reconciliation_required": true,
+    "private_reasoning_retained": false
+  },
+  "promotion_rule": "pilot_must_pass_identity_replay_accounting_and_spectral_pairing_before_development_matrix"
+}

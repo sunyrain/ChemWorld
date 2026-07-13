@@ -1,29 +1,46 @@
 {
-  "schema_version": "chemworld-live-llm-protocol-0.3",
-  "protocol_id": "chemworld-vnext-live-llm-candidate-0.3",
+  "schema_version": "chemworld-live-llm-protocol-0.4",
+  "protocol_id": "chemworld-vnext-live-llm-development-0.4",
   "benchmark_claim_allowed": false,
   "publication_ready": false,
   "provider": "DeepSeek",
   "base_url": "https://api.deepseek.com",
-  "access_date": "2026-07-11",
+  "access_date": "2026-07-13",
   "official_documentation": {
-    "models": "https://api-docs.deepseek.com/",
-    "thinking": "https://api-docs.deepseek.com/guides/thinking_mode/",
-    "json_output": "https://api-docs.deepseek.com/guides/json_mode/",
-    "pricing": "https://api-docs.deepseek.com/quick_start/pricing"
+    "models": "https://api-docs.deepseek.com/api/list-models",
+    "chat_completion": "https://api-docs.deepseek.com/api/create-chat-completion",
+    "thinking": "https://api-docs.deepseek.com/guides/thinking_mode",
+    "pricing": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "changelog": "https://api-docs.deepseek.com/updates/"
+  },
+  "provider_verification": {
+    "models_endpoint_observed_ids": ["deepseek-v4-flash", "deepseek-v4-pro"],
+    "legacy_alias_deprecation_date": "2026-07-24",
+    "json_probe_succeeded": true,
+    "thinking_probe_succeeded": true,
+    "returned_model_identity_matched": true,
+    "reasoning_content_retained": false,
+    "observed_system_fingerprints": {
+      "deepseek-v4-flash": "fp_8b330d",
+      "deepseek-v4-pro": "fp_9954b"
+    }
   },
   "agent_roles": {
     "live_llm_a": {
       "model_id": "deepseek-v4-pro",
+      "role": "deliberative_operation_controller",
       "thinking": true,
       "reasoning_effort": "max",
-      "response_format": "json_object"
+      "response_format": "json_object",
+      "max_tokens": 8000
     },
     "live_llm_b": {
       "model_id": "deepseek-v4-flash",
+      "role": "direct_operation_controller",
       "thinking": false,
       "reasoning_effort": null,
-      "response_format": "json_object"
+      "response_format": "json_object",
+      "max_tokens": 2000
     }
   },
   "pricing_usd_per_million_tokens": {
@@ -42,7 +59,8 @@
     "mode": "adaptive",
     "decision_scope": "operation",
     "one_live_call_per_model_decision": true,
-    "reads_public_spectra": true,
+    "reads_current_public_spectra": true,
+    "historical_spectrum_access": "catalog_metadata_then_one_packet_after_explicit_id_request_on_next_decision",
     "adapts_within_experiment": true,
     "adapts_across_experiments": true,
     "structured_decision_fields": [
@@ -56,17 +74,18 @@
     "private_reasoning_retained": false
   },
   "official_adapter_contract": {
-    "implementation": "chemworld.agents.live_llm.LiveLLMAgent",
-    "runner": "chemworld.eval.runner.run_agent",
+    "implementation": "chemworld.eval.formal_llm.FormalLiveLLMAdapter",
+    "agent": "chemworld.agents.live_llm.LiveLLMAgent",
+    "runner": "chemworld.eval.formal_runner.run_formal_cell",
+    "task_lab_is_formal_launcher": false,
     "one_logical_decision_per_operation": true,
     "automatic_action_repair": false,
     "automatic_terminate_or_final_assay": false,
     "provider_or_output_failure_policy": "retain_as_invalid_model_failure_operation",
-    "cumulative_resource_ledger": "chemworld-method-resource-usage-0.1",
-    "trace_retention": "one_current_public_audit_per_trajectory_step",
-    "fake_client_end_to_end_test": "tests/test_live_llm_agent.py",
-    "spectral_masking_policy": "remove spectral packets and recursively redact spectral fields from composite packets while preserving all non-spectral public evidence",
-    "non_spectral_pairing_regression_test": "test_masked_ablation_preserves_non_spectral_composite_evidence"
+    "provider_receipt_granularity": "one_receipt_per_attempt",
+    "unknown_attempt_cost_policy": "accounting_failure_never_zero_imputation",
+    "trace_retention": "one_structured_public_decision_audit_per_trajectory_step",
+    "private_reasoning_retained": false
   },
   "spectral_ablation": {
     "required": true,
@@ -76,6 +95,12 @@
         "public_spectral_raw_signal": true,
         "public_processed_spectral_features": true,
         "public_assignments": true,
+        "non_spectral_public_fields": true
+      },
+      "unassigned": {
+        "public_spectral_raw_signal": true,
+        "public_processed_spectral_features": true,
+        "public_assignments": false,
         "non_spectral_public_fields": true
       },
       "masked": {
@@ -88,20 +113,21 @@
     "non_spectral_public_observations_held_constant": true
   },
   "resource_requirements": {
+    "provider_attempt_receipts_required": true,
     "provider_usage_required": true,
     "cache_token_breakdown_retained": true,
     "frozen_price_snapshot_required": true,
     "monetary_cost_required": true,
-    "model_and_prompt_provenance_required": true,
+    "model_prompt_and_request_provenance_required": true,
     "failures_and_retries_count_as_calls": true
   },
   "formal_readiness_requirements": [
-    "launch both frozen roles through the official adapter rather than the Task Lab harness",
-    "run paired assigned-spectrum and masked-spectrum conditions",
-    "run both frozen model roles over all paired confirmatory seeds and core tasks",
-    "retain replay-verified trajectories and failures",
-    "pass provider usage and pricing reconciliation",
-    "complete independent reproduction without API-key disclosure",
+    "pass deterministic formal-adapter transaction and accounting tests",
+    "complete a live provider pilot over both roles and three spectrum conditions",
+    "complete paired Train and Dev cells without Bench or reference-search access",
+    "retain replay-verified trajectories including all failures",
+    "pass provider usage pricing and retry reconciliation",
+    "freeze prompt source request parameters model access date and method artifacts",
     "report per-task effects and resource frontiers without a scalar aggregate"
   ]
 }

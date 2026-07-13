@@ -189,7 +189,10 @@ def test_masked_spectral_ablation_removes_raw_and_processed_spectral_features() 
     agent.act_with_public_view(_context(step=1, previous=None), _public_view())
 
     prompt = client.prompts[0]
-    assert prompt["decision_context"]["latest_spectra"]["masked"] is True
+    assert prompt["decision_context"]["latest_spectra"] == {
+        "spectrum_condition": "masked",
+        "available": False,
+    }
     assert "raw_signal" not in prompt["public_tool_view"]
     assert "peak_count" not in prompt["public_tool_view"]["processed_estimate"]
     assert "spectra_summary" not in prompt["public_tool_view"]["lab_report"]
@@ -221,6 +224,20 @@ def test_masked_ablation_preserves_non_spectral_composite_evidence() -> None:
     }
 
 
+def test_unassigned_condition_preserves_curve_but_removes_identity() -> None:
+    client = FakeClient([_decision({"operation": "terminate"})])
+    agent = LiveLLMAgent(client, role_id="live_llm_a", spectrum_disclosure="unassigned")
+    agent.reset({"task_id": "flow-reaction-optimization"}, seed=2)
+
+    agent.act_with_public_view(_context(step=1, previous=None), _public_view())
+
+    prompt = client.prompts[0]
+    peak = prompt["public_tool_view"]["raw_signal"]["peaks"][0]
+    assert peak == {"center": 420.0, "assignment": "unassigned"}
+    assert prompt["public_tool_view"]["processed_estimate"]["peak_count"] == 1
+    assert agent.interaction_capabilities().consumes_spectra is True
+
+
 def test_provider_failure_is_redacted_retained_and_counted() -> None:
     client = FakeClient([FakeProviderError()])
     agent = LiveLLMAgent(client, role_id="live_llm_a")
@@ -233,6 +250,20 @@ def test_provider_failure_is_redacted_retained_and_counted() -> None:
     serialized = json.dumps(agent.agent_trace())
     assert "secret transport detail" not in serialized
     assert "FakeProviderError" in serialized
+
+
+def test_invalid_model_decision_does_not_double_count_provider_attempts() -> None:
+    client = FakeClient([{"action": {"operation": "terminate"}}])
+    agent = LiveLLMAgent(client, role_id="live_llm_a")
+    agent.reset({"task_id": "flow-reaction-optimization"}, seed=3)
+
+    action = agent.act_with_public_view(
+        _context(step=1, previous=None), _public_view()
+    )
+
+    assert action == {"operation": "model_failure"}
+    assert agent.method_resource_usage()["model_call_count"] == 2
+    assert agent.method_resource_usage()["model_provenance"]["provider_failure_count"] == 1
 
 
 def test_official_runner_ledgers_live_usage_and_replays_trajectory(tmp_path: Path) -> None:
@@ -275,3 +306,51 @@ def test_official_runner_ledgers_live_usage_and_replays_trajectory(tmp_path: Pat
     assert records[-1]["method_resources"]["agent_usage"]["model_call_count"] == 8
     assert records[-1]["explanation"]["decision_audit"]["status"] == "provided"
     assert all(len(record["agent_trace"]) == 1 for record in records)
+
+
+def test_official_runner_delivers_only_explicitly_requested_historical_spectrum(
+    tmp_path: Path,
+) -> None:
+    request = _decision({"operation": "terminate"})
+    request["request_historical_spectrum_id"] = "spectrum-e001-s0003"
+    client = FakeClient(
+        [
+            _decision({"operation": "add_solvent", "volume_L": 0.02, "solvent": 1}),
+            _decision({"operation": "add_reagent", "amount_mol": 0.006}),
+            _decision({"operation": "measure", "instrument": "hplc"}),
+            request,
+            _decision({"operation": "measure", "instrument": "final_assay"}),
+        ]
+    )
+    agent = LiveLLMAgent(client, role_id="live_llm_a", spectrum_disclosure="assigned")
+
+    run_agent(
+        env_id="ChemWorld",
+        agent=agent,
+        world_split="public-test",
+        budget=5,
+        objective="balanced",
+        seed=1200,
+        task_id="flow-reaction-optimization",
+        output_path=tmp_path / "history.jsonl",
+        budget_override=5,
+        episode_mode_override="campaign",
+        method_resource_limits={
+            "operation_limit": 5,
+            "complete_experiment_limit": 5,
+            "wall_time_limit_s": 30.0,
+            "model_call_limit": 15,
+            "input_token_limit": 10_000,
+            "output_token_limit": 10_000,
+            "monetary_cost_limit_usd": 1.0,
+        },
+    )
+
+    assert client.prompts[2]["public_tool_view"]["historical_spectrum_catalog"] == []
+    catalog = client.prompts[3]["public_tool_view"]["historical_spectrum_catalog"]
+    assert [item["spectrum_id"] for item in catalog] == ["spectrum-e001-s0003"]
+    assert "requested_historical_spectrum" not in client.prompts[3]["public_tool_view"]
+    retrieved = client.prompts[4]["public_tool_view"]["requested_historical_spectrum"]
+    assert retrieved["status"] == "retrieved"
+    assert retrieved["spectrum_id"] == "spectrum-e001-s0003"
+    assert retrieved["raw_signal"]["kind"] == "hplc_chromatogram"

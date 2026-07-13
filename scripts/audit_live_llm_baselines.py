@@ -11,9 +11,12 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from apps.task_lab.deepseek_client import DeepSeekClient  # noqa: E402
-
 from chemworld.agents.live_llm import LiveLLMAgent  # noqa: E402
+from chemworld.eval.formal_llm import (  # noqa: E402
+    audit_live_llm_method_freeze,
+    formal_live_llm_method_bindings,
+)
+from chemworld.providers.deepseek import DeepSeekClient  # noqa: E402
 
 PROTOCOL = ROOT / "configs/benchmark/live_llm_vnext.json"
 OUTPUT = ROOT / "workstreams/benchmark_v1/reports/live-llm-controls.json"
@@ -36,6 +39,8 @@ def build_report() -> dict[str, Any]:
         role_id: LiveLLMAgent(client, role_id=role_id).manifest()
         for role_id, client in clients.items()
     }
+    formal_freeze_audit = audit_live_llm_method_freeze()
+    formal_bindings = formal_live_llm_method_bindings()
     resource_examples = {
         role_id: {
             "usage": {
@@ -59,7 +64,7 @@ def build_report() -> dict[str, Any]:
     interaction = protocol["interaction_requirements"]
     resources = protocol["resource_requirements"]
     checks = {
-        "schema": protocol.get("schema_version") == "chemworld-live-llm-protocol-0.3",
+        "schema": protocol.get("schema_version") == "chemworld-live-llm-protocol-0.4",
         "candidate_is_non_claiming": protocol.get("benchmark_claim_allowed") is False,
         "two_independent_model_ids": len({card["model_id"] for card in roles.values()}) == 2,
         "no_deprecated_model_alias": all(not item["legacy_alias"] for item in pricing.values()),
@@ -76,7 +81,7 @@ def build_report() -> dict[str, Any]:
             interaction[name]
             for name in (
                 "one_live_call_per_model_decision",
-                "reads_public_spectra",
+                "reads_current_public_spectra",
                 "adapts_within_experiment",
                 "adapts_across_experiments",
             )
@@ -100,11 +105,14 @@ def build_report() -> dict[str, Any]:
             is False
             and protocol["official_adapter_contract"]["provider_or_output_failure_policy"]
             == "retain_as_invalid_model_failure_operation"
+            and protocol["official_adapter_contract"]["task_lab_is_formal_launcher"]
+            is False
         ),
         "paired_spectral_ablation_is_frozen": (
             protocol["spectral_ablation"]["required"] is True
             and protocol["spectral_ablation"]["paired_on_task_world_and_model_seed"] is True
-            and set(protocol["spectral_ablation"]["conditions"]) == {"assigned", "masked"}
+            and set(protocol["spectral_ablation"]["conditions"])
+            == {"assigned", "unassigned", "masked"}
             and protocol["spectral_ablation"][
                 "non_spectral_public_observations_held_constant"
             ]
@@ -115,21 +123,35 @@ def build_report() -> dict[str, Any]:
                 condition["non_spectral_public_fields"] is True
                 for condition in protocol["spectral_ablation"]["conditions"].values()
             )
-            and protocol["official_adapter_contract"]["spectral_masking_policy"].startswith(
-                "remove spectral packets"
-            )
-            and protocol["official_adapter_contract"][
-                "non_spectral_pairing_regression_test"
+            and protocol["spectral_ablation"]["conditions"]["unassigned"][
+                "public_spectral_raw_signal"
             ]
-            == "test_masked_ablation_preserves_non_spectral_composite_evidence"
+            is True
+            and protocol["spectral_ablation"]["conditions"]["unassigned"][
+                "public_assignments"
+            ]
+            is False
         ),
+        "historical_spectra_are_request_only": interaction["historical_spectrum_access"]
+        == "catalog_metadata_then_one_packet_after_explicit_id_request_on_next_decision",
+        "formal_freeze_ready": formal_freeze_audit["controls_ready"] is True,
+        "formal_bindings_complete": set(formal_bindings) == set(roles)
+        and all(binding.prompt_sha256 for binding in formal_bindings.values())
+        and all(binding.model_config_sha256 for binding in formal_bindings.values()),
+        "provider_capabilities_verified": protocol["provider_verification"][
+            "json_probe_succeeded"
+        ]
+        is True
+        and protocol["provider_verification"]["thinking_probe_succeeded"] is True
+        and protocol["provider_verification"]["returned_model_identity_matched"] is True
+        and protocol["provider_verification"]["reasoning_content_retained"] is False,
         "cost_examples_positive": all(
             card["estimated_cost_usd"] > 0.0 for card in resource_examples.values()
         ),
     }
     controls_ready = all(checks.values())
     return {
-        "schema_version": "chemworld-live-llm-audit-0.1",
+        "schema_version": "chemworld-live-llm-audit-0.4",
         "protocol_id": protocol["protocol_id"],
         "status": "controls_ready_formal_runs_missing" if controls_ready else "controls_failed",
         "controls_ready": controls_ready,
@@ -139,6 +161,10 @@ def build_report() -> dict[str, Any]:
         "checks": checks,
         "roles": roles,
         "official_adapter_manifests": adapter_manifests,
+        "formal_method_bindings": {
+            method_id: binding.__dict__ for method_id, binding in formal_bindings.items()
+        },
+        "formal_freeze_audit": formal_freeze_audit,
         "pricing_snapshots": pricing,
         "resource_examples": resource_examples,
         "remaining_release_gates": protocol["formal_readiness_requirements"],

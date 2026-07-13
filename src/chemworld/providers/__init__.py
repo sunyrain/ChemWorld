@@ -1,4 +1,4 @@
-"""Compatibility imports for Task Lab; provider code lives in ``chemworld``."""
+"""External model providers used by formal ChemWorld adapters."""
 
 from chemworld.providers.deepseek import (
     DEFAULT_BASE_URL,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Callable
 from pathlib import Path
 from time import perf_counter
@@ -45,6 +46,10 @@ from chemworld.eval.method_protocol import (
     MethodResourceLimits,
     evaluation_resource_limits,
     load_method_protocol,
+)
+from chemworld.eval.observation_identifiability import (
+    ObservationIdentifiabilityError,
+    PublicSpectrumArchive,
 )
 from chemworld.eval.risk_policy import (
     RiskCostTaskPolicy,
@@ -205,6 +210,9 @@ def run_agent(
     ]
 
     history: list[HistoryRecord] = []
+    spectrum_archive = PublicSpectrumArchive(retrieval_cost=0.0)
+    latest_spectrum_id: str | None = None
+    experiment_index = 1
     current_observation = initial_obs
     current_info: dict[str, Any] = {}
     previous_event_type: str | None = None
@@ -213,6 +221,25 @@ def run_agent(
         logger = logger_context.__enter__() if logger_context is not None else None
         for step in range(1, effective_budget + 1):
             pre_decision_view = agent_view_bundle(env, current_observation, current_info)
+            spectrum_request_factory = getattr(
+                agent, "consume_historical_spectrum_request", None
+            )
+            requested_spectrum_id = (
+                spectrum_request_factory()
+                if callable(spectrum_request_factory)
+                else None
+            )
+            pre_decision_view, retrieval_event = _attach_spectrum_archive(
+                pre_decision_view,
+                archive=spectrum_archive,
+                latest_spectrum_id=latest_spectrum_id,
+                requested_spectrum_id=(
+                    str(requested_spectrum_id)
+                    if isinstance(requested_spectrum_id, str)
+                    and requested_spectrum_id
+                    else None
+                ),
+            )
             decision_context = build_decision_context(
                 step=step,
                 task_info=task_info,
@@ -251,6 +278,22 @@ def run_agent(
             agent.update(action, obs_json, float(reward), info)
             update_elapsed_s = perf_counter() - update_started
             public_view = agent_view_bundle(env, observation, info)
+            packet = _public_spectrum_packet(public_view)
+            if packet is not None:
+                latest_spectrum_id = f"spectrum-e{experiment_index:03d}-s{step:04d}"
+                spectrum_archive.record(
+                    latest_spectrum_id,
+                    packet,
+                    experiment_index=experiment_index,
+                    measurement_step=step,
+                    measurement_cost=float(info.get("measurement_cost", 0.0) or 0.0),
+                )
+                public_view, _ = _attach_spectrum_archive(
+                    public_view,
+                    archive=spectrum_archive,
+                    latest_spectrum_id=latest_spectrum_id,
+                    requested_spectrum_id=None,
+                )
             final_assay_ended = bool(
                 terminated
                 and action.get("operation") == "measure"
@@ -285,6 +328,7 @@ def run_agent(
                     "constraint_flags": info.get("constraint_flags", {}),
                 },
                 "method_resources": method_resources,
+                "historical_spectrum_retrieval": retrieval_event,
             }
             record = HistoryRecord(
                 step=step,
@@ -322,6 +366,8 @@ def run_agent(
             current_observation = observation
             current_info = info
             previous_event_type = event_type
+            if event_type == "experiment_end":
+                experiment_index += 1
             if terminated or truncated:
                 break
     finally:
@@ -329,3 +375,70 @@ def run_agent(
             logger_context.__exit__(None, None, None)
         env.close()
     return history
+
+
+def _attach_spectrum_archive(
+    public_view: dict[str, Any],
+    *,
+    archive: PublicSpectrumArchive,
+    latest_spectrum_id: str | None,
+    requested_spectrum_id: str | None,
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Attach catalog metadata and at most one explicitly requested packet."""
+
+    attached = copy.deepcopy(public_view)
+    tool_view = attached.get("tool_json")
+    if not isinstance(tool_view, dict):
+        tool_view = {}
+        attached["tool_json"] = tool_view
+    tool_view["historical_spectrum_catalog"] = archive.catalog()
+    retrieval_event: dict[str, Any] | None = None
+    if requested_spectrum_id is not None:
+        try:
+            requested = archive.retrieve(requested_spectrum_id)
+            tool_view["requested_historical_spectrum"] = {
+                "spectrum_id": requested_spectrum_id,
+                "status": "retrieved",
+                **requested,
+            }
+        except ObservationIdentifiabilityError:
+            tool_view["requested_historical_spectrum"] = {
+                "spectrum_id": requested_spectrum_id,
+                "status": "unknown_id",
+            }
+        retrieval_event = archive.ledger()[-1]
+    if latest_spectrum_id is not None:
+        for report in (
+            attached.get("lab_report"),
+            tool_view.get("lab_report"),
+        ):
+            if not isinstance(report, dict):
+                continue
+            summary = report.get("spectra_summary")
+            if isinstance(summary, dict) and summary.get("has_spectral_packet"):
+                summary["spectrum_id"] = latest_spectrum_id
+    return attached, retrieval_event
+
+
+def _public_spectrum_packet(public_view: dict[str, Any]) -> dict[str, Any] | None:
+    tool_view = public_view.get("tool_json")
+    report = public_view.get("lab_report")
+    if not isinstance(tool_view, dict) or not isinstance(report, dict):
+        return None
+    summary = report.get("spectra_summary")
+    if not isinstance(summary, dict) or not summary.get("has_spectral_packet"):
+        return None
+    raw_signal = tool_view.get("raw_signal")
+    if not isinstance(raw_signal, dict) or not raw_signal:
+        return None
+    instrument = report.get("instrument_summary")
+    return {
+        "schema_version": "chemworld-public-spectrum-packet-0.1",
+        "instrument_id": (
+            instrument.get("instrument") if isinstance(instrument, dict) else None
+        ),
+        "kind": raw_signal.get("kind"),
+        "raw_signal": copy.deepcopy(raw_signal),
+        "processed_estimate": copy.deepcopy(tool_view.get("processed_estimate", {})),
+        "uncertainty": copy.deepcopy(tool_view.get("uncertainty", {})),
+    }

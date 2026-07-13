@@ -15,7 +15,7 @@ from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.interaction import AgentDecisionContext, InteractionCapabilities
 from chemworld.data.logging import to_builtin
 
-SpectrumDisclosure = Literal["assigned", "masked"]
+SpectrumDisclosure = Literal["assigned", "unassigned", "masked"]
 
 SYSTEM_PROMPT = """You are an operation-level agent in the ChemWorld virtual laboratory.
 Use only the supplied public task contract, observations, spectra, memory, and action schemas.
@@ -25,7 +25,7 @@ Provide only a concise public audit: evidence, spectrum interpretation, hypothes
 uncertainty, rationale, and the selected action using exact schema field names.
 """
 
-PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.2"
+PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.3"
 
 _PURE_SPECTRAL_PACKET_KINDS = {
     "gc_chromatogram",
@@ -86,8 +86,10 @@ class LiveLLMAgent(BaseAgent):
         recent_decision_limit: int = 6,
         experiment_memory_limit: int = 12,
     ) -> None:
-        if spectrum_disclosure not in {"assigned", "masked"}:
-            raise ValueError("spectrum_disclosure must be assigned or masked")
+        if spectrum_disclosure not in {"assigned", "unassigned", "masked"}:
+            raise ValueError(
+                "spectrum_disclosure must be assigned, unassigned, or masked"
+            )
         if recent_decision_limit <= 0 or experiment_memory_limit <= 0:
             raise ValueError("memory limits must be positive")
         self.client = client
@@ -106,6 +108,11 @@ class LiveLLMAgent(BaseAgent):
         self._last_context: dict[str, Any] = {}
         self._last_public_view: dict[str, Any] = {}
         self._logical_decision_count = 0
+        self._pending_historical_spectrum_id: str | None = None
+        self._provider_failure_count = 0
+        self._retry_count = 0
+        self._system_fingerprints: set[str] = set()
+        self._provider_attempt_records: list[dict[str, Any]] = []
 
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
         del history
@@ -120,26 +127,72 @@ class LiveLLMAgent(BaseAgent):
         self._last_context = context.to_dict()
         self._last_public_view = to_builtin(public_view)
         prompt = self._build_prompt(context, public_view)
+        completion: JsonCompletionLike | None = None
         try:
             completion = self.client.complete_json(
                 system_prompt=SYSTEM_PROMPT,
                 user_prompt=prompt,
                 max_tokens=8000 if bool(getattr(self.client, "thinking", False)) else 2000,
             )
-            self._record_provider_usage(completion.attempts, completion.usage)
-            decision = self._normalize_decision(completion.payload, context=context)
-            decision["provider_model"] = str(completion.model)
-            decision["provider_attempts"] = int(completion.attempts)
-            decision["status"] = "model_decision"
         except Exception as exc:
             attempts = max(int(getattr(exc, "attempts", 1)), 1)
             usage = getattr(exc, "usage", {})
             self._record_provider_usage(attempts, usage if isinstance(usage, dict) else {})
+            self._record_provider_attempts(
+                getattr(exc, "attempt_records", ()),
+                fallback_status="failed",
+                fallback_attempts=attempts,
+                fallback_usage=usage if isinstance(usage, dict) else {},
+            )
+            self._provider_failure_count += 1
+            self._retry_count += max(attempts - 1, 0)
             decision = self._failure_decision(context, exc)
+        else:
+            self._record_provider_usage(completion.attempts, completion.usage)
+            self._record_provider_attempts(
+                getattr(completion, "attempt_records", ()),
+                fallback_status="succeeded",
+                fallback_attempts=completion.attempts,
+                fallback_usage=completion.usage,
+                fallback_request_id=getattr(completion, "request_id", None),
+                fallback_model=completion.model,
+            )
+            try:
+                decision = self._normalize_decision(completion.payload, context=context)
+            except Exception as exc:
+                self._provider_failure_count += 1
+                decision = self._failure_decision(context, exc)
+            else:
+                decision["status"] = "model_decision"
+            decision["provider_model"] = str(completion.model)
+            decision["provider_attempts"] = int(completion.attempts)
+            decision["provider_usage"] = to_builtin(completion.usage)
+            decision["provider_request_id"] = getattr(completion, "request_id", None)
+            decision["system_fingerprint"] = getattr(
+                completion, "system_fingerprint", None
+            )
+            decision["finish_reason"] = getattr(completion, "finish_reason", None)
+            decision["reasoning_content_present"] = bool(
+                getattr(completion, "reasoning_content_present", False)
+            )
+            decision["reasoning_character_count"] = int(
+                getattr(completion, "reasoning_character_count", 0)
+            )
+            fingerprint = decision["system_fingerprint"]
+            if isinstance(fingerprint, str) and fingerprint:
+                self._system_fingerprints.add(fingerprint)
+            self._retry_count += max(int(completion.attempts) - 1, 0)
         self._last_decision = decision
         self._recent_decisions.append(_prompt_memory_decision(decision))
         self._recent_decisions = self._recent_decisions[-self.recent_decision_limit :]
         return dict(decision["action"])
+
+    def consume_historical_spectrum_request(self) -> str | None:
+        """Consume the previous decision's explicit request at the next operation."""
+
+        spectrum_id = self._pending_historical_spectrum_id
+        self._pending_historical_spectrum_id = None
+        return spectrum_id
 
     def update(
         self,
@@ -207,7 +260,7 @@ class LiveLLMAgent(BaseAgent):
         return InteractionCapabilities(
             decision_scope="operation",
             consumes_intermediate_observations=True,
-            consumes_spectra=self.spectrum_disclosure == "assigned",
+            consumes_spectra=self.spectrum_disclosure != "masked",
             adapts_within_experiment=True,
             adapts_across_experiments=True,
             emits_structured_decision_audit=True,
@@ -223,6 +276,9 @@ class LiveLLMAgent(BaseAgent):
                 "prompt_contract_version": PROMPT_CONTRACT_VERSION,
                 "prompt_hash": _prompt_hash(),
                 "spectrum_disclosure": self.spectrum_disclosure,
+                "historical_spectrum_access": (
+                    "explicit_request_by_public_spectrum_id_delivered_next_decision"
+                ),
                 "failure_policy": "retain_as_invalid_operation_without_harness_closeout",
                 "private_reasoning_retained": False,
             }
@@ -267,8 +323,58 @@ class LiveLLMAgent(BaseAgent):
                 "tokenizer_or_provider_usage_source": "DeepSeek response.usage",
                 "pricing": pricing,
                 "private_reasoning_retained": False,
+                "provider_failure_count": self._provider_failure_count,
+                "retry_count": self._retry_count,
+                "observed_system_fingerprints": sorted(self._system_fingerprints),
             },
         }
+
+    def provider_receipts(self) -> list[dict[str, Any]]:
+        """Return attempt-level provider evidence without prompts or private reasoning."""
+
+        pricing_factory = getattr(self.client, "pricing_snapshot", None)
+        cost_factory = getattr(self.client, "estimate_cost_usd", None)
+        pricing = pricing_factory() if callable(pricing_factory) else {}
+        pricing_digest = (
+            pricing.get("pricing_version_sha256") if isinstance(pricing, dict) else None
+        )
+        receipts: list[dict[str, Any]] = []
+        for raw in self._provider_attempt_records:
+            usage = raw.get("usage")
+            normalized = usage if isinstance(usage, dict) else {}
+            usage_complete = bool(raw.get("usage_complete", False))
+            billable = bool(raw.get("billable", False))
+            billed_cost = (
+                float(cost_factory(normalized))
+                if callable(cost_factory) and usage_complete and billable
+                else 0.0
+            )
+            receipts.append(
+                {
+                    "schema_version": "chemworld-provider-receipt-0.4",
+                    "request_id": raw.get("request_id"),
+                    "logical_decision_index": raw["logical_decision_index"],
+                    "attempt_index": raw["attempt_index"],
+                    "status": raw["status"],
+                    "provider": "DeepSeek",
+                    "model_id": raw.get("model_id", self.client.model),
+                    "pricing_version_sha256": pricing_digest,
+                    "usage_source": raw.get("usage_source", "unavailable"),
+                    "usage_complete": usage_complete,
+                    "billable": billable,
+                    "input_token_count": int(normalized.get("prompt_tokens", 0) or 0),
+                    "output_token_count": int(normalized.get("completion_tokens", 0) or 0),
+                    "input_cache_hit_token_count": int(
+                        normalized.get("prompt_cache_hit_tokens", 0) or 0
+                    ),
+                    "input_cache_miss_token_count": int(
+                        normalized.get("prompt_cache_miss_tokens", 0) or 0
+                    ),
+                    "billed_cost_usd": billed_cost,
+                    "failure_type": raw.get("failure_type"),
+                }
+            )
+        return receipts
 
     def _build_prompt(
         self,
@@ -279,19 +385,20 @@ class LiveLLMAgent(BaseAgent):
         if not isinstance(tool_json, dict):
             tool_json = {}
         supplied_context = context.to_dict()
-        if self.spectrum_disclosure == "masked":
-            supplied_context["latest_spectra"] = {
-                "masked": True,
-                "reason": "paired spectral-information ablation",
-            }
-            tool_json = _mask_spectral_tool_view(tool_json)
+        supplied_context, tool_json = _condition_spectrum_inputs(
+            supplied_context,
+            tool_json,
+            condition=self.spectrum_disclosure,
+        )
         prompt_payload = {
             "instruction": (
                 "Choose exactly one next operation. Use observations and experiment memory "
                 "to distinguish exploration, exploitation, replication, and measurement. "
                 "If a public spectrum is supplied, identify only visible axes/features and "
-                "state how they affect the decision; never invent peaks or identities. The "
-                "harness will not repair, terminate, or assay on your behalf."
+                "state how they affect the decision; never invent peaks or identities. A "
+                "historical packet is supplied only after requesting its public spectrum_id "
+                "in the preceding decision. The harness will not repair, terminate, or assay "
+                "on your behalf."
             ),
             "task_contract": to_builtin(self.task_info),
             "decision_context": to_builtin(supplied_context),
@@ -305,6 +412,9 @@ class LiveLLMAgent(BaseAgent):
                 "hypothesis": "short testable expectation",
                 "uncertainty": "number from 0 to 1",
                 "rationale": "concise evidence-to-action justification",
+                "request_historical_spectrum_id": (
+                    "optional public spectrum_id to retrieve for the next decision, or null"
+                ),
             },
         }
         return json.dumps(prompt_payload, ensure_ascii=False, sort_keys=True)
@@ -337,6 +447,16 @@ class LiveLLMAgent(BaseAgent):
         uncertainty = float(raw_uncertainty)
         if not 0.0 <= uncertainty <= 1.0:
             raise ValueError("model decision uncertainty must be in [0, 1]")
+        raw_request = payload.get("request_historical_spectrum_id")
+        if raw_request is None:
+            spectrum_request = None
+        elif isinstance(raw_request, str) and raw_request.strip():
+            spectrum_request = raw_request.strip()
+        else:
+            raise ValueError(
+                "request_historical_spectrum_id must be a non-empty string or null"
+            )
+        self._pending_historical_spectrum_id = spectrum_request
         return {
             "action": to_builtin(action),
             "evidence": evidence,
@@ -346,6 +466,7 @@ class LiveLLMAgent(BaseAgent):
             "hypothesis": hypothesis,
             "uncertainty": uncertainty,
             "rationale": rationale,
+            "request_historical_spectrum_id": spectrum_request,
             "adaptation_source": self._adaptation_source(context),
         }
 
@@ -355,6 +476,7 @@ class LiveLLMAgent(BaseAgent):
         error: Exception,
     ) -> dict[str, Any]:
         error_kind = type(error).__name__
+        self._pending_historical_spectrum_id = None
         return {
             "action": {"operation": "model_failure"},
             "evidence": [f"Provider or structured-output failure: {error_kind}."],
@@ -362,6 +484,7 @@ class LiveLLMAgent(BaseAgent):
             "hypothesis": "No executable hypothesis was produced.",
             "uncertainty": 1.0,
             "rationale": "Retain the failed decision as an invalid operation for fair evaluation.",
+            "request_historical_spectrum_id": None,
             "adaptation_source": self._adaptation_source(context),
             "provider_attempts": max(int(getattr(error, "attempts", 1)), 1),
             "status": "model_failure",
@@ -370,12 +493,14 @@ class LiveLLMAgent(BaseAgent):
 
     def _adaptation_source(self, context: AgentDecisionContext) -> str:
         spectra = context.latest_spectra
+        requested = context.requested_historical_spectrum
         has_spectrum = bool(
             spectra.get("has_spectral_packet")
             or spectra.get("raw_signal")
             or spectra.get("processed_estimate")
+            or requested.get("raw_signal")
         )
-        if self.spectrum_disclosure == "assigned" and has_spectrum:
+        if self.spectrum_disclosure != "masked" and has_spectrum:
             return "spectrum"
         if self._experiment_memory:
             return "experiment_memory"
@@ -392,11 +517,81 @@ class LiveLLMAgent(BaseAgent):
             if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
                 self._usage[key] += value
 
+    def _record_provider_attempts(
+        self,
+        records: Any,
+        *,
+        fallback_status: str,
+        fallback_attempts: int,
+        fallback_usage: dict[str, Any],
+        fallback_request_id: str | None = None,
+        fallback_model: str | None = None,
+    ) -> None:
+        supplied = (
+            [dict(item) for item in records if isinstance(item, dict)]
+            if isinstance(records, list | tuple)
+            else []
+        )
+        if not supplied:
+            supplied = [
+                {
+                    "attempt_index": 1,
+                    "status": fallback_status,
+                    "request_id": fallback_request_id,
+                    "model_id": fallback_model or self.client.model,
+                    "usage": to_builtin(fallback_usage),
+                    "usage_complete": False,
+                    "billable": False,
+                    "usage_source": "unavailable",
+                    "reported_attempt_count": int(fallback_attempts),
+                }
+            ]
+        for raw in supplied:
+            raw["logical_decision_index"] = self._logical_decision_count
+            self._provider_attempt_records.append(to_builtin(raw))
+
 
 def _prompt_hash() -> str:
     return hashlib.sha256(
         (SYSTEM_PROMPT + "|" + PROMPT_CONTRACT_VERSION).encode("utf-8")
     ).hexdigest()
+
+
+def _condition_spectrum_inputs(
+    context: dict[str, Any],
+    tool_view: dict[str, Any],
+    *,
+    condition: SpectrumDisclosure,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    supplied = to_builtin(context)
+    tool = to_builtin(tool_view)
+    if condition == "masked":
+        supplied["latest_spectra"] = {
+            "spectrum_condition": "masked",
+            "available": False,
+        }
+        if supplied.get("requested_historical_spectrum"):
+            request = supplied["requested_historical_spectrum"]
+            supplied["requested_historical_spectrum"] = {
+                "spectrum_id": request.get("spectrum_id"),
+                "status": request.get("status"),
+                "spectrum_condition": "masked",
+                "available": False,
+            }
+        return supplied, _mask_spectral_tool_view(tool)
+    if condition == "unassigned":
+        supplied["latest_spectra"] = _unassign_spectral_fields(
+            supplied.get("latest_spectra", {})
+        )
+        supplied["requested_historical_spectrum"] = _unassign_spectral_fields(
+            supplied.get("requested_historical_spectrum", {})
+        )
+        return supplied, _unassign_spectral_tool_view(tool)
+    for key in ("latest_spectra", "requested_historical_spectrum"):
+        packet = supplied.get(key)
+        if isinstance(packet, dict) and packet:
+            packet["spectrum_condition"] = "assigned"
+    return supplied, tool
 
 
 def _mask_spectral_tool_view(tool_json: dict[str, Any]) -> dict[str, Any]:
@@ -418,7 +613,61 @@ def _mask_spectral_tool_view(tool_json: dict[str, Any]) -> dict[str, Any]:
         public_report = dict(lab_report)
         public_report.pop("spectra_summary", None)
         masked["lab_report"] = public_report
+    requested = masked.get("requested_historical_spectrum")
+    if isinstance(requested, dict) and requested:
+        masked["requested_historical_spectrum"] = {
+            "spectrum_id": requested.get("spectrum_id"),
+            "status": requested.get("status"),
+            "spectrum_condition": "masked",
+            "available": False,
+        }
     return masked
+
+
+def _unassign_spectral_tool_view(tool_json: dict[str, Any]) -> dict[str, Any]:
+    unassigned = to_builtin(tool_json)
+    for key in ("raw_signal", "processed_estimate", "requested_historical_spectrum"):
+        if key in unassigned:
+            unassigned[key] = _unassign_spectral_fields(unassigned[key])
+    lab_report = unassigned.get("lab_report")
+    if isinstance(lab_report, dict) and "spectra_summary" in lab_report:
+        lab_report["spectra_summary"] = _unassign_spectral_fields(
+            lab_report["spectra_summary"]
+        )
+    return unassigned
+
+
+def _unassign_spectral_fields(payload: Any) -> Any:
+    if isinstance(payload, dict):
+        result: dict[str, Any] = {}
+        for raw_key, value in payload.items():
+            key = str(raw_key)
+            normalized = key.lower()
+            if normalized in {
+                "species_id",
+                "analyte_id",
+                "group",
+                "metadata",
+                "identity",
+            }:
+                continue
+            if normalized == "assignments":
+                result[key] = []
+            elif normalized == "assignment":
+                result[key] = "unassigned"
+            else:
+                result[key] = _unassign_spectral_fields(value)
+        if result and (
+            "raw_signal" in result
+            or "peaks" in result
+            or "bands" in result
+            or "spectrum_id" in result
+        ):
+            result["spectrum_condition"] = "unassigned"
+        return result
+    if isinstance(payload, list):
+        return [_unassign_spectral_fields(item) for item in payload]
+    return to_builtin(payload)
 
 
 def _redact_spectral_fields(payload: Any) -> Any:
@@ -458,6 +707,7 @@ def _prompt_memory_decision(decision: dict[str, Any]) -> dict[str, Any]:
             "hypothesis",
             "uncertainty",
             "rationale",
+            "request_historical_spectrum_id",
             "adaptation_source",
             "status",
         )
