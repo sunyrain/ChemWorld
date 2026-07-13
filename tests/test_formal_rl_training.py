@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
 
+import chemworld.rl.formal_training as formal_training_module
 from chemworld.rl.environment import RLWorldAllocation
 from chemworld.rl.evaluation import _ExperimentBehaviorTracker
 from chemworld.rl.formal_training import (
@@ -180,6 +182,127 @@ def test_selection_ranks_endpoint_then_fewer_steps_then_lower_seed() -> None:
     assert selected["summary"]["mean_episode_best_primary_metric"] == 0.9
     assert selected["training_environment_step_count"] == 25_600
     assert selected["model_seed"] == 0
+
+
+def test_training_wall_time_uses_union_of_parallel_intervals(tmp_path: Path) -> None:
+    manifests = [tmp_path / f"manifest-{index}.json" for index in range(3)]
+    for manifest in manifests:
+        manifest.write_text("{}\n", encoding="utf-8")
+    for manifest, end in zip(manifests, (100.0, 104.0, 120.0), strict=True):
+        os.utime(manifest, (end, end))
+    summaries = [
+        {"training_manifest_path": manifest.name, "wall_time_s": duration}
+        for manifest, duration in zip(manifests, (8.0, 8.0, 5.0), strict=True)
+    ]
+
+    result = formal_training_module._training_wall_time_summary(root=tmp_path, summaries=summaries)
+
+    assert result["observed_active_training_wall_time_s"] == pytest.approx(17.0)
+    assert result["summed_job_wall_time_s_diagnostic_only"] == pytest.approx(21.0)
+    assert result["parallel_wall_time_sum_used_as_elapsed"] is False
+    assert result["parallel_overlap_observed"] is True
+    assert result["merged_training_interval_count"] == 2
+
+
+def test_finalize_records_scientific_selection_failure_without_hiding_matrix(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    plan, formal, methods = _inputs()
+    plan = json.loads(json.dumps(plan))
+    plan["execution"]["artifact_root"] = "runs/test-formal-ppo"
+    plan["execution"]["checkpoint_index"] = "configs/test-index.json"
+    plan["execution"]["report"] = "reports/test-report.json"
+    selectable_tasks = {"reaction-to-distillation", "flow-reaction-optimization"}
+    completed: dict[formal_training_module.FormalPPOJob, dict[str, object]] = {}
+    for index, job in enumerate(build_jobs(plan)):
+        manifest = tmp_path / "manifests" / f"{job.job_id}.json"
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text("{}\n", encoding="utf-8")
+        os.utime(manifest, (1_000.0 + index, 1_000.0 + index))
+        candidates: list[dict[str, object]] = []
+        for step in (25_600, 51_200, 102_400):
+            eligible = job.task_id in selectable_tasks and job.model_seed == 0 and step == 102_400
+            candidates.append(
+                {
+                    "eligible": eligible,
+                    "training_environment_step_count": step,
+                    "checkpoint_path": f"runs/{job.job_id}-{step}.zip",
+                    "checkpoint_contract_path": f"runs/{job.job_id}-{step}.manifest.json",
+                    "dev_evaluation_sha256": "b" * 64,
+                    "summary": {"mean_episode_best_primary_metric": 0.5 if eligible else None},
+                }
+            )
+        completed[job] = {
+            "job_id": job.job_id,
+            "task_id": job.task_id,
+            "model_seed": job.model_seed,
+            "status": "complete",
+            "training_manifest_path": manifest.relative_to(tmp_path).as_posix(),
+            "training_manifest_sha256": "a" * 64,
+            "requested_training_environment_step_count": 102_400,
+            "training_environment_step_count": 102_400,
+            "step_budget_exact": True,
+            "cpu_time_s": 2.0,
+            "gpu_time_s": 0.0,
+            "wall_time_s": 4.0,
+            "bench_accessed": False,
+            "reference_search_used": False,
+            "candidates": candidates,
+        }
+
+    monkeypatch.setattr(
+        formal_training_module,
+        "scan_completed_jobs",
+        lambda **_kwargs: completed,
+    )
+    monkeypatch.setattr(
+        formal_training_module,
+        "_materialize_selection",
+        lambda **kwargs: {
+            "method_id": "ppo",
+            "task_id": kwargs["task_id"],
+            "checkpoint_path": f"runs/selected/{kwargs['task_id']}.zip",
+            "checkpoint_manifest_path": f"runs/selected/{kwargs['task_id']}.manifest.json",
+            "training_resource_path": f"runs/selected/{kwargs['task_id']}.resources.json",
+            "checkpoint_sha256": "c" * 64,
+            "binding": {"task_id": kwargs["task_id"]},
+        },
+    )
+    monkeypatch.setattr(
+        formal_training_module,
+        "_replay_selected",
+        lambda **_kwargs: {
+            "repetition_count": 2,
+            "deterministic": True,
+            "canonical_evaluation_sha256": "d" * 64,
+            "summary": {},
+        },
+    )
+
+    report = finalize_training(
+        root=tmp_path,
+        plan=plan,
+        formal_protocol=formal,
+        methods_config=methods,
+    )
+
+    assert report["status"] == "ppo_train_dev_complete_selection_failed"
+    assert report["ppo_method_ready"] is False
+    assert report["selected_checkpoint_count"] == 2
+    assert report["failed_task_ids"] == ["partition-discovery", "reaction-to-crystallization"]
+    assert report["failed_checks"] == ["four_dev_selected_checkpoints"]
+    assert report["integrity_failed_checks"] == []
+    assert report["training_run_count"] == 20
+    assert report["candidate_checkpoint_count"] == 60
+    assert report["training_resources"]["parallel_wall_time_sum_used_as_elapsed"] is False
+    outcomes = {item["task_id"]: item for item in report["task_outcomes"]}
+    assert outcomes["partition-discovery"]["status"] == "no_eligible_candidate"
+    assert outcomes["reaction-to-distillation"]["status"] == "selected"
+    checkpoint_index = json.loads(
+        (tmp_path / "configs/test-index.json").read_text(encoding="utf-8")
+    )
+    assert checkpoint_index["status"] == "ppo_dev_selection_failed"
+    assert checkpoint_index["missing_checkpoint_task_ids"] == report["failed_task_ids"]
 
 
 def test_empty_run_tree_is_not_misreported_as_complete(tmp_path: Path) -> None:

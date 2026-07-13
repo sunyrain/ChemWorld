@@ -524,7 +524,9 @@ def run_pending_jobs(
     }
 
 
-def select_task_candidate(task_id: str, summaries: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+def _eligible_task_candidates(
+    task_id: str, summaries: Sequence[Mapping[str, Any]]
+) -> list[dict[str, Any]]:
     eligible: list[dict[str, Any]] = []
     for summary in summaries:
         if summary.get("task_id") != task_id:
@@ -540,11 +542,7 @@ def select_task_candidate(task_id: str, summaries: Sequence[Mapping[str, Any]]) 
             candidate["job_id"] = str(summary["job_id"])
             candidate["training_manifest_path"] = str(summary["training_manifest_path"])
             eligible.append(candidate)
-    if not eligible:
-        raise FormalPPOTrainingError(
-            f"{task_id} has no behavior-complete, domain-stable PPO candidate"
-        )
-    return min(
+    return sorted(
         eligible,
         key=lambda item: (
             -float(item["summary"]["mean_episode_best_primary_metric"]),
@@ -552,6 +550,58 @@ def select_task_candidate(task_id: str, summaries: Sequence[Mapping[str, Any]]) 
             int(item["model_seed"]),
         ),
     )
+
+
+def select_task_candidate(task_id: str, summaries: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    eligible = _eligible_task_candidates(task_id, summaries)
+    if not eligible:
+        raise FormalPPOTrainingError(
+            f"{task_id} has no behavior-complete, domain-stable PPO candidate"
+        )
+    return eligible[0]
+
+
+def _training_wall_time_summary(
+    *, root: Path, summaries: Sequence[Mapping[str, Any]]
+) -> dict[str, Any]:
+    """Measure active cohort wall time without adding overlapping job durations."""
+
+    intervals: list[tuple[float, float]] = []
+    summed_job_wall = 0.0
+    for summary in summaries:
+        duration = float(summary["wall_time_s"])
+        if not math.isfinite(duration) or duration < 0.0:
+            raise FormalPPOTrainingError("PPO job wall time must be finite and non-negative")
+        manifest = _inside(root, str(summary["training_manifest_path"]), "training manifest")
+        try:
+            end = manifest.stat().st_mtime
+        except OSError as exc:
+            raise FormalPPOTrainingError(f"cannot stat PPO training manifest: {manifest}") from exc
+        if not math.isfinite(end):
+            raise FormalPPOTrainingError("PPO training manifest timestamp must be finite")
+        intervals.append((end - duration, end))
+        summed_job_wall += duration
+    if not intervals:
+        raise FormalPPOTrainingError("cannot account PPO wall time for an empty cohort")
+
+    merged: list[list[float]] = []
+    for start, end in sorted(intervals):
+        if not merged or start > merged[-1][1]:
+            merged.append([start, end])
+        else:
+            merged[-1][1] = max(merged[-1][1], end)
+    observed_active_wall = sum(end - start for start, end in merged)
+    return {
+        "observed_active_training_wall_time_s": observed_active_wall,
+        "summed_job_wall_time_s_diagnostic_only": summed_job_wall,
+        "parallel_wall_time_sum_used_as_elapsed": False,
+        "parallel_overlap_observed": observed_active_wall + 1e-9 < summed_job_wall,
+        "training_interval_count": len(intervals),
+        "merged_training_interval_count": len(merged),
+        "wall_time_accounting_method": (
+            "union_of_manifest_mtime_minus_monotonic_job_training_wall_intervals"
+        ),
+    }
 
 
 def _selected_paths(root: Path, plan: Mapping[str, Any], task_id: str) -> tuple[Path, Path, Path]:
@@ -631,6 +681,7 @@ def _materialize_selection(
         int(item["requested_training_environment_step_count"]) for item in task_summaries
     )
     actual = sum(int(item["training_environment_step_count"]) for item in task_summaries)
+    wall_time = _training_wall_time_summary(root=root, summaries=task_summaries)
     resources = {
         "schema_version": RL_TRAINING_RESOURCE_VERSION,
         "accounting_complete": True,
@@ -641,9 +692,10 @@ def _materialize_selection(
         "training_environment_step_count": actual,
         "cpu_time_s": sum(float(item["cpu_time_s"]) for item in task_summaries),
         "gpu_time_s": sum(float(item["gpu_time_s"]) for item in task_summaries),
-        "wall_time_s": sum(float(item["wall_time_s"]) for item in task_summaries),
+        "wall_time_s": wall_time["observed_active_training_wall_time_s"],
         "training_run_count": len(task_summaries),
         "rejected_training_runs_retained": len(task_summaries) - 1,
+        **wall_time,
     }
     audited = audit_rl_training_resource(resources)
     if audited["accounting_complete"] is not True:
@@ -704,6 +756,39 @@ def _replay_selected(
     }
 
 
+def _attempt_lineage(
+    *, root: Path, plan: Mapping[str, Any], item: Mapping[str, Any]
+) -> list[dict[str, Any]]:
+    current_plan_sha = _canonical_sha256(plan)
+    job = FormalPPOJob(str(item["task_id"]), int(item["model_seed"]))
+    records: list[dict[str, Any]] = []
+    for attempt in sorted(_job_root(root, plan, job).glob("attempt-*")):
+        start_path = attempt / "attempt-start.json"
+        attempt_plan_sha: str | None = None
+        if start_path.is_file():
+            start = _load_object(start_path, "PPO attempt start")
+            raw_plan_sha = start.get("plan_sha256")
+            attempt_plan_sha = raw_plan_sha if isinstance(raw_plan_sha, str) else None
+        counts_toward_frozen_matrix = attempt_plan_sha == current_plan_sha
+        if not counts_toward_frozen_matrix:
+            status = "pre_freeze_retained"
+        elif (attempt / "job-summary.json").is_file():
+            status = "complete"
+        elif (attempt / "attempt-failure.json").is_file():
+            status = "failed_retained"
+        else:
+            status = "incomplete_retained"
+        records.append(
+            {
+                "attempt": attempt.name,
+                "status": status,
+                "attempt_plan_sha256": attempt_plan_sha,
+                "counts_toward_frozen_matrix": counts_toward_frozen_matrix,
+            }
+        )
+    return records
+
+
 def finalize_training(
     *,
     root: Path,
@@ -711,7 +796,7 @@ def finalize_training(
     formal_protocol: Mapping[str, Any],
     methods_config: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Select four checkpoints, bind cohort resources, replay, and write tracked evidence."""
+    """Finalize complete Train/Dev evidence, including a fail-closed method outcome."""
 
     validation = validate_training_plan(
         plan, formal_protocol=formal_protocol, methods_config=methods_config
@@ -725,9 +810,30 @@ def finalize_training(
     summaries = [completed[job] for job in jobs]
     selections: list[dict[str, Any]] = []
     selection_reports: list[dict[str, Any]] = []
+    task_outcomes: list[dict[str, Any]] = []
     for task_id in plan["formal_core_tasks"]:
         task_summaries = [item for item in summaries if item["task_id"] == task_id]
-        selected = select_task_candidate(str(task_id), task_summaries)
+        eligible = _eligible_task_candidates(str(task_id), task_summaries)
+        if not eligible:
+            task_outcomes.append(
+                {
+                    "task_id": task_id,
+                    "primary_metric": plan["formal_core_tasks"][task_id],
+                    "status": "no_eligible_candidate",
+                    "training_run_count": len(task_summaries),
+                    "candidate_checkpoint_count": sum(
+                        len(cast(list[Any], item["candidates"])) for item in task_summaries
+                    ),
+                    "eligible_candidate_count": 0,
+                    "model_seeds": [int(item["model_seed"]) for item in task_summaries],
+                    "failure_reason": (
+                        "No checkpoint satisfied the frozen behavior-complete, domain-stable "
+                        "deterministic Dev eligibility contract."
+                    ),
+                }
+            )
+            continue
+        selected = eligible[0]
         entry = _materialize_selection(
             root=root,
             plan=plan,
@@ -743,34 +849,34 @@ def finalize_training(
             entry=entry,
         )
         selections.append({key: value for key, value in entry.items() if key != "binding"})
-        selection_reports.append(
+        selection_report = {
+            "task_id": task_id,
+            "primary_metric": plan["formal_core_tasks"][task_id],
+            "selected_model_seed": selected["model_seed"],
+            "selected_training_environment_step_count": selected["training_environment_step_count"],
+            "selected_dev_evaluation_sha256": selected["dev_evaluation_sha256"],
+            "selected_dev_summary": selected["summary"],
+            "checkpoint_binding": entry["binding"],
+            "deterministic_replay": replay,
+        }
+        selection_reports.append(selection_report)
+        task_outcomes.append(
             {
-                "task_id": task_id,
-                "primary_metric": plan["formal_core_tasks"][task_id],
-                "selected_model_seed": selected["model_seed"],
-                "selected_training_environment_step_count": selected[
-                    "training_environment_step_count"
-                ],
-                "selected_dev_evaluation_sha256": selected["dev_evaluation_sha256"],
-                "selected_dev_summary": selected["summary"],
-                "checkpoint_binding": entry["binding"],
-                "deterministic_replay": replay,
+                **selection_report,
+                "status": "selected",
+                "training_run_count": len(task_summaries),
+                "candidate_checkpoint_count": sum(
+                    len(cast(list[Any], item["candidates"])) for item in task_summaries
+                ),
+                "eligible_candidate_count": len(eligible),
             }
         )
     execution = cast(Mapping[str, Any], plan["execution"])
-    index_path = _inside(root, str(execution["checkpoint_index"]), "PPO checkpoint index")
-    checkpoint_index = {
-        "schema_version": PPO_CHECKPOINT_INDEX_VERSION,
-        "status": "ppo_ready_sac_pending",
-        "method_ids": ["ppo"],
-        "formal_core_tasks": list(plan["formal_core_tasks"]),
-        "checkpoints": selections,
-        "formal_results_present": False,
-        "benchmark_claim_allowed": False,
-        "parent_task_complete": False,
-        "checkpoint_binaries_committed": False,
-    }
-    _write_json(index_path, checkpoint_index)
+    expected_selection_count = int(execution["expected_selected_checkpoint_count"])
+    method_ready = len(selections) == expected_selection_count
+    failed_task_ids = [
+        str(item["task_id"]) for item in task_outcomes if item["status"] == "no_eligible_candidate"
+    ]
     checks = {
         **validation,
         "twenty_training_runs_complete": len(summaries) == 20,
@@ -778,7 +884,7 @@ def finalize_training(
             len(cast(list[Any], item["candidates"])) for item in summaries
         )
         == 60,
-        "four_dev_selected_checkpoints": len(selections) == 4,
+        "four_dev_selected_checkpoints": method_ready,
         "all_training_step_budgets_exact": all(
             item["step_budget_exact"] is True
             and item["training_environment_step_count"]
@@ -794,12 +900,53 @@ def finalize_training(
         ),
     }
     failed = sorted(name for name, passed in checks.items() if not passed)
-    if failed:
-        raise FormalPPOTrainingError("PPO evidence checks failed: " + ", ".join(failed))
+    integrity_failed = [name for name in failed if name != "four_dev_selected_checkpoints"]
+    if integrity_failed:
+        raise FormalPPOTrainingError(
+            "PPO evidence integrity checks failed: " + ", ".join(integrity_failed)
+        )
+
+    index_path = _inside(root, str(execution["checkpoint_index"]), "PPO checkpoint index")
+    checkpoint_index = {
+        "schema_version": PPO_CHECKPOINT_INDEX_VERSION,
+        "status": "ppo_ready_sac_pending" if method_ready else "ppo_dev_selection_failed",
+        "method_ids": ["ppo"],
+        "formal_core_tasks": list(plan["formal_core_tasks"]),
+        "checkpoints": selections,
+        "selected_checkpoint_count": len(selections),
+        "expected_selected_checkpoint_count": expected_selection_count,
+        "missing_checkpoint_task_ids": failed_task_ids,
+        "ppo_method_ready": method_ready,
+        "formal_results_present": False,
+        "benchmark_claim_allowed": False,
+        "parent_task_complete": False,
+        "checkpoint_binaries_committed": False,
+    }
+    _write_json(index_path, checkpoint_index)
+    training_wall = _training_wall_time_summary(root=root, summaries=summaries)
+    remaining_parent_work = [
+        "four-task five-seed SAC Train/Dev execution",
+        "clean-environment checkpoint distribution and load proof",
+        "observation-blind comparison at the parent method gate",
+        "method freeze before any sealed Bench access",
+    ]
+    if not method_ready:
+        remaining_parent_work.insert(
+            0,
+            (
+                "record PPO as failed or preregister a new development cycle; the current frozen "
+                "four-task checkpoint set is incomplete"
+            ),
+        )
     report = {
         "schema_version": PPO_REPORT_VERSION,
-        "status": "ppo_train_dev_complete_sac_pending",
+        "status": (
+            "ppo_train_dev_complete_sac_pending"
+            if method_ready
+            else "ppo_train_dev_complete_selection_failed"
+        ),
         "controls_ready": True,
+        "ppo_method_ready": method_ready,
         "formal_results_present": False,
         "benchmark_claim_allowed": False,
         "parent_task_complete": False,
@@ -810,6 +957,8 @@ def finalize_training(
         "checkpoint_index_sha256": file_sha256(index_path),
         "checks": checks,
         "failed_checks": failed,
+        "integrity_failed_checks": integrity_failed,
+        "failed_task_ids": failed_task_ids,
         "training_run_count": len(summaries),
         "candidate_checkpoint_count": 60,
         "selected_checkpoint_count": len(selections),
@@ -817,9 +966,13 @@ def finalize_training(
             int(item["training_environment_step_count"]) for item in summaries
         ),
         "training_resources": {
+            "training_environment_step_count": sum(
+                int(item["training_environment_step_count"]) for item in summaries
+            ),
             "cpu_time_s": sum(float(item["cpu_time_s"]) for item in summaries),
             "gpu_time_s": sum(float(item["gpu_time_s"]) for item in summaries),
-            "wall_time_s": sum(float(item["wall_time_s"]) for item in summaries),
+            "wall_time_s": training_wall["observed_active_training_wall_time_s"],
+            **training_wall,
         },
         "jobs": [
             {
@@ -840,42 +993,31 @@ def finalize_training(
                     }
                     for candidate in item["candidates"]
                 ],
-                "attempt_lineage": [
-                    {
-                        "attempt": attempt.name,
-                        "status": (
-                            "complete"
-                            if (attempt / "job-summary.json").is_file()
-                            else "failed_retained"
-                            if (attempt / "attempt-failure.json").is_file()
-                            else "incomplete_retained"
-                        ),
-                    }
-                    for attempt in sorted(
-                        _job_root(
-                            root,
-                            plan,
-                            FormalPPOJob(str(item["task_id"]), int(item["model_seed"])),
-                        ).glob("attempt-*")
-                    )
-                ],
+                "attempt_lineage": _attempt_lineage(root=root, plan=plan, item=item),
             }
             for item in summaries
         ],
         "task_selections": selection_reports,
+        "task_outcomes": task_outcomes,
         "reference_repositories_used": [],
-        "remaining_parent_work": [
-            "four-task five-seed SAC Train/Dev execution",
-            "clean-environment checkpoint distribution and load proof",
-            "observation-blind comparison at the parent method gate",
-            "method freeze before any sealed Bench access",
-        ],
+        "remaining_parent_work": remaining_parent_work,
         "limitations": [
             (
                 "This report is public Train/Dev method-development evidence, not formal Bench "
                 "evidence."
             ),
             "PPO completion alone does not complete benchmark-v05-rl-adapters.",
+            *(
+                [
+                    (
+                        "PPO failed the frozen four-task Dev selection gate; missing task "
+                        "checkpoints must not be imputed, repaired from Bench, or claimed as "
+                        "benchmark-ready."
+                    )
+                ]
+                if not method_ready
+                else []
+            ),
             (
                 "Selected checkpoint binaries are digest-bound local artifacts under the ignored "
                 "controlled run tree."
