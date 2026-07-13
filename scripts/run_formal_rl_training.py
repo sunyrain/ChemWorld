@@ -1,4 +1,4 @@
-"""Execute or resume the preregistered formal PPO Train/Dev matrix."""
+"""Execute or resume a preregistered formal PPO/SAC Train/Dev matrix."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from pathlib import Path
 from chemworld.rl.formal_training import (
     DEFAULT_PLAN_PATH,
     build_formal_allocation,
+    build_jobs,
     finalize_training,
     load_execution_inputs,
     run_pending_jobs,
@@ -29,36 +30,44 @@ def main() -> int:
     parser.add_argument("--skip-finalize", action="store_true")
     parser.add_argument("--probe-backend", choices=("dummy", "subprocess"))
     parser.add_argument("--probe-steps", type=int, default=1024)
+    parser.add_argument("--probe-torch-threads", type=int)
     args = parser.parse_args()
 
     root = args.root.resolve()
     plan, formal, methods = load_execution_inputs(root=root, plan_path=args.plan)
+    algorithm = plan["algorithm"]
     if args.probe_backend:
         task_id = args.task or "partition-discovery"
         infrastructure = plan["infrastructure"]
         allocation = build_formal_allocation(formal, task_id=task_id, name="train")
+        torch_threads = args.probe_torch_threads or int(infrastructure["torch_num_threads"])
         output_dir = (
-            root / plan["execution"]["artifact_root"] / "throughput-probes" / args.probe_backend
+            root
+            / plan["execution"]["artifact_root"]
+            / "throughput-probes"
+            / (f"{args.probe_backend}-threads-{torch_threads}")
         )
         manifest = train_sb3_baseline(
-            algorithm="ppo",
+            algorithm=algorithm,
             task_id=task_id,
             allocation=allocation,
             total_timesteps=args.probe_steps,
-            model_seed=9901 if args.probe_backend == "dummy" else 9902,
+            model_seed=9900 + torch_threads,
             output_dir=output_dir,
             algorithm_kwargs=dict(plan["training"]["hyperparameters"]),
             operation_budget=int(plan["training"]["operation_budget"]),
             parallel_environments=int(infrastructure["parallel_environments"]),
             vectorization_backend=args.probe_backend,
             device=infrastructure["device"],
-            torch_num_threads=int(infrastructure["torch_num_threads"]),
+            torch_num_threads=torch_threads,
             progress_interval_steps=args.probe_steps,
         )
         result = {
-            "schema_version": "chemworld-formal-ppo-throughput-probe-0.4",
+            "schema_version": f"chemworld-formal-{algorithm}-throughput-probe-0.4",
             "diagnostic_only": True,
+            "algorithm": algorithm,
             "backend": args.probe_backend,
+            "torch_num_threads": torch_threads,
             "task_id": task_id,
             "requested_steps": args.probe_steps,
             "actual_steps": manifest["training_environment_step_count"],
@@ -73,11 +82,13 @@ def main() -> int:
         }
     elif args.audit_only:
         completed = scan_completed_jobs(root=root, plan=plan)
+        planned = len(build_jobs(plan))
         result = {
-            "schema_version": "chemworld-formal-ppo-execution-audit-0.4",
-            "planned_job_count": 20,
+            "schema_version": f"chemworld-formal-{algorithm}-execution-audit-0.4",
+            "algorithm": algorithm,
+            "planned_job_count": planned,
             "completed_job_count": len(completed),
-            "remaining_job_count": 20 - len(completed),
+            "remaining_job_count": planned - len(completed),
             "completed_job_ids": [job.job_id for job in completed],
         }
     elif args.finalize_only:
