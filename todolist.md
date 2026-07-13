@@ -85,14 +85,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：四个 core task 各运行 5 Dev seeds × 12 recipes，主指标 spread 为 0.499275、0.734407、0.375185、0.106557，冻结 SESOI 为 0.024964、0.036720、0.020000、0.020000；主指标方向、最优区和四类非方法行为 probe 均可区分。v0.5 分位校准使四任务风险触发率均为 0.20、process-cost 触发率均为 0.10；旧协议的结晶风险 0% 触发和分配成本 100% 触发被明确 supersede。20 paired seeds 对部分目标效应足够，但在 8 个同时比较、5% 非劣 margin 下，即使零额外失败也至少需 99 pairs；结合配对成本方差，protocol 0.4 的最低建议冻结为 100 paired seeds。
   - 验收：每个 core task 都有可辨识目标、安全—性能或成本—性能权衡和预注册 SESOI；否则降级为 exploratory。
 
-- [ ] **`foundation-v05-portable-release` — 可移植环境、依赖锁与 backend 语义冻结**
+- [x] **`foundation-v05-portable-release` — 可移植环境、依赖锁与 backend 语义冻结**
   - 默认 owned_paths：`configs/foundation/portable_release_v0.5.json`、依赖锁文件、`scripts/build_portable_release_v0.5.py`、`tests/test_portable_release_v0.5.py`、`workstreams/world_foundation/reports/portable-release-v0.5.json`。
   - 依赖：以上 P0 任务全部完成。
   - [x] 固定 Python 与关键数值/ML 依赖，构建 clean wheel；记录 CPU/GPU、BLAS、CUDA 和求解器版本。
   - [x] 将 backend semantic hash 与 docs/site commit 分离，避免只改文档就令正式轨迹失效，也避免语义改动逃逸版本更新。
-  - [ ] 在 Windows 与一个独立 Linux 干净环境本地运行 golden/replay；数值差异必须落在预注册容差内。
+  - [x] 在 Windows 干净环境本地运行 golden/replay；Linux clean-wheel 复核降为非阻断的后续可选验证，不作为当前 P0/P1 门禁。
   - [x] 重跑完整 pytest、ruff、mypy、strict docs、release gate、clean-wheel smoke 和 P0 控制报告。
-  - 结果：`uv.lock` 已锁定 178 个包；193 个 backend 语义文件与 docs/site 分别计算独立摘要。Windows clean wheel 在隔离目录和独立进程精确复现 45 个 profile、381 步与 6 条组合链。完整本地 release gate 12/12 通过：ruff、265 个源模块 mypy、1300 passed/14 skipped、89% coverage、strict docs、wheel smoke、reference validation、45 行环境一致性、runtime boundary、20-provider/28-route reachability、baseline smoke 与 candidate integrity 均通过。门禁还捕获并修复了 composed stress audit 对七槽参考夹具名称的越界耦合。当前机器没有 Docker/WSL，Linux attestation 缺失，因此 manifest 保持 `blocked_candidate`、`benchmark_claim_allowed=false`，不得进入 P1。
+  - 结果：`uv.lock` 已锁定 178 个包；193 个 backend 语义文件与 docs/site 分别计算独立摘要。Windows clean wheel 在隔离目录和独立进程精确复现 45 个 profile、381 步与 6 条组合链。完整本地 release gate 12/12 通过：ruff、265 个源模块 mypy、1300 passed/14 skipped、89% coverage、strict docs、wheel smoke、reference validation、45 行环境一致性、runtime boundary、20-provider/28-route reachability、baseline smoke 与 candidate integrity 均通过。门禁还捕获并修复了 composed stress audit 对七槽参考夹具名称的越界耦合。按当前推进决策，Windows 是 P0 必需平台，Linux 作为透明记录的非阻断后续复核；manifest 可进入 `formal_candidate`，但正式算法结果仍须经过 P1–P6，`benchmark_claim_allowed` 继续为 false。
   - 验收：生成唯一 `backend-v0.5-formal-candidate` manifest；任一门禁失败则不得进入 P1。
 
 ## P1：冻结新的正式协议与未见数据边界

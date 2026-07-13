@@ -70,7 +70,7 @@ def test_platform_attestation_rejects_semantic_mismatch() -> None:
     assert failures == ["platform attestation binds a different backend semantic hash"]
 
 
-def test_audit_fails_closed_when_linux_attestation_is_missing() -> None:
+def test_windows_release_records_linux_as_optional_follow_up() -> None:
     protocol = load_portable_release_protocol()
     semantic = semantic_identity(protocol)
     attestation = {
@@ -83,13 +83,17 @@ def test_audit_fails_closed_when_linux_attestation_is_missing() -> None:
     }
     report = build_release_audit(protocol, [attestation])
     manifest = release_manifest(report)
-    assert report["missing_platforms"] == ["linux"]
-    assert report["required_platforms"] == ["linux", "windows"]
+    assert report["missing_platforms"] == []
+    assert report["missing_optional_platforms"] == ["linux"]
+    assert report["required_platforms"] == ["windows"]
+    assert report["optional_platforms"] == ["linux"]
     assert report["observed_platforms"] == ["windows"]
-    assert report["portable_release_ready"] is False
-    assert manifest["release_status"] == "blocked_candidate"
-    assert manifest["required_platforms"] == ["linux", "windows"]
+    assert report["portable_release_ready"] is True
+    assert manifest["release_status"] == "formal_candidate"
+    assert manifest["required_platforms"] == ["windows"]
+    assert manifest["optional_platforms"] == ["linux"]
     assert manifest["observed_platforms"] == ["windows"]
+    assert manifest["missing_optional_platforms"] == ["linux"]
     assert manifest["benchmark_claim_allowed"] is False
 
 

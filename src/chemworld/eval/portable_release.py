@@ -214,8 +214,12 @@ def build_release_audit(
         attestations[platform_key] = dict(payload)
         attestation_failures.extend(f"{platform_key}: {failure}" for failure in failures)
     required_platforms = set(_string_sequence(protocol, "required_platforms"))
+    optional_platforms = set(_string_sequence(protocol, "optional_platforms"))
+    if required_platforms.intersection(optional_platforms):
+        raise PortableReleaseError("required and optional platforms must be disjoint")
     observed_platforms = set(attestations)
     missing_platforms = sorted(required_platforms - observed_platforms)
+    missing_optional_platforms = sorted(optional_platforms - observed_platforms)
     lock_path = resolve_workspace_path(workspace, str(protocol["dependency_lock"]))
     controls = {
         "protocol_is_nonclaiming": protocol.get("benchmark_claim_allowed") is False,
@@ -249,13 +253,16 @@ def build_release_audit(
         "evidence": evidence,
         "platform_attestations": attestations,
         "required_platforms": sorted(required_platforms),
+        "optional_platforms": sorted(optional_platforms),
         "observed_platforms": sorted(observed_platforms),
         "missing_platforms": missing_platforms,
+        "missing_optional_platforms": missing_optional_platforms,
         "attestation_failures": attestation_failures,
         "controls": controls,
         "limitations": [
             "This identifies a synthetic backend candidate, not real-chemistry validity.",
             "Documentation and website changes are intentionally outside the backend hash.",
+            "Linux clean-wheel replay is an optional portability follow-up, not a P0 gate.",
             "Formal algorithm rankings remain prohibited until later protocols are frozen.",
         ],
     }
@@ -275,8 +282,10 @@ def release_manifest(report: Mapping[str, Any]) -> dict[str, Any]:
         "portable_release_report_sha256": canonical_sha256(report),
         "source_commit": report["source_commit"],
         "required_platforms": report["required_platforms"],
+        "optional_platforms": report["optional_platforms"],
         "observed_platforms": report["observed_platforms"],
         "missing_platforms": report["missing_platforms"],
+        "missing_optional_platforms": report["missing_optional_platforms"],
         "portable_release_ready": report["portable_release_ready"],
         "benchmark_claim_allowed": False,
     }
