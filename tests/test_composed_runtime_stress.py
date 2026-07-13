@@ -81,3 +81,8 @@ def test_missing_chain_requirement_fails_closed() -> None:
     report = run_composed_runtime_stress(protocol)
     assert report["controls_ready"] is False
     assert report["controls"]["required_composed_chains_execute"] is False
+
+
+def test_stress_audit_does_not_name_runtime_reference_fixture() -> None:
+    module_path = ROOT / "src" / "chemworld" / "eval" / "composed_runtime_stress.py"
+    assert "reaction_reference" not in module_path.read_text(encoding="utf-8")

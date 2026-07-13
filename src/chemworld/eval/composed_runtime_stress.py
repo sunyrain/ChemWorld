@@ -179,7 +179,7 @@ def run_composed_runtime_stress(
             and item["runtime_failure_count"] == 0
             for item in chain_runs.values()
         ),
-        "reference_failure_domains_are_explicit": dependencies["reaction_reference"][
+        "reference_failure_domains_are_explicit": dependencies["kinetics_evidence"][
             "maturity"
         ]["implementation_slice"]
         == "reference_validated"
