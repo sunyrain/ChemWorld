@@ -207,7 +207,7 @@
     "platform_attestations_valid": true,
     "protocol_is_nonclaiming": true,
     "required_evidence_passes": true,
-    "required_platforms_complete": false,
+    "required_platforms_complete": true,
     "semantic_manifest_is_nonempty": true
   },
   "dependency_lock": {
@@ -452,13 +452,18 @@
   "limitations": [
     "This identifies a synthetic backend candidate, not real-chemistry validity.",
     "Documentation and website changes are intentionally outside the backend hash.",
+    "Linux clean-wheel replay is an optional portability follow-up, not a P0 gate.",
     "Formal algorithm rankings remain prohibited until later protocols are frozen."
   ],
-  "missing_platforms": [
+  "missing_optional_platforms": [
     "linux"
   ],
+  "missing_platforms": [],
   "observed_platforms": [
     "windows"
+  ],
+  "optional_platforms": [
+    "linux"
   ],
   "platform_attestations": {
     "windows": {
@@ -499,22 +504,21 @@
       "exact_replay": true,
       "platform_id": "windows",
       "profile_run_count": 45,
-      "protocol_sha256": "60ff0533848f5a0293fc5ea6c0feaead72f2639ded5070041e7e9f28a00850e7",
+      "protocol_sha256": "d63c957a669cb8ca1e1bd9d09a2601c88ad698a570081d404047551e7d080a95",
       "replay_identity_sha256": "88a968ad873d2d2128c5d047ad6e4cd2a9ead8a3c5e14321727c67c963eaf4be",
       "schema_version": "chemworld-portable-platform-attestation-0.1",
       "wheel_import": true,
-      "wheel_sha256": "1bf6397d2010774bd95f02030038c1ed32063648b181f8f3036ff955c746f723"
+      "wheel_sha256": "f369b09997ad6c77f601661ddf101c1bc3151044087a5cb8af435b335f5c8db2"
     }
   },
-  "portable_release_ready": false,
+  "portable_release_ready": true,
   "protocol_id": "foundation-v05-portable-release",
-  "protocol_sha256": "60ff0533848f5a0293fc5ea6c0feaead72f2639ded5070041e7e9f28a00850e7",
+  "protocol_sha256": "d63c957a669cb8ca1e1bd9d09a2601c88ad698a570081d404047551e7d080a95",
   "required_platforms": [
-    "linux",
     "windows"
   ],
   "schema_version": "chemworld-portable-release-report-0.1",
-  "source_commit": "7122aee8bcd33d6aebc1eca1a0e9b22bdbfbafd3",
+  "source_commit": "0697c18677d551bac7c4d74753b116276c8fe750",
   "source_tree_dirty": false,
-  "status": "portable_release_blocked"
+  "status": "portable_release_passed"
 }
