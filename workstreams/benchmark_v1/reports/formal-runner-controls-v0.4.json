@@ -9,6 +9,7 @@
     "concurrent_duplicate_cell_is_rejected_by_os_advisory_lock": true,
     "failure_artifacts_are_retained_and_mapped_to_preregistered_statistical_denominator": true,
     "incomplete_infrastructure_attempts_are_not_aggregator_visible": true,
+    "method_identity_binds_its_formal_resource_profile": true,
     "private_runtime_commitments_are_checked_before_adapter_execution": true,
     "published_artifact_set_is_exact_and_digest_bound": true,
     "published_cell_tampering_is_rejected_without_overwrite": true,
@@ -16,6 +17,8 @@
     "real_environment_trajectory_passes_immediate_independent_replay": true,
     "repeat_execution_returns_verified_cached_identity_without_adapter_reentry": true,
     "runner_never_repairs_actions_or_synthesizes_final_assay": true,
+    "runner_owned_resource_artifact_is_computed_from_raw_adapter_evidence": true,
+    "successful_cells_require_complete_fifteen_axis_resource_accounting": true,
     "trajectory_records_bind_task_method_pair_spectrum_cell_and_private_world_seed": true,
     "windows_long_path_atomic_write_uses_lock_scoped_short_temporary_name": true
   },
@@ -48,31 +51,31 @@
   "formal_results_present": false,
   "limitations": [
     "Formal method adapters remain a P3 deliverable; the runner freezes their execution boundary but does not claim that every method is implemented.",
-    "Matrix orchestration, complete resource accounting, and the no-bypass preflight gate remain P2 deliverables.",
+    "The no-bypass preflight issuer remains a P2 deliverable; no retained formal manifest has been issued.",
     "Raw trajectories are controlled private evidence because exact replay requires the private environment seed; public result artifacts expose only opaque pair identity and commitments."
   ],
   "next_gates": [
-    "implement the manifest-driven CPU GPU and API matrix orchestrator",
-    "close the formal resource ledger and provider billing boundary",
+    "implement the no-bypass preflight issuer",
+    "complete classic RL and live LLM formal adapters against the resource evidence contract",
     "issue the first nonformal smoke manifest through the no-force preflight gate"
   ],
   "private_runtime_values_reported_in_public_controls": false,
   "schema_version": "chemworld-formal-runner-controls-0.4",
-  "source_commit": "3b2cf70d6fdbf84e74414a1a4cb0a146e208ecb2",
+  "source_commit": "d51ff2bdadd536f93bcb66647b36c97718a5a42c",
   "source_files": {
     "scripts/run_formal_cell.py": "f41aaffb70ad0695170e700c32d2fc1aebd5f591e0f3f1b498236bbe259089be",
-    "src/chemworld/eval/formal_runner.py": "e3ea36c7dff6bba2789d0e3598418cb2d72f99599f8802cd3b934dfc49f1f5d2",
-    "tests/test_formal_runner.py": "966f3c8379313f31002d4ff64a16c5fb8aacfbf20ca7f041c7ff3c3300412297"
+    "src/chemworld/eval/formal_runner.py": "b79d145c584801ac27c80110450e830341bc696d31229f0b973e715561c61b10",
+    "tests/test_formal_runner.py": "48b900e0b6522543f79ac19bb4543741496203d4b5643b18d2f87e722d6d8e22"
   },
   "source_tree_dirty_during_validation": false,
   "status": "formal_cell_runner_ready_no_formal_results",
   "validation": {
     "adjacent_protocol_statistics_and_replay_tests": {
-      "passed": 98,
+      "passed": 147,
       "result": "passed"
     },
     "formal_runner_tests": {
-      "passed": 26,
+      "passed": 28,
       "result": "passed"
     },
     "mypy": "passed",

@@ -12,9 +12,12 @@
     "incomplete_or_unexpected_cells_block_aggregation": true,
     "live_llm_ledgers_require_nonzero_requests_and_model_provenance": true,
     "matrix_cells_share_global_protocol_and_source_bindings": true,
+    "matrix_consumes_runner_owned_fifteen_axis_resource_artifacts": true,
     "paired_conditions_share_private_seed_and_world_commitments": true,
+    "parallel_elapsed_time_is_not_the_sum_of_cell_wall_times": true,
     "progress_events_reject_private_seed_and_world_fields": true,
     "resource_ledgers_are_schema_count_budget_checkpoint_and_limit_checked": true,
+    "rl_training_ledgers_match_issued_checkpoints_and_are_counted_once": true,
     "serial_and_parallel_execution_have_identical_semantic_results": true,
     "stopped_matrices_resume_only_missing_cells": true,
     "subprocess_failures_do_not_publish_raw_stderr_or_partial_cells": true
@@ -27,32 +30,32 @@
   },
   "formal_results_present": false,
   "limitations": [
-    "The matrix gate validates existing cell ledgers; cross-family normalization, provider-request retry reconciliation, and matrix-wide resource totals remain the dedicated P2 resource-accounting deliverable.",
-    "Cell-start rate limiting is enforced here, while request-level provider throttling and retry charging must be enforced by the live LLM adapter and resource protocol.",
+    "The no-bypass preflight issuer remains a P2 deliverable; no retained manifest may be issued until it verifies all source, protocol, method, pricing, checkpoint, budget, and infrastructure bindings.",
+    "Cell-start rate limiting is enforced here; P3 live LLM adapters must additionally emit a complete receipt for every provider attempt so request-level retries and billing can be reconciled.",
     "Formal classic, RL, and live LLM method implementations remain P3 deliverables, so this control report contains no benchmark result."
   ],
   "next_gates": [
-    "implement and reconcile the formal cross-family resource-accounting protocol",
     "implement the no-bypass preflight issuer",
-    "complete the formal method adapters before issuing any retained experiment manifest"
+    "complete the formal method adapters before issuing any retained experiment manifest",
+    "run the nonformal full-method smoke grid only after preflight passes without force"
   ],
   "private_runtime_values_reported_in_public_controls": false,
   "schema_version": "chemworld-formal-matrix-controls-0.4",
-  "source_commit": "d7ddd3bc5f2a329bd818d131d703eebbbe7e8f60",
+  "source_commit": "d51ff2bdadd536f93bcb66647b36c97718a5a42c",
   "source_files": {
     "scripts/run_formal_matrix.py": "bb42bcfc8cfbc68cb14462df7eb79be190dc150c23548600957379b9276b2e76",
-    "src/chemworld/eval/formal_matrix.py": "c4b2122ebef530c1c2ca83c53a9e921c64c743e8e065f7404859c038d6f43c00",
-    "tests/test_formal_matrix.py": "ed79b879337b039d1a3933f338f11035ffcc4f8d88f6fc32ca3b23c2b43a283d"
+    "src/chemworld/eval/formal_matrix.py": "cf9ab8bebb74a1608ced8f7821fcbd1eac458002e988098ef2279a9393db40f5",
+    "tests/test_formal_matrix.py": "5a2b242d6ba7eeca4fd90f6a4b182ef08f55547a27fe9eeee9e547bb5f724567"
   },
   "source_tree_dirty_during_validation": false,
   "status": "formal_matrix_orchestrator_ready_no_formal_results",
   "validation": {
     "formal_matrix_tests": {
-      "passed": 11,
+      "passed": 12,
       "result": "passed"
     },
     "integrated_runner_protocol_statistics_and_replay_tests": {
-      "passed": 109,
+      "passed": 147,
       "result": "passed"
     },
     "mypy": "passed",
