@@ -1,0 +1,434 @@
+{
+  "benchmark_claim_allowed": false,
+  "capability_matrix": {
+    "greedy_local": {
+      "action_affordance": "typed_recipe_vector",
+      "adapts_across_experiments": true,
+      "adapts_within_experiment": false,
+      "decision_scope": "experiment_recipe",
+      "family": "local_search",
+      "harness_assistance": [
+        "typed_recipe_to_operation_compiler"
+      ],
+      "implementation_status": "candidate_available",
+      "method_id": "greedy_local",
+      "public_observation_set": "recipe_endpoint_only",
+      "resource_profile": "classic_recipe",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "recipe_level",
+      "update_boundary": "completed_experiment"
+    },
+    "lhs": {
+      "action_affordance": "typed_recipe_vector",
+      "adapts_across_experiments": false,
+      "adapts_within_experiment": false,
+      "decision_scope": "experiment_recipe",
+      "family": "design",
+      "harness_assistance": [
+        "typed_recipe_to_operation_compiler"
+      ],
+      "implementation_status": "candidate_available",
+      "method_id": "lhs",
+      "public_observation_set": "recipe_endpoint_only",
+      "resource_profile": "classic_recipe",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "recipe_level",
+      "update_boundary": "never"
+    },
+    "live_llm_a": {
+      "action_affordance": "public_json_tool_schema",
+      "adapts_across_experiments": true,
+      "adapts_within_experiment": true,
+      "decision_scope": "operation",
+      "family": "llm",
+      "harness_assistance": [
+        "public_action_schema",
+        "json_validation_without_action_repair"
+      ],
+      "implementation_status": "pending_p3_live_adapter",
+      "method_id": "live_llm_a",
+      "public_observation_set": "operation_public_state_with_spectra",
+      "resource_profile": "live_llm_evaluation",
+      "spectrum_capability": "current_and_history_on_explicit_request",
+      "spectrum_conditions": [
+        "assigned",
+        "unassigned",
+        "masked"
+      ],
+      "track": "operation_level",
+      "update_boundary": "operation_and_completed_experiment"
+    },
+    "live_llm_b": {
+      "action_affordance": "public_json_tool_schema",
+      "adapts_across_experiments": true,
+      "adapts_within_experiment": true,
+      "decision_scope": "operation",
+      "family": "llm",
+      "harness_assistance": [
+        "public_action_schema",
+        "json_validation_without_action_repair"
+      ],
+      "implementation_status": "pending_p3_live_adapter",
+      "method_id": "live_llm_b",
+      "public_observation_set": "operation_public_state_with_spectra",
+      "resource_profile": "live_llm_evaluation",
+      "spectrum_capability": "current_and_history_on_explicit_request",
+      "spectrum_conditions": [
+        "assigned",
+        "unassigned",
+        "masked"
+      ],
+      "track": "operation_level",
+      "update_boundary": "operation_and_completed_experiment"
+    },
+    "observation_blind": {
+      "action_affordance": "currently_available_typed_operations",
+      "adapts_across_experiments": false,
+      "adapts_within_experiment": false,
+      "decision_scope": "operation",
+      "family": "operation_control",
+      "harness_assistance": [
+        "public_action_schema",
+        "available_operation_filter"
+      ],
+      "implementation_status": "pending_p3_adapter",
+      "method_id": "observation_blind",
+      "public_observation_set": "operation_affordance_only",
+      "resource_profile": "operation_baseline",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "operation_level",
+      "update_boundary": "never"
+    },
+    "operation_random": {
+      "action_affordance": "currently_available_typed_operations",
+      "adapts_across_experiments": false,
+      "adapts_within_experiment": false,
+      "decision_scope": "operation",
+      "family": "operation_random",
+      "harness_assistance": [
+        "public_action_schema",
+        "available_operation_filter"
+      ],
+      "implementation_status": "pending_p3_adapter",
+      "method_id": "operation_random",
+      "public_observation_set": "operation_affordance_only",
+      "resource_profile": "operation_baseline",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "operation_level",
+      "update_boundary": "never"
+    },
+    "ppo": {
+      "action_affordance": "native_masked_categorical_with_conditional_parameters",
+      "adapts_across_experiments": false,
+      "adapts_within_experiment": true,
+      "decision_scope": "operation",
+      "family": "reinforcement_learning",
+      "harness_assistance": [
+        "public_action_schema",
+        "public_action_mask"
+      ],
+      "implementation_status": "pending_p3_formal_checkpoint",
+      "method_id": "ppo",
+      "public_observation_set": "operation_public_state",
+      "resource_profile": "rl_evaluation",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "operation_level",
+      "update_boundary": "frozen_checkpoint_inference"
+    },
+    "random": {
+      "action_affordance": "typed_recipe_vector",
+      "adapts_across_experiments": false,
+      "adapts_within_experiment": false,
+      "decision_scope": "experiment_recipe",
+      "family": "design",
+      "harness_assistance": [
+        "typed_recipe_to_operation_compiler"
+      ],
+      "implementation_status": "candidate_available",
+      "method_id": "random",
+      "public_observation_set": "recipe_endpoint_only",
+      "resource_profile": "classic_recipe",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "recipe_level",
+      "update_boundary": "never"
+    },
+    "rule_based": {
+      "action_affordance": "currently_available_typed_operations",
+      "adapts_across_experiments": false,
+      "adapts_within_experiment": true,
+      "decision_scope": "operation",
+      "family": "operation_control",
+      "harness_assistance": [
+        "public_action_schema",
+        "available_operation_filter"
+      ],
+      "implementation_status": "pending_p3_adapter",
+      "method_id": "rule_based",
+      "public_observation_set": "operation_public_state",
+      "resource_profile": "operation_baseline",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "operation_level",
+      "update_boundary": "operation"
+    },
+    "sac": {
+      "action_affordance": "continuous_latent_through_public_action_decoder",
+      "adapts_across_experiments": false,
+      "adapts_within_experiment": true,
+      "decision_scope": "operation",
+      "family": "reinforcement_learning",
+      "harness_assistance": [
+        "public_action_schema",
+        "public_action_decoder"
+      ],
+      "implementation_status": "pending_p3_formal_checkpoint",
+      "method_id": "sac",
+      "public_observation_set": "operation_public_state",
+      "resource_profile": "rl_evaluation",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "operation_level",
+      "update_boundary": "frozen_checkpoint_inference"
+    },
+    "structured_gp_ei": {
+      "action_affordance": "typed_recipe_vector_with_one_hot_materials",
+      "adapts_across_experiments": true,
+      "adapts_within_experiment": false,
+      "decision_scope": "experiment_recipe",
+      "family": "bayesian_optimization",
+      "harness_assistance": [
+        "typed_recipe_to_operation_compiler"
+      ],
+      "implementation_status": "candidate_available",
+      "method_id": "structured_gp_ei",
+      "public_observation_set": "recipe_endpoint_only",
+      "resource_profile": "classic_recipe",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "recipe_level",
+      "update_boundary": "completed_experiment"
+    },
+    "structured_gp_pi": {
+      "action_affordance": "typed_recipe_vector_with_one_hot_materials",
+      "adapts_across_experiments": true,
+      "adapts_within_experiment": false,
+      "decision_scope": "experiment_recipe",
+      "family": "bayesian_optimization",
+      "harness_assistance": [
+        "typed_recipe_to_operation_compiler"
+      ],
+      "implementation_status": "candidate_available",
+      "method_id": "structured_gp_pi",
+      "public_observation_set": "recipe_endpoint_only",
+      "resource_profile": "classic_recipe",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "recipe_level",
+      "update_boundary": "completed_experiment"
+    },
+    "structured_gp_ucb": {
+      "action_affordance": "typed_recipe_vector_with_one_hot_materials",
+      "adapts_across_experiments": true,
+      "adapts_within_experiment": false,
+      "decision_scope": "experiment_recipe",
+      "family": "bayesian_optimization",
+      "harness_assistance": [
+        "typed_recipe_to_operation_compiler"
+      ],
+      "implementation_status": "candidate_available",
+      "method_id": "structured_gp_ucb",
+      "public_observation_set": "recipe_endpoint_only",
+      "resource_profile": "classic_recipe",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "recipe_level",
+      "update_boundary": "completed_experiment"
+    },
+    "structured_rf_ei": {
+      "action_affordance": "typed_recipe_vector_with_one_hot_materials",
+      "adapts_across_experiments": true,
+      "adapts_within_experiment": false,
+      "decision_scope": "experiment_recipe",
+      "family": "bayesian_optimization",
+      "harness_assistance": [
+        "typed_recipe_to_operation_compiler"
+      ],
+      "implementation_status": "candidate_available",
+      "method_id": "structured_rf_ei",
+      "public_observation_set": "recipe_endpoint_only",
+      "resource_profile": "classic_recipe",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "recipe_level",
+      "update_boundary": "completed_experiment"
+    },
+    "structured_safe_gp_ei": {
+      "action_affordance": "typed_recipe_vector_with_one_hot_materials",
+      "adapts_across_experiments": true,
+      "adapts_within_experiment": false,
+      "decision_scope": "experiment_recipe",
+      "family": "constrained_optimization",
+      "harness_assistance": [
+        "typed_recipe_to_operation_compiler"
+      ],
+      "implementation_status": "candidate_available",
+      "method_id": "structured_safe_gp_ei",
+      "public_observation_set": "recipe_endpoint_only",
+      "resource_profile": "classic_recipe",
+      "spectrum_capability": "none",
+      "spectrum_conditions": [
+        "masked"
+      ],
+      "track": "recipe_level",
+      "update_boundary": "completed_experiment"
+    }
+  },
+  "comparison_blocks": {
+    "operation_affordance_controls": {
+      "interpretation": "algorithm_level",
+      "methods": [
+        "operation_random",
+        "observation_blind"
+      ]
+    },
+    "operation_public_state": {
+      "interpretation": "system_level_with_matched_observation_set_and_disclosed_action_decoder",
+      "methods": [
+        "rule_based",
+        "ppo",
+        "sac"
+      ]
+    },
+    "operation_spectral_llm": {
+      "interpretation": "algorithm_level_when_prompt_and_model_roles_are_frozen",
+      "methods": [
+        "live_llm_a",
+        "live_llm_b"
+      ]
+    },
+    "recipe_design_and_search": {
+      "interpretation": "algorithm_level_with_adaptation_strategy_as_a_method_property",
+      "methods": [
+        "random",
+        "lhs",
+        "greedy_local",
+        "structured_gp_ei",
+        "structured_gp_pi",
+        "structured_gp_ucb",
+        "structured_rf_ei",
+        "structured_safe_gp_ei"
+      ]
+    }
+  },
+  "controls": {
+    "comparison_blocks_cover_each_method_once": true,
+    "cross_track_claims_are_restricted": true,
+    "declared_tracks_match_track_membership": true,
+    "every_method_has_a_valid_complete_declaration": true,
+    "experiment_budget_and_checkpoints_match_parent": true,
+    "interaction_contract_version_matches_runtime": true,
+    "operation_track_scope_is_exact": true,
+    "parallel_resource_axes_are_complete_and_not_scalarized": true,
+    "parent_formal_protocol_is_exact_and_ready": true,
+    "recipe_track_scope_is_exact": true,
+    "registration_fails_closed_on_missing_or_observed_drift": true,
+    "registration_requirements_are_complete": true,
+    "schema_and_state_are_nonclaiming": true,
+    "spectrum_access_is_paired_explicit_and_costed": true,
+    "system_level_differences_are_material_and_visible": true,
+    "tracks_are_disjoint": true
+  },
+  "controls_ready": true,
+  "formal_results_present": false,
+  "limitations": [
+    "This audit freezes fairness controls; it does not assert that pending adapters exist.",
+    "Cross-track differences are system-level and cannot support algorithm-only superiority.",
+    "Resource axes remain parallel quantities and are not collapsed into one cost score."
+  ],
+  "next_gates": [
+    "freeze paired estimands and multiplicity control",
+    "implement the formal runner and resource accounting",
+    "validate and freeze each method adapter on Train/Dev only"
+  ],
+  "protocol_id": "chemworld-benchmark-v0.5-interaction-strata-0.4",
+  "protocol_sha256": "53381fcc08275ffeda836dbc66b621efdba358ce052aa0bd9ffee80c454498a9",
+  "registration_failures": {},
+  "resource_axes": [
+    "complete_experiment_count",
+    "operation_count",
+    "measurement_count",
+    "decision_count",
+    "provider_request_count",
+    "provider_retry_count",
+    "input_token_count",
+    "output_token_count",
+    "monetary_cost_usd",
+    "fit_count",
+    "acquisition_optimization_count",
+    "training_environment_step_count",
+    "cpu_time_s",
+    "gpu_time_s",
+    "wall_time_s"
+  ],
+  "schema_version": "chemworld-interaction-strata-audit-0.4",
+  "source_commit": "8a5d05f58bbd87eb3bbfa4baef3f5f050007a45b",
+  "source_tree_dirty": false,
+  "status": "interaction_strata_frozen_methods_pending",
+  "track_summary": {
+    "operation_level": {
+      "method_count": 7,
+      "methods": [
+        "operation_random",
+        "observation_blind",
+        "rule_based",
+        "ppo",
+        "sac",
+        "live_llm_a",
+        "live_llm_b"
+      ]
+    },
+    "recipe_level": {
+      "method_count": 8,
+      "methods": [
+        "random",
+        "lhs",
+        "greedy_local",
+        "structured_gp_ei",
+        "structured_gp_pi",
+        "structured_gp_ucb",
+        "structured_rf_ei",
+        "structured_safe_gp_ei"
+      ]
+    }
+  }
+}

@@ -107,13 +107,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：Train/Dev/reference-search 分别冻结 100/20/100 个全新公开种子且与 P0 的 280 个污染种子不相交；Bench 在 Git 私有区一次性封存 100 个配对身份，每个身份绑定四个 core task、两条任务世界轴与四种干预模式（32 个世界分配），公开仓库和审计报告只保留 SHA-256 承诺 `dc7888fa…2b8f5b7`、计数和状态，不包含 seed 或世界参数。协议同时哈希绑定六项 P0 证据、portable backend 语义、任务 SESOI/风险/成本阈值，并将 0.1–0.3 全部限定为 diagnostic；14 个篡改/泄漏/重叠/版本失配测试与 30 个相邻边界测试通过。
   - 验收：协议审计可证明所有 split 不相交、Bench 未被运行/查看、旧 0.1–0.3 全部为 diagnostic。
 
-- [ ] **`benchmark-v05-interaction-strata` — recipe 与 operation 级公平比较合同**
+- [x] **`benchmark-v05-interaction-strata` — recipe 与 operation 级公平比较合同**
   - 默认 owned_paths：`configs/benchmark/interaction_strata_v0.4.json`、`src/chemworld/eval/interaction_strata.py`、`tests/test_interaction_strata.py`、`workstreams/benchmark_v1/reports/interaction-strata-v0.4.json`。
   - 依赖：formal protocol 0.4。
-  - [ ] 建立 recipe-level track：random、LHS、greedy、GP/RF/Safe-GP，只在完整实验之间更新。
-  - [ ] 建立 operation-level track：operation-random、observation-blind、rule-based、RL、LLM，可在实验内适应并按需读谱。
-  - [ ] 不把两个 track 的差异冒充算法优劣；另外给出 system-level comparison，完整披露能力差异和 harness assistance。
-  - [ ] 冻结实验、操作、测量、模型调用和训练计算的并列预算/资源账本，不做单一资源标量化。
+  - [x] 建立 recipe-level track：random、LHS、greedy、GP/RF/Safe-GP，只在完整实验之间更新。
+  - [x] 建立 operation-level track：operation-random、observation-blind、rule-based、RL、LLM，可在实验内适应并按需读谱。
+  - [x] 不把两个 track 的差异冒充算法优劣；另外给出 system-level comparison，完整披露能力差异和 harness assistance。
+  - [x] 冻结实验、操作、测量、模型调用和训练计算的并列预算/资源账本，不做单一资源标量化。
+  - 结果：冻结 8 个 recipe-level 与 7 个 operation-level 方法声明，分成 recipe 设计/搜索、operation affordance controls、公共状态控制和谱图 LLM 四个比较块；跨 track 仅允许 system-level 描述且禁止合并排名。每个方法均声明观测集、谱图/历史谱图能力、适应层级、action affordance、更新边界、实现状态及 harness assistance，其中 recipe 编译器、operation mask/decoder 和 LLM JSON 校验均显式披露。完整实验、操作、测量、决策、API 请求/重试、tokens、金额、拟合/采集优化、训练步数、CPU/GPU/wall time 共 15 条资源轴并列记录，不标量化；23 个定向和相邻合同测试通过。
   - 验收：每个方法声明 decision scope、可见观测、谱图能力、适应层级和自动化帮助；缺失声明无法注册。
 
 - [ ] **`benchmark-v05-statistical-analysis-plan` — 正式统计与失败处理方案**
