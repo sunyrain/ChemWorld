@@ -117,13 +117,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：冻结 8 个 recipe-level 与 7 个 operation-level 方法声明，分成 recipe 设计/搜索、operation affordance controls、公共状态控制和谱图 LLM 四个比较块；跨 track 仅允许 system-level 描述且禁止合并排名。每个方法均声明观测集、谱图/历史谱图能力、适应层级、action affordance、更新边界、实现状态及 harness assistance，其中 recipe 编译器、operation mask/decoder 和 LLM JSON 校验均显式披露。完整实验、操作、测量、决策、API 请求/重试、tokens、金额、拟合/采集优化、训练步数、CPU/GPU/wall time 共 15 条资源轴并列记录，不标量化；23 个定向和相邻合同测试通过。
   - 验收：每个方法声明 decision scope、可见观测、谱图能力、适应层级和自动化帮助；缺失声明无法注册。
 
-- [ ] **`benchmark-v05-statistical-analysis-plan` — 正式统计与失败处理方案**
+- [x] **`benchmark-v05-statistical-analysis-plan` — 正式统计与失败处理方案**
   - 默认 owned_paths：`configs/benchmark/statistical_analysis_plan_v0.4.json`、`src/chemworld/eval/formal_statistics.py`、`tests/test_formal_statistics.py`、`workstreams/benchmark_v1/reports/statistical-analysis-plan-v0.4.json`。
   - 依赖：task validity/power 与 interaction strata。
-  - [ ] 冻结 paired estimand、bootstrap/随机化检验、置信区间、Holm 多重比较、SESOI 和安全/成本非劣界限。
-  - [ ] 主结论要求目标改善、达到 SESOI、安全非劣、成本非劣和全部回放同时成立；不以总分替代联合规则。
-  - [ ] 失败运行保留在分母，并分别报告 invalid action、provider/model failure、runtime failure、budget overrun 和 incomplete accounting。
-  - [ ] 冻结 family champion 选择规则，只允许 Dev 选型；Bench 不做超参数、提示词或 checkpoint 选择。
+  - [x] 冻结 paired estimand、bootstrap/随机化检验、置信区间、Holm 多重比较、SESOI 和安全/成本非劣界限。
+  - [x] 主结论要求目标改善、达到 SESOI、安全非劣、成本非劣和全部回放同时成立；不以总分替代联合规则。
+  - [x] 失败运行保留在分母，并分别报告 invalid action、provider/model failure、runtime failure、budget overrun 和 incomplete accounting。
+  - [x] 冻结 family champion 选择规则，只允许 Dev 选型；Bench 不做超参数、提示词或 checkpoint 选择。
+  - 结果：100 个 opaque paired identities 上冻结 task-level paired percentile bootstrap（20,000）、sign-flip randomization（100,000）、四 core task 内 Holm、任务 SESOI，以及 8 个安全/成本同时比较对应的 0.99375 单侧上界和 5% 非劣 margin。首要对比限定为 masked 条件下 Dev 选出的 operation champion 对 operation-random；其他 recipe/RL/LLM 家族为独立 secondary，不挤占 P0 功效假设。成功必须同时通过正向区间、Holm、SESOI、安全/成本非劣、完整矩阵、全部 replay 和完整 accounting；失败按五类保留在 100-pair 分母。null 不通过、positive 4/4 通过、unsafe/cost-regressing 目标虽通过但联合失败、单个 failed run 仍保持 100 分母且联合失败；24 个新旧相邻统计测试通过。
   - 验收：用纯合成 null/positive/unsafe/cost-regressing fixtures 证明 false positive、功效和失败处理符合协议。
 
 - [ ] **`benchmark-v05-reference-plan-0.4` — 独立 reference portfolio 重建计划**
