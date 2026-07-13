@@ -180,12 +180,13 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 
 ## P3：开发、验证并封存方法
 
-- [ ] **`benchmark-v05-classic-adapters` — 经典与主动学习基线封存**
+- [x] **`benchmark-v05-classic-adapters` — 经典与主动学习基线封存**
   - 默认 owned_paths：各 classic adapter、对应测试、`configs/methods/classic_v0.4/`、`workstreams/benchmark_v1/reports/classic-dev-v0.4.json`。
   - 依赖：P2 preflight。
-  - [ ] 注册 random、LHS、greedy local、typed structured GP-EI/PI/UCB、RF-EI、Safe-GP；材料类别必须 one-hot/typed，禁止数字代号产生伪距离。
-  - [ ] 在 Train/Dev 检查采集函数确实进入优化阶段、Safe-GP 约束被激活、预算曲线非退化和确定性回放。
-  - [ ] 只用 Dev 选择预注册 family champion；冻结代码、超参数和 method hash。
+  - [x] 注册 random、LHS、greedy local、typed structured GP-EI/PI/UCB、RF-EI、Safe-GP；材料类别必须 one-hot/typed，禁止数字代号产生伪距离。
+  - [x] 在 Train/Dev 检查采集函数确实进入优化阶段、Safe-GP 约束被激活、预算曲线非退化和确定性回放。
+  - [x] 只用 Dev 选择预注册 family champion；冻结代码、超参数和 method hash。
+  - 结果：八种 recipe-level 方法均由唯一、source-bound 的 formal adapter 注册；GP/RF/Safe-GP 对溶剂、催化剂等名义类别使用 one-hot，greedy local 只对连续坐标作局部扰动并以无序类别突变探索材料，LHS 对名义类别只作平衡分层而不建立距离模型。正式开发矩阵严格使用 4 个 Train seed 与完整 20 个 Dev seed，覆盖 4 个 core task、40 次完整实验，共 768 cells、30,720 次完整实验和 307,200 次显式操作；768/768 完成、0 invalid action、资源账本全部完整，32/32 预注册双跑确定性一致。五种 surrogate 方法共实际执行 17,280 次 fit 与 17,280 次 acquisition optimization；Safe-GP 在 96 个 cell 中有 95 个实际收缩可行候选集或触发最低风险 fallback，其余一个 cell 的全部候选均满足风险上界。所有方法的 4/8/12/20/40 预算曲线均非退化。只按 Dev 规则选出 design=`lhs`、local search=`greedy_local`、Bayesian optimization=`structured_gp_ucb`、constrained optimization=`structured_safe_gp_ei`；没有访问 Bench 或 reference-search。旧 Safe-GP confirmatory freeze 因策略源码升级而按设计 fail-closed，其历史 Bench 结果不继承到 v0.4；完整开发证据见 `classic-dev-v0.4.json`。
   - 验收：每种方法的能力、失败域、复杂度和资源 ledger 完整；不使用 Bench/reference 反馈。
 
 - [ ] **`benchmark-v05-rl-adapters` — PPO/SAC 正式适配、训练与 checkpoint 封存**
