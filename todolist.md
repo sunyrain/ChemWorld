@@ -45,13 +45,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：扫描 40 份当前公开配置、79 个历史配置 blob、160 份结果和 160 个轨迹身份，隔离 280 个已暴露 seed 与 280 个 world-cell 身份；旧 `primary-0.3` 的 160/160 结果均回放通过但绑定 `lite` maturity，因此统一为 `pre-v0.5_diagnostic_only`。正式 guard 对暴露 seed、旧协议、非 claimable 协议、缺失 backend semantic hash 或私有 seed commitment 全部 fail closed，且没有 force override。
   - 验收：扫描覆盖所有保留 artifact；任一正式配置引用 denylist 即测试失败；报告明确 `benchmark_claim_allowed=false`。
 
-- [ ] **`foundation-v05-contract-coherence` — task/world/score/reference/method 协议一致性收口**
-  - 默认 owned_paths：`configs/foundation/contract_coherence_v0.5.json`、`scripts/audit_contract_coherence_v0.5.py`、`tests/test_contract_coherence_v0.5.py`、`workstreams/world_foundation/reports/contract-coherence-v0.5.json`。
+- [x] **`foundation-v05-contract-coherence` — task/world/score/reference/method 协议一致性收口**
+  - 默认 owned_paths：`configs/foundation/contract_coherence_v0.5.json`、`scripts/audit_contract_coherence_v0.5.py`、`tests/test_contract_coherence_v0_5.py`、`workstreams/world_foundation/reports/contract-coherence-v0.5.json`。
   - 依赖：`benchmark-v05-evidence-quarantine`。
-  - [ ] 从注册任务生成唯一合同图：task → operation → provider → observation → primary metric → risk/cost → world axes → evaluator → replay schema。
-  - [ ] 检查六个严肃任务、四个 core 角色与两个 exploratory 角色在所有协议中同源；消除 `20–39` 与 `300–319`、方法别名、`greedy`/`greedy_local` 等漂移。
-  - [ ] 检查单位、方向、预算、失败、终止、测量和 final assay 语义不存在重复真相源。
-  - [ ] 对 protocol/model/checkpoint/backend hash 建立兼容矩阵，拒绝“schema 相同但语义不同”的 artifact。
+  - [x] 从注册任务生成唯一合同图：task → operation → provider → observation → primary metric → risk/cost → world axes → evaluator → replay schema。
+  - [x] 检查六个严肃任务、四个 core 角色与两个 exploratory 角色在所有协议中同源；消除 `20–39` 与 `300–319`、方法别名、`greedy`/`greedy_local` 等漂移。
+  - [x] 检查单位、方向、预算、失败、终止、测量和 final assay 语义不存在重复真相源。
+  - [x] 对 protocol/model/checkpoint/backend hash 建立兼容矩阵，拒绝“schema 相同但语义不同”的 artifact。
+  - 结果：六任务合同图与 15-task runtime reachability 同源，四个 formal-core 与两个 exploratory 角色精确对齐；12 个正式方法 ID、9 个 legacy runner alias 和两个排除 stub 已分层。任务主指标、final-assay、风险/成本、资源失败、版本与成熟度控制全部通过，三份旧 seed 协议只允许从 quarantine 读取。backend semantic hash 由后续 portable-release gate 生成，在此之前仍保持 `benchmark_claim_allowed=false`。
   - 验收：所有正式配置可由同一 manifest 解析；不存在未注册 task/method/provider、悬空依赖或不一致 seed grid。
 
 - [ ] **`foundation-v05-composed-runtime-stress` — 完整基座组合压力与回放测试**
