@@ -127,13 +127,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：100 个 opaque paired identities 上冻结 task-level paired percentile bootstrap（20,000）、sign-flip randomization（100,000）、四 core task 内 Holm、任务 SESOI，以及 8 个安全/成本同时比较对应的 0.99375 单侧上界和 5% 非劣 margin。首要对比限定为 masked 条件下 Dev 选出的 operation champion 对 operation-random；其他 recipe/RL/LLM 家族为独立 secondary，不挤占 P0 功效假设。成功必须同时通过正向区间、Holm、SESOI、安全/成本非劣、完整矩阵、全部 replay 和完整 accounting；失败按五类保留在 100-pair 分母。null 不通过、positive 4/4 通过、unsafe/cost-regressing 目标虽通过但联合失败、单个 failed run 仍保持 100 分母且联合失败；24 个新旧相邻统计测试通过。
   - 验收：用纯合成 null/positive/unsafe/cost-regressing fixtures 证明 false positive、功效和失败处理符合协议。
 
-- [ ] **`benchmark-v05-reference-plan-0.4` — 独立 reference portfolio 重建计划**
+- [x] **`benchmark-v05-reference-plan-0.4` — 独立 reference portfolio 重建计划**
   - 默认 owned_paths：`configs/benchmark/reference_portfolio_v0.4.json`、`configs/benchmark/reference_regret_v0.4.json`、`tests/test_reference_portfolio_v0.4.py`、`workstreams/benchmark_v1/reports/reference-plan-v0.4.json`。
   - 依赖：formal protocol 与统计方案冻结。
-  - [ ] 绑定新 reference-search split、新 seed namespace、backend/evaluator hash 和四个 core task，彻底移除旧 `20–39`。
-  - [ ] reference builder 身份不得与任一被评方法重合；其训练、搜索、轨迹和随机数流独立。
-  - [ ] 每个 task × seed × metric 至少四个独立 source runs；冻结 best-known estimate 与不确定区间，明确“不是 oracle、允许被方法超过”。
-  - [ ] 在任何方法 Bench 评分前冻结完整 manifest；后续更新 reference 必须新版本并重算所有方法。
+  - [x] 绑定新 reference-search split、新 seed namespace、backend/evaluator hash 和四个 core task，彻底移除旧 `20–39`。
+  - [x] reference builder 身份不得与任一被评方法重合；其训练、搜索、轨迹和随机数流独立。
+  - [x] 每个 task × seed × metric 至少四个独立 source runs；冻结 best-known estimate 与不确定区间，明确“不是 oracle、允许被方法超过”。
+  - [x] 在任何方法 Bench 评分前冻结完整 manifest；后续更新 reference 必须新版本并重算所有方法。
+  - 结果：reference 目标绑定同一私有 Bench task/pair/world cell，但 builder RNG 来自全新 `12000–12099` reference-search namespace，实际 Bench seed 始终只在私有 manifest 中解析。精确计划含 4 tasks × 100 opaque pairs × 2 metrics = 800 reference cells、每 cell 四个独立 source、共 1,600 个唯一 run/RNG、64,000 次完整实验、3,200 条 source-metric 记录和最多 640,000 个 operation；四种 source profile 的 builder identity、代码摘要、训练/搜索 RNG 与 15 个被评方法强制分离。estimate 是带 20,000 次 bootstrap 区间的 empirical best-known，不是 oracle；负 regret 保留。任何缺失 source、replay/accounting/digest 失败都会阻止方法 Bench 评分，完整 reference manifest 必须先冻结；22 个新旧 reference 测试通过。
   - 验收：run plan 可枚举精确 cell/run 数和预计资源；仍保持 `formal_results_present=false`。
 
 ## P2：统一正式执行基础设施
