@@ -1,0 +1,81 @@
+{
+  "schema_version": "chemworld-reference-regret-protocol-0.4",
+  "protocol_id": "chemworld-benchmark-v0.5-reference-regret-0.4",
+  "status": "frozen_controls_reference_evidence_pending",
+  "formal_results_present": false,
+  "benchmark_claim_allowed": false,
+  "portfolio_plan_id": "chemworld-benchmark-v0.5-reference-portfolio-0.4",
+  "reference_record_schema_version": "chemworld-reference-estimate-0.4",
+  "method_record_schema_version": "chemworld-method-score-observation-0.4",
+  "result_schema_version": "chemworld-evaluation-result-0.3",
+  "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
+  "formal_core_tasks": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization"
+  ],
+  "private_pair_count": 100,
+  "private_pair_identity": "opaque_pair_index_bound_to_private_bench_commitment",
+  "metrics": {
+    "task_primary": {
+      "source": "score_replay.layered_evaluation.task_primary.best",
+      "direction": "maximize",
+      "unit": "task_contract_unit"
+    },
+    "task_score": {
+      "source": "score_replay.layered_evaluation.objective.best",
+      "direction": "maximize",
+      "unit": "normalized_task_score"
+    }
+  },
+  "reference_semantics": {
+    "kind": "independent_best_known_estimate",
+    "is_oracle": false,
+    "may_be_exceeded_by_evaluated_methods": true,
+    "signed_regret": "reference_estimate_minus_method_value",
+    "negative_regret_policy": "preserve_and_report",
+    "random_sample_maximum_allowed_as_reference": false,
+    "update_policy": "new_protocol_version_and_recompute_all_methods"
+  },
+  "coverage_policy": {
+    "required_grid": "formal_task_x_private_pair_x_metric",
+    "expected_reference_cell_count": 800,
+    "minimum_independent_source_count_per_cell": 4,
+    "duplicate_reference_cell": "fail",
+    "missing_reference_cell": "fail",
+    "incomplete_method_grid": "fail_and_report",
+    "reference_and_method_target_world_must_match": true
+  },
+  "independence_policy": {
+    "builder_id": "independent_reference_portfolio_v0_4",
+    "builder_identity_code_and_rng_disjoint_from_evaluated_methods": true,
+    "reference_and_method_trajectory_digests_disjoint": true,
+    "reference_frozen_before_method_scoring": true,
+    "evaluated_methods_cannot_read_reference_search_trajectories": true,
+    "evaluated_methods_receive_no_reference_value_during_episode": true
+  },
+  "uncertainty_policy": {
+    "per_cell_interval_required": true,
+    "confidence_level": 0.95,
+    "reference_source_bootstrap_samples": 20000,
+    "paired_method_summary": "paired_private_identity_bootstrap",
+    "paired_method_bootstrap_samples": 20000,
+    "interval_propagation": "report_reference_and_method_uncertainty_separately"
+  },
+  "failure_policy": {
+    "nonfinite_reference": "reject_cell",
+    "invalid_interval": "reject_cell",
+    "source_count_below_four": "reject_cell",
+    "replay_or_digest_mismatch": "reject_manifest",
+    "method_exceeds_reference": "retain_negative_regret_not_an_error",
+    "reference_update_after_method_scoring": "new_version_and_recompute_all_methods"
+  },
+  "reporting": {
+    "per_task_per_metric_required": true,
+    "signed_regret_distribution_required": true,
+    "method_exceeds_reference_count_required": true,
+    "reference_source_count_and_interval_required": true,
+    "cross_task_regret_scalar": null
+  }
+}
