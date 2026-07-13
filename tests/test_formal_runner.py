@@ -111,6 +111,10 @@ def _issued(spec: FormalCellSpec) -> IssuedFormalCell:
     return load_issued_cell(manifest, cell_identity_sha256=spec.cell_identity_sha256)
 
 
+def _staging_attempts(root: Path, spec: FormalCellSpec) -> list[Path]:
+    return sorted((root / ".staging").glob(f"{spec.cell_identity_sha256[:16]}-*"))
+
+
 def _record(
     step: int,
     *,
@@ -612,7 +616,7 @@ def test_process_or_disk_interruption_never_publishes_half_a_cell(tmp_path, beha
             replay_evaluator=_replay,
         )
     assert not (tmp_path / "cells" / spec.cell_identity_sha256).exists()
-    attempts = list((tmp_path / ".staging" / spec.cell_identity_sha256).iterdir())
+    attempts = _staging_attempts(tmp_path, spec)
     assert len(attempts) == 1
     assert not (attempts[0] / "completion.json").exists()
 
@@ -637,7 +641,7 @@ def test_interrupted_cell_can_retry_same_identity_without_using_partial_output(t
         replay_evaluator=_replay,
     )
     assert outcome.status == "succeeded"
-    attempts = list((tmp_path / ".staging" / spec.cell_identity_sha256).iterdir())
+    attempts = _staging_attempts(tmp_path, spec)
     assert len(attempts) == 1
 
 
@@ -706,4 +710,4 @@ def test_explicit_staging_cleanup_never_deletes_a_published_cell(tmp_path) -> No
             replay_evaluator=_replay,
         )
     assert discard_incomplete_staging(tmp_path, cell_identity_sha256=spec.cell_identity_sha256) == 1
-    assert not (tmp_path / ".staging" / spec.cell_identity_sha256).exists()
+    assert not _staging_attempts(tmp_path, spec)

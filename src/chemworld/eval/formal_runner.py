@@ -529,7 +529,7 @@ def run_formal_cell(
             )
 
         attempt_id = uuid.uuid4().hex
-        staging = root / ".staging" / spec.cell_identity_sha256 / attempt_id
+        staging = root / ".staging" / (f"{spec.cell_identity_sha256[:16]}-{attempt_id[:16]}")
         staging.mkdir(parents=True, exist_ok=False)
         trajectory_path = staging / "trajectory.jsonl"
         started_at = _utc_now()
@@ -1169,15 +1169,29 @@ def discard_incomplete_staging(output_root: str | Path, *, cell_identity_sha256:
 
     _require_sha256(cell_identity_sha256, "cell identity")
     root = Path(output_root).resolve()
-    staging = root / ".staging" / cell_identity_sha256
+    staging_root = root / ".staging"
     published = root / "cells" / cell_identity_sha256
     if published.exists():
         raise CellIntegrityError("refusing to discard staging for a published cell")
-    if not staging.is_dir():
+    if not staging_root.is_dir():
         return 0
-    attempts = sum(1 for item in staging.iterdir() if item.is_dir())
-    shutil.rmtree(staging)
-    return attempts
+    candidates = sorted(staging_root.glob(f"{cell_identity_sha256[:16]}-*"))
+    removed = 0
+    for candidate in candidates:
+        if not candidate.is_dir() or candidate.is_symlink():
+            raise CellIntegrityError("incomplete staging candidate is not a regular directory")
+        manifest_path = candidate / "manifest.json"
+        if manifest_path.is_file():
+            manifest = _read_object(manifest_path)
+            cell = manifest.get("cell")
+            if (
+                not isinstance(cell, Mapping)
+                or cell.get("cell_identity_sha256") != cell_identity_sha256
+            ):
+                raise CellIntegrityError("staging prefix collision or identity mismatch")
+        shutil.rmtree(candidate)
+        removed += 1
+    return removed
 
 
 __all__ = [
