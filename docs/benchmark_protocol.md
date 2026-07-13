@@ -78,7 +78,9 @@ Campaign  一次 task × world × seed × method 运行
 0.2 冻结诊断使用 seeds 20–39，objective-only 规则通过但暴露三任务风险退化。0.3 随后在运行前
 冻结 seeds 300–319、5 个百分点安全非劣界限、5% 相对成本非劣界限和 Bonferroni 同时上界。
 0.3 的四任务 objective 与 cost 规则通过，但三任务 safety 规则失败，因此完整主比较失败。
-这两个 cohort 都已消费。
+这两个 cohort 都已消费，并且绑定 pre-v0.5 backend；它们只能解释协议为何改变，不能用于当前排名。
+后续正式 preflight 会拒绝仓库公开配置、历史结果或文档中已经暴露的任何 seed，而不是只维护一组
+手工排除范围。
 
 Safe-GP 随后仅在 Dev seeds 1100–1119 上修复和选择。确认协议 0.1 在看见结果前冻结实现文件摘要、
 recipe space 0.2、峰值风险标签、seeds 500–519、四任务 SESOI 和相同的安全/成本非劣规则。240 条

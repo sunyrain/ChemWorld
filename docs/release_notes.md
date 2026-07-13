@@ -49,12 +49,13 @@
 - 连续流平均目标效应 0.018752 低于 SESOI 0.020000，完整联合规则为 `false`；
 - benchmark、publication 与方法优越性主张继续关闭，seeds 500–519 不得用于后续调参。
 
-## 2026-07-12 · Constrained fresh-cohort evidence
+## 2026-07-12 · Consumed constrained-cohort evidence
 
 - 归档 0.2 objective-only 协议与证据，不复用其 seeds 20–39；
 - 0.3 在运行前冻结 seeds 300–319、安全/成本非劣界限和同时置信上界；
 - 新 160-run cohort 与第二遍独立 replay 均为 160/160，失败 0；
 - 四任务 objective 和 cost 非劣通过；分配 safety 通过，流动/结晶/蒸馏 safety 失败；
+- 该 cohort 绑定 pre-v0.5 backend，现已隔离为 diagnostic，不构成当前正式排名；
 - 完整 classical primary rule 为 `false`，benchmark/publication claims 保持关闭。
 
 ## 2026-07-12 · Documentation and evaluation redesign

@@ -35,13 +35,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 
 ## P0：修复协议错误并证明基座完整
 
-- [ ] **`benchmark-v05-evidence-quarantine` — 污染 cohort 与旧证据隔离**
+- [x] **`benchmark-v05-evidence-quarantine` — 污染 cohort 与旧证据隔离**
   - 默认 owned_paths：`configs/benchmark/evidence_quarantine_v0.5.json`、`scripts/audit_evidence_quarantine.py`、`tests/test_evidence_quarantine.py`、`workstreams/benchmark_v1/reports/evidence-quarantine-v0.5.json`。
   - 依赖：无，必须最先完成。
-  - [ ] 枚举仓库、`runs/`、报告、文档和 git 历史中所有用过或被查看过的 Train/Dev/Bench/reference seeds 与 world cells。
-  - [ ] 将 `20–39`、`300–319` 及其派生结果标记为 `diagnostic_only`；解释 `primary-0.3` 绑定旧 `lite` maturity/backend 的事实，禁止重命名为 v0.5 正式结果。
-  - [ ] 建立机器可读 denylist，正式 runner 在检测到污染 seed、旧 backend、旧 evaluator 或旧协议时直接拒绝启动。
-  - [ ] 检查文档不再把 `300–319` 称为 fresh/confirmatory；保留其诊断价值但移除正式措辞。
+  - [x] 枚举仓库、`runs/`、报告、文档和 git 历史中所有用过或被查看过的 Train/Dev/Bench/reference seeds 与 world cells。
+  - [x] 将 `20–39`、`300–319` 及其派生结果标记为 `diagnostic_only`；解释 `primary-0.3` 绑定旧 `lite` maturity/backend 的事实，禁止重命名为 v0.5 正式结果。
+  - [x] 建立机器可读 denylist，正式 runner 在检测到污染 seed、旧 backend、旧 evaluator 或旧协议时直接拒绝启动。
+  - [x] 检查文档不再把 `300–319` 称为 fresh/confirmatory；保留其诊断价值但移除正式措辞。
+  - 结果：扫描 40 份当前公开配置、79 个历史配置 blob、160 份结果和 160 个轨迹身份，隔离 280 个已暴露 seed 与 280 个 world-cell 身份；旧 `primary-0.3` 的 160/160 结果均回放通过但绑定 `lite` maturity，因此统一为 `pre-v0.5_diagnostic_only`。正式 guard 对暴露 seed、旧协议、非 claimable 协议、缺失 backend semantic hash 或私有 seed commitment 全部 fail closed，且没有 force override。
   - 验收：扫描覆盖所有保留 artifact；任一正式配置引用 denylist 即测试失败；报告明确 `benchmark_claim_allowed=false`。
 
 - [ ] **`foundation-v05-contract-coherence` — task/world/score/reference/method 协议一致性收口**

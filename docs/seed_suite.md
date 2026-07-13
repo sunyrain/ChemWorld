@@ -37,9 +37,10 @@ chemworld seeds show --tasks reaction-to-assay partition-discovery
 新决策规则后必须换用未触碰的 cohort，不能对同一数据追补门槛再称为确认实验。
 
 约束协议 0.3 使用 seeds `300–319`，暴露普通 GP 的三任务安全失败。Safe-GP 只在 Dev seeds
-`1100–1119` 上修复与选择，再使用未触碰 seeds `500–519` 做冻结确认。后者四任务 safety/cost
-通过但连续流未达到 SESOI，因此 `500–519` 也已消费为正式边界证据。不能在这些结果上修改策略
-后继续称为同一次确认；新候选必须重新冻结新的 paired seeds。
+`1100–1119` 上修复与选择，再使用当时未触碰的 seeds `500–519` 做冻结确认。后者四任务
+safety/cost 通过但连续流未达到 SESOI。由于这些实验均早于 backend v0.5，`20–39`、`300–319`
+和 `500–519` 现在统一属于已消费的 pre-v0.5 diagnostic，不能进入当前后端排名。新候选必须使用
+机器审计确认从未公开、运行或查看的新 paired seeds。
 
 ## 三种变化，三种不同证据
 

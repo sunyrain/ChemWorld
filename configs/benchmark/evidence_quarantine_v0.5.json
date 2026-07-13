@@ -1,0 +1,89 @@
+{
+  "schema_version": "chemworld-evidence-quarantine-policy-0.1",
+  "policy_id": "chemworld-v0.5-evidence-quarantine-0.1",
+  "status": "active_formal_guard",
+  "benchmark_claim_allowed": false,
+  "formal_results_present": false,
+  "exposure_sources": {
+    "public_config_globs": [
+      "configs/benchmark/*.json",
+      "configs/foundation/*.json"
+    ],
+    "git_history_pathspecs": [
+      "configs/benchmark",
+      "configs/foundation"
+    ],
+    "retained_result_globs": [
+      "runs/benchmark-vnext/primary-0.3/runs/*/*/results/*.json"
+    ],
+    "retained_trajectory_globs": [
+      "runs/benchmark-vnext/primary-0.3/runs/*/*/trajectories/*.jsonl"
+    ]
+  },
+  "known_consumed_cohorts": [
+    {
+      "cohort_id": "publication-0.1",
+      "start": 0,
+      "stop_inclusive": 19,
+      "reason": "public pre-v0.5 publication protocol"
+    },
+    {
+      "cohort_id": "objective-only-0.2",
+      "start": 20,
+      "stop_inclusive": 39,
+      "reason": "public pre-v0.5 objective-only diagnostic"
+    },
+    {
+      "cohort_id": "constrained-0.3",
+      "start": 300,
+      "stop_inclusive": 319,
+      "reason": "retained and inspected pre-v0.5 constrained diagnostic"
+    },
+    {
+      "cohort_id": "safe-policy-confirmatory",
+      "start": 500,
+      "stop_inclusive": 519,
+      "reason": "retained and inspected pre-v0.5 safe-policy evidence"
+    }
+  ],
+  "quarantined_protocol_ids": [
+    "chemworld-vnext-confirmatory-freeze-0.3",
+    "chemworld-vnext-method-protocol-candidate-0.2",
+    "chemworld-vnext-reference-regret-candidate-0.1"
+  ],
+  "legacy_primary_0_3_expectations": {
+    "result_count": 160,
+    "trajectory_count": 160,
+    "seed_start": 300,
+    "seed_stop_inclusive": 319,
+    "results_per_seed": 8,
+    "required_physics_maturity": "lite",
+    "required_replay_verified": true
+  },
+  "documentation_checks": {
+    "paths": [
+      "docs/seed_suite.md",
+      "docs/benchmark_protocol.md",
+      "docs/release_notes.md"
+    ],
+    "prohibited_patterns": [
+      "(?i)fresh(?:[- ]cohort)?[^\\n]{0,80}300[–-]319",
+      "300[–-]319[^\\n]{0,80}(?:fresh|未触碰|未见)"
+    ]
+  },
+  "formal_guard": {
+    "reject_any_publicly_exposed_seed": true,
+    "reject_quarantined_protocol_id": true,
+    "require_protocol_benchmark_claim_allowed": true,
+    "require_backend_id": true,
+    "require_backend_semantic_hash": true,
+    "require_private_seed_commitment": true,
+    "allow_force_override": false
+  },
+  "supersession_policy": {
+    "legacy_artifacts": "diagnostic_only",
+    "rewrite_or_relabel_legacy_artifacts": false,
+    "new_formal_protocol_required": true,
+    "new_unseen_cohort_required": true
+  }
+}
