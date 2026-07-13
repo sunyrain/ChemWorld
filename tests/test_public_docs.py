@@ -17,7 +17,7 @@ def test_public_documentation_is_user_facing_and_matches_v05_truth() -> None:
     assert report["missing_task_hashes"] == {}
 
 
-def test_professional_narrative_navigation_has_unique_existing_targets() -> None:
+def test_professional_bilingual_navigation_has_unique_existing_targets() -> None:
     report = audit_public_docs(ROOT)
     assert report["checks"]["professional_information_architecture"] is True, report
     assert report["missing_navigation_targets"] == []
@@ -25,6 +25,9 @@ def test_professional_narrative_navigation_has_unique_existing_targets() -> None
     assert report["unlisted_public_pages"] == []
     assert report["navigation_checks"]["professional_narrative_order"] is True
     assert report["navigation_checks"]["english_navigation_present"] is True
+    assert report["navigation_checks"]["english_is_not_a_chinese_nav_section"] is True
+    assert report["navigation_checks"]["locale_sources_are_isolated"] is True
+    assert report["navigation_checks"]["contextual_switch_compatible"] is True
 
 
 def test_left_and_right_navigation_fold_but_content_folding_is_opt_in() -> None:
@@ -35,3 +38,18 @@ def test_left_and_right_navigation_fold_but_content_folding_is_opt_in() -> None:
     mkdocs = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
     assert "assets/javascripts/navigation-v7.js" in mkdocs
     assert "navigation.sections" not in mkdocs
+    assert "navigation.instant" not in mkdocs
+
+
+def test_language_switch_is_a_locale_dimension_not_a_navigation_bucket() -> None:
+    report = audit_public_docs(ROOT)
+    navigation = report["navigation_checks"]
+    assert navigation["language_switch_present"] is True, report
+    assert navigation["english_is_not_a_chinese_nav_section"] is True
+    assert navigation["english_navigation_present"] is True
+
+    mkdocs = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+    assert "docs_structure: suffix" in mkdocs
+    assert "fallback_to_default: false" in mkdocs
+    assert "  - English:" not in mkdocs
+    assert "extra:\n  alternate:" not in mkdocs

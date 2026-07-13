@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import hashlib
+import importlib
 import json
 from pathlib import Path
+from time import perf_counter, process_time
 from typing import Any, Literal
 
 import gymnasium as gym
@@ -16,13 +18,17 @@ from chemworld.agents.interaction import AgentDecisionContext, InteractionCapabi
 from chemworld.rl.hybrid_actions import (
     conditional_hybrid_action_contract,
     decode_conditional_hybrid_action,
+    policy_distribution_contract,
 )
-from chemworld.rl.hybrid_policy import policy_distribution_contract
 from chemworld.rl.rewards import reward_contract
 from chemworld.tasks import get_task
 from chemworld.world.operations import OPERATION_TYPES
 
 RLAlgorithm = Literal["ppo", "sac"]
+RLResourceReportingScope = Literal[
+    "diagnostic_combined",
+    "formal_evaluation_only",
+]
 
 
 def _sha256(path: Path) -> str:
@@ -90,6 +96,7 @@ class FrozenSB3Agent(BaseAgent):
         task_id: str,
         deterministic: bool = False,
         policy_seed: int | None = None,
+        resource_reporting_scope: RLResourceReportingScope = "diagnostic_combined",
     ) -> None:
         if algorithm not in {"ppo", "sac"}:
             raise ValueError("algorithm must be ppo or sac")
@@ -100,6 +107,12 @@ class FrozenSB3Agent(BaseAgent):
         self.declared_task_id = task_id
         self.deterministic = bool(deterministic)
         self.policy_seed = policy_seed
+        if resource_reporting_scope not in {
+            "diagnostic_combined",
+            "formal_evaluation_only",
+        }:
+            raise ValueError("unsupported RL resource reporting scope")
+        self.resource_reporting_scope = resource_reporting_scope
         self.checkpoint_sha256 = _sha256(self.checkpoint)
         if self.checkpoint_manifest.get("schema_version") != "chemworld-rl-checkpoint-0.2":
             raise ValueError(
@@ -155,6 +168,8 @@ class FrozenSB3Agent(BaseAgent):
             raise ValueError("RL checkpoint latent action shape is incompatible")
         self._prediction_count = 0
         self._last_trace: list[dict[str, Any]] = []
+        self._evaluation_cpu_time_s = 0.0
+        self._evaluation_gpu_time_s = 0.0
 
     def reset(self, task_info: dict[str, Any], seed: int) -> None:
         super().reset(task_info, seed)
@@ -169,6 +184,8 @@ class FrozenSB3Agent(BaseAgent):
         self._model.set_random_seed(resolved_seed)
         self._prediction_count = 0
         self._last_trace = []
+        self._evaluation_cpu_time_s = 0.0
+        self._evaluation_gpu_time_s = 0.0
 
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
         del history
@@ -186,10 +203,24 @@ class FrozenSB3Agent(BaseAgent):
                 f"checkpoint observation shape {expected_shape} does not match public view "
                 f"shape {observation.shape}"
             )
+        model_device = str(getattr(self._model, "device", "cpu"))
+        torch_module: Any | None = None
+        if model_device.startswith("cuda"):
+            try:
+                torch_module = importlib.import_module("torch")
+            except ImportError as exc:  # pragma: no cover - guarded by SB3
+                raise RuntimeError("Torch became unavailable during RL evaluation") from exc
+            torch_module.cuda.synchronize()
+        cpu_started = process_time()
+        wall_started = perf_counter()
         action_vector, _ = self._model.predict(
             observation,
             deterministic=self.deterministic,
         )
+        if torch_module is not None:
+            torch_module.cuda.synchronize()
+            self._evaluation_gpu_time_s += perf_counter() - wall_started
+        self._evaluation_cpu_time_s += process_time() - cpu_started
         action = decode_conditional_hybrid_action(
             action_vector,
             event_action_space=self._event_action_space,
@@ -236,12 +267,14 @@ class FrozenSB3Agent(BaseAgent):
                 "training_allocation": self.checkpoint_manifest.get("allocation", {}),
                 "uses_training_reward_at_evaluation": False,
                 "public_view_only": True,
+                "resource_reporting_scope": self.resource_reporting_scope,
             }
         )
         return payload
 
     def method_resource_usage(self) -> dict[str, Any]:
         manifest = self.checkpoint_manifest
+        formal_evaluation_only = self.resource_reporting_scope == "formal_evaluation_only"
         return {
             "schema_version": "chemworld-method-resource-usage-0.1",
             "accounting_complete": True,
@@ -250,17 +283,32 @@ class FrozenSB3Agent(BaseAgent):
             "input_token_count": 0,
             "output_token_count": 0,
             "monetary_cost_usd": 0.0,
-            "training_environment_step_count": int(
-                manifest.get("training_environment_step_count", 0)
+            "training_environment_step_count": (
+                0
+                if formal_evaluation_only
+                else int(manifest.get("training_environment_step_count", 0))
             ),
-            "cpu_time_s": float(manifest.get("cpu_time_s", 0.0)),
-            "gpu_time_s": float(manifest.get("gpu_time_s", 0.0)),
+            "cpu_time_s": (
+                float(self._evaluation_cpu_time_s)
+                if formal_evaluation_only
+                else float(manifest.get("cpu_time_s", 0.0))
+            ),
+            "gpu_time_s": (
+                float(self._evaluation_gpu_time_s)
+                if formal_evaluation_only
+                else float(manifest.get("gpu_time_s", 0.0))
+            ),
             "model_provenance": {
                 "framework": "stable_baselines3",
                 "algorithm": self.algorithm,
                 "checkpoint_sha256": self.checkpoint_sha256,
                 "versions": manifest.get("versions", {}),
             },
+            "training_resource_policy": (
+                "checkpoint_ledger_only_not_evaluation_cell"
+                if formal_evaluation_only
+                else "legacy_diagnostic_combined_nonformal"
+            ),
         }
 
     def interaction_capabilities(self) -> InteractionCapabilities:
@@ -274,4 +322,9 @@ class FrozenSB3Agent(BaseAgent):
         )
 
 
-__all__ = ["FrozenSB3Agent", "RLAlgorithm", "build_frozen_rl_observation"]
+__all__ = [
+    "FrozenSB3Agent",
+    "RLAlgorithm",
+    "RLResourceReportingScope",
+    "build_frozen_rl_observation",
+]

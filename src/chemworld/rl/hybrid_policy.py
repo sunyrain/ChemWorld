@@ -8,8 +8,6 @@ probabilities are included only when required by the selected operation.
 
 from __future__ import annotations
 
-import hashlib
-import json
 from functools import partial
 from typing import Any, Self
 
@@ -21,29 +19,11 @@ from stable_baselines3.common.type_aliases import PyTorchObs, Schedule
 from torch import nn
 from torch.distributions import Categorical, Normal
 
+from chemworld.rl.hybrid_actions import (
+    POLICY_DISTRIBUTION_SCHEMA_VERSION,
+    policy_distribution_contract,
+)
 from chemworld.world.operations import OPERATION_TYPES, operation_contracts
-
-POLICY_DISTRIBUTION_SCHEMA_VERSION = "chemworld-masked-conditional-ppo-0.1"
-
-
-def policy_distribution_contract(parameter_keys: tuple[str, ...]) -> dict[str, Any]:
-    contracts = operation_contracts()
-    payload: dict[str, Any] = {
-        "schema_version": POLICY_DISTRIBUTION_SCHEMA_VERSION,
-        "operation_distribution": "public-affordance-masked categorical",
-        "parameter_distribution": "operation-conditional diagonal Gaussian",
-        "parameter_keys": list(parameter_keys),
-        "active_parameters": {
-            operation: list(contracts[operation].required_fields)
-            for operation in OPERATION_TYPES
-        },
-        "irrelevant_parameter_log_prob": False,
-        "irrelevant_parameter_entropy": False,
-        "box_carrier_is_semantic_distribution": False,
-    }
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    payload["contract_hash"] = hashlib.sha256(encoded).hexdigest()
-    return payload
 
 
 class ConditionalHybridDistribution(Distribution):
@@ -193,7 +173,7 @@ class ConditionalHybridActorCriticPolicy(ActorCriticPolicy):
                 module_gains[self.vf_features_extractor] = np.sqrt(2)
             for module, gain in module_gains.items():
                 module.apply(partial(self.init_weights, gain=gain))
-        self.optimizer = self.optimizer_class(  # type: ignore[call-arg]
+        self.optimizer = self.optimizer_class(  # type: ignore[call-arg, unused-ignore]
             self.parameters(), lr=lr_schedule(1), **self.optimizer_kwargs
         )
 

@@ -3,8 +3,8 @@
 > **Answering chemistry questions is not the same as conducting an experiment.**
 
 Experimental intelligence turns knowledge into falsifiable action. An agent must identify what remains unknown,
-select useful operations or measurements, revise explanations when evidence disagrees, and continue under safety,
-cost, and time constraints.
+choose operations or measurements that can resolve it, revise explanations when evidence disagrees, and keep moving
+under safety, cost, and time constraints.
 
 ## Six capabilities
 

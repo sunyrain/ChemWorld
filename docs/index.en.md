@@ -1,3 +1,7 @@
+<section class="cw-home-hero" markdown>
+
+<span class="cw-eyebrow">A causal world engine for experimental intelligence</span>
+
 # Give experimental intelligence its own world engine
 
 **Static benchmarks ask what a model knows. ChemWorld asks how it experiments when the answer is hidden.**
@@ -9,6 +13,22 @@ optimal recipe is not enough.
 
 ChemWorld is not a universal real-reaction predictor. It is a research environment for making experimental decision
 making scalable, comparable, and falsifiable.
+
+<div class="cw-button-row" markdown>
+
+[Read the research thesis](vision.md){ .md-button .md-button--primary }
+[Understand causal worlds](causal_worlds.md){ .md-button }
+[Inspect the evidence](research_findings.md){ .md-button }
+
+</div>
+
+<div class="cw-pill-row">
+  <span class="cw-pill">Replay-verified trajectories</span>
+  <span class="cw-pill">Causal world shifts</span>
+  <span class="cw-pill">BO · RL · LLM · World Models</span>
+</div>
+
+</section>
 
 ## Why a world engine
 
@@ -48,7 +68,8 @@ World-model adaptation cuts across all three: infer the current world from histo
 | Inspect current evidence | [Research Findings](research_findings.md) |
 | Understand the real-world path | [Real-world Bridge](real_world_bridge.md) |
 
-For APIs and local setup, use the [Chinese technical documentation](../getting_started.md).
+The complete API and local setup reference currently lives in the
+[Chinese technical documentation](https://sunyrain.github.io/ChemWorld/getting_started/).
 
 > Research status: benchmark candidate. Engine and replay controls are operational; formal cross-method adaptation,
 > private evaluation, and external bridging remain incomplete.

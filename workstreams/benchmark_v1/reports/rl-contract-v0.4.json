@@ -1,0 +1,2830 @@
+{
+  "audit_command": [
+    ".venv\\Scripts\\python.exe",
+    "scripts/audit_formal_rl_contract.py",
+    "--run-validation"
+  ],
+  "bench_evidence_used_for_method_development": false,
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "bench_and_reference_feedback_forbidden": true,
+    "benchmark_claim_denied": true,
+    "checkpoint_evidence_explicitly_pending": true,
+    "checkpoint_selection_dev_only": true,
+    "contract_only_status": true,
+    "dev_split_exact": true,
+    "exact_formal_core_tasks": true,
+    "exact_method_ids": true,
+    "five_unique_model_seeds": true,
+    "interaction_resource_profiles_match": true,
+    "no_formal_results": true,
+    "parent_todo_not_completed_by_slice": true,
+    "ppo_native_masked_conditional_contract": true,
+    "preflight_controls_ready": true,
+    "reference_repositories_unused": true,
+    "resource_controls_ready": true,
+    "runtime_dependencies_lock_bound": true,
+    "sac_latent_comparability_disclosed": true,
+    "schema_version": true,
+    "train_split_exact": true,
+    "training_resources_separate": true
+  },
+  "config_sha256": "84a2110562ab12c5d345204031deb2ce2a927c71018c31ac92aaaa5ab2d78b80",
+  "controls_ready": true,
+  "environment": {
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "python": "3.13.12"
+  },
+  "failed_checks": [],
+  "formal_ready_checkpoint_count": 0,
+  "formal_results_present": false,
+  "limitations": [
+    "This slice freezes the formal RL contract and executable adapter boundary; it does not train or select the required task-specific checkpoints.",
+    "The prior five-seed PPO flow gate is diagnostic input only and is not substituted for four-task v0.4 Train/Dev evidence; its older backend-report binding now fails closed after later mainline evidence updates.",
+    "SAC retains a bounded continuous latent carrier; its comparison to native masked-conditional PPO is system-level and discloses the decoder difference.",
+    "No formal Bench run or performance claim is allowed until the later training/checkpoint slice and method freeze are complete."
+  ],
+  "method_count": 2,
+  "next_gate": "train and Dev-select all preregistered PPO/SAC task-seed runs, then bind eight frozen checkpoints and their separate training-resource ledgers",
+  "parent_task_complete": false,
+  "protocol_bindings": {
+    "configs/benchmark/formal_protocol_v0.4.json": "3917f0e891ddf112c1c2a4c7f7a2e46c5b9cfd7ecaebee8e39ce8d6eb79989ec",
+    "configs/benchmark/interaction_strata_v0.4.json": "7c8dcf8365fb83b3a2a83f00afff292686c41755a50c6c91f6b986f72ee668f9",
+    "workstreams/benchmark_v1/reports/formal-preflight-v0.4.json": "1c8b52b260200d1081687e650252342396891fd49dff7f1992563b9a10f618ce",
+    "workstreams/benchmark_v1/reports/resource-accounting-v0.4.json": "2be9a3eb984c7cf1437da2d74af38fbe585f5a7d2fa02acc2b8cf716327e5eec"
+  },
+  "reference_evidence_used_for_method_development": false,
+  "required_checkpoint_count": 8,
+  "required_training_run_count": 40,
+  "runtime_dependencies": {
+    "stable_baselines3": "2.9.0",
+    "torch": "2.13.0"
+  },
+  "schema_version": "chemworld-formal-rl-contract-controls-0.4",
+  "source_commit": "1c80c20b64b8b6c69659c8cee69c882c09f7941d",
+  "source_files": {
+    "configs/methods/rl_v0.4/rl_methods.json": "5350d7815b4f5d1cfdb3bef9c5c892da66d7352cddc131e20c407567e499bef9",
+    "scripts/audit_formal_rl_contract.py": "6afb7044df99777cf7aa674fc7e9f4a9d141b6908b87ed64a0072f6afc562f1b",
+    "src/chemworld/agents/rl.py": "8007231bee4837d15ff9a6e04829d6b93a6e3b3bc58c59f731238fc7c5db6a3a",
+    "src/chemworld/eval/formal_rl.py": "e0ea7f52960f58f0e128419b55c94b6505335ca11ad7fdf3290a50eab4463e70",
+    "src/chemworld/rl/environment.py": "738864b04a5f156d99d2c95fcd2d7c1be0a5ab649923272760dbd0b80a1b3b57",
+    "src/chemworld/rl/evaluation.py": "097703dc41ed5c9b80fe50b1e67ad5ccff2d76b98708188402d4ff52404ca30b",
+    "src/chemworld/rl/hybrid_actions.py": "1122cacbb98f2d94edc9294e88a90ff77ad8d1b23d3dd5fde943f01bdbc51c62",
+    "src/chemworld/rl/hybrid_policy.py": "a54c5766b5a9c64e5a0058ce76e795b332cb9c1f2f1f60d70a4360516eb0d3c8",
+    "src/chemworld/rl/training.py": "8ff0efc87ee73e94e4bc21bb798bda769583e3162eaac23e23a4284e84e57615",
+    "tests/test_formal_rl.py": "38bd87d43b1ccd2c017db1bf6bd51d571c6709c9427fd96618e65e52c724cdc2",
+    "tests/test_rl_foundation_contract.py": "f5e0c8a1a0d76c33c12c2f6118925cf3dc38d75bc8ea52f3bf7232d0a4e98230",
+    "tests/test_rl_training_accounting.py": "ec75f6096ae0e0c01ef407324e813175009f5c1e0f52ecc69c517cd496f89b7b"
+  },
+  "source_tree_dirty_during_validation": false,
+  "status": "contract_ready_training_pending",
+  "task_contracts": {
+    "flow-reaction-optimization": {
+      "action_contract": {
+        "contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "empty_operation_mask_policy": "retain global argmax so the environment records the invalid transition",
+        "numeric_policy": "normalize decoded numpy values before execution",
+        "schema_version": "chemworld-conditional-hybrid-action-0.1",
+        "semantic_action": {
+          "operation": {
+            "categories": [
+              "add_reagent",
+              "add_solvent",
+              "add_catalyst",
+              "heat",
+              "wait",
+              "sample",
+              "quench",
+              "add_phase",
+              "add_extractant",
+              "mix",
+              "settle",
+              "separate_phase",
+              "wash",
+              "dry",
+              "concentrate",
+              "transfer",
+              "seed_crystals",
+              "cool_crystallize",
+              "filter_crystals",
+              "evaporate",
+              "distill",
+              "collect_fraction",
+              "set_flow_rate",
+              "run_flow",
+              "set_potential",
+              "electrolyze",
+              "terminate",
+              "measure"
+            ],
+            "kind": "categorical",
+            "selection_policy": "public-affordance-masked categorical selection"
+          },
+          "parameters": {
+            "by_operation": {
+              "add_catalyst": [
+                {
+                  "dtype": "float32",
+                  "field": "catalyst_amount_mol",
+                  "high": 0.004999999888241291,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "cardinality": 4,
+                  "field": "catalyst",
+                  "kind": "categorical"
+                }
+              ],
+              "add_extractant": [
+                {
+                  "cardinality": 4,
+                  "field": "extractant",
+                  "kind": "categorical"
+                },
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_phase": [
+                {
+                  "cardinality": 3,
+                  "field": "phase",
+                  "kind": "categorical"
+                },
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_reagent": [
+                {
+                  "dtype": "float32",
+                  "field": "amount_mol",
+                  "high": 0.03999999910593033,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_solvent": [
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "cardinality": 4,
+                  "field": "solvent",
+                  "kind": "categorical"
+                }
+              ],
+              "collect_fraction": [
+                {
+                  "dtype": "float32",
+                  "field": "transfer_fraction",
+                  "high": 1.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "concentrate": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "cool_crystallize": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "distill": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "reflux_ratio",
+                  "high": 10.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "dry": [],
+              "electrolyze": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "evaporate": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "filter_crystals": [],
+              "heat": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "measure": [
+                {
+                  "cardinality": 5,
+                  "field": "instrument",
+                  "kind": "categorical"
+                }
+              ],
+              "mix": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "quench": [],
+              "run_flow": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "sample": [
+                {
+                  "dtype": "float32",
+                  "field": "sample_volume_L",
+                  "high": 0.0020000000949949026,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "seed_crystals": [
+                {
+                  "dtype": "float32",
+                  "field": "seed_mass_g",
+                  "high": 0.05000000074505806,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "separate_phase": [
+                {
+                  "cardinality": 3,
+                  "field": "target_phase",
+                  "kind": "categorical"
+                }
+              ],
+              "set_flow_rate": [
+                {
+                  "dtype": "float32",
+                  "field": "flow_rate_mL_min",
+                  "high": 20.0,
+                  "kind": "continuous",
+                  "low": 0.009999999776482582,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "residence_time_s",
+                  "high": 7200.0,
+                  "kind": "continuous",
+                  "low": 1.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "set_potential": [
+                {
+                  "dtype": "float32",
+                  "field": "potential_V",
+                  "high": 3.0,
+                  "kind": "continuous",
+                  "low": -3.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "current_mA",
+                  "high": 500.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "settle": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "terminate": [],
+              "transfer": [
+                {
+                  "dtype": "float32",
+                  "field": "transfer_fraction",
+                  "high": 1.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "wait": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "wash": [
+                {
+                  "dtype": "float32",
+                  "field": "wash_volume_L",
+                  "high": 0.03999999910593033,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ]
+            },
+            "irrelevant_parameter_policy": "excluded_from_execution_and_trajectory",
+            "kind": "operation_conditional"
+          }
+        },
+        "training_adapter": {
+          "bounds": [
+            -1.0,
+            1.0
+          ],
+          "framework_scope": [
+            "stable-baselines3:PPO",
+            "stable-baselines3:SAC"
+          ],
+          "kind": "bounded_box_latent",
+          "native_hybrid_distribution": false,
+          "operation_coordinate_count": 28,
+          "operation_decode": "masked_argmax",
+          "parameter_coordinate_keys": [
+            "amount_mol",
+            "catalyst",
+            "catalyst_amount_mol",
+            "current_mA",
+            "duration_s",
+            "extractant",
+            "flow_rate_mL_min",
+            "instrument",
+            "phase",
+            "potential_V",
+            "reflux_ratio",
+            "residence_time_s",
+            "sample_volume_L",
+            "seed_mass_g",
+            "solvent",
+            "stirring_speed_rpm",
+            "target_phase",
+            "target_temperature_K",
+            "transfer_fraction",
+            "volume_L",
+            "wash_volume_L"
+          ],
+          "schema_version": "chemworld-sb3-box-latent-adapter-0.1",
+          "shape": [
+            49
+          ]
+        }
+      },
+      "action_contract_sha256": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+      "ppo_policy_distribution_contract": {
+        "active_parameters": {
+          "add_catalyst": [
+            "catalyst_amount_mol",
+            "catalyst"
+          ],
+          "add_extractant": [
+            "extractant",
+            "volume_L"
+          ],
+          "add_phase": [
+            "phase",
+            "volume_L"
+          ],
+          "add_reagent": [
+            "amount_mol"
+          ],
+          "add_solvent": [
+            "volume_L",
+            "solvent"
+          ],
+          "collect_fraction": [
+            "transfer_fraction"
+          ],
+          "concentrate": [
+            "duration_s"
+          ],
+          "cool_crystallize": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "distill": [
+            "target_temperature_K",
+            "duration_s",
+            "reflux_ratio"
+          ],
+          "dry": [],
+          "electrolyze": [
+            "duration_s"
+          ],
+          "evaporate": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "filter_crystals": [],
+          "heat": [
+            "target_temperature_K",
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "measure": [
+            "instrument"
+          ],
+          "mix": [
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "quench": [],
+          "run_flow": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "sample": [
+            "sample_volume_L"
+          ],
+          "seed_crystals": [
+            "seed_mass_g"
+          ],
+          "separate_phase": [
+            "target_phase"
+          ],
+          "set_flow_rate": [
+            "flow_rate_mL_min",
+            "residence_time_s"
+          ],
+          "set_potential": [
+            "potential_V",
+            "current_mA"
+          ],
+          "settle": [
+            "duration_s"
+          ],
+          "terminate": [],
+          "transfer": [
+            "transfer_fraction"
+          ],
+          "wait": [
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "wash": [
+            "wash_volume_L"
+          ]
+        },
+        "box_carrier_is_semantic_distribution": false,
+        "contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "irrelevant_parameter_entropy": false,
+        "irrelevant_parameter_log_prob": false,
+        "operation_distribution": "public-affordance-masked categorical",
+        "parameter_distribution": "operation-conditional diagonal Gaussian",
+        "parameter_keys": [
+          "amount_mol",
+          "catalyst",
+          "catalyst_amount_mol",
+          "current_mA",
+          "duration_s",
+          "extractant",
+          "flow_rate_mL_min",
+          "instrument",
+          "phase",
+          "potential_V",
+          "reflux_ratio",
+          "residence_time_s",
+          "sample_volume_L",
+          "seed_mass_g",
+          "solvent",
+          "stirring_speed_rpm",
+          "target_phase",
+          "target_temperature_K",
+          "transfer_fraction",
+          "volume_L",
+          "wash_volume_L"
+        ],
+        "schema_version": "chemworld-masked-conditional-ppo-0.1"
+      },
+      "ppo_policy_distribution_contract_sha256": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+      "task_id": "flow-reaction-optimization",
+      "training_reward_contract": {
+        "behavioral_completion": {
+          "all_requirements_must_be_satisfied": true,
+          "experiment_end_without_core_behavior": "quick_close_incomplete",
+          "requirements": [
+            [
+              "set_flow_rate"
+            ],
+            [
+              "run_flow"
+            ]
+          ]
+        },
+        "benchmark_evaluation_uses_shaped_reward": false,
+        "components": {
+          "behavioral_core_completion": 1.0,
+          "experiment_ended": 0.0,
+          "high_cost_step": -0.05,
+          "invalid_precondition": -0.25,
+          "measurement": 0.0,
+          "newly_satisfied_core_requirement": 0.0,
+          "newly_unlocked_operation": 0.02,
+          "quick_close_incomplete": -0.5,
+          "raw_environment_reward": 1.0,
+          "unsafe_step": -0.1,
+          "valid_nonterminal_operation": 0.0
+        },
+        "contract_hash": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1",
+        "leakage_controls": {
+          "measurement_bonus": false,
+          "raw_benchmark_reward_preserved": true,
+          "terminal_bonus": false
+        },
+        "public_signals_only": true,
+        "schema_version": "chemworld-rl-training-reward-0.2"
+      },
+      "training_reward_contract_sha256": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1"
+    },
+    "partition-discovery": {
+      "action_contract": {
+        "contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "empty_operation_mask_policy": "retain global argmax so the environment records the invalid transition",
+        "numeric_policy": "normalize decoded numpy values before execution",
+        "schema_version": "chemworld-conditional-hybrid-action-0.1",
+        "semantic_action": {
+          "operation": {
+            "categories": [
+              "add_reagent",
+              "add_solvent",
+              "add_catalyst",
+              "heat",
+              "wait",
+              "sample",
+              "quench",
+              "add_phase",
+              "add_extractant",
+              "mix",
+              "settle",
+              "separate_phase",
+              "wash",
+              "dry",
+              "concentrate",
+              "transfer",
+              "seed_crystals",
+              "cool_crystallize",
+              "filter_crystals",
+              "evaporate",
+              "distill",
+              "collect_fraction",
+              "set_flow_rate",
+              "run_flow",
+              "set_potential",
+              "electrolyze",
+              "terminate",
+              "measure"
+            ],
+            "kind": "categorical",
+            "selection_policy": "public-affordance-masked categorical selection"
+          },
+          "parameters": {
+            "by_operation": {
+              "add_catalyst": [
+                {
+                  "dtype": "float32",
+                  "field": "catalyst_amount_mol",
+                  "high": 0.004999999888241291,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "cardinality": 4,
+                  "field": "catalyst",
+                  "kind": "categorical"
+                }
+              ],
+              "add_extractant": [
+                {
+                  "cardinality": 4,
+                  "field": "extractant",
+                  "kind": "categorical"
+                },
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_phase": [
+                {
+                  "cardinality": 3,
+                  "field": "phase",
+                  "kind": "categorical"
+                },
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_reagent": [
+                {
+                  "dtype": "float32",
+                  "field": "amount_mol",
+                  "high": 0.03999999910593033,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_solvent": [
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "cardinality": 4,
+                  "field": "solvent",
+                  "kind": "categorical"
+                }
+              ],
+              "collect_fraction": [
+                {
+                  "dtype": "float32",
+                  "field": "transfer_fraction",
+                  "high": 1.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "concentrate": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "cool_crystallize": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "distill": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "reflux_ratio",
+                  "high": 10.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "dry": [],
+              "electrolyze": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "evaporate": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "filter_crystals": [],
+              "heat": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "measure": [
+                {
+                  "cardinality": 5,
+                  "field": "instrument",
+                  "kind": "categorical"
+                }
+              ],
+              "mix": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "quench": [],
+              "run_flow": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "sample": [
+                {
+                  "dtype": "float32",
+                  "field": "sample_volume_L",
+                  "high": 0.0020000000949949026,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "seed_crystals": [
+                {
+                  "dtype": "float32",
+                  "field": "seed_mass_g",
+                  "high": 0.05000000074505806,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "separate_phase": [
+                {
+                  "cardinality": 3,
+                  "field": "target_phase",
+                  "kind": "categorical"
+                }
+              ],
+              "set_flow_rate": [
+                {
+                  "dtype": "float32",
+                  "field": "flow_rate_mL_min",
+                  "high": 20.0,
+                  "kind": "continuous",
+                  "low": 0.009999999776482582,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "residence_time_s",
+                  "high": 7200.0,
+                  "kind": "continuous",
+                  "low": 1.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "set_potential": [
+                {
+                  "dtype": "float32",
+                  "field": "potential_V",
+                  "high": 3.0,
+                  "kind": "continuous",
+                  "low": -3.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "current_mA",
+                  "high": 500.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "settle": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "terminate": [],
+              "transfer": [
+                {
+                  "dtype": "float32",
+                  "field": "transfer_fraction",
+                  "high": 1.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "wait": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "wash": [
+                {
+                  "dtype": "float32",
+                  "field": "wash_volume_L",
+                  "high": 0.03999999910593033,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ]
+            },
+            "irrelevant_parameter_policy": "excluded_from_execution_and_trajectory",
+            "kind": "operation_conditional"
+          }
+        },
+        "training_adapter": {
+          "bounds": [
+            -1.0,
+            1.0
+          ],
+          "framework_scope": [
+            "stable-baselines3:PPO",
+            "stable-baselines3:SAC"
+          ],
+          "kind": "bounded_box_latent",
+          "native_hybrid_distribution": false,
+          "operation_coordinate_count": 28,
+          "operation_decode": "masked_argmax",
+          "parameter_coordinate_keys": [
+            "amount_mol",
+            "catalyst",
+            "catalyst_amount_mol",
+            "current_mA",
+            "duration_s",
+            "extractant",
+            "flow_rate_mL_min",
+            "instrument",
+            "phase",
+            "potential_V",
+            "reflux_ratio",
+            "residence_time_s",
+            "sample_volume_L",
+            "seed_mass_g",
+            "solvent",
+            "stirring_speed_rpm",
+            "target_phase",
+            "target_temperature_K",
+            "transfer_fraction",
+            "volume_L",
+            "wash_volume_L"
+          ],
+          "schema_version": "chemworld-sb3-box-latent-adapter-0.1",
+          "shape": [
+            49
+          ]
+        }
+      },
+      "action_contract_sha256": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+      "ppo_policy_distribution_contract": {
+        "active_parameters": {
+          "add_catalyst": [
+            "catalyst_amount_mol",
+            "catalyst"
+          ],
+          "add_extractant": [
+            "extractant",
+            "volume_L"
+          ],
+          "add_phase": [
+            "phase",
+            "volume_L"
+          ],
+          "add_reagent": [
+            "amount_mol"
+          ],
+          "add_solvent": [
+            "volume_L",
+            "solvent"
+          ],
+          "collect_fraction": [
+            "transfer_fraction"
+          ],
+          "concentrate": [
+            "duration_s"
+          ],
+          "cool_crystallize": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "distill": [
+            "target_temperature_K",
+            "duration_s",
+            "reflux_ratio"
+          ],
+          "dry": [],
+          "electrolyze": [
+            "duration_s"
+          ],
+          "evaporate": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "filter_crystals": [],
+          "heat": [
+            "target_temperature_K",
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "measure": [
+            "instrument"
+          ],
+          "mix": [
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "quench": [],
+          "run_flow": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "sample": [
+            "sample_volume_L"
+          ],
+          "seed_crystals": [
+            "seed_mass_g"
+          ],
+          "separate_phase": [
+            "target_phase"
+          ],
+          "set_flow_rate": [
+            "flow_rate_mL_min",
+            "residence_time_s"
+          ],
+          "set_potential": [
+            "potential_V",
+            "current_mA"
+          ],
+          "settle": [
+            "duration_s"
+          ],
+          "terminate": [],
+          "transfer": [
+            "transfer_fraction"
+          ],
+          "wait": [
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "wash": [
+            "wash_volume_L"
+          ]
+        },
+        "box_carrier_is_semantic_distribution": false,
+        "contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "irrelevant_parameter_entropy": false,
+        "irrelevant_parameter_log_prob": false,
+        "operation_distribution": "public-affordance-masked categorical",
+        "parameter_distribution": "operation-conditional diagonal Gaussian",
+        "parameter_keys": [
+          "amount_mol",
+          "catalyst",
+          "catalyst_amount_mol",
+          "current_mA",
+          "duration_s",
+          "extractant",
+          "flow_rate_mL_min",
+          "instrument",
+          "phase",
+          "potential_V",
+          "reflux_ratio",
+          "residence_time_s",
+          "sample_volume_L",
+          "seed_mass_g",
+          "solvent",
+          "stirring_speed_rpm",
+          "target_phase",
+          "target_temperature_K",
+          "transfer_fraction",
+          "volume_L",
+          "wash_volume_L"
+        ],
+        "schema_version": "chemworld-masked-conditional-ppo-0.1"
+      },
+      "ppo_policy_distribution_contract_sha256": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+      "task_id": "partition-discovery",
+      "training_reward_contract": {
+        "behavioral_completion": {
+          "all_requirements_must_be_satisfied": true,
+          "experiment_end_without_core_behavior": "quick_close_incomplete",
+          "requirements": [
+            [
+              "mix"
+            ],
+            [
+              "settle"
+            ],
+            [
+              "separate_phase"
+            ]
+          ]
+        },
+        "benchmark_evaluation_uses_shaped_reward": false,
+        "components": {
+          "behavioral_core_completion": 1.0,
+          "experiment_ended": 0.0,
+          "high_cost_step": -0.05,
+          "invalid_precondition": -0.25,
+          "measurement": 0.0,
+          "newly_satisfied_core_requirement": 0.0,
+          "newly_unlocked_operation": 0.02,
+          "quick_close_incomplete": -0.5,
+          "raw_environment_reward": 1.0,
+          "unsafe_step": -0.1,
+          "valid_nonterminal_operation": 0.0
+        },
+        "contract_hash": "2c006d1c5f34f6905e0be81defb83b0b3cb538946949cf9abbbae6c562ea6df9",
+        "leakage_controls": {
+          "measurement_bonus": false,
+          "raw_benchmark_reward_preserved": true,
+          "terminal_bonus": false
+        },
+        "public_signals_only": true,
+        "schema_version": "chemworld-rl-training-reward-0.2"
+      },
+      "training_reward_contract_sha256": "2c006d1c5f34f6905e0be81defb83b0b3cb538946949cf9abbbae6c562ea6df9"
+    },
+    "reaction-to-crystallization": {
+      "action_contract": {
+        "contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "empty_operation_mask_policy": "retain global argmax so the environment records the invalid transition",
+        "numeric_policy": "normalize decoded numpy values before execution",
+        "schema_version": "chemworld-conditional-hybrid-action-0.1",
+        "semantic_action": {
+          "operation": {
+            "categories": [
+              "add_reagent",
+              "add_solvent",
+              "add_catalyst",
+              "heat",
+              "wait",
+              "sample",
+              "quench",
+              "add_phase",
+              "add_extractant",
+              "mix",
+              "settle",
+              "separate_phase",
+              "wash",
+              "dry",
+              "concentrate",
+              "transfer",
+              "seed_crystals",
+              "cool_crystallize",
+              "filter_crystals",
+              "evaporate",
+              "distill",
+              "collect_fraction",
+              "set_flow_rate",
+              "run_flow",
+              "set_potential",
+              "electrolyze",
+              "terminate",
+              "measure"
+            ],
+            "kind": "categorical",
+            "selection_policy": "public-affordance-masked categorical selection"
+          },
+          "parameters": {
+            "by_operation": {
+              "add_catalyst": [
+                {
+                  "dtype": "float32",
+                  "field": "catalyst_amount_mol",
+                  "high": 0.004999999888241291,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "cardinality": 4,
+                  "field": "catalyst",
+                  "kind": "categorical"
+                }
+              ],
+              "add_extractant": [
+                {
+                  "cardinality": 4,
+                  "field": "extractant",
+                  "kind": "categorical"
+                },
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_phase": [
+                {
+                  "cardinality": 3,
+                  "field": "phase",
+                  "kind": "categorical"
+                },
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_reagent": [
+                {
+                  "dtype": "float32",
+                  "field": "amount_mol",
+                  "high": 0.03999999910593033,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_solvent": [
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "cardinality": 4,
+                  "field": "solvent",
+                  "kind": "categorical"
+                }
+              ],
+              "collect_fraction": [
+                {
+                  "dtype": "float32",
+                  "field": "transfer_fraction",
+                  "high": 1.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "concentrate": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "cool_crystallize": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "distill": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "reflux_ratio",
+                  "high": 10.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "dry": [],
+              "electrolyze": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "evaporate": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "filter_crystals": [],
+              "heat": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "measure": [
+                {
+                  "cardinality": 5,
+                  "field": "instrument",
+                  "kind": "categorical"
+                }
+              ],
+              "mix": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "quench": [],
+              "run_flow": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "sample": [
+                {
+                  "dtype": "float32",
+                  "field": "sample_volume_L",
+                  "high": 0.0020000000949949026,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "seed_crystals": [
+                {
+                  "dtype": "float32",
+                  "field": "seed_mass_g",
+                  "high": 0.05000000074505806,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "separate_phase": [
+                {
+                  "cardinality": 3,
+                  "field": "target_phase",
+                  "kind": "categorical"
+                }
+              ],
+              "set_flow_rate": [
+                {
+                  "dtype": "float32",
+                  "field": "flow_rate_mL_min",
+                  "high": 20.0,
+                  "kind": "continuous",
+                  "low": 0.009999999776482582,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "residence_time_s",
+                  "high": 7200.0,
+                  "kind": "continuous",
+                  "low": 1.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "set_potential": [
+                {
+                  "dtype": "float32",
+                  "field": "potential_V",
+                  "high": 3.0,
+                  "kind": "continuous",
+                  "low": -3.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "current_mA",
+                  "high": 500.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "settle": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "terminate": [],
+              "transfer": [
+                {
+                  "dtype": "float32",
+                  "field": "transfer_fraction",
+                  "high": 1.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "wait": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "wash": [
+                {
+                  "dtype": "float32",
+                  "field": "wash_volume_L",
+                  "high": 0.03999999910593033,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ]
+            },
+            "irrelevant_parameter_policy": "excluded_from_execution_and_trajectory",
+            "kind": "operation_conditional"
+          }
+        },
+        "training_adapter": {
+          "bounds": [
+            -1.0,
+            1.0
+          ],
+          "framework_scope": [
+            "stable-baselines3:PPO",
+            "stable-baselines3:SAC"
+          ],
+          "kind": "bounded_box_latent",
+          "native_hybrid_distribution": false,
+          "operation_coordinate_count": 28,
+          "operation_decode": "masked_argmax",
+          "parameter_coordinate_keys": [
+            "amount_mol",
+            "catalyst",
+            "catalyst_amount_mol",
+            "current_mA",
+            "duration_s",
+            "extractant",
+            "flow_rate_mL_min",
+            "instrument",
+            "phase",
+            "potential_V",
+            "reflux_ratio",
+            "residence_time_s",
+            "sample_volume_L",
+            "seed_mass_g",
+            "solvent",
+            "stirring_speed_rpm",
+            "target_phase",
+            "target_temperature_K",
+            "transfer_fraction",
+            "volume_L",
+            "wash_volume_L"
+          ],
+          "schema_version": "chemworld-sb3-box-latent-adapter-0.1",
+          "shape": [
+            49
+          ]
+        }
+      },
+      "action_contract_sha256": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+      "ppo_policy_distribution_contract": {
+        "active_parameters": {
+          "add_catalyst": [
+            "catalyst_amount_mol",
+            "catalyst"
+          ],
+          "add_extractant": [
+            "extractant",
+            "volume_L"
+          ],
+          "add_phase": [
+            "phase",
+            "volume_L"
+          ],
+          "add_reagent": [
+            "amount_mol"
+          ],
+          "add_solvent": [
+            "volume_L",
+            "solvent"
+          ],
+          "collect_fraction": [
+            "transfer_fraction"
+          ],
+          "concentrate": [
+            "duration_s"
+          ],
+          "cool_crystallize": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "distill": [
+            "target_temperature_K",
+            "duration_s",
+            "reflux_ratio"
+          ],
+          "dry": [],
+          "electrolyze": [
+            "duration_s"
+          ],
+          "evaporate": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "filter_crystals": [],
+          "heat": [
+            "target_temperature_K",
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "measure": [
+            "instrument"
+          ],
+          "mix": [
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "quench": [],
+          "run_flow": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "sample": [
+            "sample_volume_L"
+          ],
+          "seed_crystals": [
+            "seed_mass_g"
+          ],
+          "separate_phase": [
+            "target_phase"
+          ],
+          "set_flow_rate": [
+            "flow_rate_mL_min",
+            "residence_time_s"
+          ],
+          "set_potential": [
+            "potential_V",
+            "current_mA"
+          ],
+          "settle": [
+            "duration_s"
+          ],
+          "terminate": [],
+          "transfer": [
+            "transfer_fraction"
+          ],
+          "wait": [
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "wash": [
+            "wash_volume_L"
+          ]
+        },
+        "box_carrier_is_semantic_distribution": false,
+        "contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "irrelevant_parameter_entropy": false,
+        "irrelevant_parameter_log_prob": false,
+        "operation_distribution": "public-affordance-masked categorical",
+        "parameter_distribution": "operation-conditional diagonal Gaussian",
+        "parameter_keys": [
+          "amount_mol",
+          "catalyst",
+          "catalyst_amount_mol",
+          "current_mA",
+          "duration_s",
+          "extractant",
+          "flow_rate_mL_min",
+          "instrument",
+          "phase",
+          "potential_V",
+          "reflux_ratio",
+          "residence_time_s",
+          "sample_volume_L",
+          "seed_mass_g",
+          "solvent",
+          "stirring_speed_rpm",
+          "target_phase",
+          "target_temperature_K",
+          "transfer_fraction",
+          "volume_L",
+          "wash_volume_L"
+        ],
+        "schema_version": "chemworld-masked-conditional-ppo-0.1"
+      },
+      "ppo_policy_distribution_contract_sha256": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+      "task_id": "reaction-to-crystallization",
+      "training_reward_contract": {
+        "behavioral_completion": {
+          "all_requirements_must_be_satisfied": true,
+          "experiment_end_without_core_behavior": "quick_close_incomplete",
+          "requirements": [
+            [
+              "heat",
+              "wait"
+            ],
+            [
+              "cool_crystallize"
+            ],
+            [
+              "filter_crystals"
+            ]
+          ]
+        },
+        "benchmark_evaluation_uses_shaped_reward": false,
+        "components": {
+          "behavioral_core_completion": 1.0,
+          "experiment_ended": 0.0,
+          "high_cost_step": -0.05,
+          "invalid_precondition": -0.25,
+          "measurement": 0.0,
+          "newly_satisfied_core_requirement": 0.0,
+          "newly_unlocked_operation": 0.02,
+          "quick_close_incomplete": -0.5,
+          "raw_environment_reward": 1.0,
+          "unsafe_step": -0.1,
+          "valid_nonterminal_operation": 0.0
+        },
+        "contract_hash": "f181b6cf3b60216ab8feee476d2f147fdbeeef609ae7b56c8d280d8b2df34ac1",
+        "leakage_controls": {
+          "measurement_bonus": false,
+          "raw_benchmark_reward_preserved": true,
+          "terminal_bonus": false
+        },
+        "public_signals_only": true,
+        "schema_version": "chemworld-rl-training-reward-0.2"
+      },
+      "training_reward_contract_sha256": "f181b6cf3b60216ab8feee476d2f147fdbeeef609ae7b56c8d280d8b2df34ac1"
+    },
+    "reaction-to-distillation": {
+      "action_contract": {
+        "contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "empty_operation_mask_policy": "retain global argmax so the environment records the invalid transition",
+        "numeric_policy": "normalize decoded numpy values before execution",
+        "schema_version": "chemworld-conditional-hybrid-action-0.1",
+        "semantic_action": {
+          "operation": {
+            "categories": [
+              "add_reagent",
+              "add_solvent",
+              "add_catalyst",
+              "heat",
+              "wait",
+              "sample",
+              "quench",
+              "add_phase",
+              "add_extractant",
+              "mix",
+              "settle",
+              "separate_phase",
+              "wash",
+              "dry",
+              "concentrate",
+              "transfer",
+              "seed_crystals",
+              "cool_crystallize",
+              "filter_crystals",
+              "evaporate",
+              "distill",
+              "collect_fraction",
+              "set_flow_rate",
+              "run_flow",
+              "set_potential",
+              "electrolyze",
+              "terminate",
+              "measure"
+            ],
+            "kind": "categorical",
+            "selection_policy": "public-affordance-masked categorical selection"
+          },
+          "parameters": {
+            "by_operation": {
+              "add_catalyst": [
+                {
+                  "dtype": "float32",
+                  "field": "catalyst_amount_mol",
+                  "high": 0.004999999888241291,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "cardinality": 4,
+                  "field": "catalyst",
+                  "kind": "categorical"
+                }
+              ],
+              "add_extractant": [
+                {
+                  "cardinality": 4,
+                  "field": "extractant",
+                  "kind": "categorical"
+                },
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_phase": [
+                {
+                  "cardinality": 3,
+                  "field": "phase",
+                  "kind": "categorical"
+                },
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_reagent": [
+                {
+                  "dtype": "float32",
+                  "field": "amount_mol",
+                  "high": 0.03999999910593033,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "add_solvent": [
+                {
+                  "dtype": "float32",
+                  "field": "volume_L",
+                  "high": 0.07999999821186066,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "cardinality": 4,
+                  "field": "solvent",
+                  "kind": "categorical"
+                }
+              ],
+              "collect_fraction": [
+                {
+                  "dtype": "float32",
+                  "field": "transfer_fraction",
+                  "high": 1.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "concentrate": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "cool_crystallize": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "distill": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "reflux_ratio",
+                  "high": 10.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "dry": [],
+              "electrolyze": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "evaporate": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "filter_crystals": [],
+              "heat": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "measure": [
+                {
+                  "cardinality": 5,
+                  "field": "instrument",
+                  "kind": "categorical"
+                }
+              ],
+              "mix": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "quench": [],
+              "run_flow": [
+                {
+                  "dtype": "float32",
+                  "field": "target_temperature_K",
+                  "high": 520.0,
+                  "kind": "continuous",
+                  "low": 250.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "sample": [
+                {
+                  "dtype": "float32",
+                  "field": "sample_volume_L",
+                  "high": 0.0020000000949949026,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "seed_crystals": [
+                {
+                  "dtype": "float32",
+                  "field": "seed_mass_g",
+                  "high": 0.05000000074505806,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "separate_phase": [
+                {
+                  "cardinality": 3,
+                  "field": "target_phase",
+                  "kind": "categorical"
+                }
+              ],
+              "set_flow_rate": [
+                {
+                  "dtype": "float32",
+                  "field": "flow_rate_mL_min",
+                  "high": 20.0,
+                  "kind": "continuous",
+                  "low": 0.009999999776482582,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "residence_time_s",
+                  "high": 7200.0,
+                  "kind": "continuous",
+                  "low": 1.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "set_potential": [
+                {
+                  "dtype": "float32",
+                  "field": "potential_V",
+                  "high": 3.0,
+                  "kind": "continuous",
+                  "low": -3.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "current_mA",
+                  "high": 500.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "settle": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "terminate": [],
+              "transfer": [
+                {
+                  "dtype": "float32",
+                  "field": "transfer_fraction",
+                  "high": 1.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "wait": [
+                {
+                  "dtype": "float32",
+                  "field": "duration_s",
+                  "high": 14400.0,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                },
+                {
+                  "dtype": "float32",
+                  "field": "stirring_speed_rpm",
+                  "high": 1200.0,
+                  "kind": "continuous",
+                  "low": 100.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ],
+              "wash": [
+                {
+                  "dtype": "float32",
+                  "field": "wash_volume_L",
+                  "high": 0.03999999910593033,
+                  "kind": "continuous",
+                  "low": 0.0,
+                  "shape": [
+                    1
+                  ]
+                }
+              ]
+            },
+            "irrelevant_parameter_policy": "excluded_from_execution_and_trajectory",
+            "kind": "operation_conditional"
+          }
+        },
+        "training_adapter": {
+          "bounds": [
+            -1.0,
+            1.0
+          ],
+          "framework_scope": [
+            "stable-baselines3:PPO",
+            "stable-baselines3:SAC"
+          ],
+          "kind": "bounded_box_latent",
+          "native_hybrid_distribution": false,
+          "operation_coordinate_count": 28,
+          "operation_decode": "masked_argmax",
+          "parameter_coordinate_keys": [
+            "amount_mol",
+            "catalyst",
+            "catalyst_amount_mol",
+            "current_mA",
+            "duration_s",
+            "extractant",
+            "flow_rate_mL_min",
+            "instrument",
+            "phase",
+            "potential_V",
+            "reflux_ratio",
+            "residence_time_s",
+            "sample_volume_L",
+            "seed_mass_g",
+            "solvent",
+            "stirring_speed_rpm",
+            "target_phase",
+            "target_temperature_K",
+            "transfer_fraction",
+            "volume_L",
+            "wash_volume_L"
+          ],
+          "schema_version": "chemworld-sb3-box-latent-adapter-0.1",
+          "shape": [
+            49
+          ]
+        }
+      },
+      "action_contract_sha256": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+      "ppo_policy_distribution_contract": {
+        "active_parameters": {
+          "add_catalyst": [
+            "catalyst_amount_mol",
+            "catalyst"
+          ],
+          "add_extractant": [
+            "extractant",
+            "volume_L"
+          ],
+          "add_phase": [
+            "phase",
+            "volume_L"
+          ],
+          "add_reagent": [
+            "amount_mol"
+          ],
+          "add_solvent": [
+            "volume_L",
+            "solvent"
+          ],
+          "collect_fraction": [
+            "transfer_fraction"
+          ],
+          "concentrate": [
+            "duration_s"
+          ],
+          "cool_crystallize": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "distill": [
+            "target_temperature_K",
+            "duration_s",
+            "reflux_ratio"
+          ],
+          "dry": [],
+          "electrolyze": [
+            "duration_s"
+          ],
+          "evaporate": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "filter_crystals": [],
+          "heat": [
+            "target_temperature_K",
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "measure": [
+            "instrument"
+          ],
+          "mix": [
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "quench": [],
+          "run_flow": [
+            "target_temperature_K",
+            "duration_s"
+          ],
+          "sample": [
+            "sample_volume_L"
+          ],
+          "seed_crystals": [
+            "seed_mass_g"
+          ],
+          "separate_phase": [
+            "target_phase"
+          ],
+          "set_flow_rate": [
+            "flow_rate_mL_min",
+            "residence_time_s"
+          ],
+          "set_potential": [
+            "potential_V",
+            "current_mA"
+          ],
+          "settle": [
+            "duration_s"
+          ],
+          "terminate": [],
+          "transfer": [
+            "transfer_fraction"
+          ],
+          "wait": [
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "wash": [
+            "wash_volume_L"
+          ]
+        },
+        "box_carrier_is_semantic_distribution": false,
+        "contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "irrelevant_parameter_entropy": false,
+        "irrelevant_parameter_log_prob": false,
+        "operation_distribution": "public-affordance-masked categorical",
+        "parameter_distribution": "operation-conditional diagonal Gaussian",
+        "parameter_keys": [
+          "amount_mol",
+          "catalyst",
+          "catalyst_amount_mol",
+          "current_mA",
+          "duration_s",
+          "extractant",
+          "flow_rate_mL_min",
+          "instrument",
+          "phase",
+          "potential_V",
+          "reflux_ratio",
+          "residence_time_s",
+          "sample_volume_L",
+          "seed_mass_g",
+          "solvent",
+          "stirring_speed_rpm",
+          "target_phase",
+          "target_temperature_K",
+          "transfer_fraction",
+          "volume_L",
+          "wash_volume_L"
+        ],
+        "schema_version": "chemworld-masked-conditional-ppo-0.1"
+      },
+      "ppo_policy_distribution_contract_sha256": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+      "task_id": "reaction-to-distillation",
+      "training_reward_contract": {
+        "behavioral_completion": {
+          "all_requirements_must_be_satisfied": true,
+          "experiment_end_without_core_behavior": "quick_close_incomplete",
+          "requirements": [
+            [
+              "heat",
+              "wait"
+            ],
+            [
+              "distill"
+            ],
+            [
+              "collect_fraction"
+            ]
+          ]
+        },
+        "benchmark_evaluation_uses_shaped_reward": false,
+        "components": {
+          "behavioral_core_completion": 1.0,
+          "experiment_ended": 0.0,
+          "high_cost_step": -0.05,
+          "invalid_precondition": -0.25,
+          "measurement": 0.0,
+          "newly_satisfied_core_requirement": 0.0,
+          "newly_unlocked_operation": 0.02,
+          "quick_close_incomplete": -0.5,
+          "raw_environment_reward": 1.0,
+          "unsafe_step": -0.1,
+          "valid_nonterminal_operation": 0.0
+        },
+        "contract_hash": "856a163fe52cf99fce43877c0f4f686eaa4a7ab2cbee33d7b6e9c9c2da96e031",
+        "leakage_controls": {
+          "measurement_bonus": false,
+          "raw_benchmark_reward_preserved": true,
+          "terminal_bonus": false
+        },
+        "public_signals_only": true,
+        "schema_version": "chemworld-rl-training-reward-0.2"
+      },
+      "training_reward_contract_sha256": "856a163fe52cf99fce43877c0f4f686eaa4a7ab2cbee33d7b6e9c9c2da96e031"
+    }
+  },
+  "task_count": 4,
+  "validation": {
+    "all_passed": true,
+    "focused_tests": {
+      "command": [
+        ".venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "tests/test_formal_rl.py",
+        "tests/test_rl_training_accounting.py",
+        "tests/test_rl_foundation_contract.py",
+        "--no-cov",
+        "-q"
+      ],
+      "exit_code": 0,
+      "passed": 27,
+      "result": "passed",
+      "skipped": 0,
+      "summary": "27 passed, 1 warning in 30.31s"
+    },
+    "mypy": {
+      "command": [
+        ".venv\\Scripts\\python.exe",
+        "-m",
+        "mypy",
+        "src/chemworld/eval/formal_rl.py",
+        "src/chemworld/agents/rl.py",
+        "src/chemworld/rl/hybrid_actions.py",
+        "src/chemworld/rl/hybrid_policy.py",
+        "src/chemworld/rl/training.py",
+        "src/chemworld/rl/evaluation.py"
+      ],
+      "exit_code": 0,
+      "passed": null,
+      "result": "passed",
+      "skipped": 0,
+      "summary": "Success: no issues found in 6 source files"
+    },
+    "ruff": {
+      "command": [
+        ".venv\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "src/chemworld/eval/formal_rl.py",
+        "src/chemworld/agents/rl.py",
+        "src/chemworld/rl/hybrid_actions.py",
+        "src/chemworld/rl/hybrid_policy.py",
+        "src/chemworld/rl/training.py",
+        "src/chemworld/rl/evaluation.py",
+        "scripts/audit_formal_rl_contract.py",
+        "tests/test_formal_rl.py",
+        "tests/test_rl_training_accounting.py",
+        "tests/test_rl_foundation_contract.py"
+      ],
+      "exit_code": 0,
+      "passed": null,
+      "result": "passed",
+      "skipped": 0,
+      "summary": "All checks passed!"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-"""Conditional hybrid action semantics for reinforcement-learning adapters.
+"""Conditional hybrid action and policy semantics for RL adapters.
 
 The benchmark action is categorical at the operation level and exposes only
 the parameters required by the selected operation.  Stable-Baselines3 does not
@@ -21,6 +21,7 @@ from chemworld.world.operations import OPERATION_TYPES, operation_contracts
 
 ACTION_SCHEMA_VERSION = "chemworld-conditional-hybrid-action-0.1"
 LATENT_ADAPTER_VERSION = "chemworld-sb3-box-latent-adapter-0.1"
+POLICY_DISTRIBUTION_SCHEMA_VERSION = "chemworld-masked-conditional-ppo-0.1"
 
 
 def _sha256_json(payload: dict[str, Any]) -> str:
@@ -93,6 +94,34 @@ def conditional_hybrid_action_contract(
     return payload
 
 
+def policy_distribution_contract(parameter_keys: tuple[str, ...]) -> dict[str, Any]:
+    """Return the dependency-free PPO probability-law contract.
+
+    Preflight and checkpoint audits can verify this payload without importing
+    Torch or Stable-Baselines3.  The executable distribution in
+    :mod:`chemworld.rl.hybrid_policy` consumes the same contract.
+    """
+
+    if not parameter_keys or len(set(parameter_keys)) != len(parameter_keys):
+        raise ValueError("policy parameter keys must be non-empty and unique")
+    contracts = operation_contracts()
+    payload: dict[str, Any] = {
+        "schema_version": POLICY_DISTRIBUTION_SCHEMA_VERSION,
+        "operation_distribution": "public-affordance-masked categorical",
+        "parameter_distribution": "operation-conditional diagonal Gaussian",
+        "parameter_keys": list(parameter_keys),
+        "active_parameters": {
+            operation: list(contracts[operation].required_fields)
+            for operation in OPERATION_TYPES
+        },
+        "irrelevant_parameter_log_prob": False,
+        "irrelevant_parameter_entropy": False,
+        "box_carrier_is_semantic_distribution": False,
+    }
+    payload["contract_hash"] = _sha256_json(payload)
+    return payload
+
+
 def decode_conditional_hybrid_action(
     action: Any,
     *,
@@ -140,6 +169,8 @@ def decode_conditional_hybrid_action(
 __all__ = [
     "ACTION_SCHEMA_VERSION",
     "LATENT_ADAPTER_VERSION",
+    "POLICY_DISTRIBUTION_SCHEMA_VERSION",
     "conditional_hybrid_action_contract",
     "decode_conditional_hybrid_action",
+    "policy_distribution_contract",
 ]

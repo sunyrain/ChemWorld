@@ -3,7 +3,7 @@
 > **ChemWorld is not defined by having many tasks. Its central capability is running the same public task under
 > different, auditable hidden rules.**
 
-If an agent scores highly in one fixed simulator, we cannot tell whether it learned to experiment or memorized the
+A high score in one fixed simulator cannot tell us whether an agent learned to experiment or merely learned that
 simulator. ChemWorld changes rate laws, reaction topology, constitutive behavior, or equipment boundaries while
 holding task semantics and public tools stable.
 
