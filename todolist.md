@@ -88,10 +88,11 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 - [ ] **`foundation-v05-portable-release` — 可移植环境、依赖锁与 backend 语义冻结**
   - 默认 owned_paths：`configs/foundation/portable_release_v0.5.json`、依赖锁文件、`scripts/build_portable_release_v0.5.py`、`tests/test_portable_release_v0.5.py`、`workstreams/world_foundation/reports/portable-release-v0.5.json`。
   - 依赖：以上 P0 任务全部完成。
-  - [ ] 固定 Python 与关键数值/ML 依赖，构建 clean wheel；记录 CPU/GPU、BLAS、CUDA 和求解器版本。
-  - [ ] 将 backend semantic hash 与 docs/site commit 分离，避免只改文档就令正式轨迹失效，也避免语义改动逃逸版本更新。
+  - [x] 固定 Python 与关键数值/ML 依赖，构建 clean wheel；记录 CPU/GPU、BLAS、CUDA 和求解器版本。
+  - [x] 将 backend semantic hash 与 docs/site commit 分离，避免只改文档就令正式轨迹失效，也避免语义改动逃逸版本更新。
   - [ ] 在 Windows 与一个独立 Linux 干净环境本地运行 golden/replay；数值差异必须落在预注册容差内。
-  - [ ] 重跑完整 pytest、ruff、mypy、strict docs、release gate、clean-wheel smoke 和 P0 控制报告。
+  - [x] 重跑完整 pytest、ruff、mypy、strict docs、release gate、clean-wheel smoke 和 P0 控制报告。
+  - 结果：`uv.lock` 已锁定 178 个包；193 个 backend 语义文件与 docs/site 分别计算独立摘要。Windows clean wheel 在隔离目录和独立进程精确复现 45 个 profile、381 步与 6 条组合链。完整本地 release gate 12/12 通过：ruff、265 个源模块 mypy、1300 passed/14 skipped、89% coverage、strict docs、wheel smoke、reference validation、45 行环境一致性、runtime boundary、20-provider/28-route reachability、baseline smoke 与 candidate integrity 均通过。门禁还捕获并修复了 composed stress audit 对七槽参考夹具名称的越界耦合。当前机器没有 Docker/WSL，Linux attestation 缺失，因此 manifest 保持 `blocked_candidate`、`benchmark_claim_allowed=false`，不得进入 P1。
   - 验收：生成唯一 `backend-v0.5-formal-candidate` manifest；任一门禁失败则不得进入 P1。
 
 ## P1：冻结新的正式协议与未见数据边界

@@ -84,8 +84,12 @@ def test_audit_fails_closed_when_linux_attestation_is_missing() -> None:
     report = build_release_audit(protocol, [attestation])
     manifest = release_manifest(report)
     assert report["missing_platforms"] == ["linux"]
+    assert report["required_platforms"] == ["linux", "windows"]
+    assert report["observed_platforms"] == ["windows"]
     assert report["portable_release_ready"] is False
     assert manifest["release_status"] == "blocked_candidate"
+    assert manifest["required_platforms"] == ["linux", "windows"]
+    assert manifest["observed_platforms"] == ["windows"]
     assert manifest["benchmark_claim_allowed"] is False
 
 
