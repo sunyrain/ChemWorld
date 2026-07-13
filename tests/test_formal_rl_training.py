@@ -204,6 +204,16 @@ def test_training_wall_time_uses_union_of_parallel_intervals(tmp_path: Path) -> 
     assert result["merged_training_interval_count"] == 2
 
 
+def test_json_writer_uses_portable_lf_bytes(tmp_path: Path) -> None:
+    path = tmp_path / "evidence.json"
+
+    formal_training_module._write_json(path, {"value": 1})
+
+    payload = path.read_bytes()
+    assert payload.endswith(b"\n")
+    assert b"\r\n" not in payload
+
+
 def test_finalize_records_scientific_selection_failure_without_hiding_matrix(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
