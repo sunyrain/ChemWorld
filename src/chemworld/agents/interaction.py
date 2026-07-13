@@ -195,10 +195,14 @@ def build_decision_context(
     )
     if previous_event_type == "experiment_end" or step == 1:
         stage = "experiment_setup"
+    elif "measure" in operations and "terminate" not in operations:
+        # Once termination has committed, only measurement affordances remain.
+        # This phase check must outrank the previous-event label so that an
+        # intermediate post-termination measurement cannot hide the persistent
+        # closeout state on the next decision.
+        stage = "experiment_closeout"
     elif previous_event_type == "measurement_result":
         stage = "evidence_update"
-    elif "final_assay" in operations and "terminate" not in operations:
-        stage = "experiment_closeout"
     else:
         stage = "experiment_control"
     return AgentDecisionContext(

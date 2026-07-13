@@ -11,6 +11,7 @@ from typing import Any
 import numpy as np
 from scipy.stats import spearmanr
 
+from chemworld.eval.layered_evaluation import attempt_total_cost
 from chemworld.eval.risk_policy import (
     DEFAULT_RISK_COST_PROTOCOL_PATH,
     RISK_COST_PROTOCOL_VERSION,
@@ -238,10 +239,12 @@ def _experiment_rows(
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     risks: list[float] = []
+    attempt_records: list[dict[str, Any]] = []
     measurement_cost = 0.0
     with trajectory_path.open(encoding="utf-8") as handle:
         for line in handle:
             record = json.loads(line)
+            attempt_records.append(record)
             observation = record.get("observation", {})
             if isinstance(observation, dict) and observation.get("safety_risk") is not None:
                 risks.append(float(observation["safety_risk"]))
@@ -250,7 +253,7 @@ def _experiment_rows(
                 continue
             if not risks or not isinstance(observation, dict) or observation.get("cost") is None:
                 raise ValueError(f"incomplete terminal evidence in {trajectory_path}")
-            total_cost = float(observation["cost"])
+            total_cost = attempt_total_cost(attempt_records)
             process_cost = total_cost - measurement_cost
             if process_cost < -1.0e-9:
                 raise ValueError(f"measurement cost exceeds total cost in {trajectory_path}")
@@ -268,8 +271,9 @@ def _experiment_rows(
                 }
             )
             risks = []
+            attempt_records = []
             measurement_cost = 0.0
-    if risks or measurement_cost:
+    if attempt_records or risks or measurement_cost:
         raise ValueError(f"trajectory ends with an incomplete experiment: {trajectory_path}")
     return rows
 

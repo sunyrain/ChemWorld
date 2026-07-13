@@ -96,6 +96,35 @@ def test_layered_evaluator_accepts_costless_incomplete_tail() -> None:
     assert result["validity"]["invalid_operation_count"] == 1
 
 
+def test_layered_evaluator_uses_unsaturated_ledger_deltas_for_cost() -> None:
+    contract = TaskEvaluationContract.for_task("partition-discovery")
+    records = [
+        {
+            **_record(score=None, primary=0.4, cost=0.9, reward=0.1),
+            "state_delta_summary": {"delta_cost": 0.9},
+        },
+        *[
+            {
+                **_record(score=None, primary=0.5, cost=1.0, reward=0.1),
+                "measurement_cost": 0.08,
+                "state_delta_summary": {"delta_cost": 0.08},
+            }
+            for _ in range(10)
+        ],
+        {
+            **_record(score=0.6, primary=0.7, cost=1.0, reward=0.6),
+            "measurement_cost": 0.16,
+            "state_delta_summary": {"delta_cost": 0.16},
+        },
+    ]
+
+    result = evaluate_layered_records(records, contract=contract)
+
+    assert result["resources"]["campaign_total_cost"] == pytest.approx(1.86)
+    assert result["resources"]["measurement_cost"] == pytest.approx(0.96)
+    assert result["resources"]["campaign_process_cost"] == pytest.approx(0.9)
+
+
 def test_layered_evaluator_reports_interaction_stratum_and_resources_without_scalarizing() -> None:
     contract = TaskEvaluationContract.for_task("partition-discovery")
     records = [
