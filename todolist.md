@@ -159,13 +159,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：矩阵只能由 digest 校验通过的 issued manifest 展开精确 task × method × opaque-pair × spectrum-condition 笛卡尔积，CLI 不接受手写任务或 seed。classic 使用 CPU 进程池，RL 使用带显式设备槽和配额校验的 GPU 进程池，live LLM 使用有并发、cell 启动速率和费用上限的可恢复线程队列；停止后只补缺失 cell。公开 JSONL 进度覆盖 queued/running/checkpoint/succeeded/failed/replay-verified，并拒绝私有 seed/world 字段。聚合逐 cell 复验 artifact、replay、配对 commitment、失败分母以及账本 schema、预算、checkpoint、时间、用量和在线模型溯源；缺失、额外或伪造账本均只产出 incomplete。11 项矩阵测试及 109 项 runner/协议/统计/replay 联合回归通过，串并行 semantic digest 一致。
   - 验收：小型 smoke matrix 可停止、恢复、并行和复算，结果与串行执行等价。
 
-- [ ] **`benchmark-v05-resource-accounting` — 方法资源与 API 成本 fail-closed**
+- [x] **`benchmark-v05-resource-accounting` — 方法资源与 API 成本 fail-closed**
   - 默认 owned_paths：`src/chemworld/eval/resource_accounting_v0_4.py`、`tests/test_resource_accounting_v0_4.py`、`workstreams/benchmark_v1/reports/resource-accounting-v0.4.json`。
   - 依赖：cell runner；可与 orchestrator 并行。
-  - [ ] 区分环境操作、完整实验、测量、决策、provider requests/retries、tokens、金额、训练步数、CPU/GPU 与 wall time。
-  - [ ] DeepSeek usage 缺失、价格版本不匹配或失败请求无法计费时，保留轨迹但标记 accounting failure；不得估成零。
-  - [ ] RL checkpoint 记录训练总资源并与多个评估 cell 分开报告；classic 方法记录拟合/采集优化时间。
-  - [ ] 防止重复计费、缓存命中误算、重试漏算、并行 wall time 相加冒充 elapsed time。
+  - [x] 区分环境操作、完整实验、测量、决策、provider requests/retries、tokens、金额、训练步数、CPU/GPU 与 wall time。
+  - [x] DeepSeek usage 缺失、价格版本不匹配或失败请求无法计费时，保留轨迹但标记 accounting failure；不得估成零。
+  - [x] RL checkpoint 记录训练总资源并与多个评估 cell 分开报告；classic 方法记录拟合/采集优化时间。
+  - [x] 防止重复计费、缓存命中误算、重试漏算、并行 wall time 相加冒充 elapsed time。
+  - 结果：正式资源协议固定 15 个不做标量化的资源轴及 count/token/USD/second/environment-step 量纲。live LLM 按每次 provider attempt 的唯一 request、逻辑决策、连续 retry index、成功/失败状态、完整 usage、cache hit/miss token、可计费状态和 digest 绑定价格逐笔重算，并与累计 ledger 精确对账；缺 usage、价格版本错、失败请求不可计价、账单不符或重复 request 时保留 cell 但金额为 null 且禁止聚合，绝不按零处理。classic 的 fit/acquisition 事件计数并声明为总 CPU/wall 的组成量，防止二次相加；RL 训练按唯一 checkpoint 单列，多个评估 cell 只引用一次，评估账本出现训练步数或无关训练 artifact 均失败。method identity 已绑定 resource profile，runner 生成独立 digest-indexed `resources.json`，matrix 强制消费全部 cell 与 checkpoint 账本并使用实测 matrix elapsed，不能把并行 cell wall time 求和冒充耗时。11 项专项、51 项 runner/matrix/resource 联合和 147 项扩展回归通过，实际 ChemWorld smoke 轨迹 15 轴无缺失精确对账。
   - 验收：合成账单和实际 smoke run 对账精确；所有 required ledger 字段非缺失且量纲正确。
 
 - [ ] **`benchmark-v05-preflight-gate` — 正式运行总门禁**
