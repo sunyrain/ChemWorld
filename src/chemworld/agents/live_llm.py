@@ -25,7 +25,7 @@ Provide only a concise public audit: evidence, spectrum interpretation, hypothes
 uncertainty, rationale, and the selected action using exact schema field names.
 """
 
-PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.3"
+PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.4"
 
 _PURE_SPECTRAL_PACKET_KINDS = {
     "gc_chromatogram",
@@ -210,7 +210,7 @@ class LiveLLMAgent(BaseAgent):
             "error_message": info.get("error_message"),
             "leaderboard_score": info.get("leaderboard_score"),
             "experiment_ended": bool(info.get("experiment_ended", False)),
-            "observation": to_builtin(observation),
+            "observation": _compact_observation(observation),
         }
         self._last_decision["outcome"] = outcome
         if self._recent_decisions:
@@ -400,9 +400,9 @@ class LiveLLMAgent(BaseAgent):
                 "in the preceding decision. The harness will not repair, terminate, or assay "
                 "on your behalf."
             ),
-            "task_contract": to_builtin(self.task_info),
+            "task_contract": _compact_task_contract(self.task_info),
             "decision_context": to_builtin(supplied_context),
-            "public_tool_view": to_builtin(tool_json),
+            "public_tool_view": _compact_tool_view(tool_json),
             "completed_experiment_memory": to_builtin(self._experiment_memory),
             "recent_decisions": to_builtin(self._recent_decisions),
             "required_json_shape": {
@@ -712,6 +712,85 @@ def _prompt_memory_decision(decision: dict[str, Any]) -> dict[str, Any]:
             "status",
         )
         if key in decision
+    }
+
+
+def _compact_task_contract(task_info: dict[str, Any]) -> dict[str, Any]:
+    """Keep user-facing decision facts without resending backend internals."""
+
+    keys = (
+        "task_id",
+        "objective",
+        "budget",
+        "episode_mode",
+        "safety_limit",
+        "allowed_operations",
+        "allowed_instruments",
+        "material_catalog",
+        "method_budget_contract",
+        "observation_keys",
+        "scenario_id",
+    )
+    return {
+        key: to_builtin(task_info[key])
+        for key in keys
+        if key in task_info and task_info[key] is not None
+    }
+
+
+def _compact_tool_view(tool_json: dict[str, Any]) -> dict[str, Any]:
+    """Retain exact affordances and evidence once, without duplicate reports."""
+
+    compact: dict[str, Any] = {
+        key: to_builtin(tool_json[key])
+        for key in (
+            "task",
+            "raw_signal",
+            "processed_estimate",
+            "uncertainty",
+            "cost",
+            "cost_components",
+            "constraints",
+            "historical_spectrum_catalog",
+            "requested_historical_spectrum",
+        )
+        if key in tool_json
+    }
+    observation = tool_json.get("observation")
+    if isinstance(observation, dict):
+        compact["observation"] = _compact_observation(observation)
+    actions = tool_json.get("available_actions")
+    if isinstance(actions, list):
+        compact["available_actions"] = [
+            _compact_action_affordance(item) for item in actions if isinstance(item, dict)
+        ]
+    return compact
+
+
+def _compact_action_affordance(action: dict[str, Any]) -> dict[str, Any]:
+    schema = action.get("schema")
+    public_schema = (
+        {
+            key: to_builtin(schema[key])
+            for key in ("operation", "required_fields", "fields")
+            if key in schema
+        }
+        if isinstance(schema, dict)
+        else {}
+    )
+    return {
+        "operation": action.get("operation"),
+        "valid": bool(action.get("valid", False)),
+        "invalid_reasons": to_builtin(action.get("invalid_reasons", [])),
+        "schema": public_schema,
+    }
+
+
+def _compact_observation(observation: dict[str, Any]) -> dict[str, Any]:
+    return {
+        str(key): to_builtin(value)
+        for key, value in observation.items()
+        if value is not None
     }
 
 

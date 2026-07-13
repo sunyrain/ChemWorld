@@ -28,7 +28,7 @@ from chemworld.tasks import get_task
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_LLM_FREEZE_PATH = ROOT / "configs/methods/llm_v0.4/llm_methods.json"
 LIVE_LLM_SOURCE_PATH = ROOT / "src/chemworld/agents/live_llm.py"
-LLM_FREEZE_VERSION = "chemworld-live-llm-method-freeze-0.4"
+LLM_FREEZE_VERSION = "chemworld-live-llm-method-freeze-0.4.1"
 LLM_METHOD_IDS = ("live_llm_a", "live_llm_b")
 
 LLMMethodId = Literal["live_llm_a", "live_llm_b"]
@@ -130,6 +130,7 @@ def audit_live_llm_method_freeze(
     methods = resolved.get("methods")
     conditions = resolved.get("supported_spectrum_conditions")
     interaction = resolved.get("interaction_contract")
+    resources = resolved.get("resource_contract")
     pricing = resolved.get("pricing_usd_per_million_tokens")
     cards = methods if isinstance(methods, Mapping) else {}
     model_ids = {
@@ -187,6 +188,20 @@ def audit_live_llm_method_freeze(
         "private_reasoning_excluded": isinstance(interaction, Mapping)
         and interaction.get("private_chain_of_thought_requested") is False
         and interaction.get("private_reasoning_retained") is False,
+        "resource_contract_complete": isinstance(resources, Mapping)
+        and resources.get("provider_attempt_limit_per_operation") == 3
+        and resources.get("input_token_limit_per_cell") == 1_000_000
+        and resources.get("output_token_limit_per_cell") == 200_000
+        and resources.get("monetary_cost_usd_limit_per_cell") == 2.0
+        and resources.get("wall_time_limit_s_per_cell") == 1800.0
+        and resources.get("training_environment_step_limit") == 0
+        and all(
+            isinstance(card, Mapping)
+            and isinstance(card.get("request_configuration"), Mapping)
+            and card["request_configuration"].get("max_attempts")
+            == resources.get("provider_attempt_limit_per_operation")
+            for card in cards.values()
+        ),
         "prompt_source_present": LIVE_LLM_SOURCE_PATH.is_file(),
     }
     return {
@@ -269,6 +284,19 @@ class FormalLiveLLMAdapter:
             spectrum_disclosure=cast(SpectrumDisclosure, spec.spectrum_condition),
         )
         task = get_task(spec.task_id)
+        # Formal cells are bound to the prospective limits in the formal protocol,
+        # not the older candidate limits loaded by the ``vnext_risk_cost`` runner
+        # alias.  Use the same explicit, replay-bound policy path as the classic
+        # formal adapters.  Passing both policies is rejected by ``run_agent`` and,
+        # more importantly, would leave different method families on different
+        # risk thresholds.
+        risk_limit = self.risk_limit_factory(spec)
+        resource_contract = self.freeze.get("resource_contract")
+        if not isinstance(resource_contract, Mapping):
+            raise FormalLLMContractError("live-LLM resource contract is missing")
+        provider_attempt_limit = int(
+            resource_contract["provider_attempt_limit_per_operation"]
+        )
         self.run_agent_fn(
             env_id=task.env_id,
             agent=agent,
@@ -281,10 +309,26 @@ class FormalLiveLLMAdapter:
             output_path=trajectory_path,
             budget_override=spec.operation_limit,
             episode_mode_override="campaign",
-            evaluation_policy="vnext_risk_cost",
+            evaluation_policy="task_contract",
             method_resource_limits={
                 "operation_limit": spec.operation_limit,
                 "complete_experiment_limit": spec.complete_experiments,
+                "wall_time_limit_s": float(
+                    resource_contract["wall_time_limit_s_per_cell"]
+                ),
+                "model_call_limit": spec.operation_limit * provider_attempt_limit,
+                "input_token_limit": int(
+                    resource_contract["input_token_limit_per_cell"]
+                ),
+                "output_token_limit": int(
+                    resource_contract["output_token_limit_per_cell"]
+                ),
+                "monetary_cost_limit_usd": float(
+                    resource_contract["monetary_cost_usd_limit_per_cell"]
+                ),
+                "training_environment_step_limit": int(
+                    resource_contract["training_environment_step_limit"]
+                ),
                 "checkpoint_complete_experiments": tuple(
                     point
                     for point in (1, 2, 4, 8, 12, 20, 40)
@@ -292,7 +336,7 @@ class FormalLiveLLMAdapter:
                 ),
             },
             world_interventions=runtime.world_interventions,
-            safety_limit_override=self.risk_limit_factory(spec),
+            safety_limit_override=risk_limit,
         )
         records = load_jsonl(trajectory_path)
         if not records:

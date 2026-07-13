@@ -50,3 +50,96 @@ def test_runner_rejects_ambiguous_risk_override() -> None:
         assert "cannot be combined" in str(exc)
     else:  # pragma: no cover - fail-closed guard
         raise AssertionError("ambiguous risk policies must be rejected")
+
+
+def test_unknown_agent_operation_is_retained_as_invalid_transaction(tmp_path) -> None:
+    class UnknownOperationAgent:
+        name = "unknown-operation-test"
+
+        def reset(self, task_info, seed):
+            del task_info, seed
+
+        def act(self, history):
+            del history
+            return {"operation": "model_failure"}
+
+        def update(self, action, observation, reward, info):
+            del action, observation, reward, info
+
+        def manifest(self):
+            return {}
+
+    output = tmp_path / "invalid.jsonl"
+    records = run_agent(
+        env_id="ChemWorld",
+        agent=UnknownOperationAgent(),
+        world_split="public-test",
+        budget=1,
+        objective="balanced",
+        seed=7,
+        task_id="partition-discovery",
+        output_path=output,
+        budget_override=1,
+    )
+
+    assert len(records) == 1
+    assert records[0].action == {"operation": "model_failure"}
+    assert records[0].info["transaction_status"] == "validation_failed"
+    assert records[0].info["operation_type"] == "model_failure"
+    assert records[0].info["preconditions"]["action_schema_valid"] is False
+
+
+def test_complete_experiment_budget_stops_campaign_without_synthetic_action(
+    tmp_path,
+) -> None:
+    class SequenceAgent:
+        name = "sequence-test"
+
+        def reset(self, task_info, seed):
+            del seed
+            self.task_info = task_info
+            self.actions = iter(
+                [
+                    {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1},
+                    {"operation": "add_reagent", "amount_mol": 0.006},
+                    {"operation": "terminate"},
+                    {"operation": "measure", "instrument": "final_assay"},
+                    {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1},
+                ]
+            )
+
+        def act(self, history):
+            del history
+            return next(self.actions)
+
+        def update(self, action, observation, reward, info):
+            del action, observation, reward, info
+
+        def manifest(self):
+            return {}
+
+    agent = SequenceAgent()
+    records = run_agent(
+        env_id="ChemWorld",
+        agent=agent,
+        world_split="public-test",
+        budget=8,
+        objective="balanced",
+        seed=1200,
+        task_id="flow-reaction-optimization",
+        output_path=tmp_path / "one-experiment.jsonl",
+        budget_override=8,
+        episode_mode_override="campaign",
+        method_resource_limits={
+            "operation_limit": 8,
+            "complete_experiment_limit": 1,
+        },
+    )
+
+    assert len(records) == 4
+    assert records[-1].action == {"operation": "measure", "instrument": "final_assay"}
+    assert records[-1].method_resources["complete_experiment_count"] == 1
+    assert agent.task_info["method_budget_contract"] == {
+        "operation_limit": 8,
+        "complete_experiment_limit": 1,
+    }

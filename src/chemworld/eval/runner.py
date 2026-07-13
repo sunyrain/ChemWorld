@@ -163,6 +163,20 @@ def run_agent(
     if risk_policy is not None:
         task_info.update(risk_policy.task_info_overlay())
         task_info["risk_policy_hash"] = risk_policy.policy_hash
+    if method_resource_limits is not None:
+        task_info["method_budget_contract"] = {
+            key: (
+                list(method_resource_limits[key])
+                if key == "checkpoint_complete_experiments"
+                else method_resource_limits[key]
+            )
+            for key in (
+                "operation_limit",
+                "complete_experiment_limit",
+                "checkpoint_complete_experiments",
+            )
+            if key in method_resource_limits
+        }
 
     resolved_agent_seed = seed if agent_seed is None else int(agent_seed)
     agent.reset(task_info, resolved_agent_seed)
@@ -368,7 +382,12 @@ def run_agent(
             previous_event_type = event_type
             if event_type == "experiment_end":
                 experiment_index += 1
-            if terminated or truncated:
+            complete_experiment_budget_reached = (
+                resource_ledger.limits.complete_experiment_limit is not None
+                and resource_ledger.complete_experiment_count
+                >= resource_ledger.limits.complete_experiment_limit
+            )
+            if terminated or truncated or complete_experiment_budget_reached:
                 break
     finally:
         if logger_context is not None:

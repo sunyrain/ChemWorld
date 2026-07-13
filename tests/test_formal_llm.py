@@ -133,6 +133,15 @@ class _Client:
 
 
 def _fake_run_agent(**kwargs: Any) -> None:
+    assert kwargs["evaluation_policy"] == "task_contract"
+    assert kwargs["safety_limit_override"] == 0.3
+    limits = kwargs["method_resource_limits"]
+    assert limits["model_call_limit"] == 3
+    assert limits["input_token_limit"] == 1_000_000
+    assert limits["output_token_limit"] == 200_000
+    assert limits["monetary_cost_limit_usd"] == 2.0
+    assert limits["wall_time_limit_s"] == 1800.0
+    assert limits["training_environment_step_limit"] == 0
     agent = kwargs["agent"]
     task = get_task(kwargs["task_id"])
     agent.reset(task.to_dict(), kwargs["agent_seed"])

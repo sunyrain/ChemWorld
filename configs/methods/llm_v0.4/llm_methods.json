@@ -1,6 +1,6 @@
 {
-  "schema_version": "chemworld-live-llm-method-freeze-0.4",
-  "freeze_id": "chemworld-live-llm-development-2026-07-13",
+  "schema_version": "chemworld-live-llm-method-freeze-0.4.1",
+  "freeze_id": "chemworld-live-llm-development-2026-07-13-pilot-2",
   "provider": "DeepSeek",
   "base_url": "https://api.deepseek.com",
   "provider_access_date": "2026-07-13",
@@ -14,6 +14,14 @@
     "automatic_closeout": false,
     "private_chain_of_thought_requested": false,
     "private_reasoning_retained": false
+  },
+  "resource_contract": {
+    "provider_attempt_limit_per_operation": 3,
+    "input_token_limit_per_cell": 1000000,
+    "output_token_limit_per_cell": 200000,
+    "monetary_cost_usd_limit_per_cell": 2.0,
+    "wall_time_limit_s_per_cell": 1800.0,
+    "training_environment_step_limit": 0
   },
   "pricing_usd_per_million_tokens": {
     "deepseek-v4-pro": {

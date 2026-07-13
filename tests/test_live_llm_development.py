@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -18,7 +19,7 @@ def test_live_pilot_is_exact_paired_core_matrix_without_seed_disclosure() -> Non
 
     assert bundle.pair_count == 1
     assert bundle.cell_count == 4 * 2 * 3
-    assert bundle.maximum_provider_call_count == 480
+    assert bundle.maximum_provider_call_count == 2880
     assert len(plan.cells) == bundle.cell_count
     assert set(plan.spectrum_conditions_by_method["live_llm_a"]) == {
         "assigned",
@@ -28,6 +29,23 @@ def test_live_pilot_is_exact_paired_core_matrix_without_seed_disclosure() -> Non
     assert bundle.manifest["metadata"]["development_contract"]["bench_accessed"] is False
     assert "10000" not in serialized
     assert all("world_seed" not in cell for cell in bundle.manifest["cells"])
+    assert bundle.manifest["metadata"]["matrix_contract"][
+        "operation_limits_by_task"
+    ] == {
+        "partition-discovery": 40,
+        "reaction-to-crystallization": 44,
+        "reaction-to-distillation": 44,
+        "flow-reaction-optimization": 32,
+    }
+    protocol_report = json.loads(
+        (
+            Path(__file__).resolve().parents[1]
+            / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert {
+        cell["backend_semantic_sha256"] for cell in bundle.manifest["cells"]
+    } == {protocol_report["backend_semantic_sha256"]}
 
 
 def test_development_matrix_uses_only_four_public_dev_pairs() -> None:
@@ -36,7 +54,7 @@ def test_development_matrix_uses_only_four_public_dev_pairs() -> None:
 
     assert bundle.pair_count == 4
     assert bundle.cell_count == 4 * 2 * 3 * 4
-    assert bundle.maximum_provider_call_count == 3840
+    assert bundle.maximum_provider_call_count == 23040
     assert plan.checkpoints == (1, 2, 4)
     assert plan.limits.api_max_concurrency == 4
     assert plan.limits.matrix_monetary_cost_usd_limit == bundle.cell_count * 2.0

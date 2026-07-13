@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from chemworld.agents.task_recipes import task_recipe_event_count
 from chemworld.eval.formal_llm import (
     DEFAULT_LLM_FREEZE_PATH,
     audit_live_llm_method_freeze,
@@ -31,12 +32,16 @@ from chemworld.eval.formal_runner import (
     private_seed_commitment,
     private_world_commitment,
 )
+from chemworld.tasks import get_task
 from chemworld.world.world_family import axes_for_task
 
 ROOT = Path(__file__).resolve().parents[3]
 DEVELOPMENT_PLAN_PATH = ROOT / "configs/methods/llm_v0.4/llm_development_plan.json"
-DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.json"
-LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4"
+DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.1.json"
+FORMAL_PROTOCOL_REPORT_PATH = (
+    ROOT / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
+)
+LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.1"
 LIVE_STAGES = ("live_pilot", "development_matrix")
 
 
@@ -48,7 +53,7 @@ def _git_common_dir() -> Path:
     return path.resolve() if path.is_absolute() else (ROOT / path).resolve()
 
 
-DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4"
+DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.1"
 
 
 @dataclass(frozen=True)
@@ -74,6 +79,18 @@ def _git_commit() -> str:
     return subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
     ).strip()
+
+
+def _backend_semantic_sha256() -> str:
+    report = json.loads(FORMAL_PROTOCOL_REPORT_PATH.read_text(encoding="utf-8"))
+    value = report.get("backend_semantic_sha256")
+    if not isinstance(value, str) or len(value) != 64:
+        raise ValueError("formal protocol report is missing its backend semantic hash")
+    try:
+        int(value, 16)
+    except ValueError as exc:
+        raise ValueError("formal protocol backend semantic hash is not hexadecimal") from exc
+    return value
 
 
 def _paired_method_seed(stage: str, world_seed: int) -> int:
@@ -131,6 +148,30 @@ def _stage_seeds(
     return seeds
 
 
+def _operation_limits_by_task(
+    stage_card: Mapping[str, Any],
+    *,
+    tasks: Sequence[str],
+    complete_experiments: int,
+) -> dict[str, int]:
+    budget = stage_card.get("operation_budget")
+    if not isinstance(budget, Mapping):
+        raise ValueError("live-LLM stage is missing its operation-budget contract")
+    if budget.get("source") != "task_recipe_event_count_times_complete_experiments":
+        raise ValueError("unsupported live-LLM operation-budget source")
+    multiplier = budget.get("exploration_multiplier")
+    if isinstance(multiplier, bool) or not isinstance(multiplier, int) or multiplier < 1:
+        raise ValueError("live-LLM exploration multiplier must be a positive integer")
+    return {
+        task_id: (
+            task_recipe_event_count(get_task(task_id).to_dict())
+            * complete_experiments
+            * multiplier
+        )
+        for task_id in tasks
+    }
+
+
 def build_live_llm_development_bundle(
     *,
     stage: str,
@@ -162,7 +203,17 @@ def build_live_llm_development_bundle(
     if set(conditions) != {"assigned", "unassigned", "masked"} or len(conditions) != 3:
         raise ValueError("live-LLM development requires all three spectrum conditions")
     complete_experiments = int(stage_card["complete_experiments"])
-    operation_limit = int(stage_card["operation_limit"])
+    operation_limits = _operation_limits_by_task(
+        stage_card,
+        tasks=tasks,
+        complete_experiments=complete_experiments,
+    )
+    resource_contract = freeze.get("resource_contract")
+    if not isinstance(resource_contract, Mapping):
+        raise ValueError("live-LLM freeze is missing its resource contract")
+    provider_attempt_limit = int(
+        resource_contract["provider_attempt_limit_per_operation"]
+    )
     source_commit = _git_commit()
     global_identity = {
         "schema_version": LIVE_LLM_DEVELOPMENT_VERSION,
@@ -173,16 +224,14 @@ def build_live_llm_development_bundle(
         "spectrum_conditions": list(conditions),
         "pair_ids": [_pair_id(stage, seed) for seed in selected_seeds],
         "complete_experiments": complete_experiments,
-        "operation_limit": operation_limit,
+        "operation_limits_by_task": operation_limits,
         "source_commit": source_commit,
         "formal_protocol_sha256": canonical_sha256(protocol),
         "llm_freeze_sha256": file_sha256(DEFAULT_LLM_FREEZE_PATH),
     }
     run_id = canonical_sha256(global_identity)
     protocol_sha256 = canonical_sha256(protocol)
-    backend_semantic_sha256 = file_sha256(
-        ROOT / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
-    )
+    backend_semantic_sha256 = _backend_semantic_sha256()
     evaluator_sha256 = file_sha256(ROOT / "src/chemworld/eval/verify.py")
     interaction_sha256 = file_sha256(
         ROOT / "configs/benchmark/interaction_strata_v0.4.json"
@@ -234,6 +283,7 @@ def build_live_llm_development_bundle(
             }
             for method_id in methods:
                 for condition in conditions:
+                    operation_limit = operation_limits[task_id]
                     spec = FormalCellSpec(
                         run_id=run_id,
                         task_id=task_id,
@@ -256,7 +306,9 @@ def build_live_llm_development_bundle(
                     runtimes[spec.cell_identity_sha256] = dict(runtime_payload)
     pair_ids = [_pair_id(stage, seed) for seed in selected_seeds]
     cell_count = len(cells)
-    per_cell_cost_limit = 2.0
+    per_cell_cost_limit = float(
+        resource_contract["monetary_cost_usd_limit_per_cell"]
+    )
     manifest = issue_run_manifest(
         cells,
         metadata={
@@ -273,7 +325,7 @@ def build_live_llm_development_bundle(
                     if point <= complete_experiments
                 ],
                 "complete_experiments_per_cell": complete_experiments,
-                "operation_limits_by_task": dict.fromkeys(tasks, operation_limit),
+                "operation_limits_by_task": operation_limits,
             },
             "orchestration": {
                 "cpu_workers": 1,
@@ -292,7 +344,9 @@ def build_live_llm_development_bundle(
                 "bench_accessed": False,
                 "reference_search_accessed": False,
                 "private_reasoning_retained": False,
-                "maximum_provider_call_count": cell_count * operation_limit,
+                "maximum_provider_call_count": sum(
+                    cell.operation_limit * provider_attempt_limit for cell in cells
+                ),
             },
         },
     )
@@ -302,7 +356,9 @@ def build_live_llm_development_bundle(
         private_runtimes=runtimes,
         pair_count=len(selected_seeds),
         cell_count=cell_count,
-        maximum_provider_call_count=cell_count * operation_limit,
+        maximum_provider_call_count=sum(
+            cell.operation_limit * provider_attempt_limit for cell in cells
+        ),
     )
 
 

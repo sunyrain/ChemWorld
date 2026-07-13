@@ -195,7 +195,7 @@ def test_masked_spectral_ablation_removes_raw_and_processed_spectral_features() 
     }
     assert "raw_signal" not in prompt["public_tool_view"]
     assert "peak_count" not in prompt["public_tool_view"]["processed_estimate"]
-    assert "spectra_summary" not in prompt["public_tool_view"]["lab_report"]
+    assert "lab_report" not in prompt["public_tool_view"]
     assert agent.interaction_capabilities().consumes_spectra is False
 
 
@@ -218,10 +218,7 @@ def test_masked_ablation_preserves_non_spectral_composite_evidence() -> None:
     assert tool_view["processed_estimate"] == {"yield": 0.41}
     assert tool_view["constraints"] == {"unsafe": False}
     assert tool_view["cost"] == 0.2
-    assert tool_view["lab_report"] == {
-        "visible_metrics": {"yield": 0.41},
-        "campaign_state": {"remaining_budget": 4},
-    }
+    assert "lab_report" not in tool_view
 
 
 def test_unassigned_condition_preserves_curve_but_removes_identity() -> None:
@@ -306,6 +303,15 @@ def test_official_runner_ledgers_live_usage_and_replays_trajectory(tmp_path: Pat
     assert records[-1]["method_resources"]["agent_usage"]["model_call_count"] == 8
     assert records[-1]["explanation"]["decision_audit"]["status"] == "provided"
     assert all(len(record["agent_trace"]) == 1 for record in records)
+    prompt = client.prompts[0]
+    assert len(json.dumps(prompt)) < 20_000
+    assert prompt["task_contract"]["method_budget_contract"] == {
+        "operation_limit": 4,
+        "complete_experiment_limit": 4,
+    }
+    assert "runtime" not in prompt["task_contract"]
+    assert "world_law" not in prompt["task_contract"]
+    assert "constitution" not in prompt["task_contract"]
 
 
 def test_official_runner_delivers_only_explicitly_requested_historical_spectrum(
