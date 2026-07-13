@@ -1,0 +1,2834 @@
+{
+  "benchmark_claim_allowed": false,
+  "candidate_checkpoint_count": 60,
+  "checkpoint_index_path": "configs/methods/rl_v0.4/ppo_checkpoint_index.json",
+  "checkpoint_index_sha256": "e059398085bc1fa452dd2ff78c16455e15ee61cf695ea8b41c3faa2bf0cf23b8",
+  "checks": {
+    "algorithm": true,
+    "all_selected_replay_deterministic": true,
+    "all_training_step_budgets_exact": true,
+    "cpu_execution_declared": true,
+    "dev_only_deterministic_selection": true,
+    "dev_split_exact": true,
+    "exact_checkpoint_steps": true,
+    "exact_hyperparameters": true,
+    "exact_matrix_counts": true,
+    "exact_model_seeds": true,
+    "exact_task_primary_metrics": true,
+    "exact_training_budget": true,
+    "four_dev_selected_checkpoints": false,
+    "no_bench_or_reference_access": true,
+    "no_bench_or_reference_feedback": true,
+    "parent_and_sac_remain_pending": true,
+    "progress_heartbeat_declared": true,
+    "reference_and_bench_forbidden": true,
+    "rollout_quantum_exact": true,
+    "schema_version": true,
+    "single_thread_torch_declared": true,
+    "sixty_candidate_checkpoints_complete": true,
+    "subprocess_vectorization_declared": true,
+    "train_split_exact": true,
+    "twenty_training_runs_complete": true
+  },
+  "controls_ready": true,
+  "failed_checks": [
+    "four_dev_selected_checkpoints"
+  ],
+  "failed_task_ids": [
+    "partition-discovery",
+    "reaction-to-crystallization"
+  ],
+  "formal_protocol_sha256": "6c85ec8128c6e8a27c5cc63d18f9e5fc8a73bb4be58be38d4333afb097b5144c",
+  "formal_results_present": false,
+  "integrity_failed_checks": [],
+  "jobs": [
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "1cd4f6467ac8a4882c756cf4269e6b505b1fed967989d2b4dbaaa05f2367a5c6",
+          "counts_toward_frozen_matrix": false,
+          "status": "pre_freeze_retained"
+        },
+        {
+          "attempt": "attempt-0002",
+          "attempt_plan_sha256": "302f1ea0e93449072eaf52fc138c9e9f3e21a7a7b18b64d14970302058df4682",
+          "counts_toward_frozen_matrix": false,
+          "status": "pre_freeze_retained"
+        },
+        {
+          "attempt": "attempt-0003",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "fca02dc4e5bf39175e1b13ad766a8ada9712f1398e3deeb0c97b8f541a295fca",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.5333333333333333,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "separate_phase": 1140,
+              "settle": 20
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "301cc3769e69c23f5d25c0274f7237fe25f0c9950fb342586a43776b2e242870",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 40,
+              "settle": 1140
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "2078bb87ada26f18e644fb83b33bf6b4b39bffb5881a31de50556d447d440cf0",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "settle": 1160
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-partition-discovery-seed0",
+      "model_seed": 0,
+      "task_id": "partition-discovery",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/partition-discovery/seed-0/attempt-0003/ppo-partition-discovery-seed0.manifest.json",
+      "training_manifest_sha256": "1a20c0810898ba39829206722a27e15b7b335ff67763a0220a6711bd1cff090e"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "4a79a7ee91485d277670cfe48be368f0dc7a1f0ad4ff64fa6751866a8cb1d813",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.5333333333333333,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "separate_phase": 1140,
+              "settle": 20
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "fbfd7387fb3787216b6a23abf55a12933677bbc825c274bc7e6426789dd5e88d",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "settle": 1160
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "65741d61d74e7646d8540ce20f5e5badb3856eeed99122afb9a3565ccb7e0b1e",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "mix": 1,
+              "separate_phase": 184,
+              "settle": 975
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-partition-discovery-seed1",
+      "model_seed": 1,
+      "task_id": "partition-discovery",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/partition-discovery/seed-1/attempt-0001/ppo-partition-discovery-seed1.manifest.json",
+      "training_manifest_sha256": "0fbc9c7d12a69c8303902a53c2aa7fa0da3c57c16cec83c4516ea56dcf4cfa53"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "3c81b95d05ed22b6f1ac2bc16c7e18d8a0a0ca79163c03dd4e4b8413dbd171a4",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.36666666666666664,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 21,
+              "mix": 1158,
+              "terminate": 1
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "f073daf6bf7588ea8be0b06678ce537339d66e1b1015eb6ed44b41a00b8384be",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "settle": 1160
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "c6039a542e3c103c13f2f16464d8357f321a84fe2efac641556c89966a1164a4",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "settle": 1160
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-partition-discovery-seed2",
+      "model_seed": 2,
+      "task_id": "partition-discovery",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/partition-discovery/seed-2/attempt-0001/ppo-partition-discovery-seed2.manifest.json",
+      "training_manifest_sha256": "b5478dc15a16d59429e8bfaee6f08733b7c07564492595abc32211c5f296fefe"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "d2c955e6f2e11fdecccf654933b1e22d8a79f8607f2fbdf6449c2257592690d4",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "separate_phase": 20,
+              "settle": 1140
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "6e0647a4116b678b611097e32fb487f865da4439479ecdfd7f0a8431289030cc",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "settle": 1160
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "5307da315594be6206ae636fc56dc8a4f8aa2375a38dc673a6a0be5e23f99052",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "mix": 5,
+              "separate_phase": 96,
+              "settle": 1059
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-partition-discovery-seed3",
+      "model_seed": 3,
+      "task_id": "partition-discovery",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/partition-discovery/seed-3/attempt-0001/ppo-partition-discovery-seed3.manifest.json",
+      "training_manifest_sha256": "d061b909fb4b2f2b86eaa25678631fe496919bcc1e9eaa3b1846f07ede7228e6"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "17f936a8aede8328e6477c2d981999fdd4715eaaee13b719d070ea7ee9b28a4e",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.36666666666666664,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "mix": 1160
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "0cf78859dc40c8e3dbd2d654979e17b7807abc29afdf441aa7806c4e049ddf55",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "settle": 1160
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "7270f3fa0887430984334ff28dbdb9bce728b5bfa704a3ed64ee4d8e391f3a97",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_phase": 20,
+              "measure": 20,
+              "settle": 1160
+            },
+            "primary_metric": "product_in_organic",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-partition-discovery-seed4",
+      "model_seed": 4,
+      "task_id": "partition-discovery",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/partition-discovery/seed-4/attempt-0001/ppo-partition-discovery-seed4.manifest.json",
+      "training_manifest_sha256": "43485fa22b39e3d9fcfc8d8291929c680f7a7d4150f516e250685f820145f096"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "e1581d653a1dab1c0c4d67d72f895f0ea5c082df8948769851d1cb4a29b3c05b",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.5666666666666667,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 1140,
+              "measure": 20,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "864b9ab7babdfc7767a6e75a05f0fe4cf7e19232fdfe9ccc5e50c93abd8e8035",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.8225,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 986,
+              "measure": 174,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "1f69d5b6c5900294f5e8fa3ddb4fdabad22e82639973e7f498596d42729f261b",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.8333333333333334,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "measure": 1160,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-reaction-to-crystallization-seed0",
+      "model_seed": 0,
+      "task_id": "reaction-to-crystallization",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/reaction-to-crystallization/seed-0/attempt-0001/ppo-reaction-to-crystallization-seed0.manifest.json",
+      "training_manifest_sha256": "1a2fb90980f7a7dd1184b600aa374f316bf31104a22569e87b05a1f6b18d2760"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "21df92dc7a8c44cd2cb9f4225ca180c1cc30fae5b3caeac0363865083d83913f",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.6166666666666667,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "measure": 20,
+              "quench": 1140,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "a5df6f6aac46c7a57f1867308507da84320e7199bb9210d47e90a85dcde0973c",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.55,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 1140,
+              "measure": 20,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "a32b319a7e189d4019958e44bbdde3f75fff89bdbf0b495f7ab8df5ac8f7b5a2",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.55,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 482,
+              "measure": 357,
+              "sample": 301,
+              "seed_crystals": 20,
+              "terminate": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-reaction-to-crystallization-seed1",
+      "model_seed": 1,
+      "task_id": "reaction-to-crystallization",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/reaction-to-crystallization/seed-1/attempt-0001/ppo-reaction-to-crystallization-seed1.manifest.json",
+      "training_manifest_sha256": "391ae30eb24b9b3b4e965855218faceaff11431aa7ff04c069e2168b7f9cd843"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "518f6a0aae101d829f775c1e70fb5fa303b8a33719c71a9bc6a777f3b32d8f62",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.5666666666666667,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 1140,
+              "measure": 20,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "5b7ac54cba758d8d9df291cff426442e118132279869fff3ea25ad5c99622643",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.5833333333333334,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 1120,
+              "measure": 40,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "22c0b5950542f1a65e984db8b97eb50d6c61b35de11c4db6d2e3041a428c85a3",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.4166666666666667,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 100,
+              "measure": 40,
+              "sample": 480,
+              "seed_crystals": 560
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-reaction-to-crystallization-seed2",
+      "model_seed": 2,
+      "task_id": "reaction-to-crystallization",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/reaction-to-crystallization/seed-2/attempt-0001/ppo-reaction-to-crystallization-seed2.manifest.json",
+      "training_manifest_sha256": "bdaa434e6058ccf828e1766460b1e9c92d1ffc0c7f72cd31c712fcec4755e280"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "227b53327f97521cce6150f5b24fec0fbf283e59bdf09bf21d0ea6d8d936d77f",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.55,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 1140,
+              "measure": 20,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "437de3114ebde156694a95b2c37d4ba7b09e17669d5897268da50642d4ad6d4d",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.06666666666666667,
+            "invalid_action_rate": 0.1,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 240,
+              "measure": 20,
+              "sample": 900,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "0532cd84f082c1c2252d874edbdadcfa774c9a64de7a99704e4b5e355c791c57",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.8333333333333334,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "measure": 1160,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-reaction-to-crystallization-seed3",
+      "model_seed": 3,
+      "task_id": "reaction-to-crystallization",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/reaction-to-crystallization/seed-3/attempt-0001/ppo-reaction-to-crystallization-seed3.manifest.json",
+      "training_manifest_sha256": "73f9da3955707c70751c3b71f2dd98f5baf391872b2d3b04d1425e5e587e0852"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "1e8371d74d2dc1ead6a5f1ff884e459166fc3edaab8d50e9710ac4d903681b0f",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.6,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 1140,
+              "measure": 20,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "7188ae178ef548eda03c44f065d32c2b92b5c6d4b6ca0db5408ffca2d86c67fc",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.5833333333333334,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 1120,
+              "measure": 40,
+              "seed_crystals": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "edff6048cee1a6fef8dec3bc04030e4aa45cdab92ab34b636e242ca30acc5774",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.2866666666666667,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "filter_crystals": 140,
+              "measure": 384,
+              "sample": 616,
+              "seed_crystals": 20,
+              "terminate": 20
+            },
+            "primary_metric": "crystal_yield",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-reaction-to-crystallization-seed4",
+      "model_seed": 4,
+      "task_id": "reaction-to-crystallization",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/reaction-to-crystallization/seed-4/attempt-0001/ppo-reaction-to-crystallization-seed4.manifest.json",
+      "training_manifest_sha256": "97fa53462fc3162361b65b7fbc84dd7695ca88699f3fe2a6b439cd6df32aa8ed"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "770d6dd1667b0dc9e2cf21075f47df557ea196b3b9d87dabec61112a3191c0c9",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.7166666666666667,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 20,
+              "add_solvent": 20,
+              "measure": 20,
+              "wait": 1140
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "f20b3bc22c5cf977d01812dbe688b148eff211ef0afb5e3d0fc1f5ada82a6ffb",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.7333333333333333,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 20,
+              "add_solvent": 20,
+              "collect_fraction": 780,
+              "distill": 80,
+              "measure": 20,
+              "wait": 280
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "eb46b7507384daf5fa4458adf96e18f3d3f67af51c75f8bfafc566534b8c4a45",
+          "eligible": true,
+          "summary": {
+            "behavior_complete_experiment_count": 60,
+            "behavior_complete_experiment_rate": 1.0,
+            "complete_experiment_count": 60,
+            "complete_experiments_per_episode": 3.0,
+            "episode_completion_rate": 1.0,
+            "high_cost_step_rate": 0.2275,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": 0.2539561284277075,
+            "mean_episode_best_score": 0.42294236842750343,
+            "mean_final_primary_metric": 0.2314047995487811,
+            "mean_final_score": 0.4063130031285132,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 80,
+              "add_solvent": 80,
+              "collect_fraction": 675,
+              "distill": 75,
+              "heat": 95,
+              "measure": 135,
+              "terminate": 60
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 60,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-reaction-to-distillation-seed0",
+      "model_seed": 0,
+      "task_id": "reaction-to-distillation",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/reaction-to-distillation/seed-0/attempt-0001/ppo-reaction-to-distillation-seed0.manifest.json",
+      "training_manifest_sha256": "25aaaf8cffa0d05c4f71f0f120f02b4ff3b733ca1d46293e0969a2b78f0dc42a"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "e7f1a7f2c70616ea73cf91914f5c075bafe42233d4e37b10abf8b915901f0cb8",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.6,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "quench": 1180
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "05444a01cc0a8c1d5b689b5e454930d0c011cef90511f5755e7c66a6e9f2520f",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.75,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 20,
+              "add_solvent": 20,
+              "collect_fraction": 766,
+              "distill": 80,
+              "measure": 20,
+              "wait": 294
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "4ba18a5b2895b78c486dcb68f3d172277f92969b13ac1774751135c4870565b6",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.9,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 20,
+              "add_solvent": 20,
+              "collect_fraction": 740,
+              "distill": 60,
+              "heat": 100,
+              "measure": 40,
+              "quench": 220
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-reaction-to-distillation-seed1",
+      "model_seed": 1,
+      "task_id": "reaction-to-distillation",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/reaction-to-distillation/seed-1/attempt-0001/ppo-reaction-to-distillation-seed1.manifest.json",
+      "training_manifest_sha256": "988655dfd329e54add0b001ae1ccb9b81a444dd53940072806a0e3d400e04fc9"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "c1ace5072b4a3fc01d265b2d6e8bbe9e774f18a4a53a3b423037df3195fe945d",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.6833333333333333,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 20,
+              "add_solvent": 20,
+              "wait": 1160
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "e7947dd17ccbdd6108e4758c29eed11490b039a585df9e5223d6259fe10ee5e7",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.7166666666666667,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 20,
+              "add_solvent": 20,
+              "measure": 20,
+              "quench": 840,
+              "wait": 300
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "72efe00d6acfcb04e9de60a1f1e7b9de68a8692f3b194ac6bfbbe4cde1be5857",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.9,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 20,
+              "add_solvent": 20,
+              "collect_fraction": 189,
+              "distill": 189,
+              "heat": 100,
+              "measure": 20,
+              "quench": 662
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-reaction-to-distillation-seed2",
+      "model_seed": 2,
+      "task_id": "reaction-to-distillation",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/reaction-to-distillation/seed-2/attempt-0001/ppo-reaction-to-distillation-seed2.manifest.json",
+      "training_manifest_sha256": "af5ed4d611dadd8a0e868c5149d5a9cd0c9308ee329a2e7dd4c7f623ec3e247f"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "440b6ff09db84648ae8e73e96cbe975a49c1b4d87763facf6c151306af296412",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.6166666666666667,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "quench": 1180
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "f099d9f551048a0e6917631b877279488204294783f00488bd8f5502ceb37c47",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.65,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 20,
+              "add_solvent": 20,
+              "measure": 20,
+              "wait": 1140
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "dd14df1b6151af4d478f7a046e8b6e9d26772c4097f0ced3d7f81ed32dc233e9",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.75,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 20,
+              "add_solvent": 20,
+              "collect_fraction": 790,
+              "distill": 60,
+              "measure": 20,
+              "wait": 290
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-reaction-to-distillation-seed3",
+      "model_seed": 3,
+      "task_id": "reaction-to-distillation",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/reaction-to-distillation/seed-3/attempt-0001/ppo-reaction-to-distillation-seed3.manifest.json",
+      "training_manifest_sha256": "df7de9b62eaeb4d8eac1b609cacb02857b4fdcd7ad5c71e424fe99e722bc2a19"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "424b646edf87ad60121fe5eb9f747d84f321f407281ef0985b2f5362ba9cc7c3",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.9,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 1200
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "53bf089842dea335db55f389e233eaca5d4aaedd018b3ed0a7d6b1022af006eb",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.9,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 140,
+              "add_solvent": 20,
+              "distill": 20,
+              "measure": 20,
+              "quench": 980,
+              "wait": 20
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "40bee3e838543ab1bb1d197b6bd4d87943ba8f46a862d80629c00b8c021f2904",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.75,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 20,
+              "add_solvent": 20,
+              "collect_fraction": 21,
+              "distill": 21,
+              "measure": 20,
+              "quench": 838,
+              "wait": 260
+            },
+            "primary_metric": "distillate_purity",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-reaction-to-distillation-seed4",
+      "model_seed": 4,
+      "task_id": "reaction-to-distillation",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/reaction-to-distillation/seed-4/attempt-0001/ppo-reaction-to-distillation-seed4.manifest.json",
+      "training_manifest_sha256": "c6969890b8032f25dda242dcdc178d383f7c081e14c876ef48f7a6e6509ced35"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "4fa7de1b7a0e5f071e49f159c1b6488155aed1c7501cba94dd1d05fe9b214f36",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "set_flow_rate": 1180
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "22c2868d54529e051fbd9414be463c12103aa5e32b948d80156be6eada151002",
+          "eligible": true,
+          "summary": {
+            "behavior_complete_experiment_count": 100,
+            "behavior_complete_experiment_rate": 1.0,
+            "complete_experiment_count": 100,
+            "complete_experiments_per_episode": 5.0,
+            "episode_completion_rate": 1.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": 0.056296590688911075,
+            "mean_episode_best_score": 0.0952515466505804,
+            "mean_final_primary_metric": 0.01364550195641062,
+            "mean_final_score": 0.02011935174111097,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 120,
+              "add_solvent": 120,
+              "measure": 100,
+              "run_flow": 640,
+              "set_flow_rate": 120,
+              "terminate": 100
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 100,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "7e7d70417a59cb166ab8a99ce0f253db74d08fba666fff3b0da5572f37d088a1",
+          "eligible": true,
+          "summary": {
+            "behavior_complete_experiment_count": 200,
+            "behavior_complete_experiment_rate": 1.0,
+            "complete_experiment_count": 200,
+            "complete_experiments_per_episode": 10.0,
+            "episode_completion_rate": 1.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": 0.18031444024326196,
+            "mean_episode_best_score": 0.14477594609852035,
+            "mean_final_primary_metric": 0.14236450377873555,
+            "mean_final_score": 0.13164918457805405,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 200,
+              "add_solvent": 200,
+              "measure": 200,
+              "run_flow": 200,
+              "set_flow_rate": 200,
+              "terminate": 200
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 200,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-flow-reaction-optimization-seed0",
+      "model_seed": 0,
+      "task_id": "flow-reaction-optimization",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/flow-reaction-optimization/seed-0/attempt-0001/ppo-flow-reaction-optimization-seed0.manifest.json",
+      "training_manifest_sha256": "73dd87dc73f7e99b35f03e83241873e8103a2f32b6384f1858ed534bcf301ee4"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "9f39f18fbf1ecddb4be599b8f959336257ed9c09493429931d9a69d60e512996",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "set_flow_rate": 1200
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "bd6208ea5bd3a319c63ce12803e875d359710214fc6405bd553e09aeb995cf02",
+          "eligible": true,
+          "summary": {
+            "behavior_complete_experiment_count": 120,
+            "behavior_complete_experiment_rate": 1.0,
+            "complete_experiment_count": 120,
+            "complete_experiments_per_episode": 6.0,
+            "episode_completion_rate": 1.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": 0.03157434581912579,
+            "mean_episode_best_score": 0.0742284356689433,
+            "mean_final_primary_metric": 0.007686097100408693,
+            "mean_final_score": 0.013596513536462516,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 140,
+              "add_solvent": 140,
+              "measure": 120,
+              "run_flow": 540,
+              "set_flow_rate": 140,
+              "terminate": 120
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 120,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "1d3edc36c4ba52f3ac6bfdb82cca71c501beaaa70c3568f5651ae2871a21cf01",
+          "eligible": true,
+          "summary": {
+            "behavior_complete_experiment_count": 200,
+            "behavior_complete_experiment_rate": 1.0,
+            "complete_experiment_count": 200,
+            "complete_experiments_per_episode": 10.0,
+            "episode_completion_rate": 1.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": 0.14283616161446505,
+            "mean_episode_best_score": 0.13708669124651035,
+            "mean_final_primary_metric": 0.12583317361695612,
+            "mean_final_score": 0.13005765433193914,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 200,
+              "add_solvent": 200,
+              "measure": 200,
+              "run_flow": 200,
+              "set_flow_rate": 200,
+              "terminate": 200
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 200,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-flow-reaction-optimization-seed1",
+      "model_seed": 1,
+      "task_id": "flow-reaction-optimization",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/flow-reaction-optimization/seed-1/attempt-0001/ppo-flow-reaction-optimization-seed1.manifest.json",
+      "training_manifest_sha256": "7cd387408619911cf28f6b86ce97ab16d07411a103e2fe7fd6d89a774ec381cc"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "9f39f18fbf1ecddb4be599b8f959336257ed9c09493429931d9a69d60e512996",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "set_flow_rate": 1200
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "825ca2d82d936b719eae21433cdd4b6f9e8da3b25bcf69d73db2e7a6bf1947fc",
+          "eligible": true,
+          "summary": {
+            "behavior_complete_experiment_count": 140,
+            "behavior_complete_experiment_rate": 1.0,
+            "complete_experiment_count": 140,
+            "complete_experiments_per_episode": 7.0,
+            "episode_completion_rate": 1.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": 0.06388734513148892,
+            "mean_episode_best_score": 0.09148689438080662,
+            "mean_final_primary_metric": 0.04199015733934515,
+            "mean_final_score": 0.07131860981412178,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 160,
+              "add_solvent": 160,
+              "measure": 280,
+              "run_flow": 300,
+              "set_flow_rate": 160,
+              "terminate": 140
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 140,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "b7bcbd592ff54a3ef7d24bed5eb82d3d1aa6500efed008a9dd0cba6ccde9ad6d",
+          "eligible": true,
+          "summary": {
+            "behavior_complete_experiment_count": 160,
+            "behavior_complete_experiment_rate": 1.0,
+            "complete_experiment_count": 160,
+            "complete_experiments_per_episode": 8.0,
+            "episode_completion_rate": 1.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": 0.14362258958886945,
+            "mean_episode_best_score": 0.15827734570294005,
+            "mean_final_primary_metric": 0.12805059479037367,
+            "mean_final_score": 0.1517861264498279,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 180,
+              "add_solvent": 180,
+              "measure": 320,
+              "run_flow": 180,
+              "set_flow_rate": 180,
+              "terminate": 160
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 160,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-flow-reaction-optimization-seed2",
+      "model_seed": 2,
+      "task_id": "flow-reaction-optimization",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/flow-reaction-optimization/seed-2/attempt-0001/ppo-flow-reaction-optimization-seed2.manifest.json",
+      "training_manifest_sha256": "d29ce93f87749bbf5ceeca2a1e6f943d13e82ed06b3b88b27a7acecb4ab60af3"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "2de9bee61775eda9876056c7a6743c766a6ecdd7f48ef90dcc3b287050204cb0",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.06666666666666667,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_solvent": 20,
+              "set_flow_rate": 1180
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "4d99315e5e4fdb104d1497cf8e2484a2845159ad28869e31ac15804d97f2ec3a",
+          "eligible": true,
+          "summary": {
+            "behavior_complete_experiment_count": 160,
+            "behavior_complete_experiment_rate": 1.0,
+            "complete_experiment_count": 160,
+            "complete_experiments_per_episode": 8.0,
+            "episode_completion_rate": 1.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": 0.0894998291143819,
+            "mean_episode_best_score": 0.10584186842682557,
+            "mean_final_primary_metric": 0.07497741280633548,
+            "mean_final_score": 0.09926083282569584,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 180,
+              "add_solvent": 180,
+              "measure": 160,
+              "run_flow": 321,
+              "set_flow_rate": 180,
+              "terminate": 179
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 160,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "72d9d1c620ce4a481932e47b5102a4558a6277a3aadd8bca213cf1a1629aa0eb",
+          "eligible": true,
+          "summary": {
+            "behavior_complete_experiment_count": 200,
+            "behavior_complete_experiment_rate": 1.0,
+            "complete_experiment_count": 200,
+            "complete_experiments_per_episode": 10.0,
+            "episode_completion_rate": 1.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": 0.1874383551927085,
+            "mean_episode_best_score": 0.15552052783848452,
+            "mean_final_primary_metric": 0.1648130886015755,
+            "mean_final_score": 0.14458501644851746,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 200,
+              "add_solvent": 200,
+              "measure": 200,
+              "run_flow": 200,
+              "set_flow_rate": 200,
+              "terminate": 200
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 200,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-flow-reaction-optimization-seed3",
+      "model_seed": 3,
+      "task_id": "flow-reaction-optimization",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/flow-reaction-optimization/seed-3/attempt-0001/ppo-flow-reaction-optimization-seed3.manifest.json",
+      "training_manifest_sha256": "98538b661007c873a0d135e504c7ea23b61e50b729bf5e8e972225bf9b0279f4"
+    },
+    {
+      "attempt_lineage": [
+        {
+          "attempt": "attempt-0001",
+          "attempt_plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+          "counts_toward_frozen_matrix": true,
+          "status": "complete"
+        }
+      ],
+      "candidate_evaluations": [
+        {
+          "dev_evaluation_sha256": "9f39f18fbf1ecddb4be599b8f959336257ed9c09493429931d9a69d60e512996",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 0,
+            "complete_experiments_per_episode": 0.0,
+            "episode_completion_rate": 0.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": null,
+            "mean_episode_best_score": 0.0,
+            "mean_final_primary_metric": null,
+            "mean_final_score": 0.0,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "set_flow_rate": 1200
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 0,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 25600
+        },
+        {
+          "dev_evaluation_sha256": "1eb9af308d5d68e398ffce0833887c1435dd96a0ebd691166358c2ab723c269d",
+          "eligible": false,
+          "summary": {
+            "behavior_complete_experiment_count": 0,
+            "behavior_complete_experiment_rate": 0.0,
+            "complete_experiment_count": 20,
+            "complete_experiments_per_episode": 1.0,
+            "episode_completion_rate": 1.0,
+            "high_cost_step_rate": 0.06666666666666667,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": 0.004373770553998723,
+            "mean_episode_best_score": 0.0023476550584036427,
+            "mean_final_primary_metric": 0.004373770553998723,
+            "mean_final_score": 0.0023476550584036427,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 20,
+              "add_solvent": 40,
+              "measure": 40,
+              "set_flow_rate": 1080,
+              "terminate": 20
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 20,
+            "quick_close_count": 20,
+            "quick_close_rate": 1.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 51200
+        },
+        {
+          "dev_evaluation_sha256": "818dcfde89f27405b38aabed70ef41c0894c8644c88d2e202126ea1fbb3bfe99",
+          "eligible": true,
+          "summary": {
+            "behavior_complete_experiment_count": 160,
+            "behavior_complete_experiment_rate": 1.0,
+            "complete_experiment_count": 160,
+            "complete_experiments_per_episode": 8.0,
+            "episode_completion_rate": 1.0,
+            "high_cost_step_rate": 0.0,
+            "invalid_action_rate": 0.0,
+            "mean_episode_best_primary_metric": 0.16073340597671593,
+            "mean_episode_best_score": 0.1314986007468988,
+            "mean_final_primary_metric": 0.13464466021407645,
+            "mean_final_score": 0.12234254738199471,
+            "observation_domain_failure_count": 0,
+            "operation_count": 1200,
+            "operation_counts": {
+              "add_reagent": 180,
+              "add_solvent": 180,
+              "measure": 320,
+              "run_flow": 180,
+              "set_flow_rate": 180,
+              "terminate": 160
+            },
+            "primary_metric": "flow_conversion",
+            "primary_metric_missing_count": 0,
+            "primary_metric_observation_count": 160,
+            "quick_close_count": 0,
+            "quick_close_rate": 0.0,
+            "runtime_domain_failure_count": 0,
+            "unsafe_step_rate": 0.0
+          },
+          "training_environment_step_count": 102400
+        }
+      ],
+      "job_id": "ppo-flow-reaction-optimization-seed4",
+      "model_seed": 4,
+      "task_id": "flow-reaction-optimization",
+      "training_environment_step_count": 102400,
+      "training_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/jobs/flow-reaction-optimization/seed-4/attempt-0001/ppo-flow-reaction-optimization-seed4.manifest.json",
+      "training_manifest_sha256": "2b7c1b105acebf943a9e297d135f351b1cdca61faabc800f54b890749ba16905"
+    }
+  ],
+  "limitations": [
+    "This report is public Train/Dev method-development evidence, not formal Bench evidence.",
+    "PPO completion alone does not complete benchmark-v05-rl-adapters.",
+    "PPO failed the frozen four-task Dev selection gate; missing task checkpoints must not be imputed, repaired from Bench, or claimed as benchmark-ready.",
+    "Selected checkpoint binaries are digest-bound local artifacts under the ignored controlled run tree."
+  ],
+  "methods_config_sha256": "84a2110562ab12c5d345204031deb2ce2a927c71018c31ac92aaaa5ab2d78b80",
+  "parent_task_complete": false,
+  "plan_sha256": "4f1595be76646a495ab612b852f07024546b80eebe51df57d24d461b1bfc54ef",
+  "ppo_method_ready": false,
+  "reference_repositories_used": [],
+  "remaining_parent_work": [
+    "record PPO as failed or preregister a new development cycle; the current frozen four-task checkpoint set is incomplete",
+    "four-task five-seed SAC Train/Dev execution",
+    "clean-environment checkpoint distribution and load proof",
+    "observation-blind comparison at the parent method gate",
+    "method freeze before any sealed Bench access"
+  ],
+  "schema_version": "chemworld-formal-ppo-development-report-0.4",
+  "selected_checkpoint_count": 2,
+  "status": "ppo_train_dev_complete_selection_failed",
+  "task_outcomes": [
+    {
+      "candidate_checkpoint_count": 15,
+      "eligible_candidate_count": 0,
+      "failure_reason": "No checkpoint satisfied the frozen behavior-complete, domain-stable deterministic Dev eligibility contract.",
+      "model_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "primary_metric": "product_in_organic",
+      "status": "no_eligible_candidate",
+      "task_id": "partition-discovery",
+      "training_run_count": 5
+    },
+    {
+      "candidate_checkpoint_count": 15,
+      "eligible_candidate_count": 0,
+      "failure_reason": "No checkpoint satisfied the frozen behavior-complete, domain-stable deterministic Dev eligibility contract.",
+      "model_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "primary_metric": "crystal_yield",
+      "status": "no_eligible_candidate",
+      "task_id": "reaction-to-crystallization",
+      "training_run_count": 5
+    },
+    {
+      "candidate_checkpoint_count": 15,
+      "checkpoint_binding": {
+        "action_contract_sha256": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "checkpoint_manifest_sha256": "6e3ba682c36927a544707ed507101aa8590c158b143b111b0c8806fd704419c9",
+        "checkpoint_sha256": "60247de9b98ed54e93dfcaacd1700dcbef1d292c502936def8f550cc87bf17eb",
+        "method_id": "ppo",
+        "ppo_policy_distribution_contract_sha256": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "task_id": "reaction-to-distillation",
+        "training_environment_step_count": 512000,
+        "training_resource_sha256": "9d6295ef3b4f99f7b4729e9bbf63864203f48d1c364be49fc51be315b962aabe",
+        "training_resources_separate_from_evaluation": true,
+        "training_reward_contract_sha256": "856a163fe52cf99fce43877c0f4f686eaa4a7ab2cbee33d7b6e9c9c2da96e031"
+      },
+      "deterministic_replay": {
+        "canonical_evaluation_sha256": "2a185a4df6af6cde1811a5b9adb4bc813f75a07276f017c9b6c90014e4a0b58d",
+        "deterministic": true,
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 60,
+          "behavior_complete_experiment_rate": 1.0,
+          "complete_experiment_count": 60,
+          "complete_experiments_per_episode": 3.0,
+          "episode_completion_rate": 1.0,
+          "high_cost_step_rate": 0.2275,
+          "invalid_action_rate": 0.0,
+          "mean_episode_best_primary_metric": 0.2539561284277075,
+          "mean_episode_best_score": 0.42294236842750343,
+          "mean_final_primary_metric": 0.2314047995487811,
+          "mean_final_score": 0.4063130031285132,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_reagent": 80,
+            "add_solvent": 80,
+            "collect_fraction": 675,
+            "distill": 75,
+            "heat": 95,
+            "measure": 135,
+            "terminate": 60
+          },
+          "primary_metric": "distillate_purity",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 60,
+          "quick_close_count": 0,
+          "quick_close_rate": 0.0,
+          "runtime_domain_failure_count": 0,
+          "unsafe_step_rate": 0.0
+        }
+      },
+      "eligible_candidate_count": 1,
+      "primary_metric": "distillate_purity",
+      "selected_dev_evaluation_sha256": "eb46b7507384daf5fa4458adf96e18f3d3f67af51c75f8bfafc566534b8c4a45",
+      "selected_dev_summary": {
+        "behavior_complete_experiment_count": 60,
+        "behavior_complete_experiment_rate": 1.0,
+        "complete_experiment_count": 60,
+        "complete_experiments_per_episode": 3.0,
+        "episode_completion_rate": 1.0,
+        "high_cost_step_rate": 0.2275,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_primary_metric": 0.2539561284277075,
+        "mean_episode_best_score": 0.42294236842750343,
+        "mean_final_primary_metric": 0.2314047995487811,
+        "mean_final_score": 0.4063130031285132,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_reagent": 80,
+          "add_solvent": 80,
+          "collect_fraction": 675,
+          "distill": 75,
+          "heat": 95,
+          "measure": 135,
+          "terminate": 60
+        },
+        "primary_metric": "distillate_purity",
+        "primary_metric_missing_count": 0,
+        "primary_metric_observation_count": 60,
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "selected_model_seed": 0,
+      "selected_training_environment_step_count": 102400,
+      "status": "selected",
+      "task_id": "reaction-to-distillation",
+      "training_run_count": 5
+    },
+    {
+      "candidate_checkpoint_count": 15,
+      "checkpoint_binding": {
+        "action_contract_sha256": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "checkpoint_manifest_sha256": "cc8c3377695be87df285a3105d70fb4fda01e383f6f1b7bec57a2365d72efbcc",
+        "checkpoint_sha256": "38330fbca00833eae89caafc39c09a2cdb36246efae2010c9328725d410db508",
+        "method_id": "ppo",
+        "ppo_policy_distribution_contract_sha256": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "task_id": "flow-reaction-optimization",
+        "training_environment_step_count": 512000,
+        "training_resource_sha256": "1a2085ef9222b69fec15044aff5d0b627f8dbe74bceb37941c87e079e4fd0068",
+        "training_resources_separate_from_evaluation": true,
+        "training_reward_contract_sha256": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1"
+      },
+      "deterministic_replay": {
+        "canonical_evaluation_sha256": "1ad67b05afc2ffb1b990823d58836e1e64d5ccf7e1d34fb3f155ef65c7ba00a7",
+        "deterministic": true,
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 200,
+          "behavior_complete_experiment_rate": 1.0,
+          "complete_experiment_count": 200,
+          "complete_experiments_per_episode": 10.0,
+          "episode_completion_rate": 1.0,
+          "high_cost_step_rate": 0.0,
+          "invalid_action_rate": 0.0,
+          "mean_episode_best_primary_metric": 0.1874383551927085,
+          "mean_episode_best_score": 0.15552052783848452,
+          "mean_final_primary_metric": 0.1648130886015755,
+          "mean_final_score": 0.14458501644851746,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_reagent": 200,
+            "add_solvent": 200,
+            "measure": 200,
+            "run_flow": 200,
+            "set_flow_rate": 200,
+            "terminate": 200
+          },
+          "primary_metric": "flow_conversion",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 200,
+          "quick_close_count": 0,
+          "quick_close_rate": 0.0,
+          "runtime_domain_failure_count": 0,
+          "unsafe_step_rate": 0.0
+        }
+      },
+      "eligible_candidate_count": 9,
+      "primary_metric": "flow_conversion",
+      "selected_dev_evaluation_sha256": "72d9d1c620ce4a481932e47b5102a4558a6277a3aadd8bca213cf1a1629aa0eb",
+      "selected_dev_summary": {
+        "behavior_complete_experiment_count": 200,
+        "behavior_complete_experiment_rate": 1.0,
+        "complete_experiment_count": 200,
+        "complete_experiments_per_episode": 10.0,
+        "episode_completion_rate": 1.0,
+        "high_cost_step_rate": 0.0,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_primary_metric": 0.1874383551927085,
+        "mean_episode_best_score": 0.15552052783848452,
+        "mean_final_primary_metric": 0.1648130886015755,
+        "mean_final_score": 0.14458501644851746,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_reagent": 200,
+          "add_solvent": 200,
+          "measure": 200,
+          "run_flow": 200,
+          "set_flow_rate": 200,
+          "terminate": 200
+        },
+        "primary_metric": "flow_conversion",
+        "primary_metric_missing_count": 0,
+        "primary_metric_observation_count": 200,
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "selected_model_seed": 3,
+      "selected_training_environment_step_count": 102400,
+      "status": "selected",
+      "task_id": "flow-reaction-optimization",
+      "training_run_count": 5
+    }
+  ],
+  "task_selections": [
+    {
+      "checkpoint_binding": {
+        "action_contract_sha256": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "checkpoint_manifest_sha256": "6e3ba682c36927a544707ed507101aa8590c158b143b111b0c8806fd704419c9",
+        "checkpoint_sha256": "60247de9b98ed54e93dfcaacd1700dcbef1d292c502936def8f550cc87bf17eb",
+        "method_id": "ppo",
+        "ppo_policy_distribution_contract_sha256": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "task_id": "reaction-to-distillation",
+        "training_environment_step_count": 512000,
+        "training_resource_sha256": "9d6295ef3b4f99f7b4729e9bbf63864203f48d1c364be49fc51be315b962aabe",
+        "training_resources_separate_from_evaluation": true,
+        "training_reward_contract_sha256": "856a163fe52cf99fce43877c0f4f686eaa4a7ab2cbee33d7b6e9c9c2da96e031"
+      },
+      "deterministic_replay": {
+        "canonical_evaluation_sha256": "2a185a4df6af6cde1811a5b9adb4bc813f75a07276f017c9b6c90014e4a0b58d",
+        "deterministic": true,
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 60,
+          "behavior_complete_experiment_rate": 1.0,
+          "complete_experiment_count": 60,
+          "complete_experiments_per_episode": 3.0,
+          "episode_completion_rate": 1.0,
+          "high_cost_step_rate": 0.2275,
+          "invalid_action_rate": 0.0,
+          "mean_episode_best_primary_metric": 0.2539561284277075,
+          "mean_episode_best_score": 0.42294236842750343,
+          "mean_final_primary_metric": 0.2314047995487811,
+          "mean_final_score": 0.4063130031285132,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_reagent": 80,
+            "add_solvent": 80,
+            "collect_fraction": 675,
+            "distill": 75,
+            "heat": 95,
+            "measure": 135,
+            "terminate": 60
+          },
+          "primary_metric": "distillate_purity",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 60,
+          "quick_close_count": 0,
+          "quick_close_rate": 0.0,
+          "runtime_domain_failure_count": 0,
+          "unsafe_step_rate": 0.0
+        }
+      },
+      "primary_metric": "distillate_purity",
+      "selected_dev_evaluation_sha256": "eb46b7507384daf5fa4458adf96e18f3d3f67af51c75f8bfafc566534b8c4a45",
+      "selected_dev_summary": {
+        "behavior_complete_experiment_count": 60,
+        "behavior_complete_experiment_rate": 1.0,
+        "complete_experiment_count": 60,
+        "complete_experiments_per_episode": 3.0,
+        "episode_completion_rate": 1.0,
+        "high_cost_step_rate": 0.2275,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_primary_metric": 0.2539561284277075,
+        "mean_episode_best_score": 0.42294236842750343,
+        "mean_final_primary_metric": 0.2314047995487811,
+        "mean_final_score": 0.4063130031285132,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_reagent": 80,
+          "add_solvent": 80,
+          "collect_fraction": 675,
+          "distill": 75,
+          "heat": 95,
+          "measure": 135,
+          "terminate": 60
+        },
+        "primary_metric": "distillate_purity",
+        "primary_metric_missing_count": 0,
+        "primary_metric_observation_count": 60,
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "selected_model_seed": 0,
+      "selected_training_environment_step_count": 102400,
+      "task_id": "reaction-to-distillation"
+    },
+    {
+      "checkpoint_binding": {
+        "action_contract_sha256": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "checkpoint_manifest_sha256": "cc8c3377695be87df285a3105d70fb4fda01e383f6f1b7bec57a2365d72efbcc",
+        "checkpoint_sha256": "38330fbca00833eae89caafc39c09a2cdb36246efae2010c9328725d410db508",
+        "method_id": "ppo",
+        "ppo_policy_distribution_contract_sha256": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "task_id": "flow-reaction-optimization",
+        "training_environment_step_count": 512000,
+        "training_resource_sha256": "1a2085ef9222b69fec15044aff5d0b627f8dbe74bceb37941c87e079e4fd0068",
+        "training_resources_separate_from_evaluation": true,
+        "training_reward_contract_sha256": "8994bedacb620e05358d1b0807adab90e72a92c61b01b7169967ad7a395e20f1"
+      },
+      "deterministic_replay": {
+        "canonical_evaluation_sha256": "1ad67b05afc2ffb1b990823d58836e1e64d5ccf7e1d34fb3f155ef65c7ba00a7",
+        "deterministic": true,
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 200,
+          "behavior_complete_experiment_rate": 1.0,
+          "complete_experiment_count": 200,
+          "complete_experiments_per_episode": 10.0,
+          "episode_completion_rate": 1.0,
+          "high_cost_step_rate": 0.0,
+          "invalid_action_rate": 0.0,
+          "mean_episode_best_primary_metric": 0.1874383551927085,
+          "mean_episode_best_score": 0.15552052783848452,
+          "mean_final_primary_metric": 0.1648130886015755,
+          "mean_final_score": 0.14458501644851746,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_reagent": 200,
+            "add_solvent": 200,
+            "measure": 200,
+            "run_flow": 200,
+            "set_flow_rate": 200,
+            "terminate": 200
+          },
+          "primary_metric": "flow_conversion",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 200,
+          "quick_close_count": 0,
+          "quick_close_rate": 0.0,
+          "runtime_domain_failure_count": 0,
+          "unsafe_step_rate": 0.0
+        }
+      },
+      "primary_metric": "flow_conversion",
+      "selected_dev_evaluation_sha256": "72d9d1c620ce4a481932e47b5102a4558a6277a3aadd8bca213cf1a1629aa0eb",
+      "selected_dev_summary": {
+        "behavior_complete_experiment_count": 200,
+        "behavior_complete_experiment_rate": 1.0,
+        "complete_experiment_count": 200,
+        "complete_experiments_per_episode": 10.0,
+        "episode_completion_rate": 1.0,
+        "high_cost_step_rate": 0.0,
+        "invalid_action_rate": 0.0,
+        "mean_episode_best_primary_metric": 0.1874383551927085,
+        "mean_episode_best_score": 0.15552052783848452,
+        "mean_final_primary_metric": 0.1648130886015755,
+        "mean_final_score": 0.14458501644851746,
+        "observation_domain_failure_count": 0,
+        "operation_count": 1200,
+        "operation_counts": {
+          "add_reagent": 200,
+          "add_solvent": 200,
+          "measure": 200,
+          "run_flow": 200,
+          "set_flow_rate": 200,
+          "terminate": 200
+        },
+        "primary_metric": "flow_conversion",
+        "primary_metric_missing_count": 0,
+        "primary_metric_observation_count": 200,
+        "quick_close_count": 0,
+        "quick_close_rate": 0.0,
+        "runtime_domain_failure_count": 0,
+        "unsafe_step_rate": 0.0
+      },
+      "selected_model_seed": 3,
+      "selected_training_environment_step_count": 102400,
+      "task_id": "flow-reaction-optimization"
+    }
+  ],
+  "total_training_environment_step_count": 2048000,
+  "training_resources": {
+    "cpu_time_s": 88421.125,
+    "gpu_time_s": 0.0,
+    "merged_training_interval_count": 11,
+    "observed_active_training_wall_time_s": 16388.259982824326,
+    "parallel_overlap_observed": true,
+    "parallel_wall_time_sum_used_as_elapsed": false,
+    "summed_job_wall_time_s_diagnostic_only": 27546.262471099988,
+    "training_environment_step_count": 2048000,
+    "training_interval_count": 20,
+    "wall_time_accounting_method": "union_of_manifest_mtime_minus_monotonic_job_training_wall_intervals",
+    "wall_time_s": 16388.259982824326
+  },
+  "training_run_count": 20
+}
