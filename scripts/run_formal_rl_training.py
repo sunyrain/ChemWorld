@@ -8,11 +8,13 @@ from pathlib import Path
 
 from chemworld.rl.formal_training import (
     DEFAULT_PLAN_PATH,
+    build_formal_allocation,
     finalize_training,
     load_execution_inputs,
     run_pending_jobs,
     scan_completed_jobs,
 )
+from chemworld.rl.training import train_sb3_baseline
 
 
 def main() -> int:
@@ -25,11 +27,51 @@ def main() -> int:
     parser.add_argument("--audit-only", action="store_true")
     parser.add_argument("--finalize-only", action="store_true")
     parser.add_argument("--skip-finalize", action="store_true")
+    parser.add_argument("--probe-backend", choices=("dummy", "subprocess"))
+    parser.add_argument("--probe-steps", type=int, default=1024)
     args = parser.parse_args()
 
     root = args.root.resolve()
     plan, formal, methods = load_execution_inputs(root=root, plan_path=args.plan)
-    if args.audit_only:
+    if args.probe_backend:
+        task_id = args.task or "partition-discovery"
+        infrastructure = plan["infrastructure"]
+        allocation = build_formal_allocation(formal, task_id=task_id, name="train")
+        output_dir = (
+            root / plan["execution"]["artifact_root"] / "throughput-probes" / args.probe_backend
+        )
+        manifest = train_sb3_baseline(
+            algorithm="ppo",
+            task_id=task_id,
+            allocation=allocation,
+            total_timesteps=args.probe_steps,
+            model_seed=9901 if args.probe_backend == "dummy" else 9902,
+            output_dir=output_dir,
+            algorithm_kwargs=dict(plan["training"]["hyperparameters"]),
+            operation_budget=int(plan["training"]["operation_budget"]),
+            parallel_environments=int(infrastructure["parallel_environments"]),
+            vectorization_backend=args.probe_backend,
+            device=infrastructure["device"],
+            torch_num_threads=int(infrastructure["torch_num_threads"]),
+            progress_interval_steps=args.probe_steps,
+        )
+        result = {
+            "schema_version": "chemworld-formal-ppo-throughput-probe-0.4",
+            "diagnostic_only": True,
+            "backend": args.probe_backend,
+            "task_id": task_id,
+            "requested_steps": args.probe_steps,
+            "actual_steps": manifest["training_environment_step_count"],
+            "step_budget_exact": manifest["step_budget_exact"],
+            "wall_time_s": manifest["wall_time_s"],
+            "cpu_time_s": manifest["cpu_time_s"],
+            "environment_steps_per_wall_second": manifest["training_infrastructure"][
+                "environment_steps_per_wall_second"
+            ],
+            "reference_search_used": False,
+            "bench_accessed": False,
+        }
+    elif args.audit_only:
         completed = scan_completed_jobs(root=root, plan=plan)
         result = {
             "schema_version": "chemworld-formal-ppo-execution-audit-0.4",

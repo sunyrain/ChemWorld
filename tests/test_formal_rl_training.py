@@ -38,6 +38,9 @@ def test_plan_is_exactly_bound_to_formal_tasks_splits_and_ppo_budget() -> None:
     assert plan["evidence_boundary"]["benchmark_claim_allowed"] is False
     assert plan["evidence_boundary"]["sac_training_in_scope"] is False
     assert plan["infrastructure"]["torch_num_threads"] == 1
+    assert plan["infrastructure"]["vectorization_backend"] == "subprocess"
+    assert plan["infrastructure_selection"]["selected_backend"] == "subprocess"
+    assert plan["infrastructure_selection"]["formal_training_evidence"] is False
 
 
 @pytest.mark.parametrize(
@@ -204,3 +207,31 @@ def test_world_allocation_rejects_blank_namespace() -> None:
             cells=(("flow.reaction-kinetics", "interpolation", 0.1),),
             namespace_id=" ",
         )
+
+
+@pytest.mark.skipif(__import__("os").name != "nt", reason="Windows handle accounting")
+def test_windows_subprocess_worker_cpu_is_included(tmp_path: Path) -> None:
+    pytest.importorskip("stable_baselines3")
+    _plan, formal, _methods = _inputs()
+    allocation = build_formal_allocation(formal, task_id="partition-discovery", name="train")
+    manifest = train_sb3_baseline(
+        algorithm="ppo",
+        task_id="partition-discovery",
+        allocation=allocation,
+        total_timesteps=8,
+        model_seed=92,
+        output_dir=tmp_path,
+        algorithm_kwargs={"n_steps": 1, "batch_size": 8},
+        operation_budget=4,
+        parallel_environments=8,
+        vectorization_backend="subprocess",
+        torch_num_threads=1,
+    )
+    infrastructure = manifest["training_infrastructure"]
+    assert infrastructure["worker_process_cpu_time_s"] > 0.0
+    assert infrastructure["worker_process_cpu_accounting_method"].startswith(
+        "windows_GetProcessTimes"
+    )
+    assert manifest["cpu_time_s"] == pytest.approx(
+        infrastructure["parent_process_cpu_time_s"] + infrastructure["worker_process_cpu_time_s"]
+    )

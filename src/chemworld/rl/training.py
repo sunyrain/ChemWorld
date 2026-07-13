@@ -29,6 +29,64 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _children_cpu_time_s() -> float:
+    times = os.times()
+    return float(times.children_user + times.children_system)
+
+
+def _windows_process_cpu_time_s(process: Any) -> float:
+    """Read user+kernel CPU from a retained multiprocessing process handle."""
+
+    import ctypes
+    from ctypes import wintypes
+
+    popen = getattr(process, "_popen", None)
+    handle = getattr(popen, "_handle", None)
+    if handle is None:
+        raise RuntimeError("subprocess CPU accounting is missing a Windows process handle")
+    creation = wintypes.FILETIME()
+    exit_time = wintypes.FILETIME()
+    kernel = wintypes.FILETIME()
+    user = wintypes.FILETIME()
+    get_process_times = ctypes.windll.kernel32.GetProcessTimes
+    get_process_times.argtypes = [
+        wintypes.HANDLE,
+        ctypes.POINTER(wintypes.FILETIME),
+        ctypes.POINTER(wintypes.FILETIME),
+        ctypes.POINTER(wintypes.FILETIME),
+        ctypes.POINTER(wintypes.FILETIME),
+    ]
+    get_process_times.restype = wintypes.BOOL
+    if not get_process_times(
+        int(handle),
+        ctypes.byref(creation),
+        ctypes.byref(exit_time),
+        ctypes.byref(kernel),
+        ctypes.byref(user),
+    ):
+        raise RuntimeError("GetProcessTimes failed for an RL environment worker")
+
+    def seconds(value: Any) -> float:
+        ticks = (int(value.dwHighDateTime) << 32) | int(value.dwLowDateTime)
+        return ticks / 10_000_000.0
+
+    return seconds(kernel) + seconds(user)
+
+
+def _worker_cpu_time_s(processes: list[Any], *, children_started: float) -> tuple[float, str]:
+    if not processes:
+        return 0.0, "not_applicable_in_process_vectorization"
+    if os.name == "nt":
+        return (
+            sum(_windows_process_cpu_time_s(process) for process in processes),
+            "windows_GetProcessTimes_retained_worker_handles",
+        )
+    elapsed = _children_cpu_time_s() - children_started
+    if elapsed < 0.0:
+        raise RuntimeError("subprocess child CPU accounting moved backwards")
+    return elapsed, "os_times_children_user_plus_system_delta"
+
+
 def _action_contract(env: Any) -> dict[str, Any]:
     current = env
     while current is not None:
@@ -185,10 +243,12 @@ def train_sb3_baseline(
         )
         for rank in range(parallel_environments)
     ]
+    children_cpu_started = _children_cpu_time_s()
     if vectorization_backend == "subprocess":
         env: Any = SubprocVecEnv(env_factories, start_method="spawn")
     else:
         env = DummyVecEnv(env_factories)
+    worker_processes = list(getattr(env, "processes", ()))
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     checkpoint_stem = output / f"{algorithm}-{task_id}-seed{model_seed}"
@@ -306,7 +366,11 @@ def train_sb3_baseline(
     finally:
         env.close()
     wall_time_s = perf_counter() - wall_started
-    cpu_time_s = process_time() - cpu_started
+    parent_cpu_time_s = process_time() - cpu_started
+    worker_cpu_time_s, worker_cpu_accounting_method = _worker_cpu_time_s(
+        worker_processes, children_started=children_cpu_started
+    )
+    cpu_time_s = parent_cpu_time_s + worker_cpu_time_s
     checkpoint = checkpoint_stem.with_suffix(".zip")
     if (
         training_diagnostics is not None
@@ -396,6 +460,9 @@ def train_sb3_baseline(
             ),
             "environment_steps_per_wall_second": actual_timesteps / max(wall_time_s, 1e-12),
             "average_process_cpu_cores": cpu_time_s / max(wall_time_s, 1e-12),
+            "parent_process_cpu_time_s": parent_cpu_time_s,
+            "worker_process_cpu_time_s": worker_cpu_time_s,
+            "worker_process_cpu_accounting_method": worker_cpu_accounting_method,
         },
         "wall_time_s": wall_time_s,
         "cpu_time_s": cpu_time_s,

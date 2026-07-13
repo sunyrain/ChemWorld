@@ -147,6 +147,8 @@ def validate_training_plan(
         and execution.get("expected_selected_checkpoint_count") == len(task_metrics),
         "cpu_execution_declared": isinstance(infrastructure, Mapping)
         and infrastructure.get("device") == "cpu",
+        "subprocess_vectorization_declared": isinstance(infrastructure, Mapping)
+        and infrastructure.get("vectorization_backend") == "subprocess",
         "single_thread_torch_declared": isinstance(infrastructure, Mapping)
         and infrastructure.get("torch_num_threads") == 1,
         "progress_heartbeat_declared": isinstance(infrastructure, Mapping)

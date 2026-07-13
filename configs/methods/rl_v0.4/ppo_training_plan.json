@@ -26,10 +26,36 @@
   },
   "infrastructure": {
     "parallel_environments": 8,
-    "vectorization_backend": "dummy",
+    "vectorization_backend": "subprocess",
     "device": "cpu",
     "torch_num_threads": 1,
     "progress_interval_steps": 5120
+  },
+  "infrastructure_selection": {
+    "diagnostic_only": true,
+    "task_id": "partition-discovery",
+    "environment_steps_per_probe": 1024,
+    "exact_step_ledger_required": true,
+    "complete_parent_and_worker_cpu_accounting_required": true,
+    "dummy": {
+      "actual_environment_steps": 1024,
+      "wall_time_s": 20.545267199999216,
+      "cpu_time_s": 19.1875,
+      "environment_steps_per_wall_second": 49.84116244543362,
+      "cpu_accounting": "parent_process_only_no_workers"
+    },
+    "subprocess": {
+      "actual_environment_steps": 1024,
+      "wall_time_s": 6.712335600001097,
+      "cpu_time_s": 52.390625,
+      "environment_steps_per_wall_second": 152.55494674608232,
+      "cpu_accounting": "parent_plus_windows_GetProcessTimes_worker_handles"
+    },
+    "selected_backend": "subprocess",
+    "selection_reason": "3.06x measured wall-throughput with exact steps and complete worker CPU accounting",
+    "formal_training_evidence": false,
+    "bench_accessed": false,
+    "reference_search_used": false
   },
   "split_bindings": {
     "train": {
