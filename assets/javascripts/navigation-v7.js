@@ -2,6 +2,30 @@
   var tocStorageKey = "chemworld.toc.collapsed.v7";
   var primaryStorageKey = "chemworld.primary.collapsed.v7";
   var sectionStoragePrefix = "chemworld.section.collapsed.v7:";
+  var isEnglish = document.documentElement.lang.toLowerCase().startsWith("en");
+  var labels = isEnglish
+    ? {
+        collapseAll: "Collapse all",
+        expandAll: "Expand all",
+        collapseNavigation: "Collapse all navigation groups",
+        expandNavigation: "Expand all navigation groups",
+        onThisPage: "On this page",
+        collapseToc: "Collapse this page outline",
+        expandToc: "Expand this page outline",
+        collapseSection: "Collapse",
+        expandSection: "Expand",
+      }
+    : {
+        collapseAll: "全部折叠",
+        expandAll: "全部展开",
+        collapseNavigation: "折叠左侧全部目录分组",
+        expandNavigation: "展开左侧全部目录分组",
+        onThisPage: "本页目录",
+        collapseToc: "折叠页内目录",
+        expandToc: "展开页内目录",
+        collapseSection: "折叠",
+        expandSection: "展开",
+      };
 
   function readFlag(key) {
     try {
@@ -44,9 +68,12 @@
     }
 
     function render(collapsed) {
-      button.textContent = collapsed ? "全部展开" : "全部折叠";
+      button.textContent = collapsed ? labels.expandAll : labels.collapseAll;
       button.setAttribute("aria-expanded", collapsed ? "false" : "true");
-      button.setAttribute("aria-label", collapsed ? "展开左侧全部目录分组" : "折叠左侧全部目录分组");
+      button.setAttribute(
+        "aria-label",
+        collapsed ? labels.expandNavigation : labels.collapseNavigation
+      );
     }
 
     var collapsed = readFlag(primaryStorageKey);
@@ -78,7 +105,7 @@
       var heading = document.createElement("div");
       heading.className = "cw-toc-heading";
       var label = document.createElement("span");
-      label.textContent = "本页目录";
+      label.textContent = labels.onThisPage;
       var button = document.createElement("button");
       button.type = "button";
       button.className = "cw-outline-toggle";
@@ -90,7 +117,7 @@
         nav.classList.toggle("cw-toc-collapsed", collapsed);
         button.textContent = collapsed ? "+" : "−";
         button.setAttribute("aria-expanded", collapsed ? "false" : "true");
-        button.setAttribute("aria-label", collapsed ? "展开页内目录" : "折叠页内目录");
+        button.setAttribute("aria-label", collapsed ? labels.expandToc : labels.collapseToc);
       }
 
       render(readFlag(tocStorageKey));
@@ -131,7 +158,10 @@
         button.textContent = collapsed ? "+" : "−";
         button.setAttribute("aria-expanded", collapsed ? "false" : "true");
         button.setAttribute("aria-controls", "cw-section-" + heading.id);
-        button.setAttribute("aria-label", collapsed ? "展开“" + headingLabel + "”" : "折叠“" + headingLabel + "”");
+        button.setAttribute(
+          "aria-label",
+          (collapsed ? labels.expandSection : labels.collapseSection) + " “" + headingLabel + "”"
+        );
       }
 
       body.id = "cw-section-" + heading.id;
