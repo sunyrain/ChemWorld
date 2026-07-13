@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 
@@ -95,6 +96,25 @@ def test_windows_release_records_linux_as_optional_follow_up() -> None:
     assert manifest["observed_platforms"] == ["windows"]
     assert manifest["missing_optional_platforms"] == ["linux"]
     assert manifest["benchmark_claim_allowed"] is False
+
+
+def test_missing_required_platform_still_fails_closed() -> None:
+    protocol = copy.deepcopy(load_portable_release_protocol())
+    protocol["required_platforms"] = ["linux", "windows"]
+    protocol["optional_platforms"] = ["freebsd"]
+    semantic = semantic_identity(protocol)
+    attestation = {
+        "schema_version": "chemworld-portable-platform-attestation-0.1",
+        "protocol_sha256": canonical_sha256(protocol),
+        "backend_semantic_sha256": semantic["sha256"],
+        "clean_wheel_replay_passed": True,
+        "exact_replay": True,
+        "environment": {"platform_key": "windows"},
+    }
+    report = build_release_audit(protocol, [attestation])
+    assert report["missing_platforms"] == ["linux"]
+    assert report["portable_release_ready"] is False
+    assert release_manifest(report)["release_status"] == "blocked_candidate"
 
 
 def test_protocol_is_packaged_as_json() -> None:
