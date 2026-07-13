@@ -174,6 +174,18 @@ def _tracked_tree_dirty() -> bool:
     return bool(completed.stdout.strip())
 
 
+def _source_state_control(
+    *, source_commit: str, finished_source_commit: str, dirty_at_finish: bool
+) -> dict[str, object]:
+    commit_stable = source_commit == finished_source_commit
+    return {
+        "source_commit_at_finish": finished_source_commit,
+        "source_commit_stable": commit_stable,
+        "source_tree_dirty_at_finish": dirty_at_finish,
+        "passed": commit_stable and not dirty_at_finish,
+    }
+
+
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -246,10 +258,16 @@ def main() -> int:
         if not success and not args.continue_on_failure:
             break
 
+    finished_source_commit = _git_commit()
     dirty_at_finish = _tracked_tree_dirty()
-    overall_success = overall_success and not dirty_at_finish
+    source_state = _source_state_control(
+        source_commit=source_commit,
+        finished_source_commit=finished_source_commit,
+        dirty_at_finish=dirty_at_finish,
+    )
+    overall_success = overall_success and bool(source_state["passed"])
     summary["finished_at"] = datetime.now(UTC).isoformat()
-    summary["source_tree_dirty_at_finish"] = dirty_at_finish
+    summary.update(source_state)
     summary["success"] = overall_success
     summary["backend_candidate_gate_ready"] = overall_success
     summary["release_claim_ready"] = bool(overall_success and args.require_frozen_benchmark)

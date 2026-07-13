@@ -90,3 +90,24 @@ def test_release_gate_binds_the_candidate_backend_without_enabling_claims() -> N
     assert evidence["backend_freeze_allowed"] is True
     assert evidence["benchmark_claim_allowed"] is False
     assert len(evidence["file_sha256"]) == 64
+
+
+def test_release_gate_fails_when_head_changes_during_the_run() -> None:
+    namespace = runpy.run_path("scripts/run_release_gate.py", run_name="release_gate")
+    source_state_control = namespace["_source_state_control"]
+
+    stable = source_state_control(
+        source_commit="abc", finished_source_commit="abc", dirty_at_finish=False
+    )
+    changed = source_state_control(
+        source_commit="abc", finished_source_commit="def", dirty_at_finish=False
+    )
+    dirty = source_state_control(
+        source_commit="abc", finished_source_commit="abc", dirty_at_finish=True
+    )
+
+    assert stable["passed"] is True
+    assert stable["source_commit_stable"] is True
+    assert changed["passed"] is False
+    assert changed["source_commit_stable"] is False
+    assert dirty["passed"] is False
