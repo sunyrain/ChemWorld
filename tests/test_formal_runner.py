@@ -10,6 +10,7 @@ from typing import Any
 import pytest
 from scripts.run_formal_cell import main as formal_cell_main
 
+from chemworld.eval.formal_protocol_v0_4 import load_formal_protocol
 from chemworld.eval.formal_runner import (
     CellBusyError,
     CellIdentityError,
@@ -78,6 +79,7 @@ def _spec(
     method_id: str = "random",
     operation_limit: int = 2,
     complete_experiments: int = 1,
+    protocol_sha256: str = SHA,
 ) -> FormalCellSpec:
     private = _runtime() if runtime is None else runtime
     pair_id = "pair-opaque-000"
@@ -101,7 +103,7 @@ def _spec(
             nonce=private.world_nonce,
             interventions=private.world_interventions,
         ),
-        protocol_sha256=SHA,
+        protocol_sha256=protocol_sha256,
         backend_semantic_sha256=SHA,
         evaluator_sha256=SHA,
         interaction_protocol_sha256=SHA,
@@ -662,6 +664,7 @@ def test_default_replay_evaluator_verifies_a_real_environment_trajectory(tmp_pat
         method_id="scripted_chemistry",
         operation_limit=10,
         complete_experiments=1,
+        protocol_sha256=canonical_sha256(load_formal_protocol()),
     )
     outcome = run_formal_cell(
         issued_cell=_issued(spec),

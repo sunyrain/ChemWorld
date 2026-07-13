@@ -36,6 +36,7 @@ def build_verified_evaluation_result(
     trajectory_path: str | Path,
     threshold: float = 0.75,
     world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
+    risk_limit_override: float | None = None,
 ) -> dict[str, Any]:
     """Replay a trajectory and return an integrity-bound evaluation result."""
 
@@ -66,6 +67,7 @@ def build_verified_evaluation_result(
                 records,
                 threshold=threshold,
                 trajectory_digest=digest,
+                risk_limit_override=risk_limit_override,
             ),
         }
     )
@@ -137,10 +139,27 @@ def validate_verified_evaluation_result(
             if not matches:
                 raise ValueError(f"Leaderboard metric {key!r} does not match trajectory evaluation")
         if schema_version == EVALUATION_RESULT_SCHEMA_VERSION:
+            current_binding = result.get("score_replay")
+            replay_risk_limit: float | None = None
+            if (
+                isinstance(current_binding, dict)
+                and current_binding.get("risk_limit_source") == "bound_override"
+            ):
+                contract_payload = current_binding.get("task_evaluation_contract")
+                if not isinstance(contract_payload, dict):
+                    raise ValueError("Bound risk override is missing its evaluation contract")
+                supplied_limit = contract_payload.get("safety_limit")
+                if (
+                    isinstance(supplied_limit, bool)
+                    or not isinstance(supplied_limit, int | float)
+                ):
+                    raise ValueError("Bound risk override is invalid")
+                replay_risk_limit = float(supplied_limit)
             expected_binding = _score_replay_payload(
                 records,
                 threshold=float(threshold),
                 trajectory_digest=actual_digest,
+                risk_limit_override=replay_risk_limit,
             )
             if result.get("score_replay") != expected_binding:
                 raise ValueError(
@@ -153,6 +172,7 @@ def _score_replay_payload(
     *,
     threshold: float,
     trajectory_digest: str,
+    risk_limit_override: float | None = None,
 ) -> dict[str, Any]:
     first = records[0]
     task_id = str(first.get("benchmark_task_id") or "")
@@ -171,11 +191,21 @@ def _score_replay_payload(
         payload["task_evaluation_contract"] = None
         return payload
 
-    risk_protocol = json.loads(
-        (configuration_root() / "benchmark" / "risk_cost_vnext.json").read_text(encoding="utf-8")
-    )
-    risk_limit = RiskCostTaskPolicy.from_protocol(task_id, risk_protocol).risk_limit
+    if risk_limit_override is None:
+        risk_protocol = json.loads(
+            (configuration_root() / "benchmark" / "risk_cost_vnext.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        risk_limit = RiskCostTaskPolicy.from_protocol(task_id, risk_protocol).risk_limit
+        risk_limit_source = "risk_cost_vnext"
+    else:
+        risk_limit = float(risk_limit_override)
+        if not math.isfinite(risk_limit) or not 0.0 < risk_limit < 1.0:
+            raise ValueError("risk_limit_override must be finite and in (0, 1)")
+        risk_limit_source = "bound_override"
     contract = TaskEvaluationContract.for_task(task_id, risk_limit=risk_limit)
+    payload["risk_limit_source"] = risk_limit_source
     payload["task_evaluation_contract"] = contract.to_dict()
     payload["layered_evaluation"] = evaluate_layered_records(records, contract=contract)
     return payload

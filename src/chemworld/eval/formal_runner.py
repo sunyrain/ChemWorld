@@ -26,6 +26,7 @@ from types import TracebackType
 from typing import Any, Literal, Protocol, Self
 
 from chemworld.data.logging import load_jsonl
+from chemworld.eval.formal_protocol_v0_4 import load_formal_protocol
 from chemworld.eval.resource_accounting_v0_4 import (
     RESOURCE_ACCOUNTING_VERSION,
     ResourceProfile,
@@ -932,12 +933,27 @@ def _default_replay_evaluator(
     records: list[dict[str, Any]],
     trajectory_path: Path,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    del spec
     try:
+        protocol = load_formal_protocol()
+        if canonical_sha256(protocol) != spec.protocol_sha256:
+            raise ValueError("formal protocol digest does not match the issued cell")
+        core_tasks = protocol.get("task_roles", {}).get("formal_core", {})
+        task_contract = core_tasks.get(spec.task_id) if isinstance(core_tasks, Mapping) else None
+        if not isinstance(task_contract, Mapping):
+            raise ValueError("formal task is missing from the bound protocol")
+        risk_limit = task_contract.get("risk_limit")
+        if (
+            isinstance(risk_limit, bool)
+            or not isinstance(risk_limit, int | float)
+            or not math.isfinite(float(risk_limit))
+            or not 0.0 < float(risk_limit) < 1.0
+        ):
+            raise ValueError("formal task risk limit is invalid")
         result = build_verified_evaluation_result(
             records,
             trajectory_path=trajectory_path,
             world_interventions=runtime.world_interventions,
+            risk_limit_override=float(risk_limit),
         )
     except ValueError as exc:
         raise ReplayMismatchError("independent trajectory replay failed") from exc

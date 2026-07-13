@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Callable
 from math import erf, pi, sqrt
-from typing import Any
+from time import perf_counter, process_time
+from typing import Any, TypeVar
 
 import numpy as np
 from sklearn.exceptions import ConvergenceWarning
@@ -20,6 +22,8 @@ from chemworld.agents.task_recipes import (
     task_recipe_to_model_vector,
     task_recipe_to_vector,
 )
+
+T = TypeVar("T")
 
 
 def _normal_cdf(z: np.ndarray) -> np.ndarray:
@@ -61,6 +65,45 @@ class CandidateSurrogateMixin:
 
     def _reset_surrogate_diagnostics(self) -> None:
         self._decision_trace: list[dict[str, Any]] = []
+        self._formal_compute_events: list[dict[str, Any]] = []
+
+    def _timed_compute(self, event_kind: str, operation: Callable[[], T]) -> T:
+        """Measure one non-overlapping surrogate fit or acquisition component."""
+
+        cpu_started = process_time()
+        wall_started = perf_counter()
+        result = operation()
+        event = {
+            "event_index": len(self._formal_compute_events) + 1,
+            "event_kind": event_kind,
+            "cpu_time_s": process_time() - cpu_started,
+            "wall_time_s": perf_counter() - wall_started,
+        }
+        self._formal_compute_events.append(event)
+        return result
+
+    def formal_compute_events(self) -> list[dict[str, Any]]:
+        """Return cumulative component timings for formal resource accounting."""
+
+        return [dict(item) for item in getattr(self, "_formal_compute_events", [])]
+
+    def method_resource_usage(self) -> dict[str, Any]:
+        return {
+            "schema_version": "chemworld-method-resource-usage-0.1",
+            "accounting_complete": True,
+            "usage_source": "instrumented_in_process_classic_compute",
+            "model_call_count": 0,
+            "input_token_count": 0,
+            "output_token_count": 0,
+            "monetary_cost_usd": 0.0,
+            "training_environment_step_count": 0,
+            "cpu_time_s": sum(
+                float(item["cpu_time_s"])
+                for item in getattr(self, "_formal_compute_events", [])
+            ),
+            "gpu_time_s": 0.0,
+            "model_provenance": {},
+        }
 
     def _start_surrogate_recipe(
         self,
@@ -174,12 +217,22 @@ class GaussianProcessBOAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseA
             noise_level=1.0e-4
         )
         model = GaussianProcessRegressor(kernel=kernel, normalize_y=True, random_state=self.seed)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", ConvergenceWarning)
-            model.fit(x_train, y_train)
-        candidates = self._candidate_actions(self.n_candidates)
-        x_candidates = np.vstack([self._model_vector(action) for action in candidates])
-        mu, sigma = model.predict(x_candidates, return_std=True)
+        def fit_model() -> None:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", ConvergenceWarning)
+                model.fit(x_train, y_train)
+
+        self._timed_compute("fit", fit_model)
+
+        def optimize_acquisition() -> tuple[list[dict[str, Any]], np.ndarray, np.ndarray]:
+            candidates = self._candidate_actions(self.n_candidates)
+            x_candidates = np.vstack([self._model_vector(action) for action in candidates])
+            mu, sigma = model.predict(x_candidates, return_std=True)
+            return candidates, mu, sigma
+
+        candidates, mu, sigma = self._timed_compute(
+            "acquisition_optimization", optimize_acquisition
+        )
         return candidates, y_train, mu, sigma
 
     def manifest(self) -> dict[str, Any]:
@@ -394,13 +447,19 @@ class RandomForestEIAgent(RecipeSequenceMixin, CandidateSurrogateMixin, BaseAgen
             min_samples_leaf=2,
             random_state=self.seed,
         )
-        model.fit(x_train, y_train)
+        self._timed_compute("fit", lambda: model.fit(x_train, y_train))
 
-        candidates = self._candidate_actions(self.n_candidates)
-        x_candidates = np.vstack([self._model_vector(action) for action in candidates])
-        tree_predictions = np.vstack([tree.predict(x_candidates) for tree in model.estimators_])
-        mu = tree_predictions.mean(axis=0)
-        sigma = tree_predictions.std(axis=0)
+        def optimize_acquisition() -> tuple[list[dict[str, Any]], np.ndarray, np.ndarray]:
+            candidates = self._candidate_actions(self.n_candidates)
+            x_candidates = np.vstack([self._model_vector(action) for action in candidates])
+            tree_predictions = np.vstack(
+                [tree.predict(x_candidates) for tree in model.estimators_]
+            )
+            return candidates, tree_predictions.mean(axis=0), tree_predictions.std(axis=0)
+
+        candidates, mu, sigma = self._timed_compute(
+            "acquisition_optimization", optimize_acquisition
+        )
         acquisition = _expected_improvement(mu, sigma, best=float(np.max(y_train)))
         selected_index = int(np.argmax(acquisition))
         return self._start_surrogate_recipe(
@@ -518,15 +577,26 @@ class SafetyConstrainedBOAgent(GaussianProcessBOAgent):
             normalize_y=True,
             random_state=self.seed + 1,
         )
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", ConvergenceWarning)
-            score_model.fit(x_train, y_train)
-            risk_model.fit(x_train, risk_train)
+        def fit_models() -> None:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", ConvergenceWarning)
+                score_model.fit(x_train, y_train)
+                risk_model.fit(x_train, risk_train)
 
-        candidates = self._candidate_actions(self.n_candidates)
-        x_candidates = np.vstack([self._model_vector(action) for action in candidates])
-        mu, sigma = score_model.predict(x_candidates, return_std=True)
-        risk_mu, risk_sigma = risk_model.predict(x_candidates, return_std=True)
+        self._timed_compute("fit", fit_models)
+
+        def optimize_acquisition() -> tuple[
+            list[dict[str, Any]], np.ndarray, np.ndarray, np.ndarray, np.ndarray
+        ]:
+            candidates = self._candidate_actions(self.n_candidates)
+            x_candidates = np.vstack([self._model_vector(action) for action in candidates])
+            mu, sigma = score_model.predict(x_candidates, return_std=True)
+            risk_mu, risk_sigma = risk_model.predict(x_candidates, return_std=True)
+            return candidates, mu, sigma, risk_mu, risk_sigma
+
+        candidates, mu, sigma, risk_mu, risk_sigma = self._timed_compute(
+            "acquisition_optimization", optimize_acquisition
+        )
         observed_safe = risk_train <= self.effective_risk_threshold
         best_safe_score = (
             float(np.max(y_train[observed_safe]))

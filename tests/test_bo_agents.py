@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import math
 
+import pytest
+
 from chemworld.agents.bo import (
     GaussianProcessBOAgent,
     GaussianProcessPIAgent,
@@ -178,3 +180,30 @@ def test_gp_acquisition_variants_enter_model_based_phase(tmp_path) -> None:
         assert policies
         expected = "probability_improvement" if agent.name == "gp_pi" else "upper_confidence"
         assert all(expected in policy for policy in policies)
+
+
+def test_surrogate_compute_events_are_nonoverlapping_and_cumulative(tmp_path) -> None:
+    path = tmp_path / "instrumented-gp.jsonl"
+    agent = StructuredGaussianProcessBOAgent(n_initial=2, n_candidates=24)
+    run_agent(
+        env_id="ChemWorld",
+        agent=agent,
+        world_split="public-dev",
+        budget=24,
+        objective="balanced",
+        seed=11_000,
+        task_id="partition-discovery",
+        output_path=path,
+        budget_override=30,
+    )
+    events = agent.formal_compute_events()
+    assert [item["event_kind"] for item in events] == [
+        "fit",
+        "acquisition_optimization",
+    ]
+    assert all(item["cpu_time_s"] >= 0.0 and item["wall_time_s"] >= 0.0 for item in events)
+    usage = agent.method_resource_usage()
+    assert usage["accounting_complete"] is True
+    assert usage["cpu_time_s"] == pytest.approx(
+        sum(float(item["cpu_time_s"]) for item in events)
+    )
