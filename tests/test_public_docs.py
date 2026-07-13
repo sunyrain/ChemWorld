@@ -17,12 +17,14 @@ def test_public_documentation_is_user_facing_and_matches_v05_truth() -> None:
     assert report["missing_task_hashes"] == {}
 
 
-def test_user_journey_navigation_has_unique_existing_targets() -> None:
+def test_professional_narrative_navigation_has_unique_existing_targets() -> None:
     report = audit_public_docs(ROOT)
-    assert report["checks"]["user_journey_navigation"] is True, report
+    assert report["checks"]["professional_information_architecture"] is True, report
     assert report["missing_navigation_targets"] == []
     assert report["duplicate_navigation_targets"] == []
-    assert report["navigation_checks"]["no_duplicate_english_group"] is True
+    assert report["unlisted_public_pages"] == []
+    assert report["navigation_checks"]["professional_narrative_order"] is True
+    assert report["navigation_checks"]["english_navigation_present"] is True
 
 
 def test_left_and_right_navigation_fold_but_content_folding_is_opt_in() -> None:

@@ -48,13 +48,12 @@ REQUIRED_NARRATIVE_MARKERS = {
     "docs/en/research_findings.md": ("Finding 4", "benchmark candidate"),
 }
 NAV_GROUPS = (
-    "开始使用",
-    "选择任务",
-    "开发 Agent",
-    "运行与评测",
-    "理解世界",
-    "研究边界",
+    "研究主线",
+    "探索世界",
+    "构建智能体",
+    "评测",
     "技术参考",
+    "English",
 )
 
 
@@ -95,13 +94,22 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
     missing_nav_targets = [
         target for target in nav_targets if not (root / "docs" / target).is_file()
     ]
+    public_markdown_targets = {
+        path.relative_to(root / "docs").as_posix()
+        for path in (root / "docs").rglob("*.md")
+    }
+    unlisted_public_pages = sorted(public_markdown_targets - set(nav_targets))
     duplicate_nav_targets = sorted(
         {target for target in nav_targets if nav_targets.count(target) > 1}
     )
+    nav_group_positions = [mkdocs.find(f"  - {group}:") for group in NAV_GROUPS]
     nav_checks = {
-        "user_journey_groups": all(f"  - {group}:" in mkdocs for group in NAV_GROUPS),
+        "professional_narrative_groups": all(position >= 0 for position in nav_group_positions),
+        "professional_narrative_order": nav_group_positions == sorted(nav_group_positions),
         "language_switch_present": "name: English" in mkdocs and "/ChemWorld/en/" in mkdocs,
-        "no_duplicate_english_group": "  - English:" not in mkdocs,
+        "english_navigation_present": "  - English:" in mkdocs
+        and "      - Home: en/index.md" in mkdocs,
+        "all_public_pages_listed": not unlisted_public_pages,
         "targets_unique": not duplicate_nav_targets,
         "targets_exist": bool(nav_targets) and not missing_nav_targets,
     }
@@ -129,14 +137,14 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         "current_truth_markers_present": not missing_current_markers,
         "pre_v05_results_marked_diagnostic": not missing_history_boundaries,
         "research_narrative_present": not missing_narrative_markers,
-        "user_journey_navigation": all(nav_checks.values()),
+        "professional_information_architecture": all(nav_checks.values()),
         "folding_contract": all(folding_checks.values()),
         "chemworld_is_primary_brand": "site_name: ChemWorld\n" in mkdocs,
         "readme_boundary_explicit": "complete benchmark is not yet validated"
         in (root / "README.md").read_text(encoding="utf-8").lower(),
     }
     return {
-        "schema_version": "chemworld-public-docs-audit-0.2",
+        "schema_version": "chemworld-public-docs-audit-0.3",
         "passed": all(checks.values()),
         "checks": checks,
         "file_count": len(files),
@@ -148,6 +156,7 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         "missing_history_boundaries": missing_history_boundaries,
         "missing_narrative_markers": missing_narrative_markers,
         "navigation_checks": nav_checks,
+        "unlisted_public_pages": unlisted_public_pages,
         "missing_navigation_targets": missing_nav_targets,
         "duplicate_navigation_targets": duplicate_nav_targets,
         "folding_checks": folding_checks,
