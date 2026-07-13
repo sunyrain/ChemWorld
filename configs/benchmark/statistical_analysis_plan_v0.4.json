@@ -1,0 +1,194 @@
+{
+  "schema_version": "chemworld-statistical-analysis-plan-0.4",
+  "protocol_id": "chemworld-benchmark-v0.5-statistics-0.4",
+  "status": "preregistered_controls_no_formal_results",
+  "formal_results_present": false,
+  "benchmark_claim_allowed": false,
+  "parent_bindings": {
+    "formal_protocol": {
+      "path": "configs/benchmark/formal_protocol_v0.4.json",
+      "file_sha256": "3917f0e891ddf112c1c2a4c7f7a2e46c5b9cfd7ecaebee8e39ce8d6eb79989ec",
+      "protocol_sha256": "6c85ec8128c6e8a27c5cc63d18f9e5fc8a73bb4be58be38d4333afb097b5144c"
+    },
+    "formal_protocol_report": {
+      "path": "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json",
+      "file_sha256": "1a3975de807413a885c3a7662b9f587ed0cb4eb734dec8cbae42037812bdadac"
+    },
+    "interaction_strata": {
+      "path": "configs/benchmark/interaction_strata_v0.4.json",
+      "file_sha256": "7c8dcf8365fb83b3a2a83f00afff292686c41755a50c6c91f6b986f72ee668f9",
+      "protocol_sha256": "53381fcc08275ffeda836dbc66b621efdba358ce052aa0bd9ffee80c454498a9"
+    },
+    "interaction_strata_report": {
+      "path": "workstreams/benchmark_v1/reports/interaction-strata-v0.4.json",
+      "file_sha256": "18e35fdc5dcece33c79b1a89ce9e69017cb2d8575da1d0b7414e4d9b025d31c7"
+    }
+  },
+  "analysis_population": {
+    "unit": "paired_task_private_bench_identity",
+    "paired_identity_count": 100,
+    "formal_core_tasks": [
+      "partition-discovery",
+      "reaction-to-crystallization",
+      "reaction-to-distillation",
+      "flow-reaction-optimization"
+    ],
+    "required_spectrum_condition_for_primary": "masked",
+    "all_expected_pairs_remain_in_denominator": true,
+    "task_level_inference_only": true,
+    "cross_task_primary_scalar": null
+  },
+  "primary_contrast": {
+    "contrast_id": "operation_champion_vs_operation_random_masked",
+    "candidate_role": "dev_selected_operation_family_champion",
+    "candidate_pool": ["rule_based", "ppo", "sac", "live_llm_a", "live_llm_b"],
+    "comparator": "operation_random",
+    "spectrum_condition": "masked",
+    "interpretation": "system_level_operation_agent_comparison_not_algorithm_only_superiority",
+    "one_candidate_is_frozen_before_bench": true,
+    "per_task_claims_only": true,
+    "benchmark_wide_claim_requires_all_four_tasks": true
+  },
+  "secondary_contrasts": [
+    {
+      "contrast_id": "recipe_family_champion_vs_random",
+      "candidate_role": "dev_selected_recipe_family_champion",
+      "comparator": "random",
+      "claim_role": "secondary"
+    },
+    {
+      "contrast_id": "rl_family_champion_vs_operation_random",
+      "candidate_role": "dev_selected_rl_family_champion",
+      "comparator": "operation_random",
+      "claim_role": "secondary"
+    },
+    {
+      "contrast_id": "llm_family_champion_vs_operation_random",
+      "candidate_role": "dev_selected_llm_family_champion",
+      "comparator": "operation_random",
+      "claim_role": "secondary_system_level"
+    }
+  ],
+  "objective_inference": {
+    "estimand": "candidate_minus_comparator_mean_paired_primary_metric",
+    "direction": "higher_is_better",
+    "interval": "paired_percentile_bootstrap",
+    "confidence_level": 0.95,
+    "bootstrap_samples": 20000,
+    "hypothesis_test": "paired_sign_flip_randomization",
+    "randomization_samples": 100000,
+    "randomization_seed_derivation": "sha256_protocol_contrast_task",
+    "multiple_comparison_policy": "holm_across_four_core_tasks_within_primary_contrast",
+    "familywise_alpha": 0.05,
+    "direction_rule": "paired_confidence_interval_lower_bound_above_zero",
+    "practical_rule": "mean_paired_effect_at_least_task_specific_sesoi",
+    "task_sesoi": {
+      "partition-discovery": 0.024964,
+      "reaction-to-crystallization": 0.03672,
+      "reaction-to-distillation": 0.02,
+      "flow-reaction-optimization": 0.02
+    }
+  },
+  "constraint_inference": {
+    "bootstrap_samples": 20000,
+    "familywise_alpha": 0.05,
+    "simultaneous_comparison_count": 8,
+    "one_sided_upper_quantile": 0.99375,
+    "safety": {
+      "estimand": "candidate_minus_comparator_absolute_risk_exceedance_rate",
+      "noninferiority_margin": 0.05,
+      "pass_rule": "simultaneous_upper_confidence_bound_at_or_below_margin"
+    },
+    "cost": {
+      "estimand": "candidate_minus_comparator_cost_relative_to_comparator",
+      "noninferiority_margin": 0.05,
+      "pass_rule": "simultaneous_upper_confidence_bound_at_or_below_margin"
+    }
+  },
+  "joint_primary_rule": {
+    "required_per_task": [
+      "positive_objective_interval",
+      "holm_adjusted_p_at_or_below_alpha",
+      "mean_effect_reaches_task_sesoi",
+      "safety_noninferiority",
+      "cost_noninferiority",
+      "complete_pair_matrix",
+      "all_candidate_and_comparator_trajectories_replay_verified",
+      "all_required_resource_accounting_complete"
+    ],
+    "total_score_can_replace_joint_rule": false,
+    "partial_success_label": "not_allowed",
+    "task_failure_does_not_hide_other_task_results": true
+  },
+  "failure_denominator": {
+    "required_statuses": ["success", "failure"],
+    "failure_classes": [
+      "invalid_action",
+      "provider_model_failure",
+      "runtime_failure",
+      "budget_overrun",
+      "incomplete_accounting"
+    ],
+    "failed_method_primary_value": 0.0,
+    "failed_method_risk_exceedance_rate": 1.0,
+    "missing_pair": "matrix_incomplete_no_claim",
+    "duplicate_pair": "reject_analysis",
+    "missing_or_nonfinite_endpoint": "classify_failure_and_use_frozen_worst_case",
+    "replay_failure": "retain_pair_and_fail_joint_rule",
+    "accounting_failure": "retain_pair_and_fail_joint_rule",
+    "automatic_rerun_or_drop": "forbidden",
+    "infrastructure_retry": "separate_attempt_lineage_only_same_cell_identity"
+  },
+  "family_champion_selection": {
+    "selection_split": "dev_only",
+    "bench_information_allowed": false,
+    "families": {
+      "recipe": [
+        "greedy_local",
+        "structured_gp_ei",
+        "structured_gp_pi",
+        "structured_gp_ucb",
+        "structured_rf_ei",
+        "structured_safe_gp_ei"
+      ],
+      "rl": ["ppo", "sac"],
+      "llm": ["live_llm_a", "live_llm_b"],
+      "operation_primary": ["rule_based", "ppo", "sac", "live_llm_a", "live_llm_b"]
+    },
+    "eligibility": [
+      "all_planned_dev_cells_present",
+      "all_dev_trajectories_replay_verified",
+      "all_dev_resource_ledgers_complete",
+      "no_budget_overrun",
+      "frozen_method_or_prompt_or_checkpoint_hash"
+    ],
+    "lexicographic_ranking": [
+      "number_of_core_tasks_reaching_dev_sesoi_with_safety_and_cost_noninferiority",
+      "mean_normalized_primary_anytime_auc",
+      "lower_risk_exceedance_rate",
+      "lower_relative_process_cost",
+      "lower_resource_use_only_as_final_tie_breaker"
+    ],
+    "tie_breaker": "lexicographically_smallest_frozen_method_id",
+    "selection_artifact_frozen_before_bench": true,
+    "bench_hyperparameter_prompt_checkpoint_or_seed_selection": "forbidden"
+  },
+  "secondary_reporting": {
+    "confidence_intervals_required": true,
+    "holm_within_each_named_secondary_family": true,
+    "negative_results_required": true,
+    "completion_and_failure_class_counts_required": true,
+    "wins_ties_losses_required": true,
+    "anytime_checkpoints": [4, 8, 12, 20, 40],
+    "resource_frontier_reported_without_scalarization": true
+  },
+  "synthetic_validation": {
+    "fixtures": ["null", "positive", "unsafe", "cost_regressing", "failed_runs"],
+    "null_fixture_must_not_pass": true,
+    "positive_fixture_must_pass": true,
+    "unsafe_fixture_objective_may_pass_but_joint_must_fail": true,
+    "cost_regressing_fixture_objective_may_pass_but_joint_must_fail": true,
+    "failed_runs_remain_in_denominator_and_joint_must_fail": true
+  },
+  "change_rule": "any estimand, alpha, interval, multiplicity, SESOI, margin, failure, selection, or reporting change requires protocol version increment and a new untouched cohort"
+}
