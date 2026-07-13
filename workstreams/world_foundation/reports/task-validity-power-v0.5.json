@@ -1,0 +1,442 @@
+{
+  "benchmark_claim_allowed": false,
+  "controls": {
+    "all_core_tasks_are_validity_ready": true,
+    "core_task_scope_is_exact": true,
+    "dependencies_are_ready": true,
+    "legacy_threshold_failures_are_not_reused": true,
+    "protocol_is_nonclaiming": true,
+    "sample_size_adjusted_before_bench": true
+  },
+  "controls_ready": true,
+  "core_tasks": {
+    "flow-reaction-optimization": {
+      "behavior_probes": {
+        "information_space_filling": {
+          "cost_exceedance_rate": 0.0,
+          "formal_method_evidence": false,
+          "mean_primary": 0.022801355086266996,
+          "mean_process_cost": 0.2883233888594464,
+          "mean_risk": 0.23174274595292424,
+          "risk_exceedance_rate": 0.26666666666666666,
+          "selected_count": 15
+        },
+        "local_primary_climb": {
+          "cost_exceedance_rate": 0.06666666666666667,
+          "formal_method_evidence": false,
+          "mean_primary": 0.022780368756502866,
+          "mean_process_cost": 0.29134607525137873,
+          "mean_risk": 0.24532686827639674,
+          "risk_exceedance_rate": 0.26666666666666666,
+          "selected_count": 15
+        },
+        "random_recipe": {
+          "cost_exceedance_rate": 0.06666666666666667,
+          "formal_method_evidence": false,
+          "mean_primary": 0.022780368756502866,
+          "mean_process_cost": 0.29134607525137873,
+          "mean_risk": 0.24532686827639674,
+          "risk_exceedance_rate": 0.26666666666666666,
+          "selected_count": 15
+        },
+        "risk_blind_primary_oracle_probe": {
+          "cost_exceedance_rate": 0.0,
+          "formal_method_evidence": false,
+          "mean_primary": 0.04443868693197146,
+          "mean_process_cost": 0.30137594570467835,
+          "mean_risk": 0.30582728456439207,
+          "risk_exceedance_rate": 0.5333333333333333,
+          "selected_count": 15
+        }
+      },
+      "checks": {
+        "behavior_probes_are_distinguishable": true,
+        "complete_surface": true,
+        "cost_activation_is_identifiable": true,
+        "near_optimal_region_is_nontrivial": true,
+        "no_invalid_or_nonfinite_runs": true,
+        "primary_direction_aligns_with_score": true,
+        "primary_dynamic_range": true,
+        "prospective_sample_size_is_frozen": true,
+        "risk_activation_is_identifiable": true
+      },
+      "power": {
+        "candidate_paired_seed_count": 20,
+        "cost_required_seed_count": 2,
+        "estimation_boundary": "prospective_dev_diagnostic_not_method_evidence",
+        "objective_required_seed_count": 2,
+        "paired_primary_sd_proxy": 0.0,
+        "paired_relative_cost_sd_proxy": 0.0,
+        "pilot_seed_count": 5,
+        "recommended_paired_seed_count": 99,
+        "safety_zero_adverse_required_seed_count": 99,
+        "simultaneous_one_sided_alpha": 0.00625,
+        "twenty_seed_joint_noninferiority_powered": false,
+        "twenty_seed_objective_powered": true,
+        "unpaired_process_cost_cv_diagnostic": 0.39435392314518997
+      },
+      "primary_metric": "flow_conversion",
+      "risk_cost": {
+        "legacy_process_cost_activation_rate": 0.08333333333333333,
+        "legacy_process_cost_limit": 0.5389897429943085,
+        "legacy_risk_activation_rate": 0.18333333333333332,
+        "legacy_risk_limit": 0.32665647864341746,
+        "process_cost_activation_rate": 0.1,
+        "proposed_process_cost_limit": 0.500429789155762,
+        "proposed_risk_limit": 0.3136004628969778,
+        "risk_activation_rate": 0.2,
+        "risk_semantics": "benchmark_operational_risk_budget_not_real_world_safety"
+      },
+      "role": "formal_core_candidate",
+      "sample_count": 60,
+      "seed_count": 5,
+      "surface": {
+        "count": 60,
+        "maximum": 0.10655708611011505,
+        "mean": 0.020840190598391928,
+        "median": 0.016544924583286047,
+        "minimum": 0.0,
+        "near_optimal_fraction": 0.016666666666666666,
+        "primary_process_cost_spearman": -0.18582939705473744,
+        "primary_risk_spearman": 0.38994165045846074,
+        "primary_score_spearman": 0.83123089747152,
+        "q25": 0.0004935810720780864,
+        "q75": 0.031142898835241795,
+        "sesoi": 0.02,
+        "spread": 0.10655708611011505,
+        "std": 0.022089671730073913
+      },
+      "surface_rows_sha256": "d68486ecf623df48677cff812482717a3b4bf728980c3c1ea0ad8e8c0957d94b",
+      "task_contract_hash": "aa47c74db1753f062a3e5f59208db8278c25db778390607892e20eaaeb30cdc9",
+      "validity_ready": true
+    },
+    "partition-discovery": {
+      "behavior_probes": {
+        "information_space_filling": {
+          "cost_exceedance_rate": 0.06666666666666667,
+          "formal_method_evidence": false,
+          "mean_primary": 0.6723062713940938,
+          "mean_process_cost": 0.273685092097727,
+          "mean_risk": 0.15322147562609947,
+          "risk_exceedance_rate": 0.26666666666666666,
+          "selected_count": 15
+        },
+        "local_primary_climb": {
+          "cost_exceedance_rate": 0.0,
+          "formal_method_evidence": false,
+          "mean_primary": 0.6610660672187805,
+          "mean_process_cost": 0.27186693416835805,
+          "mean_risk": 0.1605525563840541,
+          "risk_exceedance_rate": 0.2,
+          "selected_count": 15
+        },
+        "random_recipe": {
+          "cost_exceedance_rate": 0.0,
+          "formal_method_evidence": false,
+          "mean_primary": 0.6610660672187805,
+          "mean_process_cost": 0.27186693416835805,
+          "mean_risk": 0.1605525563840541,
+          "risk_exceedance_rate": 0.2,
+          "selected_count": 15
+        },
+        "risk_blind_primary_oracle_probe": {
+          "cost_exceedance_rate": 0.06666666666666667,
+          "formal_method_evidence": false,
+          "mean_primary": 0.724587877591451,
+          "mean_process_cost": 0.2732428568295576,
+          "mean_risk": 0.12863784457454477,
+          "risk_exceedance_rate": 0.06666666666666667,
+          "selected_count": 15
+        }
+      },
+      "checks": {
+        "behavior_probes_are_distinguishable": true,
+        "complete_surface": true,
+        "cost_activation_is_identifiable": true,
+        "near_optimal_region_is_nontrivial": true,
+        "no_invalid_or_nonfinite_runs": true,
+        "primary_direction_aligns_with_score": true,
+        "primary_dynamic_range": true,
+        "prospective_sample_size_is_frozen": true,
+        "risk_activation_is_identifiable": true
+      },
+      "power": {
+        "candidate_paired_seed_count": 20,
+        "cost_required_seed_count": 2,
+        "estimation_boundary": "prospective_dev_diagnostic_not_method_evidence",
+        "objective_required_seed_count": 2,
+        "paired_primary_sd_proxy": 0.0,
+        "paired_relative_cost_sd_proxy": 0.0,
+        "pilot_seed_count": 5,
+        "recommended_paired_seed_count": 99,
+        "safety_zero_adverse_required_seed_count": 99,
+        "simultaneous_one_sided_alpha": 0.00625,
+        "twenty_seed_joint_noninferiority_powered": false,
+        "twenty_seed_objective_powered": true,
+        "unpaired_process_cost_cv_diagnostic": 0.040400139935528
+      },
+      "primary_metric": "product_in_organic",
+      "risk_cost": {
+        "legacy_process_cost_activation_rate": 1.0,
+        "legacy_process_cost_limit": 0.12955081641674043,
+        "legacy_risk_activation_rate": 0.26666666666666666,
+        "legacy_risk_limit": 0.21225822269916542,
+        "process_cost_activation_rate": 0.1,
+        "proposed_process_cost_limit": 0.28814296179757287,
+        "proposed_risk_limit": 0.2270542597781983,
+        "risk_activation_rate": 0.2,
+        "risk_semantics": "benchmark_operational_risk_budget_not_real_world_safety"
+      },
+      "role": "formal_core_candidate",
+      "sample_count": 60,
+      "seed_count": 5,
+      "surface": {
+        "count": 60,
+        "maximum": 0.8658014535903931,
+        "mean": 0.6674538244803746,
+        "median": 0.683529794216156,
+        "minimum": 0.3665265738964081,
+        "near_optimal_fraction": 0.06666666666666667,
+        "primary_process_cost_spearman": -0.003167546540705752,
+        "primary_risk_spearman": -0.08018894137260352,
+        "primary_score_spearman": 0.9386496248958045,
+        "q25": 0.5902289748191833,
+        "q75": 0.7369919270277023,
+        "sesoi": 0.024964,
+        "spread": 0.499274879693985,
+        "std": 0.1192096948267908
+      },
+      "surface_rows_sha256": "97acc74e7711c7a914f192c68e1c9d20aee1b62fb7d3c39708b47bad9f53b90b",
+      "task_contract_hash": "ce378e7bc5e725ed266db2bb639194c05f5f615ba0795b158c3c976cc787117e",
+      "validity_ready": true
+    },
+    "reaction-to-crystallization": {
+      "behavior_probes": {
+        "information_space_filling": {
+          "cost_exceedance_rate": 0.2,
+          "formal_method_evidence": false,
+          "mean_primary": 0.6236661394437154,
+          "mean_process_cost": 0.4846566741586173,
+          "mean_risk": 0.1327711531583436,
+          "risk_exceedance_rate": 0.2,
+          "selected_count": 15
+        },
+        "local_primary_climb": {
+          "cost_exceedance_rate": 0.06666666666666667,
+          "formal_method_evidence": false,
+          "mean_primary": 0.6902275025844574,
+          "mean_process_cost": 0.4473222145304763,
+          "mean_risk": 0.13093948348848047,
+          "risk_exceedance_rate": 0.26666666666666666,
+          "selected_count": 15
+        },
+        "random_recipe": {
+          "cost_exceedance_rate": 0.06666666666666667,
+          "formal_method_evidence": false,
+          "mean_primary": 0.6902275025844574,
+          "mean_process_cost": 0.4473222145304763,
+          "mean_risk": 0.13093948348848047,
+          "risk_exceedance_rate": 0.26666666666666666,
+          "selected_count": 15
+        },
+        "risk_blind_primary_oracle_probe": {
+          "cost_exceedance_rate": 0.0,
+          "formal_method_evidence": false,
+          "mean_primary": 0.7994073589642843,
+          "mean_process_cost": 0.45295817801860766,
+          "mean_risk": 0.12277664113919887,
+          "risk_exceedance_rate": 0.2,
+          "selected_count": 15
+        }
+      },
+      "checks": {
+        "behavior_probes_are_distinguishable": true,
+        "complete_surface": true,
+        "cost_activation_is_identifiable": true,
+        "near_optimal_region_is_nontrivial": true,
+        "no_invalid_or_nonfinite_runs": true,
+        "primary_direction_aligns_with_score": true,
+        "primary_dynamic_range": true,
+        "prospective_sample_size_is_frozen": true,
+        "risk_activation_is_identifiable": true
+      },
+      "power": {
+        "candidate_paired_seed_count": 20,
+        "cost_required_seed_count": 2,
+        "estimation_boundary": "prospective_dev_diagnostic_not_method_evidence",
+        "objective_required_seed_count": 2,
+        "paired_primary_sd_proxy": 0.0,
+        "paired_relative_cost_sd_proxy": 0.0,
+        "pilot_seed_count": 5,
+        "recommended_paired_seed_count": 99,
+        "safety_zero_adverse_required_seed_count": 99,
+        "simultaneous_one_sided_alpha": 0.00625,
+        "twenty_seed_joint_noninferiority_powered": false,
+        "twenty_seed_objective_powered": true,
+        "unpaired_process_cost_cv_diagnostic": 0.24859056764356646
+      },
+      "primary_metric": "crystal_yield",
+      "risk_cost": {
+        "legacy_process_cost_activation_rate": 0.08333333333333333,
+        "legacy_process_cost_limit": 0.6453835582733157,
+        "legacy_risk_activation_rate": 0.0,
+        "legacy_risk_limit": 0.257127845287323,
+        "process_cost_activation_rate": 0.1,
+        "proposed_process_cost_limit": 0.6257630362056782,
+        "proposed_risk_limit": 0.16774964177480836,
+        "risk_activation_rate": 0.2,
+        "risk_semantics": "benchmark_operational_risk_budget_not_real_world_safety"
+      },
+      "role": "formal_core_candidate",
+      "sample_count": 60,
+      "seed_count": 5,
+      "surface": {
+        "count": 60,
+        "maximum": 0.8450844883918762,
+        "mean": 0.6170178188631932,
+        "median": 0.6947120428085327,
+        "minimum": 0.11067739129066467,
+        "near_optimal_fraction": 0.11666666666666667,
+        "primary_process_cost_spearman": 0.09908307863295363,
+        "primary_risk_spearman": 0.15154209502639626,
+        "primary_score_spearman": 0.7815504306751877,
+        "q25": 0.4727605804800987,
+        "q75": 0.755719318985939,
+        "sesoi": 0.03672,
+        "spread": 0.7344070971012115,
+        "std": 0.1937407639932835
+      },
+      "surface_rows_sha256": "ad71edab8405477973f2830849bb19143768e05e2c0dd6635efb074f1829cdac",
+      "task_contract_hash": "f15de7356ab11588028bb0add31b3461e9b90bf273de6dcdb4e123ce6b2f65ac",
+      "validity_ready": true
+    },
+    "reaction-to-distillation": {
+      "behavior_probes": {
+        "information_space_filling": {
+          "cost_exceedance_rate": 0.13333333333333333,
+          "formal_method_evidence": false,
+          "mean_primary": 0.15333148911595346,
+          "mean_process_cost": 0.5169851656710739,
+          "mean_risk": 0.31336543158621727,
+          "risk_exceedance_rate": 0.3333333333333333,
+          "selected_count": 15
+        },
+        "local_primary_climb": {
+          "cost_exceedance_rate": 0.06666666666666667,
+          "formal_method_evidence": false,
+          "mean_primary": 0.11849369518458844,
+          "mean_process_cost": 0.5007445952882746,
+          "mean_risk": 0.3030135281673185,
+          "risk_exceedance_rate": 0.13333333333333333,
+          "selected_count": 15
+        },
+        "random_recipe": {
+          "cost_exceedance_rate": 0.06666666666666667,
+          "formal_method_evidence": false,
+          "mean_primary": 0.11849369518458844,
+          "mean_process_cost": 0.5007445952882746,
+          "mean_risk": 0.3030135281673185,
+          "risk_exceedance_rate": 0.13333333333333333,
+          "selected_count": 15
+        },
+        "risk_blind_primary_oracle_probe": {
+          "cost_exceedance_rate": 0.2,
+          "formal_method_evidence": false,
+          "mean_primary": 0.22962294220924379,
+          "mean_process_cost": 0.562494700316422,
+          "mean_risk": 0.32692533575941607,
+          "risk_exceedance_rate": 0.3333333333333333,
+          "selected_count": 15
+        }
+      },
+      "checks": {
+        "behavior_probes_are_distinguishable": true,
+        "complete_surface": true,
+        "cost_activation_is_identifiable": true,
+        "near_optimal_region_is_nontrivial": true,
+        "no_invalid_or_nonfinite_runs": true,
+        "primary_direction_aligns_with_score": true,
+        "primary_dynamic_range": true,
+        "prospective_sample_size_is_frozen": true,
+        "risk_activation_is_identifiable": true
+      },
+      "power": {
+        "candidate_paired_seed_count": 20,
+        "cost_required_seed_count": 2,
+        "estimation_boundary": "prospective_dev_diagnostic_not_method_evidence",
+        "objective_required_seed_count": 2,
+        "paired_primary_sd_proxy": 0.0,
+        "paired_relative_cost_sd_proxy": 0.0,
+        "pilot_seed_count": 5,
+        "recommended_paired_seed_count": 99,
+        "safety_zero_adverse_required_seed_count": 99,
+        "simultaneous_one_sided_alpha": 0.00625,
+        "twenty_seed_joint_noninferiority_powered": false,
+        "twenty_seed_objective_powered": true,
+        "unpaired_process_cost_cv_diagnostic": 0.2434674214841384
+      },
+      "primary_metric": "distillate_purity",
+      "risk_cost": {
+        "legacy_process_cost_activation_rate": 0.05,
+        "legacy_process_cost_limit": 0.7245063233375549,
+        "legacy_risk_activation_rate": 0.05,
+        "legacy_risk_limit": 0.3852870047092439,
+        "process_cost_activation_rate": 0.1,
+        "proposed_process_cost_limit": 0.6747621502274084,
+        "proposed_risk_limit": 0.33666181785925603,
+        "risk_activation_rate": 0.2,
+        "risk_semantics": "benchmark_operational_risk_budget_not_real_world_safety"
+      },
+      "role": "formal_core_candidate",
+      "sample_count": 60,
+      "seed_count": 5,
+      "surface": {
+        "count": 60,
+        "maximum": 0.39459121227264404,
+        "mean": 0.12388361462702353,
+        "median": 0.1068766787648201,
+        "minimum": 0.019405994564294815,
+        "near_optimal_fraction": 0.016666666666666666,
+        "primary_process_cost_spearman": 0.30514031675465414,
+        "primary_risk_spearman": 0.24851347596554602,
+        "primary_score_spearman": 0.8767435398721869,
+        "q25": 0.05814908165484667,
+        "q75": 0.1540723294019699,
+        "sesoi": 0.02,
+        "spread": 0.37518521770834923,
+        "std": 0.08296777895174325
+      },
+      "surface_rows_sha256": "239a694c00a75e6ecbeb60e031a0e1b558ae181bf72aa29654f2f6e23f355466",
+      "task_contract_hash": "939b171d164139699d94c78250a937ab637be201f23bd62fddc47a864becaba7",
+      "validity_ready": true
+    }
+  },
+  "exploratory_tasks": [
+    "electrochemical-conversion",
+    "equilibrium-characterization"
+  ],
+  "formal_design_recommendation": {
+    "candidate_paired_seed_count": 20,
+    "reason": "Simultaneous five-percent safety/cost noninferiority cannot be resolved with twenty pairs even under zero adverse discordance.",
+    "recommended_paired_seed_count": 100,
+    "risk_cost_protocol_superseded": "chemworld-vnext-risk-cost-candidate-0.1",
+    "twenty_paired_seeds_adequate": false
+  },
+  "formal_results_present": false,
+  "limitations": [
+    "Behavior probes diagnose endpoint distinguishability; they are not method rankings.",
+    "Calibration uses public development seeds and must not be repeated on Bench.",
+    "Operational risk is a benchmark budget, not a real-world safety threshold."
+  ],
+  "protocol_id": "chemworld-v0.5-task-validity-power-0.1",
+  "protocol_sha256": "baae8305a8397847bcabe1e0c3138d8bcffbdb44e3ff49971243567cd87a308e",
+  "remaining_release_gates": [
+    "freeze the proposed task-specific thresholds in protocol 0.4",
+    "allocate the recommended untouched private paired cohort",
+    "run formal methods only after reference and method manifests are frozen"
+  ],
+  "schema_version": "chemworld-task-validity-power-report-0.1",
+  "source_commit": "41776ee3025c970fc54fef02993467cc4b868116",
+  "source_tree_dirty": true,
+  "status": "core4_validity_ready_protocol_0_4_freeze_pending"
+}

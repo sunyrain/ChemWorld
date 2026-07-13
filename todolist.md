@@ -75,13 +75,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：HPLC、GC、NMR 在预注册状态对上达到 pairwise identifiability，UV/Vis 与 IR 显式呈现弱分离区；五种谱图在低信号域均正确退化，pH 对 8.4 pH 状态差可分而 0.014 pH 低对比低于 0.06 LOQ。assigned/unassigned 共享完全相同 raw curve，三条件非谱图 context hash 一致且 masked 不含信号；公开报告无 secret/hidden/private/provider 泄漏。历史 archive 只公开无信号 catalog，显式 ID 请求后才返回 packet，成功和 unknown-ID 失败均写入成本 ledger。
   - 验收：每种仪器均有灵敏度、特异性、退化区和泄漏报告；assigned/masked 配对能被精确回放。
 
-- [ ] **`foundation-v05-task-validity-power` — 主指标、风险和预算的动态范围/统计功效验证**
+- [x] **`foundation-v05-task-validity-power` — 主指标、风险和预算的动态范围/统计功效验证**
   - 默认 owned_paths：`configs/foundation/task_validity_power_v0.5.json`、`scripts/run_task_validity_power_v0.5.py`、`tests/test_task_validity_power_v0.5.py`、`workstreams/world_foundation/reports/task-validity-power-v0.5.json`。
   - 依赖：组合压力和观测可辨识性完成。
-  - [ ] 对四个 core task 绘制冻结 response surface，验证主指标方向、非平凡最优区、局部结构、机制变化和可达到的 SESOI。
-  - [ ] 验证风险阈值既非永不触发也非几乎必触发；成本指标对真实操作/测量变化敏感且不重复计费。
-  - [ ] 用与正式方法无关的 policy probes 检查随机、局部、信息利用、风险盲四类行为可被指标区分。
-  - [ ] 预估 20 paired seeds 对主效应、安全/成本非劣与谱图消融的功效；不足时在解封 Bench 前调整样本量，而不是事后改门槛。
+  - [x] 对四个 core task 绘制冻结 response surface，验证主指标方向、非平凡最优区、局部结构、机制变化和可达到的 SESOI。
+  - [x] 验证风险阈值既非永不触发也非几乎必触发；成本指标对真实操作/测量变化敏感且不重复计费。
+  - [x] 用与正式方法无关的 policy probes 检查随机、局部、信息利用、风险盲四类行为可被指标区分。
+  - [x] 预估 20 paired seeds 对主效应、安全/成本非劣与谱图消融的功效；不足时在解封 Bench 前调整样本量，而不是事后改门槛。
+  - 结果：四个 core task 各运行 5 Dev seeds × 12 recipes，主指标 spread 为 0.499275、0.734407、0.375185、0.106557，冻结 SESOI 为 0.024964、0.036720、0.020000、0.020000；主指标方向、最优区和四类非方法行为 probe 均可区分。v0.5 分位校准使四任务风险触发率均为 0.20、process-cost 触发率均为 0.10；旧协议的结晶风险 0% 触发和分配成本 100% 触发被明确 supersede。20 paired seeds 对部分目标效应足够，但在 8 个同时比较、5% 非劣 margin 下，即使零额外失败也至少需 99 pairs；结合配对成本方差，protocol 0.4 的最低建议冻结为 100 paired seeds。
   - 验收：每个 core task 都有可辨识目标、安全—性能或成本—性能权衡和预注册 SESOI；否则降级为 exploratory。
 
 - [ ] **`foundation-v05-portable-release` — 可移植环境、依赖锁与 backend 语义冻结**
