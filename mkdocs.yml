@@ -25,9 +25,6 @@ theme:
         icon: material/weather-sunny
         name: 切换到浅色模式
   features:
-    - navigation.instant
-    - navigation.instant.prefetch
-    - navigation.instant.progress
     # Keep top-level groups as native collapsible navigation items; Material's
     # sections mode renders them as permanently expanded headings.
     - navigation.top
@@ -55,15 +52,32 @@ plugins:
       lang:
         - zh
         - en
-
-extra:
-  alternate:
-    - name: 中文
-      link: https://sunyrain.github.io/ChemWorld/
-      lang: zh
-    - name: English
-      link: https://sunyrain.github.io/ChemWorld/en/
-      lang: en
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: false
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: zh
+          default: true
+          name: 中文
+          build: true
+        - locale: en
+          name: English
+          build: true
+          site_description: A replayable causal virtual chemistry laboratory for training and evaluating experimental agents.
+          copyright: ChemWorld · Causal virtual experimental worlds, not instructions for physical laboratory work
+          nav:
+            - Home: index.md
+            - Research Thesis:
+                - Why ChemWorld: vision.md
+                - Experimental Intelligence: experimental_intelligence.md
+                - Causal Worlds: causal_worlds.md
+            - Evaluation & Evidence:
+                - Benchmark Design: benchmark_overview.md
+                - Research Findings: research_findings.md
+            - From Simulation to Reality:
+                - Real-world Bridge: real_world_bridge.md
 
 extra_css:
   - assets/stylesheets/language-switch.css
@@ -133,11 +147,3 @@ nav:
           - 教学路线: tutorial_curriculum_zh.md
           - 伦理与数据: ethics_and_data.md
           - 发布说明: release_notes.md
-  - English:
-      - Home: en/index.md
-      - Why ChemWorld: en/vision.md
-      - Experimental Intelligence: en/experimental_intelligence.md
-      - Causal Worlds: en/causal_worlds.md
-      - Benchmark: en/benchmark_overview.md
-      - Research Findings: en/research_findings.md
-      - Real-world Bridge: en/real_world_bridge.md

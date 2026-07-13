@@ -5,7 +5,8 @@
 The Bridge question is whether virtual training reduces the experiments, risk, and cost needed to adapt to independent
 models, real datasets, and narrow physical systems.
 
-> Current status: this is a validation roadmap, not an operational physical-lab product.
+!!! info "Current status"
+    This is a validation roadmap, not an operational physical-lab product.
 
 ## Validity ladder
 
