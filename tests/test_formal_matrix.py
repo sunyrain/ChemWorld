@@ -35,6 +35,11 @@ from chemworld.eval.method_protocol import (
     METHOD_RESOURCE_LEDGER_VERSION,
     METHOD_RESOURCE_USAGE_VERSION,
 )
+from chemworld.eval.resource_accounting_v0_4 import (
+    PROVIDER_RECEIPT_VERSION,
+    RL_TRAINING_RESOURCE_VERSION,
+    bind_pricing_snapshot,
+)
 
 RUN_ID = "1" * 64
 SHA = "2" * 64
@@ -61,18 +66,21 @@ def _method(method_id: str) -> FormalMethodBinding:
             method_id=method_id,
             kind="classic",
             artifact_sha256="4" * 64,
+            resource_profile="classic_recipe",
         )
     if method_id == "ppo":
         return FormalMethodBinding(
             method_id=method_id,
             kind="rl",
             artifact_sha256="5" * 64,
+            resource_profile="rl_evaluation",
             checkpoint_sha256="6" * 64,
         )
     return FormalMethodBinding(
         method_id=method_id,
         kind="live_llm",
         artifact_sha256="7" * 64,
+        resource_profile="live_llm_evaluation",
         prompt_sha256="8" * 64,
         model_config_sha256="9" * 64,
     )
@@ -151,6 +159,20 @@ def _manifest() -> dict[str, Any]:
                 "api_cost_usd_per_cell_limit": 50.0,
                 "matrix_monetary_cost_usd_limit": 200.0,
             },
+            "rl_training_resources": [
+                {
+                    "schema_version": RL_TRAINING_RESOURCE_VERSION,
+                    "accounting_complete": True,
+                    "training_run_id": "synthetic-ppo-training",
+                    "checkpoint_sha256": "6" * 64,
+                    "source_manifest_sha256": "a" * 64,
+                    "requested_training_environment_step_count": 100,
+                    "training_environment_step_count": 100,
+                    "cpu_time_s": 2.0,
+                    "gpu_time_s": 1.0,
+                    "wall_time_s": 1.5,
+                }
+            ],
         },
     )
 
@@ -189,6 +211,17 @@ class _SyntheticAdapter:
         progress = Path(self.job.progress_path)
         progress.parent.mkdir(parents=True, exist_ok=True)
         progress.write_text(json.dumps(checkpoint, sort_keys=True) + "\n", encoding="utf-8")
+        pricing = bind_pricing_snapshot(
+            {
+                "provider": "SyntheticProvider",
+                "model_id": "synthetic-model",
+                "access_date": "2026-07-13",
+                "currency": "USD",
+                "input_cache_hit_per_million_usd": 0.0,
+                "input_cache_miss_per_million_usd": 100.0,
+                "output_per_million_usd": 0.0,
+            }
+        )
         record = {
             "step": 1,
             "seed": runtime.world_seed,
@@ -253,6 +286,35 @@ class _SyntheticAdapter:
                     ),
                 },
             },
+            "formal_resource_evidence": (
+                {
+                    "pricing_snapshot": pricing,
+                    "provider_receipts": [
+                        {
+                            "schema_version": PROVIDER_RECEIPT_VERSION,
+                            "request_id": f"request-{spec.cell_identity_sha256[:16]}",
+                            "logical_decision_index": 1,
+                            "attempt_index": 1,
+                            "status": "succeeded",
+                            "provider": "SyntheticProvider",
+                            "model_id": "synthetic-model",
+                            "pricing_version_sha256": pricing[
+                                "pricing_version_sha256"
+                            ],
+                            "usage_source": "provider_response",
+                            "usage_complete": True,
+                            "billable": True,
+                            "input_token_count": 100,
+                            "output_token_count": 20,
+                            "input_cache_hit_token_count": 0,
+                            "input_cache_miss_token_count": 100,
+                            "billed_cost_usd": 0.01,
+                        }
+                    ],
+                }
+                if spec.method.kind == "live_llm"
+                else {}
+            ),
         }
         if self.omit_agent_usage:
             record["method_resources"].pop("agent_usage")
@@ -330,6 +392,7 @@ def test_plan_expands_exact_manifest_grid_and_public_resource_summary() -> None:
     assert summary["cell_count"] == 8
     assert summary["queue_counts"] == {"cpu": 2, "gpu": 2, "api": 4}
     assert summary["execution_limits"]["matrix_monetary_cost_usd_limit"] == 200.0
+    assert summary["unique_rl_training_checkpoint_count"] == 1
     assert summary["raw_private_seeds_reported"] is False
     encoded = json.dumps(summary, sort_keys=True)
     assert "method-nonce" not in encoded
@@ -400,6 +463,20 @@ def test_plan_rejects_gpu_overcommit_and_incoherent_api_cost_cap() -> None:
         build_formal_matrix_plan(cost)
 
 
+def test_plan_rejects_missing_or_incomplete_rl_training_resource_binding() -> None:
+    missing = _manifest()
+    missing["metadata"]["rl_training_resources"] = []
+    _resign(missing)
+    with pytest.raises(FormalMatrixError, match="do not match issued checkpoints"):
+        build_formal_matrix_plan(missing)
+
+    incomplete = _manifest()
+    incomplete["metadata"]["rl_training_resources"][0]["gpu_time_s"] = None
+    _resign(incomplete)
+    with pytest.raises(FormalMatrixError, match="resource report is incomplete"):
+        build_formal_matrix_plan(incomplete)
+
+
 def test_parallel_smoke_matrix_completes_with_public_progress_and_exact_audit(tmp_path) -> None:
     manifest = _manifest()
     plan = build_formal_matrix_plan(manifest)
@@ -414,6 +491,13 @@ def test_parallel_smoke_matrix_completes_with_public_progress_and_exact_audit(tm
     assert audit["paired_conditions_complete"] is True
     assert audit["failure_denominator_complete"] is True
     assert audit["all_required_resource_accounting_complete"] is True
+    assert audit["resource_aggregation"]["accounting_complete"] is True
+    assert audit["resource_aggregation"]["rl_training_resource_totals_separate"][
+        "training_environment_step_count"
+    ] == 100
+    assert audit["resource_aggregation"]["evaluation_resource_totals"][
+        "training_environment_step_count"
+    ] == 0
     assert audit["replay_verified_success_count"] == 8
     assert len(outcome.report["worker_pids"]) >= 2
     statuses = Counter(event["status"] for event in outcome.progress_events)
@@ -498,9 +582,10 @@ def test_declared_complete_but_malformed_resource_ledger_fails_closed(tmp_path) 
     )
     audit = outcome.report["audit"]
     assert all(row["resource_accounting_complete"] is False for row in audit["cells"])
-    assert {row["resource_accounting_status"] for row in audit["cells"]} == {
-        "agent_usage_missing"
-    }
+    assert all(
+        "agent_usage_missing" in row["resource_accounting_status"]
+        for row in audit["cells"]
+    )
     assert audit["aggregation_ready"] is False
 
 

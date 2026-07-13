@@ -285,6 +285,36 @@ def audit_rl_training_resource(payload: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def unavailable_resource_accounting_report(
+    *,
+    cell_identity_sha256: str,
+    method_id: str,
+    method_kind: MethodKind,
+    resource_profile: ResourceProfile,
+    reason: str,
+    rl_checkpoint_sha256: str | None = None,
+) -> dict[str, Any]:
+    """Create a non-zero-imputing artifact when execution fails before auditing."""
+
+    return {
+        "schema_version": RESOURCE_ACCOUNTING_VERSION,
+        "status": "accounting_failure",
+        "accounting_complete": False,
+        "retained_in_statistical_denominator": True,
+        "cell_identity_sha256": cell_identity_sha256,
+        "method_id": method_id,
+        "method_kind": method_kind,
+        "resource_profile": resource_profile,
+        "rl_checkpoint_sha256": rl_checkpoint_sha256,
+        "axes": dict.fromkeys(RESOURCE_AXES),
+        "axis_dimensions": dict(RESOURCE_DIMENSIONS),
+        "provider_accounting": None,
+        "classic_compute_accounting": None,
+        "failure_reasons": [reason],
+        "cross_resource_scalarization": None,
+    }
+
+
 def aggregate_resource_accounting(
     cell_reports: Sequence[Mapping[str, Any]],
     *,
@@ -814,4 +844,5 @@ __all__ = [
     "audit_rl_training_resource",
     "bind_pricing_snapshot",
     "canonical_sha256",
+    "unavailable_resource_accounting_report",
 ]

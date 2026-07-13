@@ -30,6 +30,10 @@ from chemworld.eval.formal_runner import (
     statistical_failure_class,
     validate_published_cell,
 )
+from chemworld.eval.method_protocol import (
+    METHOD_RESOURCE_LEDGER_VERSION,
+    METHOD_RESOURCE_USAGE_VERSION,
+)
 from chemworld.eval.runner import make_agent, run_agent
 from chemworld.tasks import get_task
 
@@ -50,15 +54,19 @@ def _runtime() -> PrivateCellRuntime:
 
 def _method(kind: str = "classic", method_id: str = "random") -> FormalMethodBinding:
     kwargs: dict[str, Any] = {}
+    resource_profile = "classic_recipe"
     if kind == "rl":
         kwargs["checkpoint_sha256"] = "d" * 64
+        resource_profile = "rl_evaluation"
     elif kind == "live_llm":
         kwargs["prompt_sha256"] = "e" * 64
         kwargs["model_config_sha256"] = "f" * 64
+        resource_profile = "live_llm_evaluation"
     return FormalMethodBinding(
         method_id=method_id,
         kind=kind,  # type: ignore[arg-type]
         artifact_sha256=SHA,
+        resource_profile=resource_profile,  # type: ignore[arg-type]
         **kwargs,
     )
 
@@ -135,9 +143,32 @@ def _record(
         "observation": {"signal": 0.5},
         "reward": 0.1,
         "method_resources": {
+            "schema_version": METHOD_RESOURCE_LEDGER_VERSION,
             "accounting_complete": True,
             "operation_count": operations,
             "complete_experiment_count": experiments,
+            "decision_wall_time_s": 0.01,
+            "update_wall_time_s": 0.01,
+            "run_wall_time_s": 0.02,
+            "reached_checkpoints": [1] if experiments else [],
+            "limits": {
+                "operation_limit": bound.operation_limit,
+                "complete_experiment_limit": bound.complete_experiments,
+                "checkpoint_complete_experiments": [1],
+            },
+            "agent_usage": {
+                "schema_version": METHOD_RESOURCE_USAGE_VERSION,
+                "accounting_complete": True,
+                "usage_source": "synthetic-runtime",
+                "model_call_count": 0,
+                "input_token_count": 0,
+                "output_token_count": 0,
+                "training_environment_step_count": 0,
+                "monetary_cost_usd": 0.0,
+                "cpu_time_s": 0.0,
+                "gpu_time_s": 0.0,
+                "model_provenance": {},
+            },
         },
     }
 
@@ -318,6 +349,24 @@ def test_manifest_issues_exact_identity_and_rejects_tampering() -> None:
         load_issued_cell(tampered, cell_identity_sha256=spec.cell_identity_sha256)
 
 
+def test_method_resource_profile_is_identity_bound_and_kind_checked() -> None:
+    with pytest.raises(CellIdentityError, match="resource profile"):
+        FormalMethodBinding(
+            method_id="ppo",
+            kind="rl",
+            artifact_sha256=SHA,
+            resource_profile="classic_recipe",
+            checkpoint_sha256="d" * 64,
+        )
+    manifest = issue_run_manifest([_spec()])
+    manifest["cells"][0]["method"]["resource_profile"] = "operation_baseline"
+    with pytest.raises(CellIdentityError, match="manifest digest mismatch"):
+        load_issued_cell(
+            manifest,
+            cell_identity_sha256=manifest["cells"][0]["cell_identity_sha256"],
+        )
+
+
 def test_cli_validate_only_resolves_issued_identity_without_private_runtime(
     tmp_path, monkeypatch, capsys
 ) -> None:
@@ -412,11 +461,16 @@ def test_success_is_published_atomically_and_repeat_is_idempotent(tmp_path) -> N
         "result.json",
         "failure.json",
         "replay.json",
+        "resources.json",
         "artifact-index.json",
         "completion.json",
     }
     completion = json.loads((first.cell_dir / "completion.json").read_text(encoding="utf-8"))
     assert completion["completion_marker_written_last"] is True
+    resources = json.loads((first.cell_dir / "resources.json").read_text(encoding="utf-8"))
+    assert resources["accounting_complete"] is True
+    assert resources["axes"]["operation_count"] == 1
+    assert resources["resource_profile"] == "classic_recipe"
     validate_published_cell(first.cell_dir, expected_cell=issued)
 
 
@@ -476,6 +530,7 @@ def test_public_control_artifacts_do_not_contain_private_runtime_values(tmp_path
             "result.json",
             "failure.json",
             "replay.json",
+            "resources.json",
             "artifact-index.json",
             "completion.json",
         )
@@ -527,6 +582,24 @@ def test_live_llm_timeout_is_retained_as_provider_failure(tmp_path) -> None:
     )
     assert outcome.status == "failed"
     assert outcome.failure_class == "provider_or_model_failure"
+
+
+def test_live_llm_without_attempt_receipts_fails_resource_accounting(tmp_path) -> None:
+    runtime = _runtime()
+    spec = _spec(runtime=runtime, kind="live_llm", method_id="live_llm_a")
+    outcome = run_formal_cell(
+        issued_cell=_issued(spec),
+        runtime=runtime,
+        adapter=_Adapter(method_id="live_llm_a", kind="live_llm"),
+        output_root=tmp_path,
+        replay_evaluator=_replay,
+    )
+    assert outcome.status == "failed"
+    assert outcome.failure_class == "incomplete_resource_accounting"
+    resources = json.loads((outcome.cell_dir / "resources.json").read_text(encoding="utf-8"))
+    assert resources["accounting_complete"] is False
+    assert resources["axes"]["monetary_cost_usd"] is None
+    assert "provider_receipts_missing" in resources["failure_reasons"]
 
 
 def test_protocol_failures_map_exhaustively_to_statistical_denominator() -> None:

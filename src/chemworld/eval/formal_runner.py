@@ -26,6 +26,12 @@ from types import TracebackType
 from typing import Any, Literal, Protocol, Self
 
 from chemworld.data.logging import load_jsonl
+from chemworld.eval.resource_accounting_v0_4 import (
+    RESOURCE_ACCOUNTING_VERSION,
+    ResourceProfile,
+    audit_cell_resource_accounting,
+    unavailable_resource_accounting_report,
+)
 from chemworld.eval.result_artifacts import build_verified_evaluation_result
 
 FORMAL_RUN_MANIFEST_VERSION = "chemworld-formal-run-manifest-0.4"
@@ -94,6 +100,7 @@ class FormalMethodBinding:
     method_id: str
     kind: MethodKind
     artifact_sha256: str
+    resource_profile: ResourceProfile
     checkpoint_sha256: str | None = None
     prompt_sha256: str | None = None
     model_config_sha256: str | None = None
@@ -102,6 +109,13 @@ class FormalMethodBinding:
         if not self.method_id.strip():
             raise CellIdentityError("method_id must be non-empty")
         _require_sha256(self.artifact_sha256, "method artifact")
+        expected_profiles = {
+            "classic": {"classic_recipe", "operation_baseline"},
+            "rl": {"rl_evaluation"},
+            "live_llm": {"live_llm_evaluation"},
+        }
+        if self.resource_profile not in expected_profiles.get(self.kind, set()):
+            raise CellIdentityError("method kind and resource profile are incoherent")
         if self.kind == "classic":
             if any(
                 value is not None
@@ -130,6 +144,7 @@ class FormalMethodBinding:
             method_id=_required_text(payload, "method_id"),
             kind=_required_text(payload, "kind"),  # type: ignore[arg-type]
             artifact_sha256=_required_text(payload, "artifact_sha256"),
+            resource_profile=_required_text(payload, "resource_profile"),  # type: ignore[arg-type]
             checkpoint_sha256=_optional_text(payload.get("checkpoint_sha256")),
             prompt_sha256=_optional_text(payload.get("prompt_sha256")),
             model_config_sha256=_optional_text(payload.get("model_config_sha256")),
@@ -547,6 +562,14 @@ def run_formal_cell(
         _atomic_write_json(staging / "manifest.json", manifest_artifact)
         manifest_artifact_sha256 = file_sha256(staging / "manifest.json")
         _call_fault_hook(fault_hook, "after_manifest", staging)
+        resource_report = unavailable_resource_accounting_report(
+            cell_identity_sha256=spec.cell_identity_sha256,
+            method_id=spec.method.method_id,
+            method_kind=spec.method.kind,
+            resource_profile=spec.method.resource_profile,
+            reason="execution_failed_before_resource_audit",
+            rl_checkpoint_sha256=spec.method.checkpoint_sha256,
+        )
 
         try:
             adapter.execute(spec=spec, runtime=runtime, trajectory_path=trajectory_path)
@@ -554,6 +577,15 @@ def run_formal_cell(
             if file_sha256(staging / "manifest.json") != manifest_artifact_sha256:
                 raise OSError("adapter modified the runner-owned cell manifest")
             records = _validate_trajectory(trajectory_path, spec=spec, runtime=runtime)
+            resource_report = _audit_formal_resource_evidence(records, spec=spec)
+            _assert_public_control_safe(
+                resource_report,
+                runtime=runtime,
+                label="resource accounting report",
+            )
+            _atomic_write_json(staging / "resources.json", resource_report)
+            if resource_report.get("accounting_complete") is not True:
+                raise IncompleteAccountingError("formal resource accounting failed")
             result, replay = evaluator(spec, runtime, records, trajectory_path)
             _validate_replay_payload(result, replay, trajectory_path=trajectory_path)
             result = _sanitize_result_for_public_control(result, spec=spec, runtime=runtime)
@@ -587,6 +619,13 @@ def run_formal_cell(
             denominator_failure_class = statistical_failure_class(failure_class)
             if not trajectory_path.exists():
                 _atomic_write_bytes(trajectory_path, b"")
+            if not (staging / "resources.json").exists():
+                _assert_public_control_safe(
+                    resource_report,
+                    runtime=runtime,
+                    label="resource accounting failure report",
+                )
+                _atomic_write_json(staging / "resources.json", resource_report)
             _atomic_write_json(
                 staging / "result.json",
                 {
@@ -667,6 +706,7 @@ def validate_published_cell(
         "result.json",
         "failure.json",
         "replay.json",
+        "resources.json",
         "artifact-index.json",
         "completion.json",
     }
@@ -721,11 +761,21 @@ def validate_published_cell(
     result = _read_object(path / "result.json")
     failure = _read_object(path / "failure.json")
     replay = _read_object(path / "replay.json")
+    resources = _read_object(path / "resources.json")
+    if (
+        resources.get("schema_version") != RESOURCE_ACCOUNTING_VERSION
+        or resources.get("cell_identity_sha256") != identity
+        or resources.get("method_id") != spec.method.method_id
+        or resources.get("method_kind") != spec.method.kind
+        or resources.get("resource_profile") != spec.method.resource_profile
+    ):
+        raise CellIntegrityError("cell resource artifact binding is invalid")
     if status == "succeeded":
         if (
             result.get("verified") is not True
             or replay.get("verified") is not True
             or failure.get("status") != "no_failure"
+            or resources.get("accounting_complete") is not True
         ):
             raise CellIntegrityError("successful cell lacks verified terminal artifacts")
         if result.get("trajectory_path") != str((path / "trajectory.jsonl").resolve()):
@@ -819,6 +869,61 @@ def _validate_trajectory(
     if experiment_count < spec.complete_experiments:
         raise TrajectoryContractError("cell ended before its complete-experiment budget")
     return records
+
+
+def _audit_formal_resource_evidence(
+    records: list[dict[str, Any]], *, spec: FormalCellSpec
+) -> dict[str, Any]:
+    raw_evidence = records[-1].get("formal_resource_evidence", {})
+    if not isinstance(raw_evidence, Mapping):
+        return unavailable_resource_accounting_report(
+            cell_identity_sha256=spec.cell_identity_sha256,
+            method_id=spec.method.method_id,
+            method_kind=spec.method.kind,
+            resource_profile=spec.method.resource_profile,
+            reason="formal_resource_evidence_invalid",
+            rl_checkpoint_sha256=spec.method.checkpoint_sha256,
+        )
+    provider_receipts = raw_evidence.get("provider_receipts", [])
+    classic_events = raw_evidence.get("classic_compute_events", [])
+    if not isinstance(provider_receipts, list) or not all(
+        isinstance(item, Mapping) for item in provider_receipts
+    ):
+        return unavailable_resource_accounting_report(
+            cell_identity_sha256=spec.cell_identity_sha256,
+            method_id=spec.method.method_id,
+            method_kind=spec.method.kind,
+            resource_profile=spec.method.resource_profile,
+            reason="provider_receipt_evidence_invalid",
+            rl_checkpoint_sha256=spec.method.checkpoint_sha256,
+        )
+    if not isinstance(classic_events, list) or not all(
+        isinstance(item, Mapping) for item in classic_events
+    ):
+        return unavailable_resource_accounting_report(
+            cell_identity_sha256=spec.cell_identity_sha256,
+            method_id=spec.method.method_id,
+            method_kind=spec.method.kind,
+            resource_profile=spec.method.resource_profile,
+            reason="classic_compute_evidence_invalid",
+            rl_checkpoint_sha256=spec.method.checkpoint_sha256,
+        )
+    pricing = raw_evidence.get("pricing_snapshot")
+    if pricing is not None and not isinstance(pricing, Mapping):
+        pricing = None
+    classic_compute_required = spec.method.method_id.startswith(("structured_", "gp_", "rf_"))
+    return audit_cell_resource_accounting(
+        records,
+        cell_identity_sha256=spec.cell_identity_sha256,
+        method_id=spec.method.method_id,
+        method_kind=spec.method.kind,
+        resource_profile=spec.method.resource_profile,
+        provider_receipts=provider_receipts,
+        pricing_snapshot=pricing,
+        classic_compute_events=classic_events,
+        classic_compute_required=classic_compute_required,
+        rl_checkpoint_sha256=spec.method.checkpoint_sha256,
+    )
 
 
 def _default_replay_evaluator(
@@ -928,6 +1033,7 @@ def _build_artifact_index(
         "result.json",
         "failure.json",
         "replay.json",
+        "resources.json",
     )
     observed = {item.name for item in staging.iterdir()}
     if observed != set(names):

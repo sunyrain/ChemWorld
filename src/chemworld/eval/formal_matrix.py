@@ -21,7 +21,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal, Protocol
 
-from chemworld.data.logging import load_jsonl
 from chemworld.eval.formal_runner import (
     FORMAL_PUBLIC_RESULT_VERSION,
     FORMAL_RUN_MANIFEST_VERSION,
@@ -34,9 +33,11 @@ from chemworld.eval.formal_runner import (
     statistical_failure_class,
     validate_published_cell,
 )
-from chemworld.eval.method_protocol import (
-    METHOD_RESOURCE_LEDGER_VERSION,
-    METHOD_RESOURCE_USAGE_VERSION,
+from chemworld.eval.resource_accounting_v0_4 import (
+    RESOURCE_ACCOUNTING_VERSION,
+    RESOURCE_AGGREGATION_VERSION,
+    aggregate_resource_accounting,
+    audit_rl_training_resource,
 )
 
 FORMAL_MATRIX_PLAN_VERSION = "chemworld-formal-matrix-plan-0.4"
@@ -95,6 +96,7 @@ class FormalMatrixPlan:
     spectrum_conditions_by_method: dict[str, tuple[str, ...]]
     checkpoints: tuple[int, ...]
     limits: MatrixExecutionLimits
+    rl_training_reports: tuple[dict[str, Any], ...]
 
     def public_summary(self) -> dict[str, Any]:
         queue_counts = Counter(cell.queue for cell in self.cells)
@@ -120,6 +122,7 @@ class FormalMatrixPlan:
                 "api_cost_usd_per_cell_limit": self.limits.api_cost_usd_per_cell_limit,
                 "matrix_monetary_cost_usd_limit": (self.limits.matrix_monetary_cost_usd_limit),
             },
+            "unique_rl_training_checkpoint_count": len(self.rl_training_reports),
             "raw_private_seeds_reported": False,
             "private_world_parameters_reported": False,
         }
@@ -237,6 +240,7 @@ def build_formal_matrix_plan(manifest: Mapping[str, Any]) -> FormalMatrixPlan:
         raise FormalMatrixError("matrix checkpoints must end at the complete-experiment budget")
     operation_limits = _task_operation_limits(contract, tasks=tasks)
     limits = _execution_limits(orchestration)
+    training_reports = _rl_training_reports(metadata, specs=specs)
 
     expected_keys = {
         (task_id, method_id, pair_id, condition)
@@ -315,6 +319,7 @@ def build_formal_matrix_plan(manifest: Mapping[str, Any]) -> FormalMatrixPlan:
         spectrum_conditions_by_method=spectrum_conditions,
         checkpoints=checkpoints,
         limits=limits,
+        rl_training_reports=training_reports,
     )
 
 
@@ -563,7 +568,12 @@ def run_formal_matrix(
         seen=seen_checkpoints,
         emit=emit,
     )
-    audit = audit_formal_matrix(plan=plan, output_root=root)
+    elapsed_wall_time_s = time.perf_counter() - wall_start
+    audit = audit_formal_matrix(
+        plan=plan,
+        output_root=root,
+        matrix_elapsed_wall_time_s=elapsed_wall_time_s,
+    )
     queued_remaining = sum(len(queue) for queue in pending.values())
     final_status = "stopped_resumable" if stop_requested and queued_remaining else audit["status"]
     emit(None, "matrix_finished", matrix_status=final_status)
@@ -580,14 +590,19 @@ def run_formal_matrix(
         "worker_pids": sorted(worker_pids),
         "infrastructure_errors": infrastructure_errors,
         "progress_event_count": len(events),
-        "elapsed_wall_time_s": time.perf_counter() - wall_start,
+        "elapsed_wall_time_s": elapsed_wall_time_s,
         "audit": audit,
     }
     _atomic_write_json(root / "matrix-run.json", report)
     return MatrixRunOutcome(report=report, progress_events=tuple(events))
 
 
-def audit_formal_matrix(*, plan: FormalMatrixPlan, output_root: str | Path) -> dict[str, Any]:
+def audit_formal_matrix(
+    *,
+    plan: FormalMatrixPlan,
+    output_root: str | Path,
+    matrix_elapsed_wall_time_s: float | None = None,
+) -> dict[str, Any]:
     """Check exact terminal coverage, replay, failure denominator, and accounting."""
 
     root = Path(output_root).resolve()
@@ -604,6 +619,7 @@ def audit_formal_matrix(*, plan: FormalMatrixPlan, output_root: str | Path) -> d
     failure_counts: Counter[str] = Counter()
     replay_verified = 0
     accounting_complete = 0
+    resource_reports: list[dict[str, Any]] = []
     for cell_id in sorted(observed.intersection(expected)):
         cell = expected[cell_id]
         outcome = validate_published_cell(
@@ -611,10 +627,19 @@ def audit_formal_matrix(*, plan: FormalMatrixPlan, output_root: str | Path) -> d
             expected_cell=IssuedFormalCell(cell.spec, plan.run_manifest_sha256),
         )
         trajectory_path = cells_root / cell_id / "trajectory.jsonl"
-        ledger_complete, ledger_reason = _trajectory_accounting_audit(
-            trajectory_path,
-            spec=cell.spec,
-            checkpoints=plan.checkpoints,
+        resource_path = cells_root / cell_id / "resources.json"
+        resource_report = _read_object(resource_path)
+        if (
+            resource_report.get("schema_version") != RESOURCE_ACCOUNTING_VERSION
+            or resource_report.get("cell_identity_sha256") != cell_id
+        ):
+            raise CellIntegrityError("matrix cell resource report is invalid")
+        resource_reports.append(resource_report)
+        ledger_complete = resource_report.get("accounting_complete") is True
+        ledger_reason = (
+            "complete"
+            if ledger_complete
+            else ",".join(str(item) for item in resource_report.get("failure_reasons", []))
         )
         accounting_complete += int(ledger_complete)
         row: dict[str, Any] = {
@@ -629,6 +654,8 @@ def audit_formal_matrix(*, plan: FormalMatrixPlan, output_root: str | Path) -> d
             "resource_accounting_complete": ledger_complete,
             "resource_accounting_status": ledger_reason,
             "trajectory_sha256": file_sha256(trajectory_path),
+            "resource_report_sha256": file_sha256(resource_path),
+            "resource_axes": resource_report.get("axes"),
             "failure_class": outcome.failure_class,
         }
         if outcome.status == "succeeded":
@@ -649,7 +676,27 @@ def audit_formal_matrix(*, plan: FormalMatrixPlan, output_root: str | Path) -> d
     denominator_complete = len(rows) == len(expected) and sum(
         row["status"] in {"succeeded", "failed"} for row in rows
     ) == len(expected)
-    all_accounting_complete = accounting_complete == len(expected)
+    elapsed_for_accounting = _resolve_matrix_elapsed(
+        root,
+        supplied=matrix_elapsed_wall_time_s,
+    )
+    if elapsed_for_accounting is None:
+        resource_aggregation: dict[str, Any] = {
+            "schema_version": RESOURCE_AGGREGATION_VERSION,
+            "status": "accounting_failure",
+            "accounting_complete": False,
+            "failure_reasons": ["matrix_elapsed_wall_time_missing"],
+        }
+    else:
+        resource_aggregation = aggregate_resource_accounting(
+            resource_reports,
+            matrix_elapsed_wall_time_s=elapsed_for_accounting,
+            rl_training_reports=plan.rl_training_reports,
+        )
+    all_accounting_complete = (
+        accounting_complete == len(expected)
+        and resource_aggregation.get("accounting_complete") is True
+    )
     all_successes_replay_verified = all(
         row["status"] != "succeeded" or row["replay_verified"] for row in rows
     )
@@ -668,6 +715,7 @@ def audit_formal_matrix(*, plan: FormalMatrixPlan, output_root: str | Path) -> d
             "failure_class": row["failure_class"],
             "trajectory_sha256": row["trajectory_sha256"],
             "resource_accounting_complete": row["resource_accounting_complete"],
+            "resource_report_sha256": row["resource_report_sha256"],
         }
         for row in rows
     ]
@@ -689,6 +737,7 @@ def audit_formal_matrix(*, plan: FormalMatrixPlan, output_root: str | Path) -> d
         "all_successes_replay_verified": all_successes_replay_verified,
         "resource_accounting_complete_count": accounting_complete,
         "all_required_resource_accounting_complete": all_accounting_complete,
+        "resource_aggregation": resource_aggregation,
         "aggregation_ready": aggregation_ready,
         "cross_resource_scalarization": None,
         "semantic_result_sha256": canonical_sha256(semantic_rows),
@@ -748,6 +797,28 @@ def _validate_global_bindings(specs: Sequence[FormalCellSpec]) -> None:
         existing = method_bindings.setdefault(spec.method.method_id, digest)
         if existing != digest:
             raise FormalMatrixError("method binding changes across matrix cells")
+
+
+def _rl_training_reports(
+    metadata: Mapping[str, Any], *, specs: Sequence[FormalCellSpec]
+) -> tuple[dict[str, Any], ...]:
+    raw = metadata.get("rl_training_resources", [])
+    if not isinstance(raw, list) or not all(isinstance(item, Mapping) for item in raw):
+        raise FormalMatrixError("rl_training_resources must be a list of objects")
+    reports = tuple(audit_rl_training_resource(item) for item in raw)
+    if any(report.get("accounting_complete") is not True for report in reports):
+        raise FormalMatrixError("RL training resource report is incomplete")
+    report_checkpoints = {str(report["checkpoint_sha256"]) for report in reports}
+    if len(report_checkpoints) != len(reports):
+        raise FormalMatrixError("RL training resource checkpoints must be unique")
+    required = {
+        str(spec.method.checkpoint_sha256)
+        for spec in specs
+        if spec.method.kind == "rl"
+    }
+    if report_checkpoints != required:
+        raise FormalMatrixError("RL training resource reports do not match issued checkpoints")
+    return tuple(dict(report) for report in reports)
 
 
 def _execution_limits(raw: Mapping[str, Any]) -> MatrixExecutionLimits:
@@ -879,125 +950,21 @@ def _drain_checkpoint_inbox(
         offsets[cell_id] = start + consumed
 
 
-def _trajectory_accounting_audit(
-    path: Path,
-    *,
-    spec: FormalCellSpec,
-    checkpoints: tuple[int, ...],
-) -> tuple[bool, str]:
-    """Validate the existing per-cell ledger before formal aggregation.
-
-    This is deliberately stricter than trusting the producer-owned
-    ``accounting_complete`` flag.  Cross-family normalization and matrix-wide
-    reconciliation belong to the dedicated resource-accounting protocol, but
-    a malformed or budget-incoherent cell must already fail closed here.
-    """
-
-    try:
-        records = load_jsonl(path)
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        return False, "trajectory_unreadable"
-    if not records or not all(isinstance(record, Mapping) for record in records):
-        return False, "trajectory_empty_or_invalid"
-    ledger = records[-1].get("method_resources")
-    if not isinstance(ledger, Mapping):
-        return False, "ledger_missing"
-    if ledger.get("schema_version") != METHOD_RESOURCE_LEDGER_VERSION:
-        return False, "ledger_schema_invalid"
-    if ledger.get("accounting_complete") is not True:
-        return False, "ledger_declared_incomplete"
-
-    operation_count = ledger.get("operation_count")
-    experiment_count = ledger.get("complete_experiment_count")
-    if not _is_nonnegative_int(operation_count) or operation_count != len(records):
-        return False, "operation_count_incoherent"
-    if operation_count > spec.operation_limit:
-        return False, "operation_budget_exceeded"
-    if not _is_nonnegative_int(experiment_count):
-        return False, "experiment_count_invalid"
-    if experiment_count != spec.complete_experiments:
-        return False, "experiment_budget_incoherent"
-
-    for field in ("decision_wall_time_s", "update_wall_time_s", "run_wall_time_s"):
-        if not _is_nonnegative_finite_number(ledger.get(field)):
-            return False, f"{field}_invalid"
-
-    limits = ledger.get("limits")
-    if not isinstance(limits, Mapping):
-        return False, "limits_missing"
-    if limits.get("operation_limit") != spec.operation_limit:
-        return False, "operation_limit_binding_mismatch"
-    if limits.get("complete_experiment_limit") != spec.complete_experiments:
-        return False, "experiment_limit_binding_mismatch"
-    expected_checkpoints = [item for item in checkpoints if item <= spec.complete_experiments]
-    if limits.get("checkpoint_complete_experiments") != expected_checkpoints:
-        return False, "checkpoint_limit_binding_mismatch"
-    if ledger.get("reached_checkpoints") != expected_checkpoints:
-        return False, "checkpoint_accounting_incoherent"
-
-    usage = ledger.get("agent_usage")
-    if not isinstance(usage, Mapping):
-        return False, "agent_usage_missing"
-    if usage.get("schema_version") != METHOD_RESOURCE_USAGE_VERSION:
-        return False, "agent_usage_schema_invalid"
-    if usage.get("accounting_complete") is not True:
-        return False, "agent_usage_declared_incomplete"
-    if not isinstance(usage.get("usage_source"), str) or not usage["usage_source"].strip():
-        return False, "agent_usage_source_missing"
-    counter_fields = (
-        "model_call_count",
-        "input_token_count",
-        "output_token_count",
-        "training_environment_step_count",
-    )
-    float_fields = ("monetary_cost_usd", "cpu_time_s", "gpu_time_s")
-    if any(not _is_nonnegative_int(usage.get(field)) for field in counter_fields):
-        return False, "agent_usage_counter_invalid"
-    if any(not _is_nonnegative_finite_number(usage.get(field)) for field in float_fields):
-        return False, "agent_usage_float_invalid"
-
-    limit_bindings = (
-        ("model_call_count", "model_call_limit"),
-        ("input_token_count", "input_token_limit"),
-        ("output_token_count", "output_token_limit"),
-        ("training_environment_step_count", "training_environment_step_limit"),
-        ("monetary_cost_usd", "monetary_cost_limit_usd"),
-        ("cpu_time_s", "cpu_time_limit_s"),
-        ("gpu_time_s", "gpu_time_limit_s"),
-    )
-    for usage_field, limit_field in limit_bindings:
-        limit = limits.get(limit_field)
-        if limit is not None and usage[usage_field] > limit:
-            return False, f"{usage_field}_limit_exceeded"
-
-    if spec.method.kind == "live_llm":
-        provenance = usage.get("model_provenance")
-        required = {
-            "provider",
-            "model_id",
-            "model_snapshot_or_access_date",
-            "prompt_hash",
-            "request_parameters",
-            "tokenizer_or_provider_usage_source",
-        }
-        if not isinstance(provenance, Mapping) or not required.issubset(provenance):
-            return False, "online_model_provenance_incomplete"
-        if usage["model_call_count"] <= 0:
-            return False, "online_model_request_count_missing"
-    return True, "complete"
-
-
-def _is_nonnegative_int(value: Any) -> bool:
-    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
-
-
-def _is_nonnegative_finite_number(value: Any) -> bool:
-    return (
-        isinstance(value, (int, float))
-        and not isinstance(value, bool)
-        and math.isfinite(float(value))
-        and value >= 0
-    )
+def _resolve_matrix_elapsed(root: Path, *, supplied: float | None) -> float | None:
+    if supplied is not None:
+        if not math.isfinite(supplied) or supplied < 0.0:
+            raise FormalMatrixError("matrix elapsed wall time must be finite and non-negative")
+        return float(supplied)
+    report_path = root / "matrix-run.json"
+    if not report_path.is_file():
+        return None
+    report = _read_object(report_path)
+    value = report.get("elapsed_wall_time_s")
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if not math.isfinite(float(value)) or value < 0:
+        return None
+    return float(value)
 
 
 def _assert_public_progress_event(event: Mapping[str, Any]) -> None:
