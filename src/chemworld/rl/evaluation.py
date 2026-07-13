@@ -4,15 +4,21 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import statistics
 import time
 from collections import Counter
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Literal
 
 from chemworld.rl.environment import RLWorldAllocation, build_rl_environment
 from chemworld.rl.hybrid_actions import policy_distribution_contract
-from chemworld.rl.rewards import reward_contract
+from chemworld.rl.rewards import (
+    core_operation_requirements,
+    reward_contract,
+    satisfied_requirement_count,
+)
 from chemworld.tasks import get_task
 
 AlgorithmName = Literal["ppo", "sac"]
@@ -21,9 +27,12 @@ AlgorithmName = Literal["ppo", "sac"]
 class _ExperimentBehaviorTracker:
     """Retain per-experiment operation evidence across campaign resets."""
 
-    def __init__(self) -> None:
+    def __init__(self, allowed_operations: Iterable[str] | None = None) -> None:
         self._operations: list[str] = []
         self.completed: list[dict[str, Any]] = []
+        self._requirements = core_operation_requirements(
+            allowed_operations or ("set_flow_rate", "run_flow")
+        )
 
     def observe(self, info: dict[str, Any]) -> None:
         invalid = bool(info.get("constraint_flags", {}).get("precondition_failed", False))
@@ -38,14 +47,24 @@ class _ExperimentBehaviorTracker:
         if not bool(info.get("experiment_ended", False)):
             return
         present = set(self._operations)
-        required = {"set_flow_rate", "run_flow", "measure:final_assay"}
-        behavior_complete = required.issubset(present)
+        behavior_complete = satisfied_requirement_count(self._requirements, present) == len(
+            self._requirements
+        )
+        missing_groups = [
+            group for group in self._requirements if not set(group).intersection(present)
+        ]
+        required = {candidate for group in self._requirements for candidate in group} | {
+            "measure:final_assay"
+        }
         self.completed.append(
             {
                 "experiment_index": len(self.completed),
                 "operation_sequence": list(self._operations),
                 "required_operations": sorted(required),
-                "missing_required_operations": sorted(required.difference(present)),
+                "missing_required_operations": sorted(
+                    candidate for group in missing_groups for candidate in group
+                ),
+                "core_operation_requirements": [list(group) for group in self._requirements],
                 "behavior_complete": behavior_complete,
                 "quick_close_incomplete": not behavior_complete,
             }
@@ -86,6 +105,7 @@ def evaluate_sb3_checkpoint(
     sampler_seed: int,
     policy_seed: int,
     deterministic: bool,
+    primary_metric: str | None = None,
 ) -> dict[str, Any]:
     """Evaluate one checkpoint without training reward or Bench access."""
 
@@ -95,6 +115,8 @@ def evaluate_sb3_checkpoint(
         raise ValueError("checkpoint selection evaluation must use Dev, not Train")
     if allocation.name == "bench":
         raise ValueError("development evaluation cannot inspect the Bench allocation")
+    if primary_metric is not None and not primary_metric.strip():
+        raise ValueError("primary_metric must be non-empty when supplied")
     try:
         import stable_baselines3 as sb3
         from stable_baselines3.common.utils import set_random_seed
@@ -119,8 +141,7 @@ def evaluate_sb3_checkpoint(
     expected_action = _environment_action_contract(env)
     expected_reward = reward_contract(get_task(task_id).allowed_operations)
     parameter_keys = tuple(
-        str(item)
-        for item in expected_action["training_adapter"]["parameter_coordinate_keys"]
+        str(item) for item in expected_action["training_adapter"]["parameter_coordinate_keys"]
     )
     expected_policy_distribution = policy_distribution_contract(parameter_keys)
     digest = hashlib.sha256(checkpoint_path.read_bytes()).hexdigest()
@@ -148,7 +169,8 @@ def evaluate_sb3_checkpoint(
     try:
         for episode_index in range(episodes):
             observation, _ = env.reset()
-            behavior = _ExperimentBehaviorTracker()
+            task = get_task(task_id)
+            behavior = _ExperimentBehaviorTracker(task.allowed_operations)
             invalid = 0
             unsafe = 0
             high_cost = 0
@@ -156,6 +178,8 @@ def evaluate_sb3_checkpoint(
             runtime_domain_failures = 0
             observation_domain_failures = 0
             final_scores: list[float] = []
+            final_primary_metric_values: list[float] = []
+            primary_metric_missing_count = 0
             raw_return = 0.0
             steps_taken = 0
             for _step_index in range(operation_budget):
@@ -169,9 +193,7 @@ def evaluate_sb3_checkpoint(
                 unsafe += int(bool(flags.get("unsafe_by_task_limit", False)))
                 high_cost += int(bool(flags.get("high_cost", False)))
                 measurements += int(info.get("operation_type") == "measure")
-                runtime_domain_failures += int(
-                    preconditions.get("runtime_domain_valid") is False
-                )
+                runtime_domain_failures += int(preconditions.get("runtime_domain_valid") is False)
                 observation_domain_failures += int(
                     preconditions.get("observation_domain_valid") is False
                 )
@@ -180,6 +202,19 @@ def evaluate_sb3_checkpoint(
                 terminal = info.get("last_terminal_summary")
                 if info.get("experiment_ended") and isinstance(terminal, dict):
                     final_scores.append(float(terminal["leaderboard_score"]))
+                    if primary_metric is not None:
+                        processed = info.get("processed_estimate", {})
+                        value = (
+                            processed.get(primary_metric) if isinstance(processed, dict) else None
+                        )
+                        if (
+                            isinstance(value, (int, float))
+                            and not isinstance(value, bool)
+                            and math.isfinite(value)
+                        ):
+                            final_primary_metric_values.append(float(value))
+                        else:
+                            primary_metric_missing_count += 1
                 if terminated or truncated:
                     break
             episode_cards.append(
@@ -202,6 +237,12 @@ def evaluate_sb3_checkpoint(
                     ),
                     "final_scores": final_scores,
                     "best_final_score": max(final_scores) if final_scores else 0.0,
+                    "primary_metric": primary_metric,
+                    "final_primary_metric_values": final_primary_metric_values,
+                    "best_primary_metric": (
+                        max(final_primary_metric_values) if final_primary_metric_values else None
+                    ),
+                    "primary_metric_missing_count": primary_metric_missing_count,
                     "raw_environment_return": raw_return,
                 }
             )
@@ -217,10 +258,14 @@ def evaluate_sb3_checkpoint(
         int(card["behavior_complete_experiment_count"]) for card in episode_cards
     )
     quick_close = sum(int(card["quick_close_count"]) for card in episode_cards)
-    scores = [
-        float(score)
+    scores = [float(score) for card in episode_cards for score in card["final_scores"]]
+    primary_values = [
+        float(value) for card in episode_cards for value in card["final_primary_metric_values"]
+    ]
+    episode_best_primary = [
+        float(card["best_primary_metric"])
         for card in episode_cards
-        for score in card["final_scores"]
+        if card["best_primary_metric"] is not None
     ]
     return {
         "schema_version": "chemworld-rl-development-evaluation-0.1",
@@ -228,6 +273,7 @@ def evaluate_sb3_checkpoint(
         "allocation": allocation.public_manifest(),
         "algorithm": algorithm,
         "task_id": task_id,
+        "primary_metric": primary_metric,
         "episodes": episodes,
         "operation_budget_per_episode": operation_budget,
         "sampler_seed": sampler_seed,
@@ -237,9 +283,7 @@ def evaluate_sb3_checkpoint(
         "checkpoint_contract_compatibility": compatibility,
         "action_contract_hash": expected_action["contract_hash"],
         "training_reward_contract_hash": expected_reward["contract_hash"],
-        "policy_distribution_contract_hash": expected_policy_distribution[
-            "contract_hash"
-        ],
+        "policy_distribution_contract_hash": expected_policy_distribution["contract_hash"],
         "episode_cards": episode_cards,
         "summary": {
             "operation_count": total_steps,
@@ -250,21 +294,26 @@ def evaluate_sb3_checkpoint(
             "behavior_complete_experiment_rate": behavior_complete / max(completed, 1),
             "quick_close_count": quick_close,
             "quick_close_rate": quick_close / max(completed, 1),
-            "invalid_action_rate": sum(
-                int(card["invalid_action_count"]) for card in episode_cards
-            )
+            "invalid_action_rate": sum(int(card["invalid_action_count"]) for card in episode_cards)
             / total_steps,
-            "unsafe_step_rate": sum(
-                int(card["unsafe_step_count"]) for card in episode_cards
-            )
+            "unsafe_step_rate": sum(int(card["unsafe_step_count"]) for card in episode_cards)
             / total_steps,
-            "high_cost_step_rate": sum(
-                int(card["high_cost_step_count"]) for card in episode_cards
-            )
+            "high_cost_step_rate": sum(int(card["high_cost_step_count"]) for card in episode_cards)
             / total_steps,
             "mean_final_score": statistics.fmean(scores) if scores else 0.0,
             "mean_episode_best_score": statistics.fmean(
                 float(card["best_final_score"]) for card in episode_cards
+            ),
+            "primary_metric": primary_metric,
+            "primary_metric_observation_count": len(primary_values),
+            "primary_metric_missing_count": sum(
+                int(card["primary_metric_missing_count"]) for card in episode_cards
+            ),
+            "mean_final_primary_metric": (
+                statistics.fmean(primary_values) if primary_values else None
+            ),
+            "mean_episode_best_primary_metric": (
+                statistics.fmean(episode_best_primary) if episode_best_primary else None
             ),
             "runtime_domain_failure_count": sum(
                 int(card["runtime_domain_failure_count"]) for card in episode_cards
@@ -360,9 +409,7 @@ def evaluate_replay_verified_sb3_checkpoint(
         result["rl_evaluation"] = {
             "schema_version": "chemworld-rl-replay-evaluation-0.1",
             "algorithm": algorithm,
-            "policy_mode": (
-                "deterministic" if deterministic else "stochastic_frozen_seed"
-            ),
+            "policy_mode": ("deterministic" if deterministic else "stochastic_frozen_seed"),
             "policy_seed": policy_seed + seed,
             "training_reward_used": False,
             "standard_registered_task_seed": True,
@@ -432,9 +479,7 @@ def _replay_resource_usage(
         "input_token_count": 0,
         "output_token_count": 0,
         "monetary_cost_usd": 0.0,
-        "training_environment_step_count": int(
-            usage.get("training_environment_step_count", 0)
-        ),
+        "training_environment_step_count": int(usage.get("training_environment_step_count", 0)),
         "cpu_time_s": float(usage.get("cpu_time_s", 0.0)),
         "gpu_time_s": float(usage.get("gpu_time_s", 0.0)),
         "method_ledger": ledger,
