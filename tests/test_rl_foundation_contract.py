@@ -61,7 +61,7 @@ def test_infrastructure_matrix_covers_cpu_cuda_and_vectorization_choices() -> No
     }
 
 
-def test_protocol_is_nonclaiming_and_keeps_native_distribution_gap_visible() -> None:
+def test_legacy_protocol_is_nonclaiming_and_fails_closed_after_backend_drift() -> None:
     protocol = json.loads(PROTOCOL.read_text(encoding="utf-8"))
     assert protocol["benchmark_claim_allowed"] is False
     assert protocol["action_contract"]["operation_semantics"] == "categorical"
@@ -89,7 +89,8 @@ def test_protocol_is_nonclaiming_and_keeps_native_distribution_gap_visible() -> 
     assert selected["parallel_environments"] == 8
     assert selected["n_steps_per_environment"] == 128
     assert selected["aggregate_rollout_environment_steps"] == 1024
-    assert load_learning_protocol() == protocol
+    with pytest.raises(RuntimeError, match="bound backend freeze report file has drifted"):
+        load_learning_protocol()
 
 
 def test_learning_gate_fails_closed_when_foundation_evidence_drifts() -> None:

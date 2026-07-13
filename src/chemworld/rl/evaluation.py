@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from chemworld.rl.environment import RLWorldAllocation, build_rl_environment
-from chemworld.rl.hybrid_policy import policy_distribution_contract
+from chemworld.rl.hybrid_actions import policy_distribution_contract
 from chemworld.rl.rewards import reward_contract
 from chemworld.tasks import get_task
 
