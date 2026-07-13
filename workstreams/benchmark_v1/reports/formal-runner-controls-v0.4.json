@@ -1,0 +1,81 @@
+{
+  "benchmark_claim_allowed": false,
+  "controls": {
+    "adapter_factory_supports_classic_rl_and_live_llm": true,
+    "adapter_cannot_modify_runner_owned_manifest": true,
+    "all_public_results_bind_protocol_backend_evaluator_statistics_reference_and_method_hashes": true,
+    "cell_identity_is_issued_by_digest_verified_run_manifest": true,
+    "completion_marker_is_written_last_before_atomic_directory_publish": true,
+    "concurrent_duplicate_cell_is_rejected_by_os_advisory_lock": true,
+    "failure_artifacts_are_retained_and_mapped_to_preregistered_statistical_denominator": true,
+    "incomplete_infrastructure_attempts_are_not_aggregator_visible": true,
+    "private_runtime_commitments_are_checked_before_adapter_execution": true,
+    "published_artifact_set_is_exact_and_digest_bound": true,
+    "published_cell_tampering_is_rejected_without_overwrite": true,
+    "raw_private_seed_is_replaced_by_opaque_pair_identity_in_public_result": true,
+    "real_environment_trajectory_passes_immediate_independent_replay": true,
+    "repeat_execution_returns_verified_cached_identity_without_adapter_reentry": true,
+    "runner_never_repairs_actions_or_synthesizes_final_assay": true,
+    "trajectory_records_bind_task_method_pair_spectrum_cell_and_private_world_seed": true,
+    "windows_long_path_atomic_write_uses_lock_scoped_short_temporary_name": true
+  },
+  "controls_ready": true,
+  "failure_taxonomy": {
+    "budget_overrun": "budget_overrun",
+    "incomplete_resource_accounting": "incomplete_accounting",
+    "invalid_action": "invalid_action",
+    "missing_or_nonfinite_metric": "runtime_failure",
+    "provider_or_model_failure": "provider_model_failure",
+    "replay_mismatch": "runtime_failure",
+    "runtime_failure": "runtime_failure"
+  },
+  "fault_injection": {
+    "adapter_manifest_tamper_rejected": true,
+    "api_timeout_classified_and_retained": true,
+    "bad_json_classified_and_retained": true,
+    "budget_overrun_classified_and_retained": true,
+    "digest_tamper_rejected": true,
+    "disk_failure_left_only_unpublished_staging": true,
+    "duplicate_concurrent_cell_rejected": true,
+    "incomplete_accounting_classified_and_retained": true,
+    "nonfinite_metric_classified_and_retained": true,
+    "private_result_value_leak_rejected": true,
+    "process_interrupt_left_only_unpublished_staging": true,
+    "replay_mismatch_classified_and_retained": true,
+    "undeclared_staging_file_prevented_publication": true,
+    "wrong_cell_trajectory_binding_rejected": true
+  },
+  "formal_results_present": false,
+  "limitations": [
+    "Formal method adapters remain a P3 deliverable; the runner freezes their execution boundary but does not claim that every method is implemented.",
+    "Matrix orchestration, complete resource accounting, and the no-bypass preflight gate remain P2 deliverables.",
+    "Raw trajectories are controlled private evidence because exact replay requires the private environment seed; public result artifacts expose only opaque pair identity and commitments."
+  ],
+  "next_gates": [
+    "implement the manifest-driven CPU GPU and API matrix orchestrator",
+    "close the formal resource ledger and provider billing boundary",
+    "issue the first nonformal smoke manifest through the no-force preflight gate"
+  ],
+  "private_runtime_values_reported_in_public_controls": false,
+  "schema_version": "chemworld-formal-runner-controls-0.4",
+  "source_commit": "3b2cf70d6fdbf84e74414a1a4cb0a146e208ecb2",
+  "source_files": {
+    "scripts/run_formal_cell.py": "f41aaffb70ad0695170e700c32d2fc1aebd5f591e0f3f1b498236bbe259089be",
+    "src/chemworld/eval/formal_runner.py": "e3ea36c7dff6bba2789d0e3598418cb2d72f99599f8802cd3b934dfc49f1f5d2",
+    "tests/test_formal_runner.py": "966f3c8379313f31002d4ff64a16c5fb8aacfbf20ca7f041c7ff3c3300412297"
+  },
+  "source_tree_dirty_during_validation": false,
+  "status": "formal_cell_runner_ready_no_formal_results",
+  "validation": {
+    "adjacent_protocol_statistics_and_replay_tests": {
+      "passed": 98,
+      "result": "passed"
+    },
+    "formal_runner_tests": {
+      "passed": 26,
+      "result": "passed"
+    },
+    "mypy": "passed",
+    "ruff": "passed"
+  }
+}

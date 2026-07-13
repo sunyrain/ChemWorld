@@ -139,13 +139,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 
 ## P2：统一正式执行基础设施
 
-- [ ] **`benchmark-v05-cell-runner` — 可恢复、幂等的单 cell 执行器**
+- [x] **`benchmark-v05-cell-runner` — 可恢复、幂等的单 cell 执行器**
   - 默认 owned_paths：`src/chemworld/eval/formal_runner.py`、`scripts/run_formal_cell.py`、`tests/test_formal_runner.py`、`workstreams/benchmark_v1/reports/formal-runner-controls-v0.4.json`。
   - 依赖：P1 协议冻结。
-  - [ ] 统一 task × method × seed × world × spectrum-condition cell，支持 classic、RL checkpoint 和 live LLM adapter factory。
-  - [ ] 每个 cell 原子写入 manifest、trajectory、result、failure artifact 和完成标记；中断后只重跑未完成/校验失败 cell。
-  - [ ] 同一 cell 重复启动必须返回相同 identity 或拒绝覆盖；不得把半成品当成功，不得自动补动作或 final assay。
-  - [ ] 每个输出绑定全部协议/代码/checkpoint/prompt/reference hashes，并立即独立回放验证。
+  - [x] 统一 task × method × seed × world × spectrum-condition cell，支持 classic、RL checkpoint 和 live LLM adapter factory。
+  - [x] 每个 cell 原子写入 manifest、trajectory、result、failure artifact 和完成标记；中断后只重跑未完成/校验失败 cell。
+  - [x] 同一 cell 重复启动必须返回相同 identity 或拒绝覆盖；不得把半成品当成功，不得自动补动作或 final assay。
+  - [x] 每个输出绑定全部协议/代码/checkpoint/prompt/reference hashes，并立即独立回放验证。
+  - 结果：正式 cell 只能从摘要校验通过的 issued run manifest 解析，classic/RL/live-LLM 三类 adapter 分别强制绑定 method artifact、checkpoint 或 prompt/model-config hash；私有 method/world seed 与世界扰动经 commitment 校验后才进入 adapter。执行采用 OS cell 锁、隔离 staging、逐文件短名原子写入、精确 artifact 白名单与整目录发布，完成标记最后落盘；中断和磁盘错误仅留下不可聚合 staging，重复 cell 命中已校验缓存，并发重复被拒绝，已发布 digest 篡改拒绝覆盖。轨迹逐条绑定 task/method/pair/spectrum/cell/world-seed，公开 result 去除 raw seed，仅保留 opaque pair 与 commitment；真实环境轨迹即时独立 replay 通过。26 项 runner 测试和 98 项相邻协议/统计/replay 回归通过，并覆盖 API timeout、坏 JSON、nonfinite、预算越界、账本缺失、错 cell、manifest/额外文件篡改和私有值泄漏。
   - 验收：故障注入覆盖进程中断、磁盘不完整、API 超时、坏 JSON、重复 cell、digest 篡改和预算超限。
 
 - [ ] **`benchmark-v05-matrix-orchestrator` — manifest 驱动的并行矩阵编排**
