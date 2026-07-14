@@ -1,0 +1,232 @@
+{
+  "schema_version": "chemworld-method-freeze-plan-0.4",
+  "plan_id": "chemworld-benchmark-v0.5-method-freeze-0.4",
+  "status": "development_incomplete_bench_sealed",
+  "formal_results_present": false,
+  "benchmark_claim_allowed": false,
+  "bench_access_allowed": false,
+  "bench_manifest_issuance_allowed": false,
+  "formal_core_tasks": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization"
+  ],
+  "artifact_bindings": {
+    "formal_protocol": {
+      "path": "configs/benchmark/formal_protocol_v0.4.json",
+      "sha256": "fdf0655f7547b46d6951ae90106fd7353884c4607599abd5861ec5726eeabc2b"
+    },
+    "interaction_strata": {
+      "path": "configs/benchmark/interaction_strata_v0.4.json",
+      "sha256": "9f543f991cda97ccc3f28d0c6f0354bbeb6c10774825e152c5853c1c82b24c43"
+    },
+    "statistical_plan": {
+      "path": "configs/benchmark/statistical_analysis_plan_v0.4.json",
+      "sha256": "f83258909724788354c35c5862f4182be113428df26704514a1cb04ed66db1a7"
+    },
+    "reference_plan": {
+      "path": "configs/benchmark/reference_portfolio_v0.4.json",
+      "sha256": "2955ff5624fbb830da398d62b995b3862e32139f82bd3d570099f2418dabf029"
+    },
+    "classic_freeze": {
+      "path": "configs/methods/classic_v0.4/classic_methods.json",
+      "sha256": "e40365c257b73195d0f53bdc09074aa00651bdd49bf08dd4a3f55414b44fb5b4"
+    },
+    "classic_development": {
+      "path": "workstreams/benchmark_v1/reports/classic-dev-v0.4.json",
+      "sha256": "a1915b871d30da92f356b97108ebf5e6c24bc7f1616d20b46ce4a23ec6d9a9fb"
+    },
+    "operation_baseline_freeze": {
+      "path": "configs/methods/operation_v0.4/operation_methods.json",
+      "sha256": null
+    },
+    "operation_baseline_development": {
+      "path": "workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.json",
+      "sha256": null
+    },
+    "rl_contract": {
+      "path": "configs/methods/rl_v0.4/rl_methods.json",
+      "sha256": "5350d7815b4f5d1cfdb3bef9c5c892da66d7352cddc131e20c407567e499bef9"
+    },
+    "ppo_checkpoint_index": {
+      "path": "configs/methods/rl_v0.4/ppo_checkpoint_index.json",
+      "sha256": "b15b8b5450b1ab33c8e0cc1f78d52dedfef05154c916aead049d88e119b9ff9f"
+    },
+    "ppo_development": {
+      "path": "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json",
+      "sha256": "97be3d1bacb90e6d6cdca47dc22f82c1f0c00fa6109c09dc7ac3b7d89952c88a"
+    },
+    "sac_checkpoint_index": {
+      "path": "configs/methods/rl_v0.4/sac_checkpoint_index.json",
+      "sha256": null
+    },
+    "sac_development": {
+      "path": "workstreams/benchmark_v1/reports/rl-sac-dev-v0.4.json",
+      "sha256": null
+    },
+    "llm_freeze": {
+      "path": "configs/methods/llm_v0.4/llm_methods.json",
+      "sha256": "9913fead5f6f8de2839e4b9f5d7a6a7f112196e616968b4ccad76e96a6ea590e"
+    },
+    "llm_development_plan": {
+      "path": "configs/methods/llm_v0.4/llm_development_plan.json",
+      "sha256": "c5580f69eda3a4efe697456ae0d6dfa4af28cb5e8c471b74c673be851cb54bfe"
+    },
+    "llm_development": {
+      "path": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.7.json",
+      "sha256": null
+    },
+    "family_selection": {
+      "path": "configs/benchmark/method_selection_v0.4.json",
+      "sha256": null
+    },
+    "reference_builder_freeze": {
+      "path": "configs/benchmark/reference_builder_freeze_v0.4.json",
+      "sha256": null
+    },
+    "formal_execution_budget": {
+      "path": "configs/benchmark/formal_execution_budget_v0.4.json",
+      "sha256": null
+    }
+  },
+  "method_scope": {
+    "all_declared_method_ids": [
+      "random",
+      "lhs",
+      "greedy_local",
+      "structured_gp_ei",
+      "structured_gp_pi",
+      "structured_gp_ucb",
+      "structured_rf_ei",
+      "structured_safe_gp_ei",
+      "operation_random",
+      "observation_blind",
+      "rule_based",
+      "ppo",
+      "sac",
+      "live_llm_a",
+      "live_llm_b"
+    ],
+    "mandatory_comparators": [
+      "random",
+      "operation_random"
+    ],
+    "development_families": {
+      "recipe": [
+        "greedy_local",
+        "structured_gp_ei",
+        "structured_gp_pi",
+        "structured_gp_ucb",
+        "structured_rf_ei",
+        "structured_safe_gp_ei"
+      ],
+      "rl": [
+        "ppo",
+        "sac"
+      ],
+      "llm": [
+        "live_llm_a",
+        "live_llm_b"
+      ],
+      "operation_primary": [
+        "rule_based",
+        "ppo",
+        "sac",
+        "live_llm_a",
+        "live_llm_b"
+      ]
+    },
+    "required_operation_baselines": [
+      "operation_random",
+      "observation_blind",
+      "rule_based"
+    ]
+  },
+  "selection_contract": {
+    "selection_split": "dev_only",
+    "bench_information_allowed": false,
+    "families": {
+      "recipe": [
+        "greedy_local",
+        "structured_gp_ei",
+        "structured_gp_pi",
+        "structured_gp_ucb",
+        "structured_rf_ei",
+        "structured_safe_gp_ei"
+      ],
+      "rl": [
+        "ppo",
+        "sac"
+      ],
+      "llm": [
+        "live_llm_a",
+        "live_llm_b"
+      ],
+      "operation_primary": [
+        "rule_based",
+        "ppo",
+        "sac",
+        "live_llm_a",
+        "live_llm_b"
+      ]
+    },
+    "eligibility": [
+      "all_planned_dev_cells_present",
+      "all_dev_trajectories_replay_verified",
+      "all_dev_resource_ledgers_complete",
+      "no_budget_overrun",
+      "frozen_method_or_prompt_or_checkpoint_hash"
+    ],
+    "lexicographic_ranking": [
+      "number_of_core_tasks_reaching_dev_sesoi_with_safety_and_cost_noninferiority",
+      "mean_normalized_primary_anytime_auc",
+      "lower_risk_exceedance_rate",
+      "lower_relative_process_cost",
+      "lower_resource_use_only_as_final_tie_breaker"
+    ],
+    "tie_breaker": "lexicographically_smallest_frozen_method_id",
+    "selection_artifact_frozen_before_bench": true,
+    "bench_hyperparameter_prompt_checkpoint_or_seed_selection": "forbidden"
+  },
+  "rl_evidence_contract": {
+    "formal_tasks_per_method": 4,
+    "methods": {
+      "ppo": {
+        "checkpoint_index_binding": "ppo_checkpoint_index",
+        "development_binding": "ppo_development",
+        "ready_flag": "ppo_method_ready",
+        "ready_index_status": "ppo_dev_selection_ready",
+        "ready_report_status": "ppo_train_dev_complete_selection_ready"
+      },
+      "sac": {
+        "checkpoint_index_binding": "sac_checkpoint_index",
+        "development_binding": "sac_development",
+        "ready_flag": "sac_method_ready",
+        "ready_index_status": "sac_dev_selection_ready",
+        "ready_report_status": "sac_train_dev_complete_selection_ready"
+      }
+    }
+  },
+  "llm_evidence_contract": {
+    "required_schema_version": "chemworld-live-llm-development-audit-0.4.7",
+    "required_stage": "development_matrix",
+    "required_status": "formal_live_llm_development_ready",
+    "required_ready_flag": "formal_live_llm_development_ready",
+    "promotion_gate_passed": true
+  },
+  "reference_independence_contract": {
+    "builder_id": "independent_reference_portfolio_v0_4",
+    "implementation_namespace": "chemworld.reference.builders.v0_4",
+    "evaluated_method_identity_overlap_allowed": false,
+    "evaluated_adapter_code_digest_overlap_allowed": false,
+    "training_search_evaluation_rng_overlap_allowed": false,
+    "hidden_state_access_allowed": false
+  },
+  "issuance_contract": {
+    "this_audit_may_issue_bench_manifest": false,
+    "preflight_required_after_method_freeze": true,
+    "force_override_available": false,
+    "bench_must_remain_sealed_while_incomplete": true
+  }
+}
