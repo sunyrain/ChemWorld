@@ -109,10 +109,12 @@ def test_core_action_contract_matches_effective_runtime_semantics() -> None:
             "low": 1.0e-4,
             "high": 1.0,
         }
-        assert field("cool_crystallize", "target_temperature_K")["bounds"] == {
+        cooling_temperature = field("cool_crystallize", "target_temperature_K")
+        assert cooling_temperature["bounds"] == {
             "low": 250.0,
-            "high": 330.0,
+            "high": pytest.approx(min(330.0, env.unwrapped._state.temperature_K)),
         }
+        assert cooling_temperature["state_dependent_bounds"] is True
         assert field("evaporate", "target_temperature_K")["bounds"] == {
             "low": 298.15,
             "high": 390.0,

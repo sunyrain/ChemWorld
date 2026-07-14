@@ -181,6 +181,12 @@ class OperationValidator:
             and field == "target_temperature_K"
         ):
             dynamic_high = min(dynamic_high, self._max_temperature_k(state))
+            if operation_type == "cool_crystallize":
+                # The crystallization kernel accepts only a cooling or
+                # isothermal ramp.  Publishing the static 330 K ceiling after
+                # the vessel is already colder exposes actions that can only
+                # fail inside the runtime.
+                dynamic_high = min(dynamic_high, state.temperature_K)
         return low, max(low, dynamic_high)
 
     def operation_affordance(
@@ -377,12 +383,19 @@ class OperationValidator:
                 (operation_type, "target_temperature_K"),
                 (250.0, self._max_temperature_k(state)),
             )
-            high = min(high, self._max_temperature_k(state))
+            low, high = self.public_field_bounds(
+                operation_type,
+                "target_temperature_K",
+                state,
+                low=low,
+                high=high,
+            )
             checks["payload_bounds:target_temperature_K"] = self._in_range(
                 payload,
                 "target_temperature_K",
                 low,
                 high,
+                inclusive_low=True,
             )
         if (
             operation_type

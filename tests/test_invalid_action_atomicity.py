@@ -92,6 +92,46 @@ def test_payload_bounds_failure_only_penalizes_process_ledger() -> None:
         env.close()
 
 
+def test_cooling_schema_matches_the_current_runtime_temperature_domain() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        env.reset(seed=0)
+        env.step({"operation": "add_solvent", "volume_L": 0.02, "solvent": 1})
+        env.step({"operation": "add_reagent", "amount_mol": 0.01})
+        env.unwrapped._state = env.unwrapped._state.replace(temperature_K=260.0)
+
+        schema = env.unwrapped.action_schema("cool_crystallize")
+        temperature = next(
+            field for field in schema["fields"] if field["field"] == "target_temperature_K"
+        )
+        assert temperature["bounds"] == {"low": 250.0, "high": 260.0}
+        assert temperature["state_dependent_bounds"] is True
+
+        lower_boundary = env.unwrapped.validate_action(
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 250.0,
+                "duration_s": 3600.0,
+            }
+        )
+        heating_through_cooling = env.unwrapped.validate_action(
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 270.0,
+                "duration_s": 3600.0,
+            }
+        )
+
+        assert lower_boundary["valid"] is True
+        assert heating_through_cooling["valid"] is False
+        assert heating_through_cooling["dispatchable_to_runtime"] is False
+        assert "payload_bounds:target_temperature_K" in heating_through_cooling[
+            "invalid_reasons"
+        ]
+    finally:
+        env.close()
+
+
 def test_public_catalyst_display_name_is_a_supported_action_alias() -> None:
     canonical = ActionCodec().canonicalize(
         {
