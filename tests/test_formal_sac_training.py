@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -22,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SAC_PLAN = Path("configs/methods/rl_v0.4/sac_training_plan.json")
 
 
-def _inputs() -> tuple[dict[str, object], dict[str, object], dict[str, object]]:
+def _inputs() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     return load_execution_inputs(root=ROOT, plan_path=SAC_PLAN)
 
 

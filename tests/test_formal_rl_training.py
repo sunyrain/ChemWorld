@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -25,7 +26,7 @@ from chemworld.tasks import get_task
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def _inputs() -> tuple[dict[str, object], dict[str, object], dict[str, object]]:
+def _inputs() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     return load_execution_inputs(root=ROOT)
 
 

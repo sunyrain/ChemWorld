@@ -18,5 +18,5 @@ legacy-eligible candidates under the preregistered Dev ranking. The
 crystallization checkpoint is only the best observed candidate because that
 task produced no legacy-eligible checkpoint.
 
-See `manifest.json` for digests, metrics, source commits, and selection labels.
-
+See `manifest.json` for digests, source commits, and selection labels. See
+`result-summary.json` for the interrupted matrix coverage and resource totals.
