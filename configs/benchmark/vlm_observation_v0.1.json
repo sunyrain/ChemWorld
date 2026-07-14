@@ -1,0 +1,95 @@
+{
+  "schema_version": "chemworld-vlm-observation-plan-0.1",
+  "status": "preparatory_non_gating",
+  "benchmark_claim_allowed": false,
+  "included_in_base_matrix_v0.4": false,
+  "purpose": "Freeze deterministic spectrum-image delivery before any open-VLM pilot.",
+  "observation_contract": {
+    "version": "chemworld-vlm-observation-0.1",
+    "render": {
+      "format": "PNG",
+      "media_type": "image/png",
+      "width_px": 960,
+      "height_px": 640,
+      "fixed_layout": true,
+      "content_sha256_required": true,
+      "render_contract_hash_required": true,
+      "embedded_bytes_in_logs": false
+    },
+    "history": {
+      "catalog_contains_signal": false,
+      "delivery": "only_after_explicit_public_spectrum_id_request",
+      "automatic_history_preload": false
+    },
+    "reasoning_record": {
+      "private_chain_of_thought_requested": false,
+      "private_chain_of_thought_retained": false,
+      "public_audit_fields": [
+        "evidence",
+        "spectrum_interpretation",
+        "hypothesis",
+        "uncertainty",
+        "rationale",
+        "action",
+        "adaptation_source"
+      ]
+    }
+  },
+  "candidate_runtime": {
+    "model_id": "Qwen/Qwen3-VL-4B-Instruct",
+    "model_revision": null,
+    "model_revision_must_be_pinned_before_execution": true,
+    "license": "Apache-2.0",
+    "weights_downloaded_by_this_task": false,
+    "execution_authorized_by_this_task": false,
+    "precision_probe_order": [
+      "bfloat16",
+      "8bit_or_4bit_only_if_memory_probe_requires_it"
+    ],
+    "device_target": "single_local_cuda_gpu",
+    "provider_network_calls": false
+  },
+  "future_pilot_arms": [
+    {
+      "id": "masked_control",
+      "modality": "numeric_only",
+      "disclosure": "masked"
+    },
+    {
+      "id": "numeric_unassigned",
+      "modality": "numeric_only",
+      "disclosure": "unassigned"
+    },
+    {
+      "id": "image_unassigned",
+      "modality": "image_only",
+      "disclosure": "unassigned"
+    },
+    {
+      "id": "image_plus_numeric_unassigned",
+      "modality": "image_plus_numeric",
+      "disclosure": "unassigned"
+    },
+    {
+      "id": "image_assigned",
+      "modality": "image_only",
+      "disclosure": "assigned"
+    }
+  ],
+  "execution_gates": [
+    "focused contract and leakage tests pass",
+    "model revision and processor revision are immutable",
+    "clean source and environment manifests are recorded",
+    "one Dev task learning-value pilot passes before any matrix expansion",
+    "no Bench or reference-search cell is visible to the pilot"
+  ],
+  "prohibited": [
+    "site modification",
+    "paid API call",
+    "model download during contract audit",
+    "automatic delivery of all historical spectra",
+    "base64 or image bytes in trajectory logs",
+    "private chain-of-thought collection",
+    "promotion into v0.4 base-matrix claims"
+  ]
+}
