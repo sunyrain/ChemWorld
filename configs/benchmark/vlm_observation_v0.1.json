@@ -49,6 +49,23 @@
     "device_target": "single_local_cuda_gpu",
     "provider_network_calls": false
   },
+  "dependency_plan": {
+    "scope": "future_dev_pilot_only",
+    "pre_vlm_primary_lock_baseline": {
+      "source_commit": "099028d58809b79f88fba2f605a8ead1d1dd47d4",
+      "sha256": "4a4a2dc44844f8f583af94e4d2dbc55c53c3b3f98753afda5d03e84c36830b29"
+    },
+    "primary_pyproject_extra_added": false,
+    "primary_uv_lock_mutation_allowed": false,
+    "new_claim_and_environment_manifest_required_before_install": true,
+    "requirements": {
+      "accelerate": ">=1.10,<2.0",
+      "pillow": ">=11.0,<13.0",
+      "safetensors": ">=0.5,<1.0",
+      "torch": ">=2.8,<3.0",
+      "transformers": ">=4.57,<6.0"
+    }
+  },
   "future_pilot_arms": [
     {
       "id": "masked_control",

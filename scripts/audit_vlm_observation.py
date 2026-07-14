@@ -167,7 +167,8 @@ def _behavior_checks() -> dict[str, bool]:
 
 def audit(config_path: Path, output_path: Path) -> dict[str, Any]:
     config = json.loads(config_path.read_text(encoding="utf-8"))
-    pyproject_text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    dependency_plan = config.get("dependency_plan", {})
+    planned_requirements = dependency_plan.get("requirements", {})
     optional_dependencies = {
         "accelerate": _package_status("accelerate", "accelerate"),
         "pillow": _package_status("PIL", "pillow"),
@@ -175,10 +176,7 @@ def audit(config_path: Path, output_path: Path) -> dict[str, Any]:
         "torch": _package_status("torch", "torch"),
         "transformers": _package_status("transformers", "transformers"),
     }
-    declaration_checks = {
-        name: f'"{name}' in pyproject_text or (name == "pillow" and '"pillow' in pyproject_text)
-        for name in optional_dependencies
-    }
+    declaration_checks = {name: name in planned_requirements for name in optional_dependencies}
     for name, declared in declaration_checks.items():
         optional_dependencies[name]["declared"] = declared
 
@@ -194,6 +192,29 @@ def audit(config_path: Path, output_path: Path) -> dict[str, Any]:
     dirty_excluding_report = bool(
         _git("status", "--porcelain", "--", ".", f":(exclude){output_relative}")
     )
+    primary_lock_sha256 = _digest(ROOT / "uv.lock")
+    portable_report = json.loads(
+        (
+            ROOT / "workstreams" / "world_foundation" / "reports" / "portable-release-v0.5.json"
+        ).read_text(encoding="utf-8")
+    )
+    portable_lock_sha256 = str(portable_report["dependency_lock"]["sha256"])
+    baseline = dependency_plan.get("pre_vlm_primary_lock_baseline", {})
+    baseline_commit = str(baseline.get("source_commit", ""))
+    baseline_lock_sha256 = str(baseline.get("sha256", ""))
+    try:
+        baseline_lock_bytes = subprocess.check_output(
+            ["git", "show", f"{baseline_commit}:uv.lock"], cwd=ROOT
+        )
+    except subprocess.CalledProcessError:
+        baseline_lock_bytes = b""
+    baseline_commit_binding_valid = (
+        hashlib.sha256(baseline_lock_bytes).hexdigest() == baseline_lock_sha256
+    )
+    pre_vlm_primary_lock_restored = primary_lock_sha256 == baseline_lock_sha256
+    portable_release_matches_current_lock = primary_lock_sha256 == portable_lock_sha256
+    pyproject_text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    primary_pyproject_extra_absent = "\nvlm = [" not in pyproject_text
     config_safe = (
         config.get("status") == "preparatory_non_gating"
         and config.get("benchmark_claim_allowed") is False
@@ -202,6 +223,13 @@ def audit(config_path: Path, output_path: Path) -> dict[str, Any]:
         and config["candidate_runtime"].get("execution_authorized_by_this_task") is False
         and config["candidate_runtime"].get("model_revision_must_be_pinned_before_execution")
         is True
+        and dependency_plan.get("scope") == "future_dev_pilot_only"
+        and dependency_plan.get("primary_pyproject_extra_added") is False
+        and dependency_plan.get("primary_uv_lock_mutation_allowed") is False
+        and dependency_plan.get("new_claim_and_environment_manifest_required_before_install")
+        is True
+        and baseline_commit_binding_valid
+        and primary_pyproject_extra_absent
     )
     contract_ready = (
         all(behavior.values())
@@ -209,6 +237,7 @@ def audit(config_path: Path, output_path: Path) -> dict[str, Any]:
         and optional_dependencies["pillow"]["installed"]
         and not repository_weights
         and config_safe
+        and pre_vlm_primary_lock_restored
         and not dirty_excluding_report
     )
     runtime_ready = all(item["installed"] for item in optional_dependencies.values())
@@ -224,7 +253,17 @@ def audit(config_path: Path, output_path: Path) -> dict[str, Any]:
         },
         "dependency_lock": {
             "path": "uv.lock",
-            "sha256": _digest(ROOT / "uv.lock"),
+            "sha256": primary_lock_sha256,
+            "pre_vlm_baseline_source_commit": baseline_commit,
+            "pre_vlm_baseline_sha256": baseline_lock_sha256,
+            "baseline_commit_binding_valid": baseline_commit_binding_valid,
+            "pre_vlm_primary_lock_restored": pre_vlm_primary_lock_restored,
+            "portable_release_sha256": portable_lock_sha256,
+            "portable_release_matches_current_lock": portable_release_matches_current_lock,
+            "formal_backend_reattestation_required": not portable_release_matches_current_lock,
+            "primary_pyproject_extra_absent": primary_pyproject_extra_absent,
+            "requirements_scope": dependency_plan.get("scope"),
+            "planned_requirements": planned_requirements,
             "optional_packages": optional_dependencies,
         },
         "behavior_checks": behavior,
@@ -239,6 +278,10 @@ def audit(config_path: Path, output_path: Path) -> dict[str, Any]:
             "This audit validates observation delivery, not VLM quality or learning value.",
             "A model and processor revision must be pinned before a one-task Dev pilot.",
             "Optional inference packages may remain uninstalled until that pilot is authorized.",
+            (
+                "Future VLM packages require a separate environment manifest and may not "
+                "mutate the formal backend lock."
+            ),
         ],
     }
 

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import importlib.util
+import json
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -11,6 +14,11 @@ from chemworld.eval.vlm_observation import (
     SpectrumRenderSpec,
     prepare_vlm_observation,
     render_public_spectrum_packet,
+)
+
+requires_pillow = pytest.mark.skipif(
+    importlib.util.find_spec("PIL") is None,
+    reason="Pillow is installed only in the separately claimed future VLM environment",
 )
 
 
@@ -91,6 +99,7 @@ def test_public_image_artifact_rejects_path_traversal() -> None:
         )
 
 
+@requires_pillow
 def test_render_is_byte_deterministic_and_signal_sensitive(tmp_path: Path) -> None:
     first = render_public_spectrum_packet(
         _hplc_packet(),
@@ -125,6 +134,7 @@ def test_render_is_byte_deterministic_and_signal_sensitive(tmp_path: Path) -> No
     assert first.x_axis_direction == "ascending_left_to_right"
 
 
+@requires_pillow
 def test_assigned_and_unassigned_share_curve_but_not_identity(tmp_path: Path) -> None:
     packet = _hplc_packet(secret="public-analyte-A")
     assigned = render_public_spectrum_packet(
@@ -149,6 +159,7 @@ def test_assigned_and_unassigned_share_curve_but_not_identity(tmp_path: Path) ->
     assert assigned.sha256 != unassigned.sha256
 
 
+@requires_pillow
 def test_ir_uses_conventional_descending_axis(tmp_path: Path) -> None:
     artifact = render_public_spectrum_packet(
         _ir_packet(),
@@ -161,6 +172,7 @@ def test_ir_uses_conventional_descending_axis(tmp_path: Path) -> None:
     assert artifact.x_axis_direction == "descending_left_to_right"
 
 
+@requires_pillow
 def test_history_catalog_is_never_rendered_without_explicit_retrieval(tmp_path: Path) -> None:
     without_request = prepare_vlm_observation(
         _context(),
@@ -189,6 +201,7 @@ def test_history_catalog_is_never_rendered_without_explicit_retrieval(tmp_path: 
     assert with_request.images[1].spectrum_id.startswith("spectrum-requested")
 
 
+@requires_pillow
 def test_image_only_removes_numeric_signal_and_assignment_text(tmp_path: Path) -> None:
     bundle = prepare_vlm_observation(
         _context(),
@@ -210,6 +223,7 @@ def test_image_only_removes_numeric_signal_and_assignment_text(tmp_path: Path) -
     ]
 
 
+@requires_pillow
 def test_numeric_and_combined_modalities_obey_disclosure(tmp_path: Path) -> None:
     numeric = prepare_vlm_observation(
         _context(),
@@ -258,6 +272,7 @@ def test_masked_condition_never_renders_or_exposes_signal(tmp_path: Path) -> Non
     assert not (tmp_path / "vlm_images").exists()
 
 
+@requires_pillow
 def test_manifest_is_hash_stable_and_contains_no_embedded_bytes(tmp_path: Path) -> None:
     first = prepare_vlm_observation(
         _context(),
@@ -278,3 +293,25 @@ def test_manifest_is_hash_stable_and_contains_no_embedded_bytes(tmp_path: Path) 
     assert "base64" not in manifest_text
     assert "data:image" not in manifest_text
     assert str(tmp_path).lower() not in manifest_text
+
+
+def test_future_vlm_dependency_plan_does_not_mutate_formal_lock() -> None:
+    root = Path(__file__).resolve().parents[1]
+    config = json.loads(
+        (root / "configs" / "benchmark" / "vlm_observation_v0.1.json").read_text(encoding="utf-8")
+    )
+    current_lock = hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest()
+    plan = config["dependency_plan"]
+
+    assert current_lock == plan["pre_vlm_primary_lock_baseline"]["sha256"]
+    assert "\nvlm = [" not in (root / "pyproject.toml").read_text(encoding="utf-8")
+    assert plan["scope"] == "future_dev_pilot_only"
+    assert plan["primary_pyproject_extra_added"] is False
+    assert plan["primary_uv_lock_mutation_allowed"] is False
+    assert set(plan["requirements"]) == {
+        "accelerate",
+        "pillow",
+        "safetensors",
+        "torch",
+        "transformers",
+    }
