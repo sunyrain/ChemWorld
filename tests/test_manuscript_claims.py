@@ -7,11 +7,17 @@ from pathlib import Path
 from scripts.audit_manuscript_claims import ROOT, audit
 
 
-def test_manuscript_claim_audit_passes_without_render_requirement() -> None:
+def test_manuscript_claim_audit_fails_closed_on_stale_source_evidence() -> None:
     report = audit(require_pdf=False)
-    assert report["passed"] is True
+    assert report["passed"] is False
+    assert report["status"] == "blocked"
     assert report["publication_ready"] is False
-    assert all(report["checks"].values())
+    assert report["checks"]["source_evidence_digests_match"] is False
+    assert all(
+        value
+        for name, value in report["checks"].items()
+        if name != "source_evidence_digests_match"
+    )
 
 
 def test_no_allowed_claim_uses_an_untracked_evidence_source() -> None:
