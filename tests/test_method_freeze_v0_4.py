@@ -50,11 +50,8 @@ def test_current_method_freeze_scaffold_reports_exact_gaps_without_bench_access(
     assert families["classic"]["controls_ready"] is True
     assert families["classic"]["development_ready"] is False
     assert families["classic"]["cell_count"] == 768
-    assert families["operation_baselines"]["pending_adapter_method_ids"] == [
-        "operation_random",
-        "observation_blind",
-        "rule_based",
-    ]
+    assert families["operation_baselines"]["pending_adapter_method_ids"] == []
+    assert families["operation_baselines"]["development_ready"] is True
     assert families["rl"]["ppo"]["selected_checkpoint_count"] == 2
     assert families["rl"]["ppo"]["missing_task_ids"] == [
         "partition-discovery",
@@ -66,9 +63,6 @@ def test_current_method_freeze_scaffold_reports_exact_gaps_without_bench_access(
 
     blockers = set(report["blockers"])
     assert {
-        "operation_baseline:operation_random:adapter_not_formal_ready",
-        "operation_baseline:observation_blind:adapter_not_formal_ready",
-        "operation_baseline:rule_based:adapter_not_formal_ready",
         "classic:development_contract_failed",
         "rl:ppo:expected_4_selected_checkpoints_found_2",
         "rl:ppo:missing_task:partition-discovery",

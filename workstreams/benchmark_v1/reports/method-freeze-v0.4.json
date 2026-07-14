@@ -14,7 +14,7 @@
     },
     "interaction_strata": {
       "path": "configs/benchmark/interaction_strata_v0.4.json",
-      "sha256": "9f543f991cda97ccc3f28d0c6f0354bbeb6c10774825e152c5853c1c82b24c43"
+      "sha256": "0c995b997773e8f739f962e5c51b7189345882bfdd329ba1af9dc954400f132f"
     },
     "llm_development_plan": {
       "path": "configs/methods/llm_v0.4/llm_development_plan.json",
@@ -23,6 +23,14 @@
     "llm_freeze": {
       "path": "configs/methods/llm_v0.4/llm_methods.json",
       "sha256": "9913fead5f6f8de2839e4b9f5d7a6a7f112196e616968b4ccad76e96a6ea590e"
+    },
+    "operation_baseline_development": {
+      "path": "workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.json",
+      "sha256": "b7f2848ed275aa74a398e381bc6577025c86ac1599d86361950214f45ce5f11f"
+    },
+    "operation_baseline_freeze": {
+      "path": "configs/methods/operation_v0.4/operation_methods.json",
+      "sha256": "5d46f4f49dcd93029762718b361898eeeb77acc18df2f054db6d74dd86641e60"
     },
     "ppo_checkpoint_index": {
       "path": "configs/methods/rl_v0.4/ppo_checkpoint_index.json",
@@ -55,10 +63,6 @@
     "artifact:formal_execution_budget:file_missing",
     "artifact:llm_development:expected_sha256_missing",
     "artifact:llm_development:file_missing",
-    "artifact:operation_baseline_development:expected_sha256_missing",
-    "artifact:operation_baseline_development:file_missing",
-    "artifact:operation_baseline_freeze:expected_sha256_missing",
-    "artifact:operation_baseline_freeze:file_missing",
     "artifact:reference_builder_freeze:expected_sha256_missing",
     "artifact:reference_builder_freeze:file_missing",
     "artifact:sac_checkpoint_index:expected_sha256_missing",
@@ -70,17 +74,12 @@
     "control:family_selection_ready",
     "control:formal_execution_budget_ready",
     "control:llm_development_ready",
-    "control:operation_baselines_ready",
     "control:plan_status_ready",
     "control:reference_independence_ready",
     "control:rl_development_ready",
     "formal_budget:freeze_missing",
     "llm:development_matrix:report_missing",
     "method_freeze:development_incomplete",
-    "operation_baseline:development_evidence_missing",
-    "operation_baseline:observation_blind:adapter_not_formal_ready",
-    "operation_baseline:operation_random:adapter_not_formal_ready",
-    "operation_baseline:rule_based:adapter_not_formal_ready",
     "reference:builder_implementation_freeze_missing",
     "rl:ppo:expected_4_selected_checkpoints_found_2",
     "rl:ppo:method_not_ready",
@@ -103,7 +102,7 @@
     "llm_development_ready": false,
     "method_scope_matches_preregistration": true,
     "no_formal_results": true,
-    "operation_baselines_ready": false,
+    "operation_baselines_ready": true,
     "plan_status_ready": false,
     "protocols_remain_nonresult_controls": true,
     "reference_independence_ready": false,
@@ -153,12 +152,8 @@
       "status": null
     },
     "operation_baselines": {
-      "development_ready": false,
-      "pending_adapter_method_ids": [
-        "operation_random",
-        "observation_blind",
-        "rule_based"
-      ],
+      "development_ready": true,
+      "pending_adapter_method_ids": [],
       "required_method_ids": [
         "operation_random",
         "observation_blind",
@@ -201,7 +196,7 @@
     }
   },
   "method_freeze_ready": false,
-  "plan_sha256": "03d4fedf7a3bce16ba879dee86b97e54a7d764279f248fa86d76fc3ae7a7a413",
+  "plan_sha256": "3eed4614a234a8341101485027caa7c87de8d5f68842d3a5825e7aba0e033936",
   "preflight_issuance_allowed": false,
   "private_bench_manifest_opened": false,
   "reference_independence": {
@@ -220,7 +215,7 @@
     ],
     "selected_champions": {}
   },
-  "source_commit": "10b183cbec18e5d08d52037bb85418ef337b1a95",
-  "source_tree_clean": true,
+  "source_commit": "d636140f3ea53b76c69c505e16527f7009048416",
+  "source_tree_clean": false,
   "status": "method_freeze_preflight_blocked"
 }

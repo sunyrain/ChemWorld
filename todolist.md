@@ -189,6 +189,15 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：八种 recipe-level 方法均由唯一、source-bound 的 formal adapter 注册；GP/RF/Safe-GP 对溶剂、催化剂等名义类别使用 one-hot，greedy local 只对连续坐标作局部扰动并以无序类别突变探索材料，LHS 对名义类别只作平衡分层而不建立距离模型。正式开发矩阵严格使用 4 个 Train seed 与完整 20 个 Dev seed，覆盖 4 个 core task、40 次完整实验，共 768 cells、30,720 次完整实验和 307,200 次显式操作；768/768 完成、0 invalid action、资源账本全部完整，32/32 预注册双跑确定性一致。五种 surrogate 方法共实际执行 17,280 次 fit 与 17,280 次 acquisition optimization；Safe-GP 在 96 个 cell 中有 95 个实际收缩可行候选集或触发最低风险 fallback，其余一个 cell 的全部候选均满足风险上界。所有方法的 4/8/12/20/40 预算曲线均非退化。只按 Dev 规则选出 design=`lhs`、local search=`greedy_local`、Bayesian optimization=`structured_gp_ucb`、constrained optimization=`structured_safe_gp_ei`；没有访问 Bench 或 reference-search。旧 Safe-GP confirmatory freeze 因策略源码升级而按设计 fail-closed，其历史 Bench 结果不继承到 v0.4；完整开发证据见 `classic-dev-v0.4.json`。
   - 验收：每种方法的能力、失败域、复杂度和资源 ledger 完整；不使用 Bench/reference 反馈。
 
+- [x] **`benchmark-v05-operation-baselines` — operation-level 盲控制与规则基线封存**
+  - 默认 owned_paths：operation baseline adapter、`configs/methods/operation_v0.4/`、对应测试与 `workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.json`。
+  - 依赖：P2 preflight 与 interaction strata。
+  - [x] 实现 operation-random、observation-blind 与 rule-based，三者只使用声明的公开 affordance/观测，不读取 hidden state 或私有 Bench。
+  - [x] 固定 terminal assay 活性、动态操作边界和 closeout 预算，禁止 runner 静默修复；随机负控制的非法尝试必须保留并计账，盲控制与规则基线必须为零非法操作。
+  - [x] 在 4 个 core task、4 个 Train seed、20 个 Dev seed、每 cell 40 次完整实验上运行 288-cell 开发矩阵，并检查确定性回放、决策审计、动作多样性、规则测量适应与资源账本。
+  - 结果：288/288 cells 完成，全部主指标、决策审计和资源账本闭合；预注册确定性复跑全部一致。operation-random 保留并报告 1,563 次非法操作，observation-blind 与 rule-based 均为 0；规则方法在四个任务上均实际使用公开测量进行适应。未访问 Bench 或 reference-search，正式状态为 `formal_operation_baselines_ready`。
+  - 验收：三种方法的 freeze、source/hash-bound adapter、完整开发证据和 interaction registration 均已进入 fail-closed method-freeze 审计。
+
 - [ ] **`benchmark-v05-rl-adapters` — PPO/SAC 正式适配、训练与 checkpoint 封存**
   - 默认 owned_paths：各 RL formal adapter、对应测试、`configs/methods/rl_v0.4/`、checkpoint manifests、`workstreams/benchmark_v1/reports/rl-dev-v0.4.json`。
   - 依赖：P2 preflight；PPO 旧 5-seed gate 仅作起点。
@@ -211,7 +220,7 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 - [ ] **`benchmark-v05-method-freeze` — 方法清单与 Bench 解封**
   - 默认 owned_paths：`configs/benchmark/method_freeze_v0.4.json`、`scripts/audit_method_freeze_v0.4.py`、`tests/test_method_freeze_v0.4.py`、`workstreams/benchmark_v1/reports/method-freeze-v0.4.json`。
   - 依赖：所有计划进入正式比较的方法完成 P3；未完成方法必须明确退出，不拖着空实现进入矩阵。
-  - 当前预检：fail-closed 方法冻结审计器与 19 项 hash-bound 输入合同已经落地；当前报告为 `method_freeze_preflight_blocked`，列出 39 个精确 blocker，并固定输出 `bench_unlock_allowed=false`、`bench_manifest_issued=false`、`benchmark_claim_allowed=false`。Classic 的八个代码/超参数 freeze controls 仍通过，但 768-cell 开发报告绑定的是旧 formal protocol digest，不能直接继承到当前协议；`operation_random`、`observation_blind`、`rule_based` 仍是 `pending_p3_adapter` 且没有正式开发工件；PPO 仅 2/4 个 task checkpoint 合格，SAC 与 v0.4.7 LLM Dev 证据尚未生成。统一 Dev-only family selection、独立 reference builder 代码 freeze 和正式 cell/CPU/GPU/API/磁盘硬预算也尚未落地。该审计只读取公开控制工件，不打开私有 Bench，也没有 `--force` 或 manifest 签发能力；52 项相关回归、Ruff 与 mypy 已通过。
+  - 当前预检：fail-closed 方法冻结审计器与 19 项 hash-bound 输入合同已经落地；当前报告为 `method_freeze_preflight_blocked`，精确 blocker 已从 39 项降至 30 项，并固定输出 `bench_unlock_allowed=false`、`bench_manifest_issued=false`、`benchmark_claim_allowed=false`。三种 operation baseline 已完成 288-cell Train/Dev 封存并通过正式注册与开发证据门禁。剩余阻塞包括：Classic 的 768-cell 报告仍绑定旧 formal protocol digest；PPO 仅 2/4 个 task checkpoint 合格；SAC 与单任务预算化 LLM pilot 证据尚未生成；统一 Dev-only family selection、独立 reference builder 代码 freeze 和正式 cell/CPU/GPU/API/磁盘硬预算尚未落地。该审计只读取公开控制工件，不打开私有 Bench，也没有 `--force` 或 manifest 签发能力。
   - [ ] 固定方法 IDs、family、interaction stratum、hyperparameters、checkpoint/prompt hashes、Dev 选择依据和资源上限。
   - [ ] 核实 reference builder 与所有 evaluated method 身份、代码和随机数流独立。
   - [ ] 锁定 run count/预计算力/API 费用，并由 preflight 签发 Bench manifest。

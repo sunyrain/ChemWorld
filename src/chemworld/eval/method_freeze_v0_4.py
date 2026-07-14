@@ -395,18 +395,71 @@ def _audit_operation_baselines(
     ]
     for method_id in pending:
         blockers.append(f"operation_baseline:{method_id}:adapter_not_formal_ready")
+    acceptance = development.get("acceptance") if development is not None else None
+    acceptance = acceptance if isinstance(acceptance, Mapping) else {}
+    summaries = development.get("method_summaries") if development is not None else None
+    summaries = summaries if isinstance(summaries, Mapping) else {}
+    expected_tasks = (
+        "partition-discovery",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+        "flow-reaction-optimization",
+    )
     evidence_ready = bool(
         freeze is not None
         and development is not None
         and freeze.get("schema_version") == "chemworld-operation-method-freeze-0.4"
         and freeze.get("status") == "dev_frozen_bench_unseen"
+        and freeze.get("bench_results_used") is False
+        and freeze.get("reference_search_results_used") is False
         and set(freeze.get("methods", {})) == set(required)
         and development.get("schema_version")
         == "chemworld-operation-baseline-development-audit-0.4"
         and development.get("status") == "formal_operation_baselines_ready"
         and development.get("formal_operation_baselines_ready") is True
+        and development.get("source_tree_clean_at_start") is True
         and development.get("bench_results_present") is False
         and development.get("reference_search_results_used") is False
+        and development.get("tasks") == list(expected_tasks)
+        and set(development.get("methods", ())) == set(required)
+        and development.get("train_seeds") == list(range(10_000, 10_004))
+        and development.get("dev_seeds") == list(range(11_000, 11_020))
+        and development.get("complete_experiments_per_cell") == 40
+        and development.get("cell_count") == 288
+        and development.get("operation_freeze_sha256") == _canonical_sha256(freeze)
+        and all(
+            acceptance.get(key) is True
+            for key in (
+                "full_preregistered_development_scope",
+                "source_tree_clean_at_start",
+                "all_method_controls_pass",
+                "all_cells_complete",
+                "all_primary_values_complete",
+                "all_accounting_complete",
+                "all_decision_audits_complete",
+                "all_checked_replays_deterministic",
+                "nonrandom_invalid_controls_pass",
+                "action_diversity_controls_pass",
+                "rule_measurement_adaptation_controls_pass",
+                "operation_random_invalid_actions_retained",
+            )
+        )
+        and acceptance.get("bench_feedback_used") is False
+        and acceptance.get("reference_search_feedback_used") is False
+        and int(acceptance.get("operation_random_invalid_operation_count", 0)) > 0
+        and set(summaries) == set(required)
+        and all(
+            isinstance(summaries.get(method_id), Mapping)
+            and summaries[method_id].get("cell_count") == 96
+            and summaries[method_id].get("all_cells_complete") is True
+            and summaries[method_id].get("all_primary_values_complete") is True
+            and summaries[method_id].get("all_decision_audits_complete") is True
+            and summaries[method_id].get("accounting_complete") is True
+            and summaries[method_id].get("deterministic_replay") is True
+            for method_id in required
+        )
+        and summaries.get("observation_blind", {}).get("invalid_operation_count") == 0
+        and summaries.get("rule_based", {}).get("invalid_operation_count") == 0
     )
     if freeze is None or development is None:
         blockers.append("operation_baseline:development_evidence_missing")

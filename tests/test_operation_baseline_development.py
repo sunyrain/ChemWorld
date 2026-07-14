@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import json
+from pathlib import Path
 
 from chemworld.agents.task_recipes import task_recipe_event_count
 from chemworld.eval.operation_baseline_development import (
@@ -10,6 +12,14 @@ from chemworld.eval.operation_baseline_development import (
     run_operation_baseline_development_audit,
 )
 from chemworld.tasks import get_task
+
+FROZEN_REPORT = (
+    Path(__file__).resolve().parents[1]
+    / "workstreams"
+    / "benchmark_v1"
+    / "reports"
+    / "operation-baselines-dev-v0.4.json"
+)
 
 
 def test_operation_development_plan_is_public_split_only_and_fail_closed() -> None:
@@ -72,3 +82,50 @@ def test_partial_operation_development_is_resumable_and_never_formal(tmp_path) -
     assert first["acceptance"]["nonrandom_invalid_controls_pass"] is True
     assert first["acceptance"]["rule_measurement_adaptation_controls_pass"] is True
     assert first["acceptance"]["operation_random_invalid_actions_retained"] is True
+
+
+def test_frozen_full_operation_report_passes_without_bench_or_reference_feedback() -> None:
+    report = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
+
+    assert report["status"] == "formal_operation_baselines_ready"
+    assert report["formal_operation_baselines_ready"] is True
+    assert report["source_tree_clean_at_start"] is True
+    assert report["cell_count"] == 288
+    assert report["split_scope"] == ["train", "dev"]
+    assert report["bench_results_present"] is False
+    assert report["reference_search_results_used"] is False
+    assert report["acceptance"] == {
+        "action_diversity_controls_pass": True,
+        "all_accounting_complete": True,
+        "all_cells_complete": True,
+        "all_checked_replays_deterministic": True,
+        "all_decision_audits_complete": True,
+        "all_method_controls_pass": True,
+        "all_primary_values_complete": True,
+        "bench_feedback_used": False,
+        "full_preregistered_development_scope": True,
+        "nonrandom_invalid_controls_pass": True,
+        "operation_random_invalid_actions_retained": True,
+        "operation_random_invalid_operation_count": 1563,
+        "reference_search_feedback_used": False,
+        "rule_measurement_adaptation_controls_pass": True,
+        "source_tree_clean_at_start": True,
+    }
+    summaries = report["method_summaries"]
+    assert set(summaries) == {"operation_random", "observation_blind", "rule_based"}
+    assert summaries["operation_random"]["invalid_operation_count"] == 1563
+    assert summaries["observation_blind"]["invalid_operation_count"] == 0
+    assert summaries["rule_based"]["invalid_operation_count"] == 0
+    assert all(
+        summary["cell_count"] == 96
+        and summary["all_cells_complete"]
+        and summary["all_primary_values_complete"]
+        and summary["all_decision_audits_complete"]
+        and summary["deterministic_replay"]
+        and summary["accounting_complete"]
+        for summary in summaries.values()
+    )
+    assert all(
+        task_summary["measurement_adaptation_count"] > 0
+        for task_summary in summaries["rule_based"]["task_summaries"].values()
+    )
