@@ -306,7 +306,7 @@ def _audit_json_binding(
     if not path.is_file():
         blockers.append(f"artifact:{label}:file_missing")
         return None
-    digest = _file_sha256(path)
+    digest = artifact_file_sha256(path)
     observed[label] = {"path": str(relative), "sha256": digest}
     if expected != digest:
         blockers.append(f"artifact:{label}:sha256_mismatch")
@@ -754,7 +754,7 @@ def _audit_reference_independence(
             and not path.is_symlink()
             and path.is_file()
             and _is_sha256(expected)
-            and _file_sha256(path) == expected
+            and artifact_file_sha256(path) == expected
         )
     adapter_bindings_ready = set(adapter_bindings) == set(method_ids)
     for method_id, raw_binding in adapter_bindings.items():
@@ -909,12 +909,20 @@ def _canonical_sha256(payload: Mapping[str, Any]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
-def _file_sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+def artifact_file_sha256(path: Path) -> str:
+    """Hash artifacts after the only Git transport normalization we allow.
+
+    Bound JSON evidence is committed as LF by ``.gitattributes``.  Windows
+    generators can still leave CRLF in an existing worktree before Git writes
+    the LF blob, so hashing raw worktree bytes made identical commits pass in
+    one worktree and fail in a clean checkout.  JSON bindings normalize CRLF to
+    LF; binary and source artifacts retain exact-byte hashing.
+    """
+
+    payload = path.read_bytes()
+    if path.suffix.lower() == ".json":
+        payload = payload.replace(b"\r\n", b"\n")
+    return hashlib.sha256(payload).hexdigest()
 
 
 def _is_sha256(value: Any) -> bool:
@@ -969,6 +977,7 @@ __all__ = [
     "METHOD_FREEZE_PLAN_VERSION",
     "METHOD_FREEZE_REPORT_VERSION",
     "MethodFreezeAuditError",
+    "artifact_file_sha256",
     "audit_method_freeze",
     "load_method_freeze_plan",
 ]

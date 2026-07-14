@@ -5,12 +5,14 @@ import importlib.util
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 from chemworld.eval.method_freeze_v0_4 import (
     METHOD_FREEZE_REPORT_VERSION,
     MethodFreezeAuditError,
+    artifact_file_sha256,
     audit_method_freeze,
     load_method_freeze_plan,
 )
@@ -23,7 +25,7 @@ SCRIPT = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SCRIPT)
 
 
-def _audit(plan: dict[str, object]) -> dict[str, object]:
+def _audit(plan: dict[str, object]) -> dict[str, Any]:
     return audit_method_freeze(
         plan,
         root=ROOT,
@@ -128,6 +130,20 @@ def test_loader_rejects_unsupported_schema(tmp_path: Path) -> None:
     path.write_text('{"schema_version":"wrong"}\n', encoding="utf-8")
     with pytest.raises(MethodFreezeAuditError, match="unsupported"):
         load_method_freeze_plan(path)
+
+
+def test_committed_json_binding_is_crlf_lf_transport_stable(tmp_path: Path) -> None:
+    lf = tmp_path / "lf.json"
+    crlf = tmp_path / "crlf.json"
+    binary_lf = tmp_path / "lf.bin"
+    binary_crlf = tmp_path / "crlf.bin"
+    lf.write_bytes(b'{\n  "status": "ready"\n}\n')
+    crlf.write_bytes(b'{\r\n  "status": "ready"\r\n}\r\n')
+    binary_lf.write_bytes(lf.read_bytes())
+    binary_crlf.write_bytes(crlf.read_bytes())
+
+    assert artifact_file_sha256(lf) == artifact_file_sha256(crlf)
+    assert artifact_file_sha256(binary_lf) != artifact_file_sha256(binary_crlf)
 
 
 def test_cli_writes_blocked_report_and_exposes_no_force(

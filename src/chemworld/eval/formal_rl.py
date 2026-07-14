@@ -5,7 +5,8 @@ artifacts conflated:
 
 * a method contract can be audited without importing the optional ML stack;
 * a checkpoint becomes eligible only after its own training-resource ledger is
-  verified and bound to the exact task/action/reward/backend contracts;
+  verified and bound to the exact task/observation/action/reward/backend
+  contracts;
 * an evaluation cell reports inference resources only and references, but never
   copies, checkpoint training resources.
 
@@ -38,12 +39,14 @@ from chemworld.rl.hybrid_actions import (
     conditional_hybrid_action_contract,
     policy_distribution_contract,
 )
+from chemworld.rl.observation_contract import rl_observation_contract
 from chemworld.rl.rewards import reward_contract
 from chemworld.tasks import get_task
 
 FORMAL_RL_CONFIG_VERSION = "chemworld-formal-rl-methods-0.4"
 FORMAL_RL_REPORT_VERSION = "chemworld-formal-rl-contract-controls-0.4"
 FORMAL_RL_CHECKPOINT_INDEX_VERSION = "chemworld-formal-rl-checkpoint-index-0.4"
+FORMAL_RL_CHECKPOINT_MANIFEST_VERSION = "chemworld-rl-checkpoint-0.3"
 DEFAULT_CONFIG_PATH = Path("configs/methods/rl_v0.4/rl_methods.json")
 DEFAULT_FORMAL_PROTOCOL_PATH = Path("configs/benchmark/formal_protocol_v0.4.json")
 DEFAULT_INTERACTION_PATH = Path("configs/benchmark/interaction_strata_v0.4.json")
@@ -138,7 +141,7 @@ def _parameter_keys(action_contract: Mapping[str, Any]) -> tuple[str, ...]:
 
 
 def task_contract_bundle(task_id: str) -> dict[str, Any]:
-    """Build dependency-free action/reward/policy contracts for one task."""
+    """Build dependency-free observation/action/reward/policy contracts."""
 
     task = get_task(task_id)
     env = gym.make("ChemWorld", task_id=task_id)
@@ -150,8 +153,11 @@ def task_contract_bundle(task_id: str) -> dict[str, Any]:
         env.close()
     policy = policy_distribution_contract(_parameter_keys(action))
     reward = reward_contract(task.allowed_operations)
+    observation = rl_observation_contract(task_id)
     return {
         "task_id": task_id,
+        "observation_contract": observation,
+        "observation_contract_sha256": observation["contract_hash"],
         "action_contract": action,
         "action_contract_sha256": action["contract_hash"],
         "training_reward_contract": reward,
@@ -206,7 +212,7 @@ class RLCheckpointBinding:
         digest = file_sha256(checkpoint)
         if payload.get("checkpoint_sha256") != digest:
             raise FormalRLContractError("checkpoint index digest does not match checkpoint")
-        if manifest.get("schema_version") != "chemworld-rl-checkpoint-0.2":
+        if manifest.get("schema_version") != FORMAL_RL_CHECKPOINT_MANIFEST_VERSION:
             raise FormalRLContractError("checkpoint manifest schema is not formal-compatible")
         if manifest.get("algorithm") != method_id or manifest.get("task_id") != task_id:
             raise FormalRLContractError("checkpoint algorithm/task binding is invalid")
@@ -232,6 +238,7 @@ class RLCheckpointBinding:
 
         contracts = task_contract_bundle(task_id)
         expected = {
+            "observation_contract_hash": contracts["observation_contract_sha256"],
             "action_contract_hash": contracts["action_contract_sha256"],
             "training_reward_contract_hash": contracts["training_reward_contract_sha256"],
         }
@@ -279,6 +286,9 @@ class RLCheckpointBinding:
                 "training_environment_step_count"
             ),
             "training_resources_separate_from_evaluation": True,
+            "observation_contract_sha256": self.contract_bundle[
+                "observation_contract_sha256"
+            ],
             "action_contract_sha256": self.contract_bundle["action_contract_sha256"],
             "training_reward_contract_sha256": self.contract_bundle[
                 "training_reward_contract_sha256"
@@ -647,6 +657,7 @@ def audit_formal_rl_contract(
 __all__ = [
     "DEFAULT_CONFIG_PATH",
     "FORMAL_RL_CHECKPOINT_INDEX_VERSION",
+    "FORMAL_RL_CHECKPOINT_MANIFEST_VERSION",
     "FORMAL_RL_CONFIG_VERSION",
     "FORMAL_RL_REPORT_VERSION",
     "FormalRLAdapter",

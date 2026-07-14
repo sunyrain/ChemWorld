@@ -9,6 +9,7 @@ import pytest
 from chemworld.agents.rl import FrozenSB3Agent
 from chemworld.eval.formal_rl import (
     FORMAL_RL_CHECKPOINT_INDEX_VERSION,
+    FORMAL_RL_CHECKPOINT_MANIFEST_VERSION,
     FormalRLAdapter,
     FormalRLAdapterFactory,
     FormalRLContractError,
@@ -68,7 +69,7 @@ def _checkpoint_payload(
     checkpoint_sha = file_sha256(checkpoint)
     contracts = task_contract_bundle(task_id)
     manifest: dict[str, Any] = {
-        "schema_version": "chemworld-rl-checkpoint-0.2",
+        "schema_version": FORMAL_RL_CHECKPOINT_MANIFEST_VERSION,
         "algorithm": method_id,
         "task_id": task_id,
         "checkpoint_sha256": checkpoint_sha,
@@ -77,6 +78,7 @@ def _checkpoint_payload(
             "namespace_id": "chemworld-v0.5-train-0.4",
         },
         "bench_finetuning_used": False,
+        "observation_contract_hash": contracts["observation_contract_sha256"],
         "action_contract_hash": contracts["action_contract_sha256"],
         "training_reward_contract_hash": contracts["training_reward_contract_sha256"],
         "versions": {"stable_baselines3": "2.9.0", "torch": "2.13.0"},
@@ -235,6 +237,23 @@ def test_checkpoint_binding_verifies_contracts_and_separate_training_ledger(
     assert binding.method_id == method_id
     assert binding.public_summary()["training_resources_separate_from_evaluation"] is True
     assert binding.public_summary()["training_environment_step_count"] == 100
+    assert binding.public_summary()["observation_contract_sha256"] == binding.contract_bundle[
+        "observation_contract_sha256"
+    ]
+
+
+def test_checkpoint_binding_rejects_missing_observation_semantics(tmp_path: Path) -> None:
+    payload = _checkpoint_payload(tmp_path)
+    manifest_path = tmp_path / payload["checkpoint_manifest_path"]
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest.pop("observation_contract_hash")
+    _write_json(manifest_path, manifest)
+    resource_path = tmp_path / payload["training_resource_path"]
+    resources = json.loads(resource_path.read_text(encoding="utf-8"))
+    resources["source_manifest_sha256"] = file_sha256(manifest_path)
+    _write_json(resource_path, resources)
+    with pytest.raises(FormalRLContractError, match="observation_contract_hash"):
+        _binding(payload, tmp_path)
 
 
 def test_checkpoint_binding_rejects_train_namespace_and_resource_drift(tmp_path: Path) -> None:
@@ -366,10 +385,14 @@ def test_dependency_free_policy_contract_is_stable_for_every_core_task() -> None
     hashes = set()
     for task_id in load_formal_rl_config(CONFIG)["formal_core_tasks"]:
         bundle = task_contract_bundle(task_id)
+        observation = bundle["observation_contract"]
         policy = bundle["ppo_policy_distribution_contract"]
         rebuilt = policy_distribution_contract(tuple(policy["parameter_keys"]))
         assert rebuilt == policy
         assert policy["operation_distribution"] == "public-affordance-masked categorical"
         assert policy["irrelevant_parameter_log_prob"] is False
+        assert observation["task_id"] == task_id
+        assert bundle["observation_contract_sha256"] == observation["contract_hash"]
+        assert observation["compatibility_policy"]["shape_only_compatible"] is False
         hashes.add(policy["contract_hash"])
     assert len(hashes) == 1
