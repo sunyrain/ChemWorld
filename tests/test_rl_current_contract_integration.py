@@ -54,6 +54,17 @@ def test_current_contract_integration_audit_closes_rl_fail_closed() -> None:
     assert report["bench_accessed"] is False
 
 
+def test_artifact_digest_is_invariant_to_windows_json_line_endings(
+    tmp_path: Path,
+) -> None:
+    lf_path = tmp_path / "lf.json"
+    crlf_path = tmp_path / "crlf.json"
+    lf_path.write_bytes(b'{\n  "status": "selection_failed"\n}\n')
+    crlf_path.write_bytes(b'{\r\n  "status": "selection_failed"\r\n}\r\n')
+
+    assert integration_audit._sha256(lf_path) == integration_audit._sha256(crlf_path)
+
+
 def test_tampered_method_decision_fails_the_integration_audit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -32,7 +32,12 @@ def _load(path: Path, label: str) -> dict[str, Any]:
 
 
 def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    # Every bound artifact in this audit is JSON.  Git stores these files with
+    # LF, but Windows tools can materialize an otherwise identical working-tree
+    # file with CRLF.  Hash the repository-normalized representation so the
+    # fail-closed evidence check detects content changes instead of local EOL
+    # policy changes.
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
 def _inside(root: Path, relative: str, label: str) -> Path:
