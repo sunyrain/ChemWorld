@@ -227,10 +227,35 @@ def test_masked_spectral_ablation_removes_raw_and_processed_spectral_features() 
         "spectrum_condition": "masked",
         "available": False,
     }
+    assert prompt["decision_context"]["observation_provenance"][
+        "current_spectral_packet"
+    ] is False
     assert "raw_signal" not in prompt["public_tool_view"]
     assert "processed_estimate" not in prompt["public_tool_view"]
     assert "lab_report" not in prompt["public_tool_view"]
     assert agent.interaction_capabilities().consumes_spectra is False
+
+
+def test_retained_processed_estimate_is_not_claimed_as_fresh_spectrum() -> None:
+    client = FakeClient([_decision({"operation": "terminate"})])
+    agent = LiveLLMAgent(client, role_id="live_llm_a", spectrum_disclosure="assigned")
+    agent.reset({"task_id": "flow-reaction-optimization"}, seed=2)
+    context = replace(
+        _context(step=8, previous="operation_result", spectra=False),
+        latest_spectra={
+            "has_spectral_packet": False,
+            "processed_estimate": {"byproduct_signal": 0.31},
+        },
+    )
+
+    agent.act_with_public_view(context, _public_view())
+
+    prompt = client.prompts[0]
+    assert prompt["decision_context"]["latest_spectra"]["processed_estimate"] == {}
+    assert prompt["decision_context"]["observation_provenance"][
+        "current_spectral_packet"
+    ] is False
+    assert agent.decision_audit()["adaptation_source"] == "none"  # type: ignore[index]
 
 
 def test_masked_ablation_preserves_non_spectral_composite_evidence() -> None:
@@ -499,3 +524,67 @@ def test_official_runner_delivers_only_explicitly_requested_historical_spectrum(
     assert retrieved["status"] == "retrieved"
     assert retrieved["spectrum_id"] == "spectrum-e001-s0003"
     assert retrieved["raw_signal"]["kind"] == "hplc_chromatogram"
+
+
+def test_official_runner_marks_spectrum_historical_after_control_operation(
+    tmp_path: Path,
+) -> None:
+    client = FakeClient(
+        [
+            _decision({"operation": "add_solvent", "volume_L": 0.02, "solvent": 1}),
+            _decision({"operation": "add_reagent", "amount_mol": 0.006}),
+            _decision({"operation": "measure", "instrument": "hplc"}),
+            _decision(
+                {
+                    "operation": "heat",
+                    "target_temperature_K": 330.0,
+                    "duration_s": 60.0,
+                    "stirring_speed_rpm": 300.0,
+                }
+            ),
+            _decision({"operation": "terminate"}),
+            _decision({"operation": "measure", "instrument": "final_assay"}),
+        ]
+    )
+    agent = LiveLLMAgent(client, role_id="live_llm_a", spectrum_disclosure="assigned")
+
+    run_agent(
+        env_id="ChemWorld",
+        agent=agent,
+        world_split="public-test",
+        budget=6,
+        objective="balanced",
+        seed=1200,
+        task_id="flow-reaction-optimization",
+        output_path=tmp_path / "freshness.jsonl",
+        budget_override=6,
+        episode_mode_override="campaign",
+        method_resource_limits={
+            "operation_limit": 6,
+            "complete_experiment_limit": 6,
+            "wall_time_limit_s": 30.0,
+            "model_call_limit": 18,
+            "input_token_limit": 10_000,
+            "output_token_limit": 10_000,
+            "monetary_cost_limit_usd": 1.0,
+        },
+    )
+
+    after_measurement = client.prompts[3]["decision_context"]
+    assert after_measurement["observation_provenance"]["current_spectral_packet"] is True
+    assert after_measurement["latest_spectra"]["raw_signal"]
+
+    after_heat = client.prompts[4]["decision_context"]
+    assert after_heat["observation_provenance"] == {
+        "current_event_type": "operation_result",
+        "current_spectral_packet": False,
+        "latest_cataloged_spectrum_id": "spectrum-e001-s0003",
+        "latest_spectrum_measurement_step": 3,
+        "operations_since_latest_spectrum": 1,
+    }
+    assert after_heat["latest_spectra"]["raw_signal"] == {}
+    assert after_heat["latest_spectra"]["processed_estimate"] == {}
+    assert after_heat["historical_spectrum_catalog"][0]["spectrum_id"] == (
+        "spectrum-e001-s0003"
+    )
+    assert not after_heat["requested_historical_spectrum"]

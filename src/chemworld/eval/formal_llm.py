@@ -397,6 +397,10 @@ class FormalLiveLLMAdapter:
             self.run_agent_fn(
                 env_id=task.env_id,
                 agent=agent,
+                # This is the backend scenario split.  The formal Train/Dev
+                # namespace independently binds seeds and world interventions in
+                # the issued development manifest; those names are not backend
+                # world splits accepted by ChemWorldEnv.
                 world_split=task.world_split,
                 budget=task.budget,
                 objective=task.objective,

@@ -39,9 +39,9 @@ from chemworld.world.world_family import axes_for_task
 
 ROOT = Path(__file__).resolve().parents[3]
 DEVELOPMENT_PLAN_PATH = ROOT / "configs/methods/llm_v0.4/llm_development_plan.json"
-DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.8.json"
+DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.9.json"
 FORMAL_PROTOCOL_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
-LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.8"
+LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.9"
 LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.4"
 LIVE_STAGES = ("candidate_screen", "live_pilot", "development_matrix")
 _PRIOR_PAID_STAGE = {
@@ -62,7 +62,7 @@ def _git_commit() -> str:
     return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
-DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.8" / _git_commit()
+DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.9" / _git_commit()
 
 
 @dataclass(frozen=True)
@@ -125,7 +125,7 @@ def _backend_semantic_sha256() -> str:
 
 
 def _paired_method_seed(stage: str, world_seed: int) -> int:
-    digest = hashlib.sha256(f"live-llm-v0.4.8:{stage}:{world_seed}".encode()).digest()
+    digest = hashlib.sha256(f"live-llm-v0.4.9:{stage}:{world_seed}".encode()).digest()
     return 300_000 + int.from_bytes(digest[:4], "big") % 700_000_000
 
 
@@ -387,6 +387,11 @@ def build_live_llm_development_bundle(
                 "schema_version": LIVE_LLM_DEVELOPMENT_VERSION,
                 "stage": stage,
                 "split": split,
+                "formal_protocol_split": split,
+                "backend_world_split_by_task": {
+                    task_id: get_task(task_id).world_split
+                    for task_id in selected_tasks
+                },
                 "seed_count": len(selected_seeds),
                 "bench_accessed": False,
                 "reference_search_accessed": False,
@@ -677,6 +682,12 @@ def run_live_llm_development(
         "reference_search_results_used": False,
         "private_reasoning_retained": False,
         "stage": stage,
+        "formal_protocol_split": bundle.manifest["metadata"][
+            "development_contract"
+        ]["formal_protocol_split"],
+        "backend_world_split_by_task": bundle.manifest["metadata"][
+            "development_contract"
+        ]["backend_world_split_by_task"],
         "source_commit": _git_commit(),
         "method_freeze_audit": audit_live_llm_method_freeze(),
         "manifest_sha256": bundle.manifest["run_manifest_sha256"],
