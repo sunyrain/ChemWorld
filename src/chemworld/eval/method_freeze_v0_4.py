@@ -605,12 +605,20 @@ def _audit_llm(
                 f"llm:freeze:{name}" for name, ready in audit.get("checks", {}).items() if not ready
             )
     contract = contract if isinstance(contract, Mapping) else {}
+    stages = development_plan.get("stages") if isinstance(development_plan, Mapping) else None
+    candidate = stages.get("candidate_screen") if isinstance(stages, Mapping) else None
+    expected_candidate = contract.get("candidate_screen")
     plan_ready = bool(
         development_plan is not None
+        and development_plan.get("schema_version") == contract.get("required_plan_schema_version")
         and development_plan.get("bench_access_allowed") is False
         and development_plan.get("benchmark_claim_allowed") is False
         and set(development_plan.get("methods", ())) == set(method_ids)
-        and "development_matrix" in (development_plan.get("stages") or {})
+        and development_plan.get("spectrum_conditions") == ["assigned", "unassigned", "masked"]
+        and isinstance(candidate, Mapping)
+        and isinstance(expected_candidate, Mapping)
+        and dict(candidate) == dict(expected_candidate)
+        and "development_matrix" in (stages or {})
         and "development_matrix" in (development_plan.get("promotion_gates") or {})
     )
     if not plan_ready:
@@ -620,6 +628,11 @@ def _audit_llm(
         return {
             "controls_ready": controls_ready,
             "development_plan_ready": plan_ready,
+            "development_plan_schema_version": (
+                development_plan.get("schema_version")
+                if isinstance(development_plan, Mapping)
+                else None
+            ),
             "development_ready": False,
             "method_ids": method_ids,
             "status": None,
@@ -627,6 +640,7 @@ def _audit_llm(
         }
     gate = development.get("promotion_gate")
     freeze_digest = (observed.get("llm_freeze") or {}).get("sha256")
+    development_plan_digest = (observed.get("llm_development_plan") or {}).get("sha256")
     ready = bool(
         controls_ready
         and plan_ready
@@ -641,12 +655,19 @@ def _audit_llm(
         and isinstance(gate, Mapping)
         and gate.get("passed") is contract.get("promotion_gate_passed")
         and gate.get("llm_freeze_sha256") == freeze_digest
+        and gate.get("development_plan_sha256") == development_plan_digest
+        and development.get("development_plan_sha256") == development_plan_digest
     )
     if not ready:
         blockers.append("llm:development_matrix:not_ready")
     return {
         "controls_ready": controls_ready,
         "development_plan_ready": plan_ready,
+        "development_plan_schema_version": (
+            development_plan.get("schema_version")
+            if isinstance(development_plan, Mapping)
+            else None
+        ),
         "development_ready": ready,
         "method_ids": method_ids,
         "status": development.get("status"),
@@ -791,7 +812,8 @@ def _audit_reference_independence(
         and _is_sha256(builder_digest)
         and builder_digest not in adapter_digests
         and len(adapter_digests) == len(method_ids)
-        and adapter_digests == {
+        and adapter_digests
+        == {
             binding.get("sha256")
             for binding in adapter_bindings.values()
             if isinstance(binding, Mapping)

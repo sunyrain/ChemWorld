@@ -9,9 +9,11 @@ from typing import Any
 
 import pytest
 
+from chemworld.eval.formal_llm import load_live_llm_method_freeze
 from chemworld.eval.method_freeze_v0_4 import (
     METHOD_FREEZE_REPORT_VERSION,
     MethodFreezeAuditError,
+    _audit_llm,
     artifact_file_sha256,
     audit_method_freeze,
     load_method_freeze_plan,
@@ -90,6 +92,44 @@ def test_bound_artifact_tampering_fails_closed() -> None:
     assert "artifact:formal_protocol:sha256_mismatch" in report["blockers"]
     assert report["checks"]["formal_core_tasks_exact"] is False
     assert report["bench_unlock_allowed"] is False
+
+
+def test_llm_plan_rejects_stale_schema_or_broader_candidate_scope() -> None:
+    method_freeze_plan = load_method_freeze_plan()
+    contract = method_freeze_plan["llm_evidence_contract"]
+    development_plan = json.loads(
+        (ROOT / "configs/methods/llm_v0.4/llm_development_plan.json").read_text(encoding="utf-8")
+    )
+
+    blockers: list[str] = []
+    summary = _audit_llm(
+        freeze=load_live_llm_method_freeze(),
+        development_plan=development_plan,
+        development=None,
+        contract=contract,
+        observed={},
+        blockers=blockers,
+    )
+    assert summary["controls_ready"] is True
+    assert summary["development_plan_ready"] is True
+
+    for mutation in ("schema", "task_scope"):
+        stale = copy.deepcopy(development_plan)
+        if mutation == "schema":
+            stale["schema_version"] = "chemworld-live-llm-development-plan-0.4.3"
+        else:
+            stale["stages"]["candidate_screen"]["tasks"].append("partition-discovery")
+        stale_blockers: list[str] = []
+        stale_summary = _audit_llm(
+            freeze=load_live_llm_method_freeze(),
+            development_plan=stale,
+            development=None,
+            contract=contract,
+            observed={},
+            blockers=stale_blockers,
+        )
+        assert stale_summary["development_plan_ready"] is False
+        assert "llm:development_plan_invalid" in stale_blockers
 
 
 @pytest.mark.parametrize(

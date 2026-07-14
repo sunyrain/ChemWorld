@@ -71,10 +71,10 @@
     },
     "llm_development_plan": {
       "path": "configs/methods/llm_v0.4/llm_development_plan.json",
-      "sha256": "c5580f69eda3a4efe697456ae0d6dfa4af28cb5e8c471b74c673be851cb54bfe"
+      "sha256": "b5bba932a87ec911183515889c64d819499019322a5a567b4b6a8e32c879936b"
     },
     "llm_development": {
-      "path": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.7.json",
+      "path": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.8.json",
       "sha256": null
     },
     "family_selection": {
@@ -209,7 +209,21 @@
     }
   },
   "llm_evidence_contract": {
-    "required_schema_version": "chemworld-live-llm-development-audit-0.4.7",
+    "required_schema_version": "chemworld-live-llm-development-audit-0.4.8",
+    "required_plan_schema_version": "chemworld-live-llm-development-plan-0.4.4",
+    "candidate_screen": {
+      "tasks": ["reaction-to-crystallization"],
+      "world_split": "train",
+      "world_seeds_per_cell": 1,
+      "world_seed_selection": "first_n_from_split",
+      "complete_experiments": 1,
+      "matrix_monetary_cost_usd_limit": 2.1,
+      "operation_budget": {
+        "source": "task_recipe_event_count_times_complete_experiments",
+        "exploration_multiplier": 2
+      },
+      "live_provider_calls": true
+    },
     "required_stage": "development_matrix",
     "required_status": "formal_live_llm_development_ready",
     "required_ready_flag": "formal_live_llm_development_ready",
