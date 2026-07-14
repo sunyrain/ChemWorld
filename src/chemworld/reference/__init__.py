@@ -1,2 +1,1 @@
 """Independent reference-search implementations."""
-

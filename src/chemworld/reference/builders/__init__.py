@@ -7,4 +7,3 @@ from chemworld.reference.builders.v0_4 import (
 )
 
 __all__ = ["SOURCE_PROFILES", "ReferenceObservation", "propose_normalized_candidates"]
-
