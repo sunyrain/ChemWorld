@@ -487,6 +487,9 @@ def _condition_numeric_context(
     context: dict[str, Any], *, disclosure: VLMDisclosure
 ) -> dict[str, Any]:
     conditioned = to_builtin(context)
+    conditioned["historical_spectrum_catalog"] = _sanitize_history_catalog(
+        conditioned.get("historical_spectrum_catalog", [])
+    )
     if disclosure == "masked":
         conditioned["latest_spectra"] = {"spectrum_condition": "masked", "available": False}
         requested = conditioned.get("requested_historical_spectrum", {})
@@ -505,6 +508,36 @@ def _condition_numeric_context(
         if isinstance(packet, dict) and packet:
             packet["spectrum_condition"] = disclosure
     return conditioned
+
+
+def _sanitize_history_catalog(value: Any) -> list[dict[str, Any]]:
+    """Keep catalog identity/status fields while dropping any accidental signal payload."""
+
+    if not isinstance(value, (list, tuple)):
+        return []
+    allowed = {
+        "spectrum_id",
+        "status",
+        "instrument_id",
+        "kind",
+        "experiment_id",
+        "measurement_id",
+        "operation",
+        "step",
+        "recorded_at",
+    }
+    result: list[dict[str, Any]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        metadata = {
+            str(key): to_builtin(nested)
+            for key, nested in item.items()
+            if str(key) in allowed and isinstance(nested, (str, int, float, bool, type(None)))
+        }
+        if metadata.get("spectrum_id"):
+            result.append(metadata)
+    return result
 
 
 def _strip_assignments(value: Any) -> Any:

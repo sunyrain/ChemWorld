@@ -202,8 +202,12 @@ def test_image_only_removes_numeric_signal_and_assignment_text(tmp_path: Path) -
     assert latest["available"] is True
     assert latest["image_artifact_ids"] == [bundle.images[0].artifact_id]
     assert "time_min" not in serialized
+    assert "wavenumber_cm-1" not in serialized
     assert "target_public" not in serialized
     assert "data:image" not in serialized
+    assert bundle.prompt_context["historical_spectrum_catalog"] == [
+        {"spectrum_id": "spectrum-not-requested"}
+    ]
 
 
 def test_numeric_and_combined_modalities_obey_disclosure(tmp_path: Path) -> None:
