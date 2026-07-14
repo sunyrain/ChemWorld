@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 
+from chemworld.agents.operation_baselines import OPERATION_BASELINE_IDS
 from chemworld.eval.operation_baseline_development import (
     run_operation_baseline_development_audit,
 )
@@ -16,6 +17,13 @@ def main() -> int:
     parser.add_argument("--train-seeds", type=int, default=4)
     parser.add_argument("--dev-seeds", type=int, default=20)
     parser.add_argument("--complete-experiments", type=int, default=40)
+    parser.add_argument(
+        "--methods",
+        nargs="+",
+        choices=OPERATION_BASELINE_IDS,
+        default=None,
+        help="Run a frozen method subset for a resumable diagnostic screen.",
+    )
     args = parser.parse_args()
     if args.workers is not None and args.workers < 1:
         parser.error("--workers must be positive")
@@ -29,6 +37,7 @@ def main() -> int:
         train_seeds=tuple(range(10_000, 10_000 + args.train_seeds)),
         dev_seeds=tuple(range(11_000, 11_000 + args.dev_seeds)),
         complete_experiments=args.complete_experiments,
+        methods=None if args.methods is None else tuple(args.methods),
         workers=args.workers,
     )
     print(

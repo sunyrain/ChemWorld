@@ -359,6 +359,8 @@ def build_operation_development_cells(
     selected_methods = tuple(OPERATION_BASELINE_IDS) if methods is None else tuple(methods)
     if not tasks or not selected_methods or not train_seeds or not dev_seeds:
         raise ValueError("operation development requires non-empty tasks, methods, and splits")
+    if len(set(tasks)) != len(tasks) or len(set(selected_methods)) != len(selected_methods):
+        raise ValueError("operation development tasks and methods must be unique")
     if not set(tasks).issubset(protocol["task_roles"]["formal_core"]):
         raise ValueError("operation development task is outside the formal core")
     if not set(selected_methods).issubset(freeze["methods"]):
