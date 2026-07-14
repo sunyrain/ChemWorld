@@ -75,6 +75,8 @@ _PRIMARY_PUBLIC_METRICS = {
     "flow-reaction-optimization": ("flow_conversion", "conversion", "score"),
 }
 
+_CLOSEOUT_RECOVERY_RESERVE = 2
+
 
 class OperationBaselineContractError(ValueError):
     """Raised when the public operation-affordance contract is incomplete."""
@@ -123,7 +125,9 @@ class OperationBaselineAgent(BaseAgent):
         self._last_audit: dict[str, Any] | None = None
         self._closeout_after = max(
             1,
-            self.exploration_multiplier * task_recipe_event_count(task_info) - 2,
+            self.exploration_multiplier * task_recipe_event_count(task_info)
+            - 2
+            - _CLOSEOUT_RECOVERY_RESERVE,
         )
 
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
@@ -267,6 +271,7 @@ class OperationBaselineAgent(BaseAgent):
             "spectrum_capability": "none",
             "exploration_multiplier": self.exploration_multiplier,
             "numeric_margin": self.numeric_margin,
+            "closeout_recovery_operation_reserve": _CLOSEOUT_RECOVERY_RESERVE,
             "rule_retry_threshold": (
                 self.rule_retry_threshold if self.method_id == "rule_based" else None
             ),
