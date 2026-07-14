@@ -31,6 +31,7 @@ class RLWorldAllocation:
     task_id: str
     base_seeds: tuple[int, ...]
     cells: tuple[tuple[str, str, float], ...]
+    namespace_id: str | None = None
 
     def __post_init__(self) -> None:
         if not self.base_seeds or len(set(self.base_seeds)) != len(self.base_seeds):
@@ -40,6 +41,8 @@ class RLWorldAllocation:
             raise ValueError("world allocation contains a missing or cross-task axis")
         if any(not np.isfinite(severity) or severity == 0.0 for _, _, severity in self.cells):
             raise ValueError("world allocation severity must be finite and non-zero")
+        if self.namespace_id is not None and not self.namespace_id.strip():
+            raise ValueError("world allocation namespace_id must be non-empty when supplied")
 
     @classmethod
     def from_protocol(
@@ -58,10 +61,17 @@ class RLWorldAllocation:
             for mode, severities in payload["cells"].items()
             for severity in severities
         )
-        return cls(name=name, task_id=task_id, base_seeds=seeds, cells=cells)
+        namespace_id = payload.get("namespace_id")
+        return cls(
+            name=name,
+            task_id=task_id,
+            base_seeds=seeds,
+            cells=cells,
+            namespace_id=str(namespace_id) if namespace_id is not None else None,
+        )
 
     def public_manifest(self) -> dict[str, Any]:
-        return {
+        payload = {
             "name": self.name,
             "task_id": self.task_id,
             "seed_count": len(self.base_seeds),
@@ -70,6 +80,9 @@ class RLWorldAllocation:
             "cell_count": len(self.cells),
             "modes": sorted({mode for _, mode, _ in self.cells}),
         }
+        if self.namespace_id is not None:
+            payload["namespace_id"] = self.namespace_id
+        return payload
 
 
 class TrainWorldFamilyWrapper(gym.Wrapper[Any, Any, Any, Any]):

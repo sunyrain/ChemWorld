@@ -8,7 +8,7 @@ import os
 import platform
 import re
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from functools import partial
 from pathlib import Path
 from time import perf_counter, process_time
@@ -27,6 +27,64 @@ VectorizationBackend = Literal["dummy", "subprocess"]
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _children_cpu_time_s() -> float:
+    times = os.times()
+    return float(times.children_user + times.children_system)
+
+
+def _windows_process_cpu_time_s(process: Any) -> float:
+    """Read user+kernel CPU from a retained multiprocessing process handle."""
+
+    import ctypes
+    from ctypes import wintypes
+
+    popen = getattr(process, "_popen", None)
+    handle = getattr(popen, "_handle", None)
+    if handle is None:
+        raise RuntimeError("subprocess CPU accounting is missing a Windows process handle")
+    creation = wintypes.FILETIME()
+    exit_time = wintypes.FILETIME()
+    kernel = wintypes.FILETIME()
+    user = wintypes.FILETIME()
+    get_process_times = ctypes.windll.kernel32.GetProcessTimes
+    get_process_times.argtypes = [
+        wintypes.HANDLE,
+        ctypes.POINTER(wintypes.FILETIME),
+        ctypes.POINTER(wintypes.FILETIME),
+        ctypes.POINTER(wintypes.FILETIME),
+        ctypes.POINTER(wintypes.FILETIME),
+    ]
+    get_process_times.restype = wintypes.BOOL
+    if not get_process_times(
+        int(handle),
+        ctypes.byref(creation),
+        ctypes.byref(exit_time),
+        ctypes.byref(kernel),
+        ctypes.byref(user),
+    ):
+        raise RuntimeError("GetProcessTimes failed for an RL environment worker")
+
+    def seconds(value: Any) -> float:
+        ticks = (int(value.dwHighDateTime) << 32) | int(value.dwLowDateTime)
+        return ticks / 10_000_000.0
+
+    return seconds(kernel) + seconds(user)
+
+
+def _worker_cpu_time_s(processes: list[Any], *, children_started: float) -> tuple[float, str]:
+    if not processes:
+        return 0.0, "not_applicable_in_process_vectorization"
+    if os.name == "nt":
+        return (
+            sum(_windows_process_cpu_time_s(process) for process in processes),
+            "windows_GetProcessTimes_retained_worker_handles",
+        )
+    elapsed = _children_cpu_time_s() - children_started
+    if elapsed < 0.0:
+        raise RuntimeError("subprocess child CPU accounting moved backwards")
+    return elapsed, "os_times_children_user_plus_system_delta"
 
 
 def _action_contract(env: Any) -> dict[str, Any]:
@@ -70,9 +128,7 @@ def _aggregate_training_diagnostics(items: list[dict[str, Any]]) -> dict[str, An
     payload: dict[str, Any] = {
         key: sum(int(item.get(key, 0)) for item in items) for key in count_keys
     }
-    payload.update(
-        {key: sum(float(item.get(key, 0.0)) for item in items) for key in sum_keys}
-    )
+    payload.update({key: sum(float(item.get(key, 0.0)) for item in items) for key in sum_keys})
     core_counts: dict[str, int] = {}
     for item in items:
         for operation, count in dict(item.get("core_operation_counts", {})).items():
@@ -100,10 +156,13 @@ def train_sb3_baseline(
     algorithm_kwargs: dict[str, Any] | None = None,
     operation_budget: int | None = None,
     checkpoint_interval_steps: int | None = None,
+    checkpoint_steps: Sequence[int] | None = None,
     save_replay_buffer: bool = False,
     parallel_environments: int = 1,
     vectorization_backend: VectorizationBackend = "dummy",
     device: TrainingDevice = "cpu",
+    torch_num_threads: int | None = None,
+    progress_interval_steps: int | None = None,
 ) -> dict[str, Any]:
     """Train one baseline and retain the model plus a complete compute manifest."""
 
@@ -113,10 +172,25 @@ def train_sb3_baseline(
         raise ValueError("total_timesteps must be positive")
     if checkpoint_interval_steps is not None and checkpoint_interval_steps <= 0:
         raise ValueError("checkpoint_interval_steps must be positive")
+    exact_checkpoint_steps = tuple(int(step) for step in (checkpoint_steps or ()))
+    if checkpoint_interval_steps is not None and exact_checkpoint_steps:
+        raise ValueError("checkpoint_interval_steps and checkpoint_steps are mutually exclusive")
+    if exact_checkpoint_steps and (
+        any(step <= 0 for step in exact_checkpoint_steps)
+        or tuple(sorted(set(exact_checkpoint_steps))) != exact_checkpoint_steps
+        or exact_checkpoint_steps[-1] > total_timesteps
+    ):
+        raise ValueError(
+            "checkpoint_steps must be unique, increasing, positive, and within total_timesteps"
+        )
     if allocation.name != "train":
         raise ValueError("formal RL training accepts only the train allocation")
     if parallel_environments <= 0:
         raise ValueError("parallel_environments must be positive")
+    if torch_num_threads is not None and torch_num_threads <= 0:
+        raise ValueError("torch_num_threads must be positive")
+    if progress_interval_steps is not None and progress_interval_steps <= 0:
+        raise ValueError("progress_interval_steps must be positive")
     if vectorization_backend not in {"dummy", "subprocess"}:
         raise ValueError("vectorization_backend must be dummy or subprocess")
     if parallel_environments == 1 and vectorization_backend == "subprocess":
@@ -124,13 +198,15 @@ def train_sb3_baseline(
     if checkpoint_interval_steps is not None and (
         checkpoint_interval_steps % parallel_environments
     ):
-        raise ValueError(
-            "checkpoint_interval_steps must be divisible by parallel_environments"
-        )
+        raise ValueError("checkpoint_interval_steps must be divisible by parallel_environments")
+    if any(step % parallel_environments for step in exact_checkpoint_steps):
+        raise ValueError("every checkpoint_steps value must be divisible by parallel_environments")
+    if progress_interval_steps is not None and (progress_interval_steps % parallel_environments):
+        raise ValueError("progress_interval_steps must be divisible by parallel_environments")
     try:
         import stable_baselines3 as sb3
         import torch
-        from stable_baselines3.common.callbacks import CheckpointCallback
+        from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
         from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
     except ImportError as exc:
         raise RuntimeError("install ChemWorld with the 'rl' extra to train PPO or SAC") from exc
@@ -138,6 +214,10 @@ def train_sb3_baseline(
     algorithm_class = sb3.PPO if algorithm == "ppo" else sb3.SAC
     if device == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("CUDA training was requested but this PyTorch runtime has no CUDA")
+    initial_torch_num_threads = int(torch.get_num_threads())
+    if torch_num_threads is not None:
+        torch.set_num_threads(torch_num_threads)
+    resolved_torch_num_threads = int(torch.get_num_threads())
     requested_device = device
     probe_env = build_rl_environment(
         task_id=task_id,
@@ -148,9 +228,7 @@ def train_sb3_baseline(
     )
     try:
         action_contract = _action_contract(probe_env)
-        training_reward_contract = _optional_wrapper_payload(
-            probe_env, "reward_contract"
-        )
+        training_reward_contract = _optional_wrapper_payload(probe_env, "reward_contract")
         observation_shape = list(probe_env.observation_space.shape or ())
     finally:
         probe_env.close()
@@ -165,10 +243,12 @@ def train_sb3_baseline(
         )
         for rank in range(parallel_environments)
     ]
+    children_cpu_started = _children_cpu_time_s()
     if vectorization_backend == "subprocess":
         env: Any = SubprocVecEnv(env_factories, start_method="spawn")
     else:
         env = DummyVecEnv(env_factories)
+    worker_processes = list(getattr(env, "processes", ()))
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     checkpoint_stem = output / f"{algorithm}-{task_id}-seed{model_seed}"
@@ -176,13 +256,13 @@ def train_sb3_baseline(
     action_contract_hash = str(action_contract.get("contract_hash", ""))
     if len(action_contract_hash) != 64:
         raise RuntimeError("RL action contract is missing its compatibility hash")
-    if training_reward_contract is None or len(
-        str(training_reward_contract.get("contract_hash", ""))
-    ) != 64:
+    if (
+        training_reward_contract is None
+        or len(str(training_reward_contract.get("contract_hash", ""))) != 64
+    ):
         raise RuntimeError("RL training reward contract is missing its compatibility hash")
     parameter_keys = tuple(
-        str(item)
-        for item in action_contract["training_adapter"]["parameter_coordinate_keys"]
+        str(item) for item in action_contract["training_adapter"]["parameter_coordinate_keys"]
     )
     if algorithm == "ppo":
         policy: Any = ConditionalHybridActorCriticPolicy
@@ -204,8 +284,57 @@ def train_sb3_baseline(
     wall_started = perf_counter()
     cpu_started = process_time()
     try:
-        callback = None
-        if checkpoint_interval_steps is not None:
+        callback: BaseCallback | None = None
+        if exact_checkpoint_steps or progress_interval_steps is not None:
+            periodic_dir.mkdir(parents=True, exist_ok=True)
+
+            class _ExactCheckpointCallback(BaseCallback):
+                def __init__(self) -> None:
+                    super().__init__(verbose=0)
+                    self._targets = set(exact_checkpoint_steps)
+                    self._saved: set[int] = set()
+
+                def _on_step(self) -> bool:
+                    step = int(self.num_timesteps)
+                    if progress_interval_steps is not None and (
+                        step % progress_interval_steps == 0 or step == total_timesteps
+                    ):
+                        progress_path = output / "training-progress.json"
+                        progress_path.write_text(
+                            json.dumps(
+                                {
+                                    "schema_version": "chemworld-rl-training-progress-0.1",
+                                    "algorithm": algorithm,
+                                    "task_id": task_id,
+                                    "model_seed": model_seed,
+                                    "training_environment_step_count": step,
+                                    "requested_training_environment_step_count": total_timesteps,
+                                    "progress_fraction": step / total_timesteps,
+                                },
+                                indent=2,
+                                sort_keys=True,
+                            )
+                            + "\n",
+                            encoding="utf-8",
+                        )
+                    if step not in self._targets or step in self._saved:
+                        return True
+                    checkpoint_path = periodic_dir / f"{checkpoint_stem.name}_{step}_steps"
+                    self.model.save(checkpoint_path)
+                    if save_replay_buffer:
+                        save_buffer = getattr(self.model, "save_replay_buffer", None)
+                        if not callable(save_buffer):
+                            raise RuntimeError(
+                                "replay-buffer checkpointing requested for an unsupported algorithm"
+                            )
+                        save_buffer(
+                            periodic_dir / f"{checkpoint_stem.name}_replay_buffer_{step}_steps.pkl"
+                        )
+                    self._saved.add(step)
+                    return True
+
+            callback = _ExactCheckpointCallback()
+        elif checkpoint_interval_steps is not None:
             periodic_dir.mkdir(parents=True, exist_ok=True)
             callback = CheckpointCallback(
                 save_freq=checkpoint_interval_steps // parallel_environments,
@@ -237,20 +366,23 @@ def train_sb3_baseline(
     finally:
         env.close()
     wall_time_s = perf_counter() - wall_started
-    cpu_time_s = process_time() - cpu_started
+    parent_cpu_time_s = process_time() - cpu_started
+    worker_cpu_time_s, worker_cpu_accounting_method = _worker_cpu_time_s(
+        worker_processes, children_started=children_cpu_started
+    )
+    cpu_time_s = parent_cpu_time_s + worker_cpu_time_s
     checkpoint = checkpoint_stem.with_suffix(".zip")
-    if training_diagnostics is not None and int(
-        training_diagnostics.get("step_count", -1)
-    ) != actual_timesteps:
+    if (
+        training_diagnostics is not None
+        and int(training_diagnostics.get("step_count", -1)) != actual_timesteps
+    ):
         raise RuntimeError("SB3 and environment training-step ledgers disagree")
     periodic_artifacts = [
         {
             "path": str(path.relative_to(output)),
             "size_bytes": path.stat().st_size,
             "sha256": _sha256(path),
-            "artifact_type": (
-                "replay_buffer" if "_replay_buffer_" in path.name else "checkpoint"
-            ),
+            "artifact_type": ("replay_buffer" if "_replay_buffer_" in path.name else "checkpoint"),
         }
         for path in sorted(periodic_dir.glob("*"))
         if path.is_file()
@@ -270,9 +402,7 @@ def train_sb3_baseline(
             "checkpoint_sha256": artifact["sha256"],
             "action_contract_hash": action_contract_hash,
             "training_reward_contract_hash": training_reward_contract["contract_hash"],
-            "policy_distribution_contract_hash": distribution_contract.get(
-                "contract_hash"
-            ),
+            "policy_distribution_contract_hash": distribution_contract.get("contract_hash"),
             "legacy_checkpoint_compatible": False,
         }
         sidecar_path = periodic_checkpoint.with_suffix(".manifest.json")
@@ -308,30 +438,37 @@ def train_sb3_baseline(
         "training_environment_step_count": actual_timesteps,
         "step_budget_exact": actual_timesteps == total_timesteps,
         "checkpoint_interval_steps": checkpoint_interval_steps,
+        "checkpoint_steps": list(exact_checkpoint_steps),
         "periodic_checkpoint_artifacts": periodic_artifacts,
         "periodic_checkpoint_contract_manifests": periodic_contract_manifests,
         "replay_buffer_checkpointed": bool(save_replay_buffer),
         "operation_budget": operation_budget,
+        "bench_finetuning_used": False,
         "training_infrastructure": {
             "parallel_environments": parallel_environments,
             "vectorization_backend": vectorization_backend,
             "requested_device": requested_device,
             "resolved_device": resolved_device,
             "logical_cpu_count": os.cpu_count(),
-            "torch_num_threads": torch.get_num_threads(),
+            "initial_torch_num_threads": initial_torch_num_threads,
+            "requested_torch_num_threads": torch_num_threads,
+            "torch_num_threads": resolved_torch_num_threads,
             "cuda_available": torch.cuda.is_available(),
             "torch_cuda_version": torch.version.cuda,
             "cuda_device_name": (
                 torch.cuda.get_device_name(0) if torch.cuda.is_available() else None
             ),
-            "environment_steps_per_wall_second": actual_timesteps
-            / max(wall_time_s, 1e-12),
+            "environment_steps_per_wall_second": actual_timesteps / max(wall_time_s, 1e-12),
             "average_process_cpu_cores": cpu_time_s / max(wall_time_s, 1e-12),
+            "parent_process_cpu_time_s": parent_cpu_time_s,
+            "worker_process_cpu_time_s": worker_cpu_time_s,
+            "worker_process_cpu_accounting_method": worker_cpu_accounting_method,
         },
         "wall_time_s": wall_time_s,
         "cpu_time_s": cpu_time_s,
         "gpu_time_s": 0.0,
         "device": resolved_device,
+        "progress_interval_steps": progress_interval_steps,
         "checkpoint": checkpoint.name,
         "checkpoint_sha256": _sha256(checkpoint),
         "versions": {

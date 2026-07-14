@@ -47,9 +47,7 @@ FORMAL_RL_CHECKPOINT_INDEX_VERSION = "chemworld-formal-rl-checkpoint-index-0.4"
 DEFAULT_CONFIG_PATH = Path("configs/methods/rl_v0.4/rl_methods.json")
 DEFAULT_FORMAL_PROTOCOL_PATH = Path("configs/benchmark/formal_protocol_v0.4.json")
 DEFAULT_INTERACTION_PATH = Path("configs/benchmark/interaction_strata_v0.4.json")
-DEFAULT_PREFLIGHT_REPORT_PATH = Path(
-    "workstreams/benchmark_v1/reports/formal-preflight-v0.4.json"
-)
+DEFAULT_PREFLIGHT_REPORT_PATH = Path("workstreams/benchmark_v1/reports/formal-preflight-v0.4.json")
 DEFAULT_RESOURCE_REPORT_PATH = Path(
     "workstreams/benchmark_v1/reports/resource-accounting-v0.4.json"
 )
@@ -130,8 +128,10 @@ def _parameter_keys(action_contract: Mapping[str, Any]) -> tuple[str, ...]:
     if not isinstance(adapter, Mapping):
         raise FormalRLContractError("action contract is missing its training adapter")
     values = adapter.get("parameter_coordinate_keys")
-    if not isinstance(values, list) or not values or not all(
-        isinstance(item, str) and item for item in values
+    if (
+        not isinstance(values, list)
+        or not values
+        or not all(isinstance(item, str) and item for item in values)
     ):
         raise FormalRLContractError("action contract parameter keys are invalid")
     return tuple(values)
@@ -233,9 +233,7 @@ class RLCheckpointBinding:
         contracts = task_contract_bundle(task_id)
         expected = {
             "action_contract_hash": contracts["action_contract_sha256"],
-            "training_reward_contract_hash": contracts[
-                "training_reward_contract_sha256"
-            ],
+            "training_reward_contract_hash": contracts["training_reward_contract_sha256"],
         }
         if method_id == "ppo":
             expected["policy_distribution_contract_hash"] = contracts[
@@ -243,9 +241,7 @@ class RLCheckpointBinding:
             ]
         for contract_field, expected_value in expected.items():
             if manifest.get(contract_field) != expected_value:
-                raise FormalRLContractError(
-                    f"checkpoint {contract_field} is incompatible"
-                )
+                raise FormalRLContractError(f"checkpoint {contract_field} is incompatible")
 
         audited_training = audit_rl_training_resource(training)
         if audited_training.get("accounting_complete") is not True:
@@ -508,13 +504,12 @@ def audit_formal_rl_contract(
         "reference_repositories_unused": config.get("reference_repositories_used") == [],
     }
     formal_splits = formal.get("split_contract", {})
-    checks["train_split_exact"] = (
-        isinstance(splits, Mapping)
-        and splits.get("train") == formal_splits.get("train")
-    )
-    checks["dev_split_exact"] = (
-        isinstance(splits, Mapping) and splits.get("dev") == formal_splits.get("dev")
-    )
+    checks["train_split_exact"] = isinstance(splits, Mapping) and splits.get(
+        "train"
+    ) == formal_splits.get("train")
+    checks["dev_split_exact"] = isinstance(splits, Mapping) and splits.get(
+        "dev"
+    ) == formal_splits.get("dev")
     checks["bench_and_reference_feedback_forbidden"] = bool(
         isinstance(splits, Mapping)
         and splits.get("reference_search_access") == "forbidden"
@@ -573,8 +568,7 @@ def audit_formal_rl_contract(
         isinstance(checkpoints, Mapping)
         and checkpoints.get("status") == "pending_training_slice"
         and checkpoints.get("formal_ready_checkpoint_count") == 0
-        and checkpoints.get("required_task_method_checkpoint_count")
-        == len(formal_tasks) * 2
+        and checkpoints.get("required_task_method_checkpoint_count") == len(formal_tasks) * 2
     )
     lock_text = (repository / "uv.lock").read_text(encoding="utf-8")
     locked_versions = {
@@ -617,9 +611,9 @@ def audit_formal_rl_contract(
         "task_contracts": task_contracts,
         "method_count": len(method_ids),
         "task_count": len(formal_tasks),
-        "required_training_run_count": len(formal_tasks) * len(method_ids) * (
-            len(model_seeds) if isinstance(model_seeds, list) else 0
-        ),
+        "required_training_run_count": len(formal_tasks)
+        * len(method_ids)
+        * (len(model_seeds) if isinstance(model_seeds, list) else 0),
         "required_checkpoint_count": len(formal_tasks) * len(method_ids),
         "formal_ready_checkpoint_count": 0,
         "reference_evidence_used_for_method_development": False,

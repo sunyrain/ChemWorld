@@ -78,9 +78,7 @@ def _checkpoint_payload(
         },
         "bench_finetuning_used": False,
         "action_contract_hash": contracts["action_contract_sha256"],
-        "training_reward_contract_hash": contracts[
-            "training_reward_contract_sha256"
-        ],
+        "training_reward_contract_hash": contracts["training_reward_contract_sha256"],
         "versions": {"stable_baselines3": "2.9.0", "torch": "2.13.0"},
     }
     if method_id == "ppo":
@@ -291,9 +289,7 @@ def test_formal_adapter_binds_cell_and_keeps_training_resources_out_of_cell(
     final = records[-1]
     assert final["formal_cell_identity_sha256"] == spec.cell_identity_sha256
     assert final["formal_method_id"] == "ppo"
-    assert final["method_resources"]["agent_usage"][
-        "training_environment_step_count"
-    ] == 0
+    assert final["method_resources"]["agent_usage"]["training_environment_step_count"] == 0
     assert "training_resource" not in final["formal_resource_evidence"]
     accounting = audit_cell_resource_accounting(
         records,
