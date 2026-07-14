@@ -60,6 +60,48 @@ def test_measure_without_terminate_is_not_misclassified_as_closeout() -> None:
     assert context.decision_stage == "experiment_control"
 
 
+def test_retained_instrument_estimate_is_not_a_fresh_spectral_packet() -> None:
+    public_view = _public_view("heat", "measure", "terminate")
+    public_view["tool_json"].update(
+        {
+            "processed_estimate": {"byproduct_signal": 0.31},
+            "historical_spectrum_catalog": [
+                {
+                    "spectrum_id": "spectrum-e001-s0006",
+                    "measurement_step": 6,
+                    "instrument_id": "gc",
+                }
+            ],
+        }
+    )
+    public_view["tool_json"]["lab_report"] = {
+        "visible_metrics": {"byproduct_signal": 0.31},
+        "spectra_summary": {
+            "has_spectral_packet": False,
+            "processed_estimate": {"byproduct_signal": 0.31},
+        },
+    }
+
+    context = build_decision_context(
+        step=8,
+        task_info={"task_id": "reaction-to-crystallization"},
+        campaign_state={"remaining_budget": 15},
+        public_view=public_view,
+        previous_event_type="operation_result",
+    )
+    payload = context.to_dict()
+
+    assert context.visible_metrics == {"byproduct_signal": 0.31}
+    assert context.latest_spectra["processed_estimate"] == {}
+    assert payload["observation_provenance"] == {
+        "current_event_type": "operation_result",
+        "current_spectral_packet": False,
+        "latest_cataloged_spectrum_id": "spectrum-e001-s0006",
+        "latest_spectrum_measurement_step": 6,
+        "operations_since_latest_spectrum": 1,
+    }
+
+
 def test_new_experiment_setup_takes_priority_over_affordance_shape() -> None:
     context = build_decision_context(
         step=9,

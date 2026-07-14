@@ -17,9 +17,9 @@
 | 主线 | 核心主目录已同步并包含最新 RL 反馈；site 由独立团队维护，本任务不修改 | 新工作继续先 claim，方法 owned paths 不交叉；具体证据绑定各自 source commit 而非易漂移的“当前 main”标签 |
 | RL writer | `origin/main@cb23c98` 上 PPO/SAC 的 manifest 0.3、sidecar 0.2、精确 observation hash 与禁止 shape-only compatibility 均通过 4-step 行为探针；4 个定向测试通过，`formal_training_allowed=true` | writer 不再阻塞 Train/Dev，但不等于方法已封存 |
 | 旧 SAC | pre-v0.4.8 运行完成 19/20 jobs、产生 99/100 checkpoints、评价 95 个，旧 eligibility 仅 13 个且结晶任务为 0；约 199 万环境步全部标记为 `quarantined_incomplete_stale_contract` | 不恢复、不进入当前 index、不形成 benchmark claim；必须按当前合同重训 |
-| 当前 PPO | `benchmark-v05-rl-adapters--slice-ppo-v048-retrain-dev` 已认领 | 先做 step-0 对 trained 的 fail-closed 学习门禁，通过后才运行四任务五 seed |
-| 当前 SAC | `benchmark-v05-rl-adapters--slice-sac-train-dev` 已认领，训练与恢复基础设施已进入 main | 在完整 4 × 5 × 100k 矩阵前增加与 PPO 对称的 current-contract 学习门禁，避免再次无信号消耗约 200 万步 |
-| 真实 LLM | v0.4.8 已收敛为单任务、两角色、三谱图条件、费用硬上限 2.10 USD；付费筛选仍暂停 | 非付费门禁与 RL 状态稳定后才运行 6-cell candidate screen |
+| 当前 PPO | `099028d` 当前合同 preflight 已按预注册规则完成并以负结果关闭：4 个任务均完成 step-0/25,600-step 配对，3/4 有学习信号，行为完成数 11 → 254，但 runtime-domain failures 11 → 31，结晶任务训练后仍 0 次行为完成；102,400 训练步、8 个 checkpoint 均可干净加载且精确回放 | `full_matrix_allowed=false`，20-run 矩阵未启动、0 checkpoint 入选、`ppo_method_ready=false`；不得降阈值或重复抽 seed 求通过。若继续 PPO，必须另 claim runtime-domain/结晶完成修复，绑定新合同摘要后重新预注册一次门禁 |
+| 当前 SAC | `benchmark-v05-rl-adapters--slice-sac-train-dev` 仍 active，claim 已增加 `sac_v048_preflight_plan`、runner、测试和报告路径，明确与 PPO 对称的 current-contract fail-closed 学习门禁 | 先完成 step-0 对 trained 的四任务学习/行为/运行域门禁；失败即发布负结果并禁止完整 4 × 5 × 100k 矩阵，不能直接沿用旧 199 万步或跳过 preflight |
+| 真实 LLM | v0.4.8 的旧 prompt 0.6 已在 `7c08191` 严格运行 1/6 个诊断 cell：10 次请求、47,341 input tokens、13,421 output tokens、0 retry、0.030392 USD、246.28 s，完整实验/账本/逐步回放均通过；其余 5 cells 未启动。该 cell 暴露旧谱图标量被误当成新测量的来源歧义，已在 `da83200` 的 prompt/interaction contract 0.7 修复 | 旧单 cell 报告保持 `stopped_resumable`、`benchmark_claim_allowed=false` 且不得跨源码续跑；先审核 0.7 的来源合同与离线回归，再只跑 1 个新源码诊断 cell，确认无旧谱图误归因后才决定是否完成 6-cell candidate screen |
 | 开源 VLM | 确定性谱图图像合同 0.1 已通过审计：PNG/信号/公开包/渲染合同均有摘要，历史目录强制为纯元数据，只有显式取回的历史谱图可进入图像输入；未下载或运行模型；未来推理依赖已从主环境锁隔离 | 推理依赖、模型与 processor revision 尚未封存；仅在 P4 之后先做一个 Dev 任务的学习价值试点，未通过不得扩矩阵 |
 | 环境锁 | VLM 临时 extra 已完全移除，`uv.lock` 精确恢复到 VLM 前 `099028d` 的 179 包摘要；但该摘要与 P0 `be4e38f` 的 178 包 portable-release 证明不同，漂移在 VLM 任务之前已由后续 RL 依赖产生 | 不回写历史 P0 报告；待 P3 方法依赖稳定后执行 `benchmark-v05-portable-release-reattestation`，在此之前不得签发正式 Bench source/wheel manifest |
 | 正式证据 | `benchmark_claim_allowed=false`，reference/Bench/P4 均未开始 | P3 全部封存并通过 method freeze 后，严格执行 reference → base matrix → independent reproduction |
@@ -222,10 +222,11 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [ ] 记录学习曲线、训练步数、GPU/CPU、失败率、quick-close、观察盲控制和 checkpoint/backend/observation/action/reward hash。
   - [ ] Bench 前冻结每个任务或共享策略的选择规则；禁止 Bench 微调和事后选 seed。
   - [x] 共享训练 writer 已写出 final manifest 0.3 与周期 sidecar 0.2，并绑定精确 task-specific observation hash；PPO/SAC 4-step 探针均通过当前 reader。
-  - [ ] PPO 完成当前合同 step-0 versus trained preflight；未达到预注册学习效应时以负结果关闭，不启动全矩阵。
+  - [x] PPO 完成当前合同 step-0 versus trained preflight；门禁因并非所有任务 operational 而以负结果关闭，完整矩阵未启动。
   - [ ] SAC 在完整矩阵前补充同等 current-contract preflight；当前计划只有吞吐探针和 Dev eligibility，不足以证明算法正在学习。
   - [ ] 只有各自 preflight 通过后，才执行四任务五 seed Train/Dev、干净加载、确定性重放与 checkpoint index 封存。
-  - 当前诊断：旧 PPO 的非 Markov 状态别名已经通过公开阶段位、reward contract 0.3 和任务级 `chemworld-rl-observation-contract-0.1` 修复；旧 checkpoint index 已 fail closed 清零。当前 writer/reader 合同阻塞已解除，但旧 SAC 的 199 万步仅是 stale-contract 诊断，不能证明当前 SAC 有学习信号。RL 任务因此从“基础设施阻塞”转为“有界学习门禁与当前合同重训进行中”，P3 仍未完成。
+  - 当前诊断：旧 PPO 的非 Markov 状态别名已经通过公开阶段位、reward contract 0.3 和任务级 `chemworld-rl-observation-contract-0.1` 修复；旧 checkpoint index 已 fail closed 清零。当前 PPO preflight 在 `099028d` 上执行 4 个 task ×（step-0、25,600-step）共 8 个 checkpoint，全部通过 manifest 0.3、sidecar 0.2、task-specific observation hash、fresh-process load 与确定性回放；3/4 任务达到学习信号，行为完成总数从 11 增至 254，但 runtime-domain failures 从 11 增至 31，结晶任务训练后仍为 0 完成，因此预注册 `all_tasks_operational` 硬门禁失败。报告状态为 `ppo_current_contract_preflight_failed_full_matrix_not_run`，20 个正式训练 run、60 个候选 checkpoint 和 checkpoint selection 均为 0；这证明 PPO 有部分学习信号，但尚不是可进入正式矩阵的可靠方法。SAC 旧 199 万步仍仅是 stale-contract 诊断，当前 SAC 必须先通过已认领的对称 preflight。RL 任务已从“writer/reader 基础设施阻塞”转为“PPO 有信号但运行域不可靠、SAC 等待有界学习门禁”，P3 仍未完成。
+  - PPO 下一步不是重跑同一随机种子或放宽门槛，而是另行认领并定位 31 个 runtime-domain failures 的 operation/affordance/parameter 分布，以及结晶任务 0 行为完成的终止链。只有修复改变了可审计的动作/运行域合同时，才允许以新 plan/hash 预注册一次新的 step-0 versus trained 门禁；若不修复，则 PPO 作为当前合同负结果退出正式方法清单。
   - 验收：至少预注册数量的独立训练 seeds 均完成；checkpoint 可由干净环境加载并逐 cell 评估。
 
 - [ ] **`benchmark-v05-live-llm-adapters` — 真实 LLM 双角色开发与提示冻结**
@@ -235,7 +236,10 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [x] 两个角色均通过官方 adapter 多轮调用，在实验内和实验间适应，能主动请求当前/历史公开谱图数值包；Task Lab 只作 UI，不作正式 launcher。DeepSeek 官方 `deepseek-v4-pro` Chat API 的 user content 当前仍是字符串，网站 canvas 图像不会自动进入模型输入，不得把数值读谱描述为原生 VLM 读图。
   - [x] prompt 只描述工具、任务和公共合同，不加入“默认升温”等强倾向规则；保留结构化决策审计，不索取私有思维链。
   - [ ] 在 Train/Dev 完成 assigned/unassigned/masked 配对、API 失败/重试和成本对账；冻结 prompt、request 参数、model snapshot/access date。
-  - 当前状态：v0.4.6 开发矩阵在 56/96 cells 后主动停止并判定为 `incomplete_configuration_rejected`，16 cells 成功、40 cells 方法失败，56/56 资源账本完整，累计 2,369 次 provider 调用和 10.0387 USD；该证据只用于配置诊断，不得汇总为 benchmark 结果。根因是 deliberative 角色反复耗尽墙钟时间，以及 direct 角色因重复谱图/记忆导致累计输入超限。v0.4.7 已将 provider prompt 平均载荷离线回放压缩约 57%–58%，冻结 Pro=`thinking/high, max_tokens=4000`、Flash=`thinking/off, max_tokens=1000`。新的 v0.4.8 使用独立版本、source-commit 级私有缓存、报告 schema 和 seed 派生命名空间，并将付费入口收敛为 `reaction-to-crystallization` 单任务、2 角色 × 3 谱图条件的 6-cell `candidate_screen`，矩阵费用硬上限 2.10 USD。任务、方法、谱图条件、首个 Train seed、开发计划摘要和费用上限均在 provider 调用前 fail closed，不能通过 CLI 静默缩减或扩展，也不能跨提交误续跑。候选未通过完成率、逐方法成功、回放/账本和四实验投影 token/墙钟余量时，代码禁止启动后续 pilot/Dev 矩阵；付费筛选当前保持暂停。
+  - 当前状态：v0.4.6 开发矩阵在 56/96 cells 后主动停止并判定为 `incomplete_configuration_rejected`，16 cells 成功、40 cells 方法失败，56/56 资源账本完整，累计 2,369 次 provider 调用和 10.0387 USD；该证据只用于配置诊断，不得汇总为 benchmark 结果。根因是 deliberative 角色反复耗尽墙钟时间，以及 direct 角色因重复谱图/记忆导致累计输入超限。v0.4.7 已将 provider prompt 平均载荷离线回放压缩约 57%–58%，冻结 Pro=`thinking/high, max_tokens=4000`、Flash=`thinking/off, max_tokens=1000`。新的 v0.4.8 使用独立版本、source-commit 级私有缓存、报告 schema 和 seed 派生命名空间，并将付费入口收敛为 `reaction-to-crystallization` 单任务、2 角色 × 3 谱图条件的 6-cell `candidate_screen`，矩阵费用硬上限 2.10 USD。任务、方法、谱图条件、首个 Train seed、开发计划摘要和费用上限均在 provider 调用前 fail closed，不能通过 CLI 静默缩减或扩展，也不能跨提交误续跑。候选未通过完成率、逐方法成功、回放/账本和四实验投影 token/墙钟余量时，代码禁止启动后续 pilot/Dev 矩阵。
+  - v0.4.8 首个严格单 cell 诊断绑定 `7c08191` 和 prompt 0.6，`live_llm_a/assigned` 恰好只启动一次并自然生成 `stopped_resumable` 报告：1/1 完整实验、10 operations、10 provider requests、47,341 input tokens、13,421 output tokens、0 retry、0.030392 USD、246.28 s，资源对账完整且独立回放 `max_abs_error=0`。该 cell 的 `total_score=0.011736`、`crystal_yield=0`、`crystal_purity=0.018821`、1/10 非法动作且末态 safety risk 0.213 超过任务阈值 0.168；单 cell、单实验既不能比较谱图条件，也不能检验跨实验学习，禁止据此排名模型。
+  - 该诊断还发现一个会污染“模型读取谱图后适应”解释的交互漏洞：第 6 步 GC 后执行加热，旧 `processed_estimate` 仍作为最近已知公开指标存在，模型却把它叙述为加热后的新 GC 结果，并在未重新测量时连续升温。`da83200` 已升级到 prompt/interaction contract 0.7：显式区分当前事件、当前是否存在新谱图包、最近历史谱图 ID/测量步和距测量的操作数；非测量步骤不再把旧 processed estimate 放入 `latest_spectra`，masked 条件也不会泄露“已提供当前谱图”的标志。相关 runner/agent/VLM 回归 74 passed、7 optional skipped，控制审计 `controls_ready=true`；这只证明合同修复，不代表模型性能改善。
+  - 下一门禁：旧 `7c08191` 私有缓存和公开报告保留为诊断证据，不跨 prompt/source commit 续跑。先人工核对 0.7 prompt payload 与谱图请求日志，再在新提交上仍使用 `--stop-after-new-terminals 1` 只运行一个 fresh diagnostic cell；只有它不再误归因历史谱图、账本/回放完整且投影资源仍有余量，才允许从同一新源码缓存继续剩余 5 cells。`candidate_screen` 的单实验预算只检验可执行性、成本和失败模式；跨实验学习必须在后续 2-experiment `live_pilot` 和 4-experiment Dev 阶段单独验证，至少报告第二次实验是否依据第一次证据改变材料/操作，而不能把同一实验内反复升温当成学习。
   - 验收：真实多轮轨迹可回放执行，所有调用/失败/tokens/费用可核对；未证明性能提升也允许封存，但不能缺失证据。
 
 - [ ] **`benchmark-v05-portable-release-reattestation` — P3 后依赖锁与 clean-wheel 重新证明**

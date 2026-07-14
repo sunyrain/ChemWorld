@@ -387,6 +387,11 @@ def build_live_llm_development_bundle(
                 "schema_version": LIVE_LLM_DEVELOPMENT_VERSION,
                 "stage": stage,
                 "split": split,
+                "formal_protocol_split": split,
+                "backend_world_split_by_task": {
+                    task_id: get_task(task_id).world_split
+                    for task_id in selected_tasks
+                },
                 "seed_count": len(selected_seeds),
                 "bench_accessed": False,
                 "reference_search_accessed": False,
@@ -677,6 +682,12 @@ def run_live_llm_development(
         "reference_search_results_used": False,
         "private_reasoning_retained": False,
         "stage": stage,
+        "formal_protocol_split": bundle.manifest["metadata"][
+            "development_contract"
+        ]["formal_protocol_split"],
+        "backend_world_split_by_task": bundle.manifest["metadata"][
+            "development_contract"
+        ]["backend_world_split_by_task"],
         "source_commit": _git_commit(),
         "method_freeze_audit": audit_live_llm_method_freeze(),
         "manifest_sha256": bundle.manifest["run_manifest_sha256"],

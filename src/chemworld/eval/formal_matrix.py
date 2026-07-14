@@ -460,6 +460,11 @@ def run_formal_matrix(
                     not stop_requested
                     and pending[queue]
                     and active_by_queue[queue] < capacities[queue]
+                    and (
+                        stop_after_new_terminals is None
+                        or new_terminals + len(futures)
+                        < stop_after_new_terminals
+                    )
                 ):
                     if queue == "api" and not api_gate.ready():
                         break

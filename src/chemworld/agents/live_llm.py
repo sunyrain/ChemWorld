@@ -27,7 +27,7 @@ Provide only a concise public audit: evidence, spectrum interpretation, hypothes
 uncertainty, rationale, and the selected action using exact schema field names.
 """
 
-PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.6"
+PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.7"
 
 _MAX_SPECTRUM_SERIES_POINTS = 64
 
@@ -469,6 +469,9 @@ class LiveLLMAgent(BaseAgent):
                 "to distinguish exploration, exploitation, replication, and measurement. "
                 "If a public spectrum is supplied, identify only visible axes/features and "
                 "state how they affect the decision; never invent peaks or identities. A "
+                "spectrum is newly measured only when observation_provenance."
+                "current_spectral_packet is true; catalog entries and retained metrics are "
+                "historical. A "
                 "historical packet is supplied only after requesting its public spectrum_id "
                 "in the preceding decision. The harness will not repair, terminate, or assay "
                 "on your behalf."
@@ -569,8 +572,6 @@ class LiveLLMAgent(BaseAgent):
         requested = context.requested_historical_spectrum
         has_spectrum = bool(
             spectra.get("has_spectral_packet")
-            or spectra.get("raw_signal")
-            or spectra.get("processed_estimate")
             or requested.get("raw_signal")
         )
         if self.spectrum_disclosure != "masked" and has_spectrum:
@@ -640,6 +641,9 @@ def _condition_spectrum_inputs(
     tool = to_builtin(tool_view)
     if condition == "masked":
         masked_tool = _mask_spectral_tool_view(tool)
+        provenance = supplied.get("observation_provenance")
+        if isinstance(provenance, dict):
+            provenance["current_spectral_packet"] = False
         masked_latest: dict[str, Any] = {
             "spectrum_condition": "masked",
             "available": False,
@@ -881,6 +885,15 @@ def _compact_prompt_spectra(context: dict[str, Any]) -> dict[str, Any]:
     """
 
     compact = to_builtin(context)
+    latest = compact.get("latest_spectra")
+    if (
+        isinstance(latest, dict)
+        and "has_spectral_packet" in latest
+        and not latest["has_spectral_packet"]
+    ):
+        latest["raw_signal"] = {}
+        latest["processed_estimate"] = {}
+        latest["uncertainty"] = {}
     for key in ("latest_spectra", "requested_historical_spectrum"):
         value = compact.get(key)
         if isinstance(value, dict) and value:
