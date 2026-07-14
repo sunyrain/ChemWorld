@@ -49,10 +49,12 @@ def test_current_method_freeze_scaffold_reports_exact_gaps_without_bench_access(
     assert families["classic"]["cell_count"] == 768
     assert families["operation_baselines"]["pending_adapter_method_ids"] == []
     assert families["operation_baselines"]["development_ready"] is True
-    assert families["rl"]["ppo"]["selected_checkpoint_count"] == 2
+    assert families["rl"]["ppo"]["selected_checkpoint_count"] == 0
     assert families["rl"]["ppo"]["missing_task_ids"] == [
+        "flow-reaction-optimization",
         "partition-discovery",
         "reaction-to-crystallization",
+        "reaction-to-distillation",
     ]
     assert families["rl"]["sac"]["development_ready"] is False
     assert families["llm"]["controls_ready"] is True
@@ -62,9 +64,11 @@ def test_current_method_freeze_scaffold_reports_exact_gaps_without_bench_access(
 
     blockers = set(report["blockers"])
     assert {
-        "rl:ppo:expected_4_selected_checkpoints_found_2",
+        "rl:ppo:expected_4_selected_checkpoints_found_0",
         "rl:ppo:missing_task:partition-discovery",
         "rl:ppo:missing_task:reaction-to-crystallization",
+        "rl:ppo:missing_task:reaction-to-distillation",
+        "rl:ppo:missing_task:flow-reaction-optimization",
         "rl:sac:development_evidence_missing",
         "llm:development_matrix:report_missing",
         "selection:dev_family_champions_missing",

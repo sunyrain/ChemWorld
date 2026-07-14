@@ -431,7 +431,13 @@ class ConditionalHybridActionWrapper(
 
 
 class RLControlObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordConstructorArgs):
-    """Append operation affordances and normalized campaign progress to RL observations."""
+    """Append public procedural state, affordances, and campaign progress.
+
+    Training reward depends on whether the current experiment has already
+    executed each public core-operation group. Exposing the same public ledger
+    here keeps that reward Markov: identical observations no longer hide
+    different progress-dependent rewards.
+    """
 
     def __init__(self, env: gym.Env[Any, Any]) -> None:
         RecordConstructorArgs.__init__(self)
@@ -440,13 +446,38 @@ class RLControlObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordC
             raise TypeError("RLControlObservationWrapper requires a Box observation space")
         base_low = np.asarray(env.observation_space.low, dtype=np.float32).reshape(-1)
         base_high = np.asarray(env.observation_space.high, dtype=np.float32).reshape(-1)
-        extra_low = np.zeros(len(OPERATION_TYPES) + 3, dtype=np.float32)
-        extra_high = np.ones(len(OPERATION_TYPES) + 3, dtype=np.float32)
+        base = _base_env(env)
+        self._core_requirements = core_operation_requirements(base.allowed_operations)
+        self._executed_operations: set[str] = set()
+        extra_count = len(self._core_requirements) + len(OPERATION_TYPES) + 3
+        extra_low = np.zeros(extra_count, dtype=np.float32)
+        extra_high = np.ones(extra_count, dtype=np.float32)
         self.observation_space = gym.spaces.Box(
             low=np.concatenate([base_low, extra_low]),
             high=np.concatenate([base_high, extra_high]),
             dtype=np.float32,
         )
+
+    def reset(self, **kwargs: Any) -> tuple[np.ndarray, dict[str, Any]]:
+        self._executed_operations = set()
+        observation, info = self.env.reset(**kwargs)
+        payload = dict(info)
+        payload["rl_core_progress"] = self._progress_payload()
+        return self.observation(observation), payload
+
+    def step(self, action: Any) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
+        observation, reward, terminated, truncated, info = self.env.step(action)
+        flags = dict(info.get("constraint_flags", {}))
+        operation = str(info.get("operation_type", ""))
+        if not flags.get("precondition_failed", False) and operation:
+            self._executed_operations.add(operation)
+        if bool(info.get("experiment_ended", False)):
+            # Campaign mode has already reset the physical experiment in the
+            # returned observation, so its public procedural ledger resets too.
+            self._executed_operations = set()
+        payload = dict(info)
+        payload["rl_core_progress"] = self._progress_payload()
+        return self.observation(observation), float(reward), terminated, truncated, payload
 
     def observation(self, observation: Any) -> np.ndarray:
         vector = np.asarray(observation, dtype=np.float32).reshape(-1)
@@ -463,11 +494,33 @@ class RLControlObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordC
             ],
             dtype=np.float32,
         )
+        core_progress = np.asarray(
+            [
+                float(bool(set(group).intersection(self._executed_operations)))
+                for group in self._core_requirements
+            ],
+            dtype=np.float32,
+        )
         affordances = np.asarray(action_mask(self.env), dtype=np.float32)
-        combined = np.concatenate([vector, affordances, progress]).astype(np.float32)
+        # Keep affordances immediately before the final three campaign fields;
+        # the conditional PPO policy reads that stable trailing layout.
+        combined = np.concatenate([vector, core_progress, affordances, progress]).astype(
+            np.float32
+        )
         if not self.observation_space.contains(combined):
             raise ValueError("RL control observation escaped its declared finite bounds")
         return combined
+
+    def _progress_payload(self) -> dict[str, Any]:
+        satisfied = [
+            bool(set(group).intersection(self._executed_operations))
+            for group in self._core_requirements
+        ]
+        return {
+            "requirements": [list(group) for group in self._core_requirements],
+            "satisfied": satisfied,
+            "public_operation_history_only": True,
+        }
 
 
 class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructorArgs):

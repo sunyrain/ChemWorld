@@ -17,6 +17,8 @@ from chemworld.rl.environment import (
 from chemworld.wrappers import (
     ConditionalHybridActionWrapper,
     ContinuousEventActionWrapper,
+    RLControlObservationWrapper,
+    RLObservationWrapper,
     RLTrainingRewardWrapper,
 )
 
@@ -178,6 +180,56 @@ def test_rl_environment_is_finite_and_resamples_only_train_cells() -> None:
         env.close()
 
 
+def test_rl_control_observation_exposes_and_resets_public_core_progress() -> None:
+    env = RLControlObservationWrapper(
+        RLObservationWrapper(
+            gym.make(
+                "ChemWorld",
+                task_id="flow-reaction-optimization",
+                budget_override=12,
+                episode_mode_override="campaign",
+            ),
+            include_mask=True,
+            include_cost=True,
+        )
+    )
+    try:
+        initial, initial_info = env.reset()
+        assert initial_info["rl_core_progress"]["requirements"] == [
+            ["set_flow_rate"],
+            ["run_flow"],
+        ]
+        assert initial_info["rl_core_progress"]["satisfied"] == [False, False]
+
+        env.step({"operation": "add_reagent", "amount_mol": 0.02})
+        env.step({"operation": "add_solvent", "volume_L": 0.05, "solvent": 0})
+        progressed, _, _, _, progressed_info = env.step(
+            {
+                "operation": "set_flow_rate",
+                "flow_rate_mL_min": 1.0,
+                "residence_time_s": 600.0,
+            }
+        )
+        assert progressed_info["rl_core_progress"]["satisfied"] == [True, False]
+        assert not np.array_equal(initial, progressed)
+
+        env.step(
+            {
+                "operation": "run_flow",
+                "target_temperature_K": 380.0,
+                "duration_s": 600.0,
+            }
+        )
+        env.step({"operation": "terminate"})
+        reset_observation, _, _, _, reset_info = env.step(
+            {"operation": "measure", "instrument": "final_assay"}
+        )
+        assert reset_info["rl_core_progress"]["satisfied"] == [False, False]
+        assert env.observation_space.contains(reset_observation)
+    finally:
+        env.close()
+
+
 def test_training_reward_uses_public_failures_without_changing_raw_environment() -> None:
     env = RLTrainingRewardWrapper(
         gym.make("ChemWorld", task_id="flow-reaction-optimization", budget_override=2)
@@ -247,20 +299,24 @@ def test_flow_core_operation_is_recorded_as_behavioral_completion() -> None:
         env.reset(seed=0)
         env.step({"operation": "add_reagent", "amount_mol": 0.02})
         env.step({"operation": "add_solvent", "volume_L": 0.05, "solvent": 0})
-        env.step(
+        _, setup_reward, _, _, setup_info = env.step(
             {
                 "operation": "set_flow_rate",
                 "flow_rate_mL_min": 1.0,
                 "residence_time_s": 600.0,
             }
         )
-        _, _, _, _, info = env.step(
+        _, completion_reward, _, _, info = env.step(
             {
                 "operation": "run_flow",
                 "target_temperature_K": 380.0,
                 "duration_s": 600.0,
             }
         )
+        assert setup_info["rl_training_reward"]["newly_satisfied_core_requirements"] == 1
+        assert setup_reward >= 0.10
+        assert info["rl_training_reward"]["newly_satisfied_core_requirements"] == 1
+        assert completion_reward >= 1.10
         assert info["rl_training_reward"]["behavior_complete"] is True
         assert info["rl_training_reward"]["executed_core_operations"] == [
             "run_flow",

@@ -205,6 +205,7 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [ ] 在 Train worlds 训练多个预注册 seeds，在 Dev worlds 选择 checkpoint；验证四个 core task 的行为完成，不只验证 flow。
   - [ ] 记录学习曲线、训练步数、GPU/CPU、失败率、quick-close、观察盲控制和 checkpoint/backend/action/reward hash。
   - [ ] Bench 前冻结每个任务或共享策略的选择规则；禁止 Bench 微调和事后选 seed。
+  - 当前诊断：旧 PPO 训练奖励依赖“本次实验已执行哪些核心操作”，但 RL 观察未包含同一公开历史，形成非 Markov 状态别名；原 2 个已选 checkpoint 与另外两任务证据均因此失效，checkpoint index 已 fail-closed 清零。修复后观察加入逐实验公开核心阶段位，reward contract 升至 0.3，仅首次满足公开阶段奖励 0.1，重复操作、测量和终止无额外奖励。`partition-discovery` 的 25,600-step 有界探针在训练期完成 445 次行为完整实验；但原确定性众数评估仍坍缩为重复 `settle`，而固定 seed 随机评估在 20 episodes 中完成 38 次实验、35 次行为完整实验，平均最佳主指标 0.8313。两次固定 seed 回放逐字节一致，说明 PPO 随机策略可复现；共享 runner 仍由 SAC slice 认领，因此正式计划暂不切换，四任务重训保持暂停，证据见 `rl-ppo-reward-diagnostic-v0.4.json`。
   - 验收：至少预注册数量的独立训练 seeds 均完成；checkpoint 可由干净环境加载并逐 cell 评估。
 
 - [ ] **`benchmark-v05-live-llm-adapters` — 真实 LLM 双角色开发与提示冻结**
@@ -220,7 +221,7 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 - [ ] **`benchmark-v05-method-freeze` — 方法清单与 Bench 解封**
   - 默认 owned_paths：`configs/benchmark/method_freeze_v0.4.json`、`scripts/audit_method_freeze_v0.4.py`、`tests/test_method_freeze_v0.4.py`、`workstreams/benchmark_v1/reports/method-freeze-v0.4.json`。
   - 依赖：所有计划进入正式比较的方法完成 P3；未完成方法必须明确退出，不拖着空实现进入矩阵。
-  - 当前预检：fail-closed 方法冻结审计器与 19 项 hash-bound 输入合同已经落地；当前报告为 `method_freeze_preflight_blocked`，精确 blocker 已从 39 项降至 24 项，并固定输出 `bench_unlock_allowed=false`、`bench_manifest_issued=false`、`benchmark_claim_allowed=false`。三种 operation baseline、当前协议下重新执行的 768-cell Classic 矩阵，以及独立 reference builder 的源码与 15 个 evaluated adapter 摘要均已通过对应门禁。剩余阻塞包括：PPO 仅 2/4 个 task checkpoint 合格；SAC 与单任务预算化 LLM pilot 证据尚未生成；完整 Dev-only family selection 和正式 cell/CPU/GPU/API/磁盘硬预算尚未落地。该审计只读取公开控制工件，不打开私有 Bench，也没有 `--force` 或 manifest 签发能力。
+  - 当前预检：fail-closed 方法冻结审计器与 19 项 hash-bound 输入合同已经落地；当前重生成报告为 `method_freeze_preflight_blocked`，精确记录 26 项 blocker。三种 operation baseline、当前协议下重新执行的 768-cell Classic 矩阵，以及独立 reference builder 的源码与 15 个 evaluated adapter 摘要均已通过对应门禁。PPO 非 Markov 观察缺陷修复后，旧 2/4 checkpoint 已主动失效并将 index 清零，新增的两个 blocker 对应这两个旧 checkpoint，不是新的实现缺陷。SAC、单任务预算化 LLM pilot、完整 Dev-only family selection 和正式 cell/CPU/GPU/API/磁盘硬预算仍未落地；Bench 继续封存。该审计只读取公开控制工件，不打开私有 Bench，也没有 `--force` 或 manifest 签发能力。
   - [ ] 固定方法 IDs、family、interaction stratum、hyperparameters、checkpoint/prompt hashes、Dev 选择依据和资源上限。
   - [x] 核实 reference builder 与所有 evaluated method 身份、代码和随机数流独立。
   - [ ] 锁定 run count/预计算力/API 费用，并由 preflight 签发 Bench manifest。

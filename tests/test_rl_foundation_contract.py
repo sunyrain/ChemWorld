@@ -215,6 +215,12 @@ def test_action_and_reward_contract_hashes_are_stable_and_semantic() -> None:
         env.close()
     task = get_task("flow-reaction-optimization")
     reward = reward_contract(task.allowed_operations)
+    assert reward["schema_version"] == "chemworld-rl-training-reward-0.3"
+    assert reward["components"]["newly_satisfied_core_requirement"] == 0.10
+    assert reward["leakage_controls"][
+        "core_progress_uses_public_operation_history_only"
+    ] is True
+    assert reward["leakage_controls"]["repeated_core_operation_bonus"] is False
     assert reward["behavioral_completion"]["requirements"] == [
         ["set_flow_rate"],
         ["run_flow"],
