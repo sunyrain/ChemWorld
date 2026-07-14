@@ -73,6 +73,7 @@ def test_development_matrix_uses_only_four_public_dev_pairs() -> None:
 
 def test_candidate_screen_is_small_and_precedes_live_pilot() -> None:
     bundle = build_live_llm_development_bundle(stage="candidate_screen")
+    development_contract = bundle.manifest["metadata"]["development_contract"]
 
     assert bundle.pair_count == 1
     assert bundle.cell_count == 1 * 2 * 3
@@ -87,6 +88,10 @@ def test_candidate_screen_is_small_and_precedes_live_pilot() -> None:
         "matrix_monetary_cost_usd_limit"
     ] == pytest.approx(2.1)
     assert len(bundle.manifest["metadata"]["development_contract"]["development_plan_sha256"]) == 64
+    assert development_contract["formal_protocol_split"] == "train"
+    assert development_contract["backend_world_split_by_task"] == {
+        "reaction-to-crystallization": "public-test"
+    }
 
 
 def test_paid_stage_scope_and_seed_set_are_frozen_before_provider_use() -> None:

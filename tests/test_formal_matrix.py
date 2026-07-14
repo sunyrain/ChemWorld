@@ -178,6 +178,39 @@ def _manifest() -> dict[str, Any]:
     )
 
 
+def _api_only_manifest() -> dict[str, Any]:
+    cells = [
+        _spec("live_llm_a", pair_id, condition)
+        for pair_id in PAIRS
+        for condition in _spectrum_conditions("live_llm_a")
+    ]
+    return issue_run_manifest(
+        cells,
+        metadata={
+            "matrix_contract": {
+                "tasks": [TASK],
+                "methods": ["live_llm_a"],
+                "pair_ids": list(PAIRS),
+                "spectrum_conditions_by_method": {
+                    "live_llm_a": list(_spectrum_conditions("live_llm_a"))
+                },
+                "checkpoints": [1],
+                "complete_experiments_per_cell": 1,
+                "operation_limits_by_task": {TASK: 1},
+            },
+            "orchestration": {
+                "cpu_workers": 1,
+                "gpu_devices": [],
+                "api_max_concurrency": 4,
+                "api_cell_starts_per_minute": 600000000,
+                "api_cost_usd_per_cell_limit": 50.0,
+                "matrix_monetary_cost_usd_limit": 200.0,
+            },
+            "rl_training_resources": [],
+        },
+    )
+
+
 def _resign(manifest: dict[str, Any]) -> None:
     unsigned = dict(manifest)
     unsigned.pop("run_manifest_sha256", None)
@@ -589,7 +622,8 @@ def test_stopped_matrix_resumes_only_missing_cells(tmp_path) -> None:
         stop_after_new_terminals=2,
     )
     assert first.report["status"] == "stopped_resumable"
-    assert 0 < first.report["queued_remaining"] < 8
+    assert first.report["new_terminal_count"] == 2
+    assert first.report["queued_remaining"] == 6
     terminal_before = first.report["audit"]["terminal_cell_count"]
 
     resumed = run_formal_matrix(
@@ -611,6 +645,26 @@ def test_stopped_matrix_resumes_only_missing_cells(tmp_path) -> None:
         if event["status"] in {"operation_progress", "checkpoint"}
     }
     assert preexisting_ids.isdisjoint(replayed_detail_ids)
+
+
+def test_stop_limit_caps_api_submission_below_declared_concurrency(tmp_path) -> None:
+    manifest = _api_only_manifest()
+    plan = build_formal_matrix_plan(manifest)
+
+    outcome = run_formal_matrix(
+        plan=plan,
+        executor=_SyntheticExecutor(manifest, str(tmp_path)),
+        output_root=tmp_path,
+        stop_after_new_terminals=1,
+    )
+
+    statuses = Counter(event["status"] for event in outcome.progress_events)
+    assert outcome.report["status"] == "stopped_resumable"
+    assert outcome.report["new_terminal_count"] == 1
+    assert outcome.report["queued_remaining"] == 3
+    assert outcome.report["audit"]["terminal_cell_count"] == 1
+    assert statuses["running"] == 1
+    assert statuses["succeeded"] == 1
 
 
 def test_infrastructure_failure_stops_new_scheduling_and_remains_resumable(
