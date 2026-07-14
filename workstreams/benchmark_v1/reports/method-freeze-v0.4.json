@@ -1,0 +1,226 @@
+{
+  "artifact_bindings": {
+    "classic_development": {
+      "path": "workstreams/benchmark_v1/reports/classic-dev-v0.4.json",
+      "sha256": "a1915b871d30da92f356b97108ebf5e6c24bc7f1616d20b46ce4a23ec6d9a9fb"
+    },
+    "classic_freeze": {
+      "path": "configs/methods/classic_v0.4/classic_methods.json",
+      "sha256": "e40365c257b73195d0f53bdc09074aa00651bdd49bf08dd4a3f55414b44fb5b4"
+    },
+    "formal_protocol": {
+      "path": "configs/benchmark/formal_protocol_v0.4.json",
+      "sha256": "fdf0655f7547b46d6951ae90106fd7353884c4607599abd5861ec5726eeabc2b"
+    },
+    "interaction_strata": {
+      "path": "configs/benchmark/interaction_strata_v0.4.json",
+      "sha256": "9f543f991cda97ccc3f28d0c6f0354bbeb6c10774825e152c5853c1c82b24c43"
+    },
+    "llm_development_plan": {
+      "path": "configs/methods/llm_v0.4/llm_development_plan.json",
+      "sha256": "c5580f69eda3a4efe697456ae0d6dfa4af28cb5e8c471b74c673be851cb54bfe"
+    },
+    "llm_freeze": {
+      "path": "configs/methods/llm_v0.4/llm_methods.json",
+      "sha256": "9913fead5f6f8de2839e4b9f5d7a6a7f112196e616968b4ccad76e96a6ea590e"
+    },
+    "ppo_checkpoint_index": {
+      "path": "configs/methods/rl_v0.4/ppo_checkpoint_index.json",
+      "sha256": "b15b8b5450b1ab33c8e0cc1f78d52dedfef05154c916aead049d88e119b9ff9f"
+    },
+    "ppo_development": {
+      "path": "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json",
+      "sha256": "97be3d1bacb90e6d6cdca47dc22f82c1f0c00fa6109c09dc7ac3b7d89952c88a"
+    },
+    "reference_plan": {
+      "path": "configs/benchmark/reference_portfolio_v0.4.json",
+      "sha256": "2955ff5624fbb830da398d62b995b3862e32139f82bd3d570099f2418dabf029"
+    },
+    "rl_contract": {
+      "path": "configs/methods/rl_v0.4/rl_methods.json",
+      "sha256": "5350d7815b4f5d1cfdb3bef9c5c892da66d7352cddc131e20c407567e499bef9"
+    },
+    "statistical_plan": {
+      "path": "configs/benchmark/statistical_analysis_plan_v0.4.json",
+      "sha256": "f83258909724788354c35c5862f4182be113428df26704514a1cb04ed66db1a7"
+    }
+  },
+  "bench_manifest_issued": false,
+  "bench_unlock_allowed": false,
+  "benchmark_claim_allowed": false,
+  "blockers": [
+    "artifact:family_selection:expected_sha256_missing",
+    "artifact:family_selection:file_missing",
+    "artifact:formal_execution_budget:expected_sha256_missing",
+    "artifact:formal_execution_budget:file_missing",
+    "artifact:llm_development:expected_sha256_missing",
+    "artifact:llm_development:file_missing",
+    "artifact:operation_baseline_development:expected_sha256_missing",
+    "artifact:operation_baseline_development:file_missing",
+    "artifact:operation_baseline_freeze:expected_sha256_missing",
+    "artifact:operation_baseline_freeze:file_missing",
+    "artifact:reference_builder_freeze:expected_sha256_missing",
+    "artifact:reference_builder_freeze:file_missing",
+    "artifact:sac_checkpoint_index:expected_sha256_missing",
+    "artifact:sac_checkpoint_index:file_missing",
+    "artifact:sac_development:expected_sha256_missing",
+    "artifact:sac_development:file_missing",
+    "classic:development_contract_failed",
+    "control:classic_development_ready",
+    "control:family_selection_ready",
+    "control:formal_execution_budget_ready",
+    "control:llm_development_ready",
+    "control:operation_baselines_ready",
+    "control:plan_status_ready",
+    "control:reference_independence_ready",
+    "control:rl_development_ready",
+    "formal_budget:freeze_missing",
+    "llm:development_matrix:report_missing",
+    "method_freeze:development_incomplete",
+    "operation_baseline:development_evidence_missing",
+    "operation_baseline:observation_blind:adapter_not_formal_ready",
+    "operation_baseline:operation_random:adapter_not_formal_ready",
+    "operation_baseline:rule_based:adapter_not_formal_ready",
+    "reference:builder_implementation_freeze_missing",
+    "rl:ppo:expected_4_selected_checkpoints_found_2",
+    "rl:ppo:method_not_ready",
+    "rl:ppo:missing_task:partition-discovery",
+    "rl:ppo:missing_task:reaction-to-crystallization",
+    "rl:sac:development_evidence_missing",
+    "selection:dev_family_champions_missing"
+  ],
+  "checks": {
+    "bench_access_denied": true,
+    "bench_manifest_issuance_denied": true,
+    "bench_protocol_still_sealed": true,
+    "benchmark_claim_denied": true,
+    "classic_development_ready": false,
+    "family_selection_ready": false,
+    "formal_core_tasks_exact": true,
+    "formal_execution_budget_ready": false,
+    "issuance_contract_fail_closed": true,
+    "llm_controls_ready": true,
+    "llm_development_ready": false,
+    "method_scope_matches_preregistration": true,
+    "no_formal_results": true,
+    "operation_baselines_ready": false,
+    "plan_status_ready": false,
+    "protocols_remain_nonresult_controls": true,
+    "reference_independence_ready": false,
+    "required_artifact_binding_labels": true,
+    "rl_contract_ready": true,
+    "rl_development_ready": false,
+    "schema_version": true,
+    "selection_contract_matches_preregistration": true,
+    "source_commit_identified": true
+  },
+  "force_override_available": false,
+  "formal_execution_budget": {
+    "ready": false
+  },
+  "formal_results_present": false,
+  "limitations": [
+    "This report is a public Dev-only control audit, not a benchmark result.",
+    "It never reads raw private Bench assignments and cannot issue a Bench manifest.",
+    "A ready outcome only permits the separate clean-wheel formal preflight to run."
+  ],
+  "method_families": {
+    "classic": {
+      "cell_count": 768,
+      "complete_experiments_per_cell": 40,
+      "controls_ready": true,
+      "development_file_sha256": "a1915b871d30da92f356b97108ebf5e6c24bc7f1616d20b46ce4a23ec6d9a9fb",
+      "development_ready": false,
+      "final_preregistered_recipe_selection_present": false,
+      "freeze_file_sha256": "e40365c257b73195d0f53bdc09074aa00651bdd49bf08dd4a3f55414b44fb5b4",
+      "internal_family_champions": {
+        "bayesian_optimization": "structured_gp_ucb",
+        "constrained_optimization": "structured_safe_gp_ei",
+        "design": "lhs",
+        "local_search": "greedy_local"
+      },
+      "method_count": 8
+    },
+    "llm": {
+      "controls_ready": true,
+      "development_plan_ready": true,
+      "development_ready": false,
+      "method_ids": [
+        "live_llm_a",
+        "live_llm_b"
+      ],
+      "stage": null,
+      "status": null
+    },
+    "operation_baselines": {
+      "development_ready": false,
+      "pending_adapter_method_ids": [
+        "operation_random",
+        "observation_blind",
+        "rule_based"
+      ],
+      "required_method_ids": [
+        "operation_random",
+        "observation_blind",
+        "rule_based"
+      ]
+    },
+    "rl": {
+      "ppo": {
+        "checkpoint_binding_error": null,
+        "checkpoint_bindings_ready": false,
+        "development_ready": false,
+        "development_status": "ppo_train_dev_complete_selection_failed",
+        "expected_selected_checkpoint_count": 4,
+        "index_status": "ppo_dev_selection_failed",
+        "metadata_ready": false,
+        "missing_task_ids": [
+          "partition-discovery",
+          "reaction-to-crystallization"
+        ],
+        "selected_checkpoint_count": 2
+      },
+      "sac": {
+        "development_ready": false,
+        "expected_selected_checkpoint_count": 4,
+        "missing_task_ids": [
+          "partition-discovery",
+          "reaction-to-crystallization",
+          "reaction-to-distillation",
+          "flow-reaction-optimization"
+        ],
+        "selected_checkpoint_count": 0
+      }
+    },
+    "rl_contract": {
+      "config_sha256": "84a2110562ab12c5d345204031deb2ce2a927c71018c31ac92aaaa5ab2d78b80",
+      "controls_ready": true,
+      "formal_ready_checkpoint_count": 0,
+      "required_checkpoint_count": 8,
+      "status": "contract_ready_training_pending"
+    }
+  },
+  "method_freeze_ready": false,
+  "plan_sha256": "03d4fedf7a3bce16ba879dee86b97e54a7d764279f248fa86d76fc3ae7a7a413",
+  "preflight_issuance_allowed": false,
+  "private_bench_manifest_opened": false,
+  "reference_independence": {
+    "builder_implementation_ready": false,
+    "plan_contract_ready": true,
+    "ready": false
+  },
+  "schema_version": "chemworld-method-freeze-audit-0.4",
+  "selection": {
+    "ready": false,
+    "required_families": [
+      "llm",
+      "operation_primary",
+      "recipe",
+      "rl"
+    ],
+    "selected_champions": {}
+  },
+  "source_commit": "10b183cbec18e5d08d52037bb85418ef337b1a95",
+  "source_tree_clean": true,
+  "status": "method_freeze_preflight_blocked"
+}

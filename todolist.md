@@ -211,6 +211,7 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 - [ ] **`benchmark-v05-method-freeze` — 方法清单与 Bench 解封**
   - 默认 owned_paths：`configs/benchmark/method_freeze_v0.4.json`、`scripts/audit_method_freeze_v0.4.py`、`tests/test_method_freeze_v0.4.py`、`workstreams/benchmark_v1/reports/method-freeze-v0.4.json`。
   - 依赖：所有计划进入正式比较的方法完成 P3；未完成方法必须明确退出，不拖着空实现进入矩阵。
+  - 当前预检：fail-closed 方法冻结审计器与 19 项 hash-bound 输入合同已经落地；当前报告为 `method_freeze_preflight_blocked`，列出 39 个精确 blocker，并固定输出 `bench_unlock_allowed=false`、`bench_manifest_issued=false`、`benchmark_claim_allowed=false`。Classic 的八个代码/超参数 freeze controls 仍通过，但 768-cell 开发报告绑定的是旧 formal protocol digest，不能直接继承到当前协议；`operation_random`、`observation_blind`、`rule_based` 仍是 `pending_p3_adapter` 且没有正式开发工件；PPO 仅 2/4 个 task checkpoint 合格，SAC 与 v0.4.7 LLM Dev 证据尚未生成。统一 Dev-only family selection、独立 reference builder 代码 freeze 和正式 cell/CPU/GPU/API/磁盘硬预算也尚未落地。该审计只读取公开控制工件，不打开私有 Bench，也没有 `--force` 或 manifest 签发能力；52 项相关回归、Ruff 与 mypy 已通过。
   - [ ] 固定方法 IDs、family、interaction stratum、hyperparameters、checkpoint/prompt hashes、Dev 选择依据和资源上限。
   - [ ] 核实 reference builder 与所有 evaluated method 身份、代码和随机数流独立。
   - [ ] 锁定 run count/预计算力/API 费用，并由 preflight 签发 Bench manifest。
