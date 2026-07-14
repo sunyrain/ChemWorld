@@ -1,0 +1,1234 @@
+{
+  "algorithm": "ppo",
+  "bench_accessed": false,
+  "benchmark_claim_allowed": false,
+  "claim_boundary": "Current-contract public Train/Dev PPO learning preflight only; this is neither full-matrix method readiness nor formal Bench evidence.",
+  "comparison": {
+    "device": "cpu",
+    "model_seed": 0,
+    "parallel_environments": 8,
+    "progress_interval_steps": 5120,
+    "torch_num_threads": 1,
+    "trained_environment_steps": 25600,
+    "training_hyperparameters": {
+      "batch_size": 64,
+      "ent_coef": 0.01,
+      "gae_lambda": 0.95,
+      "gamma": 0.99,
+      "learning_rate": 0.0003,
+      "n_steps": 128
+    },
+    "training_operation_budget": 60,
+    "untrained_environment_steps": 0,
+    "vectorization_backend": "subprocess"
+  },
+  "development_evaluation": {
+    "allocation": "dev",
+    "deterministic_policy": false,
+    "episodes_per_condition": 20,
+    "evaluation_repetitions": 2,
+    "exact_replay_required": true,
+    "operation_budget_per_episode": 60,
+    "policy_mode": "stochastic_frozen_seed",
+    "policy_seed_base": 250000,
+    "same_task_split_seed_cohort_budget_contract_and_evaluator": true,
+    "sampler_seed_base": 240000
+  },
+  "formal_protocol_path": "configs/benchmark/formal_protocol_v0.4.json",
+  "formal_protocol_sha256": "fdf0655f7547b46d6951ae90106fd7353884c4607599abd5861ec5726eeabc2b",
+  "formal_results_present": false,
+  "full_matrix_allowed": false,
+  "gate_assessment": {
+    "checks": {
+      "all_tasks_operational": false,
+      "minimum_learning_signal_tasks": true,
+      "trained_primary_metric_observations_present": true,
+      "trained_total_behavior_complete_not_decreased": true
+    },
+    "failed_checks": [
+      "all_tasks_operational"
+    ],
+    "learning_signal_task_count": 3,
+    "passed": false,
+    "required_learning_signal_task_count": 2,
+    "status": "ppo_v048_preflight_failed_full_matrix_forbidden",
+    "step0_total_behavior_complete_experiment_count": 11,
+    "task_results": [
+      {
+        "behavior_learning_signal": true,
+        "learning_signal": true,
+        "operational": false,
+        "primary_metric": "product_in_organic",
+        "primary_metric_delta_with_missing_step0_as_zero": 0.5192553662119139,
+        "primary_metric_learning_signal": true,
+        "sesoi": 0.024964,
+        "step0_behavior_complete_experiment_count": 2,
+        "step0_mean_episode_best_primary_metric": 0.2984938811121626,
+        "step0_operational_checks": {
+          "contract_exact": true,
+          "nonempty_execution": true,
+          "observation_domain_stable": true,
+          "policy_mode_stochastic_frozen_seed": true,
+          "rates_finite_and_bounded": true,
+          "replay_exact": true,
+          "runtime_domain_stable": true
+        },
+        "task_id": "partition-discovery",
+        "trained_behavior_complete_experiment_count": 81,
+        "trained_mean_episode_best_primary_metric": 0.8177492473240765,
+        "trained_operational_checks": {
+          "contract_exact": true,
+          "nonempty_execution": true,
+          "observation_domain_stable": true,
+          "policy_mode_stochastic_frozen_seed": true,
+          "rates_finite_and_bounded": true,
+          "replay_exact": true,
+          "runtime_domain_stable": false
+        }
+      },
+      {
+        "behavior_learning_signal": false,
+        "learning_signal": false,
+        "operational": false,
+        "primary_metric": "crystal_yield",
+        "primary_metric_delta_with_missing_step0_as_zero": null,
+        "primary_metric_learning_signal": false,
+        "sesoi": 0.03672,
+        "step0_behavior_complete_experiment_count": 0,
+        "step0_mean_episode_best_primary_metric": 0.43302985564447455,
+        "step0_operational_checks": {
+          "contract_exact": true,
+          "nonempty_execution": true,
+          "observation_domain_stable": true,
+          "policy_mode_stochastic_frozen_seed": true,
+          "rates_finite_and_bounded": true,
+          "replay_exact": true,
+          "runtime_domain_stable": false
+        },
+        "task_id": "reaction-to-crystallization",
+        "trained_behavior_complete_experiment_count": 0,
+        "trained_mean_episode_best_primary_metric": null,
+        "trained_operational_checks": {
+          "contract_exact": true,
+          "nonempty_execution": true,
+          "observation_domain_stable": true,
+          "policy_mode_stochastic_frozen_seed": true,
+          "rates_finite_and_bounded": true,
+          "replay_exact": true,
+          "runtime_domain_stable": true
+        }
+      },
+      {
+        "behavior_learning_signal": true,
+        "learning_signal": true,
+        "operational": false,
+        "primary_metric": "distillate_purity",
+        "primary_metric_delta_with_missing_step0_as_zero": 0.17413642599459653,
+        "primary_metric_learning_signal": true,
+        "sesoi": 0.02,
+        "step0_behavior_complete_experiment_count": 1,
+        "step0_mean_episode_best_primary_metric": 0.032646826429991276,
+        "step0_operational_checks": {
+          "contract_exact": true,
+          "nonempty_execution": true,
+          "observation_domain_stable": true,
+          "policy_mode_stochastic_frozen_seed": true,
+          "rates_finite_and_bounded": true,
+          "replay_exact": true,
+          "runtime_domain_stable": false
+        },
+        "task_id": "reaction-to-distillation",
+        "trained_behavior_complete_experiment_count": 20,
+        "trained_mean_episode_best_primary_metric": 0.2067832524245878,
+        "trained_operational_checks": {
+          "contract_exact": true,
+          "nonempty_execution": true,
+          "observation_domain_stable": true,
+          "policy_mode_stochastic_frozen_seed": true,
+          "rates_finite_and_bounded": true,
+          "replay_exact": true,
+          "runtime_domain_stable": false
+        }
+      },
+      {
+        "behavior_learning_signal": true,
+        "learning_signal": true,
+        "operational": false,
+        "primary_metric": "flow_conversion",
+        "primary_metric_delta_with_missing_step0_as_zero": 0.09103926188884952,
+        "primary_metric_learning_signal": true,
+        "sesoi": 0.02,
+        "step0_behavior_complete_experiment_count": 8,
+        "step0_mean_episode_best_primary_metric": 0.016790278340702274,
+        "step0_operational_checks": {
+          "contract_exact": true,
+          "nonempty_execution": true,
+          "observation_domain_stable": true,
+          "policy_mode_stochastic_frozen_seed": true,
+          "rates_finite_and_bounded": true,
+          "replay_exact": true,
+          "runtime_domain_stable": false
+        },
+        "task_id": "flow-reaction-optimization",
+        "trained_behavior_complete_experiment_count": 153,
+        "trained_mean_episode_best_primary_metric": 0.1078295402295518,
+        "trained_operational_checks": {
+          "contract_exact": true,
+          "nonempty_execution": true,
+          "observation_domain_stable": true,
+          "policy_mode_stochastic_frozen_seed": true,
+          "rates_finite_and_bounded": true,
+          "replay_exact": true,
+          "runtime_domain_stable": true
+        }
+      }
+    ],
+    "trained_primary_metric_observation_count": 263,
+    "trained_total_behavior_complete_experiment_count": 254
+  },
+  "historical_diagnostic_used_as_current_result": false,
+  "jobs": [
+    {
+      "bench_accessed": false,
+      "dev_allocation": {
+        "cell_count": 12,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "dev",
+        "namespace_id": "chemworld-v0.5-dev-0.4",
+        "seed_count": 20,
+        "seed_max": 11019,
+        "seed_min": 11000,
+        "task_id": "partition-discovery"
+      },
+      "formal_results_present": false,
+      "model_seed": 0,
+      "plan_sha256": "f797d24bc8ca13fd16628da9e380389cda36e4d5f0136a8c2667023929c944de",
+      "policy_seed": 250000,
+      "primary_metric": "product_in_organic",
+      "reference_search_used": false,
+      "sampler_seed": 240000,
+      "schema_version": "chemworld-ppo-v048-preflight-job-0.1",
+      "sesoi": 0.024964,
+      "source_commit": "099028d58809b79f88fba2f605a8ead1d1dd47d4",
+      "status": "complete",
+      "step0_checkpoint": {
+        "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "allocation": {
+          "cell_count": 16,
+          "modes": [
+            "composition",
+            "interpolation",
+            "observation_noise"
+          ],
+          "name": "train",
+          "namespace_id": "chemworld-v0.5-train-0.4",
+          "seed_count": 100,
+          "seed_max": 10099,
+          "seed_min": 10000,
+          "task_id": "partition-discovery"
+        },
+        "checkpoint": "ppo-partition-discovery-seed0-step0.zip",
+        "checkpoint_contract": "ppo-partition-discovery-seed0-step0.manifest.json",
+        "checkpoint_contract_sha256": "dd89cb1e747eac9a3eeb86d69d189ac758e39d5d21a7067c59b480e630f2128a",
+        "checkpoint_sha256": "cfe4e4e3c7b50f8e80cf7ce1715a7ef78838a785d8d8686b275e97c3501e7fe6",
+        "cpu_time_s": 1.65625,
+        "gpu_time_s": 0.0,
+        "model_seed": 0,
+        "observation_contract_hash": "62e0281da582fe2ec8fa5f69dc1740ae6288f29f9f514263fd26a88792ec180a",
+        "path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/partition-discovery/step0/ppo-partition-discovery-seed0-step0.zip",
+        "policy_distribution_contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "training_environment_step_count": 0,
+        "training_reward_contract_hash": "5016b7901c04ed36b58e269aea586d4d1d2f2fe03f6daf30b690ace17102f0f7",
+        "wall_time_s": 2.0757614000031026
+      },
+      "step0_evaluation": {
+        "canonical_evaluation_sha256": "1572c1856a86b0b9eb05d93f5245a68e59198dc03507965bb6128ceea4f88e56",
+        "canonical_replay_sha256s": [
+          "1572c1856a86b0b9eb05d93f5245a68e59198dc03507965bb6128ceea4f88e56",
+          "1572c1856a86b0b9eb05d93f5245a68e59198dc03507965bb6128ceea4f88e56"
+        ],
+        "checkpoint_contract_compatibility": {
+          "action_contract": true,
+          "algorithm": true,
+          "checkpoint_digest": true,
+          "observation_contract": true,
+          "policy_distribution_contract": true,
+          "reward_contract": true,
+          "task": true
+        },
+        "evaluation_file_sha256s": [
+          "cc9ef430e9f7dddd69de7c4562472e1a64950c964615fbc8372838403a065fbb",
+          "cc9ef430e9f7dddd69de7c4562472e1a64950c964615fbc8372838403a065fbb"
+        ],
+        "evaluation_paths": [
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/partition-discovery/dev/step0/replay-1.json",
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/partition-discovery/dev/step0/replay-2.json"
+        ],
+        "exact_replay": true,
+        "policy_mode": "stochastic_frozen_seed",
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 2,
+          "behavior_complete_experiment_rate": 0.02127659574468085,
+          "complete_experiment_count": 94,
+          "complete_experiments_per_episode": 4.7,
+          "episode_completion_rate": 1.0,
+          "high_cost_step_rate": 0.04833333333333333,
+          "invalid_action_rate": 0.3016666666666667,
+          "mean_episode_best_primary_metric": 0.2984938811121626,
+          "mean_episode_best_score": 0.3955339904146314,
+          "mean_final_primary_metric": 0.06941550498933648,
+          "mean_final_score": 0.18569492616787847,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_extractant": 16,
+            "add_phase": 158,
+            "add_reagent": 192,
+            "add_solvent": 181,
+            "measure": 514,
+            "mix": 17,
+            "separate_phase": 4,
+            "settle": 19,
+            "terminate": 99
+          },
+          "primary_metric": "product_in_organic",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 94,
+          "quick_close_count": 92,
+          "quick_close_rate": 0.9787234042553191,
+          "runtime_domain_failure_count": 0,
+          "unsafe_step_rate": 0.0
+        }
+      },
+      "task_id": "partition-discovery",
+      "train_allocation": {
+        "cell_count": 16,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "train",
+        "namespace_id": "chemworld-v0.5-train-0.4",
+        "seed_count": 100,
+        "seed_max": 10099,
+        "seed_min": 10000,
+        "task_id": "partition-discovery"
+      },
+      "trained_checkpoint": {
+        "checkpoint_sha256": "6ceed1a28925c965502330f7d215b79f7cccf393aa3e5ab04276e13e6a7ac7cf",
+        "cpu_time_s": 491.84375,
+        "gpu_time_s": 0.0,
+        "manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/partition-discovery/trained/ppo-partition-discovery-seed0.manifest.json",
+        "manifest_sha256": "0daec4a0b7f5190d7046c93679280f048c6d164739383a2570eb3bf5e07f3710",
+        "path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/partition-discovery/trained/ppo-partition-discovery-seed0.zip",
+        "requested_training_environment_step_count": 25600,
+        "step_budget_exact": true,
+        "training_diagnostics": {
+          "behavior_complete_experiment_count": 537,
+          "completed_experiment_count": 1212,
+          "completed_experiments_per_1000_steps": 47.34375,
+          "core_operation_counts": {
+            "mix": 2877,
+            "separate_phase": 2324,
+            "settle": 3050
+          },
+          "core_requirement_satisfied_count": 2750,
+          "environment_count": 8,
+          "episode_count": 432,
+          "high_cost_step_count": 2764,
+          "invalid_action_count": 3900,
+          "invalid_action_rate": 0.15234375,
+          "measurement_count": 8844,
+          "newly_unlocked_operation_count": 9672,
+          "quick_close_count": 675,
+          "quick_close_rate": 0.556930693069307,
+          "raw_reward_sum": 2493.66221668195,
+          "runtime_domain_failure_count": 139,
+          "shaped_reward_sum": 2218.402216681951,
+          "step_count": 25600,
+          "unsafe_step_count": 0
+        },
+        "training_environment_step_count": 25600,
+        "training_infrastructure": {
+          "average_process_cpu_cores": 4.30543542888891,
+          "cuda_available": false,
+          "cuda_device_name": null,
+          "environment_steps_per_wall_second": 224.09382447079201,
+          "initial_torch_num_threads": 1,
+          "logical_cpu_count": 16,
+          "parallel_environments": 8,
+          "parent_process_cpu_time_s": 47.5625,
+          "requested_device": "cpu",
+          "requested_torch_num_threads": 1,
+          "resolved_device": "cpu",
+          "torch_cuda_version": null,
+          "torch_num_threads": 1,
+          "vectorization_backend": "subprocess",
+          "worker_process_cpu_accounting_method": "windows_GetProcessTimes_retained_worker_handles",
+          "worker_process_cpu_time_s": 444.28125
+        },
+        "wall_time_s": 114.2378647000005
+      },
+      "trained_evaluation": {
+        "canonical_evaluation_sha256": "eae108fdda9977fec67bc3c57f870fce513ecd2eaef2024e8aca76ee1ab3c173",
+        "canonical_replay_sha256s": [
+          "eae108fdda9977fec67bc3c57f870fce513ecd2eaef2024e8aca76ee1ab3c173",
+          "eae108fdda9977fec67bc3c57f870fce513ecd2eaef2024e8aca76ee1ab3c173"
+        ],
+        "checkpoint_contract_compatibility": {
+          "action_contract": true,
+          "algorithm": true,
+          "checkpoint_digest": true,
+          "observation_contract": true,
+          "policy_distribution_contract": true,
+          "reward_contract": true,
+          "task": true
+        },
+        "evaluation_file_sha256s": [
+          "6cec48fe846488201a93ff0a8a4459035f3f3b9ac18d0538f41f2ab8b351b464",
+          "6cec48fe846488201a93ff0a8a4459035f3f3b9ac18d0538f41f2ab8b351b464"
+        ],
+        "evaluation_paths": [
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/partition-discovery/dev/trained/replay-1.json",
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/partition-discovery/dev/trained/replay-2.json"
+        ],
+        "exact_replay": true,
+        "policy_mode": "stochastic_frozen_seed",
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 81,
+          "behavior_complete_experiment_rate": 0.9101123595505618,
+          "complete_experiment_count": 89,
+          "complete_experiments_per_episode": 4.45,
+          "episode_completion_rate": 1.0,
+          "high_cost_step_rate": 0.0025,
+          "invalid_action_rate": 0.11583333333333333,
+          "mean_episode_best_primary_metric": 0.8177492473240765,
+          "mean_episode_best_score": 0.7264325052189375,
+          "mean_final_primary_metric": 0.7320531565549289,
+          "mean_final_score": 0.6766870059435628,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_extractant": 16,
+            "add_phase": 171,
+            "add_reagent": 7,
+            "add_solvent": 9,
+            "measure": 385,
+            "mix": 191,
+            "separate_phase": 144,
+            "settle": 184,
+            "terminate": 93
+          },
+          "primary_metric": "product_in_organic",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 89,
+          "quick_close_count": 8,
+          "quick_close_rate": 0.0898876404494382,
+          "runtime_domain_failure_count": 19,
+          "unsafe_step_rate": 0.0
+        }
+      }
+    },
+    {
+      "bench_accessed": false,
+      "dev_allocation": {
+        "cell_count": 12,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "dev",
+        "namespace_id": "chemworld-v0.5-dev-0.4",
+        "seed_count": 20,
+        "seed_max": 11019,
+        "seed_min": 11000,
+        "task_id": "reaction-to-crystallization"
+      },
+      "formal_results_present": false,
+      "model_seed": 0,
+      "plan_sha256": "f797d24bc8ca13fd16628da9e380389cda36e4d5f0136a8c2667023929c944de",
+      "policy_seed": 250001,
+      "primary_metric": "crystal_yield",
+      "reference_search_used": false,
+      "sampler_seed": 240001,
+      "schema_version": "chemworld-ppo-v048-preflight-job-0.1",
+      "sesoi": 0.03672,
+      "source_commit": "099028d58809b79f88fba2f605a8ead1d1dd47d4",
+      "status": "complete",
+      "step0_checkpoint": {
+        "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "allocation": {
+          "cell_count": 16,
+          "modes": [
+            "composition",
+            "interpolation",
+            "observation_noise"
+          ],
+          "name": "train",
+          "namespace_id": "chemworld-v0.5-train-0.4",
+          "seed_count": 100,
+          "seed_max": 10099,
+          "seed_min": 10000,
+          "task_id": "reaction-to-crystallization"
+        },
+        "checkpoint": "ppo-reaction-to-crystallization-seed0-step0.zip",
+        "checkpoint_contract": "ppo-reaction-to-crystallization-seed0-step0.manifest.json",
+        "checkpoint_contract_sha256": "3f37189b44836bf79a1bef3943732e500ce3a20ce92f0ed00c0ec5deba3281f2",
+        "checkpoint_sha256": "05ef2b20c2375f2137ef7cf197c6d3d2ad91dadcbceb719964b286a5532cb83e",
+        "cpu_time_s": 0.015625,
+        "gpu_time_s": 0.0,
+        "model_seed": 0,
+        "observation_contract_hash": "4dc965f1dc6489f783482186baae12252bbe8f3cad5313af190d2cf1b63b1a8f",
+        "path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-crystallization/step0/ppo-reaction-to-crystallization-seed0-step0.zip",
+        "policy_distribution_contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "training_environment_step_count": 0,
+        "training_reward_contract_hash": "28af17cbde7ac86c06eec01e2083ea5dfa8c4f7f1f125fd73d7173c170ac1547",
+        "wall_time_s": 0.07998049999878276
+      },
+      "step0_evaluation": {
+        "canonical_evaluation_sha256": "7c0d08a5b1b9cafa15fd70140a65d36f825a34868566aa20ee4ce9ebc891da0c",
+        "canonical_replay_sha256s": [
+          "7c0d08a5b1b9cafa15fd70140a65d36f825a34868566aa20ee4ce9ebc891da0c",
+          "7c0d08a5b1b9cafa15fd70140a65d36f825a34868566aa20ee4ce9ebc891da0c"
+        ],
+        "checkpoint_contract_compatibility": {
+          "action_contract": true,
+          "algorithm": true,
+          "checkpoint_digest": true,
+          "observation_contract": true,
+          "policy_distribution_contract": true,
+          "reward_contract": true,
+          "task": true
+        },
+        "evaluation_file_sha256s": [
+          "587e1e41af04dd5bf2df13602c57cfe744bcc31e9fefbd89d30a78fe044936f6",
+          "587e1e41af04dd5bf2df13602c57cfe744bcc31e9fefbd89d30a78fe044936f6"
+        ],
+        "evaluation_paths": [
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-crystallization/dev/step0/replay-1.json",
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-crystallization/dev/step0/replay-2.json"
+        ],
+        "exact_replay": true,
+        "policy_mode": "stochastic_frozen_seed",
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 0,
+          "behavior_complete_experiment_rate": 0.0,
+          "complete_experiment_count": 55,
+          "complete_experiments_per_episode": 2.75,
+          "episode_completion_rate": 1.0,
+          "high_cost_step_rate": 0.4675,
+          "invalid_action_rate": 0.2708333333333333,
+          "mean_episode_best_primary_metric": 0.43302985564447455,
+          "mean_episode_best_score": 0.3297505752177775,
+          "mean_final_primary_metric": 0.15944177068188603,
+          "mean_final_score": 0.13753199971016866,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_catalyst": 152,
+            "add_reagent": 173,
+            "add_solvent": 146,
+            "cool_crystallize": 37,
+            "filter_crystals": 24,
+            "heat": 49,
+            "measure": 348,
+            "quench": 57,
+            "sample": 47,
+            "seed_crystals": 57,
+            "terminate": 58,
+            "wait": 52
+          },
+          "primary_metric": "crystal_yield",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 55,
+          "quick_close_count": 55,
+          "quick_close_rate": 1.0,
+          "runtime_domain_failure_count": 1,
+          "unsafe_step_rate": 0.0016666666666666668
+        }
+      },
+      "task_id": "reaction-to-crystallization",
+      "train_allocation": {
+        "cell_count": 16,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "train",
+        "namespace_id": "chemworld-v0.5-train-0.4",
+        "seed_count": 100,
+        "seed_max": 10099,
+        "seed_min": 10000,
+        "task_id": "reaction-to-crystallization"
+      },
+      "trained_checkpoint": {
+        "checkpoint_sha256": "90cdadd65055da6984dd46924c46d9ddbf99d15afe96de686a993a082a2e5681",
+        "cpu_time_s": 523.0,
+        "gpu_time_s": 0.0,
+        "manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-crystallization/trained/ppo-reaction-to-crystallization-seed0.manifest.json",
+        "manifest_sha256": "441529d458ffed87199d3b8cf415dc4be8583a898d3efba61eac1bbb919577dc",
+        "path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-crystallization/trained/ppo-reaction-to-crystallization-seed0.zip",
+        "requested_training_environment_step_count": 25600,
+        "step_budget_exact": true,
+        "training_diagnostics": {
+          "behavior_complete_experiment_count": 1,
+          "completed_experiment_count": 403,
+          "completed_experiments_per_1000_steps": 15.7421875,
+          "core_operation_counts": {
+            "cool_crystallize": 2,
+            "filter_crystals": 6595,
+            "heat": 264,
+            "wait": 408
+          },
+          "core_requirement_satisfied_count": 903,
+          "environment_count": 8,
+          "episode_count": 432,
+          "high_cost_step_count": 12315,
+          "invalid_action_count": 2771,
+          "invalid_action_rate": 0.1082421875,
+          "measurement_count": 10192,
+          "newly_unlocked_operation_count": 7175,
+          "quick_close_count": 402,
+          "quick_close_rate": 0.9975186104218362,
+          "raw_reward_sum": 6982.17172785966,
+          "runtime_domain_failure_count": 209,
+          "shaped_reward_sum": 5707.171727859678,
+          "step_count": 25600,
+          "unsafe_step_count": 3
+        },
+        "training_environment_step_count": 25600,
+        "training_infrastructure": {
+          "average_process_cpu_cores": 4.344938272442693,
+          "cuda_available": false,
+          "cuda_device_name": null,
+          "environment_steps_per_wall_second": 212.67766687291194,
+          "initial_torch_num_threads": 1,
+          "logical_cpu_count": 16,
+          "parallel_environments": 8,
+          "parent_process_cpu_time_s": 48.40625,
+          "requested_device": "cpu",
+          "requested_torch_num_threads": 1,
+          "resolved_device": "cpu",
+          "torch_cuda_version": null,
+          "torch_num_threads": 1,
+          "vectorization_backend": "subprocess",
+          "worker_process_cpu_accounting_method": "windows_GetProcessTimes_retained_worker_handles",
+          "worker_process_cpu_time_s": 474.59375
+        },
+        "wall_time_s": 120.3699493999884
+      },
+      "trained_evaluation": {
+        "canonical_evaluation_sha256": "abee79034d9467482786a0d19e7f0541b06257c0e15ab692eeb5537aef365944",
+        "canonical_replay_sha256s": [
+          "abee79034d9467482786a0d19e7f0541b06257c0e15ab692eeb5537aef365944",
+          "abee79034d9467482786a0d19e7f0541b06257c0e15ab692eeb5537aef365944"
+        ],
+        "checkpoint_contract_compatibility": {
+          "action_contract": true,
+          "algorithm": true,
+          "checkpoint_digest": true,
+          "observation_contract": true,
+          "policy_distribution_contract": true,
+          "reward_contract": true,
+          "task": true
+        },
+        "evaluation_file_sha256s": [
+          "ff4bfbd91b3e42291ea940d0c64e50542aa5ae40a5b9b7f5f7263507fa8f5466",
+          "ff4bfbd91b3e42291ea940d0c64e50542aa5ae40a5b9b7f5f7263507fa8f5466"
+        ],
+        "evaluation_paths": [
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-crystallization/dev/trained/replay-1.json",
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-crystallization/dev/trained/replay-2.json"
+        ],
+        "exact_replay": true,
+        "policy_mode": "stochastic_frozen_seed",
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 0,
+          "behavior_complete_experiment_rate": 0.0,
+          "complete_experiment_count": 0,
+          "complete_experiments_per_episode": 0.0,
+          "episode_completion_rate": 0.0,
+          "high_cost_step_rate": 0.5608333333333333,
+          "invalid_action_rate": 0.010833333333333334,
+          "mean_episode_best_primary_metric": null,
+          "mean_episode_best_score": 0.0,
+          "mean_final_primary_metric": null,
+          "mean_final_score": 0.0,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_catalyst": 1,
+            "add_reagent": 1,
+            "add_solvent": 24,
+            "filter_crystals": 982,
+            "heat": 1,
+            "measure": 89,
+            "quench": 13,
+            "sample": 21,
+            "seed_crystals": 65,
+            "terminate": 1,
+            "wait": 2
+          },
+          "primary_metric": "crystal_yield",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 0,
+          "quick_close_count": 0,
+          "quick_close_rate": 0.0,
+          "runtime_domain_failure_count": 0,
+          "unsafe_step_rate": 0.0
+        }
+      }
+    },
+    {
+      "bench_accessed": false,
+      "dev_allocation": {
+        "cell_count": 12,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "dev",
+        "namespace_id": "chemworld-v0.5-dev-0.4",
+        "seed_count": 20,
+        "seed_max": 11019,
+        "seed_min": 11000,
+        "task_id": "reaction-to-distillation"
+      },
+      "formal_results_present": false,
+      "model_seed": 0,
+      "plan_sha256": "f797d24bc8ca13fd16628da9e380389cda36e4d5f0136a8c2667023929c944de",
+      "policy_seed": 250002,
+      "primary_metric": "distillate_purity",
+      "reference_search_used": false,
+      "sampler_seed": 240002,
+      "schema_version": "chemworld-ppo-v048-preflight-job-0.1",
+      "sesoi": 0.02,
+      "source_commit": "099028d58809b79f88fba2f605a8ead1d1dd47d4",
+      "status": "complete",
+      "step0_checkpoint": {
+        "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "allocation": {
+          "cell_count": 16,
+          "modes": [
+            "composition",
+            "interpolation",
+            "observation_noise"
+          ],
+          "name": "train",
+          "namespace_id": "chemworld-v0.5-train-0.4",
+          "seed_count": 100,
+          "seed_max": 10099,
+          "seed_min": 10000,
+          "task_id": "reaction-to-distillation"
+        },
+        "checkpoint": "ppo-reaction-to-distillation-seed0-step0.zip",
+        "checkpoint_contract": "ppo-reaction-to-distillation-seed0-step0.manifest.json",
+        "checkpoint_contract_sha256": "4abde30b4583f487451d53d499f1e2ecd995248e7227d2fd3a2d9e9f06da94be",
+        "checkpoint_sha256": "5ccc8dab79a0bbd0664a861c26bff1fc23ec63711bda37d1db8db3d21b37921d",
+        "cpu_time_s": 0.03125,
+        "gpu_time_s": 0.0,
+        "model_seed": 0,
+        "observation_contract_hash": "4c5c08be1133f18bb85bb568a45be5ca9f9a0b620e3704a3da2ed627ded6ea7f",
+        "path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-distillation/step0/ppo-reaction-to-distillation-seed0-step0.zip",
+        "policy_distribution_contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "training_environment_step_count": 0,
+        "training_reward_contract_hash": "1d8c5c7a69bac9182a3b52ed19b4a34341f902244dce83b09fa1cb576deacf8c",
+        "wall_time_s": 0.06708290000096895
+      },
+      "step0_evaluation": {
+        "canonical_evaluation_sha256": "46e822a7d01c193dca401372c14d636b0f661484b99b0c8f9031b68fa7410e93",
+        "canonical_replay_sha256s": [
+          "46e822a7d01c193dca401372c14d636b0f661484b99b0c8f9031b68fa7410e93",
+          "46e822a7d01c193dca401372c14d636b0f661484b99b0c8f9031b68fa7410e93"
+        ],
+        "checkpoint_contract_compatibility": {
+          "action_contract": true,
+          "algorithm": true,
+          "checkpoint_digest": true,
+          "observation_contract": true,
+          "policy_distribution_contract": true,
+          "reward_contract": true,
+          "task": true
+        },
+        "evaluation_file_sha256s": [
+          "405b2ebb71ec424cdcb4fba4ea79bcc304eb8c1dbdba05be35ec8551e09560ca",
+          "405b2ebb71ec424cdcb4fba4ea79bcc304eb8c1dbdba05be35ec8551e09560ca"
+        ],
+        "evaluation_paths": [
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-distillation/dev/step0/replay-1.json",
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-distillation/dev/step0/replay-2.json"
+        ],
+        "exact_replay": true,
+        "policy_mode": "stochastic_frozen_seed",
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 1,
+          "behavior_complete_experiment_rate": 0.020833333333333332,
+          "complete_experiment_count": 48,
+          "complete_experiments_per_episode": 2.4,
+          "episode_completion_rate": 1.0,
+          "high_cost_step_rate": 0.4841666666666667,
+          "invalid_action_rate": 0.31583333333333335,
+          "mean_episode_best_primary_metric": 0.032646826429991276,
+          "mean_episode_best_score": 0.07544179006474512,
+          "mean_final_primary_metric": 0.014201777367808735,
+          "mean_final_score": 0.0320319427029232,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_catalyst": 161,
+            "add_reagent": 181,
+            "add_solvent": 154,
+            "collect_fraction": 3,
+            "distill": 34,
+            "evaporate": 85,
+            "heat": 43,
+            "measure": 328,
+            "quench": 62,
+            "sample": 62,
+            "terminate": 52,
+            "wait": 35
+          },
+          "primary_metric": "distillate_purity",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 48,
+          "quick_close_count": 47,
+          "quick_close_rate": 0.9791666666666666,
+          "runtime_domain_failure_count": 8,
+          "unsafe_step_rate": 0.0
+        }
+      },
+      "task_id": "reaction-to-distillation",
+      "train_allocation": {
+        "cell_count": 16,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "train",
+        "namespace_id": "chemworld-v0.5-train-0.4",
+        "seed_count": 100,
+        "seed_max": 10099,
+        "seed_min": 10000,
+        "task_id": "reaction-to-distillation"
+      },
+      "trained_checkpoint": {
+        "checkpoint_sha256": "a2144204640ec5a25a3cd4e858bd2545ebd6af9a50dc9354e99b9679bf29d472",
+        "cpu_time_s": 535.640625,
+        "gpu_time_s": 0.0,
+        "manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-distillation/trained/ppo-reaction-to-distillation-seed0.manifest.json",
+        "manifest_sha256": "779e0fe6a9d570a99fb2d5c819fdcc812bdf8bd33e9df44ed8e18dbc9c0f7ac6",
+        "path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-distillation/trained/ppo-reaction-to-distillation-seed0.zip",
+        "requested_training_environment_step_count": 25600,
+        "step_budget_exact": true,
+        "training_diagnostics": {
+          "behavior_complete_experiment_count": 131,
+          "completed_experiment_count": 486,
+          "completed_experiments_per_1000_steps": 18.984375,
+          "core_operation_counts": {
+            "collect_fraction": 504,
+            "distill": 447,
+            "heat": 549,
+            "wait": 2215
+          },
+          "core_requirement_satisfied_count": 1314,
+          "environment_count": 8,
+          "episode_count": 432,
+          "high_cost_step_count": 13525,
+          "invalid_action_count": 4109,
+          "invalid_action_rate": 0.1605078125,
+          "measurement_count": 9255,
+          "newly_unlocked_operation_count": 7412,
+          "quick_close_count": 355,
+          "quick_close_rate": 0.7304526748971193,
+          "raw_reward_sum": 798.4117450596378,
+          "runtime_domain_failure_count": 349,
+          "shaped_reward_sum": -540.0482549403595,
+          "step_count": 25600,
+          "unsafe_step_count": 121
+        },
+        "training_environment_step_count": 25600,
+        "training_infrastructure": {
+          "average_process_cpu_cores": 3.9478729359132805,
+          "cuda_available": false,
+          "cuda_device_name": null,
+          "environment_steps_per_wall_second": 188.68163175520897,
+          "initial_torch_num_threads": 1,
+          "logical_cpu_count": 16,
+          "parallel_environments": 8,
+          "parent_process_cpu_time_s": 50.234375,
+          "requested_device": "cpu",
+          "requested_torch_num_threads": 1,
+          "resolved_device": "cpu",
+          "torch_cuda_version": null,
+          "torch_num_threads": 1,
+          "vectorization_backend": "subprocess",
+          "worker_process_cpu_accounting_method": "windows_GetProcessTimes_retained_worker_handles",
+          "worker_process_cpu_time_s": 485.40625
+        },
+        "wall_time_s": 135.67828390000795
+      },
+      "trained_evaluation": {
+        "canonical_evaluation_sha256": "27d96b73c5ef1b3bcafa70c978c7d08ff2ba8c53b219ed9415497d15b731314d",
+        "canonical_replay_sha256s": [
+          "27d96b73c5ef1b3bcafa70c978c7d08ff2ba8c53b219ed9415497d15b731314d",
+          "27d96b73c5ef1b3bcafa70c978c7d08ff2ba8c53b219ed9415497d15b731314d"
+        ],
+        "checkpoint_contract_compatibility": {
+          "action_contract": true,
+          "algorithm": true,
+          "checkpoint_digest": true,
+          "observation_contract": true,
+          "policy_distribution_contract": true,
+          "reward_contract": true,
+          "task": true
+        },
+        "evaluation_file_sha256s": [
+          "2ef896a648938ff879a08d6dd0763da3e3338f69418d5205dc9a4a8a65509c90",
+          "2ef896a648938ff879a08d6dd0763da3e3338f69418d5205dc9a4a8a65509c90"
+        ],
+        "evaluation_paths": [
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-distillation/dev/trained/replay-1.json",
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/reaction-to-distillation/dev/trained/replay-2.json"
+        ],
+        "exact_replay": true,
+        "policy_mode": "stochastic_frozen_seed",
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 20,
+          "behavior_complete_experiment_rate": 0.9523809523809523,
+          "complete_experiment_count": 21,
+          "complete_experiments_per_episode": 1.05,
+          "episode_completion_rate": 0.8,
+          "high_cost_step_rate": 0.5808333333333333,
+          "invalid_action_rate": 0.09166666666666666,
+          "mean_episode_best_primary_metric": 0.2067832524245878,
+          "mean_episode_best_score": 0.27620934841146993,
+          "mean_final_primary_metric": 0.1898170327480561,
+          "mean_final_score": 0.3282120101955178,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_catalyst": 4,
+            "add_reagent": 114,
+            "add_solvent": 56,
+            "collect_fraction": 48,
+            "distill": 90,
+            "evaporate": 5,
+            "heat": 24,
+            "measure": 559,
+            "quench": 89,
+            "sample": 27,
+            "terminate": 30,
+            "wait": 154
+          },
+          "primary_metric": "distillate_purity",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 21,
+          "quick_close_count": 1,
+          "quick_close_rate": 0.047619047619047616,
+          "runtime_domain_failure_count": 12,
+          "unsafe_step_rate": 0.0
+        }
+      }
+    },
+    {
+      "bench_accessed": false,
+      "dev_allocation": {
+        "cell_count": 12,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "dev",
+        "namespace_id": "chemworld-v0.5-dev-0.4",
+        "seed_count": 20,
+        "seed_max": 11019,
+        "seed_min": 11000,
+        "task_id": "flow-reaction-optimization"
+      },
+      "formal_results_present": false,
+      "model_seed": 0,
+      "plan_sha256": "f797d24bc8ca13fd16628da9e380389cda36e4d5f0136a8c2667023929c944de",
+      "policy_seed": 250003,
+      "primary_metric": "flow_conversion",
+      "reference_search_used": false,
+      "sampler_seed": 240003,
+      "schema_version": "chemworld-ppo-v048-preflight-job-0.1",
+      "sesoi": 0.02,
+      "source_commit": "099028d58809b79f88fba2f605a8ead1d1dd47d4",
+      "status": "complete",
+      "step0_checkpoint": {
+        "action_contract_hash": "8af2b55741a9da164877d7cd1cb0478a789be5e7461a1f4a1c5c528747b41f25",
+        "allocation": {
+          "cell_count": 16,
+          "modes": [
+            "composition",
+            "interpolation",
+            "observation_noise"
+          ],
+          "name": "train",
+          "namespace_id": "chemworld-v0.5-train-0.4",
+          "seed_count": 100,
+          "seed_max": 10099,
+          "seed_min": 10000,
+          "task_id": "flow-reaction-optimization"
+        },
+        "checkpoint": "ppo-flow-reaction-optimization-seed0-step0.zip",
+        "checkpoint_contract": "ppo-flow-reaction-optimization-seed0-step0.manifest.json",
+        "checkpoint_contract_sha256": "e7ba15d10bc9334d80fdc60eb0bdded2189575e908e36ac109bf229a40878bf8",
+        "checkpoint_sha256": "b6b30264bdf04efff48b6a3c461297e5cbc090c59849b78d581805a352415c98",
+        "cpu_time_s": 0.015625,
+        "gpu_time_s": 0.0,
+        "model_seed": 0,
+        "observation_contract_hash": "c10c2433b5c556be15e6c6e6c3cb30e806b3e284c2f04278d13582750e32cbc5",
+        "path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/flow-reaction-optimization/step0/ppo-flow-reaction-optimization-seed0-step0.zip",
+        "policy_distribution_contract_hash": "c2ce045527a3b9455b59a822ca0baa5b4ab62a8601d72833e07e58d881ce4885",
+        "training_environment_step_count": 0,
+        "training_reward_contract_hash": "bf1bce4e8c1b6376ed84c1ac9183cbf7bcc9b8a24b98b441f63ace59a335d952",
+        "wall_time_s": 0.06396689999382943
+      },
+      "step0_evaluation": {
+        "canonical_evaluation_sha256": "55fe9ea4262b9879e57c876a9b924552797010fbddb8dabb8cdd01fa886b51cd",
+        "canonical_replay_sha256s": [
+          "55fe9ea4262b9879e57c876a9b924552797010fbddb8dabb8cdd01fa886b51cd",
+          "55fe9ea4262b9879e57c876a9b924552797010fbddb8dabb8cdd01fa886b51cd"
+        ],
+        "checkpoint_contract_compatibility": {
+          "action_contract": true,
+          "algorithm": true,
+          "checkpoint_digest": true,
+          "observation_contract": true,
+          "policy_distribution_contract": true,
+          "reward_contract": true,
+          "task": true
+        },
+        "evaluation_file_sha256s": [
+          "68edc1b258001671cc38bb8284e5890365fc892a2a01f970654367436a1d3f32",
+          "68edc1b258001671cc38bb8284e5890365fc892a2a01f970654367436a1d3f32"
+        ],
+        "evaluation_paths": [
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/flow-reaction-optimization/dev/step0/replay-1.json",
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/flow-reaction-optimization/dev/step0/replay-2.json"
+        ],
+        "exact_replay": true,
+        "policy_mode": "stochastic_frozen_seed",
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 8,
+          "behavior_complete_experiment_rate": 0.14545454545454545,
+          "complete_experiment_count": 55,
+          "complete_experiments_per_episode": 2.75,
+          "episode_completion_rate": 1.0,
+          "high_cost_step_rate": 0.5308333333333334,
+          "invalid_action_rate": 0.32083333333333336,
+          "mean_episode_best_primary_metric": 0.016790278340702274,
+          "mean_episode_best_score": 0.006228723581426469,
+          "mean_final_primary_metric": 0.007972912573730787,
+          "mean_final_score": 0.003253972107547974,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_catalyst": 204,
+            "add_reagent": 187,
+            "add_solvent": 190,
+            "measure": 323,
+            "run_flow": 48,
+            "set_flow_rate": 186,
+            "terminate": 62
+          },
+          "primary_metric": "flow_conversion",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 55,
+          "quick_close_count": 47,
+          "quick_close_rate": 0.8545454545454545,
+          "runtime_domain_failure_count": 2,
+          "unsafe_step_rate": 0.0
+        }
+      },
+      "task_id": "flow-reaction-optimization",
+      "train_allocation": {
+        "cell_count": 16,
+        "modes": [
+          "composition",
+          "interpolation",
+          "observation_noise"
+        ],
+        "name": "train",
+        "namespace_id": "chemworld-v0.5-train-0.4",
+        "seed_count": 100,
+        "seed_max": 10099,
+        "seed_min": 10000,
+        "task_id": "flow-reaction-optimization"
+      },
+      "trained_checkpoint": {
+        "checkpoint_sha256": "2a7f9abfa7012fe73875c3a93ab7c1a1f83991c25f9250aa0a9d50e6700854de",
+        "cpu_time_s": 1543.90625,
+        "gpu_time_s": 0.0,
+        "manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/flow-reaction-optimization/trained/ppo-flow-reaction-optimization-seed0.manifest.json",
+        "manifest_sha256": "f3811eace18a170916906fc9dd5cedf702e3e1249b351fea6e75dcf6b1f8f668",
+        "path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/flow-reaction-optimization/trained/ppo-flow-reaction-optimization-seed0.zip",
+        "requested_training_environment_step_count": 25600,
+        "step_budget_exact": true,
+        "training_diagnostics": {
+          "behavior_complete_experiment_count": 1474,
+          "completed_experiment_count": 1754,
+          "completed_experiments_per_1000_steps": 68.515625,
+          "core_operation_counts": {
+            "run_flow": 1786,
+            "set_flow_rate": 4868
+          },
+          "core_requirement_satisfied_count": 3604,
+          "environment_count": 8,
+          "episode_count": 432,
+          "high_cost_step_count": 5343,
+          "invalid_action_count": 4459,
+          "invalid_action_rate": 0.1741796875,
+          "measurement_count": 5185,
+          "newly_unlocked_operation_count": 6002,
+          "quick_close_count": 280,
+          "quick_close_rate": 0.15963511972633979,
+          "raw_reward_sum": 44.3761555328263,
+          "runtime_domain_failure_count": 45,
+          "shaped_reward_sum": 594.516155532833,
+          "step_count": 25600,
+          "unsafe_step_count": 34
+        },
+        "training_environment_step_count": 25600,
+        "training_infrastructure": {
+          "average_process_cpu_cores": 1.859939412399051,
+          "cuda_available": false,
+          "cuda_device_name": null,
+          "environment_steps_per_wall_second": 30.840246263279074,
+          "initial_torch_num_threads": 1,
+          "logical_cpu_count": 16,
+          "parallel_environments": 8,
+          "parent_process_cpu_time_s": 52.234375,
+          "requested_device": "cpu",
+          "requested_torch_num_threads": 1,
+          "resolved_device": "cpu",
+          "torch_cuda_version": null,
+          "torch_num_threads": 1,
+          "vectorization_backend": "subprocess",
+          "worker_process_cpu_accounting_method": "windows_GetProcessTimes_retained_worker_handles",
+          "worker_process_cpu_time_s": 1491.671875
+        },
+        "wall_time_s": 830.0841628000053
+      },
+      "trained_evaluation": {
+        "canonical_evaluation_sha256": "59730535f54f2c05f756a965631869d999ea11d83fbe14a6ec01d3e28c90d11a",
+        "canonical_replay_sha256s": [
+          "59730535f54f2c05f756a965631869d999ea11d83fbe14a6ec01d3e28c90d11a",
+          "59730535f54f2c05f756a965631869d999ea11d83fbe14a6ec01d3e28c90d11a"
+        ],
+        "checkpoint_contract_compatibility": {
+          "action_contract": true,
+          "algorithm": true,
+          "checkpoint_digest": true,
+          "observation_contract": true,
+          "policy_distribution_contract": true,
+          "reward_contract": true,
+          "task": true
+        },
+        "evaluation_file_sha256s": [
+          "04e9774838cac53dc91bd9573806c1f559900d18d24b1c41e71535a372f5aacc",
+          "04e9774838cac53dc91bd9573806c1f559900d18d24b1c41e71535a372f5aacc"
+        ],
+        "evaluation_paths": [
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/flow-reaction-optimization/dev/trained/replay-1.json",
+          "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/preflight/flow-reaction-optimization/dev/trained/replay-2.json"
+        ],
+        "exact_replay": true,
+        "policy_mode": "stochastic_frozen_seed",
+        "repetition_count": 2,
+        "summary": {
+          "behavior_complete_experiment_count": 153,
+          "behavior_complete_experiment_rate": 1.0,
+          "complete_experiment_count": 153,
+          "complete_experiments_per_episode": 7.65,
+          "episode_completion_rate": 1.0,
+          "high_cost_step_rate": 0.0008333333333333334,
+          "invalid_action_rate": 0.08666666666666667,
+          "mean_episode_best_primary_metric": 0.1078295402295518,
+          "mean_episode_best_score": 0.09724502476532654,
+          "mean_final_primary_metric": 0.025341736780996424,
+          "mean_final_score": 0.024254612893551738,
+          "observation_domain_failure_count": 0,
+          "operation_count": 1200,
+          "operation_counts": {
+            "add_catalyst": 2,
+            "add_reagent": 226,
+            "add_solvent": 176,
+            "measure": 192,
+            "run_flow": 235,
+            "set_flow_rate": 213,
+            "terminate": 156
+          },
+          "primary_metric": "flow_conversion",
+          "primary_metric_missing_count": 0,
+          "primary_metric_observation_count": 153,
+          "quick_close_count": 0,
+          "quick_close_rate": 0.0,
+          "runtime_domain_failure_count": 0,
+          "unsafe_step_rate": 0.0008333333333333334
+        }
+      }
+    }
+  ],
+  "preflight_plan_canonical_sha256": "f797d24bc8ca13fd16628da9e380389cda36e4d5f0136a8c2667023929c944de",
+  "preflight_plan_file_sha256": "436aa0b4879540487a53838ce795bc9e0cb433c4c1d94b61e42e971a37f05397",
+  "preflight_plan_path": "configs/methods/rl_v0.4/ppo_v048_preflight_plan.json",
+  "preregistered_gate": {
+    "all_contract_checks_required": true,
+    "all_repetitions_exact_required": true,
+    "failure_action": "write fail-closed report and do not start the full PPO matrix",
+    "finite_unit_interval_rate_fields_required": true,
+    "minimum_tasks_with_learning_signal": 2,
+    "missing_step0_primary_metric_treated_as_zero_for_gate": true,
+    "observation_domain_failure_count_required": 0,
+    "runtime_domain_failure_count_required": 0,
+    "task_learning_signal": "trained behavior-complete count exceeds step-0, or trained mean episode-best primary metric improves by at least the frozen task SESOI",
+    "threshold_changes_after_execution_allowed": false,
+    "trained_primary_metric_observation_count_minimum": 1,
+    "trained_total_behavior_complete_must_not_decrease": true
+  },
+  "reference_search_used": false,
+  "resource_accounting": {
+    "cpu_time_s": 3094.390625,
+    "gpu_time_s": 0.0,
+    "parallel_wall_time_sum_used_as_elapsed": false,
+    "summed_job_wall_time_s_diagnostic_only": 1200.3702608000021,
+    "training_environment_step_count": 102400
+  },
+  "result_role": "current_contract_train_dev_preflight",
+  "schema_version": "chemworld-ppo-v048-preflight-report-0.1",
+  "source": {
+    "origin_main_commit": "099028d58809b79f88fba2f605a8ead1d1dd47d4",
+    "source_commit": "099028d58809b79f88fba2f605a8ead1d1dd47d4",
+    "source_commit_on_origin_main": true,
+    "source_tree_clean": true
+  },
+  "status": "ppo_v048_preflight_failed_full_matrix_forbidden",
+  "task_id": "benchmark-v05-rl-adapters--slice-ppo-v048-retrain-dev",
+  "writer_gate": {
+    "formal_training_allowed": true,
+    "path": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/writer-gate.json",
+    "sha256": "00142c9c26f67cbb896f4d98cdb85393273771824190c69b78d846a58f6c0973",
+    "source_commit": "099028d58809b79f88fba2f605a8ead1d1dd47d4",
+    "writer_contract_ready": true
+  }
+}

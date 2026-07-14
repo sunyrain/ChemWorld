@@ -103,6 +103,51 @@ def test_historical_archive_is_digest_bound_and_ineligible_for_current_use() -> 
         assert hashlib.sha256(path.read_bytes()).hexdigest() == artifact["sha256"]
 
 
+def test_current_negative_outcome_is_bound_and_forbids_full_matrix() -> None:
+    preflight_path = ROOT / "workstreams/benchmark_v1/reports/rl-ppo-v048-preflight-v0.4.json"
+    outcome_path = ROOT / "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.8.json"
+    index_path = ROOT / "configs/methods/rl_v0.4/ppo_checkpoint_index.json"
+    plan_path = ROOT / "configs/methods/rl_v0.4/ppo_training_plan.json"
+    preflight_report = json.loads(preflight_path.read_text(encoding="utf-8"))
+    outcome = json.loads(outcome_path.read_text(encoding="utf-8"))
+    index = json.loads(index_path.read_text(encoding="utf-8"))
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+
+    assert preflight_report["status"] == "ppo_v048_preflight_failed_full_matrix_forbidden"
+    assert preflight_report["full_matrix_allowed"] is False
+    assert preflight_report["gate_assessment"]["learning_signal_task_count"] == 3
+    assert preflight_report["gate_assessment"]["checks"]["all_tasks_operational"] is False
+    assert len(preflight_report["jobs"]) == 4
+    assert all(
+        job[condition]["exact_replay"] is True
+        and all(job[condition]["checkpoint_contract_compatibility"].values())
+        for job in preflight_report["jobs"]
+        for condition in ("step0_evaluation", "trained_evaluation")
+    )
+    assert (
+        sum(
+            job["trained_checkpoint"]["training_environment_step_count"]
+            for job in preflight_report["jobs"]
+        )
+        == 102_400
+    )
+    assert (
+        outcome["preflight"]["report_sha256"]
+        == hashlib.sha256(preflight_path.read_bytes()).hexdigest()
+    )
+    assert outcome["full_matrix"]["executed_training_run_count"] == 0
+    assert outcome["full_matrix"]["selected_checkpoint_count"] == 0
+    assert outcome["ppo_method_ready"] is False
+    assert (
+        index["current_contract_outcome"]["report_sha256"]
+        == hashlib.sha256(outcome_path.read_bytes()).hexdigest()
+    )
+    assert index["checkpoints"] == []
+    assert index["ppo_method_ready"] is False
+    assert plan["execution"]["full_matrix_started"] is False
+    assert plan["execution"]["full_matrix_start_forbidden_by_preflight"] is True
+
+
 def test_gate_requires_two_learning_signal_tasks_and_operational_replay() -> None:
     plan, _protocol = _inputs()
     tasks = list(plan["formal_core_tasks"])

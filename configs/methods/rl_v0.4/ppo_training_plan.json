@@ -1,8 +1,8 @@
 {
   "schema_version": "chemworld-formal-ppo-training-plan-0.4",
-  "task_id": "benchmark-v05-rl-adapters--slice-ppo-train-dev",
+  "task_id": "benchmark-v05-rl-adapters--slice-ppo-v048-retrain-dev",
   "parent_task_id": "benchmark-v05-rl-adapters",
-  "status": "reward_state_remediated_evaluation_contract_pending",
+  "status": "current_contract_preflight_failed_full_matrix_forbidden",
   "algorithm": "ppo",
   "formal_core_tasks": {
     "partition-discovery": "product_in_organic",
@@ -109,19 +109,32 @@
     "expected_selected_checkpoint_count": 4,
     "failed_attempts_retained": true,
     "completed_jobs_resumed_without_retraining": true,
-    "artifact_root": "runs/benchmark-v0.5/rl-v0.4/ppo",
+    "artifact_root": "runs/benchmark-v0.5/rl-v0.4/ppo/current-contract/full-matrix",
     "checkpoint_index": "configs/methods/rl_v0.4/ppo_checkpoint_index.json",
-    "report": "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json"
+    "report": "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.8.json",
+    "full_matrix_started": false,
+    "full_matrix_start_forbidden_by_preflight": true
+  },
+  "current_contract_preflight": {
+    "plan": "configs/methods/rl_v0.4/ppo_v048_preflight_plan.json",
+    "report": "workstreams/benchmark_v1/reports/rl-ppo-v048-preflight-v0.4.json",
+    "report_sha256": "ce27185d535be4f7435474f1cab51ab31260d0379942b399997ef85c52707a21",
+    "source_commit": "099028d58809b79f88fba2f605a8ead1d1dd47d4",
+    "status": "ppo_v048_preflight_failed_full_matrix_forbidden",
+    "full_matrix_allowed": false,
+    "thresholds_changed_after_execution": false
   },
   "evidence_boundary": {
     "formal_results_present": false,
     "prior_checkpoint_status": "incompatible_after_public_progress_observation_and_reward_contract_v0.3",
+    "current_checkpoint_status": "no_current_checkpoint_preflight_failed",
     "benchmark_claim_allowed": false,
     "parent_task_complete": false,
     "bench_finetuning_used": false,
     "reference_search_used": false,
     "reference_repositories_used": [],
     "checkpoint_binaries_committed": false,
+    "current_contract_full_matrix_executed": false,
     "clean_environment_distribution_deferred_to_parent_gate": true,
     "sac_training_in_scope": false
   }
