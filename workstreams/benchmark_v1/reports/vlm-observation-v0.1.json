@@ -16,10 +16,12 @@
   "config": {
     "path": "configs/benchmark/vlm_observation_v0.1.json",
     "preparatory_boundaries_valid": true,
-    "sha256": "19ec2e42c822e9cb86b7d3b70f35796f53c5f127733e536ce7f54d6e7978dfa3"
+    "sha256": "dd326116b38dc67a1b572f514a465bc6e39acb95b753ce3c555cfdf57b44ef6c"
   },
   "contract_ready": true,
   "dependency_lock": {
+    "baseline_commit_binding_valid": true,
+    "formal_backend_reattestation_required": true,
     "optional_packages": {
       "accelerate": {
         "declared": true,
@@ -48,14 +50,29 @@
       }
     },
     "path": "uv.lock",
-    "sha256": "78620e11bd3f8b94e3522ae3f7386e686663f29894b89db9bc4009ac8bb72197"
+    "planned_requirements": {
+      "accelerate": ">=1.10,<2.0",
+      "pillow": ">=11.0,<13.0",
+      "safetensors": ">=0.5,<1.0",
+      "torch": ">=2.8,<3.0",
+      "transformers": ">=4.57,<6.0"
+    },
+    "portable_release_matches_current_lock": false,
+    "portable_release_sha256": "3c684532770a49db1f19d1b200fadfc2b4649b8a1c8c5124a212fb7f19153fcf",
+    "pre_vlm_baseline_sha256": "4a4a2dc44844f8f583af94e4d2dbc55c53c3b3f98753afda5d03e84c36830b29",
+    "pre_vlm_baseline_source_commit": "099028d58809b79f88fba2f605a8ead1d1dd47d4",
+    "pre_vlm_primary_lock_restored": true,
+    "primary_pyproject_extra_absent": true,
+    "requirements_scope": "future_dev_pilot_only",
+    "sha256": "4a4a2dc44844f8f583af94e4d2dbc55c53c3b3f98753afda5d03e84c36830b29"
   },
   "dirty_tree_excluding_report": false,
-  "generated_at_utc": "2026-07-14T16:56:21.884615+00:00",
+  "generated_at_utc": "2026-07-14T17:04:48.529966+00:00",
   "limitations": [
     "This audit validates observation delivery, not VLM quality or learning value.",
     "A model and processor revision must be pinned before a one-task Dev pilot.",
-    "Optional inference packages may remain uninstalled until that pilot is authorized."
+    "Optional inference packages may remain uninstalled until that pilot is authorized.",
+    "Future VLM packages require a separate environment manifest and may not mutate the formal backend lock."
   ],
   "model_download_attempted": false,
   "model_loaded_or_executed": false,
@@ -63,5 +80,5 @@
   "repository_model_weight_files": [],
   "runtime_ready_for_model_execution": false,
   "schema_version": "chemworld-vlm-observation-audit-0.1",
-  "source_commit": "6adf6da667ea3f196940f2f05f1d6121d498254a"
+  "source_commit": "4f5df2c1ac69973bf4cbfafcb9d00cfe10a255a5"
 }
