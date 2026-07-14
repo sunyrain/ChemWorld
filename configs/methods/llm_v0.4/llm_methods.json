@@ -1,6 +1,6 @@
 {
-  "schema_version": "chemworld-live-llm-method-freeze-0.4.2",
-  "freeze_id": "chemworld-live-llm-development-2026-07-13-pilot-3",
+  "schema_version": "chemworld-live-llm-method-freeze-0.4.3",
+  "freeze_id": "chemworld-live-llm-development-2026-07-14-context-bounded-candidate-1",
   "provider": "DeepSeek",
   "base_url": "https://api.deepseek.com",
   "provider_access_date": "2026-07-13",
@@ -17,9 +17,9 @@
   },
   "resource_contract": {
     "provider_attempt_limit_per_operation": 3,
-    "input_token_limit_per_cell": 1000000,
-    "output_token_limit_per_cell": 200000,
-    "monetary_cost_usd_limit_per_cell": 2.0,
+    "input_token_limit_per_cell": 800000,
+    "output_token_limit_per_cell": 160000,
+    "monetary_cost_usd_limit_per_cell": 0.35,
     "wall_time_limit_s_per_cell": 1800.0,
     "training_environment_step_limit": 0
   },
@@ -42,8 +42,8 @@
       "request_configuration": {
         "response_format": "json_object",
         "thinking": true,
-        "reasoning_effort": "max",
-        "max_tokens": 8000,
+        "reasoning_effort": "high",
+        "max_tokens": 4000,
         "timeout_s": 120.0,
         "max_attempts": 3,
         "retry_backoff_s": 0.25,
@@ -57,7 +57,7 @@
         "response_format": "json_object",
         "thinking": false,
         "reasoning_effort": null,
-        "max_tokens": 2000,
+        "max_tokens": 1000,
         "timeout_s": 120.0,
         "max_attempts": 3,
         "retry_backoff_s": 0.25,

@@ -27,7 +27,9 @@ Provide only a concise public audit: evidence, spectrum interpretation, hypothes
 uncertainty, rationale, and the selected action using exact schema field names.
 """
 
-PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.5"
+PROMPT_CONTRACT_VERSION = "chemworld-live-llm-operation-json-0.6"
+
+_MAX_SPECTRUM_SERIES_POINTS = 64
 
 _PURE_SPECTRAL_PACKET_KINDS = {
     "gc_chromatogram",
@@ -97,8 +99,9 @@ class LiveLLMAgent(BaseAgent):
         *,
         role_id: str,
         spectrum_disclosure: SpectrumDisclosure = "assigned",
-        recent_decision_limit: int = 6,
-        experiment_memory_limit: int = 12,
+        recent_decision_limit: int = 4,
+        experiment_memory_limit: int = 4,
+        response_max_tokens: int | None = None,
         fail_fast_on_unbillable_provider_failure: bool = False,
     ) -> None:
         if spectrum_disclosure not in {"assigned", "unassigned", "masked"}:
@@ -107,11 +110,18 @@ class LiveLLMAgent(BaseAgent):
             )
         if recent_decision_limit <= 0 or experiment_memory_limit <= 0:
             raise ValueError("memory limits must be positive")
+        if response_max_tokens is not None and response_max_tokens <= 0:
+            raise ValueError("response_max_tokens must be positive")
         self.client = client
         self.role_id = role_id
         self.spectrum_disclosure = spectrum_disclosure
         self.recent_decision_limit = int(recent_decision_limit)
         self.experiment_memory_limit = int(experiment_memory_limit)
+        self.response_max_tokens = (
+            int(response_max_tokens)
+            if response_max_tokens is not None
+            else (8000 if bool(getattr(client, "thinking", False)) else 2000)
+        )
         self.fail_fast_on_unbillable_provider_failure = bool(
             fail_fast_on_unbillable_provider_failure
         )
@@ -122,6 +132,8 @@ class LiveLLMAgent(BaseAgent):
         self._model_call_count = 0
         self._recent_decisions: list[dict[str, Any]] = []
         self._experiment_memory: list[dict[str, Any]] = []
+        self._current_experiment_operations: list[dict[str, Any]] = []
+        self._completed_experiment_count = 0
         self._last_decision: dict[str, Any] | None = None
         self._last_context: dict[str, Any] = {}
         self._last_public_view: dict[str, Any] = {}
@@ -150,7 +162,7 @@ class LiveLLMAgent(BaseAgent):
             completion = self.client.complete_json(
                 system_prompt=SYSTEM_PROMPT,
                 user_prompt=prompt,
-                max_tokens=8000 if bool(getattr(self.client, "thinking", False)) else 2000,
+                max_tokens=self.response_max_tokens,
             )
         except Exception as exc:
             attempts = max(int(getattr(exc, "attempts", 1)), 1)
@@ -238,27 +250,54 @@ class LiveLLMAgent(BaseAgent):
         self._last_decision["outcome"] = outcome
         if self._recent_decisions:
             self._recent_decisions[-1]["outcome"] = outcome
+        self._current_experiment_operations.append(
+            {
+                "action": to_builtin(action),
+                "observation": outcome["observation"],
+                "constraint_flags": {
+                    str(key): bool(value)
+                    for key, value in outcome["constraint_flags"].items()
+                    if value
+                },
+                "error_message": outcome["error_message"],
+            }
+        )
         final_assay = action.get("operation") == "measure" and action.get("instrument") == (
             "final_assay"
         )
         if outcome["experiment_ended"] or final_assay:
+            self._completed_experiment_count += 1
+            measurement_results = [
+                item
+                for item in self._current_experiment_operations
+                if item["action"].get("operation") == "measure"
+            ]
             self._experiment_memory.append(
                 {
-                    "experiment_index": len(self._experiment_memory) + 1,
+                    "experiment_index": self._completed_experiment_count,
+                    "operation_count": len(self._current_experiment_operations),
+                    "operation_sequence": [
+                        item["action"] for item in self._current_experiment_operations
+                    ],
                     "terminal_action": to_builtin(action),
                     "score": info.get("leaderboard_score"),
                     "visible_metrics": to_builtin(
                         self._last_context.get("visible_metrics", {})
                     ),
-                    "constraint_flags": outcome["constraint_flags"],
-                    "recent_decisions": to_builtin(
-                        self._recent_decisions[-self.recent_decision_limit :]
-                    ),
+                    "constraint_flags": {
+                        str(key): bool(value)
+                        for key, value in outcome["constraint_flags"].items()
+                        if value
+                    },
+                    "terminal_observation": outcome["observation"],
+                    "measurement_results": measurement_results,
                 }
             )
             self._experiment_memory = self._experiment_memory[
                 -self.experiment_memory_limit :
             ]
+            self._recent_decisions = []
+            self._current_experiment_operations = []
 
     def decision_audit(self) -> dict[str, Any] | None:
         if self._last_decision is None:
@@ -344,7 +383,12 @@ class LiveLLMAgent(BaseAgent):
                 "request_parameters": {
                     "response_format": "json_object",
                     "thinking": bool(getattr(self.client, "thinking", False)),
-                    "reasoning_effort": getattr(self.client, "reasoning_effort", None),
+                    "reasoning_effort": (
+                        getattr(self.client, "reasoning_effort", None)
+                        if bool(getattr(self.client, "thinking", False))
+                        else None
+                    ),
+                    "max_tokens": self.response_max_tokens,
                     "logical_decisions": self._logical_decision_count,
                     "spectrum_disclosure": self.spectrum_disclosure,
                 },
@@ -418,6 +462,7 @@ class LiveLLMAgent(BaseAgent):
             tool_json,
             condition=self.spectrum_disclosure,
         )
+        supplied_context = _compact_prompt_spectra(supplied_context)
         prompt_payload = {
             "instruction": (
                 "Choose exactly one next operation. Use observations and experiment memory "
@@ -594,10 +639,16 @@ def _condition_spectrum_inputs(
     supplied = to_builtin(context)
     tool = to_builtin(tool_view)
     if condition == "masked":
-        supplied["latest_spectra"] = {
+        masked_tool = _mask_spectral_tool_view(tool)
+        masked_latest: dict[str, Any] = {
             "spectrum_condition": "masked",
             "available": False,
         }
+        for key in ("raw_signal", "processed_estimate"):
+            value = masked_tool.get(key)
+            if isinstance(value, dict) and value:
+                masked_latest[key] = value
+        supplied["latest_spectra"] = masked_latest
         if supplied.get("requested_historical_spectrum"):
             request = supplied["requested_historical_spectrum"]
             supplied["requested_historical_spectrum"] = {
@@ -606,7 +657,7 @@ def _condition_spectrum_inputs(
                 "spectrum_condition": "masked",
                 "available": False,
             }
-        return supplied, _mask_spectral_tool_view(tool)
+        return supplied, masked_tool
     if condition == "unassigned":
         supplied["latest_spectra"] = _unassign_spectral_fields(
             supplied.get("latest_spectra", {})
@@ -795,20 +846,16 @@ def _compact_task_contract(task_info: dict[str, Any]) -> dict[str, Any]:
 
 
 def _compact_tool_view(tool_json: dict[str, Any]) -> dict[str, Any]:
-    """Retain exact affordances and evidence once, without duplicate reports."""
+    """Retain exact affordances without duplicating decision-context evidence."""
 
     compact: dict[str, Any] = {
         key: to_builtin(tool_json[key])
         for key in (
             "task",
-            "raw_signal",
-            "processed_estimate",
             "uncertainty",
             "cost",
             "cost_components",
             "constraints",
-            "historical_spectrum_catalog",
-            "requested_historical_spectrum",
         )
         if key in tool_json
     }
@@ -821,6 +868,86 @@ def _compact_tool_view(tool_json: dict[str, Any]) -> dict[str, Any]:
             _compact_action_affordance(item) for item in actions if isinstance(item, dict)
         ]
     return compact
+
+
+def _compact_prompt_spectra(context: dict[str, Any]) -> dict[str, Any]:
+    """Bound dense spectral transport while keeping peaks, axes, and public features.
+
+    The full public packet remains in the trajectory and UI artifacts.  Only the JSON
+    sent to the provider is compacted: primary numeric curves are uniformly sampled,
+    replicate curves become numeric summaries, and all peak/assignment tables remain
+    available.  ``build_decision_context`` already copies current and requested spectra
+    from the tool view, so the tool-view copy is deliberately omitted above.
+    """
+
+    compact = to_builtin(context)
+    for key in ("latest_spectra", "requested_historical_spectrum"):
+        value = compact.get(key)
+        if isinstance(value, dict) and value:
+            compact[key] = _compact_spectral_payload(value)
+    return compact
+
+
+def _compact_spectral_payload(payload: Any, *, field: str = "") -> Any:
+    if isinstance(payload, dict):
+        return {
+            str(key): _compact_spectral_payload(value, field=str(key))
+            for key, value in payload.items()
+        }
+    if isinstance(payload, list):
+        if field == "replicate_signals" and all(
+            isinstance(item, list) and _is_numeric_series(item) for item in payload
+        ):
+            return {
+                "representation": "summary_only",
+                "replicate_count": len(payload),
+                "summaries": [_numeric_series_summary(item) for item in payload],
+            }
+        if _is_numeric_series(payload):
+            return _compact_numeric_series(payload)
+        return [_compact_spectral_payload(item) for item in payload]
+    if isinstance(payload, float):
+        return _round_public_float(payload)
+    return to_builtin(payload)
+
+
+def _is_numeric_series(values: list[Any]) -> bool:
+    return bool(values) and all(
+        not isinstance(value, bool) and isinstance(value, int | float) for value in values
+    )
+
+
+def _compact_numeric_series(values: list[Any]) -> list[Any] | dict[str, Any]:
+    rounded = [_round_public_float(float(value)) for value in values]
+    if len(rounded) <= _MAX_SPECTRUM_SERIES_POINTS:
+        return rounded
+    last = len(rounded) - 1
+    indices = sorted(
+        {
+            round(position * last / (_MAX_SPECTRUM_SERIES_POINTS - 1))
+            for position in range(_MAX_SPECTRUM_SERIES_POINTS)
+        }
+    )
+    return {
+        "representation": "uniform_index_sample",
+        "original_point_count": len(rounded),
+        "sample_indices": indices,
+        "values": [rounded[index] for index in indices],
+    }
+
+
+def _numeric_series_summary(values: list[Any]) -> dict[str, Any]:
+    numeric = [float(value) for value in values]
+    return {
+        "point_count": len(numeric),
+        "minimum": _round_public_float(min(numeric)),
+        "maximum": _round_public_float(max(numeric)),
+        "mean": _round_public_float(sum(numeric) / len(numeric)),
+    }
+
+
+def _round_public_float(value: float) -> float:
+    return float(f"{value:.8g}")
 
 
 def _compact_action_affordance(action: dict[str, Any]) -> dict[str, Any]:

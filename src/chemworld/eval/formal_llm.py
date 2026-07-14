@@ -29,7 +29,7 @@ from chemworld.tasks import get_task
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_LLM_FREEZE_PATH = ROOT / "configs/methods/llm_v0.4/llm_methods.json"
 LIVE_LLM_SOURCE_PATH = ROOT / "src/chemworld/agents/live_llm.py"
-LLM_FREEZE_VERSION = "chemworld-live-llm-method-freeze-0.4.2"
+LLM_FREEZE_VERSION = "chemworld-live-llm-method-freeze-0.4.3"
 LLM_METHOD_IDS = ("live_llm_a", "live_llm_b")
 FORMAL_CELL_PROGRESS_VERSION = "chemworld-formal-cell-progress-0.1"
 
@@ -236,7 +236,14 @@ def audit_live_llm_method_freeze(
         request_checks.append(
             isinstance(request, Mapping)
             and request.get("response_format") == "json_object"
-            and request.get("max_tokens") == (8000 if request.get("thinking") else 2000)
+            and isinstance(request.get("max_tokens"), int)
+            and not isinstance(request.get("max_tokens"), bool)
+            and 256 <= int(request["max_tokens"]) <= 8000
+            and (
+                request.get("reasoning_effort") in {"high", "max"}
+                if request.get("thinking")
+                else request.get("reasoning_effort") is None
+            )
             and request.get("max_attempts") == 3
             and request.get("temperature") is None
         )
@@ -260,9 +267,9 @@ def audit_live_llm_method_freeze(
         and interaction.get("private_reasoning_retained") is False,
         "resource_contract_complete": isinstance(resources, Mapping)
         and resources.get("provider_attempt_limit_per_operation") == 3
-        and resources.get("input_token_limit_per_cell") == 1_000_000
-        and resources.get("output_token_limit_per_cell") == 200_000
-        and resources.get("monetary_cost_usd_limit_per_cell") == 2.0
+        and resources.get("input_token_limit_per_cell") == 800_000
+        and resources.get("output_token_limit_per_cell") == 160_000
+        and resources.get("monetary_cost_usd_limit_per_cell") == 0.35
         and resources.get("wall_time_limit_s_per_cell") == 1800.0
         and resources.get("training_environment_step_limit") == 0
         and all(
@@ -348,10 +355,22 @@ class FormalLiveLLMAdapter:
         )
         if client.model != card.get("model_id"):
             raise FormalLLMContractError("client model does not match the frozen live-LLM role")
+        request = card.get("request_configuration")
+        if not isinstance(request, Mapping):
+            raise FormalLLMContractError("live-LLM request configuration is missing")
+        if bool(getattr(client, "thinking", False)) is not bool(request["thinking"]):
+            raise FormalLLMContractError("client thinking mode differs from the frozen role")
+        if request["thinking"] and getattr(client, "reasoning_effort", None) != request.get(
+            "reasoning_effort"
+        ):
+            raise FormalLLMContractError(
+                "client reasoning effort differs from the frozen role"
+            )
         agent = LiveLLMAgent(
             client,
             role_id=self.method_id,
             spectrum_disclosure=cast(SpectrumDisclosure, spec.spectrum_condition),
+            response_max_tokens=int(request["max_tokens"]),
             fail_fast_on_unbillable_provider_failure=True,
         )
         task = get_task(spec.task_id)

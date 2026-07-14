@@ -44,6 +44,11 @@ def main() -> int:
     parser.add_argument("--stage", choices=LIVE_STAGES, required=True)
     parser.add_argument("--api-key-file", type=Path)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--report",
+        type=Path,
+        help="optional public report path; candidate evidence stays private by default",
+    )
     parser.add_argument("--stop-after-new-terminals", type=int)
     args = parser.parse_args()
 
@@ -79,6 +84,7 @@ def main() -> int:
 
     report = run_live_llm_development(
         stage=args.stage,
+        report_path=args.report,
         stop_after_new_terminals=args.stop_after_new_terminals,
         progress_callback=_progress,
     )
@@ -99,7 +105,7 @@ def main() -> int:
     )
     if report["matrix_run"]["status"] == "stopped_resumable":
         return 3
-    return 0 if report["matrix_run"]["audit"]["aggregation_ready"] else 1
+    return 0 if report["promotion_gate"]["passed"] else 2
 
 
 if __name__ == "__main__":

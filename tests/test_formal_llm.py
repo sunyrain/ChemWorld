@@ -87,7 +87,7 @@ class _Client:
     def __init__(self, model: str) -> None:
         self.model = model
         self.thinking = model == "deepseek-v4-pro"
-        self.reasoning_effort = "max"
+        self.reasoning_effort = "high"
         self._pricing_client = DeepSeekClient(api_key="test-only", model=model)
 
     def complete_json(self, **kwargs: Any) -> Any:
@@ -179,9 +179,9 @@ def _fake_run_agent(**kwargs: Any) -> None:
     assert kwargs["safety_limit_override"] == 0.3
     limits = kwargs["method_resource_limits"]
     assert limits["model_call_limit"] == 3
-    assert limits["input_token_limit"] == 1_000_000
-    assert limits["output_token_limit"] == 200_000
-    assert limits["monetary_cost_limit_usd"] == 2.0
+    assert limits["input_token_limit"] == 800_000
+    assert limits["output_token_limit"] == 160_000
+    assert limits["monetary_cost_limit_usd"] == 0.35
     assert limits["wall_time_limit_s"] == 1800.0
     assert limits["training_environment_step_limit"] == 0
     agent = kwargs["agent"]

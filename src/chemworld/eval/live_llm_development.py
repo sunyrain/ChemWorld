@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import subprocess
 import sys
 from collections.abc import Callable, Mapping, Sequence
@@ -37,12 +38,17 @@ from chemworld.world.world_family import axes_for_task
 
 ROOT = Path(__file__).resolve().parents[3]
 DEVELOPMENT_PLAN_PATH = ROOT / "configs/methods/llm_v0.4/llm_development_plan.json"
-DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.6.json"
+DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.7.json"
 FORMAL_PROTOCOL_REPORT_PATH = (
     ROOT / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
 )
-LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.6"
-LIVE_STAGES = ("live_pilot", "development_matrix")
+LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.7"
+LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.3"
+LIVE_STAGES = ("candidate_screen", "live_pilot", "development_matrix")
+_PRIOR_PAID_STAGE = {
+    "live_pilot": "candidate_screen",
+    "development_matrix": "live_pilot",
+}
 
 
 def _git_common_dir() -> Path:
@@ -53,7 +59,7 @@ def _git_common_dir() -> Path:
     return path.resolve() if path.is_absolute() else (ROOT / path).resolve()
 
 
-DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.6"
+DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.7"
 
 
 @dataclass(frozen=True)
@@ -72,7 +78,41 @@ def load_live_llm_development_plan(
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError("live-LLM development plan must be a JSON object")
+    if payload.get("schema_version") != LIVE_LLM_DEVELOPMENT_PLAN_VERSION:
+        raise ValueError("live-LLM development plan has an unsupported schema version")
     return payload
+
+
+def _promotion_gate_card(
+    plan: Mapping[str, Any], stage: str
+) -> Mapping[str, Any]:
+    gates = plan.get("promotion_gates")
+    gate = gates.get(stage) if isinstance(gates, Mapping) else None
+    if not isinstance(gate, Mapping):
+        raise ValueError(f"live-LLM stage {stage!r} has no promotion gate")
+    for key in (
+        "minimum_overall_completion_rate",
+        "minimum_per_method_completion_rate",
+    ):
+        value = gate.get(key)
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, int | float)
+            or not 0.0 <= float(value) <= 1.0
+        ):
+            raise ValueError(f"live-LLM promotion gate {key!r} must be in [0, 1]")
+    for key in (
+        "maximum_projected_four_experiment_p90_input_tokens",
+        "maximum_projected_four_experiment_p90_wall_time_s",
+    ):
+        value = gate.get(key)
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, int | float)
+            or float(value) <= 0.0
+        ):
+            raise ValueError(f"live-LLM promotion gate {key!r} must be positive")
+    return gate
 
 
 def _git_commit() -> str:
@@ -94,7 +134,7 @@ def _backend_semantic_sha256() -> str:
 
 
 def _paired_method_seed(stage: str, world_seed: int) -> int:
-    digest = hashlib.sha256(f"live-llm-v0.4:{stage}:{world_seed}".encode()).digest()
+    digest = hashlib.sha256(f"live-llm-v0.4.7:{stage}:{world_seed}".encode()).digest()
     return 300_000 + int.from_bytes(digest[:4], "big") % 700_000_000
 
 
@@ -176,7 +216,7 @@ def build_live_llm_development_bundle(
     *,
     stage: str,
     seeds: Sequence[int] | None = None,
-    tasks: Sequence[str] = CORE_TASKS,
+    tasks: Sequence[str] | None = None,
     methods: Sequence[str] = ("live_llm_a", "live_llm_b"),
     spectrum_conditions: Sequence[str] = ("assigned", "unassigned", "masked"),
 ) -> LiveLLMDevelopmentBundle:
@@ -190,11 +230,14 @@ def build_live_llm_development_bundle(
     if audit_live_llm_method_freeze(freeze)["controls_ready"] is not True:
         raise RuntimeError("live-LLM method freeze must pass before development")
     stage_card = plan["stages"][stage]
+    _promotion_gate_card(plan, stage)
+    stage_tasks = stage_card.get("tasks", CORE_TASKS)
+    selected_tasks = tuple(stage_tasks if tasks is None else tasks)
     if stage_card.get("live_provider_calls") is not True:
         raise ValueError("selected stage is not a live-provider development stage")
     split = str(stage_card["world_split"])
     selected_seeds = _stage_seeds(protocol, stage_card, seeds)
-    if not set(tasks).issubset(set(CORE_TASKS)) or not tasks:
+    if not set(selected_tasks).issubset(set(CORE_TASKS)) or not selected_tasks:
         raise ValueError("live-LLM development tasks must be frozen formal core tasks")
     bindings = formal_live_llm_method_bindings(freeze)
     if not set(methods).issubset(bindings) or not methods:
@@ -205,7 +248,7 @@ def build_live_llm_development_bundle(
     complete_experiments = int(stage_card["complete_experiments"])
     operation_limits = _operation_limits_by_task(
         stage_card,
-        tasks=tasks,
+        tasks=selected_tasks,
         complete_experiments=complete_experiments,
     )
     resource_contract = freeze.get("resource_contract")
@@ -219,7 +262,7 @@ def build_live_llm_development_bundle(
         "schema_version": LIVE_LLM_DEVELOPMENT_VERSION,
         "stage": stage,
         "split": split,
-        "tasks": list(tasks),
+        "tasks": list(selected_tasks),
         "methods": list(methods),
         "spectrum_conditions": list(conditions),
         "pair_ids": [_pair_id(stage, seed) for seed in selected_seeds],
@@ -259,7 +302,7 @@ def build_live_llm_development_bundle(
             method_seed=method_seed,
             nonce=seed_nonce,
         )
-        for task_id in tasks:
+        for task_id in selected_tasks:
             interventions = _public_interventions(
                 protocol,
                 task_id=task_id,
@@ -313,7 +356,7 @@ def build_live_llm_development_bundle(
         cells,
         metadata={
             "matrix_contract": {
-                "tasks": list(tasks),
+                "tasks": list(selected_tasks),
                 "methods": list(methods),
                 "pair_ids": pair_ids,
                 "spectrum_conditions_by_method": {
@@ -371,6 +414,173 @@ def _atomic_json(path: Path, payload: Mapping[str, Any]) -> None:
     temporary.replace(path)
 
 
+def evaluate_live_llm_promotion(
+    matrix_report: Mapping[str, Any],
+    *,
+    stage: str,
+    development_plan: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Decide whether a live configuration deserves a larger paid matrix.
+
+    Formal-matrix aggregation intentionally retains valid method failures.  That is
+    necessary for unbiased benchmark accounting, but it is not a sufficient development
+    gate: a configuration that repeatedly exhausts time or tokens must not automatically
+    advance merely because every failure was recorded correctly.
+    """
+
+    plan = (
+        dict(development_plan)
+        if development_plan is not None
+        else load_live_llm_development_plan()
+    )
+    if stage not in LIVE_STAGES:
+        raise ValueError(f"stage must be one of {LIVE_STAGES}")
+    gate = _promotion_gate_card(plan, stage)
+    stage_card = plan["stages"][stage]
+    expected_experiments = int(stage_card["complete_experiments"])
+    audit = matrix_report.get("audit")
+    audit = audit if isinstance(audit, Mapping) else {}
+    raw_cells = audit.get("cells")
+    cells = [item for item in raw_cells if isinstance(item, Mapping)] if isinstance(
+        raw_cells, list
+    ) else []
+
+    def completed(cell: Mapping[str, Any]) -> bool:
+        axes = cell.get("resource_axes")
+        return (
+            cell.get("status") == "succeeded"
+            and isinstance(axes, Mapping)
+            and int(axes.get("complete_experiment_count", 0)) >= expected_experiments
+            and cell.get("replay_verified") is True
+        )
+
+    successful = [cell for cell in cells if completed(cell)]
+    completion_rate = len(successful) / len(cells) if cells else 0.0
+    methods = sorted({str(cell.get("method_id")) for cell in cells})
+    tasks = sorted({str(cell.get("task_id")) for cell in cells})
+    expected_tasks = set(stage_card.get("tasks", plan["tasks"]))
+    expected_methods = set(plan["methods"])
+    per_method_completion_rate = {
+        method: (
+            sum(completed(cell) for cell in cells if cell.get("method_id") == method)
+            / sum(cell.get("method_id") == method for cell in cells)
+        )
+        for method in methods
+    }
+    successful_tasks = {str(cell.get("task_id")) for cell in successful}
+    successful_methods = {str(cell.get("method_id")) for cell in successful}
+
+    projected_input: list[float] = []
+    projected_wall: list[float] = []
+    for cell in cells:
+        axes = cell.get("resource_axes")
+        if not isinstance(axes, Mapping):
+            continue
+        complete_count = int(axes.get("complete_experiment_count", 0))
+        if complete_count <= 0:
+            continue
+        factor = 4.0 / complete_count
+        projected_input.append(float(axes.get("input_token_count", 0)) * factor)
+        projected_wall.append(float(axes.get("wall_time_s", 0.0)) * factor)
+
+    projected_input_p90 = _percentile(projected_input, 0.9)
+    projected_wall_p90 = _percentile(projected_wall, 0.9)
+    minimum_overall = float(gate["minimum_overall_completion_rate"])
+    minimum_per_method = float(gate["minimum_per_method_completion_rate"])
+    maximum_input = float(
+        gate["maximum_projected_four_experiment_p90_input_tokens"]
+    )
+    maximum_wall = float(gate["maximum_projected_four_experiment_p90_wall_time_s"])
+    checks = {
+        "matrix_terminal_and_exact": bool(cells)
+        and audit.get("exact_cartesian_matrix_complete") is True,
+        "expected_task_and_method_scope_complete": set(tasks) == expected_tasks
+        and set(methods) == expected_methods,
+        "paired_spectrum_conditions_complete": audit.get("paired_conditions_complete")
+        is True,
+        "resource_accounting_complete": audit.get(
+            "all_required_resource_accounting_complete"
+        )
+        is True,
+        "all_successes_replay_verified": audit.get("all_successes_replay_verified")
+        is True,
+        "no_infrastructure_errors": not matrix_report.get("infrastructure_errors"),
+        "minimum_overall_completion_rate": completion_rate >= minimum_overall,
+        "minimum_per_method_completion_rate": bool(per_method_completion_rate)
+        and all(rate >= minimum_per_method for rate in per_method_completion_rate.values()),
+        "every_task_has_success": (
+            not bool(gate.get("every_task_has_success"))
+            or set(tasks).issubset(successful_tasks)
+        ),
+        "every_method_has_success": (
+            not bool(gate.get("every_method_has_success"))
+            or set(methods).issubset(successful_methods)
+        ),
+        "projected_input_has_headroom": projected_input_p90 is not None
+        and projected_input_p90 <= maximum_input,
+        "projected_wall_time_has_headroom": projected_wall_p90 is not None
+        and projected_wall_p90 <= maximum_wall,
+    }
+    passed = all(checks.values())
+    return {
+        "schema_version": "chemworld-live-llm-promotion-gate-0.1",
+        "stage": stage,
+        "decision": "promote" if passed else "reject_or_redesign",
+        "promotes_to": gate.get("promotes_to"),
+        "passed": passed,
+        "checks": checks,
+        "terminal_cell_count": len(cells),
+        "successful_cell_count": len(successful),
+        "completion_rate": completion_rate,
+        "per_method_completion_rate": per_method_completion_rate,
+        "projected_four_experiment_p90_input_tokens": projected_input_p90,
+        "projected_four_experiment_p90_wall_time_s": projected_wall_p90,
+        "thresholds": dict(gate),
+    }
+
+
+def _percentile(values: Sequence[float], quantile: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(float(value) for value in values)
+    position = (len(ordered) - 1) * quantile
+    lower = math.floor(position)
+    upper = math.ceil(position)
+    if lower == upper:
+        return ordered[lower]
+    return ordered[lower] * (upper - position) + ordered[upper] * (position - lower)
+
+
+def _require_prior_paid_stage(stage: str, cache_root: str | Path) -> None:
+    prior = _PRIOR_PAID_STAGE.get(stage)
+    if prior is None:
+        return
+    path = Path(cache_root) / prior / "promotion-gate.json"
+    if not path.is_file():
+        raise RuntimeError(
+            f"{stage} is blocked until {prior} has a persisted passing promotion gate"
+        )
+    gate = json.loads(path.read_text(encoding="utf-8"))
+    if gate.get("passed") is not True:
+        raise RuntimeError(f"{stage} is blocked because {prior} did not pass promotion")
+    if gate.get("llm_freeze_sha256") != file_sha256(DEFAULT_LLM_FREEZE_PATH):
+        raise RuntimeError(f"{stage} is blocked because the promoted LLM freeze changed")
+    if gate.get("source_commit") != _git_commit():
+        raise RuntimeError(f"{stage} is blocked because the promoted source commit changed")
+
+
+def _require_clean_source_tree() -> None:
+    status = subprocess.check_output(
+        ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+        cwd=ROOT,
+        text=True,
+    ).strip()
+    if status:
+        raise RuntimeError(
+            "live-provider development requires a clean tree bound to the source commit"
+        )
+
+
 def prepare_live_llm_development(
     *,
     stage: str,
@@ -401,12 +611,14 @@ def run_live_llm_development(
     stage: str,
     seeds: Sequence[int] | None = None,
     cache_root: str | Path = DEFAULT_CACHE_ROOT,
-    report_path: str | Path | None = DEFAULT_REPORT_PATH,
+    report_path: str | Path | None = None,
     stop_after_new_terminals: int | None = None,
     progress_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Run or resume a live Train/Dev matrix; never reads Bench/reference-search."""
 
+    _require_prior_paid_stage(stage, cache_root)
+    _require_clean_source_tree()
     bundle, manifest_path, runtime_root, output_root = prepare_live_llm_development(
         stage=stage,
         seeds=seeds,
@@ -434,15 +646,35 @@ def run_live_llm_development(
         stop_after_new_terminals=stop_after_new_terminals,
     )
     full_scope = stage == "development_matrix" and seeds is None
+    promotion_gate = evaluate_live_llm_promotion(outcome.report, stage=stage)
+    persisted_promotion_gate = {
+        **promotion_gate,
+        "manifest_sha256": bundle.manifest["run_manifest_sha256"],
+        "llm_freeze_sha256": file_sha256(DEFAULT_LLM_FREEZE_PATH),
+        "source_commit": _git_commit(),
+    }
+    _atomic_json(
+        Path(cache_root) / stage / "promotion-gate.json",
+        persisted_promotion_gate,
+    )
+    development_ready = (
+        full_scope
+        and outcome.report["audit"]["aggregation_ready"] is True
+        and promotion_gate["passed"] is True
+    )
     report = {
         "schema_version": LIVE_LLM_DEVELOPMENT_VERSION,
         "status": (
             "formal_live_llm_development_ready"
-            if full_scope and outcome.report["audit"]["aggregation_ready"] is True
-            else outcome.report["status"]
+            if development_ready
+            else (
+                "live_llm_configuration_rejected"
+                if outcome.report["audit"].get("exact_cartesian_matrix_complete") is True
+                and promotion_gate["passed"] is False
+                else outcome.report["status"]
+            )
         ),
-        "formal_live_llm_development_ready": full_scope
-        and outcome.report["audit"]["aggregation_ready"] is True,
+        "formal_live_llm_development_ready": development_ready,
         "benchmark_claim_allowed": False,
         "bench_results_present": False,
         "reference_search_results_used": False,
@@ -454,6 +686,7 @@ def run_live_llm_development(
         "cell_count": bundle.cell_count,
         "pair_count": bundle.pair_count,
         "maximum_provider_call_count": bundle.maximum_provider_call_count,
+        "promotion_gate": persisted_promotion_gate,
         "matrix_run": outcome.report,
     }
     if report_path is not None:
@@ -469,6 +702,7 @@ __all__ = [
     "LIVE_STAGES",
     "LiveLLMDevelopmentBundle",
     "build_live_llm_development_bundle",
+    "evaluate_live_llm_promotion",
     "load_live_llm_development_plan",
     "prepare_live_llm_development",
     "run_live_llm_development",

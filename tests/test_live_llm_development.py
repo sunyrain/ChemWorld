@@ -8,7 +8,9 @@ import pytest
 from chemworld.eval.formal_matrix import build_formal_matrix_plan
 from chemworld.eval.live_llm_development import (
     build_live_llm_development_bundle,
+    evaluate_live_llm_promotion,
     prepare_live_llm_development,
+    run_live_llm_development,
 )
 
 
@@ -57,7 +59,66 @@ def test_development_matrix_uses_only_four_public_dev_pairs() -> None:
     assert bundle.maximum_provider_call_count == 23040
     assert plan.checkpoints == (1, 2, 4)
     assert plan.limits.api_max_concurrency == 4
-    assert plan.limits.matrix_monetary_cost_usd_limit == bundle.cell_count * 2.0
+    assert plan.limits.matrix_monetary_cost_usd_limit == bundle.cell_count * 0.35
+
+
+def test_candidate_screen_is_small_and_precedes_live_pilot() -> None:
+    bundle = build_live_llm_development_bundle(stage="candidate_screen")
+
+    assert bundle.pair_count == 1
+    assert bundle.cell_count == 2 * 2 * 3
+    assert bundle.manifest["metadata"]["matrix_contract"]["tasks"] == [
+        "flow-reaction-optimization",
+        "partition-discovery",
+    ]
+
+
+def test_promotion_gate_rejects_accounted_but_noncompleting_configuration() -> None:
+    def cell(method: str, task: str, *, succeeded: bool) -> dict[str, object]:
+        return {
+            "method_id": method,
+            "task_id": task,
+            "status": "succeeded" if succeeded else "failed",
+            "replay_verified": succeeded,
+            "resource_axes": {
+                "complete_experiment_count": 1 if succeeded else 0,
+                "input_token_count": 100_000,
+                "wall_time_s": 100.0,
+            },
+        }
+
+    cells = [
+        cell(method, task, succeeded=method == "live_llm_b")
+        for method in ("live_llm_a", "live_llm_b")
+        for task in ("flow-reaction-optimization", "partition-discovery")
+        for _ in range(3)
+    ]
+    report = {
+        "infrastructure_errors": [],
+        "audit": {
+            "cells": cells,
+            "exact_cartesian_matrix_complete": True,
+            "paired_conditions_complete": True,
+            "all_required_resource_accounting_complete": True,
+            "all_successes_replay_verified": True,
+        },
+    }
+
+    gate = evaluate_live_llm_promotion(report, stage="candidate_screen")
+
+    assert gate["passed"] is False
+    assert gate["decision"] == "reject_or_redesign"
+    assert gate["checks"]["minimum_per_method_completion_rate"] is False
+    assert gate["checks"]["every_method_has_success"] is False
+
+
+def test_larger_paid_stage_cannot_bypass_candidate_screen(tmp_path) -> None:
+    with pytest.raises(RuntimeError, match="candidate_screen"):
+        run_live_llm_development(
+            stage="live_pilot",
+            cache_root=tmp_path,
+            report_path=None,
+        )
 
 
 def test_live_development_rejects_bench_reference_or_partial_spectrum_design() -> None:
