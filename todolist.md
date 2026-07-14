@@ -20,6 +20,7 @@
 | 当前 PPO | `benchmark-v05-rl-adapters--slice-ppo-v048-retrain-dev` 已认领 | 先做 step-0 对 trained 的 fail-closed 学习门禁，通过后才运行四任务五 seed |
 | 当前 SAC | `benchmark-v05-rl-adapters--slice-sac-train-dev` 已认领，训练与恢复基础设施已进入 main | 在完整 4 × 5 × 100k 矩阵前增加与 PPO 对称的 current-contract 学习门禁，避免再次无信号消耗约 200 万步 |
 | 真实 LLM | v0.4.8 已收敛为单任务、两角色、三谱图条件、费用硬上限 2.10 USD；付费筛选仍暂停 | 非付费门禁与 RL 状态稳定后才运行 6-cell candidate screen |
+| 开源 VLM | 确定性谱图图像合同 0.1 已通过审计：PNG/信号/公开包/渲染合同均有摘要，历史目录强制为纯元数据，只有显式取回的历史谱图可进入图像输入；未下载或运行模型 | 推理依赖、模型与 processor revision 尚未封存；仅在 P4 之后先做一个 Dev 任务的学习价值试点，未通过不得扩矩阵 |
 | 正式证据 | `benchmark_claim_allowed=false`，reference/Bench/P4 均未开始 | P3 全部封存并通过 method freeze 后，严格执行 reference → base matrix → independent reproduction |
 
 执行职责固定为“核心组控制、方法组盲执行”：核心组保留协议、Bench commitment、reference、统计代码、cell 签发和最终主张；RL 组负责当前合同 Train/Dev、checkpoint/replay/resource evidence，并可在收到不可变 cell manifest 后执行正式 cell，但不得访问 Bench 参数、reference feedback、事后改指标或删除失败。执行人与控制人分离不要求不同计算机器，但要求不同 owned paths、不可变输入 hash 和独立重放验收。
@@ -274,6 +275,13 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 验收：复核报告与原报告在声明容差内一致；不一致时 P4 失败并回到新的协议版本。
 
 ## P5：在基础结果通过后做机制与信息消融
+
+- [x] **`benchmark-v05-vlm-observation-contract` — 开源 VLM 谱图输入的确定性准备合同**
+  - 边界：只建立未来试点所需的 provider-neutral 图像引用、固定 PNG 渲染、模态/assigned/unassigned/masked 条件、历史访问白名单、依赖锁和审计；不下载权重、不推理、不调用付费 API、不修改 site，也不进入 v0.4 基础矩阵。
+  - 结果：HPLC、GC、UV/Vis、IR、NMR 和 pH 公共信号可生成固定 960 × 640 PNG；IR/NMR 使用约定的逆向横轴。轨迹只记录相对路径及图像、原始曲线、公开包和渲染合同四类 SHA-256，不保存 base64、绝对路径或私有思维链。assigned/unassigned 共享相同曲线摘要，身份字段在 unassigned 文本和图像中移除；masked 不生成图像。审计还发现并修复了“异常 catalog 携带信号时可能绕过显式历史请求”的边界漏洞，现在目录只保留 spectrum ID、仪器、状态等标量元数据。
+  - 验证：新增 9 项合同/泄漏/重放测试，连同 11 项既有 live-LLM/历史谱图测试共 20 项通过；ruff 与 mypy 通过；独立控制报告 `contract_ready=true`、`runtime_ready_for_model_execution=false`、`benchmark_claim_allowed=false`。Pillow 仅用于合同渲染，其余推理依赖已锁定但未安装完整，模型/processor revision 仍要求在试点前单独封存。
+  - 后续门禁：P4 未通过前不启动 VLM 性能实验；P4 后只允许一个 Dev 任务比较 masked、numeric-unassigned、image-unassigned、image+numeric-unassigned、image-assigned。必须先证明图像输入产生可重放的决策或结果增益，再认领任何多任务矩阵。
+  - 验收：同输入逐字节复现、改变信号改变摘要、历史谱图仅显式请求后出现、日志不含图像字节/绝对路径、仓库不含模型权重，全部已满足；这只证明观察合同完整，不代表 VLM 有效。
 
 - [ ] **`benchmark-v05-spectrum-ablation` — assigned/unassigned/masked 谱图价值实验**
   - 默认 owned_paths：`runs/benchmark-v0.5/spectrum-v0.4/` manifests、`workstreams/benchmark_v1/reports/spectrum-ablation-v0.4.json`、对应图表数据。
