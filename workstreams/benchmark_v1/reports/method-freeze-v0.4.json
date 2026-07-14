@@ -40,6 +40,10 @@
       "path": "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json",
       "sha256": "97be3d1bacb90e6d6cdca47dc22f82c1f0c00fa6109c09dc7ac3b7d89952c88a"
     },
+    "reference_builder_freeze": {
+      "path": "configs/benchmark/reference_builder_freeze_v0.4.json",
+      "sha256": "c6929cdc6a1f122bd77e4230506546fdf7dfd67f7335b3f447a2ea1292617f1a"
+    },
     "reference_plan": {
       "path": "configs/benchmark/reference_portfolio_v0.4.json",
       "sha256": "2955ff5624fbb830da398d62b995b3862e32139f82bd3d570099f2418dabf029"
@@ -63,8 +67,6 @@
     "artifact:formal_execution_budget:file_missing",
     "artifact:llm_development:expected_sha256_missing",
     "artifact:llm_development:file_missing",
-    "artifact:reference_builder_freeze:expected_sha256_missing",
-    "artifact:reference_builder_freeze:file_missing",
     "artifact:sac_checkpoint_index:expected_sha256_missing",
     "artifact:sac_checkpoint_index:file_missing",
     "artifact:sac_development:expected_sha256_missing",
@@ -75,12 +77,10 @@
     "control:formal_execution_budget_ready",
     "control:llm_development_ready",
     "control:plan_status_ready",
-    "control:reference_independence_ready",
     "control:rl_development_ready",
     "formal_budget:freeze_missing",
     "llm:development_matrix:report_missing",
     "method_freeze:development_incomplete",
-    "reference:builder_implementation_freeze_missing",
     "rl:ppo:expected_4_selected_checkpoints_found_2",
     "rl:ppo:method_not_ready",
     "rl:ppo:missing_task:partition-discovery",
@@ -105,7 +105,7 @@
     "operation_baselines_ready": true,
     "plan_status_ready": false,
     "protocols_remain_nonresult_controls": true,
-    "reference_independence_ready": false,
+    "reference_independence_ready": true,
     "required_artifact_binding_labels": true,
     "rl_contract_ready": true,
     "rl_development_ready": false,
@@ -196,13 +196,13 @@
     }
   },
   "method_freeze_ready": false,
-  "plan_sha256": "3eed4614a234a8341101485027caa7c87de8d5f68842d3a5825e7aba0e033936",
+  "plan_sha256": "bba3b0f17aa1bb1da420db76200426f932149a365d97c9b8e2588abd189e765c",
   "preflight_issuance_allowed": false,
   "private_bench_manifest_opened": false,
   "reference_independence": {
-    "builder_implementation_ready": false,
+    "builder_implementation_ready": true,
     "plan_contract_ready": true,
-    "ready": false
+    "ready": true
   },
   "schema_version": "chemworld-method-freeze-audit-0.4",
   "selection": {
@@ -215,7 +215,7 @@
     ],
     "selected_champions": {}
   },
-  "source_commit": "d636140f3ea53b76c69c505e16527f7009048416",
+  "source_commit": "a6ea09c8bd8c59c64552c266d42141a5bca26f0a",
   "source_tree_clean": false,
   "status": "method_freeze_preflight_blocked"
 }

@@ -134,7 +134,7 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [x] reference builder 身份不得与任一被评方法重合；其训练、搜索、轨迹和随机数流独立。
   - [x] 每个 task × seed × metric 至少四个独立 source runs；冻结 best-known estimate 与不确定区间，明确“不是 oracle、允许被方法超过”。
   - [x] 在任何方法 Bench 评分前冻结完整 manifest；后续更新 reference 必须新版本并重算所有方法。
-  - 结果：reference 目标绑定同一私有 Bench task/pair/world cell，但 builder RNG 来自全新 `12000–12099` reference-search namespace，实际 Bench seed 始终只在私有 manifest 中解析。精确计划含 4 tasks × 100 opaque pairs × 2 metrics = 800 reference cells、每 cell 四个独立 source、共 1,600 个唯一 run/RNG、64,000 次完整实验、3,200 条 source-metric 记录和最多 640,000 个 operation；四种 source profile 的 builder identity、代码摘要、训练/搜索 RNG 与 15 个被评方法强制分离。estimate 是带 20,000 次 bootstrap 区间的 empirical best-known，不是 oracle；负 regret 保留。任何缺失 source、replay/accounting/digest 失败都会阻止方法 Bench 评分，完整 reference manifest 必须先冻结；22 个新旧 reference 测试通过。
+  - 结果：reference 目标绑定同一私有 Bench task/pair/world cell，但 builder RNG 来自全新 `12000–12099` reference-search namespace，实际 Bench seed 始终只在私有 manifest 中解析。精确计划含 4 tasks × 100 opaque pairs × 2 metrics = 800 reference cells、每 cell 四个独立 source、共 1,600 个唯一 run/RNG、64,000 次完整实验、3,200 条 source-metric 记录和最多 640,000 个 operation；独立 builder 已实现 space-filling、ensemble-surrogate、evolutionary 与 risk-aware 四种归一化搜索 profile，不导入 evaluated agent/RL/provider 命名空间。builder 源码摘要与 15 个被评方法逐项 canonical adapter 摘要均已 hash-bound，并验证身份、代码和 RNG 分离。estimate 是带 20,000 次 bootstrap 区间的 empirical best-known，不是 oracle；负 regret 保留。任何缺失 source、replay/accounting/digest 失败都会阻止方法 Bench 评分，完整 reference manifest 必须先冻结。
   - 验收：run plan 可枚举精确 cell/run 数和预计资源；仍保持 `formal_results_present=false`。
 
 ## P2：统一正式执行基础设施
@@ -220,9 +220,9 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 - [ ] **`benchmark-v05-method-freeze` — 方法清单与 Bench 解封**
   - 默认 owned_paths：`configs/benchmark/method_freeze_v0.4.json`、`scripts/audit_method_freeze_v0.4.py`、`tests/test_method_freeze_v0.4.py`、`workstreams/benchmark_v1/reports/method-freeze-v0.4.json`。
   - 依赖：所有计划进入正式比较的方法完成 P3；未完成方法必须明确退出，不拖着空实现进入矩阵。
-  - 当前预检：fail-closed 方法冻结审计器与 19 项 hash-bound 输入合同已经落地；当前报告为 `method_freeze_preflight_blocked`，精确 blocker 已从 39 项降至 30 项，并固定输出 `bench_unlock_allowed=false`、`bench_manifest_issued=false`、`benchmark_claim_allowed=false`。三种 operation baseline 已完成 288-cell Train/Dev 封存并通过正式注册与开发证据门禁。剩余阻塞包括：Classic 的 768-cell 报告仍绑定旧 formal protocol digest；PPO 仅 2/4 个 task checkpoint 合格；SAC 与单任务预算化 LLM pilot 证据尚未生成；统一 Dev-only family selection、独立 reference builder 代码 freeze 和正式 cell/CPU/GPU/API/磁盘硬预算尚未落地。该审计只读取公开控制工件，不打开私有 Bench，也没有 `--force` 或 manifest 签发能力。
+  - 当前预检：fail-closed 方法冻结审计器与 19 项 hash-bound 输入合同已经落地；当前报告为 `method_freeze_preflight_blocked`，精确 blocker 已从 39 项降至 26 项，并固定输出 `bench_unlock_allowed=false`、`bench_manifest_issued=false`、`benchmark_claim_allowed=false`。三种 operation baseline 已完成 288-cell Train/Dev 封存；独立 reference builder 的四种 source profile、源码和 15 个 evaluated adapter 摘要也已通过身份、代码、hidden-state 与 RNG 分离门禁。剩余阻塞包括：Classic 的 768-cell 报告仍绑定旧 formal protocol digest；PPO 仅 2/4 个 task checkpoint 合格；SAC 与单任务预算化 LLM pilot 证据尚未生成；完整 Dev-only family selection 和正式 cell/CPU/GPU/API/磁盘硬预算尚未落地。该审计只读取公开控制工件，不打开私有 Bench，也没有 `--force` 或 manifest 签发能力。
   - [ ] 固定方法 IDs、family、interaction stratum、hyperparameters、checkpoint/prompt hashes、Dev 选择依据和资源上限。
-  - [ ] 核实 reference builder 与所有 evaluated method 身份、代码和随机数流独立。
+  - [x] 核实 reference builder 与所有 evaluated method 身份、代码和随机数流独立。
   - [ ] 锁定 run count/预计算力/API 费用，并由 preflight 签发 Bench manifest。
   - 验收：解封后任何实现或协议修改都自动使 run manifest 失效并要求新 cohort。
 

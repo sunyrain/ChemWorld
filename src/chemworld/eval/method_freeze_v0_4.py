@@ -741,6 +741,8 @@ def _audit_reference_independence(
         }
     source_bindings = builder_freeze.get("source_bindings")
     source_bindings = source_bindings if isinstance(source_bindings, Mapping) else {}
+    adapter_bindings = builder_freeze.get("evaluated_adapter_bindings")
+    adapter_bindings = adapter_bindings if isinstance(adapter_bindings, Mapping) else {}
     source_ready = bool(source_bindings)
     adapter_digests = set(builder_freeze.get("evaluated_adapter_digests", ()))
     builder_digest = builder_freeze.get("builder_code_sha256")
@@ -754,6 +756,28 @@ def _audit_reference_independence(
             and _is_sha256(expected)
             and _file_sha256(path) == expected
         )
+    adapter_bindings_ready = set(adapter_bindings) == set(method_ids)
+    for method_id, raw_binding in adapter_bindings.items():
+        if not isinstance(raw_binding, Mapping):
+            adapter_bindings_ready = False
+            continue
+        path = _safe_repo_path(root, raw_binding.get("path"))
+        try:
+            payload = (
+                json.loads(path.read_text(encoding="utf-8"))
+                if path is not None and path.is_file() and not path.is_symlink()
+                else None
+            )
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            payload = None
+        methods = payload.get("methods") if isinstance(payload, Mapping) else None
+        method_payload = methods.get(method_id) if isinstance(methods, Mapping) else None
+        adapter_bindings_ready = bool(
+            adapter_bindings_ready
+            and isinstance(method_payload, Mapping)
+            and _is_sha256(raw_binding.get("sha256"))
+            and _canonical_sha256(method_payload) == raw_binding.get("sha256")
+        )
     implementation_ready = bool(
         builder_freeze.get("schema_version") == "chemworld-reference-builder-freeze-0.4"
         and builder_freeze.get("status") == "code_frozen_bench_unseen"
@@ -762,10 +786,17 @@ def _audit_reference_independence(
         == builder.get("implementation_namespace")
         and builder_freeze.get("bench_results_used") is False
         and builder_freeze.get("evaluated_method_code_imported") is False
+        and builder_freeze.get("hidden_state_access") is False
         and builder_freeze.get("rng_streams_disjoint") is True
         and _is_sha256(builder_digest)
         and builder_digest not in adapter_digests
         and len(adapter_digests) == len(method_ids)
+        and adapter_digests == {
+            binding.get("sha256")
+            for binding in adapter_bindings.values()
+            if isinstance(binding, Mapping)
+        }
+        and adapter_bindings_ready
         and source_ready
     )
     if not implementation_ready:

@@ -60,6 +60,8 @@ def test_current_method_freeze_scaffold_reports_exact_gaps_without_bench_access(
     assert families["rl"]["sac"]["development_ready"] is False
     assert families["llm"]["controls_ready"] is True
     assert families["llm"]["development_ready"] is False
+    assert report["reference_independence"]["builder_implementation_ready"] is True
+    assert report["reference_independence"]["ready"] is True
 
     blockers = set(report["blockers"])
     assert {
@@ -70,7 +72,6 @@ def test_current_method_freeze_scaffold_reports_exact_gaps_without_bench_access(
         "rl:sac:development_evidence_missing",
         "llm:development_matrix:report_missing",
         "selection:dev_family_champions_missing",
-        "reference:builder_implementation_freeze_missing",
         "formal_budget:freeze_missing",
         "method_freeze:development_incomplete",
     }.issubset(blockers)
