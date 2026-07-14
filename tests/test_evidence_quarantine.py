@@ -15,7 +15,16 @@ from chemworld.eval.evidence_quarantine import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT = ROOT / "workstreams" / "benchmark_v1" / "reports" / "evidence-quarantine-v0.5.json"
+FROZEN_REPORT = (
+    ROOT / "workstreams" / "benchmark_v1" / "reports" / "evidence-quarantine-v0.5.json"
+)
+CURRENT_REPORT = (
+    ROOT
+    / "workstreams"
+    / "benchmark_v1"
+    / "reports"
+    / "evidence-quarantine-current-v0.5.json"
+)
 SHA = "a" * 64
 
 
@@ -115,8 +124,21 @@ def test_audit_fails_closed_when_portable_legacy_commitment_is_tampered() -> Non
     assert report["controls"]["legacy_portable_manifest_valid"] is False
 
 
+def test_preformal_inventory_is_immutable_while_current_inventory_is_cumulative() -> None:
+    report = audit_evidence_quarantine(load_evidence_quarantine_policy())
+    frozen = report["pre_formal_protocol_inventory"]
+    current = report["inventory"]
+    assert frozen["valid"] is True
+    assert frozen["exposed_seed_count"] == 280
+    assert set(frozen["exposed_seeds"]).issubset(current["exposed_seeds"])
+    assert set(range(10_000, 10_004)).isdisjoint(frozen["exposed_seeds"])
+    assert set(range(11_000, 11_020)).isdisjoint(frozen["exposed_seeds"])
+    assert set(range(12_000, 12_100)).isdisjoint(frozen["exposed_seeds"])
+    assert set(range(10_000, 10_004)).issubset(current["exposed_seeds"])
+
+
 def test_retained_primary_0_3_is_explicitly_quarantined() -> None:
-    report = json.loads(REPORT.read_text(encoding="utf-8"))
+    report = json.loads(CURRENT_REPORT.read_text(encoding="utf-8"))
     assert report["controls_ready"] is True
     assert report["formal_guard_ready"] is True
     assert report["benchmark_claim_allowed"] is False
@@ -131,3 +153,11 @@ def test_retained_primary_0_3_is_explicitly_quarantined() -> None:
     assert report["controls"]["legacy_results_replay_verified"] is True
     assert report["controls"]["legacy_results_bind_lite_maturity"] is True
     assert report["stale_documentation_matches"] == []
+
+
+def test_preformal_protocol_report_remains_an_immutable_frozen_snapshot() -> None:
+    report = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
+    assert report["inventory"]["exposed_seed_count"] == 280
+    assert set(range(10_000, 10_004)).isdisjoint(report["inventory"]["exposed_seeds"])
+    assert set(range(11_000, 11_020)).isdisjoint(report["inventory"]["exposed_seeds"])
+    assert set(range(12_000, 12_100)).isdisjoint(report["inventory"]["exposed_seeds"])

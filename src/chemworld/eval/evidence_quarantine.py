@@ -165,6 +165,8 @@ def audit_evidence_quarantine(
 
     inventory = build_exposure_inventory(policy, workspace=workspace)
     exposed = set(inventory["exposed_seeds"])
+    precommit_inventory = _preprotocol_exposure_inventory(policy)
+    frozen_exposed = set(precommit_inventory["exposed_seeds"])
     expected_cohorts: dict[str, list[int]] = {}
     for item in policy["known_consumed_cohorts"]:
         start = int(item["start"])
@@ -247,6 +249,8 @@ def audit_evidence_quarantine(
         "known_consumed_cohorts_are_exposed": all(
             set(seeds).issubset(exposed) for seeds in expected_cohorts.values()
         ),
+        "preformal_protocol_inventory_is_hash_bound": precommit_inventory["valid"],
+        "current_inventory_contains_preformal_exposures": frozen_exposed.issubset(exposed),
         "git_history_is_inventoried": inventory["git_history_config_blob_count"] > 0,
         "world_cells_are_inventoried": inventory["exposed_world_cell_count"] > 0,
         "legacy_portable_manifest_valid": portable_manifest_valid,
@@ -309,6 +313,7 @@ def audit_evidence_quarantine(
         "policy_sha256": _canonical_sha256(policy),
         "controls": controls,
         "inventory": inventory,
+        "pre_formal_protocol_inventory": precommit_inventory,
         "known_consumed_cohorts": expected_cohorts,
         "quarantined_protocols": protocol_status,
         "legacy_primary_0_3": {
@@ -353,6 +358,44 @@ def audit_evidence_quarantine(
             "freeze the v0.5 backend semantic hash",
             "bind this guard into the formal preflight and cell runner",
         ],
+    }
+
+
+def _preprotocol_exposure_inventory(policy: Mapping[str, Any]) -> dict[str, Any]:
+    raw = policy.get("formal_protocol_0_4_precommit_inventory")
+    if not isinstance(raw, Mapping):
+        return {"valid": False, "exposed_seed_count": 0, "exposed_seeds": []}
+    seeds: list[int] = []
+    ranges = raw.get("exposed_seed_ranges")
+    if not isinstance(ranges, Sequence) or isinstance(ranges, (str, bytes, bytearray)):
+        return {"valid": False, "exposed_seed_count": 0, "exposed_seeds": []}
+    for item in ranges:
+        if not isinstance(item, Mapping) or not _is_integer_range(item):
+            return {"valid": False, "exposed_seed_count": 0, "exposed_seeds": []}
+        start = int(item["start"])
+        stop = int(item["stop_inclusive"])
+        if start < 0 or stop < start or stop - start > 100_000:
+            return {"valid": False, "exposed_seed_count": 0, "exposed_seeds": []}
+        seeds.extend(range(start, stop + 1))
+    unique = sorted(set(seeds))
+    digest = hashlib.sha256(
+        json.dumps(
+            {"exposed_seeds": unique}, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+    ).hexdigest()
+    valid = bool(
+        raw.get("schema_version") == "chemworld-preprotocol-exposure-freeze-0.1"
+        and bool(re.fullmatch(r"[0-9a-f]{40}", str(raw.get("source_commit", ""))))
+        and raw.get("exposed_seed_count") == len(unique)
+        and raw.get("exposed_seeds_sha256") == digest
+        and len(unique) == len(seeds)
+    )
+    return {
+        "valid": valid,
+        "source_commit": raw.get("source_commit"),
+        "exposed_seed_count": len(unique),
+        "exposed_seeds_sha256": digest,
+        "exposed_seeds": unique,
     }
 
 

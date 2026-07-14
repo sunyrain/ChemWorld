@@ -17,7 +17,9 @@ def main() -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("workstreams/benchmark_v1/reports/evidence-quarantine-v0.5.json"),
+        default=Path(
+            "workstreams/benchmark_v1/reports/evidence-quarantine-current-v0.5.json"
+        ),
     )
     args = parser.parse_args()
     report = audit_evidence_quarantine(load_evidence_quarantine_policy())
