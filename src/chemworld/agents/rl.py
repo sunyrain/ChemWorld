@@ -20,7 +20,7 @@ from chemworld.rl.hybrid_actions import (
     decode_conditional_hybrid_action,
     policy_distribution_contract,
 )
-from chemworld.rl.rewards import reward_contract
+from chemworld.rl.rewards import core_operation_requirements, reward_contract
 from chemworld.tasks import get_task
 from chemworld.world.operations import OPERATION_TYPES
 
@@ -47,8 +47,10 @@ def _load_manifest(value: str | Path | dict[str, Any]) -> dict[str, Any]:
 def build_frozen_rl_observation(
     public_view: dict[str, Any],
     context: AgentDecisionContext,
+    *,
+    executed_operations: set[str] | frozenset[str] | tuple[str, ...] = (),
 ) -> tuple[np.ndarray, list[bool]]:
-    """Rebuild the training observation from the official public view only."""
+    """Rebuild training input from the public view and public action ledger."""
 
     rl_view = public_view.get("rl")
     if not isinstance(rl_view, dict) or rl_view.get("schema_version") != "chemworld-rl-view-0.2":
@@ -60,6 +62,15 @@ def build_frozen_rl_observation(
     available = set(context.available_operations)
     operation_mask = [operation in available for operation in OPERATION_TYPES]
     campaign = context.campaign_state
+    task_id = context.task_id
+    if task_id is None:
+        raise ValueError("frozen RL policy requires a public task id")
+    requirements = core_operation_requirements(get_task(task_id).allowed_operations)
+    public_operation_ledger = set(executed_operations)
+    core_progress = [
+        float(bool(set(group).intersection(public_operation_ledger)))
+        for group in requirements
+    ]
     budget = max(int(campaign.get("budget", 1)), 1)
     operation_count = max(int(campaign.get("operation_count", 0)), 0)
     experiment_index = max(int(campaign.get("experiment_index", 0)), 0)
@@ -71,7 +82,13 @@ def build_frozen_rl_observation(
         min(summary_count / max(experiment_index + 1, 1), 1.0),
     ]
     observation = np.asarray(
-        [*values, *observed_mask, *[float(item) for item in operation_mask], *progress],
+        [
+            *values,
+            *observed_mask,
+            *core_progress,
+            *[float(item) for item in operation_mask],
+            *progress,
+        ],
         dtype=np.float32,
     )
     if not np.all(np.isfinite(observation)):
@@ -170,6 +187,7 @@ class FrozenSB3Agent(BaseAgent):
         self._last_trace: list[dict[str, Any]] = []
         self._evaluation_cpu_time_s = 0.0
         self._evaluation_gpu_time_s = 0.0
+        self._executed_operations: set[str] = set()
 
     def reset(self, task_info: dict[str, Any], seed: int) -> None:
         super().reset(task_info, seed)
@@ -186,6 +204,27 @@ class FrozenSB3Agent(BaseAgent):
         self._last_trace = []
         self._evaluation_cpu_time_s = 0.0
         self._evaluation_gpu_time_s = 0.0
+        self._executed_operations = set()
+
+    def update(
+        self,
+        action: dict[str, Any],
+        observation: dict[str, float | None],
+        reward: float,
+        info: dict[str, Any],
+    ) -> None:
+        """Maintain the same public procedural ledger used by training."""
+
+        del action, observation, reward
+        flags = info.get("constraint_flags", {})
+        invalid = bool(
+            isinstance(flags, dict) and flags.get("precondition_failed", False)
+        )
+        operation = info.get("operation_type")
+        if not invalid and isinstance(operation, str) and operation:
+            self._executed_operations.add(operation)
+        if bool(info.get("experiment_ended", False)):
+            self._executed_operations = set()
 
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
         del history
@@ -196,7 +235,11 @@ class FrozenSB3Agent(BaseAgent):
         context: AgentDecisionContext,
         public_view: dict[str, Any],
     ) -> dict[str, Any]:
-        observation, operation_mask = build_frozen_rl_observation(public_view, context)
+        observation, operation_mask = build_frozen_rl_observation(
+            public_view,
+            context,
+            executed_operations=self._executed_operations,
+        )
         expected_shape = tuple(self._model.observation_space.shape or ())
         if observation.shape != expected_shape:
             raise ValueError(

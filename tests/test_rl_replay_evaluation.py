@@ -24,6 +24,7 @@ from chemworld.rl.hybrid_actions import conditional_hybrid_action_contract
 from chemworld.rl.hybrid_policy import policy_distribution_contract
 from chemworld.rl.rewards import reward_contract
 from chemworld.tasks import get_task
+from chemworld.world.operations import OPERATION_TYPES
 from chemworld.wrappers import ContinuousEventActionWrapper, decode_continuous_event_action
 
 
@@ -66,6 +67,78 @@ def test_public_view_rebuilds_exact_training_observation() -> None:
         assert sum(operation_mask) == len(context.available_operations)
     finally:
         env.close()
+
+
+def test_public_view_rebuilds_nonzero_core_progress_after_valid_operation() -> None:
+    task_id = "flow-reaction-optimization"
+    env = build_rl_environment(
+        task_id=task_id,
+        allocation=_allocation(task_id),
+        sampler_seed=7,
+        operation_budget=5,
+    )
+    try:
+        env.reset()
+        action = np.zeros(env.action_space.shape, dtype=np.float32)
+        action[OPERATION_TYPES.index("set_flow_rate")] = 1.0
+        wrapped_observation, _, _, _, _ = env.step(action)
+        base = env.unwrapped
+        public_view = agent_view_bundle(base, base._last_observation, base._last_info)
+        context = build_decision_context(
+            step=2,
+            task_info=base.task_info(),
+            campaign_state=base.campaign_state(),
+            public_view=public_view,
+            previous_event_type="operation_result",
+        )
+        rebuilt, _ = build_frozen_rl_observation(
+            public_view,
+            context,
+            executed_operations={"set_flow_rate"},
+        )
+        assert rebuilt == pytest.approx(wrapped_observation)
+        assert rebuilt[-(len(OPERATION_TYPES) + 5)] == 1.0
+    finally:
+        env.close()
+
+
+def test_frozen_agent_public_operation_ledger_tracks_success_and_resets() -> None:
+    agent = object.__new__(FrozenSB3Agent)
+    agent._executed_operations = set()
+
+    agent.update(
+        {"operation": "set_flow_rate"},
+        {},
+        0.0,
+        {
+            "operation_type": "set_flow_rate",
+            "constraint_flags": {"precondition_failed": False},
+        },
+    )
+    assert agent._executed_operations == {"set_flow_rate"}
+
+    agent.update(
+        {"operation": "run_flow"},
+        {},
+        0.0,
+        {
+            "operation_type": "run_flow",
+            "constraint_flags": {"precondition_failed": True},
+        },
+    )
+    assert agent._executed_operations == {"set_flow_rate"}
+
+    agent.update(
+        {"operation": "measure"},
+        {},
+        0.0,
+        {
+            "operation_type": "measure",
+            "constraint_flags": {"precondition_failed": False},
+            "experiment_ended": True,
+        },
+    )
+    assert agent._executed_operations == set()
 
 
 def test_pure_decoder_matches_gym_action_wrapper() -> None:
