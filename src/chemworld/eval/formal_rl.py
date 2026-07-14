@@ -34,19 +34,26 @@ from chemworld.eval.formal_runner import (
     PrivateCellRuntime,
 )
 from chemworld.eval.resource_accounting_v0_4 import audit_rl_training_resource
+from chemworld.rl.checkpoint_contract import (
+    RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
+    RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION,
+)
 from chemworld.rl.hybrid_actions import (
     LATENT_ADAPTER_VERSION,
     conditional_hybrid_action_contract,
     policy_distribution_contract,
 )
-from chemworld.rl.observation_contract import rl_observation_contract
+from chemworld.rl.observation_contract import (
+    OBSERVATION_CONTRACT_SCHEMA_VERSION,
+    rl_observation_contract,
+)
 from chemworld.rl.rewards import reward_contract
 from chemworld.tasks import get_task
 
 FORMAL_RL_CONFIG_VERSION = "chemworld-formal-rl-methods-0.4"
 FORMAL_RL_REPORT_VERSION = "chemworld-formal-rl-contract-controls-0.4"
 FORMAL_RL_CHECKPOINT_INDEX_VERSION = "chemworld-formal-rl-checkpoint-index-0.4"
-FORMAL_RL_CHECKPOINT_MANIFEST_VERSION = "chemworld-rl-checkpoint-0.3"
+FORMAL_RL_CHECKPOINT_MANIFEST_VERSION = RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION
 DEFAULT_CONFIG_PATH = Path("configs/methods/rl_v0.4/rl_methods.json")
 DEFAULT_FORMAL_PROTOCOL_PATH = Path("configs/benchmark/formal_protocol_v0.4.json")
 DEFAULT_INTERACTION_PATH = Path("configs/benchmark/interaction_strata_v0.4.json")
@@ -579,6 +586,28 @@ def audit_formal_rl_contract(
         and checkpoints.get("status") == "pending_training_slice"
         and checkpoints.get("formal_ready_checkpoint_count") == 0
         and checkpoints.get("required_task_method_checkpoint_count") == len(formal_tasks) * 2
+    )
+    checks["checkpoint_schema_contract_current"] = bool(
+        isinstance(checkpoints, Mapping)
+        and checkpoints.get("required_manifest_schema")
+        == RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION
+        and checkpoints.get("required_periodic_sidecar_schema")
+        == RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION
+        and checkpoints.get("required_index_schema")
+        == FORMAL_RL_CHECKPOINT_INDEX_VERSION
+        and checkpoints.get("legacy_checkpoint_eligible") is False
+    )
+    expected_observation_hashes = {
+        task_id: task_contracts[task_id]["observation_contract_sha256"]
+        for task_id in formal_tasks
+    }
+    checks["observation_contract_bindings_exact"] = bool(
+        isinstance(checkpoints, Mapping)
+        and checkpoints.get("required_observation_contract_schema")
+        == OBSERVATION_CONTRACT_SCHEMA_VERSION
+        and checkpoints.get("required_observation_contract_hashes")
+        == expected_observation_hashes
+        and checkpoints.get("shape_only_observation_compatibility_allowed") is False
     )
     lock_text = (repository / "uv.lock").read_text(encoding="utf-8")
     locked_versions = {

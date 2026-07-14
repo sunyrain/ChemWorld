@@ -12,10 +12,8 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Literal
 
-from chemworld.agents.rl import (
-    RL_CHECKPOINT_RUNTIME_SCHEMA_VERSIONS,
-    validate_frozen_rl_observation_space,
-)
+from chemworld.agents.rl import validate_frozen_rl_observation_space
+from chemworld.rl.checkpoint_contract import RL_CHECKPOINT_RUNTIME_SCHEMA_VERSIONS
 from chemworld.rl.environment import RLWorldAllocation, build_rl_environment
 from chemworld.rl.hybrid_actions import policy_distribution_contract
 from chemworld.rl.observation_contract import rl_observation_contract

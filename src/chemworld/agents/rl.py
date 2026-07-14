@@ -15,6 +15,11 @@ import numpy as np
 import chemworld  # noqa: F401
 from chemworld.agents.base import BaseAgent, HistoryRecord
 from chemworld.agents.interaction import AgentDecisionContext, InteractionCapabilities
+from chemworld.rl.checkpoint_contract import (
+    RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
+    RL_CHECKPOINT_RUNTIME_SCHEMA_VERSIONS,
+    RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION,
+)
 from chemworld.rl.hybrid_actions import (
     conditional_hybrid_action_contract,
     decode_conditional_hybrid_action,
@@ -30,16 +35,6 @@ RLResourceReportingScope = Literal[
     "diagnostic_combined",
     "formal_evaluation_only",
 ]
-RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION = "chemworld-rl-checkpoint-0.3"
-RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION = "chemworld-rl-checkpoint-contract-sidecar-0.2"
-RL_CHECKPOINT_RUNTIME_SCHEMA_VERSIONS = frozenset(
-    {
-        RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
-        RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION,
-    }
-)
-
-
 def validate_frozen_rl_observation_space(
     observation_space: Any,
     observation_contract: dict[str, Any],

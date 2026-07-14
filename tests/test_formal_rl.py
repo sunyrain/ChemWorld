@@ -228,6 +228,48 @@ def test_contract_audit_fails_closed_on_bench_access_or_sac_claim() -> None:
     assert report["checks"]["sac_latent_comparability_disclosed"] is False
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "failed_check"),
+    [
+        (
+            "required_manifest_schema",
+            "chemworld-rl-checkpoint-0.2",
+            "checkpoint_schema_contract_current",
+        ),
+        (
+            "required_periodic_sidecar_schema",
+            "chemworld-rl-checkpoint-contract-sidecar-0.1",
+            "checkpoint_schema_contract_current",
+        ),
+        (
+            "required_observation_contract_schema",
+            "chemworld-rl-observation-contract-0.0",
+            "observation_contract_bindings_exact",
+        ),
+    ],
+)
+def test_contract_audit_rejects_legacy_checkpoint_declarations(
+    field: str,
+    value: str,
+    failed_check: str,
+) -> None:
+    config = load_formal_rl_config(CONFIG)
+    config["checkpoint_state"][field] = value
+    report = audit_formal_rl_contract(config, root=ROOT)
+    assert report["controls_ready"] is False
+    assert report["checks"][failed_check] is False
+
+
+def test_contract_audit_rejects_task_observation_hash_drift() -> None:
+    config = load_formal_rl_config(CONFIG)
+    config["checkpoint_state"]["required_observation_contract_hashes"][
+        "partition-discovery"
+    ] = "0" * 64
+    report = audit_formal_rl_contract(config, root=ROOT)
+    assert report["controls_ready"] is False
+    assert report["checks"]["observation_contract_bindings_exact"] is False
+
+
 @pytest.mark.parametrize("method_id", ["ppo", "sac"])
 def test_checkpoint_binding_verifies_contracts_and_separate_training_ledger(
     tmp_path: Path, method_id: str
