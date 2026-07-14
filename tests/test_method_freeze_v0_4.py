@@ -44,11 +44,8 @@ def test_current_method_freeze_scaffold_reports_exact_gaps_without_bench_access(
     assert report["force_override_available"] is False
 
     families = report["method_families"]
-    # The classic trajectories are internally complete, but their report is
-    # bound to an older formal-protocol digest and therefore cannot be carried
-    # into the current freeze by assertion alone.
     assert families["classic"]["controls_ready"] is True
-    assert families["classic"]["development_ready"] is False
+    assert families["classic"]["development_ready"] is True
     assert families["classic"]["cell_count"] == 768
     assert families["operation_baselines"]["pending_adapter_method_ids"] == []
     assert families["operation_baselines"]["development_ready"] is True
@@ -65,7 +62,6 @@ def test_current_method_freeze_scaffold_reports_exact_gaps_without_bench_access(
 
     blockers = set(report["blockers"])
     assert {
-        "classic:development_contract_failed",
         "rl:ppo:expected_4_selected_checkpoints_found_2",
         "rl:ppo:missing_task:partition-discovery",
         "rl:ppo:missing_task:reaction-to-crystallization",

@@ -360,7 +360,7 @@ def _audit_classic(
         )
         and acceptance.get("bench_feedback_used") is False
         and development.get("classic_freeze_sha256") == _canonical_sha256(freeze)
-        and development.get("formal_protocol_sha256") == protocol.get("protocol_sha256")
+        and development.get("formal_protocol_sha256") == _canonical_sha256(protocol)
     )
     if not ready:
         blockers.append("classic:development_contract_failed")
