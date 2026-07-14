@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import gymnasium as gym
 import numpy as np
@@ -12,7 +12,11 @@ from scripts.run_rl_replay_development import load_protocol
 import chemworld  # noqa: F401
 from chemworld.agent_interface import agent_view_bundle
 from chemworld.agents.interaction import build_decision_context
-from chemworld.agents.rl import FrozenSB3Agent, build_frozen_rl_observation
+from chemworld.agents.rl import (
+    RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
+    FrozenSB3Agent,
+    build_frozen_rl_observation,
+)
 from chemworld.data.logging import to_builtin
 from chemworld.rl.environment import (
     RLWorldAllocation,
@@ -22,6 +26,7 @@ from chemworld.rl.environment import (
 from chemworld.rl.evaluation import evaluate_replay_verified_sb3_checkpoint
 from chemworld.rl.hybrid_actions import conditional_hybrid_action_contract
 from chemworld.rl.hybrid_policy import policy_distribution_contract
+from chemworld.rl.observation_contract import rl_observation_contract
 from chemworld.rl.rewards import reward_contract
 from chemworld.tasks import get_task
 from chemworld.world.operations import OPERATION_TYPES
@@ -51,7 +56,7 @@ def test_public_view_rebuilds_exact_training_observation() -> None:
     )
     try:
         wrapped_observation, _ = env.reset()
-        base = env.unwrapped
+        base = cast(Any, env.unwrapped)
         raw_observation = base._last_observation
         raw_info = base._last_info
         public_view = agent_view_bundle(base, raw_observation, raw_info)
@@ -69,6 +74,33 @@ def test_public_view_rebuilds_exact_training_observation() -> None:
         env.close()
 
 
+def test_public_view_rejects_coordinate_order_drift() -> None:
+    task_id = "flow-reaction-optimization"
+    env = build_rl_environment(
+        task_id=task_id,
+        allocation=_allocation(task_id),
+        sampler_seed=7,
+        operation_budget=5,
+    )
+    try:
+        env.reset()
+        base = cast(Any, env.unwrapped)
+        public_view = agent_view_bundle(base, base._last_observation, base._last_info)
+        rl_view = public_view["rl"]
+        rl_view["keys"] = list(reversed(rl_view["keys"]))
+        context = build_decision_context(
+            step=1,
+            task_info=base.task_info(),
+            campaign_state=base.campaign_state(),
+            public_view=public_view,
+            previous_event_type=None,
+        )
+        with pytest.raises(ValueError, match="coordinate keys"):
+            build_frozen_rl_observation(public_view, context)
+    finally:
+        env.close()
+
+
 def test_public_view_rebuilds_nonzero_core_progress_after_valid_operation() -> None:
     task_id = "flow-reaction-optimization"
     env = build_rl_environment(
@@ -79,10 +111,12 @@ def test_public_view_rebuilds_nonzero_core_progress_after_valid_operation() -> N
     )
     try:
         env.reset()
-        action = np.zeros(env.action_space.shape, dtype=np.float32)
+        action_shape = env.action_space.shape
+        assert action_shape is not None
+        action = np.zeros(action_shape, dtype=np.float32)
         action[OPERATION_TYPES.index("set_flow_rate")] = 1.0
         wrapped_observation, _, _, _, _ = env.step(action)
-        base = env.unwrapped
+        base = cast(Any, env.unwrapped)
         public_view = agent_view_bundle(base, base._last_observation, base._last_info)
         context = build_decision_context(
             step=2,
@@ -148,7 +182,8 @@ def test_pure_decoder_matches_gym_action_wrapper() -> None:
     try:
         env.reset(seed=3)
         vector = np.linspace(-1.0, 1.0, 49, dtype=np.float32)
-        mask = list(env.unwrapped.operation_validator.action_mask(env.unwrapped._state))
+        base = cast(Any, env.unwrapped)
+        mask = list(base.operation_validator.action_mask(base._state))
         decoded = decode_continuous_event_action(
             vector,
             event_action_space=env.event_action_space,
@@ -163,7 +198,7 @@ def test_checkpoint_digest_mismatch_fails_before_policy_load(tmp_path: Path) -> 
     checkpoint = tmp_path / "policy.zip"
     checkpoint.write_bytes(b"not-a-checkpoint")
     manifest = {
-        "schema_version": "chemworld-rl-checkpoint-0.2",
+        "schema_version": RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
         "algorithm": "ppo",
         "task_id": "flow-reaction-optimization",
         "checkpoint_sha256": "0" * 64,
@@ -185,10 +220,13 @@ def test_checkpoint_contract_mismatch_fails_before_policy_load(
     checkpoint.write_bytes(b"not-loaded")
     digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
     manifest = {
-        "schema_version": "chemworld-rl-checkpoint-0.2",
+        "schema_version": RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
         "algorithm": "ppo",
         "task_id": "flow-reaction-optimization",
         "checkpoint_sha256": digest,
+        "observation_contract_hash": rl_observation_contract(
+            "flow-reaction-optimization"
+        )["contract_hash"],
         "action_contract_hash": "0" * 64,
         "training_reward_contract_hash": "0" * 64,
     }
@@ -198,6 +236,34 @@ def test_checkpoint_contract_mismatch_fails_before_policy_load(
 
     monkeypatch.setattr(sb3.PPO, "load", unexpected_load)
     with pytest.raises(ValueError, match="action contract hash"):
+        FrozenSB3Agent(
+            algorithm="ppo",
+            checkpoint=checkpoint,
+            checkpoint_manifest=manifest,
+            task_id="flow-reaction-optimization",
+        )
+
+
+def test_observation_contract_mismatch_fails_before_policy_load(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sb3 = pytest.importorskip("stable_baselines3")
+    checkpoint = tmp_path / "policy.zip"
+    checkpoint.write_bytes(b"not-loaded")
+    digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+    manifest = {
+        "schema_version": RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
+        "algorithm": "ppo",
+        "task_id": "flow-reaction-optimization",
+        "checkpoint_sha256": digest,
+        "observation_contract_hash": "0" * 64,
+    }
+
+    def unexpected_load(*args: object, **kwargs: object) -> object:
+        raise AssertionError("incompatible checkpoint reached policy deserialization")
+
+    monkeypatch.setattr(sb3.PPO, "load", unexpected_load)
+    with pytest.raises(ValueError, match="observation contract hash"):
         FrozenSB3Agent(
             algorithm="ppo",
             checkpoint=checkpoint,
@@ -220,7 +286,8 @@ def test_frozen_policy_produces_official_replay_verified_trajectory(
     )
     observation_space = shape_env.observation_space
     action_space = shape_env.action_space
-    action_contract = conditional_hybrid_action_contract(shape_env.unwrapped.action_space)
+    event_action_space = cast(gym.spaces.Dict, shape_env.unwrapped.action_space)
+    action_contract = conditional_hybrid_action_contract(event_action_space)
     shape_env.close()
 
     class FakeModel:
@@ -242,7 +309,7 @@ def test_frozen_policy_produces_official_replay_verified_trajectory(
     checkpoint.write_bytes(b"frozen-policy-fixture")
     digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
     manifest: dict[str, Any] = {
-        "schema_version": "chemworld-rl-checkpoint-0.2",
+        "schema_version": RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
         "algorithm": "ppo",
         "task_id": task_id,
         "checkpoint_sha256": digest,
@@ -251,6 +318,7 @@ def test_frozen_policy_produces_official_replay_verified_trajectory(
         "gpu_time_s": 0.0,
         "allocation": {"name": "train"},
         "versions": {"stable_baselines3": sb3.__version__},
+        "observation_contract_hash": rl_observation_contract(task_id)["contract_hash"],
         "action_contract_hash": action_contract["contract_hash"],
         "training_reward_contract_hash": reward_contract(
             get_task(task_id).allowed_operations

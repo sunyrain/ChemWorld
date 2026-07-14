@@ -371,6 +371,7 @@ def test_frozen_agent_reports_inference_resources_not_checkpoint_training() -> N
         "gpu_time_s": 900.0,
         "versions": {"stable_baselines3": "2.9.0", "torch": "2.13.0"},
     }
+    agent.observation_contract = {"contract_hash": "e" * 64}
     agent._evaluation_cpu_time_s = 0.125
     agent._evaluation_gpu_time_s = 0.25
     agent.resource_reporting_scope = "formal_evaluation_only"
@@ -378,6 +379,7 @@ def test_frozen_agent_reports_inference_resources_not_checkpoint_training() -> N
     assert usage["training_environment_step_count"] == 0
     assert usage["cpu_time_s"] == 0.125
     assert usage["gpu_time_s"] == 0.25
+    assert usage["model_provenance"]["observation_contract_hash"] == "e" * 64
     assert usage["training_resource_policy"].endswith("not_evaluation_cell")
 
 
