@@ -28,6 +28,7 @@ PPO_REPORT_VERSION = "chemworld-formal-ppo-development-report-0.4"
 SAC_PLAN_VERSION = "chemworld-formal-sac-training-plan-0.4"
 SAC_JOB_SUMMARY_VERSION = "chemworld-formal-sac-job-summary-0.4"
 SAC_REPORT_VERSION = "chemworld-formal-sac-development-report-0.4"
+SAC_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v048-preflight-report-0.1"
 DEFAULT_PLAN_PATH = Path("configs/methods/rl_v0.4/ppo_training_plan.json")
 DEFAULT_METHODS_PATH = Path("configs/methods/rl_v0.4/rl_methods.json")
 DEFAULT_FORMAL_PROTOCOL_PATH = Path("configs/benchmark/formal_protocol_v0.4.json")
@@ -223,6 +224,7 @@ def validate_training_plan(
         )
     else:
         comparability = plan.get("comparability_boundary", {})
+        preflight = plan.get("current_contract_preflight", {})
         checks.update(
             {
                 "sac_replay_buffer_checkpointed": training.get("save_replay_buffer") is True
@@ -243,6 +245,16 @@ def validate_training_plan(
                 == "chemworld-sb3-box-latent-adapter-0.1"
                 and isinstance(comparability.get("limitations"), list)
                 and len(comparability["limitations"]) >= 2,
+                "sac_current_contract_preflight_declared": isinstance(preflight, Mapping)
+                and preflight.get("required_before_full_matrix") is True
+                and preflight.get("plan") == "configs/methods/rl_v0.4/sac_v048_preflight_plan.json"
+                and preflight.get("report")
+                == "workstreams/benchmark_v1/reports/rl-sac-v048-preflight-v0.4.json"
+                and preflight.get("required_report_schema") == SAC_PREFLIGHT_REPORT_VERSION
+                and preflight.get("required_status")
+                == "sac_v048_preflight_passed_full_matrix_allowed"
+                and preflight.get("source_commit_must_equal_execution_head") is True
+                and preflight.get("failure_forbids_full_matrix") is True,
                 "parent_and_ppo_remain_separate": isinstance(boundary, Mapping)
                 and boundary.get("parent_task_complete") is False
                 and boundary.get("ppo_training_in_scope") is False
@@ -254,6 +266,65 @@ def validate_training_plan(
     if failed:
         raise FormalPPOTrainingError(
             f"formal {algorithm.upper()} plan validation failed: " + ", ".join(failed)
+        )
+    return checks
+
+
+def verify_current_contract_preflight(
+    *, root: Path, plan: Mapping[str, Any], source_commit: str
+) -> dict[str, bool]:
+    """Fail closed unless the SAC full matrix is unlocked by an exact current-source gate."""
+
+    if _algorithm(plan) != "sac":
+        return {"not_required_for_ppo": True}
+    declaration = plan.get("current_contract_preflight")
+    if not isinstance(declaration, Mapping):
+        raise FormalPPOTrainingError("SAC current-contract preflight declaration is missing")
+    plan_path = _inside(root, str(declaration.get("plan")), "SAC preflight plan")
+    report_path = _inside(root, str(declaration.get("report")), "SAC preflight report")
+    preflight_plan = _load_object(plan_path, "SAC preflight plan")
+    report = _load_object(report_path, "SAC preflight report")
+    source = report.get("source")
+    assessment = report.get("gate_assessment")
+    writer_gate = report.get("writer_gate")
+    checks = {
+        "required": declaration.get("required_before_full_matrix") is True,
+        "schema": report.get("schema_version")
+        == declaration.get("required_report_schema")
+        == SAC_PREFLIGHT_REPORT_VERSION,
+        "status": report.get("status") == declaration.get("required_status"),
+        "algorithm": report.get("algorithm") == "sac",
+        "task": report.get("task_id") == plan.get("task_id"),
+        "source_exact": isinstance(source, Mapping)
+        and source.get("source_commit") == source_commit
+        and source.get("origin_main_commit") == source_commit
+        and source.get("source_tree_clean") is True
+        and source.get("source_commit_on_origin_main") is True,
+        "preflight_plan_path": report.get("preflight_plan_path")
+        == plan_path.relative_to(root).as_posix(),
+        "preflight_plan_file_hash": report.get("preflight_plan_file_sha256")
+        == file_sha256(plan_path),
+        "preflight_plan_canonical_hash": report.get("preflight_plan_canonical_sha256")
+        == _canonical_sha256(preflight_plan),
+        "gate_passed": report.get("full_matrix_allowed") is True
+        and isinstance(assessment, Mapping)
+        and assessment.get("passed") is True
+        and isinstance(assessment.get("checks"), Mapping)
+        and bool(assessment["checks"])
+        and all(value is True for value in assessment["checks"].values()),
+        "writer_ready": isinstance(writer_gate, Mapping)
+        and writer_gate.get("source_commit") == source_commit
+        and writer_gate.get("writer_contract_ready") is True
+        and writer_gate.get("formal_training_allowed") is True,
+        "development_only": report.get("formal_results_present") is False
+        and report.get("benchmark_claim_allowed") is False
+        and report.get("bench_accessed") is False
+        and report.get("reference_search_used") is False,
+    }
+    failed = sorted(name for name, passed in checks.items() if not passed)
+    if failed:
+        raise FormalPPOTrainingError(
+            "SAC current-contract preflight does not unlock the full matrix: " + ", ".join(failed)
         )
     return checks
 
@@ -1215,6 +1286,7 @@ __all__ = [
     "PPO_REPORT_VERSION",
     "SAC_JOB_SUMMARY_VERSION",
     "SAC_PLAN_VERSION",
+    "SAC_PREFLIGHT_REPORT_VERSION",
     "SAC_REPORT_VERSION",
     "FormalPPOJob",
     "FormalPPOTrainingError",
@@ -1228,4 +1300,5 @@ __all__ = [
     "scan_completed_jobs",
     "select_task_candidate",
     "validate_training_plan",
+    "verify_current_contract_preflight",
 ]

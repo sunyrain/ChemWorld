@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 from pathlib import Path
 
 from chemworld.rl.formal_training import (
@@ -14,6 +15,7 @@ from chemworld.rl.formal_training import (
     load_execution_inputs,
     run_pending_jobs,
     scan_completed_jobs,
+    verify_current_contract_preflight,
 )
 from chemworld.rl.training import train_sb3_baseline
 
@@ -36,6 +38,15 @@ def main() -> int:
     root = args.root.resolve()
     plan, formal, methods = load_execution_inputs(root=root, plan_path=args.plan)
     algorithm = plan["algorithm"]
+    if algorithm == "sac" and not args.probe_backend and not args.audit_only:
+        source_commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=root, text=True, encoding="utf-8"
+        ).strip()
+        verify_current_contract_preflight(
+            root=root,
+            plan=plan,
+            source_commit=source_commit,
+        )
     if args.probe_backend:
         task_id = args.task or "partition-discovery"
         infrastructure = plan["infrastructure"]

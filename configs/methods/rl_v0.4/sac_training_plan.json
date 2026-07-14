@@ -2,7 +2,7 @@
   "schema_version": "chemworld-formal-sac-training-plan-0.4",
   "task_id": "benchmark-v05-rl-adapters--slice-sac-train-dev",
   "parent_task_id": "benchmark-v05-rl-adapters",
-  "status": "preregistered_execution_pending",
+  "status": "preregistered_current_contract_preflight_pending",
   "algorithm": "sac",
   "formal_core_tasks": {
     "partition-discovery": "product_in_organic",
@@ -101,6 +101,15 @@
       "lower_model_seed"
     ],
     "deterministic_replay_repetitions_for_selected_checkpoint": 2
+  },
+  "current_contract_preflight": {
+    "required_before_full_matrix": true,
+    "plan": "configs/methods/rl_v0.4/sac_v048_preflight_plan.json",
+    "report": "workstreams/benchmark_v1/reports/rl-sac-v048-preflight-v0.4.json",
+    "required_report_schema": "chemworld-sac-v048-preflight-report-0.1",
+    "required_status": "sac_v048_preflight_passed_full_matrix_allowed",
+    "source_commit_must_equal_execution_head": true,
+    "failure_forbids_full_matrix": true
   },
   "execution": {
     "expected_training_run_count": 20,
