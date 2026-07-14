@@ -1,0 +1,101 @@
+{
+  "schema_version": "chemworld-formal-sac-development-report-0.4",
+  "status": "quarantined_incomplete_stale_contract",
+  "result_role": "diagnostic_only",
+  "controls_ready": false,
+  "sac_method_ready": false,
+  "formal_results_present": false,
+  "benchmark_claim_allowed": false,
+  "parent_task_complete": false,
+  "weights_published": true,
+  "replay_buffers_published": false,
+  "source_base_commit": "b516419840e701615461c450931e298bf48eb2e0",
+  "source_implementation_commit": "db8c7ca75e8b4374ad14aa5a1b218e9bf302066b",
+  "current_contract_audit_commit": "ce28e0e08ebba4028fb1ebec6946ed1887db6a36",
+  "plan_sha256": "1404cec192b9c85d7feade4984eef57c88bc4f60d9db64b835584ff8dc5b447d",
+  "published_package_manifest": "runs/benchmark-v0.5/rl-v0.4/sac/shared/pre-v048-diagnostic/manifest.json",
+  "contract_compatibility": {
+    "source_checkpoint_sidecar_schema": "chemworld-rl-checkpoint-contract-sidecar-0.1",
+    "required_checkpoint_manifest_schema": "chemworld-rl-checkpoint-0.3",
+    "required_checkpoint_sidecar_schema": "chemworld-rl-checkpoint-contract-sidecar-0.2",
+    "observation_contract_exact": false,
+    "observation_contract_hash_exact": false,
+    "current_runtime_load_allowed": false,
+    "resume_allowed": false,
+    "formal_checkpoint_index_allowed": false
+  },
+  "execution_coverage": {
+    "planned_training_run_count": 20,
+    "completed_training_run_count": 19,
+    "incomplete_training_run_count": 1,
+    "incomplete_job": {
+      "task_id": "flow-reaction-optimization",
+      "model_seed": 4,
+      "observed_training_environment_step_count": 90000,
+      "requested_training_environment_step_count": 100000
+    },
+    "planned_candidate_checkpoint_count": 100,
+    "produced_candidate_checkpoint_count": 99,
+    "evaluated_candidate_checkpoint_count": 95,
+    "legacy_eligible_candidate_count": 13,
+    "completed_job_training_environment_step_count": 1900000,
+    "observed_training_environment_step_count_including_incomplete_job": 1990000
+  },
+  "training_resources_for_completed_jobs": {
+    "cpu_time_s": 319324.406,
+    "gpu_time_s": 0.0,
+    "summed_job_wall_time_s_diagnostic_only": 130042.923
+  },
+  "task_outcomes": [
+    {
+      "task_id": "flow-reaction-optimization",
+      "completed_training_run_count": 4,
+      "evaluated_candidate_checkpoint_count": 20,
+      "legacy_eligible_candidate_count": 11,
+      "representative_checkpoint_status": "best_legacy_eligible",
+      "cpu_time_s": 120458.266,
+      "summed_job_wall_time_s_diagnostic_only": 59022.613
+    },
+    {
+      "task_id": "partition-discovery",
+      "completed_training_run_count": 5,
+      "evaluated_candidate_checkpoint_count": 25,
+      "legacy_eligible_candidate_count": 1,
+      "representative_checkpoint_status": "best_legacy_eligible",
+      "cpu_time_s": 63002.359,
+      "summed_job_wall_time_s_diagnostic_only": 19325.106
+    },
+    {
+      "task_id": "reaction-to-crystallization",
+      "completed_training_run_count": 5,
+      "evaluated_candidate_checkpoint_count": 25,
+      "legacy_eligible_candidate_count": 0,
+      "representative_checkpoint_status": "best_observed_no_legacy_eligible_candidate",
+      "cpu_time_s": 72484.375,
+      "summed_job_wall_time_s_diagnostic_only": 26400.429
+    },
+    {
+      "task_id": "reaction-to-distillation",
+      "completed_training_run_count": 5,
+      "evaluated_candidate_checkpoint_count": 25,
+      "legacy_eligible_candidate_count": 1,
+      "representative_checkpoint_status": "best_legacy_eligible",
+      "cpu_time_s": 63379.406,
+      "summed_job_wall_time_s_diagnostic_only": 25294.775
+    }
+  ],
+  "published_checkpoint_count": 4,
+  "published_checkpoint_bytes": 18865172,
+  "limitations": [
+    "The run stopped after 19 complete jobs; flow-reaction-optimization seed 4 stopped at 90000 of 100000 steps.",
+    "All results were produced before the current task-specific observation contract and exact observation-contract hash requirement.",
+    "The published model archives omit replay buffers and are for old-result inspection only.",
+    "No value in this report may be used as v0.4.8 formal evidence or as a benchmark claim."
+  ],
+  "remaining_parent_work": [
+    "Fix and verify the PPO/SAC training writer against manifest schema 0.3 and sidecar schema 0.2.",
+    "Run a small current-contract PPO before/after diagnostic.",
+    "Rerun the frozen SAC Train/Dev matrix from a clean current-main environment.",
+    "Publish only current-contract-compatible selections after deterministic replay and clean-environment load proof."
+  ]
+}

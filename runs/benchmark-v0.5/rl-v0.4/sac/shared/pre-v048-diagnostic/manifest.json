@@ -1,0 +1,84 @@
+{
+  "schema_version": "chemworld-pre-v048-sac-diagnostic-package-0.1",
+  "status": "quarantined_stale_contract",
+  "result_role": "diagnostic_only",
+  "formal_results_present": false,
+  "benchmark_claim_allowed": false,
+  "eligible_for_current_runtime_load": false,
+  "eligible_for_resume": false,
+  "eligible_for_formal_checkpoint_index": false,
+  "weights_published": true,
+  "replay_buffers_published": false,
+  "source_base_commit": "b516419840e701615461c450931e298bf48eb2e0",
+  "source_implementation_commit": "db8c7ca75e8b4374ad14aa5a1b218e9bf302066b",
+  "current_contract_audit_commit": "ce28e0e08ebba4028fb1ebec6946ed1887db6a36",
+  "source_plan_sha256": "1404cec192b9c85d7feade4984eef57c88bc4f60d9db64b835584ff8dc5b447d",
+  "source_checkpoint_sidecar_schema": "chemworld-rl-checkpoint-contract-sidecar-0.1",
+  "required_checkpoint_manifest_schema": "chemworld-rl-checkpoint-0.3",
+  "required_checkpoint_sidecar_schema": "chemworld-rl-checkpoint-contract-sidecar-0.2",
+  "invalidation_reasons": [
+    "The source checkpoint writer did not bind the task-specific observation contract.",
+    "The source sidecar did not bind an exact observation-contract hash.",
+    "The source manifest and periodic sidecars do not satisfy the current runtime compatibility gate."
+  ],
+  "package": {
+    "checkpoint_count": 4,
+    "total_bytes": 18865172,
+    "replay_buffer_count": 0
+  },
+  "checkpoints": [
+    {
+      "task_id": "flow-reaction-optimization",
+      "primary_metric": "flow_conversion",
+      "selection": "best_legacy_eligible",
+      "legacy_eligible_candidate_count": 11,
+      "model_seed": 1,
+      "training_environment_step_count": 80000,
+      "mean_episode_best_primary_metric": 0.06793709126159624,
+      "mean_episode_best_score": 0.12359036148128837,
+      "path": "weights/sac-flow-reaction-optimization-seed1_80000_steps.zip",
+      "bytes": 4716293,
+      "sha256": "9821ab88cd44eb96b0d107935e414bc93c797cd52fcec15ea63deb8ae51a9cdf"
+    },
+    {
+      "task_id": "partition-discovery",
+      "primary_metric": "product_in_organic",
+      "selection": "best_legacy_eligible",
+      "legacy_eligible_candidate_count": 1,
+      "model_seed": 4,
+      "training_environment_step_count": 100000,
+      "mean_episode_best_primary_metric": 0.7902442319100802,
+      "mean_episode_best_score": 0.6887092731759662,
+      "path": "weights/sac-partition-discovery-seed4_100000_steps.zip",
+      "bytes": 4716295,
+      "sha256": "8a2f8fa7f15c8860f8215a55c8a4818be06d2a808c48b17d4e100f3194aa012b"
+    },
+    {
+      "task_id": "reaction-to-crystallization",
+      "primary_metric": "crystal_yield",
+      "selection": "best_observed_no_legacy_eligible_candidate",
+      "legacy_eligible_candidate_count": 0,
+      "model_seed": 0,
+      "training_environment_step_count": 80000,
+      "mean_episode_best_primary_metric": 0.013406790763016046,
+      "mean_episode_best_score": 0.31634399853534967,
+      "path": "weights/sac-reaction-to-crystallization-seed0_80000_steps.zip",
+      "bytes": 4716289,
+      "sha256": "b242a0928c01caaa39eead2a00fdf29424fc5bdf7ba2c3b3bdc9836d410b0c6f"
+    },
+    {
+      "task_id": "reaction-to-distillation",
+      "primary_metric": "distillate_purity",
+      "selection": "best_legacy_eligible",
+      "legacy_eligible_candidate_count": 1,
+      "model_seed": 1,
+      "training_environment_step_count": 100000,
+      "mean_episode_best_primary_metric": 0.003899937073602881,
+      "mean_episode_best_score": 0.154989229105938,
+      "path": "weights/sac-reaction-to-distillation-seed1_100000_steps.zip",
+      "bytes": 4716295,
+      "sha256": "7d3b1afe139d68a68be1737694b480c307902aa8662e9d2f8258073cddb2d52a"
+    }
+  ]
+}
+
