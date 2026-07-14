@@ -20,6 +20,8 @@
 | 当前 PPO | `benchmark-v05-rl-adapters--slice-ppo-v048-retrain-dev` 已认领 | 先做 step-0 对 trained 的 fail-closed 学习门禁，通过后才运行四任务五 seed |
 | 当前 SAC | `benchmark-v05-rl-adapters--slice-sac-train-dev` 已认领，训练与恢复基础设施已进入 main | 在完整 4 × 5 × 100k 矩阵前增加与 PPO 对称的 current-contract 学习门禁，避免再次无信号消耗约 200 万步 |
 | 真实 LLM | v0.4.8 已收敛为单任务、两角色、三谱图条件、费用硬上限 2.10 USD；付费筛选仍暂停 | 非付费门禁与 RL 状态稳定后才运行 6-cell candidate screen |
+| 开源 VLM | 确定性谱图图像合同 0.1 已通过审计：PNG/信号/公开包/渲染合同均有摘要，历史目录强制为纯元数据，只有显式取回的历史谱图可进入图像输入；未下载或运行模型；未来推理依赖已从主环境锁隔离 | 推理依赖、模型与 processor revision 尚未封存；仅在 P4 之后先做一个 Dev 任务的学习价值试点，未通过不得扩矩阵 |
+| 环境锁 | VLM 临时 extra 已完全移除，`uv.lock` 精确恢复到 VLM 前 `099028d` 的 179 包摘要；但该摘要与 P0 `be4e38f` 的 178 包 portable-release 证明不同，漂移在 VLM 任务之前已由后续 RL 依赖产生 | 不回写历史 P0 报告；待 P3 方法依赖稳定后执行 `benchmark-v05-portable-release-reattestation`，在此之前不得签发正式 Bench source/wheel manifest |
 | 正式证据 | `benchmark_claim_allowed=false`，reference/Bench/P4 均未开始 | P3 全部封存并通过 method freeze 后，严格执行 reference → base matrix → independent reproduction |
 
 执行职责固定为“核心组控制、方法组盲执行”：核心组保留协议、Bench commitment、reference、统计代码、cell 签发和最终主张；RL 组负责当前合同 Train/Dev、checkpoint/replay/resource evidence，并可在收到不可变 cell manifest 后执行正式 cell，但不得访问 Bench 参数、reference feedback、事后改指标或删除失败。执行人与控制人分离不要求不同计算机器，但要求不同 owned paths、不可变输入 hash 和独立重放验收。
@@ -236,6 +238,15 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 当前状态：v0.4.6 开发矩阵在 56/96 cells 后主动停止并判定为 `incomplete_configuration_rejected`，16 cells 成功、40 cells 方法失败，56/56 资源账本完整，累计 2,369 次 provider 调用和 10.0387 USD；该证据只用于配置诊断，不得汇总为 benchmark 结果。根因是 deliberative 角色反复耗尽墙钟时间，以及 direct 角色因重复谱图/记忆导致累计输入超限。v0.4.7 已将 provider prompt 平均载荷离线回放压缩约 57%–58%，冻结 Pro=`thinking/high, max_tokens=4000`、Flash=`thinking/off, max_tokens=1000`。新的 v0.4.8 使用独立版本、source-commit 级私有缓存、报告 schema 和 seed 派生命名空间，并将付费入口收敛为 `reaction-to-crystallization` 单任务、2 角色 × 3 谱图条件的 6-cell `candidate_screen`，矩阵费用硬上限 2.10 USD。任务、方法、谱图条件、首个 Train seed、开发计划摘要和费用上限均在 provider 调用前 fail closed，不能通过 CLI 静默缩减或扩展，也不能跨提交误续跑。候选未通过完成率、逐方法成功、回放/账本和四实验投影 token/墙钟余量时，代码禁止启动后续 pilot/Dev 矩阵；付费筛选当前保持暂停。
   - 验收：真实多轮轨迹可回放执行，所有调用/失败/tokens/费用可核对；未证明性能提升也允许封存，但不能缺失证据。
 
+- [ ] **`benchmark-v05-portable-release-reattestation` — P3 后依赖锁与 clean-wheel 重新证明**
+  - 默认 owned_paths：新版本 portable source/wheel manifest、对应审计脚本/测试、`workstreams/world_foundation/reports/portable-release-v0.5.1.json`；不得覆盖 P0 的 v0.5 历史报告。
+  - 依赖：PPO/SAC/LLM 最终纳入范围及运行依赖稳定；早于 method freeze 的正式 manifest 签发。
+  - [ ] 枚举 P0 后所有 `pyproject.toml`/`uv.lock` 变化，区分 RL 正式依赖、开发工具和未来 VLM 非执行计划；证明主锁不含未授权的 VLM 推理栈。
+  - [ ] 由当前干净提交重建 wheel/source manifest，在隔离 Windows 环境执行 golden/replay、runtime boundary、方法 adapter clean-load 与资源 writer/reader smoke；Linux 仍为非阻断记录。
+  - [ ] 比较 backend semantic hash：若后端语义未变则显式继承同一 backend identity 并只升级环境证明；若已变则必须生成新 backend candidate 和相应协议版本，不得静默沿用。
+  - [ ] 将新的 dependency-lock/source/wheel 摘要接入 formal preflight；旧 `3c6845…` 环境证明保留为 P0 历史证据，但不得为当前正式运行签发 manifest。
+  - 验收：当前锁、clean wheel、源码、backend/method 合同与 preflight 精确绑定；缺一项即 `formal_training_allowed` 可用于 Train/Dev 但 `formal_bench_issuance_allowed=false`。
+
 - [ ] **`benchmark-v05-method-freeze` — 方法清单与 Bench 解封**
   - 默认 owned_paths：`configs/benchmark/method_freeze_v0.4.json`、`scripts/audit_method_freeze_v0.4.py`、`tests/test_method_freeze_v0.4.py`、`workstreams/benchmark_v1/reports/method-freeze-v0.4.json`。
   - 依赖：所有计划进入正式比较的方法完成 P3；未完成方法必须明确退出，不拖着空实现进入矩阵。
@@ -274,6 +285,13 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 验收：复核报告与原报告在声明容差内一致；不一致时 P4 失败并回到新的协议版本。
 
 ## P5：在基础结果通过后做机制与信息消融
+
+- [x] **`benchmark-v05-vlm-observation-contract` — 开源 VLM 谱图输入的确定性准备合同**
+  - 边界：只建立未来试点所需的 provider-neutral 图像引用、固定 PNG 渲染、模态/assigned/unassigned/masked 条件、历史访问白名单、依赖锁和审计；不下载权重、不推理、不调用付费 API、不修改 site，也不进入 v0.4 基础矩阵。
+  - 结果：HPLC、GC、UV/Vis、IR、NMR 和 pH 公共信号可生成固定 960 × 640 PNG；IR/NMR 使用约定的逆向横轴。轨迹只记录相对路径及图像、原始曲线、公开包和渲染合同四类 SHA-256，不保存 base64、绝对路径或私有思维链。assigned/unassigned 共享相同曲线摘要，身份字段在 unassigned 文本和图像中移除；masked 不生成图像。审计还发现并修复了“异常 catalog 携带信号时可能绕过显式历史请求”的边界漏洞，现在目录只保留 spectrum ID、仪器、状态等标量元数据。
+  - 验证：新增 10 项合同/泄漏/重放/锁隔离测试，连同 11 项既有 live-LLM/历史谱图测试共 21 项通过；ruff 与 mypy 通过；独立控制报告 `contract_ready=true`、`pre_vlm_primary_lock_restored=true`、`runtime_ready_for_model_execution=false`、`benchmark_claim_allowed=false`。Pillow 只存在于本次本地合同审计环境；其余推理需求只记录在 future-Dev 配置中，不进入主 `pyproject.toml`/`uv.lock`，模型/processor revision 仍要求在试点前单独封存。
+  - 后续门禁：P4 未通过前不启动 VLM 性能实验；P4 后只允许一个 Dev 任务比较 masked、numeric-unassigned、image-unassigned、image+numeric-unassigned、image-assigned。必须先证明图像输入产生可重放的决策或结果增益，再认领任何多任务矩阵。
+  - 验收：同输入逐字节复现、改变信号改变摘要、历史谱图仅显式请求后出现、日志不含图像字节/绝对路径、仓库不含模型权重，全部已满足；这只证明观察合同完整，不代表 VLM 有效。
 
 - [ ] **`benchmark-v05-spectrum-ablation` — assigned/unassigned/masked 谱图价值实验**
   - 默认 owned_paths：`runs/benchmark-v0.5/spectrum-v0.4/` manifests、`workstreams/benchmark_v1/reports/spectrum-ablation-v0.4.json`、对应图表数据。

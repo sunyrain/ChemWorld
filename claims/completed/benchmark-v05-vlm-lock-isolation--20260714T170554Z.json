@@ -1,0 +1,22 @@
+{
+  "branch": "core/benchmark-v05-vlm-lock-isolation",
+  "claimed_at": "2026-07-14T16:59:04.218029+00:00",
+  "completed_at": "2026-07-14T17:05:54.700737+00:00",
+  "completion_summary": "Removed the preparatory VLM extra from the primary project and lock, restored the exact 099028d pre-VLM 179-package lock, moved future inference requirements into a non-executing config plan, added a regression guard, and recorded the pre-existing post-P0 portable-release re-attestation gate without changing RL dependencies or historical evidence.",
+  "expires_at": "2026-07-21T16:59:04.218029+00:00",
+  "notes": "The P0 portable-release lock had already drifted from 178 to 179 packages before this VLM task because of later RL dependencies. This claim must not remove RL dependencies or rewrite historical evidence. It restores the exact pre-VLM lock at source 099028d, proves VLM adds no further primary-lock drift, and records the existing need for portable-release re-attestation before formal issuance.",
+  "owned_paths": [
+    "pyproject.toml",
+    "uv.lock",
+    "configs/benchmark/vlm_observation_v0.1.json",
+    "scripts/audit_vlm_observation.py",
+    "tests/test_vlm_observation.py",
+    "workstreams/benchmark_v1/reports/vlm-observation-v0.1.json",
+    "todolist.md"
+  ],
+  "owner": "codex-core",
+  "schema_version": "chemworld-task-claim-0.1",
+  "scope": "Restore the exact pre-VLM primary dependency lock after VLM preparation, move future inference requirements into a non-executing config plan, prove this task adds no lock drift, and surface the pre-existing post-P0 portable-release re-attestation requirement without removing RL dependencies or rewriting historical evidence.",
+  "status": "completed",
+  "task_id": "benchmark-v05-vlm-lock-isolation"
+}
