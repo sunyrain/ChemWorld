@@ -334,6 +334,20 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
     fields = [_field_schema(field, operation=operation) for field in contract.required_fields]
     for field in fields:
         field_name = str(field["field"])
+        bounds = field.get("bounds")
+        state = getattr(base, "_state", None)
+        if isinstance(bounds, dict) and state is not None:
+            low, high = base.operation_validator.public_field_bounds(
+                operation,
+                field_name,
+                state,
+                low=float(bounds["low"]),
+                high=float(bounds["high"]),
+            )
+            if low != float(bounds["low"]) or high != float(bounds["high"]):
+                field["bounds"] = {"low": low, "high": high}
+                field["recommended_range"] = {"low": low, "high": high}
+                field["state_dependent_bounds"] = True
         locked = _locked_recipe_choice(base, operation, field_name)
         if locked is not None:
             field["choices"] = [locked]
@@ -524,8 +538,7 @@ def _render_task_prompt_text(
     experiment_lifecycle: dict[str, str],
 ) -> str:
     group_lines = [
-        f"  - {group}: {', '.join(operations)}"
-        for group, operations in operation_groups.items()
+        f"  - {group}: {', '.join(operations)}" for group, operations in operation_groups.items()
     ]
     lines = [
         f"Task: {task_id or 'ad-hoc ChemWorld task'}",
@@ -839,8 +852,7 @@ def _recovery_suggestion(env: Any, info: dict[str, Any]) -> str | None:
     if options:
         return "Retry with a currently valid operation such as " + ", ".join(options[:4]) + "."
     return (
-        "No valid operation is currently available; reset the environment "
-        "or inspect task policy."
+        "No valid operation is currently available; reset the environment or inspect task policy."
     )
 
 
@@ -913,9 +925,7 @@ def _failure_summary(info: dict[str, Any]) -> dict[str, Any]:
     flags = info.get("constraint_flags", {})
     preconditions = info.get("preconditions", {})
     failed_preconditions = [
-        str(key)
-        for key, passed in preconditions.items()
-        if isinstance(passed, bool) and not passed
+        str(key) for key, passed in preconditions.items() if isinstance(passed, bool) and not passed
     ]
     return {
         "precondition_failed": bool(flags.get("precondition_failed", False)),

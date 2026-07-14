@@ -75,10 +75,6 @@ _PRIMARY_PUBLIC_METRICS = {
     "flow-reaction-optimization": ("flow_conversion", "conversion", "score"),
 }
 
-_VOLUME_ADD_OPERATIONS = {"add_solvent", "add_phase", "add_extractant"}
-_CONSERVATIVE_TRACKED_VOLUME_LIMIT_L = 0.075
-_CONSERVATIVE_SINGLE_VOLUME_LIMIT_L = 0.025
-
 
 class OperationBaselineContractError(ValueError):
     """Raised when the public operation-affordance contract is incomplete."""
@@ -120,7 +116,6 @@ class OperationBaselineAgent(BaseAgent):
         self._rng = random.Random(seed)
         self._blind_cursor = 0
         self._experiment_decisions = 0
-        self._tracked_added_volume_L = 0.0
         self._executed_operations: set[str] = set()
         self._rule_plan: list[dict[str, Any]] = []
         self._rule_cursor = 0
@@ -143,16 +138,6 @@ class OperationBaselineAgent(BaseAgent):
         public_view: dict[str, Any],
     ) -> dict[str, Any]:
         affordances = _available_affordances(public_view)
-        remaining_volume = self._remaining_volume_allowance()
-        affordances = [
-            item
-            for item in affordances
-            if item.get("operation") not in _VOLUME_ADD_OPERATIONS or remaining_volume > 1e-9
-        ]
-        if not affordances:
-            raise OperationBaselineContractError(
-                "no affordance remains after the public action-ledger guard"
-            )
         by_operation = {str(item["operation"]): item for item in affordances}
         if context.decision_stage == "experiment_closeout":
             action = _final_assay_action(by_operation)
@@ -245,16 +230,11 @@ class OperationBaselineAgent(BaseAgent):
         del observation, reward
         flags = info.get("constraint_flags")
         failed = bool(isinstance(flags, Mapping) and flags.get("precondition_failed", False))
-        if not failed and action.get("operation") in _VOLUME_ADD_OPERATIONS:
-            volume = action.get("volume_L")
-            if isinstance(volume, int | float) and not isinstance(volume, bool):
-                self._tracked_added_volume_L += max(float(volume), 0.0)
         if not failed and isinstance(action.get("operation"), str):
             self._executed_operations.add(str(action["operation"]))
         self._experiment_decisions += 1
         if info.get("experiment_ended") is True:
             self._experiment_decisions = 0
-            self._tracked_added_volume_L = 0.0
             self._executed_operations = set()
             self._rule_plan = []
             self._rule_cursor = 0
@@ -290,7 +270,6 @@ class OperationBaselineAgent(BaseAgent):
             "rule_retry_threshold": (
                 self.rule_retry_threshold if self.method_id == "rule_based" else None
             ),
-            "public_action_ledger_volume_limit_L": (_CONSERVATIVE_TRACKED_VOLUME_LIMIT_L),
             "automatic_action_repair": False,
             "automatic_closeout": False,
         }
@@ -310,7 +289,6 @@ class OperationBaselineAgent(BaseAgent):
             rng=self._rng,
             numeric_margin=self.numeric_margin,
             closeout=context.decision_stage == "experiment_closeout",
-            max_volume_L=self._remaining_volume_allowance(),
         )
 
     def _random_setup_action(
@@ -328,7 +306,6 @@ class OperationBaselineAgent(BaseAgent):
                     rng=self._rng,
                     numeric_margin=self.numeric_margin,
                     closeout=False,
-                    max_volume_L=self._remaining_volume_allowance(),
                 )
         return None
 
@@ -349,7 +326,6 @@ class OperationBaselineAgent(BaseAgent):
                     rng=None,
                     numeric_margin=self.numeric_margin,
                     closeout=False,
-                    max_volume_L=self._remaining_volume_allowance(),
                 )
         if "terminate" in by_operation:
             return {"operation": "terminate"}
@@ -380,7 +356,6 @@ class OperationBaselineAgent(BaseAgent):
                             rng=None,
                             numeric_margin=self.numeric_margin,
                             closeout=False,
-                            max_volume_L=self._remaining_volume_allowance(),
                         ),
                         True,
                     )
@@ -404,7 +379,6 @@ class OperationBaselineAgent(BaseAgent):
                         numeric_margin=self.numeric_margin,
                         closeout=False,
                         planned=planned,
-                        max_volume_L=self._remaining_volume_allowance(),
                     ),
                     False,
                 )
@@ -414,12 +388,6 @@ class OperationBaselineAgent(BaseAgent):
         # is unavailable.  This is an agent decision over the public affordance,
         # not a runner repair: choose a deterministic blind-control fallback.
         return self._blind_action(context, by_operation), False
-
-    def _remaining_volume_allowance(self) -> float:
-        return max(
-            _CONSERVATIVE_TRACKED_VOLUME_LIMIT_L - self._tracked_added_volume_L,
-            0.0,
-        )
 
     def _record_decision(
         self,
@@ -490,7 +458,6 @@ def _action_from_affordance(
     numeric_margin: float,
     closeout: bool,
     planned: Mapping[str, Any] | None = None,
-    max_volume_L: float | None = None,
 ) -> dict[str, Any]:
     operation = str(affordance["operation"])
     schema = affordance.get("schema")
@@ -514,7 +481,6 @@ def _action_from_affordance(
             numeric_margin=numeric_margin,
             closeout=closeout,
             candidate=candidate,
-            max_volume_L=max_volume_L,
         )
     return action
 
@@ -529,7 +495,6 @@ def _field_value(
     numeric_margin: float,
     closeout: bool,
     candidate: Any,
-    max_volume_L: float | None,
 ) -> Any:
     choices = schema.get("choices")
     if isinstance(choices, list) and choices:
@@ -557,12 +522,6 @@ def _field_value(
     if isinstance(bounds, Mapping):
         low = _finite_number(bounds.get("low"), f"{operation}.{field}.low")
         high = _finite_number(bounds.get("high"), f"{operation}.{field}.high")
-        if field == "volume_L" and operation in _VOLUME_ADD_OPERATIONS and max_volume_L is not None:
-            high = min(
-                high,
-                max_volume_L,
-                _CONSERVATIVE_SINGLE_VOLUME_LIMIT_L,
-            )
         if high < low:
             raise OperationBaselineContractError(f"{operation}.{field} bounds are reversed")
         if mode == "planned" and _number_in_bounds(candidate, low, high):

@@ -20,7 +20,7 @@
             "consumes_spectra": false,
             "adapts_within_experiment": false,
             "adapts_across_experiments": false,
-            "action_policy": "seeded uniform sampling over currently advertised public operation affordances and typed parameter domains after a minimal charge guard",
+            "action_policy": "seeded uniform sampling over currently advertised public operation affordances and state-valid typed parameter domains after a minimal charge guard",
             "invalid_action_policy": "retain and report all validator and runtime-domain rejections; no action repair",
             "hyperparameters": {
                 "exploration_multiplier": 2,
@@ -28,11 +28,13 @@
                 "rule_retry_threshold": 0.55
             },
             "source_bindings": {
+                "src/chemworld/agent_interface.py": "1119c47d914804b3a97e32fe55f6b71e4afa9fdc8cbffbf7577fec5abb35e544",
                 "src/chemworld/agents/interaction.py": "1985aee837e434d4c294d6ec2f888742cc4b949c0e781112ddc9086de547baaa",
-                "src/chemworld/agents/operation_baselines.py": "2d718c89a83b0b91d7c348f53b5dd50ec7897ac1d6dc623e676bb69641a670c4",
+                "src/chemworld/agents/operation_baselines.py": "d9a02e89d4da9992f794cdbc9b9ebb18cd41fdc98f68a14abe6aeddb2c2f470c",
+                "src/chemworld/operation_validator.py": "566e4bd3cd0cb6fc8379c3d759ee8ea0fc4296074af16e7115d77388a7a34492",
                 "src/chemworld/eval/formal_operation.py": "08917a831d828917944ab37035aad9b9b5ef53ca5b27a0c119fe0d7186027e94"
             },
-            "artifact_sha256": "2e88782e44e40148de2684c7fb6ea5c71b029dda7a2306f01cdd8bf3fd22a9d2"
+            "artifact_sha256": "fb8caf0fc8c0f95c487d7b34583f295a8b81533d23743e4d96aee93337c7793d"
         },
         "observation_blind": {
             "implementation": "observation_blind",
@@ -52,11 +54,13 @@
                 "rule_retry_threshold": 0.55
             },
             "source_bindings": {
+                "src/chemworld/agent_interface.py": "1119c47d914804b3a97e32fe55f6b71e4afa9fdc8cbffbf7577fec5abb35e544",
                 "src/chemworld/agents/interaction.py": "1985aee837e434d4c294d6ec2f888742cc4b949c0e781112ddc9086de547baaa",
-                "src/chemworld/agents/operation_baselines.py": "2d718c89a83b0b91d7c348f53b5dd50ec7897ac1d6dc623e676bb69641a670c4",
+                "src/chemworld/agents/operation_baselines.py": "d9a02e89d4da9992f794cdbc9b9ebb18cd41fdc98f68a14abe6aeddb2c2f470c",
+                "src/chemworld/operation_validator.py": "566e4bd3cd0cb6fc8379c3d759ee8ea0fc4296074af16e7115d77388a7a34492",
                 "src/chemworld/eval/formal_operation.py": "08917a831d828917944ab37035aad9b9b5ef53ca5b27a0c119fe0d7186027e94"
             },
-            "artifact_sha256": "f6ad321bb28067ae3f161814a9585ec9857390ecea26d1065fb4b225ea391583"
+            "artifact_sha256": "abb69dba46756f1f0c8c7ac960dfc4746960cb43b667637b3885ee23dc364ade"
         },
         "rule_based": {
             "implementation": "rule_based",
@@ -76,11 +80,13 @@
                 "rule_retry_threshold": 0.55
             },
             "source_bindings": {
+                "src/chemworld/agent_interface.py": "1119c47d914804b3a97e32fe55f6b71e4afa9fdc8cbffbf7577fec5abb35e544",
                 "src/chemworld/agents/interaction.py": "1985aee837e434d4c294d6ec2f888742cc4b949c0e781112ddc9086de547baaa",
-                "src/chemworld/agents/operation_baselines.py": "2d718c89a83b0b91d7c348f53b5dd50ec7897ac1d6dc623e676bb69641a670c4",
+                "src/chemworld/agents/operation_baselines.py": "d9a02e89d4da9992f794cdbc9b9ebb18cd41fdc98f68a14abe6aeddb2c2f470c",
+                "src/chemworld/operation_validator.py": "566e4bd3cd0cb6fc8379c3d759ee8ea0fc4296074af16e7115d77388a7a34492",
                 "src/chemworld/eval/formal_operation.py": "08917a831d828917944ab37035aad9b9b5ef53ca5b27a0c119fe0d7186027e94"
             },
-            "artifact_sha256": "457f7e79151b7e9934d95152b162799d871a45800089b9972ae92b597aebde07"
+            "artifact_sha256": "c77e05ccff8d42130af42ac4ae9d089a99f206dd48e28ef98db4537ebd6f6b96"
         }
     }
 }
