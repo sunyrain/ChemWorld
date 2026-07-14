@@ -1,24 +1,7 @@
 {
   "benchmark_claim_allowed": false,
   "checkpoint_binaries_committed": false,
-  "checkpoints": [
-    {
-      "checkpoint_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/selected/reaction-to-distillation/ppo-reaction-to-distillation.manifest.json",
-      "checkpoint_path": "runs/benchmark-v0.5/rl-v0.4/ppo/selected/reaction-to-distillation/ppo-reaction-to-distillation.zip",
-      "checkpoint_sha256": "60247de9b98ed54e93dfcaacd1700dcbef1d292c502936def8f550cc87bf17eb",
-      "method_id": "ppo",
-      "task_id": "reaction-to-distillation",
-      "training_resource_path": "runs/benchmark-v0.5/rl-v0.4/ppo/selected/reaction-to-distillation/ppo-reaction-to-distillation.resources.json"
-    },
-    {
-      "checkpoint_manifest_path": "runs/benchmark-v0.5/rl-v0.4/ppo/selected/flow-reaction-optimization/ppo-flow-reaction-optimization.manifest.json",
-      "checkpoint_path": "runs/benchmark-v0.5/rl-v0.4/ppo/selected/flow-reaction-optimization/ppo-flow-reaction-optimization.zip",
-      "checkpoint_sha256": "38330fbca00833eae89caafc39c09a2cdb36246efae2010c9328725d410db508",
-      "method_id": "ppo",
-      "task_id": "flow-reaction-optimization",
-      "training_resource_path": "runs/benchmark-v0.5/rl-v0.4/ppo/selected/flow-reaction-optimization/ppo-flow-reaction-optimization.resources.json"
-    }
-  ],
+  "checkpoints": [],
   "expected_selected_checkpoint_count": 4,
   "formal_core_tasks": [
     "partition-discovery",
@@ -32,11 +15,18 @@
   ],
   "missing_checkpoint_task_ids": [
     "partition-discovery",
-    "reaction-to-crystallization"
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization"
   ],
+  "prior_checkpoint_invalidation": {
+    "reason": "The previous checkpoints were trained without the public per-experiment core-progress observation and under reward contract 0.2.",
+    "hidden_state_added": false,
+    "retraining_required": true
+  },
   "parent_task_complete": false,
   "ppo_method_ready": false,
   "schema_version": "chemworld-formal-rl-checkpoint-index-0.4",
-  "selected_checkpoint_count": 2,
-  "status": "ppo_dev_selection_failed"
+  "selected_checkpoint_count": 0,
+  "status": "ppo_retraining_required"
 }

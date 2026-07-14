@@ -299,7 +299,7 @@ def _summarize_attempt(
         _finite_float(record.get("measurement_cost", 0.0), "measurement_cost") for record in records
     )
     try:
-        total_cost = _last_observed_value(records, "cost")
+        total_cost = attempt_total_cost(records)
     except ValueError:
         if complete:
             raise
@@ -318,6 +318,28 @@ def _summarize_attempt(
         "process_cost": max(process_cost, 0.0),
         "max_risk": max(risks) if risks else None,
     }
+
+
+def attempt_total_cost(records: list[dict[str, Any]]) -> float:
+    """Return unsaturated ledger cost for one experiment when it is available.
+
+    The public observation deliberately caps ``cost`` at 1.0.  Summing the
+    public ``state_delta_summary.delta_cost`` values preserves the exact ledger
+    units needed to separate process and measurement cost, including campaigns
+    with many instrument calls.  Older/minimal records without state deltas
+    retain the terminal-observation fallback.
+    """
+
+    deltas: list[float] = []
+    for record in records:
+        summary = record.get("state_delta_summary")
+        if not isinstance(summary, dict) or summary.get("delta_cost") is None:
+            return _last_observed_value(records, "cost")
+        delta = _finite_float(summary["delta_cost"], "delta_cost")
+        if delta < -1.0e-9:
+            raise ValueError("experiment cost delta cannot be negative")
+        deltas.append(max(delta, 0.0))
+    return sum(deltas)
 
 
 def _last_observed_value(records: list[dict[str, Any]], key: str) -> float:
@@ -345,5 +367,6 @@ def _finite_float(value: Any, field: str) -> float:
 __all__ = [
     "LAYERED_EVALUATION_VERSION",
     "TaskEvaluationContract",
+    "attempt_total_cost",
     "evaluate_layered_records",
 ]

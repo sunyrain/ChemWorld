@@ -1,0 +1,26 @@
+{
+  "branch": "main",
+  "claimed_at": "2026-07-14T14:31:54.964596+00:00",
+  "completed_at": "2026-07-14T14:38:54.096671+00:00",
+  "completion_summary": "Unified checkpoint manifest/sidecar constants, bound exact task observation hashes, added fail-closed formal audit gates, regenerated clean-source RL and method-freeze evidence; 96 focused tests, ruff, mypy, and diff checks passed.",
+  "expires_at": "2026-07-21T14:31:54.964596+00:00",
+  "notes": "Training writer remains owned by the active SAC slice; this claim only fixes the independent method contract, audits, and generated control reports.",
+  "owned_paths": [
+    "configs/methods/rl_v0.4/rl_methods.json",
+    "src/chemworld/rl/checkpoint_contract.py",
+    "src/chemworld/agents/rl.py",
+    "src/chemworld/rl/evaluation.py",
+    "src/chemworld/eval/formal_rl.py",
+    "tests/test_rl_checkpoint_contract_gate.py",
+    "tests/test_formal_rl.py",
+    "workstreams/benchmark_v1/reports/rl-contract-v0.4.json",
+    "configs/benchmark/method_freeze_v0.4.json",
+    "tests/test_method_freeze_v0_4.py",
+    "workstreams/benchmark_v1/reports/method-freeze-v0.4.json"
+  ],
+  "owner": "codex-core",
+  "schema_version": "chemworld-task-claim-0.1",
+  "scope": "Align the frozen RL method declaration and method-freeze evidence with checkpoint manifest 0.3, periodic sidecar 0.2, and exact task observation-contract hashes; fail closed on any declaration drift without touching the collaborator-owned training writer.",
+  "status": "completed",
+  "task_id": "benchmark-v05-rl-method-contract-sync"
+}

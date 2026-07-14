@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
 from chemworld.data.logging import to_builtin
@@ -137,6 +137,8 @@ class AgentDecisionContext:
     constraint_flags: dict[str, Any]
     available_operations: tuple[str, ...]
     previous_event_type: str | None
+    historical_spectrum_catalog: tuple[dict[str, Any], ...] = ()
+    requested_historical_spectrum: dict[str, Any] = field(default_factory=dict)
 
     @property
     def remaining_operations(self) -> int:
@@ -156,6 +158,8 @@ class AgentDecisionContext:
             "available_operations": list(self.available_operations),
             "previous_event_type": self.previous_event_type,
             "remaining_operations": self.remaining_operations,
+            "historical_spectrum_catalog": to_builtin(self.historical_spectrum_catalog),
+            "requested_historical_spectrum": to_builtin(self.requested_historical_spectrum),
         }
 
 
@@ -177,6 +181,8 @@ def build_decision_context(
         "raw_signal": to_builtin(tool_view.get("raw_signal", {})),
         "processed_estimate": to_builtin(tool_view.get("processed_estimate", {})),
     }
+    catalog = tool_view.get("historical_spectrum_catalog", [])
+    requested = tool_view.get("requested_historical_spectrum", {})
     available = tool_view.get("available_actions", []) if isinstance(tool_view, dict) else []
     operations = tuple(
         str(item["operation"])
@@ -185,10 +191,15 @@ def build_decision_context(
     )
     if previous_event_type == "experiment_end" or step == 1:
         stage = "experiment_setup"
+    elif set(operations) == {"measure"}:
+        # A committed termination exposes only measurement affordances.  The
+        # absence of ``terminate`` alone is not sufficient evidence: several
+        # live experiment states permit measurement plus further material or
+        # control operations while termination is temporarily unavailable.
+        # The exact affordance shape keeps that state distinct from closeout.
+        stage = "experiment_closeout"
     elif previous_event_type == "measurement_result":
         stage = "evidence_update"
-    elif "final_assay" in operations and "terminate" not in operations:
-        stage = "experiment_closeout"
     else:
         stage = "experiment_control"
     return AgentDecisionContext(
@@ -202,6 +213,14 @@ def build_decision_context(
         constraint_flags=to_builtin(tool_view.get("constraints", {})),
         available_operations=operations,
         previous_event_type=previous_event_type,
+        historical_spectrum_catalog=tuple(
+            to_builtin(item) for item in catalog if isinstance(item, dict)
+        )
+        if isinstance(catalog, list)
+        else (),
+        requested_historical_spectrum=(
+            to_builtin(requested) if isinstance(requested, dict) else {}
+        ),
     )
 
 

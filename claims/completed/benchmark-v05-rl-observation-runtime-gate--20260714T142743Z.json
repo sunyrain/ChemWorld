@@ -1,0 +1,23 @@
+{
+  "branch": "main",
+  "claimed_at": "2026-07-14T14:09:47.063691+00:00",
+  "completed_at": "2026-07-14T14:27:43.791325+00:00",
+  "completion_summary": "Enforced one shared RL observation contract at public-view reconstruction, checkpoint manifest validation, model deserialization, Dev evaluation, trace, and resource provenance; rejected legacy schemas and cross-platform JSON evidence drift; verified 83 RL tests, ruff, and mypy across 289 source modules.",
+  "expires_at": "2026-07-21T14:09:47.063691+00:00",
+  "notes": "Does not touch SAC-owned training paths. Final manifests require checkpoint 0.3; periodic Dev sidecars require sidecar 0.2; both must bind the task observation hash.",
+  "owned_paths": [
+    "configs/foundation/rl_contract_vnext.json",
+    "src/chemworld/agents/rl.py",
+    "src/chemworld/rl/evaluation.py",
+    "scripts/run_foundation_rl_learning_curve.py",
+    "tests/test_formal_rl.py",
+    "tests/test_rl_foundation_contract.py",
+    "tests/test_rl_replay_evaluation.py",
+    "tests/test_rl_checkpoint_contract_gate.py"
+  ],
+  "owner": "codex-core",
+  "schema_version": "chemworld-task-claim-0.1",
+  "scope": "Make FrozenSB3Agent and Dev checkpoint evaluation reject legacy or observation-incompatible RL artifacts before policy deserialization; validate runtime public-view coordinate semantics and expose exact observation compatibility evidence.",
+  "status": "completed",
+  "task_id": "benchmark-v05-rl-observation-runtime-gate"
+}

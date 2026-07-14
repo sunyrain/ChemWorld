@@ -9,6 +9,7 @@ import pytest
 import torch as th
 from scripts.benchmark_rl_infrastructure import candidate_matrix
 from scripts.run_foundation_rl_learning_curve import (
+    _file_sha256,
     _validate_foundation_evidence,
 )
 from scripts.run_foundation_rl_learning_curve import (
@@ -61,7 +62,7 @@ def test_infrastructure_matrix_covers_cpu_cuda_and_vectorization_choices() -> No
     }
 
 
-def test_legacy_protocol_is_nonclaiming_and_fails_closed_after_backend_drift() -> None:
+def test_legacy_protocol_is_nonclaiming_and_loads_current_backend_binding() -> None:
     protocol = json.loads(PROTOCOL.read_text(encoding="utf-8"))
     assert protocol["benchmark_claim_allowed"] is False
     assert protocol["action_contract"]["operation_semantics"] == "categorical"
@@ -89,8 +90,15 @@ def test_legacy_protocol_is_nonclaiming_and_fails_closed_after_backend_drift() -
     assert selected["parallel_environments"] == 8
     assert selected["n_steps_per_environment"] == 128
     assert selected["aggregate_rollout_environment_steps"] == 1024
-    with pytest.raises(RuntimeError, match="bound backend freeze report file has drifted"):
-        load_learning_protocol()
+    assert load_learning_protocol()["schema_version"] == protocol["schema_version"]
+
+
+def test_foundation_json_file_binding_is_line_ending_portable(tmp_path: Path) -> None:
+    path = tmp_path / "evidence.json"
+    path.write_bytes(b'{"status":"ready"}\n')
+    lf_digest = _file_sha256(path)
+    path.write_bytes(b'{"status":"ready"}\r\n')
+    assert _file_sha256(path) == lf_digest
 
 
 def test_learning_gate_fails_closed_when_foundation_evidence_drifts() -> None:
@@ -215,6 +223,12 @@ def test_action_and_reward_contract_hashes_are_stable_and_semantic() -> None:
         env.close()
     task = get_task("flow-reaction-optimization")
     reward = reward_contract(task.allowed_operations)
+    assert reward["schema_version"] == "chemworld-rl-training-reward-0.3"
+    assert reward["components"]["newly_satisfied_core_requirement"] == 0.10
+    assert reward["leakage_controls"][
+        "core_progress_uses_public_operation_history_only"
+    ] is True
+    assert reward["leakage_controls"]["repeated_core_operation_bonus"] is False
     assert reward["behavioral_completion"]["requirements"] == [
         ["set_flow_rate"],
         ["run_flow"],

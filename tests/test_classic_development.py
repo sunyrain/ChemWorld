@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from chemworld.eval.classic_development import (
+    DEFAULT_CACHE_ROOT,
     build_development_cells,
     run_classic_development_audit,
 )
@@ -15,6 +16,12 @@ FROZEN_REPORT = (
     / "reports"
     / "classic-dev-v0.4.json"
 )
+
+
+def test_default_cache_uses_real_git_common_directory_in_worktrees() -> None:
+    assert DEFAULT_CACHE_ROOT.parent.name == "chemworld-private"
+    assert DEFAULT_CACHE_ROOT.name == "classic-dev-v0.4"
+    assert DEFAULT_CACHE_ROOT.parent.parent.is_dir()
 
 
 def test_development_cells_use_only_public_ranges_and_paired_method_rng() -> None:

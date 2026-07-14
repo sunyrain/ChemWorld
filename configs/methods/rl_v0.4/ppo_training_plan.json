@@ -2,7 +2,7 @@
   "schema_version": "chemworld-formal-ppo-training-plan-0.4",
   "task_id": "benchmark-v05-rl-adapters--slice-ppo-train-dev",
   "parent_task_id": "benchmark-v05-rl-adapters",
-  "status": "preregistered_execution_pending",
+  "status": "reward_state_remediated_evaluation_contract_pending",
   "algorithm": "ppo",
   "formal_core_tasks": {
     "partition-discovery": "product_in_organic",
@@ -77,6 +77,15 @@
     "episodes_per_candidate": 20,
     "operation_budget_per_episode": 60,
     "deterministic_policy": true,
+    "remediation_candidate_policy_sampling_contract": {
+      "enabled": false,
+      "blocked_by": "shared formal training runner and validator remain under the active SAC implementation claim",
+      "reason": "PPO defines a categorical stochastic policy; categorical mode collapse is not the trained policy distribution",
+      "policy_seed_fixed_per_task": true,
+      "sampler_seed_fixed_per_task": true,
+      "exact_replay_required": true,
+      "evaluation_repetitions": 2
+    },
     "sampler_seed_base": 220000,
     "policy_seed_base": 230000,
     "candidate_eligibility": {
@@ -106,6 +115,7 @@
   },
   "evidence_boundary": {
     "formal_results_present": false,
+    "prior_checkpoint_status": "incompatible_after_public_progress_observation_and_reward_contract_v0.3",
     "benchmark_claim_allowed": false,
     "parent_task_complete": false,
     "bench_finetuning_used": false,

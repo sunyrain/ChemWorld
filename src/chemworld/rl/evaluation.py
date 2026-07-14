@@ -12,8 +12,11 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Literal
 
+from chemworld.agents.rl import validate_frozen_rl_observation_space
+from chemworld.rl.checkpoint_contract import RL_CHECKPOINT_RUNTIME_SCHEMA_VERSIONS
 from chemworld.rl.environment import RLWorldAllocation, build_rl_environment
 from chemworld.rl.hybrid_actions import policy_distribution_contract
+from chemworld.rl.observation_contract import rl_observation_contract
 from chemworld.rl.rewards import (
     core_operation_requirements,
     reward_contract,
@@ -117,12 +120,6 @@ def evaluate_sb3_checkpoint(
         raise ValueError("development evaluation cannot inspect the Bench allocation")
     if primary_metric is not None and not primary_metric.strip():
         raise ValueError("primary_metric must be non-empty when supplied")
-    try:
-        import stable_baselines3 as sb3
-        from stable_baselines3.common.utils import set_random_seed
-    except ImportError as exc:  # pragma: no cover - optional dependency
-        raise RuntimeError("install ChemWorld with the 'rl' extra to evaluate PPO or SAC") from exc
-
     checkpoint_path = Path(checkpoint)
     env = build_rl_environment(
         task_id=task_id,
@@ -132,12 +129,10 @@ def evaluate_sb3_checkpoint(
         training_reward=False,
     )
     contract_manifest = _checkpoint_contract_manifest(checkpoint_path)
-    if contract_manifest.get("schema_version") not in {
-        "chemworld-rl-checkpoint-0.2",
-        "chemworld-rl-checkpoint-contract-sidecar-0.1",
-    }:
+    if contract_manifest.get("schema_version") not in RL_CHECKPOINT_RUNTIME_SCHEMA_VERSIONS:
         env.close()
         raise ValueError("unsupported RL checkpoint contract manifest")
+    expected_observation = rl_observation_contract(task_id)
     expected_action = _environment_action_contract(env)
     expected_reward = reward_contract(get_task(task_id).allowed_operations)
     parameter_keys = tuple(
@@ -149,6 +144,8 @@ def evaluate_sb3_checkpoint(
         "checkpoint_digest": contract_manifest.get("checkpoint_sha256") == digest,
         "algorithm": contract_manifest.get("algorithm") == algorithm,
         "task": contract_manifest.get("task_id") == task_id,
+        "observation_contract": contract_manifest.get("observation_contract_hash")
+        == expected_observation["contract_hash"],
         "action_contract": contract_manifest.get("action_contract_hash")
         == expected_action["contract_hash"],
         "reward_contract": contract_manifest.get("training_reward_contract_hash")
@@ -161,9 +158,23 @@ def evaluate_sb3_checkpoint(
         env.close()
         failed = sorted(key for key, passed in compatibility.items() if not passed)
         raise ValueError(f"RL checkpoint contract is incompatible: {', '.join(failed)}")
+    try:
+        import stable_baselines3 as sb3
+        from stable_baselines3.common.utils import set_random_seed
+    except ImportError as exc:  # pragma: no cover - optional dependency
+        env.close()
+        raise RuntimeError("install ChemWorld with the 'rl' extra to evaluate PPO or SAC") from exc
     model_class = sb3.PPO if algorithm == "ppo" else sb3.SAC
     set_random_seed(policy_seed)
     model = model_class.load(checkpoint_path)
+    try:
+        validate_frozen_rl_observation_space(
+            model.observation_space,
+            expected_observation,
+        )
+    except ValueError:
+        env.close()
+        raise
     episode_cards: list[dict[str, Any]] = []
     operation_counts: Counter[str] = Counter()
     try:
@@ -281,6 +292,7 @@ def evaluate_sb3_checkpoint(
         "policy_mode": "deterministic" if deterministic else "stochastic_frozen_seed",
         "training_reward_used": False,
         "checkpoint_contract_compatibility": compatibility,
+        "observation_contract_hash": expected_observation["contract_hash"],
         "action_contract_hash": expected_action["contract_hash"],
         "training_reward_contract_hash": expected_reward["contract_hash"],
         "policy_distribution_contract_hash": expected_policy_distribution["contract_hash"],

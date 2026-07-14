@@ -34,6 +34,7 @@ from chemworld.eval.exploit_matrix import (
     REQUIRED_PUBLIC_HARNESS_PROBES,
     REQUIRED_TASK_PROBES,
     audit_public_boundary_exploits,
+    canonical_json_sha256,
     load_exploit_matrix_protocol,
 )
 from chemworld.eval.public_harness import (
@@ -391,7 +392,7 @@ def _adversarial_probes() -> tuple[dict[str, bool], dict[str, Any]]:
         relative = Path(item["path"])
         path = ROOT / relative
         if not relative.is_absolute() and ".." not in relative.parts and path.is_file():
-            item["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+            item["sha256"] = canonical_json_sha256(path)
     exploit_report = audit_public_boundary_exploits(exploit_protocol)
     all_task_probes = {
         probe: all(report["probes"][probe] for report in exploit_report["tasks"].values())

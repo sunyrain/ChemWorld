@@ -1,0 +1,101 @@
+{
+  "schema_version": "chemworld-live-llm-development-plan-0.4.4",
+  "plan_id": "chemworld-live-llm-train-dev-2026-07-14-single-task-candidate-2",
+  "benchmark_claim_allowed": false,
+  "bench_access_allowed": false,
+  "tasks": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization"
+  ],
+  "methods": ["live_llm_a", "live_llm_b"],
+  "spectrum_conditions": ["assigned", "unassigned", "masked"],
+  "stages": {
+    "contract_smoke": {
+      "world_split": "public-test",
+      "world_seeds_per_cell": 1,
+      "complete_experiments": 1,
+      "operation_limit": 8,
+      "live_provider_calls": false
+    },
+    "candidate_screen": {
+      "world_split": "train",
+      "tasks": ["reaction-to-crystallization"],
+      "world_seeds_per_cell": 1,
+      "world_seed_selection": "first_n_from_split",
+      "complete_experiments": 1,
+      "matrix_monetary_cost_usd_limit": 2.1,
+      "operation_budget": {
+        "source": "task_recipe_event_count_times_complete_experiments",
+        "exploration_multiplier": 2
+      },
+      "live_provider_calls": true
+    },
+    "live_pilot": {
+      "world_split": "train",
+      "world_seeds_per_cell": 1,
+      "world_seed_selection": "first_n_from_split",
+      "complete_experiments": 2,
+      "matrix_monetary_cost_usd_limit": 8.4,
+      "operation_budget": {
+        "source": "task_recipe_event_count_times_complete_experiments",
+        "exploration_multiplier": 2
+      },
+      "live_provider_calls": true
+    },
+    "development_matrix": {
+      "world_split": "dev",
+      "world_seeds_per_cell": 4,
+      "world_seed_selection": "first_n_from_split",
+      "complete_experiments": 4,
+      "matrix_monetary_cost_usd_limit": 33.6,
+      "operation_budget": {
+        "source": "task_recipe_event_count_times_complete_experiments",
+        "exploration_multiplier": 2
+      },
+      "live_provider_calls": true
+    }
+  },
+  "pairing": {
+    "same_task_world_and_method_seed_across_spectrum_conditions": true,
+    "same_task_world_and_seed_across_methods": true,
+    "agent_seed_separate_from_world_seed": true
+  },
+  "retention": {
+    "retain_all_failures": true,
+    "replay_every_trajectory": true,
+    "provider_attempt_receipts_required": true,
+    "token_and_cost_reconciliation_required": true,
+    "private_reasoning_retained": false
+  },
+  "promotion_gates": {
+    "candidate_screen": {
+      "promotes_to": "live_pilot",
+      "minimum_overall_completion_rate": 0.75,
+      "minimum_per_method_completion_rate": 0.5,
+      "every_task_has_success": true,
+      "every_method_has_success": true,
+      "maximum_projected_four_experiment_p90_input_tokens": 650000,
+      "maximum_projected_four_experiment_p90_wall_time_s": 1440.0
+    },
+    "live_pilot": {
+      "promotes_to": "development_matrix",
+      "minimum_overall_completion_rate": 0.75,
+      "minimum_per_method_completion_rate": 0.5,
+      "every_task_has_success": true,
+      "every_method_has_success": true,
+      "maximum_projected_four_experiment_p90_input_tokens": 650000,
+      "maximum_projected_four_experiment_p90_wall_time_s": 1440.0
+    },
+    "development_matrix": {
+      "promotes_to": "method_freeze",
+      "minimum_overall_completion_rate": 0.75,
+      "minimum_per_method_completion_rate": 0.5,
+      "every_task_has_success": true,
+      "every_method_has_success": true,
+      "maximum_projected_four_experiment_p90_input_tokens": 650000,
+      "maximum_projected_four_experiment_p90_wall_time_s": 1440.0
+    }
+  }
+}

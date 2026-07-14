@@ -9,6 +9,7 @@ import pytest
 from chemworld.agents.rl import FrozenSB3Agent
 from chemworld.eval.formal_rl import (
     FORMAL_RL_CHECKPOINT_INDEX_VERSION,
+    FORMAL_RL_CHECKPOINT_MANIFEST_VERSION,
     FormalRLAdapter,
     FormalRLAdapterFactory,
     FormalRLContractError,
@@ -68,7 +69,7 @@ def _checkpoint_payload(
     checkpoint_sha = file_sha256(checkpoint)
     contracts = task_contract_bundle(task_id)
     manifest: dict[str, Any] = {
-        "schema_version": "chemworld-rl-checkpoint-0.2",
+        "schema_version": FORMAL_RL_CHECKPOINT_MANIFEST_VERSION,
         "algorithm": method_id,
         "task_id": task_id,
         "checkpoint_sha256": checkpoint_sha,
@@ -77,6 +78,7 @@ def _checkpoint_payload(
             "namespace_id": "chemworld-v0.5-train-0.4",
         },
         "bench_finetuning_used": False,
+        "observation_contract_hash": contracts["observation_contract_sha256"],
         "action_contract_hash": contracts["action_contract_sha256"],
         "training_reward_contract_hash": contracts["training_reward_contract_sha256"],
         "versions": {"stable_baselines3": "2.9.0", "torch": "2.13.0"},
@@ -226,6 +228,48 @@ def test_contract_audit_fails_closed_on_bench_access_or_sac_claim() -> None:
     assert report["checks"]["sac_latent_comparability_disclosed"] is False
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "failed_check"),
+    [
+        (
+            "required_manifest_schema",
+            "chemworld-rl-checkpoint-0.2",
+            "checkpoint_schema_contract_current",
+        ),
+        (
+            "required_periodic_sidecar_schema",
+            "chemworld-rl-checkpoint-contract-sidecar-0.1",
+            "checkpoint_schema_contract_current",
+        ),
+        (
+            "required_observation_contract_schema",
+            "chemworld-rl-observation-contract-0.0",
+            "observation_contract_bindings_exact",
+        ),
+    ],
+)
+def test_contract_audit_rejects_legacy_checkpoint_declarations(
+    field: str,
+    value: str,
+    failed_check: str,
+) -> None:
+    config = load_formal_rl_config(CONFIG)
+    config["checkpoint_state"][field] = value
+    report = audit_formal_rl_contract(config, root=ROOT)
+    assert report["controls_ready"] is False
+    assert report["checks"][failed_check] is False
+
+
+def test_contract_audit_rejects_task_observation_hash_drift() -> None:
+    config = load_formal_rl_config(CONFIG)
+    config["checkpoint_state"]["required_observation_contract_hashes"][
+        "partition-discovery"
+    ] = "0" * 64
+    report = audit_formal_rl_contract(config, root=ROOT)
+    assert report["controls_ready"] is False
+    assert report["checks"]["observation_contract_bindings_exact"] is False
+
+
 @pytest.mark.parametrize("method_id", ["ppo", "sac"])
 def test_checkpoint_binding_verifies_contracts_and_separate_training_ledger(
     tmp_path: Path, method_id: str
@@ -235,6 +279,23 @@ def test_checkpoint_binding_verifies_contracts_and_separate_training_ledger(
     assert binding.method_id == method_id
     assert binding.public_summary()["training_resources_separate_from_evaluation"] is True
     assert binding.public_summary()["training_environment_step_count"] == 100
+    assert binding.public_summary()["observation_contract_sha256"] == binding.contract_bundle[
+        "observation_contract_sha256"
+    ]
+
+
+def test_checkpoint_binding_rejects_missing_observation_semantics(tmp_path: Path) -> None:
+    payload = _checkpoint_payload(tmp_path)
+    manifest_path = tmp_path / payload["checkpoint_manifest_path"]
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest.pop("observation_contract_hash")
+    _write_json(manifest_path, manifest)
+    resource_path = tmp_path / payload["training_resource_path"]
+    resources = json.loads(resource_path.read_text(encoding="utf-8"))
+    resources["source_manifest_sha256"] = file_sha256(manifest_path)
+    _write_json(resource_path, resources)
+    with pytest.raises(FormalRLContractError, match="observation_contract_hash"):
+        _binding(payload, tmp_path)
 
 
 def test_checkpoint_binding_rejects_train_namespace_and_resource_drift(tmp_path: Path) -> None:
@@ -352,6 +413,7 @@ def test_frozen_agent_reports_inference_resources_not_checkpoint_training() -> N
         "gpu_time_s": 900.0,
         "versions": {"stable_baselines3": "2.9.0", "torch": "2.13.0"},
     }
+    agent.observation_contract = {"contract_hash": "e" * 64}
     agent._evaluation_cpu_time_s = 0.125
     agent._evaluation_gpu_time_s = 0.25
     agent.resource_reporting_scope = "formal_evaluation_only"
@@ -359,6 +421,7 @@ def test_frozen_agent_reports_inference_resources_not_checkpoint_training() -> N
     assert usage["training_environment_step_count"] == 0
     assert usage["cpu_time_s"] == 0.125
     assert usage["gpu_time_s"] == 0.25
+    assert usage["model_provenance"]["observation_contract_hash"] == "e" * 64
     assert usage["training_resource_policy"].endswith("not_evaluation_cell")
 
 
@@ -366,10 +429,14 @@ def test_dependency_free_policy_contract_is_stable_for_every_core_task() -> None
     hashes = set()
     for task_id in load_formal_rl_config(CONFIG)["formal_core_tasks"]:
         bundle = task_contract_bundle(task_id)
+        observation = bundle["observation_contract"]
         policy = bundle["ppo_policy_distribution_contract"]
         rebuilt = policy_distribution_contract(tuple(policy["parameter_keys"]))
         assert rebuilt == policy
         assert policy["operation_distribution"] == "public-affordance-masked categorical"
         assert policy["irrelevant_parameter_log_prob"] is False
+        assert observation["task_id"] == task_id
+        assert bundle["observation_contract_sha256"] == observation["contract_hash"]
+        assert observation["compatibility_policy"]["shape_only_compatible"] is False
         hashes.add(policy["contract_hash"])
     assert len(hashes) == 1

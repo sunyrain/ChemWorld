@@ -42,8 +42,7 @@ class OperationValidation:
             "instrument_allowed_by_task",
         }
         return self.preconditions.get("action_schema_valid", True) and not any(
-            reason in blocking_reasons
-            or reason.startswith("payload_")
+            reason in blocking_reasons or reason.startswith("payload_")
             for reason in self.invalid_reasons
         )
 
@@ -100,7 +99,31 @@ class OperationValidator:
                     "action_schema_valid": False,
                 },
             )
-        canonical = self.action_codec.canonicalize(action)
+        try:
+            canonical = self.action_codec.canonicalize(action)
+        except (TypeError, ValueError, OverflowError):
+            # Canonicalization is part of public input validation.  A user or
+            # agent supplied material label must never escape ``env.step`` as a
+            # backend exception: reject it transactionally like any other
+            # malformed payload, without exposing codec internals.
+            operation_type = str(action.get("operation", "invalid"))
+            valid_operations = self.valid_operations(state)
+            return OperationValidation(
+                operation_type=operation_type,
+                is_valid=False,
+                preconditions={"action_schema_valid": False},
+                invalid_reasons=("payload_canonicalization_failed",),
+                valid_operations=valid_operations,
+                action_mask=tuple(
+                    operation in valid_operations for operation in self.operation_types
+                ),
+                cost_penalty=0.20,
+                safety_flags={
+                    "operation_allowed_by_task": False,
+                    "precondition_failed": True,
+                    "action_schema_valid": False,
+                },
+            )
         operation_type = str(canonical["operation"])
         preconditions = self._preconditions(operation_type, canonical, state)
         preconditions["action_schema_valid"] = True
@@ -133,6 +156,32 @@ class OperationValidator:
     def action_mask(self, state: WorldState) -> tuple[bool, ...]:
         valid = set(self.valid_operations(state))
         return tuple(operation_type in valid for operation_type in self.operation_types)
+
+    def public_field_bounds(
+        self,
+        operation_type: str,
+        field: str,
+        state: WorldState,
+        *,
+        low: float,
+        high: float,
+    ) -> tuple[float, float]:
+        """Narrow a static schema to its current public feasibility domain."""
+
+        dynamic_high = high
+        if operation_type in {"add_solvent", "add_phase", "add_extractant"} and field == "volume_L":
+            dynamic_high = min(
+                dynamic_high,
+                max(self._max_volume_l(state) - state.volume_L, 0.0),
+            )
+        elif operation_type == "sample" and field == "sample_volume_L":
+            dynamic_high = min(dynamic_high, max(state.volume_L, 0.0))
+        elif (
+            operation_type in {"heat", "cool_crystallize", "evaporate", "distill", "run_flow"}
+            and field == "target_temperature_K"
+        ):
+            dynamic_high = min(dynamic_high, self._max_temperature_k(state))
+        return low, max(low, dynamic_high)
 
     def operation_affordance(
         self,
@@ -193,6 +242,15 @@ class OperationValidator:
     ) -> dict[str, bool]:
         preconditions = self.constitution.check_preconditions(operation_type, state, payload)
         preconditions["operation_allowed_by_task"] = operation_type in self.allowed_operations
+        if operation_type in {"add_solvent", "add_phase", "add_extractant"}:
+            preconditions["addition_capacity_available"] = (
+                state.volume_L + self.constitution.tolerance < self._max_volume_l(state)
+            )
+        if operation_type == "terminate":
+            required = self._final_assay_sample_volume()
+            preconditions["final_assay_sample_available"] = (
+                required == 0.0 or state.volume_L + self.constitution.tolerance >= required
+            )
         if operation_type == "measure" and self.allowed_instruments is not None:
             preconditions["instrument_allowed_by_task"] = (
                 str(payload.get("instrument", "hplc")) in self.allowed_instruments
@@ -209,8 +267,7 @@ class OperationValidator:
                 (
                     instrument
                     for instrument in instrument_priority
-                    if self.allowed_instruments is None
-                    or instrument in self.allowed_instruments
+                    if self.allowed_instruments is None or instrument in self.allowed_instruments
                 ),
                 "hplc",
             )
@@ -273,9 +330,7 @@ class OperationValidator:
             locked_field, equipment_id, charged_key = lock_contract
             settings = equipment_settings(state.equipment, equipment_id)
             selected = (
-                settings.get(locked_field)
-                if float(settings.get(charged_key, 0.0)) > 0.0
-                else None
+                settings.get(locked_field) if float(settings.get(charged_key, 0.0)) > 0.0 else None
             )
             checks[f"payload_locked:{locked_field}"] = (
                 selected is None or payload.get(locked_field) == selected
@@ -388,10 +443,12 @@ class OperationValidator:
                 inclusive_low=True,
             )
         if operation_type == "collect_fraction" and "transfer_fraction" in payload:
-            low, high = OPERATION_FIELD_BOUNDS[(
-                "collect_fraction",
-                "transfer_fraction",
-            )]
+            low, high = OPERATION_FIELD_BOUNDS[
+                (
+                    "collect_fraction",
+                    "transfer_fraction",
+                )
+            ]
             checks["payload_bounds:transfer_fraction"] = self._in_range(
                 payload,
                 "transfer_fraction",
@@ -524,3 +581,9 @@ class OperationValidator:
         if state.vessels is not None and state.vessel_id in state.vessels.vessels:
             return state.vessels.vessels[state.vessel_id].max_temperature_K
         return self.constitution.vessel.max_temperature_K
+
+    def _final_assay_sample_volume(self) -> float:
+        if self.allowed_instruments is not None and "final_assay" not in self.allowed_instruments:
+            return 0.0
+        instrument = self.constitution.instruments.get("final_assay")
+        return float("inf") if instrument is None else max(float(instrument.sample_volume_L), 0.0)

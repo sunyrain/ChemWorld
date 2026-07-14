@@ -1,6 +1,6 @@
 # ChemWorld v0.5 基座完整性与正式实验 Todo
 
-最后更新：2026-07-13
+最后更新：2026-07-14
 
 ## 目标与边界
 
@@ -42,7 +42,7 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [x] 将 `20–39`、`300–319` 及其派生结果标记为 `diagnostic_only`；解释 `primary-0.3` 绑定旧 `lite` maturity/backend 的事实，禁止重命名为 v0.5 正式结果。
   - [x] 建立机器可读 denylist，正式 runner 在检测到污染 seed、旧 backend、旧 evaluator 或旧协议时直接拒绝启动。
   - [x] 检查文档不再把 `300–319` 称为 fresh/confirmatory；保留其诊断价值但移除正式措辞。
-  - 结果：扫描 40 份当前公开配置、79 个历史配置 blob、160 份结果和 160 个轨迹身份，隔离 280 个已暴露 seed 与 280 个 world-cell 身份；旧 `primary-0.3` 的 160/160 结果均回放通过但绑定 `lite` maturity，因此统一为 `pre-v0.5_diagnostic_only`。正式 guard 对暴露 seed、旧协议、非 claimable 协议、缺失 backend semantic hash 或私有 seed commitment 全部 fail closed，且没有 force override。
+  - 结果：协议 0.4 建立前的 280-seed 暴露清单作为不可变、hash-bound 冻结快照，单独证明新公共命名空间在选定时未被使用；当前累计扫描覆盖 51 份公开配置与 105 个历史配置 blob，隔离 502 个已暴露 seed 和 120 个 world-cell 身份，供以后所有 runner 拒绝复用。旧 `primary-0.3` 的 160 份结果与 160 个轨迹身份由两个冻结 manifest 摘要承诺，绑定 `lite` maturity 并统一标记为 `pre-v0.5_diagnostic_only`。干净 clone 不再依赖被忽略的 `runs/` 才能执行隔离测试；原始文件存在时会额外核对数量、seed 网格、maturity、replay 与两个摘要，主工作区 160/160 原始工件已反向验证通过。正式 guard 对暴露 seed、旧协议、非 claimable 协议、缺失 backend semantic hash 或私有 seed commitment 全部 fail closed，且没有 force override。
   - 验收：扫描覆盖所有保留 artifact；任一正式配置引用 denylist 即测试失败；报告明确 `benchmark_claim_allowed=false`。
 
 - [x] **`foundation-v05-contract-coherence` — task/world/score/reference/method 协议一致性收口**
@@ -134,7 +134,7 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [x] reference builder 身份不得与任一被评方法重合；其训练、搜索、轨迹和随机数流独立。
   - [x] 每个 task × seed × metric 至少四个独立 source runs；冻结 best-known estimate 与不确定区间，明确“不是 oracle、允许被方法超过”。
   - [x] 在任何方法 Bench 评分前冻结完整 manifest；后续更新 reference 必须新版本并重算所有方法。
-  - 结果：reference 目标绑定同一私有 Bench task/pair/world cell，但 builder RNG 来自全新 `12000–12099` reference-search namespace，实际 Bench seed 始终只在私有 manifest 中解析。精确计划含 4 tasks × 100 opaque pairs × 2 metrics = 800 reference cells、每 cell 四个独立 source、共 1,600 个唯一 run/RNG、64,000 次完整实验、3,200 条 source-metric 记录和最多 640,000 个 operation；四种 source profile 的 builder identity、代码摘要、训练/搜索 RNG 与 15 个被评方法强制分离。estimate 是带 20,000 次 bootstrap 区间的 empirical best-known，不是 oracle；负 regret 保留。任何缺失 source、replay/accounting/digest 失败都会阻止方法 Bench 评分，完整 reference manifest 必须先冻结；22 个新旧 reference 测试通过。
+  - 结果：reference 目标绑定同一私有 Bench task/pair/world cell，但 builder RNG 来自全新 `12000–12099` reference-search namespace，实际 Bench seed 始终只在私有 manifest 中解析。精确计划含 4 tasks × 100 opaque pairs × 2 metrics = 800 reference cells、每 cell 四个独立 source、共 1,600 个唯一 run/RNG、64,000 次完整实验、3,200 条 source-metric 记录和最多 640,000 个 operation；独立 builder 已实现 space-filling、ensemble-surrogate、evolutionary 与 risk-aware 四种归一化搜索 profile，不导入 evaluated agent/RL/provider 命名空间。builder 源码摘要与 15 个被评方法逐项 canonical adapter 摘要均已 hash-bound，并验证身份、代码和 RNG 分离。estimate 是带 20,000 次 bootstrap 区间的 empirical best-known，不是 oracle；负 regret 保留。任何缺失 source、replay/accounting/digest 失败都会阻止方法 Bench 评分，完整 reference manifest 必须先冻结。
   - 验收：run plan 可枚举精确 cell/run 数和预计资源；仍保持 `formal_results_present=false`。
 
 ## P2：统一正式执行基础设施
@@ -186,32 +186,44 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [x] 注册 random、LHS、greedy local、typed structured GP-EI/PI/UCB、RF-EI、Safe-GP；材料类别必须 one-hot/typed，禁止数字代号产生伪距离。
   - [x] 在 Train/Dev 检查采集函数确实进入优化阶段、Safe-GP 约束被激活、预算曲线非退化和确定性回放。
   - [x] 只用 Dev 选择预注册 family champion；冻结代码、超参数和 method hash。
-  - 结果：八种 recipe-level 方法均由唯一、source-bound 的 formal adapter 注册；GP/RF/Safe-GP 对溶剂、催化剂等名义类别使用 one-hot，greedy local 只对连续坐标作局部扰动并以无序类别突变探索材料，LHS 对名义类别只作平衡分层而不建立距离模型。正式开发矩阵严格使用 4 个 Train seed 与完整 20 个 Dev seed，覆盖 4 个 core task、40 次完整实验，共 768 cells、30,720 次完整实验和 307,200 次显式操作；768/768 完成、0 invalid action、资源账本全部完整，32/32 预注册双跑确定性一致。五种 surrogate 方法共实际执行 17,280 次 fit 与 17,280 次 acquisition optimization；Safe-GP 在 96 个 cell 中有 95 个实际收缩可行候选集或触发最低风险 fallback，其余一个 cell 的全部候选均满足风险上界。所有方法的 4/8/12/20/40 预算曲线均非退化。只按 Dev 规则选出 design=`lhs`、local search=`greedy_local`、Bayesian optimization=`structured_gp_ucb`、constrained optimization=`structured_safe_gp_ei`；没有访问 Bench 或 reference-search。旧 Safe-GP confirmatory freeze 因策略源码升级而按设计 fail-closed，其历史 Bench 结果不继承到 v0.4；完整开发证据见 `classic-dev-v0.4.json`。
+  - 结果：八种 recipe-level 方法均由唯一、source-bound 的 formal adapter 注册；GP/RF/Safe-GP 对溶剂、催化剂等名义类别使用 one-hot，greedy local 只对连续坐标作局部扰动并以无序类别突变探索材料，LHS 对名义类别只作平衡分层而不建立距离模型。开发矩阵已在当前 formal protocol canonical digest 下重新执行，严格使用 4 个 Train seed 与完整 20 个 Dev seed，覆盖 4 个 core task、40 次完整实验，共 768 cells、30,720 次完整实验和 307,200 次显式操作；768/768 完成、0 invalid action、资源账本全部完整，32/32 预注册双跑确定性一致。五种 surrogate 方法共实际执行 17,280 次 fit 与 17,280 次 acquisition optimization；Safe-GP 在 96 个 cell 中有 95 个实际收缩可行候选集或触发最低风险 fallback，其余一个 cell 的全部候选均满足风险上界。所有方法的 4/8/12/20/40 预算曲线均非退化。只按 Dev 规则选出 design=`lhs`、local search=`greedy_local`、Bayesian optimization=`structured_gp_ucb`、constrained optimization=`structured_safe_gp_ei`；没有访问 Bench 或 reference-search。旧 Safe-GP confirmatory freeze 因策略源码升级而按设计 fail-closed，其历史 Bench 结果不继承到 v0.4；完整开发证据见 `classic-dev-v0.4.json`。
   - 验收：每种方法的能力、失败域、复杂度和资源 ledger 完整；不使用 Bench/reference 反馈。
+
+- [x] **`benchmark-v05-operation-baselines` — operation-level 盲控制与规则基线封存**
+  - 默认 owned_paths：operation baseline adapter、`configs/methods/operation_v0.4/`、对应测试与 `workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.json`。
+  - 依赖：P2 preflight 与 interaction strata。
+  - [x] 实现 operation-random、observation-blind 与 rule-based，三者只使用声明的公开 affordance/观测，不读取 hidden state 或私有 Bench。
+  - [x] 固定 terminal assay 活性、动态操作边界和 closeout 预算，禁止 runner 静默修复；随机负控制的非法尝试必须保留并计账，盲控制与规则基线必须为零非法操作。
+  - [x] 在 4 个 core task、4 个 Train seed、20 个 Dev seed、每 cell 40 次完整实验上运行 288-cell 开发矩阵，并检查确定性回放、决策审计、动作多样性、规则测量适应与资源账本。
+  - 结果：288/288 cells 完成，全部主指标、决策审计和资源账本闭合；预注册确定性复跑全部一致。operation-random 保留并报告 1,563 次非法操作，observation-blind 与 rule-based 均为 0；规则方法在四个任务上均实际使用公开测量进行适应。未访问 Bench 或 reference-search，正式状态为 `formal_operation_baselines_ready`。
+  - 验收：三种方法的 freeze、source/hash-bound adapter、完整开发证据和 interaction registration 均已进入 fail-closed method-freeze 审计。
 
 - [ ] **`benchmark-v05-rl-adapters` — PPO/SAC 正式适配、训练与 checkpoint 封存**
   - 默认 owned_paths：各 RL formal adapter、对应测试、`configs/methods/rl_v0.4/`、checkpoint manifests、`workstreams/benchmark_v1/reports/rl-dev-v0.4.json`。
   - 依赖：P2 preflight；PPO 旧 5-seed gate 仅作起点。
   - [ ] PPO 使用原生 masked categorical + conditional parameters；SAC 若继续采用连续 latent，必须明确其可比性限制并通过相同 public affordance/action decoder。
   - [ ] 在 Train worlds 训练多个预注册 seeds，在 Dev worlds 选择 checkpoint；验证四个 core task 的行为完成，不只验证 flow。
-  - [ ] 记录学习曲线、训练步数、GPU/CPU、失败率、quick-close、观察盲控制和 checkpoint/backend/action/reward hash。
+  - [ ] 记录学习曲线、训练步数、GPU/CPU、失败率、quick-close、观察盲控制和 checkpoint/backend/observation/action/reward hash。
   - [ ] Bench 前冻结每个任务或共享策略的选择规则；禁止 Bench 微调和事后选 seed。
+  - 当前诊断：旧 PPO 训练奖励依赖“本次实验已执行哪些核心操作”，但 RL 观察未包含同一公开历史，形成非 Markov 状态别名；原 2 个已选 checkpoint 与另外两任务证据均因此失效，checkpoint index 已 fail-closed 清零。修复后观察加入逐实验公开核心阶段位，reward contract 升至 0.3，仅首次满足公开阶段奖励 0.1，重复操作、测量和终止无额外奖励。正式 `FrozenSB3Agent` 现仅根据 runner 返回的公开操作结果维护同一逐实验阶段账本，非法操作不写入、实验结束即清零，并逐元素重建训练观察；该实现不向环境层回灌操作分派、不改变 operation baseline 公共输入，也不使其既有 768-cell 证据失效。相关边界、回放、经典基线与全仓回归均通过，当前完整结果为 1545 passed、14 skipped。字段顺序、缺失值/mask、核心阶段位、全局 affordance 顺序、campaign progress 公式、边界与重置语义现已固定为任务级 `chemworld-rl-observation-contract-0.1`，四个正式任务均与真实训练空间及初始向量逐元素一致；正式 checkpoint index/method-freeze binding 只接受带精确 observation hash 的 `chemworld-rl-checkpoint-0.3`。Dev evaluator 与 `FrozenSB3Agent` 现也会在策略反序列化前拒绝旧 schema、错误 observation hash 或运行时公共 view 的键序、dtype、bounds、mask 与 missing-sentinel 漂移，并在加载后复核模型内 observation space。尚需共享训练 runner 写出 final manifest 0.3 与周期 sidecar 0.2，并在两者中绑定同一 observation hash。`partition-discovery` 的 25,600-step 有界探针在训练期完成 445 次行为完整实验；但原确定性众数评估仍坍缩为重复 `settle`，而固定 seed 随机评估在 20 episodes 中完成 38 次实验、35 次行为完整实验，平均最佳主指标 0.8313。两次固定 seed 回放逐字节一致，说明 PPO 随机策略可复现。共享训练 runner 仍由 SAC slice 认领，因此四任务重训保持暂停，证据见 `rl-ppo-reward-diagnostic-v0.4.json`。
   - 验收：至少预注册数量的独立训练 seeds 均完成；checkpoint 可由干净环境加载并逐 cell 评估。
 
 - [ ] **`benchmark-v05-live-llm-adapters` — 真实 LLM 双角色开发与提示冻结**
   - 默认 owned_paths：live LLM formal adapter、对应测试、`configs/methods/llm_v0.4/`、prompt manifests、`workstreams/benchmark_v1/reports/live-llm-dev-v0.4.json`。
   - 依赖：P2 preflight 与 resource accounting。
-  - [ ] 运行时核实 DeepSeek 可用 model IDs、thinking/JSON 能力、访问日期和价格；配置错误或模型替换必须新版本，不能静默 fallback。
-  - [ ] 两个角色均通过官方 adapter 多轮调用，在实验内和实验间适应，能主动请求当前/历史谱图；Task Lab 只作 UI，不作正式 launcher。
-  - [ ] prompt 只描述工具、任务和公共合同，不加入“默认升温”等强倾向规则；保留结构化决策审计，不索取私有思维链。
+  - [x] 运行时核实 DeepSeek 可用 model IDs、thinking/JSON 能力、访问日期和价格；配置错误或模型替换必须新版本，不能静默 fallback。
+  - [x] 两个角色均通过官方 adapter 多轮调用，在实验内和实验间适应，能主动请求当前/历史谱图；Task Lab 只作 UI，不作正式 launcher。
+  - [x] prompt 只描述工具、任务和公共合同，不加入“默认升温”等强倾向规则；保留结构化决策审计，不索取私有思维链。
   - [ ] 在 Train/Dev 完成 assigned/unassigned/masked 配对、API 失败/重试和成本对账；冻结 prompt、request 参数、model snapshot/access date。
+  - 当前状态：v0.4.6 开发矩阵在 56/96 cells 后主动停止并判定为 `incomplete_configuration_rejected`，16 cells 成功、40 cells 方法失败，56/56 资源账本完整，累计 2,369 次 provider 调用和 10.0387 USD；该证据只用于配置诊断，不得汇总为 benchmark 结果。根因是 deliberative 角色反复耗尽墙钟时间，以及 direct 角色因重复谱图/记忆导致累计输入超限。v0.4.7 已将 provider prompt 平均载荷离线回放压缩约 57%–58%，冻结 Pro=`thinking/high, max_tokens=4000`、Flash=`thinking/off, max_tokens=1000`。新的 v0.4.8 使用独立版本、source-commit 级私有缓存、报告 schema 和 seed 派生命名空间，并将付费入口收敛为 `reaction-to-crystallization` 单任务、2 角色 × 3 谱图条件的 6-cell `candidate_screen`，矩阵费用硬上限 2.10 USD。任务、方法、谱图条件、首个 Train seed、开发计划摘要和费用上限均在 provider 调用前 fail closed，不能通过 CLI 静默缩减或扩展，也不能跨提交误续跑。候选未通过完成率、逐方法成功、回放/账本和四实验投影 token/墙钟余量时，代码禁止启动后续 pilot/Dev 矩阵；付费筛选当前保持暂停。
   - 验收：真实多轮轨迹可回放执行，所有调用/失败/tokens/费用可核对；未证明性能提升也允许封存，但不能缺失证据。
 
 - [ ] **`benchmark-v05-method-freeze` — 方法清单与 Bench 解封**
   - 默认 owned_paths：`configs/benchmark/method_freeze_v0.4.json`、`scripts/audit_method_freeze_v0.4.py`、`tests/test_method_freeze_v0.4.py`、`workstreams/benchmark_v1/reports/method-freeze-v0.4.json`。
   - 依赖：所有计划进入正式比较的方法完成 P3；未完成方法必须明确退出，不拖着空实现进入矩阵。
+  - 当前预检：fail-closed 方法冻结审计器与 19 项 hash-bound 输入合同已经落地；当前重生成报告为 `method_freeze_preflight_blocked`，精确记录 26 项 blocker。三种 operation baseline、当前协议下重新执行的 768-cell Classic 矩阵，以及独立 reference builder 的源码与 15 个 evaluated adapter 摘要均已通过对应门禁。PPO 非 Markov 观察缺陷修复后，旧 2/4 checkpoint 已主动失效并将 index 清零，新增的两个 blocker 对应这两个旧 checkpoint，不是新的实现缺陷。SAC、单任务预算化 LLM pilot、完整 Dev-only family selection 和正式 cell/CPU/GPU/API/磁盘硬预算仍未落地；Bench 继续封存。该审计只读取公开控制工件，不打开私有 Bench，也没有 `--force` 或 manifest 签发能力。
   - [ ] 固定方法 IDs、family、interaction stratum、hyperparameters、checkpoint/prompt hashes、Dev 选择依据和资源上限。
-  - [ ] 核实 reference builder 与所有 evaluated method 身份、代码和随机数流独立。
+  - [x] 核实 reference builder 与所有 evaluated method 身份、代码和随机数流独立。
   - [ ] 锁定 run count/预计算力/API 费用，并由 preflight 签发 Bench manifest。
   - 验收：解封后任何实现或协议修改都自动使 run manifest 失效并要求新 cohort。
 

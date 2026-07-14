@@ -92,9 +92,7 @@ def test_core_action_contract_matches_effective_runtime_semantics() -> None:
         assert field("add_phase", "phase")["choices"] == ["aqueous", "organic"]
         assert field("add_phase", "volume_L")["bounds"] == {"low": 0.0, "high": 0.06}
         assert field("add_extractant", "extractant")["choices"] == [0, 1, 2, 3]
-        assert field("add_extractant", "extractant")["choice_labels"]["3"].startswith(
-            "Toluene"
-        )
+        assert field("add_extractant", "extractant")["choice_labels"]["3"].startswith("Toluene")
         assert field("separate_phase", "target_phase")["choices"] == [
             "aqueous",
             "organic",
@@ -138,6 +136,60 @@ def test_core_action_contract_matches_effective_runtime_semantics() -> None:
         assert "payload_bounds:seed_mass_g" in invalid_seed["invalid_reasons"]
     finally:
         env.close()
+
+
+def test_public_volume_bounds_match_capacity_and_terminal_assay_stays_reachable() -> None:
+    capacity_env = gym.make("ChemWorld", task_id="reaction-to-distillation", seed=0)
+    try:
+        capacity_env.reset(seed=0)
+        capacity_env.step({"operation": "add_solvent", "volume_L": 0.08, "solvent": 0})
+        schema = capacity_env.unwrapped.action_schema("add_solvent")
+        volume = next(field for field in schema["fields"] if field["field"] == "volume_L")
+        assert volume["state_dependent_bounds"] is True
+        assert 0.0 < volume["bounds"]["high"] < 0.08
+        accepted = capacity_env.unwrapped.validate_action(
+            {
+                "operation": "add_solvent",
+                "volume_L": volume["bounds"]["high"],
+                "solvent": 0,
+            }
+        )
+        rejected = capacity_env.unwrapped.validate_action(
+            {
+                "operation": "add_solvent",
+                "volume_L": volume["bounds"]["high"] + 1.0e-4,
+                "solvent": 0,
+            }
+        )
+        assert accepted["valid"] is True
+        assert rejected["valid"] is False
+        assert "payload_bounds:total_volume_L" in rejected["invalid_reasons"]
+    finally:
+        capacity_env.close()
+
+    assay_env = gym.make("ChemWorld", task_id="reaction-to-distillation", seed=0)
+    try:
+        assay_env.reset(seed=0)
+        assay_env.step({"operation": "add_solvent", "volume_L": 0.0005, "solvent": 0})
+        assay_env.step({"operation": "add_reagent", "amount_mol": 0.01})
+        assay_env.step({"operation": "sample", "sample_volume_L": 0.00025})
+
+        blocked = assay_env.unwrapped.validate_action({"operation": "terminate"})
+        operations = {item["operation"] for item in assay_env.unwrapped.available_actions()}
+        assert blocked["valid"] is False
+        assert "final_assay_sample_available" in blocked["invalid_reasons"]
+        assert "terminate" not in operations
+        assert "add_solvent" in operations
+
+        assay_env.step({"operation": "add_solvent", "volume_L": 0.001, "solvent": 0})
+        ready = assay_env.unwrapped.validate_action({"operation": "terminate"})
+        assert ready["valid"] is True
+        assay_env.step({"operation": "terminate"})
+        _, _, _, _, info = assay_env.step({"operation": "measure", "instrument": "final_assay"})
+        assert info["experiment_ended"] is True
+        assert info["constraint_flags"]["precondition_failed"] is False
+    finally:
+        assay_env.close()
 
 
 def test_core_locks_material_category_for_current_experiment() -> None:
@@ -202,7 +254,15 @@ def test_core_task_prompts_are_structured_and_public() -> None:
             env.reset(seed=0)
             prompt = env.unwrapped.task_prompt()
             text = prompt["text"]
-            assert prompt["prompt_version"] == "chemworld-agent-task-prompt-0.2"
+            assert prompt["prompt_version"] == "chemworld-agent-task-prompt-0.3"
+            lifecycle = prompt["experiment_lifecycle"]
+            assert "does not by itself complete" in lifecycle["terminate_effect"]
+            assert "instrument=final_assay" in lifecycle["final_assay_precondition"]
+            if prompt["episode_mode"] == "campaign":
+                assert "fresh experiment" in lifecycle["final_assay_effect"]
+            else:
+                assert "ends the episode" in lifecycle["final_assay_effect"]
+            assert "do not complete" in lifecycle["intermediate_measurement_effect"]
             assert prompt["task_id"] == task_id
             assert str(prompt["budget"]) in text
             assert "budget" in text

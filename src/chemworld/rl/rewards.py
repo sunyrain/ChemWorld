@@ -7,14 +7,18 @@ import json
 from collections.abc import Iterable
 from typing import Any
 
-REWARD_SCHEMA_VERSION = "chemworld-rl-training-reward-0.2"
+REWARD_SCHEMA_VERSION = "chemworld-rl-training-reward-0.3"
 
 REWARD_COMPONENTS = {
     "raw_environment_reward": 1.0,
     "valid_nonterminal_operation": 0.0,
     "invalid_precondition": -0.25,
     "newly_unlocked_operation": 0.02,
-    "newly_satisfied_core_requirement": 0.0,
+    # A small, one-shot progress signal prevents sparse-reward policies from
+    # learning to repeat a legal operation forever. Requirements are derived
+    # solely from the published task operation contract, never hidden world
+    # state or the benchmark objective, and repeated operations earn nothing.
+    "newly_satisfied_core_requirement": 0.10,
     "behavioral_core_completion": 1.0,
     "measurement": 0.0,
     "experiment_ended": 0.0,
@@ -74,6 +78,8 @@ def reward_contract(allowed_operations: Iterable[str]) -> dict[str, Any]:
         "leakage_controls": {
             "terminal_bonus": False,
             "measurement_bonus": False,
+            "core_progress_uses_public_operation_history_only": True,
+            "repeated_core_operation_bonus": False,
             "raw_benchmark_reward_preserved": True,
         },
     }

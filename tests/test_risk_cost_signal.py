@@ -9,6 +9,7 @@ from chemworld.agents.random import RandomRecipeAgent
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.risk_cost_signal_audit import (
     RiskCostTaskPolicy,
+    _experiment_rows,
     load_risk_cost_protocol,
 )
 from chemworld.eval.runner import run_agent
@@ -79,6 +80,41 @@ def test_vnext_policy_requires_a_registered_serious_task() -> None:
             seed=0,
             evaluation_policy="vnext_risk_cost",
         )
+
+
+def test_risk_cost_rows_use_unsaturated_ledger_deltas(tmp_path: Path) -> None:
+    trajectory = tmp_path / "saturated-cost.jsonl"
+    records = [
+        {
+            "observation": {"cost": 0.9, "safety_risk": 0.1},
+            "measurement_cost": 0.0,
+            "state_delta_summary": {"delta_cost": 0.9},
+            "leaderboard_score": None,
+        },
+        {
+            "observation": {"cost": 1.0, "safety_risk": 0.1},
+            "measurement_cost": 0.8,
+            "state_delta_summary": {"delta_cost": 0.8},
+            "leaderboard_score": 0.5,
+        },
+    ]
+    trajectory.write_text(
+        "".join(json.dumps(record) + "\n" for record in records),
+        encoding="utf-8",
+    )
+
+    rows = _experiment_rows(
+        {
+            "task_id": "partition-discovery",
+            "baseline_agent": "test-agent",
+            "seed": 1,
+        },
+        trajectory,
+    )
+
+    assert rows[0]["total_cost"] == pytest.approx(1.7)
+    assert rows[0]["measurement_cost"] == pytest.approx(0.8)
+    assert rows[0]["process_cost"] == pytest.approx(0.9)
 
 
 def test_frozen_risk_cost_report_keeps_method_and_measurement_gates_closed() -> None:

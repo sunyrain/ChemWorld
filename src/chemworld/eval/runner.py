@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Callable
 from pathlib import Path
 from time import perf_counter
@@ -42,9 +43,14 @@ from chemworld.data.logging import TrajectoryLogger, action_payload, observation
 from chemworld.data.submission import git_commit
 from chemworld.eval.method_protocol import (
     MethodResourceLedger,
+    MethodResourceLimitError,
     MethodResourceLimits,
     evaluation_resource_limits,
     load_method_protocol,
+)
+from chemworld.eval.observation_identifiability import (
+    ObservationIdentifiabilityError,
+    PublicSpectrumArchive,
 )
 from chemworld.eval.risk_policy import (
     RiskCostTaskPolicy,
@@ -158,6 +164,20 @@ def run_agent(
     if risk_policy is not None:
         task_info.update(risk_policy.task_info_overlay())
         task_info["risk_policy_hash"] = risk_policy.policy_hash
+    if method_resource_limits is not None:
+        task_info["method_budget_contract"] = {
+            key: (
+                list(method_resource_limits[key])
+                if key == "checkpoint_complete_experiments"
+                else method_resource_limits[key]
+            )
+            for key in (
+                "operation_limit",
+                "complete_experiment_limit",
+                "checkpoint_complete_experiments",
+            )
+            if key in method_resource_limits
+        }
 
     resolved_agent_seed = seed if agent_seed is None else int(agent_seed)
     agent.reset(task_info, resolved_agent_seed)
@@ -205,6 +225,9 @@ def run_agent(
     ]
 
     history: list[HistoryRecord] = []
+    spectrum_archive = PublicSpectrumArchive(retrieval_cost=0.0)
+    latest_spectrum_id: str | None = None
+    experiment_index = 1
     current_observation = initial_obs
     current_info: dict[str, Any] = {}
     previous_event_type: str | None = None
@@ -213,6 +236,25 @@ def run_agent(
         logger = logger_context.__enter__() if logger_context is not None else None
         for step in range(1, effective_budget + 1):
             pre_decision_view = agent_view_bundle(env, current_observation, current_info)
+            spectrum_request_factory = getattr(
+                agent, "consume_historical_spectrum_request", None
+            )
+            requested_spectrum_id = (
+                spectrum_request_factory()
+                if callable(spectrum_request_factory)
+                else None
+            )
+            pre_decision_view, retrieval_event = _attach_spectrum_archive(
+                pre_decision_view,
+                archive=spectrum_archive,
+                latest_spectrum_id=latest_spectrum_id,
+                requested_spectrum_id=(
+                    str(requested_spectrum_id)
+                    if isinstance(requested_spectrum_id, str)
+                    and requested_spectrum_id
+                    else None
+                ),
+            )
             decision_context = build_decision_context(
                 step=step,
                 task_info=task_info,
@@ -236,21 +278,103 @@ def run_agent(
             action = normalized_action
             usage_factory = getattr(agent, "method_resource_usage", None)
             agent_usage = usage_factory() if callable(usage_factory) else {}
-            resource_ledger.record_decision(
-                elapsed_s=decision_elapsed_s,
-                agent_usage=agent_usage,
-            )
             decision_audit_factory = getattr(agent, "decision_audit", None)
             decision_audit = DecisionAuditRecord.from_payload(
                 decision_audit_factory() if callable(decision_audit_factory) else None,
                 action=action,
             )
+            try:
+                resource_ledger.record_decision(
+                    elapsed_s=decision_elapsed_s,
+                    agent_usage=agent_usage,
+                )
+            except MethodResourceLimitError:
+                # The provider decision is real and billable even though its lab
+                # action must not execute after the frozen resource cap is crossed.
+                # Retain it as a non-mutating trajectory event so receipts, tokens,
+                # cost, and decision count remain exactly reconcilable.
+                obs_json = observation_to_json(current_observation)
+                method_resources = resource_ledger.snapshot()
+                resource_limit_info: dict[str, Any] = {
+                    "transaction_status": "not_executed_resource_limit",
+                    "operation_type": action.get("operation"),
+                    "experiment_ended": False,
+                    "resource_limit_reached": True,
+                    "observed_keys": [],
+                    "constraint_flags": {},
+                }
+                interaction_evidence = {
+                    "interaction_contract_version": INTERACTION_CONTRACT_VERSION,
+                    "decision_context": decision_context.to_dict(),
+                    "decision_audit": decision_audit.to_dict(),
+                    "outcome": {
+                        "event_type": "resource_limit",
+                        "observed_keys": [],
+                        "has_spectral_packet": False,
+                        "experiment_ended": False,
+                        "constraint_flags": {},
+                    },
+                    "method_resources": method_resources,
+                    "historical_spectrum_retrieval": retrieval_event,
+                }
+                record = HistoryRecord(
+                    step=step,
+                    action=dict(action),
+                    observation=obs_json,
+                    reward=0.0,
+                    info=resource_limit_info,
+                    public_view=pre_decision_view,
+                    decision_context=decision_context.to_dict(),
+                    decision_audit=decision_audit.to_dict(),
+                    event_type="resource_limit",
+                    method_resources=method_resources,
+                )
+                history.append(record)
+                agent_trace_factory = getattr(agent, "agent_trace", None)
+                agent_trace = (
+                    agent_trace_factory() if callable(agent_trace_factory) else []
+                )
+                if logger is not None:
+                    logger.log(
+                        task_info=task_info,
+                        step=step,
+                        action=action,
+                        observation=obs_json,
+                        reward=0.0,
+                        terminated=False,
+                        truncated=True,
+                        info=resource_limit_info,
+                        agent_metadata=agent_metadata,
+                        explanation=interaction_evidence,
+                        agent_view=pre_decision_view,
+                        agent_trace=agent_trace,
+                        method_resources=method_resources,
+                    )
+                if step_callback is not None:
+                    step_callback(record, agent_trace)
+                raise
             observation, reward, terminated, truncated, info = env.step(action)
             obs_json = observation_to_json(observation)
             update_started = perf_counter()
             agent.update(action, obs_json, float(reward), info)
             update_elapsed_s = perf_counter() - update_started
             public_view = agent_view_bundle(env, observation, info)
+            packet = _public_spectrum_packet(public_view)
+            if packet is not None:
+                latest_spectrum_id = f"spectrum-e{experiment_index:03d}-s{step:04d}"
+                spectrum_archive.record(
+                    latest_spectrum_id,
+                    packet,
+                    experiment_index=experiment_index,
+                    measurement_step=step,
+                    measurement_cost=float(info.get("measurement_cost", 0.0) or 0.0),
+                )
+                public_view, _ = _attach_spectrum_archive(
+                    public_view,
+                    archive=spectrum_archive,
+                    latest_spectrum_id=latest_spectrum_id,
+                    requested_spectrum_id=None,
+                )
             final_assay_ended = bool(
                 terminated
                 and action.get("operation") == "measure"
@@ -262,10 +386,17 @@ def run_agent(
                 event_type = "measurement_result"
             else:
                 event_type = "operation_result"
-            resource_ledger.record_outcome(
-                experiment_ended=event_type == "experiment_end",
-                update_elapsed_s=update_elapsed_s,
-            )
+            outcome_resource_error: MethodResourceLimitError | None = None
+            try:
+                resource_ledger.record_outcome(
+                    experiment_ended=event_type == "experiment_end",
+                    update_elapsed_s=update_elapsed_s,
+                )
+            except MethodResourceLimitError as exc:
+                # The physical transaction already occurred, so log its exact
+                # outcome before propagating the resource-budget failure.
+                outcome_resource_error = exc
+                info = {**info, "resource_limit_reached": True}
             method_resources = resource_ledger.snapshot()
             interaction_evidence = {
                 "interaction_contract_version": INTERACTION_CONTRACT_VERSION,
@@ -285,6 +416,7 @@ def run_agent(
                     "constraint_flags": info.get("constraint_flags", {}),
                 },
                 "method_resources": method_resources,
+                "historical_spectrum_retrieval": retrieval_event,
             }
             record = HistoryRecord(
                 step=step,
@@ -319,13 +451,89 @@ def run_agent(
                 )
             if step_callback is not None:
                 step_callback(record, agent_trace)
+            if outcome_resource_error is not None:
+                raise outcome_resource_error
             current_observation = observation
             current_info = info
             previous_event_type = event_type
-            if terminated or truncated:
+            if event_type == "experiment_end":
+                experiment_index += 1
+            complete_experiment_budget_reached = (
+                resource_ledger.limits.complete_experiment_limit is not None
+                and resource_ledger.complete_experiment_count
+                >= resource_ledger.limits.complete_experiment_limit
+            )
+            if terminated or truncated or complete_experiment_budget_reached:
                 break
     finally:
         if logger_context is not None:
             logger_context.__exit__(None, None, None)
         env.close()
     return history
+
+
+def _attach_spectrum_archive(
+    public_view: dict[str, Any],
+    *,
+    archive: PublicSpectrumArchive,
+    latest_spectrum_id: str | None,
+    requested_spectrum_id: str | None,
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Attach catalog metadata and at most one explicitly requested packet."""
+
+    attached = copy.deepcopy(public_view)
+    tool_view = attached.get("tool_json")
+    if not isinstance(tool_view, dict):
+        tool_view = {}
+        attached["tool_json"] = tool_view
+    tool_view["historical_spectrum_catalog"] = archive.catalog()
+    retrieval_event: dict[str, Any] | None = None
+    if requested_spectrum_id is not None:
+        try:
+            requested = archive.retrieve(requested_spectrum_id)
+            tool_view["requested_historical_spectrum"] = {
+                "spectrum_id": requested_spectrum_id,
+                "status": "retrieved",
+                **requested,
+            }
+        except ObservationIdentifiabilityError:
+            tool_view["requested_historical_spectrum"] = {
+                "spectrum_id": requested_spectrum_id,
+                "status": "unknown_id",
+            }
+        retrieval_event = archive.ledger()[-1]
+    if latest_spectrum_id is not None:
+        for report in (
+            attached.get("lab_report"),
+            tool_view.get("lab_report"),
+        ):
+            if not isinstance(report, dict):
+                continue
+            summary = report.get("spectra_summary")
+            if isinstance(summary, dict) and summary.get("has_spectral_packet"):
+                summary["spectrum_id"] = latest_spectrum_id
+    return attached, retrieval_event
+
+
+def _public_spectrum_packet(public_view: dict[str, Any]) -> dict[str, Any] | None:
+    tool_view = public_view.get("tool_json")
+    report = public_view.get("lab_report")
+    if not isinstance(tool_view, dict) or not isinstance(report, dict):
+        return None
+    summary = report.get("spectra_summary")
+    if not isinstance(summary, dict) or not summary.get("has_spectral_packet"):
+        return None
+    raw_signal = tool_view.get("raw_signal")
+    if not isinstance(raw_signal, dict) or not raw_signal:
+        return None
+    instrument = report.get("instrument_summary")
+    return {
+        "schema_version": "chemworld-public-spectrum-packet-0.1",
+        "instrument_id": (
+            instrument.get("instrument") if isinstance(instrument, dict) else None
+        ),
+        "kind": raw_signal.get("kind"),
+        "raw_signal": copy.deepcopy(raw_signal),
+        "processed_estimate": copy.deepcopy(tool_view.get("processed_estimate", {})),
+        "uncertainty": copy.deepcopy(tool_view.get("uncertainty", {})),
+    }

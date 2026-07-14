@@ -31,8 +31,22 @@ CLASSIC_DEVELOPMENT_VERSION = "chemworld-classic-development-audit-0.4"
 DEFAULT_REPORT_PATH = (
     ROOT / "workstreams" / "benchmark_v1" / "reports" / "classic-dev-v0.4.json"
 )
-DEFAULT_CACHE_ROOT = ROOT / ".git" / "chemworld-private" / "classic-dev-v0.4"
 FORMAL_CHECKPOINTS = (4, 8, 12, 20, 40)
+
+
+def _default_cache_root() -> Path:
+    raw = subprocess.check_output(
+        ["git", "rev-parse", "--git-common-dir"],
+        cwd=ROOT,
+        text=True,
+    ).strip()
+    path = Path(raw)
+    if not path.is_absolute():
+        path = (ROOT / path).resolve()
+    return path / "chemworld-private" / "classic-dev-v0.4"
+
+
+DEFAULT_CACHE_ROOT = _default_cache_root()
 
 
 @dataclass(frozen=True)

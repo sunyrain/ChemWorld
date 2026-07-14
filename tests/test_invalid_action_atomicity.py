@@ -6,6 +6,7 @@ import gymnasium as gym
 import pytest
 
 import chemworld  # noqa: F401
+from chemworld.action_codec import ActionCodec
 
 
 def _material_snapshot(state: Any) -> dict[str, Any]:
@@ -84,6 +85,48 @@ def test_payload_bounds_failure_only_penalizes_process_ledger() -> None:
         assert info["transaction_status"] == "validation_failed"
         assert "payload_bounds:volume_L" in info["world_events"][0]["payload"][
             "invalid_reasons"
+        ]
+        assert _material_snapshot(after) == before_material
+        _assert_process_penalty(before, after, info)
+    finally:
+        env.close()
+
+
+def test_public_catalyst_display_name_is_a_supported_action_alias() -> None:
+    canonical = ActionCodec().canonicalize(
+        {
+            "operation": "add_catalyst",
+            "catalyst": "Catalyst B · benchmark",
+            "catalyst_amount_mol": 0.001,
+        }
+    )
+
+    assert canonical["catalyst"] == 1
+
+
+def test_unknown_material_label_is_transactionally_rejected() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
+    try:
+        env.reset(seed=0)
+        before = env.unwrapped._state
+        before_material = _material_snapshot(before)
+
+        _obs, reward, terminated, truncated, info = env.step(
+            {
+                "operation": "add_catalyst",
+                "catalyst": "not-a-real-choice",
+                "catalyst_amount_mol": 0.001,
+            }
+        )
+        after = env.unwrapped._state
+
+        assert reward == 0.0
+        assert not terminated
+        assert not truncated
+        assert info["transaction_status"] == "validation_failed"
+        assert info["rollback_reason"] == "validation_failed"
+        assert info["world_events"][0]["payload"]["invalid_reasons"] == [
+            "payload_canonicalization_failed"
         ]
         assert _material_snapshot(after) == before_material
         _assert_process_penalty(before, after, info)

@@ -1,0 +1,70 @@
+{
+  "schema_version": "chemworld-ppo-reward-diagnostic-0.4",
+  "status": "bounded_probe_complete_formal_retraining_pending",
+  "diagnostic_only": true,
+  "benchmark_claim_allowed": false,
+  "bench_accessed": false,
+  "reference_search_used": false,
+  "source_parent_commit": "26e0c7d45a18f39fbd947a75d624038469df4a3b",
+  "task_id": "partition-discovery",
+  "model_seed": 9902,
+  "training_environment_steps": 25600,
+  "operation_budget": 60,
+  "training_infrastructure": {
+    "parallel_environments": 8,
+    "vectorization_backend": "subprocess",
+    "device": "cpu",
+    "wall_time_s": 80.75405999994837,
+    "cpu_time_s": 334.0625,
+    "environment_steps_per_wall_second": 317.0119248495539
+  },
+  "checkpoint": {
+    "path": "runs/benchmark-v0.5/rl-v0.4/ppo/throughput-probes/subprocess/ppo-partition-discovery-seed9902.zip",
+    "sha256": "e74b6910687e9d99cd1fbbe5cfa9292bb58fa322e6dee8469c830b40c7c7d81e",
+    "manifest_sha256": "c220e86b62ee44169711981f5a94b43354934167cd7d7db60e090edf680672ba",
+    "observation_shape": [96],
+    "training_reward_contract_sha256": "5016b7901c04ed36b58e269aea586d4d1d2f2fe03f6daf30b690ace17102f0f7"
+  },
+  "training_diagnostics": {
+    "complete_experiment_count": 1062,
+    "behavior_complete_experiment_count": 445,
+    "quick_close_count": 617,
+    "invalid_action_rate": 0.151171875,
+    "runtime_domain_failure_count": 118
+  },
+  "deterministic_mode_evaluation": {
+    "episodes": 20,
+    "episode_completion_rate": 0.0,
+    "behavior_complete_experiment_count": 0,
+    "mean_episode_best_primary_metric": null,
+    "operation_counts": {
+      "add_phase": 20,
+      "measure": 40,
+      "settle": 1140
+    }
+  },
+  "fixed_seed_stochastic_evaluation": {
+    "episodes": 20,
+    "episode_completion_rate": 0.75,
+    "complete_experiment_count": 38,
+    "behavior_complete_experiment_count": 35,
+    "behavior_complete_experiment_rate": 0.9210526315789473,
+    "mean_episode_best_primary_metric": 0.8312895181311253,
+    "mean_episode_best_score": 0.5395287108353978,
+    "runtime_domain_failure_count": 0,
+    "observation_domain_failure_count": 0
+  },
+  "replay_probe": {
+    "episodes": 2,
+    "repetition_count": 2,
+    "byte_identical": true,
+    "canonical_sha256": "a5ea65990af20bca960fbfb1e6ac01cc71c5855b8080fa16b60f4d099e5651a0"
+  },
+  "findings": [
+    "The previous training reward depended on unobserved within-experiment operation history, creating a non-Markov state alias.",
+    "Adding public core-progress observation bits materially increased behavior-complete experiments during training but did not make the categorical mode policy representative.",
+    "Fixed-seed sampling is exactly replayable and evaluates the trained PPO policy distribution; categorical mode evaluation systematically collapses to a repeated operation on this task.",
+    "The formal 100-percent completion eligibility gate remains unchanged; this probe does not establish PPO method readiness."
+  ],
+  "required_next_action": "Retrain all four PPO task checkpoints under reward contract 0.3 and the public progress observation, then apply unchanged Dev eligibility thresholds using fixed-seed stochastic evaluation."
+}

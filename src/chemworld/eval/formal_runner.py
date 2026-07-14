@@ -16,6 +16,7 @@ import json
 import math
 import os
 import shutil
+import traceback
 import uuid
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import suppress
@@ -27,6 +28,7 @@ from typing import Any, Literal, Protocol, Self
 
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.formal_protocol_v0_4 import load_formal_protocol
+from chemworld.eval.method_protocol import MethodResourceLimitError
 from chemworld.eval.resource_accounting_v0_4 import (
     RESOURCE_ACCOUNTING_VERSION,
     ResourceProfile,
@@ -76,6 +78,10 @@ class TrajectoryContractError(FormalRunnerError):
 
 class BudgetOverrunError(TrajectoryContractError):
     """Raised when the operation or complete-experiment budget is exceeded."""
+
+
+class IncompleteExperimentBudgetError(TrajectoryContractError):
+    """Raised when a method exhausts its run without the issued experiments."""
 
 
 class IncompleteAccountingError(TrajectoryContractError):
@@ -515,6 +521,7 @@ def run_formal_cell(
     runtime: PrivateCellRuntime,
     adapter: FormalExecutionAdapter,
     output_root: str | Path,
+    private_diagnostic_root: str | Path | None = None,
     replay_evaluator: ReplayEvaluator | None = None,
     fault_hook: FaultHook | None = None,
 ) -> CellRunOutcome:
@@ -526,6 +533,15 @@ def run_formal_cell(
         raise CellIdentityError("execution adapter does not match the issued cell")
     root = Path(output_root).resolve()
     root.mkdir(parents=True, exist_ok=True)
+    diagnostic_root = (
+        None if private_diagnostic_root is None else Path(private_diagnostic_root).resolve()
+    )
+    if diagnostic_root is not None and (
+        diagnostic_root == root or root in diagnostic_root.parents
+    ):
+        raise CellIdentityError(
+            "private failure diagnostics must be outside the public cell output root"
+        )
     cell_dir = root / "cells" / spec.cell_identity_sha256
     lock_path = root / ".locks" / f"{spec.cell_identity_sha256}.lock"
     evaluator = _default_replay_evaluator if replay_evaluator is None else replay_evaluator
@@ -611,6 +627,14 @@ def run_formal_cell(
             status: CellStatus = "succeeded"
             failure_class = None
         except Exception as exc:
+            if diagnostic_root is not None:
+                with suppress(OSError, TypeError, ValueError):
+                    _write_private_failure_diagnostic(
+                        diagnostic_root,
+                        spec=spec,
+                        attempt_id=attempt_id,
+                        exc=exc,
+                    )
             if isinstance(exc, OSError) and not isinstance(exc, TimeoutError):
                 # Infrastructure interruption is retryable with the same identity.
                 # The unpublished staging directory documents the attempt lineage.
@@ -621,6 +645,12 @@ def run_formal_cell(
             if not trajectory_path.exists():
                 _atomic_write_bytes(trajectory_path, b"")
             if not (staging / "resources.json").exists():
+                resource_report = _audit_partial_failure_resources(
+                    trajectory_path,
+                    spec=spec,
+                    runtime=runtime,
+                    fallback=resource_report,
+                )
                 _assert_public_control_safe(
                     resource_report,
                     runtime=runtime,
@@ -821,7 +851,11 @@ def file_sha256(path: str | Path) -> str:
 
 
 def _validate_trajectory(
-    path: Path, *, spec: FormalCellSpec, runtime: PrivateCellRuntime
+    path: Path,
+    *,
+    spec: FormalCellSpec,
+    runtime: PrivateCellRuntime,
+    require_complete_experiment_budget: bool = True,
 ) -> list[dict[str, Any]]:
     if path.is_symlink() or not path.is_file() or path.stat().st_size == 0:
         raise TrajectoryContractError("adapter did not produce a non-empty trajectory")
@@ -867,9 +901,38 @@ def _validate_trajectory(
         raise IncompleteAccountingError("method ledger experiment count is invalid")
     if experiment_count > spec.complete_experiments:
         raise BudgetOverrunError("complete-experiment count exceeds the issued budget")
-    if experiment_count < spec.complete_experiments:
-        raise TrajectoryContractError("cell ended before its complete-experiment budget")
+    if require_complete_experiment_budget and experiment_count < spec.complete_experiments:
+        raise IncompleteExperimentBudgetError(
+            "cell ended before its complete-experiment budget"
+        )
     return records
+
+
+def _audit_partial_failure_resources(
+    path: Path,
+    *,
+    spec: FormalCellSpec,
+    runtime: PrivateCellRuntime,
+    fallback: dict[str, Any],
+) -> dict[str, Any]:
+    """Audit incurred resources from a bound partial trajectory, if possible."""
+
+    try:
+        records = _validate_trajectory(
+            path,
+            spec=spec,
+            runtime=runtime,
+            require_complete_experiment_budget=False,
+        )
+        report = _audit_formal_resource_evidence(records, spec=spec)
+        _assert_public_control_safe(
+            report,
+            runtime=runtime,
+            label="partial failure resource accounting report",
+        )
+    except Exception:
+        return fallback
+    return report
 
 
 def _audit_formal_resource_evidence(
@@ -1066,8 +1129,12 @@ def _build_artifact_index(
 
 
 def _classify_failure(exc: Exception, kind: MethodKind) -> tuple[str, str]:
+    if isinstance(exc, MethodResourceLimitError):
+        return "budget_overrun", "method_resource_limit_exceeded"
     if isinstance(exc, BudgetOverrunError):
         return "budget_overrun", "issued_budget_exceeded"
+    if isinstance(exc, IncompleteExperimentBudgetError):
+        return "budget_overrun", "complete_experiment_budget_not_met"
     if isinstance(exc, IncompleteAccountingError):
         return "incomplete_resource_accounting", "required_ledger_missing_or_incoherent"
     if isinstance(exc, ReplayMismatchError):
@@ -1087,6 +1154,33 @@ def _classify_failure(exc: Exception, kind: MethodKind) -> tuple[str, str]:
 
 def _safe_failure_message(failure_code: str) -> str:
     return f"formal cell failed ({failure_code}); raw exception text is not published"
+
+
+def _write_private_failure_diagnostic(
+    root: Path,
+    *,
+    spec: FormalCellSpec,
+    attempt_id: str,
+    exc: Exception,
+) -> None:
+    """Retain a raw exception chain only in an explicitly private directory."""
+
+    destination = root / spec.cell_identity_sha256 / f"{attempt_id}.json"
+    _atomic_write_json(
+        destination,
+        {
+            "schema_version": "chemworld-private-failure-diagnostic-0.1",
+            "cell_identity_sha256": spec.cell_identity_sha256,
+            "attempt_id": attempt_id,
+            "recorded_at": _utc_now(),
+            "exception_type": type(exc).__name__,
+            "exception_message": str(exc),
+            "traceback": "".join(
+                traceback.format_exception(type(exc), exc, exc.__traceback__)
+            ),
+            "public_artifact_contains_raw_exception": False,
+        },
+    )
 
 
 def _assert_public_control_safe(

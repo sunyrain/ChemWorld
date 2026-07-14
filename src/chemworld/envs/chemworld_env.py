@@ -235,7 +235,14 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         if self._done:
             raise RuntimeError("Episode is done. Call reset() before step().")
 
-        action = self.action_codec.canonicalize(action)
+        # Malformed or unknown agent actions are benchmark outcomes, not runner
+        # crashes. Preserve their public payload so the central validator can
+        # emit a replayable invalid transaction with no physical state mutation.
+        # Valid aliases and numeric Gym actions still take the canonical path.
+        try:
+            action = self.action_codec.canonicalize(action)
+        except (TypeError, ValueError):
+            action = dict(action)
         previous_state = self._state
         validation = self.operation_validator.validate(action, self._state)
         if validation.dispatchable_to_runtime:
