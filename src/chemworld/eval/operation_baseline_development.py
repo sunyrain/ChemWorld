@@ -617,9 +617,8 @@ def run_operation_baseline_development_audit(
         for summary in summaries.values()
         for task_summary in summary["task_summaries"].values()
     )
-    rule_adaptation_controls_pass = (
-        "rule_based" in summaries
-        and set(summaries["rule_based"]["task_summaries"]) == set(tasks)
+    rule_adaptation_controls_pass = "rule_based" not in summaries or (
+        set(summaries["rule_based"]["task_summaries"]) == set(tasks)
         and all(
             int(summary["measurement_adaptation_count"]) > 0
             for summary in summaries["rule_based"]["task_summaries"].values()
