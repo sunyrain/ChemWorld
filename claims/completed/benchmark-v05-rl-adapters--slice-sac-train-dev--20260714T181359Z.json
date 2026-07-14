@@ -1,6 +1,8 @@
 {
   "branch": "team/benchmark-v05-rl-adapters-slice-sac-train-dev",
   "claimed_at": "2026-07-13T22:49:42.298384+00:00",
+  "completed_at": "2026-07-14T18:13:59.501847+00:00",
+  "completion_summary": "Executed a preregistered current-contract SAC step-0 versus 25,600-step gate on all four tasks at source ae89cf9, which was origin/main at execution start. All eight checkpoint contracts, eight replay pairs, and 8/8 fresh-process checkpoint loads were exact. Only partition showed a learning signal; aggregate behavior-complete experiments fell from 21 to 9, step-0/trained runtime-domain failures were 41/559, and three hard checks failed, so the full 20-run/100-candidate matrix was correctly forbidden and no current checkpoint was selected. Recorded 102,400 training steps, 10,021.46875 CPU seconds, zero GPU seconds, transparent unrelated remote drift with zero owned-path overlap, an empty fail-closed index, and quarantined pre-v0.4.8 weights as non-resumable diagnostics only. Validation: 54 merged focused/adjacent tests passed, Ruff and mypy passed, JSON/hash/diff/claim audits passed. Bench and reference repositories were not accessed. Known limitation: sac_method_ready remains false; any remediation requires a new claim and cannot reuse old weights. Implementation commit 9795717; integration commit c8921f3.",
   "expires_at": "2026-07-20T22:49:42.298384+00:00",
   "notes": "SAC-only actual evidence slice. Before the full matrix, execute a preregistered current-contract step-0 versus trained learning gate symmetric to PPO; a failed gate must publish a fail-closed negative report and forbid the full matrix. No PPO retraining, Bench, reference-search, formal result, method-freeze, or parent todo completion. The bounded continuous latent carrier must use the same public affordance/action decoder and retain its disclosed non-native comparability limitation. Full-matrix checkpoint/replay-buffer artifacts remain under the ignored runs tree. Up to four representative pre-v0.4.8 model archives, with no replay buffers, may be committed under the owned SAC runs path only as digest-bound diagnostic artifacts; they must be labeled stale-contract, non-resumable, and ineligible for formal evidence or the checkpoint index. SB3 2.9.0/Torch 2.13.0+cpu from uv.lock; reference_repos unused.",
   "owned_paths": [
@@ -22,6 +24,6 @@
   "owner": "knitua",
   "schema_version": "chemworld-task-claim-0.1",
   "scope": "Generalize the resumable formal RL training matrix to SAC and execute the frozen four-task, five-seed, 100000-step Train/Dev program with five checkpoint stages, Dev-only fail-closed selection, deterministic replay, and resource evidence.",
-  "status": "active",
+  "status": "completed",
   "task_id": "benchmark-v05-rl-adapters--slice-sac-train-dev"
 }
