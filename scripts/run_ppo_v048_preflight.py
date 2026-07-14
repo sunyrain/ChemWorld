@@ -1,0 +1,798 @@
+"""Run the preregistered current-contract PPO step-0/trained Dev gate."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+import subprocess
+from collections.abc import Mapping, Sequence
+from functools import partial
+from pathlib import Path
+from time import perf_counter, process_time
+from typing import Any, cast
+
+from chemworld.rl.checkpoint_contract import RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION
+from chemworld.rl.environment import build_rl_environment
+from chemworld.rl.evaluation import evaluate_sb3_checkpoint
+from chemworld.rl.formal_training import build_formal_allocation
+from chemworld.rl.hybrid_actions import policy_distribution_contract
+from chemworld.rl.hybrid_policy import ConditionalHybridActorCriticPolicy
+from chemworld.rl.observation_contract import rl_observation_contract
+from chemworld.rl.training import train_sb3_baseline
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_PLAN_PATH = Path("configs/methods/rl_v0.4/ppo_v048_preflight_plan.json")
+PLAN_VERSION = "chemworld-ppo-v048-preflight-plan-0.1"
+JOB_VERSION = "chemworld-ppo-v048-preflight-job-0.1"
+REPORT_VERSION = "chemworld-ppo-v048-preflight-report-0.1"
+RATE_FIELDS = (
+    "episode_completion_rate",
+    "behavior_complete_experiment_rate",
+    "quick_close_rate",
+    "invalid_action_rate",
+    "unsafe_step_rate",
+    "high_cost_step_rate",
+)
+
+
+class PPOPreflightError(RuntimeError):
+    """Raised when execution cannot preserve the preregistered gate."""
+
+
+def _canonical_sha256(payload: Any) -> str:
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=False,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _load_object(path: Path, label: str) -> dict[str, Any]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise PPOPreflightError(f"cannot read {label}: {path}") from exc
+    if not isinstance(payload, dict):
+        raise PPOPreflightError(f"{label} must be a JSON object")
+    return payload
+
+
+def _write_json(path: Path, payload: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, allow_nan=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
+def _inside(root: Path, relative: str, label: str) -> Path:
+    candidate = (root / relative).resolve()
+    try:
+        candidate.relative_to(root.resolve())
+    except ValueError as exc:
+        raise PPOPreflightError(f"{label} escapes the repository") from exc
+    return candidate
+
+
+def _git_output(root: Path, *args: str) -> str:
+    try:
+        return subprocess.check_output(
+            ["git", *args], cwd=root, text=True, encoding="utf-8"
+        ).strip()
+    except subprocess.CalledProcessError as exc:
+        raise PPOPreflightError(f"git {' '.join(args)} failed") from exc
+
+
+def source_state(root: Path, *, require_clean: bool = True) -> dict[str, Any]:
+    head = _git_output(root, "rev-parse", "HEAD")
+    origin_main = _git_output(root, "rev-parse", "origin/main")
+    status = _git_output(root, "status", "--porcelain=v1", "--untracked-files=all")
+    state = {
+        "source_commit": head,
+        "origin_main_commit": origin_main,
+        "source_tree_clean": not status,
+        "source_commit_on_origin_main": head == origin_main,
+    }
+    if head != origin_main:
+        raise PPOPreflightError("preflight source commit is not the current origin/main tip")
+    if require_clean and status:
+        raise PPOPreflightError("preflight requires a clean source tree")
+    return state
+
+
+def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[str, bool]:
+    tasks = plan.get("formal_core_tasks")
+    comparison = plan.get("comparison")
+    development = plan.get("development_evaluation")
+    gate = plan.get("gate")
+    execution = plan.get("execution")
+    boundary = plan.get("evidence_boundary")
+    protocol_tasks = protocol.get("task_roles", {}).get("formal_core", {})
+    checks = {
+        "schema": plan.get("schema_version") == PLAN_VERSION,
+        "task_id": plan.get("task_id") == "benchmark-v05-rl-adapters--slice-ppo-v048-retrain-dev",
+        "algorithm": plan.get("algorithm") == "ppo",
+        "preregistered": plan.get("status") == "preregistered_before_execution",
+        "four_tasks": isinstance(tasks, Mapping)
+        and list(tasks)
+        == [
+            "partition-discovery",
+            "reaction-to-crystallization",
+            "reaction-to-distillation",
+            "flow-reaction-optimization",
+        ],
+        "task_metrics_and_sesoi": isinstance(tasks, Mapping)
+        and isinstance(protocol_tasks, Mapping)
+        and all(
+            isinstance(spec, Mapping)
+            and isinstance(protocol_tasks.get(task_id), Mapping)
+            and spec.get("primary_metric") == protocol_tasks[task_id].get("primary_metric")
+            and float(spec.get("sesoi", -1.0)) == float(protocol_tasks[task_id].get("sesoi", -2.0))
+            for task_id, spec in tasks.items()
+        ),
+        "step0_vs_25600": isinstance(comparison, Mapping)
+        and comparison.get("model_seed") == 0
+        and comparison.get("untrained_environment_steps") == 0
+        and comparison.get("trained_environment_steps") == 25_600,
+        "frozen_training": isinstance(comparison, Mapping)
+        and comparison.get("parallel_environments") == 8
+        and comparison.get("vectorization_backend") == "subprocess"
+        and comparison.get("device") == "cpu"
+        and comparison.get("torch_num_threads") == 1,
+        "same_dev_evaluator": isinstance(development, Mapping)
+        and development.get("allocation") == "dev"
+        and development.get("episodes_per_condition") == 20
+        and development.get("operation_budget_per_episode") == 60
+        and development.get("policy_mode") == "stochastic_frozen_seed"
+        and development.get("deterministic_policy") is False
+        and development.get("evaluation_repetitions") == 2
+        and development.get("same_task_split_seed_cohort_budget_contract_and_evaluator") is True
+        and development.get("exact_replay_required") is True,
+        "gate_frozen": isinstance(gate, Mapping)
+        and gate.get("minimum_tasks_with_learning_signal") == 2
+        and gate.get("threshold_changes_after_execution_allowed") is False
+        and gate.get("failure_action")
+        == "write fail-closed report and do not start the full PPO matrix",
+        "paths_present": isinstance(execution, Mapping)
+        and all(
+            isinstance(execution.get(key), str) and bool(execution[key])
+            for key in ("artifact_root", "report", "full_training_plan")
+        ),
+        "evidence_boundary": isinstance(boundary, Mapping)
+        and boundary.get("formal_results_present") is False
+        and boundary.get("benchmark_claim_allowed") is False
+        and boundary.get("bench_accessed") is False
+        and boundary.get("reference_search_used") is False
+        and boundary.get("full_matrix_allowed_only_if_gate_passes") is True,
+    }
+    failed = sorted(name for name, passed in checks.items() if not passed)
+    if failed:
+        raise PPOPreflightError("preflight plan validation failed: " + ", ".join(failed))
+    return checks
+
+
+def _action_contract(env: Any) -> dict[str, Any]:
+    current = env
+    while current is not None:
+        factory = getattr(current, "action_contract", None)
+        if callable(factory):
+            return dict(factory())
+        current = getattr(current, "env", None)
+    raise PPOPreflightError("PPO environment is missing its action contract")
+
+
+def _reward_contract(env: Any) -> dict[str, Any]:
+    current = env
+    while current is not None:
+        factory = getattr(current, "reward_contract", None)
+        if callable(factory):
+            return dict(factory())
+        current = getattr(current, "env", None)
+    raise PPOPreflightError("PPO environment is missing its reward contract")
+
+
+def create_step0_checkpoint(
+    *,
+    task_id: str,
+    allocation: Any,
+    model_seed: int,
+    operation_budget: int,
+    algorithm_kwargs: Mapping[str, Any],
+    torch_num_threads: int,
+    output_dir: Path,
+) -> dict[str, Any]:
+    """Create a true initialized PPO checkpoint without calling ``learn``."""
+
+    try:
+        import stable_baselines3 as sb3
+        import torch
+        from stable_baselines3.common.vec_env import DummyVecEnv
+    except ImportError as exc:
+        raise PPOPreflightError("install ChemWorld with the rl extra") from exc
+
+    output_dir.mkdir(parents=True, exist_ok=False)
+    torch.set_num_threads(torch_num_threads)
+    probe = build_rl_environment(
+        task_id=task_id,
+        allocation=allocation,
+        sampler_seed=model_seed,
+        operation_budget=operation_budget,
+        training_reward=True,
+    )
+    try:
+        action = _action_contract(probe)
+        reward = _reward_contract(probe)
+        observation_shape = list(probe.observation_space.shape or ())
+    finally:
+        probe.close()
+    observation = rl_observation_contract(task_id)
+    if observation_shape != observation["shape"]:
+        raise PPOPreflightError("step-0 observation shape drifted from the public contract")
+    parameter_keys = tuple(
+        str(item) for item in action["training_adapter"]["parameter_coordinate_keys"]
+    )
+    distribution = policy_distribution_contract(parameter_keys)
+    env = DummyVecEnv(
+        [
+            partial(
+                build_rl_environment,
+                task_id=task_id,
+                allocation=allocation,
+                sampler_seed=model_seed,
+                operation_budget=operation_budget,
+                training_reward=True,
+            )
+        ]
+    )
+    wall_started = perf_counter()
+    cpu_started = process_time()
+    try:
+        model = sb3.PPO(
+            ConditionalHybridActorCriticPolicy,
+            env,
+            seed=model_seed,
+            verbose=0,
+            device="cpu",
+            policy_kwargs={"parameter_keys": parameter_keys},
+            **dict(algorithm_kwargs),
+        )
+        checkpoint_stem = output_dir / f"ppo-{task_id}-seed{model_seed}-step0"
+        model.save(checkpoint_stem)
+        if int(model.num_timesteps) != 0:
+            raise PPOPreflightError("untrained PPO checkpoint has a nonzero step ledger")
+    finally:
+        env.close()
+    checkpoint = checkpoint_stem.with_suffix(".zip")
+    sidecar = {
+        "schema_version": RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION,
+        "algorithm": "ppo",
+        "task_id": task_id,
+        "training_environment_step_count": 0,
+        "checkpoint": checkpoint.name,
+        "checkpoint_sha256": _file_sha256(checkpoint),
+        "observation_contract_hash": observation["contract_hash"],
+        "action_contract_hash": action["contract_hash"],
+        "training_reward_contract_hash": reward["contract_hash"],
+        "policy_distribution_contract_hash": distribution["contract_hash"],
+        "shape_only_compatible": False,
+        "legacy_checkpoint_compatible": False,
+    }
+    sidecar_path = checkpoint.with_suffix(".manifest.json")
+    _write_json(sidecar_path, sidecar)
+    return {
+        "checkpoint": checkpoint.name,
+        "checkpoint_sha256": _file_sha256(checkpoint),
+        "checkpoint_contract": sidecar_path.name,
+        "checkpoint_contract_sha256": _file_sha256(sidecar_path),
+        "training_environment_step_count": 0,
+        "model_seed": model_seed,
+        "allocation": allocation.public_manifest(),
+        "observation_contract_hash": observation["contract_hash"],
+        "action_contract_hash": action["contract_hash"],
+        "training_reward_contract_hash": reward["contract_hash"],
+        "policy_distribution_contract_hash": distribution["contract_hash"],
+        "wall_time_s": perf_counter() - wall_started,
+        "cpu_time_s": process_time() - cpu_started,
+        "gpu_time_s": 0.0,
+    }
+
+
+def _writer_gate(root: Path, plan: Mapping[str, Any], source_commit: str) -> dict[str, Any]:
+    relative = plan.get("writer_gate_path")
+    if not isinstance(relative, str):
+        raise PPOPreflightError("preflight plan is missing writer_gate_path")
+    path = _inside(root, relative, "writer gate")
+    gate = _load_object(path, "writer gate")
+    ready = (
+        gate.get("writer_contract_ready") is True
+        and gate.get("formal_training_allowed") is True
+        and gate.get("source_tree_clean") is True
+        and gate.get("source_commit") == source_commit
+        and all(
+            gate.get("algorithms", {}).get(algorithm, {}).get("writer_ready") is True
+            for algorithm in ("ppo", "sac")
+        )
+    )
+    if not ready:
+        raise PPOPreflightError("current-source PPO/SAC writer gate is not ready")
+    return {
+        "path": path.relative_to(root).as_posix(),
+        "sha256": _file_sha256(path),
+        "source_commit": source_commit,
+        "writer_contract_ready": True,
+        "formal_training_allowed": True,
+    }
+
+
+def _evaluate_repetitions(
+    *,
+    root: Path,
+    output_dir: Path,
+    checkpoint: Path,
+    task_id: str,
+    allocation: Any,
+    primary_metric: str,
+    episodes: int,
+    operation_budget: int,
+    sampler_seed: int,
+    policy_seed: int,
+    repetitions: int,
+) -> dict[str, Any]:
+    payloads: list[dict[str, Any]] = []
+    paths: list[str] = []
+    file_hashes: list[str] = []
+    for repetition in range(1, repetitions + 1):
+        payload = evaluate_sb3_checkpoint(
+            algorithm="ppo",
+            checkpoint=checkpoint,
+            task_id=task_id,
+            allocation=allocation,
+            episodes=episodes,
+            operation_budget=operation_budget,
+            sampler_seed=sampler_seed,
+            policy_seed=policy_seed,
+            deterministic=False,
+            primary_metric=primary_metric,
+        )
+        path = output_dir / f"replay-{repetition}.json"
+        _write_json(path, payload)
+        payloads.append(payload)
+        paths.append(path.relative_to(root).as_posix())
+        file_hashes.append(_file_sha256(path))
+    canonical_hashes = [_canonical_sha256(payload) for payload in payloads]
+    return {
+        "evaluation_paths": paths,
+        "evaluation_file_sha256s": file_hashes,
+        "canonical_evaluation_sha256": canonical_hashes[0],
+        "canonical_replay_sha256s": canonical_hashes,
+        "repetition_count": len(payloads),
+        "exact_replay": len(set(canonical_hashes)) == 1,
+        "policy_mode": payloads[0]["policy_mode"],
+        "checkpoint_contract_compatibility": payloads[0]["checkpoint_contract_compatibility"],
+        "summary": payloads[0]["summary"],
+    }
+
+
+def _task_root(root: Path, plan: Mapping[str, Any], task_id: str) -> Path:
+    execution = cast(Mapping[str, Any], plan["execution"])
+    return _inside(root, str(execution["artifact_root"]), "artifact root") / task_id
+
+
+def run_task(
+    *,
+    root: Path,
+    plan: Mapping[str, Any],
+    protocol: Mapping[str, Any],
+    task_id: str,
+    source_commit: str,
+) -> dict[str, Any]:
+    task_root = _task_root(root, plan, task_id)
+    summary_path = task_root / "job-summary.json"
+    plan_sha = _canonical_sha256(plan)
+    if summary_path.is_file():
+        summary = _load_object(summary_path, "PPO preflight job summary")
+        if (
+            summary.get("schema_version") != JOB_VERSION
+            or summary.get("plan_sha256") != plan_sha
+            or summary.get("source_commit") != source_commit
+            or summary.get("status") != "complete"
+        ):
+            raise PPOPreflightError(f"retained preflight job binding drifted for {task_id}")
+        return summary
+    if task_root.exists() and any(task_root.iterdir()):
+        raise PPOPreflightError(
+            f"retained incomplete preflight attempt requires audit before rerun: {task_id}"
+        )
+    task_root.mkdir(parents=True, exist_ok=True)
+    _write_json(
+        task_root / "attempt-start.json",
+        {
+            "schema_version": "chemworld-ppo-v048-preflight-attempt-0.1",
+            "status": "started",
+            "task_id": task_id,
+            "source_commit": source_commit,
+            "plan_sha256": plan_sha,
+        },
+    )
+    tasks = cast(Mapping[str, Mapping[str, Any]], plan["formal_core_tasks"])
+    comparison = cast(Mapping[str, Any], plan["comparison"])
+    development = cast(Mapping[str, Any], plan["development_evaluation"])
+    task_index = list(tasks).index(task_id)
+    model_seed = int(comparison["model_seed"])
+    train_allocation = build_formal_allocation(protocol, task_id=task_id, name="train")
+    dev_allocation = build_formal_allocation(protocol, task_id=task_id, name="dev")
+    try:
+        step0_dir = task_root / "step0"
+        step0_manifest = create_step0_checkpoint(
+            task_id=task_id,
+            allocation=train_allocation,
+            model_seed=model_seed,
+            operation_budget=int(comparison["training_operation_budget"]),
+            algorithm_kwargs=cast(Mapping[str, Any], comparison["training_hyperparameters"]),
+            torch_num_threads=int(comparison["torch_num_threads"]),
+            output_dir=step0_dir,
+        )
+        step0_checkpoint = step0_dir / str(step0_manifest["checkpoint"])
+        trained_dir = task_root / "trained"
+        trained_manifest = train_sb3_baseline(
+            algorithm="ppo",
+            task_id=task_id,
+            allocation=train_allocation,
+            total_timesteps=int(comparison["trained_environment_steps"]),
+            model_seed=model_seed,
+            output_dir=trained_dir,
+            algorithm_kwargs=dict(cast(Mapping[str, Any], comparison["training_hyperparameters"])),
+            operation_budget=int(comparison["training_operation_budget"]),
+            checkpoint_steps=(int(comparison["trained_environment_steps"]),),
+            parallel_environments=int(comparison["parallel_environments"]),
+            vectorization_backend=cast(Any, comparison["vectorization_backend"]),
+            device=cast(Any, comparison["device"]),
+            torch_num_threads=int(comparison["torch_num_threads"]),
+            progress_interval_steps=int(comparison["progress_interval_steps"]),
+        )
+        trained_checkpoint = trained_dir / str(trained_manifest["checkpoint"])
+        sampler_seed = int(development["sampler_seed_base"]) + task_index
+        policy_seed = int(development["policy_seed_base"]) + task_index
+        step0 = _evaluate_repetitions(
+            root=root,
+            output_dir=task_root / "dev" / "step0",
+            checkpoint=step0_checkpoint,
+            task_id=task_id,
+            allocation=dev_allocation,
+            primary_metric=str(tasks[task_id]["primary_metric"]),
+            episodes=int(development["episodes_per_condition"]),
+            operation_budget=int(development["operation_budget_per_episode"]),
+            sampler_seed=sampler_seed,
+            policy_seed=policy_seed,
+            repetitions=int(development["evaluation_repetitions"]),
+        )
+        trained = _evaluate_repetitions(
+            root=root,
+            output_dir=task_root / "dev" / "trained",
+            checkpoint=trained_checkpoint,
+            task_id=task_id,
+            allocation=dev_allocation,
+            primary_metric=str(tasks[task_id]["primary_metric"]),
+            episodes=int(development["episodes_per_condition"]),
+            operation_budget=int(development["operation_budget_per_episode"]),
+            sampler_seed=sampler_seed,
+            policy_seed=policy_seed,
+            repetitions=int(development["evaluation_repetitions"]),
+        )
+        summary = {
+            "schema_version": JOB_VERSION,
+            "status": "complete",
+            "task_id": task_id,
+            "primary_metric": tasks[task_id]["primary_metric"],
+            "sesoi": tasks[task_id]["sesoi"],
+            "model_seed": model_seed,
+            "source_commit": source_commit,
+            "plan_sha256": plan_sha,
+            "train_allocation": train_allocation.public_manifest(),
+            "dev_allocation": dev_allocation.public_manifest(),
+            "sampler_seed": sampler_seed,
+            "policy_seed": policy_seed,
+            "step0_checkpoint": {
+                **step0_manifest,
+                "path": step0_checkpoint.relative_to(root).as_posix(),
+            },
+            "trained_checkpoint": {
+                "path": trained_checkpoint.relative_to(root).as_posix(),
+                "checkpoint_sha256": _file_sha256(trained_checkpoint),
+                "manifest_path": trained_checkpoint.with_suffix(".manifest.json")
+                .relative_to(root)
+                .as_posix(),
+                "manifest_sha256": _file_sha256(trained_checkpoint.with_suffix(".manifest.json")),
+                "requested_training_environment_step_count": trained_manifest[
+                    "requested_training_environment_step_count"
+                ],
+                "training_environment_step_count": trained_manifest[
+                    "training_environment_step_count"
+                ],
+                "step_budget_exact": trained_manifest["step_budget_exact"],
+                "training_diagnostics": trained_manifest["training_diagnostics"],
+                "wall_time_s": trained_manifest["wall_time_s"],
+                "cpu_time_s": trained_manifest["cpu_time_s"],
+                "gpu_time_s": trained_manifest["gpu_time_s"],
+                "training_infrastructure": trained_manifest["training_infrastructure"],
+            },
+            "step0_evaluation": step0,
+            "trained_evaluation": trained,
+            "bench_accessed": False,
+            "reference_search_used": False,
+            "formal_results_present": False,
+        }
+        _write_json(summary_path, summary)
+        return summary
+    except Exception as exc:
+        _write_json(
+            task_root / "attempt-failure.json",
+            {
+                "schema_version": "chemworld-ppo-v048-preflight-attempt-failure-0.1",
+                "status": "failed_retained",
+                "task_id": task_id,
+                "source_commit": source_commit,
+                "plan_sha256": plan_sha,
+                "exception_type": type(exc).__name__,
+                "message": str(exc),
+            },
+        )
+        raise
+
+
+def _condition_operational(condition: Mapping[str, Any]) -> dict[str, bool]:
+    summary = cast(Mapping[str, Any], condition.get("summary", {}))
+    compatibility = condition.get("checkpoint_contract_compatibility")
+    rates_finite = all(
+        isinstance(summary.get(field), (int, float))
+        and not isinstance(summary.get(field), bool)
+        and math.isfinite(float(summary[field]))
+        and 0.0 <= float(summary[field]) <= 1.0
+        for field in RATE_FIELDS
+    )
+    return {
+        "contract_exact": isinstance(compatibility, Mapping)
+        and bool(compatibility)
+        and all(value is True for value in compatibility.values()),
+        "replay_exact": condition.get("exact_replay") is True,
+        "policy_mode_stochastic_frozen_seed": condition.get("policy_mode")
+        == "stochastic_frozen_seed",
+        "nonempty_execution": int(summary.get("operation_count", 0)) > 0
+        and bool(summary.get("operation_counts")),
+        "runtime_domain_stable": summary.get("runtime_domain_failure_count") == 0,
+        "observation_domain_stable": summary.get("observation_domain_failure_count") == 0,
+        "rates_finite_and_bounded": rates_finite,
+    }
+
+
+def assess_gate(plan: Mapping[str, Any], jobs: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    tasks = cast(Mapping[str, Mapping[str, Any]], plan["formal_core_tasks"])
+    gate = cast(Mapping[str, Any], plan["gate"])
+    by_task = {str(job.get("task_id")): job for job in jobs}
+    if set(by_task) != set(tasks):
+        raise PPOPreflightError("gate assessment requires all four preregistered tasks")
+    task_results: list[dict[str, Any]] = []
+    total_before_behavior = 0
+    total_after_behavior = 0
+    total_after_observations = 0
+    for task_id, task_spec in tasks.items():
+        job = by_task[task_id]
+        before = cast(Mapping[str, Any], job["step0_evaluation"])
+        after = cast(Mapping[str, Any], job["trained_evaluation"])
+        before_summary = cast(Mapping[str, Any], before["summary"])
+        after_summary = cast(Mapping[str, Any], after["summary"])
+        before_behavior = int(before_summary["behavior_complete_experiment_count"])
+        after_behavior = int(after_summary["behavior_complete_experiment_count"])
+        total_before_behavior += before_behavior
+        total_after_behavior += after_behavior
+        total_after_observations += int(after_summary["primary_metric_observation_count"])
+        raw_before = before_summary.get("mean_episode_best_primary_metric")
+        raw_after = after_summary.get("mean_episode_best_primary_metric")
+        before_endpoint = (
+            float(raw_before)
+            if isinstance(raw_before, (int, float)) and not isinstance(raw_before, bool)
+            else 0.0
+        )
+        after_endpoint = (
+            float(raw_after)
+            if isinstance(raw_after, (int, float)) and not isinstance(raw_after, bool)
+            else None
+        )
+        delta = after_endpoint - before_endpoint if after_endpoint is not None else None
+        behavior_signal = after_behavior > before_behavior
+        metric_signal = delta is not None and delta >= float(task_spec["sesoi"])
+        before_checks = _condition_operational(before)
+        after_checks = _condition_operational(after)
+        task_results.append(
+            {
+                "task_id": task_id,
+                "primary_metric": task_spec["primary_metric"],
+                "sesoi": task_spec["sesoi"],
+                "step0_mean_episode_best_primary_metric": raw_before,
+                "trained_mean_episode_best_primary_metric": raw_after,
+                "primary_metric_delta_with_missing_step0_as_zero": delta,
+                "step0_behavior_complete_experiment_count": before_behavior,
+                "trained_behavior_complete_experiment_count": after_behavior,
+                "behavior_learning_signal": behavior_signal,
+                "primary_metric_learning_signal": metric_signal,
+                "learning_signal": behavior_signal or metric_signal,
+                "step0_operational_checks": before_checks,
+                "trained_operational_checks": after_checks,
+                "operational": all(before_checks.values()) and all(after_checks.values()),
+            }
+        )
+    signal_count = sum(int(item["learning_signal"]) for item in task_results)
+    checks = {
+        "all_tasks_operational": all(item["operational"] for item in task_results),
+        "minimum_learning_signal_tasks": signal_count
+        >= int(gate["minimum_tasks_with_learning_signal"]),
+        "trained_primary_metric_observations_present": total_after_observations
+        >= int(gate["trained_primary_metric_observation_count_minimum"]),
+        "trained_total_behavior_complete_not_decreased": total_after_behavior
+        >= total_before_behavior,
+    }
+    passed = all(checks.values())
+    return {
+        "passed": passed,
+        "status": (
+            "ppo_v048_preflight_passed_full_matrix_allowed"
+            if passed
+            else "ppo_v048_preflight_failed_full_matrix_forbidden"
+        ),
+        "checks": checks,
+        "failed_checks": sorted(name for name, value in checks.items() if not value),
+        "learning_signal_task_count": signal_count,
+        "required_learning_signal_task_count": int(gate["minimum_tasks_with_learning_signal"]),
+        "step0_total_behavior_complete_experiment_count": total_before_behavior,
+        "trained_total_behavior_complete_experiment_count": total_after_behavior,
+        "trained_primary_metric_observation_count": total_after_observations,
+        "task_results": task_results,
+    }
+
+
+def _scan_jobs(*, root: Path, plan: Mapping[str, Any], source_commit: str) -> list[dict[str, Any]]:
+    jobs: list[dict[str, Any]] = []
+    plan_sha = _canonical_sha256(plan)
+    tasks = cast(Mapping[str, Any], plan["formal_core_tasks"])
+    for task_id in tasks:
+        path = _task_root(root, plan, task_id) / "job-summary.json"
+        if not path.is_file():
+            continue
+        job = _load_object(path, "PPO preflight job summary")
+        if (
+            job.get("schema_version") != JOB_VERSION
+            or job.get("status") != "complete"
+            or job.get("source_commit") != source_commit
+            or job.get("plan_sha256") != plan_sha
+        ):
+            raise PPOPreflightError(f"preflight job binding drifted: {task_id}")
+        jobs.append(job)
+    return jobs
+
+
+def finalize(
+    *,
+    root: Path,
+    plan_path: Path,
+    plan: Mapping[str, Any],
+    protocol_path: Path,
+    source: Mapping[str, Any],
+    writer_gate: Mapping[str, Any],
+) -> dict[str, Any]:
+    jobs = _scan_jobs(root=root, plan=plan, source_commit=str(source["source_commit"]))
+    expected = len(cast(Mapping[str, Any], plan["formal_core_tasks"]))
+    if len(jobs) != expected:
+        return {
+            "schema_version": "chemworld-ppo-v048-preflight-execution-status-0.1",
+            "status": "incomplete",
+            "completed_task_count": len(jobs),
+            "expected_task_count": expected,
+            "remaining_task_ids": [
+                task_id
+                for task_id in cast(Mapping[str, Any], plan["formal_core_tasks"])
+                if task_id not in {job["task_id"] for job in jobs}
+            ],
+        }
+    assessment = assess_gate(plan, jobs)
+    execution = cast(Mapping[str, Any], plan["execution"])
+    report_path = _inside(root, str(execution["report"]), "preflight report")
+    resources = {
+        "training_environment_step_count": sum(
+            int(job["trained_checkpoint"]["training_environment_step_count"]) for job in jobs
+        ),
+        "cpu_time_s": sum(float(job["trained_checkpoint"]["cpu_time_s"]) for job in jobs),
+        "gpu_time_s": sum(float(job["trained_checkpoint"]["gpu_time_s"]) for job in jobs),
+        "summed_job_wall_time_s_diagnostic_only": sum(
+            float(job["trained_checkpoint"]["wall_time_s"]) for job in jobs
+        ),
+        "parallel_wall_time_sum_used_as_elapsed": False,
+    }
+    report = {
+        "schema_version": REPORT_VERSION,
+        "status": assessment["status"],
+        "task_id": plan["task_id"],
+        "algorithm": "ppo",
+        "result_role": "current_contract_train_dev_preflight",
+        "source": dict(source),
+        "preflight_plan_path": plan_path.relative_to(root).as_posix(),
+        "preflight_plan_file_sha256": _file_sha256(plan_path),
+        "preflight_plan_canonical_sha256": _canonical_sha256(plan),
+        "formal_protocol_path": protocol_path.relative_to(root).as_posix(),
+        "formal_protocol_sha256": _file_sha256(protocol_path),
+        "writer_gate": dict(writer_gate),
+        "comparison": plan["comparison"],
+        "development_evaluation": plan["development_evaluation"],
+        "preregistered_gate": plan["gate"],
+        "gate_assessment": assessment,
+        "jobs": jobs,
+        "resource_accounting": resources,
+        "full_matrix_allowed": assessment["passed"],
+        "formal_results_present": False,
+        "benchmark_claim_allowed": False,
+        "bench_accessed": False,
+        "reference_search_used": False,
+        "historical_diagnostic_used_as_current_result": False,
+        "claim_boundary": (
+            "Current-contract public Train/Dev PPO learning preflight only; this is neither "
+            "full-matrix method readiness nor formal Bench evidence."
+        ),
+    }
+    _write_json(report_path, report)
+    return report
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--plan", type=Path, default=DEFAULT_PLAN_PATH)
+    parser.add_argument("--task")
+    parser.add_argument("--finalize-only", action="store_true")
+    parser.add_argument("--audit-only", action="store_true")
+    args = parser.parse_args()
+
+    root = args.root.resolve()
+    plan_path = args.plan if args.plan.is_absolute() else root / args.plan
+    plan_path = plan_path.resolve()
+    plan = _load_object(plan_path, "PPO v0.4.8 preflight plan")
+    protocol_path = _inside(root, str(plan["formal_protocol_path"]), "formal protocol")
+    protocol = _load_object(protocol_path, "formal protocol")
+    validate_plan(plan, protocol)
+    source = source_state(root, require_clean=not args.audit_only)
+    writer_gate = _writer_gate(root, plan, str(source["source_commit"]))
+    tasks = cast(Mapping[str, Any], plan["formal_core_tasks"])
+    if args.task is not None and args.task not in tasks:
+        parser.error(f"unknown preflight task: {args.task}")
+    if not args.audit_only and not args.finalize_only:
+        selected = [args.task] if args.task else list(tasks)
+        for task_id in selected:
+            run_task(
+                root=root,
+                plan=plan,
+                protocol=protocol,
+                task_id=cast(str, task_id),
+                source_commit=str(source["source_commit"]),
+            )
+    result = finalize(
+        root=root,
+        plan_path=plan_path,
+        plan=plan,
+        protocol_path=protocol_path,
+        source=source,
+        writer_gate=writer_gate,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
