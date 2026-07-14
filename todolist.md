@@ -1,6 +1,6 @@
 # ChemWorld v0.5 基座完整性与正式实验 Todo
 
-最后更新：2026-07-14
+最后更新：2026-07-15
 
 ## 目标与边界
 
@@ -8,7 +8,21 @@
 
 当前固定点如下：15 个注册任务的必需运行路径至少达到有界 `reference_validated`，28 类操作已有事务语义，20 个 provider 已接入正式 runtime，`proxy_allowed=false`，且没有待升级的 `lite` 正式路径。三个共享模块 `reaction_kinetics`、`reactors`、`spectroscopy_instruments` 已完成升级；完整测试曾达到 1261 passed、14 skipped，backend v0.5 release gate 12/12 通过。这些结果证明“候选基座可运行”，但尚未证明“正式 benchmark 结论成立”。
 
-现阶段不得作正式 benchmark 主张，原因包括：旧经典方法、Safe-GP、SAC、LLM 结果绑定旧 backend；PPO 仅通过 Dev 学习门禁；reference portfolio 只有控制层和运行计划；现有 runner 不能统一执行经典、RL、真实 LLM 与世界扰动；`300–319` 已实际运行并被查看，却仍被协议称为 fresh confirmatory seeds；`reference_regret_vnext.json` 仍使用更早的 `20–39`，协议之间不一致。
+现阶段仍不得作正式 benchmark 主张：P3 的 PPO/SAC 当前合同训练、单任务真实 LLM 筛选和方法冻结尚未完成，reference evidence 尚未生成，Bench 仍封存，P4–P6 没有正式结果。旧 backend、旧 observation contract 和已暴露 cohort 的结果继续只作诊断，不得因模型文件仍在仓库中而恢复正式资格。
+
+## 当前共享状态（2026-07-15）
+
+| 项目 | 当前事实 | 下一门禁 |
+| --- | --- | --- |
+| 主线 | 核心主目录已同步并包含最新 RL 反馈；site 由独立团队维护，本任务不修改 | 新工作继续先 claim，方法 owned paths 不交叉；具体证据绑定各自 source commit 而非易漂移的“当前 main”标签 |
+| RL writer | `origin/main@cb23c98` 上 PPO/SAC 的 manifest 0.3、sidecar 0.2、精确 observation hash 与禁止 shape-only compatibility 均通过 4-step 行为探针；4 个定向测试通过，`formal_training_allowed=true` | writer 不再阻塞 Train/Dev，但不等于方法已封存 |
+| 旧 SAC | pre-v0.4.8 运行完成 19/20 jobs、产生 99/100 checkpoints、评价 95 个，旧 eligibility 仅 13 个且结晶任务为 0；约 199 万环境步全部标记为 `quarantined_incomplete_stale_contract` | 不恢复、不进入当前 index、不形成 benchmark claim；必须按当前合同重训 |
+| 当前 PPO | `benchmark-v05-rl-adapters--slice-ppo-v048-retrain-dev` 已认领 | 先做 step-0 对 trained 的 fail-closed 学习门禁，通过后才运行四任务五 seed |
+| 当前 SAC | `benchmark-v05-rl-adapters--slice-sac-train-dev` 已认领，训练与恢复基础设施已进入 main | 在完整 4 × 5 × 100k 矩阵前增加与 PPO 对称的 current-contract 学习门禁，避免再次无信号消耗约 200 万步 |
+| 真实 LLM | v0.4.8 已收敛为单任务、两角色、三谱图条件、费用硬上限 2.10 USD；付费筛选仍暂停 | 非付费门禁与 RL 状态稳定后才运行 6-cell candidate screen |
+| 正式证据 | `benchmark_claim_allowed=false`，reference/Bench/P4 均未开始 | P3 全部封存并通过 method freeze 后，严格执行 reference → base matrix → independent reproduction |
+
+执行职责固定为“核心组控制、方法组盲执行”：核心组保留协议、Bench commitment、reference、统计代码、cell 签发和最终主张；RL 组负责当前合同 Train/Dev、checkpoint/replay/resource evidence，并可在收到不可变 cell manifest 后执行正式 cell，但不得访问 Bench 参数、reference feedback、事后改指标或删除失败。执行人与控制人分离不要求不同计算机器，但要求不同 owned paths、不可变输入 hash 和独立重放验收。
 
 ## 执行制度
 
@@ -205,14 +219,18 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [ ] 在 Train worlds 训练多个预注册 seeds，在 Dev worlds 选择 checkpoint；验证四个 core task 的行为完成，不只验证 flow。
   - [ ] 记录学习曲线、训练步数、GPU/CPU、失败率、quick-close、观察盲控制和 checkpoint/backend/observation/action/reward hash。
   - [ ] Bench 前冻结每个任务或共享策略的选择规则；禁止 Bench 微调和事后选 seed。
-  - 当前诊断：旧 PPO 训练奖励依赖“本次实验已执行哪些核心操作”，但 RL 观察未包含同一公开历史，形成非 Markov 状态别名；原 2 个已选 checkpoint 与另外两任务证据均因此失效，checkpoint index 已 fail-closed 清零。修复后观察加入逐实验公开核心阶段位，reward contract 升至 0.3，仅首次满足公开阶段奖励 0.1，重复操作、测量和终止无额外奖励。正式 `FrozenSB3Agent` 现仅根据 runner 返回的公开操作结果维护同一逐实验阶段账本，非法操作不写入、实验结束即清零，并逐元素重建训练观察；该实现不向环境层回灌操作分派、不改变 operation baseline 公共输入，也不使其既有 768-cell 证据失效。相关边界、回放、经典基线与全仓回归均通过，当前完整结果为 1545 passed、14 skipped。字段顺序、缺失值/mask、核心阶段位、全局 affordance 顺序、campaign progress 公式、边界与重置语义现已固定为任务级 `chemworld-rl-observation-contract-0.1`，四个正式任务均与真实训练空间及初始向量逐元素一致；正式 checkpoint index/method-freeze binding 只接受带精确 observation hash 的 `chemworld-rl-checkpoint-0.3`。Dev evaluator 与 `FrozenSB3Agent` 现也会在策略反序列化前拒绝旧 schema、错误 observation hash 或运行时公共 view 的键序、dtype、bounds、mask 与 missing-sentinel 漂移，并在加载后复核模型内 observation space。尚需共享训练 runner 写出 final manifest 0.3 与周期 sidecar 0.2，并在两者中绑定同一 observation hash。`partition-discovery` 的 25,600-step 有界探针在训练期完成 445 次行为完整实验；但原确定性众数评估仍坍缩为重复 `settle`，而固定 seed 随机评估在 20 episodes 中完成 38 次实验、35 次行为完整实验，平均最佳主指标 0.8313。两次固定 seed 回放逐字节一致，说明 PPO 随机策略可复现。共享训练 runner 仍由 SAC slice 认领，因此四任务重训保持暂停，证据见 `rl-ppo-reward-diagnostic-v0.4.json`。
+  - [x] 共享训练 writer 已写出 final manifest 0.3 与周期 sidecar 0.2，并绑定精确 task-specific observation hash；PPO/SAC 4-step 探针均通过当前 reader。
+  - [ ] PPO 完成当前合同 step-0 versus trained preflight；未达到预注册学习效应时以负结果关闭，不启动全矩阵。
+  - [ ] SAC 在完整矩阵前补充同等 current-contract preflight；当前计划只有吞吐探针和 Dev eligibility，不足以证明算法正在学习。
+  - [ ] 只有各自 preflight 通过后，才执行四任务五 seed Train/Dev、干净加载、确定性重放与 checkpoint index 封存。
+  - 当前诊断：旧 PPO 的非 Markov 状态别名已经通过公开阶段位、reward contract 0.3 和任务级 `chemworld-rl-observation-contract-0.1` 修复；旧 checkpoint index 已 fail closed 清零。当前 writer/reader 合同阻塞已解除，但旧 SAC 的 199 万步仅是 stale-contract 诊断，不能证明当前 SAC 有学习信号。RL 任务因此从“基础设施阻塞”转为“有界学习门禁与当前合同重训进行中”，P3 仍未完成。
   - 验收：至少预注册数量的独立训练 seeds 均完成；checkpoint 可由干净环境加载并逐 cell 评估。
 
 - [ ] **`benchmark-v05-live-llm-adapters` — 真实 LLM 双角色开发与提示冻结**
   - 默认 owned_paths：live LLM formal adapter、对应测试、`configs/methods/llm_v0.4/`、prompt manifests、`workstreams/benchmark_v1/reports/live-llm-dev-v0.4.json`。
   - 依赖：P2 preflight 与 resource accounting。
   - [x] 运行时核实 DeepSeek 可用 model IDs、thinking/JSON 能力、访问日期和价格；配置错误或模型替换必须新版本，不能静默 fallback。
-  - [x] 两个角色均通过官方 adapter 多轮调用，在实验内和实验间适应，能主动请求当前/历史谱图；Task Lab 只作 UI，不作正式 launcher。
+  - [x] 两个角色均通过官方 adapter 多轮调用，在实验内和实验间适应，能主动请求当前/历史公开谱图数值包；Task Lab 只作 UI，不作正式 launcher。DeepSeek 官方 `deepseek-v4-pro` Chat API 的 user content 当前仍是字符串，网站 canvas 图像不会自动进入模型输入，不得把数值读谱描述为原生 VLM 读图。
   - [x] prompt 只描述工具、任务和公共合同，不加入“默认升温”等强倾向规则；保留结构化决策审计，不索取私有思维链。
   - [ ] 在 Train/Dev 完成 assigned/unassigned/masked 配对、API 失败/重试和成本对账；冻结 prompt、request 参数、model snapshot/access date。
   - 当前状态：v0.4.6 开发矩阵在 56/96 cells 后主动停止并判定为 `incomplete_configuration_rejected`，16 cells 成功、40 cells 方法失败，56/56 资源账本完整，累计 2,369 次 provider 调用和 10.0387 USD；该证据只用于配置诊断，不得汇总为 benchmark 结果。根因是 deliberative 角色反复耗尽墙钟时间，以及 direct 角色因重复谱图/记忆导致累计输入超限。v0.4.7 已将 provider prompt 平均载荷离线回放压缩约 57%–58%，冻结 Pro=`thinking/high, max_tokens=4000`、Flash=`thinking/off, max_tokens=1000`。新的 v0.4.8 使用独立版本、source-commit 级私有缓存、报告 schema 和 seed 派生命名空间，并将付费入口收敛为 `reaction-to-crystallization` 单任务、2 角色 × 3 谱图条件的 6-cell `candidate_screen`，矩阵费用硬上限 2.10 USD。任务、方法、谱图条件、首个 Train seed、开发计划摘要和费用上限均在 provider 调用前 fail closed，不能通过 CLI 静默缩减或扩展，也不能跨提交误续跑。候选未通过完成率、逐方法成功、回放/账本和四实验投影 token/墙钟余量时，代码禁止启动后续 pilot/Dev 矩阵；付费筛选当前保持暂停。
@@ -235,6 +253,7 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [ ] 执行完整 reference plan；每个 source run 都使用冻结 backend、独立 builder seed、完整预算和资源账本。
   - [ ] 逐轨迹回放，冻结每个 task × seed × metric 的 best-known estimate、区间和来源 digests。
   - [ ] 检查 cell 完整、无 evaluated-method identity/trajectory 重叠、无缺失/重复/nonfinite 值，并独立复算 manifest。
+  - 控制边界：本任务由核心组持有，不向方法执行组反馈 reference 结果；RL 组不得同时承担 reference 搜索与自身 checkpoint 选择。
   - 验收：完整 reference manifest 在方法评分前生成并只读；失败则不得开始下一任务。
 
 - [ ] **`benchmark-v05-formal-base-matrix` — 四个 core task 的基础正式比较**
@@ -244,6 +263,7 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [ ] 每个 cell 完成即时回放、资源对账和失败分类；不因方法失败补 seed、改 prompt、换 checkpoint 或重跑到成功。
   - [ ] 按 task 报告主指标、联合安全/成本规则、anytime 曲线、完成率和资源前沿；保留负结果。
   - [ ] 用预注册统计代码一次性生成结果，不在看完结果后改 SESOI、排除规则或主比较。
+  - 执行边界：已封存方法的 cell 可交给 RL 组或其他执行者盲运行，但只能消费核心组签发的不可变 cell manifest；执行者不能查看私有 Bench 参数或 reference feedback，核心组负责 digest 重放、统计和结论。
   - 验收：预期笛卡尔积完整或明确标记 incomplete；只有同时满足联合规则的方法比较可作正式结论。
 
 - [ ] **`benchmark-v05-base-reproduction` — 基础矩阵独立 clean-wheel 复核**
