@@ -158,12 +158,8 @@ class AgentDecisionContext:
             "available_operations": list(self.available_operations),
             "previous_event_type": self.previous_event_type,
             "remaining_operations": self.remaining_operations,
-            "historical_spectrum_catalog": to_builtin(
-                self.historical_spectrum_catalog
-            ),
-            "requested_historical_spectrum": to_builtin(
-                self.requested_historical_spectrum
-            ),
+            "historical_spectrum_catalog": to_builtin(self.historical_spectrum_catalog),
+            "requested_historical_spectrum": to_builtin(self.requested_historical_spectrum),
         }
 
 
@@ -195,11 +191,12 @@ def build_decision_context(
     )
     if previous_event_type == "experiment_end" or step == 1:
         stage = "experiment_setup"
-    elif "measure" in operations and "terminate" not in operations:
-        # Once termination has committed, only measurement affordances remain.
-        # This phase check must outrank the previous-event label so that an
-        # intermediate post-termination measurement cannot hide the persistent
-        # closeout state on the next decision.
+    elif set(operations) == {"measure"}:
+        # A committed termination exposes only measurement affordances.  The
+        # absence of ``terminate`` alone is not sufficient evidence: several
+        # live experiment states permit measurement plus further material or
+        # control operations while termination is temporarily unavailable.
+        # The exact affordance shape keeps that state distinct from closeout.
         stage = "experiment_closeout"
     elif previous_event_type == "measurement_result":
         stage = "evidence_update"

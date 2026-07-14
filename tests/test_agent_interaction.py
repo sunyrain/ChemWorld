@@ -47,6 +47,19 @@ def test_measurement_before_termination_remains_an_evidence_update() -> None:
     assert context.decision_stage == "evidence_update"
 
 
+def test_measure_without_terminate_is_not_misclassified_as_closeout() -> None:
+    context = build_decision_context(
+        step=2,
+        task_info={"task_id": "reaction-to-crystallization"},
+        campaign_state={"remaining_budget": 18},
+        public_view=_public_view("add_reagent", "sample", "measure"),
+        previous_event_type="operation_result",
+    )
+
+    assert context.available_operations == ("add_reagent", "sample", "measure")
+    assert context.decision_stage == "experiment_control"
+
+
 def test_new_experiment_setup_takes_priority_over_affordance_shape() -> None:
     context = build_decision_context(
         step=9,
@@ -66,9 +79,20 @@ def test_real_environment_reports_closeout_after_termination() -> None:
         observation, _, _, _, info = env.step(
             {"operation": "add_solvent", "volume_L": 0.02, "solvent": 0}
         )
-        observation, _, _, _, info = env.step(
-            {"operation": "add_reagent", "amount_mol": 0.01}
+        public_view = agent_view_bundle(env, observation, info)
+        before_reagent = build_decision_context(
+            step=2,
+            task_info={"task_id": "reaction-to-crystallization"},
+            campaign_state=env.unwrapped.campaign_state(),
+            public_view=public_view,
+            previous_event_type="operation_result",
         )
+
+        assert "measure" in before_reagent.available_operations
+        assert "terminate" not in before_reagent.available_operations
+        assert before_reagent.decision_stage == "experiment_control"
+
+        observation, _, _, _, info = env.step({"operation": "add_reagent", "amount_mol": 0.01})
         observation, _, _, _, info = env.step({"operation": "terminate"})
         public_view = agent_view_bundle(env, observation, info)
 
@@ -83,9 +107,7 @@ def test_real_environment_reports_closeout_after_termination() -> None:
         assert context.available_operations == ("measure",)
         assert context.decision_stage == "experiment_closeout"
 
-        observation, _, _, _, info = env.step(
-            {"operation": "measure", "instrument": "gc"}
-        )
+        observation, _, _, _, info = env.step({"operation": "measure", "instrument": "gc"})
         public_view = agent_view_bundle(env, observation, info)
         after_intermediate_measurement = build_decision_context(
             step=5,
