@@ -58,7 +58,11 @@ def _git_common_dir() -> Path:
     return path.resolve() if path.is_absolute() else (ROOT / path).resolve()
 
 
-DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.8"
+def _git_commit() -> str:
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+
+
+DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.8" / _git_commit()
 
 
 @dataclass(frozen=True)
@@ -106,10 +110,6 @@ def _promotion_gate_card(plan: Mapping[str, Any], stage: str) -> Mapping[str, An
         if isinstance(value, bool) or not isinstance(value, int | float) or float(value) <= 0.0:
             raise ValueError(f"live-LLM promotion gate {key!r} must be positive")
     return gate
-
-
-def _git_commit() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
 def _backend_semantic_sha256() -> str:

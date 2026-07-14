@@ -1,17 +1,28 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
 
 from chemworld.eval.formal_matrix import build_formal_matrix_plan
 from chemworld.eval.live_llm_development import (
+    DEFAULT_CACHE_ROOT,
     build_live_llm_development_bundle,
     evaluate_live_llm_promotion,
     prepare_live_llm_development,
     run_live_llm_development,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_default_private_cache_is_source_commit_scoped() -> None:
+    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+
+    assert DEFAULT_CACHE_ROOT.parent.name == "live-llm-dev-v0.4.8"
+    assert DEFAULT_CACHE_ROOT.name == commit
 
 
 def test_live_pilot_is_exact_paired_core_matrix_without_seed_disclosure() -> None:
