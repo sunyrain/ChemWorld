@@ -1,6 +1,6 @@
 {
-  "schema_version": "chemworld-live-llm-development-plan-0.4.3",
-  "plan_id": "chemworld-live-llm-train-dev-2026-07-14-context-bounded-candidate-1",
+  "schema_version": "chemworld-live-llm-development-plan-0.4.4",
+  "plan_id": "chemworld-live-llm-train-dev-2026-07-14-single-task-candidate-2",
   "benchmark_claim_allowed": false,
   "bench_access_allowed": false,
   "tasks": [
@@ -21,9 +21,11 @@
     },
     "candidate_screen": {
       "world_split": "train",
-      "tasks": ["flow-reaction-optimization", "partition-discovery"],
+      "tasks": ["reaction-to-crystallization"],
       "world_seeds_per_cell": 1,
+      "world_seed_selection": "first_n_from_split",
       "complete_experiments": 1,
+      "matrix_monetary_cost_usd_limit": 2.1,
       "operation_budget": {
         "source": "task_recipe_event_count_times_complete_experiments",
         "exploration_multiplier": 2
@@ -33,7 +35,9 @@
     "live_pilot": {
       "world_split": "train",
       "world_seeds_per_cell": 1,
+      "world_seed_selection": "first_n_from_split",
       "complete_experiments": 2,
+      "matrix_monetary_cost_usd_limit": 8.4,
       "operation_budget": {
         "source": "task_recipe_event_count_times_complete_experiments",
         "exploration_multiplier": 2
@@ -43,7 +47,9 @@
     "development_matrix": {
       "world_split": "dev",
       "world_seeds_per_cell": 4,
+      "world_seed_selection": "first_n_from_split",
       "complete_experiments": 4,
+      "matrix_monetary_cost_usd_limit": 33.6,
       "operation_budget": {
         "source": "task_recipe_event_count_times_complete_experiments",
         "exploration_multiplier": 2

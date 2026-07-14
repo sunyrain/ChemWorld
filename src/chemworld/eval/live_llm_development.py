@@ -9,6 +9,7 @@ import subprocess
 import sys
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -38,12 +39,10 @@ from chemworld.world.world_family import axes_for_task
 
 ROOT = Path(__file__).resolve().parents[3]
 DEVELOPMENT_PLAN_PATH = ROOT / "configs/methods/llm_v0.4/llm_development_plan.json"
-DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.7.json"
-FORMAL_PROTOCOL_REPORT_PATH = (
-    ROOT / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
-)
-LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.7"
-LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.3"
+DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.8.json"
+FORMAL_PROTOCOL_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
+LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.8"
+LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.4"
 LIVE_STAGES = ("candidate_screen", "live_pilot", "development_matrix")
 _PRIOR_PAID_STAGE = {
     "live_pilot": "candidate_screen",
@@ -59,7 +58,7 @@ def _git_common_dir() -> Path:
     return path.resolve() if path.is_absolute() else (ROOT / path).resolve()
 
 
-DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.7"
+DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.8"
 
 
 @dataclass(frozen=True)
@@ -83,9 +82,7 @@ def load_live_llm_development_plan(
     return payload
 
 
-def _promotion_gate_card(
-    plan: Mapping[str, Any], stage: str
-) -> Mapping[str, Any]:
+def _promotion_gate_card(plan: Mapping[str, Any], stage: str) -> Mapping[str, Any]:
     gates = plan.get("promotion_gates")
     gate = gates.get(stage) if isinstance(gates, Mapping) else None
     if not isinstance(gate, Mapping):
@@ -106,19 +103,13 @@ def _promotion_gate_card(
         "maximum_projected_four_experiment_p90_wall_time_s",
     ):
         value = gate.get(key)
-        if (
-            isinstance(value, bool)
-            or not isinstance(value, int | float)
-            or float(value) <= 0.0
-        ):
+        if isinstance(value, bool) or not isinstance(value, int | float) or float(value) <= 0.0:
             raise ValueError(f"live-LLM promotion gate {key!r} must be positive")
     return gate
 
 
 def _git_commit() -> str:
-    return subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
-    ).strip()
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
 def _backend_semantic_sha256() -> str:
@@ -134,7 +125,7 @@ def _backend_semantic_sha256() -> str:
 
 
 def _paired_method_seed(stage: str, world_seed: int) -> int:
-    digest = hashlib.sha256(f"live-llm-v0.4.7:{stage}:{world_seed}".encode()).digest()
+    digest = hashlib.sha256(f"live-llm-v0.4.8:{stage}:{world_seed}".encode()).digest()
     return 300_000 + int.from_bytes(digest[:4], "big") % 700_000_000
 
 
@@ -180,11 +171,16 @@ def _stage_seeds(
     start = int(bounds["start"])
     stop = int(bounds["stop_inclusive"])
     count = int(stage_card["world_seeds_per_cell"])
-    seeds = tuple(range(start, start + count)) if supplied is None else tuple(supplied)
+    if stage_card.get("world_seed_selection") != "first_n_from_split":
+        raise ValueError("live-LLM stage must freeze first_n_from_split seed selection")
+    frozen_seeds = tuple(range(start, start + count))
+    seeds = frozen_seeds if supplied is None else tuple(supplied)
     if not seeds or len(seeds) != len(set(seeds)):
         raise ValueError("live-LLM development seeds must be unique and non-empty")
     if any(isinstance(seed, bool) or seed < start or seed > stop for seed in seeds):
         raise ValueError(f"{split} seed is outside the public formal range")
+    if seeds != frozen_seeds:
+        raise ValueError("live-LLM stage seed set is frozen by the development plan")
     return seeds
 
 
@@ -204,9 +200,7 @@ def _operation_limits_by_task(
         raise ValueError("live-LLM exploration multiplier must be a positive integer")
     return {
         task_id: (
-            task_recipe_event_count(get_task(task_id).to_dict())
-            * complete_experiments
-            * multiplier
+            task_recipe_event_count(get_task(task_id).to_dict()) * complete_experiments * multiplier
         )
         for task_id in tasks
     }
@@ -217,8 +211,8 @@ def build_live_llm_development_bundle(
     stage: str,
     seeds: Sequence[int] | None = None,
     tasks: Sequence[str] | None = None,
-    methods: Sequence[str] = ("live_llm_a", "live_llm_b"),
-    spectrum_conditions: Sequence[str] = ("assigned", "unassigned", "masked"),
+    methods: Sequence[str] | None = None,
+    spectrum_conditions: Sequence[str] | None = None,
 ) -> LiveLLMDevelopmentBundle:
     """Build an issued development matrix without reading Bench/reference-search state."""
 
@@ -231,8 +225,10 @@ def build_live_llm_development_bundle(
         raise RuntimeError("live-LLM method freeze must pass before development")
     stage_card = plan["stages"][stage]
     _promotion_gate_card(plan, stage)
-    stage_tasks = stage_card.get("tasks", CORE_TASKS)
-    selected_tasks = tuple(stage_tasks if tasks is None else tasks)
+    stage_tasks = tuple(stage_card.get("tasks", CORE_TASKS))
+    selected_tasks = stage_tasks if tasks is None else tuple(tasks)
+    if selected_tasks != stage_tasks:
+        raise ValueError("live-LLM stage task scope is frozen by the development plan")
     if stage_card.get("live_provider_calls") is not True:
         raise ValueError("selected stage is not a live-provider development stage")
     split = str(stage_card["world_split"])
@@ -240,11 +236,18 @@ def build_live_llm_development_bundle(
     if not set(selected_tasks).issubset(set(CORE_TASKS)) or not selected_tasks:
         raise ValueError("live-LLM development tasks must be frozen formal core tasks")
     bindings = formal_live_llm_method_bindings(freeze)
-    if not set(methods).issubset(bindings) or not methods:
-        raise ValueError("live-LLM development methods must be frozen roles")
-    conditions = tuple(spectrum_conditions)
-    if set(conditions) != {"assigned", "unassigned", "masked"} or len(conditions) != 3:
-        raise ValueError("live-LLM development requires all three spectrum conditions")
+    frozen_methods = tuple(plan["methods"])
+    selected_methods = frozen_methods if methods is None else tuple(methods)
+    if selected_methods != frozen_methods or set(selected_methods) != set(bindings):
+        raise ValueError("live-LLM stage method scope is frozen by the development plan")
+    frozen_conditions = tuple(plan["spectrum_conditions"])
+    conditions = frozen_conditions if spectrum_conditions is None else tuple(spectrum_conditions)
+    if conditions != frozen_conditions or set(conditions) != {
+        "assigned",
+        "unassigned",
+        "masked",
+    }:
+        raise ValueError("live-LLM stage spectrum scope is frozen to all three conditions")
     complete_experiments = int(stage_card["complete_experiments"])
     operation_limits = _operation_limits_by_task(
         stage_card,
@@ -254,16 +257,14 @@ def build_live_llm_development_bundle(
     resource_contract = freeze.get("resource_contract")
     if not isinstance(resource_contract, Mapping):
         raise ValueError("live-LLM freeze is missing its resource contract")
-    provider_attempt_limit = int(
-        resource_contract["provider_attempt_limit_per_operation"]
-    )
+    provider_attempt_limit = int(resource_contract["provider_attempt_limit_per_operation"])
     source_commit = _git_commit()
     global_identity = {
         "schema_version": LIVE_LLM_DEVELOPMENT_VERSION,
         "stage": stage,
         "split": split,
         "tasks": list(selected_tasks),
-        "methods": list(methods),
+        "methods": list(selected_methods),
         "spectrum_conditions": list(conditions),
         "pair_ids": [_pair_id(stage, seed) for seed in selected_seeds],
         "complete_experiments": complete_experiments,
@@ -271,20 +272,15 @@ def build_live_llm_development_bundle(
         "source_commit": source_commit,
         "formal_protocol_sha256": canonical_sha256(protocol),
         "llm_freeze_sha256": file_sha256(DEFAULT_LLM_FREEZE_PATH),
+        "development_plan_sha256": file_sha256(DEVELOPMENT_PLAN_PATH),
     }
     run_id = canonical_sha256(global_identity)
     protocol_sha256 = canonical_sha256(protocol)
     backend_semantic_sha256 = _backend_semantic_sha256()
     evaluator_sha256 = file_sha256(ROOT / "src/chemworld/eval/verify.py")
-    interaction_sha256 = file_sha256(
-        ROOT / "configs/benchmark/interaction_strata_v0.4.json"
-    )
-    statistics_sha256 = file_sha256(
-        ROOT / "configs/benchmark/statistical_analysis_plan_v0.4.json"
-    )
-    reference_sha256 = file_sha256(
-        ROOT / "configs/benchmark/reference_portfolio_v0.4.json"
-    )
+    interaction_sha256 = file_sha256(ROOT / "configs/benchmark/interaction_strata_v0.4.json")
+    statistics_sha256 = file_sha256(ROOT / "configs/benchmark/statistical_analysis_plan_v0.4.json")
+    reference_sha256 = file_sha256(ROOT / "configs/benchmark/reference_portfolio_v0.4.json")
     cells: list[FormalCellSpec] = []
     runtimes: dict[str, dict[str, Any]] = {}
     for world_seed in selected_seeds:
@@ -324,14 +320,14 @@ def build_live_llm_development_bundle(
                 "world_nonce": world_nonce,
                 "world_interventions": list(interventions),
             }
-            for method_id in methods:
+            for method_id in selected_methods:
                 for condition in conditions:
                     operation_limit = operation_limits[task_id]
                     spec = FormalCellSpec(
                         run_id=run_id,
                         task_id=task_id,
                         pair_id=pair_id,
-                        spectrum_condition=condition,  # type: ignore[arg-type]
+                        spectrum_condition=condition,
                         private_seed_commitment=seed_commitment,
                         world_commitment=world_commitment,
                         protocol_sha256=protocol_sha256,
@@ -349,23 +345,31 @@ def build_live_llm_development_bundle(
                     runtimes[spec.cell_identity_sha256] = dict(runtime_payload)
     pair_ids = [_pair_id(stage, seed) for seed in selected_seeds]
     cell_count = len(cells)
-    per_cell_cost_limit = float(
-        resource_contract["monetary_cost_usd_limit_per_cell"]
-    )
+    per_cell_cost_limit = float(resource_contract["monetary_cost_usd_limit_per_cell"])
+    stage_cost_limit = stage_card.get("matrix_monetary_cost_usd_limit")
+    if (
+        isinstance(stage_cost_limit, bool)
+        or not isinstance(stage_cost_limit, int | float)
+        or not Decimal("0")
+        < Decimal(str(stage_cost_limit))
+        <= Decimal(str(per_cell_cost_limit)) * cell_count
+    ):
+        raise ValueError(
+            "live-LLM stage matrix cost limit must be positive and no greater "
+            "than the sum of its per-cell limits"
+        )
     manifest = issue_run_manifest(
         cells,
         metadata={
             "matrix_contract": {
                 "tasks": list(selected_tasks),
-                "methods": list(methods),
+                "methods": list(selected_methods),
                 "pair_ids": pair_ids,
                 "spectrum_conditions_by_method": {
-                    method_id: list(conditions) for method_id in methods
+                    method_id: list(conditions) for method_id in selected_methods
                 },
                 "checkpoints": [
-                    point
-                    for point in (1, 2, 4, 8, 12, 20, 40)
-                    if point <= complete_experiments
+                    point for point in (1, 2, 4, 8, 12, 20, 40) if point <= complete_experiments
                 ],
                 "complete_experiments_per_cell": complete_experiments,
                 "operation_limits_by_task": operation_limits,
@@ -376,7 +380,7 @@ def build_live_llm_development_bundle(
                 "api_max_concurrency": 4,
                 "api_cell_starts_per_minute": 120,
                 "api_cost_usd_per_cell_limit": per_cell_cost_limit,
-                "matrix_monetary_cost_usd_limit": cell_count * per_cell_cost_limit,
+                "matrix_monetary_cost_usd_limit": float(stage_cost_limit),
             },
             "rl_training_resources": [],
             "development_contract": {
@@ -390,6 +394,7 @@ def build_live_llm_development_bundle(
                 "maximum_provider_call_count": sum(
                     cell.operation_limit * provider_attempt_limit for cell in cells
                 ),
+                "development_plan_sha256": file_sha256(DEVELOPMENT_PLAN_PATH),
             },
         },
     )
@@ -429,9 +434,7 @@ def evaluate_live_llm_promotion(
     """
 
     plan = (
-        dict(development_plan)
-        if development_plan is not None
-        else load_live_llm_development_plan()
+        dict(development_plan) if development_plan is not None else load_live_llm_development_plan()
     )
     if stage not in LIVE_STAGES:
         raise ValueError(f"stage must be one of {LIVE_STAGES}")
@@ -441,9 +444,11 @@ def evaluate_live_llm_promotion(
     audit = matrix_report.get("audit")
     audit = audit if isinstance(audit, Mapping) else {}
     raw_cells = audit.get("cells")
-    cells = [item for item in raw_cells if isinstance(item, Mapping)] if isinstance(
-        raw_cells, list
-    ) else []
+    cells = (
+        [item for item in raw_cells if isinstance(item, Mapping)]
+        if isinstance(raw_cells, list)
+        else []
+    )
 
     def completed(cell: Mapping[str, Any]) -> bool:
         axes = cell.get("resource_axes")
@@ -487,30 +492,23 @@ def evaluate_live_llm_promotion(
     projected_wall_p90 = _percentile(projected_wall, 0.9)
     minimum_overall = float(gate["minimum_overall_completion_rate"])
     minimum_per_method = float(gate["minimum_per_method_completion_rate"])
-    maximum_input = float(
-        gate["maximum_projected_four_experiment_p90_input_tokens"]
-    )
+    maximum_input = float(gate["maximum_projected_four_experiment_p90_input_tokens"])
     maximum_wall = float(gate["maximum_projected_four_experiment_p90_wall_time_s"])
     checks = {
         "matrix_terminal_and_exact": bool(cells)
         and audit.get("exact_cartesian_matrix_complete") is True,
         "expected_task_and_method_scope_complete": set(tasks) == expected_tasks
         and set(methods) == expected_methods,
-        "paired_spectrum_conditions_complete": audit.get("paired_conditions_complete")
+        "paired_spectrum_conditions_complete": audit.get("paired_conditions_complete") is True,
+        "resource_accounting_complete": audit.get("all_required_resource_accounting_complete")
         is True,
-        "resource_accounting_complete": audit.get(
-            "all_required_resource_accounting_complete"
-        )
-        is True,
-        "all_successes_replay_verified": audit.get("all_successes_replay_verified")
-        is True,
+        "all_successes_replay_verified": audit.get("all_successes_replay_verified") is True,
         "no_infrastructure_errors": not matrix_report.get("infrastructure_errors"),
         "minimum_overall_completion_rate": completion_rate >= minimum_overall,
         "minimum_per_method_completion_rate": bool(per_method_completion_rate)
         and all(rate >= minimum_per_method for rate in per_method_completion_rate.values()),
         "every_task_has_success": (
-            not bool(gate.get("every_task_has_success"))
-            or set(tasks).issubset(successful_tasks)
+            not bool(gate.get("every_task_has_success")) or set(tasks).issubset(successful_tasks)
         ),
         "every_method_has_success": (
             not bool(gate.get("every_method_has_success"))
@@ -565,6 +563,8 @@ def _require_prior_paid_stage(stage: str, cache_root: str | Path) -> None:
         raise RuntimeError(f"{stage} is blocked because {prior} did not pass promotion")
     if gate.get("llm_freeze_sha256") != file_sha256(DEFAULT_LLM_FREEZE_PATH):
         raise RuntimeError(f"{stage} is blocked because the promoted LLM freeze changed")
+    if gate.get("development_plan_sha256") != file_sha256(DEVELOPMENT_PLAN_PATH):
+        raise RuntimeError(f"{stage} is blocked because the development plan changed")
     if gate.get("source_commit") != _git_commit():
         raise RuntimeError(f"{stage} is blocked because the promoted source commit changed")
 
@@ -629,14 +629,10 @@ def run_live_llm_development(
         manifest_path=str(manifest_path.resolve()),
         output_root=str(output_root.resolve()),
         private_runtime_root=str(runtime_root.resolve()),
-        adapter_factory=(
-            "chemworld.eval.formal_llm:create_formal_live_llm_adapter"
-        ),
+        adapter_factory=("chemworld.eval.formal_llm:create_formal_live_llm_adapter"),
         python_executable=sys.executable,
         cell_script=str((ROOT / "scripts/run_formal_cell.py").resolve()),
-        private_diagnostic_root=str(
-            (runtime_root.parent / "private-diagnostics").resolve()
-        ),
+        private_diagnostic_root=str((runtime_root.parent / "private-diagnostics").resolve()),
     )
     outcome = run_formal_matrix(
         plan=plan,
@@ -651,6 +647,7 @@ def run_live_llm_development(
         **promotion_gate,
         "manifest_sha256": bundle.manifest["run_manifest_sha256"],
         "llm_freeze_sha256": file_sha256(DEFAULT_LLM_FREEZE_PATH),
+        "development_plan_sha256": file_sha256(DEVELOPMENT_PLAN_PATH),
         "source_commit": _git_commit(),
     }
     _atomic_json(
@@ -683,6 +680,7 @@ def run_live_llm_development(
         "source_commit": _git_commit(),
         "method_freeze_audit": audit_live_llm_method_freeze(),
         "manifest_sha256": bundle.manifest["run_manifest_sha256"],
+        "development_plan_sha256": file_sha256(DEVELOPMENT_PLAN_PATH),
         "cell_count": bundle.cell_count,
         "pair_count": bundle.pair_count,
         "maximum_provider_call_count": bundle.maximum_provider_call_count,

@@ -31,9 +31,7 @@ def test_live_pilot_is_exact_paired_core_matrix_without_seed_disclosure() -> Non
     assert bundle.manifest["metadata"]["development_contract"]["bench_accessed"] is False
     assert "10000" not in serialized
     assert all("world_seed" not in cell for cell in bundle.manifest["cells"])
-    assert bundle.manifest["metadata"]["matrix_contract"][
-        "operation_limits_by_task"
-    ] == {
+    assert bundle.manifest["metadata"]["matrix_contract"]["operation_limits_by_task"] == {
         "partition-discovery": 40,
         "reaction-to-crystallization": 44,
         "reaction-to-distillation": 44,
@@ -45,9 +43,9 @@ def test_live_pilot_is_exact_paired_core_matrix_without_seed_disclosure() -> Non
             / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
         ).read_text(encoding="utf-8")
     )
-    assert {
-        cell["backend_semantic_sha256"] for cell in bundle.manifest["cells"]
-    } == {protocol_report["backend_semantic_sha256"]}
+    assert {cell["backend_semantic_sha256"] for cell in bundle.manifest["cells"]} == {
+        protocol_report["backend_semantic_sha256"]
+    }
 
 
 def test_development_matrix_uses_only_four_public_dev_pairs() -> None:
@@ -59,18 +57,38 @@ def test_development_matrix_uses_only_four_public_dev_pairs() -> None:
     assert bundle.maximum_provider_call_count == 23040
     assert plan.checkpoints == (1, 2, 4)
     assert plan.limits.api_max_concurrency == 4
-    assert plan.limits.matrix_monetary_cost_usd_limit == bundle.cell_count * 0.35
+    assert plan.limits.matrix_monetary_cost_usd_limit == pytest.approx(bundle.cell_count * 0.35)
 
 
 def test_candidate_screen_is_small_and_precedes_live_pilot() -> None:
     bundle = build_live_llm_development_bundle(stage="candidate_screen")
 
     assert bundle.pair_count == 1
-    assert bundle.cell_count == 2 * 2 * 3
+    assert bundle.cell_count == 1 * 2 * 3
+    assert bundle.maximum_provider_call_count == 396
     assert bundle.manifest["metadata"]["matrix_contract"]["tasks"] == [
-        "flow-reaction-optimization",
-        "partition-discovery",
+        "reaction-to-crystallization",
     ]
+    assert bundle.manifest["metadata"]["matrix_contract"]["operation_limits_by_task"] == {
+        "reaction-to-crystallization": 22
+    }
+    assert bundle.manifest["metadata"]["orchestration"][
+        "matrix_monetary_cost_usd_limit"
+    ] == pytest.approx(2.1)
+    assert len(bundle.manifest["metadata"]["development_contract"]["development_plan_sha256"]) == 64
+
+
+def test_paid_stage_scope_and_seed_set_are_frozen_before_provider_use() -> None:
+    with pytest.raises(ValueError, match="task scope is frozen"):
+        build_live_llm_development_bundle(stage="candidate_screen", tasks=("partition-discovery",))
+    with pytest.raises(ValueError, match="method scope is frozen"):
+        build_live_llm_development_bundle(stage="candidate_screen", methods=("live_llm_b",))
+    with pytest.raises(ValueError, match="spectrum scope is frozen"):
+        build_live_llm_development_bundle(
+            stage="candidate_screen", spectrum_conditions=("assigned", "masked")
+        )
+    with pytest.raises(ValueError, match="seed set is frozen"):
+        build_live_llm_development_bundle(stage="candidate_screen", seeds=(10_001,))
 
 
 def test_promotion_gate_rejects_accounted_but_noncompleting_configuration() -> None:
@@ -90,7 +108,7 @@ def test_promotion_gate_rejects_accounted_but_noncompleting_configuration() -> N
     cells = [
         cell(method, task, succeeded=method == "live_llm_b")
         for method in ("live_llm_a", "live_llm_b")
-        for task in ("flow-reaction-optimization", "partition-discovery")
+        for task in ("reaction-to-crystallization",)
         for _ in range(3)
     ]
     report = {
@@ -124,7 +142,7 @@ def test_larger_paid_stage_cannot_bypass_candidate_screen(tmp_path) -> None:
 def test_live_development_rejects_bench_reference_or_partial_spectrum_design() -> None:
     with pytest.raises(ValueError, match="stage must"):
         build_live_llm_development_bundle(stage="bench")
-    with pytest.raises(ValueError, match="three spectrum"):
+    with pytest.raises(ValueError, match="spectrum scope is frozen"):
         build_live_llm_development_bundle(
             stage="live_pilot", spectrum_conditions=("assigned", "masked")
         )
