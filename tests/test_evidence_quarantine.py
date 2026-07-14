@@ -26,7 +26,11 @@ def test_public_exposure_inventory_covers_consumed_and_development_seeds() -> No
     assert set(range(300, 320)).issubset(exposed)
     assert set(range(500, 520)).issubset(exposed)
     assert {106, 110, 1100, 1119, 1200, 1209, 1300, 1304}.issubset(exposed)
-    assert inventory["retained_result_count"] == 160
+    assert inventory["declared_retained_result_count"] == 160
+    assert inventory["retained_result_count"] in {0, 160}
+    assert inventory["retained_results_locally_available"] is (
+        inventory["retained_result_count"] > 0
+    )
     assert inventory["git_history_config_blob_count"] >= 79
     assert inventory["exposed_world_cell_count"] > 0
     assert any(
@@ -103,6 +107,14 @@ def test_audit_fails_when_a_consumed_cohort_is_not_declared_exposed() -> None:
     assert report["controls"]["known_consumed_cohorts_are_exposed"] is False
 
 
+def test_audit_fails_closed_when_portable_legacy_commitment_is_tampered() -> None:
+    policy = copy.deepcopy(load_evidence_quarantine_policy())
+    policy["legacy_primary_0_3_expectations"]["result_manifest_sha256"] = "invalid"
+    report = audit_evidence_quarantine(policy)
+    assert report["controls_ready"] is False
+    assert report["controls"]["legacy_portable_manifest_valid"] is False
+
+
 def test_retained_primary_0_3_is_explicitly_quarantined() -> None:
     report = json.loads(REPORT.read_text(encoding="utf-8"))
     assert report["controls_ready"] is True
@@ -111,6 +123,10 @@ def test_retained_primary_0_3_is_explicitly_quarantined() -> None:
     assert report["formal_results_present"] is False
     assert report["legacy_primary_0_3"]["result_count"] == 160
     assert report["legacy_primary_0_3"]["trajectory_count"] == 160
+    assert report["legacy_primary_0_3"]["evidence_mode"] in {
+        "portable_frozen_manifest",
+        "raw_artifacts_verified",
+    }
     assert report["legacy_primary_0_3"]["classification"] == "pre-v0.5_diagnostic_only"
     assert report["controls"]["legacy_results_replay_verified"] is True
     assert report["controls"]["legacy_results_bind_lite_maturity"] is True

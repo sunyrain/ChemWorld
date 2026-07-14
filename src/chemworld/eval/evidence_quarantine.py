@@ -102,6 +102,9 @@ def build_exposure_inventory(
             )
 
     exposed = sorted(sources)
+    declared_retained_count = int(
+        policy.get("legacy_primary_0_3_expectations", {}).get("result_count", 0)
+    )
     return {
         "exposed_seed_count": len(exposed),
         "exposed_seeds": exposed,
@@ -113,6 +116,8 @@ def build_exposure_inventory(
         "public_config_count": len(set(config_files)),
         "git_history_config_blob_count": history_blob_count,
         "retained_result_count": len(set(result_files)),
+        "declared_retained_result_count": declared_retained_count,
+        "retained_results_locally_available": bool(result_files),
     }
 
 
@@ -186,6 +191,27 @@ def audit_evidence_quarantine(
         for path in trajectory_files
         if (match := _SEED_IN_NAME.search(path.name)) is not None
     )
+    raw_artifacts_available = bool(result_files or trajectory_files)
+    portable_manifest_valid = bool(
+        expectations.get("raw_artifact_availability") == "optional_local_retention"
+        and _is_sha256(str(expectations.get("result_manifest_sha256", "")))
+        and _is_sha256(str(expectations.get("trajectory_identity_manifest_sha256", "")))
+        and int(expectations["result_count"]) > 0
+        and int(expectations["trajectory_count"]) > 0
+        and len(expected_result_seeds) * int(expectations["results_per_seed"])
+        == int(expectations["result_count"])
+        == int(expectations["trajectory_count"])
+    )
+    raw_result_manifest_matches = bool(
+        not raw_artifacts_available
+        or _file_manifest_sha256(result_files, workspace)
+        == expectations["result_manifest_sha256"]
+    )
+    raw_trajectory_manifest_matches = bool(
+        not raw_artifacts_available
+        or _path_manifest_sha256(trajectory_files, workspace)
+        == expectations["trajectory_identity_manifest_sha256"]
+    )
 
     protocol_status: dict[str, dict[str, Any]] = {}
     for path in _expand_patterns(
@@ -223,26 +249,35 @@ def audit_evidence_quarantine(
         ),
         "git_history_is_inventoried": inventory["git_history_config_blob_count"] > 0,
         "world_cells_are_inventoried": inventory["exposed_world_cell_count"] > 0,
-        "legacy_result_count_matches": len(result_files) == int(expectations["result_count"]),
-        "legacy_trajectory_count_matches": len(trajectory_files)
-        == int(expectations["trajectory_count"]),
-        "legacy_seed_grid_matches": sorted(result_seed_counts) == expected_result_seeds
-        and all(
-            result_seed_counts[seed] == int(expectations["results_per_seed"])
-            for seed in expected_result_seeds
-        )
-        and sorted(trajectory_seed_counts) == expected_result_seeds
-        and all(
-            trajectory_seed_counts[seed] == int(expectations["results_per_seed"])
-            for seed in expected_result_seeds
+        "legacy_portable_manifest_valid": portable_manifest_valid,
+        "legacy_result_count_matches": not raw_artifacts_available
+        or len(result_files) == int(expectations["result_count"]),
+        "legacy_trajectory_count_matches": not raw_artifacts_available
+        or len(trajectory_files) == int(expectations["trajectory_count"]),
+        "legacy_raw_manifests_match_if_present": raw_result_manifest_matches
+        and raw_trajectory_manifest_matches,
+        "legacy_seed_grid_matches": not raw_artifacts_available
+        or (
+            sorted(result_seed_counts) == expected_result_seeds
+            and all(
+                result_seed_counts[seed] == int(expectations["results_per_seed"])
+                for seed in expected_result_seeds
+            )
+            and sorted(trajectory_seed_counts) == expected_result_seeds
+            and all(
+                trajectory_seed_counts[seed] == int(expectations["results_per_seed"])
+                for seed in expected_result_seeds
+            )
         ),
-        "legacy_results_replay_verified": all(
+        "legacy_results_replay_verified": not raw_artifacts_available
+        or all(
             row.get("verified") is expectations["required_replay_verified"]
             and row.get("verification", {}).get("verified")
             is expectations["required_replay_verified"]
             for row in result_rows
         ),
-        "legacy_results_bind_lite_maturity": all(
+        "legacy_results_bind_lite_maturity": not raw_artifacts_available
+        or all(
             row.get("physics_maturity") == expectations["required_physics_maturity"]
             and row.get("kernel_maturity", {}).get("lowest_level")
             == expectations["required_physics_maturity"]
@@ -277,13 +312,25 @@ def audit_evidence_quarantine(
         "known_consumed_cohorts": expected_cohorts,
         "quarantined_protocols": protocol_status,
         "legacy_primary_0_3": {
-            "result_count": len(result_files),
-            "trajectory_count": len(trajectory_files),
-            "seed_counts": {str(seed): result_seed_counts[seed] for seed in expected_result_seeds},
-            "result_manifest_sha256": _file_manifest_sha256(result_files, workspace),
-            "trajectory_identity_manifest_sha256": _path_manifest_sha256(
-                trajectory_files, workspace
-            ),
+            "evidence_mode": "raw_artifacts_verified"
+            if raw_artifacts_available
+            else "portable_frozen_manifest",
+            "result_count": int(expectations["result_count"]),
+            "trajectory_count": int(expectations["trajectory_count"]),
+            "local_result_count": len(result_files),
+            "local_trajectory_count": len(trajectory_files),
+            "seed_counts": {
+                str(seed): (
+                    result_seed_counts[seed]
+                    if raw_artifacts_available
+                    else int(expectations["results_per_seed"])
+                )
+                for seed in expected_result_seeds
+            },
+            "result_manifest_sha256": expectations["result_manifest_sha256"],
+            "trajectory_identity_manifest_sha256": expectations[
+                "trajectory_identity_manifest_sha256"
+            ],
             "classification": "pre-v0.5_diagnostic_only",
             "reason": "retained results bind lite runtime maturity and an exposed cohort",
         },
@@ -291,8 +338,10 @@ def audit_evidence_quarantine(
         "limitations": [
             "This report inventories public exposure; it does not create a new private cohort.",
             (
-                "Replay verification of retained trajectories is trusted from result "
-                "bindings here; full byte replay remains a separate historical control."
+                "Legacy raw files are optional local retention. Their frozen result/path "
+                "manifest commitments preserve quarantine identity in clean clones; when "
+                "raw files are present, counts, grids, maturity, verification, and both "
+                "manifest digests are rechecked."
             ),
             (
                 "A v0.5 formal backend semantic manifest and protocol 0.4 are still "
