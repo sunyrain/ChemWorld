@@ -14,11 +14,16 @@ from pathlib import Path
 from time import perf_counter, process_time
 from typing import Any, Literal
 
+from chemworld.rl.checkpoint_contract import (
+    RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
+    RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION,
+)
 from chemworld.rl.environment import RLWorldAllocation, build_rl_environment
 from chemworld.rl.hybrid_actions import policy_distribution_contract
 from chemworld.rl.hybrid_policy import (
     ConditionalHybridActorCriticPolicy,
 )
+from chemworld.rl.observation_contract import rl_observation_contract
 
 AlgorithmName = Literal["ppo", "sac"]
 TrainingDevice = Literal["cpu", "cuda"]
@@ -232,6 +237,14 @@ def train_sb3_baseline(
         observation_shape = list(probe_env.observation_space.shape or ())
     finally:
         probe_env.close()
+    observation_contract = rl_observation_contract(task_id)
+    if observation_shape != observation_contract["shape"]:
+        raise RuntimeError(
+            "RL environment observation shape does not match its published contract"
+        )
+    observation_contract_hash = str(observation_contract.get("contract_hash", ""))
+    if len(observation_contract_hash) != 64:
+        raise RuntimeError("RL observation contract is missing its compatibility hash")
     env_factories: list[Callable[[], Any]] = [
         partial(
             build_rl_environment,
@@ -394,15 +407,17 @@ def train_sb3_baseline(
         periodic_checkpoint = output / str(artifact["path"])
         match = re.search(r"_(\d+)_steps$", periodic_checkpoint.stem)
         sidecar = {
-            "schema_version": "chemworld-rl-checkpoint-contract-sidecar-0.1",
+            "schema_version": RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION,
             "algorithm": algorithm,
             "task_id": task_id,
             "training_environment_step_count": int(match.group(1)) if match else None,
             "checkpoint": periodic_checkpoint.name,
             "checkpoint_sha256": artifact["sha256"],
+            "observation_contract_hash": observation_contract_hash,
             "action_contract_hash": action_contract_hash,
             "training_reward_contract_hash": training_reward_contract["contract_hash"],
             "policy_distribution_contract_hash": distribution_contract.get("contract_hash"),
+            "shape_only_compatible": False,
             "legacy_checkpoint_compatible": False,
         }
         sidecar_path = periodic_checkpoint.with_suffix(".manifest.json")
@@ -416,7 +431,7 @@ def train_sb3_baseline(
             }
         )
     manifest = {
-        "schema_version": "chemworld-rl-checkpoint-0.2",
+        "schema_version": RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
         "formal_evidence": False,
         "algorithm": algorithm,
         "task_id": task_id,
@@ -428,8 +443,11 @@ def train_sb3_baseline(
         "training_reward_contract_hash": training_reward_contract["contract_hash"],
         "policy_distribution_contract": distribution_contract,
         "policy_distribution_contract_hash": distribution_contract.get("contract_hash"),
+        "observation_contract": observation_contract,
+        "observation_contract_hash": observation_contract_hash,
         "checkpoint_compatibility": {
             "policy": "exact_contract_hash_match",
+            "shape_only_compatible": False,
             "legacy_checkpoint_compatible": False,
         },
         "training_diagnostics": training_diagnostics,

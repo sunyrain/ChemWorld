@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 from scripts.run_rl_100k_development import _evidence_gate, load_100k_protocol
 
+from chemworld.rl.checkpoint_contract import (
+    RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
+    RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION,
+)
 from chemworld.rl.environment import RLWorldAllocation, load_rl_protocol
+from chemworld.rl.observation_contract import rl_observation_contract
 from chemworld.rl.training import train_sb3_baseline
 
 
@@ -37,7 +43,15 @@ def test_manifest_records_actual_ppo_rollout_steps_and_periodic_checkpoint(
     assert manifest["training_environment_step_count"] == 16
     assert manifest["step_budget_exact"] is False
     assert manifest["training_diagnostics"]["step_count"] == 16
-    assert manifest["schema_version"] == "chemworld-rl-checkpoint-0.2"
+    observation_contract = rl_observation_contract("flow-reaction-optimization")
+    assert manifest["schema_version"] == RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION
+    assert manifest["observation_contract"] == observation_contract
+    assert manifest["observation_contract_hash"] == observation_contract["contract_hash"]
+    assert manifest["checkpoint_compatibility"] == {
+        "policy": "exact_contract_hash_match",
+        "shape_only_compatible": False,
+        "legacy_checkpoint_compatible": False,
+    }
     assert len(manifest["action_contract_hash"]) == 64
     assert len(manifest["training_reward_contract_hash"]) == 64
     assert len(manifest["policy_distribution_contract_hash"]) == 64
@@ -46,10 +60,22 @@ def test_manifest_records_actual_ppo_rollout_steps_and_periodic_checkpoint(
     assert len(artifacts) == 2
     assert all(item["artifact_type"] == "checkpoint" for item in artifacts)
     assert all(len(item["sha256"]) == 64 for item in artifacts)
-    assert len(manifest["periodic_checkpoint_contract_manifests"]) == 2
+    sidecar_refs = manifest["periodic_checkpoint_contract_manifests"]
+    assert len(sidecar_refs) == 2
     assert all(
         (tmp_path / item["path"]).is_file()
-        for item in manifest["periodic_checkpoint_contract_manifests"]
+        for item in sidecar_refs
+    )
+    sidecars = [
+        json.loads((tmp_path / item["path"]).read_text(encoding="utf-8"))
+        for item in sidecar_refs
+    ]
+    assert all(
+        item["schema_version"] == RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION
+        and item["observation_contract_hash"] == observation_contract["contract_hash"]
+        and item["shape_only_compatible"] is False
+        and item["legacy_checkpoint_compatible"] is False
+        for item in sidecars
     )
     infrastructure = manifest["training_infrastructure"]
     assert infrastructure["parallel_environments"] == 1
