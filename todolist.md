@@ -17,8 +17,8 @@
 | 主线 | 核心主目录已同步并包含最新 RL 反馈；site 由独立团队维护，本任务不修改 | 新工作继续先 claim，方法 owned paths 不交叉；具体证据绑定各自 source commit 而非易漂移的“当前 main”标签 |
 | RL writer | `origin/main@cb23c98` 上 PPO/SAC 的 manifest 0.3、sidecar 0.2、精确 observation hash 与禁止 shape-only compatibility 均通过 4-step 行为探针；4 个定向测试通过，`formal_training_allowed=true` | writer 不再阻塞 Train/Dev，但不等于方法已封存 |
 | 旧 SAC | pre-v0.4.8 运行完成 19/20 jobs、产生 99/100 checkpoints、评价 95 个，旧 eligibility 仅 13 个且结晶任务为 0；约 199 万环境步全部标记为 `quarantined_incomplete_stale_contract` | 不恢复、不进入当前 index、不形成 benchmark claim；必须按当前合同重训 |
-| 当前 PPO | `benchmark-v05-rl-adapters--slice-ppo-v048-retrain-dev` 已认领 | 先做 step-0 对 trained 的 fail-closed 学习门禁，通过后才运行四任务五 seed |
-| 当前 SAC | `benchmark-v05-rl-adapters--slice-sac-train-dev` 已认领，训练与恢复基础设施已进入 main | 在完整 4 × 5 × 100k 矩阵前增加与 PPO 对称的 current-contract 学习门禁，避免再次无信号消耗约 200 万步 |
+| 当前 PPO | `099028d` 当前合同 preflight 已按预注册规则完成并以负结果关闭：4 个任务均完成 step-0/25,600-step 配对，3/4 有学习信号，行为完成数 11 → 254，但 runtime-domain failures 11 → 31，结晶任务训练后仍 0 次行为完成；102,400 训练步、8 个 checkpoint 均可干净加载且精确回放 | `full_matrix_allowed=false`，20-run 矩阵未启动、0 checkpoint 入选、`ppo_method_ready=false`；不得降阈值或重复抽 seed 求通过。若继续 PPO，必须另 claim runtime-domain/结晶完成修复，绑定新合同摘要后重新预注册一次门禁 |
+| 当前 SAC | `benchmark-v05-rl-adapters--slice-sac-train-dev` 仍 active，claim 已增加 `sac_v048_preflight_plan`、runner、测试和报告路径，明确与 PPO 对称的 current-contract fail-closed 学习门禁 | 先完成 step-0 对 trained 的四任务学习/行为/运行域门禁；失败即发布负结果并禁止完整 4 × 5 × 100k 矩阵，不能直接沿用旧 199 万步或跳过 preflight |
 | 真实 LLM | v0.4.8 的旧 prompt 0.6 已在 `7c08191` 严格运行 1/6 个诊断 cell：10 次请求、47,341 input tokens、13,421 output tokens、0 retry、0.030392 USD、246.28 s，完整实验/账本/逐步回放均通过；其余 5 cells 未启动。该 cell 暴露旧谱图标量被误当成新测量的来源歧义，已在 `da83200` 的 prompt/interaction contract 0.7 修复 | 旧单 cell 报告保持 `stopped_resumable`、`benchmark_claim_allowed=false` 且不得跨源码续跑；先审核 0.7 的来源合同与离线回归，再只跑 1 个新源码诊断 cell，确认无旧谱图误归因后才决定是否完成 6-cell candidate screen |
 | 开源 VLM | 确定性谱图图像合同 0.1 已通过审计：PNG/信号/公开包/渲染合同均有摘要，历史目录强制为纯元数据，只有显式取回的历史谱图可进入图像输入；未下载或运行模型；未来推理依赖已从主环境锁隔离 | 推理依赖、模型与 processor revision 尚未封存；仅在 P4 之后先做一个 Dev 任务的学习价值试点，未通过不得扩矩阵 |
 | 环境锁 | VLM 临时 extra 已完全移除，`uv.lock` 精确恢复到 VLM 前 `099028d` 的 179 包摘要；但该摘要与 P0 `be4e38f` 的 178 包 portable-release 证明不同，漂移在 VLM 任务之前已由后续 RL 依赖产生 | 不回写历史 P0 报告；待 P3 方法依赖稳定后执行 `benchmark-v05-portable-release-reattestation`，在此之前不得签发正式 Bench source/wheel manifest |
@@ -222,10 +222,11 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [ ] 记录学习曲线、训练步数、GPU/CPU、失败率、quick-close、观察盲控制和 checkpoint/backend/observation/action/reward hash。
   - [ ] Bench 前冻结每个任务或共享策略的选择规则；禁止 Bench 微调和事后选 seed。
   - [x] 共享训练 writer 已写出 final manifest 0.3 与周期 sidecar 0.2，并绑定精确 task-specific observation hash；PPO/SAC 4-step 探针均通过当前 reader。
-  - [ ] PPO 完成当前合同 step-0 versus trained preflight；未达到预注册学习效应时以负结果关闭，不启动全矩阵。
+  - [x] PPO 完成当前合同 step-0 versus trained preflight；门禁因并非所有任务 operational 而以负结果关闭，完整矩阵未启动。
   - [ ] SAC 在完整矩阵前补充同等 current-contract preflight；当前计划只有吞吐探针和 Dev eligibility，不足以证明算法正在学习。
   - [ ] 只有各自 preflight 通过后，才执行四任务五 seed Train/Dev、干净加载、确定性重放与 checkpoint index 封存。
-  - 当前诊断：旧 PPO 的非 Markov 状态别名已经通过公开阶段位、reward contract 0.3 和任务级 `chemworld-rl-observation-contract-0.1` 修复；旧 checkpoint index 已 fail closed 清零。当前 writer/reader 合同阻塞已解除，但旧 SAC 的 199 万步仅是 stale-contract 诊断，不能证明当前 SAC 有学习信号。RL 任务因此从“基础设施阻塞”转为“有界学习门禁与当前合同重训进行中”，P3 仍未完成。
+  - 当前诊断：旧 PPO 的非 Markov 状态别名已经通过公开阶段位、reward contract 0.3 和任务级 `chemworld-rl-observation-contract-0.1` 修复；旧 checkpoint index 已 fail closed 清零。当前 PPO preflight 在 `099028d` 上执行 4 个 task ×（step-0、25,600-step）共 8 个 checkpoint，全部通过 manifest 0.3、sidecar 0.2、task-specific observation hash、fresh-process load 与确定性回放；3/4 任务达到学习信号，行为完成总数从 11 增至 254，但 runtime-domain failures 从 11 增至 31，结晶任务训练后仍为 0 完成，因此预注册 `all_tasks_operational` 硬门禁失败。报告状态为 `ppo_current_contract_preflight_failed_full_matrix_not_run`，20 个正式训练 run、60 个候选 checkpoint 和 checkpoint selection 均为 0；这证明 PPO 有部分学习信号，但尚不是可进入正式矩阵的可靠方法。SAC 旧 199 万步仍仅是 stale-contract 诊断，当前 SAC 必须先通过已认领的对称 preflight。RL 任务已从“writer/reader 基础设施阻塞”转为“PPO 有信号但运行域不可靠、SAC 等待有界学习门禁”，P3 仍未完成。
+  - PPO 下一步不是重跑同一随机种子或放宽门槛，而是另行认领并定位 31 个 runtime-domain failures 的 operation/affordance/parameter 分布，以及结晶任务 0 行为完成的终止链。只有修复改变了可审计的动作/运行域合同时，才允许以新 plan/hash 预注册一次新的 step-0 versus trained 门禁；若不修复，则 PPO 作为当前合同负结果退出正式方法清单。
   - 验收：至少预注册数量的独立训练 seeds 均完成；checkpoint 可由干净环境加载并逐 cell 评估。
 
 - [ ] **`benchmark-v05-live-llm-adapters` — 真实 LLM 双角色开发与提示冻结**
