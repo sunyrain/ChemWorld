@@ -1,6 +1,6 @@
 # ChemWorld v0.5 基座完整性与正式实验 Todo
 
-最后更新：2026-07-13
+最后更新：2026-07-14
 
 ## 目标与边界
 
@@ -201,10 +201,11 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 - [ ] **`benchmark-v05-live-llm-adapters` — 真实 LLM 双角色开发与提示冻结**
   - 默认 owned_paths：live LLM formal adapter、对应测试、`configs/methods/llm_v0.4/`、prompt manifests、`workstreams/benchmark_v1/reports/live-llm-dev-v0.4.json`。
   - 依赖：P2 preflight 与 resource accounting。
-  - [ ] 运行时核实 DeepSeek 可用 model IDs、thinking/JSON 能力、访问日期和价格；配置错误或模型替换必须新版本，不能静默 fallback。
-  - [ ] 两个角色均通过官方 adapter 多轮调用，在实验内和实验间适应，能主动请求当前/历史谱图；Task Lab 只作 UI，不作正式 launcher。
-  - [ ] prompt 只描述工具、任务和公共合同，不加入“默认升温”等强倾向规则；保留结构化决策审计，不索取私有思维链。
+  - [x] 运行时核实 DeepSeek 可用 model IDs、thinking/JSON 能力、访问日期和价格；配置错误或模型替换必须新版本，不能静默 fallback。
+  - [x] 两个角色均通过官方 adapter 多轮调用，在实验内和实验间适应，能主动请求当前/历史谱图；Task Lab 只作 UI，不作正式 launcher。
+  - [x] prompt 只描述工具、任务和公共合同，不加入“默认升温”等强倾向规则；保留结构化决策审计，不索取私有思维链。
   - [ ] 在 Train/Dev 完成 assigned/unassigned/masked 配对、API 失败/重试和成本对账；冻结 prompt、request 参数、model snapshot/access date。
+  - 当前状态：v0.4.6 开发矩阵在 56/96 cells 后主动停止并判定为 `incomplete_configuration_rejected`，16 cells 成功、40 cells 方法失败，56/56 资源账本完整，累计 2,369 次 provider 调用和 10.0387 USD；该证据只用于配置诊断，不得汇总为 benchmark 结果。根因是 deliberative 角色反复耗尽墙钟时间，以及 direct 角色因重复谱图/记忆导致累计输入超限。v0.4.7 已将 provider prompt 平均载荷离线回放压缩约 57%–58%，冻结 Pro=`thinking/high, max_tokens=4000`、Flash=`thinking/off, max_tokens=1000`，并新增 12-cell、4.20 USD 硬上限的 `candidate_screen`。候选未通过完成率、逐方法/逐任务成功、回放/账本和四实验投影 token/墙钟余量时，代码禁止启动后续 pilot/Dev 矩阵；付费筛选当前保持暂停。
   - 验收：真实多轮轨迹可回放执行，所有调用/失败/tokens/费用可核对；未证明性能提升也允许封存，但不能缺失证据。
 
 - [ ] **`benchmark-v05-method-freeze` — 方法清单与 Bench 解封**
