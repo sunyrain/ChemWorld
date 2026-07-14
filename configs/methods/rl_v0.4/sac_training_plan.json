@@ -2,7 +2,7 @@
   "schema_version": "chemworld-formal-sac-training-plan-0.4",
   "task_id": "benchmark-v05-rl-adapters--slice-sac-train-dev",
   "parent_task_id": "benchmark-v05-rl-adapters",
-  "status": "preregistered_current_contract_preflight_pending",
+  "status": "current_contract_preflight_failed_full_matrix_forbidden",
   "algorithm": "sac",
   "formal_core_tasks": {
     "partition-discovery": "product_in_organic",
@@ -109,7 +109,11 @@
     "required_report_schema": "chemworld-sac-v048-preflight-report-0.1",
     "required_status": "sac_v048_preflight_passed_full_matrix_allowed",
     "source_commit_must_equal_execution_head": true,
-    "failure_forbids_full_matrix": true
+    "failure_forbids_full_matrix": true,
+    "execution_source_commit": "ae89cf9a754f38c113f485d337f95297c72aecb5",
+    "report_sha256": "d5132459a598b14a56cf566b94c73d7cc97187cee18578daa36112712d9b4c88",
+    "observed_status": "sac_v048_preflight_failed_full_matrix_forbidden",
+    "full_matrix_allowed": false
   },
   "execution": {
     "expected_training_run_count": 20,
@@ -118,9 +122,14 @@
     "max_concurrent_jobs": 4,
     "failed_attempts_retained": true,
     "completed_jobs_resumed_without_retraining": true,
-    "artifact_root": "runs/benchmark-v0.5/rl-v0.4/sac",
+    "artifact_root": "runs/benchmark-v0.5/rl-v0.4/sac/current-contract/full-matrix",
     "checkpoint_index": "configs/methods/rl_v0.4/sac_checkpoint_index.json",
-    "report": "workstreams/benchmark_v1/reports/rl-sac-dev-v0.4.json"
+    "report": "workstreams/benchmark_v1/reports/rl-sac-dev-v0.4.json",
+    "full_matrix_started": false,
+    "executed_training_run_count": 0,
+    "evaluated_candidate_checkpoint_count": 0,
+    "selected_checkpoint_count": 0,
+    "not_started_reason": "The preregistered current-contract SAC preflight failed and explicitly forbids the full matrix."
   },
   "comparability_boundary": {
     "native_hybrid_distribution": false,
@@ -141,6 +150,8 @@
     "checkpoint_binaries_committed": false,
     "clean_environment_distribution_deferred_to_parent_gate": true,
     "ppo_training_in_scope": false,
-    "ppo_outcome_report": "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json"
+    "ppo_outcome_report": "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json",
+    "current_checkpoint_status": "no_current_contract_sac_checkpoint_selected",
+    "current_contract_preflight_report": "workstreams/benchmark_v1/reports/rl-sac-v048-preflight-v0.4.json"
   }
 }

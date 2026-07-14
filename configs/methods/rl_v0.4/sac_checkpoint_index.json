@@ -1,0 +1,67 @@
+{
+  "schema_version": "chemworld-formal-rl-checkpoint-index-0.4",
+  "status": "sac_current_contract_preflight_failed",
+  "method_ids": ["sac"],
+  "formal_core_tasks": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization"
+  ],
+  "checkpoints": [],
+  "expected_selected_checkpoint_count": 4,
+  "selected_checkpoint_count": 0,
+  "missing_checkpoint_task_ids": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization"
+  ],
+  "current_contract_preflight": {
+    "plan_path": "configs/methods/rl_v0.4/sac_v048_preflight_plan.json",
+    "plan_file_sha256": "bad1681df0f968843001d666aaabd29d011cf515b20ee83ce98756ac29b8dae6",
+    "plan_canonical_sha256": "470fa1af3e2e3e027e66494320552bc422d275733c6497280aa388009a526ee1",
+    "report_path": "workstreams/benchmark_v1/reports/rl-sac-v048-preflight-v0.4.json",
+    "report_sha256": "d5132459a598b14a56cf566b94c73d7cc97187cee18578daa36112712d9b4c88",
+    "source_commit": "ae89cf9a754f38c113f485d337f95297c72aecb5",
+    "status": "sac_v048_preflight_failed_full_matrix_forbidden",
+    "learning_signal_task_count": 1,
+    "all_tasks_operational": false,
+    "trained_total_behavior_complete_not_decreased": false,
+    "full_matrix_allowed": false,
+    "thresholds_changed_after_execution": false
+  },
+  "current_contract_outcome": {
+    "report_path": "workstreams/benchmark_v1/reports/rl-sac-dev-v0.4.json",
+    "report_sha256": "d74be84ac0506072059eb6abe21b985383616e4b4307b2082087ab6932bead43",
+    "executed_full_matrix_training_run_count": 0,
+    "evaluated_full_matrix_candidate_checkpoint_count": 0,
+    "selected_checkpoint_count": 0
+  },
+  "prior_checkpoint_invalidation": {
+    "reason": "The pre-v0.4.8 SAC checkpoints were written before exact task-specific observation-contract hashes and the current manifest/sidecar reader contract.",
+    "hidden_state_added": false,
+    "retraining_required": true,
+    "archive_path": "runs/benchmark-v0.5/rl-v0.4/sac/shared/pre-v048-diagnostic/manifest.json",
+    "archive_sha256": "e76254f011e6e73880fc77e4900ea2f352b4205c0c714564b4fb82d40b23dd42",
+    "eligible_for_current_runtime_load": false,
+    "eligible_for_resume": false,
+    "eligible_for_formal_checkpoint_index": false
+  },
+  "required_observation_contract_hashes": {
+    "partition-discovery": "62e0281da582fe2ec8fa5f69dc1740ae6288f29f9f514263fd26a88792ec180a",
+    "reaction-to-crystallization": "4dc965f1dc6489f783482186baae12252bbe8f3cad5313af190d2cf1b63b1a8f",
+    "reaction-to-distillation": "4c5c08be1133f18bb85bb568a45be5ca9f9a0b620e3704a3da2ed627ded6ea7f",
+    "flow-reaction-optimization": "c10c2433b5c556be15e6c6e6c3cb30e806b3e284c2f04278d13582750e32cbc5"
+  },
+  "required_checkpoint_manifest_schema": "chemworld-rl-checkpoint-0.3",
+  "required_periodic_sidecar_schema": "chemworld-rl-checkpoint-contract-sidecar-0.2",
+  "shape_only_observation_compatibility_allowed": false,
+  "checkpoint_binaries_committed": false,
+  "sac_method_ready": false,
+  "parent_task_complete": false,
+  "formal_results_present": false,
+  "benchmark_claim_allowed": false,
+  "bench_accessed": false,
+  "reference_search_used": false
+}

@@ -21,6 +21,11 @@ from chemworld.rl.formal_training import (
 ROOT = Path(__file__).resolve().parents[1]
 PLAN_PATH = ROOT / "configs" / "methods" / "rl_v0.4" / "sac_v048_preflight_plan.json"
 PROTOCOL_PATH = ROOT / "configs" / "benchmark" / "formal_protocol_v0.4.json"
+PREFLIGHT_REPORT_PATH = (
+    ROOT / "workstreams" / "benchmark_v1" / "reports" / "rl-sac-v048-preflight-v0.4.json"
+)
+OUTCOME_REPORT_PATH = ROOT / "workstreams" / "benchmark_v1" / "reports" / "rl-sac-dev-v0.4.json"
+INDEX_PATH = ROOT / "configs" / "methods" / "rl_v0.4" / "sac_checkpoint_index.json"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -222,4 +227,57 @@ def test_full_sac_matrix_requires_exact_passing_current_source_report(
             root=tmp_path,
             plan=plan,
             source_commit=source_commit,
+        )
+
+
+def test_current_contract_sac_negative_outcome_is_hash_bound_and_fail_closed() -> None:
+    preflight = _load(PREFLIGHT_REPORT_PATH)
+    outcome = _load(OUTCOME_REPORT_PATH)
+    index = _load(INDEX_PATH)
+
+    assert preflight["status"] == "sac_v048_preflight_failed_full_matrix_forbidden"
+    assert preflight["full_matrix_allowed"] is False
+    assert preflight["gate_assessment"]["learning_signal_task_count"] == 1
+    assert preflight["gate_assessment"]["step0_total_behavior_complete_experiment_count"] == 21
+    assert preflight["gate_assessment"]["trained_total_behavior_complete_experiment_count"] == 9
+    assert preflight["resource_accounting"]["training_environment_step_count"] == 102_400
+    assert all(
+        condition["exact_replay"] is True
+        for job in preflight["jobs"]
+        for condition in (job["step0_evaluation"], job["trained_evaluation"])
+    )
+    assert all(
+        all(job[condition]["checkpoint_contract_compatibility"].values())
+        for job in preflight["jobs"]
+        for condition in ("step0_evaluation", "trained_evaluation")
+    )
+
+    assert (
+        outcome["preflight"]["report_sha256"]
+        == hashlib.sha256(PREFLIGHT_REPORT_PATH.read_bytes()).hexdigest()
+    )
+    assert outcome["full_matrix"]["executed_training_run_count"] == 0
+    assert outcome["full_matrix"]["evaluated_candidate_checkpoint_count"] == 0
+    assert outcome["full_matrix"]["selected_checkpoint_count"] == 0
+    assert outcome["clean_process_load_proof"]["loaded_checkpoint_count"] == 8
+    assert outcome["clean_process_load_proof"]["all_loaded"] is True
+    assert outcome["source_drift_at_finalization"]["owned_path_overlap"] == []
+    assert outcome["sac_method_ready"] is False
+    assert outcome["bench_accessed"] is False
+    assert outcome["reference_search_used"] is False
+
+    assert index["checkpoints"] == []
+    assert index["selected_checkpoint_count"] == 0
+    assert (
+        index["current_contract_outcome"]["report_sha256"]
+        == hashlib.sha256(OUTCOME_REPORT_PATH.read_bytes()).hexdigest()
+    )
+    assert index["sac_method_ready"] is False
+
+    training_plan = _load(ROOT / "configs" / "methods" / "rl_v0.4" / "sac_training_plan.json")
+    with pytest.raises(FormalPPOTrainingError, match="does not unlock"):
+        verify_current_contract_preflight(
+            root=ROOT,
+            plan=training_plan,
+            source_commit=preflight["source"]["source_commit"],
         )
