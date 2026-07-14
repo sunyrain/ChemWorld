@@ -227,10 +227,35 @@ def test_masked_spectral_ablation_removes_raw_and_processed_spectral_features() 
         "spectrum_condition": "masked",
         "available": False,
     }
+    assert prompt["decision_context"]["observation_provenance"][
+        "current_spectral_packet"
+    ] is False
     assert "raw_signal" not in prompt["public_tool_view"]
     assert "processed_estimate" not in prompt["public_tool_view"]
     assert "lab_report" not in prompt["public_tool_view"]
     assert agent.interaction_capabilities().consumes_spectra is False
+
+
+def test_retained_processed_estimate_is_not_claimed_as_fresh_spectrum() -> None:
+    client = FakeClient([_decision({"operation": "terminate"})])
+    agent = LiveLLMAgent(client, role_id="live_llm_a", spectrum_disclosure="assigned")
+    agent.reset({"task_id": "flow-reaction-optimization"}, seed=2)
+    context = replace(
+        _context(step=8, previous="operation_result", spectra=False),
+        latest_spectra={
+            "has_spectral_packet": False,
+            "processed_estimate": {"byproduct_signal": 0.31},
+        },
+    )
+
+    agent.act_with_public_view(context, _public_view())
+
+    prompt = client.prompts[0]
+    assert prompt["decision_context"]["latest_spectra"]["processed_estimate"] == {}
+    assert prompt["decision_context"]["observation_provenance"][
+        "current_spectral_packet"
+    ] is False
+    assert agent.decision_audit()["adaptation_source"] == "none"  # type: ignore[index]
 
 
 def test_masked_ablation_preserves_non_spectral_composite_evidence() -> None:

@@ -145,6 +145,22 @@ class AgentDecisionContext:
         return max(int(self.campaign_state.get("remaining_budget", 0)), 0)
 
     def to_dict(self) -> dict[str, Any]:
+        cataloged = [
+            item
+            for item in self.historical_spectrum_catalog
+            if isinstance(item.get("measurement_step"), int)
+            and not isinstance(item.get("measurement_step"), bool)
+        ]
+        latest_cataloged = (
+            max(cataloged, key=lambda item: int(item["measurement_step"]))
+            if cataloged
+            else None
+        )
+        latest_measurement_step = (
+            int(latest_cataloged["measurement_step"])
+            if latest_cataloged is not None
+            else None
+        )
         return {
             "contract_version": INTERACTION_CONTRACT_VERSION,
             "step": self.step,
@@ -160,6 +176,23 @@ class AgentDecisionContext:
             "remaining_operations": self.remaining_operations,
             "historical_spectrum_catalog": to_builtin(self.historical_spectrum_catalog),
             "requested_historical_spectrum": to_builtin(self.requested_historical_spectrum),
+            "observation_provenance": {
+                "current_event_type": self.previous_event_type,
+                "current_spectral_packet": bool(
+                    self.latest_spectra.get("has_spectral_packet")
+                ),
+                "latest_cataloged_spectrum_id": (
+                    latest_cataloged.get("spectrum_id")
+                    if latest_cataloged is not None
+                    else None
+                ),
+                "latest_spectrum_measurement_step": latest_measurement_step,
+                "operations_since_latest_spectrum": (
+                    max(self.step - latest_measurement_step - 1, 0)
+                    if latest_measurement_step is not None
+                    else None
+                ),
+            },
         }
 
 
@@ -181,6 +214,13 @@ def build_decision_context(
         "raw_signal": to_builtin(tool_view.get("raw_signal", {})),
         "processed_estimate": to_builtin(tool_view.get("processed_estimate", {})),
     }
+    if not spectra_context.get("has_spectral_packet"):
+        # Instrument-derived estimates may remain in the public state observation
+        # after a control operation. They are still available as visible metrics
+        # and agent memory, but must not masquerade as a newly measured spectrum.
+        spectra_context["raw_signal"] = {}
+        spectra_context["processed_estimate"] = {}
+        spectra_context["uncertainty"] = {}
     catalog = tool_view.get("historical_spectrum_catalog", [])
     requested = tool_view.get("requested_historical_spectrum", {})
     available = tool_view.get("available_actions", []) if isinstance(tool_view, dict) else []
