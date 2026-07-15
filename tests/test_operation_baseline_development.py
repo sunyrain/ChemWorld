@@ -68,7 +68,13 @@ def test_v041_preflight_proves_execution_gates_without_claiming_formal_scope() -
     )
     assert report["status"] == "development_diagnostic_only"
     assert report["formal_operation_baselines_ready"] is False
+    assert report["source_commit_stable"] is True
     assert report["source_tree_clean_at_start"] is True
+    assert report["source_tree_clean_before_report"] is True
+    assert report["source_commit"] == report["source_commit_before_report"]
+    assert {cell["source_commit"] for cell in report["cells"]} == {
+        report["source_commit"]
+    }
     assert report["worker_count"] == 12
     assert report["numeric_threads_per_worker"] == 1
     assert report["cell_count"] == 24
@@ -79,6 +85,8 @@ def test_v041_preflight_proves_execution_gates_without_claiming_formal_scope() -
     assert report["reference_search_results_used"] is False
     acceptance = report["acceptance"]
     assert acceptance["full_preregistered_development_scope"] is False
+    assert acceptance["source_commit_stable"] is True
+    assert acceptance["source_tree_clean_before_report"] is True
     assert acceptance["all_method_controls_pass"] is True
     assert acceptance["all_checked_replays_deterministic"] is True
     assert acceptance["all_accounting_complete"] is True
