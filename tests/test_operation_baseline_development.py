@@ -25,6 +25,13 @@ FROZEN_REPORT = (
     / "reports"
     / "operation-baselines-dev-v0.4.json"
 )
+PREFLIGHT_REPORT = (
+    Path(__file__).resolve().parents[1]
+    / "workstreams"
+    / "benchmark_v1"
+    / "reports"
+    / "operation-baselines-preflight-v0.4.1.json"
+)
 
 
 def test_v041_report_namespace_preserves_frozen_v04_history() -> None:
@@ -48,6 +55,33 @@ def test_numeric_worker_environment_is_bounded_and_restored(monkeypatch) -> None
         )
 
     assert {name: os.environ.get(name) for name in NUMERIC_THREAD_ENV_VARS} == before
+
+
+def test_v041_preflight_proves_execution_gates_without_claiming_formal_scope() -> None:
+    report = json.loads(PREFLIGHT_REPORT.read_text(encoding="utf-8"))
+
+    assert report["schema_version"] == (
+        "chemworld-operation-baseline-development-audit-0.4.1"
+    )
+    assert report["status"] == "development_diagnostic_only"
+    assert report["formal_operation_baselines_ready"] is False
+    assert report["source_tree_clean_at_start"] is True
+    assert report["worker_count"] == 12
+    assert report["numeric_threads_per_worker"] == 1
+    assert report["cell_count"] == 24
+    assert report["complete_experiments_per_cell"] == 2
+    assert report["train_seeds"] == [10_000]
+    assert report["dev_seeds"] == [11_000]
+    assert report["bench_results_present"] is False
+    assert report["reference_search_results_used"] is False
+    acceptance = report["acceptance"]
+    assert acceptance["full_preregistered_development_scope"] is False
+    assert acceptance["all_method_controls_pass"] is True
+    assert acceptance["all_checked_replays_deterministic"] is True
+    assert acceptance["all_accounting_complete"] is True
+    assert acceptance["all_decision_audits_complete"] is True
+    assert acceptance["nonrandom_invalid_controls_pass"] is True
+    assert acceptance["rule_measurement_adaptation_controls_pass"] is True
 
 
 def test_operation_development_plan_is_public_split_only_and_fail_closed() -> None:
