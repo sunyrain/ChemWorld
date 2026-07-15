@@ -8,8 +8,9 @@ import math
 import os
 import subprocess
 from collections import Counter, defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from statistics import fmean
@@ -42,6 +43,30 @@ DEFAULT_REPORT_PATH = (
     / "operation-baselines-dev-v0.4.1.json"
 )
 FORMAL_CHECKPOINTS = (4, 8, 12, 20, 40)
+NUMERIC_THREAD_ENV_VARS = (
+    "OPENBLAS_NUM_THREADS",
+    "OMP_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "NUMEXPR_NUM_THREADS",
+)
+NUMERIC_THREADS_PER_WORKER = 1
+
+
+@contextmanager
+def _numeric_worker_environment() -> Iterator[None]:
+    """Prevent process workers from recursively oversubscribing numeric threads."""
+
+    previous = {name: os.environ.get(name) for name in NUMERIC_THREAD_ENV_VARS}
+    try:
+        for name in NUMERIC_THREAD_ENV_VARS:
+            os.environ[name] = str(NUMERIC_THREADS_PER_WORKER)
+        yield
+    finally:
+        for name, value in previous.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
 
 
 def _default_cache_root() -> Path:
@@ -568,7 +593,10 @@ def run_operation_baseline_development_audit(
         rows = [_run_development_cell(cell, str(cache_root)) for cell in cells]
     else:
         rows = []
-        with ProcessPoolExecutor(max_workers=worker_count) as executor:
+        with (
+            _numeric_worker_environment(),
+            ProcessPoolExecutor(max_workers=worker_count) as executor,
+        ):
             futures = {
                 executor.submit(_run_development_cell, cell, str(cache_root)): cell
                 for cell in cells
@@ -666,6 +694,9 @@ def run_operation_baseline_development_audit(
         "complete_experiments_per_cell": complete_experiments,
         "cell_count": len(rows),
         "worker_count": worker_count,
+        "numeric_threads_per_worker": (
+            NUMERIC_THREADS_PER_WORKER if worker_count > 1 else None
+        ),
         "cache_root_role": "git_private_resumable_development_cache",
         "selection_policy": (
             "all three methods are mandatory interaction controls; no cross-observation-set "

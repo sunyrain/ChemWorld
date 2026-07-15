@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 from pathlib import Path
 
 from chemworld.agents.task_recipes import task_recipe_event_count
 from chemworld.eval.operation_baseline_development import (
     DEFAULT_REPORT_PATH,
+    NUMERIC_THREAD_ENV_VARS,
+    NUMERIC_THREADS_PER_WORKER,
+    _numeric_worker_environment,
     audit_operation_development_plan,
     build_operation_development_cells,
     load_operation_development_plan,
@@ -27,6 +31,23 @@ def test_v041_report_namespace_preserves_frozen_v04_history() -> None:
     assert DEFAULT_REPORT_PATH.name == "operation-baselines-dev-v0.4.1.json"
     assert FROZEN_REPORT.is_file()
     assert DEFAULT_REPORT_PATH != FROZEN_REPORT
+
+
+def test_numeric_worker_environment_is_bounded_and_restored(monkeypatch) -> None:
+    for index, name in enumerate(NUMERIC_THREAD_ENV_VARS):
+        if index % 2:
+            monkeypatch.delenv(name, raising=False)
+        else:
+            monkeypatch.setenv(name, str(index + 3))
+    before = {name: os.environ.get(name) for name in NUMERIC_THREAD_ENV_VARS}
+
+    with _numeric_worker_environment():
+        assert all(
+            os.environ[name] == str(NUMERIC_THREADS_PER_WORKER)
+            for name in NUMERIC_THREAD_ENV_VARS
+        )
+
+    assert {name: os.environ.get(name) for name in NUMERIC_THREAD_ENV_VARS} == before
 
 
 def test_operation_development_plan_is_public_split_only_and_fail_closed() -> None:
