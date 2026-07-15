@@ -60,7 +60,10 @@ def crystallization_runtime_provider_contract() -> ModelProviderContract:
             "cooling rate remains inside the declared linear-ramp domain",
             "temperature history is monotonic and reaches the requested endpoint",
             "component and crystal-size-moment ledgers close within tolerance",
-            "growth-cap solver converges and a nonzero solution-to-solid transfer occurs",
+            (
+                "growth-cap solver converges; population and transfer requirements follow "
+                "the supplied execution policy"
+            ),
         ),
         diagnostic_fields=(
             "runtime_validated",
@@ -76,8 +79,8 @@ def crystallization_runtime_provider_contract() -> ModelProviderContract:
         ),
         failure_policy=(
             "fail closed without a runtime output for invalid feed or seed, excessive "
-            "cooling rate, absent population or transfer, solver non-convergence, or "
-            "component/particle ledger failure"
+            "cooling rate, solver non-convergence, or component/particle ledger failure; "
+            "absent population or transfer fail only when required by execution_spec"
         ),
         provenance=(
             "ChemWorld cooling_crystallization population-balance cohort model v1",
@@ -131,11 +134,19 @@ class ValidatedCrystallizationRuntimeProvider:
                 "liquid_composition_closed",
                 "particle_size_moment_closed",
                 "growth_solver_converged",
-                "crystal_population_formed",
-                "meaningful_transfer",
             )
             if diagnostics[key] is not True
         ]
+        if (
+            execution_spec.fail_on_no_population
+            and diagnostics["crystal_population_formed"] is not True
+        ):
+            failures.append("crystal_population_formed")
+        if (
+            execution_spec.fail_on_no_transfer
+            and diagnostics["meaningful_transfer"] is not True
+        ):
+            failures.append("meaningful_transfer")
         if failures:
             return _runtime_failed_result(
                 "runtime crystallization acceptance failed: " + ", ".join(failures),

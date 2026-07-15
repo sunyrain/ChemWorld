@@ -243,7 +243,7 @@ class ChemWorldCrystallizationServices:
             seed_mass_g=seed_mass_g,
             seed_diameter_m=100.0e-6,
         )
-        execution_spec = CrystallizationExecutionSpec.strict_runtime()
+        execution_spec = CrystallizationExecutionSpec.closed_loop_runtime()
         provider = self.runtime_provider
         if provider is None:
             from chemworld.physchem.crystallization_adapter_manifest import (

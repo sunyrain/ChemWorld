@@ -73,7 +73,9 @@ def test_formal_runtime_dynamically_calls_validated_population_balance_provider(
         assert len(provider.calls) == 1
         assert isinstance(provider.calls[0]["case"], CrystallizationGridCase)
         assert isinstance(provider.calls[0]["execution_spec"], CrystallizationExecutionSpec)
-        assert provider.calls[0]["execution_spec"].fail_on_no_transfer is True
+        assert provider.calls[0]["execution_spec"].fail_on_no_transfer is False
+        assert provider.calls[0]["execution_spec"].fail_on_no_population is False
+        assert provider.calls[0]["execution_spec"].fail_on_solver_nonconvergence is True
         execution = base.runtime.domain_services.crystallization.last_provider_execution
         assert execution["success"] is True
         assert execution["model_id"] == RUNTIME_MODEL_ID
@@ -179,10 +181,10 @@ def test_filter_consumes_validated_solid_and_closes_retention_ledger() -> None:
 
 
 @pytest.mark.parametrize(
-    "seed_mass_g,target_temperature_K,duration_s,expected_reason",
+    "seed_mass_g,target_temperature_K,duration_s,expected_reason,provider_called",
     [
-        (0.006, 278.15, 60.0, "maximum_cooling_rate"),
-        (1.0e-6, 278.15, 1800.0, "minimum_effective_seed_particles"),
+        (0.006, 278.15, 60.0, "maximum_cooling_rate", False),
+        (1.0e-6, 278.15, 1800.0, "minimum_effective_seed_particles", True),
     ],
 )
 def test_invalid_cooling_proposals_roll_back_without_crystal_state(
@@ -190,6 +192,7 @@ def test_invalid_cooling_proposals_roll_back_without_crystal_state(
     target_temperature_K: float,
     duration_s: float,
     expected_reason: str,
+    provider_called: bool,
 ) -> None:
     env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
     try:
@@ -214,8 +217,13 @@ def test_invalid_cooling_proposals_roll_back_without_crystal_state(
         assert base._state.species_amounts == pytest.approx(before.species_amounts)
         assert base._state.phases.to_dict() == before.phases.to_dict()
         execution = base.runtime.domain_services.crystallization.last_provider_execution
-        assert execution["success"] is False
-        assert expected_reason in execution["failure_reason"]
+        if provider_called:
+            assert execution["success"] is False
+            assert expected_reason in execution["failure_reason"]
+        else:
+            assert execution == {}
+            invalid_reasons = info["world_events"][0]["payload"]["invalid_reasons"]
+            assert "payload_coupling:maximum_cooling_rate_K_s" in invalid_reasons
         assert (
             equipment_settings(base._state.equipment, "crystallizer").get(
                 "crystallization_model_id"
@@ -241,17 +249,41 @@ def test_exhausted_target_rolls_back_and_does_not_fabricate_crystals() -> None:
                 "duration_s": 1800.0,
             }
         )
-        assert info["transaction_status"] == "validation_failed"
+        assert info["transaction_status"] == "rolled_back"
         assert base._state.species_amounts == pytest.approx(before.species_amounts)
         assert base._state.phases.to_dict() == before.phases.to_dict()
-        assert (
-            "positive total material"
-            in (
-                base.runtime.domain_services.crystallization.last_provider_execution[
-                    "failure_reason"
-                ]
-            )
+        assert base.runtime.domain_services.crystallization.last_provider_execution == {}
+        assert "cool_crystallize_requires_reaction_or_seed" in info[
+            "world_events"
+        ][0]["payload"]["failed_preconditions"]
+    finally:
+        env.close()
+
+
+def test_isothermal_negative_crystallization_is_a_committed_observation() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        env.reset(seed=0)
+        for action in REACTION_STEPS:
+            env.step(action)
+        base: Any = env.unwrapped
+        base._state = base._state.replace(temperature_K=320.0)
+        initial_temperature = base._state.temperature_K
+
+        _obs, _reward, _terminated, _truncated, info = env.step(
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": initial_temperature,
+                "duration_s": 1200.0,
+            }
         )
+
+        assert info["transaction_status"] == "committed"
+        execution = base.runtime.domain_services.crystallization.last_provider_execution
+        assert execution["success"] is True
+        assert execution["diagnostics"]["crystal_population_formed"] is False
+        assert execution["diagnostics"]["meaningful_transfer"] is False
+        assert base._state.process.metrics["crystal_yield"] == pytest.approx(0.0)
     finally:
         env.close()
 

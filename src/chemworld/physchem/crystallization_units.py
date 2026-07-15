@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from math import exp, isfinite, pi, sqrt
 
 R_J_PER_MOL_K = 8.31446261815324
+DEFAULT_MAXIMUM_COOLING_RATE_K_S = 0.25
 
 
 @dataclass(frozen=True)
@@ -125,7 +126,7 @@ class CrystallizationKineticsSpec:
 class CrystallizationExecutionSpec:
     """Numerical and physical acceptance policy for a formal PBM execution."""
 
-    maximum_cooling_rate_K_s: float = 0.25
+    maximum_cooling_rate_K_s: float = DEFAULT_MAXIMUM_COOLING_RATE_K_S
     minimum_target_amount_mol: float = 1.0e-10
     minimum_effective_seed_particles: float = 10.0
     minimum_crystallized_from_solution_mol: float = 1.0e-10
@@ -158,6 +159,22 @@ class CrystallizationExecutionSpec:
         return cls(
             fail_on_no_population=True,
             fail_on_no_transfer=True,
+            fail_on_solver_nonconvergence=True,
+        )
+
+    @classmethod
+    def closed_loop_runtime(cls) -> CrystallizationExecutionSpec:
+        """Fail on numerical invalidity while retaining valid negative experiments.
+
+        A closed-loop learner must be able to observe that a physically legal
+        cooling program produced no population or no material transfer.  Those
+        outcomes are data, not runtime-domain errors.  Solver nonconvergence
+        remains fail-closed.
+        """
+
+        return cls(
+            fail_on_no_population=False,
+            fail_on_no_transfer=False,
             fail_on_solver_nonconvergence=True,
         )
 

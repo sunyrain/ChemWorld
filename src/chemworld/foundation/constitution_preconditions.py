@@ -48,8 +48,15 @@ def check_operation_preconditions(
     )
     flow_settings = equipment_settings(state.equipment, "flow_reactor")
     potential_settings = equipment_settings(state.equipment, "electrochemical_cell")
+    reactor_settings = equipment_settings(state.equipment, "batch_reactor")
+    crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
     flow_ready = {"flow_rate_mL_min", "residence_time_s"} <= set(flow_settings)
     potential_ready = {"potential_V", "current_mA"} <= set(potential_settings)
+    crystallization_ready = (
+        int(reactor_settings.get("reaction_advance_index", 0)) > 0
+        or float(crystallizer_settings.get("seed_target_mol", 0.0))
+        > constitution.tolerance
+    )
     phase_operations = {
         "add_extractant",
         "mix",
@@ -147,6 +154,9 @@ def check_operation_preconditions(
         "terminate_requires_material": operation_type != "terminate" or has_material,
         "filter_requires_crystallization": operation_type != "filter_crystals"
         or crystallized,
+        "cool_crystallize_requires_reaction_or_seed": operation_type
+        != "cool_crystallize"
+        or crystallization_ready,
         "collect_fraction_requires_distillation": operation_type != "collect_fraction"
         or distillate_ready,
         "run_flow_requires_flow_setup": operation_type != "run_flow" or flow_ready,

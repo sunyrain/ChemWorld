@@ -169,6 +169,16 @@ def test_unconstrained_limit_matches_existing_vle_fenske_engine() -> None:
     _assert_closed(result)
 
 
+def test_zero_light_key_feed_has_finite_zero_recovery() -> None:
+    result = simulate_duty_limited_distillation(
+        _request(feed={"light": 0.0, "heavy": 1.0})
+    )
+
+    assert result.light_key_recovery == pytest.approx(0.0)
+    assert np.isfinite(result.heavy_key_recovery)
+    _assert_closed(result)
+
+
 def test_binary_fenske_and_underwood_diagnostics_are_explicit() -> None:
     result = simulate_duty_limited_distillation(_request())
 

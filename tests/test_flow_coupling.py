@@ -110,6 +110,7 @@ def test_flow_configuration_is_not_a_hidden_experiment() -> None:
         assert settings == {
             "flow_rate_mL_min": 1.2,
             "residence_time_s": 900.0,
+            "minimum_run_duration_s": 900.0,
         }
         assert configuration["configuration_revision"] == 1
         assert configuration["configuration_semantic"] == (
@@ -312,8 +313,32 @@ def test_flow_runtime_rejects_incomplete_residence_time() -> None:
         before = _physical_snapshot(env.unwrapped._state)
         info, _ = _run(env, duration_s=899.0)
 
-        assert info["transaction_status"] == "rolled_back"
+        assert info["transaction_status"] == "validation_failed"
+        assert "payload_bounds:duration_s" in info["world_events"][0]["payload"][
+            "invalid_reasons"
+        ]
         assert _physical_snapshot(env.unwrapped._state) == before
+    finally:
+        env.close()
+
+
+def test_flow_schema_publishes_effective_minimum_run_duration() -> None:
+    env = _charged_flow_env()
+    try:
+        _configure(env, residence_time_s=900.0)
+        schema = env.unwrapped.action_schema("run_flow")
+        duration = next(field for field in schema["fields"] if field["field"] == "duration_s")
+
+        assert duration["bounds"]["low"] == pytest.approx(900.0)
+        assert duration["state_dependent_bounds"] is True
+        accepted = env.unwrapped.validate_action(
+            {
+                "operation": "run_flow",
+                "target_temperature_K": 382.0,
+                "duration_s": 900.0,
+            }
+        )
+        assert accepted["valid"] is True
     finally:
         env.close()
 

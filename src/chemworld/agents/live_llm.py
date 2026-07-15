@@ -968,7 +968,13 @@ def _compact_action_affordance(action: dict[str, Any]) -> dict[str, Any]:
     public_schema = (
         {
             key: to_builtin(schema[key])
-            for key in ("operation", "required_fields", "fields")
+            for key in (
+                "schema_version",
+                "operation",
+                "required_fields",
+                "fields",
+                "constraints",
+            )
             if key in schema
         }
         if isinstance(schema, dict)

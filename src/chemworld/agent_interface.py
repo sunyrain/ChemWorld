@@ -16,6 +16,9 @@ from chemworld.data.logging import to_builtin
 from chemworld.envs.spaces import OBSERVATION_KEYS
 from chemworld.foundation import equipment_settings
 from chemworld.materials import material_choice_labels
+from chemworld.physchem.crystallization_units import (
+    DEFAULT_MAXIMUM_COOLING_RATE_K_S,
+)
 from chemworld.world.actions import CATALYSTS, SOLVENTS
 from chemworld.world.operations import (
     INSTRUMENTS,
@@ -24,6 +27,8 @@ from chemworld.world.operations import (
     OPERATION_TYPES,
     operation_contracts,
 )
+
+PUBLIC_ACTION_SCHEMA_VERSION = "chemworld-public-action-affordance-0.1"
 
 FIELD_UNITS: dict[str, str] = {
     "amount_mol": "mol",
@@ -283,6 +288,14 @@ def _field_schema(field: str, *, operation: str | None = None) -> dict[str, Any]
         low, high = bounds
         payload["bounds"] = {"low": low, "high": high}
         payload["recommended_range"] = {"low": low, "high": high}
+        payload["lower_bound_inclusive"] = not (
+            field in {"amount_mol", "catalyst_amount_mol", "sample_volume_L"}
+            or (
+                field == "volume_L"
+                and operation in {"add_solvent", "add_phase", "add_extractant"}
+            )
+        )
+        payload["upper_bound_inclusive"] = True
     operation_choices = (
         OPERATION_FIELD_CHOICES.get((operation, field)) if operation is not None else None
     )
@@ -326,16 +339,17 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
     contracts = operation_contracts()
     if operation not in contracts:
         return {
+            "schema_version": PUBLIC_ACTION_SCHEMA_VERSION,
             "operation": operation,
             "valid_operation_type": False,
             "error": f"Unknown operation {operation!r}",
         }
     contract = contracts[operation]
+    state = getattr(base, "_state", None)
     fields = [_field_schema(field, operation=operation) for field in contract.required_fields]
     for field in fields:
         field_name = str(field["field"])
         bounds = field.get("bounds")
-        state = getattr(base, "_state", None)
         if isinstance(bounds, dict) and state is not None:
             low, high = base.operation_validator.public_field_bounds(
                 operation,
@@ -359,7 +373,44 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
                 "choices": sorted(getattr(base, "allowed_instruments", set(INSTRUMENTS))),
             }
         ]
+    constraints: list[dict[str, Any]] = []
+    if operation == "cool_crystallize" and state is not None:
+        constraints.extend(
+            [
+                {
+                    "id": "cool_crystallize_requires_reaction_or_seed",
+                    "kind": "state_precondition",
+                    "description": (
+                        "Requires at least one committed reaction advance or a seed charge."
+                    ),
+                },
+                {
+                    "id": "payload_coupling:maximum_cooling_rate_K_s",
+                    "kind": "cross_field_upper_bound",
+                    "fields": ["target_temperature_K", "duration_s"],
+                    "relation": (
+                        "(current_temperature_K - target_temperature_K) / duration_s "
+                        "<= maximum_cooling_rate_K_s"
+                    ),
+                    "parameters": {
+                        "current_temperature_K": float(state.temperature_K),
+                        "maximum_cooling_rate_K_s": DEFAULT_MAXIMUM_COOLING_RATE_K_S,
+                    },
+                },
+            ]
+        )
+    if operation == "set_potential":
+        constraints.append(
+            {
+                "id": "payload_coupling:potential_within_voltage_window",
+                "kind": "absolute_value_upper_bound",
+                "fields": ["potential_V"],
+                "relation": "abs(potential_V) <= default_voltage_window_V",
+                "parameters": {"default_voltage_window_V": 2.5},
+            }
+        )
     return {
+        "schema_version": PUBLIC_ACTION_SCHEMA_VERSION,
         "operation": operation,
         "valid_operation_type": True,
         "module": contract.module,
@@ -367,6 +418,7 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
         "required_fields": list(contract.required_fields),
         "fields": fields,
         "preconditions": list(contract.preconditions),
+        "constraints": constraints,
         "task_allowed": operation in getattr(base, "allowed_operations", set(OPERATION_TYPES)),
         "notes": [
             "Use validate_action(action) before executing.",

@@ -875,9 +875,17 @@ def _result(
         required_theoretical_stages=fug.required_theoretical_stages,
         installed_equilibrium_stage_margin=(fug.installed_equilibrium_stage_margin),
         light_key_distillate_purity=light_purity,
-        light_key_recovery=(light_distillate / request.feed_amounts_mol[request.light_key]),
+        light_key_recovery=(
+            0.0
+            if request.feed_amounts_mol[request.light_key] <= 0.0
+            else light_distillate / request.feed_amounts_mol[request.light_key]
+        ),
         heavy_key_bottoms_purity=heavy_purity,
-        heavy_key_recovery=(heavy_bottoms / request.feed_amounts_mol[request.heavy_key]),
+        heavy_key_recovery=(
+            0.0
+            if request.feed_amounts_mol[request.heavy_key] <= 0.0
+            else heavy_bottoms / request.feed_amounts_mol[request.heavy_key]
+        ),
         sensible_heat_J=sensible_heat_J,
         latent_reboiler_duty_J=latent_duty_J,
         total_reboiler_duty_J=total_reboiler,

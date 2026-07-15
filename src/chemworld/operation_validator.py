@@ -7,6 +7,9 @@ from typing import Any
 
 from chemworld.action_codec import ActionCodec
 from chemworld.foundation import PhysicalConstitution, WorldState, equipment_settings
+from chemworld.physchem.crystallization_units import (
+    DEFAULT_MAXIMUM_COOLING_RATE_K_S,
+)
 from chemworld.schemas import validate_action_schema
 from chemworld.world.operations import (
     OPERATION_FIELD_BOUNDS,
@@ -168,6 +171,7 @@ class OperationValidator:
     ) -> tuple[float, float]:
         """Narrow a static schema to its current public feasibility domain."""
 
+        dynamic_low = low
         dynamic_high = high
         if operation_type in {"add_solvent", "add_phase", "add_extractant"} and field == "volume_L":
             dynamic_high = min(
@@ -187,7 +191,21 @@ class OperationValidator:
                 # the vessel is already colder exposes actions that can only
                 # fail inside the runtime.
                 dynamic_high = min(dynamic_high, state.temperature_K)
-        return low, max(low, dynamic_high)
+        elif operation_type == "run_flow" and field == "duration_s":
+            flow_settings = equipment_settings(state.equipment, "flow_reactor")
+            minimum_duration = self._float(
+                flow_settings.get("minimum_run_duration_s")
+            )
+            if minimum_duration is not None:
+                dynamic_low = max(dynamic_low, minimum_duration)
+        elif operation_type == "set_potential" and field == "potential_V":
+            # The public action uses the runtime's default 2.5 V cell window.
+            # Maintainer-only extended payloads may supply a wider explicit
+            # window, but an advertised public action must configure a cell
+            # that can subsequently be executed.
+            dynamic_low = max(dynamic_low, -2.5)
+            dynamic_high = min(dynamic_high, 2.5)
+        return dynamic_low, max(dynamic_low, dynamic_high)
 
     def operation_affordance(
         self,
@@ -417,12 +435,32 @@ class OperationValidator:
                 (operation_type, "duration_s"),
                 (0.0, 14_400.0),
             )
+            low, high = self.public_field_bounds(
+                operation_type,
+                "duration_s",
+                state,
+                low=low,
+                high=high,
+            )
             checks["payload_bounds:duration_s"] = self._in_range(
                 payload,
                 "duration_s",
                 low,
                 high,
                 inclusive_low=True,
+            )
+        if operation_type == "cool_crystallize" and {
+            "target_temperature_K",
+            "duration_s",
+        } <= payload.keys():
+            target_temperature = self._float(payload.get("target_temperature_K"))
+            duration = self._float(payload.get("duration_s"))
+            checks["payload_coupling:maximum_cooling_rate_K_s"] = (
+                target_temperature is not None
+                and duration is not None
+                and duration > 0.0
+                and max(state.temperature_K - target_temperature, 0.0) / duration
+                <= DEFAULT_MAXIMUM_COOLING_RATE_K_S + self.constitution.tolerance
             )
         if operation_type in {"heat", "wait", "mix"} and "stirring_speed_rpm" in payload:
             checks["payload_bounds:stirring_speed_rpm"] = self._in_range(
@@ -560,6 +598,14 @@ class OperationValidator:
                     0.1,
                     10.0,
                     inclusive_low=True,
+                )
+            if "potential_V" in payload:
+                potential = self._float(payload.get("potential_V"))
+                voltage_window = self._float(payload.get("voltage_window_V", 2.5))
+                checks["payload_coupling:potential_within_voltage_window"] = (
+                    potential is not None
+                    and voltage_window is not None
+                    and abs(potential) <= voltage_window
                 )
         return checks
 

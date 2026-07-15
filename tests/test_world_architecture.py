@@ -1601,7 +1601,11 @@ def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> 
         assert "equipment" in flow_info["affected_ledgers"]
         assert "flow_rate_mL_min" not in flow_state.metadata
         assert "residence_time_s" not in flow_state.metadata
-        assert flow_settings == {"flow_rate_mL_min": 1.2, "residence_time_s": 900.0}
+        assert flow_settings == {
+            "flow_rate_mL_min": 1.2,
+            "residence_time_s": 900.0,
+            "minimum_run_duration_s": 900.0,
+        }
         assert flow_env.unwrapped.constitution.check_state(flow_state).passed
         _, _, _, _, flow_run_info = flow_env.step(
             {"operation": "run_flow", "target_temperature_K": 382.0, "duration_s": 1800.0}

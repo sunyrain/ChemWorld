@@ -198,6 +198,23 @@ def test_fraction_collection_preserves_bottoms_remainder_and_prior_cuts() -> Non
         env.close()
 
 
+def test_small_fraction_uses_selected_phase_for_pressure_and_commits() -> None:
+    env = _distill()
+    try:
+        _, _, _, _, info = env.step(
+            {"operation": "collect_fraction", "transfer_fraction": 1.0e-4}
+        )
+
+        state = _runtime(env)._state
+        assert info["transaction_status"] == "committed"
+        assert state.phases.phases["collected_fraction"].selected is True
+        assert _runtime(env).constitution.check_state(state).passed
+        vessel = state.vessels.vessels[state.vessel_id]
+        assert state.pressure_Pa <= vessel.max_pressure_Pa
+    finally:
+        env.close()
+
+
 def test_fraction_collection_before_distillation_fails_without_material_mutation() -> None:
     env = _prepare_feed()
     try:
@@ -214,4 +231,3 @@ def test_fraction_collection_before_distillation_fails_without_material_mutation
         assert after.volume_L == before.volume_L
     finally:
         env.close()
-

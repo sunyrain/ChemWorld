@@ -101,6 +101,9 @@ class ChemWorldFlowServices:
             "flow_reactor:configuration",
         )
         revision = int(previous_configuration.get("configuration_revision", 0)) + 1
+        minimum_run_duration = residence * self.world.domain_parameter(
+            "flow_residence_multiplier"
+        )
         records = {} if state.equipment is None else state.equipment.equipment.copy()
         records["flow_reactor"] = EquipmentRecord(
             equipment_id="flow_reactor",
@@ -110,6 +113,7 @@ class ChemWorldFlowServices:
             settings={
                 "flow_rate_mL_min": flow_rate,
                 "residence_time_s": residence,
+                "minimum_run_duration_s": minimum_run_duration,
             },
         )
         equipment = upsert_equipment_record(
@@ -161,8 +165,12 @@ class ChemWorldFlowServices:
             or not 0.01 <= configured_flow_rate <= 20.0
         ):
             raise RuntimeError("stored flow configuration is outside its declared domain")
-        residence = configured_residence * self.world.domain_parameter(
-            "flow_residence_multiplier"
+        residence = float(
+            flow_settings.get(
+                "minimum_run_duration_s",
+                configured_residence
+                * self.world.domain_parameter("flow_residence_multiplier"),
+            )
         )
         flow_rate = configured_flow_rate
         duration = _bounded_action_float(
