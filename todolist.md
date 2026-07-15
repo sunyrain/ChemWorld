@@ -20,7 +20,8 @@
 | 旧 SAC | pre-v0.4.8 运行完成 19/20 jobs、产生 99/100 checkpoints、评价 95 个，旧 eligibility 仅 13 个且结晶任务为 0；约 199 万环境步全部标记为 `quarantined_incomplete_stale_contract` | 不恢复、不进入当前 index、不形成 benchmark claim；必须按当前合同重训 |
 | 当前 PPO | `099028d` 当前合同 preflight 已按预注册规则完成并以负结果关闭：4 个任务均完成 step-0/25,600-step 配对，3/4 有学习信号，行为完成数 11 → 254，但 runtime-domain failures 11 → 31，结晶任务训练后仍 0 次行为完成；102,400 训练步、8 个 checkpoint 均可干净加载且精确回放 | `full_matrix_allowed=false`，20-run 矩阵未启动、0 checkpoint 入选、`ppo_method_ready=false`。`fa546e5` 已修复其暴露的共享可行域与结晶负实验语义；这再次改变 backend/action 合同和部分 golden score。不得沿用旧 checkpoint 或只重抽 seed；先基于新 source/hash 重新封存一次有界 step-0 versus trained preflight |
 | 当前 SAC | current-contract preflight 已按与 PPO 对称的门禁完成并以负结果关闭：102,400 训练步、8 个 checkpoint、16 次 Dev evaluation 均通过干净加载与精确回放；仅 partition 1/4 任务出现学习信号，行为完整实验 21 → 9，runtime-domain failures 41 → 559，其中 flow 训练后为 501 | `full_matrix_allowed=false`，完整 20-run 矩阵未启动、0 checkpoint 入选、`sac_method_ready=false`；旧 199 万步继续隔离。`fa546e5` 已把 flow 的有效最短时长公开并在验证层拒绝不足一个停留时间的动作；先做新合同短探针，若仍无法达到预注册学习与全任务 operational 门禁，则 SAC 作为负结果退出正式方法清单 |
-| 真实 LLM | `4949403` 上 v0.4.10 严格运行 1/6：只启动 `live_llm_a/assigned`，10 operations/requests、0 retry、54,546 input + 13,599 output tokens、0.034620 USD、233.90 s；0 非法动作/前置条件失败/安全违规，完整实验、账本与 10 步零误差回放通过。第 5 步 HPLC 后模型据谱图选择加晶种，第 7 步冷却结晶成功提交；`total_score=0.366305`、`final_best=0.477341`，但单 cell 不是性能比较 | v0.4.10 已冻结为 `benchmark_claim_allowed=false` 的 source-bound 可执行性诊断，不续跑剩余 5 cells。轨迹发现通用 `decision_audit` 漏掉已存在于 agent trace 的公开谱图解读/历史请求字段；`23c9361` 已修复并隔离为 v0.4.11，64 项相关回归通过、2 项旧 operation-freeze 断言按预期因旧 source 失效。v0.4.11 无 key dry-run 通过；当前不再付费扩矩阵 |
+| 真实 LLM | `4949403` 上 v0.4.10 严格运行 1/6：只启动 `live_llm_a/assigned`，10 operations/requests、0 retry、54,546 input + 13,599 output tokens、0.034620 USD、233.90 s；0 非法动作/前置条件失败/安全违规，完整实验、账本与 10 步零误差回放通过。第 5 步 HPLC 后模型据谱图选择加晶种，第 7 步冷却结晶成功提交；`total_score=0.366305`、`final_best=0.477341`，但单 cell 不是性能比较 | v0.4.10 已冻结为 `benchmark_claim_allowed=false` 的 source-bound 可执行性诊断，不续跑剩余 5 cells。轨迹发现通用 `decision_audit` 漏掉已存在于 agent trace 的公开谱图解读/历史请求字段；`23c9361` 已修复并隔离为 v0.4.11，64 项相关回归通过。该改动曾使旧 operation freeze 正确失配，现已由独立 v0.4.1 freeze 与测试替代。v0.4.11 无 key dry-run 通过；当前不再付费扩矩阵 |
+| operation controls | v0.4.1 已重建三种方法的 source-bound freeze、开发计划、独立缓存和报告命名；`b634c1d` 后的冻结审计 3/3 ready，旧 v0.4 配置/报告保持历史只读。`710d252` 冻结 24-cell 小规模 Train/Dev 预检：24/24 完成，全部账本、决策审计、主指标与确定性复跑通过，blind/rule 非法操作为 0，random 的 2 次 runtime rejection 原样保留；未访问 Bench/reference | 首次 12 workers 预检暴露 BLAS 递归扩线程导致内存分配失败，`656d651` 已在 runner 内固定每 worker 1 个 numeric thread 并恢复调用者环境；随后无手工环境变量、12 workers 复验通过。该报告明确 `formal_operation_baselines_ready=false`，只签发同一 v0.4.1 合同的 288-cell × 40-experiment 正式开发重认证，不得沿用旧 v0.4 分数 |
 | 开源 VLM | 确定性谱图图像合同 0.1 已通过审计：PNG/信号/公开包/渲染合同均有摘要，历史目录强制为纯元数据，只有显式取回的历史谱图可进入图像输入；未下载或运行模型；未来推理依赖已从主环境锁隔离 | 推理依赖、模型与 processor revision 尚未封存；仅在 P4 之后先做一个 Dev 任务的学习价值试点，未通过不得扩矩阵 |
 | 环境锁 | VLM 临时 extra 已完全移除，`uv.lock` 精确恢复到 VLM 前 `099028d` 的 179 包摘要；但该摘要与 P0 `be4e38f` 的 178 包 portable-release 证明不同，漂移在 VLM 任务之前已由后续 RL 依赖产生 | 不回写历史 P0 报告；待 P3 方法依赖稳定后执行 `benchmark-v05-portable-release-reattestation`，在此之前不得签发正式 Bench source/wheel manifest |
 | 正式证据 | `benchmark_claim_allowed=false`，reference/Bench/P4 均未开始 | P3 全部封存并通过 method freeze 后，严格执行 reference → base matrix → independent reproduction |
@@ -206,13 +207,14 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - 结果：八种 recipe-level 方法均由唯一、source-bound 的 formal adapter 注册；GP/RF/Safe-GP 对溶剂、催化剂等名义类别使用 one-hot，greedy local 只对连续坐标作局部扰动并以无序类别突变探索材料，LHS 对名义类别只作平衡分层而不建立距离模型。开发矩阵已在当前 formal protocol canonical digest 下重新执行，严格使用 4 个 Train seed 与完整 20 个 Dev seed，覆盖 4 个 core task、40 次完整实验，共 768 cells、30,720 次完整实验和 307,200 次显式操作；768/768 完成、0 invalid action、资源账本全部完整，32/32 预注册双跑确定性一致。五种 surrogate 方法共实际执行 17,280 次 fit 与 17,280 次 acquisition optimization；Safe-GP 在 96 个 cell 中有 95 个实际收缩可行候选集或触发最低风险 fallback，其余一个 cell 的全部候选均满足风险上界。所有方法的 4/8/12/20/40 预算曲线均非退化。只按 Dev 规则选出 design=`lhs`、local search=`greedy_local`、Bayesian optimization=`structured_gp_ucb`、constrained optimization=`structured_safe_gp_ei`；没有访问 Bench 或 reference-search。旧 Safe-GP confirmatory freeze 因策略源码升级而按设计 fail-closed，其历史 Bench 结果不继承到 v0.4；完整开发证据见 `classic-dev-v0.4.json`。
   - 验收：每种方法的能力、失败域、复杂度和资源 ledger 完整；不使用 Bench/reference 反馈。
 
-- [x] **`benchmark-v05-operation-baselines` — operation-level 盲控制与规则基线封存**
-  - 默认 owned_paths：operation baseline adapter、`configs/methods/operation_v0.4/`、对应测试与 `workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.json`。
+- [ ] **`benchmark-v05-operation-baselines` — operation-level 盲控制与规则基线封存**
+  - 默认 owned_paths：operation baseline adapter、`configs/methods/operation_v0.4.1/`、对应测试与 `workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.1.json`；v0.4 同名资产只作历史证据。
   - 依赖：P2 preflight 与 interaction strata。
   - [x] 实现 operation-random、observation-blind 与 rule-based，三者只使用声明的公开 affordance/观测，不读取 hidden state 或私有 Bench。
   - [x] 固定 terminal assay 活性、动态操作边界和 closeout 预算，禁止 runner 静默修复；随机负控制的非法尝试必须保留并计账，盲控制与规则基线必须为零非法操作。
-  - [x] 在 4 个 core task、4 个 Train seed、20 个 Dev seed、每 cell 40 次完整实验上运行 288-cell 开发矩阵，并检查确定性回放、决策审计、动作多样性、规则测量适应与资源账本。
-  - 结果：288/288 cells 完成，全部主指标、决策审计和资源账本闭合；预注册确定性复跑全部一致。operation-random 保留并报告 1,563 次非法操作，observation-blind 与 rule-based 均为 0；规则方法在四个任务上均实际使用公开测量进行适应。未访问 Bench 或 reference-search，正式状态为 `formal_operation_baselines_ready`。
+  - [x] v0.4.1 冻结与 24-cell preflight：三种 method artifact/source binding 全部 ready；1 个 Train seed + 1 个 Dev seed × 4 tasks × 3 methods × 2 complete experiments 全部完成，回放、账本、决策审计、动作多样性和规则测量适应全部通过。12-process runner 固定每 worker 1 个 numeric thread 后无 OpenBLAS 资源错误；报告保持 `development_diagnostic_only`，不冒充正式矩阵。
+  - [ ] 在当前 v0.4.1 source 上完成 4 个 core task、4 个 Train seed、20 个 Dev seed、每 cell 40 次完整实验的 288-cell 开发重认证；必须从干净 commit 启动并保持 blind/rule 零非法、random rejection 原样计账、确定性回放、决策审计、主指标和资源账本全部闭合。
+  - 历史结果：旧 v0.4 的 288/288 cells 曾完成，operation-random 报告 1,563 次非法操作、observation-blind/rule-based 为 0，但它绑定旧 backend/action source，只证明历史实现，不进入当前方法冻结。当前可主张证据止于 `operation-baselines-preflight-v0.4.1.json` 的 24-cell 执行门禁。
   - 验收：三种方法的 freeze、source/hash-bound adapter、完整开发证据和 interaction registration 均已进入 fail-closed method-freeze 审计。
 
 - [ ] **`benchmark-v05-rl-adapters` — PPO/SAC 正式适配、训练与 checkpoint 封存**
@@ -260,7 +262,7 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 - [ ] **`benchmark-v05-method-freeze` — 方法清单与 Bench 解封**
   - 默认 owned_paths：`configs/benchmark/method_freeze_v0.4.json`、`scripts/audit_method_freeze_v0.4.py`、`tests/test_method_freeze_v0.4.py`、`workstreams/benchmark_v1/reports/method-freeze-v0.4.json`。
   - 依赖：所有计划进入正式比较的方法完成 P3；未完成方法必须明确退出，不拖着空实现进入矩阵。
-  - 当前预检：fail-closed 方法冻结审计器与 19 项 hash-bound 输入合同已经落地；历史报告为 `method_freeze_preflight_blocked`，但不能在新语义边界上直接沿用其 blocker 数量。三种 operation baseline 与 768-cell Classic 矩阵都曾在旧 source 上完整通过；Classic adapter freeze 目前仍可验证其方法实现摘要，但旧性能矩阵不能跨 backend 语义继承。operation freeze 已在当前源码精确 fail closed：三种方法均报告 `agent_interface.py`、`interaction.py`、`operation_validator.py` source mismatch；因此旧测试中“freeze 应 ready”的两项断言已经过时。PPO/SAC checkpoint、LLM 完整 candidate/Dev、重跑后的经典/operation 开发证据和正式资源硬预算仍未同时落地；Bench 继续封存。待 P3 source 稳定后必须重生成方法冻结报告，不能修补旧摘要或使用 `--force`。
+  - 当前预检：fail-closed 方法冻结审计器与 19 项 hash-bound 输入合同已经落地；历史报告为 `method_freeze_preflight_blocked`，但不能在新语义边界上直接沿用其 blocker 数量。operation v0.4.1 freeze 已在当前源码恢复为 3/3 ready，旧 freeze 失配测试也已由版本化重认证替代；24-cell 执行门禁通过，但 288-cell × 40-experiment 当前开发证据仍未生成。Classic adapter freeze 目前仍可验证实现摘要，其旧性能矩阵不能跨 backend 语义继承。PPO/SAC checkpoint、LLM 完整 candidate/Dev、当前 classic/operation 完整开发证据和正式资源硬预算仍未同时落地；Bench 继续封存。待 P3 source 稳定后必须重生成方法冻结报告，不能修补旧摘要或使用 `--force`。
   - [ ] 固定方法 IDs、family、interaction stratum、hyperparameters、checkpoint/prompt hashes、Dev 选择依据和资源上限。
   - [x] 核实 reference builder 与所有 evaluated method 身份、代码和随机数流独立。
   - [ ] 锁定 run count/预计算力/API 费用，并由 preflight 签发 Bench manifest。
@@ -349,4 +351,4 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
 
 ## 推荐执行顺序
 
-`fa546e5` 后的一个 v0.4.10 LLM fresh cell 已完成，v0.4.11 公开谱图审计修复也已离线就绪；当前暂停更多付费调用。下一步由 PPO/SAC 各自重建 source/hash-bound 的小规模 step-0 versus trained preflight，仍不得直接扩成完整矩阵；并行清理旧 operation/classic freeze 的失效测试与开发证据，但必须重跑而非改 hash。通过者再完成 P3 封存，失败者按负结果退出，随后执行 portable-release reattestation 与 method freeze。P4 必须严格按“reference evidence → base matrix → reproduction”串行；P5 的三个实验可在 P4 通过后并行；P6 最后串行审计和发布。
+`fa546e5` 后的一个 v0.4.10 LLM fresh cell 已完成，v0.4.11 公开谱图审计修复也已离线就绪；当前暂停更多付费调用。operation v0.4.1 的 freeze 与 24-cell 预检已经通过，下一步可在后台执行唯一签发的 288-cell × 40-experiment 开发重认证；同时由 PPO/SAC 各自重建 source/hash-bound 的小规模 step-0 versus trained preflight，仍不得直接扩成完整矩阵，并对 classic 旧开发证据做同样版本化重认证。通过者完成 P3 封存，失败者按负结果退出，随后执行 portable-release reattestation 与 method freeze。P4 必须严格按“reference evidence → base matrix → reproduction”串行；P5 的三个实验可在 P4 通过后并行；P6 最后串行审计和发布。
