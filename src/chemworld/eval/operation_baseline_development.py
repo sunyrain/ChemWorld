@@ -578,6 +578,7 @@ def run_operation_baseline_development_audit(
     freeze_audit = audit_operation_method_freeze(freeze)
     if plan_audit["plan_ready"] is not True or freeze_audit["controls_ready"] is not True:
         raise RuntimeError("operation development controls must pass before execution")
+    source_commit = _git_commit()
     source_tree_clean_at_start = _git_tree_clean()
     cells = build_operation_development_cells(
         tasks=tasks,
@@ -586,6 +587,8 @@ def run_operation_baseline_development_audit(
         dev_seeds=dev_seeds,
         complete_experiments=complete_experiments,
     )
+    if any(cell.source_commit != source_commit for cell in cells):
+        raise RuntimeError("source commit changed while operation cells were being issued")
     if workers is not None and workers < 1:
         raise ValueError("workers must be positive")
     worker_count = workers or max(1, min(12, (os.cpu_count() or 2) - 1))
@@ -671,7 +674,18 @@ def run_operation_baseline_development_audit(
             rule_adaptation_controls_pass,
         )
     )
-    formal_ready = full_scope and source_tree_clean_at_start and method_controls_pass
+    source_commit_before_report = _git_commit()
+    source_commit_stable = source_commit_before_report == source_commit
+    source_tree_clean_before_report = _git_tree_clean()
+    formal_ready = all(
+        (
+            full_scope,
+            source_tree_clean_at_start,
+            source_commit_stable,
+            source_tree_clean_before_report,
+            method_controls_pass,
+        )
+    )
     protocol = load_formal_protocol()
     report = {
         "schema_version": OPERATION_DEVELOPMENT_VERSION,
@@ -682,8 +696,11 @@ def run_operation_baseline_development_audit(
         "bench_results_present": False,
         "reference_search_results_used": False,
         "split_scope": ["train", "dev"],
-        "source_commit": _git_commit(),
+        "source_commit": source_commit,
+        "source_commit_before_report": source_commit_before_report,
+        "source_commit_stable": source_commit_stable,
         "source_tree_clean_at_start": source_tree_clean_at_start,
+        "source_tree_clean_before_report": source_tree_clean_before_report,
         "formal_protocol_sha256": canonical_sha256(protocol),
         "operation_freeze_sha256": canonical_sha256(freeze),
         "operation_development_plan_sha256": canonical_sha256(plan),
@@ -706,6 +723,8 @@ def run_operation_baseline_development_audit(
         "acceptance": {
             "full_preregistered_development_scope": full_scope,
             "source_tree_clean_at_start": source_tree_clean_at_start,
+            "source_commit_stable": source_commit_stable,
+            "source_tree_clean_before_report": source_tree_clean_before_report,
             "all_method_controls_pass": method_controls_pass,
             "all_cells_complete": all_cells_complete,
             "all_primary_values_complete": all_primary_values_complete,

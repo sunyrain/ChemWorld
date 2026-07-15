@@ -5,6 +5,9 @@ import json
 import os
 from pathlib import Path
 
+import pytest
+
+import chemworld.eval.operation_baseline_development as operation_development
 from chemworld.agents.task_recipes import task_recipe_event_count
 from chemworld.eval.operation_baseline_development import (
     DEFAULT_REPORT_PATH,
@@ -144,6 +147,30 @@ def test_partial_operation_development_is_resumable_and_never_formal(tmp_path) -
     assert first["acceptance"]["nonrandom_invalid_controls_pass"] is True
     assert first["acceptance"]["rule_measurement_adaptation_controls_pass"] is True
     assert first["acceptance"]["operation_random_invalid_actions_retained"] is True
+    assert first["source_commit_stable"] is True
+    assert first["source_commit"] == first["source_commit_before_report"]
+    assert {cell["source_commit"] for cell in first["cells"]} == {
+        first["source_commit"]
+    }
+
+
+def test_operation_development_rejects_head_drift_during_cell_issuance(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    commits = iter(("a" * 40, "b" * 40))
+    monkeypatch.setattr(operation_development, "_git_commit", lambda: next(commits))
+
+    with pytest.raises(RuntimeError, match="source commit changed"):
+        run_operation_baseline_development_audit(
+            tasks=("partition-discovery",),
+            train_seeds=(10_000,),
+            dev_seeds=(11_000,),
+            complete_experiments=2,
+            workers=1,
+            cache_root=tmp_path / "cache",
+            report_path=None,
+        )
 
 
 def test_frozen_full_operation_report_passes_without_bench_or_reference_feedback() -> None:
