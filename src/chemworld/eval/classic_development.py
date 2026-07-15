@@ -8,8 +8,9 @@ import math
 import os
 import subprocess
 from collections import defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from statistics import fmean
@@ -27,11 +28,35 @@ from chemworld.tasks import get_task
 from chemworld.world.world_family import axes_for_task
 
 ROOT = Path(__file__).resolve().parents[3]
-CLASSIC_DEVELOPMENT_VERSION = "chemworld-classic-development-audit-0.4"
+CLASSIC_DEVELOPMENT_VERSION = "chemworld-classic-development-audit-0.4.1"
 DEFAULT_REPORT_PATH = (
-    ROOT / "workstreams" / "benchmark_v1" / "reports" / "classic-dev-v0.4.json"
+    ROOT / "workstreams" / "benchmark_v1" / "reports" / "classic-dev-v0.4.1.json"
 )
 FORMAL_CHECKPOINTS = (4, 8, 12, 20, 40)
+NUMERIC_THREAD_ENV_VARS = (
+    "OPENBLAS_NUM_THREADS",
+    "OMP_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "NUMEXPR_NUM_THREADS",
+)
+NUMERIC_THREADS_PER_WORKER = 1
+
+
+@contextmanager
+def _numeric_worker_environment() -> Iterator[None]:
+    """Prevent process workers from recursively oversubscribing numeric threads."""
+
+    previous = {name: os.environ.get(name) for name in NUMERIC_THREAD_ENV_VARS}
+    try:
+        for name in NUMERIC_THREAD_ENV_VARS:
+            os.environ[name] = str(NUMERIC_THREADS_PER_WORKER)
+        yield
+    finally:
+        for name, value in previous.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
 
 
 def _default_cache_root() -> Path:
@@ -43,7 +68,7 @@ def _default_cache_root() -> Path:
     path = Path(raw)
     if not path.is_absolute():
         path = (ROOT / path).resolve()
-    return path / "chemworld-private" / "classic-dev-v0.4"
+    return path / "chemworld-private" / "classic-dev-v0.4.1"
 
 
 DEFAULT_CACHE_ROOT = _default_cache_root()
@@ -398,6 +423,8 @@ def run_classic_development_audit(
     freeze_audit = audit_classic_method_freeze(freeze)
     if freeze_audit["controls_ready"] is not True:
         raise RuntimeError("classic freeze must pass before development execution")
+    source_commit = _git_commit()
+    source_tree_clean_at_start = _git_tree_clean()
     cells = build_development_cells(
         tasks=tasks,
         methods=methods,
@@ -405,12 +432,19 @@ def run_classic_development_audit(
         dev_seeds=dev_seeds,
         complete_experiments=complete_experiments,
     )
+    if any(cell.source_commit != source_commit for cell in cells):
+        raise RuntimeError("source commit changed while classic cells were being issued")
+    if workers is not None and workers < 1:
+        raise ValueError("workers must be positive")
     worker_count = workers or max(1, min(12, (os.cpu_count() or 2) - 1))
     rows: list[dict[str, Any]] = []
     if worker_count == 1:
         rows = [_run_development_cell(cell, str(cache_root)) for cell in cells]
     else:
-        with ProcessPoolExecutor(max_workers=worker_count) as executor:
+        with (
+            _numeric_worker_environment(),
+            ProcessPoolExecutor(max_workers=worker_count) as executor,
+        ):
             futures = {
                 executor.submit(_run_development_cell, cell, str(cache_root)): cell
                 for cell in cells
@@ -447,19 +481,33 @@ def run_classic_development_audit(
         and (summary["safe_constraint_effective"] is not False)
         for summary in summaries.values()
     )
+    source_commit_before_report = _git_commit()
+    source_commit_stable = source_commit_before_report == source_commit
+    source_tree_clean_before_report = _git_tree_clean()
+    formal_ready = all(
+        (
+            full_scope,
+            source_tree_clean_at_start,
+            source_commit_stable,
+            source_tree_clean_before_report,
+            method_controls_pass,
+        )
+    )
     protocol = load_formal_protocol()
     report = {
         "schema_version": CLASSIC_DEVELOPMENT_VERSION,
         "status": (
-            "formal_classic_matrix_ready"
-            if full_scope and method_controls_pass
-            else "development_diagnostic_only"
+            "formal_classic_matrix_ready" if formal_ready else "development_diagnostic_only"
         ),
-        "formal_classic_matrix_ready": full_scope and method_controls_pass,
+        "formal_classic_matrix_ready": formal_ready,
         "bench_results_present": False,
         "reference_search_results_used": False,
         "split_scope": ["train", "dev"],
-        "source_commit": _git_commit(),
+        "source_commit": source_commit,
+        "source_commit_before_report": source_commit_before_report,
+        "source_commit_stable": source_commit_stable,
+        "source_tree_clean_at_start": source_tree_clean_at_start,
+        "source_tree_clean_before_report": source_tree_clean_before_report,
         "formal_protocol_sha256": canonical_sha256(protocol),
         "classic_freeze_sha256": canonical_sha256(freeze),
         "tasks": list(tasks),
@@ -469,12 +517,18 @@ def run_classic_development_audit(
         "complete_experiments_per_cell": complete_experiments,
         "cell_count": len(rows),
         "worker_count": worker_count,
+        "numeric_threads_per_worker": (
+            NUMERIC_THREADS_PER_WORKER if worker_count > 1 else None
+        ),
         "cache_root_role": "git_private_resumable_development_cache",
         "method_summaries": summaries,
         "family_champions": champions,
         "selection_rule": freeze["selection_rule"],
         "acceptance": {
             "full_preregistered_development_scope": full_scope,
+            "source_tree_clean_at_start": source_tree_clean_at_start,
+            "source_commit_stable": source_commit_stable,
+            "source_tree_clean_before_report": source_tree_clean_before_report,
             "all_method_controls_pass": method_controls_pass,
             "all_cells_complete": all(
                 int(row["complete_experiment_count"]) == complete_experiments for row in rows
@@ -507,10 +561,20 @@ def _git_commit() -> str:
     ).strip()
 
 
+def _git_tree_clean() -> bool:
+    return not subprocess.check_output(
+        ["git", "status", "--porcelain", "--untracked-files=normal"],
+        cwd=ROOT,
+        text=True,
+    ).strip()
+
+
 __all__ = [
     "CLASSIC_DEVELOPMENT_VERSION",
     "DEFAULT_CACHE_ROOT",
     "DEFAULT_REPORT_PATH",
+    "NUMERIC_THREADS_PER_WORKER",
+    "NUMERIC_THREAD_ENV_VARS",
     "DevelopmentCell",
     "build_development_cells",
     "run_classic_development_audit",
