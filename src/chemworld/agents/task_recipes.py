@@ -12,7 +12,13 @@ from typing import Any
 
 import numpy as np
 
-TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-0.2"
+TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-0.3"
+
+# Formal world-family interventions may multiply a configured flow residence
+# time by at most 1.75 (extrapolation severity +1).  Complete-recipe baselines
+# cannot inspect the post-configuration affordance between their compiled
+# steps, so the public recipe mapping reserves that worst-case duration.
+FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER = 1.75
 
 _CONSERVATIVE_BASE_VECTORS = {
     "equilibrium": (0.5, 0.12, 0.12, 0.5),
@@ -301,6 +307,12 @@ def _partition_steps(values: np.ndarray) -> list[dict[str, Any]]:
 
 
 def _flow_steps(values: np.ndarray) -> list[dict[str, Any]]:
+    residence_time_s = _scale(values[5], 180.0, 2400.0)
+    requested_duration_s = _scale(values[7], 600.0, 3600.0)
+    run_duration_s = max(
+        requested_duration_s,
+        residence_time_s * FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER,
+    )
     return [
         {
             "operation": "add_solvent",
@@ -316,12 +328,12 @@ def _flow_steps(values: np.ndarray) -> list[dict[str, Any]]:
         {
             "operation": "set_flow_rate",
             "flow_rate_mL_min": _scale(values[4], 0.2, 4.0),
-            "residence_time_s": _scale(values[5], 180.0, 2400.0),
+            "residence_time_s": residence_time_s,
         },
         {
             "operation": "run_flow",
             "target_temperature_K": _scale(values[6], 330.0, 430.0),
-            "duration_s": _scale(values[7], 600.0, 3600.0),
+            "duration_s": run_duration_s,
         },
         {"operation": "measure", "instrument": "uvvis"},
         {"operation": "terminate"},
@@ -367,6 +379,7 @@ def _equilibrium_steps(values: np.ndarray) -> list[dict[str, Any]]:
 
 
 __all__ = [
+    "FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER",
     "TASK_RECIPE_SPACE_VERSION",
     "sample_conservative_task_recipe",
     "sample_task_recipe",

@@ -29,6 +29,10 @@ from chemworld.world.world_family import axes_for_task
 
 ROOT = Path(__file__).resolve().parents[3]
 CLASSIC_DEVELOPMENT_VERSION = "chemworld-classic-development-audit-0.4.1"
+CLASSIC_DEVELOPMENT_PLAN_VERSION = "chemworld-classic-development-plan-0.4.1"
+DEFAULT_PLAN_PATH = (
+    ROOT / "configs" / "methods" / "classic_v0.4.1" / "classic_development_plan.json"
+)
 DEFAULT_REPORT_PATH = (
     ROOT / "workstreams" / "benchmark_v1" / "reports" / "classic-dev-v0.4.1.json"
 )
@@ -72,6 +76,102 @@ def _default_cache_root() -> Path:
 
 
 DEFAULT_CACHE_ROOT = _default_cache_root()
+
+
+def load_classic_development_plan(
+    path: str | Path = DEFAULT_PLAN_PATH,
+) -> dict[str, Any]:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("classic development plan must be a JSON object")
+    if payload.get("schema_version") != CLASSIC_DEVELOPMENT_PLAN_VERSION:
+        raise ValueError("classic development plan schema is unsupported")
+    return payload
+
+
+def audit_classic_development_plan(
+    plan: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    resolved = load_classic_development_plan() if plan is None else plan
+    reasons: list[str] = []
+    if resolved.get("status") != "preregistered_bench_unseen":
+        reasons.append("status_invalid")
+    if resolved.get("bench_access_allowed") is not False:
+        reasons.append("bench_access_guard_invalid")
+    if resolved.get("reference_search_access_allowed") is not False:
+        reasons.append("reference_access_guard_invalid")
+    if resolved.get("method_freeze_path") != (
+        "configs/methods/classic_v0.4.1/classic_methods.json"
+    ):
+        reasons.append("method_freeze_path_mismatch")
+    if resolved.get("task_ids") != list(CORE_TASKS):
+        reasons.append("task_set_or_order_mismatch")
+    freeze = load_classic_method_freeze()
+    if resolved.get("method_ids") != sorted(freeze["methods"]):
+        reasons.append("method_set_or_order_mismatch")
+    preflight = resolved.get("preflight_scope")
+    if not isinstance(preflight, Mapping):
+        reasons.append("preflight_scope_missing")
+    else:
+        if preflight.get("train_seeds") != [10_000]:
+            reasons.append("preflight_train_seed_mismatch")
+        if preflight.get("dev_seeds") != [11_000]:
+            reasons.append("preflight_dev_seed_mismatch")
+        if preflight.get("complete_experiments_per_cell") != 8:
+            reasons.append("preflight_budget_mismatch")
+        if preflight.get("expected_cell_count") != 64:
+            reasons.append("preflight_cell_count_mismatch")
+    formal = resolved.get("formal_scope")
+    if not isinstance(formal, Mapping):
+        reasons.append("formal_scope_missing")
+    else:
+        if formal.get("train_seeds") != {"start": 10_000, "stop_inclusive": 10_003}:
+            reasons.append("formal_train_seed_mismatch")
+        if formal.get("dev_seeds") != {"start": 11_000, "stop_inclusive": 11_019}:
+            reasons.append("formal_dev_seed_mismatch")
+        if formal.get("complete_experiments_per_cell") != 40:
+            reasons.append("formal_budget_mismatch")
+        if formal.get("checkpoints") != list(FORMAL_CHECKPOINTS):
+            reasons.append("formal_checkpoint_mismatch")
+        if formal.get("expected_cell_count") != 768:
+            reasons.append("formal_cell_count_mismatch")
+    gate = resolved.get("gate")
+    required_true = {
+        "all_cells_complete",
+        "all_accounting_complete",
+        "all_checked_replays_deterministic",
+        "budget_curve_non_degenerate",
+        "acquisition_effective_for_surrogate_methods",
+        "safe_constraint_effective",
+        "source_commit_stable",
+        "source_tree_clean_at_start_and_before_report",
+    }
+    if not isinstance(gate, Mapping):
+        reasons.append("gate_missing")
+    else:
+        if any(gate.get(name) is not True for name in required_true):
+            reasons.append("required_gate_disabled")
+        if gate.get("invalid_operation_count_per_method") != 0:
+            reasons.append("invalid_operation_gate_mismatch")
+        if gate.get("runner_action_repair") is not False:
+            reasons.append("action_repair_guard_invalid")
+        if gate.get("runner_automatic_closeout") is not False:
+            reasons.append("automatic_closeout_guard_invalid")
+    selection = resolved.get("selection_boundary")
+    if not isinstance(selection, Mapping) or not (
+        selection.get("preflight_scores_used_for_method_selection") is False
+        and selection.get("family_champions_selected_only_from_full_dev_scope") is True
+        and selection.get("bench_feedback_prohibited") is True
+    ):
+        reasons.append("selection_boundary_invalid")
+    return {
+        "schema_version": "chemworld-classic-development-plan-audit-0.4.1",
+        "status": "ready" if not reasons else "failed",
+        "plan_ready": not reasons,
+        "bench_access_allowed": False,
+        "reference_search_access_allowed": False,
+        "reasons": sorted(set(reasons)),
+    }
 
 
 @dataclass(frozen=True)
@@ -419,10 +519,12 @@ def run_classic_development_audit(
 ) -> dict[str, Any]:
     """Run only public Train/Dev cells and freeze family champions without Bench access."""
 
+    plan = load_classic_development_plan()
+    plan_audit = audit_classic_development_plan(plan)
     freeze = load_classic_method_freeze()
     freeze_audit = audit_classic_method_freeze(freeze)
-    if freeze_audit["controls_ready"] is not True:
-        raise RuntimeError("classic freeze must pass before development execution")
+    if plan_audit["plan_ready"] is not True or freeze_audit["controls_ready"] is not True:
+        raise RuntimeError("classic plan and freeze must pass before development execution")
     source_commit = _git_commit()
     source_tree_clean_at_start = _git_tree_clean()
     cells = build_development_cells(
@@ -464,6 +566,15 @@ def run_classic_development_audit(
         for method_id, method_rows in sorted(by_method.items())
     }
     champions = _select_family_champions(summaries, freeze)
+    preflight = plan["preflight_scope"]
+    preflight_scope = (
+        tuple(tasks) == CORE_TASKS
+        and set(summaries) == set(freeze["methods"])
+        and list(train_seeds) == preflight["train_seeds"]
+        and list(dev_seeds) == preflight["dev_seeds"]
+        and complete_experiments == preflight["complete_experiments_per_cell"]
+        and len(rows) == preflight["expected_cell_count"]
+    )
     full_scope = (
         tuple(tasks) == CORE_TASKS
         and set(summaries) == set(freeze["methods"])
@@ -510,6 +621,7 @@ def run_classic_development_audit(
         "source_tree_clean_before_report": source_tree_clean_before_report,
         "formal_protocol_sha256": canonical_sha256(protocol),
         "classic_freeze_sha256": canonical_sha256(freeze),
+        "classic_development_plan_sha256": canonical_sha256(plan),
         "tasks": list(tasks),
         "methods": sorted(summaries),
         "train_seeds": list(train_seeds),
@@ -522,10 +634,12 @@ def run_classic_development_audit(
         ),
         "cache_root_role": "git_private_resumable_development_cache",
         "method_summaries": summaries,
-        "family_champions": champions,
+        "family_champions": champions if formal_ready else {},
+        "diagnostic_family_leaders": champions,
         "selection_rule": freeze["selection_rule"],
         "acceptance": {
             "full_preregistered_development_scope": full_scope,
+            "preregistered_preflight_scope": preflight_scope,
             "source_tree_clean_at_start": source_tree_clean_at_start,
             "source_commit_stable": source_commit_stable,
             "source_tree_clean_before_report": source_tree_clean_before_report,
@@ -570,12 +684,16 @@ def _git_tree_clean() -> bool:
 
 
 __all__ = [
+    "CLASSIC_DEVELOPMENT_PLAN_VERSION",
     "CLASSIC_DEVELOPMENT_VERSION",
     "DEFAULT_CACHE_ROOT",
+    "DEFAULT_PLAN_PATH",
     "DEFAULT_REPORT_PATH",
     "NUMERIC_THREADS_PER_WORKER",
     "NUMERIC_THREAD_ENV_VARS",
     "DevelopmentCell",
+    "audit_classic_development_plan",
     "build_development_cells",
+    "load_classic_development_plan",
     "run_classic_development_audit",
 ]

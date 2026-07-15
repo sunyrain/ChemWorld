@@ -20,6 +20,7 @@ from chemworld.agents.bo import (
 from chemworld.agents.greedy import GreedyLocalAgent
 from chemworld.agents.lhs import LatinHypercubeAgent
 from chemworld.agents.random import RandomAgent
+from chemworld.agents.task_recipes import TASK_RECIPE_SPACE_VERSION
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.formal_protocol_v0_4 import load_formal_protocol
 from chemworld.eval.formal_runner import (
@@ -39,9 +40,9 @@ from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CLASSIC_FREEZE_PATH = (
-    configuration_root() / "methods" / "classic_v0.4" / "classic_methods.json"
+    configuration_root() / "methods" / "classic_v0.4.1" / "classic_methods.json"
 )
-CLASSIC_FREEZE_VERSION = "chemworld-classic-method-freeze-0.4"
+CLASSIC_FREEZE_VERSION = "chemworld-classic-method-freeze-0.4.1"
 
 AgentFactory = Callable[..., Agent]
 
@@ -165,6 +166,8 @@ def audit_classic_method_freeze(
     status_ready = freeze.get("status") == "dev_frozen_bench_unseen"
     if not status_ready:
         reasons.append("freeze_status_invalid")
+    if freeze.get("search_space_version") != TASK_RECIPE_SPACE_VERSION:
+        reasons.append("search_space_version_mismatch")
     return {
         "schema_version": CLASSIC_FREEZE_VERSION,
         "status": "ready" if not reasons else "failed",

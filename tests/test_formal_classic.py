@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+from pathlib import Path
 
 from chemworld.agents.base import HistoryRecord
 from chemworld.agents.greedy import GreedyLocalAgent
@@ -11,6 +12,7 @@ from chemworld.agents.task_recipes import (
     task_recipe_to_vector,
 )
 from chemworld.eval.formal_classic import (
+    DEFAULT_CLASSIC_FREEZE_PATH,
     audit_classic_method_freeze,
     build_formal_classic_registry,
     formal_classic_method_bindings,
@@ -162,3 +164,19 @@ def test_safe_gp_activates_bound_constraint_in_dev_campaign(tmp_path) -> None:
     diagnostics = acquisitions[-1]["decision_diagnostics"]
     assert diagnostics["risk_threshold"] == 0.2270542597781983
     assert diagnostics["safe_candidate_count"] <= diagnostics["candidate_count"]
+
+
+HISTORICAL_FREEZE = (
+    Path(__file__).resolve().parents[1]
+    / "configs"
+    / "methods"
+    / "classic_v0.4"
+    / "classic_methods.json"
+)
+
+
+def test_v041_freeze_namespace_preserves_v04_history() -> None:
+    assert DEFAULT_CLASSIC_FREEZE_PATH.name == "classic_methods.json"
+    assert DEFAULT_CLASSIC_FREEZE_PATH.parent.name == "classic_v0.4.1"
+    assert HISTORICAL_FREEZE.is_file()
+    assert DEFAULT_CLASSIC_FREEZE_PATH != HISTORICAL_FREEZE

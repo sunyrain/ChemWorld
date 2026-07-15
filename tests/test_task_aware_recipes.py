@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from chemworld.agents.task_recipes import (
+    FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER,
     task_recipe_dimension,
     task_recipe_from_unit_vector,
     task_recipe_kind,
@@ -55,6 +56,27 @@ def test_model_vector_one_hot_encodes_electrochemical_solvent() -> None:
 
     assert encoded.shape == (8,)
     assert encoded[-4:].tolist() == [0.0, 0.0, 1.0, 0.0]
+
+
+@pytest.mark.parametrize("residence_coordinate", (0.0, 0.25, 0.5, 0.75, 1.0))
+@pytest.mark.parametrize("duration_coordinate", (0.0, 0.5, 1.0))
+def test_flow_recipe_reserves_the_public_residence_multiplier_domain(
+    residence_coordinate: float,
+    duration_coordinate: float,
+) -> None:
+    task_info = get_task("flow-reaction-optimization").to_dict()
+    vector = np.full(task_recipe_dimension(task_info), 0.5, dtype=float)
+    vector[5] = residence_coordinate
+    vector[7] = duration_coordinate
+
+    steps = task_recipe_from_unit_vector(task_info, vector)["steps"]
+    setup = next(step for step in steps if step["operation"] == "set_flow_rate")
+    run = next(step for step in steps if step["operation"] == "run_flow")
+
+    assert run["duration_s"] >= (
+        setup["residence_time_s"] * FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER
+    )
+    assert run["duration_s"] <= 14_400.0
 
 
 @pytest.mark.parametrize("agent_name", ("random", "lhs", "gp_bo", "safe_gp_bo"))

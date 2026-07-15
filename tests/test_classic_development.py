@@ -9,11 +9,14 @@ import pytest
 import chemworld.eval.classic_development as classic_development
 from chemworld.eval.classic_development import (
     DEFAULT_CACHE_ROOT,
+    DEFAULT_PLAN_PATH,
     DEFAULT_REPORT_PATH,
     NUMERIC_THREAD_ENV_VARS,
     NUMERIC_THREADS_PER_WORKER,
     _numeric_worker_environment,
+    audit_classic_development_plan,
     build_development_cells,
+    load_classic_development_plan,
     run_classic_development_audit,
 )
 
@@ -32,6 +35,27 @@ def test_default_cache_uses_real_git_common_directory_in_worktrees() -> None:
     assert DEFAULT_CACHE_ROOT.parent.parent.is_dir()
     assert DEFAULT_REPORT_PATH.name == "classic-dev-v0.4.1.json"
     assert DEFAULT_REPORT_PATH != FROZEN_REPORT
+
+
+def test_v041_development_plan_freezes_preflight_and_formal_scopes() -> None:
+    assert DEFAULT_PLAN_PATH.name == "classic_development_plan.json"
+    plan = load_classic_development_plan()
+    report = audit_classic_development_plan(plan)
+
+    assert report["plan_ready"] is True
+    assert report["bench_access_allowed"] is False
+    assert report["reference_search_access_allowed"] is False
+    assert plan["preflight_scope"] == {
+        "train_seeds": [10_000],
+        "dev_seeds": [11_000],
+        "complete_experiments_per_cell": 8,
+        "expected_cell_count": 64,
+        "rationale": (
+            "Eight experiments exceed the four-point surrogate warmup and exercise "
+            "multiple fit/acquisition updates without selecting methods from this diagnostic."
+        ),
+    }
+    assert plan["formal_scope"]["expected_cell_count"] == 768
 
 
 def test_numeric_worker_environment_is_bounded_and_restored(monkeypatch) -> None:

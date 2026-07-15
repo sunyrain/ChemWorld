@@ -1,0 +1,141 @@
+{
+  "schema_version": "chemworld-classic-method-freeze-0.4.1",
+  "supersedes": "chemworld-classic-method-freeze-0.4",
+  "status": "dev_frozen_bench_unseen",
+  "bench_results_used": false,
+  "search_space_version": "chemworld-task-recipe-space-0.3",
+  "selection_rule": {
+    "data": "public Train for implementation checks and public Dev for family selection only",
+    "primary_statistic": "mean task-normalized best valid primary metric at complete-experiment checkpoints",
+    "tie_break": "lower mean CPU time, then lexicographic method_id",
+    "bench_feedback_prohibited": true
+  },
+  "methods": {
+    "random": {
+      "implementation": "random",
+      "family": "design",
+      "hyperparameters": {},
+      "recipe_encoding": "typed_recipe_vector_without_distance_model",
+      "capability": "nonadaptive uniform complete-recipe design",
+      "failure_domains": ["finite-budget coverage variance", "no observation adaptation"],
+      "resource_profile": "classic_recipe",
+      "source_bindings": {
+        "src/chemworld/agents/random.py": "ff77576e5caf72e477eba5bc7956c6fd84d134160eeb6e507125ce1c737fe6bd",
+        "src/chemworld/agents/recipe_sequence.py": "2f272f58ea26c089ff0243c833e458c7597402223d4cb9ded6e7355a32986420",
+        "src/chemworld/agents/task_recipes.py": "e4bc734c9fa68891d3baebbe1f8a9d1956975606c1ad2785293fe039f7a298dd"
+      },
+      "artifact_sha256": "f21dd2af5f02c27f2189d842f2693fdc864805e713c7f740dc560d38ef43b73f"
+    },
+    "lhs": {
+      "implementation": "lhs",
+      "family": "design",
+      "hyperparameters": {},
+      "recipe_encoding": "stratified_continuous_coordinates_and_balanced_nominal_bins",
+      "capability": "nonadaptive Latin-hypercube complete-recipe design",
+      "failure_domains": ["categorical combinations are only marginally balanced", "no observation adaptation"],
+      "resource_profile": "classic_recipe",
+      "source_bindings": {
+        "src/chemworld/agents/lhs.py": "38d257cefdcae0c111aead1c6dc0bc5d9ed1132839dbf57c2d29b9b8b2515e47",
+        "src/chemworld/agents/recipe_sequence.py": "2f272f58ea26c089ff0243c833e458c7597402223d4cb9ded6e7355a32986420",
+        "src/chemworld/agents/task_recipes.py": "e4bc734c9fa68891d3baebbe1f8a9d1956975606c1ad2785293fe039f7a298dd"
+      },
+      "artifact_sha256": "83e8dd8ad762dc5fc56b6f62a6452521b4c093468780183001331a451d9cb8dd"
+    },
+    "greedy_local": {
+      "implementation": "greedy_local",
+      "family": "local_search",
+      "hyperparameters": {"warmup": 5, "perturbation_scale": 0.18},
+      "recipe_encoding": "continuous_plus_nominal_material_mutation",
+      "capability": "endpoint-adaptive local perturbation with distance-free material mutation",
+      "failure_domains": ["local optimum trapping", "fixed exploration probability"],
+      "resource_profile": "classic_recipe",
+      "source_bindings": {
+        "src/chemworld/agents/greedy.py": "5e49861990ed249f309d55bd5922fe94ba831c584ecd46579d156f134f656fa0",
+        "src/chemworld/agents/recipe_sequence.py": "2f272f58ea26c089ff0243c833e458c7597402223d4cb9ded6e7355a32986420",
+        "src/chemworld/agents/task_recipes.py": "e4bc734c9fa68891d3baebbe1f8a9d1956975606c1ad2785293fe039f7a298dd"
+      },
+      "artifact_sha256": "5cb4f6e2b9f0eefc98776696bff9de60357c802e2fe9bd1546528b0a37525574"
+    },
+    "structured_gp_ei": {
+      "implementation": "structured_gp_ei",
+      "family": "bayesian_optimization",
+      "hyperparameters": {"n_initial": 4, "n_candidates": 512},
+      "recipe_encoding": "continuous_plus_material_one_hot",
+      "capability": "typed Gaussian-process expected improvement",
+      "acquisition": "expected_improvement_xi_0.01",
+      "failure_domains": ["cubic fit scaling", "stationary-kernel misspecification", "sampled candidate approximation"],
+      "resource_profile": "classic_recipe",
+      "source_bindings": {
+        "src/chemworld/agents/bo.py": "6422aef3cd13056c88750c950b380ec492d5a2591a43c490353f7f801e3ff903",
+        "src/chemworld/agents/recipe_sequence.py": "2f272f58ea26c089ff0243c833e458c7597402223d4cb9ded6e7355a32986420",
+        "src/chemworld/agents/task_recipes.py": "e4bc734c9fa68891d3baebbe1f8a9d1956975606c1ad2785293fe039f7a298dd"
+      },
+      "artifact_sha256": "15531b4d33cf75ca591ed7fd5a07a7b7f7031d512c663880ed0fb05ec94156bd"
+    },
+    "structured_gp_pi": {
+      "implementation": "structured_gp_pi",
+      "family": "bayesian_optimization",
+      "hyperparameters": {"n_initial": 4, "n_candidates": 512, "xi": 0.01},
+      "recipe_encoding": "continuous_plus_material_one_hot",
+      "capability": "typed Gaussian-process probability of improvement",
+      "acquisition": "probability_improvement_xi_0.01",
+      "failure_domains": ["cubic fit scaling", "exploitative acquisition", "sampled candidate approximation"],
+      "resource_profile": "classic_recipe",
+      "source_bindings": {
+        "src/chemworld/agents/bo.py": "6422aef3cd13056c88750c950b380ec492d5a2591a43c490353f7f801e3ff903",
+        "src/chemworld/agents/recipe_sequence.py": "2f272f58ea26c089ff0243c833e458c7597402223d4cb9ded6e7355a32986420",
+        "src/chemworld/agents/task_recipes.py": "e4bc734c9fa68891d3baebbe1f8a9d1956975606c1ad2785293fe039f7a298dd"
+      },
+      "artifact_sha256": "aefaece26186d104b51c9d71ed440ab78767ef516bb2319ae323c39b43b83fb9"
+    },
+    "structured_gp_ucb": {
+      "implementation": "structured_gp_ucb",
+      "family": "bayesian_optimization",
+      "hyperparameters": {"n_initial": 4, "n_candidates": 512, "exploration_weight": 2.0},
+      "recipe_encoding": "continuous_plus_material_one_hot",
+      "capability": "typed Gaussian-process upper confidence bound",
+      "acquisition": "upper_confidence_bound_beta_2.0",
+      "failure_domains": ["cubic fit scaling", "fixed exploration weight", "sampled candidate approximation"],
+      "resource_profile": "classic_recipe",
+      "source_bindings": {
+        "src/chemworld/agents/bo.py": "6422aef3cd13056c88750c950b380ec492d5a2591a43c490353f7f801e3ff903",
+        "src/chemworld/agents/recipe_sequence.py": "2f272f58ea26c089ff0243c833e458c7597402223d4cb9ded6e7355a32986420",
+        "src/chemworld/agents/task_recipes.py": "e4bc734c9fa68891d3baebbe1f8a9d1956975606c1ad2785293fe039f7a298dd"
+      },
+      "artifact_sha256": "d0d428fd2e96681471668887cec23b22156058262f51942179f65ba9a529397d"
+    },
+    "structured_rf_ei": {
+      "implementation": "structured_rf_ei",
+      "family": "bayesian_optimization",
+      "hyperparameters": {"n_initial": 4, "n_candidates": 512, "n_estimators": 128},
+      "recipe_encoding": "continuous_plus_material_one_hot",
+      "capability": "typed random-forest ensemble expected improvement",
+      "acquisition": "ensemble_expected_improvement_xi_0.01",
+      "failure_domains": ["ensemble uncertainty is heuristic", "piecewise-constant surrogate", "sampled candidate approximation"],
+      "resource_profile": "classic_recipe",
+      "source_bindings": {
+        "src/chemworld/agents/bo.py": "6422aef3cd13056c88750c950b380ec492d5a2591a43c490353f7f801e3ff903",
+        "src/chemworld/agents/recipe_sequence.py": "2f272f58ea26c089ff0243c833e458c7597402223d4cb9ded6e7355a32986420",
+        "src/chemworld/agents/task_recipes.py": "e4bc734c9fa68891d3baebbe1f8a9d1956975606c1ad2785293fe039f7a298dd"
+      },
+      "artifact_sha256": "0df3a4b87689fe2b8d7510d0d2c922a870163bae48ea463f5bd67b77bcbdfb1f"
+    },
+    "structured_safe_gp_ei": {
+      "implementation": "structured_safe_gp_ei",
+      "family": "constrained_optimization",
+      "hyperparameters": {"n_initial": 4, "n_candidates": 768, "risk_threshold": 0.65, "risk_confidence_beta": 2.0, "initial_perturbation_scale": 0.06},
+      "recipe_encoding": "continuous_plus_material_one_hot",
+      "capability": "typed risk-constrained Gaussian-process expected improvement",
+      "acquisition": "expected_improvement_under_predicted_risk_upper_bound",
+      "constraint": "upper_confidence_risk_mask_with_minimum_risk_fallback",
+      "failure_domains": ["conservative cold start", "risk-model misspecification", "empty safe-set fallback", "sampled candidate approximation"],
+      "resource_profile": "classic_recipe",
+      "source_bindings": {
+        "src/chemworld/agents/bo.py": "6422aef3cd13056c88750c950b380ec492d5a2591a43c490353f7f801e3ff903",
+        "src/chemworld/agents/recipe_sequence.py": "2f272f58ea26c089ff0243c833e458c7597402223d4cb9ded6e7355a32986420",
+        "src/chemworld/agents/task_recipes.py": "e4bc734c9fa68891d3baebbe1f8a9d1956975606c1ad2785293fe039f7a298dd"
+      },
+      "artifact_sha256": "f474545b68dd0af9615c71f0f64f6d5fca8555495619afacb17c21f1e70d5033"
+    }
+  }
+}
