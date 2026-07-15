@@ -35,6 +35,13 @@ PREFLIGHT_REPORT = (
     / "reports"
     / "operation-baselines-preflight-v0.4.1.json"
 )
+FULL_V041_REPORT = (
+    Path(__file__).resolve().parents[1]
+    / "workstreams"
+    / "benchmark_v1"
+    / "reports"
+    / "operation-baselines-dev-v0.4.1.json"
+)
 
 
 def test_v041_report_namespace_preserves_frozen_v04_history() -> None:
@@ -53,8 +60,7 @@ def test_numeric_worker_environment_is_bounded_and_restored(monkeypatch) -> None
 
     with _numeric_worker_environment():
         assert all(
-            os.environ[name] == str(NUMERIC_THREADS_PER_WORKER)
-            for name in NUMERIC_THREAD_ENV_VARS
+            os.environ[name] == str(NUMERIC_THREADS_PER_WORKER) for name in NUMERIC_THREAD_ENV_VARS
         )
 
     assert {name: os.environ.get(name) for name in NUMERIC_THREAD_ENV_VARS} == before
@@ -63,18 +69,14 @@ def test_numeric_worker_environment_is_bounded_and_restored(monkeypatch) -> None
 def test_v041_preflight_proves_execution_gates_without_claiming_formal_scope() -> None:
     report = json.loads(PREFLIGHT_REPORT.read_text(encoding="utf-8"))
 
-    assert report["schema_version"] == (
-        "chemworld-operation-baseline-development-audit-0.4.1"
-    )
+    assert report["schema_version"] == ("chemworld-operation-baseline-development-audit-0.4.1")
     assert report["status"] == "development_diagnostic_only"
     assert report["formal_operation_baselines_ready"] is False
     assert report["source_commit_stable"] is True
     assert report["source_tree_clean_at_start"] is True
     assert report["source_tree_clean_before_report"] is True
     assert report["source_commit"] == report["source_commit_before_report"]
-    assert {cell["source_commit"] for cell in report["cells"]} == {
-        report["source_commit"]
-    }
+    assert {cell["source_commit"] for cell in report["cells"]} == {report["source_commit"]}
     assert report["worker_count"] == 12
     assert report["numeric_threads_per_worker"] == 1
     assert report["cell_count"] == 24
@@ -157,9 +159,7 @@ def test_partial_operation_development_is_resumable_and_never_formal(tmp_path) -
     assert first["acceptance"]["operation_random_invalid_actions_retained"] is True
     assert first["source_commit_stable"] is True
     assert first["source_commit"] == first["source_commit_before_report"]
-    assert {cell["source_commit"] for cell in first["cells"]} == {
-        first["source_commit"]
-    }
+    assert {cell["source_commit"] for cell in first["cells"]} == {first["source_commit"]}
 
 
 def test_operation_development_rejects_head_drift_during_cell_issuance(
@@ -225,4 +225,38 @@ def test_frozen_full_operation_report_passes_without_bench_or_reference_feedback
     assert all(
         task_summary["measurement_adaptation_count"] > 0
         for task_summary in summaries["rule_based"]["task_summaries"].values()
+    )
+
+
+def test_v041_full_operation_report_is_source_stable_and_formal_ready() -> None:
+    report = json.loads(FULL_V041_REPORT.read_text(encoding="utf-8"))
+    source_commit = "ef202b70d1810eb64c511f801a8c90e106a6ef65"
+
+    assert report["schema_version"] == "chemworld-operation-baseline-development-audit-0.4.1"
+    assert report["status"] == "formal_operation_baselines_ready"
+    assert report["formal_operation_baselines_ready"] is True
+    assert report["cell_count"] == 288
+    assert report["complete_experiments_per_cell"] == 40
+    assert report["source_commit"] == source_commit
+    assert report["source_commit_before_report"] == source_commit
+    assert report["source_commit_stable"] is True
+    assert report["source_tree_clean_at_start"] is True
+    assert report["source_tree_clean_before_report"] is True
+    assert report["bench_results_present"] is False
+    assert report["reference_search_results_used"] is False
+    assert report["acceptance"]["all_method_controls_pass"] is True
+    assert report["acceptance"]["full_preregistered_development_scope"] is True
+    assert report["acceptance"]["operation_random_invalid_operation_count"] == 403
+    assert all(cell["source_commit"] == source_commit for cell in report["cells"])
+    assert all(cell["complete_experiment_count"] == 40 for cell in report["cells"])
+    summaries = report["method_summaries"]
+    assert summaries["observation_blind"]["invalid_operation_count"] == 0
+    assert summaries["rule_based"]["invalid_operation_count"] == 0
+    assert summaries["operation_random"]["invalid_operation_count"] == 403
+    assert summaries["rule_based"]["measurement_adaptation_count"] > 0
+    assert all(
+        summary["accounting_complete"]
+        and summary["deterministic_replay"]
+        and summary["all_decision_audits_complete"]
+        for summary in summaries.values()
     )

@@ -34,6 +34,13 @@ PREFLIGHT_REPORT = (
     / "reports"
     / "classic-preflight-v0.4.1.json"
 )
+FULL_V041_REPORT = (
+    Path(__file__).resolve().parents[1]
+    / "workstreams"
+    / "benchmark_v1"
+    / "reports"
+    / "classic-dev-v0.4.1.json"
+)
 
 
 def test_default_cache_uses_real_git_common_directory_in_worktrees() -> None:
@@ -75,9 +82,7 @@ def test_v041_preflight_passes_controls_without_selecting_champions() -> None:
     assert report["source_tree_clean_at_start"] is True
     assert report["source_tree_clean_before_report"] is True
     assert report["source_commit"] == report["source_commit_before_report"]
-    assert {cell["source_commit"] for cell in report["cells"]} == {
-        report["source_commit"]
-    }
+    assert {cell["source_commit"] for cell in report["cells"]} == {report["source_commit"]}
     assert report["cell_count"] == 64
     assert report["complete_experiments_per_cell"] == 8
     assert report["worker_count"] == 12
@@ -94,12 +99,9 @@ def test_v041_preflight_passes_controls_without_selecting_champions() -> None:
     assert acceptance["full_preregistered_development_scope"] is False
     assert acceptance["all_method_controls_pass"] is True
     assert all(
-        summary["invalid_operation_count"] == 0
-        for summary in report["method_summaries"].values()
+        summary["invalid_operation_count"] == 0 for summary in report["method_summaries"].values()
     )
-    assert report["method_summaries"]["structured_safe_gp_ei"][
-        "safe_constraint_effective"
-    ] is True
+    assert report["method_summaries"]["structured_safe_gp_ei"]["safe_constraint_effective"] is True
 
 
 def test_numeric_worker_environment_is_bounded_and_restored(monkeypatch) -> None:
@@ -112,8 +114,7 @@ def test_numeric_worker_environment_is_bounded_and_restored(monkeypatch) -> None
 
     with _numeric_worker_environment():
         assert all(
-            os.environ[name] == str(NUMERIC_THREADS_PER_WORKER)
-            for name in NUMERIC_THREAD_ENV_VARS
+            os.environ[name] == str(NUMERIC_THREADS_PER_WORKER) for name in NUMERIC_THREAD_ENV_VARS
         )
 
     assert {name: os.environ.get(name) for name in NUMERIC_THREAD_ENV_VARS} == before
@@ -164,9 +165,7 @@ def test_development_audit_is_resumable_deterministic_and_never_formal_when_part
     assert first["method_summaries"]["random"]["deterministic_replay"] is True
     assert first["source_commit_stable"] is True
     assert first["source_commit"] == first["source_commit_before_report"]
-    assert {cell["source_commit"] for cell in first["cells"]} == {
-        first["source_commit"]
-    }
+    assert {cell["source_commit"] for cell in first["cells"]} == {first["source_commit"]}
 
 
 def test_classic_development_rejects_head_drift_during_cell_issuance(
@@ -217,3 +216,45 @@ def test_frozen_full_development_report_passes_without_bench_or_reference_feedba
         and summary["invalid_operation_count"] == 0
         for summary in report["method_summaries"].values()
     )
+
+
+def test_v041_full_development_report_is_source_stable_and_formal_ready() -> None:
+    report = json.loads(FULL_V041_REPORT.read_text(encoding="utf-8"))
+    source_commit = "ef202b70d1810eb64c511f801a8c90e106a6ef65"
+
+    assert report["schema_version"] == "chemworld-classic-development-audit-0.4.1"
+    assert report["status"] == "formal_classic_matrix_ready"
+    assert report["formal_classic_matrix_ready"] is True
+    assert report["cell_count"] == 768
+    assert report["complete_experiments_per_cell"] == 40
+    assert report["source_commit"] == source_commit
+    assert report["source_commit_before_report"] == source_commit
+    assert report["source_commit_stable"] is True
+    assert report["source_tree_clean_at_start"] is True
+    assert report["source_tree_clean_before_report"] is True
+    assert report["bench_results_present"] is False
+    assert report["reference_search_results_used"] is False
+    assert report["acceptance"]["all_method_controls_pass"] is True
+    assert report["acceptance"]["full_preregistered_development_scope"] is True
+    assert set(report["family_champions"].values()) == {
+        "lhs",
+        "greedy_local",
+        "structured_gp_ucb",
+        "structured_safe_gp_ei",
+    }
+    assert all(cell["source_commit"] == source_commit for cell in report["cells"])
+    assert all(cell["complete_experiment_count"] == 40 for cell in report["cells"])
+    assert all(
+        summary["invalid_operation_count"] == 0
+        and summary["accounting_complete"]
+        and summary["deterministic_replay"]
+        and summary["budget_curve_non_degenerate"]
+        for summary in report["method_summaries"].values()
+    )
+    assert all(
+        not summary["acquisition_required"] or summary["acquisition_effective"]
+        for summary in report["method_summaries"].values()
+    )
+    assert report["method_summaries"]["structured_safe_gp_ei"][
+        "safe_constraint_activation_rate"
+    ] == pytest.approx(0.8625)
