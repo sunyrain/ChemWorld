@@ -1,0 +1,109 @@
+{
+  "benchmark_claim_allowed": false,
+  "checks": {
+    "all_serious_tasks_covered": true,
+    "public_schema_boundaries_match_validator": true,
+    "reachable_recipe_preparation_clean": true,
+    "validator_valid_observation_domain_clean": true,
+    "validator_valid_runtime_domain_clean": true
+  },
+  "findings": [],
+  "limitations": [
+    "This is a deterministic boundary/conformance audit, not an exhaustive proof over the continuous action-state space.",
+    "The audit does not evaluate algorithm quality or benchmark performance.",
+    "Optional maintainer-only payload extensions outside the public action schema are not sampled."
+  ],
+  "passed": true,
+  "preparation_failures": {},
+  "publication_ready": false,
+  "sampling_contract": {
+    "candidate_source": "public_action_schema_midpoint_and_one_field_boundaries",
+    "hidden_species_or_rate_parameters_recorded": false,
+    "maximum_state_schemas_per_operation": 2,
+    "reachable_state_source": "public_midpoint_task_recipe_prefixes",
+    "validator_required_before_runtime_dispatch": true
+  },
+  "schema_version": "chemworld-runtime-domain-affordance-audit-0.4",
+  "seed": 0,
+  "source_commit": "fa546e5bf168a9cb9b07eeaae3bc1e5ac9eae23e",
+  "status": "passed",
+  "summary": {
+    "candidate_count": 223,
+    "finding_count": 0,
+    "finding_counts": {},
+    "findings_by_operation": {},
+    "runtime_committed_count": 215,
+    "task_count": 6,
+    "validator_valid_count": 215
+  },
+  "task_ids": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization",
+    "electrochemical-conversion",
+    "equilibrium-characterization"
+  ],
+  "tasks": {
+    "electrochemical-conversion": {
+      "candidate_count": 21,
+      "finding_count": 0,
+      "finding_counts": {},
+      "operation_count": 6,
+      "reachable_state_count": 8,
+      "runtime_committed_count": 20,
+      "schema_count": 7,
+      "validator_valid_count": 20
+    },
+    "equilibrium-characterization": {
+      "candidate_count": 33,
+      "finding_count": 0,
+      "finding_counts": {},
+      "operation_count": 9,
+      "reachable_state_count": 9,
+      "runtime_committed_count": 32,
+      "schema_count": 10,
+      "validator_valid_count": 32
+    },
+    "flow-reaction-optimization": {
+      "candidate_count": 30,
+      "finding_count": 0,
+      "finding_counts": {},
+      "operation_count": 7,
+      "reachable_state_count": 9,
+      "runtime_committed_count": 29,
+      "schema_count": 9,
+      "validator_valid_count": 29
+    },
+    "partition-discovery": {
+      "candidate_count": 38,
+      "finding_count": 0,
+      "finding_counts": {},
+      "operation_count": 9,
+      "reachable_state_count": 11,
+      "runtime_committed_count": 37,
+      "schema_count": 12,
+      "validator_valid_count": 37
+    },
+    "reaction-to-crystallization": {
+      "candidate_count": 50,
+      "finding_count": 0,
+      "finding_counts": {},
+      "operation_count": 12,
+      "reachable_state_count": 12,
+      "runtime_committed_count": 47,
+      "schema_count": 15,
+      "validator_valid_count": 47
+    },
+    "reaction-to-distillation": {
+      "candidate_count": 51,
+      "finding_count": 0,
+      "finding_counts": {},
+      "operation_count": 12,
+      "reachable_state_count": 12,
+      "runtime_committed_count": 50,
+      "schema_count": 14,
+      "validator_valid_count": 50
+    }
+  }
+}
