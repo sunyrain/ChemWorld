@@ -6,6 +6,7 @@ from pathlib import Path
 
 from chemworld.agents.task_recipes import task_recipe_event_count
 from chemworld.eval.operation_baseline_development import (
+    DEFAULT_REPORT_PATH,
     audit_operation_development_plan,
     build_operation_development_cells,
     load_operation_development_plan,
@@ -20,6 +21,12 @@ FROZEN_REPORT = (
     / "reports"
     / "operation-baselines-dev-v0.4.json"
 )
+
+
+def test_v041_report_namespace_preserves_frozen_v04_history() -> None:
+    assert DEFAULT_REPORT_PATH.name == "operation-baselines-dev-v0.4.1.json"
+    assert FROZEN_REPORT.is_file()
+    assert DEFAULT_REPORT_PATH != FROZEN_REPORT
 
 
 def test_operation_development_plan_is_public_split_only_and_fail_closed() -> None:

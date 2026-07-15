@@ -29,8 +29,10 @@ from chemworld.eval.runner import run_agent
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_OPERATION_FREEZE_PATH = ROOT / "configs/methods/operation_v0.4/operation_methods.json"
-OPERATION_FREEZE_VERSION = "chemworld-operation-method-freeze-0.4"
+DEFAULT_OPERATION_FREEZE_PATH = (
+    ROOT / "configs/methods/operation_v0.4.1/operation_methods.json"
+)
+OPERATION_FREEZE_VERSION = "chemworld-operation-method-freeze-0.4.1"
 
 _EXPECTED_FAMILIES = {
     "operation_random": "operation_random",
@@ -161,7 +163,7 @@ def audit_operation_method_freeze(
     if resolved.get("reference_search_results_used") is not False:
         reasons.append("reference_results_guard_invalid")
     return {
-        "schema_version": "chemworld-operation-method-freeze-audit-0.4",
+        "schema_version": "chemworld-operation-method-freeze-audit-0.4.1",
         "status": "ready" if not reasons else "failed",
         "controls_ready": not reasons,
         "method_count": len(reports),

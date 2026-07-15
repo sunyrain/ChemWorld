@@ -29,13 +29,17 @@ from chemworld.tasks import get_task
 from chemworld.world.world_family import axes_for_task
 
 ROOT = Path(__file__).resolve().parents[3]
-OPERATION_DEVELOPMENT_VERSION = "chemworld-operation-baseline-development-audit-0.4"
-OPERATION_DEVELOPMENT_PLAN_VERSION = "chemworld-operation-development-plan-0.4"
+OPERATION_DEVELOPMENT_VERSION = "chemworld-operation-baseline-development-audit-0.4.1"
+OPERATION_DEVELOPMENT_PLAN_VERSION = "chemworld-operation-development-plan-0.4.1"
 DEFAULT_PLAN_PATH = (
-    ROOT / "configs" / "methods" / "operation_v0.4" / "operation_development_plan.json"
+    ROOT / "configs" / "methods" / "operation_v0.4.1" / "operation_development_plan.json"
 )
 DEFAULT_REPORT_PATH = (
-    ROOT / "workstreams" / "benchmark_v1" / "reports" / "operation-baselines-dev-v0.4.json"
+    ROOT
+    / "workstreams"
+    / "benchmark_v1"
+    / "reports"
+    / "operation-baselines-dev-v0.4.1.json"
 )
 FORMAL_CHECKPOINTS = (4, 8, 12, 20, 40)
 
@@ -49,7 +53,7 @@ def _default_cache_root() -> Path:
     path = Path(raw)
     if not path.is_absolute():
         path = (ROOT / path).resolve()
-    return path / "chemworld-private" / "operation-dev-v0.4"
+    return path / "chemworld-private" / "operation-dev-v0.4.1"
 
 
 DEFAULT_CACHE_ROOT = _default_cache_root()
@@ -139,7 +143,7 @@ def audit_operation_development_plan(
         if budget.get("runner_automatic_closeout") is not False:
             reasons.append("automatic_closeout_guard_invalid")
     return {
-        "schema_version": "chemworld-operation-development-plan-audit-0.4",
+        "schema_version": "chemworld-operation-development-plan-audit-0.4.1",
         "status": "ready" if not reasons else "failed",
         "plan_ready": not reasons,
         "bench_access_allowed": False,

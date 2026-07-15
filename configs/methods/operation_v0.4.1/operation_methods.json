@@ -1,0 +1,94 @@
+{
+  "schema_version": "chemworld-operation-method-freeze-0.4.1",
+  "freeze_id": "chemworld-operation-controls-2026-07-15-runtime-affordance-reattestation-1",
+  "supersedes": "chemworld-operation-method-freeze-0.4",
+  "status": "dev_frozen_bench_unseen",
+  "bench_results_used": false,
+  "reference_search_results_used": false,
+  "selection_rule": {
+    "data": "public Train for implementation checks and public Dev for diagnostic comparison only",
+    "primary_statistic": "task-level best valid primary metric at complete-experiment checkpoints",
+    "bench_feedback_prohibited": true,
+    "cross_observation_set_ranking": "forbidden"
+  },
+  "methods": {
+    "operation_random": {
+      "implementation": "operation_random",
+      "family": "operation_random",
+      "interaction_track": "operation_level",
+      "public_observation_set": "operation_affordance_only",
+      "resource_profile": "operation_baseline",
+      "spectrum_conditions": ["masked"],
+      "consumes_spectra": false,
+      "adapts_within_experiment": false,
+      "adapts_across_experiments": false,
+      "action_policy": "seeded uniform sampling over currently advertised public operation affordances and state-valid typed parameter domains after a minimal charge guard",
+      "invalid_action_policy": "retain and report all validator and runtime-domain rejections; no action repair",
+      "hyperparameters": {
+        "exploration_multiplier": 2,
+        "numeric_margin": 0.15,
+        "rule_retry_threshold": 0.55
+      },
+      "source_bindings": {
+        "src/chemworld/agent_interface.py": "11228dd509129966a1440e810e3a99c65262a49ac38d7e57c16af06f87f83ebd",
+        "src/chemworld/agents/interaction.py": "4d9b00b045dc2819b6f2ccbf6fbcc7b4c1853d356229eb876d0f96df44ae2ed4",
+        "src/chemworld/agents/operation_baselines.py": "bde8f55d9020dc65604a5a3171ff7970df043ed974402f1501d3252f51e4c597",
+        "src/chemworld/operation_validator.py": "e06cf1505da7f22cd14481809f3040a037f679a5e68cb07a2831328bde5f07bd",
+        "src/chemworld/eval/formal_operation.py": "63f414f9f6e08830a246ea694388077454e12421982dd8be5ac7533b57429fd0"
+      },
+      "artifact_sha256": "cfbb2e7250b98f7c48eb21e01ccf92fbce3285ef77f942dd0c1756178976c604"
+    },
+    "observation_blind": {
+      "implementation": "observation_blind",
+      "family": "operation_control",
+      "interaction_track": "operation_level",
+      "public_observation_set": "operation_affordance_only",
+      "resource_profile": "operation_baseline",
+      "spectrum_conditions": ["masked"],
+      "consumes_spectra": false,
+      "adapts_within_experiment": false,
+      "adapts_across_experiments": false,
+      "action_policy": "fixed task-agnostic operation priority over currently advertised public affordances with typed midpoint parameters",
+      "invalid_action_policy": "retain and report all validator and runtime-domain rejections; no action repair",
+      "hyperparameters": {
+        "exploration_multiplier": 2,
+        "numeric_margin": 0.15,
+        "rule_retry_threshold": 0.55
+      },
+      "source_bindings": {
+        "src/chemworld/agent_interface.py": "11228dd509129966a1440e810e3a99c65262a49ac38d7e57c16af06f87f83ebd",
+        "src/chemworld/agents/interaction.py": "4d9b00b045dc2819b6f2ccbf6fbcc7b4c1853d356229eb876d0f96df44ae2ed4",
+        "src/chemworld/agents/operation_baselines.py": "bde8f55d9020dc65604a5a3171ff7970df043ed974402f1501d3252f51e4c597",
+        "src/chemworld/operation_validator.py": "e06cf1505da7f22cd14481809f3040a037f679a5e68cb07a2831328bde5f07bd",
+        "src/chemworld/eval/formal_operation.py": "63f414f9f6e08830a246ea694388077454e12421982dd8be5ac7533b57429fd0"
+      },
+      "artifact_sha256": "6bde15bd233a3d96b0e0cfde629b5358b95bceb1b78a4d2d70c5cfc1077463ed"
+    },
+    "rule_based": {
+      "implementation": "rule_based",
+      "family": "operation_control",
+      "interaction_track": "operation_level",
+      "public_observation_set": "operation_public_state",
+      "resource_profile": "operation_baseline",
+      "spectrum_conditions": ["masked"],
+      "consumes_spectra": false,
+      "adapts_within_experiment": true,
+      "adapts_across_experiments": false,
+      "action_policy": "frozen task recipe with at most one declared public-measurement retry per experiment",
+      "invalid_action_policy": "retain and report all validator and runtime-domain rejections; no action repair",
+      "hyperparameters": {
+        "exploration_multiplier": 2,
+        "numeric_margin": 0.15,
+        "rule_retry_threshold": 0.55
+      },
+      "source_bindings": {
+        "src/chemworld/agent_interface.py": "11228dd509129966a1440e810e3a99c65262a49ac38d7e57c16af06f87f83ebd",
+        "src/chemworld/agents/interaction.py": "4d9b00b045dc2819b6f2ccbf6fbcc7b4c1853d356229eb876d0f96df44ae2ed4",
+        "src/chemworld/agents/operation_baselines.py": "bde8f55d9020dc65604a5a3171ff7970df043ed974402f1501d3252f51e4c597",
+        "src/chemworld/operation_validator.py": "e06cf1505da7f22cd14481809f3040a037f679a5e68cb07a2831328bde5f07bd",
+        "src/chemworld/eval/formal_operation.py": "63f414f9f6e08830a246ea694388077454e12421982dd8be5ac7533b57429fd0"
+      },
+      "artifact_sha256": "25aebbd310b7d73ab286b920023a66030a7bf19fc90a08d303376684c6d73732"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": "chemworld-operation-development-plan-0.4.1",
+  "plan_id": "chemworld-operation-baselines-public-development-0.4.1",
+  "supersedes": "chemworld-operation-baselines-public-development-0.4",
+  "status": "preregistered_bench_unseen",
+  "bench_access_allowed": false,
+  "reference_search_access_allowed": false,
+  "task_ids": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization"
+  ],
+  "method_ids": [
+    "operation_random",
+    "observation_blind",
+    "rule_based"
+  ],
+  "split_contract": {
+    "train_seeds": {"start": 10000, "stop_inclusive": 10003},
+    "dev_seeds": {"start": 11000, "stop_inclusive": 11019},
+    "paired_world_and_method_rng": true,
+    "public_world_family_interventions": true
+  },
+  "budget_contract": {
+    "complete_experiments_per_cell": 40,
+    "operation_limit": "2 * frozen_task_recipe_event_count * complete_experiments",
+    "checkpoints": [4, 8, 12, 20, 40],
+    "runner_action_repair": false,
+    "runner_automatic_closeout": false
+  },
+  "determinism_contract": {
+    "cells": "first Train seed for every task and method",
+    "comparison": "canonical action-observation-reward-event trajectory digest"
+  },
+  "acceptance_contract": {
+    "all_288_cells_complete": true,
+    "all_resource_ledgers_complete": true,
+    "all_decision_audits_complete": true,
+    "all_checked_replays_deterministic": true,
+    "observation_blind_invalid_operation_count": 0,
+    "rule_based_invalid_operation_count": 0,
+    "operation_random_invalid_actions": "retained and reported as a negative-control outcome",
+    "minimum_distinct_operations_per_method_task": 3,
+    "rule_based_measurement_adaptation": "at least one public-measurement adaptation in every task",
+    "source_tree_clean_at_start": true,
+    "bench_feedback_used": false,
+    "reference_search_feedback_used": false
+  },
+  "reporting_contract": {
+    "task_level_results_required": true,
+    "single_cross_task_score_forbidden": true,
+    "invalid_action_taxonomy_required": true,
+    "complete_experiment_checkpoints_required": true,
+    "parallel_resource_axes_required": true
+  }
+}

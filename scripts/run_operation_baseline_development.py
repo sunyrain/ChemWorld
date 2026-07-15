@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 
 from chemworld.agents.operation_baselines import OPERATION_BASELINE_IDS
 from chemworld.eval.operation_baseline_development import (
+    DEFAULT_REPORT_PATH,
     run_operation_baseline_development_audit,
 )
 
@@ -17,6 +19,12 @@ def main() -> int:
     parser.add_argument("--train-seeds", type=int, default=4)
     parser.add_argument("--dev-seeds", type=int, default=20)
     parser.add_argument("--complete-experiments", type=int, default=40)
+    parser.add_argument(
+        "--report",
+        type=Path,
+        default=DEFAULT_REPORT_PATH,
+        help="Write the audit to this path instead of the versioned default report.",
+    )
     parser.add_argument(
         "--methods",
         nargs="+",
@@ -39,6 +47,7 @@ def main() -> int:
         complete_experiments=args.complete_experiments,
         methods=None if args.methods is None else tuple(args.methods),
         workers=args.workers,
+        report_path=args.report,
     )
     print(
         json.dumps(
@@ -49,7 +58,7 @@ def main() -> int:
                 "operation_random_invalid_operation_count": report["acceptance"][
                     "operation_random_invalid_operation_count"
                 ],
-                "report": ("workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.json"),
+                "report": str(args.report),
             },
             indent=2,
         )
