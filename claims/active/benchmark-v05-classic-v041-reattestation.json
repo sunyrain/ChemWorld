@@ -2,10 +2,15 @@
   "branch": "core/benchmark-v05-classic-v041-reattestation",
   "claimed_at": "2026-07-15T01:32:47.325629+00:00",
   "expires_at": "2026-07-22T01:32:47.325629+00:00",
-  "notes": "",
+  "notes": "The first 64-cell preflight exposed a shared flow-recipe coupling bug: generated run duration could be shorter than the configured effective residence time. Repair and source-bind the recipe compiler before reissuing the preflight; do not relax invalid-action or Safe-GP gates.",
   "owned_paths": [
+    "src/chemworld/agents/task_recipes.py",
+    "src/chemworld/eval/formal_classic.py",
     "src/chemworld/eval/classic_development.py",
+    "configs/methods/classic_v0.4.1/classic_methods.json",
     "scripts/run_classic_development.py",
+    "tests/test_task_aware_recipes.py",
+    "tests/test_formal_classic.py",
     "tests/test_classic_development.py",
     "workstreams/benchmark_v1/reports/classic-preflight-v0.4.1.json",
     "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json"
