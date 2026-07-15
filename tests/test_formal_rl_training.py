@@ -3,13 +3,18 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from functools import partial
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pytest
+from stable_baselines3.common.vec_env import DummyVecEnv
 
 import chemworld.rl.formal_training as formal_training_module
-from chemworld.rl.environment import RLWorldAllocation
+from chemworld.data.logging import to_builtin
+from chemworld.rl.batched_vec_env import BatchedSubprocVecEnv
+from chemworld.rl.environment import RLWorldAllocation, build_rl_environment
 from chemworld.rl.evaluation import _ExperimentBehaviorTracker
 from chemworld.rl.formal_training import (
     FormalPPOTrainingError,
@@ -59,6 +64,9 @@ def test_post_affordance_ppo_full_plan_is_valid_but_starts_locked() -> None:
     assert plan["status"] == "post_affordance_preflight_pending_full_matrix_forbidden"
     assert plan["execution"]["full_matrix_started"] is False
     assert plan["execution"]["full_matrix_start_forbidden_by_preflight"] is True
+    assert plan["current_contract_preflight"]["required_report_schema"] == (
+        "chemworld-ppo-v0410-preflight-report-0.1"
+    )
     with pytest.raises(FormalPPOTrainingError, match="cannot load PPO preflight report"):
         verify_current_contract_preflight(
             root=ROOT,
@@ -115,13 +123,18 @@ def test_post_affordance_preflight_unlock_requires_stable_source_evidence(
     tmp_path: Path, algorithm: str
 ) -> None:
     source_commit = "a" * 40
-    task_id = f"benchmark-v05-rl-adapters--slice-{algorithm}-v049-post-affordance-dev"
-    plan_relative = f"configs/methods/rl_v0.4/{algorithm}_v049_preflight_plan.json"
-    report_relative = f"workstreams/benchmark_v1/reports/rl-{algorithm}-v049-preflight-v0.4.json"
-    report_schema = f"chemworld-{algorithm}-v049-preflight-report-0.1"
-    required_status = f"{algorithm}_v049_preflight_passed_full_matrix_allowed"
+    version = "v0410"
+    task_id = (
+        f"benchmark-v05-rl-adapters--slice-{algorithm}-v0410-public-schema-adapter-dev"
+    )
+    plan_relative = f"configs/methods/rl_v0.4/{algorithm}_{version}_preflight_plan.json"
+    report_relative = (
+        f"workstreams/benchmark_v1/reports/rl-{algorithm}-{version}-preflight-v0.4.json"
+    )
+    report_schema = f"chemworld-{algorithm}-{version}-preflight-report-0.1"
+    required_status = f"{algorithm}_{version}_preflight_passed_full_matrix_allowed"
     preflight_plan = {
-        "schema_version": f"chemworld-{algorithm}-v049-preflight-plan-0.1",
+        "schema_version": f"chemworld-{algorithm}-{version}-preflight-plan-0.1",
         "task_id": task_id,
     }
     preflight_path = tmp_path / plan_relative
@@ -510,6 +523,11 @@ def test_windows_subprocess_worker_cpu_is_included(tmp_path: Path) -> None:
         torch_num_threads=1,
     )
     infrastructure = manifest["training_infrastructure"]
+    assert infrastructure["subprocess_start_strategy"] == (
+        "spawn_single_batched_environment_worker"
+    )
+    assert infrastructure["subprocess_worker_process_count"] == 1
+    assert infrastructure["environments_per_worker_process"] == 8
     assert infrastructure["worker_process_cpu_time_s"] > 0.0
     assert infrastructure["worker_process_cpu_accounting_method"].startswith(
         "windows_GetProcessTimes"
@@ -517,3 +535,37 @@ def test_windows_subprocess_worker_cpu_is_included(tmp_path: Path) -> None:
     assert manifest["cpu_time_s"] == pytest.approx(
         infrastructure["parent_process_cpu_time_s"] + infrastructure["worker_process_cpu_time_s"]
     )
+
+
+def test_batched_subprocess_preserves_vector_slot_order_and_transitions() -> None:
+    _plan, formal, _methods = _inputs()
+    allocation = build_formal_allocation(formal, task_id="partition-discovery", name="train")
+    factories = [
+        partial(
+            build_rl_environment,
+            task_id="partition-discovery",
+            allocation=allocation,
+            sampler_seed=700 + rank,
+            operation_budget=4,
+            training_reward=True,
+        )
+        for rank in range(2)
+    ]
+    local = DummyVecEnv(factories)
+    subprocess = BatchedSubprocVecEnv(factories, start_method="spawn")
+    try:
+        assert local.seed(900) == subprocess.seed(900)
+        np.testing.assert_array_equal(local.reset(), subprocess.reset())
+        assert to_builtin(local.reset_infos) == to_builtin(subprocess.reset_infos)
+
+        actions = np.zeros((2, *local.action_space.shape), dtype=np.float32)
+        for _ in range(4):
+            local_observation, local_reward, local_done, local_info = local.step(actions)
+            worker_observation, worker_reward, worker_done, worker_info = subprocess.step(actions)
+            np.testing.assert_array_equal(local_observation, worker_observation)
+            np.testing.assert_array_equal(local_reward, worker_reward)
+            np.testing.assert_array_equal(local_done, worker_done)
+            assert to_builtin(local_info) == to_builtin(worker_info)
+    finally:
+        local.close()
+        subprocess.close()

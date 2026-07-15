@@ -1,6 +1,6 @@
 {
   "schema_version": "chemworld-formal-sac-training-plan-0.4",
-  "task_id": "benchmark-v05-rl-adapters--slice-sac-v049-post-affordance-dev",
+  "task_id": "benchmark-v05-rl-adapters--slice-sac-v0410-public-schema-adapter-dev",
   "parent_task_id": "benchmark-v05-rl-adapters",
   "status": "post_affordance_preflight_pending_full_matrix_forbidden",
   "algorithm": "sac",
@@ -81,10 +81,10 @@
   },
   "current_contract_preflight": {
     "required_before_full_matrix": true,
-    "plan": "configs/methods/rl_v0.4/sac_v049_preflight_plan.json",
-    "report": "workstreams/benchmark_v1/reports/rl-sac-v049-preflight-v0.4.json",
-    "required_report_schema": "chemworld-sac-v049-preflight-report-0.1",
-    "required_status": "sac_v049_preflight_passed_full_matrix_allowed",
+    "plan": "configs/methods/rl_v0.4/sac_v0410_preflight_plan.json",
+    "report": "workstreams/benchmark_v1/reports/rl-sac-v0410-preflight-v0.4.json",
+    "required_report_schema": "chemworld-sac-v0410-preflight-report-0.1",
+    "required_status": "sac_v0410_preflight_passed_full_matrix_allowed",
     "source_commit_must_equal_execution_head": true,
     "failure_forbids_full_matrix": true
   },
@@ -95,9 +95,9 @@
     "max_concurrent_jobs": 4,
     "failed_attempts_retained": true,
     "completed_jobs_resumed_without_retraining": true,
-    "artifact_root": "runs/benchmark-v0.5/rl-v0.4/sac/post-affordance-v049/full-matrix",
-    "checkpoint_index": "configs/methods/rl_v0.4/sac_checkpoint_index_v0.4.1.json",
-    "report": "workstreams/benchmark_v1/reports/rl-sac-dev-v0.4.9.json",
+    "artifact_root": "runs/benchmark-v0.5/rl-v0.4/sac/post-affordance-v0410/full-matrix",
+    "checkpoint_index": "configs/methods/rl_v0.4/sac_checkpoint_index_v0.4.2.json",
+    "report": "workstreams/benchmark_v1/reports/rl-sac-dev-v0.4.10.json",
     "full_matrix_started": false,
     "executed_training_run_count": 0,
     "evaluated_candidate_checkpoint_count": 0,
@@ -106,7 +106,7 @@
   "comparability_boundary": {
     "native_hybrid_distribution": false,
     "same_public_affordance_decoder_as_ppo": true,
-    "action_adapter_schema_version": "chemworld-sb3-box-latent-adapter-0.1",
+    "action_adapter_schema_version": "chemworld-sb3-box-latent-adapter-0.2",
     "limitations": [
       "SAC samples a bounded continuous latent carrier and reaches typed operations through the public masked decoder rather than PPO's native categorical operation law.",
       "PPO/SAC comparisons are system-level comparisons with the action-distribution difference disclosed; they are not attributed solely to the learning algorithm."
@@ -122,7 +122,7 @@
     "checkpoint_binaries_committed": false,
     "clean_environment_distribution_deferred_to_parent_gate": true,
     "ppo_training_in_scope": false,
-    "ppo_outcome_report": "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.9.json",
+    "ppo_outcome_report": "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.10.json",
     "v048_negative_result_remains_immutable": true
   }
 }

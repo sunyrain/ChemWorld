@@ -33,7 +33,7 @@ def _claim(task_id: str) -> dict[str, Any]:
     return _load(next(path for path in reversed([*completed, active]) if path.is_file()))
 
 
-def test_current_contract_integration_audit_closes_rl_fail_closed() -> None:
+def test_historical_current_contract_fails_closed_after_adapter_identity_changes() -> None:
     report = build_audit(
         root=ROOT,
         status_path=STATUS_PATH,
@@ -43,9 +43,9 @@ def test_current_contract_integration_audit_closes_rl_fail_closed() -> None:
     )
 
     assert report["schema_version"] == REPORT_SCHEMA
-    assert report["status"] == "rl_current_contract_integration_passed_selection_failed"
-    assert report["failed_checks"] == []
-    assert all(report["checks"].values())
+    assert report["status"] == "rl_current_contract_integration_audit_failed"
+    assert report["failed_checks"] == ["artifact:rl_method_contract:digest"]
+    assert report["checks"]["artifact:rl_method_contract:digest"] is False
     assert report["method_evidence"]["ppo"]["decision"]["status"] == "selection_failed"
     assert report["method_evidence"]["sac"]["decision"]["status"] == "selection_failed"
     assert report["current_selected_checkpoint_count"] == 0

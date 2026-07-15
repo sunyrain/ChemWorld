@@ -298,8 +298,10 @@ def build_audit(
         "current_selected_checkpoint_count": 0,
         "referenced_current_checkpoint_manifest_count": 0,
         "current_checkpoint_manifest_verification": "not_applicable_no_selected_checkpoints",
-        "preflight_checkpoint_contract_and_replay_evidence_verified": not failed
-        and checks.get("ppo:preflight_contracts_and_replays_exact") is True
+        "preflight_checkpoint_contract_and_replay_evidence_verified": checks.get(
+            "ppo:preflight_contracts_and_replays_exact"
+        )
+        is True
         and checks.get("sac:preflight_contracts_and_replays_exact") is True,
         "formal_results_present": False,
         "benchmark_claim_allowed": False,

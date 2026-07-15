@@ -9,6 +9,7 @@ import scripts.run_sac_v048_preflight as preflight
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN_PATH = ROOT / "configs/methods/rl_v0.4/sac_v049_preflight_plan.json"
+REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/rl-sac-v049-preflight-v0.4.json"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -111,3 +112,31 @@ def test_post_affordance_sac_report_rejects_source_or_tree_drift(
     outputs[("status", "--porcelain=v1", "--untracked-files=all")] = " M source.py"
     with pytest.raises(preflight.SACPreflightError, match="tree changed"):
         preflight.source_state_before_report(tmp_path, start)
+
+
+def test_post_affordance_sac_report_is_stable_complete_negative_evidence() -> None:
+    report = _load(REPORT_PATH)
+
+    assert report["status"] == "sac_v049_preflight_failed_full_matrix_forbidden"
+    assert report["full_matrix_allowed"] is False
+    assert len(report["jobs"]) == 4
+    assert report["resource_accounting"]["training_environment_step_count"] == 102_400
+    assert report["source"]["source_commit"] == (
+        "9e2339c437a09f6bde05c95aeadca1f980df6725"
+    )
+    assert report["source"]["source_commit_stable"] is True
+    assert report["source"]["source_tree_clean_before_report"] is True
+    assert report["gate_assessment"]["learning_signal_task_count"] == 0
+    assert report["gate_assessment"]["step0_total_behavior_complete_experiment_count"] == 13
+    assert report["gate_assessment"]["trained_total_behavior_complete_experiment_count"] == 0
+    assert sum(
+        int(job["step0_evaluation"]["summary"]["runtime_domain_failure_count"])
+        for job in report["jobs"]
+    ) == 47
+    assert sum(
+        int(job["trained_evaluation"]["summary"]["runtime_domain_failure_count"])
+        for job in report["jobs"]
+    ) == 428
+    assert all(job["step0_evaluation"]["exact_replay"] is True for job in report["jobs"])
+    assert all(job["trained_evaluation"]["exact_replay"] is True for job in report["jobs"])
+    assert report["benchmark_claim_allowed"] is False

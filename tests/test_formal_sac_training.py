@@ -56,7 +56,10 @@ def test_post_affordance_sac_full_plan_is_valid_and_starts_locked() -> None:
     assert plan["execution"]["full_matrix_started"] is False
     assert plan["execution"]["executed_training_run_count"] == 0
     assert plan["current_contract_preflight"]["required_report_schema"] == (
-        "chemworld-sac-v049-preflight-report-0.1"
+        "chemworld-sac-v0410-preflight-report-0.1"
+    )
+    assert plan["comparability_boundary"]["action_adapter_schema_version"] == (
+        "chemworld-sb3-box-latent-adapter-0.2"
     )
 
 

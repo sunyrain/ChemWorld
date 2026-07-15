@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from typing import Any
 
 import gymnasium as gym
@@ -19,8 +20,8 @@ import numpy as np
 from chemworld.data.logging import to_builtin
 from chemworld.world.operations import OPERATION_TYPES, operation_contracts
 
-ACTION_SCHEMA_VERSION = "chemworld-conditional-hybrid-action-0.1"
-LATENT_ADAPTER_VERSION = "chemworld-sb3-box-latent-adapter-0.1"
+ACTION_SCHEMA_VERSION = "chemworld-conditional-hybrid-action-0.2"
+LATENT_ADAPTER_VERSION = "chemworld-sb3-box-latent-adapter-0.2"
 POLICY_DISTRIBUTION_SCHEMA_VERSION = "chemworld-masked-conditional-ppo-0.1"
 
 
@@ -85,10 +86,25 @@ def conditional_hybrid_action_contract(
             "operation_decode": "masked_argmax",
             "native_hybrid_distribution": False,
         },
+        "execution_projection": {
+            "source": "public action_schema(operation) and validate_action(action)",
+            "state_dependent_numeric_bounds": True,
+            "state_dependent_categorical_choices": True,
+            "cross_field_constraints": [
+                "maximum_cooling_rate_K_s",
+                "absolute_value_upper_bound",
+            ],
+            "invalid_projection_policy": (
+                "retain the decoded action and let the public validator record failure"
+            ),
+            "hidden_state_access": False,
+        },
         "empty_operation_mask_policy": (
             "retain global argmax so the environment records the invalid transition"
         ),
-        "numeric_policy": "normalize decoded numpy values before execution",
+        "numeric_policy": (
+            "map latent coordinates through current public field bounds before execution"
+        ),
     }
     payload["contract_hash"] = _sha256_json(payload)
     return payload
@@ -127,6 +143,7 @@ def decode_conditional_hybrid_action(
     *,
     event_action_space: gym.spaces.Dict,
     operation_mask: list[bool] | np.ndarray,
+    operation_schema: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Decode one SB3 latent vector into a categorical, conditional action."""
 
@@ -149,6 +166,22 @@ def decode_conditional_hybrid_action(
     )
     operation = OPERATION_TYPES[operation_index]
     required = set(operation_contracts()[operation].required_fields)
+    field_schemas: dict[str, Mapping[str, Any]] = {}
+    if operation_schema is not None:
+        if (
+            operation_schema.get("operation") != operation
+            or operation_schema.get("valid_operation_type") is not True
+            or set(operation_schema.get("required_fields", ())) != required
+        ):
+            raise ValueError("public operation schema does not match the selected operation")
+        fields = operation_schema.get("fields")
+        if not isinstance(fields, list):
+            raise ValueError("public operation schema is missing its field contracts")
+        field_schemas = {
+            str(field["field"]): field
+            for field in fields
+            if isinstance(field, Mapping) and isinstance(field.get("field"), str)
+        }
     unit = np.clip((vector[len(OPERATION_TYPES) :] + 1.0) / 2.0, 0.0, 1.0)
     payload: dict[str, Any] = {"operation": operation_index}
     for index, key in enumerate(parameter_keys):
@@ -156,14 +189,151 @@ def decode_conditional_hybrid_action(
             continue
         space = event_action_space[key]
         coordinate = float(unit[index])
-        if isinstance(space, gym.spaces.Discrete):
+        field_schema = field_schemas.get(key, {})
+        choices = field_schema.get("choices")
+        bounds = field_schema.get("bounds")
+        if isinstance(choices, list) and choices:
+            payload[key] = choices[min(int(coordinate * len(choices)), len(choices) - 1)]
+        elif isinstance(space, gym.spaces.Discrete):
             payload[key] = min(int(coordinate * space.n), space.n - 1)
         elif isinstance(space, gym.spaces.Box):
-            value = space.low + coordinate * (space.high - space.low)
-            payload[key] = to_builtin(np.asarray(value, dtype=space.dtype))
+            low = float(bounds["low"]) if isinstance(bounds, Mapping) else float(space.low[0])
+            high = (
+                float(bounds["high"]) if isinstance(bounds, Mapping) else float(space.high[0])
+            )
+            payload[key] = _box_coordinate_payload(
+                space,
+                coordinate=coordinate,
+                low=low,
+                high=high,
+                lower_inclusive=field_schema.get("lower_bound_inclusive") is not False,
+                upper_inclusive=field_schema.get("upper_bound_inclusive") is not False,
+            )
         else:
             raise TypeError(f"unsupported event action component: {key}={type(space).__name__}")
+    if operation_schema is not None:
+        _apply_public_cross_field_constraints(
+            payload,
+            operation_schema=operation_schema,
+            event_action_space=event_action_space,
+        )
     return payload
+
+
+def _scalar(value: Any) -> float:
+    return float(np.asarray(value, dtype=np.float64).reshape(-1)[0])
+
+
+def _box_payload(space: gym.spaces.Box, value: float) -> Any:
+    return to_builtin(np.full(space.shape, value, dtype=space.dtype))
+
+
+def _representable_bound(
+    value: float,
+    *,
+    toward: float,
+    inclusive: bool,
+    lower: bool,
+    dtype: np.dtype[Any],
+) -> float:
+    projected = np.asarray(value, dtype=dtype)
+    scalar = float(projected)
+    violates = scalar < value if lower and inclusive else scalar <= value if lower else False
+    if not lower:
+        violates = scalar > value if inclusive else scalar >= value
+    if violates:
+        projected = np.nextafter(projected, np.asarray(toward, dtype=dtype))
+        scalar = float(projected)
+    return scalar
+
+
+def _box_coordinate_payload(
+    space: gym.spaces.Box,
+    *,
+    coordinate: float,
+    low: float,
+    high: float,
+    lower_inclusive: bool,
+    upper_inclusive: bool,
+) -> Any:
+    dtype = space.dtype
+    if dtype is None or not low <= high or not np.issubdtype(dtype, np.floating):
+        raise ValueError("public numeric bounds must define a finite floating interval")
+    dtype = np.dtype(dtype)
+    representable_low = _representable_bound(
+        low,
+        toward=high,
+        inclusive=lower_inclusive,
+        lower=True,
+        dtype=dtype,
+    )
+    representable_high = _representable_bound(
+        high,
+        toward=low,
+        inclusive=upper_inclusive,
+        lower=False,
+        dtype=dtype,
+    )
+    if representable_low > representable_high:
+        raise ValueError("public numeric interval has no value representable by the action space")
+    value = representable_low + coordinate * (representable_high - representable_low)
+    value = float(np.asarray(value, dtype=dtype))
+    return _box_payload(space, float(np.clip(value, representable_low, representable_high)))
+
+
+def _box_payload_at_least(space: gym.spaces.Box, value: float) -> Any:
+    projected = np.asarray(value, dtype=space.dtype)
+    if float(projected) < value:
+        projected = np.nextafter(projected, np.asarray(np.inf, dtype=space.dtype))
+    return _box_payload(space, float(projected))
+
+
+def _box_payload_within_abs(space: gym.spaces.Box, value: float, limit: float) -> Any:
+    projected = np.asarray(np.clip(value, -limit, limit), dtype=space.dtype)
+    if abs(float(projected)) > limit:
+        projected = np.nextafter(projected, np.asarray(0.0, dtype=space.dtype))
+    return _box_payload(space, float(projected))
+
+
+def _apply_public_cross_field_constraints(
+    payload: dict[str, Any],
+    *,
+    operation_schema: Mapping[str, Any],
+    event_action_space: gym.spaces.Dict,
+) -> None:
+    constraints = operation_schema.get("constraints")
+    if not isinstance(constraints, list):
+        return
+    for constraint in constraints:
+        if not isinstance(constraint, Mapping):
+            continue
+        kind = constraint.get("kind")
+        parameters = constraint.get("parameters")
+        if kind == "cross_field_upper_bound" and isinstance(parameters, Mapping):
+            if constraint.get("id") != "payload_coupling:maximum_cooling_rate_K_s":
+                continue
+            current = float(parameters["current_temperature_K"])
+            maximum_rate = float(parameters["maximum_cooling_rate_K_s"])
+            target = _scalar(payload["target_temperature_K"])
+            duration = _scalar(payload["duration_s"])
+            required_duration = max((current - target) / maximum_rate, 0.0)
+            if duration < required_duration:
+                space = event_action_space["duration_s"]
+                if not isinstance(space, gym.spaces.Box):
+                    raise TypeError("duration_s must use a Box action component")
+                payload["duration_s"] = _box_payload_at_least(space, required_duration)
+        elif kind == "absolute_value_upper_bound" and isinstance(parameters, Mapping):
+            field_names = constraint.get("fields")
+            if not isinstance(field_names, list) or len(field_names) != 1:
+                continue
+            field = str(field_names[0])
+            limit = float(parameters["default_voltage_window_V"])
+            space = event_action_space[field]
+            if not isinstance(space, gym.spaces.Box):
+                raise TypeError(f"{field} must use a Box action component")
+            payload[field] = _box_payload_within_abs(
+                space, _scalar(payload[field]), limit
+            )
 
 
 __all__ = [

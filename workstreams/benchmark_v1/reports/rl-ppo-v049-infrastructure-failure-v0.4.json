@@ -1,0 +1,41 @@
+{
+  "schema_version": "chemworld-ppo-v049-infrastructure-failure-report-0.1",
+  "status": "failed_before_training_adapter_audit_required",
+  "algorithm": "ppo",
+  "task_id": "benchmark-v05-rl-adapters--slice-ppo-v049-post-affordance-dev",
+  "failed_task_id": "partition-discovery",
+  "source_commit": "9e2339c437a09f6bde05c95aeadca1f980df6725",
+  "source_tree_clean_at_start": true,
+  "preflight_plan_path": "configs/methods/rl_v0.4/ppo_v049_preflight_plan.json",
+  "preflight_plan_file_sha256": "0c3d744b7ba66795231be11f2eea79335c1d7e5d1a6698d522cc4c7751e71901",
+  "preflight_plan_canonical_sha256": "080d62677074474a480b71c6f91e2204fad6c0bc0db0676fd248710b5c0c6065",
+  "failure": {
+    "class": "windows_pagefile_exhaustion_during_torch_subprocess_import",
+    "stage": "vector_environment_worker_initialization",
+    "winerror": 1455,
+    "library": "torch/lib/nvrtc64_130_0.alt.dll",
+    "scientific_failure": false,
+    "process_tree_terminated_after_workers_stalled": true,
+    "stderr_size_bytes": 11970,
+    "stderr_sha256": "7fa5bbfc4d3e334805288d14f67d6fc18d9abf6a574985385680cad67c093bdb"
+  },
+  "observed_work": {
+    "training_environment_step_count": 0,
+    "dev_evaluation_count": 0,
+    "trained_checkpoint_count": 0,
+    "outcome_metric_observed": false,
+    "step0_checkpoint_created": true,
+    "step0_checkpoint_sha256": "61f357bf163bbc949b7ddf0eb592ac3ff11a4aa2d65d3965ed1a5b5a320ba2b8",
+    "step0_manifest_sha256": "6983f17b199caa46ad531fb6275a8603ec400534a31543237bbfb07c77e22ba2"
+  },
+  "disposition": {
+    "direct_retry_authorized": false,
+    "parent_scientific_contract_sha256": "be6dca06e66ed8ea05029b1cbd900489489984d64b972b258fcd0f1aa93f5349",
+    "required_next_step": "audit and repair the shared RL projection of public dynamic action-schema constraints before any new PPO or SAC preflight",
+    "reason": "The launch itself observed no outcome, but the separately completed SAC v0.4.9 run exposed a shared decoder defect; repeating PPO on the same adapter would not produce an interpretable algorithm result."
+  },
+  "formal_results_present": false,
+  "benchmark_claim_allowed": false,
+  "bench_accessed": false,
+  "reference_search_used": false
+}

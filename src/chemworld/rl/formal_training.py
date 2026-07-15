@@ -31,7 +31,11 @@ SAC_JOB_SUMMARY_VERSION = "chemworld-formal-sac-job-summary-0.4"
 SAC_REPORT_VERSION = "chemworld-formal-sac-development-report-0.4"
 SAC_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v048-preflight-report-0.1"
 PPO_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION = "chemworld-ppo-v049-preflight-report-0.1"
+PPO_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION = (
+    "chemworld-ppo-v0410-preflight-report-0.1"
+)
 SAC_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v049-preflight-report-0.1"
+SAC_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v0410-preflight-report-0.1"
 PREFLIGHT_CONTRACTS: dict[str, dict[str, dict[str, str]]] = {
     "ppo": {
         "chemworld-ppo-v048-preflight-report-0.1": {
@@ -44,6 +48,11 @@ PREFLIGHT_CONTRACTS: dict[str, dict[str, dict[str, str]]] = {
             "report": "workstreams/benchmark_v1/reports/rl-ppo-v049-preflight-v0.4.json",
             "required_status": "ppo_v049_preflight_passed_full_matrix_allowed",
         },
+        PPO_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION: {
+            "plan": "configs/methods/rl_v0.4/ppo_v0410_preflight_plan.json",
+            "report": "workstreams/benchmark_v1/reports/rl-ppo-v0410-preflight-v0.4.json",
+            "required_status": "ppo_v0410_preflight_passed_full_matrix_allowed",
+        },
     },
     "sac": {
         SAC_PREFLIGHT_REPORT_VERSION: {
@@ -55,6 +64,11 @@ PREFLIGHT_CONTRACTS: dict[str, dict[str, dict[str, str]]] = {
             "plan": "configs/methods/rl_v0.4/sac_v049_preflight_plan.json",
             "report": "workstreams/benchmark_v1/reports/rl-sac-v049-preflight-v0.4.json",
             "required_status": "sac_v049_preflight_passed_full_matrix_allowed",
+        },
+        SAC_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION: {
+            "plan": "configs/methods/rl_v0.4/sac_v0410_preflight_plan.json",
+            "report": "workstreams/benchmark_v1/reports/rl-sac-v0410-preflight-v0.4.json",
+            "required_status": "sac_v0410_preflight_passed_full_matrix_allowed",
         },
     },
 }
@@ -138,7 +152,9 @@ def _requires_source_bound_jobs(plan: Mapping[str, Any]) -> bool:
         and declaration.get("required_report_schema")
         in {
             PPO_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
+            PPO_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION,
             SAC_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
+            SAC_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION,
         }
     )
 
@@ -233,6 +249,14 @@ def validate_training_plan(
     method = method_training.get(algorithm, {}) if isinstance(method_training, Mapping) else {}
     formal_splits = formal_protocol.get("split_contract", {})
     split_bindings = plan.get("split_bindings", {})
+    preflight_declaration = plan.get("current_contract_preflight", {})
+    expected_sac_adapter = (
+        "chemworld-sb3-box-latent-adapter-0.2"
+        if isinstance(preflight_declaration, Mapping)
+        and preflight_declaration.get("required_report_schema")
+        == SAC_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION
+        else "chemworld-sb3-box-latent-adapter-0.1"
+    )
     parallel_environments = int(infrastructure.get("parallel_environments", 0))
     checkpoint_quantum = (
         int(training.get("hyperparameters", {}).get("n_steps", 0)) * parallel_environments
@@ -335,7 +359,7 @@ def validate_training_plan(
                 and comparability.get("native_hybrid_distribution") is False
                 and comparability.get("same_public_affordance_decoder_as_ppo") is True
                 and comparability.get("action_adapter_schema_version")
-                == "chemworld-sb3-box-latent-adapter-0.1"
+                == expected_sac_adapter
                 and isinstance(comparability.get("limitations"), list)
                 and len(comparability["limitations"]) >= 2,
                 "sac_current_contract_preflight_declared": _preflight_declaration_valid(
@@ -348,6 +372,7 @@ def validate_training_plan(
                 in {
                     "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json",
                     "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.9.json",
+                    "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.10.json",
                 },
             }
         )
@@ -387,7 +412,9 @@ def verify_current_contract_preflight(
     writer_gate = report.get("writer_gate")
     post_affordance = schema in {
         PPO_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
+        PPO_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION,
         SAC_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
+        SAC_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION,
     }
     checks = {
         "required": declaration.get("required_before_full_matrix") is True,

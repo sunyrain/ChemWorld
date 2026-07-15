@@ -8,7 +8,13 @@ import gymnasium as gym
 import numpy as np
 from gymnasium.utils import RecordConstructorArgs
 
-from chemworld.agent_interface import observation_view, rl_observation_spec, rl_observation_view
+from chemworld.agent_interface import (
+    action_schema,
+    observation_view,
+    rl_observation_spec,
+    rl_observation_view,
+    validate_action,
+)
 from chemworld.data.logging import to_builtin
 from chemworld.rl.hybrid_actions import (
     conditional_hybrid_action_contract,
@@ -423,11 +429,56 @@ class ConditionalHybridActionWrapper(
         return conditional_hybrid_action_contract(self.event_action_space)
 
     def action(self, action: Any) -> dict[str, Any]:
-        return decode_conditional_hybrid_action(
+        operation_mask = action_mask(self.env)
+        static = decode_conditional_hybrid_action(
             action,
             event_action_space=self.event_action_space,
-            operation_mask=action_mask(self.env),
+            operation_mask=operation_mask,
         )
+        operation = self.operation_types[int(static["operation"])]
+        public_schema = action_schema(self.env, operation)
+        decoded = decode_conditional_hybrid_action(
+            action,
+            event_action_space=self.event_action_space,
+            operation_mask=operation_mask,
+            operation_schema=public_schema,
+        )
+        return self._project_public_choices(action, decoded, public_schema)
+
+    def _project_public_choices(
+        self,
+        latent: Any,
+        decoded: dict[str, Any],
+        public_schema: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Map categorical coordinates only across choices valid under the public validator."""
+
+        if validate_action(self.env, decoded).get("valid") is True:
+            return decoded
+        vector = np.asarray(latent, dtype=np.float32).reshape(-1)
+        parameter_unit = np.clip(
+            (vector[len(self.operation_types) :] + 1.0) / 2.0,
+            0.0,
+            1.0,
+        )
+        for field_schema in public_schema.get("fields", []):
+            if not isinstance(field_schema, dict):
+                continue
+            field = field_schema.get("field")
+            choices = field_schema.get("choices")
+            if field not in self.parameter_keys or not isinstance(choices, list):
+                continue
+            valid_choices = []
+            for choice in choices:
+                candidate = {**decoded, str(field): choice}
+                if validate_action(self.env, candidate).get("valid") is True:
+                    valid_choices.append(choice)
+            if valid_choices:
+                coordinate = float(parameter_unit[self.parameter_keys.index(str(field))])
+                decoded[str(field)] = valid_choices[
+                    min(int(coordinate * len(valid_choices)), len(valid_choices) - 1)
+                ]
+        return decoded
 
 
 class RLControlObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordConstructorArgs):

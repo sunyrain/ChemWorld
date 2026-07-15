@@ -68,7 +68,8 @@ def test_conditional_hybrid_adapter_excludes_irrelevant_coordinates() -> None:
     try:
         env.reset(seed=0)
         contract = env.action_contract()
-        assert contract["schema_version"] == "chemworld-conditional-hybrid-action-0.1"
+        assert contract["schema_version"] == "chemworld-conditional-hybrid-action-0.2"
+        assert contract["execution_projection"]["state_dependent_categorical_choices"] is True
         assert contract["semantic_action"]["operation"]["kind"] == "categorical"
         assert contract["training_adapter"]["native_hybrid_distribution"] is False
         assert len(contract["contract_hash"]) == 64

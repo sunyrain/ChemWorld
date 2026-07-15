@@ -14,6 +14,7 @@ from pathlib import Path
 from time import perf_counter, process_time
 from typing import Any, Literal
 
+from chemworld.rl.batched_vec_env import BatchedSubprocVecEnv
 from chemworld.rl.checkpoint_contract import (
     RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
     RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION,
@@ -212,7 +213,7 @@ def train_sb3_baseline(
         import stable_baselines3 as sb3
         import torch
         from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
-        from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
+        from stable_baselines3.common.vec_env import DummyVecEnv
     except ImportError as exc:
         raise RuntimeError("install ChemWorld with the 'rl' extra to train PPO or SAC") from exc
 
@@ -258,9 +259,11 @@ def train_sb3_baseline(
     ]
     children_cpu_started = _children_cpu_time_s()
     if vectorization_backend == "subprocess":
-        env: Any = SubprocVecEnv(env_factories, start_method="spawn")
+        env: Any = BatchedSubprocVecEnv(env_factories, start_method="spawn")
+        subprocess_start_strategy = "spawn_single_batched_environment_worker"
     else:
         env = DummyVecEnv(env_factories)
+        subprocess_start_strategy = "not_applicable_in_process_vectorization"
     worker_processes = list(getattr(env, "processes", ()))
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
@@ -465,6 +468,11 @@ def train_sb3_baseline(
         "training_infrastructure": {
             "parallel_environments": parallel_environments,
             "vectorization_backend": vectorization_backend,
+            "subprocess_start_strategy": subprocess_start_strategy,
+            "subprocess_worker_process_count": len(worker_processes),
+            "environments_per_worker_process": (
+                parallel_environments // len(worker_processes) if worker_processes else None
+            ),
             "requested_device": requested_device,
             "resolved_device": resolved_device,
             "logical_cpu_count": os.cpu_count(),

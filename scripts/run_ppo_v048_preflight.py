@@ -28,6 +28,7 @@ PLAN_VERSION = "chemworld-ppo-v048-preflight-plan-0.1"
 JOB_VERSION = "chemworld-ppo-v048-preflight-job-0.1"
 REPORT_VERSION = "chemworld-ppo-v048-preflight-report-0.1"
 POST_AFFORDANCE_PLAN_VERSION = "chemworld-ppo-v049-preflight-plan-0.1"
+PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION = "chemworld-ppo-v0410-preflight-plan-0.1"
 PREFLIGHT_PROFILES = {
     PLAN_VERSION: {
         "task_id": "benchmark-v05-rl-adapters--slice-ppo-v048-retrain-dev",
@@ -48,6 +49,16 @@ PREFLIGHT_PROFILES = {
         "execution_status_version": "chemworld-ppo-v049-preflight-execution-status-0.1",
         "status_prefix": "ppo_v049",
         "result_role": "post_affordance_runtime_domain_train_dev_preflight",
+    },
+    PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION: {
+        "task_id": "benchmark-v05-rl-adapters--slice-ppo-v0410-public-schema-adapter-dev",
+        "job_version": "chemworld-ppo-v0410-preflight-job-0.1",
+        "report_version": "chemworld-ppo-v0410-preflight-report-0.1",
+        "attempt_version": "chemworld-ppo-v0410-preflight-attempt-0.1",
+        "failure_version": "chemworld-ppo-v0410-preflight-attempt-failure-0.1",
+        "execution_status_version": "chemworld-ppo-v0410-preflight-execution-status-0.1",
+        "status_prefix": "ppo_v0410",
+        "result_role": "public_schema_projected_train_dev_preflight",
     },
 }
 RATE_FIELDS = (
@@ -73,6 +84,21 @@ def _canonical_sha256(payload: Any) -> str:
         sort_keys=True,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def scientific_contract_sha256(plan: Mapping[str, Any]) -> str:
+    """Hash only outcome-relevant settings that an infrastructure re-sign cannot alter."""
+
+    return _canonical_sha256(
+        {
+            "algorithm": plan.get("algorithm"),
+            "formal_protocol_path": plan.get("formal_protocol_path"),
+            "formal_core_tasks": plan.get("formal_core_tasks"),
+            "comparison": plan.get("comparison"),
+            "development_evaluation": plan.get("development_evaluation"),
+            "gate": plan.get("gate"),
+        }
+    )
 
 
 def _file_sha256(path: Path) -> str:
@@ -168,6 +194,7 @@ def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[
     gate = plan.get("gate")
     execution = plan.get("execution")
     boundary = plan.get("evidence_boundary")
+    reattestation = plan.get("adapter_reattestation")
     protocol_tasks = protocol.get("task_roles", {}).get("formal_core", {})
     checks = {
         "schema": plan.get("schema_version") in PREFLIGHT_PROFILES,
@@ -233,11 +260,92 @@ def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[
             "require_stable_head_until_report": True,
             "require_clean_tree_before_report": True,
         },
+        "public_schema_adapter_contract": plan.get("schema_version")
+        != PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION
+        or (
+            isinstance(reattestation, Mapping)
+            and reattestation.get("parent_source_commit")
+            == "9e2339c437a09f6bde05c95aeadca1f980df6725"
+            and reattestation.get("parent_plan_path")
+            == "configs/methods/rl_v0.4/ppo_v049_preflight_plan.json"
+            and reattestation.get("ppo_infrastructure_failure_report")
+            == "workstreams/benchmark_v1/reports/rl-ppo-v049-infrastructure-failure-v0.4.json"
+            and reattestation.get("sac_adapter_diagnostic_report")
+            == "workstreams/benchmark_v1/reports/rl-sac-v049-preflight-v0.4.json"
+            and reattestation.get("action_adapter_schema_version")
+            == "chemworld-sb3-box-latent-adapter-0.2"
+            and reattestation.get("subprocess_worker_layout")
+            == "spawn_single_batched_environment_worker"
+            and reattestation.get("parallel_environment_count_unchanged") is True
+            and reattestation.get("vector_slot_order_parity_required") is True
+            and reattestation.get("threshold_split_seed_and_hyperparameter_changes") is False
+            and reattestation.get("v049_scientific_contract_sha256")
+            == scientific_contract_sha256(plan)
+            and isinstance(boundary, Mapping)
+            and boundary.get("v049_ppo_infrastructure_failure_remains_immutable") is True
+            and boundary.get("v049_sac_adapter_diagnostic_remains_immutable") is True
+        ),
     }
     failed = sorted(name for name, passed in checks.items() if not passed)
     if failed:
         raise PPOPreflightError("preflight plan validation failed: " + ", ".join(failed))
     return checks
+
+
+def validate_adapter_reattestation(root: Path, plan: Mapping[str, Any]) -> dict[str, Any]:
+    """Bind v0.4.10 to immutable v0.4.9 adapter and infrastructure diagnostics."""
+
+    if plan.get("schema_version") != PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION:
+        return {}
+    reattestation = cast(Mapping[str, Any], plan["adapter_reattestation"])
+    parent_path = _inside(root, str(reattestation["parent_plan_path"]), "parent plan")
+    failure_path = _inside(
+        root,
+        str(reattestation["ppo_infrastructure_failure_report"]),
+        "PPO infrastructure failure report",
+    )
+    diagnostic_path = _inside(
+        root,
+        str(reattestation["sac_adapter_diagnostic_report"]),
+        "SAC adapter diagnostic report",
+    )
+    parent = _load_object(parent_path, "parent PPO preflight plan")
+    failure = _load_object(failure_path, "PPO infrastructure failure report")
+    diagnostic = _load_object(diagnostic_path, "SAC adapter diagnostic report")
+    observed = failure.get("observed_work")
+    checks = {
+        "failure_schema": failure.get("schema_version")
+        == "chemworld-ppo-v049-infrastructure-failure-report-0.1",
+        "failure_status": failure.get("status")
+        == "failed_before_training_adapter_audit_required",
+        "failure_source": failure.get("source_commit")
+        == reattestation.get("parent_source_commit"),
+        "parent_plan_path": failure.get("preflight_plan_path")
+        == reattestation.get("parent_plan_path"),
+        "parent_plan_file_hash": failure.get("preflight_plan_file_sha256")
+        == _file_sha256(parent_path),
+        "parent_plan_canonical_hash": failure.get("preflight_plan_canonical_sha256")
+        == _canonical_sha256(parent),
+        "zero_outcome": isinstance(observed, Mapping)
+        and observed.get("training_environment_step_count") == 0
+        and observed.get("dev_evaluation_count") == 0
+        and observed.get("trained_checkpoint_count") == 0
+        and observed.get("outcome_metric_observed") is False,
+        "sac_diagnostic": diagnostic.get("schema_version")
+        == "chemworld-sac-v049-preflight-report-0.1"
+        and diagnostic.get("status") == "sac_v049_preflight_failed_full_matrix_forbidden"
+        and diagnostic.get("full_matrix_allowed") is False
+        and diagnostic.get("source", {}).get("source_commit")
+        == reattestation.get("parent_source_commit")
+        and diagnostic.get("gate_assessment", {}).get("learning_signal_task_count") == 0,
+        "scientific_contract": reattestation.get("v049_scientific_contract_sha256")
+        == scientific_contract_sha256(parent)
+        == scientific_contract_sha256(plan),
+    }
+    failed = sorted(name for name, passed in checks.items() if not passed)
+    if failed:
+        raise PPOPreflightError("PPO adapter reattestation is invalid: " + ", ".join(failed))
+    return {"ppo_infrastructure_failure": failure, "sac_adapter_diagnostic": diagnostic}
 
 
 def _action_contract(env: Any) -> dict[str, Any]:
@@ -792,6 +900,7 @@ def finalize(
         "formal_protocol_path": protocol_path.relative_to(root).as_posix(),
         "formal_protocol_sha256": _file_sha256(protocol_path),
         "writer_gate": dict(writer_gate),
+        "adapter_reattestation": plan.get("adapter_reattestation"),
         "comparison": plan["comparison"],
         "development_evaluation": plan["development_evaluation"],
         "preregistered_gate": plan["gate"],
@@ -829,6 +938,7 @@ def main() -> int:
     protocol_path = _inside(root, str(plan["formal_protocol_path"]), "formal protocol")
     protocol = _load_object(protocol_path, "formal protocol")
     validate_plan(plan, protocol)
+    validate_adapter_reattestation(root, plan)
     source = source_state(root, require_clean=not args.audit_only)
     writer_gate = _writer_gate(root, plan, str(source["source_commit"]))
     tasks = cast(Mapping[str, Any], plan["formal_core_tasks"])
