@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -16,9 +17,11 @@ from chemworld.rl.formal_training import (
     build_jobs,
     finalize_training,
     load_execution_inputs,
+    run_one_job,
     scan_completed_jobs,
     select_task_candidate,
     validate_training_plan,
+    verify_current_contract_preflight,
 )
 from chemworld.rl.training import train_sb3_baseline
 from chemworld.tasks import get_task
@@ -44,6 +47,151 @@ def test_plan_is_exactly_bound_to_formal_tasks_splits_and_ppo_budget() -> None:
     assert plan["infrastructure"]["vectorization_backend"] == "subprocess"
     assert plan["infrastructure_selection"]["selected_backend"] == "subprocess"
     assert plan["infrastructure_selection"]["formal_training_evidence"] is False
+
+
+def test_post_affordance_ppo_full_plan_is_valid_but_starts_locked() -> None:
+    path = ROOT / "configs/methods/rl_v0.4/ppo_training_plan_v0.4.1.json"
+    plan, formal, methods = load_execution_inputs(root=ROOT, plan_path=path)
+
+    checks = validate_training_plan(plan, formal_protocol=formal, methods_config=methods)
+
+    assert all(checks.values())
+    assert plan["status"] == "post_affordance_preflight_pending_full_matrix_forbidden"
+    assert plan["execution"]["full_matrix_started"] is False
+    assert plan["execution"]["full_matrix_start_forbidden_by_preflight"] is True
+    with pytest.raises(FormalPPOTrainingError, match="cannot load PPO preflight report"):
+        verify_current_contract_preflight(
+            root=ROOT,
+            plan=plan,
+            source_commit="a" * 40,
+        )
+
+
+def test_post_affordance_job_cannot_start_without_source_binding(tmp_path: Path) -> None:
+    path = ROOT / "configs/methods/rl_v0.4/ppo_training_plan_v0.4.1.json"
+    plan, formal, _methods = load_execution_inputs(root=ROOT, plan_path=path)
+
+    with pytest.raises(FormalPPOTrainingError, match="missing its source commit"):
+        run_one_job(
+            root=tmp_path,
+            plan=plan,
+            formal_protocol=formal,
+            job=build_jobs(plan)[0],
+        )
+
+
+def test_formal_execution_source_rejects_dirty_tree(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    outputs = {
+        ("rev-parse", "HEAD"): "a" * 40,
+        ("status", "--porcelain=v1", "--untracked-files=all"): " M source.py",
+    }
+
+    def fake_check_output(args: list[str], **_kwargs: object) -> str:
+        return outputs[tuple(args[1:])]
+
+    monkeypatch.setattr(formal_training_module.subprocess, "check_output", fake_check_output)
+    with pytest.raises(FormalPPOTrainingError, match="clean source tree"):
+        formal_training_module.require_clean_execution_source(tmp_path)
+
+    outputs[("status", "--porcelain=v1", "--untracked-files=all")] = ""
+    assert formal_training_module.require_clean_execution_source(tmp_path) == "a" * 40
+
+
+def test_legacy_negative_ppo_plan_cannot_unlock_execution() -> None:
+    plan, _formal, _methods = _inputs()
+
+    with pytest.raises(FormalPPOTrainingError, match="declaration is not executable"):
+        verify_current_contract_preflight(
+            root=ROOT,
+            plan=plan,
+            source_commit=str(plan["current_contract_preflight"]["source_commit"]),
+        )
+
+
+@pytest.mark.parametrize("algorithm", ["ppo", "sac"])
+def test_post_affordance_preflight_unlock_requires_stable_source_evidence(
+    tmp_path: Path, algorithm: str
+) -> None:
+    source_commit = "a" * 40
+    task_id = f"benchmark-v05-rl-adapters--slice-{algorithm}-v049-post-affordance-dev"
+    plan_relative = f"configs/methods/rl_v0.4/{algorithm}_v049_preflight_plan.json"
+    report_relative = f"workstreams/benchmark_v1/reports/rl-{algorithm}-v049-preflight-v0.4.json"
+    report_schema = f"chemworld-{algorithm}-v049-preflight-report-0.1"
+    required_status = f"{algorithm}_v049_preflight_passed_full_matrix_allowed"
+    preflight_plan = {
+        "schema_version": f"chemworld-{algorithm}-v049-preflight-plan-0.1",
+        "task_id": task_id,
+    }
+    preflight_path = tmp_path / plan_relative
+    preflight_path.parent.mkdir(parents=True, exist_ok=True)
+    preflight_path.write_text(json.dumps(preflight_plan) + "\n", encoding="utf-8")
+    declaration = {
+        "required_before_full_matrix": True,
+        "plan": plan_relative,
+        "report": report_relative,
+        "required_report_schema": report_schema,
+        "required_status": required_status,
+        "source_commit_must_equal_execution_head": True,
+        "failure_forbids_full_matrix": True,
+    }
+    plan = {
+        "algorithm": algorithm,
+        "task_id": task_id,
+        "current_contract_preflight": declaration,
+    }
+    canonical = hashlib.sha256(
+        json.dumps(preflight_plan, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    report = {
+        "schema_version": report_schema,
+        "status": required_status,
+        "algorithm": algorithm,
+        "task_id": task_id,
+        "source": {
+            "source_commit": source_commit,
+            "origin_main_commit": source_commit,
+            "source_tree_clean": True,
+            "source_commit_on_origin_main": True,
+            "source_commit_before_report": source_commit,
+            "source_commit_stable": True,
+            "source_tree_clean_before_report": True,
+        },
+        "preflight_plan_path": plan_relative,
+        "preflight_plan_file_sha256": hashlib.sha256(preflight_path.read_bytes()).hexdigest(),
+        "preflight_plan_canonical_sha256": canonical,
+        "gate_assessment": {"passed": True, "checks": {"learning": True}},
+        "writer_gate": {
+            "source_commit": source_commit,
+            "writer_contract_ready": True,
+            "formal_training_allowed": True,
+        },
+        "full_matrix_allowed": True,
+        "formal_results_present": False,
+        "benchmark_claim_allowed": False,
+        "bench_accessed": False,
+        "reference_search_used": False,
+    }
+    report_path = tmp_path / report_relative
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(json.dumps(report) + "\n", encoding="utf-8")
+
+    checks = verify_current_contract_preflight(
+        root=tmp_path,
+        plan=plan,
+        source_commit=source_commit,
+    )
+    assert all(checks.values())
+
+    report["source"]["source_commit_stable"] = False
+    report_path.write_text(json.dumps(report) + "\n", encoding="utf-8")
+    with pytest.raises(FormalPPOTrainingError, match="source_stable_until_report"):
+        verify_current_contract_preflight(
+            root=tmp_path,
+            plan=plan,
+            source_commit=source_commit,
+        )
 
 
 @pytest.mark.parametrize(

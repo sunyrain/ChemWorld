@@ -25,6 +25,29 @@ DEFAULT_PLAN_PATH = Path("configs/methods/rl_v0.4/sac_v048_preflight_plan.json")
 PLAN_VERSION = "chemworld-sac-v048-preflight-plan-0.1"
 JOB_VERSION = "chemworld-sac-v048-preflight-job-0.1"
 REPORT_VERSION = "chemworld-sac-v048-preflight-report-0.1"
+POST_AFFORDANCE_PLAN_VERSION = "chemworld-sac-v049-preflight-plan-0.1"
+PREFLIGHT_PROFILES = {
+    PLAN_VERSION: {
+        "task_id": "benchmark-v05-rl-adapters--slice-sac-train-dev",
+        "job_version": JOB_VERSION,
+        "report_version": REPORT_VERSION,
+        "attempt_version": "chemworld-sac-v048-preflight-attempt-0.1",
+        "failure_version": "chemworld-sac-v048-preflight-attempt-failure-0.1",
+        "execution_status_version": "chemworld-sac-v048-preflight-execution-status-0.1",
+        "status_prefix": "sac_v048",
+        "result_role": "current_contract_train_dev_preflight",
+    },
+    POST_AFFORDANCE_PLAN_VERSION: {
+        "task_id": "benchmark-v05-rl-adapters--slice-sac-v049-post-affordance-dev",
+        "job_version": "chemworld-sac-v049-preflight-job-0.1",
+        "report_version": "chemworld-sac-v049-preflight-report-0.1",
+        "attempt_version": "chemworld-sac-v049-preflight-attempt-0.1",
+        "failure_version": "chemworld-sac-v049-preflight-attempt-failure-0.1",
+        "execution_status_version": "chemworld-sac-v049-preflight-execution-status-0.1",
+        "status_prefix": "sac_v049",
+        "result_role": "post_affordance_runtime_domain_train_dev_preflight",
+    },
+}
 RATE_FIELDS = (
     "episode_completion_rate",
     "behavior_complete_experiment_rate",
@@ -75,6 +98,13 @@ def _write_json(path: Path, payload: Any) -> None:
     temporary.replace(path)
 
 
+def _profile(plan: Mapping[str, Any]) -> Mapping[str, str]:
+    profile = PREFLIGHT_PROFILES.get(str(plan.get("schema_version")))
+    if profile is None:
+        raise SACPreflightError("unsupported SAC preflight plan schema")
+    return profile
+
+
 def _inside(root: Path, relative: str, label: str) -> Path:
     candidate = (root / relative).resolve()
     try:
@@ -110,7 +140,26 @@ def source_state(root: Path, *, require_clean: bool = True) -> dict[str, Any]:
     return state
 
 
+def source_state_before_report(root: Path, start: Mapping[str, Any]) -> dict[str, Any]:
+    """Require a clean, unchanged worktree while allowing origin/main to advance elsewhere."""
+
+    head = _git_output(root, "rev-parse", "HEAD")
+    status = _git_output(root, "status", "--porcelain=v1", "--untracked-files=all")
+    stable = head == start.get("source_commit")
+    clean = not status
+    if not stable:
+        raise SACPreflightError("preflight source commit changed before report")
+    if not clean:
+        raise SACPreflightError("preflight source tree changed before report")
+    return {
+        "source_commit_before_report": head,
+        "source_commit_stable": stable,
+        "source_tree_clean_before_report": clean,
+    }
+
+
 def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[str, bool]:
+    profile = _profile(plan)
     tasks = plan.get("formal_core_tasks")
     comparison = plan.get("comparison")
     development = plan.get("development_evaluation")
@@ -120,8 +169,8 @@ def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[
     boundary = plan.get("evidence_boundary")
     protocol_tasks = protocol.get("task_roles", {}).get("formal_core", {})
     checks = {
-        "schema": plan.get("schema_version") == PLAN_VERSION,
-        "task_id": plan.get("task_id") == "benchmark-v05-rl-adapters--slice-sac-train-dev",
+        "schema": plan.get("schema_version") in PREFLIGHT_PROFILES,
+        "task_id": plan.get("task_id") == profile["task_id"],
         "algorithm": plan.get("algorithm") == "sac",
         "preregistered": plan.get("status") == "preregistered_before_execution",
         "four_tasks": isinstance(tasks, Mapping)
@@ -190,6 +239,14 @@ def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[
         and boundary.get("bench_accessed") is False
         and boundary.get("reference_search_used") is False
         and boundary.get("full_matrix_allowed_only_if_gate_passes") is True,
+        "source_snapshot_contract": plan.get("schema_version") == PLAN_VERSION
+        or plan.get("source_binding")
+        == {
+            "require_origin_main_at_start": True,
+            "require_clean_tree_at_start": True,
+            "require_stable_head_until_report": True,
+            "require_clean_tree_before_report": True,
+        },
     }
     failed = sorted(name for name, passed in checks.items() if not passed)
     if failed:
@@ -397,13 +454,14 @@ def run_task(
     task_id: str,
     source_commit: str,
 ) -> dict[str, Any]:
+    profile = _profile(plan)
     task_root = _task_root(root, plan, task_id)
     summary_path = task_root / "job-summary.json"
     plan_sha = _canonical_sha256(plan)
     if summary_path.is_file():
         summary = _load_object(summary_path, "SAC preflight job summary")
         if (
-            summary.get("schema_version") != JOB_VERSION
+            summary.get("schema_version") != profile["job_version"]
             or summary.get("plan_sha256") != plan_sha
             or summary.get("source_commit") != source_commit
             or summary.get("status") != "complete"
@@ -418,7 +476,7 @@ def run_task(
     _write_json(
         task_root / "attempt-start.json",
         {
-            "schema_version": "chemworld-sac-v048-preflight-attempt-0.1",
+            "schema_version": profile["attempt_version"],
             "status": "started",
             "task_id": task_id,
             "source_commit": source_commit,
@@ -491,7 +549,7 @@ def run_task(
             repetitions=int(development["evaluation_repetitions"]),
         )
         summary = {
-            "schema_version": JOB_VERSION,
+            "schema_version": profile["job_version"],
             "status": "complete",
             "task_id": task_id,
             "primary_metric": tasks[task_id]["primary_metric"],
@@ -540,7 +598,7 @@ def run_task(
         _write_json(
             task_root / "attempt-failure.json",
             {
-                "schema_version": "chemworld-sac-v048-preflight-attempt-failure-0.1",
+                "schema_version": profile["failure_version"],
                 "status": "failed_retained",
                 "task_id": task_id,
                 "source_commit": source_commit,
@@ -578,6 +636,7 @@ def _condition_operational(condition: Mapping[str, Any]) -> dict[str, bool]:
 
 
 def assess_gate(plan: Mapping[str, Any], jobs: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    profile = _profile(plan)
     tasks = cast(Mapping[str, Mapping[str, Any]], plan["formal_core_tasks"])
     gate = cast(Mapping[str, Any], plan["gate"])
     by_task = {str(job.get("task_id")): job for job in jobs}
@@ -658,11 +717,8 @@ def assess_gate(plan: Mapping[str, Any], jobs: Sequence[Mapping[str, Any]]) -> d
     passed = all(checks.values())
     return {
         "passed": passed,
-        "status": (
-            "sac_v048_preflight_passed_full_matrix_allowed"
-            if passed
-            else "sac_v048_preflight_failed_full_matrix_forbidden"
-        ),
+        "status": f"{profile['status_prefix']}_preflight_"
+        + ("passed_full_matrix_allowed" if passed else "failed_full_matrix_forbidden"),
         "checks": checks,
         "failed_checks": sorted(name for name, value in checks.items() if not value),
         "learning_signal_task_count": signal_count,
@@ -675,6 +731,7 @@ def assess_gate(plan: Mapping[str, Any], jobs: Sequence[Mapping[str, Any]]) -> d
 
 
 def _scan_jobs(*, root: Path, plan: Mapping[str, Any], source_commit: str) -> list[dict[str, Any]]:
+    profile = _profile(plan)
     jobs: list[dict[str, Any]] = []
     plan_sha = _canonical_sha256(plan)
     tasks = cast(Mapping[str, Any], plan["formal_core_tasks"])
@@ -684,7 +741,7 @@ def _scan_jobs(*, root: Path, plan: Mapping[str, Any], source_commit: str) -> li
             continue
         job = _load_object(path, "SAC preflight job summary")
         if (
-            job.get("schema_version") != JOB_VERSION
+            job.get("schema_version") != profile["job_version"]
             or job.get("status") != "complete"
             or job.get("source_commit") != source_commit
             or job.get("plan_sha256") != plan_sha
@@ -703,11 +760,12 @@ def finalize(
     source: Mapping[str, Any],
     writer_gate: Mapping[str, Any],
 ) -> dict[str, Any]:
+    profile = _profile(plan)
     jobs = _scan_jobs(root=root, plan=plan, source_commit=str(source["source_commit"]))
     expected = len(cast(Mapping[str, Any], plan["formal_core_tasks"]))
     if len(jobs) != expected:
         return {
-            "schema_version": "chemworld-sac-v048-preflight-execution-status-0.1",
+            "schema_version": profile["execution_status_version"],
             "status": "incomplete",
             "completed_task_count": len(jobs),
             "expected_task_count": expected,
@@ -718,6 +776,8 @@ def finalize(
             ],
         }
     assessment = assess_gate(plan, jobs)
+    source_for_report = dict(source)
+    source_for_report.update(source_state_before_report(root, source))
     execution = cast(Mapping[str, Any], plan["execution"])
     report_path = _inside(root, str(execution["report"]), "preflight report")
     resources = {
@@ -732,12 +792,12 @@ def finalize(
         "parallel_wall_time_sum_used_as_elapsed": False,
     }
     report = {
-        "schema_version": REPORT_VERSION,
+        "schema_version": profile["report_version"],
         "status": assessment["status"],
         "task_id": plan["task_id"],
         "algorithm": "sac",
-        "result_role": "current_contract_train_dev_preflight",
-        "source": dict(source),
+        "result_role": profile["result_role"],
+        "source": source_for_report,
         "preflight_plan_path": plan_path.relative_to(root).as_posix(),
         "preflight_plan_file_sha256": _file_sha256(plan_path),
         "preflight_plan_canonical_sha256": _canonical_sha256(plan),
@@ -758,7 +818,7 @@ def finalize(
         "reference_search_used": False,
         "historical_diagnostic_used_as_current_result": False,
         "claim_boundary": (
-            "Current-contract public Train/Dev SAC learning preflight only; this is neither "
+            "Source-bound public Train/Dev SAC learning preflight only; this is neither "
             "full-matrix method readiness nor formal Bench evidence."
         ),
     }
@@ -779,7 +839,7 @@ def main() -> int:
     root = args.root.resolve()
     plan_path = args.plan if args.plan.is_absolute() else root / args.plan
     plan_path = plan_path.resolve()
-    plan = _load_object(plan_path, "SAC v0.4.8 preflight plan")
+    plan = _load_object(plan_path, "SAC preflight plan")
     protocol_path = _inside(root, str(plan["formal_protocol_path"]), "formal protocol")
     protocol = _load_object(protocol_path, "formal protocol")
     validate_plan(plan, protocol)
@@ -800,7 +860,7 @@ def main() -> int:
             )
     if args.skip_finalize:
         result: dict[str, Any] = {
-            "schema_version": "chemworld-sac-v048-preflight-execution-status-0.1",
+            "schema_version": _profile(plan)["execution_status_version"],
             "status": "task_execution_complete_finalize_skipped",
         }
     else:

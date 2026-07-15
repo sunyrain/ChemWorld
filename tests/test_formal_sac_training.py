@@ -21,6 +21,7 @@ from chemworld.rl.formal_training import (
 
 ROOT = Path(__file__).resolve().parents[1]
 SAC_PLAN = Path("configs/methods/rl_v0.4/sac_training_plan.json")
+POST_AFFORDANCE_SAC_PLAN = Path("configs/methods/rl_v0.4/sac_training_plan_v0.4.1.json")
 
 
 def _inputs() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
@@ -43,6 +44,20 @@ def test_sac_plan_binds_frozen_matrix_replay_buffers_and_comparability() -> None
     assert plan["comparability_boundary"]["native_hybrid_distribution"] is False
     assert plan["comparability_boundary"]["same_public_affordance_decoder_as_ppo"] is True
     assert plan["evidence_boundary"]["ppo_training_in_scope"] is False
+
+
+def test_post_affordance_sac_full_plan_is_valid_and_starts_locked() -> None:
+    plan, formal, methods = load_execution_inputs(root=ROOT, plan_path=POST_AFFORDANCE_SAC_PLAN)
+
+    checks = validate_training_plan(plan, formal_protocol=formal, methods_config=methods)
+
+    assert all(checks.values())
+    assert plan["status"] == "post_affordance_preflight_pending_full_matrix_forbidden"
+    assert plan["execution"]["full_matrix_started"] is False
+    assert plan["execution"]["executed_training_run_count"] == 0
+    assert plan["current_contract_preflight"]["required_report_schema"] == (
+        "chemworld-sac-v049-preflight-report-0.1"
+    )
 
 
 def test_sac_plan_fails_closed_on_replay_or_comparability_drift() -> None:

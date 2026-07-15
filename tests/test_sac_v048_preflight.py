@@ -168,8 +168,12 @@ def test_full_sac_matrix_requires_exact_passing_current_source_report(
 ) -> None:
     source_commit = "a" * 40
     preflight_plan = {"schema_version": PLAN_VERSION, "frozen": True}
-    plan_path = tmp_path / "preflight-plan.json"
-    report_path = tmp_path / "preflight-report.json"
+    plan_relative = "configs/methods/rl_v0.4/sac_v048_preflight_plan.json"
+    report_relative = "workstreams/benchmark_v1/reports/rl-sac-v048-preflight-v0.4.json"
+    plan_path = tmp_path / plan_relative
+    report_path = tmp_path / report_relative
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.parent.mkdir(parents=True, exist_ok=True)
     plan_path.write_text(json.dumps(preflight_plan) + "\n", encoding="utf-8")
     canonical = hashlib.sha256(
         json.dumps(preflight_plan, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -179,10 +183,12 @@ def test_full_sac_matrix_requires_exact_passing_current_source_report(
         "task_id": "benchmark-v05-rl-adapters--slice-sac-train-dev",
         "current_contract_preflight": {
             "required_before_full_matrix": True,
-            "plan": "preflight-plan.json",
-            "report": "preflight-report.json",
+            "plan": plan_relative,
+            "report": report_relative,
             "required_report_schema": "chemworld-sac-v048-preflight-report-0.1",
             "required_status": "sac_v048_preflight_passed_full_matrix_allowed",
+            "source_commit_must_equal_execution_head": True,
+            "failure_forbids_full_matrix": True,
         },
     }
     report = {
@@ -196,7 +202,7 @@ def test_full_sac_matrix_requires_exact_passing_current_source_report(
             "source_tree_clean": True,
             "source_commit_on_origin_main": True,
         },
-        "preflight_plan_path": "preflight-plan.json",
+        "preflight_plan_path": plan_relative,
         "preflight_plan_file_sha256": hashlib.sha256(plan_path.read_bytes()).hexdigest(),
         "preflight_plan_canonical_sha256": canonical,
         "gate_assessment": {"passed": True, "checks": {"learning": True}},

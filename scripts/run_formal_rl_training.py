@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 from pathlib import Path
 
 from chemworld.rl.formal_training import (
@@ -13,6 +12,7 @@ from chemworld.rl.formal_training import (
     build_jobs,
     finalize_training,
     load_execution_inputs,
+    require_clean_execution_source,
     run_pending_jobs,
     scan_completed_jobs,
     verify_current_contract_preflight,
@@ -38,10 +38,11 @@ def main() -> int:
     root = args.root.resolve()
     plan, formal, methods = load_execution_inputs(root=root, plan_path=args.plan)
     algorithm = plan["algorithm"]
-    if algorithm == "sac" and not args.probe_backend and not args.audit_only:
-        source_commit = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=root, text=True, encoding="utf-8"
-        ).strip()
+    source_commit = None
+    if not args.probe_backend:
+        source_commit = require_clean_execution_source(root)
+    if not args.probe_backend and not args.audit_only:
+        assert source_commit is not None
         verify_current_contract_preflight(
             root=root,
             plan=plan,
@@ -92,7 +93,7 @@ def main() -> int:
             "bench_accessed": False,
         }
     elif args.audit_only:
-        completed = scan_completed_jobs(root=root, plan=plan)
+        completed = scan_completed_jobs(root=root, plan=plan, source_commit=source_commit)
         planned = len(build_jobs(plan))
         result = {
             "schema_version": f"chemworld-formal-{algorithm}-execution-audit-0.4",
@@ -108,6 +109,7 @@ def main() -> int:
             plan=plan,
             formal_protocol=formal,
             methods_config=methods,
+            source_commit=source_commit,
         )
     else:
         result = run_pending_jobs(
@@ -117,6 +119,7 @@ def main() -> int:
             task_id=args.task,
             model_seed=args.model_seed,
             max_jobs=args.max_jobs,
+            source_commit=source_commit,
         )
         if result["remaining_job_count"] == 0 and not args.skip_finalize:
             result["final_report"] = finalize_training(
@@ -124,6 +127,7 @@ def main() -> int:
                 plan=plan,
                 formal_protocol=formal,
                 methods_config=methods,
+                source_commit=source_commit,
             )
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0

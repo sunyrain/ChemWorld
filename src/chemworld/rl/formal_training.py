@@ -7,6 +7,7 @@ import json
 import math
 import re
 import shutil
+import subprocess
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -29,6 +30,34 @@ SAC_PLAN_VERSION = "chemworld-formal-sac-training-plan-0.4"
 SAC_JOB_SUMMARY_VERSION = "chemworld-formal-sac-job-summary-0.4"
 SAC_REPORT_VERSION = "chemworld-formal-sac-development-report-0.4"
 SAC_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v048-preflight-report-0.1"
+PPO_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION = "chemworld-ppo-v049-preflight-report-0.1"
+SAC_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v049-preflight-report-0.1"
+PREFLIGHT_CONTRACTS: dict[str, dict[str, dict[str, str]]] = {
+    "ppo": {
+        "chemworld-ppo-v048-preflight-report-0.1": {
+            "plan": "configs/methods/rl_v0.4/ppo_v048_preflight_plan.json",
+            "report": "workstreams/benchmark_v1/reports/rl-ppo-v048-preflight-v0.4.json",
+            "required_status": "ppo_v048_preflight_passed_full_matrix_allowed",
+        },
+        PPO_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION: {
+            "plan": "configs/methods/rl_v0.4/ppo_v049_preflight_plan.json",
+            "report": "workstreams/benchmark_v1/reports/rl-ppo-v049-preflight-v0.4.json",
+            "required_status": "ppo_v049_preflight_passed_full_matrix_allowed",
+        },
+    },
+    "sac": {
+        SAC_PREFLIGHT_REPORT_VERSION: {
+            "plan": "configs/methods/rl_v0.4/sac_v048_preflight_plan.json",
+            "report": "workstreams/benchmark_v1/reports/rl-sac-v048-preflight-v0.4.json",
+            "required_status": "sac_v048_preflight_passed_full_matrix_allowed",
+        },
+        SAC_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION: {
+            "plan": "configs/methods/rl_v0.4/sac_v049_preflight_plan.json",
+            "report": "workstreams/benchmark_v1/reports/rl-sac-v049-preflight-v0.4.json",
+            "required_status": "sac_v049_preflight_passed_full_matrix_allowed",
+        },
+    },
+}
 DEFAULT_PLAN_PATH = Path("configs/methods/rl_v0.4/ppo_training_plan.json")
 DEFAULT_METHODS_PATH = Path("configs/methods/rl_v0.4/rl_methods.json")
 DEFAULT_FORMAL_PROTOCOL_PATH = Path("configs/benchmark/formal_protocol_v0.4.json")
@@ -70,6 +99,68 @@ def _report_version(algorithm: Literal["ppo", "sac"]) -> str:
 
 def _schema(algorithm: Literal["ppo", "sac"], suffix: str) -> str:
     return f"chemworld-formal-{algorithm}-{suffix}-0.4"
+
+
+def _preflight_declaration_valid(plan: Mapping[str, Any], algorithm: Literal["ppo", "sac"]) -> bool:
+    declaration = plan.get("current_contract_preflight")
+    if not isinstance(declaration, Mapping):
+        return False
+    schema = declaration.get("required_report_schema")
+    profile = PREFLIGHT_CONTRACTS[algorithm].get(str(schema))
+    if profile is not None:
+        return bool(
+            declaration.get("required_before_full_matrix") is True
+            and declaration.get("plan") == profile["plan"]
+            and declaration.get("report") == profile["report"]
+            and declaration.get("required_status") == profile["required_status"]
+            and declaration.get("source_commit_must_equal_execution_head") is True
+            and declaration.get("failure_forbids_full_matrix") is True
+        )
+    # Preserve the immutable v0.4.8 PPO negative plan as readable historical evidence.
+    # It predates the symmetric declaration schema and must never unlock execution.
+    execution = plan.get("execution")
+    return bool(
+        algorithm == "ppo"
+        and plan.get("status") == "current_contract_preflight_failed_full_matrix_forbidden"
+        and declaration.get("plan") == "configs/methods/rl_v0.4/ppo_v048_preflight_plan.json"
+        and declaration.get("report")
+        == "workstreams/benchmark_v1/reports/rl-ppo-v048-preflight-v0.4.json"
+        and declaration.get("full_matrix_allowed") is False
+        and isinstance(execution, Mapping)
+        and execution.get("full_matrix_start_forbidden_by_preflight") is True
+    )
+
+
+def _requires_source_bound_jobs(plan: Mapping[str, Any]) -> bool:
+    declaration = plan.get("current_contract_preflight")
+    return bool(
+        isinstance(declaration, Mapping)
+        and declaration.get("required_report_schema")
+        in {
+            PPO_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
+            SAC_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
+        }
+    )
+
+
+def require_clean_execution_source(root: Path) -> str:
+    """Return HEAD only when formal execution is anchored to a clean worktree."""
+
+    try:
+        head = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=root, text=True, encoding="utf-8"
+        ).strip()
+        status = subprocess.check_output(
+            ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+            cwd=root,
+            text=True,
+            encoding="utf-8",
+        ).strip()
+    except subprocess.CalledProcessError as exc:
+        raise FormalPPOTrainingError("cannot establish formal RL execution source") from exc
+    if status:
+        raise FormalPPOTrainingError("formal RL execution requires a clean source tree")
+    return head
 
 
 def _load_object(path: Path, label: str) -> dict[str, Any]:
@@ -220,11 +311,13 @@ def validate_training_plan(
                 "parent_and_sac_remain_pending": isinstance(boundary, Mapping)
                 and boundary.get("parent_task_complete") is False
                 and boundary.get("sac_training_in_scope") is False,
+                "ppo_current_contract_preflight_declared": _preflight_declaration_valid(
+                    plan, algorithm
+                ),
             }
         )
     else:
         comparability = plan.get("comparability_boundary", {})
-        preflight = plan.get("current_contract_preflight", {})
         checks.update(
             {
                 "sac_replay_buffer_checkpointed": training.get("save_replay_buffer") is True
@@ -245,21 +338,17 @@ def validate_training_plan(
                 == "chemworld-sb3-box-latent-adapter-0.1"
                 and isinstance(comparability.get("limitations"), list)
                 and len(comparability["limitations"]) >= 2,
-                "sac_current_contract_preflight_declared": isinstance(preflight, Mapping)
-                and preflight.get("required_before_full_matrix") is True
-                and preflight.get("plan") == "configs/methods/rl_v0.4/sac_v048_preflight_plan.json"
-                and preflight.get("report")
-                == "workstreams/benchmark_v1/reports/rl-sac-v048-preflight-v0.4.json"
-                and preflight.get("required_report_schema") == SAC_PREFLIGHT_REPORT_VERSION
-                and preflight.get("required_status")
-                == "sac_v048_preflight_passed_full_matrix_allowed"
-                and preflight.get("source_commit_must_equal_execution_head") is True
-                and preflight.get("failure_forbids_full_matrix") is True,
+                "sac_current_contract_preflight_declared": _preflight_declaration_valid(
+                    plan, algorithm
+                ),
                 "parent_and_ppo_remain_separate": isinstance(boundary, Mapping)
                 and boundary.get("parent_task_complete") is False
                 and boundary.get("ppo_training_in_scope") is False
                 and boundary.get("ppo_outcome_report")
-                == "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json",
+                in {
+                    "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json",
+                    "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.9.json",
+                },
             }
         )
     failed = sorted(name for name, passed in checks.items() if not passed)
@@ -273,33 +362,53 @@ def validate_training_plan(
 def verify_current_contract_preflight(
     *, root: Path, plan: Mapping[str, Any], source_commit: str
 ) -> dict[str, bool]:
-    """Fail closed unless the SAC full matrix is unlocked by an exact current-source gate."""
+    """Fail closed unless PPO/SAC is unlocked by its exact current-source gate."""
 
-    if _algorithm(plan) != "sac":
-        return {"not_required_for_ppo": True}
+    algorithm = _algorithm(plan)
     declaration = plan.get("current_contract_preflight")
     if not isinstance(declaration, Mapping):
-        raise FormalPPOTrainingError("SAC current-contract preflight declaration is missing")
-    plan_path = _inside(root, str(declaration.get("plan")), "SAC preflight plan")
-    report_path = _inside(root, str(declaration.get("report")), "SAC preflight report")
-    preflight_plan = _load_object(plan_path, "SAC preflight plan")
-    report = _load_object(report_path, "SAC preflight report")
+        raise FormalPPOTrainingError(
+            f"{algorithm.upper()} current-contract preflight declaration is missing"
+        )
+    schema = str(declaration.get("required_report_schema"))
+    profile = PREFLIGHT_CONTRACTS[algorithm].get(schema)
+    if profile is None or not _preflight_declaration_valid(plan, algorithm):
+        raise FormalPPOTrainingError(
+            f"{algorithm.upper()} current-contract preflight declaration is not executable"
+        )
+    plan_path = _inside(root, str(declaration.get("plan")), f"{algorithm.upper()} preflight plan")
+    report_path = _inside(
+        root, str(declaration.get("report")), f"{algorithm.upper()} preflight report"
+    )
+    preflight_plan = _load_object(plan_path, f"{algorithm.upper()} preflight plan")
+    report = _load_object(report_path, f"{algorithm.upper()} preflight report")
     source = report.get("source")
     assessment = report.get("gate_assessment")
     writer_gate = report.get("writer_gate")
+    post_affordance = schema in {
+        PPO_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
+        SAC_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
+    }
     checks = {
         "required": declaration.get("required_before_full_matrix") is True,
-        "schema": report.get("schema_version")
-        == declaration.get("required_report_schema")
-        == SAC_PREFLIGHT_REPORT_VERSION,
+        "declaration_profile": declaration.get("plan") == profile["plan"]
+        and declaration.get("report") == profile["report"],
+        "schema": report.get("schema_version") == declaration.get("required_report_schema"),
         "status": report.get("status") == declaration.get("required_status"),
-        "algorithm": report.get("algorithm") == "sac",
+        "algorithm": report.get("algorithm") == algorithm,
         "task": report.get("task_id") == plan.get("task_id"),
         "source_exact": isinstance(source, Mapping)
         and source.get("source_commit") == source_commit
         and source.get("origin_main_commit") == source_commit
         and source.get("source_tree_clean") is True
         and source.get("source_commit_on_origin_main") is True,
+        "source_stable_until_report": not post_affordance
+        or (
+            isinstance(source, Mapping)
+            and source.get("source_commit_before_report") == source_commit
+            and source.get("source_commit_stable") is True
+            and source.get("source_tree_clean_before_report") is True
+        ),
         "preflight_plan_path": report.get("preflight_plan_path")
         == plan_path.relative_to(root).as_posix(),
         "preflight_plan_file_hash": report.get("preflight_plan_file_sha256")
@@ -324,7 +433,8 @@ def verify_current_contract_preflight(
     failed = sorted(name for name, passed in checks.items() if not passed)
     if failed:
         raise FormalPPOTrainingError(
-            "SAC current-contract preflight does not unlock the full matrix: " + ", ".join(failed)
+            f"{algorithm.upper()} current-contract preflight does not unlock the full matrix: "
+            + ", ".join(failed)
         )
     return checks
 
@@ -449,6 +559,8 @@ def _valid_completed_summary(
     plan_sha256: str,
     job: FormalPPOJob,
     expected_steps: tuple[int, ...],
+    source_commit: str | None,
+    source_binding_required: bool,
 ) -> dict[str, Any] | None:
     try:
         payload = _load_object(path, "RL job summary")
@@ -459,6 +571,10 @@ def _valid_completed_summary(
             or payload.get("job_id") != job.job_id
             or payload.get("task_id") != job.task_id
             or payload.get("model_seed") != job.model_seed
+            or (
+                source_binding_required
+                and (source_commit is None or payload.get("source_commit") != source_commit)
+            )
         ):
             return None
         manifest_path = _inside(root, str(payload["training_manifest_path"]), "training manifest")
@@ -506,11 +622,12 @@ def _valid_completed_summary(
 
 
 def scan_completed_jobs(
-    *, root: Path, plan: Mapping[str, Any]
+    *, root: Path, plan: Mapping[str, Any], source_commit: str | None = None
 ) -> dict[FormalPPOJob, dict[str, Any]]:
     plan_sha256 = _canonical_sha256(plan)
     expected_steps = tuple(int(step) for step in plan["training"]["checkpoint_steps"])
     completed: dict[FormalPPOJob, dict[str, Any]] = {}
+    source_binding_required = _requires_source_bound_jobs(plan)
     for job in build_jobs(plan):
         attempts = sorted(_job_root(root, plan, job).glob("attempt-*/job-summary.json"))
         for summary_path in reversed(attempts):
@@ -520,6 +637,8 @@ def scan_completed_jobs(
                 plan_sha256=plan_sha256,
                 job=job,
                 expected_steps=expected_steps,
+                source_commit=source_commit,
+                source_binding_required=source_binding_required,
             )
             if summary is not None:
                 completed[job] = summary
@@ -538,11 +657,14 @@ def run_one_job(
     plan: Mapping[str, Any],
     formal_protocol: Mapping[str, Any],
     job: FormalPPOJob,
+    source_commit: str | None = None,
 ) -> dict[str, Any]:
     """Run one retained training attempt and all preregistered Dev candidates."""
 
     plan_sha256 = _canonical_sha256(plan)
-    completed = scan_completed_jobs(root=root, plan=plan)
+    if _requires_source_bound_jobs(plan) and source_commit is None:
+        raise FormalPPOTrainingError("post-affordance RL job is missing its source commit")
+    completed = scan_completed_jobs(root=root, plan=plan, source_commit=source_commit)
     if job in completed:
         return completed[job]
     job_root = _job_root(root, plan, job)
@@ -562,6 +684,7 @@ def run_one_job(
             "task_id": job.task_id,
             "model_seed": job.model_seed,
             "plan_sha256": plan_sha256,
+            "source_commit": source_commit,
         },
     )
     training = cast(Mapping[str, Any], plan["training"])
@@ -642,6 +765,7 @@ def run_one_job(
             "task_id": job.task_id,
             "model_seed": job.model_seed,
             "plan_sha256": plan_sha256,
+            "source_commit": source_commit,
             "training_manifest_path": manifest_path.relative_to(root).as_posix(),
             "training_manifest_sha256": file_sha256(manifest_path),
             "requested_training_environment_step_count": manifest[
@@ -670,6 +794,7 @@ def run_one_job(
                 "exception_type": type(exc).__name__,
                 "message": str(exc),
                 "plan_sha256": plan_sha256,
+                "source_commit": source_commit,
             },
         )
         raise
@@ -683,6 +808,7 @@ def run_pending_jobs(
     task_id: str | None = None,
     model_seed: int | None = None,
     max_jobs: int | None = None,
+    source_commit: str | None = None,
 ) -> dict[str, Any]:
     jobs = [
         job
@@ -692,17 +818,23 @@ def run_pending_jobs(
     ]
     if not jobs:
         raise FormalPPOTrainingError("no formal RL job matches the requested filters")
-    completed_before = scan_completed_jobs(root=root, plan=plan)
+    completed_before = scan_completed_jobs(root=root, plan=plan, source_commit=source_commit)
     pending = [job for job in jobs if job not in completed_before]
     if max_jobs is not None:
         if max_jobs <= 0:
             raise FormalPPOTrainingError("max_jobs must be positive")
         pending = pending[:max_jobs]
     executed = [
-        run_one_job(root=root, plan=plan, formal_protocol=formal_protocol, job=job)
+        run_one_job(
+            root=root,
+            plan=plan,
+            formal_protocol=formal_protocol,
+            job=job,
+            source_commit=source_commit,
+        )
         for job in pending
     ]
-    completed_after = scan_completed_jobs(root=root, plan=plan)
+    completed_after = scan_completed_jobs(root=root, plan=plan, source_commit=source_commit)
     return {
         "schema_version": _schema(_algorithm(plan), "execution-status"),
         "planned_job_count": len(build_jobs(plan)),
@@ -960,7 +1092,11 @@ def _replay_selected(
 
 
 def _attempt_lineage(
-    *, root: Path, plan: Mapping[str, Any], item: Mapping[str, Any]
+    *,
+    root: Path,
+    plan: Mapping[str, Any],
+    item: Mapping[str, Any],
+    source_commit: str | None = None,
 ) -> list[dict[str, Any]]:
     current_plan_sha = _canonical_sha256(plan)
     job = FormalPPOJob(
@@ -972,11 +1108,16 @@ def _attempt_lineage(
     for attempt in sorted(_job_root(root, plan, job).glob("attempt-*")):
         start_path = attempt / "attempt-start.json"
         attempt_plan_sha: str | None = None
+        attempt_source_commit: str | None = None
         if start_path.is_file():
             start = _load_object(start_path, "RL attempt start")
             raw_plan_sha = start.get("plan_sha256")
             attempt_plan_sha = raw_plan_sha if isinstance(raw_plan_sha, str) else None
-        counts_toward_frozen_matrix = attempt_plan_sha == current_plan_sha
+            raw_source = start.get("source_commit")
+            attempt_source_commit = raw_source if isinstance(raw_source, str) else None
+        counts_toward_frozen_matrix = attempt_plan_sha == current_plan_sha and (
+            not _requires_source_bound_jobs(plan) or attempt_source_commit == source_commit
+        )
         if not counts_toward_frozen_matrix:
             status = "pre_freeze_retained"
         elif (attempt / "job-summary.json").is_file():
@@ -990,6 +1131,7 @@ def _attempt_lineage(
                 "attempt": attempt.name,
                 "status": status,
                 "attempt_plan_sha256": attempt_plan_sha,
+                "attempt_source_commit": attempt_source_commit,
                 "counts_toward_frozen_matrix": counts_toward_frozen_matrix,
             }
         )
@@ -1002,14 +1144,21 @@ def finalize_training(
     plan: Mapping[str, Any],
     formal_protocol: Mapping[str, Any],
     methods_config: Mapping[str, Any],
+    source_commit: str | None = None,
 ) -> dict[str, Any]:
     """Finalize complete Train/Dev evidence, including a fail-closed method outcome."""
 
     algorithm = _algorithm(plan)
+    source_binding_required = _requires_source_bound_jobs(plan)
+    if source_binding_required:
+        if source_commit is None:
+            raise FormalPPOTrainingError("post-affordance RL finalization is missing source commit")
+        if require_clean_execution_source(root) != source_commit:
+            raise FormalPPOTrainingError("formal RL source commit changed before finalization")
     validation = validate_training_plan(
         plan, formal_protocol=formal_protocol, methods_config=methods_config
     )
-    completed = scan_completed_jobs(root=root, plan=plan)
+    completed = scan_completed_jobs(root=root, plan=plan, source_commit=source_commit)
     jobs = build_jobs(plan)
     if len(completed) != len(jobs):
         raise FormalPPOTrainingError(
@@ -1180,6 +1329,9 @@ def finalize_training(
         "benchmark_claim_allowed": False,
         "parent_task_complete": False,
         "plan_sha256": _canonical_sha256(plan),
+        "source_commit": source_commit,
+        "source_commit_stable": source_binding_required,
+        "source_tree_clean_before_report": source_binding_required,
         "formal_protocol_sha256": _canonical_sha256(formal_protocol),
         "methods_config_sha256": _canonical_sha256(methods_config),
         "checkpoint_index_path": index_path.relative_to(root).as_posix(),
@@ -1222,7 +1374,12 @@ def finalize_training(
                     }
                     for candidate in item["candidates"]
                 ],
-                "attempt_lineage": _attempt_lineage(root=root, plan=plan, item=item),
+                "attempt_lineage": _attempt_lineage(
+                    root=root,
+                    plan=plan,
+                    item=item,
+                    source_commit=source_commit,
+                ),
             }
             for item in summaries
         ],
