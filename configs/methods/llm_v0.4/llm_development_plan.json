@@ -1,6 +1,6 @@
 {
-  "schema_version": "chemworld-live-llm-development-plan-0.4.4",
-  "plan_id": "chemworld-live-llm-train-dev-2026-07-14-single-task-candidate-2",
+  "schema_version": "chemworld-live-llm-development-plan-0.4.5",
+  "plan_id": "chemworld-live-llm-train-dev-2026-07-15-affordance-bound-candidate-3",
   "benchmark_claim_allowed": false,
   "bench_access_allowed": false,
   "tasks": [
@@ -11,6 +11,12 @@
   ],
   "methods": ["live_llm_a", "live_llm_b"],
   "spectrum_conditions": ["assigned", "unassigned", "masked"],
+  "runtime_domain_gate": {
+    "required_public_action_schema_version": "chemworld-public-action-affordance-0.1",
+    "required_audit_schema_version": "chemworld-runtime-domain-affordance-audit-0.4",
+    "required_audit_source_commit": "fa546e5bf168a9cb9b07eeaae3bc1e5ac9eae23e",
+    "require_zero_findings": true
+  },
   "stages": {
     "contract_smoke": {
       "world_split": "public-test",

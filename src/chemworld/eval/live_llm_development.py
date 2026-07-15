@@ -13,6 +13,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from chemworld.agent_interface import PUBLIC_ACTION_SCHEMA_VERSION
 from chemworld.agents.task_recipes import task_recipe_event_count
 from chemworld.eval.formal_llm import (
     DEFAULT_LLM_FREEZE_PATH,
@@ -39,10 +40,16 @@ from chemworld.world.world_family import axes_for_task
 
 ROOT = Path(__file__).resolve().parents[3]
 DEVELOPMENT_PLAN_PATH = ROOT / "configs/methods/llm_v0.4/llm_development_plan.json"
-DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.9.json"
+DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.10.json"
 FORMAL_PROTOCOL_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
-LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.9"
-LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.4"
+RUNTIME_DOMAIN_AFFORDANCE_REPORT_PATH = (
+    ROOT / "workstreams/benchmark_v1/reports/runtime-domain-affordance-audit-v0.4.json"
+)
+RUNTIME_DOMAIN_AFFORDANCE_AUDIT_VERSION = (
+    "chemworld-runtime-domain-affordance-audit-0.4"
+)
+LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.10"
+LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.5"
 LIVE_STAGES = ("candidate_screen", "live_pilot", "development_matrix")
 _PRIOR_PAID_STAGE = {
     "live_pilot": "candidate_screen",
@@ -62,7 +69,7 @@ def _git_commit() -> str:
     return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
-DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.9" / _git_commit()
+DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.10" / _git_commit()
 
 
 @dataclass(frozen=True)
@@ -124,8 +131,94 @@ def _backend_semantic_sha256() -> str:
     return value
 
 
+def load_runtime_domain_affordance_binding(
+    path: str | Path = RUNTIME_DOMAIN_AFFORDANCE_REPORT_PATH,
+    *,
+    verify_source: bool = True,
+) -> dict[str, Any]:
+    """Load the passing public-affordance audit and reject semantic drift.
+
+    The historical formal-protocol backend hash predates the action-domain fixes.
+    A live cell therefore binds this newer audit separately.  Documentation, claim,
+    and this orchestration module may change without invalidating the audit; any other
+    ``src/chemworld`` change requires the audit to be regenerated before provider use.
+    """
+
+    report_path = Path(path)
+    payload = json.loads(report_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, Mapping):
+        raise ValueError("runtime-domain affordance audit must be a JSON object")
+    if payload.get("schema_version") != RUNTIME_DOMAIN_AFFORDANCE_AUDIT_VERSION:
+        raise ValueError("runtime-domain affordance audit has an unsupported schema version")
+    checks = payload.get("checks")
+    summary = payload.get("summary")
+    if (
+        payload.get("passed") is not True
+        or payload.get("status") != "passed"
+        or not isinstance(checks, Mapping)
+        or not checks
+        or not all(value is True for value in checks.values())
+        or payload.get("findings") != []
+        or not isinstance(summary, Mapping)
+        or summary.get("finding_count") != 0
+        or summary.get("runtime_committed_count") != summary.get("validator_valid_count")
+    ):
+        raise RuntimeError("runtime-domain affordance audit is not a clean passing audit")
+    source_commit = payload.get("source_commit")
+    if (
+        not isinstance(source_commit, str)
+        or len(source_commit) != 40
+        or any(character not in "0123456789abcdef" for character in source_commit)
+    ):
+        raise ValueError("runtime-domain affordance audit source commit is invalid")
+    if verify_source:
+        source_match = subprocess.run(
+            [
+                "git",
+                "diff",
+                "--quiet",
+                source_commit,
+                "--",
+                "src/chemworld",
+                ":(exclude)src/chemworld/eval/live_llm_development.py",
+            ],
+            cwd=ROOT,
+            check=False,
+        )
+        if source_match.returncode != 0:
+            raise RuntimeError(
+                "runtime-affordance source changed after the passing audit; regenerate it"
+            )
+    return {
+        "schema_version": RUNTIME_DOMAIN_AFFORDANCE_AUDIT_VERSION,
+        "public_action_schema_version": PUBLIC_ACTION_SCHEMA_VERSION,
+        "audit_source_commit": source_commit,
+        "audit_report_sha256": file_sha256(report_path),
+        "candidate_count": int(summary["candidate_count"]),
+        "validator_valid_count": int(summary["validator_valid_count"]),
+        "runtime_committed_count": int(summary["runtime_committed_count"]),
+        "finding_count": 0,
+    }
+
+
+def _require_planned_runtime_domain_binding(
+    plan: Mapping[str, Any], binding: Mapping[str, Any]
+) -> None:
+    expected = plan.get("runtime_domain_gate")
+    if not isinstance(expected, Mapping):
+        raise ValueError("live-LLM development plan is missing its runtime-domain gate")
+    required = {
+        "required_public_action_schema_version": binding["public_action_schema_version"],
+        "required_audit_schema_version": binding["schema_version"],
+        "required_audit_source_commit": binding["audit_source_commit"],
+        "require_zero_findings": True,
+    }
+    if dict(expected) != required:
+        raise RuntimeError("live-LLM development plan does not match the passing runtime audit")
+
+
 def _paired_method_seed(stage: str, world_seed: int) -> int:
-    digest = hashlib.sha256(f"live-llm-v0.4.9:{stage}:{world_seed}".encode()).digest()
+    digest = hashlib.sha256(f"live-llm-v0.4.10:{stage}:{world_seed}".encode()).digest()
     return 300_000 + int.from_bytes(digest[:4], "big") % 700_000_000
 
 
@@ -219,6 +312,8 @@ def build_live_llm_development_bundle(
     if stage not in LIVE_STAGES:
         raise ValueError(f"stage must be one of {LIVE_STAGES}")
     plan = load_live_llm_development_plan()
+    runtime_domain_binding = load_runtime_domain_affordance_binding()
+    _require_planned_runtime_domain_binding(plan, runtime_domain_binding)
     protocol = load_formal_protocol()
     freeze = load_live_llm_method_freeze()
     if audit_live_llm_method_freeze(freeze)["controls_ready"] is not True:
@@ -273,6 +368,7 @@ def build_live_llm_development_bundle(
         "formal_protocol_sha256": canonical_sha256(protocol),
         "llm_freeze_sha256": file_sha256(DEFAULT_LLM_FREEZE_PATH),
         "development_plan_sha256": file_sha256(DEVELOPMENT_PLAN_PATH),
+        "runtime_domain_affordance": runtime_domain_binding,
     }
     run_id = canonical_sha256(global_identity)
     protocol_sha256 = canonical_sha256(protocol)
@@ -400,6 +496,7 @@ def build_live_llm_development_bundle(
                     cell.operation_limit * provider_attempt_limit for cell in cells
                 ),
                 "development_plan_sha256": file_sha256(DEVELOPMENT_PLAN_PATH),
+                "runtime_domain_affordance": runtime_domain_binding,
             },
         },
     )
@@ -572,6 +669,8 @@ def _require_prior_paid_stage(stage: str, cache_root: str | Path) -> None:
         raise RuntimeError(f"{stage} is blocked because the development plan changed")
     if gate.get("source_commit") != _git_commit():
         raise RuntimeError(f"{stage} is blocked because the promoted source commit changed")
+    if gate.get("runtime_domain_affordance") != load_runtime_domain_affordance_binding():
+        raise RuntimeError(f"{stage} is blocked because the runtime-domain binding changed")
 
 
 def _require_clean_source_tree() -> None:
@@ -654,6 +753,9 @@ def run_live_llm_development(
         "llm_freeze_sha256": file_sha256(DEFAULT_LLM_FREEZE_PATH),
         "development_plan_sha256": file_sha256(DEVELOPMENT_PLAN_PATH),
         "source_commit": _git_commit(),
+        "runtime_domain_affordance": bundle.manifest["metadata"]["development_contract"][
+            "runtime_domain_affordance"
+        ],
     }
     _atomic_json(
         Path(cache_root) / stage / "promotion-gate.json",
@@ -689,6 +791,9 @@ def run_live_llm_development(
             "development_contract"
         ]["backend_world_split_by_task"],
         "source_commit": _git_commit(),
+        "runtime_domain_affordance": bundle.manifest["metadata"]["development_contract"][
+            "runtime_domain_affordance"
+        ],
         "method_freeze_audit": audit_live_llm_method_freeze(),
         "manifest_sha256": bundle.manifest["run_manifest_sha256"],
         "development_plan_sha256": file_sha256(DEVELOPMENT_PLAN_PATH),
@@ -709,10 +814,12 @@ __all__ = [
     "DEVELOPMENT_PLAN_PATH",
     "LIVE_LLM_DEVELOPMENT_VERSION",
     "LIVE_STAGES",
+    "RUNTIME_DOMAIN_AFFORDANCE_REPORT_PATH",
     "LiveLLMDevelopmentBundle",
     "build_live_llm_development_bundle",
     "evaluate_live_llm_promotion",
     "load_live_llm_development_plan",
+    "load_runtime_domain_affordance_binding",
     "prepare_live_llm_development",
     "run_live_llm_development",
 ]

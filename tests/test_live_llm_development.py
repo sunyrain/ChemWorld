@@ -9,8 +9,10 @@ import pytest
 from chemworld.eval.formal_matrix import build_formal_matrix_plan
 from chemworld.eval.live_llm_development import (
     DEFAULT_CACHE_ROOT,
+    DEFAULT_REPORT_PATH,
     build_live_llm_development_bundle,
     evaluate_live_llm_promotion,
+    load_runtime_domain_affordance_binding,
     prepare_live_llm_development,
     run_live_llm_development,
 )
@@ -21,8 +23,38 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_default_private_cache_is_source_commit_scoped() -> None:
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
-    assert DEFAULT_CACHE_ROOT.parent.name == "live-llm-dev-v0.4.9"
+    assert DEFAULT_CACHE_ROOT.parent.name == "live-llm-dev-v0.4.10"
     assert DEFAULT_CACHE_ROOT.name == commit
+    assert DEFAULT_REPORT_PATH.name == "live-llm-dev-v0.4.10.json"
+
+
+def test_live_development_binds_clean_public_affordance_audit() -> None:
+    binding = load_runtime_domain_affordance_binding()
+    bundle = build_live_llm_development_bundle(stage="candidate_screen")
+    recorded = bundle.manifest["metadata"]["development_contract"][
+        "runtime_domain_affordance"
+    ]
+
+    assert binding == recorded
+    assert binding["public_action_schema_version"] == (
+        "chemworld-public-action-affordance-0.1"
+    )
+    assert binding["candidate_count"] == 223
+    assert binding["validator_valid_count"] == 215
+    assert binding["runtime_committed_count"] == 215
+    assert binding["finding_count"] == 0
+    assert len(binding["audit_report_sha256"]) == 64
+
+
+def test_live_development_rejects_nonpassing_affordance_audit(tmp_path) -> None:
+    source = ROOT / "workstreams/benchmark_v1/reports/runtime-domain-affordance-audit-v0.4.json"
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    payload["passed"] = False
+    bad_report = tmp_path / "bad-affordance-audit.json"
+    bad_report.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="not a clean passing audit"):
+        load_runtime_domain_affordance_binding(bad_report, verify_source=False)
 
 
 def test_live_pilot_is_exact_paired_core_matrix_without_seed_disclosure() -> None:
