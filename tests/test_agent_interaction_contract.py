@@ -64,6 +64,27 @@ def test_capabilities_and_decision_audits_fail_closed() -> None:
         raise AssertionError("invalid decision audit was accepted")
 
 
+def test_decision_audit_retains_public_spectrum_fields() -> None:
+    audit = DecisionAuditRecord.from_payload(
+        {
+            "action": {"operation": "wait"},
+            "evidence": ["The current HPLC packet contains a target peak."],
+            "spectrum_interpretation": "The target peak dominates the impurity peak.",
+            "hypothesis": "Waiting will test whether the signal is stable.",
+            "uncertainty": 0.3,
+            "rationale": "Use one bounded observation interval.",
+            "adaptation_source": "spectrum",
+            "request_historical_spectrum_id": "spectrum-e001-s0003",
+        },
+        action={"operation": "wait"},
+    ).to_dict()
+
+    assert audit["spectrum_interpretation"] == (
+        "The target peak dominates the impurity peak."
+    )
+    assert audit["requested_historical_spectrum_id"] == "spectrum-e001-s0003"
+
+
 def test_interaction_protocol_drift_fails_closed() -> None:
     protocol = deepcopy(load_interaction_protocol())
     protocol["interaction_contract_version"] = "wrong"

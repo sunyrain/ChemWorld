@@ -55,6 +55,8 @@ class DecisionAuditRecord:
     uncertainty: float | None
     rationale: str
     adaptation_source: AdaptationSource
+    spectrum_interpretation: str = ""
+    requested_historical_spectrum_id: str | None = None
     status: Literal["provided", "not_provided"] = "provided"
 
     def __post_init__(self) -> None:
@@ -70,6 +72,11 @@ class DecisionAuditRecord:
             raise ValueError("unsupported decision audit status")
         if self.uncertainty is not None and not 0.0 <= self.uncertainty <= 1.0:
             raise ValueError("decision uncertainty must be in [0, 1]")
+        if self.requested_historical_spectrum_id is not None and (
+            not isinstance(self.requested_historical_spectrum_id, str)
+            or not self.requested_historical_spectrum_id.strip()
+        ):
+            raise ValueError("requested historical spectrum ID must be non-empty or null")
         if self.status == "provided" and (
             not self.action.get("operation")
             or not self.evidence
@@ -107,6 +114,9 @@ class DecisionAuditRecord:
         evidence = payload.get("evidence", ())
         if not isinstance(evidence, list | tuple):
             raise ValueError("decision audit evidence must be a list")
+        raw_spectrum_request = payload.get("request_historical_spectrum_id")
+        if raw_spectrum_request is not None and not isinstance(raw_spectrum_request, str):
+            raise ValueError("requested historical spectrum ID must be a string or null")
         return cls(
             action=dict(action),
             evidence=tuple(str(item) for item in evidence),
@@ -116,6 +126,8 @@ class DecisionAuditRecord:
             ),
             rationale=str(payload.get("rationale", "")),
             adaptation_source=str(payload.get("adaptation_source", "none")),  # type: ignore[arg-type]
+            spectrum_interpretation=str(payload.get("spectrum_interpretation", "")),
+            requested_historical_spectrum_id=raw_spectrum_request,
             status=str(payload.get("status", "provided")),  # type: ignore[arg-type]
         )
 

@@ -208,6 +208,9 @@ def test_live_llm_consumes_spectra_and_carries_experiment_memory() -> None:
     assert "recent_decisions" not in client.prompts[1]["completed_experiment_memory"][0]
     assert client.prompts[1]["recent_decisions"] == []
     assert agent.decision_audit()["adaptation_source"] == "spectrum"  # type: ignore[index]
+    assert agent.decision_audit()["spectrum_interpretation"] == (  # type: ignore[index]
+        "One supplied public peak changed amplitude."
+    )
     usage = agent.method_resource_usage()
     assert usage["model_call_count"] == 4
     assert usage["input_token_count"] == 200
@@ -494,6 +497,7 @@ def test_official_runner_delivers_only_explicitly_requested_historical_spectrum(
     )
     agent = LiveLLMAgent(client, role_id="live_llm_a", spectrum_disclosure="assigned")
 
+    trajectory = tmp_path / "history.jsonl"
     run_agent(
         env_id="ChemWorld",
         agent=agent,
@@ -502,7 +506,7 @@ def test_official_runner_delivers_only_explicitly_requested_historical_spectrum(
         objective="balanced",
         seed=1200,
         task_id="flow-reaction-optimization",
-        output_path=tmp_path / "history.jsonl",
+        output_path=trajectory,
         budget_override=5,
         episode_mode_override="campaign",
         method_resource_limits={
@@ -524,6 +528,14 @@ def test_official_runner_delivers_only_explicitly_requested_historical_spectrum(
     assert retrieved["status"] == "retrieved"
     assert retrieved["spectrum_id"] == "spectrum-e001-s0003"
     assert retrieved["raw_signal"]["kind"] == "hplc_chromatogram"
+    records = load_jsonl(trajectory)
+    request_audit = records[3]["explanation"]["decision_audit"]
+    assert request_audit["spectrum_interpretation"] == (
+        "One supplied public peak changed amplitude."
+    )
+    assert request_audit["requested_historical_spectrum_id"] == (
+        "spectrum-e001-s0003"
+    )
 
 
 def test_official_runner_marks_spectrum_historical_after_control_operation(

@@ -23,9 +23,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_default_private_cache_is_source_commit_scoped() -> None:
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
-    assert DEFAULT_CACHE_ROOT.parent.name == "live-llm-dev-v0.4.10"
+    assert DEFAULT_CACHE_ROOT.parent.name == "live-llm-dev-v0.4.11"
     assert DEFAULT_CACHE_ROOT.name == commit
-    assert DEFAULT_REPORT_PATH.name == "live-llm-dev-v0.4.10.json"
+    assert DEFAULT_REPORT_PATH.name == "live-llm-dev-v0.4.11.json"
 
 
 def test_live_development_binds_clean_public_affordance_audit() -> None:

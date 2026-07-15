@@ -305,9 +305,15 @@ class LiveLLMAgent(BaseAgent):
         return {
             "action": dict(self._last_decision["action"]),
             "evidence": list(self._last_decision["evidence"]),
+            "spectrum_interpretation": str(
+                self._last_decision["spectrum_interpretation"]
+            ),
             "hypothesis": str(self._last_decision["hypothesis"]),
             "uncertainty": float(self._last_decision["uncertainty"]),
             "rationale": str(self._last_decision["rationale"]),
+            "request_historical_spectrum_id": self._last_decision.get(
+                "request_historical_spectrum_id"
+            ),
             "adaptation_source": str(self._last_decision["adaptation_source"]),
         }
 

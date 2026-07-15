@@ -40,7 +40,7 @@ from chemworld.world.world_family import axes_for_task
 
 ROOT = Path(__file__).resolve().parents[3]
 DEVELOPMENT_PLAN_PATH = ROOT / "configs/methods/llm_v0.4/llm_development_plan.json"
-DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.10.json"
+DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json"
 FORMAL_PROTOCOL_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
 RUNTIME_DOMAIN_AFFORDANCE_REPORT_PATH = (
     ROOT / "workstreams/benchmark_v1/reports/runtime-domain-affordance-audit-v0.4.json"
@@ -48,7 +48,18 @@ RUNTIME_DOMAIN_AFFORDANCE_REPORT_PATH = (
 RUNTIME_DOMAIN_AFFORDANCE_AUDIT_VERSION = (
     "chemworld-runtime-domain-affordance-audit-0.4"
 )
-LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.10"
+_RUNTIME_DOMAIN_GUARDED_SOURCE_PATHS = (
+    "src/chemworld/action_codec.py",
+    "src/chemworld/agent_interface.py",
+    "src/chemworld/envs",
+    "src/chemworld/foundation",
+    "src/chemworld/operation_validator.py",
+    "src/chemworld/physchem",
+    "src/chemworld/runtime",
+    "src/chemworld/tasks.py",
+    "src/chemworld/world",
+)
+LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.11"
 LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.5"
 LIVE_STAGES = ("candidate_screen", "live_pilot", "development_matrix")
 _PRIOR_PAID_STAGE = {
@@ -69,7 +80,7 @@ def _git_commit() -> str:
     return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
-DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.10" / _git_commit()
+DEFAULT_CACHE_ROOT = _git_common_dir() / "chemworld-private/live-llm-dev-v0.4.11" / _git_commit()
 
 
 @dataclass(frozen=True)
@@ -140,8 +151,9 @@ def load_runtime_domain_affordance_binding(
 
     The historical formal-protocol backend hash predates the action-domain fixes.
     A live cell therefore binds this newer audit separately.  Documentation, claim,
-    and this orchestration module may change without invalidating the audit; any other
-    ``src/chemworld`` change requires the audit to be regenerated before provider use.
+    agent presentation and orchestration modules may change without invalidating the
+    physical audit; any guarded action/validator/runtime/observation source change
+    requires the audit to be regenerated before provider use.
     """
 
     report_path = Path(path)
@@ -179,8 +191,7 @@ def load_runtime_domain_affordance_binding(
                 "--quiet",
                 source_commit,
                 "--",
-                "src/chemworld",
-                ":(exclude)src/chemworld/eval/live_llm_development.py",
+                *_RUNTIME_DOMAIN_GUARDED_SOURCE_PATHS,
             ],
             cwd=ROOT,
             check=False,
@@ -218,7 +229,7 @@ def _require_planned_runtime_domain_binding(
 
 
 def _paired_method_seed(stage: str, world_seed: int) -> int:
-    digest = hashlib.sha256(f"live-llm-v0.4.10:{stage}:{world_seed}".encode()).digest()
+    digest = hashlib.sha256(f"live-llm-v0.4.11:{stage}:{world_seed}".encode()).digest()
     return 300_000 + int.from_bytes(digest[:4], "big") % 700_000_000
 
 
