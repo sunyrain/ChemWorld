@@ -27,6 +27,13 @@ FROZEN_REPORT = (
     / "reports"
     / "classic-dev-v0.4.json"
 )
+PREFLIGHT_REPORT = (
+    Path(__file__).resolve().parents[1]
+    / "workstreams"
+    / "benchmark_v1"
+    / "reports"
+    / "classic-preflight-v0.4.1.json"
+)
 
 
 def test_default_cache_uses_real_git_common_directory_in_worktrees() -> None:
@@ -56,6 +63,43 @@ def test_v041_development_plan_freezes_preflight_and_formal_scopes() -> None:
         ),
     }
     assert plan["formal_scope"]["expected_cell_count"] == 768
+
+
+def test_v041_preflight_passes_controls_without_selecting_champions() -> None:
+    report = json.loads(PREFLIGHT_REPORT.read_text(encoding="utf-8"))
+
+    assert report["schema_version"] == "chemworld-classic-development-audit-0.4.1"
+    assert report["status"] == "development_diagnostic_only"
+    assert report["formal_classic_matrix_ready"] is False
+    assert report["source_commit_stable"] is True
+    assert report["source_tree_clean_at_start"] is True
+    assert report["source_tree_clean_before_report"] is True
+    assert report["source_commit"] == report["source_commit_before_report"]
+    assert {cell["source_commit"] for cell in report["cells"]} == {
+        report["source_commit"]
+    }
+    assert report["cell_count"] == 64
+    assert report["complete_experiments_per_cell"] == 8
+    assert report["worker_count"] == 12
+    assert report["numeric_threads_per_worker"] == 1
+    assert report["family_champions"] == {}
+    assert set(report["diagnostic_family_leaders"]) == {
+        "design",
+        "local_search",
+        "bayesian_optimization",
+        "constrained_optimization",
+    }
+    acceptance = report["acceptance"]
+    assert acceptance["preregistered_preflight_scope"] is True
+    assert acceptance["full_preregistered_development_scope"] is False
+    assert acceptance["all_method_controls_pass"] is True
+    assert all(
+        summary["invalid_operation_count"] == 0
+        for summary in report["method_summaries"].values()
+    )
+    assert report["method_summaries"]["structured_safe_gp_ei"][
+        "safe_constraint_effective"
+    ] is True
 
 
 def test_numeric_worker_environment_is_bounded_and_restored(monkeypatch) -> None:
