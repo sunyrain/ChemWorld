@@ -181,10 +181,22 @@ def test_filter_consumes_validated_solid_and_closes_retention_ledger() -> None:
 
 
 @pytest.mark.parametrize(
-    "seed_mass_g,target_temperature_K,duration_s,expected_reason,provider_called",
+    "seed_mass_g,target_temperature_K,duration_s,expected_reason,expected_status",
     [
-        (0.006, 278.15, 60.0, "maximum_cooling_rate", False),
-        (1.0e-6, 278.15, 1800.0, "minimum_effective_seed_particles", True),
+        (
+            0.006,
+            278.15,
+            60.0,
+            "payload_coupling:maximum_cooling_rate_K_s",
+            "validation_failed",
+        ),
+        (
+            1.0e-6,
+            278.15,
+            1800.0,
+            "cool_crystallize_seed_population_effective",
+            "rolled_back",
+        ),
     ],
 )
 def test_invalid_cooling_proposals_roll_back_without_crystal_state(
@@ -192,7 +204,7 @@ def test_invalid_cooling_proposals_roll_back_without_crystal_state(
     target_temperature_K: float,
     duration_s: float,
     expected_reason: str,
-    provider_called: bool,
+    expected_status: str,
 ) -> None:
     env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
     try:
@@ -211,25 +223,60 @@ def test_invalid_cooling_proposals_roll_back_without_crystal_state(
             }
         )
 
-        assert info["transaction_status"] == "validation_failed"
+        assert info["transaction_status"] == expected_status
         assert info["measurement_cost"] == 0.0
         assert base._state.temperature_K == pytest.approx(before.temperature_K)
         assert base._state.species_amounts == pytest.approx(before.species_amounts)
         assert base._state.phases.to_dict() == before.phases.to_dict()
         execution = base.runtime.domain_services.crystallization.last_provider_execution
-        if provider_called:
-            assert execution["success"] is False
-            assert expected_reason in execution["failure_reason"]
-        else:
-            assert execution == {}
-            invalid_reasons = info["world_events"][0]["payload"]["invalid_reasons"]
-            assert "payload_coupling:maximum_cooling_rate_K_s" in invalid_reasons
+        assert execution == {}
+        assert info["preconditions"][expected_reason] is False
         assert (
             equipment_settings(base._state.equipment, "crystallizer").get(
                 "crystallization_model_id"
             )
             is None
         )
+    finally:
+        env.close()
+
+
+def test_cooling_above_solubility_reference_domain_is_publicly_rejected() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        env.reset(seed=0)
+        for action in REACTION_STEPS:
+            env.step(action)
+        env.step(
+            {
+                "operation": "heat",
+                "target_temperature_K": 450.0,
+                "duration_s": 1000.0,
+                "stirring_speed_rpm": 500.0,
+            }
+        )
+        base: Any = env.unwrapped
+        assert base._state.temperature_K > 430.0
+        provider = RecordingProvider()
+        base.runtime.domain_services.crystallization.runtime_provider = provider
+
+        _obs, _reward, _terminated, _truncated, info = env.step(
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 330.0,
+                "duration_s": 1800.0,
+            }
+        )
+
+        assert info["transaction_status"] == "rolled_back"
+        assert not provider.calls
+        assert (
+            info["preconditions"][
+                "cool_crystallize_reference_temperature_in_solubility_domain"
+            ]
+            is False
+        )
+        assert info["preconditions"].get("runtime_domain_valid") is None
     finally:
         env.close()
 

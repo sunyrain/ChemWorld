@@ -93,6 +93,26 @@ def test_public_precondition_full_plans_are_valid_but_start_locked(algorithm: st
     )
 
 
+@pytest.mark.parametrize("algorithm", ["ppo", "sac"])
+def test_crystallization_domain_full_plans_are_valid_but_start_locked(
+    algorithm: str,
+) -> None:
+    path = ROOT / f"configs/methods/rl_v0.4/{algorithm}_training_plan_v0.4.3.json"
+    plan, formal, methods = load_execution_inputs(root=ROOT, plan_path=path)
+
+    checks = validate_training_plan(plan, formal_protocol=formal, methods_config=methods)
+
+    assert all(checks.values())
+    assert plan["status"] == "crystallization_domain_preflight_pending_full_matrix_forbidden"
+    assert plan["execution"]["full_matrix_started"] is False
+    assert plan["current_contract_preflight"]["required_report_schema"] == (
+        f"chemworld-{algorithm}-v0412-preflight-report-0.1"
+    )
+    assert plan["current_contract_preflight"]["required_status"] == (
+        f"{algorithm}_v0412_preflight_passed_full_matrix_allowed"
+    )
+
+
 def test_post_affordance_job_cannot_start_without_source_binding(tmp_path: Path) -> None:
     path = ROOT / "configs/methods/rl_v0.4/ppo_training_plan_v0.4.1.json"
     plan, formal, _methods = load_execution_inputs(root=ROOT, plan_path=path)
@@ -143,6 +163,8 @@ def test_legacy_negative_ppo_plan_cannot_unlock_execution() -> None:
         ("sac", "v0410", "public-schema-adapter"),
         ("ppo", "v0411", "public-preconditions"),
         ("sac", "v0411", "public-preconditions"),
+        ("ppo", "v0412", "crystallization-domain"),
+        ("sac", "v0412", "crystallization-domain"),
     ],
 )
 def test_post_affordance_preflight_unlock_requires_stable_source_evidence(

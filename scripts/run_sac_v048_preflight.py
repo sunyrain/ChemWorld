@@ -28,6 +28,7 @@ REPORT_VERSION = "chemworld-sac-v048-preflight-report-0.1"
 POST_AFFORDANCE_PLAN_VERSION = "chemworld-sac-v049-preflight-plan-0.1"
 PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION = "chemworld-sac-v0410-preflight-plan-0.1"
 PUBLIC_PRECONDITION_PLAN_VERSION = "chemworld-sac-v0411-preflight-plan-0.1"
+CRYSTALLIZATION_DOMAIN_PLAN_VERSION = "chemworld-sac-v0412-preflight-plan-0.1"
 PREFLIGHT_PROFILES = {
     PLAN_VERSION: {
         "task_id": "benchmark-v05-rl-adapters--slice-sac-train-dev",
@@ -68,6 +69,16 @@ PREFLIGHT_PROFILES = {
         "execution_status_version": "chemworld-sac-v0411-preflight-execution-status-0.1",
         "status_prefix": "sac_v0411",
         "result_role": "public_precondition_repair_train_dev_preflight",
+    },
+    CRYSTALLIZATION_DOMAIN_PLAN_VERSION: {
+        "task_id": "benchmark-v05-rl-adapters--slice-sac-v0412-crystallization-domain-dev",
+        "job_version": "chemworld-sac-v0412-preflight-job-0.1",
+        "report_version": "chemworld-sac-v0412-preflight-report-0.1",
+        "attempt_version": "chemworld-sac-v0412-preflight-attempt-0.1",
+        "failure_version": "chemworld-sac-v0412-preflight-attempt-failure-0.1",
+        "execution_status_version": "chemworld-sac-v0412-preflight-execution-status-0.1",
+        "status_prefix": "sac_v0412",
+        "result_role": "crystallization_domain_repair_train_dev_preflight",
     },
 }
 RATE_FIELDS = (
@@ -208,7 +219,11 @@ def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[
     expected_adapter = (
         "chemworld-sb3-box-latent-adapter-0.2"
         if plan.get("schema_version")
-        in {PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION, PUBLIC_PRECONDITION_PLAN_VERSION}
+        in {
+            PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION,
+            PUBLIC_PRECONDITION_PLAN_VERSION,
+            CRYSTALLIZATION_DOMAIN_PLAN_VERSION,
+        }
         else "chemworld-sb3-box-latent-adapter-0.1"
     )
     protocol_tasks = protocol.get("task_roles", {}).get("formal_core", {})
@@ -291,7 +306,11 @@ def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[
             "require_clean_tree_before_report": True,
         },
         "adapter_reattestation_contract": plan.get("schema_version")
-        not in {PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION, PUBLIC_PRECONDITION_PLAN_VERSION}
+        not in {
+            PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION,
+            PUBLIC_PRECONDITION_PLAN_VERSION,
+            CRYSTALLIZATION_DOMAIN_PLAN_VERSION,
+        }
         or (
             plan.get("schema_version") == PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION
             and isinstance(reattestation, Mapping)
@@ -330,6 +349,26 @@ def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[
             and isinstance(boundary, Mapping)
             and boundary.get("v0410_ppo_negative_report_remains_immutable") is True
             and boundary.get("v0410_sac_execution_skipped_on_shared_gap") is True
+        )
+        or (
+            plan.get("schema_version") == CRYSTALLIZATION_DOMAIN_PLAN_VERSION
+            and isinstance(reattestation, Mapping)
+            and reattestation.get("parent_source_commit")
+            == "ab62d3fb5e0a8337cba2026d8204d00a6aedfd94"
+            and reattestation.get("parent_plan_path")
+            == "configs/methods/rl_v0.4/sac_v0411_preflight_plan.json"
+            and reattestation.get("ppo_v0411_negative_report")
+            == "workstreams/benchmark_v1/reports/rl-ppo-v0411-preflight-v0.4.json"
+            and reattestation.get("action_adapter_schema_version") == expected_adapter
+            and reattestation.get("conditional_hybrid_action_schema_version")
+            == "chemworld-conditional-hybrid-action-0.4"
+            and reattestation.get("sac_v0411_execution_skipped") is True
+            and reattestation.get("threshold_split_seed_and_hyperparameter_changes") is False
+            and reattestation.get("v0411_scientific_contract_sha256")
+            == scientific_contract_sha256(plan)
+            and isinstance(boundary, Mapping)
+            and boundary.get("v0411_ppo_negative_report_remains_immutable") is True
+            and boundary.get("v0411_sac_execution_skipped_on_shared_gap") is True
         ),
     }
     failed = sorted(name for name, passed in checks.items() if not passed)
@@ -345,9 +384,47 @@ def validate_adapter_reattestation(root: Path, plan: Mapping[str, Any]) -> dict[
     if schema_version not in {
         PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION,
         PUBLIC_PRECONDITION_PLAN_VERSION,
+        CRYSTALLIZATION_DOMAIN_PLAN_VERSION,
     }:
         return {}
     reattestation = cast(Mapping[str, Any], plan["adapter_reattestation"])
+    if schema_version == CRYSTALLIZATION_DOMAIN_PLAN_VERSION:
+        parent_path = _inside(root, str(reattestation["parent_plan_path"]), "parent plan")
+        report_path = _inside(
+            root,
+            str(reattestation["ppo_v0411_negative_report"]),
+            "PPO v0.4.11 negative report",
+        )
+        parent = _load_object(parent_path, "parent SAC preflight plan")
+        report = _load_object(report_path, "PPO v0.4.11 negative report")
+        gate = report.get("gate_assessment")
+        resources = report.get("resource_accounting")
+        checks = {
+            "negative_report_schema": report.get("schema_version")
+            == "chemworld-ppo-v0411-preflight-report-0.1",
+            "negative_report_status": report.get("status")
+            == "ppo_v0411_preflight_failed_full_matrix_forbidden",
+            "negative_report_forbids_full_matrix": report.get("full_matrix_allowed") is False,
+            "negative_report_source": report.get("source", {}).get("source_commit")
+            == reattestation.get("parent_source_commit"),
+            "complete_negative_execution": isinstance(resources, Mapping)
+            and resources.get("training_environment_step_count") == 102_400
+            and len(report.get("jobs", [])) == 4,
+            "shared_operational_gap": isinstance(gate, Mapping)
+            and gate.get("failed_checks") == ["all_tasks_operational"]
+            and gate.get("learning_signal_task_count") == 4,
+            "sac_v0411_skipped": reattestation.get("sac_v0411_execution_skipped") is True,
+            "scientific_contract": reattestation.get("v0411_scientific_contract_sha256")
+            == scientific_contract_sha256(parent)
+            == scientific_contract_sha256(plan),
+        }
+        failed = sorted(name for name, passed in checks.items() if not passed)
+        if failed:
+            raise SACPreflightError(
+                "SAC crystallization-domain reattestation is invalid: "
+                + ", ".join(failed)
+            )
+        return {"ppo_v0411_negative_report": report}
     if schema_version == PUBLIC_PRECONDITION_PLAN_VERSION:
         parent_path = _inside(root, str(reattestation["parent_plan_path"]), "parent plan")
         report_path = _inside(

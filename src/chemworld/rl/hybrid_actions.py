@@ -20,7 +20,7 @@ import numpy as np
 from chemworld.data.logging import to_builtin
 from chemworld.world.operations import OPERATION_TYPES, operation_contracts
 
-ACTION_SCHEMA_VERSION = "chemworld-conditional-hybrid-action-0.3"
+ACTION_SCHEMA_VERSION = "chemworld-conditional-hybrid-action-0.4"
 LATENT_ADAPTER_VERSION = "chemworld-sb3-box-latent-adapter-0.2"
 POLICY_DISTRIBUTION_SCHEMA_VERSION = "chemworld-masked-conditional-ppo-0.1"
 

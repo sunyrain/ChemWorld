@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from math import pi
 from typing import Any
 
 from chemworld.foundation.state import (
@@ -10,6 +11,25 @@ from chemworld.foundation.state import (
     has_phase_system,
     instrument_completed,
     phases_are_settled,
+)
+
+# The public cooling-crystallization runtime fixes these four values in
+# CrystallizationServices.cool_crystallize.  Keep the constitution conservative
+# by a tiny floating-point margin so every advertised positive seed population
+# is accepted by the downstream particle-count check.
+_CRYSTALLIZATION_SOLUBILITY_MINIMUM_TEMPERATURE_K = 250.0
+_CRYSTALLIZATION_SOLUBILITY_MAXIMUM_TEMPERATURE_K = 430.0
+_CRYSTALLIZATION_RUNTIME_SEED_DIAMETER_M = 100.0e-6
+_CRYSTALLIZATION_RUNTIME_CRYSTAL_DENSITY_KG_M3 = 1200.0
+_CRYSTALLIZATION_MINIMUM_EFFECTIVE_SEED_PARTICLES = 10.0
+_CRYSTALLIZATION_MINIMUM_EFFECTIVE_SEED_MASS_G = (
+    _CRYSTALLIZATION_MINIMUM_EFFECTIVE_SEED_PARTICLES
+    * _CRYSTALLIZATION_RUNTIME_CRYSTAL_DENSITY_KG_M3
+    * pi
+    / 6.0
+    * _CRYSTALLIZATION_RUNTIME_SEED_DIAMETER_M**3
+    * 1000.0
+    * (1.0 + 1.0e-12)
 )
 
 
@@ -67,6 +87,16 @@ def check_operation_preconditions(
         int(reactor_settings.get("reaction_advance_index", 0)) > 0
         or float(crystallizer_settings.get("seed_target_mol", 0.0))
         > constitution.tolerance
+    )
+    seed_mass_g = float(crystallizer_settings.get("crystal_seed_mass_g", 0.0))
+    crystallization_reference_temperature_valid = (
+        _CRYSTALLIZATION_SOLUBILITY_MINIMUM_TEMPERATURE_K
+        <= state.temperature_K
+        <= _CRYSTALLIZATION_SOLUBILITY_MAXIMUM_TEMPERATURE_K
+    )
+    crystallization_seed_population_effective = (
+        seed_mass_g <= 0.0
+        or seed_mass_g >= _CRYSTALLIZATION_MINIMUM_EFFECTIVE_SEED_MASS_G
     )
     phase_operations = {
         "add_extractant",
@@ -172,6 +202,12 @@ def check_operation_preconditions(
         "cool_crystallize_requires_reaction_or_seed": operation_type
         != "cool_crystallize"
         or crystallization_ready,
+        "cool_crystallize_reference_temperature_in_solubility_domain": operation_type
+        != "cool_crystallize"
+        or crystallization_reference_temperature_valid,
+        "cool_crystallize_seed_population_effective": operation_type
+        != "cool_crystallize"
+        or crystallization_seed_population_effective,
         "collect_fraction_requires_distillation": operation_type != "collect_fraction"
         or distillate_ready,
         "run_flow_requires_flow_setup": operation_type != "run_flow" or flow_ready,
