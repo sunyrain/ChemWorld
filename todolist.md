@@ -1,14 +1,14 @@
 # ChemWorld v0.5 基座完整性与正式实验 Todo
 
-最后更新：2026-07-16
+最后更新：2026-07-17
 
 ## 目标与边界
 
-本阶段只做两件事：证明当前 backend v0.5 候选基座足够完整、稳定且可辨识；在该基座冻结后，运行可复现、可统计解释的正式方法比较。论文写作、榜单宣传和最终发布必须等待本文件的正式证据门禁通过。
+本阶段的实验主线只做两件事：证明当前 backend v0.5 候选基座足够完整、稳定且可辨识；在该基座冻结后，运行可复现、可统计解释的正式方法比较。经 2026-07-17 明确授权，NCS 论文可作为证据绑定的工作稿与实验并行撰写，但未完成实验必须保留显式空位；投稿级结果、摘要结论、榜单宣传和最终发布仍必须等待本文件的正式证据门禁通过。
 
 当前固定点如下：15 个注册任务的必需运行路径至少达到有界 `reference_validated`，28 类操作已有事务语义，20 个 provider 已接入正式 runtime，`proxy_allowed=false`，且没有待升级的 `lite` 正式路径。三个共享模块 `reaction_kinetics`、`reactors`、`spectroscopy_instruments` 已完成升级；完整测试曾达到 1261 passed、14 skipped，backend v0.5 release gate 12/12 通过。随后完成的公开 affordance/runtime-domain 审计在六个 serious tasks 的 223 个边界候选上达到 0 finding，并修复了会污染 RL/LLM 评价的耦合可行域与活性相状态错误。这些结果证明“候选基座及当前公开动作边界可运行”，但尚未证明“正式 benchmark 结论成立”。
 
-现阶段仍不得作正式 benchmark 主张：P3 的 PPO/SAC 当前合同训练、单任务真实 LLM 筛选和方法冻结尚未完成，reference evidence 尚未生成，Bench 仍封存，P4–P6 没有正式结果。旧 backend、旧 observation contract 和已暴露 cohort 的结果继续只作诊断，不得因模型文件仍在仓库中而恢复正式资格。
+现阶段仍不得作正式 benchmark 主张：P3 的 PPO/SAC 当前合同训练、单任务真实 LLM 筛选和方法冻结尚未完成，reference evidence 尚未生成，Bench 仍封存，P4–P6 没有正式结果。旧 backend、旧 observation contract 和已暴露 cohort 的结果继续只作诊断，不得因模型文件仍在仓库中而恢复正式资格。并行 NCS 工作稿不改变这些门禁，只能描述当前有效的控制/开发/preflight 证据并显示待完成结果槽。
 
 ## 当前共享状态（2026-07-16）
 
@@ -27,6 +27,7 @@
 | 开源 VLM | 确定性谱图图像合同 0.1 已通过审计：PNG/信号/公开包/渲染合同均有摘要，历史目录强制为纯元数据，只有显式取回的历史谱图可进入图像输入；未下载或运行模型；未来推理依赖已从主环境锁隔离 | 推理依赖、模型与 processor revision 尚未封存；仅在 P4 之后先做一个 Dev 任务的学习价值试点，未通过不得扩矩阵 |
 | 环境锁 | VLM 临时 extra 已完全移除，`uv.lock` 精确恢复到 VLM 前 `099028d` 的 179 包摘要；但该摘要与 P0 `be4e38f` 的 178 包 portable-release 证明不同，漂移在 VLM 任务之前已由后续 RL 依赖产生 | 不回写历史 P0 报告；待 P3 方法依赖稳定后执行 `benchmark-v05-portable-release-reattestation`，在此之前不得签发正式 Bench source/wheel manifest |
 | 正式证据 | `benchmark_claim_allowed=false`，reference/Bench/P4 均未开始 | P3 全部封存并通过 method freeze 后，严格执行 reference → base matrix → independent reproduction |
+| NCS 工作稿 | `paper/ncs/` 已建立独立 Article 活稿：133 词摘要、约 1,700 词当前主文、5 个展示项预算；引言、当前系统结果、Discussion 和 Online Methods 已起草，7 项证据摘要通过审计 | PPO、SAC、LLM、Bench、泛化和独立复现均保留 `PENDING-*` 空位；只有对应正式报告通过自身门禁后才能回填，`publication_ready=false` |
 
 执行职责固定为“核心组控制、方法组盲执行”：核心组保留协议、Bench commitment、reference、统计代码、cell 签发和最终主张；RL 组负责当前合同 Train/Dev、checkpoint/replay/resource evidence，并可在收到不可变 cell manifest 后执行正式 cell，但不得访问 Bench 参数、reference feedback、事后改指标或删除失败。执行人与控制人分离不要求不同计算机器，但要求不同 owned paths、不可变输入 hash 和独立重放验收。
 
@@ -361,8 +362,8 @@ P0 全部通过前不得冻结新协议；P1 全部通过前不得生成正式 r
   - [ ] 明确 synthetic world 不等同真实化学发现，benchmark 衡量的是多层调度、实验设计、信息获取、适应、约束与泛化能力。
   - [ ] 发布逐任务结果和资源前沿，提供机器可读 manifests/digests；不发布 API key、私有 seed、隐藏状态或私有思维链。
   - [ ] 严格构建 docs/site 并在本地核对链接、导航、图表和移动端；发布动作另按用户当时指令执行。
-  - 验收：公开页面与正式 artifact 同源，所有数字可追溯到 replay-verified result；此后才进入论文撰写阶段。
+  - 验收：公开页面与正式 artifact 同源，所有数字可追溯到 replay-verified result；此后才能把并行 NCS 工作稿收束为投稿级结果、摘要结论和最终图表。
 
 ## 推荐执行顺序
 
-`fa546e5` 后的一个 v0.4.10 LLM fresh cell 已完成，v0.4.11 公开谱图审计修复也已离线就绪；当前暂停更多付费调用。operation 288-cell 与 classic 768-cell 的 v0.4.1 正式开发重认证均已通过并绑定稳定干净的 `ef202b7`，相应 P3 项已完成。RL adapter 0.2 已支撑 v0.4.12 PPO/SAC 两个四任务 gate，在原冻结门槛下关闭结晶 3+7 公共域缺口并分别获得 `full_matrix_allowed=true`，两个正报告均已固化推送。当前 PPO exact-source full matrix 正在运行；完成并封存 checkpoint index 后顺序启动 SAC。之后确定 LLM 是否退出或完成 candidate/Dev，执行 portable-release reattestation 与 method freeze。P4 必须严格按“reference evidence → base matrix → reproduction”串行；P5 的三个实验可在 P4 通过后并行；P6 最后串行审计和发布。
+`fa546e5` 后的一个 v0.4.10 LLM fresh cell 已完成，v0.4.11 公开谱图审计修复也已离线就绪；当前暂停更多付费调用。operation 288-cell 与 classic 768-cell 的 v0.4.1 正式开发重认证均已通过并绑定稳定干净的 `ef202b7`，相应 P3 项已完成。RL adapter 0.2 已支撑 v0.4.12 PPO/SAC 两个四任务 gate，在原冻结门槛下关闭结晶 3+7 公共域缺口并分别获得 `full_matrix_allowed=true`，两个正报告均已固化推送。当前 PPO exact-source full matrix 正在运行；完成并封存 checkpoint index 后顺序启动 SAC。之后确定 LLM 是否退出或完成 candidate/Dev，执行 portable-release reattestation 与 method freeze。P4 必须严格按“reference evidence → base matrix → reproduction”串行；P5 的三个实验可在 P4 通过后并行；P6 最后串行审计和发布。NCS 工作稿在这些实验之外并行增量更新，但所有未闭合结果保持空位，直到对应门禁签发可回填证据。

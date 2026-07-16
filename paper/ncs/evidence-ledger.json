@@ -1,0 +1,111 @@
+{
+  "schema_version": "chemworld-ncs-manuscript-evidence-0.1",
+  "target_journal": "Nature Computational Science",
+  "content_type": "Article",
+  "publication_ready": false,
+  "format_contract": {
+    "abstract_word_limit": 150,
+    "main_text_word_limit": 3500,
+    "display_item_limit": 6,
+    "required_order": [
+      "unheaded_introduction",
+      "results",
+      "discussion",
+      "online_methods"
+    ]
+  },
+  "current_evidence": [
+    {
+      "id": "E-AFFORDANCE",
+      "role": "control_only",
+      "path": "workstreams/benchmark_v1/reports/runtime-domain-affordance-audit-v0.4.json",
+      "sha256": "f0a186b553596ef307e16cd22a3fcaf3e0f35fa760c4b954daf1f2727e1888f1",
+      "claim_boundary": "Public schema, validator, runtime and observation alignment across six serious tasks; not method performance."
+    },
+    {
+      "id": "E-OPERATION-DEV",
+      "role": "development_only",
+      "path": "workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.1.json",
+      "sha256": "41f724d2756cabc2398125a1fb5ef0bd5f5f9342101e7119a4a8d9b5e489061d",
+      "claim_boundary": "Complete source-bound Train/Dev operation-baseline development matrix; no Bench results."
+    },
+    {
+      "id": "E-CLASSIC-DEV",
+      "role": "development_only",
+      "path": "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
+      "sha256": "af85f671f799ba5304384b82bdf8411b8b1c464a2a9c65bbc339a00fab5579f1",
+      "claim_boundary": "Complete source-bound Train/Dev classical-method development matrix; no Bench results."
+    },
+    {
+      "id": "E-PPO-PREFLIGHT",
+      "role": "preflight_only",
+      "path": "workstreams/benchmark_v1/reports/rl-ppo-v0412-preflight-v0.4.json",
+      "sha256": "811919d30a0f0e792701d58bdde0a7a5a2b8a7eaacd9edc0f0adc81073faaf3c",
+      "claim_boundary": "Source-bound PPO Train/Dev learning and operational gate; not a full-matrix or Bench result."
+    },
+    {
+      "id": "E-SAC-PREFLIGHT",
+      "role": "preflight_only",
+      "path": "workstreams/benchmark_v1/reports/rl-sac-v0412-preflight-v0.4.json",
+      "sha256": "f6c06e6a270900e2fc62d28f2890bb73d554c527b9d39f538c128d735755123e",
+      "claim_boundary": "Source-bound SAC Train/Dev learning and operational gate; not a full-matrix or Bench result."
+    },
+    {
+      "id": "E-METHOD-FREEZE-BLOCKER",
+      "role": "blocker",
+      "path": "workstreams/benchmark_v1/reports/method-freeze-v0.4.json",
+      "sha256": "815a3c5eed512820dbc497c2b9fb23c556a6fad81fb12b06291ae78d36c2e04a",
+      "claim_boundary": "Fail-closed evidence that the method list and Bench manifest are not yet frozen."
+    },
+    {
+      "id": "E-FIGURE-1",
+      "role": "architecture_figure",
+      "path": "paper/figures/figure1_system.pdf",
+      "sha256": "e72efbbb6230909f22b626729c973967e8cb837f6c5fbe5480ce17740a7e5c13",
+      "claim_boundary": "Conceptual system architecture only."
+    }
+  ],
+  "pending_results": [
+    {
+      "id": "PENDING-RL-PPO",
+      "required_path": "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.12.json",
+      "replacement_rule": "Insert PPO multi-seed results only after the report and checkpoint index declare method readiness."
+    },
+    {
+      "id": "PENDING-RL-SAC",
+      "required_path": "workstreams/benchmark_v1/reports/rl-sac-dev-v0.4.12.json",
+      "replacement_rule": "Insert SAC multi-seed results only after the report and checkpoint index declare method readiness."
+    },
+    {
+      "id": "PENDING-LLM",
+      "required_path": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.json",
+      "replacement_rule": "Insert language-model comparison only after the final included scope and prompt/model freeze are complete."
+    },
+    {
+      "id": "PENDING-BENCH",
+      "required_path": "workstreams/benchmark_v1/reports/base-matrix-v0.4.json",
+      "replacement_rule": "Insert cross-method rankings only after reference evidence, sealed Bench execution and replay verification."
+    },
+    {
+      "id": "PENDING-GENERALIZATION",
+      "required_path": "workstreams/benchmark_v1/reports/generalization-security-v0.4.json",
+      "replacement_rule": "Insert hidden-family, exploit and transfer conclusions only after the preregistered analyses pass."
+    },
+    {
+      "id": "PENDING-REPRODUCTION",
+      "required_path": "workstreams/benchmark_v1/reports/independent-reproduction-v0.4.json",
+      "replacement_rule": "Insert reproducibility claims only after independent clean-environment reproduction."
+    }
+  ],
+  "submission_metadata_pending": [
+    "authors",
+    "affiliations",
+    "corresponding_author",
+    "acknowledgements",
+    "funding",
+    "author_contributions",
+    "competing_interests",
+    "archive_doi"
+  ]
+}
+
