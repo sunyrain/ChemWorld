@@ -31,7 +31,18 @@ def check_operation_preconditions(
         bool(instrument.requires_terminated) if instrument is not None else False
     )
     final_assay_done = instrument_completed(state.equipment, "final_assay")
-    is_final_assay = operation_type == "measure" and instrument_id == "final_assay"
+    is_final_assay = (
+        operation_type == "measure"
+        and instrument is not None
+        and instrument.id == "final_assay"
+    )
+    measurement_sample_available = (
+        operation_type != "measure"
+        or (
+            instrument is not None
+            and state.volume_L + constitution.tolerance >= instrument.sample_volume_L
+        )
+    )
     phase_system = has_phase_system(state.phases)
     phase_settled = phases_are_settled(state.phases)
     crystallized = (
@@ -150,6 +161,10 @@ def check_operation_preconditions(
         "measure_final_requires_terminated": operation_type != "measure"
         or not requires_terminated
         or is_terminated,
+        "measure_after_termination_requires_final_assay": operation_type != "measure"
+        or not is_terminated
+        or is_final_assay,
+        "measurement_sample_available": measurement_sample_available,
         "measure_final_not_repeated": not is_final_assay or not final_assay_done,
         "terminate_requires_material": operation_type != "terminate" or has_material,
         "filter_requires_crystallization": operation_type != "filter_crystals"

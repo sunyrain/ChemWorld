@@ -8,6 +8,7 @@ import chemworld  # noqa: F401
 from chemworld.action_codec import ActionCodec
 from chemworld.agents.base import HistoryRecord
 from chemworld.agents.event import ScriptedChemistryAgent
+from chemworld.foundation import upsert_equipment_record
 from chemworld.operation_validator import OperationValidator
 from chemworld.runtime import TaskRuntimeProfile, make_chemworld_constitution
 from chemworld.tasks import (
@@ -600,6 +601,80 @@ def test_operation_validator_enforces_instrument_policy() -> None:
     assert allowed.preconditions["instrument_allowed_by_task"]
     assert not blocked.preconditions["instrument_allowed_by_task"]
     assert "instrument_allowed_by_task" in blocked.invalid_reasons
+
+
+def test_measurement_affordance_requires_a_feasible_public_instrument() -> None:
+    validator = OperationValidator(
+        constitution=make_chemworld_constitution(),
+        allowed_operations={"measure"},
+        allowed_instruments={"hplc", "uvvis", "final_assay"},
+    )
+    active = initial_chemworld_state().replace(volume_L=0.00010)
+
+    uvvis = validator.validate({"operation": "measure", "instrument": "uvvis"}, active)
+    hplc = validator.validate({"operation": "measure", "instrument": "hplc"}, active)
+
+    assert uvvis.is_valid
+    assert not hplc.preconditions["measurement_sample_available"]
+    assert validator.operation_affordance("measure", active).is_valid
+
+    terminated = active.replace(volume_L=0.00030, terminated=True)
+    final_assay = validator.validate(
+        {"operation": "measure", "instrument": "final_assay"},
+        terminated,
+    )
+    post_termination_hplc = validator.validate(
+        {"operation": "measure", "instrument": "hplc"},
+        terminated,
+    )
+
+    assert final_assay.is_valid
+    assert not post_termination_hplc.preconditions[
+        "measure_after_termination_requires_final_assay"
+    ]
+    assert validator.operation_affordance("measure", terminated).is_valid
+
+    no_sample = active.replace(volume_L=0.00001)
+    assert not validator.operation_affordance("measure", no_sample).is_valid
+    assert "measure" not in validator.valid_operations(no_sample)
+
+
+def test_crystallization_affordance_requires_dissolved_target_feed() -> None:
+    seed_target_mol = 0.001
+    initial = initial_chemworld_state()
+    equipment = upsert_equipment_record(
+        initial.equipment,
+        equipment_id="crystallizer",
+        equipment_type="crystallizer",
+        attached_vessel_id=initial.vessel_id,
+        status="seeded",
+        settings={"seed_target_mol": seed_target_mol},
+    )
+    state = initial.replace(
+        volume_L=0.020,
+        species_amounts={"P": seed_target_mol},
+        equipment=equipment,
+    )
+    validator = OperationValidator(
+        constitution=make_chemworld_constitution(),
+        allowed_operations={"cool_crystallize"},
+        target_species=("P",),
+    )
+    action = {
+        "operation": "cool_crystallize",
+        "target_temperature_K": 278.15,
+        "duration_s": 1200.0,
+    }
+
+    blocked = validator.validate(action, state)
+    assert blocked.preconditions["cool_crystallize_requires_reaction_or_seed"]
+    assert not blocked.preconditions["cool_crystallize_target_feed_available"]
+    assert "cool_crystallize" not in validator.valid_operations(state)
+
+    feed_available = state.replace(species_amounts={"P": seed_target_mol + 0.001})
+    allowed = validator.validate(action, feed_available)
+    assert allowed.preconditions["cool_crystallize_target_feed_available"]
+    assert allowed.is_valid
 
 
 def test_process_preconditions_are_stateful() -> None:

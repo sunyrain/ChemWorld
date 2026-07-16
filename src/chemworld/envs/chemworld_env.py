@@ -34,6 +34,7 @@ from chemworld.operation_validator import OperationValidation, OperationValidato
 from chemworld.runtime import (
     ChemWorldObservationKernel,
     ChemWorldRuntime,
+    MechanismSpeciesView,
     make_chemworld_constitution,
 )
 from chemworld.tasks import default_kernel_maturity, get_task
@@ -151,6 +152,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             constitution=self.constitution,
             allowed_operations=self.allowed_operations,
             allowed_instruments=self.allowed_instruments,
+            target_species=MechanismSpeciesView(
+                self.scenario_instance.compiled_mechanism
+            ).target_species,
             action_codec=self.action_codec,
         )
         self.runtime = self._make_runtime()
@@ -203,6 +207,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             constitution=self.constitution,
             allowed_operations=self.allowed_operations,
             allowed_instruments=self.allowed_instruments,
+            target_species=MechanismSpeciesView(
+                self.scenario_instance.compiled_mechanism
+            ).target_species,
             action_codec=self.action_codec,
         )
         self.observation_contract = self._make_observation_contract()

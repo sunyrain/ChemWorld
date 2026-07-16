@@ -201,7 +201,19 @@ def test_public_schema_adapter_keeps_seeded_walks_dispatchable(task_id: str) -> 
                 decoded,
                 validation["invalid_reasons"],
             )
-            _, _, terminated, truncated, _ = env.step(latent)
+            _, _, terminated, truncated, info = env.step(latent)
+            assert info.get("preconditions", {}).get("runtime_domain_valid") is not False, (
+                task_id,
+                step,
+                decoded,
+                info.get("preconditions"),
+            )
+            assert info.get("preconditions", {}).get("observation_domain_valid") is not False, (
+                task_id,
+                step,
+                decoded,
+                info.get("preconditions"),
+            )
             if terminated or truncated:
                 env.reset(seed=3108 + step)
     finally:

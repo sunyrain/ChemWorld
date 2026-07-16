@@ -67,12 +67,30 @@ def test_post_affordance_ppo_full_plan_is_valid_but_starts_locked() -> None:
     assert plan["current_contract_preflight"]["required_report_schema"] == (
         "chemworld-ppo-v0410-preflight-report-0.1"
     )
-    with pytest.raises(FormalPPOTrainingError, match="cannot load PPO preflight report"):
+    with pytest.raises(FormalPPOTrainingError, match="does not unlock the full matrix"):
         verify_current_contract_preflight(
             root=ROOT,
             plan=plan,
             source_commit="a" * 40,
         )
+
+
+@pytest.mark.parametrize("algorithm", ["ppo", "sac"])
+def test_public_precondition_full_plans_are_valid_but_start_locked(algorithm: str) -> None:
+    path = ROOT / f"configs/methods/rl_v0.4/{algorithm}_training_plan_v0.4.2.json"
+    plan, formal, methods = load_execution_inputs(root=ROOT, plan_path=path)
+
+    checks = validate_training_plan(plan, formal_protocol=formal, methods_config=methods)
+
+    assert all(checks.values())
+    assert plan["status"] == "public_precondition_preflight_pending_full_matrix_forbidden"
+    assert plan["execution"]["full_matrix_started"] is False
+    assert plan["current_contract_preflight"]["required_report_schema"] == (
+        f"chemworld-{algorithm}-v0411-preflight-report-0.1"
+    )
+    assert plan["current_contract_preflight"]["required_status"] == (
+        f"{algorithm}_v0411_preflight_passed_full_matrix_allowed"
+    )
 
 
 def test_post_affordance_job_cannot_start_without_source_binding(tmp_path: Path) -> None:
@@ -118,15 +136,23 @@ def test_legacy_negative_ppo_plan_cannot_unlock_execution() -> None:
         )
 
 
-@pytest.mark.parametrize("algorithm", ["ppo", "sac"])
+@pytest.mark.parametrize(
+    ("algorithm", "version", "task_suffix"),
+    [
+        ("ppo", "v0410", "public-schema-adapter"),
+        ("sac", "v0410", "public-schema-adapter"),
+        ("ppo", "v0411", "public-preconditions"),
+        ("sac", "v0411", "public-preconditions"),
+    ],
+)
 def test_post_affordance_preflight_unlock_requires_stable_source_evidence(
-    tmp_path: Path, algorithm: str
+    tmp_path: Path,
+    algorithm: str,
+    version: str,
+    task_suffix: str,
 ) -> None:
     source_commit = "a" * 40
-    version = "v0410"
-    task_id = (
-        f"benchmark-v05-rl-adapters--slice-{algorithm}-v0410-public-schema-adapter-dev"
-    )
+    task_id = f"benchmark-v05-rl-adapters--slice-{algorithm}-{version}-{task_suffix}-dev"
     plan_relative = f"configs/methods/rl_v0.4/{algorithm}_{version}_preflight_plan.json"
     report_relative = (
         f"workstreams/benchmark_v1/reports/rl-{algorithm}-{version}-preflight-v0.4.json"

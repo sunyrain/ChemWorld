@@ -72,12 +72,14 @@ class OperationValidator:
         constitution: PhysicalConstitution,
         allowed_operations: set[str],
         allowed_instruments: set[str] | None = None,
+        target_species: tuple[str, ...] = (),
         operation_types: tuple[str, ...] = OPERATION_TYPES,
         action_codec: ActionCodec | None = None,
     ) -> None:
         self.constitution = constitution
         self.allowed_operations = allowed_operations
         self.allowed_instruments = allowed_instruments
+        self.target_species = target_species
         self.operation_types = operation_types
         self.action_codec = action_codec or ActionCodec()
 
@@ -212,7 +214,7 @@ class OperationValidator:
         operation_type: str,
         state: WorldState,
     ) -> OperationValidation:
-        payload = self._default_payload(operation_type)
+        payload = self._default_payload(operation_type, state)
         preconditions = self._preconditions(
             operation_type,
             payload,
@@ -247,7 +249,7 @@ class OperationValidator:
         )
 
     def _operation_preconditions_pass(self, operation_type: str, state: WorldState) -> bool:
-        payload = self._default_payload(operation_type)
+        payload = self._default_payload(operation_type, state)
         checks = self._preconditions(
             operation_type,
             payload,
@@ -275,6 +277,18 @@ class OperationValidator:
             preconditions["final_assay_sample_available"] = (
                 required == 0.0 or state.volume_L + self.constitution.tolerance >= required
             )
+        if operation_type == "cool_crystallize":
+            crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
+            seed_target_mol = float(crystallizer_settings.get("seed_target_mol", 0.0))
+            primary_target = self.target_species[0] if self.target_species else None
+            dissolved_target_mol = (
+                float(state.species_amounts.get(primary_target, 0.0)) - seed_target_mol
+                if primary_target is not None
+                else 0.0
+            )
+            preconditions["cool_crystallize_target_feed_available"] = (
+                dissolved_target_mol > self.constitution.tolerance
+            )
         if operation_type == "measure" and self.allowed_instruments is not None:
             preconditions["instrument_allowed_by_task"] = (
                 str(payload.get("instrument", "hplc")) in self.allowed_instruments
@@ -283,23 +297,38 @@ class OperationValidator:
             preconditions.update(self._payload_checks(operation_type, payload, state))
         return preconditions
 
-    def _default_payload(self, operation_type: str) -> dict[str, Any]:
+    def _default_payload(
+        self,
+        operation_type: str,
+        state: WorldState,
+    ) -> dict[str, Any]:
         payload: dict[str, Any] = {"operation": operation_type}
         if operation_type == "measure":
-            instrument_priority = ("hplc", "uvvis", "gc", "final_assay")
-            payload["instrument"] = next(
-                (
-                    instrument
-                    for instrument in instrument_priority
-                    if self.allowed_instruments is None or instrument in self.allowed_instruments
-                ),
-                "hplc",
-            )
+            payload["instrument"] = self._default_measurement_instrument(state)
         if operation_type == "add_phase":
             payload["phase"] = "aqueous"
         if operation_type == "separate_phase":
             payload["target_phase"] = "organic"
         return payload
+
+    def _default_measurement_instrument(self, state: WorldState) -> str:
+        instrument_priority = ("hplc", "uvvis", "gc", "ph_meter", "final_assay")
+        candidates = (*instrument_priority, *sorted(self.constitution.instruments))
+        permitted = tuple(
+            instrument_id
+            for instrument_id in dict.fromkeys(candidates)
+            if self.allowed_instruments is None or instrument_id in self.allowed_instruments
+        )
+        for instrument_id in permitted:
+            instrument = self.constitution.instruments.get(instrument_id)
+            if instrument is None:
+                continue
+            if state.terminated != bool(instrument.requires_terminated):
+                continue
+            if state.volume_L + self.constitution.tolerance < instrument.sample_volume_L:
+                continue
+            return instrument_id
+        return permitted[0] if permitted else "hplc"
 
     def _payload_checks(
         self,

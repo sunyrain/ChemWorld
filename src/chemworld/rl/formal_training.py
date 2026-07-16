@@ -34,8 +34,14 @@ PPO_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION = "chemworld-ppo-v049-preflight-rep
 PPO_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION = (
     "chemworld-ppo-v0410-preflight-report-0.1"
 )
+PPO_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION = (
+    "chemworld-ppo-v0411-preflight-report-0.1"
+)
 SAC_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v049-preflight-report-0.1"
 SAC_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v0410-preflight-report-0.1"
+SAC_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION = (
+    "chemworld-sac-v0411-preflight-report-0.1"
+)
 PREFLIGHT_CONTRACTS: dict[str, dict[str, dict[str, str]]] = {
     "ppo": {
         "chemworld-ppo-v048-preflight-report-0.1": {
@@ -53,6 +59,11 @@ PREFLIGHT_CONTRACTS: dict[str, dict[str, dict[str, str]]] = {
             "report": "workstreams/benchmark_v1/reports/rl-ppo-v0410-preflight-v0.4.json",
             "required_status": "ppo_v0410_preflight_passed_full_matrix_allowed",
         },
+        PPO_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION: {
+            "plan": "configs/methods/rl_v0.4/ppo_v0411_preflight_plan.json",
+            "report": "workstreams/benchmark_v1/reports/rl-ppo-v0411-preflight-v0.4.json",
+            "required_status": "ppo_v0411_preflight_passed_full_matrix_allowed",
+        },
     },
     "sac": {
         SAC_PREFLIGHT_REPORT_VERSION: {
@@ -69,6 +80,11 @@ PREFLIGHT_CONTRACTS: dict[str, dict[str, dict[str, str]]] = {
             "plan": "configs/methods/rl_v0.4/sac_v0410_preflight_plan.json",
             "report": "workstreams/benchmark_v1/reports/rl-sac-v0410-preflight-v0.4.json",
             "required_status": "sac_v0410_preflight_passed_full_matrix_allowed",
+        },
+        SAC_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION: {
+            "plan": "configs/methods/rl_v0.4/sac_v0411_preflight_plan.json",
+            "report": "workstreams/benchmark_v1/reports/rl-sac-v0411-preflight-v0.4.json",
+            "required_status": "sac_v0411_preflight_passed_full_matrix_allowed",
         },
     },
 }
@@ -153,8 +169,10 @@ def _requires_source_bound_jobs(plan: Mapping[str, Any]) -> bool:
         in {
             PPO_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
             PPO_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION,
+            PPO_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION,
             SAC_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
             SAC_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION,
+            SAC_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION,
         }
     )
 
@@ -254,7 +272,10 @@ def validate_training_plan(
         "chemworld-sb3-box-latent-adapter-0.2"
         if isinstance(preflight_declaration, Mapping)
         and preflight_declaration.get("required_report_schema")
-        == SAC_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION
+        in {
+            SAC_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION,
+            SAC_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION,
+        }
         else "chemworld-sb3-box-latent-adapter-0.1"
     )
     parallel_environments = int(infrastructure.get("parallel_environments", 0))
@@ -373,6 +394,7 @@ def validate_training_plan(
                     "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.json",
                     "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.9.json",
                     "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.10.json",
+                    "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.11.json",
                 },
             }
         )
@@ -413,8 +435,10 @@ def verify_current_contract_preflight(
     post_affordance = schema in {
         PPO_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
         PPO_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION,
+        PPO_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION,
         SAC_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION,
         SAC_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION,
+        SAC_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION,
     }
     checks = {
         "required": declaration.get("required_before_full_matrix") is True,

@@ -1,0 +1,115 @@
+{
+  "schema_version": "chemworld-formal-ppo-training-plan-0.4",
+  "task_id": "benchmark-v05-rl-adapters--slice-ppo-v0411-public-preconditions-dev",
+  "parent_task_id": "benchmark-v05-rl-adapters",
+  "status": "public_precondition_preflight_pending_full_matrix_forbidden",
+  "algorithm": "ppo",
+  "formal_core_tasks": {
+    "partition-discovery": "product_in_organic",
+    "reaction-to-crystallization": "crystal_yield",
+    "reaction-to-distillation": "distillate_purity",
+    "flow-reaction-optimization": "flow_conversion"
+  },
+  "model_seeds": [0, 1, 2, 3, 4],
+  "training": {
+    "requested_environment_steps_per_run": 102400,
+    "checkpoint_steps": [25600, 51200, 102400],
+    "operation_budget": 60,
+    "hyperparameters": {
+      "learning_rate": 0.0003,
+      "n_steps": 128,
+      "batch_size": 64,
+      "gamma": 0.99,
+      "gae_lambda": 0.95,
+      "ent_coef": 0.01
+    }
+  },
+  "infrastructure": {
+    "parallel_environments": 8,
+    "vectorization_backend": "subprocess",
+    "device": "cpu",
+    "torch_num_threads": 1,
+    "progress_interval_steps": 5120
+  },
+  "infrastructure_selection": {
+    "diagnostic_only": true,
+    "selected_backend": "subprocess",
+    "selected_torch_num_threads": 1,
+    "selection_reason": "Retain the source-stable v0.4.10 single spawned batched worker; v0.4.11 changes only public preconditions and the conditional action contract version.",
+    "formal_training_evidence": false,
+    "bench_accessed": false,
+    "reference_search_used": false
+  },
+  "split_bindings": {
+    "train": {
+      "namespace_id": "chemworld-v0.5-train-0.4",
+      "base_seeds": {"start": 10000, "stop_inclusive": 10099},
+      "agent_access": "public_development",
+      "results_role": "training_only"
+    },
+    "dev": {
+      "namespace_id": "chemworld-v0.5-dev-0.4",
+      "base_seeds": {"start": 11000, "stop_inclusive": 11019},
+      "agent_access": "public_model_selection",
+      "results_role": "development_only"
+    },
+    "reference_search_access": "forbidden",
+    "bench_access": "forbidden"
+  },
+  "development_selection": {
+    "episodes_per_candidate": 20,
+    "operation_budget_per_episode": 60,
+    "deterministic_policy": true,
+    "sampler_seed_base": 320000,
+    "policy_seed_base": 330000,
+    "candidate_eligibility": {
+      "episode_completion_rate": 1.0,
+      "behavior_complete_experiment_rate": 1.0,
+      "primary_metric_missing_count": 0,
+      "runtime_domain_failure_count": 0,
+      "observation_domain_failure_count": 0,
+      "checkpoint_contract_compatibility": true
+    },
+    "ranking": [
+      "highest_mean_episode_best_primary_metric",
+      "fewer_training_environment_steps",
+      "lower_model_seed"
+    ],
+    "deterministic_replay_repetitions_for_selected_checkpoint": 2
+  },
+  "current_contract_preflight": {
+    "required_before_full_matrix": true,
+    "plan": "configs/methods/rl_v0.4/ppo_v0411_preflight_plan.json",
+    "report": "workstreams/benchmark_v1/reports/rl-ppo-v0411-preflight-v0.4.json",
+    "required_report_schema": "chemworld-ppo-v0411-preflight-report-0.1",
+    "required_status": "ppo_v0411_preflight_passed_full_matrix_allowed",
+    "source_commit_must_equal_execution_head": true,
+    "failure_forbids_full_matrix": true
+  },
+  "execution": {
+    "expected_training_run_count": 20,
+    "expected_candidate_checkpoint_count": 60,
+    "expected_selected_checkpoint_count": 4,
+    "failed_attempts_retained": true,
+    "completed_jobs_resumed_without_retraining": true,
+    "artifact_root": "runs/benchmark-v0.5/rl-v0.4/ppo/public-preconditions-v0411/full-matrix",
+    "checkpoint_index": "configs/methods/rl_v0.4/ppo_checkpoint_index_v0.4.3.json",
+    "report": "workstreams/benchmark_v1/reports/rl-ppo-dev-v0.4.11.json",
+    "full_matrix_started": false,
+    "full_matrix_start_forbidden_by_preflight": true
+  },
+  "evidence_boundary": {
+    "formal_results_present": false,
+    "benchmark_claim_allowed": false,
+    "parent_task_complete": false,
+    "bench_finetuning_used": false,
+    "reference_search_used": false,
+    "reference_repositories_used": [],
+    "checkpoint_binaries_committed": false,
+    "clean_environment_distribution_deferred_to_parent_gate": true,
+    "sac_training_in_scope": false,
+    "v048_negative_result_remains_immutable": true,
+    "v0410_ppo_negative_report_remains_immutable": true,
+    "v0410_sac_execution_skipped_on_shared_gap": true
+  }
+}

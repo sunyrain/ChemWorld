@@ -29,6 +29,7 @@ JOB_VERSION = "chemworld-ppo-v048-preflight-job-0.1"
 REPORT_VERSION = "chemworld-ppo-v048-preflight-report-0.1"
 POST_AFFORDANCE_PLAN_VERSION = "chemworld-ppo-v049-preflight-plan-0.1"
 PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION = "chemworld-ppo-v0410-preflight-plan-0.1"
+PUBLIC_PRECONDITION_PLAN_VERSION = "chemworld-ppo-v0411-preflight-plan-0.1"
 PREFLIGHT_PROFILES = {
     PLAN_VERSION: {
         "task_id": "benchmark-v05-rl-adapters--slice-ppo-v048-retrain-dev",
@@ -59,6 +60,16 @@ PREFLIGHT_PROFILES = {
         "execution_status_version": "chemworld-ppo-v0410-preflight-execution-status-0.1",
         "status_prefix": "ppo_v0410",
         "result_role": "public_schema_projected_train_dev_preflight",
+    },
+    PUBLIC_PRECONDITION_PLAN_VERSION: {
+        "task_id": "benchmark-v05-rl-adapters--slice-ppo-v0411-public-preconditions-dev",
+        "job_version": "chemworld-ppo-v0411-preflight-job-0.1",
+        "report_version": "chemworld-ppo-v0411-preflight-report-0.1",
+        "attempt_version": "chemworld-ppo-v0411-preflight-attempt-0.1",
+        "failure_version": "chemworld-ppo-v0411-preflight-attempt-failure-0.1",
+        "execution_status_version": "chemworld-ppo-v0411-preflight-execution-status-0.1",
+        "status_prefix": "ppo_v0411",
+        "result_role": "public_precondition_repair_train_dev_preflight",
     },
 }
 RATE_FIELDS = (
@@ -260,10 +271,11 @@ def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[
             "require_stable_head_until_report": True,
             "require_clean_tree_before_report": True,
         },
-        "public_schema_adapter_contract": plan.get("schema_version")
-        != PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION
+        "adapter_reattestation_contract": plan.get("schema_version")
+        not in {PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION, PUBLIC_PRECONDITION_PLAN_VERSION}
         or (
-            isinstance(reattestation, Mapping)
+            plan.get("schema_version") == PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION
+            and isinstance(reattestation, Mapping)
             and reattestation.get("parent_source_commit")
             == "9e2339c437a09f6bde05c95aeadca1f980df6725"
             and reattestation.get("parent_plan_path")
@@ -284,6 +296,26 @@ def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[
             and isinstance(boundary, Mapping)
             and boundary.get("v049_ppo_infrastructure_failure_remains_immutable") is True
             and boundary.get("v049_sac_adapter_diagnostic_remains_immutable") is True
+        )
+        or (
+            plan.get("schema_version") == PUBLIC_PRECONDITION_PLAN_VERSION
+            and isinstance(reattestation, Mapping)
+            and reattestation.get("parent_source_commit")
+            == "4c34e8c99aa46ed08baecae508f3aaec6b295786"
+            and reattestation.get("parent_plan_path")
+            == "configs/methods/rl_v0.4/ppo_v0410_preflight_plan.json"
+            and reattestation.get("ppo_v0410_negative_report")
+            == "workstreams/benchmark_v1/reports/rl-ppo-v0410-preflight-v0.4.json"
+            and reattestation.get("action_adapter_schema_version")
+            == "chemworld-sb3-box-latent-adapter-0.2"
+            and reattestation.get("conditional_hybrid_action_schema_version")
+            == "chemworld-conditional-hybrid-action-0.3"
+            and reattestation.get("threshold_split_seed_and_hyperparameter_changes") is False
+            and reattestation.get("v0410_scientific_contract_sha256")
+            == scientific_contract_sha256(plan)
+            and isinstance(boundary, Mapping)
+            and boundary.get("v0410_ppo_negative_report_remains_immutable") is True
+            and boundary.get("v0410_sac_execution_skipped_on_shared_gap") is True
         ),
     }
     failed = sorted(name for name, passed in checks.items() if not passed)
@@ -293,11 +325,57 @@ def validate_plan(plan: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[
 
 
 def validate_adapter_reattestation(root: Path, plan: Mapping[str, Any]) -> dict[str, Any]:
-    """Bind v0.4.10 to immutable v0.4.9 adapter and infrastructure diagnostics."""
+    """Bind repair-only retries to their immutable parent diagnostics."""
 
-    if plan.get("schema_version") != PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION:
+    schema_version = plan.get("schema_version")
+    if schema_version not in {
+        PUBLIC_SCHEMA_ADAPTER_PLAN_VERSION,
+        PUBLIC_PRECONDITION_PLAN_VERSION,
+    }:
         return {}
     reattestation = cast(Mapping[str, Any], plan["adapter_reattestation"])
+    if schema_version == PUBLIC_PRECONDITION_PLAN_VERSION:
+        parent_path = _inside(root, str(reattestation["parent_plan_path"]), "parent plan")
+        report_path = _inside(
+            root,
+            str(reattestation["ppo_v0410_negative_report"]),
+            "PPO v0.4.10 negative report",
+        )
+        parent = _load_object(parent_path, "parent PPO preflight plan")
+        report = _load_object(report_path, "PPO v0.4.10 negative report")
+        gate = report.get("gate_assessment")
+        resources = report.get("resource_accounting")
+        checks = {
+            "negative_report_schema": report.get("schema_version")
+            == "chemworld-ppo-v0410-preflight-report-0.1",
+            "negative_report_status": report.get("status")
+            == "ppo_v0410_preflight_failed_full_matrix_forbidden",
+            "negative_report_forbids_full_matrix": report.get("full_matrix_allowed") is False,
+            "negative_report_source": report.get("source", {}).get("source_commit")
+            == reattestation.get("parent_source_commit"),
+            "parent_plan_path": report.get("preflight_plan_path")
+            == reattestation.get("parent_plan_path"),
+            "parent_plan_file_hash": report.get("preflight_plan_file_sha256")
+            == _file_sha256(parent_path),
+            "parent_plan_canonical_hash": report.get("preflight_plan_canonical_sha256")
+            == _canonical_sha256(parent),
+            "complete_negative_execution": isinstance(resources, Mapping)
+            and resources.get("training_environment_step_count") == 102_400
+            and len(report.get("jobs", [])) == 4,
+            "operational_gate_only_failure": isinstance(gate, Mapping)
+            and gate.get("failed_checks") == ["all_tasks_operational"]
+            and gate.get("learning_signal_task_count") == 4,
+            "scientific_contract": reattestation.get("v0410_scientific_contract_sha256")
+            == scientific_contract_sha256(parent)
+            == scientific_contract_sha256(plan),
+        }
+        failed = sorted(name for name, passed in checks.items() if not passed)
+        if failed:
+            raise PPOPreflightError(
+                "PPO public-precondition reattestation is invalid: " + ", ".join(failed)
+            )
+        return {"ppo_v0410_negative_report": report}
+
     parent_path = _inside(root, str(reattestation["parent_plan_path"]), "parent plan")
     failure_path = _inside(
         root,
