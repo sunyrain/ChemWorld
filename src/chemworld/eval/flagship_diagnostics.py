@@ -461,7 +461,7 @@ def run_two_phase_campaign(
     shifted_interventions: Sequence[Mapping[str, Any]],
     output_root: str | Path,
     campaign_id: str,
-    closeout_headroom_per_experiment: int = 2,
+    closeout_headroom_per_experiment: int = 6,
 ) -> dict[str, Any]:
     """Run IID and shifted phases while preserving only the agent's memory."""
 
