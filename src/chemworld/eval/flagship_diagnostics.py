@@ -1270,6 +1270,8 @@ def _outcome_understanding_analysis(
     rows = []
     counts: dict[str, int] = defaultdict(int)
     for campaign in campaigns:
+        if campaign.get("resource_reused_from_campaign") is not None:
+            continue
         diagnostic = campaign.get("deepseek_diagnostic")
         if not isinstance(diagnostic, Mapping):
             continue

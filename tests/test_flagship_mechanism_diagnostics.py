@@ -443,3 +443,9 @@ def test_report_separates_outcome_and_mechanism_understanding(tmp_path: Path) ->
     markdown = render_flagship_diagnostic_markdown(report)
     assert "结果与机制理解解耦" in markdown
     assert "genuine_experimental" in markdown
+
+    alias = copy.deepcopy(campaign)
+    alias["experiment_id"] = "feedback_ablation"
+    alias["resource_reused_from_campaign"] = campaign["campaign_id"]
+    deduplicated = build_flagship_diagnostic_report(protocol, [campaign, alias])
+    assert len(deduplicated["experiment_4_outcome_understanding"]["rows"]) == 1
