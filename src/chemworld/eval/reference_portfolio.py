@@ -499,7 +499,7 @@ def _quantile(values: Sequence[float], probability: float) -> float:
     position = probability * (len(values) - 1)
     lower = math.floor(position)
     upper = math.ceil(position)
-    if lower == upper:
+    if lower == upper or values[lower] == values[upper]:
         return float(values[lower])
     weight = position - lower
     return float(values[lower] * (1.0 - weight) + values[upper] * weight)
