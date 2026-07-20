@@ -199,10 +199,13 @@ class _ContinuingAgentBase:
             return None
         action: dict[str, Any] | None = None
         reason = ""
-        if (
-            context.decision_stage == "experiment_closeout"
-            and self._experiment_action_count >= limit - 2
-        ):
+        previous_action = getattr(self, "_previous_action", None)
+        closeout_ready = context.decision_stage == "experiment_closeout" or (
+            isinstance(previous_action, Mapping)
+            and previous_action.get("operation") == "terminate"
+            and bool(getattr(self, "_previous_action_committed", False))
+        )
+        if closeout_ready and self._experiment_action_count >= limit - 2:
             action = {"operation": "measure", "instrument": "final_assay"}
             reason = "final_assay_reserved_slot"
         elif self._experiment_action_count >= limit - 2:
@@ -298,6 +301,7 @@ class ContinuingPublicViewAgent(_ContinuingAgentBase):
         self._outcome_cursors: dict[str, int] = defaultdict(int)
         self._view_cursors: dict[str, int] = defaultdict(int)
         self.feedback_intervention_log: list[dict[str, Any]] = []
+        self._previous_action_committed = False
 
     def act_with_public_view(
         self,
@@ -382,6 +386,7 @@ class ContinuingPublicViewAgent(_ContinuingAgentBase):
             delivered_info,
         )
         self._previous_action = dict(action)
+        self._previous_action_committed = info.get("transaction_status") == "committed"
         self._experiment_action_count += 1
         if bool(info.get("experiment_ended")):
             self._experiment_action_count = 0

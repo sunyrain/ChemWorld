@@ -304,7 +304,7 @@ def test_lifecycle_guardrail_reserves_terminate_and_final_assay() -> None:
     assert audit is not None and audit["action"] == terminate
     adapter.update(terminate, {"score": 0.2}, 0.0, _info(0.2, 0))
 
-    closeout = replace(context, decision_stage="experiment_closeout")
+    closeout = replace(context, decision_stage="experiment_control")
     final_assay = adapter.act_with_public_view(closeout, _view(0.2))
     assert final_assay == {"operation": "measure", "instrument": "final_assay"}
     trace = adapter.agent_trace()
