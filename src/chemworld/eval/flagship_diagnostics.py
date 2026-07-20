@@ -781,6 +781,23 @@ def render_flagship_diagnostic_markdown(report: Mapping[str, Any]) -> str:
         ensure_ascii=False,
         sort_keys=True,
     )
+    deepseek_rank: Mapping[str, Any] = next(
+        (row for row in ranking.get("rows", []) if row.get("method_id") == "deepseek_v4_flash"),
+        {},
+    )
+    true_diagnostics = [
+        task.get("diagnostics", {}).get("true_feedback", {})
+        for task in feedback.get("tasks", {}).values()
+    ]
+    true_mechanism_correct = sum(
+        bool(item.get("mechanism_identified")) for item in true_diagnostics
+    )
+    true_recovered = sum(item.get("recovery_experiment") is not None for item in true_diagnostics)
+    counterfactual_rows = counterfactual.get("rows", [])
+    counterfactual_correct = sum(
+        bool(item.get("mechanism_identified")) for item in counterfactual_rows
+    )
+    information = understanding.get("aggregate_information_value", {})
     lines = [
         "# DeepSeek 旗舰任务机制诊断（探索性）",
         "",
@@ -801,6 +818,37 @@ def render_flagship_diagnostic_markdown(report: Mapping[str, Any]) -> str:
             f"- 缺失单元：{len(coverage.get('missing_cells', []))}；"
             f"未完成阶段：{len(coverage.get('incomplete_phases', []))}"
         ),
+        "",
+        "## 核心发现",
+        "",
+        (
+            f"- 排名迁移很弱：IID/切换排名 Spearman = "
+            f"{_fmt(ranking.get('spearman_rank_correlation'))}，"
+            f"共 {ranking.get('rank_inversion_count')} 对反转。DeepSeek 的 IID/适应排名为 "
+            f"{deepseek_rank.get('iid_rank')}/{deepseek_rank.get('adaptation_rank')}。"
+        ),
+        (
+            f"- 没有观察到正的证据依赖：平均 `J_true - J_permuted` = "
+            f"{_fmt(feedback.get('mean_evidence_reliance'))}。负值不能证明错误反馈有益，"
+            "但说明本轮没有稳定的真实反馈优势。"
+        ),
+        (
+            f"- 真反馈下机制识别 {true_mechanism_correct}/{len(true_diagnostics)}，"
+            f"在两个切换实验内恢复 {true_recovered}/{len(true_diagnostics)}；"
+            "模型虽报告变化概率上升，最终仍倾向 no_change。"
+        ),
+        (
+            f"- 名称—规律反事实识别 {counterfactual_correct}/"
+            f"{len(counterfactual_rows)}；两项最佳得分都提高，但真值概率都很低，"
+            "属于结果与机制理解分离。"
+        ),
+        (
+            f"- 信息价值明显高估：加权声明值 "
+            f"{_fmt(information.get('mean_expected_information_gain'))}，"
+            f"下一步实际熵下降 {_fmt(information.get('mean_realized_entropy_reduction'))}，"
+            f"绝对校准误差 {_fmt(information.get('mean_absolute_calibration_error'))}。"
+        ),
+        f"- 独立 campaign 分类：`{type_counts}`。",
         "",
         "## 实验一：IID 排名与未见机制切换排名",
         "",
@@ -912,6 +960,26 @@ def render_flagship_diagnostic_markdown(report: Mapping[str, Any]) -> str:
         ),
         "",
         "信息价值校准使用模型声明的预期信息增益与下一步归一化熵下降比较；它衡量公开概率报告的一致性，不等同于访问或评判私有思维链。",
+        "",
+        "## 综合判断",
+        "",
+        (
+            "这组结果支持 ChemWorld 作为“反馈驱动的物理化学 world-model Agent 评测环境”"
+            "的故事：静态优化排名不能代表机制切换后的表现，任务还能把变化检测、机制识别、"
+            "结果恢复和信息价值校准彼此拆开。"
+        ),
+        "",
+        (
+            "它不支持把当前 DeepSeek 控制器称为已具备可靠机制发现能力。真反馈下两个机制"
+            "切换都未被正确识别，材料反事实也未识别；多个相对高结果被归为 accidental_optimizer。"
+            "唯一 genuine_experimental 出现在电化学延迟反馈条件，属于单种子、采样型孤立结果。"
+        ),
+        "",
+        (
+            "负 Evidence Reliance 与严重的信息价值高估表明：当前控制器尚未展示稳定、可校准的"
+            "反馈使用。下一步确认性研究应冻结协议后增加种子、使用确定性或配对重放设计，并为"
+            "信息增益策略加入真正的专用基线。"
+        ),
         "",
         "## 资源与可复现性",
         "",
@@ -1297,7 +1365,33 @@ def _outcome_understanding_analysis(
             "y": "correct mechanism argmax with truth probability at least 0.5",
         },
         "type_counts": dict(sorted(counts.items())),
+        "aggregate_information_value": _aggregate_information_value(rows),
         "rows": rows,
+    }
+
+
+def _aggregate_information_value(
+    rows: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    total_pairs = sum(int(row.get("information_value", {}).get("pair_count", 0)) for row in rows)
+
+    def weighted(field: str) -> float | None:
+        if total_pairs == 0:
+            return None
+        return (
+            sum(
+                float(row.get("information_value", {}).get(field, 0.0))
+                * int(row.get("information_value", {}).get("pair_count", 0))
+                for row in rows
+            )
+            / total_pairs
+        )
+
+    return {
+        "pair_count": total_pairs,
+        "mean_expected_information_gain": weighted("mean_expected_information_gain"),
+        "mean_realized_entropy_reduction": weighted("mean_realized_entropy_reduction"),
+        "mean_absolute_calibration_error": weighted("mean_absolute_calibration_error"),
     }
 
 
