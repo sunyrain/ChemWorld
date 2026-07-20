@@ -43,7 +43,7 @@ def test_live_development_binds_content_verified_public_affordance_audit() -> No
     assert binding["validator_valid_count"] == 231
     assert binding["runtime_committed_count"] == 231
     assert binding["finding_count"] == 0
-    assert binding["audit_source_tree_dirty"] is True
+    assert binding["audit_source_tree_dirty"] is False
     assert len(binding["guarded_source_sha256"]) == 64
     assert len(binding["audit_report_sha256"]) == 64
 
