@@ -5,6 +5,12 @@ from chemworld.world.crystallization import CrystallizationModuleSpec
 from chemworld.world.distillation import DistillationModuleSpec
 from chemworld.world.electrochemistry import ElectrochemistryModuleSpec
 from chemworld.world.instruments import InstrumentContract, instrument_contracts
+from chemworld.world.material_counterfactual import (
+    MATERIAL_LAW_COUNTERFACTUAL_VERSION,
+    MaterialLawCounterfactual,
+    apply_material_law_counterfactual,
+    material_law_counterfactual_hash,
+)
 from chemworld.world.mechanism_family import (
     MECHANISM_FAMILY_INTERVENTION_VERSION,
     MECHANISM_REACHABLE_TASKS,
@@ -48,6 +54,7 @@ from chemworld.world.world_law import (
 )
 
 __all__ = [
+    "MATERIAL_LAW_COUNTERFACTUAL_VERSION",
     "MECHANISM_FAMILY_INTERVENTION_VERSION",
     "MECHANISM_REACHABLE_TASKS",
     "MODULE_VERSIONS",
@@ -61,12 +68,14 @@ __all__ = [
     "DistillationModuleSpec",
     "ElectrochemistryModuleSpec",
     "InstrumentContract",
+    "MaterialLawCounterfactual",
     "MechanismFamilyIntervention",
     "ScenarioFamilySpec",
     "ScenarioGenerator",
     "ScenarioInstance",
     "ScenarioSpec",
     "WorldAxisSpec",
+    "apply_material_law_counterfactual",
     "axes_for_task",
     "compile_recipe",
     "constitution_rules",
@@ -81,6 +90,7 @@ __all__ = [
     "ir_spectrum",
     "list_scenarios",
     "load_chemworld_parameters",
+    "material_law_counterfactual_hash",
     "nmr_spectrum",
     "uvvis_spectrum",
     "validate_recipe",

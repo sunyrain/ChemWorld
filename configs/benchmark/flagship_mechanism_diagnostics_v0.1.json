@@ -1,0 +1,134 @@
+{
+  "schema_version": "chemworld-flagship-mechanism-diagnostics-0.1",
+  "protocol_id": "chemworld-deepseek-flagship-mechanism-diagnostics-2026-07-21",
+  "status": "exploratory_candidate",
+  "benchmark_claim_allowed": false,
+  "publication_ready": false,
+  "seed": 0,
+  "pre_change_experiments": 2,
+  "post_change_experiments": 2,
+  "closeout_headroom_per_experiment": 2,
+  "deepseek": {
+    "provider": "DeepSeek",
+    "model_id": "deepseek-v4-flash",
+    "thinking": false,
+    "response_max_tokens": 1200,
+    "spectrum_disclosure": "assigned",
+    "private_reasoning_retained": false
+  },
+  "tasks": {
+    "reaction-to-crystallization": {
+      "critical_diagnostic_instrument": "hplc",
+      "mechanism_candidates": [
+        "no_change",
+        "rate_law_family",
+        "topology_family",
+        "material_law_counterfactual"
+      ],
+      "mechanism_shift": {
+        "truth_id": "rate_law_family",
+        "interventions": [
+          {
+            "kind": "mechanism_family",
+            "mode": "rate_law_family",
+            "severity": 0.8
+          }
+        ]
+      },
+      "material_law_swap": {
+        "truth_id": "material_law_counterfactual",
+        "interventions": [
+          {
+            "kind": "material_law_counterfactual",
+            "material_field": "catalyst",
+            "public_to_baseline": [0, 2, 1, 3]
+          }
+        ]
+      },
+      "ppo_diagnostic_checkpoint": {
+        "checkpoint": "runs/flagship-ppo-smoke-v08/steps-4096/reaction-to-crystallization/checkpoints/ppo-reaction-to-crystallization-seed0_2048_steps.zip",
+        "manifest": "runs/flagship-ppo-smoke-v08/steps-4096/reaction-to-crystallization/checkpoints/ppo-reaction-to-crystallization-seed0_2048_steps.manifest.json",
+        "policy_seed": 53048,
+        "formal_candidate": false
+      }
+    },
+    "electrochemical-conversion": {
+      "critical_diagnostic_instrument": "uvvis",
+      "mechanism_candidates": [
+        "no_change",
+        "constitutive_law_family",
+        "material_law_counterfactual"
+      ],
+      "mechanism_shift": {
+        "truth_id": "constitutive_law_family",
+        "interventions": [
+          {
+            "kind": "mechanism_family",
+            "mode": "constitutive_law_family",
+            "severity": 0.8
+          }
+        ]
+      },
+      "material_law_swap": {
+        "truth_id": "material_law_counterfactual",
+        "interventions": [
+          {
+            "kind": "material_law_counterfactual",
+            "material_field": "solvent",
+            "public_to_baseline": [2, 1, 0, 3]
+          }
+        ]
+      },
+      "ppo_diagnostic_checkpoint": {
+        "checkpoint": "runs/flagship-ppo-smoke-v08/steps-4096/electrochemical-conversion/checkpoints/ppo-electrochemical-conversion-seed0_2048_steps.zip",
+        "manifest": "runs/flagship-ppo-smoke-v08/steps-4096/electrochemical-conversion/checkpoints/ppo-electrochemical-conversion-seed0_2048_steps.manifest.json",
+        "policy_seed": 53048,
+        "formal_candidate": false
+      }
+    }
+  },
+  "ranking_methods": [
+    "random_recipe",
+    "greedy_local",
+    "structured_gp_bo",
+    "structured_gp_ucb",
+    "rule_based",
+    "ppo_diagnostic",
+    "deepseek_v4_flash"
+  ],
+  "feedback_conditions": [
+    "true_feedback",
+    "permuted_feedback",
+    "delayed_feedback",
+    "critical_measurement_deleted"
+  ],
+  "feedback_intervention_contract": {
+    "environment_state_and_true_scoring_held_fixed": true,
+    "permutation_source": "same-agent IID phase measurement packets, cyclically shifted within instrument",
+    "delay": "one previous measurement event of the same instrument",
+    "critical_measurement_deletion": "mask the configured process-diagnostic instrument but retain final assay scoring",
+    "evidence_reliance": "J_true_feedback - J_permuted_feedback"
+  },
+  "analysis": {
+    "iid_performance": "mean terminal score over the two pre-change experiments",
+    "adaptation_performance": "mean terminal score over the two post-change experiments",
+    "change_detection_threshold": 0.5,
+    "recovery_fraction_of_iid_best": 0.9,
+    "mechanism_identification": "final candidate argmax and probability assigned to truth",
+    "uncertainty_calibration": "multiclass Brier score on final mechanism belief",
+    "information_value": "declared expected information gain versus next-step normalized entropy reduction"
+  },
+  "artifacts": {
+    "runtime_root": "runs/flagship-mechanism-diagnostics/v0.1",
+    "campaign_index": "runs/flagship-mechanism-diagnostics/v0.1/campaign-index.json",
+    "json_report": "workstreams/flagship_tasks/reports/deepseek-mechanism-diagnostics-v0.1.json",
+    "markdown_report": "workstreams/flagship_tasks/reports/deepseek-mechanism-diagnostics-v0.1.md"
+  },
+  "claim_boundary": [
+    "one public seed only",
+    "exploratory diagnostics rather than a formal leaderboard",
+    "PPO uses an ineligible failed-smoke checkpoint",
+    "no model training or weight updates are performed",
+    "material counterfactuals are environment interventions rather than real-material claims"
+  ]
+}

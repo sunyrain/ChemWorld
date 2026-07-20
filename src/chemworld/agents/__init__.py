@@ -13,6 +13,7 @@ from chemworld.agents.bo import (
     StructuredRandomForestEIAgent,
     StructuredSafetyConstrainedBOAgent,
 )
+from chemworld.agents.diagnostic_live_llm import MechanismDiagnosticLiveLLMAgent
 from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.agents.greedy import GreedyLocalAgent
 from chemworld.agents.interaction import (
@@ -52,6 +53,7 @@ __all__ = [
     "LLMReplayAgent",
     "LatinHypercubeAgent",
     "LiveLLMAgent",
+    "MechanismDiagnosticLiveLLMAgent",
     "RandomAgent",
     "RandomForestEIAgent",
     "RandomRecipeAgent",

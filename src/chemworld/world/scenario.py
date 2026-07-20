@@ -124,8 +124,15 @@ class DefaultScenarioGenerator:
         mechanism_payloads = tuple(
             item for item in interventions if item.get("kind") == "mechanism_family"
         )
+        material_law_payloads = tuple(
+            item
+            for item in interventions
+            if item.get("kind") == "material_law_counterfactual"
+        )
         if len(mechanism_payloads) > 1:
             raise ValueError("only one mechanism-family intervention is allowed")
+        if len(material_law_payloads) > 1:
+            raise ValueError("only one material-law counterfactual is allowed")
         parsed_mechanism_intervention = None
         if mechanism_payloads:
             from chemworld.world.mechanism_family import (
@@ -212,9 +219,12 @@ class DefaultScenarioGenerator:
             compiled_mechanism=compiled_mechanism,
         )
         axis_payloads = tuple(
-            item for item in interventions if item.get("kind") != "mechanism_family"
+            item
+            for item in interventions
+            if item.get("kind")
+            not in {"mechanism_family", "material_law_counterfactual"}
         )
-        if not mechanism_payloads and not axis_payloads:
+        if not mechanism_payloads and not material_law_payloads and not axis_payloads:
             return instance
         if mechanism_payloads:
             from chemworld.world.mechanism_family import apply_mechanism_family_intervention
@@ -224,6 +234,16 @@ class DefaultScenarioGenerator:
             instance = apply_mechanism_family_intervention(
                 instance,
                 parsed_mechanism_intervention,
+            )
+        if material_law_payloads:
+            from chemworld.world.material_counterfactual import (
+                MaterialLawCounterfactual,
+                apply_material_law_counterfactual,
+            )
+
+            instance = apply_material_law_counterfactual(
+                instance,
+                MaterialLawCounterfactual.from_dict(material_law_payloads[0]),
             )
         if not axis_payloads:
             return instance
