@@ -921,7 +921,8 @@ def render_flagship_diagnostic_markdown(report: Mapping[str, Any]) -> str:
         "## 实验四：结果与机制理解解耦",
         "",
         (
-            "分类规则：高结果且正确识别为 genuine_experimental；"
+            "分类规则：相对结果达到本 campaign IID 最佳值的 90% 且正确识别为 "
+            "genuine_experimental；"
             "高结果但未识别为 accidental_optimizer；"
             "低结果但正确识别为 theoretical_explainer；"
             "两者皆低为 joint_failure。"
@@ -960,6 +961,10 @@ def render_flagship_diagnostic_markdown(report: Mapping[str, Any]) -> str:
         ),
         "",
         "信息价值校准使用模型声明的预期信息增益与下一步归一化熵下降比较；它衡量公开概率报告的一致性，不等同于访问或评判私有思维链。",
+        (
+            "这里的高/低结果是相对各 campaign 的 IID 基线定义，不代表绝对分数"
+            "高/低；因此绝对分数很低的轨迹仍可能被标为 accidental_optimizer。"
+        ),
         "",
         "## 综合判断",
         "",
@@ -998,7 +1003,17 @@ def render_flagship_diagnostic_markdown(report: Mapping[str, Any]) -> str:
         "## 限制",
         "",
     ]
-    lines.extend(f"- {item}" for item in report.get("limitations", []))
+    lines.extend(
+        (
+            "- 仅使用一个公开种子，属于探索性诊断，不是正式方法排名。",
+            "- DeepSeek 响应由 provider 采样；不同反馈条件不是确定性轨迹克隆。",
+            "- PPO 旧 failed-smoke checkpoint 与当前 observation contract 不兼容，已在评估前排除。",
+            "- UCB 基线是乐观探索策略，不是专用 Bayesian information-gain 基线。",
+            "- 切换后只有两个实验，恢复时间是右删失诊断，不能估计长期样本效率。",
+            "- 材料规律交换是 benchmark 环境干预，不是对真实命名化学材料的断言。",
+            "- 生命周期护栏只覆盖每实验最后两个动作槽；被强制收尾的动作不是 Agent 的自由决策。",
+        )
+    )
     return "\n".join(lines).rstrip() + "\n"
 
 
