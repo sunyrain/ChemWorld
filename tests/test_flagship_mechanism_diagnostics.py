@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -279,6 +280,39 @@ def test_permuted_feedback_changes_agent_input_but_retains_true_score_log() -> N
         adapter.feedback_intervention_log[-1]["true_environment_score_retained_for_evaluation"]
         == 0.95
     )
+
+
+def test_lifecycle_guardrail_reserves_terminate_and_final_assay() -> None:
+    delegate = _RecordingPublicAgent()
+    adapter = ContinuingPublicViewAgent(
+        delegate,
+        method_id="deepseek_v4_flash",
+        feedback_condition="true_feedback",
+        critical_instrument="hplc",
+    )
+    adapter.configure_lifecycle_guardrail(4)
+    adapter.begin_phase("iid", experiment_offset=0, operation_offset=0)
+    adapter.reset({"task_id": "reaction-to-crystallization"}, 0)
+    context = _context(score=0.2)
+    for _ in range(2):
+        action = adapter.act_with_public_view(context, _view(0.2))
+        adapter.update(action, {"score": 0.2}, 0.0, _info(0.2, 0))
+
+    terminate = adapter.act_with_public_view(context, _view(0.2))
+    assert terminate == {"operation": "terminate"}
+    audit = adapter.decision_audit()
+    assert audit is not None and audit["action"] == terminate
+    adapter.update(terminate, {"score": 0.2}, 0.0, _info(0.2, 0))
+
+    closeout = replace(context, decision_stage="experiment_closeout")
+    final_assay = adapter.act_with_public_view(closeout, _view(0.2))
+    assert final_assay == {"operation": "measure", "instrument": "final_assay"}
+    trace = adapter.agent_trace()
+    assert trace[0]["status"] == "lifecycle_guardrail"
+    assert [item["reason"] for item in adapter.lifecycle_guardrail_log] == [
+        "terminate_reserved_slot",
+        "final_assay_reserved_slot",
+    ]
 
 
 def test_diagnostic_live_llm_requires_normalized_mechanism_belief() -> None:

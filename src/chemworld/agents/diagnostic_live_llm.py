@@ -9,7 +9,7 @@ from typing import Any
 from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.agents.live_llm import LiveLLMAgent
 
-DIAGNOSTIC_PROMPT_VERSION = "chemworld-mechanism-diagnostic-prompt-0.1"
+DIAGNOSTIC_PROMPT_VERSION = "chemworld-mechanism-diagnostic-prompt-0.2"
 
 
 class MechanismDiagnosticLiveLLMAgent(LiveLLMAgent):
@@ -92,9 +92,11 @@ class MechanismDiagnosticLiveLLMAgent(LiveLLMAgent):
             "to maintain a normalized belief over the supplied candidate mechanism IDs. "
             "Report the expected information value of the selected next operation; this is "
             "a public forecast and will be scored against subsequent belief change. "
-            "A completed experiment is mandatory. Reserve the final two action slots for "
-            "terminate followed by measure with instrument=final_assay; once the public "
-            "remaining budget is 3 or less, stop optional diagnostics and begin closeout."
+            "A completed experiment is mandatory. The campaign state exposes "
+            "diagnostic_actions_used_current_experiment and "
+            "diagnostic_per_experiment_action_limit. Reserve the final two action slots "
+            "for terminate followed by measure with instrument=final_assay; once used "
+            "actions reach limit minus two, stop optional diagnostics and begin closeout."
         )
         payload["mechanism_diagnostic_contract"] = {
             "version": DIAGNOSTIC_PROMPT_VERSION,

@@ -69,6 +69,16 @@ class _ContinuingAgentBase:
         self._experiment_offset = 0
         self._operation_offset = 0
         self._usage_baseline: dict[str, Any] = {}
+        self._per_experiment_action_limit: int | None = None
+        self._experiment_action_count = 0
+        self._pending_guardrail_audit: dict[str, Any] | None = None
+        self._pending_guardrail_trace: list[dict[str, Any]] | None = None
+        self.lifecycle_guardrail_log: list[dict[str, Any]] = []
+
+    def configure_lifecycle_guardrail(self, per_experiment_action_limit: int) -> None:
+        if per_experiment_action_limit < 2:
+            raise ValueError("per_experiment_action_limit must be at least two")
+        self._per_experiment_action_limit = int(per_experiment_action_limit)
 
     def begin_phase(
         self,
@@ -80,6 +90,9 @@ class _ContinuingAgentBase:
         self._phase = phase
         self._experiment_offset = int(experiment_offset)
         self._operation_offset = int(operation_offset)
+        self._experiment_action_count = 0
+        self._pending_guardrail_audit = None
+        self._pending_guardrail_trace = None
 
     def reset(self, task_info: dict[str, Any], seed: int) -> None:
         if not self._initialized:
@@ -101,6 +114,9 @@ class _ContinuingAgentBase:
         info: dict[str, Any],
     ) -> None:
         self.delegate.update(action, observation, reward, info)
+        self._experiment_action_count += 1
+        if bool(info.get("experiment_ended")):
+            self._experiment_action_count = 0
 
     def act(self, history: list[HistoryRecord]) -> dict[str, Any]:
         del history
@@ -116,6 +132,11 @@ class _ContinuingAgentBase:
                 "environment_instance_reset_between_phases": True,
                 "agent_memory_reset_between_phases": False,
                 "benchmark_claim_allowed": False,
+                "diagnostic_per_experiment_action_limit": (self._per_experiment_action_limit),
+                "lifecycle_guardrail": (
+                    "force terminate and final_assay only in the final two per-experiment "
+                    "action slots"
+                ),
             }
         )
         return payload
@@ -153,13 +174,79 @@ class _ContinuingAgentBase:
         return factory() if callable(factory) else InteractionCapabilities()
 
     def decision_audit(self) -> dict[str, Any] | None:
+        if self._pending_guardrail_audit is not None:
+            return copy.deepcopy(self._pending_guardrail_audit)
         factory = getattr(self.delegate, "decision_audit", None)
         return factory() if callable(factory) else None
 
     def agent_trace(self) -> list[dict[str, Any]]:
+        if self._pending_guardrail_trace is not None:
+            trace = copy.deepcopy(self._pending_guardrail_trace)
+            self._pending_guardrail_trace = None
+            return trace
         factory = getattr(self.delegate, "agent_trace", None)
         trace = factory() if callable(factory) else []
         return [dict(item) for item in trace]
+
+    def _guardrail_action(
+        self,
+        context: AgentDecisionContext,
+    ) -> dict[str, Any] | None:
+        self._pending_guardrail_audit = None
+        self._pending_guardrail_trace = None
+        limit = self._per_experiment_action_limit
+        if limit is None:
+            return None
+        action: dict[str, Any] | None = None
+        reason = ""
+        if (
+            context.decision_stage == "experiment_closeout"
+            and self._experiment_action_count >= limit - 2
+        ):
+            action = {"operation": "measure", "instrument": "final_assay"}
+            reason = "final_assay_reserved_slot"
+        elif self._experiment_action_count >= limit - 2:
+            action = {"operation": "terminate"}
+            reason = "terminate_reserved_slot"
+        if action is None:
+            return None
+        event = {
+            "phase": self._phase,
+            "experiment_index": int(context.campaign_state.get("experiment_index", 0))
+            + self._experiment_offset,
+            "actions_used_before_override": self._experiment_action_count,
+            "per_experiment_action_limit": limit,
+            "decision_stage": context.decision_stage,
+            "selected_action": copy.deepcopy(action),
+            "reason": reason,
+        }
+        self.lifecycle_guardrail_log.append(event)
+        self._pending_guardrail_audit = {
+            "action": copy.deepcopy(action),
+            "evidence": [
+                "The public per-experiment action limit reached its reserved closeout slots."
+            ],
+            "hypothesis": "Lifecycle closeout is required for a scoreable experiment.",
+            "uncertainty": None,
+            "rationale": (
+                "The protocol-reserved closeout action replaces an optional model decision."
+            ),
+            "adaptation_source": "validator",
+            "spectrum_interpretation": "",
+            "request_historical_spectrum_id": None,
+            "status": "provided",
+        }
+        self._pending_guardrail_trace = [
+            {
+                "status": "lifecycle_guardrail",
+                "action": copy.deepcopy(action),
+                "reason": reason,
+                "per_experiment_action_limit": limit,
+                "actions_used_before_override": self._experiment_action_count,
+                "private_reasoning_retained": False,
+            }
+        ]
+        return action
 
     def consume_historical_spectrum_request(self) -> str | None:
         factory = getattr(self.delegate, "consume_historical_spectrum_request", None)
@@ -217,6 +304,9 @@ class ContinuingPublicViewAgent(_ContinuingAgentBase):
         context: AgentDecisionContext,
         public_view: dict[str, Any],
     ) -> dict[str, Any]:
+        guarded = self._guardrail_action(context)
+        if guarded is not None:
+            return guarded
         method = getattr(self.delegate, "act_with_public_view", None)
         if not callable(method):
             raise TypeError("delegate does not implement act_with_public_view")
@@ -292,6 +382,9 @@ class ContinuingPublicViewAgent(_ContinuingAgentBase):
             delivered_info,
         )
         self._previous_action = dict(action)
+        self._experiment_action_count += 1
+        if bool(info.get("experiment_ended")):
+            self._experiment_action_count = 0
 
     def manifest(self) -> dict[str, Any]:
         payload = super().manifest()
@@ -307,6 +400,8 @@ class ContinuingPublicViewAgent(_ContinuingAgentBase):
 
     def _offset_context(self, context: AgentDecisionContext) -> AgentDecisionContext:
         campaign = copy.deepcopy(context.campaign_state)
+        campaign["diagnostic_actions_used_current_experiment"] = self._experiment_action_count
+        campaign["diagnostic_per_experiment_action_limit"] = self._per_experiment_action_limit
         for key in ("experiment_index", "final_assay_count"):
             if isinstance(campaign.get(key), int) and not isinstance(campaign.get(key), bool):
                 campaign[key] = int(campaign[key]) + self._experiment_offset
@@ -476,6 +571,7 @@ def run_two_phase_campaign(
     per_experiment_limit = per_experiment + closeout_headroom_per_experiment
     iid_limit = per_experiment_limit * pre_change_experiments
     shifted_limit = per_experiment_limit * post_change_experiments
+    adapter.configure_lifecycle_guardrail(per_experiment_limit)
     adapter.begin_phase("iid", experiment_offset=0, operation_offset=0)
     iid_history = run_agent(
         env_id=task.env_id,
@@ -534,6 +630,7 @@ def run_two_phase_campaign(
         "full_method_resources": adapter.full_method_resource_usage(),
         "provider_receipts": adapter.provider_receipts(),
         "feedback_intervention_log": list(getattr(adapter, "feedback_intervention_log", ())),
+        "lifecycle_guardrail_log": list(adapter.lifecycle_guardrail_log),
     }
 
 
@@ -655,6 +752,11 @@ def build_flagship_diagnostic_report(
             (
                 "Material-law swaps are benchmark interventions, not claims about real "
                 "named chemical materials."
+            ),
+            (
+                "A public lifecycle guardrail forces terminate and final_assay only in "
+                "the final two per-experiment action slots; those forced closeout actions "
+                "are not unconstrained agent decisions."
             ),
         ],
     }
@@ -812,6 +914,7 @@ def render_flagship_diagnostic_markdown(report: Mapping[str, Any]) -> str:
         f"- 模型调用：{resources.get('model_call_count')}",
         f"- 计费响应后决策失败：{resources.get('provider_failure_count')}",
         f"- Provider 重试：{resources.get('retry_count')}",
+        f"- 生命周期收尾覆盖：{resources.get('lifecycle_guardrail_override_count')}",
         (
             f"- 输入 / 输出 token：{resources.get('input_token_count')} / "
             f"{resources.get('output_token_count')}"
@@ -1192,12 +1295,13 @@ def _outcome_understanding_analysis(
 
 
 def _resource_summary(campaigns: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
-    deepseek = [
-        campaign.get("full_method_resources", {})
+    deepseek_campaigns = [
+        campaign
         for campaign in campaigns
         if campaign.get("method_id") == "deepseek_v4_flash"
         and campaign.get("resource_reused_from_campaign") is None
     ]
+    deepseek = [campaign.get("full_method_resources", {}) for campaign in deepseek_campaigns]
     return {
         "deepseek_campaign_count": len(deepseek),
         "model_call_count": sum(int(item.get("model_call_count", 0)) for item in deepseek),
@@ -1209,6 +1313,9 @@ def _resource_summary(campaigns: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         ),
         "retry_count": sum(
             int(item.get("model_provenance", {}).get("retry_count", 0)) for item in deepseek
+        ),
+        "lifecycle_guardrail_override_count": sum(
+            len(campaign.get("lifecycle_guardrail_log", [])) for campaign in deepseek_campaigns
         ),
         "monetary_cost_usd": sum(float(item.get("monetary_cost_usd", 0.0)) for item in deepseek),
         "private_reasoning_retained": False,
