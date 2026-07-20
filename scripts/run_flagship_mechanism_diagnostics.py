@@ -18,7 +18,6 @@ if str(ROOT) not in sys.path:
 from chemworld.agents.diagnostic_live_llm import (  # noqa: E402
     MechanismDiagnosticLiveLLMAgent,
 )
-from chemworld.agents.rl import FrozenSB3Agent  # noqa: E402
 from chemworld.eval.flagship_diagnostics import (  # noqa: E402
     DEFAULT_PROTOCOL_PATH,
     ContinuingHistoryAgent,
@@ -74,22 +73,6 @@ def _method_adapter(
     if method_id == "rule_based":
         return ContinuingPublicViewAgent(
             make_frozen_operation_agent("rule_based"),
-            method_id=method_id,
-            feedback_condition="true_feedback",
-            critical_instrument=critical,
-        )
-    if method_id == "ppo_diagnostic":
-        checkpoint = task_card["ppo_diagnostic_checkpoint"]
-        return ContinuingPublicViewAgent(
-            FrozenSB3Agent(
-                algorithm="ppo",
-                checkpoint=ROOT / str(checkpoint["checkpoint"]),
-                checkpoint_manifest=ROOT / str(checkpoint["manifest"]),
-                task_id=task_id,
-                deterministic=False,
-                policy_seed=int(checkpoint["policy_seed"]),
-                resource_reporting_scope="formal_evaluation_only",
-            ),
             method_id=method_id,
             feedback_condition="true_feedback",
             critical_instrument=critical,

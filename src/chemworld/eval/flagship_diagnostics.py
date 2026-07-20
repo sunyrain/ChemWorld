@@ -644,8 +644,8 @@ def build_flagship_diagnostic_report(
                 "deterministic replay clones."
             ),
             (
-                "The PPO entries are failed-smoke diagnostic checkpoints and are "
-                "ineligible for formal benchmark claims."
+                "PPO was excluded before evaluation because its legacy failed-smoke "
+                "checkpoint is incompatible with the current observation contract."
             ),
             (
                 "The UCB baseline explores optimistic performance, not a dedicated "

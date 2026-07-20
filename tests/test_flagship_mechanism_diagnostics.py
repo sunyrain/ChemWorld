@@ -331,6 +331,8 @@ def test_protocol_covers_four_experiments_and_two_flagship_tasks() -> None:
     assert protocol["pre_change_experiments"] == 2
     assert protocol["post_change_experiments"] == 2
     assert protocol["closeout_headroom_per_experiment"] == 2
+    assert "ppo_diagnostic" not in protocol["ranking_methods"]
+    assert "ppo_diagnostic" in protocol["excluded_methods"]
     assert protocol["benchmark_claim_allowed"] is False
     assert protocol["publication_ready"] is False
 
