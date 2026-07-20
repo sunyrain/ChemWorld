@@ -136,6 +136,8 @@ def _combine_evidence(
         raise ValueError("reference results must be a JSON list")
     shifts: dict[str, dict] = {}
     manifests: dict[str, dict] = {}
+    protocol_bindings: dict[str, bool] = {}
+    active_protocol_sha256 = payload_sha256(protocol)
     for mode_id in ("public_seed_ood", "salted_private_eval"):
         root = run_root / mode_id
         manifest = _load_json(root / "manifest.json")
@@ -147,15 +149,33 @@ def _combine_evidence(
         ).hexdigest()
         if actual_digest != manifest.get("baseline_results_sha256"):
             raise ValueError(f"{mode_id} result digest does not match its manifest")
-        if manifest.get("generalization_security_protocol_sha256") != payload_sha256(
-            protocol
-        ):
-            raise ValueError(f"{mode_id} run does not match the active protocol")
-        shifts[mode_id] = compare_publication_distribution_shift(
-            reference,
-            shifted,
-            shift_id=mode_id,
+        protocol_bindings[mode_id] = (
+            manifest.get("generalization_security_protocol_sha256")
+            == active_protocol_sha256
         )
+        if protocol_bindings[mode_id]:
+            shifts[mode_id] = compare_publication_distribution_shift(
+                reference,
+                shifted,
+                shift_id=mode_id,
+            )
+        else:
+            shift_audit_path = root / "shift_audit.json"
+            expected_audit_digest = manifest.get("shift_audit_sha256")
+            if (
+                isinstance(expected_audit_digest, str)
+                and hashlib.sha256(shift_audit_path.read_bytes()).hexdigest()
+                != expected_audit_digest
+            ):
+                raise ValueError(f"{mode_id} shift-audit digest does not match its manifest")
+            historical_shift = _load_json(shift_audit_path)
+            if not isinstance(historical_shift, dict):
+                raise ValueError(f"{mode_id} shift audit has an invalid JSON shape")
+            shifts[mode_id] = {
+                **historical_shift,
+                "active_protocol_binding_valid": False,
+                "evidence_role": "historical_diagnostic_only",
+            }
         manifests[mode_id] = {
             "evaluated_source_commit": manifest["evaluated_source_commit"],
             "evaluation_source_tree_dirty": manifest["evaluation_source_tree_dirty"],
@@ -163,9 +183,13 @@ def _combine_evidence(
             "result_count": manifest["result_count"],
             "private_salt_sha256": manifest.get("private_salt_sha256"),
             "raw_private_salt_published": manifest["raw_private_salt_published"],
+            "active_protocol_binding_valid": protocol_bindings[mode_id],
         }
     exploits = audit_exploit_resistance()
-    shift_ready = all(shift["passed"] for shift in shifts.values())
+    shift_ready = all(
+        shift["passed"] and protocol_bindings[mode_id]
+        for mode_id, shift in shifts.items()
+    )
     publication_ready = (
         controls["generalization_ready"] and exploits["passed"] and shift_ready
     )
@@ -181,8 +205,17 @@ def _combine_evidence(
             "axis_generalization_ready": controls["axis_generalization_ready"],
             "invariance_ready": controls["invariance_ready"],
             "exploit_resistance_passed": exploits["passed"],
-            "public_seed_ood_passed": shifts["public_seed_ood"]["passed"],
-            "salted_private_eval_passed": shifts["salted_private_eval"]["passed"],
+            "distribution_shift_protocol_bindings_valid": all(
+                protocol_bindings.values()
+            ),
+            "public_seed_ood_passed": (
+                shifts["public_seed_ood"]["passed"]
+                and protocol_bindings["public_seed_ood"]
+            ),
+            "salted_private_eval_passed": (
+                shifts["salted_private_eval"]["passed"]
+                and protocol_bindings["salted_private_eval"]
+            ),
         },
     }
     _write_json(output_path, report)

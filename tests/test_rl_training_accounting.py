@@ -43,6 +43,9 @@ def test_manifest_records_actual_ppo_rollout_steps_and_periodic_checkpoint(
     assert manifest["training_environment_step_count"] == 16
     assert manifest["step_budget_exact"] is False
     assert manifest["training_diagnostics"]["step_count"] == 16
+    assert manifest["training_diagnostics"]["transaction_rollback_count"] == 0
+    assert manifest["training_diagnostics"]["constitution_failure_count"] == 0
+    assert manifest["training_diagnostics"]["observation_domain_failure_count"] == 0
     observation_contract = rl_observation_contract("flow-reaction-optimization")
     assert manifest["schema_version"] == RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION
     assert manifest["observation_contract"] == observation_contract
@@ -62,13 +65,9 @@ def test_manifest_records_actual_ppo_rollout_steps_and_periodic_checkpoint(
     assert all(len(item["sha256"]) == 64 for item in artifacts)
     sidecar_refs = manifest["periodic_checkpoint_contract_manifests"]
     assert len(sidecar_refs) == 2
-    assert all(
-        (tmp_path / item["path"]).is_file()
-        for item in sidecar_refs
-    )
+    assert all((tmp_path / item["path"]).is_file() for item in sidecar_refs)
     sidecars = [
-        json.loads((tmp_path / item["path"]).read_text(encoding="utf-8"))
-        for item in sidecar_refs
+        json.loads((tmp_path / item["path"]).read_text(encoding="utf-8")) for item in sidecar_refs
     ]
     assert all(
         item["schema_version"] == RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION

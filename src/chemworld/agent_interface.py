@@ -8,6 +8,7 @@ They do not read hidden ledgers or rate constants.
 from __future__ import annotations
 
 import math
+from copy import deepcopy
 from typing import Any
 
 import numpy as np
@@ -19,7 +20,7 @@ from chemworld.materials import material_choice_labels
 from chemworld.physchem.crystallization_units import (
     DEFAULT_MAXIMUM_COOLING_RATE_K_S,
 )
-from chemworld.world.actions import CATALYSTS, SOLVENTS
+from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 from chemworld.world.operations import (
     INSTRUMENTS,
     OPERATION_FIELD_BOUNDS,
@@ -79,6 +80,7 @@ FIELD_CHOICES: dict[str, list[Any]] = {
     "phase": ["aqueous", "organic"],
     "target_phase": ["aqueous", "organic"],
     "extractant": list(range(len(SOLVENTS))),
+    "electrolyte_profile": list(range(len(ELECTROLYTE_PROFILES))),
 }
 
 OPERATION_GROUPS: dict[str, tuple[str, ...]] = {
@@ -250,13 +252,13 @@ def _base_env(env: Any) -> Any:
 def _latest_info(env: Any) -> dict[str, Any]:
     base = _base_env(env)
     info = getattr(base, "_last_info", {})
-    return dict(info) if isinstance(info, dict) else {}
+    return deepcopy(info) if isinstance(info, dict) else {}
 
 
 def _latest_observation(env: Any) -> dict[str, Any]:
     base = _base_env(env)
     observation = getattr(base, "_last_observation", {})
-    return dict(observation) if isinstance(observation, dict) else {}
+    return deepcopy(observation) if isinstance(observation, dict) else {}
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
@@ -347,6 +349,18 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
     contract = contracts[operation]
     state = getattr(base, "_state", None)
     fields = [_field_schema(field, operation=operation) for field in contract.required_fields]
+    if operation == "measure":
+        allowed_instruments = getattr(base, "allowed_instruments", set(INSTRUMENTS))
+        fields = [
+            {
+                **_field_schema("instrument", operation=operation),
+                "choices": [
+                    instrument_id
+                    for instrument_id in INSTRUMENTS
+                    if instrument_id in allowed_instruments
+                ],
+            }
+        ]
     for field in fields:
         field_name = str(field["field"])
         bounds = field.get("bounds")
@@ -362,17 +376,23 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
                 field["bounds"] = {"low": low, "high": high}
                 field["recommended_range"] = {"low": low, "high": high}
                 field["state_dependent_bounds"] = True
+        choices = field.get("choices")
+        if isinstance(choices, list) and state is not None:
+            public_choices = list(
+                base.operation_validator.public_field_choices(
+                    operation,
+                    field_name,
+                    state,
+                    choices=tuple(choices),
+                )
+            )
+            if public_choices != choices:
+                field["choices"] = public_choices
+                field["state_dependent_choices"] = True
         locked = _locked_recipe_choice(base, operation, field_name)
         if locked is not None:
             field["choices"] = [locked]
             field["locked_for_current_experiment"] = True
-    if operation == "measure":
-        fields = [
-            {
-                **_field_schema("instrument", operation=operation),
-                "choices": sorted(getattr(base, "allowed_instruments", set(INSTRUMENTS))),
-            }
-        ]
     constraints: list[dict[str, Any]] = []
     if operation == "cool_crystallize" and state is not None:
         constraints.extend(
@@ -696,7 +716,7 @@ def campaign_state(env: Any) -> dict[str, Any]:
     """Return visible campaign progress and best-so-far state."""
 
     base = _base_env(env)
-    summaries = list(getattr(base, "_experiment_summaries", []))
+    summaries = deepcopy(getattr(base, "_experiment_summaries", []))
     scored = [
         _safe_float(summary.get("leaderboard_score"), default=-1.0)
         for summary in summaries

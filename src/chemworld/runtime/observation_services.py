@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.foundation import Observation, PhysicalConstitution, WorldState
+from chemworld.foundation import Observation, PhysicalConstitution, WorldState, equipment_settings
 from chemworld.foundation.state import ProcessLedger, selected_phase_id
 from chemworld.physchem.equilibrium_chemistry import (
     SolubilityProductSpec,
@@ -250,8 +250,69 @@ class ChemWorldObservationKernel:
                 impurity_species=self.species_view.impurity_species_for_state(state),
             )
         )
-        truth.update(self._equilibrium_truth_values(state))
+        equilibrium = self._equilibrium_truth_values(state)
+        # Once the electrochemical runtime has solved its coupled aqueous
+        # state, instrument-facing equilibrium signals must come from that
+        # solved state.  The generic equilibrium-characterization proxy remains
+        # the fallback before electrolysis and for non-electrochemical tasks.
+        equilibrium.update(self._electrochemical_equilibrium_truth_values(state))
+        truth.update(equilibrium)
         return truth
+
+    @staticmethod
+    def _electrochemical_equilibrium_truth_values(state: WorldState) -> dict[str, float]:
+        process_metrics = {} if state.process is None else state.process.metrics
+        pH = process_metrics.get("electrolyte_pH")
+        if not isinstance(pH, (int, float)) or not np.isfinite(float(pH)):
+            return {}
+
+        cell = equipment_settings(state.equipment, "electrochemical_cell")
+        precipitating_salt = max(float(cell.get("precipitating_salt_mol", 0.0)), 0.0)
+        precipitated = max(
+            float(process_metrics.get("electrolyte_precipitated_mol", 0.0)),
+            0.0,
+        )
+        inventory_scale = max(
+            float(cell.get("electrolyte_acid_total_mol", 0.0))
+            + float(cell.get("supporting_electrolyte_mol", 0.0))
+            + precipitating_salt,
+            1.0e-12,
+        )
+        residual = max(
+            abs(float(process_metrics.get("electrolyte_charge_balance_error_eq", 0.0))),
+            abs(
+                float(process_metrics.get("electrolyte_material_balance_error_mol", 0.0))
+            )
+            / inventory_scale,
+        )
+        diagnostic = cell.get("aqueous_equilibrium_diagnostic", {})
+        converged = isinstance(diagnostic, dict) and diagnostic.get("converged") is True
+        return {
+            "pH_normalized": float(np.clip(float(pH) / 14.0, 0.0, 1.0)),
+            "acid_dissociation_fraction": float(
+                np.clip(
+                    float(
+                        process_metrics.get(
+                            "electrolyte_acid_dissociation_fraction",
+                            0.0,
+                        )
+                    ),
+                    0.0,
+                    1.0,
+                )
+            ),
+            "precipitation_signal": float(
+                np.clip(
+                    precipitated / max(precipitating_salt, 1.0e-12),
+                    0.0,
+                    1.0,
+                )
+            ),
+            "equilibrium_residual": float(np.clip(residual, 0.0, 1.0)),
+            "equilibrium_confidence": float(
+                np.clip((1.0 - residual) if converged else 0.0, 0.0, 1.0)
+            ),
+        }
 
     def _equilibrium_truth_values(self, state: WorldState) -> dict[str, float]:
         """Return public equilibrium-characterization signals in [0, 1].

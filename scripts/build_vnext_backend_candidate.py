@@ -10,7 +10,7 @@ from typing import Any
 
 from chemworld.runtime.model_reachability import default_model_reachability_registry
 from chemworld.task_design import serious_task_readiness_manifest
-from chemworld.tasks import SERIOUS_TASK_IDS, get_task
+from chemworld.tasks import SERIOUS_TASK_IDS, TASK_CONTRACT_VERSION, get_task
 from chemworld.world.scenario import get_scenario_card
 from chemworld.world.world_law import world_law_spec
 
@@ -82,7 +82,7 @@ def build_bundle(root: Path, output: Path) -> dict[str, Any]:
         "schema_version": SCHEMA_VERSION,
         "candidate_id": "chemworld-physical-chemistry-v0.5-backend-candidate",
         "world_law_id": "chemworld-physical-chemistry-v0.4",
-        "task_contract_version": "chemworld-task-contract-0.6",
+        "task_contract_version": TASK_CONTRACT_VERSION,
         "release_status": "candidate_backend_only",
         "benchmark_claim_allowed": False,
         "baseline_results_included": False,

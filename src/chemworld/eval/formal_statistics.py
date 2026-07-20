@@ -366,9 +366,11 @@ def select_dev_family_champion(
     policy = protocol.get("family_champion_selection")
     if not _champion_policy_ready(policy):
         raise FormalStatisticsError("family champion policy is not frozen")
-    assert isinstance(policy, Mapping)
+    if not isinstance(policy, Mapping):
+        raise FormalStatisticsError("family champion policy must be a mapping")
     families = policy["families"]
-    assert isinstance(families, Mapping)
+    if not isinstance(families, Mapping):
+        raise FormalStatisticsError("family champion definitions must be a mapping")
     raw_methods = families.get(family)
     if not isinstance(raw_methods, Sequence) or isinstance(raw_methods, (str, bytes)):
         raise FormalStatisticsError(f"unknown champion family: {family}")

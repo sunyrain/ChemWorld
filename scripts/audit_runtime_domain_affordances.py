@@ -8,7 +8,10 @@ import subprocess
 from pathlib import Path
 
 from chemworld.eval.runtime_domain_affordance_audit import (
+    GUARDED_SOURCE_PATHS,
     audit_runtime_domain_affordances,
+    guarded_source_manifest,
+    guarded_source_sha256,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,6 +44,15 @@ def main() -> int:
         source_commit=source_commit,
         seed=args.seed,
     )
+    source_manifest = guarded_source_manifest(ROOT)
+    source_match = subprocess.run(
+        ["git", "diff", "--quiet", source_commit, "--", *GUARDED_SOURCE_PATHS],
+        cwd=ROOT,
+        check=False,
+    ).returncode == 0
+    report["guarded_source_sha256"] = guarded_source_sha256(ROOT)
+    report["guarded_source_file_count"] = len(source_manifest)
+    report["guarded_sources_match_source_commit"] = source_match
     output = args.output if args.output.is_absolute() else ROOT / args.output
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(

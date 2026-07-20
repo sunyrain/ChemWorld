@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from chemworld.physchem.component_registry import curated_component_registry
-from chemworld.world.actions import CATALYSTS, SOLVENTS
+from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 
 
 def public_material_catalog() -> dict[str, Any]:
@@ -55,10 +55,24 @@ def public_material_catalog() -> dict[str, Any]:
         }
         for index, catalyst_id in enumerate(CATALYSTS)
     ]
+    electrolyte_profiles = [
+        {
+            "index": index,
+            "canonical_id": profile_id,
+            "display_name": profile_id.replace("_", " ").title(),
+            "identity_kind": "anonymous_aqueous_electrolyte_formulation",
+            "reference_status": "bounded_benchmark_formulation_not_a_named_product",
+            "runtime_coupling": (
+                "conductivity_diffusion_layer_acid_base_and_precipitation_profile"
+            ),
+        }
+        for index, profile_id in enumerate(ELECTROLYTE_PROFILES)
+    ]
     return {
-        "catalog_version": "chemworld-public-materials-0.1",
+        "catalog_version": "chemworld-public-materials-0.2",
         "solvents": solvents,
         "catalysts": catalysts,
+        "electrolyte_profiles": electrolyte_profiles,
         "reagent": {
             "canonical_id": "limiting_reagent",
             "display_name": "Anonymous limiting reagent",
@@ -83,6 +97,8 @@ def material_choice_labels(field: str) -> dict[str, str]:
         if field in {"solvent", "extractant"}
         else "catalysts"
         if field == "catalyst"
+        else "electrolyte_profiles"
+        if field == "electrolyte_profile"
         else None
     )
     if key is None:
@@ -105,6 +121,7 @@ def action_material_display(action: dict[str, Any]) -> dict[str, Any]:
         ("solvent", "solvents"),
         ("extractant", "solvents"),
         ("catalyst", "catalysts"),
+        ("electrolyte_profile", "electrolyte_profiles"),
     ):
         value = action.get(field)
         if not isinstance(value, int) or isinstance(value, bool):

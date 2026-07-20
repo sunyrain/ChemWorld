@@ -47,12 +47,14 @@ PURIFICATION_FINAL = (
 
 CRYSTALLIZATION_FINAL = (
     *REACTION_STEPS,
+    {"operation": "measure", "instrument": "hplc"},
     {"operation": "seed_crystals", "seed_mass_g": 0.006},
     {
         "operation": "cool_crystallize",
         "target_temperature_K": 278.15,
         "duration_s": 1800.0,
     },
+    {"operation": "measure", "instrument": "hplc"},
     {"operation": "filter_crystals"},
     {"operation": "terminate"},
     {"operation": "measure", "instrument": "final_assay"},
@@ -83,9 +85,14 @@ FLOW_FINAL = (
 )
 
 ELECTROCHEMISTRY_FINAL = (
-    {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+    {"operation": "add_solvent", "volume_L": 0.026, "solvent": 0},
     {"operation": "add_reagent", "amount_mol": 0.010},
-    {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0},
+    {
+        "operation": "set_potential",
+        "potential_V": 1.15,
+        "current_mA": 75.0,
+        "electrolyte_profile": 1,
+    },
     {"operation": "electrolyze", "duration_s": 1800.0},
     {"operation": "terminate"},
     {"operation": "measure", "instrument": "final_assay"},
@@ -116,7 +123,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "electrochemical-conversion": {
         "mechanism_id": "electrochemical_conversion",
         "steps": 6,
-        "score": 0.553534674609122,
+        "score": 0.7634379681948985,
     },
     "equilibrium-characterization": {
         "mechanism_id": "simple_batch_reaction",
@@ -170,8 +177,8 @@ GOLDEN: dict[str, dict[str, Any]] = {
     },
     "reaction-to-crystallization": {
         "mechanism_id": "simple_batch_reaction",
-        "steps": 10,
-        "score": 0.5907574371996441,
+        "steps": 12,
+        "score": 0.4597052333212239,
     },
     "reaction-to-distillation": {
         "mechanism_id": "reactive_distillation_lite",

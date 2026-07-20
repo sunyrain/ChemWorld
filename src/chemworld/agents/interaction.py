@@ -241,14 +241,27 @@ def build_decision_context(
         for item in available
         if isinstance(item, dict) and item.get("operation")
     )
+    measure_choices: set[str] = set()
+    for item in available:
+        if not isinstance(item, dict) or item.get("operation") != "measure":
+            continue
+        schema = item.get("schema")
+        fields = schema.get("fields") if isinstance(schema, dict) else None
+        for field_spec in fields if isinstance(fields, list) else ():
+            if (
+                not isinstance(field_spec, dict)
+                or field_spec.get("field") != "instrument"
+            ):
+                continue
+            choices = field_spec.get("choices")
+            if isinstance(choices, list):
+                measure_choices.update(str(choice) for choice in choices)
     if previous_event_type == "experiment_end" or step == 1:
         stage = "experiment_setup"
-    elif set(operations) == {"measure"}:
-        # A committed termination exposes only measurement affordances.  The
-        # absence of ``terminate`` alone is not sufficient evidence: several
-        # live experiment states permit measurement plus further material or
-        # control operations while termination is temporarily unavailable.
-        # The exact affordance shape keeps that state distinct from closeout.
+    elif set(operations) == {"measure"} and measure_choices == {"final_assay"}:
+        # A committed termination exposes only final-assay measurement.  Some
+        # live workflow states also expose only ``measure`` but restrict it to
+        # a non-final process assay, so operation shape alone is insufficient.
         stage = "experiment_closeout"
     elif previous_event_type == "measurement_result":
         stage = "evidence_update"

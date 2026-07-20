@@ -9,6 +9,12 @@ import numpy as np
 
 CATALYSTS = ("cat_a", "cat_b", "cat_c", "cat_d")
 SOLVENTS = ("water", "ethanol", "acetonitrile", "toluene")
+ELECTROLYTE_PROFILES = (
+    "low_support_acetate",
+    "high_support_acetate",
+    "acidic_high_transport",
+    "precipitation_prone",
+)
 
 
 @dataclass(frozen=True)
@@ -29,11 +35,30 @@ ACTION_KEYS = (*ACTION_BOUNDS.keys(), "catalyst", "solvent")
 
 
 def _scalar(value: Any) -> float:
-    if isinstance(value, np.ndarray):
-        return float(value.reshape(-1)[0])
-    if isinstance(value, np.generic):
-        return float(value.item())
-    return float(value)
+    try:
+        values = np.asarray(value).reshape(-1)
+        if values.size != 1:
+            raise ValueError("action coordinate must be scalar")
+        scalar = float(values[0])
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("action coordinate must be scalar and numeric") from exc
+    if not np.isfinite(scalar):
+        raise ValueError("action coordinates must be finite")
+    return scalar
+
+
+def _categorical_index(
+    value: Any, *, cardinality: int, label: str, clip: bool
+) -> int:
+    coordinate = _scalar(value)
+    if not coordinate.is_integer():
+        raise ValueError(f"{label} must be an integer categorical index")
+    index = int(coordinate)
+    if clip:
+        return int(np.clip(index, 0, cardinality - 1))
+    if not 0 <= index < cardinality:
+        raise ValueError(f"{label} index {index} is outside [0, {cardinality - 1}]")
+    return index
 
 
 def canonicalize_action(action: dict[str, Any], *, clip: bool = True) -> dict[str, float | int]:
@@ -52,13 +77,18 @@ def canonicalize_action(action: dict[str, Any], *, clip: bool = True) -> dict[st
             raise ValueError(f"{key}={value} is outside [{bound.low}, {bound.high}]")
         normalized[key] = value
 
-    catalyst = int(_scalar(action["catalyst"]))
-    solvent = int(_scalar(action["solvent"]))
-    if clip:
-        catalyst = int(np.clip(catalyst, 0, len(CATALYSTS) - 1))
-        solvent = int(np.clip(solvent, 0, len(SOLVENTS) - 1))
-    elif catalyst not in range(len(CATALYSTS)) or solvent not in range(len(SOLVENTS)):
-        raise ValueError("catalyst and solvent must be valid discrete indices")
+    catalyst = _categorical_index(
+        action["catalyst"],
+        cardinality=len(CATALYSTS),
+        label="catalyst",
+        clip=clip,
+    )
+    solvent = _categorical_index(
+        action["solvent"],
+        cardinality=len(SOLVENTS),
+        label="solvent",
+        clip=clip,
+    )
 
     normalized["catalyst"] = catalyst
     normalized["solvent"] = solvent
@@ -95,18 +125,29 @@ def action_to_vector(action: dict[str, Any]) -> np.ndarray:
 def vector_to_action(vector: np.ndarray) -> dict[str, float | int]:
     """Map a normalized continuous vector to a valid terminal-recipe action."""
 
-    if vector.shape[0] < 6:
+    coordinates = np.asarray(vector, dtype=float).reshape(-1)
+    if coordinates.size < 6:
         raise ValueError("Expected at least 6 coordinates")
+    if not np.all(np.isfinite(coordinates[:6])):
+        raise ValueError("Action vector coordinates must be finite")
 
     action: dict[str, float | int] = {}
     for index, (key, bound) in enumerate(ACTION_BOUNDS.items()):
-        coordinate = float(np.clip(vector[index], 0.0, 1.0))
+        coordinate = float(np.clip(coordinates[index], 0.0, 1.0))
         action[key] = bound.low + coordinate * (bound.high - bound.low)
     action["catalyst"] = int(
-        np.clip(round(float(vector[4]) * (len(CATALYSTS) - 1)), 0, len(CATALYSTS) - 1)
+        np.clip(
+            round(float(coordinates[4]) * (len(CATALYSTS) - 1)),
+            0,
+            len(CATALYSTS) - 1,
+        )
     )
     action["solvent"] = int(
-        np.clip(round(float(vector[5]) * (len(SOLVENTS) - 1)), 0, len(SOLVENTS) - 1)
+        np.clip(
+            round(float(coordinates[5]) * (len(SOLVENTS) - 1)),
+            0,
+            len(SOLVENTS) - 1,
+        )
     )
     return action
 

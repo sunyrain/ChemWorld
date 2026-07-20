@@ -113,7 +113,6 @@ class ReactionRateContractProvider:
                 provenance=self.model_contract.provenance,
             )
         reaction = inputs["reaction"]
-        assert isinstance(reaction, ReactionSpec)
         report = audit_reaction_rate_contract(reaction)
         diagnostics = {
             "passed": report.passed,

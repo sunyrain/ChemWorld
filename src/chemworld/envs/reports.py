@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any
 
 import numpy as np
@@ -175,15 +176,23 @@ def build_constitution_summary(env: Any) -> dict[str, Any]:
     return {
         "name": "PhysicalConstitutionChecklist",
         "passed": state_report.passed,
-        "checks": state_report.to_list(),
+        "checks": _public_constitution_checks(
+            env,
+            state_report.to_list(),
+        ),
         "rules": [
             "material_conservation",
             "nonnegative_state",
+            "species_registry_membership",
+            "state_numeric_values_finite",
             "unit_consistency",
             "yield_upper_bound",
             "energy_balance",
             "phase_mass_balance",
             "observation_non_omniscient",
+            "observation_values_finite_and_bounded",
+            "observation_mask_consistent",
+            "observation_signal_and_accounting_integrity",
             "measurement_has_cost",
             "action_preconditions",
             "safety_constraints",
@@ -235,7 +244,10 @@ def build_step_info(
     observation: Any,
 ) -> dict[str, Any]:
     values = observation.values
-    checks = operation_record.constitution_checks
+    checks = _public_constitution_checks(
+        env,
+        operation_record.constitution_checks,
+    )
     constitution_failed = any(not bool(check.get("passed", False)) for check in checks)
     precondition_failed = not all(operation_record.preconditions.values())
     observed_keys = [key for key, observed in observation.observed_mask.items() if observed]
@@ -277,7 +289,7 @@ def build_step_info(
         "experiment_index": env._experiment_index,
         "operation_id": env._operation_id,
         "experiment_ended": False,
-        "experiment_summaries": list(env._experiment_summaries),
+        "experiment_summaries": deepcopy(env._experiment_summaries),
         "world_id": env.world.world_id,
         "task_id": env.task_id,
         "scenario_id": None if env.scenario_spec is None else env.scenario_spec.scenario_id,
@@ -301,16 +313,16 @@ def build_step_info(
             operation_record.operation_type != "measure"
             or operation_record.instrument in env.allowed_instruments
         ),
-        "preconditions": operation_record.preconditions,
-        "state_delta_summary": operation_record.state_delta_summary,
+        "preconditions": deepcopy(operation_record.preconditions),
+        "state_delta_summary": deepcopy(operation_record.state_delta_summary),
         "constitution_checks": checks,
         "instrument": operation_record.instrument,
         "instrument_source": observation.instrument_id,
         "observed_keys": observed_keys,
-        "observed_mask": observation.observed_mask,
-        "raw_signal": observation.raw_signal,
-        "processed_estimate": observation.processed_estimate,
-        "uncertainty": observation.uncertainty,
+        "observed_mask": deepcopy(observation.observed_mask),
+        "raw_signal": deepcopy(observation.raw_signal),
+        "processed_estimate": deepcopy(observation.processed_estimate),
+        "uncertainty": deepcopy(observation.uncertainty),
         "measurement_cost": operation_record.measurement_cost,
         "sample_consumed": operation_record.sample_consumed_L,
         "observed_reward": score,
@@ -346,7 +358,64 @@ def build_step_info(
     }
 
 
+def _public_constitution_checks(
+    env: Any,
+    checks: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    """Remove hidden-state identities and values from agent-facing checks."""
+
+    if env.debug_truth:
+        return [dict(check) for check in checks]
+    public_checks: list[dict[str, object]] = []
+    for check in checks:
+        name = str(check.get("name", "constitution_check"))
+        tokens = name.split(":")
+        if len(tokens) >= 3 and tokens[:2] == ["nonnegative", "amount"]:
+            name = "nonnegative:hidden_species_amount"
+        elif tokens and tokens[0] in {
+            "phase_amount_nonnegative",
+            "phase_amount_finite_nonnegative",
+        }:
+            name = ":".join((*tokens[:-1], "hidden_species"))
+        public_checks.append(
+            {
+                "name": name,
+                "passed": bool(check.get("passed", False)),
+                "message": "",
+                "value": None,
+                "tolerance": None,
+            }
+        )
+    return public_checks
+
+
+def annotate_constitution_rollback(info: dict[str, Any]) -> dict[str, Any]:
+    """Preserve a rejected candidate-state failure in public step reporting."""
+
+    if info.get("rollback_reason") != "constitution_failed":
+        return info
+    flags = {
+        **dict(info.get("constraint_flags", {})),
+        "constitution_failed": True,
+    }
+    cost_signal, cost_components = safety_cost_from_flags(flags)
+    info.update(
+        {
+            "constraint_flags": flags,
+            "cost": cost_signal,
+            "cost_components": cost_components,
+            "constraint_budget_remaining": max(1.0 - cost_signal, 0.0),
+            "reward_source": "constitution_rollback",
+            "leaderboard_score": None,
+        }
+    )
+    if info.get("error_message") is None:
+        info["error_message"] = "Transaction rolled back: constitution_failed"
+    return info
+
+
 __all__ = [
+    "annotate_constitution_rollback",
     "build_constitution_summary",
     "build_public_mechanism_summary",
     "build_public_observation_contract_summary",

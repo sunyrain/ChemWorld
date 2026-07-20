@@ -147,6 +147,14 @@ def parse_args() -> argparse.Namespace:
         help="Require a current immutable benchmark bundle instead of candidate integrity only.",
     )
     parser.add_argument(
+        "--allow-dirty-candidate",
+        action="store_true",
+        help=(
+            "Allow a dirty tracked tree only for a non-claiming candidate audit. "
+            "The summary records the dirty state and cannot enable a frozen release claim."
+        ),
+    )
+    parser.add_argument(
         "--summary-path",
         type=Path,
         help="Optional stable path for the final machine-readable summary.",
@@ -175,14 +183,19 @@ def _tracked_tree_dirty() -> bool:
 
 
 def _source_state_control(
-    *, source_commit: str, finished_source_commit: str, dirty_at_finish: bool
+    *,
+    source_commit: str,
+    finished_source_commit: str,
+    dirty_at_finish: bool,
+    allow_dirty_candidate: bool = False,
 ) -> dict[str, object]:
     commit_stable = source_commit == finished_source_commit
     return {
         "source_commit_at_finish": finished_source_commit,
         "source_commit_stable": commit_stable,
         "source_tree_dirty_at_finish": dirty_at_finish,
-        "passed": commit_stable and not dirty_at_finish,
+        "dirty_candidate_mode": allow_dirty_candidate,
+        "passed": commit_stable and (not dirty_at_finish or allow_dirty_candidate),
     }
 
 
@@ -215,17 +228,20 @@ def main() -> int:
     if args.dry_run:
         print(json.dumps([command.to_dict() for command in commands], indent=2))
         return 0
+    if args.allow_dirty_candidate and args.require_frozen_benchmark:
+        raise RuntimeError("dirty candidate mode cannot require a frozen benchmark")
 
     output_dir.mkdir(parents=True, exist_ok=True)
     source_commit = _git_commit()
     dirty_at_start = _tracked_tree_dirty()
-    if dirty_at_start:
+    if dirty_at_start and not args.allow_dirty_candidate:
         raise RuntimeError("release gate requires a clean tracked source tree")
     summary: dict[str, Any] = {
         "schema_version": "chemworld-release-gate-0.2",
         "started_at": datetime.now(UTC).isoformat(),
         "source_commit": source_commit,
         "source_tree_dirty_at_start": dirty_at_start,
+        "dirty_candidate_mode": bool(args.allow_dirty_candidate),
         "backend_evidence": _backend_evidence(),
         "output_dir": str(output_dir),
         "benchmark_mode": ("strict_frozen" if args.require_frozen_benchmark else "candidate"),
@@ -264,6 +280,7 @@ def main() -> int:
         source_commit=source_commit,
         finished_source_commit=finished_source_commit,
         dirty_at_finish=dirty_at_finish,
+        allow_dirty_candidate=bool(args.allow_dirty_candidate),
     )
     overall_success = overall_success and bool(source_state["passed"])
     summary["finished_at"] = datetime.now(UTC).isoformat()

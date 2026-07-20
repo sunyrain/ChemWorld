@@ -159,7 +159,7 @@ def task_contract_bundle(task_id: str) -> dict[str, Any]:
     finally:
         env.close()
     policy = policy_distribution_contract(_parameter_keys(action))
-    reward = reward_contract(task.allowed_operations)
+    reward = reward_contract(task.allowed_operations, task_id=task_id)
     observation = rl_observation_contract(task_id)
     return {
         "task_id": task_id,
@@ -293,9 +293,7 @@ class RLCheckpointBinding:
                 "training_environment_step_count"
             ),
             "training_resources_separate_from_evaluation": True,
-            "observation_contract_sha256": self.contract_bundle[
-                "observation_contract_sha256"
-            ],
+            "observation_contract_sha256": self.contract_bundle["observation_contract_sha256"],
             "action_contract_sha256": self.contract_bundle["action_contract_sha256"],
             "training_reward_contract_sha256": self.contract_bundle[
                 "training_reward_contract_sha256"
@@ -589,24 +587,20 @@ def audit_formal_rl_contract(
     )
     checks["checkpoint_schema_contract_current"] = bool(
         isinstance(checkpoints, Mapping)
-        and checkpoints.get("required_manifest_schema")
-        == RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION
+        and checkpoints.get("required_manifest_schema") == RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION
         and checkpoints.get("required_periodic_sidecar_schema")
         == RL_CHECKPOINT_SIDECAR_SCHEMA_VERSION
-        and checkpoints.get("required_index_schema")
-        == FORMAL_RL_CHECKPOINT_INDEX_VERSION
+        and checkpoints.get("required_index_schema") == FORMAL_RL_CHECKPOINT_INDEX_VERSION
         and checkpoints.get("legacy_checkpoint_eligible") is False
     )
     expected_observation_hashes = {
-        task_id: task_contracts[task_id]["observation_contract_sha256"]
-        for task_id in formal_tasks
+        task_id: task_contracts[task_id]["observation_contract_sha256"] for task_id in formal_tasks
     }
     checks["observation_contract_bindings_exact"] = bool(
         isinstance(checkpoints, Mapping)
         and checkpoints.get("required_observation_contract_schema")
         == OBSERVATION_CONTRACT_SCHEMA_VERSION
-        and checkpoints.get("required_observation_contract_hashes")
-        == expected_observation_hashes
+        and checkpoints.get("required_observation_contract_hashes") == expected_observation_hashes
         and checkpoints.get("shape_only_observation_compatibility_allowed") is False
     )
     lock_text = (repository / "uv.lock").read_text(encoding="utf-8")

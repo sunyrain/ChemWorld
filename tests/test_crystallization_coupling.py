@@ -38,6 +38,7 @@ REACTION_STEPS = (
         "stirring_speed_rpm": 720.0,
     },
     {"operation": "wait", "duration_s": 900.0, "stirring_speed_rpm": 720.0},
+    {"operation": "measure", "instrument": "hplc"},
 )
 
 
@@ -154,6 +155,7 @@ def test_filter_consumes_validated_solid_and_closes_retention_ledger() -> None:
                 "duration_s": 1800.0,
             }
         )
+        env.step({"operation": "measure", "instrument": "hplc"})
         before = env.unwrapped._state
         species_view = env.unwrapped.runtime.domain_services.crystallization.species_view
         target = species_view.primary_target_species

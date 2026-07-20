@@ -388,9 +388,6 @@ class SpectralIdentifiabilityProvider:
         reference = inputs["reference"]
         alternative = inputs["alternative"]
         audit_spec = inputs.get("audit_spec")
-        assert isinstance(reference, SpectralMeasurement)
-        assert isinstance(alternative, SpectralMeasurement)
-        assert audit_spec is None or isinstance(audit_spec, SpectralIdentifiabilitySpec)
         try:
             report = evaluate_spectral_identifiability(
                 reference,

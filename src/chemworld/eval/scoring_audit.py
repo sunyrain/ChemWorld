@@ -82,6 +82,7 @@ def audit_scoring_contract(
     max_leaderboard_error = 0.0
     max_processed_metric_error = 0.0
     final_assay_count = 0
+    previous_measurement_score = 0.0
 
     for record in records:
         step = int(record["step"])
@@ -112,26 +113,42 @@ def audit_scoring_contract(
                         message="observation score does not match recomputed contract score",
                     )
                 )
+        precondition_failed = bool(
+            record.get("constraint_flags", {}).get("precondition_failed", False)
+        )
+        successful_measurement = (
+            record.get("operation_type") == "measure" and not precondition_failed
+        )
+        expected_reward = (
+            observed_score - previous_measurement_score
+            if successful_measurement and observed_score is not None
+            else 0.0
+        )
         reward = _float_or_none(record.get("reward"))
         observed_reward = _float_or_none(record.get("observed_reward"))
         for reward_field, value in (("reward", reward), ("observed_reward", observed_reward)):
-            if observed_score is not None and value is not None:
-                reward_error = abs(value - observed_score)
+            if value is not None:
+                reward_error = abs(value - expected_reward)
                 if reward_error > tolerance:
                     failures.append(
                         ScoringAuditFailure(
                             step=step,
                             field=reward_field,
-                            expected=observed_score,
+                            expected=expected_reward,
                             actual=value,
-                            message=f"{reward_field} does not match observation score",
+                            message=(
+                                f"{reward_field} does not match the fresh-measurement "
+                                "score delta"
+                            ),
                         )
                     )
+        if successful_measurement and observed_score is not None:
+            previous_measurement_score = observed_score
 
         is_final_assay = (
             record.get("operation_type") == "measure"
             and record.get("instrument") == "final_assay"
-            and not bool(record.get("constraint_flags", {}).get("precondition_failed", False))
+            and not precondition_failed
         )
         leaderboard_score = _float_or_none(record.get("leaderboard_score"))
         if is_final_assay:
@@ -158,6 +175,10 @@ def audit_scoring_contract(
                     message="non-final-assay step must not expose leaderboard score",
                 )
             )
+        if is_final_assay:
+            # Campaign-mode final assays replace the process ledger with a
+            # fresh experiment state after the terminal observation is scored.
+            previous_measurement_score = 0.0
 
         processed = record.get("processed_estimate", {})
         if isinstance(processed, dict):

@@ -18,9 +18,8 @@ from chemworld.rl.environment import RLWorldAllocation, build_rl_environment
 from chemworld.rl.hybrid_actions import policy_distribution_contract
 from chemworld.rl.observation_contract import rl_observation_contract
 from chemworld.rl.rewards import (
-    core_operation_requirements,
+    PublicBehaviorTracker,
     reward_contract,
-    satisfied_requirement_count,
 )
 from chemworld.tasks import get_task
 
@@ -30,49 +29,24 @@ AlgorithmName = Literal["ppo", "sac"]
 class _ExperimentBehaviorTracker:
     """Retain per-experiment operation evidence across campaign resets."""
 
-    def __init__(self, allowed_operations: Iterable[str] | None = None) -> None:
-        self._operations: list[str] = []
+    def __init__(
+        self,
+        allowed_operations: Iterable[str] | None = None,
+        *,
+        task_id: str | None = None,
+    ) -> None:
         self.completed: list[dict[str, Any]] = []
-        self._requirements = core_operation_requirements(
-            allowed_operations or ("set_flow_rate", "run_flow")
+        self._tracker = PublicBehaviorTracker(
+            allowed_operations or ("set_flow_rate", "run_flow"),
+            task_id=task_id,
         )
 
     def observe(self, info: dict[str, Any]) -> None:
-        invalid = bool(info.get("constraint_flags", {}).get("precondition_failed", False))
-        operation = str(info.get("operation_type", ""))
-        if operation and not invalid:
-            evidence_operation = (
-                "measure:final_assay"
-                if operation == "measure" and bool(info.get("experiment_ended", False))
-                else operation
-            )
-            self._operations.append(evidence_operation)
+        self._tracker.observe(info)
         if not bool(info.get("experiment_ended", False)):
             return
-        present = set(self._operations)
-        behavior_complete = satisfied_requirement_count(self._requirements, present) == len(
-            self._requirements
-        )
-        missing_groups = [
-            group for group in self._requirements if not set(group).intersection(present)
-        ]
-        required = {candidate for group in self._requirements for candidate in group} | {
-            "measure:final_assay"
-        }
-        self.completed.append(
-            {
-                "experiment_index": len(self.completed),
-                "operation_sequence": list(self._operations),
-                "required_operations": sorted(required),
-                "missing_required_operations": sorted(
-                    candidate for group in missing_groups for candidate in group
-                ),
-                "core_operation_requirements": [list(group) for group in self._requirements],
-                "behavior_complete": behavior_complete,
-                "quick_close_incomplete": not behavior_complete,
-            }
-        )
-        self._operations = []
+        self.completed.append(self._tracker.card(experiment_index=len(self.completed)))
+        self._tracker.reset()
 
 
 def _checkpoint_contract_manifest(checkpoint: Path) -> dict[str, Any]:
@@ -134,7 +108,10 @@ def evaluate_sb3_checkpoint(
         raise ValueError("unsupported RL checkpoint contract manifest")
     expected_observation = rl_observation_contract(task_id)
     expected_action = _environment_action_contract(env)
-    expected_reward = reward_contract(get_task(task_id).allowed_operations)
+    expected_reward = reward_contract(
+        get_task(task_id).allowed_operations,
+        task_id=task_id,
+    )
     parameter_keys = tuple(
         str(item) for item in expected_action["training_adapter"]["parameter_coordinate_keys"]
     )
@@ -181,13 +158,22 @@ def evaluate_sb3_checkpoint(
         for episode_index in range(episodes):
             observation, _ = env.reset()
             task = get_task(task_id)
-            behavior = _ExperimentBehaviorTracker(task.allowed_operations)
+            behavior = _ExperimentBehaviorTracker(
+                task.allowed_operations,
+                task_id=task_id,
+            )
             invalid = 0
             unsafe = 0
             high_cost = 0
             measurements = 0
             runtime_domain_failures = 0
             observation_domain_failures = 0
+            transaction_rollbacks = 0
+            constitution_failures = 0
+            failure_reason_counts: Counter[str] = Counter()
+            failure_operation_counts: Counter[str] = Counter()
+            failed_precondition_counts: Counter[str] = Counter()
+            failed_constitution_check_counts: Counter[str] = Counter()
             final_scores: list[float] = []
             final_primary_metric_values: list[float] = []
             primary_metric_missing_count = 0
@@ -208,7 +194,33 @@ def evaluate_sb3_checkpoint(
                 observation_domain_failures += int(
                     preconditions.get("observation_domain_valid") is False
                 )
-                operation_counts[str(info.get("operation_type", "unknown"))] += 1
+                transaction_rollbacks += int(info.get("transaction_status") == "rolled_back")
+                constitution_failures += int(bool(flags.get("constitution_failed", False)))
+                operation_type = str(info.get("operation_type", "unknown"))
+                operation_counts[operation_type] += 1
+                transaction_status = info.get("transaction_status")
+                if transaction_status not in {None, "committed"}:
+                    failure_reason = str(
+                        info.get("rollback_reason") or transaction_status or "unknown"
+                    )
+                    failure_reason_counts[failure_reason] += 1
+                    failure_operation_counts[f"{operation_type}:{failure_reason}"] += 1
+                failed_precondition_counts.update(
+                    str(name)
+                    for name, passed in preconditions.items()
+                    if isinstance(passed, bool) and not passed
+                )
+                for event in info.get("world_events", ()):
+                    if not isinstance(event, dict) or event.get("event_type") != (
+                        "transaction_rollback"
+                    ):
+                        continue
+                    payload = event.get("payload", {})
+                    if not isinstance(payload, dict):
+                        continue
+                    failed_constitution_check_counts.update(
+                        str(name) for name in payload.get("failed_checks", ())
+                    )
                 raw_return += float(reward)
                 terminal = info.get("last_terminal_summary")
                 if info.get("experiment_ended") and isinstance(terminal, dict):
@@ -238,6 +250,18 @@ def evaluate_sb3_checkpoint(
                     "measurement_count": measurements,
                     "runtime_domain_failure_count": runtime_domain_failures,
                     "observation_domain_failure_count": observation_domain_failures,
+                    "transaction_rollback_count": transaction_rollbacks,
+                    "constitution_failure_count": constitution_failures,
+                    "failure_reason_counts": dict(sorted(failure_reason_counts.items())),
+                    "failure_operation_counts": dict(
+                        sorted(failure_operation_counts.items())
+                    ),
+                    "failed_precondition_counts": dict(
+                        sorted(failed_precondition_counts.items())
+                    ),
+                    "failed_constitution_check_counts": dict(
+                        sorted(failed_constitution_check_counts.items())
+                    ),
                     "complete_experiment_count": len(final_scores),
                     "experiment_behavior_cards": behavior.completed,
                     "behavior_complete_experiment_count": sum(
@@ -279,7 +303,7 @@ def evaluate_sb3_checkpoint(
         if card["best_primary_metric"] is not None
     ]
     return {
-        "schema_version": "chemworld-rl-development-evaluation-0.1",
+        "schema_version": "chemworld-rl-development-evaluation-0.2",
         "formal_evidence": False,
         "allocation": allocation.public_manifest(),
         "algorithm": algorithm,
@@ -332,6 +356,56 @@ def evaluate_sb3_checkpoint(
             ),
             "observation_domain_failure_count": sum(
                 int(card["observation_domain_failure_count"]) for card in episode_cards
+            ),
+            "transaction_rollback_count": sum(
+                int(card["transaction_rollback_count"]) for card in episode_cards
+            ),
+            "constitution_failure_count": sum(
+                int(card["constitution_failure_count"]) for card in episode_cards
+            ),
+            "failure_reason_counts": dict(
+                sorted(
+                    sum(
+                        (
+                            Counter(card["failure_reason_counts"])
+                            for card in episode_cards
+                        ),
+                        Counter(),
+                    ).items()
+                )
+            ),
+            "failure_operation_counts": dict(
+                sorted(
+                    sum(
+                        (
+                            Counter(card["failure_operation_counts"])
+                            for card in episode_cards
+                        ),
+                        Counter(),
+                    ).items()
+                )
+            ),
+            "failed_precondition_counts": dict(
+                sorted(
+                    sum(
+                        (
+                            Counter(card["failed_precondition_counts"])
+                            for card in episode_cards
+                        ),
+                        Counter(),
+                    ).items()
+                )
+            ),
+            "failed_constitution_check_counts": dict(
+                sorted(
+                    sum(
+                        (
+                            Counter(card["failed_constitution_check_counts"])
+                            for card in episode_cards
+                        ),
+                        Counter(),
+                    ).items()
+                )
             ),
             "operation_counts": dict(sorted(operation_counts.items())),
         },

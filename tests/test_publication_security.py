@@ -57,7 +57,7 @@ def test_exploit_matrix_rejects_score_shortcuts_and_is_key_order_invariant() -> 
         assert all(task["probes"].values())
 
 
-def test_frozen_generalization_security_summary_preserves_blockers() -> None:
+def test_generalization_security_summary_preserves_historical_blockers() -> None:
     report = json.loads(SUMMARY_PATH.read_text(encoding="utf-8"))
 
     assert report["status"] == "blocked"
@@ -65,7 +65,8 @@ def test_frozen_generalization_security_summary_preserves_blockers() -> None:
     assert report["gates"]["exploit_resistance_passed"] is True
     assert report["gates"]["public_seed_ood_passed"] is False
     assert report["gates"]["salted_private_eval_passed"] is False
-    assert report["distribution_shifts"]["public_seed_ood"]["ready_task_count"] == 4
+    assert report["gates"]["distribution_shift_protocol_bindings_valid"] is False
+    assert report["distribution_shifts"]["public_seed_ood"]["ready_task_count"] == 6
     assert report["distribution_shifts"]["salted_private_eval"]["ready_task_count"] == 4
     private_manifest = report["formal_run_manifests"]["salted_private_eval"]
     assert len(private_manifest["private_salt_sha256"]) == 64

@@ -6,7 +6,13 @@ from dataclasses import dataclass
 from typing import Any
 
 from chemworld.action_codec import ActionCodec
-from chemworld.foundation import PhysicalConstitution, WorldState, equipment_settings
+from chemworld.foundation import (
+    PhysicalConstitution,
+    WorldState,
+    equipment_settings,
+    instrument_equipment_id,
+    selected_phase_id,
+)
 from chemworld.physchem.crystallization_units import (
     DEFAULT_MAXIMUM_COOLING_RATE_K_S,
 )
@@ -16,6 +22,8 @@ from chemworld.world.operations import (
     OPERATION_FIELD_CHOICES,
     OPERATION_TYPES,
 )
+
+OPERATION_AFFORDANCE_STATE_MACHINE_VERSION = "chemworld-operation-affordance-state-machine-0.6"
 
 
 @dataclass(frozen=True)
@@ -73,6 +81,8 @@ class OperationValidator:
         allowed_operations: set[str],
         allowed_instruments: set[str] | None = None,
         target_species: tuple[str, ...] = (),
+        reagent_charge_molar_multiplier: float = 1.0,
+        task_id: str | None = None,
         operation_types: tuple[str, ...] = OPERATION_TYPES,
         action_codec: ActionCodec | None = None,
     ) -> None:
@@ -80,6 +90,10 @@ class OperationValidator:
         self.allowed_operations = allowed_operations
         self.allowed_instruments = allowed_instruments
         self.target_species = target_species
+        if reagent_charge_molar_multiplier <= 0.0:
+            raise ValueError("reagent_charge_molar_multiplier must be positive")
+        self.reagent_charge_molar_multiplier = float(reagent_charge_molar_multiplier)
+        self.task_id = task_id
         self.operation_types = operation_types
         self.action_codec = action_codec or ActionCodec()
 
@@ -106,7 +120,7 @@ class OperationValidator:
             )
         try:
             canonical = self.action_codec.canonicalize(action)
-        except (TypeError, ValueError, OverflowError):
+        except (IndexError, TypeError, ValueError, OverflowError):
             # Canonicalization is part of public input validation.  A user or
             # agent supplied material label must never escape ``env.step`` as a
             # backend exception: reject it transactionally like any other
@@ -175,7 +189,19 @@ class OperationValidator:
 
         dynamic_low = low
         dynamic_high = high
-        if operation_type in {"add_solvent", "add_phase", "add_extractant"} and field == "volume_L":
+        if operation_type == "add_reagent" and field == "amount_mol":
+            dynamic_high = min(
+                dynamic_high,
+                self._maximum_safe_reagent_amount_mol(state),
+            )
+        elif (
+            operation_type in {"add_solvent", "add_phase", "add_extractant"}
+            and field == "volume_L"
+        ):
+            dynamic_low = max(
+                dynamic_low,
+                self._minimum_safe_liquid_addition_volume_l(state),
+            )
             dynamic_high = min(
                 dynamic_high,
                 max(self._max_volume_l(state) - state.volume_L, 0.0),
@@ -195,9 +221,7 @@ class OperationValidator:
                 dynamic_high = min(dynamic_high, state.temperature_K)
         elif operation_type == "run_flow" and field == "duration_s":
             flow_settings = equipment_settings(state.equipment, "flow_reactor")
-            minimum_duration = self._float(
-                flow_settings.get("minimum_run_duration_s")
-            )
+            minimum_duration = self._float(flow_settings.get("minimum_run_duration_s"))
             if minimum_duration is not None:
                 dynamic_low = max(dynamic_low, minimum_duration)
         elif operation_type == "set_potential" and field == "potential_V":
@@ -207,7 +231,48 @@ class OperationValidator:
             # that can subsequently be executed.
             dynamic_low = max(dynamic_low, -2.5)
             dynamic_high = min(dynamic_high, 2.5)
-        return dynamic_low, max(dynamic_low, dynamic_high)
+        if dynamic_low > dynamic_high:
+            # Equal bounds encode an empty interval because numeric payload
+            # lower bounds are exclusive throughout the public validator.
+            return dynamic_high, dynamic_high
+        return dynamic_low, dynamic_high
+
+    def public_field_choices(
+        self,
+        operation_type: str,
+        field: str,
+        state: WorldState,
+        *,
+        choices: tuple[Any, ...],
+    ) -> tuple[Any, ...]:
+        """Narrow categorical choices to physically persistent task state."""
+
+        if operation_type == "measure" and field == "instrument":
+            choices = tuple(
+                choice
+                for choice in choices
+                if (choice == "final_assay") == state.terminated
+            )
+        if (
+            self.task_id == "electrochemical-conversion"
+            and operation_type == "add_solvent"
+            and field == "solvent"
+        ):
+            return tuple(choice for choice in choices if choice == 0)
+        if operation_type == "set_potential" and field == "electrolyte_profile":
+            settings = equipment_settings(state.equipment, "electrochemical_cell")
+            locked = settings.get("electrolyte_profile")
+            if isinstance(locked, int) and not isinstance(locked, bool):
+                return tuple(choice for choice in choices if choice == locked)
+        if (
+            self.task_id == "electrochemical-conversion"
+            and operation_type == "measure"
+            and field == "instrument"
+        ):
+            required = self._electrochemical_required_instruments(state)
+            if required:
+                return tuple(choice for choice in choices if choice in required)
+        return choices
 
     def operation_affordance(
         self,
@@ -268,17 +333,85 @@ class OperationValidator:
     ) -> dict[str, bool]:
         preconditions = self.constitution.check_preconditions(operation_type, state, payload)
         preconditions["operation_allowed_by_task"] = operation_type in self.allowed_operations
+        crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
+        filter_settings = equipment_settings(state.equipment, "crystal_filter")
+        crystals_filtered = bool(filter_settings.get("crystals_filtered", False))
+        crystal_seeded = bool(crystallizer_settings.get("crystal_seeded", False))
+        crystallization_completed = bool(crystallizer_settings.get("execution_history", ()))
+        flagship_crystallization = self.task_id == "reaction-to-crystallization"
+        current_nonfinal_assay = self._has_current_nonfinal_assay(state)
+        if flagship_crystallization and operation_type == "seed_crystals" and not crystal_seeded:
+            process_metrics = {} if state.process is None else state.process.metrics
+            preconditions["seed_crystals_requires_reaction_advance"] = (
+                float(process_metrics.get("reaction_advance_count", 0.0)) > 0.0
+            )
+            preconditions["seed_crystals_requires_current_reaction_assay"] = (
+                current_nonfinal_assay
+            )
+        if (
+            flagship_crystallization
+            and crystal_seeded
+            and not crystallization_completed
+            and not crystals_filtered
+        ):
+            preconditions["seeded_crystallization_requires_seed_assay_or_cooling"] = (
+                operation_type in {"seed_crystals", "measure", "cool_crystallize"}
+            )
+        if crystallization_completed and not crystals_filtered:
+            preconditions["completed_crystallization_requires_assay_or_filter"] = (
+                operation_type in {"measure", "filter_crystals"}
+            )
+            if flagship_crystallization and operation_type == "filter_crystals":
+                preconditions["filter_crystals_requires_current_slurry_assay"] = (
+                    current_nonfinal_assay
+                )
+        if crystals_filtered:
+            preconditions["isolated_crystals_require_assay_or_termination"] = operation_type in {
+                "measure",
+                "terminate",
+            }
         if operation_type in {"add_solvent", "add_phase", "add_extractant"}:
-            preconditions["addition_capacity_available"] = (
-                state.volume_L + self.constitution.tolerance < self._max_volume_l(state)
+            maximum_addition = max(self._max_volume_l(state) - state.volume_L, 0.0)
+            preconditions["addition_capacity_available"] = maximum_addition > max(
+                self._minimum_safe_liquid_addition_volume_l(state),
+                self.constitution.tolerance,
+            )
+        if operation_type == "add_reagent":
+            preconditions["reagent_pressure_capacity_available"] = (
+                self._maximum_safe_reagent_amount_mol(state) > self.constitution.tolerance
+            )
+        if (
+            self.task_id == "electrochemical-conversion"
+            and operation_type == "add_solvent"
+            and "solvent" in payload
+        ):
+            preconditions["electrochemical_task_requires_aqueous_solvent"] = (
+                payload.get("solvent") == 0
             )
         if operation_type == "terminate":
             required = self._final_assay_sample_volume()
             preconditions["final_assay_sample_available"] = (
                 required == 0.0 or state.volume_L + self.constitution.tolerance >= required
             )
+            if flagship_crystallization:
+                preconditions["flagship_crystallization_requires_isolated_crystals"] = (
+                    crystals_filtered
+                )
+            if self.task_id == "electrochemical-conversion":
+                preconditions["flagship_electrochemistry_requires_outcome_assay"] = (
+                    self._electrochemical_outcome_assay_complete(state)
+                )
+        if self.task_id == "electrochemical-conversion" and not state.terminated:
+            preconditions["electrochemical_flagship_phase_allows_operation"] = (
+                self._electrochemical_operation_allowed(operation_type, state)
+            )
+            if operation_type == "measure" and "instrument" in payload:
+                required_instruments = self._electrochemical_required_instruments(state)
+                preconditions["electrochemical_instrument_matches_workflow_phase"] = (
+                    not required_instruments
+                    or str(payload.get("instrument")) in required_instruments
+                )
         if operation_type == "cool_crystallize":
-            crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
             seed_target_mol = float(crystallizer_settings.get("seed_target_mol", 0.0))
             primary_target = self.target_species[0] if self.target_species else None
             dissolved_target_mol = (
@@ -296,6 +429,109 @@ class OperationValidator:
         if check_payload:
             preconditions.update(self._payload_checks(operation_type, payload, state))
         return preconditions
+
+    def _has_current_nonfinal_assay(self, state: WorldState) -> bool:
+        """Return whether a public process assay was taken at the current process time."""
+
+        instrument_ids = (
+            set(self.constitution.instruments)
+            if self.allowed_instruments is None
+            else self.allowed_instruments
+        )
+        for instrument_id in instrument_ids:
+            if instrument_id == "final_assay":
+                continue
+            settings = equipment_settings(
+                state.equipment,
+                instrument_equipment_id(instrument_id),
+            )
+            if int(settings.get("use_count", 0)) <= 0:
+                continue
+            last_time_s = self._float(settings.get("last_time_s"))
+            if last_time_s is not None and abs(last_time_s - state.ledger.time_s) <= max(
+                self.constitution.tolerance,
+                1.0e-9,
+            ):
+                return True
+        return False
+
+    def _electrochemical_operation_allowed(
+        self,
+        operation_type: str,
+        state: WorldState,
+    ) -> bool:
+        cell = equipment_settings(state.equipment, "electrochemical_cell")
+        setpoint_count = len(tuple(cell.get("setpoint_history", ())))
+        electrolysis_count = len(tuple(cell.get("electrolysis_history", ())))
+        if setpoint_count == 0:
+            return operation_type in {"add_solvent", "add_reagent", "set_potential"}
+        if electrolysis_count == 0:
+            return operation_type == "electrolyze"
+        if electrolysis_count == 1 and setpoint_count == 1:
+            if self._electrochemical_probe_diagnostics_complete(state):
+                return operation_type == "set_potential"
+            return operation_type == "measure"
+        if electrolysis_count == 1:
+            return operation_type == "electrolyze"
+        if self._electrochemical_outcome_assay_complete(state):
+            return operation_type == "terminate"
+        return operation_type == "measure"
+
+    def _electrochemical_required_instruments(self, state: WorldState) -> tuple[str, ...]:
+        cell = equipment_settings(state.equipment, "electrochemical_cell")
+        electrolysis_history = tuple(cell.get("electrolysis_history", ()))
+        if not electrolysis_history:
+            return ()
+        if len(electrolysis_history) == 1:
+            first_end = self._float(dict(electrolysis_history[0]).get("end_time_s"))
+            if first_end is None:
+                return ()
+            missing = [
+                instrument_id
+                for instrument_id in ("ph_meter", "uvvis")
+                if not self._instrument_used_at_or_after(
+                    state,
+                    instrument_id,
+                    first_end,
+                )
+            ]
+            return tuple(missing)
+        last_end = self._float(dict(electrolysis_history[-1]).get("end_time_s"))
+        if last_end is None or self._instrument_used_at_or_after(state, "uvvis", last_end):
+            return ()
+        return ("uvvis",)
+
+    def _electrochemical_probe_diagnostics_complete(self, state: WorldState) -> bool:
+        return not self._electrochemical_required_instruments(state)
+
+    def _electrochemical_outcome_assay_complete(self, state: WorldState) -> bool:
+        cell = equipment_settings(state.equipment, "electrochemical_cell")
+        electrolysis_history = tuple(cell.get("electrolysis_history", ()))
+        if len(electrolysis_history) < 2:
+            return False
+        last_end = self._float(dict(electrolysis_history[-1]).get("end_time_s"))
+        return last_end is not None and self._instrument_used_at_or_after(
+            state,
+            "uvvis",
+            last_end,
+        )
+
+    def _instrument_used_at_or_after(
+        self,
+        state: WorldState,
+        instrument_id: str,
+        time_s: float,
+    ) -> bool:
+        settings = equipment_settings(
+            state.equipment,
+            instrument_equipment_id(instrument_id),
+        )
+        last_time_s = self._float(settings.get("last_time_s"))
+        return (
+            int(settings.get("use_count", 0)) > 0
+            and last_time_s is not None
+            and last_time_s + max(self.constitution.tolerance, 1.0e-9) >= time_s
+        )
 
     def _default_payload(
         self,
@@ -359,7 +595,7 @@ class OperationValidator:
             "collect_fraction": ("transfer_fraction",),
             "set_flow_rate": ("flow_rate_mL_min", "residence_time_s"),
             "run_flow": ("target_temperature_K", "duration_s"),
-            "set_potential": ("potential_V", "current_mA"),
+            "set_potential": ("potential_V", "current_mA", "electrolyte_profile"),
             "electrolyze": ("duration_s",),
             "measure": ("instrument",),
         }.get(operation_type, ())
@@ -390,11 +626,18 @@ class OperationValidator:
             )
 
         if operation_type == "add_reagent" and "amount_mol" in payload:
+            low, high = self.public_field_bounds(
+                operation_type,
+                "amount_mol",
+                state,
+                low=0.0,
+                high=0.040,
+            )
             checks["payload_bounds:amount_mol"] = self._in_range(
                 payload,
                 "amount_mol",
-                0.0,
-                0.040,
+                low,
+                high,
             )
         if (
             operation_type in {"add_solvent", "add_phase", "add_extractant"}
@@ -404,6 +647,13 @@ class OperationValidator:
             low, high = OPERATION_FIELD_BOUNDS.get(
                 (operation_type, "volume_L"),
                 (0.0, 0.080),
+            )
+            low, high = self.public_field_bounds(
+                operation_type,
+                "volume_L",
+                state,
+                low=low,
+                high=high,
             )
             checks["payload_bounds:volume_L"] = self._in_range(
                 payload,
@@ -478,10 +728,14 @@ class OperationValidator:
                 high,
                 inclusive_low=True,
             )
-        if operation_type == "cool_crystallize" and {
-            "target_temperature_K",
-            "duration_s",
-        } <= payload.keys():
+        if (
+            operation_type == "cool_crystallize"
+            and {
+                "target_temperature_K",
+                "duration_s",
+            }
+            <= payload.keys()
+        ):
             target_temperature = self._float(payload.get("target_temperature_K"))
             duration = self._float(payload.get("duration_s"))
             checks["payload_coupling:maximum_cooling_rate_K_s"] = (
@@ -571,6 +825,18 @@ class OperationValidator:
                     inclusive_low=True,
                 )
         if operation_type == "set_potential":
+            if "electrolyte_profile" in payload:
+                profile = payload.get("electrolyte_profile")
+                checks["payload_choice:electrolyte_profile"] = (
+                    isinstance(profile, int)
+                    and not isinstance(profile, bool)
+                    and 0 <= profile < 4
+                )
+                settings = equipment_settings(state.equipment, "electrochemical_cell")
+                locked_profile = settings.get("electrolyte_profile")
+                checks["payload_locked:electrolyte_profile"] = (
+                    locked_profile is None or profile == locked_profile
+                )
             if "potential_V" in payload:
                 checks["payload_bounds:potential_V"] = self._in_range(
                     payload,
@@ -669,6 +935,70 @@ class OperationValidator:
         if state.vessels is not None and state.vessel_id in state.vessels.vessels:
             return state.vessels.vessels[state.vessel_id].max_temperature_K
         return self.constitution.vessel.max_temperature_K
+
+    def _max_pressure_pa(self, state: WorldState) -> float:
+        if state.vessels is not None and state.vessel_id in state.vessels.vessels:
+            return state.vessels.vessels[state.vessel_id].max_pressure_Pa
+        return self.constitution.vessel.max_pressure_Pa
+
+    def _maximum_safe_reagent_amount_mol(self, state: WorldState) -> float:
+        """Invert the public pressure law to bound one reagent charge safely."""
+
+        if state.temperature_K <= 0.0:
+            return 0.0
+        if state.volume_L <= 0.0:
+            # The shared pressure law explicitly defines concentration as zero
+            # before a liquid charge exists.  Reagent addition is therefore
+            # pressure-neutral in this state; the later solvent action creates
+            # the finite-volume concentration domain.
+            return 0.040
+        active_amounts = state.species_amounts
+        active_phase_id = selected_phase_id(state.phases)
+        if state.phases is not None and active_phase_id in state.phases.phases:
+            active_amounts = state.phases.phases[active_phase_id].species_amounts_mol
+        current_amount_mol = sum(
+            float(value)
+            for species_id, value in active_amounts.items()
+            if not species_id.startswith("Cat")
+        )
+        base_pressure_pa = 101_325.0 * state.temperature_K / 298.15
+        maximum_concentration_mol_l = max(
+            (self._max_pressure_pa(state) / base_pressure_pa - 1.0) / 0.025,
+            0.0,
+        )
+        remaining_amount_mol = max(
+            maximum_concentration_mol_l * state.volume_L - current_amount_mol,
+            0.0,
+        )
+        return remaining_amount_mol / self.reagent_charge_molar_multiplier
+
+    def _minimum_safe_liquid_addition_volume_l(self, state: WorldState) -> float:
+        """Invert the pressure law for a material-first liquid charge."""
+
+        if state.temperature_K <= 0.0:
+            return float("inf")
+        active_amounts = state.species_amounts
+        active_phase_id = selected_phase_id(state.phases)
+        if state.phases is not None and active_phase_id in state.phases.phases:
+            active_amounts = state.phases.phases[active_phase_id].species_amounts_mol
+        current_amount_mol = sum(
+            float(value)
+            for species_id, value in active_amounts.items()
+            if not species_id.startswith("Cat")
+        )
+        if current_amount_mol <= 0.0:
+            return 0.0
+        base_pressure_pa = 101_325.0 * state.temperature_K / 298.15
+        pressure_ceiling_pa = max(self._max_pressure_pa(state) - 1.0, 0.0)
+        maximum_concentration_mol_l = (
+            (pressure_ceiling_pa / base_pressure_pa - 1.0) / 0.025
+            if base_pressure_pa > 0.0
+            else 0.0
+        )
+        if maximum_concentration_mol_l <= 0.0:
+            return float("inf")
+        required_total_volume_l = current_amount_mol / maximum_concentration_mol_l
+        return max(required_total_volume_l - state.volume_L, 0.0)
 
     def _final_assay_sample_volume(self) -> float:
         if self.allowed_instruments is not None and "final_assay" not in self.allowed_instruments:

@@ -33,13 +33,7 @@ from chemworld.wrappers import RLTrainingRewardWrapper, action_mask
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "configs" / "foundation" / "rl_contract_vnext.json"
-REPORT = (
-    ROOT
-    / "workstreams"
-    / "world_foundation"
-    / "reports"
-    / "rl-contract-vnext.json"
-)
+REPORT = ROOT / "workstreams" / "world_foundation" / "reports" / "rl-contract-vnext.json"
 
 
 def test_infrastructure_matrix_covers_cpu_cuda_and_vectorization_choices() -> None:
@@ -62,16 +56,17 @@ def test_infrastructure_matrix_covers_cpu_cuda_and_vectorization_choices() -> No
     }
 
 
-def test_legacy_protocol_is_nonclaiming_and_loads_current_backend_binding() -> None:
+def test_legacy_protocol_is_nonclaiming_and_rejects_drifted_backend_binding() -> None:
     protocol = json.loads(PROTOCOL.read_text(encoding="utf-8"))
     assert protocol["benchmark_claim_allowed"] is False
     assert protocol["action_contract"]["operation_semantics"] == "categorical"
-    assert protocol["action_contract"]["stable_baselines_adapter"][
-        "native_hybrid_distribution"
-    ] is False
-    assert protocol["action_contract"]["ppo_policy_distribution"][
-        "native_hybrid_distribution"
-    ] is True
+    assert (
+        protocol["action_contract"]["stable_baselines_adapter"]["native_hybrid_distribution"]
+        is False
+    )
+    assert (
+        protocol["action_contract"]["ppo_policy_distribution"]["native_hybrid_distribution"] is True
+    )
     assert protocol["development_gate"]["training_seeds"] == [106, 107, 108, 109, 110]
     assert protocol["development_gate"]["dev_episodes_per_seed"] == 20
     assert protocol["development_gate"]["training_environment_step_checkpoints"] == [
@@ -80,9 +75,9 @@ def test_legacy_protocol_is_nonclaiming_and_loads_current_backend_binding() -> N
         102400,
     ]
     assert protocol["development_gate"]["training_operation_budget"] == 60
-    assert protocol["evidence_policy"][
-        "post_result_reward_or_hyperparameter_tuning_allowed"
-    ] is False
+    assert (
+        protocol["evidence_policy"]["post_result_reward_or_hyperparameter_tuning_allowed"] is False
+    )
     assert protocol["world_foundation_preconditions"]["formal_training_allowed"] is True
     assert protocol["training_infrastructure"]["device_must_be_explicit"] is True
     selected = protocol["training_infrastructure"]["selected_configuration"]
@@ -90,7 +85,8 @@ def test_legacy_protocol_is_nonclaiming_and_loads_current_backend_binding() -> N
     assert selected["parallel_environments"] == 8
     assert selected["n_steps_per_environment"] == 128
     assert selected["aggregate_rollout_environment_steps"] == 1024
-    assert load_learning_protocol()["schema_version"] == protocol["schema_version"]
+    with pytest.raises(RuntimeError, match="bound backend protocol file has drifted"):
+        load_learning_protocol()
 
 
 def test_foundation_json_file_binding_is_line_ending_portable(tmp_path: Path) -> None:
@@ -103,9 +99,11 @@ def test_foundation_json_file_binding_is_line_ending_portable(tmp_path: Path) ->
 
 def test_learning_gate_fails_closed_when_foundation_evidence_drifts() -> None:
     protocol = json.loads(PROTOCOL.read_text(encoding="utf-8"))
-    protocol["world_foundation_preconditions"]["backend_freeze_evidence"][
-        "report_file_sha256"
-    ] = "0" * 64
+    binding = protocol["world_foundation_preconditions"]["backend_freeze_evidence"]
+    # Isolate the report-binding check from the protocol drift already present
+    # in this superseded training contract.
+    binding["protocol_file_sha256"] = _file_sha256(ROOT / binding["protocol_path"])
+    binding["report_file_sha256"] = "0" * 64
     with pytest.raises(RuntimeError, match="freeze report file has drifted"):
         _validate_foundation_evidence(protocol)
 
@@ -199,7 +197,7 @@ def test_every_conditional_action_uses_the_operation_registry_fields_only() -> N
                 registry[operation].required_fields
             )
 
-        vector = np.zeros(49, dtype=np.float32)
+        vector = np.zeros(50, dtype=np.float32)
         vector[OPERATION_TYPES.index("run_flow")] = 1.0
         decoded = decode_conditional_hybrid_action(
             vector,
@@ -223,12 +221,12 @@ def test_action_and_reward_contract_hashes_are_stable_and_semantic() -> None:
         env.close()
     task = get_task("flow-reaction-optimization")
     reward = reward_contract(task.allowed_operations)
-    assert reward["schema_version"] == "chemworld-rl-training-reward-0.3"
+    assert reward["schema_version"] == "chemworld-rl-training-reward-0.4"
     assert reward["components"]["newly_satisfied_core_requirement"] == 0.10
-    assert reward["leakage_controls"][
-        "core_progress_uses_public_operation_history_only"
-    ] is True
+    assert reward["leakage_controls"]["core_progress_uses_public_operation_history_only"] is True
     assert reward["leakage_controls"]["repeated_core_operation_bonus"] is False
+    assert reward["leakage_controls"]["non_measurement_raw_reward_zero"] is True
+    assert reward["leakage_controls"]["cached_observation_reward"] is False
     assert reward["behavioral_completion"]["requirements"] == [
         ["set_flow_rate"],
         ["run_flow"],
@@ -247,9 +245,7 @@ def test_native_distribution_masks_operations_and_ignores_inactive_log_prob() ->
         action_contract = conditional_hybrid_action_contract(env.action_space)
     finally:
         env.close()
-    parameter_keys = tuple(
-        action_contract["training_adapter"]["parameter_coordinate_keys"]
-    )
+    parameter_keys = tuple(action_contract["training_adapter"]["parameter_coordinate_keys"])
     distribution = ConditionalHybridDistribution(parameter_keys)
     logits = th.zeros((1, len(OPERATION_TYPES)))
     means = th.zeros((1, len(parameter_keys)))
@@ -308,9 +304,7 @@ def test_campaign_behavior_ledger_resets_between_experiments() -> None:
         env.step({"operation": "add_reagent", "amount_mol": 0.02})
         env.step({"operation": "add_solvent", "volume_L": 0.05, "solvent": 0})
         env.step({"operation": "terminate"})
-        _, _, _, _, second_info = env.step(
-            {"operation": "measure", "instrument": "final_assay"}
-        )
+        _, _, _, _, second_info = env.step({"operation": "measure", "instrument": "final_assay"})
         assert second_info["rl_training_reward"]["behavior_complete"] is False
         assert second_info["rl_training_reward"]["quick_close_incomplete"] is True
     finally:

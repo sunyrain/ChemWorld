@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from math import isfinite
-from typing import Any
+from numbers import Number
+from typing import Any, cast
 
 from chemworld.foundation.constitution_reports import CheckResult
 from chemworld.foundation.ledger_audit import (
@@ -35,6 +37,25 @@ def check_nonnegative(constitution: Any, state: WorldState) -> list[CheckResult]
         )
         for key, value in values.items()
     ]
+
+
+def check_species_registry(constitution: Any, state: WorldState) -> CheckResult:
+    registered = set(constitution.substances)
+    present = set(state.species_amounts)
+    if state.species is not None:
+        present.update(state.species.species_roles)
+        present.update(state.species.initial_amounts_mol)
+    if state.phases is not None:
+        for phase in state.phases.phases.values():
+            present.update(phase.species_amounts_mol)
+    unknown_count = len(present - registered)
+    return CheckResult(
+        "species_registry_membership",
+        unknown_count == 0,
+        "All material-ledger species must belong to the compiled mechanism registry.",
+        value=float(unknown_count),
+        tolerance=0.0,
+    )
 
 
 def check_units(constitution: Any) -> list[CheckResult]:
@@ -102,6 +123,11 @@ def check_typed_ledgers(constitution: Any, state: WorldState) -> list[CheckResul
         or (key.startswith("initial_") and key.endswith("_mol"))
     }
     checks: list[CheckResult] = [
+        CheckResult(
+            "state_numeric_values_finite",
+            _numeric_tree_is_finite(state.to_dict(include_hidden=True)),
+            "Every numeric value in the hidden state and typed ledgers must be finite.",
+        ),
         CheckResult(
             "metadata_no_primary_phase_ledger",
             "phase_ledger" not in state.metadata,
@@ -227,6 +253,22 @@ def check_typed_ledgers(constitution: Any, state: WorldState) -> list[CheckResul
     return checks
 
 
+def _numeric_tree_is_finite(value: Any) -> bool:
+    if value is None or isinstance(value, str | bytes | bytearray | bool):
+        return True
+    if isinstance(value, Number):
+        try:
+            resolved = float(cast(Any, value))
+        except (TypeError, ValueError, OverflowError):
+            return False
+        return isfinite(resolved)
+    if isinstance(value, Mapping):
+        return all(_numeric_tree_is_finite(child) for child in value.values())
+    if isinstance(value, Sequence):
+        return all(_numeric_tree_is_finite(child) for child in value)
+    return True
+
+
 def check_ledger_single_source(constitution: Any, state: WorldState) -> list[CheckResult]:
     primary_metadata_keys = (
         constitution.primary_reactor_metadata_keys
@@ -271,6 +313,7 @@ __all__ = [
     "check_ledger_single_source",
     "check_nonnegative",
     "check_risk_range",
+    "check_species_registry",
     "check_typed_ledgers",
     "check_units",
     "check_vessel_bounds",

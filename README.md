@@ -64,6 +64,10 @@ if check["valid"]:
 env.close()
 ```
 
+Runnable notebooks for all six serious research tasks are collected in
+[`notebooks/task_demos/`](notebooks/task_demos/README.md). They compare public feedback across candidate
+interventions and paired opaque worlds without reading hidden state or prescribing an Agent training method.
+
 Unmeasured array values are `NaN` (`null` in JSONL). Read `observed_mask` or `observed_keys` before using an
 observation field.
 

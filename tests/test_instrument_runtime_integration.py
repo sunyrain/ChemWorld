@@ -17,6 +17,7 @@ from chemworld.physchem.spectroscopy_adapter_manifest import (
 )
 from chemworld.runtime.instrument_cost_services import ChemWorldInstrumentCostServices
 from chemworld.runtime.kernel_contracts import ModelProviderResult
+from chemworld.runtime.transactions import TransactionResult
 from chemworld.world.instruments import (
     INSTRUMENT_RUNTIME_MODEL_ID,
     INSTRUMENT_RUNTIME_PROVIDER_PATH,
@@ -168,6 +169,71 @@ def test_repeated_nonterminal_measurements_retain_each_execution_record() -> Non
             record["provider_contract_hash"] == instrument_runtime_contract_hash()
             for record in settings["execution_history"]
         )
+    finally:
+        env.close()
+
+
+def test_rolled_back_final_assay_cannot_observe_reward_or_end_episode(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=17)
+    try:
+        env.reset(seed=17)
+        base: Any = env.unwrapped
+        provider = RecordingProvider()
+        base.observation_kernel.instrument_provider = provider
+        env.step({"operation": "add_solvent", "volume_L": 0.025, "solvent": 2})
+        env.step({"operation": "add_reagent", "amount_mol": 0.008})
+        env.step({"operation": "measure", "instrument": "hplc"})
+        env.step({"operation": "terminate"})
+        cached_observation = dict(base._state.process.last_observation)
+        cached_mask = dict(base._state.process.last_observed_mask)
+        provider_call_count = len(provider.calls)
+        transaction_manager = base.runtime.transaction_manager
+
+        def reject_candidate(
+            *,
+            state: Any,
+            operation_type: str,
+            events: tuple[Any, ...],
+            patches: tuple[Any, ...],
+        ) -> TransactionResult:
+            del patches
+            assert operation_type == "measure"
+            return transaction_manager.rollback(
+                state=state,
+                operation_type=operation_type,
+                rollback_reason="constitution_failed",
+                failed_checks=("injected_measurement_failure",),
+                events=events,
+            )
+
+        monkeypatch.setattr(transaction_manager, "commit", reject_candidate)
+
+        _observation, reward, terminated, truncated, info = env.step(
+            {"operation": "measure", "instrument": "final_assay"}
+        )
+
+        assert info["transaction_status"] == "rolled_back"
+        assert info["rollback_reason"] == "constitution_failed"
+        assert info["constraint_flags"]["constitution_failed"] is True
+        assert reward == 0.0
+        assert info["measurement_cost"] == 0.0
+        assert info["sample_consumed"] == 0.0
+        assert info["reward_source"] == "constitution_rollback"
+        assert info["environment_reward"] == {
+            "schema_version": "chemworld-environment-reward-0.2",
+            "semantics": "fresh_measurement_score_delta",
+            "fresh_measurement": False,
+            "cached_observation_rewarded": False,
+            "score_delta": 0.0,
+        }
+        assert terminated is False
+        assert truncated is False
+        assert info["experiment_ended"] is False
+        assert len(provider.calls) == provider_call_count
+        assert base._state.process.last_observation == cached_observation
+        assert base._state.process.last_observed_mask == cached_mask
     finally:
         env.close()
 

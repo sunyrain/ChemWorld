@@ -163,7 +163,12 @@ def _execution_probe() -> dict[str, Any]:
         (
             {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
             {"operation": "add_reagent", "amount_mol": 0.010},
-            {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0},
+            {
+                "operation": "set_potential",
+                "potential_V": 1.15,
+                "current_mA": 75.0,
+                "electrolyte_profile": 1,
+            },
             {"operation": "electrolyze", "duration_s": 1800.0},
         ),
     )

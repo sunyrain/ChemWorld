@@ -564,7 +564,7 @@
       "integration_operations": [
         "cool_crystallize"
       ],
-      "manifest_hash": "9c0211d7ceeaee3850e8f1a5eca08366d4b5f04a42d7a828d9a03fabec1ac70b",
+      "manifest_hash": "8dd11351ecc625da4e9e45fea2e14acba5914da339a31a6d69895a904f8c13df",
       "owned_paths": [
         "src/chemworld/world/crystallization.py",
         "src/chemworld/physchem/crystallization_units.py",
@@ -589,7 +589,7 @@
           "cooling_rate_K_s",
           "warnings"
         ],
-        "failure_policy": "fail closed without a runtime output for invalid feed or seed, excessive cooling rate, absent population or transfer, solver non-convergence, or component/particle ledger failure",
+        "failure_policy": "fail closed without a runtime output for invalid feed or seed, excessive cooling rate, solver non-convergence, or component/particle ledger failure; absent population or transfer fail only when required by execution_spec",
         "input_fields": [
           "case",
           "time_steps",
@@ -625,7 +625,7 @@
           "cooling rate remains inside the declared linear-ramp domain",
           "temperature history is monotonic and reaches the requested endpoint",
           "component and crystal-size-moment ledgers close within tolerance",
-          "growth-cap solver converges and a nonzero solution-to-solid transfer occurs"
+          "growth-cap solver converges; population and transfer requirements follow the supplied execution policy"
         ]
       },
       "replaces_model_ids": [],
@@ -4981,7 +4981,7 @@
     "sha256": "a806227fb428f6ecb829bb7fb13bf615869c6449d4195007de2187992aa57dc6"
   },
   "release_allowed": true,
-  "report_hash": "f1900021916b1518c74898dd802d216d74146efd82bedbe8de7a9916f491e209",
+  "report_hash": "097a32f8041a669549672a094f9bffb5aeae1e4404508fa67c559acf167428f5",
   "runtime_execution_evidence": {
     "executed_model_ids": [
       "aqueous_acid_base_ph_observation",
@@ -5011,11 +5011,11 @@
       "vle_shortcut_distillation"
     ],
     "path": "workstreams/world_foundation/reports/wf-110-runtime-integration.json",
-    "sha256": "de33516e1a9e73c3d8021c53df2b00e38e5f04199e8801bb181aaab4b2916820"
+    "sha256": "d5ac5c904f819906985302e07bfa5dd7d075a02d386206a8c1a9707dfdf5611c"
   },
   "runtime_structural_findings": [],
   "schema_version": "chemworld-foundation-maturity-truth-report-0.1",
-  "source_commit": "cbd0d7ae681355e8cf030a4175a4dc45c7c86208",
+  "source_commit": "4c9ae675d3444134f25301fb28eb0e304375c658",
   "source_tree_dirty": true,
   "status": "release_allowed",
   "task_assessments": {
@@ -5026,9 +5026,9 @@
         "aqueous_acid_base_ph_observation",
         "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate",
         "diffusion_layer_limiting_current_v1",
         "nernst_butler_volmer_faradaic_v1",
+        "potentiometric_ph_public_reference",
         "randles_double_layer_transient_v1"
       ],
       "effective_runtime_maturity": "reference_validated",
@@ -5039,7 +5039,7 @@
           "model_ids": [
             "chemworld_validated_synthetic_instruments_v1",
             "beer_lambert_uvvis",
-            "chromatography_retention_plate"
+            "potentiometric_ph_public_reference"
           ],
           "module_id": "spectroscopy_instruments",
           "verified_level": "reference_validated"
@@ -5070,13 +5070,13 @@
         "aqueous_acid_base_ph_observation",
         "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate",
         "diffusion_layer_limiting_current_v1",
         "nernst_butler_volmer_faradaic_v1",
+        "potentiometric_ph_public_reference",
         "randles_double_layer_transient_v1"
       ],
-      "runtime_profile_hash": "88aac1045562b0b14d687f059a8a725a807dac3b3ca48882e62dfca616871b59",
-      "task_contract_hash": "9f86e8550be9f8de98f4152104ef981c075697bf8cf378f040f5af4593235d09"
+      "runtime_profile_hash": "9fd64b2d65d5eac0381c54e84895a6c7d8628403efca5cd841b5c0837f31ca0d",
+      "task_contract_hash": "9cc0c792e171737c5ffd5dc03772dcff724a19ae5c504b7d573257eadfa89d63"
     },
     "equilibrium-characterization": {
       "declared_but_unreachable": [],
@@ -5140,7 +5140,7 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "1ad752693abb1e50e73a43cc43c5bceb0253d1596f9d36adaf41d70e9ee669d2",
-      "task_contract_hash": "64393d1da00e28101f71246ef13c1b69e03b0b213542e97afcb1add8f52eaa62"
+      "task_contract_hash": "046067c1c75a57032b3b4307f386b23c706507178856ee20cffa70478cd0e42a"
     },
     "flow-reaction-optimization": {
       "declared_but_unreachable": [],
@@ -5193,7 +5193,7 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "b453a4c81eba3ac230202b9833cb6d7d6aaee84387d87f58acfc3c974242b8cf",
-      "task_contract_hash": "aa47c74db1753f062a3e5f59208db8278c25db778390607892e20eaaeb30cdc9"
+      "task_contract_hash": "834207984ba38bfab373c400fc715d63908100db3ca9549185daf4fb5aca5a4f"
     },
     "low-budget-characterization": {
       "declared_but_unreachable": [],
@@ -5246,7 +5246,7 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "93d14fdc85dcffe7dbef37aaab41308ecf5d877add1cef34b444489f2af7e76e",
-      "task_contract_hash": "3d8bb180e63016b49b0f2c09694ad4f2d965d8096c9c615d021c987204283a29"
+      "task_contract_hash": "c9a46ddac7960377bfce556c15d841ed9c6093684ac48966f0a6cf79aa6693fc"
     },
     "partition-discovery": {
       "declared_but_unreachable": [],
@@ -5288,7 +5288,7 @@
         "chromatography_retention_plate"
       ],
       "runtime_profile_hash": "bfc84c67353fb79ca6e51e6ddfb6b64b1d1ecce67ae0b96623fa8a70d42b5030",
-      "task_contract_hash": "ce378e7bc5e725ed266db2bb639194c05f5f615ba0795b158c3c976cc787117e"
+      "task_contract_hash": "8f5e648c9c4ad3138391014a536dc9df3008b99152c70da0f2a173914ec0d37c"
     },
     "public-private-generalization": {
       "declared_but_unreachable": [],
@@ -5341,7 +5341,7 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "93d14fdc85dcffe7dbef37aaab41308ecf5d877add1cef34b444489f2af7e76e",
-      "task_contract_hash": "d2a07d58a7c09d317239794eb5757fdcd5ea68514fc531bd2ece6436b08aa3fd"
+      "task_contract_hash": "5aec9b64b8ed4cc5da009ea669978a83f76c913b3bc7e497236d231571ab7c3d"
     },
     "purity-yield-tradeoff": {
       "declared_but_unreachable": [],
@@ -5432,7 +5432,7 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "f66e5adf3d3225b41fc210840906bbd6ba57388aadba25978378124713554431",
-      "task_contract_hash": "931d1c9c2364888a9cf390557614f78c042d3e166a8ae495d57cd1fdacd1ee0f"
+      "task_contract_hash": "431b4b6f8c25ea53a937b94ea07966d32609e2db2a76bd73589109bb5aaf98dd"
     },
     "reaction-mechanism-explanation": {
       "declared_but_unreachable": [],
@@ -5485,7 +5485,7 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "93d14fdc85dcffe7dbef37aaab41308ecf5d877add1cef34b444489f2af7e76e",
-      "task_contract_hash": "4b69716dcd93cc32eb82beb335fea7f53062e5785496daecfc1530ddcdc39006"
+      "task_contract_hash": "addead31f7c7a85fa81278445bdf85a9fb03c89c5bb740ac6262cd28c0853142"
     },
     "reaction-optimization-standard": {
       "declared_but_unreachable": [],
@@ -5538,7 +5538,7 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "93d14fdc85dcffe7dbef37aaab41308ecf5d877add1cef34b444489f2af7e76e",
-      "task_contract_hash": "0c80793551675a61dbde5f3e2456929e6e6c92574ca2f3d5fa967a97ddcdb1a5"
+      "task_contract_hash": "e8de4285f89c507c305226c9f1f37454879517c1069b9bfab6ae26154ac1e4bc"
     },
     "reaction-safety-constrained": {
       "declared_but_unreachable": [],
@@ -5591,7 +5591,7 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "93d14fdc85dcffe7dbef37aaab41308ecf5d877add1cef34b444489f2af7e76e",
-      "task_contract_hash": "780ac2c552c7652b1afb8581d76bb2884bb99a334f7b85dffe73cf4c35834263"
+      "task_contract_hash": "867e1a8473a40e679af88ad4679d5753ea7aa90ae5bf9555aa2d9903860c63ec"
     },
     "reaction-to-assay": {
       "declared_but_unreachable": [],
@@ -5644,13 +5644,12 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "93d14fdc85dcffe7dbef37aaab41308ecf5d877add1cef34b444489f2af7e76e",
-      "task_contract_hash": "395402a224b27cdbd070470ab1d0131e01c3bd472b773170bdcf4ba4f5a1bc96"
+      "task_contract_hash": "1366e4e73eedeee2fa5d630831614f07a7c4f09d5661e9fb6cfccab57643bd1f"
     },
     "reaction-to-crystallization": {
       "declared_but_unreachable": [],
       "declared_lowest_maturity": "reference_validated",
       "declared_model_ids": [
-        "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
         "cooling_crystallization_population_balance_v1",
@@ -5682,7 +5681,6 @@
           "declared_level": "reference_validated",
           "model_ids": [
             "chemworld_validated_synthetic_instruments_v1",
-            "beer_lambert_uvvis",
             "chromatography_retention_plate"
           ],
           "module_id": "spectroscopy_instruments",
@@ -5700,15 +5698,14 @@
       ],
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
-        "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
         "cooling_crystallization_population_balance_v1",
         "dynamic_batch_heat_release_jacket_sampling",
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
-      "runtime_profile_hash": "ea5051efad2af16d2700c1a442282485604b852ebbf9acea2ccdc2f31f856ff4",
-      "task_contract_hash": "f15de7356ab11588028bb0add31b3461e9b90bf273de6dcdb4e123ce6b2f65ac"
+      "runtime_profile_hash": "7353b9f69143e29ce79f19b8c0ea165c7e497c67344f8dd6e415c4f0a3de6fe4",
+      "task_contract_hash": "756ca669f81a27290cd72e25c05cf9ed1f7cae0db6b299f1332d8a907b642e8f"
     },
     "reaction-to-distillation": {
       "declared_but_unreachable": [],
@@ -5772,7 +5769,7 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "175f0aaf881061d43593f6f39c56c2b24cfe3e6e6c6f1deac97609885f66e693",
-      "task_contract_hash": "939b171d164139699d94c78250a937ab637be201f23bd62fddc47a864becaba7"
+      "task_contract_hash": "d19adb180200831acca5bdbb6e05a6a9de1760b494eb03f6be5a43162c6b9109"
     },
     "reaction-to-purification": {
       "declared_but_unreachable": [],
@@ -5863,7 +5860,7 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "f66e5adf3d3225b41fc210840906bbd6ba57388aadba25978378124713554431",
-      "task_contract_hash": "ee5d6b82178abeaaa6975680f2a469cbdad43f6b655bb65d6e437294a55e052d"
+      "task_contract_hash": "9bb160c677f4feb72c06dfb4985e29abfce68499a0a6df02607b2cbeb720b0ca"
     },
     "tool-agent-planning": {
       "declared_but_unreachable": [],
@@ -5954,7 +5951,7 @@
         "reaction_ode_mass_action_arrhenius_reference_slice"
       ],
       "runtime_profile_hash": "f66e5adf3d3225b41fc210840906bbd6ba57388aadba25978378124713554431",
-      "task_contract_hash": "9752398c5b05a0d3a20df7df811ebb59e46a1c7f1e52ab6340fed9c5526c3ee9"
+      "task_contract_hash": "a7972dfc2519fc48e1e7eb6f635ba703aa52f0bbf66688e86dbb0df105a32ddf"
     }
   },
   "task_count": 15

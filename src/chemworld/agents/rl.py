@@ -35,6 +35,8 @@ RLResourceReportingScope = Literal[
     "diagnostic_combined",
     "formal_evaluation_only",
 ]
+
+
 def validate_frozen_rl_observation_space(
     observation_space: Any,
     observation_contract: dict[str, Any],
@@ -114,11 +116,13 @@ def build_frozen_rl_observation(
         raise ValueError("public RL view observed mask must be binary")
     if not np.all(public_values[public_mask == 0.0] == np.float32(expected_missing)):
         raise ValueError("unobserved public RL values must use the frozen missing-value sentinel")
-    requirements = core_operation_requirements(get_task(task_id).allowed_operations)
+    requirements = core_operation_requirements(
+        get_task(task_id).allowed_operations,
+        task_id=task_id,
+    )
     public_operation_ledger = set(executed_operations)
     core_progress = [
-        float(bool(set(group).intersection(public_operation_ledger)))
-        for group in requirements
+        float(bool(set(group).intersection(public_operation_ledger))) for group in requirements
     ]
     budget = max(int(campaign.get("budget", 1)), 1)
     operation_count = max(int(campaign.get("operation_count", 0)), 0)
@@ -188,9 +192,10 @@ class FrozenSB3Agent(BaseAgent):
             raise ValueError("unsupported RL resource reporting scope")
         self.resource_reporting_scope = resource_reporting_scope
         self.checkpoint_sha256 = _sha256(self.checkpoint)
-        if self.checkpoint_manifest.get(
-            "schema_version"
-        ) not in RL_CHECKPOINT_RUNTIME_SCHEMA_VERSIONS:
+        if (
+            self.checkpoint_manifest.get("schema_version")
+            not in RL_CHECKPOINT_RUNTIME_SCHEMA_VERSIONS
+        ):
             raise ValueError(
                 "unsupported RL checkpoint manifest; legacy checkpoints must be retrained "
                 "under the current observation, action, and reward contracts"
@@ -202,9 +207,10 @@ class FrozenSB3Agent(BaseAgent):
         if self.checkpoint_manifest.get("checkpoint_sha256") != self.checkpoint_sha256:
             raise ValueError("RL checkpoint digest does not match its manifest")
         self.observation_contract = rl_observation_contract(task_id)
-        if self.checkpoint_manifest.get(
-            "observation_contract_hash"
-        ) != self.observation_contract["contract_hash"]:
+        if (
+            self.checkpoint_manifest.get("observation_contract_hash")
+            != self.observation_contract["contract_hash"]
+        ):
             raise ValueError("RL checkpoint observation contract hash is incompatible")
         schema_env = gym.make("ChemWorld", task_id=task_id)
         try:
@@ -214,25 +220,30 @@ class FrozenSB3Agent(BaseAgent):
         finally:
             schema_env.close()
         self.action_contract = conditional_hybrid_action_contract(self._event_action_space)
-        self.reward_contract = reward_contract(get_task(task_id).allowed_operations)
-        if self.checkpoint_manifest.get("action_contract_hash") != self.action_contract[
-            "contract_hash"
-        ]:
+        self.reward_contract = reward_contract(
+            get_task(task_id).allowed_operations,
+            task_id=task_id,
+        )
+        if (
+            self.checkpoint_manifest.get("action_contract_hash")
+            != self.action_contract["contract_hash"]
+        ):
             raise ValueError("RL checkpoint action contract hash is incompatible")
-        if self.checkpoint_manifest.get(
-            "training_reward_contract_hash"
-        ) != self.reward_contract["contract_hash"]:
+        if (
+            self.checkpoint_manifest.get("training_reward_contract_hash")
+            != self.reward_contract["contract_hash"]
+        ):
             raise ValueError("RL checkpoint reward contract hash is incompatible")
         parameter_keys = tuple(
             str(item)
-            for item in self.action_contract["training_adapter"][
-                "parameter_coordinate_keys"
-            ]
+            for item in self.action_contract["training_adapter"]["parameter_coordinate_keys"]
         )
         self.policy_distribution_contract = policy_distribution_contract(parameter_keys)
-        if algorithm == "ppo" and self.checkpoint_manifest.get(
-            "policy_distribution_contract_hash"
-        ) != self.policy_distribution_contract["contract_hash"]:
+        if (
+            algorithm == "ppo"
+            and self.checkpoint_manifest.get("policy_distribution_contract_hash")
+            != self.policy_distribution_contract["contract_hash"]
+        ):
             raise ValueError("RL checkpoint policy distribution contract hash is incompatible")
         try:
             import stable_baselines3 as sb3
@@ -246,9 +257,7 @@ class FrozenSB3Agent(BaseAgent):
             self._model.observation_space,
             self.observation_contract,
         )
-        expected_action_shape = tuple(
-            self.action_contract["training_adapter"]["shape"]
-        )
+        expected_action_shape = tuple(self.action_contract["training_adapter"]["shape"])
         if tuple(self._model.action_space.shape or ()) != expected_action_shape:
             raise ValueError("RL checkpoint latent action shape is incompatible")
         self._prediction_count = 0
@@ -285,9 +294,7 @@ class FrozenSB3Agent(BaseAgent):
 
         del action, observation, reward
         flags = info.get("constraint_flags", {})
-        invalid = bool(
-            isinstance(flags, dict) and flags.get("precondition_failed", False)
-        )
+        invalid = bool(isinstance(flags, dict) and flags.get("precondition_failed", False))
         operation = info.get("operation_type")
         if not invalid and isinstance(operation, str) and operation:
             self._executed_operations.add(operation)

@@ -45,17 +45,24 @@ def test_serious_tasks_have_distinct_search_spaces(task_id: str, expected_kind: 
     assert task_recipe_kind(get_task(task_id).to_dict()) == expected_kind
 
 
-def test_model_vector_one_hot_encodes_electrochemical_solvent() -> None:
+def test_model_vector_one_hot_encodes_electrolyte_profile() -> None:
     task_info = get_task("electrochemical-conversion").to_dict()
     recipe = task_recipe_from_unit_vector(
         task_info,
-        np.asarray([0.62, 0.3, 0.4, 0.5, 0.6]),
+        np.asarray([0.62, 0.3, 0.4, 0.5, 0.6, 0.3, 0.4, 0.5]),
     )
 
     encoded = task_recipe_to_model_vector(task_info, recipe)
+    steps = recipe["steps"]
 
-    assert encoded.shape == (8,)
+    assert encoded.shape == (11,)
     assert encoded[-4:].tolist() == [0.0, 0.0, 1.0, 0.0]
+    assert next(step for step in steps if step["operation"] == "add_solvent")["solvent"] == 0
+    assert {
+        step["electrolyte_profile"]
+        for step in steps
+        if step["operation"] == "set_potential"
+    } == {2}
 
 
 @pytest.mark.parametrize("residence_coordinate", (0.0, 0.25, 0.5, 0.75, 1.0))
@@ -73,9 +80,7 @@ def test_flow_recipe_reserves_the_public_residence_multiplier_domain(
     setup = next(step for step in steps if step["operation"] == "set_flow_rate")
     run = next(step for step in steps if step["operation"] == "run_flow")
 
-    assert run["duration_s"] >= (
-        setup["residence_time_s"] * FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER
-    )
+    assert run["duration_s"] >= (setup["residence_time_s"] * FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER)
     assert run["duration_s"] <= 14_400.0
 
 
@@ -99,11 +104,13 @@ def test_search_baselines_execute_valid_serious_task_actions(
     )
     assert history
     assert not any(
-        record.info["constraint_flags"].get("precondition_failed", False)
-        for record in history
+        record.info["constraint_flags"].get("precondition_failed", False) for record in history
     )
-    assert sum(
-        record.action.get("operation") == "measure"
-        and record.action.get("instrument") == "final_assay"
-        for record in history
-    ) >= 1
+    assert (
+        sum(
+            record.action.get("operation") == "measure"
+            and record.action.get("instrument") == "final_assay"
+            for record in history
+        )
+        >= 1
+    )

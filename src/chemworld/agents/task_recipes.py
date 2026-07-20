@@ -12,7 +12,7 @@ from typing import Any
 
 import numpy as np
 
-TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-0.3"
+TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-0.5"
 
 # Formal world-family interventions may multiply a configured flow residence
 # time by at most 1.75 (extrapolation severity +1).  Complete-recipe baselines
@@ -23,7 +23,7 @@ FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER = 1.75
 _CONSERVATIVE_BASE_VECTORS = {
     "equilibrium": (0.5, 0.12, 0.12, 0.5),
     "flow": (0.0, 0.15, 0.0, 0.15, 0.70, 0.15, 0.10, 0.12),
-    "electrochemical": (0.0, 0.15, 0.10, 0.10, 0.12),
+    "electrochemical": (0.0, 0.15, 0.30, 0.25, 0.20, 0.35, 0.30, 0.25),
     "partition": (0.0, 0.35, 0.50, 0.0, 0.35, 0.15, 0.65, 0.15),
     "reaction_crystallization": (
         0.10,
@@ -57,12 +57,12 @@ _CONSERVATIVE_BASE_VECTORS = {
 def task_recipe_kind(task_info: dict[str, Any]) -> str:
     operations = set(task_info.get("allowed_operations", ()))
     instruments = set(task_info.get("allowed_instruments", ()))
-    if "ph_meter" in instruments:
-        return "equilibrium"
     if "run_flow" in operations:
         return "flow"
     if "electrolyze" in operations:
         return "electrochemical"
+    if "ph_meter" in instruments:
+        return "equilibrium"
     if "add_phase" in operations and "heat" not in operations:
         return "partition"
     if "cool_crystallize" in operations:
@@ -76,7 +76,7 @@ def task_recipe_dimension(task_info: dict[str, Any]) -> int:
     return {
         "equilibrium": 4,
         "flow": 8,
-        "electrochemical": 5,
+        "electrochemical": 8,
         "partition": 8,
         "reaction_crystallization": 10,
         "reaction_distillation": 11,
@@ -114,9 +114,7 @@ def task_recipe_from_unit_vector(
     dimension = task_recipe_dimension(task_info)
     raw_values = np.asarray(vector, dtype=float).reshape(-1)
     if raw_values.size != dimension:
-        raise ValueError(
-            f"Expected {dimension} task-recipe coordinates, got {raw_values.size}"
-        )
+        raise ValueError(f"Expected {dimension} task-recipe coordinates, got {raw_values.size}")
     values = np.asarray(np.clip(raw_values, 0.0, 1.0), dtype=float).reshape(-1)
     kind = task_recipe_kind(task_info)
     if kind == "equilibrium":
@@ -228,19 +226,31 @@ def _reaction_charge_steps(values: np.ndarray) -> list[dict[str, Any]]:
 def _reaction_steps(values: np.ndarray, *, kind: str) -> list[dict[str, Any]]:
     steps = _reaction_charge_steps(values)
     if kind == "reaction_crystallization":
+        reaction_temperature_K = _scale(values[0], 333.15, 423.15)
+        cooling_temperature_K = float(
+            np.clip(
+                min(
+                    _scale(values[8], 270.0, 315.0),
+                    reaction_temperature_K - 55.0,
+                ),
+                250.0,
+                315.0,
+            )
+        )
         steps.extend(
             [
+                {"operation": "measure", "instrument": "hplc"},
                 {
                     "operation": "seed_crystals",
                     "seed_mass_g": _scale(values[7], 0.001, 0.015),
                 },
                 {
                     "operation": "cool_crystallize",
-                    "target_temperature_K": _scale(values[8], 273.15, 296.15),
-                    "duration_s": _scale(values[9], 600.0, 4200.0),
+                    "target_temperature_K": cooling_temperature_K,
+                    "duration_s": _scale(values[9], 600.0, 14_400.0),
                 },
-                {"operation": "filter_crystals"},
                 {"operation": "measure", "instrument": "hplc"},
+                {"operation": "filter_crystals"},
             ]
         )
     elif kind == "reaction_distillation":
@@ -342,19 +352,33 @@ def _flow_steps(values: np.ndarray) -> list[dict[str, Any]]:
 
 
 def _electrochemical_steps(values: np.ndarray) -> list[dict[str, Any]]:
+    probe_potential = _scale(values[2], 0.65, 1.25)
+    probe_current = _scale(values[3], 15.0, 90.0)
+    controlled_potential = min(probe_potential + _scale(values[5], 0.05, 0.55), 2.25)
+    controlled_current = min(probe_current + _scale(values[6], 5.0, 100.0), 220.0)
     return [
         {
             "operation": "add_solvent",
             "volume_L": 0.025,
-            "solvent": _choice(values[0], 4),
+            "solvent": 0,
         },
         {"operation": "add_reagent", "amount_mol": _scale(values[1], 0.003, 0.030)},
         {
             "operation": "set_potential",
-            "potential_V": _scale(values[2], 0.35, 2.25),
-            "current_mA": _scale(values[3], 15.0, 220.0),
+            "potential_V": probe_potential,
+            "current_mA": probe_current,
+            "electrolyte_profile": _choice(values[0], 4),
         },
-        {"operation": "electrolyze", "duration_s": _scale(values[4], 300.0, 4200.0)},
+        {"operation": "electrolyze", "duration_s": _scale(values[4], 180.0, 900.0)},
+        {"operation": "measure", "instrument": "ph_meter"},
+        {"operation": "measure", "instrument": "uvvis"},
+        {
+            "operation": "set_potential",
+            "potential_V": controlled_potential,
+            "current_mA": controlled_current,
+            "electrolyte_profile": _choice(values[0], 4),
+        },
+        {"operation": "electrolyze", "duration_s": _scale(values[7], 300.0, 3600.0)},
         {"operation": "measure", "instrument": "uvvis"},
         {"operation": "terminate"},
         {"operation": "measure", "instrument": "final_assay"},

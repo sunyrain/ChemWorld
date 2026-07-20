@@ -408,6 +408,11 @@ def _resource_plan_ready(raw: Any, runs: Sequence[Mapping[str, Any]]) -> bool:
         task_id: task_recipe_event_count(get_task(task_id).to_dict()) for task_id in CORE_TASKS
     }
     actual_operations = sum(int(row["maximum_operation_count"]) for row in runs)
+    expected_operations = sum(
+        expected_events[str(row["task_id"])]
+        * int(row["complete_experiment_budget"])
+        for row in runs
+    )
     return (
         raw.get("complete_experiments_per_source_run") == 40
         and raw.get("source_runs_per_task_pair") == 4
@@ -416,7 +421,9 @@ def _resource_plan_ready(raw: Any, runs: Sequence[Mapping[str, Any]]) -> bool:
         and raw.get("planned_complete_experiment_count") == 64_000
         and raw.get("planned_source_metric_record_count") == 3_200
         and raw.get("task_recipe_operation_counts") == expected_events
-        and raw.get("planned_maximum_operation_count") == actual_operations == 640_000
+        and raw.get("planned_maximum_operation_count")
+        == actual_operations
+        == expected_operations
         and raw.get("planned_wall_time_upper_bound_s_serial")
         == 1_600 * float(raw.get("maximum_wall_time_s_per_source_run", math.nan))
     )

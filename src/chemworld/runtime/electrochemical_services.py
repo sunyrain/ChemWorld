@@ -32,7 +32,67 @@ from chemworld.physchem.equilibrium_chemistry import (
     solve_aqueous_electrolyte_equilibrium,
 )
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.world.actions import ELECTROLYTE_PROFILES
 from chemworld.world.parameters import ChemWorldParameters
+
+AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS: tuple[dict[str, float], ...] = (
+    {
+        "electrolyte_conductivity_S_m": 0.8,
+        "electrode_gap_m": 0.006,
+        "electrode_area_m2": 0.004,
+        "contact_resistance_ohm": 0.50,
+        "diffusivity_m2_s": 3.0e-10,
+        "diffusion_layer_thickness_m": 2.5e-3,
+        "double_layer_capacitance_F_m2": 0.25,
+        "acid_concentration_mol_L": 0.015,
+        "supporting_electrolyte_concentration_mol_L": 0.003,
+        "precipitating_salt_concentration_mol_L": 0.001,
+        "electrolyte_acid_pka": 4.76,
+        "electrolyte_ksp": 1.0e-7,
+    },
+    {
+        "electrolyte_conductivity_S_m": 12.0,
+        "electrode_gap_m": 0.003,
+        "electrode_area_m2": 0.004,
+        "contact_resistance_ohm": 0.12,
+        "diffusivity_m2_s": 1.2e-9,
+        "diffusion_layer_thickness_m": 8.0e-4,
+        "double_layer_capacitance_F_m2": 0.20,
+        "acid_concentration_mol_L": 0.010,
+        "supporting_electrolyte_concentration_mol_L": 0.080,
+        "precipitating_salt_concentration_mol_L": 0.001,
+        "electrolyte_acid_pka": 4.76,
+        "electrolyte_ksp": 1.0e-8,
+    },
+    {
+        "electrolyte_conductivity_S_m": 6.0,
+        "electrode_gap_m": 0.004,
+        "electrode_area_m2": 0.004,
+        "contact_resistance_ohm": 0.20,
+        "diffusivity_m2_s": 8.0e-10,
+        "diffusion_layer_thickness_m": 1.2e-3,
+        "double_layer_capacitance_F_m2": 0.18,
+        "acid_concentration_mol_L": 0.050,
+        "supporting_electrolyte_concentration_mol_L": 0.040,
+        "precipitating_salt_concentration_mol_L": 5.0e-4,
+        "electrolyte_acid_pka": 3.20,
+        "electrolyte_ksp": 1.0e-6,
+    },
+    {
+        "electrolyte_conductivity_S_m": 2.0,
+        "electrode_gap_m": 0.005,
+        "electrode_area_m2": 0.004,
+        "contact_resistance_ohm": 0.35,
+        "diffusivity_m2_s": 2.0e-10,
+        "diffusion_layer_thickness_m": 3.0e-3,
+        "double_layer_capacitance_F_m2": 0.30,
+        "acid_concentration_mol_L": 0.005,
+        "supporting_electrolyte_concentration_mol_L": 0.015,
+        "precipitating_salt_concentration_mol_L": 0.050,
+        "electrolyte_acid_pka": 6.20,
+        "electrolyte_ksp": 1.0e-12,
+    },
+)
 
 
 def _action_float(action: dict[str, Any], key: str, default: float) -> float:
@@ -57,6 +117,13 @@ def _bounded_action_float(
     return value
 
 
+def _bounded_action_index(action: dict[str, Any], key: str, count: int) -> int:
+    value = action.get(key)
+    if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value < count:
+        raise ValueError(f"{key} must be an integer index in [0, {count - 1}]")
+    return value
+
+
 class ChemWorldElectrochemicalServices:
     """Apply electrochemical operating conditions and faradaic conversion."""
 
@@ -65,12 +132,19 @@ class ChemWorldElectrochemicalServices:
         self.species_view = species_view
 
     def set_potential(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        electrolyte_profile = _bounded_action_index(
+            action,
+            "electrolyte_profile",
+            len(ELECTROLYTE_PROFILES),
+        )
+        profile = AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS[electrolyte_profile]
+        previous_cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
         potential = _bounded_action_float(action, "potential_V", 1.20, low=-3.0, high=3.0)
         current = _bounded_action_float(action, "current_mA", 50.0, low=1.0e-3, high=500.0)
         conductivity = _bounded_action_float(
             action,
             "electrolyte_conductivity_S_m",
-            8.0,
+            profile["electrolyte_conductivity_S_m"],
             low=0.0,
             high=100.0,
             inclusive_low=False,
@@ -78,21 +152,21 @@ class ChemWorldElectrochemicalServices:
         electrode_gap = _bounded_action_float(
             action,
             "electrode_gap_m",
-            0.004,
+            profile["electrode_gap_m"],
             low=1.0e-5,
             high=0.050,
         )
         electrode_area = _bounded_action_float(
             action,
             "electrode_area_m2",
-            0.004,
+            profile["electrode_area_m2"],
             low=1.0e-5,
             high=0.20,
         )
         contact_resistance = _bounded_action_float(
             action,
             "contact_resistance_ohm",
-            0.20,
+            profile["contact_resistance_ohm"],
             low=0.0,
             high=100.0,
         )
@@ -100,48 +174,58 @@ class ChemWorldElectrochemicalServices:
         diffusivity = _bounded_action_float(
             action,
             "diffusivity_m2_s",
-            1.0e-9,
+            profile["diffusivity_m2_s"],
             low=1.0e-12,
             high=1.0e-7,
         )
         diffusion_layer = _bounded_action_float(
             action,
             "diffusion_layer_thickness_m",
-            1.0e-4,
+            profile["diffusion_layer_thickness_m"],
             low=1.0e-7,
             high=1.0e-2,
         )
         capacitance = _bounded_action_float(
             action,
             "double_layer_capacitance_F_m2",
-            0.20,
+            profile["double_layer_capacitance_F_m2"],
             low=1.0e-5,
             high=100.0,
         )
         acid_total = _bounded_action_float(
             action,
             "electrolyte_acid_total_mol",
-            0.005 * state.volume_L,
+            profile["acid_concentration_mol_L"] * state.volume_L,
             low=0.0,
             high=max(state.volume_L, 1.0e-6),
         )
         supporting_electrolyte = _bounded_action_float(
             action,
             "supporting_electrolyte_mol",
-            0.020 * state.volume_L,
+            profile["supporting_electrolyte_concentration_mol_L"] * state.volume_L,
             low=0.0,
             high=0.50 * state.volume_L,
         )
         precipitating_salt = _bounded_action_float(
             action,
             "precipitating_salt_mol",
-            0.002 * state.volume_L,
+            profile["precipitating_salt_concentration_mol_L"] * state.volume_L,
             low=0.0,
             high=0.10 * state.volume_L,
         )
-        acid_pka = _bounded_action_float(action, "electrolyte_acid_pka", 4.76, low=-2.0, high=16.0)
+        acid_pka = _bounded_action_float(
+            action,
+            "electrolyte_acid_pka",
+            profile["electrolyte_acid_pka"],
+            low=-2.0,
+            high=16.0,
+        )
         solubility_product = _bounded_action_float(
-            action, "electrolyte_ksp", 1.0e-8, low=1.0e-30, high=1.0
+            action,
+            "electrolyte_ksp",
+            profile["electrolyte_ksp"],
+            low=1.0e-30,
+            high=1.0,
         )
         activity_iterations_raw = _bounded_action_float(
             action,
@@ -166,6 +250,16 @@ class ChemWorldElectrochemicalServices:
             low=1.0e-14,
             high=1.0e-3,
         )
+        setpoint_history = list(previous_cell_settings.get("setpoint_history", ()))
+        setpoint_history.append(
+            {
+                "setpoint_index": len(setpoint_history) + 1,
+                "configured_time_s": state.ledger.time_s,
+                "potential_V": potential,
+                "current_mA": current,
+                "electrolyte_profile": electrolyte_profile,
+            }
+        )
         equipment = upsert_equipment_record(
             state.equipment,
             equipment_id="electrochemical_cell",
@@ -175,6 +269,9 @@ class ChemWorldElectrochemicalServices:
             settings={
                 "potential_V": potential,
                 "current_mA": current,
+                "electrolyte_profile": electrolyte_profile,
+                "electrolyte_profile_id": ELECTROLYTE_PROFILES[electrolyte_profile],
+                "electrolyte_profile_model": "bounded_aqueous_electrolyte_profiles_v1",
                 "electrolyte_conductivity_S_m": conductivity,
                 "electrode_gap_m": electrode_gap,
                 "electrode_area_m2": electrode_area,
@@ -191,6 +288,7 @@ class ChemWorldElectrochemicalServices:
                 "equilibrium_max_activity_iterations": int(activity_iterations_raw),
                 "equilibrium_max_precipitation_passes": int(precipitation_passes_raw),
                 "equilibrium_activity_tolerance": activity_tolerance,
+                "setpoint_history": setpoint_history,
             },
         )
         risk = min(1.0, state.ledger.risk + 0.02 * max(abs(potential) - 1.5, 0.0))
@@ -363,6 +461,14 @@ class ChemWorldElectrochemicalServices:
             state.process,
             electrochemical_selectivity=result.product_selectivity,
             faradaic_efficiency=result.faradaic_efficiency,
+            transport_efficiency=float(np.clip(transport.current_efficiency, 0.0, 1.0)),
+            ohmic_efficiency=float(
+                np.clip(
+                    1.0 - result.ohmic_loss_J / max(result.electrical_work_J, 1.0e-12),
+                    0.0,
+                    1.0,
+                )
+            ),
             energy_efficiency=result.energy_efficiency,
             equilibrium_potential_V=result.equilibrium_potential_V,
             measured_potential_V=result.measured_potential_V,
@@ -393,6 +499,9 @@ class ChemWorldElectrochemicalServices:
             mass_transfer_limited=float(transport.mass_transfer_limited_initially),
             double_layer_time_constant_s=double_layer.time_constant_s,
             electrolyte_pH=aqueous.acid_base.pH,
+            electrolyte_acid_dissociation_fraction=(
+                aqueous.acid_base.acid_dissociation_fraction
+            ),
             electrolyte_ionic_strength_mol_kg=(aqueous.acid_base.ionic_strength_mol_kg),
             electrolyte_charge_balance_error_eq=aqueous.charge_balance_error_eq,
             electrolyte_material_balance_error_mol=aqueous.material_balance_error_mol,
@@ -421,6 +530,20 @@ class ChemWorldElectrochemicalServices:
             status="configured",
             settings={
                 **cell_settings,
+                "electrolysis_history": [
+                    *list(cell_settings.get("electrolysis_history", ())),
+                    {
+                        "execution_index": len(
+                            tuple(cell_settings.get("electrolysis_history", ()))
+                        )
+                        + 1,
+                        "start_time_s": state.ledger.time_s,
+                        "end_time_s": state.ledger.time_s + duration,
+                        "potential_V": potential,
+                        "current_mA": current_mA,
+                        "electrolyte_profile": int(cell_settings["electrolyte_profile"]),
+                    },
+                ],
                 "runtime_model_ids": (
                     "nernst_butler_volmer_faradaic_v1",
                     transport.model_id,

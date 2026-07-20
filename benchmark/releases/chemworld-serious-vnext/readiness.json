@@ -6,10 +6,12 @@
       "allow_proxy": false,
       "anti_gaming_checks": [
         "reject hidden-state access and contract-hash drift",
-        "score final-assay results separately from intermediate observations"
+        "score final-assay results separately from intermediate observations",
+        "second setpoint must differ after pH and performance diagnostics",
+        "cached observations cannot reward non-measurement operations"
       ],
-      "capability_claim": "electrochemical control under transport and energy constraints",
-      "design_version": "chemworld-serious-task-design-0.1",
+      "capability_claim": "diagnosis-conditioned electrochemical identification and control",
+      "design_version": "chemworld-serious-task-design-0.2",
       "generalization_axes": [
         "redox kinetics",
         "mass-transfer and resistance regime"
@@ -33,7 +35,7 @@
         }
       ],
       "minimum_maturity": "lite",
-      "primary_metric": "electrochemical_selectivity",
+      "primary_metric": "score",
       "required_baselines": [
         "random",
         "lhs",
@@ -46,10 +48,15 @@
         "deterministic replay verification",
         "per-task failure and constraint analysis"
       ],
-      "research_question": "Can an agent trade selectivity against electrical efficiency?",
+      "research_question": "Can an agent use electrolyte and performance diagnostics to adapt a second electrochemical regime under transport, resistance, and energy constraints?",
       "secondary_metrics": [
-        "score",
+        "electrochemical_selectivity",
+        "faradaic_efficiency",
+        "transport_efficiency",
+        "ohmic_efficiency",
         "energy_efficiency",
+        "pH_normalized",
+        "precipitation_signal",
         "safety_risk"
       ],
       "status": "candidate",
@@ -62,7 +69,7 @@
         "score final-assay results separately from intermediate observations"
       ],
       "capability_claim": "instrument-budgeted equilibrium identification",
-      "design_version": "chemworld-serious-task-design-0.1",
+      "design_version": "chemworld-serious-task-design-0.2",
       "generalization_axes": [
         "acid-base constants",
         "solubility-product regime"
@@ -116,7 +123,7 @@
         "score final-assay results separately from intermediate observations"
       ],
       "capability_claim": "geometry-aware continuous-flow optimization",
-      "design_version": "chemworld-serious-task-design-0.1",
+      "design_version": "chemworld-serious-task-design-0.2",
       "generalization_axes": [
         "reaction kinetics",
         "residence time and thermal boundary"
@@ -170,7 +177,7 @@
         "score final-assay results separately from intermediate observations"
       ],
       "capability_claim": "active phase-equilibrium characterization under a budget",
-      "design_version": "chemworld-serious-task-design-0.1",
+      "design_version": "chemworld-serious-task-design-0.2",
       "generalization_axes": [
         "distribution coefficient",
         "phase-volume ratio"
@@ -219,10 +226,12 @@
       "allow_proxy": false,
       "anti_gaming_checks": [
         "reject hidden-state access and contract-hash drift",
-        "score final-assay results separately from intermediate observations"
+        "score final-assay results separately from intermediate observations",
+        "ordered reaction-assay, seeded-cooling, slurry-assay, and isolation milestones",
+        "cached observations cannot reward non-measurement operations"
       ],
       "capability_claim": "closed-loop reaction and cooling-crystallization planning",
-      "design_version": "chemworld-serious-task-design-0.1",
+      "design_version": "chemworld-serious-task-design-0.2",
       "generalization_axes": [
         "kinetic profile",
         "solubility and cooling profile"
@@ -246,7 +255,7 @@
         }
       ],
       "minimum_maturity": "lite",
-      "primary_metric": "crystal_yield",
+      "primary_metric": "score",
       "required_baselines": [
         "random",
         "lhs",
@@ -261,9 +270,11 @@
       ],
       "research_question": "Can an agent balance reaction quality, recovery, purity, and CSD?",
       "secondary_metrics": [
-        "score",
+        "crystal_yield",
         "crystal_purity",
-        "crystal_size"
+        "crystal_size",
+        "crystal_csd_quality",
+        "crystal_fines_fraction"
       ],
       "status": "candidate",
       "task_id": "reaction-to-crystallization"
@@ -275,7 +286,7 @@
         "score final-assay results separately from intermediate observations"
       ],
       "capability_claim": "reaction-distillation trade-off reasoning",
-      "design_version": "chemworld-serious-task-design-0.1",
+      "design_version": "chemworld-serious-task-design-0.2",
       "generalization_axes": [
         "relative volatility",
         "reaction selectivity"
@@ -852,7 +863,7 @@
       "task_id": "reaction-to-distillation"
     }
   },
-  "schema_version": "chemworld-serious-task-design-0.1",
+  "schema_version": "chemworld-serious-task-design-0.2",
   "suite_status": "candidate",
   "task_ids": [
     "partition-discovery",

@@ -19,7 +19,8 @@
     ],
     "allowed_cost_penalties": [0.01, 0.03],
     "expected_risk_penalty": 0.08,
-    "observation_policy": "failed_observation_without_history_commit"
+    "observation_policy": "failed_observation_without_history_or_rng_commit",
+    "observation_integrity": "finite_bounded_nonleaking_mask_consistent"
   },
   "legacy_constraints": {
     "frozen_protocol_compatibility": "not_required",
@@ -115,7 +116,7 @@
     "electro_configured": [
       {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
       {"operation": "add_reagent", "amount_mol": 0.01},
-      {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0}
+      {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0, "electrolyte_profile": 1}
     ]
   },
   "operations": {
@@ -143,7 +144,7 @@
     "collect_fraction": {"task_id": "reaction-to-distillation", "setup": "distilled", "semantic": "replace", "conservation": "external_output", "required_effect_any": ["phase", "volume", "cost"], "action": {"operation": "collect_fraction", "transfer_fraction": 0.8}},
     "set_flow_rate": {"task_id": "flow-reaction-optimization", "setup": "empty", "semantic": "configure", "conservation": "configuration_only", "required_effect_any": ["configuration", "cost"], "action": {"operation": "set_flow_rate", "flow_rate_mL_min": 1.2, "residence_time_s": 900.0}},
     "run_flow": {"task_id": "flow-reaction-optimization", "setup": "flow_configured", "semantic": "additive", "conservation": "internal_transform", "required_effect_any": ["material", "time", "temperature"], "action": {"operation": "run_flow", "target_temperature_K": 382.0, "duration_s": 1800.0}},
-    "set_potential": {"task_id": "electrochemical-conversion", "setup": "charged_basic", "semantic": "configure", "conservation": "configuration_only", "required_effect_any": ["configuration", "cost"], "action": {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0}},
+    "set_potential": {"task_id": "electrochemical-conversion", "setup": "charged_basic", "semantic": "configure", "conservation": "configuration_only", "required_effect_any": ["configuration", "cost"], "action": {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0, "electrolyte_profile": 1}},
     "electrolyze": {"task_id": "electrochemical-conversion", "setup": "electro_configured", "semantic": "additive", "conservation": "internal_transform", "required_effect_any": ["material", "time", "cost"], "action": {"operation": "electrolyze", "duration_s": 1800.0}},
     "terminate": {"task_id": "reaction-to-assay", "setup": "material_only", "semantic": "terminal", "conservation": "terminal_only", "required_effect_any": ["termination"], "action": {"operation": "terminate"}},
     "measure": {"task_id": "reaction-to-assay", "setup": "volume_only", "semantic": "observe", "conservation": "observation_only", "required_effect_any": ["measurement", "cost", "sample"], "action": {"operation": "measure", "instrument": "uvvis"}}

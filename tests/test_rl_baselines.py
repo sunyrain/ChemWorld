@@ -8,12 +8,17 @@ import pytest
 from scripts.audit_rl_baselines import FREEZE_PROTOCOL, RL_PROTOCOL, build_report
 
 import chemworld  # noqa: F401
+from chemworld.agents.task_recipes import (
+    task_recipe_dimension,
+    task_recipe_from_unit_vector,
+)
 from chemworld.rl.environment import (
     RLWorldAllocation,
     TrainWorldFamilyWrapper,
     build_rl_environment,
     load_rl_protocol,
 )
+from chemworld.tasks import get_task
 from chemworld.wrappers import (
     ConditionalHybridActionWrapper,
     ContinuousEventActionWrapper,
@@ -35,28 +40,26 @@ def test_continuous_action_adapter_has_stationary_fixed_semantics() -> None:
     env = ContinuousEventActionWrapper(gym.make("ChemWorld", task_id="partition-discovery"))
     try:
         env.reset(seed=0)
-        assert env.action_space.shape == (49,)
+        assert env.action_space.shape == (50,)
         assert env.action_contract()["action_keys"] == list(env.event_action_space.spaces)
         assert env.action_contract()["operation_types"] == list(env.operation_types)
-        add_reagent = np.full(49, -1.0, dtype=np.float32)
+        add_reagent = np.full(50, -1.0, dtype=np.float32)
         add_reagent[env.operation_types.index("add_reagent")] = 1.0
         decoded = env.action(add_reagent)
         assert decoded["operation"] == env.operation_types.index("add_reagent")
-        impossible = np.full(49, -1.0, dtype=np.float32)
+        impossible = np.full(50, -1.0, dtype=np.float32)
         impossible[env.operation_types.index("cool_crystallize")] = 1.0
         masked = env.action(impossible)
         assert masked["operation"] != env.operation_types.index("cool_crystallize")
-        low = env.action(np.full(49, -1.0, dtype=np.float32))
+        low = env.action(np.full(50, -1.0, dtype=np.float32))
         assert float(low["potential_V"]) == pytest.approx(-3.0)
-        high_parameters = np.ones(49, dtype=np.float32)
+        high_parameters = np.ones(50, dtype=np.float32)
         high = env.action(high_parameters)
         assert float(high["potential_V"]) == pytest.approx(3.0)
-        assert env.action_contract()["schema_version"] == (
-            "chemworld-continuous-event-action-0.3"
-        )
+        assert env.action_contract()["schema_version"] == ("chemworld-continuous-event-action-0.3")
         assert env.action_contract()["execution_numeric_policy"]
         with pytest.raises(ValueError, match="finite vector"):
-            env.action(np.full(49, np.nan, dtype=np.float32))
+            env.action(np.full(50, np.nan, dtype=np.float32))
     finally:
         env.close()
 
@@ -68,13 +71,14 @@ def test_conditional_hybrid_adapter_excludes_irrelevant_coordinates() -> None:
     try:
         env.reset(seed=0)
         contract = env.action_contract()
-        assert contract["schema_version"] == "chemworld-conditional-hybrid-action-0.3"
+        assert contract["schema_version"] == "chemworld-conditional-hybrid-action-0.8"
+        assert contract["execution_projection"]["affordance_state_machine_version"].endswith("0.6")
         assert contract["execution_projection"]["state_dependent_categorical_choices"] is True
         assert contract["semantic_action"]["operation"]["kind"] == "categorical"
         assert contract["training_adapter"]["native_hybrid_distribution"] is False
         assert len(contract["contract_hash"]) == 64
 
-        first = np.zeros(49, dtype=np.float32)
+        first = np.zeros(50, dtype=np.float32)
         first[env.operation_types.index("add_reagent")] = 1.0
         second = first.copy()
         # Change every parameter coordinate except amount_mol. The executed
@@ -257,7 +261,59 @@ def test_training_reward_uses_public_failures_without_changing_raw_environment()
         env.close()
 
 
-def test_training_reward_marks_quick_close_without_terminal_or_measurement_bonus() -> None:
+def test_nonmeasurement_action_cannot_redeem_cached_observation_score() -> None:
+    env = gym.make("ChemWorld", task_id="flow-reaction-optimization", budget_override=6)
+    try:
+        env.reset(seed=0)
+        env.step({"operation": "add_reagent", "amount_mol": 0.02})
+        env.step({"operation": "add_solvent", "volume_L": 0.05, "solvent": 0})
+        _, measured_reward, _, _, measured_info = env.step(
+            {"operation": "measure", "instrument": "uvvis"}
+        )
+        _, terminal_reward, _, _, terminal_info = env.step({"operation": "terminate"})
+        assert np.isfinite(measured_reward)
+        assert measured_info["environment_reward"]["fresh_measurement"] is True
+        assert terminal_reward == 0.0
+        assert terminal_info["environment_reward"] == {
+            "schema_version": "chemworld-environment-reward-0.2",
+            "semantics": "fresh_measurement_score_delta",
+            "fresh_measurement": False,
+            "cached_observation_rewarded": False,
+            "score_delta": 0.0,
+        }
+    finally:
+        env.close()
+
+
+def test_transaction_rollback_is_invalid_and_penalized_even_when_preconditions_pass() -> None:
+    task = get_task("reaction-to-distillation")
+    recipe = task_recipe_from_unit_vector(
+        task.to_dict(),
+        np.full(task_recipe_dimension(task.to_dict()), 0.5),
+    )
+    env = RLTrainingRewardWrapper(gym.make("ChemWorld", task_id=task.task_id, budget_override=20))
+    try:
+        env.reset(seed=0)
+        for action in recipe["steps"][:-2]:
+            env.step(action)
+        _, reward, _, _, info = env.step({"operation": "wait", "duration_s": 1.0})
+        reward_info = info["rl_training_reward"]
+        assert info["transaction_status"] == "rolled_back"
+        assert info["rollback_reason"] == "constitution_failed"
+        assert info["constraint_flags"]["precondition_failed"] is False
+        assert info["constraint_flags"]["constitution_failed"] is True
+        assert reward == pytest.approx(-0.25)
+        assert reward_info["transaction_rolled_back"] is True
+        assert reward_info["invalid_action"] is True
+        diagnostics = env.training_diagnostics()
+        assert diagnostics["transaction_rollback_count"] == 1
+        assert diagnostics["constitution_failure_count"] == 1
+        assert diagnostics["invalid_action_count"] == 1
+    finally:
+        env.close()
+
+
+def test_training_reward_penalizes_quick_close_and_gates_terminal_bonus() -> None:
     env = RLTrainingRewardWrapper(
         gym.make(
             "ChemWorld",
@@ -276,7 +332,7 @@ def test_training_reward_marks_quick_close_without_terminal_or_measurement_bonus
         )
         reward_info = info["rl_training_reward"]
         assert terminate_reward == 0.0
-        assert assay_reward == pytest.approx(reward_info["raw_reward"] - 0.50)
+        assert assay_reward == pytest.approx(reward_info["raw_reward"] - 1.0)
         assert reward_info["newly_unlocked_operations"] == 0
         assert reward_info["behavior_complete"] is False
         assert reward_info["quick_close_incomplete"] is True
@@ -284,10 +340,14 @@ def test_training_reward_marks_quick_close_without_terminal_or_measurement_bonus
         assert diagnostics["quick_close_count"] == 1
         assert diagnostics["behavior_complete_experiment_count"] == 0
         contract = env.reward_contract()
-        assert contract["components"]["experiment_ended"] == 0.0
+        assert contract["components"]["experiment_ended"] == 1.0
         assert contract["components"]["measurement"] == 0.0
-        assert contract["components"]["quick_close_incomplete"] == -0.50
-        assert contract["leakage_controls"]["terminal_bonus"] is False
+        assert contract["components"]["quick_close_incomplete"] == -1.0
+        assert contract["leakage_controls"]["terminal_bonus"] is True
+        assert (
+            contract["leakage_controls"]["terminal_bonus_requires_public_behavioral_completion"]
+            is True
+        )
     finally:
         env.close()
 
@@ -317,7 +377,7 @@ def test_flow_core_operation_is_recorded_as_behavioral_completion() -> None:
         assert setup_info["rl_training_reward"]["newly_satisfied_core_requirements"] == 1
         assert setup_reward >= 0.10
         assert info["rl_training_reward"]["newly_satisfied_core_requirements"] == 1
-        assert completion_reward >= 1.10
+        assert completion_reward == pytest.approx(1.098)
         assert info["rl_training_reward"]["behavior_complete"] is True
         assert info["rl_training_reward"]["executed_core_operations"] == [
             "run_flow",

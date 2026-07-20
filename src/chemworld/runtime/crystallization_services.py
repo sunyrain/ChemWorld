@@ -298,6 +298,29 @@ class ChemWorldCrystallizationServices:
             crystal_size=float(
                 np.clip(result.crystal_size_distribution.d50_m / 250.0e-6, 0.0, 1.0)
             ),
+            crystal_csd_quality=float(
+                np.clip(
+                    0.55
+                    * (
+                        1.0
+                        - np.clip(
+                            result.crystal_size_distribution.coefficient_of_variation,
+                            0.0,
+                            1.0,
+                        )
+                    )
+                    + 0.45 * (1.0 - result.crystal_size_distribution.fines_number_fraction),
+                    0.0,
+                    1.0,
+                )
+            ),
+            crystal_fines_fraction=float(
+                np.clip(
+                    result.crystal_size_distribution.fines_number_fraction,
+                    0.0,
+                    1.0,
+                )
+            ),
         )
         cooling_depth = float(np.clip((state.temperature_K - target_temperature) / 55.0, 0.0, 1.0))
         ledger = state.ledger.with_updates(

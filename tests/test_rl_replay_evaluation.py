@@ -181,7 +181,12 @@ def test_pure_decoder_matches_gym_action_wrapper() -> None:
     )
     try:
         env.reset(seed=3)
-        vector = np.linspace(-1.0, 1.0, 49, dtype=np.float32)
+        vector = np.linspace(
+            -1.0,
+            1.0,
+            int(np.prod(env.action_space.shape)),
+            dtype=np.float32,
+        )
         base = cast(Any, env.unwrapped)
         mask = list(base.operation_validator.action_mask(base._state))
         decoded = decode_continuous_event_action(
@@ -302,7 +307,7 @@ def test_frozen_policy_produces_official_replay_verified_trajectory(
             self, observation: np.ndarray, *, deterministic: bool
         ) -> tuple[np.ndarray, None]:
             del observation, deterministic
-            return np.zeros(49, dtype=np.float32), None
+            return np.zeros(self.action_space.shape, dtype=np.float32), None
 
     monkeypatch.setattr(sb3.PPO, "load", lambda *args, **kwargs: FakeModel())
     checkpoint = tmp_path / "policy.zip"

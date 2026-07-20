@@ -539,7 +539,8 @@ def run_formal_matrix(
                 cell, job = futures.pop(future)
                 active_by_queue[cell.queue] -= 1
                 if cell.queue == "gpu":
-                    assert job.gpu_device is not None
+                    if job.gpu_device is None:
+                        raise FormalMatrixError("GPU cell completed without an assigned device")
                     gpu_slots.append(GpuSlot(job.gpu_device, 0))
                 try:
                     diagnostics = future.result()

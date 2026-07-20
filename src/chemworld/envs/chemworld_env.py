@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from copy import deepcopy
 from dataclasses import replace
 from math import isfinite
 from typing import Any
@@ -11,6 +13,7 @@ import numpy as np
 
 from chemworld.action_codec import ActionCodec
 from chemworld.envs.reports import (
+    annotate_constitution_rollback,
     build_constitution_summary,
     build_step_info,
     build_task_info,
@@ -112,7 +115,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.kernel_maturity = (
             self.task_spec.kernel_maturity
             if self.task_spec is not None
-            else default_kernel_maturity(tuple(sorted(self.allowed_operations)))
+            else default_kernel_maturity(
+                tuple(sorted(self.allowed_operations)),
+                allowed_instruments=tuple(sorted(self.allowed_instruments)),
+            )
         )
         self.episode_mode = (
             self.task_spec.episode_mode if self.task_spec is not None else "single_experiment"
@@ -148,15 +154,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.world = self.scenario_instance.parameters
         self.constitution = make_chemworld_constitution(self.scenario_instance.compiled_mechanism)
         self.observation_contract = self._make_observation_contract()
-        self.operation_validator = OperationValidator(
-            constitution=self.constitution,
-            allowed_operations=self.allowed_operations,
-            allowed_instruments=self.allowed_instruments,
-            target_species=MechanismSpeciesView(
-                self.scenario_instance.compiled_mechanism
-            ).target_species,
-            action_codec=self.action_codec,
-        )
+        self.operation_validator = self._make_operation_validator()
         self.runtime = self._make_runtime()
         self.observation_kernel = ChemWorldObservationKernel(
             self.constitution,
@@ -173,7 +171,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._experiment_index = 0
         self._operation_id = 0
         self._done = False
-        self._state = self.scenario_instance.initial_state
+        self._state = deepcopy(self.scenario_instance.initial_state)
         self._last_observation = empty_observation()
         self._last_operation_record: OperationRecord | None = None
         self._last_info: dict[str, Any] = {}
@@ -201,17 +199,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.world_interventions,
         )
         self.world = self.scenario_instance.parameters
-        self._state = self.scenario_instance.initial_state
+        self._state = deepcopy(self.scenario_instance.initial_state)
         self.constitution = make_chemworld_constitution(self.scenario_instance.compiled_mechanism)
-        self.operation_validator = OperationValidator(
-            constitution=self.constitution,
-            allowed_operations=self.allowed_operations,
-            allowed_instruments=self.allowed_instruments,
-            target_species=MechanismSpeciesView(
-                self.scenario_instance.compiled_mechanism
-            ).target_species,
-            action_codec=self.action_codec,
-        )
+        self.operation_validator = self._make_operation_validator()
         self.observation_contract = self._make_observation_contract()
         self.runtime = self._make_runtime()
         self.observation_kernel = ChemWorldObservationKernel(
@@ -233,11 +223,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._last_info = {}
         self._campaign_id = self._make_campaign_id()
         self._experiment_summaries = []
-        return self._last_observation, self.task_info()
+        return deepcopy(self._last_observation), self.task_info()
 
     def step(
         self,
-        action: dict[str, Any],
+        action: Any,
     ) -> tuple[dict[str, np.ndarray], float, bool, bool, dict[str, Any]]:
         if self._done:
             raise RuntimeError("Episode is done. Call reset() before step().")
@@ -246,10 +236,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         # crashes. Preserve their public payload so the central validator can
         # emit a replayable invalid transaction with no physical state mutation.
         # Valid aliases and numeric Gym actions still take the canonical path.
+        raw_action = dict(action) if isinstance(action, Mapping) else {"operation": "invalid"}
         try:
-            action = self.action_codec.canonicalize(action)
-        except (TypeError, ValueError):
-            action = dict(action)
+            action = self.action_codec.canonicalize(raw_action)
+        except (IndexError, OverflowError, TypeError, ValueError):
+            action = raw_action
         previous_state = self._state
         validation = self.operation_validator.validate(action, self._state)
         if validation.dispatchable_to_runtime:
@@ -280,10 +271,17 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         operation_record = runtime_result.operation_record
         runtime_info = runtime_result.info_payload()
         preconditions_passed = all(operation_record.preconditions.values())
-        if preconditions_passed:
+        operation_committed = (
+            preconditions_passed
+            and runtime_result.kernel_result.transaction_status == "committed"
+        )
+        observation_checks: list[dict[str, object]] = []
+        observation_rng_state = deepcopy(self._rng.bit_generator.state)
+        if operation_committed:
             try:
                 observation = self.observation_kernel.observe(self._state, action, self._rng)
             except (ArithmeticError, ValueError):
+                self._rng.bit_generator.state = observation_rng_state
                 validation = self._domain_failure_validation(
                     validation,
                     "observation_domain_valid",
@@ -297,22 +295,54 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 operation_record = runtime_result.operation_record
                 runtime_info = runtime_result.info_payload()
                 preconditions_passed = False
+                operation_committed = False
                 observation = self.observation_kernel.failed_observation()
+            else:
+                candidate_observation_report = self.constitution.check_observation(
+                    observation,
+                    debug_truth=self.debug_truth,
+                )
+                if candidate_observation_report.passed:
+                    observation_checks = candidate_observation_report.to_list()
+                else:
+                    # Observation generation is part of the atomic public
+                    # transition.  A non-finite, leaking, or internally
+                    # inconsistent packet invalidates the action, restores the
+                    # observation RNG, and rolls physical state back to the
+                    # pre-action snapshot plus the declared process penalty.
+                    self._rng.bit_generator.state = observation_rng_state
+                    observation_checks = candidate_observation_report.to_list()
+                    validation = self._domain_failure_validation(
+                        validation,
+                        "observation_domain_valid",
+                    )
+                    runtime_result = self.runtime.apply_invalid_transaction(
+                        previous_state,
+                        action,
+                        validation,
+                    )
+                    self._state = runtime_result.state
+                    operation_record = runtime_result.operation_record
+                    runtime_info = runtime_result.info_payload()
+                    preconditions_passed = False
+                    operation_committed = False
+                    observation = self.observation_kernel.failed_observation()
         else:
             observation = self.observation_kernel.failed_observation()
-        observation_report = self.constitution.check_observation(
-            observation,
-            debug_truth=self.debug_truth,
-        )
+        if not observation_checks:
+            observation_checks = self.constitution.check_observation(
+                observation,
+                debug_truth=self.debug_truth,
+            ).to_list()
         operation_record = replace(
             operation_record,
             constitution_checks=[
                 *operation_record.constitution_checks,
-                *observation_report.to_list(),
+                *observation_checks,
             ],
         )
         observation_values = observation.values
-        if preconditions_passed and operation_record.is_instrument_measurement:
+        if operation_committed and operation_record.is_instrument_measurement:
             self._state = self._state.replace(
                 process=process_with_last_observation(
                     self._state.process,
@@ -322,7 +352,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             )
         previous_process = previous_state.process or ProcessLedger()
         if (
-            preconditions_passed
+            operation_committed
             and not operation_record.is_instrument_measurement
             and previous_process.last_observation
         ):
@@ -336,17 +366,42 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
 
         self._step_count += 1
         self._operation_id += 1
-        successful_final_assay = preconditions_passed and operation_record.is_final_assay
+        successful_final_assay = operation_committed and operation_record.is_final_assay
         truncated = self._step_count >= self.budget
         campaign_final_assay = successful_final_assay and self.episode_mode == "campaign"
         terminated = successful_final_assay and not campaign_final_assay
         self._done = terminated or truncated
         observation_dict = to_observation(observation_values)
-        self._last_observation = observation_dict
-        reward = value_or_default(observation_values, "score")
+        self._last_observation = deepcopy(observation_dict)
+        # Environment reward is an event-gated public score delta.  Only a
+        # successful instrument measurement creates new public information;
+        # process actions may retain the last observation for Markov state but
+        # must never earn that cached absolute score again.
+        reward = 0.0
+        if operation_committed and operation_record.is_instrument_measurement:
+            previous_score = (
+                value_or_default(previous_process.last_observation, "score")
+                if previous_process.last_observation
+                else 0.0
+            )
+            reward = value_or_default(observation_values, "score") - previous_score
         self._last_operation_record = operation_record
         info = self._info(operation_record, observation)
         info.update(runtime_info)
+        # Operation records are assembled from the retained rollback state,
+        # which is constitution-safe by construction.  The report adapter
+        # preserves any failed candidate-state check as a public outcome.
+        info = annotate_constitution_rollback(info)
+        info["observed_reward"] = float(reward)
+        info["environment_reward"] = {
+            "schema_version": "chemworld-environment-reward-0.2",
+            "semantics": "fresh_measurement_score_delta",
+            "fresh_measurement": bool(
+                operation_committed and operation_record.is_instrument_measurement
+            ),
+            "cached_observation_rewarded": False,
+            "score_delta": float(reward),
+        }
         if self.debug_truth:
             info["truth"] = self._state.to_dict(include_hidden=True)
         if campaign_final_assay:
@@ -359,17 +414,17 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 "cost": value_or_default(observation_values, "cost"),
                 "final_assay": True,
             }
-            self._experiment_summaries.append(terminal_summary)
+            self._experiment_summaries.append(deepcopy(terminal_summary))
             self._experiment_index += 1
-            info["experiment_summaries"] = list(self._experiment_summaries)
-            info["last_terminal_summary"] = terminal_summary
+            info["experiment_summaries"] = deepcopy(self._experiment_summaries)
+            info["last_terminal_summary"] = deepcopy(terminal_summary)
             info["next_experiment_index"] = self._experiment_index
             if not truncated:
                 self._state = self._fresh_initial_state()
                 info["next_experiment_ready"] = True
             else:
                 info["next_experiment_ready"] = False
-        self._last_info = dict(info)
+        self._last_info = deepcopy(info)
         return observation_dict, reward, terminated, truncated, info
 
     def task_info(self) -> dict[str, Any]:
@@ -425,6 +480,27 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             debug_truth=self.debug_truth,
         )
 
+    def _make_operation_validator(self) -> OperationValidator:
+        species_view = MechanismSpeciesView(self.scenario_instance.compiled_mechanism)
+        unit_charge = species_view.reagent_charge_amounts(
+            self.scenario_instance.initial_state,
+            limiting_amount_mol=1.0,
+        )
+        reagent_charge_molar_multiplier = sum(
+            amount
+            for species_id, amount in unit_charge.items()
+            if not species_id.startswith("Cat")
+        )
+        return OperationValidator(
+            constitution=self.constitution,
+            allowed_operations=self.allowed_operations,
+            allowed_instruments=self.allowed_instruments,
+            task_id=None if self.task_spec is None else self.task_spec.task_id,
+            target_species=species_view.target_species,
+            reagent_charge_molar_multiplier=reagent_charge_molar_multiplier,
+            action_codec=self.action_codec,
+        )
+
     @staticmethod
     def _domain_failure_validation(
         validation: OperationValidation,
@@ -434,9 +510,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             validation,
             is_valid=False,
             preconditions={**validation.preconditions, failure_key: False},
-            invalid_reasons=tuple(
-                dict.fromkeys((*validation.invalid_reasons, failure_key))
-            ),
+            invalid_reasons=tuple(dict.fromkeys((*validation.invalid_reasons, failure_key))),
             cost_penalty=max(validation.cost_penalty, 0.10),
             safety_flags={
                 **validation.safety_flags,
@@ -459,7 +533,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
 
     def _fresh_initial_state(self) -> WorldState:
-        return self.scenario_instance.initial_state
+        return deepcopy(self.scenario_instance.initial_state)
 
     def _info(self, operation_record: OperationRecord, observation: Any) -> dict[str, Any]:
         return build_step_info(self, operation_record, observation)

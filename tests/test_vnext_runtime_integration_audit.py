@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from types import ModuleType
 
+from chemworld.tasks import TASK_CONTRACT_VERSION
+
 ROOT = Path(__file__).parents[1]
 SCRIPT = ROOT / "scripts" / "audit_vnext_runtime_integration.py"
 REPORT = ROOT / "workstreams/world_foundation/reports/wf-110-runtime-integration.json"
@@ -67,6 +69,7 @@ def test_backend_candidate_is_hash_bound_and_cannot_claim_benchmark_readiness() 
     assert manifest["benchmark_claim_allowed"] is False
     assert manifest["baseline_results_included"] is False
     assert manifest["frozen_v1_rewritten"] is False
+    assert manifest["task_contract_version"] == TASK_CONTRACT_VERSION
     assert {
         "backend_freeze.json",
         "maturity_truth.json",

@@ -907,7 +907,8 @@ def resolve_component_field_conflict(
 
 
 def _mw(component: ComponentSpec) -> float:
-    assert component.molecular_weight_g_mol is not None
+    if component.molecular_weight_g_mol is None:
+        raise ValueError(f"component {component.identifier!r} has no molecular weight")
     return component.molecular_weight_g_mol
 
 

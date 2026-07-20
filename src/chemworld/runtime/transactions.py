@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from chemworld.foundation import PhysicalConstitution, WorldState
@@ -170,13 +170,10 @@ class TransactionManager:
         )
         process = None
         if state.process is not None:
-            process = state.process.__class__(
-                time_s=state.process.time_s,
+            process = replace(
+                state.process,
                 cost=ledger.cost,
                 risk=ledger.risk,
-                sample_consumed_L=state.process.sample_consumed_L,
-                waste_L=state.process.waste_L,
-                metrics=state.process.metrics,
             )
         return state.replace(ledger=ledger, process=process)
 

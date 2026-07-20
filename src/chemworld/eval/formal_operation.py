@@ -203,7 +203,8 @@ def formal_operation_method_bindings(
     if audit["controls_ready"] is not True:
         raise CellIdentityError("operation method freeze is not ready")
     methods = resolved["methods"]
-    assert isinstance(methods, Mapping)
+    if not isinstance(methods, Mapping):
+        raise CellIdentityError("operation method freeze methods are not a mapping")
     return {
         method_id: FormalMethodBinding(
             method_id=method_id,

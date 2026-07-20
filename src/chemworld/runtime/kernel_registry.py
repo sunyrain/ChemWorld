@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from chemworld.foundation import WorldState
@@ -140,6 +140,12 @@ class ServiceOperationKernel:
                 record.preconditions,
                 action,
             )
+            if record.is_instrument_measurement:
+                record = replace(
+                    record,
+                    measurement_cost=0.0,
+                    sample_consumed_L=0.0,
+                )
         return KernelResult(
             state=transaction.state,
             operation_record=record,

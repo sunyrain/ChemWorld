@@ -56,7 +56,7 @@ def test_wrapper_filters_final_assay_until_termination() -> None:
         measure[instrument_coordinate] = -1.0
 
         raw_schema = action_schema(env, "measure")
-        assert raw_schema["fields"][0]["choices"][0] == "final_assay"
+        assert "final_assay" not in raw_schema["fields"][0]["choices"]
         projected = env.action(measure)
 
         assert projected["instrument"] != "final_assay"
@@ -69,7 +69,7 @@ def test_decoder_uses_dynamic_public_bounds_and_cooling_constraint() -> None:
     base = gym.make("ChemWorld", task_id="reaction-to-crystallization")
     try:
         assert isinstance(base.action_space, gym.spaces.Dict)
-        vector = np.zeros(49, dtype=np.float32)
+        vector = np.zeros(50, dtype=np.float32)
         vector[OPERATION_TYPES.index("cool_crystallize")] = 1.0
         required = list(operation_contracts()["cool_crystallize"].required_fields)
         schema = {

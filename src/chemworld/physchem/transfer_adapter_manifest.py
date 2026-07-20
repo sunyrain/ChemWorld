@@ -98,7 +98,6 @@ class TransferUnitProvider:
                 provenance=self.model_contract.provenance,
             )
         request = inputs["request"]
-        assert isinstance(request, TransferRequest)
         result = simulate_transfer(request)
         return ModelProviderResult(
             outputs={"transfer_result": result.to_dict()},

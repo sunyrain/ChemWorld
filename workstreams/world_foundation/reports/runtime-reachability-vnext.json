@@ -50,7 +50,7 @@
       ],
       "wash": "chemworld_stability_aware_lle_vnext"
     },
-    "report_sha256": "d67b749d2ece681323872b3615d2ab5b462de6224f0a4bb913488477dcf61dd6",
+    "report_sha256": "d5ac5c904f819906985302e07bfa5dd7d075a02d386206a8c1a9707dfdf5611c",
     "schema_version": "chemworld-vnext-runtime-integration-audit-0.1"
   },
   "forbidden_runtime_models": [],
@@ -1892,7 +1892,7 @@
         "cooling_rate_K_s",
         "warnings"
       ],
-      "failure_policy": "fail closed without a runtime output for invalid feed or seed, excessive cooling rate, absent population or transfer, solver non-convergence, or component/particle ledger failure",
+      "failure_policy": "fail closed without a runtime output for invalid feed or seed, excessive cooling rate, solver non-convergence, or component/particle ledger failure; absent population or transfer fail only when required by execution_spec",
       "input_fields": [
         "case",
         "time_steps",
@@ -1928,7 +1928,7 @@
         "cooling rate remains inside the declared linear-ramp domain",
         "temperature history is monotonic and reaches the requested endpoint",
         "component and crystal-size-moment ledgers close within tolerance",
-        "growth-cap solver converges and a nonzero solution-to-solid transfer occurs"
+        "growth-cap solver converges; population and transfer requirements follow the supplied execution policy"
       ]
     },
     "diffusion_layer_limiting_current_v1": {
@@ -2223,7 +2223,7 @@
     "run state-transition and public-boundary audits",
     "complete domain coupling probes before changing task maturity labels"
   ],
-  "report_hash": "d1b9732a591344f273998e3bb253d8eef2f3796af21ad34c55437fde7cc109b1",
+  "report_hash": "cc58201eeaac88161ed89a9242fb8ab9a04918f72ab8f4d0d8123629209b3821",
   "schema_version": "chemworld-foundation-runtime-reachability-report-0.1",
   "service_catalog": {
     "operation_service_map": {
@@ -2367,7 +2367,7 @@
       }
     }
   },
-  "source_commit": "3406c464ae78f71f24db205c5e68c3d9bf5ba2b4",
+  "source_commit": "4c9ae675d3444134f25301fb28eb0e304375c658",
   "source_tree_dirty": true,
   "status": "controls_ready_no_lite_targets",
   "task_count": 15,
@@ -2382,11 +2382,11 @@
             "model_ids": [
               "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate"
+              "potentiometric_ph_public_reference"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -2421,9 +2421,9 @@
         "aqueous_acid_base_ph_observation",
         "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate",
         "diffusion_layer_limiting_current_v1",
         "nernst_butler_volmer_faradaic_v1",
+        "potentiometric_ph_public_reference",
         "randles_double_layer_transient_v1"
       ],
       "operation_paths": [
@@ -2477,9 +2477,10 @@
           ],
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
+            "aqueous_acid_base_ph_observation",
             "beer_lambert_uvvis",
             "chemworld_validated_synthetic_instruments_v1",
-            "chromatography_retention_plate"
+            "potentiometric_ph_public_reference"
           ],
           "operation": "measure",
           "service_id": "instrument_cost"
@@ -2509,16 +2510,15 @@
         "aqueous_acid_base_ph_observation",
         "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
-        "chromatography_retention_plate",
         "diffusion_layer_limiting_current_v1",
         "nernst_butler_volmer_faradaic_v1",
+        "potentiometric_ph_public_reference",
         "randles_double_layer_transient_v1"
       ],
       "runtime_profile": {
         "allowed_instruments": [
           "final_assay",
-          "gc",
-          "hplc",
+          "ph_meter",
           "uvvis"
         ],
         "allowed_operations": [
@@ -2553,7 +2553,7 @@
           "wait",
           "wash"
         ],
-        "profile_hash": "88aac1045562b0b14d687f059a8a725a807dac3b3ca48882e62dfca616871b59",
+        "profile_hash": "9fd64b2d65d5eac0381c54e84895a6c7d8628403efca5cd841b5c0837f31ca0d",
         "required_capabilities": [
           "electrochemistry",
           "observation",
@@ -2574,7 +2574,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "9f86e8550be9f8de98f4152104ef981c075697bf8cf378f040f5af4593235d09"
+      "task_contract_hash": "9cc0c792e171737c5ffd5dc03772dcff724a19ae5c504b7d573257eadfa89d63"
     },
     "equilibrium-characterization": {
       "declared_but_unreachable": [],
@@ -2827,7 +2827,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "64393d1da00e28101f71246ef13c1b69e03b0b213542e97afcb1add8f52eaa62"
+      "task_contract_hash": "046067c1c75a57032b3b4307f386b23c706507178856ee20cffa70478cd0e42a"
     },
     "flow-reaction-optimization": {
       "declared_but_unreachable": [],
@@ -2853,7 +2853,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -3037,7 +3037,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "aa47c74db1753f062a3e5f59208db8278c25db778390607892e20eaaeb30cdc9"
+      "task_contract_hash": "834207984ba38bfab373c400fc715d63908100db3ca9549185daf4fb5aca5a4f"
     },
     "low-budget-characterization": {
       "declared_but_unreachable": [],
@@ -3073,7 +3073,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           }
         ],
@@ -3278,7 +3278,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "3d8bb180e63016b49b0f2c09694ad4f2d965d8096c9c615d021c987204283a29"
+      "task_contract_hash": "c9a46ddac7960377bfce556c15d841ed9c6093684ac48966f0a6cf79aa6693fc"
     },
     "partition-discovery": {
       "declared_but_unreachable": [],
@@ -3294,7 +3294,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -3498,7 +3498,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "ce378e7bc5e725ed266db2bb639194c05f5f615ba0795b158c3c976cc787117e"
+      "task_contract_hash": "8f5e648c9c4ad3138391014a536dc9df3008b99152c70da0f2a173914ec0d37c"
     },
     "public-private-generalization": {
       "declared_but_unreachable": [],
@@ -3534,7 +3534,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           }
         ],
@@ -3739,7 +3739,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "d2a07d58a7c09d317239794eb5757fdcd5ea68514fc531bd2ece6436b08aa3fd"
+      "task_contract_hash": "5aec9b64b8ed4cc5da009ea669978a83f76c913b3bc7e497236d231571ab7c3d"
     },
     "purity-yield-tradeoff": {
       "declared_but_unreachable": [],
@@ -3775,7 +3775,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -4142,7 +4142,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "931d1c9c2364888a9cf390557614f78c042d3e166a8ae495d57cd1fdacd1ee0f"
+      "task_contract_hash": "431b4b6f8c25ea53a937b94ea07966d32609e2db2a76bd73589109bb5aaf98dd"
     },
     "reaction-mechanism-explanation": {
       "declared_but_unreachable": [],
@@ -4178,7 +4178,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           }
         ],
@@ -4383,7 +4383,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "4b69716dcd93cc32eb82beb335fea7f53062e5785496daecfc1530ddcdc39006"
+      "task_contract_hash": "addead31f7c7a85fa81278445bdf85a9fb03c89c5bb740ac6262cd28c0853142"
     },
     "reaction-optimization-standard": {
       "declared_but_unreachable": [],
@@ -4419,7 +4419,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           }
         ],
@@ -4624,7 +4624,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "0c80793551675a61dbde5f3e2456929e6e6c92574ca2f3d5fa967a97ddcdb1a5"
+      "task_contract_hash": "e8de4285f89c507c305226c9f1f37454879517c1069b9bfab6ae26154ac1e4bc"
     },
     "reaction-safety-constrained": {
       "declared_but_unreachable": [],
@@ -4660,7 +4660,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           }
         ],
@@ -4865,7 +4865,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "780ac2c552c7652b1afb8581d76bb2884bb99a334f7b85dffe73cf4c35834263"
+      "task_contract_hash": "867e1a8473a40e679af88ad4679d5753ea7aa90ae5bf9555aa2d9903860c63ec"
     },
     "reaction-to-assay": {
       "declared_but_unreachable": [],
@@ -4901,7 +4901,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           }
         ],
@@ -5106,7 +5106,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "395402a224b27cdbd070470ab1d0131e01c3bd472b773170bdcf4ba4f5a1bc96"
+      "task_contract_hash": "1366e4e73eedeee2fa5d630831614f07a7c4f09d5661e9fb6cfccab57643bd1f"
     },
     "reaction-to-crystallization": {
       "declared_but_unreachable": [],
@@ -5137,12 +5137,11 @@
             "level": "reference_validated",
             "model_ids": [
               "chemworld_validated_synthetic_instruments_v1",
-              "beer_lambert_uvvis",
               "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -5162,7 +5161,6 @@
         "proxy_allowed": false
       },
       "declared_model_ids": [
-        "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
         "cooling_crystallization_population_balance_v1",
@@ -5256,7 +5254,6 @@
           ],
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
-            "beer_lambert_uvvis",
             "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
@@ -5326,7 +5323,6 @@
       ],
       "reachable_but_undeclared": [],
       "reachable_model_ids": [
-        "beer_lambert_uvvis",
         "chemworld_validated_synthetic_instruments_v1",
         "chromatography_retention_plate",
         "cooling_crystallization_population_balance_v1",
@@ -5336,9 +5332,7 @@
       "runtime_profile": {
         "allowed_instruments": [
           "final_assay",
-          "gc",
-          "hplc",
-          "uvvis"
+          "hplc"
         ],
         "allowed_operations": [
           "add_catalyst",
@@ -5372,7 +5366,7 @@
           "transfer",
           "wash"
         ],
-        "profile_hash": "ea5051efad2af16d2700c1a442282485604b852ebbf9acea2ccdc2f31f856ff4",
+        "profile_hash": "7353b9f69143e29ce79f19b8c0ea165c7e497c67344f8dd6e415c4f0a3de6fe4",
         "required_capabilities": [
           "crystallization",
           "observation",
@@ -5400,7 +5394,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "f15de7356ab11588028bb0add31b3461e9b90bf273de6dcdb4e123ce6b2f65ac"
+      "task_contract_hash": "756ca669f81a27290cd72e25c05cf9ed1f7cae0db6b299f1332d8a907b642e8f"
     },
     "reaction-to-distillation": {
       "declared_but_unreachable": [],
@@ -5436,7 +5430,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -5698,7 +5692,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "939b171d164139699d94c78250a937ab637be201f23bd62fddc47a864becaba7"
+      "task_contract_hash": "d19adb180200831acca5bdbb6e05a6a9de1760b494eb03f6be5a43162c6b9109"
     },
     "reaction-to-purification": {
       "declared_but_unreachable": [],
@@ -5734,7 +5728,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -6101,7 +6095,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "ee5d6b82178abeaaa6975680f2a469cbdad43f6b655bb65d6e437294a55e052d"
+      "task_contract_hash": "9bb160c677f4feb72c06dfb4985e29abfce68499a0a6df02607b2cbeb720b0ca"
     },
     "tool-agent-planning": {
       "declared_but_unreachable": [],
@@ -6137,7 +6131,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -6504,7 +6498,7 @@
         ],
         "world_law_id": "chemworld-physical-chemistry-v0.4"
       },
-      "task_contract_hash": "9752398c5b05a0d3a20df7df811ebb59e46a1c7f1e52ab6340fed9c5526c3ee9"
+      "task_contract_hash": "a7972dfc2519fc48e1e7eb6f635ba703aa52f0bbf66688e86dbb0df105a32ddf"
     }
   }
 }

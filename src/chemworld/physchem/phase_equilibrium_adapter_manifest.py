@@ -106,7 +106,6 @@ class StabilityAwareLLEProvider:
         if violations:
             return _failed_result("; ".join(violations), self.model_contract.provenance)
         request = inputs["request"]
-        assert isinstance(request, StabilityAwareExtractionRequest)
         try:
             result = simulate_stability_aware_extraction(request)
         except (RuntimeError, ValueError) as error:

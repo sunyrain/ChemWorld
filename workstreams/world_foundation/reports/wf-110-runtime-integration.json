@@ -246,15 +246,15 @@
                   "tests/test_crystallization_validation.py",
                   "tests/test_crystallization_coupling.py"
                 ],
-                "provider_manifest_hash": "9c0211d7ceeaee3850e8f1a5eca08366d4b5f04a42d7a828d9a03fabec1ac70b",
+                "provider_manifest_hash": "8dd11351ecc625da4e9e45fea2e14acba5914da339a31a6d69895a904f8c13df",
                 "provider_path": "chemworld.physchem.crystallization_adapter_manifest.ValidatedCrystallizationRuntimeProvider",
                 "seed_mass_g": 0.006,
                 "target_recovery": 0.7398340606341753
               }
             ],
             "execution_spec": {
-              "fail_on_no_population": true,
-              "fail_on_no_transfer": true,
+              "fail_on_no_population": false,
+              "fail_on_no_transfer": false,
               "fail_on_solver_nonconvergence": true,
               "growth_solver_tolerance_mol": 1e-12,
               "material_balance_tolerance_mol": 1e-10,
@@ -421,7 +421,7 @@
                 "fines_dominate_number_distribution"
               ]
             },
-            "provider_manifest_hash": "9c0211d7ceeaee3850e8f1a5eca08366d4b5f04a42d7a828d9a03fabec1ac70b",
+            "provider_manifest_hash": "8dd11351ecc625da4e9e45fea2e14acba5914da339a31a6d69895a904f8c13df",
             "provider_maturity": "professional_candidate",
             "provider_path": "chemworld.physchem.crystallization_adapter_manifest.ValidatedCrystallizationRuntimeProvider",
             "provider_provenance": [
@@ -680,23 +680,23 @@
               "applicability": {
                 "activity_model": "davies_aqueous_activity_v1",
                 "ionic_strength_max_mol_kg": 0.5,
-                "ionic_strength_mol_kg": 0.02042743678626541,
+                "ionic_strength_mol_kg": 0.08061115642996305,
                 "temperature_max_K": 373.15,
                 "temperature_min_K": 273.15
               },
-              "charge_balance_error_eq": 2.208344952699104e-20,
+              "charge_balance_error_eq": 1.3096576044070011e-19,
               "converged": true,
-              "ionic_strength_mol_kg": 0.02042743678626541,
-              "iterations": 23,
-              "material_balance_error_mol": 2.710505431213761e-20,
+              "ionic_strength_mol_kg": 0.08061115642996305,
+              "iterations": 24,
+              "material_balance_error_mol": 0.0,
               "model_id": "aqueous_acid_base_ph_observation",
-              "pH": 3.484872530750029,
-              "precipitated_mol": 4.940000000227306e-05
+              "pH": 3.2914461717373906,
+              "precipitated_mol": 2.340000000000201e-05
             },
-            "contact_resistance_ohm": 0.2,
+            "contact_resistance_ohm": 0.12,
             "current_mA": 75.0,
-            "diffusion_layer_thickness_m": 0.0001,
-            "diffusivity_m2_s": 1e-09,
+            "diffusion_layer_thickness_m": 0.0008,
+            "diffusivity_m2_s": 1.2e-09,
             "double_layer_capacitance_F_m2": 0.2,
             "double_layer_diagnostic": {
               "capacitive_charge_C": -1.1975373161057233e-05,
@@ -709,29 +709,51 @@
               ]
             },
             "electrode_area_m2": 0.004,
-            "electrode_gap_m": 0.004,
+            "electrode_gap_m": 0.003,
+            "electrolysis_history": [
+              {
+                "current_mA": 75.0,
+                "electrolyte_profile": 1,
+                "end_time_s": 1800.0,
+                "execution_index": 1,
+                "potential_V": 1.15,
+                "start_time_s": 0.0
+              }
+            ],
             "electrolyte_acid_pka": 4.76,
-            "electrolyte_acid_total_mol": 0.00013,
-            "electrolyte_conductivity_S_m": 8.0,
+            "electrolyte_acid_total_mol": 0.00026,
+            "electrolyte_conductivity_S_m": 12.0,
             "electrolyte_ksp": 1e-08,
+            "electrolyte_profile": 1,
+            "electrolyte_profile_id": "high_support_acetate",
+            "electrolyte_profile_model": "bounded_aqueous_electrolyte_profiles_v1",
             "equilibrium_activity_tolerance": 1e-10,
             "equilibrium_max_activity_iterations": 64,
             "equilibrium_max_precipitation_passes": 3,
             "mechanism_hash": "691cb87f8a9b61ffb20187e6bf1ccd83996bc6223542741b70d9aa8c726660ff",
             "mechanism_id": "electrochemical_conversion",
             "potential_V": 1.15,
-            "precipitating_salt_mol": 5.2e-05,
+            "precipitating_salt_mol": 2.6e-05,
             "runtime_model_ids": [
               "nernst_butler_volmer_faradaic_v1",
               "diffusion_layer_limiting_current_v1",
               "randles_double_layer_transient_v1",
               "aqueous_acid_base_ph_observation"
             ],
-            "supporting_electrolyte_mol": 0.00052,
+            "setpoint_history": [
+              {
+                "configured_time_s": 0.0,
+                "current_mA": 75.0,
+                "electrolyte_profile": 1,
+                "potential_V": 1.15,
+                "setpoint_index": 1
+              }
+            ],
+            "supporting_electrolyte_mol": 0.00208,
             "transport_diagnostic": {
               "charge_balance_residual_C": 0.0,
               "current_efficiency": 0.999999999999999,
-              "limiting_current_A": 2.9687794498461546,
+              "limiting_current_A": 0.44531691747692304,
               "material_balance_residual_mol": 1.0842021724855044e-19,
               "model_id": "diffusion_layer_limiting_current_v1",
               "warnings": []
@@ -924,6 +946,7 @@
             "inlet_temperature_K": 298.9069467978686,
             "material_balance_error_mol": 2.7755575615628914e-17,
             "material_basis": "representative_feed_inventory_no_implicit_addition",
+            "minimum_run_duration_s": 900.0,
             "outlet_pressure_Pa": 102553.52613898674,
             "outlet_temperature_K": 382.00130902240073,
             "pressure_drop_Pa": 5.471343916622573,
@@ -1061,7 +1084,7 @@
                     "tests/test_instruments_reference.py",
                     "tests/test_instrument_runtime_integration.py"
                   ],
-                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_contract_hash": "1b739f013cbeb29982d64ce6e94f3009459843935e6f262f182eaff865a38a72",
                   "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
                   "role": "runtime"
                 }
@@ -1077,7 +1100,7 @@
                 "tests/test_instruments_reference.py",
                 "tests/test_instrument_runtime_integration.py"
               ],
-              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_contract_hash": "1b739f013cbeb29982d64ce6e94f3009459843935e6f262f182eaff865a38a72",
               "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
               "use_count": 1
             },
@@ -1137,7 +1160,7 @@
                     "tests/test_instruments_reference.py",
                     "tests/test_instrument_runtime_integration.py"
                   ],
-                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_contract_hash": "1b739f013cbeb29982d64ce6e94f3009459843935e6f262f182eaff865a38a72",
                   "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
                   "role": "runtime"
                 }
@@ -1153,7 +1176,7 @@
                 "tests/test_instruments_reference.py",
                 "tests/test_instrument_runtime_integration.py"
               ],
-              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_contract_hash": "1b739f013cbeb29982d64ce6e94f3009459843935e6f262f182eaff865a38a72",
               "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
               "use_count": 1
             },
@@ -1213,7 +1236,7 @@
                     "tests/test_instruments_reference.py",
                     "tests/test_instrument_runtime_integration.py"
                   ],
-                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_contract_hash": "1b739f013cbeb29982d64ce6e94f3009459843935e6f262f182eaff865a38a72",
                   "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
                   "role": "runtime"
                 }
@@ -1229,7 +1252,7 @@
                 "tests/test_instruments_reference.py",
                 "tests/test_instrument_runtime_integration.py"
               ],
-              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_contract_hash": "1b739f013cbeb29982d64ce6e94f3009459843935e6f262f182eaff865a38a72",
               "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
               "use_count": 1
             },
@@ -1289,7 +1312,7 @@
                     "tests/test_instruments_reference.py",
                     "tests/test_instrument_runtime_integration.py"
                   ],
-                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_contract_hash": "1b739f013cbeb29982d64ce6e94f3009459843935e6f262f182eaff865a38a72",
                   "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
                   "role": "runtime"
                 }
@@ -1305,7 +1328,7 @@
                 "tests/test_instruments_reference.py",
                 "tests/test_instrument_runtime_integration.py"
               ],
-              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_contract_hash": "1b739f013cbeb29982d64ce6e94f3009459843935e6f262f182eaff865a38a72",
               "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
               "use_count": 1
             },
@@ -1365,7 +1388,7 @@
                     "tests/test_instruments_reference.py",
                     "tests/test_instrument_runtime_integration.py"
                   ],
-                  "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+                  "provider_contract_hash": "1b739f013cbeb29982d64ce6e94f3009459843935e6f262f182eaff865a38a72",
                   "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
                   "role": "runtime"
                 }
@@ -1381,7 +1404,7 @@
                 "tests/test_instruments_reference.py",
                 "tests/test_instrument_runtime_integration.py"
               ],
-              "provider_contract_hash": "5e67fa04a95b484c6e3cb3debe81392d54e0a0831ef7f0ffc0fafdb49a853b72",
+              "provider_contract_hash": "1b739f013cbeb29982d64ce6e94f3009459843935e6f262f182eaff865a38a72",
               "provider_path": "chemworld.physchem.spectroscopy_adapter_manifest.ValidatedInstrumentRuntimeProvider",
               "use_count": 1
             }

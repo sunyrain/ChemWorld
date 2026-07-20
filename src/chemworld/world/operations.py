@@ -119,6 +119,11 @@ DOWNSTREAM_OBSERVATION_KEYS = (
     "flow_conversion",
     "electrochemical_selectivity",
     "energy_efficiency",
+    "crystal_csd_quality",
+    "crystal_fines_fraction",
+    "faradaic_efficiency",
+    "transport_efficiency",
+    "ohmic_efficiency",
 )
 EQUILIBRIUM_OBSERVATION_KEYS = (
     "pH_normalized",
@@ -258,7 +263,7 @@ def chemworld_operations() -> tuple[Operation, ...]:
         Operation(
             "set_potential",
             "Configure electrochemical cell",
-            ("potential_V", "current_mA"),
+            ("potential_V", "current_mA", "electrolyte_profile"),
             ("has_volume", "has_material"),
         ),
         Operation(
@@ -327,8 +332,7 @@ def operation_name(value: Any) -> str:
         if value not in OPERATION_TYPES:
             raise ValueError(f"Unsupported operation: {value}")
         return value
-    index = int(np.asarray(value).reshape(-1)[0])
-    return OPERATION_TYPES[int(np.clip(index, 0, len(OPERATION_TYPES) - 1))]
+    return OPERATION_TYPES[_discrete_index(value, len(OPERATION_TYPES), "operation")]
 
 
 def instrument_name(value: Any) -> str:
@@ -336,8 +340,25 @@ def instrument_name(value: Any) -> str:
         if value not in INSTRUMENTS:
             raise ValueError(f"Unsupported instrument: {value}")
         return value
-    index = int(np.asarray(value).reshape(-1)[0])
-    return INSTRUMENTS[int(np.clip(index, 0, len(INSTRUMENTS) - 1))]
+    return INSTRUMENTS[_discrete_index(value, len(INSTRUMENTS), "instrument")]
+
+
+def _discrete_index(value: Any, cardinality: int, label: str) -> int:
+    """Decode one finite categorical coordinate without silent remapping."""
+
+    try:
+        values = np.asarray(value).reshape(-1)
+        if values.size != 1:
+            raise ValueError(f"{label} must be a scalar categorical index")
+        coordinate = float(values[0])
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(f"{label} must be a scalar categorical index") from exc
+    if not np.isfinite(coordinate) or not coordinate.is_integer():
+        raise ValueError(f"{label} must be a finite integer categorical index")
+    index = int(coordinate)
+    if not 0 <= index < cardinality:
+        raise ValueError(f"{label} index {index} is outside [0, {cardinality - 1}]")
+    return index
 
 
 __all__ = [

@@ -18,9 +18,10 @@ import gymnasium as gym
 import numpy as np
 
 from chemworld.data.logging import to_builtin
+from chemworld.operation_validator import OPERATION_AFFORDANCE_STATE_MACHINE_VERSION
 from chemworld.world.operations import OPERATION_TYPES, operation_contracts
 
-ACTION_SCHEMA_VERSION = "chemworld-conditional-hybrid-action-0.4"
+ACTION_SCHEMA_VERSION = "chemworld-conditional-hybrid-action-0.8"
 LATENT_ADAPTER_VERSION = "chemworld-sb3-box-latent-adapter-0.2"
 POLICY_DISTRIBUTION_SCHEMA_VERSION = "chemworld-masked-conditional-ppo-0.1"
 
@@ -88,16 +89,50 @@ def conditional_hybrid_action_contract(
         },
         "execution_projection": {
             "source": "public action_schema(operation) and validate_action(action)",
+            "affordance_state_machine_version": (OPERATION_AFFORDANCE_STATE_MACHINE_VERSION),
             "state_dependent_numeric_bounds": True,
             "state_dependent_categorical_choices": True,
             "cross_field_constraints": [
                 "maximum_cooling_rate_K_s",
                 "absolute_value_upper_bound",
+                "vessel_pressure_capacity",
             ],
             "invalid_projection_policy": (
                 "retain the decoded action and let the public validator record failure"
             ),
             "hidden_state_access": False,
+        },
+        "crystallization_completion_affordance": {
+            "initial_seed_requirements": [
+                "reaction_advance_count > 0",
+                "non-final process assay at current process time",
+            ],
+            "post_seed_allowed_operations": [
+                "seed_crystals",
+                "measure",
+                "cool_crystallize",
+                "terminate",
+            ],
+            "post_cooling_filter_requirement": (
+                "non-final slurry assay at current process time"
+            ),
+            "post_cooling_allowed_operations": [
+                "measure",
+                "filter_crystals",
+                "terminate",
+            ],
+            "post_filter_allowed_operations": ["measure", "terminate"],
+            "public_state_sources": [
+                "process.reaction_advance_count",
+                "instrument:<id>.last_time_s",
+                "crystallizer.crystal_seeded",
+                "crystallizer.execution_history",
+                "crystal_filter.crystals_filtered",
+                "vessel.max_pressure_Pa",
+                "state.temperature_K",
+                "state.volume_L",
+                "selected_phase.species_amounts_mol",
+            ],
         },
         "empty_operation_mask_policy": (
             "retain global argmax so the environment records the invalid transition"
@@ -127,8 +162,7 @@ def policy_distribution_contract(parameter_keys: tuple[str, ...]) -> dict[str, A
         "parameter_distribution": "operation-conditional diagonal Gaussian",
         "parameter_keys": list(parameter_keys),
         "active_parameters": {
-            operation: list(contracts[operation].required_fields)
-            for operation in OPERATION_TYPES
+            operation: list(contracts[operation].required_fields) for operation in OPERATION_TYPES
         },
         "irrelevant_parameter_log_prob": False,
         "irrelevant_parameter_entropy": False,
@@ -198,9 +232,7 @@ def decode_conditional_hybrid_action(
             payload[key] = min(int(coordinate * space.n), space.n - 1)
         elif isinstance(space, gym.spaces.Box):
             low = float(bounds["low"]) if isinstance(bounds, Mapping) else float(space.low[0])
-            high = (
-                float(bounds["high"]) if isinstance(bounds, Mapping) else float(space.high[0])
-            )
+            high = float(bounds["high"]) if isinstance(bounds, Mapping) else float(space.high[0])
             payload[key] = _box_coordinate_payload(
                 space,
                 coordinate=coordinate,
@@ -331,9 +363,7 @@ def _apply_public_cross_field_constraints(
             space = event_action_space[field]
             if not isinstance(space, gym.spaces.Box):
                 raise TypeError(f"{field} must use a Box action component")
-            payload[field] = _box_payload_within_abs(
-                space, _scalar(payload[field]), limit
-            )
+            payload[field] = _box_payload_within_abs(space, _scalar(payload[field]), limit)
 
 
 __all__ = [

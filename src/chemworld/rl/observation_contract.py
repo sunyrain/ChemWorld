@@ -13,11 +13,12 @@ import json
 from typing import Any
 
 from chemworld.agent_interface import rl_observation_spec
+from chemworld.operation_validator import OPERATION_AFFORDANCE_STATE_MACHINE_VERSION
 from chemworld.rl.rewards import core_operation_requirements
 from chemworld.tasks import get_task
 from chemworld.world.operations import OPERATION_TYPES
 
-OBSERVATION_CONTRACT_SCHEMA_VERSION = "chemworld-rl-observation-contract-0.1"
+OBSERVATION_CONTRACT_SCHEMA_VERSION = "chemworld-rl-observation-contract-0.2"
 
 CAMPAIGN_PROGRESS_FIELDS: tuple[dict[str, str], ...] = (
     {
@@ -26,16 +27,11 @@ CAMPAIGN_PROGRESS_FIELDS: tuple[dict[str, str], ...] = (
     },
     {
         "key": "operation_budget_fraction_remaining",
-        "formula": (
-            "min(max(max(budget, 1) - max(operation_count, 0), 0) "
-            "/ max(budget, 1), 1.0)"
-        ),
+        "formula": ("min(max(max(budget, 1) - max(operation_count, 0), 0) / max(budget, 1), 1.0)"),
     },
     {
         "key": "completed_experiment_summary_ratio",
-        "formula": (
-            "min(experiment_summary_count / max(max(experiment_index, 0) + 1, 1), 1.0)"
-        ),
+        "formula": ("min(experiment_summary_count / max(max(experiment_index, 0) + 1, 1), 1.0)"),
     },
 )
 
@@ -77,7 +73,10 @@ def rl_observation_contract(task_id: str) -> dict[str, Any]:
     public_high = [float(value) for value in public_spec["value_bounds"]["high"]]
     mask_low = [float(value) for value in public_spec["mask_bounds"]["low"]]
     mask_high = [float(value) for value in public_spec["mask_bounds"]["high"]]
-    requirements = core_operation_requirements(task.allowed_operations)
+    requirements = core_operation_requirements(
+        task.allowed_operations,
+        task_id=task_id,
+    )
 
     segments: list[dict[str, Any]] = []
     offset = 0
@@ -172,6 +171,7 @@ def rl_observation_contract(task_id: str) -> dict[str, Any]:
             "operation_order": list(OPERATION_TYPES),
             "available": 1.0,
             "unavailable": 0.0,
+            "state_machine_version": OPERATION_AFFORDANCE_STATE_MACHINE_VERSION,
             "hidden_state_access": False,
         },
         "campaign_progress": {

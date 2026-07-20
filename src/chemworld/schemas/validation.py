@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, cast
 
 from chemworld.physchem.reaction_network_specs import SUPPORTED_RATE_LAW_EQUATION_IDS
+from chemworld.world.actions import ELECTROLYTE_PROFILES
 from chemworld.world.operations import INSTRUMENTS, OPERATION_TYPES
 
 PHASES = ("reactor_liquid", "aqueous", "organic")
@@ -348,6 +349,20 @@ def validate_action_schema(action: object) -> SchemaValidationResult:
         errors.append(f"unknown instrument: {instrument}")
     if isinstance(instrument, int) and not 0 <= instrument < len(INSTRUMENTS):
         errors.append(f"instrument index outside valid range: {instrument}")
+    electrolyte_profile = action.get("electrolyte_profile")
+    if electrolyte_profile is not None:
+        valid_profile = (
+            isinstance(electrolyte_profile, str)
+            and electrolyte_profile in ELECTROLYTE_PROFILES
+        ) or (
+            isinstance(electrolyte_profile, int)
+            and not isinstance(electrolyte_profile, bool)
+            and 0 <= electrolyte_profile < len(ELECTROLYTE_PROFILES)
+        )
+        if not valid_profile:
+            errors.append(
+                "electrolyte_profile must be a known profile id or integer index in [0, 3]"
+            )
     for key in ("phase", "target_phase"):
         value = action.get(key)
         if value is None:

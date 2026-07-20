@@ -71,7 +71,7 @@ def test_platform_attestation_rejects_semantic_mismatch() -> None:
     assert failures == ["platform attestation binds a different backend semantic hash"]
 
 
-def test_windows_release_records_linux_as_optional_follow_up() -> None:
+def test_windows_attestation_records_linux_without_masking_evidence() -> None:
     protocol = load_portable_release_protocol()
     semantic = semantic_identity(protocol)
     attestation = {
@@ -89,8 +89,15 @@ def test_windows_release_records_linux_as_optional_follow_up() -> None:
     assert report["required_platforms"] == ["windows"]
     assert report["optional_platforms"] == ["linux"]
     assert report["observed_platforms"] == ["windows"]
-    assert report["portable_release_ready"] is True
-    assert manifest["release_status"] == "formal_candidate"
+    assert report["controls"]["platform_attestations_valid"] is True
+    assert report["controls"]["required_platforms_complete"] is True
+    assert report["portable_release_ready"] is all(report["controls"].values())
+    expected_status = (
+        "formal_candidate"
+        if report["controls"]["required_evidence_passes"]
+        else "blocked_candidate"
+    )
+    assert manifest["release_status"] == expected_status
     assert manifest["required_platforms"] == ["windows"]
     assert manifest["optional_platforms"] == ["linux"]
     assert manifest["observed_platforms"] == ["windows"]

@@ -51,6 +51,8 @@ def chemworld_state_variables() -> tuple[StateVariable, ...]:
             hidden=True,
         ),
         StateVariable("process.metrics.crystal_yield", "dimensionless", hidden=True),
+        StateVariable("process.metrics.crystal_csd_quality", "dimensionless", hidden=True),
+        StateVariable("process.metrics.crystal_fines_fraction", "dimensionless", hidden=True),
         StateVariable("process.metrics.distillate_purity", "dimensionless", hidden=True),
         StateVariable("process.metrics.flow_conversion", "dimensionless", hidden=True),
         StateVariable(
@@ -59,6 +61,9 @@ def chemworld_state_variables() -> tuple[StateVariable, ...]:
             hidden=True,
         ),
         StateVariable("process.metrics.energy_efficiency", "dimensionless", hidden=True),
+        StateVariable("process.metrics.faradaic_efficiency", "dimensionless", hidden=True),
+        StateVariable("process.metrics.transport_efficiency", "dimensionless", hidden=True),
+        StateVariable("process.metrics.ohmic_efficiency", "dimensionless", hidden=True),
     )
 
 

@@ -49,10 +49,10 @@ def test_current_method_freeze_scaffold_reports_exact_gaps_without_bench_access(
 
     families = report["method_families"]
     assert families["classic"]["controls_ready"] is True
-    assert families["classic"]["development_ready"] is True
+    assert families["classic"]["development_ready"] is False
     assert families["classic"]["cell_count"] == 768
     assert families["operation_baselines"]["pending_adapter_method_ids"] == []
-    assert families["operation_baselines"]["development_ready"] is True
+    assert families["operation_baselines"]["development_ready"] is False
     assert families["rl"]["ppo"]["selected_checkpoint_count"] == 0
     assert families["rl"]["ppo"]["missing_task_ids"] == [
         "flow-reaction-optimization",
@@ -77,6 +77,8 @@ def test_current_method_freeze_scaffold_reports_exact_gaps_without_bench_access(
         "llm:development_matrix:report_missing",
         "selection:dev_family_champions_missing",
         "formal_budget:freeze_missing",
+        "classic:development_contract_failed",
+        "operation_baseline:development_contract_failed",
         "method_freeze:development_incomplete",
     }.issubset(blockers)
     encoded = json.dumps(report)

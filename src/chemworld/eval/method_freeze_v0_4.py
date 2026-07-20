@@ -340,7 +340,8 @@ def _audit_classic(
     acceptance = development.get("acceptance")
     ready = bool(
         audit.get("controls_ready") is True
-        and development.get("schema_version") == "chemworld-classic-development-audit-0.4"
+        and development.get("schema_version")
+        == "chemworld-classic-development-audit-0.4.1"
         and development.get("status") == "formal_classic_matrix_ready"
         and development.get("formal_classic_matrix_ready") is True
         and development.get("bench_results_present") is False
@@ -408,13 +409,13 @@ def _audit_operation_baselines(
     evidence_ready = bool(
         freeze is not None
         and development is not None
-        and freeze.get("schema_version") == "chemworld-operation-method-freeze-0.4"
+        and freeze.get("schema_version") == "chemworld-operation-method-freeze-0.4.1"
         and freeze.get("status") == "dev_frozen_bench_unseen"
         and freeze.get("bench_results_used") is False
         and freeze.get("reference_search_results_used") is False
         and set(freeze.get("methods", {})) == set(required)
         and development.get("schema_version")
-        == "chemworld-operation-baseline-development-audit-0.4"
+        == "chemworld-operation-baseline-development-audit-0.4.1"
         and development.get("status") == "formal_operation_baselines_ready"
         and development.get("formal_operation_baselines_ready") is True
         and development.get("source_tree_clean_at_start") is True
@@ -889,8 +890,8 @@ def _method_scope_ready(
     selection = statistics.get("family_champion_selection")
     if not all(isinstance(item, Mapping) for item in (methods, tracks, selection)):
         return False
-    assert isinstance(methods, Mapping)
-    assert isinstance(selection, Mapping)
+    if not isinstance(methods, Mapping) or not isinstance(selection, Mapping):
+        return False
     return bool(
         set(raw.get("all_declared_method_ids", ())) == set(methods)
         and raw.get("development_families") == selection.get("families")

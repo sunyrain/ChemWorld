@@ -105,9 +105,17 @@ def test_release_gate_fails_when_head_changes_during_the_run() -> None:
     dirty = source_state_control(
         source_commit="abc", finished_source_commit="abc", dirty_at_finish=True
     )
+    dirty_candidate = source_state_control(
+        source_commit="abc",
+        finished_source_commit="abc",
+        dirty_at_finish=True,
+        allow_dirty_candidate=True,
+    )
 
     assert stable["passed"] is True
     assert stable["source_commit_stable"] is True
     assert changed["passed"] is False
     assert changed["source_commit_stable"] is False
     assert dirty["passed"] is False
+    assert dirty_candidate["passed"] is True
+    assert dirty_candidate["dirty_candidate_mode"] is True

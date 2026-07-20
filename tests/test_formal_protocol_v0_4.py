@@ -53,9 +53,16 @@ def test_formal_protocol_freezes_unseen_cohort_without_public_bench_values(
 ) -> None:
     protocol, private_path = sealed_protocol
     report = audit_formal_protocol(protocol, private_manifest_path=private_path)
-    assert report["controls_ready"] is True
+    # The sealed cohort remains valid, but this historical protocol is bound to
+    # the pre-v0.5 backend/P0 evidence and must fail closed after the foundation
+    # contract migration.  A new formal run requires a newly versioned protocol
+    # and a fresh precommit; this test must not silently bless the old binding.
+    assert report["controls_ready"] is False
     assert report["formal_results_present"] is False
     assert report["benchmark_claim_allowed"] is False
+    assert report["controls"]["backend_release_is_exact_and_ready"] is False
+    assert report["controls"]["all_p0_evidence_is_hash_bound_and_ready"] is False
+    assert report["controls"]["core_metrics_hashes_and_thresholds_match_p0"] is False
     assert report["formal_core_tasks"] == [
         "partition-discovery",
         "reaction-to-crystallization",
@@ -208,9 +215,12 @@ def test_initializer_refuses_to_overwrite_private_cohort(tmp_path: Path) -> None
 
 def test_checked_in_audit_report_is_nonclaiming_and_contains_no_private_values() -> None:
     report = json.loads(REPORT.read_text(encoding="utf-8"))
-    assert report["controls_ready"] is True
+    assert report["controls_ready"] is False
     assert report["formal_results_present"] is False
     assert report["benchmark_claim_allowed"] is False
+    assert report["controls"]["backend_release_is_exact_and_ready"] is False
+    assert report["controls"]["all_p0_evidence_is_hash_bound_and_ready"] is False
+    assert report["controls"]["core_metrics_hashes_and_thresholds_match_p0"] is False
     assert report["private_bench"]["verified"] is True
     assert report["private_bench"]["disjoint_and_sealed"] is True
     assert report["private_bench"]["raw_seed_values_reported"] is False

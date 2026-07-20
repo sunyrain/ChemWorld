@@ -32,16 +32,18 @@ from chemworld.world.instruments import chemworld_instruments
 def _configured_env(
     *,
     seed: int = 0,
+    electrolyte_profile: int = 1,
     settings: dict[str, float] | None = None,
 ) -> gym.Env:
     env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=seed)
     env.reset(seed=seed)
-    env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 1})
+    env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 0})
     env.step({"operation": "add_reagent", "amount_mol": 0.010})
     action: dict[str, Any] = {
         "operation": "set_potential",
         "potential_V": 1.15,
         "current_mA": 75.0,
+        "electrolyte_profile": electrolyte_profile,
     }
     if settings:
         action.update(settings)
@@ -69,11 +71,16 @@ def test_set_potential_is_configuration_only() -> None:
     env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
     try:
         env.reset(seed=0)
-        env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 1})
+        env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 0})
         env.step({"operation": "add_reagent", "amount_mol": 0.010})
         before = env.unwrapped._state
         _obs, _reward, _terminated, _truncated, info = env.step(
-            {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0}
+            {
+                "operation": "set_potential",
+                "potential_V": 1.15,
+                "current_mA": 75.0,
+                "electrolyte_profile": 1,
+            }
         )
         after = env.unwrapped._state
 
@@ -242,19 +249,21 @@ def test_transport_and_electrolyte_perturbations_are_identifiable() -> None:
         {"electrolyte_conductivity_S_m": 0.0},
         {"diffusion_layer_thickness_m": 0.1},
         {"equilibrium_max_activity_iterations": 1.5},
+        {"voltage_window_V": 0.5},
     ],
 )
 def test_invalid_cell_configuration_fails_closed(settings: dict[str, float]) -> None:
     env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=1)
     try:
         env.reset(seed=1)
-        env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 1})
+        env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 0})
         env.step({"operation": "add_reagent", "amount_mol": 0.010})
         before = _physical_snapshot(env.unwrapped._state)
         action = {
             "operation": "set_potential",
             "potential_V": 1.15,
             "current_mA": 75.0,
+            "electrolyte_profile": 1,
             **settings,
         }
         _obs, _reward, _terminated, _truncated, info = env.step(action)
@@ -271,7 +280,6 @@ def test_invalid_cell_configuration_fails_closed(settings: dict[str, float]) -> 
         {"equilibrium_max_activity_iterations": 1.0},
         {"equilibrium_max_precipitation_passes": 1.0},
         {"supporting_electrolyte_mol": 0.50 * 0.026},
-        {"voltage_window_V": 0.5},
     ],
 )
 def test_infeasible_or_nonconverged_electrolyte_rolls_back(settings: dict[str, float]) -> None:
@@ -284,6 +292,57 @@ def test_infeasible_or_nonconverged_electrolyte_rolls_back(settings: dict[str, f
 
         assert info["transaction_status"] != "committed"
         assert _physical_snapshot(env.unwrapped._state) == before
+    finally:
+        env.close()
+
+
+def test_public_aqueous_electrolyte_profiles_activate_distinct_coupled_physics() -> None:
+    environments = [
+        _configured_env(seed=4, electrolyte_profile=profile)
+        for profile in range(4)
+    ]
+    try:
+        snapshots: list[dict[str, float]] = []
+        for env in environments:
+            _observation, _reward, _terminated, _truncated, info = env.step(
+                {"operation": "electrolyze", "duration_s": 1800.0}
+            )
+            assert info["transaction_status"] == "committed", info
+            snapshots.append(dict(env.unwrapped._state.process.metrics))
+
+        low_support, high_support, acidic_transport, precipitation_prone = snapshots
+        assert high_support["transport_current_efficiency"] > low_support[
+            "transport_current_efficiency"
+        ]
+        assert high_support["ohmic_efficiency"] > low_support["ohmic_efficiency"]
+        assert acidic_transport["electrolyte_pH"] < low_support["electrolyte_pH"]
+        assert precipitation_prone["electrolyte_precipitated_mol"] > max(
+            snapshot["electrolyte_precipitated_mol"] for snapshot in snapshots[:3]
+        )
+        assert len(
+            {round(snapshot["redox_activity_coefficient"], 8) for snapshot in snapshots}
+        ) >= 3
+    finally:
+        for env in environments:
+            env.close()
+
+
+def test_electrochemical_ph_meter_reads_the_coupled_electrolyte_state() -> None:
+    env = _configured_env(seed=4, electrolyte_profile=3)
+    try:
+        env.step({"operation": "electrolyze", "duration_s": 1800.0})
+        metrics = env.unwrapped._state.process.metrics
+        _observation, _reward, _terminated, _truncated, info = env.step(
+            {"operation": "measure", "instrument": "ph_meter"}
+        )
+        estimates = info["processed_estimate"]
+
+        assert estimates["pH_normalized"] == pytest.approx(
+            metrics["electrolyte_pH"] / 14.0,
+            abs=0.02,
+        )
+        assert estimates["precipitation_signal"] > 0.95
+        assert metrics["electrolyte_acid_dissociation_fraction"] > 0.0
     finally:
         env.close()
 

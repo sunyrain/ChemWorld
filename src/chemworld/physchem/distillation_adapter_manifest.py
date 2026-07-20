@@ -118,7 +118,6 @@ class DutyLimitedDistillationProvider:
         if violations:
             return _failed_result("; ".join(violations), self.model_contract.provenance)
         request = inputs["request"]
-        assert isinstance(request, DutyLimitedDistillationRequest)
         try:
             result = simulate_duty_limited_distillation(request)
         except (RuntimeError, ValueError) as error:

@@ -36,16 +36,26 @@ class TaskScoringContract:
         success_metrics: tuple[str, ...] = (),
     ) -> TaskScoringContract:
         metrics = frozenset(success_metrics)
-        if metrics.intersection({"crystal_yield", "crystal_purity", "crystal_size"}):
+        if metrics.intersection(
+            {
+                "crystal_yield",
+                "crystal_purity",
+                "crystal_size",
+                "crystal_csd_quality",
+                "crystal_fines_fraction",
+            }
+        ):
             return cls(
                 objective,
                 success_metrics,
                 "crystallization",
                 {
-                    "reaction_score": 0.40,
-                    "crystal_yield": 0.28,
-                    "crystal_purity": 0.24,
-                    "crystal_size": 0.08,
+                    "reaction_score": 0.25,
+                    "crystal_yield": 0.25,
+                    "crystal_purity": 0.20,
+                    "crystal_size": 0.10,
+                    "crystal_csd_quality": 0.20,
+                    "crystal_fines_fraction": -0.10,
                 },
             )
         if metrics.intersection({"distillate_purity", "distillate_recovery"}):
@@ -60,16 +70,27 @@ class TaskScoringContract:
                     "solvent_loss": -0.10,
                 },
             )
-        if metrics.intersection({"electrochemical_selectivity", "energy_efficiency"}):
+        if metrics.intersection(
+            {
+                "electrochemical_selectivity",
+                "faradaic_efficiency",
+                "transport_efficiency",
+                "ohmic_efficiency",
+                "energy_efficiency",
+            }
+        ):
             return cls(
                 objective,
                 success_metrics,
                 "electrochemistry",
                 {
-                    "reaction_score": 0.35,
-                    "electrochemical_selectivity": 0.35,
-                    "energy_efficiency": 0.20,
-                    "conversion": 0.10,
+                    "reaction_score": 0.15,
+                    "electrochemical_selectivity": 0.25,
+                    "faradaic_efficiency": 0.15,
+                    "transport_efficiency": 0.15,
+                    "ohmic_efficiency": 0.10,
+                    "energy_efficiency": 0.15,
+                    "conversion": 0.05,
                 },
             )
         if metrics.intersection(
@@ -243,8 +264,7 @@ def task_score_observation(
         }
     )
     raw = sum(
-        weight * components.get(key, 0.0)
-        for key, weight in contract.component_weights.items()
+        weight * components.get(key, 0.0) for key, weight in contract.component_weights.items()
     )
     return float(np.clip(raw, 0.0, 1.0))
 

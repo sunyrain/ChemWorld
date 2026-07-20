@@ -10,12 +10,13 @@ import subprocess
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
 import gymnasium as gym
 import numpy as np
 
 import chemworld  # noqa: F401
-from chemworld.foundation import audit_ledger_single_source_of_truth
+from chemworld.foundation import Observation, audit_ledger_single_source_of_truth
 from chemworld.runtime.kernel_registry import affected_ledgers
 from chemworld.world.operations import OPERATION_TYPES, operation_contracts
 
@@ -104,9 +105,18 @@ def build_report(
         }
 
     final_assay = _probe_final_assay_boundary()
+    rollback_final_assay = _probe_rolled_back_final_assay_boundary()
+    malformed_actions = _probe_malformed_action_boundary()
+    observation_integrity = _probe_observation_integrity_boundary()
     post_terminal = _probe_post_terminal_barrier(protocol)
     if not final_assay["repeated_final_assay_rejected"]:
         control_failures.append("measure:repeated_final_assay_rejected")
+    if not rollback_final_assay["passed"]:
+        control_failures.append("measure:rolled_back_final_assay_fail_closed")
+    if not malformed_actions["passed"]:
+        control_failures.append("input:malformed_actions_fail_closed")
+    if not observation_integrity["passed"]:
+        control_failures.append("output:observation_integrity_fail_closed")
     if not post_terminal["all_process_operations_rejected"]:
         control_failures.append("terminate:post_terminal_barrier")
 
@@ -168,6 +178,9 @@ def build_report(
             operation in operation_results for operation in protocol["zero_effect_fields"]
         ),
         "final_assay_repeat_guarded": final_assay["repeated_final_assay_rejected"],
+        "rolled_back_final_assay_fail_closed": rollback_final_assay["passed"],
+        "malformed_actions_fail_closed": malformed_actions["passed"],
+        "observation_integrity_fail_closed": observation_integrity["passed"],
         "post_terminal_process_barrier": post_terminal["all_process_operations_rejected"],
     }
     report: dict[str, Any] = {
@@ -187,6 +200,9 @@ def build_report(
         "checks": checks,
         "operation_results": operation_results,
         "final_assay_boundary": final_assay,
+        "rolled_back_final_assay_boundary": rollback_final_assay,
+        "malformed_action_boundary": malformed_actions,
+        "observation_integrity_boundary": observation_integrity,
         "post_terminal_boundary": post_terminal,
         "defect_inventory": defect_inventory,
         "control_failures": sorted(control_failures),
@@ -250,7 +266,7 @@ def _run_positive_case(
     )
     try:
         env.reset(seed=seed)
-        base = env.unwrapped
+        base: Any = env.unwrapped
         setup_evidence = []
         for action in protocol["setup_fixtures"][case["setup"]]:
             _observation, _reward, terminated, truncated, info = env.step(deepcopy(action))
@@ -345,7 +361,7 @@ def _run_invalid_case(
     )
     try:
         env.reset(seed=0)
-        base = env.unwrapped
+        base: Any = env.unwrapped
         before = base._state
         before_snapshot = _failure_atomic_snapshot(before)
         before_history = _observation_history(before)
@@ -396,6 +412,7 @@ def _probe_numeric_boundaries(
     )
     try:
         env.reset(seed=0)
+        base: Any = env.unwrapped
         for setup_action in protocol["setup_fixtures"][case["setup"]]:
             _obs, _reward, _terminated, _truncated, info = env.step(deepcopy(setup_action))
             if info["transaction_status"] != "committed":
@@ -405,14 +422,14 @@ def _probe_numeric_boundaries(
         for field in fields:
             zero_action = deepcopy(case["action"])
             zero_action[field] = 0.0
-            if env.unwrapped.operation_validator.validate(
-                zero_action, env.unwrapped._state
+            if base.operation_validator.validate(
+                zero_action, base._state
             ).is_valid:
                 accepted_zero.append({"operation": operation, "field": field})
             negative_action = deepcopy(case["action"])
             negative_action[field] = -1.0
-            if env.unwrapped.operation_validator.validate(
-                negative_action, env.unwrapped._state
+            if base.operation_validator.validate(
+                negative_action, base._state
             ).is_valid:
                 accepted_negative.append({"operation": operation, "field": field})
         return {
@@ -428,6 +445,7 @@ def _probe_final_assay_boundary() -> dict[str, Any]:
     env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0, budget_override=100)
     try:
         env.reset(seed=0)
+        base: Any = env.unwrapped
         for action in (
             {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
             {"operation": "add_reagent", "amount_mol": 0.01},
@@ -437,9 +455,9 @@ def _probe_final_assay_boundary() -> dict[str, Any]:
             _obs, _reward, _terminated, _truncated, info = env.step(action)
             if info["transaction_status"] != "committed":
                 raise AssertionError(f"final-assay setup failed: {info}")
-        validation = env.unwrapped.operation_validator.validate(
+        validation = base.operation_validator.validate(
             {"operation": "measure", "instrument": "final_assay"},
-            env.unwrapped._state,
+            base._state,
         )
         runtime_guard = not validation.is_valid and (
             "measure_final_not_repeated" in validation.invalid_reasons
@@ -458,11 +476,276 @@ def _probe_final_assay_boundary() -> dict[str, Any]:
         env.close()
 
 
+def _probe_rolled_back_final_assay_boundary() -> dict[str, Any]:
+    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=17, budget_override=100)
+    try:
+        env.reset(seed=17)
+        base: Any = env.unwrapped
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.025, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.008},
+            {"operation": "measure", "instrument": "hplc"},
+            {"operation": "terminate"},
+        ):
+            _obs, _reward, _terminated, _truncated, setup_info = env.step(action)
+            if setup_info["transaction_status"] != "committed":
+                raise AssertionError(f"rollback-assay setup failed: {setup_info}")
+
+        before_history = _observation_history(base._state)
+        before_provider_execution = deepcopy(
+            base.observation_kernel.last_provider_execution
+        )
+        transaction_manager = base.runtime.transaction_manager
+
+        def reject_candidate(
+            *,
+            state: Any,
+            operation_type: str,
+            events: tuple[Any, ...],
+            patches: tuple[Any, ...],
+        ) -> Any:
+            del patches
+            return transaction_manager.rollback(
+                state=state,
+                operation_type=operation_type,
+                rollback_reason="constitution_failed",
+                failed_checks=("injected_measurement_failure",),
+                events=events,
+            )
+
+        with patch.object(
+            transaction_manager,
+            "commit",
+            side_effect=reject_candidate,
+        ):
+            _observation, reward, terminated, truncated, info = env.step(
+                {"operation": "measure", "instrument": "final_assay"}
+            )
+
+        checks = {
+            "transaction_rolled_back": info["transaction_status"] == "rolled_back"
+            and info["rollback_reason"] == "constitution_failed",
+            "no_fresh_observation": info["environment_reward"]["fresh_measurement"]
+            is False,
+            "no_reward": math.isclose(float(reward), 0.0, abs_tol=1.0e-15),
+            "no_leaderboard_score": info["leaderboard_score"] is None,
+            "no_measurement_consumption": math.isclose(
+                float(info["measurement_cost"]), 0.0, abs_tol=1.0e-15
+            )
+            and math.isclose(float(info["sample_consumed"]), 0.0, abs_tol=1.0e-15),
+            "episode_remains_open": not terminated
+            and not truncated
+            and info["experiment_ended"] is False,
+            "observation_history_preserved": before_history
+            == _observation_history(base._state),
+            "provider_not_executed": before_provider_execution
+            == base.observation_kernel.last_provider_execution,
+            "rollback_reported_as_reward_source": info["reward_source"]
+            == "constitution_rollback",
+        }
+        return {
+            "checks": checks,
+            "passed": all(checks.values()),
+            "transaction_status": info["transaction_status"],
+            "rollback_reason": info["rollback_reason"],
+            "reward": float(reward),
+            "measurement_cost": float(info["measurement_cost"]),
+            "sample_consumed": float(info["sample_consumed"]),
+        }
+    finally:
+        env.close()
+
+
+def _probe_malformed_action_boundary() -> dict[str, Any]:
+    cases: tuple[tuple[str, Any], ...] = (
+        ("infinite_operation", {"operation": float("inf")}),
+        ("empty_operation", {"operation": np.asarray([], dtype=float)}),
+        ("fractional_operation", {"operation": 1.5}),
+        (
+            "infinite_material_choice",
+            {"operation": "add_solvent", "volume_L": 0.02, "solvent": float("inf")},
+        ),
+        (
+            "infinite_phase_choice",
+            {"operation": "separate_phase", "target_phase": float("inf")},
+        ),
+        ("none_action", None),
+        ("list_action", []),
+        ("scalar_action", 7),
+    )
+    results: dict[str, dict[str, Any]] = {}
+    for case_id, action in cases:
+        env = gym.make(
+            "ChemWorld",
+            task_id="partition-discovery",
+            seed=0,
+            budget_override=100,
+        )
+        try:
+            env.reset(seed=0)
+            base: Any = env.unwrapped
+            before = base._state
+            before_snapshot = _failure_atomic_snapshot(before)
+            before_history = _observation_history(before)
+            before_step = base._step_count
+            try:
+                _observation, reward, terminated, truncated, info = env.step(action)
+            except Exception as exc:  # pragma: no cover - reported as an audit defect
+                results[case_id] = {
+                    "passed": False,
+                    "error_type": type(exc).__name__,
+                    "error_message": str(exc),
+                }
+                continue
+            after = base._state
+            checks = {
+                "validation_failed": info["transaction_status"] == "validation_failed"
+                and info["rollback_reason"] == "validation_failed",
+                "material_state_atomic": before_snapshot == _failure_atomic_snapshot(after),
+                "observation_history_preserved": before_history == _observation_history(after),
+                "attempt_consumed": base._step_count == before_step + 1,
+                "penalty_recorded": after.ledger.cost > before.ledger.cost
+                and after.ledger.risk > before.ledger.risk,
+                "no_reward_or_termination": math.isclose(
+                    float(reward), 0.0, abs_tol=1.0e-15
+                )
+                and not terminated
+                and not truncated,
+            }
+            results[case_id] = {
+                "passed": all(checks.values()),
+                "checks": checks,
+                "transaction_status": info["transaction_status"],
+            }
+        finally:
+            env.close()
+    return {
+        "case_count": len(results),
+        "passed": len(results) == len(cases)
+        and all(result["passed"] for result in results.values()),
+        "cases": results,
+    }
+
+
+def _probe_observation_integrity_boundary() -> dict[str, Any]:
+    cases = (
+        (
+            "nonfinite_value",
+            Observation(
+                values={"score": float("inf")},
+                units={"score": "dimensionless"},
+                observed_mask={"score": True},
+            ),
+        ),
+        (
+            "private_payload",
+            Observation(
+                values={"score": 0.5},
+                units={"score": "dimensionless"},
+                observed_mask={"score": True},
+                raw_signal={"species_amounts": {"A": 1.0}},
+            ),
+        ),
+        (
+            "nonfinite_uncertainty",
+            Observation(
+                values={"score": 0.5},
+                units={"score": "dimensionless"},
+                observed_mask={"score": True},
+                uncertainty={"score_std": float("nan")},
+            ),
+        ),
+    )
+    results: dict[str, dict[str, Any]] = {}
+    infinity_rejected_by_space = False
+    for case_id, faulty_observation in cases:
+        env = gym.make(
+            "ChemWorld",
+            task_id="reaction-to-assay",
+            seed=0,
+            budget_override=100,
+        )
+        try:
+            env.reset(seed=0)
+            base: Any = env.unwrapped
+            before = base._state
+            before_snapshot = _failure_atomic_snapshot(before)
+            before_history = _observation_history(before)
+            before_rng = deepcopy(base._rng.bit_generator.state)
+            score_space = env.observation_space.spaces["score"]
+            infinity_rejected_by_space = not score_space.contains(
+                np.asarray([np.inf], dtype=np.float32)
+            )
+
+            def inject_fault(
+                state: Any,
+                action: Any,
+                rng: np.random.Generator,
+                faulty: Observation = faulty_observation,
+            ) -> Observation:
+                del state, action
+                rng.normal()
+                return faulty
+
+            with patch.object(
+                base.observation_kernel,
+                "observe",
+                side_effect=inject_fault,
+            ):
+                observation, reward, terminated, truncated, info = env.step(
+                    {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1}
+                )
+            after = base._state
+            failed_checks = {
+                str(check.get("name"))
+                for check in info["constitution_checks"]
+                if check.get("passed") is False
+            }
+            checks = {
+                "validation_failed": info["transaction_status"] == "validation_failed"
+                and info["preconditions"].get("observation_domain_valid") is False,
+                "material_state_atomic": before_snapshot
+                == _failure_atomic_snapshot(after),
+                "observation_history_preserved": before_history
+                == _observation_history(after),
+                "observation_rng_preserved": before_rng
+                == base._rng.bit_generator.state,
+                "candidate_failure_reported": bool(failed_checks)
+                and info["constraint_flags"]["constitution_failed"] is True,
+                "faulty_payload_not_exposed": info["raw_signal"] == {}
+                and env.observation_space.contains(observation),
+                "penalty_recorded": after.ledger.cost > before.ledger.cost
+                and after.ledger.risk > before.ledger.risk,
+                "no_reward_or_termination": math.isclose(
+                    float(reward), 0.0, abs_tol=1.0e-15
+                )
+                and not terminated
+                and not truncated,
+            }
+            results[case_id] = {
+                "passed": all(checks.values()),
+                "checks": checks,
+                "failed_constitution_checks": sorted(failed_checks),
+                "transaction_status": info["transaction_status"],
+            }
+        finally:
+            env.close()
+    return {
+        "case_count": len(results),
+        "infinity_rejected_by_observation_space": infinity_rejected_by_space,
+        "passed": infinity_rejected_by_space
+        and len(results) == len(cases)
+        and all(result["passed"] for result in results.values()),
+        "cases": results,
+    }
+
+
 def _probe_post_terminal_barrier(protocol: dict[str, Any]) -> dict[str, Any]:
     case = protocol["operations"]["terminate"]
     env = gym.make("ChemWorld", task_id=case["task_id"], seed=0, budget_override=100)
     try:
         env.reset(seed=0)
+        base: Any = env.unwrapped
         for action in protocol["setup_fixtures"]["charged_basic"]:
             env.step(deepcopy(action))
         env.step(deepcopy(case["action"]))
@@ -470,8 +753,8 @@ def _probe_post_terminal_barrier(protocol: dict[str, Any]) -> dict[str, Any]:
         for operation in OPERATION_TYPES:
             if operation in {"terminate", "measure"}:
                 continue
-            validation = env.unwrapped.operation_validator.operation_affordance(
-                operation, env.unwrapped._state
+            validation = base.operation_validator.operation_affordance(
+                operation, base._state
             )
             results[operation] = (
                 not validation.is_valid and "not_terminated" in validation.invalid_reasons
@@ -481,7 +764,7 @@ def _probe_post_terminal_barrier(protocol: dict[str, Any]) -> dict[str, Any]:
             "all_process_operations_rejected": all(results.values()),
             "measurement_remains_available_for_terminal_assay": (
                 "measure"
-                in env.unwrapped.operation_validator.valid_operations(env.unwrapped._state)
+                in base.operation_validator.valid_operations(base._state)
             ),
         }
     finally:

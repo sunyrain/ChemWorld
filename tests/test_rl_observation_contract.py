@@ -80,9 +80,7 @@ def test_observation_contract_matches_real_training_space_and_reset_vector(
         assert env.observation_space.contains(observation)
 
         segments = contract["segments"]
-        assert [segment["name"] for segment in segments] == contract[
-            "concatenation_order"
-        ]
+        assert [segment["name"] for segment in segments] == contract["concatenation_order"]
         assert [segment["start"] for segment in segments] == [
             0,
             *[segment["stop_exclusive"] for segment in segments[:-1]],
@@ -127,15 +125,13 @@ def test_observation_contract_freezes_public_progress_and_affordance_order(
     progress = contract["core_operation_progress"]
     assert progress["requirements"] == [
         list(group)
-        for group in core_operation_requirements(get_task(task_id).allowed_operations)
+        for group in core_operation_requirements(
+            get_task(task_id).allowed_operations, task_id=task_id
+        )
     ]
     assert progress["invalid_precondition_updates_progress"] is False
-    assert progress["reset"] == (
-        "after experiment_ended and at environment or agent reset"
-    )
-    assert contract["operation_affordance_mask"]["operation_order"] == list(
-        OPERATION_TYPES
-    )
+    assert progress["reset"] == ("after experiment_ended and at environment or agent reset")
+    assert contract["operation_affordance_mask"]["operation_order"] == list(OPERATION_TYPES)
     assert contract["vector_keys"][-3:] == [
         "operation_budget_fraction_used",
         "operation_budget_fraction_remaining",

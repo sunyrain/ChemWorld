@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import pytest
 from scripts.run_safe_policy_development import (
     build_development_jobs,
     build_development_summary,
     load_development_protocol,
+    validate_development_runtime_compatibility,
 )
 
 
@@ -43,6 +45,12 @@ def test_development_jobs_use_dev_only_matrix(tmp_path) -> None:
         "structured_gp_bo",
         "random",
     }
+
+
+def test_historical_development_protocol_cannot_run_with_current_recipe_space() -> None:
+    protocol = load_development_protocol()
+    with pytest.raises(RuntimeError, match="protocol is superseded"):
+        validate_development_runtime_compatibility(protocol)
 
 
 def test_development_summary_can_select_safe_policy_without_claiming() -> None:

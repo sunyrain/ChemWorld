@@ -120,7 +120,10 @@ def _aggregate_training_diagnostics(items: list[dict[str, Any]]) -> dict[str, An
         "step_count",
         "episode_count",
         "invalid_action_count",
+        "transaction_rollback_count",
+        "constitution_failure_count",
         "runtime_domain_failure_count",
+        "observation_domain_failure_count",
         "measurement_count",
         "completed_experiment_count",
         "behavior_complete_experiment_count",
@@ -240,9 +243,7 @@ def train_sb3_baseline(
         probe_env.close()
     observation_contract = rl_observation_contract(task_id)
     if observation_shape != observation_contract["shape"]:
-        raise RuntimeError(
-            "RL environment observation shape does not match its published contract"
-        )
+        raise RuntimeError("RL environment observation shape does not match its published contract")
     observation_contract_hash = str(observation_contract.get("contract_hash", ""))
     if len(observation_contract_hash) != 64:
         raise RuntimeError("RL observation contract is missing its compatibility hash")

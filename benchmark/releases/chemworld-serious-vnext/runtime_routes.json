@@ -558,7 +558,7 @@
         "cooling_rate_K_s",
         "warnings"
       ],
-      "failure_policy": "fail closed without a runtime output for invalid feed or seed, excessive cooling rate, absent population or transfer, solver non-convergence, or component/particle ledger failure",
+      "failure_policy": "fail closed without a runtime output for invalid feed or seed, excessive cooling rate, solver non-convergence, or component/particle ledger failure; absent population or transfer fail only when required by execution_spec",
       "input_fields": [
         "case",
         "time_steps",
@@ -594,7 +594,7 @@
         "cooling rate remains inside the declared linear-ramp domain",
         "temperature history is monotonic and reaches the requested endpoint",
         "component and crystal-size-moment ledgers close within tolerance",
-        "growth-cap solver converges and a nonzero solution-to-solid transfer occurs"
+        "growth-cap solver converges; population and transfer requirements follow the supplied execution policy"
       ]
     },
     "diffusion_layer_limiting_current_v1": {

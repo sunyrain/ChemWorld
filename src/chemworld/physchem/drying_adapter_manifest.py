@@ -112,7 +112,6 @@ class SorbentDryingProvider:
                 provenance=self.model_contract.provenance,
             )
         request = inputs["request"]
-        assert isinstance(request, SorbentDryingRequest)
         try:
             result = simulate_sorbent_drying(request)
         except (RuntimeError, ValueError) as error:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 from gymnasium import spaces
 
-from chemworld.world.actions import CATALYSTS, SOLVENTS
+from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 from chemworld.world.operations import INSTRUMENTS, OPERATION_TYPES, PUBLIC_OBSERVATION_KEYS
 
 OBSERVATION_KEYS = PUBLIC_OBSERVATION_KEYS
@@ -21,9 +21,14 @@ class NullableScalarBox(spaces.Box):
             return False
         if array.shape != self.shape:
             return False
+        # NaN is the sole missing-value sentinel in the public observation
+        # contract.  Treating +/-Inf as another kind of missing value hides
+        # numerical failures from Gym/RL consumers.
+        if np.any(np.isinf(array)):
+            return False
         finite = np.isfinite(array)
         if not np.any(finite):
-            return True
+            return bool(np.all(np.isnan(array)))
         return bool(
             np.all(array[finite] >= self.low[finite]) and np.all(array[finite] <= self.high[finite])
         )
@@ -56,6 +61,7 @@ def make_action_space() -> spaces.Dict:
             "residence_time_s": spaces.Box(1.0, 7200.0, shape=(1,), dtype=np.float32),
             "potential_V": spaces.Box(-3.0, 3.0, shape=(1,), dtype=np.float32),
             "current_mA": spaces.Box(0.0, 500.0, shape=(1,), dtype=np.float32),
+            "electrolyte_profile": spaces.Discrete(len(ELECTROLYTE_PROFILES)),
         }
     )
 
@@ -81,7 +87,16 @@ def value_or_default(
 def to_observation(values: dict[str, float | None]) -> dict[str, np.ndarray]:
     def scalar_value(key: str) -> float:
         value = values.get(key)
-        return np.nan if value is None else float(value)
+        if value is None:
+            return np.nan
+        if isinstance(value, bool):
+            raise ValueError(f"observation value {key!r} must be numeric, not boolean")
+        resolved = float(value)
+        if not np.isfinite(resolved) or not 0.0 <= resolved <= 1.0:
+            raise ValueError(
+                f"observation value {key!r} must be finite and lie in [0, 1]"
+            )
+        return resolved
 
     return {
         key: np.array(

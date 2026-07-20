@@ -83,7 +83,7 @@ def test_all_formal_acquisition_variants_declare_typed_recipe_encoding() -> None
     for agent in agents:
         manifest = agent.manifest()
         assert manifest["recipe_encoding"] == "continuous_plus_material_one_hot"
-        assert manifest["search_space_version"] == "chemworld-task-recipe-space-0.2"
+        assert manifest["search_space_version"] == "chemworld-task-recipe-space-0.5"
 
 
 def test_bo_campaign_runs_multiple_recipes(tmp_path) -> None:

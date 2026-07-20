@@ -123,10 +123,10 @@ class OperationBaselineAgent(BaseAgent):
         self._rule_cursor = 0
         self._rule_retry_used = False
         self._last_audit: dict[str, Any] | None = None
+        recipe_events = task_recipe_event_count(task_info)
         self._closeout_after = max(
             1,
-            self.exploration_multiplier * task_recipe_event_count(task_info)
-            - 2
+            (self.exploration_multiplier - 1) * recipe_events
             - _CLOSEOUT_RECOVERY_RESERVE,
         )
 

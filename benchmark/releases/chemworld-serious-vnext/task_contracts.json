@@ -20,7 +20,7 @@
         "terminate"
       ],
       "budget": 48,
-      "contract_hash": "ce378e7bc5e725ed266db2bb639194c05f5f615ba0795b158c3c976cc787117e",
+      "contract_hash": "8f5e648c9c4ad3138391014a536dc9df3008b99152c70da0f2a173914ec0d37c",
       "description": "Learn unknown solvent/product partition behavior through instruments.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
@@ -38,7 +38,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -81,7 +81,7 @@
         "partition",
         "world-model-learning"
       ],
-      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_contract_version": "chemworld-task-contract-0.9",
       "task_id": "partition-discovery",
       "termination_policy": "budget",
       "threshold": 0.6,
@@ -91,8 +91,6 @@
     {
       "allowed_instruments": [
         "hplc",
-        "gc",
-        "uvvis",
         "final_assay"
       ],
       "allowed_operations": [
@@ -110,8 +108,8 @@
         "filter_crystals"
       ],
       "budget": 72,
-      "contract_hash": "f15de7356ab11588028bb0add31b3461e9b90bf273de6dcdb4e123ce6b2f65ac",
-      "description": "Run a reaction and isolate product through seeded cooling crystallization.",
+      "contract_hash": "756ca669f81a27290cd72e25c05cf9ed1f7cae0db6b299f1332d8a907b642e8f",
+      "description": "Use reaction assays to adapt a seeded cooling trajectory, then isolate product while controlling yield, purity, and particle-size distribution.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
       "episode_mode": "campaign",
@@ -143,12 +141,11 @@
             "level": "reference_validated",
             "model_ids": [
               "chemworld_validated_synthetic_instruments_v1",
-              "beer_lambert_uvvis",
               "chromatography_retention_plate"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -184,19 +181,22 @@
         "score",
         "crystal_yield",
         "crystal_purity",
-        "crystal_size"
+        "crystal_size",
+        "crystal_csd_quality",
+        "crystal_fines_fraction"
       ],
       "tags": [
         "chemworld",
         "reaction",
         "crystallization",
         "purification",
-        "year2"
+        "closed-loop",
+        "flagship"
       ],
-      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_contract_version": "chemworld-task-contract-0.9",
       "task_id": "reaction-to-crystallization",
-      "termination_policy": "budget",
-      "threshold": 0.6,
+      "termination_policy": "budget-with-workflow-gated-final-assay",
+      "threshold": 0.55,
       "world_law_id": "chemworld-physical-chemistry-v0.4",
       "world_split": "public-test"
     },
@@ -222,7 +222,7 @@
         "collect_fraction"
       ],
       "budget": 72,
-      "contract_hash": "939b171d164139699d94c78250a937ab637be201f23bd62fddc47a864becaba7",
+      "contract_hash": "d19adb180200831acca5bdbb6e05a6a9de1760b494eb03f6be5a43162c6b9109",
       "description": "Run a reaction and evaluate volatile-product recovery through distillation.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
@@ -260,7 +260,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -305,7 +305,7 @@
         "purification",
         "year2"
       ],
-      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_contract_version": "chemworld-task-contract-0.9",
       "task_id": "reaction-to-distillation",
       "termination_policy": "budget",
       "threshold": 0.29,
@@ -329,7 +329,7 @@
         "terminate"
       ],
       "budget": 60,
-      "contract_hash": "aa47c74db1753f062a3e5f59208db8278c25db778390607892e20eaaeb30cdc9",
+      "contract_hash": "834207984ba38bfab373c400fc715d63908100db3ca9549185daf4fb5aca5a4f",
       "description": "Optimize a geometry-resolved PFR using the shared reaction network.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
@@ -357,7 +357,7 @@
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -402,7 +402,7 @@
         "optimization",
         "year2"
       ],
-      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_contract_version": "chemworld-task-contract-0.9",
       "task_id": "flow-reaction-optimization",
       "termination_policy": "budget",
       "threshold": 0.075,
@@ -411,8 +411,7 @@
     },
     {
       "allowed_instruments": [
-        "hplc",
-        "gc",
+        "ph_meter",
         "uvvis",
         "final_assay"
       ],
@@ -425,8 +424,8 @@
         "terminate"
       ],
       "budget": 48,
-      "contract_hash": "9f86e8550be9f8de98f4152104ef981c075697bf8cf378f040f5af4593235d09",
-      "description": "Probe potential/current choices for a virtual electrochemical conversion.",
+      "contract_hash": "9cc0c792e171737c5ffd5dc03772dcff724a19ae5c504b7d573257eadfa89d63",
+      "description": "Select a bounded aqueous electrolyte profile, identify coupled equilibrium, transport, double-layer, kinetic, and ohmic behavior from a probe regime, then adapt potential/current for selective, charge- and energy-efficient conversion.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
       "episode_mode": "campaign",
@@ -439,11 +438,11 @@
             "model_ids": [
               "chemworld_validated_synthetic_instruments_v1",
               "beer_lambert_uvvis",
-              "chromatography_retention_plate"
+              "potentiometric_ph_public_reference"
             ],
             "module_id": "spectroscopy_instruments",
             "notes": [
-              "State-coupled synthetic observations with reference-validated Beer-Lambert UV-vis and chromatography retention/plate-count slices; not empirical spectral prediction."
+              "State-coupled synthetic observations declare only the physical instrument providers reachable from this task's allowed instruments; they are not empirical spectral predictions."
             ]
           },
           {
@@ -490,7 +489,12 @@
       "success_metrics": [
         "score",
         "electrochemical_selectivity",
+        "faradaic_efficiency",
+        "transport_efficiency",
+        "ohmic_efficiency",
         "energy_efficiency",
+        "pH_normalized",
+        "precipitation_signal",
         "safety_risk"
       ],
       "tags": [
@@ -498,11 +502,12 @@
         "reaction",
         "electrochemistry",
         "optimization",
-        "year2"
+        "closed-loop",
+        "flagship"
       ],
-      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_contract_version": "chemworld-task-contract-0.9",
       "task_id": "electrochemical-conversion",
-      "termination_policy": "budget",
+      "termination_policy": "budget-with-workflow-gated-final-assay",
       "threshold": 0.58,
       "world_law_id": "chemworld-physical-chemistry-v0.4",
       "world_split": "public-test"
@@ -525,7 +530,7 @@
         "measure"
       ],
       "budget": 24,
-      "contract_hash": "64393d1da00e28101f71246ef13c1b69e03b0b213542e97afcb1add8f52eaa62",
+      "contract_hash": "046067c1c75a57032b3b4307f386b23c706507178856ee20cffa70478cd0e42a",
       "description": "Characterize a bounded aqueous-equilibrium slice using public pH-meter and final-assay observations.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
@@ -609,7 +614,7 @@
         "world-model-learning",
         "serious-benchmark-v1"
       ],
-      "task_contract_version": "chemworld-task-contract-0.6",
+      "task_contract_version": "chemworld-task-contract-0.9",
       "task_id": "equilibrium-characterization",
       "termination_policy": "budget",
       "threshold": 0.28,

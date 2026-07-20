@@ -42,6 +42,7 @@ from chemworld.runtime.kernel_registry import (
 from chemworld.runtime.mechanisms import compile_mechanism, compile_mechanism_for_scenario
 from chemworld.runtime.observation_services import ChemWorldObservationKernel
 from chemworld.runtime.profiles import TaskRuntimeProfile
+from chemworld.runtime.record_services import MATERIAL_DELTA_ALLOWED_OPERATIONS
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.runtime.transactions import TransactionManager
 from chemworld.schemas import (
@@ -78,6 +79,18 @@ from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 from chemworld.world.separation_kernel import downstream_truth_values
 from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.world.thermal_kernel import pressure_and_risk
+
+
+def test_production_sources_do_not_depend_on_assert_statements() -> None:
+    findings: list[str] = []
+    for path in sorted(Path("src/chemworld").rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        findings.extend(
+            f"{path.as_posix()}:{node.lineno}"
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Assert)
+        )
+    assert findings == []
 
 
 def test_world_law_contains_professional_contracts() -> None:
@@ -256,6 +269,7 @@ def test_runtime_operation_recorder_is_separate_from_state_changing_services() -
     assert "def _record" not in domain_services
     assert "class ChemWorldOperationRecorder" in record_services
     assert "material delta allowed or phase-ledger conserved" not in domain_services
+    assert {"mix", "settle"}.isdisjoint(MATERIAL_DELTA_ALLOWED_OPERATIONS)
 
 
 def test_runtime_reaction_thermal_service_is_separate_from_domain_services() -> None:
@@ -873,7 +887,12 @@ def test_domain_services_apply_mechanism_roles_for_reagent_and_electrolysis() ->
     )
     configured, potential_record = services.apply_operation(
         charged,
-        {"operation": "set_potential", "potential_V": 1.35, "current_mA": 80.0},
+        {
+            "operation": "set_potential",
+            "potential_V": 1.35,
+            "current_mA": 80.0,
+            "electrolyte_profile": 1,
+        },
     )
     converted, electro_record = services.apply_operation(
         configured,
@@ -1126,6 +1145,52 @@ def test_service_kernel_operation_record_matches_rollback_state(
     assert result.patches[-1].patch_type == "rollback_penalty"
     assert result.patches[-1].affected_ledgers == ("process",)
     assert any(event.event_type == "transaction_rollback" for event in result.events)
+
+
+def test_transaction_rollback_penalty_preserves_process_evidence_cache() -> None:
+    initial = initial_chemworld_state()
+    state = initial.replace(
+        ledger=initial.ledger.with_updates(
+            time_s=12.0,
+            cost=0.4,
+            risk=0.2,
+            sample_consumed_L=0.001,
+        ),
+        process=ProcessLedger(
+            time_s=12.0,
+            cost=0.4,
+            risk=0.2,
+            sample_consumed_L=0.001,
+            waste_L=0.003,
+            metrics={"purity": 0.81},
+            last_observation={"score": 0.73, "purity": 0.81},
+            last_observed_mask={"score": True, "purity": True},
+        )
+    )
+
+    result = TransactionManager(make_chemworld_constitution()).rollback(
+        state=state,
+        operation_type="measure",
+        rollback_reason="constitution_failed",
+        failed_checks=("injected_failure",),
+    )
+
+    assert result.transaction_status == "rolled_back"
+    assert result.state.process is not None
+    assert result.state.process.time_s == pytest.approx(12.0)
+    assert result.state.process.sample_consumed_L == pytest.approx(0.001)
+    assert result.state.process.waste_L == pytest.approx(0.003)
+    assert result.state.process.metrics == {"purity": pytest.approx(0.81)}
+    assert result.state.process.last_observation == {
+        "score": pytest.approx(0.73),
+        "purity": pytest.approx(0.81),
+    }
+    assert result.state.process.last_observed_mask == {
+        "score": True,
+        "purity": True,
+    }
+    assert result.state.process.cost == pytest.approx(state.process.cost + 0.03)
+    assert result.state.process.risk == pytest.approx(state.process.risk + 0.08)
 
 
 def test_typed_phase_ledger_tracks_state_replacements() -> None:
@@ -1629,10 +1694,15 @@ def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> 
         assert flow_env.unwrapped.constitution.check_state(flow_state).passed
 
         electro_env.reset(seed=0)
-        electro_env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 1})
+        electro_env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 0})
         electro_env.step({"operation": "add_reagent", "amount_mol": 0.010})
         _, _, _, _, electro_info = electro_env.step(
-            {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0}
+            {
+                "operation": "set_potential",
+                "potential_V": 1.15,
+                "current_mA": 75.0,
+                "electrolyte_profile": 1,
+            }
         )
         electro_state = electro_env.unwrapped._state
         electro_settings = equipment_settings(electro_state.equipment, "electrochemical_cell")
@@ -1774,6 +1844,7 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
                 "stirring_speed_rpm": 720.0,
             }
         )
+        env.step({"operation": "measure", "instrument": "hplc"})
         _, _, _, _, seed_info = env.step({"operation": "seed_crystals", "seed_mass_g": 0.006})
         state = env.unwrapped._state
         crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
@@ -1850,6 +1921,11 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
         )["filter_requires_crystallization"]
         assert env.unwrapped.constitution.check_state(state).passed
 
+        env.step({"operation": "measure", "instrument": "hplc"})
+        state = env.unwrapped._state
+        solid_before_filter = state.phases.phases["solid"]
+        solid_product_before_filter = solid_before_filter.species_amounts_mol["P"]
+        solid_impurity_before_filter = solid_before_filter.species_amounts_mol["B"]
         _, _, _, _, filter_info = env.step({"operation": "filter_crystals"})
         state = env.unwrapped._state
         solid_after_filter = state.phases.phases["solid"]
@@ -2362,6 +2438,7 @@ def test_validator_rejects_invalid_electrochemical_payload_bounds() -> None:
                 "operation": "set_potential",
                 "potential_V": 1.2,
                 "current_mA": 75.0,
+                "electrolyte_profile": 1,
                 "electrolyte_conductivity_S_m": 0.0,
                 "electrode_gap_m": 0.20,
                 "electrode_area_m2": 0.0,

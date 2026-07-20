@@ -194,6 +194,137 @@ def test_public_volume_bounds_match_capacity_and_terminal_assay_stays_reachable(
         assay_env.close()
 
 
+def test_public_reagent_bounds_prevent_guaranteed_pressure_rollback() -> None:
+    env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
+    try:
+        env.reset(seed=0)
+        base = env.unwrapped
+        env.step({"operation": "add_solvent", "volume_L": 0.01, "solvent": 0})
+        validator = base.operation_validator
+        original_safe_amount = validator._maximum_safe_reagent_amount_mol(base._state)
+        assert original_safe_amount > 0.01
+
+        desired_safe_amount = 0.004
+        pressure_relevant_species = next(
+            species_id
+            for species_id in base._state.species_amounts
+            if not species_id.startswith("Cat")
+        )
+        species_amounts = dict(base._state.species_amounts)
+        species_amounts[pressure_relevant_species] += (
+            (original_safe_amount - desired_safe_amount)
+            * validator.reagent_charge_molar_multiplier
+        )
+        base._state = base._state.replace(species_amounts=species_amounts)
+
+        schema = base.action_schema("add_reagent")
+        amount = next(field for field in schema["fields"] if field["field"] == "amount_mol")
+        safe_high = amount["bounds"]["high"]
+        assert amount["state_dependent_bounds"] is True
+        assert safe_high == pytest.approx(desired_safe_amount)
+        assert base.validate_action(
+            {"operation": "add_reagent", "amount_mol": safe_high}
+        )["valid"]
+        rejected = base.validate_action(
+            {"operation": "add_reagent", "amount_mol": safe_high + 1.0e-4}
+        )
+        assert rejected["valid"] is False
+        assert "payload_bounds:amount_mol" in rejected["invalid_reasons"]
+
+        _, _, _, _, info = env.step(
+            {"operation": "add_reagent", "amount_mol": safe_high}
+        )
+        assert info["transaction_status"] == "committed"
+        assert info["constraint_flags"]["constitution_failed"] is False
+        vessel = base._state.vessels.vessels[base._state.vessel_id]
+        assert base._state.pressure_Pa <= vessel.max_pressure_Pa + base.constitution.tolerance
+    finally:
+        env.close()
+
+
+def test_public_liquid_bounds_prevent_material_first_pressure_rollback() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        env.reset(seed=0)
+        _observation, _reward, _terminated, _truncated, reagent_info = env.step(
+            {"operation": "add_reagent", "amount_mol": 0.040}
+        )
+        assert reagent_info["transaction_status"] == "committed"
+
+        schema = env.unwrapped.action_schema("add_solvent")
+        volume = next(field for field in schema["fields"] if field["field"] == "volume_L")
+        safe_low = volume["bounds"]["low"]
+        assert volume["state_dependent_bounds"] is True
+        assert safe_low > 0.0
+        rejected = env.unwrapped.validate_action(
+            {"operation": "add_solvent", "volume_L": safe_low * 0.5, "solvent": 0}
+        )
+        assert rejected["valid"] is False
+        assert "payload_bounds:volume_L" in rejected["invalid_reasons"]
+
+        _observation, _reward, _terminated, _truncated, solvent_info = env.step(
+            {
+                "operation": "add_solvent",
+                "volume_L": safe_low + 1.0e-6,
+                "solvent": 0,
+            }
+        )
+        assert solvent_info["transaction_status"] == "committed"
+        assert solvent_info["constraint_flags"]["constitution_failed"] is False
+    finally:
+        env.close()
+
+
+def test_electrolyte_profile_and_aqueous_solvent_are_public_and_locked() -> None:
+    env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
+    try:
+        env.reset(seed=0)
+        solvent_schema = env.unwrapped.action_schema("add_solvent")
+        solvent = next(field for field in solvent_schema["fields"] if field["field"] == "solvent")
+        assert solvent["choices"] == [0]
+        assert solvent["state_dependent_choices"] is True
+        nonaqueous = env.unwrapped.validate_action(
+            {"operation": "add_solvent", "volume_L": 0.01, "solvent": 1}
+        )
+        assert nonaqueous["valid"] is False
+        assert "electrochemical_task_requires_aqueous_solvent" in nonaqueous["invalid_reasons"]
+
+        env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 0})
+        env.step({"operation": "add_reagent", "amount_mol": 0.010})
+        profile_schema = env.unwrapped.action_schema("set_potential")
+        profile = next(
+            field for field in profile_schema["fields"] if field["field"] == "electrolyte_profile"
+        )
+        assert profile["choices"] == [0, 1, 2, 3]
+        env.step(
+            {
+                "operation": "set_potential",
+                "potential_V": 1.15,
+                "current_mA": 75.0,
+                "electrolyte_profile": 2,
+            }
+        )
+
+        locked_schema = env.unwrapped.action_schema("set_potential")
+        locked = next(
+            field for field in locked_schema["fields"] if field["field"] == "electrolyte_profile"
+        )
+        assert locked["choices"] == [2]
+        assert locked["state_dependent_choices"] is True
+        switched = env.unwrapped.validate_action(
+            {
+                "operation": "set_potential",
+                "potential_V": 1.10,
+                "current_mA": 70.0,
+                "electrolyte_profile": 1,
+            }
+        )
+        assert switched["valid"] is False
+        assert "payload_locked:electrolyte_profile" in switched["invalid_reasons"]
+    finally:
+        env.close()
+
+
 def test_core_locks_material_category_for_current_experiment() -> None:
     env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
     try:

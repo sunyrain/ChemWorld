@@ -10,7 +10,7 @@ from chemworld.tasks import SERIOUS_TASK_IDS, TaskSpec, get_task
 from chemworld.world.operations import PUBLIC_OBSERVATION_KEYS
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 
-TASK_DESIGN_VERSION = "chemworld-serious-task-design-0.1"
+TASK_DESIGN_VERSION = "chemworld-serious-task-design-0.2"
 SERIOUS_GENERALIZATION_CONTRACTS: dict[str, tuple[dict[str, Any], ...]] = {
     "partition-discovery": (
         {
@@ -326,12 +326,22 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
         task_id="reaction-to-crystallization",
         research_question="Can an agent balance reaction quality, recovery, purity, and CSD?",
         capability_claim="closed-loop reaction and cooling-crystallization planning",
-        primary_metric="crystal_yield",
-        secondary_metrics=("score", "crystal_purity", "crystal_size"),
+        primary_metric="score",
+        secondary_metrics=(
+            "crystal_yield",
+            "crystal_purity",
+            "crystal_size",
+            "crystal_csd_quality",
+            "crystal_fines_fraction",
+        ),
         generalization_axes=("kinetic profile", "solubility and cooling profile"),
         required_baselines=_COMMON_BASELINES,
         required_evidence=_COMMON_EVIDENCE,
-        anti_gaming_checks=_COMMON_ANTI_GAMING,
+        anti_gaming_checks=(
+            *_COMMON_ANTI_GAMING,
+            "ordered reaction-assay, seeded-cooling, slurry-assay, and isolation milestones",
+            "cached observations cannot reward non-measurement operations",
+        ),
     ),
     "reaction-to-distillation": SeriousTaskDesign(
         task_id="reaction-to-distillation",
@@ -357,14 +367,30 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
     ),
     "electrochemical-conversion": SeriousTaskDesign(
         task_id="electrochemical-conversion",
-        research_question="Can an agent trade selectivity against electrical efficiency?",
-        capability_claim="electrochemical control under transport and energy constraints",
-        primary_metric="electrochemical_selectivity",
-        secondary_metrics=("score", "energy_efficiency", "safety_risk"),
+        research_question=(
+            "Can an agent use electrolyte and performance diagnostics to adapt a second "
+            "electrochemical regime under transport, resistance, and energy constraints?"
+        ),
+        capability_claim="diagnosis-conditioned electrochemical identification and control",
+        primary_metric="score",
+        secondary_metrics=(
+            "electrochemical_selectivity",
+            "faradaic_efficiency",
+            "transport_efficiency",
+            "ohmic_efficiency",
+            "energy_efficiency",
+            "pH_normalized",
+            "precipitation_signal",
+            "safety_risk",
+        ),
         generalization_axes=("redox kinetics", "mass-transfer and resistance regime"),
         required_baselines=_COMMON_BASELINES,
         required_evidence=_COMMON_EVIDENCE,
-        anti_gaming_checks=_COMMON_ANTI_GAMING,
+        anti_gaming_checks=(
+            *_COMMON_ANTI_GAMING,
+            "second setpoint must differ after pH and performance diagnostics",
+            "cached observations cannot reward non-measurement operations",
+        ),
     ),
     "equilibrium-characterization": SeriousTaskDesign(
         task_id="equilibrium-characterization",
@@ -420,9 +446,7 @@ def serious_task_readiness_manifest() -> dict[str, Any]:
             }
             for task_id in SERIOUS_TASK_IDS
         },
-        "reviews": {
-            task_id: reviews[task_id].to_dict() for task_id in SERIOUS_TASK_IDS
-        },
+        "reviews": {task_id: reviews[task_id].to_dict() for task_id in SERIOUS_TASK_IDS},
     }
 
 

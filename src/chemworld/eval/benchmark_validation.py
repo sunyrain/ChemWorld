@@ -16,10 +16,10 @@ BENCHMARK_VALIDATION_SCHEMA_VERSION = "chemworld-benchmark-validation-0.1"
 OFFICIAL_VALIDATION_RELATIVE_PATH = Path("benchmark") / "serious_validation.json"
 PRIMARY_METRIC_FIELDS = {
     "partition-discovery": "mean_product_in_organic",
-    "reaction-to-crystallization": "mean_crystal_yield",
+    "reaction-to-crystallization": "mean_best_valid_score",
     "reaction-to-distillation": "mean_distillate_purity",
     "flow-reaction-optimization": "mean_flow_conversion",
-    "electrochemical-conversion": "mean_electrochemical_selectivity",
+    "electrochemical-conversion": "mean_best_valid_score",
     "equilibrium-characterization": "mean_equilibrium_confidence",
 }
 

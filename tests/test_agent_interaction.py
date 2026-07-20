@@ -9,10 +9,25 @@ from chemworld.agents.interaction import build_decision_context
 
 
 def _public_view(*operations: str) -> dict:
+    final_only = operations == ("measure",)
     return {
         "tool_json": {
             "available_actions": [
-                {"operation": operation, "valid": True} for operation in operations
+                {
+                    "operation": operation,
+                    "valid": True,
+                    "schema": {
+                        "fields": [
+                            {
+                                "field": "instrument",
+                                "choices": ["final_assay"] if final_only else ["hplc"],
+                            }
+                        ]
+                        if operation == "measure"
+                        else []
+                    },
+                }
+                for operation in operations
             ],
             "lab_report": {"visible_metrics": {}, "spectra_summary": {}},
         }
@@ -45,6 +60,23 @@ def test_measurement_before_termination_remains_an_evidence_update() -> None:
     )
 
     assert context.decision_stage == "evidence_update"
+
+
+def test_measure_only_nonfinal_assay_is_not_misclassified_as_closeout() -> None:
+    public_view = _public_view("measure")
+    public_view["tool_json"]["available_actions"][0]["schema"]["fields"][0][
+        "choices"
+    ] = ["hplc"]
+    context = build_decision_context(
+        step=8,
+        task_info={"task_id": "reaction-to-crystallization"},
+        campaign_state={"remaining_budget": 12},
+        public_view=public_view,
+        previous_event_type="operation_result",
+    )
+
+    assert context.available_operations == ("measure",)
+    assert context.decision_stage == "experiment_control"
 
 
 def test_measure_without_terminate_is_not_misclassified_as_closeout() -> None:
@@ -149,17 +181,8 @@ def test_real_environment_reports_closeout_after_termination() -> None:
         assert context.available_operations == ("measure",)
         assert context.decision_stage == "experiment_closeout"
 
-        observation, _, _, _, info = env.step({"operation": "measure", "instrument": "gc"})
-        public_view = agent_view_bundle(env, observation, info)
-        after_intermediate_measurement = build_decision_context(
-            step=5,
-            task_info={"task_id": "reaction-to-crystallization"},
-            campaign_state=env.unwrapped.campaign_state(),
-            public_view=public_view,
-            previous_event_type="measurement_result",
-        )
-
-        assert after_intermediate_measurement.available_operations == ("measure",)
-        assert after_intermediate_measurement.decision_stage == "experiment_closeout"
+        measure = public_view["tool_json"]["available_actions"][0]
+        instrument = measure["schema"]["fields"][0]
+        assert instrument["choices"] == ["final_assay"]
     finally:
         env.close()

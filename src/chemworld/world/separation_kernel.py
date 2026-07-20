@@ -68,14 +68,10 @@ def downstream_truth_values(
         float(entry.get("impurity_mol", 0.0)) for entry in phase_ledger.values()
     )
     product_amount = (
-        float(product_amount_mol)
-        if product_amount_mol is not None
-        else phase_product_total
+        float(product_amount_mol) if product_amount_mol is not None else phase_product_total
     )
     impurity_amount = (
-        float(impurity_amount_mol)
-        if impurity_amount_mol is not None
-        else phase_impurity_total
+        float(impurity_amount_mol) if impurity_amount_mol is not None else phase_impurity_total
     )
     process_metrics = {} if state.process is None else state.process.metrics
     initial_p = max(
@@ -126,14 +122,16 @@ def downstream_truth_values(
         "impurity_signal": float(np.clip(selected_impurity / initial_p, 0.0, 1.0)),
         "solvent_loss": float(np.clip(solvent_loss, 0.0, 1.0)),
         "process_mass_balance_error": float(np.clip(mass_balance_error, 0.0, 1.0)),
-        "crystal_yield": float(
-            np.clip(float(process_metrics.get("crystal_yield", 0.0)), 0.0, 1.0)
-        ),
+        "crystal_yield": float(np.clip(float(process_metrics.get("crystal_yield", 0.0)), 0.0, 1.0)),
         "crystal_purity": float(
             np.clip(float(process_metrics.get("crystal_purity", 0.0)), 0.0, 1.0)
         ),
-        "crystal_size": float(
-            np.clip(float(process_metrics.get("crystal_size", 0.0)), 0.0, 1.0)
+        "crystal_size": float(np.clip(float(process_metrics.get("crystal_size", 0.0)), 0.0, 1.0)),
+        "crystal_csd_quality": float(
+            np.clip(float(process_metrics.get("crystal_csd_quality", 0.0)), 0.0, 1.0)
+        ),
+        "crystal_fines_fraction": float(
+            np.clip(float(process_metrics.get("crystal_fines_fraction", 0.0)), 0.0, 1.0)
         ),
         "distillate_purity": float(
             np.clip(float(process_metrics.get("distillate_purity", 0.0)), 0.0, 1.0)
@@ -150,6 +148,15 @@ def downstream_truth_values(
                 0.0,
                 1.0,
             )
+        ),
+        "faradaic_efficiency": float(
+            np.clip(float(process_metrics.get("faradaic_efficiency", 0.0)), 0.0, 1.0)
+        ),
+        "transport_efficiency": float(
+            np.clip(float(process_metrics.get("transport_efficiency", 0.0)), 0.0, 1.0)
+        ),
+        "ohmic_efficiency": float(
+            np.clip(float(process_metrics.get("ohmic_efficiency", 0.0)), 0.0, 1.0)
         ),
         "energy_efficiency": float(
             np.clip(float(process_metrics.get("energy_efficiency", 0.0)), 0.0, 1.0)

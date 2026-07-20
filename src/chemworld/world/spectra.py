@@ -121,6 +121,16 @@ def _species_signal(
     return packet
 
 
+def _require_signal_packet(
+    packet: dict[str, Any] | None, instrument_id: str
+) -> dict[str, Any]:
+    """Keep fallback synthesis fail-closed under optimized Python execution."""
+
+    if packet is None:
+        raise RuntimeError(f"{instrument_id} signal synthesis produced no packet")
+    return packet
+
+
 def _public_species_role(species_id: str) -> str:
     """Return the task-visible role encoded in a public aggregate species key."""
 
@@ -197,8 +207,7 @@ def hplc_chromatogram(
             seed=seed,
             replicate_count=replicate_count,
         )
-    assert species_packet is not None
-    return species_packet
+    return _require_signal_packet(species_packet, "hplc")
 
 
 def gc_chromatogram(
@@ -234,8 +243,7 @@ def gc_chromatogram(
             seed=seed,
             replicate_count=replicate_count,
         )
-    assert species_packet is not None
-    return species_packet
+    return _require_signal_packet(species_packet, "gc")
 
 
 def uvvis_spectrum(
@@ -263,8 +271,7 @@ def uvvis_spectrum(
             seed=seed,
             replicate_count=replicate_count,
         )
-    assert species_packet is not None
-    return species_packet
+    return _require_signal_packet(species_packet, "uvvis")
 
 
 def ph_meter_signal(
@@ -371,8 +378,7 @@ def ir_spectrum(
             seed=seed,
             replicate_count=replicate_count,
         )
-    assert species_packet is not None
-    return species_packet
+    return _require_signal_packet(species_packet, "ir")
 
 
 def nmr_spectrum(
@@ -400,8 +406,7 @@ def nmr_spectrum(
             seed=seed,
             replicate_count=replicate_count,
         )
-    assert species_packet is not None
-    return species_packet
+    return _require_signal_packet(species_packet, "nmr")
 
 
 def final_assay_spectra(

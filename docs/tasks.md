@@ -1,7 +1,7 @@
 # 选择任务
 
 ChemWorld 当前提供 15 个任务。它们共享 World Law
-`chemworld-physical-chemistry-v0.4` 和 Task Contract `chemworld-task-contract-0.6`，并由
+`chemworld-physical-chemistry-v0.4` 和 Task Contract `chemworld-task-contract-0.9`，并由
 `chemworld-physical-chemistry-v0.5-candidate` 后端候选冻结绑定。
 
 !!! info "当前统一事实"
@@ -28,21 +28,21 @@ hash 不一致时，旧轨迹不能被静默解释为当前结果。
 
 | Task ID | Task contract hash | Maturity | Proxy |
 | --- | --- | --- | --- |
-| `electrochemical-conversion` | `9f86e8550be9f8de98f4152104ef981c075697bf8cf378f040f5af4593235d09` | `reference_validated` | `false` |
-| `equilibrium-characterization` | `64393d1da00e28101f71246ef13c1b69e03b0b213542e97afcb1add8f52eaa62` | `reference_validated` | `false` |
-| `flow-reaction-optimization` | `aa47c74db1753f062a3e5f59208db8278c25db778390607892e20eaaeb30cdc9` | `reference_validated` | `false` |
-| `low-budget-characterization` | `3d8bb180e63016b49b0f2c09694ad4f2d965d8096c9c615d021c987204283a29` | `reference_validated` | `false` |
-| `partition-discovery` | `ce378e7bc5e725ed266db2bb639194c05f5f615ba0795b158c3c976cc787117e` | `reference_validated` | `false` |
-| `public-private-generalization` | `d2a07d58a7c09d317239794eb5757fdcd5ea68514fc531bd2ece6436b08aa3fd` | `reference_validated` | `false` |
-| `purity-yield-tradeoff` | `931d1c9c2364888a9cf390557614f78c042d3e166a8ae495d57cd1fdacd1ee0f` | `reference_validated` | `false` |
-| `reaction-mechanism-explanation` | `4b69716dcd93cc32eb82beb335fea7f53062e5785496daecfc1530ddcdc39006` | `reference_validated` | `false` |
-| `reaction-optimization-standard` | `0c80793551675a61dbde5f3e2456929e6e6c92574ca2f3d5fa967a97ddcdb1a5` | `reference_validated` | `false` |
-| `reaction-safety-constrained` | `780ac2c552c7652b1afb8581d76bb2884bb99a334f7b85dffe73cf4c35834263` | `reference_validated` | `false` |
-| `reaction-to-assay` | `395402a224b27cdbd070470ab1d0131e01c3bd472b773170bdcf4ba4f5a1bc96` | `reference_validated` | `false` |
-| `reaction-to-crystallization` | `f15de7356ab11588028bb0add31b3461e9b90bf273de6dcdb4e123ce6b2f65ac` | `reference_validated` | `false` |
-| `reaction-to-distillation` | `939b171d164139699d94c78250a937ab637be201f23bd62fddc47a864becaba7` | `reference_validated` | `false` |
-| `reaction-to-purification` | `ee5d6b82178abeaaa6975680f2a469cbdad43f6b655bb65d6e437294a55e052d` | `reference_validated` | `false` |
-| `tool-agent-planning` | `9752398c5b05a0d3a20df7df811ebb59e46a1c7f1e52ab6340fed9c5526c3ee9` | `reference_validated` | `false` |
+| `electrochemical-conversion` | `9cc0c792e171737c5ffd5dc03772dcff724a19ae5c504b7d573257eadfa89d63` | `reference_validated` | `false` |
+| `equilibrium-characterization` | `046067c1c75a57032b3b4307f386b23c706507178856ee20cffa70478cd0e42a` | `reference_validated` | `false` |
+| `flow-reaction-optimization` | `834207984ba38bfab373c400fc715d63908100db3ca9549185daf4fb5aca5a4f` | `reference_validated` | `false` |
+| `low-budget-characterization` | `c9a46ddac7960377bfce556c15d841ed9c6093684ac48966f0a6cf79aa6693fc` | `reference_validated` | `false` |
+| `partition-discovery` | `8f5e648c9c4ad3138391014a536dc9df3008b99152c70da0f2a173914ec0d37c` | `reference_validated` | `false` |
+| `public-private-generalization` | `5aec9b64b8ed4cc5da009ea669978a83f76c913b3bc7e497236d231571ab7c3d` | `reference_validated` | `false` |
+| `purity-yield-tradeoff` | `431b4b6f8c25ea53a937b94ea07966d32609e2db2a76bd73589109bb5aaf98dd` | `reference_validated` | `false` |
+| `reaction-mechanism-explanation` | `addead31f7c7a85fa81278445bdf85a9fb03c89c5bb740ac6262cd28c0853142` | `reference_validated` | `false` |
+| `reaction-optimization-standard` | `e8de4285f89c507c305226c9f1f37454879517c1069b9bfab6ae26154ac1e4bc` | `reference_validated` | `false` |
+| `reaction-safety-constrained` | `867e1a8473a40e679af88ad4679d5753ea7aa90ae5bf9555aa2d9903860c63ec` | `reference_validated` | `false` |
+| `reaction-to-assay` | `1366e4e73eedeee2fa5d630831614f07a7c4f09d5661e9fb6cfccab57643bd1f` | `reference_validated` | `false` |
+| `reaction-to-crystallization` | `756ca669f81a27290cd72e25c05cf9ed1f7cae0db6b299f1332d8a907b642e8f` | `reference_validated` | `false` |
+| `reaction-to-distillation` | `d19adb180200831acca5bdbb6e05a6a9de1760b494eb03f6be5a43162c6b9109` | `reference_validated` | `false` |
+| `reaction-to-purification` | `9bb160c677f4feb72c06dfb4985e29abfce68499a0a6df02607b2cbeb720b0ca` | `reference_validated` | `false` |
+| `tool-agent-planning` | `a7972dfc2519fc48e1e7eb6f635ba703aa52f0bbf66688e86dbb0df105a32ddf` | `reference_validated` | `false` |
 
 ## 单次实验与 Campaign
 

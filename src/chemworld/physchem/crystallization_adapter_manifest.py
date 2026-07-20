@@ -118,9 +118,6 @@ class ValidatedCrystallizationRuntimeProvider:
         case = inputs["case"]
         time_steps = inputs["time_steps"]
         execution_spec = inputs["execution_spec"]
-        assert isinstance(case, CrystallizationGridCase)
-        assert isinstance(time_steps, int)
-        assert isinstance(execution_spec, CrystallizationExecutionSpec)
         try:
             result = case.run(time_steps, execution_spec=execution_spec)
         except (ArithmeticError, ValueError) as error:
@@ -260,8 +257,6 @@ class CrystallizationConvergenceProvider:
             return _failed_result("; ".join(domain_violations), self.model_contract.provenance)
         case = inputs["case"]
         audit_spec = inputs.get("audit_spec")
-        assert isinstance(case, CrystallizationGridCase)
-        assert audit_spec is None or isinstance(audit_spec, CrystallizationConvergenceSpec)
         try:
             report = audit_crystallization_convergence(case, spec=audit_spec)
         except ValueError as error:

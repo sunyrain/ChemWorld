@@ -21,7 +21,7 @@ def test_composed_stress_report_covers_full_registered_graph() -> None:
     assert report["benchmark_claim_allowed"] is False
     assert report["coverage"] == {
         "operation_count": 28,
-        "profile_executed_step_count": 381,
+        "profile_executed_step_count": 396,
         "profile_run_count": 45,
         "provider_count": 20,
         "runtime_failure_count": 0,

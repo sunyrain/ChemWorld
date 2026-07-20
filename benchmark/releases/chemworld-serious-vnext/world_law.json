@@ -21,11 +21,16 @@
   "constitution_rules": [
     "material_conservation",
     "nonnegative_state",
+    "species_registry_membership",
+    "state_numeric_values_finite",
     "unit_consistency",
     "yield_upper_bound",
     "energy_balance",
     "phase_mass_balance",
     "observation_non_omniscient",
+    "observation_values_finite_and_bounded",
+    "observation_mask_consistent",
+    "observation_signal_and_accounting_integrity",
     "measurement_has_cost",
     "action_preconditions",
     "safety_constraints",
@@ -80,6 +85,8 @@
         "acid_dissociation_fraction": 0.006,
         "byproduct_signal": 0.008,
         "conversion": 0.008,
+        "crystal_csd_quality": 0.018,
+        "crystal_fines_fraction": 0.018,
         "crystal_purity": 0.01,
         "crystal_size": 0.025,
         "crystal_yield": 0.01,
@@ -90,8 +97,10 @@
         "energy_efficiency": 0.016,
         "equilibrium_confidence": 0.006,
         "equilibrium_residual": 0.004,
+        "faradaic_efficiency": 0.012,
         "flow_conversion": 0.012,
         "impurity_signal": 0.008,
+        "ohmic_efficiency": 0.012,
         "pH_normalized": 0.002,
         "phase_ratio": 0.012,
         "precipitation_signal": 0.006,
@@ -102,6 +111,7 @@
         "recovery": 0.01,
         "selectivity": 0.01,
         "solvent_loss": 0.012,
+        "transport_efficiency": 0.014,
         "yield": 0.006
       },
       "observable_keys": [
@@ -130,7 +140,12 @@
         "acid_dissociation_fraction",
         "precipitation_signal",
         "equilibrium_residual",
-        "equilibrium_confidence"
+        "equilibrium_confidence",
+        "crystal_csd_quality",
+        "crystal_fines_fraction",
+        "faradaic_efficiency",
+        "transport_efficiency",
+        "ohmic_efficiency"
       ],
       "processed_estimate_schema": {
         "additionalProperties": false,
@@ -152,6 +167,22 @@
             ]
           },
           "conversion": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "crystal_csd_quality": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "crystal_fines_fraction": {
             "maximum": 1.0,
             "minimum": 0.0,
             "type": [
@@ -239,6 +270,14 @@
               "null"
             ]
           },
+          "faradaic_efficiency": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
           "flow_conversion": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -248,6 +287,14 @@
             ]
           },
           "impurity_signal": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ohmic_efficiency": {
             "maximum": 1.0,
             "minimum": 0.0,
             "type": [
@@ -328,6 +375,14 @@
             ]
           },
           "solvent_loss": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "transport_efficiency": {
             "maximum": 1.0,
             "minimum": 0.0,
             "type": [
@@ -1035,8 +1090,11 @@
       "noise_model": {
         "conversion": 0.035,
         "energy_efficiency": 0.045,
+        "faradaic_efficiency": 0.025,
         "flow_conversion": 0.04,
+        "ohmic_efficiency": 0.02,
         "phase_ratio": 0.04,
+        "transport_efficiency": 0.03,
         "yield": 0.045
       },
       "observable_keys": [
@@ -1044,7 +1102,10 @@
         "conversion",
         "phase_ratio",
         "flow_conversion",
-        "energy_efficiency"
+        "energy_efficiency",
+        "faradaic_efficiency",
+        "transport_efficiency",
+        "ohmic_efficiency"
       ],
       "processed_estimate_schema": {
         "additionalProperties": false,
@@ -1065,6 +1126,14 @@
               "null"
             ]
           },
+          "faradaic_efficiency": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
           "flow_conversion": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -1073,7 +1142,23 @@
               "null"
             ]
           },
+          "ohmic_efficiency": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
           "phase_ratio": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "transport_efficiency": {
             "maximum": 1.0,
             "minimum": 0.0,
             "type": [
@@ -1432,7 +1517,12 @@
           "distillate_recovery",
           "flow_conversion",
           "electrochemical_selectivity",
-          "energy_efficiency"
+          "energy_efficiency",
+          "crystal_csd_quality",
+          "crystal_fines_fraction",
+          "faradaic_efficiency",
+          "transport_efficiency",
+          "ohmic_efficiency"
         ],
         "equilibrium_keys": [
           "pH_normalized",

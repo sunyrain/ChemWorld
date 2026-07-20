@@ -3,12 +3,15 @@
   "checks": {
     "final_assay_repeat_guarded": true,
     "invalid_atomicity_probe_complete": true,
+    "malformed_actions_fail_closed": true,
     "numeric_boundary_probe_complete": true,
+    "observation_integrity_fail_closed": true,
     "operation_count_exact": true,
     "operation_coverage_exact": true,
     "positive_probe_complete": true,
     "post_terminal_process_barrier": true,
     "replay_probe_complete": true,
+    "rolled_back_final_assay_fail_closed": true,
     "semantic_declarations_complete": true
   },
   "control_failures": [],
@@ -27,7 +30,8 @@
     ],
     "attempt_consumed": true,
     "expected_risk_penalty": 0.08,
-    "observation_policy": "failed_observation_without_history_commit"
+    "observation_integrity": "finite_bounded_nonleaking_mask_consistent",
+    "observation_policy": "failed_observation_without_history_or_rng_commit"
   },
   "final_assay_boundary": {
     "episode_guard": true,
@@ -43,7 +47,167 @@
     "External-input/output operations use declared open-system conservation semantics.",
     "An invalid action intentionally consumes one environment attempt and only the declared process penalty."
   ],
+  "malformed_action_boundary": {
+    "case_count": 8,
+    "cases": {
+      "empty_operation": {
+        "checks": {
+          "attempt_consumed": true,
+          "material_state_atomic": true,
+          "no_reward_or_termination": true,
+          "observation_history_preserved": true,
+          "penalty_recorded": true,
+          "validation_failed": true
+        },
+        "passed": true,
+        "transaction_status": "validation_failed"
+      },
+      "fractional_operation": {
+        "checks": {
+          "attempt_consumed": true,
+          "material_state_atomic": true,
+          "no_reward_or_termination": true,
+          "observation_history_preserved": true,
+          "penalty_recorded": true,
+          "validation_failed": true
+        },
+        "passed": true,
+        "transaction_status": "validation_failed"
+      },
+      "infinite_material_choice": {
+        "checks": {
+          "attempt_consumed": true,
+          "material_state_atomic": true,
+          "no_reward_or_termination": true,
+          "observation_history_preserved": true,
+          "penalty_recorded": true,
+          "validation_failed": true
+        },
+        "passed": true,
+        "transaction_status": "validation_failed"
+      },
+      "infinite_operation": {
+        "checks": {
+          "attempt_consumed": true,
+          "material_state_atomic": true,
+          "no_reward_or_termination": true,
+          "observation_history_preserved": true,
+          "penalty_recorded": true,
+          "validation_failed": true
+        },
+        "passed": true,
+        "transaction_status": "validation_failed"
+      },
+      "infinite_phase_choice": {
+        "checks": {
+          "attempt_consumed": true,
+          "material_state_atomic": true,
+          "no_reward_or_termination": true,
+          "observation_history_preserved": true,
+          "penalty_recorded": true,
+          "validation_failed": true
+        },
+        "passed": true,
+        "transaction_status": "validation_failed"
+      },
+      "list_action": {
+        "checks": {
+          "attempt_consumed": true,
+          "material_state_atomic": true,
+          "no_reward_or_termination": true,
+          "observation_history_preserved": true,
+          "penalty_recorded": true,
+          "validation_failed": true
+        },
+        "passed": true,
+        "transaction_status": "validation_failed"
+      },
+      "none_action": {
+        "checks": {
+          "attempt_consumed": true,
+          "material_state_atomic": true,
+          "no_reward_or_termination": true,
+          "observation_history_preserved": true,
+          "penalty_recorded": true,
+          "validation_failed": true
+        },
+        "passed": true,
+        "transaction_status": "validation_failed"
+      },
+      "scalar_action": {
+        "checks": {
+          "attempt_consumed": true,
+          "material_state_atomic": true,
+          "no_reward_or_termination": true,
+          "observation_history_preserved": true,
+          "penalty_recorded": true,
+          "validation_failed": true
+        },
+        "passed": true,
+        "transaction_status": "validation_failed"
+      }
+    },
+    "passed": true
+  },
   "negative_value_acceptances": [],
+  "observation_integrity_boundary": {
+    "case_count": 3,
+    "cases": {
+      "nonfinite_uncertainty": {
+        "checks": {
+          "candidate_failure_reported": true,
+          "faulty_payload_not_exposed": true,
+          "material_state_atomic": true,
+          "no_reward_or_termination": true,
+          "observation_history_preserved": true,
+          "observation_rng_preserved": true,
+          "penalty_recorded": true,
+          "validation_failed": true
+        },
+        "failed_constitution_checks": [
+          "observation_uncertainty_finite_nonnegative"
+        ],
+        "passed": true,
+        "transaction_status": "validation_failed"
+      },
+      "nonfinite_value": {
+        "checks": {
+          "candidate_failure_reported": true,
+          "faulty_payload_not_exposed": true,
+          "material_state_atomic": true,
+          "no_reward_or_termination": true,
+          "observation_history_preserved": true,
+          "observation_rng_preserved": true,
+          "penalty_recorded": true,
+          "validation_failed": true
+        },
+        "failed_constitution_checks": [
+          "observation_values_finite_and_bounded"
+        ],
+        "passed": true,
+        "transaction_status": "validation_failed"
+      },
+      "private_payload": {
+        "checks": {
+          "candidate_failure_reported": true,
+          "faulty_payload_not_exposed": true,
+          "material_state_atomic": true,
+          "no_reward_or_termination": true,
+          "observation_history_preserved": true,
+          "observation_rng_preserved": true,
+          "penalty_recorded": true,
+          "validation_failed": true
+        },
+        "failed_constitution_checks": [
+          "observation_non_omniscient"
+        ],
+        "passed": true,
+        "transaction_status": "validation_failed"
+      }
+    },
+    "infinity_rejected_by_observation_space": true,
+    "passed": true
+  },
   "operation_count": 28,
   "operation_results": {
     "add_catalyst": {
@@ -121,7 +285,7 @@
           "species_amounts"
         ],
         "constitution_checks": {
-          "count": 74,
+          "count": 76,
           "failures": []
         },
         "constitution_passed": true,
@@ -141,7 +305,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "63ed8bb269480aaac7985b2461ab92a947f6c83403cd78c3bcb3ccfc00f91032",
+        "observation_digest": "bc1c0fd02451439fa4cdf02ecc07542b5e5768bae6906376948b48898036a708",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -247,7 +411,7 @@
           "volume_L"
         ],
         "constitution_checks": {
-          "count": 118,
+          "count": 120,
           "failures": []
         },
         "constitution_passed": true,
@@ -267,7 +431,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "104326e3cca61779176c3e2cf154a46530d1f45d842ae07ca1587bd4364110a4",
+        "observation_digest": "5ebe37c80265849f8d8bd61694d5747e032cf369b2f645aac45f405d16d2b0f5",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -298,7 +462,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "c96ebfec4162f93d374fa79d20b8b1d92a1fb54805a2fb99183987d957180299",
+        "state_digest": "3a065af0f1ad5758f133736ef556e70651afc2ff89e67e4f2c9c242e7bf4851c",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -382,7 +546,7 @@
           "volume_L"
         ],
         "constitution_checks": {
-          "count": 95,
+          "count": 97,
           "failures": []
         },
         "constitution_passed": true,
@@ -402,7 +566,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "15283bd48944c0a327a02b9548ad3e4e91bfa27be0fc1a39b42811654f551892",
+        "observation_digest": "9f0f2710c5b411a72eecfdd05ba1c87e5d98615e465e8ce5459f1a63a9b7bc7b",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -418,7 +582,7 @@
         },
         "rollback_reason": null,
         "setup": [],
-        "state_digest": "ea645331789ffd7c3e70fdce4245e92adb8d38e24e4e787f43069d848760be71",
+        "state_digest": "11984783db056a812d1c97f96be2f4ba4e634eb7504aad68f8607392c0585d45",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -498,7 +662,7 @@
           "species_amounts"
         ],
         "constitution_checks": {
-          "count": 74,
+          "count": 76,
           "failures": []
         },
         "constitution_passed": true,
@@ -518,7 +682,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "0911df36f2e0ad7d744d4852551111447215046394bd0b66903d4d8b3c3603f9",
+        "observation_digest": "ec0fd9fa02dff04aec8e87a27fbb1e69fbcd8b7efec66497f0cd38ca74f9c871",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -618,7 +782,7 @@
           "volume_L"
         ],
         "constitution_checks": {
-          "count": 74,
+          "count": 76,
           "failures": []
         },
         "constitution_passed": true,
@@ -638,7 +802,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "1012d2f190a1b645766a314d229b8e59ca570dae28bd2e3c4b14c8cf02af51b6",
+        "observation_digest": "114c1420d2c3b068b6df06501fa4f6d62afc6b2d105a45f926401435ed6ae30f",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -734,13 +898,12 @@
           "equipment",
           "ledger",
           "phases",
-          "pressure_Pa",
           "process",
           "vessels",
           "volume_L"
         ],
         "constitution_checks": {
-          "count": 102,
+          "count": 127,
           "failures": []
         },
         "constitution_passed": true,
@@ -760,16 +923,14 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "d45caebebe892048f140d1981f31da50b74d106d291a9e23ab497702cd91668d",
+        "observation_digest": "04a156ec556d17de46853cd02afc4ba6135667e0a15d6bbccd04c1c77285d6c2",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
             "equipment",
             "ledger",
             "phases",
-            "pressure_Pa",
             "process",
-            "vessels",
             "volume_L"
           ],
           "rollback_reason": null,
@@ -802,11 +963,11 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "c77c16b12a30fd13c4e4e77b66d8f9cd9932145169b7a5a267909b5e5049abeb",
+        "state_digest": "8e618e014ebd9a4a08ba8c7f338fd6324ac19c21b927ce207ed8a18102bfa1d9",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
-          "count": 40,
+          "count": 52,
           "failures": []
         }
       }
@@ -885,7 +1046,7 @@
           "process"
         ],
         "constitution_checks": {
-          "count": 101,
+          "count": 103,
           "failures": []
         },
         "constitution_passed": true,
@@ -905,7 +1066,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "a2f6d56144a4f17f6a86b31fb97a03e568e52734db82f527769b0c51b0b8daf5",
+        "observation_digest": "07e9a60847e4530b6d2c87b9ac397c96f6bb45c85ca3fee7d0022875ec999b9d",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -946,7 +1107,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "64c5ed4c8fe81deef0a29d36f1cc840f8ce817f12f198ea293751170d953610a",
+        "state_digest": "28acb29273a9e23a9deb0411ecf4fc3e195471e95d9f31fec29b85be490f79b6",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -1005,6 +1166,8 @@
         "invalid_reasons": [
           "has_volume",
           "has_material",
+          "cool_crystallize_requires_reaction_or_seed",
+          "cool_crystallize_target_feed_available",
           "payload_has:target_temperature_K",
           "payload_has:duration_s"
         ],
@@ -1035,7 +1198,7 @@
           "vessels"
         ],
         "constitution_checks": {
-          "count": 97,
+          "count": 99,
           "failures": []
         },
         "constitution_passed": true,
@@ -1061,14 +1224,16 @@
           "value": 0.0
         },
         "internal_conservation_passed": true,
-        "observation_digest": "752539ca867f944e5b216172ce2cada08e8a978c0e2a2fe4668bcf7b24381b91",
+        "observation_digest": "d40c916adc4a4b7c61569ce2fd10f003585d28a229c7afa95c02d07c8f9c3f43",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
             "equipment",
             "ledger",
             "phases",
-            "process"
+            "pressure_Pa",
+            "process",
+            "vessels"
           ],
           "rollback_reason": null,
           "status": "committed"
@@ -1096,7 +1261,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "5cae686dc351c2b4781d1ead07c113229ec8545208a566c4463658528c9de7af",
+        "state_digest": "e58107b8d5cd8f232521d08ff11123c7f8ca146126455ecb08a71ef46fc0e3b2",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -1192,7 +1357,7 @@
           "volume_L"
         ],
         "constitution_checks": {
-          "count": 102,
+          "count": 104,
           "failures": []
         },
         "constitution_passed": true,
@@ -1218,7 +1383,7 @@
           "value": 0.0
         },
         "internal_conservation_passed": true,
-        "observation_digest": "7527a4c1084d03f897333e88ef715cbd60b084b070f60cc68c263590699e917c",
+        "observation_digest": "9642c1fcb5964673134dbb8c399af6c7e7b03300ff722bc0a353a73c614aad8a",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -1257,7 +1422,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "9804e7bee70f7d36b6ddc84ee59184a8056dede156f624459fca091bff6bb8ff",
+        "state_digest": "ed12238a569d83ad9ac74170007afec5d1ea45937426ae048c8f518c1650d918",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -1334,7 +1499,7 @@
           "process"
         ],
         "constitution_checks": {
-          "count": 101,
+          "count": 103,
           "failures": []
         },
         "constitution_passed": true,
@@ -1354,7 +1519,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "f5a1afc6c47a1af652d2c4defdddc5b0c7ff744e4076cc9093fe9e8540b623ea",
+        "observation_digest": "d46db2405a968e0cf4d20b4f908bc39cd66cda297885f286c3c7bf01443e1b0f",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -1395,7 +1560,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "23f518e2a304deab6d7e5a26100450660263c9a867d9e586be8fe36f2c5e7c43",
+        "state_digest": "c71acb66b18cd41d266e1769ce9e5e15cef5006dafb445375d6ca0e9a1b35f04",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -1456,6 +1621,7 @@
           "has_volume",
           "has_material",
           "electrolyze_requires_potential",
+          "electrochemical_flagship_phase_allows_operation",
           "payload_has:duration_s"
         ],
         "observation_history_unchanged": true,
@@ -1476,6 +1642,7 @@
       },
       "positive_probe": {
         "changed_roots": [
+          "equipment",
           "ledger",
           "phases",
           "process",
@@ -1483,13 +1650,13 @@
           "thermal"
         ],
         "constitution_checks": {
-          "count": 70,
+          "count": 72,
           "failures": []
         },
         "constitution_passed": true,
         "declared_effect_observed": true,
         "effect_flags": {
-          "configuration": false,
+          "configuration": true,
           "cost": true,
           "material": true,
           "measurement": false,
@@ -1502,17 +1669,18 @@
           "volume": false
         },
         "internal_conservation": {
-          "message": "max element-balance error=6.94e-18",
+          "message": "max element-balance error=1.39e-17",
           "name": "material_conservation",
           "passed": true,
           "tolerance": 5e-07,
-          "value": 6.938893903907228e-18
+          "value": 1.3877787807814457e-17
         },
         "internal_conservation_passed": true,
-        "observation_digest": "56ea20fff0d39e60f8f00d018acbc3a7b0959563f3445aba8878aed3de73c702",
+        "observation_digest": "a4cf0aeb3cd7d647197092f326df91d9748f8abd2ace94234eb077b1080ad1db",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
+            "equipment",
             "ledger",
             "phases",
             "process",
@@ -1537,7 +1705,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "eca3282763ce6ad2d6231e395c8d220219468e9eea5ea71717ba86b5b27aba6c",
+        "state_digest": "b47afc00fffbb82d741d970ebc1838bb9dad105c3f8893459d34e34f9b5f9b75",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -1627,7 +1795,7 @@
           "volume_L"
         ],
         "constitution_checks": {
-          "count": 77,
+          "count": 79,
           "failures": []
         },
         "constitution_passed": true,
@@ -1647,7 +1815,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "39ba478bc37ebd7c115032053afec4cf2aa3a5d9b4251b95e0772a67fa92e105",
+        "observation_digest": "c378cb337a2cc858ae92855a8aa68f4c22628f9fd8d34cbe6cee43cf24f73427",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -1744,10 +1912,12 @@
           "equipment",
           "ledger",
           "phases",
-          "process"
+          "pressure_Pa",
+          "process",
+          "vessels"
         ],
         "constitution_checks": {
-          "count": 99,
+          "count": 101,
           "failures": []
         },
         "constitution_passed": true,
@@ -1767,14 +1937,16 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "a9f7749d15f6617208b0ee925bf921bb37faa303e39678b31457316660c63c87",
+        "observation_digest": "de0ee02612a40d9a59d8bfc7dfcf9f4805be2b657c349c64b86f9488c20da96f",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
             "equipment",
             "ledger",
             "phases",
-            "process"
+            "pressure_Pa",
+            "process",
+            "vessels"
           ],
           "rollback_reason": null,
           "status": "committed"
@@ -1806,7 +1978,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "38429f6eadd149aa89dd71004bac9c05bf4556c89ca312e3e8f70fd8b6b8f13a",
+        "state_digest": "1ac7bcd21c7b0bbb87b01f1e6fa71e947757e802f0d361f2a5590d5b68f36378",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -1902,7 +2074,7 @@
           "vessels"
         ],
         "constitution_checks": {
-          "count": 74,
+          "count": 76,
           "failures": []
         },
         "constitution_passed": true,
@@ -1921,17 +2093,18 @@
           "volume": false
         },
         "internal_conservation": {
-          "message": "max element-balance error=6.94e-18",
+          "message": "max element-balance error=3.47e-17",
           "name": "material_conservation",
           "passed": true,
           "tolerance": 5e-07,
-          "value": 6.938893903907228e-18
+          "value": 3.469446951953614e-17
         },
         "internal_conservation_passed": true,
-        "observation_digest": "131c0d7a55cf2ab375da6624d6e7cab8548e4bdb93e519daa194ba7eeff53c92",
+        "observation_digest": "08513fb240894cc1ee44e9f280fd00800cddf874d0cbca0badd8d383f9b63f89",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
+            "equipment",
             "ledger",
             "phases",
             "pressure_Pa",
@@ -1959,7 +2132,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "9b6e9e6cab333897bd29c91e62e3e63d799e5495e420fb99c9307072842782ff",
+        "state_digest": "31e76b87b8e55f8a7b9a46a8f925e472c13ae5f91ba702975e7f56cc387130f7",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -2016,6 +2189,7 @@
         "cost_delta": 0.01,
         "invalid_reasons": [
           "has_volume",
+          "measurement_sample_available",
           "payload_has:instrument"
         ],
         "observation_history_unchanged": true,
@@ -2041,7 +2215,7 @@
           "volume_L"
         ],
         "constitution_checks": {
-          "count": 76,
+          "count": 78,
           "failures": []
         },
         "constitution_passed": true,
@@ -2061,7 +2235,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "4b6295bb469cbd94acd69474ce8612bf3e5610c367e262a8b78353d069ee2208",
+        "observation_digest": "ddf8d8697de4ea538977a466874a4986ef9d8565ed80500ff925133b576f31c5",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -2081,7 +2255,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "bec1947624ce9d80755bef7ddfc3ce6a5a61fae54371336b7640117706ee4b60",
+        "state_digest": "19b2f2e4c08f336a83a4c3e7d114dda1061f18e304c34d6c06a00bd828a23e87",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -2169,7 +2343,7 @@
           "vessels"
         ],
         "constitution_checks": {
-          "count": 99,
+          "count": 101,
           "failures": []
         },
         "constitution_passed": true,
@@ -2195,7 +2369,7 @@
           "value": 0.0
         },
         "internal_conservation_passed": true,
-        "observation_digest": "651d181103f9f86a0bc1746cff50b8da3d0f8c94f465234933b9a9554446b437",
+        "observation_digest": "2bf95e53bfd94b5ef42c3458712837b2a47e7fc5e40ee8123c7ed60e2d20927d",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -2224,7 +2398,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "f2257ef1bebef102503e817e03e4a865311fcba2a5aa81e4cd48773380018a8a",
+        "state_digest": "3897f3a5739da85b8cf3fd32bf448f48b616c46ca3a56702230b397518a6a15a",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -2299,7 +2473,7 @@
           "quenched"
         ],
         "constitution_checks": {
-          "count": 74,
+          "count": 76,
           "failures": []
         },
         "constitution_passed": true,
@@ -2325,7 +2499,7 @@
           "value": 0.0
         },
         "internal_conservation_passed": true,
-        "observation_digest": "32ba1e28f849cfd19390213124a45b9c9bbe026864136f9042627b2e78a20244",
+        "observation_digest": "d7231c3858690631e7403160ec97e55c43e6c05cfd593fe761b353c76bae3f66",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -2437,7 +2611,7 @@
           "vessels"
         ],
         "constitution_checks": {
-          "count": 70,
+          "count": 74,
           "failures": []
         },
         "constitution_passed": true,
@@ -2456,29 +2630,22 @@
           "volume": false
         },
         "internal_conservation": {
-          "message": "max element-balance error=6.25e-17",
+          "message": "max element-balance error=4.86e-17",
           "name": "material_conservation",
           "passed": true,
           "tolerance": 5e-07,
-          "value": 6.245004513516506e-17
+          "value": 4.85722573273506e-17
         },
         "internal_conservation_passed": true,
-        "observation_digest": "baa34946ee6740aeba3a0d7ec41180fddac4a7b36bcc984baf45154c90722017",
+        "observation_digest": "eeb75348f6e011703af40d2307221c6e1f4320e70188f295ad774894bb229c7e",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
-            "equipment",
             "ledger",
-            "phases",
-            "pressure_Pa",
-            "process",
-            "species_amounts",
-            "temperature_K",
-            "thermal",
-            "vessels"
+            "process"
           ],
-          "rollback_reason": null,
-          "status": "committed"
+          "rollback_reason": "constitution_failed",
+          "status": "rolled_back"
         },
         "rollback_reason": null,
         "setup": [
@@ -2495,11 +2662,11 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "84c01c5e08ce541f9f9ad85738c63d80bb8c2842c285b7162b5590b5b4145057",
+        "state_digest": "55084092c32b89150b9061ecc6241d34c5307ebc57e176f755f2b50a93b2fe34",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
-          "count": 25,
+          "count": 26,
           "failures": []
         }
       }
@@ -2578,7 +2745,7 @@
           "volume_L"
         ],
         "constitution_checks": {
-          "count": 74,
+          "count": 76,
           "failures": []
         },
         "constitution_passed": true,
@@ -2598,7 +2765,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "4c3567234c79dd6db0ebfd92e41d0d38d0a2d6c6d1ec5835b4f518bea0c0fef5",
+        "observation_digest": "afa4ea39e2356f77f4f276071c67e8ea716a2f5083f992aab06aa22349ac5b95",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -2683,6 +2850,8 @@
         "cost_delta": 0.01,
         "invalid_reasons": [
           "has_volume",
+          "seed_crystals_requires_reaction_advance",
+          "seed_crystals_requires_current_reaction_assay",
           "payload_has:seed_mass_g"
         ],
         "observation_history_unchanged": true,
@@ -2706,13 +2875,12 @@
           "equipment",
           "ledger",
           "phases",
-          "pressure_Pa",
           "process",
           "species_amounts",
           "vessels"
         ],
         "constitution_checks": {
-          "count": 97,
+          "count": 99,
           "failures": []
         },
         "constitution_passed": true,
@@ -2732,17 +2900,15 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "2a0ca798fafec568f33c3bf24c5b94d534ef250144415fd300ffa0d132949a84",
+        "observation_digest": "c923da8aa7fdb94861665866841a1c5f0fe3a9ef4e54e12c50acddf3461f358f",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
             "equipment",
             "ledger",
             "phases",
-            "pressure_Pa",
             "process",
-            "species_amounts",
-            "vessels"
+            "species_amounts"
           ],
           "rollback_reason": null,
           "status": "committed"
@@ -2754,7 +2920,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "ca7b07f62975b7134631b3e5b4bd7227fa41c574ae9569ddb9c9d852765a6b51",
+        "state_digest": "616c8764e2f7d5191df44893fa172939857e1cba163f4aca659b407bbc5834db",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -2838,7 +3004,7 @@
           "volume_L"
         ],
         "constitution_checks": {
-          "count": 99,
+          "count": 101,
           "failures": []
         },
         "constitution_passed": true,
@@ -2858,7 +3024,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "5915b107521d0c5ae902ad30bdd55c3516c3609fc2f37e1d62bef4cda66f856d",
+        "observation_digest": "575b71b9ef00855c84d36e01f473474d4f8cc798ecde86ee43f49d3fe5c57866",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -2895,7 +3061,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "570578a32950e51cd807f12b78737509a98f195a24842be39d0e1f3ef99c620a",
+        "state_digest": "103bb068b741e5d8925ad7bdb42d7a08be9ef3a31f7ddbb3b8b929aa83713e72",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -2978,7 +3144,7 @@
           "vessels"
         ],
         "constitution_checks": {
-          "count": 70,
+          "count": 74,
           "failures": []
         },
         "constitution_passed": true,
@@ -2998,10 +3164,11 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "9a825d19103761c914978cd0857ba3ba8513e6c6137fb1467caf60c0e2999185",
+        "observation_digest": "4766aa09e66b25b4b38ffe97d03e2ce3f61e8aa02279bf0f3442dde72a3b4357",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
+            "equipment",
             "ledger",
             "process"
           ],
@@ -3010,11 +3177,11 @@
         },
         "rollback_reason": null,
         "setup": [],
-        "state_digest": "82e57b208b8904f2c50a35c1f071ffbee88228ad72a84a518e7ba5040dab685d",
+        "state_digest": "868b65eb8bae66c0d7722a3ad48eb33ea067fac76267c4255e1392c705536f51",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
-          "count": 25,
+          "count": 26,
           "failures": []
         }
       }
@@ -3049,7 +3216,8 @@
           ],
           "required_fields": [
             "potential_V",
-            "current_mA"
+            "current_mA",
+            "electrolyte_profile"
           ]
         },
         "required_effect_any": [
@@ -3068,7 +3236,8 @@
           "has_volume",
           "has_material",
           "payload_has:potential_V",
-          "payload_has:current_mA"
+          "payload_has:current_mA",
+          "payload_has:electrolyte_profile"
         ],
         "observation_history_unchanged": true,
         "penalty_declared": true,
@@ -3093,7 +3262,7 @@
           "process"
         ],
         "constitution_checks": {
-          "count": 70,
+          "count": 72,
           "failures": []
         },
         "constitution_passed": true,
@@ -3113,10 +3282,11 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "a3ce5feb3c88b929dfbccc0be73042336bd801939f1e06c4b33ea2473233ce05",
+        "observation_digest": "8476dc6ca02df0a7a9188bda567009ea5594f3017d6475491628dd5e5e9f2ada",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
+            "equipment",
             "ledger",
             "process"
           ],
@@ -3134,7 +3304,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "0b7dbe49284ea4f2f165c782704864d433361f2b2087bbbe2af46b6c23887673",
+        "state_digest": "e3f6541144c85122fe5deb239cf77ccfb054e81fc5830320bd7d0d0d1cfe1e2d",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -3215,7 +3385,7 @@
           "process"
         ],
         "constitution_checks": {
-          "count": 99,
+          "count": 101,
           "failures": []
         },
         "constitution_passed": true,
@@ -3241,7 +3411,7 @@
           "value": 0.0
         },
         "internal_conservation_passed": true,
-        "observation_digest": "667fb5f9f8ce3d45adb33c42ccd502aebdda41342ebc1a13e42a3f8bb14c86e5",
+        "observation_digest": "181ae6f3a3b66d53f543fd4369ab66586033af28f77e36c8842e7fe7deae37b5",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -3274,7 +3444,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "0e8e0cb78aaa6f07531d55a4c77398e76abe62406ae6289a5ce6cb5af3cd8d18",
+        "state_digest": "f22e23d7e69da67fe0bb7e6a9454564f7ac2368785f91a7310165476f67d9ca9",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -3307,7 +3477,8 @@
           "module": "reaction",
           "operation_id": "terminate",
           "preconditions": [
-            "has_material"
+            "has_material",
+            "not_terminated"
           ],
           "required_fields": []
         },
@@ -3345,7 +3516,7 @@
           "terminated"
         ],
         "constitution_checks": {
-          "count": 74,
+          "count": 76,
           "failures": []
         },
         "constitution_passed": true,
@@ -3365,12 +3536,15 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "0911df36f2e0ad7d744d4852551111447215046394bd0b66903d4d8b3c3603f9",
+        "observation_digest": "ec0fd9fa02dff04aec8e87a27fbb1e69fbcd8b7efec66497f0cd38ca74f9c871",
         "repeat": {
           "atomic_if_rejected": true,
-          "changed_roots": [],
-          "rollback_reason": null,
-          "status": "committed"
+          "changed_roots": [
+            "ledger",
+            "process"
+          ],
+          "rollback_reason": "precondition_failed",
+          "status": "rolled_back"
         },
         "rollback_reason": null,
         "setup": [
@@ -3462,7 +3636,7 @@
           "process"
         ],
         "constitution_checks": {
-          "count": 101,
+          "count": 103,
           "failures": []
         },
         "constitution_passed": true,
@@ -3482,7 +3656,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "721d6131c9d39144acf6d1381796140194c3116cfa3bd2acebc15324b6a3c039",
+        "observation_digest": "7b143d7e7fc1ebe8ce5b05c7191ee32b70062874a7251e29a064b2bf38c2e7a8",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -3523,7 +3697,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "96f0b371b2557612b7e1bb35a66bc127b72445cae89683d1d29cca18dcdb954b",
+        "state_digest": "8b2c6b50a9f100ee31efd94508513c178b9382b8aa957a0bc8f1f75bcb6ef593",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -3615,7 +3789,7 @@
           "vessels"
         ],
         "constitution_checks": {
-          "count": 74,
+          "count": 76,
           "failures": []
         },
         "constitution_passed": true,
@@ -3634,17 +3808,18 @@
           "volume": false
         },
         "internal_conservation": {
-          "message": "max element-balance error=6.94e-18",
+          "message": "max element-balance error=3.47e-17",
           "name": "material_conservation",
           "passed": true,
           "tolerance": 5e-07,
-          "value": 6.938893903907228e-18
+          "value": 3.469446951953614e-17
         },
         "internal_conservation_passed": true,
-        "observation_digest": "44cc65701c48687cf5ba21d970039d03ff7b1bf7240214edcbee4cdf690dff91",
+        "observation_digest": "d1a337daace85129e6f9454da7a76945ad1f503f89d25d24d5636b7a50b5e8ce",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
+            "equipment",
             "ledger",
             "phases",
             "pressure_Pa",
@@ -3672,7 +3847,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "748a03b94367506631fecbfe6a4f92a506e1038389589f441def77b808150af0",
+        "state_digest": "d941a0cef400e3257662c3222fac2595a25bf67139c0f7f690c51fa0029aa3c3",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -3754,7 +3929,7 @@
           "process"
         ],
         "constitution_checks": {
-          "count": 99,
+          "count": 101,
           "failures": []
         },
         "constitution_passed": true,
@@ -3774,7 +3949,7 @@
         },
         "internal_conservation": null,
         "internal_conservation_passed": true,
-        "observation_digest": "d1a023a9125100b11bad4e7a63ae0eb6e2ca5084b098646684e8a77eb6eb777d",
+        "observation_digest": "f1cbb0f870a8d075dbba61375a21f668039bf4db9e2a5fcff5ada55f51efbb18",
         "repeat": {
           "atomic_if_rejected": true,
           "changed_roots": [
@@ -3815,7 +3990,7 @@
             "transaction_status": "committed"
           }
         ],
-        "state_digest": "1c2d80eb55aa75d9f644b78f64d2df04e3dc64338e0a8764b3a6378d2f2b40b8",
+        "state_digest": "3497087c89286d9eaa305d9251d2c10cb390fa0700a4d85a7e0333d5dbdeeb43",
         "transaction_status": "committed",
         "typed_state_authoritative": true,
         "typed_state_findings": {
@@ -3858,11 +4033,30 @@
     }
   },
   "protocol_id": "foundation-state-transition-invariants-vnext",
-  "protocol_sha256": "3b692fad06faac89940f37a53470696ead2cc96b3ba35281d363d300f648dcca",
-  "report_hash": "c4dd16c74a84ac4127ab50fd2ae319cd482f83971df2d11bbf99c89326302259",
+  "protocol_sha256": "d8ea8786e39e1fae2170ea00f24f59974d32b7080e98979d9e41474e9992e475",
+  "report_hash": "5cae16a4faea0ca549ce92cc89d6223275233ba6b041dd35f2394dae6f7dbd58",
+  "rolled_back_final_assay_boundary": {
+    "checks": {
+      "episode_remains_open": true,
+      "no_fresh_observation": true,
+      "no_leaderboard_score": true,
+      "no_measurement_consumption": true,
+      "no_reward": true,
+      "observation_history_preserved": true,
+      "provider_not_executed": true,
+      "rollback_reported_as_reward_source": true,
+      "transaction_rolled_back": true
+    },
+    "measurement_cost": 0.0,
+    "passed": true,
+    "reward": 0.0,
+    "rollback_reason": "constitution_failed",
+    "sample_consumed": 0.0,
+    "transaction_status": "rolled_back"
+  },
   "schema_version": "chemworld-foundation-state-transition-report-0.1",
-  "source_commit": "76532a11f19421e6d3ab35912f291076245c5005",
-  "source_tree_dirty": false,
+  "source_commit": "4c9ae675d3444134f25301fb28eb0e304375c658",
+  "source_tree_dirty": true,
   "status": "audit_complete_no_defects_found",
   "zero_effect_acceptances": []
 }

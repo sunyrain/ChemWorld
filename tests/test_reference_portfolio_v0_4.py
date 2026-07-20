@@ -42,7 +42,7 @@ def test_resource_envelope_matches_task_recipe_plan() -> None:
     plan = load_reference_portfolio_v0_4()
     runs = build_reference_run_plan(plan)
     assert sum(row["complete_experiment_budget"] for row in runs) == 64000
-    assert sum(row["maximum_operation_count"] for row in runs) == 640000
+    assert sum(row["maximum_operation_count"] for row in runs) == 656000
     assert plan["run_plan"]["planned_source_metric_record_count"] == 3200
     assert plan["target_grid"]["expected_reference_cell_count"] == 800
 
@@ -60,7 +60,7 @@ def test_reference_controls_are_ready_without_results_or_private_values() -> Non
         "source_run_count": 1600,
         "source_metric_record_count": 3200,
         "complete_experiment_count": 64000,
-        "maximum_operation_count": 640000,
+        "maximum_operation_count": 656000,
     }
     assert report["private_seed_values_reported"] is False
     assert report["private_world_parameters_reported"] is False
@@ -150,6 +150,8 @@ def test_checked_in_reference_plan_report_is_ready_but_evidence_absent() -> None
     assert report["status"] == "reference_plan_frozen_evidence_not_generated"
     assert report["formal_results_present"] is False
     assert report["benchmark_claim_allowed"] is False
+    assert report["controls"]["formal_and_statistical_parents_are_hash_bound"] is True
+    assert report["controls"]["resource_plan_matches_executable_task_recipes"] is True
     assert report["run_counts"]["source_run_count"] == 1600
     assert report["run_counts"]["reference_cell_count"] == 800
     assert report["minimum_sources_per_task_pair_metric"] == 4

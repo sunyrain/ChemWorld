@@ -45,15 +45,11 @@ class TaskObservationContract:
             scoring_contract=scoring_contract,
         )
         requested_instruments = tuple(
-            instrument_id
-            for instrument_id in allowed_instruments
-            if instrument_id in instruments
+            instrument_id for instrument_id in allowed_instruments if instrument_id in instruments
         )
         instrument_keys = {
             instrument_id: tuple(
-                key
-                for key in instruments[instrument_id].observable_keys
-                if key in required_keys
+                key for key in instruments[instrument_id].observable_keys if key in required_keys
             )
             for instrument_id in requested_instruments
         }
@@ -141,13 +137,29 @@ def _required_observation_keys(
     elif scoring_contract.score_family == "partition":
         keys.extend(("phase_ratio", "product_in_organic", "product_in_aqueous"))
     elif scoring_contract.score_family == "crystallization":
-        keys.extend(("crystal_yield", "crystal_purity", "crystal_size"))
+        keys.extend(
+            (
+                "crystal_yield",
+                "crystal_purity",
+                "crystal_size",
+                "crystal_csd_quality",
+                "crystal_fines_fraction",
+            )
+        )
     elif scoring_contract.score_family == "distillation":
         keys.extend(("distillate_purity", "distillate_recovery", "solvent_loss"))
     elif scoring_contract.score_family == "continuous_flow":
         keys.append("flow_conversion")
     elif scoring_contract.score_family == "electrochemistry":
-        keys.extend(("electrochemical_selectivity", "energy_efficiency"))
+        keys.extend(
+            (
+                "electrochemical_selectivity",
+                "faradaic_efficiency",
+                "transport_efficiency",
+                "ohmic_efficiency",
+                "energy_efficiency",
+            )
+        )
     elif scoring_contract.score_family == "equilibrium_characterization":
         keys.extend(
             (

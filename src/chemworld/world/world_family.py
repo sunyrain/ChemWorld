@@ -298,7 +298,12 @@ def _noise_multiplier(severity: float) -> float:
 
 
 def _redox_multiplier(mode: ShiftMode, severity: float) -> float:
-    span = 2.0 if mode in {"interpolation", "composition"} else 10.0
+    # Exchange-current density is a log-scale material/interface property.  A
+    # tenfold extrapolation remains current-setpoint-limited in the public
+    # electrochemical task and therefore produces no observable intervention.
+    # The wider extrapolation span crosses that kinetic boundary while keeping
+    # interpolation and composition shifts substantially narrower.
+    span = 5.0 if mode in {"interpolation", "composition"} else 25.0
     return exp(log(span) * severity)
 
 

@@ -15,7 +15,10 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.agents.task_recipes import task_recipe_event_count
+from chemworld.agents.task_recipes import (
+    TASK_RECIPE_SPACE_VERSION,
+    task_recipe_event_count,
+)
 from chemworld.data.submission import git_commit
 from chemworld.eval.benchmark_validation import PRIMARY_METRIC_FIELDS
 from chemworld.eval.confirmatory_freeze import load_confirmatory_freeze
@@ -27,6 +30,12 @@ from chemworld.tasks import get_task
 RUN_SCHEMA_VERSION = "chemworld-safe-policy-development-run-0.1"
 SUMMARY_SCHEMA_VERSION = "chemworld-safe-policy-development-summary-0.1"
 DEFAULT_PROTOCOL = configuration_root() / "benchmark" / "safe_policy_development.json"
+LEGACY_PRIMARY_METRIC_FIELDS_0_2 = {
+    "partition-discovery": "mean_product_in_organic",
+    "reaction-to-crystallization": "mean_crystal_yield",
+    "reaction-to-distillation": "mean_distillate_purity",
+    "flow-reaction-optimization": "mean_flow_conversion",
+}
 
 
 @dataclass(frozen=True)
@@ -93,8 +102,9 @@ def build_development_summary(
 
     cells: dict[str, Any] = {}
     objective_retention: dict[str, Any] = {}
+    metric_fields = _primary_metric_fields(protocol)
     for task_id in tasks:
-        metric = PRIMARY_METRIC_FIELDS[task_id]
+        metric = metric_fields[task_id]
         cells[task_id] = {}
         indexed: dict[tuple[str, int], dict[str, Any]] = {}
         for row in results:
@@ -232,6 +242,24 @@ def _validate_protocol(protocol: dict[str, Any]) -> None:
         raise ValueError("safe policy must learn experiment peak risk")
 
 
+def validate_development_runtime_compatibility(protocol: dict[str, Any]) -> None:
+    """Refuse to execute a frozen historical protocol with a newer agent space."""
+
+    frozen_version = str(protocol.get("recipe_space_version", ""))
+    if frozen_version != TASK_RECIPE_SPACE_VERSION:
+        raise RuntimeError(
+            "safe-policy development protocol is superseded: frozen recipe space "
+            f"{frozen_version!r} does not match runtime {TASK_RECIPE_SPACE_VERSION!r}"
+        )
+
+
+def _primary_metric_fields(protocol: dict[str, Any]) -> dict[str, str]:
+    version = str(protocol.get("recipe_space_version", ""))
+    if version == "chemworld-task-recipe-space-0.2":
+        return dict(LEGACY_PRIMARY_METRIC_FIELDS_0_2)
+    return dict(PRIMARY_METRIC_FIELDS)
+
+
 def _risk_rate(result: dict[str, Any]) -> float:
     return float(
         result["score_replay"]["layered_evaluation"]["constraints"][
@@ -293,6 +321,7 @@ def main() -> int:
     if args.workers < 1:
         raise ValueError("workers must be positive")
     protocol = load_development_protocol(args.protocol)
+    validate_development_runtime_compatibility(protocol)
     source_commit = git_commit()
     if source_commit is None:
         raise RuntimeError("safe-policy development requires a Git source commit")

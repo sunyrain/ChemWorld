@@ -92,7 +92,9 @@ def test_equilibrium_final_assay_is_leaderboard_eligible() -> None:
             env.step(action)
         _, reward, _, _, info = env.step({"operation": "measure", "instrument": "final_assay"})
         assert reward > 0.0
-        assert info["leaderboard_score"] == pytest.approx(reward)
+        assert info["leaderboard_score"] > 0.0
+        assert info["environment_reward"]["fresh_measurement"] is True
+        assert reward == pytest.approx(info["environment_reward"]["score_delta"])
         assert "ph_meter" in info["raw_signal"]["channels"]
         assert "equilibrium_residual" in info["processed_estimate"]
     finally:
@@ -114,9 +116,7 @@ def test_codex_subagent_replay_agent_runs_equilibrium_trace(tmp_path) -> None:
     assert history
     assert output.exists()
     records = [
-        json.loads(line)
-        for line in output.read_text(encoding="utf-8").splitlines()
-        if line.strip()
+        json.loads(line) for line in output.read_text(encoding="utf-8").splitlines() if line.strip()
     ]
     assert records[-1]["agent_metadata"]["agent_family"] == "codex_subagent"
     assert records[-1]["agent_metadata"]["requires_online_model"] is False

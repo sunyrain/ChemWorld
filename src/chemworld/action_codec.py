@@ -7,7 +7,7 @@ from typing import Any
 
 import numpy as np
 
-from chemworld.world.actions import CATALYSTS, SOLVENTS
+from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 from chemworld.world.operations import (
     INSTRUMENTS,
     OPERATION_TYPES,
@@ -40,6 +40,7 @@ GYM_ACTION_KEYS = (
     "residence_time_s",
     "potential_V",
     "current_mA",
+    "electrolyte_profile",
 )
 
 
@@ -53,6 +54,7 @@ class ActionCodec:
     solvents: tuple[str, ...] = SOLVENTS
     phases: tuple[str, ...] = PHASES
     extractants: tuple[str, ...] = EXTRACTANTS
+    electrolyte_profiles: tuple[str, ...] = ELECTROLYTE_PROFILES
 
     def canonicalize(self, action: dict[str, Any]) -> dict[str, Any]:
         """Normalize event-action JSON into canonical names and flat payload."""
@@ -82,6 +84,11 @@ class ActionCodec:
             canonical["target_phase"] = self.phase_name(canonical["target_phase"])
         if "extractant" in canonical:
             canonical["extractant"] = self.extractant_name(canonical["extractant"])
+        if "electrolyte_profile" in canonical:
+            canonical["electrolyte_profile"] = self._choice_index(
+                canonical["electrolyte_profile"],
+                self.electrolyte_profiles,
+            )
         return canonical
 
     def _apply_aliases(self, action: dict[str, Any]) -> dict[str, Any]:
@@ -159,17 +166,21 @@ class ActionCodec:
             self._float(action, "residence_time_s", 600.0),
             self._float(action, "potential_V", 1.2),
             self._float(action, "current_mA", 50.0),
+            self._float(action, "electrolyte_profile", 1.0),
         ]
-        return np.asarray(values, dtype=np.float32)
+        vector = np.asarray(values, dtype=np.float32)
+        if not np.all(np.isfinite(vector)):
+            raise ValueError("Encoded action vector must contain only finite values")
+        return vector
 
     def decode_vector(self, vector: Any) -> dict[str, Any]:
         """Decode a numeric action vector into canonical event JSON."""
 
         array = np.asarray(vector, dtype=float).reshape(-1)
-        if array.size < len(GYM_ACTION_KEYS):
-            padded = np.zeros(len(GYM_ACTION_KEYS), dtype=float)
-            padded[: array.size] = array
-            array = padded
+        if array.shape != (len(GYM_ACTION_KEYS),) or not np.all(np.isfinite(array)):
+            raise ValueError(
+                f"Action vector must be finite with shape ({len(GYM_ACTION_KEYS)},)"
+            )
         operation_index = int(np.clip(round(array[0]), 0, len(self.operation_types) - 1))
         instrument_index = int(np.clip(round(array[8]), 0, len(self.instruments) - 1))
         phase_index = int(np.clip(round(array[11]), 0, len(self.phases) - 1))
@@ -197,6 +208,9 @@ class ActionCodec:
             "residence_time_s": float(array[19]),
             "potential_V": float(array[20]),
             "current_mA": float(array[21]),
+            "electrolyte_profile": int(
+                np.clip(round(array[22]), 0, len(self.electrolyte_profiles) - 1)
+            ),
         }
 
     def phase_name(self, value: Any) -> str:
@@ -204,8 +218,7 @@ class ActionCodec:
             # Keep unknown strings intact so validation rejects them atomically
             # instead of silently converting them to the organic phase.
             return value
-        index = int(np.asarray(value).reshape(-1)[0])
-        return self.phases[int(np.clip(index, 0, len(self.phases) - 1))]
+        return self.phases[self._numeric_choice_index(value, self.phases, "phase")]
 
     def extractant_name(self, value: Any) -> int:
         if isinstance(value, str):
@@ -218,13 +231,19 @@ class ActionCodec:
     @staticmethod
     def _float(action: dict[str, Any], key: str, default: float) -> float:
         value = action.get(key, default)
-        return float(np.asarray(value).reshape(-1)[0])
+        values = np.asarray(value).reshape(-1)
+        if values.size != 1:
+            raise ValueError(f"{key} must be a scalar numeric value")
+        result = float(values[0])
+        if not np.isfinite(result):
+            raise ValueError(f"{key} must be finite")
+        return result
 
     @staticmethod
     def _index(value: Any, choices: tuple[str, ...]) -> int:
         if isinstance(value, str) and value in choices:
             return choices.index(value)
-        return int(np.clip(int(np.asarray(value).reshape(-1)[0]), 0, len(choices) - 1))
+        return ActionCodec._numeric_choice_index(value, choices, "choice")
 
     @staticmethod
     def _choice_index(value: Any, choices: tuple[str, ...]) -> int:
@@ -242,7 +261,20 @@ class ActionCodec:
             else:
                 allowed = ", ".join(choices)
                 raise ValueError(f"Unknown material choice {value!r}; allowed: {allowed}")
-        index = int(np.asarray(value).reshape(-1)[0])
+        return ActionCodec._numeric_choice_index(value, choices, "material choice")
+
+    @staticmethod
+    def _numeric_choice_index(value: Any, choices: tuple[str, ...], label: str) -> int:
+        try:
+            values = np.asarray(value).reshape(-1)
+            if values.size != 1:
+                raise ValueError(f"{label} must be a scalar categorical index")
+            coordinate = float(values[0])
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ValueError(f"{label} must be a scalar categorical index") from exc
+        if not np.isfinite(coordinate) or not coordinate.is_integer():
+            raise ValueError(f"{label} must be a finite integer categorical index")
+        index = int(coordinate)
         if not 0 <= index < len(choices):
-            raise ValueError(f"Material choice index {index} is outside [0, {len(choices) - 1}]")
+            raise ValueError(f"{label} index {index} is outside [0, {len(choices) - 1}]")
         return index

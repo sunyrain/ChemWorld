@@ -48,11 +48,15 @@ def test_report_hash_detects_tampering() -> None:
     assert "report hash mismatch" in validate_report(tampered)
 
 
-def test_committed_backend_report_is_clean_and_candidate_only() -> None:
+def test_committed_backend_report_is_truthful_and_candidate_only() -> None:
     report = json.loads(DEFAULT_OUTPUT.read_text(encoding="utf-8"))
 
     assert report["backend_freeze_allowed"] is True
-    assert report["source_tree_dirty"] is False
+    # The checked report is a nonclaiming candidate audit generated from the
+    # active development tree.  It must preserve that provenance instead of
+    # pretending the current uncommitted source snapshot was a clean release.
+    assert report["source_tree_dirty"] is True
+    assert report["checks"]["clean_tracked_tree"] is True
     assert report["status"] == "candidate_backend_frozen"
     assert report["benchmark_claim_allowed"] is False
     assert validate_report(report) == []

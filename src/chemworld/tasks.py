@@ -27,7 +27,11 @@ from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.scenario import get_scenario_card
 
 WORLD_LAW_ID = WORLD_FAMILY_VERSION
-TASK_CONTRACT_VERSION = "chemworld-task-contract-0.6"
+TASK_CONTRACT_VERSION = "chemworld-task-contract-0.9"
+FLAGSHIP_TASK_IDS = (
+    "reaction-to-crystallization",
+    "electrochemical-conversion",
+)
 CORE_TASK_IDS = (
     "reaction-to-assay",
     "reaction-to-purification",
@@ -215,7 +219,10 @@ class TaskSpec:
             "budget": self.budget,
             "episode_mode": self.episode_mode,
             "reward_leaderboard_metric": {
-                "online_reward": "observed score from instrument-visible estimates",
+                "online_reward": (
+                    "fresh instrument-measurement score delta; cached observations "
+                    "receive zero"
+                ),
                 "leaderboard_score": "final-assay score only",
                 "success_metrics": list(self.success_metrics),
                 "threshold": self.threshold,
@@ -311,7 +318,10 @@ def _task(
         if termination_policy is not None
         else ("budget" if episode_mode == "campaign" else "final-assay-or-budget")
     )
-    resolved_kernel_maturity = kernel_maturity or default_kernel_maturity(allowed_operations)
+    resolved_kernel_maturity = kernel_maturity or default_kernel_maturity(
+        allowed_operations,
+        allowed_instruments=instruments,
+    )
     resolved_tags = ("chemworld", *tags)
     if resolved_kernel_maturity.contains_proxy and not set(resolved_tags).intersection(
         {"teaching", "smoke", "exploratory"}
@@ -344,8 +354,11 @@ def _task(
 
 def default_kernel_maturity(
     allowed_operations: tuple[str, ...],
+    *,
+    allowed_instruments: tuple[str, ...] = STANDARD_INSTRUMENTS,
 ) -> TaskMaturitySpec:
     operations = set(allowed_operations)
+    instruments = set(allowed_instruments)
     modules: list[ModuleMaturity] = []
     # These operation sets mirror the physical-model routes in
     # runtime.model_reachability. Ledger-only operations do not acquire a
@@ -372,19 +385,24 @@ def default_kernel_maturity(
             )
         )
     if "measure" in operations:
+        instrument_model_ids = ["chemworld_validated_synthetic_instruments_v1"]
+        if "uvvis" in instruments:
+            instrument_model_ids.append("beer_lambert_uvvis")
+        if instruments.intersection({"hplc", "gc"}):
+            instrument_model_ids.append("chromatography_retention_plate")
+        if "ph_meter" in instruments:
+            if "electrolyze" not in operations:
+                instrument_model_ids.append("aqueous_acid_base_ph_observation")
+            instrument_model_ids.append("potentiometric_ph_public_reference")
         modules.append(
             ModuleMaturity(
                 "spectroscopy_instruments",
                 MaturityLevel.REFERENCE_VALIDATED,
-                model_ids=(
-                    "chemworld_validated_synthetic_instruments_v1",
-                    "beer_lambert_uvvis",
-                    "chromatography_retention_plate",
-                ),
+                model_ids=tuple(instrument_model_ids),
                 notes=(
-                    "State-coupled synthetic observations with reference-validated "
-                    "Beer-Lambert UV-vis and chromatography retention/plate-count "
-                    "slices; not empirical spectral prediction.",
+                    "State-coupled synthetic observations declare only the physical "
+                    "instrument providers reachable from this task's allowed instruments; "
+                    "they are not empirical spectral predictions.",
                 ),
             )
         )
@@ -393,9 +411,7 @@ def default_kernel_maturity(
             ModuleMaturity(
                 "phase_equilibrium",
                 MaturityLevel.PROFESSIONAL_CANDIDATE,
-                model_ids=(
-                    "chemworld_stability_aware_lle_vnext",
-                ),
+                model_ids=("chemworld_stability_aware_lle_vnext",),
                 notes=(
                     "Runtime phase contact uses the stability-gated, activity-corrected "
                     "extraction train with explicit entrainment and TPD-style diagnostics; "
@@ -561,8 +577,7 @@ def equilibrium_kernel_maturity() -> TaskMaturitySpec:
                     "potentiometric_ph_public_reference",
                 ),
                 notes=(
-                    "pH-meter and UV/Vis signals are instrument-facing and "
-                    "benchmark-calibrated.",
+                    "pH-meter and UV/Vis signals are instrument-facing and benchmark-calibrated.",
                 ),
             ),
         ),
@@ -649,12 +664,24 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         world_split="public-test",
         budget=72,
         seeds=(0, 1, 2, 3, 4),
-        threshold=0.60,
+        threshold=0.55,
         episode_mode="campaign",
         allowed_operations=REACTION_CRYSTALLIZATION_ALLOWED,
-        success_metrics=("score", "crystal_yield", "crystal_purity", "crystal_size"),
-        description="Run a reaction and isolate product through seeded cooling crystallization.",
-        tags=("reaction", "crystallization", "purification", "year2"),
+        success_metrics=(
+            "score",
+            "crystal_yield",
+            "crystal_purity",
+            "crystal_size",
+            "crystal_csd_quality",
+            "crystal_fines_fraction",
+        ),
+        description=(
+            "Use reaction assays to adapt a seeded cooling trajectory, then "
+            "isolate product while controlling yield, purity, and particle-size distribution."
+        ),
+        instruments=("hplc", "final_assay"),
+        termination_policy="budget-with-workflow-gated-final-assay",
+        tags=("reaction", "crystallization", "purification", "closed-loop", "flagship"),
     ),
     "reaction-to-distillation": _task(
         "reaction-to-distillation",
@@ -694,11 +721,23 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         success_metrics=(
             "score",
             "electrochemical_selectivity",
+            "faradaic_efficiency",
+            "transport_efficiency",
+            "ohmic_efficiency",
             "energy_efficiency",
+            "pH_normalized",
+            "precipitation_signal",
             "safety_risk",
         ),
-        description="Probe potential/current choices for a virtual electrochemical conversion.",
-        tags=("reaction", "electrochemistry", "optimization", "year2"),
+        description=(
+            "Select a bounded aqueous electrolyte profile, identify coupled equilibrium, "
+            "transport, double-layer, kinetic, and ohmic behavior from a probe regime, "
+            "then adapt potential/current for selective, charge- and energy-efficient "
+            "conversion."
+        ),
+        instruments=("ph_meter", "uvvis", "final_assay"),
+        termination_policy="budget-with-workflow-gated-final-assay",
+        tags=("reaction", "electrochemistry", "optimization", "closed-loop", "flagship"),
     ),
     "equilibrium-characterization": _task(
         "equilibrium-characterization",
@@ -822,6 +861,14 @@ def list_serious_tasks() -> list[TaskSpec]:
 
 def list_serious_task_cards() -> list[dict[str, Any]]:
     return [task.to_card() for task in list_serious_tasks()]
+
+
+def list_flagship_tasks() -> list[TaskSpec]:
+    return [get_task(task_id) for task_id in FLAGSHIP_TASK_IDS]
+
+
+def list_flagship_task_cards() -> list[dict[str, Any]]:
+    return [task.to_card() for task in list_flagship_tasks()]
 
 
 def task_maturity_manifest(task_ids: tuple[str, ...] | None = None) -> dict[str, Any]:

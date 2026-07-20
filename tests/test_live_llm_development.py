@@ -28,7 +28,7 @@ def test_default_private_cache_is_source_commit_scoped() -> None:
     assert DEFAULT_REPORT_PATH.name == "live-llm-dev-v0.4.11.json"
 
 
-def test_live_development_binds_clean_public_affordance_audit() -> None:
+def test_live_development_binds_content_verified_public_affordance_audit() -> None:
     binding = load_runtime_domain_affordance_binding()
     bundle = build_live_llm_development_bundle(stage="candidate_screen")
     recorded = bundle.manifest["metadata"]["development_contract"][
@@ -39,10 +39,12 @@ def test_live_development_binds_clean_public_affordance_audit() -> None:
     assert binding["public_action_schema_version"] == (
         "chemworld-public-action-affordance-0.1"
     )
-    assert binding["candidate_count"] == 223
-    assert binding["validator_valid_count"] == 215
-    assert binding["runtime_committed_count"] == 215
+    assert binding["candidate_count"] == 233
+    assert binding["validator_valid_count"] == 231
+    assert binding["runtime_committed_count"] == 231
     assert binding["finding_count"] == 0
+    assert binding["audit_source_tree_dirty"] is True
+    assert len(binding["guarded_source_sha256"]) == 64
     assert len(binding["audit_report_sha256"]) == 64
 
 
@@ -64,7 +66,7 @@ def test_live_pilot_is_exact_paired_core_matrix_without_seed_disclosure() -> Non
 
     assert bundle.pair_count == 1
     assert bundle.cell_count == 4 * 2 * 3
-    assert bundle.maximum_provider_call_count == 2880
+    assert bundle.maximum_provider_call_count == 2952
     assert len(plan.cells) == bundle.cell_count
     assert set(plan.spectrum_conditions_by_method["live_llm_a"]) == {
         "assigned",
@@ -76,7 +78,7 @@ def test_live_pilot_is_exact_paired_core_matrix_without_seed_disclosure() -> Non
     assert all("world_seed" not in cell for cell in bundle.manifest["cells"])
     assert bundle.manifest["metadata"]["matrix_contract"]["operation_limits_by_task"] == {
         "partition-discovery": 40,
-        "reaction-to-crystallization": 44,
+        "reaction-to-crystallization": 48,
         "reaction-to-distillation": 44,
         "flow-reaction-optimization": 32,
     }
@@ -97,7 +99,7 @@ def test_development_matrix_uses_only_four_public_dev_pairs() -> None:
 
     assert bundle.pair_count == 4
     assert bundle.cell_count == 4 * 2 * 3 * 4
-    assert bundle.maximum_provider_call_count == 23040
+    assert bundle.maximum_provider_call_count == 23616
     assert plan.checkpoints == (1, 2, 4)
     assert plan.limits.api_max_concurrency == 4
     assert plan.limits.matrix_monetary_cost_usd_limit == pytest.approx(bundle.cell_count * 0.35)
@@ -109,12 +111,12 @@ def test_candidate_screen_is_small_and_precedes_live_pilot() -> None:
 
     assert bundle.pair_count == 1
     assert bundle.cell_count == 1 * 2 * 3
-    assert bundle.maximum_provider_call_count == 396
+    assert bundle.maximum_provider_call_count == 432
     assert bundle.manifest["metadata"]["matrix_contract"]["tasks"] == [
         "reaction-to-crystallization",
     ]
     assert bundle.manifest["metadata"]["matrix_contract"]["operation_limits_by_task"] == {
-        "reaction-to-crystallization": 22
+        "reaction-to-crystallization": 24
     }
     assert bundle.manifest["metadata"]["orchestration"][
         "matrix_monetary_cost_usd_limit"

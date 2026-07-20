@@ -23,7 +23,6 @@ from scripts.run_vnext_primary import build_primary_statistics  # noqa: E402
 
 from chemworld.agents.task_recipes import task_recipe_event_count  # noqa: E402
 from chemworld.data.submission import git_commit  # noqa: E402
-from chemworld.eval.benchmark_validation import PRIMARY_METRIC_FIELDS  # noqa: E402
 from chemworld.eval.constrained_inference import (  # noqa: E402
     paired_constraint_decisions,
 )
@@ -34,6 +33,12 @@ from chemworld.tasks import get_task  # noqa: E402
 RUN_SCHEMA_VERSION = "chemworld-safe-policy-confirmatory-run-0.1"
 STATISTICS_SCHEMA_VERSION = "chemworld-safe-policy-confirmatory-statistics-0.1"
 DEFAULT_PROTOCOL = configuration_root() / "benchmark" / "safe_policy_confirmatory_freeze.json"
+LEGACY_PRIMARY_METRIC_FIELDS_0_2 = {
+    "partition-discovery": "mean_product_in_organic",
+    "reaction-to-crystallization": "mean_crystal_yield",
+    "reaction-to-distillation": "mean_distillate_purity",
+    "flow-reaction-optimization": "mean_flow_conversion",
+}
 
 
 @dataclass(frozen=True)
@@ -174,6 +179,9 @@ def _primary_statistics_protocol(protocol: dict[str, Any]) -> dict[str, Any]:
     primary = protocol["primary_comparison"]
     objective = primary["objective_rule"]
     constraints = primary["constraint_rule"]
+    sesoi = copy.deepcopy(protocol["sesoi"])
+    for task_id, card in sesoi["tasks"].items():
+        card["result_field"] = LEGACY_PRIMARY_METRIC_FIELDS_0_2[str(task_id)]
     return {
         "task_roles": {"core": protocol["tasks"]},
         "primary_comparison": {
@@ -199,7 +207,7 @@ def _primary_statistics_protocol(protocol: dict[str, Any]) -> dict[str, Any]:
                 },
             },
         },
-        "sesoi": protocol["sesoi"],
+        "sesoi": sesoi,
     }
 
 
@@ -212,7 +220,7 @@ def _descriptive_objective_effects(
 ) -> dict[str, Any]:
     cards: dict[str, Any] = {}
     for task_id in protocol["tasks"]:
-        metric = PRIMARY_METRIC_FIELDS[str(task_id)]
+        metric = LEGACY_PRIMARY_METRIC_FIELDS_0_2[str(task_id)]
         indexed = {
             (str(row["baseline_agent"]), int(row["seed"])): row
             for row in results

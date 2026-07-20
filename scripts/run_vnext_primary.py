@@ -135,8 +135,9 @@ def build_primary_statistics(
     task_ids = tuple(str(task_id) for task_id in protocol["task_roles"]["core"])
     for result in results:
         task_id = str(result["task_id"])
-        field = PRIMARY_METRIC_FIELDS[task_id]
-        sesoi = float(protocol["sesoi"]["tasks"][task_id]["sesoi"])
+        metric_card = protocol["sesoi"]["tasks"][task_id]
+        field = str(metric_card.get("result_field", PRIMARY_METRIC_FIELDS[task_id]))
+        sesoi = float(metric_card["sesoi"])
         result["primary_metric_field"] = field
         result["primary_metric_sesoi"] = sesoi
         result["primary_metric_normalized_by_sesoi"] = float(result[field]) / sesoi

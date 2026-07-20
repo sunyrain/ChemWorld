@@ -51,7 +51,7 @@ def test_safe_bo_initial_design_is_conservative_and_manifested() -> None:
     assert manifest["risk_observation"] == "experiment_peak_safety_risk"
     assert manifest["risk_confidence_beta"] == 2.0
     assert manifest["initial_design"] == "public_conservative_low_intensity"
-    assert manifest["search_space_version"] == "chemworld-task-recipe-space-0.2"
+    assert manifest["search_space_version"] == "chemworld-task-recipe-space-0.5"
 
 
 def test_safe_bo_acquisition_records_uncertainty_aware_feasibility() -> None:

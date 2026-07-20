@@ -22,6 +22,32 @@ class ScriptedChemistryAgent(BaseAgent):
         electrochemistry_enabled = "electrolyze" in allowed_operations
         partition_only = "add_phase" in allowed_operations and "heat" not in allowed_operations
         allowed_instruments = set(self.task_info.get("allowed_instruments", []))
+        reaction_diagnostic = "uvvis" if "uvvis" in allowed_instruments else "hplc"
+        if electrochemistry_enabled:
+            electrochemistry_sequence: list[dict[str, Any]] = [
+                {"operation": "add_solvent", "volume_L": 0.026, "solvent": 0},
+                {"operation": "add_reagent", "amount_mol": 0.010},
+                {
+                    "operation": "set_potential",
+                    "potential_V": 0.95,
+                    "current_mA": 52.0,
+                    "electrolyte_profile": 1,
+                },
+                {"operation": "electrolyze", "duration_s": 540.0},
+                {"operation": "measure", "instrument": "ph_meter"},
+                {"operation": "measure", "instrument": "uvvis"},
+                {
+                    "operation": "set_potential",
+                    "potential_V": 1.35,
+                    "current_mA": 92.0,
+                    "electrolyte_profile": 1,
+                },
+                {"operation": "electrolyze", "duration_s": 2100.0},
+                {"operation": "measure", "instrument": "uvvis"},
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
+            return self._sequence_action(electrochemistry_sequence, step)
         if "ph_meter" in allowed_instruments:
             equilibrium_sequence: list[dict[str, Any]] = [
                 {"operation": "add_solvent", "volume_L": 0.034, "solvent": 0},
@@ -50,17 +76,6 @@ class ScriptedChemistryAgent(BaseAgent):
                 {"operation": "measure", "instrument": "final_assay"},
             ]
             return self._sequence_action(flow_sequence, step)
-        if electrochemistry_enabled:
-            electrochemistry_sequence: list[dict[str, Any]] = [
-                {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
-                {"operation": "add_reagent", "amount_mol": 0.010},
-                {"operation": "set_potential", "potential_V": 1.35, "current_mA": 92.0},
-                {"operation": "electrolyze", "duration_s": 2100.0},
-                {"operation": "measure", "instrument": "uvvis"},
-                {"operation": "terminate"},
-                {"operation": "measure", "instrument": "final_assay"},
-            ]
-            return self._sequence_action(electrochemistry_sequence, step)
         if partition_only:
             partition_sequence: list[dict[str, Any]] = [
                 {"operation": "add_solvent", "volume_L": 0.018, "solvent": 2},
@@ -88,7 +103,7 @@ class ScriptedChemistryAgent(BaseAgent):
             {"operation": "wait", "duration_s": 900.0, "stirring_speed_rpm": 720.0},
             {"operation": "measure", "instrument": "hplc"},
             {"operation": "wait", "duration_s": 600.0, "stirring_speed_rpm": 720.0},
-            {"operation": "measure", "instrument": "uvvis"},
+            {"operation": "measure", "instrument": reaction_diagnostic},
             {"operation": "quench"},
         ]
         if purification_enabled:
@@ -115,6 +130,7 @@ class ScriptedChemistryAgent(BaseAgent):
                         "target_temperature_K": 278.15,
                         "duration_s": 1800.0,
                     },
+                    {"operation": "measure", "instrument": "hplc"},
                     {"operation": "filter_crystals"},
                     {"operation": "measure", "instrument": "hplc"},
                 ]

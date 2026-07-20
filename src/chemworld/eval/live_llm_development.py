@@ -35,6 +35,7 @@ from chemworld.eval.formal_runner import (
     private_seed_commitment,
     private_world_commitment,
 )
+from chemworld.eval.runtime_domain_affordance_audit import guarded_source_sha256
 from chemworld.tasks import get_task
 from chemworld.world.world_family import axes_for_task
 
@@ -47,17 +48,6 @@ RUNTIME_DOMAIN_AFFORDANCE_REPORT_PATH = (
 )
 RUNTIME_DOMAIN_AFFORDANCE_AUDIT_VERSION = (
     "chemworld-runtime-domain-affordance-audit-0.4"
-)
-_RUNTIME_DOMAIN_GUARDED_SOURCE_PATHS = (
-    "src/chemworld/action_codec.py",
-    "src/chemworld/agent_interface.py",
-    "src/chemworld/envs",
-    "src/chemworld/foundation",
-    "src/chemworld/operation_validator.py",
-    "src/chemworld/physchem",
-    "src/chemworld/runtime",
-    "src/chemworld/tasks.py",
-    "src/chemworld/world",
 )
 LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.11"
 LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.5"
@@ -184,19 +174,12 @@ def load_runtime_domain_affordance_binding(
     ):
         raise ValueError("runtime-domain affordance audit source commit is invalid")
     if verify_source:
-        source_match = subprocess.run(
-            [
-                "git",
-                "diff",
-                "--quiet",
-                source_commit,
-                "--",
-                *_RUNTIME_DOMAIN_GUARDED_SOURCE_PATHS,
-            ],
-            cwd=ROOT,
-            check=False,
-        )
-        if source_match.returncode != 0:
+        expected_source_digest = payload.get("guarded_source_sha256")
+        if (
+            not isinstance(expected_source_digest, str)
+            or len(expected_source_digest) != 64
+            or guarded_source_sha256(ROOT) != expected_source_digest
+        ):
             raise RuntimeError(
                 "runtime-affordance source changed after the passing audit; regenerate it"
             )
@@ -204,6 +187,9 @@ def load_runtime_domain_affordance_binding(
         "schema_version": RUNTIME_DOMAIN_AFFORDANCE_AUDIT_VERSION,
         "public_action_schema_version": PUBLIC_ACTION_SCHEMA_VERSION,
         "audit_source_commit": source_commit,
+        "audit_source_tree_dirty": payload.get("guarded_sources_match_source_commit")
+        is not True,
+        "guarded_source_sha256": str(payload.get("guarded_source_sha256", "")),
         "audit_report_sha256": file_sha256(report_path),
         "candidate_count": int(summary["candidate_count"]),
         "validator_valid_count": int(summary["validator_valid_count"]),
@@ -221,7 +207,7 @@ def _require_planned_runtime_domain_binding(
     required = {
         "required_public_action_schema_version": binding["public_action_schema_version"],
         "required_audit_schema_version": binding["schema_version"],
-        "required_audit_source_commit": binding["audit_source_commit"],
+        "required_guarded_source_sha256": binding["guarded_source_sha256"],
         "require_zero_findings": True,
     }
     if dict(expected) != required:

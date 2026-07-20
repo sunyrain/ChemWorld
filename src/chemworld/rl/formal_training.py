@@ -31,23 +31,13 @@ SAC_JOB_SUMMARY_VERSION = "chemworld-formal-sac-job-summary-0.4"
 SAC_REPORT_VERSION = "chemworld-formal-sac-development-report-0.4"
 SAC_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v048-preflight-report-0.1"
 PPO_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION = "chemworld-ppo-v049-preflight-report-0.1"
-PPO_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION = (
-    "chemworld-ppo-v0410-preflight-report-0.1"
-)
-PPO_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION = (
-    "chemworld-ppo-v0411-preflight-report-0.1"
-)
-PPO_CRYSTALLIZATION_DOMAIN_PREFLIGHT_REPORT_VERSION = (
-    "chemworld-ppo-v0412-preflight-report-0.1"
-)
+PPO_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION = "chemworld-ppo-v0410-preflight-report-0.1"
+PPO_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION = "chemworld-ppo-v0411-preflight-report-0.1"
+PPO_CRYSTALLIZATION_DOMAIN_PREFLIGHT_REPORT_VERSION = "chemworld-ppo-v0412-preflight-report-0.1"
 SAC_POST_AFFORDANCE_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v049-preflight-report-0.1"
 SAC_PUBLIC_SCHEMA_ADAPTER_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v0410-preflight-report-0.1"
-SAC_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION = (
-    "chemworld-sac-v0411-preflight-report-0.1"
-)
-SAC_CRYSTALLIZATION_DOMAIN_PREFLIGHT_REPORT_VERSION = (
-    "chemworld-sac-v0412-preflight-report-0.1"
-)
+SAC_PUBLIC_PRECONDITION_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v0411-preflight-report-0.1"
+SAC_CRYSTALLIZATION_DOMAIN_PREFLIGHT_REPORT_VERSION = "chemworld-sac-v0412-preflight-report-0.1"
 PREFLIGHT_CONTRACTS: dict[str, dict[str, dict[str, str]]] = {
     "ppo": {
         "chemworld-ppo-v048-preflight-report-0.1": {
@@ -398,8 +388,7 @@ def validate_training_plan(
                 "sac_latent_comparability_disclosed": isinstance(comparability, Mapping)
                 and comparability.get("native_hybrid_distribution") is False
                 and comparability.get("same_public_affordance_decoder_as_ppo") is True
-                and comparability.get("action_adapter_schema_version")
-                == expected_sac_adapter
+                and comparability.get("action_adapter_schema_version") == expected_sac_adapter
                 and isinstance(comparability.get("limitations"), list)
                 and len(comparability["limitations"]) >= 2,
                 "sac_current_contract_preflight_declared": _preflight_declaration_valid(
@@ -621,6 +610,8 @@ def _candidate_is_eligible(evaluation: Mapping[str, Any]) -> bool:
         and summary.get("primary_metric_missing_count") == 0
         and summary.get("runtime_domain_failure_count") == 0
         and summary.get("observation_domain_failure_count") == 0
+        and summary.get("transaction_rollback_count") == 0
+        and summary.get("constitution_failure_count") == 0
         and all(value is True for value in compatibility.values())
     )
 

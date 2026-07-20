@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from chemworld.foundation import OperationRecord, PhysicalConstitution, WorldState
+from chemworld.foundation import (
+    OperationRecord,
+    PhysicalConstitution,
+    WorldState,
+    equipment_settings,
+)
 from chemworld.foundation.constitution import CheckResult
 from chemworld.world.operations import instrument_name
 
@@ -18,8 +23,6 @@ MATERIAL_DELTA_ALLOWED_OPERATIONS = frozenset(
         "add_phase",
         "add_extractant",
         "seed_crystals",
-        "mix",
-        "settle",
         "separate_phase",
         "wash",
         "dry",
@@ -93,7 +96,7 @@ class ChemWorldOperationRecorder:
             material_check = CheckResult(
                 "material_conservation",
                 True,
-                "material delta allowed or phase-ledger conserved for operation",
+                "declared open-system material input/output operation",
                 value=0.0,
                 tolerance=self.constitution.tolerance,
             )
@@ -112,6 +115,14 @@ class ChemWorldOperationRecorder:
             "delta_temperature_K": after.temperature_K - before.temperature_K,
             "delta_volume_L": after.volume_L - before.volume_L,
         }
+        if operation == "set_potential":
+            settings = equipment_settings(after.equipment, "electrochemical_cell")
+            for source, target in (
+                ("potential_V", "configured_potential_V"),
+                ("current_mA", "configured_current_mA"),
+            ):
+                if source in settings:
+                    state_delta_summary[target] = float(settings[source])
         if operation == "electrolyze":
             process_metrics = {} if after.process is None else after.process.metrics
             for key in ELECTROCHEMICAL_SUMMARY_KEYS:

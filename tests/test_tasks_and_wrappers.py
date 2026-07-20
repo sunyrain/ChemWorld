@@ -8,6 +8,7 @@ import chemworld  # noqa: F401
 from chemworld.action_codec import ActionCodec
 from chemworld.agents.base import HistoryRecord
 from chemworld.agents.event import ScriptedChemistryAgent
+from chemworld.envs.spaces import NullableScalarBox, to_observation
 from chemworld.foundation import upsert_equipment_record
 from chemworld.operation_validator import OperationValidator
 from chemworld.runtime import TaskRuntimeProfile, make_chemworld_constitution
@@ -19,6 +20,7 @@ from chemworld.tasks import (
     list_core_tasks,
     list_tasks,
 )
+from chemworld.world.actions import canonicalize_action, vector_to_action
 from chemworld.world.operations import (
     CRYSTALLIZATION_OPERATIONS,
     DISTILLATION_OPERATIONS,
@@ -134,7 +136,7 @@ def test_core_task_cards_are_complete_release_contracts() -> None:
         task = get_task(task_id)
         contract = card["benchmark_contract"]
         assert "core" in card["suite_memberships"]
-        assert card["task_contract_version"] == "chemworld-task-contract-0.6"
+        assert card["task_contract_version"] == "chemworld-task-contract-0.9"
         assert card["task_contract_hash"] == task.contract_hash
         assert len(card["task_contract_hash"]) == 64
         assert contract["objective"] == task.objective
@@ -194,9 +196,7 @@ def test_task_specific_scoring_contracts_are_explicit() -> None:
 
     assert reaction_contract.score_family == "reaction"
     assert purification_contract.score_family == "purification"
-    assert task_score_observation(contract=reaction_contract, values=values) == (
-        reaction_score
-    )
+    assert task_score_observation(contract=reaction_contract, values=values) == (reaction_score)
     assert task_score_observation(contract=purification_contract, values=values) == (
         expected_purification
     )
@@ -264,8 +264,7 @@ def test_env_task_info_exposes_task_observation_contract() -> None:
         )
         assert reaction_contract["contract_hash"] == reaction_info["observation_contract_hash"]
         assert (
-            purification_contract["contract_hash"]
-            == purification_info["observation_contract_hash"]
+            purification_contract["contract_hash"] == purification_info["observation_contract_hash"]
         )
         assert len(purification_info["observation_contract_hash"]) == 64
     finally:
@@ -333,9 +332,14 @@ def test_env_raw_signal_uses_public_task_species_contract() -> None:
     try:
         env.reset(seed=0)
         for action in (
-            {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+            {"operation": "add_solvent", "volume_L": 0.026, "solvent": 0},
             {"operation": "add_reagent", "amount_mol": 0.010},
-            {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0},
+            {
+                "operation": "set_potential",
+                "potential_V": 1.15,
+                "current_mA": 75.0,
+                "electrolyte_profile": 1,
+            },
             {"operation": "electrolyze", "duration_s": 1800.0},
             {"operation": "terminate"},
         ):
@@ -412,6 +416,66 @@ def test_action_codec_roundtrip_vector() -> None:
     assert process_decoded["reflux_ratio"] == 2.5
 
 
+@pytest.mark.parametrize(
+    "vector",
+    [
+        np.zeros(22, dtype=float),
+        np.zeros(24, dtype=float),
+        np.full(23, np.nan, dtype=float),
+        np.full(23, np.inf, dtype=float),
+    ],
+    ids=("short", "long", "nan", "infinite"),
+)
+def test_action_codec_rejects_non_contract_vectors(vector: np.ndarray) -> None:
+    with pytest.raises(ValueError, match="finite with shape"):
+        ActionCodec().decode_vector(vector)
+
+
+def test_action_codec_rejects_nonfinite_encoded_payloads_and_choices() -> None:
+    codec = ActionCodec()
+    with pytest.raises(ValueError, match="amount_mol must be finite"):
+        codec.encode_vector({"operation": "add_reagent", "amount_mol": float("inf")})
+    with pytest.raises(ValueError, match="finite integer categorical index"):
+        codec.canonicalize(
+            {"operation": "add_solvent", "volume_L": 0.02, "solvent": float("inf")}
+        )
+
+
+def test_terminal_recipe_action_boundaries_reject_nonfinite_coordinates() -> None:
+    action = {
+        "temperature": 80.0,
+        "time": 1.0,
+        "initial_concentration": 0.5,
+        "stirring_speed": 600.0,
+        "catalyst": 1,
+        "solvent": 2,
+    }
+    with pytest.raises(ValueError, match="finite"):
+        canonicalize_action({**action, "temperature": float("nan")})
+    with pytest.raises(ValueError, match="finite"):
+        canonicalize_action({**action, "catalyst": float("inf")})
+    with pytest.raises(ValueError, match="finite"):
+        vector_to_action(np.asarray([0.0, 0.5, np.nan, 1.0, 0.0, 0.0]))
+
+    clipped = canonicalize_action({**action, "catalyst": 99, "solvent": -2})
+    assert clipped["catalyst"] == 3
+    assert clipped["solvent"] == 0
+
+
+def test_nullable_observation_space_accepts_nan_but_rejects_infinity() -> None:
+    box = NullableScalarBox(low=0.0, high=1.0, shape=(1,), dtype=np.float32)
+
+    assert box.contains(np.asarray([np.nan], dtype=np.float32))
+    assert not box.contains(np.asarray([np.inf], dtype=np.float32))
+    assert not box.contains(np.asarray([-np.inf], dtype=np.float32))
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), -0.01, 1.01, True])
+def test_observation_encoding_rejects_noncontract_values(value: object) -> None:
+    with pytest.raises(ValueError, match="observation value"):
+        to_observation({"score": value})  # type: ignore[dict-item]
+
+
 def test_action_codec_accepts_common_recipe_aliases() -> None:
     codec = ActionCodec()
     catalyst_action = codec.canonicalize(
@@ -443,9 +507,7 @@ def test_action_codec_accepts_common_recipe_aliases() -> None:
     assert named_catalyst["catalyst"] == 2
 
     with pytest.raises(ValueError, match="Unknown material choice"):
-        codec.canonicalize(
-            {"operation": "add_solvent", "volume_L": 0.02, "solvent": "unobtainium"}
-        )
+        codec.canonicalize({"operation": "add_solvent", "volume_L": 0.02, "solvent": "unobtainium"})
 
 
 def test_action_mask_is_task_aware() -> None:
@@ -501,8 +563,7 @@ def test_agent_affordances_match_masks_validator_and_task_policy() -> None:
             assert all(not entry["invalid_reasons"] for entry in agent_entries)
 
             all_entries = {
-                entry["operation"]: entry
-                for entry in base.available_actions(include_invalid=True)
+                entry["operation"]: entry for entry in base.available_actions(include_invalid=True)
             }
             assert set(all_entries) == set(OPERATION_TYPES)
             for operation, entry in all_entries.items():
@@ -513,8 +574,7 @@ def test_agent_affordances_match_masks_validator_and_task_policy() -> None:
                 assert entry["valid"] == (operation in validator_valid)
                 assert entry["invalid_reasons"] == affordance["invalid_reasons"]
                 assert not any(
-                    reason.startswith("payload_has:")
-                    or reason.startswith("payload_bounds:")
+                    reason.startswith("payload_has:") or reason.startswith("payload_bounds:")
                     for reason in entry["invalid_reasons"]
                 )
                 if operation not in task.allowed_operations:
@@ -629,9 +689,7 @@ def test_measurement_affordance_requires_a_feasible_public_instrument() -> None:
     )
 
     assert final_assay.is_valid
-    assert not post_termination_hplc.preconditions[
-        "measure_after_termination_requires_final_assay"
-    ]
+    assert not post_termination_hplc.preconditions["measure_after_termination_requires_final_assay"]
     assert validator.operation_affordance("measure", terminated).is_valid
 
     no_sample = active.replace(volume_L=0.00001)
@@ -682,6 +740,7 @@ def test_process_preconditions_are_stateful() -> None:
     try:
         _, info = env.reset(seed=0)
         assert "filter_crystals" not in info["valid_operations"]
+        assert "seed_crystals" not in info["valid_operations"]
         for action in (
             {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
             {"operation": "add_reagent", "amount_mol": 0.010},
@@ -692,15 +751,70 @@ def test_process_preconditions_are_stateful() -> None:
                 "duration_s": 1500.0,
                 "stirring_speed_rpm": 720.0,
             },
+        ):
+            _, _, _, _, info = env.step(action)
+        assert "seed_crystals" not in info["valid_operations"]
+        blocked_without_assay = env.unwrapped.operation_validator.validate(
             {"operation": "seed_crystals", "seed_mass_g": 0.006},
+            env.unwrapped._state,
+        )
+        assert not blocked_without_assay.preconditions[
+            "seed_crystals_requires_current_reaction_assay"
+        ]
+        _, _, _, _, info = env.step({"operation": "measure", "instrument": "hplc"})
+        assert "seed_crystals" in info["valid_operations"]
+        _, _, _, _, info = env.step(
+            {"operation": "seed_crystals", "seed_mass_g": 0.006}
+        )
+        assert set(info["valid_operations"]) == {
+            "seed_crystals",
+            "cool_crystallize",
+            "measure",
+        }
+        blocked_after_seed = env.unwrapped.operation_validator.validate(
+            {"operation": "wait", "duration_s": 60.0},
+            env.unwrapped._state,
+        )
+        assert not blocked_after_seed.preconditions[
+            "seeded_crystallization_requires_seed_assay_or_cooling"
+        ]
+        _, _, _, _, info = env.step(
             {
                 "operation": "cool_crystallize",
                 "target_temperature_K": 278.15,
                 "duration_s": 1200.0,
-            },
-        ):
-            _, _, _, _, info = env.step(action)
-        assert "filter_crystals" in info["valid_operations"]
+            }
+        )
+        assert set(info["valid_operations"]) == {"measure"}
+        blocked_filter_without_assay = env.unwrapped.operation_validator.validate(
+            {"operation": "filter_crystals"},
+            env.unwrapped._state,
+        )
+        assert not blocked_filter_without_assay.preconditions[
+            "filter_crystals_requires_current_slurry_assay"
+        ]
+        assert set(info["valid_operations"]) == {
+            "measure",
+        }
+        blocked_after_cooling = env.unwrapped.operation_validator.validate(
+            {"operation": "wait", "duration_s": 60.0},
+            env.unwrapped._state,
+        )
+        assert not blocked_after_cooling.preconditions[
+            "completed_crystallization_requires_assay_or_filter"
+        ]
+        _, _, _, _, info = env.step({"operation": "measure", "instrument": "hplc"})
+        assert set(info["valid_operations"]) == {
+            "filter_crystals",
+            "measure",
+        }
+        _, _, _, _, info = env.step({"operation": "filter_crystals"})
+        assert set(info["valid_operations"]) == {"measure", "terminate"}
+        blocked = env.unwrapped.operation_validator.validate(
+            {"operation": "wait", "duration_s": 60.0},
+            env.unwrapped._state,
+        )
+        assert not blocked.preconditions["isolated_crystals_require_assay_or_termination"]
     finally:
         env.close()
 
@@ -858,19 +972,27 @@ def _run_scripted_task(task_id: str) -> tuple[dict[str, np.ndarray], dict[str, o
             )
             if terminated or truncated:
                 break
-        assert not any(
-            record.info.get("constraint_flags", {}).get("precondition_failed", False)
+        invalid_records = [
+            record
             for record in history
-        )
+            if record.info.get("constraint_flags", {}).get("precondition_failed", False)
+        ]
+        assert not invalid_records, [
+            {
+                "step": record.step,
+                "action": record.action,
+                "invalid_reasons": record.info.get("invalid_reasons", []),
+                "preconditions": record.info.get("preconditions", {}),
+            }
+            for record in invalid_records
+        ]
         return assay_observation or observation, assay_info or step_info
     finally:
         env.close()
 
 
 def test_year2_process_tasks_reach_assay_with_scripted_agent() -> None:
-    crystallization_obs, crystallization_info = _run_scripted_task(
-        "reaction-to-crystallization"
-    )
+    crystallization_obs, crystallization_info = _run_scripted_task("reaction-to-crystallization")
     assert crystallization_info["leaderboard_score"] is not None
     assert float(crystallization_obs["crystal_yield"][0]) >= 0.0
     assert float(crystallization_obs["crystal_purity"][0]) >= 0.0
@@ -894,9 +1016,14 @@ def test_electrolysis_info_reports_charge_and_overpotential() -> None:
     try:
         env.reset()
         sequence = [
-            {"operation": "add_solvent", "volume_L": 0.026, "solvent": 1},
+            {"operation": "add_solvent", "volume_L": 0.026, "solvent": 0},
             {"operation": "add_reagent", "amount_mol": 0.010},
-            {"operation": "set_potential", "potential_V": 1.15, "current_mA": 75.0},
+            {
+                "operation": "set_potential",
+                "potential_V": 1.15,
+                "current_mA": 75.0,
+                "electrolyte_profile": 1,
+            },
             {"operation": "electrolyze", "duration_s": 1800.0},
         ]
         info = {}

@@ -30,6 +30,16 @@ def test_public_task_info_hides_mechanism_truth_for_all_tasks() -> None:
             assert "hidden_parameter_seed" not in info["scenario"]
             assert "initial_state_seed" not in info["scenario"]
             assert "parameter_profile" not in info["scenario"]
+            constitution_checks = info["constitution"]["checks"]
+            assert all(check["value"] is None for check in constitution_checks)
+            assert all(check["message"] == "" for check in constitution_checks)
+            assert all(
+                not any(
+                    check["name"].endswith(f":{species_id}")
+                    for species_id in hidden_species
+                )
+                for check in constitution_checks
+            )
         finally:
             env.close()
 
@@ -85,6 +95,10 @@ def test_agent_views_and_trajectory_do_not_leak_hidden_species_or_rates(
                         payload,
                         hidden_species_ids=hidden_species,
                     ) == []
+                assert all(
+                    check["value"] is None and check["message"] == ""
+                    for check in info["constitution_checks"]
+                )
                 logger.log(
                     task_info=task_info,
                     step=step,

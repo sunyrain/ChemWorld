@@ -258,8 +258,8 @@ def run_formal_preflight(
     if blockers or private is None:
         return PreflightOutcome(public_base, None, None)
 
-    assert isinstance(cohort_nonce, str)
-    assert isinstance(expected_commit, str)
+    if not isinstance(cohort_nonce, str) or not isinstance(expected_commit, str):
+        raise RuntimeError("preflight blockers failed to retain issuance identity errors")
     run_id = canonical_sha256(
         {
             "schema_version": PREFLIGHT_REPORT_VERSION,
@@ -412,9 +412,11 @@ def _audit_json_binding(
 ) -> tuple[bool, dict[str, Any] | None]:
     if not _audit_file_binding(raw, root=root, label=label, artifacts=artifacts):
         return False, None
-    assert isinstance(raw, Mapping)
+    if not isinstance(raw, Mapping):
+        return False, None
     path = _safe_repo_path(root, raw.get("path"))
-    assert path is not None
+    if path is None:
+        return False, None
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):

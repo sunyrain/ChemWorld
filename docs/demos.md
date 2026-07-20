@@ -130,6 +130,24 @@ debug 信息塞进同一页。
 
 它们不是最高分策略，而是可验证流程模板：每份都包含 planning、execution、spectra、metrics 和 reflection。
 
+## 浏览六个研究任务 Demo
+
+`notebooks/task_demos/` 一一覆盖当前六个 serious research tasks。与上面的流程教学不同，这组 Demo
+把操作看作干预、把测量看作公开反馈，重点展示同一干预在不同隐藏规律下产生的可观测差异。
+
+| Notebook | Task | World-model 观察重点 |
+| --- | --- | --- |
+| `01_partition_discovery.ipynb` | `partition-discovery` | 分配构成律与相条件响应 |
+| `02_reaction_crystallization.ipynb` | `reaction-to-crystallization` | 上游动力学到下游结晶的耦合传播 |
+| `03_reaction_distillation.ipynb` | `reaction-to-distillation` | 隐藏反应通道与馏分反馈 |
+| `04_flow_reaction.ipynb` | `flow-reaction-optimization` | 流量、停留时间、温度与速率律 |
+| `05_electrochemical_conversion.ipynb` | `electrochemical-conversion` | 诊断反馈与电化学构成律 |
+| `06_equilibrium_characterization.ipynb` | `equilibrium-characterization` | 浓度探针与非理想平衡响应 |
+
+每份 notebook 都读取公开 task card，使用任务自身的 recipe adapter 生成三组候选干预，展示完整测量
+轨迹，并执行一次 World A/World B 配对控制。配对条件由教学代码构造；Agent-facing 数据不会包含
+隐藏机理名称、参数或 hidden state。这些 notebook 展示环境能力，不实现或要求特定训练算法。
+
 ## 完成十二天教程
 
 课程应先让学生理解 `reset`、`step`、`info` 和 `constraint_flags`，再逐步引入

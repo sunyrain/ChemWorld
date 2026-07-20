@@ -59,6 +59,14 @@ def test_terminal_and_final_assay_boundaries_fail_closed(
     assert terminal["all_process_operations_rejected"] is True
     assert terminal["measurement_remains_available_for_terminal_assay"] is True
     assert all(terminal["operations"].values())
+    rollback = report["rolled_back_final_assay_boundary"]
+    assert rollback["passed"] is True
+    assert all(rollback["checks"].values())
+    assert rollback["transaction_status"] == "rolled_back"
+    assert rollback["rollback_reason"] == "constitution_failed"
+    assert rollback["reward"] == 0.0
+    assert rollback["measurement_cost"] == 0.0
+    assert rollback["sample_consumed"] == 0.0
 
 
 def test_numeric_probe_rejects_negative_and_zero_effect_payloads(
@@ -67,6 +75,40 @@ def test_numeric_probe_rejects_negative_and_zero_effect_payloads(
     assert report["negative_value_acceptances"] == []
     assert report["zero_effect_acceptances"] == []
     assert report["defect_inventory"] == []
+
+
+def test_malformed_action_boundary_is_atomic_and_non_crashing(
+    report: dict[str, object],
+) -> None:
+    boundary = report["malformed_action_boundary"]
+    assert boundary["case_count"] == 8
+    assert boundary["passed"] is True
+    assert set(boundary["cases"]) == {
+        "infinite_operation",
+        "empty_operation",
+        "fractional_operation",
+        "infinite_material_choice",
+        "infinite_phase_choice",
+        "none_action",
+        "list_action",
+        "scalar_action",
+    }
+    assert all(case["passed"] for case in boundary["cases"].values())
+
+
+def test_observation_integrity_boundary_rolls_back_state_and_rng(
+    report: dict[str, object],
+) -> None:
+    boundary = report["observation_integrity_boundary"]
+    assert boundary["case_count"] == 3
+    assert boundary["infinity_rejected_by_observation_space"] is True
+    assert boundary["passed"] is True
+    assert set(boundary["cases"]) == {
+        "nonfinite_value",
+        "private_payload",
+        "nonfinite_uncertainty",
+    }
+    assert all(case["passed"] for case in boundary["cases"].values())
 
 
 def test_report_is_complete_and_tamper_evident(

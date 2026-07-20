@@ -23,9 +23,8 @@ from chemworld.rl.hybrid_actions import (
 from chemworld.rl.rewards import (
     REWARD_COMPONENTS,
     REWARD_SCHEMA_VERSION,
-    core_operation_requirements,
+    PublicBehaviorTracker,
     reward_contract,
-    satisfied_requirement_count,
 )
 from chemworld.world.operations import OPERATION_TYPES
 from chemworld.world.scoring import safety_cost_from_flags
@@ -399,9 +398,7 @@ class ContinuousEventActionWrapper(gym.ActionWrapper[Any, Any, Any], RecordConst
         )
 
 
-class ConditionalHybridActionWrapper(
-    gym.ActionWrapper[Any, Any, Any], RecordConstructorArgs
-):
+class ConditionalHybridActionWrapper(gym.ActionWrapper[Any, Any, Any], RecordConstructorArgs):
     """SB3 adapter for the categorical, operation-conditional action contract.
 
     The exposed Box is a framework compatibility latent, not the semantic
@@ -498,8 +495,12 @@ class RLControlObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordC
         base_low = np.asarray(env.observation_space.low, dtype=np.float32).reshape(-1)
         base_high = np.asarray(env.observation_space.high, dtype=np.float32).reshape(-1)
         base = _base_env(env)
-        self._core_requirements = core_operation_requirements(base.allowed_operations)
-        self._executed_operations: set[str] = set()
+        self._task_id = getattr(base, "task_id", None)
+        self._behavior = PublicBehaviorTracker(
+            base.allowed_operations,
+            task_id=self._task_id,
+        )
+        self._core_requirements = self._behavior.requirements
         extra_count = len(self._core_requirements) + len(OPERATION_TYPES) + 3
         extra_low = np.zeros(extra_count, dtype=np.float32)
         extra_high = np.ones(extra_count, dtype=np.float32)
@@ -510,7 +511,7 @@ class RLControlObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordC
         )
 
     def reset(self, **kwargs: Any) -> tuple[np.ndarray, dict[str, Any]]:
-        self._executed_operations = set()
+        self._behavior.reset()
         observation, info = self.env.reset(**kwargs)
         payload = dict(info)
         payload["rl_core_progress"] = self._progress_payload()
@@ -518,14 +519,11 @@ class RLControlObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordC
 
     def step(self, action: Any) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         observation, reward, terminated, truncated, info = self.env.step(action)
-        flags = dict(info.get("constraint_flags", {}))
-        operation = str(info.get("operation_type", ""))
-        if not flags.get("precondition_failed", False) and operation:
-            self._executed_operations.add(operation)
+        self._behavior.observe(info)
         if bool(info.get("experiment_ended", False)):
             # Campaign mode has already reset the physical experiment in the
             # returned observation, so its public procedural ledger resets too.
-            self._executed_operations = set()
+            self._behavior.reset()
         payload = dict(info)
         payload["rl_core_progress"] = self._progress_payload()
         return self.observation(observation), float(reward), terminated, truncated, payload
@@ -546,30 +544,22 @@ class RLControlObservationWrapper(gym.ObservationWrapper[Any, Any, Any], RecordC
             dtype=np.float32,
         )
         core_progress = np.asarray(
-            [
-                float(bool(set(group).intersection(self._executed_operations)))
-                for group in self._core_requirements
-            ],
+            [float(value) for value in self._behavior.satisfied],
             dtype=np.float32,
         )
         affordances = np.asarray(action_mask(self.env), dtype=np.float32)
         # Keep affordances immediately before the final three campaign fields;
         # the conditional PPO policy reads that stable trailing layout.
-        combined = np.concatenate([vector, core_progress, affordances, progress]).astype(
-            np.float32
-        )
+        combined = np.concatenate([vector, core_progress, affordances, progress]).astype(np.float32)
         if not self.observation_space.contains(combined):
             raise ValueError("RL control observation escaped its declared finite bounds")
         return combined
 
     def _progress_payload(self) -> dict[str, Any]:
-        satisfied = [
-            bool(set(group).intersection(self._executed_operations))
-            for group in self._core_requirements
-        ]
         return {
             "requirements": [list(group) for group in self._core_requirements],
-            "satisfied": satisfied,
+            "satisfied": self._behavior.satisfied,
+            "behavior_tokens": sorted(self._behavior.tokens),
             "public_operation_history_only": True,
         }
 
@@ -590,16 +580,20 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
         super().__init__(env)
         self._previous_valid_operations: set[str] = set()
         base = _base_env(env)
+        self._task_id = getattr(base, "task_id", None)
         self._allowed_operations = tuple(sorted(base.allowed_operations))
-        self._core_requirements = core_operation_requirements(self._allowed_operations)
-        self._executed_operations: set[str] = set()
+        self._behavior = PublicBehaviorTracker(
+            self._allowed_operations,
+            task_id=self._task_id,
+        )
+        self._core_requirements = self._behavior.requirements
         self._satisfied_requirement_count = 0
         self._diagnostics = self._empty_diagnostics()
 
     def reset(self, **kwargs: Any) -> tuple[Any, dict[str, Any]]:
         observation, info = self.env.reset(**kwargs)
         self._previous_valid_operations = self._valid_operations()
-        self._executed_operations = set()
+        self._behavior.reset()
         self._satisfied_requirement_count = 0
         self._diagnostics["episode_count"] += 1
         return observation, info
@@ -607,7 +601,10 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
     def step(self, action: Any) -> tuple[Any, float, bool, bool, dict[str, Any]]:
         observation, raw_reward, terminated, truncated, info = self.env.step(action)
         flags = dict(info.get("constraint_flags", {}))
-        invalid = bool(flags.get("precondition_failed", False))
+        invalid_precondition = bool(flags.get("precondition_failed", False))
+        transaction_rolled_back = info.get("transaction_status") == "rolled_back"
+        constitution_failed = bool(flags.get("constitution_failed", False))
+        invalid = invalid_precondition or transaction_rolled_back or constitution_failed
         current_valid = self._valid_operations()
         newly_unlocked = len(current_valid.difference(self._previous_valid_operations))
         operation = str(info.get("operation_type", ""))
@@ -617,43 +614,45 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
         # the terminal measurement step.
         if experiment_ended:
             newly_unlocked = 0
-        if not invalid and operation:
-            self._executed_operations.add(operation)
-        satisfied_count = satisfied_requirement_count(
-            self._core_requirements, self._executed_operations
-        )
+        newly_satisfied_tokens = self._behavior.observe(info)
+        satisfied_count = self._behavior.satisfied_count
         newly_satisfied = satisfied_count - self._satisfied_requirement_count
-        behavior_complete = bool(self._core_requirements) and (
-            satisfied_count == len(self._core_requirements)
-        )
+        behavior_complete = self._behavior.complete
         newly_behavior_complete = behavior_complete and (
             self._satisfied_requirement_count < len(self._core_requirements)
         )
         quick_close = experiment_ended and not behavior_complete
         shaped_reward = float(raw_reward)
-        if invalid:
+        if invalid_precondition:
             shaped_reward += REWARD_COMPONENTS["invalid_precondition"]
+        elif transaction_rolled_back:
+            shaped_reward += REWARD_COMPONENTS["transaction_rollback"]
         elif operation not in {"measure", "terminate"}:
             shaped_reward += REWARD_COMPONENTS["valid_nonterminal_operation"]
         shaped_reward += REWARD_COMPONENTS["newly_unlocked_operation"] * newly_unlocked
-        shaped_reward += (
-            REWARD_COMPONENTS["newly_satisfied_core_requirement"] * newly_satisfied
-        )
+        shaped_reward += REWARD_COMPONENTS["newly_satisfied_core_requirement"] * newly_satisfied
         if newly_behavior_complete:
             shaped_reward += REWARD_COMPONENTS["behavioral_core_completion"]
+        if experiment_ended and behavior_complete:
+            shaped_reward += REWARD_COMPONENTS["experiment_ended"]
         if quick_close:
             shaped_reward += REWARD_COMPONENTS["quick_close_incomplete"]
         if bool(flags.get("unsafe_by_task_limit", False)):
-            shaped_reward -= 0.10
+            shaped_reward += REWARD_COMPONENTS["unsafe_step"]
         if bool(flags.get("high_cost", False)):
-            shaped_reward -= 0.05
+            shaped_reward += REWARD_COMPONENTS["high_cost_step"]
 
         self._previous_valid_operations = current_valid
         self._satisfied_requirement_count = satisfied_count
         self._diagnostics["step_count"] += 1
         self._diagnostics["invalid_action_count"] += int(invalid)
+        self._diagnostics["transaction_rollback_count"] += int(transaction_rolled_back)
+        self._diagnostics["constitution_failure_count"] += int(constitution_failed)
         self._diagnostics["runtime_domain_failure_count"] += int(
             info.get("preconditions", {}).get("runtime_domain_valid") is False
+        )
+        self._diagnostics["observation_domain_failure_count"] += int(
+            info.get("preconditions", {}).get("observation_domain_valid") is False
         )
         self._diagnostics["measurement_count"] += int(not invalid and operation == "measure")
         self._diagnostics["completed_experiment_count"] += int(experiment_ended)
@@ -662,11 +661,9 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
         )
         self._diagnostics["quick_close_count"] += int(quick_close)
         self._diagnostics["core_requirement_satisfied_count"] += newly_satisfied
-        if not invalid and operation in {
-            candidate for group in self._core_requirements for candidate in group
-        }:
+        for token in newly_satisfied_tokens:
             core_counts = self._diagnostics["core_operation_counts"]
-            core_counts[operation] = int(core_counts.get(operation, 0)) + 1
+            core_counts[token] = int(core_counts.get(token, 0)) + 1
         self._diagnostics["newly_unlocked_operation_count"] += newly_unlocked
         self._diagnostics["unsafe_step_count"] += int(
             bool(flags.get("unsafe_by_task_limit", False))
@@ -680,26 +677,25 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
             "raw_reward": float(raw_reward),
             "shaped_reward": shaped_reward,
             "invalid_action": invalid,
+            "invalid_precondition": invalid_precondition,
+            "transaction_rolled_back": transaction_rolled_back,
+            "constitution_failed": constitution_failed,
             "newly_unlocked_operations": newly_unlocked,
             "newly_satisfied_core_requirements": newly_satisfied,
             "core_operation_requirements": [list(group) for group in self._core_requirements],
-            "executed_core_operations": sorted(
-                self._executed_operations.intersection(
-                    {candidate for group in self._core_requirements for candidate in group}
-                )
-            ),
+            "executed_core_operations": sorted(self._behavior.tokens),
             "behavior_complete": behavior_complete,
             "newly_behavior_complete": newly_behavior_complete,
             "quick_close_incomplete": quick_close,
             "experiment_ended": experiment_ended,
         }
         if experiment_ended:
-            self._executed_operations = set()
+            self._behavior.reset()
             self._satisfied_requirement_count = 0
         return observation, shaped_reward, terminated, truncated, payload
 
     def reward_contract(self) -> dict[str, Any]:
-        return reward_contract(self._allowed_operations)
+        return reward_contract(self._allowed_operations, task_id=self._task_id)
 
     def training_diagnostics(self) -> dict[str, Any]:
         payload = dict(self._diagnostics)
@@ -723,7 +719,10 @@ class RLTrainingRewardWrapper(gym.Wrapper[Any, Any, Any, Any], RecordConstructor
             "step_count": 0,
             "episode_count": 0,
             "invalid_action_count": 0,
+            "transaction_rollback_count": 0,
+            "constitution_failure_count": 0,
             "runtime_domain_failure_count": 0,
+            "observation_domain_failure_count": 0,
             "measurement_count": 0,
             "completed_experiment_count": 0,
             "behavior_complete_experiment_count": 0,

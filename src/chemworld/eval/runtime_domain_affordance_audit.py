@@ -15,7 +15,8 @@ import json
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any
+from pathlib import Path
+from typing import Any, cast
 
 import gymnasium as gym
 import numpy as np
@@ -29,6 +30,44 @@ from chemworld.data.logging import to_builtin
 from chemworld.tasks import SERIOUS_TASK_IDS
 
 AUDIT_SCHEMA_VERSION = "chemworld-runtime-domain-affordance-audit-0.4"
+GUARDED_SOURCE_PATHS = (
+    "src/chemworld/action_codec.py",
+    "src/chemworld/agent_interface.py",
+    "src/chemworld/envs",
+    "src/chemworld/foundation",
+    "src/chemworld/operation_validator.py",
+    "src/chemworld/physchem",
+    "src/chemworld/runtime",
+    "src/chemworld/tasks.py",
+    "src/chemworld/world",
+)
+
+
+def guarded_source_manifest(repository_root: str | Path) -> dict[str, str]:
+    """Hash the executable Python sources covered by the affordance audit."""
+
+    root = Path(repository_root).resolve()
+    files: set[Path] = set()
+    for relative in GUARDED_SOURCE_PATHS:
+        target = root / relative
+        if target.is_file():
+            files.add(target)
+        elif target.is_dir():
+            files.update(
+                path
+                for path in target.rglob("*.py")
+                if "__pycache__" not in path.parts
+            )
+    return {
+        path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in sorted(files)
+    }
+
+
+def guarded_source_sha256(repository_root: str | Path) -> str:
+    manifest = guarded_source_manifest(repository_root)
+    encoded = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -111,8 +150,12 @@ def _reachable_states(
         episode_mode_override="single_experiment",
     )
     env.reset(seed=seed)
-    base = env.unwrapped
-    vector = np.full(task_recipe_dimension(base.task_info()), 0.5, dtype=float)
+    base = cast(Any, env.unwrapped)
+    vector = np.full(
+        (task_recipe_dimension(base.task_info()),),
+        np.float64(0.5),
+        dtype=np.float64,
+    )
     recipe = task_recipe_from_unit_vector(base.task_info(), vector)
     states: list[ReachableState] = [ReachableState(0, base._state)]
     failures: list[dict[str, Any]] = []
@@ -402,5 +445,8 @@ def audit_runtime_domain_affordances(
 
 __all__ = [
     "AUDIT_SCHEMA_VERSION",
+    "GUARDED_SOURCE_PATHS",
     "audit_runtime_domain_affordances",
+    "guarded_source_manifest",
+    "guarded_source_sha256",
 ]

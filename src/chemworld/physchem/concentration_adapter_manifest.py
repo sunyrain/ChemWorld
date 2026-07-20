@@ -96,7 +96,6 @@ class VacuumConcentrationProvider:
         if violations:
             return _failed_result("; ".join(violations), self.model_contract.provenance)
         request = inputs["request"]
-        assert isinstance(request, VacuumConcentrationRequest)
         try:
             result = simulate_vacuum_concentration(request)
         except (RuntimeError, ValueError) as error:

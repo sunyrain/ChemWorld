@@ -16,14 +16,14 @@
     ]
   },
   "benchmark_claim_allowed": false,
-  "contract_graph_sha256": "a5f18b6b504c98d6e8dafaf2eb4a305aeeede316f9f6849e4950d933dc6f54d7",
+  "contract_graph_sha256": "fedf4ccd8e6ee5b33634c580a1f9fa2591306ad15e951ebe00052d2ff8b79a9d",
   "contract_identity": {
     "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
     "evaluation_contract_version": "chemworld-layered-evaluation-0.3",
     "method_resource_ledger_version": "chemworld-method-resource-ledger-0.1",
     "result_schema_version": "chemworld-evaluation-result-0.3",
     "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-    "task_contract_version": "chemworld-task-contract-0.6",
+    "task_contract_version": "chemworld-task-contract-0.9",
     "world_law_id": "chemworld-physical-chemistry-v0.4"
   },
   "controls": {
@@ -86,21 +86,20 @@
     }
   },
   "protocol_id": "chemworld-v0.5-contract-coherence-0.1",
-  "protocol_sha256": "a1c79e7ff78e2018080d420b574db0bbd5a2fdab36bd17e514c3668b55836d08",
+  "protocol_sha256": "326e4d360c9dc0c8a4ecf1966f054537863d46d5e43529b21af7c368d92d2079",
   "remaining_release_gates": [
     "freeze the portable backend semantic identity",
     "freeze formal protocol 0.4 from this graph",
     "register and freeze all evaluated method adapters"
   ],
   "schema_version": "chemworld-contract-coherence-report-0.1",
-  "source_commit": "083ba9689afd530d7e454be2aa4ee4cf8f6906d5",
+  "source_commit": "4c9ae675d3444134f25301fb28eb0e304375c658",
   "source_tree_dirty": true,
   "status": "contract_graph_coherent_formal_protocol_pending",
   "task_graph": {
     "electrochemical-conversion": {
       "allowed_instruments": [
-        "hplc",
-        "gc",
+        "ph_meter",
         "uvvis",
         "final_assay"
       ],
@@ -161,9 +160,10 @@
           ],
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
+            "aqueous_acid_base_ph_observation",
             "beer_lambert_uvvis",
             "chemworld_validated_synthetic_instruments_v1",
-            "chromatography_retention_plate"
+            "potentiometric_ph_public_reference"
           ],
           "operation": "measure",
           "service_id": "instrument_cost"
@@ -189,7 +189,7 @@
         }
       ],
       "primary_direction": "maximize",
-      "primary_metric": "electrochemical_selectivity",
+      "primary_metric": "score",
       "process_cost_limit": 0.13271164238452915,
       "providers": {
         "aqueous_acid_base_ph_observation": {
@@ -328,44 +328,6 @@
             "packet contains no hidden identity, private seed, provider path, or model id"
           ]
         },
-        "chromatography_retention_plate": {
-          "diagnostic_fields": [
-            "resolution",
-            "plate_count"
-          ],
-          "failure_policy": "raise a typed failure or trigger transactional rollback",
-          "input_fields": [
-            "public_species_amounts",
-            "method",
-            "flow_rate"
-          ],
-          "intended_operations": [
-            "measure"
-          ],
-          "maturity": "reference_validated",
-          "model_id": "chromatography_retention_plate",
-          "module_id": "spectroscopy_instruments",
-          "output_fields": [
-            "retention_times",
-            "peak_areas",
-            "chromatogram"
-          ],
-          "provenance": [
-            "chromatography-retention-plate-slice"
-          ],
-          "provider_path": "chemworld.runtime.observation_services.ChemWorldObservationKernel.observe",
-          "role": "runtime",
-          "runtime_reachable": true,
-          "units": {
-            "flow_rate": "mL/min",
-            "peak_areas": "a.u.",
-            "retention_times": "min"
-          },
-          "validity_checks": [
-            "typed input schema",
-            "declared operating-domain bounds"
-          ]
-        },
         "diffusion_layer_limiting_current_v1": {
           "diagnostic_fields": [
             "charge_balance_residual_C",
@@ -446,6 +408,44 @@
             "declared operating-domain bounds"
           ]
         },
+        "potentiometric_ph_public_reference": {
+          "diagnostic_fields": [
+            "instrument_id",
+            "calibration_metadata"
+          ],
+          "failure_policy": "raise a typed failure or trigger transactional rollback",
+          "input_fields": [
+            "pH",
+            "instrument_noise",
+            "measurement_seed"
+          ],
+          "intended_operations": [
+            "measure"
+          ],
+          "maturity": "reference_validated",
+          "model_id": "potentiometric_ph_public_reference",
+          "module_id": "spectroscopy_instruments",
+          "output_fields": [
+            "raw_signal",
+            "processed_pH",
+            "uncertainty"
+          ],
+          "provenance": [
+            "ph-meter-public-signal"
+          ],
+          "provider_path": "chemworld.world.spectra.ph_meter_signal",
+          "role": "runtime",
+          "runtime_reachable": true,
+          "units": {
+            "instrument_noise": "pH",
+            "pH": "1",
+            "uncertainty": "pH"
+          },
+          "validity_checks": [
+            "typed input schema",
+            "declared operating-domain bounds"
+          ]
+        },
         "randles_double_layer_transient_v1": {
           "diagnostic_fields": [
             "time_constant_s",
@@ -491,8 +491,8 @@
       "risk_limit": 0.19632664322853094,
       "role": "exploratory",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "9f86e8550be9f8de98f4152104ef981c075697bf8cf378f040f5af4593235d09",
-      "termination_policy": "budget",
+      "task_contract_hash": "9cc0c792e171737c5ffd5dc03772dcff724a19ae5c504b7d573257eadfa89d63",
+      "termination_policy": "budget-with-workflow-gated-final-assay",
       "world_axes": [
         "interpolation",
         "extrapolation",
@@ -904,7 +904,7 @@
       "risk_limit": 0.1631310492753983,
       "role": "exploratory",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "64393d1da00e28101f71246ef13c1b69e03b0b213542e97afcb1add8f52eaa62",
+      "task_contract_hash": "046067c1c75a57032b3b4307f386b23c706507178856ee20cffa70478cd0e42a",
       "termination_policy": "budget",
       "world_axes": [
         "interpolation",
@@ -1241,7 +1241,7 @@
       "risk_limit": 0.32665647864341746,
       "role": "formal_core",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "aa47c74db1753f062a3e5f59208db8278c25db778390607892e20eaaeb30cdc9",
+      "task_contract_hash": "834207984ba38bfab373c400fc715d63908100db3ca9549185daf4fb5aca5a4f",
       "termination_policy": "budget",
       "world_axes": [
         "interpolation",
@@ -1565,7 +1565,7 @@
       "risk_limit": 0.21225822269916542,
       "role": "formal_core",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "ce378e7bc5e725ed266db2bb639194c05f5f615ba0795b158c3c976cc787117e",
+      "task_contract_hash": "8f5e648c9c4ad3138391014a536dc9df3008b99152c70da0f2a173914ec0d37c",
       "termination_policy": "budget",
       "world_axes": [
         "interpolation",
@@ -1577,8 +1577,6 @@
     "reaction-to-crystallization": {
       "allowed_instruments": [
         "hplc",
-        "gc",
-        "uvvis",
         "final_assay"
       ],
       "budget": 72,
@@ -1675,7 +1673,6 @@
           ],
           "kernel_id": "chemworld.operation.measure",
           "model_ids": [
-            "beer_lambert_uvvis",
             "chemworld_validated_synthetic_instruments_v1",
             "chromatography_retention_plate"
           ],
@@ -1744,46 +1741,9 @@
         }
       ],
       "primary_direction": "maximize",
-      "primary_metric": "crystal_yield",
+      "primary_metric": "score",
       "process_cost_limit": 0.6453835582733157,
       "providers": {
-        "beer_lambert_uvvis": {
-          "diagnostic_fields": [
-            "peak_count",
-            "spectrum_model_id"
-          ],
-          "failure_policy": "raise a typed failure or trigger transactional rollback",
-          "input_fields": [
-            "public_species_amounts",
-            "wavelength_nm",
-            "path_length_cm"
-          ],
-          "intended_operations": [
-            "measure"
-          ],
-          "maturity": "reference_validated",
-          "model_id": "beer_lambert_uvvis",
-          "module_id": "spectroscopy_instruments",
-          "output_fields": [
-            "absorbance",
-            "spectrum"
-          ],
-          "provenance": [
-            "beer-lambert-public-slice"
-          ],
-          "provider_path": "chemworld.world.spectra.uvvis_spectrum",
-          "role": "runtime",
-          "runtime_reachable": true,
-          "units": {
-            "absorbance": "1",
-            "path_length_cm": "cm",
-            "wavelength_nm": "nm"
-          },
-          "validity_checks": [
-            "typed input schema",
-            "declared operating-domain bounds"
-          ]
-        },
         "chemworld_validated_synthetic_instruments_v1": {
           "diagnostic_fields": [
             "instrument_id",
@@ -1895,7 +1855,7 @@
             "cooling_rate_K_s",
             "warnings"
           ],
-          "failure_policy": "fail closed without a runtime output for invalid feed or seed, excessive cooling rate, absent population or transfer, solver non-convergence, or component/particle ledger failure",
+          "failure_policy": "fail closed without a runtime output for invalid feed or seed, excessive cooling rate, solver non-convergence, or component/particle ledger failure; absent population or transfer fail only when required by execution_spec",
           "input_fields": [
             "case",
             "time_steps",
@@ -1931,7 +1891,7 @@
             "cooling rate remains inside the declared linear-ramp domain",
             "temperature history is monotonic and reaches the requested endpoint",
             "component and crystal-size-moment ledgers close within tolerance",
-            "growth-cap solver converges and a nonzero solution-to-solid transfer occurs"
+            "growth-cap solver converges; population and transfer requirements follow the supplied execution policy"
           ]
         },
         "dynamic_batch_heat_release_jacket_sampling": {
@@ -2028,8 +1988,8 @@
       "risk_limit": 0.257127845287323,
       "role": "formal_core",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "f15de7356ab11588028bb0add31b3461e9b90bf273de6dcdb4e123ce6b2f65ac",
-      "termination_policy": "budget",
+      "task_contract_hash": "756ca669f81a27290cd72e25c05cf9ed1f7cae0db6b299f1332d8a907b642e8f",
+      "termination_policy": "budget-with-workflow-gated-final-assay",
       "world_axes": [
         "interpolation",
         "extrapolation",
@@ -2502,7 +2462,7 @@
       "risk_limit": 0.3852870047092439,
       "role": "formal_core",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "939b171d164139699d94c78250a937ab637be201f23bd62fddc47a864becaba7",
+      "task_contract_hash": "d19adb180200831acca5bdbb6e05a6a9de1760b494eb03f6be5a43162c6b9109",
       "termination_policy": "budget",
       "world_axes": [
         "interpolation",
