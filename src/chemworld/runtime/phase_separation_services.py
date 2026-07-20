@@ -122,6 +122,9 @@ class ChemWorldPhaseSeparationServices:
         )
         organic = phase_ledger.setdefault("organic", empty_phase(0.015))
         aqueous = phase_ledger["aqueous"]
+        reactor_liquid = phase_ledger.pop("reactor_liquid", None)
+        if reactor_liquid is not None:
+            aqueous["volume_L"] += float(reactor_liquid.get("volume_L", 0.0))
         p_total = self.phase_ledgers.phase_product_amount(state)
         impurity_total = self.phase_ledgers.phase_impurity_amount(state)
         extractor_settings = equipment_settings(state.equipment, "liquid_liquid_extractor")
@@ -150,7 +153,6 @@ class ChemWorldPhaseSeparationServices:
         aqueous[PHASE_PRODUCT_AMOUNT_KEY] = split["aqueous_product_mol"]
         organic["impurity_mol"] = split["organic_impurity_mol"]
         aqueous["impurity_mol"] = split["aqueous_impurity_mol"]
-        phase_ledger.pop("reactor_liquid", None)
         equipment = upsert_equipment_record(
             state.equipment,
             equipment_id="phase_mixer",

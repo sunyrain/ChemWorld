@@ -134,24 +134,31 @@ class ChemWorldPhaseLedgerServices:
                 metadata={},
             )
 
-        if has_split_phases:
+        if has_split_phases and "reactor_liquid" not in phases:
             carrier_phase = "aqueous" if "aqueous" in phases else next(iter(phases))
-            carrier = phases[carrier_phase]
-            species_amounts = carrier.species_amounts_mol.copy()
-            split_species = self.product_candidate_species() | self.impurity_candidate_species()
-            for species_id, amount in state.species_amounts.items():
-                if species_id not in split_species:
-                    species_amounts[species_id] = float(amount)
-            phases[carrier_phase] = PhaseRecord(
-                phase_id=carrier.phase_id,
-                vessel_id=carrier.vessel_id,
-                phase_type=carrier.phase_type,
-                volume_L=carrier.volume_L,
-                species_amounts_mol=species_amounts,
-                settled=carrier.settled,
-                selected=carrier.selected,
-                metadata=self._phase_metadata_without_primary_state(carrier.metadata),
+            split_species = (
+                self.product_candidate_species()
+                | self.partition_impurity_candidate_species()
             )
+            for species_id, amount in state.species_amounts.items():
+                if species_id in split_species:
+                    continue
+                destination = self.declared_phase_for_species(species_id)
+                if destination not in phases:
+                    destination = carrier_phase
+                phase = phases[destination]
+                species_amounts = phase.species_amounts_mol.copy()
+                species_amounts[species_id] = float(amount)
+                phases[destination] = PhaseRecord(
+                    phase_id=phase.phase_id,
+                    vessel_id=phase.vessel_id,
+                    phase_type=phase.phase_type,
+                    volume_L=phase.volume_L,
+                    species_amounts_mol=species_amounts,
+                    settled=phase.settled,
+                    selected=phase.selected,
+                    metadata=self._phase_metadata_without_primary_state(phase.metadata),
+                )
 
         return PhaseLedger(phases)
 
@@ -268,6 +275,32 @@ class ChemWorldPhaseLedgerServices:
                 candidates.update(self._phase_suffix_family(alias_species_id))
         return candidates
 
+    def partition_impurity_candidate_species(self) -> set[str]:
+        """Return only impurity identities that represent one partition family.
+
+        The broader impurity role also contains chemically distinct degradation
+        and coupling products.  Collapsing those species into the aqueous/organic
+        byproduct pair changes elemental inventory during a closed mixing step.
+        """
+
+        candidates: set[str] = set()
+        for alias in ("byproduct_organic", "byproduct_aqueous"):
+            species_id = self._species_with_alias(alias)
+            if species_id is not None:
+                candidates.update(self._phase_suffix_family(species_id))
+        if candidates:
+            return candidates
+        for species_id in self.species_view.byproduct_species:
+            if species_id.endswith(("_org", "_aq")):
+                candidates.update(self._phase_suffix_family(species_id))
+        return candidates or self.impurity_candidate_species()
+
+    def declared_phase_for_species(self, species_id: str) -> str | None:
+        for species in self.species_view.mechanism.network.species:
+            if species.species_id == species_id:
+                return str(species.phase)
+        return None
+
     def product_species_for_phase(self, phase_name: str, state: WorldState) -> str:
         if phase_name == "organic":
             return (
@@ -306,7 +339,7 @@ class ChemWorldPhaseLedgerServices:
     def phase_impurity_amount(self, state: WorldState) -> float:
         return sum(
             float(state.species_amounts.get(species_id, 0.0))
-            for species_id in self.impurity_candidate_species()
+            for species_id in self.partition_impurity_candidate_species()
         )
 
     def _phase_record_to_entry(self, phase: PhaseRecord) -> dict[str, float]:
@@ -316,7 +349,7 @@ class ChemWorldPhaseLedgerServices:
         )
         impurity_amount = sum(
             float(phase.species_amounts_mol.get(species_id, 0.0))
-            for species_id in self.impurity_candidate_species()
+            for species_id in self.partition_impurity_candidate_species()
         )
         return {
             "volume_L": float(phase.volume_L),

@@ -88,6 +88,56 @@ def _track_call(
     monkeypatch.setattr(separation_services, name, tracked)
 
 
+def test_phase_contact_preserves_species_and_control_volume_inventory() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=17)
+    env.reset(seed=17)
+    try:
+        actions = _reaction_and_contact_actions()
+        for action in actions[:6]:
+            _step_committed(env, action)
+
+        before_contact = _runtime(env)._state
+        expected_amounts = before_contact.species_amounts.copy()
+        expected_volume = before_contact.volume_L + 0.012 + 0.018
+
+        for action in actions[6:9]:
+            _, _, _, _, info = env.step(action)
+            assert info["transaction_status"] == "committed", (action, info)
+            assert not info["constraint_flags"]["constitution_failed"], (action, info)
+
+        after_mix = _runtime(env)._state
+        for species_id in ("A", "D", "E"):
+            assert after_mix.species_amounts[species_id] == pytest.approx(
+                expected_amounts[species_id],
+                abs=1.0e-12,
+            )
+        assert after_mix.species_amounts["P_aq"] + after_mix.species_amounts[
+            "P_org"
+        ] == pytest.approx(
+            expected_amounts["P_aq"] + expected_amounts["P_org"],
+            abs=1.0e-12,
+        )
+        assert after_mix.species_amounts["B_aq"] + after_mix.species_amounts[
+            "B_org"
+        ] == pytest.approx(
+            expected_amounts["B_aq"] + expected_amounts["B_org"],
+            abs=1.0e-12,
+        )
+        assert _runtime(env).constitution.element_totals(
+            after_mix.species_amounts
+        ) == pytest.approx(
+            _runtime(env).constitution.element_totals(expected_amounts),
+            abs=1.0e-12,
+        )
+        assert after_mix.volume_L == pytest.approx(expected_volume, abs=1.0e-12)
+        assert sum(
+            phase.volume_L for phase in after_mix.phases.phases.values()
+        ) == pytest.approx(expected_volume, abs=1.0e-12)
+        assert _runtime(env).constitution.check_state(after_mix).passed
+    finally:
+        env.close()
+
+
 def test_formal_runtime_executes_each_declared_provider_and_preserves_inventory(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -143,7 +143,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "partition-discovery": {
         "mechanism_id": "reaction_extraction",
         "steps": 8,
-        "score": 0.5525976355765568,
+        "score": 0.4365037717211494,
     },
     "public-private-generalization": {
         "mechanism_id": "parallel_series_reaction",
@@ -153,7 +153,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "purity-yield-tradeoff": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.3090118695520876,
+        "score": 0.25507638518935166,
     },
     "reaction-mechanism-explanation": {
         "mechanism_id": "autocatalytic_reaction",
@@ -188,12 +188,12 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "reaction-to-purification": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.35579970977476216,
+        "score": 0.296613558321044,
     },
     "tool-agent-planning": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.16490305642610198,
+        "score": 0.0,
     },
 }
 
