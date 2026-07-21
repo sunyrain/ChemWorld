@@ -1,0 +1,517 @@
+{
+  "benchmark_claim_allowed": false,
+  "change_probability_consistency_audit": {
+    "decision_count": 438,
+    "fraction_above_0_2": 0.7123287671232876,
+    "fraction_above_0_4": 0.2054794520547945,
+    "maximum_absolute_difference": 0.8,
+    "mean_absolute_difference": 0.3137774733637747,
+    "median_absolute_difference": 0.3
+  },
+  "claim_boundary": [
+    "one public world seed",
+    "two post-change experiments only",
+    "exploratory provider sampling",
+    "mixed decision interfaces in descriptive ranking",
+    "no trained-weight update by ChemWorld",
+    "no formal mechanism-identifiability certificate"
+  ],
+  "confirmed_mechanism_discovery_count": 0,
+  "declared_distribution_update_audit": {
+    "calibration_claim_allowed": false,
+    "clean_pair_count": 191,
+    "excluded_failure_involved_pair_count": 9,
+    "excluded_nonadjacent_pair_count": 1,
+    "legacy_pair_count": 201,
+    "mean_brier_improvement": -0.0033909214659685843,
+    "mean_declared_distribution_js_shift": 0.00210821039638904,
+    "mean_declared_distribution_kl_shift": 0.008442106814419547,
+    "mean_declared_information_value": 0.2524083769633508,
+    "mean_declared_normalized_entropy_change": -0.001270501366573253,
+    "mean_truth_log_probability_change": -0.009352380201806757
+  },
+  "feedback_interpretation": {
+    "causal_interpretation_allowed": false,
+    "legacy_mean_score_contrast_true_minus_permuted": -0.1518454528545009,
+    "reason": "Conditions used independent provider samples, so the contrast combines feedback content, provider variation, initial-action differences, and downstream trajectory divergence.",
+    "required_replacement": "paired local-prefix reaction test plus paired repeated full campaigns"
+  },
+  "identifiability_status": {
+    "candidate_operational_definitions_present_in_prompt": false,
+    "candidate_order_randomized": false,
+    "certificate_present_in_v0_1": false,
+    "interpretation": "Agent failure and insufficient task information cannot yet be separated.",
+    "no_change_twin_present_in_v0_1": false
+  },
+  "integrity_audit": {
+    "all_trajectory_hashes_match": true,
+    "source_report_exists": true,
+    "trajectories": [
+      {
+        "campaign_id": "ranking--reaction-to-crystallization--deepseek_v4_flash--seed0",
+        "expected_sha256": "957258a4acbddc5ca0f89e41c2672c382d96d039481131eb75c11fbfa621f0f9",
+        "matches": true,
+        "observed_sha256": "957258a4acbddc5ca0f89e41c2672c382d96d039481131eb75c11fbfa621f0f9",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/ranking--reaction-to-crystallization--deepseek_v4_flash--seed0--iid.jsonl",
+        "phase": "iid"
+      },
+      {
+        "campaign_id": "ranking--reaction-to-crystallization--deepseek_v4_flash--seed0",
+        "expected_sha256": "c0a595ed4e96bd1797ea87688c531465714847db7e88d6e7e83d02f01ba5e037",
+        "matches": true,
+        "observed_sha256": "c0a595ed4e96bd1797ea87688c531465714847db7e88d6e7e83d02f01ba5e037",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/ranking--reaction-to-crystallization--deepseek_v4_flash--seed0--shifted.jsonl",
+        "phase": "shifted"
+      },
+      {
+        "campaign_id": "ranking--electrochemical-conversion--deepseek_v4_flash--seed0",
+        "expected_sha256": "2602cdf5063d4d7c47ba8121834d918e258da6ed40932c45c01835cd6f2d7ac5",
+        "matches": true,
+        "observed_sha256": "2602cdf5063d4d7c47ba8121834d918e258da6ed40932c45c01835cd6f2d7ac5",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/ranking--electrochemical-conversion--deepseek_v4_flash--seed0--iid.jsonl",
+        "phase": "iid"
+      },
+      {
+        "campaign_id": "ranking--electrochemical-conversion--deepseek_v4_flash--seed0",
+        "expected_sha256": "4673506d8eef260c618a7c426421f5504be7c588f03a622d9d9a3ef6ce5f3dab",
+        "matches": true,
+        "observed_sha256": "4673506d8eef260c618a7c426421f5504be7c588f03a622d9d9a3ef6ce5f3dab",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/ranking--electrochemical-conversion--deepseek_v4_flash--seed0--shifted.jsonl",
+        "phase": "shifted"
+      },
+      {
+        "campaign_id": "feedback--reaction-to-crystallization--permuted_feedback--seed0",
+        "expected_sha256": "e741b06999f3fed2cc21920a729c45178f25f4773720c66a6bf9550302259aae",
+        "matches": true,
+        "observed_sha256": "e741b06999f3fed2cc21920a729c45178f25f4773720c66a6bf9550302259aae",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--reaction-to-crystallization--permuted_feedback--seed0--iid.jsonl",
+        "phase": "iid"
+      },
+      {
+        "campaign_id": "feedback--reaction-to-crystallization--permuted_feedback--seed0",
+        "expected_sha256": "4bf2790f9f4a4f0c4fb8956d508b3daaf7fd5cf62af0264a6568485e529ff41d",
+        "matches": true,
+        "observed_sha256": "4bf2790f9f4a4f0c4fb8956d508b3daaf7fd5cf62af0264a6568485e529ff41d",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--reaction-to-crystallization--permuted_feedback--seed0--shifted.jsonl",
+        "phase": "shifted"
+      },
+      {
+        "campaign_id": "feedback--reaction-to-crystallization--delayed_feedback--seed0",
+        "expected_sha256": "fd00636e2f118db58fd829426b5abd524756daf103f6d05b651f876f1416f800",
+        "matches": true,
+        "observed_sha256": "fd00636e2f118db58fd829426b5abd524756daf103f6d05b651f876f1416f800",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--reaction-to-crystallization--delayed_feedback--seed0--iid.jsonl",
+        "phase": "iid"
+      },
+      {
+        "campaign_id": "feedback--reaction-to-crystallization--delayed_feedback--seed0",
+        "expected_sha256": "67e39158a2311db6c7ba9abb1ca2a4fcd406d65a4a7766101f85605ee177bcfa",
+        "matches": true,
+        "observed_sha256": "67e39158a2311db6c7ba9abb1ca2a4fcd406d65a4a7766101f85605ee177bcfa",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--reaction-to-crystallization--delayed_feedback--seed0--shifted.jsonl",
+        "phase": "shifted"
+      },
+      {
+        "campaign_id": "feedback--reaction-to-crystallization--critical_measurement_deleted--seed0",
+        "expected_sha256": "b5c30b03e964c79863fb2d0c510da7d189dce42e1a9017cc704ac75a7ae9132c",
+        "matches": true,
+        "observed_sha256": "b5c30b03e964c79863fb2d0c510da7d189dce42e1a9017cc704ac75a7ae9132c",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--reaction-to-crystallization--critical_measurement_deleted--seed0--iid.jsonl",
+        "phase": "iid"
+      },
+      {
+        "campaign_id": "feedback--reaction-to-crystallization--critical_measurement_deleted--seed0",
+        "expected_sha256": "c6e1d9b0563ae3619dc71550a4b712a263d8e67cf0dc373beb3bde3e5e4dc52c",
+        "matches": true,
+        "observed_sha256": "c6e1d9b0563ae3619dc71550a4b712a263d8e67cf0dc373beb3bde3e5e4dc52c",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--reaction-to-crystallization--critical_measurement_deleted--seed0--shifted.jsonl",
+        "phase": "shifted"
+      },
+      {
+        "campaign_id": "feedback--electrochemical-conversion--permuted_feedback--seed0",
+        "expected_sha256": "7f0f89b3a4fdb725347278fca7526faefcb68a9ec3c0caf03f3c934c54f7a50c",
+        "matches": true,
+        "observed_sha256": "7f0f89b3a4fdb725347278fca7526faefcb68a9ec3c0caf03f3c934c54f7a50c",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--electrochemical-conversion--permuted_feedback--seed0--iid.jsonl",
+        "phase": "iid"
+      },
+      {
+        "campaign_id": "feedback--electrochemical-conversion--permuted_feedback--seed0",
+        "expected_sha256": "95444185ec909f5cb7fdf55fbdcb0f7e85dbb07f0e6c16d3deeb68fad0dd4ed8",
+        "matches": true,
+        "observed_sha256": "95444185ec909f5cb7fdf55fbdcb0f7e85dbb07f0e6c16d3deeb68fad0dd4ed8",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--electrochemical-conversion--permuted_feedback--seed0--shifted.jsonl",
+        "phase": "shifted"
+      },
+      {
+        "campaign_id": "feedback--electrochemical-conversion--delayed_feedback--seed0",
+        "expected_sha256": "2b4401a63da1c32a372d2593810978c4319cc674c38a5072ef4a85ec035f8b78",
+        "matches": true,
+        "observed_sha256": "2b4401a63da1c32a372d2593810978c4319cc674c38a5072ef4a85ec035f8b78",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--electrochemical-conversion--delayed_feedback--seed0--iid.jsonl",
+        "phase": "iid"
+      },
+      {
+        "campaign_id": "feedback--electrochemical-conversion--delayed_feedback--seed0",
+        "expected_sha256": "47bdd9c3230693b8549e8d7a5485aca5923d6b46b5c0bdc011e20649ac0dab56",
+        "matches": true,
+        "observed_sha256": "47bdd9c3230693b8549e8d7a5485aca5923d6b46b5c0bdc011e20649ac0dab56",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--electrochemical-conversion--delayed_feedback--seed0--shifted.jsonl",
+        "phase": "shifted"
+      },
+      {
+        "campaign_id": "feedback--electrochemical-conversion--critical_measurement_deleted--seed0",
+        "expected_sha256": "905c2a5760a3e6c44daaf5707dbb4f9429e8a28bf766bef32cec061cd8b10a95",
+        "matches": true,
+        "observed_sha256": "905c2a5760a3e6c44daaf5707dbb4f9429e8a28bf766bef32cec061cd8b10a95",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--electrochemical-conversion--critical_measurement_deleted--seed0--iid.jsonl",
+        "phase": "iid"
+      },
+      {
+        "campaign_id": "feedback--electrochemical-conversion--critical_measurement_deleted--seed0",
+        "expected_sha256": "4bbac9cc52f92002459c6acd9c9489df7ac085322ff1d4ab5dacb740bb970cfe",
+        "matches": true,
+        "observed_sha256": "4bbac9cc52f92002459c6acd9c9489df7ac085322ff1d4ab5dacb740bb970cfe",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/feedback--electrochemical-conversion--critical_measurement_deleted--seed0--shifted.jsonl",
+        "phase": "shifted"
+      },
+      {
+        "campaign_id": "material-law--reaction-to-crystallization--deepseek--seed0",
+        "expected_sha256": "119fcf5bea4da51404857d2304e29537b6c7dc33c3dae91c34ffc0777fc65908",
+        "matches": true,
+        "observed_sha256": "119fcf5bea4da51404857d2304e29537b6c7dc33c3dae91c34ffc0777fc65908",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/material-law--reaction-to-crystallization--deepseek--seed0--iid.jsonl",
+        "phase": "iid"
+      },
+      {
+        "campaign_id": "material-law--reaction-to-crystallization--deepseek--seed0",
+        "expected_sha256": "695ef689b3bec08a3fdacce23b91a9e436a33218ce40d5152e155c8075258ecd",
+        "matches": true,
+        "observed_sha256": "695ef689b3bec08a3fdacce23b91a9e436a33218ce40d5152e155c8075258ecd",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/material-law--reaction-to-crystallization--deepseek--seed0--shifted.jsonl",
+        "phase": "shifted"
+      },
+      {
+        "campaign_id": "material-law--electrochemical-conversion--deepseek--seed0",
+        "expected_sha256": "f6b4e5faa1acec40fc88bf0abf4de4bb97f128f11c65bf130350d701bcba381e",
+        "matches": true,
+        "observed_sha256": "f6b4e5faa1acec40fc88bf0abf4de4bb97f128f11c65bf130350d701bcba381e",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/material-law--electrochemical-conversion--deepseek--seed0--iid.jsonl",
+        "phase": "iid"
+      },
+      {
+        "campaign_id": "material-law--electrochemical-conversion--deepseek--seed0",
+        "expected_sha256": "338f50e59f314238086a744f25b2f9fef62f43a6e5260507fcb3cfd63096a6e9",
+        "matches": true,
+        "observed_sha256": "338f50e59f314238086a744f25b2f9fef62f43a6e5260507fcb3cfd63096a6e9",
+        "path": "runs/flagship-mechanism-diagnostics/v0.1/trajectories/material-law--electrochemical-conversion--deepseek--seed0--shifted.jsonl",
+        "phase": "shifted"
+      }
+    ],
+    "trajectory_count": 20
+  },
+  "lifecycle_autonomy_audit": {
+    "affected_campaign_count": 4,
+    "affected_campaign_fraction": 0.4,
+    "affected_experiment_count": 4,
+    "affected_experiment_fraction": 0.1,
+    "affected_phase_count": 4,
+    "affected_phase_fraction": 0.2,
+    "guardrail_action_count": 7,
+    "guardrail_actions_per_experiment": 0.175,
+    "iid_best_score_comparison": [
+      {
+        "assisted_or_mixed_iid_best": 0.5188709008385728,
+        "campaign_id": "ranking--reaction-to-crystallization--deepseek_v4_flash--seed0",
+        "fully_autonomous_iid_best": 0.5188709008385728
+      },
+      {
+        "assisted_or_mixed_iid_best": 0.4486545551478028,
+        "campaign_id": "ranking--electrochemical-conversion--deepseek_v4_flash--seed0",
+        "fully_autonomous_iid_best": 0.4486545551478028
+      },
+      {
+        "assisted_or_mixed_iid_best": 0.4229018573969207,
+        "campaign_id": "feedback--reaction-to-crystallization--permuted_feedback--seed0",
+        "fully_autonomous_iid_best": 0.4229018573969207
+      },
+      {
+        "assisted_or_mixed_iid_best": 0.0027768221606365405,
+        "campaign_id": "feedback--reaction-to-crystallization--delayed_feedback--seed0",
+        "fully_autonomous_iid_best": 0.0024932270521421606
+      },
+      {
+        "assisted_or_mixed_iid_best": 0.40341504957700497,
+        "campaign_id": "feedback--reaction-to-crystallization--critical_measurement_deleted--seed0",
+        "fully_autonomous_iid_best": 0.37745012376105896
+      },
+      {
+        "assisted_or_mixed_iid_best": 0.682971688811905,
+        "campaign_id": "feedback--electrochemical-conversion--permuted_feedback--seed0",
+        "fully_autonomous_iid_best": 0.682971688811905
+      },
+      {
+        "assisted_or_mixed_iid_best": 0.695906242126075,
+        "campaign_id": "feedback--electrochemical-conversion--delayed_feedback--seed0",
+        "fully_autonomous_iid_best": 0.695906242126075
+      },
+      {
+        "assisted_or_mixed_iid_best": 0.4130937078373161,
+        "campaign_id": "feedback--electrochemical-conversion--critical_measurement_deleted--seed0",
+        "fully_autonomous_iid_best": 0.4130937078373161
+      },
+      {
+        "assisted_or_mixed_iid_best": 0.5230705599649509,
+        "campaign_id": "material-law--reaction-to-crystallization--deepseek--seed0",
+        "fully_autonomous_iid_best": 0.513908292154254
+      },
+      {
+        "assisted_or_mixed_iid_best": 0.3865896414486685,
+        "campaign_id": "material-law--electrochemical-conversion--deepseek--seed0",
+        "fully_autonomous_iid_best": 0.3865896414486685
+      }
+    ],
+    "total_campaign_count": 10,
+    "total_experiment_count": 40,
+    "total_phase_count": 20
+  },
+  "outcome_reanalysis": {
+    "confirmation_rule": "Threshold crossing is provisional until v0.2 Gates 0 and A-E pass on multi-seed, paired confirmatory data.",
+    "counts": {
+      "high_outcome_without_identification": 5,
+      "identification_without_recovery": 1,
+      "joint_failure": 3,
+      "provisional_threshold_joint_success": 1
+    },
+    "rows": [
+      {
+        "autonomy_status": "fully_autonomous_campaign",
+        "campaign_id": "ranking--reaction-to-crystallization--deepseek_v4_flash--seed0",
+        "confirmed_mechanism_discovery": false,
+        "experiment_id": "ranking_shift",
+        "feedback_condition": "true_feedback",
+        "final_objective": 0.39731680221581833,
+        "legacy_classification": "joint_failure",
+        "mechanism_identified_at_legacy_threshold": false,
+        "reanalysis_classification": "joint_failure",
+        "task_id": "reaction-to-crystallization",
+        "truth_probability": 0.15
+      },
+      {
+        "autonomy_status": "fully_autonomous_campaign",
+        "campaign_id": "ranking--electrochemical-conversion--deepseek_v4_flash--seed0",
+        "confirmed_mechanism_discovery": false,
+        "experiment_id": "ranking_shift",
+        "feedback_condition": "true_feedback",
+        "final_objective": 0.2569611752458637,
+        "legacy_classification": "joint_failure",
+        "mechanism_identified_at_legacy_threshold": false,
+        "reanalysis_classification": "joint_failure",
+        "task_id": "electrochemical-conversion",
+        "truth_probability": 0.3
+      },
+      {
+        "autonomy_status": "fully_autonomous_campaign",
+        "campaign_id": "feedback--reaction-to-crystallization--permuted_feedback--seed0",
+        "confirmed_mechanism_discovery": false,
+        "experiment_id": "feedback_ablation",
+        "feedback_condition": "permuted_feedback",
+        "final_objective": 0.4403920875060451,
+        "legacy_classification": "accidental_optimizer",
+        "mechanism_identified_at_legacy_threshold": false,
+        "reanalysis_classification": "high_outcome_without_identification",
+        "task_id": "reaction-to-crystallization",
+        "truth_probability": 0.25
+      },
+      {
+        "autonomy_status": "autonomous_current_experiment_with_assisted_history",
+        "campaign_id": "feedback--reaction-to-crystallization--delayed_feedback--seed0",
+        "confirmed_mechanism_discovery": false,
+        "experiment_id": "feedback_ablation",
+        "feedback_condition": "delayed_feedback",
+        "final_objective": 0.0027768221606365405,
+        "legacy_classification": "accidental_optimizer",
+        "mechanism_identified_at_legacy_threshold": false,
+        "reanalysis_classification": "high_outcome_without_identification",
+        "task_id": "reaction-to-crystallization",
+        "truth_probability": 0.25
+      },
+      {
+        "autonomy_status": "autonomous_current_experiment_with_assisted_history",
+        "campaign_id": "feedback--reaction-to-crystallization--critical_measurement_deleted--seed0",
+        "confirmed_mechanism_discovery": false,
+        "experiment_id": "feedback_ablation",
+        "feedback_condition": "critical_measurement_deleted",
+        "final_objective": 0.3966888773787719,
+        "legacy_classification": "accidental_optimizer",
+        "mechanism_identified_at_legacy_threshold": false,
+        "reanalysis_classification": "high_outcome_without_identification",
+        "task_id": "reaction-to-crystallization",
+        "truth_probability": 0.2
+      },
+      {
+        "autonomy_status": "fully_autonomous_campaign",
+        "campaign_id": "feedback--electrochemical-conversion--permuted_feedback--seed0",
+        "confirmed_mechanism_discovery": false,
+        "experiment_id": "feedback_ablation",
+        "feedback_condition": "permuted_feedback",
+        "final_objective": 0.5175767956646388,
+        "legacy_classification": "joint_failure",
+        "mechanism_identified_at_legacy_threshold": false,
+        "reanalysis_classification": "joint_failure",
+        "task_id": "electrochemical-conversion",
+        "truth_probability": 0.3
+      },
+      {
+        "autonomy_status": "autonomous_current_experiment_with_assisted_history",
+        "campaign_id": "feedback--electrochemical-conversion--delayed_feedback--seed0",
+        "confirmed_mechanism_discovery": false,
+        "experiment_id": "feedback_ablation",
+        "feedback_condition": "delayed_feedback",
+        "final_objective": 0.757825365851532,
+        "legacy_classification": "genuine_experimental",
+        "mechanism_identified_at_legacy_threshold": true,
+        "reanalysis_classification": "provisional_threshold_joint_success",
+        "task_id": "electrochemical-conversion",
+        "truth_probability": 0.5
+      },
+      {
+        "autonomy_status": "fully_autonomous_campaign",
+        "campaign_id": "feedback--electrochemical-conversion--critical_measurement_deleted--seed0",
+        "confirmed_mechanism_discovery": false,
+        "experiment_id": "feedback_ablation",
+        "feedback_condition": "critical_measurement_deleted",
+        "final_objective": 0.27784133854773074,
+        "legacy_classification": "joint_failure",
+        "mechanism_identified_at_legacy_threshold": true,
+        "reanalysis_classification": "identification_without_recovery",
+        "task_id": "electrochemical-conversion",
+        "truth_probability": 0.4
+      },
+      {
+        "autonomy_status": "autonomous_current_experiment_with_assisted_history",
+        "campaign_id": "material-law--reaction-to-crystallization--deepseek--seed0",
+        "confirmed_mechanism_discovery": false,
+        "experiment_id": "material_law_swap",
+        "feedback_condition": "true_feedback",
+        "final_objective": 0.5785421168610645,
+        "legacy_classification": "accidental_optimizer",
+        "mechanism_identified_at_legacy_threshold": false,
+        "reanalysis_classification": "high_outcome_without_identification",
+        "task_id": "reaction-to-crystallization",
+        "truth_probability": 0.1
+      },
+      {
+        "autonomy_status": "fully_autonomous_campaign",
+        "campaign_id": "material-law--electrochemical-conversion--deepseek--seed0",
+        "confirmed_mechanism_discovery": false,
+        "experiment_id": "material_law_swap",
+        "feedback_condition": "true_feedback",
+        "final_objective": 0.7628809911645893,
+        "legacy_classification": "accidental_optimizer",
+        "mechanism_identified_at_legacy_threshold": false,
+        "reanalysis_classification": "high_outcome_without_identification",
+        "task_id": "electrochemical-conversion",
+        "truth_probability": 0.1
+      }
+    ]
+  },
+  "primary_judgment": "The v0.1 run supports the benchmark-design story but does not establish reliable mechanism discovery by DeepSeek. Its sole former genuine result is a provisional threshold-level joint success with assisted campaign history.",
+  "provider_control_audit": {
+    "claim_boundary": "The user-side benchmark performs no training or weight updates; hosted provider internals cannot be proven fixed from these receipts.",
+    "model_id_recorded": true,
+    "per_request_timestamp_recorded": false,
+    "provider_seed_recorded": false,
+    "request_ids_recorded": true,
+    "request_payload_hash_recorded": false,
+    "response_max_tokens_recorded": true,
+    "system_fingerprint_observed": true,
+    "temperature_recorded": false,
+    "thinking_recorded": true,
+    "top_p_recorded": false
+  },
+  "provisional_threshold_joint_success_count": 1,
+  "publication_ready": false,
+  "ranking_reanalysis": {
+    "mixed_decision_interfaces": true,
+    "primary_overall_ranking_allowed": false,
+    "rows": [
+      {
+        "adaptation_average_rank": 4.5,
+        "adaptation_performance": 0.45102392627023546,
+        "decision_interface": "experiment_recipe",
+        "iid_average_rank": 1.5,
+        "iid_performance": 0.6043279604241818,
+        "method_id": "greedy_local"
+      },
+      {
+        "adaptation_average_rank": 4.5,
+        "adaptation_performance": 0.45102392627023546,
+        "decision_interface": "experiment_recipe",
+        "iid_average_rank": 1.5,
+        "iid_performance": 0.6043279604241818,
+        "method_id": "random_recipe"
+      },
+      {
+        "adaptation_average_rank": 2.0,
+        "adaptation_performance": 0.5895118877967234,
+        "decision_interface": "experiment_recipe",
+        "iid_average_rank": 3.5,
+        "iid_performance": 0.5900251214262362,
+        "method_id": "structured_gp_bo"
+      },
+      {
+        "adaptation_average_rank": 1.0,
+        "adaptation_performance": 0.6186539689472939,
+        "decision_interface": "experiment_recipe",
+        "iid_average_rank": 3.5,
+        "iid_performance": 0.5900251214262362,
+        "method_id": "structured_gp_ucb"
+      },
+      {
+        "adaptation_average_rank": 3.0,
+        "adaptation_performance": 0.5099416633384588,
+        "decision_interface": "operation_level",
+        "iid_average_rank": 5.0,
+        "iid_performance": 0.501541892634994,
+        "method_id": "rule_based"
+      },
+      {
+        "adaptation_average_rank": 6.0,
+        "adaptation_performance": 0.22881156398690172,
+        "decision_interface": "operation_level",
+        "iid_average_rank": 6.0,
+        "iid_performance": 0.433473130787926,
+        "method_id": "deepseek_v4_flash"
+      }
+    ],
+    "spearman_rank_correlation": 0.08956221510397983,
+    "strict_rank_inversion_count": 6,
+    "tie_method": "average_rank"
+  },
+  "raw_v0_1_artifacts_modified": false,
+  "resource_summary": {
+    "deepseek_campaign_count": 10,
+    "input_token_count": 3984857,
+    "lifecycle_guardrail_override_count": 7,
+    "model_call_count": 450,
+    "monetary_cost_usd": 0.4992506232,
+    "output_token_count": 180916,
+    "private_reasoning_retained": false,
+    "provider_failure_count": 10,
+    "retry_count": 2
+  },
+  "schema_version": "chemworld-flagship-mechanism-diagnostics-reanalysis-0.1.1",
+  "source_report": "workstreams/flagship_tasks/reports/deepseek-mechanism-diagnostics-v0.1.json",
+  "source_report_sha256": "e15d3ab3b1a541ce7e1fb5c30c7d6d21e0f86008de2e152b6667b7b4e54fb519",
+  "source_schema_version": "chemworld-flagship-mechanism-diagnostics-0.1",
+  "status": "strict_reanalysis_complete",
+  "v0_2_required_gates": [
+    "Gate 0: integrity, leakage, receipts, exclusions, replay",
+    "Gate A: active-oracle and fixed-decoder identifiability",
+    "Gate B: paired no-change twins and randomized change time",
+    "Gate C: local feedback sensitivity separated from provider noise",
+    "Gate D: open-loop world effect, frozen policy, adaptation and recovery",
+    "Gate E: procedural autonomy and separate assisted scientific score"
+  ]
+}
