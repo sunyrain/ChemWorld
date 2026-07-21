@@ -68,7 +68,6 @@ def _save(fig: plt.Figure, stem: str) -> None:
         "ModDate": datetime(2026, 7, 12, tzinfo=UTC),
     }
     fig.savefig(FIGURES / f"{stem}.pdf", bbox_inches="tight", metadata=metadata)
-    fig.savefig(FIGURES / f"{stem}.png", dpi=260, bbox_inches="tight")
     plt.close(fig)
 
 

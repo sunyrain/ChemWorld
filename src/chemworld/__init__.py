@@ -1,4 +1,4 @@
-"""ChemWorld-Bench public package entrypoint."""
+"""Public entrypoint for the ChemWorld physical-chemistry world environment."""
 
 from chemworld.registration import ENV_ID, ENV_IDS, register_envs
 from chemworld.validation import validate_action, validate_recipe

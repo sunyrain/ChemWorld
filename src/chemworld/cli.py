@@ -1,4 +1,4 @@
-"""Command line interface for ChemWorld-Bench."""
+"""Command line interface for the ChemWorld environment and benchmark."""
 
 from __future__ import annotations
 

@@ -3,6 +3,15 @@
 这里记录用户可感知的接口、任务、世界律和证据状态变化。正在开发但尚未进入正式 runtime 的候选
 能力不会被写成已经发布的功能。
 
+## 2026-07-21 · 仓库入口整合与证据保全清理
+
+- 项目定位统一为物理化学 world-model Agent 训练与评测环境；可视化界面是可选入口，不是项目主张；
+- 新增 `configs/current.json`，集中声明当前 runtime、正式评测协议、机制适应协议及其证据状态；
+- v0.2 机制适应 Agent 保持独立模块入口；v0.1 diagnostic Agent 继续保留以支持精确回放，避免改变冻结 source digest；
+- 仅移除可再生缓存、未被论文引用的 PNG 派生图和已验证等价的本地 Git 工作副本；
+- 两份无入口的历史诊断报告移入各自 `archive/`，原始内容不改写；冻结协议、历史负结果和运行轨迹继续保留。
+- 完整回归识别出三组既有证据绑定漂移；`configs/current.json` 将其显式列为阻塞项，本轮不以重签旧报告掩盖失败。
+
 ## 2026-07-13 · Backend v0.5 candidate freeze
 
 - 15 个任务的正式必需路径统一为 `reference_validated`，全部 `proxy_allowed=false`；

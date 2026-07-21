@@ -1,0 +1,77 @@
+{
+  "schema_version": "chemworld-current-surface-registry-0.1",
+  "updated_at": "2026-07-21",
+  "project": {
+    "distribution": "chemworld-bench",
+    "version": "0.2.0",
+    "public_name": "ChemWorld",
+    "role": "agent_capability_evaluation_and_training_environment",
+    "scientific_scope": "physical_chemistry_world_model",
+    "environment_updates_agent_weights": false
+  },
+  "runtime": {
+    "backend": "configs/foundation/backend_v0.5.json",
+    "backend_report": "workstreams/world_foundation/reports/backend-v0.5.json",
+    "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
+    "status": "candidate_backend_frozen"
+  },
+  "formal_evaluation": {
+    "protocol": "configs/benchmark/formal_protocol_v0.4.json",
+    "interaction_strata": "configs/benchmark/interaction_strata_v0.4.json",
+    "statistical_analysis": "configs/benchmark/statistical_analysis_plan_v0.4.json",
+    "method_freeze_report": "workstreams/benchmark_v1/reports/method-freeze-v0.4.json",
+    "status": "method_freeze_preflight_blocked",
+    "formal_results_present": false,
+    "benchmark_claim_allowed": false
+  },
+  "mechanism_adaptation": {
+    "protocol": "configs/benchmark/mechanism_adaptation_v0.2.json",
+    "preflight_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2-preflight.json",
+    "protocol_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-final-protocol-v0.2.md",
+    "status": "protocol_complete_empirical_execution_pending",
+    "new_external_provider_runs_completed": false,
+    "publication_ready": false
+  },
+  "development_evidence": {
+    "classic_methods": "configs/methods/classic_v0.4.1/classic_methods.json",
+    "classic_report": "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
+    "operation_methods": "configs/methods/operation_v0.4.1/operation_methods.json",
+    "operation_report": "workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.1.json",
+    "live_llm_report": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.10.json",
+    "evidence_role": "development_or_diagnostic_not_formal_bench"
+  },
+  "repository_integrity": {
+    "status": "blocked_by_stale_committed_evidence_bindings",
+    "full_test_run": {
+      "date": "2026-07-21",
+      "passed": 1782,
+      "skipped": 14,
+      "failed": 10
+    },
+    "blockers": [
+      {
+        "id": "runtime_affordance_source_binding_stale",
+        "effect": "seven live-LLM development tests fail closed",
+        "required_resolution": "run a new source-bound affordance audit; do not rewrite the historical report in place"
+      },
+      {
+        "id": "maturity_runtime_evidence_binding_stale",
+        "effect": "the committed maturity-truth report no longer validates its runtime evidence digest",
+        "required_resolution": "issue a new maturity audit version after reviewing the changed runtime evidence"
+      },
+      {
+        "id": "ncs_evidence_ledger_stale",
+        "effect": "the NCS working-draft audit rejects two changed evidence digests",
+        "required_resolution": "reconcile the affordance and method-freeze evidence before updating the manuscript ledger"
+      }
+    ],
+    "cleanup_changed_guarded_runtime_sources": false
+  },
+  "history_policy": {
+    "historical_artifacts_are_immutable": true,
+    "version_suffix_does_not_imply_current": true,
+    "frozen_source_may_intentionally_duplicate_helpers": true,
+    "raw_runs_must_not_be_deleted_without_a_manifested_retention_decision": true,
+    "archive_directories_contain_non_current_diagnostics": true
+  }
+}
