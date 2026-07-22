@@ -69,10 +69,13 @@
     "live_llm": {
       "target_version": "v0.4.11",
       "report": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json",
-      "artifact_state": "pending",
+      "artifact_state": "current",
       "artifact_roles": [
-        "planned_output"
+        "development_diagnostic"
       ],
+      "stage": "candidate_screen",
+      "promotion_decision": "promote",
+      "formal_live_llm_development_ready": false,
       "resume_prior_caches": false
     },
     "formal_benchmark_evidence": false
@@ -157,7 +160,7 @@
     "schema_version": "chemworld-current-evidence-dag-0.2",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "519a454023f2fccae6414c7b295cd555ce7764a4959fdd32ad79f0720bc8c526",
+    "graph_sha256": "bfadff7eb0bb19861a4f58aba8c009730033e8bfb508cc42265bbf14a394ec9e",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -180,6 +183,7 @@
       "public_boundary",
       "runtime_reachability",
       "state_transition_invariants",
+      "live_llm_development",
       "maturity_truth",
       "mechanism_design_audit",
       "backend_candidate",
@@ -304,7 +308,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "82f96bb71087aefa6a9bf67479b762226d0a68a2ff825c156ca36d41653a2c83",
+        "sha256": "85d62cda9c1b2f10d18a1a0f0bfce1628fbe7496dcac07b8d11ba22b205e0273",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -438,7 +442,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "a519324bcd779f4231e555da0633ae0bea52224e72d1d15efffa18c318be1381",
+        "sha256": "1048bd5b5c73c4589c5051eb205f091537f08da2dbf1761e686f463a3c304a5d",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -453,7 +457,22 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "2d8b737a4be0a494c2516f436c61519729e0e694bd0037997a96ee071c37c6f0",
+        "sha256": "42b2ebb6fb6d14f7fd8b14748f82f7c547d243d3f206f61241c56212abc8784b",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
+      },
+      "live_llm_development": {
+        "path": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
+        "dependencies": [
+          "llm_development_plan",
+          "runtime_affordance"
+        ],
+        "sha256": "4bcda2deb52c36325fc40912c4a84d5f224a700cff51b55e394dc1ad6af1f146",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -469,7 +488,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "b5b15919fa0a89a9b5d7af90697faeb9fa060e884925c34448f499a141d2383b",
+        "sha256": "76fd94128a41c852380e32233109b13ac0475ae0cf829113950130fcffd22d3f",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -503,7 +522,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "b9c7cffb4f2546850e5fa8b9aa9a18ebe879ea0fd5d663e063fe4dde01c5eb58",
+        "sha256": "b5f0fea5958a0a7fc543f0aa89e0aab9d2f009f09300857c057c318f0aa4d72e",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -539,7 +558,7 @@
           "public_boundary",
           "runtime_integration"
         ],
-        "sha256": "d714aa715efc4e2cc00c21d470141866f99d7cb57664fed3eb3363a078244916",
+        "sha256": "a61035a64c47812b372827abe8b9d2a3ed457062acf3a4f4e6508d32d4d10e43",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -570,11 +589,12 @@
         "dependencies": [
           "backend_candidate",
           "classic_development",
+          "live_llm_development",
           "llm_development_plan",
           "method_freeze_plan",
           "operation_development"
         ],
-        "sha256": "9872ba2e96afc79028ecb102f277a24f8487d74e5de013a927010fd8120e972f",
+        "sha256": "a515a40b9de25e486491eb7a5f89c39652e6ceee9ccbd3103c69b3a41735855c",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "blocked"
