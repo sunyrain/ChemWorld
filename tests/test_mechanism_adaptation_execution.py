@@ -178,8 +178,11 @@ def test_current_live_llm_target_is_v0_4_11_everywhere() -> None:
     expected = "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json"
     live_llm = current["development_evidence"]["live_llm"]
     assert live_llm["report"] == expected
-    assert live_llm["artifact_state"] == "pending"
-    assert live_llm["artifact_roles"] == ["planned_output"]
+    assert live_llm["artifact_state"] == "current"
+    assert live_llm["artifact_roles"] == ["development_diagnostic"]
+    assert live_llm["stage"] == "candidate_screen"
+    assert live_llm["promotion_decision"] == "promote"
+    assert live_llm["formal_live_llm_development_ready"] is False
     assert freeze["artifact_bindings"]["llm_development"]["path"] == expected
 
 

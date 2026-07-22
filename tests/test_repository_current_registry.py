@@ -25,9 +25,9 @@ def test_current_registry_paths_exist() -> None:
 
     assert pipeline["validate_current_registry_paths"](registry, root=ROOT) == []
     live_llm = registry["development_evidence"]["live_llm"]
-    assert live_llm["artifact_state"] == "pending"
-    assert live_llm["artifact_roles"] == ["planned_output"]
-    assert not (ROOT / live_llm["report"]).exists()
+    assert live_llm["artifact_state"] == "current"
+    assert live_llm["artifact_roles"] == ["development_diagnostic"]
+    assert (ROOT / live_llm["report"]).is_file()
 
 
 def test_current_registry_path_validation_fails_closed() -> None:
@@ -50,7 +50,7 @@ def test_current_registry_path_validation_fails_closed() -> None:
 
     wrong_role = copy.deepcopy(registry)
     wrong_role["development_evidence"]["live_llm"]["artifact_roles"] = [
-        "development_diagnostic"
+        "planned_output"
     ]
     assert any(
         "current registry artifact role mismatch: development_evidence.live_llm"

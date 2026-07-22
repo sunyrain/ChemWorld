@@ -111,6 +111,12 @@ NODES = (
         "development_diagnostic",
     ),
     EvidenceNode(
+        "live_llm_development",
+        "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json",
+        "development_diagnostic",
+        ("llm_development_plan", "runtime_affordance"),
+    ),
+    EvidenceNode(
         "mechanism_protocol",
         "configs/benchmark/mechanism_adaptation_v0.2.1.json",
         "protocol_input",
@@ -231,6 +237,7 @@ NODES = (
         (
             "backend_candidate",
             "classic_development",
+            "live_llm_development",
             "llm_development_plan",
             "method_freeze_plan",
             "operation_development",
@@ -354,10 +361,9 @@ CURRENT_PATH_RULES = (
     ),
     CurrentPathRule(
         ("development_evidence", "live_llm", "report"),
-        "planned_output",
-        must_exist=False,
+        "development_diagnostic",
         metadata_path=("development_evidence", "live_llm"),
-        expected_state="pending",
+        expected_state="current",
     ),
     CurrentPathRule(
         ("publication", "archived_working_draft"), "archived_history"
@@ -630,6 +636,9 @@ def _write_current_registry() -> None:
     mechanism_protocol = json.loads(
         (ROOT / node_map()["mechanism_protocol"].path).read_text()
     )
+    live_llm = json.loads(
+        (ROOT / node_map()["live_llm_development"].path).read_text()
+    )
     from chemworld.data.schema import OUTCOME_LAYER_FIELDS, TRAJECTORY_SCHEMA_VERSION
 
     dirty = _git_tree_dirty()
@@ -824,9 +833,14 @@ def _write_current_registry() -> None:
         },
         "live_llm": {
             "target_version": "v0.4.11",
-            "report": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json",
-            "artifact_state": "pending",
-            "artifact_roles": ["planned_output"],
+            "report": node_map()["live_llm_development"].path,
+            "artifact_state": "current",
+            "artifact_roles": ["development_diagnostic"],
+            "stage": live_llm["stage"],
+            "promotion_decision": live_llm["promotion_gate"]["decision"],
+            "formal_live_llm_development_ready": live_llm[
+                "formal_live_llm_development_ready"
+            ],
             "resume_prior_caches": False,
         },
         "formal_benchmark_evidence": False,

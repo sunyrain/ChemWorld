@@ -201,7 +201,7 @@ Only start after the P0 completion gate.
 
 - [x] Decide explicitly whether live LLM v0.4.11 remains in the candidate method set before spending
   provider budget.
-- [ ] If retained, create a fresh v0.4.11 cache and report; never resume v0.4.8-v0.4.10 caches.
+- [x] If retained, create a fresh v0.4.11 cache and report; never resume v0.4.8-v0.4.10 caches.
 - [ ] Run the smallest complete changed/no-change pilot pair first.
 - [ ] Gate 0: verify integrity, leakage resistance, provider identity, and replay completeness.
 - [ ] Gate B: report change-detection sensitivity, false-positive rate, AUROC, Brier score, and delay
