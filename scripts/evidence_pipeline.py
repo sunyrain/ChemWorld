@@ -91,6 +91,11 @@ NODES = (
         ("runtime_affordance",),
     ),
     EvidenceNode(
+        "live_llm_methods",
+        "configs/methods/llm_v0.4/llm_methods.json",
+        "protocol_input",
+    ),
+    EvidenceNode(
         "classic_development",
         "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
         "development_diagnostic",
@@ -114,7 +119,7 @@ NODES = (
         "live_llm_development",
         "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json",
         "development_diagnostic",
-        ("llm_development_plan", "runtime_affordance"),
+        ("live_llm_methods", "llm_development_plan", "runtime_affordance"),
     ),
     EvidenceNode(
         "mechanism_protocol",
@@ -170,6 +175,13 @@ NODES = (
             "mechanism_preflight",
             "mechanism_protocol",
         ),
+    ),
+    EvidenceNode(
+        "mechanism_agent_pilot",
+        "workstreams/flagship_tasks/reports/"
+        "mechanism-adaptation-agent-pilot-v0.2.1.json",
+        "development_diagnostic",
+        ("live_llm_methods", "mechanism_gate_a", "mechanism_protocol"),
     ),
     EvidenceNode(
         "backend_golden_fixture",
@@ -331,6 +343,10 @@ CURRENT_PATH_RULES = (
     CurrentPathRule(("mechanism_adaptation", "gate_a_plan"), "protocol_input"),
     CurrentPathRule(
         ("mechanism_adaptation", "gate_a_report"), "formal_result"
+    ),
+    CurrentPathRule(
+        ("mechanism_adaptation", "agent_pilot_report"),
+        "development_diagnostic",
     ),
     CurrentPathRule(
         ("mechanism_adaptation", "design_audit_report"), "generated_current"
@@ -632,6 +648,9 @@ def _write_current_registry() -> None:
     backend = json.loads((ROOT / node_map()["backend_candidate"].path).read_text())
     method = json.loads((ROOT / node_map()["method_freeze"].path).read_text())
     mechanism = json.loads((ROOT / node_map()["mechanism_gate_a"].path).read_text())
+    mechanism_pilot = json.loads(
+        (ROOT / node_map()["mechanism_agent_pilot"].path).read_text()
+    )
     method_plan = json.loads((ROOT / node_map()["method_freeze_plan"].path).read_text())
     mechanism_protocol = json.loads(
         (ROOT / node_map()["mechanism_protocol"].path).read_text()
@@ -805,13 +824,19 @@ def _write_current_registry() -> None:
             "design_audit_pass": True,
             "gate_a_plan": node_map()["mechanism_gate_a_plan"].path,
             "gate_a_report": node_map()["mechanism_gate_a"].path,
+            "agent_pilot_report": node_map()["mechanism_agent_pilot"].path,
             "status": (
                 "gate_a_passed_remaining_gates_pending"
                 if mechanism.get("gate_a_pass")
                 else "gate_a_failed_remaining_gates_pending"
             ),
             "gate_a_pass": bool(mechanism.get("gate_a_pass")),
-            "new_external_provider_runs_completed": False,
+            "new_external_provider_runs_completed": True,
+            "agent_pilot_gate_status": {
+                gate: mechanism_pilot[gate]["status"]
+                for gate in ("gate_0", "gate_b", "gate_c", "gate_d", "gate_e")
+            },
+            "agent_weight_updates_performed": False,
             "publication_ready": False,
         }
     )
@@ -865,7 +890,7 @@ def _write_current_registry() -> None:
                 "count": len(method["blockers"]),
             }
         )
-    remaining_mechanism_gates = ["gate_0", "gate_b", "gate_c", "gate_d", "gate_e"]
+    remaining_mechanism_gates = ["gate_b", "gate_c", "gate_d", "gate_e"]
     if not mechanism.get("gate_a_pass"):
         remaining_mechanism_gates.insert(1, "gate_a")
     blockers.append(
@@ -1042,6 +1067,9 @@ def check_current_evidence() -> list[str]:
         (ROOT / node_map()["mechanism_design_audit"].path).read_text()
     )
     mechanism = json.loads((ROOT / node_map()["mechanism_gate_a"].path).read_text())
+    mechanism_pilot = json.loads(
+        (ROOT / node_map()["mechanism_agent_pilot"].path).read_text()
+    )
     if mechanism_design.get("protocol_sha256") != _canonical_sha256(mechanism_protocol):
         errors.append("mechanism design-audit protocol binding is stale")
     if mechanism_design.get("gate_a_plan_sha256") != _canonical_sha256(mechanism_plan):
@@ -1054,6 +1082,12 @@ def check_current_evidence() -> list[str]:
         errors.append("mechanism Gate A plan binding is stale")
     if mechanism.get("publication_ready") is not False:
         errors.append("mechanism Gate A improperly claims publication readiness")
+    if mechanism_pilot.get("gate_0", {}).get("status") != "passed":
+        errors.append("mechanism Agent pilot Gate 0 integrity is blocked")
+    if mechanism_pilot.get("agent_weight_updates_performed") is not False:
+        errors.append("mechanism Agent pilot incorrectly records weight updates")
+    if mechanism_pilot.get("benchmark_claim_allowed") is not False:
+        errors.append("mechanism Agent pilot improperly enables benchmark claims")
     _check_bundle(errors)
 
     runtime = current.get("runtime", {})

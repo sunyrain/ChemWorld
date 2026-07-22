@@ -69,6 +69,15 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
     assert registry["formal_evaluation"]["formal_results_present"] is False
     assert registry["formal_evaluation"]["benchmark_claim_allowed"] is False
     assert registry["mechanism_adaptation"]["publication_ready"] is False
+    assert registry["mechanism_adaptation"]["new_external_provider_runs_completed"] is True
+    assert registry["mechanism_adaptation"]["agent_weight_updates_performed"] is False
+    assert registry["mechanism_adaptation"]["agent_pilot_gate_status"] == {
+        "gate_0": "passed",
+        "gate_b": "descriptive_only_insufficient_pairs",
+        "gate_c": "not_evaluated",
+        "gate_d": "not_evaluated",
+        "gate_e": "pilot_protocol_failure_observed",
+    }
 
 
 def test_current_mechanism_agent_and_legacy_agent_remain_replayable() -> None:
