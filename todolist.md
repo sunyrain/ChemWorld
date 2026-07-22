@@ -56,7 +56,7 @@ required current-registry path.
   wrong artifact role.
 - [x] Add a regression fixture in which a valid-looking current pointer names a missing file and
   prove that `--check` fails.
-- [ ] Regenerate the current DAG only after the registry and validation rules agree.
+- [x] Regenerate the current DAG only after the registry and validation rules agree.
 
 Acceptance:
 
@@ -150,7 +150,7 @@ Acceptance:
 - [x] P0.1-P0.5 acceptance checks pass.
 - [x] `python -m ruff check` passes for changed Python files.
 - [x] `git diff --check` passes.
-- [ ] The evidence DAG is refreshed only after all source changes are committed or otherwise bound
+- [x] The evidence DAG is refreshed only after all source changes are committed or otherwise bound
   according to the documented attestation pattern.
 - [x] No full-repository pytest run is required for this gate.
 
