@@ -18,7 +18,7 @@
     },
     "llm_development_plan": {
       "path": "configs/methods/llm_v0.4/llm_development_plan.json",
-      "sha256": "8440ce97903573441f8a7ba6cd94f5fa5754ee8db5a4adb621722a91e3bf2c82"
+      "sha256": "1f8189200e1ed63bdae4e1541323509092fcfff5374a81810ddbe9ee7a8a4665"
     },
     "llm_freeze": {
       "path": "configs/methods/llm_v0.4/llm_methods.json",
@@ -75,6 +75,7 @@
     "artifact:formal_execution_budget:file_missing",
     "artifact:llm_development:expected_sha256_missing",
     "artifact:llm_development:file_missing",
+    "artifact:llm_development_plan:sha256_mismatch",
     "artifact:sac_checkpoint_index:expected_sha256_missing",
     "artifact:sac_checkpoint_index:sha256_mismatch",
     "artifact:sac_development:expected_sha256_missing",
@@ -89,6 +90,7 @@
     "control:rl_development_ready",
     "formal_budget:freeze_missing",
     "llm:development_matrix:report_missing",
+    "llm:development_plan_invalid",
     "method_freeze:development_incomplete",
     "operation_baseline:development_contract_failed",
     "rl:ppo:expected_4_selected_checkpoints_found_0",
@@ -154,8 +156,8 @@
     },
     "llm": {
       "controls_ready": true,
-      "development_plan_ready": true,
-      "development_plan_schema_version": "chemworld-live-llm-development-plan-0.4.5",
+      "development_plan_ready": false,
+      "development_plan_schema_version": null,
       "development_ready": false,
       "method_ids": [
         "live_llm_a",
@@ -211,7 +213,7 @@
     }
   },
   "method_freeze_ready": false,
-  "plan_sha256": "498fee386996d8cb7780a851777b8f1a38dcda021114fcef9ada104f025bb2a3",
+  "plan_sha256": "3baeb9b9e8a28b415432fd2dc2a5411b0ca471badd55705c26d93cfea553d4f4",
   "preflight_issuance_allowed": false,
   "private_bench_manifest_opened": false,
   "reference_independence": {
@@ -230,7 +232,7 @@
     ],
     "selected_champions": {}
   },
-  "source_commit": "9f46aad8ae16089e0eacd71b7385139493f56c17",
+  "source_commit": "89c6371ee0bb2019283394778c2396866b0734c3",
   "source_tree_clean": false,
   "status": "method_freeze_preflight_blocked"
 }
