@@ -21,9 +21,10 @@ from chemworld.eval.formal_rl import (
     audit_formal_rl_contract,
     load_checkpoint_index,
 )
+from chemworld.physchem.mechanism_library import configuration_root
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_METHOD_FREEZE_PLAN_PATH = ROOT / "configs/benchmark/method_freeze_v0.4.json"
+DEFAULT_METHOD_FREEZE_PLAN_PATH = configuration_root() / "benchmark/method_freeze_v0.4.json"
 
 METHOD_FREEZE_PLAN_VERSION = "chemworld-method-freeze-plan-0.4"
 METHOD_FREEZE_REPORT_VERSION = "chemworld-method-freeze-audit-0.4"

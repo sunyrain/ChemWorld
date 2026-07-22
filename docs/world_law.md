@@ -4,7 +4,7 @@
 以及风险、成本和评分如何计算。当前版本是：
 
 ```text
-chemworld-physical-chemistry-v0.4
+chemworld-physical-chemistry-v0.5
 ```
 
 任务是同一世界律上的能力切片，不会为单个任务暗中更换物理规则。世界律 ID 会写入 task

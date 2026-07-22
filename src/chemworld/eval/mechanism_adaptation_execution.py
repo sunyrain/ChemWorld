@@ -46,17 +46,29 @@ from chemworld.eval.mechanism_adaptation import (
     validate_mechanism_adaptation_protocol,
 )
 from chemworld.eval.mechanism_design_audit import audit_mechanism_design
+from chemworld.eval.provenance import (
+    canonical_json_sha256 as canonical_sha256,
+)
+from chemworld.eval.provenance import (
+    file_sha256,
+    repository_tree_sha256,
+)
+from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.providers.deepseek import DeepSeekClient
 from chemworld.tasks import get_task
+from chemworld.world.operations import operation_contracts
 
-ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_PROTOCOL_PATH = ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json"
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_PROTOCOL_PATH = configuration_root() / "benchmark/mechanism_adaptation_v0.2.1.json"
 DEFAULT_GATE_A_PLAN_PATH = (
-    ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json"
+    configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.2.4.json"
 )
-DEFAULT_LLM_METHODS_PATH = ROOT / "configs/methods/llm_v0.4/llm_methods.json"
+DEFAULT_LLM_METHODS_PATH = configuration_root() / "methods/llm_v0.4/llm_methods.json"
 EXECUTION_SCHEMA_VERSION = "chemworld-mechanism-adaptation-execution-0.2"
-GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.2.1"
+GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.2.4"
+ONLINE_POLICY_CERTIFICATE_VERSION = (
+    "chemworld-mechanism-adaptation-online-policy-certificate-0.1"
+)
 
 _CRITICAL_INSTRUMENTS = {
     "reaction-to-crystallization": "hplc",
@@ -73,13 +85,131 @@ def load_json_object(path: str | Path) -> dict[str, Any]:
     return payload
 
 
-def file_sha256(path: str | Path) -> str:
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def gate_a_execution_contract_binding(
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Bind a Gate A result to all runtime semantics that determine its evidence."""
+
+    config_paths = {
+        "backend_contract": configuration_root() / "foundation/backend_v0.5.json",
+        "evaluation_contract": configuration_root() / "benchmark/evaluation_vnext.json",
+        "public_boundary_contract": (
+            configuration_root() / "foundation/public_boundary_security_vnext.json"
+        ),
+    }
+    binding: dict[str, Any] = {
+        "schema_version": "chemworld-gate-a-execution-binding-0.1",
+        "runtime_source_tree_sha256": repository_tree_sha256(
+            PACKAGE_ROOT,
+            relative_roots=(".",),
+        ),
+        "task_contract_hashes": {
+            str(task_id): get_task(str(task_id)).contract_hash
+            for task_id in protocol["design"]["tasks"]
+        },
+        "operation_contract_sha256": canonical_sha256(
+            {
+                key: value.to_dict()
+                for key, value in sorted(operation_contracts().items())
+            }
+        ),
+        "bound_config_sha256": {
+            key: file_sha256(path) for key, path in sorted(config_paths.items())
+        },
+        "protocol_sha256": canonical_sha256(protocol),
+        "gate_a_plan_sha256": canonical_sha256(plan),
+    }
+    binding["binding_sha256"] = canonical_sha256(binding)
+    return binding
 
 
-def canonical_sha256(value: Any) -> str:
-    encoded = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
-    return hashlib.sha256(encoded).hexdigest()
+def gate_a_certificate_decision(
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+    *,
+    controlled_gate_pass: bool,
+    online_policy_certificate: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Compose Gate A from two independently bound required certificates.
+
+    The controlled matched oracle establishes that the public experiment contract
+    contains diagnostic information.  It is not a substitute for demonstrating that
+    an online policy can select and use diagnostic experiments under the same budget.
+    Missing, stale, or malformed online-policy evidence therefore fails closed.
+    """
+
+    requirement = plan.get("online_policy_feasible_certificate")
+    if not isinstance(requirement, Mapping) or requirement.get(
+        "required_before_formal_mechanism_claim"
+    ) is not True:
+        raise ValueError("Gate A plan must require an online-policy-feasible certificate")
+
+    expected_protocol_sha = canonical_sha256(protocol)
+    expected_plan_sha = canonical_sha256(plan)
+    primary_budget = int(plan["held_out_certificate"]["primary_gate_budget"])
+    if online_policy_certificate is None:
+        online_summary = {
+            "schema_version": ONLINE_POLICY_CERTIFICATE_VERSION,
+            "status": "pending_execution",
+            "gate_pass": False,
+            "required": True,
+            "certificate_present": False,
+            "primary_gate_budget": primary_budget,
+        }
+    else:
+        certificate = dict(online_policy_certificate)
+        errors: list[str] = []
+        expected_values = {
+            "schema_version": ONLINE_POLICY_CERTIFICATE_VERSION,
+            "certificate_scope": "online_policy_feasible_diagnosis",
+            "protocol_sha256": expected_protocol_sha,
+            "gate_a_plan_sha256": expected_plan_sha,
+            "primary_gate_budget": primary_budget,
+            "hidden_change_time": True,
+            "uses_actual_available_pre_change_history": True,
+            "uses_actual_action_measurement_and_budget_contract": True,
+        }
+        for field, expected in expected_values.items():
+            if certificate.get(field) != expected:
+                errors.append(f"{field} must equal {expected!r}")
+        gate_pass = certificate.get("gate_pass")
+        if not isinstance(gate_pass, bool):
+            errors.append("gate_pass must be boolean")
+        expected_status = "passed" if gate_pass is True else "failed"
+        if certificate.get("status") != expected_status:
+            errors.append(f"status must equal {expected_status!r}")
+        if errors:
+            raise ValueError("invalid online-policy-feasible certificate: " + "; ".join(errors))
+        online_summary = {
+            **certificate,
+            "required": True,
+            "certificate_present": True,
+            "certificate_sha256": canonical_sha256(certificate),
+        }
+
+    online_gate_pass = online_summary["gate_pass"] is True
+    combined_pass = bool(controlled_gate_pass and online_gate_pass)
+    if combined_pass:
+        status = "gate_a_passed"
+    elif not controlled_gate_pass:
+        status = "gate_a_failed_controlled_matched_certificate"
+    elif online_summary["certificate_present"] is not True:
+        status = "gate_a_blocked_online_policy_certificate_pending"
+    else:
+        status = "gate_a_failed_online_policy_certificate"
+    return {
+        "schema_version": "chemworld-mechanism-adaptation-gate-a-decision-0.1",
+        "status": status,
+        "required_certificates": [
+            "controlled_matched_identifiability",
+            "online_policy_feasible_diagnosis",
+        ],
+        "controlled_matched_gate_pass": bool(controlled_gate_pass),
+        "online_policy_feasible_gate_pass": online_gate_pass,
+        "online_policy_feasible_certificate": online_summary,
+        "gate_a_pass": combined_pass,
+    }
 
 
 def build_action_library(
@@ -213,8 +343,7 @@ def _sample_paired_contrast_job(job: Mapping[str, Any]) -> list[float]:
 
     action_ids = [str(item) for item in job["action_ids"]]
     action_library = {
-        str(key): np.asarray(value, dtype=float)
-        for key, value in job["action_library"].items()
+        str(key): np.asarray(value, dtype=float) for key, value in job["action_library"].items()
     }
     with PublicCampaignObservationSession(
         task_id=str(job["task_id"]),
@@ -253,8 +382,7 @@ def _execute_gate_a_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
     maximum_budget = max(budgets)
     action_ids = [str(item) for item in job["action_ids"]]
     action_library = {
-        str(key): np.asarray(value, dtype=float)
-        for key, value in job["action_library"].items()
+        str(key): np.asarray(value, dtype=float) for key, value in job["action_library"].items()
     }
 
     def loaded_oracle() -> GaussianMechanismOracle:
@@ -373,8 +501,7 @@ def _fit_paired_batch_oracle(
     batch_samples: dict[tuple[str, str], list[list[float]]] = {}
     for candidate_id in candidate_ids:
         counts = {
-            len(per_action_samples[(str(candidate_id), action_id)])
-            for action_id in action_ids
+            len(per_action_samples[(str(candidate_id), action_id)]) for action_id in action_ids
         }
         if len(counts) != 1:
             raise ValueError("paired Gate A samples must align by nuisance seed")
@@ -426,8 +553,7 @@ def _execute_paired_gate_a_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
                     "interventions": job["interventions"],
                     "action_ids": action_ids,
                     "action_library": {
-                        action_id: job["action_library"][action_id]
-                        for action_id in action_ids
+                        action_id: job["action_library"][action_id] for action_id in action_ids
                     },
                     "pre_observation_seed": _stable_seed(
                         int(job["world_seed"]), f"gate-a-v0.2.2:{batch_id}:pre"
@@ -456,11 +582,50 @@ def _execute_paired_gate_a_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
     return rows
 
 
+def validate_precomputed_design_audit(
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+    report: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Validate a frozen design audit before reusing it in an expensive Gate run."""
+
+    expected = {
+        "pass": True,
+        "protocol_id": protocol.get("protocol_id"),
+        "gate_a_plan_id": plan.get("plan_id"),
+        "protocol_sha256": canonical_sha256(protocol),
+        "gate_a_plan_sha256": canonical_sha256(plan),
+    }
+    mismatches = [
+        key for key, value in expected.items() if report.get(key) != value
+    ]
+    if mismatches:
+        raise ValueError(
+            "precomputed mechanism design audit is stale or failed: "
+            + ", ".join(mismatches)
+        )
+    return dict(report)
+
+
+def _emit_gate_a_progress(
+    callback: Callable[[Mapping[str, Any]], None] | None,
+    *,
+    event: str,
+    **details: Any,
+) -> None:
+    if callback is not None:
+        callback({"stage": "gate-a", "event": event, **details})
+
+
 def _run_paired_gate_a(
     protocol: Mapping[str, Any],
     plan: Mapping[str, Any],
+    *,
+    online_policy_certificate: Mapping[str, Any] | None = None,
+    design_validity_audit: Mapping[str, Any] | None = None,
+    progress_callback: Callable[[Mapping[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
-    """Run the v0.2.2 pre/post paired, budget-matched Gate A certificate."""
+    """Run the pre/post paired controlled certificate and compose full Gate A."""
 
     errors = validate_mechanism_adaptation_protocol(protocol)
     if errors:
@@ -470,20 +635,25 @@ def _run_paired_gate_a(
     certificate_plan = plan["held_out_certificate"]
     phase_plan = plan["paired_phase_design"]
     gate = protocol["gates"]["gate_a"]
-    batch_size = int(phase_plan["pre_change_reference_experiments"])
+    matched_primary_budget = int(phase_plan["pre_change_reference_experiments"])
     protocol_pre_change = int(protocol["design"]["pre_change_experiments"])
-    if batch_size != protocol_pre_change:
+    if matched_primary_budget != protocol_pre_change:
         raise ValueError("paired Gate A must use the protocol pre-change experiment budget")
     budgets = [int(item) for item in certificate_plan["budgets"]]
-    if budgets != [batch_size]:
-        raise ValueError("paired Gate A certifies exactly the matched pre-change budget")
-    if any(item not in gate["budget_checkpoints"] for item in budgets):
-        raise ValueError("paired Gate A budget must be a frozen protocol checkpoint")
+    if budgets != [int(item) for item in gate["budget_checkpoints"]]:
+        raise ValueError("paired Gate A budgets must match the frozen protocol checkpoints")
     primary_budget = int(certificate_plan["primary_gate_budget"])
-    if primary_budget != batch_size:
+    if primary_budget != matched_primary_budget:
         raise ValueError("paired Gate A primary budget must equal the matched batch size")
-    if int(action_plan["action_count_per_task"]) < batch_size:
-        raise ValueError("paired Gate A action library cannot underfill its batch")
+    if int(action_plan["action_count_per_task"]) < max(budgets):
+        raise ValueError("paired Gate A action library cannot underfill its largest budget")
+    if (
+        len(budgets) > 1
+        and phase_plan.get("diagnostic_curve_matches_reference_count_to_budget") is not True
+    ):
+        raise ValueError(
+            "multi-budget paired Gate A must declare matched reference counts for its curve"
+        )
     if phase_plan.get("same_hidden_world_seed_across_phases") is not True:
         raise ValueError("paired Gate A requires the same hidden-world seed across phases")
     if phase_plan.get("independent_observation_seed_across_phases") is not True:
@@ -499,11 +669,21 @@ def _run_paired_gate_a(
         )
         for task_id in protocol["design"]["tasks"]
     }
-    design_audit = audit_mechanism_design(
-        protocol,
-        plan,
-        action_libraries=action_libraries,
-    )
+    if design_validity_audit is None:
+        _emit_gate_a_progress(progress_callback, event="design_audit_started")
+        design_audit = audit_mechanism_design(
+            protocol,
+            plan,
+            action_libraries=action_libraries,
+        )
+        _emit_gate_a_progress(progress_callback, event="design_audit_completed")
+    else:
+        design_audit = validate_precomputed_design_audit(
+            protocol,
+            plan,
+            design_validity_audit,
+        )
+        _emit_gate_a_progress(progress_callback, event="design_audit_reused")
     if not design_audit["pass"]:
         failed = "; ".join(
             f"{item.get('task_id')}:{item['check']}" for item in design_audit["failures"]
@@ -511,10 +691,10 @@ def _run_paired_gate_a(
         raise ValueError(f"mechanism design audit failed: {failed}")
 
     task_reports: dict[str, Any] = {}
-    active_truths: list[str] = []
-    active_predictions: list[str] = []
-    decoder_truths: list[str] = []
-    decoder_predictions: list[str] = []
+    active_truths: dict[int, list[str]] = {budget: [] for budget in budgets}
+    active_predictions: dict[int, list[str]] = {budget: [] for budget in budgets}
+    decoder_truths: dict[int, list[str]] = {budget: [] for budget in budgets}
+    decoder_predictions: dict[int, list[str]] = {budget: [] for budget in budgets}
     candidate_union: list[str] = []
     sample_count = int(fit_plan["samples_per_candidate_action"])
 
@@ -528,9 +708,7 @@ def _run_paired_gate_a(
         action_library = action_libraries[task_id]
         action_ids = list(action_library)
         fit_world_seeds = [
-            int(fit_plan["nuisance_seed_namespace_start"])
-            + task_index * 1_000_000
-            + index
+            int(fit_plan["nuisance_seed_namespace_start"]) + task_index * 1_000_000 + index
             for index in range(sample_count)
         ]
         fit_keys: list[tuple[str, str]] = []
@@ -545,9 +723,7 @@ def _run_paired_gate_a(
                             "world_seed": world_seed,
                             "interventions": contract["interventions"][candidate_id],
                             "action_ids": [action_id],
-                            "action_library": {
-                                action_id: action_library[action_id].tolist()
-                            },
+                            "action_library": {action_id: action_library[action_id].tolist()},
                             "pre_observation_seed": _stable_seed(
                                 world_seed, f"gate-a-v0.2.2:{action_id}:fit-pre"
                             ),
@@ -556,10 +732,22 @@ def _run_paired_gate_a(
                             ),
                         }
                     )
+        _emit_gate_a_progress(
+            progress_callback,
+            event="predictive_fit_started",
+            task_id=task_id,
+            job_count=len(fit_jobs),
+        )
         fit_results = _execute_jobs(
             _sample_paired_contrast_job,
             fit_jobs,
             workers=int(fit_plan.get("execution_workers", 1)),
+        )
+        _emit_gate_a_progress(
+            progress_callback,
+            event="predictive_fit_completed",
+            task_id=task_id,
+            job_count=len(fit_jobs),
         )
         per_action_samples: dict[tuple[str, str], list[Sequence[float]]] = {
             (candidate_id, action_id): []
@@ -569,85 +757,111 @@ def _run_paired_gate_a(
         for key, values in zip(fit_keys, fit_results, strict=True):
             per_action_samples[key].append(values)
 
-        oracle_seed = _stable_seed(int(fit_plan["oracle_seed"]), task_id)
-        oracle, batches = _fit_paired_batch_oracle(
-            candidate_ids=candidate_ids,
-            action_ids=action_ids,
-            per_action_samples=per_action_samples,
-            batch_size=batch_size,
-            variance_floor=float(fit_plan["variance_floor"]),
-            seed=oracle_seed,
-        )
-        information = oracle.expected_information_by_action(
-            draws=int(certificate_plan["information_draws_per_batch"])
-        )
-        active_batch_id = max(information, key=information.__getitem__)
-        decoder_batch_id = _paired_action_id(action_ids[:batch_size])
-        exported_predictives = oracle.export_predictives()
-        serialized_actions = {
-            key: vector.tolist() for key, vector in action_library.items()
-        }
-        trial_jobs = []
-        trial_keys: list[tuple[str, int]] = []
-        for candidate_id in candidate_ids:
-            for repeat_index in range(int(certificate_plan["world_seeds_per_family"])):
-                world_seed = (
-                    int(certificate_plan["seed_namespace_start"])
-                    + task_index * 1_000_000
-                    + repeat_index
-                )
-                trial_keys.append((candidate_id, repeat_index))
-                trial_jobs.append(
-                    {
-                        "task_id": task_id,
-                        "truth_id": candidate_id,
-                        "world_seed": world_seed,
-                        "interventions": contract["interventions"][candidate_id],
-                        "candidate_ids": candidate_ids,
-                        "batch_ids": list(batches),
-                        "batches": {key: list(value) for key, value in batches.items()},
-                        "active_batch_id": active_batch_id,
-                        "decoder_batch_id": decoder_batch_id,
-                        "action_library": serialized_actions,
-                        "predictives": exported_predictives,
-                        "variance_floor": float(fit_plan["variance_floor"]),
-                        "oracle_seed": oracle_seed,
-                    }
-                )
-        completed_trials = _execute_jobs(
-            _execute_paired_gate_a_trial_job,
-            trial_jobs,
-            workers=int(certificate_plan.get("execution_workers", 1)),
-        )
+        serialized_actions = {key: vector.tolist() for key, vector in action_library.items()}
         task_trials: dict[str, list[dict[str, Any]]] = {
-            "active_budget_2": [],
-            "decoder_budget_2": [],
+            f"{role}_budget_{budget}": []
+            for budget in budgets
+            for role in ("active", "decoder")
         }
-        for (truth_id, _repeat_index), completed in zip(
-            trial_keys, completed_trials, strict=True
-        ):
-            qualified_truth = _qualified_candidate(task_id, truth_id)
-            active = completed["active"]
-            decoder = completed["decoder"]
-            active_truths.append(qualified_truth)
-            active_predictions.append(
-                _qualified_candidate(task_id, str(active["prediction"]))
+        budget_designs: dict[str, Any] = {}
+        for budget in budgets:
+            oracle_seed = _stable_seed(
+                int(fit_plan["oracle_seed"]), f"{task_id}:budget-{budget}"
             )
-            decoder_truths.append(qualified_truth)
-            decoder_predictions.append(
-                _qualified_candidate(task_id, str(decoder["prediction"]))
+            oracle, batches = _fit_paired_batch_oracle(
+                candidate_ids=candidate_ids,
+                action_ids=action_ids,
+                per_action_samples=per_action_samples,
+                batch_size=budget,
+                variance_floor=float(fit_plan["variance_floor"]),
+                seed=oracle_seed,
             )
-            task_trials["active_budget_2"].append(active)
-            task_trials["decoder_budget_2"].append(decoder)
+            information = oracle.expected_information_by_action(
+                draws=int(certificate_plan["information_draws_per_batch"])
+            )
+            active_batch_id = max(information, key=information.__getitem__)
+            decoder_batch_id = _paired_action_id(action_ids[:budget])
+            trial_jobs = []
+            trial_keys: list[tuple[str, int]] = []
+            for candidate_id in candidate_ids:
+                for repeat_index in range(
+                    int(certificate_plan["world_seeds_per_family"])
+                ):
+                    world_seed = (
+                        int(certificate_plan["seed_namespace_start"])
+                        + task_index * 1_000_000
+                        + repeat_index
+                    )
+                    trial_keys.append((candidate_id, repeat_index))
+                    trial_jobs.append(
+                        {
+                            "task_id": task_id,
+                            "truth_id": candidate_id,
+                            "world_seed": world_seed,
+                            "interventions": contract["interventions"][candidate_id],
+                            "candidate_ids": candidate_ids,
+                            "batch_ids": list(batches),
+                            "batches": {
+                                key: list(value) for key, value in batches.items()
+                            },
+                            "active_batch_id": active_batch_id,
+                            "decoder_batch_id": decoder_batch_id,
+                            "action_library": serialized_actions,
+                            "predictives": oracle.export_predictives(),
+                            "variance_floor": float(fit_plan["variance_floor"]),
+                            "oracle_seed": oracle_seed,
+                        }
+                    )
+            _emit_gate_a_progress(
+                progress_callback,
+                event="certificate_trials_started",
+                task_id=task_id,
+                budget=budget,
+                job_count=len(trial_jobs),
+            )
+            completed_trials = _execute_jobs(
+                _execute_paired_gate_a_trial_job,
+                trial_jobs,
+                workers=int(certificate_plan.get("execution_workers", 1)),
+            )
+            _emit_gate_a_progress(
+                progress_callback,
+                event="certificate_trials_completed",
+                task_id=task_id,
+                budget=budget,
+                job_count=len(trial_jobs),
+            )
+            for (truth_id, _repeat_index), completed in zip(
+                trial_keys, completed_trials, strict=True
+            ):
+                qualified_truth = _qualified_candidate(task_id, truth_id)
+                active = completed["active"]
+                decoder = completed["decoder"]
+                active_truths[budget].append(qualified_truth)
+                active_predictions[budget].append(
+                    _qualified_candidate(task_id, str(active["prediction"]))
+                )
+                decoder_truths[budget].append(qualified_truth)
+                decoder_predictions[budget].append(
+                    _qualified_candidate(task_id, str(decoder["prediction"]))
+                )
+                task_trials[f"active_budget_{budget}"].append(active)
+                task_trials[f"decoder_budget_{budget}"].append(decoder)
+            budget_designs[str(budget)] = {
+                "matched_pre_change_reference_experiments": budget,
+                "post_change_diagnostic_experiments": budget,
+                "online_history_aligned": budget == primary_budget,
+                "active_batch_id": active_batch_id,
+                "active_batch_information_nats": float(information[active_batch_id]),
+                "decoder_batch_id": decoder_batch_id,
+                "batch_information_nats": {
+                    key: float(value) for key, value in information.items()
+                },
+            }
         task_reports[task_id] = {
             "candidate_ids": candidate_ids,
             "action_library": serialized_actions,
-            "active_batch_id": active_batch_id,
-            "active_batch_information_nats": float(information[active_batch_id]),
-            "decoder_batch_id": decoder_batch_id,
-            "batch_information_nats": {
-                key: float(value) for key, value in information.items()
-            },
+            "budget_designs": budget_designs,
             "trials": task_trials,
         }
 
@@ -656,29 +870,46 @@ def _run_paired_gate_a(
         for task_id in protocol["design"]["tasks"]
         for candidate_id in protocol["task_mechanism_contracts"][task_id]["candidate_ids"]
     ]
-    active_certificate = identifiability_certificate(
-        truths=active_truths,
-        predictions=active_predictions,
-        candidate_ids=qualified_candidates,
-        overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
-        family_recall_lower_bound_threshold=float(gate["per_family_recall_wilson_lower_bound"]),
+    active_certificates = {
+        budget: identifiability_certificate(
+            truths=active_truths[budget],
+            predictions=active_predictions[budget],
+            candidate_ids=qualified_candidates,
+            overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
+            family_recall_lower_bound_threshold=float(
+                gate["per_family_recall_wilson_lower_bound"]
+            ),
+        )
+        for budget in budgets
+    }
+    decoder_certificates = {
+        budget: identifiability_certificate(
+            truths=decoder_truths[budget],
+            predictions=decoder_predictions[budget],
+            candidate_ids=qualified_candidates,
+            overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
+            family_recall_lower_bound_threshold=float(
+                gate["per_family_recall_wilson_lower_bound"]
+            ),
+        )
+        for budget in budgets
+    }
+    controlled_gate_pass = bool(active_certificates[primary_budget]["gate_pass"])
+    decision = gate_a_certificate_decision(
+        protocol,
+        plan,
+        controlled_gate_pass=controlled_gate_pass,
+        online_policy_certificate=online_policy_certificate,
     )
-    decoder_certificate = identifiability_certificate(
-        truths=decoder_truths,
-        predictions=decoder_predictions,
-        candidate_ids=qualified_candidates,
-        overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
-        family_recall_lower_bound_threshold=float(gate["per_family_recall_wilson_lower_bound"]),
-    )
-    gate_pass = bool(active_certificate["gate_pass"])
     return {
-        "schema_version": "chemworld-mechanism-adaptation-gate-a-report-0.2.2",
-        "status": "gate_a_passed" if gate_pass else "gate_a_failed",
+        "schema_version": GATE_A_REPORT_VERSION,
+        "status": decision["status"],
         "formal_benchmark_result": False,
         "protocol_id": protocol["protocol_id"],
         "protocol_sha256": canonical_sha256(protocol),
         "gate_a_plan_id": plan["plan_id"],
         "gate_a_plan_sha256": canonical_sha256(plan),
+        "execution_contract_binding": gate_a_execution_contract_binding(protocol, plan),
         "environment_role": protocol["environment_role"],
         "agent_weight_updates_performed": False,
         "design_validity_audit": design_audit,
@@ -688,29 +919,37 @@ def _run_paired_gate_a(
             "performed": True,
             "mode": "paired_common_hidden_world_with_independent_phase_observation_noise",
             "predictive_samples_per_candidate_action": sample_count,
-            "held_out_world_seeds_per_family": int(
-                certificate_plan["world_seeds_per_family"]
-            ),
+            "held_out_world_seeds_per_family": int(certificate_plan["world_seeds_per_family"]),
             "same_world_seeds_reused_across_candidate_twins": True,
             "fit_and_certificate_seed_namespaces_disjoint": True,
         },
         "primary_gate_budget": primary_budget,
         "active_oracle": {
             "type": "batch_information_gain_over_matched_pre_post_recipe_contrasts",
-            "gate_pass": gate_pass,
+            "gate_pass": controlled_gate_pass,
             "primary_budget": primary_budget,
-            "by_budget": {str(primary_budget): active_certificate},
+            "by_budget": {
+                str(budget): active_certificates[budget] for budget in budgets
+            },
         },
         "fixed_trajectory_decoder": {
             "controls_gate": False,
-            "by_budget": {str(primary_budget): decoder_certificate},
+            "by_budget": {
+                str(budget): decoder_certificates[budget] for budget in budgets
+            },
         },
-        "gate_a_pass": gate_pass,
+        "certificate_decision": decision,
+        "online_policy_feasible_certificate": decision[
+            "online_policy_feasible_certificate"
+        ],
+        "gate_a_pass": decision["gate_a_pass"],
         "task_reports": task_reports,
         "interpretation": (
-            "A pass establishes identifiability from two matched pre/post public recipe "
-            "contrasts under a shared hidden world and independent phase observation noise; "
-            "it does not establish that an evaluated Agent discovers the mechanism."
+            "The primary checkpoint establishes controlled identifiability from an "
+            "online-history-aligned matched pre/post public recipe budget. Larger "
+            "checkpoints are diagnostic curves with equally sized matched reference sets; "
+            "they do not establish online-policy-feasible mechanism discovery. Full Gate A "
+            "requires a separately bound online-policy-feasible certificate."
         ),
         "candidate_family_names": candidate_union,
         "publication_ready": False,
@@ -720,11 +959,25 @@ def _run_paired_gate_a(
 def run_gate_a(
     protocol: Mapping[str, Any],
     plan: Mapping[str, Any],
+    *,
+    online_policy_certificate: Mapping[str, Any] | None = None,
+    design_validity_audit: Mapping[str, Any] | None = None,
+    progress_callback: Callable[[Mapping[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Run the frozen active-oracle and fixed-decoder identifiability checks."""
 
-    if plan.get("schema_version") == "chemworld-mechanism-adaptation-gate-a-plan-0.2.2":
-        return _run_paired_gate_a(protocol, plan)
+    if plan.get("schema_version") in {
+        "chemworld-mechanism-adaptation-gate-a-plan-0.2.2",
+        "chemworld-mechanism-adaptation-gate-a-plan-0.2.3",
+        "chemworld-mechanism-adaptation-gate-a-plan-0.2.4",
+    }:
+        return _run_paired_gate_a(
+            protocol,
+            plan,
+            online_policy_certificate=online_policy_certificate,
+            design_validity_audit=design_validity_audit,
+            progress_callback=progress_callback,
+        )
     errors = validate_mechanism_adaptation_protocol(protocol)
     if errors:
         raise ValueError("invalid mechanism-adaptation protocol: " + "; ".join(errors))
@@ -835,9 +1088,7 @@ def run_gate_a(
             for repeat_index in range(int(certificate_plan["world_seeds_per_family"]))
         ]
         exported_predictives = oracle.export_predictives()
-        serialized_actions = {
-            key: vector.tolist() for key, vector in action_library.items()
-        }
+        serialized_actions = {key: vector.tolist() for key, vector in action_library.items()}
         trial_jobs = [
             {
                 "task_id": task_id,
@@ -854,9 +1105,7 @@ def run_gate_a(
                 "predictives": exported_predictives,
                 "variance_floor": float(fit_plan["variance_floor"]),
                 "oracle_seed": oracle.seed,
-                "information_draws": int(
-                    certificate_plan["information_draws_per_action"]
-                ),
+                "information_draws": int(certificate_plan["information_draws_per_action"]),
                 "repeat_policy": str(action_plan["repeat_policy"]),
             }
             for candidate_index, truth_id, repeat_index in trial_keys
@@ -902,29 +1151,32 @@ def run_gate_a(
             predictions=active_predictions[budget],
             candidate_ids=qualified_candidates,
             overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
-            family_recall_lower_bound_threshold=float(
-                gate["per_family_recall_wilson_lower_bound"]
-            ),
+            family_recall_lower_bound_threshold=float(gate["per_family_recall_wilson_lower_bound"]),
         )
         decoder_by_budget[budget] = identifiability_certificate(
             truths=decoder_truths[budget],
             predictions=decoder_predictions[budget],
             candidate_ids=qualified_candidates,
             overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
-            family_recall_lower_bound_threshold=float(
-                gate["per_family_recall_wilson_lower_bound"]
-            ),
+            family_recall_lower_bound_threshold=float(gate["per_family_recall_wilson_lower_bound"]),
         )
 
     primary_active = active_by_budget[primary_budget]
+    decision = gate_a_certificate_decision(
+        protocol,
+        plan,
+        controlled_gate_pass=bool(primary_active["gate_pass"]),
+        online_policy_certificate=online_policy_certificate,
+    )
     return {
         "schema_version": GATE_A_REPORT_VERSION,
-        "status": "gate_a_passed" if primary_active["gate_pass"] else "gate_a_failed",
+        "status": decision["status"],
         "formal_benchmark_result": False,
         "protocol_id": protocol["protocol_id"],
         "protocol_sha256": canonical_sha256(protocol),
         "gate_a_plan_id": plan["plan_id"],
         "gate_a_plan_sha256": canonical_sha256(plan),
+        "execution_contract_binding": gate_a_execution_contract_binding(protocol, plan),
         "environment_role": protocol["environment_role"],
         "agent_weight_updates_performed": False,
         "design_validity_audit": design_audit,
@@ -934,9 +1186,7 @@ def run_gate_a(
             "predictive_samples_per_candidate_action": int(
                 fit_plan["samples_per_candidate_action"]
             ),
-            "held_out_world_seeds_per_family": int(
-                certificate_plan["world_seeds_per_family"]
-            ),
+            "held_out_world_seeds_per_family": int(certificate_plan["world_seeds_per_family"]),
             "fit_and_certificate_seed_namespaces_disjoint": True,
         },
         "primary_gate_budget": primary_budget,
@@ -949,11 +1199,16 @@ def run_gate_a(
             "controls_gate": False,
             "by_budget": {str(key): value for key, value in decoder_by_budget.items()},
         },
-        "gate_a_pass": bool(primary_active["gate_pass"]),
+        "certificate_decision": decision,
+        "online_policy_feasible_certificate": decision[
+            "online_policy_feasible_certificate"
+        ],
+        "gate_a_pass": decision["gate_a_pass"],
         "task_reports": task_reports,
         "interpretation": (
-            "A pass establishes budgeted identifiability for this evaluator-side oracle; "
-            "it does not establish that any evaluated Agent discovers the mechanism."
+            "The controlled oracle establishes budgeted identifiability only. Full Gate A "
+            "also requires a separately bound online-policy-feasible certificate; neither "
+            "certificate alone establishes evaluated-Agent mechanism discovery."
         ),
         "candidate_family_names": candidate_union,
         "publication_ready": False,
@@ -969,9 +1224,7 @@ def run_campaign_row(
     method_id: str = "live_llm_b",
     spectrum_disclosure: str = "assigned",
     feedback_condition: FeedbackCondition = "true_feedback",
-    progress_callback: (
-        Callable[[str, Any, list[dict[str, Any]]], None] | None
-    ) = None,
+    progress_callback: (Callable[[str, Any, list[dict[str, Any]]], None] | None) = None,
 ) -> dict[str, Any]:
     """Execute one frozen changed/no-change row with a real DeepSeek-backed Agent."""
 
@@ -991,9 +1244,7 @@ def run_campaign_row(
     )
     change_time = int(row["phase_reset_after_experiment"])
     horizon = int(row["total_experiment_horizon"])
-    condition_suffix = (
-        "" if feedback_condition == "true_feedback" else f"--{feedback_condition}"
-    )
+    condition_suffix = "" if feedback_condition == "true_feedback" else f"--{feedback_condition}"
     campaign_id = f"{row['pair_id']}--{row['arm']}{condition_suffix}"
     result = run_two_phase_campaign(
         task_id=task_id,
@@ -1004,6 +1255,7 @@ def run_campaign_row(
         shifted_interventions=row["world_interventions"],
         output_root=Path(output_root) / "trajectories",
         campaign_id=campaign_id,
+        observation_pair_id=str(row["pair_id"]),
         progress_callback=progress_callback,
     )
     result.update(

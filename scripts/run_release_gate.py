@@ -18,6 +18,11 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from chemworld.eval.provenance import git_source_commit, git_worktree_dirty  # noqa: E402
+
 BACKEND_REPORT = ROOT / "workstreams/world_foundation/reports/backend-v0.5.json"
 
 
@@ -167,23 +172,16 @@ def parse_args() -> argparse.Namespace:
 
 
 def _git_commit() -> str:
-    completed = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return completed.stdout.strip()
+    return git_source_commit(ROOT)
 
 
-def _tracked_tree_dirty() -> bool:
-    completed = subprocess.run(
-        ["git", "status", "--porcelain", "--untracked-files=no"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return bool(completed.stdout.strip())
+def _worktree_dirty(*, output_dir: Path | None = None) -> bool:
+    excluded_prefixes: tuple[str, ...] = ()
+    if output_dir is not None:
+        resolved_output = output_dir.resolve()
+        if resolved_output.is_relative_to(ROOT.resolve()):
+            excluded_prefixes = (resolved_output.relative_to(ROOT.resolve()).as_posix(),)
+    return git_worktree_dirty(ROOT, excluded_prefixes=excluded_prefixes)
 
 
 def _source_state_control(
@@ -249,9 +247,9 @@ def main() -> int:
 
     output_dir.mkdir(parents=True, exist_ok=True)
     source_commit = _git_commit()
-    dirty_at_start = _tracked_tree_dirty()
+    dirty_at_start = _worktree_dirty(output_dir=output_dir)
     if dirty_at_start and not args.allow_dirty_candidate:
-        raise RuntimeError("release gate requires a clean tracked source tree")
+        raise RuntimeError("release gate requires a clean source worktree")
     summary: dict[str, Any] = {
         "schema_version": "chemworld-release-gate-0.3",
         "status": "running",
@@ -293,7 +291,7 @@ def main() -> int:
             break
 
     finished_source_commit = _git_commit()
-    dirty_at_finish = _tracked_tree_dirty()
+    dirty_at_finish = _worktree_dirty(output_dir=output_dir)
     source_state = _source_state_control(
         source_commit=source_commit,
         finished_source_commit=finished_source_commit,

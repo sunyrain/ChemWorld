@@ -29,6 +29,7 @@ from chemworld.world.operations import (
     OPERATION_TYPES,
     REACTION_OPERATIONS,
     SEPARATION_OPERATIONS,
+    operation_contracts,
 )
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.scoring import (
@@ -39,6 +40,7 @@ from chemworld.world.scoring import (
 from chemworld.world.state_factory import initial_chemworld_state
 from chemworld.wrappers import (
     ActionMaskWrapper,
+    ContinuousEventActionWrapper,
     NaNObservationWrapper,
     SafetyCostWrapper,
     validate_event_action,
@@ -136,7 +138,7 @@ def test_core_task_cards_are_complete_release_contracts() -> None:
         task = get_task(task_id)
         contract = card["benchmark_contract"]
         assert "core" in card["suite_memberships"]
-        assert card["task_contract_version"] == "chemworld-task-contract-0.9"
+        assert card["task_contract_version"] == "chemworld-task-contract-1.1"
         assert card["task_contract_hash"] == task.contract_hash
         assert len(card["task_contract_hash"]) == 64
         assert contract["objective"] == task.objective
@@ -147,7 +149,13 @@ def test_core_task_cards_are_complete_release_contracts() -> None:
         assert contract["allowed_operations"] == list(task.allowed_operations)
         assert contract["allowed_instruments"] == list(task.allowed_instruments)
         assert contract["safety_limit"] == task.safety_limit
-        assert card["reward_leaderboard_metric"]["threshold"] == task.threshold
+        assert (
+            card["reward_leaderboard_metric"]["objective_score_threshold"]
+            == task.threshold
+        )
+        assert card["reward_leaderboard_metric"]["threshold_semantics"] == (
+            "leaderboard_objective_score_not_primary_metric"
+        )
         assert card["kernel_maturity"]["modules"]
         assert card["physics_maturity"] in {"proxy", "lite", "reference_validated"}
         assert card["expected_qualitative_behavior"]
@@ -227,7 +235,10 @@ def test_env_task_info_exposes_task_and_runtime_profile_hashes() -> None:
         assert task.to_dict()["contract_hash"] == task.contract_hash
         assert profile.to_dict()["profile_hash"] == profile.profile_hash
         assert info["task_contract_hash"] == task.contract_hash
-        assert info["runtime"]["profile"]["profile_hash"] == info["runtime_profile_hash"]
+        assert (
+            env.unwrapped.runtime.to_dict()["profile"]["profile_hash"]
+            == info["runtime_profile_hash"]
+        )
         assert info["runtime_profile_hash"] == profile.profile_hash
         assert len(info["task_contract_hash"]) == 64
         assert len(info["runtime_profile_hash"]) == 64
@@ -400,7 +411,12 @@ def test_action_codec_roundtrip_vector() -> None:
     vector = codec.encode_vector(action)
     decoded = codec.decode_vector(vector)
     assert decoded["operation"] == "heat"
-    assert decoded["instrument"] == "hplc"
+    assert set(decoded) == {
+        "operation",
+        "target_temperature_K",
+        "duration_s",
+        "stirring_speed_rpm",
+    }
     assert decoded["target_temperature_K"] == 386.0
     assert decoded["duration_s"] == 900.0
     process_vector = codec.encode_vector(
@@ -414,6 +430,27 @@ def test_action_codec_roundtrip_vector() -> None:
     process_decoded = codec.decode_vector(process_vector)
     assert process_decoded["operation"] == "distill"
     assert process_decoded["reflux_ratio"] == 2.5
+
+
+def test_raw_and_flat_action_spaces_emit_only_operation_conditional_fields() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        contracts = operation_contracts()
+        for _ in range(32):
+            action = env.action_space.sample()
+            operation = OPERATION_TYPES[int(action["operation"])]
+            assert set(action) == {"operation", *contracts[operation].required_fields}
+            assert "payload_fields_declared" not in env.unwrapped.validate_action(action)[
+                "invalid_reasons"
+            ]
+
+        wrapped = ContinuousEventActionWrapper(env)
+        for _ in range(32):
+            action = wrapped.action(wrapped.action_space.sample())
+            operation = OPERATION_TYPES[int(action["operation"])]
+            assert set(action) == {"operation", *contracts[operation].required_fields}
+    finally:
+        env.close()
 
 
 @pytest.mark.parametrize(
@@ -436,9 +473,7 @@ def test_action_codec_rejects_nonfinite_encoded_payloads_and_choices() -> None:
     with pytest.raises(ValueError, match="amount_mol must be finite"):
         codec.encode_vector({"operation": "add_reagent", "amount_mol": float("inf")})
     with pytest.raises(ValueError, match="finite integer categorical index"):
-        codec.canonicalize(
-            {"operation": "add_solvent", "volume_L": 0.02, "solvent": float("inf")}
-        )
+        codec.canonicalize({"operation": "add_solvent", "volume_L": 0.02, "solvent": float("inf")})
 
 
 def test_terminal_recipe_action_boundaries_reject_nonfinite_coordinates() -> None:
@@ -763,9 +798,7 @@ def test_process_preconditions_are_stateful() -> None:
         ]
         _, _, _, _, info = env.step({"operation": "measure", "instrument": "hplc"})
         assert "seed_crystals" in info["valid_operations"]
-        _, _, _, _, info = env.step(
-            {"operation": "seed_crystals", "seed_mass_g": 0.006}
-        )
+        _, _, _, _, info = env.step({"operation": "seed_crystals", "seed_mass_g": 0.006})
         assert set(info["valid_operations"]) == {
             "seed_crystals",
             "cool_crystallize",
@@ -892,12 +925,10 @@ def test_purification_recipe_accepts_user_facing_aliases() -> None:
             {"operation": "mix", "duration_s": 120.0, "stirring_rpm": 600.0},
             {"operation": "settle", "duration_s": 300.0},
             {"operation": "separate_phase", "phase": "organic"},
-            {"operation": "wash", "phase": "organic", "volume_L": 0.01},
-            {"operation": "dry", "phase": "organic", "duration_s": 300.0},
+            {"operation": "wash", "volume_L": 0.01},
+            {"operation": "dry"},
             {
                 "operation": "concentrate",
-                "phase": "organic",
-                "target_volume_L": 0.008,
                 "duration_s": 300.0,
             },
             {"operation": "terminate"},
@@ -1011,7 +1042,7 @@ def test_flow_and_electrochemistry_campaigns_produce_process_assays() -> None:
     assert float(electro_obs["energy_efficiency"][0]) >= 0.0
 
 
-def test_electrolysis_info_reports_charge_and_overpotential() -> None:
+def test_electrolysis_public_info_excludes_unmeasured_electrochemical_truth() -> None:
     env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
     try:
         env.reset()
@@ -1030,15 +1061,19 @@ def test_electrolysis_info_reports_charge_and_overpotential() -> None:
         for action in sequence:
             _, _, _, _, info = env.step(action)
         summary = info["state_delta_summary"]
-        assert summary["charge_C"] > 0.0
-        assert summary["faradaic_charge_C"] > 0.0
-        assert "overpotential_V" in summary
-        assert "equilibrium_potential_V" in summary
-        assert "measured_potential_V" in summary
-        assert "interfacial_potential_V" in summary
-        assert "uncompensated_voltage_drop_V" in summary
-        assert "ohmic_loss_J" in summary
-        assert "total_resistance_ohm" in summary
-        assert 0.0 <= summary["faradaic_efficiency"] <= 1.0
+        assert summary["delta_time_s"] > 0.0
+        assert summary["delta_cost"] > 0.0
+        assert {
+            "charge_C",
+            "faradaic_charge_C",
+            "overpotential_V",
+            "equilibrium_potential_V",
+            "measured_potential_V",
+            "interfacial_potential_V",
+            "uncompensated_voltage_drop_V",
+            "ohmic_loss_J",
+            "total_resistance_ohm",
+            "faradaic_efficiency",
+        }.isdisjoint(summary)
     finally:
         env.close()

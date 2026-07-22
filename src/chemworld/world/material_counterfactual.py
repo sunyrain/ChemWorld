@@ -28,9 +28,7 @@ class MaterialLawCounterfactual:
 
     def __post_init__(self) -> None:
         if self.material_field not in {"catalyst", "solvent", "electrolyte_profile"}:
-            raise ValueError(
-                "material_field must be catalyst, solvent, or electrolyte_profile"
-            )
+            raise ValueError("material_field must be catalyst, solvent, or electrolyte_profile")
         if sorted(self.public_to_baseline) != list(range(len(self.public_to_baseline))):
             raise ValueError("public_to_baseline must be a permutation of [0, n)")
         if all(index == value for index, value in enumerate(self.public_to_baseline)):
@@ -44,8 +42,7 @@ class MaterialLawCounterfactual:
             )
         raw_permutation = payload.get("public_to_baseline")
         if not isinstance(raw_permutation, list) or not all(
-            isinstance(value, int) and not isinstance(value, bool)
-            for value in raw_permutation
+            isinstance(value, int) and not isinstance(value, bool) for value in raw_permutation
         ):
             raise ValueError("public_to_baseline must be a list of integers")
         return cls(
@@ -118,18 +115,10 @@ def apply_material_law_counterfactual(
     state = instance.initial_state.replace(
         metadata={
             **instance.initial_state.metadata,
-            "material_law_counterfactual_version": (
-                MATERIAL_LAW_COUNTERFACTUAL_VERSION
-            ),
+            "material_law_counterfactual_version": (MATERIAL_LAW_COUNTERFACTUAL_VERSION),
             "material_law_counterfactual_hash": contract_hash,
-            **(
-                {
-                    _HIDDEN_FIELD_KEY: counterfactual.material_field,
-                    _HIDDEN_MAPPING_KEY: list(counterfactual.public_to_baseline),
-                }
-                if counterfactual.material_field == "electrolyte_profile"
-                else {}
-            ),
+            _HIDDEN_FIELD_KEY: counterfactual.material_field,
+            _HIDDEN_MAPPING_KEY: list(counterfactual.public_to_baseline),
         }
     )
     return replace(instance, parameters=parameters, initial_state=state)

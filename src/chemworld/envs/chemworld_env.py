@@ -7,6 +7,7 @@ from copy import deepcopy
 from dataclasses import replace
 from math import isfinite
 from typing import Any
+from uuid import uuid4
 
 import gymnasium as gym
 import numpy as np
@@ -15,9 +16,11 @@ from chemworld.action_codec import ActionCodec
 from chemworld.envs.reports import (
     annotate_constitution_rollback,
     build_constitution_summary,
+    build_evaluator_provenance,
     build_step_info,
     build_task_info,
     render_env,
+    sanitize_agent_info,
 )
 from chemworld.envs.spaces import (
     OBSERVATION_KEYS,
@@ -276,8 +279,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         runtime_info = runtime_result.info_payload()
         preconditions_passed = all(operation_record.preconditions.values())
         operation_committed = (
-            preconditions_passed
-            and runtime_result.kernel_result.transaction_status == "committed"
+            preconditions_passed and runtime_result.kernel_result.transaction_status == "committed"
         )
         observation_checks: list[dict[str, object]] = []
         observation_rng_state = deepcopy(self._rng.bit_generator.state)
@@ -408,6 +410,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         }
         if self.debug_truth:
             info["truth"] = self._state.to_dict(include_hidden=True)
+        else:
+            info = sanitize_agent_info(info)
         if campaign_final_assay:
             info["experiment_ended"] = True
             terminal_summary = {
@@ -433,6 +437,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
 
     def task_info(self) -> dict[str, Any]:
         return build_task_info(self)
+
+    def evaluator_provenance(self) -> dict[str, Any]:
+        """Return private replay identity for the official evaluator/logger."""
+
+        return build_evaluator_provenance(self)
 
     def task_prompt(self) -> dict[str, Any]:
         from chemworld.agent_interface import task_prompt
@@ -471,9 +480,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         return render_env(self)
 
     def _make_campaign_id(self) -> str:
-        task_part = self.task_id or "adhoc"
-        scenario_part = "none" if self.scenario_spec is None else self.scenario_spec.scenario_id
-        return f"{task_part}:{scenario_part}:seed-{self.seed}"
+        # Public episode identity must not be a reversible encoding of the
+        # hidden-world seed. Replay identity is carried separately in private
+        # evaluator provenance.
+        return f"episode-{uuid4().hex}"
 
     def _make_runtime(self) -> ChemWorldRuntime:
         return ChemWorldRuntime(
@@ -491,9 +501,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             limiting_amount_mol=1.0,
         )
         reagent_charge_molar_multiplier = sum(
-            amount
-            for species_id, amount in unit_charge.items()
-            if not species_id.startswith("Cat")
+            amount for species_id, amount in unit_charge.items() if not species_id.startswith("Cat")
         )
         return OperationValidator(
             constitution=self.constitution,

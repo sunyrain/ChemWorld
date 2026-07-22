@@ -11,7 +11,7 @@ import copy
 import hashlib
 import json
 from collections.abc import Mapping, Sequence
-from typing import Any, Literal, Protocol
+from typing import Any, Literal, Protocol, cast
 
 from chemworld.agent_interface import experiment_lifecycle_contract
 from chemworld.agents.base import BaseAgent, HistoryRecord
@@ -183,19 +183,32 @@ class LiveLLMAgent(BaseAgent):
         recent = state.get("recent_decisions")
         experiments = state.get("completed_experiment_memory")
         operations = state.get("current_experiment_operations")
-        if not all(isinstance(item, list) for item in (recent, experiments, operations)):
+        if (
+            not isinstance(recent, list)
+            or not isinstance(experiments, list)
+            or not isinstance(operations, list)
+        ):
             raise ValueError("prompt-state memory fields must be lists")
+        if not all(
+            isinstance(record, dict)
+            for memory in (recent, experiments, operations)
+            for record in memory
+        ):
+            raise ValueError("prompt-state memory entries must be objects")
         completed = state.get("completed_experiment_count")
         if isinstance(completed, bool) or not isinstance(completed, int) or completed < 0:
             raise ValueError("completed_experiment_count must be a non-negative integer")
         pending = state.get("pending_historical_spectrum_id")
         if pending is not None and not isinstance(pending, str):
             raise ValueError("pending historical spectrum ID must be a string or null")
-        self._recent_decisions = copy.deepcopy(recent)[-self.recent_decision_limit :]
-        self._experiment_memory = copy.deepcopy(experiments)[
+        recent_records = cast(list[dict[str, Any]], recent)
+        experiment_records = cast(list[dict[str, Any]], experiments)
+        operation_records = cast(list[dict[str, Any]], operations)
+        self._recent_decisions = copy.deepcopy(recent_records)[-self.recent_decision_limit :]
+        self._experiment_memory = copy.deepcopy(experiment_records)[
             -self.experiment_memory_limit :
         ]
-        self._current_experiment_operations = copy.deepcopy(operations)
+        self._current_experiment_operations = copy.deepcopy(operation_records)
         self._completed_experiment_count = completed
         self._pending_historical_spectrum_id = pending
         self._last_decision = None

@@ -11,11 +11,12 @@ from chemworld.eval.mechanism_adaptation import (
     evaluate_protocol_gates,
     validate_mechanism_adaptation_protocol,
 )
+from chemworld.physchem.mechanism_library import configuration_root
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_PROTOCOL = ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json"
+DEFAULT_PROTOCOL = configuration_root() / "benchmark/mechanism_adaptation_v0.2.1.json"
 REQUIRED_IMPLEMENTATION_ARTIFACTS = (
-    "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json",
+    "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json",
     "src/chemworld/agents/mechanism_adaptation_live_llm.py",
     "src/chemworld/eval/mechanism_adaptation.py",
     "src/chemworld/eval/mechanism_design_audit.py",
@@ -26,7 +27,7 @@ REQUIRED_IMPLEMENTATION_ARTIFACTS = (
     "tests/test_mechanism_adaptation.py",
     "workstreams/flagship_tasks/reports/mechanism-adaptation-final-protocol-v0.2.md",
     "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-public-matrix.json",
-    "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.2.json",
+    "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc2.json",
 )
 
 
@@ -38,10 +39,11 @@ def build_mechanism_adaptation_preflight(
     protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
     validation_errors = validate_mechanism_adaptation_protocol(protocol)
     design_audit_path = (
-        ROOT
-        / "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-design-audit-v0.2.2.json"
+        ROOT / "workstreams/flagship_tasks/reports/"
+        "mechanism-adaptation-design-audit-freeze-rc2.json"
     )
+    gate_a_plan_path = configuration_root() / "benchmark/mechanism_adaptation_gate_a_v0.2.4.json"
+    gate_a_plan = json.loads(gate_a_plan_path.read_text(encoding="utf-8"))
     design_audit = (
         json.loads(design_audit_path.read_text(encoding="utf-8"))
         if design_audit_path.is_file()
@@ -50,6 +52,7 @@ def build_mechanism_adaptation_preflight(
     design_audit_pass = bool(
         design_audit.get("pass")
         and design_audit.get("protocol_sha256") == _canonical_sha256(protocol)
+        and design_audit.get("gate_a_plan_sha256") == _canonical_sha256(gate_a_plan)
     )
     artifacts = []
     for relative in REQUIRED_IMPLEMENTATION_ARTIFACTS:
@@ -63,9 +66,7 @@ def build_mechanism_adaptation_preflight(
         )
     gate_status = evaluate_protocol_gates(protocol, {}) if not validation_errors else None
     implementation_complete = (
-        not validation_errors
-        and design_audit_pass
-        and all(item["exists"] for item in artifacts)
+        not validation_errors and design_audit_pass and all(item["exists"] for item in artifacts)
     )
     return {
         "schema_version": "chemworld-mechanism-adaptation-preflight-0.2",

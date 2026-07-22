@@ -96,9 +96,7 @@ def test_production_sources_do_not_depend_on_assert_statements() -> None:
 def test_world_law_contains_professional_contracts() -> None:
     spec = world_law_spec().to_dict()
     assert spec["law_version"] == WORLD_FAMILY_VERSION
-    assert spec["ontology_registry"]["substance_registry_policy"] == (
-        "scenario_compiled_mechanism"
-    )
+    assert spec["ontology_registry"]["substance_registry_policy"] == ("scenario_compiled_mechanism")
     assert "reaction" in spec["module_versions"]
     assert "thermal_energy_balance" in spec["transition_kernel_registry"]
     assert "crystallization" in spec["transition_kernel_registry"]
@@ -108,9 +106,7 @@ def test_world_law_contains_professional_contracts() -> None:
     assert "hplc" in spec["instrument_registry"]
     assert "material_conservation" in spec["constitution_rules"]
     assert spec["backend"]["backend_id"] == "semi_mechanistic"
-    module_ids = {
-        module["module_id"] for module in spec["ontology_registry"]["modules"]
-    }
+    module_ids = {module["module_id"] for module in spec["ontology_registry"]["modules"]}
     assert {
         "crystallization",
         "distillation",
@@ -122,15 +118,9 @@ def test_world_law_contains_professional_contracts() -> None:
 
 
 def test_runtime_ontology_is_mechanism_owned_not_fixed_species_default() -> None:
-    ontology_source = Path("src/chemworld/world/ontology.py").read_text(
-        encoding="utf-8"
-    )
-    state_factory_source = Path("src/chemworld/world/state_factory.py").read_text(
-        encoding="utf-8"
-    )
-    reference_source = Path("src/chemworld/world/reaction_reference.py").read_text(
-        encoding="utf-8"
-    )
+    ontology_source = Path("src/chemworld/world/ontology.py").read_text(encoding="utf-8")
+    state_factory_source = Path("src/chemworld/world/state_factory.py").read_text(encoding="utf-8")
+    reference_source = Path("src/chemworld/world/reaction_reference.py").read_text(encoding="utf-8")
 
     assert "SPECIES =" not in ontology_source
     assert '"A"' not in ontology_source
@@ -213,10 +203,7 @@ def test_runtime_does_not_use_legacy_species_constants() -> None:
                 elif isinstance(node, ast.alias) and node.name.startswith("LEGACY_"):
                     legacy_usage.append((path, node.lineno, node.name))
 
-    assert [
-        (path.as_posix(), lineno, name)
-        for path, lineno, name in legacy_usage
-    ] == []
+    assert [(path.as_posix(), lineno, name) for path, lineno, name in legacy_usage] == []
 
 
 def test_downstream_world_modules_do_not_use_legacy_species_fallbacks() -> None:
@@ -246,9 +233,7 @@ def test_chemworld_env_delegates_process_operation_dispatch_to_runtime() -> None
 
 
 def test_runtime_observation_service_is_separate_from_state_changing_services() -> None:
-    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
-        encoding="utf-8"
-    )
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(encoding="utf-8")
     observation_services = Path("src/chemworld/runtime/observation_services.py").read_text(
         encoding="utf-8"
     )
@@ -259,12 +244,8 @@ def test_runtime_observation_service_is_separate_from_state_changing_services() 
 
 
 def test_runtime_operation_recorder_is_separate_from_state_changing_services() -> None:
-    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
-        encoding="utf-8"
-    )
-    record_services = Path("src/chemworld/runtime/record_services.py").read_text(
-        encoding="utf-8"
-    )
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(encoding="utf-8")
+    record_services = Path("src/chemworld/runtime/record_services.py").read_text(encoding="utf-8")
 
     assert "def _record" not in domain_services
     assert "class ChemWorldOperationRecorder" in record_services
@@ -273,9 +254,7 @@ def test_runtime_operation_recorder_is_separate_from_state_changing_services() -
 
 
 def test_runtime_reaction_thermal_service_is_separate_from_domain_services() -> None:
-    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
-        encoding="utf-8"
-    )
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(encoding="utf-8")
     reaction_thermal_services = Path(
         "src/chemworld/runtime/reaction_thermal_services.py"
     ).read_text(encoding="utf-8")
@@ -293,18 +272,12 @@ def test_runtime_reaction_thermal_requires_compiled_mechanism_without_fallback_m
     reaction_thermal_services = Path(
         "src/chemworld/runtime/reaction_thermal_services.py"
     ).read_text(encoding="utf-8")
-    species_services = Path("src/chemworld/runtime/species.py").read_text(
-        encoding="utf-8"
-    )
-    reaction_kernel = Path("src/chemworld/world/reaction_kernel.py").read_text(
-        encoding="utf-8"
-    )
+    species_services = Path("src/chemworld/runtime/species.py").read_text(encoding="utf-8")
+    reaction_kernel = Path("src/chemworld/world/reaction_kernel.py").read_text(encoding="utf-8")
 
     assert "reaction_backend_species_map" not in reaction_thermal_services
     assert "def reaction_backend_species_map" not in species_services
-    assert "Reaction advancement requires a compiled mechanism" in (
-        reaction_thermal_services
-    )
+    assert "Reaction advancement requires a compiled mechanism" in (reaction_thermal_services)
     assert "compiled_mechanism is required" in reaction_kernel
 
 
@@ -321,15 +294,13 @@ def test_runtime_does_not_import_seven_slot_reference_fixture() -> None:
 
 
 def test_runtime_phase_separation_service_is_separate_from_domain_services() -> None:
-    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
-        encoding="utf-8"
-    )
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(encoding="utf-8")
     phase_separation_services = Path(
         "src/chemworld/runtime/phase_separation_services.py"
     ).read_text(encoding="utf-8")
-    phase_ledger_services = Path(
-        "src/chemworld/runtime/phase_ledger_services.py"
-    ).read_text(encoding="utf-8")
+    phase_ledger_services = Path("src/chemworld/runtime/phase_ledger_services.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "def _phase_ledger" not in domain_services
     assert "def _mix_phases" not in domain_services
@@ -371,9 +342,7 @@ def test_chemworld_env_reports_are_separate_from_control_loop() -> None:
 
 
 def test_runtime_mechanism_manifest_and_validation_are_separate_from_compiler_facade() -> None:
-    mechanisms_source = Path("src/chemworld/runtime/mechanisms.py").read_text(
-        encoding="utf-8"
-    )
+    mechanisms_source = Path("src/chemworld/runtime/mechanisms.py").read_text(encoding="utf-8")
     manifest_source = Path("src/chemworld/runtime/mechanism_manifest.py").read_text(
         encoding="utf-8"
     )
@@ -396,12 +365,8 @@ def test_runtime_mechanism_manifest_and_validation_are_separate_from_compiler_fa
 
 def test_runtime_kernel_profile_contracts_and_registry_are_separate() -> None:
     profiles_source = Path("src/chemworld/runtime/profiles.py").read_text(encoding="utf-8")
-    contracts_source = Path("src/chemworld/runtime/kernel_contracts.py").read_text(
-        encoding="utf-8"
-    )
-    registry_source = Path("src/chemworld/runtime/kernel_registry.py").read_text(
-        encoding="utf-8"
-    )
+    contracts_source = Path("src/chemworld/runtime/kernel_contracts.py").read_text(encoding="utf-8")
+    registry_source = Path("src/chemworld/runtime/kernel_registry.py").read_text(encoding="utf-8")
 
     assert not Path("src/chemworld/runtime/kernels.py").exists()
     assert "class TaskRuntimeProfile" in profiles_source
@@ -415,9 +380,7 @@ def test_runtime_kernel_profile_contracts_and_registry_are_separate() -> None:
 
 
 def test_runtime_domain_service_registry_and_constitution_factory_are_separate() -> None:
-    domain_source = Path("src/chemworld/runtime/domain_services.py").read_text(
-        encoding="utf-8"
-    )
+    domain_source = Path("src/chemworld/runtime/domain_services.py").read_text(encoding="utf-8")
     registry_source = Path("src/chemworld/runtime/domain_service_registry.py").read_text(
         encoding="utf-8"
     )
@@ -441,12 +404,12 @@ def test_foundation_constitution_reports_state_checks_and_preconditions_are_sepa
     reports_source = Path("src/chemworld/foundation/constitution_reports.py").read_text(
         encoding="utf-8"
     )
-    state_checks_source = Path(
-        "src/chemworld/foundation/constitution_state_checks.py"
-    ).read_text(encoding="utf-8")
-    preconditions_source = Path(
-        "src/chemworld/foundation/constitution_preconditions.py"
-    ).read_text(encoding="utf-8")
+    state_checks_source = Path("src/chemworld/foundation/constitution_state_checks.py").read_text(
+        encoding="utf-8"
+    )
+    preconditions_source = Path("src/chemworld/foundation/constitution_preconditions.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "class CheckResult" not in constitution_source
     assert "class ConstitutionReport" not in constitution_source
@@ -460,15 +423,9 @@ def test_foundation_constitution_reports_state_checks_and_preconditions_are_sepa
 
 
 def test_foundation_state_ledgers_and_helpers_are_separate_from_state_facade() -> None:
-    state_source = Path("src/chemworld/foundation/state.py").read_text(
-        encoding="utf-8"
-    )
-    ledgers_source = Path("src/chemworld/foundation/state_ledgers.py").read_text(
-        encoding="utf-8"
-    )
-    helpers_source = Path("src/chemworld/foundation/state_helpers.py").read_text(
-        encoding="utf-8"
-    )
+    state_source = Path("src/chemworld/foundation/state.py").read_text(encoding="utf-8")
+    ledgers_source = Path("src/chemworld/foundation/state_ledgers.py").read_text(encoding="utf-8")
+    helpers_source = Path("src/chemworld/foundation/state_helpers.py").read_text(encoding="utf-8")
 
     assert "class SpeciesLedger" not in state_source
     assert "class PhaseLedger" not in state_source
@@ -485,12 +442,10 @@ def test_foundation_state_ledgers_and_helpers_are_separate_from_state_facade() -
 
 
 def test_runtime_electrochemical_service_is_separate_from_domain_services() -> None:
-    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(encoding="utf-8")
+    electrochemical_services = Path("src/chemworld/runtime/electrochemical_services.py").read_text(
         encoding="utf-8"
     )
-    electrochemical_services = Path(
-        "src/chemworld/runtime/electrochemical_services.py"
-    ).read_text(encoding="utf-8")
 
     assert "def _set_potential" not in domain_services
     assert "def _electrolyze" not in domain_services
@@ -502,12 +457,10 @@ def test_runtime_electrochemical_service_is_separate_from_domain_services() -> N
 
 
 def test_runtime_instrument_cost_service_is_separate_from_domain_services() -> None:
-    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(encoding="utf-8")
+    instrument_cost_services = Path("src/chemworld/runtime/instrument_cost_services.py").read_text(
         encoding="utf-8"
     )
-    instrument_cost_services = Path(
-        "src/chemworld/runtime/instrument_cost_services.py"
-    ).read_text(encoding="utf-8")
 
     assert "def _apply_measurement_cost" not in domain_services
     assert "instrument_name" not in domain_services
@@ -520,12 +473,10 @@ def test_runtime_instrument_cost_service_is_separate_from_domain_services() -> N
 
 
 def test_runtime_crystallization_service_is_separate_from_domain_services() -> None:
-    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(encoding="utf-8")
+    crystallization_services = Path("src/chemworld/runtime/crystallization_services.py").read_text(
         encoding="utf-8"
     )
-    crystallization_services = Path(
-        "src/chemworld/runtime/crystallization_services.py"
-    ).read_text(encoding="utf-8")
 
     assert "def _seed_crystals" not in domain_services
     assert "def _cool_crystallize" not in domain_services
@@ -542,12 +493,10 @@ def test_runtime_crystallization_service_is_separate_from_domain_services() -> N
 
 
 def test_runtime_distillation_service_is_separate_from_domain_services() -> None:
-    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(encoding="utf-8")
+    distillation_services = Path("src/chemworld/runtime/distillation_services.py").read_text(
         encoding="utf-8"
     )
-    distillation_services = Path(
-        "src/chemworld/runtime/distillation_services.py"
-    ).read_text(encoding="utf-8")
 
     assert "def _distill" not in domain_services
     assert "def _collect_fraction" not in domain_services
@@ -561,12 +510,8 @@ def test_runtime_distillation_service_is_separate_from_domain_services() -> None
 
 
 def test_runtime_flow_service_is_separate_from_domain_services() -> None:
-    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
-        encoding="utf-8"
-    )
-    flow_services = Path("src/chemworld/runtime/flow_services.py").read_text(
-        encoding="utf-8"
-    )
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(encoding="utf-8")
+    flow_services = Path("src/chemworld/runtime/flow_services.py").read_text(encoding="utf-8")
 
     assert "def _set_flow_rate" not in domain_services
     assert "def _run_flow" not in domain_services
@@ -583,9 +528,7 @@ def test_runtime_flow_service_is_separate_from_domain_services() -> None:
 
 
 def test_runtime_primitive_service_is_separate_from_domain_services() -> None:
-    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(
-        encoding="utf-8"
-    )
+    domain_services = Path("src/chemworld/runtime/domain_services.py").read_text(encoding="utf-8")
     primitive_services = Path("src/chemworld/runtime/primitive_services.py").read_text(
         encoding="utf-8"
     )
@@ -614,9 +557,7 @@ def test_reaction_network_specs_are_separate_from_engine() -> None:
     reaction_network = Path("src/chemworld/physchem/reaction_network.py").read_text(
         encoding="utf-8"
     )
-    specs = Path("src/chemworld/physchem/reaction_network_specs.py").read_text(
-        encoding="utf-8"
-    )
+    specs = Path("src/chemworld/physchem/reaction_network_specs.py").read_text(encoding="utf-8")
 
     assert "class SpeciesSpec" not in reaction_network
     assert "class RateLawSpec" not in reaction_network
@@ -639,9 +580,7 @@ def test_reaction_rate_laws_are_separate_from_network_engine() -> None:
     reaction_network = Path("src/chemworld/physchem/reaction_network.py").read_text(
         encoding="utf-8"
     )
-    rate_laws = Path("src/chemworld/physchem/reaction_rate_laws.py").read_text(
-        encoding="utf-8"
-    )
+    rate_laws = Path("src/chemworld/physchem/reaction_rate_laws.py").read_text(encoding="utf-8")
 
     assert "def mass_action_rate" not in reaction_network
     assert "def _mass_action_rate" not in reaction_network
@@ -672,9 +611,9 @@ def test_reaction_reference_cases_are_separate_from_network_engine() -> None:
     reaction_network = Path("src/chemworld/physchem/reaction_network.py").read_text(
         encoding="utf-8"
     )
-    reference_cases = Path(
-        "src/chemworld/physchem/reaction_reference_cases.py"
-    ).read_text(encoding="utf-8")
+    reference_cases = Path("src/chemworld/physchem/reaction_reference_cases.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "class ReactionODEReferenceCase" not in reaction_network
     assert "class ReactionODEReferenceResult" not in reaction_network
@@ -718,8 +657,7 @@ def test_mechanism_compiler_supports_non_fixed_species_networks() -> None:
     assert compiled.mechanism_hash
     assert len(compiled.stoichiometric_matrix) == len(compiled.species_index)
     assert all(
-        len(row) == len(compiled.network.reactions)
-        for row in compiled.stoichiometric_matrix
+        len(row) == len(compiled.network.reactions) for row in compiled.stoichiometric_matrix
     )
 
 
@@ -959,10 +897,11 @@ def test_env_runtime_v2_info_contains_kernel_transaction_and_mechanism() -> None
             {"operation": "add_solvent", "volume_L": 0.02, "solvent": 1}
         )
 
-        assert reset_info["mechanism_id"] == "simple_batch_reaction"
-        assert reset_info["mechanism_hash"]
-        assert reset_info["mechanism_summary"]["mechanism_id"] == "simple_batch_reaction"
-        assert reset_info["mechanism_summary"]["validation_passed"]
+        provenance = env.unwrapped.evaluator_provenance()
+        assert provenance["mechanism_id"] == "simple_batch_reaction"
+        assert provenance["mechanism_hash"]
+        assert reset_info["mechanism_summary"]["instance_identity_visible"] is False
+        assert reset_info["mechanism_summary"]["topology_summary_visible"] is False
         assert "mechanism_manifest" not in reset_info
         assert "reactions" not in reset_info
         assert step_info["kernel_id"] == "chemworld.operation.add_solvent"
@@ -973,17 +912,13 @@ def test_env_runtime_v2_info_contains_kernel_transaction_and_mechanism() -> None
         assert step_info["world_events"][0]["payload"]["domain_service_id"] == (
             "primitive_operations"
         )
-        runtime = env.unwrapped.task_info()["runtime"]
+        runtime = env.unwrapped.runtime.to_dict()
         assert "instrument_cost" in runtime["profile"]["required_domain_services"]
         assert "phase_separation" not in runtime["profile"]["required_domain_services"]
         assert runtime["mechanism_summary"]["mechanism_id"] == "simple_batch_reaction"
         assert "compiled_mechanism" not in runtime
-        assert runtime["domain_services"]["operation_service_map"]["heat"] == (
-            "reaction_thermal"
-        )
-        assert runtime["domain_services"]["operation_service_map"]["measure"] == (
-            "instrument_cost"
-        )
+        assert runtime["domain_services"]["operation_service_map"]["heat"] == ("reaction_thermal")
+        assert runtime["domain_services"]["operation_service_map"]["measure"] == ("instrument_cost")
     finally:
         env.close()
 
@@ -1027,9 +962,7 @@ def test_domain_service_registry_validates_task_profile() -> None:
             replace(
                 contract,
                 operations=tuple(
-                    operation
-                    for operation in contract.operations
-                    if operation != "add_extractant"
+                    operation for operation in contract.operations if operation != "add_extractant"
                 ),
             )
             if contract.service_id == "phase_separation"
@@ -1055,9 +988,7 @@ def test_domain_services_runtime_construction_is_task_scoped() -> None:
             replace(
                 contract,
                 operations=tuple(
-                    operation
-                    for operation in contract.operations
-                    if operation != "add_extractant"
+                    operation for operation in contract.operations if operation != "add_extractant"
                 ),
             )
             if contract.service_id == "phase_separation"
@@ -1165,7 +1096,7 @@ def test_transaction_rollback_penalty_preserves_process_evidence_cache() -> None
             metrics={"purity": 0.81},
             last_observation={"score": 0.73, "purity": 0.81},
             last_observed_mask={"score": True, "purity": True},
-        )
+        ),
     )
 
     result = TransactionManager(make_chemworld_constitution()).rollback(
@@ -1330,25 +1261,17 @@ def test_runtime_phase_separation_uses_typed_phase_ledger_as_primary_state() -> 
         assert state.phases.phases["organic"].settled is True
         assert state.phases.phases["aqueous"].settled is True
         assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
-        assert state.metadata["extraction_model_id"] == (
-            "chemworld_stability_aware_lle_vnext"
-        )
+        assert state.metadata["extraction_model_id"] == ("chemworld_stability_aware_lle_vnext")
         assert state.metadata["extraction_converged"] is True
         assert state.metadata["extraction_material_balance_error_mol"] < 1.0e-10
         assert state.vessels is not None
-        assert set(state.vessels.vessels[state.vessel_id].phase_ids) == set(
-            state.phases.phases
-        )
+        assert set(state.vessels.vessels[state.vessel_id].phase_ids) == set(state.phases.phases)
         assert env.unwrapped.constitution.check_state(state).passed
 
-        _, _, _, _, wash_info = env.step(
-            {"operation": "wash", "wash_volume_L": 0.008}
-        )
+        _, _, _, _, wash_info = env.step({"operation": "wash", "wash_volume_L": 0.008})
         state = env.unwrapped._state
         assert wash_info["transaction_status"] == "committed"
-        assert state.metadata["wash_model_id"] == (
-            "chemworld_stability_aware_lle_vnext"
-        )
+        assert state.metadata["wash_model_id"] == ("chemworld_stability_aware_lle_vnext")
         assert state.metadata["wash_converged"] is True
         assert state.metadata["wash_material_balance_error_mol"] < 1.0e-10
         assert state.phases is not None
@@ -1393,10 +1316,7 @@ def test_constitution_rejects_primary_vessel_bound_metadata() -> None:
     report = make_chemworld_constitution().check_state(state)
 
     assert not report.passed
-    assert any(
-        check.name == "metadata_no_primary_vessel_bounds"
-        for check in report.failures()
-    )
+    assert any(check.name == "metadata_no_primary_vessel_bounds" for check in report.failures())
 
 
 def test_typed_vessel_bounds_drive_constitution_and_validator() -> None:
@@ -1422,9 +1342,7 @@ def test_typed_vessel_bounds_drive_constitution_and_validator() -> None:
     )
 
     assert state.vessels.vessels["batch_reactor"].max_volume_L == pytest.approx(0.020)
-    assert state.vessels.vessels["batch_reactor"].max_temperature_K == pytest.approx(
-        330.0
-    )
+    assert state.vessels.vessels["batch_reactor"].max_temperature_K == pytest.approx(330.0)
     assert constitution.check_state(state).passed
 
     too_large = state.replace(volume_L=0.021)
@@ -1466,10 +1384,7 @@ def test_constitution_rejects_primary_instrument_status_metadata() -> None:
     report = make_chemworld_constitution().check_state(state)
 
     assert not report.passed
-    assert any(
-        check.name == "metadata_no_primary_instrument_status"
-        for check in report.failures()
-    )
+    assert any(check.name == "metadata_no_primary_instrument_status" for check in report.failures())
 
 
 def test_constitution_rejects_primary_crystallizer_seed_status_metadata() -> None:
@@ -1484,8 +1399,7 @@ def test_constitution_rejects_primary_crystallizer_seed_status_metadata() -> Non
 
     assert not report.passed
     assert any(
-        check.name == "metadata_no_primary_crystallizer_seed_status"
-        for check in report.failures()
+        check.name == "metadata_no_primary_crystallizer_seed_status" for check in report.failures()
     )
 
 
@@ -1502,8 +1416,7 @@ def test_constitution_rejects_primary_crystallization_output_metadata() -> None:
 
     assert not report.passed
     assert any(
-        check.name == "metadata_no_primary_crystallization_output"
-        for check in report.failures()
+        check.name == "metadata_no_primary_crystallization_output" for check in report.failures()
     )
 
 
@@ -1520,8 +1433,7 @@ def test_constitution_rejects_primary_distillation_output_metadata() -> None:
 
     assert not report.passed
     assert any(
-        check.name == "metadata_no_primary_distillation_output"
-        for check in report.failures()
+        check.name == "metadata_no_primary_distillation_output" for check in report.failures()
     )
 
 
@@ -1561,10 +1473,7 @@ def test_constitution_rejects_primary_process_metric_metadata() -> None:
     report = make_chemworld_constitution().check_state(state)
 
     assert not report.passed
-    assert any(
-        check.name == "metadata_no_primary_process_metrics"
-        for check in report.failures()
-    )
+    assert any(check.name == "metadata_no_primary_process_metrics" for check in report.failures())
 
 
 def test_constitution_rejects_phase_local_process_metric_metadata() -> None:
@@ -1606,10 +1515,7 @@ def test_constitution_rejects_primary_initial_amount_metadata() -> None:
     report = make_chemworld_constitution().check_state(state)
 
     assert not report.passed
-    assert any(
-        check.name == "metadata_no_primary_initial_amounts"
-        for check in report.failures()
-    )
+    assert any(check.name == "metadata_no_primary_initial_amounts" for check in report.failures())
 
 
 def test_runtime_observation_cache_uses_typed_process_ledger() -> None:
@@ -1634,7 +1540,11 @@ def test_runtime_observation_cache_uses_typed_process_ledger() -> None:
         assert env.unwrapped.constitution.check_state(state_after_measure).passed
 
         followup_observation, _, _, _, wait_info = env.step(
-            {"operation": "wait", "duration_s": 30.0}
+            {
+                "operation": "wait",
+                "duration_s": 30.0,
+                "stirring_speed_rpm": 600.0,
+            }
         )
         state_after_wait = env.unwrapped._state
 
@@ -1642,9 +1552,7 @@ def test_runtime_observation_cache_uses_typed_process_ledger() -> None:
         assert float(followup_observation["yield"][0]) == pytest.approx(measured_yield)
         assert "last_observation" not in state_after_wait.metadata
         assert "last_observed_mask" not in state_after_wait.metadata
-        assert state_after_wait.process.last_observation["yield"] == pytest.approx(
-            measured_yield
-        )
+        assert state_after_wait.process.last_observation["yield"] == pytest.approx(measured_yield)
         assert env.unwrapped.constitution.check_state(state_after_wait).passed
     finally:
         env.close()
@@ -1684,9 +1592,7 @@ def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> 
         assert flow_state.process.metrics["flow_campaign_time_s"] == pytest.approx(1800.0)
         flow_settings = equipment_settings(flow_state.equipment, "flow_reactor")
         assert flow_settings["flow_model_id"] == "pfr"
-        assert flow_settings["runtime_adapter_id"] == (
-            "chemworld_geometry_resolved_pfr_v1"
-        )
+        assert flow_settings["runtime_adapter_id"] == ("chemworld_geometry_resolved_pfr_v1")
         assert flow_settings["pressure_drop_Pa"] >= 0.0
         assert flow_settings["reynolds_number"] > 0.0
         assert flow_settings["material_balance_error_mol"] < 1.0e-9
@@ -1887,7 +1793,7 @@ def test_runtime_crystallizer_seed_status_uses_typed_equipment_ledger() -> None:
             "cooling_crystallization_population_balance_v1"
         )
         assert crystallizer_settings["solubility_model_id"] == (
-            "runtime_vanthoff_target_solubility_v1"
+            "runtime_vanthoff_material_solubility_v2"
         )
         assert crystallizer_settings["material_balance_error_mol"] < 1.0e-10
         assert crystallizer_settings["csd_d10_m"] > 0.0
@@ -1965,9 +1871,7 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
     env = gym.make("ChemWorld", task_id="reaction-to-distillation", seed=0)
     try:
         env.reset(seed=0)
-        species_view = MechanismSpeciesView(
-            env.unwrapped.scenario_instance.compiled_mechanism
-        )
+        species_view = MechanismSpeciesView(env.unwrapped.scenario_instance.compiled_mechanism)
         for action in (
             {"operation": "add_solvent", "volume_L": 0.028, "solvent": 2},
             {"operation": "add_reagent", "amount_mol": 0.010},
@@ -2053,27 +1957,17 @@ def test_runtime_distillation_outputs_use_typed_phase_ledger() -> None:
         assert sum(
             distillate_after_collect.species_amounts_mol[species_id]
             for species_id in target_species
-        ) == pytest.approx(
-            product_before_collect * 0.08
-        )
+        ) == pytest.approx(product_before_collect * 0.08)
         assert sum(
             distillate_after_collect.species_amounts_mol[species_id]
             for species_id in impurity_species
-        ) == pytest.approx(
-            impurity_before_collect * 0.08
-        )
+        ) == pytest.approx(impurity_before_collect * 0.08)
         assert sum(
-            collected_fraction.species_amounts_mol[species_id]
-            for species_id in target_species
-        ) == pytest.approx(
-            product_before_collect * 0.92
-        )
+            collected_fraction.species_amounts_mol[species_id] for species_id in target_species
+        ) == pytest.approx(product_before_collect * 0.92)
         assert sum(
-            collected_fraction.species_amounts_mol[species_id]
-            for species_id in impurity_species
-        ) == pytest.approx(
-            impurity_before_collect * 0.92
-        )
+            collected_fraction.species_amounts_mol[species_id] for species_id in impurity_species
+        ) == pytest.approx(impurity_before_collect * 0.92)
         assert collected_fraction.selected is True
         assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
         assert sum(phase.volume_L for phase in state.phases.phases.values()) == pytest.approx(
@@ -2279,9 +2173,7 @@ def test_virtual_instrument_signals_are_plot_ready() -> None:
 
 def test_spectra_do_not_expose_fixed_reaction_species_labels() -> None:
     spectra_source = Path("src/chemworld/world/spectra.py").read_text(encoding="utf-8")
-    spectroscopy_source = Path("src/chemworld/physchem/spectroscopy.py").read_text(
-        encoding="utf-8"
-    )
+    spectroscopy_source = Path("src/chemworld/physchem/spectroscopy.py").read_text(encoding="utf-8")
 
     assert "A_proxy" not in spectra_source
     assert "P_proxy" not in spectra_source
@@ -2417,9 +2309,7 @@ def test_validator_rejects_invalid_payload_bounds() -> None:
         assert not bad.dispatchable_to_runtime
         assert "payload_bounds:volume_L" in bad.invalid_reasons
         assert "payload_bounds:total_volume_L" in bad.invalid_reasons
-        _, _, _, _, info = env.step(
-            {"operation": "add_solvent", "volume_L": 0.2, "solvent": 1}
-        )
+        _, _, _, _, info = env.step({"operation": "add_solvent", "volume_L": 0.2, "solvent": 1})
         after = env.unwrapped._state
         assert info["transaction_status"] == "validation_failed"
         assert info["world_events"][0]["event_type"] == "validation_failed"
@@ -2429,7 +2319,7 @@ def test_validator_rejects_invalid_payload_bounds() -> None:
         env.close()
 
 
-def test_validator_rejects_invalid_electrochemical_payload_bounds() -> None:
+def test_validator_rejects_private_electrochemical_payload_fields() -> None:
     env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
     try:
         _, _ = env.reset(seed=0)
@@ -2449,11 +2339,8 @@ def test_validator_rejects_invalid_electrochemical_payload_bounds() -> None:
         )
 
         assert not bad.is_valid
-        assert "payload_bounds:electrolyte_conductivity_S_m" in bad.invalid_reasons
-        assert "payload_bounds:electrode_gap_m" in bad.invalid_reasons
-        assert "payload_bounds:electrode_area_m2" in bad.invalid_reasons
-        assert "payload_bounds:contact_resistance_ohm" in bad.invalid_reasons
-        assert "payload_bounds:voltage_window_V" in bad.invalid_reasons
+        assert "payload_fields_declared" in bad.invalid_reasons
+        assert not bad.dispatchable_to_runtime
     finally:
         env.close()
 
@@ -2517,12 +2404,8 @@ def test_cli_scenarios_validation_render_and_dataset(tmp_path, capsys) -> None:
     assert card["record_count"] == len(records)
     assert card["schema_version"] == "chemworld-dataset-card-0.4"
     assert card["trajectory_schema_versions"] == ["chemworld-trajectory-0.2"]
-    assert card["protocol_hashes"]["task_contract_hashes"] == [
-        records[0]["task_contract_hash"]
-    ]
-    assert card["protocol_hashes"]["runtime_profile_hashes"] == [
-        records[0]["runtime_profile_hash"]
-    ]
+    assert card["protocol_hashes"]["task_contract_hashes"] == [records[0]["task_contract_hash"]]
+    assert card["protocol_hashes"]["runtime_profile_hashes"] == [records[0]["runtime_profile_hash"]]
     assert card["protocol_hashes"]["mechanism_hashes"] == [records[0]["mechanism_hash"]]
     assert card["protocol_hashes"]["scoring_contract_hashes"] == [
         records[0]["scoring_contract_hash"]

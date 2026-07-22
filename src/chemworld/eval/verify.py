@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import isfinite
-from typing import Any
+from typing import Any, cast
 
 import gymnasium as gym
 
 import chemworld  # noqa: F401
 from chemworld.data.validation import validate_records
+from chemworld.envs.chemworld_env import ChemWorldEnv
 
 
 @dataclass(frozen=True)
@@ -176,8 +177,10 @@ def verify_records(
         **env_kwargs,
     )
     _, reset_info = env.reset(seed=int(first["seed"]))
+    replay_env = cast(ChemWorldEnv, env.unwrapped)
+    replay_provenance = replay_env.evaluator_provenance()
     recorded_mechanism_hash = first.get("mechanism_hash")
-    replay_mechanism_hash = reset_info.get("mechanism_hash")
+    replay_mechanism_hash = replay_provenance.get("mechanism_hash")
     early_mismatches: list[dict[str, Any]] = []
     recorded_intervention_hashes = {
         field: first.get(field)
@@ -223,12 +226,12 @@ def verify_records(
         (
             "world_family_intervention_hash",
             first.get("world_family_intervention_hash"),
-            reset_info.get("world_family_intervention_hash"),
+            replay_provenance.get("world_family_intervention_hash"),
         ),
         (
             "mechanism_family_intervention_hash",
             first.get("mechanism_family_intervention_hash"),
-            reset_info.get("mechanism_family_intervention_hash"),
+            replay_provenance.get("mechanism_family_intervention_hash"),
         ),
     ):
         if recorded and replayed != recorded:
@@ -247,6 +250,7 @@ def verify_records(
     try:
         for record in records:
             observation, reward, terminated, truncated, info = env.step(record["action"])
+            replay_audit_info = {**info, **replay_provenance}
             replay_observation = _scalar_observation(observation)
             recorded_observation = record["observation"]
 
@@ -344,7 +348,7 @@ def verify_records(
             for field in replay_metadata_fields:
                 if field not in record:
                     continue
-                replayed_metadata = info.get(field)
+                replayed_metadata = replay_audit_info.get(field)
                 field_mismatches = _jsonish_mismatches(
                     step=int(record["step"]),
                     field=field,

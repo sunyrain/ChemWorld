@@ -51,6 +51,36 @@ def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def repository_tree_sha256(
+    root: Path,
+    *,
+    relative_roots: Iterable[str],
+) -> str:
+    """Hash every material source file under explicitly declared repository roots."""
+
+    entries: list[dict[str, str]] = []
+    resolved_root = root.resolve()
+    for relative in sorted(set(relative_roots)):
+        source = (resolved_root / relative).resolve()
+        if not source.is_relative_to(resolved_root) or not source.exists():
+            raise ValueError(f"invalid repository source root: {relative}")
+        paths = (
+            [source]
+            if source.is_file()
+            else sorted(path for path in source.rglob("*") if path.is_file())
+        )
+        for path in paths:
+            if "__pycache__" in path.parts or path.suffix in {".pyc", ".pyo"}:
+                continue
+            entries.append(
+                {
+                    "path": path.relative_to(resolved_root).as_posix(),
+                    "sha256": file_sha256(path),
+                }
+            )
+    return canonical_json_sha256(entries)
+
+
 def write_json_atomic(
     path: Path, payload: Any, *, sort_keys: bool = True
 ) -> None:
@@ -86,23 +116,23 @@ def git_source_commit(root: Path) -> str:
     return completed.stdout.strip()
 
 
-def git_tracked_tree_dirty(
+def git_worktree_dirty(
     root: Path,
     *,
     excluded_paths: Iterable[str] = (),
     excluded_prefixes: Iterable[str] = (),
 ) -> bool:
-    """Report tracked changes outside explicitly declared generated evidence.
+    """Report tracked or untracked changes outside declared generated evidence.
 
-    Untracked files are intentionally ignored: source attestations describe the
-    committed tree plus tracked modifications. Callers must enumerate generated
-    outputs they are allowed to refresh without invalidating source provenance.
+    A clean-source attestation must describe the entire material repository, not
+    merely Git's index. Callers must explicitly enumerate generated outputs that
+    may be refreshed without invalidating source provenance.
     """
 
     exact = {_normalize_git_path(path) for path in excluded_paths}
     prefixes = tuple(_normalize_git_prefix(path) for path in excluded_prefixes)
     completed = subprocess.run(
-        ["git", "status", "--porcelain=v1", "--untracked-files=no"],
+        ["git", "status", "--porcelain=v1", "--untracked-files=all"],
         cwd=root,
         capture_output=True,
         text=True,
@@ -119,6 +149,26 @@ def git_tracked_tree_dirty(
             continue
         return True
     return False
+
+
+def git_tracked_tree_dirty(
+    root: Path,
+    *,
+    excluded_paths: Iterable[str] = (),
+    excluded_prefixes: Iterable[str] = (),
+) -> bool:
+    """Compatibility alias for :func:`git_worktree_dirty`.
+
+    The historical name is imprecise: the shared freeze semantics deliberately
+    include untracked, non-ignored files. New gate code should use the explicit
+    ``git_worktree_dirty`` name.
+    """
+
+    return git_worktree_dirty(
+        root,
+        excluded_paths=excluded_paths,
+        excluded_prefixes=excluded_prefixes,
+    )
 
 
 def _normalize_git_path(path: str) -> str:
@@ -229,5 +279,6 @@ __all__ = [
     "file_sha256",
     "git_source_commit",
     "git_tracked_tree_dirty",
+    "git_worktree_dirty",
     "write_json_atomic",
 ]

@@ -18,7 +18,7 @@ def test_candidate_actions_cover_public_midpoint_and_field_boundaries() -> None:
         schema = env.unwrapped.action_schema("cool_crystallize")
         candidates = dict(_candidate_actions(schema))
 
-        assert schema["schema_version"] == "chemworld-public-action-affordance-0.1"
+        assert schema["schema_version"] == "chemworld-public-action-affordance-0.2"
         assert candidates["midpoint"] == {
             "operation": "cool_crystallize",
             "target_temperature_K": 255.0,

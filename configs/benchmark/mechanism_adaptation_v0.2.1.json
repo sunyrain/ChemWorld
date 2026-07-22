@@ -1,7 +1,7 @@
 {
   "schema_version": "chemworld-mechanism-adaptation-protocol-0.2.1",
-  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-design-aligned",
-  "status": "frozen_preflight_design_aligned",
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-freeze-rc1",
+  "status": "freeze_rc_public_contract_changed_recertification_required",
   "benchmark_claim_allowed": false,
   "publication_ready": false,
   "environment_role": "agent_capability_evaluation_and_training_environment",
@@ -73,7 +73,9 @@
       "rate_law_family": "Reaction-rate dependence on public state or control variables changes while task topology and public action semantics remain fixed.",
       "topology_family": "The active reaction or transport pathway graph changes while public action semantics remain fixed.",
       "constitutive_law_family": "A constitutive relation such as electrochemical response or transport dependence changes while public action semantics remain fixed.",
-      "material_law_counterfactual": "Public material labels and actions remain fixed but their hidden effect mapping is permuted or replaced."
+      "material_law_counterfactual": "Public material labels and actions remain fixed but their hidden effect mapping is permuted or replaced.",
+      "material_law_counterfactual_solvent": "Public solvent labels and actions remain fixed while the hidden solvent-effect mapping is permuted.",
+      "material_law_counterfactual_electrolyte_profile": "Public electrolyte-profile labels and actions remain fixed while the hidden electrolyte-effect mapping is permuted."
     }
   },
   "task_mechanism_contracts": {
@@ -118,7 +120,8 @@
       "candidate_ids": [
         "no_change",
         "constitutive_law_family",
-        "material_law_counterfactual"
+        "material_law_counterfactual_solvent",
+        "material_law_counterfactual_electrolyte_profile"
       ],
       "interventions": {
         "no_change": [],
@@ -129,7 +132,19 @@
             "severity": 0.8
           }
         ],
-        "material_law_counterfactual": [
+        "material_law_counterfactual_solvent": [
+          {
+            "kind": "material_law_counterfactual",
+            "material_field": "solvent",
+            "public_to_baseline": [
+              2,
+              1,
+              0,
+              3
+            ]
+          }
+        ],
+        "material_law_counterfactual_electrolyte_profile": [
           {
             "kind": "material_law_counterfactual",
             "material_field": "electrolyte_profile",
@@ -216,7 +231,8 @@
     "recovery_curve_metrics": [
       "detection",
       "truth_probability",
-      "diagnostic_action_rate",
+      "diagnostic_workflow_compliance",
+      "feedback_conditioned_diagnostic_choice_rate",
       "performance",
       "cumulative_regret"
     ]
@@ -234,7 +250,7 @@
     "both_scores_mandatory": true
   },
   "reporting": {
-    "statistical_unit": "world_seed_or_paired_cell",
+    "statistical_unit": "physical_cell_cluster_with_provider_repeat_nested",
     "provider_repeats": "nested_technical_replicates",
     "interval_method": "hierarchical_or_cluster_bootstrap_with_frozen_seed",
     "confidence_level": 0.95,
@@ -268,7 +284,8 @@
       "name": "mechanism_identifiability",
       "required_systems": [
         "active_budget_matched_diagnosis_oracle",
-        "fixed_trajectory_decoder"
+        "fixed_trajectory_decoder",
+        "online_policy_feasible_diagnosis_oracle"
       ],
       "budget_checkpoints": [
         2,
@@ -277,7 +294,7 @@
       "overall_top1_wilson_lower_bound": 0.8,
       "per_family_recall_wilson_lower_bound": 0.7,
       "nuisance_integration_required": true,
-      "pass_rule": "active oracle lower confidence bound >= 0.80 overall and >= 0.70 recall for every family at a frozen budget; decoder is reported separately"
+      "pass_rule": "the controlled matched oracle and the online-policy-feasible oracle must each satisfy the preregistered confidence bounds at an aligned frozen budget; decoder is reported separately"
     },
     "gate_b": {
       "name": "change_detection_with_no_change_twins",
@@ -320,7 +337,7 @@
     "v0_1_1_reanalysis_required": true,
     "new_external_provider_runs_completed": false,
     "gate_0": "not_evaluated",
-    "gate_a": "prior_v0.2_result_invalidated_by_action_intervention_mismatch",
+    "gate_a": "pre_fix_v0.2.2_result_invalidated_by_public_action_and_identity_contract_change",
     "gate_b": "not_evaluated",
     "gate_c": "not_evaluated",
     "gate_d": "not_evaluated",
@@ -328,7 +345,7 @@
     "publication_ready": false,
     "prior_invalid_evidence": {
       "path": "workstreams/flagship_tasks/reports/archive/mechanism-adaptation-gate-a-v0.2-invalid-design.json",
-      "reason": "The electrochemical solvent counterfactual moved solvent labels while the task legally exposed only solvent=0; the result cannot distinguish oracle weakness from an unreachable intervention target."
+      "reason": "Pre-fix evidence used a task with solvent fixed to zero and exposed evaluator identity in generic task_info. The freeze candidate changes both the action space and public information boundary, so identifiability must be recertified."
     }
   },
   "intervention_action_alignment": {
@@ -355,7 +372,6 @@
     },
     "minimum_public_choice_count": 2,
     "moved_indices_must_be_covered_by_gate_a_action_library": true,
-    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.1.json"
+    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc1.json"
   }
 }
-

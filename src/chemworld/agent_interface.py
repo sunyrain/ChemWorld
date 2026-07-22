@@ -17,6 +17,10 @@ from chemworld.data.logging import to_builtin
 from chemworld.envs.spaces import OBSERVATION_KEYS
 from chemworld.foundation import equipment_settings
 from chemworld.materials import material_choice_labels
+from chemworld.operation_validator import (
+    ELECTROCHEMICAL_MIN_ADAPTED_CURRENT_DELTA_MA,
+    ELECTROCHEMICAL_MIN_ADAPTED_POTENTIAL_DELTA_V,
+)
 from chemworld.physchem.crystallization_units import (
     DEFAULT_MAXIMUM_COOLING_RATE_K_S,
 )
@@ -29,7 +33,7 @@ from chemworld.world.operations import (
     operation_contracts,
 )
 
-PUBLIC_ACTION_SCHEMA_VERSION = "chemworld-public-action-affordance-0.1"
+PUBLIC_ACTION_SCHEMA_VERSION = "chemworld-public-action-affordance-0.2"
 
 FIELD_UNITS: dict[str, str] = {
     "amount_mol": "mol",
@@ -156,6 +160,37 @@ TASK_PROMPT_PROFILES: dict[str, dict[str, Any]] = {
             "low product recovery",
             "high impurity after purification",
             "mass-balance drift",
+        ],
+    },
+    "electrochemical-conversion": {
+        "task_goal": (
+            "Use solvent-medium and electrolyte-profile comparisons plus pH/UV-vis "
+            "diagnostics to adapt a second electrochemical regime."
+        ),
+        "success_criteria": [
+            "Maximize selective_product_yield as the declared primary metric.",
+            "Balance faradaic, transport, ohmic, and energy efficiency as secondary outcomes.",
+            "Complete the probe, diagnostic, adapted-control, and final-assay lifecycle.",
+        ],
+        "constraints": [
+            "Select one solvent and one electrolyte profile before the first electrolysis.",
+            "After the probe, collect both ph_meter and uvvis diagnostics.",
+            "The second setpoint must differ by at least 0.02 V or 1.0 mA.",
+            "Only declared operation fields are accepted; cell physics is environment-owned.",
+        ],
+        "measurement_policy": (
+            "ph_meter and uvvis expose noisy diagnostic consequences; final_assay is the "
+            "leaderboard-grade outcome measurement."
+        ),
+        "recommended_strategy": [
+            "Compare solvent and electrolyte choices relationally across experiments.",
+            "Use the first regime as a probe, not as a duplicate production stage.",
+            "Condition the second potential/current choice on the diagnostic response.",
+        ],
+        "failure_modes": [
+            "repeating the probe setpoint",
+            "terminating without the post-control UV-vis assay",
+            "confounding solvent and electrolyte effects without matched controls",
         ],
     },
     "partition-discovery": {
@@ -292,10 +327,7 @@ def _field_schema(field: str, *, operation: str | None = None) -> dict[str, Any]
         payload["recommended_range"] = {"low": low, "high": high}
         payload["lower_bound_inclusive"] = not (
             field in {"amount_mol", "catalyst_amount_mol", "sample_volume_L"}
-            or (
-                field == "volume_L"
-                and operation in {"add_solvent", "add_phase", "add_extractant"}
-            )
+            or (field == "volume_L" and operation in {"add_solvent", "add_phase", "add_extractant"})
         )
         payload["upper_bound_inclusive"] = True
     operation_choices = (
@@ -429,6 +461,33 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
                 "parameters": {"default_voltage_window_V": 2.5},
             }
         )
+        if state is not None:
+            cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
+            setpoint_history = tuple(cell_settings.get("setpoint_history", ()))
+            if len(setpoint_history) == 1:
+                constraints.append(
+                    {
+                        "id": "payload_adapts:electrochemical_setpoint",
+                        "kind": "minimum_change_from_previous",
+                        "fields": ["potential_V", "current_mA"],
+                        "relation": (
+                            "abs(potential_V - previous_potential_V) >= "
+                            "minimum_potential_delta_V or "
+                            "abs(current_mA - previous_current_mA) >= "
+                            "minimum_current_delta_mA"
+                        ),
+                        "parameters": {
+                            "previous_potential_V": float(dict(setpoint_history[0])["potential_V"]),
+                            "previous_current_mA": float(dict(setpoint_history[0])["current_mA"]),
+                            "minimum_potential_delta_V": (
+                                ELECTROCHEMICAL_MIN_ADAPTED_POTENTIAL_DELTA_V
+                            ),
+                            "minimum_current_delta_mA": (
+                                ELECTROCHEMICAL_MIN_ADAPTED_CURRENT_DELTA_MA
+                            ),
+                        },
+                    }
+                )
     return {
         "schema_version": PUBLIC_ACTION_SCHEMA_VERSION,
         "operation": operation,
@@ -443,6 +502,7 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
         "notes": [
             "Use validate_action(action) before executing.",
             "Payload aliases are canonicalized by the environment action codec.",
+            "Fields outside operation and required_fields are rejected atomically.",
         ],
     }
 

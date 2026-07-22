@@ -15,6 +15,7 @@ from chemworld.eval.provenance import (
     file_sha256,
     git_source_commit,
     git_tracked_tree_dirty,
+    git_worktree_dirty,
     write_json_atomic,
 )
 
@@ -76,8 +77,12 @@ def test_git_provenance_distinguishes_source_and_evidence_changes(
     assert initial_commit == _git(root, "rev-parse", "HEAD")
     assert not git_tracked_tree_dirty(root)
 
-    (root / "untracked.txt").write_text("ignored\n", encoding="utf-8")
-    assert not git_tracked_tree_dirty(root)
+    untracked = root / "untracked.txt"
+    untracked.write_text("material\n", encoding="utf-8")
+    assert git_worktree_dirty(root)
+    assert git_tracked_tree_dirty(root)
+    assert not git_worktree_dirty(root, excluded_paths={"untracked.txt"})
+    untracked.unlink()
 
     source.write_text("source-v2\n", encoding="utf-8")
     assert git_tracked_tree_dirty(root)

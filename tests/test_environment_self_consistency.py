@@ -30,7 +30,6 @@ def test_task_info_exposes_consistency_contract_fields() -> None:
         "world_law_id",
         "scenario_id",
         "initial_state_id",
-        "mechanism_hash",
         "runtime_profile_hash",
         "scoring_contract_hash",
         "observation_contract_hash",
@@ -44,11 +43,12 @@ def test_task_info_exposes_consistency_contract_fields() -> None:
         try:
             _obs, info = env.reset(seed=task.seeds[0])
             assert required <= set(info), task.task_id
+            provenance = env.unwrapped.evaluator_provenance()
             world_law_ids.add(str(info["world_law_id"]))
             assert info["scenario_id"] == task.scenario_id
             assert info["scoring_contract_hash"]
             assert info["runtime_profile_hash"]
-            assert info["mechanism_hash"]
+            assert provenance["mechanism_hash"]
             assert info["physics_maturity"] == info["kernel_maturity"]["lowest_level"]
             assert set(valid_operations(env)).issubset(set(info["allowed_operations"]))
         finally:
@@ -141,10 +141,7 @@ def test_purification_final_assay_hplc_tracks_selected_product_phase(
     )
     assert row["verify_status"] == "pass"
     assert row["spectra_metric_consistency"] == "pass"
-    assert not any(
-        warning.startswith("semantic_alignment_warning:")
-        for warning in row["warnings"]
-    )
+    assert not any(warning.startswith("semantic_alignment_warning:") for warning in row["warnings"])
 
 
 def test_spectra_metric_warning_for_high_purity_with_reactant_dominant_hplc() -> None:

@@ -1,24 +1,25 @@
 {
   "artifact_sha256": {
-    "tests/fixtures/golden/core_scripted_trajectories.json": "0c1da73dae75431d118ec81cdb21bb1650380034bc52a8276a8ea676f10ff95e",
-    "workstreams/world_foundation/reports/maturity-truth-vnext.json": "4fedaf84d3ae841603c9a5f55868c4723b1266bca8e291a1c5f87aa0cf463bc4",
-    "workstreams/world_foundation/reports/public-boundary-security-vnext.json": "03ad2cadba98a5f7c1d0ed2153e290cefa0a77ddd98a6839d2a113505ed77382",
-    "workstreams/world_foundation/reports/runtime-reachability-vnext.json": "0eefa20dbc642d838bdcb0c3d9bb476a99366ab40a72df58f51621d36135d14b",
-    "workstreams/world_foundation/reports/state-transition-invariants.json": "5fe56b7c483572deb2c1d60a92f4b7dc07a0aca81cce0975c18f7777d883e3ae",
-    "workstreams/world_foundation/reports/wf-110-runtime-integration.json": "f17877970ee3be797de4f140972d2106fb4a28e4442c20162a5cd9529bdb7b24"
+    "tests/fixtures/golden/core_scripted_trajectories.json": "f2bb00ab06c7a272291d2294997a928213ad378c0b58d154a1891e28f7a0e0e3",
+    "workstreams/world_foundation/reports/maturity-truth-vnext.json": "57841283c74c5861353967fa0288cee0411bf5bcd3d8a300b8b4d191f0c04bec",
+    "workstreams/world_foundation/reports/public-boundary-security-vnext.json": "76b2fbbdad0af6234dd6f79d147f01fdfaac18fac2e6f3e4e93028b6a92d6ea2",
+    "workstreams/world_foundation/reports/runtime-reachability-vnext.json": "5a0314542997d973cbf04338b8ef026a6164f68e9fb7a6778b260cfcbdfd0391",
+    "workstreams/world_foundation/reports/state-transition-invariants.json": "995734f30d2a8ac5b5d2b58933049b1585396d9c81795ecb5f66604f68ee8b8a",
+    "workstreams/world_foundation/reports/wf-110-runtime-integration.json": "47fe0820a38ead5d96ac3f025c5af689772745e3e208bf5443f8c62a19bbd132"
   },
   "backend_contract_validated": true,
-  "backend_freeze_allowed": true,
+  "backend_freeze_allowed": false,
   "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
   "benchmark_claim_allowed": false,
   "checks": {
     "bound_artifacts_complete": true,
     "candidate_claim_boundary": true,
-    "clean_tracked_tree": true,
+    "clean_tracked_tree": false,
     "maturity_truth": true,
     "operation_count_exact": true,
     "protocol_schema": true,
     "public_boundary": true,
+    "required_external_gates_attested": false,
     "runtime_integration": true,
     "runtime_reachability": true,
     "state_transition_invariants": true,
@@ -26,15 +27,30 @@
     "task_count_exact": true,
     "task_maturity_floor": true
   },
-  "clean_release_attestation": "passed",
+  "clean_release_attestation": "pending_clean_tree_and_external_gates",
+  "external_gate_evidence": {
+    "current": true,
+    "failures": [],
+    "gate_statuses": {
+      ".venv/Scripts/python.exe -m mkdocs build --strict": "not_run",
+      ".venv/Scripts/python.exe -m mypy src": "not_run",
+      ".venv/Scripts/python.exe -m pytest": "not_run",
+      ".venv/Scripts/python.exe -m ruff check .": "not_run",
+      ".venv/Scripts/python.exe scripts/smoke_test_wheel.py": "not_run"
+    },
+    "passed": false,
+    "path": "workstreams/world_foundation/reports/backend-external-gates-v0.5.json",
+    "sha256": "1ea372bf06b5e5a12eadc65a66c1abefe3cd7157096aa9e9a0fb1fc4f4d61288",
+    "status": "pending"
+  },
   "limitations": [
     "This freezes a candidate virtual backend contract, not algorithm rankings.",
     "It does not validate predictions for real materials, equipment, or experiments.",
     "Formal benchmark claims require a later resource-matched evaluation freeze."
   ],
-  "protocol_sha256": "5333aef55e01c4fe0ab027dbb57ca185811509db3b2f95e5d96e677733b26f97",
+  "protocol_sha256": "338d7bc7eb0ba4f43b7618a26fedbcd47fb0d94f2a05817a17233090ab5bcbc4",
   "release_status": "candidate_backend_only",
-  "report_hash": "94d6adb4f6a0cc23de42dcf0e2f426c2aeb6d815a16aa7fbcbd14e5c62233e78",
+  "report_hash": "f2524d493c629f18ea9ce19f1d230bdd720384e4edbb146ab1bbe77331c27532",
   "required_external_gates": [
     ".venv/Scripts/python.exe -m pytest",
     ".venv/Scripts/python.exe -m ruff check .",
@@ -43,25 +59,25 @@
     ".venv/Scripts/python.exe scripts/smoke_test_wheel.py"
   ],
   "schema_version": "chemworld-foundation-backend-freeze-audit-0.1",
-  "source_commit": "c492708b340c5e652c7c11f30680c39c75dc0933",
-  "source_tree_dirty": false,
-  "status": "candidate_backend_clean_attested",
+  "source_commit": "8d765dc1423f3acb16d1d9d78e89e41873adf393",
+  "source_tree_dirty": true,
+  "status": "candidate_backend_validated_dirty_tree",
   "task_contract_hashes": {
-    "electrochemical-conversion": "9cc0c792e171737c5ffd5dc03772dcff724a19ae5c504b7d573257eadfa89d63",
-    "equilibrium-characterization": "046067c1c75a57032b3b4307f386b23c706507178856ee20cffa70478cd0e42a",
-    "flow-reaction-optimization": "834207984ba38bfab373c400fc715d63908100db3ca9549185daf4fb5aca5a4f",
-    "low-budget-characterization": "c9a46ddac7960377bfce556c15d841ed9c6093684ac48966f0a6cf79aa6693fc",
-    "partition-discovery": "8f5e648c9c4ad3138391014a536dc9df3008b99152c70da0f2a173914ec0d37c",
-    "public-private-generalization": "5aec9b64b8ed4cc5da009ea669978a83f76c913b3bc7e497236d231571ab7c3d",
-    "purity-yield-tradeoff": "431b4b6f8c25ea53a937b94ea07966d32609e2db2a76bd73589109bb5aaf98dd",
-    "reaction-mechanism-explanation": "addead31f7c7a85fa81278445bdf85a9fb03c89c5bb740ac6262cd28c0853142",
-    "reaction-optimization-standard": "e8de4285f89c507c305226c9f1f37454879517c1069b9bfab6ae26154ac1e4bc",
-    "reaction-safety-constrained": "867e1a8473a40e679af88ad4679d5753ea7aa90ae5bf9555aa2d9903860c63ec",
-    "reaction-to-assay": "1366e4e73eedeee2fa5d630831614f07a7c4f09d5661e9fb6cfccab57643bd1f",
-    "reaction-to-crystallization": "756ca669f81a27290cd72e25c05cf9ed1f7cae0db6b299f1332d8a907b642e8f",
-    "reaction-to-distillation": "d19adb180200831acca5bdbb6e05a6a9de1760b494eb03f6be5a43162c6b9109",
-    "reaction-to-purification": "9bb160c677f4feb72c06dfb4985e29abfce68499a0a6df02607b2cbeb720b0ca",
-    "tool-agent-planning": "a7972dfc2519fc48e1e7eb6f635ba703aa52f0bbf66688e86dbb0df105a32ddf"
+    "electrochemical-conversion": "45b6cdbaf1f9c7fc313e1589f37b17bde9fd678d40e0bd98e64a62622ecac494",
+    "equilibrium-characterization": "77e1c30cd83e1a09363cef3ea58b1ddefb415bb1d790d6d63a3c519f45325917",
+    "flow-reaction-optimization": "697a5956fd3ad242b78144c6fd11e6d3ca5335c493336d5b9cacb13decefc16b",
+    "low-budget-characterization": "2cd44cd76937b9e95a9ae4282994a540f4d390b3f9a59c963ca60ff2db72706b",
+    "partition-discovery": "efa54ba1ab6c5c40c0bdc77f57b2234487a58d98ed5043f273496ef103b6599e",
+    "public-private-generalization": "bf092340dfcbb59fe261a7e73b3042449d57858a60f73d3b19336f15b627e8b8",
+    "purity-yield-tradeoff": "2d2ab14c61e90b87c1c530f74b9e6fbf0c82966199d78e99ec755ba5ba208e76",
+    "reaction-mechanism-explanation": "097bd39293eae4063dc84ed0af299935aefce5c391183944302431d5d6c93f6e",
+    "reaction-optimization-standard": "c7a5bee5dffa318f30097f745a043ca1c6521f4b5770e48023c067206bd6c902",
+    "reaction-safety-constrained": "a7a705dc87bce6684aa8022439c4cb256486df875bbce9a624111e51047bd102",
+    "reaction-to-assay": "afb93071e7571ec58206a4eb62170e39c7982bd15f0dd12db97ceb08f42df49b",
+    "reaction-to-crystallization": "a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416",
+    "reaction-to-distillation": "49e465bce0c5d2fd4a8f73d298cf9d4d2d37c2ca0605aaf6caaab8a9358bff74",
+    "reaction-to-purification": "17dd0ecbb478790013f511f373cbc3ca9c9489240b1dce0e35c84bfcd3a661e0",
+    "tool-agent-planning": "2d0309f3ad1bef65d2f1cf65d8ef778d980143305bfb201df26a713f944b5aba"
   },
-  "world_law_id": "chemworld-physical-chemistry-v0.4"
+  "world_law_id": "chemworld-physical-chemistry-v0.5"
 }

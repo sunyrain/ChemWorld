@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Any
 
@@ -17,13 +18,18 @@ from chemworld.physchem.crystallization_units import (
     DEFAULT_MAXIMUM_COOLING_RATE_K_S,
 )
 from chemworld.schemas import validate_action_schema
+from chemworld.world.actions import ELECTROLYTE_PROFILES
 from chemworld.world.operations import (
+    OPERATION_CUMULATIVE_FIELD_LIMITS,
     OPERATION_FIELD_BOUNDS,
     OPERATION_FIELD_CHOICES,
     OPERATION_TYPES,
+    operation_contracts,
 )
 
-OPERATION_AFFORDANCE_STATE_MACHINE_VERSION = "chemworld-operation-affordance-state-machine-0.6"
+OPERATION_AFFORDANCE_STATE_MACHINE_VERSION = "chemworld-operation-affordance-state-machine-0.7"
+ELECTROCHEMICAL_MIN_ADAPTED_POTENTIAL_DELTA_V = 0.02
+ELECTROCHEMICAL_MIN_ADAPTED_CURRENT_DELTA_MA = 1.0
 
 
 @dataclass(frozen=True)
@@ -146,6 +152,11 @@ class OperationValidator:
         operation_type = str(canonical["operation"])
         preconditions = self._preconditions(operation_type, canonical, state)
         preconditions["action_schema_valid"] = True
+        declared_fields = {
+            "operation",
+            *operation_contracts()[operation_type].required_fields,
+        }
+        preconditions["payload_fields_declared"] = set(canonical).issubset(declared_fields)
         valid_operations = self.valid_operations(state)
         action_mask = tuple(operation in valid_operations for operation in self.operation_types)
         invalid_reasons = tuple(key for key, passed in preconditions.items() if not passed)
@@ -195,8 +206,7 @@ class OperationValidator:
                 self._maximum_safe_reagent_amount_mol(state),
             )
         elif (
-            operation_type in {"add_solvent", "add_phase", "add_extractant"}
-            and field == "volume_L"
+            operation_type in {"add_solvent", "add_phase", "add_extractant"} and field == "volume_L"
         ):
             dynamic_low = max(
                 dynamic_low,
@@ -208,6 +218,14 @@ class OperationValidator:
             )
         elif operation_type == "sample" and field == "sample_volume_L":
             dynamic_high = min(dynamic_high, max(state.volume_L, 0.0))
+        elif operation_type == "seed_crystals" and field == "seed_mass_g":
+            cumulative_limit = OPERATION_CUMULATIVE_FIELD_LIMITS[(operation_type, field)]
+            charged = float(
+                equipment_settings(state.equipment, "crystallizer").get(
+                    "crystal_seed_mass_g", 0.0
+                )
+            )
+            dynamic_high = min(dynamic_high, max(cumulative_limit - charged, 0.0))
         elif (
             operation_type in {"heat", "cool_crystallize", "evaporate", "distill", "run_flow"}
             and field == "target_temperature_K"
@@ -249,16 +267,8 @@ class OperationValidator:
 
         if operation_type == "measure" and field == "instrument":
             choices = tuple(
-                choice
-                for choice in choices
-                if (choice == "final_assay") == state.terminated
+                choice for choice in choices if (choice == "final_assay") == state.terminated
             )
-        if (
-            self.task_id == "electrochemical-conversion"
-            and operation_type == "add_solvent"
-            and field == "solvent"
-        ):
-            return tuple(choice for choice in choices if choice == 0)
         if operation_type == "set_potential" and field == "electrolyte_profile":
             settings = equipment_settings(state.equipment, "electrochemical_cell")
             locked = settings.get("electrolyte_profile")
@@ -345,9 +355,7 @@ class OperationValidator:
             preconditions["seed_crystals_requires_reaction_advance"] = (
                 float(process_metrics.get("reaction_advance_count", 0.0)) > 0.0
             )
-            preconditions["seed_crystals_requires_current_reaction_assay"] = (
-                current_nonfinal_assay
-            )
+            preconditions["seed_crystals_requires_current_reaction_assay"] = current_nonfinal_assay
         if (
             flagship_crystallization
             and crystal_seeded
@@ -379,14 +387,6 @@ class OperationValidator:
         if operation_type == "add_reagent":
             preconditions["reagent_pressure_capacity_available"] = (
                 self._maximum_safe_reagent_amount_mol(state) > self.constitution.tolerance
-            )
-        if (
-            self.task_id == "electrochemical-conversion"
-            and operation_type == "add_solvent"
-            and "solvent" in payload
-        ):
-            preconditions["electrochemical_task_requires_aqueous_solvent"] = (
-                payload.get("solvent") == 0
             )
         if operation_type == "terminate":
             required = self._final_assay_sample_volume()
@@ -573,32 +573,7 @@ class OperationValidator:
         state: WorldState,
     ) -> dict[str, bool]:
         checks: dict[str, bool] = {}
-        required_fields = {
-            "add_reagent": ("amount_mol",),
-            "add_solvent": ("volume_L", "solvent"),
-            "add_catalyst": ("catalyst_amount_mol", "catalyst"),
-            "heat": ("target_temperature_K", "duration_s", "stirring_speed_rpm"),
-            "wait": ("duration_s",),
-            "sample": ("sample_volume_L",),
-            "add_phase": ("phase", "volume_L"),
-            "add_extractant": ("extractant", "volume_L"),
-            "mix": ("duration_s", "stirring_speed_rpm"),
-            "settle": ("duration_s",),
-            "separate_phase": ("target_phase",),
-            "wash": ("wash_volume_L",),
-            "concentrate": ("duration_s",),
-            "transfer": ("transfer_fraction",),
-            "seed_crystals": ("seed_mass_g",),
-            "cool_crystallize": ("target_temperature_K", "duration_s"),
-            "evaporate": ("target_temperature_K", "duration_s"),
-            "distill": ("target_temperature_K", "duration_s", "reflux_ratio"),
-            "collect_fraction": ("transfer_fraction",),
-            "set_flow_rate": ("flow_rate_mL_min", "residence_time_s"),
-            "run_flow": ("target_temperature_K", "duration_s"),
-            "set_potential": ("potential_V", "current_mA", "electrolyte_profile"),
-            "electrolyze": ("duration_s",),
-            "measure": ("instrument",),
-        }.get(operation_type, ())
+        required_fields = operation_contracts()[operation_type].required_fields
         for field in required_fields:
             checks[f"payload_has:{field}"] = field in payload
 
@@ -792,6 +767,13 @@ class OperationValidator:
             )
         if operation_type == "seed_crystals" and "seed_mass_g" in payload:
             low, high = OPERATION_FIELD_BOUNDS[("seed_crystals", "seed_mass_g")]
+            low, high = self.public_field_bounds(
+                operation_type,
+                "seed_mass_g",
+                state,
+                low=low,
+                high=high,
+            )
             checks["payload_bounds:seed_mass_g"] = self._in_range(
                 payload,
                 "seed_mass_g",
@@ -830,7 +812,7 @@ class OperationValidator:
                 checks["payload_choice:electrolyte_profile"] = (
                     isinstance(profile, int)
                     and not isinstance(profile, bool)
-                    and 0 <= profile < 4
+                    and 0 <= profile < len(ELECTROLYTE_PROFILES)
                 )
                 settings = equipment_settings(state.equipment, "electrochemical_cell")
                 locked_profile = settings.get("electrolyte_profile")
@@ -854,54 +836,40 @@ class OperationValidator:
                     high,
                     inclusive_low=True,
                 )
-            if "electrolyte_conductivity_S_m" in payload:
-                checks["payload_bounds:electrolyte_conductivity_S_m"] = self._in_range(
-                    payload,
-                    "electrolyte_conductivity_S_m",
-                    0.05,
-                    100.0,
-                    inclusive_low=True,
-                )
-            if "electrode_gap_m" in payload:
-                checks["payload_bounds:electrode_gap_m"] = self._in_range(
-                    payload,
-                    "electrode_gap_m",
-                    1.0e-5,
-                    0.05,
-                    inclusive_low=True,
-                )
-            if "electrode_area_m2" in payload:
-                checks["payload_bounds:electrode_area_m2"] = self._in_range(
-                    payload,
-                    "electrode_area_m2",
-                    1.0e-5,
-                    0.20,
-                    inclusive_low=True,
-                )
-            if "contact_resistance_ohm" in payload:
-                checks["payload_bounds:contact_resistance_ohm"] = self._in_range(
-                    payload,
-                    "contact_resistance_ohm",
-                    0.0,
-                    100.0,
-                    inclusive_low=True,
-                )
-            if "voltage_window_V" in payload:
-                checks["payload_bounds:voltage_window_V"] = self._in_range(
-                    payload,
-                    "voltage_window_V",
-                    0.1,
-                    10.0,
-                    inclusive_low=True,
-                )
             if "potential_V" in payload:
                 potential = self._float(payload.get("potential_V"))
-                voltage_window = self._float(payload.get("voltage_window_V", 2.5))
                 checks["payload_coupling:potential_within_voltage_window"] = (
-                    potential is not None
-                    and voltage_window is not None
-                    and abs(potential) <= voltage_window
+                    potential is not None and abs(potential) <= 2.5
                 )
+            if self.task_id == "electrochemical-conversion":
+                setpoint_history = tuple(
+                    equipment_settings(
+                        state.equipment,
+                        "electrochemical_cell",
+                    ).get("setpoint_history", ())
+                )
+                if len(setpoint_history) == 1:
+                    previous = dict(setpoint_history[0])
+                    potential = self._float(payload.get("potential_V"))
+                    current = self._float(payload.get("current_mA"))
+                    previous_potential = self._float(previous.get("potential_V"))
+                    previous_current = self._float(previous.get("current_mA"))
+                    checks["payload_adapts:electrochemical_setpoint"] = bool(
+                        potential is not None
+                        and current is not None
+                        and previous_potential is not None
+                        and previous_current is not None
+                        and (
+                            self._meets_minimum_delta(
+                                potential - previous_potential,
+                                ELECTROCHEMICAL_MIN_ADAPTED_POTENTIAL_DELTA_V,
+                            )
+                            or self._meets_minimum_delta(
+                                current - previous_current,
+                                ELECTROCHEMICAL_MIN_ADAPTED_CURRENT_DELTA_MA,
+                            )
+                        )
+                    )
         return checks
 
     @staticmethod
@@ -910,6 +878,16 @@ class OperationValidator:
             return float(value)
         except (TypeError, ValueError):
             return None
+
+    @staticmethod
+    def _meets_minimum_delta(value: float, minimum: float) -> bool:
+        magnitude = abs(value)
+        return magnitude >= minimum or math.isclose(
+            magnitude,
+            minimum,
+            rel_tol=1.0e-12,
+            abs_tol=1.0e-12,
+        )
 
     def _in_range(
         self,

@@ -18,7 +18,7 @@
 - backend ID 为 `chemworld-physical-chemistry-v0.5-candidate`，继续绑定 World Law v0.4 与 Task Contract 0.6；
 - reaction/reactor/instrument 旧 lite 路径和旧通用 proxy 已从正式可达图移除；
 - 当前 task contract hash 以[任务目录](tasks.md#current-task-contracts)为准；
-- post-freeze 五种子 PPO Train/Dev 学习门通过，但正式四任务 Bench 与真实 LLM 矩阵仍未完成；
+- 先前五种子 PPO Train/Dev 学习门通过，但证据现已过期，正式四任务 Bench 与真实 LLM 矩阵仍未完成；
 - 本节之前产生的经典优化、Safe-GP、SAC、RL 和 LLM 结果全部标记为 **pre-v0.5 diagnostic**，不得用于
   当前后端算法排名。
 
@@ -84,7 +84,7 @@
 
 ## World Law v0.4
 
-当前 runtime 使用 `chemworld-physical-chemistry-v0.4` 与 task contract 0.6。它是可执行后端，不是
+当前 runtime 使用 `chemworld-physical-chemistry-v0.5` 与 task contract 1.1。它是可执行后端，不是
 冻结 benchmark release。
 
 - 干燥、浓缩、转移、LLE、洗涤、蒸馏、结晶、连续流和电化学使用显式 provider route；

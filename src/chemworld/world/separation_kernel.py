@@ -149,6 +149,12 @@ def downstream_truth_values(
                 1.0,
             )
         ),
+        "selective_product_yield": float(
+            np.clip(float(process_metrics.get("selective_product_yield", 0.0)), 0.0, 1.0)
+        ),
+        "electrochemical_conversion": float(
+            np.clip(float(process_metrics.get("electrochemical_conversion", 0.0)), 0.0, 1.0)
+        ),
         "faradaic_efficiency": float(
             np.clip(float(process_metrics.get("faradaic_efficiency", 0.0)), 0.0, 1.0)
         ),

@@ -72,8 +72,9 @@ ENGLISH_NAV_TARGETS = (
 )
 README_BOUNDARY_MARKERS = (
     "formal benchmark",
-    "0/6",
+    "0/5 readiness slots",
     "no Bench results",
+    "external quality gates",
 )
 
 
@@ -208,7 +209,9 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         "chemworld_is_primary_brand": "site_name: ChemWorld\n" in mkdocs,
         "readme_boundary_explicit": all(
             marker.lower()
-            in (root / "README.md").read_text(encoding="utf-8").lower()
+            in " ".join(
+                (root / "README.md").read_text(encoding="utf-8").lower().split()
+            )
             for marker in README_BOUNDARY_MARKERS
         ),
     }

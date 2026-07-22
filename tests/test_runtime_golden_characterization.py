@@ -123,7 +123,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "electrochemical-conversion": {
         "mechanism_id": "electrochemical_conversion",
         "steps": 6,
-        "score": 0.7634379681948985,
+        "score": 0.7628460512371612,
     },
     "equilibrium-characterization": {
         "mechanism_id": "simple_batch_reaction",
@@ -236,9 +236,10 @@ def test_runtime_v2_golden_scripted_final_assay(
 
     env = gym.make("ChemWorld", task_id=task.task_id, seed=task.seeds[0])
     try:
-        observation, reset_info = env.reset(seed=task.seeds[0])
-        assert reset_info["mechanism_id"] == expected["mechanism_id"]
-        assert reset_info["mechanism_hash"]
+        observation, _reset_info = env.reset(seed=task.seeds[0])
+        provenance = env.unwrapped.evaluator_provenance()
+        assert provenance["mechanism_id"] == expected["mechanism_id"]
+        assert provenance["mechanism_hash"]
 
         final_info: dict[str, Any] = {}
         final_terminated = False
@@ -248,7 +249,7 @@ def test_runtime_v2_golden_scripted_final_assay(
             assert not final_info["constraint_flags"]["precondition_failed"], action
             assert final_info["transaction_status"] == "committed"
             assert final_info["kernel_id"].startswith("chemworld.operation.")
-            assert final_info["mechanism_hash"] == reset_info["mechanism_hash"]
+            assert "mechanism_hash" not in final_info
 
         assert final_info["operation_type"] == "measure"
         assert final_info["instrument"] == "final_assay"
@@ -290,9 +291,7 @@ def test_runtime_v2_golden_scripted_final_assay(
         )
         if env.unwrapped._state.phases is not None:
             assert all(
-                {"product_mol", "impurity_mol", "solvent_loss"}.isdisjoint(
-                    phase.metadata
-                )
+                {"product_mol", "impurity_mol", "solvent_loss"}.isdisjoint(phase.metadata)
                 for phase in env.unwrapped._state.phases.phases.values()
             )
 
@@ -307,9 +306,7 @@ def test_runtime_v2_golden_scripted_final_assay(
             assert final_info["experiment_ended"] is False
             assert "next_experiment_ready" not in final_info
 
-        observable_success_metrics = set(OBSERVATION_KEYS).intersection(
-            task.success_metrics
-        )
+        observable_success_metrics = set(OBSERVATION_KEYS).intersection(task.success_metrics)
         for key in observable_success_metrics:
             assert math.isfinite(float(observation[key][0])), key
     finally:

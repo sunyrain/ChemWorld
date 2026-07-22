@@ -136,7 +136,7 @@ def test_run_electrolysis_limits_substrate_and_reports_energy_accounting() -> No
     spec = _spec()
     result = run_electrolysis(
         spec,
-        electrode_potential_V=1.0,
+        electrode_potential_V=1.3,
         duration_s=1200.0,
         activities={"A": 1.0, "P": 0.2},
         available_substrate_mol=1.0e-4,
@@ -149,9 +149,50 @@ def test_run_electrolysis_limits_substrate_and_reports_energy_accounting() -> No
     assert 0.0 <= result.product_selectivity <= 1.0
     assert 0.0 <= result.energy_efficiency <= 1.0
     assert math.isfinite(result.overpotential_V)
-    assert result.measured_potential_V == pytest.approx(1.0)
-    assert result.interfacial_potential_V == pytest.approx(1.0)
+    assert result.reaction_direction == 1
+    assert result.converted_mol > 0.0
+    assert result.measured_potential_V == pytest.approx(1.3)
+    assert result.interfacial_potential_V == pytest.approx(1.3)
     assert result.ohmic_loss_J == pytest.approx(0.0)
+
+
+def test_run_electrolysis_uses_current_sign_and_directional_inventory() -> None:
+    spec = _spec()
+    activities = {"A": 1.0, "P": 1.0}
+    forward = run_electrolysis(
+        spec,
+        electrode_potential_V=1.2,
+        duration_s=100.0,
+        activities=activities,
+        available_substrate_mol=1.0e-3,
+        available_reverse_substrate_mol=0.0,
+        applied_current_A=0.05,
+    )
+    reverse = run_electrolysis(
+        spec,
+        electrode_potential_V=1.0,
+        duration_s=100.0,
+        activities=activities,
+        available_substrate_mol=1.0e-3,
+        available_reverse_substrate_mol=2.0e-4,
+        applied_current_A=0.05,
+    )
+    reverse_without_product = run_electrolysis(
+        spec,
+        electrode_potential_V=1.0,
+        duration_s=100.0,
+        activities=activities,
+        available_substrate_mol=1.0e-3,
+        available_reverse_substrate_mol=0.0,
+        applied_current_A=0.05,
+    )
+
+    assert forward.reaction_direction == 1
+    assert forward.converted_mol > 0.0
+    assert reverse.reaction_direction == -1
+    assert 0.0 < reverse.converted_mol <= 2.0e-4
+    assert reverse_without_product.reaction_direction == -1
+    assert reverse_without_product.converted_mol == 0.0
 
 
 def test_run_electrolysis_reports_ohmic_energy_loss() -> None:

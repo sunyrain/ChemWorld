@@ -51,6 +51,28 @@ class RecordingProvider(ValidatedCrystallizationRuntimeProvider):
         return super().evaluate(inputs)
 
 
+def test_seed_crystal_limit_is_cumulative_across_repeated_calls() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        env.reset(seed=0)
+        for action in REACTION_STEPS:
+            env.step(action)
+        _, _, _, _, first = env.step(
+            {"operation": "seed_crystals", "seed_mass_g": 0.049}
+        )
+        _, _, _, _, second = env.step(
+            {"operation": "seed_crystals", "seed_mass_g": 0.002}
+        )
+
+        assert first["transaction_status"] == "committed"
+        assert second["transaction_status"] == "validation_failed"
+        assert second["preconditions"]["payload_bounds:seed_mass_g"] is False
+        settings = equipment_settings(env.unwrapped._state.equipment, "crystallizer")
+        assert settings["crystal_seed_mass_g"] == pytest.approx(0.049)
+    finally:
+        env.close()
+
+
 def test_formal_runtime_dynamically_calls_validated_population_balance_provider() -> None:
     env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
     try:
@@ -90,6 +112,11 @@ def test_formal_runtime_dynamically_calls_validated_population_balance_provider(
         assert settings["provider_manifest_hash"] == manifest.manifest_hash
         assert settings["provider_diagnostics"]["runtime_validated"] is True
         assert settings["growth_solver_converged"] is True
+        assert state.ledger.heat_loss_J > 0.0
+        assert any(
+            check["name"] == "operation_energy_conservation" and check["passed"]
+            for check in info["constitution_checks"]
+        )
         assert settings["material_balance_error_mol"] <= 1.0e-10
         assert settings["particle_target_balance_error_mol"] <= 1.0e-10
         assert all(error <= 1.0e-10 for error in settings["component_balance_errors_mol"].values())
@@ -178,6 +205,17 @@ def test_filter_consumes_validated_solid_and_closes_retention_ledger() -> None:
         )
         assert settings["component_balance_error_mol"] <= 1.0e-12
         assert state.phases.total_amounts_mol() == pytest.approx(state.species_amounts)
+        metrics = state.process.metrics
+        assert metrics["crystal_yield"] == pytest.approx(
+            metrics["seed_excluded_recovery"]
+        )
+        assert metrics["filtered_product_from_solution_mol"] == pytest.approx(
+            settings["filtered_product_from_solution_mol"]
+        )
+        assert settings["filtered_product_mol"] == pytest.approx(
+            settings["retained_seed_mol"]
+            + settings["filtered_product_from_solution_mol"]
+        )
     finally:
         env.close()
 
@@ -316,7 +354,11 @@ def test_isothermal_negative_crystallization_is_a_committed_observation() -> Non
         for action in REACTION_STEPS:
             env.step(action)
         base: Any = env.unwrapped
-        base._state = base._state.replace(temperature_K=320.0)
+        # At the world-bound material solubility, 330 K is undersaturated for
+        # this feed; an isothermal call therefore remains a valid negative
+        # crystallization observation without redefining the material curve
+        # from the current feed concentration.
+        base._state = base._state.replace(temperature_K=330.0)
         initial_temperature = base._state.temperature_K
 
         _obs, _reward, _terminated, _truncated, info = env.step(

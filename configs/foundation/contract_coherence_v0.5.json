@@ -32,8 +32,8 @@
   },
   "contract_identity": {
     "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
-    "world_law_id": "chemworld-physical-chemistry-v0.4",
-    "task_contract_version": "chemworld-task-contract-0.9",
+    "world_law_id": "chemworld-physical-chemistry-v0.5",
+    "task_contract_version": "chemworld-task-contract-1.1",
     "evaluation_contract_version": "chemworld-layered-evaluation-0.3",
     "result_schema_version": "chemworld-evaluation-result-0.3",
     "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
@@ -63,13 +63,35 @@
     "legacy_alias_to_formal": {
       "greedy": "greedy_local",
       "latin_hypercube": "lhs",
-      "gp_bo": "structured_gp_ei",
-      "gp_pi": "structured_gp_pi",
-      "gp_ucb": "structured_gp_ucb",
-      "rf_ei": "structured_rf_ei",
-      "safe_gp_bo": "structured_safe_gp_ei",
       "structured_gp_bo": "structured_gp_ei",
       "structured_safe_gp_bo": "structured_safe_gp_ei"
+    },
+    "legacy_distinct_implementations": {
+      "gp_bo": {
+        "implementation": "gp_bo",
+        "formal_role": "historical_diagnostic_only",
+        "reason": "Unstructured recipe-vector GP; not implementation-equivalent to structured_gp_ei"
+      },
+      "gp_pi": {
+        "implementation": "gp_pi",
+        "formal_role": "historical_diagnostic_only",
+        "reason": "Unstructured recipe-vector GP; not implementation-equivalent to structured_gp_pi"
+      },
+      "gp_ucb": {
+        "implementation": "gp_ucb",
+        "formal_role": "historical_diagnostic_only",
+        "reason": "Unstructured recipe-vector GP; not implementation-equivalent to structured_gp_ucb"
+      },
+      "rf_ei": {
+        "implementation": "rf_ei",
+        "formal_role": "historical_diagnostic_only",
+        "reason": "Unstructured recipe-vector RF; not implementation-equivalent to structured_rf_ei"
+      },
+      "safe_gp_bo": {
+        "implementation": "safe_gp_bo",
+        "formal_role": "historical_diagnostic_only",
+        "reason": "Unstructured safety-constrained GP; not implementation-equivalent to structured_safe_gp_ei"
+      }
     },
     "excluded_method_ids": [
       "llm_replay",

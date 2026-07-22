@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
@@ -27,6 +27,7 @@ class TaskScoringContract:
     success_metrics: tuple[str, ...]
     score_family: str
     component_weights: dict[str, float]
+    multiplicative_gates: dict[str, float] = field(default_factory=dict)
 
     @classmethod
     def from_success_metrics(
@@ -73,6 +74,7 @@ class TaskScoringContract:
         if metrics.intersection(
             {
                 "electrochemical_selectivity",
+                "selective_product_yield",
                 "faradaic_efficiency",
                 "transport_efficiency",
                 "ohmic_efficiency",
@@ -84,14 +86,16 @@ class TaskScoringContract:
                 success_metrics,
                 "electrochemistry",
                 {
-                    "reaction_score": 0.15,
-                    "electrochemical_selectivity": 0.25,
-                    "faradaic_efficiency": 0.15,
-                    "transport_efficiency": 0.15,
-                    "ohmic_efficiency": 0.10,
+                    "reaction_score": 0.10,
+                    "selective_product_yield": 0.25,
+                    "electrochemical_selectivity": 0.15,
+                    "faradaic_efficiency": 0.12,
+                    "transport_efficiency": 0.10,
+                    "ohmic_efficiency": 0.08,
                     "energy_efficiency": 0.15,
                     "conversion": 0.05,
                 },
+                {"selective_product_yield": 0.02},
             )
         if metrics.intersection(
             {
@@ -162,6 +166,7 @@ class TaskScoringContract:
             "success_metrics": list(self.success_metrics),
             "score_family": self.score_family,
             "component_weights": dict(self.component_weights),
+            "multiplicative_gates": dict(self.multiplicative_gates),
             "contract_hash": self.contract_hash,
         }
 
@@ -172,6 +177,7 @@ class TaskScoringContract:
             "success_metrics": list(self.success_metrics),
             "score_family": self.score_family,
             "component_weights": dict(sorted(self.component_weights.items())),
+            "multiplicative_gates": dict(sorted(self.multiplicative_gates.items())),
         }
         digest = hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8"))
         return digest.hexdigest()
@@ -266,6 +272,12 @@ def task_score_observation(
     raw = sum(
         weight * components.get(key, 0.0) for key, weight in contract.component_weights.items()
     )
+    for metric, full_credit_threshold in contract.multiplicative_gates.items():
+        if full_credit_threshold <= 0.0:
+            raise ValueError("score gate thresholds must be positive")
+        raw *= float(
+            np.clip(scalar_observation(values, metric) / full_credit_threshold, 0.0, 1.0)
+        )
     return float(np.clip(raw, 0.0, 1.0))
 
 

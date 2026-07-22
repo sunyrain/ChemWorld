@@ -25,7 +25,7 @@ def test_current_registry_paths_exist() -> None:
 
     assert pipeline["validate_current_registry_paths"](registry, root=ROOT) == []
     live_llm = registry["development_evidence"]["live_llm"]
-    assert live_llm["artifact_state"] == "current"
+    assert live_llm["artifact_state"] == "stale"
     assert live_llm["artifact_roles"] == ["development_diagnostic"]
     assert (ROOT / live_llm["report"]).is_file()
 
@@ -69,7 +69,12 @@ def test_current_registry_matches_package_and_claim_boundaries() -> None:
     assert registry["formal_evaluation"]["formal_results_present"] is False
     assert registry["formal_evaluation"]["benchmark_claim_allowed"] is False
     assert registry["mechanism_adaptation"]["publication_ready"] is False
-    assert registry["mechanism_adaptation"]["new_external_provider_runs_completed"] is True
+    assert registry["mechanism_adaptation"]["new_external_provider_runs_completed"] is False
+    assert registry["mechanism_adaptation"]["gate_a_pass"] is False
+    assert registry["mechanism_adaptation"]["gate_a_certificate_status"] == {
+        "controlled_matched_identifiability": "passed",
+        "online_policy_feasible_diagnosis": "pending_execution",
+    }
     assert registry["mechanism_adaptation"]["agent_weight_updates_performed"] is False
     assert registry["mechanism_adaptation"]["agent_pilot_gate_status"] == {
         "gate_0": "passed",

@@ -61,8 +61,8 @@ Seed 通常改变初值、噪声或连续参数抽样，却可能保留同一因
 9 个任务—模式组合，验证确定性、局部响应分离、响应不过强和过程守恒。
 
 这些是**世界控制证据**，不证明候选 family 在给定实验预算内可识别，也不代表 Agent 已经学会适应。
-机制 v0.2.1 的电化学 Gate A cells 通过，但 reaction-to-crystallization 的逐 family 置信下界未达到
-冻结阈值，因此 Gate A 整体失败。后续正式实验才会测量 change detection、identification accuracy、
+旧 Gate A 因动作、主指标和公开信息合同变化而失效。当前四 seed 决策相关性审计已通过，但它只是
+设计前提，不是预算内机制可识别性证书。后续须分别重跑控制匹配和在线策略可行证书，再测量 change detection、identification accuracy、
 recovery experiments 与 adaptation regret。
 
 ## 反事实世界可以检验名称先验

@@ -1,9 +1,17 @@
 {
-  "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.2.2",
-  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-22-paired-contrast",
+  "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.2.3",
+  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-22-freeze-rc1",
   "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
   "formal_benchmark_result": false,
-  "purpose": "Budget-matched mechanism-identifiability certificate using the pre-change memory that is part of the frozen adaptation protocol.",
+  "purpose": "Controlled matched identifiability certificate; this diagnoses information in paired pre/post contrasts and does not by itself certify online-policy-feasible identification.",
+  "claim_scope": "controlled_matched_identifiability",
+  "online_policy_feasible_certificate": {
+    "required_before_formal_mechanism_claim": true,
+    "hidden_change_time": true,
+    "uses_actual_available_pre_change_history": true,
+    "uses_actual_action_measurement_and_budget_contract": true,
+    "status": "pending_recertification"
+  },
   "action_library": {
     "design": "deterministic_unit_hypercube_anchor_and_seeded_uniform",
     "action_count_per_task": 6,
@@ -13,6 +21,8 @@
   "paired_phase_design": {
     "pre_change_reference_experiments": 2,
     "post_change_diagnostic_experiments": 2,
+    "diagnostic_curve_matches_reference_count_to_budget": true,
+    "budget_interpretation": "The primary budget uses the protocol-available pre-change history. Larger checkpoints use k matched pre-change references and k post-change diagnostics and are non-controlling diagnostic curves.",
     "same_hidden_world_seed_across_phases": true,
     "same_world_seed_reused_across_candidate_twins": true,
     "independent_observation_seed_across_phases": true,
@@ -33,7 +43,8 @@
     "information_draws_per_batch": 128,
     "execution_workers": 8,
     "budgets": [
-      2
+      2,
+      4
     ],
     "primary_gate_budget": 2
   },
@@ -47,11 +58,19 @@
     "decoder_controls_gate": false
   },
   "gate_rule_source": "configs/benchmark/mechanism_adaptation_v0.2.1.json#gates.gate_a",
-  "supersedes_result": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.1.json",
-  "supersession_reason": "v0.2.1 classified post-change worlds without the frozen pre-change memory and independently marginalized each action, so its failure cannot establish task non-identifiability.",
+  "supersedes_result": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.2.json",
+  "supersession_reason": "The freeze candidate exposes solvent as a second electrochemical counterfactual coordinate, closes public identity leakage, and tightens the action contract; all pre-fix identifiability evidence is therefore non-binding.",
   "design_validity_precondition": {
     "required": true,
-    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.2.json",
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc1.json",
     "pass_field": "pass"
+  },
+  "decision_relevance_certificate": {
+    "required": true,
+    "world_seeds": [0, 1, 2, 3],
+    "minimum_median_max_primary_effect": 0.01,
+    "minimum_median_old_policy_regret": 0.005,
+    "minimum_optimal_action_change_rate": 0.5,
+    "pass_rule": "median max primary effect must exceed its threshold and either old-policy regret or optimal-action change rate must exceed its threshold"
   }
 }

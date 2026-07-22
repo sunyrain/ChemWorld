@@ -18,7 +18,7 @@ PRIMARY_OBSERVATION_FIELDS = {
     "reaction-to-crystallization": "crystal_yield",
     "reaction-to-distillation": "distillate_purity",
     "flow-reaction-optimization": "flow_conversion",
-    "electrochemical-conversion": "electrochemical_selectivity",
+    "electrochemical-conversion": "selective_product_yield",
     "equilibrium-characterization": "equilibrium_confidence",
 }
 

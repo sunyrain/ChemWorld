@@ -42,7 +42,9 @@ confirmation data.
 Six research tasks expose executable mechanism or constitutive-law families. Across five worlds and five fixed probe
 recipes, nine task–mode combinations establish determinism, local response separation, bounded response,
 conservation, and replay. These controls do not establish candidate-family identification under a fixed budget.
-Mechanism v0.2.1 electrochemical Gate A cells pass, but reaction-to-crystallization family-wise confidence bounds keep
-Gate A failed. This is a design boundary, not agent-adaptation evidence.
+The former Gate A result is non-binding because the action, metric, and public-information contracts changed. The
+current four-seed decision-relevance audit passes for reaction catalyst, electrochemical solvent, and electrolyte
+counterfactuals, but this is only a design precondition. Controlled matched and online-policy-feasible
+identifiability must be recertified before any Agent-adaptation interpretation.
 
 Next: [Benchmark](benchmark_overview.md) · [Research Findings](research_findings.md)

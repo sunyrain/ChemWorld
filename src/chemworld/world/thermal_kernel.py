@@ -7,6 +7,75 @@ from dataclasses import dataclass
 import numpy as np
 
 from chemworld.foundation import WorldState, equipment_settings, selected_phase_id
+from chemworld.world.parameters import ChemWorldParameters
+
+
+@dataclass(frozen=True)
+class ThermalTransitionAccounting:
+    """Closed control-volume energy ledger for a prescribed temperature change."""
+
+    initial_temperature_K: float
+    final_temperature_K: float
+    duration_s: float
+    sensible_energy_change_J: float
+    jacket_energy_J: float
+    heat_loss_J: float
+    phase_change_heat_J: float
+    energy_balance_residual_J: float
+
+    def to_dict(self) -> dict[str, float | str]:
+        return {
+            "model_id": "lumped_thermal_transition_accounting_v1",
+            "initial_temperature_K": self.initial_temperature_K,
+            "final_temperature_K": self.final_temperature_K,
+            "duration_s": self.duration_s,
+            "sensible_energy_change_J": self.sensible_energy_change_J,
+            "jacket_energy_J": self.jacket_energy_J,
+            "heat_loss_J": self.heat_loss_J,
+            "phase_change_heat_J": self.phase_change_heat_J,
+            "energy_balance_residual_J": self.energy_balance_residual_J,
+        }
+
+
+def account_temperature_transition(
+    *,
+    state: WorldState,
+    world: ChemWorldParameters,
+    final_temperature_K: float,
+    duration_s: float,
+    phase_change_heat_J: float = 0.0,
+) -> ThermalTransitionAccounting:
+    """Close a signed lumped energy balance for any thermal unit operation.
+
+    The sign convention matches the reaction runtime:
+    ``dU = Q_jacket - Q_loss - Q_phase``.  Positive ``Q_loss`` is heat leaving
+    a vessel warmer than its environment; exothermic phase/reaction heat is
+    negative.
+    """
+
+    values = (final_temperature_K, duration_s, phase_change_heat_J)
+    if not all(np.isfinite(value) for value in values):
+        raise ValueError("thermal transition inputs must be finite")
+    if final_temperature_K <= 0.0 or duration_s <= 0.0:
+        raise ValueError("thermal transition temperature and duration must be positive")
+    heat_capacity_J_K = max(float(world.rho_cp_J_per_L_K) * state.volume_L, 1.0e-12)
+    sensible = heat_capacity_J_K * (final_temperature_K - state.temperature_K)
+    mean_temperature = 0.5 * (state.temperature_K + final_temperature_K)
+    heat_loss = float(world.ua_W_per_K) * (
+        mean_temperature - float(world.environment_temperature_K)
+    ) * duration_s
+    jacket = sensible + heat_loss + phase_change_heat_J
+    residual = sensible - (jacket - heat_loss - phase_change_heat_J)
+    return ThermalTransitionAccounting(
+        initial_temperature_K=float(state.temperature_K),
+        final_temperature_K=float(final_temperature_K),
+        duration_s=float(duration_s),
+        sensible_energy_change_J=float(sensible),
+        jacket_energy_J=float(jacket),
+        heat_loss_J=float(heat_loss),
+        phase_change_heat_J=float(phase_change_heat_J),
+        energy_balance_residual_J=float(residual),
+    )
 
 
 def pressure_and_risk(
@@ -76,4 +145,9 @@ class ThermalModuleSpec:
         }
 
 
-__all__ = ["ThermalModuleSpec", "pressure_and_risk"]
+__all__ = [
+    "ThermalModuleSpec",
+    "ThermalTransitionAccounting",
+    "account_temperature_transition",
+    "pressure_and_risk",
+]

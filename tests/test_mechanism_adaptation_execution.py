@@ -9,25 +9,32 @@ import pytest
 from scripts.run_mechanism_adaptation_v0_2 import (
     _campaign_filename,
     _validate_resumable_campaign,
+    _write_immutable_json,
 )
 
+from chemworld.agents.task_recipes import task_recipe_from_unit_vector
 from chemworld.eval.mechanism_adaptation_execution import (
     PublicCampaignObservationSession,
     build_action_library,
+    canonical_sha256,
     encode_public_experiment_trace,
+    gate_a_certificate_decision,
     run_gate_a,
     selected_campaign_rows,
+    validate_precomputed_design_audit,
 )
-from chemworld.eval.mechanism_design_audit import audit_mechanism_design
+from chemworld.eval.mechanism_design_audit import (
+    _audit_material_alignment,
+    _recipe_field_values,
+)
+from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def _protocol() -> dict[str, object]:
     return json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json").read_text(
-            encoding="utf-8"
-        )
+        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json").read_text(encoding="utf-8")
     )
 
 
@@ -41,19 +48,87 @@ def _gate_a_plan() -> dict[str, object]:
 
 def _paired_gate_a_plan() -> dict[str, object]:
     return json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json").read_text(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json").read_text(
             encoding="utf-8"
         )
     )
 
 
+def test_gate_a_fails_closed_without_online_policy_certificate() -> None:
+    protocol = _protocol()
+    plan = _paired_gate_a_plan()
+    decision = gate_a_certificate_decision(
+        protocol,
+        plan,
+        controlled_gate_pass=True,
+    )
+    assert decision["status"] == "gate_a_blocked_online_policy_certificate_pending"
+    assert decision["controlled_matched_gate_pass"] is True
+    assert decision["online_policy_feasible_gate_pass"] is False
+    assert decision["gate_a_pass"] is False
+
+
+def test_gate_a_requires_two_bound_passing_certificates() -> None:
+    protocol = _protocol()
+    plan = _paired_gate_a_plan()
+    certificate = {
+        "schema_version": "chemworld-mechanism-adaptation-online-policy-certificate-0.1",
+        "certificate_scope": "online_policy_feasible_diagnosis",
+        "protocol_sha256": canonical_sha256(protocol),
+        "gate_a_plan_sha256": canonical_sha256(plan),
+        "primary_gate_budget": 2,
+        "hidden_change_time": True,
+        "uses_actual_available_pre_change_history": True,
+        "uses_actual_action_measurement_and_budget_contract": True,
+        "status": "passed",
+        "gate_pass": True,
+    }
+    decision = gate_a_certificate_decision(
+        protocol,
+        plan,
+        controlled_gate_pass=True,
+        online_policy_certificate=certificate,
+    )
+    assert decision["gate_a_pass"] is True
+    stale = dict(certificate, gate_a_plan_sha256="0" * 64)
+    with pytest.raises(ValueError, match="gate_a_plan_sha256"):
+        gate_a_certificate_decision(
+            protocol,
+            plan,
+            controlled_gate_pass=True,
+            online_policy_certificate=stale,
+        )
+
+
+def test_immutable_gate_a_writer_rejects_overwrite(tmp_path: Path) -> None:
+    output = tmp_path / "formal-result.json"
+    _write_immutable_json(output, {"version": 1})
+    with pytest.raises(FileExistsError, match="immutable formal result"):
+        _write_immutable_json(output, {"version": 2})
+    assert json.loads(output.read_text(encoding="utf-8")) == {"version": 1}
+
+
+def test_precomputed_design_audit_must_be_passing_and_hash_bound() -> None:
+    protocol = _protocol()
+    plan = _paired_gate_a_plan()
+    report = json.loads(
+        (
+            ROOT
+            / "workstreams/flagship_tasks/reports/"
+            "mechanism-adaptation-design-audit-freeze-rc2.json"
+        ).read_text(encoding="utf-8")
+    )
+    validated = validate_precomputed_design_audit(protocol, plan, report)
+    assert validated["pass"] is True
+
+    stale = dict(report, protocol_sha256="0" * 64)
+    with pytest.raises(ValueError, match="protocol_sha256"):
+        validate_precomputed_design_audit(protocol, plan, stale)
+
+
 def test_gate_a_action_library_and_public_encoding_are_deterministic() -> None:
-    first = build_action_library(
-        "reaction-to-crystallization", action_count=6, seed=41102
-    )
-    second = build_action_library(
-        "reaction-to-crystallization", action_count=6, seed=41102
-    )
+    first = build_action_library("reaction-to-crystallization", action_count=6, seed=41102)
+    second = build_action_library("reaction-to-crystallization", action_count=6, seed=41102)
     assert list(first) == [f"design-{index:02d}" for index in range(6)]
     assert all(np.array_equal(first[key], second[key]) for key in first)
 
@@ -78,9 +153,7 @@ def test_paired_gate_a_must_match_the_protocol_pre_change_budget() -> None:
 
 
 def test_observation_seed_can_change_noise_without_changing_hidden_world() -> None:
-    action_library = build_action_library(
-        "electrochemical-conversion", action_count=3, seed=41102
-    )
+    action_library = build_action_library("electrochemical-conversion", action_count=3, seed=41102)
     selected = {"design-00": action_library["design-00"]}
     with PublicCampaignObservationSession(
         task_id="electrochemical-conversion",
@@ -118,50 +191,63 @@ def _action_libraries(protocol: dict[str, object], plan: dict[str, object]):
     }
 
 
-def test_current_mechanism_design_has_reachable_covered_targets() -> None:
-    protocol = _protocol()
-    plan = _gate_a_plan()
-    report = audit_mechanism_design(
-        protocol,
-        plan,
-        action_libraries=_action_libraries(protocol, plan),
+def _structural_design_report() -> dict[str, object]:
+    return json.loads(
+        (
+            ROOT
+            / "workstreams/flagship_tasks/reports/"
+            "mechanism-adaptation-design-audit-freeze-rc1.json"
+        ).read_text(encoding="utf-8")
     )
+
+
+def test_current_mechanism_design_has_reachable_covered_targets() -> None:
+    report = _structural_design_report()
     assert report["pass"] is True
     assert report["failure_count"] == 0
 
 
-def test_design_audit_rejects_electrochemical_solvent_counterfactual() -> None:
-    protocol = _protocol()
-    plan = _gate_a_plan()
-    intervention = protocol["task_mechanism_contracts"][
-        "electrochemical-conversion"
-    ]["interventions"]["material_law_counterfactual"][0]
-    intervention["material_field"] = "solvent"
-    report = audit_mechanism_design(
-        protocol,
-        plan,
-        action_libraries=_action_libraries(protocol, plan),
+def test_design_audit_accepts_both_electrochemical_material_targets() -> None:
+    report = _structural_design_report()
+    assert report["pass"] is True
+    checks = {
+        item["check"]: item["pass"]
+        for item in report["task_reports"]["electrochemical-conversion"]["checks"]
+    }
+    assert checks["material_law_counterfactual_solvent:public_choice_cardinality"] is True
+    assert checks["material_law_counterfactual_solvent:moved_indices_publicly_reachable"] is True
+    assert (
+        checks["material_law_counterfactual_electrolyte_profile:public_choice_cardinality"] is True
     )
-    failed_checks = {item["check"] for item in report["failures"]}
-    assert "material_law_counterfactual:public_choice_cardinality" in failed_checks
-    assert "material_law_counterfactual:moved_indices_publicly_reachable" in failed_checks
+    assert (
+        checks["material_law_counterfactual_electrolyte_profile:moved_indices_publicly_reachable"]
+        is True
+    )
 
 
 def test_design_audit_accepts_reaction_solvent_as_an_alternative_target() -> None:
     protocol = _protocol()
-    plan = _gate_a_plan()
-    intervention = protocol["task_mechanism_contracts"][
-        "reaction-to-crystallization"
-    ]["interventions"]["material_law_counterfactual"][0]
-    intervention.update(
-        {"material_field": "solvent", "public_to_baseline": [2, 1, 0, 3]}
+    plan = _paired_gate_a_plan()
+    intervention = protocol["task_mechanism_contracts"]["reaction-to-crystallization"][
+        "interventions"
+    ]["material_law_counterfactual"][0]
+    intervention.update({"material_field": "solvent", "public_to_baseline": [2, 1, 0, 3]})
+    action_library = _action_libraries(protocol, plan)["reaction-to-crystallization"]
+    task_info = get_task("reaction-to-crystallization").to_dict()
+    recipes = {
+        action_id: task_recipe_from_unit_vector(task_info, vector)
+        for action_id, vector in action_library.items()
+    }
+    findings: list[dict[str, object]] = []
+    _audit_material_alignment(
+        findings,
+        task_id="reaction-to-crystallization",
+        candidate_id="material_law_counterfactual",
+        intervention=intervention,
+        recipe_values=_recipe_field_values(recipes),
     )
-    report = audit_mechanism_design(
-        protocol,
-        plan,
-        action_libraries=_action_libraries(protocol, plan),
-    )
-    assert report["pass"] is True
+    assert findings
+    assert all(item["pass"] for item in findings)
 
 
 def test_campaign_selection_never_splits_changed_no_change_pairs() -> None:
@@ -181,7 +267,7 @@ def test_current_live_llm_target_is_v0_4_11_everywhere() -> None:
     expected = "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json"
     live_llm = current["development_evidence"]["live_llm"]
     assert live_llm["report"] == expected
-    assert live_llm["artifact_state"] == "current"
+    assert live_llm["artifact_state"] == "stale"
     assert live_llm["artifact_roles"] == ["development_diagnostic"]
     assert live_llm["stage"] == "candidate_screen"
     assert live_llm["promotion_decision"] == "promote"
@@ -205,9 +291,7 @@ def test_campaign_resume_rejects_a_stale_matrix_row(tmp_path: Path) -> None:
         json.dumps(
             {
                 "protocol_sha256": hashlib.sha256(
-                    json.dumps(
-                        protocol, sort_keys=True, separators=(",", ":")
-                    ).encode()
+                    json.dumps(protocol, sort_keys=True, separators=(",", ":")).encode()
                 ).hexdigest(),
                 "matrix_row": row,
                 **phases,

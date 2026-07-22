@@ -1,0 +1,30 @@
+{
+  "schema_version": "chemworld-backend-external-gate-attestation-0.1",
+  "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
+  "source_commit": "8d765dc1423f3acb16d1d9d78e89e41873adf393",
+  "source_tree_dirty": true,
+  "status": "pending",
+  "gates": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest",
+      "status": "not_run"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m ruff check .",
+      "status": "not_run"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m mypy src",
+      "status": "not_run"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m mkdocs build --strict",
+      "status": "not_run"
+    },
+    {
+      "command": ".venv/Scripts/python.exe scripts/smoke_test_wheel.py",
+      "status": "not_run"
+    }
+  ],
+  "interpretation": "This attestation is fail-closed. The backend cannot be frozen until every declared gate passes against the exact clean source commit."
+}

@@ -53,7 +53,7 @@ def test_boundary_nominal_and_upper_profiles_replay_exactly() -> None:
         assert item["runtime_failure_count"] == 0
         assert item["task_contract_hash"]
         assert item["runtime_profile_hash"]
-        assert item["world_law_id"] == "chemworld-physical-chemistry-v0.4"
+        assert item["world_law_id"] == "chemworld-physical-chemistry-v0.5"
 
 
 def test_required_multiphysics_chains_execute_and_replay() -> None:

@@ -8,6 +8,7 @@ import pytest
 
 from chemworld.eval.contract_coherence import (
     ContractCoherenceError,
+    _method_aliases_resolve_to_same_implementation,
     assert_artifact_compatible,
     audit_contract_coherence,
     load_contract_coherence_protocol,
@@ -23,7 +24,7 @@ def _artifact() -> dict[str, str]:
     return {
         "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
         "backend_semantic_hash": SHA_A,
-        "world_law_id": "chemworld-physical-chemistry-v0.4",
+        "world_law_id": "chemworld-physical-chemistry-v0.5",
         "task_contract_hash": SHA_A,
         "evaluation_contract_version": "chemworld-layered-evaluation-0.3",
         "result_schema_version": "chemworld-evaluation-result-0.3",
@@ -47,8 +48,21 @@ def test_contract_graph_covers_every_serious_task_and_formal_method() -> None:
     }
     assert len(report["method_contract"]["formal_to_implementation"]) == 12
     assert report["method_contract"]["legacy_alias_to_formal"]["greedy"] == "greedy_local"
-    assert report["method_contract"]["legacy_alias_to_formal"]["gp_bo"] == "structured_gp_ei"
+    assert "gp_bo" not in report["method_contract"]["legacy_alias_to_formal"]
+    assert report["method_contract"]["legacy_distinct_implementations"]["gp_bo"][
+        "implementation"
+    ] == "gp_bo"
     assert all(report["controls"].values())
+
+
+def test_method_aliases_must_construct_the_same_agent_class() -> None:
+    formal = {"structured_gp_ei": "structured_gp_bo"}
+    assert _method_aliases_resolve_to_same_implementation(
+        {"structured_gp_bo": "structured_gp_ei"}, formal
+    )
+    assert not _method_aliases_resolve_to_same_implementation(
+        {"gp_bo": "structured_gp_ei"}, formal
+    )
 
 
 def test_each_task_graph_binds_runtime_observation_score_risk_and_world() -> None:

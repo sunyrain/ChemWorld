@@ -19,11 +19,13 @@ from chemworld.eval.flagship_diagnostics import (
     build_flagship_diagnostic_report,
     load_flagship_diagnostic_protocol,
     render_flagship_diagnostic_markdown,
+    stable_phase_observation_seed,
     summarize_phase,
 )
 from chemworld.foundation import equipment_settings
 from chemworld.runtime.electrochemical_services import (
     AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS,
+    ELECTROCHEMICAL_SOLVENT_PARAMETERS,
 )
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
@@ -38,6 +40,25 @@ class _FakeClient:
 
     def pricing_snapshot(self) -> dict[str, Any]:
         return {"access_date": "test"}
+
+
+def test_phase_observation_seeds_are_paired_within_phase_and_independent_across_phases() -> None:
+    arguments = {
+        "task_id": "electrochemical-conversion",
+        "world_seed": 17,
+        "observation_pair_id": "pair-003",
+    }
+    iid = stable_phase_observation_seed(**arguments, phase="iid")
+    shifted = stable_phase_observation_seed(**arguments, phase="shifted")
+
+    assert iid == stable_phase_observation_seed(**arguments, phase="iid")
+    assert iid != shifted
+    assert iid != stable_phase_observation_seed(
+        task_id=arguments["task_id"],
+        world_seed=arguments["world_seed"],
+        observation_pair_id="pair-004",
+        phase="iid",
+    )
 
     def estimate_cost_usd(self, _: dict[str, Any]) -> float:
         return 0.0
@@ -253,26 +274,20 @@ def test_electrolyte_profile_counterfactual_keeps_public_label_and_swaps_hidden_
         for action in setup:
             baseline.step(action)
             shifted.step(action)
-        baseline_settings = equipment_settings(
-            baseline._state.equipment, "electrochemical_cell"
-        )
-        shifted_settings = equipment_settings(
-            shifted._state.equipment, "electrochemical_cell"
-        )
+        baseline_settings = equipment_settings(baseline._state.equipment, "electrochemical_cell")
+        shifted_settings = equipment_settings(shifted._state.equipment, "electrochemical_cell")
         assert baseline_settings["electrolyte_profile"] == 0
         assert shifted_settings["electrolyte_profile"] == 0
-        assert baseline_settings["electrolyte_profile_id"] == (
-            shifted_settings["electrolyte_profile_id"]
+        assert (
+            baseline_settings["electrolyte_profile_id"]
+            == (shifted_settings["electrolyte_profile_id"])
         )
-        assert baseline_settings["electrolyte_conductivity_S_m"] == pytest.approx(
-            AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS[0][
-                "electrolyte_conductivity_S_m"
-            ]
-        )
-        assert shifted_settings["electrolyte_conductivity_S_m"] == pytest.approx(
-            AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS[2][
-                "electrolyte_conductivity_S_m"
-            ]
+        assert (
+            shifted_settings["electrolyte_conductivity_S_m"]
+            / baseline_settings["electrolyte_conductivity_S_m"]
+        ) == pytest.approx(
+            AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS[2]["electrolyte_conductivity_S_m"]
+            / AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS[0]["electrolyte_conductivity_S_m"]
         )
         public_payload = json.dumps(
             {
@@ -282,6 +297,52 @@ def test_electrolyte_profile_counterfactual_keeps_public_label_and_swaps_hidden_
         )
         assert "_hidden_material_law" not in public_payload
         assert "public_to_baseline" not in public_payload
+    finally:
+        baseline.close()
+        shifted.close()
+
+
+def test_electrochemical_solvent_counterfactual_is_publicly_reachable() -> None:
+    intervention = {
+        "kind": "material_law_counterfactual",
+        "material_field": "solvent",
+        "public_to_baseline": [2, 1, 0, 3],
+    }
+    baseline = ChemWorldEnv(task_id="electrochemical-conversion", seed=0)
+    shifted = ChemWorldEnv(
+        task_id="electrochemical-conversion",
+        seed=0,
+        world_interventions=(intervention,),
+    )
+    setup = [
+        {"operation": "add_solvent", "volume_L": 0.025, "solvent": 0},
+        {"operation": "add_reagent", "amount_mol": 0.01},
+        {
+            "operation": "set_potential",
+            "potential_V": 1.0,
+            "current_mA": 40.0,
+            "electrolyte_profile": 1,
+        },
+    ]
+    try:
+        _, baseline_info = baseline.reset(seed=0)
+        _, shifted_info = shifted.reset(seed=0)
+        assert baseline_info == shifted_info
+        assert baseline.action_schema("add_solvent")["fields"][1]["choices"] == [0, 1, 2, 3]
+        for action in setup:
+            baseline.step(action)
+            shifted.step(action)
+        baseline_settings = equipment_settings(baseline._state.equipment, "electrochemical_cell")
+        shifted_settings = equipment_settings(shifted._state.equipment, "electrochemical_cell")
+        assert baseline_settings["solvent"] == shifted_settings["solvent"] == 0
+        assert baseline_settings["solvent_id"] == shifted_settings["solvent_id"]
+        assert baseline_settings["electrolyte_conductivity_S_m"] != pytest.approx(
+            shifted_settings["electrolyte_conductivity_S_m"]
+        )
+        assert (
+            ELECTROCHEMICAL_SOLVENT_PARAMETERS[0]["conductivity_multiplier"]
+            != ELECTROCHEMICAL_SOLVENT_PARAMETERS[2]["conductivity_multiplier"]
+        )
     finally:
         baseline.close()
         shifted.close()

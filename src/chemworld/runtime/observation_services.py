@@ -443,6 +443,8 @@ class ChemWorldObservationKernel:
             "distillate_purity",
             "distillate_recovery",
             "flow_conversion",
+            "selective_product_yield",
+            "electrochemical_conversion",
             "electrochemical_selectivity",
         }
         impurity_keys = {

@@ -241,9 +241,25 @@ def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed(
         "gate_e",
     ]
     matrix = build_paired_campaign_matrix(protocol)
-    assert len(matrix) == 2000
-    assert len({row["pair_id"] for row in matrix}) == 1000
-    for pair_id in {row["pair_id"] for row in matrix}:
+    changed_candidate_count = sum(
+        len(contract["candidate_ids"]) - 1
+        for contract in protocol["task_mechanism_contracts"].values()
+    )
+    change_time_count = sum(
+        item != "never" for item in protocol["design"]["change_after_experiments"]
+    )
+    expected_rows = (
+        changed_candidate_count
+        * change_time_count
+        * len(protocol["diagnosis_contract"]["candidate_label_modes"])
+        * len(protocol["design"]["public_development_seeds"])
+        * len(protocol["design"]["candidate_order_seeds"])
+        * 2
+    )
+    assert len(matrix) == expected_rows == 2400
+    pair_ids = {row["pair_id"] for row in matrix}
+    assert len(pair_ids) == expected_rows // 2
+    for pair_id in pair_ids:
         arms = [row for row in matrix if row["pair_id"] == pair_id]
         assert {row["arm"] for row in arms} == {"changed", "no_change_twin"}
         assert len({row["world_seed"] for row in arms}) == 1

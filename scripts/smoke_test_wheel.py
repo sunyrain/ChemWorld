@@ -39,6 +39,25 @@ def _validate_readiness_payload(
         raise RuntimeError(f"Wheel does not carry validated benchmark evidence: {payload}")
 
 
+def _validate_current_registry_payload(payload: dict[str, object]) -> None:
+    expected = {
+        "current_registry_schema": "chemworld-current-surface-registry-0.4",
+        "project_role": "agent_capability_evaluation_and_training_environment",
+        "environment_updates_agent_weights": False,
+        "formal_results_present": False,
+        "publication_ready": False,
+    }
+    mismatches = {
+        key: {"expected": expected_value, "observed": payload.get(key)}
+        for key, expected_value in expected.items()
+        if payload.get(key) != expected_value
+    }
+    if mismatches:
+        raise RuntimeError(
+            f"Wheel current registry has inconsistent claim boundaries: {mismatches}"
+        )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -93,21 +112,36 @@ def main() -> int:
             "import json, pathlib, chemworld, gymnasium as gym; "
             "from chemworld.task_design import serious_task_readiness_manifest; "
             "from chemworld.eval.benchmark_validation import official_validation_path; "
-            "from chemworld.eval.publication_protocol import ("
-            "DEFAULT_PUBLICATION_PROTOCOL_PATH, load_publication_protocol, "
-            "publication_protocol_manifest); "
+            "from chemworld.eval.flagship_diagnostics import "
+            "DEFAULT_PROTOCOL_PATH as flagship_protocol; "
+            "from chemworld.eval.formal_llm import DEFAULT_LLM_FREEZE_PATH; "
+            "from chemworld.eval.formal_operation import DEFAULT_OPERATION_FREEZE_PATH; "
+            "from chemworld.eval.mechanism_adaptation_execution import ("
+            "DEFAULT_GATE_A_PLAN_PATH, DEFAULT_PROTOCOL_PATH as mechanism_protocol); "
+            "from chemworld.eval.method_freeze_v0_4 import DEFAULT_METHOD_FREEZE_PLAN_PATH; "
+            "from chemworld.physchem.mechanism_library import configuration_root; "
             "env=gym.make('ChemWorld', task_id='reaction-to-assay', seed=0); "
             "obs,info=env.reset(seed=0); "
             "readiness=serious_task_readiness_manifest(); "
-            "protocol=publication_protocol_manifest(load_publication_protocol()); "
+            "current_path=configuration_root() / 'current.json'; "
+            "current=json.loads(current_path.read_text(encoding='utf-8')); "
             "print(json.dumps({'package': chemworld.__file__, "
             "'task_id': info['task_id'], 'observation_keys': sorted(obs), "
             "'serious_suite_status': readiness['suite_status'], "
             "'serious_task_count': len(readiness['task_ids']), "
             "'contract_ready_count': readiness['contract_ready_count'], "
             "'benchmark_ready_count': readiness['benchmark_ready_count'], "
-            "'publication_protocol_valid': protocol['valid'], "
-            "'publication_protocol_path': str(DEFAULT_PUBLICATION_PROTOCOL_PATH), "
+            "'current_registry_schema': current['schema_version'], "
+            "'current_registry_path': str(current_path), "
+            "'project_role': current['project']['role'], "
+            "'environment_updates_agent_weights': "
+            "current['project']['environment_updates_agent_weights'], "
+            "'formal_results_present': current['formal_evaluation']['formal_results_present'], "
+            "'publication_ready': current['publication']['publication_ready'], "
+            "'package_config_paths': [str(path) for path in (flagship_protocol, "
+            "DEFAULT_LLM_FREEZE_PATH, DEFAULT_OPERATION_FREEZE_PATH, "
+            "DEFAULT_GATE_A_PLAN_PATH, mechanism_protocol, "
+            "DEFAULT_METHOD_FREEZE_PLAN_PATH)], "
             "'official_validation_path': str(official_validation_path())})); "
             "env.close()"
         )
@@ -127,8 +161,7 @@ def main() -> int:
             raise RuntimeError(f"Smoke imported editable source instead of wheel: {imported_path}")
         if payload["task_id"] != "reaction-to-assay":
             raise RuntimeError(f"Unexpected wheel smoke task payload: {payload}")
-        if payload["publication_protocol_valid"] is not True:
-            raise RuntimeError(f"Wheel publication protocol is invalid: {payload}")
+        _validate_current_registry_payload(payload)
         _validate_readiness_payload(
             payload,
             require_validated_benchmark=args.require_validated_benchmark,
@@ -136,11 +169,17 @@ def main() -> int:
         validation_path = Path(str(payload["official_validation_path"])).resolve()
         if not validation_path.is_relative_to(install_dir.resolve()):
             raise RuntimeError(f"Wheel used validation outside installed resources: {payload}")
-        protocol_path = Path(str(payload["publication_protocol_path"])).resolve()
-        if not protocol_path.is_relative_to(install_dir.resolve()):
+        current_registry_path = Path(str(payload["current_registry_path"])).resolve()
+        if not current_registry_path.is_relative_to(install_dir.resolve()):
             raise RuntimeError(
-                f"Wheel used publication protocol outside installed resources: {payload}"
+                f"Wheel used current registry outside installed resources: {payload}"
             )
+        for raw_path in payload["package_config_paths"]:
+            config_path = Path(str(raw_path)).resolve()
+            if not config_path.is_relative_to(install_dir.resolve()) or not config_path.is_file():
+                raise RuntimeError(
+                    f"Wheel evaluation surface used a non-packaged config path: {payload}"
+                )
         print(json.dumps({"wheel_smoke": "passed", **payload}, indent=2, sort_keys=True))
     return 0
 

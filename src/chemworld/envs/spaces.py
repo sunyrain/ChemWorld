@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import Any
+
 import numpy as np
 from gymnasium import spaces
 
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
-from chemworld.world.operations import INSTRUMENTS, OPERATION_TYPES, PUBLIC_OBSERVATION_KEYS
+from chemworld.world.operations import (
+    INSTRUMENTS,
+    OPERATION_TYPES,
+    PUBLIC_OBSERVATION_KEYS,
+    operation_contracts,
+)
 
 OBSERVATION_KEYS = PUBLIC_OBSERVATION_KEYS
 
@@ -34,10 +42,47 @@ class NullableScalarBox(spaces.Box):
         )
 
 
+class ConditionalActionDict(spaces.Dict):
+    """A Gym-compatible carrier with operation-conditional semantic samples.
+
+    Gym's ordinary ``Dict.sample`` emits every coordinate.  ChemWorld actions
+    are tagged unions, so only the selected operation's declared fields are a
+    valid event.  The complete ``spaces`` mapping remains available to vector
+    adapters while ``sample`` and ``contains`` respect the tagged-union
+    contract.
+    """
+
+    def sample(self, mask: Mapping[str, Any] | None = None) -> dict[str, Any]:
+        carrier = super().sample(mask=dict(mask) if mask is not None else None)
+        operation_index = int(carrier["operation"])
+        operation = OPERATION_TYPES[operation_index]
+        required = operation_contracts()[operation].required_fields
+        return {"operation": operation_index, **{key: carrier[key] for key in required}}
+
+    def contains(self, x: object) -> bool:
+        if not isinstance(x, Mapping) or "operation" not in x:
+            return False
+        operation_value = x["operation"]
+        if isinstance(operation_value, (bool, np.bool_)):
+            return False
+        try:
+            operation_index = int(operation_value)
+        except (TypeError, ValueError, OverflowError):
+            return False
+        if not 0 <= operation_index < len(OPERATION_TYPES):
+            return False
+        required = operation_contracts()[OPERATION_TYPES[operation_index]].required_fields
+        if set(x) != {"operation", *required}:
+            return False
+        if not self.spaces["operation"].contains(operation_value):
+            return False
+        return all(self.spaces[key].contains(x[key]) for key in required)
+
+
 def make_action_space() -> spaces.Dict:
     """Build the public ChemWorld action space."""
 
-    return spaces.Dict(
+    return ConditionalActionDict(
         {
             "operation": spaces.Discrete(len(OPERATION_TYPES)),
             "amount_mol": spaces.Box(0.0, 0.040, shape=(1,), dtype=np.float32),

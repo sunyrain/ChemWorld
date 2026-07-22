@@ -29,8 +29,9 @@ against a pre-registered practical threshold of 0.020000, so the all-task claim 
 
 Nine task–mode controls establish deterministic execution, local response separation, bounded response,
 conservation, and replay. They do not establish candidate-family identification under a fixed experiment budget.
-Under mechanism v0.2.1, electrochemical Gate A cells pass, but reaction-to-crystallization family-wise confidence
-bounds keep Gate A failed. This is a benchmark-design boundary, not an agent failure.
+The former Gate A result is invalidated by the changed action, metric, and public-information contracts. The current
+four-seed design audit establishes decision relevance for each material counterfactual, but it does not establish
+budgeted mechanism identification. Both controlled matched and online-policy-feasible certificates must be rerun.
 
 ## Finding 4: current RL evidence diagnoses contracts, not rankings
 

@@ -21,7 +21,7 @@ from chemworld.world.instruments import INSTRUMENT_RUNTIME_MODEL_ID
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 
 SCHEMA_VERSION = "chemworld-vnext-runtime-integration-audit-0.1"
-EXPECTED_WORLD_LAW = "chemworld-physical-chemistry-v0.4"
+EXPECTED_WORLD_LAW = "chemworld-physical-chemistry-v0.5"
 RETIRED_ROUTE_MODEL_IDS = frozenset(
     {
         "chemworld_separation_proxy",

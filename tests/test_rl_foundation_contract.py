@@ -6,6 +6,9 @@ from pathlib import Path
 import gymnasium as gym
 import numpy as np
 import pytest
+
+pytest.importorskip("torch")
+
 import torch as th
 from scripts.benchmark_rl_infrastructure import candidate_matrix
 from scripts.run_foundation_rl_learning_curve import (

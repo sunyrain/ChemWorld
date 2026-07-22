@@ -9,6 +9,9 @@ from typing import Any
 
 import numpy as np
 import pytest
+
+pytest.importorskip("stable_baselines3")
+
 from stable_baselines3.common.vec_env import DummyVecEnv
 
 import chemworld.rl.formal_training as formal_training_module
@@ -586,6 +589,18 @@ def test_windows_subprocess_worker_cpu_is_included(tmp_path: Path) -> None:
 
 
 def test_batched_subprocess_preserves_vector_slot_order_and_transitions() -> None:
+    def without_runtime_identity(value: Any) -> Any:
+        builtin = to_builtin(value)
+        if isinstance(builtin, dict):
+            return {
+                key: without_runtime_identity(item)
+                for key, item in builtin.items()
+                if key != "campaign_id"
+            }
+        if isinstance(builtin, list):
+            return [without_runtime_identity(item) for item in builtin]
+        return builtin
+
     _plan, formal, _methods = _inputs()
     allocation = build_formal_allocation(formal, task_id="partition-discovery", name="train")
     factories = [
@@ -613,7 +628,9 @@ def test_batched_subprocess_preserves_vector_slot_order_and_transitions() -> Non
             np.testing.assert_array_equal(local_observation, worker_observation)
             np.testing.assert_array_equal(local_reward, worker_reward)
             np.testing.assert_array_equal(local_done, worker_done)
-            assert to_builtin(local_info) == to_builtin(worker_info)
+            for info in [*local_info, *worker_info]:
+                assert str(info["campaign_id"]).startswith("episode-")
+            assert without_runtime_identity(local_info) == without_runtime_identity(worker_info)
     finally:
         local.close()
         subprocess.close()

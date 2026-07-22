@@ -45,23 +45,22 @@ def test_serious_tasks_have_distinct_search_spaces(task_id: str, expected_kind: 
     assert task_recipe_kind(get_task(task_id).to_dict()) == expected_kind
 
 
-def test_model_vector_one_hot_encodes_electrolyte_profile() -> None:
+def test_model_vector_one_hot_encodes_electrolyte_profile_and_solvent() -> None:
     task_info = get_task("electrochemical-conversion").to_dict()
     recipe = task_recipe_from_unit_vector(
         task_info,
-        np.asarray([0.62, 0.3, 0.4, 0.5, 0.6, 0.3, 0.4, 0.5]),
+        np.asarray([0.62, 0.30, 0.3, 0.4, 0.5, 0.6, 0.3, 0.4, 0.5]),
     )
 
     encoded = task_recipe_to_model_vector(task_info, recipe)
     steps = recipe["steps"]
 
-    assert encoded.shape == (11,)
-    assert encoded[-4:].tolist() == [0.0, 0.0, 1.0, 0.0]
-    assert next(step for step in steps if step["operation"] == "add_solvent")["solvent"] == 0
+    assert encoded.shape == (15,)
+    assert encoded[-8:-4].tolist() == [0.0, 0.0, 1.0, 0.0]
+    assert encoded[-4:].tolist() == [0.0, 1.0, 0.0, 0.0]
+    assert next(step for step in steps if step["operation"] == "add_solvent")["solvent"] == 1
     assert {
-        step["electrolyte_profile"]
-        for step in steps
-        if step["operation"] == "set_potential"
+        step["electrolyte_profile"] for step in steps if step["operation"] == "set_potential"
     } == {2}
 
 

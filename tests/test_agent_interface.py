@@ -212,9 +212,8 @@ def test_public_reagent_bounds_prevent_guaranteed_pressure_rollback() -> None:
         )
         species_amounts = dict(base._state.species_amounts)
         species_amounts[pressure_relevant_species] += (
-            (original_safe_amount - desired_safe_amount)
-            * validator.reagent_charge_molar_multiplier
-        )
+            original_safe_amount - desired_safe_amount
+        ) * validator.reagent_charge_molar_multiplier
         base._state = base._state.replace(species_amounts=species_amounts)
 
         schema = base.action_schema("add_reagent")
@@ -222,18 +221,14 @@ def test_public_reagent_bounds_prevent_guaranteed_pressure_rollback() -> None:
         safe_high = amount["bounds"]["high"]
         assert amount["state_dependent_bounds"] is True
         assert safe_high == pytest.approx(desired_safe_amount)
-        assert base.validate_action(
-            {"operation": "add_reagent", "amount_mol": safe_high}
-        )["valid"]
+        assert base.validate_action({"operation": "add_reagent", "amount_mol": safe_high})["valid"]
         rejected = base.validate_action(
             {"operation": "add_reagent", "amount_mol": safe_high + 1.0e-4}
         )
         assert rejected["valid"] is False
         assert "payload_bounds:amount_mol" in rejected["invalid_reasons"]
 
-        _, _, _, _, info = env.step(
-            {"operation": "add_reagent", "amount_mol": safe_high}
-        )
+        _, _, _, _, info = env.step({"operation": "add_reagent", "amount_mol": safe_high})
         assert info["transaction_status"] == "committed"
         assert info["constraint_flags"]["constitution_failed"] is False
         vessel = base._state.vessels.vessels[base._state.vessel_id]
@@ -275,21 +270,22 @@ def test_public_liquid_bounds_prevent_material_first_pressure_rollback() -> None
         env.close()
 
 
-def test_electrolyte_profile_and_aqueous_solvent_are_public_and_locked() -> None:
+def test_electrolyte_profile_and_solvent_are_public_and_locked() -> None:
     env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
     try:
         env.reset(seed=0)
         solvent_schema = env.unwrapped.action_schema("add_solvent")
         solvent = next(field for field in solvent_schema["fields"] if field["field"] == "solvent")
-        assert solvent["choices"] == [0]
-        assert solvent["state_dependent_choices"] is True
-        nonaqueous = env.unwrapped.validate_action(
-            {"operation": "add_solvent", "volume_L": 0.01, "solvent": 1}
-        )
-        assert nonaqueous["valid"] is False
-        assert "electrochemical_task_requires_aqueous_solvent" in nonaqueous["invalid_reasons"]
+        assert solvent["choices"] == [0, 1, 2, 3]
+        assert "state_dependent_choices" not in solvent
 
-        env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 0})
+        env.step({"operation": "add_solvent", "volume_L": 0.026, "solvent": 2})
+        locked_solvent_schema = env.unwrapped.action_schema("add_solvent")
+        locked_solvent = next(
+            field for field in locked_solvent_schema["fields"] if field["field"] == "solvent"
+        )
+        assert locked_solvent["choices"] == [2]
+        assert locked_solvent["locked_for_current_experiment"] is True
         env.step({"operation": "add_reagent", "amount_mol": 0.010})
         profile_schema = env.unwrapped.action_schema("set_potential")
         profile = next(
@@ -321,6 +317,18 @@ def test_electrolyte_profile_and_aqueous_solvent_are_public_and_locked() -> None
         )
         assert switched["valid"] is False
         assert "payload_locked:electrolyte_profile" in switched["invalid_reasons"]
+
+        injected = env.unwrapped.validate_action(
+            {
+                "operation": "set_potential",
+                "potential_V": 1.10,
+                "current_mA": 70.0,
+                "electrolyte_profile": 2,
+                "electrolyte_conductivity_S_m": 100.0,
+            }
+        )
+        assert injected["valid"] is False
+        assert "payload_fields_declared" in injected["invalid_reasons"]
     finally:
         env.close()
 

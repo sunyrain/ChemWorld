@@ -25,6 +25,21 @@ class ContractCoherenceError(RuntimeError):
     """Raised when a formal artifact or contract graph is incoherent."""
 
 
+def _method_aliases_resolve_to_same_implementation(
+    aliases: Mapping[str, str],
+    formal_to_implementation: Mapping[str, Any],
+) -> bool:
+    for alias, formal_id in aliases.items():
+        implementation = formal_to_implementation.get(formal_id)
+        if not isinstance(implementation, str):
+            return False
+        alias_factory = AGENT_REGISTRY.get(alias)
+        implementation_factory = AGENT_REGISTRY.get(implementation)
+        if alias_factory is None or alias_factory is not implementation_factory:
+            return False
+    return True
+
+
 def load_contract_coherence_protocol(path: Path | None = None) -> dict[str, Any]:
     resolved = DEFAULT_PROTOCOL_PATH if path is None else path
     payload = json.loads(resolved.read_text(encoding="utf-8"))
@@ -121,9 +136,19 @@ def audit_contract_coherence(
         for implementation in expected_method_mapping.values()
     )
     aliases = dict(protocol["method_contract"]["legacy_alias_to_formal"])
-    aliases_resolve = all(
-        alias in AGENT_REGISTRY and formal_id in expected_method_mapping
-        for alias, formal_id in aliases.items()
+    aliases_resolve = _method_aliases_resolve_to_same_implementation(
+        aliases,
+        expected_method_mapping,
+    )
+    distinct_legacy = dict(
+        protocol["method_contract"].get("legacy_distinct_implementations", {})
+    )
+    distinct_legacy_resolve = all(
+        legacy_id not in aliases
+        and isinstance(spec, Mapping)
+        and spec.get("implementation") == legacy_id
+        and AGENT_REGISTRY.get(legacy_id) is not None
+        for legacy_id, spec in distinct_legacy.items()
     )
 
     semantic = protocol["semantic_contract"]
@@ -218,6 +243,7 @@ def audit_contract_coherence(
         == expected_method_mapping
         and implementation_ready
         and aliases_resolve,
+        "legacy_distinct_methods_are_not_aliases": distinct_legacy_resolve,
         "excluded_methods_are_exact": {
             method_id
             for method_id, spec in method["methods"].items()
@@ -273,6 +299,7 @@ def audit_contract_coherence(
         "method_contract": {
             "formal_to_implementation": expected_method_mapping,
             "legacy_alias_to_formal": aliases,
+            "legacy_distinct_implementations": distinct_legacy,
             "excluded_method_ids": protocol["method_contract"]["excluded_method_ids"],
         },
         "artifact_compatibility": protocol["artifact_compatibility"],

@@ -101,6 +101,8 @@ class PhysicalConstitution:
         "flow_campaign_time_s",
         "flow_throughput_mL",
         "electrochemical_model",
+        "selective_product_yield",
+        "electrochemical_conversion",
         "electrochemical_selectivity",
         "faradaic_efficiency",
         "energy_efficiency",

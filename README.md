@@ -45,6 +45,10 @@ cd ChemWorld
 python -m pip install -e ".[dev]"
 ```
 
+The default development extra collects the complete suite and skips optional RL modules when their
+backend is absent. RL development and training use `python -m pip install -e ".[dev,rl]"`, which also
+installs the supported Stable-Baselines3/Torch stack.
+
 Run and independently verify a complete trajectory:
 
 ```bash
@@ -94,11 +98,15 @@ credentials are read from the local process environment and must not enter the r
 
 ## Evidence status
 
-The `chemworld-physical-chemistry-v0.5-candidate` backend contract passes its deterministic controls and clean-source
-attestation: all 15 registered tasks have `reference_validated` required paths, `proxy_allowed=false`, exact
-task-contract hashes, replay-bound state transitions, and public-boundary controls. This freezes a **candidate backend
-contract only**; it is not an algorithm ranking, formal benchmark release, or real-chemistry validation. **The formal
-benchmark remains 0/6 method families ready and has no Bench results.**
+The `chemworld-physical-chemistry-v0.5-candidate` backend has deterministic controls for all 15 registered tasks,
+including exact task-contract hashes, replay-bound transitions, and a fail-closed public boundary. A backend is frozen
+only when [`configs/current.json`](configs/current.json) records contract validation, clean-source attestation, and all
+declared external quality gates as passed. That state is independent of algorithm ranking, formal benchmark release,
+and real-chemistry validation.
+The current candidate is not frozen: the source tree is dirty and the declared full-test, Ruff, mypy, MkDocs, and
+wheel-smoke gates remain explicitly unattested. **The formal benchmark remains 0/5 readiness slots ready and has no
+Bench results.** Its preregistered v0.4 protocol
+targets an older task contract and is explicitly marked for recertification before any Bench unlock.
 
 [`configs/current.json`](configs/current.json) is the authoritative status surface. It reports backend-contract
 validation, clean-release attestation, formal-evaluation readiness, and publication readiness as separate states.
@@ -106,16 +114,15 @@ validation, clean-release attestation, formal-evaluation readiness, and publicat
 Current evidence has established several useful boundaries:
 
 - pre-v0.5 classical and Safe-GP runs exposed objective/risk trade-offs, but are historical diagnostics and cannot rank
-  methods on the frozen backend;
-- the post-freeze five-seed PPO Train/Dev learning gate passed at 51,200 environment steps, but it is still development
+  methods on the current candidate backend;
+- a prior five-seed PPO Train/Dev learning gate passed at 51,200 environment steps, but it is still stale development
   evidence rather than a four-task Bench result;
-- executable mechanism and constitutive-law shifts are control-validated. The original Gate A used an unreachable
-  electrochemical solvent target and is archived as invalid design evidence. In v0.2.1 the electrochemical target is
-  the publicly selectable `electrolyte_profile`; the action/intervention audit passes and all three electrochemical
-  families score 30/30 at budget four. Gate A still does **not** pass because reaction-to-crystallization per-family
-  confidence bounds remain below the frozen threshold (overall active-oracle accuracy 0.895, 95% Wilson lower bound
-  0.846). This blocks Agent-level mechanism-discovery interpretation and external campaign expansion; it is not
-  evidence that an Agent failed;
+- executable mechanism and constitutive-law shifts are control-validated. The freeze candidate makes both `solvent`
+  and `electrolyte_profile` selectable electrochemical counterfactual coordinates and removes world/mechanism identity
+  from Agent-visible messages. The action/intervention design audit passes, but the earlier controlled Gate A
+  certificate is invalidated and never supplied the separately required online-policy-feasible certificate. The new
+  two-certificate Gate A remains false until both certificates pass under the same frozen budget and contract; it must
+  be completed before any Agent-level mechanism-discovery interpretation or external campaign expansion;
 - LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
 
 See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.

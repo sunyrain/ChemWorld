@@ -26,11 +26,12 @@ from chemworld.eval.formal_runner import (
     canonical_sha256,
 )
 from chemworld.eval.runner import run_agent
+from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OPERATION_FREEZE_PATH = (
-    ROOT / "configs/methods/operation_v0.4.1/operation_methods.json"
+    configuration_root() / "methods/operation_v0.4.1/operation_methods.json"
 )
 OPERATION_FREEZE_VERSION = "chemworld-operation-method-freeze-0.4.1"
 

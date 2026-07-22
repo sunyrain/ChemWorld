@@ -11,17 +11,17 @@ they must not be copied back into current status.
 - ChemWorld is an Agent capability evaluation and training environment for physical-chemistry
   world-model behavior. It provides environments, interventions, observations, scoring, and replay;
   evaluation does not retrain or update hosted model weights.
-- Mechanism-adaptation Gate A v0.2.2 passes at the primary budget of two experiments. The active
-  oracle reaches 0.981 top-1 accuracy (95% lower bound 0.952), and the fixed-trajectory decoder
-  reaches 0.986 (95% lower bound 0.959). This certifies environment-side identifiability under the
-  frozen public contract; it is not evidence that DeepSeek or another Agent discovers mechanisms.
-- Gate A v0.2 and v0.2.1 results are immutable design-history evidence. They must not be rewritten
-  to match v0.2.2.
+- Mechanism-adaptation Gate A is false and pending two independent certificates. The controlled
+  matched oracle must be rerun on the v0.2.4 plan, and the separately bound online-policy-feasible
+  diagnosis certificate has not been executed. Historical controlled-oracle results remain useful
+  design diagnostics but cannot satisfy the combined gate.
+- Gate A v0.2 through v0.2.2 results are immutable design-history evidence. They must not be
+  rewritten to match the current two-certificate protocol.
 - A live-LLM v0.4.11 candidate screen is complete (6/6 cells replay-verified) and supports promotion
   to a live pilot; it is development evidence, not a formal benchmark result.
 - One complete changed/no-change mechanism-adaptation pilot pair is complete. Gate 0 passed; Gate B
   is descriptive and adverse, Gate E observed procedural failures, and Gates C-D remain unmeasured.
-- The general formal benchmark remains 0/6 method families ready. Backend validation, Gate A
+- The general formal benchmark remains 0/5 readiness slots ready. Backend validation, Gate A
   identifiability, and formal benchmark readiness are separate state dimensions.
 - There is no active NCS manuscript. The 2026-07-21 draft is archived under
   `paper/archive/ncs-working-draft-2026-07-21/`.
@@ -39,8 +39,8 @@ they must not be copied back into current status.
 
 ## P0 — restore repository truth and portability
 
-P0 blocks new provider spending and release attestation. It does not invalidate the completed Gate A
-v0.2.2 certificate.
+P0 blocks new provider spending and release attestation. The historical v0.2.2 controlled-oracle
+result remains diagnostic but does not satisfy the current two-certificate Gate A.
 
 ### P0.1 Current-registry completeness and fail-closed evidence checks
 
@@ -90,8 +90,8 @@ Acceptance:
 ### P0.3 Portable flagship reanalysis
 
 Problem: the v0.1 flagship diagnostics report stores author-machine paths such as
-`D:\Projects\ChemWorld\runs\...`, and reanalysis opens those paths directly. Tests pass on the author
-machine but do not certify a relocated checkout.
+`<legacy-repository-root>\runs\...`, and reanalysis opens those paths directly. Tests pass on the
+author machine but do not certify a relocated checkout.
 
 - [x] Keep the source-bound v0.1 report immutable; do not silently rewrite historical evidence.
 - [x] Define a repository-relative trajectory reference contract for newly generated reports.
@@ -105,14 +105,14 @@ machine but do not certify a relocated checkout.
 Acceptance:
 
 - [x] Flagship reanalysis passes from a copied/relocated temporary checkout with the original
-  `D:\Projects\ChemWorld` path unavailable.
+  legacy repository path unavailable.
 - [x] `pytest tests/test_flagship_reanalysis.py -q` passes.
 - [x] Newly generated report trajectory references are repository-relative.
 
 ### P0.4 Repair public-document audit semantics
 
 Problem: the public-document audit currently fails on exact wording and exact navigation equality,
-even though README contains an explicit 0/6 benchmark boundary and the English navigation exists
+even though README contains an explicit 0/5 benchmark boundary and the English navigation exists
 with an additional valid System Model page.
 
 - [x] Replace the fixed README sentence check with semantic current-status markers.
@@ -144,8 +144,8 @@ Acceptance:
 
 - [x] Repository status documents contain no active-manuscript contradiction.
 - [x] `python scripts/manage_claims.py check` passes.
-- [x] A single status reader can explain why Gate A is passed while the formal benchmark remains
-  0/6 and publication readiness remains false.
+- [x] A single status reader can explain why Gate A, the 0/5 formal readiness slots, and publication
+  readiness are all currently false for distinct reasons.
 
 ### P0 completion gate
 
@@ -249,13 +249,15 @@ component is being changed.
 
 ## Protected facts — do not reopen without new evidence
 
-- [x] Gate A v0.2.2 is the current environment-side identifiability certificate and passes.
-- [x] Gate A does not establish Agent mechanism-discovery performance or publication readiness.
+- [x] Historical Gate A v0.2.2 is controlled-oracle design evidence, not the current combined
+  certificate; current Gate A is false until controlled and online-policy certificates both pass.
+- [x] Even a future combined Gate A pass would not establish Agent mechanism-discovery performance
+  or publication readiness.
 - [x] The current evidence DAG has zero declared-node stale bindings after the Gate A refresh; P0.1
   adds the missing current-path completeness guarantee.
 - [x] The most recent source attestation recorded a clean tracked tree; the new correction changes
   require a fresh attestation after they are committed.
-- [x] Backend candidate validation and formal benchmark 0/6 readiness are intentionally different.
+- [x] Backend candidate validation and formal benchmark 0/5 readiness are intentionally different.
 - [x] There is no active manuscript.
 - [x] Historical negative results remain immutable and interpretable under their original protocol.
 

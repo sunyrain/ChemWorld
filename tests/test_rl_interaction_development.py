@@ -15,7 +15,7 @@ def test_development_protocol_is_train_dev_only_and_nonclaiming() -> None:
     assert protocol["training"]["allocation"] == "train"
     assert protocol["evaluation"]["allocation"] == "dev"
     assert protocol["training"]["action_contract_schema"] == (
-        "chemworld-continuous-event-action-0.2"
+        "chemworld-conditional-hybrid-action-0.8"
     )
     assert protocol["benchmark_claim_allowed"] is False
     assert protocol["publication_ready"] is False

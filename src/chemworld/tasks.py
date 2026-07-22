@@ -27,7 +27,7 @@ from chemworld.world.parameters import WORLD_FAMILY_VERSION
 from chemworld.world.scenario import get_scenario_card
 
 WORLD_LAW_ID = WORLD_FAMILY_VERSION
-TASK_CONTRACT_VERSION = "chemworld-task-contract-0.9"
+TASK_CONTRACT_VERSION = "chemworld-task-contract-1.1"
 FLAGSHIP_TASK_IDS = (
     "reaction-to-crystallization",
     "electrochemical-conversion",
@@ -122,6 +122,8 @@ class TaskSpec:
             "budget": self.budget,
             "seeds": list(self.seeds),
             "threshold": self.threshold,
+            "objective_score_threshold": self.threshold,
+            "threshold_semantics": "leaderboard_objective_score_not_primary_metric",
             "episode_mode": self.episode_mode,
             "allowed_operations": list(self.allowed_operations),
             "allowed_instruments": list(self.allowed_instruments),
@@ -153,6 +155,8 @@ class TaskSpec:
             "budget": self.budget,
             "seeds": list(self.seeds),
             "threshold": self.threshold,
+            "objective_score_threshold": self.threshold,
+            "threshold_semantics": "leaderboard_objective_score_not_primary_metric",
             "episode_mode": self.episode_mode,
             "allowed_operations": list(self.allowed_operations),
             "allowed_instruments": list(self.allowed_instruments),
@@ -220,12 +224,12 @@ class TaskSpec:
             "episode_mode": self.episode_mode,
             "reward_leaderboard_metric": {
                 "online_reward": (
-                    "fresh instrument-measurement score delta; cached observations "
-                    "receive zero"
+                    "fresh instrument-measurement score delta; cached observations receive zero"
                 ),
                 "leaderboard_score": "final-assay score only",
                 "success_metrics": list(self.success_metrics),
-                "threshold": self.threshold,
+                "objective_score_threshold": self.threshold,
+                "threshold_semantics": "leaderboard_objective_score_not_primary_metric",
             },
             "benchmark_contract": {
                 "objective": self.objective,
@@ -668,8 +672,8 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         episode_mode="campaign",
         allowed_operations=REACTION_CRYSTALLIZATION_ALLOWED,
         success_metrics=(
-            "score",
             "crystal_yield",
+            "score",
             "crystal_purity",
             "crystal_size",
             "crystal_csd_quality",
@@ -719,8 +723,9 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
         episode_mode="campaign",
         allowed_operations=ELECTROCHEMISTRY_ALLOWED,
         success_metrics=(
-            "score",
+            "selective_product_yield",
             "electrochemical_selectivity",
+            "score",
             "faradaic_efficiency",
             "transport_efficiency",
             "ohmic_efficiency",
@@ -730,10 +735,12 @@ TASK_REGISTRY: dict[str, TaskSpec] = {
             "safety_risk",
         ),
         description=(
-            "Select a bounded aqueous electrolyte profile, identify coupled equilibrium, "
-            "transport, double-layer, kinetic, and ohmic behavior from a probe regime, "
-            "then adapt potential/current for selective, charge- and energy-efficient "
-            "conversion."
+            "Select a bounded solvent medium and electrolyte profile, identify coupled "
+            "effective equilibrium, transport, double-layer, kinetic, and ohmic behavior "
+            "(the pH diagnostic is a normalized effective proton-activity index, not a "
+            "literal non-aqueous pH claim), "
+            "from a probe regime, then change potential by at least 0.02 V or current by "
+            "at least 1.0 mA for selective, charge- and energy-efficient conversion."
         ),
         instruments=("ph_meter", "uvvis", "final_assay"),
         termination_policy="budget-with-workflow-gated-final-assay",

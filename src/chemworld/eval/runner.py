@@ -13,7 +13,6 @@ import gymnasium as gym
 import chemworld  # noqa: F401
 from chemworld.agent_interface import agent_view_bundle
 from chemworld.agents import (
-    CodexSubagentOnlineAgent,
     CodexSubagentReplayAgent,
     GaussianProcessBOAgent,
     GaussianProcessPIAgent,
@@ -83,7 +82,6 @@ AGENT_REGISTRY: dict[str, Callable[[], Agent]] = {
     "tool_using_llm_stub": ToolUsingLLMStubAgent,
     "llm_replay": LLMReplayAgent,
     "codex_subagent_replay": CodexSubagentReplayAgent,
-    "codex_subagent_online": CodexSubagentOnlineAgent,
 }
 
 
@@ -103,6 +101,7 @@ def run_agent(
     objective: str,
     seed: int,
     agent_seed: int | None = None,
+    observation_seed: int | None = None,
     task_id: str | None = None,
     output_path: str | Path | None = None,
     budget_override: int | None = None,
@@ -139,6 +138,8 @@ def run_agent(
         "objective": objective,
         "seed": seed,
     }
+    if observation_seed is not None:
+        env_kwargs["observation_seed_override"] = int(observation_seed)
     if task_id is not None:
         env_kwargs["task_id"] = task_id
     if world_interventions:
@@ -161,6 +162,7 @@ def run_agent(
         raise RuntimeError(f"{env_id} does not expose task_info()")
     base_env: Any = env.unwrapped
     task_info = base_env.task_info()
+    evaluator_provenance = base_env.evaluator_provenance()
     if risk_policy is not None:
         task_info.update(risk_policy.task_info_overlay())
         task_info["risk_policy_hash"] = risk_policy.policy_hash
@@ -178,8 +180,12 @@ def run_agent(
             )
             if key in method_resource_limits
         }
+    logging_task_info = {**task_info, **evaluator_provenance}
 
-    resolved_agent_seed = seed if agent_seed is None else int(agent_seed)
+    # The default policy RNG is public and deliberately unrelated to hidden
+    # world generation. Formal methods may still supply an explicitly bound
+    # private method seed.
+    resolved_agent_seed = 0 if agent_seed is None else int(agent_seed)
     agent.reset(task_info, resolved_agent_seed)
     agent_metadata = agent.manifest()
     if agent_seed is not None:
@@ -236,13 +242,9 @@ def run_agent(
         logger = logger_context.__enter__() if logger_context is not None else None
         for step in range(1, effective_budget + 1):
             pre_decision_view = agent_view_bundle(env, current_observation, current_info)
-            spectrum_request_factory = getattr(
-                agent, "consume_historical_spectrum_request", None
-            )
+            spectrum_request_factory = getattr(agent, "consume_historical_spectrum_request", None)
             requested_spectrum_id = (
-                spectrum_request_factory()
-                if callable(spectrum_request_factory)
-                else None
+                spectrum_request_factory() if callable(spectrum_request_factory) else None
             )
             pre_decision_view, retrieval_event = _attach_spectrum_archive(
                 pre_decision_view,
@@ -250,8 +252,7 @@ def run_agent(
                 latest_spectrum_id=latest_spectrum_id,
                 requested_spectrum_id=(
                     str(requested_spectrum_id)
-                    if isinstance(requested_spectrum_id, str)
-                    and requested_spectrum_id
+                    if isinstance(requested_spectrum_id, str) and requested_spectrum_id
                     else None
                 ),
             )
@@ -331,12 +332,10 @@ def run_agent(
                 )
                 history.append(record)
                 agent_trace_factory = getattr(agent, "agent_trace", None)
-                agent_trace = (
-                    agent_trace_factory() if callable(agent_trace_factory) else []
-                )
+                agent_trace = agent_trace_factory() if callable(agent_trace_factory) else []
                 if logger is not None:
                     logger.log(
-                        task_info=task_info,
+                        task_info=logging_task_info,
                         step=step,
                         action=action,
                         observation=obs_json,
@@ -435,7 +434,7 @@ def run_agent(
             agent_trace = agent_trace_factory() if callable(agent_trace_factory) else []
             if logger is not None:
                 logger.log(
-                    task_info=task_info,
+                    task_info=logging_task_info,
                     step=step,
                     action=action,
                     observation=obs_json,
@@ -529,9 +528,7 @@ def _public_spectrum_packet(public_view: dict[str, Any]) -> dict[str, Any] | Non
     instrument = report.get("instrument_summary")
     return {
         "schema_version": "chemworld-public-spectrum-packet-0.1",
-        "instrument_id": (
-            instrument.get("instrument") if isinstance(instrument, dict) else None
-        ),
+        "instrument_id": (instrument.get("instrument") if isinstance(instrument, dict) else None),
         "kind": raw_signal.get("kind"),
         "raw_signal": copy.deepcopy(raw_signal),
         "processed_estimate": copy.deepcopy(tool_view.get("processed_estimate", {})),

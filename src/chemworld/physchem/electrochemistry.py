@@ -3,9 +3,8 @@
 This module implements a compact, auditable electrochemistry core for the
 shared ChemWorld law.  The sign convention follows the usual electrode-kinetics
 form: positive overpotential gives positive anodic Butler-Volmer current, while
-negative overpotential gives cathodic current.  Benchmark conversion uses the
-absolute Faradaic charge because the virtual task tracks extent, selectivity,
-and energy accounting rather than electrode polarity.
+negative overpotential gives cathodic current. Reaction direction is explicit;
+charge magnitude is never silently reinterpreted as forward conversion.
 """
 
 from __future__ import annotations
@@ -42,6 +41,7 @@ class ElectrodeReactionSpec:
     faradaic_efficiency_ref: float = 0.90
     product_selectivity_ref: float = 0.88
     overpotential_selectivity_sensitivity_V_inv: float = 0.55
+    forward_current_sign: int = 1
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -67,6 +67,8 @@ class ElectrodeReactionSpec:
             self.overpotential_selectivity_sensitivity_V_inv,
             "overpotential_selectivity_sensitivity_V_inv",
         )
+        if isinstance(self.forward_current_sign, bool) or self.forward_current_sign not in {-1, 1}:
+            raise ValueError("forward_current_sign must be either -1 or 1")
 
     @property
     def exchange_current_a(self) -> float:
@@ -88,6 +90,7 @@ class ElectrodeReactionSpec:
             "overpotential_selectivity_sensitivity_V_inv": (
                 self.overpotential_selectivity_sensitivity_V_inv
             ),
+            "forward_current_sign": self.forward_current_sign,
             "metadata": dict(self.metadata),
         }
 
@@ -182,6 +185,7 @@ class ElectrolysisResult:
     overpotential_V: float
     kinetic_current_A: float
     actual_current_A: float
+    reaction_direction: int
     charge_C: float
     faradaic_charge_C: float
     extent_mol: float
@@ -209,6 +213,8 @@ class ElectrolysisResult:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        if self.reaction_direction not in {-1, 0, 1}:
+            raise ValueError("reaction_direction must be -1, 0, or 1")
         for name, value in (
             ("charge_C", self.charge_C),
             ("faradaic_charge_C", self.faradaic_charge_C),
@@ -248,6 +254,7 @@ class ElectrolysisResult:
             "overpotential_V": self.overpotential_V,
             "kinetic_current_A": self.kinetic_current_A,
             "actual_current_A": self.actual_current_A,
+            "reaction_direction": self.reaction_direction,
             "charge_C": self.charge_C,
             "faradaic_charge_C": self.faradaic_charge_C,
             "extent_mol": self.extent_mol,
@@ -439,6 +446,7 @@ def run_electrolysis(
     duration_s: float,
     activities: dict[str, float],
     available_substrate_mol: float,
+    available_reverse_substrate_mol: float = 0.0,
     temperature_K: float = 298.15,
     applied_current_A: float | None = None,
     electrolyte_resistance: ElectrolyteResistanceSpec | None = None,
@@ -456,6 +464,7 @@ def run_electrolysis(
     _finite(electrode_potential_V, "electrode_potential_V")
     _nonnegative(duration_s, "duration_s")
     _nonnegative(available_substrate_mol, "available_substrate_mol")
+    _nonnegative(available_reverse_substrate_mol, "available_reverse_substrate_mol")
     _positive(temperature_K, "temperature_K")
     if applied_current_A is not None:
         _finite(applied_current_A, "applied_current_A")
@@ -523,11 +532,22 @@ def run_electrolysis(
     charge = abs(actual_current) * duration_s
     if capacitive_charge_C > charge + 1.0e-12:
         raise ValueError("capacitive_charge_C cannot exceed total charge")
+    if abs(actual_current) <= 1.0e-15:
+        reaction_direction = 0
+    elif actual_current * spec.forward_current_sign > 0.0:
+        reaction_direction = 1
+    else:
+        reaction_direction = -1
+    directional_inventory = (
+        available_substrate_mol
+        if reaction_direction >= 0
+        else available_reverse_substrate_mol
+    )
     productive_charge = charge * intrinsic_faradaic_efficiency
     productive_charge = min(
         productive_charge,
         max(charge - capacitive_charge_C, 0.0),
-        available_substrate_mol * spec.electrons_transferred * FARADAY_C_PER_MOL,
+        directional_inventory * spec.electrons_transferred * FARADAY_C_PER_MOL,
     )
     if useful_charge_limit_C is not None:
         productive_charge = min(productive_charge, useful_charge_limit_C)
@@ -559,6 +579,7 @@ def run_electrolysis(
         overpotential_V=overpotential,
         kinetic_current_A=kinetic_current,
         actual_current_A=actual_current,
+        reaction_direction=reaction_direction,
         charge_C=charge,
         faradaic_charge_C=faradaic_charge,
         extent_mol=extent,
@@ -593,6 +614,8 @@ def run_electrolysis(
             ),
             "ohmic_iteration_count": iteration_count,
             "intrinsic_faradaic_efficiency": intrinsic_faradaic_efficiency,
+            "reaction_direction": reaction_direction,
+            "forward_current_sign": spec.forward_current_sign,
             "useful_charge_limit_C": useful_charge_limit_C,
         },
     )

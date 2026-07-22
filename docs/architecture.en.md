@@ -150,7 +150,6 @@ protocol feature, not a completed current result.
 
 ## Current boundary
 
-The candidate backend and replay controls are operational. Formal method freeze remains blocked, mechanism Gate A has
-not passed, and external Bridge evidence is absent. Documentation and manuscript claims must follow
+The candidate backend and replay controls are operational. Formal method freeze remains blocked, mechanism Gate A
+requires recertification after the public contract change, and external Bridge evidence is absent. Documentation and manuscript claims must follow
 `configs/current.json` rather than infer scientific readiness from software availability.
-

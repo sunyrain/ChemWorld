@@ -47,16 +47,25 @@ def test_continuous_action_adapter_has_stationary_fixed_semantics() -> None:
         add_reagent[env.operation_types.index("add_reagent")] = 1.0
         decoded = env.action(add_reagent)
         assert decoded["operation"] == env.operation_types.index("add_reagent")
+        assert set(decoded) == {"operation", "amount_mol"}
         impossible = np.full(50, -1.0, dtype=np.float32)
         impossible[env.operation_types.index("cool_crystallize")] = 1.0
         masked = env.action(impossible)
         assert masked["operation"] != env.operation_types.index("cool_crystallize")
-        low = env.action(np.full(50, -1.0, dtype=np.float32))
-        assert float(low["potential_V"]) == pytest.approx(-3.0)
-        high_parameters = np.ones(50, dtype=np.float32)
+        low_parameters = add_reagent.copy()
+        high_parameters = add_reagent.copy()
+        amount_index = env.operation_logit_count + env.parameter_keys.index("amount_mol")
+        low_parameters[amount_index] = -1.0
+        high_parameters[amount_index] = 1.0
+        low = env.action(low_parameters)
         high = env.action(high_parameters)
-        assert float(high["potential_V"]) == pytest.approx(3.0)
-        assert env.action_contract()["schema_version"] == ("chemworld-continuous-event-action-0.3")
+        assert float(low["amount_mol"]) < float(high["amount_mol"])
+        assert "potential_V" not in low
+        assert "potential_V" not in high
+        assert env.action_contract()["schema_version"] == ("chemworld-continuous-event-action-0.4")
+        assert env.action_contract()["inactive_parameter_policy"] == (
+            "excluded_from_execution_and_trajectory"
+        )
         assert env.action_contract()["execution_numeric_policy"]
         with pytest.raises(ValueError, match="finite vector"):
             env.action(np.full(50, np.nan, dtype=np.float32))
@@ -72,7 +81,7 @@ def test_conditional_hybrid_adapter_excludes_irrelevant_coordinates() -> None:
         env.reset(seed=0)
         contract = env.action_contract()
         assert contract["schema_version"] == "chemworld-conditional-hybrid-action-0.8"
-        assert contract["execution_projection"]["affordance_state_machine_version"].endswith("0.6")
+        assert contract["execution_projection"]["affordance_state_machine_version"].endswith("0.7")
         assert contract["execution_projection"]["state_dependent_categorical_choices"] is True
         assert contract["semantic_action"]["operation"]["kind"] == "categorical"
         assert contract["training_adapter"]["native_hybrid_distribution"] is False
@@ -296,7 +305,9 @@ def test_transaction_rollback_is_invalid_and_penalized_even_when_preconditions_p
         env.reset(seed=0)
         for action in recipe["steps"][:-2]:
             env.step(action)
-        _, reward, _, _, info = env.step({"operation": "wait", "duration_s": 1.0})
+        _, reward, _, _, info = env.step(
+            {"operation": "wait", "duration_s": 1.0, "stirring_speed_rpm": 100.0}
+        )
         reward_info = info["rl_training_reward"]
         assert info["transaction_status"] == "rolled_back"
         assert info["rollback_reason"] == "constitution_failed"
@@ -396,11 +407,10 @@ def test_rl_protocol_keeps_formal_claims_closed() -> None:
     assert protocol["publication_ready"] is False
     assert protocol["benchmark_claim_allowed"] is False
     report = build_report()
-    # The historical 0.3 protocol is intentionally superseded by the
-    # conditional hybrid contract and must fail closed rather than silently
-    # validating new environments under old semantics.
-    assert report["controls_ready"] is False
-    assert report["checks"]["action_key_order_frozen"] is False
+    # Contract controls can be coherent while formal training and publication
+    # claims remain explicitly closed.
+    assert report["controls_ready"] is True
+    assert report["checks"]["action_key_order_frozen"] is True
     assert report["formal_training_complete"] is False
     assert report["publication_ready"] is False
     if report["development_evidence"] is not None:

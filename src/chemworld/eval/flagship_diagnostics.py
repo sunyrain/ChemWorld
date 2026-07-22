@@ -19,11 +19,12 @@ from chemworld.agents.interaction import AgentDecisionContext, InteractionCapabi
 from chemworld.agents.task_recipes import task_recipe_event_count
 from chemworld.eval.artifact_paths import repository_relative_reference
 from chemworld.eval.runner import run_agent
+from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_PROTOCOL_PATH = (
-    ROOT / "configs/benchmark/flagship_mechanism_diagnostics_v0.1.1.json"
+    configuration_root() / "benchmark/flagship_mechanism_diagnostics_v0.1.1.json"
 )
 DIAGNOSTIC_REPORT_VERSION = "chemworld-flagship-mechanism-diagnostics-0.1.1"
 
@@ -594,6 +595,26 @@ def load_flagship_diagnostic_protocol(
     return payload
 
 
+def stable_phase_observation_seed(
+    *,
+    task_id: str,
+    world_seed: int,
+    observation_pair_id: str,
+    phase: str,
+) -> int:
+    """Derive paired-within-phase and independent-between-phase observation noise."""
+
+    if phase not in {"iid", "shifted"}:
+        raise ValueError("phase must be 'iid' or 'shifted'")
+    digest = hashlib.sha256(
+        (
+            f"chemworld-observation:{task_id}:{world_seed}:"
+            f"{observation_pair_id}:{phase}"
+        ).encode()
+    ).digest()
+    return int.from_bytes(digest[:8], "little") % (2**32)
+
+
 def run_two_phase_campaign(
     *,
     task_id: str,
@@ -604,6 +625,7 @@ def run_two_phase_campaign(
     shifted_interventions: Sequence[Mapping[str, Any]],
     output_root: str | Path,
     campaign_id: str,
+    observation_pair_id: str | None = None,
     closeout_headroom_per_experiment: int = 6,
     progress_callback: (
         Callable[[str, HistoryRecord, list[dict[str, Any]]], None] | None
@@ -623,6 +645,18 @@ def run_two_phase_campaign(
     iid_limit = per_experiment_limit * pre_change_experiments
     shifted_limit = per_experiment_limit * post_change_experiments
     adapter.configure_lifecycle_guardrail(per_experiment_limit)
+    noise_pair = campaign_id if observation_pair_id is None else observation_pair_id
+
+    phase_observation_seeds = {
+        phase: stable_phase_observation_seed(
+            task_id=task_id,
+            world_seed=seed,
+            observation_pair_id=noise_pair,
+            phase=phase,
+        )
+        for phase in ("iid", "shifted")
+    }
+
     adapter.begin_phase("iid", experiment_offset=0, operation_offset=0)
     iid_history = run_agent(
         env_id=task.env_id,
@@ -631,6 +665,7 @@ def run_two_phase_campaign(
         budget=task.budget,
         objective=task.objective,
         seed=seed,
+        observation_seed=phase_observation_seeds["iid"],
         task_id=task.task_id,
         output_path=iid_path,
         budget_override=iid_limit,
@@ -659,6 +694,7 @@ def run_two_phase_campaign(
         budget=task.budget,
         objective=task.objective,
         seed=seed,
+        observation_seed=phase_observation_seeds["shifted"],
         task_id=task.task_id,
         output_path=shifted_path,
         budget_override=shifted_limit,
@@ -685,6 +721,7 @@ def run_two_phase_campaign(
         "shifted_interventions": [dict(item) for item in shifted_interventions],
         "agent_memory_reset_between_phases": False,
         "environment_instance_reset_between_phases": True,
+        "phase_observation_seeds": phase_observation_seeds,
         "recipe_event_count": per_experiment,
         "closeout_headroom_per_experiment": closeout_headroom_per_experiment,
         "phase_operation_limit_per_experiment": per_experiment_limit,

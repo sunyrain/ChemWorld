@@ -54,7 +54,7 @@ def test_committed_vnext_integration_report_is_green() -> None:
     report = json.loads(REPORT.read_text(encoding="utf-8"))
 
     assert report["schema_version"] == "chemworld-vnext-runtime-integration-audit-0.1"
-    assert report["world_law_id"] == "chemworld-physical-chemistry-v0.4"
+    assert report["world_law_id"] == "chemworld-physical-chemistry-v0.5"
     assert report["passed"] is True
     assert all(check["passed"] for check in report["checks"])
 

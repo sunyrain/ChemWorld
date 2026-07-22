@@ -8,6 +8,7 @@ import pytest
 
 import chemworld  # noqa: F401
 from chemworld.agents.task_recipes import (
+    task_recipe_categorical_coordinates,
     task_recipe_dimension,
     task_recipe_from_unit_vector,
 )
@@ -26,6 +27,7 @@ EXPECTED_METRICS = {
     },
     "electrochemical-conversion": {
         "score",
+        "selective_product_yield",
         "electrochemical_selectivity",
         "faradaic_efficiency",
         "transport_efficiency",
@@ -123,6 +125,61 @@ def test_electrochemical_contract_requires_diagnosis_before_changed_setpoint() -
     assert "adapted_setpoint" in tracker.tokens
 
 
+def test_electrochemical_recipe_exposes_solvent_and_electrolyte_coordinates() -> None:
+    task_info = get_task("electrochemical-conversion").to_dict()
+    assert task_recipe_dimension(task_info) == 9
+    assert task_recipe_categorical_coordinates(task_info) == ((0, 4), (1, 4))
+    low = task_recipe_from_unit_vector(task_info, np.zeros(9))
+    high = task_recipe_from_unit_vector(task_info, np.ones(9))
+    assert low["steps"][0]["solvent"] == 0
+    assert high["steps"][0]["solvent"] == 3
+    assert low["steps"][2]["electrolyte_profile"] == 0
+    assert high["steps"][2]["electrolyte_profile"] == 3
+
+
+def test_near_zero_electrochemical_throughput_cannot_pass_on_selectivity_alone() -> None:
+    task = get_task("electrochemical-conversion")
+    actions = [
+        {"operation": "add_solvent", "volume_L": 0.025, "solvent": 0},
+        {"operation": "add_reagent", "amount_mol": 0.010},
+        {
+            "operation": "set_potential",
+            "potential_V": 0.80,
+            "current_mA": 0.001,
+            "electrolyte_profile": 0,
+        },
+        {"operation": "electrolyze", "duration_s": 180.0},
+        {"operation": "measure", "instrument": "ph_meter"},
+        {"operation": "measure", "instrument": "uvvis"},
+        {
+            "operation": "set_potential",
+            "potential_V": 0.82,
+            "current_mA": 0.001,
+            "electrolyte_profile": 0,
+        },
+        {"operation": "electrolyze", "duration_s": 300.0},
+        {"operation": "measure", "instrument": "uvvis"},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"},
+    ]
+    env = gym.make(
+        "ChemWorld",
+        task_id=task.task_id,
+        budget_override=len(actions) + 1,
+        episode_mode_override="campaign",
+    )
+    try:
+        env.reset(seed=0)
+        info = {}
+        for action in actions:
+            _, _, _, _, info = env.step(action)
+            assert info["transaction_status"] == "committed"
+        assert info["processed_estimate"]["selective_product_yield"] < 0.02
+        assert info["leaderboard_score"] < task.threshold
+    finally:
+        env.close()
+
+
 def test_crystallization_termination_is_gated_by_isolated_crystals() -> None:
     task = get_task("reaction-to-crystallization")
     recipe = task_recipe_from_unit_vector(
@@ -185,6 +242,14 @@ def test_electrochemical_affordances_enforce_probe_diagnose_adapt_control() -> N
         assert instrument["choices"] == ["uvvis"]
         env.step(steps[5])
 
+        repeated = env.unwrapped.validate_action(steps[2])
+        assert repeated["valid"] is False
+        assert "payload_adapts:electrochemical_setpoint" in repeated["invalid_reasons"]
+        setpoint_schema = env.unwrapped.action_schema("set_potential")
+        assert any(
+            item["id"] == "payload_adapts:electrochemical_setpoint"
+            for item in setpoint_schema["constraints"]
+        )
         assert env.unwrapped.validate_action(steps[6])["valid"] is True
         env.step(steps[6])
         assert env.unwrapped.validate_action({"operation": "terminate"})["valid"] is False

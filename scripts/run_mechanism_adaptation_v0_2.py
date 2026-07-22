@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -33,7 +34,7 @@ from chemworld.eval.mechanism_feedback_audit import (  # noqa: E402
 from chemworld.eval.provenance import write_json_atomic  # noqa: E402
 
 DEFAULT_GATE_A_REPORT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.2.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4.json"
 )
 DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.2.1"
 DEFAULT_PILOT_REPORT = (
@@ -52,9 +53,27 @@ def _write_json(path: Path, payload: Any) -> None:
     write_json_atomic(path, payload)
 
 
+def _write_immutable_json(path: Path, payload: Any) -> None:
+    """Create a formal result exactly once; reruns must use a new versioned path."""
+
+    if path.exists():
+        raise FileExistsError(
+            f"refusing to overwrite immutable formal result: {path}; "
+            "select a new versioned --output path"
+        )
+    write_json_atomic(path, payload)
+
+
 def _run_gate_a(args: argparse.Namespace) -> int:
     protocol = load_json_object(args.protocol)
     plan = load_json_object(args.gate_a_plan)
+    design_audit_path = ROOT / plan["design_validity_precondition"]["report"]
+    design_validity_audit = load_json_object(design_audit_path)
+    online_policy_certificate = (
+        None
+        if args.online_policy_certificate is None
+        else load_json_object(args.online_policy_certificate)
+    )
     print(
         json.dumps(
             {
@@ -71,8 +90,14 @@ def _run_gate_a(args: argparse.Namespace) -> int:
         ),
         flush=True,
     )
-    report = run_gate_a(protocol, plan)
-    _write_json(args.output, report)
+    report = run_gate_a(
+        protocol,
+        plan,
+        online_policy_certificate=online_policy_certificate,
+        design_validity_audit=design_validity_audit,
+        progress_callback=_print_gate_a_progress,
+    )
+    _write_immutable_json(args.output, report)
     print(
         json.dumps(
             {
@@ -86,6 +111,10 @@ def _run_gate_a(args: argparse.Namespace) -> int:
         )
     )
     return 0 if report["gate_a_pass"] else 1
+
+
+def _print_gate_a_progress(event: Mapping[str, Any]) -> None:
+    print(json.dumps(dict(event), sort_keys=True), flush=True)
 
 
 def _run_campaigns(args: argparse.Namespace) -> int:
@@ -334,6 +363,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--protocol", type=Path, default=DEFAULT_PROTOCOL_PATH)
     parser.add_argument("--gate-a-plan", type=Path, default=DEFAULT_GATE_A_PLAN_PATH)
     parser.add_argument("--output", type=Path, default=DEFAULT_GATE_A_REPORT)
+    parser.add_argument(
+        "--online-policy-certificate",
+        type=Path,
+        default=None,
+        help=(
+            "Separately generated, protocol/plan-bound online-policy-feasible Gate A "
+            "certificate. Omission leaves full Gate A fail-closed and pending."
+        ),
+    )
     parser.add_argument("--llm-methods", type=Path, default=DEFAULT_LLM_METHODS_PATH)
     parser.add_argument("--runtime-root", type=Path, default=DEFAULT_RUNTIME_ROOT)
     parser.add_argument("--pilot-report", type=Path, default=DEFAULT_PILOT_REPORT)

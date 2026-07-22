@@ -47,6 +47,7 @@ ELECTROCHEMICAL_SUMMARY_KEYS = (
     "uncompensated_voltage_drop_V",
     "voltage_window_exceeded",
 )
+THERMAL_TRANSITION_OPERATIONS = frozenset({"quench", "cool_crystallize"})
 
 
 class ChemWorldOperationRecorder:
@@ -100,7 +101,24 @@ class ChemWorldOperationRecorder:
                 value=0.0,
                 tolerance=self.constitution.tolerance,
             )
-        return [*report.checks, material_check]
+        checks = [*report.checks, material_check]
+        if operation in THERMAL_TRANSITION_OPERATIONS:
+            transition = after.metadata.get("last_energy_transition", {})
+            residual = (
+                float(transition.get("energy_balance_residual_J", float("inf")))
+                if isinstance(transition, dict) and transition.get("operation") == operation
+                else float("inf")
+            )
+            checks.append(
+                CheckResult(
+                    "operation_energy_conservation",
+                    abs(residual) <= 1.0e-8,
+                    "signed sensible, jacket, environmental, and phase-change heat close",
+                    value=residual,
+                    tolerance=1.0e-8,
+                )
+            )
+        return checks
 
     @staticmethod
     def _state_delta_summary(
@@ -134,5 +152,6 @@ class ChemWorldOperationRecorder:
 __all__ = [
     "ELECTROCHEMICAL_SUMMARY_KEYS",
     "MATERIAL_DELTA_ALLOWED_OPERATIONS",
+    "THERMAL_TRANSITION_OPERATIONS",
     "ChemWorldOperationRecorder",
 ]

@@ -227,7 +227,7 @@ def reaction_reactor_runtime_adapter_manifest() -> ModelAdapterManifest:
         provider_contract=reaction_reactor_runtime_provider_contract(),
         owned_paths=RUNTIME_INTEGRATION_OWNED_PATHS,
         integration_operations=("heat", "wait"),
-        target_world_law="chemworld-physical-chemistry-v0.4",
+        target_world_law="chemworld-physical-chemistry-v0.5",
         status="integrated",
         replaces_model_ids=(
             "chemworld_reaction_network_lite",

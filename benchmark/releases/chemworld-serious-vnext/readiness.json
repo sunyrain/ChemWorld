@@ -7,11 +7,11 @@
       "anti_gaming_checks": [
         "reject hidden-state access and contract-hash drift",
         "score final-assay results separately from intermediate observations",
-        "second setpoint must differ after pH and performance diagnostics",
+        "second setpoint must change by at least 0.02 V or 1.0 mA after pH and performance diagnostics",
         "cached observations cannot reward non-measurement operations"
       ],
       "capability_claim": "diagnosis-conditioned electrochemical identification and control",
-      "design_version": "chemworld-serious-task-design-0.2",
+      "design_version": "chemworld-serious-task-design-0.3",
       "generalization_axes": [
         "redox kinetics",
         "mass-transfer and resistance regime"
@@ -35,7 +35,7 @@
         }
       ],
       "minimum_maturity": "lite",
-      "primary_metric": "score",
+      "primary_metric": "selective_product_yield",
       "required_baselines": [
         "random",
         "lhs",
@@ -50,6 +50,7 @@
       ],
       "research_question": "Can an agent use electrolyte and performance diagnostics to adapt a second electrochemical regime under transport, resistance, and energy constraints?",
       "secondary_metrics": [
+        "score",
         "electrochemical_selectivity",
         "faradaic_efficiency",
         "transport_efficiency",
@@ -69,7 +70,7 @@
         "score final-assay results separately from intermediate observations"
       ],
       "capability_claim": "instrument-budgeted equilibrium identification",
-      "design_version": "chemworld-serious-task-design-0.2",
+      "design_version": "chemworld-serious-task-design-0.3",
       "generalization_axes": [
         "acid-base constants",
         "solubility-product regime"
@@ -123,7 +124,7 @@
         "score final-assay results separately from intermediate observations"
       ],
       "capability_claim": "geometry-aware continuous-flow optimization",
-      "design_version": "chemworld-serious-task-design-0.2",
+      "design_version": "chemworld-serious-task-design-0.3",
       "generalization_axes": [
         "reaction kinetics",
         "residence time and thermal boundary"
@@ -177,7 +178,7 @@
         "score final-assay results separately from intermediate observations"
       ],
       "capability_claim": "active phase-equilibrium characterization under a budget",
-      "design_version": "chemworld-serious-task-design-0.2",
+      "design_version": "chemworld-serious-task-design-0.3",
       "generalization_axes": [
         "distribution coefficient",
         "phase-volume ratio"
@@ -231,7 +232,7 @@
         "cached observations cannot reward non-measurement operations"
       ],
       "capability_claim": "closed-loop reaction and cooling-crystallization planning",
-      "design_version": "chemworld-serious-task-design-0.2",
+      "design_version": "chemworld-serious-task-design-0.3",
       "generalization_axes": [
         "kinetic profile",
         "solubility and cooling profile"
@@ -255,7 +256,7 @@
         }
       ],
       "minimum_maturity": "lite",
-      "primary_metric": "score",
+      "primary_metric": "crystal_yield",
       "required_baselines": [
         "random",
         "lhs",
@@ -270,7 +271,7 @@
       ],
       "research_question": "Can an agent balance reaction quality, recovery, purity, and CSD?",
       "secondary_metrics": [
-        "crystal_yield",
+        "score",
         "crystal_purity",
         "crystal_size",
         "crystal_csd_quality",
@@ -286,7 +287,7 @@
         "score final-assay results separately from intermediate observations"
       ],
       "capability_claim": "reaction-distillation trade-off reasoning",
-      "design_version": "chemworld-serious-task-design-0.2",
+      "design_version": "chemworld-serious-task-design-0.3",
       "generalization_axes": [
         "relative volatility",
         "reaction selectivity"
@@ -863,7 +864,7 @@
       "task_id": "reaction-to-distillation"
     }
   },
-  "schema_version": "chemworld-serious-task-design-0.2",
+  "schema_version": "chemworld-serious-task-design-0.3",
   "suite_status": "candidate",
   "task_ids": [
     "partition-discovery",

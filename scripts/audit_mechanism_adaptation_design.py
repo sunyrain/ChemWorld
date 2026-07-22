@@ -18,9 +18,7 @@ from chemworld.eval.mechanism_design_audit import audit_mechanism_design
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-design-audit-v0.2.2.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc2.json"
 )
 
 
@@ -68,6 +66,11 @@ def main() -> int:
     args = parser.parse_args()
     report = build_report(args.protocol, args.plan)
     if not args.check:
+        if args.output.exists():
+            raise FileExistsError(
+                f"refusing to overwrite immutable design audit: {args.output}; "
+                "select a new versioned --output path"
+            )
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(
             json.dumps(report, indent=2, sort_keys=True) + "\n",

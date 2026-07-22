@@ -153,6 +153,8 @@ def _required_observation_keys(
     elif scoring_contract.score_family == "electrochemistry":
         keys.extend(
             (
+                "selective_product_yield",
+                "electrochemical_conversion",
                 "electrochemical_selectivity",
                 "faradaic_efficiency",
                 "transport_efficiency",

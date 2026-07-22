@@ -697,8 +697,13 @@ def validate_mechanism_adaptation_protocol(protocol: Mapping[str, Any]) -> list[
     if not isinstance(reporting, Mapping):
         errors.append("reporting must be an object")
     else:
-        if reporting.get("statistical_unit") != "world_seed_or_paired_cell":
-            errors.append("statistical_unit must be world_seed_or_paired_cell")
+        if (
+            reporting.get("statistical_unit")
+            != "physical_cell_cluster_with_provider_repeat_nested"
+        ):
+            errors.append(
+                "statistical_unit must cluster physical cells and nest provider repeats"
+            )
         if reporting.get("provider_repeats") != "nested_technical_replicates":
             errors.append("provider repeats must be nested technical replicates")
 
@@ -815,6 +820,20 @@ def build_paired_campaign_matrix(
                 for label_mode in label_modes:
                     for world_seed in seeds:
                         for repeat_id, order_seed in enumerate(order_seeds):
+                            physical_cell_payload = {
+                                "protocol_id": protocol["protocol_id"],
+                                "task_id": task_id,
+                                "phase_reset_after_experiment": change_time,
+                                "candidate_label_mode": label_mode,
+                                "world_seed": int(world_seed),
+                            }
+                            physical_cell_id = hashlib.sha256(
+                                json.dumps(
+                                    physical_cell_payload,
+                                    sort_keys=True,
+                                    separators=(",", ":"),
+                                ).encode("utf-8")
+                            ).hexdigest()[:20]
                             pair_payload = {
                                 "protocol_id": protocol["protocol_id"],
                                 "task_id": task_id,
@@ -838,6 +857,10 @@ def build_paired_campaign_matrix(
                                     {
                                         **pair_payload,
                                         "pair_id": pair_id,
+                                        "statistical_cluster_id": (
+                                            f"{physical_cell_id}:{arm_truth}"
+                                        ),
+                                        "technical_repeat_id": repeat_id,
                                         "arm": arm,
                                         "truth_id": arm_truth,
                                         "candidate_ids": candidates,

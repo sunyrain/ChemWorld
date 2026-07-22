@@ -102,6 +102,11 @@ OPERATION_FIELD_CHOICES: dict[tuple[str, str], tuple[Any, ...]] = {
     ("add_extractant", "extractant"): tuple(range(len(SOLVENTS))),
     ("separate_phase", "target_phase"): ("aqueous", "organic"),
 }
+# Cumulative resource caps are operation contracts, not task-specific guards.
+# They prevent repeated calls from bypassing a per-call physical domain limit.
+OPERATION_CUMULATIVE_FIELD_LIMITS: dict[tuple[str, str], float] = {
+    ("seed_crystals", "seed_mass_g"): 0.050,
+}
 DOWNSTREAM_OBSERVATION_KEYS = (
     "purity",
     "recovery",
@@ -118,6 +123,8 @@ DOWNSTREAM_OBSERVATION_KEYS = (
     "distillate_recovery",
     "flow_conversion",
     "electrochemical_selectivity",
+    "selective_product_yield",
+    "electrochemical_conversion",
     "energy_efficiency",
     "crystal_csd_quality",
     "crystal_fines_fraction",
@@ -346,6 +353,8 @@ def instrument_name(value: Any) -> str:
 def _discrete_index(value: Any, cardinality: int, label: str) -> int:
     """Decode one finite categorical coordinate without silent remapping."""
 
+    if isinstance(value, (bool, np.bool_)):
+        raise ValueError(f"{label} must be an integer categorical index, not boolean")
     try:
         values = np.asarray(value).reshape(-1)
         if values.size != 1:
@@ -374,6 +383,7 @@ __all__ = [
     "MACRO_OPERATIONS",
     "OPERATION_FIELD_BOUNDS",
     "OPERATION_FIELD_CHOICES",
+    "OPERATION_CUMULATIVE_FIELD_LIMITS",
     "OPERATION_TYPES",
     "PRIMITIVE_OPERATIONS",
     "PROCESS_OPERATIONS",

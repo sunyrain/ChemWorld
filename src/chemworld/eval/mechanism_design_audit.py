@@ -20,6 +20,7 @@ from chemworld.agents.mechanism_adaptation_live_llm import (
 )
 from chemworld.agents.task_recipes import task_recipe_from_unit_vector
 from chemworld.envs.chemworld_env import ChemWorldEnv
+from chemworld.task_design import SERIOUS_TASK_DESIGNS
 from chemworld.tasks import get_task
 
 DESIGN_AUDIT_SCHEMA_VERSION = "chemworld-mechanism-design-audit-0.2.1"
@@ -138,6 +139,14 @@ def audit_mechanism_design(
                     candidate_id=candidate_id,
                     intervention=intervention,
                     recipe_values=recipe_values,
+                )
+                _audit_material_decision_relevance(
+                    task_findings,
+                    task_id=task_id,
+                    candidate_id=candidate_id,
+                    intervention=intervention,
+                    action_library=action_library,
+                    certificate=gate_a_plan.get("decision_relevance_certificate", {}),
                 )
             else:
                 mode = str(intervention.get("mode", ""))
@@ -290,6 +299,130 @@ def _audit_material_alignment(
         "Frozen Gate A recipes must exercise every moved index; "
         f"moved={sorted(moved)}, covered={sorted(covered, key=str)}.",
     )
+
+
+def _audit_material_decision_relevance(
+    findings: list[dict[str, Any]],
+    *,
+    task_id: str,
+    candidate_id: str,
+    intervention: Mapping[str, Any],
+    action_library: Mapping[str, np.ndarray],
+    certificate: Mapping[str, Any],
+) -> None:
+    """Check that a reachable counterfactual changes consequential decisions."""
+
+    if certificate.get("required") is not True:
+        _add(
+            findings,
+            f"{candidate_id}:decision_relevance_certificate_declared",
+            False,
+            "Material counterfactuals require a preregistered decision-relevance certificate.",
+        )
+        return
+    seeds = [int(seed) for seed in certificate.get("world_seeds", ())]
+    if not seeds or not action_library:
+        _add(
+            findings,
+            f"{candidate_id}:decision_relevance_inputs",
+            False,
+            "Decision relevance requires non-empty world seeds and action library.",
+        )
+        return
+    primary_metric = SERIOUS_TASK_DESIGNS[task_id].primary_metric
+    max_effects: list[float] = []
+    old_policy_regrets: list[float] = []
+    optimal_changes: list[float] = []
+    for seed in seeds:
+        baseline = {
+            action_id: _execute_recipe_primary(
+                task_id,
+                vector,
+                seed=seed,
+                observation_seed=1_700_000_000 + seed,
+                interventions=(),
+                primary_metric=primary_metric,
+            )
+            for action_id, vector in action_library.items()
+        }
+        shifted = {
+            action_id: _execute_recipe_primary(
+                task_id,
+                vector,
+                seed=seed,
+                observation_seed=1_700_000_000 + seed,
+                interventions=(intervention,),
+                primary_metric=primary_metric,
+            )
+            for action_id, vector in action_library.items()
+        }
+        baseline_best = max(baseline, key=baseline.__getitem__)
+        shifted_best = max(shifted, key=shifted.__getitem__)
+        max_effects.append(
+            max(abs(shifted[key] - baseline[key]) for key in baseline)
+        )
+        old_policy_regrets.append(
+            max(shifted.values()) - shifted[baseline_best]
+        )
+        optimal_changes.append(float(baseline_best != shifted_best))
+    median_effect = float(np.median(max_effects))
+    median_regret = float(np.median(old_policy_regrets))
+    optimal_change_rate = float(np.mean(optimal_changes))
+    effect_threshold = float(certificate["minimum_median_max_primary_effect"])
+    regret_threshold = float(certificate["minimum_median_old_policy_regret"])
+    change_threshold = float(certificate["minimum_optimal_action_change_rate"])
+    passed = median_effect >= effect_threshold and (
+        median_regret >= regret_threshold or optimal_change_rate >= change_threshold
+    )
+    _add(
+        findings,
+        f"{candidate_id}:decision_relevance",
+        passed,
+        (
+            f"primary={primary_metric}; median_max_effect={median_effect:.6f}; "
+            f"median_old_policy_regret={median_regret:.6f}; "
+            f"optimal_action_change_rate={optimal_change_rate:.3f}; "
+            f"thresholds=({effect_threshold:.6f}, {regret_threshold:.6f}, "
+            f"{change_threshold:.3f})."
+        ),
+    )
+
+
+def _execute_recipe_primary(
+    task_id: str,
+    vector: np.ndarray,
+    *,
+    seed: int,
+    observation_seed: int,
+    interventions: tuple[Mapping[str, Any], ...],
+    primary_metric: str,
+) -> float:
+    task_info = get_task(task_id).to_dict()
+    recipe = task_recipe_from_unit_vector(task_info, vector)
+    environment = ChemWorldEnv(
+        task_id=task_id,
+        seed=seed,
+        budget_override=len(recipe["steps"]) + 1,
+        observation_seed_override=observation_seed,
+        world_interventions=tuple(dict(item) for item in interventions),
+    )
+    try:
+        environment.reset(seed=seed)
+        info: dict[str, Any] = {}
+        for action in recipe["steps"]:
+            _observation, _reward, _terminated, _truncated, info = environment.step(action)
+            if info.get("transaction_status") != "committed":
+                raise RuntimeError(
+                    f"decision-relevance recipe failed: {task_id}/{action['operation']}"
+                )
+        value = info.get("processed_estimate", {}).get(primary_metric)
+        if value is None or not np.isfinite(float(value)):
+            raise RuntimeError(
+                f"decision-relevance recipe lacks primary metric {primary_metric}"
+            )
+        return float(value)
+    finally:
+        environment.close()
 
 
 def _audit_prompt_boundary(

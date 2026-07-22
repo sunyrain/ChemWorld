@@ -23,8 +23,7 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
     assert all(pipeline["_node_producer"](node) for node in nodes)
     assert all(pipeline["_node_source_binding"](node) for node in nodes)
     assert all(
-        (node.command is not None)
-        == (pipeline["_node_lifecycle"](node) == "generated")
+        (node.command is not None) == (pipeline["_node_lifecycle"](node) == "generated")
         for node in nodes
     )
 
@@ -46,9 +45,18 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
 
     summary = pipeline["current_status_summary"](current)
     assert summary["backend_candidate"]["contract_validation"] == "passed"
-    assert summary["release_attestation"]["status"] == "passed"
-    assert summary["mechanism_gate_a"]["status"] == "passed"
-    assert summary["formal_benchmark"]["method_families_ready"] == "0/6"
+    assert summary["release_attestation"]["status"] == (
+        "pending_clean_tree_and_external_gates"
+    )
+    assert summary["mechanism_gate_a"]["status"] == "gate_a_online_policy_certificate_pending"
+    assert summary["mechanism_gate_a"]["evidence_current"] is True
+    assert summary["mechanism_gate_a"]["passed"] is False
+    assert (
+        summary["formal_benchmark"]["protocol_binding_state"]
+        == "invalidated_dependency_binding_mismatch"
+    )
+    assert summary["formal_benchmark"]["status"] == "formal_protocol_recertification_required"
+    assert summary["formal_benchmark"]["method_families_ready"] == "0/5"
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
     assert summary["publication"]["publication_ready"] is False
 
@@ -71,9 +79,7 @@ def test_current_evidence_manifest_explains_every_node() -> None:
     manifest = pipeline["current_evidence_manifest"]()
 
     assert len(manifest["nodes"]) == len(pipeline["NODES"])
-    assert manifest["generation_order"] == [
-        node.node_id for node in pipeline["generation_order"]()
-    ]
+    assert manifest["generation_order"] == [node.node_id for node in pipeline["generation_order"]()]
     assert all(
         {
             "role",

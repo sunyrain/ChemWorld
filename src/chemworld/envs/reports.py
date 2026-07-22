@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
 from typing import Any
 
@@ -25,7 +26,6 @@ from chemworld.world.world_law import world_law_spec
 
 def build_task_info(env: Any) -> dict[str, Any]:
     compiled_mechanism = env.scenario_instance.compiled_mechanism
-    scenario_metadata = env.scenario_instance.initial_state.metadata
     task_spec = env.task_spec
     payload = {
         "env_id": "ChemWorld",
@@ -35,32 +35,18 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "scenario": build_public_scenario_summary(env),
         "initial_state_id": env.scenario_spec.initial_state_id,
         "world_split": env.world_split,
-        "world_provider": env.world.provider,
         "objective": env.objective,
         "budget": env.budget,
         "official_budget": env.official_budget,
         "episode_mode": env.episode_mode,
         "contract_profile": env.contract_profile,
         "safety_limit": env.safety_limit,
-        "seed": env.seed,
-        "world_id": env.world.world_id,
-        "task_contract_hash": (
-            None if task_spec is None else task_spec.contract_hash
-        ),
+        "task_contract_hash": (None if task_spec is None else task_spec.contract_hash),
         "description": None if task_spec is None else task_spec.description,
-        "termination_policy": (
-            None if task_spec is None else task_spec.termination_policy
-        ),
-        "observation_policy": (
-            None if task_spec is None else task_spec.observation_policy
-        ),
-        "success_metrics": (
-            [] if task_spec is None else list(task_spec.success_metrics)
-        ),
+        "termination_policy": (None if task_spec is None else task_spec.termination_policy),
+        "observation_policy": (None if task_spec is None else task_spec.observation_policy),
+        "success_metrics": ([] if task_spec is None else list(task_spec.success_metrics)),
         "runtime_profile_hash": env.runtime.profile.profile_hash,
-        "mechanism_id": compiled_mechanism.mechanism_id,
-        "mechanism_hash": compiled_mechanism.mechanism_hash,
-        "mechanism_version": compiled_mechanism.mechanism_version,
         "mechanism_summary": build_public_mechanism_summary(compiled_mechanism),
         "scoring_contract": env.scoring_contract.to_dict(),
         "scoring_contract_hash": env.scoring_contract.contract_hash,
@@ -68,19 +54,6 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "observation_contract_hash": env.observation_contract.contract_hash,
         "env_version": __version__,
         "world_family_version": env.world.family_version,
-        "world_family_intervention_version": scenario_metadata.get(
-            "world_family_intervention_version"
-        ),
-        "world_family_intervention_hash": scenario_metadata.get(
-            "world_family_intervention_hash"
-        ),
-        "mechanism_family_intervention_version": scenario_metadata.get(
-            "mechanism_family_intervention_version"
-        ),
-        "mechanism_family_intervention_hash": scenario_metadata.get(
-            "mechanism_family_intervention_hash"
-        ),
-        "runtime": env.runtime.to_dict(include_debug_truth=env.debug_truth),
         "operation_types": list(OPERATION_TYPES),
         "allowed_operations": sorted(env.allowed_operations),
         "allowed_instruments": sorted(env.allowed_instruments),
@@ -106,9 +79,7 @@ def build_task_info(env: Any) -> dict[str, Any]:
     if env.debug_truth:
         payload["debug_mechanism"] = {
             "mechanism_manifest": compiled_mechanism.manifest.to_dict(),
-            "reactions": [
-                reaction.to_dict() for reaction in compiled_mechanism.network.reactions
-            ],
+            "reactions": [reaction.to_dict() for reaction in compiled_mechanism.network.reactions],
             "scenario_card": env.scenario_instance.to_card(),
         }
     return payload
@@ -125,8 +96,6 @@ def build_public_scenario_summary(env: Any) -> dict[str, Any]:
         "initial_state_id": spec.initial_state_id,
         "allowed_module_tags": list(spec.allowed_module_tags),
         "expected_qualitative_behavior": list(spec.expected_qualitative_behavior),
-        "world_id": env.world.world_id,
-        "world_provider": env.world.provider,
         "world_family_version": env.world.family_version,
         "hidden_parameter_policy": (
             "hidden parameter seeds, parameter profiles, and generated mechanism "
@@ -137,16 +106,98 @@ def build_public_scenario_summary(env: Any) -> dict[str, Any]:
 
 def build_public_mechanism_summary(compiled_mechanism: Any) -> dict[str, Any]:
     return {
-        "mechanism_id": compiled_mechanism.mechanism_id,
-        "mechanism_version": compiled_mechanism.mechanism_version,
-        "mechanism_hash": compiled_mechanism.mechanism_hash,
-        "species_count": compiled_mechanism.manifest.species_count,
-        "reaction_count": compiled_mechanism.manifest.reaction_count,
-        "validation_passed": compiled_mechanism.manifest.validation_report.passed,
+        "instance_identity_visible": False,
+        "topology_summary_visible": False,
+        "parameter_summary_visible": False,
         "public_boundary": (
-            "identity/hash/count summary only; hidden species ids, reactions, "
-            "stoichiometry, rate laws, and parameter policies are not exposed"
+            "instance identity, hashes, topology counts, species ids, reactions, "
+            "stoichiometry, rate laws, and parameter policies are evaluator-private"
         ),
+    }
+
+
+def build_evaluator_provenance(env: Any) -> dict[str, Any]:
+    """Return replay identity that must never be passed to an Agent."""
+
+    mechanism = env.scenario_instance.compiled_mechanism
+    metadata = env.scenario_instance.initial_state.metadata
+    return {
+        "seed": env.seed,
+        "world_seed": env.seed,
+        "world_id": env.world.world_id,
+        "world_provider": env.world.provider,
+        "mechanism_id": mechanism.mechanism_id,
+        "mechanism_hash": mechanism.mechanism_hash,
+        "mechanism_version": mechanism.mechanism_version,
+        "world_family_intervention_version": metadata.get("world_family_intervention_version"),
+        "world_family_intervention_hash": metadata.get("world_family_intervention_hash"),
+        "mechanism_family_intervention_version": metadata.get(
+            "mechanism_family_intervention_version"
+        ),
+        "mechanism_family_intervention_hash": metadata.get("mechanism_family_intervention_hash"),
+        "material_law_counterfactual_version": metadata.get("material_law_counterfactual_version"),
+        "material_law_counterfactual_hash": metadata.get("material_law_counterfactual_hash"),
+    }
+
+
+_PRIVATE_AGENT_IDENTITY_KEYS = frozenset(
+    {
+        "base_mechanism_hash",
+        "seed",
+        "world_seed",
+        "material_law_counterfactual_hash",
+        "material_law_counterfactual_version",
+        "mechanism_family_intervention_hash",
+        "mechanism_family_intervention_version",
+        "mechanism_hash",
+        "mechanism_id",
+        "mechanism_version",
+        "world_family_intervention_hash",
+        "world_family_intervention_version",
+        "world_id",
+        "world_provider",
+    }
+)
+
+
+def sanitize_agent_info(payload: Any) -> Any:
+    """Recursively remove evaluator-only identity from Agent-visible payloads."""
+
+    if isinstance(payload, Mapping):
+        return {
+            key: sanitize_agent_info(value)
+            for key, value in payload.items()
+            if str(key) not in _PRIVATE_AGENT_IDENTITY_KEYS and not str(key).startswith("_hidden_")
+        }
+    if isinstance(payload, list):
+        return [sanitize_agent_info(value) for value in payload]
+    if isinstance(payload, tuple):
+        return tuple(sanitize_agent_info(value) for value in payload)
+    return payload
+
+
+_PUBLIC_STATE_DELTA_KEYS = frozenset(
+    {
+        "delta_time_s",
+        "delta_cost",
+        "delta_risk",
+        "delta_temperature_K",
+        "delta_volume_L",
+        "configured_potential_V",
+        "configured_current_mA",
+    }
+)
+
+
+def _agent_state_delta_summary(env: Any, summary: Mapping[str, Any]) -> dict[str, Any]:
+    """Project an operation record onto declared public process telemetry."""
+
+    if env.debug_truth:
+        return deepcopy(dict(summary))
+    return {
+        key: deepcopy(value)
+        for key, value in summary.items()
+        if str(key) in _PUBLIC_STATE_DELTA_KEYS
     }
 
 
@@ -205,9 +256,7 @@ def render_env(env: Any) -> Any:
     """Render a concise visible campaign summary."""
 
     last_operation = (
-        None
-        if env._last_operation_record is None
-        else env._last_operation_record.operation_type
+        None if env._last_operation_record is None else env._last_operation_record.operation_type
     )
     lines = [
         "ChemWorld",
@@ -265,9 +314,7 @@ def build_step_info(
     ]
     constraint_flags = {
         "unsafe": value_or_default(values, "safety_risk") >= env.safety_limit,
-        "unsafe_by_task_limit": (
-            value_or_default(values, "safety_risk") >= env.safety_limit
-        ),
+        "unsafe_by_task_limit": (value_or_default(values, "safety_risk") >= env.safety_limit),
         "high_cost": value_or_default(values, "cost") >= 0.75,
         "low_selectivity": value_or_default(values, "selectivity") <= 0.35,
         "degradation_detected": value_or_default(values, "degradation_warning") >= 0.28,
@@ -279,7 +326,6 @@ def build_step_info(
         ),
     }
     cost_signal, cost_components = safety_cost_from_flags(constraint_flags)
-    scenario_metadata = env.scenario_instance.initial_state.metadata
     return {
         "step": env._step_count,
         "budget": env.budget,
@@ -290,21 +336,15 @@ def build_step_info(
         "operation_id": env._operation_id,
         "experiment_ended": False,
         "experiment_summaries": deepcopy(env._experiment_summaries),
-        "world_id": env.world.world_id,
         "task_id": env.task_id,
         "scenario_id": None if env.scenario_spec is None else env.scenario_spec.scenario_id,
         "initial_state_id": env.scenario_spec.initial_state_id,
         "world_law_id": env.world.family_version,
         "world_split": env.world_split,
-        "world_provider": env.world.provider,
         "objective": env.objective,
         "safety_limit": env.safety_limit,
-        "task_contract_hash": (
-            None if env.task_spec is None else env.task_spec.contract_hash
-        ),
+        "task_contract_hash": (None if env.task_spec is None else env.task_spec.contract_hash),
         "runtime_profile_hash": env.runtime.profile.profile_hash,
-        "mechanism_id": env.scenario_instance.compiled_mechanism.mechanism_id,
-        "mechanism_hash": env.scenario_instance.compiled_mechanism.mechanism_hash,
         "scoring_contract_hash": env.scoring_contract.contract_hash,
         "observation_contract_hash": env.observation_contract.contract_hash,
         "operation_type": operation_record.operation_type,
@@ -314,7 +354,9 @@ def build_step_info(
             or operation_record.instrument in env.allowed_instruments
         ),
         "preconditions": deepcopy(operation_record.preconditions),
-        "state_delta_summary": deepcopy(operation_record.state_delta_summary),
+        "state_delta_summary": _agent_state_delta_summary(
+            env, operation_record.state_delta_summary
+        ),
         "constitution_checks": checks,
         "instrument": operation_record.instrument,
         "instrument_source": observation.instrument_id,
@@ -343,18 +385,6 @@ def build_step_info(
         "constraint_flags": constraint_flags,
         "env_version": __version__,
         "world_family_version": env.world.family_version,
-        "world_family_intervention_version": scenario_metadata.get(
-            "world_family_intervention_version"
-        ),
-        "world_family_intervention_hash": scenario_metadata.get(
-            "world_family_intervention_hash"
-        ),
-        "mechanism_family_intervention_version": scenario_metadata.get(
-            "mechanism_family_intervention_version"
-        ),
-        "mechanism_family_intervention_hash": scenario_metadata.get(
-            "mechanism_family_intervention_hash"
-        ),
     }
 
 
@@ -367,6 +397,7 @@ def _public_constitution_checks(
     if env.debug_truth:
         return [dict(check) for check in checks]
     public_checks: list[dict[str, object]] = []
+    seen: set[tuple[str, bool]] = set()
     for check in checks:
         name = str(check.get("name", "constitution_check"))
         tokens = name.split(":")
@@ -377,6 +408,10 @@ def _public_constitution_checks(
             "phase_amount_finite_nonnegative",
         }:
             name = ":".join((*tokens[:-1], "hidden_species"))
+        identity = (name, bool(check.get("passed", False)))
+        if identity in seen:
+            continue
+        seen.add(identity)
         public_checks.append(
             {
                 "name": name,
@@ -417,10 +452,12 @@ def annotate_constitution_rollback(info: dict[str, Any]) -> dict[str, Any]:
 __all__ = [
     "annotate_constitution_rollback",
     "build_constitution_summary",
+    "build_evaluator_provenance",
     "build_public_mechanism_summary",
     "build_public_observation_contract_summary",
     "build_public_scenario_summary",
     "build_step_info",
     "build_task_info",
     "render_env",
+    "sanitize_agent_info",
 ]

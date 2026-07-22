@@ -26,7 +26,7 @@ from chemworld.rl.rewards import (
     PublicBehaviorTracker,
     reward_contract,
 )
-from chemworld.world.operations import OPERATION_TYPES
+from chemworld.world.operations import OPERATION_TYPES, operation_contracts
 from chemworld.world.scoring import safety_cost_from_flags
 
 
@@ -91,9 +91,13 @@ def decode_continuous_event_action(
         operation_index = int(np.argmax(np.where(public_mask, operation_logits, -np.inf)))
     else:
         operation_index = int(np.argmax(operation_logits))
+    operation = OPERATION_TYPES[operation_index]
+    required_fields = frozenset(operation_contracts()[operation].required_fields)
     payload: dict[str, Any] = {"operation": operation_index}
     unit = np.clip((vector[operation_logit_count:] + 1.0) / 2.0, 0.0, 1.0)
     for index, key in enumerate(parameter_keys):
+        if key not in required_fields:
+            continue
         space = event_action_space[key]
         coordinate = float(unit[index])
         if isinstance(space, gym.spaces.Discrete):
@@ -371,7 +375,7 @@ class ContinuousEventActionWrapper(gym.ActionWrapper[Any, Any, Any], RecordConst
 
     def action_contract(self) -> dict[str, Any]:
         return {
-            "schema_version": "chemworld-continuous-event-action-0.3",
+            "schema_version": "chemworld-continuous-event-action-0.4",
             "action_keys": list(self.action_keys),
             "operation_types": list(self.operation_types),
             "operation_logit_count": self.operation_logit_count,
@@ -384,6 +388,7 @@ class ContinuousEventActionWrapper(gym.ActionWrapper[Any, Any, Any], RecordConst
             ),
             "parameter_discrete_mapping": "fixed global index; floor(unit_coordinate * n)",
             "empty_operation_mask_policy": "retain global argmax and record the resulting failure",
+            "inactive_parameter_policy": "excluded_from_execution_and_trajectory",
             "invalid_payload_policy": "retain environment precondition or domain failure",
             "execution_numeric_policy": (
                 "normalize numpy values to their JSON trajectory representation before execution"

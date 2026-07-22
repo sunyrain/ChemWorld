@@ -61,9 +61,13 @@ submission → trajectory validation → deterministic replay
 → metric recomputation → constraint/resource audit → verified result
 ```
 
-The current Engine and replay controls are operational. Formal method readiness remains 0/6. The v0.2.1
-action/intervention audit passes and electrochemical Gate A cells pass, but reaction-to-crystallization family-wise
-confidence bounds keep Gate A failed. Cross-method evaluation, real-LLM evaluation, private generalization, and
-external bridge evidence remain incomplete.
+The current Engine and replay controls are operational. Formal method readiness remains 0/5 readiness slots, and the preregistered
+v0.4 protocol is invalidated against task-contract 1.0 until it is recertified. The freeze-candidate
+action/intervention audit passes with both solvent and electrolyte-profile electrochemical counterfactuals publicly
+reachable and decision-relevant under the four-seed design audit. The earlier Gate A result is invalidated by the
+changed action, metric, and Agent-visible information contracts. Both the controlled matched certificate and the
+online-policy-feasible certificate remain pending. Cross-method evaluation, real-LLM evaluation, private
+generalization, and external bridge evidence
+remain incomplete.
 
 Next: [Research Findings](research_findings.md) · [Real-world Bridge](real_world_bridge.md)

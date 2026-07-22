@@ -12,7 +12,7 @@ from typing import Any
 
 import numpy as np
 
-TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-0.5"
+TASK_RECIPE_SPACE_VERSION = "chemworld-task-recipe-space-0.7"
 
 # Formal world-family interventions may multiply a configured flow residence
 # time by at most 1.75 (extrapolation severity +1).  Complete-recipe baselines
@@ -23,7 +23,7 @@ FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER = 1.75
 _CONSERVATIVE_BASE_VECTORS = {
     "equilibrium": (0.5, 0.12, 0.12, 0.5),
     "flow": (0.0, 0.15, 0.0, 0.15, 0.70, 0.15, 0.10, 0.12),
-    "electrochemical": (0.0, 0.15, 0.30, 0.25, 0.20, 0.35, 0.30, 0.25),
+    "electrochemical": (0.0, 0.0, 0.15, 0.30, 0.25, 0.20, 0.35, 0.30, 0.25),
     "partition": (0.0, 0.35, 0.50, 0.0, 0.35, 0.15, 0.65, 0.15),
     "reaction_crystallization": (
         0.10,
@@ -76,7 +76,7 @@ def task_recipe_dimension(task_info: dict[str, Any]) -> int:
     return {
         "equilibrium": 4,
         "flow": 8,
-        "electrochemical": 8,
+        "electrochemical": 9,
         "partition": 8,
         "reaction_crystallization": 10,
         "reaction_distillation": 11,
@@ -177,7 +177,7 @@ def task_recipe_categorical_coordinates(
     return {
         "equilibrium": (),
         "flow": ((0, 4), (2, 4)),
-        "electrochemical": ((0, 4),),
+        "electrochemical": ((0, 4), (1, 4)),
         "partition": ((0, 4), (3, 4)),
         "reaction_crystallization": ((4, 4), (6, 4)),
         "reaction_distillation": ((4, 4), (6, 4)),
@@ -352,24 +352,34 @@ def _flow_steps(values: np.ndarray) -> list[dict[str, Any]]:
 
 
 def _electrochemical_steps(values: np.ndarray) -> list[dict[str, Any]]:
-    probe_potential = _scale(values[2], 0.65, 1.25)
-    probe_current = _scale(values[3], 15.0, 90.0)
-    controlled_potential = min(probe_potential + _scale(values[5], 0.05, 0.55), 2.25)
-    controlled_current = min(probe_current + _scale(values[6], 5.0, 100.0), 220.0)
+    probe_potential = _scale(values[3], 0.65, 1.25)
+    probe_current = _scale(values[4], 15.0, 90.0)
+    potential_delta = np.copysign(
+        _scale(abs(2.0 * values[6] - 1.0), 0.02, 0.55),
+        2.0 * values[6] - 1.0 if values[6] != 0.5 else 1.0,
+    )
+    controlled_potential = probe_potential + potential_delta
+    if not 0.60 <= controlled_potential <= 2.25:
+        controlled_potential = probe_potential - potential_delta
+    current_delta = np.copysign(
+        _scale(abs(2.0 * values[7] - 1.0), 1.0, 100.0),
+        2.0 * values[7] - 1.0 if values[7] != 0.5 else 1.0,
+    )
+    controlled_current = float(np.clip(probe_current + current_delta, 0.001, 220.0))
     return [
         {
             "operation": "add_solvent",
             "volume_L": 0.025,
-            "solvent": 0,
+            "solvent": _choice(values[1], 4),
         },
-        {"operation": "add_reagent", "amount_mol": _scale(values[1], 0.003, 0.030)},
+        {"operation": "add_reagent", "amount_mol": _scale(values[2], 0.003, 0.030)},
         {
             "operation": "set_potential",
             "potential_V": probe_potential,
             "current_mA": probe_current,
             "electrolyte_profile": _choice(values[0], 4),
         },
-        {"operation": "electrolyze", "duration_s": _scale(values[4], 180.0, 900.0)},
+        {"operation": "electrolyze", "duration_s": _scale(values[5], 180.0, 900.0)},
         {"operation": "measure", "instrument": "ph_meter"},
         {"operation": "measure", "instrument": "uvvis"},
         {
@@ -378,7 +388,7 @@ def _electrochemical_steps(values: np.ndarray) -> list[dict[str, Any]]:
             "current_mA": controlled_current,
             "electrolyte_profile": _choice(values[0], 4),
         },
-        {"operation": "electrolyze", "duration_s": _scale(values[7], 300.0, 3600.0)},
+        {"operation": "electrolyze", "duration_s": _scale(values[8], 300.0, 3600.0)},
         {"operation": "measure", "instrument": "uvvis"},
         {"operation": "terminate"},
         {"operation": "measure", "instrument": "final_assay"},

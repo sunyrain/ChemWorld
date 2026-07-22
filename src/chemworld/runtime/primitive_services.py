@@ -16,6 +16,7 @@ from chemworld.foundation import (
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.actions import CATALYSTS, SOLVENTS
 from chemworld.world.parameters import ChemWorldParameters
+from chemworld.world.thermal_kernel import account_temperature_transition
 
 
 def _action_float(action: dict[str, Any], key: str, default: float) -> float:
@@ -122,8 +123,32 @@ class ChemWorldPrimitiveOperationServices:
 
     def quench(self, state: WorldState) -> WorldState:
         target = max(298.15, state.temperature_K - 45.0)
-        ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.03)
-        return state.replace(temperature_K=target, quenched=True, ledger=ledger)
+        sensible_magnitude = abs(
+            self.world.rho_cp_J_per_L_K * state.volume_L * (target - state.temperature_K)
+        )
+        duration = max(sensible_magnitude / 250.0, 1.0)
+        thermal = account_temperature_transition(
+            state=state,
+            world=self.world,
+            final_temperature_K=target,
+            duration_s=duration,
+        )
+        ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + duration,
+            cost=state.ledger.cost + 0.03 + abs(thermal.jacket_energy_J) / 250_000.0,
+            energy_jacket_J=state.ledger.energy_jacket_J + thermal.jacket_energy_J,
+            heat_loss_J=state.ledger.heat_loss_J + thermal.heat_loss_J,
+        )
+        metadata = {
+            **state.metadata,
+            "last_energy_transition": {"operation": "quench", **thermal.to_dict()},
+        }
+        return state.replace(
+            temperature_K=target,
+            quenched=True,
+            ledger=ledger,
+            metadata=metadata,
+        )
 
     def evaporate(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         duration = float(np.clip(_action_float(action, "duration_s", 600.0), 0.0, 14_400.0))

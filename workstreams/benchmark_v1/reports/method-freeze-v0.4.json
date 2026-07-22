@@ -22,7 +22,7 @@
     },
     "llm_development_plan": {
       "path": "configs/methods/llm_v0.4/llm_development_plan.json",
-      "sha256": "1f8189200e1ed63bdae4e1541323509092fcfff5374a81810ddbe9ee7a8a4665"
+      "sha256": "ef05a373d4429f6804c43bdf7cfa1e24ed74729473a47268a2dfffe914e454ae"
     },
     "llm_freeze": {
       "path": "configs/methods/llm_v0.4/llm_methods.json",
@@ -91,12 +91,14 @@
     "control:llm_development_ready",
     "control:operation_baselines_ready",
     "control:plan_status_ready",
+    "control:rl_contract_ready",
     "control:rl_development_ready",
     "formal_budget:freeze_missing",
     "llm:development_matrix:report_missing",
     "llm:development_plan_invalid",
     "method_freeze:development_incomplete",
     "operation_baseline:development_contract_failed",
+    "rl:contract:observation_contract_bindings_exact",
     "rl:ppo:expected_4_selected_checkpoints_found_0",
     "rl:ppo:method_not_ready",
     "rl:ppo:missing_task:flow-reaction-optimization",
@@ -125,7 +127,7 @@
     "protocols_remain_nonresult_controls": true,
     "reference_independence_ready": true,
     "required_artifact_binding_labels": true,
-    "rl_contract_ready": true,
+    "rl_contract_ready": false,
     "rl_development_ready": false,
     "schema_version": true,
     "selection_contract_matches_preregistration": true,
@@ -145,7 +147,7 @@
     "classic": {
       "cell_count": 768,
       "complete_experiments_per_cell": 40,
-      "controls_ready": true,
+      "controls_ready": false,
       "development_file_sha256": "b0f5379a8239983ff1fdc611aa43438eac11bdc75ddd7aca171007342d202bc6",
       "development_ready": false,
       "final_preregistered_recipe_selection_present": false,
@@ -210,10 +212,10 @@
     },
     "rl_contract": {
       "config_sha256": "464ee82f8b8a3106029ef6a8268576241f0836d59992be71149c9e0b50d58dde",
-      "controls_ready": true,
+      "controls_ready": false,
       "formal_ready_checkpoint_count": 0,
       "required_checkpoint_count": 8,
-      "status": "contract_ready_training_pending"
+      "status": "contract_failed"
     }
   },
   "method_freeze_ready": false,
@@ -236,7 +238,7 @@
     ],
     "selected_champions": {}
   },
-  "source_commit": "c492708b340c5e652c7c11f30680c39c75dc0933",
+  "source_commit": "8d765dc1423f3acb16d1d9d78e89e41873adf393",
   "source_tree_clean": false,
   "status": "method_freeze_preflight_blocked"
 }

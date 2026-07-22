@@ -10,7 +10,7 @@ from chemworld.tasks import SERIOUS_TASK_IDS, TaskSpec, get_task
 from chemworld.world.operations import PUBLIC_OBSERVATION_KEYS
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 
-TASK_DESIGN_VERSION = "chemworld-serious-task-design-0.2"
+TASK_DESIGN_VERSION = "chemworld-serious-task-design-0.3"
 SERIOUS_GENERALIZATION_CONTRACTS: dict[str, tuple[dict[str, Any], ...]] = {
     "partition-discovery": (
         {
@@ -326,9 +326,9 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
         task_id="reaction-to-crystallization",
         research_question="Can an agent balance reaction quality, recovery, purity, and CSD?",
         capability_claim="closed-loop reaction and cooling-crystallization planning",
-        primary_metric="score",
+        primary_metric="crystal_yield",
         secondary_metrics=(
-            "crystal_yield",
+            "score",
             "crystal_purity",
             "crystal_size",
             "crystal_csd_quality",
@@ -372,8 +372,9 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
             "electrochemical regime under transport, resistance, and energy constraints?"
         ),
         capability_claim="diagnosis-conditioned electrochemical identification and control",
-        primary_metric="score",
+        primary_metric="selective_product_yield",
         secondary_metrics=(
+            "score",
             "electrochemical_selectivity",
             "faradaic_efficiency",
             "transport_efficiency",
@@ -388,7 +389,10 @@ SERIOUS_TASK_DESIGNS: dict[str, SeriousTaskDesign] = {
         required_evidence=_COMMON_EVIDENCE,
         anti_gaming_checks=(
             *_COMMON_ANTI_GAMING,
-            "second setpoint must differ after pH and performance diagnostics",
+            (
+                "second setpoint must change by at least 0.02 V or 1.0 mA after "
+                "pH and performance diagnostics"
+            ),
             "cached observations cannot reward non-measurement operations",
         ),
     ),

@@ -163,6 +163,7 @@ def _public_proxy_amounts(
         _observed(values, "purity"),
         _observed(values, "crystal_purity"),
         _observed(values, "distillate_purity"),
+        _observed(values, "selective_product_yield"),
         _observed(values, "electrochemical_selectivity"),
     )
     impurity = max(

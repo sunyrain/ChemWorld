@@ -26,6 +26,7 @@ from chemworld.eval.formal_operation import (
 from chemworld.eval.formal_protocol_v0_4 import CORE_TASKS, load_formal_protocol
 from chemworld.eval.formal_runner import canonical_sha256
 from chemworld.eval.runner import run_agent
+from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.tasks import get_task
 from chemworld.world.world_family import axes_for_task
 
@@ -33,7 +34,10 @@ ROOT = Path(__file__).resolve().parents[3]
 OPERATION_DEVELOPMENT_VERSION = "chemworld-operation-baseline-development-audit-0.4.1"
 OPERATION_DEVELOPMENT_PLAN_VERSION = "chemworld-operation-development-plan-0.4.1"
 DEFAULT_PLAN_PATH = (
-    ROOT / "configs" / "methods" / "operation_v0.4.1" / "operation_development_plan.json"
+    configuration_root()
+    / "methods"
+    / "operation_v0.4.1"
+    / "operation_development_plan.json"
 )
 DEFAULT_REPORT_PATH = (
     ROOT

@@ -23,6 +23,7 @@ from chemworld.physchem.crystallization_validation import CrystallizationGridCas
 from chemworld.physchem.elements import molecular_weight
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
+from chemworld.world.thermal_kernel import account_temperature_transition
 
 
 def _action_float(action: dict[str, Any], key: str, default: float) -> float:
@@ -200,13 +201,16 @@ class ChemWorldCrystallizationServices:
         impurity_mol = self.species_view.impurity_amount(state)
         target_molecular_weight = self._target_molecular_weight_kg_mol()
         initial_concentration = dissolved_product_mol / max(state.volume_L, 1.0e-12)
+        reference_solubility = (
+            self.world.crystallization_reference_solubility_mol_L
+            * self.world.domain_parameter("crystallization_solubility_multiplier")
+        )
+        dissolution_enthalpy = 20_000.0
         solubility = SolubilityCurveSpec(
-            model_id="runtime_vanthoff_target_solubility_v1",
-            reference_solubility_mol_L=max(initial_concentration, 1.0e-9),
-            reference_temperature_K=state.temperature_K,
-            dissolution_enthalpy_J_mol=(
-                20_000.0 * self.world.domain_parameter("crystallization_solubility_multiplier")
-            ),
+            model_id="runtime_vanthoff_material_solubility_v2",
+            reference_solubility_mol_L=reference_solubility,
+            reference_temperature_K=298.15,
+            dissolution_enthalpy_J_mol=dissolution_enthalpy,
             minimum_temperature_K=250.0,
             maximum_temperature_K=430.0,
             provenance_id="chemworld-world-law-v0.2-solubility-policy",
@@ -283,6 +287,7 @@ class ChemWorldCrystallizationServices:
 
         provider_manifest_hash = crystallization_runtime_adapter_manifest().manifest_hash
         crystallized = result.crystals_amounts_mol[target_species]
+        crystallized_from_solution = result.crystallized_from_solution_mol
         occluded_impurity = result.crystals_amounts_mol[impurity_species]
         process_metrics = {} if state.process is None else state.process.metrics
         initial_p = max(
@@ -293,7 +298,12 @@ class ChemWorldCrystallizationServices:
         process = process_with_metrics(
             state.process,
             pre_separation_product_mol=initial_p,
-            crystal_yield=float(np.clip(result.target_recovery, 0.0, 1.0)),
+            seed_target_mol=seed_target_mol,
+            crystallized_from_solution_mol=crystallized_from_solution,
+            crystal_yield=float(np.clip(crystallized_from_solution / initial_p, 0.0, 1.0)),
+            seed_excluded_recovery=float(
+                np.clip(crystallized_from_solution / initial_p, 0.0, 1.0)
+            ),
             crystal_purity=float(np.clip(result.crystal_purity, 0.0, 1.0)),
             crystal_size=float(
                 np.clip(result.crystal_size_distribution.d50_m / 250.0e-6, 0.0, 1.0)
@@ -323,10 +333,26 @@ class ChemWorldCrystallizationServices:
             ),
         )
         cooling_depth = float(np.clip((state.temperature_K - target_temperature) / 55.0, 0.0, 1.0))
+        crystallization_heat = -dissolution_enthalpy * crystallized_from_solution
+        thermal = account_temperature_transition(
+            state=state,
+            world=self.world,
+            final_temperature_K=target_temperature,
+            duration_s=max(duration, 1.0e-9),
+            phase_change_heat_J=crystallization_heat,
+        )
         ledger = state.ledger.with_updates(
             time_s=state.ledger.time_s + duration,
-            cost=state.ledger.cost + 0.018 + duration / 3600.0 * 0.018,
+            cost=(
+                state.ledger.cost
+                + 0.018
+                + duration / 3600.0 * 0.018
+                + abs(thermal.jacket_energy_J) / 250_000.0
+            ),
             risk=max(0.0, state.ledger.risk - 0.02 * cooling_depth),
+            energy_jacket_J=state.ledger.energy_jacket_J + thermal.jacket_energy_J,
+            heat_reaction_J=state.ledger.heat_reaction_J + thermal.phase_change_heat_J,
+            heat_loss_J=state.ledger.heat_loss_J + thermal.heat_loss_J,
         )
         phases = _crystallization_phases(
             state,
@@ -370,7 +396,13 @@ class ChemWorldCrystallizationServices:
                 "execution_history": execution_history,
                 "execution_spec": execution_spec.to_dict(),
                 "solubility_model_id": solubility.model_id,
+                "reference_solubility_mol_L": reference_solubility,
+                "reference_solubility_temperature_K": solubility.reference_temperature_K,
+                "feed_concentration_mol_L": initial_concentration,
                 "kinetics_model_id": kinetics.model_id,
+                "seed_target_mol": seed_target_mol,
+                "crystallized_from_solution_mol": crystallized_from_solution,
+                "thermal_transition": thermal.to_dict(),
                 "material_balance_error_mol": result.material_balance_error_mol,
                 "component_balance_errors_mol": result.component_balance_errors_mol,
                 "particle_target_balance_error_mol": (result.particle_target_balance_error_mol),
@@ -407,12 +439,20 @@ class ChemWorldCrystallizationServices:
                 "provenance": result.provenance,
             },
         )
+        metadata = {
+            **state.metadata,
+            "last_energy_transition": {
+                "operation": "cool_crystallize",
+                **thermal.to_dict(),
+            },
+        }
         return state.replace(
             temperature_K=target_temperature,
             ledger=ledger,
             process=process,
             phases=phases,
             equipment=equipment,
+            metadata=metadata,
         )
 
     def filter_crystals(self, state: WorldState) -> WorldState:
@@ -427,10 +467,13 @@ class ChemWorldCrystallizationServices:
         impurity = solid_impurity * 0.92
         purity = product / max(product + impurity, 1.0e-12)
         process_metrics = {} if state.process is None else state.process.metrics
-        target_amount = self.species_view.target_amount(state)
+        crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
+        seed_target_mol = float(crystallizer_settings.get("seed_target_mol", 0.0))
+        retained_seed_mol = min(seed_target_mol, solid_product) * 0.96
+        product_from_solution = max(product - retained_seed_mol, 0.0)
+        target_amount = max(self.species_view.target_amount(state) - seed_target_mol, 0.0)
         initial_p = max(
             float(process_metrics.get("pre_separation_product_mol", target_amount)),
-            target_amount,
             1.0e-12,
         )
         solvent_loss = min(
@@ -441,9 +484,14 @@ class ChemWorldCrystallizationServices:
             state.process,
             pre_separation_product_mol=initial_p,
             solvent_loss=solvent_loss,
-            crystal_yield=float(np.clip(product / initial_p, 0.0, 1.0)),
+            retained_seed_mol=retained_seed_mol,
+            filtered_product_from_solution_mol=product_from_solution,
+            crystal_yield=float(np.clip(product_from_solution / initial_p, 0.0, 1.0)),
+            seed_excluded_recovery=float(
+                np.clip(product_from_solution / initial_p, 0.0, 1.0)
+            ),
             crystal_purity=float(np.clip(purity, 0.0, 1.0)),
-            recovery=float(np.clip(product / initial_p, 0.0, 1.0)),
+            recovery=float(np.clip(product_from_solution / initial_p, 0.0, 1.0)),
             purity=float(np.clip(purity, 0.0, 1.0)),
         )
         ledger = state.ledger.with_updates(
@@ -475,6 +523,8 @@ class ChemWorldCrystallizationServices:
             settings={
                 "crystals_filtered": True,
                 "filtered_product_mol": product,
+                "retained_seed_mol": retained_seed_mol,
+                "filtered_product_from_solution_mol": product_from_solution,
                 "filtered_impurity_mol": impurity,
                 "filter_purity": purity,
                 "target_solid_retention_fraction": 0.96,

@@ -292,11 +292,7 @@ def spectra_metric_consistency(
     warnings: list[str] = []
     details: dict[str, Any] = {}
     species_ids = visible_species_ids(raw_signal)
-    leaked = [
-        species_id
-        for species_id in species_ids
-        if not species_id.endswith("_public")
-    ]
+    leaked = [species_id for species_id in species_ids if not species_id.endswith("_public")]
     if leaked:
         warnings.append("hidden_species_label_leak")
         details["leaked_species_ids"] = leaked
@@ -362,6 +358,8 @@ def run_smoke_audit(
     task = get_task(task_id)
     env = gym.make("ChemWorld", task_id=task_id, seed=seed)
     observation, task_info = env.reset(seed=seed)
+    evaluator_provenance = env.unwrapped.evaluator_provenance()
+    logging_task_info = {**task_info, **evaluator_provenance}
     agent = ScriptedChemistryAgent()
     agent.reset(task_info, seed)
     trajectory_path = output_dir / "trajectories" / f"{task_id}_seed{seed}.jsonl"
@@ -376,9 +374,7 @@ def run_smoke_audit(
     ledger_single_source_failures = 0
     public_leakage_failures = 0
     public_leakage_examples: list[dict[str, str]] = []
-    hidden_species_ids = set(
-        env.unwrapped.scenario_instance.compiled_mechanism.species_index
-    )
+    hidden_species_ids = set(env.unwrapped.scenario_instance.compiled_mechanism.species_index)
 
     initial_findings = public_payload_findings(
         task_info,
@@ -447,7 +443,7 @@ def run_smoke_audit(
                         findings[: max(0, 5 - len(public_leakage_examples))]
                     )
             logger.log(
-                task_info=task_info,
+                task_info=logging_task_info,
                 step=step + 1,
                 action=action,
                 observation=observation,
@@ -481,9 +477,7 @@ def run_smoke_audit(
         public_leakage_failures += len(findings)
         if findings:
             warnings.append("public_observation_leakage:trajectory")
-            public_leakage_examples.extend(
-                findings[: max(0, 5 - len(public_leakage_examples))]
-            )
+            public_leakage_examples.extend(findings[: max(0, 5 - len(public_leakage_examples))])
     verification = verify_records(records)
     env.close()
     if "fail" in spectra_statuses:
@@ -502,8 +496,8 @@ def run_smoke_audit(
         "scenario_id": task_info.get("scenario_id"),
         "initial_state_id": task_info.get("initial_state_id"),
         "task_contract_hash": task_info.get("task_contract_hash"),
-        "mechanism_id": task_info.get("mechanism_id"),
-        "mechanism_hash": task_info.get("mechanism_hash"),
+        "mechanism_id": evaluator_provenance.get("mechanism_id"),
+        "mechanism_hash": evaluator_provenance.get("mechanism_hash"),
         "score_contract_hash": task_info.get("scoring_contract_hash"),
         "profile_hash": task_info.get("runtime_profile_hash"),
         "observation_contract_hash": task_info.get("observation_contract_hash"),
@@ -810,9 +804,7 @@ def main() -> int:
             "ledger_single_source_failures": sum(
                 int(row["ledger_single_source_failures"]) for row in rows
             ),
-            "public_leakage_failures": sum(
-                int(row["public_leakage_failures"]) for row in rows
-            ),
+            "public_leakage_failures": sum(int(row["public_leakage_failures"]) for row in rows),
         },
     }
     json_path = output_dir / "environment_consistency_report.json"

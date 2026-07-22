@@ -16,20 +16,21 @@
     ]
   },
   "benchmark_claim_allowed": false,
-  "contract_graph_sha256": "fedf4ccd8e6ee5b33634c580a1f9fa2591306ad15e951ebe00052d2ff8b79a9d",
+  "contract_graph_sha256": "5432d1a5a8259f531d216be17454cfd7dbd2c8af482396fd43056f73decc8d5c",
   "contract_identity": {
     "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
     "evaluation_contract_version": "chemworld-layered-evaluation-0.3",
     "method_resource_ledger_version": "chemworld-method-resource-ledger-0.1",
     "result_schema_version": "chemworld-evaluation-result-0.3",
     "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-    "task_contract_version": "chemworld-task-contract-0.9",
-    "world_law_id": "chemworld-physical-chemistry-v0.4"
+    "task_contract_version": "chemworld-task-contract-1.1",
+    "world_law_id": "chemworld-physical-chemistry-v0.5"
   },
   "controls": {
     "automatic_repair_is_forbidden": true,
     "excluded_methods_are_exact": true,
     "historical_confirmatory_roles_match": true,
+    "legacy_distinct_methods_are_not_aliases": true,
     "legacy_seed_protocols_are_quarantined": true,
     "method_ids_and_implementations_are_coherent": true,
     "primary_metrics_are_single_source": true,
@@ -74,26 +75,48 @@
       "structured_safe_gp_ei": "structured_safe_gp_bo"
     },
     "legacy_alias_to_formal": {
-      "gp_bo": "structured_gp_ei",
-      "gp_pi": "structured_gp_pi",
-      "gp_ucb": "structured_gp_ucb",
       "greedy": "greedy_local",
       "latin_hypercube": "lhs",
-      "rf_ei": "structured_rf_ei",
-      "safe_gp_bo": "structured_safe_gp_ei",
       "structured_gp_bo": "structured_gp_ei",
       "structured_safe_gp_bo": "structured_safe_gp_ei"
+    },
+    "legacy_distinct_implementations": {
+      "gp_bo": {
+        "formal_role": "historical_diagnostic_only",
+        "implementation": "gp_bo",
+        "reason": "Unstructured recipe-vector GP; not implementation-equivalent to structured_gp_ei"
+      },
+      "gp_pi": {
+        "formal_role": "historical_diagnostic_only",
+        "implementation": "gp_pi",
+        "reason": "Unstructured recipe-vector GP; not implementation-equivalent to structured_gp_pi"
+      },
+      "gp_ucb": {
+        "formal_role": "historical_diagnostic_only",
+        "implementation": "gp_ucb",
+        "reason": "Unstructured recipe-vector GP; not implementation-equivalent to structured_gp_ucb"
+      },
+      "rf_ei": {
+        "formal_role": "historical_diagnostic_only",
+        "implementation": "rf_ei",
+        "reason": "Unstructured recipe-vector RF; not implementation-equivalent to structured_rf_ei"
+      },
+      "safe_gp_bo": {
+        "formal_role": "historical_diagnostic_only",
+        "implementation": "safe_gp_bo",
+        "reason": "Unstructured safety-constrained GP; not implementation-equivalent to structured_safe_gp_ei"
+      }
     }
   },
   "protocol_id": "chemworld-v0.5-contract-coherence-0.1",
-  "protocol_sha256": "326e4d360c9dc0c8a4ecf1966f054537863d46d5e43529b21af7c368d92d2079",
+  "protocol_sha256": "780f0b5320605d24304809f011f5aabc3e7f41b9ff8d097f1c575f94fe70b271",
   "remaining_release_gates": [
     "freeze the portable backend semantic identity",
     "freeze formal protocol 0.4 from this graph",
     "register and freeze all evaluated method adapters"
   ],
   "schema_version": "chemworld-contract-coherence-report-0.1",
-  "source_commit": "4c9ae675d3444134f25301fb28eb0e304375c658",
+  "source_commit": "8d765dc1423f3acb16d1d9d78e89e41873adf393",
   "source_tree_dirty": true,
   "status": "contract_graph_coherent_formal_protocol_pending",
   "task_graph": {
@@ -189,7 +212,7 @@
         }
       ],
       "primary_direction": "maximize",
-      "primary_metric": "score",
+      "primary_metric": "selective_product_yield",
       "process_cost_limit": 0.13271164238452915,
       "providers": {
         "aqueous_acid_base_ph_observation": {
@@ -491,7 +514,7 @@
       "risk_limit": 0.19632664322853094,
       "role": "exploratory",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "9cc0c792e171737c5ffd5dc03772dcff724a19ae5c504b7d573257eadfa89d63",
+      "task_contract_hash": "45b6cdbaf1f9c7fc313e1589f37b17bde9fd678d40e0bd98e64a62622ecac494",
       "termination_policy": "budget-with-workflow-gated-final-assay",
       "world_axes": [
         "interpolation",
@@ -904,7 +927,7 @@
       "risk_limit": 0.1631310492753983,
       "role": "exploratory",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "046067c1c75a57032b3b4307f386b23c706507178856ee20cffa70478cd0e42a",
+      "task_contract_hash": "77e1c30cd83e1a09363cef3ea58b1ddefb415bb1d790d6d63a3c519f45325917",
       "termination_policy": "budget",
       "world_axes": [
         "interpolation",
@@ -1241,7 +1264,7 @@
       "risk_limit": 0.32665647864341746,
       "role": "formal_core",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "834207984ba38bfab373c400fc715d63908100db3ca9549185daf4fb5aca5a4f",
+      "task_contract_hash": "697a5956fd3ad242b78144c6fd11e6d3ca5335c493336d5b9cacb13decefc16b",
       "termination_policy": "budget",
       "world_axes": [
         "interpolation",
@@ -1565,7 +1588,7 @@
       "risk_limit": 0.21225822269916542,
       "role": "formal_core",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "8f5e648c9c4ad3138391014a536dc9df3008b99152c70da0f2a173914ec0d37c",
+      "task_contract_hash": "efa54ba1ab6c5c40c0bdc77f57b2234487a58d98ed5043f273496ef103b6599e",
       "termination_policy": "budget",
       "world_axes": [
         "interpolation",
@@ -1741,7 +1764,7 @@
         }
       ],
       "primary_direction": "maximize",
-      "primary_metric": "score",
+      "primary_metric": "crystal_yield",
       "process_cost_limit": 0.6453835582733157,
       "providers": {
         "chemworld_validated_synthetic_instruments_v1": {
@@ -1988,7 +2011,7 @@
       "risk_limit": 0.257127845287323,
       "role": "formal_core",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "756ca669f81a27290cd72e25c05cf9ed1f7cae0db6b299f1332d8a907b642e8f",
+      "task_contract_hash": "a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416",
       "termination_policy": "budget-with-workflow-gated-final-assay",
       "world_axes": [
         "interpolation",
@@ -2462,7 +2485,7 @@
       "risk_limit": 0.3852870047092439,
       "role": "formal_core",
       "score_replay_binding_version": "chemworld-score-replay-binding-0.1",
-      "task_contract_hash": "d19adb180200831acca5bdbb6e05a6a9de1760b494eb03f6be5a43162c6b9109",
+      "task_contract_hash": "49e465bce0c5d2fd4a8f73d298cf9d4d2d37c2ca0605aaf6caaab8a9358bff74",
       "termination_policy": "budget",
       "world_axes": [
         "interpolation",

@@ -5,7 +5,7 @@
     "external_dependencies": [],
     "fidelity": "qualitative-semi-mechanistic",
     "supported_world_laws": [
-      "chemworld-physical-chemistry-v0.4"
+      "chemworld-physical-chemistry-v0.5"
     ],
     "transition_modules": [
       "reaction_ode",
@@ -93,6 +93,7 @@
         "degradation_warning": 0.008,
         "distillate_purity": 0.01,
         "distillate_recovery": 0.012,
+        "electrochemical_conversion": 0.01,
         "electrochemical_selectivity": 0.012,
         "energy_efficiency": 0.016,
         "equilibrium_confidence": 0.006,
@@ -109,6 +110,7 @@
         "product_in_organic": 0.01,
         "purity": 0.008,
         "recovery": 0.01,
+        "selective_product_yield": 0.01,
         "selectivity": 0.01,
         "solvent_loss": 0.012,
         "transport_efficiency": 0.014,
@@ -134,6 +136,8 @@
         "distillate_purity",
         "distillate_recovery",
         "flow_conversion",
+        "selective_product_yield",
+        "electrochemical_conversion",
         "electrochemical_selectivity",
         "energy_efficiency",
         "pH_normalized",
@@ -231,6 +235,14 @@
             ]
           },
           "distillate_recovery": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "electrochemical_conversion": {
             "maximum": 1.0,
             "minimum": 0.0,
             "type": [
@@ -359,6 +371,14 @@
             ]
           },
           "recovery": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "selective_product_yield": {
             "maximum": 1.0,
             "minimum": 0.0,
             "type": [
@@ -1277,7 +1297,7 @@
       "uncertainty_model": "instrument_noise_std_plus_process_proxy"
     }
   },
-  "law_version": "chemworld-physical-chemistry-v0.4",
+  "law_version": "chemworld-physical-chemistry-v0.5",
   "module_versions": {
     "continuous_flow": "0.3",
     "crystallization": "0.3",
@@ -1517,6 +1537,8 @@
           "distillate_recovery",
           "flow_conversion",
           "electrochemical_selectivity",
+          "selective_product_yield",
+          "electrochemical_conversion",
           "energy_efficiency",
           "crystal_csd_quality",
           "crystal_fines_fraction",

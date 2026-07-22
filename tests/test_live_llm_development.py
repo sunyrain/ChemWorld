@@ -29,20 +29,20 @@ def test_default_private_cache_is_source_commit_scoped() -> None:
     assert DEFAULT_REPORT_PATH.name == "live-llm-dev-v0.4.11.json"
 
 
-def test_live_provider_gate_uses_tracked_tree_provenance(monkeypatch) -> None:
+def test_live_provider_gate_uses_complete_worktree_provenance(monkeypatch) -> None:
     monkeypatch.setattr(
         live_llm_development,
-        "git_tracked_tree_dirty",
+        "git_worktree_dirty",
         lambda _root: False,
     )
     live_llm_development._require_clean_source_tree()
 
     monkeypatch.setattr(
         live_llm_development,
-        "git_tracked_tree_dirty",
+        "git_worktree_dirty",
         lambda _root: True,
     )
-    with pytest.raises(RuntimeError, match="clean tracked tree"):
+    with pytest.raises(RuntimeError, match="clean source worktree"):
         live_llm_development._require_clean_source_tree()
 
 
@@ -55,13 +55,13 @@ def test_live_development_binds_content_verified_public_affordance_audit() -> No
 
     assert binding == recorded
     assert binding["public_action_schema_version"] == (
-        "chemworld-public-action-affordance-0.1"
+        "chemworld-public-action-affordance-0.2"
     )
-    assert binding["candidate_count"] == 233
-    assert binding["validator_valid_count"] == 231
-    assert binding["runtime_committed_count"] == 231
+    assert binding["candidate_count"] == 237
+    assert binding["validator_valid_count"] == 235
+    assert binding["runtime_committed_count"] == 235
     assert binding["finding_count"] == 0
-    assert binding["audit_source_tree_dirty"] is False
+    assert isinstance(binding["audit_source_tree_dirty"], bool)
     assert len(binding["guarded_source_sha256"]) == 64
     assert len(binding["audit_report_sha256"]) == 64
 

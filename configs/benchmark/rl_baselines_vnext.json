@@ -1,7 +1,7 @@
 {
-  "schema_version": "chemworld-rl-baseline-protocol-0.3",
-  "protocol_id": "chemworld-vnext-rl-baselines-candidate-0.3",
-  "supersedes_protocol_id": "chemworld-vnext-rl-baselines-candidate-0.2",
+  "schema_version": "chemworld-rl-baseline-protocol-0.4",
+  "protocol_id": "chemworld-vnext-rl-baselines-candidate-0.4",
+  "supersedes_protocol_id": "chemworld-vnext-rl-baselines-candidate-0.3",
   "benchmark_claim_allowed": false,
   "publication_ready": false,
   "source_freeze_protocol": "configs/benchmark/confirmatory_freeze_vnext.json",
@@ -50,19 +50,21 @@
     "sac_replay_buffer_checkpoint_required": true
   },
   "action_contract": {
-    "space": "Box(-1, 1, 49)",
-    "schema_version": "chemworld-continuous-event-action-0.3",
-    "layout": "28 fixed global operation logits followed by 21 stationary parameter coordinates",
-    "keys": [
+    "space": "Box(-1, 1, 50)",
+    "schema_version": "chemworld-conditional-hybrid-action-0.8",
+    "training_adapter_schema_version": "chemworld-sb3-box-latent-adapter-0.2",
+    "latent_shape": [50],
+    "layout": "28 fixed global operation logits followed by 22 operation-conditional parameter coordinates",
+    "parameter_coordinate_keys": [
       "amount_mol",
       "catalyst",
       "catalyst_amount_mol",
       "current_mA",
       "duration_s",
+      "electrolyte_profile",
       "extractant",
       "flow_rate_mL_min",
       "instrument",
-      "operation",
       "phase",
       "potential_V",
       "reflux_ratio",
@@ -79,7 +81,8 @@
     ],
     "fixed_global_operation_semantics": true,
     "public_affordance_masked_decoding": true,
-    "invalid_operation_policy": "mask impossible operation logits using public affordances; retain payload and numerical-domain failures",
+    "inactive_parameter_policy": "excluded_from_execution_and_trajectory",
+    "invalid_operation_policy": "mask impossible operation logits using public affordances; retain validation and numerical-domain failures",
     "shared_by_algorithms": ["ppo", "sac"],
     "execution_numeric_policy": "normalize numpy values to their JSON trajectory representation before environment execution"
   },

@@ -6,9 +6,10 @@ import gymnasium as gym
 import pytest
 
 import chemworld  # noqa: F401
+from chemworld.agents import CodexSubagentOnlineAgent
 from chemworld.eval.baseline_report import SERIOUS_BASELINE_AGENTS, generate_baseline_report
 from chemworld.eval.paper_artifact import create_paper_artifact
-from chemworld.eval.runner import make_agent, run_agent
+from chemworld.eval.runner import AGENT_REGISTRY, make_agent, run_agent
 from chemworld.tasks import SERIOUS_TASK_IDS, get_task
 from chemworld.world.parameters import WORLD_FAMILY_VERSION
 
@@ -38,9 +39,10 @@ def test_serious_tasks_reset_with_public_contracts(task_id: str) -> None:
     env = gym.make("ChemWorld", task_id=task.task_id, seed=task.seeds[0])
     try:
         _, info = env.reset(seed=task.seeds[0])
+        provenance = env.unwrapped.evaluator_provenance()
         assert info["task_id"] == task.task_id
         assert info["task_contract_hash"] == task.contract_hash
-        assert info["mechanism_hash"]
+        assert provenance["mechanism_hash"]
         assert info["scoring_contract_hash"]
         assert info["observation_contract_hash"]
         assert info["physics_maturity"] == task.kernel_maturity.lowest_level.value
@@ -120,6 +122,15 @@ def test_codex_subagent_replay_agent_runs_equilibrium_trace(tmp_path) -> None:
     ]
     assert records[-1]["agent_metadata"]["agent_family"] == "codex_subagent"
     assert records[-1]["agent_metadata"]["requires_online_model"] is False
+
+
+def test_codex_online_protocol_is_external_only_not_inprocess_agent() -> None:
+    assert "codex_subagent_online" not in AGENT_REGISTRY
+    with pytest.raises(ValueError, match="Unknown agent"):
+        make_agent("codex_subagent_online")
+    manifest = CodexSubagentOnlineAgent().manifest()
+    assert manifest["execution_policy"] == "external_codex_subagent_orchestrator"
+    assert manifest["replay_agent"] == "codex_subagent_replay"
 
 
 def test_serious_baseline_report_smoke_contains_equilibrium_metrics(tmp_path) -> None:

@@ -12,6 +12,7 @@ from chemworld.world.operations import (
     INSTRUMENTS,
     OPERATION_TYPES,
     instrument_name,
+    operation_contracts,
     operation_name,
 )
 
@@ -101,42 +102,55 @@ class ActionCodec:
             and "catalyst_amount_mol" not in canonical
             and "amount_mol" in canonical
         ):
-            canonical["catalyst_amount_mol"] = canonical["amount_mol"]
+            canonical["catalyst_amount_mol"] = canonical.pop("amount_mol")
+        elif operation == "add_catalyst":
+            canonical.pop("amount_mol", None)
         if (
-            operation
-            in {"heat", "cool_crystallize", "evaporate", "distill", "run_flow"}
+            operation in {"heat", "cool_crystallize", "evaporate", "distill", "run_flow"}
             and "target_temperature_K" not in canonical
             and "temperature_K" in canonical
         ):
-            canonical["target_temperature_K"] = canonical["temperature_K"]
-        if (
-            operation in {"heat", "wait", "mix"}
-            and "stirring_speed_rpm" not in canonical
-        ):
+            canonical["target_temperature_K"] = canonical.pop("temperature_K")
+        elif operation in {
+            "heat",
+            "cool_crystallize",
+            "evaporate",
+            "distill",
+            "run_flow",
+        }:
+            canonical.pop("temperature_K", None)
+        if operation in {"heat", "wait", "mix"} and "stirring_speed_rpm" not in canonical:
             if "stirring_rpm" in canonical:
                 canonical["stirring_speed_rpm"] = canonical["stirring_rpm"]
             elif "stirring_speed" in canonical:
                 canonical["stirring_speed_rpm"] = canonical["stirring_speed"]
-        if (
-            operation == "sample"
-            and "sample_volume_L" not in canonical
-            and "volume_L" in canonical
-        ):
-            canonical["sample_volume_L"] = canonical["volume_L"]
+        if operation in {"heat", "wait", "mix"}:
+            canonical.pop("stirring_rpm", None)
+            canonical.pop("stirring_speed", None)
+        if operation == "sample" and "sample_volume_L" not in canonical and "volume_L" in canonical:
+            canonical["sample_volume_L"] = canonical.pop("volume_L")
+        elif operation == "sample":
+            canonical.pop("volume_L", None)
         if (
             operation == "add_extractant"
             and "extractant" not in canonical
             and "solvent" in canonical
         ):
-            canonical["extractant"] = canonical["solvent"]
+            canonical["extractant"] = canonical.pop("solvent")
+        elif operation == "add_extractant":
+            canonical.pop("solvent", None)
         if (
             operation == "separate_phase"
             and "target_phase" not in canonical
             and "phase" in canonical
         ):
-            canonical["target_phase"] = canonical["phase"]
+            canonical["target_phase"] = canonical.pop("phase")
+        elif operation == "separate_phase":
+            canonical.pop("phase", None)
         if operation == "wash" and "wash_volume_L" not in canonical and "volume_L" in canonical:
-            canonical["wash_volume_L"] = canonical["volume_L"]
+            canonical["wash_volume_L"] = canonical.pop("volume_L")
+        elif operation == "wash":
+            canonical.pop("volume_L", None)
         return canonical
 
     def encode_vector(self, action: dict[str, Any]) -> np.ndarray:
@@ -174,19 +188,24 @@ class ActionCodec:
         return vector
 
     def decode_vector(self, vector: Any) -> dict[str, Any]:
-        """Decode a numeric action vector into canonical event JSON."""
+        """Decode a numeric carrier into one operation-conditional event.
+
+        The fixed-width vector is a transport representation only.  Returning
+        inactive coordinates would turn it into an over-declared semantic
+        payload and make the result incompatible with the exact operation
+        contracts enforced by :class:`OperationValidator`.
+        """
 
         array = np.asarray(vector, dtype=float).reshape(-1)
         if array.shape != (len(GYM_ACTION_KEYS),) or not np.all(np.isfinite(array)):
-            raise ValueError(
-                f"Action vector must be finite with shape ({len(GYM_ACTION_KEYS)},)"
-            )
+            raise ValueError(f"Action vector must be finite with shape ({len(GYM_ACTION_KEYS)},)")
         operation_index = int(np.clip(round(array[0]), 0, len(self.operation_types) - 1))
         instrument_index = int(np.clip(round(array[8]), 0, len(self.instruments) - 1))
         phase_index = int(np.clip(round(array[11]), 0, len(self.phases) - 1))
         target_phase_index = int(np.clip(round(array[12]), 0, len(self.phases) - 1))
-        return {
-            "operation": self.operation_types[operation_index],
+        operation = self.operation_types[operation_index]
+        decoded: dict[str, Any] = {
+            "operation": operation,
             "amount_mol": float(array[1]),
             "volume_L": float(array[2]),
             "catalyst_amount_mol": float(array[3]),
@@ -212,6 +231,8 @@ class ActionCodec:
                 np.clip(round(array[22]), 0, len(self.electrolyte_profiles) - 1)
             ),
         }
+        required = operation_contracts()[operation].required_fields
+        return {"operation": operation, **{key: decoded[key] for key in required}}
 
     def phase_name(self, value: Any) -> str:
         if isinstance(value, str):
@@ -265,6 +286,8 @@ class ActionCodec:
 
     @staticmethod
     def _numeric_choice_index(value: Any, choices: tuple[str, ...], label: str) -> int:
+        if isinstance(value, (bool, np.bool_)):
+            raise ValueError(f"{label} must be an integer categorical index, not boolean")
         try:
             values = np.asarray(value).reshape(-1)
             if values.size != 1:

@@ -20,7 +20,7 @@
         "terminate"
       ],
       "budget": 48,
-      "contract_hash": "8f5e648c9c4ad3138391014a536dc9df3008b99152c70da0f2a173914ec0d37c",
+      "contract_hash": "efa54ba1ab6c5c40c0bdc77f57b2234487a58d98ed5043f273496ef103b6599e",
       "description": "Learn unknown solvent/product partition behavior through instruments.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
@@ -58,6 +58,7 @@
         "proxy_allowed": false
       },
       "objective": "balanced",
+      "objective_score_threshold": 0.6,
       "observation_policy": "partial-instrument-observation",
       "physics_maturity": "reference_validated",
       "proxy_allowed": false,
@@ -81,11 +82,12 @@
         "partition",
         "world-model-learning"
       ],
-      "task_contract_version": "chemworld-task-contract-0.9",
+      "task_contract_version": "chemworld-task-contract-1.1",
       "task_id": "partition-discovery",
       "termination_policy": "budget",
       "threshold": 0.6,
-      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "threshold_semantics": "leaderboard_objective_score_not_primary_metric",
+      "world_law_id": "chemworld-physical-chemistry-v0.5",
       "world_split": "public-test"
     },
     {
@@ -108,7 +110,7 @@
         "filter_crystals"
       ],
       "budget": 72,
-      "contract_hash": "756ca669f81a27290cd72e25c05cf9ed1f7cae0db6b299f1332d8a907b642e8f",
+      "contract_hash": "a73d3d0b3c86b7a3a11f334ba2efd8f8bca55ba740207f39b1b123f5913a7416",
       "description": "Use reaction assays to adapt a seeded cooling trajectory, then isolate product while controlling yield, purity, and particle-size distribution.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
@@ -165,6 +167,7 @@
         "proxy_allowed": false
       },
       "objective": "balanced",
+      "objective_score_threshold": 0.55,
       "observation_policy": "partial-instrument-observation",
       "physics_maturity": "reference_validated",
       "proxy_allowed": false,
@@ -178,8 +181,8 @@
         4
       ],
       "success_metrics": [
-        "score",
         "crystal_yield",
+        "score",
         "crystal_purity",
         "crystal_size",
         "crystal_csd_quality",
@@ -193,11 +196,12 @@
         "closed-loop",
         "flagship"
       ],
-      "task_contract_version": "chemworld-task-contract-0.9",
+      "task_contract_version": "chemworld-task-contract-1.1",
       "task_id": "reaction-to-crystallization",
       "termination_policy": "budget-with-workflow-gated-final-assay",
       "threshold": 0.55,
-      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "threshold_semantics": "leaderboard_objective_score_not_primary_metric",
+      "world_law_id": "chemworld-physical-chemistry-v0.5",
       "world_split": "public-test"
     },
     {
@@ -222,7 +226,7 @@
         "collect_fraction"
       ],
       "budget": 72,
-      "contract_hash": "d19adb180200831acca5bdbb6e05a6a9de1760b494eb03f6be5a43162c6b9109",
+      "contract_hash": "49e465bce0c5d2fd4a8f73d298cf9d4d2d37c2ca0605aaf6caaab8a9358bff74",
       "description": "Run a reaction and evaluate volatile-product recovery through distillation.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
@@ -280,6 +284,7 @@
         "proxy_allowed": false
       },
       "objective": "balanced",
+      "objective_score_threshold": 0.29,
       "observation_policy": "partial-instrument-observation",
       "physics_maturity": "reference_validated",
       "proxy_allowed": false,
@@ -305,11 +310,12 @@
         "purification",
         "year2"
       ],
-      "task_contract_version": "chemworld-task-contract-0.9",
+      "task_contract_version": "chemworld-task-contract-1.1",
       "task_id": "reaction-to-distillation",
       "termination_policy": "budget",
       "threshold": 0.29,
-      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "threshold_semantics": "leaderboard_objective_score_not_primary_metric",
+      "world_law_id": "chemworld-physical-chemistry-v0.5",
       "world_split": "public-test"
     },
     {
@@ -329,7 +335,7 @@
         "terminate"
       ],
       "budget": 60,
-      "contract_hash": "834207984ba38bfab373c400fc715d63908100db3ca9549185daf4fb5aca5a4f",
+      "contract_hash": "697a5956fd3ad242b78144c6fd11e6d3ca5335c493336d5b9cacb13decefc16b",
       "description": "Optimize a geometry-resolved PFR using the shared reaction network.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
@@ -377,6 +383,7 @@
         "proxy_allowed": false
       },
       "objective": "balanced",
+      "objective_score_threshold": 0.075,
       "observation_policy": "partial-instrument-observation",
       "physics_maturity": "reference_validated",
       "proxy_allowed": false,
@@ -402,11 +409,12 @@
         "optimization",
         "year2"
       ],
-      "task_contract_version": "chemworld-task-contract-0.9",
+      "task_contract_version": "chemworld-task-contract-1.1",
       "task_id": "flow-reaction-optimization",
       "termination_policy": "budget",
       "threshold": 0.075,
-      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "threshold_semantics": "leaderboard_objective_score_not_primary_metric",
+      "world_law_id": "chemworld-physical-chemistry-v0.5",
       "world_split": "public-test"
     },
     {
@@ -424,8 +432,8 @@
         "terminate"
       ],
       "budget": 48,
-      "contract_hash": "9cc0c792e171737c5ffd5dc03772dcff724a19ae5c504b7d573257eadfa89d63",
-      "description": "Select a bounded aqueous electrolyte profile, identify coupled equilibrium, transport, double-layer, kinetic, and ohmic behavior from a probe regime, then adapt potential/current for selective, charge- and energy-efficient conversion.",
+      "contract_hash": "45b6cdbaf1f9c7fc313e1589f37b17bde9fd678d40e0bd98e64a62622ecac494",
+      "description": "Select a bounded solvent medium and electrolyte profile, identify coupled effective equilibrium, transport, double-layer, kinetic, and ohmic behavior (the pH diagnostic is a normalized effective proton-activity index, not a literal non-aqueous pH claim), from a probe regime, then change potential by at least 0.02 V or current by at least 1.0 mA for selective, charge- and energy-efficient conversion.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
       "episode_mode": "campaign",
@@ -474,6 +482,7 @@
         "proxy_allowed": false
       },
       "objective": "balanced",
+      "objective_score_threshold": 0.58,
       "observation_policy": "partial-instrument-observation",
       "physics_maturity": "reference_validated",
       "proxy_allowed": false,
@@ -487,8 +496,9 @@
         4
       ],
       "success_metrics": [
-        "score",
+        "selective_product_yield",
         "electrochemical_selectivity",
+        "score",
         "faradaic_efficiency",
         "transport_efficiency",
         "ohmic_efficiency",
@@ -505,11 +515,12 @@
         "closed-loop",
         "flagship"
       ],
-      "task_contract_version": "chemworld-task-contract-0.9",
+      "task_contract_version": "chemworld-task-contract-1.1",
       "task_id": "electrochemical-conversion",
       "termination_policy": "budget-with-workflow-gated-final-assay",
       "threshold": 0.58,
-      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "threshold_semantics": "leaderboard_objective_score_not_primary_metric",
+      "world_law_id": "chemworld-physical-chemistry-v0.5",
       "world_split": "public-test"
     },
     {
@@ -530,7 +541,7 @@
         "measure"
       ],
       "budget": 24,
-      "contract_hash": "046067c1c75a57032b3b4307f386b23c706507178856ee20cffa70478cd0e42a",
+      "contract_hash": "77e1c30cd83e1a09363cef3ea58b1ddefb415bb1d790d6d63a3c519f45325917",
       "description": "Characterize a bounded aqueous-equilibrium slice using public pH-meter and final-assay observations.",
       "difficulty": "standard",
       "env_id": "ChemWorld",
@@ -588,6 +599,7 @@
         "proxy_allowed": false
       },
       "objective": "balanced",
+      "objective_score_threshold": 0.28,
       "observation_policy": "partial-instrument-observation",
       "physics_maturity": "reference_validated",
       "proxy_allowed": false,
@@ -614,11 +626,12 @@
         "world-model-learning",
         "serious-benchmark-v1"
       ],
-      "task_contract_version": "chemworld-task-contract-0.9",
+      "task_contract_version": "chemworld-task-contract-1.1",
       "task_id": "equilibrium-characterization",
       "termination_policy": "budget",
       "threshold": 0.28,
-      "world_law_id": "chemworld-physical-chemistry-v0.4",
+      "threshold_semantics": "leaderboard_objective_score_not_primary_metric",
+      "world_law_id": "chemworld-physical-chemistry-v0.5",
       "world_split": "public-test"
     }
   ]

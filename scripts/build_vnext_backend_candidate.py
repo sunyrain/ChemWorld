@@ -83,7 +83,7 @@ def build_bundle(root: Path, output: Path) -> dict[str, Any]:
     manifest = {
         "schema_version": SCHEMA_VERSION,
         "candidate_id": "chemworld-physical-chemistry-v0.5-backend-candidate",
-        "world_law_id": "chemworld-physical-chemistry-v0.4",
+        "world_law_id": "chemworld-physical-chemistry-v0.5",
         "task_contract_version": TASK_CONTRACT_VERSION,
         "release_status": "candidate_backend_only",
         "backend_validation_status": backend_report.get("status"),

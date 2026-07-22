@@ -31,7 +31,7 @@ def build_report() -> dict[str, Any]:
         for name, card in (("train", train), ("dev", dev), ("bench", bench))
     }
     task_probes: dict[str, Any] = {}
-    observed_action_keys: list[str] | None = None
+    observed_action_contract: dict[str, Any] | None = None
     for task_id in rl_protocol["core_tasks"]:
         allocation = RLWorldAllocation.from_protocol(freeze, task_id=task_id, name="train")
         env = build_rl_environment(
@@ -45,10 +45,11 @@ def build_report() -> dict[str, Any]:
             while current is not None and not hasattr(current, "action_contract"):
                 current = getattr(current, "env", None)
             action_contract = current.action_contract() if current is not None else {}
-            observed_action_keys = list(action_contract.get("action_keys", []))
+            observed_action_contract = action_contract
             task_probes[task_id] = {
                 "allocation": allocation.public_manifest(),
-                "box_action": env.action_space.shape == (49,),
+                "box_action": list(env.action_space.shape)
+                == rl_protocol["action_contract"]["latent_shape"],
                 "finite_observation": bool(np.all(np.isfinite(observation))),
                 "finite_step": bool(
                     np.all(np.isfinite(next_observation)) and np.isfinite(float(reward))
@@ -67,7 +68,7 @@ def build_report() -> dict[str, Any]:
         finally:
             env.close()
     checks = {
-        "schema": rl_protocol.get("schema_version") == "chemworld-rl-baseline-protocol-0.3",
+        "schema": rl_protocol.get("schema_version") == "chemworld-rl-baseline-protocol-0.4",
         "candidate_is_non_claiming": rl_protocol.get("benchmark_claim_allowed") is False,
         "ppo_and_sac_declared": set(rl_protocol["algorithms"]) == {"ppo", "sac"},
         "shared_action_contract": set(rl_protocol["action_contract"]["shared_by_algorithms"])
@@ -78,7 +79,17 @@ def build_report() -> dict[str, Any]:
             "public_affordance_masked_decoding"
         ]
         is True,
-        "action_key_order_frozen": observed_action_keys == rl_protocol["action_contract"]["keys"],
+        "action_schema_current": observed_action_contract is not None
+        and observed_action_contract.get("schema_version")
+        == rl_protocol["action_contract"]["schema_version"],
+        "training_adapter_schema_current": observed_action_contract is not None
+        and observed_action_contract.get("training_adapter", {}).get("schema_version")
+        == rl_protocol["action_contract"]["training_adapter_schema_version"],
+        "action_key_order_frozen": observed_action_contract is not None
+        and observed_action_contract.get("training_adapter", {}).get(
+            "parameter_coordinate_keys"
+        )
+        == rl_protocol["action_contract"]["parameter_coordinate_keys"],
         "json_stable_action_execution": rl_protocol["action_contract"].get(
             "execution_numeric_policy"
         )

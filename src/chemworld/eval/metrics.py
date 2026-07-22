@@ -45,6 +45,7 @@ class EvaluationResult:
     mean_distillate_purity: float
     mean_distillate_recovery: float
     mean_flow_conversion: float
+    mean_selective_product_yield: float
     mean_electrochemical_selectivity: float
     mean_energy_efficiency: float
     mean_pH_normalized: float
@@ -206,6 +207,11 @@ def evaluate_records(
         for obs in observations
         if obs.get("electrochemical_selectivity") is not None
     ]
+    selective_product_yields = [
+        _obs_float(obs, "selective_product_yield")
+        for obs in observations
+        if obs.get("selective_product_yield") is not None
+    ]
     energy_efficiencies = [
         _obs_float(obs, "energy_efficiency")
         for obs in observations
@@ -266,6 +272,9 @@ def evaluate_records(
     mean_flow_conversion = float(fmean(flow_conversions)) if flow_conversions else 0.0
     mean_electrochemical_selectivity = (
         float(fmean(electrochemical_selectivities)) if electrochemical_selectivities else 0.0
+    )
+    mean_selective_product_yield = (
+        float(fmean(selective_product_yields)) if selective_product_yields else 0.0
     )
     mean_energy_efficiency = float(fmean(energy_efficiencies)) if energy_efficiencies else 0.0
     mean_pH_normalized = float(fmean(ph_normalized_values)) if ph_normalized_values else 0.0
@@ -380,6 +389,7 @@ def evaluate_records(
         mean_distillate_purity=mean_distillate_purity,
         mean_distillate_recovery=mean_distillate_recovery,
         mean_flow_conversion=mean_flow_conversion,
+        mean_selective_product_yield=mean_selective_product_yield,
         mean_electrochemical_selectivity=mean_electrochemical_selectivity,
         mean_energy_efficiency=mean_energy_efficiency,
         mean_pH_normalized=mean_pH_normalized,

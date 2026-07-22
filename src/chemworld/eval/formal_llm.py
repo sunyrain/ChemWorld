@@ -23,12 +23,13 @@ from chemworld.eval.formal_runner import (
     file_sha256,
 )
 from chemworld.eval.resource_accounting_v0_4 import MethodKind
+from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.providers.deepseek import DeepSeekClient
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_LLM_FREEZE_PATH = ROOT / "configs/methods/llm_v0.4/llm_methods.json"
-LIVE_LLM_SOURCE_PATH = ROOT / "src/chemworld/agents/live_llm.py"
+DEFAULT_LLM_FREEZE_PATH = configuration_root() / "methods/llm_v0.4/llm_methods.json"
+LIVE_LLM_SOURCE_PATH = Path(__file__).resolve().parents[1] / "agents/live_llm.py"
 LLM_FREEZE_VERSION = "chemworld-live-llm-method-freeze-0.4.3"
 LLM_METHOD_IDS = ("live_llm_a", "live_llm_b")
 FORMAL_CELL_PROGRESS_VERSION = "chemworld-formal-cell-progress-0.1"

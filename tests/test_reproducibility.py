@@ -36,7 +36,10 @@ def test_split_changes_world() -> None:
     env_b = gym.make("ChemWorld", world_split="private-eval", seed=5)
     env_a.reset(seed=5)
     env_b.reset(seed=5)
-    assert env_a.unwrapped.task_info()["world_id"] != env_b.unwrapped.task_info()["world_id"]
+    assert (
+        env_a.unwrapped.evaluator_provenance()["world_id"]
+        != env_b.unwrapped.evaluator_provenance()["world_id"]
+    )
     env_a.close()
     env_b.close()
 
@@ -44,17 +47,16 @@ def test_split_changes_world() -> None:
 def test_private_eval_can_use_external_salt(monkeypatch) -> None:
     env_placeholder = gym.make("ChemWorld", world_split="private-eval", seed=6)
     env_placeholder.reset(seed=6)
-    placeholder_info = env_placeholder.unwrapped.task_info()
+    placeholder_info = env_placeholder.unwrapped.evaluator_provenance()
     env_placeholder.close()
 
     monkeypatch.setenv("CHEMWORLD_PRIVATE_EVAL_SALT", "secret-suite")
     env_private = gym.make("ChemWorld", world_split="private-eval", seed=6)
     env_private.reset(seed=6)
-    private_info = env_private.unwrapped.task_info()
+    private_info = env_private.unwrapped.evaluator_provenance()
     env_private.close()
 
     assert placeholder_info["world_provider"] == "public-placeholder-private"
     assert private_info["world_provider"] == "external-private-registry"
     assert placeholder_info["world_id"] != private_info["world_id"]
     assert "secret-suite" not in private_info["world_id"]
-

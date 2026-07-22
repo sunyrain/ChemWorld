@@ -35,13 +35,14 @@ from chemworld.eval.formal_runner import (
     private_seed_commitment,
     private_world_commitment,
 )
-from chemworld.eval.provenance import git_tracked_tree_dirty
+from chemworld.eval.provenance import git_worktree_dirty
 from chemworld.eval.runtime_domain_affordance_audit import guarded_source_sha256
+from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.tasks import get_task
 from chemworld.world.world_family import axes_for_task
 
 ROOT = Path(__file__).resolve().parents[3]
-DEVELOPMENT_PLAN_PATH = ROOT / "configs/methods/llm_v0.4/llm_development_plan.json"
+DEVELOPMENT_PLAN_PATH = configuration_root() / "methods/llm_v0.4/llm_development_plan.json"
 DEFAULT_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json"
 FORMAL_PROTOCOL_REPORT_PATH = ROOT / "workstreams/benchmark_v1/reports/formal-protocol-v0.4.json"
 RUNTIME_DOMAIN_AFFORDANCE_REPORT_PATH = (
@@ -51,7 +52,7 @@ RUNTIME_DOMAIN_AFFORDANCE_AUDIT_VERSION = (
     "chemworld-runtime-domain-affordance-audit-0.4"
 )
 LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.11"
-LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.6"
+LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.7"
 LIVE_STAGES = ("candidate_screen", "live_pilot", "development_matrix")
 _PRIOR_PAID_STAGE = {
     "live_pilot": "candidate_screen",
@@ -672,9 +673,9 @@ def _require_prior_paid_stage(stage: str, cache_root: str | Path) -> None:
 
 
 def _require_clean_source_tree() -> None:
-    if git_tracked_tree_dirty(ROOT):
+    if git_worktree_dirty(ROOT):
         raise RuntimeError(
-            "live-provider development requires a clean tracked tree bound to the source commit"
+            "live-provider development requires a clean source worktree bound to the source commit"
         )
 
 

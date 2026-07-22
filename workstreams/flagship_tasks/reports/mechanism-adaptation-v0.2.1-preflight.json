@@ -2,8 +2,8 @@
   "artifacts": [
     {
       "exists": true,
-      "path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json",
-      "sha256": "91985ffb125665653ae79b23e614917a51ffce173de50601284691eea4bb91a8"
+      "path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json",
+      "sha256": "10011846c0df0c226ff3dde5be1f96dda4dea9ebc4a35e2d0aa90c4940719a48"
     },
     {
       "exists": true,
@@ -13,27 +13,27 @@
     {
       "exists": true,
       "path": "src/chemworld/eval/mechanism_adaptation.py",
-      "sha256": "e38e0c59e0daf34a4e1a86a4d71f11b1f7858180455dcc3e253ef5952974d7a6"
+      "sha256": "e6385d252c143e0794a0a45bf295f095a70aeae6ae18c6fb6b05582d84d11f7b"
     },
     {
       "exists": true,
       "path": "src/chemworld/eval/mechanism_design_audit.py",
-      "sha256": "474a79a183ecb383827d9989fdc313541052f3503bdb37a2137152304ea3796b"
+      "sha256": "b2c6d4d12afae2d498b6c4a2016090ace00edc6b2d91d61dc7b713b0149fd71c"
     },
     {
       "exists": true,
       "path": "src/chemworld/eval/mechanism_adaptation_execution.py",
-      "sha256": "99c53a008f81e623e9837e5de88d2af2fd47653b6f4f140007a7f8be2d9532e5"
+      "sha256": "db704ac00518d33ab0f3f2fb6050c3372f7982f5d65e3544a0d1db924005aff8"
     },
     {
       "exists": true,
       "path": "scripts/audit_mechanism_adaptation_design.py",
-      "sha256": "9ee0c2ccba902c9ef35aebd257ff9a04ab38bd380194101824abfc923e67e2a1"
+      "sha256": "0d4a76b9120087e6094799fc0947daa370fe6096f3a37f16c6b881e5f7961390"
     },
     {
       "exists": true,
       "path": "scripts/run_mechanism_adaptation_v0_2.py",
-      "sha256": "b229441aa52efd7d05ce58c513045cc064f806ef5e01df3753bac25ec418c589"
+      "sha256": "50ebb91458677bb4509fe51a9b3bfe07a9868473a2779f468614a6a3d23f0ab5"
     },
     {
       "exists": true,
@@ -43,7 +43,7 @@
     {
       "exists": true,
       "path": "tests/test_mechanism_adaptation.py",
-      "sha256": "e6d1ea27d76b6fbffffc54a2a884df0136d0a9b86b42d72014e209dc214d74a5"
+      "sha256": "3efda36fb6e7cae2c67b35dd4b02be827d085f081da4c0a68071759a4a0acda0"
     },
     {
       "exists": true,
@@ -53,21 +53,21 @@
     {
       "exists": true,
       "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-public-matrix.json",
-      "sha256": "a162d9c64af56188961ca74eb61c1e53ed584bdf5400bb9fcb76e12a63934f55"
+      "sha256": "b98069c01ee57b87b30bc73b2925fd63aa24d8656d3bf2daf361c58ea8f6446c"
     },
     {
       "exists": true,
-      "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.2.json",
-      "sha256": "8ba699aecbad57b15f5ab98d0b882b08430ff0d85c4ed8ea31da318bf5cabae7"
+      "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc2.json",
+      "sha256": "a5cda4ec42a7917236ffe82a5ada30320ff5f3019bf874614efa8439ebc378bf"
     }
   ],
   "design_validity_audit": {
-    "check_count": 29,
+    "check_count": 39,
     "failure_count": 0,
     "failures": [],
-    "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-22-paired-contrast",
-    "gate_a_plan_path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json",
-    "gate_a_plan_sha256": "e70339a8c991fcc759bb1339db064e31133a284bb6563750e831fceef2ae73f5",
+    "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-22-freeze-rc2",
+    "gate_a_plan_path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json",
+    "gate_a_plan_sha256": "c09ac95726daf8050266c19267f000b9f71156aa479318536e8a61c4bc501943",
     "interpretation": "A pass means each frozen hidden target is publicly manipulable, covered by the Gate A recipes, observable before termination, instantiable, and absent from the mechanism-Agent prompt. It does not establish identifiability.",
     "material_field_action_contract": {
       "catalyst": {
@@ -84,9 +84,9 @@
       }
     },
     "pass": true,
-    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-design-aligned",
+    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-freeze-rc1",
     "protocol_path": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
-    "protocol_sha256": "08d96a8e76ffca384e279ceee2a4f83f57f7174372961154aeac735f106d8d36",
+    "protocol_sha256": "a98abac28d63d23cea9e1d66c506b462a99cbe32a2755636d27852574c571b6d",
     "schema_version": "chemworld-mechanism-design-audit-0.2.1",
     "status": "passed",
     "task_reports": {
@@ -119,38 +119,83 @@
             "pass": true
           },
           {
-            "check": "material_law_counterfactual:single_intervention",
+            "check": "material_law_counterfactual_solvent:single_intervention",
             "detail": "Each certification cell must change exactly one hidden law family.",
             "pass": true
           },
           {
-            "check": "material_law_counterfactual:environment_instantiation",
+            "check": "material_law_counterfactual_solvent:environment_instantiation",
             "detail": "The task must reset under the declared intervention.",
             "pass": true
           },
           {
-            "check": "material_law_counterfactual:supported_material_field",
+            "check": "material_law_counterfactual_solvent:supported_material_field",
             "detail": "Supported material targets are ['catalyst', 'electrolyte_profile', 'solvent'].",
             "pass": true
           },
           {
-            "check": "material_law_counterfactual:public_operation_allowed",
-            "detail": "set_potential.electrolyte_profile must be available to the Agent in electrochemical-conversion.",
+            "check": "material_law_counterfactual_solvent:public_operation_allowed",
+            "detail": "add_solvent.solvent must be available to the Agent in electrochemical-conversion.",
             "pass": true
           },
           {
-            "check": "material_law_counterfactual:public_choice_cardinality",
+            "check": "material_law_counterfactual_solvent:public_choice_cardinality",
             "detail": "A relational counterfactual needs at least two public choices; choices=[0, 1, 2, 3].",
             "pass": true
           },
           {
-            "check": "material_law_counterfactual:moved_indices_publicly_reachable",
+            "check": "material_law_counterfactual_solvent:moved_indices_publicly_reachable",
             "detail": "All moved public indices must be legal; moved=[0, 2], choices=[0, 1, 2, 3].",
             "pass": true
           },
           {
-            "check": "material_law_counterfactual:moved_indices_recipe_covered",
+            "check": "material_law_counterfactual_solvent:moved_indices_recipe_covered",
             "detail": "Frozen Gate A recipes must exercise every moved index; moved=[0, 2], covered=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_solvent:decision_relevance",
+            "detail": "primary=selective_product_yield; median_max_effect=0.030641; median_old_policy_regret=0.008834; optimal_action_change_rate=1.000; thresholds=(0.010000, 0.005000, 0.500).",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:supported_material_field",
+            "detail": "Supported material targets are ['catalyst', 'electrolyte_profile', 'solvent'].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:public_operation_allowed",
+            "detail": "set_potential.electrolyte_profile must be available to the Agent in electrochemical-conversion.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:public_choice_cardinality",
+            "detail": "A relational counterfactual needs at least two public choices; choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:moved_indices_publicly_reachable",
+            "detail": "All moved public indices must be legal; moved=[0, 2], choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:moved_indices_recipe_covered",
+            "detail": "Frozen Gate A recipes must exercise every moved index; moved=[0, 2], covered=[0, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual_electrolyte_profile:decision_relevance",
+            "detail": "primary=selective_product_yield; median_max_effect=0.030695; median_old_policy_regret=0.000000; optimal_action_change_rate=1.000; thresholds=(0.010000, 0.005000, 0.500).",
             "pass": true
           },
           {
@@ -162,32 +207,35 @@
         "pass": true,
         "recipe_field_values": {
           "add_reagent.amount_mol": [
+            0.003196972752053799,
             0.00705,
-            0.012170133662387572,
             0.0165,
-            0.025949999999999997,
-            0.027338505597356358,
-            0.028130374213240317
+            0.024672082617560022,
+            0.02505795071881084,
+            0.025949999999999997
           ],
           "add_solvent.solvent": [
-            0
+            0,
+            1,
+            2,
+            3
           ],
           "add_solvent.volume_L": [
             0.025
           ],
           "electrolyze.duration_s": [
-            185.25260672143466,
+            1200.440849450164,
+            1576.4587639818524,
             1950.0,
-            246.0050999687832,
+            203.98115609583493,
             288.0,
-            2983.706454239039,
             3105.0,
-            317.2116319513343,
+            332.02986637887295,
+            3371.490181618261,
             540.0,
-            550.5701121419463,
+            667.1474126296497,
             792.0,
-            795.0,
-            996.803554236501
+            795.0
           ],
           "measure.instrument": [
             "final_assay",
@@ -195,38 +243,37 @@
             "uvvis"
           ],
           "set_potential.current_mA": [
-            105.0,
-            135.11370541905887,
-            164.5,
-            20.872273650858716,
+            0.001,
+            114.52603812981312,
+            149.05,
+            21.83946857979341,
+            21.875531246748253,
             26.25,
-            45.5,
+            50.388238576879424,
+            51.9376689953513,
             52.5,
-            70.69737584823932,
-            71.29791598086209,
-            75.20022949322228,
+            53.5,
             78.75,
-            83.36440981142272
+            84.89791850109059
           ],
           "set_potential.electrolyte_profile": [
             0,
-            1,
             2,
             3
           ],
           "set_potential.potential_V": [
-            0.7115237379592187,
             0.74,
-            0.865,
+            0.8217040214563932,
             0.95,
-            1.007774864594894,
-            1.063333158851792,
-            1.1401766826402409,
+            0.9588084267849553,
+            0.97,
+            1.1003833278468966,
+            1.1026297252501998,
+            1.131,
             1.1600000000000001,
-            1.25,
-            1.2564198433987863,
-            1.5284734969663865,
-            1.6350000000000002
+            1.246643715262566,
+            1.503279841976345,
+            1.5510000000000002
           ]
         }
       },
@@ -306,6 +353,11 @@
           {
             "check": "material_law_counterfactual:moved_indices_recipe_covered",
             "detail": "Frozen Gate A recipes must exercise every moved index; moved=[1, 2], covered=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:decision_relevance",
+            "detail": "primary=crystal_yield; median_max_effect=0.199931; median_old_policy_regret=0.171130; optimal_action_change_rate=1.000; thresholds=(0.010000, 0.005000, 0.500).",
             "pass": true
           },
           {
@@ -436,9 +488,9 @@
   "interpretation": "There are no unresolved method-freeze choices when blocker_count is zero. The remaining work is execution of the frozen external multi-seed/provider matrix, not an unmade protocol decision.",
   "method_freeze_decision_blocker_count": 0,
   "method_freeze_decision_blockers": [],
-  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-design-aligned",
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-freeze-rc1",
   "protocol_path": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
-  "protocol_sha256": "d22c6b88b6b2bbf076f272c62b860c845266100e18af0c6bf908dd14450f87ab",
+  "protocol_sha256": "b6f1e900155d1ab7a1625ef71197f19cf507e60a44617a8bc79ea29192c92233",
   "publication_ready": false,
   "schema_version": "chemworld-mechanism-adaptation-preflight-0.2",
   "status": "protocol_complete_empirical_execution_pending"

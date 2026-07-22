@@ -10,7 +10,7 @@ import numpy as np
 
 from chemworld.world.actions import CATALYSTS, SOLVENTS
 
-WORLD_FAMILY_VERSION = "chemworld-physical-chemistry-v0.4"
+WORLD_FAMILY_VERSION = "chemworld-physical-chemistry-v0.5"
 SUPPORTED_SPLITS = ("public-dev", "public-test", "private-eval")
 
 DEFAULT_DOMAIN_PARAMETERS: dict[str, float] = {
@@ -49,6 +49,7 @@ class ChemWorldParameters:
     ua_W_per_K: float
     rho_cp_J_per_L_K: float
     environment_temperature_K: float
+    crystallization_reference_solubility_mol_L: float
     domain_parameters: dict[str, float]
 
     def __post_init__(self) -> None:
@@ -68,6 +69,11 @@ class ChemWorldParameters:
                 f"missing={missing}, unknown={unknown}, nonpositive_or_nonfinite={invalid}"
             )
         object.__setattr__(self, "domain_parameters", domain_parameters)
+        if (
+            not np.isfinite(self.crystallization_reference_solubility_mol_L)
+            or self.crystallization_reference_solubility_mol_L <= 0.0
+        ):
+            raise ValueError("crystallization reference solubility must be positive and finite")
 
     def domain_parameter(self, key: str) -> float:
         """Return a typed vNext provider parameter and fail on unknown keys."""
@@ -138,6 +144,7 @@ def load_chemworld_parameters(
         ua_W_per_K=float(rng.uniform(0.05, 0.12)),
         rho_cp_J_per_L_K=float(rng.uniform(3800.0, 4300.0)),
         environment_temperature_K=298.15,
+        crystallization_reference_solubility_mol_L=float(rng.uniform(0.085, 0.105)),
         domain_parameters=dict(DEFAULT_DOMAIN_PARAMETERS),
     )
 
