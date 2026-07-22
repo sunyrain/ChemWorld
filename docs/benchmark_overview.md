@@ -34,8 +34,8 @@ Task 是公开且稳定的合同；World 是隐藏规律实例；Scenario 再加
 
 | 套件 | 回答什么 | 当前边界 |
 | --- | --- | --- |
-| Core | 冻结范围内的正式方法比较 | v0.4 四任务，method freeze 尚未通过 |
-| Diagnostic | 可识别性、反馈利用、反事实、适应与自治归因 | 旧 Gate A 已失效；控制匹配与在线策略证书待重跑 |
+| Core | 在已验证环境上开展按 campaign 定义的 Agent 比较 | 仓库不捆绑统一的方法冻结或正式排名结果 |
+| Diagnostic | 可识别性、反馈利用、反事实、适应与自治归因 | 控制匹配证书通过；在线策略可行证书待完成 |
 | Extended | 环境覆盖、训练、教学和方法开发 | 不自动获得正式排名主张 |
 
 ## 每个任务保留自己的结果
@@ -120,11 +120,10 @@ Agent submission
 
 ## 当前状态
 
-World Engine、回放、资源合同和部分确认协议可运行；正式方法范围仍为 0/5 readiness slots ready。当前
-四 seed action/intervention 设计审计已证明各材料反事实具有决策相关性，但旧 Gate A 因动作、主指标和
-Agent 可见信息合同改变而失效。控制匹配证书与在线策略可行证书都仍待重跑。完整跨方法矩阵、真实
-LLM、私有泛化和独立 Bridge
-证据仍未共同闭合。当前是 benchmark candidate。
+World Engine、回放、资源合同和部分确认协议可运行。方法选择、训练、资源匹配和结果冻结由每个评测
+campaign 自行声明，当前仓库不捆绑正式跨方法排名。action/intervention 设计审计与控制匹配可识别性
+证书已经通过；在线策略可行证书仍待完成，因此 Gate A 整体仍为 false。完整跨方法矩阵、真实 LLM、
+私有泛化和独立 Bridge 证据仍未共同闭合。当前是 benchmark candidate。
 
 继续阅读：[公平评测协议](benchmark_protocol.md) · [研究发现与证据](benchmark_release.md) ·
 [提交、回放与私有评测](submission.md)

@@ -1,16 +1,14 @@
 # Script entry points
 
-The `scripts/` directory contains both current maintenance commands and source-bound historical runners. Similar
-files are not automatically duplicates: several reports bind the exact runner bytes in their evidence hashes.
+The `scripts/` directory contains executable maintenance, validation, and experiment entry points for the active
+repository surface. Superseded runners belong in Git history rather than beside current implementations.
 
-- `manage_claims.py`: validate, create, and close repository work claims.
-- `audit_*.py`: read-only contract, integrity, and evidence checks.
-- `run_*.py`: versioned experiment or preflight entry points; inspect the referenced config and report before use.
-- `build_*.py`: deterministic documentation, paper, or release builders.
+- `audit_*.py`: read-only runtime and contract validation.
+- `run_*.py`: active experiment, evaluation, or focused release entry points.
+- `build_*.py`: deterministic builders for current artifacts.
 
-Resolve the current runtime and protocol paths through `configs/current.json`. A filename containing `vnext` or a
-larger numeric suffix does not by itself make a script current. Historical runners should be removed only after their
-reports, manifests, and replay requirements have a documented migration path.
+Resolve active runtime and protocol paths through `configs/current.json`; do not infer currency from a `vnext` name
+or a larger version suffix.
 
 Use `python scripts/evidence_pipeline.py --refresh` to regenerate the current deterministic evidence in dependency
 order, and `python scripts/evidence_pipeline.py --check` to reject stale bindings without rewriting files. Do not run
@@ -26,8 +24,5 @@ Mechanism adaptation v0.2.1 has one staged entry point plus a required design au
 - `run_mechanism_adaptation_v0_2.py --stage campaign` executes complete changed/no-change pairs, writes one durable
   summary per arm, and supports `--resume`. This stage requires an explicitly supplied provider environment.
 
-The former NCS audit is retained with its manuscript under `paper/archive/`; it is not a current maintenance command
-or an evidence-DAG dependency.
-
-When common logic is worth consolidating, introduce it with a new protocol/source version. Do not silently refactor a
-runner already bound by a formal or diagnostic artifact hash.
+When common logic is worth consolidating, update the active entry point, its configuration, and focused tests in the
+same change. Keep raw campaigns and provider responses outside Git.

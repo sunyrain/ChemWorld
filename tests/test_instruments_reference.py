@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import json
 from math import sqrt
-from pathlib import Path
 from typing import Any
 
 import gymnasium as gym
@@ -314,29 +313,6 @@ def test_history_is_retained_on_demand_and_masking_does_not_mutate_packet() -> N
     module = ObservationModuleSpec().to_dict()
     assert module["history_access"] == "on_demand_by_public_spectrum_id"
     assert module["masking_policy"].startswith("mask_spectral_evidence_only")
-
-
-def test_instruments_reference_report_is_truthful_and_machine_readable() -> None:
-    report = json.loads(
-        Path("workstreams/world_foundation/reports/instruments-reference.json").read_text(
-            encoding="utf-8"
-        )
-    )
-
-    assert report["task_complete"] is True
-    assert report["maturity_truth"]["bounded_contract_verified"] is True
-    assert report["verification"]["public_boundary_gate"]["identity_finding_count"] == 0
-    assert report["maturity_truth"]["unresolved_adjacent_claim"] == {
-        "model_id": "empirical_chromatography_method_sensitivity_v1",
-        "declared_maturity": "professional_candidate",
-        "effective_evidence_maturity": "reference_validated",
-        "reason": (
-            "The strict gate requires a bound provider with runtime diagnostics and "
-            "provenance. The legacy test suite currently requires the professional-"
-            "candidate label, so this task does not falsify the gate result or silently "
-            "change that external contract."
-        ),
-    }
 
 
 def _nested_keys(payload: Any) -> set[str]:

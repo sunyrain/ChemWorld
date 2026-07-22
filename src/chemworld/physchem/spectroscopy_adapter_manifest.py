@@ -226,7 +226,6 @@ def instrument_runtime_adapter_manifest() -> ModelAdapterManifest:
             "src/chemworld/world/observation_kernel.py",
             "src/chemworld/physchem/spectroscopy_adapter_manifest.py",
             "tests/test_instrument_runtime_integration.py",
-            "workstreams/world_foundation/reports/instrument-runtime-integration.json",
         ),
         integration_operations=INTEGRATION_OPERATIONS,
         target_world_law="chemworld-physical-chemistry-vnext",

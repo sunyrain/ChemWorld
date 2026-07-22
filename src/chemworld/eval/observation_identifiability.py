@@ -311,12 +311,9 @@ def audit_observation_identifiability(
     controls = {
         "protocol_is_nonclaiming": protocol.get("benchmark_claim_allowed") is False
         and protocol.get("formal_results_present") is False,
-        "dependencies_are_ready": dependencies["instruments"]["maturity_truth"][
-            "bounded_contract_verified"
-        ]
-        is True
+        "dependencies_are_ready": dependencies["maturity"]["audit_integrity_valid"] is True
         and dependencies["public_boundary"]["controls_ready"] is True
-        and dependencies["composed_runtime"]["controls_ready"] is True,
+        and dependencies["runtime_reachability"]["controls_ready"] is True,
         "spectral_expectations_match": all(
             item["identifiability"]["identifiable"] is item["expected_identifiable"]
             for item in instruments.values()

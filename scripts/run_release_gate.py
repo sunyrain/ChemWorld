@@ -44,7 +44,6 @@ def release_gate_commands(
     audit_dir = output_dir / "audit"
     baseline_dir = output_dir / "baseline_smoke"
     return [
-        GateCommand("claims", [python, "scripts/manage_claims.py", "check"]),
         GateCommand(
             "current_evidence",
             [python, "scripts/evidence_pipeline.py", "--check"],

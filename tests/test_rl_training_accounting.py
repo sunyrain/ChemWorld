@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import pytest
-from scripts.run_rl_100k_development import _evidence_gate, load_100k_protocol
 
 from chemworld.rl.checkpoint_contract import (
     RL_CHECKPOINT_MANIFEST_SCHEMA_VERSION,
@@ -165,35 +164,3 @@ def test_sac_periodic_manifest_distinguishes_model_and_replay_buffer(
         for item in manifest["periodic_checkpoint_artifacts"]
     }
     assert artifact_types == {".zip": "checkpoint", ".pkl": "replay_buffer"}
-
-
-def test_100k_protocol_requires_exact_steps_checkpoints_and_no_bench() -> None:
-    protocol = load_100k_protocol()
-    assert protocol["algorithm"] == "sac"
-    assert protocol["training"]["actual_environment_steps_must_equal_requested"] is True
-    assert protocol["training"]["checkpoint_interval_steps"] == 20_000
-    assert protocol["training"]["save_replay_buffer"] is True
-    assert protocol["final_dev"]["allocation"] == "dev"
-    assert protocol["standard_replay"]["world_family_allocation"] is None
-    assert protocol["benchmark_claim_allowed"] is False
-
-
-def test_100k_gate_requires_domain_stability_and_replay_quality() -> None:
-    spec = load_100k_protocol()["evidence_gate"]
-    dev = {
-        "episode_completion_rate": 1.0,
-        "invalid_action_rate": 0.01,
-        "runtime_domain_failure_count": 0,
-        "observation_domain_failure_count": 0,
-    }
-    replay = {
-        "all_replay_verified": True,
-        "episode_completion_rate": 0.9,
-        "invalid_action_rate": 0.01,
-        "mean_final_best_score_including_failures": 0.01,
-    }
-    assert all(_evidence_gate(dev, replay, spec).values())
-    unstable = {**dev, "observation_domain_failure_count": 1}
-    assert _evidence_gate(unstable, replay, spec)["final_dev_domain_stability"] is False
-    weak = {**replay, "mean_final_best_score_including_failures": 0.0}
-    assert _evidence_gate(dev, weak, spec)["standard_replay_score"] is False

@@ -24,10 +24,6 @@ def test_current_registry_paths_exist() -> None:
     pipeline = _pipeline()
 
     assert pipeline["validate_current_registry_paths"](registry, root=ROOT) == []
-    live_llm = registry["development_evidence"]["live_llm"]
-    assert live_llm["artifact_state"] == "stale"
-    assert live_llm["artifact_roles"] == ["development_diagnostic"]
-    assert (ROOT / live_llm["report"]).is_file()
 
 
 def test_current_registry_path_validation_fails_closed() -> None:
@@ -47,17 +43,6 @@ def test_current_registry_path_validation_fails_closed() -> None:
         "current registry path escapes repository root: runtime.backend" in error
         for error in validate(outside, root=ROOT)
     )
-
-    wrong_role = copy.deepcopy(registry)
-    wrong_role["development_evidence"]["live_llm"]["artifact_roles"] = [
-        "planned_output"
-    ]
-    assert any(
-        "current registry artifact role mismatch: development_evidence.live_llm"
-        in error
-        for error in validate(wrong_role, root=ROOT)
-    )
-
 
 def test_current_registry_matches_package_and_claim_boundaries() -> None:
     registry = _registry()

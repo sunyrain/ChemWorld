@@ -10,10 +10,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 FORBIDDEN_TOKENS = (
-    "claims/active",
-    "claims/completed",
     "codex_subagent",
-    "todolist.md",
     "workstreams/",
     "python scripts/",
 )
@@ -71,10 +68,10 @@ ENGLISH_NAV_TARGETS = (
     "real_world_bridge.md",
 )
 README_BOUNDARY_MARKERS = (
-    "formal benchmark",
-    "0/5 readiness slots",
-    "no Bench results",
-    "external quality gates",
+    "campaign",
+    "no formal cross-method result",
+    "online-policy-feasible certificate remains pending",
+    "agent-level mechanism-discovery claims are not yet supported",
 )
 
 

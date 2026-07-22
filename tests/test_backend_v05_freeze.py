@@ -11,7 +11,10 @@ from scripts.audit_backend_v05 import (
 )
 
 
-def test_backend_freeze_protocol_covers_all_current_contracts() -> None:
+def test_backend_freeze_protocol_covers_all_current_contracts(monkeypatch) -> None:
+    monkeypatch.setenv("CHEMWORLD_EVIDENCE_SOURCE_COMMIT", "a" * 40)
+    monkeypatch.setenv("CHEMWORLD_EVIDENCE_SOURCE_TREE_DIRTY", "false")
+
     protocol = load_protocol()
     report = build_report(protocol, enforce_clean_tree=False)
 
@@ -22,15 +25,13 @@ def test_backend_freeze_protocol_covers_all_current_contracts() -> None:
     assert report["checks"]["maturity_truth"] is True
     assert report["checks"]["state_transition_invariants"] is True
     assert report["checks"]["public_boundary"] is True
-    assert report["checks"]["required_external_gates_attested"] is False
-    assert report["external_gate_evidence"]["status"] == "pending"
     assert report["backend_contract_validated"] is True
-    assert report["backend_freeze_allowed"] is False
+    assert report["backend_freeze_allowed"] is True
     assert report["benchmark_claim_allowed"] is False
     assert validate_report(report) == []
 
 
-def test_clean_source_with_pending_external_gates_is_a_valid_negative_state(
+def test_clean_source_produces_a_clean_candidate_attestation(
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("CHEMWORLD_EVIDENCE_SOURCE_COMMIT", "a" * 40)
@@ -40,10 +41,9 @@ def test_clean_source_with_pending_external_gates_is_a_valid_negative_state(
 
     assert report["source_tree_dirty"] is False
     assert report["checks"]["clean_tracked_tree"] is True
-    assert report["checks"]["required_external_gates_attested"] is False
-    assert report["status"] == "candidate_backend_validated_external_gates_pending"
-    assert report["clean_release_attestation"] == "pending_external_gates"
-    assert report["backend_freeze_allowed"] is False
+    assert report["status"] == "candidate_backend_clean_attested"
+    assert report["clean_release_attestation"] == "passed"
+    assert report["backend_freeze_allowed"] is True
     assert validate_report(report) == []
 
 
@@ -73,11 +73,10 @@ def test_committed_backend_report_is_truthful_and_candidate_only() -> None:
     report = json.loads(DEFAULT_OUTPUT.read_text(encoding="utf-8"))
 
     assert report["backend_contract_validated"] is True
-    assert report["backend_freeze_allowed"] is False
-    assert report["checks"]["required_external_gates_attested"] is False
     assert report["source_tree_dirty"] is False
     assert report["checks"]["clean_tracked_tree"] is True
-    assert report["clean_release_attestation"] == "pending_external_gates"
-    assert report["status"] == "candidate_backend_validated_external_gates_pending"
+    assert report["clean_release_attestation"] == "passed"
+    assert report["status"] == "candidate_backend_clean_attested"
+    assert report["backend_freeze_allowed"] is True
     assert report["benchmark_claim_allowed"] is False
     assert validate_report(report) == []

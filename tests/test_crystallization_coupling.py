@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import json
 from dataclasses import replace
-from pathlib import Path
 from typing import Any
 
 import gymnasium as gym
@@ -426,23 +424,12 @@ def test_provider_fails_closed_for_no_population_no_transfer_and_nonconvergence(
     assert not no_population.outputs and not no_transfer.outputs and not nonconverged.outputs
 
 
-def test_runtime_manifest_and_machine_report_are_truthful() -> None:
+def test_runtime_manifest_is_truthful() -> None:
     manifest = crystallization_runtime_adapter_manifest()
     assert manifest.status == "integrated"
     assert manifest.provider_contract.role.value == "runtime"
     assert manifest.provider_contract.model_id == RUNTIME_MODEL_ID
     assert manifest.provider_contract.maturity.value == "professional_candidate"
-
-    report = json.loads(
-        Path("workstreams/world_foundation/reports/crystallization-coupling.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    assert report["task_complete"] is True
-    assert report["runtime_coupling"]["dynamic_provider_called"] is True
-    assert report["runtime_coupling"]["hidden_public_fields"] == 0
-    assert report["maturity_truth"]["effective_maturity"] == "professional_candidate"
-    assert report["maturity_truth"]["limitations"]
 
 
 def _runtime_outcome(

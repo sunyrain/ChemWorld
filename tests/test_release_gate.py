@@ -22,7 +22,6 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
     plan = json.loads(completed.stdout)
     names = [item["name"] for item in plan]
     assert names == [
-        "claims",
         "current_evidence",
         "lint",
         "type_check",
@@ -37,7 +36,6 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
         "benchmark_candidate_integrity",
     ]
     flat_commands = [" ".join(item["command"]) for item in plan]
-    assert any("manage_claims.py check" in command for command in flat_commands)
     assert any("evidence_pipeline.py --check" in command for command in flat_commands)
     assert any("ruff check ." in command for command in flat_commands)
     assert any("mypy src/chemworld" in command for command in flat_commands)
@@ -91,7 +89,6 @@ def test_release_gate_binds_the_candidate_backend_without_enabling_claims() -> N
     assert evidence["status"] in {
         "candidate_backend_clean_attested",
         "candidate_backend_validated_dirty_tree",
-        "candidate_backend_validated_external_gates_pending",
     }
     assert evidence["backend_contract_validated"] is True
     if evidence["clean_release_attestation"] == "passed":

@@ -7,7 +7,6 @@ from typing import Any, cast
 import gymnasium as gym
 import numpy as np
 import pytest
-from scripts.run_rl_replay_development import load_protocol
 
 import chemworld  # noqa: F401
 from chemworld.agent_interface import agent_view_bundle
@@ -36,14 +35,6 @@ from chemworld.wrappers import ContinuousEventActionWrapper, decode_continuous_e
 def _allocation(task_id: str) -> RLWorldAllocation:
     protocol = load_rl_protocol("configs/benchmark/confirmatory_freeze_vnext.json")
     return RLWorldAllocation.from_protocol(protocol, task_id=task_id, name="train")
-
-
-def test_replay_development_protocol_is_standard_seed_only_and_nonclaiming() -> None:
-    protocol = load_protocol()
-    assert protocol["benchmark_claim_allowed"] is False
-    assert protocol["evaluation"]["world_family_allocation"] is None
-    assert protocol["evidence_policy"]["exact_replay_required"] is True
-    assert protocol["evidence_policy"]["failed_runs_retained_with_fail_closed_zero_endpoint"]
 
 
 def test_public_view_rebuilds_exact_training_observation() -> None:

@@ -40,7 +40,7 @@ def _protocol() -> dict[str, object]:
 
 def _gate_a_plan() -> dict[str, object]:
     return json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json").read_text(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.4.json").read_text(
             encoding="utf-8"
         )
     )
@@ -115,7 +115,7 @@ def test_precomputed_design_audit_must_be_passing_and_hash_bound() -> None:
         (
             ROOT
             / "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-design-audit-freeze-rc2.json"
+            "mechanism-adaptation-design-audit-freeze-rc4.json"
         ).read_text(encoding="utf-8")
     )
     validated = validate_precomputed_design_audit(protocol, plan, report)
@@ -192,13 +192,12 @@ def _action_libraries(protocol: dict[str, object], plan: dict[str, object]):
 
 
 def _structural_design_report() -> dict[str, object]:
-    return json.loads(
-        (
-            ROOT
-            / "workstreams/flagship_tasks/reports/"
-            "mechanism-adaptation-design-audit-freeze-rc1.json"
-        ).read_text(encoding="utf-8")
-    )
+    protocol = _protocol()
+    design = protocol["intervention_action_alignment"]
+    assert isinstance(design, dict)
+    report_path = design["design_audit_report"]
+    assert isinstance(report_path, str)
+    return json.loads((ROOT / report_path).read_text(encoding="utf-8"))
 
 
 def test_current_mechanism_design_has_reachable_covered_targets() -> None:
@@ -259,20 +258,12 @@ def test_campaign_selection_never_splits_changed_no_change_pairs() -> None:
         assert {row["arm"] for row in pair} == {"changed", "no_change_twin"}
 
 
-def test_current_live_llm_target_is_v0_4_11_everywhere() -> None:
+def test_current_registry_does_not_promote_method_development_to_environment_evidence() -> None:
     current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
-    freeze = json.loads(
-        (ROOT / "configs/benchmark/method_freeze_v0.4.json").read_text(encoding="utf-8")
-    )
-    expected = "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json"
-    live_llm = current["development_evidence"]["live_llm"]
-    assert live_llm["report"] == expected
-    assert live_llm["artifact_state"] == "stale"
-    assert live_llm["artifact_roles"] == ["development_diagnostic"]
-    assert live_llm["stage"] == "candidate_screen"
-    assert live_llm["promotion_decision"] == "promote"
-    assert live_llm["formal_live_llm_development_ready"] is False
-    assert freeze["artifact_bindings"]["llm_development"]["path"] == expected
+    assert "development_evidence" not in current
+    assert current["formal_evaluation"]["status"] == "environment_ready_methods_unfrozen"
+    assert current["formal_evaluation"]["formal_results_present"] is False
+    assert current["formal_evaluation"]["benchmark_claim_allowed"] is False
 
 
 def test_campaign_resume_rejects_a_stale_matrix_row(tmp_path: Path) -> None:

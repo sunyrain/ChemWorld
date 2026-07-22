@@ -21,7 +21,7 @@ a hidden physical-law instance; a Scenario adds initial state, intervention, res
 
 ## Suite roles
 
-- **Core:** frozen formal method comparison; v0.4 contains four tasks and method freeze remains blocked.
+- **Core:** campaign-defined Agent comparisons on the validated environment; no repository-wide method result is bundled.
 - **Diagnostic:** identifiability, feedback use, counterfactual, adaptation, and autonomy attribution.
 - **Extended:** environment coverage, training, teaching, and method development without an automatic ranking claim.
 
@@ -61,13 +61,11 @@ submission → trajectory validation → deterministic replay
 → metric recomputation → constraint/resource audit → verified result
 ```
 
-The current Engine and replay controls are operational. Formal method readiness remains 0/5 readiness slots, and the preregistered
-v0.4 protocol is invalidated against task-contract 1.0 until it is recertified. The freeze-candidate
-action/intervention audit passes with both solvent and electrolyte-profile electrochemical counterfactuals publicly
-reachable and decision-relevant under the four-seed design audit. The earlier Gate A result is invalidated by the
-changed action, metric, and Agent-visible information contracts. Both the controlled matched certificate and the
-online-policy-feasible certificate remain pending. Cross-method evaluation, real-LLM evaluation, private
-generalization, and external bridge evidence
-remain incomplete.
+The current Engine and replay controls are operational. Method selection, training, and result freezes belong to each
+evaluation campaign, and this repository bundles no formal cross-method result. The action/intervention audit passes
+with both solvent and electrolyte-profile electrochemical counterfactuals publicly reachable and decision-relevant.
+The controlled matched-identifiability certificate passes; the online-policy-feasible certificate remains pending, so
+Gate A as a whole remains false. Cross-method evaluation, real-LLM evaluation, private generalization, and external
+bridge evidence remain incomplete.
 
 Next: [Research Findings](research_findings.md) · [Real-world Bridge](real_world_bridge.md)

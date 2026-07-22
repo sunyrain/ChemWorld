@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pytest
 
@@ -9,20 +8,17 @@ from chemworld.eval.observation_identifiability import (
     ObservationIdentifiabilityError,
     PublicSpectrumArchive,
     apply_spectrum_condition,
+    audit_observation_identifiability,
+    load_observation_identifiability_protocol,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
-REPORT = (
-    ROOT
-    / "workstreams"
-    / "world_foundation"
-    / "reports"
-    / "observation-identifiability-v0.5.json"
-)
+
+def _report() -> dict[str, object]:
+    return audit_observation_identifiability(load_observation_identifiability_protocol())
 
 
 def test_instrument_sensitivity_degradation_and_public_boundary() -> None:
-    report = json.loads(REPORT.read_text(encoding="utf-8"))
+    report = _report()
     assert report["controls_ready"] is True
     assert report["benchmark_claim_allowed"] is False
     assert set(report["instruments"]) == {"hplc", "gc", "uvvis", "ir", "nmr"}
@@ -37,7 +33,7 @@ def test_instrument_sensitivity_degradation_and_public_boundary() -> None:
 
 
 def test_spectrum_conditions_preserve_pairing_and_raw_curve() -> None:
-    report = json.loads(REPORT.read_text(encoding="utf-8"))
+    report = _report()
     conditions = report["spectrum_conditions"]
     assert set(conditions["condition_sha256"]) == {"assigned", "unassigned", "masked"}
     assert conditions["raw_curve_sha256"]["assigned"] == conditions[

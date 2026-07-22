@@ -1,11 +1,11 @@
 {
   "artifact_sha256": {
     "tests/fixtures/golden/core_scripted_trajectories.json": "f2bb00ab06c7a272291d2294997a928213ad378c0b58d154a1891e28f7a0e0e3",
-    "workstreams/world_foundation/reports/maturity-truth-vnext.json": "e28c4f84979558009bd4049dcf31f5c4a402f19ed9d1de702739438f2223f26d",
-    "workstreams/world_foundation/reports/public-boundary-security-vnext.json": "76b2fbbdad0af6234dd6f79d147f01fdfaac18fac2e6f3e4e93028b6a92d6ea2",
-    "workstreams/world_foundation/reports/runtime-reachability-vnext.json": "7519cebc9b8fc8293541e5a62bede3983de5c3d3905875027a41fa4e5b7bacf3",
-    "workstreams/world_foundation/reports/state-transition-invariants.json": "515a21abea9798928d830089a73d015a6df546be6c3a1221e69e7e5889ddb60f",
-    "workstreams/world_foundation/reports/wf-110-runtime-integration.json": "47fe0820a38ead5d96ac3f025c5af689772745e3e208bf5443f8c62a19bbd132"
+    "workstreams/world_foundation/reports/maturity-truth-vnext.json": "9576dcb55d8c887db5fdcafbb588534e1c4233ccef678ed968541ac44a4091af",
+    "workstreams/world_foundation/reports/public-boundary-security-vnext.json": "782eea7501305207de68321e119c64ba93b13be02be7f64ef8875a0c989dc08d",
+    "workstreams/world_foundation/reports/runtime-reachability-vnext.json": "9048eac9d13fa70da1ae090101522e368f38638bf6a0116cbfe70a364351a995",
+    "workstreams/world_foundation/reports/state-transition-invariants.json": "4adb711fbe7a78ae78e20e8511f3cbc9ba8dc3597d87eda6d55e810c32f8f5ab",
+    "workstreams/world_foundation/reports/wf-110-runtime-integration.json": "bd8df9f2e8c86d6e57578ff769945cdd827198d340eb2675c40780039ea88f1c"
   },
   "backend_contract_validated": true,
   "backend_freeze_allowed": false,
@@ -14,12 +14,11 @@
   "checks": {
     "bound_artifacts_complete": true,
     "candidate_claim_boundary": true,
-    "clean_tracked_tree": true,
+    "clean_tracked_tree": false,
     "maturity_truth": true,
     "operation_count_exact": true,
     "protocol_schema": true,
     "public_boundary": true,
-    "required_external_gates_attested": false,
     "runtime_integration": true,
     "runtime_reachability": true,
     "state_transition_invariants": true,
@@ -27,41 +26,19 @@
     "task_count_exact": true,
     "task_maturity_floor": true
   },
-  "clean_release_attestation": "pending_external_gates",
-  "external_gate_evidence": {
-    "current": true,
-    "failures": [],
-    "gate_statuses": {
-      ".venv/Scripts/python.exe -m mkdocs build --strict": "not_run",
-      ".venv/Scripts/python.exe -m mypy src": "not_run",
-      ".venv/Scripts/python.exe -m pytest": "not_run",
-      ".venv/Scripts/python.exe -m ruff check .": "not_run",
-      ".venv/Scripts/python.exe scripts/smoke_test_wheel.py": "not_run"
-    },
-    "passed": false,
-    "path": "workstreams/world_foundation/reports/backend-external-gates-v0.5.json",
-    "sha256": "bd2c19f0326938388c449310fb1e4b34618126372844160d80f7483452d3e44c",
-    "status": "pending"
-  },
+  "clean_release_attestation": "pending_clean_tree",
   "limitations": [
     "This freezes a candidate virtual backend contract, not algorithm rankings.",
     "It does not validate predictions for real materials, equipment, or experiments.",
     "Formal benchmark claims require a later resource-matched evaluation freeze."
   ],
-  "protocol_sha256": "338d7bc7eb0ba4f43b7618a26fedbcd47fb0d94f2a05817a17233090ab5bcbc4",
+  "protocol_sha256": "448b112ec94103fc51a8ee154784cc16c1e3a75a5a9be7c3febf1288de7c38b2",
   "release_status": "candidate_backend_only",
-  "report_hash": "344f7e294c8d4463516f32e9840ce154c05700183c2dd40080f58bff81fe977b",
-  "required_external_gates": [
-    ".venv/Scripts/python.exe -m pytest",
-    ".venv/Scripts/python.exe -m ruff check .",
-    ".venv/Scripts/python.exe -m mypy src",
-    ".venv/Scripts/python.exe -m mkdocs build --strict",
-    ".venv/Scripts/python.exe scripts/smoke_test_wheel.py"
-  ],
+  "report_hash": "5c7355d576b1041fda65cdfc467ed37c2ad79bdb44ee8b34d1c337c4484764e9",
   "schema_version": "chemworld-foundation-backend-freeze-audit-0.1",
-  "source_commit": "a48ae8fa7c51343db7a246c3e4b9468d435dd40d",
-  "source_tree_dirty": false,
-  "status": "candidate_backend_validated_external_gates_pending",
+  "source_commit": "b84fcc158095d2809ab40374e3f47c83b6ad8c68",
+  "source_tree_dirty": true,
+  "status": "candidate_backend_validated_dirty_tree",
   "task_contract_hashes": {
     "electrochemical-conversion": "45b6cdbaf1f9c7fc313e1589f37b17bde9fd678d40e0bd98e64a62622ecac494",
     "equilibrium-characterization": "77e1c30cd83e1a09363cef3ea58b1ddefb415bb1d790d6d63a3c519f45325917",

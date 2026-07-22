@@ -72,8 +72,8 @@ benchmark 排名。
 
 这些控制不等于在相同动作、测量和实验预算下可以识别候选 family。机制 v0.2.1 修复了原电化学
 solvent 目标不可达问题；新的四 seed 设计审计确认 reaction catalyst、electrochemical solvent 和
-`electrolyte_profile` 反事实均具有决策相关性。旧 Gate A 结果已因合同变化失效；控制匹配和在线策略
-可行两类证书都必须在当前合同上重跑。
+`electrolyte_profile` 反事实均具有决策相关性。当前控制匹配可识别性证书已经通过；在线策略可行
+证书仍待完成，因此 Gate A 整体仍为 false。
 
 **支持的结论**：ChemWorld 能执行和回放预注册隐藏规律变化，并能用预算 oracle 审计任务设计本身。
 
@@ -127,7 +127,7 @@ rationale，不请求或保存私有逐字思维链。
 | --- | --- |
 | ChemWorld 提供预算受限、部分可观测、可回放的虚拟实验合同 | 支持 |
 | 六任务拥有可执行、局部可分离并可回放的机理/构成律控制 | 支持 Control-validated 层 |
-| 当前预算下所有机制 family 均可识别 | 尚不支持；旧 Gate A 已失效，两类新证书均待重跑 |
+| 当前预算下所有机制 family 均可识别 | 尚不支持；控制匹配证书通过，在线策略可行证书待完成 |
 | Safe-GP 在确认切片中满足四任务 safety/cost 规则 | 支持有限切片 |
 | Safe-GP 通过完整四任务优越性规则 | 不支持 |
 | 100,000 步 SAC 工程链可执行 | 支持工程诊断，不支持排名 |

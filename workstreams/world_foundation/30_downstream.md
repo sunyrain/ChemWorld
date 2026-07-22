@@ -1,5 +1,5 @@
 # Downstream provider provenance
 
-本文件仅保留 transfer adapter 的来源路径兼容性。World Law v0.4 已使用有限设备容量、显式物料
-衡算和能量/持液诊断的 drying、vacuum concentration 与 transfer provider；旧 separation proxy
-及其正式 fallback route 已从 runtime registry 移除。
+This compatibility note records the provenance boundary for the transfer adapter. The current runtime uses
+capacity-limited drying, vacuum-concentration, and transfer providers with explicit material and energy ledgers.
+The former separation proxy and its fallback route are not part of the runtime registry.

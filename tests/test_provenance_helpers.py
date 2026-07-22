@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import ast
 import hashlib
 import json
 import subprocess
@@ -76,7 +75,6 @@ def test_git_provenance_distinguishes_source_and_evidence_changes(
     initial_commit = git_source_commit(root)
     assert initial_commit == _git(root, "rev-parse", "HEAD")
     assert not git_tracked_tree_dirty(root)
-
     untracked = root / "untracked.txt"
     untracked.write_text("material\n", encoding="utf-8")
     assert git_worktree_dirty(root)
@@ -100,18 +98,3 @@ def test_git_provenance_distinguishes_source_and_evidence_changes(
     _git(root, "commit", "-m", "evidence only")
     assert git_source_commit(root) != initial_commit
     assert not git_tracked_tree_dirty(root)
-
-
-@pytest.mark.parametrize(
-    "script",
-    [
-        Path("scripts/run_ppo_v048_preflight.py"),
-        Path("scripts/run_sac_v048_preflight.py"),
-    ],
-)
-def test_migrated_preflights_do_not_redefine_shared_helpers(script: Path) -> None:
-    tree = ast.parse(script.read_text(encoding="utf-8"))
-    local_functions = {
-        node.name for node in tree.body if isinstance(node, ast.FunctionDef)
-    }
-    assert not {"_canonical_sha256", "_file_sha256", "_write_json"} & local_functions

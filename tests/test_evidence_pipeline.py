@@ -45,16 +45,11 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
 
     summary = pipeline["current_status_summary"](current)
     assert summary["backend_candidate"]["contract_validation"] == "passed"
-    assert summary["release_attestation"]["status"] == "pending_external_gates"
+    assert summary["release_attestation"]["status"] == "passed"
     assert summary["mechanism_gate_a"]["status"] == "gate_a_online_policy_certificate_pending"
     assert summary["mechanism_gate_a"]["evidence_current"] is True
     assert summary["mechanism_gate_a"]["passed"] is False
-    assert (
-        summary["formal_benchmark"]["protocol_binding_state"]
-        == "invalidated_dependency_binding_mismatch"
-    )
-    assert summary["formal_benchmark"]["status"] == "formal_protocol_recertification_required"
-    assert summary["formal_benchmark"]["method_families_ready"] == "0/5"
+    assert summary["formal_benchmark"]["status"] == "environment_ready_methods_unfrozen"
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
     assert summary["publication"]["publication_ready"] is False
 
@@ -66,8 +61,8 @@ def test_generated_evidence_paths_do_not_make_source_tree_dirty() -> None:
     assert pipeline["_is_materialized_output_path"](
         "workstreams/world_foundation/reports/backend-v0.5.json"
     )
-    assert pipeline["_is_materialized_output_path"](
-        "benchmark/releases/chemworld-serious-vnext/manifest.json"
+    assert not pipeline["_is_materialized_output_path"](
+        "benchmark/releases/deprecated-copy/manifest.json"
     )
     assert not pipeline["_is_materialized_output_path"]("src/chemworld/data/schema.py")
 

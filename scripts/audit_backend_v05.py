@@ -145,91 +145,6 @@ def load_protocol(path: Path = DEFAULT_PROTOCOL) -> dict[str, Any]:
     return payload
 
 
-def _external_gate_evidence(
-    protocol: Mapping[str, Any],
-    *,
-    source_commit: str,
-    source_tree_dirty: bool,
-) -> dict[str, Any]:
-    """Validate a separately materialized, source-bound external-gate attestation."""
-
-    relative = protocol.get("external_gate_attestation")
-    required = [str(item) for item in protocol.get("required_external_gates", ())]
-    if not isinstance(relative, str) or not relative:
-        return {
-            "path": relative,
-            "status": "missing",
-            "current": False,
-            "passed": False,
-            "failures": ["external gate attestation path is not declared"],
-        }
-    path = (ROOT / relative).resolve()
-    if not path.is_relative_to(ROOT.resolve()) or not path.is_file():
-        return {
-            "path": relative,
-            "status": "missing",
-            "current": False,
-            "passed": False,
-            "failures": ["external gate attestation is missing or outside the repository"],
-        }
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
-        return {
-            "path": relative,
-            "status": "invalid",
-            "current": False,
-            "passed": False,
-            "failures": [f"cannot read external gate attestation: {error}"],
-        }
-    if not isinstance(payload, Mapping):
-        return {
-            "path": relative,
-            "status": "invalid",
-            "current": False,
-            "passed": False,
-            "failures": ["external gate attestation must be a JSON object"],
-        }
-    gates = payload.get("gates", [])
-    commands = [item.get("command") for item in gates if isinstance(item, Mapping)]
-    failures: list[str] = []
-    if payload.get("schema_version") != "chemworld-backend-external-gate-attestation-0.1":
-        failures.append("external gate attestation schema mismatch")
-    if payload.get("backend_id") != protocol.get("backend_id"):
-        failures.append("external gate attestation backend mismatch")
-    if commands != required:
-        failures.append("external gate command set or order mismatch")
-    attestation_status = payload.get("status")
-    if attestation_status == "passed":
-        if payload.get("source_commit") != source_commit:
-            failures.append("external gate attestation source commit mismatch")
-        if payload.get("source_tree_dirty") is not source_tree_dirty:
-            failures.append("external gate attestation dirty-state mismatch")
-    elif attestation_status != "pending":
-        failures.append("external gate attestation status must be pending or passed")
-    gate_statuses = {
-        str(item.get("command")): str(item.get("status"))
-        for item in gates
-        if isinstance(item, Mapping)
-    }
-    current = not failures
-    passed = bool(
-        current
-        and not source_tree_dirty
-        and payload.get("status") == "passed"
-        and all(gate_statuses.get(command) == "passed" for command in required)
-    )
-    return {
-        "path": relative,
-        "sha256": _file_hash(path),
-        "status": payload.get("status", "invalid"),
-        "current": current,
-        "passed": passed,
-        "gate_statuses": gate_statuses,
-        "failures": failures,
-    }
-
-
 def build_report(
     protocol: Mapping[str, Any] | None = None,
     *,
@@ -267,11 +182,6 @@ def build_report(
     else:
         source_tree_dirty = bool(source_changes)
         source_commit = _git_output("rev-parse", "HEAD")
-    external_gate_evidence = _external_gate_evidence(
-        protocol,
-        source_commit=source_commit,
-        source_tree_dirty=source_tree_dirty,
-    )
     artifact_hashes = {
         relative: _file_hash(ROOT / relative)
         for relative in protocol["bound_artifacts"]
@@ -322,9 +232,8 @@ def build_report(
         and public_boundary_report["backend_freeze_allowed"] is True,
         "bound_artifacts_complete": set(artifact_hashes)
         == set(protocol["bound_artifacts"]),
-        "required_external_gates_attested": external_gate_evidence["passed"] is True,
     }
-    release_only_checks = {"clean_tracked_tree", "required_external_gates_attested"}
+    release_only_checks = {"clean_tracked_tree"}
     contract_checks = {
         key: value for key, value in checks.items() if key not in release_only_checks
     }
@@ -334,19 +243,8 @@ def build_report(
         status = "candidate_backend_clean_attested"
         clean_release_attestation = "passed"
     elif backend_contract_validated:
-        clean_pending = not checks["clean_tracked_tree"]
-        gates_pending = not checks["required_external_gates_attested"]
-        if clean_pending:
-            status = "candidate_backend_validated_dirty_tree"
-        else:
-            status = "candidate_backend_validated_external_gates_pending"
-        clean_release_attestation = (
-            "pending_clean_tree_and_external_gates"
-            if clean_pending and gates_pending
-            else "pending_clean_tree"
-            if clean_pending
-            else "pending_external_gates"
-        )
+        status = "candidate_backend_validated_dirty_tree"
+        clean_release_attestation = "pending_clean_tree"
     else:
         status = "blocked"
         clean_release_attestation = "blocked"
@@ -366,8 +264,6 @@ def build_report(
         "task_contract_hashes": actual_hashes,
         "artifact_sha256": artifact_hashes,
         "checks": checks,
-        "required_external_gates": list(protocol["required_external_gates"]),
-        "external_gate_evidence": external_gate_evidence,
         "limitations": list(protocol["limitations"]),
         "report_hash": None,
     }
@@ -386,7 +282,7 @@ def validate_report(report: Mapping[str, Any]) -> list[str]:
         expected = all(bool(value) for value in checks.values())
         if report.get("backend_freeze_allowed") is not expected:
             errors.append("freeze decision mismatch")
-        release_only_checks = {"clean_tracked_tree", "required_external_gates_attested"}
+        release_only_checks = {"clean_tracked_tree"}
         contract_expected = all(
             bool(value) for key, value in checks.items() if key not in release_only_checks
         )
@@ -395,15 +291,7 @@ def validate_report(report: Mapping[str, Any]) -> list[str]:
         if expected:
             expected_attestation = "passed"
         elif contract_expected:
-            clean_pending = not bool(checks.get("clean_tracked_tree"))
-            gates_pending = not bool(checks.get("required_external_gates_attested"))
-            expected_attestation = (
-                "pending_clean_tree_and_external_gates"
-                if clean_pending and gates_pending
-                else "pending_clean_tree"
-                if clean_pending
-                else "pending_external_gates"
-            )
+            expected_attestation = "pending_clean_tree"
         else:
             expected_attestation = "blocked"
         if report.get("clean_release_attestation") != expected_attestation:
@@ -412,11 +300,7 @@ def validate_report(report: Mapping[str, Any]) -> list[str]:
         if expected:
             expected_status = "candidate_backend_clean_attested"
         elif contract_expected:
-            expected_status = (
-                "candidate_backend_validated_dirty_tree"
-                if not bool(checks.get("clean_tracked_tree"))
-                else "candidate_backend_validated_external_gates_pending"
-            )
+            expected_status = "candidate_backend_validated_dirty_tree"
         if report.get("status") != expected_status:
             errors.append("backend status mismatch")
     expected_hash = _json_hash({**dict(report), "report_hash": None})

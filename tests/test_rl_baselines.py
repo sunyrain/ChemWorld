@@ -5,7 +5,6 @@ from pathlib import Path
 import gymnasium as gym
 import numpy as np
 import pytest
-from scripts.audit_rl_baselines import FREEZE_PROTOCOL, RL_PROTOCOL, build_report
 
 import chemworld  # noqa: F401
 from chemworld.agents.task_recipes import (
@@ -26,6 +25,9 @@ from chemworld.wrappers import (
     RLObservationWrapper,
     RLTrainingRewardWrapper,
 )
+
+FREEZE_PROTOCOL = Path("configs/benchmark/confirmatory_freeze_vnext.json")
+RL_PROTOCOL = Path("configs/benchmark/rl_baselines_vnext.json")
 
 
 def _allocation(task_id: str, name: str = "train") -> RLWorldAllocation:
@@ -406,16 +408,8 @@ def test_rl_protocol_keeps_formal_claims_closed() -> None:
     protocol = load_rl_protocol(RL_PROTOCOL)
     assert protocol["publication_ready"] is False
     assert protocol["benchmark_claim_allowed"] is False
-    report = build_report()
-    # Contract controls can be coherent while formal training and publication
-    # claims remain explicitly closed.
-    assert report["controls_ready"] is True
-    assert report["checks"]["action_key_order_frozen"] is True
-    assert report["formal_training_complete"] is False
-    assert report["publication_ready"] is False
-    if report["development_evidence"] is not None:
-        assert report["development_evidence"]["passed"] is True
-        assert set(report["development_evidence"]["eligible_algorithms"]) == {"ppo", "sac"}
+    assert protocol["training"]["allowed_allocation"] == "train"
+    assert protocol["training"]["bench_finetuning_allowed"] is False
 
 
 def test_rl_extra_is_declared_without_becoming_core_dependency() -> None:

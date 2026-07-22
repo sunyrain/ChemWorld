@@ -174,7 +174,6 @@ def crystallization_runtime_adapter_manifest() -> ModelAdapterManifest:
             "src/chemworld/physchem/crystallization_adapter_manifest.py",
             "src/chemworld/runtime/crystallization_services.py",
             "tests/test_crystallization_coupling.py",
-            "workstreams/world_foundation/reports/crystallization-coupling.json",
         ),
         integration_operations=INTEGRATION_OPERATIONS,
         target_world_law="chemworld-physical-chemistry-vnext",

@@ -99,30 +99,26 @@ credentials are read from the local process environment and must not enter the r
 ## Evidence status
 
 The `chemworld-physical-chemistry-v0.5-candidate` backend has deterministic controls for all 15 registered tasks,
-including exact task-contract hashes, replay-bound transitions, and a fail-closed public boundary. A backend is frozen
-only when [`configs/current.json`](configs/current.json) records contract validation, clean-source attestation, and all
-declared external quality gates as passed. That state is independent of algorithm ranking, formal benchmark release,
-and real-chemistry validation.
-The current candidate is not frozen: the source tree is dirty and the declared full-test, Ruff, mypy, MkDocs, and
-wheel-smoke gates remain explicitly unattested. **The formal benchmark remains 0/5 readiness slots ready and has no
-Bench results.** Its preregistered v0.4 protocol
-targets an older task contract and is explicitly marked for recertification before any Bench unlock.
+including exact task-contract hashes, replay-bound transitions, and a fail-closed public boundary. Backend validation
+and clean-source attestation describe the environment only; they do not imply an algorithm ranking, a completed
+evaluation campaign, or real-chemistry validation.
+
+ChemWorld no longer treats one repository-wide method freeze as environment evidence. Each comparison campaign must
+declare its own agents, resources, seeds, and result freeze. No formal cross-method result is bundled with the current
+repository.
+
+Pre-v0.5 result bundles are diagnostic history and are not part of the current evidence DAG or benchmark claims.
 
 [`configs/current.json`](configs/current.json) is the authoritative status surface. It reports backend-contract
 validation, clean-release attestation, formal-evaluation readiness, and publication readiness as separate states.
 
-Current evidence has established several useful boundaries:
+Current evidence establishes the following boundaries:
 
-- pre-v0.5 classical and Safe-GP runs exposed objective/risk trade-offs, but are historical diagnostics and cannot rank
-  methods on the current candidate backend;
-- a prior five-seed PPO Train/Dev learning gate passed at 51,200 environment steps, but it is still stale development
-  evidence rather than a four-task Bench result;
 - executable mechanism and constitutive-law shifts are control-validated. The freeze candidate makes both `solvent`
   and `electrolyte_profile` selectable electrochemical counterfactual coordinates and removes world/mechanism identity
-  from Agent-visible messages. The action/intervention design audit passes, but the earlier controlled Gate A
-  certificate is invalidated and never supplied the separately required online-policy-feasible certificate. The new
-  two-certificate Gate A remains false until both certificates pass under the same frozen budget and contract; it must
-  be completed before any Agent-level mechanism-discovery interpretation or external campaign expansion;
+  from Agent-visible messages. The action/intervention design audit and controlled matched-identifiability certificate
+  pass. The separately required online-policy-feasible certificate remains pending, so Gate A as a whole remains false
+  and Agent-level mechanism-discovery claims are not yet supported;
 - LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
 
 See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.

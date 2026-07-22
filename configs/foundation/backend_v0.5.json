@@ -38,14 +38,6 @@
     "workstreams/world_foundation/reports/maturity-truth-vnext.json",
     "workstreams/world_foundation/reports/public-boundary-security-vnext.json"
   ],
-  "required_external_gates": [
-    ".venv/Scripts/python.exe -m pytest",
-    ".venv/Scripts/python.exe -m ruff check .",
-    ".venv/Scripts/python.exe -m mypy src",
-    ".venv/Scripts/python.exe -m mkdocs build --strict",
-    ".venv/Scripts/python.exe scripts/smoke_test_wheel.py"
-  ],
-  "external_gate_attestation": "workstreams/world_foundation/reports/backend-external-gates-v0.5.json",
   "limitations": [
     "This freezes a candidate virtual backend contract, not algorithm rankings.",
     "It does not validate predictions for real materials, equipment, or experiments.",

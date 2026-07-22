@@ -33,7 +33,6 @@ RUNTIME_INTEGRATION_OWNED_PATHS = (
     "src/chemworld/physchem/reaction_adapter_manifest.py",
     "src/chemworld/physchem/reactor_cards.py",
     "tests/test_reaction_reactor_runtime_integration.py",
-    "workstreams/world_foundation/reports/reaction-reactor-runtime-integration.json",
 )
 
 

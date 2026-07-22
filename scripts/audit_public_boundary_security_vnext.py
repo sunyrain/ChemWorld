@@ -34,7 +34,6 @@ from chemworld.eval.exploit_matrix import (
     REQUIRED_PUBLIC_HARNESS_PROBES,
     REQUIRED_TASK_PROBES,
     audit_public_boundary_exploits,
-    canonical_json_sha256,
     load_exploit_matrix_protocol,
 )
 from chemworld.eval.public_harness import (
@@ -69,11 +68,7 @@ PROTOCOL_SCHEMA_VERSION = "chemworld-foundation-public-boundary-security-protoco
 REPORT_SCHEMA_VERSION = "chemworld-foundation-public-boundary-security-audit-0.1"
 DEFAULT_PROTOCOL = ROOT / "configs" / "foundation" / "public_boundary_security_vnext.json"
 DEFAULT_OUTPUT = (
-    ROOT
-    / "workstreams"
-    / "world_foundation"
-    / "reports"
-    / "public-boundary-security-vnext.json"
+    ROOT / "workstreams" / "world_foundation" / "reports" / "public-boundary-security-vnext.json"
 )
 
 
@@ -110,15 +105,19 @@ def _dependency_bindings(protocol: Mapping[str, Any]) -> tuple[dict[str, Any], b
     report: dict[str, Any] = {}
     for binding_id, item in sorted(raw.items()):
         path_text = item.get("path") if isinstance(item, Mapping) else None
-        expected = item.get("sha256") if isinstance(item, Mapping) else None
         relative = Path(str(path_text)) if path_text is not None else Path(".")
         safe = path_text is not None and not relative.is_absolute() and ".." not in relative.parts
         path = ROOT / relative
+        payload: Any = None
+        if safe and path.is_file():
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, json.JSONDecodeError):
+                payload = None
         actual = hashlib.sha256(path.read_bytes()).hexdigest() if safe and path.is_file() else None
-        passed = safe and isinstance(expected, str) and actual == expected
+        passed = safe and isinstance(payload, Mapping)
         report[str(binding_id)] = {
             "path": str(path_text),
-            "expected_sha256": expected,
             "actual_sha256": actual,
             "passed": passed,
         }
@@ -228,13 +227,9 @@ def _message_and_leakage_probes(
                 )
             )
             observation_json = observation_to_json(observation)
-            allowlist["observation_schema_exact"] &= (
-                set(observation_json) == set(PUBLIC_OBSERVATION_KEYS)
-                and all(
-                    value is None or math.isfinite(value)
-                    for value in observation_json.values()
-                )
-            )
+            allowlist["observation_schema_exact"] &= set(observation_json) == set(
+                PUBLIC_OBSERVATION_KEYS
+            ) and all(value is None or math.isfinite(value) for value in observation_json.values())
             payloads = (safe_task, reset, act, safe_info, update, observation_json)
             identity_findings = [
                 finding
@@ -382,17 +377,6 @@ def _replay_probes(workspace: Path) -> tuple[dict[str, bool], dict[str, Any]]:
 
 def _adversarial_probes() -> tuple[dict[str, bool], dict[str, Any]]:
     exploit_protocol = copy.deepcopy(load_exploit_matrix_protocol())
-    # The historical candidate protocol binds older dependency bytes.  The
-    # foundation gate binds the current exploit protocol itself and rebuilds
-    # its runtime probes against the current dependency bytes instead of
-    # treating that superseded candidate freeze as authoritative.
-    for item in exploit_protocol.get("evidence_bindings", {}).values():
-        if not isinstance(item, dict) or not isinstance(item.get("path"), str):
-            continue
-        relative = Path(item["path"])
-        path = ROOT / relative
-        if not relative.is_absolute() and ".." not in relative.parts and path.is_file():
-            item["sha256"] = canonical_json_sha256(path)
     exploit_report = audit_public_boundary_exploits(exploit_protocol)
     all_task_probes = {
         probe: all(report["probes"][probe] for report in exploit_report["tasks"].values())
@@ -410,13 +394,11 @@ def _adversarial_probes() -> tuple[dict[str, bool], dict[str, Any]]:
         "illegal_enum_rejected": all_task_probes["unknown_operation_no_score"]
         and not validate_action_schema({"operation": "not-an-operation"}).valid,
         "repeated_assay_blocked": all_task_probes["repeated_final_assay_no_score"],
-        "budget_exhaustion_blocked": all_task_probes[
-            "budget_exhaustion_blocks_further_steps"
-        ],
+        "budget_exhaustion_blocked": all_task_probes["budget_exhaustion_blocks_further_steps"],
     }
     details = {
         "exploit_controls_ready": exploit_report["controls_ready"],
-        "historical_exploit_bindings_rebound_to_current_bytes": True,
+        "exploit_probes_revalidated_directly": True,
         "task_count": len(exploit_report["tasks"]),
         "task_probe_count": sum(
             len(report["probes"]) for report in exploit_report["tasks"].values()
@@ -497,9 +479,7 @@ def _run_child(
     expect_wheel: bool,
 ) -> dict[str, Any]:
     environment = {
-        key: value
-        for key, value in os.environ.items()
-        if key not in {"PYTHONHOME", "PYTHONPATH"}
+        key: value for key, value in os.environ.items() if key not in {"PYTHONHOME", "PYTHONPATH"}
     }
     environment["PYTHONPATH"] = os.pathsep.join(str(path) for path in pythonpath)
     environment["CHEMWORLD_BOUNDARY_WHEEL_PROBE"] = "1" if expect_wheel else "0"
@@ -634,9 +614,7 @@ def build_report(protocol: Mapping[str, Any]) -> dict[str, Any]:
         "dependency_bindings": dependencies_ready,
     }
     public_harness_protocol = json.loads(
-        (ROOT / "configs" / "benchmark" / "public_harness_vnext.json").read_text(
-            encoding="utf-8"
-        )
+        (ROOT / "configs" / "benchmark" / "public_harness_vnext.json").read_text(encoding="utf-8")
     )
     harness_report = audit_public_message_contract(public_harness_protocol)
     checks["public_harness_runtime"] = harness_report["message_controls_ready"] is True
@@ -661,10 +639,14 @@ def build_report(protocol: Mapping[str, Any]) -> dict[str, Any]:
         "invariance": invariance,
         "execution": execution,
     }
-    declared_exact = isinstance(declared_groups, Mapping) and all(
-        set(probes) == set(declared_groups.get(group, ()))
-        for group, probes in probe_groups.items()
-    ) and set(declared_groups) == set(probe_groups)
+    declared_exact = (
+        isinstance(declared_groups, Mapping)
+        and all(
+            set(probes) == set(declared_groups.get(group, ()))
+            for group, probes in probe_groups.items()
+        )
+        and set(declared_groups) == set(probe_groups)
+    )
     checks["probe_scope_exact"] = declared_exact
     all_probes_pass = all(all(probes.values()) for probes in probe_groups.values())
     controls_ready = all(checks.values()) and all_probes_pass

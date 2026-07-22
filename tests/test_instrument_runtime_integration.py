@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from typing import Any
 
 import gymnasium as gym
@@ -356,23 +354,12 @@ def test_history_catalog_exposes_only_requested_packet() -> None:
         manager.close_all()
 
 
-def test_runtime_manifest_and_machine_report_are_truthful() -> None:
+def test_runtime_manifest_is_truthful() -> None:
     manifest = instrument_runtime_adapter_manifest()
     assert manifest.status == "integrated"
     assert manifest.provider_contract.role.value == "runtime"
     assert manifest.provider_contract.maturity.value == "reference_validated"
     assert manifest.provider_contract.model_id == INSTRUMENT_RUNTIME_MODEL_ID
-
-    report = json.loads(
-        Path("workstreams/world_foundation/reports/instrument-runtime-integration.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    assert report["task_complete"] is True
-    assert report["runtime_replacement"]["dynamic_provider_called"] is True
-    assert report["runtime_replacement"]["public_identity_leaks"] == 0
-    assert report["maturity_truth"]["effective_maturity"] == "reference_validated"
-    assert report["maturity_truth"]["limitations"]
 
 
 def _nested_keys(payload: Any) -> set[str]:

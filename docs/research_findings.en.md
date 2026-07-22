@@ -28,10 +28,9 @@ against a pre-registered practical threshold of 0.020000, so the all-task claim 
 ## Finding 3: world shifts are executable; budgeted identification is still open
 
 Nine task–mode controls establish deterministic execution, local response separation, bounded response,
-conservation, and replay. They do not establish candidate-family identification under a fixed experiment budget.
-The former Gate A result is invalidated by the changed action, metric, and public-information contracts. The current
-four-seed design audit establishes decision relevance for each material counterfactual, but it does not establish
-budgeted mechanism identification. Both controlled matched and online-policy-feasible certificates must be rerun.
+conservation, and replay. The current action/intervention audit establishes decision relevance for each material
+counterfactual, and the controlled matched-identifiability certificate passes. The online-policy-feasible certificate
+remains pending, so Gate A as a whole remains false and Agent-level identification claims remain closed.
 
 ## Finding 4: current RL evidence diagnoses contracts, not rankings
 
