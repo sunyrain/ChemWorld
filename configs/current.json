@@ -53,7 +53,7 @@
       "report": "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
       "artifact_state": "current",
       "artifact_roles": [
-        "development_input",
+        "protocol_input",
         "development_diagnostic"
       ]
     },
@@ -62,7 +62,7 @@
       "report": "workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.1.json",
       "artifact_state": "current",
       "artifact_roles": [
-        "development_input",
+        "protocol_input",
         "development_diagnostic"
       ]
     },
@@ -109,13 +109,26 @@
     "raw_runs_require_a_manifested_retention_decision_before_deletion": true
   },
   "state_model": {
-    "schema_version": "chemworld-evidence-state-model-0.2",
+    "schema_version": "chemworld-evidence-state-model-0.3",
     "dimensions": {
       "artifact_state": [
         "current",
         "stale",
         "historical",
         "pending"
+      ],
+      "artifact_role": [
+        "archive",
+        "development_diagnostic",
+        "fixture",
+        "formal_result",
+        "generated_current",
+        "protocol_input",
+        "superseded"
+      ],
+      "artifact_lifecycle": [
+        "generated",
+        "immutable"
       ],
       "gate_state": [
         "passed",
@@ -134,16 +147,17 @@
     "rules": [
       "status is the canonical lifecycle enum and booleans are derived claims",
       "current means regenerated from the declared DAG, not scientifically ready",
+      "generated artifacts have declared commands; protocol inputs, formal results, development diagnostics, and fixtures are immutable to DAG refresh",
       "frozen requires a clean source-attested candidate and is never inferred from validation alone",
       "backend validation does not imply method freeze, formal results, or publication readiness",
       "development evidence is never promoted to formal benchmark evidence by aggregation"
     ]
   },
   "evidence_dag": {
-    "schema_version": "chemworld-current-evidence-dag-0.1",
+    "schema_version": "chemworld-current-evidence-dag-0.2",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "2a8b480d59de18ce5e0fdf809defbc413e0a059cee055a624d62d87669647199",
+    "graph_sha256": "519a454023f2fccae6414c7b295cd555ce7764a4959fdd32ad79f0720bc8c526",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -177,215 +191,310 @@
     "nodes": {
       "backend_golden_fixture": {
         "path": "tests/fixtures/golden/core_scripted_trajectories.json",
-        "role": "distribution_input",
+        "role": "fixture",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_fixture",
+        "source_binding": "content_sha256",
         "dependencies": [],
         "sha256": "0c1da73dae75431d118ec81cdb21bb1650380034bc52a8276a8ea676f10ff95e",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "backend_protocol": {
         "path": "configs/foundation/backend_v0.5.json",
         "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
         "dependencies": [],
         "sha256": "5dd2361a63a40a668521ab77c2e313d4d7e8529fc67f3fb285d0ed951ae84684",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "classic_development": {
         "path": "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
-        "role": "development_input",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
         "dependencies": [],
         "sha256": "af85f671f799ba5304384b82bdf8411b8b1c464a2a9c65bbc339a00fab5579f1",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "maturity_protocol": {
         "path": "configs/foundation/maturity_truth_vnext.json",
         "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
         "dependencies": [],
         "sha256": "09b629d53042cce08428277ae9691c66230f96d9a7de3f477a1e27125ae89c55",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "mechanism_protocol": {
         "path": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
         "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
         "dependencies": [],
         "sha256": "d22c6b88b6b2bbf076f272c62b860c845266100e18af0c6bf908dd14450f87ab",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "method_freeze_plan": {
         "path": "configs/benchmark/method_freeze_v0.4.json",
         "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
         "dependencies": [],
         "sha256": "3294696f9aabbee30d6c68279f23e28ee5236a4832bad6d0c0d730f3208261e0",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "operation_development": {
         "path": "workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.1.json",
-        "role": "development_input",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
         "dependencies": [],
         "sha256": "41f724d2756cabc2398125a1fb5ef0bd5f5f9342101e7119a4a8d9b5e489061d",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "ppo_preflight": {
         "path": "workstreams/benchmark_v1/reports/rl-ppo-v0412-preflight-v0.4.json",
-        "role": "development_input",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
         "dependencies": [],
         "sha256": "811919d30a0f0e792701d58bdde0a7a5a2b8a7eaacd9edc0f0adc81073faaf3c",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "public_boundary_protocol": {
         "path": "configs/foundation/public_boundary_security_vnext.json",
         "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
         "dependencies": [],
         "sha256": "10c474dc824de56d70731e629ae59f8e1725c167984a06ef03eeab757262c1cc",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "runtime_affordance": {
         "path": "workstreams/benchmark_v1/reports/runtime-domain-affordance-audit-v0.4.json",
-        "role": "development_control",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/audit_runtime_domain_affordances.py",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "7a3b9c28e445d25b678ab461c30d4c4a82a90de0593e4f2a241f55f3f9f080e6",
+        "sha256": "c82e53e1d84a2d29b192cab37e18d74dd5c4e81c7dc73a4a01a1f73d2e15870d",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "runtime_integration": {
         "path": "workstreams/world_foundation/reports/wf-110-runtime-integration.json",
-        "role": "backend_control",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/audit_vnext_runtime_integration.py",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
         "sha256": "f17877970ee3be797de4f140972d2106fb4a28e4442c20162a5cd9529bdb7b24",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "runtime_reachability_protocol": {
         "path": "configs/foundation/runtime_reachability_vnext.json",
         "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
         "dependencies": [],
         "sha256": "b91f428091c9793884fc694859e9d09e6c3c4bf98960641d1a58241cc99e9c1b",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "sac_preflight": {
         "path": "workstreams/benchmark_v1/reports/rl-sac-v0412-preflight-v0.4.json",
-        "role": "development_input",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
         "dependencies": [],
         "sha256": "f6c06e6a270900e2fc62d28f2890bb73d554c527b9d39f538c128d735755123e",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "state_transition_protocol": {
         "path": "configs/foundation/state_transition_invariants_vnext.json",
         "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
         "dependencies": [],
         "sha256": "61ab88e71b9e459012e66fbd7f74ca4d911ba14750cf6e07961daa7f4bbced6b",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "llm_development_plan": {
         "path": "configs/methods/llm_v0.4/llm_development_plan.json",
-        "role": "development_input",
+        "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
         "dependencies": [
           "runtime_affordance"
         ],
         "sha256": "8440ce97903573441f8a7ba6cd94f5fa5754ee8db5a4adb621722a91e3bf2c82",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "mechanism_gate_a_plan": {
         "path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json",
         "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
         "dependencies": [
           "mechanism_protocol"
         ],
         "sha256": "91985ffb125665653ae79b23e614917a51ffce173de50601284691eea4bb91a8",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "mechanism_protocol_report": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-final-protocol-v0.2.md",
-        "role": "development_input",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
         "dependencies": [
           "mechanism_protocol"
         ],
         "sha256": "4c0b745581c5b6e729fce0202d1916a728d790e220e4e78fe88f31567f527e65",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "mechanism_public_matrix": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-public-matrix.json",
-        "role": "development_control",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/plan_mechanism_adaptation_matrix.py",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "mechanism_protocol"
         ],
         "sha256": "a162d9c64af56188961ca74eb61c1e53ed584bdf5400bb9fcb76e12a63934f55",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "public_boundary": {
         "path": "workstreams/world_foundation/reports/public-boundary-security-vnext.json",
-        "role": "backend_control",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/audit_public_boundary_security_vnext.py",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "public_boundary_protocol",
           "runtime_integration"
         ],
         "sha256": "03ad2cadba98a5f7c1d0ed2153e290cefa0a77ddd98a6839d2a113505ed77382",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "runtime_reachability": {
         "path": "workstreams/world_foundation/reports/runtime-reachability-vnext.json",
-        "role": "backend_control",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/audit_runtime_reachability_vnext.py",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "dc77a87867eb8edb97c1c1cb614680eef98dfd1df9bde94001237b08f746eb58",
+        "sha256": "bb7411845b06a81c36ea8daaab97cad83a7e60c12938558e57d8e439bd1a3934",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "state_transition_invariants": {
         "path": "workstreams/world_foundation/reports/state-transition-invariants.json",
-        "role": "backend_control",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/audit_state_transition_invariants.py",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "c8e9fc32ca460feb5e2ff34093e7b39c8e8e07ed497fddd262bad4a48caa341d",
+        "sha256": "8823cd97e7abd7a225281ae52159f883201c2b48215cd702bad2ad1999eeb60c",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "maturity_truth": {
         "path": "workstreams/world_foundation/reports/maturity-truth-vnext.json",
-        "role": "backend_control",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/audit_maturity_truth_vnext.py",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "maturity_protocol",
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "83b67ae15ea1e776c2c0f32df65b3cea41f9c52adaa5a265c343367466e88580",
+        "sha256": "39fab8214a864f3fefaf4af0838518e21bea5dca2bdfdfee9c47e67ce6afa637",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "mechanism_design_audit": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.2.json",
-        "role": "development_control",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/audit_mechanism_adaptation_design.py",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "mechanism_gate_a_plan",
           "mechanism_protocol"
         ],
         "sha256": "8ba699aecbad57b15f5ab98d0b882b08430ff0d85c4ed8ea31da318bf5cabae7",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "backend_candidate": {
         "path": "workstreams/world_foundation/reports/backend-v0.5.json",
-        "role": "backend_control",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/audit_backend_v05.py --allow-dirty",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "runtime_integration",
           "runtime_reachability",
@@ -394,13 +503,17 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "97afd1143562d348ac7fa374dee63dc4cec13e84482b73feb48846e70574f0f3",
+        "sha256": "d39f7c463366e9306fc95d4519d6b93d8b567ce72637c3b0b874b068573055f8",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "mechanism_preflight": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-preflight.json",
-        "role": "development_control",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/check_mechanism_adaptation_protocol.py",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "mechanism_gate_a_plan",
           "mechanism_design_audit",
@@ -410,11 +523,15 @@
         ],
         "sha256": "3a6e343acd4fe43d968bda7a3da46b62828d9dc4ea3e795d88a6ec1b90e04bfd",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "backend_bundle": {
         "path": "benchmark/releases/chemworld-serious-vnext/manifest.json",
-        "role": "distribution_bundle",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/build_vnext_backend_candidate.py",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "backend_candidate",
           "backend_golden_fixture",
@@ -422,13 +539,17 @@
           "public_boundary",
           "runtime_integration"
         ],
-        "sha256": "baa4a89cbb6a1ea6f273d9a8831a757ffc7abec8746148876b9990572ad357dd",
+        "sha256": "00c7e6393805e9b2a5bbdcfa1d79ff3669a365920645348faf916d354e623ba4",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "mechanism_gate_a": {
         "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.2.json",
-        "role": "mechanism_gate",
+        "role": "formal_result",
+        "lifecycle": "immutable",
+        "producer": "frozen_formal_execution",
+        "source_binding": "protocol_plan_and_result_sha256",
         "dependencies": [
           "mechanism_design_audit",
           "mechanism_gate_a_plan",
@@ -437,11 +558,15 @@
         ],
         "sha256": "eef8187a1595d25c33eb10cd7cfba89e6fd314ff37bc19c0806336c8e107d114",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "passed"
       },
       "method_freeze": {
         "path": "workstreams/benchmark_v1/reports/method-freeze-v0.4.json",
-        "role": "formal_gate",
+        "role": "generated_current",
+        "lifecycle": "generated",
+        "producer": "python scripts/audit_method_freeze_v0.4.py",
+        "source_binding": "dependencies_and_source_commit",
         "dependencies": [
           "backend_candidate",
           "classic_development",
@@ -449,8 +574,9 @@
           "method_freeze_plan",
           "operation_development"
         ],
-        "sha256": "03856de35c5e9735403737040ef5d7f48cf6a4ac6d6c75d3347700ede7981a55",
+        "sha256": "a8f4c2a5a91d197bb3e88e450e45bf1fe4de9546ad800c12083ae5d5c117bd04",
         "artifact_state": "current",
+        "freshness": "fresh",
         "gate_state": "blocked"
       }
     }
