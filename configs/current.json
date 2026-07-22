@@ -39,13 +39,22 @@
     "preflight_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-preflight.json",
     "protocol_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-final-protocol-v0.2.md",
     "status": "gate_a_passed_remaining_gates_pending",
-    "new_external_provider_runs_completed": false,
+    "new_external_provider_runs_completed": true,
     "publication_ready": false,
     "gate_a_plan": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json",
     "gate_a_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.2.json",
     "gate_a_pass": true,
     "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.2.json",
-    "design_audit_pass": true
+    "design_audit_pass": true,
+    "agent_pilot_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-agent-pilot-v0.2.1.json",
+    "agent_pilot_gate_status": {
+      "gate_0": "passed",
+      "gate_b": "descriptive_only_insufficient_pairs",
+      "gate_c": "not_evaluated",
+      "gate_d": "not_evaluated",
+      "gate_e": "pilot_protocol_failure_observed"
+    },
+    "agent_weight_updates_performed": false
   },
   "development_evidence": {
     "classic": {
@@ -95,7 +104,6 @@
         "id": "mechanism_gates_remaining",
         "scope": "mechanism_benchmark",
         "gates": [
-          "gate_0",
           "gate_b",
           "gate_c",
           "gate_d",
@@ -160,11 +168,12 @@
     "schema_version": "chemworld-current-evidence-dag-0.2",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "bfadff7eb0bb19861a4f58aba8c009730033e8bfb508cc42265bbf14a394ec9e",
+    "graph_sha256": "15038e234324021a710224e0831d9555835f83ec7269f1bd68e8539f1d3bbe79",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
       "classic_development",
+      "live_llm_methods",
       "maturity_protocol",
       "mechanism_protocol",
       "method_freeze_plan",
@@ -190,7 +199,8 @@
       "mechanism_preflight",
       "backend_bundle",
       "mechanism_gate_a",
-      "method_freeze"
+      "method_freeze",
+      "mechanism_agent_pilot"
     ],
     "nodes": {
       "backend_golden_fixture": {
@@ -225,6 +235,18 @@
         "source_binding": "content_and_versioned_source_sha256",
         "dependencies": [],
         "sha256": "af85f671f799ba5304384b82bdf8411b8b1c464a2a9c65bbc339a00fab5579f1",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
+      },
+      "live_llm_methods": {
+        "path": "configs/methods/llm_v0.4/llm_methods.json",
+        "role": "protocol_input",
+        "lifecycle": "immutable",
+        "producer": "maintainer_versioned_input",
+        "source_binding": "content_sha256",
+        "dependencies": [],
+        "sha256": "9913fead5f6f8de2839e4b9f5d7a6a7f112196e616968b4ccad76e96a6ea590e",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -308,7 +330,7 @@
         "producer": "python scripts/audit_runtime_domain_affordances.py",
         "source_binding": "dependencies_and_source_commit",
         "dependencies": [],
-        "sha256": "85d62cda9c1b2f10d18a1a0f0bfce1628fbe7496dcac07b8d11ba22b205e0273",
+        "sha256": "fa6b50bc68939a538cf77e5627ebdb8106c8a7282fe74198653b0bf3865ce5be",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -442,7 +464,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "1048bd5b5c73c4589c5051eb205f091537f08da2dbf1761e686f463a3c304a5d",
+        "sha256": "0eefa20dbc642d838bdcb0c3d9bb476a99366ab40a72df58f51621d36135d14b",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -457,7 +479,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "42b2ebb6fb6d14f7fd8b14748f82f7c547d243d3f206f61241c56212abc8784b",
+        "sha256": "5fe56b7c483572deb2c1d60a92f4b7dc07a0aca81cce0975c18f7777d883e3ae",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -469,6 +491,7 @@
         "producer": "versioned_development_execution",
         "source_binding": "content_and_versioned_source_sha256",
         "dependencies": [
+          "live_llm_methods",
           "llm_development_plan",
           "runtime_affordance"
         ],
@@ -488,7 +511,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "76fd94128a41c852380e32233109b13ac0475ae0cf829113950130fcffd22d3f",
+        "sha256": "4fedaf84d3ae841603c9a5f55868c4723b1266bca8e291a1c5f87aa0cf463bc4",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -522,7 +545,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "b5f0fea5958a0a7fc543f0aa89e0aab9d2f009f09300857c057c318f0aa4d72e",
+        "sha256": "70fcd85517b2b5861b1e658eaf52cfcfe039c517a5de7be0bc3f3ee1ec3febca",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -540,7 +563,7 @@
           "mechanism_protocol_report",
           "mechanism_public_matrix"
         ],
-        "sha256": "3a6e343acd4fe43d968bda7a3da46b62828d9dc4ea3e795d88a6ec1b90e04bfd",
+        "sha256": "6e1a21738050823422f0b91f712b43177b4cf28701001872f4d0ddbc94543ddf",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -558,7 +581,7 @@
           "public_boundary",
           "runtime_integration"
         ],
-        "sha256": "a61035a64c47812b372827abe8b9d2a3ed457062acf3a4f4e6508d32d4d10e43",
+        "sha256": "bcd182903965a228895f8ea8465dd5039f563511e6c7c114583c259be718f5ed",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "passed"
@@ -594,10 +617,26 @@
           "method_freeze_plan",
           "operation_development"
         ],
-        "sha256": "a515a40b9de25e486491eb7a5f89c39652e6ceee9ccbd3103c69b3a41735855c",
+        "sha256": "e85975719e4e557ed3b84dc8e0fa567bcea9d4017aad645e6bfd78aac3232323",
         "artifact_state": "current",
         "freshness": "fresh",
         "gate_state": "blocked"
+      },
+      "mechanism_agent_pilot": {
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-agent-pilot-v0.2.1.json",
+        "role": "development_diagnostic",
+        "lifecycle": "immutable",
+        "producer": "versioned_development_execution",
+        "source_binding": "content_and_versioned_source_sha256",
+        "dependencies": [
+          "live_llm_methods",
+          "mechanism_gate_a",
+          "mechanism_protocol"
+        ],
+        "sha256": "5607623e17b793a542479ed5fd66a70ff38d34ae2b3d9e1f8d06d329b8e86664",
+        "artifact_state": "current",
+        "freshness": "fresh",
+        "gate_state": "passed"
       }
     }
   },
