@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -318,6 +319,10 @@ def _report_hash(report: dict[str, Any]) -> str:
 
 
 def _git_state(root: Path) -> tuple[str | None, bool | None]:
+    snapshot_commit = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_COMMIT")
+    snapshot_dirty = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_TREE_DIRTY")
+    if snapshot_commit and snapshot_dirty in {"true", "false"}:
+        return snapshot_commit, snapshot_dirty == "true"
     try:
         commit = subprocess.run(
             ["git", "rev-parse", "HEAD"],

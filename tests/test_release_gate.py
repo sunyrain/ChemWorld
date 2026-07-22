@@ -91,6 +91,7 @@ def test_release_gate_binds_the_candidate_backend_without_enabling_claims() -> N
     assert evidence["status"] in {
         "candidate_backend_clean_attested",
         "candidate_backend_validated_dirty_tree",
+        "candidate_backend_validated_external_gates_pending",
     }
     assert evidence["backend_contract_validated"] is True
     if evidence["clean_release_attestation"] == "passed":

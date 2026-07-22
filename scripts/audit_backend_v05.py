@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 from collections.abc import Mapping
 from pathlib import Path
@@ -198,10 +199,14 @@ def _external_gate_evidence(
         failures.append("external gate attestation backend mismatch")
     if commands != required:
         failures.append("external gate command set or order mismatch")
-    if payload.get("source_commit") != source_commit:
-        failures.append("external gate attestation source commit mismatch")
-    if payload.get("source_tree_dirty") is not source_tree_dirty:
-        failures.append("external gate attestation dirty-state mismatch")
+    attestation_status = payload.get("status")
+    if attestation_status == "passed":
+        if payload.get("source_commit") != source_commit:
+            failures.append("external gate attestation source commit mismatch")
+        if payload.get("source_tree_dirty") is not source_tree_dirty:
+            failures.append("external gate attestation dirty-state mismatch")
+    elif attestation_status != "pending":
+        failures.append("external gate attestation status must be pending or passed")
     gate_statuses = {
         str(item.get("command")): str(item.get("status"))
         for item in gates
@@ -254,8 +259,14 @@ def build_report(
     )
 
     source_changes = _source_changes()
-    source_tree_dirty = bool(source_changes)
-    source_commit = _git_output("rev-parse", "HEAD")
+    snapshot_commit = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_COMMIT")
+    snapshot_dirty = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_TREE_DIRTY")
+    if snapshot_commit and snapshot_dirty in {"true", "false"}:
+        source_commit = snapshot_commit
+        source_tree_dirty = snapshot_dirty == "true"
+    else:
+        source_tree_dirty = bool(source_changes)
+        source_commit = _git_output("rev-parse", "HEAD")
     external_gate_evidence = _external_gate_evidence(
         protocol,
         source_commit=source_commit,
@@ -397,13 +408,15 @@ def validate_report(report: Mapping[str, Any]) -> list[str]:
             expected_attestation = "blocked"
         if report.get("clean_release_attestation") != expected_attestation:
             errors.append("clean release attestation mismatch")
-        expected_status = (
-            "candidate_backend_clean_attested"
-            if expected
-            else "candidate_backend_validated_dirty_tree"
-            if contract_expected
-            else "blocked"
-        )
+        expected_status = "blocked"
+        if expected:
+            expected_status = "candidate_backend_clean_attested"
+        elif contract_expected:
+            expected_status = (
+                "candidate_backend_validated_dirty_tree"
+                if not bool(checks.get("clean_tracked_tree"))
+                else "candidate_backend_validated_external_gates_pending"
+            )
         if report.get("status") != expected_status:
             errors.append("backend status mismatch")
     expected_hash = _json_hash({**dict(report), "report_hash": None})

@@ -12,6 +12,7 @@ import copy
 import hashlib
 import importlib
 import json
+import os
 import re
 import subprocess
 from collections.abc import Iterable, Mapping, Sequence
@@ -766,6 +767,10 @@ def _file_hash(path: Path) -> str | None:
 
 
 def _git_state(repository_root: Path) -> tuple[str | None, bool | None]:
+    snapshot_commit = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_COMMIT")
+    snapshot_dirty = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_TREE_DIRTY")
+    if snapshot_commit and snapshot_dirty in {"true", "false"}:
+        return snapshot_commit, snapshot_dirty == "true"
     try:
         commit = subprocess.run(
             ["git", "rev-parse", "HEAD"],

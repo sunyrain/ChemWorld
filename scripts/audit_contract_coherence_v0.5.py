@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 from chemworld.eval.contract_coherence import (
@@ -21,6 +22,11 @@ def main() -> int:
     )
     args = parser.parse_args()
     report = audit_contract_coherence(load_contract_coherence_protocol())
+    snapshot_commit = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_COMMIT")
+    snapshot_dirty = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_TREE_DIRTY")
+    if snapshot_commit and snapshot_dirty in {"true", "false"}:
+        report["source_commit"] = snapshot_commit
+        report["source_tree_dirty"] = snapshot_dirty == "true"
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"

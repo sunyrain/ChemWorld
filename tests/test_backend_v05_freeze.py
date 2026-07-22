@@ -30,6 +30,23 @@ def test_backend_freeze_protocol_covers_all_current_contracts() -> None:
     assert validate_report(report) == []
 
 
+def test_clean_source_with_pending_external_gates_is_a_valid_negative_state(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("CHEMWORLD_EVIDENCE_SOURCE_COMMIT", "a" * 40)
+    monkeypatch.setenv("CHEMWORLD_EVIDENCE_SOURCE_TREE_DIRTY", "false")
+
+    report = build_report(load_protocol(), enforce_clean_tree=False)
+
+    assert report["source_tree_dirty"] is False
+    assert report["checks"]["clean_tracked_tree"] is True
+    assert report["checks"]["required_external_gates_attested"] is False
+    assert report["status"] == "candidate_backend_validated_external_gates_pending"
+    assert report["clean_release_attestation"] == "pending_external_gates"
+    assert report["backend_freeze_allowed"] is False
+    assert validate_report(report) == []
+
+
 def test_task_contract_drift_blocks_the_candidate_freeze() -> None:
     protocol = load_protocol()
     protocol["expected_task_contract_hashes"] = dict(
@@ -58,11 +75,9 @@ def test_committed_backend_report_is_truthful_and_candidate_only() -> None:
     assert report["backend_contract_validated"] is True
     assert report["backend_freeze_allowed"] is False
     assert report["checks"]["required_external_gates_attested"] is False
-    assert report["source_tree_dirty"] is True
-    assert report["checks"]["clean_tracked_tree"] is False
-    assert report["clean_release_attestation"] == (
-        "pending_clean_tree_and_external_gates"
-    )
-    assert report["status"] == "candidate_backend_validated_dirty_tree"
+    assert report["source_tree_dirty"] is False
+    assert report["checks"]["clean_tracked_tree"] is True
+    assert report["clean_release_attestation"] == "pending_external_gates"
+    assert report["status"] == "candidate_backend_validated_external_gates_pending"
     assert report["benchmark_claim_allowed"] is False
     assert validate_report(report) == []

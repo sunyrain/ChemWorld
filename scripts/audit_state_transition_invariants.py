@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import subprocess
 from copy import deepcopy
 from pathlib import Path
@@ -845,6 +846,10 @@ def _report_hash(report: dict[str, Any]) -> str:
 
 
 def _git_state(repository_root: Path) -> tuple[str, bool]:
+    snapshot_commit = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_COMMIT")
+    snapshot_dirty = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_TREE_DIRTY")
+    if snapshot_commit and snapshot_dirty in {"true", "false"}:
+        return snapshot_commit, snapshot_dirty == "true"
     commit = subprocess.run(
         ["git", "rev-parse", "HEAD"],
         cwd=repository_root,

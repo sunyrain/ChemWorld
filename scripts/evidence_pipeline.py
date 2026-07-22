@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -645,7 +646,12 @@ def validate_current_registry_paths(registry: dict[str, Any], *, root: Path = RO
     return errors
 
 
-def _run(node: EvidenceNode) -> None:
+def _run(
+    node: EvidenceNode,
+    *,
+    source_commit: str | None = None,
+    source_tree_dirty: bool | None = None,
+) -> None:
     if _node_lifecycle(node) == "immutable":
         return
     if node.command is None:  # pragma: no cover - node_map rejects this contract
@@ -656,9 +662,16 @@ def _run(node: EvidenceNode) -> None:
         json.dumps({"event": "evidence_node_started", "node_id": node.node_id}),
         flush=True,
     )
+    environment = os.environ.copy()
+    if source_commit is not None and source_tree_dirty is not None:
+        environment["CHEMWORLD_EVIDENCE_SOURCE_COMMIT"] = source_commit
+        environment["CHEMWORLD_EVIDENCE_SOURCE_TREE_DIRTY"] = (
+            "true" if source_tree_dirty else "false"
+        )
     completed = subprocess.run(
         command,
         cwd=ROOT,
+        env=environment,
         capture_output=True,
         text=True,
         check=False,
@@ -682,6 +695,10 @@ def _run(node: EvidenceNode) -> None:
     if completed.returncode not in allowed_codes:
         detail = completed.stderr.strip() or completed.stdout.strip()
         raise RuntimeError(f"generator failed for {node.node_id}: {detail}")
+    if completed.returncode and completed.stderr.strip():
+        raise RuntimeError(
+            f"generator failed for {node.node_id}: {completed.stderr.strip()}"
+        )
     if not (ROOT / node.path).is_file():
         raise RuntimeError(f"generator did not create {node.path}")
 
@@ -1322,8 +1339,16 @@ def _write_current_registry() -> None:
 
 
 def refresh() -> None:
+    source_commit = _git_head()
+    source_tree_dirty = _git_tree_dirty()
     for node in generation_order():
-        _run(node)
+        _run(
+            node,
+            source_commit=source_commit,
+            source_tree_dirty=source_tree_dirty,
+        )
+    if _git_head() != source_commit or _git_tree_dirty() != source_tree_dirty:
+        raise RuntimeError("source inputs changed during evidence refresh")
     _write_current_registry()
 
 

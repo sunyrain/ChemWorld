@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from collections.abc import Mapping
 from pathlib import Path
@@ -161,10 +162,18 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
+    snapshot_commit = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_COMMIT")
+    snapshot_dirty = os.environ.get("CHEMWORLD_EVIDENCE_SOURCE_TREE_DIRTY")
     report = build_report_lifecycle_index(
         root=ROOT,
         policy=_load_object(args.policy),
         current=_load_object(args.current),
+        source_commit=snapshot_commit,
+        source_tree_dirty=(
+            snapshot_dirty == "true"
+            if snapshot_commit and snapshot_dirty in {"true", "false"}
+            else None
+        ),
     )
     if args.check:
         existing = _load_object(args.output)
