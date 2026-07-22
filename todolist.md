@@ -199,7 +199,7 @@ Acceptance:
 
 Only start after the P0 completion gate.
 
-- [ ] Decide explicitly whether live LLM v0.4.11 remains in the candidate method set before spending
+- [x] Decide explicitly whether live LLM v0.4.11 remains in the candidate method set before spending
   provider budget.
 - [ ] If retained, create a fresh v0.4.11 cache and report; never resume v0.4.8-v0.4.10 caches.
 - [ ] Run the smallest complete changed/no-change pilot pair first.

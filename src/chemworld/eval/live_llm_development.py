@@ -50,7 +50,7 @@ RUNTIME_DOMAIN_AFFORDANCE_AUDIT_VERSION = (
     "chemworld-runtime-domain-affordance-audit-0.4"
 )
 LIVE_LLM_DEVELOPMENT_VERSION = "chemworld-live-llm-development-audit-0.4.11"
-LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.5"
+LIVE_LLM_DEVELOPMENT_PLAN_VERSION = "chemworld-live-llm-development-plan-0.4.6"
 LIVE_STAGES = ("candidate_screen", "live_pilot", "development_matrix")
 _PRIOR_PAID_STAGE = {
     "live_pilot": "candidate_screen",
