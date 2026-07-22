@@ -111,9 +111,6 @@ def main() -> int:
         smoke = (
             "import json, pathlib, chemworld, gymnasium as gym; "
             "from chemworld.task_design import serious_task_readiness_manifest; "
-            "from chemworld.eval.benchmark_validation import official_validation_path; "
-            "from chemworld.eval.flagship_diagnostics import "
-            "DEFAULT_PROTOCOL_PATH as flagship_protocol; "
             "from chemworld.eval.mechanism_adaptation_execution import ("
             "DEFAULT_GATE_A_PLAN_PATH, DEFAULT_PROTOCOL_PATH as mechanism_protocol); "
             "from chemworld.physchem.mechanism_library import configuration_root; "
@@ -135,9 +132,8 @@ def main() -> int:
             "current['project']['environment_updates_agent_weights'], "
             "'formal_results_present': current['formal_evaluation']['formal_results_present'], "
             "'publication_ready': current['publication']['publication_ready'], "
-            "'package_config_paths': [str(path) for path in (flagship_protocol, "
-            "DEFAULT_GATE_A_PLAN_PATH, mechanism_protocol)], "
-            "'official_validation_path': str(official_validation_path())})); "
+            "'package_config_paths': [str(path) for path in ("
+            "DEFAULT_GATE_A_PLAN_PATH, mechanism_protocol)]})); "
             "env.close()"
         )
         env = os.environ.copy()
@@ -161,9 +157,6 @@ def main() -> int:
             payload,
             require_validated_benchmark=args.require_validated_benchmark,
         )
-        validation_path = Path(str(payload["official_validation_path"])).resolve()
-        if not validation_path.is_relative_to(install_dir.resolve()):
-            raise RuntimeError(f"Wheel used validation outside installed resources: {payload}")
         current_registry_path = Path(str(payload["current_registry_path"])).resolve()
         if not current_registry_path.is_relative_to(install_dir.resolve()):
             raise RuntimeError(

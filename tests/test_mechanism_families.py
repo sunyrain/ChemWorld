@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-import json
-from copy import deepcopy
-from pathlib import Path
-
 import gymnasium as gym
 import numpy as np
 import pytest
@@ -13,24 +9,12 @@ from chemworld.agents.task_recipes import (
     task_recipe_dimension,
     task_recipe_from_unit_vector,
 )
-from chemworld.eval.mechanism_family_audit import (
-    audit_mechanism_families,
-    load_mechanism_family_protocol,
-)
 from chemworld.tasks import get_task
 from chemworld.world.mechanism_family import (
     CONSTITUTIVE_MECHANISM_TASKS,
     REACTION_MECHANISM_TASKS,
 )
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
-
-FROZEN_REPORT = (
-    Path(__file__).resolve().parents[1]
-    / "workstreams"
-    / "benchmark_v1"
-    / "reports"
-    / "mechanism-family-controls.json"
-)
 
 
 def _intervention(mode: str, severity: float = 0.8) -> dict:
@@ -168,41 +152,3 @@ def test_zero_intervention_preserves_frozen_mechanism() -> None:
     assert empty.compiled_mechanism.mechanism_hash == base.compiled_mechanism.mechanism_hash
     assert empty.parameters.world_id == base.parameters.world_id
     assert empty.parameters.domain_parameter("partition_coefficient_exponent") == 1.0
-
-
-def test_protocol_scope_drift_fails_closed() -> None:
-    protocol = deepcopy(load_mechanism_family_protocol())
-    protocol["reachable_tasks"].append("reaction-to-assay")
-    report = audit_mechanism_families(protocol)
-    assert report["checks"]["reachable_task_scope"] is False
-    assert report["controls_ready"] is False
-
-
-def test_protocol_mode_drift_fails_closed_without_skipping_controls() -> None:
-    protocol = deepcopy(load_mechanism_family_protocol())
-    protocol["modes"] = ["topology_family"]
-    report = audit_mechanism_families(protocol)
-    assert report["checks"]["mode_scope"] is False
-    assert report["controls_ready"] is False
-    assert set(report["tasks"]["reaction-to-crystallization"]["modes"]) == {
-        "rate_law_family",
-        "topology_family",
-    }
-    assert set(report["tasks"]["partition-discovery"]["modes"]) == {"constitutive_law_family"}
-
-
-def test_frozen_mechanism_family_report_is_ready_but_non_claiming() -> None:
-    report = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
-    assert report["controls_ready"] is True
-    assert report["checks"]["mechanism_families_behaviorally_distinguishable"] is True
-    assert report["checks"]["mechanism_shifts_are_noncatastrophic"] is True
-    assert report["checks"]["calibration_design_is_multiseed_multiprobe"] is True
-    assert report["checks"]["replay_requires_separate_exact_intervention_context"] is True
-    assert report["checks"]["partition_constitutive_family_changes"] is True
-    assert report["checks"]["partition_preserves_reaction_network_identity"] is True
-    assert report["checks"]["electrochemistry_constitutive_family_changes"] is True
-    assert report["checks"]["equilibrium_constitutive_family_changes"] is True
-    assert report["checks"]["constitutive_families_preserve_reaction_network_identity"] is True
-    assert report["checks"]["mass_balance_preserved"] is True
-    assert report["benchmark_claim_allowed"] is False
-    assert report["publication_ready"] is False

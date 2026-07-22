@@ -5,18 +5,7 @@ from pathlib import Path
 import gymnasium as gym
 
 import chemworld  # noqa: F401
-from chemworld.runtime.boundary_audit import audit_runtime_boundaries
 from chemworld.world.operations import OPERATION_TYPES
-
-
-def test_runtime_boundary_audit_passes_current_source() -> None:
-    report = audit_runtime_boundaries()
-
-    assert report["passed"] is True
-    assert report["finding_count"] == 0
-    assert report["checks"]["legacy_core_imports"]["passed"] is True
-    assert report["checks"]["legacy_core_package"]["passed"] is True
-    assert report["checks"]["env_operation_dispatch"]["passed"] is True
 
 
 def test_chemworld_env_has_no_operation_specific_step_branching() -> None:

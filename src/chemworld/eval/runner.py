@@ -40,16 +40,16 @@ from chemworld.agents.interaction import (
 )
 from chemworld.data.logging import TrajectoryLogger, action_payload, observation_to_json
 from chemworld.data.submission import git_commit
-from chemworld.eval.method_protocol import (
+from chemworld.eval.observation_identifiability import (
+    ObservationIdentifiabilityError,
+    PublicSpectrumArchive,
+)
+from chemworld.eval.resource_accounting import (
     MethodResourceLedger,
     MethodResourceLimitError,
     MethodResourceLimits,
     evaluation_resource_limits,
-    load_method_protocol,
-)
-from chemworld.eval.observation_identifiability import (
-    ObservationIdentifiabilityError,
-    PublicSpectrumArchive,
+    load_resource_protocol,
 )
 from chemworld.eval.risk_policy import (
     RiskCostTaskPolicy,
@@ -217,7 +217,7 @@ def run_agent(
         )
         if method_resource_limits is not None
         else evaluation_resource_limits(
-            load_method_protocol(),
+            load_resource_protocol(),
             operation_limit=effective_budget,
             requires_online_model=requires_online_model,
         )

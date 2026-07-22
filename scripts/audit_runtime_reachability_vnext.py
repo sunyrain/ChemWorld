@@ -217,16 +217,11 @@ def build_report(
         "reference_providers_routed": reference_routed,
         "forbidden_runtime_models": forbidden_runtime_models,
         "dynamic_integration_evidence": dynamic_evidence,
-        "legacy_constraints": protocol["legacy_constraints"],
         "limitations": [
             "This is a control and reachability audit, not a maturity upgrade.",
             (
                 "Static reachability does not replace domain-specific perturbation "
                 "and reference validation."
-            ),
-            (
-                "Legacy shared-claim prefix policy is intentionally superseded "
-                "by the current claim checker."
             ),
         ],
         "remaining_gates": [

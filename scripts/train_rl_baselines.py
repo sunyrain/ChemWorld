@@ -1,4 +1,4 @@
-"""Train one diagnostic or frozen-budget PPO/SAC checkpoint."""
+"""Train one diagnostic or fixed-budget PPO/SAC checkpoint."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from chemworld.rl.training import train_sb3_baseline
 
 ROOT = Path(__file__).resolve().parents[1]
 RL_PROTOCOL = ROOT / "configs/benchmark/rl_baselines_vnext.json"
-FREEZE_PROTOCOL = ROOT / "configs/benchmark/confirmatory_freeze_vnext.json"
+WORLD_ALLOCATION_PROTOCOL = ROOT / "configs/benchmark/rl_world_allocations.json"
 
 
 def main() -> None:
@@ -26,9 +26,13 @@ def main() -> None:
 
     rl_protocol = load_rl_protocol(RL_PROTOCOL)
     if args.task not in rl_protocol["core_tasks"]:
-        raise SystemExit("task is not in the frozen provisional core")
-    freeze_protocol = load_rl_protocol(FREEZE_PROTOCOL)
-    allocation = RLWorldAllocation.from_protocol(freeze_protocol, task_id=args.task, name="train")
+        raise SystemExit("task is not in the configured RL task scope")
+    allocation_protocol = load_rl_protocol(WORLD_ALLOCATION_PROTOCOL)
+    allocation = RLWorldAllocation.from_protocol(
+        allocation_protocol,
+        task_id=args.task,
+        name="train",
+    )
     kwargs = dict(rl_protocol["algorithms"][args.algorithm]["hyperparameters"])
     if args.timesteps < 2048:
         if args.algorithm == "ppo":

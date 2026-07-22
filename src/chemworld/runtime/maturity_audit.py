@@ -24,7 +24,6 @@ _CORE_EVIDENCE_PATHS = (
     "src/chemworld/runtime/domain_service_registry.py",
     "src/chemworld/runtime/kernel_registry.py",
     "src/chemworld/runtime/model_reachability.py",
-    "scripts/audit_model_reachability.py",
 )
 
 

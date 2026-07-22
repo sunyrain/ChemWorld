@@ -28,7 +28,6 @@ OWNED_PATHS = (
     "src/chemworld/physchem/distillation_units.py",
     "src/chemworld/physchem/distillation_adapter_manifest.py",
     "tests/test_distillation_units.py",
-    "workstreams/world_foundation/adapters/wf-60-duty-limited-distillation.json",
 )
 INTEGRATION_OPERATIONS = ("distill",)
 REPLACED_MODEL_IDS = (DISTILLATION_ENGINE_MODEL_ID,)

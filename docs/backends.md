@@ -11,7 +11,7 @@
 | diagnostic provider | 否 | 可用于独立审计，不提高任务成熟度；当前正式 registry 未注册此角色。 |
 | reference provider | 否 | 与独立实现或专业软件做局部对照 |
 
-World Law v0.4 使用单一 provider registry。当前有 20 个 runtime/reference provider、28 条完整
+World Law v0.5 使用单一 provider registry。当前有 20 个 runtime/reference provider、28 条完整
 Operation 路由，不提供静默 `runtime_fallback`；一个 Operation 可以显式组合多个必需模型，例如
 连续流同时依赖反应网络与几何 PFR，但同一模型不会通过别名或旧 proxy 重复执行。
 
@@ -25,6 +25,5 @@ RMG-Py、IDAES、PhasePy、teqp 等专业软件可以作为参考或校准边界
 是 15 个任务均为 `reference_validated` 且 `proxy_allowed=false`。它服务于可控、可复现的 Agent
 训练与评测，不等同商业流程模拟器。
 
-`v0.5` 是对当前 v0.4 World Law 实现、任务
-合同和证据字节的候选冻结标签；它不提升 World Law ID，也不包含算法排名。任何状态转移、观测、
+`v0.5` 是当前 World Law、任务合同和证据字节的候选冻结标签；它不包含算法排名。任何状态转移、观测、
 评分或正式 provider 变化都会使合同哈希失配并阻止复用该冻结。

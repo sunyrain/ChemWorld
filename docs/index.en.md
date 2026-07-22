@@ -6,7 +6,7 @@
 
 **Static benchmarks ask what a model knows. ChemWorld asks how it experiments when the answer is hidden.**
 
-ChemWorld is a replayable causal virtual laboratory. Under partial observability, finite budgets, and operational
+ChemWorld is a replayable causal world-model environment. Under partial observability, finite budgets, and operational
 constraints, agents choose operations and measurements, form hypotheses, and revise strategies from evidence.
 Hidden kinetics, phase behavior, and process rules can change while the public task remains stable, so memorizing one
 optimal recipe is not enough.

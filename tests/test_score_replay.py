@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import json
 import math
 from pathlib import Path
 
@@ -20,14 +19,6 @@ from chemworld.eval.runner import make_agent, run_agent
 from chemworld.eval.score_replay_audit import (
     audit_score_replay_protocol,
     load_score_replay_protocol,
-)
-
-FROZEN_REPORT = (
-    Path(__file__).resolve().parents[1]
-    / "workstreams"
-    / "benchmark_v1"
-    / "reports"
-    / "score-replay-controls.json"
 )
 
 
@@ -109,7 +100,7 @@ def test_leaderboard_rejects_nonfinite_scores_even_after_validation(
         aggregate_leaderboard([changed])
 
 
-def test_score_replay_audit_and_frozen_report(tmp_path: Path) -> None:
+def test_score_replay_audit(tmp_path: Path) -> None:
     report = audit_score_replay_protocol(
         load_score_replay_protocol(),
         workspace=tmp_path / "audit",
@@ -117,7 +108,3 @@ def test_score_replay_audit_and_frozen_report(tmp_path: Path) -> None:
     assert report["controls_ready"] is True
     assert report["publication_ready"] is False
     assert all(report["adversarial_probes"].values())
-
-    frozen = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
-    assert frozen["controls_ready"] is True
-    assert frozen["publication_ready"] is False

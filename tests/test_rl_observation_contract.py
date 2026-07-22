@@ -30,7 +30,7 @@ FORMAL_RL_TASK_IDS = (
 
 
 def _allocation(task_id: str) -> RLWorldAllocation:
-    protocol = load_rl_protocol("configs/benchmark/confirmatory_freeze_vnext.json")
+    protocol = load_rl_protocol("configs/benchmark/rl_world_allocations.json")
     return RLWorldAllocation.from_protocol(protocol, task_id=task_id, name="train")
 
 

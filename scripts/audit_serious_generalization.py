@@ -1,4 +1,4 @@
-"""Run held-out-seed generalization diagnostics for chemworld-serious-v1."""
+"""Run held-out-seed generalization diagnostics for serious tasks."""
 
 from __future__ import annotations
 
@@ -25,18 +25,18 @@ def main() -> int:
     parser.add_argument(
         "--public-report",
         type=Path,
-        default=Path("runs/benchmark_freeze/release_v1/baseline_report/baseline_report.json"),
+        default=Path("runs/serious_generalization/public/baseline_report.json"),
     )
     parser.add_argument("--ood-seeds", nargs="+", type=int, default=[101, 102, 103])
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("runs/benchmark_freeze/release_v1/generalization"),
+        default=Path("runs/serious_generalization/ood"),
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("runs/benchmark_freeze/release_v1/generalization_audit.json"),
+        default=Path("runs/serious_generalization/audit.json"),
     )
     args = parser.parse_args()
     public_report = _read_json(args.public_report)

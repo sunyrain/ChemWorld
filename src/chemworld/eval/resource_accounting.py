@@ -1,11 +1,10 @@
-"""Fail-closed method fairness and resource-accounting controls."""
+"""Fail-closed per-run resource accounting and enforceable limits."""
 
 from __future__ import annotations
 
-import hashlib
 import json
 import math
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from time import perf_counter
@@ -14,11 +13,9 @@ from typing import Any
 from chemworld.data.logging import to_builtin
 from chemworld.physchem.mechanism_library import configuration_root
 
-METHOD_PROTOCOL_VERSION = "chemworld-method-protocol-0.2"
 METHOD_RESOURCE_USAGE_VERSION = "chemworld-method-resource-usage-0.1"
 METHOD_RESOURCE_LEDGER_VERSION = "chemworld-method-resource-ledger-0.1"
-DEFAULT_METHOD_PROTOCOL_PATH = configuration_root() / "benchmark" / "method_protocol_vnext.json"
-ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_RESOURCE_PROTOCOL_PATH = configuration_root() / "benchmark" / "resource_limits.json"
 
 _AGENT_COUNTER_FIELDS = (
     "model_call_count",
@@ -236,174 +233,13 @@ class MethodResourceLedger:
             raise MethodResourceLimitError("method resource limit exceeded: " + ", ".join(exceeded))
 
 
-def audit_method_protocol(
-    protocol: Mapping[str, Any],
-    *,
-    agent_registry: Mapping[str, Callable[[], Any]],
-) -> dict[str, Any]:
-    """Audit protocol structure and current implementation eligibility."""
-
-    checkpoints = tuple(int(item) for item in protocol.get("checkpoints", ()))
-    evaluation = protocol.get("evaluation_budget", {})
-    method_specs = protocol.get("methods", {})
-    registry_names = set(agent_registry)
-    methods: dict[str, Any] = {}
-    for method_id, spec in method_specs.items():
-        implementation = spec.get("implementation")
-        implemented = isinstance(implementation, str) and implementation in registry_names
-        manifest: dict[str, Any] = {}
-        if implemented:
-            manifest = agent_registry[implementation]().manifest()
-        required_encoding = spec.get("required_recipe_encoding")
-        encoding_ready = required_encoding is None or manifest.get("recipe_encoding") == (
-            required_encoding
-        )
-        capabilities = manifest.get("interaction_capabilities", {})
-        required_capabilities = spec.get("required_capabilities", {})
-        capabilities_ready = all(
-            capabilities.get(name) == expected for name, expected in required_capabilities.items()
-        )
-        implementation_contract_ready = implemented and encoding_ready and capabilities_ready
-        methods[str(method_id)] = {
-            "family": spec.get("family"),
-            "implementation": implementation,
-            "implemented": implemented,
-            "formal_role": spec.get("formal_role"),
-            "current_eligibility": spec.get("current_eligibility"),
-            "interaction_capabilities": capabilities or None,
-            "required_recipe_encoding": required_encoding,
-            "observed_recipe_encoding": manifest.get("recipe_encoding"),
-            "required_capabilities": required_capabilities,
-            "implementation_contract_ready": implementation_contract_ready,
-            "requires_online_model": manifest.get("requires_online_model", False),
-            "blockers": list(spec.get("blockers", ())),
-        }
-
-    required_families = set(protocol.get("required_method_families", ()))
-    represented_families = {str(spec.get("family")) for spec in method_specs.values()}
-    formal_candidates = [
-        method_id
-        for method_id, card in methods.items()
-        if card["formal_role"] == "required" and card["current_eligibility"] == "candidate"
-    ]
-    missing_required = [
-        method_id
-        for method_id, card in methods.items()
-        if card["formal_role"] == "required" and not card["implemented"]
-    ]
-    diagnostic_only = [
-        method_id
-        for method_id, card in methods.items()
-        if card["current_eligibility"] != "candidate"
-    ]
-    required_ineligible = [
-        method_id
-        for method_id, card in methods.items()
-        if card["formal_role"] == "required" and card["current_eligibility"] != "candidate"
-    ]
-    checks = {
-        "schema": protocol.get("schema_version") == METHOD_PROTOCOL_VERSION,
-        "candidate_is_non_claiming": protocol.get("benchmark_claim_allowed") is False,
-        "complete_experiment_budget_positive": int(evaluation.get("complete_experiments", 0)) > 0,
-        "checkpoint_schedule_sorted_unique": checkpoints == tuple(sorted(set(checkpoints))),
-        "checkpoint_schedule_within_budget": bool(checkpoints)
-        and checkpoints[-1] == int(evaluation.get("complete_experiments", 0)),
-        "paired_seed_count_positive": int(protocol.get("paired_seed_count", 0)) > 0,
-        "paired_seed_count_matches_ids": int(protocol.get("paired_seed_count", 0))
-        == len(protocol.get("confirmatory_seed_ids", ())),
-        "confirmatory_seed_ids_unique": len(set(protocol.get("confirmatory_seed_ids", ())))
-        == len(protocol.get("confirmatory_seed_ids", ())),
-        "confirmatory_seed_ids_are_fresh": not (
-            set(protocol.get("confirmatory_seed_ids", ())) & set(range(20, 40))
-        ),
-        "superseded_seed_policy_is_fail_closed": protocol.get("superseded_seed_policy")
-        == "seeds_20_39_are_diagnostic_only_and_must_not_be_reused",
-        "joint_constraint_decision_required": protocol.get(
-            "confirmatory_decision_contract", {}
-        ).get("objective_safety_and_cost_joint_rule_required")
-        is True,
-        "all_required_families_represented": required_families <= represented_families,
-        "stub_methods_excluded": all(
-            spec.get("formal_role") == "excluded"
-            for spec in method_specs.values()
-            if spec.get("family") == "stub"
-        ),
-        "private_chain_of_thought_not_required": (
-            protocol.get("llm_evidence_policy", {}).get("private_chain_of_thought_required")
-            is False
-        ),
-        "resource_overrun_fails_closed": (
-            protocol.get("resource_policy", {}).get("overrun_policy") == "fail_closed"
-        ),
-        "provider_retries_are_bounded_and_counted": (
-            int(
-                protocol.get("resource_policy", {})
-                .get("llm_hard_limits_per_evaluation_run", {})
-                .get("provider_request_limit_per_operation", 0)
-            )
-            >= 1
-            and protocol.get("resource_policy", {})
-            .get("llm_hard_limits_per_evaluation_run", {})
-            .get("failed_requests_count_toward_limit")
-            is True
-        ),
-        "pre_freeze_runs_are_diagnostic": (
-            protocol.get("pre_freeze_result_policy") == "diagnostic_only"
-        ),
-        "declared_eligibility_matches_manifests": all(
-            (card["current_eligibility"] == "candidate" and card["implementation_contract_ready"])
-            or (
-                card["current_eligibility"] != "candidate"
-                and not card["implementation_contract_ready"]
-            )
-            or card["formal_role"] == "excluded"
-            for card in methods.values()
-        ),
-    }
-    evidence: dict[str, Any] = {}
-    for evidence_id, relative_path in protocol.get("evidence_sources", {}).items():
-        path = ROOT / str(relative_path)
-        evidence[str(evidence_id)] = {
-            "path": str(relative_path),
-            "exists": path.is_file(),
-            "sha256": hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None,
-        }
-    checks["evidence_sources_exist"] = bool(evidence) and all(
-        item["exists"] for item in evidence.values()
-    )
-    controls_ready = all(checks.values())
-    formal_matrix_ready = controls_ready and not missing_required and not required_ineligible
-    return {
-        "schema_version": "chemworld-method-protocol-audit-0.2",
-        "protocol_id": protocol.get("protocol_id"),
-        "status": "controls_ready_methods_pending" if controls_ready else "controls_failed",
-        "controls_ready": controls_ready,
-        "formal_method_matrix_ready": formal_matrix_ready,
-        "benchmark_claim_allowed": False,
-        "publication_ready": False,
-        "checks": checks,
-        "methods": methods,
-        "formal_candidate_methods": formal_candidates,
-        "missing_required_methods": missing_required,
-        "required_but_ineligible_methods": required_ineligible,
-        "diagnostic_or_excluded_methods": diagnostic_only,
-        "interaction_failures": list(protocol.get("observed_interaction_failures", ())),
-        "confirmatory_seed_ids": list(protocol.get("confirmatory_seed_ids", ())),
-        "confirmatory_decision_contract": dict(
-            protocol.get("confirmatory_decision_contract", {})
-        ),
-        "evidence": evidence,
-        "remaining_release_gates": list(protocol.get("remaining_release_gates", ())),
-    }
-
-
 def evaluation_resource_limits(
     protocol: Mapping[str, Any],
     *,
     operation_limit: int,
     requires_online_model: bool,
 ) -> MethodResourceLimits:
-    """Translate the frozen candidate protocol into enforceable run limits."""
+    """Translate the resource protocol into enforceable per-run limits."""
 
     evaluation = protocol["evaluation_budget"]
     resource_policy = protocol["resource_policy"]
@@ -432,22 +268,20 @@ def evaluation_resource_limits(
     return MethodResourceLimits.from_payload(payload, operation_limit=operation_limit)
 
 
-def load_method_protocol(path: str | Path = DEFAULT_METHOD_PROTOCOL_PATH) -> dict[str, Any]:
+def load_resource_protocol(path: str | Path = DEFAULT_RESOURCE_PROTOCOL_PATH) -> dict[str, Any]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
-        raise ValueError("method protocol must be a JSON object")
+        raise ValueError("resource protocol must be a JSON object")
     return payload
 
 
 __all__ = [
-    "DEFAULT_METHOD_PROTOCOL_PATH",
-    "METHOD_PROTOCOL_VERSION",
+    "DEFAULT_RESOURCE_PROTOCOL_PATH",
     "METHOD_RESOURCE_LEDGER_VERSION",
     "METHOD_RESOURCE_USAGE_VERSION",
     "MethodResourceLedger",
     "MethodResourceLimitError",
     "MethodResourceLimits",
-    "audit_method_protocol",
     "evaluation_resource_limits",
-    "load_method_protocol",
+    "load_resource_protocol",
 ]

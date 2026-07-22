@@ -206,9 +206,7 @@ def test_adapter_manifest_round_trip_is_hash_bound() -> None:
         ModelAdapterManifest.from_dict(payload)
 
 
-def test_shared_path_claims_use_exact_non_overlap_instead_of_task_prefixes(
-    tmp_path,
-) -> None:
+def test_shared_path_claims_reject_overlapping_owned_paths(tmp_path) -> None:
     active = tmp_path / "claims" / "active"
     active.mkdir(parents=True)
     claim = {
@@ -220,7 +218,6 @@ def test_shared_path_claims_use_exact_non_overlap_instead_of_task_prefixes(
     report = audit_shared_claim_ownership(tmp_path)
     assert report["passed"] is True
     assert report["policy_version"] == "chemworld-exact-active-claim-ownership-0.1"
-    assert report["legacy_prefix_policy"]["status"] == "superseded_diagnostic_only"
 
     overlapping = {
         "task_id": "benchmark-vnext-independent-slice",

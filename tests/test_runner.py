@@ -4,7 +4,7 @@ import pytest
 
 from chemworld.agents.random import RandomAgent
 from chemworld.data.logging import load_jsonl
-from chemworld.eval.method_protocol import MethodResourceLimitError
+from chemworld.eval.resource_accounting import MethodResourceLimitError
 from chemworld.eval.runner import run_agent
 from chemworld.tasks import get_task
 

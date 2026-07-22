@@ -34,7 +34,7 @@ def main() -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("workstreams/benchmark_v1/reports/validity-power-pilot.json"),
+        default=Path("runs/validity/validity-power.json"),
     )
     parser.add_argument("--practical-effect", type=float, default=0.05)
     parser.add_argument("--planned-seeds", type=int, default=20)

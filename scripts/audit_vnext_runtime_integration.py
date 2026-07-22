@@ -1,4 +1,4 @@
-"""Audit the World Law v0.4 provider graph and real operation execution paths."""
+"""Audit the current World Law provider graph and real operation execution paths."""
 
 from __future__ import annotations
 

@@ -112,21 +112,6 @@ NODES = (
         "protocol_input",
     ),
     EvidenceNode(
-        "risk_cost_contract",
-        "configs/benchmark/risk_cost_vnext.json",
-        "protocol_input",
-    ),
-    EvidenceNode(
-        "mechanism_families_contract",
-        "configs/benchmark/mechanism_families_vnext.json",
-        "protocol_input",
-    ),
-    EvidenceNode(
-        "agent_interaction_contract",
-        "configs/benchmark/agent_interaction_vnext.json",
-        "protocol_input",
-    ),
-    EvidenceNode(
         "live_llm_methods",
         "configs/methods/llm_v0.4/llm_methods.json",
         "protocol_input",
@@ -144,7 +129,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc4.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-freeze-rc5.json",
         "formal_result",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
     ),
@@ -169,7 +154,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_gate_a",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc4.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc5.json",
         "formal_result",
         (
             "backend_candidate",
@@ -730,7 +715,7 @@ def _write_current_registry() -> None:
         "benchmark_cell": ["task", "scenario", "agent", "seed"],
         "trajectory_schema_version": TRAJECTORY_SCHEMA_VERSION,
         "outcome_layers": list(OUTCOME_LAYER_FIELDS),
-        "legacy_trajectory_aliases_retained": [
+        "trajectory_compatibility_aliases": [
             "benchmark_task_id",
             "observation",
             "reward",

@@ -15,7 +15,7 @@ from chemworld.rl.training import train_sb3_baseline
 
 
 def _allocation() -> RLWorldAllocation:
-    freeze = load_rl_protocol("configs/benchmark/confirmatory_freeze_vnext.json")
+    freeze = load_rl_protocol("configs/benchmark/rl_world_allocations.json")
     return RLWorldAllocation.from_protocol(
         freeze,
         task_id="flow-reaction-optimization",

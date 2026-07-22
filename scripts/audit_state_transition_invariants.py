@@ -210,7 +210,6 @@ def build_report(
         "zero_effect_acceptances": zero_effect_acceptances,
         "negative_value_acceptances": negative_value_acceptances,
         "failure_policy": protocol["failure_policy"],
-        "legacy_constraints": protocol["legacy_constraints"],
         "limitations": [
             "This artifact audits runtime controls; it is not benchmark evidence.",
             "External-input/output operations use declared open-system conservation semantics.",

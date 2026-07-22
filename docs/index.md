@@ -325,4 +325,4 @@ ChemWorld Engine 使用受控、可干预的虚拟规律，不承诺匿名催化
 
 </div>
 
-<p class="cw-status-footer">Research status: benchmark candidate · World Law v0.4 · Evidence is versioned on the research findings page · <a href="benchmark_release/">查看最新证据</a> · <a href="limitations/">查看适用边界</a></p>
+<p class="cw-status-footer">Research status: benchmark candidate · World Law v0.5 · Evidence is versioned on the research findings page · <a href="benchmark_release/">查看最新证据</a> · <a href="limitations/">查看适用边界</a></p>

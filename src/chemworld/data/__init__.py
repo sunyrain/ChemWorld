@@ -1,4 +1,4 @@
-"""Data schemas, logging, and anonymization helpers."""
+"""Data schemas, trajectory logging, and validation helpers."""
 
 from chemworld.data.logging import TrajectoryLogger, load_jsonl
 from chemworld.data.schema import (

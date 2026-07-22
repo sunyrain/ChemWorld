@@ -25,7 +25,6 @@ OWNED_PATHS = (
     "src/chemworld/physchem/drying_units.py",
     "src/chemworld/physchem/drying_adapter_manifest.py",
     "tests/test_drying_units.py",
-    "workstreams/world_foundation/adapters/wf-30-drying-sorbent.json",
 )
 
 

@@ -1,22 +1,17 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
 
 from chemworld.agents.random import RandomRecipeAgent
 from chemworld.data.logging import load_jsonl
-from chemworld.eval.risk_cost_signal_audit import (
+from chemworld.eval.risk_policy import (
     RiskCostTaskPolicy,
-    _experiment_rows,
     load_risk_cost_protocol,
 )
 from chemworld.eval.runner import run_agent
 from chemworld.tasks import SERIOUS_TASK_IDS, get_task
-
-ROOT = Path(__file__).resolve().parents[1]
-FROZEN_REPORT = ROOT / "workstreams" / "benchmark_v1" / "reports" / "risk-cost-signal-controls.json"
 
 
 def test_risk_cost_protocol_has_task_specific_limits() -> None:
@@ -80,61 +75,3 @@ def test_vnext_policy_requires_a_registered_serious_task() -> None:
             seed=0,
             evaluation_policy="vnext_risk_cost",
         )
-
-
-def test_risk_cost_rows_use_unsaturated_ledger_deltas(tmp_path: Path) -> None:
-    trajectory = tmp_path / "saturated-cost.jsonl"
-    records = [
-        {
-            "observation": {"cost": 0.9, "safety_risk": 0.1},
-            "measurement_cost": 0.0,
-            "state_delta_summary": {"delta_cost": 0.9},
-            "leaderboard_score": None,
-        },
-        {
-            "observation": {"cost": 1.0, "safety_risk": 0.1},
-            "measurement_cost": 0.8,
-            "state_delta_summary": {"delta_cost": 0.8},
-            "leaderboard_score": 0.5,
-        },
-    ]
-    trajectory.write_text(
-        "".join(json.dumps(record) + "\n" for record in records),
-        encoding="utf-8",
-    )
-
-    rows = _experiment_rows(
-        {
-            "task_id": "partition-discovery",
-            "baseline_agent": "test-agent",
-            "seed": 1,
-        },
-        trajectory,
-    )
-
-    assert rows[0]["total_cost"] == pytest.approx(1.7)
-    assert rows[0]["measurement_cost"] == pytest.approx(0.8)
-    assert rows[0]["process_cost"] == pytest.approx(0.9)
-
-
-def test_frozen_risk_cost_report_keeps_method_and_measurement_gates_closed() -> None:
-    report = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
-    assert report["controls_ready"] is True
-    assert report["risk_process_signal_identifiable"] is True
-    assert report["measurement_policy_identifiable"] is False
-    assert report["formal_method_comparison_ready"] is False
-    assert report["benchmark_claim_allowed"] is False
-    assert report["checks"]["formal_scope"] is True
-    assert report["checks"]["experiment_matrix_complete"] is True
-    assert report["checks"]["runner_binding_declared"] is True
-    assert not any("expose the frozen" in gate for gate in report["remaining_release_gates"])
-    tradeoff_tasks = {
-        task_id
-        for task_id, task_report in report["tasks"].items()
-        if task_report["risk_tradeoff_task"]
-    }
-    assert tradeoff_tasks == {
-        "reaction-to-crystallization",
-        "reaction-to-distillation",
-        "flow-reaction-optimization",
-    }

@@ -523,8 +523,8 @@ def audit_semantic_invariance(protocol: Mapping[str, Any]) -> dict[str, Any]:
                 "seeds, not formal method comparisons."
             ),
             (
-                "The controls do not update or overwrite publication_protocol_v0.1 or "
-                "its retained results."
+                "The controls validate representation invariance only and do not "
+                "authorize or overwrite an evaluation result."
             ),
             (
                 "Public harness isolation and the expanded exploit matrix remain "

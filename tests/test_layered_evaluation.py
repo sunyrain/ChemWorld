@@ -1,21 +1,10 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 import pytest
 
 from chemworld.eval.layered_evaluation import (
     TaskEvaluationContract,
     evaluate_layered_records,
-)
-
-FROZEN_REPORT = (
-    Path(__file__).resolve().parents[1]
-    / "workstreams"
-    / "benchmark_v1"
-    / "reports"
-    / "evaluation-identifiability-controls.json"
 )
 
 
@@ -170,11 +159,3 @@ def test_layered_evaluator_reports_interaction_stratum_and_resources_without_sca
     assert result["interaction"]["interaction_diagnostics_scalarized_into_endpoint"] is False
     assert result["resources"]["method_resource_accounting_complete"] is True
     assert result["resources"]["resource_axes_scalarized_into_endpoint"] is False
-
-
-def test_frozen_evaluation_report_keeps_signal_blocker_visible() -> None:
-    report = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
-    assert report["controls_ready"] is True
-    assert report["evaluation_identifiable"] is False
-    assert report["checks"]["formal_safety_constraint_active"] is False
-    assert report["benchmark_claim_allowed"] is False

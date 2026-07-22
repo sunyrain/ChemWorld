@@ -24,14 +24,13 @@ RESULT_PAGES = (
     "docs/world_model_learning.md",
     "docs/research_findings.en.md",
     "docs/limitations.md",
-    "docs/release_notes.md",
 )
 CURRENT_TRUTH_MARKERS = {
     "docs/tasks.md": ("reference_validated", "proxy_allowed=false"),
     "docs/task_cards.md": ("reference_validated", "proxy_allowed=false"),
     "docs/worlds.md": ("15", "reference_validated", "proxy_allowed=false"),
     "docs/backends.md": ("v0.5", "candidate"),
-    "docs/world_law.md": ("v0.4", "v0.5"),
+    "docs/world_law.md": ("v0.5",),
     "docs/model_maturity.md": ("reference_validated", "backend v0.5 candidate"),
     "docs/physchem_core_design.md": ("reference_validated", "proxy"),
 }

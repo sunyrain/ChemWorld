@@ -39,17 +39,6 @@ from chemworld.tasks import TaskSpec, get_task, list_tasks
 from chemworld.world.operations import INSTRUMENTS, OPERATION_TYPES
 
 MODEL_REACHABILITY_SCHEMA_VERSION = "chemworld-model-reachability-0.1"
-SHARED_INTEGRATION_PATHS = (
-    "src/chemworld/tasks.py",
-    "src/chemworld/world/parameters.py",
-    "src/chemworld/runtime",
-    "src/chemworld/physchem/maturity.py",
-    "configs/benchmark",
-    "benchmark/releases",
-    "tests/fixtures/golden",
-    "docs/release_notes.md",
-)
-AUTHORIZED_SHARED_CLAIM_PREFIXES = ("wf-00-", "wf-110-", "release-")
 
 
 @dataclass(frozen=True)
@@ -382,13 +371,7 @@ def _path_overlaps(left: str, right: str) -> bool:
 
 
 def audit_shared_claim_ownership(project_root: str | Path) -> dict[str, Any]:
-    """Validate exact active-claim ownership without legacy task-id privileges.
-
-    The former WF-00/WF-110/release prefix allow-list blocked legitimate work in
-    broad shared directories even when claims owned distinct files.  The active
-    claim contract is now path-based: every claim may own any path, while exact
-    file/directory overlap between active claims fails closed.
-    """
+    """Validate exact path ownership across active claims."""
 
     root = Path(project_root)
     claim_dir = root / "claims" / "active"
@@ -458,13 +441,6 @@ def audit_shared_claim_ownership(project_root: str | Path) -> dict[str, Any]:
         "policy_version": "chemworld-exact-active-claim-ownership-0.1",
         "checked_active_claim_count": checked_claims,
         "checked_owned_path_count": len(owned),
-        "legacy_prefix_policy": {
-            "status": "superseded_diagnostic_only",
-            "shared_integration_paths": list(SHARED_INTEGRATION_PATHS),
-            "formerly_authorized_claim_prefixes": list(
-                AUTHORIZED_SHARED_CLAIM_PREFIXES
-            ),
-        },
         "findings": [finding.to_dict() for finding in findings],
     }
 
@@ -762,9 +738,7 @@ def audit_model_reachability(task_ids: tuple[str, ...] | None = None) -> dict[st
 
 
 __all__ = [
-    "AUTHORIZED_SHARED_CLAIM_PREFIXES",
     "MODEL_REACHABILITY_SCHEMA_VERSION",
-    "SHARED_INTEGRATION_PATHS",
     "ModelProviderRegistry",
     "ModelReachabilityRegistry",
     "OperationModelRoute",

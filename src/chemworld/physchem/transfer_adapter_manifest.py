@@ -24,8 +24,6 @@ OWNED_PATHS = (
     "src/chemworld/physchem/transfer_units.py",
     "src/chemworld/physchem/transfer_adapter_manifest.py",
     "tests/test_transfer_units.py",
-    "workstreams/world_foundation/adapters/wf-30-transfer-holdup.json",
-    "workstreams/world_foundation/30_downstream.md",
 )
 
 

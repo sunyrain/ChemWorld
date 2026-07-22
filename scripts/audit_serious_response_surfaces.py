@@ -15,7 +15,7 @@ def main() -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("runs/benchmark_freeze/response_surface_audit.json"),
+        default=Path("runs/serious_response_surfaces.json"),
     )
     args = parser.parse_args()
     report = audit_serious_response_surfaces(samples_per_seed=args.samples_per_seed)

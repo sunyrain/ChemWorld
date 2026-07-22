@@ -34,7 +34,7 @@ from chemworld.eval.mechanism_feedback_audit import (  # noqa: E402
 from chemworld.eval.provenance import write_json_atomic  # noqa: E402
 
 DEFAULT_GATE_A_REPORT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc4.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.4-rc5.json"
 )
 DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.2.1"
 DEFAULT_PILOT_REPORT = (
@@ -43,9 +43,7 @@ DEFAULT_PILOT_REPORT = (
     "mechanism-adaptation-agent-pilot-v0.2.1.json"
 )
 DEFAULT_LOCAL_FEEDBACK_REPORT = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-local-feedback-v0.2.1.json"
+    DEFAULT_RUNTIME_ROOT / "local-feedback.json"
 )
 
 

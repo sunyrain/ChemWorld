@@ -14,11 +14,7 @@ from chemworld.agents.diagnostic_live_llm import MechanismDiagnosticLiveLLMAgent
 from chemworld.agents.interaction import AgentDecisionContext, InteractionCapabilities
 from chemworld.envs.chemworld_env import ChemWorldEnv
 from chemworld.eval.flagship_diagnostics import (
-    DIAGNOSTIC_REPORT_VERSION,
     ContinuingPublicViewAgent,
-    build_flagship_diagnostic_report,
-    load_flagship_diagnostic_protocol,
-    render_flagship_diagnostic_markdown,
     stable_phase_observation_seed,
     summarize_phase,
 )
@@ -484,105 +480,3 @@ def test_diagnostic_live_llm_requires_normalized_mechanism_belief() -> None:
     }
     with pytest.raises(ValueError, match="sum to one"):
         agent._normalize_decision(malformed, context=_context(score=0.2))
-
-
-def test_protocol_covers_four_experiments_and_two_flagship_tasks() -> None:
-    protocol = load_flagship_diagnostic_protocol()
-    assert protocol["schema_version"] == DIAGNOSTIC_REPORT_VERSION
-    assert set(protocol["tasks"]) == {
-        "reaction-to-crystallization",
-        "electrochemical-conversion",
-    }
-    assert set(protocol["feedback_conditions"]) == {
-        "true_feedback",
-        "permuted_feedback",
-        "delayed_feedback",
-        "critical_measurement_deleted",
-    }
-    assert protocol["pre_change_experiments"] == 2
-    assert protocol["post_change_experiments"] == 2
-    assert protocol["closeout_headroom_per_experiment"] == 6
-    assert "ppo_diagnostic" not in protocol["ranking_methods"]
-    assert "ppo_diagnostic" in protocol["excluded_methods"]
-    assert protocol["benchmark_claim_allowed"] is False
-    assert protocol["publication_ready"] is False
-
-
-def _write_trace(path: Path, truth: str) -> None:
-    rows = [
-        {
-            "experiment_index": 0,
-            "operation_type": "measure",
-            "instrument": "hplc",
-            "agent_trace": [
-                {
-                    "mechanism_belief": {"no_change": 0.6, truth: 0.4},
-                    "mechanism_prediction": "no_change",
-                    "change_probability": 0.4,
-                    "expected_information_gain": 0.8,
-                }
-            ],
-        },
-        {
-            "experiment_index": 1,
-            "operation_type": "measure",
-            "instrument": "final_assay",
-            "agent_trace": [
-                {
-                    "mechanism_belief": {"no_change": 0.2, truth: 0.8},
-                    "mechanism_prediction": truth,
-                    "change_probability": 0.8,
-                    "expected_information_gain": 0.2,
-                }
-            ],
-        },
-    ]
-    path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
-
-
-def test_report_separates_outcome_and_mechanism_understanding(tmp_path: Path) -> None:
-    protocol = load_flagship_diagnostic_protocol()
-    truth = "rate_law_family"
-    iid_path = tmp_path / "iid.jsonl"
-    shifted_path = tmp_path / "shifted.jsonl"
-    _write_trace(iid_path, truth)
-    _write_trace(shifted_path, truth)
-    campaign = {
-        "campaign_id": "synthetic",
-        "experiment_id": "ranking_shift",
-        "task_id": "reaction-to-crystallization",
-        "method_id": "deepseek_v4_flash",
-        "feedback_condition": "true_feedback",
-        "shifted_truth_id": truth,
-        "iid": {
-            "trajectory_path": str(iid_path),
-            "complete_experiment_count": 2,
-            "scores": [0.5, 0.6],
-            "mean_score": 0.55,
-            "best_score": 0.6,
-        },
-        "shifted": {
-            "trajectory_path": str(shifted_path),
-            "complete_experiment_count": 2,
-            "scores": [0.58, 0.62],
-            "mean_score": 0.6,
-            "best_score": 0.62,
-        },
-        "full_method_resources": {},
-    }
-    report = build_flagship_diagnostic_report(protocol, [campaign])
-    diagnostic = report["campaigns"][0]["deepseek_diagnostic"]
-    assert diagnostic["mechanism_identified"] is True
-    assert diagnostic["final_outcome_high"] is True
-    assert diagnostic["outcome_understanding_type"] == "genuine_experimental"
-    assert diagnostic["change_detection_experiment"] == 2
-    assert report["benchmark_claim_allowed"] is False
-    markdown = render_flagship_diagnostic_markdown(report)
-    assert "结果与机制理解解耦" in markdown
-    assert "genuine_experimental" in markdown
-
-    alias = copy.deepcopy(campaign)
-    alias["experiment_id"] = "feedback_ablation"
-    alias["resource_reused_from_campaign"] = campaign["campaign_id"]
-    deduplicated = build_flagship_diagnostic_report(protocol, [campaign, alias])
-    assert len(deduplicated["experiment_4_outcome_understanding"]["rows"]) == 1

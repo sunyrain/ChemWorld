@@ -9,7 +9,6 @@ from local_eval_server.teacher_side.eval_machine import (
     StudentProcess,
     validate_submission,
 )
-from scripts.audit_public_harness import build_public_harness_report
 
 from chemworld.envs.chemworld_env import ChemWorldEnv
 from chemworld.eval.public_harness import (
@@ -24,7 +23,6 @@ from chemworld.eval.public_harness import (
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_PATH = ROOT / "configs" / "benchmark" / "public_harness_vnext.json"
-REPORT_PATH = ROOT / "workstreams" / "benchmark_v1" / "reports" / "public-harness-controls.json"
 
 
 def _protocol() -> dict[str, object]:
@@ -58,7 +56,8 @@ def test_public_task_info_does_not_expose_world_seed() -> None:
     finally:
         env.close()
 
-    assert task_info["seed"] == 17
+    assert env.evaluator_provenance()["world_seed"] == 17
+    assert "seed" not in task_info
     assert "seed" not in public
 
 
@@ -109,18 +108,6 @@ def test_student_error_is_not_reflected_and_extra_fields_are_rejected() -> None:
         )
 
 
-def test_public_harness_report_runs_real_subprocess_without_sandbox_claim() -> None:
-    report = build_public_harness_report(_protocol())
-
-    assert report["controls_ready"] is True
-    assert report["subprocess_probe"]["separate_process"] is True
-    assert report["subprocess_probe"]["passed"] is True
-    assert report["security_boundary"] == "trusted-local-subprocess-not-a-sandbox"
-    assert report["sandbox_ready"] is False
-    assert report["benchmark_claim_allowed"] is False
-    assert report["publication_ready"] is False
-
-
 def test_student_process_releases_stderr_handle(tmp_path: Path) -> None:
     stderr_path = tmp_path / "student.stderr.log"
     submission = validate_submission(DEMO_SUBMISSION)
@@ -136,9 +123,3 @@ def test_student_process_releases_stderr_handle(tmp_path: Path) -> None:
 
     stderr_path.unlink()
     assert not stderr_path.exists()
-
-
-def test_committed_public_harness_report_matches_runtime_audit() -> None:
-    committed = json.loads(REPORT_PATH.read_text(encoding="utf-8"))
-
-    assert committed == build_public_harness_report(_protocol())

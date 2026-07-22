@@ -129,15 +129,15 @@ The normative boundary is:
 
 ## Core, Diagnostic, and Extended
 
-- **Core** is the frozen v0.4 formal comparison scope: partition discovery, reaction-to-crystallization,
-  reaction-to-distillation, and flow-reaction optimization.
+- **Core** is the six-serious-task agent-comparison environment. Its environment contract is ready, while methods,
+  resources, and results remain unfrozen.
 - **Diagnostic** contains identifiability, no-change, feedback branching, counterfactual, adaptation-decomposition,
   and autonomy protocols. Mechanism v0.2.1 currently starts with crystallization and electrochemistry.
 - **Extended** contains the remaining registered tasks, training uses, and demonstrations. Coverage does not grant a
   formal ranking claim.
 
-These are evaluation roles, not separate engines. Changing the formal Core requires a new major protocol; scientific
-archetypes must not silently rewrite a frozen scope.
+These are evaluation roles, not separate engines. The current evaluation contract defines Core; changing its scope
+requires a new protocol version and revalidation, and prior results cannot be carried forward silently.
 
 ## Mechanism-understanding evidence
 

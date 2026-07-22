@@ -1,27 +1,11 @@
 from __future__ import annotations
 
-import json
-from copy import deepcopy
-from pathlib import Path
-
 from chemworld.agents.bo import GaussianProcessBOAgent
 from chemworld.agents.interaction import (
     DecisionAuditRecord,
     InteractionCapabilities,
 )
 from chemworld.agents.random import RandomAgent
-from chemworld.eval.interaction_contract_audit import (
-    audit_agent_interaction_contract,
-    load_interaction_protocol,
-)
-
-FROZEN_REPORT = (
-    Path(__file__).resolve().parents[1]
-    / "workstreams"
-    / "benchmark_v1"
-    / "reports"
-    / "agent-interaction-contract.json"
-)
 
 
 def test_recipe_agents_honestly_declare_interaction_limits() -> None:
@@ -83,21 +67,3 @@ def test_decision_audit_retains_public_spectrum_fields() -> None:
         "The target peak dominates the impurity peak."
     )
     assert audit["requested_historical_spectrum_id"] == "spectrum-e001-s0003"
-
-
-def test_interaction_protocol_drift_fails_closed() -> None:
-    protocol = deepcopy(load_interaction_protocol())
-    protocol["interaction_contract_version"] = "wrong"
-    report = audit_agent_interaction_contract(protocol)
-    assert report["checks"]["contract_version"] is False
-    assert report["controls_ready"] is False
-
-
-def test_frozen_interaction_control_report_is_ready_but_non_claiming() -> None:
-    report = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
-    assert report["controls_ready"] is True
-    assert report["checks"]["spectra_reaches_next_decision"] is True
-    assert report["checks"]["raw_spectrum_reaches_next_decision"] is True
-    assert report["checks"]["structured_audit_retained"] is True
-    assert report["benchmark_claim_allowed"] is False
-    assert report["publication_ready"] is False

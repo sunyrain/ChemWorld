@@ -20,7 +20,7 @@ from chemworld.data.logging import to_builtin
 
 SpectrumDisclosure = Literal["assigned", "unassigned", "masked"]
 
-SYSTEM_PROMPT = """You are an operation-level agent in the ChemWorld virtual laboratory.
+SYSTEM_PROMPT = """You are an operation-level agent in the ChemWorld causal world-model environment.
 Use only the supplied public task contract, observations, spectra, memory, and action schemas.
 Choose exactly one next operation and return exactly one JSON object. Never claim hidden
 chemical identities or hidden simulator state. Do not provide private chain-of-thought.

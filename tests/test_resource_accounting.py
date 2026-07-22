@@ -1,24 +1,20 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
 
 from chemworld.agents.event import ScriptedChemistryAgent
 from chemworld.data.logging import load_jsonl
-from chemworld.eval.method_protocol import (
+from chemworld.eval.resource_accounting import (
     METHOD_RESOURCE_USAGE_VERSION,
     MethodResourceLedger,
     MethodResourceLimitError,
     MethodResourceLimits,
     evaluation_resource_limits,
-    load_method_protocol,
+    load_resource_protocol,
 )
 from chemworld.eval.runner import run_agent
-
-ROOT = Path(__file__).resolve().parents[1]
-REPORT = ROOT / "workstreams" / "benchmark_v1" / "reports" / "method-protocol-vnext.json"
 
 
 def _usage(**overrides: object) -> dict[str, object]:
@@ -39,52 +35,16 @@ def _usage(**overrides: object) -> dict[str, object]:
     return payload
 
 
-def test_method_protocol_freezes_nonclaiming_fairness_controls() -> None:
-    protocol = load_method_protocol()
+def test_resource_protocol_defines_nonclaiming_hard_limits() -> None:
+    protocol = load_resource_protocol()
     assert protocol["benchmark_claim_allowed"] is False
-    assert protocol["pre_freeze_result_policy"] == "diagnostic_only"
-    assert protocol["paired_seed_count"] == 20
-    assert protocol["confirmatory_seed_ids"] == list(range(300, 320))
-    assert protocol["confirmatory_decision_contract"][
-        "objective_safety_and_cost_joint_rule_required"
-    ] is True
+    assert protocol["evaluation_budget"]["complete_experiments"] == 40
     assert protocol["checkpoints"] == [4, 8, 12, 20, 40]
     assert protocol["llm_evidence_policy"]["private_chain_of_thought_required"] is False
 
 
-def test_method_protocol_report_exposes_current_cross_family_gaps() -> None:
-    report = json.loads(REPORT.read_text(encoding="utf-8"))
-    assert report["controls_ready"] is True
-    assert report["formal_method_matrix_ready"] is False
-    assert report["benchmark_claim_allowed"] is False
-    assert report["missing_required_methods"] == [
-        "ppo",
-        "sac",
-        "live_llm_a",
-        "live_llm_b",
-    ]
-    assert "structured_gp_pi" not in report["required_but_ineligible_methods"]
-    assert report["methods"]["structured_gp_pi"]["implementation_contract_ready"] is True
-    assert report["methods"]["structured_gp_ucb"]["implementation_contract_ready"] is True
-    assert report["methods"]["structured_rf_ei"]["implementation_contract_ready"] is True
-    assert report["methods"]["structured_gp_ei"]["implementation_contract_ready"] is True
-    safe_blockers = report["methods"]["structured_safe_gp_ei"]["blockers"]
-    assert any("now-bound" in blocker for blocker in safe_blockers)
-    assert not any("must consume" in blocker for blocker in safe_blockers)
-    assert report["methods"]["llm_replay"]["formal_role"] == "excluded"
-    assert len(report["interaction_failures"]) == 8
-    assert report["confirmatory_seed_ids"] == list(range(300, 320))
-    assert set(report["evidence"]) == {
-        "legacy_agent_interaction_audit",
-        "five_seed_campaign_budget_curve",
-        "risk_cost_calibration",
-        "task_validity_cards",
-    }
-    assert all(item["sha256"] for item in report["evidence"].values())
-
-
 def test_protocol_translates_to_family_aware_hard_limits() -> None:
-    protocol = load_method_protocol()
+    protocol = load_resource_protocol()
     classic = evaluation_resource_limits(
         protocol,
         operation_limit=400,

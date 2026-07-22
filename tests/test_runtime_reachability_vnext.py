@@ -18,7 +18,6 @@ def test_protocol_freezes_all_registered_tasks_and_operations() -> None:
     assert protocol["expected_task_count"] == 15
     assert protocol["expected_operation_count"] == len(OPERATION_TYPES) == 28
     assert len(protocol["expected_task_ids"]) == len(set(protocol["expected_task_ids"]))
-    assert protocol["legacy_constraints"]["frozen_protocol_compatibility"] == "not_required"
 
 
 def test_report_maps_every_task_operation_service_kernel_and_provider() -> None:

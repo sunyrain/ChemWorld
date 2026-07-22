@@ -1,0 +1,53 @@
+{
+  "schema_version": "chemworld-rl-world-allocation-protocol-0.1",
+  "protocol_id": "chemworld-rl-world-allocations-0.1",
+  "benchmark_claim_allowed": false,
+  "task_ids": [
+    "partition-discovery",
+    "reaction-to-crystallization",
+    "reaction-to-distillation",
+    "flow-reaction-optimization"
+  ],
+  "world_family_allocation": {
+    "train": {
+      "base_seeds": {
+        "start": 1000,
+        "stop_inclusive": 1099
+      },
+      "cells": {
+        "interpolation": [-0.5, -0.25, 0.25, 0.5],
+        "composition": [-0.25, 0.25],
+        "observation_noise": [0.25, 0.5]
+      }
+    },
+    "dev": {
+      "base_seeds": {
+        "start": 1100,
+        "stop_inclusive": 1119
+      },
+      "cells": {
+        "interpolation": [-0.75, 0.75],
+        "composition": [-0.5, 0.5],
+        "observation_noise": [0.65]
+      }
+    },
+    "bench": {
+      "base_seeds": {
+        "start": 300,
+        "stop_inclusive": 319
+      },
+      "generalization_seeds": [400, 401, 402, 403, 404],
+      "cells": {
+        "interpolation": [-1.0, 1.0],
+        "extrapolation": [-1.0, 1.0],
+        "composition": [-1.0, 1.0],
+        "observation_noise": [1.0]
+      }
+    }
+  },
+  "policies": {
+    "paired_worlds": "all compared methods receive identical task-axis-mode-severity-seed cells",
+    "axis_identity_visible_to_agent": false,
+    "bench_finetuning_allowed": false
+  }
+}

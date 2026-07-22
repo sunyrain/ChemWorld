@@ -56,7 +56,7 @@ def main() -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("workstreams/benchmark_v1/reports/campaign-budget-curve.json"),
+        default=Path("runs/validity/campaign-budget-curve.json"),
     )
     args = parser.parse_args()
     checkpoints = sorted(set(args.checkpoints))

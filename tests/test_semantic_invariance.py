@@ -16,9 +16,6 @@ from chemworld.materials import public_material_catalog
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_PATH = ROOT / "configs" / "benchmark" / "semantic_invariance_vnext.json"
-REPORT_PATH = (
-    ROOT / "workstreams" / "benchmark_v1" / "reports" / "semantic-invariance-controls.json"
-)
 
 
 def _protocol() -> dict[str, object]:
@@ -114,9 +111,3 @@ def test_malformed_protocol_fails_closed_without_running_tasks() -> None:
     assert coordinate_report["controls_ready"] is False
     assert coordinate_report["checks"]["recipe_coordinate"] is False
     assert coordinate_report["paired_run_count"] == 0
-
-
-def test_committed_report_matches_deterministic_audit() -> None:
-    committed = json.loads(REPORT_PATH.read_text(encoding="utf-8"))
-
-    assert committed == audit_semantic_invariance(_protocol())

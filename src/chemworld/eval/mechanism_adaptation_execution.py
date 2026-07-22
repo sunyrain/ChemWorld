@@ -646,7 +646,9 @@ def _run_paired_gate_a(
     if primary_budget != matched_primary_budget:
         raise ValueError("paired Gate A primary budget must equal the matched batch size")
     if int(action_plan["action_count_per_task"]) < max(budgets):
-        raise ValueError("paired Gate A action library cannot underfill its largest budget")
+        raise ValueError(
+            "paired Gate A action library cannot underfill its largest decoder budget"
+        )
     if (
         len(budgets) > 1
         and phase_plan.get("diagnostic_curve_matches_reference_count_to_budget") is not True

@@ -29,7 +29,6 @@ OWNED_PATHS = (
     "src/chemworld/physchem/crystallization_validation.py",
     "src/chemworld/physchem/crystallization_adapter_manifest.py",
     "tests/test_crystallization_validation.py",
-    "workstreams/world_foundation/adapters/wf-50-crystallization-convergence.json",
 )
 INTEGRATION_OPERATIONS = ("cool_crystallize",)
 RUNTIME_MODEL_ID = "cooling_crystallization_population_balance_v1"

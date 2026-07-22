@@ -198,7 +198,7 @@ def generate_serious_baseline_report(
     seeds: list[int] | None = None,
     output_dir: str | Path,
 ) -> BaselineReport:
-    """Generate the baseline table for the frozen serious benchmark."""
+    """Generate a baseline table for the serious-task candidate suite."""
 
     return generate_baseline_report(
         task_ids=list(SERIOUS_TASK_IDS),

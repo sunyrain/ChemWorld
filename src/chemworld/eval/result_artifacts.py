@@ -12,7 +12,7 @@ from chemworld.data.logging import load_jsonl
 from chemworld.data.validation import validate_records
 from chemworld.eval.layered_evaluation import TaskEvaluationContract, evaluate_layered_records
 from chemworld.eval.metrics import EVALUATION_METRICS_VERSION, evaluate_records
-from chemworld.eval.risk_cost_signal_audit import RiskCostTaskPolicy
+from chemworld.eval.risk_policy import RiskCostTaskPolicy
 from chemworld.eval.verify import verify_records
 from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.tasks import SERIOUS_TASK_IDS

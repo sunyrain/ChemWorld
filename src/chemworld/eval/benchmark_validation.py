@@ -1,4 +1,4 @@
-"""Empirical validity gate for the frozen serious benchmark suite."""
+"""Empirical validity checks for serious-task baseline reports."""
 
 from __future__ import annotations
 
@@ -9,12 +9,10 @@ from pathlib import Path
 from typing import Any
 
 from chemworld.eval.baseline_report import SERIOUS_BASELINE_AGENTS
-from chemworld.physchem.mechanism_library import configuration_root
 from chemworld.task_design import SERIOUS_TASK_DESIGNS
 from chemworld.tasks import SERIOUS_TASK_IDS, get_task
 
 BENCHMARK_VALIDATION_SCHEMA_VERSION = "chemworld-benchmark-validation-0.1"
-OFFICIAL_VALIDATION_RELATIVE_PATH = Path("benchmark") / "serious_validation.json"
 PRIMARY_METRIC_FIELDS = {
     task_id: f"mean_{design.primary_metric}"
     for task_id, design in SERIOUS_TASK_DESIGNS.items()
@@ -175,7 +173,7 @@ def validate_serious_baseline_report(report: dict[str, Any]) -> dict[str, Any]:
     )
     return {
         "schema_version": BENCHMARK_VALIDATION_SCHEMA_VERSION,
-        "suite_id": "chemworld-serious-v1",
+        "suite_id": "chemworld-serious-candidate",
         "validated": validated_count == len(SERIOUS_TASK_IDS),
         "validated_task_count": validated_count,
         "task_count": len(SERIOUS_TASK_IDS),
@@ -187,12 +185,10 @@ def validate_serious_baseline_report(report: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def official_validation_path() -> Path:
-    return configuration_root() / OFFICIAL_VALIDATION_RELATIVE_PATH
-
-
 def load_official_validation(path: str | Path | None = None) -> dict[str, Any] | None:
-    source = official_validation_path() if path is None else Path(path)
+    if path is None:
+        return None
+    source = Path(path)
     if not source.is_file():
         return None
     payload = json.loads(source.read_text(encoding="utf-8"))
@@ -265,12 +261,10 @@ def _canonical_sha256(payload: dict[str, Any]) -> str:
 
 __all__ = [
     "BENCHMARK_VALIDATION_SCHEMA_VERSION",
-    "OFFICIAL_VALIDATION_RELATIVE_PATH",
     "PRIMARY_METRIC_FIELDS",
     "EmpiricalCheck",
     "load_official_validation",
     "official_empirical_statuses",
-    "official_validation_path",
     "validate_serious_baseline_report",
     "write_validation_artifact",
 ]

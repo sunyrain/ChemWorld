@@ -25,7 +25,6 @@ OWNED_PATHS = (
     "src/chemworld/physchem/concentration_units.py",
     "src/chemworld/physchem/concentration_adapter_manifest.py",
     "tests/test_concentration_units.py",
-    "workstreams/world_foundation/adapters/wf-30-vacuum-concentration.json",
 )
 
 

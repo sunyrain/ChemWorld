@@ -26,13 +26,13 @@ from chemworld.wrappers import (
     RLTrainingRewardWrapper,
 )
 
-FREEZE_PROTOCOL = Path("configs/benchmark/confirmatory_freeze_vnext.json")
+WORLD_ALLOCATION_PROTOCOL = Path("configs/benchmark/rl_world_allocations.json")
 RL_PROTOCOL = Path("configs/benchmark/rl_baselines_vnext.json")
 
 
 def _allocation(task_id: str, name: str = "train") -> RLWorldAllocation:
     return RLWorldAllocation.from_protocol(
-        load_rl_protocol(FREEZE_PROTOCOL),
+        load_rl_protocol(WORLD_ALLOCATION_PROTOCOL),
         task_id=task_id,
         name=name,  # type: ignore[arg-type]
     )

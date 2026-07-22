@@ -34,7 +34,6 @@ OWNED_PATHS = (
     "src/chemworld/physchem/spectroscopy_identifiability.py",
     "src/chemworld/physchem/spectroscopy_adapter_manifest.py",
     "tests/test_spectroscopy_identifiability.py",
-    "workstreams/world_foundation/adapters/wf-20-spectral-identifiability.json",
 )
 INTEGRATION_OPERATIONS = ("measure",)
 PUBLIC_SPECIES_CHANNELS = frozenset(

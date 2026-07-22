@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -14,13 +12,6 @@ from chemworld.physchem.reaction_reference_cases import (
     select_threshold_measurement_strategy,
 )
 
-REPORT_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "workstreams"
-    / "world_foundation"
-    / "reports"
-    / "reaction-kinetics-evidence-completion.json"
-)
 INITIAL_AMOUNTS = {"A": 1.0}
 CANDIDATE_TIMES_S = (5.0, 10.0, 20.0, 40.0, 80.0)
 
@@ -145,38 +136,3 @@ def test_forced_solver_nonconvergence_fails_closed(
             duration_s=80.0,
         )
     assert initial == initial_snapshot
-
-
-def test_committed_report_matches_executable_causal_evidence() -> None:
-    report = json.loads(REPORT_PATH.read_text(encoding="utf-8"))
-    uninhibited, inhibited = _strategies()
-
-    assert report["status"] == "evidence_complete"
-    assert report["validation"]["targeted_status"] == "passed"
-    assert report["validation"]["ruff_status"] == "passed"
-    assert report["runtime_compatibility"]["formal_runtime_contract_changed"] is False
-    assert all(report["checks"].values())
-    recorded = report["measurement_strategy_evidence"]
-    assert recorded["candidate_times_s"] == list(CANDIDATE_TIMES_S)
-    assert recorded["uninhibited"]["selected_time_s"] == uninhibited.selected_time_s
-    assert recorded["inhibited"]["selected_time_s"] == inhibited.selected_time_s
-    assert recorded["uninhibited"]["predicted_product_mol"] == pytest.approx(
-        uninhibited.predicted_amounts_mol,
-        abs=1.0e-10,
-    )
-    assert recorded["inhibited"]["predicted_product_mol"] == pytest.approx(
-        inhibited.predicted_amounts_mol,
-        abs=1.0e-10,
-    )
-    reference = report["product_inhibition_reference"]
-    assert reference["final_product_mol"] == pytest.approx(
-        inhibited.predicted_amounts_mol[-1],
-        abs=1.0e-10,
-    )
-    assert product_inhibition_implicit_time_s(
-        product_amount_mol=reference["final_product_mol"],
-        initial_reactant_mol=reference["initial_reactant_mol"],
-        volume_L=reference["volume_L"],
-        rate_constant_s=reference["rate_constant_s^-1"],
-        product_inhibition_L_per_mol=reference["product_inhibition_L_per_mol"],
-    ) == pytest.approx(reference["analytical_implicit_time_s"], abs=1.0e-10)

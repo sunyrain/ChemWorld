@@ -26,7 +26,6 @@ OWNED_PATHS = (
     "src/chemworld/physchem/phase_equilibrium_units.py",
     "src/chemworld/physchem/phase_equilibrium_adapter_manifest.py",
     "tests/test_phase_equilibrium_units.py",
-    "workstreams/world_foundation/adapters/wf-40-lle-stability-coupling.json",
 )
 INTEGRATION_OPERATIONS = ("mix", "wash")
 REPLACED_MODEL_IDS = (
