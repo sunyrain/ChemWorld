@@ -1,0 +1,379 @@
+{
+  "agent_weight_updates_performed": false,
+  "benchmark_claim_allowed": false,
+  "campaign_source_commits": [
+    "564ac8fdfa0f5ef10933676f16e18f85e3c66a27"
+  ],
+  "candidate_label_mode": "semantic",
+  "changed_truth_id": "rate_law_family",
+  "formal_benchmark_result": false,
+  "gate_0": {
+    "checks": {
+      "agent_weight_updates_absent": true,
+      "all_trajectories_replay": true,
+      "complete_changed_no_change_pair": true,
+      "derived_diagnostic_prompt_leakage_absent": true,
+      "model_failures_reason_coded_and_excluded": true,
+      "protocol_hashes_match": true,
+      "provider_identity_and_receipts_complete": true,
+      "three_outcome_layers_present": true,
+      "trajectory_hashes_match": true
+    },
+    "exclusion_audit": {
+      "checks": {
+        "all_model_failures_have_reason_codes": true,
+        "decision_statuses_are_declared": true,
+        "only_valid_decisions_enter_checkpoint_metrics": true
+      },
+      "decision_status_counts": {
+        "lifecycle_guardrail": 9,
+        "model_decision": 317,
+        "model_failure": 7
+      },
+      "passed": true,
+      "unreasoned_model_failure_count": 0
+    },
+    "prompt_leakage_audit": {
+      "checks": {
+        "derived_fields_absent_from_decision_trace": true,
+        "metadata_declares_no_derived_feedback": true
+      },
+      "decision_trace_count": 333,
+      "forbidden_trace_fields": [],
+      "passed": true
+    },
+    "provider_audit": {
+      "checks": {
+        "all_receipts_billable_and_usage_complete": true,
+        "all_receipts_succeeded": true,
+        "all_request_ids_present": true,
+        "model_is_frozen_flash": true,
+        "provider_is_deepseek": true,
+        "receipts_present": true,
+        "system_fingerprint_present": true
+      },
+      "models": [
+        "deepseek-v4-flash"
+      ],
+      "passed": true,
+      "receipt_count": 324,
+      "system_fingerprints": [
+        "fp_8b330d02d0_prod0820_fp8_kvcache_20260402"
+      ]
+    },
+    "status": "passed",
+    "trajectory_audits": [
+      {
+        "all_outcome_layers_present": true,
+        "arm": "changed",
+        "expected_sha256": "9e3bf8fe8866dc2623c7e991ec1ee41dfa166e6825922cf30416dba9cbe8f2da",
+        "hash_matches": true,
+        "observed_sha256": "9e3bf8fe8866dc2623c7e991ec1ee41dfa166e6825922cf30416dba9cbe8f2da",
+        "path": "runs/mechanism-adaptation-v0.2.1/live-llm-v0.4.11-564ac8fd/trajectories/94b6c4b2341967388edf--changed--iid.jsonl",
+        "phase": "iid",
+        "record_count": 12,
+        "replay": {
+          "checked_steps": 12,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        }
+      },
+      {
+        "all_outcome_layers_present": true,
+        "arm": "changed",
+        "expected_sha256": "68bd00535d931e7abfc88a05f0340e2c15e9a1ef619af228435ad81030df7223",
+        "hash_matches": true,
+        "observed_sha256": "68bd00535d931e7abfc88a05f0340e2c15e9a1ef619af228435ad81030df7223",
+        "path": "runs/mechanism-adaptation-v0.2.1/live-llm-v0.4.11-564ac8fd/trajectories/94b6c4b2341967388edf--changed--shifted.jsonl",
+        "phase": "shifted",
+        "record_count": 162,
+        "replay": {
+          "checked_steps": 162,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        }
+      },
+      {
+        "all_outcome_layers_present": true,
+        "arm": "no_change_twin",
+        "expected_sha256": "759e0b1003b81d18a45fbb526bbe21530a749aef0fcab5962907d48e438fd1a0",
+        "hash_matches": true,
+        "observed_sha256": "759e0b1003b81d18a45fbb526bbe21530a749aef0fcab5962907d48e438fd1a0",
+        "path": "runs/mechanism-adaptation-v0.2.1/live-llm-v0.4.11-564ac8fd/trajectories/94b6c4b2341967388edf--no_change_twin--iid.jsonl",
+        "phase": "iid",
+        "record_count": 11,
+        "replay": {
+          "checked_steps": 11,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        }
+      },
+      {
+        "all_outcome_layers_present": true,
+        "arm": "no_change_twin",
+        "expected_sha256": "dec5ebc463f1363033f4be90a41b6b64850e6e846cf1c60e087496fa60a56a2f",
+        "hash_matches": true,
+        "observed_sha256": "dec5ebc463f1363033f4be90a41b6b64850e6e846cf1c60e087496fa60a56a2f",
+        "path": "runs/mechanism-adaptation-v0.2.1/live-llm-v0.4.11-564ac8fd/trajectories/94b6c4b2341967388edf--no_change_twin--shifted.jsonl",
+        "phase": "shifted",
+        "record_count": 148,
+        "replay": {
+          "checked_steps": 148,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        }
+      }
+    ]
+  },
+  "gate_b": {
+    "checkpoints": {
+      "1": {
+        "change_detection": {
+          "auroc": 0.0,
+          "brier_score": 0.29125,
+          "campaign_count": 2,
+          "changed_count": 1,
+          "detected_changed_count": 1,
+          "false_positive_rate": 1.0,
+          "mean_detection_delay": 1.0,
+          "no_change_twin_count": 1,
+          "right_censored_changed_count": 0,
+          "sensitivity": 1.0,
+          "threshold": 0.5
+        },
+        "changed_arm": {
+          "best_score_through_checkpoint": 0.5315086222397115,
+          "change_probability": 0.6,
+          "mean_score_through_checkpoint": 0.5315086222397115,
+          "mechanism_distribution": {
+            "material_law_counterfactual": 0.2,
+            "no_change": 0.4,
+            "rate_law_family": 0.2,
+            "topology_family": 0.2
+          },
+          "mechanism_identified": false,
+          "mechanism_prediction": "no_change",
+          "truth_probability": 0.2
+        },
+        "no_change_twin": {
+          "best_score_through_checkpoint": 0.4377581022789679,
+          "change_probability": 0.65,
+          "mean_score_through_checkpoint": 0.4377581022789679,
+          "mechanism_distribution": {
+            "material_law_counterfactual": 0.15,
+            "no_change": 0.35,
+            "rate_law_family": 0.3,
+            "topology_family": 0.2
+          },
+          "mechanism_identified": true,
+          "mechanism_prediction": "no_change",
+          "truth_probability": 0.35
+        }
+      },
+      "2": {
+        "change_detection": {
+          "auroc": 0.0,
+          "brier_score": 0.37,
+          "campaign_count": 2,
+          "changed_count": 1,
+          "detected_changed_count": 0,
+          "false_positive_rate": 1.0,
+          "mean_detection_delay": null,
+          "no_change_twin_count": 1,
+          "right_censored_changed_count": 1,
+          "sensitivity": 0.0,
+          "threshold": 0.5
+        },
+        "changed_arm": {
+          "best_score_through_checkpoint": 0.5315086222397115,
+          "change_probability": 0.30000000000000004,
+          "mean_score_through_checkpoint": 0.5280442245702679,
+          "mechanism_distribution": {
+            "material_law_counterfactual": 0.05,
+            "no_change": 0.7,
+            "rate_law_family": 0.15,
+            "topology_family": 0.1
+          },
+          "mechanism_identified": false,
+          "mechanism_prediction": "no_change",
+          "truth_probability": 0.15
+        },
+        "no_change_twin": {
+          "best_score_through_checkpoint": 0.4377581022789679,
+          "change_probability": 0.5,
+          "mean_score_through_checkpoint": 0.2315709205588595,
+          "mechanism_distribution": {
+            "material_law_counterfactual": 0.15,
+            "no_change": 0.5,
+            "rate_law_family": 0.2,
+            "topology_family": 0.15
+          },
+          "mechanism_identified": true,
+          "mechanism_prediction": "no_change",
+          "truth_probability": 0.5
+        }
+      },
+      "4": {
+        "change_detection": {
+          "auroc": 0.0,
+          "brier_score": 0.32499999999999996,
+          "campaign_count": 2,
+          "changed_count": 1,
+          "detected_changed_count": 1,
+          "false_positive_rate": 1.0,
+          "mean_detection_delay": 1.0,
+          "no_change_twin_count": 1,
+          "right_censored_changed_count": 0,
+          "sensitivity": 1.0,
+          "threshold": 0.5
+        },
+        "changed_arm": {
+          "best_score_through_checkpoint": 0.5315086222397115,
+          "change_probability": 0.6,
+          "mean_score_through_checkpoint": 0.527033943486773,
+          "mechanism_distribution": {
+            "material_law_counterfactual": 0.1,
+            "no_change": 0.4,
+            "rate_law_family": 0.3,
+            "topology_family": 0.2
+          },
+          "mechanism_identified": false,
+          "mechanism_prediction": "no_change",
+          "truth_probability": 0.3
+        },
+        "no_change_twin": {
+          "best_score_through_checkpoint": 0.47059269998370457,
+          "change_probability": 0.7,
+          "mean_score_through_checkpoint": 0.34727456910012405,
+          "mechanism_distribution": {
+            "material_law_counterfactual": 0.2,
+            "no_change": 0.3,
+            "rate_law_family": 0.3,
+            "topology_family": 0.2
+          },
+          "mechanism_identified": true,
+          "mechanism_prediction": "no_change",
+          "truth_probability": 0.3
+        }
+      },
+      "8": {
+        "change_detection": {
+          "auroc": 0.0,
+          "brier_score": 0.37,
+          "campaign_count": 2,
+          "changed_count": 1,
+          "detected_changed_count": 1,
+          "false_positive_rate": 1.0,
+          "mean_detection_delay": 1.0,
+          "no_change_twin_count": 1,
+          "right_censored_changed_count": 0,
+          "sensitivity": 1.0,
+          "threshold": 0.5
+        },
+        "changed_arm": {
+          "best_score_through_checkpoint": 0.5936040004403711,
+          "change_probability": 0.5,
+          "mean_score_through_checkpoint": 0.5536602731796367,
+          "mechanism_distribution": {
+            "material_law_counterfactual": 0.15,
+            "no_change": 0.5,
+            "rate_law_family": 0.25,
+            "topology_family": 0.1
+          },
+          "mechanism_identified": false,
+          "mechanism_prediction": "no_change",
+          "truth_probability": 0.25
+        },
+        "no_change_twin": {
+          "best_score_through_checkpoint": 0.501835295901557,
+          "change_probability": 0.7,
+          "mean_score_through_checkpoint": 0.41767711138241004,
+          "mechanism_distribution": {
+            "material_law_counterfactual": 0.3,
+            "no_change": 0.3,
+            "rate_law_family": 0.25,
+            "topology_family": 0.15
+          },
+          "mechanism_identified": false,
+          "mechanism_prediction": "material_law_counterfactual",
+          "truth_probability": 0.3
+        }
+      }
+    },
+    "confirmatory_gate_pass": false,
+    "reason": "one pair cannot establish confidence bounds or randomized-time generalization",
+    "status": "descriptive_only_insufficient_pairs"
+  },
+  "gate_c": {
+    "reason": "same-prefix feedback variants and paired full-campaign feedback arms were not run",
+    "status": "not_evaluated"
+  },
+  "gate_d": {
+    "adaptive_policy_observed": {
+      "changed": {
+        "best_score": 0.5949729444226733,
+        "mean_score": 0.5608703891616844
+      },
+      "no_change_twin": {
+        "best_score": 0.5127890114513852,
+        "mean_score": 0.37453935593005244
+      }
+    },
+    "missing_required_conditions": [
+      "iid_action_replay_iid_world",
+      "iid_action_replay_shifted_world",
+      "frozen_policy_shifted_world",
+      "diagnosis_oracle_shifted_world"
+    ],
+    "status": "not_evaluated"
+  },
+  "gate_e": {
+    "autonomous_and_assisted_scores_separated": true,
+    "campaigns": {
+      "changed": {
+        "assisted_experiment_count": 4,
+        "assisted_scientific_score": 0.5608703891616844,
+        "autonomous_procedural_status": "protocol_failure",
+        "fully_autonomous_experiment_count": 10,
+        "lifecycle_guardrail_action_count": 5,
+        "total_complete_experiment_count": 14
+      },
+      "no_change_twin": {
+        "assisted_experiment_count": 2,
+        "assisted_scientific_score": 0.37453935593005244,
+        "autonomous_procedural_status": "protocol_failure",
+        "fully_autonomous_experiment_count": 12,
+        "lifecycle_guardrail_action_count": 4,
+        "total_complete_experiment_count": 14
+      }
+    },
+    "confirmatory_gate_pass": false,
+    "status": "pilot_protocol_failure_observed"
+  },
+  "interpretation": "Gate 0 passed for this pair. Gate B is descriptively adverse: the no-change twin receives equal or higher change probability at every frozen checkpoint. Gate C and Gate D remain unmeasured, and lifecycle assistance prevents a fully autonomous result. No mechanism-discovery claim is allowed.",
+  "method_id": "live_llm_b",
+  "pair_id": "94b6c4b2341967388edf",
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-design-aligned",
+  "protocol_sha256": "08d96a8e76ffca384e279ceee2a4f83f57f7174372961154aeac735f106d8d36",
+  "publication_ready": false,
+  "report_source_commit": "fa295e1ee0df40e4a3fcbefa9e4f001036658cb6",
+  "resources": {
+    "provider_billed_cost_usd": 0.4774255304,
+    "provider_receipt_count": 324
+  },
+  "schema_version": "chemworld-mechanism-adaptation-agent-pilot-0.2.1",
+  "scope": {
+    "campaign_count": 2,
+    "change_time": 1,
+    "interpretation": "descriptive pilot only; confidence-bound gates cannot pass from one pair",
+    "pair_count": 1,
+    "post_change_experiment_count": 13,
+    "provider_repeat_count": 1
+  },
+  "status": "pilot_complete_integrity_passed_partial_attribution",
+  "task_id": "reaction-to-crystallization"
+}
