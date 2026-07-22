@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from chemworld.eval import live_llm_development
 from chemworld.eval.formal_matrix import build_formal_matrix_plan
 from chemworld.eval.live_llm_development import (
     DEFAULT_CACHE_ROOT,
@@ -26,6 +27,23 @@ def test_default_private_cache_is_source_commit_scoped() -> None:
     assert DEFAULT_CACHE_ROOT.parent.name == "live-llm-dev-v0.4.11"
     assert DEFAULT_CACHE_ROOT.name == commit
     assert DEFAULT_REPORT_PATH.name == "live-llm-dev-v0.4.11.json"
+
+
+def test_live_provider_gate_uses_tracked_tree_provenance(monkeypatch) -> None:
+    monkeypatch.setattr(
+        live_llm_development,
+        "git_tracked_tree_dirty",
+        lambda _root: False,
+    )
+    live_llm_development._require_clean_source_tree()
+
+    monkeypatch.setattr(
+        live_llm_development,
+        "git_tracked_tree_dirty",
+        lambda _root: True,
+    )
+    with pytest.raises(RuntimeError, match="clean tracked tree"):
+        live_llm_development._require_clean_source_tree()
 
 
 def test_live_development_binds_content_verified_public_affordance_audit() -> None:

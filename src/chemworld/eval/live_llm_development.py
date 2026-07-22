@@ -35,6 +35,7 @@ from chemworld.eval.formal_runner import (
     private_seed_commitment,
     private_world_commitment,
 )
+from chemworld.eval.provenance import git_tracked_tree_dirty
 from chemworld.eval.runtime_domain_affordance_audit import guarded_source_sha256
 from chemworld.tasks import get_task
 from chemworld.world.world_family import axes_for_task
@@ -671,14 +672,9 @@ def _require_prior_paid_stage(stage: str, cache_root: str | Path) -> None:
 
 
 def _require_clean_source_tree() -> None:
-    status = subprocess.check_output(
-        ["git", "status", "--porcelain=v1", "--untracked-files=all"],
-        cwd=ROOT,
-        text=True,
-    ).strip()
-    if status:
+    if git_tracked_tree_dirty(ROOT):
         raise RuntimeError(
-            "live-provider development requires a clean tree bound to the source commit"
+            "live-provider development requires a clean tracked tree bound to the source commit"
         )
 
 
