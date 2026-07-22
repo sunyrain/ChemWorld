@@ -13,10 +13,10 @@
     "backend": "configs/foundation/backend_v0.5.json",
     "backend_report": "workstreams/world_foundation/reports/backend-v0.5.json",
     "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
-    "status": "candidate_backend_clean_attested",
+    "status": "candidate_backend_validated_dirty_tree",
     "contract_validation": "passed",
-    "clean_release_attestation": "passed",
-    "source_tree_dirty": false
+    "clean_release_attestation": "pending_clean_tree",
+    "source_tree_dirty": true
   },
   "formal_evaluation": {
     "protocol": "configs/benchmark/formal_protocol_v0.4.json",
@@ -34,13 +34,13 @@
     "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
     "preflight_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-preflight.json",
     "protocol_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-final-protocol-v0.2.md",
-    "status": "gate_a_failed_remaining_gates_pending",
+    "status": "gate_a_passed_remaining_gates_pending",
     "new_external_provider_runs_completed": false,
     "publication_ready": false,
-    "gate_a_plan": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json",
-    "gate_a_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.1.json",
-    "gate_a_pass": false,
-    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.1.json",
+    "gate_a_plan": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json",
+    "gate_a_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.2.json",
+    "gate_a_pass": true,
+    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.2.json",
     "design_audit_pass": true
   },
   "development_evidence": {
@@ -52,11 +52,15 @@
     "evidence_role": "development_or_diagnostic_not_formal_bench"
   },
   "repository_integrity": {
-    "status": "current_evidence_coherent_worktree_clean",
+    "status": "current_evidence_coherent_worktree_dirty",
     "current_evidence_coherent": true,
-    "tracked_source_tree_dirty": false,
+    "tracked_source_tree_dirty": true,
     "stale_binding_count": 0,
     "blockers": [
+      {
+        "id": "clean_release_attestation_pending",
+        "scope": "backend_release"
+      },
       {
         "id": "method_freeze_blocked",
         "scope": "formal_benchmark",
@@ -67,7 +71,6 @@
         "scope": "mechanism_benchmark",
         "gates": [
           "gate_0",
-          "gate_a",
           "gate_b",
           "gate_c",
           "gate_d",
@@ -117,7 +120,7 @@
     "schema_version": "chemworld-current-evidence-dag-0.1",
     "generator": "python scripts/evidence_pipeline.py --refresh",
     "checker": "python scripts/evidence_pipeline.py --check",
-    "graph_sha256": "a9683f0f43d21f126b44a6bf36830afefcd3baa1ccf225aa8a05ec2c2fadcd55",
+    "graph_sha256": "2a8b480d59de18ce5e0fdf809defbc413e0a059cee055a624d62d87669647199",
     "generation_order": [
       "backend_golden_fixture",
       "backend_protocol",
@@ -225,7 +228,7 @@
         "path": "workstreams/benchmark_v1/reports/runtime-domain-affordance-audit-v0.4.json",
         "role": "development_control",
         "dependencies": [],
-        "sha256": "288f07b8862a016258ef7f1293ce9646c0fe6f37a3ae7bc58bc85d931255f867",
+        "sha256": "aadfeef13d1043149a190f5e1d39950a32073ef82b86269c7fdd7ccf42350f61",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -272,12 +275,12 @@
         "gate_state": "passed"
       },
       "mechanism_gate_a_plan": {
-        "path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json",
+        "path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json",
         "role": "protocol_input",
         "dependencies": [
           "mechanism_protocol"
         ],
-        "sha256": "d415fc5fb8293132bf843550e41866e869b6cc209437fe1bfc168354ca893e34",
+        "sha256": "91985ffb125665653ae79b23e614917a51ffce173de50601284691eea4bb91a8",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -319,7 +322,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "fb4f7c0f4fd79f8a656a3a4a47df6af28b2d382cec00965fce53fd9c389edd79",
+        "sha256": "94f31e26f0128578ea792e3fbfcedfcb6d4dae4c89c1c5a03f9ebe4c7310d5ad",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -330,7 +333,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "c5fcb45260c0bd7dab562e24f1b59c8c881f2794a0abaf461f017a9e3a9b35cd",
+        "sha256": "0f273b0fd9977abf3c488060c210b07189b2b38da0b66811e51db141242f855c",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -342,18 +345,18 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "c1a4e129a188521c1738ebc1e73f3f4a3c7df52453d1ac0c2bce54b02b4a1c9e",
+        "sha256": "c6c3f5e1130b388f16f244a95a80978ca76a6067b9ecc237ece11d238460f59f",
         "artifact_state": "current",
         "gate_state": "passed"
       },
       "mechanism_design_audit": {
-        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.1.json",
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.2.json",
         "role": "development_control",
         "dependencies": [
           "mechanism_gate_a_plan",
           "mechanism_protocol"
         ],
-        "sha256": "b24ae19f22ab831bf501bba2e7e866198a7e65a8f9be52fe194b43c5e4bfd801",
+        "sha256": "8ba699aecbad57b15f5ab98d0b882b08430ff0d85c4ed8ea31da318bf5cabae7",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -368,7 +371,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "efccc8a25888a888512b94c920976d9907149996b3850371f28f3393a3f0e0b1",
+        "sha256": "fa476c619942d24d9a7dc8b03f022b327a81e25f29295f46fa2b52c44fa7aa85",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -382,7 +385,7 @@
           "mechanism_protocol_report",
           "mechanism_public_matrix"
         ],
-        "sha256": "3de1371f6414037547801a0d42b60d7ec970c5b3f4416533943ca2e9d571bbaf",
+        "sha256": "8db03c114484ca5d081b0755ddb74f0e597167c7f3d8a87663c2c576c18a73cd",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -396,12 +399,12 @@
           "public_boundary",
           "runtime_integration"
         ],
-        "sha256": "fdad5979f04fb7e7b7f89e5df72f771c171daa794a9da4efe3d393e4fe4b77e8",
+        "sha256": "90ab37e1b2789471c44d17897900bd7ce1bfb46abfe7287bcbf9d4cc0230ad28",
         "artifact_state": "current",
         "gate_state": "passed"
       },
       "mechanism_gate_a": {
-        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.1.json",
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.2.json",
         "role": "mechanism_gate",
         "dependencies": [
           "mechanism_design_audit",
@@ -409,9 +412,9 @@
           "mechanism_preflight",
           "mechanism_protocol"
         ],
-        "sha256": "9a27c0950bb2dd082e8727e3e769f2a0ed6228249356238cc1583147cbd75a0b",
+        "sha256": "eef8187a1595d25c33eb10cd7cfba89e6fd314ff37bc19c0806336c8e107d114",
         "artifact_state": "current",
-        "gate_state": "blocked"
+        "gate_state": "passed"
       },
       "method_freeze": {
         "path": "workstreams/benchmark_v1/reports/method-freeze-v0.4.json",
@@ -423,7 +426,7 @@
           "method_freeze_plan",
           "operation_development"
         ],
-        "sha256": "e23208dcfab85d5262ac57967726cb7dacac341362c9f9b6edec8e449a6fd7f7",
+        "sha256": "24274e0e574831158b3c7e9ca84ab165051e362d0ff33087cf79fb7a5b159e09",
         "artifact_state": "current",
         "gate_state": "blocked"
       }
@@ -473,7 +476,7 @@
   "completeness_model": {
     "structural": "implemented_by_design_and_subject_to_runtime_controls",
     "evaluation": "contracts_defined_empirical_closure_pending",
-    "attribution": "diagnostic_protocol_defined_gate_a_blocked",
+    "attribution": "gate_a_identifiability_passed_remaining_agent_attribution_gates_pending",
     "chemical_coverage": "selected_bounded_archetypes_not_exhaustive",
     "physical_fidelity": "model_card_bounded_not_universal_digital_twin"
   },
@@ -496,7 +499,7 @@
         "reaction-to-crystallization",
         "electrochemical-conversion"
       ],
-      "status": "gate_a_blocked"
+      "status": "gate_a_passed"
     },
     "extended": {
       "role": "environment_coverage_training_and_demonstration",

@@ -14,6 +14,7 @@ whether the environment contains enough information at the frozen budget.
 from __future__ import annotations
 
 import hashlib
+import itertools
 import json
 from collections.abc import Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
@@ -49,7 +50,7 @@ from chemworld.tasks import get_task
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_PROTOCOL_PATH = ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json"
 DEFAULT_GATE_A_PLAN_PATH = (
-    ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json"
+    ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json"
 )
 DEFAULT_LLM_METHODS_PATH = ROOT / "configs/methods/llm_v0.4/llm_methods.json"
 EXECUTION_SCHEMA_VERSION = "chemworld-mechanism-adaptation-execution-0.2"
@@ -145,6 +146,7 @@ class PublicCampaignObservationSession:
         interventions: Sequence[Mapping[str, Any]],
         action_library: Mapping[str, np.ndarray],
         experiment_horizon: int,
+        observation_seed: int | None = None,
     ) -> None:
         if experiment_horizon <= 0:
             raise ValueError("experiment_horizon must be positive")
@@ -157,6 +159,7 @@ class PublicCampaignObservationSession:
             seed=int(seed),
             episode_mode_override="campaign",
             budget_override=(per_experiment + 1) * int(experiment_horizon),
+            observation_seed_override=observation_seed,
             world_interventions=tuple(dict(item) for item in interventions),
         )
         self.environment.reset(seed=int(seed))
@@ -196,8 +199,44 @@ def _sample_experiment_job(job: Mapping[str, Any]) -> list[float]:
         interventions=job["interventions"],
         action_library=action_library,
         experiment_horizon=1,
+        observation_seed=(
+            None if job.get("observation_seed") is None else int(job["observation_seed"])
+        ),
     ) as session:
         return session.observe(action_id)
+
+
+def _sample_paired_contrast_job(job: Mapping[str, Any]) -> list[float]:
+    """Return post-minus-pre public traces for one matched recipe batch."""
+
+    action_ids = [str(item) for item in job["action_ids"]]
+    action_library = {
+        str(key): np.asarray(value, dtype=float)
+        for key, value in job["action_library"].items()
+    }
+    common = {
+        "task_id": str(job["task_id"]),
+        "seed": int(job["world_seed"]),
+        "action_library": action_library,
+        "experiment_horizon": len(action_ids),
+    }
+    with PublicCampaignObservationSession(
+        **common,
+        interventions=(),
+        observation_seed=int(job["pre_observation_seed"]),
+    ) as pre_session:
+        pre = [np.asarray(pre_session.observe(action_id), dtype=float) for action_id in action_ids]
+    with PublicCampaignObservationSession(
+        **common,
+        interventions=job["interventions"],
+        observation_seed=int(job["post_observation_seed"]),
+    ) as post_session:
+        post = [
+            np.asarray(post_session.observe(action_id), dtype=float) for action_id in action_ids
+        ]
+    return np.concatenate(
+        [post_values - pre_values for pre_values, post_values in zip(pre, post, strict=True)]
+    ).tolist()
 
 
 def _unreachable_sample(_candidate_id: str, _action_id: str, _seed: int) -> list[float]:
@@ -308,12 +347,379 @@ def _execute_jobs(
         return list(executor.map(function, jobs))
 
 
+def _paired_action_id(action_ids: Sequence[str]) -> str:
+    return "+".join(str(item) for item in action_ids)
+
+
+def _fit_paired_batch_oracle(
+    *,
+    candidate_ids: Sequence[str],
+    action_ids: Sequence[str],
+    per_action_samples: Mapping[tuple[str, str], Sequence[Sequence[float]]],
+    batch_size: int,
+    variance_floor: float,
+    seed: int,
+) -> tuple[GaussianMechanismOracle, dict[str, tuple[str, ...]]]:
+    """Fit batch predictives from nuisance-aligned per-action contrast samples."""
+
+    batches = {
+        _paired_action_id(batch): tuple(batch)
+        for batch in itertools.combinations(action_ids, batch_size)
+    }
+    if not batches:
+        raise ValueError("paired Gate A batch size exceeds the public action library")
+    batch_samples: dict[tuple[str, str], list[list[float]]] = {}
+    for candidate_id in candidate_ids:
+        counts = {
+            len(per_action_samples[(str(candidate_id), action_id)])
+            for action_id in action_ids
+        }
+        if len(counts) != 1:
+            raise ValueError("paired Gate A samples must align by nuisance seed")
+        sample_count = counts.pop()
+        for batch_id, batch in batches.items():
+            batch_samples[(str(candidate_id), batch_id)] = [
+                np.concatenate(
+                    [
+                        np.asarray(per_action_samples[(str(candidate_id), action_id)][index])
+                        for action_id in batch
+                    ]
+                ).tolist()
+                for index in range(sample_count)
+            ]
+    oracle = GaussianMechanismOracle(
+        candidate_ids=candidate_ids,
+        action_ids=list(batches),
+        sample_public_observation=_unreachable_sample,
+        samples_per_candidate=4,
+        variance_floor=variance_floor,
+        seed=seed,
+    )
+    oracle.fit_predictives_from_samples(batch_samples)
+    return oracle, batches
+
+
+def _execute_paired_gate_a_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
+    candidate_ids = [str(item) for item in job["candidate_ids"]]
+    batch_ids = [str(item) for item in job["batch_ids"]]
+    oracle = GaussianMechanismOracle(
+        candidate_ids=candidate_ids,
+        action_ids=batch_ids,
+        sample_public_observation=_unreachable_sample,
+        samples_per_candidate=4,
+        variance_floor=float(job["variance_floor"]),
+        seed=int(job["oracle_seed"]),
+    )
+    oracle.load_predictives(job["predictives"])
+    rows: dict[str, dict[str, Any]] = {}
+    contrasts: dict[str, list[float]] = {}
+    for role in ("active", "decoder"):
+        batch_id = str(job[f"{role}_batch_id"])
+        if batch_id not in contrasts:
+            action_ids = [str(item) for item in job["batches"][batch_id]]
+            contrasts[batch_id] = _sample_paired_contrast_job(
+                {
+                    "task_id": job["task_id"],
+                    "world_seed": job["world_seed"],
+                    "interventions": job["interventions"],
+                    "action_ids": action_ids,
+                    "action_library": {
+                        action_id: job["action_library"][action_id]
+                        for action_id in action_ids
+                    },
+                    "pre_observation_seed": _stable_seed(
+                        int(job["world_seed"]), f"gate-a-v0.2.2:{batch_id}:pre"
+                    ),
+                    "post_observation_seed": _stable_seed(
+                        int(job["world_seed"]), f"gate-a-v0.2.2:{batch_id}:post"
+                    ),
+                }
+            )
+        oracle.reset_posterior()
+        oracle.update(action_id=batch_id, observation=contrasts[batch_id])
+        rows[role] = {
+            "truth_id": str(job["truth_id"]),
+            "world_seed": int(job["world_seed"]),
+            "pre_observation_seed": _stable_seed(
+                int(job["world_seed"]), f"gate-a-v0.2.2:{batch_id}:pre"
+            ),
+            "post_observation_seed": _stable_seed(
+                int(job["world_seed"]), f"gate-a-v0.2.2:{batch_id}:post"
+            ),
+            "prediction": max(oracle.posterior, key=oracle.posterior.__getitem__),
+            "actions": list(job["batches"][batch_id]),
+            "batch_id": batch_id,
+            "posterior": dict(oracle.posterior),
+        }
+    return rows
+
+
+def _run_paired_gate_a(
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Run the v0.2.2 pre/post paired, budget-matched Gate A certificate."""
+
+    errors = validate_mechanism_adaptation_protocol(protocol)
+    if errors:
+        raise ValueError("invalid mechanism-adaptation protocol: " + "; ".join(errors))
+    action_plan = plan["action_library"]
+    fit_plan = plan["candidate_predictive_fit"]
+    certificate_plan = plan["held_out_certificate"]
+    phase_plan = plan["paired_phase_design"]
+    gate = protocol["gates"]["gate_a"]
+    batch_size = int(phase_plan["pre_change_reference_experiments"])
+    protocol_pre_change = int(protocol["design"]["pre_change_experiments"])
+    if batch_size != protocol_pre_change:
+        raise ValueError("paired Gate A must use the protocol pre-change experiment budget")
+    budgets = [int(item) for item in certificate_plan["budgets"]]
+    if budgets != [batch_size]:
+        raise ValueError("paired Gate A certifies exactly the matched pre-change budget")
+    if any(item not in gate["budget_checkpoints"] for item in budgets):
+        raise ValueError("paired Gate A budget must be a frozen protocol checkpoint")
+    primary_budget = int(certificate_plan["primary_gate_budget"])
+    if primary_budget != batch_size:
+        raise ValueError("paired Gate A primary budget must equal the matched batch size")
+    if int(action_plan["action_count_per_task"]) < batch_size:
+        raise ValueError("paired Gate A action library cannot underfill its batch")
+    if phase_plan.get("same_hidden_world_seed_across_phases") is not True:
+        raise ValueError("paired Gate A requires the same hidden-world seed across phases")
+    if phase_plan.get("independent_observation_seed_across_phases") is not True:
+        raise ValueError("paired Gate A requires independent phase observation seeds")
+    if phase_plan.get("public_contrast_encoding") != "post_minus_pre_same_recipe":
+        raise ValueError("unsupported paired Gate A public contrast encoding")
+
+    action_libraries = {
+        str(task_id): build_action_library(
+            str(task_id),
+            action_count=int(action_plan["action_count_per_task"]),
+            seed=int(action_plan["design_seed"]),
+        )
+        for task_id in protocol["design"]["tasks"]
+    }
+    design_audit = audit_mechanism_design(
+        protocol,
+        plan,
+        action_libraries=action_libraries,
+    )
+    if not design_audit["pass"]:
+        failed = "; ".join(
+            f"{item.get('task_id')}:{item['check']}" for item in design_audit["failures"]
+        )
+        raise ValueError(f"mechanism design audit failed: {failed}")
+
+    task_reports: dict[str, Any] = {}
+    active_truths: list[str] = []
+    active_predictions: list[str] = []
+    decoder_truths: list[str] = []
+    decoder_predictions: list[str] = []
+    candidate_union: list[str] = []
+    sample_count = int(fit_plan["samples_per_candidate_action"])
+
+    for task_index, task_id in enumerate(protocol["design"]["tasks"]):
+        task_id = str(task_id)
+        contract = protocol["task_mechanism_contracts"][task_id]
+        candidate_ids = [str(item) for item in contract["candidate_ids"]]
+        for candidate_id in candidate_ids:
+            if candidate_id not in candidate_union:
+                candidate_union.append(candidate_id)
+        action_library = action_libraries[task_id]
+        action_ids = list(action_library)
+        fit_world_seeds = [
+            int(fit_plan["nuisance_seed_namespace_start"])
+            + task_index * 1_000_000
+            + index
+            for index in range(sample_count)
+        ]
+        fit_keys: list[tuple[str, str]] = []
+        fit_jobs: list[dict[str, Any]] = []
+        for candidate_id in candidate_ids:
+            for action_id in action_ids:
+                for world_seed in fit_world_seeds:
+                    fit_keys.append((candidate_id, action_id))
+                    fit_jobs.append(
+                        {
+                            "task_id": task_id,
+                            "world_seed": world_seed,
+                            "interventions": contract["interventions"][candidate_id],
+                            "action_ids": [action_id],
+                            "action_library": {
+                                action_id: action_library[action_id].tolist()
+                            },
+                            "pre_observation_seed": _stable_seed(
+                                world_seed, f"gate-a-v0.2.2:{action_id}:fit-pre"
+                            ),
+                            "post_observation_seed": _stable_seed(
+                                world_seed, f"gate-a-v0.2.2:{action_id}:fit-post"
+                            ),
+                        }
+                    )
+        fit_results = _execute_jobs(
+            _sample_paired_contrast_job,
+            fit_jobs,
+            workers=int(fit_plan.get("execution_workers", 1)),
+        )
+        per_action_samples: dict[tuple[str, str], list[Sequence[float]]] = {
+            (candidate_id, action_id): []
+            for candidate_id in candidate_ids
+            for action_id in action_ids
+        }
+        for key, values in zip(fit_keys, fit_results, strict=True):
+            per_action_samples[key].append(values)
+
+        oracle_seed = _stable_seed(int(fit_plan["oracle_seed"]), task_id)
+        oracle, batches = _fit_paired_batch_oracle(
+            candidate_ids=candidate_ids,
+            action_ids=action_ids,
+            per_action_samples=per_action_samples,
+            batch_size=batch_size,
+            variance_floor=float(fit_plan["variance_floor"]),
+            seed=oracle_seed,
+        )
+        information = oracle.expected_information_by_action(
+            draws=int(certificate_plan["information_draws_per_batch"])
+        )
+        active_batch_id = max(information, key=information.__getitem__)
+        decoder_batch_id = _paired_action_id(action_ids[:batch_size])
+        exported_predictives = oracle.export_predictives()
+        serialized_actions = {
+            key: vector.tolist() for key, vector in action_library.items()
+        }
+        trial_jobs = []
+        trial_keys: list[tuple[str, int]] = []
+        for candidate_id in candidate_ids:
+            for repeat_index in range(int(certificate_plan["world_seeds_per_family"])):
+                world_seed = (
+                    int(certificate_plan["seed_namespace_start"])
+                    + task_index * 1_000_000
+                    + repeat_index
+                )
+                trial_keys.append((candidate_id, repeat_index))
+                trial_jobs.append(
+                    {
+                        "task_id": task_id,
+                        "truth_id": candidate_id,
+                        "world_seed": world_seed,
+                        "interventions": contract["interventions"][candidate_id],
+                        "candidate_ids": candidate_ids,
+                        "batch_ids": list(batches),
+                        "batches": {key: list(value) for key, value in batches.items()},
+                        "active_batch_id": active_batch_id,
+                        "decoder_batch_id": decoder_batch_id,
+                        "action_library": serialized_actions,
+                        "predictives": exported_predictives,
+                        "variance_floor": float(fit_plan["variance_floor"]),
+                        "oracle_seed": oracle_seed,
+                    }
+                )
+        completed_trials = _execute_jobs(
+            _execute_paired_gate_a_trial_job,
+            trial_jobs,
+            workers=int(certificate_plan.get("execution_workers", 1)),
+        )
+        task_trials = {"active_budget_2": [], "decoder_budget_2": []}
+        for (truth_id, _repeat_index), completed in zip(
+            trial_keys, completed_trials, strict=True
+        ):
+            qualified_truth = _qualified_candidate(task_id, truth_id)
+            active = completed["active"]
+            decoder = completed["decoder"]
+            active_truths.append(qualified_truth)
+            active_predictions.append(
+                _qualified_candidate(task_id, str(active["prediction"]))
+            )
+            decoder_truths.append(qualified_truth)
+            decoder_predictions.append(
+                _qualified_candidate(task_id, str(decoder["prediction"]))
+            )
+            task_trials["active_budget_2"].append(active)
+            task_trials["decoder_budget_2"].append(decoder)
+        task_reports[task_id] = {
+            "candidate_ids": candidate_ids,
+            "action_library": serialized_actions,
+            "active_batch_id": active_batch_id,
+            "active_batch_information_nats": float(information[active_batch_id]),
+            "decoder_batch_id": decoder_batch_id,
+            "batch_information_nats": {
+                key: float(value) for key, value in information.items()
+            },
+            "trials": task_trials,
+        }
+
+    qualified_candidates = [
+        _qualified_candidate(str(task_id), str(candidate_id))
+        for task_id in protocol["design"]["tasks"]
+        for candidate_id in protocol["task_mechanism_contracts"][task_id]["candidate_ids"]
+    ]
+    active_certificate = identifiability_certificate(
+        truths=active_truths,
+        predictions=active_predictions,
+        candidate_ids=qualified_candidates,
+        overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
+        family_recall_lower_bound_threshold=float(gate["per_family_recall_wilson_lower_bound"]),
+    )
+    decoder_certificate = identifiability_certificate(
+        truths=decoder_truths,
+        predictions=decoder_predictions,
+        candidate_ids=qualified_candidates,
+        overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
+        family_recall_lower_bound_threshold=float(gate["per_family_recall_wilson_lower_bound"]),
+    )
+    gate_pass = bool(active_certificate["gate_pass"])
+    return {
+        "schema_version": "chemworld-mechanism-adaptation-gate-a-report-0.2.2",
+        "status": "gate_a_passed" if gate_pass else "gate_a_failed",
+        "formal_benchmark_result": False,
+        "protocol_id": protocol["protocol_id"],
+        "protocol_sha256": canonical_sha256(protocol),
+        "gate_a_plan_id": plan["plan_id"],
+        "gate_a_plan_sha256": canonical_sha256(plan),
+        "environment_role": protocol["environment_role"],
+        "agent_weight_updates_performed": False,
+        "design_validity_audit": design_audit,
+        "public_feature_contract": dict(plan["public_feature_contract"]),
+        "paired_phase_design": dict(phase_plan),
+        "nuisance_integration": {
+            "performed": True,
+            "mode": "paired_common_hidden_world_with_independent_phase_observation_noise",
+            "predictive_samples_per_candidate_action": sample_count,
+            "held_out_world_seeds_per_family": int(
+                certificate_plan["world_seeds_per_family"]
+            ),
+            "same_world_seeds_reused_across_candidate_twins": True,
+            "fit_and_certificate_seed_namespaces_disjoint": True,
+        },
+        "primary_gate_budget": primary_budget,
+        "active_oracle": {
+            "type": "batch_information_gain_over_matched_pre_post_recipe_contrasts",
+            "gate_pass": gate_pass,
+            "primary_budget": primary_budget,
+            "by_budget": {str(primary_budget): active_certificate},
+        },
+        "fixed_trajectory_decoder": {
+            "controls_gate": False,
+            "by_budget": {str(primary_budget): decoder_certificate},
+        },
+        "gate_a_pass": gate_pass,
+        "task_reports": task_reports,
+        "interpretation": (
+            "A pass establishes identifiability from two matched pre/post public recipe "
+            "contrasts under a shared hidden world and independent phase observation noise; "
+            "it does not establish that an evaluated Agent discovers the mechanism."
+        ),
+        "candidate_family_names": candidate_union,
+        "publication_ready": False,
+    }
+
+
 def run_gate_a(
     protocol: Mapping[str, Any],
     plan: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Run the frozen active-oracle and fixed-decoder identifiability checks."""
 
+    if plan.get("schema_version") == "chemworld-mechanism-adaptation-gate-a-plan-0.2.2":
+        return _run_paired_gate_a(protocol, plan)
     errors = validate_mechanism_adaptation_protocol(protocol)
     if errors:
         raise ValueError("invalid mechanism-adaptation protocol: " + "; ".join(errors))

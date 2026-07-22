@@ -9,6 +9,7 @@ import pytest
 from scripts.run_mechanism_adaptation_v0_2 import _validate_resumable_campaign
 
 from chemworld.eval.mechanism_adaptation_execution import (
+    PublicCampaignObservationSession,
     build_action_library,
     encode_public_experiment_trace,
     run_gate_a,
@@ -35,6 +36,14 @@ def _gate_a_plan() -> dict[str, object]:
     )
 
 
+def _paired_gate_a_plan() -> dict[str, object]:
+    return json.loads(
+        (ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+
 def test_gate_a_action_library_and_public_encoding_are_deterministic() -> None:
     first = build_action_library(
         "reaction-to-crystallization", action_count=6, seed=41102
@@ -56,6 +65,42 @@ def test_gate_a_plan_cannot_underfill_the_fixed_decoder_budget() -> None:
     plan["action_library"]["action_count_per_task"] = 3
     with pytest.raises(ValueError, match="largest decoder budget"):
         run_gate_a(_protocol(), plan)
+
+
+def test_paired_gate_a_must_match_the_protocol_pre_change_budget() -> None:
+    plan = _paired_gate_a_plan()
+    plan["paired_phase_design"]["pre_change_reference_experiments"] = 1
+    with pytest.raises(ValueError, match="protocol pre-change experiment budget"):
+        run_gate_a(_protocol(), plan)
+
+
+def test_observation_seed_can_change_noise_without_changing_hidden_world() -> None:
+    action_library = build_action_library(
+        "electrochemical-conversion", action_count=3, seed=41102
+    )
+    selected = {"design-00": action_library["design-00"]}
+    with PublicCampaignObservationSession(
+        task_id="electrochemical-conversion",
+        seed=23,
+        interventions=(),
+        action_library=selected,
+        experiment_horizon=1,
+        observation_seed=7001,
+    ) as first:
+        first_world = np.array(first.environment.world.catalyst_effects, copy=True)
+        first_trace = first.observe("design-00")
+    with PublicCampaignObservationSession(
+        task_id="electrochemical-conversion",
+        seed=23,
+        interventions=(),
+        action_library=selected,
+        experiment_horizon=1,
+        observation_seed=7002,
+    ) as second:
+        second_world = np.array(second.environment.world.catalyst_effects, copy=True)
+        second_trace = second.observe("design-00")
+    assert np.array_equal(first_world, second_world)
+    assert not np.array_equal(first_trace, second_trace)
 
 
 def _action_libraries(protocol: dict[str, object], plan: dict[str, object]):

@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "mechanism-adaptation-design-audit-v0.2.1.json"
+    "mechanism-adaptation-design-audit-v0.2.2.json"
 )
 
 

@@ -15,7 +15,7 @@ from chemworld.eval.mechanism_adaptation import (
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_PROTOCOL = ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json"
 REQUIRED_IMPLEMENTATION_ARTIFACTS = (
-    "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json",
+    "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json",
     "src/chemworld/agents/mechanism_adaptation_live_llm.py",
     "src/chemworld/eval/mechanism_adaptation.py",
     "src/chemworld/eval/mechanism_design_audit.py",
@@ -26,7 +26,7 @@ REQUIRED_IMPLEMENTATION_ARTIFACTS = (
     "tests/test_mechanism_adaptation.py",
     "workstreams/flagship_tasks/reports/mechanism-adaptation-final-protocol-v0.2.md",
     "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-public-matrix.json",
-    "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.1.json",
+    "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.2.json",
 )
 
 
@@ -40,7 +40,7 @@ def build_mechanism_adaptation_preflight(
     design_audit_path = (
         ROOT
         / "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-design-audit-v0.2.1.json"
+        "mechanism-adaptation-design-audit-v0.2.2.json"
     )
     design_audit = (
         json.loads(design_audit_path.read_text(encoding="utf-8"))

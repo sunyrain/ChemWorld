@@ -96,13 +96,13 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_gate_a_plan",
-        "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json",
+        "configs/benchmark/mechanism_adaptation_gate_a_v0.2.2.json",
         "protocol_input",
         ("mechanism_protocol",),
     ),
     EvidenceNode(
         "mechanism_design_audit",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.1.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.2.json",
         "development_control",
         ("mechanism_gate_a_plan", "mechanism_protocol"),
         ("scripts/audit_mechanism_adaptation_design.py",),
@@ -135,7 +135,7 @@ NODES = (
     ),
     EvidenceNode(
         "mechanism_gate_a",
-        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.1.json",
+        "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.2.json",
         "mechanism_gate",
         (
             "mechanism_design_audit",
@@ -432,7 +432,11 @@ def _write_current_registry() -> None:
     current["completeness_model"] = {
         "structural": "implemented_by_design_and_subject_to_runtime_controls",
         "evaluation": "contracts_defined_empirical_closure_pending",
-        "attribution": "diagnostic_protocol_defined_gate_a_blocked",
+        "attribution": (
+            "gate_a_identifiability_passed_remaining_agent_attribution_gates_pending"
+            if mechanism.get("gate_a_pass")
+            else "diagnostic_protocol_defined_gate_a_blocked"
+        ),
         "chemical_coverage": "selected_bounded_archetypes_not_exhaustive",
         "physical_fidelity": "model_card_bounded_not_universal_digital_twin",
     }

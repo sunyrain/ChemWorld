@@ -1,0 +1,57 @@
+{
+  "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.2.2",
+  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-22-paired-contrast",
+  "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
+  "formal_benchmark_result": false,
+  "purpose": "Budget-matched mechanism-identifiability certificate using the pre-change memory that is part of the frozen adaptation protocol.",
+  "action_library": {
+    "design": "deterministic_unit_hypercube_anchor_and_seeded_uniform",
+    "action_count_per_task": 6,
+    "design_seed": 41102,
+    "batch_selection": "maximum_prior_expected_information_over_all_two_recipe_combinations"
+  },
+  "paired_phase_design": {
+    "pre_change_reference_experiments": 2,
+    "post_change_diagnostic_experiments": 2,
+    "same_hidden_world_seed_across_phases": true,
+    "same_world_seed_reused_across_candidate_twins": true,
+    "independent_observation_seed_across_phases": true,
+    "same_recipe_batch_replayed_after_reset": true,
+    "public_contrast_encoding": "post_minus_pre_same_recipe",
+    "batch_is_selected_before_held_out_outcomes": true
+  },
+  "candidate_predictive_fit": {
+    "samples_per_candidate_action": 24,
+    "oracle_seed": 41103,
+    "variance_floor": 0.0001,
+    "nuisance_seed_namespace_start": 100000000,
+    "execution_workers": 8
+  },
+  "held_out_certificate": {
+    "world_seeds_per_family": 30,
+    "seed_namespace_start": 1600000000,
+    "information_draws_per_batch": 128,
+    "execution_workers": 8,
+    "budgets": [
+      2
+    ],
+    "primary_gate_budget": 2
+  },
+  "public_feature_contract": {
+    "source": "agent-visible numeric observation and reward after every compiled public recipe operation in matched pre-change and post-change phases",
+    "encoding": "post-minus-pre contrasts over sorted flattened finite-masked public values",
+    "private_truth_fields_included": false,
+    "evaluation_only_hidden_outcomes_included": false,
+    "active_action_source": "prior expected information over the frozen two-recipe batches",
+    "fixed_trajectory_action_source": "first two actions in the frozen deterministic action library",
+    "decoder_controls_gate": false
+  },
+  "gate_rule_source": "configs/benchmark/mechanism_adaptation_v0.2.1.json#gates.gate_a",
+  "supersedes_result": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.1.json",
+  "supersession_reason": "v0.2.1 classified post-change worlds without the frozen pre-change memory and independently marginalized each action, so its failure cannot establish task non-identifiability.",
+  "design_validity_precondition": {
+    "required": true,
+    "report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.2.json",
+    "pass_field": "pass"
+  }
+}

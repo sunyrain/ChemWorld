@@ -69,6 +69,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         budget_override: int | None = None,
         episode_mode_override: str | None = None,
         safety_limit_override: float | None = None,
+        observation_seed_override: int | None = None,
         world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
         debug_truth: bool = False,
         render_mode: str | None = None,
@@ -99,6 +100,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.official_budget = self.task_spec.budget if self.task_spec is not None else budget
         self.objective = objective
         self.seed = seed
+        self.observation_seed_override = (
+            None if observation_seed_override is None else int(observation_seed_override)
+        )
         self.debug_truth = debug_truth
         self.world_interventions = tuple(world_interventions or ())
         self.render_mode = render_mode
@@ -166,7 +170,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 "observation_noise_multiplier"
             ),
         )
-        self._rng = np.random.default_rng(seed)
+        self._rng = np.random.default_rng(self._observation_seed(seed))
         self._step_count = 0
         self._experiment_index = 0
         self._operation_id = 0
@@ -190,7 +194,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         super().reset(seed=seed)
         if seed is not None:
             self.seed = seed
-            self._rng = np.random.default_rng(seed)
+        self._rng = np.random.default_rng(self._observation_seed(self.seed))
         if options and options.get("scenario_id"):
             self.scenario_spec = get_scenario(str(options["scenario_id"]), split=self.world_split)
         self.scenario_instance = self.scenario_generator.generate(
@@ -534,6 +538,18 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
 
     def _fresh_initial_state(self) -> WorldState:
         return deepcopy(self.scenario_instance.initial_state)
+
+    def _observation_seed(self, world_seed: int) -> int:
+        """Resolve observation noise independently from hidden-world generation.
+
+        The default preserves the historical one-seed behavior. Evaluators may
+        override only the observation stream so paired no-change resets retain the
+        same hidden physical laws without receiving identical measurement noise.
+        """
+
+        if self.observation_seed_override is None:
+            return int(world_seed)
+        return self.observation_seed_override
 
     def _info(self, operation_record: OperationRecord, observation: Any) -> dict[str, Any]:
         return build_step_info(self, operation_record, observation)

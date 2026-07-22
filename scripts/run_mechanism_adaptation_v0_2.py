@@ -1,4 +1,4 @@
-"""Run Gate A or resumable paired campaigns for mechanism adaptation v0.2.1."""
+"""Run Gate A or resumable paired campaigns for mechanism adaptation v0.2.1+."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from chemworld.eval.mechanism_adaptation_execution import (  # noqa: E402
 )
 
 DEFAULT_GATE_A_REPORT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.1.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.2.json"
 )
 DEFAULT_RUNTIME_ROOT = ROOT / "runs/mechanism-adaptation-v0.2.1"
 
