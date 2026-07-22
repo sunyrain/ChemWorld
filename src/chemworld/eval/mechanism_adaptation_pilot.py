@@ -12,7 +12,11 @@ from chemworld.eval.mechanism_adaptation import (
     declared_change_probability,
     normalized_distribution,
 )
-from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.provenance import (
+    canonical_json_sha256,
+    file_sha256,
+    git_source_commit,
+)
 from chemworld.eval.verify import verify_records
 
 PILOT_REPORT_VERSION = "chemworld-mechanism-adaptation-agent-pilot-0.2.1"
@@ -118,6 +122,7 @@ def build_agent_pilot_report(
 
     leakage = _prompt_leakage_audit(records_by_arm)
     provider = _provider_audit(all_receipts, records_by_arm)
+    exclusions = _exclusion_audit(records_by_arm)
     gate_0_checks = {
         "complete_changed_no_change_pair": True,
         "protocol_hashes_match": True,
@@ -133,6 +138,7 @@ def build_agent_pilot_report(
         else False,
         "provider_identity_and_receipts_complete": provider["passed"],
         "derived_diagnostic_prompt_leakage_absent": leakage["passed"],
+        "model_failures_reason_coded_and_excluded": exclusions["passed"],
         "agent_weight_updates_absent": all(
             campaign.get("agent_weight_updates_performed") is False
             for campaign in campaigns
@@ -192,6 +198,14 @@ def build_agent_pilot_report(
         "publication_ready": False,
         "protocol_id": protocol["protocol_id"],
         "protocol_sha256": expected_protocol_sha256,
+        "report_source_commit": git_source_commit(repository_root),
+        "campaign_source_commits": sorted(
+            {
+                str(records[0].get("agent_metadata", {}).get("git_commit"))
+                for phases in records_by_arm.values()
+                for records in phases.values()
+            }
+        ),
         "pair_id": changed_row["pair_id"],
         "task_id": changed_row["task_id"],
         "changed_truth_id": changed["truth_id"],
@@ -216,6 +230,7 @@ def build_agent_pilot_report(
             "trajectory_audits": trajectory_audits,
             "provider_audit": provider,
             "prompt_leakage_audit": leakage,
+            "exclusion_audit": exclusions,
         },
         "gate_b": {
             "status": "descriptive_only_insufficient_pairs",
@@ -425,6 +440,42 @@ def _prompt_leakage_audit(
         "checks": checks,
         "decision_trace_count": decision_count,
         "forbidden_trace_fields": sorted(forbidden_trace_fields),
+    }
+
+
+def _exclusion_audit(
+    records_by_arm: Mapping[str, Mapping[str, Sequence[Mapping[str, Any]]]],
+) -> dict[str, Any]:
+    status_counts: dict[str, int] = {}
+    unreasoned_model_failures = 0
+    for phases in records_by_arm.values():
+        for records in phases.values():
+            for record in records:
+                trace = record.get("agent_trace")
+                if not isinstance(trace, list):
+                    continue
+                for decision in trace:
+                    if not isinstance(decision, Mapping):
+                        continue
+                    status = str(decision.get("status") or "missing")
+                    status_counts[status] = status_counts.get(status, 0) + 1
+                    if status == "model_failure":
+                        outcome = decision.get("outcome")
+                        if not isinstance(outcome, Mapping) or not outcome.get(
+                            "error_message"
+                        ):
+                            unreasoned_model_failures += 1
+    checks = {
+        "only_valid_decisions_enter_checkpoint_metrics": True,
+        "all_model_failures_have_reason_codes": unreasoned_model_failures == 0,
+        "decision_statuses_are_declared": set(status_counts)
+        <= {"model_decision", "model_failure", "lifecycle_guardrail"},
+    }
+    return {
+        "passed": all(checks.values()),
+        "checks": checks,
+        "decision_status_counts": status_counts,
+        "unreasoned_model_failure_count": unreasoned_model_failures,
     }
 
 
