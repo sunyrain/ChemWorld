@@ -22,6 +22,7 @@ def test_backend_freeze_protocol_covers_all_current_contracts() -> None:
     assert report["checks"]["maturity_truth"] is True
     assert report["checks"]["state_transition_invariants"] is True
     assert report["checks"]["public_boundary"] is True
+    assert report["backend_contract_validated"] is True
     assert report["benchmark_claim_allowed"] is False
     assert validate_report(report) == []
 
@@ -51,12 +52,11 @@ def test_report_hash_detects_tampering() -> None:
 def test_committed_backend_report_is_truthful_and_candidate_only() -> None:
     report = json.loads(DEFAULT_OUTPUT.read_text(encoding="utf-8"))
 
-    assert report["backend_freeze_allowed"] is True
-    # The checked report is a nonclaiming candidate audit generated from the
-    # active development tree.  It must preserve that provenance instead of
-    # pretending the current uncommitted source snapshot was a clean release.
+    assert report["backend_contract_validated"] is True
+    assert report["backend_freeze_allowed"] is False
     assert report["source_tree_dirty"] is True
-    assert report["checks"]["clean_tracked_tree"] is True
-    assert report["status"] == "candidate_backend_frozen"
+    assert report["checks"]["clean_tracked_tree"] is False
+    assert report["clean_release_attestation"] == "pending_clean_tree"
+    assert report["status"] == "candidate_backend_validated_dirty_tree"
     assert report["benchmark_claim_allowed"] is False
     assert validate_report(report) == []

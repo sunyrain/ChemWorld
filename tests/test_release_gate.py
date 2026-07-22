@@ -23,6 +23,7 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
     names = [item["name"] for item in plan]
     assert names == [
         "claims",
+        "current_evidence",
         "lint",
         "type_check",
         "tests",
@@ -37,6 +38,7 @@ def test_release_gate_dry_run_lists_required_commands(tmp_path) -> None:
     ]
     flat_commands = [" ".join(item["command"]) for item in plan]
     assert any("manage_claims.py check" in command for command in flat_commands)
+    assert any("evidence_pipeline.py --check" in command for command in flat_commands)
     assert any("ruff check ." in command for command in flat_commands)
     assert any("mypy src/chemworld" in command for command in flat_commands)
     assert any("pytest" in command for command in flat_commands)
@@ -86,8 +88,15 @@ def test_release_gate_binds_the_candidate_backend_without_enabling_claims() -> N
     namespace = runpy.run_path("scripts/run_release_gate.py", run_name="release_gate")
     evidence = namespace["_backend_evidence"]()
 
-    assert evidence["status"] == "candidate_backend_frozen"
-    assert evidence["backend_freeze_allowed"] is True
+    assert evidence["status"] in {
+        "candidate_backend_clean_attested",
+        "candidate_backend_validated_dirty_tree",
+    }
+    assert evidence["backend_contract_validated"] is True
+    if evidence["clean_release_attestation"] == "passed":
+        assert evidence["backend_freeze_allowed"] is True
+    else:
+        assert evidence["backend_freeze_allowed"] is False
     assert evidence["benchmark_claim_allowed"] is False
     assert len(evidence["file_sha256"]) == 64
 

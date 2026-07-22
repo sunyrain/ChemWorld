@@ -1,0 +1,361 @@
+{
+  "schema_version": "chemworld-mechanism-adaptation-protocol-0.2.1",
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-design-aligned",
+  "status": "frozen_preflight_design_aligned",
+  "benchmark_claim_allowed": false,
+  "publication_ready": false,
+  "environment_role": "agent_capability_evaluation_and_training_environment",
+  "training_boundary": {
+    "environment_trains_or_updates_agent_weights": false,
+    "agent_may_be_trained_externally": true,
+    "within_campaign_adaptation": "context_memory_belief_and_action_updates_only",
+    "claim": "The benchmark evaluates use of physical-chemistry feedback; it does not retrain the evaluated hosted model."
+  },
+  "research_question": "Can a world-model Agent detect a hidden physical-chemistry law change, identify its operational mechanism family, choose diagnostic interventions, and recover performance under a fixed experiment budget?",
+  "design": {
+    "tasks": [
+      "reaction-to-crystallization",
+      "electrochemical-conversion"
+    ],
+    "public_development_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "private_evaluation_seeds": "maintainer_controlled_and_committed_before_run",
+    "minimum_private_world_seed_count_per_family": 30,
+    "provider_repeats_per_paired_cell": 5,
+    "candidate_order_seeds": [
+      7001,
+      7002,
+      7003,
+      7004,
+      7005
+    ],
+    "pre_change_experiments": 2,
+    "total_experiment_horizon": 14,
+    "change_after_experiments": [
+      "never",
+      1,
+      2,
+      4,
+      6
+    ],
+    "post_change_checkpoints": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "change_time_assignment": "seeded_randomized_and_hidden_from_agent",
+    "same_budget_for_all_conditions": true,
+    "right_censor_unrecovered_campaigns": true,
+    "single_intervention_per_certification_cell": true
+  },
+  "diagnosis_contract": {
+    "candidate_definitions_required": true,
+    "candidate_label_modes": [
+      "semantic",
+      "anonymous"
+    ],
+    "candidate_order_randomized": true,
+    "candidate_order_seeded_independently_from_world_seed": true,
+    "distribution_field": "mechanism_distribution",
+    "change_probability": "derived_as_1_minus_q_no_change",
+    "changed_family_distribution": "q_family_conditioned_on_change",
+    "declared_information_value_name": "declared_information_value",
+    "declared_information_value_claim_boundary": "agent_forecast_not_calibrated_eig",
+    "derived_diagnostics_returned_to_agent": false,
+    "candidate_definitions": {
+      "no_change": "The hidden physical-chemistry law and public-to-hidden material mapping are unchanged; only allowed nuisance and observation noise vary.",
+      "rate_law_family": "Reaction-rate dependence on public state or control variables changes while task topology and public action semantics remain fixed.",
+      "topology_family": "The active reaction or transport pathway graph changes while public action semantics remain fixed.",
+      "constitutive_law_family": "A constitutive relation such as electrochemical response or transport dependence changes while public action semantics remain fixed.",
+      "material_law_counterfactual": "Public material labels and actions remain fixed but their hidden effect mapping is permuted or replaced."
+    }
+  },
+  "task_mechanism_contracts": {
+    "reaction-to-crystallization": {
+      "candidate_ids": [
+        "no_change",
+        "rate_law_family",
+        "topology_family",
+        "material_law_counterfactual"
+      ],
+      "interventions": {
+        "no_change": [],
+        "rate_law_family": [
+          {
+            "kind": "mechanism_family",
+            "mode": "rate_law_family",
+            "severity": 0.8
+          }
+        ],
+        "topology_family": [
+          {
+            "kind": "mechanism_family",
+            "mode": "topology_family",
+            "severity": 0.8
+          }
+        ],
+        "material_law_counterfactual": [
+          {
+            "kind": "material_law_counterfactual",
+            "material_field": "catalyst",
+            "public_to_baseline": [
+              0,
+              2,
+              1,
+              3
+            ]
+          }
+        ]
+      }
+    },
+    "electrochemical-conversion": {
+      "candidate_ids": [
+        "no_change",
+        "constitutive_law_family",
+        "material_law_counterfactual"
+      ],
+      "interventions": {
+        "no_change": [],
+        "constitutive_law_family": [
+          {
+            "kind": "mechanism_family",
+            "mode": "constitutive_law_family",
+            "severity": 0.8
+          }
+        ],
+        "material_law_counterfactual": [
+          {
+            "kind": "material_law_counterfactual",
+            "material_field": "electrolyte_profile",
+            "public_to_baseline": [
+              2,
+              1,
+              0,
+              3
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "data_contract": {
+    "outcome_layers": [
+      "environment_outcome",
+      "agent_visible_observation",
+      "evaluation_outcome"
+    ],
+    "world_seed_recorded": true,
+    "observation_noise_seed_recorded": true,
+    "candidate_order_seed_recorded": true,
+    "provider_repeat_id_recorded": true,
+    "prompt_payload_sha256_recorded": true,
+    "response_payload_sha256_recorded": true,
+    "request_timestamp_recorded": true,
+    "request_parameters_recorded": [
+      "model_id",
+      "thinking",
+      "temperature",
+      "top_p",
+      "provider_seed_if_supported",
+      "max_tokens"
+    ],
+    "provider_receipt_recorded": true,
+    "system_fingerprint_recorded_when_available": true,
+    "model_failure_excluded_from_belief_update_metrics": true,
+    "all_exclusions_reason_coded": true,
+    "private_truth_never_in_agent_prompt": true
+  },
+  "paired_feedback_design": {
+    "local_prefix_reaction_test": {
+      "same_public_history_prefix": true,
+      "only_last_feedback_packet_changes": true,
+      "conditions": [
+        "true_feedback",
+        "permuted_feedback",
+        "delayed_feedback",
+        "critical_measurement_deleted"
+      ],
+      "provider_repeats_required": true,
+      "metrics": [
+        "declared_distribution_js_shift",
+        "derived_change_probability_shift",
+        "next_operation_change_rate",
+        "operation_aware_action_distance",
+        "diagnostic_measurement_rate"
+      ],
+      "net_effect": "mean_between_feedback_distance_minus_mean_within_condition_provider_distance"
+    },
+    "full_campaign_utility_test": {
+      "paired_world_seed": true,
+      "paired_initial_state": true,
+      "paired_prompt_and_model_settings": true,
+      "provider_seed_paired_when_supported": true,
+      "metrics": [
+        "terminal_score",
+        "cumulative_regret",
+        "mechanism_identification",
+        "recovery_time"
+      ]
+    }
+  },
+  "recovery_design": {
+    "open_loop_iid_action_replay_on_iid_world": true,
+    "open_loop_iid_action_replay_on_shifted_world": true,
+    "frozen_policy_on_shifted_world": true,
+    "adaptive_policy_on_shifted_world": true,
+    "diagnosis_oracle_on_shifted_world": true,
+    "world_effect": "iid_replay_shifted_world_minus_iid_replay_iid_world",
+    "adaptation_gain": "adaptive_policy_shifted_world_minus_frozen_policy_shifted_world",
+    "normalized_recovery": "adaptation_gain_divided_by_oracle_minus_frozen_policy",
+    "recovery_curve_metrics": [
+      "detection",
+      "truth_probability",
+      "diagnostic_action_rate",
+      "performance",
+      "cumulative_regret"
+    ]
+  },
+  "autonomy_contract": {
+    "levels": [
+      "fully_autonomous_campaign",
+      "autonomous_current_experiment_with_assisted_history",
+      "assisted_campaign",
+      "incomplete_campaign"
+    ],
+    "autonomous_score": "protocol failure or frozen penalty when the Agent does not complete terminate and final assay itself",
+    "assisted_scientific_score": "system may close out only after logging assistance; evaluates scientific value of preceding choices",
+    "guardrail_actions_never_count_as_agent_actions": true,
+    "both_scores_mandatory": true
+  },
+  "reporting": {
+    "statistical_unit": "world_seed_or_paired_cell",
+    "provider_repeats": "nested_technical_replicates",
+    "interval_method": "hierarchical_or_cluster_bootstrap_with_frozen_seed",
+    "confidence_level": 0.95,
+    "multiple_comparison_policy": "holm_for_confirmatory_family",
+    "effect_sizes_and_intervals_required": true,
+    "raw_per_seed_results_required": true,
+    "ranking_interface_strata": [
+      "experiment_recipe",
+      "operation_level"
+    ],
+    "mixed_interface_overall_ranking_primary": false,
+    "tie_handling": "average_rank",
+    "strict_inversions_exclude_ties": true
+  },
+  "gates": {
+    "gate_0": {
+      "name": "integrity_and_leakage",
+      "required_evidence": [
+        "private split commitment",
+        "trajectory and protocol hashes",
+        "three-layer outcome records",
+        "provider receipts and request parameters",
+        "derived-field prompt-leakage audit",
+        "reason-coded exclusions",
+        "replay determinism audit",
+        "action-intervention-observation alignment audit"
+      ],
+      "pass_rule": "all required evidence present; zero private-truth or derived-diagnostic prompt leakage; all analyzed rows hash-verifiable"
+    },
+    "gate_a": {
+      "name": "mechanism_identifiability",
+      "required_systems": [
+        "active_budget_matched_diagnosis_oracle",
+        "fixed_trajectory_decoder"
+      ],
+      "budget_checkpoints": [
+        2,
+        4
+      ],
+      "overall_top1_wilson_lower_bound": 0.8,
+      "per_family_recall_wilson_lower_bound": 0.7,
+      "nuisance_integration_required": true,
+      "pass_rule": "active oracle lower confidence bound >= 0.80 overall and >= 0.70 recall for every family at a frozen budget; decoder is reported separately"
+    },
+    "gate_b": {
+      "name": "change_detection_with_no_change_twins",
+      "metrics": [
+        "sensitivity",
+        "false_positive_rate",
+        "auroc",
+        "brier_score",
+        "detection_delay"
+      ],
+      "maximum_no_change_false_positive_rate": 0.1,
+      "minimum_auroc_lower_confidence_bound": 0.8,
+      "pass_rule": "paired no-change twins included, false-positive rate <= 0.10, and AUROC lower confidence bound >= 0.80"
+    },
+    "gate_c": {
+      "name": "feedback_sensitivity_and_utility",
+      "minimum_net_local_feedback_effect": 0,
+      "utility_direction": "true_feedback_better_than_permuted_feedback",
+      "pass_rule": "local between-condition response exceeds within-provider repeat noise and the paired campaign utility effect has a positive confidence-bound direction"
+    },
+    "gate_d": {
+      "name": "adaptation_and_recovery",
+      "minimum_normalized_recovery_lower_confidence_bound": 0.5,
+      "pass_rule": "adaptive policy beats frozen policy and normalized-recovery lower confidence bound >= 0.50, with open-loop world effect reported separately"
+    },
+    "gate_e": {
+      "name": "procedural_autonomy",
+      "maximum_protocol_failure_rate": 0.05,
+      "pass_rule": "autonomous protocol-failure upper confidence bound <= 0.05; autonomous and assisted scientific scores both reported"
+    }
+  },
+  "publication_claim_rule": {
+    "all_gates_must_pass": true,
+    "semantic_and_anonymous_label_results_required": true,
+    "no_single_trajectory_can_establish_mechanism_discovery": true,
+    "failed_gate_interpretation": "diagnostic result only; do not claim reliable mechanism discovery"
+  },
+  "current_evidence_status": {
+    "v0_1_raw_artifacts_preserved": true,
+    "v0_1_1_reanalysis_required": true,
+    "new_external_provider_runs_completed": false,
+    "gate_0": "not_evaluated",
+    "gate_a": "prior_v0.2_result_invalidated_by_action_intervention_mismatch",
+    "gate_b": "not_evaluated",
+    "gate_c": "not_evaluated",
+    "gate_d": "not_evaluated",
+    "gate_e": "not_evaluated",
+    "publication_ready": false,
+    "prior_invalid_evidence": {
+      "path": "workstreams/flagship_tasks/reports/archive/mechanism-adaptation-gate-a-v0.2-invalid-design.json",
+      "reason": "The electrochemical solvent counterfactual moved solvent labels while the task legally exposed only solvent=0; the result cannot distinguish oracle weakness from an unreachable intervention target."
+    }
+  },
+  "intervention_action_alignment": {
+    "required": true,
+    "engine_supported_material_fields": [
+      "catalyst",
+      "solvent",
+      "electrolyte_profile"
+    ],
+    "task_validity_rule": "The target field must have at least two legal public choices in the task, all moved indices must be legal, and the frozen Gate A recipe library must exercise every moved index.",
+    "material_field_actions": {
+      "catalyst": {
+        "operation": "add_catalyst",
+        "public_field": "catalyst"
+      },
+      "solvent": {
+        "operation": "add_solvent",
+        "public_field": "solvent"
+      },
+      "electrolyte_profile": {
+        "operation": "set_potential",
+        "public_field": "electrolyte_profile"
+      }
+    },
+    "minimum_public_choice_count": 2,
+    "moved_indices_must_be_covered_by_gate_a_action_library": true,
+    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.1.json"
+  }
+}
+

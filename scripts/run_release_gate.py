@@ -40,6 +40,10 @@ def release_gate_commands(
     baseline_dir = output_dir / "baseline_smoke"
     return [
         GateCommand("claims", [python, "scripts/manage_claims.py", "check"]),
+        GateCommand(
+            "current_evidence",
+            [python, "scripts/evidence_pipeline.py", "--check"],
+        ),
         GateCommand("lint", [python, "-m", "ruff", "check", "."]),
         GateCommand("type_check", [python, "-m", "mypy", "src/chemworld"]),
         GateCommand("tests", [python, "-m", "pytest"]),
@@ -212,6 +216,8 @@ def _backend_evidence() -> dict[str, Any]:
         "backend_id": report.get("backend_id"),
         "report_hash": report.get("report_hash"),
         "status": report.get("status"),
+        "backend_contract_validated": report.get("backend_contract_validated"),
+        "clean_release_attestation": report.get("clean_release_attestation"),
         "backend_freeze_allowed": report.get("backend_freeze_allowed"),
         "benchmark_claim_allowed": report.get("benchmark_claim_allowed"),
     }

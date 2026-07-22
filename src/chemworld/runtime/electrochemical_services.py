@@ -33,6 +33,7 @@ from chemworld.physchem.equilibrium_chemistry import (
 )
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.actions import ELECTROLYTE_PROFILES
+from chemworld.world.material_counterfactual import resolve_material_law_index
 from chemworld.world.parameters import ChemWorldParameters
 
 AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS: tuple[dict[str, float], ...] = (
@@ -137,7 +138,13 @@ class ChemWorldElectrochemicalServices:
             "electrolyte_profile",
             len(ELECTROLYTE_PROFILES),
         )
-        profile = AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS[electrolyte_profile]
+        hidden_profile = resolve_material_law_index(
+            state.metadata,
+            material_field="electrolyte_profile",
+            public_index=electrolyte_profile,
+            catalog_size=len(ELECTROLYTE_PROFILES),
+        )
+        profile = AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS[hidden_profile]
         previous_cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
         potential = _bounded_action_float(action, "potential_V", 1.20, low=-3.0, high=3.0)
         current = _bounded_action_float(action, "current_mA", 50.0, low=1.0e-3, high=500.0)

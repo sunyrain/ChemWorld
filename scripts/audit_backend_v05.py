@@ -125,6 +125,9 @@ def build_report(
     *,
     enforce_clean_tree: bool = True,
 ) -> dict[str, Any]:
+    # Kept for API compatibility. Dirty-candidate mode changes the CLI exit
+    # policy, never the truth value of the clean-tree evidence check.
+    _ = enforce_clean_tree
     protocol = load_protocol() if protocol is None else dict(protocol)
     tasks = tuple(list_tasks())
     task_payloads = {task.task_id: task.to_dict() for task in tasks}
@@ -159,7 +162,13 @@ def build_report(
         "candidate_claim_boundary": protocol.get("release_status")
         == "candidate_backend_only"
         and protocol.get("benchmark_claim_allowed") is False,
-        "clean_tracked_tree": (not source_tree_dirty) or not enforce_clean_tree,
+        # Tree cleanliness is evidence, not a command-line policy choice.  The
+        # old implementation made this check true under --allow-dirty and could
+        # therefore emit source_tree_dirty=true together with a "frozen"
+        # status.  --allow-dirty now controls only whether a current development
+        # snapshot may be written; it never upgrades that snapshot to a clean
+        # release attestation.
+        "clean_tracked_tree": not source_tree_dirty,
         "task_contracts_exact": actual_hashes == expected_hashes,
         "task_count_exact": len(tasks) == expected_counts["tasks"],
         "operation_count_exact": len(OPERATION_TYPES) == expected_counts["operations"],
@@ -192,14 +201,30 @@ def build_report(
         "bound_artifacts_complete": set(artifact_hashes)
         == set(protocol["bound_artifacts"]),
     }
+    contract_checks = {
+        key: value for key, value in checks.items() if key != "clean_tracked_tree"
+    }
+    backend_contract_validated = all(contract_checks.values())
+    backend_freeze_allowed = backend_contract_validated and checks["clean_tracked_tree"]
+    if backend_freeze_allowed:
+        status = "candidate_backend_clean_attested"
+        clean_release_attestation = "passed"
+    elif backend_contract_validated:
+        status = "candidate_backend_validated_dirty_tree"
+        clean_release_attestation = "pending_clean_tree"
+    else:
+        status = "blocked"
+        clean_release_attestation = "blocked"
     report: dict[str, Any] = {
         "schema_version": REPORT_SCHEMA_VERSION,
         "backend_id": protocol["backend_id"],
         "world_law_id": protocol["world_law_id"],
         "release_status": protocol["release_status"],
         "benchmark_claim_allowed": False,
-        "backend_freeze_allowed": all(checks.values()),
-        "status": "candidate_backend_frozen" if all(checks.values()) else "blocked",
+        "backend_contract_validated": backend_contract_validated,
+        "backend_freeze_allowed": backend_freeze_allowed,
+        "clean_release_attestation": clean_release_attestation,
+        "status": status,
         "source_commit": _git_output("rev-parse", "HEAD"),
         "source_tree_dirty": source_tree_dirty,
         "protocol_sha256": _json_hash(protocol),
@@ -225,6 +250,29 @@ def validate_report(report: Mapping[str, Any]) -> list[str]:
         expected = all(bool(value) for value in checks.values())
         if report.get("backend_freeze_allowed") is not expected:
             errors.append("freeze decision mismatch")
+        contract_expected = all(
+            bool(value) for key, value in checks.items() if key != "clean_tracked_tree"
+        )
+        if report.get("backend_contract_validated") is not contract_expected:
+            errors.append("backend contract validation mismatch")
+        expected_attestation = (
+            "passed"
+            if expected
+            else "pending_clean_tree"
+            if contract_expected
+            else "blocked"
+        )
+        if report.get("clean_release_attestation") != expected_attestation:
+            errors.append("clean release attestation mismatch")
+        expected_status = (
+            "candidate_backend_clean_attested"
+            if expected
+            else "candidate_backend_validated_dirty_tree"
+            if contract_expected
+            else "blocked"
+        )
+        if report.get("status") != expected_status:
+            errors.append("backend status mismatch")
     expected_hash = _json_hash({**dict(report), "report_hash": None})
     if report.get("report_hash") != expected_hash:
         errors.append("report hash mismatch")
@@ -254,7 +302,11 @@ def main() -> int:
         encoding="utf-8",
     )
     print(json.dumps(report, indent=2, sort_keys=True))
-    return 0 if report["backend_freeze_allowed"] else 1
+    if report["backend_freeze_allowed"]:
+        return 0
+    if args.allow_dirty and report["backend_contract_validated"]:
+        return 0
+    return 1
 
 
 if __name__ == "__main__":

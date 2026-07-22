@@ -1,0 +1,41 @@
+{
+  "schema_version": "chemworld-mechanism-adaptation-gate-a-plan-0.2",
+  "plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-22",
+  "protocol": "configs/benchmark/mechanism_adaptation_v0.2.json",
+  "formal_benchmark_result": false,
+  "purpose": "Budget-matched mechanism-identifiability certificate over public environment observations before any external-provider campaign is interpreted.",
+  "action_library": {
+    "design": "deterministic_unit_hypercube_anchor_and_seeded_uniform",
+    "action_count_per_task": 6,
+    "design_seed": 41102
+  },
+  "candidate_predictive_fit": {
+    "samples_per_candidate_action": 24,
+    "oracle_seed": 41103,
+    "variance_floor": 0.0001,
+    "nuisance_seed_namespace_start": 100000000,
+    "execution_workers": 8
+  },
+  "held_out_certificate": {
+    "world_seeds_per_family": 30,
+    "seed_namespace_start": 1600000000,
+    "information_draws_per_action": 64,
+    "execution_workers": 8,
+    "budgets": [
+      2,
+      4
+    ],
+    "primary_gate_budget": 4,
+    "same_seed_reused_across_budget_prefixes": true,
+    "same_seed_reused_for_active_and_fixed_decoder": true
+  },
+  "public_feature_contract": {
+    "source": "agent-visible numeric observation and reward after every compiled public recipe operation",
+    "encoding": "sorted flattened values with finite-value masks; non-finite values replaced by zero",
+    "private_truth_fields_included": false,
+    "evaluation_only_hidden_outcomes_included": false,
+    "fixed_trajectory_action_source": "first actions in the frozen deterministic action library",
+    "decoder_controls_gate": false
+  },
+  "gate_rule_source": "configs/benchmark/mechanism_adaptation_v0.2.json#gates.gate_a"
+}

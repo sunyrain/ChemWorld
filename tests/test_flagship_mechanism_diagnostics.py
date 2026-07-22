@@ -20,6 +20,10 @@ from chemworld.eval.flagship_diagnostics import (
     load_flagship_diagnostic_protocol,
     render_flagship_diagnostic_markdown,
 )
+from chemworld.foundation import equipment_settings
+from chemworld.runtime.electrochemical_services import (
+    AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS,
+)
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
 
@@ -132,7 +136,7 @@ def _info(score: float, experiment_index: int) -> dict[str, Any]:
     ("task_id", "material_field", "permutation"),
     [
         ("reaction-to-crystallization", "catalyst", [0, 2, 1, 3]),
-        ("electrochemical-conversion", "solvent", [2, 1, 0, 3]),
+        ("reaction-to-crystallization", "solvent", [2, 1, 0, 3]),
     ],
 )
 def test_material_law_counterfactual_swaps_hidden_rows_only(
@@ -209,6 +213,68 @@ def test_material_law_counterfactual_swaps_hidden_rows_only(
     finally:
         baseline_env.close()
         variant_env.close()
+
+
+def test_electrolyte_profile_counterfactual_keeps_public_label_and_swaps_hidden_effect() -> None:
+    intervention = {
+        "kind": "material_law_counterfactual",
+        "material_field": "electrolyte_profile",
+        "public_to_baseline": [2, 1, 0, 3],
+    }
+    baseline = ChemWorldEnv(task_id="electrochemical-conversion", seed=0)
+    shifted = ChemWorldEnv(
+        task_id="electrochemical-conversion",
+        seed=0,
+        world_interventions=(intervention,),
+    )
+    setup = [
+        {"operation": "add_solvent", "volume_L": 0.025, "solvent": 0},
+        {"operation": "add_reagent", "amount_mol": 0.01},
+        {
+            "operation": "set_potential",
+            "potential_V": 1.0,
+            "current_mA": 40.0,
+            "electrolyte_profile": 0,
+        },
+    ]
+    try:
+        baseline.reset(seed=0)
+        shifted.reset(seed=0)
+        for action in setup:
+            baseline.step(action)
+            shifted.step(action)
+        baseline_settings = equipment_settings(
+            baseline._state.equipment, "electrochemical_cell"
+        )
+        shifted_settings = equipment_settings(
+            shifted._state.equipment, "electrochemical_cell"
+        )
+        assert baseline_settings["electrolyte_profile"] == 0
+        assert shifted_settings["electrolyte_profile"] == 0
+        assert baseline_settings["electrolyte_profile_id"] == (
+            shifted_settings["electrolyte_profile_id"]
+        )
+        assert baseline_settings["electrolyte_conductivity_S_m"] == pytest.approx(
+            AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS[0][
+                "electrolyte_conductivity_S_m"
+            ]
+        )
+        assert shifted_settings["electrolyte_conductivity_S_m"] == pytest.approx(
+            AQUEOUS_ELECTROLYTE_PROFILE_PARAMETERS[2][
+                "electrolyte_conductivity_S_m"
+            ]
+        )
+        public_payload = json.dumps(
+            {
+                "task": shifted.task_info(),
+                "view": shifted.observation_view("tool_json"),
+            }
+        )
+        assert "_hidden_material_law" not in public_payload
+        assert "public_to_baseline" not in public_payload
+    finally:
+        baseline.close()
+        shifted.close()
 
 
 def test_material_law_counterfactual_rejects_identity_and_wrong_length() -> None:

@@ -382,25 +382,82 @@ class GaussianMechanismOracle:
         """Fit held-out-ready predictive approximations for every action/candidate."""
 
         rng = np.random.default_rng(self.seed)
-        fitted: dict[tuple[str, str], GaussianCandidatePredictive] = {}
+        sample_groups: dict[tuple[str, str], list[Sequence[float]]] = {}
         for action_id in self.action_ids:
             for candidate_id in self.candidate_ids:
                 seeds = rng.integers(0, np.iinfo(np.int32).max, size=self.samples_per_candidate)
-                samples = np.asarray(
-                    [
-                        self._sample(candidate_id, action_id, int(sample_seed))
-                        for sample_seed in seeds
-                    ],
-                    dtype=float,
-                )
-                if samples.ndim != 2 or samples.shape[0] != self.samples_per_candidate:
-                    raise ValueError("candidate generator must return fixed-length vectors")
-                fitted[(candidate_id, action_id)] = GaussianCandidatePredictive(
-                    candidate_id=candidate_id,
-                    action_id=action_id,
-                    mean=np.mean(samples, axis=0),
-                    variance=np.maximum(np.var(samples, axis=0, ddof=1), self.variance_floor),
-                )
+                sample_groups[(candidate_id, action_id)] = [
+                    self._sample(candidate_id, action_id, int(sample_seed))
+                    for sample_seed in seeds
+                ]
+        self.fit_predictives_from_samples(sample_groups)
+
+    def fit_predictives_from_samples(
+        self,
+        samples: Mapping[tuple[str, str], Sequence[Sequence[float]]],
+    ) -> None:
+        """Fit predictives from externally scheduled candidate-generator samples."""
+
+        expected = {
+            (candidate_id, action_id)
+            for action_id in self.action_ids
+            for candidate_id in self.candidate_ids
+        }
+        if set(samples) != expected:
+            raise ValueError("predictive samples must exactly cover candidate/action pairs")
+        fitted: dict[tuple[str, str], GaussianCandidatePredictive] = {}
+        for candidate_id, action_id in sorted(samples):
+            values = np.asarray(samples[(candidate_id, action_id)], dtype=float)
+            if values.ndim != 2 or values.shape[0] < 4:
+                raise ValueError("each candidate/action predictive requires four samples")
+            fitted[(candidate_id, action_id)] = GaussianCandidatePredictive(
+                candidate_id=candidate_id,
+                action_id=action_id,
+                mean=np.mean(values, axis=0),
+                variance=np.maximum(np.var(values, axis=0, ddof=1), self.variance_floor),
+            )
+        self._predictives = fitted
+
+    def export_predictives(self) -> dict[str, Any]:
+        """Return a process-safe representation of fitted predictive models."""
+
+        self._require_fitted()
+        return {
+            f"{candidate_id}\u241f{action_id}": {
+                "candidate_id": candidate_id,
+                "action_id": action_id,
+                "mean": predictive.mean.tolist(),
+                "variance": predictive.variance.tolist(),
+            }
+            for (candidate_id, action_id), predictive in self._predictives.items()
+        }
+
+    def load_predictives(self, payload: Mapping[str, Mapping[str, Any]]) -> None:
+        """Load a representation produced by :meth:`export_predictives`."""
+
+        fitted: dict[tuple[str, str], GaussianCandidatePredictive] = {}
+        for item in payload.values():
+            candidate_id = str(item["candidate_id"])
+            action_id = str(item["action_id"])
+            fitted[(candidate_id, action_id)] = GaussianCandidatePredictive(
+                candidate_id=candidate_id,
+                action_id=action_id,
+                mean=np.asarray(item["mean"], dtype=float),
+                variance=np.asarray(item["variance"], dtype=float),
+            )
+        expected = {
+            (candidate_id, action_id)
+            for action_id in self.action_ids
+            for candidate_id in self.candidate_ids
+        }
+        if set(fitted) != expected:
+            raise ValueError("loaded predictives must exactly cover candidate/action pairs")
+        dimensions = {predictive.mean.shape for predictive in fitted.values()}
+        if len(dimensions) != 1 or any(
+            predictive.mean.shape != predictive.variance.shape
+            for predictive in fitted.values()
+        ):
+            raise ValueError("loaded predictive dimensions are inconsistent")
         self._predictives = fitted
 
     def update(self, *, action_id: str, observation: Sequence[float]) -> dict[str, float]:
@@ -688,6 +745,43 @@ def validate_mechanism_adaptation_protocol(protocol: Mapping[str, Any]) -> list[
                 errors.append(f"task candidates lack public definitions: {task_id}")
             if isinstance(interventions, Mapping) and interventions.get("no_change") != []:
                 errors.append(f"no_change intervention must be empty: {task_id}")
+            if isinstance(interventions, Mapping):
+                for candidate_id in candidates:
+                    if candidate_id == "no_change":
+                        continue
+                    candidate_interventions = interventions.get(candidate_id)
+                    if not isinstance(candidate_interventions, list) or len(
+                        candidate_interventions
+                    ) != 1:
+                        errors.append(
+                            "changed candidates must declare exactly one intervention: "
+                            f"{task_id}/{candidate_id}"
+                        )
+                        continue
+                    intervention = candidate_interventions[0]
+                    if not isinstance(intervention, Mapping):
+                        errors.append(
+                            f"intervention must be an object: {task_id}/{candidate_id}"
+                        )
+                        continue
+                    if intervention.get("kind") == "material_law_counterfactual":
+                        material_field = intervention.get("material_field")
+                        if material_field not in {
+                            "catalyst",
+                            "solvent",
+                            "electrolyte_profile",
+                        }:
+                            errors.append(
+                                "unsupported material counterfactual field: "
+                                f"{task_id}/{candidate_id}/{material_field}"
+                            )
+
+    if protocol.get("schema_version") == "chemworld-mechanism-adaptation-protocol-0.2.1":
+        alignment = protocol.get("intervention_action_alignment")
+        if not isinstance(alignment, Mapping) or not alignment.get("required"):
+            errors.append("v0.2.1 requires intervention_action_alignment")
+        elif not alignment.get("moved_indices_must_be_covered_by_gate_a_action_library"):
+            errors.append("v0.2.1 must require Gate A coverage of moved material indices")
 
     return errors
 

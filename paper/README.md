@@ -1,5 +1,9 @@
 # ChemWorld Nature-style submission draft
 
+There is no active publication manuscript in the current evidence DAG. The earlier NCS working
+draft is preserved at `paper/archive/ncs-working-draft-2026-07-21/` as historical material while
+the current work focuses on the mechanism-adaptation benchmark and its empirical gates.
+
 This directory contains a rendered **Nature Article-style submission draft for author review**.
 It is deliberately not labelled publication-ready: the architecture controls pass, but the full
 method matrix, multi-seed RL evaluation, real-provider LLM runs, hidden-world generalization,

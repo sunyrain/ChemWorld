@@ -1,4 +1,4 @@
-"""Expand the public v0.2 changed/no-change paired campaign matrix."""
+"""Expand the public v0.2.1 changed/no-change paired campaign matrix."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from chemworld.eval.mechanism_adaptation import build_paired_campaign_matrix
 from chemworld.eval.mechanism_adaptation_preflight import DEFAULT_PROTOCOL, ROOT
 
 DEFAULT_OUTPUT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2-public-matrix.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-public-matrix.json"
 )
 
 
@@ -28,7 +28,7 @@ def main() -> None:
         json.dumps(rows, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
     report = {
-        "schema_version": "chemworld-mechanism-adaptation-campaign-matrix-0.2",
+        "schema_version": "chemworld-mechanism-adaptation-campaign-matrix-0.2.1",
         "protocol_id": protocol["protocol_id"],
         "protocol_sha256": hashlib.sha256(protocol_bytes).hexdigest(),
         "matrix_scope": "public_development_seeds_only",

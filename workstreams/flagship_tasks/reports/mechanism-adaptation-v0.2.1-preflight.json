@@ -1,0 +1,445 @@
+{
+  "artifacts": [
+    {
+      "exists": true,
+      "path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json",
+      "sha256": "d415fc5fb8293132bf843550e41866e869b6cc209437fe1bfc168354ca893e34"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/agents/mechanism_adaptation_live_llm.py",
+      "sha256": "ff56c36f3f5eb4adb8fc24e968b76ca724eaa685e12d4f703f9dca858fa757a7"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/eval/mechanism_adaptation.py",
+      "sha256": "e38e0c59e0daf34a4e1a86a4d71f11b1f7858180455dcc3e253ef5952974d7a6"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/eval/mechanism_design_audit.py",
+      "sha256": "565224bd6ddc51936e8ffa48078e0f1dc4335d4709d268339f6d9782981bd21d"
+    },
+    {
+      "exists": true,
+      "path": "src/chemworld/eval/mechanism_adaptation_execution.py",
+      "sha256": "baa3b676b8fa4cab765284b6e3b22d2bf792c6cc51757e2002e91c4ecaea53df"
+    },
+    {
+      "exists": true,
+      "path": "scripts/audit_mechanism_adaptation_design.py",
+      "sha256": "548b348e3fb02ef47931e60b96d5a44a6a1c6944b23d560397361384ed4ba020"
+    },
+    {
+      "exists": true,
+      "path": "scripts/run_mechanism_adaptation_v0_2.py",
+      "sha256": "f4216c80b605fe6d14a764d9e1e36ddb254d99a2a811e7c7bc330994d5f6393a"
+    },
+    {
+      "exists": true,
+      "path": "scripts/plan_mechanism_adaptation_matrix.py",
+      "sha256": "ac7642301f11ed11f742512142c18a6d6632d85924853dc6b99185fb044d8923"
+    },
+    {
+      "exists": true,
+      "path": "tests/test_mechanism_adaptation.py",
+      "sha256": "e6d1ea27d76b6fbffffc54a2a884df0136d0a9b86b42d72014e209dc214d74a5"
+    },
+    {
+      "exists": true,
+      "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-final-protocol-v0.2.md",
+      "sha256": "4c0b745581c5b6e729fce0202d1916a728d790e220e4e78fe88f31567f527e65"
+    },
+    {
+      "exists": true,
+      "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-public-matrix.json",
+      "sha256": "a162d9c64af56188961ca74eb61c1e53ed584bdf5400bb9fcb76e12a63934f55"
+    },
+    {
+      "exists": true,
+      "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.1.json",
+      "sha256": "b24ae19f22ab831bf501bba2e7e866198a7e65a8f9be52fe194b43c5e4bfd801"
+    }
+  ],
+  "design_validity_audit": {
+    "check_count": 29,
+    "failure_count": 0,
+    "failures": [],
+    "gate_a_plan_id": "chemworld-mechanism-adaptation-gate-a-2026-07-22-design-aligned",
+    "gate_a_plan_path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json",
+    "gate_a_plan_sha256": "8e65d4e82ef6703f6113d56c45be88740899572934b0590ae2ab6b4d331ccc2e",
+    "interpretation": "A pass means each frozen hidden target is publicly manipulable, covered by the Gate A recipes, observable before termination, instantiable, and absent from the mechanism-Agent prompt. It does not establish identifiability.",
+    "material_field_action_contract": {
+      "catalyst": {
+        "operation": "add_catalyst",
+        "public_field": "catalyst"
+      },
+      "electrolyte_profile": {
+        "operation": "set_potential",
+        "public_field": "electrolyte_profile"
+      },
+      "solvent": {
+        "operation": "add_solvent",
+        "public_field": "solvent"
+      }
+    },
+    "pass": true,
+    "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-design-aligned",
+    "protocol_path": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
+    "protocol_sha256": "08d96a8e76ffca384e279ceee2a4f83f57f7174372961154aeac735f106d8d36",
+    "schema_version": "chemworld-mechanism-design-audit-0.2.1",
+    "status": "passed",
+    "task_reports": {
+      "electrochemical-conversion": {
+        "action_count": 6,
+        "checks": [
+          {
+            "check": "diagnostic_measurement_present",
+            "detail": "Every frozen recipe must contain a public measurement before termination.",
+            "pass": true
+          },
+          {
+            "check": "no_change:empty_intervention",
+            "detail": "The no-change twin must have no hidden intervention.",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "constitutive_law_family:diagnostic_control_variation",
+            "detail": "At least one public control implicated by the hidden law must vary across frozen recipes; varied=[{'operation': 'set_potential', 'field': 'potential_V'}, {'operation': 'set_potential', 'field': 'current_mA'}, {'operation': 'set_potential', 'field': 'electrolyte_profile'}].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:supported_material_field",
+            "detail": "Supported material targets are ['catalyst', 'electrolyte_profile', 'solvent'].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:public_operation_allowed",
+            "detail": "set_potential.electrolyte_profile must be available to the Agent in electrochemical-conversion.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:public_choice_cardinality",
+            "detail": "A relational counterfactual needs at least two public choices; choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:moved_indices_publicly_reachable",
+            "detail": "All moved public indices must be legal; moved=[0, 2], choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:moved_indices_recipe_covered",
+            "detail": "Frozen Gate A recipes must exercise every moved index; moved=[0, 2], covered=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "private_truth_absent_from_agent_prompt",
+            "detail": "Forbidden intervention keys in prompt=[].",
+            "pass": true
+          }
+        ],
+        "pass": true,
+        "recipe_field_values": {
+          "add_reagent.amount_mol": [
+            0.00705,
+            0.012170133662387572,
+            0.0165,
+            0.025949999999999997,
+            0.027338505597356358,
+            0.028130374213240317
+          ],
+          "add_solvent.solvent": [
+            0
+          ],
+          "add_solvent.volume_L": [
+            0.025
+          ],
+          "electrolyze.duration_s": [
+            185.25260672143466,
+            1950.0,
+            246.0050999687832,
+            288.0,
+            2983.706454239039,
+            3105.0,
+            317.2116319513343,
+            540.0,
+            550.5701121419463,
+            792.0,
+            795.0,
+            996.803554236501
+          ],
+          "measure.instrument": [
+            "final_assay",
+            "ph_meter",
+            "uvvis"
+          ],
+          "set_potential.current_mA": [
+            105.0,
+            135.11370541905887,
+            164.5,
+            20.872273650858716,
+            26.25,
+            45.5,
+            52.5,
+            70.69737584823932,
+            71.29791598086209,
+            75.20022949322228,
+            78.75,
+            83.36440981142272
+          ],
+          "set_potential.electrolyte_profile": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "set_potential.potential_V": [
+            0.7115237379592187,
+            0.74,
+            0.865,
+            0.95,
+            1.007774864594894,
+            1.063333158851792,
+            1.1401766826402409,
+            1.1600000000000001,
+            1.25,
+            1.2564198433987863,
+            1.5284734969663865,
+            1.6350000000000002
+          ]
+        }
+      },
+      "reaction-to-crystallization": {
+        "action_count": 6,
+        "checks": [
+          {
+            "check": "diagnostic_measurement_present",
+            "detail": "Every frozen recipe must contain a public measurement before termination.",
+            "pass": true
+          },
+          {
+            "check": "no_change:empty_intervention",
+            "detail": "The no-change twin must have no hidden intervention.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "rate_law_family:diagnostic_control_variation",
+            "detail": "At least one public control implicated by the hidden law must vary across frozen recipes; varied=[{'operation': 'heat', 'field': 'target_temperature_K'}, {'operation': 'heat', 'field': 'duration_s'}].",
+            "pass": true
+          },
+          {
+            "check": "topology_family:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "topology_family:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "topology_family:diagnostic_control_variation",
+            "detail": "At least one public control implicated by the hidden law must vary across frozen recipes; varied=[{'operation': 'add_catalyst', 'field': 'catalyst'}, {'operation': 'heat', 'field': 'target_temperature_K'}].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:single_intervention",
+            "detail": "Each certification cell must change exactly one hidden law family.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:environment_instantiation",
+            "detail": "The task must reset under the declared intervention.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:supported_material_field",
+            "detail": "Supported material targets are ['catalyst', 'electrolyte_profile', 'solvent'].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:public_operation_allowed",
+            "detail": "add_catalyst.catalyst must be available to the Agent in reaction-to-crystallization.",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:public_choice_cardinality",
+            "detail": "A relational counterfactual needs at least two public choices; choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:moved_indices_publicly_reachable",
+            "detail": "All moved public indices must be legal; moved=[1, 2], choices=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "material_law_counterfactual:moved_indices_recipe_covered",
+            "detail": "Frozen Gate A recipes must exercise every moved index; moved=[1, 2], covered=[0, 1, 2, 3].",
+            "pass": true
+          },
+          {
+            "check": "private_truth_absent_from_agent_prompt",
+            "detail": "Forbidden intervention keys in prompt=[].",
+            "pass": true
+          }
+        ],
+        "pass": true,
+        "recipe_field_values": {
+          "add_catalyst.catalyst": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "add_catalyst.catalyst_amount_mol": [
+            0.00015050000000000003,
+            0.000225304321810994,
+            0.000315,
+            0.0003638494031243696,
+            0.0003872846610191208,
+            0.0004795
+          ],
+          "add_reagent.amount_mol": [
+            0.00705,
+            0.013636998495108146,
+            0.0165,
+            0.02116663835966976,
+            0.0223087267842064,
+            0.025949999999999997
+          ],
+          "add_solvent.solvent": [
+            0,
+            2,
+            3
+          ],
+          "add_solvent.volume_L": [
+            0.025
+          ],
+          "cool_crystallize.duration_s": [
+            12330.0,
+            2334.0264544007878,
+            2670.0,
+            2769.5153242458864,
+            7500.0,
+            9650.050168351312
+          ],
+          "cool_crystallize.target_temperature_K": [
+            276.75,
+            283.5781346104559,
+            292.5,
+            304.82278724385014,
+            308.25,
+            312.58627609459995
+          ],
+          "heat.duration_s": [
+            1845.0,
+            2787.6394477449617,
+            3195.349926430131,
+            3651.120262379896,
+            4050.0,
+            6255.0
+          ],
+          "heat.stirring_speed_rpm": [
+            1010.0361991147032,
+            412.5,
+            675.0,
+            740.3094354625223,
+            937.5,
+            987.2877155498617
+          ],
+          "heat.target_temperature_K": [
+            346.65,
+            359.669403640872,
+            378.15,
+            396.9171271487101,
+            409.65,
+            417.5227146942624
+          ],
+          "measure.instrument": [
+            "final_assay",
+            "hplc"
+          ],
+          "seed_crystals.seed_mass_g": [
+            0.0031,
+            0.0042305347339033185,
+            0.007160945117270517,
+            0.008,
+            0.012899999999999998,
+            0.014781148605821682
+          ]
+        }
+      }
+    }
+  },
+  "design_validity_audit_pass": true,
+  "empirical_gate_status": {
+    "gate_0": "not_evaluated",
+    "gate_a": "not_evaluated",
+    "gate_b": "not_evaluated",
+    "gate_c": "not_evaluated",
+    "gate_d": "not_evaluated",
+    "gate_e": "not_evaluated"
+  },
+  "external_empirical_run_completed": false,
+  "gate_evaluator_without_evidence": {
+    "all_gates_pass": false,
+    "gates": {
+      "gate_0": false,
+      "gate_a": false,
+      "gate_b": false,
+      "gate_c": false,
+      "gate_d": false,
+      "gate_e": false
+    },
+    "missing_or_failed_gates": [
+      "gate_0",
+      "gate_a",
+      "gate_b",
+      "gate_c",
+      "gate_d",
+      "gate_e"
+    ],
+    "publication_ready": false
+  },
+  "implementation_complete": true,
+  "interpretation": "There are no unresolved method-freeze choices when blocker_count is zero. The remaining work is execution of the frozen external multi-seed/provider matrix, not an unmade protocol decision.",
+  "method_freeze_decision_blocker_count": 0,
+  "method_freeze_decision_blockers": [],
+  "protocol_id": "chemworld-world-model-mechanism-adaptation-2026-07-22-design-aligned",
+  "protocol_path": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
+  "protocol_sha256": "d22c6b88b6b2bbf076f272c62b860c845266100e18af0c6bf908dd14450f87ab",
+  "publication_ready": false,
+  "schema_version": "chemworld-mechanism-adaptation-preflight-0.2",
+  "status": "protocol_complete_empirical_execution_pending"
+}

@@ -1,0 +1,658 @@
+"""Executable orchestration for the v0.2 mechanism-adaptation benchmark.
+
+The module has two deliberately separate jobs:
+
+* produce Gate A from environment observations without making provider calls; and
+* expand and execute the frozen paired campaign matrix with durable per-row artifacts.
+
+Gate A uses only numeric values available in the public observation/reward stream.  It
+does not train or update an evaluated Agent, and it does not expose hidden candidate
+IDs to an Agent.  The Gaussian oracle is an evaluator-side diagnostic used to decide
+whether the environment contains enough information at the frozen budget.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from collections.abc import Mapping, Sequence
+from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
+from typing import Any, cast
+
+import numpy as np
+
+from chemworld.agents.mechanism_adaptation_live_llm import (
+    MechanismAdaptationLiveLLMAgent,
+    MechanismCandidateSpec,
+)
+from chemworld.agents.task_recipes import (
+    task_recipe_dimension,
+    task_recipe_event_count,
+    task_recipe_from_unit_vector,
+)
+from chemworld.envs.chemworld_env import ChemWorldEnv
+from chemworld.eval.flagship_diagnostics import (
+    ContinuingPublicViewAgent,
+    run_two_phase_campaign,
+)
+from chemworld.eval.mechanism_adaptation import (
+    GaussianMechanismOracle,
+    build_paired_campaign_matrix,
+    identifiability_certificate,
+    validate_mechanism_adaptation_protocol,
+)
+from chemworld.eval.mechanism_design_audit import audit_mechanism_design
+from chemworld.providers.deepseek import DeepSeekClient
+from chemworld.tasks import get_task
+
+ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_PROTOCOL_PATH = ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json"
+DEFAULT_GATE_A_PLAN_PATH = (
+    ROOT / "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json"
+)
+DEFAULT_LLM_METHODS_PATH = ROOT / "configs/methods/llm_v0.4/llm_methods.json"
+EXECUTION_SCHEMA_VERSION = "chemworld-mechanism-adaptation-execution-0.2"
+GATE_A_REPORT_VERSION = "chemworld-mechanism-adaptation-gate-a-report-0.2.1"
+
+_CRITICAL_INSTRUMENTS = {
+    "reaction-to-crystallization": "hplc",
+    "electrochemical-conversion": "uvvis",
+}
+
+
+def load_json_object(path: str | Path) -> dict[str, Any]:
+    """Load a JSON object and reject ambiguous non-object roots."""
+
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"expected a JSON object: {path}")
+    return payload
+
+
+def file_sha256(path: str | Path) -> str:
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def canonical_sha256(value: Any) -> str:
+    encoded = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def build_action_library(
+    task_id: str,
+    *,
+    action_count: int,
+    seed: int,
+) -> dict[str, np.ndarray]:
+    """Return a deterministic bounded set of public complete-recipe designs."""
+
+    if action_count < 3:
+        raise ValueError("Gate A requires at least three public actions per task")
+    task_info = get_task(task_id).to_dict()
+    dimension = task_recipe_dimension(task_info)
+    anchors = [
+        np.full(dimension, 0.15, dtype=float),
+        np.full(dimension, 0.50, dtype=float),
+        np.full(dimension, 0.85, dtype=float),
+    ]
+    task_seed = _stable_seed(seed, task_id)
+    rng = np.random.default_rng(task_seed)
+    vectors = anchors + [rng.random(dimension) for _ in range(action_count - len(anchors))]
+    return {
+        f"design-{index:02d}": np.asarray(vector, dtype=float)
+        for index, vector in enumerate(vectors)
+    }
+
+
+def encode_public_experiment_trace(
+    trace: Sequence[tuple[Mapping[str, Any], float]],
+) -> list[float]:
+    """Encode only agent-visible numeric observation/reward packets.
+
+    Each scalar contributes a finite-value mask and a value.  This keeps the feature
+    dimension fixed when an instrument does not release a metric and avoids using a
+    sentinel that could be confused with a physical value.
+    """
+
+    features: list[float] = []
+    for observation, reward in trace:
+        for key in sorted(observation):
+            raw = np.asarray(observation[key], dtype=float).reshape(-1)
+            finite = np.isfinite(raw)
+            features.extend(finite.astype(float).tolist())
+            features.extend(np.where(finite, raw, 0.0).astype(float).tolist())
+        reward_value = float(reward)
+        features.extend(
+            [
+                float(np.isfinite(reward_value)),
+                reward_value if np.isfinite(reward_value) else 0.0,
+            ]
+        )
+    if not features:
+        raise ValueError("a public experiment trace cannot be empty")
+    return features
+
+
+class PublicCampaignObservationSession:
+    """Execute complete public recipes in one nuisance-consistent campaign world."""
+
+    def __init__(
+        self,
+        *,
+        task_id: str,
+        seed: int,
+        interventions: Sequence[Mapping[str, Any]],
+        action_library: Mapping[str, np.ndarray],
+        experiment_horizon: int,
+    ) -> None:
+        if experiment_horizon <= 0:
+            raise ValueError("experiment_horizon must be positive")
+        self.task_id = task_id
+        self.task_info = get_task(task_id).to_dict()
+        self.action_library = action_library
+        per_experiment = task_recipe_event_count(self.task_info)
+        self.environment = ChemWorldEnv(
+            task_id=task_id,
+            seed=int(seed),
+            episode_mode_override="campaign",
+            budget_override=(per_experiment + 1) * int(experiment_horizon),
+            world_interventions=tuple(dict(item) for item in interventions),
+        )
+        self.environment.reset(seed=int(seed))
+
+    def observe(self, action_id: str) -> list[float]:
+        try:
+            vector = self.action_library[action_id]
+        except KeyError as error:
+            raise ValueError(f"unknown public action ID: {action_id}") from error
+        recipe = task_recipe_from_unit_vector(self.task_info, vector)
+        trace: list[tuple[Mapping[str, Any], float]] = []
+        experiment_ended = False
+        for action in recipe["steps"]:
+            observation, reward, _terminated, _truncated, info = self.environment.step(action)
+            trace.append((observation, float(reward)))
+            experiment_ended = bool(info.get("experiment_ended"))
+        if not experiment_ended or info.get("transaction_status") != "committed":
+            raise RuntimeError("compiled Gate A recipe did not produce a committed experiment")
+        return encode_public_experiment_trace(trace)
+
+    def close(self) -> None:
+        self.environment.close()
+
+    def __enter__(self) -> PublicCampaignObservationSession:
+        return self
+
+    def __exit__(self, *_args: Any) -> None:
+        self.close()
+
+
+def _sample_experiment_job(job: Mapping[str, Any]) -> list[float]:
+    action_id = str(job["action_id"])
+    action_library = {action_id: np.asarray(job["action_vector"], dtype=float)}
+    with PublicCampaignObservationSession(
+        task_id=str(job["task_id"]),
+        seed=int(job["seed"]),
+        interventions=job["interventions"],
+        action_library=action_library,
+        experiment_horizon=1,
+    ) as session:
+        return session.observe(action_id)
+
+
+def _unreachable_sample(_candidate_id: str, _action_id: str, _seed: int) -> list[float]:
+    raise RuntimeError("loaded Gate A predictives do not sample during evaluation")
+
+
+def _execute_gate_a_trial_job(job: Mapping[str, Any]) -> dict[str, Any]:
+    task_id = str(job["task_id"])
+    truth_id = str(job["truth_id"])
+    trial_seed = int(job["trial_seed"])
+    budgets = [int(item) for item in job["budgets"]]
+    maximum_budget = max(budgets)
+    action_ids = [str(item) for item in job["action_ids"]]
+    action_library = {
+        str(key): np.asarray(value, dtype=float)
+        for key, value in job["action_library"].items()
+    }
+
+    def loaded_oracle() -> GaussianMechanismOracle:
+        oracle = GaussianMechanismOracle(
+            candidate_ids=[str(item) for item in job["candidate_ids"]],
+            action_ids=action_ids,
+            sample_public_observation=_unreachable_sample,
+            samples_per_candidate=4,
+            variance_floor=float(job["variance_floor"]),
+            seed=int(job["oracle_seed"]),
+        )
+        oracle.load_predictives(job["predictives"])
+        return oracle
+
+    active_oracle = loaded_oracle()
+    active_rows: dict[int, dict[str, Any]] = {}
+    selected_actions: list[str] = []
+    with PublicCampaignObservationSession(
+        task_id=task_id,
+        seed=trial_seed,
+        interventions=job["interventions"],
+        action_library=action_library,
+        experiment_horizon=maximum_budget,
+    ) as active_session:
+        for experiment_index in range(1, maximum_budget + 1):
+            information = active_oracle.expected_information_by_action(
+                draws=int(job["information_draws"])
+            )
+            eligible = list(action_ids)
+            if job.get("repeat_policy") == "without_replacement_within_budget":
+                unused = [item for item in action_ids if item not in selected_actions]
+                if unused:
+                    eligible = unused
+            action_id = max(eligible, key=information.__getitem__)
+            selected_actions.append(action_id)
+            active_oracle.update(
+                action_id=action_id,
+                observation=active_session.observe(action_id),
+            )
+            if experiment_index in budgets:
+                active_rows[experiment_index] = {
+                    "truth_id": truth_id,
+                    "world_seed": trial_seed,
+                    "prediction": max(
+                        active_oracle.posterior,
+                        key=active_oracle.posterior.__getitem__,
+                    ),
+                    "actions": list(selected_actions),
+                    "posterior": dict(active_oracle.posterior),
+                }
+
+    decoder_oracle = loaded_oracle()
+    decoder_rows: dict[int, dict[str, Any]] = {}
+    fixed_actions = action_ids[:maximum_budget]
+    with PublicCampaignObservationSession(
+        task_id=task_id,
+        seed=trial_seed,
+        interventions=job["interventions"],
+        action_library=action_library,
+        experiment_horizon=maximum_budget,
+    ) as decoder_session:
+        for experiment_index, action_id in enumerate(fixed_actions, start=1):
+            decoder_oracle.update(
+                action_id=action_id,
+                observation=decoder_session.observe(action_id),
+            )
+            if experiment_index in budgets:
+                decoder_rows[experiment_index] = {
+                    "truth_id": truth_id,
+                    "world_seed": trial_seed,
+                    "prediction": max(
+                        decoder_oracle.posterior,
+                        key=decoder_oracle.posterior.__getitem__,
+                    ),
+                    "actions": fixed_actions[:experiment_index],
+                    "posterior": dict(decoder_oracle.posterior),
+                }
+    return {"active": active_rows, "decoder": decoder_rows}
+
+
+def _execute_jobs(
+    function: Any,
+    jobs: Sequence[Mapping[str, Any]],
+    *,
+    workers: int,
+) -> list[Any]:
+    if workers <= 0:
+        raise ValueError("Gate A execution workers must be positive")
+    if workers == 1:
+        return [function(job) for job in jobs]
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        return list(executor.map(function, jobs))
+
+
+def run_gate_a(
+    protocol: Mapping[str, Any],
+    plan: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Run the frozen active-oracle and fixed-decoder identifiability checks."""
+
+    errors = validate_mechanism_adaptation_protocol(protocol)
+    if errors:
+        raise ValueError("invalid mechanism-adaptation protocol: " + "; ".join(errors))
+    if plan.get("schema_version") != "chemworld-mechanism-adaptation-gate-a-plan-0.2.1":
+        raise ValueError("unsupported Gate A plan schema")
+
+    action_plan = plan["action_library"]
+    fit_plan = plan["candidate_predictive_fit"]
+    certificate_plan = plan["held_out_certificate"]
+    gate = protocol["gates"]["gate_a"]
+    budgets = [int(item) for item in certificate_plan["budgets"]]
+    primary_budget = int(certificate_plan["primary_gate_budget"])
+    if budgets != [int(item) for item in gate["budget_checkpoints"]]:
+        raise ValueError("Gate A plan budgets do not match the frozen protocol")
+    if primary_budget not in budgets:
+        raise ValueError("primary Gate A budget must be one of the frozen budgets")
+    if int(action_plan["action_count_per_task"]) < max(budgets):
+        raise ValueError("Gate A action library must cover the largest decoder budget")
+
+    action_libraries = {
+        str(task_id): build_action_library(
+            str(task_id),
+            action_count=int(action_plan["action_count_per_task"]),
+            seed=int(action_plan["design_seed"]),
+        )
+        for task_id in protocol["design"]["tasks"]
+    }
+    design_audit = audit_mechanism_design(
+        protocol,
+        plan,
+        action_libraries=action_libraries,
+    )
+    if not design_audit["pass"]:
+        failed = "; ".join(
+            f"{item.get('task_id')}:{item['check']}" for item in design_audit["failures"]
+        )
+        raise ValueError(f"mechanism design audit failed: {failed}")
+
+    active_by_budget: dict[int, dict[str, Any]] = {}
+    decoder_by_budget: dict[int, dict[str, Any]] = {}
+    task_reports: dict[str, Any] = {}
+    active_truths = {budget: [] for budget in budgets}
+    active_predictions = {budget: [] for budget in budgets}
+    decoder_truths = {budget: [] for budget in budgets}
+    decoder_predictions = {budget: [] for budget in budgets}
+    candidate_union: list[str] = []
+
+    for task_index, task_id in enumerate(protocol["design"]["tasks"]):
+        contract = protocol["task_mechanism_contracts"][task_id]
+        candidate_ids = [str(item) for item in contract["candidate_ids"]]
+        for candidate_id in candidate_ids:
+            if candidate_id not in candidate_union:
+                candidate_union.append(candidate_id)
+        action_library = action_libraries[task_id]
+        action_ids = list(action_library)
+
+        oracle = GaussianMechanismOracle(
+            candidate_ids=candidate_ids,
+            action_ids=action_ids,
+            sample_public_observation=_unreachable_sample,
+            samples_per_candidate=int(fit_plan["samples_per_candidate_action"]),
+            variance_floor=float(fit_plan["variance_floor"]),
+            seed=_stable_seed(int(fit_plan["oracle_seed"]), task_id),
+        )
+        fit_rng = np.random.default_rng(oracle.seed)
+        fit_jobs: list[dict[str, Any]] = []
+        fit_keys: list[tuple[str, str]] = []
+        for action_id in action_ids:
+            for candidate_id in candidate_ids:
+                seeds = fit_rng.integers(
+                    0,
+                    np.iinfo(np.int32).max,
+                    size=int(fit_plan["samples_per_candidate_action"]),
+                )
+                for nuisance_seed in seeds:
+                    fit_keys.append((candidate_id, action_id))
+                    fit_jobs.append(
+                        {
+                            "task_id": task_id,
+                            "seed": int(fit_plan["nuisance_seed_namespace_start"])
+                            + int(nuisance_seed) % 500_000_000,
+                            "interventions": contract["interventions"][candidate_id],
+                            "action_id": action_id,
+                            "action_vector": action_library[action_id].tolist(),
+                        }
+                    )
+        fit_results = _execute_jobs(
+            _sample_experiment_job,
+            fit_jobs,
+            workers=int(fit_plan.get("execution_workers", 1)),
+        )
+        sample_groups: dict[tuple[str, str], list[Sequence[float]]] = {
+            (candidate_id, action_id): []
+            for action_id in action_ids
+            for candidate_id in candidate_ids
+        }
+        for key, values in zip(fit_keys, fit_results, strict=True):
+            sample_groups[key].append(values)
+        oracle.fit_predictives_from_samples(sample_groups)
+        task_trials: dict[str, list[dict[str, Any]]] = {
+            f"active_budget_{budget}": [] for budget in budgets
+        }
+        task_trials.update({f"decoder_budget_{budget}": [] for budget in budgets})
+
+        trial_keys = [
+            (candidate_index, truth_id, repeat_index)
+            for candidate_index, truth_id in enumerate(candidate_ids)
+            for repeat_index in range(int(certificate_plan["world_seeds_per_family"]))
+        ]
+        exported_predictives = oracle.export_predictives()
+        serialized_actions = {
+            key: vector.tolist() for key, vector in action_library.items()
+        }
+        trial_jobs = [
+            {
+                "task_id": task_id,
+                "truth_id": truth_id,
+                "trial_seed": int(certificate_plan["seed_namespace_start"])
+                + task_index * 1_000_000
+                + candidate_index * 10_000
+                + repeat_index,
+                "interventions": contract["interventions"][truth_id],
+                "budgets": budgets,
+                "action_ids": action_ids,
+                "action_library": serialized_actions,
+                "candidate_ids": candidate_ids,
+                "predictives": exported_predictives,
+                "variance_floor": float(fit_plan["variance_floor"]),
+                "oracle_seed": oracle.seed,
+                "information_draws": int(
+                    certificate_plan["information_draws_per_action"]
+                ),
+                "repeat_policy": str(action_plan["repeat_policy"]),
+            }
+            for candidate_index, truth_id, repeat_index in trial_keys
+        ]
+        completed_trials = _execute_jobs(
+            _execute_gate_a_trial_job,
+            trial_jobs,
+            workers=int(certificate_plan.get("execution_workers", 1)),
+        )
+
+        for job, completed in zip(trial_keys, completed_trials, strict=True):
+            _candidate_index, truth_id, _repeat_index = job
+            qualified_truth = _qualified_candidate(task_id, truth_id)
+            for budget in budgets:
+                active = completed["active"][budget]
+                decoder = completed["decoder"][budget]
+                active_truths[budget].append(qualified_truth)
+                active_predictions[budget].append(
+                    _qualified_candidate(task_id, active["prediction"])
+                )
+                decoder_truths[budget].append(qualified_truth)
+                decoder_predictions[budget].append(
+                    _qualified_candidate(task_id, decoder["prediction"])
+                )
+                task_trials[f"active_budget_{budget}"].append(active)
+                task_trials[f"decoder_budget_{budget}"].append(decoder)
+        task_reports[task_id] = {
+            "candidate_ids": candidate_ids,
+            "action_library": {
+                key: [float(item) for item in vector] for key, vector in action_library.items()
+            },
+            "trials": task_trials,
+        }
+
+    qualified_candidates = [
+        _qualified_candidate(task_id, candidate_id)
+        for task_id in protocol["design"]["tasks"]
+        for candidate_id in protocol["task_mechanism_contracts"][task_id]["candidate_ids"]
+    ]
+    for budget in budgets:
+        active_by_budget[budget] = identifiability_certificate(
+            truths=active_truths[budget],
+            predictions=active_predictions[budget],
+            candidate_ids=qualified_candidates,
+            overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
+            family_recall_lower_bound_threshold=float(
+                gate["per_family_recall_wilson_lower_bound"]
+            ),
+        )
+        decoder_by_budget[budget] = identifiability_certificate(
+            truths=decoder_truths[budget],
+            predictions=decoder_predictions[budget],
+            candidate_ids=qualified_candidates,
+            overall_lower_bound_threshold=float(gate["overall_top1_wilson_lower_bound"]),
+            family_recall_lower_bound_threshold=float(
+                gate["per_family_recall_wilson_lower_bound"]
+            ),
+        )
+
+    primary_active = active_by_budget[primary_budget]
+    return {
+        "schema_version": GATE_A_REPORT_VERSION,
+        "status": "gate_a_passed" if primary_active["gate_pass"] else "gate_a_failed",
+        "formal_benchmark_result": False,
+        "protocol_id": protocol["protocol_id"],
+        "protocol_sha256": canonical_sha256(protocol),
+        "gate_a_plan_id": plan["plan_id"],
+        "gate_a_plan_sha256": canonical_sha256(plan),
+        "environment_role": protocol["environment_role"],
+        "agent_weight_updates_performed": False,
+        "design_validity_audit": design_audit,
+        "public_feature_contract": dict(plan["public_feature_contract"]),
+        "nuisance_integration": {
+            "performed": True,
+            "predictive_samples_per_candidate_action": int(
+                fit_plan["samples_per_candidate_action"]
+            ),
+            "held_out_world_seeds_per_family": int(
+                certificate_plan["world_seeds_per_family"]
+            ),
+            "fit_and_certificate_seed_namespaces_disjoint": True,
+        },
+        "primary_gate_budget": primary_budget,
+        "active_oracle": {
+            "gate_pass": bool(primary_active["gate_pass"]),
+            "primary_budget": primary_budget,
+            "by_budget": {str(key): value for key, value in active_by_budget.items()},
+        },
+        "fixed_trajectory_decoder": {
+            "controls_gate": False,
+            "by_budget": {str(key): value for key, value in decoder_by_budget.items()},
+        },
+        "gate_a_pass": bool(primary_active["gate_pass"]),
+        "task_reports": task_reports,
+        "interpretation": (
+            "A pass establishes budgeted identifiability for this evaluator-side oracle; "
+            "it does not establish that any evaluated Agent discovers the mechanism."
+        ),
+        "candidate_family_names": candidate_union,
+        "publication_ready": False,
+    }
+
+
+def run_campaign_row(
+    protocol: Mapping[str, Any],
+    row: Mapping[str, Any],
+    *,
+    output_root: str | Path,
+    llm_methods: Mapping[str, Any],
+    method_id: str = "live_llm_b",
+    spectrum_disclosure: str = "assigned",
+) -> dict[str, Any]:
+    """Execute one frozen changed/no-change row with a real DeepSeek-backed Agent."""
+
+    method = llm_methods["methods"][method_id]
+    request = method["request_configuration"]
+    client = DeepSeekClient(
+        model=str(method["model_id"]),
+        thinking=bool(request["thinking"]),
+        reasoning_effort=cast(Any, str(request.get("reasoning_effort") or "max")),
+        timeout_s=float(request["timeout_s"]),
+        max_attempts=int(request["max_attempts"]),
+        retry_backoff_s=float(request["retry_backoff_s"]),
+    )
+    definitions = protocol["diagnosis_contract"]["candidate_definitions"]
+    specs = tuple(
+        MechanismCandidateSpec(
+            candidate_id=str(candidate_id),
+            public_definition=str(definitions[candidate_id]),
+        )
+        for candidate_id in row["candidate_ids"]
+    )
+    agent = MechanismAdaptationLiveLLMAgent(
+        client,
+        role_id=f"mechanism_adaptation_{method_id}",
+        spectrum_disclosure=spectrum_disclosure,
+        response_max_tokens=int(request["max_tokens"]),
+        fail_fast_on_unbillable_provider_failure=True,
+        candidate_specs=specs,
+        candidate_label_mode=str(row["candidate_label_mode"]),
+        candidate_order_seed=int(row["candidate_order_seed"]),
+        randomize_candidate_order=True,
+    )
+    task_id = str(row["task_id"])
+    adapter = ContinuingPublicViewAgent(
+        agent,
+        method_id=method_id,
+        feedback_condition="true_feedback",
+        critical_instrument=_CRITICAL_INSTRUMENTS[task_id],
+    )
+    change_time = int(row["phase_reset_after_experiment"])
+    horizon = int(row["total_experiment_horizon"])
+    campaign_id = f"{row['pair_id']}--{row['arm']}"
+    result = run_two_phase_campaign(
+        task_id=task_id,
+        adapter=adapter,
+        seed=int(row["world_seed"]),
+        pre_change_experiments=change_time,
+        post_change_experiments=horizon - change_time,
+        shifted_interventions=row["world_interventions"],
+        output_root=Path(output_root) / "trajectories",
+        campaign_id=campaign_id,
+    )
+    result.update(
+        {
+            "schema_version": EXECUTION_SCHEMA_VERSION,
+            "protocol_id": protocol["protocol_id"],
+            "protocol_sha256": canonical_sha256(protocol),
+            "matrix_row": dict(row),
+            "truth_id": row["truth_id"],
+            "hidden_law_changes": bool(row["hidden_law_changes"]),
+            "formal_result": False,
+            "agent_weight_updates_performed": False,
+        }
+    )
+    return result
+
+
+def selected_campaign_rows(
+    protocol: Mapping[str, Any],
+    *,
+    tasks: Sequence[str] | None = None,
+    pair_ids: Sequence[str] | None = None,
+    limit: int | None = None,
+) -> list[dict[str, Any]]:
+    """Select complete pairs from the frozen matrix for resumable pilots or runs."""
+
+    rows = build_paired_campaign_matrix(protocol)
+    task_filter = set(tasks or ())
+    pair_filter = set(pair_ids or ())
+    if task_filter:
+        rows = [row for row in rows if row["task_id"] in task_filter]
+    if pair_filter:
+        rows = [row for row in rows if row["pair_id"] in pair_filter]
+    if limit is not None:
+        if limit <= 0:
+            raise ValueError("campaign pair limit must be positive")
+        ordered_pairs = list(dict.fromkeys(row["pair_id"] for row in rows))[:limit]
+        retained = set(ordered_pairs)
+        rows = [row for row in rows if row["pair_id"] in retained]
+    return rows
+
+
+def _qualified_candidate(task_id: str, candidate_id: str) -> str:
+    return f"{task_id}::{candidate_id}"
+
+
+def _stable_seed(seed: int, label: str) -> int:
+    digest = hashlib.sha256(f"{seed}|{label}".encode()).digest()
+    return int.from_bytes(digest[:4], "big") % np.iinfo(np.int32).max

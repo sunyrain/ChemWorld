@@ -73,6 +73,8 @@ def build_bundle(root: Path, output: Path) -> dict[str, Any]:
     for filename, source in copied_sources.items():
         _write_json(output / filename, json.loads(source.read_text(encoding="utf-8")))
 
+    backend_report = json.loads(copied_sources["backend_freeze.json"].read_text(encoding="utf-8"))
+
     artifact_paths = sorted(
         output / filename
         for filename in (*artifacts, *copied_sources, "README.md")
@@ -84,6 +86,15 @@ def build_bundle(root: Path, output: Path) -> dict[str, Any]:
         "world_law_id": "chemworld-physical-chemistry-v0.4",
         "task_contract_version": TASK_CONTRACT_VERSION,
         "release_status": "candidate_backend_only",
+        "backend_validation_status": backend_report.get("status"),
+        "backend_contract_validated": backend_report.get(
+            "backend_contract_validated", False
+        ),
+        "clean_release_attestation": backend_report.get(
+            "clean_release_attestation", "unknown"
+        ),
+        "source_commit": backend_report.get("source_commit"),
+        "source_tree_dirty": backend_report.get("source_tree_dirty"),
         "benchmark_claim_allowed": False,
         "baseline_results_included": False,
         "frozen_v1_rewritten": False,

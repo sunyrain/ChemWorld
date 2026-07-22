@@ -1,4 +1,4 @@
-"""Fail-closed audit for the living Nature Computational Science manuscript."""
+"""Fail-closed audit retained with the archived NCS working manuscript."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ import re
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
-PAPER = ROOT / "paper" / "ncs"
+ROOT = Path(__file__).resolve().parents[3]
+PAPER = Path(__file__).resolve().parent
 LEDGER_PATH = PAPER / "evidence-ledger.json"
 MANUSCRIPT_PATH = PAPER / "main.tex"
 PDF_PATH = PAPER / "main.pdf"

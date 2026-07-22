@@ -1,6 +1,6 @@
 {
-  "schema_version": "chemworld-current-surface-registry-0.1",
-  "updated_at": "2026-07-21",
+  "schema_version": "chemworld-current-surface-registry-0.2",
+  "updated_at": "2026-07-22",
   "project": {
     "distribution": "chemworld-bench",
     "version": "0.2.0",
@@ -13,7 +13,10 @@
     "backend": "configs/foundation/backend_v0.5.json",
     "backend_report": "workstreams/world_foundation/reports/backend-v0.5.json",
     "backend_id": "chemworld-physical-chemistry-v0.5-candidate",
-    "status": "candidate_backend_frozen"
+    "status": "candidate_backend_validated_dirty_tree",
+    "contract_validation": "passed",
+    "clean_release_attestation": "pending_clean_tree",
+    "source_tree_dirty": true
   },
   "formal_evaluation": {
     "protocol": "configs/benchmark/formal_protocol_v0.4.json",
@@ -22,56 +25,417 @@
     "method_freeze_report": "workstreams/benchmark_v1/reports/method-freeze-v0.4.json",
     "status": "method_freeze_preflight_blocked",
     "formal_results_present": false,
-    "benchmark_claim_allowed": false
+    "benchmark_claim_allowed": false,
+    "method_freeze_ready": false,
+    "bench_unlock_allowed": false,
+    "blocker_count": 30
   },
   "mechanism_adaptation": {
-    "protocol": "configs/benchmark/mechanism_adaptation_v0.2.json",
-    "preflight_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2-preflight.json",
+    "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
+    "preflight_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-preflight.json",
     "protocol_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-final-protocol-v0.2.md",
-    "status": "protocol_complete_empirical_execution_pending",
+    "status": "gate_a_failed_remaining_gates_pending",
     "new_external_provider_runs_completed": false,
-    "publication_ready": false
+    "publication_ready": false,
+    "gate_a_plan": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json",
+    "gate_a_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.1.json",
+    "gate_a_pass": false,
+    "design_audit_report": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.1.json",
+    "design_audit_pass": true
   },
   "development_evidence": {
     "classic_methods": "configs/methods/classic_v0.4.1/classic_methods.json",
     "classic_report": "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
     "operation_methods": "configs/methods/operation_v0.4.1/operation_methods.json",
     "operation_report": "workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.1.json",
-    "live_llm_report": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.10.json",
+    "live_llm_report": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json",
     "evidence_role": "development_or_diagnostic_not_formal_bench"
   },
   "repository_integrity": {
-    "status": "blocked_by_stale_committed_evidence_bindings",
-    "full_test_run": {
-      "date": "2026-07-21",
-      "passed": 1782,
-      "skipped": 14,
-      "failed": 10
-    },
+    "status": "current_evidence_coherent_worktree_dirty",
+    "current_evidence_coherent": true,
+    "tracked_source_tree_dirty": true,
+    "stale_binding_count": 0,
     "blockers": [
       {
-        "id": "runtime_affordance_source_binding_stale",
-        "effect": "seven live-LLM development tests fail closed",
-        "required_resolution": "run a new source-bound affordance audit; do not rewrite the historical report in place"
+        "id": "clean_release_attestation_pending",
+        "scope": "backend_release"
       },
       {
-        "id": "maturity_runtime_evidence_binding_stale",
-        "effect": "the committed maturity-truth report no longer validates its runtime evidence digest",
-        "required_resolution": "issue a new maturity audit version after reviewing the changed runtime evidence"
+        "id": "method_freeze_blocked",
+        "scope": "formal_benchmark",
+        "count": 30
       },
       {
-        "id": "ncs_evidence_ledger_stale",
-        "effect": "the NCS working-draft audit rejects two changed evidence digests",
-        "required_resolution": "reconcile the affordance and method-freeze evidence before updating the manuscript ledger"
+        "id": "mechanism_gates_remaining",
+        "scope": "mechanism_benchmark",
+        "gates": [
+          "gate_0",
+          "gate_a",
+          "gate_b",
+          "gate_c",
+          "gate_d",
+          "gate_e"
+        ]
       }
-    ],
-    "cleanup_changed_guarded_runtime_sources": false
+    ]
   },
   "history_policy": {
+    "current_materialized_views_are_regenerated_by_the_evidence_dag": true,
     "historical_artifacts_are_immutable": true,
     "version_suffix_does_not_imply_current": true,
-    "frozen_source_may_intentionally_duplicate_helpers": true,
-    "raw_runs_must_not_be_deleted_without_a_manifested_retention_decision": true,
-    "archive_directories_contain_non_current_diagnostics": true
+    "archive_directories_contain_non_current_diagnostics": true,
+    "raw_runs_require_a_manifested_retention_decision_before_deletion": true
+  },
+  "state_model": {
+    "schema_version": "chemworld-evidence-state-model-0.1",
+    "dimensions": {
+      "artifact_state": [
+        "current",
+        "stale",
+        "historical",
+        "pending"
+      ],
+      "gate_state": [
+        "passed",
+        "blocked",
+        "pending",
+        "not_applicable"
+      ],
+      "claim_scope": [
+        "backend_control",
+        "development",
+        "formal_benchmark",
+        "mechanism_benchmark",
+        "publication"
+      ]
+    },
+    "rules": [
+      "current means regenerated from the declared DAG, not scientifically ready",
+      "frozen requires a clean source-attested candidate and is never inferred from validation alone",
+      "backend validation does not imply method freeze, formal results, or publication readiness",
+      "development evidence is never promoted to formal benchmark evidence by aggregation"
+    ]
+  },
+  "evidence_dag": {
+    "schema_version": "chemworld-current-evidence-dag-0.1",
+    "generator": "python scripts/evidence_pipeline.py --refresh",
+    "checker": "python scripts/evidence_pipeline.py --check",
+    "graph_sha256": "a9683f0f43d21f126b44a6bf36830afefcd3baa1ccf225aa8a05ec2c2fadcd55",
+    "generation_order": [
+      "backend_golden_fixture",
+      "backend_protocol",
+      "classic_development",
+      "maturity_protocol",
+      "mechanism_protocol",
+      "method_freeze_plan",
+      "operation_development",
+      "ppo_preflight",
+      "public_boundary_protocol",
+      "runtime_affordance",
+      "runtime_integration",
+      "runtime_reachability_protocol",
+      "sac_preflight",
+      "state_transition_protocol",
+      "llm_development_plan",
+      "mechanism_gate_a_plan",
+      "mechanism_protocol_report",
+      "mechanism_public_matrix",
+      "public_boundary",
+      "runtime_reachability",
+      "state_transition_invariants",
+      "maturity_truth",
+      "mechanism_design_audit",
+      "backend_candidate",
+      "mechanism_preflight",
+      "backend_bundle",
+      "mechanism_gate_a",
+      "method_freeze"
+    ],
+    "nodes": {
+      "backend_golden_fixture": {
+        "path": "tests/fixtures/golden/core_scripted_trajectories.json",
+        "role": "distribution_input",
+        "dependencies": [],
+        "sha256": "0c1da73dae75431d118ec81cdb21bb1650380034bc52a8276a8ea676f10ff95e",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "backend_protocol": {
+        "path": "configs/foundation/backend_v0.5.json",
+        "role": "protocol_input",
+        "dependencies": [],
+        "sha256": "5dd2361a63a40a668521ab77c2e313d4d7e8529fc67f3fb285d0ed951ae84684",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "classic_development": {
+        "path": "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
+        "role": "development_input",
+        "dependencies": [],
+        "sha256": "af85f671f799ba5304384b82bdf8411b8b1c464a2a9c65bbc339a00fab5579f1",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "maturity_protocol": {
+        "path": "configs/foundation/maturity_truth_vnext.json",
+        "role": "protocol_input",
+        "dependencies": [],
+        "sha256": "09b629d53042cce08428277ae9691c66230f96d9a7de3f477a1e27125ae89c55",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "mechanism_protocol": {
+        "path": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
+        "role": "protocol_input",
+        "dependencies": [],
+        "sha256": "d22c6b88b6b2bbf076f272c62b860c845266100e18af0c6bf908dd14450f87ab",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "method_freeze_plan": {
+        "path": "configs/benchmark/method_freeze_v0.4.json",
+        "role": "protocol_input",
+        "dependencies": [],
+        "sha256": "3294696f9aabbee30d6c68279f23e28ee5236a4832bad6d0c0d730f3208261e0",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "operation_development": {
+        "path": "workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.1.json",
+        "role": "development_input",
+        "dependencies": [],
+        "sha256": "41f724d2756cabc2398125a1fb5ef0bd5f5f9342101e7119a4a8d9b5e489061d",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "ppo_preflight": {
+        "path": "workstreams/benchmark_v1/reports/rl-ppo-v0412-preflight-v0.4.json",
+        "role": "development_input",
+        "dependencies": [],
+        "sha256": "811919d30a0f0e792701d58bdde0a7a5a2b8a7eaacd9edc0f0adc81073faaf3c",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "public_boundary_protocol": {
+        "path": "configs/foundation/public_boundary_security_vnext.json",
+        "role": "protocol_input",
+        "dependencies": [],
+        "sha256": "10c474dc824de56d70731e629ae59f8e1725c167984a06ef03eeab757262c1cc",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "runtime_affordance": {
+        "path": "workstreams/benchmark_v1/reports/runtime-domain-affordance-audit-v0.4.json",
+        "role": "development_control",
+        "dependencies": [],
+        "sha256": "b5ac4a6a8bc93e5d68cb11eb7310008acbfa30e26120838fbd261d3c66066d1a",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "runtime_integration": {
+        "path": "workstreams/world_foundation/reports/wf-110-runtime-integration.json",
+        "role": "backend_control",
+        "dependencies": [],
+        "sha256": "f17877970ee3be797de4f140972d2106fb4a28e4442c20162a5cd9529bdb7b24",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "runtime_reachability_protocol": {
+        "path": "configs/foundation/runtime_reachability_vnext.json",
+        "role": "protocol_input",
+        "dependencies": [],
+        "sha256": "b91f428091c9793884fc694859e9d09e6c3c4bf98960641d1a58241cc99e9c1b",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "sac_preflight": {
+        "path": "workstreams/benchmark_v1/reports/rl-sac-v0412-preflight-v0.4.json",
+        "role": "development_input",
+        "dependencies": [],
+        "sha256": "f6c06e6a270900e2fc62d28f2890bb73d554c527b9d39f538c128d735755123e",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "state_transition_protocol": {
+        "path": "configs/foundation/state_transition_invariants_vnext.json",
+        "role": "protocol_input",
+        "dependencies": [],
+        "sha256": "61ab88e71b9e459012e66fbd7f74ca4d911ba14750cf6e07961daa7f4bbced6b",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "llm_development_plan": {
+        "path": "configs/methods/llm_v0.4/llm_development_plan.json",
+        "role": "development_input",
+        "dependencies": [
+          "runtime_affordance"
+        ],
+        "sha256": "8440ce97903573441f8a7ba6cd94f5fa5754ee8db5a4adb621722a91e3bf2c82",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "mechanism_gate_a_plan": {
+        "path": "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json",
+        "role": "protocol_input",
+        "dependencies": [
+          "mechanism_protocol"
+        ],
+        "sha256": "d415fc5fb8293132bf843550e41866e869b6cc209437fe1bfc168354ca893e34",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "mechanism_protocol_report": {
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-final-protocol-v0.2.md",
+        "role": "development_input",
+        "dependencies": [
+          "mechanism_protocol"
+        ],
+        "sha256": "4c0b745581c5b6e729fce0202d1916a728d790e220e4e78fe88f31567f527e65",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "mechanism_public_matrix": {
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-public-matrix.json",
+        "role": "development_control",
+        "dependencies": [
+          "mechanism_protocol"
+        ],
+        "sha256": "a162d9c64af56188961ca74eb61c1e53ed584bdf5400bb9fcb76e12a63934f55",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "public_boundary": {
+        "path": "workstreams/world_foundation/reports/public-boundary-security-vnext.json",
+        "role": "backend_control",
+        "dependencies": [
+          "public_boundary_protocol",
+          "runtime_integration"
+        ],
+        "sha256": "03ad2cadba98a5f7c1d0ed2153e290cefa0a77ddd98a6839d2a113505ed77382",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "runtime_reachability": {
+        "path": "workstreams/world_foundation/reports/runtime-reachability-vnext.json",
+        "role": "backend_control",
+        "dependencies": [
+          "runtime_integration",
+          "runtime_reachability_protocol"
+        ],
+        "sha256": "d864e72ba1fb2cb24b6a28cc04485a7aa69ed55ed3b479ef6c55e20fe114c639",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "state_transition_invariants": {
+        "path": "workstreams/world_foundation/reports/state-transition-invariants.json",
+        "role": "backend_control",
+        "dependencies": [
+          "runtime_integration",
+          "state_transition_protocol"
+        ],
+        "sha256": "2efae6361adefc4cd3f575d58961c02b26b35c9347d42a075764ec1fbb01a0fb",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "maturity_truth": {
+        "path": "workstreams/world_foundation/reports/maturity-truth-vnext.json",
+        "role": "backend_control",
+        "dependencies": [
+          "maturity_protocol",
+          "runtime_integration",
+          "runtime_reachability"
+        ],
+        "sha256": "17b45102ce984f99669c0684d6cce8a5090449c12dff42b1aa5a4ae34699e264",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "mechanism_design_audit": {
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.1.json",
+        "role": "development_control",
+        "dependencies": [
+          "mechanism_gate_a_plan",
+          "mechanism_protocol"
+        ],
+        "sha256": "b24ae19f22ab831bf501bba2e7e866198a7e65a8f9be52fe194b43c5e4bfd801",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "backend_candidate": {
+        "path": "workstreams/world_foundation/reports/backend-v0.5.json",
+        "role": "backend_control",
+        "dependencies": [
+          "runtime_integration",
+          "runtime_reachability",
+          "state_transition_invariants",
+          "public_boundary",
+          "maturity_truth",
+          "backend_protocol"
+        ],
+        "sha256": "d9d9a6fe4d21f58c48d020aad86aa635f76c9754c7e9aab89aee917ea50c0f98",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "mechanism_preflight": {
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-preflight.json",
+        "role": "development_control",
+        "dependencies": [
+          "mechanism_gate_a_plan",
+          "mechanism_design_audit",
+          "mechanism_protocol",
+          "mechanism_protocol_report",
+          "mechanism_public_matrix"
+        ],
+        "sha256": "3de1371f6414037547801a0d42b60d7ec970c5b3f4416533943ca2e9d571bbaf",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "backend_bundle": {
+        "path": "benchmark/releases/chemworld-serious-vnext/manifest.json",
+        "role": "distribution_bundle",
+        "dependencies": [
+          "backend_candidate",
+          "backend_golden_fixture",
+          "maturity_truth",
+          "public_boundary",
+          "runtime_integration"
+        ],
+        "sha256": "8fc4bfee33e860ca64f5ef719b3f4246e28d0f93b0c39deec8f66c9d841f5b7a",
+        "artifact_state": "current",
+        "gate_state": "passed"
+      },
+      "mechanism_gate_a": {
+        "path": "workstreams/flagship_tasks/reports/mechanism-adaptation-gate-a-v0.2.1.json",
+        "role": "mechanism_gate",
+        "dependencies": [
+          "mechanism_design_audit",
+          "mechanism_gate_a_plan",
+          "mechanism_preflight",
+          "mechanism_protocol"
+        ],
+        "sha256": "9a27c0950bb2dd082e8727e3e769f2a0ed6228249356238cc1583147cbd75a0b",
+        "artifact_state": "current",
+        "gate_state": "blocked"
+      },
+      "method_freeze": {
+        "path": "workstreams/benchmark_v1/reports/method-freeze-v0.4.json",
+        "role": "formal_gate",
+        "dependencies": [
+          "backend_candidate",
+          "classic_development",
+          "llm_development_plan",
+          "method_freeze_plan",
+          "operation_development"
+        ],
+        "sha256": "7f80a564cd6c3fbc11224e756b9b6a2e68ced07462b14e91c2fd12ddc529d5b3",
+        "artifact_state": "current",
+        "gate_state": "blocked"
+      }
+    }
+  },
+  "publication": {
+    "status": "no_active_manuscript",
+    "archived_working_draft": "paper/archive/ncs-working-draft-2026-07-21/README.md",
+    "publication_ready": false
   }
 }

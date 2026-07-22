@@ -9,11 +9,14 @@ from typing import Any, Literal, cast
 
 import numpy as np
 
+from chemworld.world.actions import ELECTROLYTE_PROFILES
 from chemworld.world.scenario import ScenarioInstance
 
-MaterialField = Literal["catalyst", "solvent"]
+MaterialField = Literal["catalyst", "solvent", "electrolyte_profile"]
 
-MATERIAL_LAW_COUNTERFACTUAL_VERSION = "chemworld-material-law-counterfactual-0.1"
+MATERIAL_LAW_COUNTERFACTUAL_VERSION = "chemworld-material-law-counterfactual-0.2"
+_HIDDEN_FIELD_KEY = "_hidden_material_law_counterfactual_field"
+_HIDDEN_MAPPING_KEY = "_hidden_material_law_public_to_baseline"
 
 
 @dataclass(frozen=True)
@@ -24,8 +27,10 @@ class MaterialLawCounterfactual:
     public_to_baseline: tuple[int, ...]
 
     def __post_init__(self) -> None:
-        if self.material_field not in {"catalyst", "solvent"}:
-            raise ValueError("material_field must be catalyst or solvent")
+        if self.material_field not in {"catalyst", "solvent", "electrolyte_profile"}:
+            raise ValueError(
+                "material_field must be catalyst, solvent, or electrolyte_profile"
+            )
         if sorted(self.public_to_baseline) != list(range(len(self.public_to_baseline))):
             raise ValueError("public_to_baseline must be a permutation of [0, n)")
         if all(index == value for index, value in enumerate(self.public_to_baseline)):
@@ -81,20 +86,26 @@ def apply_material_law_counterfactual(
     parameters = instance.parameters
     catalyst_effects = np.array(parameters.catalyst_effects, copy=True)
     solvent_effects = np.array(parameters.solvent_effects, copy=True)
-    target = (
-        catalyst_effects
-        if counterfactual.material_field == "catalyst"
-        else solvent_effects
-    )
-    if len(counterfactual.public_to_baseline) != target.shape[0]:
+    if counterfactual.material_field == "catalyst":
+        target_count = catalyst_effects.shape[0]
+    elif counterfactual.material_field == "solvent":
+        target_count = solvent_effects.shape[0]
+    else:
+        target_count = len(ELECTROLYTE_PROFILES)
+    if len(counterfactual.public_to_baseline) != target_count:
         raise ValueError(
             "material-law permutation length does not match the selected material catalog"
         )
-    remapped = target[np.asarray(counterfactual.public_to_baseline, dtype=int), :]
     if counterfactual.material_field == "catalyst":
-        catalyst_effects = remapped
-    else:
-        solvent_effects = remapped
+        catalyst_effects = catalyst_effects[
+            np.asarray(counterfactual.public_to_baseline, dtype=int),
+            :,
+        ]
+    elif counterfactual.material_field == "solvent":
+        solvent_effects = solvent_effects[
+            np.asarray(counterfactual.public_to_baseline, dtype=int),
+            :,
+        ]
 
     contract_hash = material_law_counterfactual_hash(counterfactual)
     parameters = replace(
@@ -111,9 +122,40 @@ def apply_material_law_counterfactual(
                 MATERIAL_LAW_COUNTERFACTUAL_VERSION
             ),
             "material_law_counterfactual_hash": contract_hash,
+            **(
+                {
+                    _HIDDEN_FIELD_KEY: counterfactual.material_field,
+                    _HIDDEN_MAPPING_KEY: list(counterfactual.public_to_baseline),
+                }
+                if counterfactual.material_field == "electrolyte_profile"
+                else {}
+            ),
         }
     )
     return replace(instance, parameters=parameters, initial_state=state)
+
+
+def resolve_material_law_index(
+    metadata: dict[str, Any],
+    *,
+    material_field: MaterialField,
+    public_index: int,
+    catalog_size: int,
+) -> int:
+    """Resolve one public material label to its hidden baseline-effect row."""
+
+    if not 0 <= public_index < catalog_size:
+        raise ValueError("public material index is outside the declared catalog")
+    if metadata.get(_HIDDEN_FIELD_KEY) != material_field:
+        return public_index
+    raw_mapping = metadata.get(_HIDDEN_MAPPING_KEY)
+    if not isinstance(raw_mapping, list) or not all(
+        isinstance(item, int) and not isinstance(item, bool) for item in raw_mapping
+    ):
+        raise ValueError("hidden material-law mapping is malformed")
+    if len(raw_mapping) != catalog_size or sorted(raw_mapping) != list(range(catalog_size)):
+        raise ValueError("hidden material-law mapping does not match the public catalog")
+    return int(raw_mapping[public_index])
 
 
 __all__ = [
@@ -121,4 +163,5 @@ __all__ = [
     "MaterialLawCounterfactual",
     "apply_material_law_counterfactual",
     "material_law_counterfactual_hash",
+    "resolve_material_law_index",
 ]

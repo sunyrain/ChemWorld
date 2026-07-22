@@ -89,10 +89,14 @@ credentials are read from the local process environment and must not enter the r
 
 ## Evidence status
 
-The `chemworld-physical-chemistry-v0.5-candidate` backend is frozen: all 15 registered tasks have
-`reference_validated` required paths, `proxy_allowed=false`, exact task-contract hashes, replay-bound state
-transitions, and public-boundary controls. This is a backend contract, not an algorithm ranking or real-chemistry
-validation. **The complete benchmark is not yet validated.**
+The `chemworld-physical-chemistry-v0.5-candidate` backend contract passes its deterministic candidate controls: all
+15 registered tasks have `reference_validated` required paths, `proxy_allowed=false`, exact task-contract hashes,
+replay-bound state transitions, and public-boundary controls. This is a **candidate backend validation**, not a clean
+release attestation, algorithm ranking, or real-chemistry validation. The word `frozen` is reserved for a clean,
+source-attested release. **The formal benchmark is currently 0/6 method families ready and has no Bench results.**
+
+[`configs/current.json`](configs/current.json) is the authoritative status surface. It reports backend-contract
+validation, clean-release attestation, formal-evaluation readiness, and publication readiness as separate states.
 
 Current evidence has established several useful boundaries:
 
@@ -100,8 +104,13 @@ Current evidence has established several useful boundaries:
   methods on the frozen backend;
 - the post-freeze five-seed PPO Train/Dev learning gate passed at 51,200 environment steps, but it is still development
   evidence rather than a four-task Bench result;
-- executable mechanism and constitutive-law shifts are control-validated, while formal cross-family adaptation remains
-  untested;
+- executable mechanism and constitutive-law shifts are control-validated. The original Gate A used an unreachable
+  electrochemical solvent target and is archived as invalid design evidence. In v0.2.1 the electrochemical target is
+  the publicly selectable `electrolyte_profile`; the action/intervention audit passes and all three electrochemical
+  families score 30/30 at budget four. Gate A still does **not** pass because reaction-to-crystallization per-family
+  confidence bounds remain below the frozen threshold (overall active-oracle accuracy 0.895, 95% Wilson lower bound
+  0.846). This blocks Agent-level mechanism-discovery interpretation and external campaign expansion; it is not
+  evidence that an Agent failed;
 - LLM interaction and causal information-ablation protocols exist, but no formal real-provider matrix is complete.
 
 See [Research Findings](https://sunyrain.github.io/ChemWorld/benchmark_release/) before citing results.

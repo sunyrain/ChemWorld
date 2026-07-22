@@ -183,6 +183,19 @@ def test_gaussian_oracle_supports_active_and_fixed_trajectory_diagnosis() -> Non
         seed=3,
     )
     oracle.fit_predictives()
+    exported = oracle.export_predictives()
+    reloaded = GaussianMechanismOracle(
+        candidate_ids=("no_change", "shift"),
+        action_ids=("uninformative", "diagnostic"),
+        sample_public_observation=sample,
+        samples_per_candidate=4,
+        seed=3,
+    )
+    reloaded.load_predictives(exported)
+    assert set(reloaded.expected_information_by_action(draws=8)) == {
+        "uninformative",
+        "diagnostic",
+    }
     assert oracle.select_action(draws=64) == "diagnostic"
     active = active_oracle_diagnosis(
         oracle,
@@ -210,9 +223,11 @@ def test_identifiability_certificate_uses_confidence_bounds() -> None:
     assert certificate["top1_accuracy_interval"][0] > 0.95
 
 
-def test_v0_2_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed() -> None:
+def test_v0_2_1_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed() -> None:
     protocol = json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.json").read_text(encoding="utf-8")
+        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert validate_mechanism_adaptation_protocol(protocol) == []
     result = evaluate_protocol_gates(protocol, {})
@@ -235,9 +250,11 @@ def test_v0_2_protocol_is_frozen_but_empirical_gates_are_not_pretended_passed() 
         assert len({row["candidate_order_seed"] for row in arms}) == 1
 
 
-def test_every_v0_2_intervention_is_reachable_by_the_current_environment() -> None:
+def test_every_v0_2_1_intervention_is_instantiable_by_the_current_environment() -> None:
     protocol = json.loads(
-        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.json").read_text(encoding="utf-8")
+        (ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json").read_text(
+            encoding="utf-8"
+        )
     )
     for task_id, contract in protocol["task_mechanism_contracts"].items():
         for interventions in contract["interventions"].values():
@@ -253,9 +270,10 @@ def test_every_v0_2_intervention_is_reachable_by_the_current_environment() -> No
                 environment.close()
 
 
-def test_v0_2_preflight_separates_method_freeze_from_external_execution() -> None:
+def test_v0_2_1_preflight_separates_method_freeze_from_external_execution() -> None:
     report = build_mechanism_adaptation_preflight()
     assert report["implementation_complete"] is True
+    assert report["design_validity_audit_pass"] is True
     assert report["method_freeze_decision_blocker_count"] == 0
     assert report["external_empirical_run_completed"] is False
     assert set(report["empirical_gate_status"].values()) == {"not_evaluated"}

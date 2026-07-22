@@ -5,7 +5,7 @@ $Root = Split-Path -Parent (Split-Path -Parent $PaperDir)
 $Python = Join-Path $Root ".venv\Scripts\python.exe"
 if (-not (Test-Path -LiteralPath $Python)) { $Python = "python" }
 
-& $Python (Join-Path $Root "scripts\audit_ncs_manuscript.py") --allow-missing-pdf
+& $Python (Join-Path $PSScriptRoot "audit.py") --allow-missing-pdf
 if ($LASTEXITCODE -ne 0) { throw "NCS manuscript pre-build audit failed" }
 
 $Tectonic = Get-Command tectonic -ErrorAction SilentlyContinue
@@ -27,6 +27,5 @@ try {
     Pop-Location
 }
 
-& $Python (Join-Path $Root "scripts\audit_ncs_manuscript.py")
+& $Python (Join-Path $PSScriptRoot "audit.py")
 if ($LASTEXITCODE -ne 0) { throw "NCS manuscript post-build audit failed" }
-

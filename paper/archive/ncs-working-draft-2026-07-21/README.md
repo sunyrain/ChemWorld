@@ -1,8 +1,9 @@
-# Nature Computational Science working manuscript
+# Archived Nature Computational Science working manuscript
 
-This directory contains the living ChemWorld manuscript targeted as a **Nature Computational
-Science Article**. It is separate from the earlier `paper/main.tex` author-review snapshot because
-that snapshot is bound to an older evidence boundary.
+This is the 2026-07-21 NCS working-draft snapshot. It is historical, not part of the current
+evidence DAG, and it must not block the mechanism-adaptation benchmark work. Its pending slots and
+old evidence bindings are intentionally preserved for provenance rather than maintained as current
+claims.
 
 The draft follows the journal's current Article structure:
 
@@ -19,12 +20,12 @@ must not be promoted to formal benchmark comparisons.
 
 ## Build and audit
 
-From the repository root on Windows:
+From this archive directory on Windows:
 
 ```powershell
-.\paper\ncs\build.ps1
+.\paper\archive\ncs-working-draft-2026-07-21\build.ps1
 ```
 
 The build audits the evidence ledger, compiles `main.tex` with Tectonic and writes `main.pdf`.
-`publication_ready` remains false until all required result slots and submission metadata are closed.
-
+`publication_ready` remains false. Re-activating this manuscript requires a new explicit evidence
+boundary and is outside the current repository roadmap.

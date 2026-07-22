@@ -13,19 +13,20 @@ from chemworld.eval.mechanism_adaptation import (
 )
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_PROTOCOL = ROOT / "configs/benchmark/mechanism_adaptation_v0.2.json"
+DEFAULT_PROTOCOL = ROOT / "configs/benchmark/mechanism_adaptation_v0.2.1.json"
 REQUIRED_IMPLEMENTATION_ARTIFACTS = (
+    "configs/benchmark/mechanism_adaptation_gate_a_v0.2.1.json",
     "src/chemworld/agents/mechanism_adaptation_live_llm.py",
     "src/chemworld/eval/mechanism_adaptation.py",
-    "src/chemworld/eval/flagship_reanalysis.py",
-    "scripts/reanalyze_flagship_mechanism_diagnostics.py",
+    "src/chemworld/eval/mechanism_design_audit.py",
+    "src/chemworld/eval/mechanism_adaptation_execution.py",
+    "scripts/audit_mechanism_adaptation_design.py",
+    "scripts/run_mechanism_adaptation_v0_2.py",
     "scripts/plan_mechanism_adaptation_matrix.py",
     "tests/test_mechanism_adaptation.py",
-    "tests/test_flagship_reanalysis.py",
-    "workstreams/flagship_tasks/reports/deepseek-mechanism-diagnostics-v0.1.1.json",
-    "workstreams/flagship_tasks/reports/deepseek-mechanism-diagnostics-v0.1.1.md",
     "workstreams/flagship_tasks/reports/mechanism-adaptation-final-protocol-v0.2.md",
-    "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2-public-matrix.json",
+    "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-public-matrix.json",
+    "workstreams/flagship_tasks/reports/mechanism-adaptation-design-audit-v0.2.1.json",
 )
 
 
@@ -36,6 +37,20 @@ def build_mechanism_adaptation_preflight(
 
     protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
     validation_errors = validate_mechanism_adaptation_protocol(protocol)
+    design_audit_path = (
+        ROOT
+        / "workstreams/flagship_tasks/reports/"
+        "mechanism-adaptation-design-audit-v0.2.1.json"
+    )
+    design_audit = (
+        json.loads(design_audit_path.read_text(encoding="utf-8"))
+        if design_audit_path.is_file()
+        else {}
+    )
+    design_audit_pass = bool(
+        design_audit.get("pass")
+        and design_audit.get("protocol_sha256") == _canonical_sha256(protocol)
+    )
     artifacts = []
     for relative in REQUIRED_IMPLEMENTATION_ARTIFACTS:
         path = ROOT / relative
@@ -47,7 +62,11 @@ def build_mechanism_adaptation_preflight(
             }
         )
     gate_status = evaluate_protocol_gates(protocol, {}) if not validation_errors else None
-    implementation_complete = not validation_errors and all(item["exists"] for item in artifacts)
+    implementation_complete = (
+        not validation_errors
+        and design_audit_pass
+        and all(item["exists"] for item in artifacts)
+    )
     return {
         "schema_version": "chemworld-mechanism-adaptation-preflight-0.2",
         "protocol_id": protocol.get("protocol_id"),
@@ -61,6 +80,8 @@ def build_mechanism_adaptation_preflight(
         "implementation_complete": implementation_complete,
         "method_freeze_decision_blocker_count": len(validation_errors),
         "method_freeze_decision_blockers": validation_errors,
+        "design_validity_audit_pass": design_audit_pass,
+        "design_validity_audit": design_audit,
         "external_empirical_run_completed": False,
         "empirical_gate_status": dict.fromkeys(
             ("gate_0", "gate_a", "gate_b", "gate_c", "gate_d", "gate_e"),
@@ -83,6 +104,11 @@ def _sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _canonical_sha256(value: Any) -> str:
+    encoded = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _relative_path(path: Path) -> str:

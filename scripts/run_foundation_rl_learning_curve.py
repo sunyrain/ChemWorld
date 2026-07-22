@@ -105,13 +105,14 @@ def _validate_foundation_evidence(protocol: dict[str, Any]) -> None:
     if backend_report.get("backend_id") != backend_binding["backend_id"]:
         raise RuntimeError("backend identity does not match the RL binding")
     if (
-        backend_report.get("status") != "candidate_backend_frozen"
+        backend_report.get("status") != "candidate_backend_clean_attested"
+        or backend_report.get("backend_contract_validated") is not True
         or backend_report.get("backend_freeze_allowed") is not True
         or backend_report.get("source_tree_dirty") is not False
         or backend_report.get("benchmark_claim_allowed") is not False
         or not all(backend_report.get("checks", {}).values())
     ):
-        raise RuntimeError("backend freeze evidence does not pass every required gate")
+        raise RuntimeError("clean-attested backend evidence does not pass every required gate")
 
     infrastructure = protocol["training_infrastructure"]["selected_configuration"]
     infrastructure_path = _bound_path(infrastructure["evidence_path"])

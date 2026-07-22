@@ -21,8 +21,10 @@ from chemworld.eval.runner import run_agent
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_PROTOCOL_PATH = ROOT / "configs/benchmark/flagship_mechanism_diagnostics_v0.1.json"
-DIAGNOSTIC_REPORT_VERSION = "chemworld-flagship-mechanism-diagnostics-0.1"
+DEFAULT_PROTOCOL_PATH = (
+    ROOT / "configs/benchmark/flagship_mechanism_diagnostics_v0.1.1.json"
+)
+DIAGNOSTIC_REPORT_VERSION = "chemworld-flagship-mechanism-diagnostics-0.1.1"
 
 FeedbackCondition = Literal[
     "true_feedback",

@@ -1,4 +1,4 @@
-"""Write the frozen v0.2 mechanism-adaptation preflight report."""
+"""Write the frozen v0.2.1 mechanism-adaptation preflight report."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from chemworld.eval.mechanism_adaptation_preflight import (
 )
 
 DEFAULT_OUTPUT = (
-    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2-preflight.json"
+    ROOT / "workstreams/flagship_tasks/reports/mechanism-adaptation-v0.2.1-preflight.json"
 )
 
 
