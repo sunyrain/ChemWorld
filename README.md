@@ -94,11 +94,11 @@ credentials are read from the local process environment and must not enter the r
 
 ## Evidence status
 
-The `chemworld-physical-chemistry-v0.5-candidate` backend contract passes its deterministic candidate controls: all
-15 registered tasks have `reference_validated` required paths, `proxy_allowed=false`, exact task-contract hashes,
-replay-bound state transitions, and public-boundary controls. This is a **candidate backend validation**, not a clean
-release attestation, algorithm ranking, or real-chemistry validation. The word `frozen` is reserved for a clean,
-source-attested release. **The formal benchmark is currently 0/6 method families ready and has no Bench results.**
+The `chemworld-physical-chemistry-v0.5-candidate` backend contract passes its deterministic controls and clean-source
+attestation: all 15 registered tasks have `reference_validated` required paths, `proxy_allowed=false`, exact
+task-contract hashes, replay-bound state transitions, and public-boundary controls. This freezes a **candidate backend
+contract only**; it is not an algorithm ranking, formal benchmark release, or real-chemistry validation. **The formal
+benchmark remains 0/6 method families ready and has no Bench results.**
 
 [`configs/current.json`](configs/current.json) is the authoritative status surface. It reports backend-contract
 validation, clean-release attestation, formal-evaluation readiness, and publication readiness as separate states.
