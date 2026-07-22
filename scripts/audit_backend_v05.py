@@ -119,7 +119,14 @@ def _tracked_source_changes() -> list[str]:
     """List tracked non-generated paths that differ from HEAD."""
 
     changed: list[str] = []
-    for line in _git_output("status", "--porcelain", "--untracked-files=no").splitlines():
+    status = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=no"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    for line in status.splitlines():
         if not line:
             continue
         path = line[3:]
