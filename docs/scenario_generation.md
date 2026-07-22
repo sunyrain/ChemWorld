@@ -1,7 +1,7 @@
 # 场景如何生成
 
-Scenario 是一次 reset 得到的世界实例。它把任务合同转成具体初态、隐藏参数与公开条件，决定 Agent
-是在适应新情况，还是只记住一个固定案例。
+Scenario 是一个 Task 与隐藏 World 的具体组合，再加入初态、干预计划、reset/反馈条件和 seed。一次
+reset 实例化该 Scenario；它决定 Agent 是在适应新规律，还是只面对同一世界中的随机变化。
 
 ## Scenario 合同应说明
 

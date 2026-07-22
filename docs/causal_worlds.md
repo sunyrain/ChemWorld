@@ -57,11 +57,13 @@ Seed 通常改变初值、噪声或连续参数抽样，却可能保留同一因
 ## 变化需要“可辨识但不灾难”
 
 干预太弱，Agent 无法通过合理实验发现；干预太强，任务会变成世界标签识别或不可解。当前六个研究
-任务已建立实际 Provider 消费的机理或构成律族；控制审计在 5 个世界、5 个代表性 recipe 上检查
-9 个任务—模式组合，验证确定性、行为可辨识、响应不过强和过程守恒。
+任务已建立实际 Provider 消费的机理或构成律族；低层控制审计在 5 个世界、5 个固定探针 recipe 上检查
+9 个任务—模式组合，验证确定性、局部响应分离、响应不过强和过程守恒。
 
-这些是**世界控制证据**，不代表 Agent 已经学会适应。下一步正式实验需要测量 change detection、
-identification accuracy、recovery experiments 与 adaptation regret。
+这些是**世界控制证据**，不证明候选 family 在给定实验预算内可识别，也不代表 Agent 已经学会适应。
+机制 v0.2.1 的电化学 Gate A cells 通过，但 reaction-to-crystallization 的逐 family 置信下界未达到
+冻结阈值，因此 Gate A 整体失败。后续正式实验才会测量 change detection、identification accuracy、
+recovery experiments 与 adaptation regret。
 
 ## 反事实世界可以检验名称先验
 

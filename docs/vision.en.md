@@ -6,6 +6,13 @@ Experimental competence grows through interaction, yet real chemistry cannot sup
 or safety profile available to language or game agents. ChemWorld therefore builds controlled causal worlds in
 which experimental strategy can be trained, compared, and falsified.
 
+> **ChemWorld unifies a physical causal world substrate, an experimental interaction runtime, and task/evaluation
+> contracts so that search, execution, identification, and adaptation can be studied as one experimental-intelligence
+> problem.**
+
+The agent, trainer, and model weights remain outside these layers. ChemWorld may provide training interactions or
+evaluate a fixed-weight model, but the environment does not update agent weights or maintain its internal world model.
+
 ## What static data leaves out
 
 Existing data can test factual knowledge and outcome prediction. It does not fully test whether an agent can:
@@ -34,15 +41,28 @@ Even a detailed simulator may teach simulator-specific shortcuts. ChemWorld keep
 stable while changing hidden causal rules, allowing adaptation itself to become the object of study.
 
 Meaningful virtual worlds still require conservation, causal coupling, partial observability, declared domains, and
-replay. The Core targets decision and causal validity before universal numerical fidelity.
+replay. The Engine targets decision and causal validity before universal numerical fidelity.
 
-## Core, Bench, Lab, Bridge
+## System layers and product surfaces
+
+The normative system has three layers:
+
+| Layer | Question |
+| --- | --- |
+| Physical Causal World Substrate | What hidden physical worlds can exist, change, and produce outcomes? |
+| Experimental Interaction Runtime | How does an agent execute experiments, measurements, failures, and lifecycle actions? |
+| Task and Evaluation Contract | What must be achieved, what is visible, what is budgeted, and how is performance evaluated? |
+
+Engine, Bench, Lab, and Bridge are user-facing product surfaces rather than architectural layers:
 
 | Layer | Role | Status |
 | --- | --- | --- |
-| ChemWorld Engine / Core | Worlds, transitions, instruments, interventions, replay | Operational and evolving |
+| ChemWorld Engine | World substrate, runtime, instruments, interventions, replay | Operational and evolving |
 | ChemWorld Bench | Splits, resource contracts, adaptation metrics, private evaluation | Candidate protocol |
 | ChemWorld Lab | Student Lab and Agent Observatory | Available locally |
 | ChemWorld Bridge | Independent backends, real data, physical systems | Validation roadmap |
+
+ChemWorld targets structural completeness of the interaction stack across selected physical-chemistry archetypes;
+chemical coverage and numerical fidelity are bounded and explicitly declared, not exhaustive.
 
 Next: [Experimental Intelligence](experimental_intelligence.md) · [Causal Worlds](causal_worlds.md)

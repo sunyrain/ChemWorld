@@ -661,6 +661,9 @@ def test_tool_using_llm_stub_runs_agent_facing_tasks(tmp_path) -> None:
     assert latest_trace["observation_summary"]
     assert latest_trace["memory_note"]
     flattened = flatten_record(records[-1])
+    assert "environment_outcome" in flattened
+    assert "agent_visible_observation" in flattened
+    assert "evaluation_outcome" in flattened
     assert "agent_view" in flattened
     assert "agent_trace" in flattened
     assert flattened["agent_trace_step_count"] == len(records[-1]["agent_trace"])

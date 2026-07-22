@@ -8,6 +8,10 @@
 ChemWorld 不只是把实验写成一个 Gym API。它将部分观测、混合动作、长程流程和 world-family shift
 放进同一训练问题，用于研究 model-free、model-based 与快速适应方法。
 
+这里的 world model 属于 Agent：它可以编码在模型权重、上下文、显式 belief、replay buffer 或外部
+surrogate 中。ChemWorld 提供世界和反馈，但不维护该模型，也不会在评测 campaign 中替 Agent 更新
+权重。
+
 ## 为什么这是 POMDP
 
 当前 observation 只包含任务允许公开的测量和过程摘要。速率律、隐藏组成、相行为参数和世界标签
@@ -72,9 +76,10 @@ Dreamer、TD-MPC、PEARL、VariBAD 或 RL² 等名称代表可能的研究家族
 
 ## 学习器可以使用哪些数据
 
-公开 trajectory 提供：Action、observation、reward、constraint flags、instrument readings、任务合同、
-公开 scenario metadata 与 Agent 自己的历史。隐藏 state、oracle mechanism 和 private-eval 参数不属于
-输入。
+公开 trajectory v0.2 分开提供 Action、`environment_outcome`、`agent_visible_observation`、
+`evaluation_outcome`、constraint flags、instrument readings、任务合同、公开 scenario metadata 与 Agent
+自己的历史。训练输入只能使用协议允许的 Agent 可见层；环境结果层和评价层用于监督、回放或分析时
+必须遵守相应信息合同。隐藏 state、oracle mechanism 和 private-eval 参数不属于 Agent 输入。
 
 可以训练的辅助目标包括：
 

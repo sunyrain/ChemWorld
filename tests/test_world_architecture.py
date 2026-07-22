@@ -2515,8 +2515,8 @@ def test_cli_scenarios_validation_render_and_dataset(tmp_path, capsys) -> None:
     card = dataset_card(exported)
     flattened = export_dataset(trajectory, output=tmp_path / "copy.jsonl", format="jsonl")
     assert card["record_count"] == len(records)
-    assert card["schema_version"] == "chemworld-dataset-card-0.3"
-    assert card["trajectory_schema_versions"] == ["chemworld-trajectory-0.1"]
+    assert card["schema_version"] == "chemworld-dataset-card-0.4"
+    assert card["trajectory_schema_versions"] == ["chemworld-trajectory-0.2"]
     assert card["protocol_hashes"]["task_contract_hashes"] == [
         records[0]["task_contract_hash"]
     ]
@@ -2538,5 +2538,10 @@ def test_cli_scenarios_validation_render_and_dataset(tmp_path, capsys) -> None:
     assert card["provenance"]["protocol_hashes"] == card["protocol_hashes"]
     assert flattened.record_count == len(records)
     flattened_record = flatten_record(records[0])
+    assert flattened_record["task_id"] == records[0]["task_id"]
+    assert flattened_record["run_id"] == records[0]["run_id"]
+    assert json.loads(flattened_record["environment_outcome"])
+    assert json.loads(flattened_record["agent_visible_observation"])
+    assert json.loads(flattened_record["evaluation_outcome"])
     assert flattened_record["task_contract_hash"] == records[0]["task_contract_hash"]
     assert flattened_record["runtime_profile_hash"] == records[0]["runtime_profile_hash"]

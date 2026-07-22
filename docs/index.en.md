@@ -53,7 +53,8 @@ recover when the rules change.
 
 - **Campaign Design:** choose the next complete experiment—BO, safe BO, active learning, recipe-level LLMs.
 - **Procedure Execution:** choose the next operation—hierarchical RL, state machines, operation-level LLMs.
-- **Process Control:** continuously adjust equipment settings—SAC, MPC, system identification, world-model control.
+- **Process Control:** choose bounded equipment setpoints and process-control actions—SAC, MPC, system
+  identification, world-model control. This is not a claim of universal high-frequency continuous control.
 
 World-model adaptation cuts across all three: infer the current world from history and recover quickly after a shift.
 

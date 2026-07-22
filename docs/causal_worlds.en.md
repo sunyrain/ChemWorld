@@ -39,8 +39,10 @@ confirmation data.
 
 ## Current control evidence
 
-Six research tasks expose executable mechanism or constitutive-law families. Across five worlds and five representative
-recipes, nine task–mode combinations pass determinism, identifiability, bounded-response, conservation, and replay
-controls. This validates the environment shift—not agent adaptation.
+Six research tasks expose executable mechanism or constitutive-law families. Across five worlds and five fixed probe
+recipes, nine task–mode combinations establish determinism, local response separation, bounded response,
+conservation, and replay. These controls do not establish candidate-family identification under a fixed budget.
+Mechanism v0.2.1 electrochemical Gate A cells pass, but reaction-to-crystallization family-wise confidence bounds keep
+Gate A failed. This is a design boundary, not agent-adaptation evidence.
 
 Next: [Benchmark](benchmark_overview.md) · [Research Findings](research_findings.md)

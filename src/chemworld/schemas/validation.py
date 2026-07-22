@@ -39,6 +39,7 @@ TRAJECTORY_REQUIRED_KEYS = {
     "world_id",
     "seed",
     "step",
+    "run_id",
     "campaign_id",
     "experiment_index",
     "operation_id",
@@ -46,6 +47,9 @@ TRAJECTORY_REQUIRED_KEYS = {
     "initial_state_id",
     "kernel_maturity",
     "action",
+    "environment_outcome",
+    "agent_visible_observation",
+    "evaluation_outcome",
     "observation",
     "reward",
     "terminated",
@@ -133,6 +137,16 @@ TRAJECTORY_SCHEMA: dict[str, Any] = {
     "title": "ChemWorld trajectory record",
     "type": "object",
     "required": sorted(TRAJECTORY_REQUIRED_KEYS),
+    "properties": {
+        "schema_version": {
+            "type": "string",
+            "const": "chemworld-trajectory-0.2",
+        },
+        "run_id": {"type": "string", "minLength": 1},
+        "environment_outcome": {"type": "object"},
+        "agent_visible_observation": {"type": "object"},
+        "evaluation_outcome": {"type": "object"},
+    },
 }
 
 MANIFEST_SCHEMA: dict[str, Any] = {

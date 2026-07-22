@@ -25,10 +25,12 @@ Outcome alone was therefore insufficient.
 A frozen Safe-GP confirmation improved all four objectives and passed safety/cost rules. The flow effect was 0.018752
 against a pre-registered practical threshold of 0.020000, so the all-task claim remained failed.
 
-## Finding 3: world shifts are executable; adaptation is still open
+## Finding 3: world shifts are executable; budgeted identification is still open
 
-Nine task–mode controls pass determinism, identifiability, bounded-response, conservation, and replay checks. This
-establishes causal world controls, not agent identification or transfer.
+Nine task–mode controls establish deterministic execution, local response separation, bounded response,
+conservation, and replay. They do not establish candidate-family identification under a fixed experiment budget.
+Under mechanism v0.2.1, electrochemical Gate A cells pass, but reaction-to-crystallization family-wise confidence
+bounds keep Gate A failed. This is a benchmark-design boundary, not an agent failure.
 
 ## Finding 4: current RL evidence diagnoses contracts, not rankings
 

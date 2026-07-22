@@ -308,7 +308,29 @@ def _run(node: EvidenceNode) -> None:
     if not (ROOT / node.path).is_file():
         raise RuntimeError(f"generator did not create {node.path}")
 
+MATERIALIZED_OUTPUT_PREFIXES = (
+    "benchmark/releases/chemworld-serious-vnext/",
+)
+
+
+def _is_materialized_output_path(path: str) -> bool:
+    normalized = path.replace("\\", "/")
+    materialized_paths = {
+        node.path.replace("\\", "/") for node in NODES if node.command is not None
+    }
+    materialized_paths.add("configs/current.json")
+    return normalized in materialized_paths or normalized.startswith(
+        MATERIALIZED_OUTPUT_PREFIXES
+    )
+
+
 def _git_tree_dirty() -> bool:
+    """Return whether tracked source/protocol inputs differ from HEAD.
+
+    Current evidence reports and release-bundle views are generated outputs. They
+    may change during a DAG refresh without making the source tree itself dirty.
+    """
+
     completed = subprocess.run(
         ["git", "status", "--porcelain", "--untracked-files=no"],
         cwd=ROOT,
@@ -316,7 +338,16 @@ def _git_tree_dirty() -> bool:
         text=True,
         check=True,
     )
-    return bool(completed.stdout.strip())
+    changed_source_paths: list[str] = []
+    for line in completed.stdout.splitlines():
+        if not line:
+            continue
+        path = line[3:]
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        if not _is_materialized_output_path(path):
+            changed_source_paths.append(path)
+    return bool(changed_source_paths)
 
 
 def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
@@ -338,6 +369,12 @@ def _write_current_registry() -> None:
     backend = json.loads((ROOT / node_map()["backend_candidate"].path).read_text())
     method = json.loads((ROOT / node_map()["method_freeze"].path).read_text())
     mechanism = json.loads((ROOT / node_map()["mechanism_gate_a"].path).read_text())
+    method_plan = json.loads((ROOT / node_map()["method_freeze_plan"].path).read_text())
+    mechanism_protocol = json.loads(
+        (ROOT / node_map()["mechanism_protocol"].path).read_text()
+    )
+    from chemworld.data.schema import OUTCOME_LAYER_FIELDS, TRAJECTORY_SCHEMA_VERSION
+
     dirty = _git_tree_dirty()
     nodes: dict[str, Any] = {}
     for node in generation_order():
@@ -358,6 +395,68 @@ def _write_current_registry() -> None:
 
     current["schema_version"] = "chemworld-current-surface-registry-0.2"
     current["updated_at"] = date.today().isoformat()
+    current["project"].update(
+        {
+            "role": "agent_capability_evaluation_and_training_environment",
+            "scientific_scope": "selected_physical_chemistry_causal_worlds",
+            "environment_updates_agent_weights": False,
+        }
+    )
+    current["system_model"] = {
+        "schema_version": "chemworld-system-model-0.1",
+        "layers": [
+            "physical_causal_world_substrate",
+            "experimental_interaction_runtime",
+            "task_and_evaluation_contract",
+        ],
+        "agent_and_training_outside_environment": True,
+        "canonical_entities": [
+            "task",
+            "world",
+            "scenario",
+            "campaign",
+            "experiment",
+            "operation",
+        ],
+        "benchmark_cell": ["task", "scenario", "agent", "seed"],
+        "trajectory_schema_version": TRAJECTORY_SCHEMA_VERSION,
+        "outcome_layers": list(OUTCOME_LAYER_FIELDS),
+        "legacy_trajectory_aliases_retained": [
+            "benchmark_task_id",
+            "observation",
+            "reward",
+            "agent_view",
+            "leaderboard_score",
+        ],
+    }
+    current["completeness_model"] = {
+        "structural": "implemented_by_design_and_subject_to_runtime_controls",
+        "evaluation": "contracts_defined_empirical_closure_pending",
+        "attribution": "diagnostic_protocol_defined_gate_a_blocked",
+        "chemical_coverage": "selected_bounded_archetypes_not_exhaustive",
+        "physical_fidelity": "model_card_bounded_not_universal_digital_twin",
+    }
+    current["benchmark_suites"] = {
+        "core": {
+            "role": "formal_confirmatory_comparison",
+            "protocol": "configs/benchmark/method_freeze_v0.4.json",
+            "task_ids": list(method_plan["formal_core_tasks"]),
+            "status": (
+                "ready" if method.get("method_freeze_ready") else "method_freeze_blocked"
+            ),
+        },
+        "diagnostic": {
+            "role": "identifiability_feedback_adaptation_and_autonomy_attribution",
+            "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
+            "task_ids": list(mechanism_protocol["design"]["tasks"]),
+            "status": "gate_a_passed" if mechanism.get("gate_a_pass") else "gate_a_blocked",
+        },
+        "extended": {
+            "role": "environment_coverage_training_and_demonstration",
+            "registered_task_count": len(backend.get("task_contract_hashes", {})),
+            "formal_ranking_claim": False,
+        },
+    }
     current["state_model"] = {
         "schema_version": "chemworld-evidence-state-model-0.1",
         "dimensions": {

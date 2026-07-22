@@ -35,3 +35,16 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert current["formal_evaluation"]["benchmark_claim_allowed"] is False
     assert current["publication"]["status"] == "no_active_manuscript"
     assert current["publication"]["publication_ready"] is False
+
+
+def test_generated_evidence_paths_do_not_make_source_tree_dirty() -> None:
+    pipeline = _pipeline()
+
+    assert pipeline["_is_materialized_output_path"]("configs/current.json")
+    assert pipeline["_is_materialized_output_path"](
+        "workstreams/world_foundation/reports/backend-v0.5.json"
+    )
+    assert pipeline["_is_materialized_output_path"](
+        "benchmark/releases/chemworld-serious-vnext/manifest.json"
+    )
+    assert not pipeline["_is_materialized_output_path"]("src/chemworld/data/schema.py")

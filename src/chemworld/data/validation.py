@@ -4,11 +4,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from chemworld.data.schema import TRAJECTORY_SCHEMA_VERSION
+from chemworld.data.schema import (
+    LEGACY_TRAJECTORY_SCHEMA_VERSIONS,
+    OUTCOME_LAYER_FIELDS,
+    SUPPORTED_TRAJECTORY_SCHEMA_VERSIONS,
+    TRAJECTORY_SCHEMA_VERSION,
+)
 from chemworld.schemas.validation import TRAJECTORY_REQUIRED_KEYS
 from chemworld.world.operations import PUBLIC_OBSERVATION_KEYS
 
 REQUIRED_RECORD_KEYS = TRAJECTORY_REQUIRED_KEYS
+LEGACY_RECORD_KEYS = REQUIRED_RECORD_KEYS - {"run_id", *OUTCOME_LAYER_FIELDS}
 
 EVENT_ACTION_KEYS = {"operation"}
 
@@ -24,15 +30,46 @@ MATURITY_LEVELS = {
 
 
 def validate_record(record: dict[str, Any]) -> None:
-    missing = REQUIRED_RECORD_KEYS - record.keys()
+    if "schema_version" not in record:
+        raise ValueError("Trajectory record is missing keys: ['schema_version']")
+    schema_version = record.get("schema_version")
+    if schema_version not in SUPPORTED_TRAJECTORY_SCHEMA_VERSIONS:
+        raise ValueError(
+            f"Unsupported schema_version={schema_version!r}; expected one of "
+            f"{SUPPORTED_TRAJECTORY_SCHEMA_VERSIONS!r}"
+        )
+
+    required_keys = (
+        LEGACY_RECORD_KEYS
+        if schema_version in LEGACY_TRAJECTORY_SCHEMA_VERSIONS
+        else REQUIRED_RECORD_KEYS
+    )
+    missing = required_keys - record.keys()
     if missing:
         raise ValueError(f"Trajectory record is missing keys: {sorted(missing)}")
 
-    if record["schema_version"] != TRAJECTORY_SCHEMA_VERSION:
-        raise ValueError(
-            f"Unsupported schema_version={record['schema_version']!r}; "
-            f"expected {TRAJECTORY_SCHEMA_VERSION!r}"
-        )
+    if schema_version == TRAJECTORY_SCHEMA_VERSION:
+        for field_name in OUTCOME_LAYER_FIELDS:
+            if not isinstance(record[field_name], dict):
+                raise ValueError(f"{field_name} must be an object")
+        if not isinstance(record["run_id"], str) or not record["run_id"]:
+            raise ValueError("run_id must be a non-empty string")
+        benchmark_task_id = record.get("benchmark_task_id")
+        if benchmark_task_id is not None and record["task_id"] != benchmark_task_id:
+            raise ValueError("trajectory v0.2 task_id must identify the stable task contract")
+        if record["environment_outcome"].get("observation") != record["observation"]:
+            raise ValueError(
+                "environment_outcome.observation must match the v0.1 observation alias"
+            )
+        evaluation_outcome = record["evaluation_outcome"]
+        if evaluation_outcome.get("online_transition_reward") != record["reward"]:
+            raise ValueError(
+                "evaluation_outcome.online_transition_reward must match the reward alias"
+            )
+        if evaluation_outcome.get("leaderboard_score") != record["leaderboard_score"]:
+            raise ValueError(
+                "evaluation_outcome.leaderboard_score must match the leaderboard_score alias"
+            )
 
     action_missing = EVENT_ACTION_KEYS - record["action"].keys()
     if action_missing:

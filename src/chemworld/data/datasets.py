@@ -15,7 +15,7 @@ from chemworld.data.logging import load_jsonl, to_builtin
 from chemworld.data.submission import git_commit
 from chemworld.data.validation import validate_records
 
-DATASET_CARD_SCHEMA_VERSION = "chemworld-dataset-card-0.3"
+DATASET_CARD_SCHEMA_VERSION = "chemworld-dataset-card-0.4"
 
 
 @dataclass(frozen=True)
@@ -80,6 +80,8 @@ def flatten_record(record: dict[str, Any]) -> dict[str, Any]:
     trace = record.get("agent_trace", [])
     latest_trace = _latest_agent_trace_entry(record)
     return {
+        "task_id": record.get("task_id"),
+        "run_id": record.get("run_id"),
         "campaign_id": record.get("campaign_id"),
         "experiment_index": record.get("experiment_index"),
         "operation_id": record.get("operation_id"),
@@ -112,6 +114,18 @@ def flatten_record(record: dict[str, Any]) -> dict[str, Any]:
         "precondition_failed": flags.get("precondition_failed"),
         "constitution_failed": flags.get("constitution_failed"),
         "action": json.dumps(to_builtin(record.get("action", {})), sort_keys=True),
+        "environment_outcome": json.dumps(
+            to_builtin(record.get("environment_outcome", {})),
+            sort_keys=True,
+        ),
+        "agent_visible_observation": json.dumps(
+            to_builtin(record.get("agent_visible_observation", {})),
+            sort_keys=True,
+        ),
+        "evaluation_outcome": json.dumps(
+            to_builtin(record.get("evaluation_outcome", {})),
+            sort_keys=True,
+        ),
         "agent_view": json.dumps(to_builtin(record.get("agent_view", {})), sort_keys=True),
         "lab_report": json.dumps(
             to_builtin(record.get("agent_view", {}).get("lab_report", {})),
@@ -296,7 +310,12 @@ def _replay_verification_summary(path: str | Path) -> dict[str, Any]:
 
 def dataset_card(path: str | Path) -> dict[str, Any]:
     records = load_dataset_records(path)
-    task_ids = sorted({str(record.get("benchmark_task_id")) for record in records})
+    task_ids = sorted(
+        {
+            str(record.get("benchmark_task_id") or record.get("task_id"))
+            for record in records
+        }
+    )
     seeds = sorted({int(record["seed"]) for record in records})
     world_law_versions = sorted({str(record.get("world_family_version")) for record in records})
     env_versions = sorted({str(record.get("env_version")) for record in records})

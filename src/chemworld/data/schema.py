@@ -5,7 +5,17 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-TRAJECTORY_SCHEMA_VERSION = "chemworld-trajectory-0.1"
+TRAJECTORY_SCHEMA_VERSION = "chemworld-trajectory-0.2"
+LEGACY_TRAJECTORY_SCHEMA_VERSIONS = ("chemworld-trajectory-0.1",)
+SUPPORTED_TRAJECTORY_SCHEMA_VERSIONS = (
+    *LEGACY_TRAJECTORY_SCHEMA_VERSIONS,
+    TRAJECTORY_SCHEMA_VERSION,
+)
+OUTCOME_LAYER_FIELDS = (
+    "environment_outcome",
+    "agent_visible_observation",
+    "evaluation_outcome",
+)
 
 
 @dataclass(frozen=True)
@@ -37,12 +47,16 @@ class TrajectoryRecordPayload:
     world_id: str
     seed: int
     step: int
+    run_id: str
     campaign_id: str
     experiment_index: int
     operation_id: int
     scenario_id: str | None
     initial_state_id: str | None
     action: dict[str, Any]
+    environment_outcome: dict[str, Any]
+    agent_visible_observation: dict[str, Any]
+    evaluation_outcome: dict[str, Any]
     observation: dict[str, float | None]
     reward: float
     terminated: bool

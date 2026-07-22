@@ -78,7 +78,58 @@ class TrajectoryLogger:
         agent_view: dict[str, Any] | None = None,
         agent_trace: list[dict[str, Any]] | None = None,
         method_resources: dict[str, Any] | None = None,
+        environment_outcome: dict[str, Any] | None = None,
+        agent_visible_observation: dict[str, Any] | None = None,
+        evaluation_outcome: dict[str, Any] | None = None,
     ) -> None:
+        observation_payload = observation_to_json(observation)
+        stable_task_id = str(task_info.get("task_id") or task_info["env_id"])
+        run_id = (
+            f"{task_info['env_id']}:{task_info['world_split']}:"
+            f"{task_info['objective']}:seed-{task_info['seed']}"
+        )
+        default_environment_outcome = {
+            "observation": observation_payload,
+            "transaction_status": info.get("transaction_status"),
+            "operation_type": info.get("operation_type"),
+            "constraint_flags": to_builtin(info.get("constraint_flags", {})),
+            "world_events": to_builtin(info.get("world_events", [])),
+            "state_delta_summary": to_builtin(info.get("state_delta_summary", {})),
+            "state_patches_summary": to_builtin(info.get("state_patches_summary", [])),
+            "raw_signal": to_builtin(info.get("raw_signal", {})),
+            "processed_estimate": to_builtin(info.get("processed_estimate", {})),
+            "uncertainty": to_builtin(info.get("uncertainty", {})),
+            "measurement_cost": float(info.get("measurement_cost", 0.0)),
+            "sample_consumed": float(info.get("sample_consumed", 0.0)),
+            "terminated": bool(terminated),
+            "truncated": bool(truncated),
+        }
+        default_agent_visible_observation = {
+            "observation": observation_payload,
+            "views": to_builtin(agent_view or {}),
+            "observed_reward": float(info.get("observed_reward", reward)),
+        }
+        default_evaluation_outcome = {
+            "online_transition_reward": float(reward),
+            "leaderboard_score": to_builtin(info.get("leaderboard_score")),
+            "reward_source": info.get("reward_source"),
+            "scoring_contract_hash": info.get(
+                "scoring_contract_hash",
+                task_info.get("scoring_contract_hash"),
+            ),
+        }
+        resolved_environment_outcome = {
+            **default_environment_outcome,
+            **to_builtin(environment_outcome or {}),
+        }
+        resolved_agent_visible_observation = {
+            **default_agent_visible_observation,
+            **to_builtin(agent_visible_observation or {}),
+        }
+        resolved_evaluation_outcome = {
+            **default_evaluation_outcome,
+            **to_builtin(evaluation_outcome or {}),
+        }
         payload = {
             "schema_version": TRAJECTORY_SCHEMA_VERSION,
             "env_version": info.get("env_version", __version__),
@@ -102,11 +153,9 @@ class TrajectoryLogger:
                 "mechanism_family_intervention_hash",
                 task_info.get("mechanism_family_intervention_hash"),
             ),
-            "task_id": (
-                f"{task_info['env_id']}:{task_info['world_split']}:"
-                f"{task_info['objective']}:seed-{task_info['seed']}"
-            ),
+            "task_id": stable_task_id,
             "env_id": task_info["env_id"],
+            # Kept as a compatibility alias for trajectory v0.1 consumers.
             "benchmark_task_id": task_info.get("task_id"),
             "world_split": task_info["world_split"],
             "world_provider": task_info.get("world_provider"),
@@ -147,6 +196,7 @@ class TrajectoryLogger:
             "world_id": task_info["world_id"],
             "seed": int(task_info["seed"]),
             "step": step,
+            "run_id": run_id,
             "campaign_id": info.get(
                 "campaign_id",
                 f"{task_info.get('task_id') or 'adhoc'}:{task_info.get('seed')}",
@@ -156,7 +206,12 @@ class TrajectoryLogger:
             "scenario_id": info.get("scenario_id", task_info.get("scenario_id")),
             "initial_state_id": info.get("initial_state_id", task_info.get("initial_state_id")),
             "action": action_payload(action),
-            "observation": observation_to_json(observation),
+            "environment_outcome": resolved_environment_outcome,
+            "agent_visible_observation": resolved_agent_visible_observation,
+            "evaluation_outcome": resolved_evaluation_outcome,
+            # v0.1 aliases remain materialized while readers migrate to the three
+            # outcome layers above.
+            "observation": observation_payload,
             "reward": float(reward),
             "terminated": bool(terminated),
             "truncated": bool(truncated),

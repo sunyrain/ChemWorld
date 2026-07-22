@@ -53,10 +53,10 @@ def test_committed_backend_report_is_truthful_and_candidate_only() -> None:
     report = json.loads(DEFAULT_OUTPUT.read_text(encoding="utf-8"))
 
     assert report["backend_contract_validated"] is True
-    assert report["backend_freeze_allowed"] is False
-    assert report["source_tree_dirty"] is True
-    assert report["checks"]["clean_tracked_tree"] is False
-    assert report["clean_release_attestation"] == "pending_clean_tree"
-    assert report["status"] == "candidate_backend_validated_dirty_tree"
+    assert report["backend_freeze_allowed"] is True
+    assert report["source_tree_dirty"] is False
+    assert report["checks"]["clean_tracked_tree"] is True
+    assert report["clean_release_attestation"] == "passed"
+    assert report["status"] == "candidate_backend_clean_attested"
     assert report["benchmark_claim_allowed"] is False
     assert validate_report(report) == []

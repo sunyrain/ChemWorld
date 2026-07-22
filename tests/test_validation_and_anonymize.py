@@ -42,6 +42,16 @@ def test_trajectory_records_include_instrument_signal_layers(tmp_path) -> None:
     )
     records = load_jsonl(path)
     validate_records(records)
+    assert records[0]["schema_version"] == "chemworld-trajectory-0.2"
+    assert records[0]["task_id"] == records[0]["benchmark_task_id"]
+    assert records[0]["run_id"].endswith(":seed-2")
+    assert records[0]["environment_outcome"]["observation"] == records[0]["observation"]
+    assert records[0]["agent_visible_observation"]["observation"] == records[0][
+        "observation"
+    ]
+    assert records[0]["evaluation_outcome"]["online_transition_reward"] == records[0][
+        "reward"
+    ]
     measured = [record for record in records if record["instrument"] is not None]
     assert measured
     assert records[0]["task_contract_hash"]
@@ -55,6 +65,29 @@ def test_trajectory_records_include_instrument_signal_layers(tmp_path) -> None:
     assert "raw_signal" in measured[-1]
     assert "processed_estimate" in measured[-1]
     assert "uncertainty" in measured[-1]
+
+
+def test_trajectory_validation_accepts_v01_compatibility_aliases(tmp_path) -> None:
+    path = tmp_path / "run.jsonl"
+    run_agent(
+        env_id="ChemWorld",
+        agent=make_agent("random"),
+        world_split="public-dev",
+        budget=2,
+        objective="balanced",
+        seed=3,
+        output_path=path,
+    )
+    legacy = json.loads(json.dumps(load_jsonl(path)[0]))
+    legacy["schema_version"] = "chemworld-trajectory-0.1"
+    for field_name in (
+        "run_id",
+        "environment_outcome",
+        "agent_visible_observation",
+        "evaluation_outcome",
+    ):
+        legacy.pop(field_name)
+    validate_records([legacy])
 
 
 def test_anonymize_helpers_redact_personal_identifiers(tmp_path) -> None:

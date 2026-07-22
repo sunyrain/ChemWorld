@@ -132,7 +132,13 @@ def _run_adversarial_probes(workspace: Path) -> dict[str, bool]:
 
 def _record_source_mismatch_rejected(records: list[dict[str, Any]], trajectory: Path) -> bool:
     changed = copy.deepcopy(records)
-    changed[0]["reward"] = float(changed[0].get("reward", 0.0)) + 0.01
+    changed_reward = float(changed[0].get("reward", 0.0)) + 0.01
+    changed[0]["reward"] = changed_reward
+    if isinstance(changed[0].get("evaluation_outcome"), dict):
+        # Keep the v0.2 compatibility alias internally coherent so this probe
+        # reaches the exact source-byte binding rather than the earlier schema
+        # consistency guard.
+        changed[0]["evaluation_outcome"]["online_transition_reward"] = changed_reward
     try:
         build_verified_evaluation_result(changed, trajectory_path=trajectory)
     except ValueError as exc:

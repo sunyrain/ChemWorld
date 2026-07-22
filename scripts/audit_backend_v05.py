@@ -45,6 +45,7 @@ if __package__:
         validate_report as validate_state_report,
     )
     from scripts.audit_vnext_runtime_integration import build_audit as build_runtime_audit
+    from scripts.evidence_pipeline import _is_materialized_output_path
 else:
     from audit_maturity_truth_vnext import (
         build_report as build_maturity_report,
@@ -80,6 +81,7 @@ else:
         validate_report as validate_state_report,
     )
     from audit_vnext_runtime_integration import build_audit as build_runtime_audit
+    from evidence_pipeline import _is_materialized_output_path
 
 from chemworld.physchem.maturity import MaturityLevel
 from chemworld.tasks import list_tasks
@@ -111,6 +113,21 @@ def _git_output(*args: str) -> str:
         text=True,
     )
     return result.stdout.strip()
+
+
+def _tracked_source_changes() -> list[str]:
+    """List tracked non-generated paths that differ from HEAD."""
+
+    changed: list[str] = []
+    for line in _git_output("status", "--porcelain", "--untracked-files=no").splitlines():
+        if not line:
+            continue
+        path = line[3:]
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        if not _is_materialized_output_path(path):
+            changed.append(path)
+    return changed
 
 
 def load_protocol(path: Path = DEFAULT_PROTOCOL) -> dict[str, Any]:
@@ -148,7 +165,7 @@ def build_report(
         load_public_boundary_protocol()
     )
 
-    tracked_changes = _git_output("status", "--porcelain", "--untracked-files=no")
+    tracked_changes = _tracked_source_changes()
     source_tree_dirty = bool(tracked_changes)
     artifact_hashes = {
         relative: _file_hash(ROOT / relative)

@@ -58,6 +58,10 @@ Agent 提交 Action
 
 Agent 必须判断这份信息是否值得它的资源，而不是免费读取完整状态。
 
+轨迹会把结果拆成三层：`environment_outcome` 保存世界实际产生的后果，
+`agent_visible_observation` 保存真正释放给 Agent 的反馈，`evaluation_outcome` 保存评价器使用的真实终点。
+因此反馈延迟或置换不会改写世界实际发生了什么，也不会污染正式评分真值。
+
 ## 一个连续流例子
 
 Agent 第一次实验得到低转化。至少存在三种解释：反应太慢、副反应太强，或设备传热使真实温度低于
