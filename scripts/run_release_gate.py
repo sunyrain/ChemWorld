@@ -194,13 +194,23 @@ def _source_state_control(
     allow_dirty_candidate: bool = False,
 ) -> dict[str, object]:
     commit_stable = source_commit == finished_source_commit
+    source_integrity_passed = commit_stable and (
+        not dirty_at_finish or allow_dirty_candidate
+    )
     return {
+        "status": "passed" if source_integrity_passed else "blocked",
         "source_commit_at_finish": finished_source_commit,
         "source_commit_stable": commit_stable,
         "source_tree_dirty_at_finish": dirty_at_finish,
         "dirty_candidate_mode": allow_dirty_candidate,
-        "passed": commit_stable and (not dirty_at_finish or allow_dirty_candidate),
+        "source_integrity_passed": source_integrity_passed,
     }
+
+
+def _release_status(*, succeeded: bool, require_frozen_benchmark: bool) -> str:
+    if not succeeded:
+        return "blocked"
+    return "release_ready" if require_frozen_benchmark else "candidate_gate_passed"
 
 
 def _sha256(path: Path) -> str:
@@ -243,7 +253,9 @@ def main() -> int:
     if dirty_at_start and not args.allow_dirty_candidate:
         raise RuntimeError("release gate requires a clean tracked source tree")
     summary: dict[str, Any] = {
-        "schema_version": "chemworld-release-gate-0.2",
+        "schema_version": "chemworld-release-gate-0.3",
+        "status": "running",
+        "gate_state": "pending",
         "started_at": datetime.now(UTC).isoformat(),
         "source_commit": source_commit,
         "source_tree_dirty_at_start": dirty_at_start,
@@ -288,9 +300,14 @@ def main() -> int:
         dirty_at_finish=dirty_at_finish,
         allow_dirty_candidate=bool(args.allow_dirty_candidate),
     )
-    overall_success = overall_success and bool(source_state["passed"])
+    overall_success = overall_success and bool(source_state["source_integrity_passed"])
     summary["finished_at"] = datetime.now(UTC).isoformat()
-    summary.update(source_state)
+    summary["source_control"] = source_state
+    summary["status"] = _release_status(
+        succeeded=overall_success,
+        require_frozen_benchmark=bool(args.require_frozen_benchmark),
+    )
+    summary["gate_state"] = "passed" if overall_success else "blocked"
     summary["success"] = overall_success
     summary["backend_candidate_gate_ready"] = overall_success
     summary["release_claim_ready"] = bool(overall_success and args.require_frozen_benchmark)

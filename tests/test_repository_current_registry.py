@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import copy
 import json
+import runpy
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -13,40 +15,48 @@ def _registry() -> dict[str, Any]:
     return json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
 
 
-def _declared_paths(value: Any):
-    if isinstance(value, dict):
-        for key, item in value.items():
-            if key in {
-                "backend",
-                "backend_report",
-                "protocol",
-                "interaction_strata",
-                "statistical_analysis",
-                "method_freeze_report",
-                "preflight_report",
-                "protocol_report",
-                "classic_methods",
-                "classic_report",
-                "operation_methods",
-                "operation_report",
-                "live_llm_report",
-            }:
-                yield item
-            else:
-                yield from _declared_paths(item)
-    elif isinstance(value, list):
-        for item in value:
-            yield from _declared_paths(item)
+def _pipeline() -> dict[str, Any]:
+    return runpy.run_path("scripts/evidence_pipeline.py", run_name="evidence_pipeline")
 
 
 def test_current_registry_paths_exist() -> None:
     registry = _registry()
-    declared = list(_declared_paths(registry))
+    pipeline = _pipeline()
 
-    assert declared
-    assert all(isinstance(path, str) for path in declared)
-    missing = [path for path in declared if not (ROOT / path).is_file()]
-    assert missing == []
+    assert pipeline["validate_current_registry_paths"](registry, root=ROOT) == []
+    live_llm = registry["development_evidence"]["live_llm"]
+    assert live_llm["artifact_state"] == "pending"
+    assert live_llm["artifact_roles"] == ["planned_output"]
+    assert not (ROOT / live_llm["report"]).exists()
+
+
+def test_current_registry_path_validation_fails_closed() -> None:
+    registry = _registry()
+    validate = _pipeline()["validate_current_registry_paths"]
+
+    missing = copy.deepcopy(registry)
+    missing["runtime"]["backend"] = "configs/foundation/does-not-exist.json"
+    assert any(
+        "missing required current artifact: runtime.backend" in error
+        for error in validate(missing, root=ROOT)
+    )
+
+    outside = copy.deepcopy(registry)
+    outside["runtime"]["backend"] = "../api.md"
+    assert any(
+        "current registry path escapes repository root: runtime.backend" in error
+        for error in validate(outside, root=ROOT)
+    )
+
+    wrong_role = copy.deepcopy(registry)
+    wrong_role["development_evidence"]["live_llm"]["artifact_roles"] = [
+        "development_diagnostic"
+    ]
+    assert any(
+        "current registry artifact role mismatch: development_evidence.live_llm"
+        in error
+        for error in validate(wrong_role, root=ROOT)
+    )
 
 
 def test_current_registry_matches_package_and_claim_boundaries() -> None:

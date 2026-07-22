@@ -17,6 +17,7 @@ from typing import Any, Literal, Protocol
 from chemworld.agents.base import Agent, HistoryRecord
 from chemworld.agents.interaction import AgentDecisionContext, InteractionCapabilities
 from chemworld.agents.task_recipes import task_recipe_event_count
+from chemworld.eval.artifact_paths import repository_relative_reference
 from chemworld.eval.runner import run_agent
 from chemworld.tasks import get_task
 
@@ -652,8 +653,15 @@ def summarize_phase(
         for record in terminal
         if record.info.get("leaderboard_score") is not None
     ]
+    try:
+        trajectory_reference = repository_relative_reference(path)
+        trajectory_reference_kind = "repository_relative"
+    except ValueError:
+        trajectory_reference = str(path)
+        trajectory_reference_kind = "external_ephemeral"
     return {
-        "trajectory_path": str(path),
+        "trajectory_path": trajectory_reference,
+        "trajectory_reference_kind": trajectory_reference_kind,
         "trajectory_sha256": _file_sha256(path),
         "operation_count": len(history),
         "complete_experiment_count": len(terminal),

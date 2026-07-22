@@ -251,7 +251,7 @@ def _audit_material_alignment(
         schema = environment.action_schema(operation)
     finally:
         environment.close()
-    field_schema = next(
+    field_schema: Mapping[str, Any] = next(
         (item for item in schema.get("fields", []) if item.get("field") == public_field),
         {},
     )

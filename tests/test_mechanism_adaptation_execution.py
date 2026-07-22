@@ -176,7 +176,10 @@ def test_current_live_llm_target_is_v0_4_11_everywhere() -> None:
         (ROOT / "configs/benchmark/method_freeze_v0.4.json").read_text(encoding="utf-8")
     )
     expected = "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json"
-    assert current["development_evidence"]["live_llm_report"] == expected
+    live_llm = current["development_evidence"]["live_llm"]
+    assert live_llm["report"] == expected
+    assert live_llm["artifact_state"] == "pending"
+    assert live_llm["artifact_roles"] == ["planned_output"]
     assert freeze["artifact_bindings"]["llm_development"]["path"] == expected
 
 

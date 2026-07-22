@@ -121,10 +121,24 @@ def test_release_gate_fails_when_head_changes_during_the_run() -> None:
         allow_dirty_candidate=True,
     )
 
-    assert stable["passed"] is True
+    assert stable["status"] == "passed"
+    assert stable["source_integrity_passed"] is True
     assert stable["source_commit_stable"] is True
-    assert changed["passed"] is False
+    assert changed["status"] == "blocked"
+    assert changed["source_integrity_passed"] is False
     assert changed["source_commit_stable"] is False
-    assert dirty["passed"] is False
-    assert dirty_candidate["passed"] is True
+    assert dirty["source_integrity_passed"] is False
+    assert dirty_candidate["source_integrity_passed"] is True
     assert dirty_candidate["dirty_candidate_mode"] is True
+
+
+def test_release_gate_has_one_canonical_lifecycle_status() -> None:
+    namespace = runpy.run_path("scripts/run_release_gate.py", run_name="release_gate")
+    release_status = namespace["_release_status"]
+
+    assert release_status(succeeded=False, require_frozen_benchmark=False) == "blocked"
+    assert (
+        release_status(succeeded=True, require_frozen_benchmark=False)
+        == "candidate_gate_passed"
+    )
+    assert release_status(succeeded=True, require_frozen_benchmark=True) == "release_ready"

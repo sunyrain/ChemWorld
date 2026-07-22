@@ -12,6 +12,7 @@ import hashlib
 import json
 import subprocess
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -30,6 +31,17 @@ class EvidenceNode:
     role: str
     dependencies: tuple[str, ...] = ()
     command: tuple[str, ...] | None = None
+
+
+@dataclass(frozen=True)
+class CurrentPathRule:
+    """Schema rule for a path exposed through the current registry."""
+
+    json_path: tuple[str, ...]
+    artifact_role: str
+    must_exist: bool = True
+    metadata_path: tuple[str, ...] | None = None
+    expected_state: str | None = None
 
 
 NODES = (
@@ -232,6 +244,66 @@ NODES = (
 )
 
 
+CURRENT_PATH_RULES = (
+    CurrentPathRule(("runtime", "backend"), "protocol_input"),
+    CurrentPathRule(("runtime", "backend_report"), "generated_current"),
+    CurrentPathRule(("formal_evaluation", "protocol"), "protocol_input"),
+    CurrentPathRule(("formal_evaluation", "interaction_strata"), "protocol_input"),
+    CurrentPathRule(("formal_evaluation", "statistical_analysis"), "protocol_input"),
+    CurrentPathRule(
+        ("formal_evaluation", "method_freeze_report"), "generated_current"
+    ),
+    CurrentPathRule(("mechanism_adaptation", "protocol"), "protocol_input"),
+    CurrentPathRule(
+        ("mechanism_adaptation", "preflight_report"), "generated_current"
+    ),
+    CurrentPathRule(
+        ("mechanism_adaptation", "protocol_report"), "development_diagnostic"
+    ),
+    CurrentPathRule(("mechanism_adaptation", "gate_a_plan"), "protocol_input"),
+    CurrentPathRule(
+        ("mechanism_adaptation", "gate_a_report"), "formal_result"
+    ),
+    CurrentPathRule(
+        ("mechanism_adaptation", "design_audit_report"), "generated_current"
+    ),
+    CurrentPathRule(
+        ("development_evidence", "classic", "methods"),
+        "development_input",
+        metadata_path=("development_evidence", "classic"),
+        expected_state="current",
+    ),
+    CurrentPathRule(
+        ("development_evidence", "classic", "report"),
+        "development_diagnostic",
+        metadata_path=("development_evidence", "classic"),
+        expected_state="current",
+    ),
+    CurrentPathRule(
+        ("development_evidence", "operation", "methods"),
+        "development_input",
+        metadata_path=("development_evidence", "operation"),
+        expected_state="current",
+    ),
+    CurrentPathRule(
+        ("development_evidence", "operation", "report"),
+        "development_diagnostic",
+        metadata_path=("development_evidence", "operation"),
+        expected_state="current",
+    ),
+    CurrentPathRule(
+        ("development_evidence", "live_llm", "report"),
+        "planned_output",
+        must_exist=False,
+        metadata_path=("development_evidence", "live_llm"),
+        expected_state="pending",
+    ),
+    CurrentPathRule(
+        ("publication", "archived_working_draft"), "archived_history"
+    ),
+)
+
+
 def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -287,6 +359,76 @@ def graph_sha256() -> str:
             for node in NODES
         ]
     )
+
+
+def _registry_value(registry: dict[str, Any], json_path: tuple[str, ...]) -> Any:
+    value: Any = registry
+    for key in json_path:
+        if not isinstance(value, dict) or key not in value:
+            raise KeyError(".".join(json_path))
+        value = value[key]
+    return value
+
+
+def validate_current_registry_paths(
+    registry: dict[str, Any], *, root: Path = ROOT
+) -> list[str]:
+    """Validate explicitly classified current, planned, and historical paths."""
+
+    errors: list[str] = []
+    resolved_root = root.resolve()
+    checked_metadata: set[tuple[str, ...]] = set()
+    for rule in CURRENT_PATH_RULES:
+        label = ".".join(rule.json_path)
+        try:
+            value = _registry_value(registry, rule.json_path)
+        except KeyError:
+            errors.append(f"current registry path field is missing: {label}")
+            continue
+        if not isinstance(value, str) or not value.strip():
+            errors.append(f"current registry path is not a non-empty string: {label}")
+            continue
+
+        relative_path = Path(value)
+        if relative_path.is_absolute():
+            errors.append(f"current registry path must be repository-relative: {label}")
+            continue
+        resolved_path = (resolved_root / relative_path).resolve()
+        if not resolved_path.is_relative_to(resolved_root):
+            errors.append(f"current registry path escapes repository root: {label}")
+            continue
+        if rule.must_exist and not resolved_path.is_file():
+            errors.append(
+                f"missing required current artifact: {label} -> {value}"
+            )
+        if not rule.must_exist and resolved_path.exists():
+            errors.append(
+                f"planned current artifact exists but remains pending: {label} -> {value}"
+            )
+
+        if rule.metadata_path is None or rule.metadata_path in checked_metadata:
+            continue
+        checked_metadata.add(rule.metadata_path)
+        metadata_label = ".".join(rule.metadata_path)
+        try:
+            metadata = _registry_value(registry, rule.metadata_path)
+        except KeyError:
+            errors.append(f"current registry artifact metadata is missing: {metadata_label}")
+            continue
+        if not isinstance(metadata, dict):
+            errors.append(f"current registry artifact metadata is invalid: {metadata_label}")
+            continue
+        if metadata.get("artifact_state") != rule.expected_state:
+            errors.append(
+                f"current registry artifact state mismatch: {metadata_label}"
+            )
+        declared_roles = metadata.get("artifact_roles")
+        if not isinstance(declared_roles, list) or rule.artifact_role not in declared_roles:
+            errors.append(
+                f"current registry artifact role mismatch: {metadata_label} "
+                f"requires {rule.artifact_role}"
+            )
+    return errors
 
 
 def _run(node: EvidenceNode) -> None:
@@ -364,6 +506,70 @@ def _node_gate_state(node: EvidenceNode, payload: dict[str, Any]) -> str:
     return "passed"
 
 
+def _formal_method_readiness(method: Mapping[str, Any]) -> dict[str, int]:
+    families = method.get("method_families", {})
+    if not isinstance(families, Mapping):
+        return {"ready": 0, "required": 6}
+    classic = families.get("classic", {})
+    operation = families.get("operation_baselines", {})
+    llm = families.get("llm", {})
+    rl = families.get("rl", {})
+    ppo = rl.get("ppo", {}) if isinstance(rl, Mapping) else {}
+    sac = rl.get("sac", {}) if isinstance(rl, Mapping) else {}
+    readiness = [
+        bool(isinstance(classic, Mapping) and classic.get("development_ready")),
+        bool(isinstance(operation, Mapping) and operation.get("development_ready")),
+        bool(isinstance(llm, Mapping) and llm.get("development_ready")),
+        bool(isinstance(llm, Mapping) and llm.get("development_ready")),
+        bool(isinstance(ppo, Mapping) and ppo.get("development_ready")),
+        bool(isinstance(sac, Mapping) and sac.get("development_ready")),
+    ]
+    return {"ready": sum(readiness), "required": len(readiness)}
+
+
+def current_status_summary(
+    registry: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Return the canonical independent readiness dimensions for maintainers."""
+
+    current = (
+        dict(registry)
+        if registry is not None
+        else json.loads(CURRENT_REGISTRY.read_text(encoding="utf-8"))
+    )
+    runtime = current["runtime"]
+    formal = current["formal_evaluation"]
+    mechanism = current["mechanism_adaptation"]
+    publication = current["publication"]
+    readiness = formal["method_family_readiness"]
+    return {
+        "schema_version": "chemworld-current-status-summary-0.1",
+        "backend_candidate": {
+            "status": runtime["status"],
+            "contract_validation": runtime["contract_validation"],
+        },
+        "release_attestation": {"status": runtime["clean_release_attestation"]},
+        "mechanism_gate_a": {
+            "status": "passed" if mechanism["gate_a_pass"] else "blocked"
+        },
+        "formal_benchmark": {
+            "status": formal["status"],
+            "method_families_ready": (
+                f"{readiness['ready']}/{readiness['required']}"
+            ),
+            "benchmark_claim_allowed": formal["benchmark_claim_allowed"],
+        },
+        "publication": {
+            "status": publication["status"],
+            "publication_ready": publication["publication_ready"],
+        },
+        "interpretation": (
+            "Backend validation, release attestation, mechanism identifiability, "
+            "formal benchmark readiness, and publication readiness are independent."
+        ),
+    }
+
+
 def _write_current_registry() -> None:
     current = json.loads(CURRENT_REGISTRY.read_text(encoding="utf-8"))
     backend = json.loads((ROOT / node_map()["backend_candidate"].path).read_text())
@@ -393,7 +599,7 @@ def _write_current_registry() -> None:
             "gate_state": _node_gate_state(node, payload),
         }
 
-    current["schema_version"] = "chemworld-current-surface-registry-0.2"
+    current["schema_version"] = "chemworld-current-surface-registry-0.3"
     current["updated_at"] = date.today().isoformat()
     current["project"].update(
         {
@@ -462,7 +668,7 @@ def _write_current_registry() -> None:
         },
     }
     current["state_model"] = {
-        "schema_version": "chemworld-evidence-state-model-0.1",
+        "schema_version": "chemworld-evidence-state-model-0.2",
         "dimensions": {
             "artifact_state": ["current", "stale", "historical", "pending"],
             "gate_state": ["passed", "blocked", "pending", "not_applicable"],
@@ -475,6 +681,7 @@ def _write_current_registry() -> None:
             ],
         },
         "rules": [
+            "status is the canonical lifecycle enum and booleans are derived claims",
             "current means regenerated from the declared DAG, not scientifically ready",
             (
                 "frozen requires a clean source-attested candidate and is never "
@@ -515,6 +722,7 @@ def _write_current_registry() -> None:
             "method_freeze_ready": method["method_freeze_ready"],
             "bench_unlock_allowed": method["bench_unlock_allowed"],
             "blocker_count": len(method["blockers"]),
+            "method_family_readiness": _formal_method_readiness(method),
             "formal_results_present": False,
             "benchmark_claim_allowed": False,
         }
@@ -537,6 +745,31 @@ def _write_current_registry() -> None:
             "publication_ready": False,
         }
     )
+    current["development_evidence"] = {
+        "classic": {
+            "methods": "configs/methods/classic_v0.4.1/classic_methods.json",
+            "report": "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
+            "artifact_state": "current",
+            "artifact_roles": ["development_input", "development_diagnostic"],
+        },
+        "operation": {
+            "methods": "configs/methods/operation_v0.4.1/operation_methods.json",
+            "report": (
+                "workstreams/benchmark_v1/reports/"
+                "operation-baselines-dev-v0.4.1.json"
+            ),
+            "artifact_state": "current",
+            "artifact_roles": ["development_input", "development_diagnostic"],
+        },
+        "live_llm": {
+            "target_version": "v0.4.11",
+            "report": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json",
+            "artifact_state": "pending",
+            "artifact_roles": ["planned_output"],
+            "resume_prior_caches": False,
+        },
+        "formal_benchmark_evidence": False,
+    }
     current["publication"] = {
         "status": "no_active_manuscript",
         "archived_working_draft": (
@@ -612,8 +845,9 @@ def check_current_evidence() -> list[str]:
     except ValueError as error:
         return [str(error)]
     current = json.loads(CURRENT_REGISTRY.read_text(encoding="utf-8"))
-    if current.get("schema_version") != "chemworld-current-surface-registry-0.2":
+    if current.get("schema_version") != "chemworld-current-surface-registry-0.3":
         errors.append("current registry schema version is stale")
+    errors.extend(validate_current_registry_paths(current))
     dag = current.get("evidence_dag", {})
     if dag.get("graph_sha256") != graph_sha256():
         errors.append("current registry evidence graph hash is stale")
@@ -699,11 +933,15 @@ def parse_args() -> argparse.Namespace:
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--refresh", action="store_true")
     mode.add_argument("--check", action="store_true")
+    mode.add_argument("--status", action="store_true")
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
+    if args.status:
+        print(json.dumps(current_status_summary(), indent=2, sort_keys=True))
+        return 0
     if args.refresh:
         refresh()
     errors = check_current_evidence()

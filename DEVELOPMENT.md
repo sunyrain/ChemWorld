@@ -23,8 +23,9 @@
 | cache、`__pycache__`、文档 `site/`、LaTeX `build/` | 可再生派生物，可以安全清理 |
 | `paper/figures/*.pdf` | 论文引用的确定性构建产物；PNG 预览不再生成或跟踪 |
 
-`paper/ncs/` 是当前 NCS 工作稿；仓库根部的 `paper/main.*` 是保留的较早论文快照。二者并非可直接
-去重的副本，删除前必须先完成引用和证据账本迁移。
+当前没有活动论文稿。2026-07-21 的 NCS 工作稿已经归档到
+`paper/archive/ncs-working-draft-2026-07-21/`；仓库根部的 `paper/main.*` 是更早的历史快照。历史稿件
+并非可直接去重的副本，删除前必须先完成引用和证据账本迁移。
 
 ## 开发流程
 
@@ -33,6 +34,13 @@
 3. 修改 runtime 或协议时增加定向测试；修改冻结语义时创建新版本，保留旧入口供回放。
 4. 运行 `ruff`、相关 `pytest`、配置与证据审计，再关闭 claim。
 5. 提交前用 `git status --short` 检查未跟踪文件，尤其避免提交密钥、私有 seed 或 provider 原始响应。
+
+### Source 与 evidence 的两提交证明模式
+
+需要绑定 source commit 的生成证据采用两个连续提交：第一个提交只包含源码、协议与测试；随后在这个
+干净 source commit 上按 evidence DAG 生成报告和 `configs/current.json`，第二个提交只物化这些证据视图。
+因此 evidence-only 提交的 HEAD 比报告中的 `source_commit` 前进一个提交是预期状态，不是 stale evidence。
+一旦第二个提交混入新的源码或协议变化，原证明立即失效，必须重新从新的干净 source commit 生成。
 
 常用检查：
 

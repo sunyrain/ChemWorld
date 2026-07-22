@@ -24,6 +24,7 @@ from typing import Any, cast
 import numpy as np
 
 from chemworld.agents.mechanism_adaptation_live_llm import (
+    CandidateLabelMode,
     MechanismAdaptationLiveLLMAgent,
     MechanismCandidateSpec,
 )
@@ -214,21 +215,21 @@ def _sample_paired_contrast_job(job: Mapping[str, Any]) -> list[float]:
         str(key): np.asarray(value, dtype=float)
         for key, value in job["action_library"].items()
     }
-    common = {
-        "task_id": str(job["task_id"]),
-        "seed": int(job["world_seed"]),
-        "action_library": action_library,
-        "experiment_horizon": len(action_ids),
-    }
     with PublicCampaignObservationSession(
-        **common,
+        task_id=str(job["task_id"]),
+        seed=int(job["world_seed"]),
         interventions=(),
+        action_library=action_library,
+        experiment_horizon=len(action_ids),
         observation_seed=int(job["pre_observation_seed"]),
     ) as pre_session:
         pre = [np.asarray(pre_session.observe(action_id), dtype=float) for action_id in action_ids]
     with PublicCampaignObservationSession(
-        **common,
+        task_id=str(job["task_id"]),
+        seed=int(job["world_seed"]),
         interventions=job["interventions"],
+        action_library=action_library,
+        experiment_horizon=len(action_ids),
         observation_seed=int(job["post_observation_seed"]),
     ) as post_session:
         post = [
@@ -617,7 +618,10 @@ def _run_paired_gate_a(
             trial_jobs,
             workers=int(certificate_plan.get("execution_workers", 1)),
         )
-        task_trials = {"active_budget_2": [], "decoder_budget_2": []}
+        task_trials: dict[str, list[dict[str, Any]]] = {
+            "active_budget_2": [],
+            "decoder_budget_2": [],
+        }
         for (truth_id, _repeat_index), completed in zip(
             trial_keys, completed_trials, strict=True
         ):
@@ -761,10 +765,10 @@ def run_gate_a(
     active_by_budget: dict[int, dict[str, Any]] = {}
     decoder_by_budget: dict[int, dict[str, Any]] = {}
     task_reports: dict[str, Any] = {}
-    active_truths = {budget: [] for budget in budgets}
-    active_predictions = {budget: [] for budget in budgets}
-    decoder_truths = {budget: [] for budget in budgets}
-    decoder_predictions = {budget: [] for budget in budgets}
+    active_truths: dict[int, list[str]] = {budget: [] for budget in budgets}
+    active_predictions: dict[int, list[str]] = {budget: [] for budget in budgets}
+    decoder_truths: dict[int, list[str]] = {budget: [] for budget in budgets}
+    decoder_predictions: dict[int, list[str]] = {budget: [] for budget in budgets}
     candidate_union: list[str] = []
 
     for task_index, task_id in enumerate(protocol["design"]["tasks"]):
@@ -984,6 +988,7 @@ def run_campaign_row(
         )
         for candidate_id in row["candidate_ids"]
     )
+    candidate_label_mode = _parse_candidate_label_mode(row["candidate_label_mode"])
     agent = MechanismAdaptationLiveLLMAgent(
         client,
         role_id=f"mechanism_adaptation_{method_id}",
@@ -991,7 +996,7 @@ def run_campaign_row(
         response_max_tokens=int(request["max_tokens"]),
         fail_fast_on_unbillable_provider_failure=True,
         candidate_specs=specs,
-        candidate_label_mode=str(row["candidate_label_mode"]),
+        candidate_label_mode=candidate_label_mode,
         candidate_order_seed=int(row["candidate_order_seed"]),
         randomize_candidate_order=True,
     )
@@ -1028,6 +1033,13 @@ def run_campaign_row(
         }
     )
     return result
+
+
+def _parse_candidate_label_mode(value: Any) -> CandidateLabelMode:
+    mode = str(value)
+    if mode not in {"semantic", "anonymous"}:
+        raise ValueError("candidate_label_mode must be semantic or anonymous")
+    return cast(CandidateLabelMode, mode)
 
 
 def selected_campaign_rows(

@@ -40,7 +40,13 @@ CURRENT_TRUTH_MARKERS = {
 }
 REQUIRED_NARRATIVE_MARKERS = {
     "docs/index.md": ("让实验智能拥有自己的世界引擎", "同一个任务", "不直接迁移配方"),
-    "docs/vision.md": ("实验交互的规模瓶颈", "Core、Bench 与 Bridge"),
+    "docs/vision.md": (
+        "实验交互的规模瓶颈",
+        "ChemWorld Engine",
+        "ChemWorld Bench",
+        "ChemWorld Lab",
+        "ChemWorld Bridge",
+    ),
     "docs/experimental_intelligence.md": ("测量本身也是行动", "失败恢复也是能力"),
     "docs/causal_worlds.md": ("World、Task 与 Scenario", "为什么只换 Seed 不够"),
     "docs/benchmark_overview.md": ("适应需要自己的指标", "不同 Agent Track 分开报告"),
@@ -63,6 +69,11 @@ ENGLISH_NAV_TARGETS = (
     "benchmark_overview.md",
     "research_findings.md",
     "real_world_bridge.md",
+)
+README_BOUNDARY_MARKERS = (
+    "formal benchmark",
+    "0/6",
+    "no Bench results",
 )
 
 
@@ -151,7 +162,10 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         "language_switch_present": set(language_configs) == {"zh", "en"}
         and language_configs["zh"].get("default") is True
         and i18n_config.get("reconfigure_material") is True,
-        "english_navigation_present": tuple(english_nav_targets) == ENGLISH_NAV_TARGETS,
+        "english_navigation_present": _is_ordered_subset(
+            ENGLISH_NAV_TARGETS,
+            tuple(english_nav_targets),
+        ),
         "english_is_not_a_chinese_nav_section": "English" not in chinese_nav_labels,
         "locale_sources_are_isolated": i18n_config.get("docs_structure") == "suffix"
         and i18n_config.get("fallback_to_default") is False,
@@ -192,8 +206,11 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         "professional_information_architecture": all(nav_checks.values()),
         "folding_contract": all(folding_checks.values()),
         "chemworld_is_primary_brand": "site_name: ChemWorld\n" in mkdocs,
-        "readme_boundary_explicit": "complete benchmark is not yet validated"
-        in (root / "README.md").read_text(encoding="utf-8").lower(),
+        "readme_boundary_explicit": all(
+            marker.lower()
+            in (root / "README.md").read_text(encoding="utf-8").lower()
+            for marker in README_BOUNDARY_MARKERS
+        ),
     }
     return {
         "schema_version": "chemworld-public-docs-audit-0.4",
@@ -229,6 +246,13 @@ def _plugin_config(plugins: list[Any], name: str) -> dict[str, Any]:
             config = plugin[name]
             return config if isinstance(config, dict) else {}
     return {}
+
+
+def _is_ordered_subset(required: tuple[str, ...], actual: tuple[str, ...]) -> bool:
+    """Return whether all required navigation targets occur in their declared order."""
+
+    cursor = iter(actual)
+    return all(any(candidate == item for candidate in cursor) for item in required)
 
 
 def _nav_labels(nav: list[Any]) -> list[str]:

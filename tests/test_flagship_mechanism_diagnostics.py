@@ -19,6 +19,7 @@ from chemworld.eval.flagship_diagnostics import (
     build_flagship_diagnostic_report,
     load_flagship_diagnostic_protocol,
     render_flagship_diagnostic_markdown,
+    summarize_phase,
 )
 from chemworld.foundation import equipment_settings
 from chemworld.runtime.electrochemical_services import (
@@ -40,6 +41,15 @@ class _FakeClient:
 
     def estimate_cost_usd(self, _: dict[str, Any]) -> float:
         return 0.0
+
+
+def test_repository_trajectory_references_are_serialized_portably() -> None:
+    path = Path(__file__).resolve()
+
+    summary = summarize_phase([], path=path)
+
+    assert summary["trajectory_path"] == "tests/test_flagship_mechanism_diagnostics.py"
+    assert summary["trajectory_reference_kind"] == "repository_relative"
 
 
 class _RecordingPublicAgent(BaseAgent):

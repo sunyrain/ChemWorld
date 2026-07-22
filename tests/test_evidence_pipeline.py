@@ -36,6 +36,14 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     assert current["publication"]["status"] == "no_active_manuscript"
     assert current["publication"]["publication_ready"] is False
 
+    summary = pipeline["current_status_summary"](current)
+    assert summary["backend_candidate"]["contract_validation"] == "passed"
+    assert summary["release_attestation"]["status"] == "passed"
+    assert summary["mechanism_gate_a"]["status"] == "passed"
+    assert summary["formal_benchmark"]["method_families_ready"] == "0/6"
+    assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
+    assert summary["publication"]["publication_ready"] is False
+
 
 def test_generated_evidence_paths_do_not_make_source_tree_dirty() -> None:
     pipeline = _pipeline()

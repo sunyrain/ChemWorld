@@ -12,6 +12,10 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from chemworld.eval.artifact_paths import (
+    repository_relative_reference,
+    resolve_flagship_trajectory_reference,
+)
 from chemworld.eval.mechanism_adaptation import declared_distribution_update
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -29,19 +33,30 @@ def build_flagship_reanalysis(
     source: Mapping[str, Any],
     *,
     source_path: Path = SOURCE_REPORT,
+    repository_root: Path = ROOT,
 ) -> dict[str, Any]:
     """Reclassify v0.1 without changing its raw trajectories or original report."""
 
     campaigns = _unique_deepseek_campaigns(source.get("campaigns", []))
     shifted_traces = [
         (
-            _diagnostic_trace(Path(str(campaign["shifted"]["trajectory_path"]))),
+            _diagnostic_trace(
+                resolve_flagship_trajectory_reference(
+                    str(campaign["shifted"]["trajectory_path"]),
+                    repository_root=repository_root,
+                )
+            ),
             str(campaign["shifted_truth_id"]),
         )
         for campaign in campaigns
     ]
     all_traces = [
-        _diagnostic_trace(Path(str(campaign[phase]["trajectory_path"])))
+        _diagnostic_trace(
+            resolve_flagship_trajectory_reference(
+                str(campaign[phase]["trajectory_path"]),
+                repository_root=repository_root,
+            )
+        )
         for campaign in campaigns
         for phase in ("iid", "shifted")
     ]
@@ -50,12 +65,16 @@ def build_flagship_reanalysis(
     outcome_rows = _reclassified_outcomes(source)
     lifecycle = _lifecycle_audit(campaigns)
     ranking = _tie_aware_ranking(source)
-    integrity = _integrity_audit(source_path, campaigns)
+    integrity = _integrity_audit(
+        source_path,
+        campaigns,
+        repository_root=repository_root,
+    )
     old_resources = dict(source.get("resource_summary", {}))
     return {
         "schema_version": REANALYSIS_VERSION,
         "source_schema_version": source.get("schema_version"),
-        "source_report": _relative_path(source_path),
+        "source_report": _relative_path(source_path, root=repository_root),
         "source_report_sha256": _sha256(source_path),
         "status": "strict_reanalysis_complete",
         "benchmark_claim_allowed": False,
@@ -539,19 +558,24 @@ def _tie_aware_ranking(source: Mapping[str, Any]) -> dict[str, Any]:
 def _integrity_audit(
     source_path: Path,
     campaigns: Sequence[Mapping[str, Any]],
+    *,
+    repository_root: Path,
 ) -> dict[str, Any]:
     rows: list[dict[str, Any]] = []
     for campaign in campaigns:
         for phase in ("iid", "shifted"):
             artifact = campaign[phase]
-            path = Path(str(artifact["trajectory_path"]))
+            path = resolve_flagship_trajectory_reference(
+                str(artifact["trajectory_path"]),
+                repository_root=repository_root,
+            )
             observed = _sha256(path)
             expected = str(artifact["trajectory_sha256"])
             rows.append(
                 {
                     "campaign_id": campaign["campaign_id"],
                     "phase": phase,
-                    "path": _relative_path(path),
+                    "path": _relative_path(path, root=repository_root),
                     "expected_sha256": expected,
                     "observed_sha256": observed,
                     "matches": observed == expected,
@@ -590,9 +614,9 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _relative_path(path: Path) -> str:
+def _relative_path(path: Path, *, root: Path = ROOT) -> str:
     try:
-        return path.resolve().relative_to(ROOT.resolve()).as_posix()
+        return repository_relative_reference(path, repository_root=root)
     except ValueError:
         return str(path)
 
