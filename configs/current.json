@@ -1,5 +1,5 @@
 {
-  "schema_version": "chemworld-current-surface-registry-0.2",
+  "schema_version": "chemworld-current-surface-registry-0.3",
   "updated_at": "2026-07-22",
   "project": {
     "distribution": "chemworld-bench",
@@ -28,7 +28,11 @@
     "benchmark_claim_allowed": false,
     "method_freeze_ready": false,
     "bench_unlock_allowed": false,
-    "blocker_count": 30
+    "blocker_count": 30,
+    "method_family_readiness": {
+      "ready": 0,
+      "required": 6
+    }
   },
   "mechanism_adaptation": {
     "protocol": "configs/benchmark/mechanism_adaptation_v0.2.1.json",
@@ -44,12 +48,34 @@
     "design_audit_pass": true
   },
   "development_evidence": {
-    "classic_methods": "configs/methods/classic_v0.4.1/classic_methods.json",
-    "classic_report": "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
-    "operation_methods": "configs/methods/operation_v0.4.1/operation_methods.json",
-    "operation_report": "workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.1.json",
-    "live_llm_report": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json",
-    "evidence_role": "development_or_diagnostic_not_formal_bench"
+    "classic": {
+      "methods": "configs/methods/classic_v0.4.1/classic_methods.json",
+      "report": "workstreams/benchmark_v1/reports/classic-dev-v0.4.1.json",
+      "artifact_state": "current",
+      "artifact_roles": [
+        "development_input",
+        "development_diagnostic"
+      ]
+    },
+    "operation": {
+      "methods": "configs/methods/operation_v0.4.1/operation_methods.json",
+      "report": "workstreams/benchmark_v1/reports/operation-baselines-dev-v0.4.1.json",
+      "artifact_state": "current",
+      "artifact_roles": [
+        "development_input",
+        "development_diagnostic"
+      ]
+    },
+    "live_llm": {
+      "target_version": "v0.4.11",
+      "report": "workstreams/benchmark_v1/reports/live-llm-dev-v0.4.11.json",
+      "artifact_state": "pending",
+      "artifact_roles": [
+        "planned_output"
+      ],
+      "resume_prior_caches": false
+    },
+    "formal_benchmark_evidence": false
   },
   "repository_integrity": {
     "status": "current_evidence_coherent_worktree_clean",
@@ -83,7 +109,7 @@
     "raw_runs_require_a_manifested_retention_decision_before_deletion": true
   },
   "state_model": {
-    "schema_version": "chemworld-evidence-state-model-0.1",
+    "schema_version": "chemworld-evidence-state-model-0.2",
     "dimensions": {
       "artifact_state": [
         "current",
@@ -106,6 +132,7 @@
       ]
     },
     "rules": [
+      "status is the canonical lifecycle enum and booleans are derived claims",
       "current means regenerated from the declared DAG, not scientifically ready",
       "frozen requires a clean source-attested candidate and is never inferred from validation alone",
       "backend validation does not imply method freeze, formal results, or publication readiness",
@@ -224,7 +251,7 @@
         "path": "workstreams/benchmark_v1/reports/runtime-domain-affordance-audit-v0.4.json",
         "role": "development_control",
         "dependencies": [],
-        "sha256": "312a728bad0783efce1035ae076862234db6147757dba9d0ffba1fc13b2bdf24",
+        "sha256": "7a3b9c28e445d25b678ab461c30d4c4a82a90de0593e4f2a241f55f3f9f080e6",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -318,7 +345,7 @@
           "runtime_integration",
           "runtime_reachability_protocol"
         ],
-        "sha256": "2a0296d60b45d0e37dd04d36544d74baec96d22ed47a256d0695c5ae28572e20",
+        "sha256": "dc77a87867eb8edb97c1c1cb614680eef98dfd1df9bde94001237b08f746eb58",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -329,7 +356,7 @@
           "runtime_integration",
           "state_transition_protocol"
         ],
-        "sha256": "86b93d8e7ef004059396ee425fd87c5e89f02ef818c977a224c836f9f4f49a37",
+        "sha256": "c8e9fc32ca460feb5e2ff34093e7b39c8e8e07ed497fddd262bad4a48caa341d",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -341,7 +368,7 @@
           "runtime_integration",
           "runtime_reachability"
         ],
-        "sha256": "90ec4e420f7cfe840269a0b61f727e02a4889a43df25f12c4d01632fdd2f7c7d",
+        "sha256": "83b67ae15ea1e776c2c0f32df65b3cea41f9c52adaa5a265c343367466e88580",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -367,7 +394,7 @@
           "maturity_truth",
           "backend_protocol"
         ],
-        "sha256": "bbfff5870f40aa0252f92c33dc10100bcfc3a4bd9e622a9bbe82fb3a3b0b128e",
+        "sha256": "97afd1143562d348ac7fa374dee63dc4cec13e84482b73feb48846e70574f0f3",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -381,7 +408,7 @@
           "mechanism_protocol_report",
           "mechanism_public_matrix"
         ],
-        "sha256": "8db03c114484ca5d081b0755ddb74f0e597167c7f3d8a87663c2c576c18a73cd",
+        "sha256": "3a6e343acd4fe43d968bda7a3da46b62828d9dc4ea3e795d88a6ec1b90e04bfd",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -395,7 +422,7 @@
           "public_boundary",
           "runtime_integration"
         ],
-        "sha256": "c9d9cd98d7761d22a8eca573c7af8495de055b6e6bddd2cc02b2b81e2559b987",
+        "sha256": "baa4a89cbb6a1ea6f273d9a8831a757ffc7abec8746148876b9990572ad357dd",
         "artifact_state": "current",
         "gate_state": "passed"
       },
@@ -422,7 +449,7 @@
           "method_freeze_plan",
           "operation_development"
         ],
-        "sha256": "8ab3bd2c2b452df9137d3c45c4d02a01aeb6f94d8ec21096f13e7d618249d0b8",
+        "sha256": "03856de35c5e9735403737040ef5d7f48cf6a4ac6d6c75d3347700ede7981a55",
         "artifact_state": "current",
         "gate_state": "blocked"
       }
